@@ -1,4 +1,4 @@
-PIConGPU - A particle-in-cell code for GPGPUs
+PIConGPU - A Many GPGPU PIC Code
 ================================================================
 
 [![PIConGPU Presentation Video](http://img.youtube.com/vi/lgxVYl_pslI/0.jpg)](http://www.youtube.com/watch?v=lgxVYl_pslI)
@@ -6,27 +6,35 @@ PIConGPU - A particle-in-cell code for GPGPUs
 Introduction
 ------------
 
-PIConGPU is a relativistic
-[Particle-in-Cell](http://en.wikipedia.org/wiki/Particle-in-cell)
-(PIC) code running on
-[graphic processing units](http://en.wikipedia.org/wiki/Graphics_processing_unit)
-(GPUs). For Experts: PIConGPU is a fully 3D3V PIC-Code using various
-numerical schemes. These include: a Yee-Lattice like grid
-structure, particle pushers like the *Boris-* and the *Vay-Pusher*
-and current deposition schemes like the ones proposed by
-Villasenor-Buneman and Esirkepov. Macro-particle form factors
-include NGP (0th order), CIC (1st), TSC(2nd) and PSQ (3rd).
+PIConGPU is a fully relativistic, many
+[GPGPU](http://en.wikipedia.org/wiki/Graphics_processing_unit),
+3D3V particle-in-cell ([PIC](http://en.wikipedia.org/wiki/Particle-in-cell))
+code implementing various numerical schemes to solve the PIC cycle.
+Its features include:
+- a Yee-lattice like grid structure
+- particle pushers that solve the equation of motion for
+charged particles, e.g. the *Boris-* and the *Vay-Pusher*
+- Maxwell field solvers, e.g. *Yee's* and *Lehe's* scheme
+- current deposition schemes, proposed by
+*Villasenor-Buneman* and *Esirkepov*
+- macro-particle form factors ranging from NGP (0th order), CIC (1st), TSC(2nd) to PSQ (3rd)
 
 PIConGPU is developed and maintained by the
 [Junior Group Computational Radiation Physics](http://www.hzdr.de/db/Cms?pNid=132&pOid=30354)
 at the [Institute for Radiation Physics](http://www.hzdr.de/db/Cms?pNid=132)
 at [HZDR](http://www.hzdr.de/) in close collaboration with the Center
 for Information Services and High Performance Computing
-([ZIH](http://tu-dresden.de/die_tu_dresden/zentrale_einrichtungen/zih)) of the Technical University Dresden.
+([ZIH](http://tu-dresden.de/die_tu_dresden/zentrale_einrichtungen/zih)) of the
+Technical University Dresden ([TUD](http://www.tu-dresden.de)).
 
-GPUs today reach a performance up to
+Todays GPUs reach a performance up to
 [TFLOP/s](http://en.wikipedia.org/wiki/FLOPS)
-at considerable lower invest and maintenance cost compared to CPU-based compute architectures of similar performance.
+at considerable lower invest and maintenance cost compared to CPU-based compute
+architectures of similar performance. The latest high-performance systems
+([TOP500](http://www.top500.org/)) are enhanced by accelerator hardware that
+boost their peak performance up to the multi-PFLOP/s level. With its
+outstanding performance, PIConGPU is one of the **finalists** of the 2013s
+[Gordon Bell Prize](http://sc13.supercomputing.org/content/acm-gordon-bell-prize).
 
 The Particle-in-Cell algorithm is a central tool in plasma physics.
 It describes the dynamics of a plasma by computing the motion of
