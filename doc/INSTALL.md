@@ -53,10 +53,10 @@ We recomment to install at least "pngwriter".
     - list all available datasets: `$ splash2txt --list <FILE_PREFIX>`
 
 - for VampirTrace support
-    - download 5.11.2 or higher, e.g. from 
-    [wwwpub.zih.tu-dresden.de/~mlieber/](http://wwwpub.zih.tu-dresden.de/%7Emlieber/dcount/dcount.php?package=vampirtrace&get=VampirTrace-5.11.2.tar.gz)
+    - download 5.14.4 or higher, e.g. from 
+    [http://www.tu-dresden.de/die_tu_dresden/zentrale_einrichtungen/zih/forschung/projekte/vampirtrace](http://www.tu-dresden.de/die_tu_dresden/zentrale_einrichtungen/zih/forschung/projekte/vampirtrace)
     - build VampirTrace:
-        - extract with `$ tar -xfz VampirTrace-5.11.2.tar.gz`
+        - extract with `$ tar -xfz VampirTrace-5.14.4.tar.gz`
         - `$ ./configure --prefix=<VT_DIR> --with-cuda-dir=<CUDA_ROOT>`
         - `$ make all -j`
         - `$ make install`
