@@ -41,8 +41,8 @@ It describes the dynamics of a plasma by computing the motion of
 electrons and ions in the plasma based on
 [Maxwell's equations](http://en.wikipedia.org/wiki/Maxwell%27s_equations).
 
-Referencing & License
----------------------
+Referencing
+-----------
 
 PIConGPU is a *scientific project*. If you **present and/or publish** scientific
 results that used PIConGPU, you should set this as a **reference**.
@@ -51,10 +51,17 @@ Our according **up-to-date publication** at **the time of your publication**
 should be inquired from:
 - [https://github.com/ComputationalRadiationPhysics/picongpu/blob/master/REFERENCE.md](https://github.com/ComputationalRadiationPhysics/picongpu/blob/master/REFERENCE.md)
 
+
+Oral Presentations
+------------------
+
 The following slide should be part of **oral presentations**. It is intended to
 acknowledge the team maintaining PIConGPU and to support our community:
 (*coming soon*) presentation_picongpu.pdf
 (svg version, key note version, png version: 1920x1080 and 1024x768)
+
+Software License
+----------------
 
 *PIConGPU* is licensed under the **GPLv3+**. You can use our *libraries* with **GPLv3+
 or LGPLv3+** (they are *dual licensed*).
