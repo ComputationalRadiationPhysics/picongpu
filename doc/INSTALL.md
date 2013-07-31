@@ -17,7 +17,7 @@ Requirements
       e.g. version 1.49.0
 - subversion 1.6 or higher to get the sources 
     - (subversion 1.5.7 seems to be possible but is not recommended)
-- PiconGPU2
+- PIConGPU
     - `$ svn co --username <USER> https://fusionforge.zih.tu-dresden.de/svn/picongpu2/ <PIC_DIR>`
 
 ### Optional Libraries
