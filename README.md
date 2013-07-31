@@ -44,12 +44,12 @@ electrons and ions in the plasma based on
 Referencing & License
 ---------------------
 
-PIConGPU is a *scientific project*. If you present and/or publish
-scientific results that used PIConGPU, the according **publication** you should
-set a **reference** to is:
-- H Burau, et al,
-  [PIConGPU : A Fully Relativistic Particle-in-Cell Code for a GPU Cluster](http://dx.doi.org/10.1109/TPS.2010.2064310),
-  IEEE Transactions on Plasma Science 38(10), 2831-2839 (October 2010)
+PIConGPU is a *scientific project*. If you **present and/or publish** scientific
+results that used PIConGPU, you should set this as a **reference**.
+
+Our according **up-to-date publication** at **the time of your publication**
+should be inquired from:
+- [https://github.com/ComputationalRadiationPhysics/picongpu/blob/master/REFERENCE.md](https://github.com/ComputationalRadiationPhysics/picongpu/blob/master/REFERENCE.md)
 
 The following slide should be part of **oral presentations**. It is intended to
 acknowledge the team maintaining PIConGPU and to support our community:

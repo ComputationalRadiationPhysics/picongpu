@@ -45,6 +45,9 @@ A nice overview about the *humongous* number of tutorials can be found at
 than 1% of all git commands available?)
 - [git-tower.com](http://www.git-tower.com/files/cheatsheet/Git_Cheat_Sheet_grey.pdf) (print the 1st page)
 - [github.com - "cheat git" gem](https://help.github.com/articles/git-cheatsheet) (a cheat sheet for the console)
+- [kernel.org](https://www.kernel.org/pub/software/scm/git/docs/everyday.html) *Everyday GIT with 20 commands or so*
+- [an other interactive, huge cheat sheet](http://ndpsoftware.com/git-cheatsheet.html)
+  (nice overview about stash - workspace - index - local/remote repositories)
 
 ### git for svn users
 
@@ -53,28 +56,46 @@ If you already used version control systems before, you may enjoy the
 
 Anyway, please keep in mind to use git *not* like a centralized version control
 system (e.g. *not* like svn). Imagine git as your *own private* svn server
-waiting for your commits. Github is more **one of many** *sources for upates*.
+waiting for your commits. For example *Github.com* is only **one out of many** *sources for updates*.
+(But of course, we agree to share our *finished* new features there.)
 
 ### github workflow
 
 https://help.github.com/
 github intro - fork project
-pull requests
-
-### maintainer notes
-  Push / Pull request policies
-  http://nvie.com/posts/a-successful-git-branching-model/
+pull requests & policies
 
 Developers with a Mac may like to visit http://mac.github.com/
+
+### maintainer notes
+
+- do not *push* to the main repository on a regular basis, use **pull request**
+  for your features like everyone else
+- **never** do a *rebase* on the upstream repositories
+  (this causes heavy problems for everyone who pulls them)
+- on the other hand try to use
+  [pull --rebase](http://kernowsoul.com/blog/2012/06/20/4-ways-to-avoid-merge-commits-in-git/)
+  to **avoid merge commits** (in your local/topic branches)
+- do not vote on your *own pull requests*, wait for the other maintainers
+- we try to follow the strategy of [a-successful-git-branching-model](http://nvie.com/posts/a-successful-git-branching-model/)
 
 *******************************************************************************
 
 coding guide lines
 ------------------
 
-Well - there are some! ;) *coming soon*
+Well - there are some! ;)
+- *coming soon* (in a separate file)
 
-add (L)GPL headers: template for new files
+Please **add the according license header** snippet to your *new files*:
+- for PIConGPU (GPLv3+): `src/tools/bin/addLicense <FileName>`
+- for libraries (LGPLv3+ & GPLv3+):
+  `export PROJECT_NAME=libgpugrid && src/tools/bin/addLicense <FileName>`
+- delete other headers: `src/tools/bin/deleteHeadComment <FileName>`
+- add license to all .hpp files within a directory (recursive):
+  `export PROJECT_NAME=PIConGPU && src/tools/bin/findAndDo <PATH> "*.hpp" src/tools/bin/addLicense`
+- the default project name ist `PIConGPU` (case sensitive!) and adds the GPLv3+
+  only.
 
 *******************************************************************************
 
