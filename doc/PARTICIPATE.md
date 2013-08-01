@@ -22,7 +22,7 @@ Contents
 to do list:
 - [ ] coding guide lines, styles/fileHeaders/...
 - [x] commit rules
-- [ ] compile suite movie
+- [ ] compile suite movie -> COMMIT.md
 - [x] git for svn users
 - [x] explain pull requests
 
@@ -107,6 +107,7 @@ than 1% of all git commands available?)
 Please spend a minute to learn how to write **useful**
 [git commit](https://github.com/blog/926-shiny-new-commit-styles)
 **messages** (caption-style, maximum characters per line, use blank lines, present tense)
+and read our [commit rules](#commit-rules).
 
 If you like, you can **credit** someone else for your **next commit** with:
 - `git credit "John Doe" john@example.com`
