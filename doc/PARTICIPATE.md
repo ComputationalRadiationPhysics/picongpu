@@ -1,12 +1,29 @@
-PIConGPU - How to participate
+How to Participate as a Developer
 ===============================================================================
+
+Contents
+--------
+
+1. [Code - Version Control](#code---version-control)
+ - [git](#git)
+ - [git for svn users](#git-for-svn-users)
+2. [GitHub Workflow](#github-workflow)
+ - [How to fork from us](#how-to-fork-from-us)
+ - [Keep track of updates](#keep-track-of-updates)
+ - [Pull requests or *being social*](#pull-requests-or-being-social)
+ - [maintainer notes](#maintainer-notes)
+ - [Last but not least](#last-but-not-least)
+3. [coding guide lines](#coding-guide-lines)
+4. [Test Suite Examples](#test-suite-examples)
+
+*******************************************************************************
 
 to do list:
 - [ ] coding guide lines, styles/fileHeaders/...
 - [ ] commit rules
 - [ ] compile suite movie
 - [x] git for svn users
-- [ ] explain pull requests
+- [x] explain pull requests
 
 *******************************************************************************
 
@@ -120,9 +137,31 @@ Now solve your conflicts, if there are any, and you got it! Well done!
 How to propose that **your awesome feature** (we know it will be awesome!) should be
 included in the **mainline PIConGPU** version?
 
-...
+Due to the so called
+[pull requests](https://help.github.com/articles/using-pull-requests)
+in *GitHub*, this quite easy (yeah, sure). We start again with a
+*forked repository* of our own. You already created a **new feature branch**
+starting from our **dev** branch and commited your changes. Finally, you
+[pushed](http://www.mariopareja.com/blog/archive/2010/01/11/how-to-push-a-new-local-branch-to-a-remote.aspx)
+your local branch to *your* GitHub repository: `git push -u origin <yourLocalBranchName>`
 
-pull requests & policies
+Now let's start a *review*. Open the *GitHub* homepage, go to your repository and
+switch to your *pushed feature branch*. Select the green **compare & review**
+button. Now compare the changes between **your feature branch** and **our dev**.
+
+Everything looks good? Submit it as a **pull request** (link in the header).
+
+Afterwards, a fruitful ( *wuhu, we love you - don't be scared* ) *discussion*
+about your **submitted change set** will start. If we find some things you
+could *improve* ( *That looks awesome, all right!* ), simply change your
+*local feature branch* and *push the changes back* to your GitHub repository,
+to **update the pull request**.
+
+As a **best practive agreement**, we wait for at least **two** of our
+[maintainers](../README.md#maintainers-and-core-developers) to review the pull
+request until it is merged.
+
+Sharing is caring! Thank you for participating, **you are great**!
 
 ### maintainer notes
 
