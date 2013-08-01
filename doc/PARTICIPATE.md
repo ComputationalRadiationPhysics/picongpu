@@ -9,6 +9,7 @@ Contents
  - [git](#git)
  - [git for svn users](#git-for-svn-users)
 2. [GitHub Workflow](#github-workflow)
+ - [In a Nutshell](#in-a-nutshell)
  - [How to Fork From Us](#how-to-fork-from-us)
  - [Keep Track of Updates](#keep-track-of-updates)
  - [Pull Requests or *Being Social*](#pull-requests-or-being-social)
@@ -129,6 +130,43 @@ GitHub Workflow
 Welcome to github! We will try to explain our coordination strategy (I am out
 of here!) and our development workflow in this section.
 
+### In a Nutshell
+
+Create a *GitHub* account and prepare your [basic git config](#install-git).
+
+Prepare your *forked* copy of our repository:
+- fork on *GitHub*
+- `git clone git@github.com:<YourUserName>/picongpu.git` (create local copy)
+- `git remote add mainline git@github.com:ComputationalRadiationPhysics/picongpu.git`
+  (add our main repository for updates)
+- `git checkout dev` (switch to our dev branch to start from)
+
+Start a *topic/feature branch*:
+- `git checkout -b <newFeatureName>` (start a new branch from dev and check it out)
+- *hack hack*
+- `git add <yourChangedFiles>` (add changed and new files to index)
+- `git commit` (commit your changes to your *local* repository)
+- `git pull --rebase mainline dev` (update with our *remote dev* updates and
+  avoid a [merge commit](http://kernowsoul.com/blog/2012/06/20/4-ways-to-avoid-merge-commits-in-git/))
+
+Optional, *clean up* your feature branch:
+- `git pull`, `git pull --rebase mainline dev` (apply updates to your feature branch)
+- `git log ..mainline/dev` (check for related commits and ugly merge commits)
+- `git rebase mainline/dev` (re-apply your changes after a fresh update to the
+  `mainline/dev`, see [here](http://git-scm.com/book/en/ch3-6.html))
+- `git rebase -i mainline/dev`
+  ([squash](http://blog.steveklabnik.com/posts/2012-11-08-how-to-squash-commits-in-a-github-pull-request)
+  related commits to reduce the complexity of the features history during a
+  [pull request](https://help.github.com/articles/using-pull-requests))
+
+*Publish* your feature and start a *pull request*:
+- `git push -u origin <newFeatureName>` (push your local branch to your github
+  profile)
+- Go to your *GitHub* page and open a *pull request*, e.g. by clicking on
+  *compare & review*
+- Add additional updates (if requested to do so) by `push`-ing to your branch
+  again. This will update the *pull request*
+
 ### How to fork from us
 
 To keep our development fast and conflict free, we recomment you to
@@ -218,6 +256,8 @@ Sharing is caring! Thank you for participating, **you are great**!
 
 Last but not least, [help.github.com](https://help.github.com/) has a very nice
 FAQ section.
+
+More [best practices](http://codeinthehole.com/writing/pull-requests-and-other-good-practices-for-teams-using-github/).
 
 *******************************************************************************
 
