@@ -5,22 +5,23 @@ Contents
 --------
 
 1. [Code - Version Control](#code---version-control)
+ - [Install git](#install-git)
  - [git](#git)
  - [git for svn users](#git-for-svn-users)
 2. [GitHub Workflow](#github-workflow)
- - [How to fork from us](#how-to-fork-from-us)
- - [Keep track of updates](#keep-track-of-updates)
- - [Pull requests or *being social*](#pull-requests-or-being-social)
- - [maintainer notes](#maintainer-notes)
- - [Last but not least](#last-but-not-least)
-3. [coding guide lines](#coding-guide-lines)
-4. [Test Suite Examples](#test-suite-examples)
+ - [How to Fork From Us](#how-to-fork-from-us)
+ - [Keep Track of Updates](#keep-track-of-updates)
+ - [Pull Requests or *Being Social*](#pull-requests-or-being-social)
+ - [Maintainer Notes](#maintainer-notes)
+3. [Coding Guide Lines](#coding-guide-lines)
+4. [Commit Rules](#commit-rules)
+5. [Test Suite Examples](#test-suite-examples)
 
 *******************************************************************************
 
 to do list:
 - [ ] coding guide lines, styles/fileHeaders/...
-- [ ] commit rules
+- [x] commit rules
 - [ ] compile suite movie
 - [x] git for svn users
 - [x] explain pull requests
@@ -31,6 +32,39 @@ Code - Version Control
 ----------------------
 
 If you are familiar with git, feel free to jump to our [github workflow](#github-workflow) section.
+
+### install git
+
+**Debian/Ubuntu**:
+- `sudo apt-get install git`
+
+Optional *one* of these. There are nice GUI tools available to get an overview
+on your repository.
+- `gitk git-gui qgit gitg`
+
+**Mac**:
+- see [here](https://help.github.com/articles/set-up-git#platform-mac)
+- you may like to visit http://mac.github.com/
+
+**Windows**:
+- see [here](http://lmgtfy.com/?q=debian+-+or+how+to+download+a+real+operating+system)
+- just kidding, it's [this link](https://help.github.com/articles/set-up-git#platform-windows)
+- please use UTF8 for your files and take care of
+  [line endings](https://help.github.com/articles/dealing-with-line-endings#platform-windows)
+
+**Configure** your global git settings:
+- `git config --global user.name NAME`
+- `git config --global user.email EMAIL@EXAMPLE.com`
+- `git config --global color.ui "auto"` (if you like colors)
+- `git config --global pack.threads "0"` (improved performance for multi cores)
+
+You may even improve your level of awesomeness by:
+- `git config --global branch.autosetuprebase always`
+  (see how to [avoide merge commits](#keep-track-of-updates))
+- `git config --global rerere.enable 1`
+  (see [git rerere](http://git-scm.com/blog/2010/03/08/rerere.html))
+
+
 
 ### git
 
@@ -74,6 +108,10 @@ Please spend a minute to learn how to write **useful**
 [git commit](https://github.com/blog/926-shiny-new-commit-styles)
 **messages** (caption-style, maximum characters per line, use blank lines, present tense)
 
+If you like, you can **credit** someone else for your **next commit** with:
+- `git credit "John Doe" john@example.com`
+- `git commit --author "$1 <$2>"`
+
 ### git for svn users
 
 If you already used version control systems before, you may enjoy the
@@ -107,15 +145,17 @@ start a fresh branch with `git branch <yourFeatureName>` and apply your changes 
 
 ### Keep track of updates
 
-We consider it a **best practice** *not to modify your master* branch (== our *dev*)
-branch at all. Instead you can use it to `pull` new updates from the original
-repository and to start **new feature branches** from.
+We consider it a **best practice** *not to modify your master* branch branch at
+all. Instead you can use it to `pull` new updates from the original
+repository. Take care to **switch to dev** by `git checkout dev` to start
+**new feature branches** from **dev**.
 
 So, if you are really clever, you can even
 [keep track](http://de.gitready.com/beginner/2009/03/09/remote-tracking-branches.html)
 of the *original dev* branch that way. Just start your new branch with
 `git branch --track <yourFeatureName> upstream/dev`
-instead. This allows you to immediatly pull or fetch from **our dev** and avoids typing.
+instead. This allows you to immediatly pull or fetch from **our dev** and avoids
+typing (during `git pull`).
 
 You should **add updates** from the original repository on a **regular basis**
 or *at least* when you *finished your feature*.
@@ -175,12 +215,8 @@ Sharing is caring! Thank you for participating, **you are great**!
 - do not vote on your *own pull requests*, wait for the other maintainers
 - we try to follow the strategy of [a-successful-git-branching-model](http://nvie.com/posts/a-successful-git-branching-model/)
 
-### Last but not least
-
-[help.github.com](https://help.github.com/) has a very
-nice FAQ section.
-
-Developers with a Mac may like to visit http://mac.github.com/
+Last but not least, [help.github.com](https://help.github.com/) has a very nice
+FAQ section.
 
 *******************************************************************************
 
@@ -199,6 +235,13 @@ Please **add the according license header** snippet to your *new files*:
   `export PROJECT_NAME=PIConGPU && src/tools/bin/findAndDo <PATH> "*.hpp" src/tools/bin/addLicense`
 - the default project name ist `PIConGPU` (case sensitive!) and adds the GPLv3+
   only.
+
+*******************************************************************************
+
+Commit Rules
+------------
+
+See our [commit rules page](COMMIT.md)
 
 *******************************************************************************
 
