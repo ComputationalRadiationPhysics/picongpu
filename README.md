@@ -1,9 +1,9 @@
-PIConGPU - A Many GPGPU PIC Code...!!:)!
+PIConGPU - A Many GPGPU PIC Code
 ================================================================
 
 [![PIConGPU Presentation Video](http://img.youtube.com/vi/lgxVYl_pslI/0.jpg)](http://www.youtube.com/watch?v=lgxVYl_pslI)
 
-Introduction!!!
+Introduction
 ------------
 
 PIConGPU is a fully relativistic, many
@@ -29,7 +29,7 @@ Besides the central PIC algorithm, we developed a wide range of tools and diagno
 - online, far-field radiation diagnostics for coherent and incoherent radiation
   emitted by charged particles
 - full hdf5 restart and dumping capabilties
-- 2D and 3D live view and diagnostics tools (which are realy cool - I like that)
+- 2D and 3D live view and diagnostics tools
 
 Todays GPUs reach a performance up to
 [TFLOP/s](http://en.wikipedia.org/wiki/FLOPS)
