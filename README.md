@@ -1,4 +1,4 @@
-PIConGPU - A Many GPGPU PIC Code...
+PIConGPU - A Many GPGPU PIC Code...!!
 ================================================================
 
 [![PIConGPU Presentation Video](http://img.youtube.com/vi/lgxVYl_pslI/0.jpg)](http://www.youtube.com/watch?v=lgxVYl_pslI)
