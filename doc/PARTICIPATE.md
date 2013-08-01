@@ -135,11 +135,12 @@ of here!) and our development workflow in this section.
 Create a *GitHub* account and prepare your [basic git config](#install-git).
 
 Prepare your *forked* copy of our repository:
-- fork on *GitHub*
+- fork [picongpu](https://github.com/ComputationalRadiationPhysics/picongpu)
+  on *GitHub*
 - `git clone git@github.com:<YourUserName>/picongpu.git` (create local copy)
 - `git remote add mainline git@github.com:ComputationalRadiationPhysics/picongpu.git`
   (add our main repository for updates)
-- `git checkout dev` (switch to our dev branch to start from)
+- `git checkout dev` (switch to our, its now *your*, dev branch to start from)
 
 Start a *topic/feature branch*:
 - `git checkout -b <newFeatureName>` (start a new branch from dev and check it out)
@@ -150,7 +151,8 @@ Start a *topic/feature branch*:
   avoid a [merge commit](http://kernowsoul.com/blog/2012/06/20/4-ways-to-avoid-merge-commits-in-git/))
 
 Optional, *clean up* your feature branch:
-- `git pull`, `git pull --rebase mainline dev` (apply updates to your feature branch)
+- `git pull` (if you pushed your branch already to your public repository)
+- `git pull --rebase mainline dev` (apply the mainline updates to your feature branch)
 - `git log ..mainline/dev`, `git log --oneline --graph --decorate --all` (check for related commits and ugly merge commits)
 - `git rebase mainline/dev` (re-apply your changes after a fresh update to the
   `mainline/dev`, see [here](http://git-scm.com/book/en/ch3-6.html))
@@ -165,7 +167,7 @@ Optional, *clean up* your feature branch:
 - Go to your *GitHub* page and open a *pull request*, e.g. by clicking on
   *compare & review*
 - Add additional updates (if requested to do so) by `push`-ing to your branch
-  again. This will update the *pull request*
+  again. This will update the *pull request*.
 
 ### How to fork from us
 
