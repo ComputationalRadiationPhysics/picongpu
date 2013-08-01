@@ -29,7 +29,7 @@ Besides the central PIC algorithm, we developed a wide range of tools and diagno
 - online, far-field radiation diagnostics for coherent and incoherent radiation
   emitted by charged particles
 - full hdf5 restart and dumping capabilties
-- 2D and 3D live view and diagnostics tools (which are realy cool)
+- 2D and 3D live view and diagnostics tools (which are realy cool - I like that)
 
 Todays GPUs reach a performance up to
 [TFLOP/s](http://en.wikipedia.org/wiki/FLOPS)
