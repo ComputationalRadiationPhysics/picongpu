@@ -151,7 +151,7 @@ Start a *topic/feature branch*:
 
 Optional, *clean up* your feature branch:
 - `git pull`, `git pull --rebase mainline dev` (apply updates to your feature branch)
-- `git log ..mainline/dev` (check for related commits and ugly merge commits)
+- `git log ..mainline/dev`, `git log --oneline --graph --decorate --all` (check for related commits and ugly merge commits)
 - `git rebase mainline/dev` (re-apply your changes after a fresh update to the
   `mainline/dev`, see [here](http://git-scm.com/book/en/ch3-6.html))
 - `git rebase -i mainline/dev`
