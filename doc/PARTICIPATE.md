@@ -60,8 +60,10 @@ on your repository.
 - `git config --global pack.threads "0"` (improved performance for multi cores)
 
 You may even improve your level of awesomeness by:
-- `git config --global branch.autosetuprebase always`
+- `git config --global alias.pr "pull --rebase"`
   (see how to [avoide merge commits](#keep-track-of-updates))
+- `git config --global alias.st "status -sb"` (short status version)
+- `git config --global alias.l "log --oneline --graph --decorate --all"` (branch history)
 - `git config --global rerere.enable 1`
   (see [git rerere](http://git-scm.com/blog/2010/03/08/rerere.html))
 
@@ -150,7 +152,7 @@ Start a *topic/feature branch*:
 - `git pull --rebase mainline dev` (update with our *remote dev* updates and
   avoid a [merge commit](http://kernowsoul.com/blog/2012/06/20/4-ways-to-avoid-merge-commits-in-git/))
 
-Optional, *clean up* your feature branch:
+Optional, *clean up* your feature branch. That can be *dangerous*:
 - `git pull` (if you pushed your branch already to your public repository)
 - `git pull --rebase mainline dev` (apply the mainline updates to your feature branch)
 - `git log ..mainline/dev`, `git log --oneline --graph --decorate --all` (check for related commits and ugly merge commits)
@@ -178,11 +180,12 @@ branch into your private repository. Simply click the *Fork* button above to do 
 Afterwards, `git clone` **your** repository to your
 [local machine](https://help.github.com/articles/fork-a-repo#step-2-clone-your-fork).
 But that is not it! To keep track of the original **dev** repository, add
-it as another [upstream](https://help.github.com/articles/fork-a-repo#step-3-configure-remotes).
-- `git remote add upstream https://github.com/ComputationalRadiationPhysics/picongpu.git`
+it as another [remote](https://help.github.com/articles/fork-a-repo#step-3-configure-remotes).
+- `git remote add mainline https://github.com/ComputationalRadiationPhysics/picongpu.git`
 
 Well done so far! Just start developing. Just like this? No! As always in git,
-start a fresh branch with `git branch <yourFeatureName>` and apply your changes there.
+start a *new branch* with `git checkout -b <yourFeatureName>` and apply your
+changes there.
 
 ### Keep track of updates
 
@@ -191,25 +194,27 @@ all. Instead you can use it to `pull` new updates from the original
 repository. Take care to **switch to dev** by `git checkout dev` to start
 **new feature branches** from **dev**.
 
-So, if you are really clever, you can even
+So, if you like to do so, you can even
 [keep track](http://de.gitready.com/beginner/2009/03/09/remote-tracking-branches.html)
 of the *original dev* branch that way. Just start your new branch with
-`git branch --track <yourFeatureName> upstream/dev`
-instead. This allows you to immediatly pull or fetch from **our dev** and avoids
-typing (during `git pull`).
+`git branch --track <yourFeatureName> mainline/dev`
+instead. This allows you to immediatly pull or fetch from **our dev** and
+avoids typing (during `git pull --rebase`). Nevertheless, if you like to `push` to
+*your* forked (== `origin`) repository, you have to say e.g.
+`git push origin <branchName>` explicitly.
 
 You should **add updates** from the original repository on a **regular basis**
 or *at least* when you *finished your feature*.
 - commit your local changes in your *feature branch*: `git commit`
 
-Now you *could* do a normal *merge* of the latest `upstream/dev` changes into
+Now you *could* do a normal *merge* of the latest `mainline/dev` changes into
 your feature branch. That is indeed possible, but will create an ugly
 [merge commit](http://kernowsoul.com/blog/2012/06/20/4-ways-to-avoid-merge-commits-in-git/).
 Instead try to first update *the point where you branched from* and apply
-your changes again. That is called a **rebase** and is indeed less harmful as
+your changes *again*. That is called a **rebase** and is indeed less harmful as
 reading the sentence before:
 - `git checkout <yourFeatureName>`
-- `git pull --rebase`
+- `git pull --rebase mainline dev`
 
 Now solve your conflicts, if there are any, and you got it! Well done!
 
@@ -248,11 +253,11 @@ Sharing is caring! Thank you for participating, **you are great**!
 
 - do not *push* to the main repository on a regular basis, use **pull request**
   for your features like everyone else
-- **never** do a *rebase* on the upstream repositories
+- **never** do a *rebase* on the mainline repositories
   (this causes heavy problems for everyone who pulls them)
 - on the other hand try to use
   [pull --rebase](http://kernowsoul.com/blog/2012/06/20/4-ways-to-avoid-merge-commits-in-git/)
-  to **avoid merge commits** (in your local/topic branches)
+  to **avoid merge commits** (in your *local/topic branches* **only**)
 - do not vote on your *own pull requests*, wait for the other maintainers
 - we try to follow the strategy of [a-successful-git-branching-model](http://nvie.com/posts/a-successful-git-branching-model/)
 
