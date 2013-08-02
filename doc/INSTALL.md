@@ -32,7 +32,7 @@ We recomment to install at least "pngwriter".
     - BUG in v0.5.4: please change in examples/pngtest.cc:48 from `#include <iostream.h>` to `#include <iostream>`
 
 - libSplash (requires hdf5)
-    - `$ svn co --username <USER> https://fusionforge.zih.tu-dresden.de/svn/datacollector/trunk/ <SPLASH_ROOT_DIR>`
+    - `$ git clone git@github.com:ComputationalRadiationPhysics/libSplash.git <SPLASH_ROOT_DIR>`
     - create a build `<BUILD>`  and a splash directory `<SPLASH_INSTALL>`
     - build in `<BUILD>` directory:
         - `$ cmake -DCMAKE_INSTALL_PREFIX=<SPLASH_INSTALL> <SPLASH_ROOT_DIR>`
