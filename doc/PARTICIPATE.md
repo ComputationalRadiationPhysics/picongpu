@@ -174,14 +174,16 @@ Optional, *clean up* your feature branch. That can be *dangerous*:
 ### How to fork from us
 
 To keep our development fast and conflict free, we recomment you to
-[fork](https://help.github.com/articles/fork-a-repo) our **dev** (development)
-branch into your private repository. Simply click the *Fork* button above to do so.
+[fork](https://help.github.com/articles/fork-a-repo) our repository and start
+your work from our **dev** (development)
+branch in your private repository. Simply click the *Fork* button above to do so.
 
 Afterwards, `git clone` **your** repository to your
 [local machine](https://help.github.com/articles/fork-a-repo#step-2-clone-your-fork).
 But that is not it! To keep track of the original **dev** repository, add
 it as another [remote](https://help.github.com/articles/fork-a-repo#step-3-configure-remotes).
 - `git remote add mainline https://github.com/ComputationalRadiationPhysics/picongpu.git`
+- `git checkout dev` (go to branch **dev**)
 
 Well done so far! Just start developing. Just like this? No! As always in git,
 start a *new branch* with `git checkout -b <yourFeatureName>` and apply your
