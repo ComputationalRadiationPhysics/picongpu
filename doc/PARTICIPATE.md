@@ -216,7 +216,7 @@ Instead try to first update *the point where you branched from* and apply
 your changes *again*. That is called a **rebase** and is indeed less harmful as
 reading the sentence before:
 - `git checkout <yourFeatureName>`
-- `git pull --rebase mainline dev`
+- `git pull --rebase mainline dev` (in case of an emergency, hit `git rebase --abort`)
 
 Now solve your conflicts, if there are any, and you got it! Well done!
 
