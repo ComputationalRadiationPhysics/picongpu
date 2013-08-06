@@ -6,11 +6,13 @@ Open Alpha
 
 Please note that this is an Open
 [Alpha](https://en.wikipedia.org/wiki/Software_release_life_cycle#Alpha)
-release for **developers** and **power users** *only*.
+release for **developers** and **power users** [only](#users).
 
 **Users** *should wait* for our 
 [Open Beta](https://github.com/ComputationalRadiationPhysics/picongpu/issues/milestones)
 release!
+
+********************************************************************************
 
 [![PIConGPU Presentation Video](http://img.youtube.com/vi/lgxVYl_pslI/0.jpg)](http://www.youtube.com/watch?v=lgxVYl_pslI)
 
