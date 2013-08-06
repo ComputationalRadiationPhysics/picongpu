@@ -1,6 +1,17 @@
 PIConGPU - A Many GPGPU PIC Code
 ================================================================
 
+Open Alpha
+----------
+
+Please note that this is an Open
+[Alpha](https://en.wikipedia.org/wiki/Software_release_life_cycle#Alpha)
+release for **developers** and **power users** *only*.
+
+**Users** *should wait* for our 
+[Open Beta](https://github.com/ComputationalRadiationPhysics/picongpu/issues/milestones)
+release!
+
 [![PIConGPU Presentation Video](http://img.youtube.com/vi/lgxVYl_pslI/0.jpg)](http://www.youtube.com/watch?v=lgxVYl_pslI)
 
 Introduction
@@ -28,7 +39,7 @@ charged particles, e.g. the *Boris-* and the *Vay-Pusher*
 Besides the central PIC algorithm, we developed a wide range of tools and diagnostics, e.g.:
 - online, far-field radiation diagnostics for coherent and incoherent radiation
   emitted by charged particles
-- full hdf5 restart and dumping capabilties
+- full hdf5 restart and dumping capabilities
 - 2D and 3D live view and diagnostics tools
 
 Todays GPUs reach a performance up to
@@ -87,6 +98,16 @@ See our notes in [INSTALL.md](doc/INSTALL.md).
 
 Users
 -----
+
+Dear User, please [beware](#open-alpha) that this is a **developer** and
+**power user** *only* release only! We hereby **emphasize** that *you should wait*
+for our **Beta** release.
+
+Please refer to our
+[Open Beta](https://github.com/ComputationalRadiationPhysics/picongpu/issues/milestones)
+milestones and be aware of
+**very limited support** and **heavily changing interfaces** until we announce
+our *Beta* release!
 
 Visit [picongpu.hzdr.de](http://picongpu.hzdr.de) to learn more about PIC
 codes. See the getting started guide (movie *coming soon*).
