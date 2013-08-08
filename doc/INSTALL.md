@@ -6,34 +6,34 @@ Requirements
 
 ### Mandatory
 
-- g++ 4.3 to 4.6 (depends on current CUDA version)
+- **gcc** 4.3 to 4.6 (depends on current CUDA version)
   - *Debian/Ubuntu:* `apt-get install gcc-4.4 build-essential`
 
-- [CUDA 5.5](https://developer.nvidia.com/cuda-downloads) or above
+- [CUDA 5.5](https://developer.nvidia.com/cuda-downloads) or higher
 
-- at least one CUDA capable GPU 
-  - **sm\_13** for basic PIC cycle, >= **sm\_20** for all features (higher order shapes, radiation, ...)
-  - [full list](https://developer.nvidia.com/cuda-gpus) of CUDA GPUs and their *Compute Capability*
-  - ([more](http://www.olcf.ornl.gov/titan/) than one GPU is always better)
+- at least one **CUDA** capable **GPU**
+  - **sm\_13** for basic PIC cycle, >= **sm\_20** for all features (higher order shapes, radiation diagnostics, ...)
+  - [full list](https://developer.nvidia.com/cuda-gpus) of CUDA GPUs and their *compute capability*
+  - ([More](http://www.olcf.ornl.gov/titan/) is always better. Especially, if we are talking about GPUs.)
 
-- cmake 2.8 or higher
+- **cmake** 2.8 or higher
   - *Debian/Ubuntu:* `sudo apt-get install cmake file cmake-curses-gui`
 
-- OpenMPI 1.4 or higher
+- **OpenMPI** 1.4 or higher
   - Debian/Ubuntu: `sudo apt-get install libopenmpi-dev`
 
-- zlib (tested with 1.2.7 or higher)
+- **zlib**
   - *Debian/Ubuntu:* `sudo apt-get install zlib1g-dev`
 
-- boost 1.47.0 or higher ("program options", "regex" and nearly all compile time libs)
+- **boost** 1.47.0 or higher ("program options", "regex" and nearly all compile time libs)
   - download from [http://www.boost.org/](http://sourceforge.net/projects/boost/files/boost/1.49.0/boost_1_49_0.tar.gz/download),
       e.g. version 1.49.0
   - *Debian/Ubuntu:* `sudo apt-get install libboost-program-options-dev libboost-regex-dev`
 
-- git
+- **git**
   - *Debian/Ubuntu:* `sudo apt-get install git`
 
-- PIConGPU
+- **PIConGPU**
     - `git clone https://github.com/ComputationalRadiationPhysics/picongpu.git ~/src/picongpu`
 
 ### Optional Libraries
@@ -41,9 +41,10 @@ Requirements
 If you do not install the optional libraries, you will not have the full amount of PIConGPU online analysers.
 We recomment to install at least **pngwriter**.
 
-- pngwriter
+- **pngwriter**
     - download our modified version from
       [github.com/ax3l/pngwriter](https://github.com/ax3l/pngwriter)
+    - Requires [libpng](http://www.libpng.org/), *Debian/Ubuntu:* `sudo apt-get install libpng-dev`
     - example:
       - `mkdir -p ~/src ~/build ~/lib`
       - `git clone https://github.com/ax3l/pngwriter.git ~/src/pngwriter/`
@@ -54,7 +55,7 @@ We recomment to install at least **pngwriter**.
       [PNGWRITER\_ROOT](#additional-required-environment-variables-for-optional-libraries)
       to `$HOME/lib/pngwriter`
 
-- libSplash (requires hdf5)
+- **libSplash** (requires *hdf5*)
     - example:
       - `mkdir -p ~/src ~/build ~/lib`
       - `git clone https://github.com/ComputationalRadiationPhysics/libSplash.git ~/src/splash/`
@@ -65,7 +66,8 @@ We recomment to install at least **pngwriter**.
       [SPLASH\_ROOT](#additional-required-environment-variables-for-optional-libraries)
       to `$HOME/lib/splash`
 
-- hdf5 >= 1.8.6, standard shared version (no c++, enable parallel), e.g. `hdf5/1.8.5-threadsafe`
+- **hdf5** >= 1.8.6, standard shared version (no c++, enable parallel), e.g. `hdf5/1.8.5-threadsafe`
+    - *Debian/Ubuntu:* `sudo apt-get install libhdf5-openmpi-dev`
     - example:
       - `mkdir -p ~/src ~/build ~/lib`
       - `cd ~/src`
@@ -82,7 +84,7 @@ We recomment to install at least **pngwriter**.
       [LD\_LIBRARY\_PATH](#additional-required-environment-variables-for-optional-libraries)
       to `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/lib/hdf5/lib`
 
-- splash2txt (libSplash and boost "program_options", "regex" required)
+- **splash2txt** (requires *libSplash* and *boost* "program_options", "regex")
     - inofficial tool shipped with the PIConGPU
     - assume you [downloaded](#requirements) PIConGPU to `~/src/picongpu`
     - `mkdir -p ~/build && cd ~/build`
@@ -93,7 +95,7 @@ We recomment to install at least **pngwriter**.
       - `splash2txt --help`
       - list all available datasets: `splash2txt --list <FILE_PREFIX>`
 
-- for VampirTrace support
+- for **VampirTrace** support
     - download 5.14.4 or higher, e.g. from 
     [http://www.tu-dresden.de](http://www.tu-dresden.de/die_tu_dresden/zentrale_einrichtungen/zih/forschung/projekte/vampirtrace)
     - example:
@@ -115,30 +117,30 @@ Install
 
 ### Mandatory environment variables
 
-- `CUDA_LIB`: library directory of cuda: 
+- `CUDA_LIB`: library directory of cuda, 
     e.g. `export CUDA_LIB=<CUDA_INSTALL>/lib64`
-- `MPI_ROOT`: mpi installation directory: 
+- `MPI_ROOT`: mpi installation directory, 
     e.g. `export MPI_ROOT=<MPI_INSTALL>`
-- extend your `$PATH` with helper tools for PIConGPU, see point:
+- extend your `$PATH` with helper tools for PIConGPU, see point,
     [Checkout and Build PIConGPU](#checkout-and-build-picongpu) *step 2.2*
 
 
 ### Additional required environment variables (for optional libraries)
 
 #### for splash and HDF5
-- `SPLASH_ROOT`: libsplash installation directory: 
+- `SPLASH_ROOT`: libsplash installation directory, 
     e.g. `export SPLASH_ROOT=$HOME/lib/splash`
-- `HDF5_ROOT`: hdf5 installation directory: 
+- `HDF5_ROOT`: hdf5 installation directory, 
     e.g. `export HDF5_ROOT=$HOME/lib/hdf5`
-- `LD_LIBRARY_PATH`: add path to $HOME/lib/hdf5/lib:
+- `LD_LIBRARY_PATH`: add path to $HOME/lib/hdf5/lib,
     e.g. `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/lib/hdf5/lib`
 
 #### for png support
-- `PNGWRITER_ROOT`: pngwriter installation directory:
+- `PNGWRITER_ROOT`: pngwriter installation directory,
   e.g. `export PNGWRITER_ROOT=<PNGWRITER_INSTALL>`
 
 #### environment variables for tracing
-- `VT_ROOT`: VampirTrace installation directory:
+- `VT_ROOT`: VampirTrace installation directory,
     e.g. `export PATH=$PATH:$HOME/lib/vampirtrace/bin`
 
 ### Installation notes
@@ -164,8 +166,8 @@ This is an example how to use the modular building environment of PIConGPU.
       - *optional:* update the source code with `cd ~/src/picongpu && git pull`
       - *optional:* change to a different branch with `git branch` (show) and
                     `git checkout <BranchName>` (switch)
-   2. `export PATH=$PATH:~/src/picongpu/src/tools/bin`
-   3. `export PICSRC=~/src/picongpu`
+   2. `export PATH=$PATH:$HOME/src/picongpu/src/tools/bin`
+   3. `export PICSRC=$HOME/src/picongpu`
 3. `$PICSRC/createParameterSet $PICSRC/examples/LaserWakefield/ ~/paramSets/case001`
    - Clone the LWFA example to `~/paramSets/case001`
    - Edit `~/paramSets/case001/include/simulation_defines/param/*` to change the
@@ -191,9 +193,9 @@ This is an example how to use the modular building environment of PIConGPU.
            -t submit/hypnos/k20_profile.tpl ~/runs/testBatch01`
     - This will create the directory `~/runs/testBatch01` were all
       simulation output will be written to.
-      (*Again*, do NOT use your home `~/runs`, change this path!)
-      This folder has a subfolder `picongpu` with the same structure as
-      `case001` and can be reused to:
+      ( *Again*, do NOT use your home `~/runs` - change this path!)
+    - `tbg` will create a subfolder `picongpu` in the directory of the run with
+      the same structure as `case001`. It can be reused to:
         - clone parameters as shown in step 3, by using this run as origin
         - create a new binary with configure (step 5):
           e.g. `$PICSRC/configure -i ~/paramSets/case002 ~/runs/testBatch01`
