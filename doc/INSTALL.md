@@ -7,61 +7,105 @@ Requirements
 ### Mandatory
 
 - g++ 4.3 to 4.6 (depends on current CUDA version)
-- CUDA Toolkit 5.5 or higher (or >=4.2 for <`sm_3x` cards)
-- nvidia cards: `sm_13` for basic PIC cycle, >=`sm_20` for features (higher order shapes, radiation, ...)
-- cmake 2.6 or higher
+  - *Debian/Ubuntu:* `apt-get install gcc-4.4 build-essential`
+
+- [CUDA 5.5](https://developer.nvidia.com/cuda-downloads) or above
+
+- at least one CUDA capable GPU 
+  - **sm\_13** for basic PIC cycle, >= **sm\_20** for all features (higher order shapes, radiation, ...)
+  - [full list](https://developer.nvidia.com/cuda-gpus) of CUDA GPUs and their *Compute Capability*
+  - ([more](http://www.olcf.ornl.gov/titan/) than one GPU is always better)
+
+- cmake 2.8 or higher
+  - *Debian/Ubuntu:* `sudo apt-get install cmake file cmake-curses-gui`
+
 - OpenMPI 1.4 or higher
+  - Debian/Ubuntu: `sudo apt-get install libopenmpi-dev`
+
 - zlib (tested with 1.2.7 or higher)
+  - *Debian/Ubuntu:* `sudo apt-get install zlib1g-dev`
+
 - boost 1.47.0 or higher ("program options", "regex" and nearly all compile time libs)
-    - download from [http://www.boost.org/](http://sourceforge.net/projects/boost/files/boost/1.49.0/boost_1_49_0.tar.gz/download),
+  - download from [http://www.boost.org/](http://sourceforge.net/projects/boost/files/boost/1.49.0/boost_1_49_0.tar.gz/download),
       e.g. version 1.49.0
-- subversion 1.6 or higher to get the sources 
-    - (subversion 1.5.7 seems to be possible but is not recommended)
+  - *Debian/Ubuntu:* `sudo apt-get install libboost-program-options-dev libboost-regex-dev`
+
+- git
+  - *Debian/Ubuntu:* `sudo apt-get install git`
+
 - PIConGPU
-    - `$ svn co --username <USER> https://fusionforge.zih.tu-dresden.de/svn/picongpu2/ <PIC_DIR>`
+    - `git clone https://github.com/ComputationalRadiationPhysics/picongpu.git ~/src/picongpu`
 
 ### Optional Libraries
 
 If you do not install the optional libraries, you will not have the full amount of PIConGPU online analysers.
-We recomment to install at least "pngwriter".
+We recomment to install at least **pngwriter**.
 
 - pngwriter
-    - download from
-      [http://pngwriter.sourceforge.net/](http://sourceforge.net/projects/pngwriter/files/pngwriter/pngwriter-0.5.4/pngwriter-0.5.4.tar.gz/download),
-      e.g. version 0.5.4
-    - BUG in v0.5.4: please change in examples/pngtest.cc:48 from `#include <iostream.h>` to `#include <iostream>`
+    - download our modified version from
+      [github.com/ax3l/pngwriter](https://github.com/ax3l/pngwriter)
+    - example:
+      - `mkdir -p ~/src ~/build ~/lib`
+      - `git clone https://github.com/ax3l/pngwriter.git ~/src/pngwriter/`
+      - `cd ~/build`
+      - `cmake -DCMAKE_INSTALL_PREFIX=~/lib/pngwriter ~/src/pngwriter`
+      - `make install`
+    - set the environment variable
+      [PNGWRITER\_ROOT](#additional-required-environment-variables-for-optional-libraries)
+      to `$HOME/lib/pngwriter`
 
 - libSplash (requires hdf5)
-    - `$ git clone git@github.com:ComputationalRadiationPhysics/libSplash.git <SPLASH_ROOT_DIR>`
-    - create a build `<BUILD>`  and a splash directory `<SPLASH_INSTALL>`
-    - build in `<BUILD>` directory:
-        - `$ cmake -DCMAKE_INSTALL_PREFIX=<SPLASH_INSTALL> <SPLASH_ROOT_DIR>`
-        - `$ make`
-        - `$ make install` creates splash library in `<SPLASH_INSTALL>`
-    - for environment variables see: "Additional required environment variables"
+    - example:
+      - `mkdir -p ~/src ~/build ~/lib`
+      - `git clone https://github.com/ComputationalRadiationPhysics/libSplash.git ~/src/splash/`
+      - `cd ~/build`
+      - `cmake -DCMAKE_INSTALL_PREFIX=~/lib/splash ~/src/splash`
+      - `make install`
+    - set the environment variable
+      [SPLASH\_ROOT](#additional-required-environment-variables-for-optional-libraries)
+      to `$HOME/lib/splash`
 
-- hdf5 1.8.x, standard shared version (no c++, not parallel), e.g. hdf5/1.8.5-threadsafe
-    - configure example:
-      `$ ./configure --enable-threadsafe --prefix $HOME/lib/hdf5/ --with-pthread=/lib`
+- hdf5 >= 1.8.6, standard shared version (no c++, enable parallel), e.g. `hdf5/1.8.5-threadsafe`
+    - example:
+      - `mkdir -p ~/src ~/build ~/lib`
+      - `cd ~/src`
+      - `wget www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.11.tar.gz`
+      - `tar -xvzf hdf5-1.8.11.tar.gz`
+      - `cd hdf5-1.8.11`
+      - `./configure --enable-parallel --enable-shared --prefix ~/lib/hdf5/`
+      - `make`
+      - *optional:* `make test`
+      - `make install`
+    - set the environment variable
+      [HDF5\_ROOT](#additional-required-environment-variables-for-optional-libraries)
+      to `$HOME/lib/hdf5` and the
+      [LD\_LIBRARY\_PATH](#additional-required-environment-variables-for-optional-libraries)
+      to `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/lib/hdf5/lib`
 
 - splash2txt (libSplash and boost "program_options", "regex" required)
     - inofficial tool shipped with the PIConGPU
-    - `$ cd src/splash2txt/build`
-    - `$ cmake ..`
-    - `$ make`
-    - options: `$ splash2txt --help`
-    - list all available datasets: `$ splash2txt --list <FILE_PREFIX>`
+    - assume you [downloaded](#requirements) PIConGPU to `~/src/picongpu`
+    - `mkdir -p ~/build && cd ~/build`
+    - `cmake ~/src/picongpu/src/splash2txt`
+    - `make`
+    - copy the binary `splash2txt` to a place in your `$PATH`)
+    - options:
+      - `splash2txt --help`
+      - list all available datasets: `splash2txt --list <FILE_PREFIX>`
 
 - for VampirTrace support
     - download 5.14.4 or higher, e.g. from 
-    [http://www.tu-dresden.de/die_tu_dresden/zentrale_einrichtungen/zih/forschung/projekte/vampirtrace](http://www.tu-dresden.de/die_tu_dresden/zentrale_einrichtungen/zih/forschung/projekte/vampirtrace)
-    - build VampirTrace:
-        - extract with `$ tar -xfz VampirTrace-5.14.4.tar.gz`
-        - `$ ./configure --prefix=<VT_DIR> --with-cuda-dir=<CUDA_ROOT>`
-        - `$ make all -j`
-        - `$ make install`
-        - add environment variable
-          `$ export PATH=$PATH:<VT_DIR>/bin`
+    [http://www.tu-dresden.de](http://www.tu-dresden.de/die_tu_dresden/zentrale_einrichtungen/zih/forschung/projekte/vampirtrace)
+    - example:
+      - `mkdir -p ~/src ~/build ~/lib`
+      - `cd ~/src`
+      - `wget -O VampirTrace-5.14.4.tar.gz "http://wwwpub.zih.tu-dresden.de/~mlieber/dcount/dcount.php?package=vampirtrace&get=VampirTrace-5.14.4.tar.gz"`
+      - `tar -xvzf VampirTrace-5.14.4.tar.gz`
+      - `cd VampirTrace-5.14.4`
+      - `./configure --prefix=$HOME/lib/vampirtrace --with-cuda-dir=<CUDA_ROOT>`
+      - `make all -j`
+      - `make install`
+    - add environment variable: `export PATH=$PATH:$HOME/lib/vampirtrace/bin`
 
 *******************************************************************************
 
@@ -71,31 +115,31 @@ Install
 
 ### Mandatory environment variables
 
-- CUDA\_LIB: library directory of cuda: 
-    e.g. `$ export CUDA_LIB=<CUDA_INSTALL>/lib64`
-- MPI\_ROOT: mpi installation directory: 
-    e.g. `$ export MPI_ROOT=<MPI_INSTALL>`
-- extend your PATH with helper tools for PIConGPU, see point:
-    [Checkout and Build PIConGPU](#checkout-and-build-picongpu)
+- `CUDA_LIB`: library directory of cuda: 
+    e.g. `export CUDA_LIB=<CUDA_INSTALL>/lib64`
+- `MPI_ROOT`: mpi installation directory: 
+    e.g. `export MPI_ROOT=<MPI_INSTALL>`
+- extend your `$PATH` with helper tools for PIConGPU, see point:
+    [Checkout and Build PIConGPU](#checkout-and-build-picongpu) *step 2.2*
 
 
 ### Additional required environment variables (for optional libraries)
 
 #### for splash and HDF5
-- SPLASH\_ROOT: libsplash installation directory: 
-    e.g. `$ export SPLASH_ROOT=<SPLASH_INSTALL>`
-- HDF5\_ROOT: hdf5 installation directory: 
-    e.g. `$ export HDF5_ROOT=<HDF5_INSTALL>`
-- LD\_LIBRARY\_PATH: add path to SPLASH/lib: 
-    e.g. `$ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<SPLASH_INSTALL>/lib`
+- `SPLASH_ROOT`: libsplash installation directory: 
+    e.g. `export SPLASH_ROOT=$HOME/lib/splash`
+- `HDF5_ROOT`: hdf5 installation directory: 
+    e.g. `export HDF5_ROOT=$HOME/lib/hdf5`
+- `LD_LIBRARY_PATH`: add path to $HOME/lib/hdf5/lib:
+    e.g. `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/lib/hdf5/lib`
 
 #### for png support
-- PNGWRITER\_ROOT: pngwriter installation directory:
-  e.g. `$ export PNGWRITER_ROOT=<PNGWRITER_INSTALL>`
+- `PNGWRITER_ROOT`: pngwriter installation directory:
+  e.g. `export PNGWRITER_ROOT=<PNGWRITER_INSTALL>`
 
 #### environment variables for tracing
-- VT\_ROOT: VampirTrace installation directory:
-    e.g. `$ export PATH=$PATH:<VT_DIR>`
+- `VT_ROOT`: VampirTrace installation directory:
+    e.g. `export PATH=$PATH:$HOME/lib/vampirtrace/bin`
 
 ### Installation notes
 - Be sure to build all libraries/dependencies with the **same** gcc version.
@@ -110,72 +154,59 @@ Checkout and Build PIConGPU
 
 This is an example how to use the modular building environment of PIConGPU.
 
-1. `$ mkdir picongpu_workspace`
-   - create a folder on your hard disk and go there
-   - `$ cd picongpu_workspace`
-2. Create the following directory structure:
-   1. `$ mkdir svn_code`
-      - create a folder for the PIConGPU source code, it is used as *read only*
-        directory
-   2. `$ mkdir build`
-      - temporary directory for build processes
-   3. `$ mkdir paramSets`
-      - stores different parameter sets
-   4. `$ mkdir runs`
-      - directory for PIConGPU runtime simulation output
-      - NOTE for HPC-Systems: Never write your simulation output to your home
-        directory (in most cases `$WORK` or `/scratch` are the right places).
-3. Download the source code:
-   1. `$ svn co --username <USER> https://fusionforge.zih.tu-dresden.de/svn/picongpu2/trunk svn_code`
-      - *optional:* update the source code with `$ svn update svn_code/`
-   2. `$ export PATH=$PATH:<ABSOLUTE_PATH>/svn_code/src/tools/bin`
-      - ATTENTION: replace `<ABSOLUTE_PATH>` with the absolute path to the
-        directory `svn_code` (try `$ pwd` to get your current path)
-4. `$ svn_code/createParameterSet code/examples/LaserWakefield/ paramSets/case001`
-   - Clone the KHI example tp `paramSets/case001`
-   - Edit `paramSets/case001/include/simulation_defines/param/*` to change the
+1. `mkdir -p ~/src ~/build ~/paramSets ~/runs`
+   - `~/runs` is the directory for PIConGPU simulation output
+   - NOTE for HPC-Systems: Never write your simulation output to your home
+     (=`~/`) directory
+   - In most cases `$WORK/runs`, `$WORKDIR/runs` or `/scratch/runs` are the right places!
+2. Download the source code:
+   1. `git clone https://github.com/ComputationalRadiationPhysics/picongpu.git ~/src/picongpu`
+      - *optional:* update the source code with `cd ~/src/picongpu && git pull`
+      - *optional:* change to a different branch with `git branch` (show) and
+                    `git checkout <BranchName>` (switch)
+   2. `export PATH=$PATH:~/src/picongpu/src/tools/bin`
+   3. `export PICSRC=~/src/picongpu`
+3. `$PICSRC/createParameterSet $PICSRC/examples/LaserWakefield/ ~/paramSets/case001`
+   - Clone the LWFA example to `~/paramSets/case001`
+   - Edit `~/paramSets/case001/include/simulation_defines/param/*` to change the
      physical configuration of this parameter set.
-   - See `$ svn_code/createParameterSet --help` for more options.
-   - *optional:* `$ svn_code/createParameterSet paramSets/case001/ paramSets/case002`
-   - Clone the individual parameterSet `case001` to `case002`.
-   - *optional:* `$ svn_code/createParameterSet paramSets/myset`
-   - Create standard parameter files and copy the set to `myset`.
-5. `$ cd build`
-   - go to the build directory to compile your first test
-6. `$ ../svn_code/configure ../paramSets/case001`
-    - *optional:* `$ ../svn_code/configure --help`
+   - See `$PICSRC/createParameterSet --help` for more options.
+   - *optional:* `$PICSRC/createParameterSet ~/paramSets/case001/ ~/paramSets/case002`
+     - Clone the individual parameterSet `case001` to `case002`.
+4. `cd ~/build`: go to the build directory to compile your first test
+5. `$PICSRC/configure ~/paramSets/case001`
+    - *optional:* `$PICSRC/configure --help`
     - NOTE: *makefiles* are always created in the current directory
     - Configure *one* parameter set for *one* compilation
     - The script `configure` is only a wrapper for cmake. The real `cmake`
       command will be shown in the first line of the output.
     - `case001` is the directory were the full compiled binary with all
       parameter files will be installed to
-7. `$ make [-j]`
-    - compile PIConGPU with the current parameter set: `case001`
-8. `$ make install`
-    - copy binaries and params to a fixed data structure: `case001`
-9. `cd ../paramSets/case001`
-    - goto installed programm
-10. Example run for the HPC System "joker" using a batch system
-    - *optional:* `$ tbg --help`
-    - `$ tbg -s qsub -c submit/joker/picongpu.cfg
-             -t submit/joker/picongpu.tpl ../../runs/testBatch01`
-    - This will create the directory `../../runs/testBatch01` were all
-      simulation output will be written to. 
+6. `make [-j]`: compile PIConGPU with the current parameter set: `case001`
+7. `make install`: copy binaries and params to a fixed data structure: `case001`
+8. `cd ~/paramSets/case001`: goto installed programm
+9. Example run for the HPC System "hypnos" using a PBS batch system
+    - *optional:* `tbg --help`
+    - `tbg -s qsub -c submit/0016.gpus.cfg
+           -t submit/hypnos/k20_profile.tpl ~/runs/testBatch01`
+    - This will create the directory `~/runs/testBatch01` were all
+      simulation output will be written to.
+      (*Again*, do NOT use your home `~/runs`, change this path!)
       This folder has a subfolder `picongpu` with the same structure as
       `case001` and can be reused to:
-        - clone parameters as shown in step 9, by using this run as origin
-        - create a new binary with configure (step 14):
-          e.g. `$ <PATH_TO_SVN>/configure -i paramSets/case002 runs/testBatch01`
+        - clone parameters as shown in step 3, by using this run as origin
+        - create a new binary with configure (step 5):
+          e.g. `$PICSRC/configure -i ~/paramSets/case002 ~/runs/testBatch01`
 
 
 To build PIConGPU with tracing support, change the steps in the example to:
 
-(6.) `$ ../svn_code/configure ../projects/case001 -c "-DVAMPIR_ENABLE=ON"`
+(5.) `$PICSRC/configure ../projects/case001 -c "-DVAMPIR_ENABLE=ON"`
 
-(9.) `$ cd ../projects/case001` - goto installed programm
+(8.) `cd ~/paramSets/case001`: goto installed programm
 
-(10.) `$ tbg -c submit/joker/vampir.cfg -t submit/joker/vampir.tpl  ../../runs/testBatch01`
+(9.) `tbg -c submit/0016.gpus.cfg -t submit/hypnos/k20_vampir_profile.tpl
+       ~/runs/testBatchVampir`
 
 *******************************************************************************
 
@@ -188,19 +219,19 @@ This document uses markdown syntax: http://daringfireball.net/projects/markdown/
 To create and up-to-date pdf out of this Markdown (.md) file use gimli.
 Anyway, please do *not* check in the binary pdf in our version control system!
 
-  - `$ sudo apt-get install rubygems wkhtmltopdf libxslt-dev libxml2-dev`
-  - `$ sudo gem install gimli`
-  - `$ gimli -f INSTALL.md`
+  - `sudo apt-get install rubygems wkhtmltopdf libxslt-dev libxml2-dev`
+  - `sudo gem install gimli`
+  - `gimli -f INSTALL.md`
 
 On OS X (Apple Macintosh) you can get `gimli` using the already installed
 `ruby-gems` (`gem`) or install a newer version using macports:
 
 1. *install macports: http://www.macports.org/*
 2. *install rubygems* <br>
-    `$ sudo port install rb-rubygems ` <br>
+    `sudo port install rb-rubygems ` <br>
     *rubygems is called gem by default*
 3. install gimli <br>
-    `$ sudo gem install gimli`<br>
+    `sudo gem install gimli`<br>
     (installs all libraries automatically)
 4. convert documentation to pdf <br>
-    `$ gimli -f INSTALL.md`
+    `gimli -f INSTALL.md`
