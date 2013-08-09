@@ -102,7 +102,7 @@ Users
 -----
 
 Dear User, please [beware](#open-alpha) that this is a **developer** and
-**power user** *only* release only! We hereby **emphasize** that *you should wait*
+**power user** *only* release! We hereby **emphasize** that *you should wait*
 for our **Beta** release.
 
 Please refer to our
@@ -112,7 +112,7 @@ milestones and be aware of
 our *Beta* release!
 
 Visit [picongpu.hzdr.de](http://picongpu.hzdr.de) to learn more about PIC
-codes. See the getting started guide (movie *coming soon*).
+codes. See the getting started guide (document and movie *coming soon*).
 
 You are welcome to [contact](http://www.hzdr.de/db/Cms?pNid=132&pOid=30354) us!
 
