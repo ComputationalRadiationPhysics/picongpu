@@ -117,8 +117,8 @@ Install
 
 ### Mandatory environment variables
 
-- `CUDA_LIB`: library directory of cuda, 
-    e.g. `export CUDA_LIB=<CUDA_INSTALL>/lib64`
+- `CUDA_ROOT`: cuda installation directory, 
+    e.g. `export CUDA_ROOT=<CUDA_INSTALL>`
 - `MPI_ROOT`: mpi installation directory, 
     e.g. `export MPI_ROOT=<MPI_INSTALL>`
 - extend your `$PATH` with helper tools for PIConGPU, see point,
