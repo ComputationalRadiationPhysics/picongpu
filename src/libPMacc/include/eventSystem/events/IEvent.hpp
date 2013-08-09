@@ -1,0 +1,66 @@
+/**
+ * Copyright 2013 Felix Schmitt, René Widera, Wolfgang Hoenig
+ *
+ * This file is part of libPMacc. 
+ * 
+ * libPMacc is free software: you can redistribute it and/or modify 
+ * it under the terms of of either the GNU General Public License or 
+ * the GNU Lesser General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * libPMacc is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License and the GNU Lesser General Public License 
+ * for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * and the GNU Lesser General Public License along with libPMacc. 
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+ 
+/* 
+ * File:   IEvent.hpp
+ * Author: whoenig
+ *
+ * Created on 9. April 2010, 10:20
+ */
+
+#ifndef _IEVENT_HPP
+#define	_IEVENT_HPP
+
+#include "types.h"
+
+namespace PMacc
+{
+    
+    class IEventData;
+
+    /**
+     * Interface for an observer.
+     */
+    class IEvent
+    {
+    public:
+
+        /**
+         * Destructor.
+         */
+        virtual ~IEvent()
+        {
+        }
+
+        // IEventData *should* be small; using a pointer here will result in memory leaks...
+        /**
+         * Called when this observer is notified by the observable.
+         * @param eventId id of the notification
+         * @param type the type of the notification
+         * @param data data passed from observable
+         */
+        virtual void event(id_t eventId, EventType type, IEventData* data) = 0;
+    };
+
+} //namespace PMacc
+
+#endif	/* _IEVENT_HPP */
+

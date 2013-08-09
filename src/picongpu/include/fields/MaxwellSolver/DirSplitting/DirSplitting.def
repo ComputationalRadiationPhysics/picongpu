@@ -1,0 +1,31 @@
+#pragma once
+
+#include "simulation_defines.hpp"
+
+namespace picongpu
+{
+namespace dirSplitting
+{
+class DirSplitting;
+} // dirSplitting
+
+namespace traits
+{
+
+template<>
+struct GetMargin<picongpu::dirSplitting::DirSplitting, picongpu::FIELD_B>
+{
+    typedef PMacc::math::CT::Int < 1, 1, 1 > LowerMargin;
+    typedef PMacc::math::CT::Int < 1, 1, 1 > UpperMargin;
+};
+
+template<>
+struct GetMargin<picongpu::dirSplitting::DirSplitting, picongpu::FIELD_E>
+{
+    typedef PMacc::math::CT::Int < 1, 1, 1 > LowerMargin;
+    typedef PMacc::math::CT::Int < 1, 1, 1 > UpperMargin;
+};
+
+} //namespace traits
+
+} // picongpu

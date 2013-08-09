@@ -1,0 +1,292 @@
+#!/bin/bash
+#
+# Copyright 2013 Axel Huebl, René Widera, Richard Pausch
+#
+# This file is part of PIConGPU.
+#
+# PIConGPU is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# PIConGPU is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with PIConGPU.
+# If not, see <http://www.gnu.org/licenses/>.
+#
+
+# This script parse a tpl file and combine data from cfg file to start a batch job
+# in a PBS based batch system
+# example: ./tpg qsub testRun hypnos/hypnos.tpl hypnos/picongpu.cfg
+
+#$1        - submit command e.g. qsub
+#$2        - job name (must uniqu to older jobs)
+#$3        - tpl file
+#$4        - cfg file
+
+
+#######################
+# $1 name of variable with template descriptions 
+########################
+function tooltpl_replace
+{
+     
+    eval tooltpl_replace_data="\$$1"
+    eval tooltpl_replace_input="\$$2"
+
+    while read data_set
+    do
+        tooltpl_dst=`echo -e "$data_set" | cut -d"=" -f1  `
+       # echo " $data_set" > /dev/stderr
+        tooltpl_src=`echo -e "$data_set" | cut -d"=" -f2- `
+        #s/\$'//g delete $' ' before a multi line argument
+        tooltpl_src_esc=`echo -e "$tooltpl_src" | sed 's/\//\\\\\//g' | sed '/^[[:blank:]]*$/d'| sed "s/^\$'//g ; s/^'//g ;s/'$// "`
+        #echo $tooltpl_src_esc
+        if [ -n  "$tooltpl_dst" ] && [ -n "$tooltpl_src" ] ; then
+           #echo "$tooltpl_dst $tooltpl_src_esc $tooltpl_src " > /dev/stderr
+           #replace templates but only if variable name followed by a non Alphanumeric character [a-zA-Z0-9]   
+           #replace templates which has variable tooltpl_dst at end of line
+           tooltpl_replace_data=`echo "$tooltpl_replace_data" | sed "s/\!$tooltpl_dst\([^[:alnum:]_]\{1,\}\)/$tooltpl_src_esc\1/g ; s/\!$tooltpl_dst$/$tooltpl_src_esc/g"`
+        fi
+        if [ $? -ne 0 ] ; then
+            echo -e "$tooltpl_src_esc"
+        fi
+    done < <(echo -e "$tooltpl_replace_input" | grep -v tooltpl | grep "^[[:alpha:]][[:alnum:]_]*=.*" )
+
+    echo -e "$tooltpl_replace_data"
+}
+
+function run_cfg_and_get_solved_variables
+{
+    source "$1" # name and path to cfg file
+    eval tooltpl_file_data="\$$2" #data stream from tpl file
+    eval extra_op="\$$3"    #overwrite templates with extra options parameter -x
+
+    #append template file variable definitions and solve them
+    while read data_set
+    do
+        eval "$data_set"
+    done < <(echo -e "$tooltpl_file_data" | grep "^[[:blank:]]*[[:alpha:]][[:alnum:]_]*=.*")
+
+    #read and evaluate extra options from parameter -o
+    for i in $extra_op
+    do
+      eval "$i"
+    done
+      
+    #filter all TBG variables   
+    tooltbl_env=`set | grep "^[[:alpha:]][[:alnum:]_]*=.*" | grep -v tooltpl  `
+
+    #substitude all !TBG variables
+    tooltpl_replace tooltbl_env tooltbl_env | grep "^[[:alpha:]][[:alnum:]_]*=.*"
+}
+
+#######################
+# $1 path to final file
+# $2 content of the original file
+#######################
+function check_final
+{
+    final_file="$1"
+    org_file="$2"
+
+    not_replaced=`grep -o "\![[:alpha:]][[:alnum:]_]*" $final_file | sort | uniq`
+    not_replaced_cnt=`echo $not_replaced | wc -w`
+
+    if [ $not_replaced_cnt -gt 0 ] ; then
+        echo "WARNING: $not_replaced_cnt variable(s) _not_ replaced from template (tpl):"
+        echo $not_replaced
+
+        #create an OR concated pattern
+        nrv_or=`echo $not_replaced | sed 's/[[:space:]]/|/g'`
+
+        #search in orginal file, to provide a better line number hint to the user
+        n=0
+        while read org_line
+        do
+            n=$(( n+1 ))
+            echo $org_line | awk -v line=$n '{ if ($0 ~ /'$nrv_or'/) print "line "line }'
+        done < <(echo -e "$org_file")
+    fi
+}
+
+
+#######################
+# $1 name of variable with template descriptions 
+########################
+function get_tooltpl_value
+{
+    cat /dev/stdin | grep $1 | cut -d"=" -f2- | tooltpl_replace  $2
+}
+
+function absulte_path()
+{
+    cd $1
+    pwd
+}
+
+help()
+{
+    echo "tbg (template batch generator) create new folder for a batch job"
+    echo "and copy in all importend files"
+    echo ""
+    echo "usage: tbg -c cfgFile [-s submitsystem] [-t templateFile] [-p project] [-o \"VARNAME1=10 VARNAME2=5\"] [-h] destinationPath"
+    echo ""
+    echo "-c | --cfg      file           - Configuration file to set up batch file."
+    echo "-t | --tpl      file           - Template to create a batch file from."
+    echo "                                 tbg will use stdin, if no file is specified."
+    echo "-p | --project  folder         - Project folder containing sourcecode and binaries"
+    echo "                                 Default: current directory"
+    echo "-o                             - Overwrite any template variable:"
+    echo "                                 e.g. -o \"VARNAME1=10 VARNAME2=5\""
+    echo "                                 Overwriting is done after cfg file was executed"
+    echo "-h | --help                    - Shows help (this output)."
+    echo "destinationPath                - Directory for simulation output. "
+    echo " "
+    echo " "
+    echo "tbg exports the following variables, which can used in cfg and tpl files any time:"
+    echo " TBG_jobName                   - name of the job"
+    echo " TBG_jobNameShort              - short name of the job, without blanks"
+    echo " TBG_cfgPath                   - absolut path to cfg file"
+    echo " TBG_cfgFile                   - full absolut path and name of cfg file"
+    echo " TBG_projectPath               - absolut project path (see option --project)"
+    echo " TBG_dstPath                   - absolute path to destination directory"
+    
+}
+
+#!/bin/bash
+initCall="$0 $*"
+projectPath="."
+
+# options may be followed by one colon to indicate they have a required argument
+OPTS=`getopt -o p:t:c:s:o:h -l project:,tpl:,cfg:,submit:,help -- "$@"`
+if [ $? != 0 ] ; then
+    # something went wrong, getopt will put out an error message for us
+    exit 1
+fi
+
+eval set -- "$OPTS"
+
+
+
+
+while true ; do
+    case "$1" in
+        -s|--submit)
+            submit_command="$2"
+            shift 
+            ;;
+       -p|--project)
+            projectPath="$2"
+            shift
+            ;;
+       -c|--cfg)    
+            cfg_file="$2"
+            shift 
+            ;;
+       -o)    
+            tooltpl_overwrite="$2"
+            shift 
+            ;;
+       -t|--tpl)    
+            tooltpl_file="$2"
+            if [ ! -f $tooltpl_file ] ; then
+                echo "No cfg file given." >&2
+                exit 1;
+            fi
+            shift 
+            ;;
+        -h|--help)
+            echo -e "$(help)"
+            shift 
+            exit 1
+            ;;
+        --) shift; break;;          
+    esac
+    shift
+done
+
+outDir="$*"
+
+if [ -z "$outDir" ] ; then
+    echo "No output directory is set" >&2
+    exit 1;
+fi
+
+if [ ! -f $cfg_file ] ; then
+    echo "No cfg file given." >&2
+    exit 1;
+fi
+
+projectPath=`absulte_path $projectPath`
+
+job_name=`basename "$outDir"`
+# (up to 15 characters, no blank spaces, reduce to alphanumeric characters)
+job_shortname=`echo $job_name | sed "s/[^a-zA-Z0-9]//g" | cut -c1-15`
+job_relative_dir=`dirname "$outDir"`
+
+
+
+#create relative dir that we can jump in and check absolute dir
+mkdir -p "$job_relative_dir"
+job_outDir=`cd "$job_relative_dir"; pwd`"/$job_name"
+
+if [ -z "$tooltpl_file" ] ; then
+    tooltpl_file_data=`cat /dev/stdin`
+else
+    tooltpl_file_data=`cat "$tooltpl_file"`
+fi
+# read picongpu params
+
+start_dir=`dirname $0`
+
+if [ -d "$job_outDir" ] ; then
+    echo "job name already in use, can't create new folder"
+    exit 1
+fi
+
+
+
+#set TBG variables which can used in cfg and tpl file
+#export is used that we can call new scripts in cfg and can read this variables in the called script
+export TBG_jobName="$job_name"
+export TBG_jobNameShort="$job_shortname"
+cfgFileName=`basename $cfg_file`
+cfgRelativPath=`dirname $cfg_file`
+export TBG_cfgPath=`absulte_path "$cfgRelativPath"`
+export TBG_cfgFile="$TBG_cfgPath/$cfgFileName"
+
+export TBG_projectPath="$projectPath"
+export TBG_dstPath="$job_outDir"
+
+mkdir -p "$job_outDir"
+mkdir -p "$job_outDir/tbg"
+cd "$job_outDir"
+
+#set all userdefined variables from -x parameter (e.g. TBG_A="hallo" TBG_B=123)
+#for i in $cfg_extraOpt
+#do
+#    eval "$i"
+#done
+
+solved_variables=`run_cfg_and_get_solved_variables "$TBG_cfgFile" tooltpl_file_data tooltpl_overwrite`
+
+
+#delete alle variable definitions with TBG at begin
+tooltpl_file_data_cleaned=`echo -e "$tooltpl_file_data" |  grep -v "^[[:alpha:]][[:alnum:]_]*=.*"`
+batch_file=`tooltpl_replace tooltpl_file_data_cleaned solved_variables`
+
+echo -e "$batch_file\n\n#this script was create with call $initCall" > tbg/submit.start
+echo -e "$tooltpl_file_data" > tbg/submit.tpl
+cp -a "$TBG_cfgFile" tbg/submit.cfg
+
+#warn, if there are still unresolved !TBG_ variables left
+check_final tbg/submit.start "$tooltpl_file_data"
+
+if [ -n "$submit_command" ] ; then
+    $submit_command tbg/submit.start
+fi

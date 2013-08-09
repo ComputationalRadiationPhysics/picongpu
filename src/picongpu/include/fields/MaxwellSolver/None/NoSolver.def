@@ -1,0 +1,38 @@
+/* 
+ * File:   NoSolver.hpp
+ * Author: huebl
+ *
+ * Created on June 7th, 2013
+ */
+
+#pragma once
+#include "math/vector/compile-time/Int.hpp"
+
+namespace picongpu
+{
+namespace noSolver
+{
+class NoSolver;
+} // noSolver
+
+namespace traits
+{
+using namespace PMacc;
+
+template<>
+struct GetMargin<picongpu::noSolver::NoSolver, FIELD_B>
+{
+    typedef PMacc::math::CT::Int< 0, 0, 0 > LowerMargin;
+    typedef PMacc::math::CT::Int< 0, 0, 0 > UpperMargin;
+};
+
+template<>
+struct GetMargin<picongpu::noSolver::NoSolver, FIELD_E>
+{
+    typedef PMacc::math::CT::Int< 0, 0, 0 > LowerMargin;
+    typedef PMacc::math::CT::Int< 0, 0, 0 > UpperMargin;
+};
+
+} //namespace traits
+
+} // picongpu

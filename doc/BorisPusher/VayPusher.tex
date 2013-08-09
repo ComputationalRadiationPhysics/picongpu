@@ -1,0 +1,66 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[ngerman]{babel}
+\pagenumbering{arabic}
+\usepackage{ae}
+\usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+
+\title{Vay-Pusher}
+\author{Richard Pausch}
+\date{12. June 2012}
+
+\begin{document}
+
+\section{Vay-Pusher}
+
+The Vay Pusher is a particle pusher described in ''Simulation of beams or plasmas crossing at relativistic velocity`` by J.-L- Vay, promising to overcome problems with the famous Boris-Pusher at relativistic velocities. The formulas of the paper have been adjusted to PIConGPU and are summarized here. For more details please refer to the original paper.
+
+
+\subsection{Conventions}
+All indices have been reduced by a $\frac{1}{2}$-step compared to the paper. 
+Locations ($\vec r_i$) and fields ($\vec E_i$, $\vec B_i$) are known at full time steps, momenta and speeds ($\vec p_i$, $\vec u_i$, $\vec v_i$) at half time steps. In contrast to the Vay paper real momenta ($\vec p_i = \vec u_i \cdot m_0$) will be used.
+\begin{eqnarray*}
+\mbox{Vay paper} & \rightarrow & \mbox{implematation in PIC} \\
+\vec u^{i} & \rightarrow & \vec p_{-1/2} \mbox{\quad  (known at start)}\\
+\vec u^{i+1/2} & \rightarrow & \vec p_{0}\\
+\vec u^{i+1} & \rightarrow & \vec p_{+1/2}\\
+\vec E^{i+1/2} & \rightarrow & \vec E_{0}  \mbox{\quad  (known at start)}\\
+\vec B^{i+1/2} & \rightarrow & \vec B_{0}  \mbox{\quad  (known at start)}\\
+\vec r^{i+1/2} & \rightarrow & \vec r_{0}  \mbox{\quad  (known at start)}
+\end{eqnarray*}
+
+\subsection{Variables handed to particle pusher}
+The pusher takes: 
+\begin{itemize}
+	\item $\vec E_0$ \quad \texttt{eField}
+	\item $\vec B_0$ \quad \texttt{bField}
+	\item $\vec r_0$ \qquad \texttt{pos}
+	\item $\vec p_{-1/2}$ \quad \texttt{mom}
+\end{itemize}
+
+
+\subsection{First step of the algorithm}
+\begin{eqnarray}
+\vec v_{i} & = & \frac{\vec p_{i}}{\sqrt{m^2 + \frac{{\vec p_i}^2}{c^2}}} \\
+\vec p_{0} & = & \vec p_{-1/2} + \frac{q \Delta t}{2} \left(  \vec E_{0} + \vec v_{-1/2} \times \vec B_{0} \right)
+\end{eqnarray}
+
+\subsection{Second step of the algorithm}
+\begin{eqnarray}
+\vec p \prime  & = & \vec p_{0} + \frac{q \Delta t}{2} \vec E_{0} \\
+\gamma \prime & = & \sqrt{1 + \frac{{\vec p \prime}^2}{m_0^2 c^2 }} \\
+\vec \tau & = & \frac{q \Delta t}{2 m_0} \vec B_{0} \\
+u^{\star} & = & \frac{\vec p \prime \cdot \vec \tau}{m_0 c} \\ 
+\sigma & = & {\gamma \prime }^2 - {\vec \tau}^2 \\
+\gamma_{+1/2} & = & \sqrt{\frac{  \sigma + \sqrt{  \sigma^2 + 4 \left( {\vec \tau}^2 + {u^\star}^2 \right) } }{2}} \\
+\vec t & = & \frac{\vec \tau}{\gamma_{+1/2}} \\
+s & = & \frac{1}{1 + \vec t^2} \\
+\vec p_{+1/2} & = & s \cdot \left\{   \vec p \prime + \left( \vec p \prime \cdot \vec t  \right) \cdot \vec t   + \vec p \prime \times \vec t  \right\} \mbox{\quad  new momentum}
+\end{eqnarray}
+
+\subsection{Particle push}
+The push of the particle is the same as used in the Boris-Pusher.
+
+
+
+\end{document}

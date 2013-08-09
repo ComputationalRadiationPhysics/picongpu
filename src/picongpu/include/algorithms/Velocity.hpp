@@ -1,0 +1,47 @@
+/**
+ * Copyright 2013 Heiko Burau, René Widera
+ *
+ * This file is part of PIConGPU. 
+ * 
+ * PIConGPU is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * 
+ * PIConGPU is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * along with PIConGPU.  
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+ 
+
+
+#ifndef VELOCITY_HPP
+#define	VELOCITY_HPP
+
+namespace picongpu
+{
+
+    using namespace PMacc;
+
+    struct Velocity
+    {
+
+        template<typename MomType, typename MassType >
+                HDINLINE MomType operator()(const MomType mom, const MassType mass0)
+        {
+            const float_X rc2 = MUE0_EPS0;
+            const float_X m0_2 = mass0*mass0;
+            const float_X fMom2 = math::abs2(mom);
+            float_X t = math::rsqrt(typeCast<sqrt_X>(m0_2 + fMom2 * rc2));
+            return t * mom;
+        }
+    };
+}
+
+#endif	/* VELOCITY_HPP */
+

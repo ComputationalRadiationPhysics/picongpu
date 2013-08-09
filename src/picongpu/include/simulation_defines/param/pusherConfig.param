@@ -1,0 +1,100 @@
+/**
+ * Copyright 2013 Axel Huebl, René Widera
+ *
+ * This file is part of PIConGPU. 
+ * 
+ * PIConGPU is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * 
+ * PIConGPU is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * along with PIConGPU.  
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+ 
+/**
+ * Copyright 2013 Axel Huebl, René Widera
+ *
+ * This file is part of PIConGPU. 
+ * 
+ * PIConGPU is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * 
+ * PIConGPU is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * along with PIConGPU.  
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+ 
+
+
+#pragma once
+
+/**! discripe particle pusher method
+ * Define a solver for current with the name "Pusher"
+ * 
+ * etc.: typedef MyOwnPusherClass ParticlePusher;
+ */
+
+namespace picongpu
+{
+    namespace particlePusherBoris
+    {
+
+    }
+
+
+    namespace particlePusherNone
+    {
+
+    }
+
+
+    namespace particlePusherVay
+    {
+        /** Precision of the square roots during the push step
+         *  - precision32Bit
+         *  - precision64Bit
+         */
+        namespace sqrt_Vay = precision64Bit;
+    }
+
+
+    namespace particlePusherAxl
+    {
+
+        enum TrajectoryInterpolationType
+        {
+            LINEAR = 1u,
+            NONLINEAR = 2u
+        };
+        const TrajectoryInterpolationType TrajectoryInterpolation = LINEAR;
+
+    }
+    
+    namespace particlePusherFree
+    {
+
+    }
+    
+    namespace particlePusherPhot
+    {
+
+    }
+
+}
+
+
+

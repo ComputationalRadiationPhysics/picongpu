@@ -1,0 +1,113 @@
+/**
+ * Copyright 2013 Axel Huebl, Heiko Burau, René Widera
+ *
+ * This file is part of PIConGPU. 
+ * 
+ * PIConGPU is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * 
+ * PIConGPU is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * along with PIConGPU.  
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+ 
+
+
+#ifndef FIELDMANIPULATOR_KERNEL
+#define	FIELDMANIPULATOR_KERNEL
+
+#include "types.h"
+#include "fields/LaserPhysics.hpp"
+#include "simulation_defines.hpp"
+#include "simulation_classTypes.hpp"
+
+namespace picongpu
+{
+
+using namespace PMacc;
+
+template<int pos, class BoxedMemory, class Mapping>
+DINLINE void absorb(BoxedMemory field, uint32_t thickness, float_X absorber_strength, Mapping mapper, const DataSpace<simDim> &direction)
+{
+    typedef typename MappingDesc::SuperCellSize SuperCellSize;
+    const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+
+
+    const DataSpace<simDim > threadIndex(threadIdx);
+    const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
+
+    DataSpace<simDim> cell(superCellIdx * SuperCellSize() + threadIndex);
+    //cells in simulation
+    const DataSpace<simDim> gCells = mapper.getGridSuperCells() * SuperCellSize::getDataSpace();
+
+    __shared__ int finish;
+
+    __syncthreads(); /*wait that all shared memory is initialised*/
+
+    float_X factor = float_X(0.0);
+
+    do
+    {
+        cell[pos] = cell[pos] + (MappingDesc::SuperCellSize::getDataSpace()[pos]*(direction[pos]*-1));
+        if (linearThreadIdx == 0)
+            finish = 0;
+        __syncthreads();
+
+        if (direction[pos] != 0)
+        {
+            if (direction[pos] < 0)
+            {
+                factor = (float) (MappingDesc::SuperCellSize::getDataSpace()[pos] + thickness - cell[pos] - 1);
+            }
+            else
+            {
+                factor = (float) ((MappingDesc::SuperCellSize::getDataSpace()[pos] + cell[pos]) - gCells[pos] + thickness);
+            }
+
+        }
+
+        if (factor <= float_X(0.0))
+        {
+            factor = float_X(0.0);
+            atomicExch(&finish, 1);
+        }
+        else
+        {
+            float_X a = math::exp(float_X(-absorber_strength) * (factor));
+
+            float3_X tmp = field(cell);
+            tmp.x() *= a;
+            tmp.y() *= a;
+            tmp.z() *= a;
+            field(cell) = tmp;
+        }
+        //  cell =cell+ MappingDesc::SuperCellSize::getDataSpace()*(pos*-1);
+        __syncthreads();
+    }
+    while (finish == 0);
+}
+
+template<class BoxedMemory, class Mapping>
+__global__ void kernelAbsorbBorder(BoxedMemory field, uint32_t thickness, float_X absorber_strength, Mapping mapper)
+{
+
+    const DataSpace<simDim> direction = Mask::getRelativeDirections<simDim > (mapper.getExchangeType());
+
+    //this is a workaround that we get a kernelwithout lmem
+    if (direction.x() != 0)
+        absorb < 0 > (field, thickness, absorber_strength, mapper, direction);
+    else if (direction.y() != 0)
+        absorb < 1 > (field, thickness, absorber_strength, mapper, direction);
+    else if (direction.z() != 0)
+        absorb < 2 > (field, thickness, absorber_strength, mapper, direction);
+}
+} //namespace
+#endif	/* FIELDMANIPULATOR_KERNEL */
+

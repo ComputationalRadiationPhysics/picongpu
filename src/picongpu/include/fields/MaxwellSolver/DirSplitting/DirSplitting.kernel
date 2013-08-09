@@ -1,0 +1,115 @@
+/**
+ * Copyright 2013 Heiko Burau, René Widera
+ *
+ * This file is part of PIConGPU. 
+ * 
+ * PIConGPU is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * 
+ * PIConGPU is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * along with PIConGPU.  
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+ 
+#pragma once
+
+#include <types.h>
+#include <math/vector/Float.hpp>
+#include <math/vector/compile-time/Int.hpp>
+#include <cuSTL/container/compile-time/SharedBuffer.hpp>
+#include <cuSTL/algorithm/cudaBlock/Foreach.hpp>
+#include <lambda/Expression.hpp>
+#include <cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
+
+namespace picongpu
+{
+
+template<typename BlockDim>
+struct DirSplittingKernel
+{
+    typedef void result_type;
+    
+    int totalLength;
+    DirSplittingKernel(int totalLength) : totalLength(totalLength) {}
+
+    template<typename CursorE, typename CursorB >
+    DINLINE void propagate(CursorE cursorE, CursorB cursorB) const
+    {
+        float a_plus = (*cursorB(-1, 0, 0)).z() + (*cursorE(-1, 0, 0)).y();
+        float a_minus = (*cursorB(1, 0, 0)).z() - (*cursorE(1, 0, 0)).y();
+        float a_prime_plus = (*cursorB(-1, 0, 0)).y() - (*cursorE(-1, 0, 0)).z();
+        float a_prime_minus = (*cursorB(1, 0, 0)).y() + (*cursorE(1, 0, 0)).z();
+
+        __syncthreads();
+
+        (*cursorB).z() = 0.5f * (a_plus + a_minus);
+        (*cursorE).y() = 0.5f * (a_plus - a_minus);
+        (*cursorB).y() = 0.5f * (a_prime_plus + a_prime_minus);
+        (*cursorE).z() = 0.5f * (a_prime_minus - a_prime_plus);
+
+        __syncthreads();
+    }
+
+    template<typename CursorE, typename CursorB >
+    DINLINE void operator()(CursorE globalE, CursorB globalB) const
+    {
+        //\todo: optimize cache size
+        typedef typename PMacc::math::CT::add<
+            typename BlockDim::vector_type,
+            typename PMacc::math::CT::Int < 2, 0, 0 > ::vector_type>::type CacheSize;
+
+        typedef container::CT::SharedBuffer<float3_X, CacheSize, 0 > CacheE;
+        typedef container::CT::SharedBuffer<float3_X, CacheSize, 1 > CacheB;
+        CacheE cacheE;
+        CacheB cacheB;
+
+        using namespace lambda;
+        DECLARE_PLACEHOLDERS();
+
+        float3_X fieldE_old;
+        float3_X fieldB_old;
+        int threadPos_x = threadIdx.x;
+        
+        algorithm::cudaBlock::Foreach<BlockDim> foreach;
+        for (int x_offset = 0; x_offset < this->totalLength; x_offset += BlockDim::x::value)
+        {
+            foreach(CacheE::Zone(), cacheE.origin(), globalE(-1 + x_offset, 0, 0), _1 = _2);
+            foreach(CacheB::Zone(), cacheB.origin(), globalB(-1 + x_offset, 0, 0), _1 = _2);
+            __syncthreads();
+
+            BOOST_AUTO(cursorE, cacheE.origin()(1, 0, 0)(threadPos_x, threadIdx.y, threadIdx.z));
+            BOOST_AUTO(cursorB, cacheB.origin()(1, 0, 0)(threadPos_x, threadIdx.y, threadIdx.z));
+
+            if(threadPos_x == BlockDim::x::value - 1)
+            {
+                fieldE_old = *cursorE;
+                fieldB_old = *cursorB;
+            }
+            if(threadPos_x == 0 && x_offset > 0)
+            {
+                *cursorE(-1,0,0) = fieldE_old;
+                *cursorB(-1,0,0) = fieldB_old;
+            }
+            
+            propagate(cursorE, cursorB);
+
+            typedef zone::CT::SphericZone<BlockDim> BlockZone;
+            foreach(BlockZone(), cacheE.origin()(1, 0, 0), globalE(x_offset, 0, 0), _2 = _1);
+            foreach(BlockZone(), cacheB.origin()(1, 0, 0), globalB(x_offset, 0, 0), _2 = _1);
+            
+            __syncthreads();
+            
+            threadPos_x = BlockDim::x::value - 1 - threadPos_x;
+        }
+    }
+
+};
+
+} // picongpu

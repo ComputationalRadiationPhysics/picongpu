@@ -1,0 +1,8 @@
+#!/bin/bash
+#
+# Thanks to potong@stackoverflow
+# snipped licensed as CC BY-SA 3.0
+#
+# http://stackoverflow.com/a/13063343
+#
+sed -s -i -r ':a;$!{N;ba};s|^[[:blank:]]*\n*/\*[^*]*\*+([^/*][^*]*\*+)*/||' $*

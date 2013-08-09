@@ -1,0 +1,75 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[ngerman]{babel}
+\pagenumbering{arabic}
+\usepackage{ae}
+\usepackage[utf8x]{inputenc}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{url}
+\usepackage{amsmath}
+\usepackage{nicefrac}
+
+\title{Boris-Pusher}
+\author{Heiko Burau}
+\date{21. April 2012}
+
+\begin{document}
+
+\section{Boris-Pusher}
+
+Die zeitliche Ableitung des relativistischen Impulses ist gleich der relativistischen Kraft:
+\begin{equation}
+	\label{derv_p}
+	\frac{d\vec{p}}{dt} = q \cdot (\vec{E} + \vec{v} \times \vec{B})
+\end{equation}
+wobei $q$ die Ladung und $\vec{v}$ die Geschwindigkeit ist. $\vec{E}$ und $\vec{B}$ befinden sich am Ort des Teilchens. Zwischen $\vec{p}$ und $\vec{v}$ besteht der Zusammenhang:
+\begin{equation}
+	\vec{v} = \frac{\vec{p}}{m \gamma} = \frac{\vec{p}}{\sqrt{m^{2} + \frac{\vec{p}^{2}}{c^{2}}}} 
+\end{equation}
+mit der Ruhemasse $m$. Für kleine Impulse, also $p \ll m c$ gilt die nicht-relatistische Näherungsformel:
+\begin{equation}
+	\vec{v} \approx \frac{\vec{p}}{m}
+\end{equation}
+Das Leap-Frog Schema fordert, dass die Positionen an den ganzzahligen Zeitpunkten $t_{0}, t_{1}, t_{2}, \ldots$ und die Impulse (und damit auch Geschwindigkeiten) an den halbzahligen Zeitpunkten $t_{\nicefrac{1}{2}}, t_{1\nicefrac{1}{2}}, t_{2\nicefrac{1}{2}}, \ldots$ definiert sind. Daraus folgt, dass die Ableitung von $\vec{p}$ (Gleich\-ung (\ref{derv_p})) wiederrum auf den ganzzahligen Zeitpunkten $t_{0}, t_{1}, t_{2}, \ldots$ liegt. Zum Zeitpunkt $t=t_{0}$ ergibt sich damit:
+\begin{equation}
+	\label{disk_dpdt}
+	\frac{d\vec{p}_{t}}{dt} \approx \frac{\vec{p}_{t + \nicefrac{1}{2}} - \vec{p}_{t - \nicefrac{1}{2}}}{\Delta t}
+	= q \cdot (\vec{E}_{t} + \frac{1}{m \gamma} \frac{\vec{p}_{t + \nicefrac{1}{2}} + \vec{p}_{t - \nicefrac{1}{2}}}{2} \times \vec{B}_{t} )
+\end{equation}
+Um $\vec{p}_{t}$ zu bekommen, wurden $\vec{p}_{t + \nicefrac{1}{2}}$ und $\vec{p}_{t - \nicefrac{1}{2}}$ gemittelt. Das Problem ist nur, dass wir $\vec{p}_{t + \nicefrac{1}{2}}$ nicht kennen. Hier hilft uns ein Trick weiter. Zunächst führen wir dazu die Variablen $\vec{p}^{-}$ und $\vec{p}^{+}$ ein:
+\begin{equation}
+	\vec{p}_{t - \nicefrac{1}{2}} = \vec{p}^{-} - \frac{1}{2} q \vec{E} \Delta t 
+\end{equation}
+\begin{equation}
+	\vec{p}_{t + \nicefrac{1}{2}} = \vec{p}^{+} + \frac{1}{2} q \vec{E} \Delta t
+\end{equation}
+Damit lässt sich (\ref{disk_dpdt}) schreiben als:
+\begin{equation}
+	\label{pp_pm}
+	\frac{\vec{p}^{+} - \vec{p}^{-}}{\Delta t} = \frac{q}{2 m \gamma} \cdot (\vec{p}^{+} + \vec{p}^{-}) \times \vec{B}
+\end{equation}
+Anhand einer Skizze kann man sich nun klar machen, dass es sich bei (\ref{pp_pm}) um eine \textit{Rotation} des Vektors $\nicefrac{1}{2}(\vec{p}^{+} + \vec{p}^{-})$ handelt. Mit dieser Zusatzinformation lässt sich $\vec{p}^{+}$ explizit ausrechnen \footnote{C. Birdsall, A. Langdon, "Plasma physics via computer simulation", S.356ff + S.58ff}.
+
+Das Vorgehen, um (\ref{pp_pm}) zu lösen, ist damit wie folgt:
+\begin{enumerate}
+	\item Halber $\vec{E}$-Feld push, um aus $\vec{p}_{t-\nicefrac{1}{2}}$ $\vec{p}^{-}$ zu bekommen.
+	\item Rotation durch das $\vec{B}$-Feld, um aus $\vec{p}^{-}$ $\vec{p}^{+}$ zu erhalten.
+	\item Halber $\vec{E}$-Feld push, um aus $\vec{p}^{+}$ $\vec{p}_{t+\nicefrac{1}{2}}$ zu bekommen.
+\end{enumerate}
+Es sei daran erinnert, dass dieser Algorithmus lediglich eine mathematische Umformung von Gleichung (\ref{disk_dpdt}) ist. Deswegen kann es, meiner Meinung nach, problematisch sein diese drei Schritte physikalisch zu deuten.
+
+Schließlich noch der vollständige Rotationsschritt aus der o.g. Quelle:
+\begin{equation}
+	\vec{t} = \frac{q \vec{B}}{2 m \gamma} \Delta t
+\end{equation}
+\begin{equation}
+	\vec{s} = \frac{2 \vec{t}}{1 + \vec{t}^{2}}
+\end{equation}
+\begin{equation}
+	\vec{p}\prime = \vec{p}^{-} + \vec{p}^{-} \times \vec{t}
+\end{equation}
+\begin{equation}
+	\vec{p}^{+} = \vec{p}^{-} + \vec{p}\prime \times \vec{s}
+\end{equation}
+
+\end{document}

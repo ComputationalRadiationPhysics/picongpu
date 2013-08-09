@@ -1,0 +1,76 @@
+/**
+ * Copyright 2013 Axel Huebl, Heiko Burau, René Widera
+ *
+ * This file is part of PIConGPU. 
+ * 
+ * PIConGPU is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * 
+ * PIConGPU is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * along with PIConGPU.  
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+ 
+
+
+#pragma once
+
+namespace picongpu
+{
+    /** Number of electrons per particle (= macro particle weighting)
+     *  unit: none */
+    const float_X NUM_EL_PER_PARTICLE = 1;
+    //float_X(SI::GAS_DENSITY_SI*SI::CELL_WIDTH_SI*SI::CELL_HEIGHT_SI*SI::CELL_DEPTH_SI)
+    //                                / float_X(particleInit::NUM_PARTICLES_PER_CELL);
+    /** Number of ions per particle
+     *  unit: none */
+    const float_X NUM_ION_PER_PARTICLE = NUM_EL_PER_PARTICLE;
+    
+    /** Unit of Speed */
+    const double UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
+    /** Unit of time */
+    const double UNIT_TIME = SI::DELTA_T_SI;
+    /** Unit of length */
+    const double UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
+    /** Unit of mass */
+    const double UNIT_MASS = SI::ELECTRON_MASS_SI * double(NUM_EL_PER_PARTICLE);
+    /** Unit of charge */
+    const double UNIT_CHARGE = -1.0 * SI::ELECTRON_CHARGE_SI * double(NUM_EL_PER_PARTICLE);
+    /** Unit of energy */
+    const double UNIT_ENERGY = (UNIT_MASS * UNIT_LENGTH * UNIT_LENGTH / (UNIT_TIME * UNIT_TIME));
+    /** Unit of EField: V/m */
+    const double UNIT_EFIELD = 1.0 / (UNIT_TIME * UNIT_TIME / UNIT_MASS / UNIT_LENGTH * UNIT_CHARGE);
+    //** Unit of BField: Tesla [T] = Vs/m^2 */
+    const double UNIT_BFIELD = (UNIT_MASS / (UNIT_TIME * UNIT_CHARGE));
+
+
+
+
+    const float_X SPEED_OF_LIGHT = float_X(SI::SPEED_OF_LIGHT_SI / UNIT_SPEED);
+
+    //! Charge of electron
+    const float_X Q_EL = (float_X) (SI::ELECTRON_CHARGE_SI / UNIT_CHARGE);
+    //! Mass of electron
+    const float_X M_EL = (float_X) (SI::ELECTRON_MASS_SI / UNIT_MASS);
+    //! Charge of ion
+    const float_X Q_ION = (float_X) (-1.0 * SI::ELECTRON_CHARGE_SI / UNIT_CHARGE);
+    //! Mass of ion
+    const float_X M_ION = (float_X) (1.6726217e-27 / UNIT_MASS);
+
+    //! magnetic constant must be double 3.92907e-39
+    const float_X MUE0 = (float_X) (SI::MUE0_SI / UNIT_LENGTH / UNIT_MASS * UNIT_CHARGE * UNIT_CHARGE);
+
+    //! electric constant must be double 2.54513e+38
+    const float_X EPS0 = (float_X) (1. / MUE0 / SPEED_OF_LIGHT / SPEED_OF_LIGHT);
+
+    // = 1/c^2
+    const float_X MUE0_EPS0 = float_X(1. / SPEED_OF_LIGHT / SPEED_OF_LIGHT);
+}
+

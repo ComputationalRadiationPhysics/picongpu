@@ -1,0 +1,17 @@
+1.2.3 (2/7/2012)
+* Fixed a bug broke  --max_num_blocks option
+* Slightly reduced the total memory allocated to allow future small memory allocation to work 
+
+Thanks to mtisza and Rick (rick@microway.com) for patches.
+
+
+1.2.2 (8/1/2011)
+* Change the "blocks" to "MB" in the printed message to avoid confusion
+* In trying to malloc maximum size global memory, the size is decreased by 16 MB per step
+  instead of 1 MB to avoid a (possible) bug in cudaMalloc()
+* Print out version number
+
+1.2.1 (7/22/2011)
+* fixed a message print problem for memory size > 4 GB (M2070/M2090/C2070)
+
+

@@ -1,0 +1,179 @@
+/**
+ * Copyright 2013 Axel Huebl, Heiko Burau, René Widera
+ *
+ * This file is part of PIConGPU. 
+ * 
+ * PIConGPU is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * 
+ * PIConGPU is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * along with PIConGPU.  
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+ 
+
+
+#pragma once
+
+#include "simulation_defines.hpp"
+#include "types.h"
+
+#include "math/vector/compile-time/Vector.hpp"
+
+#include "algorithms/Gamma.hpp"
+
+namespace picongpu
+{
+    namespace particleToGrid
+    {
+
+
+        struct ComputeEnergyDensityOptions
+        {
+            static const uint32_t calcDensity = 0u;
+            static const uint32_t calcEnergy = 1u;
+            static const uint32_t calcEnergyDensity = 2u;
+            static const uint32_t calcCounter = 3u;
+        };
+
+
+        template<class AssignmentFunction, uint32_t calcType>
+        class ComputeEnergyDensityPerFrame
+        {
+        public:
+
+            static const int supp = AssignmentFunction::support;
+
+            static const int lowerMargin = supp / 2;
+            static const int upperMargin = ( supp + 1 ) / 2;
+            typedef PMacc::math::CT::Int<lowerMargin, lowerMargin, lowerMargin> LowerMargin;
+            typedef PMacc::math::CT::Int<upperMargin, upperMargin, upperMargin> UpperMargin;
+
+            HDINLINE ComputeEnergyDensityPerFrame( ) /* const float3_X cellSize, const float_X deltaTime ) :
+            cellSize( cellSize ), deltaTime( deltaTime ) */
+            {
+            }
+
+            /** return unit for charge density * energy
+             */
+            HDINLINE float1_64 getUnit( ) const
+            {
+                const double UNIT_VOLUME = ( UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH );
+                
+                if( calcType == ComputeEnergyDensityOptions::calcDensity )
+                    return UNIT_CHARGE / UNIT_VOLUME;
+
+                if( calcType == ComputeEnergyDensityOptions::calcEnergy )
+                    return UNIT_ENERGY;
+
+                if( calcType == ComputeEnergyDensityOptions::calcEnergyDensity )
+                    return UNIT_CHARGE / UNIT_VOLUME * UNIT_ENERGY;
+                
+                if( calcType == ComputeEnergyDensityOptions::calcCounter )
+                    return NUM_EL_PER_PARTICLE;
+
+                return 1.0;
+            }
+
+            HDINLINE std::string getName( ) const
+            {
+                if( calcType == ComputeEnergyDensityOptions::calcDensity )
+                    return "fields_Density";
+                if( calcType == ComputeEnergyDensityOptions::calcEnergy )
+                    return "fields_ParticleEnergy";
+                if( calcType == ComputeEnergyDensityOptions::calcEnergyDensity )
+                    return "fields_EnergyDensity";
+                if( calcType == ComputeEnergyDensityOptions::calcCounter )
+                    return "fields_ParticleCounter";
+                
+                return "fields_FieldTmp";
+            }
+
+            template<class FrameType, class TVecSuperCell, class BoxTmp >
+            DINLINE void operator( )( FrameType& frame, const int localIdx,
+                                         const TVecSuperCell superCell,
+                                         BoxTmp& tmpBox )
+            {
+
+                typedef typename FrameType::PosType PosType;
+                typedef typename FrameType::MomType MomType;
+                typedef typename FrameType::MassType MassType;
+                typedef typename FrameType::ChargeType ChargeType;
+                typedef typename FrameType::WeightingType WeightingType;
+
+                typedef float_X WeightingType;
+
+                const WeightingType weighting = frame.getWeighting( )[localIdx];
+                const PosType pos = frame.getPosition( )[localIdx];
+                const MomType mom = frame.getMomentum( )[localIdx];
+                const MassType mass = frame.getMass( weighting );
+                const ChargeType charge = frame.getCharge( weighting );
+
+                const int particleCellIdx = frame.getCellIdx( )[localIdx];
+                const DataSpace<TVecSuperCell::dim> localCell( DataSpaceOperations<TVecSuperCell::dim>::template map<TVecSuperCell > ( particleCellIdx ) );
+
+                Gamma<float_X> calcGamma;
+                const typename Gamma<float_X>::valueType gamma = calcGamma( mom, mass );
+                const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
+
+                const float_X energy = ( gamma - float_X( 1.0 ) ) * mass * c2;
+                const float_X particleChargeDensity = charge / ( CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH );
+
+                /** Shift to the cell the particle belongs to */
+                PMACC_AUTO( fieldTmpShiftToParticle, tmpBox.shift( localCell ) );
+
+                /** loop around local super cell position (regarding shape)
+                 *  \todo take care of non-yee cells
+                 */
+                for( int k = -lowerMargin; k <= upperMargin; ++k )
+                {
+                    const float_X assignZ = AssignmentFunction( )( float_X( k ) - pos.z( ) );
+                    for( int j = -lowerMargin; j <= upperMargin; ++j )
+                    {
+                        const float_X assignY = AssignmentFunction( )( float_X( j ) - pos.y( ) );
+                        for( int i = -lowerMargin; i <= upperMargin; ++i )
+                        {
+                            DataSpace<simDim> offsetToBaseCell( i, j, k );
+
+                            const float_X assignX = AssignmentFunction( )( float_X( i ) - pos.x( ) );
+
+                            /** multiply charge, devide by cell volume and multiply by
+                             *  energy of this particle
+                             */
+                            const float_X assignComb = assignX * assignY * assignZ;
+
+                            if( calcType == ComputeEnergyDensityOptions::calcDensity )
+                                atomicAddWrapper( &(fieldTmpShiftToParticle( offsetToBaseCell ).x()),
+                                                  assignComb * particleChargeDensity );
+
+                            if( calcType == ComputeEnergyDensityOptions::calcEnergy )
+                                atomicAddWrapper( &(fieldTmpShiftToParticle( offsetToBaseCell ).x()),
+                                                  assignComb * energy );
+
+                            if( calcType == ComputeEnergyDensityOptions::calcEnergyDensity )
+                                atomicAddWrapper( &(fieldTmpShiftToParticle( offsetToBaseCell ).x()),
+                                                  assignComb * particleChargeDensity * energy );
+                            
+                            if( calcType == ComputeEnergyDensityOptions::calcCounter )
+                                atomicAddWrapper( &(fieldTmpShiftToParticle( offsetToBaseCell ).x()),
+                                                  assignComb * weighting / NUM_EL_PER_PARTICLE );
+
+                        }
+                    }
+                }
+            }
+
+        private:
+            //const PMACC_ALIGN( cellSize, float3_X );
+            //const PMACC_ALIGN( deltaTime, float );
+        };
+
+    } // namespace particleToGrid
+} // namespace picongpu

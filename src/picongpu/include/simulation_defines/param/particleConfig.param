@@ -1,0 +1,129 @@
+/**
+ * Copyright 2013 Axel Huebl, René Widera
+ *
+ * This file is part of PIConGPU. 
+ * 
+ * PIConGPU is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * 
+ * PIConGPU is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * along with PIConGPU.  
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+ 
+/**
+ * Copyright 2013 Axel Huebl, René Widera
+ *
+ * This file is part of PIConGPU. 
+ * 
+ * PIConGPU is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * 
+ * PIConGPU is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * along with PIConGPU.  
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+ 
+
+
+#pragma once
+
+#include "simulation_defines/param/gasConfig.param"
+#include "particles/shapes.hpp"
+
+namespace picongpu
+{
+
+    /*! Particle Shape definitions --------------------------------------------------
+     *  - shapeNGP : 0th order (not implemented)
+     *  - shapeCIC : 1st order
+     *  - shapeTSC : 2nd order (requires CUDA_ARCH>=sm_20)
+     *  - shapePCS : 3rd order (requires CUDA_ARCH>=sm_20)
+     */
+    namespace speciesParticleShape = shapeCIC;
+
+    /** Initial Temperature of the electron plasma in keV
+     *  unit: keV */
+    const double ELECTRON_TEMPERATURE_keV = 0.0;
+        /** Initial Temperature of the ion plasma in keV
+     *  unit keV */
+    const double ION_TEMPERATURE_keV = 0.0;
+    
+    /** Initial particle drift velocity for electrons and ions
+     *  Examples:
+     *    - No drift is equal to 1.0
+     *  unit: none */
+    const double PARTICLE_INIT_DRIFT_GAMMA = 1.0;
+    const double PARTICLE_INIT_DRIFT_GAMMA_MIDDLE = PARTICLE_INIT_DRIFT_GAMMA;
+        
+    /* add negativ value to to have two streams with different direction
+     * add positiv direction to have two streams in the same direction
+     */
+    const double PARTICLE_INIT_DRIFT_DIRECTION_MIDDLE = 1.0;
+    
+        /*change density of middle area in proportion to default density*/
+    const double PARTICLE_INIT_DENSITY_FACTOR_MIDDLE = 1.0;
+    
+    /** Normal vector of the initial drift
+     *  length: gets normalized afterwards
+     *  unit: none */
+    const float_X PARTICLE_INIT_DRIFT_DIRECTION_X = 1.0;
+    const float_X PARTICLE_INIT_DRIFT_DIRECTION_Y = 0.0;
+    const float_X PARTICLE_INIT_DRIFT_DIRECTION_Z = 0.0;
+    
+    /** You can manipulate the drift vector of ions by this factor
+     *  unit: none */
+    const float_X PARTICLE_INIT_DRIFT_IONS = 1.0f;
+    
+    /** Relative size in the middle which gets the inverse drift
+     *  Examples:
+     *    - All particles in the simulation drift in one direction: 0.0 or 1.0
+     *    - Spacial 1/4 "up", 1/2 "down", 1/4 "up: 0.5
+     *  unit: none */
+    const double MIDDLE_DRIFT_INV_SIZE_REL = 0.5;
+
+    // Macro Particle Configuration -------------------------------------------
+
+    /** a particle with a weighting below MIN_WEIGHTING will not
+     *      be created / will be deleted
+     *  unit: none */
+    const float_X MIN_WEIGHTING = 10.0;
+
+    namespace particleInitRandomPos
+    {
+        /** Count of particles per cell at initial state
+         *  unit: none */
+        const uint32_t NUM_PARTICLES_PER_CELL = 2;
+    }
+    
+    namespace particleInitQuietStart
+    {
+        /** Count of particles per cell per direction at initial state
+         *  unit: none */
+        const uint32_t NUM_PARTICLES_PER_CELL_X = 1;
+        const uint32_t NUM_PARTICLES_PER_CELL_Y = 2;
+        const uint32_t NUM_PARTICLES_PER_CELL_Z = 1;
+        
+        /* Do not change this */
+        const uint32_t NUM_PARTICLES_PER_CELL = NUM_PARTICLES_PER_CELL_X
+                                              * NUM_PARTICLES_PER_CELL_Y
+                                              * NUM_PARTICLES_PER_CELL_Z; 
+    }
+
+}
+
+

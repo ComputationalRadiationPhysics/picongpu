@@ -1,0 +1,69 @@
+/**
+ * Copyright 2013 Axel Huebl, Heiko Burau, René Widera
+ *
+ * This file is part of PIConGPU. 
+ * 
+ * PIConGPU is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * 
+ * PIConGPU is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * along with PIConGPU.  
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+ 
+#pragma once
+
+#include "basisLib/vector/Vector.hpp"
+
+namespace picongpu
+{
+
+    typedef precisionPIConGPU::precisionType float_X;
+
+    namespace precision32Bit
+    {
+        typedef precisionType float_X;
+        /*32 Bit defines*/
+        typedef ::PMacc::math::Vector<float_X, DIM1> float1_X;
+        typedef ::PMacc::math::Vector<float_X, DIM2> float2_X;
+        typedef ::PMacc::math::Vector<float_X, DIM3> float3_X;
+    }
+    
+    namespace precision64Bit
+    {
+        typedef precisionType float_X;
+        /*32 Bit defines*/
+        typedef ::PMacc::math::Vector<float_X, DIM1> float1_X;
+        typedef ::PMacc::math::Vector<float_X, DIM2> float2_X;
+        typedef ::PMacc::math::Vector<float_X, DIM3> float3_X;
+    }
+
+    typedef precision32Bit::float_X float_32;
+    typedef precision64Bit::float_X float_64;
+
+    /*variable precision defines*/
+    typedef ::PMacc::math::Vector<float_X, DIM1> float1_X;
+    typedef ::PMacc::math::Vector<float_X, DIM2> float2_X;
+    typedef ::PMacc::math::Vector<float_X, DIM3> float3_X;
+    /*32 Bit defines*/
+    typedef precision32Bit::float1_X float1_32;
+    typedef precision32Bit::float2_X float2_32;
+    typedef precision32Bit::float3_X float3_32;
+    /*64 Bit defines*/
+    typedef precision64Bit::float1_X float1_64;
+    typedef precision64Bit::float2_X float2_64;
+    typedef precision64Bit::float3_X float3_64;
+
+    typedef precisionSqrt::precisionType sqrt_X;
+    typedef precisionExp::precisionType exp_X;
+    //trigonometric functions
+    typedef precisionTrigonemetric::precisionType trigo_X;
+
+} //namespace picongpu

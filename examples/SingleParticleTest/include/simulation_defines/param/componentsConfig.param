@@ -1,0 +1,94 @@
+/**
+ * Copyright 2013 Axel Huebl, Anton Helm, René Widera
+ *
+ * This file is part of PIConGPU. 
+ * 
+ * PIConGPU is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * 
+ * PIConGPU is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * along with PIConGPU.  
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+ 
+
+
+#pragma once
+
+#define SIMDIM DIM3
+
+const uint32_t simDim = SIMDIM;
+
+namespace picongpu
+{
+/** Simulation Starter ---------------------------------------------------
+ *  - singleParticleTest         : unique starter for this test
+ */
+namespace simulation_starter = singleParticleTest;
+
+/*! Laser Configuration --------------------------------------------------
+ *  - laserNone             : no laser init
+ *  - laserGaussianBeam     : Gaussian beam (focusing)
+ *  - laserPulseFrontTilt   : Gaussian beam with a tilted pulse envelope 
+ *                            in 'x' direction
+ *  - laserWavepacket       : wavepacket (gaussian in time and space, not focusing)
+ *  - laserPlaneWave        : a plane wave
+ */
+namespace laserProfile = laserNone;
+
+/*! Field Configuration --------------------------------------------------
+ *  - fieldSolverYee : standard Yee solver
+ *  - fieldSolverLehe: Num. Cherenkov free field solver in y direction
+ *  - fieldSolverDirSplitting: Sentoku's Directional Splitting Method
+ *  - fieldSolverNone: disable the vacuum update of E and B
+ */
+namespace fieldSolver = fieldSolverNone;
+
+/*! Gas Configuration-----------------------------------------------------
+ * Select a normed gas density profile
+ *  - gasGaussian : super - gaussian density profile
+ *  - gasGaussianCloud : super - gaussian density profile with a center position
+ *  - gasLinExp : piecewise linear-exponential profile (linear first)
+ *  - gasHomogenous : constant gas density with a certain length
+ *  - gasSphereFlanks : constant sphere droplet with exponential decr envelope
+ *  - gasNone : just stay with a vacuum
+ */
+namespace gasProfile = gasNone;
+
+/*! Particle Initialization ----------------------------------------------
+ *  - particleInitRandomPos  : distribute your particles uniformly random
+ *  - particleInitQuietStart : distribute your particles latice-like
+ */
+namespace particleInit = particleInitRandomPos;
+
+// particle pusher Configuration ------------------------------------------------------
+/** 
+ *    - particlePusherNone  : no particle is pushed
+ *    - particlePusherVay   : better suited relativistic boris pusher
+ *    - particlePusherAxl   : a pusher developed at HZDR during 2011
+ *    - particlePusherBoris : standard boris pusher
+ */
+namespace particlePusher = particlePusherBoris;
+/*enable (1) or disable (0) ions*/
+#define ENABLE_IONS 0
+/*enable (1) or disable (0) electrons*/
+#define ENABLE_ELECTRONS 1
+
+
+/** select current solver method -----------------------------------------
+ *  - currentSolverEsirkepov :  Esirkepov solver for current 
+ */
+namespace currentSolver = currentSolverEsirkepov;
+
+#define ENABLE_CURRENT 0
+
+}
+
+

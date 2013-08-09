@@ -1,0 +1,68 @@
+/**
+ * Copyright 2013 Axel Huebl, Heiko Burau, René Widera
+ *
+ * This file is part of PIConGPU. 
+ * 
+ * PIConGPU is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * 
+ * PIConGPU is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * along with PIConGPU.  
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+ 
+
+
+#ifndef SIMHEADER_HPP
+#define	SIMHEADER_HPP
+
+#include "types.h"
+#include "dimensions/DataSpace.hpp"
+#include "iostream"
+#include "stdlib.h"
+
+struct SimHeader
+{
+    typedef PMacc::DataSpace<DIM2> Size2D;
+
+    Size2D size;
+    Size2D nodes;
+    Size2D simOffsetToNull;
+    uint32_t step;
+    float scale[2];
+    float cellSize[2];
+    
+
+    SimHeader()
+    {
+        scale[0] = 1.f;
+        scale[1] = 1.f;
+    }
+
+    void setScale(float x, float y)
+    {
+        scale[0] = x;
+        scale[1] = y;
+    }
+
+    void writeToConsole(std::ostream& ocons) const
+    {
+        ocons << "SimHeader.size " << size.x() << " " << size.y() << std::endl;
+        ocons << "SimHeader.nodes " << nodes.x() << " " << nodes.y() << std::endl;
+        ocons << "SimHeader.step " << step << std::endl;
+        ocons << "SimHeader.scale " << scale[0] << " " << scale[1] << std::endl;
+        ocons << "SimHeader.cellSize " << cellSize[0] << " " << cellSize[1] << std::endl;
+    }
+
+};
+
+
+#endif	/* SIMHEADER_HPP */
+

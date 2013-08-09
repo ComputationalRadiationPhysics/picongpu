@@ -1,0 +1,32 @@
+#!/bin/sh
+# 
+# Copyright 2013 Axel Huebl, René Widera
+#
+# This file is part of PIConGPU.
+#
+# PIConGPU is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# PIConGPU is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with PIConGPU.
+# If not, see <http://www.gnu.org/licenses/>.
+#
+
+help()
+{
+    echo "to do...!"
+    echo " arg1: Filename (path to BinEnergyElectrons.dat)"
+    echo " arg2: minEnergy (keV)"
+    echo " arg3: maxEnergy (keV)"
+}
+
+bindir=`dirname $0`/
+
+awk -v minValue=$2 -v maxValue=$3 -f $bindir/../share/awk/SumEnergyRange.awk $1 | gnuplot  -e "set terminal postscript eps color 'Helvetica' 20;set grid;set out 'El_inRange.eps'; plot '-' using 1:2"

@@ -1,0 +1,31 @@
+/* 
+ * File:   LeheSolver.hpp
+ * Author: lehe, huebl
+ * 
+ * Reference: R. Lehe et al
+ *            Phys. Rev. ST Accel. Beams 16, 021301 (2013)
+ * 
+ * Created on May 27th, 2013
+ */
+
+#pragma once
+
+#include "fields/MaxwellSolver/Lehe/LeheCurl.hpp"
+#include "fields/MaxwellSolver/Yee/YeeSolver.def"
+
+
+namespace picongpu
+{
+    namespace leheSolver
+    {
+        using namespace PMacc;
+        
+        typedef CurlELehe< picongpu::fieldSolverLehe::CherenkovFreeDir > CurlELeheDir;
+
+        typedef ::picongpu::yeeSolver::YeeSolver< CurlELeheDir > LeheSolver;
+        
+        /*we need no definition of margin, because yeeSolver use curl data to define margins*/
+
+    } // leheSolver
+
+} // picongpu

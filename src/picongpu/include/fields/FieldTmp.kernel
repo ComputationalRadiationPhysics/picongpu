@@ -1,0 +1,207 @@
+/**
+ * Copyright 2013 Axel Huebl, René Widera
+ *
+ * This file is part of PIConGPU. 
+ * 
+ * PIConGPU is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * 
+ * PIConGPU is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * along with PIConGPU.  
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+ 
+
+
+#pragma once
+
+#include "types.h"
+#include "particles/frame_types.hpp"
+#include "basicOperations.hpp"
+
+#include "simulation_defines.hpp"
+
+#include "FieldTmp.hpp"
+#include "particles/memory/boxes/ParticlesBox.hpp"
+
+#include "memory/boxes/CachedBox.hpp"
+#include "dimensions/DataSpaceOperations.hpp"
+#include "nvidia/functors/Add.hpp"
+#include "mappings/threads/ThreadCollective.hpp"
+#include "algorithms/Set.hpp"
+
+#include "particles/frame_types.hpp"
+
+namespace picongpu
+{
+    using namespace PMacc;
+    
+
+    template<class BlockDescription_, uint32_t AREA, class TmpBox, class ParBox, class FrameSolver, class Mapping>
+    __global__ void kernelComputeSupercells( TmpBox fieldTmp, ParBox boxPar, FrameSolver frameSolver, Mapping mapper )
+    {
+
+        typedef typename BlockDescription_::SuperCellSize SuperCellSize;
+        const DataSpace<simDim> block( mapper.getSuperCellIndex( DataSpace<simDim > ( blockIdx ) ) );
+
+
+        const DataSpace<simDim > threadIndex( threadIdx );
+        const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > ( threadIndex );
+
+        __shared__ typename ParBox::FrameType *frame;
+        __shared__ bool isValid;
+        __shared__ lcellId_t particlesInSuperCell;
+
+        /* wait until all shared memory is initialised */
+        __syncthreads( );
+
+        if( linearThreadIdx == 0 )
+        {
+            frame = &( boxPar.getLastFrame( block, isValid ) );
+            particlesInSuperCell = boxPar.getSuperCell( block ).getSizeLastFrame( );
+        }
+        __syncthreads( );
+
+        if( !isValid )
+            return; //end kernel if we have no frames
+
+        PMACC_AUTO( cachedVal, CachedBox::create < 0, typename TmpBox::ValueType > ( BlockDescription_( ) ) );
+        Set<typename TmpBox::ValueType > set( float_X( 0.0 ) );
+
+        ThreadCollective<BlockDescription_> collectiv( linearThreadIdx );
+        collectiv( set, cachedVal );
+
+        __syncthreads( );
+        while( isValid )
+        {
+            if( linearThreadIdx < particlesInSuperCell )
+            {
+                frameSolver( *frame, linearThreadIdx, SuperCellSize(), cachedVal );
+            }
+            __syncthreads( );
+            if( linearThreadIdx == 0 )
+            {
+                frame = &( boxPar.getPreviousFrame( *frame, isValid ) );
+                particlesInSuperCell = SuperCellSize::elements;
+            }
+            __syncthreads( );
+        }
+
+        nvidia::functors::Add add;
+        const DataSpace<simDim> blockCell = block * MappingDesc::SuperCellSize::getDataSpace( );
+        PMACC_AUTO( fieldTmpBlock, fieldTmp.shift( blockCell ) );
+        collectiv( add, fieldTmpBlock, cachedVal );
+        __syncthreads( );
+    }
+
+    template<class Box, class Mapping>
+    __global__ void kernelBashValue( Box fieldTmp,
+                                     Box targetJ,
+                                     DataSpace<simDim> exchangeSize,
+                                     DataSpace<simDim> direction,
+                                     Mapping mapper )
+    {
+        const DataSpace<simDim> blockCell(
+                                           mapper.getSuperCellIndex( DataSpace<simDim > ( blockIdx ) )
+                                           * Mapping::SuperCellSize::getDataSpace( )
+                                           );
+        const DataSpace<Mapping::Dim> sourceCell( blockCell + DataSpace<simDim > ( threadIdx ) );
+
+        /*origin in area from local GPU*/
+        DataSpace<simDim> nullSourceCell(
+                                          mapper.getSuperCellIndex( DataSpace<simDim > ( ) )
+                                          * Mapping::SuperCellSize::getDataSpace( )
+                                          );
+        DataSpace<simDim> targetCell( sourceCell - nullSourceCell );
+
+        if( direction.x( ) == -1 )
+        {
+            if( threadIdx.x < TILE_WIDTH - exchangeSize.x( ) ) return;
+            targetCell.x( ) -= TILE_WIDTH - exchangeSize.x( );
+        }
+        else if( ( direction.x( ) == 1 ) && ( threadIdx.x >= exchangeSize.x( ) ) ) return;
+        if( direction.y( ) == -1 )
+        {
+            if( threadIdx.y < TILE_HEIGHT - exchangeSize.y( ) ) return;
+            targetCell.y( ) -= TILE_HEIGHT - exchangeSize.y( );
+        }
+        else if( ( direction.y( ) == 1 ) && ( threadIdx.y >= exchangeSize.y( ) ) ) return;
+
+        if( direction.z( ) == -1 )
+        {
+            if( threadIdx.z < TILE_DEPTH - exchangeSize.z( ) ) return;
+            targetCell.z( ) -= TILE_DEPTH - exchangeSize.z( );
+        }
+        else
+            if( ( direction.z( ) == 1 ) && ( threadIdx.z >= exchangeSize.z( ) ) ) return;
+
+        targetJ( targetCell ) = fieldTmp( sourceCell );
+    }
+
+    template<class Box, class Mapping>
+    __global__ void kernelInsertValue( Box fieldTmp,
+                                       Box sourceTmp,
+                                       DataSpace<simDim> exchangeSize,
+                                       DataSpace<simDim> direction,
+                                       Mapping mapper )
+    {
+        const DataSpace<simDim> blockCell(
+                                           mapper.getSuperCellIndex( DataSpace<simDim > ( blockIdx ) )
+                                           * Mapping::SuperCellSize::getDataSpace( )
+                                           );
+        DataSpace<Mapping::Dim> targetCell( blockCell + DataSpace<simDim > ( threadIdx ) );
+
+        /*origin in area from local GPU*/
+        DataSpace<simDim> nullSourceCell(
+                                          mapper.getSuperCellIndex( DataSpace<simDim > ( ) )
+                                          * Mapping::SuperCellSize::getDataSpace( )
+                                          );
+        DataSpace<simDim> sourceCell( targetCell - nullSourceCell );
+
+        if( direction.x( ) == 1 )
+        {
+            if( threadIdx.x < TILE_WIDTH - exchangeSize.x( ) ) return;
+            sourceCell.x( ) -= TILE_WIDTH - exchangeSize.x( );
+            targetCell.x( ) -= TILE_WIDTH;
+        }
+        else if( direction.x( ) == -1 )
+        {
+            if( threadIdx.x >= exchangeSize.x( ) ) return;
+            targetCell.x( ) += TILE_WIDTH;
+        }
+        if( direction.y( ) == 1 )
+        {
+            if( threadIdx.y < TILE_HEIGHT - exchangeSize.y( ) ) return;
+            sourceCell.y( ) -= TILE_HEIGHT - exchangeSize.y( );
+            targetCell.y( ) -= TILE_HEIGHT;
+        }
+        else if( direction.y( ) == -1 )
+        {
+            if( threadIdx.y >= exchangeSize.y( ) ) return;
+            targetCell.y( ) += TILE_HEIGHT;
+        }
+
+        if( direction.z( ) == 1 )
+        {
+            if( threadIdx.z < TILE_DEPTH - exchangeSize.z( ) ) return;
+            sourceCell.z( ) -= TILE_DEPTH - exchangeSize.z( );
+            targetCell.z( ) -= TILE_DEPTH;
+        }
+        else if( direction.z( ) == -1 )
+        {
+            if( threadIdx.z >= exchangeSize.z( ) ) return;
+            targetCell.z( ) += TILE_DEPTH;
+        }
+
+        fieldTmp( targetCell ) += sourceTmp( sourceCell );
+    }
+
+} // namespace picongpu
+

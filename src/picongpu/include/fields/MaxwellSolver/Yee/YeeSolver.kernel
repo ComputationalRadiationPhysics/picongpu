@@ -1,0 +1,89 @@
+/**
+ * Copyright 2013 Axel Huebl, Heiko Burau, René Widera
+ *
+ * This file is part of PIConGPU. 
+ * 
+ * PIConGPU is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * 
+ * PIConGPU is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * along with PIConGPU.  
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+ 
+namespace picongpu
+{
+namespace yeeSolver
+{
+using namespace PMacc;
+
+
+template<class BlockDescription_, class CurlType_, class EBox, class BBox, class Mapping>
+__global__ void kernelUpdateE(EBox fieldE, BBox fieldB, Mapping mapper)
+{
+
+    PMACC_AUTO(cachedB, CachedBox::create < 0, typename BBox::ValueType > (BlockDescription_()));
+
+    nvidia::functors::Assign assign;
+    const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+    const DataSpace<simDim> blockCell = block * MappingDesc::SuperCellSize::getDataSpace();
+
+    const DataSpace<simDim > threadIndex(threadIdx);
+    PMACC_AUTO(fieldBBlock, fieldB.shift(blockCell));
+
+    ThreadCollective<BlockDescription_> collectiv(threadIndex);
+    collectiv(
+              assign,
+              cachedB,
+              fieldBBlock
+              );
+
+    __syncthreads();
+
+    const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
+    const float_X dt = DELTA_T;
+
+    CurlType_ curl;
+    fieldE(blockCell + threadIndex) += curl(cachedB.shift(DataSpace<simDim > (threadIdx))) * c2 * dt;
+}
+
+template<class BlockDescription_, class CurlType_, class EBox, class BBox, class Mapping>
+__global__ void kernelUpdateBHalf(BBox fieldB,
+                                  EBox fieldE,
+                                  Mapping mapper)
+{
+
+    PMACC_AUTO(cachedE, CachedBox::create < 0, typename EBox::ValueType > (BlockDescription_()));
+
+    nvidia::functors::Assign assign;
+    const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+    const DataSpace<simDim> blockCell = block * MappingDesc::SuperCellSize::getDataSpace();
+    const DataSpace<simDim > threadIndex(threadIdx);
+    PMACC_AUTO(fieldEBlock, fieldE.shift(blockCell));
+
+    ThreadCollective<BlockDescription_> collectiv(threadIndex);
+    collectiv(
+              assign,
+              cachedE,
+              fieldEBlock
+              );
+
+
+    __syncthreads();
+    
+    const float_X dt = DELTA_T;
+
+    CurlType_ curl;
+    fieldB(blockCell + threadIndex) -= curl(cachedE.shift(threadIndex)) * float_X(0.5) * dt;
+}
+
+} // yeeSolver
+
+} // picongpu

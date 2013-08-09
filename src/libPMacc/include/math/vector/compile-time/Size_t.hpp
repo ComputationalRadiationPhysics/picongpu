@@ -1,0 +1,68 @@
+/**
+ * Copyright 2013 Heiko Burau, René Widera
+ *
+ * This file is part of libPMacc. 
+ * 
+ * libPMacc is free software: you can redistribute it and/or modify 
+ * it under the terms of of either the GNU General Public License or 
+ * the GNU Lesser General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * libPMacc is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License and the GNU Lesser General Public License 
+ * for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * and the GNU Lesser General Public License along with libPMacc. 
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+ 
+#ifndef STLPICCTSIZE_T_HPP
+#define STLPICCTSIZE_T_HPP
+
+#include <stdint.h>
+#include "Vector.hpp"
+#include <boost/mpl/integral_c.hpp>
+
+namespace PMacc
+{
+namespace math
+{
+namespace CT
+{
+    
+template<size_t x = (size_t)-1, size_t y = (size_t)-1, size_t z = (size_t)-1,
+         size_t dummy = (size_t)-1>
+struct Size_t;
+
+template<size_t x>
+struct Size_t<x> : public CT::Vector<mpl::integral_c<size_t, x> >
+{
+    typedef CT::Vector<mpl::integral_c<size_t, x> > vector_type;
+};
+
+template<size_t x, size_t y>
+struct Size_t<x, y> : public CT::Vector<mpl::integral_c<size_t, x>,
+                                        mpl::integral_c<size_t, y> >
+{
+    typedef CT::Vector<mpl::integral_c<size_t, x>,
+                       mpl::integral_c<size_t, y> > vector_type;
+};
+
+template<size_t x, size_t y, size_t z>
+struct Size_t<x, y, z> : public CT::Vector<mpl::integral_c<size_t, x>,
+                                                   mpl::integral_c<size_t, y>,
+                                                   mpl::integral_c<size_t, z> >
+{
+    typedef CT::Vector<mpl::integral_c<size_t, x>,
+                       mpl::integral_c<size_t, y>,
+                       mpl::integral_c<size_t, z> > vector_type;
+};
+    
+} // CT
+} // math
+} // PMacc
+
+#endif //STLPICCTSIZE_T_HPP

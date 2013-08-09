@@ -1,0 +1,220 @@
+/**
+ * Copyright 2013 Axel Huebl, Heiko Burau, René Widera
+ *
+ * This file is part of PIConGPU. 
+ * 
+ * PIConGPU is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * 
+ * PIConGPU is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * along with PIConGPU.  
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+ 
+#ifndef PARTICLESINIT_KERNEL
+#define PARTICLESINIT_KERNEL
+
+#include "types.h"
+#include "particles/Particles.hpp"
+#include "dimensions/DataSpaceOperations.hpp"
+
+#include "simulation_defines.hpp"
+#include "plugins/radiation/parameters.hpp"
+
+#include "nvidia/rng/RNG.hpp"
+#include "nvidia/rng/methods/Xor.hpp"
+#include "nvidia/rng/distributions/Uniform_float.hpp"
+#include "particles/init/particleInitRandomPos.hpp"
+
+
+namespace picongpu
+{
+
+using namespace PMacc;
+
+
+/** Returns the electron density.
+ *  That means:
+ *     The REAL number of electrons density in units of volume**-3,
+ *       normed to UNIT_LENGHT**3
+ *     That is NOT the macro electron density.
+ * 
+ * @param offset The gpu offset (left top front cell in 3D)
+ * @param cellIdx the current cell on this gpu
+ * @return a float_X which stands for the real number of electrons per volume
+ */
+template<unsigned int Dim>
+DINLINE float_X calcRealDensity(const DataSpace<Dim>& offset, const DataSpace<Dim>& cellIdx)
+{
+    float_X value = gasProfile::calcNormedDensitiy(
+                                                   float3_X((cellIdx.x() + offset.x()) * CELL_WIDTH,
+                                                            (cellIdx.y() + offset.y()) * CELL_HEIGHT,
+                                                            (cellIdx.z() + offset.z()) * CELL_DEPTH))
+        * GAS_DENSITY;
+    return value;
+}
+
+template< class UserTypeList, class Mapping>
+__global__ void kernelFillGridWithParticles(typename Particles<UserTypeList>::ParticlesBoxType pb,
+                                            bool isNotTop, DataSpace<simDim> gpuCelloffset, uint32_t seed, uint32_t gNrCellsY,
+                                            Mapping mapper)
+{
+    namespace nvrng = nvidia::rng;
+    namespace rngMethods = nvidia::rng::methods;
+    namespace rngDistributions = nvidia::rng::distributions;
+
+    typedef typename Particles<UserTypeList>::FrameType FRAME;
+    const DataSpace<simDim> superCells(mapper.getGridSuperCells());
+
+    const DataSpace<simDim> block = mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx));
+
+    __shared__ FRAME *frame;
+
+    __syncthreads(); /*wait that all shared memory is initialised*/
+
+    typedef typename Mapping::SuperCellSize SuperCellSize;
+
+    const DataSpace<simDim > threadIndex(threadIdx);
+    const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
+    const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+
+    const uint32_t linearSuperCellIdx = DataSpaceOperations<simDim>::map(
+                                                                         mapper.getGridSuperCells(),
+                                                                         superCellIdx);
+
+
+    //append only a empty frame in guarding blocks
+    if (block.x() == 0 || block.x() == superCells.x() - 1) return;
+    if (block.y() == 0 || block.y() == superCells.y() - 1) return;
+#if (SIMDIM == DIM3)
+    if (block.z() == 0 || block.z() == superCells.z() - 1) return;
+#endif
+
+    /*get local cell idx*/
+    const DataSpace<simDim> idx(superCellIdx * SuperCellSize() + threadIndex);
+
+    /*delete garding cells \todo: what is if we have more than one block guarding cells*/
+    const DataSpace<simDim> localCellIdx = idx - SuperCellSize::getDataSpace();
+    /*global position in simulation units (meter)*/
+    const float_X yPos = (localCellIdx.y() + gpuCelloffset.y()) * CELL_HEIGHT;
+
+    // inverse flow area
+    /* calculate global size of simulation (in y direction)
+     * WARNING: no sliding wndow support
+     */
+    const float_X sizeY = CELL_HEIGHT * float_X(gNrCellsY);
+    const float_X sizeMiddleY = sizeY * MIDDLE_DRIFT_INV_SIZE_REL;
+    const float_X minMiddleY = (sizeY - sizeMiddleY) * float_X(0.5);
+    const float_X maxMiddleY = sizeMiddleY + minMiddleY;
+
+    // compare global dataspace with current position
+    float_X densityFactor(1.0);
+    if (yPos > minMiddleY &&
+        yPos < maxMiddleY)
+    {
+        densityFactor = float_X(PARTICLE_INIT_DENSITY_FACTOR_MIDDLE);
+    }
+
+    const uint32_t cellIdx = DataSpaceOperations<simDim>::map(
+                                                              mapper.getGridSuperCells() * SuperCellSize(),
+                                                              idx);
+    PMACC_AUTO(rng, nvrng::create(rngMethods::Xor(seed, cellIdx), rngDistributions::Uniform_float()));
+
+    uint32_t numParsPerCell = particleInit::NUM_PARTICLES_PER_CELL;
+
+
+    /*multiply density factor to calculated manipulated middle density*/
+    const float_X realDensity = densityFactor * calcRealDensity(gpuCelloffset, idx - SuperCellSize::getDataSpace());
+    const float_X realElPerCell = realDensity
+        * CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH;
+
+    __shared__ int finished;
+    if (linearThreadIdx == 0)
+        finished = 1;
+    __syncthreads();
+
+    // get specific particle init rules
+    particleInit::particleInitMethods initMethods;
+
+    // decrease number of macro particles, if weighting would be too small
+    float_X macroWeighting =
+        initMethods.reduceParticlesToSatisfyMinWeighting(numParsPerCell,
+                                                         realElPerCell);
+
+    const uint32_t totalNumParsPerCell = numParsPerCell;
+
+    if (numParsPerCell > 0)
+        atomicExch(&finished, 0); //one or more cell has particles to create
+
+    __syncthreads();
+    if (finished == 1)
+        return; // if there is no particle which has to be created
+
+    if (linearThreadIdx == 0)
+    {
+        frame = &(pb.getEmptyFrame());
+        pb.setAsLastFrame(*frame, block);
+    }
+
+    __syncthreads();
+
+    // distribute the particles within the cell
+    do
+    {
+
+        __syncthreads();
+        if (linearThreadIdx == 0)
+            finished = 1; //clear flag
+        __syncthreads();
+
+        float3_X pos = initMethods.getPosition(rng,
+                                               totalNumParsPerCell,
+                                               totalNumParsPerCell - numParsPerCell);
+        //pos.x() = 1.0 - rng();
+        //pos.y() = 1.0 - rng();
+        //pos.z() = 1.0 - rng();
+
+        if (numParsPerCell > 0)
+        {
+            frame->getPosition()[linearThreadIdx] = float3_32(pos.x(), pos.y(), pos.z());
+            frame->getMultiMask()[linearThreadIdx] = 1;
+            frame->getCellIdx()[linearThreadIdx] = linearThreadIdx;
+            frame->getWeighting()[linearThreadIdx] = macroWeighting;
+            frame->getMomentum()[linearThreadIdx] = float3_X(0, 0, 0);
+
+#if(ENABLE_RADIATION == 1)
+            frame->getMomentum_mt1()[linearThreadIdx] = float3_X(0, 0, 0);
+#if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
+#if(RAD_MARK_PARTICLE==0) 
+            //if we need gamma filter but no mark particles at begin of simulation we set all to false
+            frame->getRadiationFlag()[linearThreadIdx] = false;
+#else
+            frame->getRadiationFlag()[linearThreadIdx] = (bool)(rng() < (1.0 / (float) RAD_MARK_PARTICLE));
+#endif
+#endif
+#endif
+            numParsPerCell--;
+            if (numParsPerCell > 0)
+                atomicExch(&finished, 0); //one or more cell has particles to create
+        }
+        __syncthreads();
+        if (linearThreadIdx == 0 && finished == 0)
+        {
+            frame = &(pb.getEmptyFrame());
+            pb.setAsLastFrame(*frame, block);
+        }
+    }
+    while (finished == 0);
+}
+
+}
+
+
+#endif  //end  PARTICLESINIT_KERNEL

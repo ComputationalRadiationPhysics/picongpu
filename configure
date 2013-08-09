@@ -1,0 +1,99 @@
+#!/bin/bash
+#
+# Copyright 2013 Axel Huebl, René Widera
+#
+# This file is part of PIConGPU.
+#
+# PIConGPU is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# PIConGPU is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with PIConGPU.
+# If not, see <http://www.gnu.org/licenses/>.
+#
+
+this_dir=`dirname $0`
+
+
+help()
+{
+    echo "configure create a cmake call for picongpu \nand get fast access to selected picongpu cmake options"
+    echo ""
+    echo "usage: configure [OPTION] <parameter_DIRECTORY>"
+    echo "If no path_to_CMakeLists.txt is set the directory of this binary is used as source directory."
+    echo ""
+    echo "-i | --install       - path were picongpu should be installed (default is <parameter_DIRECTORY>)"
+    echo "-a | --arch          - set cuda architecture (e.g.: sm_13, sm_20, ...)"
+    echo "-c | --cmake         - overwrite options for cmake (e.g.: -c \"-DPIC_VERBOSE=1\")"
+    echo "-t <presetNumber>    - configure this preset from cmakeFlags"
+    echo "-h | --help          - show this help message"
+}
+
+# options may be followed by one colon to indicate they have a required argument
+OPTS=`getopt -o i:a:c:p:t:h -l install:,arch:,cmake:,params:,help -- "$@"`
+if [ $? != 0 ] ; then
+    # something went wrong, getopt will put out an error message for us
+    exit 1
+fi
+
+# configure a specific preset in the cmakeFlags file
+cmakeFlagsNr=0
+
+eval set -- "$OPTS"
+
+while true ; do
+    case "$1" in  
+        -a|--arch)
+            cuda_arch="-DCUDA_ARCH=$2"
+            shift
+            ;;
+        -i|--install)
+            install_path="-DCMAKE_INSTALL_PREFIX=$2"
+            shift
+            ;;
+        -h|--help)
+            echo -e "$(help)"
+            exit 1
+            ;;
+        -c|--cmake)
+            cmake_options="$2"
+            shift
+            ;;
+        -t)
+            cmakeFlagsNr="$2"
+            shift
+            ;;
+        --) shift; break;;
+    esac
+    shift
+done
+
+extension_param="$*"
+
+if [ -z "$extension_param" ] ; then
+   echo "No case path is given." >&2
+   exit 1
+fi
+#check for cmakeFlags file (interprete with sh)
+if [ -f "$extension_param/cmakeFlags" ] ; then
+    cmake_flags=`$extension_param/cmakeFlags $cmakeFlagsNr`
+fi
+
+#set default install path if no path is set by paramater
+if [ -z "$install_path" ] ; then
+   install_path="-DCMAKE_INSTALL_PREFIX=$extension_param"
+fi
+extension_param="-DPIC_EXTENSION_PATH=$extension_param"
+
+
+
+own_command="cmake $cmake_flags $install_path $extension_param $cmake_options $cuda_arch $this_dir"
+echo -e "\033[32mcmake command:\033[0m $own_command"
+$own_command

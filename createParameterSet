@@ -1,0 +1,152 @@
+#!/bin/bash
+#
+# Copyright 2013 Axel Huebl, René Widera
+#
+# This file is part of PIConGPU.
+#
+# PIConGPU is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# PIConGPU is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with PIConGPU.
+# If not, see <http://www.gnu.org/licenses/>.
+#
+
+this_dir=`dirname $0`
+
+#only copy submit and params if we clone from default pic folder
+default_folder_to_copy="submit include/simulation_defines/param include/simulation_defines/unitless"
+#if we clone a project we copy full include 
+folder_to_clone="submit include"
+files_to_copy="cmakeFlags executeOnClone"
+
+help()
+{
+    echo "createParameterSet create a new parameter set"
+    echo "merge default picongpu paramter and given src"
+    echo ""
+    echo "usage: createParameterSet [OPTION] [src_dir] dest_dir"
+    echo "If no src_dir is set picongpu a default case is cloned"
+    echo ""
+    echo "-f | --force         - merge data if destination already exists"
+    echo "-h | --help          - show this help message"
+    echo ""
+    echo "Dependencies: rsync"
+}
+
+force_param=0
+
+# options may be followed by one colon to indicate they have a required argument
+OPTS=`getopt -o fh -l force,help -- "$@"`
+if [ $? != 0 ] ; then
+    # something went wrong, getopt will put out an error message for us
+    exit 1
+fi
+
+eval set -- "$OPTS"
+
+while true ; do
+    case "$1" in
+        -f|--force)
+            force_param=1                       
+            ;;
+        -h|--help)
+            echo -e "$(help)"
+            exit 1
+            ;;
+        --) shift; break;;
+    esac
+    shift
+done
+
+cmake_path="$*"
+
+default_param_dir="$this_dir/src/picongpu"
+
+if [ $# -eq 0 ] || [ $# -gt 2 ] ; then
+    echo "Missing destination directory or to many directories were given." >&2
+    exit
+fi
+
+if [ $# -eq 2 ] ; then
+    src_path=$1
+    dst_path=$2
+    selected_default_folder_to_copy=$folder_to_clone
+else
+    src_path=$this_dir
+    dst_path=$1
+    selected_default_folder_to_copy=$default_folder_to_copy
+fi
+
+if [ ! -d "$src_path" ] ; then
+    echo "$src_path not exists" >&2
+fi
+
+if [ -d "$src_path/src/picongpu" ] ; then
+    src_path="$src_path/src/picongpu"
+fi
+
+if [ -d "$dst_path" ] && [ "$force_param" -eq 0 ] ; then
+    echo "$dst_path already exists!" >&2
+    read -e -p "Merge data into $dst_path [yes|NO]? : " input
+    if [ -z "$input" ] ; then
+        input="NO"
+    fi
+    input=`echo "$input" | tr '[:upper:]' '[:lower:]'`
+    if [ $input != "yes" ] ; then
+        echo "Abortion!" >&2
+        exit
+    fi
+else
+    if [ ! -d "$dst_path" ] ; then
+        mkdir -p "$dst_path"
+    fi
+fi
+
+#first copy default parameter
+for d in $default_folder_to_copy
+do
+    dir_dst="$dst_path/$d"
+    dir_src="$default_param_dir/$d"
+    if [ ! -d "$dir_dst" ] ; then
+        mkdir -p "$dir_dst"
+    fi
+    rsync --inplace -q -avc --exclude=".*" $dir_src/* $dir_dst
+done
+
+#copy all data from src_path if path is not picongpu default param path
+if [ "$src_path" != "$this_dir/src/picongpu" ] ; then
+    for d in $selected_default_folder_to_copy
+    do
+        dir_dst="$dst_path/$d"
+        dir_src="$src_path/$d"
+        if [ ! -d "$dir_dst" ] ; then
+            mkdir -p "$dir_dst"
+        fi
+        rsync --inplace -q -avc --exclude=".*" $dir_src/* $dir_dst
+    done
+fi
+
+#copy files
+for d in $files_to_copy
+do
+    file_dst="$dst_path/$d"
+    file_src="$src_path/$d"
+    if [ ! -d "$dir_dst" ] ; then
+        mkdir -p "$dir_dst"
+    fi
+    if [ -f "$src_path/$d" ] ; then
+       rsync --inplace -q -avc --exclude=".*" $file_src $file_dst
+    fi
+done
+
+if [ -f "$src_path/executeOnClone" ] ; then
+   `sh $src_path/executeOnClone $dst_path`
+fi

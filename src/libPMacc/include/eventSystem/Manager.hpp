@@ -1,0 +1,110 @@
+/**
+ * Copyright 2013 Felix Schmitt, René Widera, Wolfgang Hoenig
+ *
+ * This file is part of libPMacc. 
+ * 
+ * libPMacc is free software: you can redistribute it and/or modify 
+ * it under the terms of of either the GNU General Public License or 
+ * the GNU Lesser General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * libPMacc is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License and the GNU Lesser General Public License 
+ * for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * and the GNU Lesser General Public License along with libPMacc. 
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+ 
+/* 
+ * File:   Manager.hpp
+ * Author: whoenig
+ *
+ * Created on 9. April 2010, 10:57
+ */
+
+#ifndef _MANAGER_HPP
+#define	_MANAGER_HPP
+
+#include <map>
+#include <cassert>
+
+#include "eventSystem/EventSystem.hpp"
+#include "eventSystem/events/EventPool.hpp"
+
+
+namespace PMacc
+{
+
+    // forward declaration
+    class EventTask;
+
+    /**
+     * Manages the event system by executing and waiting for tasks.
+     */
+    class Manager : public IEvent
+    {
+    public:
+        typedef std::map<id_t, ITask*> TaskMap;
+        typedef std::set<id_t> TaskSet;
+
+        bool execute(id_t taskToWait = 0);
+
+        void event(id_t eventId, EventType type, IEventData* data);
+
+        static Manager& getInstance();
+
+        /*! Return a ITask pointer if ITask is not finished
+         * @return ITask pointer if Task is not finished else NULL
+         */
+        inline ITask* getITaskIfNotFinished(id_t taskId) const;
+
+        /**
+         * blocks until the task with taskId is finished
+         * @param taskId id of the task to wait for
+         */
+        void waitForFinished(id_t taskId);
+
+        /**
+         * blocks until all tasks in the manager are finished
+         */
+        void waitForAllTasks();
+
+        /**
+         * adds an ITask to the manager and returns an EventTask for it
+         * @param task task to add to the manager
+         */
+        void addTask(ITask *task);
+
+        void addPassiveTask(ITask *task);
+
+        EventPool& getEventPool();
+
+        int getCount();
+        
+
+
+    private:
+
+        inline ITask* getPassiveITaskIfNotFinished(id_t taskId) const;
+
+        inline ITask* getActiveITaskIfNotFinished(id_t taskId) const;
+
+        Manager();
+
+        Manager(const Manager& cc);
+
+        virtual ~Manager();
+
+        TaskMap tasks;
+        TaskMap passiveTasks;
+        EventPool *eventPool;
+    };
+
+} //namespace PMacc
+
+
+#endif	/* _MANAGER_HPP */

@@ -1,0 +1,58 @@
+#!/bin/bash
+# 
+# Copyright 2013 René Widera
+#
+# This file is part of PIConGPU.
+#
+# PIConGPU is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# PIConGPU is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with PIConGPU.
+# If not, see <http://www.gnu.org/licenses/>.
+#
+
+# this program transpose a file
+# read from stdin or from given file
+
+function trans()
+{
+cat /dev/stdin | awk '
+BEGIN{
+ max_nf = 0;
+}
+{
+  for(c = 1; c <= NF; c++) {
+    a[c, NR] = $c
+  }
+  if(max_nf < NF) {
+    max_nf = NF
+  }
+}
+END {
+    for(c = 1; c <= max_nf; c++) {
+for(r = 1; r <= NR; r++) {
+      printf("%s ", a[c, r])
+    }
+    print ""
+  }
+}' 
+}
+
+
+if [ $# -eq 0 ] ; then
+	cat /dev/stdin | trans
+elif [ $# -eq 1 ] ; then
+	cat $1 | trans
+else
+	echo "call $0 [filename] to run program"
+	exit 1
+fi
+exit 0

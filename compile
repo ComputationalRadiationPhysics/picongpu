@@ -1,0 +1,162 @@
+#!/bin/bash
+#
+# Copyright 2013 Axel Huebl, René Widera
+#
+# This file is part of PIConGPU.
+#
+# PIConGPU is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# PIConGPU is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with PIConGPU.
+# If not, see <http://www.gnu.org/licenses/>.
+#
+
+this_dir=$(cd `dirname $0` && pwd)
+
+# load libs and functions ######################################################
+#
+. $this_dir/buildsystem/CompileSuite/path.sh
+. $this_dir/buildsystem/CompileSuite/help.sh
+. $this_dir/buildsystem/CompileSuite/color.sh
+. $this_dir/buildsystem/CompileSuite/options.sh
+. $this_dir/buildsystem/CompileSuite/exec_helper.sh
+
+this_dir=`absulte_path $this_dir`
+
+# return code of this script (globals) #########################################
+#
+myError=0
+myErrorTxt=""
+
+# script options
+list_param=0
+quiet_run=0
+num_parallel=1
+# accept environment variable for other scripts
+globalCMakeOptions=${PIC_COMPILE_SUITE_CMAKE:-""} 
+
+# paths
+examples_path=""
+tmpRun_path=""
+
+# parse the command line options ###############################################
+parseOptions $@
+
+if [ "$num_parallel" -ne "1" ]; then
+    echo -e $compileSuite"Run in parallel: "`echo_g "$num_parallel"`
+fi
+
+if [ ! -z "$globalCMakeOptions" ]; then
+    globalCMakeOptions="--cmake \"$globalCMakeOptions\""
+    echo -e $compileSuite"Specified global CMake Options:"\
+        `echo_g "$globalCMakeOptions"`
+fi
+
+# directory checks #############################################################
+#
+dir_exists "$examples_path" "source"
+examples_path=`absulte_path $examples_path`
+
+cmake_path="$*"
+default_param_dir="$this_dir/src/picongpu"
+
+mkdir -p "$tmpRun_path"
+dir_exists "$tmpRun_path" "destination"
+tmpRun_path=`absulte_path $tmpRun_path`
+
+cd "$tmpRun_path"
+mkdir -p "$tmpRun_path/build"
+mkdir -p "$tmpRun_path/params"
+
+if [ $list_param -ne 1 ] ; then
+    # single test
+    list_examples="."
+else
+    # examples/ folder
+    list_examples=`ls -w1 $examples_path`
+fi
+
+cd "$tmpRun_path/build"
+check $? "Can not enter directory $tmpRun_path/build"
+
+
+# example compile loop #########################################################
+#
+running=0
+for i in $list_examples
+do
+    example_name=`basename $examples_path/$i`
+    #if we only compile one case we must skip folder with name . and read real folder name
+    if [ "$example_name" == "." ] ; then
+        example_name=`basename $examples_path`
+    fi
+
+    testFlag_cnt=0
+    if [ -f "$examples_path/$i/cmakeFlags" ]; then
+        testFlag_cnt=`$examples_path/$i/cmakeFlags -l`
+    fi
+
+    testFlagNr=0
+    while [ $testFlagNr -lt $testFlag_cnt ] ; do
+        buildDir="$tmpRun_path/build/build_"$example_name"_cmakePreset_$testFlagNr"
+        mkdir -p $buildDir
+
+        if [ "$num_parallel" -gt "1" ] ; then
+            $this_dir/buildsystem/CompileSuite/compileSet.sh \
+                "$example_name" "$testFlagNr" "$globalCMakeOptions" \
+                "$tmpRun_path" "$buildDir" "$examples_path" \
+                "$quiet_run" &> $buildDir"/compile.log" &
+
+            running="`jobs -p | wc -l`"
+            echo $compileSuite"Spawned $example_name $testFlagNr" 
+
+            while [ "$running" -ge "$num_parallel" ]
+            do
+                sleep 5
+                running="`jobs -p | wc -l`"
+            done
+        else
+            $this_dir/buildsystem/CompileSuite/compileSet.sh \
+                "$example_name" "$testFlagNr" "$globalCMakeOptions" \
+                "$tmpRun_path" "$buildDir" "$examples_path" \
+                "$quiet_run" | tee $buildDir"/compile.log"
+        fi
+
+        testFlagNr=$(( testFlagNr + 1 ))
+    done
+done
+
+# wait for last compiles (all owned by this bash env)
+wait
+
+# output errors
+for bT in `ls $tmpRun_path/build/`
+do
+    thisError=`cat $tmpRun_path"/build/"$bT"/returnCode"`
+    thisErrorTxt=""`cat $tmpRun_path"/build/"$bT"/returnTxt"`
+
+    myError=$(( myError + thisError ))
+    myErrorTxt="$myErrorTxt$thisErrorTxt"
+done
+
+
+# check final errors, provide help to user and exit with status code ###########
+#
+if [ $myError -ne 0 ]; then
+    echo -e "$myErrorTxt"
+    echo -e $compileSuite`echo_r "ERRORs occured!"`
+    echo -e $compileSuite"`thumbs_down`"
+else
+    echo -e $compileSuite`echo_g "All right!"`
+    echo -e $compileSuite"`thumbs_up`"
+fi
+
+exit $myError

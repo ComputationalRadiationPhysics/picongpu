@@ -1,0 +1,100 @@
+/**
+ * Copyright 2013 Axel Huebl, René Widera
+ *
+ * This file is part of PIConGPU. 
+ * 
+ * PIConGPU is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * 
+ * PIConGPU is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * along with PIConGPU.  
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+ 
+
+
+#pragma once
+
+#include "simulation_defines/param/gasConfig.param"
+
+namespace picongpu
+{
+    // normed gas parameter
+    const float_X VACUUM_Y = float_X(SI::VACUUM_Y_SI / UNIT_LENGTH); // unit: meter
+    const float_X GAS_DENSITY = float_X(SI::GAS_DENSITY_SI*UNIT_LENGTH*UNIT_LENGTH*UNIT_LENGTH);
+    
+    PMACC_CASSERT_MSG( Please_select_gasNone_for_vacuum__leave_GAS_DENSITY_greater_than_0, ((GAS_DENSITY)>0.0f) );
+
+    namespace gasGaussian
+    {
+        // normed parameters of the gaussian gas profile
+        const float_X GAS_CENTER_LEFT = float_X( SI::GAS_CENTER_LEFT_SI / UNIT_LENGTH); //unit: meter
+        const float_X GAS_CENTER_RIGHT = float_X( SI::GAS_CENTER_RIGHT_SI / UNIT_LENGTH); //unit: meter
+        const float_X GAS_SIGMA_LEFT = float_X( SI::GAS_SIGMA_LEFT_SI / UNIT_LENGTH); //unit: meter
+        const float_X GAS_SIGMA_RIGHT = float_X( SI::GAS_SIGMA_RIGHT_SI / UNIT_LENGTH); //unit: meter
+        const bool GAS_ENABLED = true;
+    }
+
+    namespace gasLinExp
+    {
+        const float_X GAS_Y_MAX = float_X( SI::GAS_Y_MAX_SI / UNIT_LENGTH ); //unit: meter
+        const float_X GAS_A = float_X( SI::GAS_A_SI * UNIT_LENGTH );  //unit: 1/meter
+        const float_X GAS_D = float_X( SI::GAS_D_SI * UNIT_LENGTH ); //unit: 1/meter
+        
+        const bool GAS_ENABLED = true;
+    }
+    
+    namespace gasHomogenous
+    {
+        /** Length of the constant gas in y direction
+         *  unit: meter */
+        const float_X GAS_LENGTH = float_X( SI::GAS_LENGTH_SI / UNIT_LENGTH);
+        const bool GAS_ENABLED = true;
+    }
+    
+    namespace gasSphereFlanks
+    {
+        const float_X GAS_R = float_X( SI::GAS_R_SI / UNIT_LENGTH );
+        const float_X GAS_X = float_X( SI::GAS_X_SI / UNIT_LENGTH );
+        const float_X GAS_Y = float_X( SI::GAS_Y_SI / UNIT_LENGTH );
+        const float_X GAS_Z = float_X( SI::GAS_Z_SI / UNIT_LENGTH );
+        const float_X GAS_EXP = float_X( SI::GAS_EXP_SI * UNIT_LENGTH );
+        
+        const bool GAS_ENABLED = true;
+    }
+
+    namespace gasGaussianCloud
+    {
+        // normed parameters of the gaussian gas profile
+        const float_X GAS_CENTER_X = float_X( SI::GAS_CENTER_X_SI / UNIT_LENGTH); //unit: meter
+        const float_X GAS_CENTER_Y = float_X( SI::GAS_CENTER_Y_SI / UNIT_LENGTH); //unit: meter
+        const float_X GAS_CENTER_Z = float_X( SI::GAS_CENTER_Z_SI / UNIT_LENGTH); //unit: meter
+        const float_X GAS_SIGMA_X = float_X( SI::GAS_SIGMA_X_SI / UNIT_LENGTH); //unit: meter
+        const float_X GAS_SIGMA_Y = float_X( SI::GAS_SIGMA_Y_SI / UNIT_LENGTH); //unit: meter
+        const float_X GAS_SIGMA_Z = float_X( SI::GAS_SIGMA_Z_SI / UNIT_LENGTH); //unit: meter
+        const bool GAS_ENABLED = true;
+    }
+
+    namespace gasNone
+    {
+        /** Do not initialize a gas, stay with vacuum */
+        const bool GAS_ENABLED = false;
+    }
+
+}
+
+// include implemented gas profiles
+//
+#include "particles/gasProfiles/gasGaussian.hpp"
+#include "particles/gasProfiles/gasGaussianCloud.hpp"
+#include "particles/gasProfiles/gasLinExp.hpp"
+#include "particles/gasProfiles/gasHomogenous.hpp"
+#include "particles/gasProfiles/gasSphereFlanks.hpp"
+#include "particles/gasProfiles/gasNone.hpp"

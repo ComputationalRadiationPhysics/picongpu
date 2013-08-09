@@ -1,0 +1,521 @@
+/**
+ * Copyright 2013 Axel Huebl, Heiko Burau, René Widera, Wen Fu
+ *
+ * This file is part of PIConGPU. 
+ * 
+ * PIConGPU is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * 
+ * PIConGPU is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * along with PIConGPU.  
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+ 
+#ifndef PARTICLES_KERNEL
+#define	PARTICLES_KERNEL
+
+#include "types.h"
+#include "particles/frame_types.hpp"
+#include "particles/memory/boxes/ParticlesBox.hpp"
+#include "particles/memory/boxes/TileDataBox.hpp"
+#include "simulation_types.hpp"
+#include "simulation_defines.hpp"
+
+#include "fields/FieldE.hpp"
+#include "fields/FieldB.hpp"
+
+#include "memory/boxes/DataBox.hpp"
+#include "memory/boxes/CachedBox.hpp"
+
+#include <curand_kernel.h>
+
+#include "nvidia/functors/Assign.hpp"
+#include "mappings/threads/ThreadCollective.hpp"
+
+#include "plugins/radiation/parameters.hpp"
+#if(ENABLE_RADIATION == 1)
+#include "plugins/radiation/particles/PushExtension.hpp"
+#endif
+
+#include "nvidia/rng/RNG.hpp"
+#include "nvidia/rng/methods/Xor.hpp"
+#include "nvidia/rng/distributions/Normal_float.hpp"
+
+namespace picongpu
+{
+
+using namespace PMacc;
+
+
+template<class MYFRAME, class OTHERFRAME, class Mapping>
+__global__ void kernelCloneParticles(ParticlesBox<MYFRAME, simDim> myBox, ParticlesBox<OTHERFRAME, simDim> otherBox, Mapping mapper)
+{
+    __shared__ OTHERFRAME *frame;
+
+    __shared__ MYFRAME *myFrame;
+    __shared__ bool isValid;
+
+    __syncthreads(); /*wait that all shared memory is initialised*/
+
+    const DataSpace<Mapping::Dim> block = mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx));
+
+    if (threadIdx.x == 0)
+    {
+        frame = &(otherBox.getFirstFrame(block, isValid));
+        if (isValid)
+        {
+            //we have everything to clone
+            myFrame = &(myBox.getEmptyFrame());
+            //myBox.setAsFirstFrame(*myFrame, block);
+        }
+    }
+    __syncthreads();
+    while (isValid) //move over all Frames
+    {
+        myFrame->copy(threadIdx.x, *frame, threadIdx.x);
+        myFrame->getMultiMask()[threadIdx.x] = frame->getMultiMask()[threadIdx.x];
+        __syncthreads();
+        if (threadIdx.x == 0)
+        {
+            myBox.setAsLastFrame(*myFrame, block);
+
+            frame = &(otherBox.getNextFrame(*frame, isValid));
+            if (isValid)
+            {
+                myFrame = &(myBox.getEmptyFrame());
+            }
+        }
+        __syncthreads();
+    }
+}
+
+/* kernel must called with one dimension for blockSize */
+template<class FRAME, class Mapping>
+__global__ void kernelAddTemperature(ParticlesBox<FRAME, simDim> pb, float_X energy, uint32_t seed, Mapping mapper)
+{
+    __shared__ FRAME *frame;
+    __shared__ bool isValid;
+    typedef typename Mapping::SuperCellSize SuperCellSize;
+
+    __syncthreads(); /*wait that all shared memory is initialised*/
+
+    namespace nvrng = nvidia::rng;
+    namespace rngMethods = nvidia::rng::methods;
+    namespace rngDistributions = nvidia::rng::distributions;
+
+    const DataSpace<simDim > threadIndex(threadIdx);
+    const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
+
+    if (linearThreadIdx == 0)
+    {
+        const DataSpace<Mapping::Dim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+        frame = &(pb.getLastFrame(superCellIdx, isValid));
+    }
+
+    __syncthreads();
+    if (!isValid)
+        return; //end kernel if we have no frames
+
+
+
+    bool isParticle = frame->getMultiMask()[linearThreadIdx];
+
+
+    const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+
+    const uint32_t linearSuperCellIdx = DataSpaceOperations<simDim>::map(
+                                                                         mapper.getGridSuperCells(),
+                                                                         superCellIdx);
+
+    const DataSpace<simDim> idx(superCellIdx * SuperCellSize() + threadIndex);
+    const uint32_t cellIdx = DataSpaceOperations<simDim>::map(
+                                                              mapper.getGridSuperCells() * SuperCellSize(),
+                                                              idx);
+    PMACC_AUTO(rng, nvrng::create(rngMethods::Xor(seed, cellIdx), rngDistributions::Normal_float()));
+
+
+    __syncthreads();
+
+    while (isValid)
+    {
+        if (isParticle)
+        {
+
+            const float3_X tmpRand = float3_X(rng(),
+                                              rng(),
+                                              rng());
+
+            const float_X macroWeighting = frame->getWeighting()[linearThreadIdx];
+            // since energy is related to one particle,
+            // and our units are normalized for macro particle quanities
+            // energy is quite small
+            const float_X macroEnergy = macroWeighting * energy;
+            // non-rel, MW:
+            //    p = m * v
+            //            v ~ sqrt(k*T/m), k*T = E
+            // => p = sqrt(m)
+            //
+            // Note on macro particle energies, with weighting w:
+            //    p_1 = m_1 * v
+            //                v = v_1 = v_w
+            //    p_w = p_1 * w
+            //    E_w = E_1 * w
+            // Since masses, energies and momentas add up linear, we can
+            // just take w times the p_1. Take care, E means E_1 !
+            // This goes to:
+            //    p_w = w * p_1 = w * m_1 * sqrt( E / m_1 )
+            //        = sqrt( E * w^2 * m_1 )
+            //        = sqrt( E * w * m_w )
+            // Which makes sense, since it means that we use a macroMass
+            // and a macroEnergy now.
+            const float3_X mom = tmpRand * (float_X) math::sqrt(
+                                                                typeCast<sqrt_X > (
+                                                                                   macroEnergy * frame->getMass(macroWeighting)
+                                                                                   )
+                                                                );
+            frame->getMomentum()[linearThreadIdx] += mom;
+        }
+        __syncthreads();
+        if (linearThreadIdx == 0)
+        {
+            frame = &(pb.getPreviousFrame(*frame, isValid));
+        }
+        isParticle = true;
+        __syncthreads();
+    }
+}
+
+template< class UserTypeList, class Mapping>
+__global__ void kernelSetDrift(typename Particles<UserTypeList>::ParticlesBoxType pb,
+                               uint32_t offsetY,
+                               const int gNrCellsY,
+                               Mapping mapper)
+{
+    typedef typename Particles<UserTypeList>::FrameType FRAME;
+    const DataSpace<simDim> superCells(mapper.getGridSuperCells());
+
+    const DataSpace<simDim> block = mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx));
+
+    __shared__ FRAME *frame;
+    __shared__ bool isValid;
+
+    __syncthreads(); /*wait that all shared memory is initialised*/
+
+    typedef typename Mapping::SuperCellSize SuperCellSize;
+
+    const DataSpace<simDim > threadIndex(threadIdx);
+    const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
+    const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+
+    const uint32_t linearSuperCellIdx = DataSpaceOperations<simDim>::map(
+                                                                         mapper.getGridSuperCells(),
+                                                                         superCellIdx);
+
+    const DataSpace<simDim> idx(superCellIdx * SuperCellSize() + threadIndex);
+
+    __syncthreads();
+
+    if (linearThreadIdx == 0)
+    {
+        const DataSpace<Mapping::Dim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+        frame = &(pb.getLastFrame(superCellIdx, isValid));
+    }
+
+    __syncthreads();
+    if (!isValid)
+        return; //end kernel if we have no frames
+
+    bool isParticle = frame->getMultiMask()[linearThreadIdx];
+
+    while (isValid)
+    {
+        if (isParticle)
+        {
+            if (PARTICLE_INIT_DRIFT_GAMMA == 1.0)
+            {
+                frame->getMomentum()[linearThreadIdx] = float3_X(0.0, 0.0, 0.0);
+            }
+            else
+            {
+                // get cells global y position
+                const DataSpace<simDim> cellIdx = idx - SuperCellSize::getDataSpace();
+                const float_X yPos = (cellIdx.y() + offsetY) * CELL_HEIGHT;
+
+                // inverse flow area
+                const float_X sizeY = CELL_HEIGHT * float_X(gNrCellsY);
+                const float_X sizeMiddleY = sizeY * MIDDLE_DRIFT_INV_SIZE_REL;
+                const float_X minMiddleY = (sizeY - sizeMiddleY) * float_X(0.5);
+                const float_X maxMiddleY = sizeMiddleY + minMiddleY;
+
+                // compare global dataspace with current position
+                float_X isMiddleArea = 1.0;
+                float_64 myGamma = PARTICLE_INIT_DRIFT_GAMMA;
+                if (yPos > minMiddleY &&
+                    yPos < maxMiddleY)
+                {
+                    isMiddleArea = PARTICLE_INIT_DRIFT_DIRECTION_MIDDLE;
+                    myGamma = PARTICLE_INIT_DRIFT_GAMMA_MIDDLE;
+                }
+
+                typedef typename FRAME::MassType MassType;
+                const float_X macroWeighting = frame->getWeighting()[linearThreadIdx];
+                const MassType macroMass = frame->getMass(macroWeighting);
+
+
+                const float_64 PARTICLE_INIT_DRIFT_BETA =
+                    math::sqrt(1.0 -
+                               1.0 / (myGamma *
+                                      myGamma));
+
+                const float3_X PARTICLE_INIT_DRIFT_DIRECTION(PARTICLE_INIT_DRIFT_DIRECTION_X,
+                                                             PARTICLE_INIT_DRIFT_DIRECTION_Y,
+                                                             PARTICLE_INIT_DRIFT_DIRECTION_Z);
+
+                const float3_X normDir = PARTICLE_INIT_DRIFT_DIRECTION /
+                    math::abs(PARTICLE_INIT_DRIFT_DIRECTION);
+
+                float_X particleDir = 1.0;
+                if (FRAME::CommunicationTag == PAR_IONS)
+                    particleDir = PARTICLE_INIT_DRIFT_IONS;
+
+                frame->getMomentum()[linearThreadIdx]
+                    = normDir * particleDir *
+                    float_X(myGamma *
+                            PARTICLE_INIT_DRIFT_BETA *
+                            float_64(macroMass) *
+                            float_64(SPEED_OF_LIGHT)
+                            ) *
+                    isMiddleArea;
+            }
+        }
+        __syncthreads();
+        if (linearThreadIdx == 0)
+        {
+            frame = &(pb.getPreviousFrame(*frame, isValid));
+        }
+        isParticle = true;
+        __syncthreads();
+    }
+}
+
+template<class BlockDescription_, class ParBox, class BBox, class EBox, class Mapping, class FrameSolver>
+__global__ void kernelMoveAndMarkParticles(ParBox pb,
+                                           EBox fieldE,
+                                           BBox fieldB,
+                                           FrameSolver frameSolver,
+                                           Mapping mapper)
+{
+    typedef typename BlockDescription_::SuperCellSize SuperCellSize;
+    const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+
+
+    const DataSpace<simDim > threadIndex(threadIdx);
+    const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
+
+
+    const DataSpace<simDim> blockCell = block * SuperCellSize::getDataSpace();
+
+    __syncthreads();
+
+
+    __shared__ typename ParBox::FrameType *frame;
+    __shared__ bool isValid;
+    __shared__ int mustShift;
+    __shared__ lcellId_t particlesInSuperCell;
+
+    __syncthreads(); /*wait that all shared memory is initialised*/
+
+    if (linearThreadIdx == 0)
+    {
+        mustShift = 0;
+        frame = &(pb.getLastFrame(block, isValid));
+        particlesInSuperCell = pb.getSuperCell(block).getSizeLastFrame();
+    }
+
+    __syncthreads();
+    if (!isValid)
+        return; //end kernel if we have no frames
+
+    PMACC_AUTO(cachedB, CachedBox::create < 0, typename BBox::ValueType > (BlockDescription_()));
+    PMACC_AUTO(fieldBBlock, fieldB.shift(blockCell));
+
+    nvidia::functors::Assign assign;
+    ThreadCollective<BlockDescription_> collectiv(linearThreadIdx);
+    collectiv(
+              assign,
+              cachedB,
+              fieldBBlock
+              );
+    PMACC_AUTO(cachedE, CachedBox::create < 1, typename EBox::ValueType > (BlockDescription_()));
+    PMACC_AUTO(fieldEBlock, fieldE.shift(blockCell));
+    collectiv(
+              assign,
+              cachedE,
+              fieldEBlock
+              );
+    __syncthreads();
+
+    /*move oder frames and call frame solver*/
+    while (isValid)
+    {
+        if (linearThreadIdx < particlesInSuperCell)
+        {
+            frameSolver(*frame, linearThreadIdx, cachedB, cachedE, mustShift);
+        }
+        __syncthreads();
+        if (linearThreadIdx == 0)
+        {
+            frame = &(pb.getPreviousFrame(*frame, isValid));
+            particlesInSuperCell = SuperCellSize::elements;
+        }
+        // isParticle = true;
+        __syncthreads();
+    }
+    /*set in SuperCell the mustShift flag which is a optimization for shift particles and fillGaps*/
+    if (linearThreadIdx == 0 && mustShift == 1)
+    {
+        pb.getSuperCell(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx))).setMustShift(true);
+    }
+
+}
+
+template<class PushAlgo, class TVec, class NumericalCellType>
+struct PushParticlePerFrame
+{
+
+    template<class FrameType, class BoxB, class BoxE >
+    DINLINE void operator()(FrameType& frame, int localIdx, BoxB& bBox, BoxE& eBox, int& mustShift)
+    {
+
+        typedef TVec Block;
+
+        typedef typename FrameType::PosType PosType;
+        typedef typename FrameType::MomType MomType;
+        typedef typename FrameType::MassType MassType;
+
+        typedef typename FrameType::WeightingType WeightingType;
+        typedef typename BoxB::ValueType BType;
+        typedef typename BoxE::ValueType EType;
+
+        const WeightingType weighting = frame.getWeighting()[localIdx];
+
+        PosType pos = frame.getPosition()[localIdx];
+        const int particleCellIdx = frame.getCellIdx()[localIdx];
+
+        DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec > (particleCellIdx));
+
+       
+        EType eField = fieldSolver::FieldToParticleInterpolation()
+            (eBox.shift(localCell).toCursor(), pos, NumericalCellType::getEFieldPosition());
+        BType bField = fieldSolver::FieldToParticleInterpolation()
+            (bBox.shift(localCell).toCursor(), pos,NumericalCellType::getBFieldPosition());
+
+        MomType mom = frame.getMomentum()[localIdx];
+        const MassType mass = frame.getMass(weighting);
+#if(ENABLE_RADIATION == 1) 
+        radiation::PushExtension < (RAD_MARK_PARTICLE > 1) || (RAD_ACTIVATE_GAMMA_FILTER != 0) > extensionRadiation;
+        MomType& mom_mt1 = frame.getMomentum_mt1()[localIdx];
+#if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
+        bool& radiationFlag = frame.getRadiationFlag()[localIdx];
+        extensionRadiation(mom_mt1, mom, mass, radiationFlag);
+#else
+        extensionRadiation(mom_mt1, mom, mass);
+#endif
+#endif
+        PushAlgo push;
+        push(
+             bField, eField,
+             pos,
+             mom,
+             mass,
+             frame.getCharge(weighting)
+             );
+        frame.getMomentum()[localIdx] = mom;
+
+        /* if pos negativ dir is set to -1
+         * if pos positive and >1 dir is set to +1
+         * 0 (NULL) if particle stay in cell
+         */
+        DataSpace<DIM3> dir(math::float2int_rd(pos.x()), math::float2int_rd(pos.y()), math::float2int_rd(pos.z()));
+
+        pos -= float3_X(dir.x(), dir.y(), dir.z()); //typeCast<float3_X > (dir);
+        frame.getPosition()[localIdx] = pos;
+
+        /* new local cell position after particle move
+         * can be out of supercell 
+         */
+        localCell.x() += dir.x();
+        localCell.y() += dir.y();
+        localCell.z() += dir.z();
+
+        /* if particle is inside of the supercell the unsigned representation
+         * of dir is always >= size of the supercell         * 
+         */
+        dir.x() = (static_cast<unsigned int> (localCell.x()) >= TVec::x) * dir.x();
+        dir.y() = (static_cast<unsigned int> (localCell.y()) >= TVec::y) * dir.y();
+        dir.z() = (static_cast<unsigned int> (localCell.z()) >= TVec::z) * dir.z();
+
+        /* if partice is outside of the supercell we use mod to
+         * set particle at cell supercell_size to 1
+         * and partticle at cell -1 to supercell_size-1
+         * % (mod) can't use with negativ numbers, we add one supercell_size to hide this
+        /*
+        localCell.x() = (localCell.x() + TVec::x) % TVec::x;
+        localCell.y() = (localCell.y() + TVec::y) % TVec::y;
+        localCell.z() = (localCell.z() + TVec::z) % TVec::z;
+         */
+
+        /*dir is only +1 or -1 if particle is outside of supercell
+         * cell-(dir*superCell_size)=y
+         * y=0 if dir==-1
+         * y=superCell_size if dir==+1
+         * for dir 0 localCel is not changed
+         */
+        localCell.x() -= (dir.x() * TVec::x);
+        localCell.y() -= (dir.y() * TVec::y);
+        localCell.z() -= (dir.z() * TVec::z);
+        /*calculate one dimensional cell index*/
+        frame.getCellIdx()[localIdx] = DataSpaceOperations<TVec::dim>::template map<TVec > (localCell);
+
+        /* (dir + int(dir < 0)*3) = (dir + 3) %3 = y
+         * but without modulo
+         * y=0 for dir = 0
+         * y=1 for dir = 1
+         * y=2 for dir = -1
+         */
+        const int direction = 1 +
+            (dir.x() + int(dir.x() < 0)*3) +
+            (dir.y() + int(dir.y() < 0)*3) * BOTTOM +
+            (dir.z() + int(dir.z() < 0)*3) * BACK;
+
+        frame.getMultiMask()[localIdx] = direction;
+
+        /* check if pos is [0,1)
+         * if(pos.x()>=1.0f || pos.x()<0.0f) printf("pos.x %f\n",pos.x());
+         *  if(pos.y()>=1.0f || pos.y()<0.0f) printf("pos.y %f\n",pos.y());
+         *  if(pos.z()>=1.0f || pos.z()<0.0f) printf("pos.z %f\n",pos.z());
+         */
+
+        /* set our tuning flag if minimal one particle leave the supercell
+         * This flag is needed for later fast shift of particles only if needed
+         */
+        if (direction >= 2)
+        {
+            atomicExch(&mustShift, 1); /*if we not use atomic we get a WAW error*/
+        }
+    }
+};
+
+
+
+} //namespace
+
+
+#endif  //end  PARTICLES_KERNEL

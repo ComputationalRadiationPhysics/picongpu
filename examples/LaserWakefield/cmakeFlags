@@ -1,0 +1,50 @@
+#!/bin/bash
+#
+# Copyright 2013 Axel Huebl, René Widera
+#
+# This file is part of PIConGPU. 
+# 
+# PIConGPU is free software: you can redistribute it and/or modify 
+# it under the terms of the GNU General Public License as published by 
+# the Free Software Foundation, either version 3 of the License, or 
+# (at your option) any later version. 
+# 
+# PIConGPU is distributed in the hope that it will be useful, 
+# but WITHOUT ANY WARRANTY; without even the implied warranty of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU General Public License for more details. 
+# 
+# You should have received a copy of the GNU General Public License 
+# along with PIConGPU.  
+# If not, see <http://www.gnu.org/licenses/>. 
+#
+
+#
+# generic compile options
+#
+
+################################################################################
+# add presets here
+#   - default: index 0
+#   - start with zero index
+#   - increase by 1, no gaps
+
+flags[0]="-DCUDA_ARCH=sm_20"
+flags[1]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_FIELDSOLVER=fieldSolverLehe;-DPARAM_PARTICLEPUSHER=particlePusherVay"
+flags[2]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_FIELDSOLVER=fieldSolverDirSplitting"
+flags[3]="-DCUDA_ARCH=sm_13 -DPARAM_OVERWRITES:LIST=-DPARAM_CURRENTSOLVER=currentSolverEsirkepov;-DPARAM_PARTICLESHAPE=shapeCIC"
+flags[4]="-DCUDA_ARCH=sm_13 -DPARAM_OVERWRITES:LIST=-DPARAM_CURRENTSOLVER=currentSolverVillaBune;-DPARAM_PARTICLESHAPE=shapeCIC"
+flags[5]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_PRECISION=precision64Bit"
+flags[6]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_FIELDSOLVER=fieldSolverDirSplitting;-DPARAM_PRECISION=precision64Bit"
+flags[7]="-DCUDA_ARCH=sm_35 -DPARAM_OVERWRITES:LIST=-DPARAM_GASPROFILE=gasNone;-DENABLE_CURRENT=0"
+################################################################################
+# execution
+
+case "$1" in
+    -l)  echo ${#flags[@]}
+         ;;
+    -ll) for f in "${flags[@]}"; do echo $f; done
+         ;;
+    *)   echo -n ${flags[$1]}
+         ;;
+esac

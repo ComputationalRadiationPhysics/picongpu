@@ -160,5 +160,5 @@ Kudos to everyone who helped!
 ![image of an lwfa](doc/images/lwfa_grey.png "LWFA")
 ![image of our strong scaling](doc/images/StrongScalingPIConGPU_log.png "Strong Scaling")
 
-![PIConGPU logo](doc/logo/pic_logo_320x140.png "PIConGPU")
+![PIConGPU logo](doc/logo/pic_logo_380x170_alpha.png "PIConGPU")
 

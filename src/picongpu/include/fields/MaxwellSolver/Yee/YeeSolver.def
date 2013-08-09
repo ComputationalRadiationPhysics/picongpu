@@ -1,0 +1,45 @@
+/* 
+ * File:   YeeSolver.hpp
+ * Author: burau, huebl
+ *
+ * Created on 14. Mai 2013, 17:25
+ */
+
+#pragma once
+
+#include "Curl.hpp"
+#include "algorithms/DifferenceToUpper.hpp"
+#include "algorithms/DifferenceToLower.hpp"
+
+namespace picongpu
+{
+namespace yeeSolver
+{
+typedef Curl<DifferenceToLower> CurlLeft;
+typedef Curl<DifferenceToUpper> CurlRight;
+
+template<class CurlE = CurlRight, class CurlB = CurlLeft>
+class YeeSolver;
+} // namespace yeeSolver
+
+
+namespace traits
+{
+
+template<class CurlE, class CurlB>
+struct GetMargin<picongpu::yeeSolver::YeeSolver<CurlE, CurlB>, FIELD_B>
+{
+    typedef typename CurlB::LowerMargin LowerMargin;
+    typedef typename CurlB::UpperMargin UpperMargin;
+};
+
+template<class CurlE, class CurlB>
+struct GetMargin<picongpu::yeeSolver::YeeSolver<CurlE, CurlB>, FIELD_E>
+{
+    typedef typename CurlE::LowerMargin LowerMargin;
+    typedef typename CurlE::UpperMargin UpperMargin;
+};
+
+} //namespace traits
+
+} // namespace picongpu

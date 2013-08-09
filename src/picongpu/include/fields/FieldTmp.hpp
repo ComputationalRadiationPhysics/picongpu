@@ -1,0 +1,111 @@
+/**
+ * Copyright 2013 Axel Huebl, René Widera
+ *
+ * This file is part of PIConGPU. 
+ * 
+ * PIConGPU is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * 
+ * PIConGPU is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * along with PIConGPU.  
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+ 
+
+
+#pragma once
+
+#include <string>
+
+/*pic default*/
+#include "types.h"
+#include "simulation_defines.hpp"
+#include "simulation_classTypes.hpp"
+
+
+#include "fields/SimulationFieldHelper.hpp"
+#include "dataManagement/ISimulationData.hpp"
+
+/*libPMacc*/
+#include "memory/buffers/GridBuffer.hpp"
+#include "mappings/simulation/GridController.hpp"
+#include "memory/boxes/DataBox.hpp"
+#include "memory/boxes/PitchedBox.hpp"
+
+
+namespace picongpu
+{
+    using namespace PMacc;
+
+
+    /** Tmp (at the moment: scalar) field for analysers and tmp data like
+     *  "gridded" particle data (charge density, energy density, ...)
+     */
+    class FieldTmp : public SimulationFieldHelper<MappingDesc>, public ISimulationData
+    {
+    public:
+        typedef float1_X ValueType;
+        typedef typename promoteType<float_64, ValueType>::ValueType UnitValueType;
+        static const int numComponents = 1;
+
+        typedef MappingDesc::SuperCellSize SuperCellSize;
+        typedef DataBox<PitchedBox<ValueType, simDim> > DataBoxType;
+
+        FieldTmp( MappingDesc cellDescription );
+
+        virtual ~FieldTmp( );
+
+        virtual void reset( uint32_t currentStep );
+        
+        template<class FrameSolver >
+        static UnitValueType getUnit();
+        
+        template<class FrameSolver >
+        static std::string getName();
+        
+        static uint32_t getCommTag();
+
+        virtual EventTask asyncCommunication( EventTask serialEvent );
+
+        void init( );
+
+        DataBoxType getDeviceDataBox( );
+
+        DataBoxType getHostDataBox( );
+
+        GridBuffer<ValueType, simDim>& getGridBuffer( );
+
+        GridLayout<simDim> getGridLayout( );
+        
+        template<uint32_t AREA, class FrameSolver, class ParticlesClass>
+        void computeValue(ParticlesClass& parClass, uint32_t currentStep);
+
+        void synchronize( );
+
+        void syncToDevice( );
+
+        /* Bash particles in a direction.
+         * Copy all particles from the guard of a direction to the device exchange buffer
+         */
+        void bashField( uint32_t exchangeType );
+
+        /* Insert all particles which are in device exchange buffer
+         */
+        void insertField( uint32_t exchangeType );
+
+    private:
+        GridBuffer<ValueType, simDim> *fieldTmp;
+
+    };
+
+
+}
+
+#include "fields/FieldTmp.tpp"

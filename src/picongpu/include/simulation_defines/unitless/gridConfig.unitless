@@ -1,0 +1,44 @@
+/**
+ * Copyright 2013 Felix Schmitt, Heiko Burau, René Widera
+ *
+ * This file is part of PIConGPU. 
+ * 
+ * PIConGPU is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * 
+ * PIConGPU is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * along with PIConGPU.  
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+ 
+
+
+#pragma once
+
+#include "simulation_defines/param/gridConfig.param"
+#include "static_assert.hpp"
+
+namespace picongpu
+{
+    //normed grid parameter
+    const float_X DELTA_T = float_X(SI::DELTA_T_SI / UNIT_TIME);
+    const float_X CELL_WIDTH = float_X (SI::CELL_WIDTH_SI / UNIT_LENGTH); //normalized to UNIT_LENGTH
+    const float_X CELL_HEIGHT = float_X (SI::CELL_HEIGHT_SI / UNIT_LENGTH); //normalized to UNIT_LENGTH
+    const float_X CELL_DEPTH = float_X(SI::CELL_DEPTH_SI / UNIT_LENGTH); // normalized to UNIT_LENGTH
+    const float_X CELL_VOLUME = CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH;
+
+    /* Courant-Friedrichs-Levy-Condition for Field Solver: */
+    PMACC_CASSERT_MSG(Courant_Friedrichs_Levy_condition_failure____check_your_gridConfig_param_file,
+                        (PMACC_MIN(CELL_DEPTH,PMACC_MIN(CELL_WIDTH,CELL_HEIGHT))/SPEED_OF_LIGHT/DELTA_T)>1.77f);               
+
+}
+
+
+

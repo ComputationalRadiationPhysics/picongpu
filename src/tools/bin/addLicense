@@ -1,0 +1,87 @@
+# Copyright 2013 Axel Huebl, René Widera
+#
+# This file is part of PIConGPU.
+#
+# PIConGPU is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# PIConGPU is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with PIConGPU.
+# If not, see <http://www.gnu.org/licenses/>.
+#
+
+fileName=$1
+projectName=${PROJECT_NAME:-"PIConGPU"}
+
+rename="s/psychocoder/René Widera/g ;
+	s/rp6038/Richard Pausch/g;
+	s/fschmitt/Felix Schmitt/g; 
+	s/ahuebl/Axel Huebl/g;
+	s/heiko/Heiko Burau/g;
+	s/steinigk/Klaus Steiniger/g;
+	s/ben_schneider/Benjamin Schneider/g;
+	s/whoenig/Wolfgang Hoenig/g;
+	s/rdietric/Robert Dietric/g;
+	s/phoenixloe/Florian Berninger/g;
+    s/helma/Anton Helm/g;
+	s/wf5/Wen Fu/g;
+    s/bussmann/Michael Bussmann/g
+	"
+
+author=`svn log "$fileName" --quiet | grep "^r" | awk '{print $3}' | sort | uniq | tr "\n" "," | sed 's/,$//g' | sed 's/,/, /g'`
+
+author=`echo "$author" | sed "$rename"`
+
+if [ $projectName = "PIConGPU" ] ; then
+text=' *\
+ * This file is part of '"$projectName"'. \
+ * \
+ * '"$projectName"' is free software: you can redistribute it and/or modify \
+ * it under the terms of the GNU General Public License as published by \
+ * the Free Software Foundation, either version 3 of the License, or \
+ * (at your option) any later version. \
+ * \
+ * '"$projectName"' is distributed in the hope that it will be useful, \
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of \
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the \
+ * GNU General Public License for more details. \
+ * \
+ * You should have received a copy of the GNU General Public License \
+ * along with '"$projectName"'.  \
+ * If not, see <http://www.gnu.org/licenses/>. \
+ */ \
+ '
+else
+text=' *\
+ * This file is part of '"$projectName"'. \
+ * \
+ * '"$projectName"' is free software: you can redistribute it and/or modify \
+ * it under the terms of of either the GNU General Public License or \
+ * the GNU Lesser General Public License as published by \
+ * the Free Software Foundation, either version 3 of the License, or \
+ * (at your option) any later version. \
+ * '"$projectName"' is distributed in the hope that it will be useful, \
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of \
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the \
+ * GNU General Public License and the GNU Lesser General Public License \
+ * for more details. \
+ * \
+ * You should have received a copy of the GNU General Public License \
+ * and the GNU Lesser General Public License along with '"$projectName"'. \
+ * If not, see <http://www.gnu.org/licenses/>. \
+ */ \
+ '
+fi
+
+sed -s -i '1i\'"$text"  $fileName
+
+sed -s -i '1i\/**\n * Copyright '`date +%G`' '"$author" $fileName
+
+exit 0
