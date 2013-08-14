@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 #ifndef FIELDJ_KERNEL
 #define	FIELDJ_KERNEL
 
@@ -52,58 +52,99 @@ using namespace PMacc;
 typedef FieldJ::FloatJ FloatJ;
 typedef typename FieldJ::DataBoxType J_DataBox;
 
-template<class BlockDescription_, uint32_t AREA, class JBox, class ParBox, class Mapping, class FrameSolver>
+template<int workerMultiplier, class BlockDescription_, uint32_t AREA, class JBox, class ParBox, class Mapping, class FrameSolver>
 __global__ void kernelComputeCurrent(JBox fieldJ,
                                      ParBox boxPar, FrameSolver frameSolver, Mapping mapper)
 {
+    typedef typename ParBox::FrameType FrameType;
+    typedef typename Mapping::SuperCellSize SuperCellSize;
 
-    typedef typename BlockDescription_::SuperCellSize SuperCellSize;
+    const uint32_t cellsPerSuperCell = SuperCellSize::elements;
+
     const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
-
-
     const DataSpace<simDim > threadIndex(threadIdx);
-    const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
-
-    __shared__ typename ParBox::FrameType *frame;
-    __shared__ bool isValid;
-    __shared__ lcellId_t particlesInSuperCell;
     
+    int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
+    const uint32_t virtualBlockId = linearThreadIdx / cellsPerSuperCell;
+    /* move linearThreadIdx for all threads to [0;cellsPerSuperCell) */
+    linearThreadIdx -= (virtualBlockId * cellsPerSuperCell);
+
+    __shared__ FrameType * frame[workerMultiplier];
+    __shared__ bool isValid[workerMultiplier];
+    __shared__ lcellId_t particlesInSuperCell;
+
     __syncthreads(); /*wait that all shared memory is initialised*/
 
-    if (linearThreadIdx == 0)
+    if (virtualBlockId == 0 && linearThreadIdx == 0)
     {
-        frame = &(boxPar.getLastFrame(block, isValid));
+        frame[0] = &(boxPar.getLastFrame(block, isValid[0]));
         particlesInSuperCell = boxPar.getSuperCell(block).getSizeLastFrame();
+        /* Set all valid flags >0 to false.
+         * Flag 0 is already initialized!!
+         * Read valid frames.
+         */
+        for (int i = 1; i < workerMultiplier; ++i)
+        {
+            isValid[i] = false;
+            if (isValid[i - 1])
+            {
+                frame[i] = &(boxPar.getPreviousFrame(*(frame[i - 1]), isValid[i]));
+            }
+        }
     }
     __syncthreads();
 
-    if (!isValid)
+    if (!isValid[virtualBlockId])
         return; //end kernel if we have no frames
 
     PMACC_AUTO(cachedJ, CachedBox::create < 0, typename JBox::ValueType > (BlockDescription_()));
-    Set<typename JBox::ValueType > set(float3_X(float_X(0.0), float_X(0.0), float_X(0.0)));
 
-    ThreadCollective<BlockDescription_> collectiv(linearThreadIdx);
-    collectiv(set, cachedJ);
+    if (virtualBlockId == 0)
+    {
+        Set<typename JBox::ValueType > set(float3_X(0.0, 0.0, 0.0));
+        ThreadCollective<BlockDescription_> collectiv(linearThreadIdx);
+        collectiv(set, cachedJ);
+    };
 
     __syncthreads();
-    while (isValid)
+    /* all threads can ceck isValid[0] becuase we know that
+     * we are at end if frame list if 0 is not valid
+     */
+    while (isValid[0])
     {
-        if (linearThreadIdx < particlesInSuperCell)
+        /* virtualBlockId!0 not need to check particlesInSuperCell 
+         * because only last frame is not full filled
+         */
+        if (virtualBlockId != 0 || linearThreadIdx < particlesInSuperCell)
         {
-            frameSolver(*frame, linearThreadIdx, cachedJ);
+            frameSolver(*(frame[virtualBlockId]),
+                        linearThreadIdx,
+                        cachedJ);
         }
         __syncthreads();
-        if (linearThreadIdx == 0)
+        if (virtualBlockId == 0 && linearThreadIdx == 0)
         {
-            frame = &(boxPar.getPreviousFrame(*frame, isValid));
-            particlesInSuperCell = SuperCellSize::elements;
+            isValid[0] = false;
+            if (isValid[0])
+                frame[0] = &(boxPar.getPreviousFrame(*(frame[workerMultiplier - 1]), isValid[0]));
+            for (int i = 1; i < workerMultiplier; ++i)
+            {
+                isValid[i] = false;
+                if (isValid[i - 1])
+                    frame[i] = &(boxPar.getPreviousFrame(*(frame[i - 1]), isValid[i]));
+            }
         }
         __syncthreads();
+
+        if (virtualBlockId != 0 &&
+            !isValid[virtualBlockId])
+            return;
+        /*no syncronize needed because isValid2 is not changed by other thread*/
     }
 
     nvidia::functors::Add add;
-    const DataSpace<simDim> blockCell = block * MappingDesc::SuperCellSize::getDataSpace();
+    const DataSpace<simDim> blockCell = block * SuperCellSize::getDataSpace();
+    ThreadCollective<BlockDescription_> collectiv(linearThreadIdx);
     PMACC_AUTO(fieldJBlock, fieldJ.shift(blockCell));
     collectiv(add, fieldJBlock, cachedJ);
     __syncthreads();
@@ -139,8 +180,8 @@ struct ComputeCurrentPerFrame
 
         Velocity velocity;
         const float3_X vel = velocity(
-                                     frame.getMomentum()[localIdx],
-                                     frame.getMass(weighting));
+                                      frame.getMomentum()[localIdx],
+                                      frame.getMass(weighting));
         PMACC_AUTO(fieldJShiftToParticle, jBox.shift(localCell));
         ParticleAlgo perParticle;
         perParticle(fieldJShiftToParticle,
@@ -162,6 +203,7 @@ __global__ void kernelAddCurrentToE(typename FieldE::DataBoxType fieldE,
                                     J_DataBox fieldJ,
                                     Mapping mapper)
 {
+
     const DataSpace<simDim> blockCell(
                                       mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx))
                                       * Mapping::SuperCellSize::getDataSpace()
@@ -215,6 +257,7 @@ __global__ void kernelBashCurrent(J_DataBox fieldJ,
         targetCell.z() -= TILE_DEPTH - exchangeSize.z();
     }
     else
+
         if ((direction.z() == 1) && (threadIdx.z >= exchangeSize.z())) return;
 
     targetJ(targetCell) = fieldJ(sourceCell);
