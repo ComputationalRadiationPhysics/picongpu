@@ -38,6 +38,8 @@ If you are familiar with git, feel free to jump to our [github workflow](#github
 
 **Debian/Ubuntu**:
 - `sudo apt-get install git`
+- make sure `git --version` is at least at version
+  [1.7.10](https://help.github.com/articles/https-cloning-errors)
 
 Optional *one* of these. There are nice GUI tools available to get an overview
 on your repository.
