@@ -170,6 +170,8 @@ Optional, *clean up* your feature branch. That can be *dangerous*:
   profile)
 - Go to your *GitHub* page and open a *pull request*, e.g. by clicking on
   *compare & review*
+- Select `ComputationalRadiationPhysics:dev` instead of the default `master`
+  branch
 - Add additional updates (if requested to do so) by `push`-ing to your branch
   again. This will update the *pull request*.
 
