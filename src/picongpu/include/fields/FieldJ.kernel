@@ -112,7 +112,7 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
      */
     while (isValid[0])
     {
-        /* virtualBlockId!0 not need to check particlesInSuperCell 
+        /* virtualBlockId != 0 not need to check particlesInSuperCell 
          * because only last frame is not full filled
          */
         if (virtualBlockId != 0 || linearThreadIdx < particlesInSuperCell)
@@ -124,6 +124,7 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
         __syncthreads();
         if (virtualBlockId == 0 && linearThreadIdx == 0)
         {
+            particlesInSuperCell = SuperCellSize::elements;
             isValid[0] = false;
             if (isValid[0])
                 frame[0] = &(boxPar.getPreviousFrame(*(frame[workerMultiplier - 1]), isValid[0]));
