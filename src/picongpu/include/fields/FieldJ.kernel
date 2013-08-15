@@ -69,7 +69,7 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
     /* move linearThreadIdx for all threads to [0;cellsPerSuperCell) */
     linearThreadIdx -= (virtualBlockId * cellsPerSuperCell);
 
-    __shared__ FrameType * frame[workerMultiplier];
+    __shared__ FrameType* frame[workerMultiplier];
     __shared__ bool isValid[workerMultiplier];
     __shared__ lcellId_t particlesInSuperCell;
 
@@ -87,9 +87,7 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
         {
             isValid[i] = false;
             if (isValid[i - 1])
-            {
                 frame[i] = &(boxPar.getPreviousFrame(*(frame[i - 1]), isValid[i]));
-            }
         }
     }
     __syncthreads();
@@ -99,7 +97,7 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
      * filling shared memory
      */
     if (!(isValid[0]))
-        return; 
+        return;
 
     PMACC_AUTO(cachedJ, CachedBox::create < 0, typename JBox::ValueType > (BlockDescription_()));
 
@@ -110,7 +108,7 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
 
     /* now all threads can leave if they have no frame */
     if (!(isValid[virtualBlockId]))
-        return; 
+        return;
 
     __syncthreads();
     /* all threads can ceck isValid[0] because we know that
@@ -143,8 +141,7 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
         }
         __syncthreads();
 
-        if (virtualBlockId != 0 &&
-            !isValid[virtualBlockId])
+        if (virtualBlockId != 0 && !isValid[virtualBlockId])
             return;
         /*no syncronize needed because isValid2 is not changed by other thread*/
     }
