@@ -64,6 +64,7 @@ on your repository.
 You may even improve your level of awesomeness by:
 - `git config --global alias.pr "pull --rebase"`
   (see how to [avoide merge commits](#keep-track-of-updates))
+- `git config --global alias.pm "pull --rebase mainline"` (to sync with the mainline by `git pm dev`)
 - `git config --global alias.st "status -sb"` (short status version)
 - `git config --global alias.l "log --oneline --graph --decorate --all"` (branch history)
 - `git config --global rerere.enable 1`
