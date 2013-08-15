@@ -192,7 +192,7 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t currentStep ) th
     /** tune paramter to use more threads than cells in a supercell
      *  valid domain: 1 <= workerMultiplier
      */
-    const int workerMultiplier =1;
+    const int workerMultiplier =2;
     
     typedef currentSolver::CurrentSolver ParticleCurrentSolver;
     typedef ComputeCurrentPerFrame<ParticleCurrentSolver, Velocity, MappingDesc::SuperCellSize> FrameSolver;

@@ -63,7 +63,7 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
 
     const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
     const DataSpace<simDim > threadIndex(threadIdx);
-    
+
     int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
     const uint32_t virtualBlockId = linearThreadIdx / cellsPerSuperCell;
     /* move linearThreadIdx for all threads to [0;cellsPerSuperCell) */
@@ -94,17 +94,16 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
     }
     __syncthreads();
 
-    if (!(isValid[virtualBlockId]))
-        return; //end kernel if we have no frames
 
     PMACC_AUTO(cachedJ, CachedBox::create < 0, typename JBox::ValueType > (BlockDescription_()));
 
-    if (virtualBlockId == 0)
-    {
-        Set<typename JBox::ValueType > set(float3_X(0.0, 0.0, 0.0));
-        ThreadCollective<BlockDescription_> collectiv(linearThreadIdx);
-        collectiv(set, cachedJ);
-    };
+    Set<typename JBox::ValueType > set(float3_X(0.0, 0.0, 0.0));
+    ThreadCollective<BlockDescription_, cellsPerSuperCell * workerMultiplier> collectiv(linearThreadIdx);
+    collectiv(set, cachedJ);
+
+
+    if (!(isValid[virtualBlockId]))
+        return; //end kernel if we have no frames
 
     __syncthreads();
     /* all threads can ceck isValid[0] because we know that
@@ -125,8 +124,8 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
         if (virtualBlockId == 0 && linearThreadIdx == 0)
         {
             particlesInSuperCell = SuperCellSize::elements;
-            isValid[0] = false;
-            if (isValid[0])
+            isValid[0] = isValid[workerMultiplier - 1];
+            if (isValid[workerMultiplier - 1])
                 frame[0] = &(boxPar.getPreviousFrame(*(frame[workerMultiplier - 1]), isValid[0]));
             for (int i = 1; i < workerMultiplier; ++i)
             {
