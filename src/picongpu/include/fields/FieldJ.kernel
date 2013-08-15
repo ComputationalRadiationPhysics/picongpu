@@ -64,10 +64,13 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
     const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
     const DataSpace<simDim > threadIndex(threadIdx);
 
-    int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
+    /* thread id, can be greater than cellsPerSuperCell*/
+    const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
+        
     const uint32_t virtualBlockId = linearThreadIdx / cellsPerSuperCell;
     /* move linearThreadIdx for all threads to [0;cellsPerSuperCell) */
-    linearThreadIdx -= (virtualBlockId * cellsPerSuperCell);
+    const int virtualLinearId = linearThreadIdx-(virtualBlockId * cellsPerSuperCell);
+
 
     __shared__ FrameType * frame[workerMultiplier];
     __shared__ bool isValid[workerMultiplier];
@@ -75,7 +78,7 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
 
     __syncthreads(); /*wait that all shared memory is initialised*/
 
-    if (virtualBlockId == 0 && linearThreadIdx == 0)
+    if (linearThreadIdx == 0)
     {
         frame[0] = &(boxPar.getLastFrame(block, isValid[0]));
         particlesInSuperCell = boxPar.getSuperCell(block).getSizeLastFrame();
@@ -105,16 +108,15 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
     ThreadCollective<BlockDescription_, cellsPerSuperCell * workerMultiplier> collectivSet(linearThreadIdx);
     collectivSet(set, cachedJ);
 
-
     /* now all threads can leave if they have no frame */
     if (!(isValid[virtualBlockId]))
         return;
-
+    
     __syncthreads();
     /* all threads can ceck isValid[0] because we know that
      * we are at end of frame list if isValid[0] is not valid
      */
-    while (isValid[0])
+    while (isValid[virtualBlockId])
     {
         /* virtualBlockId != 0 not need to check particlesInSuperCell 
          * because only last frame is not full filled
@@ -122,16 +124,17 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
         if (virtualBlockId != 0 || linearThreadIdx < particlesInSuperCell)
         {
             frameSolver(*(frame[virtualBlockId]),
-                        linearThreadIdx,
+                        virtualLinearId,
                         cachedJ);
         }
         __syncthreads();
-        if (virtualBlockId == 0 && linearThreadIdx == 0)
+        if (linearThreadIdx == 0)
         {
             particlesInSuperCell = SuperCellSize::elements;
             isValid[0] = isValid[workerMultiplier - 1];
             if (isValid[workerMultiplier - 1])
                 frame[0] = &(boxPar.getPreviousFrame(*(frame[workerMultiplier - 1]), isValid[0]));
+            /* read all frames in sequential order*/
             for (int i = 1; i < workerMultiplier; ++i)
             {
                 isValid[i] = false;
@@ -140,17 +143,13 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
             }
         }
         __syncthreads();
-        /* all threads which with virtualBlockId != 0 leave
-         * kernel execution here!
-         */
-        if (virtualBlockId != 0 && !isValid[virtualBlockId])
-            return;
-        /*no syncronize needed because isValid2 is not changed by other thread*/
     }
-    /*now we can write to global memory with virtualBlockId == 0*/
+    /* we wait that all threads finush the loop*/
+    __syncthreads();
+    /*now we can write to global memory with all threads*/
     nvidia::functors::Add add;
     const DataSpace<simDim> blockCell = block * SuperCellSize::getDataSpace();
-    ThreadCollective<BlockDescription_> collectivAdd(linearThreadIdx);
+    ThreadCollective<BlockDescription_,cellsPerSuperCell * workerMultiplier> collectivAdd(linearThreadIdx);
     PMACC_AUTO(fieldJBlock, fieldJ.shift(blockCell));
     collectivAdd(add, fieldJBlock, cachedJ);
     __syncthreads();
