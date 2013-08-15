@@ -82,8 +82,8 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
     {
         frame[0] = &(boxPar.getLastFrame(block, isValid[0]));
         particlesInSuperCell = boxPar.getSuperCell(block).getSizeLastFrame();
-        /* Set all valid flags >0 to false.
-         * Flag 0 is already initialized!!
+        /* Set all isValid flags with id >0 to false.
+         * isValid[0] is already initialized!!
          * Read valid frames.
          */
         for (int i = 1; i < workerMultiplier; ++i)
@@ -95,8 +95,8 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
     }
     __syncthreads();
 
-    /* only leave calculation if we had no frames
-     * If we have one frame than we need all threads for
+    /* only leave calculation if we have no frames
+     * If we have a frame than we need all threads for
      * filling shared memory
      */
     if (!(isValid[0]))
@@ -113,12 +113,12 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
         return;
     
     __syncthreads();
-    /* all threads can ceck isValid[0] because we know that
+    /* all threads can check isValid[0] because we know that
      * we are at end of frame list if isValid[0] is not valid
      */
     while (isValid[virtualBlockId])
     {
-        /* virtualBlockId != 0 not need to check particlesInSuperCell 
+        /* virtualBlockId != 0 no need to check particlesInSuperCell 
          * because only last frame is not full filled
          */
         if (virtualBlockId != 0 || linearThreadIdx < particlesInSuperCell)
