@@ -69,7 +69,7 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
     /* move linearThreadIdx for all threads to [0;cellsPerSuperCell) */
     linearThreadIdx -= (virtualBlockId * cellsPerSuperCell);
 
-    __shared__ FrameType* frame[workerMultiplier];
+    __shared__ FrameType * frame[workerMultiplier];
     __shared__ bool isValid[workerMultiplier];
     __shared__ lcellId_t particlesInSuperCell;
 
@@ -140,12 +140,14 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
             }
         }
         __syncthreads();
-
+        /* all threads which with virtualBlockId != 0 leave
+         * kernel execution here!
+         */
         if (virtualBlockId != 0 && !isValid[virtualBlockId])
             return;
         /*no syncronize needed because isValid2 is not changed by other thread*/
     }
-
+    /*now we can write to global memory with virtualBlockId == 0*/
     nvidia::functors::Add add;
     const DataSpace<simDim> blockCell = block * SuperCellSize::getDataSpace();
     ThreadCollective<BlockDescription_> collectivAdd(linearThreadIdx);
