@@ -196,9 +196,9 @@ changes there.
 
 ### Keep track of updates
 
-We consider it a **best practice** *not to modify your master* branch branch at
-all. Instead you can use it to `pull` new updates from the original
-repository. Take care to **switch to dev** by `git checkout dev` to start
+We consider it a **best practice** *not to modify* neither your **master** nor your
+**dev** branch at all. Instead you can use it to `pull --ff-only` new updates from
+the original repository. Take care to **switch to dev** by `git checkout dev` to start
 **new feature branches** from **dev**.
 
 So, if you like to do so, you can even
