@@ -94,7 +94,7 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
     }
     __syncthreads();
 
-    if (!isValid[virtualBlockId])
+    if (!(isValid[virtualBlockId]))
         return; //end kernel if we have no frames
 
     PMACC_AUTO(cachedJ, CachedBox::create < 0, typename JBox::ValueType > (BlockDescription_()));
@@ -107,8 +107,8 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
     };
 
     __syncthreads();
-    /* all threads can ceck isValid[0] becuase we know that
-     * we are at end if frame list if 0 is not valid
+    /* all threads can ceck isValid[0] because we know that
+     * we are at end of frame list if isValid[0] is not valid
      */
     while (isValid[0])
     {
