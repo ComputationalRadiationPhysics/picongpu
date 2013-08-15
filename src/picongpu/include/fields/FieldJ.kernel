@@ -94,16 +94,23 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
     }
     __syncthreads();
 
+    /* only leave calculation if we had no frames
+     * If we have one frame than we need all threads for
+     * filling shared memory
+     */
+    if (!(isValid[0]))
+        return; 
 
     PMACC_AUTO(cachedJ, CachedBox::create < 0, typename JBox::ValueType > (BlockDescription_()));
 
     Set<typename JBox::ValueType > set(float3_X(0.0, 0.0, 0.0));
-    ThreadCollective<BlockDescription_, cellsPerSuperCell * workerMultiplier> collectiv(linearThreadIdx);
-    collectiv(set, cachedJ);
+    ThreadCollective<BlockDescription_, cellsPerSuperCell * workerMultiplier> collectivSet(linearThreadIdx);
+    collectivSet(set, cachedJ);
 
 
+    /* now all threads can leave if they have no frame */
     if (!(isValid[virtualBlockId]))
-        return; //end kernel if we have no frames
+        return; 
 
     __syncthreads();
     /* all threads can ceck isValid[0] because we know that
@@ -144,9 +151,9 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
 
     nvidia::functors::Add add;
     const DataSpace<simDim> blockCell = block * SuperCellSize::getDataSpace();
-    ThreadCollective<BlockDescription_> collectiv(linearThreadIdx);
+    ThreadCollective<BlockDescription_> collectivAdd(linearThreadIdx);
     PMACC_AUTO(fieldJBlock, fieldJ.shift(blockCell));
-    collectiv(add, fieldJBlock, cachedJ);
+    collectivAdd(add, fieldJBlock, cachedJ);
     __syncthreads();
 }
 
