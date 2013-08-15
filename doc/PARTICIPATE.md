@@ -23,7 +23,7 @@ Contents
 to do list:
 - [ ] coding guide lines, styles/fileHeaders/...
 - [x] commit rules
-- [ ] compile suite movie -> COMMIT.md
+- [x] compile suite movie -> COMMIT.md
 - [x] git for svn users
 - [x] explain pull requests
 
