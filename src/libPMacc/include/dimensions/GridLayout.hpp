@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   GridLayout.hpp
- * Author: whoenig
- *
- * Created on 9. April 2010, 09:48
- */
-
 #ifndef _GRIDLAYOUT_HPP
 #define	_GRIDLAYOUT_HPP
 

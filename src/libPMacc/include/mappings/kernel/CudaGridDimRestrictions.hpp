@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   MappingDescription.h
- * Author: burau
- *
- * Created on 13. Dezember 2010, 14:29
- */
-
 #ifndef CUDAGRIDDIMRESTRICTIONS_HPP
 #define	CUDAGRIDDIMRESTRICTIONS_HPP
 

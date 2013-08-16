@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   Uniform_int32.hpp
- * Author: widera
- *
- * Created on 18. Oktober 2012, 10:25
- */
 
 #pragma once
 

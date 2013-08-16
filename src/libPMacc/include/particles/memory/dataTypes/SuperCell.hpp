@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   SuperCellBuffer.hpp
- * Author: widera
- *
- * Created on 7. Februar 2011, 07:57
- */
-
 #ifndef SUPERCELL_HPP
 #define	SUPERCELL_HPP
 

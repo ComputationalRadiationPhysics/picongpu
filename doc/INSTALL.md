@@ -30,7 +30,7 @@ Requirements
       e.g. version 1.49.0
   - *Debian/Ubuntu:* `sudo apt-get install libboost-program-options-dev libboost-regex-dev`
 
-- **git**
+- **git** 1.7.9.5 or [higher](https://help.github.com/articles/https-cloning-errors)
   - *Debian/Ubuntu:* `sudo apt-get install git`
 
 - **PIConGPU**

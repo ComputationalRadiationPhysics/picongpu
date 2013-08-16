@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   GridController.hpp
- * Author: wolfgang
- *
- * Created on 9. April 2010, 19:56
- */
 
 #ifndef _GRIDCONTROLLER_HPP
 #define	_GRIDCONTROLLER_HPP

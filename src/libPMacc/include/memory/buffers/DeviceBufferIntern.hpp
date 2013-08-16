@@ -18,13 +18,7 @@
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
-/*
- * File:   DeviceBufferIntern.hpp
- * Author: widera
- *
- * Created on 31. März 2010, 12:16
- */
+
 
 #ifndef _DEVICEBUFFERINTERN_HPP
 #define	_DEVICEBUFFERINTERN_HPP

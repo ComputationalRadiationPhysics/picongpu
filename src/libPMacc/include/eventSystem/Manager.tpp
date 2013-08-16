@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   Manager.hpp
- * Author: whoenig
- *
- * Created on 9. April 2010, 10:57
- */
-
 #include <set>
 #include <iostream>
 

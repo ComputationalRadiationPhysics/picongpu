@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   ITask.hpp
- * Author: whoenig
- *
- * Created on 9. April 2010, 10:36
- */
 
 #ifndef _ITASK_HPP
 #define	_ITASK_HPP

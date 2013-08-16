@@ -18,13 +18,6 @@
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
-/* 
- * File:   ISimulationData.hpp
- * Author: fschmitt
- *
- * Created on 21. Januar 2011, 11:27
- */
 
 #ifndef ISIMULATIONDATA_HPP
 #define	ISIMULATIONDATA_HPP

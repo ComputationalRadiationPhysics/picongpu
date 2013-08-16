@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   Inherit.h
- * Author: widera
- *
- * Created on 12. Januar 2011, 09:42
- */
 
 #pragma once
 

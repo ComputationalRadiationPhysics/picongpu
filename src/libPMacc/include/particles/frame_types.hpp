@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   frame_types.hpp
- * Author: widera
- *
- * Created on 22. November 2010, 14:13
- */
 
 #ifndef FRAME_TYPES_HPP
 #define	FRAME_TYPES_HPP

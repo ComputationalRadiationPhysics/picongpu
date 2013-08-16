@@ -18,14 +18,7 @@
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
-/* 
- * File:   MultiBox.hpp
- * Author: widera
- *
- * Created on 11. 12 2012
- * 
- */
+
 
 #pragma once
 

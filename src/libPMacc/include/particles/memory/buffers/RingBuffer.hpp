@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   RingBuffer.hpp
- * Author: widera
- *
- * Created on 23. November 2010, 10:53
- */
 
 #ifndef RINGBUFFER_HPP
 #define	RINGBUFFER_HPP

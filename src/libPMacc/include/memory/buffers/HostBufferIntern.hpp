@@ -18,13 +18,7 @@
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
-/* 
- * File:   HostBufferIntern.hpp
- * Author: widera
- *
- * Created on 31. März 2010, 10:13
- */
+
 
 #ifndef _HOSTBUFFERINTERN_HPP
 #define	_HOSTBUFFERINTERN_HPP
@@ -104,7 +98,7 @@ public:
     void reset(bool preserveData = true)
     {
         __startOperation(ITask::TASK_HOST);
-        setCurrentSize(this->getDataSpace().getElementCount());
+        this->setCurrentSize(this->getDataSpace().getElementCount());
         if (!preserveData)
             memset(pointer, 0, this->getDataSpace().getElementCount() * sizeof (TYPE));
     }

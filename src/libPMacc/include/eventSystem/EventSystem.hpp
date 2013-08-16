@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   EventSystem.hpp
- * Author: widera
- *
- * Created on 3. April 2012, 10:41
- */
-
 #ifndef EVENTSYSTEM_HPP
 #define	EVENTSYSTEM_HPP
 

@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   Box.hpp
- * Author: fschmitt
- *
- * Created on 19. Mai 2010, 14:52
- */
 
 #ifndef _DATABOX_HPP
 #define	_DATABOX_HPP

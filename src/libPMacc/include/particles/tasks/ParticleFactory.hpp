@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   Factory.hpp
- * Author: widera
- *
- * Created on 9. April 2010, 14:26
- */
 
 #ifndef _PARTICLEFACTORY_HPP
 #define	_PARTICLEFACTORY_HPP

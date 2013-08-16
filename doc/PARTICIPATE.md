@@ -23,7 +23,7 @@ Contents
 to do list:
 - [ ] coding guide lines, styles/fileHeaders/...
 - [x] commit rules
-- [ ] compile suite movie -> COMMIT.md
+- [x] compile suite movie -> COMMIT.md
 - [x] git for svn users
 - [x] explain pull requests
 
@@ -38,6 +38,8 @@ If you are familiar with git, feel free to jump to our [github workflow](#github
 
 **Debian/Ubuntu**:
 - `sudo apt-get install git`
+- make sure `git --version` is at least at version
+  [1.7.9.5](https://help.github.com/articles/https-cloning-errors)
 
 Optional *one* of these. There are nice GUI tools available to get an overview
 on your repository.
@@ -62,6 +64,7 @@ on your repository.
 You may even improve your level of awesomeness by:
 - `git config --global alias.pr "pull --rebase"`
   (see how to [avoide merge commits](#keep-track-of-updates))
+- `git config --global alias.pm "pull --rebase mainline"` (to sync with the mainline by `git pm dev`)
 - `git config --global alias.st "status -sb"` (short status version)
 - `git config --global alias.l "log --oneline --graph --decorate --all"` (branch history)
 - `git config --global rerere.enable 1`
@@ -168,6 +171,8 @@ Optional, *clean up* your feature branch. That can be *dangerous*:
   profile)
 - Go to your *GitHub* page and open a *pull request*, e.g. by clicking on
   *compare & review*
+- Select `ComputationalRadiationPhysics:dev` instead of the default `master`
+  branch
 - Add additional updates (if requested to do so) by `push`-ing to your branch
   again. This will update the *pull request*.
 
@@ -191,9 +196,9 @@ changes there.
 
 ### Keep track of updates
 
-We consider it a **best practice** *not to modify your master* branch branch at
-all. Instead you can use it to `pull` new updates from the original
-repository. Take care to **switch to dev** by `git checkout dev` to start
+We consider it a **best practice** *not to modify* neither your **master** nor your
+**dev** branch at all. Instead you can use it to `pull --ff-only` new updates from
+the original repository. Take care to **switch to dev** by `git checkout dev` to start
 **new feature branches** from **dev**.
 
 So, if you like to do so, you can even

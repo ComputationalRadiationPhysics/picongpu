@@ -18,13 +18,7 @@
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
-/* 
- * File:   Factory.tpp
- * Author: widera
- *
- * Created on 9. Aug 2011, 13:00
- */
+
 
 #include "eventSystem/tasks/Factory.hpp"
 

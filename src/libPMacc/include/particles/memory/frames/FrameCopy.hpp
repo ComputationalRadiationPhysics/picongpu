@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   FrameCopy.hpp
- * Author: widera
- *
- * Created on 14. Januar 2011, 08:05
- */
 
 #ifndef FRAMECOPY_HPP
 #define	FRAMECOPY_HPP
