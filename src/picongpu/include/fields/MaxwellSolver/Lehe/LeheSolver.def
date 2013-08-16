@@ -18,6 +18,10 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
 
+/* Reference: R. Lehe et al
+ *           Phys. Rev. ST Accel. Beams 16, 021301 (2013) 
+ */
+
 #pragma once
 
 #include "fields/MaxwellSolver/Lehe/LeheCurl.hpp"
