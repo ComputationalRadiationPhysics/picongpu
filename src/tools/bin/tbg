@@ -83,10 +83,10 @@ function run_cfg_and_get_solved_variables
 
     data="$tooltbl_env"
     
-    unsolved_vars=`echo -e "$data" | grep "\![[:alpha:]][[:alnum:]_]*" | wc -l`
-    unsolved_vars_old=$(( unsolved_vars + 1))
+    unresolved_vars=`echo -e "$data" | grep "\![[:alpha:]][[:alnum:]_]*" | wc -l`
+    unresolved_vars_old=$(( unresolved_vars + 1))
 
-    while [ $unsolved_vars -ne 0 ] && [ $unsolved_vars -ne $unsolved_vars_old ]
+    while [ $unresolved_vars -ne 0 ] && [ $unresolved_vars -ne $unresolved_vars_old ]
     do
         #search all resolved variables (variables without !varname)
         resolved_variables=`echo -e "$data" | grep -v "\![[:alpha:]][[:alnum:]_]*"`
@@ -95,14 +95,14 @@ function run_cfg_and_get_solved_variables
         new_data=`tooltpl_replace data resolved_variables | grep "^[[:alpha:]][[:alnum:]_]*=.*"`
         data="$new_data"
 
-        unsolved_vars_old=$unsolved_vars
-        unsolved_vars=`echo -e "$data" | grep "\![[:alpha:]][[:alnum:]_]*" | wc -l`
+        unresolved_vars_old=$unresolved_vars
+        unresolved_vars=`echo -e "$data" | grep "\![[:alpha:]][[:alnum:]_]*" | wc -l`
     done
-    #check if we have unsolved variables or detect a dependency loop
-    if [ $unsolved_vars -ne 0 ] ; then
+    #check if we have unresolved variables or detect a dependency loop
+    if [ $unresolved_vars -ne 0 ] ; then
         echo "We reached the maximum substitution loop depth!" >&2
         echo "Possible reasons:" >&2
-        echo "  - unresolved variables" >&2
+        echo "  - use of undeclared variables" >&2
         echo "  - dependency loop with two or more variables" >&2
     fi
     echo -e "$data" 
