@@ -96,15 +96,23 @@ ENDIF(GOL_ENABLE_PNG)
 #########################################################################
 # Configure include directories
 
-#LIBGPUGRID
+#libPMacc
 
-  find_path(GOL_LIBGPUGRID_ROOT_DIR
-    NAMES include/types.h
-    PATHS "${CMAKE_SOURCE_DIR}/../../../libgpugrid"
-    DOC "libgpugrid root location."
-    )
+find_path(PMACC_ROOT_DIR
+  NAMES include/types.h
+  PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../../../libPMacc"
+  DOC "libPMacc root location."
+  )
 
-INCLUDE_DIRECTORIES(${GOL_LIBGPUGRID_ROOT_DIR}/include)
+INCLUDE_DIRECTORIES(${PMACC_ROOT_DIR}/include)
+
+OPTION(PMACC_BLOCKING_KERNEL "activate checks for every kernel call and synch after every kernel call" OFF)
+IF(PMACC_BLOCKING_KERNEL)
+    ADD_DEFINITIONS(-DPMACC_SYNC_KERNEL=1)
+ENDIF(PMACC_BLOCKING_KERNEL)
+
+SET(PMACC_VERBOSE "0" CACHE STRING "set verbose level for libPMacc")
+ADD_DEFINITIONS(-DPMACC_VERBOSE_LVL=${PMACC_VERBOSE})
 
 #PNGWRITER
 IF(GOL_ENABLE_PNG)
