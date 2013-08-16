@@ -72,7 +72,7 @@ public:
      */
     HINLINE DataSpace<DIM> getGridDim()
     {
-        return reduce((StrideMappingMethods<areaType, DIM>::getGridDim(*this) - offset + Stride - 1) / Stride);
+        return this->reduce((StrideMappingMethods<areaType, DIM>::getGridDim(*this) - offset + Stride - 1) / Stride);
     }
 
     /**

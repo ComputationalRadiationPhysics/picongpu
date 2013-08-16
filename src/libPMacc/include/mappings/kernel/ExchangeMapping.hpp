@@ -94,7 +94,7 @@ namespace PMacc
          */
         HINLINE DataSpace<DIM> getGridDim()
         {
-            return reduce(ExchangeMappingMethods<areaType, DIM>::getGridDim(*this, exchangeType));
+            return this->reduce(ExchangeMappingMethods<areaType, DIM>::getGridDim(*this, exchangeType));
         }
 
         /**

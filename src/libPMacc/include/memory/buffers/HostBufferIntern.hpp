@@ -104,7 +104,7 @@ public:
     void reset(bool preserveData = true)
     {
         __startOperation(ITask::TASK_HOST);
-        setCurrentSize(this->getDataSpace().getElementCount());
+        this->setCurrentSize(this->getDataSpace().getElementCount());
         if (!preserveData)
             memset(pointer, 0, this->getDataSpace().getElementCount() * sizeof (TYPE));
     }

@@ -31,8 +31,10 @@ within the `examples/` directory in your branch.
 This helps a lot to **maintain various combinations** of options in the code
 (like different solvers, boundary conditions, ...).
 
+[![PIConGPU CompileTest](http://img.youtube.com/vi/5b8Xz9nI-hA/0.jpg)](http://www.youtube.com/watch?v=5b8Xz9nI-hA)
+
 Assume
-- `repo=<pathToYourPIConGPUsvn>`
+- `repo=<pathToYourPIConGPUgitDirectory>`
 - `tmpPath=<tmpFolder>`
 
 Now run the tests with
@@ -43,18 +45,18 @@ Further options are:
 - `-j <N> : run <N> tests in parallel (note: do NOT omit the number <N>)`
 
 If you ran your test with, let's say `-l -q -j 4`, and you got errors like
->  [compileSuite] [error] In PIC_EXTENSION_PATH:PATH=.../params/TermalTest/cmakePreset_0:
->                         CMAKE_INSTALL_PREFIX:PATH=.../params/TermalTest/cmakePreset_0
+>  [compileSuite] [error] In PIC_EXTENSION_PATH:PATH=.../params/ThermalTest/cmakePreset_0:
+>                         CMAKE_INSTALL_PREFIX:PATH=.../params/ThermalTest/cmakePreset_0
 >                         (.../build) make install
 
-check the specific test's output (in this case `examples/TermalTest` with
-*CMake Preset #0*) with:
-- `less -R $tmpPath/build/build_TermalTest_cmakePreset_0/compile.log`
+check the specific test's output (in this case `examples/ThermalTest` with
+*CMake preset #0*) with:
+- `less -R $tmpPath/build/build_ThermalTest_cmakePreset_0/compile.log`
 
 
 ### Compile Tests - Single Example
 
-Compile **all CMake Presets** of a *single example* with:
+Compile **all CMake presets** of a *single example* with:
 - `$repo/compile $repo/examples/ $tmpPath`
 
 
@@ -65,6 +67,6 @@ Compile **all CMake Presets** of a *single example* with:
 - Use a non-home directory, e.g.
   `tmpPath=/net/cns/projects/HPL/<yourTeam>/<yourName>/tmp_tests/`
 - Compile like a boss!
-  `<pathToYourPIConGPUsvn>/compile -l -q -j 60 <pathToYourPIConGPUsvn>/examples/ $tmpPath`
+  `<pathToYourPIConGPUgitDirectory>/compile -l -q -j 60 <pathToYourPIConGPUgitDirectory>/examples/ $tmpPath`
 - Wait for the **thumbs up/down** :)
 
