@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   TaskCopy.hpp
- * Author: whoenig
- *
- * Created on 9. April 2010, 10:45
- */
-
 #ifndef _TASKCOPYDEVICETODEVICE_HPP
 #define	_TASKCOPYDEVICETODEVICE_HPP
 

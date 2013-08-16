@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   FieldHelper.hpp
- * Author: widera
- *
- * Created on 2. Dezember 2010, 13:22
- */
-
 #ifndef SIMULATIONFIELDHELPER_HPP
 #define	SIMULATIONFIELDHELPER_HPP
 

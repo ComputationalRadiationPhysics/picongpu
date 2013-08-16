@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   EventPool.hpp
- * Author: fschmitt
- *
- * Created on 15. Dezember 2010, 14:29
- */
 
 #ifndef EVENTPOOL_HPP
 #define	EVENTPOOL_HPP

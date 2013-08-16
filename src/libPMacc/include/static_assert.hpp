@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   static_assert.hpp
- * Author: widera, huebl
- *
- * Created on 13. August 2012, 13:30
- */
 
 #ifndef STATIC_ASSERT_HPP
 #define	STATIC_ASSERT_HPP

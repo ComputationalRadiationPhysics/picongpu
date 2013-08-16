@@ -18,13 +18,7 @@
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
-/* 
- * File:   DataSpaceOperations.hpp
- * Author: fschmitt
- *
- * Created on 12. April 2011, 13:28
- */
+
 
 #ifndef DATASPACEOPERATIONS_HPP
 #define	DATASPACEOPERATIONS_HPP

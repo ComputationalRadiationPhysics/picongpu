@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   ModuleConnector.hpp
- * Author: fschmitt
- *
- * Created on 7. Mai 2012, 11:08
- */
-
 #ifndef MODULECONNECTOR_HPP
 #define	MODULECONNECTOR_HPP
 

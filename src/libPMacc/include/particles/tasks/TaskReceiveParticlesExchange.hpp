@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   TaskReceive.hpp
- * Author: widera
- *
- * Created on 7. Juni 2010, 10:58
- */
 
 #ifndef _TASKRECEIVEPARTICLESEXCHANGE_HPP
 #define	_TASKRECEIVEPARTICLESEXCHANGE_HPP

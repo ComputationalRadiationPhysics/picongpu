@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   RingDataBox.hpp
- * Author: fschmitt
- *
- * Created on 19. November 2010, 15:04
- */
-
 #ifndef RINGDATABOX_HPP
 #define	RINGDATABOX_HPP
 

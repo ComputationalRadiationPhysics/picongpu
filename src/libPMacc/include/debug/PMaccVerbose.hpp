@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   PMaccVerbose.hpp
- * Author: widera
- *
- * Created on 25. Januar 2013, 10:16
- */
-
 #pragma once
 
 #include <stdint.h>

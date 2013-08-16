@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   ListSorter.hpp
- * Author: fschmitt
- *
- * Created on 4. Mai 2011, 14:35
- */
-
 #ifndef LISTSORTER_HPP
 #define	LISTSORTER_HPP
 

@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   Max.hpp
- * Author: widera
- *
- * Created on 1. November 2012, 10:39
- */
 
 #ifndef MAX_HPP
 #define	MAX_HPP

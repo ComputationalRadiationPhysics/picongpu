@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   TVec.h
- * Author: heiko
- *
- * Created on 17. Dezember 2010, 13:08
- */
-
 #ifndef TVEC_H
 #define TVEC_H
 

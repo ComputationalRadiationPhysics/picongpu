@@ -18,13 +18,7 @@
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
-/* 
- * File:   HostBufferIntern.hpp
- * Author: widera
- *
- * Created on 31. März 2010, 10:13
- */
+
 
 #ifndef _HOSTBUFFERINTERN_HPP
 #define	_HOSTBUFFERINTERN_HPP

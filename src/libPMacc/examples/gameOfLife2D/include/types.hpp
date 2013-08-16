@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   types.hpp
- * Author: widera
- *
- * Created on 15. November 2012, 13:16
- */
-
 #ifndef TYPES_HPP
 #define	TYPES_HPP
 

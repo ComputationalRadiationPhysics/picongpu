@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   GetMPI_Op.hpp
- * Author: widera
- *
- * Created on 6. November 2012, 13:36
- */
-
 #ifndef GETMPI_OP_HPP
 #define	GETMPI_OP_HPP
 

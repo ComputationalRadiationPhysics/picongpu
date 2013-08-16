@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   EnvironmentController.hpp
- * Author: widera
- *
- * Created on 26. April 2010, 09:51
- */
-
 
 #ifndef _STREAMCONTROLLER_HPP
 #define	_STREAMCONTROLLER_HPP

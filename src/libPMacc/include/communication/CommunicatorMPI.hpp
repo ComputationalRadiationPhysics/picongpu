@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   CommunicatorMPI.hpp
- * Author: wolfgang
- *
- * Created on 24. April 2010, 13:15
- */
-
 #ifndef _COMMUNICATORMPI_HPP
 #define	_COMMUNICATORMPI_HPP
 

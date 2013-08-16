@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   Simulation.hpp
- * Author: widera
- *
- * Created on 14. November 2012, 10:10
- */
 
 #ifndef SIMULATION_HPP
 #define	SIMULATION_HPP

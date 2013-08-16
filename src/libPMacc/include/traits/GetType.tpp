@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   GetType.tpp
- * Author: widera
- *
- * Created on 4. Februar 2013, 10:06
- */
-
 
 #pragma once
 

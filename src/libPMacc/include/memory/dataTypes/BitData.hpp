@@ -20,13 +20,6 @@
  */ 
  
 
-/*
- * File:   BitData.hpp
- * Author: burau
- *
- * Created on 31. Oktober 2010, 13:35
- */
-
 
 #ifndef BITDATA_HPP
 #define	BITDATA_HPP
