@@ -42,8 +42,6 @@ class Gather
 private:
     MPI_Comm comm;
     std::vector<math::Int<dim> > positions;
-    math::Int<dim> pos;
-    math::UInt<dim> size;
     bool m_participate;
     
     template<typename Type, int _dim, int memDim>

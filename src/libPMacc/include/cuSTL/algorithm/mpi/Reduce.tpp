@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, René Widera
+ * Copyright 2013 Heiko Burau
  *
  * This file is part of libPMacc. 
  * 
@@ -18,11 +18,14 @@
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
+
 #include "mappings/simulation/GridController.hpp"
 #include <iostream>
+#include <utility>
+#include <algorithm>
 #include "cuSTL/container/copier/Memcopy.hpp"
 #include "lambda/make_Functor.hpp"
+#include "communication/manager_common.h"
 
 namespace PMacc
 {
@@ -32,63 +35,65 @@ namespace mpi
 {
 
 template<int dim>
-Reduce<dim>::Reduce(const zone::SphericZone<dim>& _zone)
+Reduce<dim>::Reduce(const zone::SphericZone<dim>& _zone, bool setThisAsRoot) : comm(MPI_COMM_NULL)
 {
     using namespace math;
     
-    PMacc::GridController<dim>& con = PMacc::GridController<dim>::getInstance();
-    PMacc::DataSpace<dim> _pos = con.getPosition();
+    PMacc::GridController<dim>& con = PMacc::GridController<dim>::getInstance();    
     
-    this->size = (UInt<dim>)_zone.size;
-    this->pos.x() = _pos.x();
-    this->pos.y() = _pos.y();
-    this->pos.z() = _pos.z();
+    typedef std::pair<Int<dim>, bool> PosFlag;
+    PosFlag posFlag;
+    posFlag.first = (Int<dim>)con.getPosition();
+    posFlag.second = setThisAsRoot;
+    
     int numWorldRanks; MPI_Comm_size(MPI_COMM_WORLD, &numWorldRanks);
+    std::vector<PosFlag> allPositionsFlags(numWorldRanks);
     
-    std::vector<Int<dim> > allPositions(numWorldRanks);
-    MPI_Allgather((void*)&this->pos, sizeof(Int<dim>), MPI_CHAR,
-                  (void*)allPositions.data(), sizeof(Int<dim>), MPI_CHAR,
-                  MPI_COMM_WORLD);
+    MPI_CHECK(MPI_Allgather((void*)&posFlag, sizeof(PosFlag), MPI_CHAR,
+                  (void*)allPositionsFlags.data(), sizeof(PosFlag), MPI_CHAR,
+                  MPI_COMM_WORLD));
                   
     std::vector<int> new_ranks;
     int myWorldId; MPI_Comm_rank(MPI_COMM_WORLD, &myWorldId);
     
     this->m_participate = false;
-    for(int i = 0; i < (int)allPositions.size(); i++)
+    for(int i = 0; i < (int)allPositionsFlags.size(); i++)
     {
-        Int<dim> pos = allPositions[i];
-        if(pos.x() < (int)_zone.offset.x() || pos.x() >= (int)_zone.offset.x() + (int)_zone.size.x()) continue;
-        if(pos.y() < (int)_zone.offset.y() || pos.y() >= (int)_zone.offset.y() + (int)_zone.size.y()) continue;
-        if(pos.z() < (int)_zone.offset.z() || pos.z() >= (int)_zone.offset.z() + (int)_zone.size.z()) continue;
+        Int<dim> pos = allPositionsFlags[i].first;
+        bool flag = allPositionsFlags[i].second;
+        if(!_zone.within(pos)) continue;
+        
         new_ranks.push_back(i);
-        this->positions.push_back(allPositions[i]);
+        //if rank i is supposed to be the new root put him at the front
+        if(flag) std::swap(new_ranks.front(), new_ranks.back());
         if(i == myWorldId) this->m_participate = true;
     }
     
     MPI_Group world_group, new_group;
 
-    MPI_Comm_group(MPI_COMM_WORLD, &world_group);
-    MPI_Group_incl(world_group, new_ranks.size(), new_ranks.data(), &new_group);
-    MPI_Comm_create(MPI_COMM_WORLD, new_group, &this->comm);
-    MPI_Group_free(&new_group);
+    MPI_CHECK(MPI_Comm_group(MPI_COMM_WORLD, &world_group));
+    MPI_CHECK(MPI_Group_incl(world_group, new_ranks.size(), new_ranks.data(), &new_group));
+    MPI_CHECK(MPI_Comm_create(MPI_COMM_WORLD, new_group, &this->comm));
+    MPI_CHECK(MPI_Group_free(&new_group));
 }
 
 template<int dim>
 Reduce<dim>::~Reduce()
 {
-    if(this->comm != MPI_COMM_WORLD)
+    if(this->comm != MPI_COMM_NULL)
     {
-        /*
-        \todo: comm freigeben
-        std::cout << "comm world: " << MPI_COMM_WORLD << ", comm: " << this->comm << std::endl;
-        MPI_Comm_free(&this->comm);
-        */
+        MPI_CHECK(MPI_Comm_free(&this->comm));
     }
 }
 
 template<int dim>
 bool Reduce<dim>::root() const
 {
+    if(!this->m_participate) 
+    {
+        std::cerr << "error[mpi::Reduce::root()]: this process does not participate in reducing.\n";
+        return false;
+    }
     int myId; MPI_Comm_rank(this->comm, &myId);
     return myId == 0;
 }
@@ -96,6 +101,11 @@ bool Reduce<dim>::root() const
 template<int dim>
 int Reduce<dim>::rank() const
 {
+    if(!this->m_participate) 
+    {
+        std::cerr << "error[mpi::Reduce::rank()]: this process does not participate in reducing.\n";
+        return -1;
+    }
     int myId; MPI_Comm_rank(this->comm, &myId);
     return myId;
 }
@@ -130,12 +140,12 @@ void Reduce<dim>::operator()
     typedef typename lambda::result_of::make_Functor<ExprOrFunctor>::type Functor;
     
     MPI_Op user_op;  
-    MPI_Op_create(&detail::MPI_User_Op<Functor, Type>::callback, 1, &user_op);
+    MPI_CHECK(MPI_Op_create(&detail::MPI_User_Op<Functor, Type>::callback, 1, &user_op));
     
-    MPI_Reduce(&(*src.origin()), &(*dest.origin()), sizeof(Type) * dest.size().volume(),
-        MPI_CHAR, user_op, 0, this->comm);
+    MPI_CHECK(MPI_Reduce(&(*src.origin()), &(*dest.origin()), sizeof(Type) * dest.size().volume(),
+        MPI_CHAR, user_op, 0, this->comm));
     
-    MPI_Op_free(&user_op);
+    MPI_CHECK(MPI_Op_free(&user_op));
 }
 
 } // mpi
