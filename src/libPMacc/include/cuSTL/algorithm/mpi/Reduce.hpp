@@ -1,5 +1,7 @@
+#pragma once
+
 /**
- * Copyright 2013 Heiko Burau, René Widera
+ * Copyright 2013 Heiko Burau
  *
  * This file is part of libPMacc. 
  * 
@@ -18,8 +20,6 @@
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
-#pragma once
 
 #include "mpi.h"
 #include "math/vector/Int.hpp"
@@ -40,12 +40,9 @@ class Reduce
 {
 private:
     MPI_Comm comm;
-    std::vector<math::Int<dim> > positions;
-    math::Int<dim> pos;
-    math::UInt<dim> size;
     bool m_participate;
 public:
-    Reduce(const zone::SphericZone<dim>& zone);
+    Reduce(const zone::SphericZone<dim>& zone, bool setThisAsRoot = false);
     ~Reduce();
     
     template<typename Type, int conDim, typename ExprOrFunctor>
@@ -53,8 +50,6 @@ public:
                     const container::HostBuffer<Type, conDim>& src,
                     ExprOrFunctor) const;
            
-    void operator()(){}
-                    
     inline bool participate() const {return m_participate;}
     inline bool root() const;
     inline int rank() const;
