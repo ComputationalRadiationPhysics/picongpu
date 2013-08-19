@@ -119,9 +119,13 @@ struct MPI_User_Op
     static void callback(void* invec, void* inoutvec, int *len, MPI_Datatype*)
     {
         Functor functor;
-        for(int i = 0; i < *len; i++)
+        type* inoutvec_t = (type*)inoutvec;
+        type* invec_t = (type*)invec;
+        
+        int size = (*len)/sizeof(type);
+        for(int i = 0; i < size; i++)
         {
-            ((type*)inoutvec)[i] = functor(((type*)inoutvec)[i], ((type*)invec)[i]);
+            inoutvec_t[i] = functor(inoutvec_t[i], invec_t[i]);
         }
     }
 };
