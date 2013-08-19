@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   TaskLogicalAnd.hpp
- * Author: widera
- *
- * Created on 7. Juni 2010, 12:44
- */
 
 #ifndef _TASKLOGICALAND_HPP
 #define	_TASKLOGICALAND_HPP

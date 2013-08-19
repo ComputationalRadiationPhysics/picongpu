@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   AreaMapping.h
- * Author: burau
- *
- * Created on 13. Dezember 2010, 14:29
- */
-
 #ifndef AREAMAPPING_H
 #define	AREAMAPPING_H
 

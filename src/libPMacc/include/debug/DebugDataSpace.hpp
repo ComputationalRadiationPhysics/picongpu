@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   DebugDataSpace.hpp
- * Author: felix
- *
- * Created on 17. Juni 2011, 16:14
- */
 
 #ifndef DEBUGDATASPACE_HPP
 #define	DEBUGDATASPACE_HPP

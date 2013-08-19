@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   DebugBuffers.hpp
- * Author: fschmitt
- *
- * Created on 9. Mai 2011, 13:12
- */
 
 #ifndef DEBUGBUFFERS_HPP
 #define	DEBUGBUFFERS_HPP

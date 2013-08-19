@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   IsSameType.hpp
- * Author: huebl
- *
- * Created on 13. Juni 2013, 13:57
- */
-
 #pragma once
 
 namespace PMacc

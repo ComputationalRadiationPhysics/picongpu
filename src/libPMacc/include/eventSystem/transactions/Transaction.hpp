@@ -18,13 +18,6 @@
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
-/* 
- * File:   Transaction.hpp
- * Author: fschmitt
- *
- * Created on 21. Februar 2011, 09:25
- */
 
 
 #ifndef TRANSACTION_HPP

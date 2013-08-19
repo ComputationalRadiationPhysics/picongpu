@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   IEventData.hpp
- * Author: wolfgang
- *
- * Created on 16. Mai 2010, 14:31
- */
-
 #ifndef _IEVENTDATA_HPP
 #define	_IEVENTDATA_HPP
 

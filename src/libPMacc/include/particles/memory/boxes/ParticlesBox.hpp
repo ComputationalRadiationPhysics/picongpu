@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   ParticleBox.hpp
- * Author: widera
- *
- * Created on 23. November 2010, 10:34
- */
 
 #ifndef PARTICLESBOX_HPP
 #define	PARTICLESBOX_HPP

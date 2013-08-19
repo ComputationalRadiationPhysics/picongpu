@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   DebugExchangeTypes.hpp
- * Author: fschmitt
- *
- * Created on 2. Mai 2011, 10:57
- */
-
 #ifndef DEBUGEXCHANGETYPES_HPP
 #define	DEBUGEXCHANGETYPES_HPP
 

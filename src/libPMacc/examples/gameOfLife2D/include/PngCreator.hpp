@@ -18,13 +18,6 @@
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
-/* 
- * File:   PngCreator.hpp
- * Author: widera
- *
- * Created on 15. November 2012, 13:13
- */
 
 #ifndef PNGCREATOR_HPP
 #define	PNGCREATOR_HPP

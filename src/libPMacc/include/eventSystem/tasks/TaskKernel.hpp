@@ -18,13 +18,7 @@
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
-/* 
- * File:   TaskCopy.hpp
- * Author: whoenig
- *
- * Created on 9. April 2010, 10:45
- */
+
 
 #ifndef _TASKKERNEL_HPP
 #define _TASKKERNEL_HPP

@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   RNG.hpp
- * Author: widera
- *
- * Created on 10. Oktober 2012, 11:18
- */
 
 #pragma once
 

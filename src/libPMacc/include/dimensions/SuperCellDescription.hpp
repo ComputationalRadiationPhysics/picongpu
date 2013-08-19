@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   SuperCellDescription.hpp
- * Author: widera
- *
- * Created on 8. März 2012, 08:29
- */
 
 #ifndef SUPERCELLDESCRIPTION_HPP
 #define	SUPERCELLDESCRIPTION_HPP

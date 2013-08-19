@@ -19,14 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   ForEach.hpp
- * Author: huebl
- * 
- * A compile-time for each for boost::mpl
- *
- * Created on July 16th, 2013 - 01:33pm
- */
 
 #pragma once
 

@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   ThreadCollective.hpp
- * Author: widera
- *
- * Created on 8. März 2012, 11:00
- */
-
 #ifndef THREADCOLLECTIVE_HPP
 #define	THREADCOLLECTIVE_HPP
 

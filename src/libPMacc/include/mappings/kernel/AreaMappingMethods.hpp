@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   AreaMappingMethods.h
- * Author: burau
- *
- * Created on 13. Dezember 2010, 14:29
- */
-
 #ifndef AREAMAPPINGMETHODS_H
 #define	AREAMAPPINGMETHODS_H
 

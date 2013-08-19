@@ -1,11 +1,25 @@
-/* 
- * File:   LeheSolver.hpp
- * Author: lehe, huebl
+/**
+ * Copyright 2013 Axel Huebl
+ *
+ * This file is part of PIConGPU. 
  * 
- * Reference: R. Lehe et al
- *            Phys. Rev. ST Accel. Beams 16, 021301 (2013)
+ * PIConGPU is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
  * 
- * Created on May 27th, 2013
+ * PIConGPU is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * along with PIConGPU.  
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+
+/* Reference: R. Lehe et al
+ *           Phys. Rev. ST Accel. Beams 16, 021301 (2013) 
  */
 
 #pragma once

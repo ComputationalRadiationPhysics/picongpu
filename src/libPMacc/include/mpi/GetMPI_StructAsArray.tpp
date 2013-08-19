@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   Get_MPI_StructAsArray.tpp
- * Author: widera
- *
- * Created on 6. November 2012, 13:31
- */
-
 #pragma once
 
 #include "types.h"
