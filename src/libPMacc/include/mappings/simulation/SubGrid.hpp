@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   SubGrid.hpp
- * Author: wolfgang
- *
- * Created on 24. April 2010, 13:20
- */
-
 #pragma once
 
 #include "dimensions/DataSpace.hpp"

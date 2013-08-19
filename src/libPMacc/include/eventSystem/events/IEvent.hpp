@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   IEvent.hpp
- * Author: whoenig
- *
- * Created on 9. April 2010, 10:20
- */
 
 #ifndef _IEVENT_HPP
 #define	_IEVENT_HPP

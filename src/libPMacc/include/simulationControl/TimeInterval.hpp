@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   TimeInterval.hpp
- * Author: widera
- *
- * Created on 2. Dezember 2010, 10:07
- */
-
 #ifndef TIMEINTERVAL_HPP
 #define	TIMEINTERVAL_HPP
 

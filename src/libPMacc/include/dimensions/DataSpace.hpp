@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/*
- * File:   DataSpace.hpp
- * Author: widera
- *
- * Created on 22. März 2010, 16:04
- */
 
 #ifndef _DATASPACE_HPP
 #define	_DATASPACE_HPP

@@ -19,14 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   AllReduce.hpp
- * Author: widera
- *
- * Created on 27. November 2012, 14:58
- */
-
-
 #pragma once
 
 #include "types.h"

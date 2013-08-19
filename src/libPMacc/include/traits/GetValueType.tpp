@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   GetValueType.tpp
- * Author: widera
- *
- * Created on 6. November 2012, 13:13
- */
-
 #pragma once
 
 namespace PMacc

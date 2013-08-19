@@ -19,14 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/*
- * File:   Mask.hpp
- * Author: widera
- *
- * Created on 22. März 2010, 16:04
- */
-
-
 #ifndef _MASK_HPP
 #define	_MASK_HPP
 

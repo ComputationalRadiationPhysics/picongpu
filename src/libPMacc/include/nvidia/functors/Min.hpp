@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   Min.hpp
- * Author: widera
- *
- * Created on 1. November 2012, 10:38
- */
 
 #ifndef MIN_HPP
 #define	MIN_HPP

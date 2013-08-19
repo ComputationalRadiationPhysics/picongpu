@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   MPI_StructAsArray.hpp
- * Author: widera
- *
- * Created on 6. November 2012, 13:26
- */
-
 #ifndef MPI_STRUCTASARRAY_HPP
 #define	MPI_STRUCTASARRAY_HPP
 

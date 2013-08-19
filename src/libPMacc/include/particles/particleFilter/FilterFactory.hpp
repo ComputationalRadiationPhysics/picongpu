@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   FilterFactory.hpp
- * Author: widera
- *
- * Created on 19. Oktober 2011, 09:34
- */
 
 #pragma once
 

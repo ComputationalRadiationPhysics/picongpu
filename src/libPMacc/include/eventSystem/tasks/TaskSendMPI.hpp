@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   TaskSendMPI.hpp
- * Author: wolfgang
- *
- * Created on 13. August 2010, 19:50
- */
-
 #ifndef TASKSENDMPI_HPP
 #define	TASKSENDMPI_HPP
 

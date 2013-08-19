@@ -18,13 +18,6 @@
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
-/* 
- * File:   ParticlesBuffer.hpp
- * Author: widera
- *
- * Created on 23. November 2010, 10:53
- */
 
 #ifndef FRAMECONTAINER_HPP
 #define	FRAMECONTAINER_HPP

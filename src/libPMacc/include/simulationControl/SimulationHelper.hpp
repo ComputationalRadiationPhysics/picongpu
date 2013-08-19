@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   SimulationHelper.hpp
- * Author: widera
- *
- * Created on 2. Dezember 2010, 08:30
- */
 
 #ifndef SIMULATIONHELPER_HPP
 #define	SIMULATIONHELPER_HPP

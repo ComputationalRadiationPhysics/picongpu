@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   EventStream.hpp
- * Author: fschmitt
- *
- * Created on 15. Dezember 2010, 14:25
- */
 
 #ifndef EVENTSTREAM_HPP
 #define	EVENTSTREAM_HPP

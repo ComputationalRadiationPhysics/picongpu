@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   ExchangeMemoryIndex.hpp
- * Author: widera
- *
- * Created on 2. Februar 2011, 10:40
- */
-
 #ifndef EXCHANGEMEMORYINDEX_HPP
 #define	EXCHANGEMEMORYINDEX_HPP
 

@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   Dataset.hpp
- * Author: fschmitt
- *
- * Created on 19. Januar 2011, 16:11
- */
 
 #ifndef DATASET_HPP
 #define	DATASET_HPP

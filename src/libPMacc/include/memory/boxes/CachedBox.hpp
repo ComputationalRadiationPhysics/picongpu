@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   CachedBox.hpp
- * Author: widera
- *
- * Created on 14. Dezember 2011, 14:43
- */
 
 #ifndef CACHEDBOX_HPP
 #define	CACHEDBOX_HPP

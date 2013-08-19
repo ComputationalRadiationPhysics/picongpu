@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   VerboseLogMakros.hpp
- * Author: widera
- *
- * Created on 18. Jul 2013, 09:50
- * 
- */
 
 #pragma once
 

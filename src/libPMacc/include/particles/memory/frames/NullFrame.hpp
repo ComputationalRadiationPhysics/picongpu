@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   NullFrame.hpp
- * Author: widera
- *
- * Created on 31. Mai 2012, 11:32
- */
 
 #ifndef NULLFRAME_HPP
 #define	NULLFRAME_HPP

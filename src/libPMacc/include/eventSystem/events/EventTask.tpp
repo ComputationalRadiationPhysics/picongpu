@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   EventTask.hpp
- * Author: widera
- *
- * Created on 31. März 2010, 14:54
- */
 
 #include "eventSystem/EventSystem.hpp"
 #include "eventSystem/tasks/ITask.hpp"
