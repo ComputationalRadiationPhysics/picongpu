@@ -19,8 +19,7 @@
 # 
  
 
-
-## calculation are done by tbg ##
+##calculations will be performed by tbg##
 
 # 4 gpus per node if we need more than 4 gpus else same count as TBG_tasks
 TBG_gpusPerNode=`if [ $TBG_tasks -gt 4 ] ; then echo 4; else echo $TBG_tasks; fi`
@@ -46,9 +45,6 @@ umask 0027
     
 mkdir simOutput 2> /dev/null
 cd simOutput
-
-#wait that all nodes see ouput folder
-sleep 1
 
 mpiexec --prefix $MPI_ROOT -tag-output --display-map -x LIBRARY_PATH -x LD_LIBRARY_PATH -am !TBG_dstPath/tbg/openib.conf  -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/picongpu/bin/cuda_memtest.sh
 
