@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl
+ * Copyright 2013 Axel Huebl, Rémi Lehe
  *
  * This file is part of PIConGPU. 
  * 
@@ -19,7 +19,7 @@
  */ 
 
 /* Reference: R. Lehe et al
- *           Phys. Rev. ST Accel. Beams 16, 021301 (2013) 
+ *            Phys. Rev. ST Accel. Beams 16, 021301 (2013) 
  */
 
 #pragma once
