@@ -1,24 +1,9 @@
-/**
- * Copyright 2013 Axel Huebl, Heiko Burau, René Widera
+/* 
+ * File:   memory.param
+ * Author: huebl
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
-
+ * Created on 26. Juni 2012, 17:44
+ */
 
 #pragma once
 
@@ -50,11 +35,11 @@ const uint32_t TILE_SIZE = TILE_WIDTH * TILE_HEIGHT * TILE_DEPTH;
 const uint32_t GUARD_SIZE = 1;
 
 //! how many bytes for buffer is reserved to communication in one direction
-const uint32_t BYTES_EXCHANGE_X = 4 * 256 * 1024; //4 MiB
-const uint32_t BYTES_EXCHANGE_Y = 4 * 256 * 1024; //6 MiB
-const uint32_t BYTES_EXCHANGE_Z = 60 * 1024 * 1024; //4 MiB
-const uint32_t BYTES_CORNER = 80 * 1024; //8 kiB;
-const uint32_t BYTES_EDGES = 320 * 1024; //32 kiB;
+const uint32_t BYTES_EXCHANGE_X = 40 * 1024 * 1024; //4 MiB
+const uint32_t BYTES_EXCHANGE_Y = 40 * 1024 * 1024; //6 MiB
+const uint32_t BYTES_EXCHANGE_Z = 40 * 1024 * 1024; //4 MiB
+const uint32_t BYTES_CORNER = 800 * 1024; //8 kiB;
+const uint32_t BYTES_EDGES = 3200 * 1024; //32 kiB;
 }
 //namespace picongpu
 
