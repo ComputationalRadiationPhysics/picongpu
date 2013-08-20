@@ -167,3 +167,19 @@ INSTALL(TARGETS gameOfLife
          RUNTIME DESTINATION bin)
 
 
+SET(GOL_COPY_ON_INSTALL "submit" CACHE LIST "folder which copied on install to install path" )
+
+
+#copy all importend subfolders to install folder
+FOREACH(dir ${GOL_COPY_ON_INSTALL})
+  #if source not exists than copy
+  IF(NOT EXISTS "${CMAKE_INSTALL_PREFIX}/${dir}")
+      #copy importend subfolders from extension path (default picongpu parameter)
+      IF(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${dir}/")
+        INSTALL(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${dir}/."
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/${dir}"
+          PATTERN .svn EXCLUDE
+        )
+      ENDIF()
+  ENDIF()
+ENDFOREACH()
