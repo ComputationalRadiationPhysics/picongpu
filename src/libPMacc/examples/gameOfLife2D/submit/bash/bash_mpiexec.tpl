@@ -48,5 +48,5 @@ umask 0027
 mkdir simOutput 2> /dev/null
 cd simOutput
 
-mpiexec --prefix $MPI_ROOT -x LIBRARY_PATH -x LD_LIBRARY_PATH -tag-output --display-map -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/bin/!TBG_PROGRAMM
+mpiexec --prefix $MPI_ROOT -x LIBRARY_PATH -x LD_LIBRARY_PATH -tag-output --display-map -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/bin/!TBG_PROGRAM
 
