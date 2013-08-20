@@ -80,11 +80,21 @@ struct GatherSlice
     void finalize()
     {
         if (filteredData != NULL)
+        {  
             delete[] filteredData;
+            filteredData=NULL;
+        }
         if (fullData != NULL)
+        {
             delete[] fullData;
+            fullData=NULL;
+        }
         if (isMPICommInitialized)
+        {
             MPI_Comm_free(&comm);
+            isMPICommInitialized=false;
+        }
+        mpiRank=-1;
     }
 
     /*
