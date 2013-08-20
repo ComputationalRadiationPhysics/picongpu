@@ -191,7 +191,7 @@ it as another [remote](https://help.github.com/articles/fork-a-repo#step-3-confi
 - `git checkout dev` (go to branch **dev**)
 
 Well done so far! Just start developing. Just like this? No! As always in git,
-start a *new branch* with `git checkout -b <yourFeatureName>` and apply your
+start a *new branch* with `git checkout -b topic-<yourFeatureName>` and apply your
 changes there.
 
 ### Keep track of updates
