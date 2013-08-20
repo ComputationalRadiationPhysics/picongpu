@@ -17,8 +17,8 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 
 #ifndef SIMULATION_HPP
 #define	SIMULATION_HPP
@@ -63,7 +63,7 @@ private:
 public:
 
     Simulation(uint32_t rule, int32_t steps, Space gridSize, Space devices, Space periodic) :
-    evo(rule), steps(steps), gridSize(gridSize), isMaster(false), buff1(NULL),buff2(NULL)
+    evo(rule), steps(steps), gridSize(gridSize), isMaster(false), buff1(NULL), buff2(NULL)
     {
         /*IMPORTEND: this must called at first PMacc function, before any other grid magic can used*/
         GC::getInstance().init(devices, periodic);
@@ -72,13 +72,18 @@ public:
         StreamController::getInstance();
         Manager::getInstance();
         TransactionManager::getInstance();
-        
+
         Space localGridSize(gridSize / devices);
-        SubGrid<DIM2>::getInstance().init(localGridSize,gridSize, GC::getInstance().getPosition() * localGridSize);
+        SubGrid<DIM2>::getInstance().init(localGridSize, gridSize, GC::getInstance().getPosition() * localGridSize);
     }
 
     virtual ~Simulation()
     {
+    }
+
+    void finalize()
+    {
+        gather.finalize();
         __delete(buff1);
         __delete(buff2);
     }
