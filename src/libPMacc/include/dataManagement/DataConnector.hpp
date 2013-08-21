@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   DataConnector.hpp
- * Author: fschmitt
- *
- * Created on 19. Januar 2011, 15:53
- */
-
 #ifndef DATACONNECTOR_HPP
 #define	DATACONNECTOR_HPP
 

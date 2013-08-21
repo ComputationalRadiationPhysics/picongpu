@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   ThreadCollective.hpp
- * Author: widera
- *
- * Created on 8. März 2012, 11:00
- */
-
 #ifndef THREADCOLLECTIVE_HPP
 #define	THREADCOLLECTIVE_HPP
 
@@ -37,17 +30,18 @@
 namespace PMacc
 {
 
-template<class BlockArea_, uint32_t Dim_ = BlockArea_::Dim >
+template<class BlockArea_, int MaxThreads_ =  BlockArea_::SuperCellSize::elements >
 class ThreadCollective
 {
 private:
     typedef typename BlockArea_::SuperCellSize SuperCellSize;
     typedef typename BlockArea_::FullSuperCellSize FullSuperCellSize;
     typedef typename BlockArea_::OffsetOrigin OffsetOrigin;
+    static const int maxThreads=MaxThreads_;
 
     enum
     {
-        Dim = Dim_
+        Dim = BlockArea_::Dim
     };
 
 public:
@@ -64,7 +58,7 @@ public:
     template<class F, class P1, class P2>
     DINLINE void operator()(F& f, P1& p1, P2& p2)
     {
-        for (int i = threadId; i < FullSuperCellSize::elements; i += SuperCellSize::elements)
+        for (int i = threadId; i < FullSuperCellSize::elements; i += maxThreads)
         {
             const DataSpace<Dim> pos(DataSpaceOperations<Dim>::template map<FullSuperCellSize > (i) - OffsetOrigin());
             f(p1(pos), p2(pos));
@@ -74,7 +68,7 @@ public:
     template<class F, class P1>
     DINLINE void operator()(F& f, P1 & p1)
     {
-        for (int i = threadId; i < FullSuperCellSize::elements; i += SuperCellSize::elements)
+        for (int i = threadId; i < FullSuperCellSize::elements; i += maxThreads)
         {
             const DataSpace<Dim> pos(DataSpaceOperations<Dim>::template map<FullSuperCellSize > (i) - OffsetOrigin());
             f(p1(pos));

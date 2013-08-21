@@ -19,14 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   ParticlesBase.hpp
- * Author: widera
- *
- * Created on 17. Januar 2011, 08:33
- */
-
-
 
 #include "eventSystem/EventSystem.hpp"
 

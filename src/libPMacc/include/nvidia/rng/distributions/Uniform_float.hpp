@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   Uniform_float.hpp
- * Author: widera
- *
- * Created on 18. Oktober 2012, 10:38
- */
 
 #ifndef UNIFORM_FLOAT_HPP
 #define	UNIFORM_FLOAT_HPP

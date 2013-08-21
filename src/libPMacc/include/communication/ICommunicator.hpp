@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   ICommunicator.hpp
- * Author: widera
- *
- * Created on 26. April 2010, 09:55
- */
 
 #ifndef _ICOMMUNICATOR_HPP
 #define	_ICOMMUNICATOR_HPP

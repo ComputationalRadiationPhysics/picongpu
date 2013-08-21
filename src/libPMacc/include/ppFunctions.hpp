@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   ppFunctions.hpp
- * Author: widera
- *
- * Created on 13. August 2012, 13:32
- */
 
 #ifndef PPFUNCTIONS_HPP
 #define	PPFUNCTIONS_HPP

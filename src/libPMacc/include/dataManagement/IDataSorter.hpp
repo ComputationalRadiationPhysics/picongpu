@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   IDataSorter.hpp
- * Author: fschmitt
- *
- * Created on 4. Mai 2011, 13:44
- */
 
 #ifndef IDATASORTER_HPP
 #define	IDATASORTER_HPP

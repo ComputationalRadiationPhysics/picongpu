@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   Xor.hpp
- * Author: widera
- *
- * Created on 18. Oktober 2012, 10:40
- */
 
 #ifndef XOR_HPP
 #define	XOR_HPP

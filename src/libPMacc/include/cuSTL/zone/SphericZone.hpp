@@ -48,6 +48,14 @@ struct SphericZone
     HDINLINE SphericZone(const math::Size_t<dim>& size) : size(size), offset(math::Int<dim>(0)) {}
     HDINLINE SphericZone(const math::Size_t<dim>& size,
                          const math::Int<dim>& offset) : size(size), offset(offset) {}
+                         
+    HDINLINE bool within(const PMacc::math::Int<_dim>& pos) const
+    {
+        bool result = true;
+        for(int i = 0; i < _dim; i++)
+            if((pos[i] < offset[i]) || (pos[i] >= offset[i] + (int)size[i])) result = false;
+        return result;
+    }
 };
     
 } // zone

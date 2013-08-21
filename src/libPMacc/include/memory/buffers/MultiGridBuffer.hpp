@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   GridBuffer.hpp
- * Author: whoenig
- *
- * Created on 9. April 2010, 09:55
- */
 
 #pragma once
 

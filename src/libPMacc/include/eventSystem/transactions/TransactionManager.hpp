@@ -19,14 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   TransactionManager.hpp
- * Author: fschmitt
- *
- * Created on 14. Februar 2011, 14:20
- */
-
-
 #pragma once
 
 #include <stack>

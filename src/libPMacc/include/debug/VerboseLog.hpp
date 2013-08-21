@@ -19,14 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   VerboseLog.hpp
- * Author: widera
- *
- * Created on 25. Januar 2013, 09:50
- * 
- */
-
 #pragma once
 
 #include <sstream>

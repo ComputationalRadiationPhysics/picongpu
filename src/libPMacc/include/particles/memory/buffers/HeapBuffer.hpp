@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   HeapBuffer.hpp
- * Author: fschmitt
- *
- * Created on 24. November 2010, 12:40
- */
 
 #ifndef HEAPBUFFER_HPP
 #define	HEAPBUFFER_HPP

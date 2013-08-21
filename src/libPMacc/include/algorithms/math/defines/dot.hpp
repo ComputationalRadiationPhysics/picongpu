@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   math.hpp
- * Author: widera
- *
- * Created on 30. Januar 2013, 09:55
- */
-
 #pragma once
 
 namespace PMacc

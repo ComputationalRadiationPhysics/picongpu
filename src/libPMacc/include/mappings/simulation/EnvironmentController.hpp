@@ -18,13 +18,7 @@
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
-/* 
- * File:   EnvironmentController.hpp
- * Author: widera
- *
- * Created on 26. April 2010, 09:51
- */
+
 
 #ifndef _ENVIRONMENTCONTROLLER_HPP
 #define	_ENVIRONMENTCONTROLLER_HPP

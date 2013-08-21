@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   Normal_float.hpp
- * Author: widera
- *
- * Created on 18. Oktober 2012, 13:22
- */
 
 #ifndef NORMAL_FLOAT_HPP
 #define	NORMAL_FLOAT_HPP

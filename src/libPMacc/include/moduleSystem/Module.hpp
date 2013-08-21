@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   Module.hpp
- * Author: fschmitt
- *
- * Created on 7. Mai 2012, 10:46
- */
 
 #ifndef MODULE_HPP
 #define	MODULE_HPP

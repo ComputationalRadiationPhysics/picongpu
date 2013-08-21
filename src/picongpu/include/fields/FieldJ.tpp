@@ -17,7 +17,7 @@
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
+
 #include <iostream>
 #include "simulation_defines.hpp"
 #include "FieldJ.hpp"
@@ -189,8 +189,12 @@ FieldJ::getCommTag( )
 template<uint32_t AREA, class ParticlesClass>
 void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t currentStep ) throw (std::invalid_argument )
 {
+    /** tune paramter to use more threads than cells in a supercell
+     *  valid domain: 1 <= workerMultiplier
+     */
+    const int workerMultiplier =2;
+    
     typedef currentSolver::CurrentSolver ParticleCurrentSolver;
-
     typedef ComputeCurrentPerFrame<ParticleCurrentSolver, Velocity, MappingDesc::SuperCellSize> FrameSolver;
 
     typedef SuperCellDescription<
@@ -205,12 +209,15 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t currentStep ) th
     FrameSolver solver(
                         float3_X( CELL_WIDTH, CELL_HEIGHT, CELL_DEPTH ),
                         DELTA_T );
+    
+    DataSpace<simDim> blockSize(mapper.getSuperCellSize( ));
+    blockSize.z()*=workerMultiplier;
 
     __startAtomicTransaction( __getTransactionEvent( ) );
     do
     {
-        __cudaKernel( ( kernelComputeCurrent<BlockArea, AREA> ) )
-            ( mapper.getGridDim( ), mapper.getSuperCellSize( ) )
+        __cudaKernel( ( kernelComputeCurrent<workerMultiplier,BlockArea, AREA> ) )
+            ( mapper.getGridDim( ), blockSize )
             ( jBox,
               pBox, solver, mapper );
     }

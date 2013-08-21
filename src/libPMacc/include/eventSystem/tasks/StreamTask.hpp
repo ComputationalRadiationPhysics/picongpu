@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   StreamTask.hpp
- * Author: fschmitt
- *
- * Created on 15. Dezember 2010, 14:45
- */
-
 #ifndef STREAMTASK_HPP
 #define	STREAMTASK_HPP
 
