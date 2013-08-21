@@ -131,6 +131,7 @@ int main( int argc, char **argv )
     gol::Simulation sim( ruleMask, steps, grid, gpus, endless );
     sim.init( );
     sim.start( );
+    sim.finalize( );
 
     MPI_CHECK( MPI_Finalize( ) );
     return 0;
