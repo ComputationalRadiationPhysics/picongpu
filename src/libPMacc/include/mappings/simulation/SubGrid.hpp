@@ -44,7 +44,7 @@ public:
     globalSize(globalSize),
     globalOffset(globalOffset)
     {
-        /*check that localSize and globalSize not swaped*/
+        /*prevent a mismatch of localSize and globalSize*/
         for (uint32_t i = 0; i < Dim; ++i)
             assert(localSize[i] <= globalSize[i]);
     }
