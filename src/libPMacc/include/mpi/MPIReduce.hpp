@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   GatherSlice.hpp
- * Author: widera
- *
- * Created on 16. Mai 2012, 09:51
- */
-
 #pragma once
 
 #include "types.h"

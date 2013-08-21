@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   ExchangeMapping.h
- * Author: fschmitt
- *
- * Created on 20. April 2011, 13:14
- */
-
 #ifndef EXCHANGEMAPPING_H
 #define	EXCHANGEMAPPING_H
 
@@ -94,7 +87,7 @@ namespace PMacc
          */
         HINLINE DataSpace<DIM> getGridDim()
         {
-            return reduce(ExchangeMappingMethods<areaType, DIM>::getGridDim(*this, exchangeType));
+            return this->reduce(ExchangeMappingMethods<areaType, DIM>::getGridDim(*this, exchangeType));
         }
 
         /**

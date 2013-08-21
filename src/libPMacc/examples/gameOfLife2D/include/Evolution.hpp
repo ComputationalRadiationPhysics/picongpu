@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   Evolution.hpp
- * Author: widera
- *
- * Created on 14. November 2012, 11:19
- */
-
 #pragma once
 
 #include "types.hpp"

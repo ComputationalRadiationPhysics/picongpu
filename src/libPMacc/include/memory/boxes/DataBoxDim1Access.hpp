@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   DataBoxDim1Access.hpp
- * Author: widera, huebl
- *
- * Created on 30. Oktober 2012, 10:49
- */
 
 #ifndef DataBoxDim1Access_HPP
 #define	DataBoxDim1Access_HPP

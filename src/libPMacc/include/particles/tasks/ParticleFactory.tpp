@@ -18,14 +18,6 @@
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
-/* 
- * File:   Factory.hpp
- * Author: widera
- *
- * Created on 9. April 2010, 14:26
- */
-
 
 #include "particles/tasks/ParticleFactory.hpp"
 #include "particles/tasks/TaskSendParticlesExchange.hpp"

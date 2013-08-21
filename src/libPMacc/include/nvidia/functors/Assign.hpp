@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   Assign.hpp
- * Author: widera
- *
- * Created on 25. April 2012, 09:50
- */
-
 #ifndef ASSIGN_HPP
 #define	ASSIGN_HPP
 

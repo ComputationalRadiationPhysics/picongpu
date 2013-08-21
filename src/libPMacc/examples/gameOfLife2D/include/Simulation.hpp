@@ -17,14 +17,8 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
-/* 
- * File:   Simulation.hpp
- * Author: widera
- *
- * Created on 14. November 2012, 10:10
  */
+
 
 #ifndef SIMULATION_HPP
 #define	SIMULATION_HPP
@@ -69,20 +63,27 @@ private:
 public:
 
     Simulation(uint32_t rule, int32_t steps, Space gridSize, Space devices, Space periodic) :
-    evo(rule), steps(steps), gridSize(gridSize), isMaster(false)
+    evo(rule), steps(steps), gridSize(gridSize), isMaster(false), buff1(NULL), buff2(NULL)
     {
+        /*IMPORTEND: this must called at first PMacc function, before any other grid magic can used*/
+        GC::getInstance().init(devices, periodic);
+        setDevice((int) (GC::getInstance().getHostRank())); //do this after gridcontroller init
+
         StreamController::getInstance();
         Manager::getInstance();
         TransactionManager::getInstance();
-        /*IMPORTEND: this must called at first PMacc function, before any other grid magic can used*/
-        GC::getInstance().init(devices, periodic);
-        /*init SubGrid for global use*/
+
         Space localGridSize(gridSize / devices);
-        SubGrid<DIM2>::getInstance().init(gridSize, localGridSize, GC::getInstance().getPosition() * localGridSize);
+        SubGrid<DIM2>::getInstance().init(localGridSize, gridSize, GC::getInstance().getPosition() * localGridSize);
     }
 
     virtual ~Simulation()
     {
+    }
+
+    void finalize()
+    {
+        gather.finalize();
         __delete(buff1);
         __delete(buff2);
     }
@@ -142,6 +143,43 @@ private:
         if (isMaster) png(currentStep, picture, gridSize);
 
 
+    }
+
+    void setDevice(int deviceNumber)
+    {
+        int num_gpus = 0; //count of gpus
+        cudaGetDeviceCount(&num_gpus);
+        //##ERROR handling
+        if (num_gpus < 1) //check if cuda device ist found
+        {
+            throw std::runtime_error("no CUDA capable devices detected");
+        }
+        else if (num_gpus < deviceNumber) //check if i can select device with diviceNumber
+        {
+            std::cerr << "no CUDA device " << deviceNumber << ", only " << num_gpus << " devices found" << std::endl;
+            throw std::runtime_error("CUDA capable devices can't be selected");
+        }
+
+        cudaDeviceProp devProp;
+        cudaError rc;
+        CUDA_CHECK(cudaGetDeviceProperties(&devProp, deviceNumber));
+        if (devProp.computeMode == cudaComputeModeDefault)
+        {
+            CUDA_CHECK(rc = cudaSetDevice(deviceNumber));
+            if (cudaSuccess == rc)
+            {
+                cudaDeviceProp dprop;
+                cudaGetDeviceProperties(&dprop, deviceNumber);
+                //!\todo: write this only on debug
+                log<ggLog::CUDA_RT > ("Set device to %1%: %2%") % deviceNumber % dprop.name;
+            }
+        }
+        else
+        {
+            //gpu mode is cudaComputeModeExclusiveProcess and a free device is automaticly selected.
+            log<ggLog::CUDA_RT > ("Device is selected by CUDA automaticly. (because cudaComputeModeDefault is not set)");
+        }
+        CUDA_CHECK(cudaSetDeviceFlags(cudaDeviceScheduleYield));
     }
 
 };

@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   HeapDataBox.hpp
- * Author: fschmitt
- *
- * Created on 24. November 2010, 11:07
- */
-
 #ifndef HEAPDATABOX_HPP
 #define	HEAPDATABOX_HPP
 

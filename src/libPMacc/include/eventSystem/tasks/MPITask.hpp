@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   MPITask.hpp
- * Author: fschmitt
- *
- * Created on 15. Dezember 2010, 14:52
- */
-
 #ifndef MPITASK_HPP
 #define	MPITASK_HPP
 

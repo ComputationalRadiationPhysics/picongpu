@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   CoreFrame.hpp
- * Author: widera
- *
- * Created on 22. November 2010, 14:10
- */
-
 #ifndef COREFRAME_HPP
 #define	COREFRAME_HPP
 

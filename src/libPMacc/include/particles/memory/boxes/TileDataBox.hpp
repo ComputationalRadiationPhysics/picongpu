@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   TileDataBox.hpp
- * Author: fschmitt
- *
- * Created on 19. November 2010, 14:42
- */
-
 #ifndef TILEDATABOX_HPP
 #define	TILEDATABOX_HPP
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, René Widera
+ * Copyright 2013 Heiko Burau
  *
  * This file is part of libPMacc. 
  * 
@@ -22,6 +22,7 @@
 #include "mappings/simulation/GridController.hpp"
 #include <iostream>
 #include "cuSTL/container/copier/Memcopy.hpp"
+#include "communication/manager_common.h"
 
 namespace PMacc
 {
@@ -31,60 +32,58 @@ namespace mpi
 {
 
 template<int dim>
-Gather<dim>::Gather(const zone::SphericZone<dim>& _zone) : comm(0)
+Gather<dim>::Gather(const zone::SphericZone<dim>& _zone) : comm(MPI_COMM_NULL)
 {
     using namespace PMacc::math;
     
     PMacc::GridController<dim>& con = PMacc::GridController<dim>::getInstance();
-    PMacc::DataSpace<dim> _pos = con.getPosition();
+    Int<dim> pos = con.getPosition();
     
-    this->size = (PMacc::math::UInt<dim>)_zone.size;
-    this->pos.x() = _pos.x();
-    this->pos.y() = _pos.y();
-    this->pos.z() = _pos.z();
     int numWorldRanks; MPI_Comm_size(MPI_COMM_WORLD, &numWorldRanks);
-    std::vector<PMacc::math::Int<dim> > allPositions(numWorldRanks);
-    MPI_Allgather((void*)&this->pos, sizeof(Int<dim>), MPI_CHAR, 
-                  (void*)allPositions.data(), sizeof(PMacc::math::Int<dim>), MPI_CHAR,
-                  MPI_COMM_WORLD);
+    std::vector<Int<dim> > allPositions(numWorldRanks);
+    
+    MPI_CHECK(MPI_Allgather((void*)&pos, sizeof(Int<dim>), MPI_CHAR, 
+                  (void*)allPositions.data(), sizeof(Int<dim>), MPI_CHAR,
+                  MPI_COMM_WORLD));
                   
     std::vector<int> new_ranks;
     int myWorldId; MPI_Comm_rank(MPI_COMM_WORLD, &myWorldId);
+    
     this->m_participate = false;
     for(int i = 0; i < (int)allPositions.size(); i++)
     {
-        PMacc::math::Int<dim> pos = allPositions[i];
-        if(pos.x() < (int)_zone.offset.x() || pos.x() >= (int)_zone.offset.x() + (int)_zone.size.x()) continue;
-        if(pos.y() < (int)_zone.offset.y() || pos.y() >= (int)_zone.offset.y() + (int)_zone.size.y()) continue;
-        if(pos.z() < (int)_zone.offset.z() || pos.z() >= (int)_zone.offset.z() + (int)_zone.size.z()) continue;
+        Int<dim> pos = allPositions[i];
+        if(!_zone.within(pos)) continue;
+        
         new_ranks.push_back(i);
         this->positions.push_back(allPositions[i]);
         if(i == myWorldId) this->m_participate = true;
     }
-    
     MPI_Group world_group, new_group;
 
-    MPI_Comm_group(MPI_COMM_WORLD, &world_group);
-    MPI_Group_incl(world_group, new_ranks.size(), new_ranks.data(), &new_group);
-    MPI_Comm_create(MPI_COMM_WORLD, new_group, &this->comm);
-    //std::cout << "comm created: " << this->comm << std::endl;
-    MPI_Group_free(&new_group);
+    MPI_CHECK(MPI_Comm_group(MPI_COMM_WORLD, &world_group));
+    MPI_CHECK(MPI_Group_incl(world_group, new_ranks.size(), new_ranks.data(), &new_group));
+    MPI_CHECK(MPI_Comm_create(MPI_COMM_WORLD, new_group, &this->comm));
+    MPI_CHECK(MPI_Group_free(&new_group));
 }
 
 template<int dim>
 Gather<dim>::~Gather()
 {
-    if(this->comm != MPI_COMM_WORLD && this->comm != 0)
+    if(this->comm != MPI_COMM_NULL)
     {
-        //\todo: comm freigeben
-        //std::cout << "comm world: " << MPI_COMM_WORLD << ", comm: " << this->comm << std::endl;
-        //MPI_Comm_free(&this->comm);
+        MPI_CHECK(MPI_Comm_free(&this->comm));
     }
 }
 
 template<int dim>
 bool Gather<dim>::root() const
 {
+    if(!this->m_participate) 
+    {
+        std::cerr << "error[mpi::Gather::root()]: this process does not participate in gathering.\n";
+        return false;
+    }
     int myId; MPI_Comm_rank(this->comm, &myId);
     return myId == 0;
 }
@@ -92,6 +91,11 @@ bool Gather<dim>::root() const
 template<int dim>
 int Gather<dim>::rank() const
 {
+    if(!this->m_participate) 
+    {
+        std::cerr << "error[mpi::Gather::rank()]: this process does not participate in gathering.\n";
+        return -1;
+    }
     int myId; MPI_Comm_rank(this->comm, &myId);
     return myId;
 }
@@ -126,9 +130,10 @@ void Gather<3>::operator()(container::HostBuffer<Type, memDim>& dest,
     
     int numRanks; MPI_Comm_size(this->comm, &numRanks);
     std::vector<Type> tmpDest(numRanks * source.size().volume());
-    MPI_Gather((void*)source.getDataPointer(), source.size().volume() * sizeof(Type), MPI_CHAR,
+    
+    MPI_CHECK(MPI_Gather((void*)source.getDataPointer(), source.size().volume() * sizeof(Type), MPI_CHAR,
                (void*)tmpDest.data(), source.size().volume() * sizeof(Type), MPI_CHAR,
-               0, this->comm);
+               0, this->comm));
     if(!root()) return;
 
     CopyToDest<Type, 3, memDim>()(*this, dest, tmpDest, source, dir);

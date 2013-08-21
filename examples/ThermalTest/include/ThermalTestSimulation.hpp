@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, René Widera
+ * Copyright 2013 Heiko Burau
  *
  * This file is part of PIConGPU. 
  * 
@@ -17,8 +17,6 @@
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
-
 
 #ifndef TERMALTESTSIMULATION_HPP
 #define	TERMALTESTSIMULATION_HPP
@@ -51,6 +49,7 @@
 #include "cuSTL/algorithm/kernel/Foreach.hpp"
 #include "cuSTL/algorithm/kernel/Reduce.hpp"
 #include "cuSTL/algorithm/mpi/Gather.hpp"
+#include "cuSTL/algorithm/mpi/Reduce.hpp"
 #include "lambda/Expression.hpp"
 #include "math/vector/compile-time/Int.hpp"
 #include "math/vector/compile-time/Size_t.hpp"
@@ -117,17 +116,35 @@ public:
 
         PMacc::GridController<SIMDIM>& con = PMacc::GridController<SIMDIM>::getInstance();
         Size_t<SIMDIM> gpuDim = (Size_t<SIMDIM>)con.getGpuNodes();
+        Int<3> gpuPos = (Int<3>)con.getPosition();
         zone::SphericZone<SIMDIM> gpuGatheringZone(Size_t<SIMDIM > (1, 1, gpuDim.z()));
         algorithm::mpi::Gather<SIMDIM> gather(gpuGatheringZone);
-        if (!gather.participate()) return;
 
         container::HostBuffer<float, 2 > eField_zt_host(eField_zt[0]->size());
+        container::HostBuffer<float, 2 > eField_zt_reduced(eField_zt[0]->size());
+        
         for (int i = 0; i < 2; i++)
         {
             eField_zt_host = *(eField_zt[i]);
-            container::HostBuffer<float, 2 > global_eField_zt
-                    (Size_t < 2 > (gpuDim.z() * eField_zt[i]->size().x(), eField_zt[i]->size().y()));
-            gather(global_eField_zt, eField_zt_host, 1);
+            
+            bool reduceRoot = (gpuPos.x() == 0) && (gpuPos.y() == 0);
+            for(int gpuPos_z = 0; gpuPos_z < gpuDim.z(); gpuPos_z++)
+            {
+                zone::SphericZone<3> gpuReducingZone(
+                    Size_t<3>(gpuDim.x(), gpuDim.y(), 1),
+                    Int<3>(0, 0, gpuPos_z));
+                    
+                algorithm::mpi::Reduce<3> reduce(gpuReducingZone, reduceRoot);
+                
+                using namespace lambda;
+                reduce(eField_zt_reduced, eField_zt_host, _1 + _2);
+            }
+            if(!reduceRoot) continue;
+            
+            container::HostBuffer<float, 2 > global_eField_zt(
+                gpuDim.z() * eField_zt_reduced.size().x(), eField_zt_reduced.size().y());
+                
+            gather(global_eField_zt, eField_zt_reduced, 1);
             if (gather.root())
             {
                 std::string filename;
@@ -184,7 +201,7 @@ public:
 
 private:
     // number of timesteps which collect the data
-    static const uint32_t collectTimesteps = 768;
+    static const uint32_t collectTimesteps = 512;
     // first timestep which collects data
     //   you may like to let the plasma develope/thermalize a little bit
     static const uint32_t firstTimestep = 1024;
@@ -198,4 +215,3 @@ private:
 } // namespace picongpu
 
 #endif	/* TERMALTESTSIMULATION_HPP */
-

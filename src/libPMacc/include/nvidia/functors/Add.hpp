@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   Add.hpp
- * Author: widera
- *
- * Created on 25. April 2012, 15:36
- */
 
 #ifndef ADD_HPP
 #define	ADD_HPP

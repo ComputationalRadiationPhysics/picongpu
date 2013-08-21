@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   MappingDescription.h
- * Author: psychocoder
- *
- * Created on 13. Dezember 2010, 14:29
- */
-
 #ifndef MAPPINGDESCRIPTION_H
 #define	MAPPINGDESCRIPTION_H
 

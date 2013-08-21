@@ -26,8 +26,8 @@ OPTION(VAMPIR_ENABLE "create gameOfLife with vampir support" OFF)
 IF(VAMPIR_ENABLE)
     message("[CONFIG]  build program with vampir support")
     set(CMAKE_CXX_COMPILER "vtc++")
-    set(CMAKE_CXX_INST_FILE_FILTER "stl,usr/include,libgpugrid,vector_types.h,Vector.hpp,DeviceBuffer.hpp,DeviceBufferIntern.hpp,Buffer.hpp,StrideMapping.hpp,StrideMappingMethods.hpp,MappingDescription.hpp,AreaMapping.hpp,AreaMappingMethods.hpp,ExchangeMapping.hpp,ExchangeMappingMethods.hpp,DataSpace.hpp,Manager.hpp,Manager.tpp,Transaction.hpp,Transaction.tpp,TransactionManager.hpp,TransactionManager.tpp,Vector.tpp,Mask.hpp,ITask.hpp,EventTask.hpp,EventTask.tpp,StandartAccessor.hpp,StandartNavigator.hpp,HostBuffer.hpp,HostBufferIntern.hpp")
-    set(CMAKE_CXX_INST_FUNC_FILTER "vector,Vector,dim3,GPUGrid,execute,allocator,Task,Manager,Transaction,Mask,operator,DataSpace,PitchedBox,Event,new,getGridDim,GetCurrentDataSpaces,MappingDescription,getOffset,getParticlesBuffer,getDataSpace,getInstance")
+    set(CMAKE_CXX_INST_FILE_FILTER "stl,usr/include,vector_types.h,Vector.hpp,DeviceBuffer.hpp,DeviceBufferIntern.hpp,Buffer.hpp,StrideMapping.hpp,StrideMappingMethods.hpp,MappingDescription.hpp,AreaMapping.hpp,AreaMappingMethods.hpp,ExchangeMapping.hpp,ExchangeMappingMethods.hpp,DataSpace.hpp,Manager.hpp,Manager.tpp,Transaction.hpp,Transaction.tpp,TransactionManager.hpp,TransactionManager.tpp,Vector.tpp,Mask.hpp,ITask.hpp,EventTask.hpp,EventTask.tpp,StandartAccessor.hpp,StandartNavigator.hpp,HostBuffer.hpp,HostBufferIntern.hpp")
+    set(CMAKE_CXX_INST_FUNC_FILTER "vector,Vector,dim3,PMacc,execute,allocator,Task,Manager,Transaction,Mask,operator,DataSpace,PitchedBox,Event,new,getGridDim,GetCurrentDataSpaces,MappingDescription,getOffset,getParticlesBuffer,getDataSpace,getInstance")
     set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -vt:hyb -L/$ENV{VT_ROOT}/lib -finstrument-functions-exclude-file-list=${CMAKE_CXX_INST_FILE_FILTER} -finstrument-functions-exclude-function-list=${CMAKE_CXX_INST_FUNC_FILTER} -DVTRACE")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -vt:hyb -L/$ENV{VT_ROOT}/lib -finstrument-functions-exclude-file-list=${CMAKE_CXX_INST_FILE_FILTER} -finstrument-functions-exclude-function-list=${CMAKE_CXX_INST_FUNC_FILTER} -DVTRACE")
 ENDIF(VAMPIR_ENABLE)
@@ -96,15 +96,23 @@ ENDIF(GOL_ENABLE_PNG)
 #########################################################################
 # Configure include directories
 
-#LIBGPUGRID
+#libPMacc
 
-  find_path(GOL_LIBGPUGRID_ROOT_DIR
-    NAMES include/types.h
-    PATHS "${CMAKE_SOURCE_DIR}/../../../libgpugrid"
-    DOC "libgpugrid root location."
-    )
+find_path(PMACC_ROOT_DIR
+  NAMES include/types.h
+  PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../../../libPMacc"
+  DOC "libPMacc root location."
+  )
 
-INCLUDE_DIRECTORIES(${GOL_LIBGPUGRID_ROOT_DIR}/include)
+INCLUDE_DIRECTORIES(${PMACC_ROOT_DIR}/include)
+
+OPTION(PMACC_BLOCKING_KERNEL "activate checks for every kernel call and synch after every kernel call" OFF)
+IF(PMACC_BLOCKING_KERNEL)
+    ADD_DEFINITIONS(-DPMACC_SYNC_KERNEL=1)
+ENDIF(PMACC_BLOCKING_KERNEL)
+
+SET(PMACC_VERBOSE "0" CACHE STRING "set verbose level for libPMacc")
+ADD_DEFINITIONS(-DPMACC_VERBOSE_LVL=${PMACC_VERBOSE})
 
 #PNGWRITER
 IF(GOL_ENABLE_PNG)
@@ -159,3 +167,19 @@ INSTALL(TARGETS gameOfLife
          RUNTIME DESTINATION bin)
 
 
+SET(GOL_COPY_ON_INSTALL "submit" CACHE LIST "folder which copied on install to install path" )
+
+
+#copy all subfolders (defined in: GOL_COPY_ON_INSTALL) to install folder
+FOREACH(dir ${GOL_COPY_ON_INSTALL})
+  #if source not exists than copy
+  IF(NOT EXISTS "${CMAKE_INSTALL_PREFIX}/${dir}")
+      #copy importend subfolders from extension path (default picongpu parameter)
+      IF(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${dir}/")
+        INSTALL(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${dir}/."
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/${dir}"
+          PATTERN .svn EXCLUDE
+        )
+      ENDIF()
+  ENDIF()
+ENDFOREACH()

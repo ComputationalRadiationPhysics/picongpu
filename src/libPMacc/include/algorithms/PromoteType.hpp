@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   PromoteType.hpp
- * Author: huebl
- *
- * Created on Juli 12th, 2013 - 12:00pm
- */
-
 #pragma once
 
 namespace PMacc

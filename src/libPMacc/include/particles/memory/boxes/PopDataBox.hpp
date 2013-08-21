@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   PopDataBox.hpp
- * Author: fschmitt
- *
- * Created on 19. November 2010, 14:39
- */
 
 #ifndef POPDATABOX_HPP
 #define	POPDATABOX_HPP
