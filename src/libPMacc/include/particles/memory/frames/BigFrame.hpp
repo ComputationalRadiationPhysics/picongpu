@@ -18,13 +18,7 @@
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
-/* 
- * File:   BigFrame.hpp
- * Author: widera
- *
- * Created on 22. November 2010, 14:10
- */
+
 
 #ifndef BIGFRAME_HPP
 #define	BIGFRAME_HPP

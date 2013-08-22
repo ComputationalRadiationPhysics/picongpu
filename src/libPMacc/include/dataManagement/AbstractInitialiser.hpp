@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   AbstractInitialiser.hpp
- * Author: fschmitt
- *
- * Created on 2. Mai 2011, 15:19
- */
-
 #ifndef ABSTRACTINITIALISER_HPP
 #define	ABSTRACTINITIALISER_HPP
 

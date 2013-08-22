@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   TaskSend.hpp
- * Author: widera
- *
- * Created on 7. Juni 2010, 10:09
- */
 
 #ifndef _TASKSEND_HPP
 #define	_TASKSEND_HPP

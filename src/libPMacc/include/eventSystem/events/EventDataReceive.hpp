@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   EventDataReceive.hpp
- * Author: wolfgang
- *
- * Created on 16. Mai 2010, 15:41
- */
 
 #ifndef _EVENTDATARECEIVE_HPP
 #define	_EVENTDATARECEIVE_HPP

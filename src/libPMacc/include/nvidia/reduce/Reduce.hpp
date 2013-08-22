@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   Reduce.hpp
- * Author: widera
- *
- * Created on 26. Oktober 2012, 12:51
- */
 
 #ifndef REDUCE_HPP
 #define	REDUCE_HPP

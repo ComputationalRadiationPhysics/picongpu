@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   StackExchangeBuffer.hpp
- * Author: widera
- *
- * Created on 26. November 2010, 14:26
- */
-
 #ifndef STACKEXCHANGEBUFFER_HPP
 #define	STACKEXCHANGEBUFFER_HPP
 

@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   GlobalReduce.hpp
- * Author: widera
- *
- * Created on 5. November 2012, 11:01
- */
-
 #pragma once
 
 #include "types.h"

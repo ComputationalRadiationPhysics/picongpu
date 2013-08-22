@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   basicOperators.h
- * Author: heiko
- *
- * Created on 12. Oktober 2010, 16:42
- */
-
 #pragma once
 
 

@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   DefaultFilter.hpp
- * Author: widera
- *
- * Created on 18. Oktober 2011, 15:10
- */
 
 #ifndef DEFAULTFILTER_HPP
 #define	DEFAULTFILTER_HPP

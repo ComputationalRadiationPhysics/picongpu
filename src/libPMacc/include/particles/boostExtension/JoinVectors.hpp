@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   JoinVector.hpp
- * Author: widera
- *
- * Created on 3. Juli 2013, 14:23
- */
 
 #pragma once
 

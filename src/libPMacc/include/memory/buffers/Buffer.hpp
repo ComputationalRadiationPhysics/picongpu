@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
- /* 
- * File:   Buffer.hpp
- * Author: widera
- *
- * Created on 22. März 2010, 15:34
- */
 
 #ifndef _BUFFER_HPP
 #define	_BUFFER_HPP

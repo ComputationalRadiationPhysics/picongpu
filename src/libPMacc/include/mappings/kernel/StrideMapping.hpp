@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   CellMapping.h
- * Author: burau, psychocoder
- *
- * Created on 13. Dezember 2010, 14:29
- */
-
 #ifndef STRIDEMAPPING_H
 #define	STRIDEMAPPING_H
 
@@ -72,7 +65,7 @@ public:
      */
     HINLINE DataSpace<DIM> getGridDim()
     {
-        return reduce((StrideMappingMethods<areaType, DIM>::getGridDim(*this) - offset + Stride - 1) / Stride);
+        return this->reduce((StrideMappingMethods<areaType, DIM>::getGridDim(*this) - offset + Stride - 1) / Stride);
     }
 
     /**

@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   EventNotify.hpp
- * Author: whoenig
- *
- * Created on 9. April 2010, 10:17
- */
 
 #ifndef _EVENTNOTIFY_HPP
 #define	_EVENTNOTIFY_HPP

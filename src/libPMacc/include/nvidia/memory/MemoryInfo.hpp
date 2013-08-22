@@ -18,13 +18,6 @@
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
-/* 
- * File:   MemoryInfo.hpp
- * Author: fschmitt
- *
- * Created on 8. Dezember 2010, 11:12
- */
 
 #pragma once
 

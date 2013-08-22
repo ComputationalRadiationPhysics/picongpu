@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   Exchange.hpp
- * Author: whoenig
- *
- * Created on 9. April 2010, 10:07
- */
 
 #ifndef _EXCHANGE_HPP
 #define	_EXCHANGE_HPP

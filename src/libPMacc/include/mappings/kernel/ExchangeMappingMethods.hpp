@@ -18,13 +18,6 @@
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
-/*
- * File:   ExchangeMappingMethods.h
- * Author: fschmitt
- *
- * Created on 20. April 2011, 13:14
- */
 
 #ifndef EXCHANGEMAPPINGMETHODS_H
 #define	EXCHANGEMAPPINGMETHODS_H

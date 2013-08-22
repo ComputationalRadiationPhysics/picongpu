@@ -18,13 +18,7 @@
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
-/* 
- * File:   CoreFrame.hpp
- * Author: widera
- *
- * Created on 22. November 2010, 14:10
- */
+
 
 #ifndef BORDERFRAME_HPP
 #define	BORDERFRAME_HPP

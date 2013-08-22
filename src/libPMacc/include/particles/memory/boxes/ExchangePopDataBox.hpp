@@ -18,13 +18,7 @@
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
-/* 
- * File:   HeapDataBox.hpp
- * Author: fschmitt
- *
- * Created on 24. November 2010, 11:07
- */
+
 
 #ifndef EXCHANGEPOPDATABOX_HPP
 #define	EXCHANGEPOPDATABOX_HPP

@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   floatingPoint.hpp
- * Author: widera
- *
- * Created on 28. June 2013, 09:50
- */
 
 #pragma once
 

@@ -19,13 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   TaskReceiveMPI.hpp
- * Author: wolfgang
- *
- * Created on 13. August 2010, 20:33
- */
-
 #ifndef TASKRECEIVEMPI_HPP
 #define	TASKRECEIVEMPI_HPP
 

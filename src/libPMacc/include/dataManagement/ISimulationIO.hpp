@@ -19,12 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/* 
- * File:   ISimulationIO.hpp
- * Author: fschmitt
- *
- * Created on 19. Januar 2011, 16:36
- */
 
 #ifndef ISIMULATIONIO_HPP
 #define	ISIMULATIONIO_HPP

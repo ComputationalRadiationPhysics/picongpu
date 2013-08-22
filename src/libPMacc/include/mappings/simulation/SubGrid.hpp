@@ -17,16 +17,11 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
-/* 
- * File:   SubGrid.hpp
- * Author: wolfgang
- *
- * Created on 24. April 2010, 13:20
  */
 
 #pragma once
+
+#include <cassert>
 
 #include "dimensions/DataSpace.hpp"
 #include "mappings/simulation/GridController.hpp"
@@ -39,16 +34,19 @@ template <unsigned DIM>
 class SimulationBox
 {
     typedef DataSpace<DIM> Size;
+    static const uint32_t Dim = DIM;
 public:
 
     HDINLINE SimulationBox(const Size& localSize,
-                          const Size& globalSize,
-                          const Size& globalOffset) :
+                           const Size& globalSize,
+                           const Size& globalOffset) :
     localSize(localSize),
     globalSize(globalSize),
     globalOffset(globalOffset)
     {
-
+        /*prevent a mismatch of localSize and globalSize */
+        for (uint32_t i = 0; i < Dim; ++i)
+            assert(localSize[i] <= globalSize[i]);
     }
 
     HDINLINE SimulationBox()
