@@ -32,7 +32,7 @@
 #
 
 user="picman"
-numParallel=3
+numParallel=2
 
 exch="/home/"$user"/exchange"
 picExport=$exch"/pic_export"
