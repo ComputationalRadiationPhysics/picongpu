@@ -45,14 +45,14 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-workType=`echo -e "$sched" | grep "etype" | awk -F':' '{print $2}' | awk -F'"' '{print $2}'`
+workType=`echo -e "$sched" | grep '"etype"' | awk -F':' '{print $2}' | awk -F'"' '{print $2}'`
 
 # HEAD commit properties
-eventid=`echo -e "$sched" | grep "id" | head -n1 | awk -F'":' '{print $2}' | awk -F',' '{print $1}'`
-owner=`echo -e "$sched" | grep "owner" | head -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
-repo=`echo -e "$sched" | grep "repo" | head -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
-git=`echo -e "$sched" | grep "git" | head -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}' | sed 's|\\\/|\/|g'`
-sha=`echo -e "$sched" | grep "sha" | head -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
+eventid=`echo -e "$sched" | grep '"id"' | head -n1 | awk -F'":' '{print $2}' | awk -F',' '{print $1}'`
+owner=`echo -e "$sched" | grep '"owner"' | head -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
+repo=`echo -e "$sched" | grep '"repo"' | head -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
+git=`echo -e "$sched" | grep '"git"' | head -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}' | sed 's|\\\/|\/|g'`
+sha=`echo -e "$sched" | grep '"sha"' | head -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
 
 echo $eventid > "$thisDir"runGuard
 
@@ -63,10 +63,10 @@ then
 elif [ "$workType" == "pull" ]
 then
     # BASE repos commit properties
-    owner_b=`echo -e "$sched" | grep "owner" | tail -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
-    repo_b=`echo -e "$sched" | grep "repo" | tail -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
-    git_b=`echo -e "$sched" | grep "git" | tail -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}' | sed 's|\\\/|\/|g'`
-    sha_b=`echo -e "$sched" | grep "sha" | tail -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
+    owner_b=`echo -e "$sched" | grep '"owner"' | tail -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
+    repo_b=`echo -e "$sched" | grep '"repo"' | tail -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
+    git_b=`echo -e "$sched" | grep '"git"' | tail -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}' | sed 's|\\\/|\/|g'`
+    sha_b=`echo -e "$sched" | grep '"sha"' | tail -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
 
     git clone -q $git_b .
     git checkout -q -b mergeTest $sha_b
