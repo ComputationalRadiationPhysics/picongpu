@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2013 Axel Huebl             
+# Copyright 2013 Axel Huebl
 #
 # This file is part of PIConGPU.
 #
@@ -29,52 +29,58 @@
 #  >0 compile ok
 #
 # $2: lastUser
-# $3: branch
-# $4: rev
-# $5: logEntry
-# $6: path to compile output file
+# $3: lastUserMail
+# $4: sha
+# $5: eventid
+# $6: logEntry
+# $7: path to compile output file
 function conclusion {
     state="$1"
     echo "State: $state"
     lastUser="$2"
     #echo "lastUser: $lastUser"
-    branch="$3"
-    #echo "branch: $branch"
-    rev="$4"
-    #echo "rev: $rev"
-    logEntry="$5"
+    lastUserMail="$3"
+    #echo "email: $lastUserMail"
+    sha="$4"
+    #echo "sha: $sha"
+    eventid="$5"
+    echo "eventid: $eventid"
+    logEntry="$6"
     #echo "logEntry: $logEntry"
-    compileOutputFile="$6"
+    compileOutputFile="$7"
     #echo "compile (tail): "
     #tail -n 10 $compileOutputFile
 
     subject=""
     text=""
+    stateName=""
     # Positive
     if [ "$state" -gt "0" ] ; then
+        stateName="success"
         # "award" mail?
         award=$(( state % cnf_congrats ))
         if [ "$award" -eq "0" ] ; then
-            subject="[Award] $lastUser @ $branch : $rev"
+            subject="[Award] $lastUser @ $sha"
             text="You won a *team award*! $cnf_congrats in a row! *congrats*! :)"
         fi
 
         # problem "fixed" mail?
         if [ "$state" -eq "1" ] ; then
-            subject="[Fixed] $lastUser @ $branch : $rev"
+            subject="[Fixed] $lastUser @ $sha"
             text="$lastUser *fixed* PIConGPU! We love you!"
         fi
     fi
 
     # Test Failed - inform users
     if [ "$state" -lt "0" ] ; then
+        stateName="failure"
         # first fail
         if [ "$state" -eq "-1" ] ; then
-            subject="[Failed] $lastUser @ $branch : $rev"
+            subject="[Failed] $lastUser @ $sha"
             text="_Errors_ occured! Dare you *$lastUser*! Pls fix them ... Allez garcon!"
         # still failing
         else
-            subject="[Still Failing] $lastUser @ $branch : $rev"
+            subject="[Still Failing] $lastUser @ $sha"
             text="_Errors_ occured! Compile *still* failing ($lastUser did _not_ fix all errors...)"
         fi
         # parse errors
@@ -83,7 +89,7 @@ function conclusion {
 *Failing* Tests:"
         fTests=`grep -iR "\[compileSuite\] \[error\]" "$compileOutputFile" | awk -F':' '{print $2}' | awk -F'=' '{print $2}'`
 
-        # for each error loop and show first 35 lines ...
+        # for each error loop and show first N lines ...
         for fT in $fTests
         do
             text="$text
@@ -99,7 +105,8 @@ $fT
 
     # Suite Errored - internal error
     if [ "$state" -eq "0" ] ; then
-        subject="[Errored] $lastUser @ $branch : $rev"
+        stateName="error"
+        subject="[Errored] $lastUser @ $sha"
         text="Compile Suite: internal error"
     fi
 
@@ -113,8 +120,29 @@ $logEntry"
     #echo "Mail Text: $text"
     #echo "Mail attachement: $compileOutputFile"
 
-    if [ ! -z "$subject" ] ; then
-        send_mail "$subject" "$text" "$compileOutputFile"
+    #if [ ! -z "$subject" ] ; then
+    #    send_mail "$subject" "$text" "$compileOutputFile"
+    #fi
+
+    # report to scheduler
+    #
+    # escape / \ and " (to do: control codes < U+0020 )
+    #textJSON=$(echo "$text" | sed 's|\\|\\\\|g' | sed 's|\"|\\\"|g' | sed 's|\/|\\\/|g')
+    textJSON=${text//\\/\\\\} # \
+    textJSON=${textJSON//\//\\\/} # /
+    textJSON=${textJSON//\'/\\\'} # '
+    textJSON=${textJSON//\"/\\\"} # "
+    textJSON=${textJSON//	/\\t} # \t
+    textJSON=${textJSON//
+/\\\n} # \n
+    textJSON=${textJSON//^M/\\\r} # \r
+    textJSON=${textJSON//^L/\\\f} # \f
+    textJSON=${textJSON//^H/\\\b} # \b
+    postParams='payload={"action":"report","eventid":'$eventid',"result":"'$stateName'","output":"'"$textJSON"'"}'
+    curl -d"$postParams" $cnf_scheduler 2>/dev/null
+    if [ $? -ne 0 ]; then
+        echo "Error contacting scheduler at $cnf_scheduler"
+        exit 1
     fi
 }
 
