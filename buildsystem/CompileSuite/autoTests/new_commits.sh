@@ -36,8 +36,6 @@ touch "$thisDir"runGuard
 
 # loop through each branch for new commits
 #
-rm -rf $cnf_gitdir/*
-mkdir -p $cnf_gitdir
 cd $cnf_gitdir
 
 # loop branches

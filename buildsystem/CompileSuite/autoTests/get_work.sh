@@ -31,7 +31,7 @@ security_check $thisDir
 
 # clean up old stuff
 #
-rm -rf $cnf_gitdir/*
+rm -rf $cnf_gitdir/* $cnf_gitdir/.git*
 mkdir -p $cnf_gitdir
 cd $cnf_gitdir
 rm -rf $cnf_exportdir
@@ -48,7 +48,7 @@ fi
 workType=`echo -e "$sched" | grep "etype" | awk -F':' '{print $2}' | awk -F'"' '{print $2}'`
 
 # HEAD commit properties
-eventid=`echo -e "$sched" | grep "id" | head -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
+eventid=`echo -e "$sched" | grep "id" | head -n1 | awk -F'":' '{print $2}' | awk -F',' '{print $1}'`
 owner=`echo -e "$sched" | grep "owner" | head -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
 repo=`echo -e "$sched" | grep "repo" | head -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
 git=`echo -e "$sched" | grep "git" | head -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}' | sed 's|\\\/|\/|g'`
@@ -58,8 +58,8 @@ echo $eventid > "$thisDir"runGuard
 
 if [ "$workType" == "commit" ]
 then
-    git clone $git .
-    git checkout $sha
+    git clone -q $git .
+    git checkout -q $sha
 elif [ "$workType" == "pull" ]
 then
     # BASE repos commit properties
@@ -68,9 +68,9 @@ then
     git_b=`echo -e "$sched" | grep "git" | tail -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}' | sed 's|\\\/|\/|g'`
     sha_b=`echo -e "$sched" | grep "sha" | tail -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
 
-    git clone $git_b .
-    git checkout -b mergeTest $sha_b
-    git pull $git $sha
+    git clone -q $git_b .
+    git checkout -q -b mergeTest $sha_b
+    git pull -q $git $sha
     if [ $? -ne 0 ] ; then
         # merge failed
         cd -
