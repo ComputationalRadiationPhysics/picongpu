@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2013 Axel Huebl             
+# Copyright 2013 Axel Huebl
 #
 # This file is part of PIConGPU.
 #
@@ -29,29 +29,34 @@
 #  >0 compile ok
 #
 # $2: lastUser
-# $3: branch
-# $4: rev
-# $5: logEntry
-# $6: path to compile output file
+# $3: lastUserMail
+# $4: sha
+# $5: eventid
+# $6: logEntry
+# $7: path to compile output file
 function conclusion {
     state="$1"
     echo "State: $state"
     lastUser="$2"
     #echo "lastUser: $lastUser"
-    branch="$3"
-    #echo "branch: $branch"
-    rev="$4"
-    #echo "rev: $rev"
-    logEntry="$5"
+    lastUserMail="$3"
+    #echo "email: $lastUserMail"
+    sha="$4"
+    #echo "sha: $sha"
+    eventid="$5"
+    #echo "eventid: $eventid"
+    logEntry="$6"
     #echo "logEntry: $logEntry"
-    compileOutputFile="$6"
+    compileOutputFile="$7"
     #echo "compile (tail): "
     #tail -n 10 $compileOutputFile
 
     subject=""
     text=""
+    stateName=""
     # Positive
     if [ "$state" -gt "0" ] ; then
+        stateName="success"
         # "award" mail?
         award=$(( state % cnf_congrats ))
         if [ "$award" -eq "0" ] ; then
@@ -68,6 +73,7 @@ function conclusion {
 
     # Test Failed - inform users
     if [ "$state" -lt "0" ] ; then
+        stateName="failure"
         # first fail
         if [ "$state" -eq "-1" ] ; then
             subject="[Failed] $lastUser @ $branch : $rev"
@@ -83,7 +89,7 @@ function conclusion {
 *Failing* Tests:"
         fTests=`grep -iR "\[compileSuite\] \[error\]" "$compileOutputFile" | awk -F':' '{print $2}' | awk -F'=' '{print $2}'`
 
-        # for each error loop and show first 35 lines ...
+        # for each error loop and show first N lines ...
         for fT in $fTests
         do
             text="$text
@@ -99,6 +105,7 @@ $fT
 
     # Suite Errored - internal error
     if [ "$state" -eq "0" ] ; then
+        stateName="error"
         subject="[Errored] $lastUser @ $branch : $rev"
         text="Compile Suite: internal error"
     fi
@@ -113,8 +120,19 @@ $logEntry"
     #echo "Mail Text: $text"
     #echo "Mail attachement: $compileOutputFile"
 
-    if [ ! -z "$subject" ] ; then
-        send_mail "$subject" "$text" "$compileOutputFile"
+    #if [ ! -z "$subject" ] ; then
+    #    send_mail "$subject" "$text" "$compileOutputFile"
+    #fi
+
+    # report to scheduler
+    #
+    # escape / \ and " (to do: control codes < U+0020 )
+    $textJSON=`echo "$text" | sed 's|\\|\\\\|g' | sed 's|\"|\\\"|g' | sed 's|\/|\\\/|g'`
+    sched=`curl -d'payload={"action":"report","eventid":'$eventid',"result":"'$stateName'","output":"'$textJSON'"}' \
+                $cnf_scheduler 2>/dev/null`
+    if [ $? -ne 0 ]; then
+        echo "Error contacting scheduler at $cnf_scheduler"
+        exit 1
     fi
 }
 
