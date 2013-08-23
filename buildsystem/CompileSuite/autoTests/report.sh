@@ -139,7 +139,6 @@ $logEntry"
     textJSON=${textJSON//^L/\\\f} # \f
     textJSON=${textJSON//^H/\\\b} # \b
     postParams='payload={"action":"report","eventid":'$eventid',"result":"'$stateName'","output":"'"$textJSON"'"}'
-    echo $postParams
     curl -d"$postParams" $cnf_scheduler 2>/dev/null
     if [ $? -ne 0 ]; then
         echo "Error contacting scheduler at $cnf_scheduler"
