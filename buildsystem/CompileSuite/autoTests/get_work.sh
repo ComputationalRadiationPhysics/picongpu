@@ -68,9 +68,11 @@ then
     git_b=`echo -e "$sched" | grep '"git"' | tail -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}' | sed 's|\\\/|\/|g'`
     sha_b=`echo -e "$sched" | grep '"sha"' | tail -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
 
+    branch=`echo -e "$sched" | grep '"branch"' | head -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
+
     git clone -q $git_b .
     git checkout -q -b mergeTest $sha_b
-    git pull -q $git $sha
+    git pull -q $git $branch
     if [ $? -ne 0 ] ; then
         # merge failed
         cd -
