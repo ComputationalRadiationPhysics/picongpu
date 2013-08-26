@@ -52,8 +52,22 @@ cd $cnf_gitdir
 
         # merge conflict occuted
         if [ "$finished" -eq "2" ]; then
-            # ... @todo clean message as failure
+            # clean message as failure
             echo "Merge conflict detected. Aborting..."
+
+            state=-1
+            # git log infos
+            logEntry=`git log -1`
+            lastUser=`git log -1 --format=%an`
+            lastUserMail=`git log -1 --format=%ae`
+            if [ -z "$lastUserMail" ] ; then
+                lastUserMail="example@example.com"
+            fi
+            sha=`git log -1 --format=%H`
+            eventid=`cat "$thisDir"runGuard`
+
+            # create conclusion, update status (and send mails)
+            conclusion "$state" "$lastUser" "$lastUserMail" "$sha" "$eventid" "$logEntry" "$thisDir""runGuard"
         fi
 
         # new version! :)
