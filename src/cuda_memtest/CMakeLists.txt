@@ -14,6 +14,8 @@ set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{MPI_ROOT}" "$ENV{CUDA_R
 
 #include cuda plugin for cmake
 FIND_PACKAGE(CUDA REQUIRED)
+#include pthread plugin for cmake
+FIND_PACKAGE(Threads REQUIRED)
 
 ########################################################################
 #set options
@@ -63,7 +65,7 @@ cuda_add_executable(cuda_memtest
 )
 
 
-target_link_libraries(cuda_memtest  ${LIBS} ${CUDA_CUDART_LIBRARY})
+target_link_libraries(cuda_memtest  ${LIBS} ${CUDA_CUDART_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
 
 
 
