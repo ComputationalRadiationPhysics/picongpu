@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 /**
  * @mainpage PIConGPU-Frame
  *
@@ -29,12 +29,27 @@
  */
 
 
-#include <simulation_defines.hpp>
+/*#include <simulation_defines.hpp>
 #include <mpi.h>
 #include "communication/manager_common.h"
+ */
+
+#include  "types.h"
+#include "particles/factories/CoverTypes.hpp"
+#include "math/MapTuple.hpp"
+#include "particles/memory/frames/Frame.hpp"
+#include "particles/memory/boxes/TileDataBox.hpp"
+
+#include <iostream>
 
 using namespace PMacc;
-using namespace picongpu;
+
+name( position );
+name( b );
+name( c );
+
+
+//using namespace picongpu;
 
 /*! start of PIConGPU
  *
@@ -43,7 +58,7 @@ using namespace picongpu;
  */
 int main( int argc, char **argv )
 {
-    MPI_CHECK( MPI_Init( &argc, &argv ) );
+    /*MPI_CHECK( MPI_Init( &argc, &argv ) );
 
     picongpu::simulation_starter::SimStarter sim;
     if ( !sim.parseConfigs( argc, argv ) )
@@ -56,7 +71,30 @@ int main( int argc, char **argv )
     sim.start( );
     sim.unload( );
 
-    MPI_CHECK( MPI_Finalize( ) );
+    MPI_CHECK( MPI_Finalize( ) );*/
+
+
+
+   // typedef math::MapTuple <
+       typedef  bmpl::map <
+        bmpl::pair<position, int>, // Key, Value Paare
+        bmpl::pair<b, float>,
+        bmpl::pair<c, bool>
+        >  particle;
+
+    //typedef typename CoverTypes<typename particle::Map, CastToVector>::type VectorParticle;
+   // typedef math::MapTuple <VectorParticle> Frame;
+    
+    typedef Frame<CastToVector,particle> FrameType;
+
+    FrameType x;
+    // b d;
+  //  x(b())=VectorDataBox<float>(new float(10));
+    x(b( ))[2] = 1.11f;
+ 
+    std::cout << "sizeof=" << sizeof (FrameType) << std::endl;
+   // std::cout << "value=" << x(b( )).x() << std::endl;
+    std::cout << "value=" << x[2](b()) << std::endl;
 
     return 0;
 }

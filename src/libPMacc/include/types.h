@@ -17,8 +17,8 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */
-
+ */ 
+ 
 #pragma once
 
 #include <stdint.h>
@@ -31,6 +31,9 @@
 #include "debug/PMaccVerbose.hpp"
 
 #define BOOST_MPL_LIMIT_VECTOR_SIZE 20
+#define BOOST_MPL_LIMIT_MAP_SIZE 20
+
+
 
 #define PMACC_AUTO_TPL(var,...) BOOST_AUTO_TPL(var,(__VA_ARGS__))
 #define PMACC_AUTO(var,...) BOOST_AUTO(var,(__VA_ARGS__))
@@ -169,4 +172,11 @@ enum AreaType
 
 #define __delete(var) if((var)) { delete (var); var=NULL; }
 
-} //namepsace PMacc
+
+/*define special makros for creating classes which are ony used as identifer*/
+#define name(identifier) struct identifier{};
+
+}
+
+
+

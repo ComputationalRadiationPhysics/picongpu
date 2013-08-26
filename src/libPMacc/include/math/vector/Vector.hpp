@@ -17,8 +17,8 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 #ifndef VECTOR_HPP
 #define VECTOR_HPP
 
@@ -51,7 +51,7 @@ struct Vector_components<Type, 0 >
 template<typename Type>
 struct Vector_components<Type, 1 >
 {
-    PMACC_ALIGN(_x,Type);
+    PMACC_ALIGN(_x, Type);
 
     HDINLINE Vector_components()
     {
@@ -66,8 +66,8 @@ struct Vector_components<Type, 1 >
 template<typename Type>
 struct Vector_components<Type, 2 >
 {
-    PMACC_ALIGN(_x,Type);
-    PMACC_ALIGN(_y,Type);
+    PMACC_ALIGN(_x, Type);
+    PMACC_ALIGN(_y, Type);
 
     HDINLINE Vector_components()
     {
@@ -83,9 +83,9 @@ template<typename Type>
 struct Vector_components<Type, 3 >
 {
     //Type x, y, z;
-    PMACC_ALIGN(_x,Type);
-    PMACC_ALIGN(_y,Type);
-    PMACC_ALIGN(_z,Type);
+    PMACC_ALIGN(_x, Type);
+    PMACC_ALIGN(_y, Type);
+    PMACC_ALIGN(_z, Type);
 
     HDINLINE Vector_components()
     {
@@ -101,12 +101,12 @@ struct Vector_components<Type, 3 >
 
 namespace tag
 {
-    struct Vector;
+struct Vector;
 }
 
-template<typename Type, int _dim, 
-    typename _Accessor = StandartAccessor,
-    typename _Navigator = StandartNavigator>
+template<typename Type, int _dim,
+typename _Accessor = StandartAccessor,
+typename _Navigator = StandartNavigator>
 //__optimal_align__((dim==0) ? 1 : dim * sizeof(Type))
 struct Vector : public detail::Vector_components<Type, _dim>, _Accessor, _Navigator
 {
@@ -116,6 +116,14 @@ struct Vector : public detail::Vector_components<Type, _dim>, _Accessor, _Naviga
     typedef _Accessor Accessor;
     typedef _Navigator Navigator;
     typedef Vector<Type, dim, Accessor, Navigator> This;
+
+    template<class> struct result;
+
+    template<class F,typename T>
+    struct result < F(T)>
+    {
+        typedef typename F::type& type;
+    };
 
     HDINLINE Vector()
     {
@@ -144,38 +152,39 @@ struct Vector : public detail::Vector_components<Type, _dim>, _Accessor, _Naviga
             (*this)[i] = value;
     }
 
-    template<typename OtherType, typename OtherAccessor, typename OtherNavigator>
-    HDINLINE Vector(Vector<OtherType, dim, OtherAccessor, OtherNavigator>& other)
+    template<typename OtherType, typename OtherAccessor, typename OtherNavigator >
+        HDINLINE Vector(Vector<OtherType, dim, OtherAccessor, OtherNavigator>& other)
     {
         //BOOST_STATIC_ASSERT(dim > 0);
         for (int i = 0; i < dim; i++)
-            (*this)[i] = (Type)other[i];
+            (*this)[i] = (Type) other[i];
     }
-    
-    template<typename OtherType, typename OtherAccessor, typename OtherNavigator>
-    HDINLINE Vector(const Vector<OtherType, dim, OtherAccessor, OtherNavigator>& other)
-    {
-        //BOOST_STATIC_ASSERT(dim > 0);
-        for (int i = 0; i < dim; i++)
-            (*this)[i] = (Type)other[i];
-    }
-/*
-    template<typename OtherType >
-    HDINLINE operator Vector<OtherType, dim > () const
-    {
-        Vector<OtherType, dim> result;
-        for (int i = 0; i < dim; i++)
-            result[i] = (OtherType) ((*this)[i]);
 
-        return result;
-    }
-    
-    template<typename OtherType>
-    HDINLINE operator OtherType() const
+    template<typename OtherType, typename OtherAccessor, typename OtherNavigator >
+        HDINLINE Vector(const Vector<OtherType, dim, OtherAccessor, OtherNavigator>& other)
     {
-        BOOST_STATIC_ASSERT((boost::is_same<typename OtherType::tag, tag::Vector>::value));
-        return (vector<typename OtherType::type, OtherType::dim>)*this;
-    }*/
+        //BOOST_STATIC_ASSERT(dim > 0);
+        for (int i = 0; i < dim; i++)
+            (*this)[i] = (Type) other[i];
+    }
+
+        /*
+        template<typename OtherType >
+        HDINLINE operator Vector<OtherType, dim > () const
+        {
+            Vector<OtherType, dim> result;
+            for (int i = 0; i < dim; i++)
+                result[i] = (OtherType) ((*this)[i]);
+
+            return result;
+        }
+    
+        template<typename OtherType>
+        HDINLINE operator OtherType() const
+        {
+            BOOST_STATIC_ASSERT((boost::is_same<typename OtherType::tag, tag::Vector>::value));
+            return (vector<typename OtherType::type, OtherType::dim>)*this;
+        }*/
 
     HDINLINE const Vector<type, dim>& vec() const
     {
@@ -186,19 +195,19 @@ struct Vector : public detail::Vector_components<Type, _dim>, _Accessor, _Naviga
     {
         return *this;
     }
-    
-    template<typename OtherAccessor, typename OtherNavigator>
-    HDINLINE This&
-    operator=(Vector<Type, dim, OtherAccessor, OtherNavigator>& rhs)
+
+    template<typename OtherAccessor, typename OtherNavigator >
+        HDINLINE This&
+        operator=(Vector<Type, dim, OtherAccessor, OtherNavigator>& rhs)
     {
         for (int i = 0; i < dim; i++)
             (*this)[i] = rhs[i];
         return *this;
     }
-    
-    template<typename OtherAccessor, typename OtherNavigator>
-    HDINLINE This&
-    operator=(const Vector<Type, dim, OtherAccessor, OtherNavigator>& rhs)
+
+    template<typename OtherAccessor, typename OtherNavigator >
+        HDINLINE This&
+        operator=(const Vector<Type, dim, OtherAccessor, OtherNavigator>& rhs)
     {
         for (int i = 0; i < dim; i++)
             (*this)[i] = rhs[i];
@@ -206,26 +215,48 @@ struct Vector : public detail::Vector_components<Type, _dim>, _Accessor, _Naviga
     }
 
     HDINLINE
-    Type& operator[](int idx)
+    Type& operator[](const int idx)
     {
         BOOST_STATIC_ASSERT(dim > 0);
         return Accessor::operator()((&this->_x)[Navigator::operator()(idx)]);
     }
 
     HDINLINE
-        const Type& operator[](int idx) const
+        const Type& operator[](const int idx) const
+        {
+            BOOST_STATIC_ASSERT(dim > 0);
+            return Accessor::operator()((&this->_x)[Navigator::operator()(idx)]);
+        }
+
+    HDINLINE Type & x()
     {
-        BOOST_STATIC_ASSERT(dim > 0);
-        return Accessor::operator()((&this->_x)[Navigator::operator()(idx)]);
+        return (*this)[0];
     }
-    
-    HDINLINE Type& x() {return (*this)[0];}
-    HDINLINE Type& y() {return (*this)[1];}
-    HDINLINE Type& z() {return (*this)[2];}
-    
-    HDINLINE const Type& x() const {return (*this)[0];}
-    HDINLINE const Type& y() const {return (*this)[1];}
-    HDINLINE const Type& z() const {return (*this)[2];}
+
+    HDINLINE Type & y()
+    {
+        return (*this)[1];
+    }
+
+    HDINLINE Type & z()
+    {
+        return (*this)[2];
+    }
+
+    HDINLINE const Type & x() const
+    {
+        return (*this)[0];
+    }
+
+    HDINLINE const Type & y() const
+    {
+        return (*this)[1];
+    }
+
+    HDINLINE const Type & z() const
+    {
+        return (*this)[2];
+    }
 
     template<int shrinkedDim >
         HDINLINE
@@ -420,7 +451,7 @@ template<typename Vector>
 HDINLINE Vector floor(const Vector& vector)
 {
     Vector result;
-    for(int i = 0; i < Vector::dim; i++)
+    for (int i = 0; i < Vector::dim; i++)
         result[i] = floorf(vector[i]);
     return result;
 }
@@ -429,7 +460,7 @@ template<typename Lhs, typename Rhs>
 HDINLINE Lhs operator%(const Lhs& lhs, const Rhs& rhs)
 {
     Lhs result;
-    for(int i = 0; i < Lhs::dim; i++)
+    for (int i = 0; i < Lhs::dim; i++)
         result[i] = lhs[i] % rhs[i];
     return result;
 }

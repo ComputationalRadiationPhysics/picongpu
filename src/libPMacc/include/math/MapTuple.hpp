@@ -17,8 +17,8 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 #pragma once
 
 #include <types.h>
@@ -45,7 +45,7 @@ namespace PMacc
 {
 namespace math
 {
-    
+
 #ifndef MAPTUPLE_MAX_DIM
 #define MAPTUPLE_MAX_DIM 8
 #endif
@@ -54,71 +54,130 @@ namespace math
     template<BOOST_PP_ENUM_PARAMS(N, typename Arg)> \
     HDINLINE \
     MapTuple(BOOST_PP_ENUM_BINARY_PARAMS(N, const Arg, &arg)) \
-    : value(arg0), \
+    : data(arg0), \
       base(BOOST_PP_ENUM_SHIFTED_PARAMS(N, arg)) \
     { \
         BOOST_STATIC_ASSERT(dim == N); \
     }
-        
-    
+
+
 namespace mpl = boost::mpl;
 
-template<typename Map, bool ListEmpty = mpl::empty<Map>::type::value>
+template<typename ValueType_>
+struct AlignedData
+{
+    typedef ValueType_ ValueType;
+    PMACC_ALIGN(value, ValueType);
+
+    HDINLINE AlignedData()
+    {
+    }
+
+    HDINLINE AlignedData(const ValueType& value) : value(value)
+    {
+    }
+};
+
+template<typename ValueType_>
+struct NativeData
+{
+    typedef ValueType_ ValueType;
+    ValueType value;
+
+    HDINLINE NativeData()
+    {
+    }
+
+    HDINLINE NativeData(const ValueType& value) : value(value)
+    {
+    }
+};
+
+template<typename Map_, template<typename> class PODType = NativeData, bool ListEmpty = mpl::empty<Map_>::type::value>
 class MapTuple;
 
-template<typename Map>
-class MapTuple<Map, true> {};
+template<typename Map_, template<typename> class PODType>
+class MapTuple<Map_, PODType, true>
+{
+};
 
-template<typename Map>
-class MapTuple<Map, false>
-    : public MapTuple<typename mpl::erase_key<
-        Map, typename mpl::deref<typename mpl::begin<Map>::type>::type::first>::type>
+template<typename Map_, template<typename> class PODType>
+class MapTuple<Map_, PODType, false>
+: public MapTuple<typename mpl::erase_key<
+Map_, typename mpl::deref<typename mpl::begin<Map_>::type>::type::first>::type,PODType
+>
 {
 public:
+    typedef Map_ Map;
     static const int dim = mpl::size<Map>::type::value;
 private:
     typedef MapTuple<typename mpl::erase_key<
-        Map, typename mpl::deref<typename mpl::begin<Map>::type>::type::first>::type> base;
-    
+    Map, typename mpl::deref<typename mpl::begin<Map>::type>::type::first>::type,PODType> base;
+
     typedef typename mpl::deref<typename mpl::begin<Map>::type>::type::first Key;
     typedef typename mpl::deref<typename mpl::begin<Map>::type>::type::second Value;
-    
-    Value value;
+
+    PODType<Value> data;
 public:
-    HDINLINE MapTuple() {}
-    
+
+    template<class> struct result;
+
+    template<class F, class TKey>
+    struct result<F(TKey)>
+    {
+        typedef typename mpl::at<Map, TKey>::type& type;
+    };
+
+    HDINLINE MapTuple()
+    {
+    }
+
     template<typename Arg0>
-    HDINLINE MapTuple(const Arg0& arg0) : value(arg0) 
+    HDINLINE MapTuple(const Arg0& arg0) : data(arg0)
     {
         BOOST_STATIC_ASSERT(dim == 1);
     }
-    
+
     BOOST_PP_REPEAT_FROM_TO(2, BOOST_PP_INC(MAPTUPLE_MAX_DIM), CONSTRUCTOR, _)
-    
-    HDINLINE Value& operator[](Key)
+
+
+    HDINLINE Value& operator[](const Key)
     {
-        return this->value;
+        return this->data.value;
     }
-    
+
+    HDINLINE Value& operator[](const Key) const
+    {
+        return this->data.value;
+    }
+
     template<typename TKey>
-    HDINLINE 
+    HDINLINE
     typename mpl::at<Map, TKey>::type&
-    operator[](TKey)
+    operator[](const TKey)
     {
         return base::operator[](TKey());
     }
-    
+
+    template<typename TKey>
+    HDINLINE
+    typename mpl::at<Map, TKey>::type&
+    operator[](const TKey) const
+    {
+        return base::operator[](TKey());
+    }
+
     template<int i>
-    HDINLINE 
+    HDINLINE
     typename mpl::deref<
-        typename mpl::advance<
-            typename mpl::begin<Map>::type, mpl::int_<i> >::type>::type::second&
+    typename mpl::advance<
+    typename mpl::begin<Map>::type, mpl::int_<i> >::type>::type::second&
     at()
     {
         return (*this)[
             typename mpl::deref<
-                typename mpl::advance<
-                    typename mpl::begin<Map>::type, mpl::int_<i> >::type>::type::first()];
+            typename mpl::advance<
+            typename mpl::begin<Map>::type, mpl::int_<i> >::type>::type::first()];
     }
 };
 
@@ -135,11 +194,11 @@ public:
         return MapTuple<mpl::map<BOOST_PP_ENUM(N, PAIR_LIST, _)> > \
             (BOOST_PP_ENUM_PARAMS(N, value)); \
     }
-    
+
 BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(MAPTUPLE_MAX_DIM), MAKE_MAPTUPLE, _)
 
 #undef MAKE_MAPTUPLE
 #undef PAIR_LIST
-    
+
 } // math
 } // PMacc
