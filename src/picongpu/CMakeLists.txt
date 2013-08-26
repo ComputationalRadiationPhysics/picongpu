@@ -49,8 +49,12 @@ ELSE(PIC_RELEASE)
    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" -g "-Xcompiler=-g,-pthread")
 ENDIF(PIC_RELEASE)
 
-
+#include MPI
 FIND_PACKAGE(MPI REQUIRED)
+
+#include pthreads
+FIND_PACKAGE(Threads REQUIRED)
+SET(LIBS ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
 
 #Boost from system
 FIND_PACKAGE(Boost REQUIRED COMPONENTS program_options regex)
