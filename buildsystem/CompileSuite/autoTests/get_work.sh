@@ -45,13 +45,26 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# decode JSON escaped strings
+#
+sched=${sched//\\\\/\\} # \
+sched=${sched//\\\//\/} # /
+sched=${sched//\\\'/\'} # '
+sched=${sched//\\\"/\"} # "
+sched=${sched//\\\t/	} # \t
+sched=${sched//\\\n/
+} # \n
+sched=${sched//\\\r/^M} # \r
+sched=${sched//\\\f/^L} # \f
+sched=${sched//\\\b/^H} # \b
+
 workType=`echo -e "$sched" | grep '"etype"' | awk -F':' '{print $2}' | awk -F'"' '{print $2}'`
 
 # HEAD commit properties
 eventid=`echo -e "$sched" | grep '"id"' | head -n1 | awk -F'":' '{print $2}' | awk -F',' '{print $1}'`
 owner=`echo -e "$sched" | grep '"owner"' | head -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
 repo=`echo -e "$sched" | grep '"repo"' | head -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
-git=`echo -e "$sched" | grep '"git"' | head -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}' | sed 's|\\\/|\/|g'`
+git=`echo -e "$sched" | grep '"git"' | head -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
 sha=`echo -e "$sched" | grep '"sha"' | head -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
 
 echo $eventid > "$thisDir"runGuard
@@ -65,7 +78,7 @@ then
     # BASE repos commit properties
     owner_b=`echo -e "$sched" | grep '"owner"' | tail -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
     repo_b=`echo -e "$sched" | grep '"repo"' | tail -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
-    git_b=`echo -e "$sched" | grep '"git"' | tail -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}' | sed 's|\\\/|\/|g'`
+    git_b=`echo -e "$sched" | grep '"git"' | tail -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
     sha_b=`echo -e "$sched" | grep '"sha"' | tail -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
 
     branch=`echo -e "$sched" | grep '"branch"' | head -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
