@@ -168,7 +168,7 @@ namespace PMacc
         virtual void copy(DataSpace<DIM3> &devCurrentSize)
         {
 
-            cudaMemcpy3DParms params = {0};
+            cudaMemcpy3DParms params;
 
             //  assert(this->source->getDataSpace().getElementCount() <= this->destination->getDataSpace().getElementCount());
 
