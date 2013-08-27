@@ -54,9 +54,9 @@ struct Particle : public bmpl::inherit<MethodsList_>::type
         typename boost::result_of < FrameType(TKey)>::type
         >::type(uint32_t)
     >::type
-        operator()(const TKey)
+        operator[](const TKey key)
     {
-        return frame(TKey())[idx];
+        return frame[key][idx];
     }
 
     template<typename TKey >
@@ -66,9 +66,9 @@ struct Particle : public bmpl::inherit<MethodsList_>::type
         typename boost::result_of < FrameType(TKey)>::type
         >::type(uint32_t)
     >::type
-        operator()(const TKey key) const
+        operator[](const TKey key) const
     {
-        return frame(key)[idx];
+        return frame[key][idx];
     }
 
 };

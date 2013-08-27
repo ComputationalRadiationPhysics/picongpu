@@ -44,19 +44,42 @@ namespace pmacc = PMacc;
 template<template<typename> class CoverOperator_, typename ValueTypeMap_, typename MethodsList_ = bmpl::list<>, typename AttributeList_ = bmpl::list<> >
 struct Frame
 :
-public pmath::MapTuple<typename CoverTypes<ValueTypeMap_, CoverOperator_>::type,pmath::AlignedData>
+public pmath::MapTuple<typename CoverTypes<ValueTypeMap_, CoverOperator_>::type, pmath::AlignedData>
 {
     // typedef CoverOperator_ CoverOperator;
     typedef ValueTypeMap_ ValueTypeMap;
     typedef MethodsList_ MethodsList;
     typedef AttributeList_ AttributeList;
     typedef Frame<CoverOperator_, ValueTypeMap, MethodsList, AttributeList> ThisType;
-    typedef pmath::MapTuple<typename CoverTypes<ValueTypeMap_, CoverOperator_>::type,pmath::AlignedData> BaseType;
+    typedef pmath::MapTuple<typename CoverTypes<ValueTypeMap_, CoverOperator_>::type, pmath::AlignedData> BaseType;
 
     typedef pmacc::Particle<ThisType, MethodsList> ParticleType;
 
 
+    template<class> struct result;
+
+    template<class F, class TKey>
+    struct result < F(TKey)>
+    {
+        typedef typename boost::result_of<typename F::BaseType(TKey)>::type type;
+    };
+
     HDINLINE ParticleType operator[](const uint32_t idx)
+    {
+        return ParticleType(*this, idx);
+    }
+
+    HDINLINE ParticleType operator[](const uint32_t idx) const
+    {
+        return ParticleType(*this, idx);
+    }
+
+    HDINLINE ParticleType operator[](const int idx)
+    {
+        return ParticleType(*this, idx);
+    }
+
+    HDINLINE ParticleType operator[](const int idx) const
     {
         return ParticleType(*this, idx);
     }
@@ -64,18 +87,18 @@ public pmath::MapTuple<typename CoverTypes<ValueTypeMap_, CoverOperator_>::type,
     template<typename TKey >
         HDINLINE
         typename boost::result_of < BaseType(TKey)>::type
-        operator()(const TKey) const
-    {
-        return BaseType::operator[](TKey());
-    }
+        operator[](const TKey) const
+        {
+            return BaseType::operator[](TKey());
+        }
 
     template<typename TKey >
         HDINLINE
         typename boost::result_of < BaseType(TKey)>::type
-        operator()(const TKey)
-    {
-        return BaseType::operator[](TKey());
-    }
+        operator[](const TKey)
+        {
+            return BaseType::operator[](TKey());
+        }
 };
 
 }//namespace PMacc
