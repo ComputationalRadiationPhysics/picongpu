@@ -83,7 +83,7 @@ struct NativeData
 {
     typedef ValueType_ ValueType;
     ValueType value;
-
+    
     HDINLINE NativeData()
     {
     }

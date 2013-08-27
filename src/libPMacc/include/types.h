@@ -174,7 +174,7 @@ enum AreaType
 
 
 /*define special makros for creating classes which are ony used as identifer*/
-#define name(identifier) struct identifier{};
+#define identifier(identifier) struct identifier{};identifier PMACC_JOIN(identifier,_);
 
 }
 

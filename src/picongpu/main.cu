@@ -44,9 +44,10 @@
 
 using namespace PMacc;
 
-name( position );
-name( b );
-name( c );
+identifier( position );
+identifier( a );
+identifier( b );
+identifier( c );
 
 
 //using namespace picongpu;
@@ -75,26 +76,28 @@ int main( int argc, char **argv )
 
 
 
-   // typedef math::MapTuple <
-       typedef  bmpl::map <
+    // typedef math::MapTuple <
+    typedef bmpl::map <
         bmpl::pair<position, int>, // Key, Value Paare
+        bmpl::pair<a, bool>,
         bmpl::pair<b, float>,
         bmpl::pair<c, bool>
-        >  particle;
+        > particle;
 
     //typedef typename CoverTypes<typename particle::Map, CastToVector>::type VectorParticle;
-   // typedef math::MapTuple <VectorParticle> Frame;
-    
-    typedef Frame<CastToVector,particle> FrameType;
+    // typedef math::MapTuple <VectorParticle> Frame;
+
+    typedef Frame<CastToVector, particle> FrameType;
 
     FrameType x;
     // b d;
-  //  x(b())=VectorDataBox<float>(new float(10));
-    x(b( ))[2] = 1.11f;
- 
-    std::cout << "sizeof=" << sizeof (FrameType) << std::endl;
-   // std::cout << "value=" << x(b( )).x() << std::endl;
-    std::cout << "value=" << x[2](b()) << std::endl;
+    //  x(b())=VectorDataBox<float>(new float(10));
+    x( position_ ).z( ) = 1.11f;
+
+
+    std::cout << "sizeof=" << sizeof (FrameType ) << std::endl;
+     std::cout << "value=" << x(b_).x() << std::endl;
+    std::cout << "value=" << x[2]( position_ ) << std::endl;
 
     return 0;
 }
