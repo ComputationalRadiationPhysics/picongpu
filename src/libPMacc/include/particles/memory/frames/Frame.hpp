@@ -44,7 +44,7 @@ namespace pmacc = PMacc;
 template<template<typename> class CoverOperator_, typename ValueTypeMap_, typename MethodsList_ = bmpl::list<>, typename AttributeList_ = bmpl::list<> >
 struct Frame
 :
-public pmath::MapTuple<typename CoverTypes<ValueTypeMap_, CoverOperator_>::type, pmath::AlignedData>
+protected pmath::MapTuple<typename CoverTypes<ValueTypeMap_, CoverOperator_>::type, pmath::AlignedData>
 {
     // typedef CoverOperator_ CoverOperator;
     typedef ValueTypeMap_ ValueTypeMap;
@@ -56,38 +56,21 @@ public pmath::MapTuple<typename CoverTypes<ValueTypeMap_, CoverOperator_>::type,
     typedef pmacc::Particle<ThisType, MethodsList> ParticleType;
 
 
-    template<class> struct result;
-
-    template<class F, class TKey>
-    struct result < F(TKey)>
-    {
-        typedef typename boost::result_of<typename F::BaseType(TKey)>::type type;
-    };
-
     HDINLINE ParticleType operator[](const uint32_t idx)
     {
         return ParticleType(*this, idx);
     }
 
+
     HDINLINE ParticleType operator[](const uint32_t idx) const
     {
         return ParticleType(*this, idx);
     }
-
-    HDINLINE ParticleType operator[](const int idx)
-    {
-        return ParticleType(*this, idx);
-    }
-
-    HDINLINE ParticleType operator[](const int idx) const
-    {
-        return ParticleType(*this, idx);
-    }
-
+    
     template<typename TKey >
         HDINLINE
         typename boost::result_of < BaseType(TKey)>::type
-        operator[](const TKey) const
+        getIdentifier(const TKey) const
         {
             return BaseType::operator[](TKey());
         }
@@ -95,7 +78,7 @@ public pmath::MapTuple<typename CoverTypes<ValueTypeMap_, CoverOperator_>::type,
     template<typename TKey >
         HDINLINE
         typename boost::result_of < BaseType(TKey)>::type
-        operator[](const TKey)
+        getIdentifier(const TKey)
         {
             return BaseType::operator[](TKey());
         }

@@ -92,11 +92,11 @@ int main( int argc, char **argv )
     FrameType x;
     // b d;
     //  x(b())=VectorDataBox<float>(new float(10));
-    x[position_].z( ) = 1.11f;
+    x.getIdentifier(position_).z( ) = 1.11f;
 
 
     std::cout << "sizeof=" << sizeof (FrameType ) << std::endl;
-    std::cout << "value=" << x[b_].x( ) << std::endl;
+    std::cout << "value=" << x.getIdentifier(b_).x( ) << std::endl;
     std::cout << "value=" << x[2][position_]<< std::endl;
 
     return 0;

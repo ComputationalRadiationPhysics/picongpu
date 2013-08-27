@@ -56,7 +56,7 @@ struct Particle : public bmpl::inherit<MethodsList_>::type
     >::type
         operator[](const TKey key)
     {
-        return frame[key][idx];
+        return frame.getIdentifier(key)[idx];
     }
 
     template<typename TKey >
@@ -68,7 +68,7 @@ struct Particle : public bmpl::inherit<MethodsList_>::type
     >::type
         operator[](const TKey key) const
     {
-        return frame[key][idx];
+        return frame.getIdentifier(key)[idx];
     }
 
 };
