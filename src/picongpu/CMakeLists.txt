@@ -175,7 +175,19 @@ IF(PIC_ENABLE_INSITU_VOLVIS)
 	SET(LIBS ${LIBS} ${ICET_CORE_LIBS} ${ICET_MPI_LIBS})
 ENDIF(PIC_ENABLE_INSITU_VOLVIS)
 
-SET(CMAKE_CXX_FLAGS_DEFAULT "-Wall")
+#########################################################################
+# Warnings
+# GNU
+IF(CMAKE_COMPILER_IS_GNUCXX)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas")
+# ICC
+ELSEIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+# PGI
+ELSEIF(${CMAKE_CXX_COMPILER_ID} STREQUAL "PGI")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Minform=inform")
+ENDIF()
 
 
 #########################################################################

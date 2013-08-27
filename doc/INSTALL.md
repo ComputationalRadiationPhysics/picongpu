@@ -8,6 +8,7 @@ Requirements
 
 - **gcc** 4.3 to 4.6 (depends on current CUDA version)
   - *Debian/Ubuntu:* `apt-get install gcc-4.4 build-essential`
+  - *experimental alternatives:* **icc 12.1** and **pgi 13.6** with **cuda 5.5**
 
 - [CUDA 5.5](https://developer.nvidia.com/cuda-downloads) or higher
 

@@ -72,13 +72,13 @@ namespace picongpu
         const DataSpace<simDim> endGuard( UpperMargin( ).vec( ) );
 
         /*go over all directions*/
-        for( int i = 1; i < 27; ++i )
+        for( uint32_t i = 1; i < 27; ++i )
         {
             DataSpace<simDim> relativMask = Mask::getRelativeDirections<simDim > ( i );
             /*guarding cells depend on direction
              */
             DataSpace<simDim> guardingCells;
-            for( int d = 0; d < simDim; ++d )
+            for( uint32_t d = 0; d < simDim; ++d )
             {
                 /*originGuard and endGuard are switch because we send data 
                  * e.g. from left I get endGuardingCells and from right I originGuardingCells
