@@ -223,7 +223,6 @@ enum AreaType
  */
 #define wildcard(name,...) PMACC_wildcard(name,__COUNTER__,__VA_ARGS__)
 
-wildcard(NOTHING);
 
 } //namespace PMacc
 

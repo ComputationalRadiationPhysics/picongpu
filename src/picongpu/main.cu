@@ -84,14 +84,14 @@ __global__ void kernel( int* in, int imax )
     *in = x.getIdentifier( a_ ).z( );
 }
 
-template<typename T>
+template<typename T,typename Type>
 struct MallocMemory
 {
 
     template<typename ValueType1 >
         HDINLINE void operator( )( ValueType1& v1, const size_t size) const
     {
-        v1.getIdentifier( T( ) ) = VectorDataBox<int>( new int[size] );
+        v1.getIdentifier( T( ) ) = VectorDataBox<Type>( new Type[size] );
     }
 };
 
@@ -170,11 +170,11 @@ int main( int argc, char **argv )
 
     typedef bmpl::list<a> MemList;
 
-    ForEach<MemList, MallocMemory > alloc;
+    ForEach<MemList, MallocMemory<void,int> > alloc;
     size_t size = 100 * 1024 * 1024;
     alloc( x, size );
     PMACC_AUTO( par, x[100 * 1024 * 1024 - 1] );
-    ForEach<MemList, SetDefaultValue >( )( par );
+    ForEach<MemList, SetDefaultValue<void> >( )( par );
 
     printf( "nach: %X\n", x.getIdentifier( a_ ).getPointer( ) );
 
@@ -189,7 +189,7 @@ int main( int argc, char **argv )
     //    std::cout << "value=" << x.getIdentifier(b_).x( ) << std::endl;
     std::cout << "value=" << x[100 * 1024 * 1024 - 1][a_] << " -" << traits::HasIdentifier<typename FrameType::ParticleType, a>::value << "-" << std::endl;
 
-    ForEach<MemList, FreeMemory > freemem;
+    ForEach<MemList, FreeMemory<void> > freemem;
     freemem( x );
 
     return 0;
