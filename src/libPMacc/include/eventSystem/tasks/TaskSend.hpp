@@ -102,7 +102,7 @@ namespace PMacc
             notify(this->myId, SENDFINISHED, NULL);
         }
 
-        void event(id_t eventId, EventType type, IEventData* data)
+        void event(id_t, EventType type, IEventData*)
         {
             if (type == COPYDEVICE2HOST)
             {

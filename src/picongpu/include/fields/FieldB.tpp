@@ -146,7 +146,7 @@ GridBuffer<FieldB::FloatB, simDim> &FieldB::getGridBuffer( )
     return *fieldB;
 }
 
-void FieldB::reset( uint32_t currentStep )
+void FieldB::reset( uint32_t )
 {
     fieldB->getHostBuffer( ).reset( true );
     fieldB->getDeviceBuffer( ).reset( false );

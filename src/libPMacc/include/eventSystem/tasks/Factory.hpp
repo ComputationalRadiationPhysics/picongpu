@@ -179,7 +179,7 @@ namespace PMacc
         Factory() {
  };
 
-        Factory(const Factory& cc) { };
+        Factory(const Factory&) { };
 
     };
 

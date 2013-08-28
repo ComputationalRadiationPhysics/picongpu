@@ -436,7 +436,7 @@ public:
 private:
 
     template<uint32_t DIM>
-    void checkGridConfiguration(DataSpace<DIM> globalGridSize, GridLayout<DIM> layout)
+    void checkGridConfiguration(DataSpace<DIM> globalGridSize, GridLayout<DIM>)
     {
         // global size must a devisor of supercell size
         // note: this is redundant, while using the local condition below

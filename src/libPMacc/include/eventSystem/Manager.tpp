@@ -46,8 +46,6 @@ inline Manager::~Manager( )
 
 inline bool Manager::execute( id_t taskToWait )
 {
-    ;
-
 #ifdef DEBUG_EVENTS
     static int old_max = 0;
     static int deep = -1
@@ -109,7 +107,7 @@ inline bool Manager::execute( id_t taskToWait )
     return false;
 }
 
-inline void Manager::event( id_t eventId, EventType type, IEventData* data )
+inline void Manager::event( id_t eventId, EventType, IEventData* )
 {
     passiveTasks.erase( eventId );
 }
@@ -206,7 +204,7 @@ inline Manager::Manager( )
     eventPool->addEvents( 300 );
 }
 
-inline Manager::Manager( const Manager& cc )
+inline Manager::Manager( const Manager& )
 {
 }
 

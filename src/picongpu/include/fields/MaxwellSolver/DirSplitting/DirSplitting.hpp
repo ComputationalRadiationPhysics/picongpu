@@ -105,7 +105,7 @@ public:
         __setTransactionEvent(fieldB.asyncCommunication(__getTransactionEvent()));
     }
     
-    void update_afterCurrent(uint32_t currentStep) const 
+    void update_afterCurrent(uint32_t) const 
     {    }
 };
     

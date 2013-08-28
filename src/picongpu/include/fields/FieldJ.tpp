@@ -156,7 +156,7 @@ GridLayout<simDim> FieldJ::getGridLayout( )
     return cellDescription.getGridLayout( );
 }
 
-void FieldJ::reset( uint32_t currentStep )
+void FieldJ::reset( uint32_t )
 {
 }
 
@@ -187,7 +187,7 @@ FieldJ::getCommTag( )
 }
 
 template<uint32_t AREA, class ParticlesClass>
-void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t currentStep ) throw (std::invalid_argument )
+void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t ) throw (std::invalid_argument )
 {
     /** tune paramter to use more threads than cells in a supercell
      *  valid domain: 1 <= workerMultiplier

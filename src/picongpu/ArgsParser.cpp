@@ -38,7 +38,7 @@ namespace picongpu
 
     }
 
-    ArgsParser::ArgsParser( ArgsParser& cc )
+    ArgsParser::ArgsParser( ArgsParser& )
     {
 
     }

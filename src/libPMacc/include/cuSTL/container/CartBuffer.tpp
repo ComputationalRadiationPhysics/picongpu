@@ -35,7 +35,7 @@ namespace detail
     struct PitchHelper<1>
     {
         template<typename TCursor>
-        HDINLINE math::Size_t<0u> operator()(const TCursor& cursor) {return math::Size_t<0u>();}
+        HDINLINE math::Size_t<0u> operator()(const TCursor&) {return math::Size_t<0u>();}
     };
     template<>
     struct PitchHelper<2>

@@ -322,7 +322,7 @@ private:
      * 
      * @param currenstep simulation step
      */
-    void calcIntensity(uint32_t currentStep)
+    void calcIntensity(uint32_t)
     {
         DataConnector &dc = DataConnector::getInstance();
 

@@ -46,15 +46,15 @@ namespace PMacc
     public:
 
         template<class Base>
-        HINLINE static DataSpace<DIM> getGridDim(const Base &base, const DataSpace<DIM> &gBlocks)
+        HINLINE static DataSpace<DIM> getGridDim(const Base&, const DataSpace<DIM> &gBlocks)
         {
             return gBlocks;
         }
 
         template<class Base>
-        HDINLINE static DataSpace<DIM> getBlockIndex(const Base &base,
-        const DataSpace<DIM> &gBlocks,
-        const DataSpace<DIM> &_blockIdx)
+        HDINLINE static DataSpace<DIM> getBlockIndex(const Base&,
+        const DataSpace<DIM>&,
+        const DataSpace<DIM>& _blockIdx)
         {
             return _blockIdx;
         }
