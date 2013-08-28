@@ -37,7 +37,7 @@ namespace picongpu
         /** Compute the 
          * 
          */
-        HINLINE float3_X laserLongitudinal( uint32_t currentStep, float_X& phase )
+        HINLINE float3_X laserLongitudinal( uint32_t, float_X& phase )
         {
             float3_X elong = float3_X(float_X(0.0), float_X(0.0), float_X(0.0));
 
@@ -54,7 +54,7 @@ namespace picongpu
          * @param posZ
          * @return 
          */
-        HDINLINE float3_X laserTransversal( float3_X elong, const float_X phase, const float_X posX, const float_X posZ )
+        HDINLINE float3_X laserTransversal( float3_X elong, const float_X, const float_X, const float_X )
         {
             return elong;
         }

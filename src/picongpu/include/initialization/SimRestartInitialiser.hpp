@@ -83,7 +83,7 @@ private:
                                  uint32_t simulationStep,
                                  DomainCollector& dataCollector,
                                  Dimensions &dataSize,
-                                 CollectionType& colType,
+                                 CollectionType&,
                                  std::string name,
                                  DataSpace<DIM3> globalDomainOffset,
                                  DataSpace<DIM3> localDomainSize)
@@ -442,7 +442,7 @@ public:
         AbstractInitialiser::teardown();
     }
 
-    void init(uint32_t id, ISimulationData& data, uint32_t currentStep)
+    void init(uint32_t id, ISimulationData& data, uint32_t)
     {
         // add ids for other types if necessary
         // fields are initialised by their constructor          
@@ -612,9 +612,9 @@ private:
                                           domain_size,
                                           &data_class);
 
-            for (int z = 0; z < domain_size[2]; ++z)
-                for (int y = 0; y < domain_size[1]; ++y)
-                    for (int x = 0; x < domain_size[0]; ++x)
+            for (uint32_t z = 0; z < domain_size[2]; ++z)
+                for (uint32_t y = 0; y < domain_size[1]; ++y)
+                    for (uint32_t x = 0; x < domain_size[0]; ++x)
                     {
                         // src is field_data large, dst is field_grid large
 

@@ -62,7 +62,7 @@ namespace PMacc
             return isFinished();
         }
 
-        void event(id_t eventId, EventType type, IEventData* data)
+        void event(id_t, EventType, IEventData*)
         {
         }
 
@@ -180,7 +180,7 @@ namespace PMacc
             hostPtr.xsize = this->host->getDataSpace()[0] * sizeof (TYPE);
             hostPtr.ysize = this->host->getDataSpace()[1];
 
-            cudaMemcpy3DParms params = {0};
+            cudaMemcpy3DParms params;
             params.srcArray = NULL;
             params.srcPos = make_cudaPos(this->device->getOffset()[0] * sizeof (TYPE),
                                          this->device->getOffset()[1],

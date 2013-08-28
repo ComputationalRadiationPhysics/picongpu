@@ -95,7 +95,7 @@ public:
         return RefValueType(fixedPointer + idx, attributePitch);
     }
 
-    HDINLINE MultiBox(Type* pointer, const DataSpace<DIM1> &offset, const DataSpace<DIM1> &size, const size_t pitch) :
+    HDINLINE MultiBox(Type* pointer, const DataSpace<DIM1> &offset, const DataSpace<DIM1>&, const size_t pitch) :
     attributePitch(pitch), fixedPointer(pointer + offset[0])
     {
     }

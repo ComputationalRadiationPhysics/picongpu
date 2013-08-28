@@ -58,7 +58,7 @@ namespace PMacc
             return isFinished();
         }
 
-        void event(id_t eventId, EventType type, IEventData* data)
+        void event(id_t, EventType, IEventData*)
         {
 
         }
@@ -168,7 +168,7 @@ namespace PMacc
         virtual void copy(DataSpace<DIM3> &devCurrentSize)
         {
 
-            cudaMemcpy3DParms params = {0};
+            cudaMemcpy3DParms params;
 
             //  assert(this->source->getDataSpace().getElementCount() <= this->destination->getDataSpace().getElementCount());
 

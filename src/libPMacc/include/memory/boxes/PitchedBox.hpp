@@ -55,7 +55,7 @@ public:
         return fixedPointer[idx];
     }
 
-    HDINLINE PitchedBox(TYPE* pointer, const DataSpace<DIM1> &offset, const DataSpace<DIM1> &size, const size_t pitch) :
+    HDINLINE PitchedBox(TYPE* pointer, const DataSpace<DIM1> &offset, const DataSpace<DIM1>&, const size_t) :
     fixedPointer(pointer + offset[0])
     {
     }
@@ -107,7 +107,7 @@ public:
     typedef ValueType& RefValueType;
     typedef PitchedBox<TYPE, DIM1> ReducedType;
 
-    HDINLINE PitchedBox(TYPE* pointer, const DataSpace<DIM2> &offset, const DataSpace<DIM2> &size, const size_t pitch) :
+    HDINLINE PitchedBox(TYPE* pointer, const DataSpace<DIM2> &offset, const DataSpace<DIM2>&, const size_t pitch) :
     pitch(pitch),
     fixedPointer((TYPE*) ((char*) pointer + offset[1] * pitch) + offset[0])
     {
