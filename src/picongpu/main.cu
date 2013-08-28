@@ -39,37 +39,94 @@
 #include "math/MapTuple.hpp"
 #include "particles/memory/frames/Frame.hpp"
 #include "particles/memory/boxes/TileDataBox.hpp"
+#include <boost/mpl/list.hpp>
+
+#include "algorithms/ForEachFunctor.hpp"
 
 #include <iostream>
 
 using namespace PMacc;
+using namespace PMacc::algorithms::forEachFunctor;
 
-namespace PMacc{
+namespace PMacc
+{
 identifier( double, position, 0.0 );
-identifier( bool, a, true );
+identifier( int, a, 42 );
 identifier( float, b, 1.0 );
 identifier( bool, c, false );
+
 }
+
+wildcard( hallo );
 
 //using namespace picongpu;
 
-__global__ void kernel(int* in,int imax)
+__global__ void kernel( int* in, int imax )
 {
+
     typedef bmpl::map <
-    bmpl::pair<position, position::type>, // Key, Value Paare
-    bmpl::pair<a, int>,
-    bmpl::pair<b, float>
-    > particle;
-    
+        bmpl::pair<position, position::type>, // Key, Value Paare
+        bmpl::pair<a, int>,
+        bmpl::pair<c, float>
+        > particle;
+
     typedef Frame<CastToVector, particle> FrameType;
-    
+
     FrameType x;
-    x.getIdentifier( a_).z( ) = 1.11f;
-    for(int i=0;i<imax;++i)
-        x.getIdentifier( a_).z( ) += 22;
-    
-    *in=x.getIdentifier( a_).z( );
+
+
+    x.getIdentifier( a_ ).z( ) = 1.11f;
+    x.getIdentifier( a_ ).z( ) += 11;
+    for ( int i = 0; i < imax; ++i )
+        x.getIdentifier( a_ ).z( ) += 22;
+    x.getIdentifier( a_ ).z( ) += 2;
+
+    *in = x.getIdentifier( a_ ).z( );
 }
+
+template<typename T>
+struct MallocMemory
+{
+
+    template<typename ValueType1 >
+        HDINLINE void operator( )( ValueType1& v1, const size_t size) const
+    {
+        v1.getIdentifier( T( ) ) = VectorDataBox<int>( new int[size] );
+    }
+};
+
+template<typename T>
+struct SetDefault
+{
+    template<typename ValueType1 >
+        HDINLINE void operator( )( ValueType1& v1,const size_t size) const
+    {
+        for ( size_t i = 0; i < size; ++i )
+            v1.getIdentifier( T( ) )[i] = T::defaultValue;
+    }
+};
+
+template<typename T>
+struct SetDefaultValue
+{
+
+    template<typename ValueType1 >
+        HDINLINE void operator( )( ValueType1& v1 ) const
+    {
+        v1[T( )] = T::defaultValue;
+    }
+};
+
+template<typename T>
+struct FreeMemory
+{
+
+    template<typename ValueType1 >
+        HDINLINE void operator( )( ValueType1& v1 ) const
+    {
+        delete[] v1.getIdentifier( T( ) ).getPointer( );
+    }
+};
 
 /*! start of PIConGPU
  *
@@ -78,7 +135,7 @@ __global__ void kernel(int* in,int imax)
  */
 int main( int argc, char **argv )
 {
-   // using namespace host;
+    // using namespace host;
     /*MPI_CHECK( MPI_Init( &argc, &argv ) );
 
     picongpu::simulation_starter::SimStarter sim;
@@ -96,6 +153,7 @@ int main( int argc, char **argv )
 
 
 
+
     // typedef math::MapTuple <
     typedef bmpl::map <
         bmpl::pair<position, position::type>, // Key, Value Paare
@@ -106,19 +164,33 @@ int main( int argc, char **argv )
     //typedef typename CoverTypes<typename particle::Map, CastToVector>::type VectorParticle;
     // typedef math::MapTuple <VectorParticle> Frame;
 
-    typedef Frame<CastToVector, particle> FrameType;
+    typedef Frame<CastToVectorBox, particle> FrameType;
 
     FrameType x;
-    // b d;
-    //  x(b())=VectorDataBox<float>(new float(10));
-    x.getIdentifier(a_).z( ) = 2.11f;
-    x[2][a_] = 11;
-    x[2][a_] = x[2][a_]+ 1;
+
+    typedef bmpl::list<a> MemList;
+
+    ForEach<MemList, MallocMemory > alloc;
+    size_t size = 100 * 1024 * 1024;
+    alloc( x, size );
+    PMACC_AUTO( par, x[100 * 1024 * 1024 - 1] );
+    ForEach<MemList, SetDefaultValue >( )( par );
+
+    printf( "nach: %X\n", x.getIdentifier( a_ ).getPointer( ) );
+
+
+
+    //x[100 * 1024 * 1024 - 1][a_] = 11;
+    //PMACC_AUTO( par, x[100 * 1024 * 1024 - 1] );
+    //par[a_] = par[a_] + 1;
 
 
     std::cout << "sizeof=" << sizeof (FrameType ) << std::endl;
-    std::cout << "value=" << x.getIdentifier(b_).x( ) << std::endl;
-    std::cout << "value=" << x[2][a_] << " -"<<traits::HasIdentifier<typename FrameType::ParticleType,c>::value<<"-"<<std::endl;
+    //    std::cout << "value=" << x.getIdentifier(b_).x( ) << std::endl;
+    std::cout << "value=" << x[100 * 1024 * 1024 - 1][a_] << " -" << traits::HasIdentifier<typename FrameType::ParticleType, a>::value << "-" << std::endl;
+
+    ForEach<MemList, FreeMemory > freemem;
+    freemem( x );
 
     return 0;
 }

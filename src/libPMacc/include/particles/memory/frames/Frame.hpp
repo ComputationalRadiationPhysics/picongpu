@@ -36,6 +36,7 @@
 #include <boost/utility/result_of.hpp>
 #include <boost/mpl/has_key.hpp>
 #include "traits/HasIdentifier.hpp"
+#include <boost/static_assert.hpp>
 
 namespace PMacc
 {
@@ -71,16 +72,16 @@ protected pmath::MapTuple<typename CoverTypes<ValueTypeMap_, CoverOperator_>::ty
 
     template<typename TKey >
         HDINLINE
-        typename boost::result_of < BaseType(TKey)>::type 
-        getIdentifier(const TKey) const
+        typename boost::result_of < BaseType(TKey)>::type
+    getIdentifier(const TKey) const
     {
         return BaseType::operator[](TKey());
     }
 
     template<typename TKey >
         HDINLINE
-        typename boost::result_of < BaseType(TKey)>::type 
-        getIdentifier(const TKey)
+        typename boost::result_of < BaseType(TKey)>::type
+    getIdentifier(const TKey)
     {
         return BaseType::operator[](TKey());
     }

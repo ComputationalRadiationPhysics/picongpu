@@ -174,43 +174,56 @@ enum AreaType
 
 
 #ifdef __CUDA_ARCH__ //we are on gpu
-#define PLACEHOLDER using namespace device_placeholder
+#define PMACC_PLACEHOLDER(id) using namespace PMACC_JOIN(device_placeholder,id)
 #else
-#define PLACEHOLDER using namespace host_placeholder
+#define PMACC_PLACEHOLDER(id) using namespace PMACC_JOIN(host_placeholder,id)
 #endif
 /*define special makros for creating classes which are ony used as identifer*/
-#define identifier(in_type,name,in_default)                                    \
-    namespace placeholder_definition {                                         \
+#define PMACC_identifier(in_type,name,in_default,id)                           \
+    namespace PMACC_JOIN(placeholder_definition,id){                           \
         struct name{                                                           \
             typedef name ThisType;                                             \
             typedef in_type type;                                              \
             static const type defaultValue = in_default;                       \
         };                                                                     \
     }                                                                          \
-    using namespace placeholder_definition;                                    \
-    namespace host_placeholder{                                                \
-        placeholder_definition::name PMACC_JOIN(name,_);                       \
+    using namespace PMACC_JOIN(placeholder_definition,id);                     \
+    namespace PMACC_JOIN(host_placeholder,id){                                 \
+        PMACC_JOIN(placeholder_definition,id)::name PMACC_JOIN(name,_);        \
     }                                                                          \
-    namespace device_placeholder{                                              \
-        __constant__ placeholder_definition::name PMACC_JOIN(name,_);          \
+    namespace PMACC_JOIN(device_placeholder,id){                               \
+        __constant__ PMACC_JOIN(placeholder_definition,id)::name PMACC_JOIN(name,_);          \
     }                                                                          \
-    PLACEHOLDER;
+    PMACC_PLACEHOLDER(id);
+
+#define identifier(in_type,name,in_default) PMACC_identifier(in_type,name,in_default,__COUNTER__)
 
 /*define special makros for creating classes which are ony used as identifer*/
-#define placeholder(name)                                                      \
-    namespace placeholder_definition {                                         \
+#define PMACC_wildcard(name,id,...)                                            \
+    namespace PMACC_JOIN(placeholder_definition,id) {                          \
         struct name{                                                           \
-            typedef name ThisType;                                             \
+            __VA_ARGS__                                                        \
         };                                                                     \
     }                                                                          \
-    using namespace placeholder_definition;                                    \
-    namespace host_placeholder{                                                \
-        placeholder_definition::name PMACC_JOIN(name,_);                       \
+    using namespace PMACC_JOIN(placeholder_definition,id);                     \
+    namespace PMACC_JOIN(device_placeholder,id){                               \
+        PMACC_JOIN(placeholder_definition,id)::name PMACC_JOIN(name,_);        \
     }                                                                          \
-    namespace device_placeholder{                                              \
-        __constant__ placeholder_definition::name PMACC_JOIN(name,_);          \
+    namespace PMACC_JOIN(host_placeholder,id){                                 \
+        __constant__ PMACC_JOIN(placeholder_definition,id)::name PMACC_JOIN(name,_);          \
     }                                                                          \
-    PLACEHOLDER;
+    PMACC_PLACEHOLDER(id);
 
+
+/** create a wildcard (identifier with arbitrary code as second parameter
+ * !! second parameter is optinal
+ * example: wildcard(_1); //create name _1
+ * example: wildcard(_1,typedef int type;); //create name _1, 
+ *          later its possible: typedef _1::type type; 
+ */
+#define wildcard(name,...) PMACC_wildcard(name,__COUNTER__,__VA_ARGS__)
+
+wildcard(NOTHING);
 
 } //namespace PMacc
+
