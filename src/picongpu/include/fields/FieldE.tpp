@@ -149,7 +149,7 @@ void FieldE::laserManipulation( uint32_t currentStep )
         ( this->getDeviceDataBox( ), laser->getLaserManipulator( currentStep ) );
 }
 
-void FieldE::reset( uint32_t currentStep )
+void FieldE::reset( uint32_t )
 {
     fieldE->getHostBuffer( ).reset( true );
     fieldE->getDeviceBuffer( ).reset( false );

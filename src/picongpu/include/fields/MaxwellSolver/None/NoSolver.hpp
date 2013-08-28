@@ -61,12 +61,12 @@ namespace picongpu
 
             }
     
-            void update_beforeCurrent(uint32_t currentStep)
+            void update_beforeCurrent(uint32_t)
             {
 
             }
     
-            void update_afterCurrent(uint32_t currentStep)
+            void update_afterCurrent(uint32_t)
             {
 
             }

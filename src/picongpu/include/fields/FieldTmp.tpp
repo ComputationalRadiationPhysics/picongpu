@@ -107,7 +107,7 @@ namespace picongpu
     }
 
     template<uint32_t AREA, class FrameSolver, class ParticlesClass>
-    void FieldTmp::computeValue( ParticlesClass& parClass, uint32_t currentStep )
+    void FieldTmp::computeValue( ParticlesClass& parClass, uint32_t )
     {
         typedef SuperCellDescription<
             typename MappingDesc::SuperCellSize,
@@ -212,7 +212,7 @@ namespace picongpu
         return cellDescription.getGridLayout( );
     }
 
-    void FieldTmp::reset( uint32_t currentStep )
+    void FieldTmp::reset( uint32_t )
     {
         fieldTmp->getHostBuffer( ).reset( true );
         fieldTmp->getDeviceBuffer( ).reset( false );

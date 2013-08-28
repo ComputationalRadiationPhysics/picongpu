@@ -83,7 +83,7 @@ private:
                                  uint32_t simulationStep,
                                  DomainCollector& dataCollector,
                                  Dimensions &dataSize,
-                                 CollectionType& colType,
+                                 CollectionType&,
                                  std::string name,
                                  DataSpace<DIM3> globalDomainOffset,
                                  DataSpace<DIM3> localDomainSize)
@@ -442,7 +442,7 @@ public:
         AbstractInitialiser::teardown();
     }
 
-    void init(uint32_t id, ISimulationData& data, uint32_t currentStep)
+    void init(uint32_t id, ISimulationData& data, uint32_t)
     {
         // add ids for other types if necessary
         // fields are initialised by their constructor          

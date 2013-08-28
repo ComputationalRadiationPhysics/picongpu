@@ -37,7 +37,7 @@ inline TransactionManager::TransactionManager( )
     startTransaction( EventTask( ) );
 }
 
-inline TransactionManager::TransactionManager( const TransactionManager& cc )
+inline TransactionManager::TransactionManager( const TransactionManager& )
 {
 
 }

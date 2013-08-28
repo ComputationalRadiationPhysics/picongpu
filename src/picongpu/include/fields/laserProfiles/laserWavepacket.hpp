@@ -101,7 +101,7 @@ HINLINE float3_X laserLongitudinal(uint32_t currentStep, float_X& phase)
  * @param posZ
  * @return 
  */
-HDINLINE float3_X laserTransversal(float3_X elong, const float_X phase, const float_X posX, const float_X posZ)
+HDINLINE float3_X laserTransversal(float3_X elong, const float_X, const float_X posX, const float_X posZ)
 {
     typedef typename GetType<float3_X>::type ElongType;
 
