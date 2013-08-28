@@ -26,13 +26,13 @@
 #include <boost/mpl/inherit.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/mpl/if.hpp>
+#include "traits/HasIdentifier.hpp"
 
 namespace PMacc
 {
 namespace bmpl = boost::mpl;
 namespace pmath = PMacc::math;
 namespace pmacc = PMacc;
-
 
 template<typename FrameType_, typename MethodsList_>
 struct Particle : public bmpl::inherit<MethodsList_>::type
@@ -55,9 +55,9 @@ struct Particle : public bmpl::inherit<MethodsList_>::type
         >::type(uint32_t)
     >::type
         operator[](const TKey key)
-    {
-        return frame.getIdentifier(key)[idx];
-    }
+        {
+            return frame.getIdentifier(key)[idx];
+        }
 
     template<typename TKey >
         HDINLINE
@@ -67,10 +67,30 @@ struct Particle : public bmpl::inherit<MethodsList_>::type
         >::type(uint32_t)
     >::type
         operator[](const TKey key) const
-    {
-        return frame.getIdentifier(key)[idx];
-    }
+        {
+            return frame.getIdentifier(key)[idx];
+        }
 
 };
+
+namespace traits
+{
+
+template<typename TKey,
+typename FrameType_,
+typename MethodsList_
+>
+struct HasIdentifier<
+PMacc::Particle<FrameType_, MethodsList_>,
+TKey
+>
+{
+private:
+    typedef FrameType_ FrameType;
+public:
+    typedef typename HasIdentifier<FrameType, TKey>::type type;
+    static const bool value = type::value;
+};
+} //namespace traits
 
 } //namespace PMacc

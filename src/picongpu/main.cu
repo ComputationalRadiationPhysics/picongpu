@@ -44,13 +44,32 @@
 
 using namespace PMacc;
 
-identifier( position );
-identifier( a );
-identifier( b );
-identifier( c );
-
+namespace PMacc{
+identifier( double, position, 0.0 );
+identifier( bool, a, true );
+identifier( float, b, 1.0 );
+identifier( bool, c, false );
+}
 
 //using namespace picongpu;
+
+__global__ void kernel(int* in,int imax)
+{
+    typedef bmpl::map <
+    bmpl::pair<position, position::type>, // Key, Value Paare
+    bmpl::pair<a, int>,
+    bmpl::pair<b, float>
+    > particle;
+    
+    typedef Frame<CastToVector, particle> FrameType;
+    
+    FrameType x;
+    x.getIdentifier( a_).z( ) = 1.11f;
+    for(int i=0;i<imax;++i)
+        x.getIdentifier( a_).z( ) += 22;
+    
+    *in=x.getIdentifier( a_).z( );
+}
 
 /*! start of PIConGPU
  *
@@ -59,6 +78,7 @@ identifier( c );
  */
 int main( int argc, char **argv )
 {
+   // using namespace host;
     /*MPI_CHECK( MPI_Init( &argc, &argv ) );
 
     picongpu::simulation_starter::SimStarter sim;
@@ -78,10 +98,9 @@ int main( int argc, char **argv )
 
     // typedef math::MapTuple <
     typedef bmpl::map <
-        bmpl::pair<position, double>, // Key, Value Paare
-        bmpl::pair<a, bool>,
-        bmpl::pair<b, float>,
-        bmpl::pair<c, bool>
+        bmpl::pair<position, position::type>, // Key, Value Paare
+        bmpl::pair<a, int>,
+        bmpl::pair<b, float>
         > particle;
 
     //typedef typename CoverTypes<typename particle::Map, CastToVector>::type VectorParticle;
@@ -92,12 +111,14 @@ int main( int argc, char **argv )
     FrameType x;
     // b d;
     //  x(b())=VectorDataBox<float>(new float(10));
-    x.getIdentifier(position_).z( ) = 1.11f;
+    x.getIdentifier(a_).z( ) = 2.11f;
+    x[2][a_] = 11;
+    x[2][a_] = x[2][a_]+ 1;
 
 
     std::cout << "sizeof=" << sizeof (FrameType ) << std::endl;
     std::cout << "value=" << x.getIdentifier(b_).x( ) << std::endl;
-    std::cout << "value=" << x[2][position_]<< std::endl;
+    std::cout << "value=" << x[2][a_] << " -"<<traits::HasIdentifier<typename FrameType::ParticleType,c>::value<<"-"<<std::endl;
 
     return 0;
 }

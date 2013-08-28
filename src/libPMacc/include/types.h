@@ -17,8 +17,8 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 #pragma once
 
 #include <stdint.h>
@@ -173,10 +173,44 @@ enum AreaType
 #define __delete(var) if((var)) { delete (var); var=NULL; }
 
 
+#ifdef __CUDA_ARCH__ //we are on gpu
+#define PLACEHOLDER using namespace device_placeholder
+#else
+#define PLACEHOLDER using namespace host_placeholder
+#endif
 /*define special makros for creating classes which are ony used as identifer*/
-#define identifier(identifier) struct identifier{};identifier PMACC_JOIN(identifier,_);
+#define identifier(in_type,name,in_default)                                    \
+    namespace placeholder_definition {                                         \
+        struct name{                                                           \
+            typedef name ThisType;                                             \
+            typedef in_type type;                                              \
+            static const type defaultValue = in_default;                       \
+        };                                                                     \
+    }                                                                          \
+    using namespace placeholder_definition;                                    \
+    namespace host_placeholder{                                                \
+        placeholder_definition::name PMACC_JOIN(name,_);                       \
+    }                                                                          \
+    namespace device_placeholder{                                              \
+        __constant__ placeholder_definition::name PMACC_JOIN(name,_);          \
+    }                                                                          \
+    PLACEHOLDER;
 
-}
+/*define special makros for creating classes which are ony used as identifer*/
+#define placeholder(name)                                                      \
+    namespace placeholder_definition {                                         \
+        struct name{                                                           \
+            typedef name ThisType;                                             \
+        };                                                                     \
+    }                                                                          \
+    using namespace placeholder_definition;                                    \
+    namespace host_placeholder{                                                \
+        placeholder_definition::name PMACC_JOIN(name,_);                       \
+    }                                                                          \
+    namespace device_placeholder{                                              \
+        __constant__ placeholder_definition::name PMACC_JOIN(name,_);          \
+    }                                                                          \
+    PLACEHOLDER;
 
 
-
+} //namespace PMacc

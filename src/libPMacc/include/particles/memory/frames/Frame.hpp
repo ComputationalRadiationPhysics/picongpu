@@ -34,6 +34,8 @@
 #include "particles/frame_types.hpp"
 #include "particles/factories/CoverTypes.hpp"
 #include <boost/utility/result_of.hpp>
+#include <boost/mpl/has_key.hpp>
+#include "traits/HasIdentifier.hpp"
 
 namespace PMacc
 {
@@ -66,22 +68,44 @@ protected pmath::MapTuple<typename CoverTypes<ValueTypeMap_, CoverOperator_>::ty
     {
         return ParticleType(*this, idx);
     }
-    
-    template<typename TKey >
-        HDINLINE
-        typename boost::result_of < BaseType(TKey)>::type
-        getIdentifier(const TKey) const
-        {
-            return BaseType::operator[](TKey());
-        }
 
     template<typename TKey >
         HDINLINE
-        typename boost::result_of < BaseType(TKey)>::type
+        typename boost::result_of < BaseType(TKey)>::type 
+        getIdentifier(const TKey) const
+    {
+        return BaseType::operator[](TKey());
+    }
+
+    template<typename TKey >
+        HDINLINE
+        typename boost::result_of < BaseType(TKey)>::type 
         getIdentifier(const TKey)
-        {
-            return BaseType::operator[](TKey());
-        }
+    {
+        return BaseType::operator[](TKey());
+    }
 };
+
+namespace traits
+{
+
+template<typename TKey,
+template<typename> class CoverOperator_,
+typename ValueTypeMap_,
+typename MethodsList_,
+typename AttributeList_
+>
+struct HasIdentifier<
+PMacc::Frame<CoverOperator_, ValueTypeMap_, MethodsList_, AttributeList_>,
+TKey
+>
+{
+private:
+    typedef PMacc::Frame<CoverOperator_, ValueTypeMap_, MethodsList_, AttributeList_> FrameType;
+public:
+    typedef typename boost::mpl::has_key<typename FrameType::ValueTypeMap, TKey>::type type;
+    static const bool value = type::value;
+};
+} //namespace traits
 
 }//namespace PMacc
