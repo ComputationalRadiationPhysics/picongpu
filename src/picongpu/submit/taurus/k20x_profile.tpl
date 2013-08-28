@@ -31,8 +31,8 @@ TBG_gpusPerNode=`if [ $TBG_tasks -gt 2 ] ; then echo 2; else echo $TBG_tasks; fi
 #   and we will be accounted 8 CPUs per GPU anyway
 TBG_coresPerGPU=8
 
-# We only start 1 task per GPU
-TBG_tasksPerNode="$(( TBG_gpusPerNode * 1 ))"
+# We only start 1 MPI task per GPU
+TBG_mpiTasksPerNode="$(( TBG_gpusPerNode * 1 ))"
 
 # use ceil to caculate nodes
 TBG_nodes="$(( ( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
@@ -46,7 +46,7 @@ TBG_nodes="$(( ( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
 # Sets batch job's name
 #SBATCH --job-name=!TBG_jobName
 #SBATCH --nodes=!TBG_nodes
-#SBATCH --ntasks-per-node=!TBG_tasksPerNode
+#SBATCH --ntasks-per-node=!TBG_mpiTasksPerNode
 #SBATCH --cpus-per-task=!TBG_coresPerGPU
 #SBATCH --gres=gpu:!TBG_gpusPerNode
 # send me a mail on (b)egin, (e)nd, (a)bortion
