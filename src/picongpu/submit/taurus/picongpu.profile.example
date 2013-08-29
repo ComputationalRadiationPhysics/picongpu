@@ -1,0 +1,34 @@
+module purge
+
+# General modules #############################################################
+#
+module load oscar-modules llview
+module load cmake/2.8.2
+module load git cuda/5.5.11 bullxmpi
+
+
+# Compilers ###################################################################
+### GCC
+module load gcc/4.7.1 boost
+export BOOST_ROOT=$BOOST_INC/..
+### ICC
+#module load intel/12.1
+#export CC=`which icc`
+#export CXX=`which icpc`
+#export BOOST_ROOT=$HOME/lib/boost_1_54_intel_12_1
+#export BOOST_INC=$BOOST_ROOT/include
+#export BOOST_LIB=$BOOST_ROOT/lib
+#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$BOOST_LIB
+
+# Environment #################################################################
+#
+export PNGWRITER_ROOT=$HOME/lib/pngwriter
+export HDF5_ROOT=$HOME/lib/hdf5
+export SPLASH_ROOT=$HOME/lib/splash
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/lib/hdf5/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/lib/pngwriter/lib/
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/lib/splash/lib/
+
+export PICSRC=$HOME/src/picongpu
+export PATH=$PATH:$PICSRC/src/tools/bin
