@@ -26,7 +26,16 @@
 #include <boost/mpl/next_prior.hpp>
 #include <boost/mpl/deref.hpp>
 #include <boost/mpl/bind.hpp>
- #include <boost/type_traits.hpp>
+#include <boost/type_traits.hpp>
+
+#include <boost/mpl/if.hpp>
+
+#include <boost/preprocessor/repetition/enum.hpp>
+#include <boost/preprocessor/repetition/enum_params.hpp>
+#include <boost/preprocessor/repetition/enum_binary_params.hpp>
+#include <boost/preprocessor/arithmetic/inc.hpp>
+#include <boost/preprocessor/repetition/repeat.hpp>
+#include <boost/preprocessor/repetition/repeat_from_to.hpp>
 
 
 namespace PMacc
@@ -37,83 +46,8 @@ namespace forEachFunctor
 {
 namespace detail
 {
-template<bool isEnd, typename itA, typename itEnd, typename Accessor>
-struct ForEach;
 
-template< typename itA, typename itEnd, template<typename> class Accessor_,typename A1>
-struct ForEach<false,itA,itEnd,Accessor_<A1> >
-{
-    typedef typename boost::mpl::next<itA>::type next;
-    typedef typename boost::mpl::deref<itA>::type usedType;
-    static const bool isEnd=boost::is_same<next,itEnd>::value;
-    typedef Accessor_<A1> Accessor;
-    typedef Accessor_<usedType> AccessorType;
-
-    HDINLINE void operator()() const
-    {
-        // execute the Accessor
-        AccessorType()();
-        // go until itEnd
-        detail::ForEach<isEnd,next, itEnd, Accessor >()();
-    }
-
-    template<typename T1 >
-        HDINLINE void operator()(T1 &t1) const
-    {
-        // execute the Accessor
-        AccessorType()(t1);
-        // go until itEnd
-        detail::ForEach<isEnd,next, itEnd, Accessor >()(t1);
-    }
-
-    template<typename T1, typename T2 >
-        HDINLINE void operator()(T1 &t1, T2 &t2) const
-    {
-        // execute the Accessor
-        AccessorType()(t1, t2);
-        // go until itEnd
-        detail::ForEach<isEnd,next, itEnd, Accessor >()(t1, t2);
-    }
-};
-
-template< typename itA, typename itEnd, template<typename,typename> class Accessor_,typename A1,typename A2>
-struct ForEach<false,itA,itEnd,Accessor_<A1,A2> >
-{
-    typedef typename boost::mpl::next<itA>::type next;
-    typedef typename boost::mpl::deref<itA>::type usedType;
-    static const bool isEnd=boost::is_same<next,itEnd>::value;
-    typedef Accessor_<A1,A2> Accessor;
-    typedef Accessor_<usedType,A2> AccessorType;
-
-    HDINLINE void operator()() const
-    {
-        // execute the Accessor
-        AccessorType()();
-        // go until itEnd
-        detail::ForEach<isEnd,next, itEnd, Accessor >()();
-    }
-
-    template<typename T1 >
-        HDINLINE void operator()(T1 &t1) const
-    {
-        // execute the Accessor
-        AccessorType()(t1);
-        // go until itEnd
-        detail::ForEach<isEnd,next, itEnd, Accessor >()(t1);
-    }
-
-    template<typename T1, typename T2 >
-        HDINLINE void operator()(T1 &t1, T2 &t2) const
-    {
-        // execute the Accessor
-        AccessorType()(t1, t2);
-        // go until itEnd
-        detail::ForEach<isEnd,next, itEnd, Accessor >()(t1, t2);
-    }
-};
-
-template< typename itEnd, typename Accessor>
-struct ForEach<true,itEnd, itEnd, Accessor>
+struct DoNothing
 {
 
     HDINLINE void operator()() const
@@ -131,9 +65,91 @@ struct ForEach<true,itEnd, itEnd, Accessor>
     }
 };
 
+template< typename itA, typename itEnd, typename Accessor>
+struct ForEach;
+
+template< typename itA, typename itEnd, template<typename> class Accessor_, typename A1>
+struct ForEach< itA, itEnd, Accessor_<A1> >
+{
+    typedef typename boost::mpl::next<itA>::type next;
+    typedef typename boost::mpl::deref<itA>::type usedType;
+    typedef typename boost::is_same<next, itEnd>::type isEnd;
+    typedef Accessor_<A1> Accessor;
+    typedef Accessor_<usedType> AccessorType;
+
+    typedef detail::ForEach< next, itEnd, Accessor > tmpNextCall;
+    typedef typename boost::mpl::if_< isEnd, typename detail::DoNothing, tmpNextCall>::type nextCall;
+
+    HDINLINE void operator()() const
+    {
+        // execute the Accessor
+        AccessorType()();
+        // go until itEnd
+        nextCall()();
+    }
+
+    template<typename T1 >
+        HDINLINE void operator()(T1 &t1) const
+    {
+        // execute the Accessor
+        AccessorType()(t1);
+        // go until itEnd
+        nextCall()(t1);
+    }
+
+    template<typename T1, typename T2 >
+        HDINLINE void operator()(T1 &t1, T2 &t2) const
+    {
+        // execute the Accessor
+        AccessorType()(t1, t2);
+        // go until itEnd
+        nextCall()(t1, t2);
+    }
+};
+
+template< typename itA, typename itEnd, template<typename, typename> class Accessor_, typename A1, typename A2>
+struct ForEach<itA, itEnd, Accessor_<A1, A2> >
+{
+    typedef typename boost::mpl::next<itA>::type next;
+    typedef typename boost::mpl::deref<itA>::type usedType;
+    typedef typename boost::is_same<next, itEnd>::type isEnd;
+    typedef Accessor_<A1, A2> Accessor;
+    typedef Accessor_<usedType, A2> AccessorType;
+
+    typedef detail::ForEach< next, itEnd, Accessor > tmpNextCall;
+    typedef typename boost::mpl::if_<isEnd, detail::DoNothing, tmpNextCall>::type nextCall;
+
+    HDINLINE void operator()() const
+    {
+        // execute the Accessor
+        AccessorType()();
+        // go until itEnd
+        nextCall()();
+    }
+
+    template<typename T1 >
+        HDINLINE void operator()(T1 &t1) const
+    {
+        // execute the Accessor
+        AccessorType()(t1);
+        // go until itEnd
+        nextCall()(t1);
+    }
+
+    template<typename T1, typename T2 >
+        HDINLINE void operator()(T1 &t1, T2 &t2) const
+    {
+        // execute the Accessor
+        AccessorType()(t1, t2);
+        // go until itEnd
+        nextCall()(t1, t2);
+    }
+};
+
+
+
+
 } // namespace detail
-
-
 
 /** Compile-Time for each for Boost::MPL Type Lists
  * 
@@ -146,23 +162,26 @@ struct ForEach
 {
     typedef typename boost::mpl::begin<MPLTypeList>::type begin;
     typedef typename boost::mpl::end< MPLTypeList>::type end;
-    static const bool isEnd=boost::is_same<begin,end>::value;
+
+    typedef typename boost::is_same<begin, end>::type isEnd;
+    typedef detail::ForEach< begin, end, Accessor > tmpNextCall;
+    typedef typename boost::mpl::if_<isEnd, detail::DoNothing, tmpNextCall>::type nextCall;
 
     HDINLINE void operator()() const
     {
-        return detail::ForEach<isEnd,begin, end, Accessor >()();
+        nextCall()();
     }
 
     template<typename T1 >
         HDINLINE void operator()(T1 &t1) const
     {
-        detail::ForEach<isEnd,begin, end, Accessor >()(t1);
+        nextCall()(t1);
     }
 
-    template<typename T1 ,typename T2>
-        HDINLINE void operator()( T1 &t1, T2 &t2) const
+    template<typename T1, typename T2 >
+        HDINLINE void operator()(T1 &t1, T2 &t2) const
     {
-        detail::ForEach<isEnd,begin, end, Accessor >()(t1, t2);
+        nextCall(t1, t2);
     }
 };
 
