@@ -45,6 +45,8 @@
 
 #include <iostream>
 
+#include "RefWrapper.hpp"
+
 using namespace PMacc;
 using namespace PMacc::algorithms::forEachFunctor;
 
@@ -84,14 +86,17 @@ __global__ void kernel( int* in, int imax )
     *in = x.getIdentifier( a_ ).z( );
 }
 
+
+
+
 template<typename T,typename Type>
 struct MallocMemory
 {
 
     template<typename ValueType1 >
-        HDINLINE void operator( )( ValueType1& v1, const size_t size) const
+        HDINLINE void operator( )( RefWrapper<ValueType1> v1, const size_t size) const
     {
-        v1.getIdentifier( T( ) ) = VectorDataBox<Type>( new Type[size] );
+        v1.get().getIdentifier( T( ) ) = VectorDataBox<Type>( new Type[size] );
     }
 };
 
@@ -99,10 +104,10 @@ template<typename T>
 struct SetDefault
 {
     template<typename ValueType1 >
-        HDINLINE void operator( )( ValueType1& v1,const size_t size) const
+        HDINLINE void operator( )( RefWrapper<ValueType1> v1, const size_t size) const
     {
         for ( size_t i = 0; i < size; ++i )
-            v1.getIdentifier( T( ) )[i] = T::defaultValue;
+            v1.get().getIdentifier( T( ) )[i] = T::defaultValue;
     }
 };
 
@@ -111,9 +116,9 @@ struct SetDefaultValue
 {
 
     template<typename ValueType1 >
-        HDINLINE void operator( )( ValueType1& v1 ) const
+        HDINLINE void operator( )( RefWrapper<ValueType1> v1 ) const
     {
-        v1[T( )] = T::defaultValue;
+        v1.get()[T( )] = T::defaultValue;
     }
 };
 
@@ -122,9 +127,9 @@ struct FreeMemory
 {
 
     template<typename ValueType1 >
-        HDINLINE void operator( )( ValueType1& v1 ) const
+        HDINLINE void operator( )( RefWrapper<ValueType1> v1 ) const
     {
-        delete[] v1.getIdentifier( T( ) ).getPointer( );
+        delete[] v1().getIdentifier( T( ) ).getPointer( );
     }
 };
 
@@ -171,14 +176,12 @@ int main( int argc, char **argv )
     typedef bmpl::list<a> MemList;
 
     ForEach<MemList, MallocMemory<void,int> > alloc;
-    size_t size = 100 * 1024 * 1024;
-    alloc( x, size );
+   // size_t size = 100 * 1024 * 1024;
+    alloc( byRef(x), 100 * 1024 * 1024 );
     PMACC_AUTO( par, x[100 * 1024 * 1024 - 1] );
-    ForEach<MemList, SetDefaultValue<void> >( )( par );
+    ForEach<MemList, SetDefaultValue<void> >()( byRef(par) );
 
     printf( "nach: %X\n", x.getIdentifier( a_ ).getPointer( ) );
-
-
 
     //x[100 * 1024 * 1024 - 1][a_] = 11;
     //PMACC_AUTO( par, x[100 * 1024 * 1024 - 1] );
@@ -190,7 +193,7 @@ int main( int argc, char **argv )
     std::cout << "value=" << x[100 * 1024 * 1024 - 1][a_] << " -" << traits::HasIdentifier<typename FrameType::ParticleType, a>::value << "-" << std::endl;
 
     ForEach<MemList, FreeMemory<void> > freemem;
-    freemem( x );
+    freemem( byRef(x) );
 
     return 0;
 }

@@ -55,6 +55,18 @@ public:
     }
     
     HDINLINE
+    Type& operator*() 
+    {
+        return this->myRef;
+    }
+    
+    HDINLINE
+    Type& operator()()
+    {
+        return this->myRef;
+    }
+        
+    HDINLINE
     Type& get() const
     {
         return myRef;
@@ -64,6 +76,13 @@ public:
 template<typename Type>
 HDINLINE
 RefWrapper<Type> ref(Type& _ref)
+{
+    return RefWrapper<Type>(_ref);
+}
+
+template<typename Type>
+HDINLINE
+RefWrapper<Type> byRef(Type& _ref)
 {
     return RefWrapper<Type>(_ref);
 }
