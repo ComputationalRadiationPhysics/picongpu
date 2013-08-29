@@ -160,7 +160,7 @@ struct GetBin
 };
 
 template<typename ParticlesType>
-void ParticleSpectrum<ParticlesType>::notify(uint32_t currentStep)
+void ParticleSpectrum<ParticlesType>::notify(uint32_t)
 {/*
     DataConnector &dc = DataConnector::getInstance();
     this->particles = &(dc.getData<ParticlesType > ((uint32_t) ParticlesType::FrameType::CommunicationTag, true));

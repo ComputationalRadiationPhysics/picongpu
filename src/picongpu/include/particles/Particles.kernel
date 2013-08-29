@@ -466,7 +466,7 @@ struct PushParticlePerFrame
          * set particle at cell supercell_size to 1
          * and partticle at cell -1 to supercell_size-1
          * % (mod) can't use with negativ numbers, we add one supercell_size to hide this
-        /*
+         *
         localCell.x() = (localCell.x() + TVec::x) % TVec::x;
         localCell.y() = (localCell.y() + TVec::y) % TVec::y;
         localCell.z() = (localCell.z() + TVec::z) % TVec::z;

@@ -82,7 +82,7 @@ namespace PMacc
 
         ParticleFactory() { };
 
-        ParticleFactory(const ParticleFactory& cc) { };
+        ParticleFactory(const ParticleFactory&) { };
 
     };
 

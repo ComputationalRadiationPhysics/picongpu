@@ -60,13 +60,13 @@ inline EventTask Transaction::getTransactionEvent( )
     return baseEvent;
 }
 
-void Transaction::operation( ITask::TaskType operation )
+void Transaction::operation( ITask::TaskType )
 {
     if ( isAtomic == false )
         baseEvent.waitForFinished( );
 }
 
-EventStream* Transaction::getEventStream( ITask::TaskType operation )
+EventStream* Transaction::getEventStream( ITask::TaskType )
 {
     return this->eventStream;
 }

@@ -76,12 +76,8 @@ class DataSpace : public math::Int<DIM>
             }
         }
 
-        HDINLINE DataSpace(const DataSpace<DIM>& value)
+        HDINLINE DataSpace(const DataSpace<DIM>& value) : math::Int<DIM>(value)
         {
-            for (uint32_t i = 0; i < DIM; ++i)
-            {
-                (*this)[i] = value[i];
-            }
         }
 
         /**

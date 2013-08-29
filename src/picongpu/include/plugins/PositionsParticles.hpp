@@ -46,12 +46,17 @@ namespace po = boost::program_options;
 template<class FloatPos>
 struct SglParticle
 {
-    float3_X position;
-    FloatPos momentum;
+    FloatPos position;
+    float3_X momentum;
     float_X mass;
     float_X weighting;
     float_X charge;
     float_X gamma;
+
+    SglParticle() : position(0.0,0.0,0.0), momentum(0.0,0.0, 0.0), mass(0.0),
+        weighting(0.0), charge(0.0), gamma(0.0)
+    {
+    }
 
     DataSpace<simDim> globalCellOffset;
 
@@ -244,7 +249,6 @@ private:
 
         typedef typename MappingDesc::SuperCellSize SuperCellSize;
         SglParticle<FloatPos> positionParticleTmp;
-        positionParticleTmp.mass = float_X(0.0);
 
         gParticle->getDeviceBuffer().setValue(positionParticleTmp);
         dim3 block(SuperCellSize::getDataSpace());

@@ -371,8 +371,6 @@ private:
 
     void openH5File()
     {
-        GridController<DIM> &gc = GridController<DIM>::getInstance();
-
         const uint32_t maxOpenFilesPerNode = 4;
         mThreadParams.dataCollector = new DCollector::DomainCollector( maxOpenFilesPerNode );
 

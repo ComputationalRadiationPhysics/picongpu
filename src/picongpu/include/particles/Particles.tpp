@@ -125,7 +125,7 @@ void Particles<UserTypeList>::init( FieldE &fieldE, FieldB &fieldB, FieldJ &fiel
 }
 
 template< class UserTypeList>
-void Particles<UserTypeList>::update( uint32_t currentStep )
+void Particles<UserTypeList>::update( uint32_t )
 {
     typedef particlePusher::ParticlePusher ParticlePush;
 
@@ -158,7 +158,7 @@ void Particles<UserTypeList>::update( uint32_t currentStep )
 }
 
 template< class UserTypeList>
-void Particles<UserTypeList>::reset( uint32_t currentStep )
+void Particles<UserTypeList>::reset( uint32_t )
 {
     this->particlesBuffer->reset( );
 }

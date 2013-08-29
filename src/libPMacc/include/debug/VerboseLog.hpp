@@ -68,11 +68,11 @@ struct LogLvl
     typedef membership_ Parent;
     static const uint64_t lvl = lvl_;
 
-    /*this operation is only allowed for LogLvl from the same parent
-     * create a LogLvl which has to lvl, only on lvl must be set to be true
+    /* This operation is only allowed for LogLvl with the same Parent type.
+     * Create a LogLvl that contains two levels. At least one lvl has to be true
      */
     template<class OtherLogLvl >
-    LogLvl < (OtherLogLvl::lvl | lvl), membership_> operator+(const OtherLogLvl & other)
+    LogLvl < (OtherLogLvl::lvl | lvl), membership_> operator+(const OtherLogLvl&)
     {
         return LogLvl < (OtherLogLvl::lvl | lvl), membership_ > ();
     }
@@ -97,7 +97,7 @@ public:
     ~VerboseLog()
     {
         typedef LogLvl<(logLvl & LogParent::log_level), LogParent> LogClass;
-        /* check if bit in mask is set
+        /* check if a bit in the mask is set
          * If you get an linker error in the next two lines you have not used 
          * DEFINE_LOGLVL makro to define a named logLvl
          */
@@ -133,12 +133,12 @@ static verboseLog_detail::VerboseLog<LogLvl> log(const char* msg)
     return verboseLog_detail::VerboseLog<LogLvl > (msg);
 }
 
-/* version which allow combine of error levels
+/* version that allows to combine error levels
  * example call:
  * log(MYLOGLEVELS::CRITICAL+MYLOGLEVELS::MEMORY,"printf %2% stream %1%, number example %3%.") % "messages" % "style" % 5
  */
 template <class LogLvl>
-static verboseLog_detail::VerboseLog<LogLvl> log(const LogLvl lvl, const char* msg)
+static verboseLog_detail::VerboseLog<LogLvl> log(const LogLvl, const char* msg)
 {
     return verboseLog_detail::VerboseLog<LogLvl > (msg);
 }

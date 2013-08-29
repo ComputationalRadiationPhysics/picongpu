@@ -32,9 +32,9 @@ namespace picongpu
     {
         namespace none
         {
-            HDINLINE void addRGB( const float3_X& img,
-                                  const float_X value,
-                                  const float_X opacity )
+            HDINLINE void addRGB( const float3_X&,
+                                  const float_X,
+                                  const float_X )
             {
                 return;
             }

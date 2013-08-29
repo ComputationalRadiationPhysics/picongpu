@@ -153,7 +153,7 @@ public:
         DataSpace<simDim> gpus;
         DataSpace<simDim> isPeriodic;
 
-        for (int i = 0; i < (int) simDim; ++i)
+        for (uint32_t i = 0; i < simDim; ++i)
         {
             global_grid_size[i] = gridSize[i];
             gpus[i] = devices[i];
@@ -165,7 +165,7 @@ public:
         
         // calculate the number of local grid cells and
         // the local cell offset to the global box        
-        for (int dim = 0; dim < gridDistribution.size(); ++dim)
+        for (uint32_t dim = 0; dim < gridDistribution.size(); ++dim)
         {
             // parse string
             ParserGridDistribution parserGD( gridDistribution.at(dim) );
@@ -175,7 +175,7 @@ public:
             gridOffset[dim] = parserGD.getOffset( myGPUpos[dim], global_grid_size[dim] );
         }
         // by default: use an equal distributed box for all omitted params
-        for (int dim = gridDistribution.size(); dim < simDim; ++dim)
+        for (uint32_t dim = gridDistribution.size(); dim < simDim; ++dim)
         {
             gridSizeLocal[dim] = global_grid_size[dim] / gpus[dim];
             gridOffset[dim] = gridSizeLocal[dim] * myGPUpos[dim];
@@ -436,7 +436,7 @@ public:
 private:
 
     template<uint32_t DIM>
-    void checkGridConfiguration(DataSpace<DIM> globalGridSize, GridLayout<DIM> layout)
+    void checkGridConfiguration(DataSpace<DIM> globalGridSize, GridLayout<DIM>)
     {
         // global size must a devisor of supercell size
         // note: this is redundant, while using the local condition below
@@ -453,9 +453,9 @@ private:
         // local size must be at least 3 supercells (1x core + 2x border)
         // note: size of border = guard_size (in supercells)
         // \todo we have to add the guard_x/y/z for modified supercells here
-        assert(gridSizeLocal[0] / MappingDesc::SuperCellSize::x >= 3 * GUARD_SIZE);
-        assert(gridSizeLocal[1] / MappingDesc::SuperCellSize::y >= 3 * GUARD_SIZE);
-        assert(gridSizeLocal[2] / MappingDesc::SuperCellSize::z >= 3 * GUARD_SIZE);
+        assert( (uint32_t) gridSizeLocal[0] / MappingDesc::SuperCellSize::x >= 3 * GUARD_SIZE);
+        assert( (uint32_t) gridSizeLocal[1] / MappingDesc::SuperCellSize::y >= 3 * GUARD_SIZE);
+        assert( (uint32_t) gridSizeLocal[2] / MappingDesc::SuperCellSize::z >= 3 * GUARD_SIZE);
     }
 
 

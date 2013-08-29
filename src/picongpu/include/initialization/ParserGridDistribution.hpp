@@ -67,7 +67,7 @@ public:
         sum += iter->first * ( gpuPos + iter->second - i - 1 );
         
         // check total number of cells
-        int sumTotal = 0;
+        uint32_t sumTotal = 0;
         for( iter = parsedInput.begin(); iter != parsedInput.end(); ++iter )
             sumTotal += iter->first * iter->second;
         
