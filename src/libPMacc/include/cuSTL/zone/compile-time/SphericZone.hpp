@@ -45,6 +45,7 @@ struct SphericZone
 {
     typedef _Size Size;
     typedef _Offset Offset;
+    static const int dim = Size::dim;
 };
 
 } // CT
