@@ -21,8 +21,10 @@
 #pragma once
 
 #include "cuSTL/container/DeviceBuffer.hpp"
+#include "cuSTL/cursor/MultiIndexCursor.hpp"
 #include "math/vector/Int.hpp"
 #include "particles/access/Cell2Particle.hpp"
+#include "PhaseSpace.hpp"
 
 namespace picongpu
 {
@@ -50,8 +52,8 @@ namespace picongpu
                                  const std::pair<float_X, float_X>& axis_p_range )
         {
             const float_X mom       = particle[particleAccess::Mom()].get()[el_p];
-            const int r_bin         = particle[particleAccess::LocalCellIdx()].get()[Direction];
-            const float_X weighting = particle[particleAccess::Weight()];
+            const int r_bin         = 0;/*particle[particleAccess::LocalCellIdx()].get()[Direction];*/
+            /*const float_X weighting = particle[particleAccess::Weight()];*/
             /* float_X charge    = particle[particleAccess::Charge()];
                const float_X particleChargeDensity = charge / ( CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH );
              */
@@ -65,10 +67,12 @@ namespace picongpu
         }
     };
     
-    template<typename TParticlesBox, typename SuperCellSize, uint32_t p_bins, uint32_t Direction>
+    template<typename Species, typename SuperCellSize, uint32_t p_bins, uint32_t Direction>
     struct FunctorBlock
     {
         typedef void result_type;
+        
+        typedef typename Species::ParticlesBoxType TParticlesBox;
         
         TParticlesBox particlesBox;
         cursor::BufferCursor<float_X, 2> curOriginPhaseSpace;
@@ -85,54 +89,67 @@ namespace picongpu
         
         /** Called for the first cell of each block #-of-cells-in-block times
          */
-        DINLINE void operator()( const PMacc::math::Int<2>& indexBlockOffset )
+        DINLINE void operator()( const PMacc::math::Int<3>& indexBlockOffset )
         {
-            const math::Int<3> indexInBlock( threadIdx.x, threadIdx.y, threadIdx.z );
-            const math::Int<3> indexGlobal = indexBlockOffset + indexInBlock;
+            const PMacc::math::Int<3> indexInBlock( threadIdx.x, threadIdx.y, threadIdx.z );
+            const PMacc::math::Int<3> indexGlobal = indexBlockOffset + indexInBlock;
             
-            typedef PMacc::CT::Int<SuperCellSize::template at<Direction>::type::value, p_bins> dBufferSizeInBlock;
+            /* create shared mem */
+            const uint32_t blockCellsInDir = SuperCellSize::template at<Direction>::type::value;
+            typedef PMacc::math::CT::Int<blockCellsInDir, p_bins> dBufferSizeInBlock;
             container::CT::SharedBuffer<float_X, dBufferSizeInBlock > dBufferInBlock;
             
-            // init shared mem
-            using namespace lambda;
-            DECLARE_PLACEHOLDERS();
+            /* init shared mem */
             algorithm::cudaBlock::Foreach<SuperCellSize> forEachThreadInBlock;
-            forEachThreadInBlock( dBufferInBlock.zone(),
-                                  dBufferInBlock.origin(),
-                                  _1 = float_X(0.0) );
+            {
+                using namespace lambda;
+                DECLARE_PLACEHOLDERS();
+                forEachThreadInBlock( dBufferInBlock.zone(),
+                                      dBufferInBlock.origin(),
+                                      _1 = float_X(0.0) );
+            }
             __syncthreads();
 
             FunctorParticle<Direction, p_bins> functorParticle;
             particleAccess::Cell2Particle<SuperCellSize> forEachParticleInCell;
-            forEachParticleInCell( // mandatory params
+            forEachParticleInCell( /* mandatory params */
                                    particlesBox, indexGlobal, functorParticle,
-                                   // optional params
+                                   /* optional params */
                                    dBufferInBlock.origin(),
-                                   el_p,
+                                   p_element,
                                    axis_p_range
                                  );
             
             __syncthreads();
-            // add to global dBuffer
+            /* add to global dBuffer */
             forEachThreadInBlock( dBufferInBlock.zone(),
-                                  curOriginPhaseSpace(indexBlockOffset),
+                                  curOriginPhaseSpace(indexBlockOffset.x(), 0),
                                   dBufferInBlock.origin(),
                                   FunctorAtomicAdd() );
                                   
         }
     };
+    
+    
+    template<class AssignmentFunction, class Species>
+    PhaseSpace<AssignmentFunction, Species>::PhaseSpace( std::string name,
+                                                          std::string prefix ) :
+    cellDescription(NULL)
+    {   
+    }
 
     template<class AssignmentFunction, class Species>
     void PhaseSpace<AssignmentFunction, Species>::moduleLoad()
     {
-        DataConnector::getInstance().registerObserver(this, this->notifyFrequency);
-        this->particles = &(dc.getData<ParticlesType > ((uint32_t) ParticlesType::FrameType::CommunicationTag, true));
+        DataConnector &dc = DataConnector::getInstance( );
+        dc.registerObserver(this, this->notifyPeriod);
+        this->particles = &(dc.getData<Species > ((uint32_t) Species::FrameType::CommunicationTag, true));
         
         const uint32_t r_element = this->axis_element.first;
         
-        // CORE + BORDER + GUARD elements for spatial bins
+        /* CORE + BORDER + GUARD elements for spatial bins */
         this->r_bins = SuperCellSize().vec()[r_element]
-                              * this->cellDescription->getGridSuperCells()[r_element];
+                     * this->cellDescription->getGridSuperCells()[r_element];
         
         
         this->dBuffer = new container::DeviceBuffer<float_X, 2>( r_bins, this->p_bins );
@@ -144,27 +161,42 @@ namespace picongpu
         __delete( this->dBuffer );
     }
 
+    template<class AssignmentFunction, class Species>
+    void PhaseSpace<AssignmentFunction, Species>::moduleRegisterHelp(po::options_description& desc)
+    {
+        desc.add_options()
+            ((prefix + ".period").c_str(),
+             po::value<uint32_t > (&notifyPeriod)->default_value(0), "enable analyser [for each n-th step]");
+    }
+
+    template<class AssignmentFunction, class Species>
+    std::string PhaseSpace<AssignmentFunction, Species>::moduleGetName() const
+    {
+        return this->name;
+    }
+
     template<class AssignmentFunction, class Species >
     template<uint32_t Direction>
     void PhaseSpace<AssignmentFunction, Species>::calcPhaseSpace( )
     {
-        const math::Int<3> guardCells = GUARD_SIZE * SuperCellSize;
+        const PMacc::math::Int<3> guardCells = SuperCellSize().vec() * size_t(GUARD_SIZE);
         
-        // select CORE + BORDER for all cells
-        // CORE + BORDER is contigous, Heiko calls this a topological spheric zone
+        /* select CORE + BORDER for all cells
+         * CORE + BORDER is contiguous, Heiko calls this a "topological spheric zone"
+         */
         zone::SphericZone<3> zoneCoreBorder( this->cellDescription->getGridSuperCells(), guardCells );
 
         algorithm::kernel::ForeachBlock<SuperCellSize> forEachSuperCell;
         
-        FunctorBlock<TParticlesBox, SuperCellSize, p_bins, Direction> functorBlock(
+        FunctorBlock<Species, SuperCellSize, p_bins, Direction> functorBlock(
             this->particles->getDeviceParticlesBox(), dBuffer->origin(),
             this->axis_element.second, this->axis_p_range );
         
         
-        forEachSuperCell( // area to work on
+        forEachSuperCell( /* area to work on */
                           zoneCoreBorder,
-                          // data below
-                          make_MultiIndexCursor(),
+                          /* data below */
+                          cursor::make_MultiIndexCursor<3>(),
                           functorBlock
                         );
     }
@@ -172,13 +204,22 @@ namespace picongpu
     template<class AssignmentFunction, class Species>
     void PhaseSpace<AssignmentFunction, Species>::notify( uint32_t currentStep )
     {
-        this->dBuffer->assign(float_X(0.0) );
+        this->dBuffer->assign( float_X(0.0) );
         
-        if( this->axis_element.first() == element_coordinate::x )
-            calcPhaseSpace<element_coordinate::x>();
-        else if( this->axis_element.first() == element_coordinate::y )
-            calcPhaseSpace<element_coordinate::y>();
+        typedef PhaseSpace<AssignmentFunction, Species> self;
+        
+        if( this->axis_element.first == self::x )
+            calcPhaseSpace<self::x>();
+        else if( this->axis_element.first == self::y )
+            calcPhaseSpace<self::y>();
         else
-            calcPhaseSpace<element_coordinate::z>();
+            calcPhaseSpace<self::z>();
+    }
+    
+    template<class AssignmentFunction, class Species>
+    void PhaseSpace<AssignmentFunction, Species>::setMappingDescription(
+        MappingDesc* cellDescription )
+    {
+        this->cellDescription = cellDescription;
     }
 }

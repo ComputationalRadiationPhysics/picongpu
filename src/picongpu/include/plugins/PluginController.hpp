@@ -173,10 +173,12 @@ private:
         plugins.push_back(new adios::ADIOSWriter());
 #endif
 #endif
-            
+
         plugins.push_back(new EnergyFields("EnergyFields", "energy_fields"));
         plugins.push_back(new SumCurrents());
         plugins.push_back(new LineSliceFields());
+        // speciesParticleShape::ParticleShape::ChargeAssignment
+        modules.push_back(new PhaseSpace<particleShape::Counter::ChargeAssignment, PIC_Electrons>("PhaseSpace", "ps"));
 
 #if(SIMDIM==DIM3)
         plugins.push_back(new FieldEnergy("FieldEnergy [keV/m^3]", "field_energy"));

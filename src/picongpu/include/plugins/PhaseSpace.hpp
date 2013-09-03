@@ -36,20 +36,21 @@ namespace picongpu
     namespace po = boost::program_options;
 
     template<class AssignmentFunction, class Species>
-    class PhaseSpace : public ISimulationIO
+    class PhaseSpace : public ISimulationIO, public IPluginModule
     {
     private:
         std::string name;
         std::string prefix;
-        uint32_t notifyFrequency;
+        uint32_t notifyPeriod;
         Species *particles;
+        MappingDesc *cellDescription;
         
         // plot to create: e.g. x, py from element_coordinate/momentum
         std::pair<uint32_t, uint32_t> axis_element;
         std::pair<float_X, float_X> axis_p_range;
-        static const uint32_t p_bins = 1024;
         uint32_t r_bins;
         
+        static const uint32_t p_bins = 1024;
         container::DeviceBuffer<float_X, 2>* dBuffer;
 
         void moduleLoad();
@@ -63,13 +64,12 @@ namespace picongpu
         enum element_momentum
         { px = 0u, py = 1u, pz = 2u };
         
-        //PhaseSpace( std::string name, std::string prefix );
-        //virtual ~PhaseSpace() {}
+        PhaseSpace( std::string name, std::string prefix );
 
         void notify( uint32_t currentStep );
         template<uint32_t Direction>
         void calcPhaseSpace( );
-        void setMappingDescription( MappingDesc* ) {}
+        void setMappingDescription( MappingDesc* cellDescription);
         void moduleRegisterHelp( po::options_description& desc );
         std::string moduleGetName() const;
     };
