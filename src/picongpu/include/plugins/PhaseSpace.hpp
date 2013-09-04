@@ -21,8 +21,9 @@
 #pragma once
 
 #include "dataManagement/ISimulationIO.hpp"
-//#include "plugins/IPluginModule.hpp"
+#include "plugins/IPluginModule.hpp"
 #include "cuSTL/container/DeviceBuffer.hpp"
+#include "cuSTL/container/HostBuffer.hpp"
 #include "math/vector/compile-time/Size_t.hpp"
 
 #include <boost/program_options/options_description.hpp>
@@ -56,6 +57,7 @@ namespace picongpu
         void moduleLoad();
         void moduleUnload();
         
+        typedef PhaseSpace<AssignmentFunction, Species> self;
         typedef PMacc::math::CT::Size_t<TILE_WIDTH, TILE_HEIGHT, TILE_DEPTH> SuperCellSize;
         
     public:
@@ -65,6 +67,7 @@ namespace picongpu
         { px = 0u, py = 1u, pz = 2u };
         
         PhaseSpace( std::string name, std::string prefix );
+        virtual ~PhaseSpace(){}
 
         void notify( uint32_t currentStep );
         template<uint32_t Direction>

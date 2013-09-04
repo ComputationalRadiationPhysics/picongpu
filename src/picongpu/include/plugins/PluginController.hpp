@@ -115,6 +115,8 @@ private:
     typedef PngPlugin<ElectronsPngBuilder > PngImageElectrons;
 #endif
     typedef ParticleDensity<PIC_Electrons, DensityToBinary, float_X> ElectronsBinaryDensityBuilder;
+    /* speciesParticleShape::ParticleShape::ChargeAssignment */
+    typedef PhaseSpace<particleShape::Counter::ChargeAssignment, PIC_Electrons> PhaseSpaceElectrons;
 
 #if(SIMDIM==DIM3)
 #if(PIC_ENABLE_PNG==1)
@@ -177,8 +179,7 @@ private:
         plugins.push_back(new EnergyFields("EnergyFields", "energy_fields"));
         plugins.push_back(new SumCurrents());
         plugins.push_back(new LineSliceFields());
-        // speciesParticleShape::ParticleShape::ChargeAssignment
-        modules.push_back(new PhaseSpace<particleShape::Counter::ChargeAssignment, PIC_Electrons>("PhaseSpace", "ps"));
+        modules.push_back(new PhaseSpaceElectrons("PhaseSpace_e", "ps"));
 
 #if(SIMDIM==DIM3)
         plugins.push_back(new FieldEnergy("FieldEnergy [keV/m^3]", "field_energy"));
