@@ -56,7 +56,8 @@ We recomment to install at least **pngwriter**.
       [PNGWRITER\_ROOT](#additional-required-environment-variables-for-optional-libraries)
       to `$HOME/lib/pngwriter`
 
-- **libSplash** (requires *hdf5*)
+- **libSplash** (requires *hdf5*, *boost program-options*)
+    - *Debian/Ubuntu dependencies:* `sudo apt-get install libhdf5-openmpi-dev libboost-program-options-dev`
     - example:
       - `mkdir -p ~/src ~/build ~/lib`
       - `git clone https://github.com/ComputationalRadiationPhysics/libSplash.git ~/src/splash/`
