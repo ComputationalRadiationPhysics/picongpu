@@ -155,7 +155,7 @@ namespace picongpu
         ModuleConnector::getInstance().registerModule(this);
 
         this->axis_p_range = std::make_pair( -1., 1. );
-        this->axis_element = std::make_pair( self::x, self::px );
+        this->axis_element = std::make_pair( self::y, self::px );
         this->notifyPeriod = 1;
     }
 
@@ -201,27 +201,58 @@ namespace picongpu
     void PhaseSpace<AssignmentFunction, Species>::calcPhaseSpace( )
     {
         const PMacc::math::Int<3> guardCells = SuperCellSize().vec() * size_t(GUARD_SIZE);
-        
+        const PMacc::math::Size_t<3> coreBorderSuperCells( this->cellDescription->getGridSuperCells() - 2*int(GUARD_SIZE) );
+        const PMacc::math::Size_t<3> coreBorderCells( coreBorderSuperCells.x() * SuperCellSize().vec().x(),
+                                                      coreBorderSuperCells.y() * SuperCellSize().vec().y(),
+                                                      coreBorderSuperCells.z() * SuperCellSize().vec().z() );
+
         /* select CORE + BORDER for all cells
          * CORE + BORDER is contiguous, Heiko calls this a "topological spheric zone"
          */
-        zone::SphericZone<3> zoneCoreBorder( this->cellDescription->getGridSuperCells(), guardCells );
+        std::cout << coreBorderCells << " | " << guardCells << std::endl;
+        zone::SphericZone<3> zoneCoreBorder( coreBorderCells, guardCells );
 
         algorithm::kernel::ForeachBlock<SuperCellSize> forEachSuperCell;
         
         FunctorBlock<Species, SuperCellSize, p_bins, Direction> functorBlock(
             this->particles->getDeviceParticlesBox(), dBuffer->origin(),
             this->axis_element.second, this->axis_p_range );
-        
-        
+
         forEachSuperCell( /* area to work on */
                           zoneCoreBorder,
-                          /* data below */
+                          /* data below - passed to functor operator() */
                           cursor::make_MultiIndexCursor<3>(),
                           functorBlock
                         );
     }
+
+    struct PrintIdx
+    {
+        typedef void result_type;
+
+        DINLINE void operator()(const PMacc::math::Int<3> i) const
+        {
+            printf("%d,%d,%d\n", i.x(), i.y(), i.z());
+        }
+    };
     
+    struct SetVal
+    {
+        typedef void result_type;
+
+        cursor::BufferCursor<float_X, 2> curOriginPhaseSpace;
+        float_X val;
+
+        SetVal( cursor::BufferCursor<float_X, 2> cur, float_X v ) :
+        curOriginPhaseSpace(cur), val(v)
+        {}
+
+        DINLINE void operator()(const PMacc::math::Int<2> idx) const
+        {
+            *curOriginPhaseSpace(idx) = val;
+        }
+    };
+
     template<class AssignmentFunction, class Species>
     void PhaseSpace<AssignmentFunction, Species>::notify( uint32_t currentStep )
     {
@@ -236,10 +267,27 @@ namespace picongpu
         //this->dBuffer->assign( float_X(0.0) );
         {
             using namespace lambda;
-            algorithm::kernel::Foreach<PMacc::math::CT::Size_t<16, 16, 1> > forEachAssign;
+            DECLARE_PLACEHOLDERS();
+            /*
+             * matrix: x - elements in r_dir
+             *         y - elements for p_bin - divisor of this->pbins
+             */
+            typedef typename PMacc::math::CT::Int<1, 1, 1> assignBlock;
+            algorithm::kernel::Foreach<assignBlock > forEachAssign;
+            SetVal functorSetVal(this->dBuffer->origin(), 0.0);
+            forEachAssign( /* area to work on */
+                           this->dBuffer->zone(),
+                           /* data below - passed to functor operator() */
+                           cursor::make_MultiIndexCursor<2>(),
+                           /* functor */
+                           functorSetVal);
+            /*
+            std::cout << this->dBuffer->zone().size << " | " << this->dBuffer->zone().offset << std::endl;
+            algorithm::kernel::Foreach<PMacc::math::CT::Size_t<1, 1, 1> > forEachAssign;
             forEachAssign( this->dBuffer->zone(),
-                           this->dBuffer->origin(),
-                           _1 = float_X(0.0) );
+                           cursor::make_MultiIndexCursor<3>(),
+                           PrintIdx());
+             */
         }
 
         std::cout << "[PhaseSpace] calc" << std::endl;
