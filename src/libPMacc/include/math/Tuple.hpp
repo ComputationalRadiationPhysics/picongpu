@@ -54,6 +54,16 @@ namespace math
     { \
         BOOST_STATIC_ASSERT(dim == N); \
     }
+    
+#define CONSTRUCTOR_LVALUE(Z, N, _) \
+    template<BOOST_PP_ENUM_PARAMS(N, typename Arg)> \
+    HDINLINE \
+    Tuple(BOOST_PP_ENUM_BINARY_PARAMS(N, Arg, &arg)) \
+    : value(arg0), \
+      base(BOOST_PP_ENUM_SHIFTED_PARAMS(N, arg)) \
+    { \
+        BOOST_STATIC_ASSERT(dim == N); \
+    }
 
     
 namespace mpl = boost::mpl;
@@ -75,18 +85,24 @@ private:
     typedef Tuple<typename mpl::pop_front<TypeList>::type> base;
     
     typedef typename mpl::front<TypeList>::type Value;
+    typedef typename boost::remove_reference<Value>::type pureValue;
     
     Value value;
 public:
     HDINLINE Tuple() {}
     
-    template<typename Arg0>
-    HDINLINE Tuple(const Arg0& arg0) : value(arg0) 
+    HDINLINE Tuple(const pureValue& arg0) : value(arg0) 
+    {
+        BOOST_STATIC_ASSERT(dim == 1);
+    }
+    
+    HDINLINE Tuple(pureValue& arg0) : value(arg0) 
     {
         BOOST_STATIC_ASSERT(dim == 1);
     }
     
     BOOST_PP_REPEAT_FROM_TO(2, BOOST_PP_INC(TUPLE_MAX_DIM), CONSTRUCTOR, _)
+    BOOST_PP_REPEAT_FROM_TO(2, BOOST_PP_INC(TUPLE_MAX_DIM), CONSTRUCTOR_LVALUE, _)
     
     template<int i>
     HDINLINE 
@@ -139,6 +155,7 @@ public:
 };
 
 #undef CONSTRUCTOR
+#undef CONSTRUCTOR_LVALUE
 
 #define MAKE_TUPLE(Z, N, _) \
     template<BOOST_PP_ENUM_PARAMS(N, typename Value)> \
