@@ -70,7 +70,7 @@ namespace result_of
         typedef math::Tuple<mpl::vector<BOOST_PP_ENUM_PARAMS(N, Arg)> > ArgTuple; \
         typedef typename lambda::CT::result_of::Eval<Expr, ArgTuple>::type type; \
     };
-    
+
 BOOST_PP_REPEAT_FROM_TO(1, LAMBDA_MAX_PARAMS, FUNCTOR, _)
 #undef FUNCTOR
 
@@ -88,32 +88,35 @@ struct ExprFunctor
     typedef typename math::Tuple<
         typename CT::TerminalTL<Expr>::type> TerminalTuple;
     typedef CT::Expression<Expr, 0> CTExpr;
-        
+
     TerminalTuple terminalTuple;
-    
+
     HDINLINE
     ExprFunctor() {};
-    
+
     HDINLINE
     ExprFunctor(const Expr& expr)
     {
         CT::FillTerminalList<Expr, CTExpr>()(expr, this->terminalTuple);
     }
-    
+
+    #define REF_TYPE_LIST(Z, N, _) Arg ## N &
+
     #define OPERATOR_CALL(Z,N,_) \
         template<BOOST_PP_ENUM_PARAMS(N, typename Arg)> \
         HDINLINE \
         typename ::PMacc::result_of::Functor<ExprFunctor<Expr>, BOOST_PP_ENUM_PARAMS(N, Arg)>::type \
         operator()(BOOST_PP_ENUM_BINARY_PARAMS(N, Arg, &arg)) const \
         { \
-            typedef math::Tuple<mpl::vector<BOOST_PP_ENUM_PARAMS(N, Arg)> > ArgTuple; \
+            typedef math::Tuple<mpl::vector<BOOST_PP_ENUM(N, REF_TYPE_LIST, _)> > ArgTuple; \
             ArgTuple args(BOOST_PP_ENUM_PARAMS(N, arg)); \
             return CT::Eval<CTExpr>()(this->terminalTuple, args); \
         }
-    
+
     BOOST_PP_REPEAT_FROM_TO(1, LAMBDA_MAX_PARAMS, OPERATOR_CALL, _)
-    
+
     #undef OPERATOR_CALL
+    #undef REF_TYPE_LIST
 };
 
 namespace result_of
