@@ -40,7 +40,18 @@ namespace PMacc
 {
 namespace container
 {
-    
+
+/** Implementation of a box-shaped (cartesian) container type.
+ * Holds a reference counter so one can have several containers sharing one buffer.
+ * Is designed to be an RAII class, but does not fully obey the RAII rules (see copy-ctor).
+ * The way memory gets allocated, copied and assigned is
+ * fully controlled by three policy classes.
+ * \tparam Type type of a single value
+ * \tparam _dim dimension of the container
+ * \tparam Allocator allocates and releases memory
+ * \tparam Copier copies one memory buffer to another
+ * \tparam Assigner assigns a value to every datum of a memory buffer
+ */
 template<typename Type, int _dim, typename Allocator = allocator::EmptyAllocator, 
                                   typename Copier = mpl::void_, 
                                   typename Assigner = mpl::void_>
@@ -61,37 +72,56 @@ public:
     HDINLINE void exit();
     HDINLINE CartBuffer() {}
 private:
+    /* makes this class able to emulate a r-value reference */
     BOOST_COPYABLE_AND_MOVABLE(This)
 public:
     HDINLINE CartBuffer(const math::Size_t<dim>& size);
     HDINLINE CartBuffer(size_t x);
     HDINLINE CartBuffer(size_t x, size_t y);
     HDINLINE CartBuffer(size_t x, size_t y, size_t z);
+    /* the copy constructor just increments the reference counter but does not copy memory */
     HDINLINE CartBuffer(const This& other);
+    /* the move constructor has currently the same behavior as the copy constructor */
     HDINLINE CartBuffer(BOOST_RV_REF(This) other);
     HDINLINE ~CartBuffer();
     
+    /* copy another container into this one (hard data copy) */
     HDINLINE This& 
     operator=(const This& rhs);
+    /* use the memory from another container and increment the reference counter */
     HDINLINE This& 
     operator=(BOOST_RV_REF(This) rhs);
     
+    /* get a view. Views represent a clipped area of the container.
+     * \param a Top left corner of the view, inside the view. 
+     * Negative values are remapped, e.g. Int<2>(-1,-2) == Int<2>(width-1, height-2)
+     * \param b Bottom right corner of the view, outside the view. 
+     * Values are remapped, so that Int<2>(0,0) == Int<2>(width, height)
+     */
     HDINLINE View<This>
         view(math::Int<dim> a = math::Int<dim>(0),
              math::Int<dim> b = math::Int<dim>(0)) const;
     
+    /* assign value to each datum */
     PMACC_NO_NVCC_HDWARNING
     HDINLINE void assign(const Type& value);
-    HDINLINE Type* getDataPointer() const {return dataPointer;}
-    
+
+    /* get a cursor at the container's origin cell */
     HDINLINE cursor::BufferCursor<Type, dim> origin() const;
+    /* get a safe cursor at the container's origin cell */
     HDINLINE cursor::SafeCursor<cursor::BufferCursor<Type, dim> > originSafe() const;
+    /* get a component-twisted cursor at the container's origin cell 
+     * \param axes x-axis -> axes[0], y-axis -> axes[1], ...
+     * */
     HDINLINE cursor::Cursor<cursor::PointerAccessor<Type>, cursor::CartNavigator<dim>, char*>
     originCustomAxes(const math::UInt<dim>& axes) const;
     
+    /* get a zone spanning the whole container */
+    HDINLINE zone::SphericZone<dim> zone() const;
+    
+    HDINLINE Type* getDataPointer() const {return dataPointer;}
     HDINLINE math::Size_t<dim> size() const {return this->_size;}
     HDINLINE math::Size_t<dim-1> getPitch() const {return this->pitch;}
-    HDINLINE zone::SphericZone<dim> zone() const;
 };
  
 } // container

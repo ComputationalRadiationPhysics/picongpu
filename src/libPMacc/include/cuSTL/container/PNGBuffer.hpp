@@ -36,6 +36,9 @@ namespace PMacc
 namespace container
 {
     
+/** Think of a container being a PNG-image
+ * offers only write-only access
+ */ 
 class PNGBuffer
 {
 private:
@@ -73,14 +76,24 @@ private:
 public:
     typedef cursor::Cursor<PNGBuffer::Accessor, cursor::MultiIndexNavigator<2>, math::Int<2> > Cursor;
 
+    /* constructor
+     * \param x width of png image
+     * \param y height of png image
+     * \name name of png file
+     */
     PNGBuffer(int x, int y, const std::string& name) : png(x, y, 0.0, name.data()), size(x,y) {}
     PNGBuffer(math::Size_t<2> size, const std::string& name) : png(size.x(), size.y(), 0.0, name.data()), size(size) {}
     ~PNGBuffer() {png.close();}
 
+    /* get a cursor at the top left pixel
+     * access via a Float<3> reference
+     */
     inline Cursor origin()
     {
         return Cursor(Accessor(this->png), cursor::MultiIndexNavigator<2>(), math::Int<2>(0));
     }
+    
+    /* get a zone spanning the whole container */
     inline zone::SphericZone<2> zone() const {return zone::SphericZone<2>(this->size);}
 };
     

@@ -34,7 +34,12 @@ namespace PMacc
 {
 namespace container
 {
-    
+
+/** typedef version of a CartBuffer for a CPU.
+ * Additional feature: Able to copy data from a DeviceBuffer
+ * \tparam Type type of a single datum
+ * \tparam dim Dimension of the container
+ */
 template<typename Type, int dim>
 class HostBuffer
  : public CartBuffer<Type, dim, allocator::HostMemAllocator<Type, dim>, 
