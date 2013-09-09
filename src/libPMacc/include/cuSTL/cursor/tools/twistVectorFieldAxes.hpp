@@ -45,6 +45,17 @@ struct TwistVectorFieldAxes
     
 } // result_of
   
+/** Returns a new cursor which looks like a vector field rotated version of the one passed
+ * 
+ * When rotation a vector field in physics the coordinate system and the vectors themselves
+ * have to be rotated. This is the idea behind this function. It is assuming that the cursor
+ * which is passed returns in its access call a vector type of the same dimension as in
+ * the jumping call. In other words, the field and the vector have the same dimension.
+ * 
+ *  * \tparam Axes compile-time vector that descripes the mapping.
+ * x-axis -> Axes::at<0>, y-axis -> Axes::at<1>, ...
+ * 
+ */
 template<typename Axes, typename TCursor>
 HDINLINE
 typename result_of::TwistVectorFieldAxes<Axes, TCursor>::type

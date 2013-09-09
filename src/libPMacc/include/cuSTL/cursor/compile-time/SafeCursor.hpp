@@ -32,6 +32,9 @@ namespace cursor
 namespace CT
 {
 
+/** Compile-time version of cursor::SafeCursor where LowerExtent and UpperExtent are
+ * compile-time vectors.
+ */
 template<typename Cursor, typename LowerExtent, typename UpperExtent>
 class SafeCursor : public Cursor
 {

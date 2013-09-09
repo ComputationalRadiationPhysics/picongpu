@@ -33,10 +33,23 @@ namespace PMacc
 namespace cursor
 {
     
+/** The most common cursor typedef
+ * 
+ * BufferCursor does access and jumping on a box-shaped memory buffer.
+ * 
+ * \tparam Type type of a single datum
+ * \tparam dim dimension of the memory buffer
+ */
 template<typename Type, int dim>
 struct BufferCursor
  : public Cursor<PointerAccessor<Type>, BufferNavigator<dim>, Type*>
 {
+    /* \param pointer data pointer
+     * \param pitch pitch of the memory buffer
+     * pitch is a Size_t vector with one dimension less than dim
+     * pitch[0] is the distance in bytes to the incremented y-coordinate
+     * pitch[1] is the distance in bytes to the incremented z-coordiante
+     */
     HDINLINE
     BufferCursor(Type* pointer, math::Size_t<dim-1> pitch) 
      : Cursor<PointerAccessor<Type>, BufferNavigator<dim>, Type*>
@@ -49,7 +62,8 @@ struct BufferCursor
 
 namespace traits
 {
-    
+
+/* type trait to get the BufferCursor's dimension if it has one */
 template<typename Type, int _dim>
 struct dim<BufferCursor<Type, _dim> >
 {

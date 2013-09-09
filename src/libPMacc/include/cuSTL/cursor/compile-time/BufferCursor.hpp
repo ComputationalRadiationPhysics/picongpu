@@ -34,6 +34,8 @@ namespace cursor
 namespace CT
 {
     
+/** Compile-time version of cursor::BufferCursor where pitch is a compile-time vector
+ */
 template<typename Type, typename Pitch>
 struct BufferCursor : public Cursor<PointerAccessor<Type>,
                                    CT::BufferNavigator<Pitch>, Type*>

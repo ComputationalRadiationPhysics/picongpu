@@ -32,7 +32,16 @@ namespace cursor
 {
 namespace tools
 {
-  
+
+/** Returns a new cursor which looks like a rotated version of the one passed.
+ * 
+ * The new cursor wraps the one that is passed. In the new cursor's navigator
+ * the components of the passed int-vector are reordered according to the Axes
+ * parameter and then passed to the nested cursor.
+ * 
+ * \tparam Axes compile-time vector that descripes the mapping.
+ * x-axis -> Axes::at<0>, y-axis -> Axes::at<1>, ...
+ */
 template<typename Axes, typename TCursor>
 HDINLINE
 Cursor<CursorAccessor<TCursor>, CT::TwistAxesNavigator<Axes>, TCursor>
