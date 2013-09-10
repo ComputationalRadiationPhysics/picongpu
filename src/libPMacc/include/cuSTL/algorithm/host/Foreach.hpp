@@ -95,18 +95,18 @@ namespace detail
     struct GetMax<2u>
     {
         template<typename Zone>
-        const math::Int<2u> operator()(const Zone _zone) const
+        const math::Int<3u> operator()(const Zone _zone) const
         {
-            return math::Int<2u>(_zone.size.x(), _zone.size.y(), 1);
+            return math::Int<3u>(_zone.size.x(), _zone.size.y(), 1);
         }
     };
     template<>
     struct GetMax<1u>
     {
         template<typename Zone>
-        const math::Int<1u> operator()(const Zone _zone) const
+        const math::Int<3u> operator()(const Zone _zone) const
         {
-            return math::Int<1u>(_zone.size.x(), 1, 1);
+            return math::Int<3u>(_zone.size.x(), 1, 1);
         }
     };
 } // namespace detail
