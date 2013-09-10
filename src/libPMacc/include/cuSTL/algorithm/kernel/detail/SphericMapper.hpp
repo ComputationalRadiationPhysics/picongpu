@@ -33,7 +33,7 @@ namespace kernel
 {
 namespace detail
 {
-    
+
 template<int dim, typename BlockDim>
 class SphericMapper;
 
@@ -48,14 +48,14 @@ public:
     {
         return dim3(size.x() / BlockDim::x::value, 1, 1);
     }
-    
+
     HDINLINE
     math::Int<1> operator()(const math::Int<1>& _blockIdx,
                               const math::Int<1>& _threadIdx) const
     {
         return _blockIdx.x() * BlockDim::x::value + _threadIdx.x();
     }
-    
+
     HDINLINE
     math::Int<1> operator()(const dim3& _blockIdx, const dim3& _threadIdx = dim3(0,0,0)) const
     {
@@ -69,9 +69,9 @@ class SphericMapper<2, BlockDim>
 {
 public:
     static const int dim = 2;
-    
+
     SphericMapper(math::Size_t<2>) {}
-    
+
     dim3 cudaGridDim(const math::Size_t<2>& size) const
     {
         return dim3(size.x() / BlockDim::x::value,
@@ -85,7 +85,7 @@ public:
         return math::Int<2>( _blockIdx.x() * BlockDim::x::value + _threadIdx.x(),
                              _blockIdx.y() * BlockDim::y::value + _threadIdx.y() );
     }
-    
+
     HDINLINE
     math::Int<2> operator()(const dim3& _blockIdx, const dim3& _threadIdx = dim3(0,0,0)) const
     {
@@ -116,11 +116,9 @@ public:
     math::Int<3> operator()(const math::Int<3>& _blockIdx,
                              const math::Int<3>& _threadIdx) const
     {
-        return math::Int<3>( _blockIdx.x() * BlockDim::x::value + _threadIdx.x(),
-                             _blockIdx.y() * BlockDim::y::value + _threadIdx.y(),
-                             _blockIdx.z() * BlockDim::z::value + _threadIdx.z() );
+        return math::Int<3>( _blockIdx * (math::Int<3>)BlockDim().vec() + _threadIdx );
     }
-    
+
     HDINLINE
     math::Int<3> operator()(const dim3& _blockIdx, const dim3& _threadIdx = dim3(0,0,0)) const
     {
