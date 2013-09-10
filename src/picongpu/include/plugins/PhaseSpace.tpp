@@ -22,7 +22,13 @@
 
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "cuSTL/cursor/MultiIndexCursor.hpp"
+#include "cuSTL/algorithm/kernel/Foreach.hpp"
+#include "cuSTL/algorithm/kernel/ForeachBlock.hpp"
+#include "cuSTL/algorithm/mpi/Gather.hpp"
+#include "cuSTL/algorithm/mpi/Reduce.hpp"
+#include "cuSTL/algorithm/host/Foreach.hpp"
 #include "math/vector/Int.hpp"
+#include "math/vector/Size_t.hpp"
 #include "particles/access/Cell2Particle.hpp"
 #include "PhaseSpace.hpp"
 
@@ -243,18 +249,16 @@ namespace picongpu
         /* reset device buffer
          * this->dBuffer->assign( float_X(0.0) );
          */
-        {
-            using namespace lambda;
-            typedef typename PMacc::math::CT::Int<1, 1, 1> assignBlock;
-            algorithm::kernel::Foreach<assignBlock > forEachAssign;
+        using namespace lambda;
+        typedef typename PMacc::math::CT::Int<1, 1, 1> assignBlock;
+        algorithm::kernel::Foreach<assignBlock > forEachAssign;
 
-            forEachAssign( /* area to work on */
-                           this->dBuffer->zone(),
-                           /* data below - passed to functor operator() */
-                           this->dBuffer->origin(),
-                           /* functor */
-                           _1 = float_X(0.0));
-        }
+        forEachAssign( /* area to work on */
+                       this->dBuffer->zone(),
+                       /* data below - passed to functor operator() */
+                       this->dBuffer->origin(),
+                       /* functor */
+                       _1 = float_X(0.0));
 
         std::cout << "[PhaseSpace] calc" << std::endl;
         /* calc local phase space */
@@ -270,17 +274,83 @@ namespace picongpu
         container::HostBuffer<float_X, 2> hBuffer( this->dBuffer->size() );
         hBuffer = *this->dBuffer;
 
+        std::cout << "[PhaseSpace] Reduce plane" << std::endl;
         /* reduce-add phase space from other GPUs in range [r;r+dr]x[p0;p1]
          * to "lowest" node in range
          * e.g.: phase space x-py: reduce-add all nodes with same x range in
          *                         spatial y and z direction to node with
          *                         lowest y and z position and same x range
          */
+        PMacc::GridController<simDim>& gc = PMacc::GridController<simDim>::getInstance();
+        PMacc::math::Size_t<simDim> gpuDim = gc.getGpuNodes();
+        PMacc::math::Int<simDim> gpuPos = gc.getPosition();
 
-
-        /* gather the full phase space with range [0;rMax]x[p0;p1]
-         * to rank 0
+        /* my plane means: the r_element I am calculating should be 1GPU in width */
+        PMacc::math::Size_t<simDim> transversalPlane(gpuDim);
+        transversalPlane[this->axis_element.first] = 1;
+        /* my plane means: the offset for the transversal plane to my r_element
+         * should be zero
          */
+        PMacc::math::Int<simDim> longOffset(0);
+        longOffset[this->axis_element.first] = gpuPos[this->axis_element.first];
+
+        zone::SphericZone<simDim> zoneTransversalPlane( transversalPlane, longOffset );
+
+        /* Am I the lowest GPU in my plane? */
+        PMacc::math::Int<simDim> planePos(gpuPos);
+        planePos[this->axis_element.first] = 0;
+        const bool isLowestGPUinPlane = ( planePos == PMacc::math::Int<simDim>(0) );
+        
+        algorithm::mpi::Reduce<simDim> planeReduce( zoneTransversalPlane, isLowestGPUinPlane );
+        container::HostBuffer<float_X, 2> hReducedBuffer( hBuffer.size() );
+        planeReduce( /* dst, src */
+                     hReducedBuffer,
+                     hBuffer,
+                     /* the functors return value will be written to dst */
+                     _1 + _2 );
+
+        /** all non-reduce-root processes are done now */
+        if( !isLowestGPUinPlane )
+            return;
+
+        std::cout << "[PhaseSpace] Communicate and add GUARDS (todo)" << std::endl;
+        /** \todo communicate GUARD and add it to the two neighbors BORDER */
+        PMacc::SubGrid<simDim>& sg = PMacc::SubGrid<simDim>::getInstance();
+        container::HostBuffer<float_X, 2> hReducedBuffer_noGuard( sg.getSimulationBox().getLocalSize()[this->axis_element.first],
+                                                                  this->p_bins );
+        algorithm::host::Foreach forEachCopyWithoutGuard;
+        forEachCopyWithoutGuard(/* area to work on */
+                                hReducedBuffer_noGuard.zone(),
+                                /* data below - passed to functor operator() */
+                                hReducedBuffer.origin()(SuperCellSize().vec()[this->axis_element.first] * GUARD_SIZE, 0),
+                                hReducedBuffer_noGuard.origin(),
+                                /* functor */
+                                _2 = _1);
+
+        std::cout << "[PhaseSpace] Gather Full PhaseSpace" << std::endl;
+        /* gather the full phase space with range [0;rMax]x[p0;p1]
+         * to rank 0 or write in a parallel file
+         */
+        PMacc::math::Size_t<simDim> longDim(1);
+        longDim[this->axis_element.first] = gpuDim[this->axis_element.first];
+        zone::SphericZone<simDim> zoneDecomposedSpace( longDim );
+        
+        /** \fixme should be a gather_v to support adaptive meshes */
+        algorithm::mpi::Gather<simDim> gatherFullSpace( zoneDecomposedSpace );
+
+        container::HostBuffer<float_X, 2> hFullBuffer( sg.getSimulationBox().getGlobalSize()[this->axis_element.first],
+                                                       this->p_bins );
+
+        gatherFullSpace( /* dst, src */
+                         hFullBuffer,
+                         hReducedBuffer_noGuard,
+                         /* normal vector to plane I reduce */
+                         (this->axis_element.first + 1) % 3
+                         );
+        
+        /** Only lowest rank writes to text file */
+        if( !gatherFullSpace.root() )
+            return;
 
         std::cout << "[PhaseSpace] write to file" << std::endl;
         /* write full phase space from rank 0
@@ -288,7 +358,7 @@ namespace picongpu
         std::ostringstream filename;
         filename << "PhaseSpace_" << currentStep << ".dat";
         std::ofstream file(filename.str().c_str());
-        file << hBuffer;
+        file << hFullBuffer;
     }
     
     template<class AssignmentFunction, class Species>
