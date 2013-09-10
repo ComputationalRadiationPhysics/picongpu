@@ -47,25 +47,91 @@ namespace host
 #define SHIFT_CURSOR_ZONE(Z, N, _) C ## N c ## N ## _shifted = c ## N ((math::Int<Zone::dim>) _zone.offset);
 #define SHIFTACCESS_SHIFTEDCURSOR(Z, N, _) c ## N ## _shifted [cellIndex]
 
-#define FOREACH_OPERATOR(Z, N, _) \
+namespace detail
+{
+    /** Return cellIndex as math::Int<dim> */
+    template<uint32_t dim>
+    struct GetIndex;
+
+    template<>
+    struct GetIndex<3u>
+    {
+        const math::Int<3u> operator()(const int x, const int y, const int z) const
+        {
+            return math::Int<3u>(x, y, z);
+        }
+    };
+    template<>
+    struct GetIndex<2u>
+    {
+        const math::Int<2u> operator()(const int x, const int y, const int) const
+        {
+            return math::Int<2u>(x, y);
+        }
+    };
+    template<>
+    struct GetIndex<1u>
+    {
+        const math::Int<1u> operator()(const int x, const int, const int) const
+        {
+            return math::Int<1u>(x);
+        }
+    };
+
+    /** Return max of the zone as math::Int<dim> */
+    template< uint32_t dim >
+    struct GetMax;
+
+    template<>
+    struct GetMax<3u>
+    {
+        template<typename Zone>
+        const math::Int<3u> operator()(const Zone _zone) const
+        {
+            return math::Int<3u>(_zone.size.x(), _zone.size.y(), _zone.size.z());
+        }
+    };
+    template<>
+    struct GetMax<2u>
+    {
+        template<typename Zone>
+        const math::Int<2u> operator()(const Zone _zone) const
+        {
+            return math::Int<2u>(_zone.size.x(), _zone.size.y(), 1);
+        }
+    };
+    template<>
+    struct GetMax<1u>
+    {
+        template<typename Zone>
+        const math::Int<1u> operator()(const Zone _zone) const
+        {
+            return math::Int<1u>(_zone.size.x(), 1, 1);
+        }
+    };
+} // namespace detail
+
+#define FOREACH_OPERATOR(Z, N, _)                                              \
     template<typename Zone, BOOST_PP_ENUM_PARAMS(N, typename C), typename Functor> \
     void operator()(const Zone& _zone, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), const Functor& functor) \
-    { \
-        BOOST_PP_REPEAT(N, SHIFT_CURSOR_ZONE, _) \
-        \
-        typename lambda::result_of::make_Functor<Functor>::type fun \
-            = lambda::make_Functor(functor); \
-        for(int z = 0; z < (int)_zone.size.z(); z++) \
-        { \
-            for(int y = 0; y < (int)_zone.size.y(); y++) \
-            { \
-                for(int x = 0; x < (int)_zone.size.x(); x++) \
-                { \
-                    math::Int<3u> cellIndex = math::Int<3u>(x, y, z); \
-                    fun(BOOST_PP_ENUM(N, SHIFTACCESS_SHIFTEDCURSOR, _)); \
-                } \
-            } \
-        } \
+    {                                                                          \
+        BOOST_PP_REPEAT(N, SHIFT_CURSOR_ZONE, _)                               \
+                                                                               \
+        typename lambda::result_of::make_Functor<Functor>::type fun            \
+            = lambda::make_Functor(functor);                                   \
+        detail::GetIndex<Zone::dim> getIndex;                                  \
+        detail::GetMax<Zone::dim> getMax;                                      \
+        for(int z = 0; z < getMax(_zone).z(); z++)                             \
+        {                                                                      \
+            for(int y = 0; y < getMax(_zone).y(); y++)                         \
+            {                                                                  \
+                for(int x = 0; x < getMax(_zone).x(); x++)                     \
+                {                                                              \
+                    math::Int<Zone::dim> cellIndex = getIndex(x, y, z);        \
+                    fun(BOOST_PP_ENUM(N, SHIFTACCESS_SHIFTEDCURSOR, _));       \
+                }                                                              \
+            }                                                                  \
+        }                                                                      \
     }
     
 struct Foreach
