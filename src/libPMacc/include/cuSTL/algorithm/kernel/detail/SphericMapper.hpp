@@ -33,7 +33,7 @@ namespace kernel
 {
 namespace detail
 {
-    
+
 template<int dim, typename BlockDim>
 class SphericMapper;
 
@@ -48,14 +48,14 @@ public:
     {
         return dim3(size.x() / BlockDim::x::value, 1, 1);
     }
-    
+
     HDINLINE
     math::Int<1> operator()(const math::Int<1>& _blockIdx,
                               const math::Int<1>& _threadIdx) const
     {
         return _blockIdx.x() * BlockDim::x::value + _threadIdx.x();
     }
-    
+
     HDINLINE
     math::Int<1> operator()(const dim3& _blockIdx, const dim3& _threadIdx = dim3(0,0,0)) const
     {
@@ -69,9 +69,9 @@ class SphericMapper<2, BlockDim>
 {
 public:
     static const int dim = 2;
-    
+
     SphericMapper(math::Size_t<2>) {}
-    
+
     dim3 cudaGridDim(const math::Size_t<2>& size) const
     {
         return dim3(size.x() / BlockDim::x::value,
@@ -82,10 +82,10 @@ public:
     math::Int<2> operator()(const math::Int<2>& _blockIdx,
                               const math::Int<2>& _threadIdx) const
     {
-        math::Int<3> v(BlockDim().vec()); //\todo: schauen, ob hier ein Register verbraucht wird
-        return _blockIdx * v.shrink<2>() + _threadIdx;
+        return math::Int<2>( _blockIdx.x() * BlockDim::x::value + _threadIdx.x(),
+                             _blockIdx.y() * BlockDim::y::value + _threadIdx.y() );
     }
-    
+
     HDINLINE
     math::Int<2> operator()(const dim3& _blockIdx, const dim3& _threadIdx = dim3(0,0,0)) const
     {
@@ -104,27 +104,25 @@ public:
 
     SphericMapper(const math::Size_t<3>& size)
      : widthInBlocks(size.x() / BlockDim::x::value) {}
-    
+
     dim3 cudaGridDim(const math::Size_t<3>& size) const
     {
-        return dim3((size.x() / BlockDim::x::value) * (size.z() / BlockDim::z::value),
-                    size.y() / BlockDim::y::value, 1);
+        return dim3(size.x() / BlockDim::x::value,
+                    size.y() / BlockDim::y::value,
+                    size.z() / BlockDim::z::value);
     }
 
     HDINLINE
-    math::Int<3> operator()(const math::Int<2>& _blockIdx,
-                              const math::Int<3>& _threadIdx) const
+    math::Int<3> operator()(const math::Int<3>& _blockIdx,
+                             const math::Int<3>& _threadIdx) const
     {
-        return math::Int<3>(
-            (_blockIdx.x() % this->widthInBlocks),
-            _blockIdx.y(),
-            (_blockIdx.x() / this->widthInBlocks)) * (math::Int<3>)BlockDim().vec() + _threadIdx;
+        return math::Int<3>( _blockIdx * (math::Int<3>)BlockDim().vec() + _threadIdx );
     }
-    
+
     HDINLINE
     math::Int<3> operator()(const dim3& _blockIdx, const dim3& _threadIdx = dim3(0,0,0)) const
     {
-        return operator()(math::Int<2>(_blockIdx.x, _blockIdx.y),
+        return operator()(math::Int<3>(_blockIdx.x, _blockIdx.y, _blockIdx.z),
                           math::Int<3>(_threadIdx.x, _threadIdx.y, _threadIdx.z));
     }
 };
