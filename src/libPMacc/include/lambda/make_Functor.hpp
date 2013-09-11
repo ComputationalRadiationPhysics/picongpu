@@ -30,9 +30,12 @@
 #include "CT/Eval.hpp"
 #include "CT/FillTerminalList.hpp"
 #include <math/Tuple.hpp>
+#include "RefWrapper.hpp"
+ #include <boost/type_traits/is_reference.hpp>
 
 #include <boost/mpl/if.hpp>
 #include <boost/mpl/front.hpp>
+#include <boost/mpl/transform.hpp>
 
 #include <boost/preprocessor/repetition/enum.hpp>
 #include <boost/preprocessor/repetition/repeat.hpp>
@@ -81,6 +84,26 @@ namespace PMacc
 {
 namespace lambda
 {
+    
+namespace detail
+{
+    
+struct Ref2RefWrapper
+{
+    template<typename Type>
+    struct apply
+    {
+        typedef Type type;
+    };
+    
+    template<typename Type>
+    struct apply<Type&>
+    {
+        typedef RefWrapper<Type> type;
+    };
+};
+    
+} // namespace detail
 
 template<typename Expr>
 struct ExprFunctor
@@ -102,15 +125,17 @@ struct ExprFunctor
 
     #define REF_TYPE_LIST(Z, N, _) Arg ## N &
 
-    #define OPERATOR_CALL(Z,N,_) \
-        template<BOOST_PP_ENUM_PARAMS(N, typename Arg)> \
-        HDINLINE \
-        typename ::PMacc::result_of::Functor<ExprFunctor<Expr>, BOOST_PP_ENUM_PARAMS(N, Arg)>::type \
-        operator()(BOOST_PP_ENUM_BINARY_PARAMS(N, Arg, &arg)) const \
-        { \
-            typedef math::Tuple<mpl::vector<BOOST_PP_ENUM(N, REF_TYPE_LIST, _)> > ArgTuple; \
-            ArgTuple args(BOOST_PP_ENUM_PARAMS(N, arg)); \
-            return CT::Eval<CTExpr>()(this->terminalTuple, args); \
+    #define OPERATOR_CALL(Z,N,_)                                                                        \
+        template<BOOST_PP_ENUM_PARAMS(N, typename Arg)>                                                 \
+        HDINLINE                                                                                        \
+        typename ::PMacc::result_of::Functor<ExprFunctor<Expr>, BOOST_PP_ENUM_PARAMS(N, Arg)>::type     \
+        operator()(BOOST_PP_ENUM_BINARY_PARAMS(N, Arg, arg)) const                                      \
+        {                                                                                               \
+            typedef mpl::vector<BOOST_PP_ENUM_PARAMS(N, Arg)> ArgTypes;                                 \
+            typedef typename mpl::transform<ArgTypes, detail::Ref2RefWrapper>::type NoRefArgTypes;      \
+            typedef math::Tuple<NoRefArgTypes> ArgTuple;                                                \
+            ArgTuple args(BOOST_PP_ENUM_PARAMS(N, arg));                                                \
+            return CT::Eval<CTExpr>()(this->terminalTuple, args);                                       \
         }
 
     BOOST_PP_REPEAT_FROM_TO(1, LAMBDA_MAX_PARAMS, OPERATOR_CALL, _)

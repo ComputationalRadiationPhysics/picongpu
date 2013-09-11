@@ -34,6 +34,7 @@
 #include <boost/type_traits/add_reference.hpp>
 #include <boost/type_traits/remove_reference.hpp>
 #include <math/Tuple.hpp>
+#include "RefWrapper.hpp"
 
 namespace mpl = boost::mpl;
 
@@ -54,6 +55,12 @@ template<typename Child0, typename ArgsTuple>
 struct Eval<lambda::Expression<exprTypes::terminal, mpl::vector<Child0> >, ArgsTuple>
 {
     typedef Child0 type;
+};
+
+template<typename Child0, typename ArgsTuple>
+struct Eval<lambda::Expression<exprTypes::terminal, mpl::vector<RefWrapper<Child0> > >, ArgsTuple>
+{
+    typedef Child0& type;
 };
 
 template<int I, typename ArgsTuple>
@@ -174,6 +181,18 @@ struct Eval<CT::Expression<lambda::Expression<exprTypes::terminal, mpl::vector<C
     operator()(const TerminalTuple& terminalTuple, ArgsTuple) const
     {
         return terminalTuple.at(mpl::int_<terminalTypeIdx>());
+    }
+};
+
+template<typename Child0, int terminalTypeIdx>
+struct Eval<CT::Expression<lambda::Expression<exprTypes::terminal, mpl::vector<RefWrapper<Child0> > >,
+                           terminalTypeIdx> >
+{
+    template<typename TerminalTuple, typename ArgsTuple>
+    HDINLINE Child0&
+    operator()(const TerminalTuple& terminalTuple, ArgsTuple) const
+    {
+        return terminalTuple.at(mpl::int_<terminalTypeIdx>()).get();
     }
 };
 
