@@ -189,7 +189,7 @@ This is an example how to use the modular building environment of PIConGPU.
 8. `cd ~/paramSets/case001`: goto installed programm
 9. **Run:** Example run for the HPC System "hypnos" using a PBS batch system
     - *optional:* `tbg --help`
-    - `tbg -s qsub -c submit/0016.gpus.cfg
+    - `tbg -s qsub -c submit/0016gpus.cfg
            -t submit/hypnos/k20_profile.tpl ~/runs/testBatch01`
     - This will create the directory `~/runs/testBatch01` were all
       simulation output will be written to.
