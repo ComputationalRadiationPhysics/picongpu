@@ -327,38 +327,14 @@ namespace picongpu
                                 /* functor */
                                 _2 = _1);
 
-        std::cout << "[PhaseSpace] Gather Full PhaseSpace" << std::endl;
-        /* gather the full phase space with range [0;rMax]x[p0;p1]
-         * to rank 0 or write in a parallel file
-         */
-        PMacc::math::Size_t<simDim> longDim(1);
-        longDim[this->axis_element.first] = gpuDim[this->axis_element.first];
-        zone::SphericZone<simDim> zoneDecomposedSpace( longDim );
-        
-        /** \fixme should be a gather_v to support adaptive meshes */
-        algorithm::mpi::Gather<simDim> gatherFullSpace( zoneDecomposedSpace );
-
-        container::HostBuffer<float_X, 2> hFullBuffer( sg.getSimulationBox().getGlobalSize()[this->axis_element.first],
-                                                       this->p_bins );
-
-        gatherFullSpace( /* dst, src */
-                         hFullBuffer,
-                         hReducedBuffer_noGuard,
-                         /* normal vector to plane I reduce */
-                         (this->axis_element.first + 1) % 3
-                         );
-        
-        /** Only lowest rank writes to text file */
-        if( !gatherFullSpace.root() )
-            return;
-
         std::cout << "[PhaseSpace] write to file" << std::endl;
         /* write full phase space from rank 0
          */
         std::ostringstream filename;
-        filename << "PhaseSpace_" << currentStep << ".dat";
+        filename << "PhaseSpace_" << currentStep
+                 << "_" << gpuPos[this->axis_element.first] << ".dat";
         std::ofstream file(filename.str().c_str());
-        file << hFullBuffer;
+        file << hReducedBuffer_noGuard;
     }
     
     template<class AssignmentFunction, class Species>
