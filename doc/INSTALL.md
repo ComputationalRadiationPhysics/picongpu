@@ -69,7 +69,7 @@ We recomment to install at least **pngwriter**.
       to `$HOME/lib/splash`
 
 - **hdf5** >= 1.8.6, standard shared version (no c++, enable parallel), e.g. `hdf5/1.8.5-threadsafe`
-    - *Debian/Ubuntu:* `sudo apt-get install libhdf5-openmpi-dev`
+    - *Debian/Ubuntu:* `sudo apt-get install libhdf5-dev`
     - example:
       - `mkdir -p ~/src ~/build ~/lib`
       - `cd ~/src`
@@ -158,19 +158,19 @@ Checkout and Build PIConGPU
 
 This is an example how to use the modular building environment of PIConGPU.
 
-1. `mkdir -p ~/src ~/build ~/paramSets ~/runs`
+1. **Setup directories:** `mkdir -p ~/src ~/build ~/paramSets ~/runs`
    - `~/runs` is the directory for PIConGPU simulation output
    - NOTE for HPC-Systems: Never write your simulation output to your home
      (=`~/`) directory
    - In most cases `$WORK/runs`, `$WORKDIR/runs` or `/scratch/runs` are the right places!
-2. Download the source code:
+2. **Download the source code:**
    1. `git clone https://github.com/ComputationalRadiationPhysics/picongpu.git ~/src/picongpu`
       - *optional:* update the source code with `cd ~/src/picongpu && git pull`
       - *optional:* change to a different branch with `git branch` (show) and
                     `git checkout <BranchName>` (switch)
    2. `export PATH=$PATH:$HOME/src/picongpu/src/tools/bin`
    3. `export PICSRC=$HOME/src/picongpu`
-3. `$PICSRC/createParameterSet $PICSRC/examples/LaserWakefield/ ~/paramSets/case001`
+3. **Create parameterset:** `$PICSRC/createParameterSet $PICSRC/examples/LaserWakefield/ ~/paramSets/case001`
    - Clone the LWFA example to `~/paramSets/case001`
    - Edit `~/paramSets/case001/include/simulation_defines/param/*` to change the
      physical configuration of this parameter set.
@@ -178,7 +178,7 @@ This is an example how to use the modular building environment of PIConGPU.
    - *optional:* `$PICSRC/createParameterSet ~/paramSets/case001/ ~/paramSets/case002`
      - Clone the individual parameterSet `case001` to `case002`.
 4. `cd ~/build`: go to the build directory to compile your first test
-5. `$PICSRC/configure ~/paramSets/case001`
+5. **Configure:** `$PICSRC/configure ~/paramSets/case001`
     - *optional:* `$PICSRC/configure --help`
     - NOTE: *makefiles* are always created in the current directory
     - Configure *one* parameter set for *one* compilation
@@ -186,12 +186,12 @@ This is an example how to use the modular building environment of PIConGPU.
       command will be shown in the first line of the output.
     - `case001` is the directory were the full compiled binary with all
       parameter files will be installed to
-6. `make [-j]`: compile PIConGPU with the current parameter set: `case001`
-7. `make install`: copy binaries and params to a fixed data structure: `case001`
+6. **Compile:** `make [-j]`: compile PIConGPU with the current parameter set: `case001`
+7. **Install:** `make install`: copy binaries and params to a fixed data structure: `case001`
 8. `cd ~/paramSets/case001`: goto installed programm
-9. Example run for the HPC System "hypnos" using a PBS batch system
+9. **Run:** Example run for the HPC System "hypnos" using a PBS batch system
     - *optional:* `tbg --help`
-    - `tbg -s qsub -c submit/0016.gpus.cfg
+    - `tbg -s qsub -c submit/0016gpus.cfg
            -t submit/hypnos/k20_profile.tpl ~/runs/testBatch01`
     - This will create the directory `~/runs/testBatch01` were all
       simulation output will be written to.
