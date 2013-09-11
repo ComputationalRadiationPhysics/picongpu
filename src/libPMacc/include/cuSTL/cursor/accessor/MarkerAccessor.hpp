@@ -30,10 +30,10 @@ namespace cursor
 template<typename Marker>
 struct MarkerAccessor
 {
-    typedef Marker& type;
+    typedef Marker type;
     
     HDINLINE
-    Marker& operator()(Marker& marker) const
+    Marker operator()(const Marker& marker) const
     {
         return marker;
     }
