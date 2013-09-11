@@ -49,41 +49,12 @@ namespace host
 
 namespace detail
 {
-    /** Return cellIndex as math::Int<dim> */
-    template<uint32_t dim>
-    struct GetIndex;
-
-    template<>
-    struct GetIndex<3u>
-    {
-        const math::Int<3u> operator()(const int x, const int y, const int z) const
-        {
-            return math::Int<3u>(x, y, z);
-        }
-    };
-    template<>
-    struct GetIndex<2u>
-    {
-        const math::Int<2u> operator()(const int x, const int y, const int) const
-        {
-            return math::Int<2u>(x, y);
-        }
-    };
-    template<>
-    struct GetIndex<1u>
-    {
-        const math::Int<1u> operator()(const int x, const int, const int) const
-        {
-            return math::Int<1u>(x);
-        }
-    };
-
-    /** Return max of the zone as math::Int<dim> */
+    /** Return pseudo 3D-range of the zone as math::Int<dim> */
     template< uint32_t dim >
-    struct GetMax;
+    struct GetRange;
 
     template<>
-    struct GetMax<3u>
+    struct GetRange<3u>
     {
         template<typename Zone>
         const math::Int<3u> operator()(const Zone _zone) const
@@ -92,7 +63,7 @@ namespace detail
         }
     };
     template<>
-    struct GetMax<2u>
+    struct GetRange<2u>
     {
         template<typename Zone>
         const math::Int<3u> operator()(const Zone _zone) const
@@ -101,7 +72,7 @@ namespace detail
         }
     };
     template<>
-    struct GetMax<1u>
+    struct GetRange<1u>
     {
         template<typename Zone>
         const math::Int<3u> operator()(const Zone _zone) const
@@ -119,15 +90,15 @@ namespace detail
                                                                                \
         typename lambda::result_of::make_Functor<Functor>::type fun            \
             = lambda::make_Functor(functor);                                   \
-        detail::GetIndex<Zone::dim> getIndex;                                  \
-        detail::GetMax<Zone::dim> getMax;                                      \
-        for(int z = 0; z < getMax(_zone).z(); z++)                             \
+        detail::GetRange<Zone::dim> getRange;                                  \
+        for(int z = 0; z < getRange(_zone).z(); z++)                           \
         {                                                                      \
-            for(int y = 0; y < getMax(_zone).y(); y++)                         \
+            for(int y = 0; y < getRange(_zone).y(); y++)                       \
             {                                                                  \
-                for(int x = 0; x < getMax(_zone).x(); x++)                     \
+                for(int x = 0; x < getRange(_zone).x(); x++)                   \
                 {                                                              \
-                    math::Int<Zone::dim> cellIndex = getIndex(x, y, z);        \
+                    math::Int<Zone::dim> cellIndex =                           \
+                        math::Int<3u>(x, y, z).shrink<Zone::dim>();            \
                     fun(BOOST_PP_ENUM(N, SHIFTACCESS_SHIFTEDCURSOR, _));       \
                 }                                                              \
             }                                                                  \
