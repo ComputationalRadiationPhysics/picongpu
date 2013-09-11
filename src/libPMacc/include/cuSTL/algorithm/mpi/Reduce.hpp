@@ -35,6 +35,8 @@ namespace algorithm
 namespace mpi
 {
 
+/** Reduce algorithm for mpi
+ */
 template<int dim>
 class Reduce
 {
@@ -42,6 +44,13 @@ private:
     MPI_Comm comm;
     bool m_participate;
 public:
+    /** constructor
+     * 
+     * Warning: 
+     * 
+     * \param zone The zone specifies which mpi-Nodes participate in the reduce operation.
+     * \param 
+     */
     Reduce(const zone::SphericZone<dim>& zone, bool setThisAsRoot = false);
     ~Reduce();
     

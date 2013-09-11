@@ -40,9 +40,20 @@ namespace algorithm
 namespace kernel
 {
 
+/** Reduce algorithm that calls a cuda kernel
+ * 
+ * \tparam BlockDim Cuda BlockDim size. Has to be a denominator of _zone.size
+ */
 template<typename BlockDim>
 struct Reduce
 {
+    
+/* \param destCursor Cursor where the result is stored
+ * \param _zone Zone of cells spanning the area of reduce
+ * \param srcCursor Cursor located at the origin of the area of reduce
+ * \param functor Functor with two arguments which returns the result of the reduce operation. 
+ *        Can also be a lambda expression.
+ */
 template<typename DestCursor, typename Zone, typename SrcCursor, typename Functor>
 void operator()(const DestCursor& destCursor, const Zone& _zone, const SrcCursor& srcCursor, const Functor& functor);
 };

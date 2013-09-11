@@ -36,6 +36,8 @@ namespace algorithm
 namespace mpi
 {
     
+/** 
+ */
 template<int dim>
 class Gather
 {
