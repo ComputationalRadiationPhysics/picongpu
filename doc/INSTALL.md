@@ -13,7 +13,7 @@ Requirements
 - [CUDA 5.5](https://developer.nvidia.com/cuda-downloads) or higher
 
 - at least one **CUDA** capable **GPU**
-  - **sm\_13** for basic PIC cycle, >= **sm\_20** for all features (higher order shapes, radiation diagnostics, ...)
+  - *Compute capability* **sm\_20** or higher
   - [full list](https://developer.nvidia.com/cuda-gpus) of CUDA GPUs and their *compute capability*
   - ([More](http://www.olcf.ornl.gov/titan/) is always better. Especially, if we are talking about GPUs.)
 
