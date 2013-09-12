@@ -35,7 +35,7 @@
 #include "plugins/PositionsParticles.hpp"
 #include "plugins/BinEnergyParticles.hpp"
 #include "plugins/LineSliceFields.hpp"
-#include "plugins/PhaseSpace.hpp"
+#include "plugins/PhaseSpace/PhaseSpaceMulti.hpp"
 
 #if (ENABLE_INSITU_VOLVIS == 1)
 #include "plugins/InSituVolumeRenderer.hpp"
@@ -116,7 +116,7 @@ private:
 #endif
     typedef ParticleDensity<PIC_Electrons, DensityToBinary, float_X> ElectronsBinaryDensityBuilder;
     /* speciesParticleShape::ParticleShape::ChargeAssignment */
-    typedef PhaseSpace<particleShape::Counter::ChargeAssignment, PIC_Electrons> PhaseSpaceElectrons;
+    typedef PhaseSpaceMulti<particleShape::Counter::ChargeAssignment, PIC_Electrons> PhaseSpaceElectrons;
 
 #if(SIMDIM==DIM3)
 #if(PIC_ENABLE_PNG==1)
@@ -179,7 +179,7 @@ private:
         plugins.push_back(new EnergyFields("EnergyFields", "energy_fields"));
         plugins.push_back(new SumCurrents());
         plugins.push_back(new LineSliceFields());
-        modules.push_back(new PhaseSpaceElectrons("PhaseSpace_e", "ps"));
+        modules.push_back(new PhaseSpaceElectrons("PhaseSpace Electrons", "ps_e"));
 
 #if(SIMDIM==DIM3)
         plugins.push_back(new FieldEnergy("FieldEnergy [keV/m^3]", "field_energy"));
