@@ -19,27 +19,28 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-#ifndef CURSOR_MARKERACCESSOR_HPP
-#define CURSOR_MARKERACCESSOR_HPP
-
+#pragma once
+ 
+#include "types.h"
+#include "RefWrapper.hpp"
+ 
 namespace PMacc
 {
-namespace cursor
-{
-    
-template<typename Marker>
-struct MarkerAccessor
-{
-    typedef const Marker type;
-    
-    HDINLINE
-    type operator()(const Marker& marker) const
-    {
-        return marker;
-    }
-};
-    
-} // cursor
-} // PMacc
 
-#endif //CURSOR_MARKERACCESSOR_HPP
+template<typename Type>
+HDINLINE
+const Type&
+forward(const Type& arg)
+{
+    return arg;
+}
+
+template<typename Type>
+HDINLINE
+RefWrapper<Type>
+forward(Type& arg)
+{
+    return arg;
+}
+     
+} // namespace PMacc
