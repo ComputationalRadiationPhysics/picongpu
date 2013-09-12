@@ -25,6 +25,7 @@
 #include "math/vector/Size_t.hpp"
 #include "math/vector/Int.hpp"
 #include "lambda/make_Functor.hpp"
+#include <forward.hpp>
 
 #include <boost/preprocessor/repetition/enum.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>
@@ -45,7 +46,7 @@ namespace host
 #endif
 
 #define SHIFT_CURSOR_ZONE(Z, N, _) C ## N c ## N ## _shifted = c ## N (_zone.offset);
-#define SHIFTACCESS_SHIFTEDCURSOR(Z, N, _) c ## N ## _shifted [cellIndex]
+#define SHIFTACCESS_SHIFTEDCURSOR(Z, N, _) forward(c ## N ## _shifted [cellIndex])
 
 namespace detail
 {

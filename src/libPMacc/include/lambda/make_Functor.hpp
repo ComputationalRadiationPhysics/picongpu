@@ -30,9 +30,12 @@
 #include "CT/Eval.hpp"
 #include "CT/FillTerminalList.hpp"
 #include <math/Tuple.hpp>
+#include "RefWrapper.hpp"
+ #include <boost/type_traits/is_reference.hpp>
 
 #include <boost/mpl/if.hpp>
 #include <boost/mpl/front.hpp>
+#include <boost/mpl/transform.hpp>
 
 #include <boost/preprocessor/repetition/enum.hpp>
 #include <boost/preprocessor/repetition/repeat.hpp>
@@ -100,23 +103,24 @@ struct ExprFunctor
         CT::FillTerminalList<Expr, CTExpr>()(expr, this->terminalTuple);
     }
 
-    #define REF_TYPE_LIST(Z, N, _) Arg ## N &
+    #define CREF_TYPE_LIST(Z, N, _) const Arg ## N &
 
-    #define OPERATOR_CALL(Z,N,_) \
-        template<BOOST_PP_ENUM_PARAMS(N, typename Arg)> \
-        HDINLINE \
-        typename ::PMacc::result_of::Functor<ExprFunctor<Expr>, BOOST_PP_ENUM_PARAMS(N, Arg)>::type \
-        operator()(BOOST_PP_ENUM_BINARY_PARAMS(N, Arg, &arg)) const \
-        { \
-            typedef math::Tuple<mpl::vector<BOOST_PP_ENUM(N, REF_TYPE_LIST, _)> > ArgTuple; \
-            ArgTuple args(BOOST_PP_ENUM_PARAMS(N, arg)); \
-            return CT::Eval<CTExpr>()(this->terminalTuple, args); \
+    #define OPERATOR_CALL(Z,N,_)                                                                        \
+        template<BOOST_PP_ENUM_PARAMS(N, typename Arg)>                                                 \
+        HDINLINE                                                                                        \
+        typename ::PMacc::result_of::Functor<ExprFunctor<Expr>, BOOST_PP_ENUM_PARAMS(N, Arg)>::type     \
+        operator()(BOOST_PP_ENUM_BINARY_PARAMS(N, const Arg, &arg)) const                               \
+        {                                                                                               \
+            typedef mpl::vector<BOOST_PP_ENUM(N, CREF_TYPE_LIST, _)> ArgTypes;                             \
+            typedef math::Tuple<ArgTypes> ArgTuple;                                                     \
+            ArgTuple args(BOOST_PP_ENUM_PARAMS(N, arg));                                                \
+            return CT::Eval<CTExpr>()(this->terminalTuple, args);                                       \
         }
 
     BOOST_PP_REPEAT_FROM_TO(1, LAMBDA_MAX_PARAMS, OPERATOR_CALL, _)
 
     #undef OPERATOR_CALL
-    #undef REF_TYPE_LIST
+    #undef CREF_TYPE_LIST
 };
 
 namespace result_of
