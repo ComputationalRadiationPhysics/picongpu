@@ -17,8 +17,8 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 #pragma once
 
 #include <stdint.h>
@@ -50,6 +50,26 @@ typedef long long int int64_cu;
 #define HDINLINE __device__ __host__ __forceinline__
 #define DINLINE __device__ __forceinline__
 #define HINLINE __host__ inline
+
+/*
+ * Disable nvcc warning:
+ * calling a __host__ function from __host__ __device__ function.
+ * 
+ * Usage:
+ * PMACC_NO_NVCC_HDWARNING
+ * HDINLINE function_declaration()
+ *  
+ * It is not possible to disable the warning for a __host__ function
+ * if there are calls of virtual functions inside. For this case use a wrapper
+ * function.
+ * WARNING: only use this method if there is no other way to create runable code.
+ * Most cases can solved by #ifdef __CUDA_ARCH__ or #ifdef __CUDACC__.
+ */
+#if defined(__CUDACC__)
+#define PMACC_NO_NVCC_HDWARNING #pragma hd_warning_disable
+#else
+#define PMACC_NO_NVCC_HDWARNING
+#endif
 
 /**
  * Bitmask which describes the direction of communication.
@@ -149,7 +169,4 @@ enum AreaType
 
 #define __delete(var) if((var)) { delete (var); var=NULL; }
 
-}
-
-
-
+} //namepsace PMacc
