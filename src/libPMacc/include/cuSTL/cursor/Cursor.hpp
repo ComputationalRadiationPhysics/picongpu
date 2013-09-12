@@ -63,7 +63,7 @@ public:
     }
     
     HDINLINE
-    typename boost::add_const<type>::type operator*() const
+    type operator*() const
     {
         return Accessor::operator()(this->marker);
     }

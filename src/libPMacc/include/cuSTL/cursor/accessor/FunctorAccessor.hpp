@@ -23,6 +23,7 @@
 #define CURSOR_FUNCTORACCESSOR_HPP
 
 #include <boost/type_traits/add_const.hpp>
+#include <forward.hpp>
 #include "types.h"
 
 namespace PMacc
@@ -42,7 +43,7 @@ struct FunctorAccessor
     template<typename TCursor>
     HDINLINE type operator()(TCursor& cursor)
     {
-        return this->functor(*cursor);
+        return this->functor(forward(*cursor));
     }
 };
     
