@@ -53,7 +53,7 @@ namespace kernel
 namespace detail
 {
     
-#define SHIFTACCESS_CURSOR(Z, N, _) PMacc::forward(c ## N [cellIndex])
+#define SHIFTACCESS_CURSOR(Z, N, _) forward(c ## N [cellIndex])
 
 #define KERNEL_FOREACH(Z, N, _) \
 template<typename Mapper, BOOST_PP_ENUM_PARAMS(N, typename C), typename Functor> \
