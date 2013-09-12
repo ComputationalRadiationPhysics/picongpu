@@ -57,6 +57,11 @@ namespace picongpu
 
         typedef MappingDesc::SuperCellSize SuperCellSize;
         typedef DataBox<PitchedBox<ValueType, simDim> > DataBoxType;
+        
+        MappingDesc getCelDescription()
+        {
+            return this->cellDescription;
+        }
 
         FieldTmp( MappingDesc cellDescription );
 

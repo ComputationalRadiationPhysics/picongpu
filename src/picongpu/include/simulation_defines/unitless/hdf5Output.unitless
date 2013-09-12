@@ -34,13 +34,15 @@
 
 #include "particles/particleToGrid/energyDensity.kernel"
 
+#include "particles/boostExtension/JoinVectors.hpp"
+
 namespace picongpu
 {
     /** Note: you will need at least FieldE and FieldB for restart
      *       capability!
-     *  Possible fields: FieldE, FieldB, FieldJ, FieldTmp
+     *  Possible fields: FieldE, FieldB, FieldJ
      */
-    typedef boost::mpl::vector<FieldE, FieldB, FieldTmp > hdf5OutputFields;
+    typedef boost::mpl::vector<FieldE, FieldB> NativeHdf5OutputFields;
     
     /** TimeAvg Fields
      * \todo Reduce/Avg on host-side RAM with an analyser
@@ -65,13 +67,18 @@ namespace picongpu
             ComputeEnergyDensityOptions::calcCounter
         > TmpParticleCounter;
     
-    /** \warning Only uses the 1st argument right now
-     *  \todo implement loop through each argument
-     */
+
     typedef boost::mpl::vector<
-                boost::mpl::pair< TmpParticleDensity, PIC_Electrons > /*,
+#if (ENABLE_ELECTRONS == 1)
+                boost::mpl::pair< TmpParticleDensity, PIC_Electrons > ,
+                boost::mpl::pair< TmpParticleEnergyDensity, PIC_Electrons >
+#endif
+#if (ENABLE_IONS == 1)
                 boost::mpl::pair< TmpParticleDensity, PIC_Ions >,
-                boost::mpl::pair< TmpParticleEnergyDensity, PIC_Electrons >,
-                boost::mpl::pair< TmpParticleEnergyDensity, PIC_Ions >*/
-    > hdf5TmpFields;
+                boost::mpl::pair< TmpParticleEnergyDensity, PIC_Ions >
+#endif
+    > PluginsHdf5OutputFields;
+    
+    
+    typedef JoinVectors<NativeHdf5OutputFields,PluginsHdf5OutputFields>::type Hdf5OutputFields;
 }
