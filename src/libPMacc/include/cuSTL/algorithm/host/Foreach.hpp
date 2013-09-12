@@ -45,7 +45,7 @@ namespace host
 #define FOREACH_HOST_MAX_PARAMS 4
 #endif
 
-#define SHIFT_CURSOR_ZONE(Z, N, _) C ## N c ## N ## _shifted = c ## N ((math::Int<Zone::dim>) _zone.offset);
+#define SHIFT_CURSOR_ZONE(Z, N, _) C ## N c ## N ## _shifted = c ## N (_zone.offset);
 #define SHIFTACCESS_SHIFTEDCURSOR(Z, N, _) forward(c ## N ## _shifted [cellIndex])
 
 namespace detail
