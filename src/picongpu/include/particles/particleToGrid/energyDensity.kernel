@@ -69,7 +69,7 @@ namespace picongpu
             HDINLINE float1_64 getUnit( ) const
             {
                 const double UNIT_VOLUME = ( UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH );
-                
+
                 if( calcType == ComputeEnergyDensityOptions::calcDensity )
                     return UNIT_CHARGE / UNIT_VOLUME;
                 else
@@ -80,7 +80,7 @@ namespace picongpu
                     return UNIT_CHARGE / UNIT_VOLUME * UNIT_ENERGY;
                 else
                 if( calcType == ComputeEnergyDensityOptions::calcCounter )
-                    return NUM_EL_PER_PARTICLE;                
+                    return NUM_EL_PER_PARTICLE;
 
 #if(ENABLE_RADIATION == 1)
                 else
@@ -132,6 +132,7 @@ namespace picongpu
                 const MomType mom = frame.getMomentum( )[localIdx];
 #if(ENABLE_RADIATION == 1)
                 const MomType mom_mt1 = frame.getMomentum_mt1( )[localIdx];
+                const MomType mom_dt = mom - mom_mt1;
 #endif
                 const MassType mass = frame.getMass( weighting );
                 const ChargeType charge = frame.getCharge( weighting );
@@ -148,9 +149,9 @@ namespace picongpu
                 const float_X el_factor = charge * charge
                     / ( 6.0 * PI * EPS0 *
                         math::pow(SPEED_OF_LIGHT, 5) * mass * mass );
-                const float_X energyLarmor = math::pow(gamma, 4)
-                    * ( math::abs2( mom_mt1 ) -
-                        math::abs2( math::cross(mom, mom_mt1) ) );
+                const float_X energyLarmor = el_factor * math::pow(gamma, 4)
+                    * ( math::abs2( mom_dt ) -
+                        math::abs2( math::cross(mom, mom_dt) ) );
 #endif
                 const float_X particleChargeDensity = charge / ( CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH );
 
