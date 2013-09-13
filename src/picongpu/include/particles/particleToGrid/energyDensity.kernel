@@ -41,6 +41,9 @@ namespace picongpu
             static const uint32_t calcEnergy = 1u;
             static const uint32_t calcEnergyDensity = 2u;
             static const uint32_t calcCounter = 3u;
+#if(ENABLE_RADIATION == 1)
+            static const uint32_t calcLarmorEnergy = 4u;
+#endif
         };
 
 
@@ -77,7 +80,13 @@ namespace picongpu
                     return UNIT_CHARGE / UNIT_VOLUME * UNIT_ENERGY;
                 else
                 if( calcType == ComputeEnergyDensityOptions::calcCounter )
-                    return NUM_EL_PER_PARTICLE;
+                    return NUM_EL_PER_PARTICLE;                
+
+#if(ENABLE_RADIATION == 1)
+                else
+                if( calcType == ComputeEnergyDensityOptions::calcLarmorEnergy )
+                    return UNIT_ENERGY;
+#endif
                 else
                     return 1.0;
             }
@@ -95,7 +104,12 @@ namespace picongpu
                 else
                 if( calcType == ComputeEnergyDensityOptions::calcCounter )
                     return "fields_ParticleCounter";
-                else                
+#if(ENABLE_RADIATION == 1)
+                else
+                if( calcType == ComputeEnergyDensityOptions::calcLarmorEnergy )
+                    return "fields_ParticleLarmorEnergy";
+#endif
+                else
                     return "fields_FieldTmp";
             }
 
@@ -116,6 +130,9 @@ namespace picongpu
                 const WeightingType weighting = frame.getWeighting( )[localIdx];
                 const PosType pos = frame.getPosition( )[localIdx];
                 const MomType mom = frame.getMomentum( )[localIdx];
+#if(ENABLE_RADIATION == 1)
+                const MomType mom_mt1 = frame.getMomentum_mt1( )[localIdx];
+#endif
                 const MassType mass = frame.getMass( weighting );
                 const ChargeType charge = frame.getCharge( weighting );
 
@@ -127,6 +144,14 @@ namespace picongpu
                 const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
 
                 const float_X energy = ( gamma - float_X( 1.0 ) ) * mass * c2;
+#if(ENABLE_RADIATION == 1)
+                const float_X el_factor = charge * charge
+                    / ( 6.0 * PI * EPS0 *
+                        math::pow(SPEED_OF_LIGHT, 5) * mass * mass );
+                const float_X energyLarmor = math::pow(gamma, 4)
+                    * ( math::abs2( mom_mt1 ) -
+                        math::abs2( math::cross(mom, mom_mt1) ) );
+#endif
                 const float_X particleChargeDensity = charge / ( CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH );
 
                 /** Shift to the cell the particle belongs to */
@@ -168,6 +193,11 @@ namespace picongpu
                                 atomicAddWrapper( &(fieldTmpShiftToParticle( offsetToBaseCell ).x()),
                                                   assignComb * weighting / NUM_EL_PER_PARTICLE );
 
+#if(ENABLE_RADIATION == 1)
+                            if( calcType == ComputeEnergyDensityOptions::fields_ParticleLarmorEnergy )
+                                atomicAddWrapper( &(fieldTmpShiftToParticle( offsetToBaseCell ).x()),
+                                                  assignComb * energyLarmor );
+#endif
                         }
                     }
                 }
