@@ -40,6 +40,7 @@ while true ; do
             ;;
         -j)
             num_parallel="$2"
+            quiet_run=1
             shift
             ;;
         -c|--cmake)
