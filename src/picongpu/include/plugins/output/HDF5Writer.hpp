@@ -145,7 +145,7 @@ private:
     }
 
     template< typename T >
-    struct getDCFields
+    struct GetDCFields
     {
     private:
 
@@ -188,8 +188,13 @@ private:
 
     };
 
+    /** Calculate FieldTmp with given solver and particle species
+     *  and write them to hdf5.
+     *
+     *  If we get a pir
+     */
     template< typename ThisSolver, typename ThisSpecies >
-    struct getDCFields<boost::mpl::pair<ThisSolver, ThisSpecies> >
+    struct GetDCFields<boost::mpl::pair<ThisSolver, ThisSpecies> >
     {
 
         /*
@@ -709,7 +714,7 @@ private:
         ThreadParams *threadParams = (ThreadParams*) (p_args);
 
         /*print all fields*/
-        ForEach<Hdf5OutputFields, getDCFields<void> > forEachGetFields;
+        ForEach<Hdf5OutputFields, GetDCFields<void> > forEachGetFields;
         forEachGetFields(ref(threadParams));
 
         // write fields
