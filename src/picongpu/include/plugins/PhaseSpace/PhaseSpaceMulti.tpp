@@ -64,9 +64,18 @@ namespace picongpu
         this->childs.reserve( this->numChilds );
         for(uint32_t i = 0; i < this->numChilds; i++)
         {
-            /* * M_EL * SPEED_OF_LIGHT */
-            std::pair<float_X, float_X> new_p_range( this->momentum_range_min.at(i),
-                                                     this->momentum_range_max.at(i) );
+            /* unit is m_e c - we use the typical weighting already since it
+             * scales linear in momentum and we avoid over- & under-flows
+             * during momentum-binning while staying at a
+             * "typical macro particle momentum scale"
+             *
+             * we correct that during the output of the pAxis range
+             * (linearly shinking the single particle scale again)
+             */
+            float_X unit_pRange = float_X( double(NUM_EL_PER_PARTICLE) *
+                                           double(M_EL) * double(SPEED_OF_LIGHT) );
+            std::pair<float_X, float_X> new_p_range( this->momentum_range_min.at(i) * unit_pRange,
+                                                     this->momentum_range_max.at(i) * unit_pRange );
             /* String to Enum conversion */
             uint32_t el_space;
             if( this->element_space.at(i) == "x" )

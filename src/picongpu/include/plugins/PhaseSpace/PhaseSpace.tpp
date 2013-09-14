@@ -60,7 +60,7 @@ namespace picongpu
                                  const uint32_t el_p,
                                  const std::pair<float_X, float_X>& axis_p_range )
         {
-            const float_X mom       = particle[particleAccess::Mom()].get()[el_p];
+            const float_X mom_i       = particle[particleAccess::Mom()].get()[el_p];
 
             /* cell id in this block */
             const int linearCellIdx = particle[particleAccess::LocalCellIdx()].get();
@@ -70,15 +70,19 @@ namespace picongpu
                 linearCellIdx  / (SuperCellSize::x::value * SuperCellSize::y::value) );
 
             const int r_bin         = cellIdx[r_dir];
-            /*const float_X weighting = particle[particleAccess::Weight()];*/
-            /* float_X charge    = particle[particleAccess::Charge()];
+            /*const float_X weighting = particle[particleAccess::Weight()].get();*/
+            /* float_X charge    = particle[particleAccess::Charge()].get();
                const float_X particleChargeDensity = charge / ( CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH );
              */
 
-            const float_X rel_bin = (mom - axis_p_range.first) / (axis_p_range.second - axis_p_range.first);
+            const float_X rel_bin = (mom_i - axis_p_range.first) / (axis_p_range.second - axis_p_range.first);
             int p_bin = int( rel_bin * float_X(p_bins) );
-            if( p_bin < 0 )
-                p_bin = 0;
+
+            /* out-of-range bins back to min/max
+             * p_bin < 0 ? p_bin = 0;
+             * p_bin > (p_bins-1) ? p_bin = p_bins-1;
+             */
+            p_bin *= int(p_bin >= 0);
             if( p_bin >= p_bins )
                 p_bin = p_bins - 1;
 
