@@ -54,28 +54,29 @@ namespace picongpu
     {
         typedef void result_type;
         
-        template<typename Particle, typename Cur >
-        DINLINE void operator()( Particle particle,
+        template<typename FramePtr, typename Cur >
+        DINLINE void operator()( FramePtr particle,
+                                 uint16_t particleID,
                                  Cur curDBufferOriginInBlock,
                                  const uint32_t el_p,
                                  const std::pair<float_X, float_X>& axis_p_range )
         {
-            const float_X mom_i       = particle[particleAccess::Mom()].get()[el_p];
+            const float_X mom_i       = particle->getMomentum()[particleID][el_p];
 
             /* cell id in this block */
-            const int linearCellIdx = particle[particleAccess::LocalCellIdx()].get();
+            const int linearCellIdx = particle->getCellIdx()[particleID];
             const PMacc::math::Int<3> cellIdx(
                 linearCellIdx  % SuperCellSize::x::value,
                 (linearCellIdx % (SuperCellSize::x::value * SuperCellSize::y::value)) / SuperCellSize::x::value,
                 linearCellIdx  / (SuperCellSize::x::value * SuperCellSize::y::value) );
 
             const int r_bin         = cellIdx[r_dir];
-            /*const float_X weighting = particle[particleAccess::Weight()].get();*/
-            /* float_X charge    = particle[particleAccess::Charge()].get();
-               const float_X particleChargeDensity = charge / ( CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH );
-             */
+            const float_X weighting = particle->getWeighting()[particleID];
+            const float_X charge    = particle->getCharge( weighting );
+            const float_X particleChargeDensity = charge / ( CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH );
 
-            const float_X rel_bin = (mom_i - axis_p_range.first) / (axis_p_range.second - axis_p_range.first);
+            const float_X rel_bin = (mom_i - axis_p_range.first)
+                                  / (axis_p_range.second - axis_p_range.first);
             int p_bin = int( rel_bin * float_X(p_bins) );
 
             /* out-of-range bins back to min/max
@@ -88,7 +89,7 @@ namespace picongpu
 
             /** \todo take particle shape into account */
             atomicAddWrapper( &(*curDBufferOriginInBlock( r_bin, p_bin )),
-                              1 );
+                              particleChargeDensity );
         }
     };
     
