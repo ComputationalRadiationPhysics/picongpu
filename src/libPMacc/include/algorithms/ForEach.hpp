@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, René Widera
+ * Copyright 2013 Axel Huebl, Heiko Burau, René Widera
  *
  * This file is part of libPMacc. 
  * 
