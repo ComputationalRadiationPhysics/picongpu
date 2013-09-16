@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.5)
 
 
 # Projekt name
@@ -22,7 +22,7 @@ FIND_PACKAGE(Threads REQUIRED)
 
 ##CUDA##
 
-IF(NOT DISBALE_COMPILER_FLAGS_IN_SUBPROJECTS)
+IF(SAME_NVCC_FLAGS_IN_SUBPROJECTS)
   SET(CUDA_ARCH sm_13 CACHE STRING "set GPU architecture" )
   SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${nvcc_flags} -arch=${CUDA_ARCH})
 
