@@ -67,18 +67,35 @@ namespace picongpu
             ComputeEnergyDensityOptions::calcCounter
         > TmpParticleCounter;
     
+    
+    /** Define which operation is used to fill up FieldTmp
+     * 
+     * This is better than use of boost::mtl::pair because
+     * we can use this special struct to define functors 
+     * only for FieldTmp. If we create a second FieldTmp, for example 
+     * with three components, we can create a new struct (like this)
+     * and build a special functor to handle the type.
+     */
+    template<typename TSolver,typename TSpecies>
+    struct TmpFieldOperation
+    {
+        typedef TSolver Solver;
+        typedef TSpecies Species;
+    };
 
+    /** List of solver which use TmpField*/
     typedef boost::mpl::vector<
 #if (ENABLE_ELECTRONS == 1)
-                boost::mpl::pair< TmpParticleDensity, PIC_Electrons > ,
-                boost::mpl::pair< TmpParticleEnergyDensity, PIC_Electrons >
+                TmpFieldOperation< TmpParticleDensity, PIC_Electrons > ,
+                TmpFieldOperation< TmpParticleEnergyDensity, PIC_Electrons >
 #endif
 #if (ENABLE_IONS == 1)
-                boost::mpl::pair< TmpParticleDensity, PIC_Ions >,
-                boost::mpl::pair< TmpParticleEnergyDensity, PIC_Ions >
+                TmpFieldOperation< TmpParticleDensity, PIC_Ions >,
+                TmpFieldOperation< TmpParticleEnergyDensity, PIC_Ions >
 #endif
     > PluginsHdf5OutputFields;
     
     
+    /** This list is use to dump fields to HDf5. */
     typedef JoinVectors<NativeHdf5OutputFields,PluginsHdf5OutputFields>::type Hdf5OutputFields;
 }

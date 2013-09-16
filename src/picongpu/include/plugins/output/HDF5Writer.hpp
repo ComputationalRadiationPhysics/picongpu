@@ -20,8 +20,7 @@
 
 
 
-#ifndef HDF5WRITER_HPP
-#define	HDF5WRITER_HPP
+#pragma once
 
 #include <pthread.h>
 #include <cassert>
@@ -144,15 +143,14 @@ private:
         return tmp;
     }
 
+    
+    /** Write calculated fields to HDF5 file.
+     * 
+     */
     template< typename T >
     struct GetDCFields
     {
     private:
-
-        static std::string getName()
-        {
-            return T::getName();
-        }
 
         static std::vector<double> getUnit()
         {
@@ -178,7 +176,7 @@ private:
             writeField(params.get(),
                        ctFloat,
                        T::numComponents,
-                       getName(),
+                       T::getName(),
                        getUnit(),
                        field->getHostDataBox().getPointer());
 
@@ -191,10 +189,10 @@ private:
     /** Calculate FieldTmp with given solver and particle species
      *  and write them to hdf5.
      *
-     *  If we get a pir
+     *  FieldTmp is calculated on device and than dumped to HDF5.
      */
     template< typename ThisSolver, typename ThisSpecies >
-    struct GetDCFields<boost::mpl::pair<ThisSolver, ThisSpecies> >
+    struct GetDCFields<TmpFieldOperation<ThisSolver, ThisSpecies> >
     {
 
         /*
@@ -212,7 +210,8 @@ private:
             this->operator_impl(tparam);
         }
     private:
-
+        /** Create a name for the hdf5 identifier.
+         */
         template< typename Solver, typename Species >
             static std::string getName()
         {
@@ -223,6 +222,7 @@ private:
             return str.str();
         }
 
+        /** Get the unit for the result from the solver*/
         template<typename Solver>
             static std::vector<double> getUnit()
         {
@@ -259,7 +259,7 @@ private:
 
             thisField.gridLayout = fieldTmp->getGridLayout();
             params.get()->gridLayout = thisField.gridLayout;
-
+            /*write data to HDF5 file*/
             writeField(params.get(),
                        ctFloat,
                        FieldTmp::numComponents,
@@ -855,7 +855,5 @@ private:
 
 };
 
-}
-
-#endif	/* HDF5WRITER_HPP */
+} //namepsace picongpu
 
