@@ -83,19 +83,26 @@ namespace picongpu
         typedef TSpecies Species;
     };
 
-    /** List of solver which use TmpField*/
+    /** List of solver which use TmpField and electons*/
     typedef boost::mpl::vector<
 #if (ENABLE_ELECTRONS == 1)
                 TmpFieldOperation< TmpParticleDensity, PIC_Electrons > ,
                 TmpFieldOperation< TmpParticleEnergyDensity, PIC_Electrons >
 #endif
+    > PluginsHdf5OutputFieldsElectrons;
+
+    /** List of solver which use TmpField andions*/
+    typedef boost::mpl::vector<
 #if (ENABLE_IONS == 1)
                 TmpFieldOperation< TmpParticleDensity, PIC_Ions >,
                 TmpFieldOperation< TmpParticleEnergyDensity, PIC_Ions >
 #endif
-    > PluginsHdf5OutputFields;
+    > PluginsHdf5OutputFieldsIons;
     
     
     /** This list is use to dump fields to HDf5. */
-    typedef JoinVectors<NativeHdf5OutputFields,PluginsHdf5OutputFields>::type Hdf5OutputFields;
+    typedef JoinVectors<NativeHdf5OutputFields,
+            PluginsHdf5OutputFieldsElectrons,
+            PluginsHdf5OutputFieldsIons
+            >::type Hdf5OutputFields;
 }
