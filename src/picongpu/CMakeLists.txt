@@ -18,7 +18,7 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.5)
 
 OPTION(VAMPIR_ENABLE "create picongpu with vampir support" OFF)
 
@@ -51,6 +51,8 @@ ENDIF(PIC_RELEASE)
 
 #include MPI
 FIND_PACKAGE(MPI REQUIRED)
+INCLUDE_DIRECTORIES(SYSTEM ${MPI_C_INCLUDE_PATH})
+SET(LIBS ${LIBS} ${MPI_C_LIBRARIES})
 
 #include pthreads
 FIND_PACKAGE(Threads REQUIRED)
@@ -58,8 +60,7 @@ SET(LIBS ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
 
 #Boost from system
 FIND_PACKAGE(Boost REQUIRED COMPONENTS program_options regex)
-INCLUDE_DIRECTORIES(AFTER ${Boost_INCLUDE_DIRS})
-LINK_DIRECTORIES(${Boost_LIBRARY_DIR})
+INCLUDE_DIRECTORIES(SYSTEM ${Boost_INCLUDE_DIRS})
 SET(LIBS ${LIBS} ${Boost_LIBRARIES})
 
 IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -77,7 +78,7 @@ IF( IS_CUDA_ARCH_SM13)
     SET(CUDA_FTZ "")
 ENDIF( IS_CUDA_ARCH_SM13)
 
-SET(CUDA_MATH --use_fast_math CACHE STRING "set GPU architecture" )
+SET(CUDA_MATH --use_fast_math CACHE STRING "enable fast-math" )
 OPTION(CUDA_SHOW_REGISTER "show kernel register and create PTX" OFF)
 OPTION(CUDA_KEEP_FILES "Keep all intermediate files that are generated during internal compilation steps. (folder: nvcc_tmp)" OFF)
 OPTION(CUDA_SHOW_CODELINES "show kernel lines in cuda-gdb and cuda-memcheck (need architecture >=sm_20)" OFF)
@@ -123,8 +124,7 @@ ENDIF(PARAM_OVERWRITES)
 #######################################################
 # load cuda_memtest project
 #######################################################
-SET(DISBALE_COMPILER_FLAGS_IN_SUBPROJECTS ON)
-
+SET(SAME_NVCC_FLAGS_IN_SUBPROJECTS OFF)
 find_path(CUDA_MEMTEST_DIR
         NAMES CMakeLists.txt
         PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../cuda_memtest"
@@ -151,27 +151,13 @@ add_subdirectory(${MPI_INFO_DIR} "${CMAKE_CURRENT_BINARY_DIR}/build_mpiInfo")
 SET(PIC_VERBOSE "1" CACHE STRING "set verbose level for picongpu (default is only physic output)")
 ADD_DEFINITIONS(-DPIC_VERBOSE_LVL=${PIC_VERBOSE})
 
-OPTION(PIC_ENABLE_HDF5 "create picongpu with hdf5 support" ON)
-IF(PIC_ENABLE_HDF5)
-    ADD_DEFINITIONS(-DENABLE_HDF5=1)
-    FIND_PACKAGE(HDF5 REQUIRED)
-    INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIR})
-    LINK_DIRECTORIES(${HDF5_LIBRARY_DIRS})
-    SET(LIBS ${LIBS} hdf5)
-ENDIF(PIC_ENABLE_HDF5)
-
-OPTION(PIC_ENABLE_PNG "create picongpu png output support (need pngwriter)" ON)
-IF(PIC_ENABLE_PNG)
-    ADD_DEFINITIONS(-DPIC_ENABLE_PNG=1)
-ENDIF(PIC_ENABLE_PNG)
-
 OPTION(PIC_ENABLE_INSITU_VOLVIS "enable In Situ Volume Visualization" OFF)
 IF(PIC_ENABLE_INSITU_VOLVIS)
 	ADD_DEFINITIONS(-DENABLE_INSITU_VOLVIS=1)
 	SET(CUDA_ARCH sm_35 CACHE STRING "set GPU architecture")
 	SET(IceT_DIR "$ENV{ICET_ROOT}/lib/")
 	FIND_PACKAGE(IceT REQUIRED)
-	INCLUDE_DIRECTORIES(${ICET_INCLUDE_DIRS})
+	INCLUDE_DIRECTORIES(SYSTEM ${ICET_INCLUDE_DIRS})
 	SET(LIBS ${LIBS} ${ICET_CORE_LIBS} ${ICET_MPI_LIBS})
 ENDIF(PIC_ENABLE_INSITU_VOLVIS)
 
@@ -202,46 +188,64 @@ find_path(PMACC_ROOT_DIR
   PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../libPMacc"
   DOC "libPMacc root location."
   )
-
 INCLUDE_DIRECTORIES(${PMACC_ROOT_DIR}/include)
 
 #LIBSPLASH
-IF(PIC_ENABLE_HDF5)
-  # find splash source code
-  find_path(PIC_SPLASH_ROOT_DIR
-    NAMES include/sdc_defines.hpp lib/libsplash.so
-    PATHS ENV SPLASH_ROOT
-    DOC "libsplash ROOT location. (only used if HDF5 is enabled)"
+
+FIND_PACKAGE(HDF5)
+IF(HDF5_FOUND)
+    # find splash source code
+    find_path(PIC_SPLASH_ROOT_DIR
+      NAMES include/splash.h lib/libsplash.a
+      PATHS ENV SPLASH_ROOT
+      DOC "libsplash ROOT location. (only used if HDF5 is enabled)"
     )
 
+  IF(PIC_SPLASH_ROOT_DIR)
+    MESSAGE(STATUS "Found Splash: "${PIC_SPLASH_ROOT_DIR})
+    INCLUDE_DIRECTORIES(SYSTEM ${HDF5_INCLUDE_DIRS})
+    ADD_DEFINITIONS(-DENABLE_HDF5=1)
+
     #add include information
-    INCLUDE_DIRECTORIES(${PIC_SPLASH_ROOT_DIR}/include)
+    INCLUDE_DIRECTORIES(SYSTEM ${PIC_SPLASH_ROOT_DIR}/include)
 
     #add library information
     # dynamic / shared
     #LINK_DIRECTORIES("${PIC_SPLASH_ROOT_DIR}/lib")   
-    #SET(LIBS ${LIBS} splash)
+    #SET(LIBS ${LIBS} splash ${HDF5_LIBRARIES})
+    #target_link_libraries(splash hdf5)
     # static
     ADD_LIBRARY(splash_static STATIC IMPORTED)
     SET_TARGET_PROPERTIES(splash_static PROPERTIES IMPORTED_LOCATION ${PIC_SPLASH_ROOT_DIR}/lib/libsplash.a)
-    SET(LIBS ${LIBS} splash_static)
-ENDIF(PIC_ENABLE_HDF5)
+    SET(LIBS ${LIBS} splash_static ${HDF5_LIBRARIES})
+  ELSEIF(PIC_SPLASH_ROOT_DIR)
+    MESSAGE(STATUS "Could NOT find Splash")
+  ENDIF(PIC_SPLASH_ROOT_DIR)
+ENDIF(HDF5_FOUND)
 
 #PNGWRITER
-IF(PIC_ENABLE_PNG)
-  find_path(PIC_PNGWRITER_ROOT_DIR
+
+find_path(PIC_PNGWRITER_ROOT_DIR
     NAMES include/pngwriter.h
     PATHS ENV PNGWRITER_ROOT 
-    DOC "pngwriter root location. (only used if PIC_ENABLE_PNG is enabled)"
-    )
-ENDIF(PIC_ENABLE_PNG)
-IF(PIC_ENABLE_PNG)
-    INCLUDE_DIRECTORIES(${PIC_PNGWRITER_ROOT_DIR}/include /usr/include/freetype2/)
+    DOC "pngwriter root location.")
+IF(PIC_PNGWRITER_ROOT_DIR)
+    MESSAGE(STATUS "Found PNGWriter: "${PIC_PNGWRITER_ROOT_DIR})
+    ADD_DEFINITIONS(-DPIC_ENABLE_PNG=1)
+    INCLUDE_DIRECTORIES(SYSTEM ${PIC_PNGWRITER_ROOT_DIR}/include)
     LINK_DIRECTORIES(${PIC_PNGWRITER_ROOT_DIR}/lib)
-    SET(LIBS ${LIBS} png pngwriter freetype)
-ENDIF(PIC_ENABLE_PNG)
+    SET(LIBS ${LIBS} png pngwriter)
+    # freetype support enabled?
+    INCLUDE(FindFreetype)
+    IF(FREETYPE_FOUND)
+      INCLUDE_DIRECTORIES(${FREETYPE_INCLUDE_DIRS})
+      SET(LIBS ${LIBS} ${FREETYPE_LIBRARIES})
+    ENDIF(FREETYPE_FOUND)
+ELSEIF(PIC_PNGWRITER_ROOT_DIR)
+    MESSAGE(STATUS "Could NOT find PNGWriter")
+ENDIF(PIC_PNGWRITER_ROOT_DIR)
 
-# check if PIC_EXTENSION_PATH is relativ or absolut
+# check if PIC_EXTENSION_PATH is relative or absolute
 
 find_path(PIC_EXTENSION_PATH
     NAMES include/simulation_defines/param/componentsConfig.param
@@ -255,12 +259,9 @@ find_path(PIC_EXTENSION_PATH
 SET(PIC_COPY_ON_INSTALL "include/simulation_defines" "submit" CACHE LIST "folder which copied on install to install path" )
 
 ################################################################################
-INCLUDE_DIRECTORIES(include ${MPI_INCLUDE_PATH} ${mpi_include_path})
+INCLUDE_DIRECTORIES(include)
 INCLUDE_DIRECTORIES(BEFORE ${PIC_EXTENSION_PATH}/include)
 ################################################################################
-
-
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${INCLUDE_DIRECTORIES})
 
 
 IF(VAMPIR_ENABLE)
@@ -280,7 +281,7 @@ IF(VAMPIR_ENABLE)
     SET(LIBS vt-hyb ${LIBS} )
 ENDIF(VAMPIR_ENABLE)
 
-target_link_libraries(picongpu  ${LIBS} ${CUDA_CUDART_LIBRARY} z m ${MPI_LIBRARIES}) # not necessary ${MPI_EXTRA_LIBRARY}
+target_link_libraries(picongpu  ${LIBS} ${CUDA_CUDART_LIBRARY} z m)
 
 
 INSTALL(TARGETS picongpu
