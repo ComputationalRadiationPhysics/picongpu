@@ -49,9 +49,8 @@ namespace picongpu
      *
      * @param ... parameters to pass to kernel
      */
-#define PIC_PMACC_CUDAPARAMS(...) (__VA_ARGS__,mapper);  \
-    taskKernel->activateChecks();              \
-   /* CUDA_CHECK(cudaThreadSynchronize());*/  \
+#define PIC_PMACC_CUDAPARAMS(...) (__VA_ARGS__,mapper);                        \
+        PMACC_ACTIVATE_KERNEL                                                  \
     }   /*this is used if call is EventTask.waitforfinished();*/
 
     /**
@@ -62,8 +61,8 @@ namespace picongpu
      * @param block sizes of block on gpu
      * @param ... amount of shared memory for the kernel (optional)
      */
-#define PIC_PMACC_CUDAKERNELCONFIG(block,...) <<<mapper.getGridDim(),(block),     \
-    PMACC_NUMARGS(__VA_ARGS__)==1?__VA_ARGS__:0,                      \
+#define PIC_PMACC_CUDAKERNELCONFIG(block,...) <<<mapper.getGridDim(),(block),  \
+    __VA_ARGS__+0,                                                             \
     taskKernel->getCudaStream()>>> PIC_PMACC_CUDAPARAMS
 
     /**
@@ -75,7 +74,8 @@ namespace picongpu
      * @param kernelname name of the CUDA kernel (can also used with templates etc. myKernnel<1>)
      * @param area area type for which the kernel is called
      */
-#define __picKernelArea(kernelname,description,area) {                                                    \
+#define __picKernelArea(kernelname,description,area) {                               \
+    CUDA_CHECK_KERNEL_MSG(cudaThreadSynchronize(),"picKernelArea crash before kernel call");       \
     AreaMapping<area,MappingDesc> mapper(description);                               \
     TaskKernel *taskKernel =  Factory::getInstance().createTaskKernel(#kernelname);  \
     kernelname PIC_PMACC_CUDAKERNELCONFIG
