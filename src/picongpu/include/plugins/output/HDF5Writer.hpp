@@ -42,6 +42,7 @@
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
 #include "fields/FieldJ.hpp"
+#include "fields/FieldTmp.def"
 #include "fields/FieldTmp.hpp"
 #include "particles/particleFilter/FilterFactory.hpp"
 #include "particles/particleFilter/PositionFilter.hpp"
@@ -78,15 +79,6 @@ using namespace DCollector;
 namespace bmpl = boost::mpl;
 
 namespace po = boost::program_options;
-
-struct PhysField
-{
-    void* ptrField;
-    std::string nameField;
-    int numCompoField;
-    std::vector<double> unitField;
-    GridLayout<simDim> gridLayout;
-};
 
 /**
  * Writes simulation data to hdf5 files.
@@ -142,7 +134,6 @@ private:
             tmp[i] = unit[i];
         return tmp;
     }
-
     
     /** Write calculated fields to HDF5 file.
      * 
@@ -165,13 +156,11 @@ private:
         {
 #ifndef __CUDA_ARCH__
             DCollector::ColTypeFloat ctFloat;
-            PhysField thisField;
 
             DataConnector &dc = DataConnector::getInstance();
 
             T* field = &(dc.getData<T > (T::getCommTag()));
-            thisField.gridLayout = field->getGridLayout();
-            params.get()->gridLayout = thisField.gridLayout;
+            params.get()->gridLayout = field->getGridLayout();
 
             writeField(params.get(),
                        ctFloat,
@@ -192,7 +181,7 @@ private:
      *  FieldTmp is calculated on device and than dumped to HDF5.
      */
     template< typename ThisSolver, typename ThisSpecies >
-    struct GetDCFields<TmpFieldOperation<ThisSolver, ThisSpecies> >
+    struct GetDCFields<FieldTmpOperation<ThisSolver, ThisSpecies> >
     {
 
         /*
@@ -234,7 +223,6 @@ private:
         HINLINE void operator_impl(RefWrapper<ThreadParams*> params)
         {
 
-            PhysField thisField;
             DCollector::ColTypeFloat ctFloat;
 
             DataConnector &dc = DataConnector::getInstance();
@@ -257,8 +245,7 @@ private:
             dc.releaseData(ThisSpecies::FrameType::CommunicationTag);
             /*## finish update field ##*/
 
-            thisField.gridLayout = fieldTmp->getGridLayout();
-            params.get()->gridLayout = thisField.gridLayout;
+            params.get()->gridLayout =fieldTmp->getGridLayout();
             /*write data to HDF5 file*/
             writeField(params.get(),
                        ctFloat,

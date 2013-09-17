@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ */
  
 
 
@@ -28,7 +28,7 @@
 #include "fields/FieldE.hpp"
 #include "fields/FieldB.hpp"
 #include "fields/FieldJ.hpp"
-#include "fields/FieldTmp.hpp"
+#include "fields/FieldTmp.def"
 
 #include "particles/Species.hpp"
 
@@ -66,36 +66,20 @@ namespace picongpu
             particleShape::Counter::ChargeAssignment,
             ComputeEnergyDensityOptions::calcCounter
         > TmpParticleCounter;
-    
-    
-    /** Define which operation is used to fill up FieldTmp
-     * 
-     * This is better than use of boost::mtl::pair because
-     * we can use this special struct to define functors 
-     * only for FieldTmp. If we create a second FieldTmp, for example 
-     * with three components, we can create a new struct (like this)
-     * and build a special functor to handle the type.
-     */
-    template<typename TSolver,typename TSpecies>
-    struct TmpFieldOperation
-    {
-        typedef TSolver Solver;
-        typedef TSpecies Species;
-    };
 
-    /** List of solver which use TmpField and electons*/
+    /** List of solvers which use TmpField and electons*/
     typedef boost::mpl::vector<
 #if (ENABLE_ELECTRONS == 1)
-                TmpFieldOperation< TmpParticleDensity, PIC_Electrons > ,
-                TmpFieldOperation< TmpParticleEnergyDensity, PIC_Electrons >
+        FieldTmpOperation< TmpParticleDensity, PIC_Electrons > ,
+        FieldTmpOperation< TmpParticleEnergyDensity, PIC_Electrons >
 #endif
     > PluginsHdf5OutputFieldsElectrons;
 
-    /** List of solver which use TmpField andions*/
+    /** List of solvers which use TmpField and ions*/
     typedef boost::mpl::vector<
 #if (ENABLE_IONS == 1)
-                TmpFieldOperation< TmpParticleDensity, PIC_Ions >,
-                TmpFieldOperation< TmpParticleEnergyDensity, PIC_Ions >
+        FieldTmpOperation< TmpParticleDensity, PIC_Ions >,
+        FieldTmpOperation< TmpParticleEnergyDensity, PIC_Ions >
 #endif
     > PluginsHdf5OutputFieldsIons;
     
@@ -104,5 +88,5 @@ namespace picongpu
     typedef JoinVectors<NativeHdf5OutputFields,
             PluginsHdf5OutputFieldsElectrons,
             PluginsHdf5OutputFieldsIons
-            >::type Hdf5OutputFields;
+    >::type Hdf5OutputFields;
 }
