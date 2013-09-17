@@ -39,6 +39,9 @@ set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{MPI_ROOT}" "$ENV{BOOST_
 FIND_PACKAGE(MPI REQUIRED)
 INCLUDE_DIRECTORIES(SYSTEM ${MPI_C_INCLUDE_PATH})
 SET(LIBS ${LIBS} ${MPI_C_LIBRARIES})
+IF(MPI_CXX_FOUND) # bullxmpi fails if it can not find its c++ counter part
+    SET(LIBS ${LIBS} ${MPI_CXX_LIBRARIES})
+ENDIF(MPI_CXX_FOUND)
 
 #include Boost
 FIND_PACKAGE(Boost REQUIRED COMPONENTS program_options)
