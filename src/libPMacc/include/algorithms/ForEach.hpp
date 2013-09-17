@@ -64,18 +64,16 @@ namespace algorithms
 /** create operator() for EmptyFunctor
  * 
  * template<typename T0, ... , typename TN>
- * HDINLINE void operator()(const T0, ..., const TN ) const {};
+ * HDINLINE void operator()(const T0, ..., const TN ) const {}
  * 
  * All operator are empty and do nothing.
  * The operator parameters are plain type-only (without a name) to support 
  * compiler flags like -Wextras (with -Wunused-params)
  */
 #define PMACC_FOREACH_OPERATOR_CONST_NO_USAGE(Z, N, FUNCTIONS)                 \
-    /* BOOST_PP_ENUM_PARAMS(N, typename T) is unrolled to                      \
-       "typename T0, ... , typename TN" */                                     \
+    /*      <typename T0, ... , typename TN     > */                           \
     template<BOOST_PP_ENUM_PARAMS(N, typename T)>                              \
-    /* BOOST_PP_ENUM_PARAMS(N, cont T) is unrolled to                          \
-       "const T0, ... , cont TN" */                                            \
+    /*                      ( const T0, ... , cont TN         ) */             \
     HDINLINE void operator()( BOOST_PP_ENUM_PARAMS(N, const T)) const          \
     {                                                                          \
     }/*end of operator()*/
@@ -90,8 +88,10 @@ struct EmptyFunctor
     {
     }
 
-    /* N=PMACC_MAX_FUNCTOR_OPERATOR_PARAMS-1
-     * create operator()(const T0 ,...,const TN)
+    /* N=PMACC_MAX_FUNCTOR_OPERATOR_PARAMS
+     * create:
+     * template<typename T0, ... , TN> 
+     * void operator()(const T0 ,...,const TN){}
      */
     BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(PMACC_MAX_FUNCTOR_OPERATOR_PARAMS),
                             PMACC_FOREACH_OPERATOR_CONST_NO_USAGE, _)
@@ -112,18 +112,17 @@ struct ForEach;
 /** create operator() for ForEach
  * 
  * template<typename T0, ... , typename TN>
- * HDINLINE void operator()(const T0 t0, ..., const TN tN) const {};
+ * HDINLINE void operator()(const T0 t0, ..., const TN tN) const {}
  */
 #define PMACC_FOREACH_OPERATOR_CONST(Z, N, _)                                  \
-    /* BOOST_PP_ENUM_PARAMS(N, typename T) is unrolled to                      \
-       "typename T0, ... , typename TN" */                                     \
+    /*      <typename T0, ... , typename TN     > */                           \
     template<BOOST_PP_ENUM_PARAMS(N, typename T)>                              \
-    /* BOOST_PP_ENUM_BINARY_PARAMS(N, T, const t) is unrolled to               \
-       "const T0 &t0, ... , const TN &tN" */                                     \
+    /*                      ( const T0& t0, ... , const TN& tN           ) */  \
     HDINLINE void operator()( BOOST_PP_ENUM_BINARY_PARAMS(N, const T, &t)) const \
     {                                                                          \
-        /* BOOST_PP_ENUM_PARAMS(N, t) is unrolled to "t0, ..., tn" */          \
+        /*           (t0, ..., tn               ) */                           \
         FunctorType()(BOOST_PP_ENUM_PARAMS(N, t));                             \
+        /*        (t0, ..., tn               ) */                              \
         NextCall()(BOOST_PP_ENUM_PARAMS(N, t));                                \
     } /*end of operator()*/
 
@@ -135,8 +134,9 @@ struct ForEach;
 #define TEXTAPPEND(Z, N, text)  COMMA  text ## N
 
 
-/** Create struct 
- *  ForEach<Accessor,iteratorBegin,iteratorEnd,template<typename,...> class Functor>{}
+/** Create:
+ *  struct ForEach<Accessor,iteratorBegin,iteratorEnd,template<typename,...> 
+ *  class Functor>{}
  * 
  *  \tparam Accessor A class with one template argument where ::type is defined.
  *          Accessor<TypeFromSeq>::type is called -> return type is given to Functor
@@ -156,26 +156,21 @@ template<                                                                      \
     typename AccessorType,                                                     \
     typename itBegin,                                                          \
     typename itEnd,                                                            \
-    /* BOOST_PP_ENUM(N, TEXT,typename) is unrolled to                          \
-       "typename , ... , typename " */                                         \
+    /*      <typename , ... , typename       > */                              \
     template<BOOST_PP_ENUM(N, TEXT, typename)> class Functor_,                 \
-    /* BOOST_PP_ENUM_PARAMS(N, typename A) is unrolled to                      \
-       "typename A0, ... , typename AN" */                                     \
+    /* typename A0, ... , typename AN  */                                      \
     BOOST_PP_ENUM_PARAMS(N, typename A)>                                       \
-    /* BOOST_PP_ENUM_PARAMS(N, A) is unrolled to                               \
-       "A0, ... , AN" */                                                       \
-struct ForEach< Accessor<AccessorType>, itBegin, itEnd, Functor_<BOOST_PP_ENUM_PARAMS(N, A)> > \
+    /*                                                          <A0, ... , AN              > */ \
+struct ForEach< Accessor<AccessorType>, itBegin, itEnd, Functor_<BOOST_PP_ENUM_PARAMS(N, A)> >  \
 {                                                                              \
     typedef typename boost::mpl::next<itBegin>::type nextIt;                   \
     typedef typename boost::mpl::deref<itBegin>::type usedType;                \
     typedef typename boost::is_same<nextIt, itEnd>::type isEnd;                \
-    /* BOOST_PP_ENUM_PARAMS(N, A) is unrolled to "A0, ... , AN" */             \
+    /*              <A0, ... , AN              > */                            \
     typedef Functor_<BOOST_PP_ENUM_PARAMS(N, A)> FunctorUnchanged;             \
-    /* BOOST_PP_REPEAT_FROM_TO(1,N,TEXTAPPEND, A) is unrolled to               \
-       ",A1, ... , AN"                                                         \
-       Nothing is done if N equal 0                                            \
-    */                                                                         \
     typedef Functor_<typename Accessor<usedType>::type                         \
+    /* Nothing is done if N equal 1                                            \     
+            ,A1, ... , AN */                                                   \
             BOOST_PP_REPEAT_FROM_TO(1,N,TEXTAPPEND, A) > FunctorType;          \
     typedef detail::ForEach< Accessor<AccessorType>, nextIt, itEnd, FunctorUnchanged > TmpNextCall; \
     /* if nextIt is equal to itEnd we use EmptyFunctor                         \
@@ -189,7 +184,8 @@ struct ForEach< Accessor<AccessorType>, itBegin, itEnd, Functor_<BOOST_PP_ENUM_P
         FunctorType()();                                                       \
         NextCall()();                                                          \
     }                                                                          \
-    /* N=PMACC_MAX_FUNCTOR_OPERATOR_PARAMS-1                                   \
+    /* N=PMACC_MAX_FUNCTOR_OPERATOR_PARAMS                                     \
+     * template<typename T0, ... , typename TN>                                \
      * create operator()(const T0 t0,...,const TN tN)                          \
      */                                                                        \
     BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(PMACC_MAX_FUNCTOR_OPERATOR_PARAMS), \
@@ -198,8 +194,9 @@ struct ForEach< Accessor<AccessorType>, itBegin, itEnd, Functor_<BOOST_PP_ENUM_P
 
 //########################### end preprocessor definitions #####################
 
-/* N = PMACC_MAX_FUNCTOR_TEMPLATES-1
- * create struct definitions ForEach<itBegin,itEnd,T0,...,TN>
+/* N = PMACC_MAX_FUNCTOR_TEMPLATES
+ * create: 
+ * struct definitions ForEach<Accessor,itBegin,itEnd,T0,...,TN>{}
  *  \see PMACC_FOREACH_STRUCT
  */
 BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(PMACC_MAX_FUNCTOR_TEMPLATES), PMACC_FOREACH_STRUCT, _)
@@ -245,7 +242,8 @@ struct ForEach
         NextCall()();
     }
 
-    /* N=PMACC_MAX_FUNCTOR_OPERATOR_PARAMS-1
+    /* N=PMACC_MAX_FUNCTOR_OPERATOR_PARAMS
+     * template<typename T0, ... , typename TN>
      * create operator()(const T0 t0,...,const TN tN)
      */
     BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(PMACC_MAX_FUNCTOR_OPERATOR_PARAMS),
