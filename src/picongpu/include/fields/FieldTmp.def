@@ -1,0 +1,48 @@
+/**
+ * Copyright 2013 RenÃ© Widera, Axel Huebl
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU. 
+ * If not, see <http://www.gnu.org/licenses/>
+ */
+
+#pragma once
+
+#include "simulation_defines.hpp"
+
+namespace picongpu
+{
+
+    /** Define which operation is used to fill up FieldTmp
+     * 
+     * This is better than use of boost::mtl::pair because
+     * we can use this special struct to define functors 
+     * only for FieldTmp. If we create a second FieldTmp, for example 
+     * with three components, we can create a new struct (like this)
+     * and build a special functor to handle the type.
+     */
+    template<typename TSolver, typename TSpecies>
+    struct FieldTmpOperation
+    {
+        typedef TSolver Solver;
+        typedef TSpecies Species;
+    };
+
+    /** Tmp (at the moment: scalar) field for analysers and tmp data like
+     *  "gridded" particle data (charge density, energy density, ...)
+     */
+    class FieldTmp;
+    
+}//namespace picongpu

@@ -16,12 +16,11 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
 
 
-#ifndef HDF5WRITER_HPP
-#define	HDF5WRITER_HPP
+
+#pragma once
 
 #include <pthread.h>
 #include <cassert>
@@ -43,6 +42,7 @@
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
 #include "fields/FieldJ.hpp"
+#include "fields/FieldTmp.def"
 #include "fields/FieldTmp.hpp"
 #include "particles/particleFilter/FilterFactory.hpp"
 #include "particles/particleFilter/PositionFilter.hpp"
@@ -67,6 +67,9 @@
 #include <boost/mpl/begin_end.hpp>
 #include <boost/mpl/find.hpp>
 
+#include "RefWrapper.hpp"
+#include <boost/type_traits.hpp>
+
 namespace picongpu
 {
 
@@ -76,53 +79,6 @@ using namespace DCollector;
 namespace bmpl = boost::mpl;
 
 namespace po = boost::program_options;
-
-namespace hdf5Helper
-{
-    template< typename T >
-    struct getName
-    {
-        template< typename Solver, typename Species >
-        static std::string evaluate( )
-        {
-            return T::getName( );
-        }
-    };
-
-    template< >
-    struct getName<FieldTmp>
-    {
-        template< typename Solver, typename Species >
-        static std::string evaluate( )
-        {
-            std::stringstream str;
-            str << FieldTmp::getName<Solver>( );
-            str << "_";
-            str << Species::FrameType::getName( );
-            return str.str();
-        }
-    };
-
-    template< typename T >
-    struct getUnit
-    {
-        template< typename Solver >
-        static typename T::UnitValueType evaluate( )
-        {
-            return T::getUnit( );
-        }
-    };
-
-    template< >
-    struct getUnit<FieldTmp>
-    {
-        template< typename Solver >
-        static typename FieldTmp::UnitValueType evaluate( )
-        {
-            return FieldTmp::getUnit<Solver>( );
-        }
-    };
-} // namespace hdf5Helper
 
 /**
  * Writes simulation data to hdf5 files.
@@ -138,7 +94,7 @@ class HDF5Writer : public ISimulationIO, public IPluginModule
 private:
     typedef bmpl::vector< PositionFilter3D<> > usedFilters;
     typedef typename FilterFactory<usedFilters>::FilterType MyParticleFilter;
-    
+
 #if (ENABLE_ELECTRONS == 1)
     typedef FrameContainer<typename ElectronsBuffer::BufferType, TVec < 2048, 16, 1 >,
     MappingDesc::SuperCellSize, MyParticleFilter> MyFrameContainerE;
@@ -152,7 +108,9 @@ private:
     typedef typename MyFrameContainerI::ParticleType MyBigFrameI;
 #endif
 
-    typedef struct
+    MyParticleFilter filter;
+
+    struct ThreadParams
     {
         uint32_t currentStep;
         DCollector::DomainCollector *dataCollector;
@@ -166,75 +124,141 @@ private:
 #endif
 
         VirtualWindow window;
-    } ThreadParams;
-    
-    struct getDCFields
+    };
+
+    template<typename UnitType>
+    static std::vector<double> createUnit(UnitType unit, uint32_t numComponents)
     {
-        struct PhysField
+        std::vector<double> tmp(numComponents);
+        for (uint i = 0; i < numComponents; ++i)
+            tmp[i] = unit[i];
+        return tmp;
+    }
+    
+    /** Write calculated fields to HDF5 file.
+     * 
+     */
+    template< typename T >
+    struct GetDCFields
+    {
+    private:
+
+        static std::vector<double> getUnit()
         {
-            void* ptrField;
-            std::string nameField;
-            int numCompoField;
-            std::vector<double> unitField;
-        };
-        
-        template< typename T >
-        HDINLINE static void evaluate( )
+            typedef typename T::UnitValueType UnitType;
+            UnitType unit = T::getUnit();
+            return createUnit(unit, T::numComponents);
+        }
+
+    public:
+
+        HDINLINE void operator()(RefWrapper<ThreadParams*> params)
         {
-#if !defined(__CUDA_ARCH__) // Host code path
-            DataConnector &dc = DataConnector::getInstance( );
+#ifndef __CUDA_ARCH__
+            DCollector::ColTypeFloat ctFloat;
 
-            T* field = &( dc.getData<T > ( T::getCommTag( ) ) );
-            gridLayout = field->getGridLayout( );
-            
-            /// \todo loop with for each over all FieldTmp Solvers
-            //
-            //const bool isFieldTmp = boost::is_same<T, FieldTmp>::value;
-            //const int numTmpSolvers = bmpl::size<hdf5TmpFields>::type::value;
-            typedef typename bmpl::at_c<hdf5TmpFields, 0>::type thisSolverPair;
-            typedef typename thisSolverPair::first thisSolver;
-            typedef typename thisSolverPair::second thisSpecies;
+            DataConnector &dc = DataConnector::getInstance();
 
-            PhysField thisField;
-            thisField.numCompoField = T::numComponents;
-            thisField.ptrField = field->getHostDataBox( ).getPointer( );
+            T* field = &(dc.getData<T > (T::getCommTag()));
+            params.get()->gridLayout = field->getGridLayout();
 
-            thisField.nameField =
-                hdf5Helper::getName<T>::template evaluate<thisSolver, thisSpecies>();
+            writeField(params.get(),
+                       ctFloat,
+                       T::numComponents,
+                       T::getName(),
+                       getUnit(),
+                       field->getHostDataBox().getPointer());
 
-            thisField.unitField.resize( thisField.numCompoField, 0.0 );
-            for( int i = 0; i < thisField.numCompoField; ++i )
-                thisField.unitField.at( i ) =
-                    hdf5Helper::getUnit<T>::template evaluate<thisSolver>()[i];
-
-            physFields.push_back( thisField );
+            dc.releaseData(T::getCommTag());
 #endif
         }
-        
-        static void clear( )
+
+    };
+
+    /** Calculate FieldTmp with given solver and particle species
+     *  and write them to hdf5.
+     *
+     *  FieldTmp is calculated on device and than dumped to HDF5.
+     */
+    template< typename ThisSolver, typename ThisSpecies >
+    struct GetDCFields<FieldTmpOperation<ThisSolver, ThisSpecies> >
+    {
+
+        /*
+         * This is only a wrapper function to allow disable nvcc warnings.
+         * Warning: calling a __host__ function from __host__ __device__
+         * function.
+         * Use of PMACC_NO_NVCC_HDWARNING is not possible if we call a virtual 
+         * method inside of the method were we disable the warnings.
+         * Therefore we create this method and call a new method were we can
+         * call virtual functions.
+         */
+        PMACC_NO_NVCC_HDWARNING
+        HDINLINE void operator()(RefWrapper<ThreadParams*> tparam)
         {
-            physFields.clear( );
-            // gridLayout = ?
+            this->operator_impl(tparam);
+        }
+    private:
+        /** Create a name for the hdf5 identifier.
+         */
+        template< typename Solver, typename Species >
+            static std::string getName()
+        {
+            std::stringstream str;
+            str << FieldTmp::getName<Solver>();
+            str << "_";
+            str << Species::FrameType::getName();
+            return str.str();
         }
 
-        static std::list<PhysField> physFields;
-        static PMacc::GridLayout<simDim> gridLayout;
-    };
-    
-    struct releaseDCFields
-    {
-        template< typename T >
-        HDINLINE static void evaluate( )
+        /** Get the unit for the result from the solver*/
+        template<typename Solver>
+            static std::vector<double> getUnit()
         {
-#if !defined(__CUDA_ARCH__) // Host code path
-            DataConnector &dc = DataConnector::getInstance( );
-            
-            dc.releaseData( T::getCommTag( ) );
-#endif
+            typedef typename FieldTmp::UnitValueType UnitType;
+            UnitType unit = FieldTmp::getUnit<Solver>();
+            return createUnit(unit, FieldTmp::numComponents);
         }
+
+        HINLINE void operator_impl(RefWrapper<ThreadParams*> params)
+        {
+
+            DCollector::ColTypeFloat ctFloat;
+
+            DataConnector &dc = DataConnector::getInstance();
+
+            /*## update field ##*/
+            
+            /*load FieldTmp without copy data to host*/
+            FieldTmp* fieldTmp = &(dc.getData<FieldTmp > (FIELD_TMP, true));
+            /*load particle without copy particle data to host*/
+            ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(ThisSpecies::FrameType::CommunicationTag, true));
+
+            fieldTmp->getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType(0.0));
+            /*run algorithm*/
+            fieldTmp->computeValue < CORE + BORDER, ThisSolver > (*speciesTmp, params.get()->currentStep);
+
+            EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
+            __setTransactionEvent(fieldTmpEvent);
+            /* copy data to host that we can write same to disk*/
+            fieldTmp->getGridBuffer().deviceToHost();
+            dc.releaseData(ThisSpecies::FrameType::CommunicationTag);
+            /*## finish update field ##*/
+
+            params.get()->gridLayout =fieldTmp->getGridLayout();
+            /*write data to HDF5 file*/
+            writeField(params.get(),
+                       ctFloat,
+                       FieldTmp::numComponents,
+                       getName<ThisSolver, ThisSpecies>(),
+                       getUnit<ThisSolver>(),
+                       fieldTmp->getHostDataBox().getPointer());
+
+            dc.releaseData(FIELD_TMP);
+
+        }
+
     };
-    
-    MyParticleFilter filter;
 
 public:
 
@@ -272,47 +296,12 @@ public:
         this->cellDescription = cellDescription;
     }
 
-    void notify(uint32_t currentStep)
+    __host__ void notify(uint32_t currentStep)
     {
-
-
         DataConnector &dc = DataConnector::getInstance();
 
         mThreadParams.currentStep = currentStep;
         mThreadParams.gridPosition = SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset();
-        
-        /// \todo Calculate more then first element of hdf5TmpFields
-        ///        Move this to writeHDF5 method
-        typedef typename bmpl::find<hdf5OutputFields, FieldTmp>::type itFindFieldTmp;
-        typedef typename bmpl::end<  hdf5OutputFields>::type itEnd;
-        const bool containsFieldTmp = ! (boost::is_same<itFindFieldTmp, itEnd>::value);
-        
-        if( containsFieldTmp )
-        {
-            typedef typename bmpl::at_c<hdf5TmpFields, 0>::type thisSolverPair;
-            typedef typename thisSolverPair::first thisSolver;
-            typedef typename thisSolverPair::second thisSpecies;
-            
-            DataConnector &dc = DataConnector::getInstance();
-            FieldTmp* fieldTmp = &(dc.getData<FieldTmp > (FIELD_TMP, true));
-            thisSpecies* speciesTmp = &(dc.getData<thisSpecies >( thisSpecies::FrameType::CommunicationTag ));
-
-            fieldTmp->getGridBuffer().getDeviceBuffer().setValue( FieldTmp::ValueType( 0.0 ) );
-            fieldTmp->computeValue< CORE + BORDER, thisSolver >( *speciesTmp, currentStep );
-
-            EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
-            __setTransactionEvent(fieldTmpEvent);
-            
-            dc.releaseData( thisSpecies::FrameType::CommunicationTag );
-        }
-        
-        // synchronize simulation data with DataConnector
-        getDCFields::clear( );
-        ForEach<hdf5OutputFields, getDCFields> forEachGetFields;
-        forEachGetFields();
-        
-        mThreadParams.gridLayout = getDCFields::gridLayout;
-        
         this->filter.setStatus(false);
 
         mThreadParams.window = MovingWindow::getInstance().getVirtualWindow(currentStep);
@@ -372,7 +361,7 @@ private:
     void openH5File()
     {
         const uint32_t maxOpenFilesPerNode = 4;
-        mThreadParams.dataCollector = new DCollector::DomainCollector( maxOpenFilesPerNode );
+        mThreadParams.dataCollector = new DCollector::DomainCollector(maxOpenFilesPerNode);
 
         // set attributes for datacollector files
         DCollector::DataCollector::FileCreationAttr attr;
@@ -461,13 +450,16 @@ private:
     static void writeField(ThreadParams *params, DCollector::CollectionType& colType,
                            const uint32_t dims, const std::string name, std::vector<double> unit, void *ptr)
     {
+        log<picLog::INPUT_OUTPUT > ("HDF5 write field: %1% %2% %3%") %
+            name % dims % ptr;
+
         std::vector<std::string> name_lookup;
         {
             const std::string name_lookup_tpl[] = {"x", "y", "z", "w"};
-            for( uint32_t d = 0; d < dims; d++ )
-                name_lookup.push_back( name_lookup_tpl[d] );
+            for (uint32_t d = 0; d < dims; d++)
+                name_lookup.push_back(name_lookup_tpl[d]);
         }
-        
+
         GridLayout<DIM> field_layout = params->gridLayout;
         DataSpace<DIM> field_full = field_layout.getDataSpace();
         DataSpace<DIM> field_no_guard = params->window.localSize; //field_layout.getDataSpaceWithoutGuarding();
@@ -507,7 +499,7 @@ private:
             {
                 std::stringstream str;
                 str << name;
-                if ( dims > 1 )
+                if (dims > 1)
                     str << "_" << name_lookup.at(d);
 
                 params->dataCollector->writeDomain(params->currentStep, colType, DIM,
@@ -523,7 +515,7 @@ private:
 
                 params->dataCollector->writeAttribute(params->currentStep, DCollector::ColTypeDim(), str.str().c_str(), "sim_size", &sim_size);
                 params->dataCollector->writeAttribute(params->currentStep, DCollector::ColTypeDim(), str.str().c_str(), "sim_global_offset", &sim_global_offset);
-                params->dataCollector->writeAttribute(params->currentStep, ctDouble, str.str().c_str(), "sim_unit", &( unit.at(d) ));
+                params->dataCollector->writeAttribute(params->currentStep, ctDouble, str.str().c_str(), "sim_unit", &(unit.at(d)));
             }
         }
     }
@@ -708,28 +700,14 @@ private:
         // synchronize, because following operations will be blocking anyway
         ThreadParams *threadParams = (ThreadParams*) (p_args);
 
+        /*print all fields*/
+        ForEach<Hdf5OutputFields, GetDCFields<void> > forEachGetFields;
+        forEachGetFields(ref(threadParams));
+
         // write fields
         /// \todo this should be a type trait
         DCollector::ColTypeFloat ctFloat;
-        
-        // iterators for fields
-        typename std::list<typename getDCFields::PhysField>::iterator itFields;
 
-        for( itFields = getDCFields::physFields.begin();
-             itFields != getDCFields::physFields.end();
-             ++itFields )
-        {            
-            log<picLog::INPUT_OUTPUT > ("HDF5 write field: %1% %2% %3%") %
-                itFields->nameField % itFields->numCompoField % itFields->ptrField;
-            
-            writeField( threadParams,
-                        ctFloat,
-                        itFields->numCompoField,
-                        itFields->nameField,
-                        itFields->unitField,
-                        itFields->ptrField );
-        }
-        
         // write particles
         DataSpace<DIM> sim_offset = threadParams->gridPosition - threadParams->window.globalSimulationOffset;
         DataSpace<DIM> localOffset = threadParams->window.localOffset;
@@ -740,14 +718,14 @@ private:
         writeParticles<MyFrameContainerE, MyBigFrameE > (threadParams,
                                                          threadParams->frameContainerE,
                                                          sim_offset, localSize, sim_offset,
-                                                         ElectronsBuffer::FrameType::getName( ) );
+                                                         ElectronsBuffer::FrameType::getName());
 #endif
 #if (ENABLE_IONS == 1)
         threadParams->frameContainerI->getFilter().setWindowPosition(localOffset, localSize);
         writeParticles<MyFrameContainerI, MyBigFrameI > (threadParams,
                                                          threadParams->frameContainerI,
                                                          sim_offset, localSize, sim_offset,
-                                                         IonsBuffer::FrameType::getName( ) );
+                                                         IonsBuffer::FrameType::getName());
 #endif
         if (MovingWindow::getInstance().isSlidingWindowActive())
         {
@@ -770,11 +748,11 @@ private:
             threadParams->frameContainerE->getFilter().setWindowPosition(localOffset, localSize);
             std::stringstream strNameTopE;
             strNameTopE << "_top_";
-            strNameTopE << ElectronsBuffer::FrameType::getName( );
+            strNameTopE << ElectronsBuffer::FrameType::getName();
             writeParticles<MyFrameContainerE, MyBigFrameE > (threadParams,
                                                              container,
                                                              sim_offset, localSize, DataSpace<DIM > (),
-                                                             strNameTopE.str( ) );
+                                                             strNameTopE.str());
 #endif
 #if (ENABLE_IONS == 1)
             PMACC_AUTO(containerI, threadParams->frameContainerI);
@@ -784,11 +762,11 @@ private:
             threadParams->frameContainerI->getFilter().setWindowPosition(localOffset, localSize);
             std::stringstream strNameTopI;
             strNameTopI << "_top_";
-            strNameTopI << IonsBuffer::FrameType::getName( );
+            strNameTopI << IonsBuffer::FrameType::getName();
             writeParticles<MyFrameContainerI, MyBigFrameI > (threadParams,
                                                              containerI,
                                                              sim_offset, localSize, DataSpace<DIM > (),
-                                                             strNameTopI.str( ) );
+                                                             strNameTopI.str());
 #endif
 
             sim_offset = threadParams->gridPosition;
@@ -811,11 +789,11 @@ private:
                                                                          localSize);
             std::stringstream strNameBottomE;
             strNameBottomE << "_bottom_";
-            strNameBottomE << ElectronsBuffer::FrameType::getName( );
+            strNameBottomE << ElectronsBuffer::FrameType::getName();
             writeParticles<MyFrameContainerE, MyBigFrameE > (threadParams,
                                                              containerBottom,
                                                              sim_offset, localSize, DataSpace<DIM > (),
-                                                             strNameBottomE.str( ) );
+                                                             strNameBottomE.str());
 #endif
 #if (ENABLE_IONS == 1)
             PMACC_AUTO(containerBottomI, threadParams->frameContainerI);
@@ -826,11 +804,11 @@ private:
                                                                          localSize);
             std::stringstream strNameBottomI;
             strNameBottomI << "_bottom_";
-            strNameBottomI << IonsBuffer::FrameType::getName( );
+            strNameBottomI << IonsBuffer::FrameType::getName();
             writeParticles<MyFrameContainerI, MyBigFrameI > (threadParams,
                                                              containerBottomI,
                                                              sim_offset, localSize, DataSpace<DIM > (),
-                                                             strNameBottomI.str( ) );
+                                                             strNameBottomI.str());
 #endif
         }
 
@@ -838,10 +816,6 @@ private:
 
 
         DataConnector &dc = DataConnector::getInstance();
-        
-        // release field data
-        ForEach<hdf5OutputFields, releaseDCFields> forEachFieldRelease;
-        forEachFieldRelease();
 
         // release particle data
 #if (ENABLE_ELECTRONS == 1)
@@ -868,17 +842,5 @@ private:
 
 };
 
-
-// init static member variables
-template<class ElectronsBuffer, class IonsBuffer, unsigned DIM>
-std::list<typename HDF5Writer<ElectronsBuffer,IonsBuffer,DIM>::getDCFields::PhysField>
-HDF5Writer<ElectronsBuffer,IonsBuffer,DIM>::getDCFields::physFields;
-
-template<class ElectronsBuffer, class IonsBuffer, unsigned DIM>
-PMacc::GridLayout<simDim>
-HDF5Writer<ElectronsBuffer,IonsBuffer,DIM>::getDCFields::gridLayout;
-
-}
-
-#endif	/* HDF5WRITER_HPP */
+} //namepsace picongpu
 

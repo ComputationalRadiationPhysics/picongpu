@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ */
  
 
 
@@ -28,19 +28,21 @@
 #include "fields/FieldE.hpp"
 #include "fields/FieldB.hpp"
 #include "fields/FieldJ.hpp"
-#include "fields/FieldTmp.hpp"
+#include "fields/FieldTmp.def"
 
 #include "particles/Species.hpp"
 
 #include "particles/particleToGrid/energyDensity.kernel"
 
+#include "particles/boostExtension/JoinVectors.hpp"
+
 namespace picongpu
 {
     /** Note: you will need at least FieldE and FieldB for restart
      *       capability!
-     *  Possible fields: FieldE, FieldB, FieldJ, FieldTmp
+     *  Possible fields: FieldE, FieldB, FieldJ
      */
-    typedef boost::mpl::vector<FieldE, FieldB, FieldTmp > hdf5OutputFields;
+    typedef boost::mpl::vector<FieldE, FieldB> NativeHdf5OutputFields;
     
     /** TimeAvg Fields
      * \todo Reduce/Avg on host-side RAM with an analyser
@@ -64,14 +66,27 @@ namespace picongpu
             particleShape::Counter::ChargeAssignment,
             ComputeEnergyDensityOptions::calcCounter
         > TmpParticleCounter;
-    
-    /** \warning Only uses the 1st argument right now
-     *  \todo implement loop through each argument
-     */
+
+    /** List of solvers which use TmpField and electons*/
     typedef boost::mpl::vector<
-                boost::mpl::pair< TmpParticleDensity, PIC_Electrons > /*,
-                boost::mpl::pair< TmpParticleDensity, PIC_Ions >,
-                boost::mpl::pair< TmpParticleEnergyDensity, PIC_Electrons >,
-                boost::mpl::pair< TmpParticleEnergyDensity, PIC_Ions >*/
-    > hdf5TmpFields;
+#if (ENABLE_ELECTRONS == 1)
+        FieldTmpOperation< TmpParticleDensity, PIC_Electrons > ,
+        FieldTmpOperation< TmpParticleEnergyDensity, PIC_Electrons >
+#endif
+    > PluginsHdf5OutputFieldsElectrons;
+
+    /** List of solvers which use TmpField and ions*/
+    typedef boost::mpl::vector<
+#if (ENABLE_IONS == 1)
+        FieldTmpOperation< TmpParticleDensity, PIC_Ions >,
+        FieldTmpOperation< TmpParticleEnergyDensity, PIC_Ions >
+#endif
+    > PluginsHdf5OutputFieldsIons;
+    
+    
+    /** This list is use to dump fields to HDf5. */
+    typedef JoinVectors<NativeHdf5OutputFields,
+            PluginsHdf5OutputFieldsElectrons,
+            PluginsHdf5OutputFieldsIons
+    >::type Hdf5OutputFields;
 }
