@@ -69,31 +69,34 @@ namespace picongpu
                 
                 if( calcType == ComputeEnergyDensityOptions::calcDensity )
                     return UNIT_CHARGE / UNIT_VOLUME;
-
+                else
                 if( calcType == ComputeEnergyDensityOptions::calcEnergy )
                     return UNIT_ENERGY;
-
+                else
                 if( calcType == ComputeEnergyDensityOptions::calcEnergyDensity )
                     return UNIT_CHARGE / UNIT_VOLUME * UNIT_ENERGY;
-                
+                else
                 if( calcType == ComputeEnergyDensityOptions::calcCounter )
                     return NUM_EL_PER_PARTICLE;
-
-                return 1.0;
+                else
+                    return 1.0;
             }
-
-            HDINLINE std::string getName( ) const
+            
+            HINLINE std::string getName( ) const
             {
                 if( calcType == ComputeEnergyDensityOptions::calcDensity )
                     return "fields_Density";
+                else
                 if( calcType == ComputeEnergyDensityOptions::calcEnergy )
                     return "fields_ParticleEnergy";
+                else
                 if( calcType == ComputeEnergyDensityOptions::calcEnergyDensity )
                     return "fields_EnergyDensity";
+                else
                 if( calcType == ComputeEnergyDensityOptions::calcCounter )
                     return "fields_ParticleCounter";
-                
-                return "fields_FieldTmp";
+                else                
+                    return "fields_FieldTmp";
             }
 
             template<class FrameType, class TVecSuperCell, class BoxTmp >
