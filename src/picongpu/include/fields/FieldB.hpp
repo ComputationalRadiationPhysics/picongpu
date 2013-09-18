@@ -41,7 +41,7 @@
 #include "memory/boxes/DataBox.hpp"
 #include "memory/boxes/PitchedBox.hpp"
 
-#include "basisLib/vector/Vector.hpp"
+#include "math/Vector.hpp"
 
 
 namespace picongpu

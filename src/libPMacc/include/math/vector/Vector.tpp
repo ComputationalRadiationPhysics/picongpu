@@ -23,105 +23,11 @@
 #pragma once
 
 
-#include "basisLib/vector/Vector.hpp"
+#include "math/vector/Vector.hpp"
 #include "algorithms/math.hpp"
 #include "algorithms/TypeCast.hpp"
 #include "mpi/GetMPI_StructAsArray.hpp"
 #include "traits/GetType.hpp"
-
-/*
-namespace PMacc
-{
-
-namespace math
-{
-
-template<typename Type, int dim>
-std::ostream& operator<<( std::ostream& s, const Vector<Type, dim>& vec )
-{
-    for ( int i = 0; i < dim - 1; i++ )
-        s << vec[i] << ", ";
-    return s << vec[dim - 1];
-}
-
-template<typename Type, int dim>
-HDINLINE
-Vector<Type, dim> operator+(const Vector<Type, dim>& lhs, const Vector<Type, dim>& rhs )
-{
-    Vector<Type, dim> result( lhs );
-    result += rhs;
-    return result;
-}
-
-template<typename Type, int dim>
-HDINLINE
-Vector<Type, dim> operator-(const Vector<Type, dim>& lhs, const Vector<Type, dim>& rhs )
-{
-    Vector<Type, dim> result( lhs );
-    result -= rhs;
-    return result;
-}
-
-template<typename Type, int dim>
-HDINLINE
-Vector<Type, dim> operator*(const Vector<Type, dim>& lhs, const Vector<Type, dim>& rhs )
-{
-    Vector<Type, dim> result( lhs );
-    result *= rhs;
-    return result;
-}
-
-template<typename Type, int dim>
-HDINLINE
-Vector<Type, dim> operator/(const Vector<Type, dim>& lhs, const Vector<Type, dim>& rhs )
-{
-    Vector<Type, dim> result( lhs );
-    result /= rhs;
-    return result;
-}
-
-template<typename Type, int dim>
-HDINLINE
-Vector<Type, dim> operator*(const Vector<Type, dim>& lhs, const Type& rhs )
-{
-    Vector<Type, dim> result( lhs );
-    result *= rhs;
-    return result;
-}
-
-template<typename Type, int dim>
-HDINLINE
-Vector<Type, dim> operator*(const Type& lhs, const Vector<Type, dim>& rhs )
-{
-    Vector<Type, dim> result( rhs );
-    result *= lhs;
-    return result;
-}
-
-template<typename Type, int dim>
-HDINLINE
-Vector<Type, dim> operator/(const Vector<Type, dim>& lhs, const Type& rhs )
-{
-    Vector<Type, dim> result( lhs );
-    result /= rhs;
-    return result;
-}
-
-template<typename Type, int dim>
-HDINLINE
-Vector<Type, dim> operator-(const Vector<Type, dim>& vec )
-{
-    Vector<Type, dim> result( vec );
-    for ( int i = 0; i < dim; i++ )
-        result[i] = -result[i];
-    return result;
-}
-
-} //namespace math
-
-
-}//namepsace  PMacc
-*/
 
 namespace PMacc
 {
@@ -147,6 +53,8 @@ namespace math
 {
 namespace detail
 {
+
+/*#### comparsion ############################################################*/
 
 /*specialize max algorithm*/
 template<typename Type, int dim>
@@ -178,6 +86,8 @@ struct Min< ::PMacc::math::Vector<Type, dim>,::PMacc::math::Vector<Type, dim> >
     }
 };
 
+/*#### abs ###################################################################*/
+
 /*specialize abs2 algorithm*/
 template<typename Type, int dim>
 struct Abs2< ::PMacc::math::Vector<Type, dim> >
@@ -206,6 +116,8 @@ struct Abs< ::PMacc::math::Vector<Type, dim> >
     }
 };
 
+/*#### cross #################################################################*/
+
 template<typename Type>
 struct Cross< ::PMacc::math::Vector<Type, DIM3>, ::PMacc::math::Vector<Type, DIM3> >
 {
@@ -220,6 +132,8 @@ struct Cross< ::PMacc::math::Vector<Type, DIM3>, ::PMacc::math::Vector<Type, DIM
     }
 };
 
+/*#### dot ###################################################################*/
+
 template<typename Type, int dim>
 struct Dot< ::PMacc::math::Vector<Type, dim>, ::PMacc::math::Vector<Type, dim> >
 {
@@ -229,10 +143,34 @@ struct Dot< ::PMacc::math::Vector<Type, dim>, ::PMacc::math::Vector<Type, dim> >
     HDINLINE result operator( )(const myType& a, const myType & b )
     {
         BOOST_STATIC_ASSERT( dim > 0 );
-        result result = a.x() * b.x();
+        result tmp = a.x() * b.x();
         for ( int i = 1; i < dim; i++ )
-            result += a[i] * b[i];
-        return result;
+            tmp += a[i] * b[i];
+        return tmp;
+    }
+};
+
+/*#### pow ###################################################################*/
+/*! Specialisation of pow where base is a vector and exponent is a scalar
+ * 
+ * Create pow separate for every dimension of the vector.
+ * 
+ * @prama base vector with base values
+ * @param exponent scalar with exponent value
+ */
+template<typename T1,typename T2, int dim>
+struct Pow< ::PMacc::math::Vector<T1, dim>, T2 >
+{
+    typedef ::PMacc::math::Vector<T1, dim> Vector1;
+    typedef Vector1 result;
+    
+    HDINLINE result operator( )(const Vector1& base, const T2 & exponent )
+    {
+        BOOST_STATIC_ASSERT( dim > 0 );
+        result tmp;
+        for ( int i = 0; i < dim; ++i )
+            tmp[i]=PMacc::algorithms::math::pow(base[i],exponent);
+        return tmp;
     }
 };
 
