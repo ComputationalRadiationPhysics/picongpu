@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, René Widera
+ * Copyright 2013 René Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -17,17 +17,51 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
+
 #pragma once
 
-#include "math/vector/Vector.hpp"
-#include "math/vector/Int.hpp"
-#include "math/vector/UInt.hpp"
-#include "math/vector/Size_t.hpp"
-#include "math/vector/Float.hpp"
-#include "math/vector/compile-time/Vector.hpp"
-#include "math/vector/compile-time/Int.hpp"
-#include "math/vector/compile-time/Size_t.hpp"
+#include "types.h"
+#include <math.h> /*provide host version of pow*/
 
-#include "math/vector/Vector.tpp"
+namespace PMacc
+{
+namespace algorithms
+{
+namespace math
+{
+namespace detail
+{
+
+/*C++98 standard define a separate version for int and double exponent*/
+
+template<>
+struct Pow<double, double>
+{
+    typedef double result;
+
+    HDINLINE result operator()(const double& base, const double& exponent)
+    {
+        return ::pow(base, exponent);
+    }
+};
+
+template<>
+struct Pow<double, int>
+{
+    typedef double result;
+
+    HDINLINE result operator()(const double& base, const int& exponent)
+    {
+        return ::pow(base, exponent);
+    }
+};
+
+
+} //namespace detail
+} //namespace math
+} //namespace algorithms
+} // namespace PMacc
+
+
