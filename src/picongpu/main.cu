@@ -40,7 +40,7 @@
 #include "particles/memory/frames/Frame.hpp"
 #include "particles/memory/boxes/TileDataBox.hpp"
 #include <boost/mpl/list.hpp>
-
+#include <boost/mpl/vector.hpp>
 #include "algorithms/ForEach.hpp"
 
 #include <iostream>
@@ -66,10 +66,10 @@ wildcard( hallo );
 __global__ void kernel( int* in, int imax )
 {
 
-    typedef bmpl::map <
-        bmpl::pair<position, position::type>, // Key, Value Paare
-        bmpl::pair<a, int>,
-        bmpl::pair<c, float>
+    typedef bmpl::vector <
+        position,
+        a,
+        c
         > particle;
 
     typedef Frame<CastToVector, particle> FrameType;
@@ -160,10 +160,10 @@ int main( int argc, char **argv )
 
 
     // typedef math::MapTuple <
-    typedef bmpl::map <
-        bmpl::pair<position, position::type>, // Key, Value Paare
-        bmpl::pair<a, int>,
-        bmpl::pair<b, float>
+    typedef bmpl::vector <
+        position,
+        a,
+        b
         > particle;
 
     //typedef typename CoverTypes<typename particle::Map, CastToVector>::type VectorParticle;
@@ -190,7 +190,7 @@ int main( int argc, char **argv )
 
     std::cout << "sizeof=" << sizeof (FrameType ) << std::endl;
     //    std::cout << "value=" << x.getIdentifier(b_).x( ) << std::endl;
-    std::cout << "value=" << x[100 * 1024 * 1024 - 1][a_] << " -" << traits::HasIdentifier<typename FrameType::ParticleType, a>::value << "-" << std::endl;
+    std::cout << "value=" << x[100 * 1024 * 1024 - 1][a_] << " -" << traits::HasIdentifier<FrameType, position>::value << "-" << std::endl;
 
     ForEach<MemList, FreeMemory<void> > freemem;
     freemem( byRef(x) );

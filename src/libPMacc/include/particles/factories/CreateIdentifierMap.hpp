@@ -47,8 +47,8 @@ template<typename InType>
 struct CastToVector
 {
     typedef
-    bmpl::pair<typename InType::first,
-        PMacc::math::Vector< typename InType::second, DIM3> >
+    bmpl::pair<InType,
+        PMacc::math::Vector< typename InType::type, DIM3> >
         type;
 };
 
@@ -57,8 +57,8 @@ struct AddReference
 {
     typedef
     bmpl::pair<
-        typename InType::first,
-        typename boost::add_reference<typename InType::second>::type>
+        InType,
+        typename boost::add_reference<typename InType::type>::type>
         type;
 };
 
@@ -66,8 +66,8 @@ template<typename InType>
 struct CastToVectorBox
 {
     typedef
-    bmpl::pair<typename InType::first,
-        PMacc::VectorDataBox< typename InType::second > >
+    bmpl::pair< InType,
+        PMacc::VectorDataBox< typename InType::type > >
         type;
 };
 

@@ -34,7 +34,10 @@
 #include "particles/frame_types.hpp"
 #include "particles/factories/CreateIdentifierMap.hpp"
 #include <boost/utility/result_of.hpp>
-#include <boost/mpl/has_key.hpp>
+#include <boost/mpl/find.hpp>
+#include <boost/type_traits/is_same.hpp>
+#include <boost/mpl/deref.hpp>
+
 #include "traits/HasIdentifier.hpp"
 #include <boost/static_assert.hpp>
 
@@ -44,17 +47,17 @@ namespace bmpl = boost::mpl;
 namespace pmath = PMacc::math;
 namespace pmacc = PMacc;
 
-template<template<typename> class CoverOperator_, typename ValueTypeMap_, typename MethodsList_ = bmpl::list<>, typename AttributeList_ = bmpl::list<> >
+template<template<typename> class CoverOperator_, typename ValueTypeSeq_, typename MethodsList_ = bmpl::list<>, typename AttributeList_ = bmpl::list<> >
 struct Frame
 :
-protected pmath::MapTuple<typename CreateIdentifierMap<ValueTypeMap_, CoverOperator_>::type, pmath::AlignedData>
+protected pmath::MapTuple<typename CreateIdentifierMap<ValueTypeSeq_, CoverOperator_>::type, pmath::AlignedData>
 {
     // typedef CoverOperator_ CoverOperator;
-    typedef ValueTypeMap_ ValueTypeMap;
+    typedef ValueTypeSeq_ ValueTypeSeq;
     typedef MethodsList_ MethodsList;
     typedef AttributeList_ AttributeList;
-    typedef Frame<CoverOperator_, ValueTypeMap, MethodsList, AttributeList> ThisType;
-    typedef pmath::MapTuple<typename CreateIdentifierMap<ValueTypeMap_, CoverOperator_>::type, pmath::AlignedData> BaseType;
+    typedef Frame<CoverOperator_, ValueTypeSeq, MethodsList, AttributeList> ThisType;
+    typedef pmath::MapTuple<typename CreateIdentifierMap<ValueTypeSeq, CoverOperator_>::type, pmath::AlignedData> BaseType;
 
     typedef pmacc::Particle<ThisType, MethodsList> ParticleType;
 
@@ -92,19 +95,21 @@ namespace traits
 
 template<typename TKey,
 template<typename> class CoverOperator_,
-typename ValueTypeMap_,
+typename ValueTypeSeq_,
 typename MethodsList_,
 typename AttributeList_
 >
 struct HasIdentifier<
-PMacc::Frame<CoverOperator_, ValueTypeMap_, MethodsList_, AttributeList_>,
+PMacc::Frame<CoverOperator_, ValueTypeSeq_, MethodsList_, AttributeList_>,
 TKey
 >
 {
 private:
-    typedef PMacc::Frame<CoverOperator_, ValueTypeMap_, MethodsList_, AttributeList_> FrameType;
+    typedef PMacc::Frame<CoverOperator_, ValueTypeSeq_, MethodsList_, AttributeList_> FrameType;
 public:
-    typedef typename boost::mpl::has_key<typename FrameType::ValueTypeMap, TKey>::type type;
+    typedef typename bmpl::find<typename FrameType::ValueTypeSeq, TKey>::type iter;
+    
+    typedef boost::is_same< typename bmpl::deref<iter>::type,TKey> type;
     static const bool value = type::value;
 };
 } //namespace traits

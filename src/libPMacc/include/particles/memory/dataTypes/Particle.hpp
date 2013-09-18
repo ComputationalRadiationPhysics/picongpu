@@ -39,7 +39,7 @@ struct Particle : public bmpl::inherit<MethodsList_>::type
 {
     typedef FrameType_ FrameType;
     typedef MethodsList_ MethodsList;
-    typedef typename FrameType::ValueTypeMap ValueTypeMap;
+    typedef typename FrameType::ValueTypeSeq ValueTypeSeq;
 
     FrameType& frame;
     uint32_t idx;
