@@ -54,7 +54,7 @@ namespace math
 namespace detail
 {
 
-/*#### comparsion ############################################################*/
+/*#### comparison ############################################################*/
 
 /*specialize max algorithm*/
 template<typename Type, int dim>
@@ -153,7 +153,7 @@ struct Dot< ::PMacc::math::Vector<Type, dim>, ::PMacc::math::Vector<Type, dim> >
 /*#### pow ###################################################################*/
 /*! Specialisation of pow where base is a vector and exponent is a scalar
  * 
- * Create pow separate for every dimension of the vector.
+ * Create pow separatley for every component of the vector.
  * 
  * @prama base vector with base values
  * @param exponent scalar with exponent value
