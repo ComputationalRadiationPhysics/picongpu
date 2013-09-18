@@ -32,7 +32,7 @@
 
 #include "particles/memory/dataTypes/Particle.hpp"
 #include "particles/frame_types.hpp"
-#include "particles/factories/CoverTypes.hpp"
+#include "particles/factories/CreateIdentifierMap.hpp"
 #include <boost/utility/result_of.hpp>
 #include <boost/mpl/has_key.hpp>
 #include "traits/HasIdentifier.hpp"
@@ -47,14 +47,14 @@ namespace pmacc = PMacc;
 template<template<typename> class CoverOperator_, typename ValueTypeMap_, typename MethodsList_ = bmpl::list<>, typename AttributeList_ = bmpl::list<> >
 struct Frame
 :
-protected pmath::MapTuple<typename CoverTypes<ValueTypeMap_, CoverOperator_>::type, pmath::AlignedData>
+protected pmath::MapTuple<typename CreateIdentifierMap<ValueTypeMap_, CoverOperator_>::type, pmath::AlignedData>
 {
     // typedef CoverOperator_ CoverOperator;
     typedef ValueTypeMap_ ValueTypeMap;
     typedef MethodsList_ MethodsList;
     typedef AttributeList_ AttributeList;
     typedef Frame<CoverOperator_, ValueTypeMap, MethodsList, AttributeList> ThisType;
-    typedef pmath::MapTuple<typename CoverTypes<ValueTypeMap_, CoverOperator_>::type, pmath::AlignedData> BaseType;
+    typedef pmath::MapTuple<typename CreateIdentifierMap<ValueTypeMap_, CoverOperator_>::type, pmath::AlignedData> BaseType;
 
     typedef pmacc::Particle<ThisType, MethodsList> ParticleType;
 

@@ -36,6 +36,7 @@
 #include "math/Vector.hpp"
 
 #include "particles/memory/boxes/TileDataBox.hpp"
+#include "algorithms/accessors/Identity.hpp"
 
 namespace PMacc
 {
@@ -70,14 +71,21 @@ struct CastToVectorBox
         type;
 };
 
-template<typename Map_, template<typename> class UnaryOperator>
-struct CoverTypes
+template<typename Map_, 
+        template<typename> class UnaryOperator,
+        template<typename> class Accessor = algorithms::accessors::Identity
+        >
+struct CreateIdentifierMap
 {
     typedef Map_ Map;
-    typedef bmpl::inserter< bmpl::map0<>, bmpl::insert<bmpl::_1, bmpl::_2> > map_inserter;
+    typedef bmpl::inserter< bmpl::map0<>, bmpl::insert<bmpl::_1, bmpl::_2> > Map_inserter;
     typedef typename bmpl::transform<
         Map,
-        UnaryOperator<bmpl::_1>, map_inserter >::type type;
+        UnaryOperator<
+                typename Accessor<
+                        bmpl::_1
+                >::type
+        >, Map_inserter >::type type;
 
 };
 

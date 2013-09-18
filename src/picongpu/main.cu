@@ -35,20 +35,20 @@
  */
 
 #include  "types.h"
-#include "particles/factories/CoverTypes.hpp"
+#include "particles/factories/CreateIdentifierMap.hpp"
 #include "math/MapTuple.hpp"
 #include "particles/memory/frames/Frame.hpp"
 #include "particles/memory/boxes/TileDataBox.hpp"
 #include <boost/mpl/list.hpp>
 
-#include "algorithms/ForEachFunctor.hpp"
+#include "algorithms/ForEach.hpp"
 
 #include <iostream>
 
 #include "RefWrapper.hpp"
 
 using namespace PMacc;
-using namespace PMacc::algorithms::forEachFunctor;
+using namespace PMacc::algorithms::forEach;
 
 namespace PMacc
 {
