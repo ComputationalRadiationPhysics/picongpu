@@ -181,7 +181,7 @@ int main( int argc, char **argv )
     PMACC_AUTO( par, x[100 * 1024 * 1024 - 1] );
     ForEach<MemList, SetDefaultValue<void> >()( byRef(par) );
 
-    printf( "nach: %X\n", x.getIdentifier( a_ ).getPointer( ) );
+   // printf( "nach: %X\n", x.getIdentifier( a_ ).getPointer( ) );
 
     //x[100 * 1024 * 1024 - 1][a_] = 11;
     //PMACC_AUTO( par, x[100 * 1024 * 1024 - 1] );
