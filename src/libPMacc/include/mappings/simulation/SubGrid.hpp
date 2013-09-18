@@ -37,7 +37,7 @@ class SimulationBox
     static const uint32_t Dim = DIM;
 public:
 
-    HDINLINE SimulationBox(const Size& localSize,
+    SimulationBox(const Size& localSize,
                            const Size& globalSize,
                            const Size& globalOffset) :
     localSize(localSize),
@@ -49,7 +49,7 @@ public:
             assert(localSize[i] <= globalSize[i]);
     }
 
-    HDINLINE SimulationBox()
+    SimulationBox()
     {
 
     }
