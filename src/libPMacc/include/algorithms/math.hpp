@@ -31,17 +31,20 @@
 #include "algorithms/math/defines/dot.hpp"
 #include "algorithms/math/defines/comparison.hpp"
 #include "algorithms/math/defines/floatingPoint.hpp"
+#include "algorithms/math/defines/pow.hpp"
 
 #include "algorithms/math/floatMath/abs.tpp"
 #include "algorithms/math/floatMath/sqrt.tpp"
 #include "algorithms/math/floatMath/exp.tpp"
 #include "algorithms/math/floatMath/trigo.tpp"
 #include "algorithms/math/floatMath/floatingPoint.tpp"
+#include "algorithms/math/floatMath/pow.tpp"
 
 #include "algorithms/math/doubleMath/abs.tpp"
 #include "algorithms/math/doubleMath/sqrt.tpp"
 #include "algorithms/math/doubleMath/exp.tpp"
 #include "algorithms/math/doubleMath/trigo.tpp"
 #include "algorithms/math/doubleMath/floatingPoint.tpp"
+#include "algorithms/math/doubleMath/pow.tpp"
 
 

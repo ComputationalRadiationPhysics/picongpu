@@ -20,7 +20,7 @@
  
 #pragma once
 
-#include "basisLib/vector/Vector.hpp"
+#include "math/Vector.hpp"
 
 namespace picongpu
 {

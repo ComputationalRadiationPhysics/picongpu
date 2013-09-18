@@ -21,11 +21,13 @@
  
 #pragma once
 
-#include "vector/Vector.hpp"
-#include "vector/Int.hpp"
-#include "vector/UInt.hpp"
-#include "vector/Size_t.hpp"
-#include "vector/Float.hpp"
-#include "vector/compile-time/Vector.hpp"
-#include "vector/compile-time/Int.hpp"
-#include "vector/compile-time/Size_t.hpp"
+#include "math/vector/Vector.hpp"
+#include "math/vector/Int.hpp"
+#include "math/vector/UInt.hpp"
+#include "math/vector/Size_t.hpp"
+#include "math/vector/Float.hpp"
+#include "math/vector/compile-time/Vector.hpp"
+#include "math/vector/compile-time/Int.hpp"
+#include "math/vector/compile-time/Size_t.hpp"
+
+#include "math/vector/Vector.tpp"
