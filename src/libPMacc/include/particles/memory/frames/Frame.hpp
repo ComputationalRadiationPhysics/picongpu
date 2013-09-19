@@ -50,7 +50,7 @@ namespace pmacc = PMacc;
 template<template<typename> class T_CreatePairOperator, 
         typename T_ValueTypeSeq, 
         typename T_MethodsList = bmpl::list<>,
-        typename T_AttributeList = bmpl::list<> >
+        typename T_Flags = bmpl::list<> >
 struct Frame
 :
 protected pmath::MapTuple<typename CreateTupelMap<T_ValueTypeSeq, T_CreatePairOperator>::type, pmath::AlignedData>
@@ -58,7 +58,7 @@ protected pmath::MapTuple<typename CreateTupelMap<T_ValueTypeSeq, T_CreatePairOp
     // typedef T_CreatePairOperator CoverOperator;
     typedef T_ValueTypeSeq ValueTypeSeq;
     typedef T_MethodsList MethodsList;
-    typedef T_AttributeList AttributeList;
+    typedef T_Flags AttributeList;
     typedef Frame<T_CreatePairOperator, ValueTypeSeq, MethodsList, AttributeList> ThisType;
     typedef pmath::MapTuple<typename CreateTupelMap<ValueTypeSeq, T_CreatePairOperator>::type, pmath::AlignedData> BaseType;
 
@@ -100,15 +100,15 @@ template<typename T_Key,
 template<typename> class T_CreatePairOperator,
 typename T_ValueTypeSeq,
 typename T_MethodsList,
-typename T_AttributeList
+typename T_Flags
 >
 struct HasIdentifier<
-PMacc::Frame<T_CreatePairOperator, T_ValueTypeSeq, T_MethodsList, T_AttributeList>,
+PMacc::Frame<T_CreatePairOperator, T_ValueTypeSeq, T_MethodsList, T_Flags>,
 T_Key
 >
 {
 private:
-    typedef PMacc::Frame<T_CreatePairOperator, T_ValueTypeSeq, T_MethodsList, T_AttributeList> FrameType;
+    typedef PMacc::Frame<T_CreatePairOperator, T_ValueTypeSeq, T_MethodsList, T_Flags> FrameType;
 public:
     typedef typename bmpl::find<typename FrameType::ValueTypeSeq, T_Key>::type iter;
     
