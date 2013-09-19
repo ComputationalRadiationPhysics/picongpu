@@ -159,6 +159,10 @@ int main(int argc, char **argv)
     std::cout << traits::HasIdentifier<typename FrameType::ParticleType, horst<aDouble> >::value << "- true" << std::endl;
     std::cout << traits::HasIdentifier<typename FrameType::ParticleType, horst<> >::value << "- true" << std::endl;
     std::cout << traits::HasIdentifier<typename FrameType::ParticleType, horst<aInt> >::value << "- false" << std::endl;
+    
+    std::cout << traits::hasIdentifier(frame,horst<aDouble>()) << "- true" << std::endl;
+    std::cout << traits::hasIdentifier(frame,horst_) << "- true" << std::endl;
+    std::cout << traits::hasIdentifier(frame,horst<aInt>()) << "- false" << std::endl;
     //ForEach<MemList, FreeMemory<void> > freemem;
     //freemem( byRef(x) );
 

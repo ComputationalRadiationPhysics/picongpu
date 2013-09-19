@@ -27,8 +27,22 @@ namespace PMacc
 namespace traits
 {
 
-template<typename Object, typename TKey>
+/** Checks if a Objects has an identifier
+ * 
+ * @tparam T_Object any object (class or typename)
+ * @tparam T_Key a class which is used as identifier
+ * 
+ * This struct must define a ::value (bool) and
+ * ::type (boost::bool_<>)
+ */
+template<typename T_Object, typename T_Key>
 struct HasIdentifier;
+
+template<typename T_Object, typename T_Key>
+static bool hasIdentifier(const T_Object& obj,const T_Key& key)
+{
+    return HasIdentifier<T_Object,T_Key>::value;
+}
 
 }//namespace traits
 
