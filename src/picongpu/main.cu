@@ -52,14 +52,14 @@ using namespace PMacc::algorithms::forEach;
 
 namespace PMacc
 {
-identifier( double, position, 0.0 );
-identifier( int, a, 42 );
-identifier( float, b, 1.0 );
-identifier( bool, c, false );
+value_identifier( double, position, 0.0 );
+value_identifier( int, a, 42 );
+value_identifier( float, b, 1.0 );
+value_identifier( bool, c, false );
 
 }
 
-wildcard( hallo );
+identifier( hallo );
 
 //using namespace picongpu;
 
@@ -78,7 +78,7 @@ __global__ void kernel( int* in, int imax )
 
 
     x.getIdentifier( a_ ).z( ) = 1.11f;
-    x.getIdentifier( a_ ).z( ) += 11;
+    x.getIdentifier( a_ ).z( ) += a::getDefaultValue();
     for ( int i = 0; i < imax; ++i )
         x.getIdentifier( a_ ).z( ) += 22;
     x.getIdentifier( a_ ).z( ) += 2;
@@ -118,7 +118,7 @@ struct SetDefaultValue
     template<typename ValueType1 >
         HDINLINE void operator( )( RefWrapper<ValueType1> v1 ) const
     {
-        v1.get()[T( )] = T::defaultValue;
+        v1.get()[T( )] = T::getDefaultValue();
     }
 };
 
