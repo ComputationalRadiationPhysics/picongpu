@@ -27,6 +27,7 @@
 #include <boost/type_traits.hpp>
 #include <boost/mpl/if.hpp>
 #include "traits/HasIdentifier.hpp"
+#include "particles/factories/GetKeyFromAlias.hpp"
 
 namespace PMacc
 {
@@ -52,7 +53,7 @@ struct Particle : public bmpl::inherit<T_MethodsList>::type
         HDINLINE
         typename boost::result_of<
         typename boost::remove_reference<
-        typename boost::result_of < FrameType(T_Key)>::type
+        typename boost::result_of < FrameType(typename GetKeyFromAlias_assert<ValueTypeSeq,T_Key>::type)>::type
         >::type(uint32_t)
     >::type
         operator[](const T_Key key)
@@ -64,7 +65,7 @@ struct Particle : public bmpl::inherit<T_MethodsList>::type
         HDINLINE
         typename boost::result_of<
         typename boost::remove_reference<
-        typename boost::result_of < FrameType(T_Key)>::type
+        typename boost::result_of < FrameType(typename GetKeyFromAlias_assert<ValueTypeSeq,T_Key>::type)>::type
         >::type(uint32_t)
     >::type
         operator[](const T_Key key) const

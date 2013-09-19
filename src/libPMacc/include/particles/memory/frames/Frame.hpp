@@ -32,14 +32,16 @@
 
 #include "particles/memory/dataTypes/Particle.hpp"
 #include "particles/frame_types.hpp"
-#include "particles/factories/CreateTupelMap.hpp"
+#include "particles/factories/CreateMap.hpp"
 #include <boost/utility/result_of.hpp>
 #include <boost/mpl/find.hpp>
 #include <boost/type_traits/is_same.hpp>
 #include <boost/mpl/deref.hpp>
 
+#include "particles/factories/GetKeyFromAlias.hpp"
+
 #include "traits/HasIdentifier.hpp"
-#include <boost/static_assert.hpp>
+
 
 namespace PMacc
 {
@@ -53,17 +55,16 @@ template<template<typename> class T_CreatePairOperator,
         typename T_Flags = bmpl::list<> >
 struct Frame
 :
-protected pmath::MapTuple<typename CreateTupelMap<T_ValueTypeSeq, T_CreatePairOperator>::type, pmath::AlignedData>
+protected pmath::MapTuple<typename CreateMap<T_ValueTypeSeq, T_CreatePairOperator>::type, pmath::AlignedData>
 {
     // typedef T_CreatePairOperator CoverOperator;
     typedef T_ValueTypeSeq ValueTypeSeq;
     typedef T_MethodsList MethodsList;
     typedef T_Flags AttributeList;
     typedef Frame<T_CreatePairOperator, ValueTypeSeq, MethodsList, AttributeList> ThisType;
-    typedef pmath::MapTuple<typename CreateTupelMap<ValueTypeSeq, T_CreatePairOperator>::type, pmath::AlignedData> BaseType;
+    typedef pmath::MapTuple<typename CreateMap<ValueTypeSeq, T_CreatePairOperator>::type, pmath::AlignedData> BaseType;
 
     typedef pmacc::Particle<ThisType, MethodsList> ParticleType;
-
 
     HDINLINE ParticleType operator[](const uint32_t idx)
     {
@@ -78,18 +79,20 @@ protected pmath::MapTuple<typename CreateTupelMap<T_ValueTypeSeq, T_CreatePairOp
 
     template<typename T_Key >
         HDINLINE
-        typename boost::result_of < BaseType(T_Key)>::type
+        typename boost::result_of < BaseType(typename GetKeyFromAlias_assert<ValueTypeSeq,T_Key>::type)>::type
     getIdentifier(const T_Key) const
-    {
-        return BaseType::operator[](T_Key());
+    {      
+        typedef typename GetKeyFromAlias<ValueTypeSeq,T_Key>::type Key;
+        return BaseType::operator[](Key());
     }
 
     template<typename T_Key >
         HDINLINE
-        typename boost::result_of < BaseType(T_Key)>::type
+        typename boost::result_of < BaseType(typename GetKeyFromAlias_assert<ValueTypeSeq,T_Key>::type)>::type
     getIdentifier(const T_Key)
     {
-        return BaseType::operator[](T_Key());
+        typedef typename GetKeyFromAlias<ValueTypeSeq,T_Key>::type Key;
+        return BaseType::operator[](Key());
     }
 };
 
@@ -110,9 +113,12 @@ T_Key
 private:
     typedef PMacc::Frame<T_CreatePairOperator, T_ValueTypeSeq, T_MethodsList, T_Flags> FrameType;
 public:
-    typedef typename bmpl::find<typename FrameType::ValueTypeSeq, T_Key>::type iter;
-    
-    typedef boost::is_same< typename bmpl::deref<iter>::type,T_Key> type;
+    typedef typename FrameType::ValueTypeSeq ValueTypeSeq;
+    typedef typename GetKeyFromAlias<ValueTypeSeq,T_Key>::type Key;
+    /* if Key is void_ than we have no T_Key in our Sequence.
+     * checks also to alias keys
+     */
+    typedef bmpl::bool_<!boost::is_same< bmpl::void_,Key>::value> type;
     static const bool value = type::value;
 };
 } //namespace traits

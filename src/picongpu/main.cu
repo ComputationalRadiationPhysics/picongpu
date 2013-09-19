@@ -35,7 +35,7 @@
  */
 
 #include  "types.h"
-#include "particles/factories/CreateTupelMap.hpp"
+#include "particles/factories/CreateMap.hpp"
 #include "math/MapTuple.hpp"
 #include "particles/memory/frames/Frame.hpp"
 #include "particles/memory/boxes/TileDataBox.hpp"
@@ -52,17 +52,14 @@ using namespace PMacc::algorithms::forEach;
 
 namespace PMacc
 {
-value_identifier( double, position, 0.0 );
-value_identifier( int, a, 42 );
-value_identifier( float, b, 1.0 );
-value_identifier( bool, c, false );
 
 }
 
-identifier( hallo );
+identifier(hallo);
 
 //using namespace picongpu;
 
+/*
 __global__ void kernel( int* in, int imax )
 {
 
@@ -83,31 +80,32 @@ __global__ void kernel( int* in, int imax )
         x.getIdentifier( a_ ).z( ) += 22;
     x.getIdentifier( a_ ).z( ) += 2;
 
-    *in = x.getIdentifier( a_ ).z( );
+ *in = x.getIdentifier( a_ ).z( );
 }
 
 
+ */
 
-
-template<typename T,typename Type>
+template<typename T, typename Type>
 struct MallocMemory
 {
 
     template<typename ValueType1 >
-        HDINLINE void operator( )( RefWrapper<ValueType1> v1, const size_t size) const
+            HDINLINE void operator()(RefWrapper<ValueType1> v1, const size_t size) const
     {
-        v1.get().getIdentifier( T( ) ) = VectorDataBox<Type>( new Type[size] );
+        v1.get().getIdentifier(T()) = VectorDataBox<Type>(new Type[size]);
     }
 };
 
 template<typename T>
 struct SetDefault
 {
+
     template<typename ValueType1 >
-        HDINLINE void operator( )( RefWrapper<ValueType1> v1, const size_t size) const
+            HDINLINE void operator()(RefWrapper<ValueType1> v1, const size_t size) const
     {
-        for ( size_t i = 0; i < size; ++i )
-            v1.get().getIdentifier( T( ) )[i] = T::defaultValue;
+        for (size_t i = 0; i < size; ++i)
+            v1.get().getIdentifier(T())[i] = T::defaultValue;
     }
 };
 
@@ -116,9 +114,9 @@ struct SetDefaultValue
 {
 
     template<typename ValueType1 >
-        HDINLINE void operator( )( RefWrapper<ValueType1> v1 ) const
+            HDINLINE void operator()(RefWrapper<ValueType1> v1) const
     {
-        v1.get()[T( )] = T::getDefaultValue();
+        v1.get()[T()] = T::getDefaultValue();
     }
 };
 
@@ -127,71 +125,40 @@ struct FreeMemory
 {
 
     template<typename ValueType1 >
-        HDINLINE void operator( )( RefWrapper<ValueType1> v1 ) const
+            HDINLINE void operator()(RefWrapper<ValueType1> v1) const
     {
-        delete[] v1().getIdentifier( T( ) ).getPointer( );
+        delete[] v1().getIdentifier(T()).getPointer();
     }
 };
 
-/*! start of PIConGPU
- *
- * @param argc count of arguments in argv
- * @param argv arguments of program start
- */
-int main( int argc, char **argv )
+
+value_identifier(double, position, 0.0);
+value_identifier(int, aInt, 42);
+value_identifier(double, aDouble, 42.1);
+value_identifier(float, b, 1.0);
+value_identifier(bool, c, false);
+alias(horst);
+
+
+int main(int argc, char **argv)
 {
-    // using namespace host;
-    /*MPI_CHECK( MPI_Init( &argc, &argv ) );
 
-    picongpu::simulation_starter::SimStarter sim;
-    if ( !sim.parseConfigs( argc, argv ) )
-    {
-        MPI_CHECK( MPI_Finalize( ) );
-        return 1;
-    }
-
-    sim.load( );
-    sim.start( );
-    sim.unload( );
-
-    MPI_CHECK( MPI_Finalize( ) );*/
-
-
-
-
-    // typedef math::MapTuple <
     typedef bmpl::vector <
-        position,
-        a,
-        b
-        > particle;
-
-    //typedef typename CoverTypes<typename particle::Map, CastToVector>::type VectorParticle;
-    // typedef math::MapTuple <VectorParticle> Frame;
+            position,
+            horst<aDouble>,
+            b
+            > particle;
 
     typedef Frame<CastToArray, particle> FrameType;
+    FrameType frame;
+    PMACC_AUTO(par, frame[255]);
+    ForEach<particle, SetDefaultValue<void> >()(byRef(par));
+    std::cout << "sizeof=" << sizeof (FrameType) << std::endl;
 
-    FrameType x;
-
-    typedef bmpl::list<a> MemList;
-
-  //  ForEach<MemList, MallocMemory<void,int> > alloc;
-   // size_t size = 100 * 1024 * 1024;
-  //  alloc( byRef(x), 100 * 1024 * 1024 );
-    PMACC_AUTO( par, x[255] );
-    ForEach<MemList, SetDefaultValue<void> >()( byRef(par) );
-
-   // printf( "nach: %X\n", x.getIdentifier( a_ ).getPointer( ) );
-
-    //x[100 * 1024 * 1024 - 1][a_] = 11;
-    //PMACC_AUTO( par, x[100 * 1024 * 1024 - 1] );
-    //par[a_] = par[a_] + 1;
-
-
-    std::cout << "sizeof=" << sizeof (FrameType ) << std::endl;
-    //    std::cout << "value=" << x.getIdentifier(b_).x( ) << std::endl;
-    std::cout << "value=" << x[255][a_] << " -" << traits::HasIdentifier<typename FrameType::ParticleType, c>::value << "-" << std::endl;
-
+    std::cout << "value=" << frame[255][horst_] << " -" << std::endl;
+    std::cout << traits::HasIdentifier<typename FrameType::ParticleType, horst<aDouble> >::value << "- true" << std::endl;
+    std::cout << traits::HasIdentifier<typename FrameType::ParticleType, horst<> >::value << "- true" << std::endl;
+    std::cout << traits::HasIdentifier<typename FrameType::ParticleType, horst<aInt> >::value << "- false" << std::endl;
     //ForEach<MemList, FreeMemory<void> > freemem;
     //freemem( byRef(x) );
 

@@ -214,5 +214,26 @@ enum AreaType
                         }                                                      \
                    )
 
+identifier(pmacc_void);
+identifier(pmacc_isAlias);
+
+/*define special makros for creating classes which are ony used as identifer*/
+#define PMACC_alias(name,id)                                          \
+    namespace PMACC_JOIN(placeholder_definition,id) {                          \
+        template<typename T=pmacc_void,typename T_IsAlias=pmacc_isAlias>       \
+        struct name:public T{                                                  \
+        };                                                                     \
+    }                                                                          \
+    using namespace PMACC_JOIN(placeholder_definition,id);                     \
+    namespace PMACC_JOIN(host_placeholder,id){                                 \
+        PMACC_JOIN(placeholder_definition,id)::name<> PMACC_JOIN(name,_);      \
+    }                                                                          \
+    namespace PMACC_JOIN(device_placeholder,id){                                 \
+        __constant__ PMACC_JOIN(placeholder_definition,id)::name<> PMACC_JOIN(name,_); \
+    }                                                                          \
+    PMACC_PLACEHOLDER(id);
+
+#define alias(name) PMACC_alias(name,__COUNTER__)
+
 } //namespace PMacc
  

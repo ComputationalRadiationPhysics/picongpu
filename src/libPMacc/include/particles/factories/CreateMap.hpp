@@ -112,7 +112,7 @@ template<typename T_MPLSeq,
 template<typename> class T_UnaryOperator,
 template<typename> class T_Accessor = algorithms::accessors::Identity
 >
-struct CreateTupelMap
+struct CreateMap
 {
     typedef T_MPLSeq MPLSeq;
     typedef bmpl::inserter< bmpl::map0<>, bmpl::insert<bmpl::_1, bmpl::_2> > Map_inserter;
