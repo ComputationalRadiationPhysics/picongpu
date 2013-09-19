@@ -19,7 +19,8 @@
  */
 
 #include "PhaseSpaceMulti.hpp"
- 
+
+#include "sys/stat.h"
 
 #pragma once
 
@@ -108,6 +109,13 @@ namespace picongpu
             this->childs.push_back( newPS );
             this->childs.at(i).setMappingDescription( this->cellDescription );
             this->childs.at(i).moduleLoad();
+        }
+
+        /** create dir */
+        PMacc::GridController<simDim>& gc = PMacc::GridController<simDim>::getInstance();
+        if( gc.getGlobalRank() == 0 )
+        {
+            mkdir("phaseSpace", 0755);
         }
     }
 

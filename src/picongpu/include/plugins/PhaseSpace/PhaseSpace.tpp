@@ -30,10 +30,13 @@
 #include "math/vector/Int.hpp"
 #include "math/vector/Size_t.hpp"
 #include "particles/access/Cell2Particle.hpp"
+
+#include "mappings/simulation/GridController.hpp"
+#include "mappings/simulation/SubGrid.hpp"
+
 #include "PhaseSpace.hpp"
 
-#include <fstream>
-#include <sstream>
+#include "DumpHBuffer/DumpHBuffer.hpp"
 
 namespace picongpu
 {
@@ -316,21 +319,11 @@ namespace picongpu
                                 _2 = _1);
 
         std::cout << "[PhaseSpace] write to file" << std::endl;
-        /* write full phase space from rank 0
-         */
-        std::string fCoords("xyz");
-        
-        std::ostringstream filename;
-        filename << "PhaseSpace_"
-                 << currentStep
-                 /* local area in the spatial range */
-                 << "_" << gpuPos[this->axis_element.first]
-                 /* _xpx or _ypz or ... */
-                 << "_" << fCoords.at(this->axis_element.first)
-                 << "p" << fCoords.at(this->axis_element.second)
-                 << ".dat";
-        std::ofstream file(filename.str().c_str());
-        file << hReducedBuffer_noGuard;
+
+        const double UNIT_VOLUME = ( UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH );
+        const double unit = UNIT_CHARGE / UNIT_VOLUME;
+        DumpHBuffer dumpHBuffer;
+        dumpHBuffer( hReducedBuffer_noGuard, this->axis_element, unit, currentStep );
     }
     
     template<class AssignmentFunction, class Species>

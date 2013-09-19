@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "simulation_defines.hpp"
 #include "dataManagement/ISimulationIO.hpp"
 #include "plugins/IPluginModule.hpp"
 
@@ -36,9 +37,14 @@ namespace picongpu
     using namespace PMacc;
     namespace po = boost::program_options;
 
-    template<class AssignmentFunction, class Species>
+    template<class T_AssignmentFunction, class T_Species>
     class PhaseSpaceMulti : public ISimulationIO, public IPluginModule
     {
+    public:
+        typedef T_AssignmentFunction AssignmentFunction;
+        typedef T_Species Species;
+        typedef PhaseSpace<AssignmentFunction, Species> Child;
+
     private:
         std::string name;
         std::string prefix;
@@ -57,7 +63,6 @@ namespace picongpu
         /** range [pMin : pMax] in m_e c */
         std::vector<std::pair<float_X, float_X> > axis_p_range;
 
-        typedef PhaseSpace<AssignmentFunction, Species> Child;
         std::vector<Child > childs;
         size_t numChilds;
 

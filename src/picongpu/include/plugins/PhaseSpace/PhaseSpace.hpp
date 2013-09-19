@@ -20,12 +20,11 @@
 
 #pragma once
 
+#include "simulation_defines.hpp"
 #include "dataManagement/ISimulationIO.hpp"
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
 #include "math/vector/compile-time/Size_t.hpp"
-
-#include <boost/program_options/options_description.hpp>
 
 #include <string>
 #include <utility>
@@ -35,9 +34,13 @@ namespace picongpu
     using namespace PMacc;
     namespace po = boost::program_options;
 
-    template<class AssignmentFunction, class Species>
+    template<class T_AssignmentFunction, class T_Species>
     class PhaseSpace : public ISimulationIO
     {
+    public:
+        typedef T_AssignmentFunction AssignmentFunction;
+        typedef T_Species Species;
+
     private:
         std::string name;
         std::string prefix;
@@ -45,8 +48,9 @@ namespace picongpu
         Species *particles;
         MappingDesc *cellDescription;
         
-        // plot to create: e.g. x, py from element_coordinate/momentum
+        /** plot to create: e.g. x, py from element_coordinate/momentum */
         std::pair<uint32_t, uint32_t> axis_element;
+        /** range [pMin : pMax] in m_e c */
         std::pair<float_X, float_X> axis_p_range;
         uint32_t r_bins;
         
