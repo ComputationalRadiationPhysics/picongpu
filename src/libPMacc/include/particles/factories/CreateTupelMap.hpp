@@ -43,13 +43,50 @@ namespace PMacc
 namespace bmpl = boost::mpl;
 namespace pmath = PMacc::math;
 
+template<typename T>
+class Array256
+{
+private:
+    T data[256];
+public:
+
+    template<class> struct result;
+
+    template<class F, typename TKey>
+    struct result<F(TKey)>
+    {
+        typedef T& type;
+    };
+
+    HDINLINE
+    T& operator[](const int idx)
+    {
+        return data[idx];
+    }
+
+    HDINLINE
+    T& operator[](const int idx) const
+    {
+        return data[idx];
+    }
+};
+
+template<typename Key>
+struct CastToArray
+{
+    typedef
+    bmpl::pair<Key,
+            Array256<typename Key::type> >
+            type;
+};
+
 template<typename InType>
 struct CastToVector
 {
     typedef
     bmpl::pair<InType,
-        PMacc::math::Vector< typename InType::type, DIM3> >
-        type;
+            PMacc::math::Vector< typename InType::type, DIM3> >
+            type;
 };
 
 template<typename InType>
@@ -57,9 +94,9 @@ struct AddReference
 {
     typedef
     bmpl::pair<
-        InType,
-        typename boost::add_reference<typename InType::type>::type>
-        type;
+            InType,
+            typename boost::add_reference<typename InType::type>::type>
+            type;
 };
 
 template<typename InType>
@@ -67,25 +104,25 @@ struct CastToVectorBox
 {
     typedef
     bmpl::pair< InType,
-        PMacc::VectorDataBox< typename InType::type > >
-        type;
+            PMacc::VectorDataBox< typename InType::type > >
+            type;
 };
 
-template<typename Map_, 
-        template<typename> class UnaryOperator,
-        template<typename> class Accessor = algorithms::accessors::Identity
-        >
-struct CreateIdentifierMap
+template<typename T_MPLSeq,
+template<typename> class T_UnaryOperator,
+template<typename> class T_Accessor = algorithms::accessors::Identity
+>
+struct CreateTupelMap
 {
-    typedef Map_ Map;
+    typedef T_MPLSeq MPLSeq;
     typedef bmpl::inserter< bmpl::map0<>, bmpl::insert<bmpl::_1, bmpl::_2> > Map_inserter;
     typedef typename bmpl::transform<
-        Map,
-        UnaryOperator<
-                typename Accessor<
-                        bmpl::_1
-                >::type
-        >, Map_inserter >::type type;
+            MPLSeq,
+            T_UnaryOperator<
+            typename T_Accessor<
+            bmpl::_1
+            >::type
+            >, Map_inserter >::type type;
 
 };
 

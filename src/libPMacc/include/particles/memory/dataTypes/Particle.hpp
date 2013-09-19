@@ -34,11 +34,11 @@ namespace bmpl = boost::mpl;
 namespace pmath = PMacc::math;
 namespace pmacc = PMacc;
 
-template<typename FrameType_, typename MethodsList_>
-struct Particle : public bmpl::inherit<MethodsList_>::type
+template<typename T_FrameType, typename T_MethodsList>
+struct Particle : public bmpl::inherit<T_MethodsList>::type
 {
-    typedef FrameType_ FrameType;
-    typedef MethodsList_ MethodsList;
+    typedef T_FrameType FrameType;
+    typedef T_MethodsList MethodsList;
     typedef typename FrameType::ValueTypeSeq ValueTypeSeq;
 
     FrameType& frame;
@@ -48,26 +48,26 @@ struct Particle : public bmpl::inherit<MethodsList_>::type
     {
     }
 
-    template<typename TKey >
+    template<typename T_Key >
         HDINLINE
         typename boost::result_of<
         typename boost::remove_reference<
-        typename boost::result_of < FrameType(TKey)>::type
+        typename boost::result_of < FrameType(T_Key)>::type
         >::type(uint32_t)
     >::type
-        operator[](const TKey key)
+        operator[](const T_Key key)
         {
             return frame.getIdentifier(key)[idx];
         }
 
-    template<typename TKey >
+    template<typename T_Key >
         HDINLINE
         typename boost::result_of<
         typename boost::remove_reference<
-        typename boost::result_of < FrameType(TKey)>::type
+        typename boost::result_of < FrameType(T_Key)>::type
         >::type(uint32_t)
     >::type
-        operator[](const TKey key) const
+        operator[](const T_Key key) const
         {
             return frame.getIdentifier(key)[idx];
         }
@@ -77,19 +77,19 @@ struct Particle : public bmpl::inherit<MethodsList_>::type
 namespace traits
 {
 
-template<typename TKey,
-typename FrameType_,
-typename MethodsList_
+template<typename T_Key,
+typename T_FrameType,
+typename T_MethodsList
 >
 struct HasIdentifier<
-PMacc::Particle<FrameType_, MethodsList_>,
-TKey
+PMacc::Particle<T_FrameType, T_MethodsList>,
+T_Key
 >
 {
 private:
-    typedef FrameType_ FrameType;
+    typedef T_FrameType FrameType;
 public:
-    typedef typename HasIdentifier<FrameType, TKey>::type type;
+    typedef typename HasIdentifier<FrameType, T_Key>::type type;
     static const bool value = type::value;
 };
 } //namespace traits

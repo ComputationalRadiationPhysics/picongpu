@@ -35,7 +35,7 @@
  */
 
 #include  "types.h"
-#include "particles/factories/CreateIdentifierMap.hpp"
+#include "particles/factories/CreateTupelMap.hpp"
 #include "math/MapTuple.hpp"
 #include "particles/memory/frames/Frame.hpp"
 #include "particles/memory/boxes/TileDataBox.hpp"
@@ -169,16 +169,16 @@ int main( int argc, char **argv )
     //typedef typename CoverTypes<typename particle::Map, CastToVector>::type VectorParticle;
     // typedef math::MapTuple <VectorParticle> Frame;
 
-    typedef Frame<CastToVectorBox, particle> FrameType;
+    typedef Frame<CastToArray, particle> FrameType;
 
     FrameType x;
 
     typedef bmpl::list<a> MemList;
 
-    ForEach<MemList, MallocMemory<void,int> > alloc;
+  //  ForEach<MemList, MallocMemory<void,int> > alloc;
    // size_t size = 100 * 1024 * 1024;
-    alloc( byRef(x), 100 * 1024 * 1024 );
-    PMACC_AUTO( par, x[100 * 1024 * 1024 - 1] );
+  //  alloc( byRef(x), 100 * 1024 * 1024 );
+    PMACC_AUTO( par, x[255] );
     ForEach<MemList, SetDefaultValue<void> >()( byRef(par) );
 
    // printf( "nach: %X\n", x.getIdentifier( a_ ).getPointer( ) );
@@ -190,10 +190,10 @@ int main( int argc, char **argv )
 
     std::cout << "sizeof=" << sizeof (FrameType ) << std::endl;
     //    std::cout << "value=" << x.getIdentifier(b_).x( ) << std::endl;
-    std::cout << "value=" << x[100 * 1024 * 1024 - 1][a_] << " -" << traits::HasIdentifier<FrameType, position>::value << "-" << std::endl;
+    std::cout << "value=" << x[255][a_] << " -" << traits::HasIdentifier<typename FrameType::ParticleType, c>::value << "-" << std::endl;
 
-    ForEach<MemList, FreeMemory<void> > freemem;
-    freemem( byRef(x) );
+    //ForEach<MemList, FreeMemory<void> > freemem;
+    //freemem( byRef(x) );
 
     return 0;
 }

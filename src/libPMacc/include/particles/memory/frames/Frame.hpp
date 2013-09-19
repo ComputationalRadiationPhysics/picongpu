@@ -32,7 +32,7 @@
 
 #include "particles/memory/dataTypes/Particle.hpp"
 #include "particles/frame_types.hpp"
-#include "particles/factories/CreateIdentifierMap.hpp"
+#include "particles/factories/CreateTupelMap.hpp"
 #include <boost/utility/result_of.hpp>
 #include <boost/mpl/find.hpp>
 #include <boost/type_traits/is_same.hpp>
@@ -47,17 +47,20 @@ namespace bmpl = boost::mpl;
 namespace pmath = PMacc::math;
 namespace pmacc = PMacc;
 
-template<template<typename> class CoverOperator_, typename ValueTypeSeq_, typename MethodsList_ = bmpl::list<>, typename AttributeList_ = bmpl::list<> >
+template<template<typename> class T_CreatePairOperator, 
+        typename T_ValueTypeSeq, 
+        typename T_MethodsList = bmpl::list<>,
+        typename T_AttributeList = bmpl::list<> >
 struct Frame
 :
-protected pmath::MapTuple<typename CreateIdentifierMap<ValueTypeSeq_, CoverOperator_>::type, pmath::AlignedData>
+protected pmath::MapTuple<typename CreateTupelMap<T_ValueTypeSeq, T_CreatePairOperator>::type, pmath::AlignedData>
 {
-    // typedef CoverOperator_ CoverOperator;
-    typedef ValueTypeSeq_ ValueTypeSeq;
-    typedef MethodsList_ MethodsList;
-    typedef AttributeList_ AttributeList;
-    typedef Frame<CoverOperator_, ValueTypeSeq, MethodsList, AttributeList> ThisType;
-    typedef pmath::MapTuple<typename CreateIdentifierMap<ValueTypeSeq, CoverOperator_>::type, pmath::AlignedData> BaseType;
+    // typedef T_CreatePairOperator CoverOperator;
+    typedef T_ValueTypeSeq ValueTypeSeq;
+    typedef T_MethodsList MethodsList;
+    typedef T_AttributeList AttributeList;
+    typedef Frame<T_CreatePairOperator, ValueTypeSeq, MethodsList, AttributeList> ThisType;
+    typedef pmath::MapTuple<typename CreateTupelMap<ValueTypeSeq, T_CreatePairOperator>::type, pmath::AlignedData> BaseType;
 
     typedef pmacc::Particle<ThisType, MethodsList> ParticleType;
 
@@ -73,43 +76,43 @@ protected pmath::MapTuple<typename CreateIdentifierMap<ValueTypeSeq_, CoverOpera
         return ParticleType(*this, idx);
     }
 
-    template<typename TKey >
+    template<typename T_Key >
         HDINLINE
-        typename boost::result_of < BaseType(TKey)>::type
-    getIdentifier(const TKey) const
+        typename boost::result_of < BaseType(T_Key)>::type
+    getIdentifier(const T_Key) const
     {
-        return BaseType::operator[](TKey());
+        return BaseType::operator[](T_Key());
     }
 
-    template<typename TKey >
+    template<typename T_Key >
         HDINLINE
-        typename boost::result_of < BaseType(TKey)>::type
-    getIdentifier(const TKey)
+        typename boost::result_of < BaseType(T_Key)>::type
+    getIdentifier(const T_Key)
     {
-        return BaseType::operator[](TKey());
+        return BaseType::operator[](T_Key());
     }
 };
 
 namespace traits
 {
 
-template<typename TKey,
-template<typename> class CoverOperator_,
-typename ValueTypeSeq_,
-typename MethodsList_,
-typename AttributeList_
+template<typename T_Key,
+template<typename> class T_CreatePairOperator,
+typename T_ValueTypeSeq,
+typename T_MethodsList,
+typename T_AttributeList
 >
 struct HasIdentifier<
-PMacc::Frame<CoverOperator_, ValueTypeSeq_, MethodsList_, AttributeList_>,
-TKey
+PMacc::Frame<T_CreatePairOperator, T_ValueTypeSeq, T_MethodsList, T_AttributeList>,
+T_Key
 >
 {
 private:
-    typedef PMacc::Frame<CoverOperator_, ValueTypeSeq_, MethodsList_, AttributeList_> FrameType;
+    typedef PMacc::Frame<T_CreatePairOperator, T_ValueTypeSeq, T_MethodsList, T_AttributeList> FrameType;
 public:
-    typedef typename bmpl::find<typename FrameType::ValueTypeSeq, TKey>::type iter;
+    typedef typename bmpl::find<typename FrameType::ValueTypeSeq, T_Key>::type iter;
     
-    typedef boost::is_same< typename bmpl::deref<iter>::type,TKey> type;
+    typedef boost::is_same< typename bmpl::deref<iter>::type,T_Key> type;
     static const bool value = type::value;
 };
 } //namespace traits
