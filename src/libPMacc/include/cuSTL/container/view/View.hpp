@@ -33,9 +33,7 @@ struct View : public Buffer
     template<typename TBuffer>
     HDINLINE View(const View<TBuffer>& other)
     {
-        this->dataPointer = other.dataPointer;
-        this->_size = other._size;
-        this->pitch = other.pitch;
+        *this = other;
     }
     
     HDINLINE ~View() 
@@ -49,6 +47,7 @@ struct View : public Buffer
         this->dataPointer = other.dataPointer;
         this->_size = other._size;
         this->pitch = other.pitch;
+        this->refCount = other.refCount;
         
         return *this;
     }
