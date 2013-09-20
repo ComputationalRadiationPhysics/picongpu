@@ -59,13 +59,16 @@ namespace picongpu
 #if (ENABLE_HDF5==1)
 
 #if (SPLASH_SUPPORTED_PARALLEL==1)
+#warning "SPLASH Parallel FOUND"
 #include "DumpHBufferSplashP.tpp"
 
 #elif (SPLASH_SUPPORTED_SERIAL==1)
+#warning "SPLASH Serial FOUND"
 #include "DumpHBufferSplashS.tpp"
 #endif // (SPLASH_SUPPORTED_SERIAL==1)
 
 #else // (ENABLE_HDF5==1)
+#warning "SPLASH NOT FOUND"
 #include "DumpHBufferTxt.tpp"
 
 #endif // (ENABLE_HDF5==1)

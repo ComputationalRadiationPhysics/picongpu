@@ -24,8 +24,6 @@
 #include "mappings/simulation/SubGrid.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
 #include "math/vector/Int.hpp"
-#include "math/vector/Size_t.hpp"
-
 
 #include <string>
 #include <fstream>
@@ -37,7 +35,7 @@
 
 namespace picongpu
 {
-    template<typename Type, uint32_t bufDim>
+    template<typename Type, int bufDim>
     void DumpHBuffer::operator()( const PMacc::container::HostBuffer<Type, bufDim>& hBuffer,
                                   const std::pair<uint32_t, uint32_t> axis_element,
                                   const double unit,
@@ -74,39 +72,38 @@ namespace picongpu
         /** \todo type trait -> floatN_X to DCollector Types */
         DCollector::ColTypeDouble ctDouble;
         DCollector::ColTypeFloat  ctFloat;
-        
-        const PMacc::math::Size_t<bufDim> sizeBuf = hBuffer.size();
+
+        /** local buffer size (aka splash subdomain) */
+        DCollector::Dimensions phaseSpace_size_local( hBuffer.size().x(),
+                                                      hBuffer.size().y(),
+                                                      1 );
+
+        /** global buffer size (aka splash domain) */
         PMacc::SubGrid<simDim>& sg = PMacc::SubGrid<simDim>::getInstance();
         const size_t rOffset = sg.getSimulationBox().getGlobalOffset()[axis_element.first];
+        const size_t rSize = sg.getSimulationBox().getGlobalSize()[axis_element.first];
+        DCollector::Dimensions phaseSpace_size( rSize, sizeBuf.y(), 1 );
+        DCollector::Dimensions phaseSpace_global_offset( rOffset, 0, 0 );
 
         domainCollector.writeDomain( currentStep, ctFloat, bufDim,
-                                     DCollector::Dimensions( sizeBuf.x(), sizeBuf.y(), 1 ),
+                                     phaseSpace_size_local,
                                      dataSetName.str().c_str(),
-                                     DCollector::Dimensions( rOffset, 0, 0 ),
-                                     DCollector::Dimensions( sizeBuf.x(), sizeBuf.y(), 1 ),
+                                     phaseSpace_global_offset,
+                                     phaseSpace_size_local,
                                      DomainCollector::GridType,
                                      &(*hBuffer.origin()) );
 
         /** Write Additional Attributes ***************************************/
-
-        DCollector::Dimensions sim_size( sg.getSimulationBox().getGlobalSize().x(),
-                                         sg.getSimulationBox().getGlobalSize().y(),
-                                         sg.getSimulationBox().getGlobalSize().z() );
-        DCollector::Dimensions sim_global_offset(
-                                         sg.getSimulationBox().getGlobalOffset().x(),
-                                         sg.getSimulationBox().getGlobalOffset().y(),
-                                         sg.getSimulationBox().getGlobalOffset().z() );
-
         domainCollector.writeAttribute( currentStep,
                                         DCollector::ColTypeDim(),
                                         dataSetName.str().c_str(),
                                         "sim_size",
-                                        &sim_size );
+                                        phaseSpace_size.getPointer() );
         domainCollector.writeAttribute( currentStep,
                                         DCollector::ColTypeDim(),
                                         dataSetName.str().c_str(),
                                         "sim_global_offset",
-                                        &sim_global_offset );
+                                        phaseSpace_global_offset.getPointer() );
         domainCollector.writeAttribute( currentStep,
                                         ctDouble,
                                         dataSetName.str().c_str(),
