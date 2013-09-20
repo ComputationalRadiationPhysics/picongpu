@@ -24,6 +24,7 @@
 #include "mappings/simulation/SubGrid.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
 #include "math/vector/Int.hpp"
+#include "math/vector/Size_t.hpp"
 
 #include <string>
 #include <fstream>
@@ -41,8 +42,12 @@ namespace picongpu
                                   const double unit,
                                   const uint32_t currentStep ) const
     {
+        PMacc::GridController<simDim>& gc = PMacc::GridController<simDim>::getInstance();
+        PMacc::math::Size_t<simDim> gpuDim = gc.getGpuNodes();
+        PMacc::math::Int<simDim> gpuPos = gc.getPosition();
+
         const uint32_t maxOpenFilesPerNode = 4;
-        DCollector::DomainCollector( maxOpenFilesPerNode ) domainCollector;
+        DCollector::DomainCollector domainCollector( maxOpenFilesPerNode );
 
         /** Open File *********************************************************/
         std::string fCoords("xyz");
@@ -51,10 +56,17 @@ namespace picongpu
         filename << "phaseSpace/PhaseSpace_"
                  << currentStep;
 
+        // set attributes for datacollector files
+        DCollector::DataCollector::FileCreationAttr attr;
+        attr.enableCompression = true;
+        attr.fileAccType = DCollector::DataCollector::FAT_WRITE;
+
+        attr.mpiPosition.set(gpuPos[axis_element.first], 0, 0);
+        attr.mpiSize.set(gpuDim[axis_element.first], 1, 1);
+
         try
         {
-            domainCollector.open( filename.str().c_str(),
-                                  DCollector::DataCollector::FAT_WRITE );
+            domainCollector.open( filename.str().c_str(), attr );
         }
         catch (DCollector::DCException e)
         {
@@ -82,7 +94,7 @@ namespace picongpu
         PMacc::SubGrid<simDim>& sg = PMacc::SubGrid<simDim>::getInstance();
         const size_t rOffset = sg.getSimulationBox().getGlobalOffset()[axis_element.first];
         const size_t rSize = sg.getSimulationBox().getGlobalSize()[axis_element.first];
-        DCollector::Dimensions phaseSpace_size( rSize, sizeBuf.y(), 1 );
+        DCollector::Dimensions phaseSpace_size( rSize, hBuffer.size().y(), 1 );
         DCollector::Dimensions phaseSpace_global_offset( rOffset, 0, 0 );
 
         domainCollector.writeDomain( currentStep, ctFloat, bufDim,
