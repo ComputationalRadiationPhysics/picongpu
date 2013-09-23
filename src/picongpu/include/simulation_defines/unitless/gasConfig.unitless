@@ -62,6 +62,7 @@ namespace picongpu
     namespace gasSphereFlanks
     {
         const float_X GAS_R = float_X( SI::GAS_R_SI / UNIT_LENGTH );
+        const float_X GAS_RI = float_X( SI::GAS_RI_SI / UNIT_LENGTH );
         const float_X GAS_X = float_X( SI::GAS_X_SI / UNIT_LENGTH );
         const float_X GAS_Y = float_X( SI::GAS_Y_SI / UNIT_LENGTH );
         const float_X GAS_Z = float_X( SI::GAS_Z_SI / UNIT_LENGTH );

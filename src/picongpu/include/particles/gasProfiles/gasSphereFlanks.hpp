@@ -40,15 +40,19 @@ namespace picongpu
             if( pos.y() < VACUUM_Y ) return float_X(0.0);
 
             const float_X r = math::abs( pos - float3_X(GAS_X, GAS_Y, GAS_Z) );
-            
-            // "hard core"
-            if( r <= GAS_R )
+
+            /* "shell": inner radius */
+            if( r < GAS_RI )
+                return float_X(0.0);
+            /* "hard core" */
+            else if( r <= GAS_R )
                 return float_X(1.0);
-            
-            // "soft exp. flanks"
-            //   note: by definition (return, see above) the
-            //         argument [ GAS_R - r ] will be element of (-inf, 0)
-            return math::exp( ( GAS_R - r ) * GAS_EXP );
+
+            /* "soft exp. flanks"
+             *   note: by definition (return, see above) the
+             *         argument [ GAS_R - r ] will be element of (-inf, 0) */
+            else
+                return math::exp( ( GAS_R - r ) * GAS_EXP );
         }
     }
 }
