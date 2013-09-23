@@ -141,6 +141,9 @@ namespace picongpu
             /** Radius of the constant sphere
              *  unit: meter */
             const double GAS_R_SI = 1.0e3;
+            /** Inner radius if you want to build a shell/ring
+             *  unit: meter */
+            const double GAS_RI_SI = 0.0;
             
             /** Middle of the constant sphere
              *  unit: meter */
