@@ -37,23 +37,24 @@
 
 namespace picongpu
 {
-    template<typename Type, int bufDim>
-    void DumpHBuffer::operator()( const PMacc::container::HostBuffer<Type, bufDim>& hBuffer,
+    template<typename T_Type, int T_bufDim>
+    void DumpHBuffer::operator()( const PMacc::container::HostBuffer<T_Type, T_bufDim>& hBuffer,
                                   const std::pair<uint32_t, uint32_t> axis_element,
                                   const double unit,
                                   const uint32_t currentStep,
                                   MPI_Comm& mpiComm ) const
     {
         using namespace DCollector;
+        typedef T_Type Type;
+        const int bufDim = T_bufDim;
 
         std::ostringstream filename;
         filename << "phaseSpace/PhaseSpace_"
                  << currentStep;
 
-        /** get my rank in the fileWriter communicator ************************/
-        int size, rank;
+        /** get size of the fileWriter communicator ***************************/
+        int size;
         MPI_CHECK(MPI_Comm_size( mpiComm, &size ));
-        MPI_CHECK(MPI_Comm_rank( mpiComm, &rank ));
 
         /** create parallel domain collector **********************************/
         ParallelDomainCollector pdc(
@@ -85,13 +86,13 @@ namespace picongpu
                     << "p" << fCoords.at(axis_element.second);
 
         /** reserve global domain *********************************************/
-        ColTypeFloat ctFloat;
-        pdc.reserveDomain( currentStep, phaseSpace_size, rank, ctFloat,
+        typename PICToSplash<Type>::type ctPhaseSpace;
+        pdc.reserveDomain( currentStep, phaseSpace_size, bufDim, ctPhaseSpace,
                            dataSetName.str().c_str(), Dimensions(0, 0, 0),
                            phaseSpace_size, IDomainCollector::GridType );
 
         /** write local domain ************************************************/
-        pdc.append( currentStep, phaseSpace_size_local, rank,
+        pdc.append( currentStep, phaseSpace_size_local, bufDim,
                     phaseSpace_global_offset, dataSetName.str().c_str(),
                     &(*hBuffer.origin()) );
 

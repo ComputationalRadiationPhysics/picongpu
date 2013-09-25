@@ -31,8 +31,8 @@
 
 namespace picongpu
 {
-    template<typename Type, int bufDim>
-    void DumpHBuffer::operator()( const PMacc::container::HostBuffer<Type, bufDim>& hBuffer,
+    template<typename T_Type, int T_bufDim>
+    void DumpHBuffer::operator()( const PMacc::container::HostBuffer<Type, T_bufDim>& hBuffer,
                                   const std::pair<uint32_t, uint32_t> axis_element,
                                   const double unit,
                                   const uint32_t currentStep,

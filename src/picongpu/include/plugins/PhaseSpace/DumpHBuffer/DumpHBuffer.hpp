@@ -46,8 +46,8 @@ namespace picongpu
          * \param unit sim unit of the buffer
          * \param
          */
-        template<typename Type, int bufDim>
-        void operator()( const PMacc::container::HostBuffer<Type, bufDim>& hBuffer,
+        template<typename T_Type, int T_bufDim>
+        void operator()( const PMacc::container::HostBuffer<T_Type, T_bufDim>& hBuffer,
                           const std::pair<uint32_t, uint32_t> axis_element,
                           const double unit,
                           const uint32_t currentStep,

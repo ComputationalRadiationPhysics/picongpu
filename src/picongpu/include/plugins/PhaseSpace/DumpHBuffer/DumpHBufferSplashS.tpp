@@ -36,13 +36,16 @@
 
 namespace picongpu
 {
-    template<typename Type, int bufDim>
-    void DumpHBuffer::operator()( const PMacc::container::HostBuffer<Type, bufDim>& hBuffer,
+    template<typename T_Type, int T_bufDim>
+    void DumpHBuffer::operator()( const PMacc::container::HostBuffer<T_Type, T_bufDim>& hBuffer,
                                   const std::pair<uint32_t, uint32_t> axis_element,
                                   const double unit,
                                   const uint32_t currentStep,
                                   MPI_Comm& mpiComm ) const
     {
+        typedef T_Type Type;
+        const int bufDim = T_bufDim;
+
         PMacc::GridController<simDim>& gc = PMacc::GridController<simDim>::getInstance();
         PMacc::math::Size_t<simDim> gpuDim = gc.getGpuNodes();
         PMacc::math::Int<simDim> gpuPos = gc.getPosition();
@@ -82,9 +85,8 @@ namespace picongpu
                     << "p" << fCoords.at(axis_element.second);
 
         /** Write DataSet *****************************************************/
-        /** \todo type trait -> floatN_X to DCollector Types */
         DCollector::ColTypeDouble ctDouble;
-        DCollector::ColTypeFloat  ctFloat;
+        typename PICToSplash<Type>::type ctPhaseSpace;
 
         /** local buffer size (aka splash subdomain) */
         DCollector::Dimensions phaseSpace_size_local( hBuffer.size().x(),
@@ -98,7 +100,7 @@ namespace picongpu
         DCollector::Dimensions phaseSpace_size( rSize, hBuffer.size().y(), 1 );
         DCollector::Dimensions phaseSpace_global_offset( rOffset, 0, 0 );
 
-        domainCollector.writeDomain( currentStep, ctFloat, bufDim,
+        domainCollector.writeDomain( currentStep, ctPhaseSpace, bufDim,
                                      phaseSpace_size_local,
                                      dataSetName.str().c_str(),
                                      phaseSpace_global_offset,
