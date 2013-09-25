@@ -20,6 +20,9 @@
 
 #pragma once
 
+#include <vector>
+#include <algorithm>
+
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "cuSTL/cursor/MultiIndexCursor.hpp"
 #include "cuSTL/algorithm/kernel/Foreach.hpp"
@@ -172,7 +175,8 @@ namespace picongpu
                                                          const std::pair<uint32_t, uint32_t>& _element ) :
     cellDescription(NULL), name(_name), prefix(_prefix), particles(NULL),
     dBuffer(NULL), axis_p_range(_p_range), axis_element(_element),
-    notifyPeriod(_notifyPeriod)
+    notifyPeriod(_notifyPeriod), isPlaneReduceRoot(false),
+    commFileWriter(MPI_COMM_NULL), planeReduce(NULL)
     {
     }
 
@@ -180,21 +184,81 @@ namespace picongpu
     void PhaseSpace<AssignmentFunction, Species>::moduleLoad()
     {
         DataConnector::getInstance().registerObserver(this, this->notifyPeriod);
-        
+
         const uint32_t r_element = this->axis_element.first;
-        
+
         /* CORE + BORDER + GUARD elements for spatial bins */
         this->r_bins = SuperCellSize().vec()[r_element]
                      * this->cellDescription->getGridSuperCells()[r_element];
-        
-        
+
         this->dBuffer = new container::DeviceBuffer<float_X, 2>( r_bins, this->p_bins );
+
+        /* reduce-add phase space from other GPUs in range [r;r+dr]x[p0;p1]
+         * to "lowest" node in range
+         * e.g.: phase space x-py: reduce-add all nodes with same x range in
+         *                         spatial y and z direction to node with
+         *                         lowest y and z position and same x range
+         */
+        PMacc::GridController<simDim>& gc = PMacc::GridController<simDim>::getInstance();
+        PMacc::math::Size_t<simDim> gpuDim = gc.getGpuNodes();
+        PMacc::math::Int<simDim> gpuPos = gc.getPosition();
+
+        /* my plane means: the r_element I am calculating should be 1GPU in width */
+        PMacc::math::Size_t<simDim> transversalPlane(gpuDim);
+        transversalPlane[this->axis_element.first] = 1;
+        /* my plane means: the offset for the transversal plane to my r_element
+         * should be zero
+         */
+        PMacc::math::Int<simDim> longOffset(0);
+        longOffset[this->axis_element.first] = gpuPos[this->axis_element.first];
+
+        zone::SphericZone<simDim> zoneTransversalPlane( transversalPlane, longOffset );
+
+        /* Am I the lowest GPU in my plane? */
+        PMacc::math::Int<simDim> planePos(gpuPos);
+        planePos[this->axis_element.first] = 0;
+        this->isPlaneReduceRoot = ( planePos == PMacc::math::Int<simDim>(0) );
+
+        this->planeReduce = new algorithm::mpi::Reduce<simDim>( zoneTransversalPlane,
+                                                                this->isPlaneReduceRoot );
+
+        /* Create communicator with ranks of each plane reduce root */
+        {
+            /* Array with root ranks of the planeReduce operations */
+            std::vector<int> planeReduceRootRanks( gc.getGlobalSize(), -1 );
+            /* Am I one of the planeReduce root ranks? my global rank : -1 */
+            int myRootRank = gc.getGlobalRank() * this->isPlaneReduceRoot
+                           - 1 * ( ! this->isPlaneReduceRoot );
+
+            MPI_Group world_group, new_group;
+            MPI_CHECK(MPI_Allgather( &myRootRank, 1, MPI_INTEGER,
+                                     &(planeReduceRootRanks.front()),
+                                     (int)planeReduceRootRanks.size(),
+                                     MPI_INTEGER,
+                                     MPI_COMM_WORLD ));
+
+            /* remove all non-roots (-1 values) */
+            std::sort( planeReduceRootRanks.begin(), planeReduceRootRanks.end() );
+            std::vector<int> ranks( std::lower_bound( planeReduceRootRanks.begin(),
+                                                      planeReduceRootRanks.end(),
+                                                      0 ),
+                                    planeReduceRootRanks.end() );
+
+            MPI_CHECK(MPI_Comm_group( MPI_COMM_WORLD, &world_group ));
+            MPI_CHECK(MPI_Group_incl( world_group, ranks.size(), ranks.data(), &new_group ));
+            MPI_CHECK(MPI_Comm_create( MPI_COMM_WORLD, new_group, &this->commFileWriter ));
+            MPI_CHECK(MPI_Group_free( &new_group ));
+        }
     }
 
     template<class AssignmentFunction, class Species>
     void PhaseSpace<AssignmentFunction, Species>::moduleUnload()
     {
         __delete( this->dBuffer );
+        __delete( planeReduce );
+
+        if( this->commFileWriter != MPI_COMM_NULL )
+                MPI_CHECK(MPI_Comm_free( &this->commFileWriter ));
     }
 
     template<class AssignmentFunction, class Species >
@@ -272,36 +336,15 @@ namespace picongpu
          *                         spatial y and z direction to node with
          *                         lowest y and z position and same x range
          */
-        PMacc::GridController<simDim>& gc = PMacc::GridController<simDim>::getInstance();
-        PMacc::math::Size_t<simDim> gpuDim = gc.getGpuNodes();
-        PMacc::math::Int<simDim> gpuPos = gc.getPosition();
-
-        /* my plane means: the r_element I am calculating should be 1GPU in width */
-        PMacc::math::Size_t<simDim> transversalPlane(gpuDim);
-        transversalPlane[this->axis_element.first] = 1;
-        /* my plane means: the offset for the transversal plane to my r_element
-         * should be zero
-         */
-        PMacc::math::Int<simDim> longOffset(0);
-        longOffset[this->axis_element.first] = gpuPos[this->axis_element.first];
-
-        zone::SphericZone<simDim> zoneTransversalPlane( transversalPlane, longOffset );
-
-        /* Am I the lowest GPU in my plane? */
-        PMacc::math::Int<simDim> planePos(gpuPos);
-        planePos[this->axis_element.first] = 0;
-        const bool isLowestGPUinPlane = ( planePos == PMacc::math::Int<simDim>(0) );
-        
-        algorithm::mpi::Reduce<simDim> planeReduce( zoneTransversalPlane, isLowestGPUinPlane );
         container::HostBuffer<float_X, 2> hReducedBuffer( hBuffer.size() );
-        planeReduce( /* dst, src */
-                     hReducedBuffer,
-                     hBuffer,
-                     /* the functors return value will be written to dst */
-                     _1 + _2 );
+        (*this->planeReduce)( /* parameters: dest, source */
+                             hReducedBuffer,
+                             hBuffer,
+                             /* the functors return value will be written to dst */
+                             _1 + _2 );
 
         /** all non-reduce-root processes are done now */
-        if( !isLowestGPUinPlane )
+        if( !this->isPlaneReduceRoot )
             return;
 
         std::cout << "[PhaseSpace] Communicate and add GUARDS (todo)" << std::endl;
@@ -323,7 +366,7 @@ namespace picongpu
         const double UNIT_VOLUME = ( UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH );
         const double unit = UNIT_CHARGE / UNIT_VOLUME;
         DumpHBuffer dumpHBuffer;
-        dumpHBuffer( hReducedBuffer_noGuard, this->axis_element, unit, currentStep );
+        dumpHBuffer( hReducedBuffer_noGuard, this->axis_element, unit, currentStep, this->commFileWriter );
     }
     
     template<class AssignmentFunction, class Species>

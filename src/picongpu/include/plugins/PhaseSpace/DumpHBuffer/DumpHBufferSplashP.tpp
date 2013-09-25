@@ -20,6 +20,9 @@
 
 #pragma once
 
+#include "mpi.h"
+#include <splash.h>
+
 #include "mappings/simulation/GridController.hpp"
 #include "mappings/simulation/SubGrid.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
@@ -30,15 +33,14 @@
 #include <sstream>
 #include <utility>
 
-#include <splash.h>
-
 namespace picongpu
 {
     template<typename Type, int bufDim>
     void DumpHBuffer::operator()( const PMacc::container::HostBuffer<Type, bufDim>& hBuffer,
                                   const std::pair<uint32_t, uint32_t> axis_element,
                                   const double unit,
-                                  const uint32_t currentStep ) const
+                                  const uint32_t currentStep,
+                                  MPI_Comm& mpiComm ) const
     {
         std::cout << "NOT implemented: "
                   << "Dump SPLASH Parallel" << std::endl;

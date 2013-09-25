@@ -20,10 +20,13 @@
 
 #pragma once
 
+#include "mpi.h"
+
 #include "simulation_defines.hpp"
 #include "dataManagement/ISimulationIO.hpp"
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
+#include "cuSTL/algorithm/mpi/Reduce.hpp"
 #include "math/vector/compile-time/Size_t.hpp"
 
 #include <string>
@@ -47,16 +50,23 @@ namespace picongpu
         uint32_t notifyPeriod;
         Species *particles;
         MappingDesc *cellDescription;
-        
+
         /** plot to create: e.g. x, py from element_coordinate/momentum */
         std::pair<uint32_t, uint32_t> axis_element;
         /** range [pMin : pMax] in m_e c */
         std::pair<float_X, float_X> axis_p_range;
         uint32_t r_bins;
-        
+
         static const uint32_t p_bins = 1024;
         container::DeviceBuffer<float_X, 2>* dBuffer;
-        
+
+        /** reduce functor to a single host per plane */
+        algorithm::mpi::Reduce<simDim>* planeReduce;
+        bool isPlaneReduceRoot;
+        /** MPI communicator that contains the root ranks of the \p planeReduce
+         */
+        MPI_Comm commFileWriter;
+
         typedef PhaseSpace<AssignmentFunction, Species> This;
         typedef PMacc::math::CT::Size_t<TILE_WIDTH, TILE_HEIGHT, TILE_DEPTH> SuperCellSize;
         
@@ -65,7 +75,7 @@ namespace picongpu
         { x = 0u, y = 1u, z = 2u };
         enum element_momentum
         { px = 0u, py = 1u, pz = 2u };
-        
+
         PhaseSpace( const std::string _name,
                      const std::string _prefix,
                      const uint32_t _notifyPeriod,

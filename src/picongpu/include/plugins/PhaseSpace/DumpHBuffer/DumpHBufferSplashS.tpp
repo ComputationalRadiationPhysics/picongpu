@@ -40,7 +40,8 @@ namespace picongpu
     void DumpHBuffer::operator()( const PMacc::container::HostBuffer<Type, bufDim>& hBuffer,
                                   const std::pair<uint32_t, uint32_t> axis_element,
                                   const double unit,
-                                  const uint32_t currentStep ) const
+                                  const uint32_t currentStep,
+                                  MPI_Comm& mpiComm ) const
     {
         PMacc::GridController<simDim>& gc = PMacc::GridController<simDim>::getInstance();
         PMacc::math::Size_t<simDim> gpuDim = gc.getGpuNodes();
