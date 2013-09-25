@@ -59,7 +59,9 @@ namespace picongpu
         uint32_t r_bins;
 
         static const uint32_t p_bins = 1024;
-        container::DeviceBuffer<float_X, 2>* dBuffer;
+        typedef float_32 float_PS;
+
+        container::DeviceBuffer<float_PS, 2>* dBuffer;
 
         /** reduce functor to a single host per plane */
         algorithm::mpi::Reduce<simDim>* planeReduce;

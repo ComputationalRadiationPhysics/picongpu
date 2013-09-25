@@ -44,12 +44,13 @@
 namespace picongpu
 {
     using namespace PMacc;
-    
+
+    template<typename Type>
     struct FunctorAtomicAdd
     {
         typedef void result_type;
-        
-        DINLINE void operator()( float_X& dest, const float_X src )
+
+        DINLINE void operator()( Type& dest, const Type src )
         {
             atomicAddWrapper( &dest, src );
         }
@@ -60,10 +61,10 @@ namespace picongpu
     {
         typedef void result_type;
         
-        template<typename FramePtr, typename Cur >
+        template<typename FramePtr, typename float_PS, typename Pitch >
         DINLINE void operator()( FramePtr particle,
                                  uint16_t particleID,
-                                 Cur curDBufferOriginInBlock,
+                                 cursor::CT::BufferCursor<float_PS, Pitch> curDBufferOriginInBlock,
                                  const uint32_t el_p,
                                  const std::pair<float_X, float_X>& axis_p_range )
         {
@@ -79,7 +80,8 @@ namespace picongpu
             const int r_bin         = cellIdx[r_dir];
             const float_X weighting = particle->getWeighting()[particleID];
             const float_X charge    = particle->getCharge( weighting );
-            const float_X particleChargeDensity = charge / ( CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH );
+            const float_PS particleChargeDensity =
+              typeCast<float_PS>( charge / ( CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH ) );
 
             const float_X rel_bin = (mom_i - axis_p_range.first)
                                   / (axis_p_range.second - axis_p_range.first);
@@ -99,7 +101,7 @@ namespace picongpu
         }
     };
     
-    template<typename Species, typename SuperCellSize, uint32_t p_bins, uint32_t r_dir>
+    template<typename Species, typename SuperCellSize, typename float_PS, uint32_t p_bins, uint32_t r_dir>
     struct FunctorBlock
     {
         typedef void result_type;
@@ -107,12 +109,12 @@ namespace picongpu
         typedef typename Species::ParticlesBoxType TParticlesBox;
         
         TParticlesBox particlesBox;
-        cursor::BufferCursor<float_X, 2> curOriginPhaseSpace;
+        cursor::BufferCursor<float_PS, 2> curOriginPhaseSpace;
         uint32_t p_element;
         std::pair<float_X, float_X> axis_p_range;
         
         FunctorBlock( const TParticlesBox& pb,
-                      cursor::BufferCursor<float_X, 2> cur,
+                      cursor::BufferCursor<float_PS, 2> cur,
                       const uint32_t p_el,
                       const std::pair<float_X, float_X>& a_ran ) :
         particlesBox(pb), curOriginPhaseSpace(cur), p_element(p_el),
@@ -129,7 +131,7 @@ namespace picongpu
             /* create shared mem */
             const uint32_t blockCellsInDir = SuperCellSize::template at<r_dir>::type::value;
             typedef PMacc::math::CT::Int<blockCellsInDir, p_bins> dBufferSizeInBlock;
-            container::CT::SharedBuffer<float_X, dBufferSizeInBlock > dBufferInBlock;
+            container::CT::SharedBuffer<float_PS, dBufferSizeInBlock > dBufferInBlock;
             
             /* init shared mem */
             algorithm::cudaBlock::Foreach<SuperCellSize> forEachThreadInBlock;
@@ -138,7 +140,7 @@ namespace picongpu
                 DECLARE_PLACEHOLDERS();
                 forEachThreadInBlock( dBufferInBlock.zone(),
                                       dBufferInBlock.origin(),
-                                      _1 = float_X(0.0) );
+                                      _1 = float_PS(0.0) );
             }
             __syncthreads();
 
@@ -161,12 +163,11 @@ namespace picongpu
                                   curOriginPhaseSpace(indexBlockOffset[r_dir], 0),
                                   dBufferInBlock.origin(),
                                   /* functor */
-                                  FunctorAtomicAdd() );
+                                  FunctorAtomicAdd<float_PS>() );
                                   
         }
     };
-    
-    
+
     template<class AssignmentFunction, class Species>
     PhaseSpace<AssignmentFunction, Species>::PhaseSpace( const std::string _name,
                                                          const std::string _prefix,
@@ -191,7 +192,7 @@ namespace picongpu
         this->r_bins = SuperCellSize().vec()[r_element]
                      * this->cellDescription->getGridSuperCells()[r_element];
 
-        this->dBuffer = new container::DeviceBuffer<float_X, 2>( r_bins, this->p_bins );
+        this->dBuffer = new container::DeviceBuffer<float_PS, 2>( r_bins, this->p_bins );
 
         /* reduce-add phase space from other GPUs in range [r;r+dr]x[p0;p1]
          * to "lowest" node in range
@@ -279,7 +280,7 @@ namespace picongpu
 
         algorithm::kernel::ForeachBlock<SuperCellSize> forEachSuperCell;
         
-        FunctorBlock<Species, SuperCellSize, p_bins, r_dir> functorBlock(
+        FunctorBlock<Species, SuperCellSize, float_PS, p_bins, r_dir> functorBlock(
             this->particles->getDeviceParticlesBox(), dBuffer->origin(),
             this->axis_element.second, this->axis_p_range );
 
@@ -302,7 +303,7 @@ namespace picongpu
 
         std::cout << "[PhaseSpace] reset buffer" << std::endl;
         /* reset device buffer
-         * this->dBuffer->assign( float_X(0.0) );
+         * this->dBuffer->assign( float_PS(0.0) );
          */
         using namespace lambda;
         typedef typename PMacc::math::CT::Int<1, 1, 1> assignBlock;
@@ -313,7 +314,7 @@ namespace picongpu
                        /* data below - passed to functor operator() */
                        this->dBuffer->origin(),
                        /* functor */
-                       _1 = float_X(0.0));
+                       _1 = float_PS(0.0));
 
         std::cout << "[PhaseSpace] calc" << std::endl;
         /* calculate local phase space */
@@ -326,7 +327,7 @@ namespace picongpu
 
         std::cout << "[PhaseSpace] transfer to host" << std::endl;
         /* transfer to host */
-        container::HostBuffer<float_X, 2> hBuffer( this->dBuffer->size() );
+        container::HostBuffer<float_PS, 2> hBuffer( this->dBuffer->size() );
         hBuffer = *this->dBuffer;
 
         std::cout << "[PhaseSpace] Reduce plane" << std::endl;
@@ -336,7 +337,7 @@ namespace picongpu
          *                         spatial y and z direction to node with
          *                         lowest y and z position and same x range
          */
-        container::HostBuffer<float_X, 2> hReducedBuffer( hBuffer.size() );
+        container::HostBuffer<float_PS, 2> hReducedBuffer( hBuffer.size() );
         (*this->planeReduce)( /* parameters: dest, source */
                              hReducedBuffer,
                              hBuffer,
@@ -350,7 +351,7 @@ namespace picongpu
         std::cout << "[PhaseSpace] Communicate and add GUARDS (todo)" << std::endl;
         /** \todo communicate GUARD and add it to the two neighbors BORDER */
         PMacc::SubGrid<simDim>& sg = PMacc::SubGrid<simDim>::getInstance();
-        container::HostBuffer<float_X, 2> hReducedBuffer_noGuard( sg.getSimulationBox().getLocalSize()[this->axis_element.first],
+        container::HostBuffer<float_PS, 2> hReducedBuffer_noGuard( sg.getSimulationBox().getLocalSize()[this->axis_element.first],
                                                                   this->p_bins );
         algorithm::host::Foreach forEachCopyWithoutGuard;
         forEachCopyWithoutGuard(/* area to work on */
