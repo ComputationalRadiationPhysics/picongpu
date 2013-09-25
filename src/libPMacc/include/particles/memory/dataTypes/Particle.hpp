@@ -22,12 +22,20 @@
 #pragma once
 
 #include "types.h"
+#include "particles/boostExtension/InheritLinearly.hpp"
 #include <boost/utility/result_of.hpp>
-#include <boost/mpl/inherit.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/mpl/if.hpp>
 #include "traits/HasIdentifier.hpp"
 #include "particles/factories/GetKeyFromAlias.hpp"
+#include "particles/factories/CopyIdentifier.hpp"
+#include "algorithms/ForEach.hpp"
+#include "RefWrapper.hpp"
+
+#include "particles/operations/Assign.hpp"
+#include "particles/operations/Deselect.hpp"
+#include <boost/mpl/remove_if.hpp>
+#include <boost/mpl/is_sequence.hpp>
 
 namespace PMacc
 {
@@ -35,12 +43,14 @@ namespace bmpl = boost::mpl;
 namespace pmath = PMacc::math;
 namespace pmacc = PMacc;
 
-template<typename T_FrameType, typename T_MethodsList>
-struct Particle : public bmpl::inherit<T_MethodsList>::type
+template<typename T_FrameType, typename T_ValueTypeSeq = typename T_FrameType::ValueTypeSeq>
+struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
 {
     typedef T_FrameType FrameType;
-    typedef T_MethodsList MethodsList;
-    typedef typename FrameType::ValueTypeSeq ValueTypeSeq;
+    typedef T_ValueTypeSeq ValueTypeSeq;
+    typedef Particle<FrameType, ValueTypeSeq> ThisType;
+    typedef typename FrameType::MethodsList MethodsList;
+
 
     FrameType& frame;
     uint32_t idx;
@@ -49,41 +59,60 @@ struct Particle : public bmpl::inherit<T_MethodsList>::type
     {
     }
 
-    template<typename T_Key >
-        HDINLINE
-        typename boost::result_of<
-        typename boost::remove_reference<
-        typename boost::result_of < FrameType(typename GetKeyFromAlias_assert<ValueTypeSeq,T_Key>::type)>::type
-        >::type(uint32_t)
-    >::type
-        operator[](const T_Key key)
-        {
-            return frame.getIdentifier(key)[idx];
-        }
+    template<typename T_OtherParticle >
+    HDINLINE Particle(const T_OtherParticle& other) : frame(other.frame), idx(other.idx)
+    {
+    }
 
     template<typename T_Key >
-        HDINLINE
-        typename boost::result_of<
-        typename boost::remove_reference<
-        typename boost::result_of < FrameType(typename GetKeyFromAlias_assert<ValueTypeSeq,T_Key>::type)>::type
-        >::type(uint32_t)
+    HDINLINE
+    typename boost::result_of<
+    typename boost::remove_reference<
+    typename boost::result_of < FrameType(typename GetKeyFromAlias_assert<ValueTypeSeq, T_Key>::type)>::type
+    >::type(uint32_t)
     >::type
-        operator[](const T_Key key) const
+    operator[](const T_Key key)
+    {
+        return frame.getIdentifier(key)[idx];
+    }
+
+    template<typename T_Key >
+    HDINLINE
+    typename boost::result_of<
+    typename boost::remove_reference<
+    typename boost::result_of < FrameType(typename GetKeyFromAlias_assert<ValueTypeSeq, T_Key>::type)>::type
+    >::type(uint32_t)
+    >::type
+    operator[](const T_Key key) const
+    {
+        return frame.getIdentifier(key)[idx];
+    }
+    /*
+        template<typename T_OtherParticle >
+            HDINLINE
+            ThisType& operator=(const T_OtherParticle& other)
         {
-            return frame.getIdentifier(key)[idx];
+            particles::operations::assign(*this, other);
+            return *this;
         }
 
+        HDINLINE
+        ThisType& operator=(const ThisType& other)
+        {
+            particles::operations::assign(*this, other);
+            return *this;
+        }
+     */
 };
 
 namespace traits
 {
 
 template<typename T_Key,
-typename T_FrameType,
-typename T_MethodsList
+typename T_FrameType
 >
 struct HasIdentifier<
-PMacc::Particle<T_FrameType, T_MethodsList>,
+PMacc::Particle<T_FrameType>,
 T_Key
 >
 {
@@ -94,5 +123,76 @@ public:
     static const bool value = type::value;
 };
 } //namespace traits
+
+namespace particles
+{
+namespace operations
+{
+namespace detail
+{
+
+template<
+typename T_FrameType1, typename T_ValueTypeSeq1,
+typename T_FrameType2, typename T_ValueTypeSeq2
+>
+struct Assign
+<
+PMacc::Particle<T_FrameType1, T_ValueTypeSeq1>,
+PMacc::Particle<T_FrameType2, T_ValueTypeSeq2>
+>
+{
+    typedef PMacc::Particle<T_FrameType1, T_ValueTypeSeq1> Dest;
+    typedef PMacc::Particle<T_FrameType2, T_ValueTypeSeq2> Src;
+
+    HDINLINE
+    void operator()(const Dest& dest, const Src& src)
+    {
+        algorithms::forEach::ForEach<typename Dest::ValueTypeSeq,
+            CopyIdentifier<void> > copy;
+        copy(byRef(dest), src);
+    };
+};
+
+template<
+typename T_RemoveSequence,
+typename T_FrameType, typename T_ValueTypeSeq
+>
+struct Deselect
+<
+T_RemoveSequence,
+PMacc::Particle<T_FrameType, T_ValueTypeSeq>
+>
+{
+    typedef T_FrameType FrameType;
+    typedef T_ValueTypeSeq ValueTypeSeq;
+    typedef PMacc::Particle<FrameType, ValueTypeSeq> Object;
+
+
+    typedef T_RemoveSequence RemoveSequence;
+
+    BOOST_MPL_ASSERT((boost::mpl::is_sequence< RemoveSequence >));
+
+    template<typename T_Key>
+    struct hasId
+    {
+        typedef typename GetKeyFromAlias<ValueTypeSeq, T_Key>::type Key;
+        typedef bmpl::bool_<!boost::is_same< bmpl::void_, Key>::value> type;
+    };
+
+    typedef typename bmpl::remove_if< ValueTypeSeq, hasId<bmpl::_> >::type NewValueTypeSeq;
+
+    typedef PMacc::Particle<FrameType, NewValueTypeSeq> result;
+
+    HDINLINE
+    result operator()(const Object& particle)
+    {
+        return result(particle);
+    };
+};
+
+
+} //namespace detail
+} //namespace operations
+} //namespace particles
 
 } //namespace PMacc

@@ -314,20 +314,22 @@ public:
             assert(localId < TILE_SIZE);
             assert((uint32_t) (localCellId) < TILE_SIZE);
 
-            frame->getCellIdx()[localId] = localCellId;
-            frame->getMultiMask()[localId] = 1;
-            frame->getWeighting()[localId] = weighting[i];
+            PMACC_AUTO(particle,((*frame)[localId]));
+            
+            particle[localCellIdx_] = localCellId;
+            particle[multiMask_]  = 1;
+            particle[weighting_] = weighting[i];
 #if(ENABLE_RADIATION == 1) && ((RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0))
-            frame->getRadiationFlag()[localId] = (radiationFlag[i]);
+            particle[radiationFlag_] = (radiationFlag[i]);
 #endif
             for (uint32_t d = 0; d < simDim; ++d)
             {
-                *(((float*) &(frame->getPosition()[localId])) + d) = relativePositions[d][i];
+                particle[position_][d] = relativePositions[d][i];
 
-                *(((float*) &(frame->getMomentum()[localId])) + d) = momentums[d][i];
+                particle[momentum_][d] = momentums[d][i];
 #if(ENABLE_RADIATION == 1)
                 //!\todo: only use Momentum_mt1 if particle type is electrons
-                *(((float*) &(frame->getMomentum_mt1()[localId])) + d) = momentums_mt1[d][i];
+                particle[momentum_mt1_][d] = momentums_mt1[d][i];
 #endif
 
             }
@@ -393,7 +395,7 @@ public:
         dataCollector = new DomainCollector( maxOpenFilesPerNode );
     }
 
-    ~SimRestartInitialiser()
+    virtual ~SimRestartInitialiser()
     {
         // cleanup
         if (dataCollector != NULL)

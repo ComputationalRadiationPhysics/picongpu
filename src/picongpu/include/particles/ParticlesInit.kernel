@@ -61,8 +61,8 @@ DINLINE float_X calcRealDensity(const DataSpace<Dim>& offset, const DataSpace<Di
     return value;
 }
 
-template< class UserTypeList, class Mapping>
-__global__ void kernelFillGridWithParticles(typename Particles<UserTypeList>::ParticlesBoxType pb,
+template< typename ParBox, class Mapping>
+__global__ void kernelFillGridWithParticles(ParBox pb,
                                             bool isNotTop, DataSpace<simDim> gpuCelloffset, uint32_t seed, uint32_t gNrCellsY,
                                             Mapping mapper)
 {
@@ -70,7 +70,7 @@ __global__ void kernelFillGridWithParticles(typename Particles<UserTypeList>::Pa
     namespace rngMethods = nvidia::rng::methods;
     namespace rngDistributions = nvidia::rng::distributions;
 
-    typedef typename Particles<UserTypeList>::FrameType FRAME;
+    typedef typename ParBox::FrameType FRAME;
     const DataSpace<simDim> superCells(mapper.getGridSuperCells());
 
     const DataSpace<simDim> block = mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx));
@@ -183,20 +183,21 @@ __global__ void kernelFillGridWithParticles(typename Particles<UserTypeList>::Pa
 
         if (numParsPerCell > 0)
         {
-            frame->getPosition()[linearThreadIdx] = float3_32(pos.x(), pos.y(), pos.z());
-            frame->getMultiMask()[linearThreadIdx] = 1;
-            frame->getCellIdx()[linearThreadIdx] = linearThreadIdx;
-            frame->getWeighting()[linearThreadIdx] = macroWeighting;
-            frame->getMomentum()[linearThreadIdx] = float3_X(0, 0, 0);
+            PMACC_AUTO(particle,((*frame)[linearThreadIdx]));
+            particle[position_] = pos;
+            particle[multiMask_] = 1;
+            particle[localCellIdx_]= linearThreadIdx;
+            particle[weighting_] = macroWeighting;
+            particle[momentum_] = float3_X(0,0,0);
 
 #if(ENABLE_RADIATION == 1)
-            frame->getMomentum_mt1()[linearThreadIdx] = float3_X(0, 0, 0);
+            particle[momentum_mt1_] = momentum::getDefaultValue();
 #if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
 #if(RAD_MARK_PARTICLE==0) 
             //if we need gamma filter but no mark particles at begin of simulation we set all to false
-            frame->getRadiationFlag()[linearThreadIdx] = false;
+            particle[radiationFlag_] = radiationFlag::getDefaultValue();
 #else
-            frame->getRadiationFlag()[linearThreadIdx] = (bool)(rng() < (1.0 / (float) RAD_MARK_PARTICLE));
+            particle[radiationFlag_] = (bool)(rng() < (1.0 / (float) RAD_MARK_PARTICLE));
 #endif
 #endif
 #endif

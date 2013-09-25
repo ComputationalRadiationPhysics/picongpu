@@ -27,6 +27,7 @@
 
 #include "simulation_defines/param/precision.param"
 #include "simulation_defines/param/physicalConstants.param"
+#include "simulation_defines/param/particleDefinition.param"
 #include "simulation_defines/param/gridConfig.param"
 #include "simulation_defines/param/gasConfig.param"
 #include "simulation_defines/param/particleConfig.param"

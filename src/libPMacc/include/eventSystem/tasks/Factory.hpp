@@ -126,7 +126,7 @@ namespace PMacc
          * @param registeringTask optional pointer to an ITask which should be registered at the new task as an observer
          */
         template <class TYPE, unsigned DIM>
-        EventTask createTaskSetValue(DeviceBuffer<TYPE, DIM>& dst, TYPE value,
+        EventTask createTaskSetValue(DeviceBuffer<TYPE, DIM>& dst, const TYPE& value,
         ITask *registeringTask = NULL);
 
         /**

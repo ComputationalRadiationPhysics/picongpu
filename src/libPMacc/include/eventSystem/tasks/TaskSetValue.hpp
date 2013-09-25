@@ -137,7 +137,7 @@ class TaskSetValue<TYPE,DIM,false> : public StreamTask
 {
 public:
 
-    TaskSetValue(DeviceBuffer<TYPE, DIM>& dst, TYPE &value) :
+    TaskSetValue(DeviceBuffer<TYPE, DIM>& dst, const TYPE& value) :
     StreamTask(),
     value(value)
     {
@@ -206,7 +206,7 @@ class TaskSetValue<TYPE,DIM,true> : public StreamTask
 {
 public:
 
-    TaskSetValue(DeviceBuffer<TYPE, DIM>& dst, TYPE &value) :
+    TaskSetValue(DeviceBuffer<TYPE, DIM>& dst, const TYPE &value) :
     StreamTask(),
     value(value)
     {

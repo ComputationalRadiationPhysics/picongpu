@@ -18,28 +18,34 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */
 
+
+
 #pragma once
 
 #include "types.h"
-#include "simulation_defines.hpp"
-#include "simulation_types.hpp"
+#include "particles/Identifier.hpp"
+#include <boost/mpl/vector.hpp>
 
-#include "particles/Particles.hpp"
-#include "particles/species/ions/IonMethods.hpp"
-#include "particles/species/electrons/ElectronMethods.hpp"
 
 namespace picongpu
 {
-using namespace PMacc;
 
-typedef Particles<
-    ElectronsDataList,
-    ElectronsMethodsList
-> PIC_Electrons;
+namespace bmpl=boost::mpl;
 
-typedef Particles<
-    IonsDataList,
-    IonsMethodsList
-> PIC_Ions;
+class ElectronMethods;
+class IonMethods;
+
+value_identifier(float3_X,position_pic,float3_X(0.,0.,0.));
+value_identifier(float3_X,momentum,float3_X(0.,0.,0.));
+value_identifier(float_X,weighting,0.0);
+value_identifier(float3_X,momentum_mt1,float3_X(0.,0.,0.));   
+value_identifier(bool,radiationFlag,false);    
+
+typedef bmpl::vector<position<position_pic>,momentum,weighting> ElectronsDataList;
+typedef bmpl::vector<position<position_pic>,momentum,weighting> IonsDataList;
+
+typedef bmpl::vector<ElectronMethods> ElectronsMethodsList;
+typedef bmpl::vector<IonMethods> IonsMethodsList;
+
 
 } //namespace picongpu

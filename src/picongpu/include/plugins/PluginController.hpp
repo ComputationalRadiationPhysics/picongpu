@@ -80,6 +80,8 @@
 
 #include "plugins/IPluginModule.hpp"
 
+#undef ENABLE_HDF5
+#define ENABLE_HDF5 0
 #if (ENABLE_HDF5 == 1)
 #include "plugins/output/HDF5Writer.hpp"
 #endif

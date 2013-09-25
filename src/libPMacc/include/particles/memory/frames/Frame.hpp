@@ -30,6 +30,7 @@
 
 #include <boost/type_traits.hpp>
 
+#include "particles/boostExtension/InheritLinearly.hpp"
 #include "particles/memory/dataTypes/Particle.hpp"
 #include "particles/frame_types.hpp"
 #include "particles/factories/CreateMap.hpp"
@@ -53,8 +54,8 @@ template<template<typename> class T_CreatePairOperator,
         typename T_ValueTypeSeq, 
         typename T_MethodsList = bmpl::list<>,
         typename T_Flags = bmpl::list<> >
-struct Frame
-:
+struct Frame :
+public InheritLinearly<T_MethodsList>,
 protected pmath::MapTuple<typename CreateMap<T_ValueTypeSeq, T_CreatePairOperator>::type, pmath::AlignedData>
 {
     // typedef T_CreatePairOperator CoverOperator;
@@ -64,7 +65,7 @@ protected pmath::MapTuple<typename CreateMap<T_ValueTypeSeq, T_CreatePairOperato
     typedef Frame<T_CreatePairOperator, ValueTypeSeq, MethodsList, AttributeList> ThisType;
     typedef pmath::MapTuple<typename CreateMap<ValueTypeSeq, T_CreatePairOperator>::type, pmath::AlignedData> BaseType;
 
-    typedef pmacc::Particle<ThisType, MethodsList> ParticleType;
+    typedef pmacc::Particle<ThisType> ParticleType;
 
     HDINLINE ParticleType operator[](const uint32_t idx)
     {

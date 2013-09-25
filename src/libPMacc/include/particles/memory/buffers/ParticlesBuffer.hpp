@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ */
 
 #ifndef PARTICLESBUFFER_HPP
 #define	PARTICLESBUFFER_HPP
@@ -45,11 +45,14 @@
 #include <boost/mpl/copy.hpp>
 #include <boost/mpl/back_inserter.hpp>
 
+#include "particles/memory/frames/Frame.hpp"
+#include "particles/Identifier.hpp"
+#include "particles/memory/dataTypes/StaticArray.hpp"
+#include <boost/mpl/vector.hpp>
+#include <boost/mpl/pair.hpp>
 
 namespace PMacc
 {
-
-
 
 /**
  * Describes DIM-dimensional buffer for particles data on the host.
@@ -59,30 +62,49 @@ namespace PMacc
  * @tparam SuperCellSize TVec which descripe size of a superce
  * @tparam DIM dimension of the buffer (1-3)
  */
-template<typename PositionType, typename UserTypeList, class SuperCellSize_, unsigned DIM>
+template<typename T_DataVector, typename T_MethodsVector, class SuperCellSize_, unsigned DIM>
 class ParticlesBuffer
 {
-    
 public:
+
+    template<typename Key>
+    struct CastToStaticArraySuperCell
+    {
+        typedef
+        bmpl::pair<Key,
+            StaticArray<typename Key::type,SuperCellSize_::elements> >
+            type;
+    };
+    
+    template<typename Key>
+    struct CastToStaticArrayOne
+    {
+        typedef
+        bmpl::pair<Key,
+            StaticArray<typename Key::type,1u> >
+            type;
+    };
+
+
     typedef ExchangeMemoryIndex<vint_t, DIM - 1 > PopPushType;
 
     typedef SuperCellSize_ SuperCellSize;
-    
-    typedef
-    typename JoinVectors<
-           UserTypeList,
-           bmpl::vector<CoreFrame<PositionType, SuperCellSize, DIM> >
-        >::type full_listCore;
-
-    typedef typename LinearInherit<full_listCore>::type ParticleType;
 
     typedef
     typename JoinVectors<
-           UserTypeList,
-           bmpl::vector<BorderFrame < PositionType, TVec < 1 >, DIM> >
-        >::type full_listBorder;
+    T_DataVector,
+    boost::mpl::vector<localCellIdx, multiMask>
+    >::type full_particleList;
     
-    typedef typename LinearInherit<full_listBorder>::type ParticleTypeBorder;
+    typedef
+    typename JoinVectors<
+    T_DataVector,
+    boost::mpl::vector<localCellIdx>
+    >::type border_particleList;
+
+    typedef Frame<CastToStaticArraySuperCell,full_particleList,T_MethodsVector> ParticleType;
+
+    typedef Frame<CastToStaticArrayOne,border_particleList,T_MethodsVector> ParticleTypeBorder;
 
 
 private:
@@ -348,8 +370,8 @@ public:
         assert(superCells != NULL);
         return superCells->getGridLayout().getDataSpace();
     }
-    
-        /**
+
+    /**
      * Returns number of supercells in each dimension.
      *
      * @return number of supercells

@@ -48,6 +48,9 @@
 #include "nvidia/rng/methods/Xor.hpp"
 #include "nvidia/rng/distributions/Normal_float.hpp"
 
+#include "particles/operations/Assign.hpp"
+#include "particles/operations/Deselect.hpp"
+
 namespace picongpu
 {
 
@@ -57,6 +60,8 @@ using namespace PMacc;
 template<class MYFRAME, class OTHERFRAME, class Mapping>
 __global__ void kernelCloneParticles(ParticlesBox<MYFRAME, simDim> myBox, ParticlesBox<OTHERFRAME, simDim> otherBox, Mapping mapper)
 {
+    using namespace particles::operations;
+    
     __shared__ OTHERFRAME *frame;
 
     __shared__ MYFRAME *myFrame;
@@ -79,8 +84,9 @@ __global__ void kernelCloneParticles(ParticlesBox<MYFRAME, simDim> myBox, Partic
     __syncthreads();
     while (isValid) //move over all Frames
     {
-        myFrame->copy(threadIdx.x, *frame, threadIdx.x);
-        myFrame->getMultiMask()[threadIdx.x] = frame->getMultiMask()[threadIdx.x];
+        PMACC_AUTO(parDest,((*myFrame)[threadIdx.x]));
+        PMACC_AUTO(parSrc,((*frame)[threadIdx.x]));
+        assign(parDest,parSrc);
         __syncthreads();
         if (threadIdx.x == 0)
         {
@@ -125,7 +131,7 @@ __global__ void kernelAddTemperature(ParticlesBox<FRAME, simDim> pb, float_X ene
 
 
 
-    bool isParticle = frame->getMultiMask()[linearThreadIdx];
+    bool isParticle = (*frame)[linearThreadIdx][multiMask_];
 
 
     const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
@@ -147,12 +153,12 @@ __global__ void kernelAddTemperature(ParticlesBox<FRAME, simDim> pb, float_X ene
     {
         if (isParticle)
         {
-
+            PMACC_AUTO(particle,((*frame)[linearThreadIdx]));
             const float3_X tmpRand = float3_X(rng(),
                                               rng(),
                                               rng());
 
-            const float_X macroWeighting = frame->getWeighting()[linearThreadIdx];
+            const float_X macroWeighting = particle[weighting_];
             // since energy is related to one particle,
             // and our units are normalized for macro particle quanities
             // energy is quite small
@@ -180,7 +186,7 @@ __global__ void kernelAddTemperature(ParticlesBox<FRAME, simDim> pb, float_X ene
                                                                                    macroEnergy * frame->getMass(macroWeighting)
                                                                                    )
                                                                 );
-            frame->getMomentum()[linearThreadIdx] += mom;
+            particle[momentum_] += mom;
         }
         __syncthreads();
         if (linearThreadIdx == 0)
@@ -192,13 +198,13 @@ __global__ void kernelAddTemperature(ParticlesBox<FRAME, simDim> pb, float_X ene
     }
 }
 
-template< class UserTypeList, class Mapping>
-__global__ void kernelSetDrift(typename Particles<UserTypeList>::ParticlesBoxType pb,
+template< typename ParBox, class Mapping>
+__global__ void kernelSetDrift(ParBox pb,
                                uint32_t offsetY,
                                const int gNrCellsY,
                                Mapping mapper)
 {
-    typedef typename Particles<UserTypeList>::FrameType FRAME;
+    typedef typename ParBox::FrameType FRAME;
     const DataSpace<simDim> superCells(mapper.getGridSuperCells());
 
     const DataSpace<simDim> block = mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx));
@@ -232,7 +238,7 @@ __global__ void kernelSetDrift(typename Particles<UserTypeList>::ParticlesBoxTyp
     if (!isValid)
         return; //end kernel if we have no frames
 
-    bool isParticle = frame->getMultiMask()[linearThreadIdx];
+    bool isParticle = (*frame)[linearThreadIdx][multiMask_];
 
     while (isValid)
     {
@@ -240,7 +246,7 @@ __global__ void kernelSetDrift(typename Particles<UserTypeList>::ParticlesBoxTyp
         {
             if (PARTICLE_INIT_DRIFT_GAMMA == 1.0)
             {
-                frame->getMomentum()[linearThreadIdx] = float3_X(0.0, 0.0, 0.0);
+                (*frame)[linearThreadIdx][momentum_] = momentum::getDefaultValue();
             }
             else
             {
@@ -265,7 +271,8 @@ __global__ void kernelSetDrift(typename Particles<UserTypeList>::ParticlesBoxTyp
                 }
 
                 typedef typename FRAME::MassType MassType;
-                const float_X macroWeighting = frame->getWeighting()[linearThreadIdx];
+                PMACC_AUTO(particle,((*frame)[linearThreadIdx]));
+                const float_X macroWeighting = particle[weighting_];
                 const MassType macroMass = frame->getMass(macroWeighting);
 
 
@@ -285,7 +292,7 @@ __global__ void kernelSetDrift(typename Particles<UserTypeList>::ParticlesBoxTyp
                 if (FRAME::CommunicationTag == PAR_IONS)
                     particleDir = PARTICLE_INIT_DRIFT_IONS;
 
-                frame->getMomentum()[linearThreadIdx]
+                particle[momentum_]
                     = normDir * particleDir *
                     float_X(myGamma *
                             PARTICLE_INIT_DRIFT_BETA *
@@ -396,18 +403,14 @@ struct PushParticlePerFrame
 
         typedef TVec Block;
 
-        typedef typename FrameType::PosType PosType;
-        typedef typename FrameType::MomType MomType;
-        typedef typename FrameType::MassType MassType;
-
-        typedef typename FrameType::WeightingType WeightingType;
         typedef typename BoxB::ValueType BType;
         typedef typename BoxE::ValueType EType;
 
-        const WeightingType weighting = frame.getWeighting()[localIdx];
+        PMACC_AUTO(particle,frame[localIdx]);
+        const float_X weighting = particle[weighting_];
 
-        PosType pos = frame.getPosition()[localIdx];
-        const int particleCellIdx = frame.getCellIdx()[localIdx];
+        float3_X pos = particle[position_];
+        const int particleCellIdx = particle[localCellIdx_];
 
         DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec > (particleCellIdx));
 
@@ -417,13 +420,13 @@ struct PushParticlePerFrame
         BType bField = fieldSolver::FieldToParticleInterpolation()
             (bBox.shift(localCell).toCursor(), pos,NumericalCellType::getBFieldPosition());
 
-        MomType mom = frame.getMomentum()[localIdx];
-        const MassType mass = frame.getMass(weighting);
+        float3_X mom = particle[momentum_];
+        const float_X mass = frame.getMass(weighting);
 #if(ENABLE_RADIATION == 1) 
         radiation::PushExtension < (RAD_MARK_PARTICLE > 1) || (RAD_ACTIVATE_GAMMA_FILTER != 0) > extensionRadiation;
-        MomType& mom_mt1 = frame.getMomentum_mt1()[localIdx];
+        float3_X& mom_mt1 = particle[momentum_mt1_];
 #if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
-        bool& radiationFlag = frame.getRadiationFlag()[localIdx];
+        bool& radiationFlag = particle[radiationFlag_];
         extensionRadiation(mom_mt1, mom, mass, radiationFlag);
 #else
         extensionRadiation(mom_mt1, mom, mass);
@@ -437,7 +440,7 @@ struct PushParticlePerFrame
              mass,
              frame.getCharge(weighting)
              );
-        frame.getMomentum()[localIdx] = mom;
+        particle[momentum_] = mom;
 
         /* if pos negativ dir is set to -1
          * if pos positive and >1 dir is set to +1
@@ -446,7 +449,7 @@ struct PushParticlePerFrame
         DataSpace<DIM3> dir(math::float2int_rd(pos.x()), math::float2int_rd(pos.y()), math::float2int_rd(pos.z()));
 
         pos -= float3_X(dir.x(), dir.y(), dir.z()); //typeCast<float3_X > (dir);
-        frame.getPosition()[localIdx] = pos;
+        particle[position_] = pos;
 
         /* new local cell position after particle move
          * can be out of supercell 
@@ -482,7 +485,7 @@ struct PushParticlePerFrame
         localCell.y() -= (dir.y() * TVec::y);
         localCell.z() -= (dir.z() * TVec::z);
         /*calculate one dimensional cell index*/
-        frame.getCellIdx()[localIdx] = DataSpaceOperations<TVec::dim>::template map<TVec > (localCell);
+        particle[localCellIdx_] = DataSpaceOperations<TVec::dim>::template map<TVec > (localCell);
 
         /* (dir + int(dir < 0)*3) = (dir + 3) %3 = y
          * but without modulo
@@ -495,7 +498,7 @@ struct PushParticlePerFrame
             (dir.y() + int(dir.y() < 0)*3) * BOTTOM +
             (dir.z() + int(dir.z() < 0)*3) * BACK;
 
-        frame.getMultiMask()[localIdx] = direction;
+        particle[multiMask_] = direction;
 
         /* check if pos is [0,1)
          * if(pos.x()>=1.0f || pos.x()<0.0f) printf("pos.x %f\n",pos.x());

@@ -43,42 +43,6 @@ namespace PMacc
 namespace bmpl = boost::mpl;
 namespace pmath = PMacc::math;
 
-template<typename T>
-class Array256
-{
-private:
-    T data[256];
-public:
-
-    template<class> struct result;
-
-    template<class F, typename TKey>
-    struct result<F(TKey)>
-    {
-        typedef T& type;
-    };
-
-    HDINLINE
-    T& operator[](const int idx)
-    {
-        return data[idx];
-    }
-
-    HDINLINE
-    T& operator[](const int idx) const
-    {
-        return data[idx];
-    }
-};
-
-template<typename Key>
-struct CastToArray
-{
-    typedef
-    bmpl::pair<Key,
-            Array256<typename Key::type> >
-            type;
-};
 
 template<typename InType>
 struct CastToVector

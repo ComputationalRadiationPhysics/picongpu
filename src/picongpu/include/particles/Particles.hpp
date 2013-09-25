@@ -18,10 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-
-
-#ifndef PARTICLES_HPP
-#define	PARTICLES_HPP
+#pragma once
 
 #include "types.h"
 #include "simulation_classTypes.hpp"
@@ -38,19 +35,16 @@ namespace picongpu
 {
 using namespace PMacc;
 
-
-
-
 class FieldJ;
 class FieldB;
 class FieldE;
 
-template< class UserTypeList>
-class Particles : public ParticlesBase<float3_X,UserTypeList, MappingDesc>, public ISimulationData
+template< typename T_DataVector, typename T_MethodsVector>
+class Particles : public ParticlesBase<T_DataVector,T_MethodsVector, MappingDesc>, public ISimulationData
 {
 public:
 
-    typedef ParticlesBase<float3_X,UserTypeList, MappingDesc> ParticlesBaseType;
+    typedef ParticlesBase<T_DataVector,T_MethodsVector, MappingDesc> ParticlesBaseType;
     typedef typename ParticlesBaseType::BufferType BufferType;
     typedef typename ParticlesBaseType::FrameType FrameType;
     typedef typename ParticlesBaseType::FrameTypeBorder FrameTypeBorder;
@@ -72,8 +66,8 @@ public:
 
     void initFill(uint32_t currentStep);
 
-    template< class OTHER>
-    void deviceCloneFrom(Particles<OTHER> &src);
+    template< typename t_DataVector,typename t_MethodsVector>
+    void deviceCloneFrom(Particles<t_DataVector,t_MethodsVector> &src);
 
     void deviceAddTemperature(float_X temperature);
 
@@ -97,8 +91,6 @@ private:
 };
 
 
-}
+} //namespace picongpu
+
 #include "particles/Particles.tpp"
-
-#endif	/* PARTICLES_HPP */
-

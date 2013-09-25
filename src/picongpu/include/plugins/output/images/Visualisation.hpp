@@ -366,16 +366,17 @@ kernelPaintParticles3D(ParBox pb,
 
     while (isValid) //move over all Frames
     {
-        if (frame->getMultiMask()[localId] == 1)
+        PMACC_AUTO(particle,(*frame)[localId]);
+        if (particle[multiMask_] == 1)
         {
-            int cellIdx = frame->getCellIdx()[localId];
+            int cellIdx = particle[localCellIdx_];
             // we only draw the first slice of cells in the super cell (z == 0)
             const DataSpace<DIM3> particleCellId(DataSpaceOperations<DIM3>::template map<Block > (cellIdx));
             uint32_t globalParticleCell = particleCellId[sliceDim] + globalOffset + blockOffset[sliceDim];
             if (globalParticleCell == slice)
             {
                 const DataSpace<DIM2> reducedCell(particleCellId[transpose.x()], particleCellId[transpose.y()]);
-                atomicAddWrapper(&(counter(reducedCell)), frame->getWeighting()[localId] / NUM_EL_PER_PARTICLE);
+                atomicAddWrapper(&(counter(reducedCell)), particle[weighting_] / NUM_EL_PER_PARTICLE);
             }
         }
         __syncthreads();

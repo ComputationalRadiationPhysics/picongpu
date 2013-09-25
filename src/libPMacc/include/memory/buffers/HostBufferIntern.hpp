@@ -103,7 +103,7 @@ public:
             memset(pointer, 0, this->getDataSpace().getElementCount() * sizeof (TYPE));
     }
 
-    void setValue(TYPE value)
+    void setValue(const TYPE& value)
     {
         __startOperation(ITask::TASK_HOST);
         size_t current_size = this->getCurrentSize();

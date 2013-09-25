@@ -58,9 +58,9 @@ struct ParticleDensityKernel
     : planeDir(planeDir), localPlane(localPlane) {}
 
     template<typename FramePtr, typename Field>
-    DINLINE void operator()(FramePtr particle, uint16_t particleID, Field field, const ::PMacc::math::Int<3>& blockCellIdx)
+    DINLINE void operator()(FramePtr frame, uint16_t particleID, Field field, const ::PMacc::math::Int<3>& blockCellIdx)
     {
-        lcellId_t linearCellIdx = particle->getCellIdx()[particleID];
+        lcellId_t linearCellIdx = (*frame)[particleID][localCellIdx_];
         ::PMacc::math::Int<3> cellIdx(linearCellIdx % BlockDim::x::value,
                                (linearCellIdx / BlockDim::x::value) % BlockDim::x::value,
                                linearCellIdx / (BlockDim::x::value * BlockDim::y::value));
@@ -70,7 +70,7 @@ struct ParticleDensityKernel
         /// \warn reduce a normalized float_X with particleAccess::Weight() / NUM_EL_PER_PARTICLE
         ///       to avoid overflows for heavy weightings
         ///
-        atomicAdd(&(*field(globalCellIdx.shrink<2>((planeDir+1)%3))), (int)particle->getWeighting()[particleID]);
+        atomicAdd(&(*field(globalCellIdx.shrink<2>((planeDir+1)%3))), (int)(*frame)[particleID][weighting_]);
     }
 };
 
