@@ -148,7 +148,7 @@ namespace picongpu
 #if(ENABLE_RADIATION == 1)
                 const float_X el_factor = charge * charge
                     / ( 6.0 * PI * EPS0 *
-                        math::pow(SPEED_OF_LIGHT, 5) * mass * mass );
+                        c2 * c2 * SPEED_OF_LIGHT * mass * mass );
                 const float_X energyLarmor = el_factor * math::pow(gamma, 4)
                     * ( math::abs2( mom_dt ) -
                         math::abs2( math::cross(mom, mom_dt) ) );
@@ -195,7 +195,7 @@ namespace picongpu
                                                   assignComb * weighting / NUM_EL_PER_PARTICLE );
 
 #if(ENABLE_RADIATION == 1)
-                            if( calcType == ComputeEnergyDensityOptions::fields_ParticleLarmorEnergy )
+                            if( calcType == ComputeEnergyDensityOptions::calcLarmorEnergy )
                                 atomicAddWrapper( &(fieldTmpShiftToParticle( offsetToBaseCell ).x()),
                                                   assignComb * energyLarmor );
 #endif
