@@ -316,7 +316,7 @@ namespace picongpu
                        _1 = float_X(0.0));
 
         std::cout << "[PhaseSpace] calc" << std::endl;
-        /* calc local phase space */
+        /* calculate local phase space */
         if( this->axis_element.first == This::x )
             calcPhaseSpace<This::x>();
         else if( this->axis_element.first == This::y )

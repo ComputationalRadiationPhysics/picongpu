@@ -23,6 +23,7 @@
 #include "mpi.h"
 
 #include "simulation_defines.hpp"
+#include "communication/manager_common.h"
 #include "dataManagement/ISimulationIO.hpp"
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
