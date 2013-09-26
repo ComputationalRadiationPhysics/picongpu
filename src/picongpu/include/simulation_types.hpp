@@ -27,6 +27,8 @@
 #include "algorithms/ForEach.hpp"
 #include "algorithms/math.hpp"
 #include "traits/GetMargin.hpp"
+#include "traits/SplashToPIC.hpp"
+#include "traits/PICToSplash.hpp"
 #include "traits/GetType.hpp"
 
 namespace picongpu
