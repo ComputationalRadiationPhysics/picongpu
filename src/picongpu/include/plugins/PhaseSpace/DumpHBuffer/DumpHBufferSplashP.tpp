@@ -85,16 +85,18 @@ namespace picongpu
         dataSetName << fCoords.at(axis_element.first)
                     << "p" << fCoords.at(axis_element.second);
 
-        /** reserve global domain *********************************************/
-        typename PICToSplash<Type>::type ctPhaseSpace;
-        pdc.reserveDomain( currentStep, phaseSpace_size, bufDim, ctPhaseSpace,
-                           dataSetName.str().c_str(), Dimensions(0, 0, 0),
-                           phaseSpace_size, IDomainCollector::GridType );
-
         /** write local domain ************************************************/
-        pdc.append( currentStep, phaseSpace_size_local, bufDim,
-                    phaseSpace_global_offset, dataSetName.str().c_str(),
-                    &(*hBuffer.origin()) );
+        typename PICToSplash<Type>::type ctPhaseSpace;
+
+        pdc.writeDomain( currentStep,
+                         ctPhaseSpace,
+                         bufDim,
+                         phaseSpace_size_local,
+                         dataSetName.str().c_str(),
+                         phaseSpace_global_offset,
+                         phaseSpace_size,
+                         DomainCollector::GridType,
+                         &(*hBuffer.origin()) );
 
         ColTypeDouble ctDouble;
         pdc.writeAttribute( currentStep, ctDouble, dataSetName.str().c_str(),

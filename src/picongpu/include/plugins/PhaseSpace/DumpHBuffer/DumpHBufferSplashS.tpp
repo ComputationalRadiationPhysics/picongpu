@@ -105,7 +105,7 @@ namespace picongpu
                                      dataSetName.str().c_str(),
                                      phaseSpace_global_offset,
                                      phaseSpace_size_local,
-                                     DomainCollector::GridType,
+                                     DCollector::DomainCollector::GridType,
                                      &(*hBuffer.origin()) );
 
         /** Write Additional Attributes ***************************************/
