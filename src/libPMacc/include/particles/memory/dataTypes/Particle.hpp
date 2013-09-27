@@ -68,7 +68,7 @@ struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
     HDINLINE
     typename boost::result_of<
     typename boost::remove_reference<
-    typename boost::result_of < FrameType(typename GetKeyFromAlias_assert<ValueTypeSeq, T_Key>::type)>::type
+    typename boost::result_of < FrameType(T_Key)>::type
     >::type(uint32_t)
     >::type
     operator[](const T_Key key)
@@ -78,13 +78,15 @@ struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
 
     template<typename T_Key >
     HDINLINE
+    typename boost::add_const<
     typename boost::result_of<
     typename boost::remove_reference<
-    typename boost::result_of < FrameType(typename GetKeyFromAlias_assert<ValueTypeSeq, T_Key>::type)>::type
+    typename boost::result_of <const FrameType(T_Key)>::type
     >::type(uint32_t)
-    >::type
+    >::type >::type
     operator[](const T_Key key) const
     {
+
         return frame.getIdentifier(key)[idx];
     }
     /*
@@ -145,7 +147,7 @@ PMacc::Particle<T_FrameType2, T_ValueTypeSeq2>
     typedef PMacc::Particle<T_FrameType2, T_ValueTypeSeq2> Src;
 
     HDINLINE
-    void operator()(const Dest& dest, const Src& src)
+    void operator()(Dest& dest, const Src& src)
     {
         algorithms::forEach::ForEach<typename Dest::ValueTypeSeq,
             CopyIdentifier<void> > copy;

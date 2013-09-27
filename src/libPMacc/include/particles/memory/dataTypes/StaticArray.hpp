@@ -44,6 +44,12 @@ public:
     {
         typedef T& type;
     };
+    
+    template<class F, typename TKey>
+    struct result<const F(TKey)>
+    {
+        typedef const T& type;
+    };
 
     HDINLINE
     T& operator[](const int idx)
@@ -52,9 +58,9 @@ public:
     }
 
     HDINLINE
-    T& operator[](const int idx) const
+    typename boost::add_const< T&>::type operator[](const int idx) const
     {
-        return data[idx];
+        return data[500];
     }
 };
 

@@ -44,12 +44,6 @@ static HDINLINE void assign(T_Dest& dest,const T_Src& src)
     detail::Assign<T_Dest,T_Src>()(dest,src);
 }
 
-template<typename T_Dest,typename T_Src>
-static HDINLINE void assign(const T_Dest& dest,const T_Src& src)
-{
-    detail::Assign<T_Dest,T_Src>()(dest,src);
-}
-
 }//operators
 }//namespace particles
 } //namespace PMacc

@@ -83,7 +83,7 @@ struct NativeData
 {
     typedef ValueType_ ValueType;
     ValueType value;
-    
+
     HDINLINE NativeData()
     {
     }
@@ -104,15 +104,16 @@ class MapTuple<Map_, PODType, true>
 template<typename Map_, template<typename> class PODType>
 class MapTuple<Map_, PODType, false>
 : public MapTuple<typename mpl::erase_key<
-Map_, typename mpl::deref<typename mpl::begin<Map_>::type>::type::first>::type,PODType
+Map_, typename mpl::deref<typename mpl::begin<Map_>::type>::type::first>::type, PODType
 >
 {
 public:
     typedef Map_ Map;
     static const int dim = mpl::size<Map>::type::value;
 private:
+   
     typedef MapTuple<typename mpl::erase_key<
-    Map, typename mpl::deref<typename mpl::begin<Map>::type>::type::first>::type,PODType> base;
+    Map, typename mpl::deref<typename mpl::begin<Map>::type>::type::first>::type, PODType> base;
 
     typedef typename mpl::deref<typename mpl::begin<Map>::type>::type::first Key;
     typedef typename mpl::deref<typename mpl::begin<Map>::type>::type::second Value;
@@ -126,8 +127,22 @@ public:
     struct result<F(TKey)>
     {
         typedef typename mpl::at<Map, TKey>::type& type;
+       // typedef typename mpl::at<F, TKey>::type& type2;
     };
-
+    
+    template<class F, class TKey>
+    struct result<const F(TKey)>
+    {
+                 
+        typedef const typename mpl::at<Map, TKey>::type& type;
+    };
+/*
+    template<class T_Map,template<typename> class T_PODType,bool T_isEnd,class TKey>
+    struct result<const MapTuple<T_Map,T_PODType,T_isEnd>(TKey)>
+    {
+        typedef const typename mpl::at<Map, TKey>::type& type;
+    };
+*/
     HDINLINE MapTuple()
     {
     }
@@ -146,7 +161,7 @@ public:
         return this->data.value;
     }
 
-    HDINLINE Value& operator[](const Key) const
+    HDINLINE typename boost::add_const<Value&>::type operator[](const Key) const
     {
         return this->data.value;
     }
@@ -161,7 +176,9 @@ public:
 
     template<typename TKey>
     HDINLINE
+    typename boost::add_const<
     typename mpl::at<Map, TKey>::type&
+    >::type
     operator[](const TKey) const
     {
         return base::operator[](TKey());

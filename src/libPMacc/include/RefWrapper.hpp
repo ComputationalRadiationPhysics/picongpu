@@ -67,6 +67,12 @@ public:
     }
         
     HDINLINE
+    Type& get() 
+    {
+        return myRef;
+    }
+    
+        HDINLINE
     Type& get() const
     {
         return myRef;

@@ -66,6 +66,24 @@ protected pmath::MapTuple<typename CreateMap<T_ValueTypeSeq, T_CreatePairOperato
     typedef pmath::MapTuple<typename CreateMap<ValueTypeSeq, T_CreatePairOperator>::type, pmath::AlignedData> BaseType;
 
     typedef pmacc::Particle<ThisType> ParticleType;
+    
+    
+    template<class> struct result;
+
+    template<class F,class TKey>
+    struct result<const F(TKey)>
+    {
+
+        typedef typename GetKeyFromAlias<ValueTypeSeq,TKey>::type Key;
+        typedef typename boost::result_of<const typename F::BaseType(Key)>::type type;
+    };
+    
+    template<class F,class TKey>
+    struct result< F(TKey)>
+    {
+        typedef typename GetKeyFromAlias<ValueTypeSeq,TKey>::type Key;
+        typedef typename boost::result_of<  typename F::BaseType(Key)>::type type;
+    };
 
     HDINLINE ParticleType operator[](const uint32_t idx)
     {
@@ -73,14 +91,16 @@ protected pmath::MapTuple<typename CreateMap<T_ValueTypeSeq, T_CreatePairOperato
     }
 
 
-    HDINLINE ParticleType operator[](const uint32_t idx) const
+    HDINLINE const ParticleType operator[](const uint32_t idx) const
     {
         return ParticleType(*this, idx);
     }
 
     template<typename T_Key >
         HDINLINE
-        typename boost::result_of < BaseType(typename GetKeyFromAlias_assert<ValueTypeSeq,T_Key>::type)>::type
+    typename boost::add_const<
+        typename boost::result_of < ThisType(T_Key)>::type
+    >::type
     getIdentifier(const T_Key) const
     {      
         typedef typename GetKeyFromAlias<ValueTypeSeq,T_Key>::type Key;
@@ -89,7 +109,7 @@ protected pmath::MapTuple<typename CreateMap<T_ValueTypeSeq, T_CreatePairOperato
 
     template<typename T_Key >
         HDINLINE
-        typename boost::result_of < BaseType(typename GetKeyFromAlias_assert<ValueTypeSeq,T_Key>::type)>::type
+        typename boost::result_of < ThisType(T_Key)>::type
     getIdentifier(const T_Key)
     {
         typedef typename GetKeyFromAlias<ValueTypeSeq,T_Key>::type Key;
