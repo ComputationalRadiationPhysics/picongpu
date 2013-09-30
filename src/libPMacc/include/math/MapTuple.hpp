@@ -161,7 +161,7 @@ public:
         return this->data.value;
     }
 
-    HDINLINE typename boost::add_const<Value&>::type operator[](const Key) const
+    HDINLINE const Value& operator[](const Key) const
     {
         return this->data.value;
     }
@@ -176,9 +176,8 @@ public:
 
     template<typename TKey>
     HDINLINE
-    typename boost::add_const<
+    const
     typename mpl::at<Map, TKey>::type&
-    >::type
     operator[](const TKey) const
     {
         return base::operator[](TKey());

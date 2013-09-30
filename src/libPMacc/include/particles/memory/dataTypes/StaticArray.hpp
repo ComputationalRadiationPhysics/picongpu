@@ -58,9 +58,9 @@ public:
     }
 
     HDINLINE
-    typename boost::add_const< T&>::type operator[](const int idx) const
+    const T& operator[](const int idx) const
     {
-        return data[500];
+        return data[idx];
     }
 };
 

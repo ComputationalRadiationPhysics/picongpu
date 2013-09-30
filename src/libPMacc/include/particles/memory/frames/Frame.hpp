@@ -50,10 +50,10 @@ namespace bmpl = boost::mpl;
 namespace pmath = PMacc::math;
 namespace pmacc = PMacc;
 
-template<template<typename> class T_CreatePairOperator, 
-        typename T_ValueTypeSeq, 
-        typename T_MethodsList = bmpl::list<>,
-        typename T_Flags = bmpl::list<> >
+template<template<typename> class T_CreatePairOperator,
+typename T_ValueTypeSeq,
+typename T_MethodsList = bmpl::list<>,
+typename T_Flags = bmpl::list<> >
 struct Frame :
 public InheritLinearly<T_MethodsList>,
 protected pmath::MapTuple<typename CreateMap<T_ValueTypeSeq, T_CreatePairOperator>::type, pmath::AlignedData>
@@ -66,23 +66,22 @@ protected pmath::MapTuple<typename CreateMap<T_ValueTypeSeq, T_CreatePairOperato
     typedef pmath::MapTuple<typename CreateMap<ValueTypeSeq, T_CreatePairOperator>::type, pmath::AlignedData> BaseType;
 
     typedef pmacc::Particle<ThisType> ParticleType;
-    
-    
+
+
     template<class> struct result;
 
-    template<class F,class TKey>
+    template<class F, class TKey>
     struct result<const F(TKey)>
     {
-
-        typedef typename GetKeyFromAlias<ValueTypeSeq,TKey>::type Key;
+        typedef typename GetKeyFromAlias<ValueTypeSeq, TKey>::type Key;
         typedef typename boost::result_of<const typename F::BaseType(Key)>::type type;
     };
-    
-    template<class F,class TKey>
+
+    template<class F, class TKey>
     struct result< F(TKey)>
     {
-        typedef typename GetKeyFromAlias<ValueTypeSeq,TKey>::type Key;
-        typedef typename boost::result_of<  typename F::BaseType(Key)>::type type;
+        typedef typename GetKeyFromAlias<ValueTypeSeq, TKey>::type Key;
+        typedef typename boost::result_of< typename F::BaseType(Key)>::type type;
     };
 
     HDINLINE ParticleType operator[](const uint32_t idx)
@@ -97,22 +96,21 @@ protected pmath::MapTuple<typename CreateMap<T_ValueTypeSeq, T_CreatePairOperato
     }
 
     template<typename T_Key >
-        HDINLINE
-    typename boost::add_const<
-        typename boost::result_of < ThisType(T_Key)>::type
-    >::type
+    HDINLINE
+    const
+    typename boost::result_of < ThisType(T_Key)>::type
     getIdentifier(const T_Key) const
-    {      
-        typedef typename GetKeyFromAlias<ValueTypeSeq,T_Key>::type Key;
+    {
+        typedef typename GetKeyFromAlias<ValueTypeSeq, T_Key>::type Key;
         return BaseType::operator[](Key());
     }
 
     template<typename T_Key >
-        HDINLINE
-        typename boost::result_of < ThisType(T_Key)>::type
+    HDINLINE
+    typename boost::result_of < ThisType(T_Key)>::type
     getIdentifier(const T_Key)
     {
-        typedef typename GetKeyFromAlias<ValueTypeSeq,T_Key>::type Key;
+        typedef typename GetKeyFromAlias<ValueTypeSeq, T_Key>::type Key;
         return BaseType::operator[](Key());
     }
 };
@@ -135,11 +133,11 @@ private:
     typedef PMacc::Frame<T_CreatePairOperator, T_ValueTypeSeq, T_MethodsList, T_Flags> FrameType;
 public:
     typedef typename FrameType::ValueTypeSeq ValueTypeSeq;
-    typedef typename GetKeyFromAlias<ValueTypeSeq,T_Key>::type Key;
+    typedef typename GetKeyFromAlias<ValueTypeSeq, T_Key>::type Key;
     /* if Key is void_ than we have no T_Key in our Sequence.
      * checks also to alias keys
      */
-    typedef bmpl::bool_<!boost::is_same< bmpl::void_,Key>::value> type;
+    typedef bmpl::bool_<!boost::is_same< bmpl::void_, Key>::value> type;
     static const bool value = type::value;
 };
 } //namespace traits

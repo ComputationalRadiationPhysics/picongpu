@@ -78,12 +78,11 @@ struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
 
     template<typename T_Key >
     HDINLINE
-    typename boost::add_const<
     typename boost::result_of<
     typename boost::remove_reference<
     typename boost::result_of <const FrameType(T_Key)>::type
     >::type(uint32_t)
-    >::type >::type
+    >::type 
     operator[](const T_Key key) const
     {
 
