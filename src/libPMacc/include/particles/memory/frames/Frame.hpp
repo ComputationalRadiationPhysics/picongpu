@@ -97,8 +97,7 @@ protected pmath::MapTuple<typename CreateMap<T_ValueTypeSeq, T_CreatePairOperato
 
     template<typename T_Key >
     HDINLINE
-    const
-    typename boost::result_of < ThisType(T_Key)>::type
+    typename boost::result_of < const ThisType(T_Key)>::type
     getIdentifier(const T_Key) const
     {
         typedef typename GetKeyFromAlias<ValueTypeSeq, T_Key>::type Key;
