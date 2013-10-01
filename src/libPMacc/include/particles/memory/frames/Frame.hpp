@@ -73,15 +73,15 @@ protected pmath::MapTuple<typename CreateMap<T_ValueTypeSeq, T_CreatePairOperato
     template<class F, class TKey>
     struct result<const F(TKey)>
     {
-        typedef typename GetKeyFromAlias<ValueTypeSeq, TKey>::type Key;
-        typedef typename boost::result_of<const typename F::BaseType(Key)>::type type;
+        typedef typename GetKeyFromAlias_assert<ValueTypeSeq, TKey>::type Key;
+        typedef typename boost::result_of<const BaseType(Key)>::type type;
     };
 
     template<class F, class TKey>
     struct result< F(TKey)>
     {
-        typedef typename GetKeyFromAlias<ValueTypeSeq, TKey>::type Key;
-        typedef typename boost::result_of< typename F::BaseType(Key)>::type type;
+        typedef typename GetKeyFromAlias_assert<ValueTypeSeq, TKey>::type Key;
+        typedef typename boost::result_of< BaseType(Key)>::type type;
     };
 
     HDINLINE ParticleType operator[](const uint32_t idx)

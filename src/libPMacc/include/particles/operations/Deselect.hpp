@@ -49,6 +49,8 @@ namespace bmpl = boost::mpl;
 template<typename T_IsSequence, typename T_Sequence, typename T_Object>
 struct DeselectWrapper;
 
+/*
+ * at the moment we only support to deselect one attribute
 template<typename T_Sequence, typename T_Object>
 struct DeselectWrapper<boost::mpl::true_, T_Sequence, T_Object>
 {
@@ -62,11 +64,12 @@ struct DeselectWrapper<boost::mpl::true_, T_Sequence, T_Object>
         return BaseType()(object);
     }
 };
+*/
 
 template<typename T_Key, typename T_Object>
 struct DeselectWrapper<boost::mpl::false_, T_Key, T_Object>
 {
-    typedef PMacc::particles::operations::detail::Deselect<bmpl::vector<T_Key>, T_Object> BaseType;
+    typedef PMacc::particles::operations::detail::Deselect<T_Key, T_Object> BaseType;
     typedef typename BaseType::result result;
 
     HDINLINE

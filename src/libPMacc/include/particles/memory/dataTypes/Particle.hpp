@@ -155,12 +155,12 @@ PMacc::Particle<T_FrameType2, T_ValueTypeSeq2>
 };
 
 template<
-typename T_RemoveSequence,
+typename T_ObjectToRemove,
 typename T_FrameType, typename T_ValueTypeSeq
 >
 struct Deselect
 <
-T_RemoveSequence,
+T_ObjectToRemove,
 PMacc::Particle<T_FrameType, T_ValueTypeSeq>
 >
 {
@@ -169,15 +169,16 @@ PMacc::Particle<T_FrameType, T_ValueTypeSeq>
     typedef PMacc::Particle<FrameType, ValueTypeSeq> Object;
 
 
-    typedef T_RemoveSequence RemoveSequence;
+    typedef T_ObjectToRemove ObjectToRemove;
+    //typedef T_RemoveSequence RemoveSequence;
 
-    BOOST_MPL_ASSERT((boost::mpl::is_sequence< RemoveSequence >));
+    //BOOST_MPL_ASSERT((boost::mpl::is_sequence< RemoveSequence >));
 
     template<typename T_Key>
     struct hasId
     {
-        typedef typename GetKeyFromAlias<ValueTypeSeq, T_Key>::type Key;
-        typedef bmpl::bool_<!boost::is_same< bmpl::void_, Key>::value> type;
+        typedef typename GetKeyFromAlias<ValueTypeSeq, ObjectToRemove>::type Key;
+        typedef boost::is_same< T_Key, Key> type;
     };
 
     typedef typename bmpl::remove_if< ValueTypeSeq, hasId<bmpl::_> >::type NewValueTypeSeq;
