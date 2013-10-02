@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.5)
 
 
 # Projekt name
@@ -14,13 +14,15 @@ set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{MPI_ROOT}" "$ENV{CUDA_R
 
 #include cuda plugin for cmake
 FIND_PACKAGE(CUDA REQUIRED)
+#include pthread plugin for cmake
+FIND_PACKAGE(Threads REQUIRED)
 
 ########################################################################
 #set options
 
 ##CUDA##
 
-IF(NOT DISBALE_COMPILER_FLAGS_IN_SUBPROJECTS)
+IF(SAME_NVCC_FLAGS_IN_SUBPROJECTS)
   SET(CUDA_ARCH sm_13 CACHE STRING "set GPU architecture" )
   SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${nvcc_flags} -arch=${CUDA_ARCH})
 
@@ -63,7 +65,7 @@ cuda_add_executable(cuda_memtest
 )
 
 
-target_link_libraries(cuda_memtest  ${LIBS} ${CUDA_CUDART_LIBRARY})
+target_link_libraries(cuda_memtest  ${LIBS} ${CUDA_CUDART_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
 
 
 

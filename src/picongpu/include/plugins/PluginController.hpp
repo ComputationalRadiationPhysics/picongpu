@@ -211,7 +211,7 @@ namespace picongpu
             }
         }
 
-        virtual void moduleRegisterHelp(po::options_description& desc)
+        virtual void moduleRegisterHelp(po::options_description&)
         {
 
         }

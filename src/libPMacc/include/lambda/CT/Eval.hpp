@@ -34,6 +34,7 @@
 #include <boost/type_traits/add_reference.hpp>
 #include <boost/type_traits/remove_reference.hpp>
 #include <math/Tuple.hpp>
+#include "RefWrapper.hpp"
 
 namespace mpl = boost::mpl;
 
@@ -47,6 +48,35 @@ namespace CT
 namespace result_of
 {
     
+namespace detail
+{
+    
+template<typename Type>
+struct RefWrapper2Ref
+{
+    typedef Type type;
+};
+
+template<typename Type>
+struct RefWrapper2Ref<RefWrapper<Type> >
+{
+    typedef Type& type;
+};
+
+template<typename Type>
+struct RefWrapper2Ref<const RefWrapper<Type> >
+{
+    typedef Type& type;
+};
+
+template<typename Type>
+struct RefWrapper2Ref<const RefWrapper<Type>& >
+{
+    typedef Type& type;
+};
+
+}
+    
 template<typename Expr, typename ArgsTuple>
 struct Eval;
 
@@ -56,10 +86,28 @@ struct Eval<lambda::Expression<exprTypes::terminal, mpl::vector<Child0> >, ArgsT
     typedef Child0 type;
 };
 
+template<typename Child0, typename ArgsTuple>
+struct Eval<lambda::Expression<exprTypes::terminal, mpl::vector<RefWrapper<Child0> > >, ArgsTuple>
+{
+    typedef Child0& type;
+};
+
+template<typename Child0, typename ArgsTuple>
+struct Eval<lambda::Expression<exprTypes::terminal, mpl::vector<const RefWrapper<Child0> > >, ArgsTuple>
+{
+    typedef Child0& type;
+};
+
+template<typename Child0, typename ArgsTuple>
+struct Eval<lambda::Expression<exprTypes::terminal, mpl::vector<const RefWrapper<Child0>& > >, ArgsTuple>
+{
+    typedef Child0& type;
+};
+
 template<int I, typename ArgsTuple>
 struct Eval<lambda::Expression<exprTypes::terminal, mpl::vector<placeholder<I> > >, ArgsTuple>
 {
-    typedef typename boost::add_reference<
+    typedef typename detail::RefWrapper2Ref<
         typename math::result_of::at_c<ArgsTuple, I>::type>::type type;
 };
 
@@ -72,8 +120,9 @@ struct Eval<lambda::Expression<exprTypes::terminal, mpl::vector<mpl::int_<I> > >
 template<typename Child0, typename Child1, typename ArgsTuple>
 struct Eval<lambda::Expression<exprTypes::assign, mpl::vector<Child0, Child1> >, ArgsTuple>
 {
-    typedef typename boost::add_reference<typename
-        result_of::Eval<Child0, ArgsTuple>::type>::type type;
+    typedef typename boost::add_reference<
+        typename detail::RefWrapper2Ref<
+        typename result_of::Eval<Child0, ArgsTuple>::type>::type>::type type;
 };
 
 template<typename Child0, typename Child1, typename ArgsTuple>
@@ -129,8 +178,9 @@ template<typename Child0, typename Child1, typename ArgsTuple>
 struct Eval<lambda::Expression<exprTypes::subscript, mpl::vector<Child0, Child1> >, ArgsTuple>
 {
     typedef typename boost::add_reference<
-        typename boost::remove_reference<typename
-        result_of::Eval<Child0, ArgsTuple>::type>::type::type>::type type;
+        typename boost::remove_reference<
+        typename detail::RefWrapper2Ref<
+        typename result_of::Eval<Child0, ArgsTuple>::type>::type>::type::type>::type type;
 };
     
 } // result_of
@@ -147,7 +197,7 @@ struct Eval<CT::Expression<lambda::Expression<exprTypes::terminal, mpl::vector<p
     template<typename TerminalTuple, typename ArgsTuple>
     HDINLINE 
     typename CT::result_of::Eval<Expr, ArgsTuple>::type
-    operator()(TerminalTuple, ArgsTuple& argsTuple) const
+    operator()(TerminalTuple, const ArgsTuple& argsTuple) const
     {
         return argsTuple.at(mpl::int_<I>());
     }
@@ -177,6 +227,18 @@ struct Eval<CT::Expression<lambda::Expression<exprTypes::terminal, mpl::vector<C
     }
 };
 
+template<typename Child0, int terminalTypeIdx>
+struct Eval<CT::Expression<lambda::Expression<exprTypes::terminal, mpl::vector<RefWrapper<Child0> > >,
+                           terminalTypeIdx> >
+{
+    template<typename TerminalTuple, typename ArgsTuple>
+    HDINLINE Child0&
+    operator()(const TerminalTuple& terminalTuple, ArgsTuple) const
+    {
+        return terminalTuple.at(mpl::int_<terminalTypeIdx>()).get();
+    }
+};
+
 template<typename Child0, typename Child1, int terminalTypeIdx>
 struct Eval<CT::Expression<lambda::Expression<exprTypes::assign, mpl::vector<Child0, Child1> >,
                            terminalTypeIdx> >
@@ -185,8 +247,8 @@ struct Eval<CT::Expression<lambda::Expression<exprTypes::assign, mpl::vector<Chi
     typedef CT::Expression<Expr, terminalTypeIdx> CTExpr;
     
     template<typename TerminalTuple, typename ArgsTuple>
-    HDINLINE typename result_of::Eval<Expr, ArgsTuple>::type&
-    operator()(const TerminalTuple& terminalTuple, ArgsTuple& argsTuple) const
+    HDINLINE typename result_of::Eval<Expr, ArgsTuple>::type
+    operator()(const TerminalTuple& terminalTuple, const ArgsTuple& argsTuple) const
     {
         CT::Eval<typename CTExpr::Child0>()(terminalTuple, argsTuple) 
          = CT::Eval<typename CTExpr::Child1>()(terminalTuple, argsTuple);
@@ -204,7 +266,7 @@ struct Eval<CT::Expression<lambda::Expression<exprTypes::plus, mpl::vector<Child
     
     template<typename TerminalTuple, typename ArgsTuple>
     HDINLINE typename result_of::Eval<Expr, ArgsTuple>::type
-    operator()(const TerminalTuple& terminalTuple, ArgsTuple& argsTuple) const
+    operator()(const TerminalTuple& terminalTuple, const ArgsTuple& argsTuple) const
     {
         return CT::Eval<typename CTExpr::Child0>()(terminalTuple, argsTuple) 
          + CT::Eval<typename CTExpr::Child1>()(terminalTuple, argsTuple);
@@ -220,7 +282,7 @@ struct Eval<CT::Expression<lambda::Expression<exprTypes::minus, mpl::vector<Chil
     
     template<typename TerminalTuple, typename ArgsTuple>
     HDINLINE typename result_of::Eval<Expr, ArgsTuple>::type
-    operator()(const TerminalTuple& terminalTuple, ArgsTuple& argsTuple) const
+    operator()(const TerminalTuple& terminalTuple, const ArgsTuple& argsTuple) const
     {
         return CT::Eval<typename CTExpr::Child0>()(terminalTuple, argsTuple) 
          - CT::Eval<typename CTExpr::Child1>()(terminalTuple, argsTuple);
@@ -236,7 +298,7 @@ struct Eval<CT::Expression<lambda::Expression<exprTypes::multiply, mpl::vector<C
     
     template<typename TerminalTuple, typename ArgsTuple>
     HDINLINE typename result_of::Eval<Expr, ArgsTuple>::type
-    operator()(const TerminalTuple& terminalTuple, ArgsTuple& argsTuple) const
+    operator()(const TerminalTuple& terminalTuple, const ArgsTuple& argsTuple) const
     {
         return CT::Eval<typename CTExpr::Child0>()(terminalTuple, argsTuple) 
          * CT::Eval<typename CTExpr::Child1>()(terminalTuple, argsTuple);
@@ -252,7 +314,7 @@ struct Eval<CT::Expression<lambda::Expression<exprTypes::divide, mpl::vector<Chi
     
     template<typename TerminalTuple, typename ArgsTuple>
     HDINLINE typename result_of::Eval<Expr, ArgsTuple>::type
-    operator()(const TerminalTuple& terminalTuple, ArgsTuple& argsTuple) const
+    operator()(const TerminalTuple& terminalTuple, const ArgsTuple& argsTuple) const
     {
         return CT::Eval<typename CTExpr::Child0>()(terminalTuple, argsTuple) 
          / CT::Eval<typename CTExpr::Child1>()(terminalTuple, argsTuple);
@@ -269,7 +331,7 @@ struct Eval<CT::Expression<lambda::Expression<exprTypes::comma, mpl::vector<Chil
     
     template<typename TerminalTuple, typename ArgsTuple>
     HDINLINE void
-    operator()(const TerminalTuple& terminalTuple, ArgsTuple& argsTuple) const
+    operator()(const TerminalTuple& terminalTuple, const ArgsTuple& argsTuple) const
     {
         CT::Eval<typename CTExpr::Child0>()(terminalTuple, argsTuple);
         CT::Eval<typename CTExpr::Child1>()(terminalTuple, argsTuple);
@@ -289,7 +351,7 @@ struct Eval<CT::Expression<lambda::Expression<exprTypes::comma, mpl::vector<Chil
         \
         template<typename TerminalTuple, typename ArgsTuple> \
         HDINLINE typename result_of::Eval<Expr, ArgsTuple>::type \
-        operator()(const TerminalTuple& terminalTuple, ArgsTuple& argsTuple) const \
+        operator()(const TerminalTuple& terminalTuple, const ArgsTuple& argsTuple) const \
         { \
             return CT::Eval<typename CTExpr::Child0>()(terminalTuple, argsTuple)( \
                     BOOST_PP_ENUM(BOOST_PP_DEC(N), EVAL_CHILD, _)); \
@@ -309,7 +371,7 @@ struct Eval<CT::Expression<lambda::Expression<exprTypes::subscript, mpl::vector<
         
     template<typename TerminalTuple, typename ArgsTuple>
     HDINLINE typename result_of::Eval<Expr, ArgsTuple>::type
-    operator()(const TerminalTuple& terminalTuple, ArgsTuple& argsTuple) const
+    operator()(const TerminalTuple& terminalTuple, const ArgsTuple& argsTuple) const
     {
         return CT::Eval<typename CTExpr::Child0>()(terminalTuple, argsTuple)[
                 CT::Eval<typename CTExpr::Child1>()(terminalTuple, argsTuple)];

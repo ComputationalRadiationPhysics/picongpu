@@ -74,7 +74,7 @@ namespace PMacc
             return (task1 == 0) && (task2 == 0);
         }
 
-        void event(id_t eventId, EventType type, IEventData* data)
+        void event(id_t eventId, EventType, IEventData*)
         {
             if (task1 == eventId)
             {

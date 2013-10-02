@@ -87,7 +87,7 @@ namespace picongpu
             simulationClass->startSimulation();
         }
 
-        virtual void moduleRegisterHelp(po::options_description& desc)
+        virtual void moduleRegisterHelp(po::options_description&)
         {
         }
 

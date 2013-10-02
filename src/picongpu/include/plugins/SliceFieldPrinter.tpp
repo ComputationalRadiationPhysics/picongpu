@@ -99,8 +99,6 @@ void SliceFieldPrinter<Field, FieldId>::printSlice(const TField& field, int nAxi
         
     algorithm::mpi::Gather<3> gather(gpuGatheringZone);
     if(!gather.participate()) return;
-        
-    vec::Size_t<3> size = field.size();
     
     using namespace lambda;
     vec::UInt<3> twistedVector((nAxis+1)%3, (nAxis+2)%3, nAxis);
@@ -111,7 +109,7 @@ void SliceFieldPrinter<Field, FieldId>::printSlice(const TField& field, int nAxi
     else if(FieldId == FIELD_B)
         SI = UNIT_BFIELD;
 
-    algorithm::kernel::Foreach<vec::CT::Int<4,4,1> >()(
+    algorithm::kernel::Foreach<vec::CT::UInt<4,4,1> >()(
         dBuffer->zone(), dBuffer->origin(), 
         cursor::tools::slice(field.originCustomAxes(twistedVector)(0,0,localPlane)),
         _1 = _2 * SI);

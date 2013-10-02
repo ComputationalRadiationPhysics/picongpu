@@ -42,7 +42,7 @@ struct Reduce
     }
 
     template<class Functor, typename Type >
-    HINLINE void operator()(Functor func, Type* dest, Type* src, const size_t count, MPI_Datatype type, MPI_Op op, MPI_Comm comm) const
+    HINLINE void operator()(Functor, Type* dest, Type* src, const size_t count, MPI_Datatype type, MPI_Op op, MPI_Comm comm) const
     {
         MPI_CHECK(MPI_Reduce((void*) src,
                              (void*) dest,

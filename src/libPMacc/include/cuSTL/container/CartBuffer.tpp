@@ -35,7 +35,7 @@ namespace detail
     struct PitchHelper<1>
     {
         template<typename TCursor>
-        HDINLINE math::Size_t<0u> operator()(const TCursor& cursor) {return math::Size_t<0u>();}
+        HDINLINE math::Size_t<0u> operator()(const TCursor&) {return math::Size_t<0u>();}
     };
     template<>
     struct PitchHelper<2>
@@ -241,7 +241,7 @@ CartBuffer<Type, _dim, Allocator, Copier, Assigner>::originCustomAxes(const math
     if(dim > 2) factor[2] = this->pitch[1];
     //\todo: is the conversation from size_t to uint32_t allowed?
     math::Int<dim> customFactor;
-    for(uint32_t i = 0; i < dim; i++)
+    for(int i = 0; i < dim; i++)
         customFactor[i] = (int)factor[axes[i]];
     cursor::CartNavigator<dim> navi(customFactor);
     

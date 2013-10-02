@@ -82,7 +82,7 @@ namespace PMacc
 
         FieldFactory() { };
 
-        FieldFactory(const FieldFactory& cc) { };
+        FieldFactory(const FieldFactory&) { };
 
     };
 

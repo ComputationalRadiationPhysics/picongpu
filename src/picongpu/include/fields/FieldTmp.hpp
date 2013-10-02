@@ -26,6 +26,7 @@
 
 /*pic default*/
 #include "types.h"
+#include "fields/FieldTmp.def"
 #include "simulation_defines.hpp"
 #include "simulation_classTypes.hpp"
 
@@ -57,6 +58,11 @@ namespace picongpu
 
         typedef MappingDesc::SuperCellSize SuperCellSize;
         typedef DataBox<PitchedBox<ValueType, simDim> > DataBoxType;
+        
+        MappingDesc getCellDescription()
+        {
+            return this->cellDescription;
+        }
 
         FieldTmp( MappingDesc cellDescription );
 

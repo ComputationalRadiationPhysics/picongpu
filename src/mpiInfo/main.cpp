@@ -18,8 +18,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdlib>
 #include <mpi.h>
+#include <cstdlib>
 
 #include <boost/program_options.hpp>
 #include <boost/program_options/options_description.hpp>
@@ -28,9 +28,7 @@
 
 
 #define MPI_CHECK(cmd) {int error = cmd; if(error!=MPI_SUCCESS){printf("<%s>:%i ",__FILE__,__LINE__); throw std::runtime_error(std::string("[MPI] Error"));}}
-/*
- * 
- */
+
 namespace po = boost::program_options;
 
 enum
@@ -44,7 +42,7 @@ enum
 
 /* Set the first found non charactor or number to 0 (NULL)
  * name like p1223(Pid=1233) is than p1223
- * in some MPI implementation /mpich) the hostname is uniqu 
+ * in some MPI implementation /mpich) the hostname is unique
  */
 void cleanHostname( char* name )
 {

@@ -23,6 +23,8 @@
 #define KERNELEVENTS_H
 
 #include "types.h"
+#include "ppFunctions.hpp"
+#include <boost/preprocessor/control/if.hpp>
 #include "dimensions/DataSpace.hpp"
 #include "eventSystem/EventSystem.hpp"
 
@@ -38,25 +40,23 @@ namespace PMacc
     /*no synchronize and check of kernel calls*/
     #define CUDA_CHECK_KERNEL_MSG(...)  ;
 #endif
-
-/**
- * Returns number of args... arguments.
- *
- * Can only count values of ... which can be casted to int type.
- *
- * @param ... arguments
- */
-#define PMACC_NUMARGS(...)  (sizeof((int[]){0, ##__VA_ARGS__})/sizeof(int)-1)
-
+ 
+/** Call activate kernel from taskKernel.
+ *  If PMACC_SYNC_KERNEL is 1 cudaThreadSynchronize() is called before 
+ *  and after activation.
+ */    
+#define PMACC_ACTIVATE_KERNEL                                                           \
+        CUDA_CHECK_KERNEL_MSG(cudaThreadSynchronize(),"Crash after kernel call");       \
+        taskKernel->activateChecks();                                                   \
+        CUDA_CHECK_KERNEL_MSG(cudaThreadSynchronize(),"Crash after kernel activation"); \
+    
 /**
  * Appends kernel arguments to generated code and activates kernel task.
  *
  * @param ... parameters to pass to kernel
  */
-#define PMACC_CUDAPARAMS(...) (__VA_ARGS__);  \
-        CUDA_CHECK_KERNEL_MSG(cudaThreadSynchronize(),"Crash after kernel call"); \
-        taskKernel->activateChecks();              \
-        CUDA_CHECK_KERNEL_MSG(cudaThreadSynchronize(),"Crash after kernel activation"); \
+#define PMACC_CUDAPARAMS(...) (__VA_ARGS__);                                   \
+        PMACC_ACTIVATE_KERNEL                                                  \
     }   /*this is used if call is EventTask.waitforfinished();*/
 
 /**
@@ -66,8 +66,9 @@ namespace PMacc
  * @param block sizes of block on gpu
  * @param ... amount of shared memory for the kernel (optional)
  */
-#define PMACC_CUDAKERNELCONFIG(grid,block,...) <<<(grid),(block),     \
-    PMACC_NUMARGS(__VA_ARGS__)==1?__VA_ARGS__:0,                      \
+#define PMACC_CUDAKERNELCONFIG(grid,block,...) <<<(grid),(block),              \
+    /*we need +0 if VA_ARGS is empty, because we must put in a value*/         \
+    __VA_ARGS__+0,                                                             \
     taskKernel->getCudaStream()>>> PMACC_CUDAPARAMS
 
 /**
@@ -75,9 +76,9 @@ namespace PMacc
  *
  * @param kernelname name of the CUDA kernel (can also used with templates etc. myKernel<1>)
  */
-#define __cudaKernel(kernelname) {    \
-    CUDA_CHECK_KERNEL_MSG(cudaThreadSynchronize(),"Crash before kernel call"); \
-    TaskKernel *taskKernel =  Factory::getInstance().createTaskKernel(#kernelname);  \
+#define __cudaKernel(kernelname) {                                                      \
+    CUDA_CHECK_KERNEL_MSG(cudaThreadSynchronize(),"Crash before kernel call");          \
+    TaskKernel *taskKernel =  Factory::getInstance().createTaskKernel(#kernelname);     \
     kernelname PMACC_CUDAKERNELCONFIG
 
 }

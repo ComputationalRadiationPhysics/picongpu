@@ -70,7 +70,7 @@ private:
     /**
      * Constructor
      */
-    UniquTag(const UniquTag & gc)
+    UniquTag(const UniquTag&)
     {
 
     }

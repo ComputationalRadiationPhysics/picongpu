@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2013 Axel Huebl             
+# Copyright 2013 Axel Huebl
 #
 # This file is part of PIConGPU.
 #
@@ -21,11 +21,10 @@
 
 # global configs ##############################################################
 #
-cnf_branches[0]="branches/dev"
+cnf_scheduler_secret="..."
+cnf_scheduler="https://example.com?client="$cnf_scheduler_secret
 
-
-cnf_queue="queue.cnf"
-cnf_svndir="$HOME/pic_svn/"
+cnf_gitdir="$HOME/pic_git/"
 cnf_exportdir="$HOME/pic_export/"
 cnf_extfile="$HOME/machines/exchange.ext2"
 
@@ -40,7 +39,7 @@ cnf_numParallel=2
 
 # send a congrats mail if N commits in a row where successful
 # (kind of a heart beat for this script)
-cnf_congrats=3
+cnf_congrats=10
 
 # mail settings
 cnf_smtp="smtp.example.com:25"

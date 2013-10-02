@@ -97,7 +97,7 @@ struct Memcopy<3>
             pitchedPtrSource.pitch = pitchSource.x(); pitchedPtrSource.ptr = source;
             pitchedPtrSource.xsize = size.x(); pitchedPtrSource.ysize = size.y();
             
-            cudaMemcpy3DParms params = {0};
+            cudaMemcpy3DParms params;
             params.srcArray = NULL;
             params.srcPos = make_cudaPos(0,0,0);
             params.srcPtr = pitchedPtrSource;
