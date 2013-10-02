@@ -102,10 +102,15 @@ PMACC_CASSERT_MSG(Courant_Friedrichs_Levy_condition_failure____check_your_gridCo
                     || isDirSplitting);
 
     
-const bool isCellCubic = (CELL_WIDTH == CELL_HEIGHT == CELL_DEPTH);
+const bool isCellCubic = (CELL_WIDTH == CELL_HEIGHT) && (CELL_HEIGHT == CELL_DEPTH);
 
 PMACC_CASSERT_MSG(Directional_Splitting_solver_permitts_non_cubic_cells____check_your_gridConfig_param_file,
     !(isDirSplitting && !isCellCubic));
+    
+const bool isCellMagic = (CELL_WIDTH == SPEED_OF_LIGHT * DELTA_T);
+
+PMACC_CASSERT_MSG(Directional_Splitting_solver_demands_that_the_cell_edge_length_equals_delta_t_times_speed_of_light,
+    !(isDirSplitting && !isCellMagic));
         
 } //namespace picongpu
 
