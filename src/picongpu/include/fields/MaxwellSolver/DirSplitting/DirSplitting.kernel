@@ -60,10 +60,11 @@ struct DirSplittingKernel
     template<typename CursorE, typename CursorB >
     DINLINE void operator()(CursorE globalE, CursorB globalB) const
     {
+        using namespace PMacc;
         //\todo: optimize cache size
         typedef typename PMacc::math::CT::add<
-            typename BlockDim::vector_type,
-            typename PMacc::math::CT::Int < 2, 0, 0 > ::vector_type>::type CacheSize;
+            BlockDim,
+            PMacc::math::CT::Int < 2, 0, 0 > >::type CacheSize;
 
         typedef container::CT::SharedBuffer<float3_X, CacheSize, 0 > CacheE;
         typedef container::CT::SharedBuffer<float3_X, CacheSize, 1 > CacheB;
