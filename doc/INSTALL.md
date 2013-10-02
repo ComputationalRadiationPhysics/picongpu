@@ -76,7 +76,7 @@ We recomment to install at least **pngwriter**.
       - `wget www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.11.tar.gz`
       - `tar -xvzf hdf5-1.8.11.tar.gz`
       - `cd hdf5-1.8.11`
-      - `./configure --enable-shared --prefix ~/lib/hdf5/`
+      - `./configure --enable-parallel --enable-shared --prefix ~/lib/hdf5/`
       - `make`
       - *optional:* `make test`
       - `make install`

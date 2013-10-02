@@ -372,7 +372,11 @@ private:
     void openH5File()
     {
         const uint32_t maxOpenFilesPerNode = 4;
+<<<<<<< HEAD
         mThreadParams.domainCollector = new DCollector::DomainCollector(maxOpenFilesPerNode);
+=======
+        mThreadParams.dataCollector = new DCollector::DomainCollector(maxOpenFilesPerNode);
+>>>>>>> 42c6cb652469b0b9b5d1b82b6ef593111afee7ef
 
         // set attributes for datacollector files
         DCollector::DataCollector::FileCreationAttr attr;
@@ -406,7 +410,11 @@ private:
 
         DCollector::Dimensions global_offset(10, 11, 12);
         DCollector::ColTypeDim ctDim;
+<<<<<<< HEAD
         mThreadParams.domainCollector->writeGlobalAttribute(ctDim, 
+=======
+        mThreadParams.dataCollector->writeGlobalAttribute(ctDim, 
+>>>>>>> 42c6cb652469b0b9b5d1b82b6ef593111afee7ef
             "global_offset", global_offset.getPointer());
 
         continueFile = true; //set continue for the next open
@@ -527,6 +535,7 @@ private:
                                                    DomainCollector::GridType,
                                                    ptr);
 
+<<<<<<< HEAD
                 params->domainCollector->writeAttribute(params->currentStep, 
                         DCollector::ColTypeDim(), str.str().c_str(), "sim_size",
                         sim_size.getPointer());
@@ -534,6 +543,15 @@ private:
                         DCollector::ColTypeDim(), str.str().c_str(), "sim_global_offset",
                         sim_global_offset.getPointer());
                 params->domainCollector->writeAttribute(params->currentStep, 
+=======
+                params->dataCollector->writeAttribute(params->currentStep, 
+                        DCollector::ColTypeDim(), str.str().c_str(), "sim_size",
+                        sim_size.getPointer());
+                params->dataCollector->writeAttribute(params->currentStep, 
+                        DCollector::ColTypeDim(), str.str().c_str(), "sim_global_offset",
+                        sim_global_offset.getPointer());
+                params->dataCollector->writeAttribute(params->currentStep, 
+>>>>>>> 42c6cb652469b0b9b5d1b82b6ef593111afee7ef
                         ctDouble, str.str().c_str(), "sim_unit", &(unit.at(d)));
             }
         }
@@ -584,10 +602,17 @@ private:
 
             if (unit != NULL)
             {
+<<<<<<< HEAD
                 params->domainCollector->writeAttribute(params->currentStep, 
                         ctDouble, str.str().c_str(), "sim_unit", &(unit[d]));
             }
             params->domainCollector->writeAttribute(params->currentStep, 
+=======
+                params->dataCollector->writeAttribute(params->currentStep, 
+                        ctDouble, str.str().c_str(), "sim_unit", &(unit[d]));
+            }
+            params->dataCollector->writeAttribute(params->currentStep, 
+>>>>>>> 42c6cb652469b0b9b5d1b82b6ef593111afee7ef
                     DCollector::ColTypeDim(), str.str().c_str(), 
                     "sim_global_offset", sim_global_offset.getPointer());
         }
@@ -717,7 +742,11 @@ private:
         }
         while (hasNext && frameContainer != NULL);
 
+<<<<<<< HEAD
         params->domainCollector->writeAttribute(params->currentStep, ctDouble, 
+=======
+        params->dataCollector->writeAttribute(params->currentStep, ctDouble, 
+>>>>>>> 42c6cb652469b0b9b5d1b82b6ef593111afee7ef
             (prefix + std::string("_weighting")).c_str(), "sim_unit", unitWeighting);
 
     }
