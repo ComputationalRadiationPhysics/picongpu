@@ -113,7 +113,7 @@ private:
     struct ThreadParams
     {
         uint32_t currentStep;
-        DCollector::DomainCollector *dataCollector;
+        DCollector::DomainCollector *domainCollector;
         GridLayout<DIM> gridLayout;
         DataSpace<DIM> gridPosition;
 #if (ENABLE_ELECTRONS == 1)
@@ -361,18 +361,18 @@ private:
 
     void closeH5File()
     {
-        if (mThreadParams.dataCollector != NULL)
+        if (mThreadParams.domainCollector != NULL)
         {
-            mThreadParams.dataCollector->close();
-            delete mThreadParams.dataCollector;
-            mThreadParams.dataCollector = NULL;
+            mThreadParams.domainCollector->close();
+            delete mThreadParams.domainCollector;
+            mThreadParams.domainCollector = NULL;
         }
     }
 
     void openH5File()
     {
         const uint32_t maxOpenFilesPerNode = 4;
-        mThreadParams.dataCollector = new DCollector::DomainCollector(maxOpenFilesPerNode);
+        mThreadParams.domainCollector = new DCollector::DomainCollector(maxOpenFilesPerNode);
 
         // set attributes for datacollector files
         DCollector::DataCollector::FileCreationAttr attr;
@@ -396,7 +396,7 @@ private:
         // open datacollector
         try
         {
-            mThreadParams.dataCollector->open(filename.c_str(), attr);
+            mThreadParams.domainCollector->open(filename.c_str(), attr);
         }
         catch (DCollector::DCException e)
         {
@@ -406,7 +406,7 @@ private:
 
         DCollector::Dimensions global_offset(10, 11, 12);
         DCollector::ColTypeDim ctDim;
-        mThreadParams.dataCollector->writeGlobalAttribute(ctDim, 
+        mThreadParams.domainCollector->writeGlobalAttribute(ctDim, 
             "global_offset", global_offset.getPointer());
 
         continueFile = true; //set continue for the next open
@@ -516,7 +516,7 @@ private:
                 if (dims > 1)
                     str << "_" << name_lookup.at(d);
 
-                params->dataCollector->writeDomain(params->currentStep, colType, DIM,
+                params->domainCollector->writeDomain(params->currentStep, colType, DIM,
                                                    DCollector::Dimensions(field_full[0] * dims, field_full[1], field_full[2]),
                                                    DCollector::Dimensions(dims, 1, 1),
                                                    DCollector::Dimensions(field_no_guard[0], field_no_guard[1], field_no_guard[2]),
@@ -527,13 +527,13 @@ private:
                                                    DomainCollector::GridType,
                                                    ptr);
 
-                params->dataCollector->writeAttribute(params->currentStep, 
+                params->domainCollector->writeAttribute(params->currentStep, 
                         DCollector::ColTypeDim(), str.str().c_str(), "sim_size",
                         sim_size.getPointer());
-                params->dataCollector->writeAttribute(params->currentStep, 
+                params->domainCollector->writeAttribute(params->currentStep, 
                         DCollector::ColTypeDim(), str.str().c_str(), "sim_global_offset",
                         sim_global_offset.getPointer());
-                params->dataCollector->writeAttribute(params->currentStep, 
+                params->domainCollector->writeAttribute(params->currentStep, 
                         ctDouble, str.str().c_str(), "sim_unit", &(unit.at(d)));
             }
         }
@@ -572,7 +572,7 @@ private:
             if (name_lookup != NULL)
                 str << "_" << name_lookup[d];
 
-            params->dataCollector->appendDomain(params->currentStep,
+            params->domainCollector->appendDomain(params->currentStep,
                                                 colType,
                                                 elements,
                                                 d,
@@ -584,10 +584,10 @@ private:
 
             if (unit != NULL)
             {
-                params->dataCollector->writeAttribute(params->currentStep, 
+                params->domainCollector->writeAttribute(params->currentStep, 
                         ctDouble, str.str().c_str(), "sim_unit", &(unit[d]));
             }
-            params->dataCollector->writeAttribute(params->currentStep, 
+            params->domainCollector->writeAttribute(params->currentStep, 
                     DCollector::ColTypeDim(), str.str().c_str(), 
                     "sim_global_offset", sim_global_offset.getPointer());
         }
@@ -599,7 +599,7 @@ private:
                                DataSpace<DIM3> pysicalToLogicalOffset, std::string prefix)
     {
         // Keep iterating over frameContainer to get new big frames 
-        // which should be written to hdf5 using the dataCollector.
+        // which should be written to hdf5 using the domainCollector.
         bool hasNext = false;
 
         DCollector::ColTypeFloat ctFloat;
@@ -717,7 +717,7 @@ private:
         }
         while (hasNext && frameContainer != NULL);
 
-        params->dataCollector->writeAttribute(params->currentStep, ctDouble, 
+        params->domainCollector->writeAttribute(params->currentStep, ctDouble, 
             (prefix + std::string("_weighting")).c_str(), "sim_unit", unitWeighting);
 
     }
