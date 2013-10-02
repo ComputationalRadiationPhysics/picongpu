@@ -33,6 +33,7 @@
 #include <cuSTL/algorithm/kernel/ForeachBlock.hpp>
 #include <lambda/Expression.hpp>
 #include <cuSTL/cursor/NestedCursor.hpp>
+#include <cuSTL/container/HostBuffer.hpp>
 
 namespace picongpu
 {
@@ -84,6 +85,7 @@ private:
 public:
     DirSplitting(MappingDesc) {}
 
+        
     void update_beforeCurrent(uint32_t currentStep) const
     {
         typedef SuperCellSize GuardDim;
@@ -127,15 +129,34 @@ public:
                   twistVectorFieldAxes<Orientation_Z>(fieldB_coreBorder.origin()),
                   twistComponents<Orientation_Z>(gridSize));
 
+
         if (laserProfile::INIT_TIME > float_X(0.0))
             dc.getData<FieldE > (FieldE::getName(), true).laserManipulation(currentStep);
+        
+        __setTransactionEvent(fieldE_withGuard.asyncCommunication(__getTransactionEvent()));
+        __setTransactionEvent(fieldB_withGuard.asyncCommunication(__getTransactionEvent()));
+        /*
+        if(currentStep % 50 == 0)
+        {
+            container::HostBuffer<float3_X, 3> floatE_host(fieldE_withGuard.getGridBuffer().getDeviceBuffer().cartBuffer().size());
+            floatE_host = fieldE_withGuard.getGridBuffer().getDeviceBuffer().cartBuffer();
+            
+            BOOST_AUTO(fieldE_RightGuard,
+                floatE_host.view(PMacc::math::Int<3>(0, -8, 0)));
+                
+            std::ostringstream filename;
+            filename << "RightGuard_" << currentStep << ".dat";
+            std::ofstream file(filename.str().c_str());
+            file << fieldE_RightGuard;
+        }*/
 
         __setTransactionEvent(fieldE.asyncCommunication(__getTransactionEvent()));
         __setTransactionEvent(fieldB.asyncCommunication(__getTransactionEvent()));
     }
 
     void update_afterCurrent(uint32_t) const
-    {    }
+    {    
+    }
 };
 
 } // dirSplitting
