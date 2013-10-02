@@ -1,0 +1,113 @@
+/**
+ * Copyright 2013 Axel Huebl, Heiko Burau, René Widera
+ *
+ * This file is part of PIConGPU. 
+ * 
+ * PIConGPU is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * 
+ * PIConGPU is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * along with PIConGPU.  
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+ 
+
+
+#pragma once
+
+#include "fields/MaxwellSolver/None/NoSolver.def"
+#include "fields/MaxwellSolver/Yee/YeeSolver.def"
+#include "fields/MaxwellSolver/DirSplitting/DirSplitting.def"
+#include "fields/MaxwellSolver/Lehe/LeheSolver.def"
+
+#include "fields/numericalCellTypes/NumericalCellTypes.hpp"
+#include "algorithms/FieldToParticleInterpolationNative.hpp"
+#include "algorithms/FieldToParticleInterpolation.hpp"
+#include "algorithms/ShiftCoordinateSystemNative.hpp"
+#include "algorithms/ShiftCoordinateSystem.hpp"
+#include "algorithms/AssignedTrilinearInterpolation.hpp"
+
+namespace picongpu
+{
+
+namespace fieldSolverNone
+{
+    typedef typename picongpu::noSolver::NoSolver FieldSolver;
+    typedef yeeCell::YeeCell NumericalCellType;
+    
+    typedef picongpu::FieldToParticleInterpolationNative<
+    ShiftCoordinateSystemNative,
+    speciesParticleShape::ParticleShape::ChargeAssignment,
+    AssignedTrilinearInterpolation> FieldToParticleInterpolation;
+}
+
+namespace fieldSolverYeeNative
+{
+    typedef typename picongpu::yeeSolver::YeeSolver<> FieldSolver;
+    typedef yeeCell::YeeCell NumericalCellType;
+
+    typedef picongpu::FieldToParticleInterpolationNative<
+    ShiftCoordinateSystemNative,
+    speciesParticleShape::ParticleShape::ChargeAssignment,
+    AssignedTrilinearInterpolation> FieldToParticleInterpolation;
+}
+
+namespace fieldSolverYee
+{
+    typedef typename picongpu::yeeSolver::YeeSolver<> FieldSolver;
+    typedef yeeCell::YeeCell NumericalCellType;
+
+    typedef picongpu::FieldToParticleInterpolation<
+    ShiftCoordinateSystem,
+    speciesParticleShape::ParticleShape::ChargeAssignmentOnSupport,
+    AssignedTrilinearInterpolation> FieldToParticleInterpolation;
+}
+
+namespace fieldSolverDirSplitting
+{
+    typedef picongpu::dirSplitting::DirSplitting FieldSolver;
+    typedef allCenteredCell::AllCenteredCell NumericalCellType;
+
+    typedef picongpu::FieldToParticleInterpolationNative<
+    ShiftCoordinateSystemNative,
+    speciesParticleShape::ParticleShape::ChargeAssignment,
+    AssignedTrilinearInterpolation> FieldToParticleInterpolation;
+}
+
+namespace fieldSolverLehe
+{
+    typedef typename picongpu::leheSolver::LeheSolver FieldSolver;
+    typedef yeeCell::YeeCell NumericalCellType;
+    
+    typedef picongpu::FieldToParticleInterpolationNative<
+    ShiftCoordinateSystemNative,
+    speciesParticleShape::ParticleShape::ChargeAssignment,
+    AssignedTrilinearInterpolation> FieldToParticleInterpolation;
+
+}
+
+const bool isDirSplitting = PMacc::IsSameType<fieldSolver::FieldSolver, 
+                            picongpu::dirSplitting::DirSplitting>::result;
+
+/* Courant-Friedrichs-Levy-Condition for Field Solver: */
+PMACC_CASSERT_MSG(Courant_Friedrichs_Levy_condition_failure____check_your_gridConfig_param_file,
+                    (PMACC_MIN(CELL_DEPTH,PMACC_MIN(CELL_WIDTH,CELL_HEIGHT))/SPEED_OF_LIGHT/DELTA_T)>1.77f
+                    || isDirSplitting);
+
+    
+const bool isCellCubic = (CELL_WIDTH == CELL_HEIGHT == CELL_DEPTH);
+
+PMACC_CASSERT_MSG(Directional_Splitting_solver_permitts_non_cubic_cells____check_your_gridConfig_param_file,
+    !(isDirSplitting && !isCellCubic));
+        
+} //namespace picongpu
+
+
+
