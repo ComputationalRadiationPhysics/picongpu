@@ -31,13 +31,7 @@
 #include "simulation_types.hpp"
 #include "particles/frame_types.hpp"
 
-#include "DomainCollector.hpp"
-#include "basetypes/ColTypeDim.hpp"
-#include "basetypes/ColTypeFloat.hpp"
-#include "basetypes/ColTypeDouble.hpp"
-#include "basetypes/ColTypeInt.hpp"
-#include "basetypes/ColTypeBool.hpp"
-#include "basetypes/ColTypeInt3Array.hpp"
+#include "splash.h"
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
 #include "fields/FieldJ.hpp"
@@ -46,6 +40,7 @@
 #include "particles/particleFilter/FilterFactory.hpp"
 #include "particles/particleFilter/PositionFilter.hpp"
 #include "particles/particleToGrid/energyDensity.kernel"
+#include "particles/operations/CountParticles.hpp"
 
 #include "dataManagement/DataConnector.hpp"
 #include "particles/memory/frames/FrameContainer.hpp"
@@ -112,7 +107,7 @@ private:
     struct ThreadParams
     {
         uint32_t currentStep;
-        DCollector::DomainCollector *dataCollector;
+        DCollector::ParallelDomainCollector *domainCollector;
         GridLayout<DIM> gridLayout;
         DataSpace<DIM> gridPosition;
 #if (ENABLE_ELECTRONS == 1)
@@ -123,8 +118,9 @@ private:
 #endif
 
         VirtualWindow window;
-    };
-
+        MappingDesc *cellDescription;
+    } ThreadParams;
+    
     template<typename UnitType>
     static std::vector<double> createUnit(UnitType unit, uint32_t numComponents)
     {
@@ -265,9 +261,9 @@ public:
     HDF5Writer() :
     filename("h5"),
     notifyFrequency(0),
-    compression(false),
-    continueFile(false)
+    compression(false)
     {
+        mThreadParams.domainCollector = NULL;
         ModuleConnector::getInstance().registerModule(this);
     }
 
@@ -284,7 +280,7 @@ public:
             ("hdf5.file", po::value<std::string > (&filename)->default_value(filename), 
                 "HDF5 output file")
             ("hdf5.compression", po::value<bool > (&compression)->zero_tokens(), 
-                "enable HDF5 compression")
+                "enable HDF5 compression");
             ("hdf5.continue", po::value<bool > (&continueFile)->zero_tokens(), 
                 "continue existing HDF5 file instead of creating a new one");
     }
@@ -296,8 +292,7 @@ public:
 
     void setMappingDescription(MappingDesc *cellDescription)
     {
-
-        this->cellDescription = cellDescription;
+        this->mThreadParams.cellDescription = cellDescription;
     }
 
     __host__ void notify(uint32_t currentStep)
@@ -360,56 +355,50 @@ private:
 
     void closeH5File()
     {
-        if (mThreadParams.dataCollector != NULL)
+        if (mThreadParams.domainCollector != NULL)
         {
-            mThreadParams.dataCollector->close();
-            delete mThreadParams.dataCollector;
-            mThreadParams.dataCollector = NULL;
+            mThreadParams.domainCollector->close();
         }
     }
 
     void openH5File()
     {
+        Dimensions mpiSize(1, 1, 1);
+        for (uint32_t i = 0; i < DIM; ++i)
+            mpiSize[i] = mpi_size[i];
         const uint32_t maxOpenFilesPerNode = 4;
-        mThreadParams.dataCollector = new DCollector::DomainCollector(maxOpenFilesPerNode);
+        if (!mThreadParams.domainCollector)
+        {
+            GridController<DIM> &gc = GridController<DIM>::getInstance();
+            mThreadParams.domainCollector = new DCollector::ParallelDomainCollector(
+                    gc.getCommunicator().getMPIComm(), gc.getCommunicator().getMPIInfo(),
+                    mpiSize, maxOpenFilesPerNode );
+        }
 
-        // set attributes for datacollector files
+        // set attributes for domainCollector files
         DCollector::DataCollector::FileCreationAttr attr;
         attr.enableCompression = this->compression;
-
-        if (continueFile)
-            attr.fileAccType = DCollector::DataCollector::FAT_WRITE;
-        else
-            attr.fileAccType = DCollector::DataCollector::FAT_CREATE;
+        // one file per time step, hence, always create a new file
+        attr.fileAccType = DCollector::DataCollector::FAT_CREATE;
 
 
         attr.mpiPosition.set(0, 0, 0);
-        attr.mpiSize.set(1, 1, 1);
+        attr.mpiSize.set(mpiSize);
 
         for (uint32_t i = 0; i < DIM; ++i)
-        {
             attr.mpiPosition[i] = mpi_pos[i];
-            attr.mpiSize[i] = mpi_size[i];
-        }
 
-        // open datacollector
+        // open domainCollector
         try
         {
-            mThreadParams.dataCollector->open(filename.c_str(), attr);
+            mThreadParams.domainCollector->open(filename.c_str(), attr);
         }
         catch (DCollector::DCException e)
         {
             std::cerr << e.what() << std::endl;
-            throw std::runtime_error("Failed to open datacollector");
+            throw std::runtime_error("Failed to open domainCollector");
         }
-
-        DCollector::Dimensions global_offset(10, 11, 12);
-        DCollector::ColTypeDim ctDim;
-        mThreadParams.dataCollector->writeGlobalAttribute(ctDim, 
             "global_offset", global_offset.getPointer());
-
-        continueFile = true; //set continue for the next open
-
     }
 
     void moduleLoad()
@@ -456,6 +445,11 @@ private:
             }
 #endif
 
+            if (mThreadParams.domainCollector != NULL)
+            {
+                delete mThreadParams.domainCollector;
+                mThreadParams.domainCollector = NULL;
+            }
         }
     }
 
@@ -479,6 +473,7 @@ private:
         DataSpace<DIM> field_guard = field_layout.getGuard() + params->window.localOffset;
 
         DataSpace<DIM> sim_offset = params->gridPosition - params->window.globalSimulationOffset;
+        DataSpace<DIM> global_sim_size = params->window.globalSimulationSize;
 
         /*simulation attributes for data*/
         DCollector::ColTypeDouble ctDouble;
@@ -489,10 +484,12 @@ private:
         ///\todo these might be deprecated !
         DCollector::Dimensions sim_size(0, 0, 0);
         DCollector::Dimensions sim_global_offset(0, 0, 0);
+        DCollector::Dimensions sim_global_size(1, 1, 1);
 
         for (uint32_t d = 0; d < simDim; ++d)
         {
             sim_size[d] = field_no_guard[d];
+            sim_global_size[d] = global_sim_size[d];
             /*fields of first gpu in simulation are NULL point*/
             if (sim_offset[d] > 0)
             {
@@ -505,8 +502,7 @@ private:
 
 
 
-        //only write data if we have data
-        // if (field_no_guard.y() > 0)
+        // all processes must participate in all write calls
         {
             for (uint32_t d = 0; d < dims; d++)
             {
@@ -515,7 +511,7 @@ private:
                 if (dims > 1)
                     str << "_" << name_lookup.at(d);
 
-                params->dataCollector->writeDomain(params->currentStep, colType, DIM,
+                params->domainCollector->writeDomain(params->currentStep, colType, DIM,
                                                    DCollector::Dimensions(field_full[0] * dims, field_full[1], field_full[2]),
                                                    DCollector::Dimensions(dims, 1, 1),
                                                    DCollector::Dimensions(field_no_guard[0], field_no_guard[1], field_no_guard[2]),
@@ -523,24 +519,26 @@ private:
                                                    str.str().c_str(),
                                                    domain_offset,
                                                    domain_size,
+                                                   Dimensions(0, 0, 0),
+                                                   sim_global_size,
                                                    DomainCollector::GridType,
                                                    ptr);
 
-                params->dataCollector->writeAttribute(params->currentStep, 
+                params->domainCollector->writeAttribute(params->currentStep, 
                         DCollector::ColTypeDim(), str.str().c_str(), "sim_size",
                         sim_size.getPointer());
-                params->dataCollector->writeAttribute(params->currentStep, 
+                params->domainCollector->writeAttribute(params->currentStep, 
                         DCollector::ColTypeDim(), str.str().c_str(), "sim_global_offset",
                         sim_global_offset.getPointer());
-                params->dataCollector->writeAttribute(params->currentStep, 
+                params->domainCollector->writeAttribute(params->currentStep, 
                         ctDouble, str.str().c_str(), "sim_unit", &(unit.at(d)));
             }
         }
     }
 
     static void writeParticlesIntern(ThreadParams *params, DataSpace<DIM>& sim_offset, 
-                                     DataSpace<DIM3>& sim_size, DCollector::CollectionType& colType,
-                                     const uint32_t dims, const uint32_t elements,
+                                     const uint32_t totalNumElements,
+                                     DCollector::Dimensions &globalSize, DCollector::Dimensions &globalOffset, const uint32_t appendCtr,
                                      const char *prefix, const char *name,
                                      const std::string name_lookup[], double* unit,
                                      void *ptr)
@@ -550,10 +548,11 @@ private:
 
         DCollector::Dimensions domain_offset(0, 0, 0);
         DCollector::Dimensions domain_size(1, 1, 1);
+        Dimensions total_elements(globalSize);
 
         ///\todo this might be deprecated
         DCollector::Dimensions sim_global_offset(0, 0, 0);
-
+        
         for (uint32_t d = 0; d < simDim; ++d)
         {
             if (sim_offset[d] > 0)
@@ -570,23 +569,33 @@ private:
             str << prefix << name;
             if (name_lookup != NULL)
                 str << "_" << name_lookup[d];
+            
+            // on first call (for first frame), reserve total size
+            if (appendCtr == 0)
+            {
+                params->domainCollector->reserveDomain(params->currentStep,
+                                                 Dimensions(totalNumElements, 1, 1),
+                                                 1,
+                                                 colType,
+                                                 str.str().c_str(),
+                                                 domain_offset,
+                                                 domain_size,
+                                                 DomainCollector::PolyType);
+            }
 
-            params->dataCollector->appendDomain(params->currentStep,
-                                                colType,
-                                                elements,
-                                                d,
-                                                dims,
-                                                str.str().c_str(),
-                                                domain_offset,
-                                                domain_size,
-                                                ptr);
+            params->domainCollector->append(params->currentStep,
+                                                 Dimensions(elements, 1, 1),
+                                                 1,
+                                                 globalOffset,
+                                                 str.str().c_str(),
+                                                 ptr);
 
             if (unit != NULL)
             {
-                params->dataCollector->writeAttribute(params->currentStep, 
+                params->domainCollector->writeAttribute(params->currentStep, 
                         ctDouble, str.str().c_str(), "sim_unit", &(unit[d]));
             }
-            params->dataCollector->writeAttribute(params->currentStep, 
+            params->domainCollector->writeAttribute(params->currentStep, 
                     DCollector::ColTypeDim(), str.str().c_str(), 
                     "sim_global_offset", sim_global_offset.getPointer());
         }
@@ -598,7 +607,7 @@ private:
                                DataSpace<DIM3> pysicalToLogicalOffset, std::string prefix)
     {
         // Keep iterating over frameContainer to get new big frames 
-        // which should be written to hdf5 using the dataCollector.
+        // which should be written to hdf5 using the domainCollector.
         bool hasNext = false;
 
         DCollector::ColTypeFloat ctFloat;
@@ -614,17 +623,31 @@ private:
         const std::string name_lookup[] = {"x", "y", "z"};
 #endif
 
-        size_t particleCounter = 0;
-
-
         double unitMomentum[] = {UNIT_ENERGY, UNIT_ENERGY, UNIT_ENERGY};
         double unitPos[] = {SI::CELL_WIDTH_SI, SI::CELL_HEIGHT_SI, SI::CELL_DEPTH_SI};
         double unitWeighting[] = {1.};
+        
+        // count total number of particles on the device
+        uint64_cu totalNumParticles = 0;
+
+        PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
+        const DataSpace<simDim> localSize(simBox.getLocalSize());
+
+        totalNumParticles = PMacc::CountParticles::countOnDevice < CORE + BORDER > (
+                                                                       frameContainer->getParticleBuffer(),
+                                                                       *(params->cellDescription),
+                                                                       DataSpace<simDim>(),
+                                                                       localSize);
+        
+        DCollector::Dimensions globalPartSize(0, 0, 0);
+        DCollector::Dimensions globalPartOffset(0, 0, 0);
+        size_t particles_index_offset = 0;
 
 
         // loop over all big frames
         // note: Write calls have to be performed even if the number 
-        // of elements is zero to allocate the datasets in the file.
+        // of elements is zero as all calls are collective.
+        uint32_t appendCtr = 0;
         do
         {
             size_t elements = 0;
@@ -632,14 +655,18 @@ private:
             if (frameContainer != NULL)
             {
                 frame = frameContainer->getNextBigFrame(hasNext);
+                // get number of elements in the current frame
                 elements = frameContainer->getElemCount();
             }
-            particleCounter += elements;
 
             // write position of particle in cell
             writeParticlesIntern(params,
                                  sim_offset, sim_size,
                                  ctFloat,
+                                 totalNumParticles,
+                                 globalPartSize,
+                                 globalPartOffset,
+                                 appendCtr,
                                  DIM,
                                  elements,
                                  prefix.c_str(),
@@ -657,6 +684,10 @@ private:
             writeParticlesIntern(params,
                                  sim_offset, sim_size,
                                  ctInt,
+                                 totalNumParticles,
+                                 globalPartSize,
+                                 globalPartOffset,
+                                 appendCtr,
                                  DIM,
                                  elements,
                                  prefix.c_str(),
@@ -669,6 +700,10 @@ private:
             writeParticlesIntern(params,
                                  sim_offset, sim_size,
                                  ctFloat,
+                                 totalNumParticles,
+                                 globalPartSize,
+                                 globalPartOffset,
+                                 appendCtr,
                                  DIM,
                                  elements,
                                  prefix.c_str(),
@@ -681,6 +716,10 @@ private:
             writeParticlesIntern(params,
                                  sim_offset, sim_size,
                                  ctFloat,
+                                 totalNumParticles,
+                                 globalPartSize,
+                                 globalPartOffset,
+                                 appendCtr,
                                  1,
                                  elements,
                                  prefix.c_str(),
@@ -693,6 +732,10 @@ private:
             writeParticlesIntern(params,
                                  sim_offset, sim_size,
                                  ctFloat,
+                                 totalNumParticles,
+                                 globalPartSize,
+                                 globalPartOffset,
+                                 appendCtr,
                                  DIM,
                                  elements,
                                  prefix.c_str(),
@@ -704,6 +747,10 @@ private:
             writeParticlesIntern(params,
                                  sim_offset, sim_size,
                                  ctBool,
+                                 totalNumParticles,
+                                 globalPartSize,
+                                 globalPartOffset,
+                                 appendCtr,
                                  1,
                                  elements,
                                  prefix.c_str(),
@@ -713,10 +760,27 @@ private:
                                  frame.getRadiationFlag().getPointer());
 #endif
 #endif
+            if (appendCtr == 0)
+                particles_index_offset = globalPartOffset[0];
+
+            appendCtr++;
+            globalPartOffset[0] += elements;
         }
         while (hasNext && frameContainer != NULL);
+        
+        // write this offset and number of particles for this process to enable restart
+        GridController<DIM> &gc = GridController<DIM>::getInstance();
+        const size_t size_index_bfr = 2;
+        const size_t index_bfr[size_index_bfr] = 
+            { totalNumParticles, particles_index_offset };
+        
+        params->domainCollector->write(params->currentStep, 
+            Dimensions(size_index_bfr * gc.getGlobalSize(), 1, 1),
+            Dimensions(size_index_bfr * gc.getGlobalRank(), 0, 0),
+            ctInt, 1, Dimensions(size_index_bfr, 1, 1),
+            "particles_index", index_bfr);
 
-        params->dataCollector->writeAttribute(params->currentStep, ctDouble, 
+        params->domainCollector->writeAttribute(params->currentStep, ctDouble, 
             (prefix + std::string("_weighting")).c_str(), "sim_unit", unitWeighting);
 
     }
@@ -867,7 +931,6 @@ private:
     uint32_t notifyFrequency;
     std::string filename;
     bool compression;
-    bool continueFile;
 
     DataSpace<DIM> mpi_pos;
     DataSpace<DIM> mpi_size;

@@ -236,6 +236,11 @@ public:
     {
         clear();
     }
+    
+    MyParBuffer& getParticleBuffer()
+    {
+        return particlesBuffer;
+    }
 
     void clear()
     {

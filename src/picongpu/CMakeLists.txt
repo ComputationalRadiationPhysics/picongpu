@@ -271,6 +271,7 @@ if(HDF5_FOUND)
     # add include information
     include_directories(SYSTEM ${HDF5_INCLUDE_DIRS})
     include_directories(SYSTEM ${PIC_SPLASH_ROOT_DIR}/include)
+    include_directories(SYSTEM ${MPI_CXX_INCLUDE_PATH})
 
     # add library information
     # dynamic / shared

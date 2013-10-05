@@ -18,7 +18,7 @@
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
+#pragma once
 
 #include "types.h"
 #include "memory/buffers/GridBuffer.hpp"
@@ -113,7 +113,7 @@ struct CountParticles
 
         __cudaKernel(kernelCountParticles)
             (mapper.getGridDim(), block)
-            (buffer.getDeviceParticlesBox(),
+            (buffer.getDeviceParticleBox(),
              counter.getDeviceBuffer().getBasePointer(),
              filter,
              mapper);
