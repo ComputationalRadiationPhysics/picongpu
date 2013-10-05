@@ -164,7 +164,7 @@ private:
         const DataSpace<simDim> localSize(simBox.getLocalSize());
 
         /*count local particles*/
-        size = PMacc::CountParticles::countOnDevice<AREA>(*particles,
+        size = PMacc::CountParticles::countOnDevice<AREA>(particles->getParticlesBuffer(),
                                                           *cellDescription,
                                                           DataSpace<simDim>(),
                                                           localSize);

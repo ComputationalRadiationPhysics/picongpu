@@ -68,7 +68,7 @@ We recomment to install at least **pngwriter**.
       [SPLASH\_ROOT](#additional-required-environment-variables-for-optional-libraries)
       to `$HOME/lib/splash`
 
-- **hdf5** >= 1.8.6, standard shared version (no c++, enable parallel), e.g. `hdf5/1.8.5-threadsafe`
+- **hdf5** >= 1.8.6, standard shared version (no c++)
     - *Debian/Ubuntu:* `sudo apt-get install libhdf5-openmpi-dev`
     - example:
       - `mkdir -p ~/src ~/build ~/lib`

@@ -211,6 +211,7 @@ IF(HDF5_FOUND)
 
     #add include information
     INCLUDE_DIRECTORIES(SYSTEM ${PIC_SPLASH_ROOT_DIR}/include)
+    INCLUDE_DIRECTORIES(SYSTEM ${MPI_CXX_INCLUDE_PATH})
 
     #add library information
     # dynamic / shared
@@ -220,8 +221,9 @@ IF(HDF5_FOUND)
     # static
     ADD_LIBRARY(splash_static STATIC IMPORTED)
     SET_TARGET_PROPERTIES(splash_static PROPERTIES IMPORTED_LOCATION ${PIC_SPLASH_ROOT_DIR}/lib/libsplash.a)
-    SET(LIBS ${LIBS} splash_static ${HDF5_LIBRARIES})
-  ELSE(PIC_SPLASH_ROOT_DIR)
+    SET(LIBS ${LIBS} splash_static ${HDF5_LIBRARIES} ${MPI_CXX_LIBRARIES})
+    
+  ELSEIF(PIC_SPLASH_ROOT_DIR)
     MESSAGE(STATUS "Could NOT find Splash")
   ENDIF(PIC_SPLASH_ROOT_DIR)
 ENDIF(HDF5_FOUND)

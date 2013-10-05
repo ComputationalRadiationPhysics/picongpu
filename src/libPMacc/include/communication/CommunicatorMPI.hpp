@@ -69,6 +69,16 @@ public:
     {
         return totalnodes;
     }
+    
+    MPI_Comm getMPIComm() const
+    {
+        return topology;
+    }
+    
+    MPI_Info getMPIInfo() const
+    {
+        return MPI_INFO_NULL;
+    }
 
     /*! initializes all processes to build a 3D-grid
      *

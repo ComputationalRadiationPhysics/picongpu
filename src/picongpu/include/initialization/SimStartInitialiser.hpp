@@ -43,6 +43,12 @@ namespace picongpu
     class SimStartInitialiser : public AbstractInitialiser
     {
     public:
+        
+        virtual ~SimStartInitialiser()
+        {
+            
+        }
+        
         void init(uint32_t id, ISimulationData& data, uint32_t currentStep)
         {
             // add ids for other types if necessary
