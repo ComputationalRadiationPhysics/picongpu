@@ -1,62 +1,84 @@
+################################################################################
+# Required cmake version
+################################################################################
+
 cmake_minimum_required(VERSION 2.8.5)
 
 
-# Projekt name
-project (CUDA_memtest)
+################################################################################
+# Project 
+################################################################################
 
-IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    SET(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}" CACHE PATH "install prefix" FORCE)
-ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) 
+project(CUDA_memtest)
+
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}" CACHE PATH "install prefix" FORCE)
+endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) 
+
+# set helper pathes to find libraries and packages
+set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{MPI_ROOT}" "$ENV{CUDA_ROOT}"
+    "$ENV{BOOST_ROOT}" "$ENV{HDF5_ROOT}")
 
 
-#set helper pathes to find libraries and packages
-set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{MPI_ROOT}" "$ENV{CUDA_ROOT}" "$ENV{BOOST_ROOT}" "$ENV{HDF5_ROOT}")
+################################################################################
+# Find CUDA 
+################################################################################
 
-#include cuda plugin for cmake
-FIND_PACKAGE(CUDA REQUIRED)
-#include pthread plugin for cmake
-FIND_PACKAGE(Threads REQUIRED)
+find_package(CUDA REQUIRED)
 
-########################################################################
-#set options
+if(SAME_NVCC_FLAGS_IN_SUBPROJECTS)
+  set(CUDA_ARCH sm_13 CACHE STRING "set GPU architecture" )
+  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${nvcc_flags} -arch=${CUDA_ARCH})
 
-##CUDA##
-
-IF(SAME_NVCC_FLAGS_IN_SUBPROJECTS)
-  SET(CUDA_ARCH sm_13 CACHE STRING "set GPU architecture" )
-  SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${nvcc_flags} -arch=${CUDA_ARCH})
-
-  IF(CUDA_SHOW_REGISTER)
+  if(CUDA_SHOW_REGISTER)
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" -Xptxas=-v -Xopencc=-LIST:source=on)
-  ENDIF()
+  endif()
 
-  IF(CUDA_KEEP_FILES)
-    MAKE_DIRECTORY("${PROJECT_BINARY_DIR}/nvcc_tmp")
+  if(CUDA_KEEP_FILES)
+    make_directory("${PROJECT_BINARY_DIR}/nvcc_tmp")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" --keep --keep-dir "nvcc_tmp")
-  ENDIF()
-ENDIF()
-
-##END CUDA##
+  endif()
+endif()
 
 
-OPTION(CUDA_MEMTEST_RELEASE "disable all runtime asserts" ON)
-IF(PIC_RELEASE)
-    ADD_DEFINITIONS(-DNDEBUG)
+################################################################################
+# Find PThreads
+################################################################################
+
+find_package(Threads REQUIRED)
+
+
+################################################################################
+# Build type (debug, release)
+################################################################################
+
+option(CUDA_MEMTEST_RELEASE "disable all runtime asserts" ON)
+if(PIC_RELEASE)
+    add_definitions(-DNDEBUG)
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-Xcompiler=-pthread")
-ELSE(PIC_RELEASE)
-   set(CMAKE_BUILD_TYPE Debug)
-   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" -g "-Xcompiler=-g,-pthread")
-ENDIF(PIC_RELEASE)
-SET(CMAKE_CXX_FLAGS_DEFAULT "-Wall")
+else(PIC_RELEASE)
+    set(CMAKE_BUILD_TYPE Debug)
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" -g "-Xcompiler=-g,-pthread")
+endif(PIC_RELEASE)
 
 
-#########################################################################
+################################################################################
+# Warnings
+################################################################################
+
+set(CMAKE_CXX_FLAGS_DEFAULT "-Wall")
+
+
+################################################################################
 # Configure include directories
-
-
+################################################################################
 
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${INCLUDE_DIRECTORIES})
 
+
+################################################################################
+# Compile & Link cuda_memtest
+################################################################################
 
 cuda_add_executable(cuda_memtest
     tests.cu
@@ -64,11 +86,12 @@ cuda_add_executable(cuda_memtest
     cuda_memtest.cu
 )
 
-
-target_link_libraries(cuda_memtest  ${LIBS} ${CUDA_CUDART_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
-
+target_link_libraries(cuda_memtest ${LIBS} ${CUDA_CUDART_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
 
 
-#### INSTALLATION #####
-INSTALL(TARGETS cuda_memtest
+################################################################################
+# Install cuda_memtest
+################################################################################
+
+install(TARGETS cuda_memtest
          RUNTIME DESTINATION bin)

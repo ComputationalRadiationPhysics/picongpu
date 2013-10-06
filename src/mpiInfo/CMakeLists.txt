@@ -1,5 +1,5 @@
 #
-# Copyright 2013 Axel Huebl, René Widera
+# Copyright 2013 Axel Huebl, René Widera, Felix Schmitt
 #
 # This file is part of mpiInfo.
 #
@@ -18,37 +18,60 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
+################################################################################
+# Required cmake version
+################################################################################
+
 cmake_minimum_required(VERSION 2.8.5)
 
 
-# Projekt name
-project (mpiInfo)
+################################################################################
+# Project 
+################################################################################
 
-IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    SET(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}" CACHE PATH "install prefix" FORCE)
-ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) 
+project(mpiInfo)
 
-SET(CMAKE_CXX_FLAGS_DEFAULT "-Wall")
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}" CACHE PATH "install prefix" FORCE)
+endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) 
 
-#### DEPENDENCIES #############################################################
-
-#set helper pathes to find libraries and packages
+# set helper pathes to find libraries and packages
 set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{MPI_ROOT}" "$ENV{BOOST_ROOT}")
 
-#include MPI
-FIND_PACKAGE(MPI REQUIRED)
-INCLUDE_DIRECTORIES(SYSTEM ${MPI_C_INCLUDE_PATH})
-SET(LIBS ${LIBS} ${MPI_C_LIBRARIES})
-IF(MPI_CXX_FOUND) # bullxmpi fails if it can not find its c++ counter part
-    SET(LIBS ${LIBS} ${MPI_CXX_LIBRARIES})
-ENDIF(MPI_CXX_FOUND)
 
-#include Boost
-FIND_PACKAGE(Boost REQUIRED COMPONENTS program_options)
-INCLUDE_DIRECTORIES(SYSTEM ${Boost_INCLUDE_DIRS})
-SET(LIBS ${LIBS} ${Boost_LIBRARIES})
+################################################################################
+# Warnings
+################################################################################
 
-#### TARGETS ##################################################################
+set(CMAKE_CXX_FLAGS_DEFAULT "-Wall")
+
+
+################################################################################
+# Find MPI
+################################################################################
+
+find_package(MPI REQUIRED)
+include_directories(SYSTEM ${MPI_C_INCLUDE_PATH})
+set(LIBS ${LIBS} ${MPI_C_LIBRARIES})
+
+# bullxmpi fails if it can not find its c++ counter part
+if(MPI_CXX_FOUND) 
+    set(LIBS ${LIBS} ${MPI_CXX_LIBRARIES})
+endif(MPI_CXX_FOUND)
+
+
+################################################################################
+# Find Boost
+################################################################################
+
+find_package(Boost REQUIRED COMPONENTS program_options)
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+set(LIBS ${LIBS} ${Boost_LIBRARIES})
+
+
+################################################################################
+# Compile & Link mpiInfo
+################################################################################
 
 add_executable(mpiInfo
     main.cpp
@@ -56,7 +79,10 @@ add_executable(mpiInfo
 
 target_link_libraries(mpiInfo ${LIBS})
 
-#### INSTALLATION #############################################################
 
-INSTALL(TARGETS mpiInfo
+################################################################################
+# Install mpiInfo
+################################################################################
+
+install(TARGETS mpiInfo
          RUNTIME DESTINATION bin)
