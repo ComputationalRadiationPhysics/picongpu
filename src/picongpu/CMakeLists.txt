@@ -29,9 +29,9 @@ cmake_minimum_required(VERSION 2.8.5)
 # Pre-project (any compiler must be set here)
 ################################################################################
 
-option(VAMPIR_ENABLE "Create PIConGPU with VampirTrace support." OFF)
+option(VAMPIR_ENABLE "Create PIConGPU with VampirTrace support" OFF)
 if(VAMPIR_ENABLE)
-    message(STATUS "Building with VampirTrace support.")
+    message(STATUS "Building with VampirTrace support")
     set(CMAKE_CXX_COMPILER "vtc++")
     set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -vt:hyb -L/$ENV{VT_ROOT}/lib
         -finstrument-functions-exclude-file-list=${CMAKE_CXX_INST_FILE_FILTER}
@@ -50,7 +50,7 @@ project(PIConGPU)
 
 # set helper pathes to find libraries and packages
 set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{MPI_ROOT}"
-    "$ENV{CUDA_ROOT}" "$ENV{BOOST_ROOT}" "$ENV{HDF5_ROOT}")
+    "$ENV{CUDA_ROOT}" "$ENV{BOOST_ROOT}" "$ENV{HDF5_ROOT}" "$ENV{VT_ROOT}")
 
 
 ################################################################################
@@ -59,17 +59,23 @@ set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{MPI_ROOT}"
 
 find_package(CUDA REQUIRED)
 
-set(CUDA_ARCH sm_13 CACHE STRING "Set GPU architecture." )
-string(COMPARE EQUAL ${CUDA_ARCH} "sm_13" IS_CUDA_ARCH_SM13)
-set(CUDA_FTZ "--ftz=false" CACHE STRING "Set flush to zero for GPU.")
-if( IS_CUDA_ARCH_SM13)
-    set(CUDA_FTZ "")
-endif( IS_CUDA_ARCH_SM13)
+set(CUDA_ARCH sm_20 CACHE STRING "Set GPU architecture")
+string(COMPARE EQUAL ${CUDA_ARCH} "sm_10" IS_CUDA_ARCH_UNSUPPORTED)
+string(COMPARE EQUAL ${CUDA_ARCH} "sm_11" IS_CUDA_ARCH_UNSUPPORTED)
+string(COMPARE EQUAL ${CUDA_ARCH} "sm_12" IS_CUDA_ARCH_UNSUPPORTED)
+string(COMPARE EQUAL ${CUDA_ARCH} "sm_13" IS_CUDA_ARCH_UNSUPPORTED)
 
-set(CUDA_MATH --use_fast_math CACHE STRING "Enable fast-math." )
-option(CUDA_SHOW_REGISTER "Show kernel registers and create PTX." OFF)
-option(CUDA_KEEP_FILES "Keep all intermediate files that are generated during internal compilation steps. (folder: nvcc_tmp)" OFF)
-option(CUDA_SHOW_CODELINES "Show kernel lines in cuda-gdb and cuda-memcheck (need architecture >=sm_20)." OFF)
+if(IS_CUDA_ARCH_UNSUPPORTED)
+    message(SEND_ERROR "Unsupported CUDA architecture ${CUDA_ARCH} specified. "
+                       "SM 2.0 or higher is required.")
+endif(IS_CUDA_ARCH_UNSUPPORTED)
+
+set(CUDA_FTZ "--ftz=false" CACHE STRING "Set flush to zero for GPU")
+
+set(CUDA_MATH --use_fast_math CACHE STRING "Enable fast-math" )
+option(CUDA_SHOW_REGISTER "Show kernel registers and create PTX" OFF)
+option(CUDA_KEEP_FILES "Keep all intermediate files that are generated during internal compilation steps (folder: nvcc_tmp)" OFF)
+option(CUDA_SHOW_CODELINES "Show kernel lines in cuda-gdb and cuda-memcheck" OFF)
 
 if(CUDA_SHOW_CODELINES)
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" -Xcompiler -rdynamic -lineinfo)
@@ -145,12 +151,12 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 ################################################################################
 
 option(PMACC_BLOCKING_KERNEL 
-       "Activate checks for every kernel call and synchronize after every kernel call." OFF)
+       "Activate checks for every kernel call and synchronize after every kernel call" OFF)
 if(PMACC_BLOCKING_KERNEL)
     add_definitions(-DPMACC_SYNC_KERNEL=1)
 endif(PMACC_BLOCKING_KERNEL)
 
-set(PMACC_VERBOSE "0" CACHE STRING "Set verbosity level for libPMacc.")
+set(PMACC_VERBOSE "0" CACHE STRING "Set verbosity level for libPMacc")
 add_definitions(-DPMACC_VERBOSE_LVL=${PMACC_VERBOSE})
 
 
@@ -197,7 +203,7 @@ add_subdirectory(${MPI_INFO_DIR} "${CMAKE_CURRENT_BINARY_DIR}/build_mpiInfo")
 ################################################################################
 
 set(PIC_VERBOSE "1" CACHE STRING
-    "Set verbosity level for PIConGPU (default is only physics output).")
+    "Set verbosity level for PIConGPU (default is only physics output)")
 add_definitions(-DPIC_VERBOSE_LVL=${PIC_VERBOSE})
 
 option(PIC_ENABLE_INSITU_VOLVIS "Enable In Situ Volume Visualization" OFF)
@@ -239,7 +245,7 @@ endif()
 find_path(PMACC_ROOT_DIR
   NAMES include/types.h
   PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../libPMacc"
-  DOC "libPMacc root location."
+  DOC "libPMacc root location"
   )
 include_directories(${PMACC_ROOT_DIR}/include)
 
@@ -254,7 +260,7 @@ if(HDF5_FOUND)
     find_path(PIC_SPLASH_ROOT_DIR
       NAMES include/splash.h lib/libsplash.a
       PATHS ENV SPLASH_ROOT
-      DOC "libSplash ROOT location (Only used if HDF5 is enabled)."
+      DOC "libSplash ROOT location (Only used if HDF5 is enabled)"
     )
 
   if(PIC_SPLASH_ROOT_DIR)
@@ -291,7 +297,8 @@ endif(HDF5_FOUND)
 find_path(PIC_PNGWRITER_ROOT_DIR
     NAMES include/pngwriter.h
     PATHS ENV PNGWRITER_ROOT 
-    DOC "pngwriter ROOT location.")
+    DOC "pngwriter ROOT location")
+
 if(PIC_PNGWRITER_ROOT_DIR)
     message(STATUS "Found PNGWriter: "${PIC_PNGWRITER_ROOT_DIR})
 
@@ -325,7 +332,7 @@ find_path(PIC_EXTENSION_PATH
     )
 
 set(PIC_COPY_ON_INSTALL "include/simulation_defines" "submit" CACHE LIST
-    "Folder which is copied to installation path during install." )
+    "Folder which is copied to installation path during install" )
 
 include_directories(include)
 include_directories(BEFORE ${PIC_EXTENSION_PATH}/include)
@@ -336,10 +343,15 @@ include_directories(BEFORE ${PIC_EXTENSION_PATH}/include)
 ################################################################################
 
 if(VAMPIR_ENABLE)
+    find_path(PIC_VT_ROOT_DIR
+        NAMES include/vampirtrace/vt_user.h lib/libvt-hyb.so
+        PATHS ENV VT_ROOT 
+        DOC "VampirTrace ROOT location")
+
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}
         -Xcompiler=-finstrument-functions,-finstrument-functions-exclude-file-list=\\\"${CMAKE_CXX_INST_FILE_FILTER}\\\"
         -Xcompiler=-finstrument-functions-exclude-function-list=\\\"${CMAKE_CXX_INST_FUNC_FILTER}\\\"
-        -Xcompiler=-DVTRACE -Xcompiler=-I/sw/xk6/vampirtrace/5.14.3-iofsl/cle4.1_gnu4.7.2//include/vampirtrace/
+        -Xcompiler=-DVTRACE -Xcompiler=-I\\\"${PIC_VT_ROOT_DIR}/include/vampirtrace\\\"
         -v)
     set(LIBS vt-hyb ${LIBS})
 endif(VAMPIR_ENABLE)
@@ -395,6 +407,7 @@ if( (NOT "${CMAKE_INSTALL_PREFIX}" STREQUAL "${PIC_EXTENSION_PATH}") OR
             install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${dir}/."
               DESTINATION "${CMAKE_INSTALL_PREFIX}/${dir}"
               PATTERN .svn EXCLUDE
+              PATTERN .git EXCLUDE
             )
           endif()
 
@@ -403,6 +416,7 @@ if( (NOT "${CMAKE_INSTALL_PREFIX}" STREQUAL "${PIC_EXTENSION_PATH}") OR
             install(DIRECTORY "${PIC_EXTENSION_PATH}/${dir}/."
                DESTINATION "${CMAKE_INSTALL_PREFIX}/${dir}"
                PATTERN .svn EXCLUDE
+               PATTERN .git EXCLUDE
             )
           endif()
       endif()
