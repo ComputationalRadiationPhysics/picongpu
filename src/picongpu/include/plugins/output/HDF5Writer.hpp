@@ -111,7 +111,7 @@ private:
 
     struct ThreadParams
     {
-        uint32_t currentStep;
+        int32_t currentStep;
         DCollector::DomainCollector *dataCollector;
         GridLayout<DIM> gridLayout;
         DataSpace<DIM> gridPosition;
@@ -304,7 +304,7 @@ public:
     {
         DataConnector &dc = DataConnector::getInstance();
 
-        mThreadParams.currentStep = currentStep;
+        mThreadParams.currentStep = (int32_t)currentStep;
         mThreadParams.gridPosition = SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset();
         this->filter.setStatus(false);
 
@@ -479,6 +479,7 @@ private:
         DataSpace<DIM> field_guard = field_layout.getGuard() + params->window.localOffset;
 
         DataSpace<DIM> sim_offset = params->gridPosition - params->window.globalSimulationOffset;
+        DataSpace<DIM> global_sim_size = params->window.globalSimulationSize;
 
         /*simulation attributes for data*/
         DCollector::ColTypeDouble ctDouble;
@@ -489,10 +490,12 @@ private:
         ///\todo these might be deprecated !
         DCollector::Dimensions sim_size(0, 0, 0);
         DCollector::Dimensions sim_global_offset(0, 0, 0);
+        DCollector::Dimensions sim_global_size(1, 1, 1);
 
         for (uint32_t d = 0; d < simDim; ++d)
         {
             sim_size[d] = field_no_guard[d];
+            sim_global_size[d] = global_sim_size[d];
             /*fields of first gpu in simulation are NULL point*/
             if (sim_offset[d] > 0)
             {
@@ -515,30 +518,35 @@ private:
                 if (dims > 1)
                     str << "_" << name_lookup.at(d);
 
-                params->dataCollector->writeDomain(params->currentStep, colType, DIM,
+                params->dataCollector->writeDomain(params->currentStep, /* id == time step */
+                                                   colType,             /* data type */
+                                                   dims,                /* NDims of the field data (scalar, vector, ...) */
+                                                   /* source buffer, stride, data size, offset */
                                                    DCollector::Dimensions(field_full[0] * dims, field_full[1], field_full[2]),
                                                    DCollector::Dimensions(dims, 1, 1),
                                                    DCollector::Dimensions(field_no_guard[0], field_no_guard[1], field_no_guard[2]),
                                                    DCollector::Dimensions(field_guard[0] * dims + d, field_guard[1], field_guard[2]),
-                                                   str.str().c_str(),
-                                                   domain_offset,
-                                                   domain_size,
+                                                   str.str().c_str(),   /* data set name */
+                                                   domain_offset,       /* offset in global domain */
+                                                   domain_size,         /* local size */
+                                                   Dimensions(0, 0, 0), /* \todo offset of the global domain */
+                                                   sim_global_size,     /* size of the global domain */
                                                    DomainCollector::GridType,
                                                    ptr);
 
-                params->dataCollector->writeAttribute(params->currentStep, 
+                params->dataCollector->writeAttribute(params->currentStep,
                         DCollector::ColTypeDim(), str.str().c_str(), "sim_size",
                         sim_size.getPointer());
-                params->dataCollector->writeAttribute(params->currentStep, 
+                params->dataCollector->writeAttribute(params->currentStep,
                         DCollector::ColTypeDim(), str.str().c_str(), "sim_global_offset",
                         sim_global_offset.getPointer());
-                params->dataCollector->writeAttribute(params->currentStep, 
+                params->dataCollector->writeAttribute(params->currentStep,
                         ctDouble, str.str().c_str(), "sim_unit", &(unit.at(d)));
             }
         }
     }
 
-    static void writeParticlesIntern(ThreadParams *params, DataSpace<DIM>& sim_offset, 
+    static void writeParticlesIntern(ThreadParams *params, DataSpace<DIM>& sim_offset,
                                      DataSpace<DIM3>& sim_size, DCollector::CollectionType& colType,
                                      const uint32_t dims, const uint32_t elements,
                                      const char *prefix, const char *name,
@@ -547,15 +555,18 @@ private:
     {
         DCollector::ColTypeDouble ctDouble;
         DataSpace<DIM> field_no_guard = sim_size;
+        DataSpace<DIM> global_sim_size = params->window.globalSimulationSize;
 
         DCollector::Dimensions domain_offset(0, 0, 0);
         DCollector::Dimensions domain_size(1, 1, 1);
 
         ///\todo this might be deprecated
         DCollector::Dimensions sim_global_offset(0, 0, 0);
+        DCollector::Dimensions sim_global_size(1, 1, 1);
 
         for (uint32_t d = 0; d < simDim; ++d)
         {
+            sim_global_size[d] = global_sim_size[d];
             if (sim_offset[d] > 0)
             {
                 sim_global_offset[d] = sim_offset[d];
@@ -579,15 +590,17 @@ private:
                                                 str.str().c_str(),
                                                 domain_offset,
                                                 domain_size,
+                                                Dimensions(0, 0, 0), /** \todo set to moving window offset */
+                                                sim_global_size,
                                                 ptr);
 
             if (unit != NULL)
             {
-                params->dataCollector->writeAttribute(params->currentStep, 
+                params->dataCollector->writeAttribute(params->currentStep,
                         ctDouble, str.str().c_str(), "sim_unit", &(unit[d]));
             }
-            params->dataCollector->writeAttribute(params->currentStep, 
-                    DCollector::ColTypeDim(), str.str().c_str(), 
+            params->dataCollector->writeAttribute(params->currentStep,
+                    DCollector::ColTypeDim(), str.str().c_str(),
                     "sim_global_offset", sim_global_offset.getPointer());
         }
     }
