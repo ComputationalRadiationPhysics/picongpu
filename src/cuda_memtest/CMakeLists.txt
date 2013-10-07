@@ -30,13 +30,18 @@ if(SAME_NVCC_FLAGS_IN_SUBPROJECTS)
   set(CUDA_ARCH sm_13 CACHE STRING "set GPU architecture" )
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${nvcc_flags} -arch=${CUDA_ARCH})
 
+  if(CUDA_SHOW_CODELINES)
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" --source-in-ptx -Xcompiler -rdynamic -lineinfo)
+    set(CUDA_KEEP_FILES ON CACHE BOOL "activate keep files" FORCE)
+  endif(CUDA_SHOW_CODELINES)
+
   if(CUDA_SHOW_REGISTER)
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" -Xptxas=-v -Xopencc=-LIST:source=on)
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" -Xptxas=-v)
   endif()
 
   if(CUDA_KEEP_FILES)
     make_directory("${PROJECT_BINARY_DIR}/nvcc_tmp")
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" --keep --keep-dir "nvcc_tmp")
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" --keep --keep-dir "${PROJECT_BINARY_DIR}/nvcc_tmp")
   endif()
 endif()
 
