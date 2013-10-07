@@ -128,7 +128,7 @@ private:
         total_num_particles = 0;
         for (uint32_t i = 0; i < particles_container->getNumSubdomains(); ++i)
         {
-            size_t subdomain_elements = particles_container->getIndex(i)->getElements().getDimSize();
+            size_t subdomain_elements = particles_container->getIndex(i)->getElements().getScalarSize();
 
             TYPE* container_data = (TYPE*) (particles_container->getIndex(i)->getData());
             TYPE* dst_ptr = *dst + total_num_particles;
@@ -216,7 +216,7 @@ public:
             // update simulation relative cell positions from file to 
             // gpu-relative positions for new configuration
             //if (gridPosition[i] > 0)
-            for (uint32_t elem = 0; elem < dim_cell.getDimSize(); ++elem)
+            for (uint32_t elem = 0; elem < dim_cell.getScalarSize(); ++elem)
                 cellPositions[i][elem] -= logicalToPhysicalOffset[i];
 
 
@@ -231,9 +231,9 @@ public:
 #endif
 
             assert(dim_pos[0] == dim_cell[0] && dim_cell[0] == dim_mom[0]);
-            assert(dim_pos[0] == dim_pos.getDimSize() &&
-                   dim_cell[0] == dim_cell.getDimSize() &&
-                   dim_mom[0] == dim_mom.getDimSize());
+            assert(dim_pos[0] == dim_pos.getScalarSize() &&
+                   dim_cell[0] == dim_cell.getScalarSize() &&
+                   dim_mom[0] == dim_mom.getScalarSize());
 
             assert(relativePositions[i] != NULL);
             assert(cellPositions[i] != NULL);
@@ -256,9 +256,9 @@ public:
         DataSpace<DIM3> oldSuperCellPos(-1, -1, -1);
         uint32_t localId = 0;
 
-        //std::cout << "Read " << dim_pos.getDimSize() << " particles" << std::endl;
+        //std::cout << "Read " << dim_pos.getScalarSize() << " particles" << std::endl;
 
-        for (uint32_t i = 0; i < dim_pos.getDimSize(); i++)
+        for (uint32_t i = 0; i < dim_pos.getScalarSize(); i++)
         {
             // get super cell
 
