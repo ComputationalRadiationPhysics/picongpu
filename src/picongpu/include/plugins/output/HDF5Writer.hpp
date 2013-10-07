@@ -281,8 +281,6 @@ public:
                 "HDF5 output file")
             ("hdf5.compression", po::value<bool > (&compression)->zero_tokens(), 
                 "enable HDF5 compression");
-            ("hdf5.continue", po::value<bool > (&continueFile)->zero_tokens(), 
-                "continue existing HDF5 file instead of creating a new one");
     }
 
     std::string moduleGetName() const
@@ -398,7 +396,6 @@ private:
             std::cerr << e.what() << std::endl;
             throw std::runtime_error("Failed to open domainCollector");
         }
-            "global_offset", global_offset.getPointer());
     }
 
     void moduleLoad()
@@ -538,7 +535,9 @@ private:
 
     static void writeParticlesIntern(ThreadParams *params, DataSpace<DIM>& sim_offset, 
                                      const uint32_t totalNumElements,
-                                     DCollector::Dimensions &globalSize, DCollector::Dimensions &globalOffset, const uint32_t appendCtr,
+                                     DCollector::Dimensions &globalSize, 
+                                     DCollector::Dimensions &globalOffset,
+                                     const uint32_t appendCtr,
                                      const char *prefix, const char *name,
                                      const std::string name_lookup[], double* unit,
                                      void *ptr)
