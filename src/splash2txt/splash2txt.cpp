@@ -183,31 +183,31 @@ throw (std::runtime_error )
     return true;
 }
 
-void printElement( std::ostream& outStream, DCDataSet::DCDataType dataType,
+void printElement( std::ostream& outStream, DCDataType dataType,
                    void* elem, double unit, std::string delimiter )
 {
     std::stringstream stream;
 
     switch ( dataType )
     {
-    case DCDataSet::DCDT_FLOAT32:
+    case DCDT_FLOAT32:
         stream << std::setprecision( 16 ) << *( (float*) elem ) *
             unit << delimiter;
         break;
-    case DCDataSet::DCDT_FLOAT64:
+    case DCDT_FLOAT64:
         stream << std::setprecision( 16 ) << *( (double*) elem ) *
             unit << delimiter;
         break;
-    case DCDataSet::DCDT_UINT32:
+    case DCDT_UINT32:
         stream << *( (uint32_t*) elem ) * unit << delimiter;
         break;
-    case DCDataSet::DCDT_UINT64:
+    case DCDT_UINT64:
         stream << *( (uint64_t*) elem ) * unit << delimiter;
         break;
-    case DCDataSet::DCDT_INT32:
+    case DCDT_INT32:
         stream << *( (int32_t*) elem ) * unit << delimiter;
         break;
-    case DCDataSet::DCDT_INT64:
+    case DCDT_INT64:
         stream << *( (int64_t*) elem ) * unit << delimiter;
         break;
     default:
@@ -240,7 +240,7 @@ void printParticles( ProgramOptions &options,
                   iter != fileData.end( ); ++iter )
             {
                 DCollector::DataContainer *container = iter->container;
-                DCDataSet::DCDataType data_type =
+                DCDataType data_type =
                     container->getIndex( 0 )->getDataType( );
 
                 if ( i == 0 )
@@ -258,7 +258,7 @@ void printParticles( ProgramOptions &options,
                 }
                 else
                 {
-                    if ( numElementsProcessed[container] == subdomain[container]->getElements( ).getDimSize( ) )
+                    if ( numElementsProcessed[container] == subdomain[container]->getElements( ).getScalarSize( ) )
                     {
                         subdomain[container]->freeData( );
                         subdomainIndex[container]++;
@@ -334,7 +334,7 @@ void printFields( ProgramOptions &options,
                 for ( std::vector<ExDataContainer>::iterator iter = fileData.begin( );
                       iter != fileData.end( ); ++iter )
                 {
-                    DCDataSet::DCDataType data_type =
+                    DCDataType data_type =
                         iter->container->getIndex( 0 )->getDataType( );
 
                     void* element = iter->container->getElement( index );
@@ -390,9 +390,7 @@ void convertToText( DomainCollector &dc, ProgramOptions &options, std::ostream &
     }
 
     Domain ref_total_domain;
-    ref_total_domain = dc.getTotalDomain( options.step, options.data[0].c_str( ) );
-
-    size_t num_elements = dc.getTotalElements( options.step, options.data[0].c_str( ) );
+    ref_total_domain = dc.getGlobalDomain( options.step, options.data[0].c_str( ) );
 
     for ( std::vector<std::string>::const_iterator iter = options.data.begin( );
           iter != options.data.end( ); ++iter )
@@ -406,10 +404,7 @@ void convertToText( DomainCollector &dc, ProgramOptions &options, std::ostream &
         if ( data_class != ref_data_class )
             throw std::runtime_error( "All requested datasets must be of the same data class" );
 
-        if ( dc.getTotalElements( options.step, iter->c_str( ) ) != num_elements )
-            throw std::runtime_error( "All requested datasets must contain same number of elements" );
-
-        Domain total_domain = dc.getTotalDomain( options.step, iter->c_str( ) );
+        Domain total_domain = dc.getGlobalDomain( options.step, iter->c_str( ) );
         if ( total_domain != ref_total_domain )
             throw std::runtime_error( "All requested datasets must map to the same domain" );
 
@@ -421,13 +416,13 @@ void convertToText( DomainCollector &dc, ProgramOptions &options, std::ostream &
             // poly type
 
             excontainer.container = dc.readDomain( options.step, iter->c_str( ),
-                                                   total_domain.getStart( ), total_domain.getSize( ), NULL, true );
+                                                   total_domain.getOffset( ), total_domain.getSize( ), NULL, true );
         }
         else
         {
             // grid type
 
-            Dimensions offset( total_domain.getStart( ) );
+            Dimensions offset( total_domain.getOffset( ) );
             Dimensions domain_size( total_domain.getSize( ) );
 
             for ( int i = 0; i < 3; ++i )
@@ -571,7 +566,7 @@ void listAvailableDatasets( DomainCollector& dc, std::ostream &outStream )
     printAvailableDatasets( dataTypeNames, "  ", outStream );
 
     // global cell size and start
-    Domain totalDomain = dc.getTotalDomain( entries[0], ( dataTypeNames.front( ).name.c_str( ) ) );
+    Domain totalDomain = dc.getGlobalDomain( entries[0], ( dataTypeNames.front( ).name.c_str( ) ) );
     outStream << std::endl
         << "Total domain: "
         << totalDomain.toString( ) << std::endl;
