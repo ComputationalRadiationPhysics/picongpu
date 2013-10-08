@@ -32,7 +32,8 @@ cmake_minimum_required(VERSION 2.8.5)
 
 project(splash2txt)
 
-set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{BOOST_ROOT}" "$ENV{HDF5_ROOT}")
+set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{MPI_ROOT}"
+    "$ENV{BOOST_ROOT}" "$ENV{HDF5_ROOT}")
 
 
 ################################################################################
@@ -55,6 +56,22 @@ find_package(HDF5 REQUIRED)
 include_directories(${HDF5_INCLUDE_DIR})
 link_directories(${HDF5_LIBRARY_DIRS})
 set(LIBS ${LIBS} hdf5)
+
+
+################################################################################
+# Find MPI (optional, required by parallel hdf5)
+################################################################################
+
+find_package(MPI)
+if(MPI_C_FOUND)
+    include_directories(SYSTEM ${MPI_C_INCLUDE_PATH})
+    set(LIBS ${LIBS} ${MPI_C_LIBRARIES})
+endif(MPI_C_FOUND)
+
+# bullxmpi fails if it can not find its c++ counter part
+if(MPI_CXX_FOUND)
+    set(LIBS ${LIBS} ${MPI_CXX_LIBRARIES})
+endif(MPI_CXX_FOUND)
 
 
 ################################################################################
