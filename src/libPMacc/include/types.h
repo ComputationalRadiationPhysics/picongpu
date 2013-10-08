@@ -212,16 +212,25 @@ enum AreaType
                         {                                                      \
                                 return in_default;                             \
                         }                                                      \
+                   static HDINLINE char* getName()                             \
+                        {                                                      \
+                                return #name;                                  \
+                        }                                                      \
                    )
 
 identifier(pmacc_void);
 identifier(pmacc_isAlias);
 
 /*define special makros for creating classes which are ony used as identifer*/
-#define PMACC_alias(name,id)                                          \
+#define PMACC_alias(name,id)                                                   \
     namespace PMACC_JOIN(placeholder_definition,id) {                          \
         template<typename T=pmacc_void,typename T_IsAlias=pmacc_isAlias>       \
-        struct name:public T{                                                  \
+        struct name:public T                                                   \
+        {                                                                      \
+            static HDINLINE char* getName()                                    \
+            {                                                                  \
+                     return #name;                                             \
+            }                                                                  \
         };                                                                     \
     }                                                                          \
     using namespace PMACC_JOIN(placeholder_definition,id);                     \

@@ -44,6 +44,8 @@ namespace picongpu
      */
     typedef boost::mpl::vector<FieldE, FieldB> NativeHdf5OutputFields;
     
+    typedef boost::mpl::vector<PIC_Electrons, PIC_Ions> Hdf5OutputParticles;
+    
     /** TimeAvg Fields
      * \todo Reduce/Avg on host-side RAM with an analyser
      */

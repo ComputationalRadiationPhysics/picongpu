@@ -36,13 +36,19 @@ class VectorDataBox : public DataBox<PitchedBox<TYPE, DIM1> >
 public:
     typedef DataBox<PitchedBox<TYPE, DIM1> > BaseType;
     typedef TYPE type;
-    
+
     template<class> struct result;
 
     template<class F, typename T>
     struct result < F(T)>
     {
-        typedef typename F::type& type;
+        typedef  TYPE& type;
+    };
+
+    template<class F, typename T>
+    struct result < const F(T)>
+    {
+        typedef const  TYPE& type;
     };
 
     HDINLINE VectorDataBox(TYPE* pointer,
