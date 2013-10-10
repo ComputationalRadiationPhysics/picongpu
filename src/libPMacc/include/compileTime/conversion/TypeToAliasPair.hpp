@@ -23,43 +23,37 @@
 
 #include "types.h"
 
-#include <boost/mpl/map.hpp>
-#include <boost/mpl/copy.hpp>
-#include <boost/mpl/size.hpp>
-#include <boost/mpl/transform.hpp>
-#include <boost/mpl/placeholders.hpp>
-#include <boost/mpl/insert.hpp>
-
-#include <boost/type_traits.hpp>
-
-#include "math/MapTuple.hpp"
-#include "math/Vector.hpp"
-
-#include "particles/memory/boxes/TileDataBox.hpp"
-#include "algorithms/accessors/Identity.hpp"
+#include <boost/mpl/pair.hpp>
+#include "compileTime/conversion/TypeToPair.hpp"
 
 namespace PMacc
 {
 namespace bmpl = boost::mpl;
-namespace pmath = PMacc::math;
 
-
-template<typename T_MPLSeq,
-template<typename> class T_UnaryOperator,
-template<typename> class T_Accessor = algorithms::accessors::Identity
->
-struct CreateMap
+/** create boost mpl pair 
+ * 
+ * If T_Type is a pmacc alias than first is set to anonym alias name
+ * and second is set to T_Type.
+ * If T_Type is no alias than TypeToPair is used.
+ * 
+ * @tparam T_Type any type
+ * @resturn ::type 
+ */
+template<typename T_Type>
+struct TypeToAliasPair
 {
-    typedef T_MPLSeq MPLSeq;
-    typedef bmpl::inserter< bmpl::map0<>, bmpl::insert<bmpl::_1, bmpl::_2> > Map_inserter;
-    typedef typename bmpl::transform<
-            MPLSeq,
-            T_UnaryOperator<
-            typename T_Accessor<
-            bmpl::_1
-            >::type
-            >, Map_inserter >::type type;
-
+    typedef typename TypeToPair<T_Type>::type type;
 };
+
+/** specialisation if T_Type is a pmacc alias*/
+template<template<typename,typename> class T_Alias,typename T_Type>
+struct TypeToAliasPair< T_Alias<T_Type,PMacc::pmacc_isAlias> >
+{
+    typedef
+    bmpl::pair< T_Alias<pmacc_void,PMacc::pmacc_isAlias> ,
+            T_Alias<T_Type,PMacc::pmacc_isAlias> >
+            type;
+};
+
 
 }//namespace PMacc

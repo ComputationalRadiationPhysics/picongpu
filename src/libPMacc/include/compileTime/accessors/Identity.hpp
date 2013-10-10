@@ -26,26 +26,25 @@
 
 namespace PMacc
 {
-namespace algorithms
+namespace compileTime
 {
 
 namespace accessors
 {
 
-/** Get second type of the given type
+/** Get the type of a given type without changes
  * 
- * \tparam T type from which we return the second held type
+ * \tparam T in type
  * 
- * T must have defined ::second 
  */
 template<typename T>
-struct Second
+struct Identity
 {
-    typedef typename T::second type;
+    typedef T type;
 };
 
 }//namespace accessors
 
-}//namespace algorithms
+}//namespace compileTime
 
 }//namepsace  PMacc

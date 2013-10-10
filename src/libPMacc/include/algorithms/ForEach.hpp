@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "algorithms/accessors/Identity.hpp"
+#include "compileTime/accessors/Identity.hpp"
 
 #include <boost/mpl/begin_end.hpp>
 #include <boost/mpl/next_prior.hpp>
@@ -227,7 +227,7 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(PMACC_MAX_FUNCTOR_TEMPLATES), PMACC_FORE
  *          as T0.
  *  
  */
-template<typename MPLSeq, typename Functor, class Accessor = accessors::Identity<void> >
+template<typename MPLSeq, typename Functor, class Accessor = compileTime::accessors::Identity<void> >
 struct ForEach
 {
     typedef typename boost::mpl::begin<MPLSeq>::type begin;

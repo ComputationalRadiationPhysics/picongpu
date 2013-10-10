@@ -19,33 +19,33 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */
 
+
 #pragma once
 
 #include "types.h"
 
-#include <boost/mpl/pair.hpp>
-
 namespace PMacc
 {
-namespace bmpl = boost::mpl;
-
-template<typename T_Key>
-struct KeyToAliasPair
+namespace compileTime
 {
-    typedef
-    bmpl::pair< T_Key,
-            T_Key >
-            type;
+
+namespace accessors
+{
+
+/** Get second type of the given type
+ * 
+ * \tparam T type from which we return the second held type
+ * 
+ * T must have defined ::second 
+ */
+template<typename T>
+struct Second
+{
+    typedef typename T::second type;
 };
 
-template<template<typename,typename> class T_Alias,typename T_Key>
-struct KeyToAliasPair< T_Alias<T_Key,pmacc_isAlias> >
-{
-    typedef
-    bmpl::pair< T_Alias<pmacc_void,pmacc_isAlias> ,
-            T_Alias<T_Key,pmacc_isAlias> >
-            type;
-};
+}//namespace accessors
 
+}//namespace compileTime
 
-}//namespace PMacc
+}//namepsace  PMacc

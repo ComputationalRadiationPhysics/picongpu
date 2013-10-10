@@ -22,9 +22,9 @@
 #pragma once
 
 #include "types.h"
-#include "particles/compileTime/CreateMap.hpp"
-#include "particles/compileTime/accessors/KeyToAliasPair.hpp"
-#include "particles/compileTime/accessors/KeyToKeyPair.hpp"
+#include "compileTime/ConvertToMap.hpp"
+#include "compileTime/conversion/TypeToAliasPair.hpp"
+#include "compileTime/conversion/TypeToPair.hpp"
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/copy.hpp>
 
@@ -45,9 +45,9 @@ struct GetKeyFromAlias
 {
 
     /*create a map where Key is a undeclared alias and value is real type*/
-    typedef typename CreateMap<T_MPLSeq,KeyToAliasPair>::type AliasMap;
+    typedef typename ConvertToMap<T_MPLSeq,TypeToAliasPair>::type AliasMap;
     /*create a map where Key and value is real type*/
-    typedef typename CreateMap<T_MPLSeq,KeyToKeyPair>::type KeyMap;
+    typedef typename ConvertToMap<T_MPLSeq,TypeToPair>::type KeyMap;
     /*combine both maps*/
     typedef bmpl::inserter< KeyMap, bmpl::insert<bmpl::_1, bmpl::_2> > Map_inserter;
     typedef typename bmpl::copy<

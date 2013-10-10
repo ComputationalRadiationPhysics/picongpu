@@ -19,25 +19,33 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */
 
+
 #pragma once
 
 #include "types.h"
 
-#include <boost/mpl/pair.hpp>
-
 namespace PMacc
 {
-namespace bmpl = boost::mpl;
-
-template<typename T_Key>
-struct KeyToKeyPair
+namespace compileTime
 {
-    typedef
-    bmpl::pair< T_Key,
-            T_Key >
-            type;
+
+namespace accessors
+{
+
+/** Get first type of the given type
+ * 
+ * \tparam T type from which we return the first held type
+ * 
+ * T must have defined ::first 
+ */
+template<typename T>
+struct First
+{
+    typedef typename T::first type;
 };
 
+}//namespace accessors
 
+}//namespace compileTime
 
-}//namespace PMacc
+}//namepsace  PMacc

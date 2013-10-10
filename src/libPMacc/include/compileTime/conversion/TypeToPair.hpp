@@ -19,33 +19,31 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */
 
-
 #pragma once
 
 #include "types.h"
 
+#include <boost/mpl/pair.hpp>
+
 namespace PMacc
 {
-namespace algorithms
-{
+namespace bmpl = boost::mpl;
 
-namespace accessors
-{
 
-/** Get first type of the given type
+/** create boost mpl pair 
  * 
- * \tparam T type from which we return the first held type
- * 
- * T must have defined ::first 
+ * @tparam T_Type any type
+ * @resturn ::type boost mpl pair where first and second is set to T_Type
  */
-template<typename T>
-struct First
+template<typename T_Type>
+struct TypeToPair
 {
-    typedef typename T::first type;
+    typedef
+    bmpl::pair< T_Type,
+            T_Type >
+            type;
 };
 
-}//namespace accessors
 
-}//namespace algorithms
 
-}//namepsace  PMacc
+}//namespace PMacc

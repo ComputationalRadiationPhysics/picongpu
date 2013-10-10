@@ -33,13 +33,13 @@
 #include "particles/boostExtension/InheritLinearly.hpp"
 #include "particles/memory/dataTypes/Particle.hpp"
 #include "particles/frame_types.hpp"
-#include "particles/compileTime/CreateMap.hpp"
+#include "compileTime/ConvertToMap.hpp"
 #include <boost/utility/result_of.hpp>
 #include <boost/mpl/find.hpp>
 #include <boost/type_traits/is_same.hpp>
 #include <boost/mpl/deref.hpp>
 
-#include "particles/compileTime/GetKeyFromAlias.hpp"
+#include "compileTime/GetKeyFromAlias.hpp"
 
 #include "traits/HasIdentifier.hpp"
 
@@ -56,14 +56,14 @@ typename T_MethodsList = bmpl::list<>,
 typename T_Flags = bmpl::list<> >
 struct Frame :
 public InheritLinearly<T_MethodsList>,
-protected pmath::MapTuple<typename CreateMap<T_ValueTypeSeq, T_CreatePairOperator>::type, pmath::AlignedData>
+protected pmath::MapTuple<typename ConvertToMap<T_ValueTypeSeq, T_CreatePairOperator>::type, pmath::AlignedData>
 {
     // typedef T_CreatePairOperator CoverOperator;
     typedef T_ValueTypeSeq ValueTypeSeq;
     typedef T_MethodsList MethodsList;
     typedef T_Flags AttributeList;
     typedef Frame<T_CreatePairOperator, ValueTypeSeq, MethodsList, AttributeList> ThisType;
-    typedef pmath::MapTuple<typename CreateMap<ValueTypeSeq, T_CreatePairOperator>::type, pmath::AlignedData> BaseType;
+    typedef pmath::MapTuple<typename ConvertToMap<ValueTypeSeq, T_CreatePairOperator>::type, pmath::AlignedData> BaseType;
 
     typedef pmacc::Particle<ThisType> ParticleType;
 

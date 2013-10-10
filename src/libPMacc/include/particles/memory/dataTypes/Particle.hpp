@@ -27,7 +27,7 @@
 #include <boost/type_traits.hpp>
 #include <boost/mpl/if.hpp>
 #include "traits/HasIdentifier.hpp"
-#include "particles/compileTime/GetKeyFromAlias.hpp"
+#include "compileTime/GetKeyFromAlias.hpp"
 #include "particles/operations/CopyIdentifier.hpp"
 #include "algorithms/ForEach.hpp"
 #include "RefWrapper.hpp"
@@ -88,22 +88,14 @@ struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
 
         return frame.getIdentifier(key)[idx];
     }
-    /*
+    private:
+        /* we disallow to assign this class*/
         template<typename T_OtherParticle >
             HDINLINE
-            ThisType& operator=(const T_OtherParticle& other)
-        {
-            particles::operations::assign(*this, other);
-            return *this;
-        }
+            ThisType& operator=(const T_OtherParticle& other);
 
         HDINLINE
-        ThisType& operator=(const ThisType& other)
-        {
-            particles::operations::assign(*this, other);
-            return *this;
-        }
-     */
+        ThisType& operator=(const ThisType& other);
 };
 
 namespace traits
