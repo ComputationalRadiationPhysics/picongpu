@@ -22,9 +22,9 @@
 #pragma once
 
 #include "types.h"
-#include "particles/factories/CreateMap.hpp"
-#include "particles/factories/accessors/KeyToAliasPair.hpp"
-#include "particles/factories/accessors/KeyToKeyPair.hpp"
+#include "particles/compileTime/CreateMap.hpp"
+#include "particles/compileTime/accessors/KeyToAliasPair.hpp"
+#include "particles/compileTime/accessors/KeyToKeyPair.hpp"
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/copy.hpp>
 

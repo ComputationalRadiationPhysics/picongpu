@@ -76,7 +76,7 @@ namespace picongpu
             par[weighting_] = parWeighting;
 
 #if(ENABLE_RADIATION == 1)
-            par[momentum_mt1_] = float3_X(0.f, 0.f, 0.f);
+            par[momentumPrev1_] = float3_X(0.f, 0.f, 0.f);
             par[radiationFlag_] = true;
 #endif
         }

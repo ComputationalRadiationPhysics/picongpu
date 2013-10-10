@@ -191,7 +191,7 @@ __global__ void kernelFillGridWithParticles(ParBox pb,
             particle[momentum_] = float3_X(0,0,0);
 
 #if(ENABLE_RADIATION == 1)
-            particle[momentum_mt1_] = momentum_mt1::getDefaultValue();
+            particle[momentumPrev1_] = momentumPrev1::getDefaultValue();
 #if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
 #if(RAD_MARK_PARTICLE==0) 
             //if we need gamma filter but no mark particles at begin of simulation we set all to false

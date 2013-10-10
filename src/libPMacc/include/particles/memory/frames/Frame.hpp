@@ -33,13 +33,13 @@
 #include "particles/boostExtension/InheritLinearly.hpp"
 #include "particles/memory/dataTypes/Particle.hpp"
 #include "particles/frame_types.hpp"
-#include "particles/factories/CreateMap.hpp"
+#include "particles/compileTime/CreateMap.hpp"
 #include <boost/utility/result_of.hpp>
 #include <boost/mpl/find.hpp>
 #include <boost/type_traits/is_same.hpp>
 #include <boost/mpl/deref.hpp>
 
-#include "particles/factories/GetKeyFromAlias.hpp"
+#include "particles/compileTime/GetKeyFromAlias.hpp"
 
 #include "traits/HasIdentifier.hpp"
 

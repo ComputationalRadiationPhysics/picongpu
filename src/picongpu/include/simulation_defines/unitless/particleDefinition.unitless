@@ -69,7 +69,7 @@ struct Unit<momentum >
 };
 
 template<>
-struct Unit<momentum_mt1 >
+struct Unit<momentumPrev1> 
 {
   static std::vector<double> get()
   {
@@ -96,7 +96,10 @@ struct Unit<globalCellIdx<T_Type> >
 {
   static std::vector<double> get()
   {
-      std::vector<double> unit;
+      std::vector<double> unit(DIM3);
+      unit[0]=CELL_WIDTH*UNIT_LENGTH;
+      unit[1]=CELL_HEIGHT*UNIT_LENGTH;
+      unit[2]=CELL_DEPTH*UNIT_LENGTH;
       return unit;
   }
 };

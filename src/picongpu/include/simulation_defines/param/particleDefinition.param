@@ -42,7 +42,7 @@ alias(globalCellIdx);
 value_identifier(float3_X,position_pic,float3_X(0.,0.,0.));
 value_identifier(float3_X,momentum,float3_X(0.,0.,0.));
 value_identifier(float_X,weighting,0.0);
-value_identifier(float3_X,momentum_mt1,float3_X(0.,0.,0.));   
+value_identifier(float3_X,momentumPrev1,float3_X(0.,0.,0.));   
 value_identifier(bool,radiationFlag,false);    
 
 value_identifier(DataSpace<3>,globalCellIdx_pic,DataSpace<3>());  

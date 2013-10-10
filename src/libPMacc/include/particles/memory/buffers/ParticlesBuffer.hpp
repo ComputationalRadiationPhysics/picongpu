@@ -66,7 +66,7 @@ class ParticlesBuffer
 public:
 
     template<typename Key>
-    struct CastToStaticArraySuperCell
+    struct OperatorCreatePairStaticArrayWithSuperCellSize
     {
         typedef
         bmpl::pair<Key,
@@ -75,7 +75,7 @@ public:
     };
     
     template<typename Key>
-    struct CastToStaticArrayOne
+    struct OperatorCreatePairStaticArrayOneElement
     {
         typedef
         bmpl::pair<Key,
@@ -100,9 +100,9 @@ public:
     boost::mpl::vector<localCellIdx>
     >::type border_particleList;
 
-    typedef Frame<CastToStaticArraySuperCell,full_particleList,T_MethodsVector> ParticleType;
+    typedef Frame<OperatorCreatePairStaticArrayWithSuperCellSize,full_particleList,T_MethodsVector> ParticleType;
 
-    typedef Frame<CastToStaticArrayOne,border_particleList,T_MethodsVector> ParticleTypeBorder;
+    typedef Frame<OperatorCreatePairStaticArrayOneElement,border_particleList,T_MethodsVector> ParticleTypeBorder;
 
 
 private:

@@ -27,8 +27,8 @@
 #include <boost/type_traits.hpp>
 #include <boost/mpl/if.hpp>
 #include "traits/HasIdentifier.hpp"
-#include "particles/factories/GetKeyFromAlias.hpp"
-#include "particles/factories/CopyIdentifier.hpp"
+#include "particles/compileTime/GetKeyFromAlias.hpp"
+#include "particles/operations/CopyIdentifier.hpp"
 #include "algorithms/ForEach.hpp"
 #include "RefWrapper.hpp"
 

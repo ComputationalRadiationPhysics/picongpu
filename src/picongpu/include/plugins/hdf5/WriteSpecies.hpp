@@ -105,6 +105,16 @@ struct FreeMemory
     }
 };
 
+/*functor to create a pair for a MapTupel map*/
+template<typename InType>
+struct OperatorCreateVectorBox
+{
+    typedef
+    bmpl::pair< InType,
+            PMacc::VectorDataBox< typename InType::type > >
+            type;
+};
+
 /** Write calculated fields to HDF5 file.
  * 
  */
@@ -142,7 +152,7 @@ public:
 
     typedef typename JoinVectors<ParticleCleantAttributeList, boost::mpl::vector<globalCellIdx<globalCellIdx_pic> > >::type ParticleNewAttributeList;
 
-    typedef Frame<CastToVectorBox, ParticleNewAttributeList, ParticleMethodsList> Hdf5FrameType;
+    typedef Frame<OperatorCreateVectorBox, ParticleNewAttributeList, ParticleMethodsList> Hdf5FrameType;
 
     HINLINE void operator()(RefWrapper<ThreadParams*> params,
                             std::string prefix,

@@ -19,8 +19,7 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */
 
-#ifndef TILEDATABOX_HPP
-#define	TILEDATABOX_HPP
+#pragma once
 
 #include "particles/frame_types.hpp"
 #include "memory/boxes/DataBox.hpp"
@@ -107,5 +106,3 @@ protected:
 
 
 }
-
-#endif	/* TILEDATABOX_HPP */

@@ -424,7 +424,7 @@ struct PushParticlePerFrame
         const float_X mass = frame.getMass(weighting);
 #if(ENABLE_RADIATION == 1) 
         radiation::PushExtension < (RAD_MARK_PARTICLE > 1) || (RAD_ACTIVATE_GAMMA_FILTER != 0) > extensionRadiation;
-        float3_X& mom_mt1 = particle[momentum_mt1_];
+        float3_X& mom_mt1 = particle[momentumPrev1_];
 #if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
         bool& radiationFlag = particle[radiationFlag_];
         extensionRadiation(mom_mt1, mom, mass, radiationFlag);

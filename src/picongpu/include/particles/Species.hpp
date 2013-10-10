@@ -36,7 +36,7 @@ using namespace PMacc;
 /*add old momentum for radiation plugin*/
 typedef bmpl::vector<
 #if(ENABLE_RADIATION == 1)
-    momentum_mt1
+    momentumPrev1
 #endif
 > AttributMomentum_mt1;
 

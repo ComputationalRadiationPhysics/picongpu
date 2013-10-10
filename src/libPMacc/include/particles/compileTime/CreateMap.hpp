@@ -44,34 +44,6 @@ namespace bmpl = boost::mpl;
 namespace pmath = PMacc::math;
 
 
-template<typename InType>
-struct CastToVector
-{
-    typedef
-    bmpl::pair<InType,
-            PMacc::math::Vector< typename InType::type, DIM3> >
-            type;
-};
-
-template<typename InType>
-struct AddReference
-{
-    typedef
-    bmpl::pair<
-            InType,
-            typename boost::add_reference<typename InType::type>::type>
-            type;
-};
-
-template<typename InType>
-struct CastToVectorBox
-{
-    typedef
-    bmpl::pair< InType,
-            PMacc::VectorDataBox< typename InType::type > >
-            type;
-};
-
 template<typename T_MPLSeq,
 template<typename> class T_UnaryOperator,
 template<typename> class T_Accessor = algorithms::accessors::Identity

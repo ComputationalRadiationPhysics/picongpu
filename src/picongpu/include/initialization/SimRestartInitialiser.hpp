@@ -226,7 +226,7 @@ public:
 #if(ENABLE_RADIATION == 1)
             // read old momentum of particles
             loadParticleData<float> (&(momentums_mt1[i]), simulationStep, dataCollector,
-                                     dim_mom_mt1, *ctFloat, prefix + std::string("_momentum_mt1_") + name_lookup[i], globalDomainOffset, localDomainSize);
+                                     dim_mom_mt1, *ctFloat, prefix + std::string("_momentumPrev1_") + name_lookup[i], globalDomainOffset, localDomainSize);
 #endif
 
             assert(dim_pos[0] == dim_cell[0] && dim_cell[0] == dim_mom[0]);
@@ -328,7 +328,7 @@ public:
                 particle[momentum_][d] = momentums[d][i];
 #if(ENABLE_RADIATION == 1)
                 //!\todo: only use Momentum_mt1 if particle type is electrons
-                particle[momentum_mt1_][d] = momentums_mt1[d][i];
+                particle[momentumPrev1_][d] = momentums_mt1[d][i];
 #endif
 
             }

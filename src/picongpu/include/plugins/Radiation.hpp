@@ -266,7 +266,7 @@ void kernelRadiationParticles(ParBox pb,
 
                             // get old and new particle momenta
                             const vec1 particle_momentumNow = vec1(par[momentum_]);
-                            const vec1 particle_momentumOld = vec1(par[momentum_mt1_]);
+                            const vec1 particle_momentumOld = vec1(par[momentumPrev1_]);
 
 
                             /* get macro-particle weighting

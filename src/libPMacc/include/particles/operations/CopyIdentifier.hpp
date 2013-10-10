@@ -31,16 +31,6 @@ namespace PMacc
 namespace bmpl = boost::mpl;
 namespace pmath = PMacc::math;
 
-struct Check
-{
-    template<typename T_T1,typename T_T2>
-    HDINLINE
-    void operator()(T_T1& dest, const T_T2& src) 
-    {
-        dest=src;
-    }
-
-};
 
 template<typename T_Key>
 struct CopyIdentifier
@@ -49,8 +39,7 @@ struct CopyIdentifier
     HDINLINE
     void operator()(RefWrapper<T_T1> dest, const T_T2& src) 
     {
-        //PMACC_AUTO(var,dest.get());
-        Check()(dest.get()[T_Key()],src[T_Key()]);
+        dest.get()[T_Key()]=src[T_Key()];
     }
     
  

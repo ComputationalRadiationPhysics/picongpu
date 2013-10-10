@@ -76,7 +76,7 @@ __global__ void kernelAddOneParticle(ParBox pb,
         par[weighting_] = parWeighting;
 
 #if(ENABLE_RADIATION == 1)
-        frame[i][momentum_mt1_] = float3_X(0.f, 0.f, 0.f);
+        frame[i][momentumPrev1_] = float3_X(0.f, 0.f, 0.f);
         frame[i][radiationFlag_] = true;
 #endif
     }
