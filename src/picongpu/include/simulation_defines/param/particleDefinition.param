@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, René Widera
+ * Copyright 2013 René Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -29,12 +29,12 @@
 
 namespace picongpu
 {
-
 namespace bmpl=boost::mpl;
 
 class ElectronMethods;
 class IonMethods;
 
+alias(globalCellIdx);
 value_identifier(float3_X,position_pic,float3_X(0.,0.,0.));
 value_identifier(float3_X,momentum,float3_X(0.,0.,0.));
 value_identifier(float_X,weighting,0.0);
@@ -43,8 +43,12 @@ value_identifier(bool,radiationFlag,false);
 
 value_identifier(DataSpace<3>,globalCellIdx_pic,DataSpace<3>());  
 
-typedef bmpl::vector<position<position_pic>,momentum,weighting> ElectronsDataList;
-typedef bmpl::vector<position<position_pic>,momentum,weighting> IonsDataList;
+/*The next parts is not nice, we change this in a later update with new interfaces*/
+
+typedef bmpl::vector<position<position_pic>,momentum,weighting> DefaultParticleAttributes;
+
+typedef DefaultParticleAttributes ElectronsDataList;
+typedef DefaultParticleAttributes IonsDataList;
 
 typedef bmpl::vector<ElectronMethods> ElectronsMethodsList;
 typedef bmpl::vector<IonMethods> IonsMethodsList;

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, René Widera
+ * Copyright 2013 René Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -25,7 +25,7 @@
 
 #include "types.h"
 #include "simulation_types.hpp"
-
+#include "dimensions/DataSpaceOperations.hpp"
 
 
 namespace picongpu
@@ -38,13 +38,14 @@ using namespace PMacc;
 
 namespace bmpl = boost::mpl;
 
-template<class T_DestFrame, class T_SrcBox, class Filter, class Mapping>
-__global__ void copySpecies(int* counter, T_DestFrame destBox, T_SrcBox srcBox, Filter filter, Mapping mapper)
+template<class T_DestFrame, class T_SrcBox, class Filter, class Space ,class Mapping>
+__global__ void copySpecies(int* counter, T_DestFrame destFrame, T_SrcBox srcBox, Filter filter,Space gpuOffset, Mapping mapper)
 {
     using namespace particles::operations;
 
     typedef T_DestFrame DestFrameType;
     typedef typename T_SrcBox::FrameType SrcFrameType;
+    typedef typename Mapping::SuperCellSize Block;
 
     __shared__ SrcFrameType *srcFramePtr;
     __shared__ int localCounter;
@@ -57,7 +58,8 @@ __global__ void copySpecies(int* counter, T_DestFrame destBox, T_SrcBox srcBox, 
     __syncthreads(); /*wait that all shared memory is initialised*/
 
     const DataSpace<Mapping::Dim> block = mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx));
-    filter.setSuperCellPosition((block - mapper.getGuardingSuperCells()) * mapper.getSuperCellSize());
+    const DataSpace<Mapping::Dim> superCellPosition((block - mapper.getGuardingSuperCells()) * mapper.getSuperCellSize());
+    filter.setSuperCellPosition(superCellPosition);
     if (threadIdx.x == 0)
     {
         localCounter = 0;
@@ -68,7 +70,7 @@ __global__ void copySpecies(int* counter, T_DestFrame destBox, T_SrcBox srcBox, 
     {
         PMACC_AUTO(parSrc, ((*srcFramePtr)[threadIdx.x]));
         storageOffset = -1;
-        if (filter(*srcFramePtr, threadIdx.x))
+        if (parSrc[multiMask_]==1 &&  filter(*srcFramePtr, threadIdx.x))
             storageOffset = atomicAdd(&localCounter, 1);
         __syncthreads();
         if (threadIdx.x == 0)
@@ -78,9 +80,11 @@ __global__ void copySpecies(int* counter, T_DestFrame destBox, T_SrcBox srcBox, 
         __syncthreads();
         if (storageOffset != -1)
         {
-            PMACC_AUTO(parDest, destBox[globalOffset + storageOffset]);
+            PMACC_AUTO(parDest, destFrame[globalOffset + storageOffset]);
             PMACC_AUTO(parDestNoGlobalIdx, deselect<globalCellIdx<> >(parDest));
             assign(parDestNoGlobalIdx, parSrc);
+            DataSpace<Mapping::Dim> localCell(DataSpaceOperations<Mapping::Dim>::template map<Block>(parSrc[localCellIdx_]));
+            parDest[globalCellIdx_]=gpuOffset+superCellPosition+localCell;
         }
         __syncthreads();
         if (threadIdx.x == 0)

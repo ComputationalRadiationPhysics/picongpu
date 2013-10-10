@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, René Widera
+ * Copyright 2013 René Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -28,7 +28,6 @@ namespace PMacc
 {
 
 alias(position);
-alias(globalCellIdx);
 value_identifier(lcellId_t,localCellIdx,0);
 value_identifier(uint8_t,multiMask,0);
 

@@ -1,23 +1,22 @@
 /**
  * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, René Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 #pragma once
@@ -34,7 +33,7 @@
 
 #include "particles/frame_types.hpp"
 
-#include "ParallelDomainCollector.hpp" 
+#include "DomainCollector.hpp"
 #include "basetypes/ColTypeDim.hpp"
 #include "basetypes/ColTypeFloat.hpp"
 #include "basetypes/ColTypeDouble.hpp"
@@ -119,7 +118,7 @@ private:
     }
 
     /** Write calculated fields to HDF5 file.
-     * 
+     *
      */
     template< typename T >
     struct GetDCFields
@@ -159,9 +158,9 @@ private:
     };
 
     /** Calculate FieldTmp with given solver and particle species
-     *  and write them to hdf5.
+     * and write them to hdf5.
      *
-     *  FieldTmp is calculated on device and than dumped to HDF5.
+     * FieldTmp is calculated on device and than dumped to HDF5.
      */
     template< typename ThisSolver, typename ThisSpecies >
     struct GetDCFields<FieldTmpOperation<ThisSolver, ThisSpecies> >
@@ -171,7 +170,7 @@ private:
          * This is only a wrapper function to allow disable nvcc warnings.
          * Warning: calling a __host__ function from __host__ __device__
          * function.
-         * Use of PMACC_NO_NVCC_HDWARNING is not possible if we call a virtual 
+         * Use of PMACC_NO_NVCC_HDWARNING is not possible if we call a virtual
          * method inside of the method were we disable the warnings.
          * Therefore we create this method and call a new method were we can
          * call virtual functions.
@@ -216,7 +215,8 @@ private:
             /*load FieldTmp without copy data to host*/
             FieldTmp* fieldTmp = &(dc.getData<FieldTmp > (FIELD_TMP, true));
             /*load particle without copy particle data to host*/
-            ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(ThisSpecies::FrameType::CommunicationTag, true));
+            ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(
+                                                                 ThisSpecies::FrameType::CommunicationTag, true));
 
             fieldTmp->getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType(0.0));
             /*run algorithm*/
@@ -263,10 +263,14 @@ public:
     void moduleRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
-            ("hdf5.period", po::value<uint32_t > (&notifyFrequency)->default_value(0), "enable HDF5 IO  [for each n-th step]")
-            ("hdf5.file", po::value<std::string > (&filename)->default_value(filename), "HDF5 output file")
-            ("hdf5.compression", po::value<bool > (&compression)->zero_tokens(), "enable HDF5 compression")
-            ("hdf5.continue", po::value<bool > (&continueFile)->zero_tokens(), "continue existing HDF5 file instead of creating a new one");
+            ("hdf5.period", po::value<uint32_t > (&notifyFrequency)->default_value(0),
+             "enable HDF5 IO [for each n-th step]")
+            ("hdf5.file", po::value<std::string > (&filename)->default_value(filename),
+             "HDF5 output file")
+            ("hdf5.compression", po::value<bool > (&compression)->zero_tokens(),
+             "enable HDF5 compression")
+            ("hdf5.continue", po::value<bool > (&continueFile)->zero_tokens(),
+             "continue existing HDF5 file instead of creating a new one");
     }
 
     std::string moduleGetName() const
@@ -283,7 +287,7 @@ public:
     __host__ void notify(uint32_t currentStep)
     {
 
-        mThreadParams.currentStep = currentStep;
+        mThreadParams.currentStep = (int32_t) currentStep;
         mThreadParams.gridPosition = SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset();
         mThreadParams.cellDescription = this->cellDescription;
         this->filter.setStatus(false);
@@ -292,7 +296,7 @@ public:
 
         if (MovingWindow::getInstance().isSlidingWindowActive())
         {
-            //enable  filters for sliding window and configurate position filter
+            //enable filters for sliding window and configurate position filter
             this->filter.setStatus(true);
 
             this->filter.setWindowPosition(mThreadParams.window.localOffset, mThreadParams.window.localSize);
@@ -314,6 +318,7 @@ private:
     {
         if (mThreadParams.dataCollector != NULL)
         {
+            log<picLog::INPUT_OUTPUT > ("HDF5 close DataCollector with file: %1%") % filename;
             mThreadParams.dataCollector->close();
             delete mThreadParams.dataCollector;
             mThreadParams.dataCollector = NULL;
@@ -347,6 +352,7 @@ private:
         // open datacollector
         try
         {
+            log<picLog::INPUT_OUTPUT > ("HDF5 open DataCollector with file: %1%") % filename;
             mThreadParams.dataCollector->open(filename.c_str(), attr);
         }
         catch (DCollector::DCException e)
@@ -357,7 +363,8 @@ private:
 
         DCollector::Dimensions global_offset(10, 11, 12);
         DCollector::ColTypeDim ctDim;
-        mThreadParams.dataCollector->writeGlobalAttribute(ctDim, "global_offset", &global_offset);
+        mThreadParams.dataCollector->writeGlobalAttribute(ctDim,
+                                                          "global_offset", global_offset.getPointer());
 
         continueFile = true; //set continue for the next open
 
@@ -367,9 +374,15 @@ private:
     {
         if (notifyFrequency > 0)
         {
-            mThreadParams.gridPosition = SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset();
+            mThreadParams.gridPosition =
+                SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset();
 
             GridController<simDim> &gc = GridController<simDim>::getInstance();
+            /* it is importend that we never change the mpi_pos after this point 
+             * because we get problems with the restart.
+             * Otherwise we not know which gpu must load the ghost parts around
+             * the sliding window
+             */
             mpi_pos = gc.getPosition();
             mpi_size = gc.getGpuNodes();
 
@@ -385,7 +398,8 @@ private:
     }
 
     static void writeField(ThreadParams *params, DCollector::CollectionType& colType,
-                           const uint32_t dims, const std::string name, std::vector<double> unit, void *ptr)
+                           const uint32_t dims, const std::string name,
+                           std::vector<double> unit, void *ptr)
     {
         log<picLog::INPUT_OUTPUT > ("HDF5 write field: %1% %2% %3%") %
             name % dims % ptr;
@@ -399,10 +413,11 @@ private:
 
         GridLayout<simDim> field_layout = params->gridLayout;
         DataSpace<simDim> field_full = field_layout.getDataSpace();
-        DataSpace<simDim> field_no_guard = params->window.localSize; //field_layout.getDataSpaceWithoutGuarding();
+        DataSpace<simDim> field_no_guard = params->window.localSize;
         DataSpace<simDim> field_guard = field_layout.getGuard() + params->window.localOffset;
 
         DataSpace<simDim> sim_offset = params->gridPosition - params->window.globalSimulationOffset;
+        DataSpace<simDim> global_sim_size = params->window.globalSimulationSize;
 
         /*simulation attributes for data*/
         DCollector::ColTypeDouble ctDouble;
@@ -413,10 +428,12 @@ private:
         ///\todo these might be deprecated !
         DCollector::Dimensions sim_size(0, 0, 0);
         DCollector::Dimensions sim_global_offset(0, 0, 0);
+        DCollector::Dimensions sim_global_size(1, 1, 1);
 
         for (uint32_t d = 0; d < simDim; ++d)
         {
             sim_size[d] = field_no_guard[d];
+            sim_global_size[d] = global_sim_size[d];
             /*fields of first gpu in simulation are NULL point*/
             if (sim_offset[d] > 0)
             {
@@ -439,196 +456,32 @@ private:
                 if (dims > 1)
                     str << "_" << name_lookup.at(d);
 
-                params->dataCollector->writeDomain(params->currentStep, colType, simDim,
+                params->dataCollector->writeDomain(params->currentStep, /* id == time step */
+                                                   colType, /* data type */
+                                                   simDim, /* NDims of the field data (scalar, vector, ...) */
+                                                   /* source buffer, stride, data size, offset */
                                                    DCollector::Dimensions(field_full[0] * dims, field_full[1], field_full[2]),
                                                    DCollector::Dimensions(dims, 1, 1),
                                                    DCollector::Dimensions(field_no_guard[0], field_no_guard[1], field_no_guard[2]),
                                                    DCollector::Dimensions(field_guard[0] * dims + d, field_guard[1], field_guard[2]),
-                                                   str.str().c_str(),
-                                                   domain_offset,
-                                                   domain_size,
+                                                   str.str().c_str(), /* data set name */
+                                                   domain_offset, /* offset in global domain */
+                                                   domain_size, /* local size */
+                                                   Dimensions(0, 0, 0), /* \todo offset of the global domain */
+                                                   sim_global_size, /* size of the global domain */
                                                    DomainCollector::GridType,
                                                    ptr);
 
-                params->dataCollector->writeAttribute(params->currentStep, DCollector::ColTypeDim(), str.str().c_str(), "sim_size", &sim_size);
-                params->dataCollector->writeAttribute(params->currentStep, DCollector::ColTypeDim(), str.str().c_str(), "sim_global_offset", &sim_global_offset);
-                params->dataCollector->writeAttribute(params->currentStep, ctDouble, str.str().c_str(), "sim_unit", &(unit.at(d)));
+                params->dataCollector->writeAttribute(params->currentStep,
+                                                      DCollector::ColTypeDim(), str.str().c_str(), "sim_size",
+                                                      sim_size.getPointer());
+                params->dataCollector->writeAttribute(params->currentStep,
+                                                      DCollector::ColTypeDim(), str.str().c_str(), "sim_global_offset",
+                                                      sim_global_offset.getPointer());
+                params->dataCollector->writeAttribute(params->currentStep,
+                                                      ctDouble, str.str().c_str(), "sim_unit", &(unit.at(d)));
             }
         }
-    }
-
-    static void writeParticlesIntern(ThreadParams *params, DataSpace<simDim>& sim_offset, DataSpace<simDim>& sim_size, DCollector::CollectionType& colType,
-                                     const uint32_t dims, const uint32_t elements, const char *prefix,
-                                     const char *name, const std::string name_lookup[], double* unit, void *ptr)
-    {
-        DCollector::ColTypeDouble ctDouble;
-        DataSpace<simDim> field_no_guard = sim_size;
-
-        DCollector::Dimensions domain_offset(0, 0, 0);
-        DCollector::Dimensions domain_size(1, 1, 1);
-
-        ///\todo this might be deprecated
-        DCollector::Dimensions sim_global_offset(0, 0, 0);
-
-        for (uint32_t d = 0; d < simDim; ++d)
-        {
-            if (sim_offset[d] > 0)
-            {
-                sim_global_offset[d] = sim_offset[d];
-                domain_offset[d] = sim_offset[d];
-            }
-            domain_size[d] = field_no_guard[d];
-        }
-
-        for (uint32_t d = 0; d < dims; d++)
-        {
-            std::stringstream str;
-            str << prefix << name;
-            if (name_lookup != NULL)
-                str << "_" << name_lookup[d];
-
-            params->dataCollector->appendDomain(params->currentStep,
-                                                colType,
-                                                elements,
-                                                d,
-                                                dims,
-                                                str.str().c_str(),
-                                                domain_offset,
-                                                domain_size,
-                                                ptr);
-
-            if (unit != NULL)
-                params->dataCollector->writeAttribute(params->currentStep, ctDouble, str.str().c_str(), "sim_unit", &(unit[d]));
-            params->dataCollector->writeAttribute(params->currentStep, DCollector::ColTypeDim(), str.str().c_str(), "sim_global_offset", &sim_global_offset);
-        }
-    }
-
-    template <class FrameContainerType, class BigFrameType>
-    static void writeParticles(ThreadParams *params, FrameContainerType *frameContainer,
-                               DataSpace<simDim>& sim_offset, DataSpace<simDim>& sim_size, DataSpace<simDim> pysicalToLogicalOffset,
-                               std::string prefix)
-    {
-        // Keep iterating over frameContainer to get new big frames 
-        // which should be written to hdf5 using the dataCollector.
-        bool hasNext = false;
-
-        DCollector::ColTypeFloat ctFloat;
-        DCollector::ColTypeDouble ctDouble;
-        DCollector::ColTypeInt ctInt;
-#if(ENABLE_RADIATION == 1) &&((RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0))
-        DCollector::ColTypeBool ctBool;
-#endif
-
-#if (SIMsimDim == simDim2)
-        const std::string name_lookup[] = {"x", "y"};
-#elif (SIMsimDim == simDim)
-        const std::string name_lookup[] = {"x", "y", "z"};
-#endif
-
-        size_t particleCounter = 0;
-
-
-        double unitMomentum[] = {UNIT_ENERGY, UNIT_ENERGY, UNIT_ENERGY};
-        double unitPos[] = {SI::CELL_WIDTH_SI, SI::CELL_HEIGHT_SI, SI::CELL_DEPTH_SI};
-        double unitWeighting[] = {1.};
-
-
-        // loop over all big frames
-        // note: Write calls have to be performed even if the number 
-        // of elements is zero to allocate the datasets in the file.
-        do
-        {
-            size_t elements = 0;
-            BigFrameType frame;
-            if (frameContainer != NULL)
-            {
-                frame = frameContainer->getNextBigFrame(hasNext);
-                elements = frameContainer->getElemCount();
-            }
-            particleCounter += elements;
-
-            // write position of particle in cell
-            writeParticlesIntern(params,
-                                 sim_offset, sim_size,
-                                 ctFloat,
-                                 simDim,
-                                 elements,
-                                 prefix.c_str(),
-                                 "_relative_position",
-                                 name_lookup,
-                                 unitPos,
-                                 frame.getPosition().getPointer());
-
-            // update gpu-relative cell positions to simulation-relative positions
-            for (size_t i = 0; i < elements; ++i)
-                for (size_t d = 0; d < simDim; ++d)
-                    frame.getGlobalCellIdx()[i][d] += pysicalToLogicalOffset[d];
-
-            // write simulation-relative position of cell
-            writeParticlesIntern(params,
-                                 sim_offset, sim_size,
-                                 ctInt,
-                                 simDim,
-                                 elements,
-                                 prefix.c_str(),
-                                 "_global_cell_pos",
-                                 name_lookup,
-                                 unitPos,
-                                 frame.getGlobalCellIdx().getPointer());
-
-            // write momentum of particle
-            writeParticlesIntern(params,
-                                 sim_offset, sim_size,
-                                 ctFloat,
-                                 simDim,
-                                 elements,
-                                 prefix.c_str(),
-                                 "_momentum",
-                                 name_lookup,
-                                 unitMomentum,
-                                 frame.getMomentum().getPointer());
-
-            // write weighting of particle
-            writeParticlesIntern(params,
-                                 sim_offset, sim_size,
-                                 ctFloat,
-                                 1,
-                                 elements,
-                                 prefix.c_str(),
-                                 "_weighting",
-                                 NULL,
-                                 unitWeighting,
-                                 frame.getWeighting().getPointer());
-#if(ENABLE_RADIATION == 1)
-            // write old memonetum
-            writeParticlesIntern(params,
-                                 sim_offset, sim_size,
-                                 ctFloat,
-                                 simDim,
-                                 elements,
-                                 prefix.c_str(),
-                                 "_momentum_mt1",
-                                 name_lookup,
-                                 unitMomentum,
-                                 frame.getMomentum_mt1().getPointer());
-#if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
-            writeParticlesIntern(params,
-                                 sim_offset, sim_size,
-                                 ctBool,
-                                 1,
-                                 elements,
-                                 prefix.c_str(),
-                                 "_radiationFlag",
-                                 NULL,
-                                 NULL,
-                                 frame.getRadiationFlag().getPointer());
-#endif
-#endif
-        }
-        while (hasNext && frameContainer != NULL);
-
-        params->dataCollector->writeAttribute(params->currentStep, ctDouble, (prefix + std::string("_weighting")).c_str(), "sim_unit", unitWeighting);
-
     }
 
     static void *writeHDF5(void *p_args)
@@ -646,52 +499,49 @@ private:
         DCollector::ColTypeFloat ctFloat;
 
         // write particles
-        DataSpace<simDim> sim_offset = threadParams->gridPosition - threadParams->window.globalSimulationOffset;
+        DataSpace<simDim> sim_offset =
+            threadParams->gridPosition - threadParams->window.globalSimulationOffset;
         DataSpace<simDim> localOffset = threadParams->window.localOffset;
         DataSpace<simDim> localSize = threadParams->window.localSize;
 
-        /*print all fields*/
+        /*print all particle species*/
+        log<picLog::INPUT_OUTPUT > ("HDF5 begin to write particle species.");
         ForEach<Hdf5OutputParticles, WriteSpecies<void> > writeSpecies;
-        writeSpecies(ref(threadParams), sim_offset, localOffset, localSize);
+        writeSpecies(ref(threadParams), std::string(), sim_offset, localOffset, localSize);
+        log<picLog::INPUT_OUTPUT > ("HDF5 end to write particle species.");
 
-        /*
-                threadParams->frameContainerE->getFilter().setWindowPosition(localOffset, localSize);
-                writeParticles<MyFrameContainerE, MyBigFrameE > (threadParams,
-                                                                 threadParams->frameContainerE,
-                                                                 sim_offset, localSize, sim_offset,
-                                                                 ElectronsBuffer::FrameType::getName());
-         */
         if (MovingWindow::getInstance().isSlidingWindowActive())
         {
-
+            /* not needed, we don't use top for restart
             DataSpace<simDim> sim_offset = threadParams->gridPosition;
-
             DataSpace<simDim> localOffset;
-
             DataSpace<simDim> localSize = threadParams->window.localSize;
             localSize.y() = threadParams->window.globalSimulationOffset.y();
-
-
             sim_offset = threadParams->gridPosition;
 
-            /*            PMACC_AUTO(container, threadParams->frameContainerE);
-                        if (!threadParams->window.isTop)
-                            container = NULL;
-                        threadParams->frameContainerE->clear();
-                        threadParams->frameContainerE->getFilter().setWindowPosition(localOffset, localSize);
-                        std::stringstream strNameTopE;
-                        strNameTopE << "_top_";
-                        strNameTopE << ElectronsBuffer::FrameType::getName();
-                        writeParticles<MyFrameContainerE, MyBigFrameE > (threadParams,
-                                                                         container,
-                                                                         sim_offset, localSize, DataSpace<simDim > (),
-                                                                         strNameTopE.str());
-             */
+            if (threadParams->window.isTop)
+            {
+              
+                log<picLog::INPUT_OUTPUT > ("HDF5 begin to write particle species top.");
+                writeSpecies(ref(threadParams), std::string("_top_"), sim_offset, localOffset, localSize);
+                log<picLog::INPUT_OUTPUT > ("HDF5 end to write particle species top.");
+            }
+            */
+            sim_offset = threadParams->gridPosition;
+            sim_offset.y() += threadParams->window.localSize.y();
+            localOffset = DataSpace<simDim > ();
+            localOffset.y() = threadParams->window.localSize.y();
+            localSize = threadParams->window.localFullSize;
+            localSize.y() -= threadParams->window.localSize.y();
+
+            if (threadParams->window.isBottom)
+            {
+                /*print all particle species*/
+                log<picLog::INPUT_OUTPUT > ("HDF5 begin to write particle species bottom.");
+                writeSpecies(ref(threadParams), std::string("_bottom_"), sim_offset, localOffset, localSize);
+                log<picLog::INPUT_OUTPUT > ("HDF5 end to write particle species bottom.");
+            }
         }
-
-
-
-
         return NULL;
     }
 

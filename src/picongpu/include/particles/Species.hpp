@@ -32,14 +32,58 @@ namespace picongpu
 {
 using namespace PMacc;
 
+
+/*add old momentum for radiation plugin*/
+typedef bmpl::vector<
+#if(ENABLE_RADIATION == 1)
+    momentum_mt1
+#endif
+> AttributMomentum_mt1;
+
+/*add old radiation flag for radiation plugin*/
+typedef bmpl::vector<
+#if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
+    radiationFlag
+#endif
+> AttributRadiationFlag;
+
+/* not nice, we change this later with nice interfaces*/
+
+typedef
+typename JoinVectors<ElectronsDataList, AttributMomentum_mt1, AttributRadiationFlag>::type
+Species1_data;
+
+typedef
+typename JoinVectors<IonsDataList, AttributMomentum_mt1, AttributRadiationFlag>::type
+Species2_data;
+
 typedef Particles<
-    ElectronsDataList,
+    Species1_data,
     ElectronsMethodsList
 > PIC_Electrons;
 
 typedef Particles<
-    IonsDataList,
+    Species2_data,
     IonsMethodsList
 > PIC_Ions;
+
+
+/*not nice, but this shuld be changed in the future*/
+typedef boost::mpl::vector<
+    #if (ENABLE_ELECTRONS == 1)
+    PIC_Electrons
+    #endif
+> Species1;
+
+typedef boost::mpl::vector<
+    #if (ENABLE_IONS == 1)
+    PIC_Electrons
+    #endif
+> Species2;
+
+typedef typename JoinVectors<
+    Species1,
+    Species2
+>::type VectorAllSpecies;
 
 } //namespace picongpu

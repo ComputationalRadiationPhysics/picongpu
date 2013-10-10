@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, René Widera
+ * Copyright 2013 René Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -42,6 +42,7 @@
 #include "plugins/hdf5/CopySpecies.kernel"
 #include "mappings/kernel/AreaMapping.hpp"
 
+#include "plugins/hdf5/writer/ParticleAttribute.hpp"
 
 namespace picongpu
 {
@@ -59,14 +60,15 @@ struct MallocMemory
     typedef typename T_Type::type type;
 
     template<typename ValueType >
-    HDINLINE void operator()(RefWrapper<ValueType> v1, const size_t size) const
+    HINLINE void operator()(RefWrapper<ValueType> v1, const size_t size) const
     {
-#ifndef __CUDA_ARCH__
-        type* ptr;
-        cudaHostAlloc(&ptr, size * sizeof (type), cudaHostAllocMapped);
-
+        type* ptr = NULL;
+        if (size != 0)
+        {
+            CUDA_CHECK(cudaHostAlloc(&ptr, size * sizeof (type), cudaHostAllocMapped));
+        }
         v1.get().getIdentifier(T_Type()) = VectorDataBox<type>(ptr);
-#endif
+
     }
 };
 
@@ -76,27 +78,30 @@ struct GetDevicePtr
     typedef typename T_Type::type type;
 
     template<typename ValueType >
-    HDINLINE void operator()(RefWrapper<ValueType> dest, RefWrapper<ValueType> src) const
+    HINLINE void operator()(RefWrapper<ValueType> dest, RefWrapper<ValueType> src) const
     {
-#ifndef __CUDA_ARCH__
-        type* ptr;
-        CUDA_CHECK(cudaHostGetDevicePointer(&ptr, src.get().getIdentifier(T_Type()).getPointer(), 0));
+        type* ptr = NULL;
+        type* srcPtr = src.get().getIdentifier(T_Type()).getPointer();
+        if (srcPtr != NULL)
+        {
+            CUDA_CHECK(cudaHostGetDevicePointer(&ptr, srcPtr, 0));
+        }
         dest.get().getIdentifier(T_Type()) =
             VectorDataBox<type>(ptr);
-#endif
     }
 };
 
 template<typename T_Type>
 struct FreeMemory
 {
+    typedef typename T_Type::type type;
 
     template<typename ValueType >
-    HDINLINE void operator()(RefWrapper<ValueType> value) const
+    HINLINE void operator()(RefWrapper<ValueType> value) const
     {
-#ifndef __CUDA_ARCH__
-        CUDA_CHECK(cudaFreeHost(value.get().getIdentifier(T_Type()).getPointer()));
-#endif
+        type* ptr = value.get().getIdentifier(T_Type()).getPointer();
+        if (ptr != NULL)
+            CUDA_CHECK(cudaFreeHost(ptr));
     }
 };
 
@@ -109,9 +114,13 @@ struct WriteSpecies
 public:
 
     typedef T ThisSpecies;
+    typedef typename T::FrameType FrameType;
+    typedef typename FrameType::ValueTypeSeq ParticleAttributeList;
+    typedef typename FrameType::MethodsList ParticleMethodsList;
 
-    typedef typename T::FrameType::ValueTypeSeq ParticleAttributeList;
-    typedef typename T::FrameType::MethodsList ParticleMethodsList;
+    /* at the moment some list opratations are not include in PMacc
+     * this is the reason why we do so much magic
+     */
 
     template<typename T_Key>
     struct isMultiMask
@@ -135,23 +144,13 @@ public:
 
     typedef Frame<CastToVectorBox, ParticleNewAttributeList, ParticleMethodsList> Hdf5FrameType;
 
-    PMACC_NO_NVCC_HDWARNING
-    HDINLINE void operator()(RefWrapper<ThreadParams*> tparam,
-                             const DataSpace<simDim> sim_offset,
-                             const DataSpace<simDim> localOffset,
-                             const DataSpace<simDim> localSize)
+    HINLINE void operator()(RefWrapper<ThreadParams*> params,
+                            std::string prefix,
+                            const DataSpace<simDim> sim_offset,
+                            const DataSpace<simDim> localOffset,
+                            const DataSpace<simDim> localSize)
     {
-        this->operator_impl(tparam, sim_offset, localOffset, localSize);
-    }
-
-private:
-
-    HINLINE void operator_impl(RefWrapper<ThreadParams*> params,
-                               const DataSpace<simDim> sim_offset,
-                               const DataSpace<simDim> localOffset,
-                               const DataSpace<simDim> localSize)
-    {
-
+        log<picLog::INPUT_OUTPUT > ("HDF5: write species: %1%") % Hdf5FrameType::getName();
         DataConnector &dc = DataConnector::getInstance();
         /*load particle without copy particle data to host*/
         ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(ThisSpecies::FrameType::CommunicationTag, true));
@@ -161,48 +160,70 @@ private:
 
         PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
 
+        log<picLog::INPUT_OUTPUT > ("HDF5: count particles: %1%") % Hdf5FrameType::getName();
         totalNumParticles = PMacc::CountParticles::countOnDevice < CORE + BORDER > (
                                                                                     *speciesTmp,
                                                                                     *(params.get()->cellDescription),
                                                                                     localOffset,
                                                                                     localSize);
 
+
+        log<picLog::INPUT_OUTPUT > ("HDF5: Finish count particles: %1% = %2%") % Hdf5FrameType::getName() % totalNumParticles;
         Hdf5FrameType hostFrame;
+        log<picLog::INPUT_OUTPUT > ("HDF5: malloc mapped memory: %1%") % Hdf5FrameType::getName();
         /*malloc mapped memory*/
         ForEach<typename Hdf5FrameType::ValueTypeSeq, MallocMemory<void> > mallocMem;
         mallocMem(byRef(hostFrame), totalNumParticles);
+        log<picLog::INPUT_OUTPUT > ("HDF5: Finish malloc mapped memory: %1%") % Hdf5FrameType::getName();
 
-        /*load device pointer of mapped memory*/
-        Hdf5FrameType deviceFrame;
-        ForEach<typename Hdf5FrameType::ValueTypeSeq, GetDevicePtr<void> > getDevicePtr;
-        getDevicePtr(byRef(deviceFrame), byRef(hostFrame));
+        if (totalNumParticles != 0)
+        {
 
+            log<picLog::INPUT_OUTPUT > ("HDF5: get mapped memory device pointer: %1%") % Hdf5FrameType::getName();
+            /*load device pointer of mapped memory*/
+            Hdf5FrameType deviceFrame;
+            ForEach<typename Hdf5FrameType::ValueTypeSeq, GetDevicePtr<void> > getDevicePtr;
+            getDevicePtr(byRef(deviceFrame), byRef(hostFrame));
+            log<picLog::INPUT_OUTPUT > ("HDF5: Finish get mapped memory device pointer: %1%") % Hdf5FrameType::getName();
 
-        typedef bmpl::vector< PositionFilter3D<> > usedFilters;
-        typedef typename FilterFactory<usedFilters>::FilterType MyParticleFilter;
-        MyParticleFilter filter;
-        filter.setStatus(true); /*activeate filter pipline*/
-        filter.setWindowPosition(localOffset, localOffset + localSize);
+            log<picLog::INPUT_OUTPUT > ("HDF5: copy particle to host: %1%") % Hdf5FrameType::getName();
+            typedef bmpl::vector< PositionFilter3D<> > usedFilters;
+            typedef typename FilterFactory<usedFilters>::FilterType MyParticleFilter;
+            MyParticleFilter filter;
+            /*activeate filter pipline if moving window is activated*/
+            filter.setStatus(MovingWindow::getInstance().isSlidingWindowActive());
+            filter.setWindowPosition(localOffset, localOffset + localSize);
 
-        dim3 block(TILE_SIZE);
-        DataSpace<simDim> superCells = speciesTmp->getParticlesBuffer().getSuperCellsCount();
+            dim3 block(TILE_SIZE);
+            DataSpace<simDim> superCells = speciesTmp->getParticlesBuffer().getSuperCellsCount();
 
-        GridBuffer<int, DIM1> counterBuffer(DataSpace<DIM1>(1));
-        AreaMapping < CORE + BORDER, MappingDesc > mapper(*(params.get()->cellDescription));
+            GridBuffer<int, DIM1> counterBuffer(DataSpace<DIM1>(1));
+            AreaMapping < CORE + BORDER, MappingDesc > mapper(*(params.get()->cellDescription));
 
-        __cudaKernel(copySpecies)
-            (mapper.getGridDim(), block)
-            (counterBuffer.getDeviceBuffer().getPointer(),
-             deviceFrame, speciesTmp->getDeviceParticlesBox(),
-             filter,
-             mapper
-             );
-
-        __getTransactionEvent().waitForFinished();
+            __cudaKernel(copySpecies)
+                (mapper.getGridDim(), block)
+                (counterBuffer.getDeviceBuffer().getPointer(),
+                 deviceFrame, speciesTmp->getDeviceParticlesBox(),
+                 filter,
+                 sim_offset,
+                 mapper
+                 );
+            counterBuffer.deviceToHost();
+            log<picLog::INPUT_OUTPUT > ("HDF5: memcpy particle counter to host: %1%") % Hdf5FrameType::getName();
+            __getTransactionEvent().waitForFinished();
+            log<picLog::INPUT_OUTPUT > ("HDF5: all events are finish: %1%") % Hdf5FrameType::getName();
+            /*this cost a little bit of time but hdf5 writing is slower^^*/
+            assert((uint64_cu) counterBuffer.getHostBuffer().getDataBox()[0] == totalNumParticles);
+        }
+        /*dump to hdf5 file*/
+        ForEach<typename Hdf5FrameType::ValueTypeSeq, hdf5::ParticleAttribute<void> > writeToHdf5;
+        writeToHdf5(params, byRef(hostFrame), prefix + FrameType::getName(), sim_offset, localSize, totalNumParticles);
 
         /*free host memory*/
         ForEach<typename Hdf5FrameType::ValueTypeSeq, FreeMemory<void> > freeMem;
         freeMem(byRef(hostFrame));
+        log<picLog::INPUT_OUTPUT > ("HDF5: Finish write species: %1%") % Hdf5FrameType::getName();
+
     }
 };
 

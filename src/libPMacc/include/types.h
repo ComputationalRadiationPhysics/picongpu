@@ -69,7 +69,7 @@ typedef long long int int64_cu;
  * Most cases can solved by #ifdef __CUDA_ARCH__ or #ifdef __CUDACC__.
  */
 #if defined(__CUDACC__)
-#define PMACC_NO_NVCC_HDWARNING #pragma hd_warning_disable
+#define PMACC_NO_NVCC_HDWARNING _Pragma("hd_warning_disable")
 #else
 #define PMACC_NO_NVCC_HDWARNING
 #endif
