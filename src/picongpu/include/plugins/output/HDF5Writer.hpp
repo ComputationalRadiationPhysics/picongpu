@@ -520,7 +520,8 @@ private:
 
                 params->dataCollector->writeDomain(params->currentStep, /* id == time step */
                                                    colType,             /* data type */
-                                                   dims,                /* NDims of the field data (scalar, vector, ...) */
+                                                   simDim,              /* NDims of the field data == simDim
+                                                                           (NOT scalar=1 or vector=3 !) */
                                                    /* source buffer, stride, data size, offset */
                                                    DCollector::Dimensions(field_full[0] * dims, field_full[1], field_full[2]),
                                                    DCollector::Dimensions(dims, 1, 1),
