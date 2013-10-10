@@ -27,7 +27,7 @@
 #include "simulation_types.hpp"
 #include "plugins/hdf5/HDF5Writer.def"
 #include "traits/PICToSplash.hpp"
-#include "traits/GetComponentType.hpp"
+#include "traits/GetComponentsType.hpp"
 #include "traits/GetNComponents.hpp"
 
 
@@ -58,9 +58,9 @@ struct ParticleAttribute
         typedef T_Identifier Identifier;
         typedef typename Identifier::type ValueType;
         const uint32_t components = GetNComponents<ValueType>::value;
-        typedef typename traits::GetComponentType<ValueType>::type ComponentType;
+        typedef typename GetComponentsType<ValueType>::type ComponentType;
 
-        typedef typename traits::PICToSplash<ComponentType>::type SplashType;
+        typedef typename PICToSplash<ComponentType>::type SplashType;
 
         log<picLog::INPUT_OUTPUT > ("HDF5: write species attribute: %1%") % Identifier::getName();
 

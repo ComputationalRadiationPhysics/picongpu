@@ -26,6 +26,9 @@
 #include "particles/Identifier.hpp"
 #include <boost/mpl/vector.hpp>
 #include "dimensions/DataSpace.hpp"
+#include "identifier/identifier.hpp"
+#include "identifier/alias.hpp"
+#include "identifier/value_identifier.hpp"
 
 namespace picongpu
 {
@@ -34,6 +37,7 @@ namespace bmpl=boost::mpl;
 class ElectronMethods;
 class IonMethods;
 
+alias(position);
 alias(globalCellIdx);
 value_identifier(float3_X,position_pic,float3_X(0.,0.,0.));
 value_identifier(float3_X,momentum,float3_X(0.,0.,0.));

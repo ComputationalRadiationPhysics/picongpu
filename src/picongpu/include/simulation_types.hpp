@@ -29,7 +29,7 @@
 #include "traits/GetMargin.hpp"
 #include "traits/SplashToPIC.hpp"
 #include "traits/PICToSplash.hpp"
-#include "traits/GetType.hpp"
+#include "traits/GetComponentsType.hpp"
 
 namespace picongpu
 {

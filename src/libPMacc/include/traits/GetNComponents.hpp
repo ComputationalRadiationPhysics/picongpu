@@ -17,20 +17,34 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 #pragma once
 
-#include "types.h"
-#include "identifier/identifier.hpp"
-#include "identifier/alias.hpp"
-#include "identifier/value_identifier.hpp"
-#include "particles/frame_types.hpp"
+#include <boost/type_traits.hpp>
 
 namespace PMacc
 {
 
-value_identifier(lcellId_t,localCellIdx,0);
-value_identifier(uint8_t,multiMask,0);
+namespace traits
+{
+/** C
+ * 
+ * \tparam T_Type any type
+ * \return \p ::value as public with number of components (uint32_t)
+ */
+template<typename T_Type, bool T_IsFundamental = boost::is_fundamental<T_Type>::value>
+struct GetNComponents;
 
-} //namespace PMacc
+/** return value=1 for al fundamental c++ types
+ */
+template<typename T_Type>
+struct GetNComponents<T_Type, true>
+{
+    static const uint32_t value=1;
+};
+
+} //namespace traits
+
+}// namespace Pmacc
+

@@ -19,7 +19,9 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-#pragma once
+
+#ifndef _DATASPACE_HPP
+#define	_DATASPACE_HPP
 
 #include <cassert>
 #include <stdexcept>
@@ -420,4 +422,6 @@ class DataSpace : public math::Int<DIM>
 
 } //namespace PMacc
 
-#include "dimensions/DataSpace.tpp"
+
+#endif	/* _DATASPACE_HPP */
+

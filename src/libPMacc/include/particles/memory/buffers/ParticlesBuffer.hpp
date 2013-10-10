@@ -24,8 +24,6 @@
 
 #include "particles/frame_types.hpp"
 #include "memory/buffers/GridBuffer.hpp"
-#include "particles/memory/frames/CoreFrame.hpp"
-#include "particles/memory/frames/BorderFrame.hpp"
 #include "particles/memory/boxes/ParticlesBox.hpp"
 #include "particles/memory/buffers/HeapBuffer.hpp"
 #include "particles/memory/boxes/HeapDataBox.hpp"

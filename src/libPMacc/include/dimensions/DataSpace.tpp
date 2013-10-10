@@ -17,23 +17,35 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 
 #pragma once
 
+#include "types.h"
+#include "dimensions/DataSpace.hpp"
+#include "traits/GetComponentsType.hpp"
+#include "traits/GetNComponents.hpp"
+
 namespace PMacc
 {
+
 namespace traits
 {
 
-template<typename Type>
-struct GetType;
+template<unsigned DIM>
+struct GetComponentsType<DataSpace<DIM>, false >
+{
+    typedef typename DataSpace<DIM>::type type;
+};
 
-}//namespace traits
+/** Trait for float_X */
+template<unsigned DIM>
+struct GetNComponents<DataSpace<DIM>,false >
+{
+    static const uint32_t value=DIM;
+};
 
-}//namepsace PMacc
+}// namespace traits
 
-#include "traits/GetType.tpp"
-
-
+} //namespace PMacc

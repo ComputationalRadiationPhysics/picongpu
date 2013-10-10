@@ -18,36 +18,34 @@
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
 
 #pragma once
 
+#include <boost/type_traits.hpp>
 
 namespace PMacc
 {
+
 namespace traits
 {
+    /** Get component type of an object
+     *     
+     * \tparam T_Type any type
+     * \return \p ::type get result type
+     *            If T_Type is fundamental c++ type, the identity is returned
+     * 
+     * Attention: do not defines this trait for structs with different attributes inside
+     */
+    template<typename T_Type,bool T_IsFundamental=boost::is_fundamental<T_Type>::value >
+    struct GetComponentsType;
+    
+    template<typename T_Type>
+    struct GetComponentsType<T_Type,true>
+    {
+        typedef T_Type type;
+    };
 
-template<>
-struct GetType<float>
-{
-    typedef float type;
-};
+} //namespace traits
 
-template<>
-struct GetType<double>
-{
-    typedef double type;
-};
-
-template<>
-struct GetType<int>
-{
-    typedef int type;
-};
-
-
-}//namespace traits
-
-}//namepsace PMacc
+}// namespace PMacc
 

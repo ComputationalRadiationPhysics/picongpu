@@ -51,7 +51,6 @@
 #include "particles/operations/CountParticles.hpp" 
 
 #include "dataManagement/DataConnector.hpp"
-#include "particles/memory/frames/FrameContainer.hpp"
 #include "mappings/simulation/GridController.hpp"
 #include "mappings/simulation/SubGrid.hpp"
 #include "dimensions/GridLayout.hpp"
