@@ -66,7 +66,7 @@ string(COMPARE EQUAL ${CUDA_ARCH} "sm_12" IS_CUDA_ARCH_UNSUPPORTED)
 string(COMPARE EQUAL ${CUDA_ARCH} "sm_13" IS_CUDA_ARCH_UNSUPPORTED)
 
 if(IS_CUDA_ARCH_UNSUPPORTED)
-    message(SEND_ERROR "Unsupported CUDA architecture ${CUDA_ARCH} specified. "
+    message(FATAL_ERROR "Unsupported CUDA architecture ${CUDA_ARCH} specified. "
                        "SM 2.0 or higher is required.")
 endif(IS_CUDA_ARCH_UNSUPPORTED)
 
@@ -252,21 +252,33 @@ include_directories(${PMACC_ROOT_DIR}/include)
 
 
 ################################################################################
-# SPLASH
+# SPLASH (+ hdf5 due to required headers)
 ################################################################################
 
-find_package(HDF5)
-if(HDF5_FOUND)
-    # find splash installation
-    find_path(PIC_SPLASH_ROOT_DIR
-      NAMES include/splash.h lib/libsplash.a
-      PATHS ENV SPLASH_ROOT
-      DOC "libSplash ROOT location (Only used if HDF5 is enabled)"
-    )
+# find splash installation
+find_path(PIC_SPLASH_ROOT_DIR
+  NAMES include/splash.h lib/libsplash.a
+  PATHS ENV SPLASH_ROOT
+  DOC "Splash ROOT location (provides HDF5 output)"
+)
 
-  if(PIC_SPLASH_ROOT_DIR)
-    message(STATUS "Found libSplash: "${PIC_SPLASH_ROOT_DIR})
-    
+if(PIC_SPLASH_ROOT_DIR)
+    message(STATUS "Found Splash: "${PIC_SPLASH_ROOT_DIR})
+    find_package(HDF5 REQUIRED)
+
+    # splash compiled with parallel support?
+    file(STRINGS "${PIC_SPLASH_ROOT_DIR}/include/splash.h" _splash_H_CONTENTS
+         REGEX "#define SPLASH_SUPPORTED_PARALLEL ")
+    string(REGEX MATCH "([0-9]+)" _splash_IS_PARALLEL "${_splash_H_CONTENTS}")
+
+    # check parallel splash to parallel hdf5 compatibility
+    if("${_splash_IS_PARALLEL}")
+       message(STATUS "Splash supports PARALLEL output")
+       if(NOT HDF5_IS_PARALLEL)
+           message(FATAL_ERROR "Splash compiled with PARALLEL support but HDF5 lacks it...")
+       endif(NOT HDF5_IS_PARALLEL)
+    endif("${_splash_IS_PARALLEL}")
+
     add_definitions(-DENABLE_HDF5=1)
 
     # add include information
@@ -284,11 +296,9 @@ if(HDF5_FOUND)
     set_target_properties(splash_static PROPERTIES IMPORTED_LOCATION
                           ${PIC_SPLASH_ROOT_DIR}/lib/libsplash.a)
     set(LIBS ${LIBS} splash_static ${HDF5_LIBRARIES})
-
-  else(PIC_SPLASH_ROOT_DIR)
-    message(ERROR "Could NOT find libSplash")
-  endif(PIC_SPLASH_ROOT_DIR)
-endif(HDF5_FOUND)
+else(PIC_SPLASH_ROOT_DIR)
+    message(STATUS "Could NOT find Splash for hdf5 output")
+endif(PIC_SPLASH_ROOT_DIR)
 
 
 ################################################################################
