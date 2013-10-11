@@ -41,17 +41,30 @@ using namespace PMacc;
 using namespace DCollector;
 namespace bmpl = boost::mpl;
 
+
+/** write attribute of a particle to hdf5 file
+ * 
+ * @tparam T_Identifier identifier of a particle attribute
+ */
 template< typename T_Identifier>
 struct ParticleAttribute
 {
 
+    /** write attribute to hdf5 file
+     * 
+     * @param params wrapped params with domainwriter, ...
+     * @param frame frame with all particles 
+     * @param prefix a name prefix for hdf5 attribute (is combined to: prefix_nameOfAttribute)
+     * @param simOffset offset from window origin of thedomain
+     * @param localSize local domain size 
+     */
     template<typename Space, typename FrameType>
     HINLINE void operator()(
                             const RefWrapper<ThreadParams*> params,
                             const RefWrapper<FrameType> frame,
                             const std::string prefix,
                             const Space simOffset,
-                            const Space simSize,
+                            const Space localSize,
                             const size_t elements)
     {
 
@@ -69,7 +82,7 @@ struct ParticleAttribute
 
         std::vector<double> unit = Unit<T_Identifier>::get();
 
-        DataSpace<simDim> field_no_guard = simSize;
+        DataSpace<simDim> field_no_guard = localSize;
         DataSpace<simDim> global_sim_size = params.get()->window.globalSimulationSize;
 
         DCollector::Dimensions domain_offset(0, 0, 0);

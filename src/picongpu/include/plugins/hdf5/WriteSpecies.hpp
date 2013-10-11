@@ -115,16 +115,18 @@ struct OperatorCreateVectorBox
             type;
 };
 
-/** Write calculated fields to HDF5 file.
+/** Write copy particle to host memory and dump to HDF5 file
+ * 
+ * @tparam T_Species type of species 
  * 
  */
-template< typename T >
+template< typename T_Species >
 struct WriteSpecies
 {
 public:
 
-    typedef T ThisSpecies;
-    typedef typename T::FrameType FrameType;
+    typedef T_Species ThisSpecies;
+    typedef typename ThisSpecies::FrameType FrameType;
     typedef typename FrameType::ValueTypeSeq ParticleAttributeList;
     typedef typename FrameType::MethodsList ParticleMethodsList;
 

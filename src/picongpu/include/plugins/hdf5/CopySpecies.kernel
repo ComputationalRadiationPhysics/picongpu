@@ -38,15 +38,31 @@ using namespace PMacc;
 
 namespace bmpl = boost::mpl;
 
-template<class T_DestFrame, class T_SrcBox, class Filter, class Space ,class Mapping>
-__global__ void copySpecies(int* counter, T_DestFrame destFrame, T_SrcBox srcBox, Filter filter,Space gpuOffset, Mapping mapper)
+/** copy particle of a species to a host frame
+ * 
+ * @tparam T_DestFrame type of destination frame
+ * @tparam T_SrcBox type of the data box of source memory
+ * @tparam T_Filter type of filer with particle selection rules
+ * @tparam T_Space type of coordinate description
+ * @tparam T_Mapping type of the mapper to map cuda idx to supercells
+ * 
+ * @param counter pointer to a device counter to reserve memory in destFrame
+ * @param destFrame frame were we store particles in host memory (no Databox<...>)
+ * @param srcBox ParticlesBox with frames
+ * @param filer filer with rules to select particles
+ * @param gpuOffset global offset from sliding window zero (origin) to origin of local gpu domain
+ * @param mapper apper to map cuda idx to supercells
+ */
+template<class T_DestFrame, class T_SrcBox, class T_Filter, class T_Space ,class T_Mapping>
+__global__ void copySpecies(int* counter, T_DestFrame destFrame, T_SrcBox srcBox, T_Filter filter,T_Space gpuOffset, T_Mapping mapper)
 {
     using namespace particles::operations;
 
     typedef T_DestFrame DestFrameType;
     typedef typename T_SrcBox::FrameType SrcFrameType;
+    typedef T_Mapping Mapping;
     typedef typename Mapping::SuperCellSize Block;
-
+    
     __shared__ SrcFrameType *srcFramePtr;
     __shared__ int localCounter;
     __shared__ int globalOffset;
@@ -70,11 +86,13 @@ __global__ void copySpecies(int* counter, T_DestFrame destFrame, T_SrcBox srcBox
     {
         PMACC_AUTO(parSrc, ((*srcFramePtr)[threadIdx.x]));
         storageOffset = -1;
+        /*count particle in frame*/
         if (parSrc[multiMask_]==1 &&  filter(*srcFramePtr, threadIdx.x))
             storageOffset = atomicAdd(&localCounter, 1);
         __syncthreads();
         if (threadIdx.x == 0)
         {
+            /*reserve host memory for particle*/
             globalOffset = atomicAdd(counter, localCounter);
         }
         __syncthreads();
@@ -83,12 +101,14 @@ __global__ void copySpecies(int* counter, T_DestFrame destFrame, T_SrcBox srcBox
             PMACC_AUTO(parDest, destFrame[globalOffset + storageOffset]);
             PMACC_AUTO(parDestNoGlobalIdx, deselect<globalCellIdx<> >(parDest));
             assign(parDestNoGlobalIdx, parSrc);
+            /*calculate global cell index*/
             DataSpace<Mapping::Dim> localCell(DataSpaceOperations<Mapping::Dim>::template map<Block>(parSrc[localCellIdx_]));
             parDest[globalCellIdx_]=gpuOffset+superCellPosition+localCell;
         }
         __syncthreads();
         if (threadIdx.x == 0)
         {
+            /*get next frame in supercell*/
             srcFramePtr = &(srcBox.getNextFrame(*srcFramePtr, isValid));
             localCounter = 0;
         }
