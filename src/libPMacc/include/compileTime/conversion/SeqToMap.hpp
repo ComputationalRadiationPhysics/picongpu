@@ -53,7 +53,7 @@ template<typename T_MPLSeq,
 template<typename> class T_UnaryOperator,
 template<typename> class T_Accessor = compileTime::accessors::Identity
 >
-struct ConvertToMap
+struct SeqToMap
 {
     typedef T_MPLSeq MPLSeq;
     typedef bmpl::inserter< bmpl::map0<>, bmpl::insert<bmpl::_1, bmpl::_2> > Map_inserter;
