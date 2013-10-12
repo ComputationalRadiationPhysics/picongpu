@@ -58,6 +58,7 @@ namespace picongpu
 
         std::ostringstream filename;
         filename << "phaseSpace/PhaseSpace_"
+                 << fCoords.at(axis_element.first) << "_"
                  << currentStep;
 
         // set attributes for datacollector files
