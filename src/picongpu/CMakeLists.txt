@@ -252,30 +252,30 @@ include_directories(${PMACC_ROOT_DIR}/include)
 
 
 ################################################################################
-# SPLASH (+ hdf5 due to required headers)
+# libSplash (+ hdf5 due to required headers)
 ################################################################################
 
-# find splash installation
+# find libSplash installation
 find_path(PIC_SPLASH_ROOT_DIR
   NAMES include/splash.h lib/libsplash.a
   PATHS ENV SPLASH_ROOT
-  DOC "Splash ROOT location (provides HDF5 output)"
+  DOC "libSplash ROOT location (provides HDF5 output)"
 )
 
 if(PIC_SPLASH_ROOT_DIR)
-    message(STATUS "Found Splash: "${PIC_SPLASH_ROOT_DIR})
+    message(STATUS "Found libSplash: "${PIC_SPLASH_ROOT_DIR})
     find_package(HDF5 REQUIRED)
 
-    # splash compiled with parallel support?
+    # libSplash compiled with parallel support?
     file(STRINGS "${PIC_SPLASH_ROOT_DIR}/include/splash.h" _splash_H_CONTENTS
          REGEX "#define SPLASH_SUPPORTED_PARALLEL ")
     string(REGEX MATCH "([0-9]+)" _splash_IS_PARALLEL "${_splash_H_CONTENTS}")
 
-    # check parallel splash to parallel hdf5 compatibility
+    # check parallel libSplash to parallel hdf5 compatibility
     if("${_splash_IS_PARALLEL}")
-       message(STATUS "Splash supports PARALLEL output")
+       message(STATUS "libSplash supports PARALLEL output")
        if(NOT HDF5_IS_PARALLEL)
-           message(FATAL_ERROR "Splash compiled with PARALLEL support but HDF5 lacks it...")
+           message(FATAL_ERROR "libSplash compiled with PARALLEL support but HDF5 lacks it...")
        endif(NOT HDF5_IS_PARALLEL)
     endif("${_splash_IS_PARALLEL}")
 
@@ -297,7 +297,7 @@ if(PIC_SPLASH_ROOT_DIR)
                           ${PIC_SPLASH_ROOT_DIR}/lib/libsplash.a)
     set(LIBS ${LIBS} splash_static ${HDF5_LIBRARIES})
 else(PIC_SPLASH_ROOT_DIR)
-    message(STATUS "Could NOT find Splash for hdf5 output")
+    message(STATUS "Could NOT find libSplash for hdf5 output")
 endif(PIC_SPLASH_ROOT_DIR)
 
 
