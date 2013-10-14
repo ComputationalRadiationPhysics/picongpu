@@ -37,11 +37,11 @@
 #include <boost/utility/result_of.hpp>
 #include <boost/mpl/find.hpp>
 #include <boost/type_traits/is_same.hpp>
-#include <boost/mpl/deref.hpp>
 
 #include "compileTime/GetKeyFromAlias.hpp"
 
 #include "traits/HasIdentifier.hpp"
+#include <boost/mpl/contains.hpp>
 
 
 namespace PMacc
@@ -132,12 +132,12 @@ private:
     typedef PMacc::Frame<T_CreatePairOperator, T_ValueTypeSeq, T_MethodsList, T_Flags> FrameType;
 public:
     typedef typename FrameType::ValueTypeSeq ValueTypeSeq;
-    typedef typename GetKeyFromAlias<ValueTypeSeq, T_Key>::type Key;
     /* if Key is void_ than we have no T_Key in our Sequence.
-     * checks also to alias keys
+     * check is also valid if T_Key is a alias
      */
-    typedef bmpl::bool_<!boost::is_same< bmpl::void_, Key>::value> type;
-    static const bool value = type::value;
+    typedef typename GetKeyFromAlias<ValueTypeSeq, T_Key>::type Key;
+
+    typedef bmpl::contains<ValueTypeSeq,Key> type;
 };
 } //namespace traits
 

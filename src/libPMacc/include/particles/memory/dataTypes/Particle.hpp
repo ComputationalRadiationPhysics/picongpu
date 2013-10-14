@@ -28,6 +28,8 @@
 #include <boost/mpl/if.hpp>
 #include "traits/HasIdentifier.hpp"
 #include "compileTime/GetKeyFromAlias.hpp"
+#include "compileTime/conversion/ResolveAliases.hpp"
+#include "compileTime/conversion/RemoveFromSeq.hpp"
 #include "particles/operations/CopyIdentifier.hpp"
 #include "algorithms/ForEach.hpp"
 #include "RefWrapper.hpp"
@@ -36,6 +38,7 @@
 #include "particles/operations/Deselect.hpp"
 #include <boost/mpl/remove_if.hpp>
 #include <boost/mpl/is_sequence.hpp>
+#include <boost/mpl/contains.hpp>
 
 namespace PMacc
 {
@@ -82,20 +85,20 @@ struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
     typename boost::remove_reference<
     typename boost::result_of <const FrameType(T_Key)>::type
     >::type(uint32_t)
-    >::type 
+    >::type
     operator[](const T_Key key) const
     {
 
         return frame.getIdentifier(key)[idx];
     }
-    private:
-        /* we disallow to assign this class*/
-        template<typename T_OtherParticle >
-            HDINLINE
-            ThisType& operator=(const T_OtherParticle& other);
+private:
+    /* we disallow to assign this class*/
+    template<typename T_OtherParticle >
+    HDINLINE
+    ThisType& operator=(const T_OtherParticle& other);
 
-        HDINLINE
-        ThisType& operator=(const ThisType& other);
+    HDINLINE
+    ThisType& operator=(const ThisType& other);
 };
 
 namespace traits
@@ -147,43 +150,41 @@ PMacc::Particle<T_FrameType2, T_ValueTypeSeq2>
 };
 
 template<
-typename T_ObjectToRemove,
+typename T_MPLSeqWithObjectsToRemove,
 typename T_FrameType, typename T_ValueTypeSeq
 >
 struct Deselect
 <
-T_ObjectToRemove,
+T_MPLSeqWithObjectsToRemove,
 PMacc::Particle<T_FrameType, T_ValueTypeSeq>
 >
 {
     typedef T_FrameType FrameType;
     typedef T_ValueTypeSeq ValueTypeSeq;
-    typedef PMacc::Particle<FrameType, ValueTypeSeq> Object;
+    typedef PMacc::Particle<FrameType, ValueTypeSeq> ParticleType;
+    typedef T_MPLSeqWithObjectsToRemove MPLSeqWithObjectsToRemove;
+    
+    /* translate aliases to full specialized identifier*/
+    typedef typename ResolveAliases<MPLSeqWithObjectsToRemove, ValueTypeSeq>::type ResolvedSeqWithObjectsToRemove;
+    /* remove types from original particle attribute list*/
+    typedef typename RemoveFromSeq<ValueTypeSeq, ResolvedSeqWithObjectsToRemove>::type NewValueTypeSeq;
+    /* new particle type*/
+    typedef PMacc::Particle<FrameType, NewValueTypeSeq> ResultType;
 
+    template<class> struct result;
 
-    typedef T_ObjectToRemove ObjectToRemove;
-    //typedef T_RemoveSequence RemoveSequence;
-
-    //BOOST_MPL_ASSERT((boost::mpl::is_sequence< RemoveSequence >));
-
-    template<typename T_Key>
-    struct hasId
+    template<class F, class T_Obj>
+    struct result< F(T_Obj)>
     {
-        typedef typename GetKeyFromAlias<ValueTypeSeq, ObjectToRemove>::type Key;
-        typedef boost::is_same< T_Key, Key> type;
+        typedef ResultType type;
     };
-
-    typedef typename bmpl::remove_if< ValueTypeSeq, hasId<bmpl::_> >::type NewValueTypeSeq;
-
-    typedef PMacc::Particle<FrameType, NewValueTypeSeq> result;
 
     HDINLINE
-    result operator()(const Object& particle)
+    ResultType operator()(const ParticleType& particle)
     {
-        return result(particle);
+        return ResultType(particle);
     };
 };
-
 
 } //namespace detail
 } //namespace operations

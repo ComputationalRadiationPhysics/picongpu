@@ -17,33 +17,28 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
 
 #pragma once
 
+#include "types.h"
+#include <boost/mpl/is_sequence.hpp>
+#include <boost/mpl/vector.hpp>
+#include <boost/mpl/if.hpp>
+
+
 namespace PMacc
 {
-namespace traits
-{
+namespace bmpl = boost::mpl;
 
-/** Checks if a Objects has an identifier
- * 
- * @tparam T_Object any object (class or typename)
- * @tparam T_Key a class which is used as identifier
- * 
- * This struct must define 
- * ::type (boost::bool_<>)
+/** cast type to boost mpl vector
+ * @return ::type if T_Type is sequence then identity of T_Type
+ *                else boost::mpl::vector<T_Type>
  */
-template<typename T_Object, typename T_Key>
-struct HasIdentifier;
-
-template<typename T_Object, typename T_Key>
-static bool hasIdentifier(const T_Object& obj,const T_Key& key)
+template<typename T_Type>
+struct ToSeq
 {
-    return HasIdentifier<T_Object,T_Key>::type::value;
-}
+    typedef typename bmpl::if_<bmpl::is_sequence< T_Type >,T_Type,bmpl::vector<T_Type> >::type type;
+};
 
-}//namespace traits
-
-}//namepsace PMacc
+}//namespace PMacc

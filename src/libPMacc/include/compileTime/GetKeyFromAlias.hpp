@@ -35,7 +35,6 @@
 namespace PMacc
 {
 namespace bmpl = boost::mpl;
-namespace pmath = PMacc::math;
 
 
 template<typename T_MPLSeq,

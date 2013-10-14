@@ -17,33 +17,39 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
 
 #pragma once
 
+#include "types.h"
+
+#include <boost/mpl/placeholders.hpp>
+#include <boost/mpl/remove_if.hpp>
+#include <boost/mpl/is_sequence.hpp>
+#include <boost/mpl/contains.hpp>
+
 namespace PMacc
 {
-namespace traits
-{
+namespace bmpl = boost::mpl;
 
-/** Checks if a Objects has an identifier
+/* remove types from a sequence 
  * 
- * @tparam T_Object any object (class or typename)
- * @tparam T_Key a class which is used as identifier
- * 
- * This struct must define 
- * ::type (boost::bool_<>)
+ * @tparam T_MPLSeqSrc source sequence from were we delete types
+ * @tparam T_MPLSeqObjectsToRemove sequence with types which shuld be deleted
  */
-template<typename T_Object, typename T_Key>
-struct HasIdentifier;
-
-template<typename T_Object, typename T_Key>
-static bool hasIdentifier(const T_Object& obj,const T_Key& key)
+template<
+typename T_MPLSeqSrc,
+typename T_MPLSeqObjectsToRemove
+>
+struct RemoveFromSeq
 {
-    return HasIdentifier<T_Object,T_Key>::type::value;
-}
+    template<typename T_Value>
+    struct hasId
+    {
+        typedef bmpl::contains<T_MPLSeqObjectsToRemove,T_Value> type;
+    };
+ 
+    typedef typename bmpl::remove_if< T_MPLSeqSrc, hasId<bmpl::_> >::type type;
+};
 
-}//namespace traits
-
-}//namepsace PMacc
+}//namespace PMacc

@@ -32,36 +32,38 @@
 
 #include <boost/type_traits.hpp>
 
-
-#include "compileTime/accessors/Identity.hpp"
-
 namespace PMacc
 {
 namespace bmpl = boost::mpl;
 
-/** convert boost mpl sequence to a mpl map
+/* translate all pmacc alias types to full specialized types
  * 
- * @tparam T_MPLSeq any boost mpl sequence
- * @tparam T_UnaryOperator unaray operator to translate type from the sequence 
- * to a mpl pair
- * @tparam T_Accessor operator which is used before the type from the sequence is
- * passed to T_UnaryOperator
- * @return ::type mpl map
+ * use lookup sequense to translate types
+ * if type from T_MPLSeq is not in T_MPLSeqLookup a compile time error is triggered
+ * 
+ * @tparam T_MPLSeq source sequence with types to translate
+ * @tparam T_MPLSeqLookup lookup sequence to translate alieses
  */
-template<typename T_MPLSeq,
-template<typename> class T_UnaryOperator,
-template<typename> class T_Accessor = compileTime::accessors::Identity
+template<
+typename T_MPLSeq,
+typename T_MPLSeqLookup
 >
-struct SeqToMap
+struct ResolveAliases
 {
     typedef T_MPLSeq MPLSeq;
-    typedef bmpl::inserter< bmpl::map0<>, bmpl::insert<bmpl::_1, bmpl::_2> > Map_inserter;
+    typedef T_MPLSeqLookup MPLSeqLookup;
+    typedef bmpl::back_inserter< bmpl::vector0<> > Inserter;
+    
+    template<typename T_Identifier>
+    struct GetKeyFromAliasAccessor
+    {
+        typedef typename GetKeyFromAlias_assert<MPLSeqLookup, T_Identifier>::type type;
+    };
+    
     typedef typename bmpl::transform<
-            MPLSeq,
-            T_UnaryOperator<typename T_Accessor<bmpl::_1>::type>,
-                Map_inserter 
-            >::type type;
-
+        MPLSeq,
+        GetKeyFromAliasAccessor<bmpl::_1>
+    >::type type;
 };
 
 }//namespace PMacc

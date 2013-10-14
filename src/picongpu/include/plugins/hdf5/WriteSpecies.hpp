@@ -43,6 +43,7 @@
 #include "mappings/kernel/AreaMapping.hpp"
 
 #include "plugins/hdf5/writer/ParticleAttribute.hpp"
+#include "compileTime/conversion/RemoveFromSeq.hpp"
 
 namespace picongpu
 {
@@ -111,8 +112,8 @@ struct OperatorCreateVectorBox
 {
     typedef
     bmpl::pair< InType,
-            PMacc::VectorDataBox< typename InType::type > >
-            type;
+    PMacc::VectorDataBox< typename InType::type > >
+    type;
 };
 
 /** Write copy particle to host memory and dump to HDF5 file
@@ -130,29 +131,12 @@ public:
     typedef typename FrameType::ValueTypeSeq ParticleAttributeList;
     typedef typename FrameType::MethodsList ParticleMethodsList;
 
-    /* at the moment some list opratations are not include in PMacc
-     * this is the reason why we do so much magic
-     */
+    /* delete multiMask and localCellIdx in hdf5 particle*/
+    typedef bmpl::vector<multiMask,localCellIdx> TypesToDelete;
+    typedef typename RemoveFromSeq<ParticleAttributeList, TypesToDelete>::type ParticleCleanedAttributeList;
 
-    template<typename T_Key>
-    struct isMultiMask
-    {
-        typedef typename GetKeyFromAlias<ParticleAttributeList, multiMask>::type Key;
-        typedef boost::is_same< T_Key, Key> type;
-    };
-
-    typedef typename bmpl::remove_if< ParticleAttributeList, isMultiMask<bmpl::_> >::type NoMultiMask;
-
-    template<typename T_Key>
-    struct isLocalCellIdx
-    {
-        typedef typename GetKeyFromAlias<NoMultiMask, localCellIdx>::type Key;
-        typedef boost::is_same< T_Key, Key> type;
-    };
-
-    typedef typename bmpl::remove_if< NoMultiMask, isLocalCellIdx<bmpl::_> >::type ParticleCleantAttributeList;
-
-    typedef typename JoinVectors<ParticleCleantAttributeList, boost::mpl::vector<globalCellIdx<globalCellIdx_pic> > >::type ParticleNewAttributeList;
+    /* add globalCellIdx for hdf5 particle*/
+    typedef typename JoinVectors<ParticleCleanedAttributeList, boost::mpl::vector<globalCellIdx<globalCellIdx_pic> > >::type ParticleNewAttributeList;
 
     typedef Frame<OperatorCreateVectorBox, ParticleNewAttributeList, ParticleMethodsList> Hdf5FrameType;
 

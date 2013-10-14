@@ -26,6 +26,7 @@
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/vector.hpp>
+#include "compileTime/conversion/ToSeq.hpp"
 
 namespace PMacc
 {
@@ -37,57 +38,27 @@ namespace operations
 namespace detail
 {
 
+/* functor for deselect attributes of an object
+ * 
+ * - must be boost result_of compatible
+ * - must define a operator()(T_Object)
+ * 
+ * @tparam T_Sequence any boost mpl sequence
+ * @tparam T_Object a type were we can deselect attributes from
+ */
 template<typename T_Sequence, typename T_Object>
 struct Deselect;
 
-}//namespace detail
-
-namespace wrapperCall
-{
-namespace bmpl = boost::mpl;
-
-template<typename T_IsSequence, typename T_Sequence, typename T_Object>
-struct DeselectWrapper;
-
-/*
- * at the moment we only support to deselect one attribute
-template<typename T_Sequence, typename T_Object>
-struct DeselectWrapper<boost::mpl::true_, T_Sequence, T_Object>
-{
-    BOOST_MPL_ASSERT((boost::mpl::is_sequence< T_Sequence >));
-    typedef  PMacc::particles::operations::detail::Deselect<T_Sequence, T_Object> BaseType;
-    typedef typename BaseType::result result;
-
-    HDINLINE
-    result operator()(const T_Object& object)
-    {
-        return BaseType()(object);
-    }
-};
-*/
-
-template<typename T_Key, typename T_Object>
-struct DeselectWrapper<boost::mpl::false_, T_Key, T_Object>
-{
-    typedef PMacc::particles::operations::detail::Deselect<T_Key, T_Object> BaseType;
-    typedef typename BaseType::result result;
-
-    HDINLINE
-    result operator()(const T_Object& object)
-    {
-        return BaseType()(object);
-    }
-};
-} //namespace wrapperCall
+} //namespace detail
 
 template<typename T_Exclude, typename T_Object>
 static HDINLINE
-typename wrapperCall::DeselectWrapper<typename boost::mpl::is_sequence< T_Exclude >::type, T_Exclude, T_Object>::result
-deselect(const T_Object& object)
+typename boost::result_of < detail::Deselect<typename ToSeq<T_Exclude>::type,T_Object>(T_Object)>::type
+deselect(T_Object& object)
 {
-    typedef typename boost::mpl::is_sequence< T_Exclude >::type IsSequence;
-    typedef wrapperCall::DeselectWrapper<IsSequence, T_Exclude, T_Object> BaseType;
-    typedef typename BaseType::result result;
+    typedef typename ToSeq< T_Exclude >::type DeselectSeq;
+    typedef detail::Deselect<DeselectSeq, T_Object> BaseType;
+
     return BaseType()(object);
 }
 
