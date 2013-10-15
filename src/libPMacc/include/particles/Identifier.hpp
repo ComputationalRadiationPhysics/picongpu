@@ -22,8 +22,6 @@
 #pragma once
 
 #include "types.h"
-#include "identifier/identifier.hpp"
-#include "identifier/alias.hpp"
 #include "identifier/value_identifier.hpp"
 #include "particles/frame_types.hpp"
 
