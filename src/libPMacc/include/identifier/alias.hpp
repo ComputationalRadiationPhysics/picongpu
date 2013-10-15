@@ -30,7 +30,7 @@ identifier(pmacc_void);
 identifier(pmacc_isAlias);
 } //namespace PMacc
 
-/*define special makros for creating classes which are ony used as identifer*/
+/*define special makros for creating classes which are only used as identifer*/
 #define PMACC_alias(name,id)                                                   \
     namespace PMACC_JOIN(placeholder_definition,id) {                          \
         template<typename T=PMacc::pmacc_void,typename T_IsAlias=PMacc::pmacc_isAlias> \
@@ -52,6 +52,15 @@ identifier(pmacc_isAlias);
     PMACC_PLACEHOLDER(id);
 
 
-/** register a not specified iden
+/** create a alias (not specialized value_identifier) 
+ * 
+ * 
+ * @param name name of alias
+ * 
+ * example: alias(aliesName); //create type varname
+ * 
+ * to specialized a alies use: aliesName<valueIdentifierName>
+ * to create a instance of this alies you can use:
+ *      aliesName();   or aliesName
  */
 #define alias(name) PMACC_alias(name,__COUNTER__)

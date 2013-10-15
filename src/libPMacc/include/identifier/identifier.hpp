@@ -50,10 +50,14 @@
 
 
 /** create a identifier (identifier with arbitrary code as second parameter
- * !! second parameter is optinal
+ * !! second parameter is optinal and can by any C++ code which can add inside a class
+ * 
  * example: identifier(varname); //create type varname
  * example: identifier(varname,typedef int type;); //create type varname, 
  *          later its possible to use: typedef varname::type type; 
+ * 
+ * to create a instance of this identifier you can use:
+ *      varname();   or varname_
  */
 #define identifier(name,...) PMACC_identifier(name,__COUNTER__,__VA_ARGS__)
  

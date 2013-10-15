@@ -41,6 +41,9 @@
  *      value_type x= length::getDefault();  //set x to 0.f
  *      printf("Identifier name: %s",length::getName()); //print Identifier name: length
  * 
+ * to create a instance of this value_identifier you can use:
+ *      length();   or length_
+ * 
  */
 #define value_identifier(in_type,name,in_default)                              \
         identifier(name,                                                       \
