@@ -33,7 +33,7 @@
 
 #include "particles/frame_types.hpp"
 
-#include "DomainCollector.hpp"
+#include "splash.h"
 #include "basetypes/ColTypeDim.hpp"
 #include "basetypes/ColTypeFloat.hpp"
 #include "basetypes/ColTypeDouble.hpp"
@@ -89,7 +89,7 @@ namespace bmpl = boost::mpl;
 namespace po = boost::program_options;
 
 /**
- * Writes simulation data to hdf5 files.
+ * Writes simulation data to hdf5 files using libSplash.
  * Implements the ISimulationIO interface.
  *
  * @param ElectronsBuffer class description for electrons
@@ -180,6 +180,10 @@ private:
             this->operator_impl(tparam);
         }
     private:
+        typedef typename FieldTmp::ValueType ValueType;
+        typedef typename GetComponentsType<ValueType>::type ComponentType;
+        typedef typename PICToSplash<ComponentType>::type SplashType;
+        
 
         /** Create a name for the hdf5 identifier.
          */
@@ -199,14 +203,12 @@ private:
         {
             typedef typename FieldTmp::UnitValueType UnitType;
             UnitType unit = FieldTmp::getUnit<Solver>();
-            return createUnit(unit, FieldTmp::numComponents);
+            const uint32_t components = GetNComponents<ValueType>::value;
+            return createUnit(unit, components);
         }
 
         HINLINE void operator_impl(RefWrapper<ThreadParams*> params)
         {
-
-            DCollector::ColTypeFloat ctFloat;
-
             DataConnector &dc = DataConnector::getInstance();
 
             /*## update field ##*/
@@ -228,11 +230,14 @@ private:
             dc.releaseData(ThisSpecies::FrameType::CommunicationTag);
             /*## finish update field ##*/
 
+            const uint32_t components = GetNComponents<ValueType>::value;
+            SplashType spashType;
+
             params.get()->gridLayout = fieldTmp->getGridLayout();
             /*write data to HDF5 file*/
             writeField(params.get(),
-                       ctFloat,
-                       FieldTmp::numComponents,
+                       spashType,
+                       components,
                        getName<ThisSolver, ThisSpecies>(),
                        getUnit<ThisSolver>(),
                        fieldTmp->getHostDataBox().getPointer());
@@ -360,11 +365,6 @@ private:
             throw std::runtime_error("Failed to open datacollector");
         }
 
-        DCollector::Dimensions global_offset(10, 11, 12);
-        DCollector::ColTypeDim ctDim;
-        mThreadParams.dataCollector->writeGlobalAttribute(ctDim,
-                                                          "global_offset", global_offset.getPointer());
-
         continueFile = true; //set continue for the next open
 
     }
@@ -377,7 +377,7 @@ private:
                 SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset();
 
             GridController<simDim> &gc = GridController<simDim>::getInstance();
-            /* it is importend that we never change the mpi_pos after this point 
+            /* it is important that we never change the mpi_pos after this point 
              * because we get problems with the restart.
              * Otherwise we not know which gpu must load the ghost parts around
              * the sliding window
@@ -525,7 +525,7 @@ private:
                 writeSpecies(ref(threadParams), std::string("_top_"), sim_offset, localOffset, localSize);
                 log<picLog::INPUT_OUTPUT > ("HDF5 end to write particle species top.");
             }
-            */
+             */
             sim_offset = threadParams->gridPosition;
             sim_offset.y() += threadParams->window.localSize.y();
             localOffset = DataSpace<simDim > ();
