@@ -35,6 +35,7 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/begin_end.hpp>
 #include <boost/mpl/find.hpp>
+#include "compileTime/conversion/MakeSeq.hpp"
 
 #include "RefWrapper.hpp"
 #include <boost/type_traits.hpp>
@@ -136,7 +137,10 @@ public:
     typedef typename RemoveFromSeq<ParticleAttributeList, TypesToDelete>::type ParticleCleanedAttributeList;
 
     /* add globalCellIdx for hdf5 particle*/
-    typedef typename JoinVectors<ParticleCleanedAttributeList, boost::mpl::vector<globalCellIdx<globalCellIdx_pic> > >::type ParticleNewAttributeList;
+    typedef typename MakeSeq<
+            ParticleCleanedAttributeList, 
+            globalCellIdx<globalCellIdx_pic>
+    >::type ParticleNewAttributeList;
 
     typedef Frame<OperatorCreateVectorBox, ParticleNewAttributeList, ParticleMethodsList> Hdf5FrameType;
 

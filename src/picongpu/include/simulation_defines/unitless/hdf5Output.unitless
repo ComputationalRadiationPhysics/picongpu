@@ -34,7 +34,7 @@
 
 #include "particles/particleToGrid/energyDensity.kernel"
 
-#include "particles/boostExtension/JoinVectors.hpp"
+#include "compileTime/conversion/MakeSeq.hpp"
 
 namespace picongpu
 {
@@ -87,7 +87,8 @@ namespace picongpu
     
     
     /** This list is use to dump fields to HDf5. */
-    typedef JoinVectors<NativeHdf5OutputFields,
+    typedef MakeSeq<
+            NativeHdf5OutputFields,
             PluginsHdf5OutputFieldsElectrons,
             PluginsHdf5OutputFieldsIons
     >::type Hdf5OutputFields;

@@ -36,7 +36,7 @@
 #include "dimensions/TVec.h"
 
 #include "particles/boostExtension/InheritGenerators.hpp"
-#include "particles/boostExtension/JoinVectors.hpp"
+#include "compileTime/conversion/MakeSeq.hpp"
 
 
 #include <boost/mpl/vector.hpp>
@@ -89,15 +89,16 @@ public:
     typedef SuperCellSize_ SuperCellSize;
 
     typedef
-    typename JoinVectors<
-    T_DataVector,
-    boost::mpl::vector<localCellIdx, multiMask>
+    typename MakeSeq<
+        T_DataVector,
+        localCellIdx, 
+        multiMask
     >::type full_particleList;
     
     typedef
-    typename JoinVectors<
-    T_DataVector,
-    boost::mpl::vector<localCellIdx>
+    typename MakeSeq<
+        T_DataVector,
+        localCellIdx
     >::type border_particleList;
 
     typedef Frame<OperatorCreatePairStaticArrayWithSuperCellSize,full_particleList,T_MethodsVector> ParticleType;

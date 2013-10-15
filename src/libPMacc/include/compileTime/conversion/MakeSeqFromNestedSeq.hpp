@@ -17,47 +17,41 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 
 #pragma once
 
-#include "particles/boostExtension/InheritGenerators.hpp"
-#include "compileTime/conversion/MakeSeq.hpp"
-#include "particles/particleFilter/system/TrueFilter.hpp"
-#include "particles/particleFilter/system/DefaultFilter.hpp"
-
-#include "particles/memory/frames/NullFrame.hpp"
-
-#include <boost/mpl/list.hpp>
 #include <boost/mpl/vector.hpp>
-#include <boost/mpl/copy.hpp>
-#include <boost/mpl/back_inserter.hpp>
-#include <boost/mpl/front_inserter.hpp>
+#include "compileTime/conversion/ToSeq.hpp"
+#include "compileTime/conversion/JoinToSeq.hpp"
+#include <boost/mpl/fold.hpp>
 
 namespace PMacc
 {
 
 namespace bmpl = boost::mpl;
 
-template<typename UserTypeList = bmpl::vector<NullFrame> >
-    class FilterFactory
+/** combine all elements of the input type to a single vector
+ *  
+ * If elements of the input sequence are a sequence themself, all of their
+ * elements will be added to the resulting sequence
+ * 
+ * @tparam T_In a boost mpl sequence or single type
+ */
+template<class T_In>
+struct MakeSeqFromNestedSeq
 {
+private:
+    typedef typename ToSeq<T_In >::type Seq;
+
 public:
-
-    typedef
-    typename LinearInherit
-    <
-        typename MakeSeq<
-           DefaultFilter<> ,
-           UserTypeList,
-           TrueFilter
-        >::type
-    >::type FilterType;
-
+    typedef typename bmpl::fold<
+      Seq,
+      bmpl::vector<>,
+      JoinToSeq<bmpl::_1,bmpl::_2>
+    >::type type;
 };
 
-}//namespace PMacc
-
-
+} //namepsace PMacc
 

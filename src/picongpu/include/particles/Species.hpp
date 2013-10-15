@@ -23,6 +23,7 @@
 #include "types.h"
 #include "simulation_defines.hpp"
 #include "simulation_types.hpp"
+#include "compileTime/conversion/MakeSeq.hpp"
 
 #include "particles/Particles.hpp"
 #include "particles/species/ions/IonMethods.hpp"
@@ -50,11 +51,19 @@ typedef bmpl::vector<
 /* not nice, we change this later with nice interfaces*/
 
 typedef
-typename JoinVectors<ElectronsDataList, AttributMomentum_mt1, AttributRadiationFlag>::type
+typename MakeSeq<
+            ElectronsDataList, 
+            AttributMomentum_mt1, 
+            AttributRadiationFlag
+    >::type
 Species1_data;
 
 typedef
-typename JoinVectors<IonsDataList, AttributMomentum_mt1, AttributRadiationFlag>::type
+typename MakeSeq<
+            IonsDataList, 
+            AttributMomentum_mt1, 
+            AttributRadiationFlag
+    >::type
 Species2_data;
 
 typedef Particles<
@@ -81,7 +90,7 @@ typedef boost::mpl::vector<
     #endif
 > Species2;
 
-typedef typename JoinVectors<
+typedef typename MakeSeq<
     Species1,
     Species2
 >::type VectorAllSpecies;

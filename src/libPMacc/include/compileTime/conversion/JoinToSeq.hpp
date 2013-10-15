@@ -17,45 +17,40 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 
 #pragma once
 
-#include <boost/mpl/list.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/copy.hpp>
 #include <boost/mpl/back_inserter.hpp>
 #include <boost/mpl/front_inserter.hpp>
+#include "compileTime/conversion/ToSeq.hpp"
 
 namespace PMacc
 {
 
 namespace bmpl = boost::mpl;
 
-
-/**Join vector to one vector
+/** Join both input types to one boost mpl sequence
  * 
- * Create a vector with the order V1,V2,...,Vn
- * 
- * \todo: use vector instead of V1, V2 ...
+ * @tparam T_1 a boost mpl sequence or single type
+ * @tparam T_2 a boost mpl sequence or single type
  */
 
-template<class V1, class V2, class V3 = bmpl::vector<> >
-struct JoinVectors
+template<class T_1, class T_2 = bmpl::vector<> >
+struct JoinToSeq
 {
 private:
+    typedef typename ToSeq<T_1 >::type Seq1;
+    typedef typename ToSeq<T_2 >::type Seq2;
+public:
     typedef typename bmpl::copy<
-        V2,
-        bmpl::back_inserter< V1>
-        >::type type_1;
-
-    public:
-        typedef typename bmpl::copy<
-        V3,
-        bmpl::back_inserter< type_1>
-        >::type type;
+    Seq2,
+    bmpl::back_inserter< Seq1>
+    >::type type;
 };
 
-}
+} //namepsace PMacc
 
