@@ -35,18 +35,18 @@ using namespace PMacc;
 
 
 /*add old momentum for radiation plugin*/
-typedef bmpl::vector<
+typedef typename MakeSeq<
 #if(ENABLE_RADIATION == 1)
     momentumPrev1
 #endif
-> AttributMomentum_mt1;
+>::type AttributMomentum_mt1;
 
 /*add old radiation flag for radiation plugin*/
-typedef bmpl::vector<
+typedef typename MakeSeq<
 #if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
     radiationFlag
 #endif
-> AttributRadiationFlag;
+>::type AttributRadiationFlag;
 
 /* not nice, we change this later with nice interfaces*/
 
@@ -78,17 +78,17 @@ typedef Particles<
 
 
 /*not nice, but this shuld be changed in the future*/
-typedef boost::mpl::vector<
+typedef typename MakeSeq<
     #if (ENABLE_ELECTRONS == 1)
     PIC_Electrons
     #endif
-> Species1;
+>::type Species1;
 
-typedef boost::mpl::vector<
+typedef typename MakeSeq<
     #if (ENABLE_IONS == 1)
     PIC_Electrons
     #endif
-> Species2;
+>::type Species2;
 
 typedef typename MakeSeq<
     Species1,

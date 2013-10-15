@@ -38,16 +38,18 @@ namespace bmpl = boost::mpl;
  *  
  * @tparam T_N a boost mpl sequence or single type
  */
-template<class T_1,class T_2 = bmpl::vector<>,class T_3 = bmpl::vector<>,class T_4 = bmpl::vector<>,class T_5 = bmpl::vector<> >
+template<class T_1 = bmpl::vector<>, class T_2 = bmpl::vector<>,
+         class T_3 = bmpl::vector<>, class T_4 = bmpl::vector<>,
+         class T_5 = bmpl::vector<> >
 struct MakeSeq
 {
     typedef typename MakeSeqFromNestedSeq<
     bmpl::vector<
-        T_1,
-        T_2,
-        T_3,
-        T_4,
-        T_5
+    T_1,
+    T_2,
+    T_3,
+    T_4,
+    T_5
     >
     >::type type;
 };
