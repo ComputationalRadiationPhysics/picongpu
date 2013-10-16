@@ -54,7 +54,7 @@ struct Reduce
 
 } /*namespace reduceMethods*/
 
-} /*namepsace mpi*/
+} /*namespace mpi*/
 
 } /*namespace PMacc*/
 

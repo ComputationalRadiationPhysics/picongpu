@@ -54,5 +54,5 @@ struct MakeSeq
     >::type type;
 };
 
-} //namepsace PMacc
+} //namespace PMacc
 

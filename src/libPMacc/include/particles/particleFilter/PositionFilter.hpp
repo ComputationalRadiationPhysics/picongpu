@@ -71,7 +71,7 @@ public:
 
 };
 
-} //namepsace privatePositionFilter
+} //namespace privatePositionFilter
 
 template<class Base = NullFrame>
 class PositionFilter3D : public privatePositionFilter::PositionFilter<DIM3, Base>
@@ -91,7 +91,7 @@ public:
     }
 };
 
-} //namepsace Frame
+} //namespace Frame
 
 #endif	/* POSITIONFILTER_HPP */
 

@@ -125,9 +125,9 @@ static MPI_StructAsArray getMPI_StructAsArray< ::Amplitude >()
     return result;
 };
 
-}//namepsace mpi
+}//namespace mpi
 
-}//namepsace PMacc
+}//namespace PMacc
 
 
 

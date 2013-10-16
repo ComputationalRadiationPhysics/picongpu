@@ -119,5 +119,5 @@ __global__ void copySpecies(int* counter, T_DestFrame destFrame, T_SrcBox srcBox
 
 } //namspace hdf5
 
-} //namepsace picongpu
+} //namespace picongpu
 

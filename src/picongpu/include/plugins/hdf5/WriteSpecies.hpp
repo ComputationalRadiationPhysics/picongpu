@@ -230,5 +230,5 @@ public:
 
 } //namspace hdf5
 
-} //namepsace picongpu
+} //namespace picongpu
 

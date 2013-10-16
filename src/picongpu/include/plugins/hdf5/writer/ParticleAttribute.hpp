@@ -77,7 +77,7 @@ struct ParticleAttribute
 
         log<picLog::INPUT_OUTPUT > ("HDF5: write species attribute: %1%") % Identifier::getName();
 
-        SplashType spashType;
+        SplashType splashType;
         const std::string name_lookup[] = {"x", "y", "z"};
 
         std::vector<double> unit = Unit<T_Identifier>::get();
@@ -85,12 +85,12 @@ struct ParticleAttribute
         DataSpace<simDim> field_no_guard = localSize;
         DataSpace<simDim> global_sim_size = params.get()->window.globalSimulationSize;
 
-        DCollector::Dimensions domain_offset(0, 0, 0);
-        DCollector::Dimensions domain_size(1, 1, 1);
+        Dimensions domain_offset(0, 0, 0);
+        Dimensions domain_size(1, 1, 1);
 
         ///\todo this might be deprecated
-        DCollector::Dimensions sim_global_offset(0, 0, 0);
-        DCollector::Dimensions sim_global_size(1, 1, 1);
+        Dimensions sim_global_offset(0, 0, 0);
+        Dimensions sim_global_size(1, 1, 1);
 
         for (uint32_t d = 0; d < simDim; ++d)
         {
@@ -111,18 +111,18 @@ struct ParticleAttribute
                 str << "_" << name_lookup[d];
 
             ValueType* dataPtr = frame.get().getIdentifier(Identifier()).getPointer();
-            /** \todo fix me
+            /** \todo fix me (libSplash issue #42
              *  Splash not accept NULL pointer, but we know that we have zero data to write
              * but we need to create the attribute, thus we set dataPtr to 1.
              * The reason why we have a data pointer is, thaat we not create memory if we need no memory.
              */
             if(dataPtr==NULL)
-                dataPtr+=1;
+               dataPtr+=1;
             /** \todo fix me
              * this method not support to write empty attrbutes
              * (after we have fixed this in splash we can use this call and not appendDomain
             params.get()->dataCollector->writeDomain(params.get()->currentStep, 
-                                                     spashType, 
+                                                     splashType, 
                                                      1u, 
                                                      DCollector::Dimensions(elements*components, 1, 1),
                                                      DCollector::Dimensions(components, 1, 1),
@@ -137,7 +137,7 @@ struct ParticleAttribute
                                                      dataPtr);
              */
             params.get()->dataCollector->appendDomain(params.get()->currentStep,
-                                                spashType,
+                                                splashType,
                                                 elements,
                                                 d,
                                                 components,
@@ -166,5 +166,5 @@ struct ParticleAttribute
 
 } //namspace hdf5
 
-} //namepsace picongpu
+} //namespace picongpu
 

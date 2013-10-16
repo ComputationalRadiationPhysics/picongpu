@@ -95,7 +95,7 @@ private:
 
     }
 };
-} //namepsace memory
+} //namespace memory
 } //namespace nvidia
 } //namespace PMacc
 

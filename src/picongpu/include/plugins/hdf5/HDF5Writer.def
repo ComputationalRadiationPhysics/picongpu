@@ -63,6 +63,6 @@ struct ThreadParams
 
 class HDF5Writer;
 
-} //namepsace hdf5
+} //namespace hdf5
 } //namespace picongpu
 

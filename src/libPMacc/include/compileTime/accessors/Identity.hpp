@@ -47,4 +47,4 @@ struct Identity
 
 }//namespace compileTime
 
-}//namepsace  PMacc
+}//namespace  PMacc

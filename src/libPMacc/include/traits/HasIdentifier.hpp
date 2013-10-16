@@ -46,4 +46,4 @@ static bool hasIdentifier(const T_Object& obj,const T_Key& key)
 
 }//namespace traits
 
-}//namepsace PMacc
+}//namespace PMacc

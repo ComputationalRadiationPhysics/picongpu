@@ -34,12 +34,7 @@
 #include "particles/frame_types.hpp"
 
 #include "splash.h"
-#include "basetypes/ColTypeDim.hpp"
-#include "basetypes/ColTypeFloat.hpp"
-#include "basetypes/ColTypeDouble.hpp"
-#include "basetypes/ColTypeInt.hpp"
-#include "basetypes/ColTypeBool.hpp"
-#include "basetypes/ColTypeInt3Array.hpp"
+
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
 #include "fields/FieldJ.hpp"
@@ -100,11 +95,13 @@ class HDF5Writer : public ISimulationIO, public IPluginModule
 {
 public:
 
+    /* filter particles by global position*/
     typedef bmpl::vector< PositionFilter3D<> > usedFilters;
     typedef typename FilterFactory<usedFilters>::FilterType MyParticleFilter;
 
 private:
 
+    /* fiter is a rule which describe which particles shuld copy to host*/
     MyParticleFilter filter;
 
     template<typename UnitType>
@@ -231,12 +228,12 @@ private:
             /*## finish update field ##*/
 
             const uint32_t components = GetNComponents<ValueType>::value;
-            SplashType spashType;
+            SplashType splashType;
 
             params.get()->gridLayout = fieldTmp->getGridLayout();
             /*write data to HDF5 file*/
             writeField(params.get(),
-                       spashType,
+                       splashType,
                        components,
                        getName<ThisSolver, ThisSpecies>(),
                        getUnit<ThisSolver>(),
@@ -511,21 +508,7 @@ private:
 
         if (MovingWindow::getInstance().isSlidingWindowActive())
         {
-            /* not needed, we don't use top for restart
-            DataSpace<simDim> sim_offset = threadParams->gridPosition;
-            DataSpace<simDim> localOffset;
-            DataSpace<simDim> localSize = threadParams->window.localSize;
-            localSize.y() = threadParams->window.globalSimulationOffset.y();
-            sim_offset = threadParams->gridPosition;
 
-            if (threadParams->window.isTop)
-            {
-              
-                log<picLog::INPUT_OUTPUT > ("HDF5 begin to write particle species top.");
-                writeSpecies(ref(threadParams), std::string("_top_"), sim_offset, localOffset, localSize);
-                log<picLog::INPUT_OUTPUT > ("HDF5 end to write particle species top.");
-            }
-             */
             sim_offset = threadParams->gridPosition;
             sim_offset.y() += threadParams->window.localSize.y();
             localOffset = DataSpace<simDim > ();
@@ -535,8 +518,9 @@ private:
 
             if (threadParams->window.isBottom)
             {
-                /*print all particle species*/
+                /* for restart we only need bottom ghosts for particles */
                 log<picLog::INPUT_OUTPUT > ("HDF5 begin to write particle species bottom.");
+                /* print all particle species */
                 writeSpecies(ref(threadParams), std::string("_bottom_"), sim_offset, localOffset, localSize);
                 log<picLog::INPUT_OUTPUT > ("HDF5 end to write particle species bottom.");
             }
@@ -558,6 +542,6 @@ private:
 
 };
 
-} //namepsace hdf5
-} //namepsace picongpu
+} //namespace hdf5
+} //namespace picongpu
 

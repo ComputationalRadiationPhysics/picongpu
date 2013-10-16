@@ -52,5 +52,5 @@ public:
     >::type type;
 };
 
-} //namepsace PMacc
+} //namespace PMacc
 

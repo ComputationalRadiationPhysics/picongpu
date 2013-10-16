@@ -48,4 +48,4 @@ struct Second
 
 }//namespace compileTime
 
-}//namepsace  PMacc
+}//namespace  PMacc
