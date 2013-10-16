@@ -54,9 +54,14 @@ struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
     typedef Particle<FrameType, ValueTypeSeq> ThisType;
     typedef typename FrameType::MethodsList MethodsList;
 
-
+    /* IMPORTEND: store first value with big size to void
+     * that pointer is copyed byte by byte 
+     * 
+     * in this case sizeof(uint32_t)>sizeof(reference)
+     */
+    const uint32_t idx;
     FrameType& frame;
-    uint32_t idx;
+    
 
     HDINLINE Particle(FrameType& frame, uint32_t idx) : frame(frame), idx(idx)
     {
