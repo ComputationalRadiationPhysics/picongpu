@@ -41,7 +41,6 @@ using namespace PMacc;
 using namespace DCollector;
 namespace bmpl = boost::mpl;
 
-
 /** write attribute of a particle to hdf5 file
  * 
  * @tparam T_Identifier identifier of a particle attribute
@@ -58,13 +57,12 @@ struct ParticleAttribute
      * @param simOffset offset from window origin of thedomain
      * @param localSize local domain size 
      */
-    template<typename Space, typename FrameType>
+    template<typename FrameType>
     HINLINE void operator()(
                             const RefWrapper<ThreadParams*> params,
                             const RefWrapper<FrameType> frame,
                             const std::string prefix,
-                            const Space simOffset,
-                            const Space localSize,
+                            const DomainInformation domInfo,
                             const size_t elements)
     {
 
@@ -82,25 +80,27 @@ struct ParticleAttribute
 
         std::vector<double> unit = Unit<T_Identifier>::get();
 
-        DataSpace<simDim> field_no_guard = localSize;
-        DataSpace<simDim> global_sim_size = params.get()->window.globalSimulationSize;
+        /* globalSlideOffset due to gpu slides between origin at time step 0
+         * and origin at current time step
+         * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
+         */
+        DataSpace<simDim> globalSlideOffset = DataSpace<simDim>(
+                                                                0,
+                                                                params.get()->window.slides * params.get()->window.localFullSize.y(),
+                                                                0);
 
-        Dimensions domain_offset(0, 0, 0);
-        Dimensions domain_size(1, 1, 1);
+        Dimensions splashDomainOffset(0, 0, 0);
+        Dimensions splashGlobalDomainOffset(0, 0, 0);
 
-        ///\todo this might be deprecated
-        Dimensions sim_global_offset(0, 0, 0);
-        Dimensions sim_global_size(1, 1, 1);
+        Dimensions splashDomainSize(1, 1, 1);
+        Dimensions splashGlobalDomainSize(1, 1, 1);
 
         for (uint32_t d = 0; d < simDim; ++d)
         {
-            sim_global_size[d] = global_sim_size[d];
-            if (simOffset[d] > 0)
-            {
-                sim_global_offset[d] = simOffset[d];
-                domain_offset[d] = simOffset[d];
-            }
-            domain_size[d] = field_no_guard[d];
+            splashDomainOffset[d] = domInfo.domainOffset[d] + globalSlideOffset[d];
+            splashGlobalDomainOffset[d] = domInfo.globalDomainOffset[d] + globalSlideOffset[d];
+            splashGlobalDomainSize[d] = domInfo.globalDomainSize[d];
+            splashDomainSize[d] = domInfo.domainSize[d];
         }
 
         for (uint32_t d = 0; d < components; d++)
@@ -116,8 +116,8 @@ struct ParticleAttribute
              * but we need to create the attribute, thus we set dataPtr to 1.
              * The reason why we have a data pointer is, thaat we not create memory if we need no memory.
              */
-            if(dataPtr==NULL)
-               dataPtr+=1;
+            //   if(dataPtr==NULL)
+            //      dataPtr+=1;
             /** \todo fix me
              * this method not support to write empty attrbutes
              * (after we have fixed this in splash we can use this call and not appendDomain
@@ -137,25 +137,26 @@ struct ParticleAttribute
                                                      dataPtr);
              */
             params.get()->dataCollector->appendDomain(params.get()->currentStep,
-                                                splashType,
-                                                elements,
-                                                d,
-                                                components,
-                                                str.str().c_str(),
-                                                domain_offset,
-                                                domain_size,
-                                                Dimensions(0, 0, 0), /** \todo set to moving window offset */
-                                                sim_global_size,
-                                                dataPtr);
+                                                      splashType,
+                                                      elements,
+                                                      d,
+                                                      components,
+                                                      str.str().c_str(),
+                                                      splashDomainOffset,
+                                                      splashDomainSize,
+                                                      splashGlobalDomainOffset,
+                                                      splashGlobalDomainSize,
+                                                      dataPtr);
 
 
+            ColTypeInt ctInt;
+            int slides = params.get()->window.slides;
+            params.get()->dataCollector->writeAttribute(params->currentStep,
+                                                  ctDouble, str.str().c_str(), "sim_slides", &(slides));
             DCollector::ColTypeDouble ctDouble;
             if (unit.size() >= (d + 1))
                 params.get()->dataCollector->writeAttribute(params.get()->currentStep,
                                                             ctDouble, str.str().c_str(), "sim_unit", &(unit.at(d)));
-            params.get()->dataCollector->writeAttribute(params.get()->currentStep,
-                                                        DCollector::ColTypeDim(), str.str().c_str(),
-                                                        "sim_global_offset", sim_global_offset.getPointer());
 
 
         }

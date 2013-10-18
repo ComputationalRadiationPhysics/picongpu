@@ -146,9 +146,7 @@ public:
 
     HINLINE void operator()(RefWrapper<ThreadParams*> params,
                             std::string prefix,
-                            const DataSpace<simDim> sim_offset,
-                            const DataSpace<simDim> localOffset,
-                            const DataSpace<simDim> localSize)
+                            const DomainInformation domInfo)
     {
         log<picLog::INPUT_OUTPUT > ("HDF5: write species: %1%") % Hdf5FrameType::getName();
         DataConnector &dc = DataConnector::getInstance();
@@ -164,8 +162,8 @@ public:
         totalNumParticles = PMacc::CountParticles::countOnDevice < CORE + BORDER > (
                                                                                     *speciesTmp,
                                                                                     *(params.get()->cellDescription),
-                                                                                    localOffset,
-                                                                                    localSize);
+                                                                                    domInfo.localDomainOffset,
+                                                                                    domInfo.domainSize);
 
 
         log<picLog::INPUT_OUTPUT > ("HDF5: Finish count particles: %1% = %2%") % Hdf5FrameType::getName() % totalNumParticles;
@@ -192,7 +190,7 @@ public:
             MyParticleFilter filter;
             /*activeate filter pipline if moving window is activated*/
             filter.setStatus(MovingWindow::getInstance().isSlidingWindowActive());
-            filter.setWindowPosition(localOffset, localOffset + localSize);
+            filter.setWindowPosition(domInfo.localDomainOffset, domInfo.domainSize);
 
             dim3 block(TILE_SIZE);
             DataSpace<simDim> superCells = speciesTmp->getParticlesBuffer().getSuperCellsCount();
@@ -205,7 +203,7 @@ public:
                 (counterBuffer.getDeviceBuffer().getPointer(),
                  deviceFrame, speciesTmp->getDeviceParticlesBox(),
                  filter,
-                 sim_offset,
+                 domInfo.globalDomainOffset-domInfo.domainOffset, /*relative to data domain (not to physical domain)*/
                  mapper
                  );
             counterBuffer.deviceToHost();
@@ -217,7 +215,7 @@ public:
         }
         /*dump to hdf5 file*/
         ForEach<typename Hdf5FrameType::ValueTypeSeq, hdf5::ParticleAttribute<void> > writeToHdf5;
-        writeToHdf5(params, byRef(hostFrame), prefix + FrameType::getName(), sim_offset, localSize, totalNumParticles);
+        writeToHdf5(params, byRef(hostFrame), prefix + FrameType::getName(), domInfo, totalNumParticles);
 
         /*free host memory*/
         ForEach<typename Hdf5FrameType::ValueTypeSeq, FreeMemory<void> > freeMem;

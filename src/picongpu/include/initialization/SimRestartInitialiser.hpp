@@ -88,7 +88,17 @@ private:
                                  DataSpace<DIM3> localDomainSize)
     {
 
-
+        VirtualWindow window = MovingWindow::getInstance().getVirtualWindow(simulationStep);
+        /* globalSlideOffset due to gpu slides between origin at time step 0
+         * and origin at current time step
+         * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
+         */
+        DataSpace<simDim> globalSlideOffset(0,
+                                            window.slides * window.localFullSize.y(),
+                                            0);
+        
+        /* add offset to window from pic origin, because we had substract this before*/
+        globalSlideOffset.y()+= window.globalSimulationOffset.y();
         // At the moment, loading a particle subdomain from a different gpu
         // configuration is only possible if the old configuration is divisible
         // by the new configuration.
@@ -96,9 +106,9 @@ private:
 
 
 
-        Dimensions domain_offset(globalDomainOffset.x(),
-                                 globalDomainOffset.y(),
-                                 globalDomainOffset.z());
+        Dimensions domain_offset(globalSlideOffset.x() + globalDomainOffset.x(),
+                                 globalSlideOffset.y() + globalDomainOffset.y(),
+                                 globalSlideOffset.z() + globalDomainOffset.z());
 
 
 
@@ -420,7 +430,7 @@ public:
          *        in that case, set the fileAccType to FAT_READ_MERGED
          *        (useful for changed MPI setting for restart)
          */
-        attr.fileAccType = DataCollector::FAT_READ;
+        attr.fileAccType = DataCollector::FAT_READ_MERGED;
         attr.mpiSize.set(mpiSize[0], mpiSize[1], mpiSize[2]);
         attr.mpiPosition.set(mpiPos[0], mpiPos[1], mpiPos[2]);
 
@@ -596,13 +606,22 @@ private:
 
         const std::string name_lookup[] = {"x", "y", "z"};
 
+        /* globalSlideOffset due to gpu slides between origin at time step 0
+         * and origin at current time step
+         * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
+         */
+        DataSpace<simDim> globalSlideOffset(0,
+                                            window.slides * window.localFullSize.y(),
+                                            0);
+
         DataSpace<DIM> globalOffset(SubGrid<DIM>::getInstance().getSimulationBox().getGlobalOffset());
-        Dimensions domain_offset(globalOffset.x() - window.globalSimulationOffset.x(),
-                                 globalOffset.y() - window.globalSimulationOffset.y(),
-                                 globalOffset.z() - window.globalSimulationOffset.z());
+        Dimensions domain_offset(globalOffset.x() + globalSlideOffset.x(),
+                                 globalOffset.y() + globalSlideOffset.y(),
+                                 globalOffset.z() + globalSlideOffset.z());
+
         if (mpiPos[1] == 0)
-            domain_offset[1] = 0;
-        /*Dimensions domain_size(field_data[0], field_data[1], field_data[2]);*/
+            domain_offset[1] = domain_offset[1]+window.globalSimulationOffset.y();
+        
         Dimensions domain_size(window.localSize.x(),
                                window.localSize.y(),
                                window.localSize.z()

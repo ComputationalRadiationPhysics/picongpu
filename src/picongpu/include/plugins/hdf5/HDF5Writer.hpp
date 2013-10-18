@@ -130,7 +130,7 @@ private:
 
     public:
 
-        HDINLINE void operator()(RefWrapper<ThreadParams*> params)
+        HDINLINE void operator()(RefWrapper<ThreadParams*> params, const DomainInformation domInfo)
         {
 #ifndef __CUDA_ARCH__
             DCollector::ColTypeFloat ctFloat;
@@ -141,6 +141,7 @@ private:
             params.get()->gridLayout = field->getGridLayout();
 
             writeField(params.get(),
+                       domInfo,
                        ctFloat,
                        T::numComponents,
                        T::getName(),
@@ -172,15 +173,14 @@ private:
          * call virtual functions.
          */
         PMACC_NO_NVCC_HDWARNING
-        HDINLINE void operator()(RefWrapper<ThreadParams*> tparam)
+        HDINLINE void operator()(RefWrapper<ThreadParams*> tparam, const DomainInformation domInfo)
         {
-            this->operator_impl(tparam);
+            this->operator_impl(tparam,domInfo);
         }
     private:
         typedef typename FieldTmp::ValueType ValueType;
         typedef typename GetComponentsType<ValueType>::type ComponentType;
         typedef typename PICToSplash<ComponentType>::type SplashType;
-        
 
         /** Create a name for the hdf5 identifier.
          */
@@ -204,7 +204,7 @@ private:
             return createUnit(unit, components);
         }
 
-        HINLINE void operator_impl(RefWrapper<ThreadParams*> params)
+        HINLINE void operator_impl(RefWrapper<ThreadParams*> params, const DomainInformation domInfo)
         {
             DataConnector &dc = DataConnector::getInstance();
 
@@ -233,6 +233,7 @@ private:
             params.get()->gridLayout = fieldTmp->getGridLayout();
             /*write data to HDF5 file*/
             writeField(params.get(),
+                       domInfo,
                        splashType,
                        components,
                        getName<ThisSolver, ThisSpecies>(),
@@ -393,91 +394,81 @@ private:
 
     }
 
-    static void writeField(ThreadParams *params, DCollector::CollectionType& colType,
-                           const uint32_t dims, const std::string name,
+    static void writeField(ThreadParams *params, const DomainInformation domInfo, DCollector::CollectionType& colType,
+                           const uint32_t nCompunents, const std::string name,
                            std::vector<double> unit, void *ptr)
     {
         log<picLog::INPUT_OUTPUT > ("HDF5 write field: %1% %2% %3%") %
-            name % dims % ptr;
+            name % nCompunents % ptr;
 
         std::vector<std::string> name_lookup;
         {
             const std::string name_lookup_tpl[] = {"x", "y", "z", "w"};
-            for (uint32_t d = 0; d < dims; d++)
+            for (uint32_t d = 0; d < nCompunents; d++)
                 name_lookup.push_back(name_lookup_tpl[d]);
         }
 
+        /*data to describe source buffer*/
         GridLayout<simDim> field_layout = params->gridLayout;
         DataSpace<simDim> field_full = field_layout.getDataSpace();
-        DataSpace<simDim> field_no_guard = params->window.localSize;
-        DataSpace<simDim> field_guard = field_layout.getGuard() + params->window.localOffset;
+        DataSpace<simDim> field_no_guard = domInfo.domainSize;
+        DataSpace<simDim> field_guard = field_layout.getGuard() + domInfo.localDomainOffset;
+        /* globalSlideOffset due to gpu slides between origin at time step 0
+         * and origin at current time step
+         * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
+         */        
+        DataSpace<simDim> globalSlideOffset = DataSpace<simDim>(
+                                                                   0,
+                                                                   params->window.slides * params->window.localFullSize.y(),
+                                                                   0);
+        Dimensions splashDomainOffset(0, 0, 0);
+        Dimensions splashGlobalDomainOffset(0, 0, 0);
 
-        DataSpace<simDim> sim_offset = params->gridPosition - params->window.globalSimulationOffset;
-        DataSpace<simDim> global_sim_size = params->window.globalSimulationSize;
-
-        /*simulation attributes for data*/
-        DCollector::ColTypeDouble ctDouble;
-
-        DCollector::Dimensions domain_offset(0, 0, 0);
-        DCollector::Dimensions domain_size(1, 1, 1);
-
-        ///\todo these might be deprecated !
-        DCollector::Dimensions sim_size(0, 0, 0);
-        DCollector::Dimensions sim_global_offset(0, 0, 0);
-        DCollector::Dimensions sim_global_size(1, 1, 1);
+        Dimensions splashDomainSize(1, 1, 1);
+        Dimensions splashGlobalDomainSize(1, 1, 1);
 
         for (uint32_t d = 0; d < simDim; ++d)
         {
-            sim_size[d] = field_no_guard[d];
-            sim_global_size[d] = global_sim_size[d];
-            /*fields of first gpu in simulation are NULL point*/
-            if (sim_offset[d] > 0)
-            {
-                sim_global_offset[d] = sim_offset[d];
-                domain_offset[d] = sim_offset[d];
-            }
-
-            domain_size[d] = field_no_guard[d];
+            splashDomainOffset[d] = domInfo.domainOffset[d] + globalSlideOffset[d];
+            splashGlobalDomainOffset[d] = domInfo.globalDomainOffset[d] + globalSlideOffset[d];
+            splashGlobalDomainSize[d] = domInfo.globalDomainSize[d];
+            splashDomainSize[d] = domInfo.domainSize[d];
         }
 
 
-
-        //only write data if we have data
-        // if (field_no_guard.y() > 0)
+        for (uint32_t d = 0; d < nCompunents; d++)
         {
-            for (uint32_t d = 0; d < dims; d++)
-            {
-                std::stringstream str;
-                str << name;
-                if (dims > 1)
-                    str << "_" << name_lookup.at(d);
+            std::stringstream str;
+            str << name;
+            if (nCompunents > 1)
+                str << "_" << name_lookup.at(d);
 
-                params->dataCollector->writeDomain(params->currentStep, /* id == time step */
-                                                   colType, /* data type */
-                                                   simDim, /* NDims of the field data (scalar, vector, ...) */
-                                                   /* source buffer, stride, data size, offset */
-                                                   DCollector::Dimensions(field_full[0] * dims, field_full[1], field_full[2]),
-                                                   DCollector::Dimensions(dims, 1, 1),
-                                                   DCollector::Dimensions(field_no_guard[0], field_no_guard[1], field_no_guard[2]),
-                                                   DCollector::Dimensions(field_guard[0] * dims + d, field_guard[1], field_guard[2]),
-                                                   str.str().c_str(), /* data set name */
-                                                   domain_offset, /* offset in global domain */
-                                                   domain_size, /* local size */
-                                                   Dimensions(0, 0, 0), /* \todo offset of the global domain */
-                                                   sim_global_size, /* size of the global domain */
-                                                   DomainCollector::GridType,
-                                                   ptr);
+            params->dataCollector->writeDomain(params->currentStep, /* id == time step */
+                                               colType, /* data type */
+                                               simDim, /* NDims of the field data (scalar, vector, ...) */
+                                               /* source buffer, stride, data size, offset */
+                                               DCollector::Dimensions(field_full[0] * nCompunents, field_full[1], field_full[2]),
+                                               DCollector::Dimensions(nCompunents, 1, 1),
+                                               DCollector::Dimensions(field_no_guard[0], field_no_guard[1], field_no_guard[2]),
+                                               DCollector::Dimensions(field_guard[0] * nCompunents + d, field_guard[1], field_guard[2]),
+                                               str.str().c_str(), /* data set name */
+                                               splashDomainOffset, /* offset in global domain */
+                                               splashDomainSize, /* local size */
+                                               splashGlobalDomainOffset, /* \todo offset of the global domain */
+                                               splashGlobalDomainSize, /* size of the global domain */
+                                               DomainCollector::GridType,
+                                               ptr);
 
-                params->dataCollector->writeAttribute(params->currentStep,
-                                                      DCollector::ColTypeDim(), str.str().c_str(), "sim_size",
-                                                      sim_size.getPointer());
-                params->dataCollector->writeAttribute(params->currentStep,
-                                                      DCollector::ColTypeDim(), str.str().c_str(), "sim_global_offset",
-                                                      sim_global_offset.getPointer());
-                params->dataCollector->writeAttribute(params->currentStep,
-                                                      ctDouble, str.str().c_str(), "sim_unit", &(unit.at(d)));
-            }
+            /*simulation attributes for data*/
+            ColTypeDouble ctDouble;
+            ColTypeInt ctInt;
+            int slides=params->window.slides;
+            params->dataCollector->writeAttribute(params->currentStep,
+                                                  ctDouble, str.str().c_str(), "sim_unit", &(unit.at(d)));
+            params->dataCollector->writeAttribute(params->currentStep,
+                                                  ctDouble, str.str().c_str(), "sim_slides", &(slides));
         }
+
     }
 
     static void *writeHDF5(void *p_args)
@@ -486,44 +477,56 @@ private:
         // synchronize, because following operations will be blocking anyway
         ThreadParams *threadParams = (ThreadParams*) (p_args);
 
+        /* build clean domain info (picongpu view) */
+        DomainInformation domInfo;
+        /* set global offset (from physical origin) to our first gpu data area*/
+        domInfo.localDomainOffset = threadParams->window.localOffset;
+        domInfo.globalDomainOffset = threadParams->window.globalSimulationOffset;
+        domInfo.globalDomainSize = threadParams->window.globalWindowSize;
+        domInfo.domainOffset = threadParams->gridPosition;
+        /* change only the offset of the first gpu
+         * localDomainOffset is only non zero for the gpus on top
+         */
+        domInfo.domainOffset+=domInfo.localDomainOffset;
+        domInfo.domainSize = threadParams->window.localSize;
+        
+
         /*print all fields*/
         ForEach<Hdf5OutputFields, GetDCFields<void> > forEachGetFields;
-        forEachGetFields(ref(threadParams));
-
-        // write fields
-        /// \todo this should be a type trait
-        DCollector::ColTypeFloat ctFloat;
-
-        // write particles
-        DataSpace<simDim> sim_offset =
-            threadParams->gridPosition - threadParams->window.globalSimulationOffset;
-        DataSpace<simDim> localOffset = threadParams->window.localOffset;
-        DataSpace<simDim> localSize = threadParams->window.localSize;
+        forEachGetFields(ref(threadParams), domInfo);
 
         /*print all particle species*/
         log<picLog::INPUT_OUTPUT > ("HDF5 begin to write particle species.");
         ForEach<Hdf5OutputParticles, WriteSpecies<void> > writeSpecies;
-        writeSpecies(ref(threadParams), std::string(), sim_offset, localOffset, localSize);
+        writeSpecies(ref(threadParams), std::string(), domInfo);
         log<picLog::INPUT_OUTPUT > ("HDF5 end to write particle species.");
 
         if (MovingWindow::getInstance().isSlidingWindowActive())
         {
+            /* data domain = domain inside the sliding window
+             * ghost domain = domain under the data domain (is laying only on bottom gpus)
+             * end of data domain is the beginning of the ghost domain
+             */
+            domInfo.globalDomainOffset.y()+=domInfo.globalDomainSize.y();
+            domInfo.domainOffset.y()=domInfo.globalDomainOffset.y();
+            domInfo.domainSize=threadParams->window.localFullSize;
+            domInfo.domainSize.y()-=threadParams->window.localSize.y();
+            domInfo.globalDomainSize=threadParams->window.globalSimulationSize;
+            domInfo.globalDomainSize.y()-=domInfo.globalDomainOffset.y();
+            domInfo.localDomainOffset=DataSpace<simDim > ();
+            /* only importend for bottom gpus*/
+            domInfo.localDomainOffset.y() = threadParams->window.localSize.y();
 
-            sim_offset = threadParams->gridPosition;
-            sim_offset.y() += threadParams->window.localSize.y();
-            localOffset = DataSpace<simDim > ();
-            localOffset.y() = threadParams->window.localSize.y();
-            localSize = threadParams->window.localFullSize;
-            localSize.y() -= threadParams->window.localSize.y();
-
-            if (threadParams->window.isBottom)
+            if (threadParams->window.isBottom == false)
             {
-                /* for restart we only need bottom ghosts for particles */
-                log<picLog::INPUT_OUTPUT > ("HDF5 begin to write particle species bottom.");
-                /* print all particle species */
-                writeSpecies(ref(threadParams), std::string("_bottom_"), sim_offset, localOffset, localSize);
-                log<picLog::INPUT_OUTPUT > ("HDF5 end to write particle species bottom.");
+                /* set size for all gpu to zero which are not bottom gpus*/
+                domInfo.domainSize.y() = 0;
             }
+            /* for restart we only need bottom ghosts for particles */
+            log<picLog::INPUT_OUTPUT > ("HDF5 begin to write particle species bottom.");
+            /* print all particle species */
+            writeSpecies(ref(threadParams), std::string("_bottom_"), domInfo);
+            log<picLog::INPUT_OUTPUT > ("HDF5 end to write particle species bottom.");
         }
         return NULL;
     }

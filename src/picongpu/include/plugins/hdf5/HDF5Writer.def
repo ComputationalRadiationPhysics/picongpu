@@ -52,6 +52,24 @@ struct ThreadParams
     VirtualWindow window;
 };
 
+struct DomainInformation
+{
+    /* offset relative to global origin (first data point)
+     * to data from first gpu
+     */
+    DataSpace<simDim> globalDomainOffset;
+    DataSpace<simDim> globalDomainSize;
+    /* offset relative to global origin (first data point)
+     * to local data
+     */
+    DataSpace<simDim> domainOffset;
+    DataSpace<simDim> domainSize;
+    
+    /* offset on device*/
+    DataSpace<simDim> localDomainOffset;
+
+};
+
 /**
  * Writes simulation data to hdf5 files.
  * Implements the ISimulationIO interface.
