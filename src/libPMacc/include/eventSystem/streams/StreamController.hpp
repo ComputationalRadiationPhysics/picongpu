@@ -68,7 +68,7 @@ namespace PMacc
 
         /**
          * Destructor.
-         * Deletes internal streams.
+         * Deletes internal streams. Tears down CUDA.
          */
         virtual ~StreamController()
         {
@@ -78,6 +78,11 @@ namespace PMacc
                 delete streams[i];
             }
             streams.clear();
+            
+            /* This is the single point in PIC where ALL CUDA work must be finished. */
+            /* Accessing CUDA objects after this point may fail! */
+            CUDA_CHECK(cudaDeviceSynchronize());
+            CUDA_CHECK(cudaDeviceReset());
         }
 
         /**
