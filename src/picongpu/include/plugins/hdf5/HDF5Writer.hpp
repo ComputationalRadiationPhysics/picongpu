@@ -175,7 +175,7 @@ private:
         PMACC_NO_NVCC_HDWARNING
         HDINLINE void operator()(RefWrapper<ThreadParams*> tparam, const DomainInformation domInfo)
         {
-            this->operator_impl(tparam,domInfo);
+            this->operator_impl(tparam, domInfo);
         }
     private:
         typedef typename FieldTmp::ValueType ValueType;
@@ -185,7 +185,7 @@ private:
         /** Create a name for the hdf5 identifier.
          */
         template< typename Solver, typename Species >
-        static std::string getName()
+            static std::string getName()
         {
             std::stringstream str;
             str << FieldTmp::getName<Solver>();
@@ -196,7 +196,7 @@ private:
 
         /** Get the unit for the result from the solver*/
         template<typename Solver>
-        static std::vector<double> getUnit()
+            static std::vector<double> getUnit()
         {
             typedef typename FieldTmp::UnitValueType UnitType;
             UnitType unit = FieldTmp::getUnit<Solver>();
@@ -416,11 +416,11 @@ private:
         /* globalSlideOffset due to gpu slides between origin at time step 0
          * and origin at current time step
          * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
-         */        
+         */
         DataSpace<simDim> globalSlideOffset = DataSpace<simDim>(
-                                                                   0,
-                                                                   params->window.slides * params->window.localFullSize.y(),
-                                                                   0);
+                                                                0,
+                                                                params->window.slides * params->window.localFullSize.y(),
+                                                                0);
         Dimensions splashDomainOffset(0, 0, 0);
         Dimensions splashGlobalDomainOffset(0, 0, 0);
 
@@ -461,12 +461,13 @@ private:
 
             /*simulation attributes for data*/
             ColTypeDouble ctDouble;
-            ColTypeInt ctInt;
-            int slides=params->window.slides;
+
+            int slides = params->window.slides;
             params->dataCollector->writeAttribute(params->currentStep,
                                                   ctDouble, str.str().c_str(), "sim_unit", &(unit.at(d)));
+            ColTypeInt ctInt;
             params->dataCollector->writeAttribute(params->currentStep,
-                                                  ctDouble, str.str().c_str(), "sim_slides", &(slides));
+                                                  ctInt, str.str().c_str(), "sim_slides", &(slides));
         }
 
     }
@@ -487,9 +488,9 @@ private:
         /* change only the offset of the first gpu
          * localDomainOffset is only non zero for the gpus on top
          */
-        domInfo.domainOffset+=domInfo.localDomainOffset;
+        domInfo.domainOffset += domInfo.localDomainOffset;
         domInfo.domainSize = threadParams->window.localSize;
-        
+
 
         /*print all fields*/
         ForEach<Hdf5OutputFields, GetDCFields<void> > forEachGetFields;
@@ -507,13 +508,13 @@ private:
              * ghost domain = domain under the data domain (is laying only on bottom gpus)
              * end of data domain is the beginning of the ghost domain
              */
-            domInfo.globalDomainOffset.y()+=domInfo.globalDomainSize.y();
-            domInfo.domainOffset.y()=domInfo.globalDomainOffset.y();
-            domInfo.domainSize=threadParams->window.localFullSize;
-            domInfo.domainSize.y()-=threadParams->window.localSize.y();
-            domInfo.globalDomainSize=threadParams->window.globalSimulationSize;
-            domInfo.globalDomainSize.y()-=domInfo.globalDomainOffset.y();
-            domInfo.localDomainOffset=DataSpace<simDim > ();
+            domInfo.globalDomainOffset.y() += domInfo.globalDomainSize.y();
+            domInfo.domainOffset.y() = domInfo.globalDomainOffset.y();
+            domInfo.domainSize = threadParams->window.localFullSize;
+            domInfo.domainSize.y() -= threadParams->window.localSize.y();
+            domInfo.globalDomainSize = threadParams->window.globalSimulationSize;
+            domInfo.globalDomainSize.y() -= domInfo.globalDomainOffset.y();
+            domInfo.localDomainOffset = DataSpace<simDim > ();
             /* only importend for bottom gpus*/
             domInfo.localDomainOffset.y() = threadParams->window.localSize.y();
 

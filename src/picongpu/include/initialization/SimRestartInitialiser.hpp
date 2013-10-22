@@ -457,7 +457,9 @@ public:
     {
         // add ids for other types if necessary
         // fields are initialised by their constructor          
-
+        int slides;
+        dataCollector->readAttribute(simulationStep,"fields_FieldB_x","sim_slides",&slides);
+        MovingWindow::getInstance().setSlideCounter((uint32_t) slides);
         switch (id)
         {
 #if (ENABLE_ELECTRONS == 1)
@@ -630,6 +632,7 @@ private:
         {
             // Read the subdomain which belongs to our mpi position.
             // The total grid size must match the grid size of the stored data.
+            std::cout<<"read dom "<<domain_offset.toString()<<" "<<domain_size.toString()<<std::endl;
             DomainCollector::DomDataClass data_class;
             DataContainer *field_container =
                 dataCollector->readDomain(simulationStep,
