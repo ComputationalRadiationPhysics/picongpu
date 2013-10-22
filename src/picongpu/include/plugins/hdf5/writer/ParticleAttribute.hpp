@@ -38,7 +38,7 @@ namespace hdf5
 {
 using namespace PMacc;
 
-using namespace DCollector;
+using namespace splash;
 namespace bmpl = boost::mpl;
 
 /** write attribute of a particle to hdf5 file
@@ -124,10 +124,10 @@ struct ParticleAttribute
             params.get()->dataCollector->writeDomain(params.get()->currentStep, 
                                                      splashType, 
                                                      1u, 
-                                                     DCollector::Dimensions(elements*components, 1, 1),
-                                                     DCollector::Dimensions(components, 1, 1),
-                                                     DCollector::Dimensions(elements, 1, 1),
-                                                     DCollector::Dimensions(d, 0, 0),
+                                                     Dimensions(elements*components, 1, 1),
+                                                     Dimensions(components, 1, 1),
+                                                     Dimensions(elements, 1, 1),
+                                                     Dimensions(d, 0, 0),
                                                      str.str().c_str(), 
                                                      domain_offset, 
                                                      domain_size, 
@@ -153,7 +153,7 @@ struct ParticleAttribute
             int slides = params.get()->window.slides;
             params.get()->dataCollector->writeAttribute(params.get()->currentStep,
                                                   ctInt, str.str().c_str(), "sim_slides", &(slides));
-            DCollector::ColTypeDouble ctDouble;
+            ColTypeDouble ctDouble;
             if (unit.size() >= (d + 1))
                 params.get()->dataCollector->writeAttribute(params.get()->currentStep,
                                                             ctDouble, str.str().c_str(), "sim_unit", &(unit.at(d)));

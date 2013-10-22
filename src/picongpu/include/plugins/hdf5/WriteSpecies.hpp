@@ -53,7 +53,7 @@ namespace hdf5
 {
 using namespace PMacc;
 
-using namespace DCollector;
+using namespace splash;
 namespace bmpl = boost::mpl;
 
 template<typename T_Type>

@@ -52,7 +52,7 @@ namespace picongpu
 {
 
 using namespace PMacc;
-using namespace DCollector;
+using namespace splash;
 
 /**
  * Helper class for SimRestartInitialiser for loading

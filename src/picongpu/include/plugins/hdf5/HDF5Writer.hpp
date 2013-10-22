@@ -78,7 +78,7 @@ namespace hdf5
 
 using namespace PMacc;
 
-using namespace DCollector;
+using namespace splash;
 namespace bmpl = boost::mpl;
 
 namespace po = boost::program_options;
@@ -133,7 +133,7 @@ private:
         HDINLINE void operator()(RefWrapper<ThreadParams*> params, const DomainInformation domInfo)
         {
 #ifndef __CUDA_ARCH__
-            DCollector::ColTypeFloat ctFloat;
+            ColTypeFloat ctFloat;
 
             DataConnector &dc = DataConnector::getInstance();
 
@@ -330,16 +330,16 @@ private:
     void openH5File()
     {
         const uint32_t maxOpenFilesPerNode = 4;
-        mThreadParams.dataCollector = new DCollector::DomainCollector(maxOpenFilesPerNode);
+        mThreadParams.dataCollector = new DomainCollector(maxOpenFilesPerNode);
 
         // set attributes for datacollector files
-        DCollector::DataCollector::FileCreationAttr attr;
+        DataCollector::FileCreationAttr attr;
         attr.enableCompression = this->compression;
 
         if (continueFile)
-            attr.fileAccType = DCollector::DataCollector::FAT_WRITE;
+            attr.fileAccType = DataCollector::FAT_WRITE;
         else
-            attr.fileAccType = DCollector::DataCollector::FAT_CREATE;
+            attr.fileAccType = DataCollector::FAT_CREATE;
 
 
         attr.mpiPosition.set(0, 0, 0);
@@ -357,7 +357,7 @@ private:
             log<picLog::INPUT_OUTPUT > ("HDF5 open DataCollector with file: %1%") % filename;
             mThreadParams.dataCollector->open(filename.c_str(), attr);
         }
-        catch (DCollector::DCException e)
+        catch (DCException e)
         {
             std::cerr << e.what() << std::endl;
             throw std::runtime_error("Failed to open datacollector");
@@ -394,7 +394,7 @@ private:
 
     }
 
-    static void writeField(ThreadParams *params, const DomainInformation domInfo, DCollector::CollectionType& colType,
+    static void writeField(ThreadParams *params, const DomainInformation domInfo, CollectionType& colType,
                            const uint32_t nCompunents, const std::string name,
                            std::vector<double> unit, void *ptr)
     {
@@ -447,10 +447,10 @@ private:
                                                colType, /* data type */
                                                simDim, /* NDims of the field data (scalar, vector, ...) */
                                                /* source buffer, stride, data size, offset */
-                                               DCollector::Dimensions(field_full[0] * nCompunents, field_full[1], field_full[2]),
-                                               DCollector::Dimensions(nCompunents, 1, 1),
-                                               DCollector::Dimensions(field_no_guard[0], field_no_guard[1], field_no_guard[2]),
-                                               DCollector::Dimensions(field_guard[0] * nCompunents + d, field_guard[1], field_guard[2]),
+                                               Dimensions(field_full[0] * nCompunents, field_full[1], field_full[2]),
+                                               Dimensions(nCompunents, 1, 1),
+                                               Dimensions(field_no_guard[0], field_no_guard[1], field_no_guard[2]),
+                                               Dimensions(field_guard[0] * nCompunents + d, field_guard[1], field_guard[2]),
                                                str.str().c_str(), /* data set name */
                                                splashDomainOffset, /* offset in global domain */
                                                splashDomainSize, /* local size */

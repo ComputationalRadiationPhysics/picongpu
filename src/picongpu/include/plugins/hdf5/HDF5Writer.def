@@ -36,7 +36,7 @@ namespace hdf5
 {
 using namespace PMacc;
 
-using namespace DCollector;
+using namespace splash;
 namespace bmpl = boost::mpl;
 
 namespace po = boost::program_options;
