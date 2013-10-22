@@ -148,11 +148,6 @@ struct ParticleAttribute
                                                       splashGlobalDomainSize,
                                                       dataPtr);
 
-
-            ColTypeInt ctInt;
-            int slides = params.get()->window.slides;
-            params.get()->dataCollector->writeAttribute(params.get()->currentStep,
-                                                  ctInt, str.str().c_str(), "sim_slides", &(slides));
             ColTypeDouble ctDouble;
             if (unit.size() >= (d + 1))
                 params.get()->dataCollector->writeAttribute(params.get()->currentStep,

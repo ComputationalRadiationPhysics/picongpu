@@ -462,12 +462,8 @@ private:
             /*simulation attributes for data*/
             ColTypeDouble ctDouble;
 
-            int slides = params->window.slides;
             params->dataCollector->writeAttribute(params->currentStep,
                                                   ctDouble, str.str().c_str(), "sim_unit", &(unit.at(d)));
-            ColTypeInt ctInt;
-            params->dataCollector->writeAttribute(params->currentStep,
-                                                  ctInt, str.str().c_str(), "sim_slides", &(slides));
         }
 
     }
@@ -477,6 +473,12 @@ private:
 
         // synchronize, because following operations will be blocking anyway
         ThreadParams *threadParams = (ThreadParams*) (p_args);
+
+        /* write number of slides to timestep in hdf5 file*/
+        int slides = threadParams->window.slides;
+        ColTypeInt ctInt;
+        threadParams->dataCollector->writeAttribute(threadParams->currentStep,
+                                              ctInt, NULL, "sim_slides", &(slides));
 
         /* build clean domain info (picongpu view) */
         DomainInformation domInfo;

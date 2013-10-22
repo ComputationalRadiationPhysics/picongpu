@@ -455,10 +455,9 @@ public:
 
     void init(uint32_t id, ISimulationData& data, uint32_t)
     {
-        // add ids for other types if necessary
-        // fields are initialised by their constructor          
+        /* load number of slides to initilize MovingWindow */        
         int slides;
-        dataCollector->readAttribute(simulationStep, "fields_FieldB_x", "sim_slides", &slides);
+        dataCollector->readAttribute(simulationStep, NULL, "sim_slides", &slides);
         MovingWindow::getInstance().setSlideCounter((uint32_t) slides);
         switch (id)
         {
