@@ -96,9 +96,9 @@ private:
         DataSpace<simDim> globalSlideOffset(0,
                                             window.slides * window.localFullSize.y(),
                                             0);
-        
+
         /* add offset to window from pic origin, because we had substract this before*/
-        globalSlideOffset.y()+= window.globalSimulationOffset.y();
+        // globalSlideOffset.y()+= window.globalSimulationOffset.y();
         // At the moment, loading a particle subdomain from a different gpu
         // configuration is only possible if the old configuration is divisible
         // by the new configuration.
@@ -458,7 +458,7 @@ public:
         // add ids for other types if necessary
         // fields are initialised by their constructor          
         int slides;
-        dataCollector->readAttribute(simulationStep,"fields_FieldB_x","sim_slides",&slides);
+        dataCollector->readAttribute(simulationStep, "fields_FieldB_x", "sim_slides", &slides);
         MovingWindow::getInstance().setSlideCounter((uint32_t) slides);
         switch (id)
         {
@@ -466,12 +466,12 @@ public:
         case PAR_ELECTRONS:
         {
             VirtualWindow window = MovingWindow::getInstance().getVirtualWindow(simulationStep);
-            DataSpace<DIM3> globalDomainOffset(gridPosition - window.globalSimulationOffset);
+            DataSpace<DIM3> globalDomainOffset(gridPosition);
             DataSpace<DIM3> logicalToPhysicalOffset(gridPosition - window.globalSimulationOffset);
 
             /*domains are allways positiv*/
-            if (globalDomainOffset.y() <= 0)
-                globalDomainOffset.y() = 0;
+            if (globalDomainOffset.y() == 0)
+                globalDomainOffset.y() = window.globalSimulationOffset.y();
 
             DataSpace<DIM3> localDomainSize(window.localSize);
 
@@ -500,6 +500,8 @@ public:
                     localDomainSize.y() -= window.localSize.y();
                     if (localDomainSize.y() > 0)
                     {
+                        DataSpace<simDim> particleOffset = gridPosition;
+                        particleOffset.y() = -window.localSize.y();
                         RestartParticleLoader<EBuffer, DIM>::loadParticles(
                                                                            simulationStep,
                                                                            *dataCollector,
@@ -507,7 +509,7 @@ public:
                                                                            static_cast<EBuffer&> (data),
                                                                            globalDomainOffset,
                                                                            localDomainSize,
-                                                                           DataSpace<DIM3 > ()
+                                                                           particleOffset
                                                                            );
                     }
                     std::cout << "Finished loading electrons bottom" << std::endl;
@@ -520,12 +522,12 @@ public:
         case PAR_IONS:
         {
             VirtualWindow window = MovingWindow::getInstance().getVirtualWindow(simulationStep);
-            DataSpace<DIM3> globalDomainOffset(gridPosition - window.globalSimulationOffset);
+            DataSpace<DIM3> globalDomainOffset(gridPosition);
             DataSpace<DIM3> logicalToPhysicalOffset(gridPosition - window.globalSimulationOffset);
 
             /*domains are allways positiv*/
-            if (globalDomainOffset.y() <= 0)
-                globalDomainOffset.y() = 0;
+            if (globalDomainOffset.y() == 0)
+                globalDomainOffset.y() = window.globalSimulationOffset.y();
 
             DataSpace<DIM3> localDomainSize(window.localSize);
 
@@ -550,8 +552,13 @@ public:
 
                     localDomainSize = window.localFullSize;
                     localDomainSize.y() -= window.localSize.y();
+
+
+
                     if (localDomainSize.y() > 0)
                     {
+                        DataSpace<simDim> particleOffset = gridPosition;
+                        particleOffset.y() = -window.localSize.y();
                         RestartParticleLoader<IBuffer, DIM>::loadParticles(
                                                                            simulationStep,
                                                                            *dataCollector,
@@ -559,7 +566,7 @@ public:
                                                                            static_cast<IBuffer&> (data),
                                                                            globalDomainOffset,
                                                                            localDomainSize,
-                                                                           DataSpace<DIM3 > ()
+                                                                           particleOffset
                                                                            );
                     }
                     std::cout << "Finished loading ions bottom" << std::endl;
@@ -622,8 +629,8 @@ private:
                                  globalOffset.z() + globalSlideOffset.z());
 
         if (mpiPos[1] == 0)
-            domain_offset[1] = domain_offset[1]+window.globalSimulationOffset.y();
-        
+            domain_offset[1] = domain_offset[1] + window.globalSimulationOffset.y();
+
         Dimensions domain_size(window.localSize.x(),
                                window.localSize.y(),
                                window.localSize.z()
@@ -632,7 +639,7 @@ private:
         {
             // Read the subdomain which belongs to our mpi position.
             // The total grid size must match the grid size of the stored data.
-            std::cout<<"read dom "<<domain_offset.toString()<<" "<<domain_size.toString()<<std::endl;
+            std::cout << "read dom " << domain_offset.toString() << " " << domain_size.toString() << std::endl;
             DomainCollector::DomDataClass data_class;
             DataContainer *field_container =
                 dataCollector->readDomain(simulationStep,

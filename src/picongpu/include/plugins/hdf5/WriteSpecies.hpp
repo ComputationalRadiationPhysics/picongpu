@@ -144,9 +144,10 @@ public:
 
     typedef Frame<OperatorCreateVectorBox, ParticleNewAttributeList, ParticleMethodsList> Hdf5FrameType;
 
+    template<typename Space>
     HINLINE void operator()(RefWrapper<ThreadParams*> params,
                             std::string prefix,
-                            const DomainInformation domInfo)
+                            const DomainInformation domInfo,const Space particleOffset)
     {
         log<picLog::INPUT_OUTPUT > ("HDF5: write species: %1%") % Hdf5FrameType::getName();
         DataConnector &dc = DataConnector::getInstance();
@@ -203,7 +204,7 @@ public:
                 (counterBuffer.getDeviceBuffer().getPointer(),
                  deviceFrame, speciesTmp->getDeviceParticlesBox(),
                  filter,
-                 domInfo.globalDomainOffset-domInfo.domainOffset, /*relative to data domain (not to physical domain)*/
+                 particleOffset, /*relative to data domain (not to physical domain)*/
                  mapper
                  );
             counterBuffer.deviceToHost();

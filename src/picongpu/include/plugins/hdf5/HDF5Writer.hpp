@@ -185,7 +185,7 @@ private:
         /** Create a name for the hdf5 identifier.
          */
         template< typename Solver, typename Species >
-            static std::string getName()
+        static std::string getName()
         {
             std::stringstream str;
             str << FieldTmp::getName<Solver>();
@@ -196,7 +196,7 @@ private:
 
         /** Get the unit for the result from the solver*/
         template<typename Solver>
-            static std::vector<double> getUnit()
+        static std::vector<double> getUnit()
         {
             typedef typename FieldTmp::UnitValueType UnitType;
             UnitType unit = FieldTmp::getUnit<Solver>();
@@ -491,6 +491,9 @@ private:
         domInfo.domainOffset += domInfo.localDomainOffset;
         domInfo.domainSize = threadParams->window.localSize;
 
+        /* y direction can be negative for first gpu*/
+        DataSpace<simDim> particleOffset(threadParams->gridPosition);
+        particleOffset.y() -= threadParams->window.globalSimulationOffset.y();
 
         /*print all fields*/
         ForEach<Hdf5OutputFields, GetDCFields<void> > forEachGetFields;
@@ -499,7 +502,7 @@ private:
         /*print all particle species*/
         log<picLog::INPUT_OUTPUT > ("HDF5 begin to write particle species.");
         ForEach<Hdf5OutputParticles, WriteSpecies<void> > writeSpecies;
-        writeSpecies(ref(threadParams), std::string(), domInfo);
+        writeSpecies(ref(threadParams), std::string(), domInfo, particleOffset);
         log<picLog::INPUT_OUTPUT > ("HDF5 end to write particle species.");
 
         if (MovingWindow::getInstance().isSlidingWindowActive())
@@ -518,6 +521,9 @@ private:
             /* only importend for bottom gpus*/
             domInfo.localDomainOffset.y() = threadParams->window.localSize.y();
 
+            particleOffset = threadParams->gridPosition;
+            particleOffset.y() = -threadParams->window.localSize.y();
+
             if (threadParams->window.isBottom == false)
             {
                 /* set size for all gpu to zero which are not bottom gpus*/
@@ -526,7 +532,7 @@ private:
             /* for restart we only need bottom ghosts for particles */
             log<picLog::INPUT_OUTPUT > ("HDF5 begin to write particle species bottom.");
             /* print all particle species */
-            writeSpecies(ref(threadParams), std::string("_bottom_"), domInfo);
+            writeSpecies(ref(threadParams), std::string("_bottom_"), domInfo, particleOffset);
             log<picLog::INPUT_OUTPUT > ("HDF5 end to write particle species bottom.");
         }
         return NULL;
