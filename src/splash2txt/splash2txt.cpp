@@ -39,7 +39,7 @@
 #include "basetypes/ColTypeInt.hpp"
 
 namespace po = boost::program_options;
-using namespace DCollector;
+using namespace splash;
 
 std::ostream &errorStream = std::cerr;
 
@@ -231,15 +231,15 @@ void printParticles( ProgramOptions &options,
             errorStream << "container = " << fileData.size( ) << std::endl;
         }
 
-        std::map<DCollector::DataContainer*, DCollector::DomainData*> subdomain;
-        std::map<DCollector::DataContainer*, size_t> subdomainIndex;
-        std::map<DCollector::DataContainer*, size_t> numElementsProcessed;
+        std::map<DataContainer*, DomainData*> subdomain;
+        std::map<DataContainer*, size_t> subdomainIndex;
+        std::map<DataContainer*, size_t> numElementsProcessed;
         for ( size_t i = 0; i < num_elements; ++i )
         {
             for ( std::vector<ExDataContainer>::iterator iter = fileData.begin( );
                   iter != fileData.end( ); ++iter )
             {
-                DCollector::DataContainer *container = iter->container;
+                DataContainer *container = iter->container;
                 DCDataType data_type =
                     container->getIndex( 0 )->getDataType( );
 

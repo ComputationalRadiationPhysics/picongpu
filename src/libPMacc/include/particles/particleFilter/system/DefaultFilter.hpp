@@ -96,7 +96,7 @@ class DefaultFilter<NullFrame>
 };
 
 
-} //namepsace Frame
+} //namespace Frame
 
 #endif	/* DEFAULTFILTER_HPP */
 

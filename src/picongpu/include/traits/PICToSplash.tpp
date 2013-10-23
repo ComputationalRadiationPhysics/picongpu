@@ -34,34 +34,34 @@ namespace traits
     template<>
     struct PICToSplash<bool>
     {
-        typedef DCollector::ColTypeBool type;
+        typedef splash::ColTypeBool type;
     };
     /** Trait for float */
     template<>
     struct PICToSplash<float>
     {
-        typedef DCollector::ColTypeFloat type;
+        typedef splash::ColTypeFloat type;
     };
 
     /** Trait for double */
     template<>
     struct PICToSplash<double>
     {
-        typedef DCollector::ColTypeDouble type;
+        typedef splash::ColTypeDouble type;
     };
 
     /** Trait for int */
     template<>
     struct PICToSplash<int>
     {
-        typedef DCollector::ColTypeInt type;
+        typedef splash::ColTypeInt type;
     };
 
-    /** Trait for DCollector::Dimensions */
+    /** Trait for splash::Dimensions */
     template<>
-    struct PICToSplash<DCollector::Dimensions>
+    struct PICToSplash<splash::Dimensions>
     {
-        typedef DCollector::ColTypeDim type;
+        typedef splash::ColTypeDim type;
     };
 
 } //namespace traits

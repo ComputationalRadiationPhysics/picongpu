@@ -233,7 +233,7 @@ namespace PMacc
             return data.pitch;
         }
 
-        virtual void setValue(TYPE value)
+        virtual void setValue(const TYPE& value)
         {
             Factory::getInstance().createTaskSetValue(*this, value);
         };

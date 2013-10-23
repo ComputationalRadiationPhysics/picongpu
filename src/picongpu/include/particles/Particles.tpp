@@ -51,10 +51,10 @@ namespace picongpu
 
 using namespace PMacc;
 
-template<class UserTypeList>
-Particles<UserTypeList>::Particles( GridLayout<simDim> gridLayout,
+template< typename T_DataVector, typename T_MethodsVector>
+Particles<T_DataVector,T_MethodsVector>::Particles( GridLayout<simDim> gridLayout,
                                     MappingDesc cellDescription ) :
-ParticlesBase<float3_X, UserTypeList, MappingDesc>( cellDescription ), fieldB( NULL ), fieldE( NULL ), fieldJurrent( NULL ), gridLayout( gridLayout )
+ParticlesBase<T_DataVector,T_MethodsVector, MappingDesc>( cellDescription ), fieldB( NULL ), fieldE( NULL ), fieldJurrent( NULL ), gridLayout( gridLayout )
 {
     size_t sizeOfExchanges = 2 * 2 * ( BYTES_EXCHANGE_X + BYTES_EXCHANGE_Y + BYTES_EXCHANGE_Z ) + BYTES_EXCHANGE_X * 2 * 8;
 
@@ -82,8 +82,8 @@ ParticlesBase<float3_X, UserTypeList, MappingDesc>( cellDescription ), fieldB( N
 
 }
 
-template< class UserTypeList>
-void Particles<UserTypeList>::createParticleBuffer( size_t gpuMemory )
+template< typename T_DataVector, typename T_MethodsVector>
+void Particles<T_DataVector,T_MethodsVector>::createParticleBuffer( size_t gpuMemory )
 {
 
     /*!\todo: this is the 4GB fix for GPUs with more than 4GB memory*/
@@ -94,26 +94,26 @@ void Particles<UserTypeList>::createParticleBuffer( size_t gpuMemory )
 
 }
 
-template< class UserTypeList>
-Particles<UserTypeList>::~Particles( )
+template< typename T_DataVector, typename T_MethodsVector>
+Particles<T_DataVector,T_MethodsVector>::~Particles( )
 {
     delete this->particlesBuffer;
 }
 
-template< class UserTypeList>
-void Particles<UserTypeList>::synchronize( )
+template< typename T_DataVector, typename T_MethodsVector>
+void Particles<T_DataVector,T_MethodsVector>::synchronize( )
 {
     this->particlesBuffer->deviceToHost( );
 }
 
-template< class UserTypeList>
-void Particles<UserTypeList>::syncToDevice( )
+template< typename T_DataVector, typename T_MethodsVector>
+void Particles<T_DataVector,T_MethodsVector>::syncToDevice( )
 {
     this->particlesBuffer->hostToDevice( );
 }
 
-template< class UserTypeList>
-void Particles<UserTypeList>::init( FieldE &fieldE, FieldB &fieldB, FieldJ &fieldJ, int datasetID )
+template< typename T_DataVector, typename T_MethodsVector>
+void Particles<T_DataVector,T_MethodsVector>::init( FieldE &fieldE, FieldB &fieldB, FieldJ &fieldJ, int datasetID )
 {
     this->fieldE = &fieldE;
     this->fieldB = &fieldB;
@@ -124,8 +124,8 @@ void Particles<UserTypeList>::init( FieldE &fieldE, FieldB &fieldB, FieldJ &fiel
     DataConnector::getInstance( ).registerData( *this, datasetID );
 }
 
-template< class UserTypeList>
-void Particles<UserTypeList>::update( uint32_t )
+template< typename T_DataVector, typename T_MethodsVector>
+void Particles<T_DataVector,T_MethodsVector>::update( uint32_t )
 {
     typedef particlePusher::ParticlePusher ParticlePush;
 
@@ -157,14 +157,14 @@ void Particles<UserTypeList>::update( uint32_t )
 
 }
 
-template< class UserTypeList>
-void Particles<UserTypeList>::reset( uint32_t )
+template< typename T_DataVector, typename T_MethodsVector>
+void Particles<T_DataVector,T_MethodsVector>::reset( uint32_t )
 {
     this->particlesBuffer->reset( );
 }
 
-template< class UserTypeList>
-void Particles<UserTypeList>::initFill( uint32_t currentStep )
+template< typename T_DataVector, typename T_MethodsVector>
+void Particles<T_DataVector,T_MethodsVector>::initFill( uint32_t currentStep )
 {
     VirtualWindow window = MovingWindow::getInstance( ).getVirtualWindow( currentStep );
     PMACC_AUTO( simBox, SubGrid<simDim>::getInstance( ).getSimulationBox( ) );
@@ -184,7 +184,7 @@ void Particles<UserTypeList>::initFill( uint32_t currentStep )
     {
         const DataSpace<simDim> globalNrOfCells = simBox.getGlobalSize( );
 
-        __picKernelArea( kernelFillGridWithParticles<UserTypeList>, this->cellDescription, CORE + BORDER + GUARD )
+        __picKernelArea( kernelFillGridWithParticles, this->cellDescription, CORE + BORDER + GUARD )
             (block)
             ( this->particlesBuffer->getDeviceParticleBox( ),
               this->particlesBuffer->hasSendExchange( TOP ), gpuCellOffset, seed, globalNrOfCells.y( ) );
@@ -196,9 +196,9 @@ void Particles<UserTypeList>::initFill( uint32_t currentStep )
     __getTransactionEvent( ).waitForFinished( );
 }
 
-template< class UserTypeList>
-template< class OTHER>
-void Particles<UserTypeList>::deviceCloneFrom( Particles<OTHER> &src )
+template< typename T_DataVector, typename T_MethodsVector>
+template< typename t_DataVector, typename t_MethodsVector>
+void Particles<T_DataVector,T_MethodsVector>::deviceCloneFrom( Particles<t_DataVector,t_MethodsVector> &src )
 {
     dim3 block( TILE_SIZE );
     DataSpace<simDim> superCells = this->particlesBuffer->getSuperCellsCount( );
@@ -212,8 +212,8 @@ void Particles<UserTypeList>::deviceCloneFrom( Particles<OTHER> &src )
     __getTransactionEvent( ).waitForFinished( );
 }
 
-template< class UserTypeList>
-void Particles<UserTypeList>::deviceAddTemperature( float_X energy )
+template< typename T_DataVector, typename T_MethodsVector>
+void Particles<T_DataVector,T_MethodsVector>::deviceAddTemperature( float_X energy )
 {
     dim3 block( MappingDesc::SuperCellSize::getDataSpace( ) );
     DataSpace<simDim> superCells = this->particlesBuffer->getSuperCellsCount( );
@@ -229,8 +229,8 @@ void Particles<UserTypeList>::deviceAddTemperature( float_X energy )
     __getTransactionEvent( ).waitForFinished( );
 }
 
-template< class UserTypeList>
-void Particles<UserTypeList>::deviceSetDrift( uint32_t currentStep )
+template< typename T_DataVector, typename T_MethodsVector>
+void Particles<T_DataVector,T_MethodsVector>::deviceSetDrift( uint32_t currentStep )
 {
     VirtualWindow window = MovingWindow::getInstance( ).getVirtualWindow( currentStep );
 
@@ -245,7 +245,7 @@ void Particles<UserTypeList>::deviceSetDrift( uint32_t currentStep )
     uint32_t simulationYCell = simBox.getGlobalOffset().y( ) +
         ( window.slides * localNrOfCells.y( ) );
 
-    __picKernelArea( kernelSetDrift<UserTypeList>, this->cellDescription, CORE + BORDER + GUARD )
+    __picKernelArea( kernelSetDrift, this->cellDescription, CORE + BORDER + GUARD )
         (block)
         ( this->particlesBuffer->getDeviceParticleBox( ),
           simulationYCell,

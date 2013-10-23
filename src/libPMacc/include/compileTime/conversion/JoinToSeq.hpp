@@ -22,30 +22,34 @@
 
 #pragma once
 
-#include "types.h"
+#include <boost/mpl/vector.hpp>
+#include <boost/mpl/copy.hpp>
+#include <boost/mpl/back_inserter.hpp>
+#include <boost/mpl/front_inserter.hpp>
+#include "compileTime/conversion/ToSeq.hpp"
 
 namespace PMacc
 {
-namespace algorithms
-{
 
-namespace accessors
-{
+namespace bmpl = boost::mpl;
 
-/** Get second type of the given type
+/** Join both input types to one boost mpl sequence
  * 
- * \tparam T type from which we return the second held type
- * 
- * T must have defined ::second 
+ * @tparam T_1 a boost mpl sequence or single type
+ * @tparam T_2 a boost mpl sequence or single type
  */
-template<typename T>
-struct Second
+
+template<class T_1, class T_2 = bmpl::vector<> >
+struct JoinToSeq
 {
-    typedef typename T::second type;
+private:
+    typedef typename ToSeq<T_1 >::type Seq1;
+    typedef typename ToSeq<T_2 >::type Seq2;
+public:
+    typedef typename bmpl::copy<
+    Seq2,
+    bmpl::back_inserter< Seq1>
+    >::type type;
 };
 
-}//namespace accessors
-
-}//namespace algorithms
-
-}//namepsace  PMacc
+} //namespace PMacc

@@ -19,32 +19,26 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */
 
-
 #pragma once
 
 #include "types.h"
+#include <boost/mpl/is_sequence.hpp>
+#include <boost/mpl/vector.hpp>
+#include <boost/mpl/if.hpp>
+
 
 namespace PMacc
 {
-namespace algorithms
-{
+namespace bmpl = boost::mpl;
 
-namespace accessors
-{
-
-/** Get the type of a given type without changes
- * 
- * \tparam T in type
- * 
+/** cast type to boost mpl vector
+ * @return ::type if T_Type is sequence then identity of T_Type
+ *                else boost::mpl::vector<T_Type>
  */
-template<typename T>
-struct Identity
+template<typename T_Type>
+struct ToSeq
 {
-    typedef T type;
+    typedef typename bmpl::if_<bmpl::is_sequence< T_Type >,T_Type,bmpl::vector<T_Type> >::type type;
 };
 
-}//namespace accessors
-
-}//namespace algorithms
-
-}//namepsace  PMacc
+}//namespace PMacc

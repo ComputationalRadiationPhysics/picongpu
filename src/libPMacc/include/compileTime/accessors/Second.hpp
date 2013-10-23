@@ -17,45 +17,35 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 
 #pragma once
 
-#include <boost/mpl/list.hpp>
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/copy.hpp>
-#include <boost/mpl/back_inserter.hpp>
-#include <boost/mpl/front_inserter.hpp>
+#include "types.h"
 
 namespace PMacc
 {
-
-namespace bmpl = boost::mpl;
-
-
-/**Join vector to one vector
- * 
- * Create a vector with the order V1,V2,...,Vn
- * 
- * \todo: use vector instead of V1, V2 ...
- */
-
-template<class V1, class V2, class V3 = bmpl::vector<> >
-struct JoinVectors
+namespace compileTime
 {
-private:
-    typedef typename bmpl::copy<
-        V2,
-        bmpl::back_inserter< V1>
-        >::type type_1;
 
-    public:
-        typedef typename bmpl::copy<
-        V3,
-        bmpl::back_inserter< type_1>
-        >::type type;
+namespace accessors
+{
+
+/** Get second type of the given type
+ * 
+ * \tparam T type from which we return the second held type
+ * 
+ * T must have defined ::second 
+ */
+template<typename T>
+struct Second
+{
+    typedef typename T::second type;
 };
 
-}
+}//namespace accessors
 
+}//namespace compileTime
+
+}//namespace  PMacc

@@ -58,25 +58,26 @@ namespace picongpu
         // many particle loop:                                                                                                                                                                
         for (unsigned i = 0; i < 1; ++i)
         {
-
+            PMACC_AUTO(par,(*frame)[i]);
             float3_X pos = float3_X(0.5, 0.5, 0.50);
 
             const float_X GAMMA0 = (float_X) (1.0 / sqrt(1.0 - (BETA0_X * BETA0_X + BETA0_Y * BETA0_Y + BETA0_Z * BETA0_Z)));
             float3_X mom = float3_X(
-                                     GAMMA0 * frame->getMass(parWeighting) * float_X(BETA0_X) * SPEED_OF_LIGHT,
-                                     GAMMA0 * frame->getMass(parWeighting) * float_X(BETA0_Y) * SPEED_OF_LIGHT,
-                                     GAMMA0 * frame->getMass(parWeighting) * float_X(BETA0_Z) * SPEED_OF_LIGHT
+                                     GAMMA0 * par.getMass(parWeighting) * float_X(BETA0_X) * SPEED_OF_LIGHT,
+                                     GAMMA0 * par.getMass(parWeighting) * float_X(BETA0_Y) * SPEED_OF_LIGHT,
+                                     GAMMA0 * par.getMass(parWeighting) * float_X(BETA0_Z) * SPEED_OF_LIGHT
                                      );
 
-            frame->getPosition()[i] = pos;
-            frame->getMomentum()[i] = mom;
-            frame->getMultiMask()[i] = 1;
-            frame->getCellIdx()[i] = linearIdx;
-            frame->getWeighting()[i] = parWeighting;
+
+            par[position_] = pos;
+            par[momentum_] = mom;
+            par[multiMask_] = 1;
+            par[localCellIdx_] = linearIdx;
+            par[weighting_] = parWeighting;
 
 #if(ENABLE_RADIATION == 1)
-            frame->getMomentum_mt1()[i] = float3_X(0.f, 0.f, 0.f);
-            frame->getRadiationFlag()[i] = true;
+            par[momentumPrev1_] = float3_X(0.f, 0.f, 0.f);
+            par[radiationFlag_] = true;
 #endif
         }
     }

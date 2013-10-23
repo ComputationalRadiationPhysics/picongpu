@@ -111,9 +111,10 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
     {
         if (linearThreadIdx < particlesInSuperCell)
         {
+            PMACC_AUTO(particle,(*frame)[linearThreadIdx]);
             // kinetic Energy for Particles: E^2 = p^2*c^2 + m^2*c^4
             //                                   = c^2 * [p^2 + m^2*c^2]
-            const float3_X mom = frame->getMomentum()[linearThreadIdx];
+            const float3_X mom = particle[momentum_];
 
             bool calcParticle = true;
 
@@ -130,7 +131,7 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
             if (calcParticle)
             {
                 const float_X mom2 = math::abs2(mom);
-                const float_X weighting = frame->getWeighting()[linearThreadIdx];
+                const float_X weighting = particle[weighting_];
                 const float_X mass = frame->getMass(weighting);
                 const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
 

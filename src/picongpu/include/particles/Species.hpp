@@ -16,61 +16,83 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
 
-
-#ifndef SPECIES_HPP
-#define	SPECIES_HPP
+#pragma once
 
 #include "types.h"
 #include "simulation_defines.hpp"
 #include "simulation_types.hpp"
+#include "compileTime/conversion/MakeSeq.hpp"
 
 #include "particles/Particles.hpp"
 #include "particles/species/ions/IonMethods.hpp"
 #include "particles/species/electrons/ElectronMethods.hpp"
-#include "particles/species/default/ParticlesData.hpp"
-
-#include "plugins/radiation/parameters.hpp"
-#if(ENABLE_RADIATION == 1)
-#include "plugins/radiation/particles/Momentum_mt1.hpp"
-#include "plugins/radiation/particles/RadiationFlag.hpp"
-#endif
-
-#include <boost/mpl/vector.hpp>
 
 namespace picongpu
 {
 using namespace PMacc;
 
 
-typedef Particles<
-    typename bmpl::vector<
-        IonMethods<>,
-        #if(ENABLE_RADIATION == 1)
-        Momentum_mt1<>,
-        #if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
-        RadiationFlag<>,
-        #endif
-        #endif
-        ParticlesData<> 
+/*add old momentum for radiation plugin*/
+typedef typename MakeSeq<
+#if(ENABLE_RADIATION == 1)
+    momentumPrev1
+#endif
+>::type AttributMomentum_mt1;
+
+/*add old radiation flag for radiation plugin*/
+typedef typename MakeSeq<
+#if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
+    radiationFlag
+#endif
+>::type AttributRadiationFlag;
+
+/** \todo: not nice, we change this later with nice interfaces*/
+
+typedef
+typename MakeSeq<
+            ElectronsDataList, 
+            AttributMomentum_mt1, 
+            AttributRadiationFlag
     >::type
-> PIC_Ions;
+Species1_data;
+
+typedef
+typename MakeSeq<
+            IonsDataList, 
+            AttributMomentum_mt1, 
+            AttributRadiationFlag
+    >::type
+Species2_data;
 
 typedef Particles<
-    typename  bmpl::vector< 
-        ElectronMethods<>,
-        #if(ENABLE_RADIATION == 1)
-        Momentum_mt1<>,
-        #if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
-        RadiationFlag<>,
-        #endif
-        #endif
-        ParticlesData<> 
-    >::type
+    Species1_data,
+    ElectronsMethodsList
 > PIC_Electrons;
 
-}
-#endif	/* SPECIES_HPP */
+typedef Particles<
+    Species2_data,
+    IonsMethodsList
+> PIC_Ions;
 
+
+/** \todo: not nice, but this should be changed in the future*/
+typedef typename MakeSeq<
+    #if (ENABLE_ELECTRONS == 1)
+    PIC_Electrons
+    #endif
+>::type Species1;
+
+typedef typename MakeSeq<
+    #if (ENABLE_IONS == 1)
+    PIC_Electrons
+    #endif
+>::type Species2;
+
+typedef typename MakeSeq<
+    Species1,
+    Species2
+>::type VectorAllSpecies;
+
+} //namespace picongpu

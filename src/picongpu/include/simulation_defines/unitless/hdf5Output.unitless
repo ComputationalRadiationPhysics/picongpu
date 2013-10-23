@@ -34,7 +34,7 @@
 
 #include "particles/particleToGrid/energyDensity.kernel"
 
-#include "particles/boostExtension/JoinVectors.hpp"
+#include "compileTime/conversion/MakeSeq.hpp"
 
 namespace picongpu
 {
@@ -42,7 +42,9 @@ namespace picongpu
      *       capability!
      *  Possible fields: FieldE, FieldB, FieldJ
      */
-    typedef boost::mpl::vector<FieldE, FieldB> NativeHdf5OutputFields;
+    typedef typename MakeSeq<FieldE, FieldB>::type NativeHdf5OutputFields;
+    
+    typedef VectorAllSpecies Hdf5OutputParticles;
     
     /** TimeAvg Fields
      * \todo Reduce/Avg on host-side RAM with an analyser
@@ -68,24 +70,25 @@ namespace picongpu
         > TmpParticleCounter;
 
     /** List of solvers which use TmpField and electons*/
-    typedef boost::mpl::vector<
+    typedef typename MakeSeq<
 #if (ENABLE_ELECTRONS == 1)
         FieldTmpOperation< TmpParticleDensity, PIC_Electrons > ,
         FieldTmpOperation< TmpParticleEnergyDensity, PIC_Electrons >
 #endif
-    > PluginsHdf5OutputFieldsElectrons;
+    >::type PluginsHdf5OutputFieldsElectrons;
 
     /** List of solvers which use TmpField and ions*/
-    typedef boost::mpl::vector<
+    typedef typename MakeSeq<
 #if (ENABLE_IONS == 1)
         FieldTmpOperation< TmpParticleDensity, PIC_Ions >,
         FieldTmpOperation< TmpParticleEnergyDensity, PIC_Ions >
 #endif
-    > PluginsHdf5OutputFieldsIons;
+    >::type PluginsHdf5OutputFieldsIons;
     
     
     /** This list is use to dump fields to HDf5. */
-    typedef JoinVectors<NativeHdf5OutputFields,
+    typedef typename MakeSeq<
+            NativeHdf5OutputFields,
             PluginsHdf5OutputFieldsElectrons,
             PluginsHdf5OutputFieldsIons
     >::type Hdf5OutputFields;

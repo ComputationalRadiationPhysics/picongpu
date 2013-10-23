@@ -39,7 +39,7 @@ namespace picongpu
         /** equals Z
          *  unit: meter */
         const double CELL_DEPTH_SI = CELL_WIDTH_SI;
-    } //namepsace SI
+    } //namespace SI
 
     //! Defines the size of the absorbing zone (in cells)
     const uint32_t ABSORBER_CELLS[3][2] = {

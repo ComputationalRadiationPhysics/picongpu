@@ -17,35 +17,33 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */
-
-
+ */ 
+ 
 #pragma once
 
 #include "types.h"
 
+
 namespace PMacc
 {
-namespace algorithms
+namespace particles
+{
+namespace operations
 {
 
-namespace accessors
+namespace detail
 {
+template<typename T_Dest,typename T_Src>
+struct Assign;
 
-/** Get first type of the given type
- * 
- * \tparam T type from which we return the first held type
- * 
- * T must have defined ::first 
- */
-template<typename T>
-struct First
+}//namespace detail
+
+template<typename T_Dest,typename T_Src>
+static HDINLINE void assign(T_Dest& dest,const T_Src& src)
 {
-    typedef typename T::first type;
-};
+    detail::Assign<T_Dest,T_Src>()(dest,src);
+}
 
-}//namespace accessors
-
-}//namespace algorithms
-
-}//namepsace  PMacc
+}//operators
+}//namespace particles
+} //namespace PMacc

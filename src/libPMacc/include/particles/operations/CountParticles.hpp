@@ -153,7 +153,7 @@ struct CountParticles
         typedef typename FilterFactory<usedFilters>::FilterType MyParticleFilter;
         MyParticleFilter filter;
         filter.setStatus(true); /*activeate filter pipline*/
-        filter.setWindowPosition(origin, origin + size);
+        filter.setWindowPosition(origin, size);
         return PMacc::CountParticles::countOnDevice<AREA>(buffer, cellDescription, filter);
     }
 

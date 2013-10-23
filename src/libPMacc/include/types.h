@@ -31,6 +31,9 @@
 #include "debug/PMaccVerbose.hpp"
 
 #define BOOST_MPL_LIMIT_VECTOR_SIZE 20
+#define BOOST_MPL_LIMIT_MAP_SIZE 20
+
+
 
 #define PMACC_AUTO_TPL(var,...) BOOST_AUTO_TPL(var,(__VA_ARGS__))
 #define PMACC_AUTO(var,...) BOOST_AUTO(var,(__VA_ARGS__))
@@ -66,7 +69,7 @@ typedef long long int int64_cu;
  * Most cases can solved by #ifdef __CUDA_ARCH__ or #ifdef __CUDACC__.
  */
 #if defined(__CUDACC__)
-#define PMACC_NO_NVCC_HDWARNING #pragma hd_warning_disable
+#define PMACC_NO_NVCC_HDWARNING _Pragma("hd_warning_disable")
 #else
 #define PMACC_NO_NVCC_HDWARNING
 #endif
@@ -169,4 +172,4 @@ enum AreaType
 
 #define __delete(var) if((var)) { delete (var); var=NULL; }
 
-} //namepsace PMacc
+} //namespace PMacc

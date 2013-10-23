@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "algorithms/accessors/Identity.hpp"
+#include "compileTime/accessors/Identity.hpp"
 
 #include <boost/mpl/begin_end.hpp>
 #include <boost/mpl/next_prior.hpp>
@@ -48,7 +48,7 @@
  */
 
 #ifndef PMACC_MAX_FUNCTOR_OPERATOR_PARAMS
-#define PMACC_MAX_FUNCTOR_OPERATOR_PARAMS 4
+#define PMACC_MAX_FUNCTOR_OPERATOR_PARAMS 6
 #endif
 
 #ifndef PMACC_MAX_FUNCTOR_TEMPLATES
@@ -72,6 +72,7 @@ namespace algorithms
  */
 #define PMACC_FOREACH_OPERATOR_CONST_NO_USAGE(Z, N, FUNCTIONS)                 \
     /*      <typename T0, ... , typename TN     > */                           \
+    PMACC_NO_NVCC_HDWARNING                                                    \
     template<BOOST_PP_ENUM_PARAMS(N, typename T)>                              \
     /*                      ( const T0, ... , cont TN         ) */             \
     HDINLINE void operator()( BOOST_PP_ENUM_PARAMS(N, const T)) const          \
@@ -83,7 +84,7 @@ namespace algorithms
  */
 struct EmptyFunctor
 {
-
+    PMACC_NO_NVCC_HDWARNING
     HDINLINE void operator()() const
     {
     }
@@ -115,6 +116,7 @@ struct ForEach;
  * HDINLINE void operator()(const T0 t0, ..., const TN tN) const {}
  */
 #define PMACC_FOREACH_OPERATOR_CONST(Z, N, _)                                  \
+    PMACC_NO_NVCC_HDWARNING                                                    \
     /*      <typename T0, ... , typename TN     > */                           \
     template<BOOST_PP_ENUM_PARAMS(N, typename T)>                              \
     /*                      ( const T0& t0, ... , const TN& tN           ) */  \
@@ -179,6 +181,7 @@ struct ForEach< Accessor<AccessorType>, itBegin, itEnd, Functor_<BOOST_PP_ENUM_P
                                       EmptyFunctor,                            \
                                       TmpNextCall>::type NextCall;             \
                                                                                \
+    PMACC_NO_NVCC_HDWARNING                                                    \
     HDINLINE void operator()() const                                           \
     {                                                                          \
         FunctorType()();                                                       \
@@ -224,7 +227,7 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(PMACC_MAX_FUNCTOR_TEMPLATES), PMACC_FORE
  *          as T0.
  *  
  */
-template<typename MPLSeq, typename Functor, class Accessor = accessors::Identity<void> >
+template<typename MPLSeq, typename Functor, class Accessor = compileTime::accessors::Identity<void> >
 struct ForEach
 {
     typedef typename boost::mpl::begin<MPLSeq>::type begin;
@@ -236,6 +239,7 @@ struct ForEach
     typedef typename boost::mpl::if_<isEnd, EmptyFunctor, TmpNextCall>::type NextCall;
     typedef EmptyFunctor FunctorType;
 
+    PMACC_NO_NVCC_HDWARNING
     HDINLINE void operator()() const
     {
         FunctorType()();

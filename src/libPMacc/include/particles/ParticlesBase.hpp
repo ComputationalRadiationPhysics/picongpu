@@ -38,14 +38,14 @@
 namespace PMacc
 {
 
-template<typename PositionType, class UserTypeList, class MappingDesc>
+template<typename T_DataVector, typename T_MethodsVector, class MappingDesc>
 class ParticlesBase : public SimulationFieldHelper<MappingDesc>
 {
 public:
 
     /* Type of used partciles buffer
      */
-    typedef ParticlesBuffer<PositionType, UserTypeList, typename MappingDesc::SuperCellSize, MappingDesc::Dim> BufferType;
+    typedef ParticlesBuffer<T_DataVector, T_MethodsVector, typename MappingDesc::SuperCellSize, MappingDesc::Dim> BufferType;
 
     /* Type of frame in particles buffer
      */

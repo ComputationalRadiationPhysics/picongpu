@@ -17,10 +17,9 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
-#ifndef TILEDATABOX_HPP
-#define	TILEDATABOX_HPP
+ */
+
+#pragma once
 
 #include "particles/frame_types.hpp"
 #include "memory/boxes/DataBox.hpp"
@@ -30,16 +29,29 @@
 namespace PMacc
 {
 
-
-
 template<class TYPE>
 class VectorDataBox : public DataBox<PitchedBox<TYPE, DIM1> >
 {
 public:
     typedef DataBox<PitchedBox<TYPE, DIM1> > BaseType;
+    typedef TYPE type;
+
+    template<class> struct result;
+
+    template<class F, typename T>
+    struct result < F(T)>
+    {
+        typedef  TYPE& type;
+    };
+
+    template<class F, typename T>
+    struct result < const F(T)>
+    {
+        typedef const  TYPE& type;
+    };
 
     HDINLINE VectorDataBox(TYPE* pointer,
-                          const DataSpace<DIM1> &offset = DataSpace<DIM1>(0)) :
+                           const DataSpace<DIM1> &offset = DataSpace<DIM1>(0)) :
     BaseType(PitchedBox<TYPE, DIM1>(pointer, offset))
     {
     }
@@ -63,8 +75,8 @@ public:
     typedef VectorDataBox<TYPE> BaseType;
 
     HDINLINE TileDataBox(TYPE* pointer,
-                        const DataSpace<DIM1> &offset = DataSpace<DIM1>(0),
-                        uint32_t size = 0) :
+                         const DataSpace<DIM1> &offset = DataSpace<DIM1>(0),
+                         uint32_t size = 0) :
     BaseType(pointer, offset), size(size)
     {
     }
@@ -94,5 +106,3 @@ protected:
 
 
 }
-
-#endif	/* TILEDATABOX_HPP */

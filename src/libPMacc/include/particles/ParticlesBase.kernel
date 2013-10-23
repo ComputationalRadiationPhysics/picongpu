@@ -17,8 +17,8 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 #include "types.h"
 #include "particles/memory/boxes/ParticlesBox.hpp"
 #include "particles/memory/boxes/PushDataBox.hpp"
@@ -29,9 +29,11 @@
 #include "particles/memory/boxes/ExchangePushDataBox.hpp"
 #include "particles/memory/boxes/ExchangePopDataBox.hpp"
 
+#include "particles/operations/Assign.hpp"
+#include "particles/operations/Deselect.hpp"
+
 namespace PMacc
 {
-
 
 /*! This kernel move particles to the next supercell
  * This kernel can only run with a double checker board
@@ -39,6 +41,8 @@ namespace PMacc
 template<class FRAME, class Mapping>
 __global__ void kernelShiftParticles(ParticlesBox<FRAME, Mapping::Dim> pb, Mapping mapper)
 {
+
+    using namespace particles::operations;
 
     /* Exchanges in 2D=8 and in 3D=26
      */
@@ -110,11 +114,11 @@ __global__ void kernelShiftParticles(ParticlesBox<FRAME, Mapping::Dim> pb, Mappi
         //switch to value to [-2, EXCHANGES - 1] 
         //-2 is no particle
         //-1 is particle but it is not shifted
-        const int direction = frame->getMultiMask()[threadIdx.x] - 2;
+        const int direction = (*frame)[threadIdx.x][multiMask_] - 2;
         if (direction >= 0) //\todo: weglassen
         {
             destParticleIdx = atomicAdd(&(destFramesCounter[direction]), 1);
-            frame->getMultiMask()[threadIdx.x] = 0; //mark particle as hole
+            (*frame)[threadIdx.x][multiMask_] = 0; //delete particle, later we copy this particle without multiMask
             if (destParticleIdx >= TileSize) anyDestFrameFull = true;
         }
         __syncthreads();
@@ -129,8 +133,14 @@ __global__ void kernelShiftParticles(ParticlesBox<FRAME, Mapping::Dim> pb, Mappi
         {
             if (direction >= 0 && destParticleIdx < TileSize)
             {
-                destFrames[direction]->copy(destParticleIdx, *frame, threadIdx.x);
-                destFrames[direction]->getMultiMask()[destParticleIdx] = 1;
+                PMACC_AUTO(parDestFull,
+                           (*(destFrames[direction]))[destParticleIdx]
+                           );
+                parDestFull[multiMask_] = 1;
+                PMACC_AUTO(parSrc, (*frame)[threadIdx.x]);
+                PMACC_AUTO(parDest, deselect<multiMask>(parDestFull));
+                assign(parDest, parSrc);
+
             }
             __syncthreads();
             if (threadIdx.x < Exchanges)
@@ -164,8 +174,14 @@ __global__ void kernelShiftParticles(ParticlesBox<FRAME, Mapping::Dim> pb, Mappi
             if (direction >= 0 && destParticleIdx >= TileSize)
             {
                 destParticleIdx -= TileSize;
-                destFrames[direction]->copy(destParticleIdx, *frame, threadIdx.x);
-                destFrames[direction]->getMultiMask()[destParticleIdx] = 1;
+                PMACC_AUTO(parDestFull, (*(destFrames[direction]))[destParticleIdx]);
+                /*enable particle*/
+                parDestFull[multiMask_] = 1;
+                /* we not update multiMask because copy from mem to mem is to slow
+                 * we have enabled particle explicit */
+                PMACC_AUTO(parDest, deselect<multiMask>(parDestFull));
+                PMACC_AUTO(parSrc, (*frame)[threadIdx.x]);
+                assign(parDest, parSrc);
             }
         }
         else
@@ -173,8 +189,14 @@ __global__ void kernelShiftParticles(ParticlesBox<FRAME, Mapping::Dim> pb, Mappi
             //only flush because no destination is full
             if (direction >= 0)
             {
-                destFrames[direction]->copy(destParticleIdx, *frame, threadIdx.x);
-                destFrames[direction]->getMultiMask()[destParticleIdx] = 1;
+                PMACC_AUTO(parDestFull, (*(destFrames[direction]))[destParticleIdx]);
+                /*enable particle*/
+                parDestFull[multiMask_] = 1;
+                /* we not update multiMask because copy from mem to mem is to slow
+                 * we have enabled particle explicit */
+                PMACC_AUTO(parDest, deselect<multiMask>(parDestFull));
+                PMACC_AUTO(parSrc, (*frame)[threadIdx.x]);
+                assign(parDest, parSrc);
             }
         }
 
@@ -213,6 +235,7 @@ __global__ void kernelShiftParticles(ParticlesBox<FRAME, Mapping::Dim> pb, Mappi
 template<class FRAME, class Mapping>
 __global__ void kernelFillGapsLastFrame(ParticlesBox<FRAME, Mapping::Dim> pb, Mapping mapper)
 {
+    using namespace particles::operations;
 
     enum
     {
@@ -246,7 +269,7 @@ __global__ void kernelFillGapsLastFrame(ParticlesBox<FRAME, Mapping::Dim> pb, Ma
     if (isValid)
     {
         //count particles in last frame
-        const bool isParticle = lastFrame->getMultiMask()[threadIdx.x];
+        const bool isParticle = (*lastFrame)[threadIdx.x][multiMask_];
         if (isParticle == true) //\todo: bits zählen
         {
             atomicAdd(&counterParticles, 1);
@@ -264,9 +287,15 @@ __global__ void kernelFillGapsLastFrame(ParticlesBox<FRAME, Mapping::Dim> pb, Ma
             //any particle search a gap
             const int srcGapIdx = atomicAdd(&srcGap, 1);
             const int gapIdx = gapIndices_sh[srcGapIdx];
-            lastFrame->copy(gapIdx, *lastFrame, threadIdx.x);
-            lastFrame->getMultiMask()[gapIdx] = 1;
-            lastFrame->getMultiMask()[threadIdx.x] = 0; //delete old partice
+            PMACC_AUTO(parDestFull, ((*lastFrame)[gapIdx]));
+            /*enable particle*/
+            parDestFull[multiMask_] = 1;
+            /* we not update multiMask because copy from mem to mem is to slow
+             * we have enabled particle explicit */
+            PMACC_AUTO(parDest, deselect<multiMask>(parDestFull));
+            PMACC_AUTO(parSrc, ((*lastFrame)[threadIdx.x]));
+            assign(parDest, parSrc);
+            parSrc[multiMask_] = 0; //delete old partice
         }
     }
     if (threadIdx.x == 0)
@@ -277,6 +306,7 @@ __global__ void kernelFillGapsLastFrame(ParticlesBox<FRAME, Mapping::Dim> pb, Ma
 template<class FRAME, class Mapping>
 __global__ void kernelFillGaps(ParticlesBox<FRAME, Mapping::Dim> pb, Mapping mapper)
 {
+    using namespace particles::operations;
 
     enum
     {
@@ -321,7 +351,7 @@ __global__ void kernelFillGaps(ParticlesBox<FRAME, Mapping::Dim> pb, Mapping map
         __syncthreads();
 
         // find gaps
-        if (firstFrame->getMultiMask()[threadIdx.x] == 0)
+        if ((*firstFrame)[threadIdx.x][multiMask_] == 0)
         {
             localGapIdx = atomicAdd(&counterGaps, 1);
         }
@@ -338,7 +368,7 @@ __global__ void kernelFillGaps(ParticlesBox<FRAME, Mapping::Dim> pb, Mapping map
         }
 
         // search particles for gaps
-        if (lastFrame->getMultiMask()[threadIdx.x] == 1)
+        if ((*lastFrame)[threadIdx.x][multiMask_] == 1)
         {
             int localParticleIdx = atomicAdd(&counterParticles, 1);
             particleIndices_sh[localParticleIdx] = threadIdx.x;
@@ -347,9 +377,15 @@ __global__ void kernelFillGaps(ParticlesBox<FRAME, Mapping::Dim> pb, Mapping map
         if (localGapIdx < counterParticles)
         {
             const int parIdx = particleIndices_sh[localGapIdx];
-            firstFrame->copy(threadIdx.x, *lastFrame, parIdx);
-            firstFrame->getMultiMask()[threadIdx.x] = 1;
-            lastFrame->getMultiMask()[parIdx] = 0;
+            PMACC_AUTO(parDestFull, ((*firstFrame)[threadIdx.x]));
+            /*enable particle*/
+            parDestFull[multiMask_] = 1;
+            /* we not update multiMask because copy from mem to mem is to slow
+             * we have enabled particle explicit */
+            PMACC_AUTO(parDest, deselect<multiMask>(parDestFull));
+            PMACC_AUTO(parSrc, ((*lastFrame)[parIdx]));
+            assign(parDest, parSrc);
+            parSrc[multiMask_] = 0;
         }
         __syncthreads();
         if (threadIdx.x == 0)
@@ -384,6 +420,7 @@ __global__ void kernelBashParticles(ParticlesBox<FRAME, Mapping::Dim> pb,
                                     ExchangePushDataBox<vint_t, BORDER, Mapping::Dim - 1 > border,
                                     Mapping mapper)
 {
+    using namespace particles::operations;
 
     enum
     {
@@ -420,7 +457,7 @@ __global__ void kernelBashParticles(ParticlesBox<FRAME, Mapping::Dim> pb,
             numBashedParticles = 0;
         __syncthreads();
 
-        if (frame->getMultiMask()[threadIdx.x] == 1)
+        if ((*frame)[threadIdx.x][multiMask_] == 1)
         {
             bashIdx = atomicAdd(&numBashedParticles, 1);
         }
@@ -443,8 +480,10 @@ __global__ void kernelBashParticles(ParticlesBox<FRAME, Mapping::Dim> pb,
 
             if (bashIdx != INV_LOC_IDX && bashIdx < tmpBorder.getSize())
             {
-                tmpBorder[bashIdx].copy(0, *frame, threadIdx.x);
-                frame->getMultiMask()[threadIdx.x] = 0;
+                PMACC_AUTO(parDest, tmpBorder[bashIdx][0]);
+                PMACC_AUTO(parSrc, ((*frame)[threadIdx.x]));
+                assign(parDest, parSrc);
+                parSrc[multiMask_] = 0;
             }
             __syncthreads();
 
@@ -476,6 +515,8 @@ __global__ void kernelInsertParticles(ParticlesBox<FRAME, Mapping::Dim> pb,
                                       Mapping mapper)
 {
 
+    using namespace particles::operations;
+
     enum
     {
         TileSize = Mapping::SuperCellSize::elements,
@@ -502,8 +543,12 @@ __global__ void kernelInsertParticles(ParticlesBox<FRAME, Mapping::Dim> pb,
     __syncthreads();
     if (threadIdx.x < elementCount)
     {
-        frame->copy(threadIdx.x, tmpBorder[threadIdx.x], 0);
-        frame->getMultiMask()[threadIdx.x] = 1;
+        PMACC_AUTO(parDestFull, ((*frame)[threadIdx.x]));
+        parDestFull[multiMask_] = 1;
+        PMACC_AUTO(parSrc, ((tmpBorder[threadIdx.x])[0]));
+        /*we know that source has no multiMask*/
+        PMACC_AUTO(parDest, deselect<multiMask>(parDestFull));
+        assign(parDest, parSrc);
     }
     /*if this syncronize fix the kernel crash in spezial cases,
      * I can't tell why.

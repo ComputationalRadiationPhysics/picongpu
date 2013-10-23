@@ -29,7 +29,7 @@ namespace traits
 {
     /** Convert a Splash CollectionType to a PIConGPU Type
      * 
-     * \tparam T_SplashType Splash DCollector::CollectionType
+     * \tparam T_SplashType Splash CollectionType
      * \return \p ::type as public typedef
      */
     template<typename T_SplashType>
