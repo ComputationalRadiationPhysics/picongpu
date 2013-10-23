@@ -520,7 +520,7 @@ private:
             domInfo.globalDomainSize = threadParams->window.globalSimulationSize;
             domInfo.globalDomainSize.y() -= domInfo.globalDomainOffset.y();
             domInfo.localDomainOffset = DataSpace<simDim > ();
-            /* only importend for bottom gpus*/
+            /* only important for bottom gpus*/
             domInfo.localDomainOffset.y() = threadParams->window.localSize.y();
 
             particleOffset = threadParams->gridPosition;

@@ -55,4 +55,3 @@ struct MakeSeq
 };
 
 } //namespace PMacc
-

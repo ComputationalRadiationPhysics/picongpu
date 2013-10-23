@@ -87,8 +87,8 @@ public:
         return instance;
     }
 
-    /** create a virtual window which descripe local and global offsets and local size which is importend
-     * for dump
+    /** create a virtual window which descripe local and global offsets and local size which is impotant
+     *  for domain calculations to dump subvolumes of the full computing domain
      * 
      * @param currentStep simulation step
      * @return description of virtual window

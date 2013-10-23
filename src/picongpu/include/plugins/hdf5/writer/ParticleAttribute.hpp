@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 René Widera
+ * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, René Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -111,16 +111,7 @@ struct ParticleAttribute
                 str << "_" << name_lookup[d];
 
             ValueType* dataPtr = frame.get().getIdentifier(Identifier()).getPointer();
-            /** \todo fix me (libSplash issue #42
-             *  Splash not accept NULL pointer, but we know that we have zero data to write
-             * but we need to create the attribute, thus we set dataPtr to 1.
-             * The reason why we have a data pointer is, thaat we not create memory if we need no memory.
-             */
-            //   if(dataPtr==NULL)
-            //      dataPtr+=1;
-            /** \todo fix me
-             * this method not support to write empty attrbutes
-             * (after we have fixed this in splash we can use this call and not appendDomain
+
             params.get()->dataCollector->writeDomain(params.get()->currentStep, 
                                                      splashType, 
                                                      1u, 
@@ -129,24 +120,12 @@ struct ParticleAttribute
                                                      Dimensions(elements, 1, 1),
                                                      Dimensions(d, 0, 0),
                                                      str.str().c_str(), 
-                                                     domain_offset, 
-                                                     domain_size, 
-                                                     Dimensions(0, 0, 0), 
-                                                     sim_global_size, 
+                                                     splashDomainOffset, 
+                                                     splashDomainSize, 
+                                                     splashGlobalDomainOffset, 
+                                                     splashGlobalDomainSize, 
                                                      DomainCollector::PolyType,
                                                      dataPtr);
-             */
-            params.get()->dataCollector->appendDomain(params.get()->currentStep,
-                                                      splashType,
-                                                      elements,
-                                                      d,
-                                                      components,
-                                                      str.str().c_str(),
-                                                      splashDomainOffset,
-                                                      splashDomainSize,
-                                                      splashGlobalDomainOffset,
-                                                      splashGlobalDomainSize,
-                                                      dataPtr);
 
             ColTypeDouble ctDouble;
             if (unit.size() >= (d + 1))

@@ -24,7 +24,7 @@
 
 #include "types.h"
 
-/* No namespace is needed because we had only defines*/
+/* No namespace is needed because we only have defines*/
 
 #ifdef __CUDA_ARCH__ //we are on gpu
 #define PMACC_PLACEHOLDER(id) using namespace PMACC_JOIN(device_placeholder,id)
@@ -50,7 +50,7 @@
 
 
 /** create a identifier (identifier with arbitrary code as second parameter
- * !! second parameter is optinal and can by any C++ code which can add inside a class
+ * !! second parameter is optinal and can by any C++ code one can add inside a class
  * 
  * example: identifier(varname); //create type varname
  * example: identifier(varname,typedef int type;); //create type varname, 
@@ -60,4 +60,3 @@
  *      varname();   or varname_
  */
 #define identifier(name,...) PMACC_identifier(name,__COUNTER__,__VA_ARGS__)
- 

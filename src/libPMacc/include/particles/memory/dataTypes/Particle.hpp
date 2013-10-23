@@ -46,6 +46,14 @@ namespace bmpl = boost::mpl;
 namespace pmath = PMacc::math;
 namespace pmacc = PMacc;
 
+/** A single particle of a @see Frame
+ * 
+ * A instance of this Particle is only a reference to a dataset of @see Frame
+ * 
+ * @tparam T_FrameType type of the parent frame
+ * @tparam T_ValueTypeSeq sequence with all attribute identifier 
+ *                        (can be a subset of T_FrameType::ValueTypeSeq)
+ */
 template<typename T_FrameType, typename T_ValueTypeSeq = typename T_FrameType::ValueTypeSeq>
 struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
 {
@@ -54,16 +62,22 @@ struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
     typedef Particle<FrameType, ValueTypeSeq> ThisType;
     typedef typename FrameType::MethodsList MethodsList;
 
-    /* IMPORTEND: store first value with big size to avoid
+    /* IMPORTANT: store first value with big size to avoid
      * that pointer is copyed byte by byte because data are not alligned
      * in this case
      * 
      * in this case sizeof(uint32_t)>sizeof(reference)
      */
+    /** index of particle inside the Frame*/
     const uint32_t idx;
+    /** reference to parent frame where this particle is from*/
     FrameType& frame;
     
-
+    /** create particle
+     *
+     * @param frame reference to parent frame
+     * @param idx index of particle inside the frame
+     */
     HDINLINE Particle(FrameType& frame, uint32_t idx) : frame(frame), idx(idx)
     {
     }
@@ -73,6 +87,12 @@ struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
     {
     }
 
+    /** access attribute with a identifier
+     *
+     * @param T_Key instance of identifier type 
+     *              (can be an alias, value_identifier or any other class)
+     * @return result of operator[] of the Frame
+     */
     template<typename T_Key >
     HDINLINE
     typename boost::result_of<
@@ -85,6 +105,7 @@ struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
         return frame.getIdentifier(key)[idx];
     }
 
+    /** const version of method operator(const T_Key) */
     template<typename T_Key >
     HDINLINE
     typename boost::result_of<

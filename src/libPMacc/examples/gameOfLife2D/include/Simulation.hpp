@@ -65,7 +65,7 @@ public:
     Simulation(uint32_t rule, int32_t steps, Space gridSize, Space devices, Space periodic) :
     evo(rule), steps(steps), gridSize(gridSize), isMaster(false), buff1(NULL), buff2(NULL)
     {
-        /*IMPORTEND: this must called at first PMacc function, before any other grid magic can used*/
+        /*IMPORTANT: this must called at first PMacc function, before any other grid magic can used*/
         GC::getInstance().init(devices, periodic);
         setDevice((int) (GC::getInstance().getHostRank())); //do this after gridcontroller init
 

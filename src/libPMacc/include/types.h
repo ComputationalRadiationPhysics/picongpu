@@ -173,4 +173,3 @@ enum AreaType
 #define __delete(var) if((var)) { delete (var); var=NULL; }
 
 } //namespace PMacc
- 

@@ -455,7 +455,7 @@ public:
 
     void init(uint32_t id, ISimulationData& data, uint32_t)
     {
-        /* load number of slides to initilize MovingWindow */        
+        /* load number of slides to initialize MovingWindow */        
         int slides;
         dataCollector->readAttribute(simulationStep, NULL, "sim_slides", &slides);
         MovingWindow::getInstance().setSlideCounter((uint32_t) slides);
@@ -638,7 +638,7 @@ private:
         {
             // Read the subdomain which belongs to our mpi position.
             // The total grid size must match the grid size of the stored data.
-            std::cout << "read dom " << domain_offset.toString() << " " << domain_size.toString() << std::endl;
+            log<picLog::INPUT_OUTPUT > ("Read from domain: offset=%1% size=%2%") % domain_offset.toString() % domain_size.toString();
             DomainCollector::DomDataClass data_class;
             DataContainer *field_container =
                 dataCollector->readDomain(simulationStep,
@@ -669,6 +669,7 @@ private:
 
         __getTransactionEvent().waitForFinished();
 
+        log<picLog::INPUT_OUTPUT > ("Read from domain: offset=%1% size=%2%") % domain_offset.toString() % domain_size.toString();
         std::cout << "Finished loading field '" << objectName << "'" << std::endl;
     }
 

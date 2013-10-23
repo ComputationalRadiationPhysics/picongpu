@@ -53,4 +53,3 @@ public:
 };
 
 } //namespace PMacc
-

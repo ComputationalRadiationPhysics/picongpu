@@ -23,7 +23,7 @@
 
 #include "types.h"
 
-#include <boost/mpl/map.hpp>
+#include <boost/mpl/vector.hpp>
 #include <boost/mpl/copy.hpp>
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/transform.hpp>
@@ -52,7 +52,7 @@ struct ResolveAliases
 {
     typedef T_MPLSeq MPLSeq;
     typedef T_MPLSeqLookup MPLSeqLookup;
-    typedef bmpl::back_inserter< bmpl::vector0<> > Inserter;
+    typedef bmpl::back_inserter< bmpl::vector<> > Inserter;
     
     template<typename T_Identifier>
     struct GetKeyFromAliasAccessor

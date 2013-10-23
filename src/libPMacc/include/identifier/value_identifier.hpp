@@ -24,7 +24,7 @@
 #include "types.h"
 #include "identifier/identifier.hpp"
 
-/* No namespace is needed because we had only defines*/
+/* No namespace is needed because we only have defines*/
 
 /** define a spezial identifier with name, type and a default value
  * @param in_type type of the value
@@ -58,5 +58,3 @@
                 return #name;                                                  \
         }                                                                      \
     )
-
- 

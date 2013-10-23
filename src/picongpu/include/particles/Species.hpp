@@ -48,7 +48,7 @@ typedef typename MakeSeq<
 #endif
 >::type AttributRadiationFlag;
 
-/* not nice, we change this later with nice interfaces*/
+/** \todo: not nice, we change this later with nice interfaces*/
 
 typedef
 typename MakeSeq<
@@ -77,7 +77,7 @@ typedef Particles<
 > PIC_Ions;
 
 
-/*not nice, but this shuld be changed in the future*/
+/** \todo: not nice, but this should be changed in the future*/
 typedef typename MakeSeq<
     #if (ENABLE_ELECTRONS == 1)
     PIC_Electrons

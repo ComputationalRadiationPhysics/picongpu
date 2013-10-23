@@ -28,7 +28,21 @@
 namespace PMacc
 {
 
+/** position of a particle inside a supercell
+ *
+ * Value is a linear index inside the supercell
+ */
 value_identifier(lcellId_t,localCellIdx,0);
+
+/** Is a value to set stages (is particle, is no particle,... of a particle
+ * 
+ * if multiMask is set to:
+ *  - 0 (zero) it is no particle
+ *  - 1 it is a particle
+ *  - 2 to 27 is used to define whether a particle leaf a supercell
+ *    ExchangeType = value - 1 (e.g. 27 - 1 = 26 means particle leafe supercell 
+ *    over FRONT(value=18) TOP(value=6) LEFT(value=2) corner -> 18+6+2=26
+ */
 value_identifier(uint8_t,multiMask,0);
 
 } //namespace PMacc

@@ -24,7 +24,7 @@
 
 #include "types.h"
 #include "particles/Identifier.hpp"
-#include <boost/mpl/vector.hpp>
+#include "compileTime/conversion/MakeSeq.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "identifier/identifier.hpp"
 #include "identifier/alias.hpp"
@@ -32,30 +32,50 @@
 
 namespace picongpu
 {
-namespace bmpl=boost::mpl;
 
 class ElectronMethods;
 class IonMethods;
 
+/** relative (to cell origin) in-cell position of a particle 
+ * With this definition we not define any type like float3,double3,...
+ * This is only a name without a specialisation
+ */
 alias(position);
+/** cell index the particle lives in, relative to the moving window origin 
+ * This alias is only used for dumping hdf5, the index is only valid for the
+ * current timestep.
+ */
 alias(globalCellIdx);
-value_identifier(float3_X,position_pic,float3_X(0.,0.,0.));
-value_identifier(float3_X,momentum,float3_X(0.,0.,0.));
-value_identifier(float_X,weighting,0.0);
-value_identifier(float3_X,momentumPrev1,float3_X(0.,0.,0.));   
-value_identifier(bool,radiationFlag,false);    
 
+/** specialisation for the relative in-cell position */
+value_identifier(float3_X,position_pic,float3_X(0.,0.,0.));
+/** momentum at timestep t */
+value_identifier(float3_X,momentum,float3_X(0.,0.,0.));
+/** momentum at (previous) timestep t-1 */
+value_identifier(float3_X,momentumPrev1,float3_X(0.,0.,0.));  
+/** weighting of the macro particle */
+value_identifier(float_X,weighting,0.0);
+/** use this particle for radiation diagnostics */
+value_identifier(bool,radiationFlag,false);    
+/** specialisation global position inside a domain (relative to origin of the 
+ * moving window) 
+ * \todo: use simDim (problem is that simDim is defined in componentsConfig.param
+ * and is loaded after all other param files)
+ */
 value_identifier(DataSpace<3>,globalCellIdx_pic,DataSpace<3>());  
 
-/*The next parts is not nice, we change this in a later update with new interfaces*/
+/*The next parts is not nice, we change this in a later update with new interfaces
+ * \todo: add compile time methods to create particle species
+ */
 
-typedef bmpl::vector<position<position_pic>,momentum,weighting> DefaultParticleAttributes;
+/** describe attributes of a particle*/
+typedef typename MakeSeq<position<position_pic>,momentum,weighting>::type DefaultParticleAttributes;
 
 typedef DefaultParticleAttributes ElectronsDataList;
 typedef DefaultParticleAttributes IonsDataList;
 
-typedef bmpl::vector<ElectronMethods> ElectronsMethodsList;
-typedef bmpl::vector<IonMethods> IonsMethodsList;
-
+/** add methods to particle*/
+typedef typename MakeSeq<ElectronMethods>::type ElectronsMethodsList;
+typedef typename MakeSeq<IonMethods>::type IonsMethodsList;
 
 } //namespace picongpu

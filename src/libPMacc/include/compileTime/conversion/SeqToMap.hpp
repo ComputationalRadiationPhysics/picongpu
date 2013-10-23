@@ -55,7 +55,7 @@ template<typename> class T_Accessor = compileTime::accessors::Identity
 struct SeqToMap
 {
     typedef T_MPLSeq MPLSeq;
-    typedef bmpl::inserter< bmpl::map0<>, bmpl::insert<bmpl::_1, bmpl::_2> > Map_inserter;
+    typedef bmpl::inserter< bmpl::map<>, bmpl::insert<bmpl::_1, bmpl::_2> > Map_inserter;
     typedef typename bmpl::transform<
             MPLSeq,
             T_UnaryOperator<typename T_Accessor<bmpl::_1>::type>,
