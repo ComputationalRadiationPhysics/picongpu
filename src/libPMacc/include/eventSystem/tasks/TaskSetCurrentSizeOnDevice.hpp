@@ -33,7 +33,7 @@
 #include "eventSystem/tasks/StreamTask.hpp"
 #include "eventSystem/events/kernelEvents.hpp"
 
-__global__ static void kernelSetValueOnDeviceMemory(size_t* pointer, const size_t size)
+__global__ void kernelSetValueOnDeviceMemory(size_t* pointer, const size_t size)
 {
     *pointer = size;
 }

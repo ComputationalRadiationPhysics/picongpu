@@ -57,7 +57,12 @@ set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{MPI_ROOT}"
 # Find CUDA 
 ################################################################################
 
-find_package(CUDA REQUIRED)
+find_package(CUDA 5.0 REQUIRED)
+
+if(CUDA_VERSION VERSION_LESS 5.5)
+    message(STATUS "CUDA Toolkit < 5.5 detected. We strongly recommend to still "
+                   "use CUDA 5.5+ drivers!")
+endif(CUDA_VERSION VERSION_LESS 5.5)
 
 set(CUDA_ARCH sm_20 CACHE STRING "Set GPU architecture")
 string(COMPARE EQUAL ${CUDA_ARCH} "sm_10" IS_CUDA_ARCH_UNSUPPORTED)
@@ -138,7 +143,7 @@ set(LIBS ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
 # Find Boost
 ################################################################################
 
-find_package(Boost REQUIRED COMPONENTS program_options regex)
+find_package(Boost 1.49.0 REQUIRED COMPONENTS program_options regex)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${Boost_LIBRARIES})
 

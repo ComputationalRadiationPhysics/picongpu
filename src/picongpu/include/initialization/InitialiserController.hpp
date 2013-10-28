@@ -40,6 +40,8 @@
 
 #include "initialization/IInitModule.hpp"
 
+#include <boost/mpl/find.hpp>
+
 namespace picongpu
 {
 using namespace PMacc;
