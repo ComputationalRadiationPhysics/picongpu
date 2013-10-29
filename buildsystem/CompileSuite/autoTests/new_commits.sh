@@ -92,8 +92,9 @@ cd $cnf_gitdir
 
             echo "Starting Virtual Machine..."
             # -monitor stdio | -nographic
-            /usr/bin/kvm -smp $cnf_numParallel -cpu kvm64 -enable-kvm \
-                -m 2048 -nographic \
+            # file="$cnf_imgClone"
+            /usr/bin/kvm -nographic -smp $cnf_numParallel -cpu kvm64 \
+                -enable-kvm -m 2048 \
                 -drive file="$cnf_imgClone",media=disk \
                 -drive file="$cnf_extfile",media=disk \
                 -boot once=c,menu=off -net none -name "Debian7_Cuda4_2"
