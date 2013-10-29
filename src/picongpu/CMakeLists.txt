@@ -268,7 +268,21 @@ find_path(PIC_SPLASH_ROOT_DIR
 )
 
 if(PIC_SPLASH_ROOT_DIR)
-    message(STATUS "Found libSplash: "${PIC_SPLASH_ROOT_DIR})
+    # find version
+    file(STRINGS "${PIC_SPLASH_ROOT_DIR}/include/version.hpp"
+         PIC_SPLASH_VERSION_MAJOR_HPP REGEX "#define SPLASH_VERSION_MAJOR ")
+    file(STRINGS "${PIC_SPLASH_ROOT_DIR}/include/version.hpp"
+         PIC_SPLASH_VERSION_MINOR_HPP REGEX "#define SPLASH_VERSION_MINOR ")
+    string(REGEX MATCH "([0-9]+)" PIC_SPLASH_VERSION_MAJOR
+                                ${PIC_SPLASH_VERSION_MAJOR_HPP})
+    string(REGEX MATCH "([0-9]+)" PIC_SPLASH_VERSION_MINOR
+                                ${PIC_SPLASH_VERSION_MINOR_HPP})
+
+    set(PIC_SPLASH_VERSION "${PIC_SPLASH_VERSION_MAJOR}.${PIC_SPLASH_VERSION_MINOR}")
+
+    # status output and require hdf5
+    message(STATUS "Found libSplash: ${PIC_SPLASH_ROOT_DIR} "
+                   "(found version \"${PIC_SPLASH_VERSION}\")")
     find_package(HDF5 REQUIRED)
 
     # libSplash compiled with parallel support?
