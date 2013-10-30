@@ -49,8 +49,9 @@ namespace math
 #define GET_TYPE(Z, N, _) typename mpl::at_c<TypeList, N >::type arg ## N
 
 #define CONSTRUCTOR(Z, N, _)                                \
+    template<BOOST_PP_ENUM_PARAMS(N, typename Arg)>         \
     HDINLINE                                                \
-    Tuple(BOOST_PP_ENUM(N, GET_TYPE, _))                    \
+    Tuple(BOOST_PP_ENUM_BINARY_PARAMS(N, const Arg, &arg))  \
     : value(arg0),                                          \
       base(BOOST_PP_ENUM_SHIFTED_PARAMS(N, arg))            \
     {                                                       \
