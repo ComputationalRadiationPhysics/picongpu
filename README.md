@@ -117,6 +117,9 @@ codes. See the getting started guide (document and movie *coming soon*).
 
 You are welcome to [contact](http://www.hzdr.de/db/Cms?pNid=132&pOid=30354) us!
 
+If you are going to **upgrade** to a **new release** of PIConGPU, please **read our**
+[ChangeLog](CHANGELOG.md) first! You may have to update your `.param` files!
+
 Developers
 ----------
 
