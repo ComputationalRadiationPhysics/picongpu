@@ -57,7 +57,12 @@ set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{MPI_ROOT}"
 # Find CUDA 
 ################################################################################
 
-find_package(CUDA REQUIRED)
+find_package(CUDA 5.0 REQUIRED)
+
+if(CUDA_VERSION VERSION_LESS 5.5)
+    message(STATUS "CUDA Toolkit < 5.5 detected. We strongly recommend to still "
+                   "use CUDA 5.5+ drivers!")
+endif(CUDA_VERSION VERSION_LESS 5.5)
 
 set(CUDA_ARCH sm_20 CACHE STRING "Set GPU architecture")
 string(COMPARE EQUAL ${CUDA_ARCH} "sm_10" IS_CUDA_ARCH_UNSUPPORTED)
@@ -138,7 +143,7 @@ set(LIBS ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
 # Find Boost
 ################################################################################
 
-find_package(Boost REQUIRED COMPONENTS program_options regex)
+find_package(Boost 1.49.0 REQUIRED COMPONENTS program_options regex)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${Boost_LIBRARIES})
 
@@ -263,7 +268,21 @@ find_path(PIC_SPLASH_ROOT_DIR
 )
 
 if(PIC_SPLASH_ROOT_DIR)
-    message(STATUS "Found libSplash: "${PIC_SPLASH_ROOT_DIR})
+    # find version
+    file(STRINGS "${PIC_SPLASH_ROOT_DIR}/include/version.hpp"
+         PIC_SPLASH_VERSION_MAJOR_HPP REGEX "#define SPLASH_VERSION_MAJOR ")
+    file(STRINGS "${PIC_SPLASH_ROOT_DIR}/include/version.hpp"
+         PIC_SPLASH_VERSION_MINOR_HPP REGEX "#define SPLASH_VERSION_MINOR ")
+    string(REGEX MATCH "([0-9]+)" PIC_SPLASH_VERSION_MAJOR
+                                ${PIC_SPLASH_VERSION_MAJOR_HPP})
+    string(REGEX MATCH "([0-9]+)" PIC_SPLASH_VERSION_MINOR
+                                ${PIC_SPLASH_VERSION_MINOR_HPP})
+
+    set(PIC_SPLASH_VERSION "${PIC_SPLASH_VERSION_MAJOR}.${PIC_SPLASH_VERSION_MINOR}")
+
+    # status output and require hdf5
+    message(STATUS "Found libSplash: ${PIC_SPLASH_ROOT_DIR} "
+                   "(found version \"${PIC_SPLASH_VERSION}\")")
     find_package(HDF5 REQUIRED)
 
     # libSplash compiled with parallel support?
