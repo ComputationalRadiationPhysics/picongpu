@@ -35,7 +35,7 @@ namespace picongpu
          * @param y as distance in propagation direction (unit: meters / UNIT_LENGTH)
          * @return float_X between 0.0 and 1.0
          */
-        DINLINE float_X calcNormedDensitiy( float3_X pos )
+        DINLINE float_X calcNormedDensitiy( float3_X pos, float_64 )
         {
             if (pos.y() < VACUUM_Y) return float_X(0.0);
 

@@ -83,6 +83,12 @@ namespace picongpu
         const bool GAS_ENABLED = true;
     }
 
+    namespace gasFreeFormula
+    {
+        /** Initialize a gas profile */
+        const bool GAS_ENABLED = true;
+    }
+
     namespace gasNone
     {
         /** Do not initialize a gas, stay with vacuum */
@@ -98,4 +104,5 @@ namespace picongpu
 #include "particles/gasProfiles/gasLinExp.hpp"
 #include "particles/gasProfiles/gasHomogenous.hpp"
 #include "particles/gasProfiles/gasSphereFlanks.hpp"
+#include "particles/gasProfiles/gasFreeFormula.hpp"
 #include "particles/gasProfiles/gasNone.hpp"
