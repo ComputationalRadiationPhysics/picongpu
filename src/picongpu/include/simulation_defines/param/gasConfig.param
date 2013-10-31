@@ -206,7 +206,7 @@ namespace picongpu
                  */
                 DINLINE float_64 operator()( float3_64 pos )
                 {
-                    const float_64 y = pos.y() / 1000.0; // m -> mm
+                    const float_64 y = pos.y() * 1000.0; // m -> mm
 
                     /* triangle function example
                      * for a density profile from 0 to 400 microns */

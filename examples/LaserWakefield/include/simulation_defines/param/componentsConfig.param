@@ -61,6 +61,7 @@ namespace fieldSolver = PARAM_FIELDSOLVER;
  *  - gasLinExp : piecewise linear-exponential profile (linear first)
  *  - gasHomogenous : constant gas density with a certain length
  *  - gasSphereFlanks : constant sphere droplet with exponential decr envelope
+ *  - gasFreeFormula: use a custom formula (slower)
  *  - gasNone : just stay with a vacuum
  */
 #ifndef PARAM_GASPROFILE
