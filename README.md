@@ -102,23 +102,21 @@ See our notes in [INSTALL.md](doc/INSTALL.md).
 Users
 -----
 
-Dear User, please [beware](#open-alpha) that this is a **developer** and
-**power user** *only* release! We hereby **emphasize** that *you should wait*
-for our **Beta** release.
-
-Please refer to our
-[Open Beta](https://github.com/ComputationalRadiationPhysics/picongpu/issues/milestones)
-milestones and be aware of
-**very limited support** and **heavily changing interfaces** until we announce
-our *Beta* release!
+Dear User, please [beware](#open-alpha) that this is a **developer and
+power user only release**! We hereby emphasize that you should wait for our
+[Beta](https://github.com/ComputationalRadiationPhysics/picongpu/issues/milestones)
+release.
 
 Visit [picongpu.hzdr.de](http://picongpu.hzdr.de) to learn more about PIC
-codes. See the getting started guide (document and movie *coming soon*).
+codes. See the
+[getting started guide](http://www.youtube.com/watch?v=7ybsD8G4Rsk)
+(more documents coming soon) and
+[contact](http://www.hzdr.de/db/Cms?pNid=132&pOid=30354) us!
 
-You are welcome to [contact](http://www.hzdr.de/db/Cms?pNid=132&pOid=30354) us!
-
-If you are going to **upgrade** to a **new release** of PIConGPU, please **read our**
-[ChangeLog](CHANGELOG.md) first! You may have to update your `.param` files!
+**Upgrades:** Every time we update the *master* branch, we publish a new release
+of PIConGPU. Before you pull the changes in, please read our [ChangeLog](CHANGELOG.md)!
+You may have to update some of your simulation `.param` files by hand
+(detailed upgrade guide coming soon).
 
 Developers
 ----------
