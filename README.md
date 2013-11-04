@@ -14,8 +14,8 @@ release!
 
 ********************************************************************************
 
-[![PIConGPU Presentation Video](http://img.youtube.com/vi/lgxVYl_pslI/0.jpg)](http://www.youtube.com/watch?v=lgxVYl_pslI)
-[![PIConGPU Alpha Release](doc/logo/pic_logo_vert_180x360_alpha.png)](http://www.youtube.com/watch?v=lgxVYl_pslI)
+[![PIConGPU Presentation Video](http://img.youtube.com/vi/nwZuG-XtUDE/0.jpg)](http://www.youtube.com/watch?v=nwZuG-XtUDE)
+[![PIConGPU Alpha Release](doc/logo/pic_logo_vert_180x360_alpha.png)](http://www.youtube.com/watch?v=nwZuG-XtUDE)
 
 Introduction
 ------------
@@ -102,20 +102,21 @@ See our notes in [INSTALL.md](doc/INSTALL.md).
 Users
 -----
 
-Dear User, please [beware](#open-alpha) that this is a **developer** and
-**power user** *only* release! We hereby **emphasize** that *you should wait*
-for our **Beta** release.
-
-Please refer to our
-[Open Beta](https://github.com/ComputationalRadiationPhysics/picongpu/issues/milestones)
-milestones and be aware of
-**very limited support** and **heavily changing interfaces** until we announce
-our *Beta* release!
+Dear User, please [beware](#open-alpha) that this is a **developer and
+power user only release**! We hereby emphasize that you should wait for our
+[Beta](https://github.com/ComputationalRadiationPhysics/picongpu/issues/milestones)
+release.
 
 Visit [picongpu.hzdr.de](http://picongpu.hzdr.de) to learn more about PIC
-codes. See the getting started guide (document and movie *coming soon*).
+codes. See the
+[getting started guide](http://www.youtube.com/watch?v=7ybsD8G4Rsk)
+(more documents coming soon) and
+[contact](http://www.hzdr.de/db/Cms?pNid=132&pOid=30354) us!
 
-You are welcome to [contact](http://www.hzdr.de/db/Cms?pNid=132&pOid=30354) us!
+**Upgrades:** Every time we update the *master* branch, we publish a new release
+of PIConGPU. Before you pull the changes in, please read our [ChangeLog](CHANGELOG.md)!
+You may have to update some of your simulation `.param` files by hand
+(detailed upgrade guide coming soon).
 
 Developers
 ----------
