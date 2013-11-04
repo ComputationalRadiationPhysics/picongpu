@@ -14,8 +14,8 @@ release!
 
 ********************************************************************************
 
-[![PIConGPU Presentation Video](http://img.youtube.com/vi/lgxVYl_pslI/0.jpg)](http://www.youtube.com/watch?v=lgxVYl_pslI)
-[![PIConGPU Alpha Release](doc/logo/pic_logo_vert_180x360_alpha.png)](http://www.youtube.com/watch?v=lgxVYl_pslI)
+[![PIConGPU Presentation Video](http://img.youtube.com/vi/nwZuG-XtUDE/0.jpg)](http://www.youtube.com/watch?v=nwZuG-XtUDE)
+[![PIConGPU Alpha Release](doc/logo/pic_logo_vert_180x360_alpha.png)](http://www.youtube.com/watch?v=nwZuG-XtUDE)
 
 Introduction
 ------------
