@@ -17,12 +17,39 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 #pragma once
 
-#include "types.h"
-#include <boost/static_assert.hpp>
-#include <math/Vector.hpp>
+namespace PMacc
+{
+namespace algorithms
+{
 
-#include "basisLib/vector/Vector.tpp"
+namespace math
+{
+
+namespace detail
+{
+
+template<typename T1, typename T2>
+struct Pow;
+
+} //namespace detail
+
+
+/** Raised the base to the power exponent
+ *
+ * @param base base value
+ * @param exponent power exponent 
+ * @return base rased to the power exponent 
+ */
+template<typename T1, typename T2>
+HDINLINE static typename detail::Pow< T1, T2 >::result pow(const T1& base,const T2& exponent)
+{
+    return detail::Pow< T1, T2 > ()(base, exponent);
+}
+
+} //namespace math
+} //namespace algorithms
+}//namespace PMacc

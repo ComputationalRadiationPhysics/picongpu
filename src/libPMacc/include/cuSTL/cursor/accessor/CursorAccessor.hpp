@@ -34,7 +34,7 @@ struct CursorAccessor
 {
     typedef typename TCursor::type type;
     
-    HDINLINE type& operator()(TCursor& cursor)
+    HDINLINE type operator()(TCursor& cursor)
     {
         return *cursor;
     }

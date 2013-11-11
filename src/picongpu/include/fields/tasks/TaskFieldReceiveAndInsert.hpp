@@ -120,7 +120,7 @@ public:
         notify(this->myId, RECVFINISHED, NULL);
     }
 
-    void event(id_t eventId, EventType type, IEventData* data)
+    void event(id_t, EventType, IEventData*)
     {
     }
 

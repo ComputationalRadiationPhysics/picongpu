@@ -26,20 +26,17 @@
 
 #include "types.h"
 #include "simulation_defines.hpp"
-#include "particles/memory/frames/NullFrame.hpp"
-
 
 namespace picongpu
 {
-    using namespace PMacc;
-    
 
-    template<class Base = NullFrame>
-    class IonMethods : public Base
+    struct IonMethods
     {
     public:
         typedef float_X MassType;
         typedef float_X ChargeType;
+        
+        typedef typename MappingDesc::SuperCellSize SuperCellSize;
 
         DINLINE float_X getM0_2(const float_X weighting)
         {
@@ -65,7 +62,6 @@ namespace picongpu
         {
             CommunicationTag = PAR_IONS
         };
-    private:
 
     };
 

@@ -23,7 +23,7 @@
 #pragma once
 
 #include "particles/boostExtension/InheritGenerators.hpp"
-#include "particles/boostExtension/JoinVectors.hpp"
+#include "compileTime/conversion/MakeSeq.hpp"
 #include "particles/particleFilter/system/TrueFilter.hpp"
 #include "particles/particleFilter/system/DefaultFilter.hpp"
 
@@ -48,10 +48,10 @@ public:
     typedef
     typename LinearInherit
     <
-        typename JoinVectors<
-           bmpl::vector<DefaultFilter<> >,
+        typename MakeSeq<
+           DefaultFilter<> ,
            UserTypeList,
-           bmpl::vector<TrueFilter>
+           TrueFilter
         >::type
     >::type FilterType;
 

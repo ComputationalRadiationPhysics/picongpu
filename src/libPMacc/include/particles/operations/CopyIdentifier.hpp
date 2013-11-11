@@ -17,37 +17,32 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
 
 #pragma once
 
+#include "types.h"
+#include "particles/Identifier.hpp"
+#include "RefWrapper.hpp"
+#include "traits/HasIdentifier.hpp"
 
 namespace PMacc
 {
-namespace traits
-{
+namespace bmpl = boost::mpl;
+namespace pmath = PMacc::math;
 
-template<>
-struct GetType<float>
+
+template<typename T_Key>
+struct CopyIdentifier
 {
-    typedef float type;
+    template<typename T_T1,typename T_T2>
+    HDINLINE
+    void operator()(RefWrapper<T_T1> dest, const T_T2& src) 
+    {
+        dest.get()[T_Key()]=src[T_Key()];
+    }
+    
+ 
 };
 
-template<>
-struct GetType<double>
-{
-    typedef double type;
-};
-
-template<>
-struct GetType<int>
-{
-    typedef int type;
-};
-
-
-}//namespace traits
-
-}//namepsace PMacc
-
+}//namespace PMacc

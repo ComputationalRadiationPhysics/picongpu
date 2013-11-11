@@ -8,15 +8,16 @@ Requirements
 
 - **gcc** 4.3 to 4.6 (depends on current CUDA version)
   - *Debian/Ubuntu:* `apt-get install gcc-4.4 build-essential`
+  - *experimental alternatives:* **icc 12.1** and **pgi 13.6** with **cuda 5.5**
 
 - [CUDA 5.5](https://developer.nvidia.com/cuda-downloads) or higher
 
 - at least one **CUDA** capable **GPU**
-  - **sm\_13** for basic PIC cycle, >= **sm\_20** for all features (higher order shapes, radiation diagnostics, ...)
+  - *Compute capability* **sm\_20** or higher
   - [full list](https://developer.nvidia.com/cuda-gpus) of CUDA GPUs and their *compute capability*
   - ([More](http://www.olcf.ornl.gov/titan/) is always better. Especially, if we are talking about GPUs.)
 
-- **cmake** 2.8 or higher
+- **cmake** 2.8.5 or higher
   - *Debian/Ubuntu:* `sudo apt-get install cmake file cmake-curses-gui`
 
 - **OpenMPI** 1.4 or higher
@@ -55,7 +56,8 @@ We recomment to install at least **pngwriter**.
       [PNGWRITER\_ROOT](#additional-required-environment-variables-for-optional-libraries)
       to `$HOME/lib/pngwriter`
 
-- **libSplash** (requires *hdf5*)
+- **libSplash** (requires *hdf5*, *boost program-options*)
+    - *Debian/Ubuntu dependencies:* `sudo apt-get install libhdf5-openmpi-dev libboost-program-options-dev`
     - example:
       - `mkdir -p ~/src ~/build ~/lib`
       - `git clone https://github.com/ComputationalRadiationPhysics/libSplash.git ~/src/splash/`
@@ -66,15 +68,15 @@ We recomment to install at least **pngwriter**.
       [SPLASH\_ROOT](#additional-required-environment-variables-for-optional-libraries)
       to `$HOME/lib/splash`
 
-- **hdf5** >= 1.8.6, standard shared version (no c++)
-    - *Debian/Ubuntu:* `sudo apt-get install libhdf5-dev`
+- **hdf5** >= 1.8.6, standard shared version (no c++, enable parallel), e.g. `hdf5/1.8.5-threadsafe`
+    - *Debian/Ubuntu:* `sudo apt-get install libhdf5-openmpi-dev`
     - example:
       - `mkdir -p ~/src ~/build ~/lib`
       - `cd ~/src`
       - `wget www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.11.tar.gz`
       - `tar -xvzf hdf5-1.8.11.tar.gz`
       - `cd hdf5-1.8.11`
-      - `./configure --enable-shared --prefix ~/lib/hdf5/`
+      - `./configure --enable-parallel --enable-shared --prefix ~/lib/hdf5/`
       - `make`
       - *optional:* `make test`
       - `make install`

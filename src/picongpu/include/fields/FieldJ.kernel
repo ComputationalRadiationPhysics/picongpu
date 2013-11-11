@@ -66,10 +66,10 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
 
     /* thread id, can be greater than cellsPerSuperCell*/
     const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
-        
+
     const uint32_t virtualBlockId = linearThreadIdx / cellsPerSuperCell;
     /* move linearThreadIdx for all threads to [0;cellsPerSuperCell) */
-    const int virtualLinearId = linearThreadIdx-(virtualBlockId * cellsPerSuperCell);
+    const int virtualLinearId = linearThreadIdx - (virtualBlockId * cellsPerSuperCell);
 
 
     __shared__ FrameType * frame[workerMultiplier];
@@ -102,16 +102,17 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
     if (!(isValid[0]))
         return;
 
+    /* This memory is used by all virtual blocks*/
     PMACC_AUTO(cachedJ, CachedBox::create < 0, typename JBox::ValueType > (BlockDescription_()));
 
     Set<typename JBox::ValueType > set(float3_X(0.0, 0.0, 0.0));
     ThreadCollective<BlockDescription_, cellsPerSuperCell * workerMultiplier> collectivSet(linearThreadIdx);
     collectivSet(set, cachedJ);
 
-    /* now all threads can leave if they have no frame */
+    /* all threads of a virtual block will leave if it has no frame */
     if (!(isValid[virtualBlockId]))
         return;
-    
+
     __syncthreads();
     /* all threads can check isValid[0] because we know that
      * we are at end of frame list if isValid[0] is not valid
@@ -134,7 +135,8 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
             isValid[0] = isValid[workerMultiplier - 1];
             if (isValid[workerMultiplier - 1])
                 frame[0] = &(boxPar.getPreviousFrame(*(frame[workerMultiplier - 1]), isValid[0]));
-            /* read all frames in sequential order*/
+            /* read all frames in sequential order
+             * but only if workerMultiplier>=1 */
             for (int i = 1; i < workerMultiplier; ++i)
             {
                 isValid[i] = false;
@@ -144,14 +146,18 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
         }
         __syncthreads();
     }
-    /* we wait that all threads finush the loop*/
+    /* we wait that all threads finish the loop*/
     __syncthreads();
-    /*now we can write to global memory with all threads*/
-    nvidia::functors::Add add;
-    const DataSpace<simDim> blockCell = block * SuperCellSize::getDataSpace();
-    ThreadCollective<BlockDescription_,cellsPerSuperCell * workerMultiplier> collectivAdd(linearThreadIdx);
-    PMACC_AUTO(fieldJBlock, fieldJ.shift(blockCell));
-    collectivAdd(add, fieldJBlock, cachedJ);
+    /* Write to global memory
+     * We only use virtual block 0, other frame could have left already */
+    if (virtualBlockId == 0)
+    {
+        nvidia::functors::Add add;
+        const DataSpace<simDim> blockCell = block * SuperCellSize::getDataSpace();
+        ThreadCollective<BlockDescription_, cellsPerSuperCell> collectivAdd(linearThreadIdx);
+        PMACC_AUTO(fieldJBlock, fieldJ.shift(blockCell));
+        collectivAdd(add, fieldJBlock, cachedJ);
+    }
     __syncthreads();
 }
 
@@ -168,25 +174,17 @@ struct ComputeCurrentPerFrame
     DINLINE void operator()(FrameType& frame, const int localIdx, BoxJ & jBox)
     {
 
-        typedef typename FrameType::PosType PosType;
-        typedef typename FrameType::MomType MomType;
-        typedef typename FrameType::MassType MassType;
-
-        typedef typename FrameType::WeightingType WeightingType;
-
-        typedef float_X WeightingType;
-        typedef typename FrameType::ChargeType ChargeType;
-
-        const WeightingType weighting = frame.getWeighting()[localIdx];
-        const PosType pos = frame.getPosition()[localIdx];
-        const int particleCellIdx = frame.getCellIdx()[localIdx];
-        const ChargeType charge = frame.getCharge(weighting);
+        PMACC_AUTO(particle,frame[localIdx]);
+        const float_X weighting = particle[weighting_];
+        const float3_X pos = particle[position_];
+        const int particleCellIdx = particle[localCellIdx_];
+        const float_X charge = particle.getCharge(weighting);
         const DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec > (particleCellIdx));
 
         Velocity velocity;
         const float3_X vel = velocity(
-                                      frame.getMomentum()[localIdx],
-                                      frame.getMass(weighting));
+                                      particle[momentum_],
+                                      particle.getMass(weighting));
         PMACC_AUTO(fieldJShiftToParticle, jBox.shift(localCell));
         ParticleAlgo perParticle;
         perParticle(fieldJShiftToParticle,

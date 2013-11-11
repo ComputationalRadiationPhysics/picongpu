@@ -63,7 +63,7 @@ struct Push
         Velocity velocity;
         const float3_X vel = velocity(new_mom, mass);
 
-        /* IMPORTEND: 
+        /* IMPORTANT: 
          * use float_X(1.0)+X-float_X(1.0) because the rounding of float_X can create position from [-float_X(1.0),2.f],
          * this breaks ower definition that after position change (if statements later) the position must [float_X(0.0),float_X(1.0))
          * 1.e-9+float_X(1.0) = float_X(1.0) (this is not allowed!!!

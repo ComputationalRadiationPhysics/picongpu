@@ -17,23 +17,41 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 
 #pragma once
 
+
+#include <boost/mpl/vector.hpp>
+#include <boost/mpl/inherit.hpp>
+#include <boost/mpl/inherit_linearly.hpp>
+#include <boost/mpl/placeholders.hpp>
+
 namespace PMacc
 {
-namespace traits
+namespace bmpl = boost::mpl;
+
+namespace detail
 {
 
-template<typename Type>
-struct GetType;
+template<typename T_Base>
+struct InheritLinearly : public T_Base
+{
+};
 
-}//namespace traits
+} //namespace detail
 
-}//namepsace PMacc
+template<typename T_Sequence>
+struct InheritLinearly :
+public detail::InheritLinearly<
+typename
+bmpl::inherit_linearly<T_Sequence, bmpl::inherit< bmpl::_1, bmpl::_2 > >::type
+>
+{
+};
 
-#include "traits/GetType.tpp"
+
+} //namespace PMacc
 
 

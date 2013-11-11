@@ -137,7 +137,7 @@ class TaskSetValue<TYPE,DIM,false> : public StreamTask
 {
 public:
 
-    TaskSetValue(DeviceBuffer<TYPE, DIM>& dst, TYPE &value) :
+    TaskSetValue(DeviceBuffer<TYPE, DIM>& dst, const TYPE& value) :
     StreamTask(),
     value(value)
     {
@@ -160,7 +160,7 @@ public:
         return isFinished();
     }
 
-    void event(id_t eventId, EventType type, IEventData* data)
+    void event(id_t, EventType, IEventData*)
     {
     }
 
@@ -206,7 +206,7 @@ class TaskSetValue<TYPE,DIM,true> : public StreamTask
 {
 public:
 
-    TaskSetValue(DeviceBuffer<TYPE, DIM>& dst, TYPE &value) :
+    TaskSetValue(DeviceBuffer<TYPE, DIM>& dst, const TYPE &value) :
     StreamTask(),
     value(value)
     {
@@ -231,7 +231,7 @@ public:
         return isFinished();
     }
 
-    void event(id_t eventId, EventType type, IEventData* data)
+    void event(id_t, EventType, IEventData*)
     {
     }
 

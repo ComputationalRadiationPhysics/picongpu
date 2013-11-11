@@ -41,13 +41,13 @@
 #include "memory/boxes/DataBox.hpp"
 #include "memory/boxes/PitchedBox.hpp"
 
-#include "basisLib/vector/Vector.hpp"
+#include "math/Vector.hpp"
 
 namespace picongpu
 {
     using namespace PMacc;
 
-    template< class UserTypeList>
+    template< typename,typename>
     class Particles;
     
     // The fieldJ saves the current density j

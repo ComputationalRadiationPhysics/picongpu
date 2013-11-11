@@ -164,7 +164,7 @@ namespace PMacc
 
         virtual void reset(bool preserveData = false)=0;
 
-        virtual void setValue(TYPE value)=0;
+        virtual void setValue(const TYPE& value)=0;
 
         virtual DataBox<PitchedBox<TYPE,DIM> > getDataBox()=0;
         

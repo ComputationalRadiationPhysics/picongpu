@@ -81,7 +81,7 @@
 #include "plugins/IPluginModule.hpp"
 
 #if (ENABLE_HDF5 == 1)
-#include "plugins/output/HDF5Writer.hpp"
+#include "plugins/hdf5/HDF5Writer.hpp"
 #endif
 
 namespace picongpu
@@ -137,7 +137,7 @@ namespace picongpu
         virtual void init()
         {
 #if (ENABLE_HDF5 == 1)
-            modules.push_back(new HDF5Writer<PIC_Electrons, PIC_Ions, SIMDIM > ());
+            modules.push_back(new hdf5::HDF5Writer());
 #endif
             modules.push_back(new EnergyFields("EnergyFields", "energy_fields"));
             modules.push_back(new SumCurrents());
@@ -211,7 +211,7 @@ namespace picongpu
             }
         }
 
-        virtual void moduleRegisterHelp(po::options_description& desc)
+        virtual void moduleRegisterHelp(po::options_description&)
         {
 
         }

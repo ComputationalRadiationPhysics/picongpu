@@ -85,17 +85,18 @@ __global__ void kernelEnergyParticles(ParticlesBox<FRAME, simDim> pb,
     if (!isValid)
         return; //end kernel if we have no frames
 
-    bool isParticle = frame->getMultiMask()[linearThreadIdx];
+    bool isParticle = (*frame)[linearThreadIdx][multiMask_];
 
     while (isValid)
     {
         if (isParticle)
         {
 
-            const float3_X mom = frame->getMomentum()[linearThreadIdx];
+            PMACC_AUTO(particle,(*frame)[linearThreadIdx]);
+            const float3_X mom = particle[momentum_];
             const float_X mom2 = mom.x() * mom.x() + mom.y() * mom.y() + mom.z() * mom.z();
 
-            const float_X weighting = frame->getWeighting()[linearThreadIdx];
+            const float_X weighting = particle[weighting_];
             const float_X mass = frame->getMass(weighting);
             const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
 

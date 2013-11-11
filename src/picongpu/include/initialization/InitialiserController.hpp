@@ -40,6 +40,8 @@
 
 #include "initialization/IInitModule.hpp"
 
+#include <boost/mpl/find.hpp>
+
 namespace picongpu
 {
 using namespace PMacc;
@@ -107,9 +109,9 @@ public:
             
 #if (ENABLE_HDF5==1)
             // check for HDF5 restart capability
-            typedef typename boost::mpl::find<hdf5OutputFields, FieldE>::type itFindFieldE;
-            typedef typename boost::mpl::find<hdf5OutputFields, FieldB>::type itFindFieldB;
-            typedef typename boost::mpl::end< hdf5OutputFields>::type itEnd;
+            typedef typename boost::mpl::find<Hdf5OutputFields, FieldE>::type itFindFieldE;
+            typedef typename boost::mpl::find<Hdf5OutputFields, FieldB>::type itFindFieldB;
+            typedef typename boost::mpl::end< Hdf5OutputFields>::type itEnd;
             const bool restartImpossible = (boost::is_same<itFindFieldE, itEnd>::value)
                                         || (boost::is_same<itFindFieldB, itEnd>::value);
             if( restartImpossible )

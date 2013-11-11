@@ -226,13 +226,14 @@ void kernelRadiationParticles(ParBox pb,
                          * LATER: can this be optimized? 
                          */
                         int saveParticleAt = -1;
+                        PMACC_AUTO(par,(*frame)[linearThreadIdx]);
 
                         /* if radiation is not calculated for all particles
                          * but not via the gamma filter, check which particles
                          * have to be used for radiation calculation
                          */
 #if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
-                        if (frame->getRadiationFlag()[linearThreadIdx])
+                        if (par[radiationFlag_])
 #endif
                             saveParticleAt = atomicAdd(&counter_s, 1);
                         /* for information:
@@ -247,10 +248,10 @@ void kernelRadiationParticles(ParBox pb,
                         {
 
                             // calculate global position 
-                            lcellId_t cellIdx = frame->getCellIdx()[linearThreadIdx];
+                            lcellId_t cellIdx = par[localCellIdx_];
 
                             // position inside of the cell 
-                            float3_X pos = frame->getPosition()[linearThreadIdx];
+                            float3_X pos = par[position_];
 
                             // calculate global position of cell
                             const DataSpace<DIM3> globalPos(superCellOffset
@@ -264,8 +265,8 @@ void kernelRadiationParticles(ParBox pb,
                                                                    ((float_X) globalPos.z() + (float_X) pos.z()) * CELL_DEPTH);
 
                             // get old and new particle momenta
-                            const vec1 particle_momentumNow = vec1(frame->getMomentum()[linearThreadIdx]);
-                            const vec1 particle_momentumOld = vec1(frame->getMomentum_mt1()[linearThreadIdx]);
+                            const vec1 particle_momentumNow = vec1(par[momentum_]);
+                            const vec1 particle_momentumOld = vec1(par[momentumPrev1_]);
 
 
                             /* get macro-particle weighting
@@ -274,7 +275,7 @@ void kernelRadiationParticles(ParBox pb,
                              * the weighting is the number of real particles described 
                              * by a macro-particle 
                              */
-                            const float_X weighting = frame->getWeighting()[linearThreadIdx];
+                            const float_X weighting = par[weighting_];
 
                             /* only of coherent and incoherent radiation of a sibgle macro-particle is
                              * considered, the weighting of each macro-particle needs to be stored
@@ -285,7 +286,7 @@ void kernelRadiationParticles(ParBox pb,
 #endif
 
                             // mass of macro-particle
-                            const float_X particle_mass = frame->getMass(weighting);
+                            const float_X particle_mass = par.getMass(weighting);
 
 
                             /****************************************************
@@ -293,7 +294,8 @@ void kernelRadiationParticles(ParBox pb,
                              ****************************************************/
 
                             // set up particle using the radiation onw's particle class
-                            const Particle particle(particle_locationNow,
+                            /*!\todo please add a namespace for Particle class*/
+                            const ::Particle particle(particle_locationNow,
                                                     particle_momentumOld,
                                                     particle_momentumNow,
                                                     particle_mass);
@@ -310,7 +312,7 @@ void kernelRadiationParticles(ParBox pb,
                             // if coherent and incoherent of single macro-particle is considered
 #if (__COHERENTINCOHERENTWEIGHTING__==1)
                             // get charge of single electron ! (weighting=1.0f)
-                            const picongpu::float_X particle_charge = frame->getCharge(1.0f);
+                            const picongpu::float_X particle_charge = par.getCharge(1.0f);
 
                             // compute real amplitude of macro-particle with a charge of 
                             // a single electron 
@@ -321,7 +323,7 @@ void kernelRadiationParticles(ParBox pb,
                             // if coherent and incoherent of single macro-particle is NOT considered
 
                             // get charge of entire macro-particle
-                            const picongpu::float_X particle_charge = frame->getCharge(weighting);
+                            const picongpu::float_X particle_charge = par.getCharge(weighting);
 
                             // compute real amplitude of macro-particle
                             real_amplitude_s[saveParticleAt] = amplitude3.get_vector(look) *

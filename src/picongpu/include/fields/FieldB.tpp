@@ -79,7 +79,7 @@ fieldE( NULL )
          * * don't switch end and origin because this is a readbuffer and no sendbuffer
          */
         DataSpace<simDim> guardingCells;
-        for ( int d = 0; d < simDim; ++d )
+        for ( uint32_t d = 0; d < simDim; ++d )
             guardingCells[d] =
             ( relativMask[d] == -1 ?
               originGuard[d] :
@@ -146,7 +146,7 @@ GridBuffer<FieldB::FloatB, simDim> &FieldB::getGridBuffer( )
     return *fieldB;
 }
 
-void FieldB::reset( uint32_t currentStep )
+void FieldB::reset( uint32_t )
 {
     fieldB->getHostBuffer( ).reset( true );
     fieldB->getDeviceBuffer( ).reset( false );

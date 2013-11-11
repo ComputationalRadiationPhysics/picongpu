@@ -52,11 +52,11 @@ struct Particle2Histrogram
     DINLINE Particle2Histrogram(float_X minEnergy, float_X maxEnergy)
         : minEnergy(minEnergy), maxEnergy(maxEnergy) {}
     
-    template<typename Particle, typename Histogram>
-    DINLINE void operator()(Particle particle, Histogram histogram) const
+    template<typename FramePtr, typename Histogram>
+    DINLINE void operator()(FramePtr particle, uint16_t particleID, Histogram histogram) const
     {
-        float3_X mom = particle[particleAccess::Mom()].get();
-        float_X weighting = particle[particleAccess::Weight()];
+        float3_X mom = particle->getMomentum()[particleID];
+        float_X weighting = particle->getWeighting()[particleID];
         const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
         const float_X mass = M_EL;
         const float_X mass_reci = float_X(1.0) / mass;
@@ -160,7 +160,7 @@ struct GetBin
 };
 
 template<typename ParticlesType>
-void ParticleSpectrum<ParticlesType>::notify(uint32_t currentStep)
+void ParticleSpectrum<ParticlesType>::notify(uint32_t)
 {/*
     DataConnector &dc = DataConnector::getInstance();
     this->particles = &(dc.getData<ParticlesType > ((uint32_t) ParticlesType::FrameType::CommunicationTag, true));

@@ -51,7 +51,7 @@ namespace PMacc
         }
     };
 
-} //namepsace Frame
+} //namespace Frame
 
 #endif	/* FALSEFILTER_HPP */
 

@@ -43,4 +43,4 @@ struct GetType<double3>
 
 }//namespace traits
 
-}//namepsace PMacc
+}//namespace PMacc
