@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 René Widera, Wolfgang Hoenig
+ * Copyright 2013 Rene Widera, Wolfgang Hoenig
  *
  * This file is part of libPMacc. 
  * 
