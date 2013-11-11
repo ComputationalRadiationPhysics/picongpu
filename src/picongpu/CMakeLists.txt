@@ -1,5 +1,5 @@
 #
-# Copyright 2013 Axel Huebl, Benjamin Schneider, Felix Schmitt, Heiko Burau, René Widera
+# Copyright 2013 Axel Huebl, Benjamin Schneider, Felix Schmitt, Heiko Burau, Rene Widera
 #
 # This file is part of PIConGPU.
 #

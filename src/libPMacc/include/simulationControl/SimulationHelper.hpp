@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, René Widera
+ * Copyright 2013 Axel Huebl, Felix Schmitt, Rene Widera
  *
  * This file is part of libPMacc. 
  * 

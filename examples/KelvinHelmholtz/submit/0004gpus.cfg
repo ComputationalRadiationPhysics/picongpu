@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2013 René Widera
+# Copyright 2013 Rene Widera
 # 
 # This file is part of PIConGPU. 
 # 
