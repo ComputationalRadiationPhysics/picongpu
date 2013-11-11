@@ -61,6 +61,14 @@ using mpl::at_c;
     HDINLINE Expression(BOOST_PP_ENUM_BINARY_PARAMS(N, const Arg, &arg)) \
      : Base(BOOST_PP_ENUM_PARAMS(N, arg)) {}
     
+/** Expression is a node in an expression tree
+ * \tparam _ExprType see available expression types in ExprTypes.h
+ * \tparam _Childs childs notes. This is a mpl typelist
+ * 
+ * Expression inherits from its childs. They could also be class members but 
+ * then they would cost one byte extra memory if they are empty.
+ * 
+ */
 template<typename _ExprType, typename _Childs>
 struct Expression : public math::Tuple<_Childs>
 {
