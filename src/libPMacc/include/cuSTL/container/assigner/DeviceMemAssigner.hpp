@@ -61,7 +61,7 @@ struct DeviceMemAssigner
         math::Size_t<3> blockDim(1);
         int maxValues[] = {512, 16, 8}; // maximum values for each dimension
         for(int i = 0; i < dim; i++)
-            blockDim[i] = gcd(size[i], maxValues[dim]);
+            blockDim[i] = gcd(size[i], maxValues[dim-1]);
                 
         using namespace lambda;
         algorithm::kernel::RT::Foreach foreach(blockDim);
