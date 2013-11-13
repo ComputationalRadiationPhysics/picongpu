@@ -24,6 +24,7 @@
 
 #include "types.h"
 #include "math/vector/Size_t.hpp"
+#include <boost/mpl/void.hpp>
 
 namespace PMacc
 {
@@ -33,16 +34,18 @@ namespace kernel
 {
 namespace detail
 {
+    
+namespace mpl = boost::mpl;
 
-template<int dim, typename BlockDim>
-class SphericMapper;
+template<int dim, typename BlockDim = mpl::void_, typename dummy = mpl::void_>
+struct SphericMapper;
+
+/* Compile-time BlockDim */
 
 template<typename BlockDim>
-class SphericMapper<1, BlockDim>
+struct SphericMapper<1, BlockDim>
 {
-public:
     static const int dim = 1;
-    SphericMapper(math::Size_t<1>) {}
     
     dim3 cudaGridDim(const math::Size_t<1>& size) const
     {
@@ -65,12 +68,9 @@ public:
 };
 
 template<typename BlockDim>
-class SphericMapper<2, BlockDim>
+struct SphericMapper<2, BlockDim>
 {
-public:
     static const int dim = 2;
-
-    SphericMapper(math::Size_t<2>) {}
 
     dim3 cudaGridDim(const math::Size_t<2>& size) const
     {
@@ -95,15 +95,9 @@ public:
 };
 
 template<typename BlockDim>
-class SphericMapper<3, BlockDim>
+struct SphericMapper<3, BlockDim>
 {
-private:
-    int widthInBlocks;
-public:
     static const int dim = 3;
-
-    SphericMapper(const math::Size_t<3>& size)
-     : widthInBlocks(size.x() / BlockDim::x::value) {}
 
     dim3 cudaGridDim(const math::Size_t<3>& size) const
     {
@@ -120,6 +114,89 @@ public:
     }
 
     HDINLINE
+    math::Int<3> operator()(const dim3& _blockIdx, const dim3& _threadIdx = dim3(0,0,0)) const
+    {
+        return operator()(math::Int<3>(_blockIdx.x, _blockIdx.y, _blockIdx.z),
+                          math::Int<3>(_threadIdx.x, _threadIdx.y, _threadIdx.z));
+    }
+};
+
+/* Runtime BlockDim */
+
+template<>
+struct SphericMapper<1, mpl::void_>
+{
+    static const int dim = 1;
+    
+    dim3 cudaGridDim(const math::Size_t<1>& size, const math::Size_t<3>& blockDim) const
+    {
+        return dim3(size.x() / blockDim.x(), 1, 1);
+    }
+
+    DINLINE
+    math::Int<1> operator()(const math::Int<1>& _blockIdx,
+                              const math::Int<1>& _threadIdx) const
+    {
+        return _blockIdx.x() * blockDim.x + _threadIdx.x();
+    }
+
+    DINLINE
+    math::Int<1> operator()(const dim3& _blockIdx, const dim3& _threadIdx = dim3(0,0,0)) const
+    {
+        return operator()(math::Int<1>(_blockIdx.x),
+                          math::Int<1>(_threadIdx.x));
+    }
+};
+
+template<>
+struct SphericMapper<2, mpl::void_>
+{
+    static const int dim = 2;
+
+    dim3 cudaGridDim(const math::Size_t<2>& size, const math::Size_t<3>& blockDim) const
+    {
+        return dim3(size.x() / blockDim.x(),
+                    size.y() / blockDim.y(), 1);
+    }
+
+    DINLINE
+    math::Int<2> operator()(const math::Int<2>& _blockIdx,
+                              const math::Int<2>& _threadIdx) const
+    {
+        return math::Int<2>( _blockIdx.x() * blockDim.x + _threadIdx.x(),
+                             _blockIdx.y() * blockDim.y + _threadIdx.y() );
+    }
+
+    DINLINE
+    math::Int<2> operator()(const dim3& _blockIdx, const dim3& _threadIdx = dim3(0,0,0)) const
+    {
+        return operator()(math::Int<2>(_blockIdx.x, _blockIdx.y),
+                          math::Int<2>(_threadIdx.x, _threadIdx.y));
+    }
+};
+
+template<>
+struct SphericMapper<3, mpl::void_>
+{
+    static const int dim = 3;
+
+    dim3 cudaGridDim(const math::Size_t<3>& size, const math::Size_t<3>& blockDim) const
+    {
+        return dim3(size.x() / blockDim.x(),
+                    size.y() / blockDim.y(),
+                    size.z() / blockDim.z());
+    }
+
+    DINLINE
+    math::Int<3> operator()(const math::Int<3>& _blockIdx,
+                             const math::Int<3>& _threadIdx) const
+    {
+        return math::Int<3>( _blockIdx.x() * blockDim.x + _threadIdx.x(),
+                             _blockIdx.y() * blockDim.y + _threadIdx.y(),
+                             _blockIdx.z() * blockDim.z + _threadIdx.z() );
+    }
+
+    DINLINE
     math::Int<3> operator()(const dim3& _blockIdx, const dim3& _threadIdx = dim3(0,0,0)) const
     {
         return operator()(math::Int<3>(_blockIdx.x, _blockIdx.y, _blockIdx.z),
