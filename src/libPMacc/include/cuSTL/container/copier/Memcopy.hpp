@@ -45,16 +45,13 @@ template<>
 struct Memcopy<1>
 {
     template<typename Type>
-    HDINLINE
     void operator()(Type* dest, const math::Size_t<0>, 
                     const Type* source, const math::Size_t<0>, const math::Size_t<1>& size,
                     flags::Memcopy::Direction direction)
     {
-#ifndef __CUDA_ARCH__  
             const cudaMemcpyKind kind[] = {cudaMemcpyHostToDevice, cudaMemcpyDeviceToHost,
                                      cudaMemcpyHostToHost, cudaMemcpyDeviceToDevice};
             CUDA_CHECK_NO_EXCEP(cudaMemcpy(dest, source, sizeof(Type) * size.x(), kind[direction]));
-#endif
     }                 
 };
 
@@ -62,18 +59,15 @@ template<>
 struct Memcopy<2u>
 {
     template<typename Type>
-    HDINLINE
     void operator()(Type* dest, const math::Size_t<1> pitchDest, 
                     const Type* source, const math::Size_t<1> pitchSource, const math::Size_t<2u>& size,
                     flags::Memcopy::Direction direction)
     {
-#ifndef __CUDA_ARCH__  
             const cudaMemcpyKind kind[] = {cudaMemcpyHostToDevice, cudaMemcpyDeviceToHost,
                                      cudaMemcpyHostToHost, cudaMemcpyDeviceToDevice};
                                      
             CUDA_CHECK_NO_EXCEP(cudaMemcpy2D(dest, pitchDest.x(), source, pitchSource.x(), sizeof(Type) * size.x(), size.y(),
                          kind[direction]));
-#endif
     }                    
 };
 
@@ -81,12 +75,10 @@ template<>
 struct Memcopy<3>
 {
     template<typename Type>
-    HDINLINE
     void operator()(Type* dest, const math::Size_t<2u> pitchDest, 
                     Type* source, const math::Size_t<2u> pitchSource, const math::Size_t<3>& size,
                     flags::Memcopy::Direction direction)
     {
-#ifndef __CUDA_ARCH__  
             const cudaMemcpyKind kind[] = {cudaMemcpyHostToDevice, cudaMemcpyDeviceToHost,
                                      cudaMemcpyHostToHost, cudaMemcpyDeviceToDevice};
                                      
@@ -107,7 +99,6 @@ struct Memcopy<3>
             params.extent = make_cudaExtent(size.x() * sizeof(Type), size.y(), size.z());
             params.kind = kind[direction];
             CUDA_CHECK_NO_EXCEP(cudaMemcpy3D(&params));
-#endif
     }                    
 };
     
