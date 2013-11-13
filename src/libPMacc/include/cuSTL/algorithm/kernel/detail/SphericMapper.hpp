@@ -37,6 +37,13 @@ namespace detail
     
 namespace mpl = boost::mpl;
 
+/** The SphericMapper maps from cuda blockIdx and/or threadIdx to the cell index
+ * \tparam dim dimension
+ * \tparam BlockDim compile-time vector of the cuda block size (optional)
+ * \tparam dummy neccesary to implement the optional BlockDim parameter
+ * 
+ * If BlockDim is given the cuda variable blockDim is not used which is faster.
+ */
 template<int dim, typename BlockDim = mpl::void_, typename dummy = mpl::void_>
 struct SphericMapper;
 
