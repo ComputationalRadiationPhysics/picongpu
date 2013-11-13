@@ -32,7 +32,7 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/at.hpp>
 #include "types.h"
-#include <boost/math/common_factor_rt.hpp>
+#include <boost/math/common_factor.hpp>
 
 namespace PMacc
 {
@@ -59,22 +59,9 @@ struct DeviceMemAssigner
          */
         boost::math::gcd_evaluator<size_t> gcd; // greatest common divisor
         math::Size_t<3> blockDim(1);
-        switch(dim)
-        {
-            case 1:
-            blockDim[0] = gcd(size[0], 512);
-            break;
-            
-            case 2:
-            for(int i = 0; i < dim; i++)
-                blockDim[i] = gcd(size[i], 16);
-            break;
-            
-            case 3:
-            for(int i = 0; i < dim; i++)
-                blockDim[i] = gcd(size[i], 8);
-            break;
-        }
+        int maxValues[] = {512, 16, 8}; // maximum values for each dimension
+        for(int i = 0; i < dim; i++)
+            blockDim[i] = gcd(size[i], maxValues[dim]);
                 
         using namespace lambda;
         algorithm::kernel::RT::Foreach foreach(blockDim);

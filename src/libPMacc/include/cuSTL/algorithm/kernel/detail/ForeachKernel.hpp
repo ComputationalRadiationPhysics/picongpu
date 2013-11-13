@@ -38,10 +38,13 @@ namespace detail
 #define SHIFTACCESS_CURSOR(Z, N, _) forward(c ## N [cellIndex])
 
 #define KERNEL_FOREACH(Z, N, _) \
+/*                        typename C0, ..., typename CN     */ \
 template<typename Mapper, BOOST_PP_ENUM_PARAMS(N, typename C), typename Functor> \
+/*                                          C0 c0, ..., CN cN   */ \
 __global__ void kernelForeach(Mapper mapper, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), Functor functor) \
 { \
     math::Int<Mapper::dim> cellIndex(mapper(blockIdx, threadIdx)); \
+/*          forward(c0[cellIndex]), ..., forward(cN[cellIndex])     */ \
     functor(BOOST_PP_ENUM(N, SHIFTACCESS_CURSOR, _)); \
 }
 
