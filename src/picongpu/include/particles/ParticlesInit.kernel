@@ -53,11 +53,10 @@ using namespace PMacc;
 template<unsigned int Dim>
 DINLINE float_X calcRealDensity(const DataSpace<Dim>& offset, const DataSpace<Dim>& cellIdx)
 {
-    float_X value = gasProfile::calcNormedDensitiy(
-                                                   float3_X((cellIdx.x() + offset.x()) * CELL_WIDTH,
-                                                            (cellIdx.y() + offset.y()) * CELL_HEIGHT,
-                                                            (cellIdx.z() + offset.z()) * CELL_DEPTH))
-        * GAS_DENSITY;
+    float_X value = gasProfile::calcNormedDensitiy( float3_X((cellIdx.x() + offset.x()) * CELL_WIDTH,
+                                                             (cellIdx.y() + offset.y()) * CELL_HEIGHT,
+                                                             (cellIdx.z() + offset.z()) * CELL_DEPTH),
+                                                    UNIT_LENGTH ) * GAS_DENSITY;
     return value;
 }
 

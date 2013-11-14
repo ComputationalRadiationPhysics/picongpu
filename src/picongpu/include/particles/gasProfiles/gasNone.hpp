@@ -35,7 +35,7 @@ namespace picongpu
          * 
          * @return float_X between 0.0 and 1.0
          */
-        DINLINE float_X calcNormedDensitiy( float3_X  )
+        DINLINE float_X calcNormedDensitiy( float3_X pos, float_64 )
         {
 
             return float_X(0.0);

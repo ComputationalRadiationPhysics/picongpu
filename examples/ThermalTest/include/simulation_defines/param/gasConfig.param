@@ -189,6 +189,37 @@ namespace picongpu
 
     }
 
+    namespace gasFreeFormula
+    {
+        namespace SI
+        {
+            struct GasProfile
+            {
+                /** Normalized Gas Profile [0.0:1.0]
+                 *
+                 * This formula should use SI quantities only!
+                 * The normalized profile will be multiplied by GAS_DENSITY.
+                 *
+                 * @param pos vector with offset to the global (left top front) cell
+                 * @return float_X between 0.0 and 1.0
+                 */
+                DINLINE float_64 operator()( float3_64 pos )
+                {
+                    const float_64 y = pos.y() * 1000.0; // m -> mm
+
+                    /* triangle function example
+                     * for a density profile from 0 to 400 microns */
+                    float_64 s = 1.0 - 5.0 * math::abs( y - 0.2 );
+
+                    /* all parts of the function MUST be > 0 */
+                    s *= float_64( s >= 0.0 );
+
+                    return s;
+                }
+            };
+        }
+    }
+
     namespace gasNone
     {
         /** Do not initialize a gas, stay with vacuum */
