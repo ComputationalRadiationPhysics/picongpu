@@ -80,6 +80,7 @@ public:
         view(math::Int<dim> a = math::Int<dim>(0),
              math::Int<dim> b = math::Int<dim>(0)) const;
     
+    PMACC_NO_NVCC_HDWARNING
     HDINLINE void assign(const Type& value);
     HDINLINE Type* getDataPointer() const {return dataPointer;}
     
