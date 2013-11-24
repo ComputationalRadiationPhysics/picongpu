@@ -154,7 +154,7 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 # work-arounds
 if(Boost_VERSION EQUAL 105500)
     # see https://svn.boost.org/trac/boost/ticket/9392
-    message(STATUS "Boost: Applying noinline work around...")
+    message(STATUS "Boost: Applying noinline work around")
     set(CMAKE_CXX_FLAGS
         "${CMAKE_CXX_FLAGS} -DBOOST_NOINLINE='__attribute__ ((noinline))'")
 endif(Boost_VERSION EQUAL 105500)
