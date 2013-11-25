@@ -1,3 +1,4 @@
-H Burau, et al,
-[PIConGPU : A Fully Relativistic Particle-in-Cell Code for a GPU Cluster](http://dx.doi.org/10.1109/TPS.2010.2064310),
-IEEE Transactions on Plasma Science 38(10), 2831-2839 (October 2010)
+M Bussmann, H Burau, T E Cowan, A Debus, A Huebl, G Juckeland, T Kluge, W E Nagel, R Pausch, F Schmitt, U Schramm, J Schuchart and R Widera,
+Radiative signatures of the relativistic Kelvin-Helmholtz instability,
+Proceedings of SC13: International Conference for High Performance Computing, Networking, Storage and Analysis,
+ACM 2013, [http://doi.acm.org/10.1145/2503210.2504564], ISBN: 978-1-4503-2378-9
