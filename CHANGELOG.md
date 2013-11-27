@@ -25,7 +25,7 @@ This is the second release candidate, a *pre-beta* version.
    - checks for minimal required versions of dependent libraries #92
    - checks for libSplash version #85
    - update to v2.8.5+ #52
-   - implizit plugin selection: enabled if found #52
+   - implicit plugin selection: enabled if found #52
    - throw more warnings #37
    - experimental support for icc 12.1 and PGI 13.6 #37
  - libPMacc
@@ -49,7 +49,7 @@ This is the second release candidate, a *pre-beta* version.
      - icc support was broken #100 #101
      - views were broken #62
    - InheritGenerator and deselect: icc fix #101
-   - Vampir support: cudaDeviceReset added #90
+   - VampirTrace (CUPTI) support: cudaDeviceReset added #90
    - GameOfLife example fixed #53 #55
    - warnings in __cudaKernel fixed #51
  - picongpu
@@ -73,7 +73,7 @@ This is the second release candidate, a *pre-beta* version.
  - new reference: SC13 paper, Gordon Bell Finals #106
  - new flavoured logo for alpha
  - Compile Suite: GitHub integration #33 #35
- - dropped sm_13 support (now sm_20+ is required) #42
+ - dropped CUDA sm_13 support (now sm_20+ is required) #42
 
 
 Open Beta RC1
