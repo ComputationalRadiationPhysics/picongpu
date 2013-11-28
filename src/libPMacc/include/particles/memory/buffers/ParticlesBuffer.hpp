@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, René Widera
+ * Copyright 2013 Axel Huebl, Felix Schmitt, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -17,15 +17,13 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ */
 
 #ifndef PARTICLESBUFFER_HPP
 #define	PARTICLESBUFFER_HPP
 
 #include "particles/frame_types.hpp"
 #include "memory/buffers/GridBuffer.hpp"
-#include "particles/memory/frames/CoreFrame.hpp"
-#include "particles/memory/frames/BorderFrame.hpp"
 #include "particles/memory/boxes/ParticlesBox.hpp"
 #include "particles/memory/buffers/HeapBuffer.hpp"
 #include "particles/memory/boxes/HeapDataBox.hpp"
@@ -38,18 +36,21 @@
 #include "dimensions/TVec.h"
 
 #include "particles/boostExtension/InheritGenerators.hpp"
-#include "particles/boostExtension/JoinVectors.hpp"
+#include "compileTime/conversion/MakeSeq.hpp"
 
 
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/copy.hpp>
 #include <boost/mpl/back_inserter.hpp>
 
+#include "particles/memory/frames/Frame.hpp"
+#include "particles/Identifier.hpp"
+#include "particles/memory/dataTypes/StaticArray.hpp"
+#include <boost/mpl/vector.hpp>
+#include <boost/mpl/pair.hpp>
 
 namespace PMacc
 {
-
-
 
 /**
  * Describes DIM-dimensional buffer for particles data on the host.
@@ -59,30 +60,50 @@ namespace PMacc
  * @tparam SuperCellSize TVec which descripe size of a superce
  * @tparam DIM dimension of the buffer (1-3)
  */
-template<typename PositionType, typename UserTypeList, class SuperCellSize_, unsigned DIM>
+template<typename T_DataVector, typename T_MethodsVector, class SuperCellSize_, unsigned DIM>
 class ParticlesBuffer
 {
-    
 public:
+
+    template<typename Key>
+    struct OperatorCreatePairStaticArrayWithSuperCellSize
+    {
+        typedef
+        bmpl::pair<Key,
+            StaticArray<typename Key::type,SuperCellSize_::elements> >
+            type;
+    };
+    
+    template<typename Key>
+    struct OperatorCreatePairStaticArrayOneElement
+    {
+        typedef
+        bmpl::pair<Key,
+            StaticArray<typename Key::type,1u> >
+            type;
+    };
+
+
     typedef ExchangeMemoryIndex<vint_t, DIM - 1 > PopPushType;
 
     typedef SuperCellSize_ SuperCellSize;
-    
-    typedef
-    typename JoinVectors<
-           UserTypeList,
-           bmpl::vector<CoreFrame<PositionType, SuperCellSize, DIM> >
-        >::type full_listCore;
-
-    typedef typename LinearInherit<full_listCore>::type ParticleType;
 
     typedef
-    typename JoinVectors<
-           UserTypeList,
-           bmpl::vector<BorderFrame < PositionType, TVec < 1 >, DIM> >
-        >::type full_listBorder;
+    typename MakeSeq<
+        T_DataVector,
+        localCellIdx, 
+        multiMask
+    >::type full_particleList;
     
-    typedef typename LinearInherit<full_listBorder>::type ParticleTypeBorder;
+    typedef
+    typename MakeSeq<
+        T_DataVector,
+        localCellIdx
+    >::type border_particleList;
+
+    typedef Frame<OperatorCreatePairStaticArrayWithSuperCellSize,full_particleList,T_MethodsVector> ParticleType;
+
+    typedef Frame<OperatorCreatePairStaticArrayOneElement,border_particleList,T_MethodsVector> ParticleTypeBorder;
 
 
 private:
@@ -348,8 +369,8 @@ public:
         assert(superCells != NULL);
         return superCells->getGridLayout().getDataSpace();
     }
-    
-        /**
+
+    /**
      * Returns number of supercells in each dimension.
      *
      * @return number of supercells

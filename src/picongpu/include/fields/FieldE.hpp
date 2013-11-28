@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, René Widera
+ * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -41,7 +41,7 @@
 #include "memory/boxes/DataBox.hpp"
 #include "memory/boxes/PitchedBox.hpp"
 
-#include "basisLib/vector/Vector.hpp"
+#include "math/Vector.hpp"
 
 
 namespace picongpu

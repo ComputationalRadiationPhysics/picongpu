@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, René Widera
+ * Copyright 2013 Felix Schmitt, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -37,7 +37,7 @@ inline TransactionManager::TransactionManager( )
     startTransaction( EventTask( ) );
 }
 
-inline TransactionManager::TransactionManager( const TransactionManager& cc )
+inline TransactionManager::TransactionManager( const TransactionManager& )
 {
 
 }

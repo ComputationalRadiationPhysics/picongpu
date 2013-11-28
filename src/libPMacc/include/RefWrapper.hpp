@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, René Widera
+ * Copyright 2013 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -55,6 +55,24 @@ public:
     }
     
     HDINLINE
+    Type& operator*() 
+    {
+        return this->myRef;
+    }
+    
+    HDINLINE
+    Type& operator()()
+    {
+        return this->myRef;
+    }
+        
+    HDINLINE
+    Type& get() 
+    {
+        return myRef;
+    }
+    
+        HDINLINE
     Type& get() const
     {
         return myRef;
@@ -64,6 +82,13 @@ public:
 template<typename Type>
 HDINLINE
 RefWrapper<Type> ref(Type& _ref)
+{
+    return RefWrapper<Type>(_ref);
+}
+
+template<typename Type>
+HDINLINE
+RefWrapper<Type> byRef(Type& _ref)
 {
     return RefWrapper<Type>(_ref);
 }

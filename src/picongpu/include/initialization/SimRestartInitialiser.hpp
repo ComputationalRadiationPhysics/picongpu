@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, René Widera
+ * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 
 
 #ifndef SIMRESTARTINITIALISER_HPP
@@ -52,8 +52,7 @@ namespace picongpu
 {
 
 using namespace PMacc;
-using namespace DCollector;
-
+using namespace splash;
 
 /**
  * Helper class for SimRestartInitialiser for loading
@@ -83,13 +82,23 @@ private:
                                  uint32_t simulationStep,
                                  DomainCollector& dataCollector,
                                  Dimensions &dataSize,
-                                 CollectionType& colType,
+                                 CollectionType&,
                                  std::string name,
                                  DataSpace<DIM3> globalDomainOffset,
                                  DataSpace<DIM3> localDomainSize)
     {
 
+        VirtualWindow window = MovingWindow::getInstance().getVirtualWindow(simulationStep);
+        /* globalSlideOffset due to gpu slides between origin at time step 0
+         * and origin at current time step
+         * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
+         */
+        DataSpace<simDim> globalSlideOffset(0,
+                                            window.slides * window.localFullSize.y(),
+                                            0);
 
+        /* add offset to window from pic origin, because we had substract this before*/
+        // globalSlideOffset.y()+= window.globalSimulationOffset.y();
         // At the moment, loading a particle subdomain from a different gpu
         // configuration is only possible if the old configuration is divisible
         // by the new configuration.
@@ -97,9 +106,9 @@ private:
 
 
 
-        Dimensions domain_offset(globalDomainOffset.x(),
-                                 globalDomainOffset.y(),
-                                 globalDomainOffset.z());
+        Dimensions domain_offset(globalSlideOffset.x() + globalDomainOffset.x(),
+                                 globalSlideOffset.y() + globalDomainOffset.y(),
+                                 globalSlideOffset.z() + globalDomainOffset.z());
 
 
 
@@ -128,7 +137,7 @@ private:
         total_num_particles = 0;
         for (uint32_t i = 0; i < particles_container->getNumSubdomains(); ++i)
         {
-            size_t subdomain_elements = particles_container->getIndex(i)->getElements().getDimSize();
+            size_t subdomain_elements = particles_container->getIndex(i)->getElements().getScalarSize();
 
             TYPE* container_data = (TYPE*) (particles_container->getIndex(i)->getData());
             TYPE* dst_ptr = *dst + total_num_particles;
@@ -207,16 +216,16 @@ public:
 
             // read relative positions for particles in cells
             loadParticleData<float> (&(relativePositions[i]), simulationStep, dataCollector,
-                                     dim_pos, *ctFloat, prefix + std::string("_relative_position_") + name_lookup[i], globalDomainOffset, localDomainSize);
+                                     dim_pos, *ctFloat, prefix + std::string("_position_") + name_lookup[i], globalDomainOffset, localDomainSize);
 
             // read simulation relative cell positions
             loadParticleData<int > (&(cellPositions[i]), simulationStep, dataCollector,
-                                    dim_cell, *ctInt, prefix + std::string("_global_cell_pos_") + name_lookup[i], globalDomainOffset, localDomainSize);
+                                    dim_cell, *ctInt, prefix + std::string("_globalCellIdx_") + name_lookup[i], globalDomainOffset, localDomainSize);
 
             // update simulation relative cell positions from file to 
             // gpu-relative positions for new configuration
             //if (gridPosition[i] > 0)
-            for (uint32_t elem = 0; elem < dim_cell.getDimSize(); ++elem)
+            for (uint32_t elem = 0; elem < dim_cell.getScalarSize(); ++elem)
                 cellPositions[i][elem] -= logicalToPhysicalOffset[i];
 
 
@@ -227,13 +236,13 @@ public:
 #if(ENABLE_RADIATION == 1)
             // read old momentum of particles
             loadParticleData<float> (&(momentums_mt1[i]), simulationStep, dataCollector,
-                                     dim_mom_mt1, *ctFloat, prefix + std::string("_momentum_mt1_") + name_lookup[i], globalDomainOffset, localDomainSize);
+                                     dim_mom_mt1, *ctFloat, prefix + std::string("_momentumPrev1_") + name_lookup[i], globalDomainOffset, localDomainSize);
 #endif
 
             assert(dim_pos[0] == dim_cell[0] && dim_cell[0] == dim_mom[0]);
-            assert(dim_pos[0] == dim_pos.getDimSize() &&
-                   dim_cell[0] == dim_cell.getDimSize() &&
-                   dim_mom[0] == dim_mom.getDimSize());
+            assert(dim_pos[0] == dim_pos.getScalarSize() &&
+                   dim_cell[0] == dim_cell.getScalarSize() &&
+                   dim_mom[0] == dim_mom.getScalarSize());
 
             assert(relativePositions[i] != NULL);
             assert(cellPositions[i] != NULL);
@@ -256,9 +265,9 @@ public:
         DataSpace<DIM3> oldSuperCellPos(-1, -1, -1);
         uint32_t localId = 0;
 
-        //std::cout << "Read " << dim_pos.getDimSize() << " particles" << std::endl;
+        //std::cout << "Read " << dim_pos.getScalarSize() << " particles" << std::endl;
 
-        for (uint32_t i = 0; i < dim_pos.getDimSize(); i++)
+        for (uint32_t i = 0; i < dim_pos.getScalarSize(); i++)
         {
             // get super cell
 
@@ -314,20 +323,22 @@ public:
             assert(localId < TILE_SIZE);
             assert((uint32_t) (localCellId) < TILE_SIZE);
 
-            frame->getCellIdx()[localId] = localCellId;
-            frame->getMultiMask()[localId] = 1;
-            frame->getWeighting()[localId] = weighting[i];
+            PMACC_AUTO(particle, ((*frame)[localId]));
+
+            particle[localCellIdx_] = localCellId;
+            particle[multiMask_] = 1;
+            particle[weighting_] = weighting[i];
 #if(ENABLE_RADIATION == 1) && ((RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0))
-            frame->getRadiationFlag()[localId] = (radiationFlag[i]);
+            particle[radiationFlag_] = (radiationFlag[i]);
 #endif
             for (uint32_t d = 0; d < simDim; ++d)
             {
-                *(((float*) &(frame->getPosition()[localId])) + d) = relativePositions[d][i];
+                particle[position_][d] = relativePositions[d][i];
 
-                *(((float*) &(frame->getMomentum()[localId])) + d) = momentums[d][i];
+                particle[momentum_][d] = momentums[d][i];
 #if(ENABLE_RADIATION == 1)
                 //!\todo: only use Momentum_mt1 if particle type is electrons
-                *(((float*) &(frame->getMomentum_mt1()[localId])) + d) = momentums_mt1[d][i];
+                particle[momentumPrev1_][d] = momentums_mt1[d][i];
 #endif
 
             }
@@ -390,10 +401,10 @@ public:
     localGridSize(localGridSize)
     {
         const uint32_t maxOpenFilesPerNode = 4;
-        dataCollector = new DomainCollector( maxOpenFilesPerNode );
+        dataCollector = new DomainCollector(maxOpenFilesPerNode);
     }
 
-    ~SimRestartInitialiser()
+    virtual ~SimRestartInitialiser()
     {
         // cleanup
         if (dataCollector != NULL)
@@ -419,9 +430,9 @@ public:
          *        in that case, set the fileAccType to FAT_READ_MERGED
          *        (useful for changed MPI setting for restart)
          */
-        attr.fileAccType = DataCollector::FAT_READ;
-        attr.mpiSize.set( mpiSize[0], mpiSize[1], mpiSize[2] );
-        attr.mpiPosition.set( mpiPos[0], mpiPos[1], mpiPos[2] );
+        attr.fileAccType = DataCollector::FAT_READ_MERGED;
+        attr.mpiSize.set(mpiSize[0], mpiSize[1], mpiSize[2]);
+        attr.mpiPosition.set(mpiPos[0], mpiPos[1], mpiPos[2]);
 
         dataCollector->open(filename.c_str(), attr);
 
@@ -442,23 +453,24 @@ public:
         AbstractInitialiser::teardown();
     }
 
-    void init(uint32_t id, ISimulationData& data, uint32_t currentStep)
+    void init(uint32_t id, ISimulationData& data, uint32_t)
     {
-        // add ids for other types if necessary
-        // fields are initialised by their constructor          
-
+        /* load number of slides to initialize MovingWindow */        
+        int slides;
+        dataCollector->readAttribute(simulationStep, NULL, "sim_slides", &slides);
+        MovingWindow::getInstance().setSlideCounter((uint32_t) slides);
         switch (id)
         {
 #if (ENABLE_ELECTRONS == 1)
         case PAR_ELECTRONS:
         {
             VirtualWindow window = MovingWindow::getInstance().getVirtualWindow(simulationStep);
-            DataSpace<DIM3> globalDomainOffset(gridPosition - window.globalSimulationOffset);
+            DataSpace<DIM3> globalDomainOffset(gridPosition);
             DataSpace<DIM3> logicalToPhysicalOffset(gridPosition - window.globalSimulationOffset);
 
             /*domains are allways positiv*/
-            if (globalDomainOffset.y() <= 0)
-                globalDomainOffset.y() = 0;
+            if (globalDomainOffset.y() == 0)
+                globalDomainOffset.y() = window.globalSimulationOffset.y();
 
             DataSpace<DIM3> localDomainSize(window.localSize);
 
@@ -466,7 +478,7 @@ public:
             RestartParticleLoader<EBuffer, DIM>::loadParticles(
                                                                simulationStep,
                                                                *dataCollector,
-                                                               EBuffer::FrameType::getName( ),
+                                                               EBuffer::FrameType::getName(),
                                                                static_cast<EBuffer&> (data),
                                                                globalDomainOffset,
                                                                localDomainSize,
@@ -485,15 +497,20 @@ public:
 
                     localDomainSize = window.localFullSize;
                     localDomainSize.y() -= window.localSize.y();
-                    RestartParticleLoader<EBuffer, DIM>::loadParticles(
-                                                                       simulationStep,
-                                                                       *dataCollector,
-                                                                       "_bottom_e",
-                                                                       static_cast<EBuffer&> (data),
-                                                                       globalDomainOffset,
-                                                                       localDomainSize,
-                                                                       DataSpace<DIM3 > ()
-                                                                       );
+                    if (localDomainSize.y() > 0)
+                    {
+                        DataSpace<simDim> particleOffset = gridPosition;
+                        particleOffset.y() = -window.localSize.y();
+                        RestartParticleLoader<EBuffer, DIM>::loadParticles(
+                                                                           simulationStep,
+                                                                           *dataCollector,
+                                                                           "_bottom_e",
+                                                                           static_cast<EBuffer&> (data),
+                                                                           globalDomainOffset,
+                                                                           localDomainSize,
+                                                                           particleOffset
+                                                                           );
+                    }
                     std::cout << "Finished loading electrons bottom" << std::endl;
                 }
             }
@@ -503,13 +520,13 @@ public:
 #if (ENABLE_IONS == 1)
         case PAR_IONS:
         {
-            VirtualWindow window = MovingWindow::getInstance().getVirtualWindow( simulationStep);
-            DataSpace<DIM3> globalDomainOffset(gridPosition - window.globalSimulationOffset);
+            VirtualWindow window = MovingWindow::getInstance().getVirtualWindow(simulationStep);
+            DataSpace<DIM3> globalDomainOffset(gridPosition);
             DataSpace<DIM3> logicalToPhysicalOffset(gridPosition - window.globalSimulationOffset);
 
             /*domains are allways positiv*/
-            if (globalDomainOffset.y() <= 0)
-                globalDomainOffset.y() = 0;
+            if (globalDomainOffset.y() == 0)
+                globalDomainOffset.y() = window.globalSimulationOffset.y();
 
             DataSpace<DIM3> localDomainSize(window.localSize);
 
@@ -517,7 +534,7 @@ public:
             RestartParticleLoader<IBuffer, DIM>::loadParticles(
                                                                simulationStep,
                                                                *dataCollector,
-                                                               IBuffer::FrameType::getName( ),
+                                                               IBuffer::FrameType::getName(),
                                                                static_cast<IBuffer&> (data),
                                                                globalDomainOffset,
                                                                localDomainSize,
@@ -534,15 +551,23 @@ public:
 
                     localDomainSize = window.localFullSize;
                     localDomainSize.y() -= window.localSize.y();
-                    RestartParticleLoader<IBuffer, DIM>::loadParticles(
-                                                                       simulationStep,
-                                                                       *dataCollector,
-                                                                       "_bottom_i",
-                                                                       static_cast<IBuffer&> (data),
-                                                                       globalDomainOffset,
-                                                                       localDomainSize,
-                                                                       DataSpace<DIM3 > ()
-                                                                       );
+
+
+
+                    if (localDomainSize.y() > 0)
+                    {
+                        DataSpace<simDim> particleOffset = gridPosition;
+                        particleOffset.y() = -window.localSize.y();
+                        RestartParticleLoader<IBuffer, DIM>::loadParticles(
+                                                                           simulationStep,
+                                                                           *dataCollector,
+                                                                           "_bottom_i",
+                                                                           static_cast<IBuffer&> (data),
+                                                                           globalDomainOffset,
+                                                                           localDomainSize,
+                                                                           particleOffset
+                                                                           );
+                    }
                     std::cout << "Finished loading ions bottom" << std::endl;
                 }
             }
@@ -581,7 +606,7 @@ private:
         DataSpace<DIM> field_data = field.getGridLayout().getDataSpaceWithoutGuarding();
         DataSpace<DIM> field_guard = field.getGridLayout().getGuard();
 
-        VirtualWindow window = MovingWindow::getInstance().getVirtualWindow( simulationStep);
+        VirtualWindow window = MovingWindow::getInstance().getVirtualWindow(simulationStep);
 
         size_t elements = field_grid.getElementCount();
         float3_X *ptr = field.getHostBuffer().getDataBox().getPointer();
@@ -589,13 +614,22 @@ private:
 
         const std::string name_lookup[] = {"x", "y", "z"};
 
+        /* globalSlideOffset due to gpu slides between origin at time step 0
+         * and origin at current time step
+         * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
+         */
+        DataSpace<simDim> globalSlideOffset(0,
+                                            window.slides * window.localFullSize.y(),
+                                            0);
+
         DataSpace<DIM> globalOffset(SubGrid<DIM>::getInstance().getSimulationBox().getGlobalOffset());
-        Dimensions domain_offset(globalOffset.x() - window.globalSimulationOffset.x(),
-                                 globalOffset.y() - window.globalSimulationOffset.y(),
-                                 globalOffset.z() - window.globalSimulationOffset.z());
+        Dimensions domain_offset(globalOffset.x() + globalSlideOffset.x(),
+                                 globalOffset.y() + globalSlideOffset.y(),
+                                 globalOffset.z() + globalSlideOffset.z());
+
         if (mpiPos[1] == 0)
-            domain_offset[1] = 0;
-        /*Dimensions domain_size(field_data[0], field_data[1], field_data[2]);*/
+            domain_offset[1] = domain_offset[1] + window.globalSimulationOffset.y();
+
         Dimensions domain_size(window.localSize.x(),
                                window.localSize.y(),
                                window.localSize.z()
@@ -604,6 +638,7 @@ private:
         {
             // Read the subdomain which belongs to our mpi position.
             // The total grid size must match the grid size of the stored data.
+            log<picLog::INPUT_OUTPUT > ("Read from domain: offset=%1% size=%2%") % domain_offset.toString() % domain_size.toString();
             DomainCollector::DomDataClass data_class;
             DataContainer *field_container =
                 dataCollector->readDomain(simulationStep,
@@ -612,9 +647,9 @@ private:
                                           domain_size,
                                           &data_class);
 
-            for (int z = 0; z < domain_size[2]; ++z)
-                for (int y = 0; y < domain_size[1]; ++y)
-                    for (int x = 0; x < domain_size[0]; ++x)
+            for (uint32_t z = 0; z < domain_size[2]; ++z)
+                for (uint32_t y = 0; y < domain_size[1]; ++y)
+                    for (uint32_t x = 0; x < domain_size[0]; ++x)
                     {
                         // src is field_data large, dst is field_grid large
 
@@ -634,6 +669,7 @@ private:
 
         __getTransactionEvent().waitForFinished();
 
+        log<picLog::INPUT_OUTPUT > ("Read from domain: offset=%1% size=%2%") % domain_offset.toString() % domain_size.toString();
         std::cout << "Finished loading field '" << objectName << "'" << std::endl;
     }
 

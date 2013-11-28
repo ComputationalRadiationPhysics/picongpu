@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, René Widera
+ * Copyright 2013 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -63,7 +63,7 @@ public:
     }
     
     HDINLINE
-    typename boost::add_const<type>::type operator*() const
+    type operator*() const
     {
         return Accessor::operator()(this->marker);
     }

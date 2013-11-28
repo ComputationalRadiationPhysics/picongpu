@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, René Widera, Wolfgang Hoenig
+ * Copyright 2013 Felix Schmitt, Rene Widera, Wolfgang Hoenig
  *
  * This file is part of libPMacc. 
  * 
@@ -84,7 +84,7 @@ public:
         notify(this->myId, SENDFINISHED, NULL);
     }
 
-    void event(id_t eventId, EventType type, IEventData* data)
+    void event(id_t, EventType, IEventData*)
     {
 
     }

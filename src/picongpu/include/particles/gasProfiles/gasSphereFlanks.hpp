@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, René Widera
+ * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -35,20 +35,24 @@ namespace picongpu
          * @param pos as 3D length vector offset to global left top front cell
          * @return float_X between 0.0 and 1.0
          */
-        DINLINE float_X calcNormedDensitiy( float3_X pos )
+        DINLINE float_X calcNormedDensitiy( float3_X pos, float_64 )
         {
             if( pos.y() < VACUUM_Y ) return float_X(0.0);
 
             const float_X r = math::abs( pos - float3_X(GAS_X, GAS_Y, GAS_Z) );
-            
-            // "hard core"
-            if( r <= GAS_R )
+
+            /* "shell": inner radius */
+            if( r < GAS_RI )
+                return float_X(0.0);
+            /* "hard core" */
+            else if( r <= GAS_R )
                 return float_X(1.0);
-            
-            // "soft exp. flanks"
-            //   note: by definition (return, see above) the
-            //         argument [ GAS_R - r ] will be element of (-inf, 0)
-            return math::exp( ( GAS_R - r ) * GAS_EXP );
+
+            /* "soft exp. flanks"
+             *   note: by definition (return, see above) the
+             *         argument [ GAS_R - r ] will be element of (-inf, 0) */
+            else
+                return math::exp( ( GAS_R - r ) * GAS_EXP );
         }
     }
 }

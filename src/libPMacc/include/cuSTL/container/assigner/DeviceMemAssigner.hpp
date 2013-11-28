@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, René Widera
+ * Copyright 2013 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -26,12 +26,13 @@
 #include "cuSTL/cursor/BufferCursor.hpp"
 #include "cuSTL/zone/SphericZone.hpp"
 #include "math/vector/Size_t.hpp"
-#include "cuSTL/algorithm/kernel/Foreach.hpp"
+#include "cuSTL/algorithm/kernel/run-time/Foreach.hpp"
 #include "lambda/Expression.hpp"
 #include "math/vector/compile-time/Int.hpp"
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/at.hpp>
 #include "types.h"
+#include <boost/math/common_factor.hpp>
 
 namespace PMacc
 {
@@ -39,30 +40,32 @@ namespace assigner
 {
     
 namespace mpl = boost::mpl;
-    
+
 template<int _dim>
 struct DeviceMemAssigner
 {
     static const int dim = _dim;
     template<typename Type>
-    HDINLINE
     static void assign(Type* data, const math::Size_t<dim-1>& pitch, const Type& value,
                        const math::Size_t<dim>& size)
     {
-#ifndef __CUDA_ARCH__
+
         using namespace math;
         cursor::BufferCursor<Type, dim> cursor(data, pitch);
         zone::SphericZone<dim> myZone(size);
         
-        typedef typename mpl::vector<math::CT::Int<256,1,1>, 
-                                     math::CT::Int<16,16,1>, 
-                                     math::CT::Int<8,8,4> >::type BlockDims;
+        /* The greatest common divisor of each component of the volume size
+         * and a certain power of two value gives the best suitable block size
+         */
+        boost::math::gcd_evaluator<size_t> gcd; // greatest common divisor
+        math::Size_t<3> blockDim(1);
+        int maxValues[] = {512, 16, 8}; // maximum values for each dimension
+        for(int i = 0; i < dim; i++)
+            blockDim[i] = gcd(size[i], maxValues[dim-1]);
+                
         using namespace lambda;
-        if(size == Size_t<dim>(1))
-            algorithm::kernel::Foreach<math::CT::Int<1,1,1> >()(myZone, cursor, _1 = value);
-        else
-            algorithm::kernel::Foreach<typename mpl::at_c<BlockDims, dim-1>::type>()(myZone, cursor, _1 = value);
-#endif
+        algorithm::kernel::RT::Foreach foreach(blockDim);
+        foreach(myZone, cursor, _1 = value);
     }
 };
     

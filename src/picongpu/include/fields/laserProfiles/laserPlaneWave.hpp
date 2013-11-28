@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, René Widera, Richard Pausch
+ * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU. 
  * 
@@ -101,7 +101,7 @@ namespace picongpu
          * @param posZ
          * @return 
          */
-        HDINLINE float3_X laserTransversal( float3_X elong, const float_X phase, const float_X posX, const float_X posZ )
+        HDINLINE float3_X laserTransversal( float3_X elong, const float_X, const float_X, const float_X )
         {
             return elong;
         }

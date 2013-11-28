@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, René Widera
+ * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -57,13 +57,13 @@ fieldJ( cellDescription.getGridLayout( ) ), fieldE( NULL )
     const DataSpace<simDim> endGuard( UpperMargin( ).vec( ) );
 
     /*go over all directions*/
-    for ( int i = 1; i < 27; ++i )
+    for ( uint32_t i = 1; i < 27; ++i )
     {
         DataSpace<simDim> relativMask = Mask::getRelativeDirections<simDim > ( i );
         /*guarding cells depend on direction
          */
         DataSpace<simDim> guardingCells;
-        for ( int d = 0; d < simDim; ++d )
+        for ( uint32_t d = 0; d < simDim; ++d )
         {
             /*originGuard and endGuard are switch because we send data 
              * e.g. from left I get endGuardingCells and from right I originGuardingCells
@@ -156,7 +156,7 @@ GridLayout<simDim> FieldJ::getGridLayout( )
     return cellDescription.getGridLayout( );
 }
 
-void FieldJ::reset( uint32_t currentStep )
+void FieldJ::reset( uint32_t )
 {
 }
 
@@ -187,7 +187,7 @@ FieldJ::getCommTag( )
 }
 
 template<uint32_t AREA, class ParticlesClass>
-void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t currentStep ) throw (std::invalid_argument )
+void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t ) throw (std::invalid_argument )
 {
     /** tune paramter to use more threads than cells in a supercell
      *  valid domain: 1 <= workerMultiplier

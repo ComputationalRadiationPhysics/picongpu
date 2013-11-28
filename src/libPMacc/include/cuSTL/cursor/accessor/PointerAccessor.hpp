@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, René Widera
+ * Copyright 2013 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -34,7 +34,7 @@ struct PointerAccessor
     
     template<typename Data>
     HDINLINE
-    Type& operator()(Data& data) const
+    type operator()(Data& data) const
     {
         return *((Type*)data);
     }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, René Widera
+ * Copyright 2013 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -25,6 +25,7 @@
 #include "math/vector/Size_t.hpp"
 #include "math/vector/Int.hpp"
 #include "lambda/make_Functor.hpp"
+#include <forward.hpp>
 
 #include <boost/preprocessor/repetition/enum.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>
@@ -44,28 +45,65 @@ namespace host
 #define FOREACH_HOST_MAX_PARAMS 4
 #endif
 
-#define SHIFT_CURSOR_ZONE(Z, N, _) C ## N c ## N ## _shifted = c ## N ((math::Int<Zone::dim>) _zone.offset);
-#define SHIFTACCESS_SHIFTEDCURSOR(Z, N, _) c ## N ## _shifted [cellIndex]
+#define SHIFT_CURSOR_ZONE(Z, N, _) C ## N c ## N ## _shifted = c ## N (_zone.offset);
+#define SHIFTACCESS_SHIFTEDCURSOR(Z, N, _) forward(c ## N ## _shifted [cellIndex])
 
-#define FOREACH_OPERATOR(Z, N, _) \
+namespace detail
+{
+    /** Return pseudo 3D-range of the zone as math::Int<dim> */
+    template< uint32_t dim >
+    struct GetRange;
+
+    template<>
+    struct GetRange<3u>
+    {
+        template<typename Zone>
+        const math::Int<3u> operator()(const Zone _zone) const
+        {
+            return math::Int<3u>(_zone.size.x(), _zone.size.y(), _zone.size.z());
+        }
+    };
+    template<>
+    struct GetRange<2u>
+    {
+        template<typename Zone>
+        const math::Int<3u> operator()(const Zone _zone) const
+        {
+            return math::Int<3u>(_zone.size.x(), _zone.size.y(), 1);
+        }
+    };
+    template<>
+    struct GetRange<1u>
+    {
+        template<typename Zone>
+        const math::Int<3u> operator()(const Zone _zone) const
+        {
+            return math::Int<3u>(_zone.size.x(), 1, 1);
+        }
+    };
+} // namespace detail
+
+#define FOREACH_OPERATOR(Z, N, _)                                              \
     template<typename Zone, BOOST_PP_ENUM_PARAMS(N, typename C), typename Functor> \
     void operator()(const Zone& _zone, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), const Functor& functor) \
-    { \
-        BOOST_PP_REPEAT(N, SHIFT_CURSOR_ZONE, _) \
-        \
-        typename lambda::result_of::make_Functor<Functor>::type fun \
-            = lambda::make_Functor(functor); \
-        for(int z = 0; z < (int)_zone.size.z(); z++) \
-        { \
-            for(int y = 0; y < (int)_zone.size.y(); y++) \
-            { \
-                for(int x = 0; x < (int)_zone.size.x(); x++) \
-                { \
-                    math::Int<3u> cellIndex = math::Int<3u>(x, y, z); \
-                    fun(BOOST_PP_ENUM(N, SHIFTACCESS_SHIFTEDCURSOR, _)); \
-                } \
-            } \
-        } \
+    {                                                                          \
+        BOOST_PP_REPEAT(N, SHIFT_CURSOR_ZONE, _)                               \
+                                                                               \
+        typename lambda::result_of::make_Functor<Functor>::type fun            \
+            = lambda::make_Functor(functor);                                   \
+        detail::GetRange<Zone::dim> getRange;                                  \
+        for(int z = 0; z < getRange(_zone).z(); z++)                           \
+        {                                                                      \
+            for(int y = 0; y < getRange(_zone).y(); y++)                       \
+            {                                                                  \
+                for(int x = 0; x < getRange(_zone).x(); x++)                   \
+                {                                                              \
+                    math::Int<Zone::dim> cellIndex =                           \
+                        math::Int<3u>(x, y, z).shrink<Zone::dim>();            \
+                    fun(BOOST_PP_ENUM(N, SHIFTACCESS_SHIFTEDCURSOR, _));       \
+                }                                                              \
+            }                                                                  \
+        }                                                                      \
     }
     
 struct Foreach

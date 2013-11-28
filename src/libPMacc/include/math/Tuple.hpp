@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, René Widera
+ * Copyright 2013 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -30,6 +30,7 @@
 #include <boost/mpl/front.hpp>
 #include <boost/mpl/int.hpp>
 #include <boost/mpl/minus.hpp>
+#include <boost/preprocessor/repetition/enum.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>
 #include <boost/preprocessor/repetition/enum_binary_params.hpp>
 #include <boost/preprocessor/repetition/enum_shifted_params.hpp>
@@ -45,16 +46,15 @@ namespace math
 #define TUPLE_MAX_DIM 8
 #endif
 
-#define CONSTRUCTOR(Z, N, _) \
-    template<BOOST_PP_ENUM_PARAMS(N, typename Arg)> \
-    HDINLINE \
-    Tuple(BOOST_PP_ENUM_BINARY_PARAMS(N, const Arg, &arg)) \
-    : value(arg0), \
-      base(BOOST_PP_ENUM_SHIFTED_PARAMS(N, arg)) \
-    { \
-        BOOST_STATIC_ASSERT(dim == N); \
+#define CONSTRUCTOR(Z, N, _)                                \
+    template<BOOST_PP_ENUM_PARAMS(N, typename Arg)>         \
+    HDINLINE                                                \
+    Tuple(BOOST_PP_ENUM_BINARY_PARAMS(N, const Arg, &arg))  \
+    : value(arg0),                                          \
+      base(BOOST_PP_ENUM_SHIFTED_PARAMS(N, arg))            \
+    {                                                       \
+        BOOST_STATIC_ASSERT(dim == N);                      \
     }
-
     
 namespace mpl = boost::mpl;
 
@@ -75,13 +75,13 @@ private:
     typedef Tuple<typename mpl::pop_front<TypeList>::type> base;
     
     typedef typename mpl::front<TypeList>::type Value;
+    typedef typename boost::remove_reference<Value>::type pureValue;
     
     Value value;
 public:
     HDINLINE Tuple() {}
     
-    template<typename Arg0>
-    HDINLINE Tuple(const Arg0& arg0) : value(arg0) 
+    HDINLINE Tuple(Value arg0) : value(arg0) 
     {
         BOOST_STATIC_ASSERT(dim == 1);
     }
@@ -144,7 +144,7 @@ public:
     template<BOOST_PP_ENUM_PARAMS(N, typename Value)> \
     HDINLINE \
     Tuple<mpl::vector<BOOST_PP_ENUM_PARAMS(N, Value)> > \
-    make_Tuple(BOOST_PP_ENUM_BINARY_PARAMS(N, const Value, &value)) \
+    make_Tuple(BOOST_PP_ENUM_BINARY_PARAMS(N, Value, value)) \
     { \
         return Tuple<mpl::vector<BOOST_PP_ENUM_PARAMS(N, Value)> > \
             (BOOST_PP_ENUM_PARAMS(N, value)); \

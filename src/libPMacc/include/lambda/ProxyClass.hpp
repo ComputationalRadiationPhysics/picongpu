@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, René Widera
+ * Copyright 2013 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -29,6 +29,17 @@ namespace lambda
 {
 namespace CT
 {
+namespace detail
+{
+    /** Create a same-sized type we can savely cast to
+     *  Raw data represents a contructor-free data block
+     */
+    template<uint32_t x>
+    struct raw_data
+    {
+        uint8_t data[x];
+    };
+} // namespace detail
 
 template<typename Type, int sizeofType = sizeof(Type), int dummy = 0>
 class ProxyClass;
@@ -37,18 +48,18 @@ template<typename Type, int sizeofType>
 class ProxyClass<Type, sizeofType>
 {
 private:
-    char data[sizeofType];
+    detail::raw_data<sizeofType> data;
 public:
     typedef Type type;
     
     HDINLINE operator Type&()
     {
-        return *(reinterpret_cast<Type*>(this->data));
+        return *(reinterpret_cast<Type*>(&data));
     }
     
     HDINLINE operator const Type&() const
     {
-        return *(reinterpret_cast<const Type*>(this->data));
+        return *(reinterpret_cast<const Type*>(&data));
     }
 };
 

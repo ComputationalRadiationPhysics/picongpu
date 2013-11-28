@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, René Widera
+ * Copyright 2013 Axel Huebl, Felix Schmitt, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -121,7 +121,7 @@ public:
         return GridController<DIM>::getInstance();
     }
     
-    void dumpTimes(TimeIntervall &tSimCalculation,TimeIntervall& tRound,double& roundAvg,uint32_t currentStep)
+    void dumpTimes(TimeIntervall &tSimCalculation, TimeIntervall&, double& roundAvg, uint32_t currentStep)
     {
          /*dump 100% after simulation*/
         if (output && progress && (currentStep % showProgressAnyStep) == 0)

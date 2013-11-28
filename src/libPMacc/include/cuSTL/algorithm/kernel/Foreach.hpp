@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, René Widera
+ * Copyright 2013 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -27,6 +27,8 @@
 #include "math/vector/Int.hpp"
 #include "lambda/make_Functor.hpp"
 #include "detail/SphericMapper.hpp"
+#include "detail/ForeachKernel.hpp"
+#include <forward.hpp>
 
 #include <boost/preprocessor/repetition/enum.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>
@@ -48,26 +50,6 @@ namespace kernel
 #ifndef FOREACH_KERNEL_MAX_PARAMS
 #define FOREACH_KERNEL_MAX_PARAMS 4
 #endif
-    
-namespace detail
-{
-    
-#define SHIFTACCESS_CURSOR(Z, N, _) c ## N [cellIndex]    
-
-#define KERNEL_FOREACH(Z, N, _) \
-template<typename Mapper, BOOST_PP_ENUM_PARAMS(N, typename C), typename Functor> \
-__global__ void kernelForeach(Mapper mapper, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), Functor functor) \
-{ \
-    math::Int<Mapper::dim> cellIndex(mapper(blockIdx, threadIdx)); \
-    functor(BOOST_PP_ENUM(N, SHIFTACCESS_CURSOR, _)); \
-}
-
-BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(FOREACH_KERNEL_MAX_PARAMS), KERNEL_FOREACH, _)
-
-#undef KERNEL_FOREACH
-#undef SHIFTACCESS_CURSOR
-
-}
 
 #define SHIFT_CURSOR_ZONE(Z, N, _) C ## N c ## N ## _shifted = c ## N (_zone.offset);
 #define SHIFTED_CURSOR(Z, N, _) c ## N ## _shifted
@@ -79,7 +61,7 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(FOREACH_KERNEL_MAX_PARAMS), KERNEL_FOREA
         BOOST_PP_REPEAT(N, SHIFT_CURSOR_ZONE, _) \
         \
         dim3 blockDim(BlockDim::x::value, BlockDim::y::value, BlockDim::z::value); \
-        detail::SphericMapper<Zone::dim, BlockDim> mapper(_zone.size); \
+        detail::SphericMapper<Zone::dim, BlockDim> mapper; \
         using namespace PMacc; \
         __cudaKernel(detail::kernelForeach)(mapper.cudaGridDim(_zone.size), blockDim) \
             (mapper, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _), lambda::make_Functor(functor)); \

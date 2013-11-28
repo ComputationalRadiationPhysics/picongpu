@@ -1,5 +1,5 @@
 #
-# Copyright 2013 Felix Schmitt, Axel Huebl, René Widera
+# Copyright 2013 Felix Schmitt, Axel Huebl, Rene Widera
 #
 # This file is part of splash2txt. 
 # 
@@ -19,46 +19,97 @@
 # If not, see <http://www.gnu.org/licenses/>. 
 #
 
-cmake_minimum_required(VERSION 2.8)
+################################################################################
+# Required cmake version
+################################################################################
 
-project (splash2txt)
-set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{BOOST_ROOT}" "$ENV{HDF5_ROOT}")
+cmake_minimum_required(VERSION 2.8.5)
 
-OPTION(S2T_RELEASE "disable all debug asserts" ON)
-IF(NOT S2T_RELEASE)
-    SET(CMAKE_CXX_FLAGS_DEBUG "-g -Wall")
-    SET(CMAKE_BUILD_TYPE Debug)
-ENDIF(NOT S2T_RELEASE)
 
-FIND_PACKAGE(HDF5 REQUIRED)
-INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIR})
-LINK_DIRECTORIES(${HDF5_LIBRARY_DIRS})
-SET(LIBS ${LIBS} hdf5)
+################################################################################
+# Project 
+################################################################################
 
-#LIBSPLASH
+project(splash2txt)
+
+set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{MPI_ROOT}"
+    "$ENV{BOOST_ROOT}" "$ENV{HDF5_ROOT}")
+
+
+################################################################################
+# Build type (debug, release)
+################################################################################
+
+option(S2T_RELEASE "disable all debug asserts" ON)
+if(NOT S2T_RELEASE)
+    set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall")
+    set(CMAKE_BUILD_TYPE Debug)
+endif(NOT S2T_RELEASE)
+
+
+################################################################################
+# Find HDF5
+################################################################################
+
+find_package(HDF5 REQUIRED)
+
+include_directories(${HDF5_INCLUDE_DIR})
+link_directories(${HDF5_LIBRARY_DIRS})
+set(LIBS ${LIBS} hdf5)
+
+
+################################################################################
+# Find MPI (optional, required by parallel hdf5)
+################################################################################
+
+find_package(MPI)
+if(MPI_C_FOUND)
+    include_directories(SYSTEM ${MPI_C_INCLUDE_PATH})
+    set(LIBS ${LIBS} ${MPI_C_LIBRARIES})
+endif(MPI_C_FOUND)
+
+# bullxmpi fails if it can not find its c++ counter part
+if(MPI_CXX_FOUND)
+    set(LIBS ${LIBS} ${MPI_CXX_LIBRARIES})
+endif(MPI_CXX_FOUND)
+
+
+################################################################################
+# Find libSplash
+################################################################################
+
 find_path(S2T_LIBSPLASH_ROOT_DIR
   NAMES include/sdc_defines.hpp lib/libsplash.a
   PATHS ENV SPLASH_ROOT
-  DOC "libsplash ROOT location. (only used if HDF5 is enabled)"
+  DOC "libSplash ROOT location. (only used if HDF5 is enabled)"
   )
-INCLUDE_DIRECTORIES("${S2T_LIBSPLASH_ROOT_DIR}/include")
-ADD_LIBRARY(splash_static STATIC IMPORTED)
-SET_TARGET_PROPERTIES(splash_static PROPERTIES
+
+include_directories("${S2T_LIBSPLASH_ROOT_DIR}/include")
+add_library(splash_static STATIC IMPORTED)
+set_target_properties(splash_static PROPERTIES
 	IMPORTED_LOCATION "${S2T_LIBSPLASH_ROOT_DIR}/lib/libsplash.a")
-SET(LIBS ${LIBS} splash_static)
-
-#Boost from system
-FIND_PACKAGE(Boost REQUIRED COMPONENTS program_options regex)
-INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
-LINK_DIRECTORIES(${Boost_LIBRARY_DIR})
-SET(LIBS ${LIBS} ${Boost_LIBRARIES})
+set(LIBS ${LIBS} splash_static)
 
 
-FILE(GLOB SRCFILES "*.cpp")
+################################################################################
+# Find Boost
+################################################################################
 
-ADD_EXECUTABLE(splash2txt
+find_package(Boost REQUIRED COMPONENTS program_options regex)
+
+include_directories(${Boost_INCLUDE_DIRS})
+link_directories(${Boost_LIBRARY_DIR})
+set(LIBS ${LIBS} ${Boost_LIBRARIES})
+
+
+################################################################################
+# Compile & Link splash2txt
+################################################################################
+
+file(GLOB SRCFILES "*.cpp")
+
+add_executable(splash2txt
      ${SRCFILES}
      )
 
-TARGET_LINK_LIBRARIES(splash2txt m ${LIBS})
-
+target_link_libraries(splash2txt m ${LIBS})

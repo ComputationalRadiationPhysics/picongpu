@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, René Widera
+ * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -50,27 +50,27 @@ template<typename BlockDim>
 struct ParticleDensityKernel
 {
     typedef void result_type;
-    
+
     int planeDir;
     int localPlane;
     ParticleDensityKernel() {}
     ParticleDensityKernel(int planeDir, int localPlane)
     : planeDir(planeDir), localPlane(localPlane) {}
-    
-    template<typename Particle, typename Field>
-    DINLINE void operator()(Particle particle, Field field, const ::PMacc::math::Int<3>& blockCellIdx) 
+
+    template<typename FramePtr, typename Field>
+    DINLINE void operator()(FramePtr frame, uint16_t particleID, Field field, const ::PMacc::math::Int<3>& blockCellIdx)
     {
-        lcellId_t linearCellIdx = particle[particleAccess::LocalCellIdx()];
+        lcellId_t linearCellIdx = (*frame)[particleID][localCellIdx_];
         ::PMacc::math::Int<3> cellIdx(linearCellIdx % BlockDim::x::value,
                                (linearCellIdx / BlockDim::x::value) % BlockDim::x::value,
                                linearCellIdx / (BlockDim::x::value * BlockDim::y::value));
         if(cellIdx[planeDir] != localPlane) return;
-        
+
         ::PMacc::math::Int<3> globalCellIdx = blockCellIdx - (PMacc::math::Int<3>)BlockDim().vec() + cellIdx;
         /// \warn reduce a normalized float_X with particleAccess::Weight() / NUM_EL_PER_PARTICLE
         ///       to avoid overflows for heavy weightings
         ///
-        atomicAdd(&(*field(globalCellIdx.shrink<2>((planeDir+1)%3))), (int)particle[particleAccess::Weight()]);
+        atomicAdd(&(*field(globalCellIdx.shrink<2>((planeDir+1)%3))), (int)(*frame)[particleID][weighting_]);
     }
 };
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 René Widera
+ * Copyright 2013 Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -33,7 +33,7 @@ namespace PMacc
 {
     namespace po = boost::program_options;
 
-    class ModuleException : virtual public std::runtime_error
+    class ModuleException : /*virtual*/ public std::runtime_error
     {
     public:
 

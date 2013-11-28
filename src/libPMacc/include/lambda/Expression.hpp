@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, René Widera
+ * Copyright 2013 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -32,6 +32,7 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/int.hpp>
 #include "make_Expr.hpp"
+#include <math/Tuple.hpp>
 
 #include <boost/preprocessor/repetition/enum.hpp>
 #include <boost/preprocessor/repetition/repeat.hpp>
@@ -54,65 +55,26 @@ namespace PMacc
 namespace lambda
 {
 using mpl::at_c;
+
+#define EXPRESSION_CTOR(Z, N, _)                                         \
+    template<BOOST_PP_ENUM_PARAMS(N, typename Arg)>                      \
+    HDINLINE Expression(BOOST_PP_ENUM_BINARY_PARAMS(N, const Arg, &arg)) \
+     : Base(BOOST_PP_ENUM_PARAMS(N, arg)) {}
     
-template<typename T, typename Dummy1, typename Dummy2>
-struct BaseWrapper : public T 
-{
-HDINLINE BaseWrapper(const T& t) : T(t) {}
-};
-
-#define BASEWRAPPER_ARG(Z, N, _) BaseWrapper<typename at_c<_Childs, N >::type, _Childs, mpl::int_< N > >
-#define BASEWRAPPER_TD(Z, N, _) typedef BaseWrapper<typename at_c<_Childs, N >::type, _Childs, mpl::int_< N > > BaseChild ## N;
-#define CHILD_CARG(Z, N, _) const typename at_c<Childs, N >::type& child ## N = typename at_c<Childs, N >::type()
-#define BASECHILD_CARG(Z, N, _) BaseChild ## N (child ## N)
-#define GETCHILD(Z, N, _) HDINLINE typename at_c<Childs, N>::type getChild ## N() const {return (BaseChild ## N)(*this);}
-
+/** Expression is a node in an expression tree
+ * \tparam _ExprType see available expression types in ExprTypes.h
+ * \tparam _Childs childs notes. This is a mpl typelist
+ * 
+ * Expression inherits from its childs. They could also be class members but 
+ * then they would cost one byte extra memory if they are empty.
+ * 
+ */
 template<typename _ExprType, typename _Childs>
-struct ExpressionBase : public BOOST_PP_ENUM(LAMBDA_MAX_PARAMS, BASEWRAPPER_ARG, _)
-{
-    typedef ExpressionBase<_ExprType, _Childs> This;
-    typedef _Childs Childs;
-    BOOST_PP_REPEAT(LAMBDA_MAX_PARAMS, BASEWRAPPER_TD, _)
-    
-    HDINLINE
-    ExpressionBase(BOOST_PP_ENUM(LAMBDA_MAX_PARAMS, CHILD_CARG, _)) 
-     : BOOST_PP_ENUM(LAMBDA_MAX_PARAMS, BASECHILD_CARG, _) {}
-    
-    BOOST_PP_REPEAT(LAMBDA_MAX_PARAMS, GETCHILD, _)
-};
-
-#undef BASEWRAPPER_ARG
-#undef BASEWRAPPER_TD
-#undef CHILD_CARG
-#undef BASECHILD_CARG
-#undef GETCHILD
-
-template<typename _Child0>
-struct ExpressionBase<exprTypes::terminal, mpl::vector<_Child0> >
-{
-    typedef ExpressionBase<exprTypes::terminal, mpl::vector<_Child0> > This;
-    typedef _Child0 Child0;
-    
-    Child0 child0;
-    
-    HDINLINE
-    ExpressionBase(const _Child0& child0)
-     : child0(child0) {}
-    
-    HDINLINE Child0 getChild0() const {return child0;}
-};
-
-#define CHILD_CARG(Z,N,_) const typename at_c<_Childs,N>::type& child ## N
-
-#define EXPRESSION_CTOR(Z, N, _) \
-    HDINLINE Expression(BOOST_PP_ENUM(N, CHILD_CARG, _)) \
-     : Base(BOOST_PP_ENUM_PARAMS(N, child)) {}
-    
-template<typename _ExprType, typename _Childs>
-struct Expression : public ExpressionBase<_ExprType, _Childs>
+struct Expression : public math::Tuple<_Childs>
 {
     typedef Expression<_ExprType, _Childs> This;
-    typedef ExpressionBase<_ExprType, _Childs> Base;
+    typedef math::Tuple<_Childs> Base;
+    typedef _Childs Childs;
     typedef _ExprType ExprType;
     
     HDINLINE Expression(const typename at_c<_Childs,0>::type& child0 = typename at_c<_Childs,0>::type())
@@ -120,6 +82,22 @@ struct Expression : public ExpressionBase<_ExprType, _Childs>
     
     BOOST_PP_REPEAT_FROM_TO(2, LAMBDA_MAX_PARAMS, EXPRESSION_CTOR, _)
     
+    template<typename Idx>
+    HDINLINE
+    typename mpl::at<Childs, Idx>::type&
+    child(Idx)
+    {
+        return Base::at(Idx());
+    }
+    
+    template<typename Idx>
+    HDINLINE
+    const typename mpl::at<Childs, Idx>::type&
+    child(Idx) const
+    {
+        return Base::at(Idx());
+    }
+
     template<typename Rhs>
     HDINLINE
     Expression<exprTypes::assign, mpl::vector<This, typename result_of::make_Expr<Rhs>::type> > operator=(const Rhs& rhs) const

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, René Widera
+ * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -61,12 +61,12 @@ namespace picongpu
 
             }
     
-            void update_beforeCurrent(uint32_t currentStep)
+            void update_beforeCurrent(uint32_t)
             {
 
             }
     
-            void update_afterCurrent(uint32_t currentStep)
+            void update_afterCurrent(uint32_t)
             {
 
             }

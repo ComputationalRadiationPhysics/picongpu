@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, René Widera
+ * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -18,29 +18,10 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-/**
- * Copyright 2013 Axel Huebl, Heiko Burau, René Widera
- *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
-
 
 #pragma once
+
+#include "types.h"
 
 namespace picongpu
 {
@@ -161,6 +142,9 @@ namespace picongpu
             /** Radius of the constant sphere
              *  unit: meter */
             const double GAS_R_SI = 1.0e3;
+            /** Inner radius if you want to build a shell/ring
+             *  unit: meter */
+            const double GAS_RI_SI = 0.0;
             
             /** Middle of the constant sphere
              *  unit: meter */
@@ -204,6 +188,37 @@ namespace picongpu
             const double GAS_SIGMA_Z_SI = 7.0e-6;
         }
 
+    }
+
+    namespace gasFreeFormula
+    {
+        namespace SI
+        {
+            struct GasProfile
+            {
+                /** Normalized Gas Profile [0.0:1.0]
+                 *
+                 * This formula should use SI quantities only!
+                 * The normalized profile will be multiplied by GAS_DENSITY.
+                 *
+                 * @param pos vector with offset to the global (left top front) cell
+                 * @return float_X between 0.0 and 1.0
+                 */
+                DINLINE float_64 operator()( float3_64 pos )
+                {
+                    const float_64 y = pos.y() * 1000.0; // m -> mm
+
+                    /* triangle function example
+                     * for a density profile from 0 to 400 microns */
+                    float_64 s = 1.0 - 5.0 * math::abs( y - 0.2 );
+
+                    /* all parts of the function MUST be > 0 */
+                    s *= float_64( s >= 0.0 );
+
+                    return s;
+                }
+            };
+        }
     }
 
     namespace gasNone

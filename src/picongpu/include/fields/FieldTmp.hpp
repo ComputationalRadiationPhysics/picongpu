@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, René Widera
+ * Copyright 2013 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -26,6 +26,7 @@
 
 /*pic default*/
 #include "types.h"
+#include "fields/FieldTmp.def"
 #include "simulation_defines.hpp"
 #include "simulation_classTypes.hpp"
 
@@ -53,10 +54,14 @@ namespace picongpu
     public:
         typedef float1_X ValueType;
         typedef typename promoteType<float_64, ValueType>::ValueType UnitValueType;
-        static const int numComponents = 1;
 
         typedef MappingDesc::SuperCellSize SuperCellSize;
         typedef DataBox<PitchedBox<ValueType, simDim> > DataBoxType;
+        
+        MappingDesc getCellDescription()
+        {
+            return this->cellDescription;
+        }
 
         FieldTmp( MappingDesc cellDescription );
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, René Widera
+ * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -322,7 +322,7 @@ private:
      * 
      * @param currenstep simulation step
      */
-    void calcIntensity(uint32_t currentStep)
+    void calcIntensity(uint32_t)
     {
         DataConnector &dc = DataConnector::getInstance();
 

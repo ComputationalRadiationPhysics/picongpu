@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, René Widera
+ * Copyright 2013 Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -73,7 +73,7 @@ template<typename Field, int FieldId>
 void SliceFieldPrinterMulti<Field, FieldId>::moduleLoad()
 {
     this->childs.resize(this->notifyFrequency.size());
-    for(int i = 0; i < this->childs.size(); i++)
+    for(uint32_t i = 0; i < this->childs.size(); i++)
     {
         this->childs[i].setMappingDescription(this->cellDescription);
         this->childs[i].notifyFrequency = this->notifyFrequency[i];
@@ -87,7 +87,7 @@ void SliceFieldPrinterMulti<Field, FieldId>::moduleLoad()
 template<typename Field, int FieldId>
 void SliceFieldPrinterMulti<Field, FieldId>::moduleUnload()
 {
-    for(int i = 0; i < this->childs.size(); i++)
+    for(uint32_t i = 0; i < this->childs.size(); i++)
         this->childs[i].moduleUnload();
 }
 

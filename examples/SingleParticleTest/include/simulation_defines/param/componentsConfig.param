@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Anton Helm, René Widera
+ * Copyright 2013 Axel Huebl, Anton Helm, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -58,6 +58,7 @@ namespace fieldSolver = fieldSolverNone;
  *  - gasLinExp : piecewise linear-exponential profile (linear first)
  *  - gasHomogenous : constant gas density with a certain length
  *  - gasSphereFlanks : constant sphere droplet with exponential decr envelope
+ *  - gasFreeFormula: use a custom formula (slower)
  *  - gasNone : just stay with a vacuum
  */
 namespace gasProfile = gasNone;

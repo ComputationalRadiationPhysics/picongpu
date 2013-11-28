@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 René Widera
+ * Copyright 2013 Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -31,8 +31,7 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/int.hpp>
 #include <boost/mpl/front.hpp>
-#include <boost/mpl/back.hpp>
-
+#include <boost/mpl/empty.hpp>
 
 #define BOOST_MPL_LIMIT_VECTOR_SIZE 20
 
@@ -53,8 +52,11 @@ class LinearInheritFork : public Base1, public Base2
  * 
  * Create a fork an inharid from head and combined classes from Vec
  */
+template <class Head, class Vec,bool isVectorEmpty=bmpl::empty<Vec>::value>
+struct TypelistLinearInherit;
+
 template <class Head, class Vec>
-struct TypelistLinearInherit
+struct TypelistLinearInherit<Head,Vec,false>
 {
     typedef LinearInheritFork<Head, typename LinearInherit<Vec>::type > type;
 };
@@ -64,21 +66,22 @@ struct TypelistLinearInherit
 /** Rule if head is a clase which can inharit from other class
  */
 template < template<class> class Head, class Vec>
-struct TypelistLinearInherit<Head<PMacc::NullFrame>, Vec >
+struct TypelistLinearInherit<Head<PMacc::NullFrame>, Vec ,false>
 {
     typedef Head<typename LinearInherit<Vec>::type > type;
 };
 
 
-/** Rule if head is void
- * 
+/** Rule if Vec is empty but Head is valid
+ *
  * This is the recursiv end rule
  */
-template <class Vec>
-struct TypelistLinearInherit<bmpl::void_, Vec >
+template <class Head,class Vec>
+struct TypelistLinearInherit<Head, Vec ,true>
 {
-    typedef bmpl::void_ type;
+    typedef Head type;
 };
+
 
 
 /** Create a data strcture which inharid lineary

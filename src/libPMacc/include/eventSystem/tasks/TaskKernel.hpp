@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, René Widera
+ * Copyright 2013 Felix Schmitt, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -58,7 +58,7 @@ namespace PMacc
             return false;
         }
 
-        void event(id_t eventId, EventType type, IEventData* data)
+        void event(id_t, EventType, IEventData*)
         {
         }
 

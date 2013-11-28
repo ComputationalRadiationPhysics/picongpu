@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, René Widera
+ * Copyright 2013 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -30,10 +30,10 @@ namespace cursor
 template<typename Marker>
 struct MarkerAccessor
 {
-    typedef Marker& type;
+    typedef const Marker type;
     
     HDINLINE
-    Marker& operator()(Marker& marker) const
+    type operator()(const Marker& marker) const
     {
         return marker;
     }

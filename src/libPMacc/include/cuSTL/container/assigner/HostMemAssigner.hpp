@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, René Widera
+ * Copyright 2013 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -37,13 +37,10 @@ struct HostMemAssigner<1>
 {
     static const int dim = 1;
     template<typename Type>
-    HDINLINE
     static void assign(Type* data, const math::Size_t<dim-1>& pitch, const Type& value,
                        const math::Size_t<dim>& size)
     {
-#ifndef __CUDA_ARCH__
         for(size_t i = 0; i < size.x(); i++) data[i] = value;
-#endif
     }
 };
 
@@ -52,18 +49,15 @@ struct HostMemAssigner<2u>
 {
     static const int dim = 2u;
     template<typename Type>
-    HDINLINE
     static void assign(Type* data, const math::Size_t<dim-1>& pitch, const Type& value,
                        const math::Size_t<dim>& size)
     {
-#ifndef __CUDA_ARCH__
         Type* tmpData = data;
         for(size_t y = 0; y < size.y(); y++)
         {
             for(size_t x = 0; x < size.x(); x++) tmpData[x] = value;
             tmpData = (Type*)(((char*)tmpData) + pitch.x());
         }
-#endif
     }
 };
 
@@ -75,7 +69,6 @@ struct HostMemAssigner<3>
     static void assign(Type* data, const math::Size_t<dim-1>& pitch, const Type& value,
                        const math::Size_t<dim>& size)
     {
-#ifndef __CUDA_ARCH__
         for(size_t z = 0; z < size.z(); z++)
         {
             Type* dataXY = (Type*)(((char*)data) + z * pitch.y());
@@ -85,7 +78,6 @@ struct HostMemAssigner<3>
                 dataXY = (Type*)(((char*)dataXY) + pitch.x());
             }
         }
-#endif
     }
 };
     

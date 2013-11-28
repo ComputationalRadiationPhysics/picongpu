@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 René Widera
+ * Copyright 2013 Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -211,7 +211,7 @@ namespace PMacc
          * 
          * @param id id for the dataset previously acquired using getData()
          */
-        void releaseData(uint32_t id)
+        void releaseData(uint32_t)
         {
         }
 

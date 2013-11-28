@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, René Widera
+ * Copyright 2013 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -33,9 +33,9 @@ template<typename TCursor, typename Axes>
 struct TwistAxesAccessor
 {
     typedef typename math::tools::result_of::TwistVectorAxes<
-        Axes, typename TCursor::pureType>::type type;
+        Axes, typename TCursor::pureType>::type& type;
     
-    HDINLINE type& operator()(TCursor& cursor)
+    HDINLINE type operator()(TCursor& cursor)
     {
         return math::tools::twistVectorAxes<Axes>(*cursor);
     }

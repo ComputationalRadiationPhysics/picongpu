@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, René Widera
+ * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -233,7 +233,7 @@ namespace PMacc
             return data.pitch;
         }
 
-        virtual void setValue(TYPE value)
+        virtual void setValue(const TYPE& value)
         {
             Factory::getInstance().createTaskSetValue(*this, value);
         };

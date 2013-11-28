@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, René Widera
+ * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -71,7 +71,7 @@ namespace particleShape
             /** form factor of this particle shape.
              * \param x has to be within [-support/2, support/2)
              */
-            HDINLINE float_X operator()(const float_X x)
+            HDINLINE float_X operator()(const float_X)
             {
                 /*
                  * W(x)=1

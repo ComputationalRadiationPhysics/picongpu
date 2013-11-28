@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, René Widera
+ * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -46,12 +46,17 @@ namespace po = boost::program_options;
 template<class FloatPos>
 struct SglParticle
 {
-    float3_X position;
-    FloatPos momentum;
+    FloatPos position;
+    float3_X momentum;
     float_X mass;
     float_X weighting;
     float_X charge;
     float_X gamma;
+
+    SglParticle() : position(0.0,0.0,0.0), momentum(0.0,0.0, 0.0), mass(0.0),
+        weighting(0.0), charge(0.0), gamma(0.0)
+    {
+    }
 
     DataSpace<simDim> globalCellOffset;
 
@@ -116,21 +121,22 @@ __global__ void kernelPositionsParticles(ParticlesBox<FRAME, simDim> pb,
     if (!isValid)
         return; //end kernel if we have no frames
 
-    bool isParticle = frame->getMultiMask()[linearThreadIdx];
+    bool isParticle = (*frame)[linearThreadIdx][multiMask_];
 
     while (isValid)
     {
         if (isParticle)
         {
-            gParticle->position = frame->getPosition()[linearThreadIdx];
-            gParticle->momentum = frame->getMomentum()[linearThreadIdx];
-            gParticle->weighting = frame->getWeighting()[linearThreadIdx];
+            PMACC_AUTO(particle,(*frame)[linearThreadIdx]);
+            gParticle->position = particle[position_];
+            gParticle->momentum = particle[momentum_];
+            gParticle->weighting = particle[weighting_];
             gParticle->mass = frame->getMass(gParticle->weighting);
             gParticle->charge = frame->getCharge(gParticle->weighting);
             gParticle->gamma = Gamma<>()(gParticle->momentum, gParticle->mass);
 
             // storage number in the actual frame
-            const lcellId_t frameCellNr = frame->getCellIdx()[linearThreadIdx];
+            const lcellId_t frameCellNr = particle[localCellIdx_];
 
             // offset in the actual superCell = cell offset in the supercell
             const DataSpace<simDim> frameCellOffset(DataSpaceOperations<simDim>::template map<MappingDesc::SuperCellSize > (frameCellNr));
@@ -244,7 +250,6 @@ private:
 
         typedef typename MappingDesc::SuperCellSize SuperCellSize;
         SglParticle<FloatPos> positionParticleTmp;
-        positionParticleTmp.mass = float_X(0.0);
 
         gParticle->getDeviceBuffer().setValue(positionParticleTmp);
         dim3 block(SuperCellSize::getDataSpace());

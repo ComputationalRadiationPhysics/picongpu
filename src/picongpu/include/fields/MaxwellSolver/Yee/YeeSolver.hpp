@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, René Widera
+ * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -102,7 +102,7 @@ public:
         this->fieldB = &dc.getData<FieldB > (FIELD_B, true);
     }
     
-    void update_beforeCurrent(uint32_t currentStep)
+    void update_beforeCurrent(uint32_t)
     {
         updateBHalf < CORE+BORDER >();
         EventTask eRfieldB = fieldB->asyncCommunication(__getTransactionEvent());

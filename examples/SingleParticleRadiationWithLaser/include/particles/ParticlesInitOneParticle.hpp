@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, René Widera, Richard Pausch
+ * Copyright 2013 Axel Huebl, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU. 
  * 
@@ -58,29 +58,29 @@ __global__ void kernelAddOneParticle(ParBox pb,
     // many particle loop:                                                                                                                                                                
     for (unsigned i = 0; i < 1; ++i)
     {
-
+        PMACC_AUTO(par,(*frame)[i]);
         float3_X pos = float3_X(0.5, 0.5, 0.50);
 
         const float_X GAMMA0_X = 1.0f / sqrtf(1.0f - float_X(BETA0_X * BETA0_X));
         const float_X GAMMA0_Y = 1.0f / sqrtf(1.0f - float_X(BETA0_Y * BETA0_Y));
         const float_X GAMMA0_Z = 1.0f / sqrtf(1.0f - float_X(BETA0_Z * BETA0_Z));
         float3_X mom = float3_X(
-                                GAMMA0_X * frame->getMass(parWeighting) * float_X(BETA0_X) * SPEED_OF_LIGHT,
-                                GAMMA0_Y * frame->getMass(parWeighting) * float_X(BETA0_Y) * SPEED_OF_LIGHT,
-                                GAMMA0_Z * frame->getMass(parWeighting) * float_X(BETA0_Z) * SPEED_OF_LIGHT
+                                GAMMA0_X * par.getMass(parWeighting) * float_X(BETA0_X) * SPEED_OF_LIGHT,
+                                GAMMA0_Y * par.getMass(parWeighting) * float_X(BETA0_Y) * SPEED_OF_LIGHT,
+                                GAMMA0_Z * par.getMass(parWeighting) * float_X(BETA0_Z) * SPEED_OF_LIGHT
                                 );
 
-        frame->getPosition()[i] = pos;
-        frame->getMomentum()[i] = mom;
-        frame->getMultiMask()[i] = 1;
-        frame->getCellIdx()[i] = linearIdx;
-        frame->getWeighting()[i] = parWeighting;
+        par[position_] = pos;
+        par[momentum_] = mom;
+        par[multiMask_] = 1;
+        par[localCellIdx_] = linearIdx;
+        par[weighting_] = parWeighting;
 
 #if(ENABLE_RADIATION == 1)
-        frame->getMomentum_mt1()[i] = float3_X(0.f, 0.f, 0.f);
+        par[momentumPrev1_] = float3_X(0.f, 0.f, 0.f);
 #if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
         /*this code tree is only passed if we not select any particle*/
-        frame->getRadiationFlag()[i] = true;
+        par[radiationFlag_] = true;
 #endif
 #endif
     }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, René Widera
+ * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -105,7 +105,7 @@ public:
         __setTransactionEvent(fieldB.asyncCommunication(__getTransactionEvent()));
     }
     
-    void update_afterCurrent(uint32_t currentStep) const 
+    void update_afterCurrent(uint32_t) const 
     {    }
 };
     

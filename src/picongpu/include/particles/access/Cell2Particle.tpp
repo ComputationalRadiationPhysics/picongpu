@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, René Widera
+ * Copyright 2013 Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -28,11 +28,6 @@ namespace mpl = boost::mpl;
 
 namespace particleAccess
 {
-    
-struct Pos {};
-struct Mom {};
-struct LocalCellIdx {};
-struct Weight {};
 
 #define TEMPLATE_ARGS(Z, N, _) typename Arg ## N
 #define NORMAL_ARGS(Z, N, _) Arg ## N arg ## N
@@ -71,11 +66,7 @@ BOOST_PP_ENUM_TRAILING(N, NORMAL_ARGS, _)) \
         if (linearThreadIdx < particlesInSuperCell) \
         { \
             functor( \
-                PMacc::math::make_MapTuple<Pos, Mom, LocalCellIdx, Weight> \
-                (ref(frame->getPosition()[linearThreadIdx]), \
-                 ref(frame->getMomentum()[linearThreadIdx]), \
-                 ref(frame->getCellIdx()[linearThreadIdx]), \
-                 ref(frame->getWeighting()[linearThreadIdx])) \
+                frame, linearThreadIdx \
                 BOOST_PP_ENUM_TRAILING(N, ARGS, _) \
                 ); \
         } \

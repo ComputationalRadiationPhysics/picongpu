@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 René Widera
+ * Copyright 2013 Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -70,7 +70,7 @@ private:
     /**
      * Constructor
      */
-    UniquTag(const UniquTag & gc)
+    UniquTag(const UniquTag&)
     {
 
     }

@@ -1,5 +1,5 @@
 # 
-# Copyright 2013 Axel Huebl, René Widera
+# Copyright 2013 Axel Huebl, Rene Widera
 #
 # This file is part of PIConGPU.
 #
@@ -58,4 +58,4 @@ set yrange [GPVAL_DATA_Y_MIN:GPVAL_DATA_Y_MAX]
 set cbrange [0:colormax]
 
 
-plot infile binary matrix using 1:2:3 with image title ""
+replot

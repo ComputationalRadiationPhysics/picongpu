@@ -1,4 +1,4 @@
-# Copyright 2013 Axel Huebl, René Widera
+# Copyright 2013 Axel Huebl, Rene Widera
 #
 # This file is part of PIConGPU.
 #
@@ -20,7 +20,7 @@
 fileName=$1
 projectName=${PROJECT_NAME:-"PIConGPU"}
 
-rename="s/psychocoder/René Widera/g;
+rename="s/psychocoder/Rene Widera/g;
 	s/rp6038/Richard Pausch/g;
 	s/fschmitt/Felix Schmitt/g;
 	s/ahuebl/Axel Huebl/g;

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, René Widera, Richard Pausch
+ * Copyright 2013 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU. 
  * 
@@ -38,7 +38,7 @@ namespace picongpu
 
         typedef float3_X MyFloat;
 
-        PMACC_ALIGN(momentum_mt1[Base::tileSize], MyFloat);
+        PMACC_ALIGN(momentumPrev1[Base::tileSize], MyFloat);
 
     public:
 
@@ -51,7 +51,7 @@ namespace picongpu
 
         HDINLINE VectorDataBox<MyFloat> getMomentum_mt1()
         {
-            return VectorDataBox<MyFloat > (momentum_mt1);
+            return VectorDataBox<MyFloat > (momentumPrev1);
         }
     };
 

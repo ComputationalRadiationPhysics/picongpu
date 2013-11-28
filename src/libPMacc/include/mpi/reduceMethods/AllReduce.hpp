@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, René Widera
+ * Copyright 2013 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -42,7 +42,7 @@ struct AllReduce
     }
 
     template<class Functor, typename Type >
-    HINLINE void operator()(Functor func, Type* dest, Type* src, const size_t count, MPI_Datatype type, MPI_Op op, MPI_Comm comm) const
+    HINLINE void operator()(Functor, Type* dest, Type* src, const size_t count, MPI_Datatype type, MPI_Op op, MPI_Comm comm) const
     {
         MPI_CHECK(MPI_Allreduce((void*) src,
                                 (void*) dest,
@@ -54,7 +54,7 @@ struct AllReduce
 
 } /*namespace reduceMethods*/
 
-} /*namepsace mpi*/
+} /*namespace mpi*/
 
 } /*namespace PMacc*/
 

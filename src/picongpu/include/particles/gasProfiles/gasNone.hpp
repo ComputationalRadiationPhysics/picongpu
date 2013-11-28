@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, René Widera
+ * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -35,7 +35,7 @@ namespace picongpu
          * 
          * @return float_X between 0.0 and 1.0
          */
-        DINLINE float_X calcNormedDensitiy( float3_X  )
+        DINLINE float_X calcNormedDensitiy( float3_X pos, float_64 )
         {
 
             return float_X(0.0);

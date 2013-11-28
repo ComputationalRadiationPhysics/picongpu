@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, René Widera
+ * Copyright 2013 Felix Schmitt, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -95,7 +95,7 @@ private:
 
     }
 };
-} //namepsace memory
+} //namespace memory
 } //namespace nvidia
 } //namespace PMacc
 

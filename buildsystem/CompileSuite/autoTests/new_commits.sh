@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2013 Axel Huebl             
+# Copyright 2013 Axel Huebl
 #
 # This file is part of PIConGPU.
 #
@@ -24,7 +24,7 @@
 thisDir=$(cd `dirname $0` && pwd)"/"
 
 . "$thisDir"config.sh
-. "$thisDir"mails.sh
+. "$thisDir"report.sh
 
 security_check
 
@@ -36,29 +36,38 @@ touch "$thisDir"runGuard
 
 # loop through each branch for new commits
 #
-cd $cnf_svndir
+cd $cnf_gitdir
 
 # loop branches
-for b in "${cnf_branches[@]}"
-do
-    cd $b
+#for b in "${cnf_branches[@]}"
+#do
+#    cd $b
 
-    # loop commits
+    # loop work
     finished=0
     while [ "$finished" -eq "0" ]
     do
-        myRev=`svnversion`
-        rev=$(( myRev + 1 ))
-        "$thisDir"update_branch.sh $b $rev
+        "$thisDir"get_work.sh
         finished=$?
 
-        # was this branch affected?
-        if [ "$finished" -eq "0" ]; then
-            logEntry=`svn log -v -r $rev`
-            commitLine=`echo $logEntry | sed 's/-//g'`
-            if [ -z "$commitLine" ] ; then
-                finished=1
+        # merge conflict occuted
+        if [ "$finished" -eq "2" ]; then
+            # clean message as failure
+            echo "Merge conflict detected. Aborting..."
+
+            state=-1
+            # git log infos
+            logEntry=`git log -1`
+            lastUser=`git log -1 --format=%an`
+            lastUserMail=`git log -1 --format=%ae`
+            if [ -z "$lastUserMail" ] ; then
+                lastUserMail="example@example.com"
             fi
+            sha=`git log -1 --format=%H`
+            eventid=`cat "$thisDir"runGuard`
+
+            # create conclusion, update status (and send mails)
+            conclusion "$state" "$lastUser" "$lastUserMail" "$sha" "$eventid" "$logEntry" "$thisDir""runGuard"
         fi
 
         # new version! :)
@@ -66,19 +75,26 @@ do
             # state of this test
             state=0 #0: suite errored, <0 compile failed, >0: ok
 
-            # svn log infos
-            logEntry=`svn log -v -r $rev`
-            lastUser=`echo "$logEntry" | head -n 2 | tail -n 1 | awk -F"|" '{print $2}'`
+            # git log infos
+            logEntry=`git log -1`
+            lastUser=`git log -1 --format=%an`
+            lastUserMail=`git log -1 --format=%ae`
+            if [ -z "$lastUserMail" ] ; then
+                lastUserMail="example@example.com"
+            fi
+            sha=`git log -1 --format=%H`
+            eventid=`cat "$thisDir"runGuard`
 
-            echo "Testing new version $b:$rev"
+            echo "Testing new commit"
 
             cp $cnf_imgSrc $cnf_imgClone
             echo "Base System Image cloned..."
 
             echo "Starting Virtual Machine..."
             # -monitor stdio | -nographic
-            /usr/bin/kvm -smp $cnf_numParallel -cpu kvm64 -enable-kvm \
-                -m 2048 -nographic \
+            # file="$cnf_imgClone"
+            /usr/bin/kvm -nographic -smp $cnf_numParallel -cpu kvm64 \
+                -enable-kvm -m 2048 \
                 -drive file="$cnf_imgClone",media=disk \
                 -drive file="$cnf_extfile",media=disk \
                 -boot once=c,menu=off -net none -name "Debian7_Cuda4_2"
@@ -134,8 +150,8 @@ do
             # update lastRun history
             echo $state > "$thisDir"lastRun.log
 
-            # create conclusion and send mails
-            conclusion "$state" "$lastUser" "$b" "$rev" "$logEntry" "$mntdir""/output"
+            # create conclusion, update status (and send mails)
+            conclusion "$state" "$lastUser" "$lastUserMail" "$sha" "$eventid" "$logEntry" "$mntdir""/output"
 
             # unmount
             fusermount -u $mntdir
@@ -148,8 +164,8 @@ do
         fi
     done
 
-    cd $cnf_svndir
-done
+    cd $cnf_gitdir
+#done
 
 # del guard
 rm "$thisDir"runGuard

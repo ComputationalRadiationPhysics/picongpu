@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, René Widera
+ * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -116,7 +116,7 @@ namespace picongpu
                     {
                         const ValueType value = typeCast<ValueType>(data[y][x])
                                               * unit;
-                        /**
+
                         /** \info take care, that gnuplots binary matrix does
                          *        not support float64 (IEEE float32 only)
                          *  \see http://stackoverflow.com/questions/8751154/looking-at-binary-output-from-fortran-on-gnuplot

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, René Widera
+ * Copyright 2013 Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -25,7 +25,7 @@
 
 #include "particles/memory/boxes/TileDataBox.hpp"
 #include "types.h"
-#include "basisLib/vector/Vector.hpp"
+#include "math/Vector.hpp"
 #include "particles/memory/frames/NullFrame.hpp"
 
 namespace picongpu

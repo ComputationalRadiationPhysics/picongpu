@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, René Widera
+ * Copyright 2013 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -24,6 +24,7 @@
 #include <types.h>
 #include <math/vector/Int.hpp>
 #include <math/vector/compile-time/Int.hpp>
+#include <forward.hpp>
 
 namespace PMacc
 {
@@ -36,7 +37,7 @@ namespace cudaBlock
 #define FOREACH_KERNEL_MAX_PARAMS 4
 #endif
     
-#define SHIFTACCESS_CURSOR(Z, N, _) c ## N [pos]
+#define SHIFTACCESS_CURSOR(Z, N, _) forward(c ## N [pos])
     
 #define FOREACH_OPERATOR(Z, N, _) \
     template<typename Zone, BOOST_PP_ENUM_PARAMS(N, typename C), typename Functor> \

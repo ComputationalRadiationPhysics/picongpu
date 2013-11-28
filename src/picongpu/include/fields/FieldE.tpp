@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, René Widera
+ * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -67,7 +67,7 @@ fieldB( NULL )
     const DataSpace<simDim> endGuard( UpperMargin( ).vec( ) );
 
     /*receive from all directions*/
-    for ( int i = 1; i < 27; ++i )
+    for ( uint32_t i = 1; i < 27; ++i )
     {
         DataSpace<simDim> relativMask = Mask::getRelativeDirections<simDim > ( i );
         /*guarding cells depend on direction
@@ -75,7 +75,7 @@ fieldB( NULL )
          * don't switch end and origin because this is a readbuffer and no sendbuffer 
          */
         DataSpace<simDim> guardingCells;
-        for ( int d = 0; d < simDim; ++d )
+        for ( uint32_t d = 0; d < simDim; ++d )
             guardingCells[d] = ( relativMask[d] == -1 ? originGuard[d] : endGuard[d] );
         fieldE->addExchange( GUARD, i, guardingCells, FIELD_E );
     }
@@ -149,7 +149,7 @@ void FieldE::laserManipulation( uint32_t currentStep )
         ( this->getDeviceDataBox( ), laser->getLaserManipulator( currentStep ) );
 }
 
-void FieldE::reset( uint32_t currentStep )
+void FieldE::reset( uint32_t )
 {
     fieldE->getHostBuffer( ).reset( true );
     fieldE->getDeviceBuffer( ).reset( false );

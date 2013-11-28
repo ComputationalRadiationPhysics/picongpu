@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, René Widera
+ * Copyright 2013 Axel Huebl, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -20,8 +20,7 @@
  */ 
  
 
-#ifndef PPFUNCTIONS_HPP
-#define	PPFUNCTIONS_HPP
+#pragma once
 
 
 #define PMACC_MIN(x,y) (((x)<=(y))?x:y)
@@ -34,5 +33,21 @@
 #define PMACC_MAX_DO(what,x,y) (((x)>(y))?x what:y what)
 #define PMACC_MIN_DO(what,x,y) (((x)<(y))?x what:y what)
 
-#endif	/* PPFUNCTIONS_HPP */
+/**
+ * Returns number of args... arguments.
+ *
+ * Can only count values of ... which can be casted to int type.
+ *
+ * @param ... arguments
+ */
+#define PMACC_COUNT_ARGS(...)  (sizeof((int[]){0, ##__VA_ARGS__})/sizeof(int)-1)
 
+/**
+ * Check if ... has arguments or not
+ *
+ * Can only used if values of ... can be casted to int type
+ *
+ * @param ... arguments
+ * @return false if no arguments are given, else true
+ */
+#define PMACC_HAS_ARGS(...)  ((sizeof((int[]){0, ##__VA_ARGS__}))==sizeof(int)?false:true)

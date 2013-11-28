@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 René Widera
+ * Copyright 2013 Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -34,7 +34,7 @@ namespace def
 template<typename Type>
 struct GetMPI_StructAsArray;
 
-}//namepsace intern
+}//namespace intern
 
 template<typename Type>
 static PMacc::mpi::MPI_StructAsArray getMPI_StructAsArray()

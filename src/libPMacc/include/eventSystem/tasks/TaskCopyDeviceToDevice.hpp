@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, René Widera, Wolfgang Hoenig
+ * Copyright 2013 Felix Schmitt, Rene Widera, Wolfgang Hoenig
  *
  * This file is part of libPMacc. 
  * 
@@ -58,7 +58,7 @@ namespace PMacc
             return isFinished();
         }
 
-        void event(id_t eventId, EventType type, IEventData* data)
+        void event(id_t, EventType, IEventData*)
         {
 
         }
@@ -168,7 +168,7 @@ namespace PMacc
         virtual void copy(DataSpace<DIM3> &devCurrentSize)
         {
 
-            cudaMemcpy3DParms params = {0};
+            cudaMemcpy3DParms params;
 
             //  assert(this->source->getDataSpace().getElementCount() <= this->destination->getDataSpace().getElementCount());
 

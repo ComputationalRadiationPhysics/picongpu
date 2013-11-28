@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, René Widera
+ * Copyright 2013 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -44,7 +44,7 @@ struct FillTerminalList<lambda::Expression<exprTypes::terminal, mpl::vector<Chil
     template<typename TerminalTuple>
     HDINLINE void operator()(const Expr& expr, TerminalTuple& terminalTuple) const
     {
-        (Child0&)terminalTuple.at(mpl::int_<CTExpr::nextTerminalTypeIdx-1>()) = expr.getChild0();
+        (Child0&)terminalTuple.at(mpl::int_<CTExpr::nextTerminalTypeIdx-1>()) = expr.child(mpl::int_<0>());
     }
 };
 
@@ -74,8 +74,8 @@ struct FillTerminalList<lambda::Expression<exprTypes::assign, mpl::vector<Child0
     template<typename TerminalTuple>
     HDINLINE void operator()(const Expr& expr, TerminalTuple& terminalTuple) const
     {
-        FillTerminalList<Child0, typename CTExpr::Child0>()(expr.getChild0(), terminalTuple);
-        FillTerminalList<Child1, typename CTExpr::Child1>()(expr.getChild1(), terminalTuple);
+        FillTerminalList<Child0, typename CTExpr::Child0>()(expr.child(mpl::int_<0>()), terminalTuple);
+        FillTerminalList<Child1, typename CTExpr::Child1>()(expr.child(mpl::int_<1>()), terminalTuple);
     }
 };
 
@@ -87,8 +87,8 @@ struct FillTerminalList<lambda::Expression<exprTypes::plus, mpl::vector<Child0, 
     template<typename TerminalTuple>
     HDINLINE void operator()(const Expr& expr, TerminalTuple& terminalTuple) const
     {
-        FillTerminalList<Child0, typename CTExpr::Child0>()(expr.getChild0(), terminalTuple);
-        FillTerminalList<Child1, typename CTExpr::Child1>()(expr.getChild1(), terminalTuple);
+        FillTerminalList<Child0, typename CTExpr::Child0>()(expr.child(mpl::int_<0>()), terminalTuple);
+        FillTerminalList<Child1, typename CTExpr::Child1>()(expr.child(mpl::int_<1>()), terminalTuple);
     }
 };
 
@@ -100,8 +100,8 @@ struct FillTerminalList<lambda::Expression<exprTypes::minus, mpl::vector<Child0,
     template<typename TerminalTuple>
     HDINLINE void operator()(const Expr& expr, TerminalTuple& terminalTuple) const
     {
-        FillTerminalList<Child0, typename CTExpr::Child0>()(expr.getChild0(), terminalTuple);
-        FillTerminalList<Child1, typename CTExpr::Child1>()(expr.getChild1(), terminalTuple);
+        FillTerminalList<Child0, typename CTExpr::Child0>()(expr.child(mpl::int_<0>()), terminalTuple);
+        FillTerminalList<Child1, typename CTExpr::Child1>()(expr.child(mpl::int_<1>()), terminalTuple);
     }
 };
 
@@ -113,8 +113,8 @@ struct FillTerminalList<lambda::Expression<exprTypes::multiply, mpl::vector<Chil
     template<typename TerminalTuple>
     HDINLINE void operator()(const Expr& expr, TerminalTuple& terminalTuple) const
     {
-        FillTerminalList<Child0, typename CTExpr::Child0>()(expr.getChild0(), terminalTuple);
-        FillTerminalList<Child1, typename CTExpr::Child1>()(expr.getChild1(), terminalTuple);
+        FillTerminalList<Child0, typename CTExpr::Child0>()(expr.child(mpl::int_<0>()), terminalTuple);
+        FillTerminalList<Child1, typename CTExpr::Child1>()(expr.child(mpl::int_<1>()), terminalTuple);
     }
 };
 
@@ -126,8 +126,8 @@ struct FillTerminalList<lambda::Expression<exprTypes::divide, mpl::vector<Child0
     template<typename TerminalTuple>
     HDINLINE void operator()(const Expr& expr, TerminalTuple& terminalTuple) const
     {
-        FillTerminalList<Child0, typename CTExpr::Child0>()(expr.getChild0(), terminalTuple);
-        FillTerminalList<Child1, typename CTExpr::Child1>()(expr.getChild1(), terminalTuple);
+        FillTerminalList<Child0, typename CTExpr::Child0>()(expr.child(mpl::int_<0>()), terminalTuple);
+        FillTerminalList<Child1, typename CTExpr::Child1>()(expr.child(mpl::int_<1>()), terminalTuple);
     }
 };
 
@@ -139,13 +139,13 @@ struct FillTerminalList<lambda::Expression<exprTypes::comma, mpl::vector<Child0,
     template<typename TerminalTuple>
     HDINLINE void operator()(const Expr& expr, TerminalTuple& terminalTuple) const
     {
-        FillTerminalList<Child0, typename CTExpr::Child0>()(expr.getChild0(), terminalTuple);
-        FillTerminalList<Child1, typename CTExpr::Child1>()(expr.getChild1(), terminalTuple);
+        FillTerminalList<Child0, typename CTExpr::Child0>()(expr.child(mpl::int_<0>()), terminalTuple);
+        FillTerminalList<Child1, typename CTExpr::Child1>()(expr.child(mpl::int_<1>()), terminalTuple);
     }
 };
 
 #define FILLTERMINALLIST(Z,N,_) \
-    FillTerminalList<Child ## N, typename CTExpr::Child ## N>()(expr.getChild ## N (), terminalTuple);
+    FillTerminalList<Child ## N, typename CTExpr::Child ## N>()(expr.child(mpl::int_< N >()), terminalTuple);
 
 #define OPERATOR_CALL(Z,N,_) \
     template<BOOST_PP_ENUM_PARAMS(N, typename Child), typename CTExpr> \
@@ -173,8 +173,8 @@ struct FillTerminalList<lambda::Expression<exprTypes::call, mpl::vector<Child0, 
     template<typename TerminalTuple>
     HDINLINE void operator()(const Expr& expr, TerminalTuple& terminalTuple) const
     {
-        FillTerminalList<Child0, typename CTExpr::Child0>()(expr.getChild0(), terminalTuple);
-        FillTerminalList<Child1, typename CTExpr::Child1>()(expr.getChild1(), terminalTuple);
+        FillTerminalList<Child0, typename CTExpr::Child0>()(expr.child(mpl::int_<0>()), terminalTuple);
+        FillTerminalList<Child1, typename CTExpr::Child1>()(expr.child(mpl::int_<1>()), terminalTuple);
     }
 };
 
@@ -186,9 +186,9 @@ struct FillTerminalList<lambda::Expression<exprTypes::call, mpl::vector<Child0, 
     template<typename TerminalTuple>
     HDINLINE void operator()(const Expr& expr, TerminalTuple& terminalTuple) const
     {
-        FillTerminalList<Child0, typename CTExpr::Child0>()(expr.getChild0(), terminalTuple);
-        FillTerminalList<Child1, typename CTExpr::Child1>()(expr.getChild1(), terminalTuple);
-        FillTerminalList<Child2, typename CTExpr::Child2>()(expr.getChild2(), terminalTuple);
+        FillTerminalList<Child0, typename CTExpr::Child0>()(expr.child(mpl::int_<0>()), terminalTuple);
+        FillTerminalList<Child1, typename CTExpr::Child1>()(expr.child(mpl::int_<1>()), terminalTuple);
+        FillTerminalList<Child2, typename CTExpr::Child2>()(expr.child(mpl::int_<2>()), terminalTuple);
     }
 };
 
@@ -200,10 +200,10 @@ struct FillTerminalList<lambda::Expression<exprTypes::call, mpl::vector<Child0, 
     template<typename TerminalTuple>
     HDINLINE void operator()(const Expr& expr, TerminalTuple& terminalTuple) const
     {
-        FillTerminalList<Child0, typename CTExpr::Child0>()(expr.getChild0(), terminalTuple);
-        FillTerminalList<Child1, typename CTExpr::Child1>()(expr.getChild1(), terminalTuple);
-        FillTerminalList<Child2, typename CTExpr::Child2>()(expr.getChild2(), terminalTuple);
-        FillTerminalList<Child3, typename CTExpr::Child3>()(expr.getChild3(), terminalTuple);
+        FillTerminalList<Child0, typename CTExpr::Child0>()(expr.child(mpl::int_<0>()), terminalTuple);
+        FillTerminalList<Child1, typename CTExpr::Child1>()(expr.child(mpl::int_<1>()), terminalTuple);
+        FillTerminalList<Child2, typename CTExpr::Child2>()(expr.child(mpl::int_<2>()), terminalTuple);
+        FillTerminalList<Child3, typename CTExpr::Child3>()(expr.child(mpl::int_<3>()), terminalTuple);
     }
 };
 */
@@ -215,8 +215,8 @@ struct FillTerminalList<lambda::Expression<exprTypes::subscript, mpl::vector<Chi
     template<typename TerminalTuple>
     HDINLINE void operator()(const Expr& expr, TerminalTuple& terminalTuple) const
     {
-        FillTerminalList<Child0, typename CTExpr::Child0>()(expr.getChild0(), terminalTuple);
-        FillTerminalList<Child1, typename CTExpr::Child1>()(expr.getChild1(), terminalTuple);
+        FillTerminalList<Child0, typename CTExpr::Child0>()(expr.child(mpl::int_<0>()), terminalTuple);
+        FillTerminalList<Child1, typename CTExpr::Child1>()(expr.child(mpl::int_<1>()), terminalTuple);
     }
 };
     

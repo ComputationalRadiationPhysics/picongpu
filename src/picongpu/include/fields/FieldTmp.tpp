@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, René Widera
+ * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -72,13 +72,13 @@ namespace picongpu
         const DataSpace<simDim> endGuard( UpperMargin( ).vec( ) );
 
         /*go over all directions*/
-        for( int i = 1; i < 27; ++i )
+        for( uint32_t i = 1; i < 27; ++i )
         {
             DataSpace<simDim> relativMask = Mask::getRelativeDirections<simDim > ( i );
             /*guarding cells depend on direction
              */
             DataSpace<simDim> guardingCells;
-            for( int d = 0; d < simDim; ++d )
+            for( uint32_t d = 0; d < simDim; ++d )
             {
                 /*originGuard and endGuard are switch because we send data 
                  * e.g. from left I get endGuardingCells and from right I originGuardingCells
@@ -107,7 +107,7 @@ namespace picongpu
     }
 
     template<uint32_t AREA, class FrameSolver, class ParticlesClass>
-    void FieldTmp::computeValue( ParticlesClass& parClass, uint32_t currentStep )
+    void FieldTmp::computeValue( ParticlesClass& parClass, uint32_t )
     {
         typedef SuperCellDescription<
             typename MappingDesc::SuperCellSize,
@@ -212,7 +212,7 @@ namespace picongpu
         return cellDescription.getGridLayout( );
     }
 
-    void FieldTmp::reset( uint32_t currentStep )
+    void FieldTmp::reset( uint32_t )
     {
         fieldTmp->getHostBuffer( ).reset( true );
         fieldTmp->getDeviceBuffer( ).reset( false );

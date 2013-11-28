@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, René Widera
+ * Copyright 2013 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -18,24 +18,19 @@
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
-#ifndef LAMBDA_PLACEHOLDER_H
-#define LAMBDA_PLACEHOLDER_H
+
+#pragma once
+
 
 #include <boost/mpl/int.hpp>
-#include <boost/proto/core.hpp>
-
-namespace proto = boost::proto;
 
 namespace PMacc
 {
 namespace lambda
 {
-    
+
 template<int I>
 struct placeholder {};
-    
-} // lamnda
-} // PMacc
 
-#endif // LAMBDA_PLACEHOLDER_H
+} // namespace lambda
+} // namespace PMacc

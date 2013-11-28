@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 René Widera
+ * Copyright 2013 Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -45,13 +45,13 @@ namespace PMacc
         }
 
         template<class FRAME>
-        HDINLINE bool operator()(FRAME & frame, lcellId_t id)
+        HDINLINE bool operator()(FRAME&, lcellId_t)
         {
             return true;
         }
     };
 
-} //namepsace Frame
+} //namespace Frame
 
 #endif	/* TRUEFILTER_HPP */
 

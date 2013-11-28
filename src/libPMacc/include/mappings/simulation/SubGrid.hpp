@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, Heiko Burau, René Widera, Wolfgang Hoenig
+ * Copyright 2013 Felix Schmitt, Heiko Burau, Rene Widera, Wolfgang Hoenig
  *
  * This file is part of libPMacc. 
  * 
@@ -37,7 +37,7 @@ class SimulationBox
     static const uint32_t Dim = DIM;
 public:
 
-    HDINLINE SimulationBox(const Size& localSize,
+    SimulationBox(const Size& localSize,
                            const Size& globalSize,
                            const Size& globalOffset) :
     localSize(localSize),
@@ -49,7 +49,7 @@ public:
             assert(localSize[i] <= globalSize[i]);
     }
 
-    HDINLINE SimulationBox()
+    SimulationBox()
     {
 
     }

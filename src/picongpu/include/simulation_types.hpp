@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, René Widera
+ * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -27,7 +27,9 @@
 #include "algorithms/ForEach.hpp"
 #include "algorithms/math.hpp"
 #include "traits/GetMargin.hpp"
-#include "traits/GetType.hpp"
+#include "traits/SplashToPIC.hpp"
+#include "traits/PICToSplash.hpp"
+#include "traits/GetComponentsType.hpp"
 
 namespace picongpu
 {

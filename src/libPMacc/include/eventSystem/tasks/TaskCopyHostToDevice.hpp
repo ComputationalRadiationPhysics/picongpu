@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, René Widera, Wolfgang Hoenig
+ * Copyright 2013 Felix Schmitt, Rene Widera, Wolfgang Hoenig
  *
  * This file is part of libPMacc. 
  * 
@@ -59,7 +59,7 @@ namespace PMacc
             return isFinished();
         }
 
-        void event(id_t eventId, EventType type, IEventData* data)
+        void event(id_t, EventType, IEventData*)
         {
         }
 
@@ -169,7 +169,7 @@ namespace PMacc
             hostPtr.xsize = this->host->getDataSpace()[0] * sizeof (TYPE);
             hostPtr.ysize = this->host->getDataSpace()[1];
 
-            cudaMemcpy3DParms params = {0};
+            cudaMemcpy3DParms params;
             params.dstArray = NULL;
             params.dstPos = make_cudaPos(this->device->getOffset()[0] * sizeof (TYPE),
                                          this->device->getOffset()[1],

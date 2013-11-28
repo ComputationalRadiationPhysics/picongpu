@@ -66,10 +66,13 @@ You may even improve your level of awesomeness by:
   (see how to [avoide merge commits](#keep-track-of-updates))
 - `git config --global alias.pm "pull --rebase mainline"` (to sync with the mainline by `git pm dev`)
 - `git config --global alias.st "status -sb"` (short status version)
-- `git config --global alias.l "log --oneline --graph --decorate --all"` (branch history)
+- `git config --global alias.l "log --oneline --graph --decorate --first-parent"` (single branch history)
+- `git config --global alias.la "log --oneline --graph --decorate --all"` (full branch history)
 - `git config --global rerere.enable 1`
   (see [git rerere](http://git-scm.com/blog/2010/03/08/rerere.html))
-
+- More `alias` tricks:
+  - `git config --get-regexp alias` (show all aliases)
+  - `git config --global --unset alias.<Name>` (unset alias `<Name>`)
 
 
 ### git

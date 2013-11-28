@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, René Widera
+ * Copyright 2013 Felix Schmitt, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -33,7 +33,7 @@
 #include "eventSystem/tasks/StreamTask.hpp"
 #include "eventSystem/events/kernelEvents.hpp"
 
-__global__ static void kernelSetValueOnDeviceMemory(size_t* pointer, const size_t size)
+__global__ void kernelSetValueOnDeviceMemory(size_t* pointer, const size_t size)
 {
     *pointer = size;
 }
@@ -71,7 +71,7 @@ public:
         return isFinished();
     }
 
-    void event(id_t eventId, EventType type, IEventData* data)
+    void event(id_t, EventType, IEventData*)
     {
     }
 

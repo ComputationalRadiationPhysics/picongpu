@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, René Widera
+ * Copyright 2013 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -34,7 +34,7 @@ struct CursorAccessor
 {
     typedef typename TCursor::type type;
     
-    HDINLINE type& operator()(TCursor& cursor)
+    HDINLINE type operator()(TCursor& cursor)
     {
         return *cursor;
     }

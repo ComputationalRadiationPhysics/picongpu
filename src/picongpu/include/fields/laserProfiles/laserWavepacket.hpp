@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, René Widera, Richard Pausch
+ * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU. 
  * 
@@ -101,18 +101,17 @@ HINLINE float3_X laserLongitudinal(uint32_t currentStep, float_X& phase)
  * @param posZ
  * @return 
  */
-HDINLINE float3_X laserTransversal(float3_X elong, const float_X phase, const float_X posX, const float_X posZ)
+HDINLINE float3_X laserTransversal(float3_X elong, const float_X, const float_X posX, const float_X posZ)
 {
-    typedef typename GetType<float3_X>::type ElongType;
 
     const float_X r2 = posX * posX + posZ * posZ;
 
     const double exponent = r2 / (W0 * W0);
 #if !defined(__CUDA_ARCH__) // Host code path
 
-    return elong * typeCast<ElongType > (exp(-0.5 * exponent));
+    return elong * typeCast<float3_X > (exp(-0.5 * exponent));
 #else
-    return elong * typeCast<ElongType > (math::exp(-0.5 * exponent));
+    return elong * typeCast<float3_X > (math::exp(-0.5 * exponent));
 #endif
 }
 

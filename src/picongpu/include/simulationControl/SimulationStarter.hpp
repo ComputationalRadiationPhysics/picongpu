@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, René Widera
+ * Copyright 2013 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -87,7 +87,7 @@ namespace picongpu
             simulationClass->startSimulation();
         }
 
-        virtual void moduleRegisterHelp(po::options_description& desc)
+        virtual void moduleRegisterHelp(po::options_description&)
         {
         }
 

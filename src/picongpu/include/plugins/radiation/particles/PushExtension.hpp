@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, René Widera, Richard Pausch
+ * Copyright 2013 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU. 
  * 
@@ -48,7 +48,7 @@ struct PushExtension
         {
             const float_X c2 = SPEED_OF_LIGHT*SPEED_OF_LIGHT;
             // Radion marks only a particle if it has a high velocity
-            // marked particle means that momentum_mt1 is not 0.0 in one direction
+            // marked particle means that momentumPrev1 is not 0.0 in one direction
 
             const float_X abs2_mom = abs2(mom);
             if (((abs2_mom)>((parameters::RadiationGamma * parameters::RadiationGamma - float_X(1.0)) * mass * mass * c2)))

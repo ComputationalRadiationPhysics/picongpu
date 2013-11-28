@@ -1,5 +1,5 @@
 #
-# Copyright 2013 Axel Huebl, Benjamin Schneider, Felix Schmitt, Heiko Burau, René Widera
+# Copyright 2013 Axel Huebl, Benjamin Schneider, Felix Schmitt, Heiko Burau, Rene Widera
 #
 # This file is part of PIConGPU.
 #
@@ -18,109 +18,178 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
-cmake_minimum_required(VERSION 2.8)
+################################################################################
+# Required cmake version
+################################################################################
 
-OPTION(VAMPIR_ENABLE "create picongpu with vampir support" OFF)
+cmake_minimum_required(VERSION 2.8.5)
 
 
-IF(VAMPIR_ENABLE)
-    message("[CONFIG]  build program with vampir support")
+################################################################################
+# Pre-project (any compiler must be set here)
+################################################################################
+
+option(VAMPIR_ENABLE "Create PIConGPU with VampirTrace support" OFF)
+if(VAMPIR_ENABLE)
+    message(STATUS "Building with VampirTrace support")
     set(CMAKE_CXX_COMPILER "vtc++")
-    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -vt:hyb -L/$ENV{VT_ROOT}/lib -finstrument-functions-exclude-file-list=${CMAKE_CXX_INST_FILE_FILTER} -finstrument-functions-exclude-function-list=${CMAKE_CXX_INST_FUNC_FILTER} -DVTRACE")
-    set(CMAKE_CXX_FLAGS_DEFAULT "${CMAKE_CXX_FLAGS_DEFAULT} -vt:hyb -L/$ENV{VT_ROOT}/lib -finstrument-functions-exclude-file-list=${CMAKE_CXX_INST_FILE_FILTER} -finstrument-functions-exclude-function-list=${CMAKE_CXX_INST_FUNC_FILTER} -DVTRACE")
-ENDIF(VAMPIR_ENABLE)
+    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -vt:hyb -L/$ENV{VT_ROOT}/lib
+        -finstrument-functions-exclude-file-list=${CMAKE_CXX_INST_FILE_FILTER}
+        -finstrument-functions-exclude-function-list=${CMAKE_CXX_INST_FUNC_FILTER} -DVTRACE")
+    set(CMAKE_CXX_FLAGS_DEFAULT "${CMAKE_CXX_FLAGS_DEFAULT} -vt:hyb -L/$ENV{VT_ROOT}/lib
+        -finstrument-functions-exclude-file-list=${CMAKE_CXX_INST_FILE_FILTER}
+        -finstrument-functions-exclude-function-list=${CMAKE_CXX_INST_FUNC_FILTER} -DVTRACE")
+endif(VAMPIR_ENABLE)
 
-# Projekt name
-project (PIConGPU)
 
-#set helper pathes to find libraries and packages
-set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{MPI_ROOT}" "$ENV{CUDA_ROOT}" "$ENV{BOOST_ROOT}" "$ENV{HDF5_ROOT}")
+################################################################################
+# Project 
+################################################################################
 
-#include cuda
-FIND_PACKAGE(CUDA REQUIRED)
+project(PIConGPU)
 
-OPTION(PIC_RELEASE "disable all runtime asserts" OFF)
-IF(PIC_RELEASE)
-    SET(CMAKE_BUILD_TYPE Release)
-    ADD_DEFINITIONS(-DNDEBUG)
+# set helper pathes to find libraries and packages
+set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{MPI_ROOT}"
+    "$ENV{CUDA_ROOT}" "$ENV{BOOST_ROOT}" "$ENV{HDF5_ROOT}" "$ENV{VT_ROOT}")
+
+
+################################################################################
+# Find CUDA 
+################################################################################
+
+find_package(CUDA 5.0 REQUIRED)
+
+if(CUDA_VERSION VERSION_LESS 5.5)
+    message(STATUS "CUDA Toolkit < 5.5 detected. We strongly recommend to still "
+                   "use CUDA 5.5+ drivers!")
+endif(CUDA_VERSION VERSION_LESS 5.5)
+
+set(CUDA_ARCH sm_20 CACHE STRING "Set GPU architecture")
+string(COMPARE EQUAL ${CUDA_ARCH} "sm_10" IS_CUDA_ARCH_UNSUPPORTED)
+string(COMPARE EQUAL ${CUDA_ARCH} "sm_11" IS_CUDA_ARCH_UNSUPPORTED)
+string(COMPARE EQUAL ${CUDA_ARCH} "sm_12" IS_CUDA_ARCH_UNSUPPORTED)
+string(COMPARE EQUAL ${CUDA_ARCH} "sm_13" IS_CUDA_ARCH_UNSUPPORTED)
+
+if(IS_CUDA_ARCH_UNSUPPORTED)
+    message(FATAL_ERROR "Unsupported CUDA architecture ${CUDA_ARCH} specified. "
+                       "SM 2.0 or higher is required.")
+endif(IS_CUDA_ARCH_UNSUPPORTED)
+
+set(CUDA_FTZ "--ftz=false" CACHE STRING "Set flush to zero for GPU")
+
+set(CUDA_MATH --use_fast_math CACHE STRING "Enable fast-math" )
+option(CUDA_SHOW_REGISTER "Show kernel registers and create PTX" OFF)
+option(CUDA_KEEP_FILES "Keep all intermediate files that are generated during internal compilation steps (folder: nvcc_tmp)" OFF)
+option(CUDA_SHOW_CODELINES "Show kernel lines in cuda-gdb and cuda-memcheck" OFF)
+
+if(CUDA_SHOW_CODELINES)
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" --source-in-ptx -Xcompiler -rdynamic -lineinfo)
+    set(CUDA_KEEP_FILES ON CACHE BOOL "activate keep files" FORCE)
+endif(CUDA_SHOW_CODELINES)
+
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${nvcc_flags} -arch=${CUDA_ARCH} ${CUDA_MATH} ${CUDA_FTZ})
+if(CUDA_SHOW_REGISTER)
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" -Xptxas=-v)
+endif(CUDA_SHOW_REGISTER)
+
+if(CUDA_KEEP_FILES)
+    make_directory("${PROJECT_BINARY_DIR}/nvcc_tmp")
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" --keep --keep-dir "${PROJECT_BINARY_DIR}/nvcc_tmp")
+endif(CUDA_KEEP_FILES)
+
+
+################################################################################
+# Build type (debug, release)
+################################################################################
+
+option(PIC_RELEASE "Build release version, disables all runtime asserts" OFF)
+if(PIC_RELEASE)
+    message(STATUS "Release version")
+
+    set(CMAKE_BUILD_TYPE Release)
+    add_definitions(-DNDEBUG)
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-Xcompiler=-pthread")
-ELSE(PIC_RELEASE)
-   set(CMAKE_BUILD_TYPE Debug)
-   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" -g "-Xcompiler=-g,-pthread")
-ENDIF(PIC_RELEASE)
+else(PIC_RELEASE)
+    message(STATUS "Debug version")
+
+    set(CMAKE_BUILD_TYPE Debug)
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" -g "-Xcompiler=-g,-pthread")
+endif(PIC_RELEASE)
 
 
-FIND_PACKAGE(MPI REQUIRED)
+################################################################################
+# Find MPI
+################################################################################
 
-#Boost from system
-FIND_PACKAGE(Boost REQUIRED COMPONENTS program_options regex)
-INCLUDE_DIRECTORIES(AFTER ${Boost_INCLUDE_DIRS})
-LINK_DIRECTORIES(${Boost_LIBRARY_DIR})
-SET(LIBS ${LIBS} ${Boost_LIBRARIES})
+find_package(MPI REQUIRED)
+include_directories(SYSTEM ${MPI_C_INCLUDE_PATH})
+set(LIBS ${LIBS} ${MPI_C_LIBRARIES})
 
-IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    SET(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}" CACHE PATH "install prefix" FORCE)
-ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) 
+# bullxmpi fails if it can not find its c++ counter part
+if(MPI_CXX_FOUND) 
+    set(LIBS ${LIBS} ${MPI_CXX_LIBRARIES})
+endif(MPI_CXX_FOUND)
 
-########################################################################
-#set options
 
-##CUDA##
-SET(CUDA_ARCH sm_13 CACHE STRING "set GPU architecture" )
-STRING(COMPARE EQUAL ${CUDA_ARCH} "sm_13" IS_CUDA_ARCH_SM13)
-SET(CUDA_FTZ "--ftz=false" CACHE STRING "set flush to zero for GPU")
-IF( IS_CUDA_ARCH_SM13)
-    SET(CUDA_FTZ "")
-ENDIF( IS_CUDA_ARCH_SM13)
+################################################################################
+# Find PThreads
+################################################################################
 
-SET(CUDA_MATH --use_fast_math CACHE STRING "set GPU architecture" )
-OPTION(CUDA_SHOW_REGISTER "show kernel register and create PTX" OFF)
-OPTION(CUDA_KEEP_FILES "Keep all intermediate files that are generated during internal compilation steps. (folder: nvcc_tmp)" OFF)
-OPTION(CUDA_SHOW_CODELINES "show kernel lines in cuda-gdb and cuda-memcheck (need architecture >=sm_20)" OFF)
+find_package(Threads REQUIRED)
+set(LIBS ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
 
-IF(CUDA_SHOW_CODELINES)
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" -Xcompiler -rdynamic -lineinfo)
-ENDIF(CUDA_SHOW_CODELINES)
 
-SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${nvcc_flags} -arch=${CUDA_ARCH} ${CUDA_MATH} ${CUDA_FTZ})
-IF(CUDA_SHOW_REGISTER)
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" -Xptxas=-v -Xopencc=-LIST:source=on)
-ENDIF(CUDA_SHOW_REGISTER)
+################################################################################
+# Find Boost
+################################################################################
 
-IF(CUDA_KEEP_FILES)
-    MAKE_DIRECTORY("${PROJECT_BINARY_DIR}/nvcc_tmp")
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" --keep --keep-dir "nvcc_tmp")
-ENDIF(CUDA_KEEP_FILES)
+find_package(Boost 1.49.0 REQUIRED COMPONENTS program_options regex)
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+set(LIBS ${LIBS} ${Boost_LIBRARIES})
 
-##END CUDA##
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}" CACHE PATH "install prefix" FORCE)
+endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) 
 
-##PMacc defines#####
+# work-arounds
+if(Boost_VERSION EQUAL 105500)
+    # see https://svn.boost.org/trac/boost/ticket/9392
+    message(STATUS "Boost: Applying noinline work around")
+    set(CMAKE_CXX_FLAGS
+        "${CMAKE_CXX_FLAGS} -DBOOST_NOINLINE='__attribute__ ((noinline))'")
+endif(Boost_VERSION EQUAL 105500)
 
-OPTION(PMACC_BLOCKING_KERNEL "activate checks for every kernel call and synch after every kernel call" OFF)
-IF(PMACC_BLOCKING_KERNEL)
-    ADD_DEFINITIONS(-DPMACC_SYNC_KERNEL=1)
-ENDIF(PMACC_BLOCKING_KERNEL)
 
-SET(PMACC_VERBOSE "0" CACHE STRING "set verbose level for libPMacc")
-ADD_DEFINITIONS(-DPMACC_VERBOSE_LVL=${PMACC_VERBOSE})
+################################################################################
+# PMacc options
+################################################################################
 
-######
+option(PMACC_BLOCKING_KERNEL 
+       "Activate checks for every kernel call and synchronize after every kernel call" OFF)
+if(PMACC_BLOCKING_KERNEL)
+    add_definitions(-DPMACC_SYNC_KERNEL=1)
+endif(PMACC_BLOCKING_KERNEL)
 
-##PARAM (overwrite) defines#####
+set(PMACC_VERBOSE "0" CACHE STRING "Set verbosity level for libPMacc")
+add_definitions(-DPMACC_VERBOSE_LVL=${PMACC_VERBOSE})
 
-IF(PARAM_OVERWRITES)
-    FOREACH(param ${PARAM_OVERWRITES})
-       ADD_DEFINITIONS(${param})
-    ENDFOREACH(param)
-ENDIF(PARAM_OVERWRITES)
 
-######
+################################################################################
+# PARAM (overwrite) defines
+################################################################################
 
-#######################################################
+if(PARAM_OVERWRITES)
+    foreach(param ${PARAM_OVERWRITES})
+       add_definitions(${param})
+    endforeach(param)
+endif(PARAM_OVERWRITES)
+
+
+################################################################################
 # load cuda_memtest project
-#######################################################
-SET(DISBALE_COMPILER_FLAGS_IN_SUBPROJECTS ON)
+################################################################################
 
+set(SAME_NVCC_FLAGS_IN_SUBPROJECTS OFF)
 find_path(CUDA_MEMTEST_DIR
         NAMES CMakeLists.txt
         PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../cuda_memtest"
@@ -129,9 +198,11 @@ find_path(CUDA_MEMTEST_DIR
 
 add_subdirectory(${CUDA_MEMTEST_DIR} "${CMAKE_CURRENT_BINARY_DIR}/build_cuda_memtest")
 
-#######################################################
-# load mpiInfo project
-#######################################################
+
+################################################################################
+# Load mpiInfo project
+################################################################################
+
 find_path(MPI_INFO_DIR
         NAMES CMakeLists.txt
         PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../mpiInfo"
@@ -140,90 +211,157 @@ find_path(MPI_INFO_DIR
 
 add_subdirectory(${MPI_INFO_DIR} "${CMAKE_CURRENT_BINARY_DIR}/build_mpiInfo")
 
-#######################################################
 
-#####PICONGPU OPTIONS##########
+################################################################################
+# PIConGPU options
+################################################################################
 
-SET(PIC_VERBOSE "1" CACHE STRING "set verbose level for picongpu (default is only physic output)")
-ADD_DEFINITIONS(-DPIC_VERBOSE_LVL=${PIC_VERBOSE})
+set(PIC_VERBOSE "1" CACHE STRING
+    "Set verbosity level for PIConGPU (default is only physics output)")
+add_definitions(-DPIC_VERBOSE_LVL=${PIC_VERBOSE})
 
-OPTION(PIC_ENABLE_HDF5 "create picongpu with hdf5 support" ON)
-IF(PIC_ENABLE_HDF5)
-    ADD_DEFINITIONS(-DENABLE_HDF5=1)
-    FIND_PACKAGE(HDF5 REQUIRED)
-    INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIR})
-    LINK_DIRECTORIES(${HDF5_LIBRARY_DIRS})
-    SET(LIBS ${LIBS} hdf5)
-ENDIF(PIC_ENABLE_HDF5)
-
-OPTION(PIC_ENABLE_PNG "create picongpu png output support (need pngwriter)" ON)
-IF(PIC_ENABLE_PNG)
-    ADD_DEFINITIONS(-DPIC_ENABLE_PNG=1)
-ENDIF(PIC_ENABLE_PNG)
-
-OPTION(PIC_ENABLE_INSITU_VOLVIS "enable In Situ Volume Visualization" OFF)
-IF(PIC_ENABLE_INSITU_VOLVIS)
-	ADD_DEFINITIONS(-DENABLE_INSITU_VOLVIS=1)
-	SET(CUDA_ARCH sm_35 CACHE STRING "set GPU architecture")
-	SET(IceT_DIR "$ENV{ICET_ROOT}/lib/")
-	FIND_PACKAGE(IceT REQUIRED)
-	INCLUDE_DIRECTORIES(${ICET_INCLUDE_DIRS})
-	SET(LIBS ${LIBS} ${ICET_CORE_LIBS} ${ICET_MPI_LIBS})
-ENDIF(PIC_ENABLE_INSITU_VOLVIS)
-
-SET(CMAKE_CXX_FLAGS_DEFAULT "-Wall")
+option(PIC_ENABLE_INSITU_VOLVIS "Enable In Situ Volume Visualization" OFF)
+if(PIC_ENABLE_INSITU_VOLVIS)
+	add_definitions(-DENABLE_INSITU_VOLVIS=1)
+	set(CUDA_ARCH sm_35 CACHE STRING "set GPU architecture")
+	set(IceT_DIR "$ENV{ICET_ROOT}/lib/")
+	find_package(IceT REQUIRED)
+	include_directories(SYSTEM ${ICET_INCLUDE_DIRS})
+	set(LIBS ${LIBS} ${ICET_CORE_LIBS} ${ICET_MPI_LIBS})
+endif(PIC_ENABLE_INSITU_VOLVIS)
 
 
-#########################################################################
+################################################################################
+# Warnings
+################################################################################
+
+# GNU
+if(CMAKE_COMPILER_IS_GNUCXX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter")
+# ICC
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_VARIADIC_TEMPLATES")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_CXX11_VARIADIC_TEMPLATES")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_FENV_H")
+# PGI
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "PGI")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Minform=inform")
+endif()
+
+
+################################################################################
 # Configure include directories
+################################################################################
 
-#libPMacc
+# libPMacc
 
 find_path(PMACC_ROOT_DIR
   NAMES include/types.h
   PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../libPMacc"
-  DOC "libPMacc root location."
+  DOC "libPMacc root location"
   )
+include_directories(${PMACC_ROOT_DIR}/include)
 
-INCLUDE_DIRECTORIES(${PMACC_ROOT_DIR}/include)
 
-#LIBSPLASH
-IF(PIC_ENABLE_HDF5)
-  # find splash source code
-  find_path(PIC_SPLASH_ROOT_DIR
-    NAMES include/sdc_defines.hpp lib/libsplash.so
-    PATHS ENV SPLASH_ROOT
-    DOC "libsplash ROOT location. (only used if HDF5 is enabled)"
-    )
+################################################################################
+# libSplash (+ hdf5 due to required headers)
+################################################################################
 
-    #add include information
-    INCLUDE_DIRECTORIES(${PIC_SPLASH_ROOT_DIR}/include)
+# find libSplash installation
+find_path(PIC_SPLASH_ROOT_DIR
+  NAMES include/splash.h lib/libsplash.a
+  PATHS ENV SPLASH_ROOT
+  DOC "libSplash ROOT location (provides HDF5 output)"
+)
 
-    #add library information
+if(PIC_SPLASH_ROOT_DIR)
+    # find version
+    file(STRINGS "${PIC_SPLASH_ROOT_DIR}/include/version.hpp"
+         PIC_SPLASH_VERSION_MAJOR_HPP REGEX "#define SPLASH_VERSION_MAJOR ")
+    file(STRINGS "${PIC_SPLASH_ROOT_DIR}/include/version.hpp"
+         PIC_SPLASH_VERSION_MINOR_HPP REGEX "#define SPLASH_VERSION_MINOR ")
+    string(REGEX MATCH "([0-9]+)" PIC_SPLASH_VERSION_MAJOR
+                                ${PIC_SPLASH_VERSION_MAJOR_HPP})
+    string(REGEX MATCH "([0-9]+)" PIC_SPLASH_VERSION_MINOR
+                                ${PIC_SPLASH_VERSION_MINOR_HPP})
+
+    set(PIC_SPLASH_VERSION "${PIC_SPLASH_VERSION_MAJOR}.${PIC_SPLASH_VERSION_MINOR}")
+
+    # status output and require hdf5
+    message(STATUS "Found libSplash: ${PIC_SPLASH_ROOT_DIR} "
+                   "(found version \"${PIC_SPLASH_VERSION}\")")
+    find_package(HDF5 REQUIRED)
+
+    # libSplash compiled with parallel support?
+    file(STRINGS "${PIC_SPLASH_ROOT_DIR}/include/splash.h" _splash_H_CONTENTS
+         REGEX "#define SPLASH_SUPPORTED_PARALLEL ")
+    string(REGEX MATCH "([0-9]+)" _splash_IS_PARALLEL "${_splash_H_CONTENTS}")
+
+    # check parallel libSplash to parallel hdf5 compatibility
+    if("${_splash_IS_PARALLEL}")
+       message(STATUS "libSplash supports PARALLEL output")
+       if(NOT HDF5_IS_PARALLEL)
+           message(FATAL_ERROR "libSplash compiled with PARALLEL support but HDF5 lacks it...")
+       endif(NOT HDF5_IS_PARALLEL)
+    endif("${_splash_IS_PARALLEL}")
+
+    add_definitions(-DENABLE_HDF5=1)
+
+    # add include information
+    include_directories(SYSTEM ${HDF5_INCLUDE_DIRS})
+    include_directories(SYSTEM ${PIC_SPLASH_ROOT_DIR}/include)
+
+    # add library information
     # dynamic / shared
-    #LINK_DIRECTORIES("${PIC_SPLASH_ROOT_DIR}/lib")   
-    #SET(LIBS ${LIBS} splash)
-    # static
-    ADD_LIBRARY(splash_static STATIC IMPORTED)
-    SET_TARGET_PROPERTIES(splash_static PROPERTIES IMPORTED_LOCATION ${PIC_SPLASH_ROOT_DIR}/lib/libsplash.a)
-    SET(LIBS ${LIBS} splash_static)
-ENDIF(PIC_ENABLE_HDF5)
+    #link_directories("${PIC_SPLASH_ROOT_DIR}/lib")   
+    #set(LIBS ${LIBS} splash ${HDF5_LIBRARIES})
+    #target_link_libraries(splash hdf5)
 
-#PNGWRITER
-IF(PIC_ENABLE_PNG)
-  find_path(PIC_PNGWRITER_ROOT_DIR
+    # static
+    add_library(splash_static STATIC IMPORTED)
+    set_target_properties(splash_static PROPERTIES IMPORTED_LOCATION
+                          ${PIC_SPLASH_ROOT_DIR}/lib/libsplash.a)
+    set(LIBS ${LIBS} splash_static ${HDF5_LIBRARIES})
+else(PIC_SPLASH_ROOT_DIR)
+    message(STATUS "Could NOT find libSplash for hdf5 output")
+endif(PIC_SPLASH_ROOT_DIR)
+
+
+################################################################################
+# PNGWRITER
+################################################################################
+
+find_path(PIC_PNGWRITER_ROOT_DIR
     NAMES include/pngwriter.h
     PATHS ENV PNGWRITER_ROOT 
-    DOC "pngwriter root location. (only used if PIC_ENABLE_PNG is enabled)"
-    )
-ENDIF(PIC_ENABLE_PNG)
-IF(PIC_ENABLE_PNG)
-    INCLUDE_DIRECTORIES(${PIC_PNGWRITER_ROOT_DIR}/include /usr/include/freetype2/)
-    LINK_DIRECTORIES(${PIC_PNGWRITER_ROOT_DIR}/lib)
-    SET(LIBS ${LIBS} png pngwriter freetype)
-ENDIF(PIC_ENABLE_PNG)
+    DOC "pngwriter ROOT location")
 
-# check if PIC_EXTENSION_PATH is relativ or absolut
+if(PIC_PNGWRITER_ROOT_DIR)
+    message(STATUS "Found PNGWriter: "${PIC_PNGWRITER_ROOT_DIR})
+
+    add_definitions(-DPIC_ENABLE_PNG=1)
+    include_directories(SYSTEM ${PIC_PNGWRITER_ROOT_DIR}/include)
+    link_directories(${PIC_PNGWRITER_ROOT_DIR}/lib)
+    set(LIBS ${LIBS} png pngwriter)
+
+    # freetype support enabled?
+    include(FindFreetype)
+    if(FREETYPE_FOUND)
+      include_directories(${FREETYPE_INCLUDE_DIRS})
+      set(LIBS ${LIBS} ${FREETYPE_LIBRARIES})
+    endif(FREETYPE_FOUND)
+else(PIC_PNGWRITER_ROOT_DIR)
+    message(STATUS "Could NOT find PNGWriter")
+endif(PIC_PNGWRITER_ROOT_DIR)
+
+
+################################################################################
+# Check if PIC_EXTENSION_PATH is relative or absolute
+################################################################################
 
 find_path(PIC_EXTENSION_PATH
     NAMES include/simulation_defines/param/componentsConfig.param
@@ -234,45 +372,60 @@ find_path(PIC_EXTENSION_PATH
     NO_CMAKE_SYSTEM_PATH
     )
 
-SET(PIC_COPY_ON_INSTALL "include/simulation_defines" "submit" CACHE LIST "folder which copied on install to install path" )
+set(PIC_COPY_ON_INSTALL "include/simulation_defines" "submit" CACHE LIST
+    "Folder which is copied to installation path during install" )
+
+include_directories(include)
+include_directories(BEFORE ${PIC_EXTENSION_PATH}/include)
+
 
 ################################################################################
-INCLUDE_DIRECTORIES(include ${MPI_INCLUDE_PATH} ${mpi_include_path})
-INCLUDE_DIRECTORIES(BEFORE ${PIC_EXTENSION_PATH}/include)
+# VampirTrace support
 ################################################################################
 
+if(VAMPIR_ENABLE)
+    find_path(PIC_VT_ROOT_DIR
+        NAMES include/vampirtrace/vt_user.h lib/libvt-hyb.so
+        PATHS ENV VT_ROOT 
+        DOC "VampirTrace ROOT location")
 
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${INCLUDE_DIRECTORIES})
+    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}
+        -Xcompiler=-finstrument-functions,-finstrument-functions-exclude-file-list=\\\"${CMAKE_CXX_INST_FILE_FILTER}\\\"
+        -Xcompiler=-finstrument-functions-exclude-function-list=\\\"${CMAKE_CXX_INST_FUNC_FILTER}\\\"
+        -Xcompiler=-DVTRACE -Xcompiler=-I\\\"${PIC_VT_ROOT_DIR}/include/vampirtrace\\\"
+        -v)
+    set(LIBS vt-hyb ${LIBS})
+endif(VAMPIR_ENABLE)
 
 
-IF(VAMPIR_ENABLE)
-    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -Xcompiler=-finstrument-functions,-finstrument-functions-exclude-file-list=\\\"${CMAKE_CXX_INST_FILE_FILTER}\\\" -Xcompiler=-finstrument-functions-exclude-function-list=\\\"${CMAKE_CXX_INST_FUNC_FILTER}\\\" -Xcompiler=-DVTRACE -Xcompiler=-I/sw/xk6/vampirtrace/5.14.3-iofsl/cle4.1_gnu4.7.2//include/vampirtrace/ -v  )
-ENDIF(VAMPIR_ENABLE)
+################################################################################
+# Compile & Link PIConGPU
+################################################################################
 
-
-FILE(GLOB CUDASRCFILES "*.cu")
-FILE(GLOB SRCFILES "*.cpp")
+file(GLOB CUDASRCFILES "*.cu")
+file(GLOB SRCFILES "*.cpp")
 
 cuda_add_executable(picongpu
     ${CUDASRCFILES}
     ${SRCFILES}
 )
 
-IF(VAMPIR_ENABLE)
-    SET(LIBS vt-hyb ${LIBS} )
-ENDIF(VAMPIR_ENABLE)
-
-target_link_libraries(picongpu  ${LIBS} ${CUDA_CUDART_LIBRARY} z m ${MPI_LIBRARIES}) # not necessary ${MPI_EXTRA_LIBRARY}
+target_link_libraries(picongpu  ${LIBS} ${CUDA_CUDART_LIBRARY} z m)
 
 
-INSTALL(TARGETS picongpu
+################################################################################
+# Install PIConGPU
+################################################################################
+
+install(TARGETS picongpu
          RUNTIME DESTINATION bin)
 
-#FILE(GLOB scripts_to_copy "${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.sh")
-#FOREACH(f ${scripts_to_copy})
+#file(GLOB scripts_to_copy "${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.sh")
+#foreach(f ${scripts_to_copy})
 #   GET_FILENAME_COMPONENT(file_name ${f} NAME CACHE)                                 
-#   INSTALL(FILES "${f}" DESTINATION bin PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE GROUP_READ GROUP_EXECUTE)
-#ENDFOREACH(f)
+#   install(FILES "${f}" DESTINATION bin PERMISSIONS OWNER_EXECUTE OWNER_READ
+#           OWNER_WRITE GROUP_READ GROUP_EXECUTE)
+#endforeach(f)
 
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/scripts/" DESTINATION bin
     FILES_MATCHING PATTERN "*"
@@ -280,27 +433,34 @@ install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/scripts/" DESTINATION bin
     PATTERN .svn EXCLUDE   
 )
 
-#if install prefix is not equal with extension path than check if folder must copyed
-# or if we have no include folder in install prefix we also copy all missing folders
-IF( (NOT "${CMAKE_INSTALL_PREFIX}" STREQUAL "${PIC_EXTENSION_PATH}") OR (NOT EXISTS "${CMAKE_INSTALL_PREFIX}/include"))
+# If the installation prefix does not equal extension path, check if folder must be copied.
+# If there is no include folder in installation prefix, also copy all missing folders.
+if( (NOT "${CMAKE_INSTALL_PREFIX}" STREQUAL "${PIC_EXTENSION_PATH}") OR 
+    (NOT EXISTS "${CMAKE_INSTALL_PREFIX}/include"))
+
     #copy all importend subfolders to install folder
-    FOREACH(dir ${PIC_COPY_ON_INSTALL})
+    foreach(dir ${PIC_COPY_ON_INSTALL})
+
       #if source not exists than copy
-      IF(NOT EXISTS "${CMAKE_INSTALL_PREFIX}/${dir}")
-          #copy importend subfolders from extension path (default picongpu parameter)
-          IF(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${dir}/")
-            INSTALL(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${dir}/."
+      if(NOT EXISTS "${CMAKE_INSTALL_PREFIX}/${dir}")
+          #copy importend subfolders from extension path (default PIConGPU parameter)
+          if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${dir}/")
+            install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${dir}/."
               DESTINATION "${CMAKE_INSTALL_PREFIX}/${dir}"
               PATTERN .svn EXCLUDE
+              PATTERN .git EXCLUDE
             )
-          ENDIF()
+          endif()
+
           #copy importend subfolders from extension path (from extension path)
-          IF(EXISTS "${PIC_EXTENSION_PATH}/${dir}/")
-            INSTALL(DIRECTORY "${PIC_EXTENSION_PATH}/${dir}/."
+          if(EXISTS "${PIC_EXTENSION_PATH}/${dir}/")
+            install(DIRECTORY "${PIC_EXTENSION_PATH}/${dir}/."
                DESTINATION "${CMAKE_INSTALL_PREFIX}/${dir}"
                PATTERN .svn EXCLUDE
+               PATTERN .git EXCLUDE
             )
-          ENDIF()
-      ENDIF()
-    ENDFOREACH()
-ENDIF()
+          endif()
+      endif()
+
+    endforeach()
+endif()

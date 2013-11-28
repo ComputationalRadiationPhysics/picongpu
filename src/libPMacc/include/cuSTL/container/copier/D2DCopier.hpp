@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, René Widera
+ * Copyright 2013 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -35,7 +35,7 @@ struct D2DCopier
 {
     static const int dim = _dim;
     template<typename Type>
-    HDINLINE static void copy(Type* dest, const math::Size_t<dim-1>& pitchDest,
+    static void copy(Type* dest, const math::Size_t<dim-1>& pitchDest,
          Type* source, const math::Size_t<dim-1>& pitchSource,
          const math::Size_t<dim>& size)
     {
