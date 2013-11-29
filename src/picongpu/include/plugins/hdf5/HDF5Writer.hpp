@@ -288,7 +288,6 @@ public:
 
     __host__ void notify(uint32_t currentStep)
     {
-
         mThreadParams.currentStep = (int32_t) currentStep;
         mThreadParams.gridPosition = SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset();
         mThreadParams.cellDescription = this->cellDescription;
@@ -322,8 +321,6 @@ private:
         {
             log<picLog::INPUT_OUTPUT > ("HDF5 close DataCollector with file: %1%") % filename;
             mThreadParams.dataCollector->close();
-            delete mThreadParams.dataCollector;
-            mThreadParams.dataCollector = NULL;
         }
     }
 
@@ -371,6 +368,7 @@ private:
     {
         if (notifyFrequency > 0)
         {
+            mThreadParams.dataCollector = NULL;
             mThreadParams.gridPosition =
                 SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset();
 
@@ -391,7 +389,11 @@ private:
 
     void moduleUnload()
     {
-
+        if (mThreadParams.dataCollector != NULL)
+        {
+            delete mThreadParams.dataCollector;
+            mThreadParams.dataCollector = NULL;
+        }
     }
 
     static void writeField(ThreadParams *params, const DomainInformation domInfo, CollectionType& colType,
