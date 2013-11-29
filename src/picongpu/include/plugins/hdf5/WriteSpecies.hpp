@@ -152,6 +152,7 @@ public:
                             std::string prefix,
                             const DomainInformation domInfo,const Space particleOffset)
                             const Space particleOffset)
+                            RefWrapper<uint64_cu*> totalNumParticlesWritten)
     {
         log<picLog::INPUT_OUTPUT > ("HDF5: write species: %1%") % Hdf5FrameType::getName();
         DataConnector &dc = DataConnector::getInstance();
@@ -257,6 +258,10 @@ public:
         ForEach<typename Hdf5FrameType::ValueTypeSeq, FreeMemory<void> > freeMem;
         freeMem(byRef(hostFrame));
         log<picLog::INPUT_OUTPUT > ("HDF5: Finish write species: %1%") % Hdf5FrameType::getName();
+        if (totalNumParticlesWritten.get())
+        {
+            *(totalNumParticlesWritten.get()) = totalNumParticles;
+        }
     }
 };
 

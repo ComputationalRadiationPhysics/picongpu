@@ -70,6 +70,17 @@ public:
         return mpiSize;
     }
 
+
+    MPI_Comm getMPIComm() const
+    {
+        return topology;
+    }
+
+    MPI_Info getMPIInfo() const
+    {
+        return MPI_INFO_NULL;
+    }
+
     /*! initializes all processes to build a 3D-grid
      *
      * @param nodes number of GPU nodes in each dimension

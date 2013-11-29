@@ -330,6 +330,10 @@ private:
         mThreadParams.dataCollector = new DomainCollector(maxOpenFilesPerNode);
 
                         splashMpiSize,
+                        gc.getCommunicator().getMPIInfo(),
+                        mpiSizeHdf5,
+                        maxOpenFilesPerNode);
+        }
         // set attributes for datacollector files
         DataCollector::FileCreationAttr attr;
         attr.enableCompression = this->compression;
@@ -340,7 +344,6 @@ private:
             attr.fileAccType = DataCollector::FAT_CREATE;
         attr.mpiPosition.set(splashMpiPos);
         attr.mpiSize.set(splashMpiSize);
-        {
             attr.mpiSize[i] = mpi_size[i];
         }
 
@@ -516,9 +519,46 @@ private:
 
         /*print all particle species*/
         log<picLog::INPUT_OUTPUT > ("HDF5 begin to write particle species.");
+        uint64_cu totalNumParticles = 0;
+        uint64_cu *totalNumParticlesPtr = &totalNumParticles;
         ForEach<Hdf5OutputParticles, WriteSpecies<void> > writeSpecies;
-        writeSpecies(ref(threadParams), std::string(), domInfo, particleOffset);
+        writeSpecies(ref(threadParams), std::string(), domInfo,
         log<picLog::INPUT_OUTPUT > ("HDF5 end to write particle species.");
+        log<picLog::INPUT_OUTPUT > ("HDF5 end writing particle species.");
+        
+        
+        /*write species index table to hdf5 file*/
+        log<picLog::INPUT_OUTPUT > ("HDF5 begin writing particle index table.");
+        {
+            GridController<simDim> &gc = GridController<simDim>::getInstance();
+            uint64_t localNumParticles = totalNumParticles;
+            uint64_t globalParticleOffset = 0;
+            uint64_t write_sizes[gc.getGlobalSize()];
+
+            if (MPI_Allgather(&localNumParticles, 1, MPI_INTEGER8, write_sizes,
+                    1, MPI_INTEGER8, gc.getCommunicator().getMPIComm()) == MPI_SUCCESS)
+            {
+                for (uint32_t i = 0; i < gc.getGlobalRank(); ++i)
+                    globalParticleOffset += write_sizes[i];
+
+                const size_t size_index_bfr = 2;
+                const size_t index_bfr[size_index_bfr] =
+                    { totalNumParticles, globalParticleOffset };
+
+                threadParams->dataCollector->write(
+                    threadParams->currentStep,
+                    Dimensions(size_index_bfr * gc.getGlobalSize(), 1, 1),
+                    Dimensions(size_index_bfr * gc.getGlobalRank(), 0, 0),
+                    ctInt, 1,
+                    Dimensions(size_index_bfr, 1, 1),
+                    "particles_index",
+                    index_bfr);
+            }
+            else
+                log<picLog::INPUT_OUTPUT > ("HDF5 failed to write particle index table!");
+        }
+        log<picLog::INPUT_OUTPUT > ("HDF5 end writing particle index table.");
+
 
         if (MovingWindow::getInstance().isSlidingWindowActive())
         {
@@ -547,7 +587,9 @@ private:
             /* for restart we only need bottom ghosts for particles */
             log<picLog::INPUT_OUTPUT > ("HDF5 begin to write particle species bottom.");
             /* print all particle species */
-            writeSpecies(ref(threadParams), std::string("_bottom_"), domInfo, particleOffset);
+            uint64_cu *totalNumParticles_dummy = NULL;
+            writeSpecies(ref(threadParams), std::string("_bottom_"), domInfo, particleOffset,
+                    ref(totalNumParticles_dummy));
             log<picLog::INPUT_OUTPUT > ("HDF5 end to write particle species bottom.");
         }
         return NULL;
