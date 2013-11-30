@@ -36,14 +36,9 @@
 #include "fields/FieldE.hpp"
 #include "fields/FieldB.hpp"
 
-#include "DomainCollector.hpp"
-#include "basetypes/ColTypeFloat.hpp"
-#include "basetypes/ColTypeInt.hpp"
-#include "basetypes/ColTypeBool.hpp"
+#include "splash.h"
 
 #include "simulationControl/MovingWindow.hpp"
-
-
 
 #include <string>
 #include <sstream>
@@ -80,80 +75,31 @@ private:
     template<class TYPE>
     static void loadParticleData(TYPE **dst,
                                  uint32_t simulationStep,
-                                 DomainCollector& dataCollector,
+                                 ParallelDomainCollector& dataCollector,
                                  Dimensions &dataSize,
                                  CollectionType&,
                                  std::string name,
-                                 DataSpace<DIM3> globalDomainOffset,
-                                 DataSpace<DIM3> localDomainSize)
-    {
-
-        VirtualWindow window = MovingWindow::getInstance().getVirtualWindow(simulationStep);
-        /* globalSlideOffset due to gpu slides between origin at time step 0
-         * and origin at current time step
-         * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
-         */
-        DataSpace<simDim> globalSlideOffset(0,
-                                            window.slides * window.localFullSize.y(),
-                                            0);
-
-        /* add offset to window from pic origin, because we had substract this before*/
-        // globalSlideOffset.y()+= window.globalSimulationOffset.y();
-        // At the moment, loading a particle subdomain from a different gpu
-        // configuration is only possible if the old configuration is divisible
-        // by the new configuration.
-        // This will be solved by filters in the future.
-
-
-
-        Dimensions domain_offset(globalSlideOffset.x() + globalDomainOffset.x(),
-                                 globalSlideOffset.y() + globalDomainOffset.y(),
-                                 globalSlideOffset.z() + globalDomainOffset.z());
-
-
-
-        /*Dimensions domain_size(field_data[0], field_data[1], field_data[2]);*/
-        Dimensions domain_size(localDomainSize.x(),
-                               localDomainSize.y(),
-                               localDomainSize.z()
-                               );
-
-        DomainCollector::DomDataClass data_class;
-        DataContainer *particles_container =
-            dataCollector.readDomain(simulationStep,
-                                     name.c_str(),
-                                     domain_offset,
-                                     domain_size,
-                                     &data_class);
-
-        // get the total number of particles/elements to allocate memory
-        size_t total_num_particles = particles_container->getNumElements();
-
-        *dst = new TYPE[total_num_particles];
-        memset(*dst, 0, sizeof (TYPE) * total_num_particles);
-        dataSize.set(total_num_particles, 1, 1);
-
-        // read all subdomains into the allocated dst buffer
-        total_num_particles = 0;
-        for (uint32_t i = 0; i < particles_container->getNumSubdomains(); ++i)
-        {
-            size_t subdomain_elements = particles_container->getIndex(i)->getElements().getScalarSize();
-
-            TYPE* container_data = (TYPE*) (particles_container->getIndex(i)->getData());
-            TYPE* dst_ptr = *dst + total_num_particles;
-
-            memcpy(dst_ptr, container_data, subdomain_elements * sizeof (TYPE));
-
-            total_num_particles += subdomain_elements;
-        }
-
-        delete particles_container;
+                                 uint64_t numParticles,
+                                 uint64_t particlesLoadOffset)
+    {        
+        // allocate memory for particles
+        *dst = new TYPE[numParticles];
+        memset(*dst, 0, sizeof (TYPE) * numParticles);
+        
+        // read particles from file 
+        dataCollector.read(simulationStep,
+                Dimensions(numParticles, 1, 1),
+                Dimensions(particlesLoadOffset, 0, 0),
+                name.c_str(),
+                dataSize,
+                *dst
+                );
     }
 
 public:
 
     static void loadParticles(uint32_t simulationStep,
-                              DomainCollector& dataCollector,
+                              ParallelDomainCollector& dataCollector,
                               std::string prefix,
                               BufferType& particles,
                               DataSpace<DIM3> globalDomainOffset,
@@ -161,6 +107,8 @@ public:
                               DataSpace<DIM3> logicalToPhysicalOffset
                               )
     {
+        GridController<simDim> &gc = GridController<simDim>::getInstance();
+        
         // first, load all data arrays from hdf5 file
         CollectionType *ctFloat;
         CollectionType *ctInt;
@@ -187,6 +135,17 @@ public:
         ptrFloat momentums[simDim];
 
         ptrFloat weighting = NULL;
+        
+        // load particle index table entry for this process
+        uint64_t indexBfr[2 * gc.getGlobalSize()];
+        Dimensions indexBfrSizeRead;
+        dataCollector.read(simulationStep, "particles_index", indexBfrSizeRead, &indexBfr);
+        
+        assert(indexBfrSizeRead[0] == 2 * gc.getGlobalSize());
+        
+        uint64_t particle_count = indexBfr[2 * gc.getGlobalRank()];
+        uint64_t particle_offset = indexBfr[2 * gc.getGlobalRank() + 1];
+        
 #if(ENABLE_RADIATION == 1)
         ptrFloat momentums_mt1[simDim];
 #if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
@@ -195,13 +154,15 @@ public:
         typedef bool* ptrBool;
         ptrBool radiationFlag = NULL;
         loadParticleData<bool> (&radiationFlag, simulationStep, dataCollector,
-                                dim_radiationFlag, *ctBool, prefix + std::string("_radiationFlag"), globalDomainOffset, localDomainSize);
+                                dim_radiationFlag, *ctBool, prefix + std::string("_radiationFlag"),
+                                particle_count, particle_offset);
 #endif
 #endif
 
-
+        
         loadParticleData<float> (&weighting, simulationStep, dataCollector,
-                                 dim_weighting, *ctFloat, prefix + std::string("_weighting"), globalDomainOffset, localDomainSize);
+                                 dim_weighting, *ctFloat, prefix + std::string("_weighting"),
+                                 particle_count, particle_offset);
 
         assert(weighting != NULL);
 
@@ -216,11 +177,13 @@ public:
 
             // read relative positions for particles in cells
             loadParticleData<float> (&(relativePositions[i]), simulationStep, dataCollector,
-                                     dim_pos, *ctFloat, prefix + std::string("_position_") + name_lookup[i], globalDomainOffset, localDomainSize);
+                                     dim_pos, *ctFloat, prefix + std::string("_position_") + name_lookup[i],
+                                     particle_count, particle_offset);
 
             // read simulation relative cell positions
             loadParticleData<int > (&(cellPositions[i]), simulationStep, dataCollector,
-                                    dim_cell, *ctInt, prefix + std::string("_globalCellIdx_") + name_lookup[i], globalDomainOffset, localDomainSize);
+                                    dim_cell, *ctInt, prefix + std::string("_globalCellIdx_") + name_lookup[i],
+                                    particle_count, particle_offset);
 
             // update simulation relative cell positions from file to 
             // gpu-relative positions for new configuration
@@ -231,12 +194,14 @@ public:
 
             // read momentum of particles
             loadParticleData<float> (&(momentums[i]), simulationStep, dataCollector,
-                                     dim_mom, *ctFloat, prefix + std::string("_momentum_") + name_lookup[i], globalDomainOffset, localDomainSize);
+                                     dim_mom, *ctFloat, prefix + std::string("_momentum_") + name_lookup[i],
+                                     particle_count, particle_offset);
 
 #if(ENABLE_RADIATION == 1)
             // read old momentum of particles
             loadParticleData<float> (&(momentums_mt1[i]), simulationStep, dataCollector,
-                                     dim_mom_mt1, *ctFloat, prefix + std::string("_momentumPrev1_") + name_lookup[i], globalDomainOffset, localDomainSize);
+                                     dim_mom_mt1, *ctFloat, prefix + std::string("_momentumPrev1_") + name_lookup[i],
+                                     particle_count, particle_offset);
 #endif
 
             assert(dim_pos[0] == dim_cell[0] && dim_cell[0] == dim_mom[0]);
@@ -400,8 +365,18 @@ public:
     gridPosition(gridPosition),
     localGridSize(localGridSize)
     {
+        GridController<simDim> &gc = GridController<simDim>::getInstance();
         const uint32_t maxOpenFilesPerNode = 4;
-        dataCollector = new DomainCollector(maxOpenFilesPerNode);
+        
+        Dimensions mpiSizeHdf5(1, 1, 1);
+        for (uint32_t i = 0; i < simDim; ++i)
+            mpiSizeHdf5[i] = gc.getGpuNodes()[i];
+        
+        dataCollector = new ParallelDomainCollector(
+                gc.getCommunicator().getMPIComm(),
+                gc.getCommunicator().getMPIInfo(),
+                mpiSizeHdf5,
+                maxOpenFilesPerNode);
     }
 
     virtual ~SimRestartInitialiser()
@@ -430,7 +405,7 @@ public:
          *        in that case, set the fileAccType to FAT_READ_MERGED
          *        (useful for changed MPI setting for restart)
          */
-        attr.fileAccType = DataCollector::FAT_READ_MERGED;
+        attr.fileAccType = DataCollector::FAT_READ;
         attr.mpiSize.set(mpiSize[0], mpiSize[1], mpiSize[2]);
         attr.mpiPosition.set(mpiPos[0], mpiPos[1], mpiPos[2]);
 
@@ -702,7 +677,7 @@ private:
     DataSpace<DIM> localGridSize;
     std::string filename;
     uint32_t simulationStep;
-    DomainCollector *dataCollector;
+    ParallelDomainCollector *dataCollector;
 };
 }
 

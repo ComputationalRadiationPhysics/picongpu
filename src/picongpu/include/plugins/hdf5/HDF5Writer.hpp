@@ -477,10 +477,11 @@ private:
         ThreadParams *threadParams = (ThreadParams*) (p_args);
 
         /* write number of slides to timestep in hdf5 file*/
-        int slides = threadParams->window.slides;
-        ColTypeInt ctInt;
+        uint32_t slides = threadParams->window.slides;
+        ColTypeUInt32 ctUInt32;
+        ColTypeUInt64 ctUInt64;
         threadParams->dataCollector->writeAttribute(threadParams->currentStep,
-                                              ctInt, NULL, "sim_slides", &(slides));
+                                              ctUInt32, NULL, "sim_slides", &(slides));
 
         /* build clean domain info (picongpu view) */
         DomainInformation domInfo;
