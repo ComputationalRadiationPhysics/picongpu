@@ -301,12 +301,15 @@ if(PIC_SPLASH_ROOT_DIR)
          REGEX "#define SPLASH_SUPPORTED_PARALLEL ")
     string(REGEX MATCH "([0-9]+)" _splash_IS_PARALLEL "${_splash_H_CONTENTS}")
 
+    # check that libSplash has parallel support
     # check parallel libSplash to parallel hdf5 compatibility
     if("${_splash_IS_PARALLEL}")
        message(STATUS "libSplash supports PARALLEL output")
        if(NOT HDF5_IS_PARALLEL)
            message(FATAL_ERROR "libSplash compiled with PARALLEL support but HDF5 lacks it...")
        endif(NOT HDF5_IS_PARALLEL)
+    else("${_splash_IS_PARALLEL}")
+        message(FATAL_ERROR "libSplash with PARALLEL support is required")
     endif("${_splash_IS_PARALLEL}")
 
     add_definitions(-DENABLE_HDF5=1)
