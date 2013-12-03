@@ -479,7 +479,6 @@ private:
         /* write number of slides to timestep in hdf5 file*/
         uint32_t slides = threadParams->window.slides;
         ColTypeUInt32 ctUInt32;
-        ColTypeUInt64 ctUInt64;
         threadParams->dataCollector->writeAttribute(threadParams->currentStep,
                                               ctUInt32, NULL, "sim_slides", &(slides));
 

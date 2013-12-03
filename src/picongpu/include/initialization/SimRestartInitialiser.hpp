@@ -136,15 +136,19 @@ public:
 
         ptrFloat weighting = NULL;
         
-        // load particle index table entry for this process
-        uint64_t indexBfr[2 * gc.getGlobalSize()];
-        Dimensions indexBfrSizeRead;
-        dataCollector.read(simulationStep, "particles_index", indexBfrSizeRead, &indexBfr);
+        // load particle counter table entry for this process
+        uint64_t counterBfr[gc.getGlobalSize()];
+        Dimensions counterBfrSizeRead;
         
-        assert(indexBfrSizeRead[0] == 2 * gc.getGlobalSize());
+        dataCollector.read(simulationStep, (std::string(prefix) + std::string("_particles_count")).c_str(),
+                counterBfrSizeRead, counterBfr);
         
-        uint64_t particle_count = indexBfr[2 * gc.getGlobalRank()];
-        uint64_t particle_offset = indexBfr[2 * gc.getGlobalRank() + 1];
+        assert(counterBfrSizeRead[0] == gc.getGlobalSize());
+        
+        uint64_t particleOffset = 0;
+        uint64_t particleCount = counterBfr[gc.getGlobalRank()];
+        for (uint64_t i = 0; i < gc.getGlobalRank(); ++i)
+            particleOffset += counterBfr[i];
         
 #if(ENABLE_RADIATION == 1)
         ptrFloat momentums_mt1[simDim];
@@ -155,14 +159,14 @@ public:
         ptrBool radiationFlag = NULL;
         loadParticleData<bool> (&radiationFlag, simulationStep, dataCollector,
                                 dim_radiationFlag, *ctBool, prefix + std::string("_radiationFlag"),
-                                particle_count, particle_offset);
+                                particleCount, particleOffset);
 #endif
 #endif
 
         
         loadParticleData<float> (&weighting, simulationStep, dataCollector,
                                  dim_weighting, *ctFloat, prefix + std::string("_weighting"),
-                                 particle_count, particle_offset);
+                                 particleCount, particleOffset);
 
         assert(weighting != NULL);
 
@@ -178,12 +182,12 @@ public:
             // read relative positions for particles in cells
             loadParticleData<float> (&(relativePositions[i]), simulationStep, dataCollector,
                                      dim_pos, *ctFloat, prefix + std::string("_position_") + name_lookup[i],
-                                     particle_count, particle_offset);
+                                     particleCount, particleOffset);
 
             // read simulation relative cell positions
             loadParticleData<int > (&(cellPositions[i]), simulationStep, dataCollector,
                                     dim_cell, *ctInt, prefix + std::string("_globalCellIdx_") + name_lookup[i],
-                                    particle_count, particle_offset);
+                                    particleCount, particleOffset);
 
             // update simulation relative cell positions from file to 
             // gpu-relative positions for new configuration
@@ -195,13 +199,13 @@ public:
             // read momentum of particles
             loadParticleData<float> (&(momentums[i]), simulationStep, dataCollector,
                                      dim_mom, *ctFloat, prefix + std::string("_momentum_") + name_lookup[i],
-                                     particle_count, particle_offset);
+                                     particleCount, particleOffset);
 
 #if(ENABLE_RADIATION == 1)
             // read old momentum of particles
             loadParticleData<float> (&(momentums_mt1[i]), simulationStep, dataCollector,
                                      dim_mom_mt1, *ctFloat, prefix + std::string("_momentumPrev1_") + name_lookup[i],
-                                     particle_count, particle_offset);
+                                     particleCount, particleOffset);
 #endif
 
             assert(dim_pos[0] == dim_cell[0] && dim_cell[0] == dim_mom[0]);

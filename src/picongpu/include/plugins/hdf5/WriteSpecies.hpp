@@ -148,6 +148,7 @@ public:
     HINLINE void operator()(RefWrapper<ThreadParams*> params,
                             std::string prefix,
                             const DomainInformation domInfo,const Space particleOffset)
+                            const Space particleOffset)
     {
         log<picLog::INPUT_OUTPUT > ("HDF5: write species: %1%") % Hdf5FrameType::getName();
         DataConnector &dc = DataConnector::getInstance();
@@ -218,11 +219,27 @@ public:
         ForEach<typename Hdf5FrameType::ValueTypeSeq, hdf5::ParticleAttribute<void> > writeToHdf5;
         writeToHdf5(params, byRef(hostFrame), prefix + FrameType::getName(), domInfo, totalNumParticles);
 
+        /*write species counter table to hdf5 file*/
+        log<picLog::INPUT_OUTPUT > ("HDF5 begin writing particle index table for %1%") % Hdf5FrameType::getName();
+        {
+            GridController<simDim> &gc = GridController<simDim>::getInstance();
+            ColTypeUInt64 ctUInt64;
+
+            params.get()->dataCollector->write(
+                params.get()->currentStep,
+                Dimensions(gc.getGlobalSize(), 1, 1),
+                Dimensions(gc.getGlobalRank(), 0, 0),
+                ctUInt64, 1,
+                Dimensions(1, 1, 1),
+                (Hdf5FrameType::getName() + std::string("_particles_count")).c_str(),
+                &totalNumParticles);
+        }
+        log<picLog::INPUT_OUTPUT > ("HDF5 end writing particle index table for %1%") % Hdf5FrameType::getName();
+        
         /*free host memory*/
         ForEach<typename Hdf5FrameType::ValueTypeSeq, FreeMemory<void> > freeMem;
         freeMem(byRef(hostFrame));
         log<picLog::INPUT_OUTPUT > ("HDF5: Finish write species: %1%") % Hdf5FrameType::getName();
-
     }
 };
 
