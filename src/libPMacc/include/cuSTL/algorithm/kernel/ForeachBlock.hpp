@@ -76,7 +76,7 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(FOREACH_KERNEL_MAX_PARAMS), KERNEL_FOREA
 #define SHIFT_CURSOR_ZONE(Z, N, _) C ## N c ## N ## _shifted = c ## N (_zone.offset);
 #define SHIFTED_CURSOR(Z, N, _) c ## N ## _shifted
 
-#define FOREACH_OPERATOR(Z, N, _)                                                                           \\
+#define FOREACH_OPERATOR(Z, N, _)                                                                           \
                          /* typename C0, typename C1, ... */                                                \
     template<typename Zone, BOOST_PP_ENUM_PARAMS(N, typename C), typename Functor>                          \
                                      /* C0 c0, C1 c1, ... */                                                \
@@ -88,7 +88,7 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(FOREACH_KERNEL_MAX_PARAMS), KERNEL_FOREA
         BOOST_PP_REPEAT(N, SHIFT_CURSOR_ZONE, _)                                                            \
                                                                                                             \
         dim3 blockDim(ThreadBlock::x::value, ThreadBlock::y::value, ThreadBlock::z::value);                 \
-        detail::SphericMapper<Zone::dim, BlockDim> mapper; \
+        detail::SphericMapper<Zone::dim, BlockDim> mapper;                                                  \
         using namespace PMacc;                                                                              \
         __cudaKernel(detail::kernelForeachBlock)(mapper.cudaGridDim(_zone.size), blockDim)                  \
                     /* c0_shifted, c1_shifted, ... */                                                       \
