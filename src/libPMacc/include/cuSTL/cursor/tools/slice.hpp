@@ -87,7 +87,7 @@ struct Slice_helper<Navi, tag::CartNavigator>
 
 } // detail
     
-/** makes a 2D cursor of a 3D vector but dropping the z-component
+/** makes a 2D cursor of a 3D vector by dropping the z-component
  */
 template<typename TCursor>
 HDINLINE

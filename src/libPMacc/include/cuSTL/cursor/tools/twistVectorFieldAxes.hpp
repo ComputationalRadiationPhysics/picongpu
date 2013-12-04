@@ -54,7 +54,7 @@ struct TwistVectorFieldAxes
  * 
  * e.g.: new_cur = twistVectorFieldAxes<math::CT::Int<1,2,0> >(cur); // x -> y, y -> z, z -> x
  * 
- * \tparam Axes compile-time vector that describes the mapping.
+ * \tparam Axes compile-time vector (PMacc::math::CT::Int) that describes the mapping.
  * x-axis -> Axes::at<0>, y-axis -> Axes::at<1>, ...
  * 
  */
