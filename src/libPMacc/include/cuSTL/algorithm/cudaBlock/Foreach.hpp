@@ -56,7 +56,7 @@ namespace cudaBlock
         } \
     }
     
-/** Foreach algorithm that calls a cuda kernel
+/** Foreach algorithm that is executed by one cuda thread block
  * 
  * \tparam BlockDim 3D compile-time vector (PMacc::math::CT::Int) of the size of the cuda blockDim.
  *
