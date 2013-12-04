@@ -53,6 +53,13 @@ private:
 protected:
     HostBuffer() {}
 public:
+    /* constructors
+     * 
+     * \param _size size of the container
+     * 
+     * \param x,y,z convenient wrapper
+     * 
+     */
     HostBuffer(const math::Size_t<dim>& _size) : Base(_size) {}
     HostBuffer(size_t x) : Base(x) {}
     HostBuffer(size_t x, size_t y) : Base(x, y) {}

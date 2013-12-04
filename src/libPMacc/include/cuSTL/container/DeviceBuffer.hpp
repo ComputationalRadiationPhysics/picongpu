@@ -59,6 +59,13 @@ public:
     
     BOOST_COPYABLE_AND_MOVABLE(This)
 public:
+    /* constructors
+     * 
+     * \param _size size of the container
+     * 
+     * \param x,y,z convenient wrapper
+     * 
+     */
     HDINLINE DeviceBuffer(const math::Size_t<dim>& _size) : Base(_size) {}
     HDINLINE DeviceBuffer(size_t x) : Base(x) {}
     HDINLINE DeviceBuffer(size_t x, size_t y) : Base(x, y) {}

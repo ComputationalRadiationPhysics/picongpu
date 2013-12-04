@@ -30,6 +30,16 @@ namespace zone
 namespace CT
 {
 
+/* spheric (no holes), box-shaped (cartesian), compile-time zone
+ * 
+ * \tparam _Size compile-time vector (PMacc::math::CT::Size_t) of the zone's size.
+ * \tparam _Offset compile-time vector (PMacc::math::CT::Size_t) of the zone's offset. default is a zero vector.
+ * 
+ * This is a zone which is simply described by a size and a offset.
+ * 
+ * Compile-time version of zone::SphericZone
+ * 
+ */
 template<typename _Size, typename _Offset = typename math::CT::make_Int<_Size::dim, 0>::type>
 struct SphericZone
 {
