@@ -54,11 +54,6 @@ namespace kernel
 #define SHIFTED_CURSOR(Z, N, _) c ## N ## _shifted
 
 #define FOREACH_OPERATOR(Z, N, _)                                                                           \
-    /* calls functor for each cell within zone with the cell-by-cell wise jumped and dereferenced cursors   \
-     * \param _zone The zone                                                                                \
-     * \param c0, c1, ... The cursors                                                                       \
-     * \param functor The functor                                                                           \
-     */                                                                                                     \
                          /* typename C0, typename C1, ... */                                                \
     template<typename Zone, BOOST_PP_ENUM_PARAMS(N, typename C), typename Functor>                          \
                                     /* C0 c0, C1 c1, ... */                                                 \
@@ -78,11 +73,25 @@ namespace kernel
     }
     
 /** Foreach algorithm that calls a cuda kernel
- * \tparam BlockDim cuda block-dim size. Has to be a denominator of _zone.size
+ * 
+ * \tparam BlockDim 3D compile-time vector (PMacc::math::CT::Int) of the size of the cuda blockDim.
+ *
+ * blockDim has to fit into the computing volume.
+ * E.g. (8,8,4) fits into (256, 256, 256)
  */
 template<typename BlockDim>
 struct Foreach
 {
+    /* operator()(zone, cursor0, cursor1, ..., cursorN-1, functor or lambdaFun)
+     * 
+     * \param zone Accepts currently only a zone::SphericZone object (e.g. containerObj.zone())
+     * \param cursorN cursor for the N-th data source (e.g. containerObj.origin())
+     * \param functor or lambdaFun either a functor with N arguments or a N-ary lambda function (e.g. _1 = _2)
+     * 
+     * The functor or lambdaFun is called for each cell within the zone.
+     * It is called like functor(*cursor0(cellId), ..., *cursorN(cellId))
+     * 
+     */
     BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(FOREACH_KERNEL_MAX_PARAMS), FOREACH_OPERATOR, _)
 };
        

@@ -76,12 +76,7 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(FOREACH_KERNEL_MAX_PARAMS), KERNEL_FOREA
 #define SHIFT_CURSOR_ZONE(Z, N, _) C ## N c ## N ## _shifted = c ## N (_zone.offset);
 #define SHIFTED_CURSOR(Z, N, _) c ## N ## _shifted
 
-#define FOREACH_OPERATOR(Z, N, _)                                                                           \
-    /* calls functor for each cell within zone with the block wise jumped and dereferenced cursors          \
-     * \param _zone The zone                                                                                \
-     * \param c0, c1, ... The cursors                                                                       \
-     * \param functor The functor                                                                           \
-     */                                                                                                     \
+#define FOREACH_OPERATOR(Z, N, _)                                                                           \\
                          /* typename C0, typename C1, ... */                                                \
     template<typename Zone, BOOST_PP_ENUM_PARAMS(N, typename C), typename Functor>                          \
                                      /* C0 c0, C1 c1, ... */                                                \
@@ -106,12 +101,21 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(FOREACH_KERNEL_MAX_PARAMS), KERNEL_FOREA
  * shifts them to the top left (front) corner cell of their corresponding cuda block.
  * So if BlockDim is 4x4x4 it shifts 64 cursors to (0,0,0), 64 to (4,0,0), 64 to (8,0,0), ...
  * 
- * \tparam BlockDim cuda block-dim size. Has to be a denominator of _zone.size
- * \tparam ThreadBlock The same as BlockDim as you see
+ * \tparam BlockDim 3D compile-time vector (PMacc::math::CT::Int) of the size of the cuda blockDim.
+ * \tparam ThreadBlock ignored
  */
 template<typename BlockDim, typename ThreadBlock = BlockDim>
 struct ForeachBlock
 {
+    /* operator()(zone, cursor0, cursor1, ..., cursorN-1, functor or lambdaFun)
+     * 
+     * \param zone Accepts currently only a zone::SphericZone object (e.g. containerObj.zone())
+     * \param cursorN cursor for the N-th data source (e.g. containerObj.origin())
+     * \param functor or lambdaFun either a functor with N arguments or a N-ary lambda function (e.g. _1 = _2)
+     * 
+     * It is called like functor(*cursor0(cellId), ..., *cursorN(cellId))
+     * 
+     */
     BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(FOREACH_KERNEL_MAX_PARAMS), FOREACH_OPERATOR, _)
 };
 

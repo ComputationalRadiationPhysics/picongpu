@@ -42,7 +42,10 @@ namespace kernel
 
 /** Reduce algorithm that calls a cuda kernel
  * 
- * \tparam BlockDim Cuda BlockDim size. Has to be a denominator of _zone.size
+ * \tparam BlockDim compile-time vector (PMacc::math::CT::Int) of the size of the cuda blockDim.
+ * 
+ * blockDim has to fit into the volume to be reduced.
+ * E.g. (8,8,4) fits into (256, 256, 256)
  */
 template<typename BlockDim>
 struct Reduce
