@@ -431,6 +431,7 @@ private:
                                                                 0);
         Dimensions splashDomainOffset(0, 0, 0);
         Dimensions splashGlobalDomainOffset(0, 0, 0);
+        Dimensions splashGlobalOffsetFile(0, 0, 0);
 
         Dimensions splashDomainSize(1, 1, 1);
         Dimensions splashGlobalDomainSize(1, 1, 1);
@@ -440,6 +441,7 @@ private:
             splashDomainOffset[d] = domInfo.domainOffset[d] + globalSlideOffset[d];
             splashDomainSize[d] = domInfo.domainSize[d];
             
+            splashGlobalOffsetFile[d] = domInfo.globalDomainOffset[d];
             splashGlobalDomainOffset[d] = domInfo.globalDomainOffset[d] + globalSlideOffset[d];
             splashGlobalDomainSize[d] = domInfo.globalDomainSize[d];
         }
@@ -458,8 +460,8 @@ private:
             Dimensions srcOffset(field_guard[0] * nComponents + d, field_guard[1], field_guard[2]);
 
             params->dataCollector->writeDomain(params->currentStep, /* id == time step */
-                                               sizeSrcData * splashMpiSize,
-                                               sizeSrcData * splashMpiPos,
+                                               splashGlobalDomainSize,
+                                               splashGlobalOffsetFile,
                                                colType, /* data type */
                                                simDim, /* NDims of the field data (scalar, vector, ...) */
                                                /* source buffer, stride, data size, offset */
