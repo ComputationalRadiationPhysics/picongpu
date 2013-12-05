@@ -329,6 +329,7 @@ private:
         const uint32_t maxOpenFilesPerNode = 4;
         mThreadParams.dataCollector = new DomainCollector(maxOpenFilesPerNode);
 
+                        splashMpiSize,
         // set attributes for datacollector files
         DataCollector::FileCreationAttr attr;
         attr.enableCompression = this->compression;
@@ -337,14 +338,9 @@ private:
             attr.fileAccType = DataCollector::FAT_WRITE;
         else
             attr.fileAccType = DataCollector::FAT_CREATE;
-
-
-        attr.mpiPosition.set(0, 0, 0);
-        attr.mpiSize.set(1, 1, 1);
-
-        for (uint32_t i = 0; i < simDim; ++i)
+        attr.mpiPosition.set(splashMpiPos);
+        attr.mpiSize.set(splashMpiSize);
         {
-            attr.mpiPosition[i] = mpi_pos[i];
             attr.mpiSize[i] = mpi_size[i];
         }
 
@@ -380,6 +376,15 @@ private:
              */
             mpi_pos = gc.getPosition();
             mpi_size = gc.getGpuNodes();
+            
+            splashMpiPos.set(0, 0, 0);
+            splashMpiSize.set(1, 1, 1);
+            
+            for (uint32_t i = 0; i < simDim; ++i)
+            {
+                splashMpiPos[i] = mpi_pos[i];
+                splashMpiSize[i] = mpi_size[i];
+            }
 
             DataConnector::getInstance().registerObserver(this, notifyFrequency);
         }
@@ -396,17 +401,18 @@ private:
         }
     }
 
-    static void writeField(ThreadParams *params, const DomainInformation domInfo, CollectionType& colType,
-                           const uint32_t nCompunents, const std::string name,
+    static void writeField(ThreadParams *params, const DomainInformation domInfo,
+                           CollectionType& colType,
+                           const uint32_t nComponents, const std::string name,
                            std::vector<double> unit, void *ptr)
     {
         log<picLog::INPUT_OUTPUT > ("HDF5 write field: %1% %2% %3%") %
-            name % nCompunents % ptr;
+            name % nComponents % ptr;
 
         std::vector<std::string> name_lookup;
         {
             const std::string name_lookup_tpl[] = {"x", "y", "z", "w"};
-            for (uint32_t d = 0; d < nCompunents; d++)
+            for (uint32_t d = 0; d < nComponents; d++)
                 name_lookup.push_back(name_lookup_tpl[d]);
         }
 
@@ -432,27 +438,35 @@ private:
         for (uint32_t d = 0; d < simDim; ++d)
         {
             splashDomainOffset[d] = domInfo.domainOffset[d] + globalSlideOffset[d];
+            splashDomainSize[d] = domInfo.domainSize[d];
+            
             splashGlobalDomainOffset[d] = domInfo.globalDomainOffset[d] + globalSlideOffset[d];
             splashGlobalDomainSize[d] = domInfo.globalDomainSize[d];
-            splashDomainSize[d] = domInfo.domainSize[d];
         }
 
 
-        for (uint32_t d = 0; d < nCompunents; d++)
+        for (uint32_t d = 0; d < nComponents; d++)
         {
             std::stringstream str;
             str << name;
-            if (nCompunents > 1)
+            if (nComponents > 1)
                 str << "_" << name_lookup.at(d);
+            
+            Dimensions sizeSrcBuffer(field_full[0] * nComponents, field_full[1], field_full[2]);
+            Dimensions srcStride(nComponents, 1, 1);
+            Dimensions sizeSrcData(field_no_guard[0], field_no_guard[1], field_no_guard[2]);
+            Dimensions srcOffset(field_guard[0] * nComponents + d, field_guard[1], field_guard[2]);
 
             params->dataCollector->writeDomain(params->currentStep, /* id == time step */
+                                               sizeSrcData * splashMpiSize,
+                                               sizeSrcData * splashMpiPos,
                                                colType, /* data type */
                                                simDim, /* NDims of the field data (scalar, vector, ...) */
                                                /* source buffer, stride, data size, offset */
-                                               Dimensions(field_full[0] * nCompunents, field_full[1], field_full[2]),
-                                               Dimensions(nCompunents, 1, 1),
-                                               Dimensions(field_no_guard[0], field_no_guard[1], field_no_guard[2]),
-                                               Dimensions(field_guard[0] * nCompunents + d, field_guard[1], field_guard[2]),
+                                               sizeSrcBuffer,
+                                               srcStride,
+                                               sizeSrcData,
+                                               srcOffset,
                                                str.str().c_str(), /* data set name */
                                                splashDomainOffset, /* offset in global domain */
                                                splashDomainSize, /* local size */
@@ -554,6 +568,8 @@ private:
     DataSpace<simDim> mpi_pos;
     DataSpace<simDim> mpi_size;
 
+    Dimensions splashMpiPos;
+    Dimensions splashMpiSize;
 };
 
 } //namespace hdf5

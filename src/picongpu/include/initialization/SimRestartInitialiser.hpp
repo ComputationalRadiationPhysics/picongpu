@@ -630,7 +630,7 @@ private:
                 for (uint32_t y = 0; y < domain_size[1]; ++y)
                     for (uint32_t x = 0; x < domain_size[0]; ++x)
                     {
-                        // src is field_data large, dst is field_grid large
+                        // src is domain_size large, dst is field_grid large
 
                         int src_index = z * domain_size[0] * domain_size[1] +
                             y * domain_size[0] + x;
