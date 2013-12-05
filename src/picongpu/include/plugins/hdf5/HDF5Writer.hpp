@@ -429,18 +429,12 @@ private:
                                                                 0,
                                                                 params->window.slides * params->window.localFullSize.y(),
                                                                 0);
-        Dimensions splashDomainOffset(0, 0, 0);
         Dimensions splashGlobalDomainOffset(0, 0, 0);
         Dimensions splashGlobalOffsetFile(0, 0, 0);
-
-        Dimensions splashDomainSize(1, 1, 1);
         Dimensions splashGlobalDomainSize(1, 1, 1);
 
         for (uint32_t d = 0; d < simDim; ++d)
         {
-            splashDomainOffset[d] = domInfo.domainOffset[d] + globalSlideOffset[d];
-            splashDomainSize[d] = domInfo.domainSize[d];
-            
             splashGlobalOffsetFile[d] = domInfo.globalDomainOffset[d];
             splashGlobalDomainOffset[d] = domInfo.globalDomainOffset[d] + globalSlideOffset[d];
             splashGlobalDomainSize[d] = domInfo.globalDomainSize[d];
@@ -470,8 +464,6 @@ private:
                                                sizeSrcData,
                                                srcOffset,
                                                str.str().c_str(), /* data set name */
-                                               splashDomainOffset, /* offset in global domain */
-                                               splashDomainSize, /* local size */
                                                splashGlobalDomainOffset, /* \todo offset of the global domain */
                                                splashGlobalDomainSize, /* size of the global domain */
                                                DomainCollector::GridType,
