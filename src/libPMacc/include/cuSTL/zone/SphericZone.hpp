@@ -36,7 +36,7 @@ namespace tag
 struct SphericZone {};
 }
 
-/* spheric (no holes), box-shaped (cartesian) zone
+/* spheric (no holes), cartesian zone
  * 
  * \tparam _dim dimension of the zone
  * 

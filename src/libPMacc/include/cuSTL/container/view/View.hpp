@@ -64,6 +64,10 @@ struct View : public Buffer
         return *this;
     }
 
+private:
+    // forbid view = container
+    HDINLINE Buffer& 
+    operator=(const Buffer& rhs);
 };
     
     

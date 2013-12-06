@@ -35,7 +35,7 @@ namespace cursor
     
 /** The most common cursor typedef
  * 
- * BufferCursor does access and jumping on a box-shaped memory buffer.
+ * BufferCursor does access and jumping on a cartesian memory buffer.
  * 
  * \tparam Type type of a single datum
  * \tparam dim dimension of the memory buffer
