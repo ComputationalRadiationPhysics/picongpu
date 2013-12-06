@@ -50,26 +50,48 @@ namespace kernel
 #ifndef FOREACH_KERNEL_MAX_PARAMS
 #define FOREACH_KERNEL_MAX_PARAMS 4
 #endif
-
 #define SHIFT_CURSOR_ZONE(Z, N, _) C ## N c ## N ## _shifted = c ## N (_zone.offset);
 #define SHIFTED_CURSOR(Z, N, _) c ## N ## _shifted
 
-#define FOREACH_OPERATOR(Z, N, _) \
-    template<typename Zone, BOOST_PP_ENUM_PARAMS(N, typename C), typename Functor> \
-    void operator()(const Zone& _zone, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), const Functor& functor) \
-    { \
-        BOOST_PP_REPEAT(N, SHIFT_CURSOR_ZONE, _) \
-        \
-        dim3 blockDim(BlockDim::x::value, BlockDim::y::value, BlockDim::z::value); \
+#define FOREACH_OPERATOR(Z, N, _)                                                                           \
+                         /* typename C0, typename C1, ... */                                                \
+    template<typename Zone, BOOST_PP_ENUM_PARAMS(N, typename C), typename Functor>                          \
+                                    /* C0 c0, C1 c1, ... */                                                 \
+    void operator()(const Zone& _zone, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), const Functor& functor)        \
+    {                                                                                                       \
+        /* C0 c0_shifted = c0(_zone.offset); */                                                             \
+        /* C1 c1_shifted = c1(_zone.offset); */                                                             \
+        /* ... */                                                                                           \
+        BOOST_PP_REPEAT(N, SHIFT_CURSOR_ZONE, _)                                                            \
+                                                                                                            \
+        dim3 blockDim(BlockDim::x::value, BlockDim::y::value, BlockDim::z::value);                          \
         detail::SphericMapper<Zone::dim, BlockDim> mapper; \
-        using namespace PMacc; \
-        __cudaKernel(detail::kernelForeach)(mapper.cudaGridDim(_zone.size), blockDim) \
-            (mapper, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _), lambda::make_Functor(functor)); \
+        using namespace PMacc;                                                                              \
+        __cudaKernel(detail::kernelForeach)(mapper.cudaGridDim(_zone.size), blockDim)                       \
+                  /* c0_shifted, c1_shifted, ... */                                                         \
+            (mapper, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _), lambda::make_Functor(functor));                   \
     }
     
+/** Foreach algorithm that calls a cuda kernel
+ * 
+ * \tparam BlockDim 3D compile-time vector (PMacc::math::CT::Int) of the size of the cuda blockDim.
+ *
+ * blockDim has to fit into the computing volume.
+ * E.g. (8,8,4) fits into (256, 256, 256)
+ */
 template<typename BlockDim>
 struct Foreach
 {
+    /* operator()(zone, cursor0, cursor1, ..., cursorN-1, functor or lambdaFun)
+     * 
+     * \param zone Accepts currently only a zone::SphericZone object (e.g. containerObj.zone())
+     * \param cursorN cursor for the N-th data source (e.g. containerObj.origin())
+     * \param functor or lambdaFun either a functor with N arguments or a N-ary lambda function (e.g. _1 = _2)
+     * 
+     * The functor or lambdaFun is called for each cell within the zone.
+     * It is called like functor(*cursor0(cellId), ..., *cursorN(cellId))
+     * 
+     */
     BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(FOREACH_KERNEL_MAX_PARAMS), FOREACH_OPERATOR, _)
 };
        

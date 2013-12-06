@@ -35,7 +35,12 @@ namespace PMacc
 {
 namespace container
 {
-    
+
+/** typedef version of a CartBuffer for a GPU.
+ * Additional feature: Able to copy data from a HostBuffer
+ * \tparam Type type of a single datum
+ * \tparam dim Dimension of the container
+ */
 template<typename Type, int dim>
 class DeviceBuffer
  : public CartBuffer<Type, dim, allocator::DeviceMemAllocator<Type, dim>, 
@@ -54,6 +59,13 @@ public:
     
     BOOST_COPYABLE_AND_MOVABLE(This)
 public:
+    /* constructors
+     * 
+     * \param _size size of the container
+     * 
+     * \param x,y,z convenient wrapper
+     * 
+     */
     HDINLINE DeviceBuffer(const math::Size_t<dim>& _size) : Base(_size) {}
     HDINLINE DeviceBuffer(size_t x) : Base(x) {}
     HDINLINE DeviceBuffer(size_t x, size_t y) : Base(x, y) {}

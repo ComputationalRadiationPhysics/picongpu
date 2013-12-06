@@ -36,7 +36,10 @@ namespace container
 {
 namespace CT
 {
-    
+
+/** compile-time version of container::CartBuffer
+ * \tparam _Size compile-time vector specifying the size of the container
+ */
 template<typename Type, typename _Size, typename Allocator, typename Copier, typename Assigner>
 class CartBuffer
 {

@@ -32,14 +32,23 @@ namespace PMacc
 {
 namespace cursor
 {
-    
+
+/** wraps a cursor into a new cursor
+ * 
+ * On each access of the new cursor the result of the nested cursor access 
+ * is filtered through a user-defined functor.
+ * e.g.: new_cur = make_FunctorCursor(cur, _1[2]); // access just the z-component
+ * 
+ * \param cursor Cursor to be wrapped
+ * \param functor User functor acting as a filter. A lambda expression is allowed too.
+ */
 template<typename TCursor, typename Functor>
 HDINLINE
 Cursor<FunctorAccessor<typename lambda::result_of::make_Functor<Functor>::type, 
     typename boost::remove_reference<typename TCursor::type>::type>,
     CursorNavigator, TCursor> make_FunctorCursor(const TCursor& cursor, const Functor& functor)
 {
-    return make_Cursor(FunctorAccessor<typename lambda::result_of::make_Functor<Functor>::type, 
+    return make_Cursor(FunctorAccessor<typename lambda::result_of::make_Functor<Functor>::type,
         typename boost::remove_reference<typename TCursor::type>::type>(lambda::make_Functor(functor)),
         CursorNavigator(), cursor);
 }
