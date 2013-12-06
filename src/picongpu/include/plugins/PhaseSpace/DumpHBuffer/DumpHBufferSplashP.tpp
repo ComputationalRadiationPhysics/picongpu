@@ -44,7 +44,7 @@ namespace picongpu
                                   const uint32_t currentStep,
                                   MPI_Comm& mpiComm ) const
     {
-        using namespace DCollector;
+        using namespace splash;
         typedef T_Type Type;
         const int bufDim = T_bufDim;
 
@@ -70,11 +70,11 @@ namespace picongpu
         PMacc::SubGrid<simDim>& sg = PMacc::SubGrid<simDim>::getInstance();
         const size_t rOffset = sg.getSimulationBox().getGlobalOffset()[axis_element.first];
         const size_t rSize = sg.getSimulationBox().getGlobalSize()[axis_element.first];
-        DCollector::Dimensions phaseSpace_size( rSize, hBuffer.size().y(), 1 );
-        DCollector::Dimensions phaseSpace_global_offset( rOffset, 0, 0 );
+        splash::Dimensions phaseSpace_size( rSize, hBuffer.size().y(), 1 );
+        splash::Dimensions phaseSpace_global_offset( rOffset, 0, 0 );
 
         /** local buffer size (aka splash subdomain) **************************/
-        DCollector::Dimensions phaseSpace_size_local( hBuffer.size().x(),
+        splash::Dimensions phaseSpace_size_local( hBuffer.size().x(),
                                                       hBuffer.size().y(),
                                                       1 );
 
@@ -94,6 +94,8 @@ namespace picongpu
                          phaseSpace_size_local,
                          dataSetName.str().c_str(),
                          phaseSpace_global_offset,
+                         phaseSpace_size_local,
+                         splash::Dimensions( 0, 0, 0 ),
                          phaseSpace_size,
                          DomainCollector::GridType,
                          &(*hBuffer.origin()) );

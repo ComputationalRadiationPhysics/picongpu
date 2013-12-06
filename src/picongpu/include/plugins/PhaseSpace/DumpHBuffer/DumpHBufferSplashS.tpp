@@ -51,7 +51,7 @@ namespace picongpu
         PMacc::math::Int<simDim> gpuPos = gc.getPosition();
 
         const uint32_t maxOpenFilesPerNode = 4;
-        DCollector::DomainCollector domainCollector( maxOpenFilesPerNode );
+        splash::DomainCollector domainCollector( maxOpenFilesPerNode );
 
         /** Open File *********************************************************/
         std::string fCoords("xyz");
@@ -62,9 +62,9 @@ namespace picongpu
                  << currentStep;
 
         // set attributes for datacollector files
-        DCollector::DataCollector::FileCreationAttr attr;
+        splash::DataCollector::FileCreationAttr attr;
         attr.enableCompression = true;
-        attr.fileAccType = DCollector::DataCollector::FAT_WRITE;
+        attr.fileAccType = splash::DataCollector::FAT_WRITE;
 
         attr.mpiPosition.set(gpuPos[axis_element.first], 0, 0);
         attr.mpiSize.set(gpuDim[axis_element.first], 1, 1);
@@ -73,7 +73,7 @@ namespace picongpu
         {
             domainCollector.open( filename.str().c_str(), attr );
         }
-        catch (DCollector::DCException e)
+        catch (splash::DCException e)
         {
             std::cerr << e.what() << std::endl;
             throw std::runtime_error("Failed to open DomainCollector");
@@ -86,11 +86,11 @@ namespace picongpu
                     << "p" << fCoords.at(axis_element.second);
 
         /** Write DataSet *****************************************************/
-        DCollector::ColTypeDouble ctDouble;
+        splash::ColTypeDouble ctDouble;
         typename PICToSplash<Type>::type ctPhaseSpace;
 
         /** local buffer size (aka splash subdomain) */
-        DCollector::Dimensions phaseSpace_size_local( hBuffer.size().x(),
+        splash::Dimensions phaseSpace_size_local( hBuffer.size().x(),
                                                       hBuffer.size().y(),
                                                       1 );
 
@@ -98,25 +98,27 @@ namespace picongpu
         PMacc::SubGrid<simDim>& sg = PMacc::SubGrid<simDim>::getInstance();
         const size_t rOffset = sg.getSimulationBox().getGlobalOffset()[axis_element.first];
         const size_t rSize = sg.getSimulationBox().getGlobalSize()[axis_element.first];
-        DCollector::Dimensions phaseSpace_size( rSize, hBuffer.size().y(), 1 );
-        DCollector::Dimensions phaseSpace_global_offset( rOffset, 0, 0 );
+        splash::Dimensions phaseSpace_size( rSize, hBuffer.size().y(), 1 );
+        splash::Dimensions phaseSpace_global_offset( rOffset, 0, 0 );
 
         domainCollector.writeDomain( currentStep, ctPhaseSpace, bufDim,
                                      phaseSpace_size_local,
                                      dataSetName.str().c_str(),
                                      phaseSpace_global_offset,
                                      phaseSpace_size_local,
-                                     DCollector::DomainCollector::GridType,
+                                     splash::Dimensions( 0, 0, 0 ),
+                                     phaseSpace_size,
+                                     splash::DomainCollector::GridType,
                                      &(*hBuffer.origin()) );
 
         /** Write Additional Attributes ***************************************/
         domainCollector.writeAttribute( currentStep,
-                                        DCollector::ColTypeDim(),
+                                        splash::ColTypeDim(),
                                         dataSetName.str().c_str(),
                                         "sim_size",
                                         phaseSpace_size.getPointer() );
         domainCollector.writeAttribute( currentStep,
-                                        DCollector::ColTypeDim(),
+                                        splash::ColTypeDim(),
                                         dataSetName.str().c_str(),
                                         "sim_global_offset",
                                         phaseSpace_global_offset.getPointer() );

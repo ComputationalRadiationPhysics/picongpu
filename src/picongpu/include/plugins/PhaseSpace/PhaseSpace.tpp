@@ -1,22 +1,22 @@
 /**
  * Copyright 2013 Axel Huebl, Heiko Burau
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #pragma once
 
@@ -32,141 +32,18 @@
 #include "cuSTL/algorithm/host/Foreach.hpp"
 #include "math/vector/Int.hpp"
 #include "math/vector/Size_t.hpp"
-#include "particles/access/Cell2Particle.hpp"
 
 #include "mappings/simulation/GridController.hpp"
 #include "mappings/simulation/SubGrid.hpp"
 
 #include "PhaseSpace.hpp"
+#include "PhaseSpaceFunctors.hpp"
 
 #include "DumpHBuffer/DumpHBuffer.hpp"
 
 namespace picongpu
 {
     using namespace PMacc;
-
-    template<typename Type>
-    struct FunctorAtomicAdd
-    {
-        typedef void result_type;
-
-        DINLINE void operator()( Type& dest, const Type src )
-        {
-            atomicAddWrapper( &dest, src );
-        }
-    };
-    
-    template<uint32_t r_dir, uint32_t p_bins, typename SuperCellSize>
-    struct FunctorParticle
-    {
-        typedef void result_type;
-        
-        template<typename FramePtr, typename float_PS, typename Pitch >
-        DINLINE void operator()( FramePtr particle,
-                                 uint16_t particleID,
-                                 cursor::CT::BufferCursor<float_PS, Pitch> curDBufferOriginInBlock,
-                                 const uint32_t el_p,
-                                 const std::pair<float_X, float_X>& axis_p_range )
-        {
-            const float_X mom_i       = particle->getMomentum()[particleID][el_p];
-
-            /* cell id in this block */
-            const int linearCellIdx = particle->getCellIdx()[particleID];
-            const PMacc::math::Int<3> cellIdx(
-                linearCellIdx  % SuperCellSize::x::value,
-                (linearCellIdx % (SuperCellSize::x::value * SuperCellSize::y::value)) / SuperCellSize::x::value,
-                linearCellIdx  / (SuperCellSize::x::value * SuperCellSize::y::value) );
-
-            const int r_bin         = cellIdx[r_dir];
-            const float_X weighting = particle->getWeighting()[particleID];
-            const float_X charge    = particle->getCharge( weighting );
-            const float_PS particleChargeDensity =
-              typeCast<float_PS>( charge / ( CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH ) );
-
-            const float_X rel_bin = (mom_i - axis_p_range.first)
-                                  / (axis_p_range.second - axis_p_range.first);
-            int p_bin = int( rel_bin * float_X(p_bins) );
-
-            /* out-of-range bins back to min/max
-             * p_bin < 0 ? p_bin = 0;
-             * p_bin > (p_bins-1) ? p_bin = p_bins-1;
-             */
-            p_bin *= int(p_bin >= 0);
-            if( p_bin >= p_bins )
-                p_bin = p_bins - 1;
-
-            /** \todo take particle shape into account */
-            atomicAddWrapper( &(*curDBufferOriginInBlock( r_bin, p_bin )),
-                              particleChargeDensity );
-        }
-    };
-    
-    template<typename Species, typename SuperCellSize, typename float_PS, uint32_t p_bins, uint32_t r_dir>
-    struct FunctorBlock
-    {
-        typedef void result_type;
-        
-        typedef typename Species::ParticlesBoxType TParticlesBox;
-        
-        TParticlesBox particlesBox;
-        cursor::BufferCursor<float_PS, 2> curOriginPhaseSpace;
-        uint32_t p_element;
-        std::pair<float_X, float_X> axis_p_range;
-        
-        FunctorBlock( const TParticlesBox& pb,
-                      cursor::BufferCursor<float_PS, 2> cur,
-                      const uint32_t p_el,
-                      const std::pair<float_X, float_X>& a_ran ) :
-        particlesBox(pb), curOriginPhaseSpace(cur), p_element(p_el),
-        axis_p_range(a_ran)
-        {}
-        
-        /** Called for the first cell of each block #-of-cells-in-block times
-         */
-        DINLINE void operator()( const PMacc::math::Int<3>& indexBlockOffset )
-        {
-            const PMacc::math::Int<3> indexInBlock( threadIdx.x, threadIdx.y, threadIdx.z );
-            const PMacc::math::Int<3> indexGlobal = indexBlockOffset + indexInBlock;
-            
-            /* create shared mem */
-            const uint32_t blockCellsInDir = SuperCellSize::template at<r_dir>::type::value;
-            typedef PMacc::math::CT::Int<blockCellsInDir, p_bins> dBufferSizeInBlock;
-            container::CT::SharedBuffer<float_PS, dBufferSizeInBlock > dBufferInBlock;
-            
-            /* init shared mem */
-            algorithm::cudaBlock::Foreach<SuperCellSize> forEachThreadInBlock;
-            {
-                using namespace lambda;
-                DECLARE_PLACEHOLDERS();
-                forEachThreadInBlock( dBufferInBlock.zone(),
-                                      dBufferInBlock.origin(),
-                                      _1 = float_PS(0.0) );
-            }
-            __syncthreads();
-
-            FunctorParticle<r_dir, p_bins, SuperCellSize> functorParticle;
-            particleAccess::Cell2Particle<SuperCellSize> forEachParticleInCell;
-            forEachParticleInCell( /* mandatory params */
-                                   particlesBox, indexGlobal, functorParticle,
-                                   /* optional params */
-                                   dBufferInBlock.origin(),
-                                   p_element,
-                                   axis_p_range
-                                 );
-
-            __syncthreads();
-            /* add to global dBuffer */
-            forEachThreadInBlock( /* area to work on */
-                                  dBufferInBlock.zone(),
-                                  /* data below - cursors will be shifted and
-                                   * dereferenced */
-                                  curOriginPhaseSpace(indexBlockOffset[r_dir], 0),
-                                  dBufferInBlock.origin(),
-                                  /* functor */
-                                  FunctorAtomicAdd<float_PS>() );
-                                  
-        }
-    };
 
     template<class AssignmentFunction, class Species>
     PhaseSpace<AssignmentFunction, Species>::PhaseSpace( const std::string _name,
@@ -279,7 +156,7 @@ namespace picongpu
         zone::SphericZone<3> zoneCoreBorder( coreBorderCells, guardCells );
 
         algorithm::kernel::ForeachBlock<SuperCellSize> forEachSuperCell;
-        
+
         FunctorBlock<Species, SuperCellSize, float_PS, p_bins, r_dir> functorBlock(
             this->particles->getDeviceParticlesBox(), dBuffer->origin(),
             this->axis_element.second, this->axis_p_range );
@@ -295,28 +172,13 @@ namespace picongpu
     template<class AssignmentFunction, class Species>
     void PhaseSpace<AssignmentFunction, Species>::notify( uint32_t currentStep )
     {
-        std::cout << "[PhaseSpace] notified!" << std::endl;
-        
         /* register particle species observer */
         DataConnector &dc = DataConnector::getInstance( );
         this->particles = &(dc.getData<Species > ((uint32_t) Species::FrameType::CommunicationTag, true));
 
-        std::cout << "[PhaseSpace] reset buffer" << std::endl;
-        /* reset device buffer
-         * this->dBuffer->assign( float_PS(0.0) );
-         */
-        using namespace lambda;
-        typedef typename PMacc::math::CT::Int<1, 1, 1> assignBlock;
-        algorithm::kernel::Foreach<assignBlock > forEachAssign;
+        /* reset device buffer */
+        this->dBuffer->assign( float_PS(0.0) );
 
-        forEachAssign( /* area to work on */
-                       this->dBuffer->zone(),
-                       /* data below - passed to functor operator() */
-                       this->dBuffer->origin(),
-                       /* functor */
-                       _1 = float_PS(0.0));
-
-        std::cout << "[PhaseSpace] calc" << std::endl;
         /* calculate local phase space */
         if( this->axis_element.first == This::x )
             calcPhaseSpace<This::x>();
@@ -325,18 +187,17 @@ namespace picongpu
         else
             calcPhaseSpace<This::z>();
 
-        std::cout << "[PhaseSpace] transfer to host" << std::endl;
         /* transfer to host */
         container::HostBuffer<float_PS, 2> hBuffer( this->dBuffer->size() );
         hBuffer = *this->dBuffer;
 
-        std::cout << "[PhaseSpace] Reduce plane" << std::endl;
         /* reduce-add phase space from other GPUs in range [r;r+dr]x[p0;p1]
          * to "lowest" node in range
          * e.g.: phase space x-py: reduce-add all nodes with same x range in
          *                         spatial y and z direction to node with
          *                         lowest y and z position and same x range
          */
+        using namespace lambda;
         container::HostBuffer<float_PS, 2> hReducedBuffer( hBuffer.size() );
         (*this->planeReduce)( /* parameters: dest, source */
                              hReducedBuffer,
@@ -362,18 +223,18 @@ namespace picongpu
                                 /* functor */
                                 _2 = _1);
 
-        std::cout << "[PhaseSpace] write to file" << std::endl;
-
+        /* write to file */
         const double UNIT_VOLUME = ( UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH );
         const double unit = UNIT_CHARGE / UNIT_VOLUME;
         DumpHBuffer dumpHBuffer;
         dumpHBuffer( hReducedBuffer_noGuard, this->axis_element, unit, currentStep, this->commFileWriter );
     }
-    
+
     template<class AssignmentFunction, class Species>
     void PhaseSpace<AssignmentFunction, Species>::setMappingDescription(
         MappingDesc* cellDescription )
     {
         this->cellDescription = cellDescription;
     }
-}
+
+} // namespace picongpu
