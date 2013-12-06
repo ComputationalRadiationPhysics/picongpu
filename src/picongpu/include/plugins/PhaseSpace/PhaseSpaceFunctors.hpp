@@ -51,11 +51,14 @@ namespace picongpu
 
     /** Functor called for each particle
      *
-     * ...
+     * Every particle in a frame of particles will end up here.
+     * We calculate where in space the owning (super) cell lives and
+     * add the particle to the shared memory buffer for that phase
+     * space snipped the super cell contributes to.
      *
-     * \tparam r_dir
-     * \tparam p_bins
-     * \tparam SuperCellSize
+     * \tparam r_dir spatial direction of the phase space (0,1,2)
+     * \tparam p_bins number of bins in momentum space \see PhaseSpace.hpp
+     * \tparam SuperCellSize how many cells form a super cell \see memory.param
      */
     template<uint32_t r_dir, uint32_t p_bins, typename SuperCellSize>
     struct FunctorParticle
@@ -103,15 +106,18 @@ namespace picongpu
         }
     };
 
-    /** ...
+    /** Functor to Run For Each SuperCell
      *
-     * ...
+     * This functor is called for each super cell, preparing a shared memory
+     * buffer with a supercell-local (spatial) snippet of the phase space.
+     * Afterwards all blocks reduce their data to a combined gpu-local (spatial)
+     * snippet of the phase space in global memory.
      *
-     * \tparam Species
-     * \tparam SuperCellSize
-     * \tparam float_PS
-     * \tparam p_bins
-     * \tparam r_dir
+     * \tparam Species the particle species to create the phase space for
+     * \tparam SuperCellSize how many cells form a super cell \see memory.param
+     * \tparam float_PS type for each bin in the phase space
+     * \tparam p_bins number of bins in momentum space \see PhaseSpace.hpp
+     * \tparam r_dir spatial direction of the phase space (0,1,2)
      */
     template<typename Species, typename SuperCellSize, typename float_PS, uint32_t p_bins, uint32_t r_dir>
     struct FunctorBlock
