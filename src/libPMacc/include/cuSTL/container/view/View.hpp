@@ -27,7 +27,7 @@ namespace container
 {
 
 /** Represents a clipped area of its inherited container.
- * WARNING: Do not write: view = container;
+ *
  * View are not designed to do hard data copies.
  * Views don't take care of reference counters. So if the corresponding
  * container dies, all views become invalid.
