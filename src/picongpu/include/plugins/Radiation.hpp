@@ -778,7 +778,7 @@ private:
                 }
 
 
-                for (int i = 0; i < elements_amplitude; ++i)
+                for (unsigned int i = 0; i < elements_amplitude; ++i)
                     timeSumArray[i] += result[i];
                 writeFile(timeSumArray, folderTotalRad + "/" + filename_prefix + "_" + o_step.str() + ".dat");
                 writeBackup(timeSumArray, std::string("radRestart") + "/" + std::string("radRestart") + "_" + o_step.str() + ".dat");
