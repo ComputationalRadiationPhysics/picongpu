@@ -152,7 +152,6 @@ namespace picongpu
         /* select CORE + BORDER for all cells
          * CORE + BORDER is contiguous, Heiko calls this a "topological spheric zone"
          */
-        std::cout << coreBorderCells << " | " << guardCells << std::endl;
         zone::SphericZone<3> zoneCoreBorder( coreBorderCells, guardCells );
 
         algorithm::kernel::ForeachBlock<SuperCellSize> forEachSuperCell;
@@ -209,7 +208,6 @@ namespace picongpu
         if( !this->isPlaneReduceRoot )
             return;
 
-        std::cout << "[PhaseSpace] Communicate and add GUARDS (todo)" << std::endl;
         /** \todo communicate GUARD and add it to the two neighbors BORDER */
         PMacc::SubGrid<simDim>& sg = PMacc::SubGrid<simDim>::getInstance();
         container::HostBuffer<float_PS, 2> hReducedBuffer_noGuard( sg.getSimulationBox().getLocalSize()[this->axis_element.first],
@@ -227,7 +225,9 @@ namespace picongpu
         const double UNIT_VOLUME = ( UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH );
         const double unit = UNIT_CHARGE / UNIT_VOLUME;
         DumpHBuffer dumpHBuffer;
-        dumpHBuffer( hReducedBuffer_noGuard, this->axis_element, unit, currentStep, this->commFileWriter );
+
+        if( this->commFileWriter != MPI_COMM_NULL )
+            dumpHBuffer( hReducedBuffer_noGuard, this->axis_element, unit, currentStep, this->commFileWriter );
     }
 
     template<class AssignmentFunction, class Species>
