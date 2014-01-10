@@ -231,7 +231,7 @@ public:
                 Dimensions(gc.getGlobalRank(), 0, 0),
                 ctUInt64, 1,
                 Dimensions(1, 1, 1),
-                (Hdf5FrameType::getName() + std::string("_particles_count")).c_str(),
+                (prefix + FrameType::getName() + std::string("_particles_count")).c_str(),
                 &totalNumParticles);
         }
         log<picLog::INPUT_OUTPUT > ("HDF5 end writing particle index table for %1%") % Hdf5FrameType::getName();

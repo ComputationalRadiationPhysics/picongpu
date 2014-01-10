@@ -150,6 +150,9 @@ public:
         for (uint64_t i = 0; i < gc.getGlobalRank(); ++i)
             particleOffset += counterBfr[i];
         
+        log<picLog::INPUT_OUTPUT > ("Loading %llu particles from offset %llu") %
+            (long long unsigned)particleCount, (long long unsigned)particleOffset;
+        
 #if(ENABLE_RADIATION == 1)
         ptrFloat momentums_mt1[simDim];
 #if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
