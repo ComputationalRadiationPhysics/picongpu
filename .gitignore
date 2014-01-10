@@ -1,2 +1,9 @@
+# tmp files
 *~
+
+# netbeans project files
 /nbproject/
+
+# Code::Blocks project files
+/*.cbp
+/*.layout
