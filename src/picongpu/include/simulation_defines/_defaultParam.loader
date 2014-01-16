@@ -25,6 +25,7 @@
  */
 #pragma once
 
+#include "simulation_defines/param/dimension.param"
 #include "simulation_defines/param/precision.param"
 #include "simulation_defines/param/physicalConstants.param"
 #include "simulation_defines/param/particleDefinition.param"
