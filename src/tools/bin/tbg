@@ -201,34 +201,34 @@ while true ; do
     case "$1" in
         -s|--submit)
             submit_command="$2"
-            shift 
+            shift
             ;;
        -p|--project)
             projectPath="$2"
             shift
             ;;
-       -c|--cfg)    
+       -c|--cfg)
             cfg_file="$2"
-            shift 
+            shift
             ;;
-       -o)    
+       -o)
             tooltpl_overwrite="$2"
-            shift 
+            shift
             ;;
-       -t|--tpl)    
+       -t|--tpl)
             tooltpl_file="$2"
             if [ ! -f $tooltpl_file ] ; then
-                echo "No cfg file given." >&2
+                echo "The given tpl file does not exist." >&2
                 exit 1;
             fi
-            shift 
+            shift
             ;;
         -h|--help)
             echo -e "$(help)"
-            shift 
+            shift
             exit 1
             ;;
-        --) shift; break;;          
+        --) shift; break;;
     esac
     shift
 done
