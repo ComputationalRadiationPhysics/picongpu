@@ -10,11 +10,11 @@ This is the third release candidate, a *pre-beta* version.
 ### Changes to "Open Beta RC2"
 
 **.param file changes:**
- - componentsConfig.param:
+ - `componentsConfig.param`:
    - remove simDim defines #134
-     (example how to update yoyr existing componentsConfig.param, see
+     (example how to update your existing `componentsConfig.param`, see
      [https://github.com/ax3l/picongpu/commit/af1f20790ad2aa15e6fc2c9a51d8c870437a5fb7])
- - dimension.param: new file with simDim setting #134
+ - `dimension.param`: new file with simDim setting #134
    - only add this file to your example/test/config if you want to change it
      from the default value (3D)
 
@@ -28,12 +28,12 @@ This is the second release candidate, a *pre-beta* version.
 ### Changes to "Open Beta RC1"
 
 **.param file changes:**
- - gasConfig.param:
+ - `gasConfig.param`:
    - add gasFreeFormula #96
-     (example how to update your existing gasConfig.param, see
+     (example how to update your existing `gasConfig.param`, see
      [https://github.com/ComputationalRadiationPhysics/picongpu/pull/96/files#diff-1])
    - add inner radius to gasSphereFlanks #66
-     (example how to update your existing gasConfig.param, see
+     (example how to update your existing `gasConfig.param`, see
      [https://github.com/ComputationalRadiationPhysics/picongpu/pull/66/files#diff-0])
 
 **New Features:**
