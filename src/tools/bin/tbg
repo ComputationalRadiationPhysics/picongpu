@@ -218,7 +218,7 @@ while true ; do
        -t|--tpl)
             tooltpl_file="$2"
             if [ ! -f $tooltpl_file ] ; then
-                echo "The given tpl file does not exist." >&2
+                echo "The given tpl file \"$tooltpl_file\" does not exist." >&2
                 exit 1;
             fi
             shift
