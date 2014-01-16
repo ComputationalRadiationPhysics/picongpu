@@ -1,6 +1,24 @@
 Change Log / Release Log for PIConGPU
 ================================================================
 
+Open Beta RC3
+-------------
+**Date:** TBA
+
+This is the third release candidate, a *pre-beta* version.
+
+### Changes to "Open Beta RC2"
+
+**.param file changes:**
+ - componentsConfig.param:
+   - remove simDim defines #134
+     (example how to update yoyr existing componentsConfig.param, see
+     [https://github.com/ax3l/picongpu/commit/af1f20790ad2aa15e6fc2c9a51d8c870437a5fb7])
+ - dimension.param: new file with simDim setting #134
+   - only add this file to your example/test/config if you want to change it
+     from the default value (3D)
+
+
 Open Beta RC2
 -------------
 **Date:** 2013-11-27
