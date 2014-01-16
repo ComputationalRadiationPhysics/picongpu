@@ -47,6 +47,7 @@
 #include "fields/FieldJ.hpp"
 #include "fields/FieldTmp.hpp"
 #include "fields/MaxwellSolver/Solvers.hpp"
+#include "fields/background/cellwiseOperation.hpp"
 #include "initialization/IInitModule.hpp"
 #include "initialization/ParserGridDistribution.hpp"
 
@@ -56,6 +57,7 @@
 #include "nvidia/reduce/Reduce.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
 #include "nvidia/functors/Add.hpp"
+#include "nvidia/functors/Sub.hpp"
 
 namespace picongpu
 {
@@ -258,6 +260,7 @@ public:
         fieldE = new FieldE(*cellDescription);
         fieldJ = new FieldJ(*cellDescription);
         fieldTmp = new FieldTmp(*cellDescription);
+        fieldBG = new cellwiseOperation::CellwiseOperation(*cellDescription);
 
         //std::cout<<"Grid x="<<layout.getDataSpace().x()<<" y="<<layout.getDataSpace().y()<<std::endl;
 
@@ -339,6 +342,13 @@ public:
      */
     virtual void runOneStep(uint32_t currentStep)
     {
+        namespace nvfct = PMacc::nvidia::functors;
+
+        fieldBG->exec< CORE + BORDER >( fieldE, nvfct::Add(), fieldBackgroundE(),
+            currentStep, fieldBackgroundB::InfluenceParticlePusher );
+        fieldBG->exec< CORE + BORDER >( fieldB, nvfct::Add(), fieldBackgroundB(),
+            currentStep, fieldBackgroundB::InfluenceParticlePusher );
+
 #if (ENABLE_IONS == 1)
         __startTransaction(__getTransactionEvent());
         //std::cout << "Begin update Ions" << std::endl;
@@ -355,6 +365,11 @@ public:
         EventTask eRecvElectrons = electrons->asyncCommunication(__getTransactionEvent());
         EventTask eElectrons = __endTransaction();
 #endif
+
+        fieldBG->exec< CORE + BORDER >( fieldE, nvfct::Sub(), fieldBackgroundE(),
+            currentStep, fieldBackgroundE::InfluenceParticlePusher );
+        fieldBG->exec< CORE + BORDER >( fieldB, nvfct::Sub(), fieldBackgroundB(),
+            currentStep, fieldBackgroundB::InfluenceParticlePusher );
 
         this->myFieldSolver->update_beforeCurrent(currentStep);
 
@@ -468,6 +483,7 @@ protected:
 
     // field solver
     fieldSolver::FieldSolver* myFieldSolver;
+    cellwiseOperation::CellwiseOperation* fieldBG;
 
     // particles
 #if (ENABLE_IONS == 1)

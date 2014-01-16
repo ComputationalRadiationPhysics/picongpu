@@ -22,13 +22,41 @@
 
 #pragma once
 
-/**! discripe filed solver method
+// include "dimensions/DataSpace.hpp"
+/// \todo declare simDim before fieldConfig.param (out of components.param)
+
+/**! describe field solver method
  * Define a solver for field with the name "FieldSolver"
  * 
  */
 namespace picongpu
 {
+    /* Background fields */
+    class fieldBackgroundE
+    { 
+    public:
+        static const bool InfluenceParticlePusher = true;
 
+        HDINLINE float3_X
+        operator()( const DataSpace<3U>& cellIdx, const uint32_t currentStep ) const
+        {
+            return float3_X(0.0, math::sin( cellIdx.y() / 10.0 ), 0.0);
+        }
+    };
+
+    class fieldBackgroundB
+    { 
+    public:
+        static const bool InfluenceParticlePusher = true;
+
+        HDINLINE float3_X
+        operator()( const DataSpace<3U>& cellIdx, const uint32_t currentStep ) const
+        {
+            return float3_X(0.0, math::cos( cellIdx.y() / 10.0 ), 0.0);
+        }
+    };
+
+    /* Maxwell Solvers */
     namespace fieldSolverNone
     {
         
