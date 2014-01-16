@@ -344,9 +344,9 @@ public:
     {
         namespace nvfct = PMacc::nvidia::functors;
 
-        fieldBG->exec< CORE + BORDER >( fieldE, nvfct::Add(), fieldBackgroundE(),
-            currentStep, fieldBackgroundB::InfluenceParticlePusher );
-        fieldBG->exec< CORE + BORDER >( fieldB, nvfct::Add(), fieldBackgroundB(),
+        fieldBG->exec< CORE + BORDER + GUARD >( fieldE, nvfct::Add(), fieldBackgroundE(),
+            currentStep, fieldBackgroundE::InfluenceParticlePusher );
+        fieldBG->exec< CORE + BORDER + GUARD >( fieldB, nvfct::Add(), fieldBackgroundB(),
             currentStep, fieldBackgroundB::InfluenceParticlePusher );
 
 #if (ENABLE_IONS == 1)
@@ -366,9 +366,9 @@ public:
         EventTask eElectrons = __endTransaction();
 #endif
 
-        fieldBG->exec< CORE + BORDER >( fieldE, nvfct::Sub(), fieldBackgroundE(),
+        fieldBG->exec< CORE + BORDER + GUARD >( fieldE, nvfct::Sub(), fieldBackgroundE(),
             currentStep, fieldBackgroundE::InfluenceParticlePusher );
-        fieldBG->exec< CORE + BORDER >( fieldB, nvfct::Sub(), fieldBackgroundB(),
+        fieldBG->exec< CORE + BORDER + GUARD >( fieldB, nvfct::Sub(), fieldBackgroundB(),
             currentStep, fieldBackgroundB::InfluenceParticlePusher );
 
         this->myFieldSolver->update_beforeCurrent(currentStep);

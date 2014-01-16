@@ -94,12 +94,19 @@ namespace cellwiseOperation
             if( !enabled )
                 return;
 
-            /** offset due to slides AND due to being the n-th GPU */
-            DataSpace<simDim> globalOffset(SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset());
+            /** offset due to being the n-th GPU */
+            DataSpace<simDim> totalCellOffset(SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset());
             VirtualWindow window = MovingWindow::getInstance().getVirtualWindow( currentStep );
-            
-            DataSpace<simDim> totalCellOffset(globalOffset);
-            globalOffset.y() += window.slides * window.localFullSize.y();
+
+            /** Assumption: all GPUs have the same number of cells in
+             *              y direction for sliding window */
+            totalCellOffset.y() += window.slides * window.localFullSize.y();
+            /* the first block will start with less offset if started in the GUARD */
+            if( AREA & GUARD)
+                totalCellOffset -= cellDescription.getSuperCellSize() * cellDescription.getGuardingSuperCells();
+            /* if we run _only_ in the CORE we have to add the BORDER's offset */
+            else if( AREA == CORE )
+                totalCellOffset += cellDescription.getSuperCellSize() * cellDescription.getBorderSuperCells();
 
             /* start kernel */
             __picKernelArea((kernelCellwiseOperation<T_OpFunctor>), cellDescription, AREA)

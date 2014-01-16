@@ -35,7 +35,7 @@ namespace picongpu
     class fieldBackgroundE
     { 
     public:
-        static const bool InfluenceParticlePusher = true;
+        static const bool InfluenceParticlePusher = false;
 
         HDINLINE float3_X
         operator()( const DataSpace<3U>& cellIdx, const uint32_t currentStep ) const
@@ -52,7 +52,7 @@ namespace picongpu
         HDINLINE float3_X
         operator()( const DataSpace<3U>& cellIdx, const uint32_t currentStep ) const
         {
-            return float3_X(0.0, math::cos( cellIdx.y() / 10.0 ), 0.0);
+            return float3_X(0.0, 0.0, 1.0);
         }
     };
 
