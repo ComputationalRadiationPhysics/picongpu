@@ -82,14 +82,14 @@ namespace picongpu
          */
         namespace SI
         {
-            /** Y-Position where the linear slope ends and the exponential slope
-             *  begins
-             *  unit: meter
-             */
-            const double GAS_Y_MAX_SI = 1.0e-3;
-            
-            /** Parameters for the linear slope:
-             *  For Y <= GAS_MAX:
+           /** Y-Position where the linear slope ends and the exponential slope
+            *  begins
+            *  unit: meter
+            */
+           const double GAS_Y_MAX_SI = 1.0e-3;
+
+           /** Parameters for the linear slope:
+            *  For Y <= GAS_Y_MAX_SI:
             *    \rho / GAS_DENSITY = A * Y + B
             *                       = element [0.0; 1.0]
             *  unit for A: 1/m
@@ -103,11 +103,12 @@ namespace picongpu
         {
             /** Parameters for the exponential slope
              *  For Y > GAS_MAX_SI:
-             *    \rho = exp[ - Y * D ]
+             *    let Y' = Y - GAS_MAX_SI
+             *    \rho = exp[ - Y' * D ]
              *         = element [0.0; 1.0]
              *  unit: 1/m
              */
-            const double GAS_D_SI = 1.0e-3;
+            const double GAS_D_SI = 1.0/1.0e-3;
         }
 
     }
@@ -154,7 +155,8 @@ namespace picongpu
             
             /** Parameters for the exponential slope
              *  For r > GAS_R_SI:
-             *    \rho = exp[ - r * GAS_EXP ]
+             *    let r' = r - GAS_R_SI
+             *    \rho = exp[ - r' * GAS_EXP_SI ]
              *  unit: 1/m
              */
             const double GAS_EXP_SI = 1.0e-3;
