@@ -260,7 +260,7 @@ public:
         fieldE = new FieldE(*cellDescription);
         fieldJ = new FieldJ(*cellDescription);
         fieldTmp = new FieldTmp(*cellDescription);
-        fieldBG = new cellwiseOperation::CellwiseOperation(*cellDescription);
+        fieldBG = new cellwiseOperation::CellwiseOperation< CORE + BORDER + GUARD >(*cellDescription);
 
         //std::cout<<"Grid x="<<layout.getDataSpace().x()<<" y="<<layout.getDataSpace().y()<<std::endl;
 
@@ -344,9 +344,10 @@ public:
     {
         namespace nvfct = PMacc::nvidia::functors;
 
-        fieldBG->exec< CORE + BORDER + GUARD >( fieldE, nvfct::Add(), fieldBackgroundE(),
+        /** add background field for particle pusher */
+        (*fieldBG)( fieldE, nvfct::Add(), fieldBackgroundE(),
             currentStep, fieldBackgroundE::InfluenceParticlePusher );
-        fieldBG->exec< CORE + BORDER + GUARD >( fieldB, nvfct::Add(), fieldBackgroundB(),
+        (*fieldBG)( fieldB, nvfct::Add(), fieldBackgroundB(),
             currentStep, fieldBackgroundB::InfluenceParticlePusher );
 
 #if (ENABLE_IONS == 1)
@@ -366,9 +367,10 @@ public:
         EventTask eElectrons = __endTransaction();
 #endif
 
-        fieldBG->exec< CORE + BORDER + GUARD >( fieldE, nvfct::Sub(), fieldBackgroundE(),
+        /** remove background field for particle pusher */
+        (*fieldBG)( fieldE, nvfct::Sub(), fieldBackgroundE(),
             currentStep, fieldBackgroundE::InfluenceParticlePusher );
-        fieldBG->exec< CORE + BORDER + GUARD >( fieldB, nvfct::Sub(), fieldBackgroundB(),
+        (*fieldBG)( fieldB, nvfct::Sub(), fieldBackgroundB(),
             currentStep, fieldBackgroundB::InfluenceParticlePusher );
 
         this->myFieldSolver->update_beforeCurrent(currentStep);
@@ -483,7 +485,7 @@ protected:
 
     // field solver
     fieldSolver::FieldSolver* myFieldSolver;
-    cellwiseOperation::CellwiseOperation* fieldBG;
+    cellwiseOperation::CellwiseOperation< CORE + BORDER + GUARD >* fieldBG;
 
     // particles
 #if (ENABLE_IONS == 1)

@@ -29,11 +29,6 @@
 #include "mappings/kernel/MappingDescription.hpp"
 #include "simulationControl/MovingWindow.hpp"
 
-/* just for testing */
-#include "fields/FieldE.hpp"
-#include "fields/FieldB.hpp"
-#include "fields/FieldJ.hpp"
-#include "fields/FieldTmp.hpp"
 
 namespace picongpu
 {
@@ -41,9 +36,12 @@ namespace cellwiseOperation
 {
     using namespace PMacc;
 
-    /** Kernel that calls OpFunctor on each cell of a field
-     * 
-     * \tparam T_OpFunctor<Field> not specialized (yet) for which field type
+    /** Kernel that calls T_OpFunctor and T_ValFunctor on each cell of a field
+     *
+     *  Pseudo code: opFunctor( cell, valFunctor( globalCellIdx, currentStep ) );
+     *
+     * \tparam T_OpFunctor like assign, add, subtract, ...
+     * \tparam T_ValFunctor like "f(x,t)", "0.0", "readFromOtherField", ...
      * \tparam FieldBox field type
      * \tparam Mapping auto attached argument from __picKernelArea call
      */
@@ -67,7 +65,11 @@ namespace cellwiseOperation
                  );
     }
 
-    /** Call a functor on each cell of a field */
+    /** Call a functor on each cell of a field
+     *
+     *  \tparam T_Area Where to compute on (CORE, BORDER, GUARD)
+     */
+    template<uint32_t T_Area>
     class CellwiseOperation
     {
     private:
@@ -80,16 +82,15 @@ namespace cellwiseOperation
         {
         }
 
-        /* ...
+        /* Functor call to execute the op/valFunctor on a given field
          * 
-         * \tparam AREA Where to compute on (CORE, BORDER, GUARD)
          * \tparam ValFunctor A Value-Producing functor for a given cell
          *                    in time and space
          * \tparam OpFunctor A manipulating functor like PMacc::nvidia::functors::add
          */
-        template<uint32_t AREA, class T_Field, class T_OpFunctor, class T_ValFunctor>
+        template<class T_Field, class T_OpFunctor, class T_ValFunctor>
         void
-        exec( T_Field field, T_OpFunctor opFunctor, T_ValFunctor valFunctor, uint32_t currentStep, const bool enabled = true ) const
+        operator()( T_Field field, T_OpFunctor opFunctor, T_ValFunctor valFunctor, uint32_t currentStep, const bool enabled = true ) const
         {
             if( !enabled )
                 return;
@@ -102,14 +103,14 @@ namespace cellwiseOperation
              *              y direction for sliding window */
             totalCellOffset.y() += window.slides * window.localFullSize.y();
             /* the first block will start with less offset if started in the GUARD */
-            if( AREA & GUARD)
+            if( T_Area & GUARD)
                 totalCellOffset -= cellDescription.getSuperCellSize() * cellDescription.getGuardingSuperCells();
             /* if we run _only_ in the CORE we have to add the BORDER's offset */
-            else if( AREA == CORE )
+            else if( T_Area == CORE )
                 totalCellOffset += cellDescription.getSuperCellSize() * cellDescription.getBorderSuperCells();
 
             /* start kernel */
-            __picKernelArea((kernelCellwiseOperation<T_OpFunctor>), cellDescription, AREA)
+            __picKernelArea((kernelCellwiseOperation<T_OpFunctor>), cellDescription, T_Area)
                     (SuperCellSize::getDataSpace())
                     (field->getDeviceDataBox(), opFunctor, valFunctor, totalCellOffset, currentStep);
         }
