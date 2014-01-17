@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include "physicalConstants.param"
+#include "gridConfig.param"
 
 /**! describe field solver method
  * Define a solver for field with the name "FieldSolver"
@@ -28,32 +30,72 @@
  */
 namespace picongpu
 {
-    /* Background fields */
+    /* Background fields ******************************************************/
     class fieldBackgroundE
     { 
     public:
+        /* Add this additional field for pushing particles */
         static const bool InfluenceParticlePusher = false;
 
+        /* We use this to calculate your SI input back to our unit system */
+        const float3_64 unitField;
+        HDINLINE fieldBackgroundE( const float3_64 unitField_ ) : unitField(unitField_)
+        {}
+
+        /** Specify your background field E(r,t) here
+         *
+         * \param cellIdx The total cell id counted from the start at t=0
+         * \param currentStep The current time step */
         HDINLINE float3_X
-        operator()( const DataSpace<simDim>& cellIdx, const uint32_t currentStep ) const
+        operator()( const DataSpace<simDim>& cellIdx,
+                    const uint32_t currentStep ) const
         {
-            return float3_X(0.0, math::sin( cellIdx.y() / 20.0 ), 0.0);
+            /* example: periodicity of 20 microns (=2.0e-5 m) */
+            const float_64 period_SI(20.0e-6);
+            /* calculate cells -> SI -> m to microns*/
+            const float_64 y_SI = cellIdx.y() * SI::CELL_HEIGHT_SI * 1.0e6;
+            /* note: you can also transform the time step to seconds by
+             *       multiplying with DELTA_T_SI */
+
+            /* specify your E-Field in V/m and convert to PIConGPU units */
+            const float_X sinArg = typeCast<float_X>( y_SI / period_SI * 2.0 * PI );
+            return float3_X(0.0, math::sin( sinArg ) / unitField[1], 0.0);
         }
     };
 
     class fieldBackgroundB
     { 
     public:
+        /* Add this additional field for pushing particles */
         static const bool InfluenceParticlePusher = false;
 
+        /* We use this to calculate your SI input back to our unit system */
+        const float3_64 unitField;
+        HDINLINE fieldBackgroundB( const float3_64 unitField_ ) : unitField(unitField_)
+        {}
+
+        /** Specify your background field B(r,t) here
+         *
+         * \param cellIdx The total cell id counted from the start at t=0
+         * \param currentStep The current time step */
         HDINLINE float3_X
-        operator()( const DataSpace<simDim>& cellIdx, const uint32_t currentStep ) const
+        operator()( const DataSpace<simDim>& cellIdx,
+                    const uint32_t currentStep ) const
         {
-            return float3_X(0.0, math::cos( cellIdx.y() / 20.0 ), 0.0);
+            /* example: periodicity of 20 microns (=2.0e-5 m) */
+            const float_64 period_SI(20.0e-6);
+            /* calculate cells -> SI -> m to microns*/
+            const float_64 y_SI = cellIdx.y() * SI::CELL_HEIGHT_SI * 1.0e6;
+            /* note: you can also transform the time step to seconds by
+             *       multiplying with DELTA_T_SI */
+
+            /* specify your B-Field in T and convert to PIConGPU units */
+            const float_X sinArg = typeCast<float_X>( y_SI / period_SI * 2.0 * PI );
+            return float3_X(0.0, math::cos( sinArg ) / unitField[1], 0.0);
         }
     };
 
-    /* Maxwell Solvers */
+    /* Maxwell Solvers ********************************************************/
     namespace fieldSolverNone
     {
         

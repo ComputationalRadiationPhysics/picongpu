@@ -345,9 +345,9 @@ public:
         namespace nvfct = PMacc::nvidia::functors;
 
         /** add background field for particle pusher */
-        (*fieldBG)( fieldE, nvfct::Add(), fieldBackgroundE(),
+        (*fieldBG)( fieldE, nvfct::Add(), fieldBackgroundE(fieldE->getUnit()),
             currentStep, fieldBackgroundE::InfluenceParticlePusher );
-        (*fieldBG)( fieldB, nvfct::Add(), fieldBackgroundB(),
+        (*fieldBG)( fieldB, nvfct::Add(), fieldBackgroundB(fieldB->getUnit()),
             currentStep, fieldBackgroundB::InfluenceParticlePusher );
 
 #if (ENABLE_IONS == 1)
@@ -368,9 +368,9 @@ public:
 #endif
 
         /** remove background field for particle pusher */
-        (*fieldBG)( fieldE, nvfct::Sub(), fieldBackgroundE(),
+        (*fieldBG)( fieldE, nvfct::Sub(), fieldBackgroundE(fieldE->getUnit()),
             currentStep, fieldBackgroundE::InfluenceParticlePusher );
-        (*fieldBG)( fieldB, nvfct::Sub(), fieldBackgroundB(),
+        (*fieldBG)( fieldB, nvfct::Sub(), fieldBackgroundB(fieldB->getUnit()),
             currentStep, fieldBackgroundB::InfluenceParticlePusher );
 
         this->myFieldSolver->update_beforeCurrent(currentStep);
