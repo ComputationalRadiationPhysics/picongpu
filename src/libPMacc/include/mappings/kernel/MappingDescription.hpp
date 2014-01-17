@@ -102,17 +102,17 @@ public:
         return globalOffset/SuperCellSize::getDataSpace();
     }
 
-    HDINLINE DataSpace<DIM> getSuperCellSize()
+    HDINLINE DataSpace<DIM> getSuperCellSize() const
     {
         return SuperCellSize::getDataSpace();
     }
 
-    HDINLINE GridLayout<DIM> getGridLayout()
+    HDINLINE GridLayout<DIM> getGridLayout() const
     {
         return GridLayout<DIM > (SuperCellSize::getDataSpace()*(gridSuperCells - 2 * guardingSuperCells), SuperCellSize::getDataSpace() * guardingSuperCells);
     }
 
-    HINLINE DataSpace<DIM> getGlobalSuperCells()
+    HINLINE DataSpace<DIM> getGlobalSuperCells() const
     {
         return GridController<DIM>::getInstance().getGpuNodes() * (gridSuperCells - 2 * guardingSuperCells);
     }
