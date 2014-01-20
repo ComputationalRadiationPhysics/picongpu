@@ -47,6 +47,7 @@
 #include "fields/FieldJ.hpp"
 #include "fields/FieldTmp.hpp"
 #include "fields/MaxwellSolver/Solvers.hpp"
+#include "fields/background/cellwiseOperation.hpp"
 #include "initialization/IInitModule.hpp"
 #include "initialization/ParserGridDistribution.hpp"
 
@@ -56,6 +57,7 @@
 #include "nvidia/reduce/Reduce.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
 #include "nvidia/functors/Add.hpp"
+#include "nvidia/functors/Sub.hpp"
 
 namespace picongpu
 {
@@ -258,6 +260,7 @@ public:
         fieldE = new FieldE(*cellDescription);
         fieldJ = new FieldJ(*cellDescription);
         fieldTmp = new FieldTmp(*cellDescription);
+        pushBGField = new cellwiseOperation::CellwiseOperation< CORE + BORDER + GUARD >(*cellDescription);
 
         //std::cout<<"Grid x="<<layout.getDataSpace().x()<<" y="<<layout.getDataSpace().y()<<std::endl;
 
@@ -339,6 +342,14 @@ public:
      */
     virtual void runOneStep(uint32_t currentStep)
     {
+        namespace nvfct = PMacc::nvidia::functors;
+
+        /** add background field for particle pusher */
+        (*pushBGField)( fieldE, nvfct::Add(), fieldBackgroundE(fieldE->getUnit()),
+            currentStep, fieldBackgroundE::InfluenceParticlePusher );
+        (*pushBGField)( fieldB, nvfct::Add(), fieldBackgroundB(fieldB->getUnit()),
+            currentStep, fieldBackgroundB::InfluenceParticlePusher );
+
 #if (ENABLE_IONS == 1)
         __startTransaction(__getTransactionEvent());
         //std::cout << "Begin update Ions" << std::endl;
@@ -355,6 +366,12 @@ public:
         EventTask eRecvElectrons = electrons->asyncCommunication(__getTransactionEvent());
         EventTask eElectrons = __endTransaction();
 #endif
+
+        /** remove background field for particle pusher */
+        (*pushBGField)( fieldE, nvfct::Sub(), fieldBackgroundE(fieldE->getUnit()),
+            currentStep, fieldBackgroundE::InfluenceParticlePusher );
+        (*pushBGField)( fieldB, nvfct::Sub(), fieldBackgroundB(fieldB->getUnit()),
+            currentStep, fieldBackgroundB::InfluenceParticlePusher );
 
         this->myFieldSolver->update_beforeCurrent(currentStep);
 
@@ -468,6 +485,7 @@ protected:
 
     // field solver
     fieldSolver::FieldSolver* myFieldSolver;
+    cellwiseOperation::CellwiseOperation< CORE + BORDER + GUARD >* pushBGField;
 
     // particles
 #if (ENABLE_IONS == 1)

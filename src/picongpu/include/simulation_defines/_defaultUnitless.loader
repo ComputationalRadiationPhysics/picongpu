@@ -33,7 +33,7 @@
 #include "simulation_defines/unitless/particleDefinition.unitless"
 #include "simulation_defines/unitless/laserConfig.unitless"
 #include "simulation_defines/unitless/particleConfig.unitless"
-#include "simulation_defines/unitless/fieldConfig.unitless"
+#include "simulation_defines/unitless/fieldSolver.unitless"
 #include "simulation_defines/unitless/currentConfig.unitless"
 #include "simulation_defines/unitless/visualization.unitless"
 #include "simulation_defines/unitless/pusherConfig.unitless"
