@@ -17,6 +17,8 @@ This is the third release candidate, a *pre-beta* version.
  - `dimension.param`: new file with simDim setting #134
    - only add this file to your example/test/config if you want to change it
      from the default value (3D)
+ - `fieldConfig.param`: renamed to `fieldSolver.param` #131
+ - `fieldBackground.param`: new file to add external background fields #131
 
 
 Open Beta RC2
