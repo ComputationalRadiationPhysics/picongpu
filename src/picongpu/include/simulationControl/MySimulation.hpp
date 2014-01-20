@@ -260,7 +260,7 @@ public:
         fieldE = new FieldE(*cellDescription);
         fieldJ = new FieldJ(*cellDescription);
         fieldTmp = new FieldTmp(*cellDescription);
-        fieldBG = new cellwiseOperation::CellwiseOperation< CORE + BORDER + GUARD >(*cellDescription);
+        pushBGField = new cellwiseOperation::CellwiseOperation< CORE + BORDER + GUARD >(*cellDescription);
 
         //std::cout<<"Grid x="<<layout.getDataSpace().x()<<" y="<<layout.getDataSpace().y()<<std::endl;
 
@@ -345,9 +345,9 @@ public:
         namespace nvfct = PMacc::nvidia::functors;
 
         /** add background field for particle pusher */
-        (*fieldBG)( fieldE, nvfct::Add(), fieldBackgroundE(fieldE->getUnit()),
+        (*pushBGField)( fieldE, nvfct::Add(), fieldBackgroundE(fieldE->getUnit()),
             currentStep, fieldBackgroundE::InfluenceParticlePusher );
-        (*fieldBG)( fieldB, nvfct::Add(), fieldBackgroundB(fieldB->getUnit()),
+        (*pushBGField)( fieldB, nvfct::Add(), fieldBackgroundB(fieldB->getUnit()),
             currentStep, fieldBackgroundB::InfluenceParticlePusher );
 
 #if (ENABLE_IONS == 1)
@@ -368,9 +368,9 @@ public:
 #endif
 
         /** remove background field for particle pusher */
-        (*fieldBG)( fieldE, nvfct::Sub(), fieldBackgroundE(fieldE->getUnit()),
+        (*pushBGField)( fieldE, nvfct::Sub(), fieldBackgroundE(fieldE->getUnit()),
             currentStep, fieldBackgroundE::InfluenceParticlePusher );
-        (*fieldBG)( fieldB, nvfct::Sub(), fieldBackgroundB(fieldB->getUnit()),
+        (*pushBGField)( fieldB, nvfct::Sub(), fieldBackgroundB(fieldB->getUnit()),
             currentStep, fieldBackgroundB::InfluenceParticlePusher );
 
         this->myFieldSolver->update_beforeCurrent(currentStep);
@@ -485,7 +485,7 @@ protected:
 
     // field solver
     fieldSolver::FieldSolver* myFieldSolver;
-    cellwiseOperation::CellwiseOperation< CORE + BORDER + GUARD >* fieldBG;
+    cellwiseOperation::CellwiseOperation< CORE + BORDER + GUARD >* pushBGField;
 
     // particles
 #if (ENABLE_IONS == 1)
