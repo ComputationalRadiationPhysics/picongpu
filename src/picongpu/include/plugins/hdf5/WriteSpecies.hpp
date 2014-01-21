@@ -53,6 +53,9 @@ namespace hdf5
 {
 using namespace PMacc;
 
+// = ColTypeUInt64_5Array
+TYPE_ARRAY(UInt64_5, H5T_INTEL_U64, uint64_t, 5);
+
 using namespace splash;
 namespace bmpl = boost::mpl;
 
@@ -215,24 +218,38 @@ public:
             /*this cost a little bit of time but hdf5 writing is slower^^*/
             assert((uint64_cu) counterBuffer.getHostBuffer().getDataBox()[0] == totalNumParticles);
         }
-        /*dump to hdf5 file*/
+        /*dump to hdf5 file*/        
         ForEach<typename Hdf5FrameType::ValueTypeSeq, hdf5::ParticleAttribute<void> > writeToHdf5;
         writeToHdf5(params, byRef(hostFrame), prefix + FrameType::getName(), domInfo, totalNumParticles);
 
         /*write species counter table to hdf5 file*/
         log<picLog::INPUT_OUTPUT > ("HDF5 begin writing particle index table for %1%") % Hdf5FrameType::getName();
         {
-            GridController<simDim> &gc = GridController<simDim>::getInstance();
-            ColTypeUInt64 ctUInt64;
+            ColTypeUInt64_5Array ctUInt64_5;
+            GridController<simDim>& gc = GridController<simDim>::getInstance();
+            
+            const size_t pos_offset = 2;
+            
+            /* particlesMetaInfo = (num particles, scalar position, particle offset x, y, z) */
+            uint64_t particlesMetaInfo[5] = {totalNumParticles, gc.getScalarPosition(), 0, 0, 0};
+            for (size_t d = 0; d < simDim; ++d)
+                particlesMetaInfo[pos_offset + d] = particleOffset[d];
+            
+            /* prevent that top (y) gpus have negative value here */
+            if (gc.getPosition().y() == 0)
+                particlesMetaInfo[pos_offset + 1] = 0;
+            
+            if (particleOffset[1] < 0) // 1 == y
+                particlesMetaInfo[pos_offset + 1] = 0;
 
             params.get()->dataCollector->write(
                 params.get()->currentStep,
                 Dimensions(gc.getGlobalSize(), 1, 1),
                 Dimensions(gc.getGlobalRank(), 0, 0),
-                ctUInt64, 1,
+                ctUInt64_5, 1,
                 Dimensions(1, 1, 1),
-                (prefix + FrameType::getName() + std::string("_particles_count")).c_str(),
-                &totalNumParticles);
+                (prefix + FrameType::getName() + std::string("_particles_info")).c_str(),
+                particlesMetaInfo);
         }
         log<picLog::INPUT_OUTPUT > ("HDF5 end writing particle index table for %1%") % Hdf5FrameType::getName();
         

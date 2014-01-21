@@ -435,10 +435,13 @@ private:
 
         for (uint32_t d = 0; d < simDim; ++d)
         {
-            splashGlobalOffsetFile[d] = domInfo.globalDomainOffset[d];
+            splashGlobalOffsetFile[d] = domInfo.domainOffset[d];
             splashGlobalDomainOffset[d] = domInfo.globalDomainOffset[d] + globalSlideOffset[d];
             splashGlobalDomainSize[d] = domInfo.globalDomainSize[d];
         }
+        
+        splashGlobalOffsetFile[1] = std::max(0, domInfo.domainOffset[1] -
+                domInfo.globalDomainOffset[1]);
 
 
         for (uint32_t d = 0; d < nComponents; d++)

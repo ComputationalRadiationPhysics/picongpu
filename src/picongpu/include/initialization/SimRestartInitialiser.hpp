@@ -133,22 +133,34 @@ public:
         ptrFloat relativePositions[simDim];
         ptrInt cellPositions[simDim];
         ptrFloat momentums[simDim];
-
         ptrFloat weighting = NULL;
         
-        // load particle counter table entry for this process
-        uint64_t counterBfr[gc.getGlobalSize()];
-        Dimensions counterBfrSizeRead;
+        /* load particles info table entry for this process
+           particlesInfo is (part-count, scalar pos, x, y, z) */
+        typedef uint64_t uint64Quint[5];
+        uint64Quint particlesInfo[gc.getGlobalSize()];
+        Dimensions particlesInfoSizeRead;
         
-        dataCollector.read(simulationStep, (std::string(prefix) + std::string("_particles_count")).c_str(),
-                counterBfrSizeRead, counterBfr);
+        dataCollector.read(simulationStep, (std::string(prefix) + std::string("_particles_info")).c_str(),
+                particlesInfoSizeRead, particlesInfo);
         
-        assert(counterBfrSizeRead[0] == gc.getGlobalSize());
+        assert(particlesInfoSizeRead[0] == gc.getGlobalSize());
         
+        /* search my entry (using my scalar position) in particlesInfo */
         uint64_t particleOffset = 0;
-        uint64_t particleCount = counterBfr[gc.getGlobalRank()];
-        for (uint64_t i = 0; i < gc.getGlobalRank(); ++i)
-            particleOffset += counterBfr[i];
+        uint64_t particleCount = 0;
+        uint64_t myScalarPos = gc.getScalarPosition();
+        
+        for (size_t i = 0; i < particlesInfoSizeRead[0]; ++i)
+        {                        
+            if (particlesInfo[i][1] == myScalarPos)
+            {
+                particleCount = particlesInfo[i][0];
+                break;
+            }
+            
+            particleOffset += particlesInfo[i][0];
+        }
         
         log<picLog::INPUT_OUTPUT > ("Loading %llu particles from offset %llu") %
             (long long unsigned)particleCount, (long long unsigned)particleOffset;
@@ -237,8 +249,6 @@ public:
         DataSpace<DIM3> oldSuperCellPos(-1, -1, -1);
         uint32_t localId = 0;
 
-        //std::cout << "Read " << dim_pos.getScalarSize() << " particles" << std::endl;
-
         for (uint32_t i = 0; i < dim_pos.getScalarSize(); i++)
         {
             // get super cell
@@ -282,8 +292,6 @@ public:
             if (!((uint32_t) (cellPosInSuperCell.x()) < TILE_WIDTH && (uint32_t) (cellPosInSuperCell.y()) < TILE_HEIGHT &&
                   (uint32_t) (cellPosInSuperCell.z()) < TILE_DEPTH))
             {
-                std::cerr << "x=" << cellPosInSuperCell.x() << " y=" << cellPosInSuperCell.y() << " z=" << cellPosInSuperCell.z() << std::endl;
-                std::cerr << "ox=" << cellPosOnGPU.x() << " oy=" << cellPosOnGPU.y() << " oz=" << cellPosOnGPU.z() << std::endl;
                 assert((uint32_t) (cellPosInSuperCell.x()) < TILE_WIDTH && (uint32_t) (cellPosInSuperCell.y()) < TILE_HEIGHT &&
                        (uint32_t) (cellPosInSuperCell.z()) < TILE_DEPTH);
             }
@@ -366,10 +374,9 @@ public:
     /*! Restart a simulation from a hdf5 dump
      * This class can't restart simulation with active moving (sliding) window
      */
-    SimRestartInitialiser(std::string filename, DataSpace<DIM> gridPosition, DataSpace<DIM> localGridSize) :
+    SimRestartInitialiser(std::string filename, DataSpace<DIM> localGridSize) :
     filename(filename),
     simulationStep(0),
-    gridPosition(gridPosition),
     localGridSize(localGridSize)
     {
         GridController<simDim> &gc = GridController<simDim>::getInstance();
@@ -400,10 +407,10 @@ public:
     {
         // call super class
         AbstractInitialiser::setup();
-
+        
         GridController<DIM> &gc = GridController<DIM>::getInstance();
-        mpiPos = gc.getPosition();
-        mpiSize = gc.getGpuNodes();
+        DataSpace<DIM> mpiPos = gc.getPosition();
+        DataSpace<DIM> mpiSize = gc.getGpuNodes();
 
         DataCollector::FileCreationAttr attr;
         DataCollector::initFileCreationAttr(attr);
@@ -421,8 +428,18 @@ public:
         // maxID holds the last iteration written to the dataCollector's file
         simulationStep = dataCollector->getMaxID();
 
-        std::cout << "Loading from simulation step " << simulationStep <<
-            " in file set '" << filename << "'" << std::endl;
+        log<picLog::INPUT_OUTPUT > ("Loading from simulation step %1% in file set '%2%'") %
+                simulationStep % filename;
+        
+        /* load number of slides to initialize MovingWindow */        
+        int slides = 0;
+        dataCollector->readAttribute(simulationStep, NULL, "sim_slides", &slides);
+        
+        /* apply slides to set gpus to last/written configuration */
+        MovingWindow::getInstance().setSlideCounter((uint32_t) slides);
+        gc.setNumSlides(slides);
+        
+        gridPosition = SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset();
 
         return simulationStep + 1;
     }
@@ -437,13 +454,9 @@ public:
 
     void init(uint32_t id, ISimulationData& data, uint32_t)
     {
-        /* load number of slides to initialize MovingWindow */        
-        int slides;
-        dataCollector->readAttribute(simulationStep, NULL, "sim_slides", &slides);
-        MovingWindow::getInstance().setSlideCounter((uint32_t) slides);
         switch (id)
         {
-#if (ENABLE_ELECTRONS == 1)
+#if (ENABLE_ELECTRONS == 1)/* load number of slides to initialize MovingWindow */        
         case PAR_ELECTRONS:
         {
             VirtualWindow window = MovingWindow::getInstance().getVirtualWindow(simulationStep);
@@ -456,7 +469,7 @@ public:
 
             DataSpace<DIM3> localDomainSize(window.localSize);
 
-            std::cout << "Begin loading electrons" << std::endl;
+            log<picLog::INPUT_OUTPUT > ("Begin loading electrons");
             RestartParticleLoader<EBuffer, DIM>::loadParticles(
                                                                simulationStep,
                                                                *dataCollector,
@@ -466,14 +479,13 @@ public:
                                                                localDomainSize,
                                                                logicalToPhysicalOffset
                                                                );
-            std::cout << "Finished loading electrons" << std::endl;
+            log<picLog::INPUT_OUTPUT > ("Finished loading electrons");
 
 
             if (MovingWindow::getInstance().isSlidingWindowActive())
             {
-                if (window.isBottom)
                 {
-                    std::cout << "Begin loading electrons bottom" << std::endl;
+                    log<picLog::INPUT_OUTPUT > ("Begin loading electrons bottom");
                     globalDomainOffset = gridPosition;
                     globalDomainOffset.y() += window.localSize.y();
 
@@ -493,7 +505,7 @@ public:
                                                                            particleOffset
                                                                            );
                     }
-                    std::cout << "Finished loading electrons bottom" << std::endl;
+                    log<picLog::INPUT_OUTPUT > ("Finished loading electrons bottom");
                 }
             }
         }
@@ -512,7 +524,7 @@ public:
 
             DataSpace<DIM3> localDomainSize(window.localSize);
 
-            std::cout << "Begin loading ions" << std::endl;
+            log<picLog::INPUT_OUTPUT > ("Begin loading ions");
             RestartParticleLoader<IBuffer, DIM>::loadParticles(
                                                                simulationStep,
                                                                *dataCollector,
@@ -522,12 +534,11 @@ public:
                                                                localDomainSize,
                                                                logicalToPhysicalOffset
                                                                );
-            std::cout << "Finished loading ions" << std::endl;
+            log<picLog::INPUT_OUTPUT > ("Finished loading ions");
             if (MovingWindow::getInstance().isSlidingWindowActive())
             {
-                if (window.isBottom)
                 {
-                    std::cout << "Begin loading ions bottom" << std::endl;
+                    log<picLog::INPUT_OUTPUT > ("Begin loading ions bottom");
                     globalDomainOffset = gridPosition;
                     globalDomainOffset.y() += window.localSize.y();
 
@@ -550,7 +561,7 @@ public:
                                                                            particleOffset
                                                                            );
                     }
-                    std::cout << "Finished loading ions bottom" << std::endl;
+                    log<picLog::INPUT_OUTPUT > ("Finished loading ions bottom");
                 }
             }
         }
@@ -583,7 +594,7 @@ private:
     void initField(Data& field, std::string objectName)
     {
 
-        std::cout << "Begin loading field '" << objectName << "'" << std::endl;
+        log<picLog::INPUT_OUTPUT > ("Begin loading field '%1%'") % objectName;
         DataSpace<DIM> field_grid = field.getGridLayout().getDataSpace();
         DataSpace<DIM> field_data = field.getGridLayout().getDataSpaceWithoutGuarding();
         DataSpace<DIM> field_guard = field.getGridLayout().getGuard();
@@ -609,8 +620,8 @@ private:
                                  globalOffset.y() + globalSlideOffset.y(),
                                  globalOffset.z() + globalSlideOffset.z());
 
-        if (mpiPos[1] == 0)
-            domain_offset[1] = domain_offset[1] + window.globalSimulationOffset.y();
+        if (GridController<simDim>::getInstance().getPosition().y() == 0)
+            domain_offset[1] += window.globalSimulationOffset.y();
 
         Dimensions domain_size(window.localSize.x(),
                                window.localSize.y(),
@@ -652,13 +663,13 @@ private:
         __getTransactionEvent().waitForFinished();
 
         log<picLog::INPUT_OUTPUT > ("Read from domain: offset=%1% size=%2%") % domain_offset.toString() % domain_size.toString();
-        std::cout << "Finished loading field '" << objectName << "'" << std::endl;
+        log<picLog::INPUT_OUTPUT > ("Finished loading field '%1%'") % objectName;
     }
 
     template<class Data>
     void cloneField(Data& fieldDest, Data& fieldSrc, std::string objectName)
     {
-        std::cout << "Begin cloning field '" << objectName << "'" << std::endl;
+        log<picLog::INPUT_OUTPUT > ("Begin cloning field '%1%'") % objectName;
         DataSpace<DIM> field_grid = fieldDest.getGridLayout().getDataSpace();
 
         size_t elements = field_grid.productOfComponents();
@@ -674,11 +685,8 @@ private:
 
         __getTransactionEvent().waitForFinished();
 
-        std::cout << "Finished cloning field '" << objectName << "'" << std::endl;
+        log<picLog::INPUT_OUTPUT > ("Finished cloning field '%1%'") % objectName;
     }
-
-    DataSpace<DIM> mpiPos;
-    DataSpace<DIM> mpiSize;
 
     DataSpace<DIM> gridPosition;
     DataSpace<DIM> localGridSize;

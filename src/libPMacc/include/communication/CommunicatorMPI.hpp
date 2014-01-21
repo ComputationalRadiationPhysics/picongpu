@@ -62,12 +62,12 @@ public:
 
     virtual int getRank()
     {
-        return myrank;
+        return mpiRank;
     }
 
     virtual int getSize()
     {
-        return totalnodes;
+        return mpiSize;
     }
 
     /*! initializes all processes to build a 3D-grid
@@ -82,10 +82,9 @@ public:
         this->periodic = periodic;
 
         //check if parameters are correct
-        //int totalnodes;
-        MPI_CHECK(MPI_Comm_size(MPI_COMM_WORLD, &totalnodes));
+        MPI_CHECK(MPI_Comm_size(MPI_COMM_WORLD, &mpiSize));
 
-        if (numberProcesses.productOfComponents() != totalnodes)
+        if (numberProcesses.getElementCount() != mpiSize)
         {
             throw std::invalid_argument("wrong parameters or wrong mpirun-call!");
         }
@@ -200,6 +199,18 @@ public:
 
         return false;
     }
+    
+    bool setNumSlides(size_t numSlides)
+    {
+        bool result = false;
+
+        // only need to apply (numSlides % num-gpus-y) slides
+        for (size_t i = 0; i < (numSlides % dims[1]); ++i)
+            result = slide();
+        
+        return result;
+    }
+
 
 protected:
 
@@ -250,23 +261,16 @@ protected:
         cleanHostname(hostname);
         hostname[length++] = '\0';
 
-        //int totalnodes;
+        MPI_CHECK(MPI_Comm_size(MPI_COMM_WORLD, &mpiSize));
+        MPI_CHECK(MPI_Comm_rank(MPI_COMM_WORLD, &mpiRank));
 
-        MPI_CHECK(MPI_Comm_size(MPI_COMM_WORLD, &totalnodes));
-        MPI_CHECK(MPI_Comm_rank(MPI_COMM_WORLD, &myrank));
-
-        if (myrank == 0)
+        if (mpiRank == 0)
         {
-
             std::map<std::string, int> hosts;
             hosts[hostname] = 0;
             hostRank = 0;
-            for (int rank = 1; rank < totalnodes; ++rank)
+            for (int rank = 1; rank < mpiSize; ++rank)
             {
-
-
-
-
                 MPI_CHECK(MPI_Recv(hostname, MPI_MAX_PROCESSOR_NAME, MPI_CHAR, rank, gridHostnameTag, MPI_COMM_WORLD, MPI_STATUS_IGNORE));
 
                 //printf("Hostname: %s\n", hostname);
@@ -276,15 +280,11 @@ protected:
                 MPI_CHECK(MPI_Send(&hostrank, 1, MPI_INT, rank, gridHostRankTag, MPI_COMM_WORLD));
 
                 hosts[hostname] = hostrank;
-
-
             }
 
         }
         else
         {
-
-
             MPI_CHECK(MPI_Send(hostname, length, MPI_CHAR, GridManagerRank, gridHostnameTag, MPI_COMM_WORLD));
 
             MPI_CHECK(MPI_Recv(&hostRank, 1, MPI_INT, GridManagerRank, gridHostRankTag, MPI_COMM_WORLD, MPI_STATUS_IGNORE));
@@ -396,13 +396,13 @@ private:
     int dims[3];
     //! \see getCommunicationMask
     Mask communicationMask;
-    //! HostRank \see getHostRank of this process
+    //! rank of this process local to its host (node)
     int hostRank;
     //! offset for sliding window
     int yoffset;
 
-    int myrank;
-    int totalnodes;
+    int mpiRank;
+    int mpiSize;
 };
 
 
