@@ -162,8 +162,8 @@ public:
             particleOffset += particlesInfo[i][0];
         }
         
-        log<picLog::INPUT_OUTPUT > ("Loading %llu particles from offset %llu") %
-            (long long unsigned)particleCount, (long long unsigned)particleOffset;
+        log<picLog::INPUT_OUTPUT > ("Loading %1% particles from offset %2%") %
+            (long long unsigned)particleCount % (long long unsigned)particleOffset;
         
 #if(ENABLE_RADIATION == 1)
         ptrFloat momentums_mt1[simDim];
@@ -491,7 +491,7 @@ public:
 
                     localDomainSize = window.localFullSize;
                     localDomainSize.y() -= window.localSize.y();
-                    if (localDomainSize.y() > 0)
+
                     {
                         DataSpace<simDim> particleOffset = gridPosition;
                         particleOffset.y() = -window.localSize.y();
@@ -545,9 +545,6 @@ public:
                     localDomainSize = window.localFullSize;
                     localDomainSize.y() -= window.localSize.y();
 
-
-
-                    if (localDomainSize.y() > 0)
                     {
                         DataSpace<simDim> particleOffset = gridPosition;
                         particleOffset.y() = -window.localSize.y();
