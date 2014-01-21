@@ -282,7 +282,9 @@ coding guide lines
 ------------------
 
 Well - there are some! ;)
-- *coming soon* (in a separate file)
+- Please improve the
+  [current draft](https://github.com/ComputationalRadiationPhysics/picongpu/wiki/Codeing-Guide-Lines)
+  in our wiki
 
 Please **add the according license header** snippet to your *new files*:
 - for PIConGPU (GPLv3+): `src/tools/bin/addLicense <FileName>`
