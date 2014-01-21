@@ -17,8 +17,8 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 #pragma once
 
 
@@ -35,24 +35,32 @@ namespace
 
 DINLINE void atomicAddWrapper(float* address, float value)
 {
+    /*this branche differgance coast no performance*/
+    if (value != 0.0f)
+    {
 #if __CUDA_ARCH__ >= 200 // for Fermi, atomicAdd supports floats
-    atomicAdd(address, value);
+        atomicAdd(address, value);
 #else
-    // float-atomic-add from 
-    // [url="http://forums.nvidia.com/index.php?showtopic=158039&view=findpost&p=991561"]http://forums.nvidia.com/index.php?showtop...st&p=991561[/url]
-    float old = value;
-    while ((old = atomicExch(address, atomicExch(address, 0.0f) + old)) != 0.0f);
+        // float-atomic-add from 
+        // [url="http://forums.nvidia.com/index.php?showtopic=158039&view=findpost&p=991561"]http://forums.nvidia.com/index.php?showtop...st&p=991561[/url]
+        float old = value;
+        while ((old = atomicExch(address, atomicExch(address, 0.0f) + old)) != 0.0f);
 #endif
+    }
 }
 
 DINLINE void atomicAddWrapper(double* inAddress, double value)
 {
-    uint64_cu* address = (uint64_cu*) inAddress;
-    double old = value;
-    while (
-           (old = __longlong_as_double(atomicExch(address,
-                                                  (uint64_cu) __double_as_longlong(__longlong_as_double(atomicExch(address, (uint64_cu) 0L)) +
-                                                                                   old)))) != 0.0);
+    /*this branche differgance coast no performance*/
+    if (value != double(0.0))
+    {
+        uint64_cu* address = (uint64_cu*) inAddress;
+        double old = value;
+        while (
+               (old = __longlong_as_double(atomicExch(address,
+                                                      (uint64_cu) __double_as_longlong(__longlong_as_double(atomicExch(address, (uint64_cu) 0L)) +
+                                                                                       old)))) != 0.0);
+    }
 }
 
 }
