@@ -158,10 +158,10 @@ struct GatherSlice
             {
                 MessageHeader* head = (MessageHeader*) (recvHeader + MessageHeader::bytes * i);
 
-                log<picLog::DOMAINS > ("part image with offset %1%byte=%2%elements | size(%3% %4%) | offset(%5% %6%)") %
+                log<picLog::DOMAINS > ("part image with offset %1%byte=%2%elements | size %3%  | offset %4%") %
                     displs[i] % (displs[i] / sizeof (ValueType)) %
-                    head->node.maxSize.x() % head->node.maxSize.y() %
-                    head->node.offset.x() % head->node.offset.y();
+                    head->node.maxSize.toString() %
+                    head->node.offset.toString();
                 Box srcBox = Box(PitchedBox<ValueType, DIM2 > (
                                                                (ValueType*) (fullData + displs[i]),
                                                                DataSpace<DIM2 > (),
