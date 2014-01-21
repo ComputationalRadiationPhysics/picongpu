@@ -236,7 +236,7 @@ public:
 
         //create density image of particles
         __picKernelArea((kernelParticleDensity), *cellDescription, CORE + BORDER)
-            (SuperCellSize::getDataSpace(), blockSize2D.getElementCount() * sizeof (float_X))
+            (SuperCellSize::getDataSpace(), blockSize2D.productOfComponents() * sizeof (float_X))
             (particles->getDeviceParticlesBox(),
              img->getDeviceBuffer().getDataBox(),
              transpose,

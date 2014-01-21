@@ -117,12 +117,21 @@ struct Vector : public detail::Vector_components<Type, _dim>, _Accessor, _Naviga
     typedef _Navigator Navigator;
     typedef Vector<Type, dim, Accessor, Navigator> This;
 
+    /*Vector without elements are not allowed*/
+    BOOST_STATIC_ASSERT(dim > 0);
+
     template<class> struct result;
 
-    template<class F,typename T>
+    template<class F, typename T>
     struct result < F(T)>
     {
         typedef typename F::type& type;
+    };
+
+    template<class F, typename T>
+    struct result < const F(T)>
+    {
+        typedef const typename F::type& type;
     };
 
     HDINLINE Vector()
@@ -132,6 +141,7 @@ struct Vector : public detail::Vector_components<Type, _dim>, _Accessor, _Naviga
     HDINLINE
     Vector(const Type x, const Type y)
     {
+        BOOST_STATIC_ASSERT(dim >= 2);
         (*this)[0] = x;
         (*this)[1] = y;
     }
@@ -139,6 +149,7 @@ struct Vector : public detail::Vector_components<Type, _dim>, _Accessor, _Naviga
     HDINLINE
     Vector(const Type x, const Type y, const Type z)
     {
+        BOOST_STATIC_ASSERT(dim >= 3);
         (*this)[0] = x;
         (*this)[1] = y;
         (*this)[2] = z;
@@ -147,44 +158,23 @@ struct Vector : public detail::Vector_components<Type, _dim>, _Accessor, _Naviga
     HDINLINE
     Vector(const Type & value)
     {
-        //BOOST_STATIC_ASSERT(dim > 0);
         for (int i = 0; i < dim; i++)
             (*this)[i] = value;
     }
 
     template<typename OtherType, typename OtherAccessor, typename OtherNavigator >
-        HDINLINE Vector(Vector<OtherType, dim, OtherAccessor, OtherNavigator>& other)
+    HDINLINE Vector(Vector<OtherType, dim, OtherAccessor, OtherNavigator>& other)
     {
-        //BOOST_STATIC_ASSERT(dim > 0);
         for (int i = 0; i < dim; i++)
             (*this)[i] = (Type) other[i];
     }
 
     template<typename OtherType, typename OtherAccessor, typename OtherNavigator >
-        HDINLINE Vector(const Vector<OtherType, dim, OtherAccessor, OtherNavigator>& other)
+    HDINLINE Vector(const Vector<OtherType, dim, OtherAccessor, OtherNavigator>& other)
     {
-        //BOOST_STATIC_ASSERT(dim > 0);
         for (int i = 0; i < dim; i++)
             (*this)[i] = (Type) other[i];
     }
-
-        /*
-        template<typename OtherType >
-        HDINLINE operator Vector<OtherType, dim > () const
-        {
-            Vector<OtherType, dim> result;
-            for (int i = 0; i < dim; i++)
-                result[i] = (OtherType) ((*this)[i]);
-
-            return result;
-        }
-    
-        template<typename OtherType>
-        HDINLINE operator OtherType() const
-        {
-            BOOST_STATIC_ASSERT((boost::is_same<typename OtherType::tag, tag::Vector>::value));
-            return (vector<typename OtherType::type, OtherType::dim>)*this;
-        }*/
 
     HDINLINE const Vector<type, dim>& vec() const
     {
@@ -197,8 +187,8 @@ struct Vector : public detail::Vector_components<Type, _dim>, _Accessor, _Naviga
     }
 
     template<typename OtherAccessor, typename OtherNavigator >
-        HDINLINE This&
-        operator=(Vector<Type, dim, OtherAccessor, OtherNavigator>& rhs)
+    HDINLINE This&
+    operator=(Vector<Type, dim, OtherAccessor, OtherNavigator>& rhs)
     {
         for (int i = 0; i < dim; i++)
             (*this)[i] = rhs[i];
@@ -206,8 +196,8 @@ struct Vector : public detail::Vector_components<Type, _dim>, _Accessor, _Naviga
     }
 
     template<typename OtherAccessor, typename OtherNavigator >
-        HDINLINE This&
-        operator=(const Vector<Type, dim, OtherAccessor, OtherNavigator>& rhs)
+    HDINLINE This&
+    operator=(const Vector<Type, dim, OtherAccessor, OtherNavigator>& rhs)
     {
         for (int i = 0; i < dim; i++)
             (*this)[i] = rhs[i];
@@ -217,16 +207,14 @@ struct Vector : public detail::Vector_components<Type, _dim>, _Accessor, _Naviga
     HDINLINE
     Type& operator[](const int idx)
     {
-        BOOST_STATIC_ASSERT(dim > 0);
         return Accessor::operator()((&this->_x)[Navigator::operator()(idx)]);
     }
 
     HDINLINE
-        const Type& operator[](const int idx) const
-        {
-            BOOST_STATIC_ASSERT(dim > 0);
-            return Accessor::operator()((&this->_x)[Navigator::operator()(idx)]);
-        }
+    const Type& operator[](const int idx) const
+    {
+        return Accessor::operator()((&this->_x)[Navigator::operator()(idx)]);
+    }
 
     HDINLINE Type & x()
     {
@@ -235,11 +223,13 @@ struct Vector : public detail::Vector_components<Type, _dim>, _Accessor, _Naviga
 
     HDINLINE Type & y()
     {
+        BOOST_STATIC_ASSERT(dim >= 2);
         return (*this)[1];
     }
 
     HDINLINE Type & z()
     {
+        BOOST_STATIC_ASSERT(dim >= 3);
         return (*this)[2];
     }
 
@@ -250,17 +240,18 @@ struct Vector : public detail::Vector_components<Type, _dim>, _Accessor, _Naviga
 
     HDINLINE const Type & y() const
     {
+        BOOST_STATIC_ASSERT(dim >= 2);
         return (*this)[1];
     }
 
     HDINLINE const Type & z() const
     {
+        BOOST_STATIC_ASSERT(dim >= 3);
         return (*this)[2];
     }
 
     template<int shrinkedDim >
-        HDINLINE
-        Vector<Type, shrinkedDim, Accessor, Navigator> shrink(const int startIdx = 0) const
+    HDINLINE Vector<Type, shrinkedDim, Accessor, Navigator> shrink(const int startIdx = 0) const
     {
         BOOST_STATIC_ASSERT(shrinkedDim <= dim);
         Vector<Type, shrinkedDim, Accessor, Navigator> result;
@@ -269,75 +260,97 @@ struct Vector : public detail::Vector_components<Type, _dim>, _Accessor, _Naviga
         return result;
     }
 
-    HDINLINE
-    Type volume() const
+    /**
+     * Returns product of all components.
+     *
+     * @return product of components
+     */
+    HDINLINE Type productOfComponents() const
     {
-        BOOST_STATIC_ASSERT(dim > 0);
         Type result = (*this)[0];
         for (int i = 1; i < dim; i++)
             result *= (*this)[i];
         return result;
     }
 
-    HDINLINE
-    Vector<Type, dim>& operator+=(const Vector<Type, dim>& other)
+    HDINLINE Vector<Type, dim>& operator+=(const Vector<Type, dim>& other)
     {
-        BOOST_STATIC_ASSERT(dim > 0);
         for (int i = 0; i < dim; i++)
             (*this)[i] += other[i];
         return *this;
     }
 
-    HDINLINE
-    Vector<Type, dim>& operator-=(const Vector<Type, dim>& other)
+    HDINLINE Vector<Type, dim>& operator-=(const Vector<Type, dim>& other)
     {
-        BOOST_STATIC_ASSERT(dim > 0);
         for (int i = 0; i < dim; i++)
             (*this)[i] -= other[i];
         return *this;
     }
 
-    HDINLINE
-    Vector<Type, dim>& operator*=(const Vector<Type, dim>& other)
+    HDINLINE Vector<Type, dim>& operator*=(const Vector<Type, dim>& other)
     {
-        BOOST_STATIC_ASSERT(dim > 0);
         for (int i = 0; i < dim; i++)
             (*this)[i] *= other[i];
         return *this;
     }
 
-    HDINLINE
-    Vector<Type, dim>& operator/=(const Vector<Type, dim>& other)
+    HDINLINE Vector<Type, dim>& operator/=(const Vector<Type, dim>& other)
     {
-        BOOST_STATIC_ASSERT(dim > 0);
         for (int i = 0; i < dim; i++)
             (*this)[i] /= other[i];
         return *this;
     }
 
-    HDINLINE
-    Vector<Type, dim>& operator*=(const Type & other)
+    HDINLINE Vector<Type, dim>& operator*=(const Type & other)
     {
-        BOOST_STATIC_ASSERT(dim > 0);
         for (int i = 0; i < dim; i++)
             (*this)[i] *= other;
         return *this;
     }
 
-    HDINLINE
-    Vector<Type, dim>& operator/=(const Type & other)
+    HDINLINE Vector<Type, dim>& operator/=(const Type & other)
     {
-        BOOST_STATIC_ASSERT(dim > 0);
         for (int i = 0; i < dim; i++)
             (*this)[i] /= other;
         return *this;
     }
 
+    /**
+     * == comparison operator.
+     *
+     * Compares sizes of two DataSpaces.
+     *
+     * @param other Vector to compare to
+     * @return true if all components in both vectors are equal, else false
+     */
     HDINLINE bool operator==(const Vector<Type, dim, Accessor, Navigator>& rhs) const
     {
         for (int i = 0; i < dim; i++)
             if ((*this)[i] != rhs[i]) return false;
         return true;
+    }
+
+    /**
+     * != comparison operator.
+     *
+     * Compares sizes of two DataSpaces.
+     *
+     * @param other Vector to compare to
+     * @return true if one component in both vectors are not equal, else false
+     */
+    HDINLINE bool operator!=(const Vector<Type, dim, Accessor, Navigator>& rhs) const
+    {
+        return !((*this) == rhs);
+    }
+
+    std::string toString() const
+    {
+        std::stringstream stream;
+        stream << "{" << (*this)[0];
+        for (int i = 1; i < dim; ++i)
+            stream << "," << (*this)[i];
+        stream << "}";
+        return stream.str();
     }
 };
 
@@ -348,7 +361,7 @@ struct Vector<Type, 0 >
     static const int dim = 0;
 
     template<typename OtherType >
-        HDINLINE operator Vector<OtherType, 0 > () const
+    HDINLINE operator Vector<OtherType, 0 > () const
     {
         return Vector<OtherType, 0 > ();
     }
@@ -357,16 +370,14 @@ struct Vector<Type, 0 >
 template<typename Type, int dim, typename Accessor, typename Navigator>
 std::ostream& operator<<(std::ostream& s, const Vector<Type, dim, Accessor, Navigator>& vec)
 {
-    for (int i = 0; i < dim - 1; i++)
-        s << vec[i] << ", ";
-    return s << vec[dim - 1];
+    return s << vec.toString();
 }
 
 template<typename Type, int dim, typename Accessor, typename Navigator>
 HDINLINE
 Vector<Type, dim> operator+(const Vector<Type, dim, Accessor, Navigator>& lhs, const Vector<Type, dim, Accessor, Navigator>& rhs)
 {
-    Vector<Type, dim> result(lhs);
+    Vector<Type, dim, Accessor, Navigator> result(lhs);
     result += rhs;
     return result;
 }
@@ -375,7 +386,7 @@ template<typename Type, int dim, typename Accessor, typename Navigator>
 HDINLINE
 Vector<Type, dim> operator-(const Vector<Type, dim, Accessor, Navigator>& lhs, const Vector<Type, dim, Accessor, Navigator>& rhs)
 {
-    Vector<Type, dim> result(lhs);
+    Vector<Type, dim, Accessor, Navigator> result(lhs);
     result -= rhs;
     return result;
 }
@@ -384,7 +395,7 @@ template<typename Type, int dim, typename Accessor, typename Navigator>
 HDINLINE
 Vector<Type, dim> operator*(const Vector<Type, dim, Accessor, Navigator>& lhs, const Vector<Type, dim, Accessor, Navigator>& rhs)
 {
-    Vector<Type, dim> result(lhs);
+    Vector<Type, dim, Accessor, Navigator> result(lhs);
     result *= rhs;
     return result;
 }
@@ -393,7 +404,7 @@ template<typename Type, int dim, typename Accessor, typename Navigator>
 HDINLINE
 Vector<Type, dim> operator/(const Vector<Type, dim, Accessor, Navigator>& lhs, const Vector<Type, dim, Accessor, Navigator>& rhs)
 {
-    Vector<Type, dim> result(lhs);
+    Vector<Type, dim, Accessor, Navigator> result(lhs);
     result /= rhs;
     return result;
 }
@@ -402,7 +413,7 @@ template<typename Type, int dim, typename Accessor, typename Navigator>
 HDINLINE
 Vector<Type, dim> operator*(const Vector<Type, dim, Accessor, Navigator>& lhs, const Type& rhs)
 {
-    Vector<Type, dim> result(lhs);
+    Vector<Type, dim, Accessor, Navigator> result(lhs);
     result *= rhs;
     return result;
 }
@@ -411,7 +422,7 @@ template<typename Type, int dim, typename Accessor, typename Navigator>
 HDINLINE
 Vector<Type, dim> operator*(const Type& lhs, const Vector<Type, dim, Accessor, Navigator>& rhs)
 {
-    Vector<Type, dim> result(rhs);
+    Vector<Type, dim, Accessor, Navigator> result(rhs);
     result *= lhs;
     return result;
 }
@@ -420,7 +431,7 @@ template<typename Type, int dim, typename Accessor, typename Navigator>
 HDINLINE
 Vector<Type, dim> operator/(const Vector<Type, dim, Accessor, Navigator>& lhs, const Type& rhs)
 {
-    Vector<Type, dim> result(lhs);
+    Vector<Type, dim, Accessor, Navigator> result(lhs);
     result /= rhs;
     return result;
 }
@@ -429,7 +440,7 @@ template<typename Type, int dim, typename Accessor, typename Navigator>
 HDINLINE
 Vector<Type, dim> operator-(const Vector<Type, dim, Accessor, Navigator>& vec)
 {
-    Vector<Type, dim> result(vec);
+    Vector<Type, dim, Accessor, Navigator> result(vec);
     for (int i = 0; i < dim; i++)
         result[i] = -result[i];
     return result;
@@ -484,7 +495,6 @@ template<typename Type, int dim>
 HDINLINE
 Type dot(const Vector<Type, dim>& a, const Vector<Type, dim>& b)
 {
-    BOOST_STATIC_ASSERT(dim > 0);
     Type result = a.x() * b.x();
     for (int i = 1; i < dim; i++)
         result += a[i] * b[i];
@@ -495,7 +505,7 @@ struct Abs2
 {
 
     template<typename Type, int dim >
-        HDINLINE Type operator()(const Vector<Type, dim>& vec)
+    HDINLINE Type operator()(const Vector<Type, dim>& vec)
     {
         return abs2(vec);
     }
@@ -505,14 +515,11 @@ struct Abs
 {
 
     template<typename Type, int dim >
-        HDINLINE Type operator()(const Vector<Type, dim>& vec)
+    HDINLINE Type operator()(const Vector<Type, dim>& vec)
     {
         return abs(vec);
     }
 };
-
-//lambda::Expression<lambda::exprTypes::terminal, mpl::vector<Abs2> > _abs2;
-//lambda::Expression<lambda::exprTypes::terminal, mpl::vector<Abs> > _abs;
 
 } // math
 

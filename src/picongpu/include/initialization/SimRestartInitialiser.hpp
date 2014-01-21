@@ -608,7 +608,7 @@ private:
 
         VirtualWindow window = MovingWindow::getInstance().getVirtualWindow(simulationStep);
 
-        size_t elements = field_grid.getElementCount();
+        size_t elements = field_grid.productOfComponents();
         float3_X *ptr = field.getHostBuffer().getDataBox().getPointer();
         memset(ptr, 0, elements * sizeof (float3_X));
 
@@ -679,7 +679,7 @@ private:
         std::cout << "Begin cloning field '" << objectName << "'" << std::endl;
         DataSpace<DIM> field_grid = fieldDest.getGridLayout().getDataSpace();
 
-        size_t elements = field_grid.getElementCount();
+        size_t elements = field_grid.productOfComponents();
         float3_X *ptrDest = fieldDest.getHostBuffer().getDataBox().getPointer();
         float3_X *ptrSrc = fieldSrc.getHostBuffer().getDataBox().getPointer();
 

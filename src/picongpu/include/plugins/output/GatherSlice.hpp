@@ -62,7 +62,7 @@ struct GatherSlice
             reset();
         }
 
-        int countRanks = GridController<DIM3>::getInstance().getGpuNodes().getElementCount();
+        int countRanks = GridController<DIM3>::getInstance().getGpuNodes().productOfComponents();
         int gatherRanks[countRanks];
         int groupRanks[countRanks];
         mpiRank = GridController<DIM3>::getInstance().getGlobalRank();
@@ -114,7 +114,7 @@ struct GatherSlice
         char* recvHeader = new char[ MessageHeader::bytes * numRanks];
 
         if (fullData == NULL && mpiRank == 0)
-            fullData = (char*) new ValueType[header.sim.size.getElementCount()];
+            fullData = (char*) new ValueType[header.sim.size.productOfComponents()];
 
 
         MPI_CHECK(MPI_Gather(fakeHeader, MessageHeader::bytes, MPI_CHAR, recvHeader, MessageHeader::bytes,
@@ -126,12 +126,12 @@ struct GatherSlice
         for (int i = 0; i < numRanks; ++i)
         {
             MessageHeader* head = (MessageHeader*) (recvHeader + MessageHeader::bytes * i);
-            counts[i] = head->node.maxSize.getElementCount() * sizeof (ValueType);
+            counts[i] = head->node.maxSize.productOfComponents() * sizeof (ValueType);
             displs[i] = offset;
             offset += counts[i];
         }
 
-        const size_t elementsCount = header.node.maxSize.getElementCount() * sizeof (ValueType);
+        const size_t elementsCount = header.node.maxSize.productOfComponents() * sizeof (ValueType);
 
         MPI_CHECK(MPI_Gatherv(
                               (char*) (data.getPointer()), elementsCount, MPI_CHAR,
@@ -144,7 +144,7 @@ struct GatherSlice
         {
             log<picLog::DOMAINS > ("Master create image");
             if (filteredData == NULL)
-                filteredData = (char*) new ValueType[header.sim.size.getElementCount()];
+                filteredData = (char*) new ValueType[header.sim.size.productOfComponents()];
 
             /*create box with valid memory*/
             dstBox = Box(PitchedBox<ValueType, DIM2 > (

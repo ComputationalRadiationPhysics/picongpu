@@ -85,7 +85,7 @@ public:
         //int totalnodes;
         MPI_CHECK(MPI_Comm_size(MPI_COMM_WORLD, &totalnodes));
 
-        if (numberProcesses.getElementCount() != totalnodes)
+        if (numberProcesses.productOfComponents() != totalnodes)
         {
             throw std::invalid_argument("wrong parameters or wrong mpirun-call!");
         }

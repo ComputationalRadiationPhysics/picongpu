@@ -85,7 +85,7 @@ namespace picongpu
         if (!socket)
             socket = new SocketConnector(ip, port);
 
-        size_t elems = MessageHeader::bytes + header.window.size.getElementCount() * sizeof (uint8_t3);
+        size_t elems = MessageHeader::bytes + header.window.size.productOfComponents() * sizeof (uint8_t3);
         char *array = new char[elems];
 
         MessageHeader * fakeHeader = (MessageHeader*) array;

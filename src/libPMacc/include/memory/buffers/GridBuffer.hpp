@@ -288,7 +288,7 @@ public:
 
 
         /*don't create buffer with 0 (zero) elements*/
-        if (dataSpace.getElementCount() != 0)
+        if (dataSpace.productOfComponents() != 0)
         {
             receiveMask = receiveMask + receive;
             sendMask = this->receiveMask.getMirroredMask();

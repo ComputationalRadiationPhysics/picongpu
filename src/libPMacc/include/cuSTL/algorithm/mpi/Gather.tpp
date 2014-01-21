@@ -116,7 +116,7 @@ void Gather<dim>::CopyToDest<Type, 3, 2>::operator()(
         Int<2> pos2D(pos[(dir+1)%3], pos[(dir+2)%3]);
         
         cudaWrapper::Memcopy<2>()(&(*dest.origin()(pos2D * (Int<2>)source.size())), dest.getPitch(),
-                                  tmpDest.data() + i * source.size().volume(), source.getPitch(),
+                                  tmpDest.data() + i * source.size().productOfComponents(), source.getPitch(),
                                   source.size(), cudaWrapper::flags::Memcopy::hostToHost);
     }
 }
@@ -129,10 +129,10 @@ void Gather<3>::operator()(container::HostBuffer<Type, memDim>& dest,
     if(!this->m_participate) return;
     
     int numRanks; MPI_Comm_size(this->comm, &numRanks);
-    std::vector<Type> tmpDest(numRanks * source.size().volume());
+    std::vector<Type> tmpDest(numRanks * source.size().productOfComponents());
     
-    MPI_CHECK(MPI_Gather((void*)source.getDataPointer(), source.size().volume() * sizeof(Type), MPI_CHAR,
-               (void*)tmpDest.data(), source.size().volume() * sizeof(Type), MPI_CHAR,
+    MPI_CHECK(MPI_Gather((void*)source.getDataPointer(), source.size().productOfComponents() * sizeof(Type), MPI_CHAR,
+               (void*)tmpDest.data(), source.size().productOfComponents() * sizeof(Type), MPI_CHAR,
                0, this->comm));
     if(!root()) return;
 

@@ -99,7 +99,7 @@ namespace PMacc
 
         void reset(bool preserveData = true)
         {
-            this->setCurrentSize(Buffer<TYPE, DIM>::getDataSpace().getElementCount());
+            this->setCurrentSize(Buffer<TYPE, DIM>::getDataSpace().productOfComponents());
 
             __startOperation(ITask::TASK_CUDA);
             if (!preserveData)
@@ -270,7 +270,7 @@ namespace PMacc
                 extent.height = this->data_space[1];
                 extent.depth = this->data_space[2];
 
-                log<ggLog::MEMORY >("Create device 3D data: %1% MiB") % ( this->data_space.getElementCount() * sizeof (TYPE) / 1024 / 1024 );
+                log<ggLog::MEMORY >("Create device 3D data: %1% MiB") % ( this->data_space.productOfComponents() * sizeof (TYPE) / 1024 / 1024 );
                 CUDA_CHECK(cudaMalloc3D(&data, extent));
             }
 
@@ -287,8 +287,8 @@ namespace PMacc
             data.xsize = this->data_space[0];
             data.ysize = 1;
 
-            log<ggLog::MEMORY >("Create device fake data: %1% MiB") % ( this->data_space.getElementCount() * sizeof (TYPE) / 1024 / 1024 );
-            CUDA_CHECK(cudaMallocPitch(&data.ptr, &data.pitch, this->data_space.getElementCount() * sizeof (TYPE), 1));
+            log<ggLog::MEMORY >("Create device fake data: %1% MiB") % ( this->data_space.productOfComponents() * sizeof (TYPE) / 1024 / 1024 );
+            CUDA_CHECK(cudaMallocPitch(&data.ptr, &data.pitch, this->data_space.productOfComponents() * sizeof (TYPE), 1));
 
             //fake the pitch, thus we can use this 1D Buffer as 2D or 3D
             data.pitch = this->data_space[0] * sizeof (TYPE);
@@ -310,7 +310,7 @@ namespace PMacc
             {
                 CUDA_CHECK(cudaMalloc(&sizeOnDevicePtr, sizeof (size_t)));
             }
-            setCurrentSize(Buffer<TYPE, DIM>::getDataSpace().getElementCount());
+            setCurrentSize(Buffer<TYPE, DIM>::getDataSpace().productOfComponents());
         }
 
     private:

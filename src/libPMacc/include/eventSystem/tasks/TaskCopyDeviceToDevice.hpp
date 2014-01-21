@@ -70,7 +70,7 @@ namespace PMacc
             destination->setCurrentSize(current_size);
             DataSpace<DIM> devCurrentSize = source->getCurrentDataSpace(current_size);
             if (source->is1D() && destination->is1D())
-                fastCopy(source->getPointer(), destination->getPointer(), devCurrentSize.getElementCount());
+                fastCopy(source->getPointer(), destination->getPointer(), devCurrentSize.productOfComponents());
             else
                 copy(devCurrentSize);
 
@@ -170,7 +170,7 @@ namespace PMacc
 
             cudaMemcpy3DParms params;
 
-            //  assert(this->source->getDataSpace().getElementCount() <= this->destination->getDataSpace().getElementCount());
+            //  assert(this->source->getDataSpace().productOfComponents() <= this->destination->getDataSpace().productOfComponents());
 
             params.srcArray = NULL;
             params.srcPos = make_cudaPos(
