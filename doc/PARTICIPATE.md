@@ -278,12 +278,12 @@ More [best practices](http://codeinthehole.com/writing/pull-requests-and-other-g
 
 *******************************************************************************
 
-coding guide lines
+Coding Guide Lines
 ------------------
 
 Well - there are some! ;)
 - Please improve the
-  [current draft](https://github.com/ComputationalRadiationPhysics/picongpu/wiki/Codeing-Guide-Lines)
+  [current draft](https://github.com/ComputationalRadiationPhysics/picongpu/wiki/Coding-Guide-Lines)
   in our wiki
 
 Please **add the according license header** snippet to your *new files*:
