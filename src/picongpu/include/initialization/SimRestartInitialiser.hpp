@@ -36,7 +36,7 @@
 #include "fields/FieldE.hpp"
 #include "fields/FieldB.hpp"
 
-#include "splash.h"
+#include "splash/splash.h"
 
 #include "simulationControl/MovingWindow.hpp"
 
@@ -456,7 +456,7 @@ public:
     {
         switch (id)
         {
-#if (ENABLE_ELECTRONS == 1)/* load number of slides to initialize MovingWindow */        
+#if (ENABLE_ELECTRONS == 1)       
         case PAR_ELECTRONS:
         {
             VirtualWindow window = MovingWindow::getInstance().getVirtualWindow(simulationStep);

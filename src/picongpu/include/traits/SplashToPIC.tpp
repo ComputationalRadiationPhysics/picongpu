@@ -21,7 +21,7 @@
 #pragma once
 
 #if (ENABLE_HDF5==1)
-#include <splash.h>
+#include <splash/splash.h>
 
 #include "simulation_defines.hpp"
 

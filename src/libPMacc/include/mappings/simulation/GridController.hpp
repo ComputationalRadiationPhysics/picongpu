@@ -183,7 +183,8 @@ public:
      */
     bool slide()
     {
-        Manager::getInstance().waitForAllTasks(); //wait that all tasks are finisehd
+        /* wait that all tasks are finished */
+        Manager::getInstance().waitForAllTasks();
 
         bool result = comm.slide();
 
@@ -215,6 +216,11 @@ public:
         return EnvironmentController::getInstance().getCommunicationMask();
     }
 
+    /**
+     * Returns the MPI communicator class
+     * 
+     * @return current CommunicatorMPI
+     */
     CommunicatorMPI<DIM>& getCommunicator()
     {
         return comm;

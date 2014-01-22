@@ -33,7 +33,7 @@
 
 #include "particles/frame_types.hpp"
 
-#include "splash.h"
+#include <splash/splash.h>
 
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
