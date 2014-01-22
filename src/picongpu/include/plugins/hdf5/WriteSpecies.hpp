@@ -154,7 +154,7 @@ public:
                             const Space particleOffset)
                             RefWrapper<uint64_cu*> totalNumParticlesWritten)
     {
-        log<picLog::INPUT_OUTPUT > ("HDF5: write species: %1%") % Hdf5FrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("HDF5: (begin) write species: %1%") % Hdf5FrameType::getName();
         DataConnector &dc = DataConnector::getInstance();
         /*load particle without copy particle data to host*/
         ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(ThisSpecies::FrameType::CommunicationTag, true));
@@ -164,7 +164,7 @@ public:
 
         PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
 
-        log<picLog::INPUT_OUTPUT > ("HDF5: count particles: %1%") % Hdf5FrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) count particles: %1%") % Hdf5FrameType::getName();
         totalNumParticles = PMacc::CountParticles::countOnDevice < CORE + BORDER > (
                                                                                     *speciesTmp,
                                                                                     *(params.get()->cellDescription),
@@ -172,25 +172,25 @@ public:
                                                                                     domInfo.domainSize);
 
 
-        log<picLog::INPUT_OUTPUT > ("HDF5: Finish count particles: %1% = %2%") % Hdf5FrameType::getName() % totalNumParticles;
+        log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) count particles: %1% = %2%") % Hdf5FrameType::getName() % totalNumParticles;
         Hdf5FrameType hostFrame;
-        log<picLog::INPUT_OUTPUT > ("HDF5: malloc mapped memory: %1%") % Hdf5FrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) malloc mapped memory: %1%") % Hdf5FrameType::getName();
         /*malloc mapped memory*/
         ForEach<typename Hdf5FrameType::ValueTypeSeq, MallocMemory<void> > mallocMem;
         mallocMem(byRef(hostFrame), totalNumParticles);
-        log<picLog::INPUT_OUTPUT > ("HDF5: Finish malloc mapped memory: %1%") % Hdf5FrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) malloc mapped memory: %1%") % Hdf5FrameType::getName();
 
         if (totalNumParticles != 0)
         {
 
-            log<picLog::INPUT_OUTPUT > ("HDF5: get mapped memory device pointer: %1%") % Hdf5FrameType::getName();
+            log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) get mapped memory device pointer: %1%") % Hdf5FrameType::getName();
             /*load device pointer of mapped memory*/
             Hdf5FrameType deviceFrame;
             ForEach<typename Hdf5FrameType::ValueTypeSeq, GetDevicePtr<void> > getDevicePtr;
             getDevicePtr(byRef(deviceFrame), byRef(hostFrame));
-            log<picLog::INPUT_OUTPUT > ("HDF5: Finish get mapped memory device pointer: %1%") % Hdf5FrameType::getName();
+            log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) get mapped memory device pointer: %1%") % Hdf5FrameType::getName();
 
-            log<picLog::INPUT_OUTPUT > ("HDF5: copy particle to host: %1%") % Hdf5FrameType::getName();
+            log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) copy particle to host: %1%") % Hdf5FrameType::getName();
             typedef bmpl::vector< PositionFilter3D<> > usedFilters;
             typedef typename FilterFactory<usedFilters>::FilterType MyParticleFilter;
             MyParticleFilter filter;
@@ -213,9 +213,9 @@ public:
                  mapper
                  );
             counterBuffer.deviceToHost();
-            log<picLog::INPUT_OUTPUT > ("HDF5: memcpy particle counter to host: %1%") % Hdf5FrameType::getName();
+            log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) copy particle to host: %1%") % Hdf5FrameType::getName();
             __getTransactionEvent().waitForFinished();
-            log<picLog::INPUT_OUTPUT > ("HDF5: all events are finish: %1%") % Hdf5FrameType::getName();
+            log<picLog::INPUT_OUTPUT > ("HDF5:  all events are finish: %1%") % Hdf5FrameType::getName();
             /*this cost a little bit of time but hdf5 writing is slower^^*/
             assert((uint64_cu) counterBuffer.getHostBuffer().getDataBox()[0] == totalNumParticles);
         }
@@ -224,7 +224,7 @@ public:
         writeToHdf5(params, byRef(hostFrame), prefix + FrameType::getName(), domInfo, totalNumParticles);
 
         /*write species counter table to hdf5 file*/
-        log<picLog::INPUT_OUTPUT > ("HDF5 begin writing particle index table for %1%") % Hdf5FrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) writing particle index table for %1%") % Hdf5FrameType::getName();
         {
             ColTypeUInt64_5Array ctUInt64_5;
             GridController<simDim>& gc = GridController<simDim>::getInstance();
@@ -252,12 +252,12 @@ public:
                 (prefix + FrameType::getName() + std::string("_particles_info")).c_str(),
                 particlesMetaInfo);
         }
-        log<picLog::INPUT_OUTPUT > ("HDF5 end writing particle index table for %1%") % Hdf5FrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) writing particle index table for %1%") % Hdf5FrameType::getName();
         
         /*free host memory*/
         ForEach<typename Hdf5FrameType::ValueTypeSeq, FreeMemory<void> > freeMem;
         freeMem(byRef(hostFrame));
-        log<picLog::INPUT_OUTPUT > ("HDF5: Finish write species: %1%") % Hdf5FrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing species: %1%") % Hdf5FrameType::getName();
         if (totalNumParticlesWritten.get())
         {
             *(totalNumParticlesWritten.get()) = totalNumParticles;

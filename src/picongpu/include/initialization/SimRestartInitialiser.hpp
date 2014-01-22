@@ -36,7 +36,7 @@
 #include "fields/FieldE.hpp"
 #include "fields/FieldB.hpp"
 
-#include "splash/splash.h"
+#include <splash/splash.h>
 
 #include "simulationControl/MovingWindow.hpp"
 
