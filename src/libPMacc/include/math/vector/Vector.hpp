@@ -117,7 +117,7 @@ struct Vector : public detail::Vector_components<Type, _dim>, _Accessor, _Naviga
     typedef _Navigator Navigator;
     typedef Vector<Type, dim, Accessor, Navigator> This;
 
-    /*Vector without elements are not allowed*/
+    /*Vectors without elements are not allowed*/
     BOOST_STATIC_ASSERT(dim > 0);
 
     template<class> struct result;
@@ -141,7 +141,7 @@ struct Vector : public detail::Vector_components<Type, _dim>, _Accessor, _Naviga
     HDINLINE
     Vector(const Type x, const Type y)
     {
-        BOOST_STATIC_ASSERT(dim >= 2);
+        BOOST_STATIC_ASSERT(dim == 2);
         (*this)[0] = x;
         (*this)[1] = y;
     }
@@ -149,14 +149,14 @@ struct Vector : public detail::Vector_components<Type, _dim>, _Accessor, _Naviga
     HDINLINE
     Vector(const Type x, const Type y, const Type z)
     {
-        BOOST_STATIC_ASSERT(dim >= 3);
+        BOOST_STATIC_ASSERT(dim == 3);
         (*this)[0] = x;
         (*this)[1] = y;
         (*this)[2] = z;
     }
 
     HDINLINE
-    Vector(const Type & value)
+    Vector(const Type& value)
     {
         for (int i = 0; i < dim; i++)
             (*this)[i] = value;
