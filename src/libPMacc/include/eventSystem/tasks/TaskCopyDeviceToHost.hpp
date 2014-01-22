@@ -78,7 +78,7 @@ namespace PMacc
             host->setCurrentSize(current_size);
             DataSpace<DIM> devCurrentSize = device->getCurrentDataSpace(current_size);
             if (host->is1D() && device->is1D())
-                fastCopy(device->getPointer(),host->getPointer(),  devCurrentSize.getElementCount());
+                fastCopy(device->getPointer(),host->getPointer(),  devCurrentSize.productOfComponents());
             else
                 copy(devCurrentSize);
 

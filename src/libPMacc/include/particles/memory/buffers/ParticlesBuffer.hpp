@@ -153,7 +153,7 @@ public:
          */
         std::cout << "mem for particles=" << gpuMemory / 1024 / 1024 << " MiB = " <<
             numFrames << " Frames = " <<
-            numFrames * superCellSize.getElementCount() <<
+            numFrames * superCellSize.productOfComponents() <<
             " Particles" << std::endl;
 
         reset();

@@ -72,7 +72,7 @@ struct MessageHeader
         const DataSpace<DIM2> localSize2D(localSize[transpose.x()], localSize[transpose.y()]);
 
         /*update only if nuber of gpus are set, else use old value*/
-        if (gpus.getElementCount() != 0)
+        if (gpus.productOfComponents() != 0)
             sim.nodes = DataSpace<DIM2 > (gpus[transpose.x()], gpus[transpose.y()]);
         
         PMACC_AUTO(simBox,SubGrid<simDim>::getInstance().getSimulationBox());

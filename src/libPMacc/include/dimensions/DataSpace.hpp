@@ -101,15 +101,7 @@ class DataSpace : public math::Int<DIM>
          * @param z size of third dimension
          */
         HDINLINE DataSpace(int x, int y, int z);
-        
-        HDINLINE int& x() {return (*this)[0];}
-        HDINLINE int& y() {return (*this)[1];}
-        HDINLINE int& z() {return (*this)[2];}
-    
-        HDINLINE int x() const {return (*this)[0];}
-        HDINLINE int y() const {return (*this)[1];}
-        HDINLINE int z() const {return (*this)[2];}
-        
+              
         HDINLINE DataSpace(const math::Int<DIM>& vec)
         {
             for (uint32_t i = 0; i < DIM; ++i)
@@ -130,36 +122,6 @@ class DataSpace : public math::Int<DIM>
          */
         HDINLINE ~DataSpace()
         {
-        }
-
-        /**
-         * == comparison operator.
-         *
-         * Compares sizes of two DataSpaces.
-         *
-         * @param other DataSpace to compare to
-         * @return if both DataSpaces are equal
-         */
-        HDINLINE bool operator==(DataSpace<DIM> const& other) const
-        {
-            for (uint32_t i = 0; i < DIM; ++i)
-            {
-                if ((*this)[i] != other[i]) return false;
-            }
-            return true;
-        }
-
-        /**
-         * != comparison operator.
-         *
-         * Compares sizes of two DataSpaces.
-         *
-         * @param other DataSpace to compare to
-         * @return if DataSpaces are different
-         */
-        HDINLINE bool operator!=(DataSpace<DIM> const& other) const
-        {
-            return !((*this) == other);
         }
 
         /**
@@ -326,7 +288,7 @@ class DataSpace : public math::Int<DIM>
          *
          * @return total count of elements
          */
-        HDINLINE int getElementCount() const
+        HDINLINE int productOfComponents() const
         {
             int tmp = 1;
 

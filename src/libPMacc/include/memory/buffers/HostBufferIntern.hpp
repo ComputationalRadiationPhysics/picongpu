@@ -51,7 +51,7 @@ public:
     HostBuffer<TYPE, DIM>(dataSpace),
     pointer(NULL),ownPointer(true)
     {
-        CUDA_CHECK(cudaMallocHost(&pointer, dataSpace.getElementCount() * sizeof (TYPE)));
+        CUDA_CHECK(cudaMallocHost(&pointer, dataSpace.productOfComponents() * sizeof (TYPE)));
         reset(false);
     }
 
@@ -98,9 +98,9 @@ public:
     void reset(bool preserveData = true)
     {
         __startOperation(ITask::TASK_HOST);
-        this->setCurrentSize(this->getDataSpace().getElementCount());
+        this->setCurrentSize(this->getDataSpace().productOfComponents());
         if (!preserveData)
-            memset(pointer, 0, this->getDataSpace().getElementCount() * sizeof (TYPE));
+            memset(pointer, 0, this->getDataSpace().productOfComponents() * sizeof (TYPE));
     }
 
     void setValue(const TYPE& value)

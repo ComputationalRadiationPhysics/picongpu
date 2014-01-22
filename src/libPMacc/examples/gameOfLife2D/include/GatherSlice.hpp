@@ -104,7 +104,7 @@ struct GatherSlice
     {
         header = mHeader;
 
-        int countRanks = GridController<DIM2>::getInstance().getGpuNodes().getElementCount();
+        int countRanks = GridController<DIM2>::getInstance().getGpuNodes().productOfComponents();
         int gatherRanks[countRanks];
         int groupRanks[countRanks];
         mpiRank = GridController<DIM2>::getInstance().getGlobalRank();
@@ -156,13 +156,13 @@ struct GatherSlice
         char* recvHeader = new char[ MessageHeader::bytes * numRanks];
 
         if (fullData == NULL && mpiRank == 0)
-            fullData = (char*) new ValueType[header.nodeSize.getElementCount() * numRanks];
+            fullData = (char*) new ValueType[header.nodeSize.productOfComponents() * numRanks];
 
 
         MPI_CHECK(MPI_Gather(fakeHeader, MessageHeader::bytes, MPI_CHAR, recvHeader, MessageHeader::bytes,
                              MPI_CHAR, 0, comm));
 
-        const size_t elementsCount = header.nodeSize.getElementCount() * sizeof (ValueType);
+        const size_t elementsCount = header.nodeSize.productOfComponents() * sizeof (ValueType);
 
         MPI_CHECK(MPI_Gather(
                              (char*) (data.getPointer()), elementsCount, MPI_CHAR,
@@ -174,7 +174,7 @@ struct GatherSlice
         if (mpiRank == 0)
         {
             if (filteredData == NULL)
-                filteredData = (char*) new ValueType[header.simSize.getElementCount()];
+                filteredData = (char*) new ValueType[header.simSize.productOfComponents()];
 
             /*create box with valid memory*/
             dstBox = Box(PitchedBox<ValueType, DIM2 > (

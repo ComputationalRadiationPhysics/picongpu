@@ -57,7 +57,7 @@ namespace PMacc
         data_space(dataSpace),data1D(true)
         {
             CUDA_CHECK(cudaMallocHost(&current_size, sizeof (size_t)));
-            *current_size = dataSpace.getElementCount();
+            *current_size = dataSpace.productOfComponents();
         }
 
         /**
@@ -158,7 +158,7 @@ namespace PMacc
         virtual void setCurrentSize(size_t newsize)
         {
             __startOperation(ITask::TASK_HOST); 
-            assert(static_cast<size_t>(newsize) <= static_cast<size_t>(data_space.getElementCount()));
+            assert(static_cast<size_t>(newsize) <= static_cast<size_t>(data_space.productOfComponents()));
             *current_size = newsize;
         }
 

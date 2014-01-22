@@ -540,7 +540,7 @@ public:
              );
 
         // find maximum for img.x()/y and z and return it as float3_X
-        int elements = img->getGridLayout().getDataSpace().getElementCount();
+        int elements = img->getGridLayout().getDataSpace().productOfComponents();
 
         //Add one dimension access to 2d DataBox
         typedef DataBoxDim1Access<typename GridBuffer<float3_X, DIM2 >::DataBoxType> D1Box;
@@ -580,7 +580,7 @@ public:
 
         //create image particles
         __picKernelArea((kernelPaintParticles3D), *cellDescription, CORE + BORDER)
-            (SuperCellSize::getDataSpace(), blockSize2D.getElementCount() * sizeof (int))
+            (SuperCellSize::getDataSpace(), blockSize2D.productOfComponents() * sizeof (int))
             (particles->getDeviceParticlesBox(),
              img->getDeviceBuffer().getDataBox(),
              transpose,
