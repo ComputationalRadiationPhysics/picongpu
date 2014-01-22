@@ -250,8 +250,7 @@ public:
 
     HDF5Writer() :
     filename("h5"),
-    notifyFrequency(0),
-    compression(false),
+    notifyFrequency(0)
     continueFile(false)
     {
         ModuleConnector::getInstance().registerModule(this);
@@ -269,8 +268,6 @@ public:
              "enable HDF5 IO [for each n-th step]")
             ("hdf5.file", po::value<std::string > (&filename)->default_value(filename),
              "HDF5 output file")
-            ("hdf5.compression", po::value<bool > (&compression)->zero_tokens(),
-             "enable HDF5 compression")
             ("hdf5.continue", po::value<bool > (&continueFile)->zero_tokens(),
              "continue existing HDF5 file instead of creating a new one");
     }
@@ -336,7 +333,7 @@ private:
         }
         // set attributes for datacollector files
         DataCollector::FileCreationAttr attr;
-        attr.enableCompression = this->compression;
+        attr.enableCompression = false;
 
         if (continueFile)
             attr.fileAccType = DataCollector::FAT_WRITE;
@@ -601,7 +598,6 @@ private:
 
     uint32_t notifyFrequency;
     std::string filename;
-    bool compression;
     bool continueFile;
 
     DataSpace<simDim> mpi_pos;

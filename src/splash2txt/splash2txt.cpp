@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Felix Schmitt, Axel Huebl, Rene Widera
+ * Copyright 2013-2014 Felix Schmitt, Axel Huebl, René Widera
  *
  * This file is part of splash2txt. 
  * 
@@ -19,55 +19,17 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */
 
-#include <string>
-#include <vector>
-#include <algorithm>
-#include <iostream>
-#include <fstream>
-#include <stdexcept>
+#include "splash2txt.hpp"
 
-#include <boost/program_options.hpp>
-#include <boost/program_options/options_description.hpp>
-#include <boost/program_options/cmdline.hpp>
-#include <boost/program_options/variables_map.hpp>
-#include <boost/regex.hpp>
-#include <boost/foreach.hpp>
-#include <iomanip>
-
-#include "DomainCollector.hpp"
-#include "basetypes/ColTypeDouble.hpp"
-#include "basetypes/ColTypeInt.hpp"
+#include "tools_splash_parallel.hpp"
 
 namespace po = boost::program_options;
-using namespace splash;
-
-std::ostream &errorStream = std::cerr;
-
-typedef struct
-{
-    std::string inputFile; // input file, common part
-    std::string outputFile; // output file
-    bool toFile; // use output file
-    std::string delimiter;
-    uint32_t step; // simulation iteration
-    std::vector<std::string> data; // names of datasets
-    Dimensions fieldDims; // for field data, dimensions of slice, e.g. xy -> (1, 1, 0) 
-    size_t sliceOffset; // offset of slice (fieldDims) in dataset
-    bool isReverseSlice; // if one of allowedReverseSlices is used
-    bool verbose; // verbose output on stdout
-    bool listDatasets; // list available datasets
-    bool applyUnits; // apply the unit stored in HDF5 to the output data
-} ProgramOptions;
-
-typedef struct
-{
-    DataContainer* container;
-    double unit;
-} ExDataContainer;
 
 const size_t numAllowedSlices = 3;
 const char* allowedSlices[numAllowedSlices] = { "xy", "xz", "yz" };
 const char* allowedReverseSlices[numAllowedSlices] = { "yx", "zx", "zy" };
+
+std::ostream &errorStream  = std::cerr;
 
 bool parseOptions( int argc, char** argv, ProgramOptions &options )
 throw (std::runtime_error )
@@ -81,13 +43,17 @@ throw (std::runtime_error )
         po::options_description desc( desc_stream.str( ) );
 
         std::string slice_string = "";
+        std::string filemode = "splash";
+        
+        const std::string filemodeOptions = "[splash]";
 
         // add possible options
         desc.add_options( )
             ( "help,h", "print help message" )
             ( "verbose,v", "verbose output, print status messages" )
-            ( "list,l", "list the available datasets for an input file and quit" )
-            ( "input-file", po::value< std::string > ( &options.inputFile ), "input file" )
+            ( "mode,m", po::value< std::string > ( &filemode )->default_value( filemode ), (std::string("File Mode ") + filemodeOptions).c_str() )
+            ( "list,l", "list the available datasets for an input file" )
+            ( "input-file", po::value< std::string > ( &options.inputFile ), "parallel input file" )
             ( "output-file,o", po::value< std::string > ( &options.outputFile ), "output file (otherwise stdout)" )
             ( "step,s", po::value<uint32_t > ( &options.step )->default_value( options.step ), "requested simulation step" )
             ( "data,d", po::value<std::vector<std::string> > ( &options.data )->multitoken( ), "name of datasets to print" )
@@ -115,10 +81,12 @@ throw (std::runtime_error )
             errorStream << desc << "\n";
             return false;
         }
+        
+        options.fileMode = FM_SPLASH;
 
         // re-parse wrong typed input files to valid format, if possible
-        //   find _X_Y_Z.h5 with syntax at the end and delete it
-        boost::regex filePattern( "_.*_.*_.*\\.h5",
+        //   find _X.h5 with syntax at the end and delete it
+        boost::regex filePattern( "_.*\\.h5",
                                   boost::regex_constants::icase |
                                   boost::regex_constants::perl );
         options.inputFile = boost::regex_replace( options.inputFile, filePattern, "" );
@@ -183,399 +151,32 @@ throw (std::runtime_error )
     return true;
 }
 
-void printElement( std::ostream& outStream, DCDataType dataType,
-                   void* elem, double unit, std::string delimiter )
+static void mpi_finalize(void)
 {
-    std::stringstream stream;
-
-    switch ( dataType )
-    {
-    case DCDT_FLOAT32:
-        stream << std::setprecision( 16 ) << *( (float*) elem ) *
-            unit << delimiter;
-        break;
-    case DCDT_FLOAT64:
-        stream << std::setprecision( 16 ) << *( (double*) elem ) *
-            unit << delimiter;
-        break;
-    case DCDT_UINT32:
-        stream << *( (uint32_t*) elem ) * unit << delimiter;
-        break;
-    case DCDT_UINT64:
-        stream << *( (uint64_t*) elem ) * unit << delimiter;
-        break;
-    case DCDT_INT32:
-        stream << *( (int32_t*) elem ) * unit << delimiter;
-        break;
-    case DCDT_INT64:
-        stream << *( (int64_t*) elem ) * unit << delimiter;
-        break;
-    default:
-        throw DCException( "cannot identify datatype" );
-    }
-
-    outStream << stream.str( );
-}
-
-void printParticles( ProgramOptions &options,
-                     std::vector<ExDataContainer> fileData,
-                     DomainCollector &dc, std::ostream &outStream )
-{
-    if ( fileData.size( ) > 0 )
-    {
-        size_t num_elements = fileData[0].container->getNumElements( );
-
-        if ( options.verbose )
-        {
-            errorStream << "num_elements = " << num_elements << std::endl;
-            errorStream << "container = " << fileData.size( ) << std::endl;
-        }
-
-        std::map<DataContainer*, DomainData*> subdomain;
-        std::map<DataContainer*, size_t> subdomainIndex;
-        std::map<DataContainer*, size_t> numElementsProcessed;
-        for ( size_t i = 0; i < num_elements; ++i )
-        {
-            for ( std::vector<ExDataContainer>::iterator iter = fileData.begin( );
-                  iter != fileData.end( ); ++iter )
-            {
-                DataContainer *container = iter->container;
-                DCDataType data_type =
-                    container->getIndex( 0 )->getDataType( );
-
-                if ( i == 0 )
-                {
-                    if ( options.verbose )
-                        errorStream << "container " << container << " has " <<
-                        container->getNumSubdomains( ) << " subdomains" << std::endl;
-                    subdomainIndex[container] = 0;
-                    subdomain[container] = container->getIndex( subdomainIndex[container] );
-                    numElementsProcessed[container] = 0;
-                    if ( options.verbose )
-                        errorStream << "Loading domaindata 0 for container " << container
-                        << " (element = " << i << ")" << std::endl;
-                    dc.readDomainLazy( subdomain[container] );
-                }
-                else
-                {
-                    if ( numElementsProcessed[container] == subdomain[container]->getElements( ).getScalarSize( ) )
-                    {
-                        subdomain[container]->freeData( );
-                        subdomainIndex[container]++;
-                        numElementsProcessed[container] = 0;
-                        subdomain[container] = container->getIndex( subdomainIndex[container] );
-                        if ( options.verbose )
-                            errorStream << std::endl << "Loading domaindata " << subdomainIndex[container] <<
-                            " for container " << container << " (element = " << i << ")" << std::endl;
-                        dc.readDomainLazy( subdomain[container] );
-                    }
-                }
-
-                void* element = container->getElement( i );
-                assert( element != NULL );
-
-                printElement( outStream, data_type, element, iter->unit, options.delimiter );
-                numElementsProcessed[container]++;
-            }
-
-            outStream << std::endl;
-
-            if ( options.verbose && i % 100000 == 0 )
-                errorStream << "." << std::flush;
-        }
-
-        if ( options.verbose )
-            errorStream << std::endl;
-    }
-}
-
-void printFields( ProgramOptions &options,
-                  std::vector<ExDataContainer> fileData, std::ostream &outStream )
-{
-    if ( fileData.size( ) > 0 )
-    {
-        if ( options.verbose )
-            errorStream << "container = " << fileData.size( ) << std::endl;
-
-        Dimensions domain_size = fileData[0].container->getSize( );
-        size_t size1, size2;
-        if ( options.fieldDims[0] )
-        {
-            size1 = domain_size[0];
-            if ( options.fieldDims[1] )
-                size2 = domain_size[1];
-            else
-                size2 = domain_size[2];
-        }
-        else
-        {
-            size1 = domain_size[1];
-            size2 = domain_size[2];
-        }
-
-        if ( options.isReverseSlice )
-        {
-            size_t tmpSize = size1;
-            size1 = size2;
-            size2 = tmpSize;
-        }
-
-        for ( size_t j = 0; j < size2; ++j )
-        {
-            size_t index = 0;
-
-            for ( size_t i = 0; i < size1; ++i )
-            {
-                if ( !options.isReverseSlice )
-                    index = j * size1 + i;
-                else
-                    index = i * size2 + j;
-
-                for ( std::vector<ExDataContainer>::iterator iter = fileData.begin( );
-                      iter != fileData.end( ); ++iter )
-                {
-                    DCDataType data_type =
-                        iter->container->getIndex( 0 )->getDataType( );
-
-                    void* element = iter->container->getElement( index );
-                    assert( element != NULL );
-
-                    printElement( outStream, data_type, element, iter->unit, options.delimiter );
-                }
-            }
-
-            outStream << std::endl;
-
-            if ( options.verbose && index % 100000 == 0 )
-                errorStream << "." << std::flush;
-        }
-
-        if ( options.verbose )
-            errorStream << std::endl;
-    }
-}
-
-void convertToText( DomainCollector &dc, ProgramOptions &options, std::ostream &outStream )
-{
-    if ( options.data.size( ) == 0 )
-        throw std::runtime_error( "No datasets requested" );
-
-    ColTypeInt ctInt;
-    ColTypeDouble ctDouble;
-
-    // read data
-    //
-
-    std::vector<ExDataContainer> file_data;
-
-    // identify reference data class (poly, grid), reference domain size and number of elements
-    //
-
-    DomainCollector::DomDataClass ref_data_class = DomainCollector::UndefinedType;
-    dc.readAttribute( options.step, options.data[0].c_str( ), DOMCOL_ATTR_CLASS,
-                      &ref_data_class, NULL );
-
-    switch ( ref_data_class )
-    {
-    case DomainCollector::GridType:
-        if ( options.verbose )
-            errorStream << "Converting GRID data" << std::endl;
-        break;
-    case DomainCollector::PolyType:
-        if ( options.verbose )
-            errorStream << "Converting POLY data" << std::endl;
-        break;
-    default:
-        throw std::runtime_error( "Could not identify data class for requested dataset" );
-    }
-
-    Domain ref_total_domain;
-    ref_total_domain = dc.getGlobalDomain( options.step, options.data[0].c_str( ) );
-
-    for ( std::vector<std::string>::const_iterator iter = options.data.begin( );
-          iter != options.data.end( ); ++iter )
-    {
-        // check that all datasets match to each other
-        //
-
-        DomainCollector::DomDataClass data_class = DomainCollector::UndefinedType;
-        dc.readAttribute( options.step, iter->c_str( ), DOMCOL_ATTR_CLASS,
-                          &data_class, NULL );
-        if ( data_class != ref_data_class )
-            throw std::runtime_error( "All requested datasets must be of the same data class" );
-
-        Domain total_domain = dc.getGlobalDomain( options.step, iter->c_str( ) );
-        if ( total_domain != ref_total_domain )
-            throw std::runtime_error( "All requested datasets must map to the same domain" );
-
-        // create an extended container for each dataset
-        ExDataContainer excontainer;
-
-        if ( ref_data_class == DomainCollector::PolyType )
-        {
-            // poly type
-
-            excontainer.container = dc.readDomain( options.step, iter->c_str( ),
-                                                   total_domain.getOffset( ), total_domain.getSize( ), NULL, true );
-        }
-        else
-        {
-            // grid type
-
-            Dimensions offset( total_domain.getOffset( ) );
-            Dimensions domain_size( total_domain.getSize( ) );
-
-            for ( int i = 0; i < 3; ++i )
-                if ( options.fieldDims[i] == 0 )
-                {
-                    offset[i] = options.sliceOffset;
-                    domain_size[i] = 1;
-                    break;
-                }
-
-            excontainer.container = dc.readDomain( options.step, iter->c_str( ),
-                                                   offset, domain_size, NULL );
-        }
-
-        // read unit
-        //
-        if ( options.applyUnits )
-        {
-            try
-            {
-                dc.readAttribute( options.step, iter->c_str( ), "sim_unit",
-                                  &( excontainer.unit ), NULL );
-            }
-            catch ( DCException e )
-            {
-                if ( options.verbose )
-                    errorStream << "no unit for '" << iter->c_str( ) << "', defaulting to 1.0" << std::endl;
-                excontainer.unit = 1.0;
-            }
-
-            if ( options.verbose )
-                errorStream << "Loaded dataset '" << iter->c_str( ) << "' with unit '" <<
-                excontainer.unit << "'" << std::endl;
-        }
-        else
-        {
-            excontainer.unit = 1.0;
-            if ( options.verbose )
-                errorStream << "Loaded dataset '" << iter->c_str( ) << "'" << std::endl;
-        }
-
-        file_data.push_back( excontainer );
-    }
-
-    assert( file_data[0].container->get( 0 )->getData( ) != NULL );
-
-    // write to file
-    //
-    if ( ref_data_class == DomainCollector::PolyType )
-        printParticles( options, file_data, dc, outStream );
-    else
-        printFields( options, file_data, outStream );
-
-    for ( std::vector<ExDataContainer>::iterator iter = file_data.begin( );
-          iter != file_data.end( ); ++iter )
-    {
-        delete iter->container;
-    }
-}
-
-bool DCEntryCompare( DataCollector::DCEntry i, DataCollector::DCEntry j )
-{
-    return (i.name < j.name );
-}
-
-void printAvailableDatasets( std::vector< DataCollector::DCEntry >& dataTypeNames,
-                             std::string intentation, std::ostream &outStream )
-{
-    std::sort( dataTypeNames.begin( ), dataTypeNames.end( ), DCEntryCompare );
-
-    std::string lastdataName = "";
-    size_t matchingLength, lastMatchingUnderscore;
-
-    BOOST_FOREACH( DataCollector::DCEntry dataName, dataTypeNames )
-    {
-        matchingLength = 0;
-        lastMatchingUnderscore = 0;
-
-        while ( dataName.name.compare( matchingLength, 1, lastdataName, matchingLength, 1 ) == 0 )
-        {
-            if ( dataName.name[matchingLength] == '_' )
-                lastMatchingUnderscore = matchingLength;
-            matchingLength++;
-        }
-
-        // coordinates at the end
-        if ( matchingLength == dataName.name.size( ) - 1 )
-            outStream << '/'
-            << dataName.name.substr( matchingLength );
-            // new parameters which differ in more than the coordinate at the end
-        else
-        {
-            outStream << std::string( matchingLength == 0, '\n' ) << '\n'
-                << intentation
-                << std::string( lastMatchingUnderscore, ' ' )
-                << dataName.name.substr( lastMatchingUnderscore );
-        }
-
-        lastdataName = dataName.name;
-    }
-    outStream << std::endl;
-}
-
-void listAvailableDatasets( DomainCollector& dc, std::ostream &outStream )
-{
-    // number of timesteps in this file
-    size_t num_entries = 0;
-    dc.getEntryIDs( NULL, &num_entries );
-    if ( num_entries == 0 )
-    {
-        outStream << "no entries in file" << std::endl;
-        return;
-    }
-
-    int32_t *entries = new int32_t[num_entries];
-    dc.getEntryIDs( entries, NULL );
-    std::sort( entries, entries + num_entries );
-
-    outStream << std::endl
-        << "first dump at: " << entries[0] << std::endl
-        << "number of dumps: " << num_entries << std::endl;
-    if ( num_entries > 1 )
-        outStream << "spacing between dumps 0-1: "
-        << entries[1] - entries[0] << std::endl
-        << std::endl;
-
-    outStream << "available time steps:";
-    for ( int i = 0; i < num_entries; ++i )
-        outStream << " " << entries[i];
-    outStream << std::endl;
-
-    // available data sets in this file
-    std::vector<DataCollector::DCEntry> dataTypeNames;
-    size_t numDataTypes = 0;
-    dc.getEntriesForID( entries[0], NULL, &numDataTypes );
-    dataTypeNames.resize( numDataTypes );
-    dc.getEntriesForID( entries[0], &( dataTypeNames.front( ) ), NULL );
-
-    // parse dataTypeNames vector in a nice way for stdout
-    outStream << "Available data field names:";
-    printAvailableDatasets( dataTypeNames, "  ", outStream );
-
-    // global cell size and start
-    Domain totalDomain = dc.getGlobalDomain( entries[0], ( dataTypeNames.front( ).name.c_str( ) ) );
-    outStream << std::endl
-        << "Total domain: "
-        << totalDomain.toString( ) << std::endl;
-
-    delete[] entries;
+     // PHDF5 might have finalized already
+    int finalized;
+    MPI_Finalized(&finalized);
+    if (!finalized)
+        MPI_Finalize();
 }
 
 int main( int argc, char** argv )
 {
+    int rank, size;
+    // we read with one MPI process
+    Dims mpi_topology(1, 1, 1);
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    
+    if (size > 1)
+    {
+        std::cerr << "Only 1 MPI process supported" << std::endl;
+        mpi_finalize();
+        return 1;
+    }
+
     // read command line options
     ProgramOptions options;
     bool parseSuccessfull = false;
@@ -591,25 +192,18 @@ int main( int argc, char** argv )
     catch ( std::runtime_error e )
     {
         errorStream << "Error: " << e.what( ) << std::endl;
+        mpi_finalize();
         return 1;
     }
 
     if ( !parseSuccessfull )
+    {
+        mpi_finalize();
         return 1;
+    }
 
-    const uint32_t maxOpenFilesPerNode = 100;
-    DomainCollector dc( maxOpenFilesPerNode );
-
-    DataCollector::FileCreationAttr fattr;
-    fattr.enableCompression = false;
-    fattr.fileAccType = DataCollector::FAT_READ_MERGED;
-    fattr.mpiPosition.set( 0, 0, 0 );
-    fattr.mpiSize.set( 0, 0, 0 );
-
-    if ( options.verbose )
-        errorStream << options.inputFile << std::endl;
-
-    dc.open( options.inputFile.c_str( ), fattr );
+    ITools *tools = NULL;
+    tools = new ToolsSplashParallel( options, mpi_topology, *outStream );
 
     try
     {
@@ -623,10 +217,11 @@ int main( int argc, char** argv )
             outStream = &file;
         }
 
+        // apply requested command to file
         if ( options.listDatasets )
-            listAvailableDatasets( dc, *outStream );
+            tools->listAvailableDatasets( );
         else
-            convertToText( dc, options, *outStream );
+            tools->convertToText(  );
 
         if ( options.toFile )
         {
@@ -636,11 +231,15 @@ int main( int argc, char** argv )
     catch ( std::runtime_error e )
     {
         errorStream << "Error: " << e.what( ) << std::endl;
-        dc.close( );
+        delete tools;
+
+        mpi_finalize();
         return 1;
     }
 
-    dc.close( );
-
+    // cleanup
+    delete tools;
+    
+    mpi_finalize();
     return 0;
 }
