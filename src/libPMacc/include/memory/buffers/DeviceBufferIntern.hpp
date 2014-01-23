@@ -73,6 +73,11 @@ namespace PMacc
 
         }
 
+        /* fake signature constructor to call from MappedBuffer */
+        DeviceBufferIntern(DataSpace<DIM> dataSpace, int ) :
+        DeviceBuffer<TYPE, DIM>(dataSpace)
+        {}
+
         DeviceBufferIntern(DeviceBufferIntern& source, DataSpace<DIM> dataSpace, DataSpace<DIM> offset, bool sizeOnDevice = false) :
         DeviceBuffer<TYPE, DIM>(dataSpace),
         sizeOnDevice(sizeOnDevice),
