@@ -19,8 +19,7 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */
 
-#ifndef STLPICUINT_HPP
-#    define STLPICUINT_HPP
+#pragma once
 
 #    include "Vector.hpp"
 
@@ -69,5 +68,3 @@ struct UInt : public Vector<uint32_t, dim>
 
 } // math
 } // PMacc
-
-#endif // STLPICUINT_HPP

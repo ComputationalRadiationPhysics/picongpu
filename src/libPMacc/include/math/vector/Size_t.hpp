@@ -19,8 +19,7 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */
 
-#ifndef SIZET_HPP
-#    define SIZET_HPP
+#pragma once
 
 #    include "Vector.hpp"
 
@@ -69,5 +68,3 @@ struct Size_t : public Vector<size_t, dim>
 
 } // math
 } // PMacc
-
-#endif // SIZET_HPP

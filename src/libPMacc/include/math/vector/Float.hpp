@@ -19,8 +19,7 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */
 
-#ifndef STLPICFLOAT_HPP
-#    define STLPICFLOAT_HPP
+#pragma once
 
 #    include "Vector.hpp"
 
@@ -87,5 +86,3 @@ struct Float : public Vector<float, dim>
 
 } // math
 } // PMacc
-
-#endif // STLPICFLOAT_HPP
