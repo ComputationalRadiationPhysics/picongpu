@@ -214,7 +214,7 @@ public:
             counterBuffer.deviceToHost();
             log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) copy particle to host: %1%") % Hdf5FrameType::getName();
             __getTransactionEvent().waitForFinished();
-            log<picLog::INPUT_OUTPUT > ("HDF5:  all events are finish: %1%") % Hdf5FrameType::getName();
+            log<picLog::INPUT_OUTPUT > ("HDF5:  all events are finished: %1%") % Hdf5FrameType::getName();
             /*this cost a little bit of time but hdf5 writing is slower^^*/
             assert((uint64_cu) counterBuffer.getHostBuffer().getDataBox()[0] == totalNumParticles);
         }
@@ -264,4 +264,3 @@ public:
 } //namspace hdf5
 
 } //namespace picongpu
-

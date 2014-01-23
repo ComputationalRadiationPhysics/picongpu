@@ -321,7 +321,7 @@ private:
     void openH5File()
     {
         const uint32_t maxOpenFilesPerNode = 4;
-        if ( mThreadParams.dataCollector != NULL)
+        if ( mThreadParams.dataCollector == NULL)
         {
             GridController<simDim> &gc = GridController<simDim>::getInstance();
             mThreadParams.dataCollector = new ParallelDomainCollector(
@@ -360,10 +360,10 @@ private:
                 SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset();
 
             GridController<simDim> &gc = GridController<simDim>::getInstance();
-            /* it is important that we never change the mpi_pos after this point 
+            /* It is important that we never change the mpi_pos after this point 
              * because we get problems with the restart.
-             * Otherwise we not know which gpu must load the ghost parts around
-             * the sliding window
+             * Otherwise we do not know which gpu must load the ghost parts around
+             * the sliding window.
              */
             mpi_pos = gc.getPosition();
             mpi_size = gc.getGpuNodes();
@@ -467,7 +467,8 @@ private:
             ColTypeDouble ctDouble;
 
             params->dataCollector->writeAttribute(params->currentStep,
-                                                  ctDouble, str.str().c_str(), "sim_unit", &(unit.at(d)));
+                                                  ctDouble, str.str().c_str(),
+                                                  "sim_unit", &(unit.at(d)));
         }
 
     }
@@ -508,7 +509,7 @@ private:
         /*print all particle species*/
         log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing particle species.");
         ForEach<Hdf5OutputParticles, WriteSpecies<void> > writeSpecies;
-        writeSpecies(ref(threadParams), std::string(), domInfo,
+        writeSpecies(ref(threadParams), std::string(), domInfo, particleOffset);
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species.");
 
 
@@ -537,12 +538,10 @@ private:
                 domInfo.domainSize.y() = 0;
             }
             /* for restart we only need bottom ghosts for particles */
-            log<picLog::INPUT_OUTPUT > ("HDF5: (begin) to write particle species bottom.");
+            log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing particle species bottom.");
             /* print all particle species */
-            uint64_cu *totalNumParticles_dummy = NULL;
-            writeSpecies(ref(threadParams), std::string("_bottom_"), domInfo, particleOffset,
-                    ref(totalNumParticles_dummy));
-            log<picLog::INPUT_OUTPUT > ("HDF5: (end) to write particle species bottom.");
+            writeSpecies(ref(threadParams), std::string("_bottom_"), domInfo, particleOffset);
+            log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species bottom.");
         }
         return NULL;
     }

@@ -95,7 +95,7 @@ public:
         //check if parameters are correct
         MPI_CHECK(MPI_Comm_size(MPI_COMM_WORLD, &mpiSize));
 
-        if (numberProcesses.getElementCount() != mpiSize)
+        if (numberProcesses.productOfComponents() != mpiSize)
         {
             throw std::invalid_argument("wrong parameters or wrong mpirun-call!");
         }

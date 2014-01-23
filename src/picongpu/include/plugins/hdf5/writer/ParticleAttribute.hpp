@@ -73,7 +73,7 @@ struct ParticleAttribute
 
         typedef typename PICToSplash<ComponentType>::type SplashType;
 
-        log<picLog::INPUT_OUTPUT > ("HDF5: write species attribute: %1%") % Identifier::getName();
+        log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) write species attribute: %1%") % Identifier::getName();
 
         SplashType splashType;
         const std::string name_lookup[] = {"x", "y", "z"};
@@ -86,7 +86,8 @@ struct ParticleAttribute
          */
         DataSpace<simDim> globalSlideOffset = DataSpace<simDim>(
                                                                 0,
-                                                                params.get()->window.slides * params.get()->window.localFullSize.y(),
+                                                                params.get()->window.slides *
+                                                                params.get()->window.localFullSize.y(),
                                                                 0);
 
         Dimensions splashDomainOffset(0, 0, 0);
@@ -130,11 +131,13 @@ struct ParticleAttribute
             ColTypeDouble ctDouble;
             if (unit.size() >= (d + 1))
                 params.get()->dataCollector->writeAttribute(params.get()->currentStep,
-                                                            ctDouble, str.str().c_str(), "sim_unit", &(unit.at(d)));
+                                                            ctDouble, str.str().c_str(),
+                                                            "sim_unit", &(unit.at(d)));
 
 
         }
-        log<picLog::INPUT_OUTPUT > ("HDF5: Finish write species attribute: %1%") % Identifier::getName();
+        log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) write species attribute: %1%") %
+            Identifier::getName();
     }
 
 };
