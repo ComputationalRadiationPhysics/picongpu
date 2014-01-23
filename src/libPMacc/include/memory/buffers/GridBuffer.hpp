@@ -523,6 +523,8 @@ private:
         {
             sendExchanges[i] = NULL;
             receiveExchanges[i] = NULL;
+            receiveEvents[i]=EventTask();
+            sendEvents[i]=EventTask();
         }
         if (buildDeviceBuffer)
         {
