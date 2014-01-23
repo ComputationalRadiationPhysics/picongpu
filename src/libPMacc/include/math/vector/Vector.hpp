@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -20,8 +20,6 @@
  */
 
 #pragma once
-
-#define VECTOR_HPP
 
 #include "result_of_Functor.hpp"
 #include <builtin_types.h>

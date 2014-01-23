@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -21,7 +21,7 @@
 
 #pragma once
 
-#    include "Vector.hpp"
+#include "Vector.hpp"
 
 namespace PMacc
 {

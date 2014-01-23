@@ -32,6 +32,10 @@
 #define PMACC_USING_STATIC_CONST_VECTOR_NAMESPACE(id) using namespace PMACC_JOIN(pmacc_static_const_vector_host,id)
 #endif
 
+/** @see PMACC_CONST_VECTOR documentation, only unique "id" is added
+ * 
+ * @param id unique precompiler id to create unique namespaces
+ */
 #define PMACC_STATIC_CONST_VECTOR_DIM(id,Name,Type,Dim,count,...)               \
 namespace PMACC_JOIN(pmacc_static_const_storage,id)                            \
 {                                                                              \
@@ -84,8 +88,8 @@ namespace PMACC_JOIN(pmacc_static_const_storage,id)                            \
 using namespace PMACC_JOIN(pmacc_static_const_storage,id)
                                                                          
 
-/** Create global constant math::Vector with compile time values which can used on
- *  device and host 
+/** Create global constant math::Vector with compile time values which can be
+ *  used on device and host 
  * 
  * Support all native C/C++ types (e.g. int, float, double,...) and structs with
  * default constructor

@@ -19,8 +19,7 @@
  */ 
  
 
-#ifndef _SIMULATION_DEFINES_HPP
-#define _SIMULATION_DEFINES_HPP
+#pragma once
 
 #include <stdint.h>
 #include "types.h"
@@ -33,6 +32,10 @@ namespace picongpu
     using namespace PMacc;
 }
 
+/* IMPORTEND we need to use #include <...> for local files
+ * else we get problems with our EXTENTION_PATH from cmake which
+ * overwrites local defined include files. 
+ */
 
 //##### load param
 #include <simulation_defines/_defaultParam.loader>
@@ -49,5 +52,3 @@ namespace picongpu
 #include <simulation_defines/extensionUnitless.loader>
 //load starter after user extensions and all params are loaded
 #include <simulation_defines/unitless/starter.unitless>
-
-#endif  /* _SIMULATION_DEFINES_HPP */
