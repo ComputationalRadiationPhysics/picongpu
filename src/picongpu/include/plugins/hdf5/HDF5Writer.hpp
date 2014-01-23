@@ -33,7 +33,7 @@
 
 #include "particles/frame_types.hpp"
 
-#include "splash.h"
+#include <splash/splash.h>
 
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
@@ -250,9 +250,7 @@ public:
 
     HDF5Writer() :
     filename("h5"),
-    notifyFrequency(0),
-    compression(false),
-    continueFile(false)
+    notifyFrequency(0)
     {
         ModuleConnector::getInstance().registerModule(this);
     }
@@ -268,11 +266,7 @@ public:
             ("hdf5.period", po::value<uint32_t > (&notifyFrequency)->default_value(0),
              "enable HDF5 IO [for each n-th step]")
             ("hdf5.file", po::value<std::string > (&filename)->default_value(filename),
-             "HDF5 output file")
-            ("hdf5.compression", po::value<bool > (&compression)->zero_tokens(),
-             "enable HDF5 compression")
-            ("hdf5.continue", po::value<bool > (&continueFile)->zero_tokens(),
-             "continue existing HDF5 file instead of creating a new one");
+             "HDF5 output file");
     }
 
     std::string moduleGetName() const
@@ -288,7 +282,6 @@ public:
 
     __host__ void notify(uint32_t currentStep)
     {
-
         mThreadParams.currentStep = (int32_t) currentStep;
         mThreadParams.gridPosition = SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset();
         mThreadParams.cellDescription = this->cellDescription;
@@ -322,34 +315,27 @@ private:
         {
             log<picLog::INPUT_OUTPUT > ("HDF5 close DataCollector with file: %1%") % filename;
             mThreadParams.dataCollector->close();
-            delete mThreadParams.dataCollector;
-            mThreadParams.dataCollector = NULL;
         }
     }
 
     void openH5File()
     {
         const uint32_t maxOpenFilesPerNode = 4;
-        mThreadParams.dataCollector = new DomainCollector(maxOpenFilesPerNode);
-
+        if ( mThreadParams.dataCollector == NULL)
+        {
+            GridController<simDim> &gc = GridController<simDim>::getInstance();
+            mThreadParams.dataCollector = new ParallelDomainCollector(
+                        gc.getCommunicator().getMPIComm(),
+                        gc.getCommunicator().getMPIInfo(),
+                        splashMpiSize,
+                        maxOpenFilesPerNode);
+        }
         // set attributes for datacollector files
         DataCollector::FileCreationAttr attr;
-        attr.enableCompression = this->compression;
-
-        if (continueFile)
-            attr.fileAccType = DataCollector::FAT_WRITE;
-        else
-            attr.fileAccType = DataCollector::FAT_CREATE;
-
-
-        attr.mpiPosition.set(0, 0, 0);
-        attr.mpiSize.set(1, 1, 1);
-
-        for (uint32_t i = 0; i < simDim; ++i)
-        {
-            attr.mpiPosition[i] = mpi_pos[i];
-            attr.mpiSize[i] = mpi_size[i];
-        }
+        attr.enableCompression = false;
+        attr.fileAccType = DataCollector::FAT_CREATE;
+        attr.mpiPosition.set(splashMpiPos);
+        attr.mpiSize.set(splashMpiSize);
 
         // open datacollector
         try
@@ -363,25 +349,33 @@ private:
             throw std::runtime_error("Failed to open datacollector");
         }
 
-        continueFile = true; //set continue for the next open
-
     }
 
     void moduleLoad()
     {
         if (notifyFrequency > 0)
         {
+            mThreadParams.dataCollector = NULL;
             mThreadParams.gridPosition =
                 SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset();
 
             GridController<simDim> &gc = GridController<simDim>::getInstance();
-            /* it is important that we never change the mpi_pos after this point 
+            /* It is important that we never change the mpi_pos after this point 
              * because we get problems with the restart.
-             * Otherwise we not know which gpu must load the ghost parts around
-             * the sliding window
+             * Otherwise we do not know which gpu must load the ghost parts around
+             * the sliding window.
              */
             mpi_pos = gc.getPosition();
             mpi_size = gc.getGpuNodes();
+            
+            splashMpiPos.set(0, 0, 0);
+            splashMpiSize.set(1, 1, 1);
+            
+            for (uint32_t i = 0; i < simDim; ++i)
+            {
+                splashMpiPos[i] = mpi_pos[i];
+                splashMpiSize[i] = mpi_size[i];
+            }
 
             DataConnector::getInstance().registerObserver(this, notifyFrequency);
         }
@@ -391,20 +385,25 @@ private:
 
     void moduleUnload()
     {
-
+        if (mThreadParams.dataCollector != NULL)
+        {
+            delete mThreadParams.dataCollector;
+            mThreadParams.dataCollector = NULL;
+        }
     }
 
-    static void writeField(ThreadParams *params, const DomainInformation domInfo, CollectionType& colType,
-                           const uint32_t nCompunents, const std::string name,
+    static void writeField(ThreadParams *params, const DomainInformation domInfo,
+                           CollectionType& colType,
+                           const uint32_t nComponents, const std::string name,
                            std::vector<double> unit, void *ptr)
     {
         log<picLog::INPUT_OUTPUT > ("HDF5 write field: %1% %2% %3%") %
-            name % nCompunents % ptr;
+            name % nComponents % ptr;
 
         std::vector<std::string> name_lookup;
         {
             const std::string name_lookup_tpl[] = {"x", "y", "z", "w"};
-            for (uint32_t d = 0; d < nCompunents; d++)
+            for (uint32_t d = 0; d < nComponents; d++)
                 name_lookup.push_back(name_lookup_tpl[d]);
         }
 
@@ -421,39 +420,44 @@ private:
                                                                 0,
                                                                 params->window.slides * params->window.localFullSize.y(),
                                                                 0);
-        Dimensions splashDomainOffset(0, 0, 0);
         Dimensions splashGlobalDomainOffset(0, 0, 0);
-
-        Dimensions splashDomainSize(1, 1, 1);
+        Dimensions splashGlobalOffsetFile(0, 0, 0);
         Dimensions splashGlobalDomainSize(1, 1, 1);
 
         for (uint32_t d = 0; d < simDim; ++d)
         {
-            splashDomainOffset[d] = domInfo.domainOffset[d] + globalSlideOffset[d];
+            splashGlobalOffsetFile[d] = domInfo.domainOffset[d];
             splashGlobalDomainOffset[d] = domInfo.globalDomainOffset[d] + globalSlideOffset[d];
             splashGlobalDomainSize[d] = domInfo.globalDomainSize[d];
-            splashDomainSize[d] = domInfo.domainSize[d];
         }
+        
+        splashGlobalOffsetFile[1] = std::max(0, domInfo.domainOffset[1] -
+                domInfo.globalDomainOffset[1]);
 
 
-        for (uint32_t d = 0; d < nCompunents; d++)
+        for (uint32_t d = 0; d < nComponents; d++)
         {
             std::stringstream str;
             str << name;
-            if (nCompunents > 1)
+            if (nComponents > 1)
                 str << "_" << name_lookup.at(d);
+            
+            Dimensions sizeSrcBuffer(field_full[0] * nComponents, field_full[1], field_full[2]);
+            Dimensions srcStride(nComponents, 1, 1);
+            Dimensions sizeSrcData(field_no_guard[0], field_no_guard[1], field_no_guard[2]);
+            Dimensions srcOffset(field_guard[0] * nComponents + d, field_guard[1], field_guard[2]);
 
             params->dataCollector->writeDomain(params->currentStep, /* id == time step */
+                                               splashGlobalDomainSize,
+                                               splashGlobalOffsetFile,
                                                colType, /* data type */
                                                simDim, /* NDims of the field data (scalar, vector, ...) */
                                                /* source buffer, stride, data size, offset */
-                                               Dimensions(field_full[0] * nCompunents, field_full[1], field_full[2]),
-                                               Dimensions(nCompunents, 1, 1),
-                                               Dimensions(field_no_guard[0], field_no_guard[1], field_no_guard[2]),
-                                               Dimensions(field_guard[0] * nCompunents + d, field_guard[1], field_guard[2]),
+                                               sizeSrcBuffer,
+                                               srcStride,
+                                               sizeSrcData,
+                                               srcOffset,
                                                str.str().c_str(), /* data set name */
-                                               splashDomainOffset, /* offset in global domain */
-                                               splashDomainSize, /* local size */
                                                splashGlobalDomainOffset, /* \todo offset of the global domain */
                                                splashGlobalDomainSize, /* size of the global domain */
                                                DomainCollector::GridType,
@@ -463,7 +467,8 @@ private:
             ColTypeDouble ctDouble;
 
             params->dataCollector->writeAttribute(params->currentStep,
-                                                  ctDouble, str.str().c_str(), "sim_unit", &(unit.at(d)));
+                                                  ctDouble, str.str().c_str(),
+                                                  "sim_unit", &(unit.at(d)));
         }
 
     }
@@ -475,10 +480,10 @@ private:
         ThreadParams *threadParams = (ThreadParams*) (p_args);
 
         /* write number of slides to timestep in hdf5 file*/
-        int slides = threadParams->window.slides;
-        ColTypeInt ctInt;
+        uint32_t slides = threadParams->window.slides;
+        ColTypeUInt32 ctUInt32;
         threadParams->dataCollector->writeAttribute(threadParams->currentStep,
-                                              ctInt, NULL, "sim_slides", &(slides));
+                                              ctUInt32, NULL, "sim_slides", &(slides));
 
         /* build clean domain info (picongpu view) */
         DomainInformation domInfo;
@@ -502,10 +507,11 @@ private:
         forEachGetFields(ref(threadParams), domInfo);
 
         /*print all particle species*/
-        log<picLog::INPUT_OUTPUT > ("HDF5 begin to write particle species.");
+        log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing particle species.");
         ForEach<Hdf5OutputParticles, WriteSpecies<void> > writeSpecies;
         writeSpecies(ref(threadParams), std::string(), domInfo, particleOffset);
-        log<picLog::INPUT_OUTPUT > ("HDF5 end to write particle species.");
+        log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species.");
+
 
         if (MovingWindow::getInstance().isSlidingWindowActive())
         {
@@ -532,10 +538,10 @@ private:
                 domInfo.domainSize.y() = 0;
             }
             /* for restart we only need bottom ghosts for particles */
-            log<picLog::INPUT_OUTPUT > ("HDF5 begin to write particle species bottom.");
+            log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing particle species bottom.");
             /* print all particle species */
             writeSpecies(ref(threadParams), std::string("_bottom_"), domInfo, particleOffset);
-            log<picLog::INPUT_OUTPUT > ("HDF5 end to write particle species bottom.");
+            log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species bottom.");
         }
         return NULL;
     }
@@ -546,12 +552,12 @@ private:
 
     uint32_t notifyFrequency;
     std::string filename;
-    bool compression;
-    bool continueFile;
 
     DataSpace<simDim> mpi_pos;
     DataSpace<simDim> mpi_size;
 
+    Dimensions splashMpiPos;
+    Dimensions splashMpiSize;
 };
 
 } //namespace hdf5

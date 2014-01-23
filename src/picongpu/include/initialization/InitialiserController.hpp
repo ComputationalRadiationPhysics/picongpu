@@ -121,8 +121,7 @@ public:
 #endif
         }
 
-        DataSpace<simDim> globalRootCell(SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset());
-
+        
 #if (ENABLE_HDF5==1)
         // restart simulation by loading from hdf5 data file
         // the simulation will start after the last saved iteration
@@ -130,7 +129,6 @@ public:
         {
             simRestartInitialiser = new SimRestartInitialiser<PIC_Electrons, PIC_Ions, simDim > (
                                                                                                  restartFile.c_str(),
-                                                                                                 globalRootCell,
                                                                                                  cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
 
             DataConnector::getInstance().initialise(*simRestartInitialiser, 0);
@@ -141,7 +139,7 @@ public:
             delete simRestartInitialiser;
             simRestartInitialiser = NULL;
 
-            std::cout << "Loading from hdf5 finished, can start program" << std::endl;
+            log<picLog::SIMULATION_STATE > ("Loading from hdf5 finished, can start program");
 
             return simulationStep;
         }
@@ -154,7 +152,7 @@ public:
         delete simStartInitialiser;
         simStartInitialiser = NULL;
 
-        std::cout << "Loading from default values finished, can start program" << std::endl;
+        log<picLog::SIMULATION_STATE > ("Loading from default values finished, can start program");
 
         return 0;
     }
