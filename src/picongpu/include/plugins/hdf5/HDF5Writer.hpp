@@ -251,7 +251,6 @@ public:
     HDF5Writer() :
     filename("h5"),
     notifyFrequency(0)
-    continueFile(false)
     {
         ModuleConnector::getInstance().registerModule(this);
     }
@@ -267,9 +266,7 @@ public:
             ("hdf5.period", po::value<uint32_t > (&notifyFrequency)->default_value(0),
              "enable HDF5 IO [for each n-th step]")
             ("hdf5.file", po::value<std::string > (&filename)->default_value(filename),
-             "HDF5 output file")
-            ("hdf5.continue", po::value<bool > (&continueFile)->zero_tokens(),
-             "continue existing HDF5 file instead of creating a new one");
+             "HDF5 output file");
     }
 
     std::string moduleGetName() const
@@ -324,25 +321,21 @@ private:
     void openH5File()
     {
         const uint32_t maxOpenFilesPerNode = 4;
-        mThreadParams.dataCollector = new DomainCollector(maxOpenFilesPerNode);
-
-                        splashMpiSize,
+        if ( mThreadParams.dataCollector != NULL)
+        {
+            GridController<simDim> &gc = GridController<simDim>::getInstance();
+            mThreadParams.dataCollector = new ParallelDomainCollector(
+                        gc.getCommunicator().getMPIComm(),
                         gc.getCommunicator().getMPIInfo(),
-                        mpiSizeHdf5,
+                        splashMpiSize,
                         maxOpenFilesPerNode);
         }
         // set attributes for datacollector files
         DataCollector::FileCreationAttr attr;
         attr.enableCompression = false;
-
-        if (continueFile)
-            attr.fileAccType = DataCollector::FAT_WRITE;
-        else
-            attr.fileAccType = DataCollector::FAT_CREATE;
+        attr.fileAccType = DataCollector::FAT_CREATE;
         attr.mpiPosition.set(splashMpiPos);
         attr.mpiSize.set(splashMpiSize);
-            attr.mpiSize[i] = mpi_size[i];
-        }
 
         // open datacollector
         try
@@ -355,8 +348,6 @@ private:
             std::cerr << e.what() << std::endl;
             throw std::runtime_error("Failed to open datacollector");
         }
-
-        continueFile = true; //set continue for the next open
 
     }
 
@@ -515,46 +506,10 @@ private:
         forEachGetFields(ref(threadParams), domInfo);
 
         /*print all particle species*/
-        log<picLog::INPUT_OUTPUT > ("HDF5 begin to write particle species.");
-        uint64_cu totalNumParticles = 0;
-        uint64_cu *totalNumParticlesPtr = &totalNumParticles;
+        log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing particle species.");
         ForEach<Hdf5OutputParticles, WriteSpecies<void> > writeSpecies;
         writeSpecies(ref(threadParams), std::string(), domInfo,
-        log<picLog::INPUT_OUTPUT > ("HDF5 end to write particle species.");
-        log<picLog::INPUT_OUTPUT > ("HDF5 end writing particle species.");
-        
-        
-        /*write species index table to hdf5 file*/
-        log<picLog::INPUT_OUTPUT > ("HDF5 begin writing particle index table.");
-        {
-            GridController<simDim> &gc = GridController<simDim>::getInstance();
-            uint64_t localNumParticles = totalNumParticles;
-            uint64_t globalParticleOffset = 0;
-            uint64_t write_sizes[gc.getGlobalSize()];
-
-            if (MPI_Allgather(&localNumParticles, 1, MPI_INTEGER8, write_sizes,
-                    1, MPI_INTEGER8, gc.getCommunicator().getMPIComm()) == MPI_SUCCESS)
-            {
-                for (uint32_t i = 0; i < gc.getGlobalRank(); ++i)
-                    globalParticleOffset += write_sizes[i];
-
-                const size_t size_index_bfr = 2;
-                const size_t index_bfr[size_index_bfr] =
-                    { totalNumParticles, globalParticleOffset };
-
-                threadParams->dataCollector->write(
-                    threadParams->currentStep,
-                    Dimensions(size_index_bfr * gc.getGlobalSize(), 1, 1),
-                    Dimensions(size_index_bfr * gc.getGlobalRank(), 0, 0),
-                    ctInt, 1,
-                    Dimensions(size_index_bfr, 1, 1),
-                    "particles_index",
-                    index_bfr);
-            }
-            else
-                log<picLog::INPUT_OUTPUT > ("HDF5 failed to write particle index table!");
-        }
-        log<picLog::INPUT_OUTPUT > ("HDF5 end writing particle index table.");
+        log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species.");
 
 
         if (MovingWindow::getInstance().isSlidingWindowActive())
@@ -582,12 +537,12 @@ private:
                 domInfo.domainSize.y() = 0;
             }
             /* for restart we only need bottom ghosts for particles */
-            log<picLog::INPUT_OUTPUT > ("HDF5 begin to write particle species bottom.");
+            log<picLog::INPUT_OUTPUT > ("HDF5: (begin) to write particle species bottom.");
             /* print all particle species */
             uint64_cu *totalNumParticles_dummy = NULL;
             writeSpecies(ref(threadParams), std::string("_bottom_"), domInfo, particleOffset,
                     ref(totalNumParticles_dummy));
-            log<picLog::INPUT_OUTPUT > ("HDF5 end to write particle species bottom.");
+            log<picLog::INPUT_OUTPUT > ("HDF5: (end) to write particle species bottom.");
         }
         return NULL;
     }
@@ -598,7 +553,6 @@ private:
 
     uint32_t notifyFrequency;
     std::string filename;
-    bool continueFile;
 
     DataSpace<simDim> mpi_pos;
     DataSpace<simDim> mpi_size;

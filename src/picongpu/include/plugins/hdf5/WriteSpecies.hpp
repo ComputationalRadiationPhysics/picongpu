@@ -150,9 +150,8 @@ public:
     template<typename Space>
     HINLINE void operator()(RefWrapper<ThreadParams*> params,
                             std::string prefix,
-                            const DomainInformation domInfo,const Space particleOffset)
+                            const DomainInformation domInfo,
                             const Space particleOffset)
-                            RefWrapper<uint64_cu*> totalNumParticlesWritten)
     {
         log<picLog::INPUT_OUTPUT > ("HDF5: (begin) write species: %1%") % Hdf5FrameType::getName();
         DataConnector &dc = DataConnector::getInstance();
@@ -258,10 +257,6 @@ public:
         ForEach<typename Hdf5FrameType::ValueTypeSeq, FreeMemory<void> > freeMem;
         freeMem(byRef(hostFrame));
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing species: %1%") % Hdf5FrameType::getName();
-        if (totalNumParticlesWritten.get())
-        {
-            *(totalNumParticlesWritten.get()) = totalNumParticles;
-        }
     }
 };
 
