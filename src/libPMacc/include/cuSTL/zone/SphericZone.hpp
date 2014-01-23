@@ -35,7 +35,14 @@ namespace tag
 {
 struct SphericZone {};
 }
-    
+
+/* spheric (no holes), cartesian zone
+ * 
+ * \tparam _dim dimension of the zone
+ * 
+ * This is a zone which is simply described by a size and a offset.
+ * 
+ */
 template<int _dim>
 struct SphericZone
 {
@@ -49,6 +56,7 @@ struct SphericZone
     HDINLINE SphericZone(const math::Size_t<dim>& size,
                          const math::Int<dim>& offset) : size(size), offset(offset) {}
                          
+    /* Returns whether pos is within the zone */
     HDINLINE bool within(const PMacc::math::Int<_dim>& pos) const
     {
         bool result = true;

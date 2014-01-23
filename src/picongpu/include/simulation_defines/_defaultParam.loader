@@ -25,6 +25,7 @@
  */
 #pragma once
 
+#include "simulation_defines/param/dimension.param"
 #include "simulation_defines/param/precision.param"
 #include "simulation_defines/param/physicalConstants.param"
 #include "simulation_defines/param/particleDefinition.param"
@@ -33,9 +34,10 @@
 #include "simulation_defines/param/particleConfig.param"
 #include "simulation_defines/param/currentConfig.param"
 #include "simulation_defines/param/laserConfig.param"
-#include "simulation_defines/param/fieldConfig.param"
+#include "simulation_defines/param/fieldSolver.param"
 #include "simulation_defines/param/visColorScales.param"
 #include "simulation_defines/param/visualization.param"
 #include "simulation_defines/param/memory.param"
 #include "simulation_defines/param/pusherConfig.param"
 #include "simulation_defines/param/radiationConfig.param"
+#include "simulation_defines/param/fieldBackground.param"

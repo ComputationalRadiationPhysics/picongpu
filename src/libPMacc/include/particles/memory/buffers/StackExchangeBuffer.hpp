@@ -65,7 +65,7 @@ namespace PMacc
             return ExchangePushDataBox<vint_t, FRAME, DIM > (
                                                              stack.getHostBuffer().getBasePointer(),
                                                              stack.getHostBuffer().getCurrentSizePointer(),
-                                                             stack.getHostBuffer().getDataSpace().getElementCount(),
+                                                             stack.getHostBuffer().getDataSpace().productOfComponents(),
                                                              PushDataBox<vint_t, FRAMEINDEX > (
                                                                                                stackIndexer.getHostBuffer().getBasePointer(),
                                                                                                stackIndexer.getHostBuffer().getCurrentSizePointer()));
@@ -98,7 +98,7 @@ namespace PMacc
             return ExchangePushDataBox<vint_t, FRAME, DIM > (
                                                              stack.getDeviceBuffer().getBasePointer(),
                                                              (vint_t*) stack.getDeviceBuffer().getCurrentSizeOnDevicePointer(),
-                                                             stack.getDeviceBuffer().getDataSpace().getElementCount(),
+                                                             stack.getDeviceBuffer().getDataSpace().productOfComponents(),
                                                              PushDataBox<vint_t, FRAMEINDEX > (
                                                                                                stackIndexer.getDeviceBuffer().getBasePointer(),
                                                                                                (vint_t*) stackIndexer.getDeviceBuffer().getCurrentSizeOnDevicePointer()));
@@ -160,7 +160,7 @@ namespace PMacc
 
         size_t getMaxParticlesCount()
         {
-            return stack.getHostBuffer().getDataSpace().getElementCount();
+            return stack.getHostBuffer().getDataSpace().productOfComponents();
         }
 
     private:

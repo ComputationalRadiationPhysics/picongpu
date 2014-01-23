@@ -57,7 +57,7 @@ public:
     HeapBuffer(DataSpace<DIM1> dataSpace) :
     GridBuffer<VALUE, DIM1, BORDERVALUE>(dataSpace)
     {
-        ringBuffer = new RingBuffer<TYPE, TYPE > (dataSpace.getElementCount());
+        ringBuffer = new RingBuffer<TYPE, TYPE > (dataSpace.productOfComponents());
     }
 
     /**

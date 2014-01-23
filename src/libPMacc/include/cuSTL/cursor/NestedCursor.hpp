@@ -30,7 +30,12 @@ namespace PMacc
 {
 namespace cursor
 {
-    
+
+/** wraps a cursor into a new cursor in a way that accessing on the new cursor 
+ * means getting the nested cursor and jumping means jumping on the nested cursor.
+ * \param cursor Cursor to be wrapped
+ * \return A new cursor which wraps the given cursor
+ */
 template<typename TCursor>
 HDINLINE
 Cursor<MarkerAccessor<TCursor>, CursorNavigator, TCursor> make_NestedCursor(const TCursor& cursor)

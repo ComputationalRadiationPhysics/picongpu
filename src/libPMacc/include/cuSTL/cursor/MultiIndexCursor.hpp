@@ -31,6 +31,12 @@ namespace PMacc
 namespace cursor
 {
     
+/** construct a cursor where accessing means getting the current position
+ * in terms of an 2D, 3D, ... index. Usefull to obtain for example the current cell index.
+ * \tparam dim Dimension of the index (say: int-vector)
+ * \param idx Initial index value
+ * \return cursor with the behavior mentioned above
+ */
 template<int dim>
 HDINLINE
 cursor::Cursor<cursor::MarkerAccessor<math::Int<dim> >, MultiIndexNavigator<dim>,

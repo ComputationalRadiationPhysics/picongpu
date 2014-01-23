@@ -16,19 +16,18 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
 
 
 #pragma once
 
-/**! discripe filed solver method
- * Define a solver for field with the name "FieldSolver"
+/**! Configure the selected field solver method
  * 
+ * You can set/modify Maxwell solver specific options in the
+ * section of each "FieldSolver".
  */
 namespace picongpu
 {
-
     namespace fieldSolverNone
     {
         
@@ -64,7 +63,5 @@ namespace picongpu
          */
         typedef CherenkovFreeDirection_Y CherenkovFreeDir;
     }
-}
 
-
-
+} // namespace picongpu

@@ -54,7 +54,7 @@ public:
                 .getCommunicator().startReceive(
                                                 exchange->getExchangeType(),
                                                 (char*) exchange->getHostBuffer().getBasePointer(),
-                                                exchange->getHostBuffer().getDataSpace().getElementCount() * sizeof (TYPE),
+                                                exchange->getHostBuffer().getDataSpace().productOfComponents() * sizeof (TYPE),
                                                 exchange->getCommunicationTag());
         __endTransaction();
     }

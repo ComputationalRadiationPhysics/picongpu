@@ -104,7 +104,7 @@ public:
     void initialFillBuffer()
     {
         /*\todo: please fix me this is not generic, add own method for index initialisation*/
-        size_t size = ringData->getGridLayout().getDataSpace().getElementCount();
+        size_t size = ringData->getGridLayout().getDataSpace().productOfComponents();
         DataBox<PitchedBox<VALUE, DIM1> > dbox = ringData->getHostBuffer().getDataBox();
         for (size_t i = 0; i < size; i++)
             dbox[i] = (VALUE) i;
@@ -175,7 +175,7 @@ public:
      */
     size_t getSize()
     {
-        return ringData->getHostBuffer().getDataSpace().getElementCount();
+        return ringData->getHostBuffer().getDataSpace().productOfComponents();
     }
 private:
     GridBuffer<VALUE, DIM1> *ringData;

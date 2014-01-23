@@ -90,7 +90,7 @@ public:
                 std::cout << "omega_pe * dt <= 0.1 ? " << sqrt(GAS_DENSITY * Q_EL / M_EL * Q_EL / EPS0) * DELTA_T << std::endl;
             if (laserProfile::INIT_TIME > float_X(0.0))
                 std::cout << "y-cells per wavelength: " << laserProfile::WAVE_LENGTH / CELL_HEIGHT << std::endl;
-            const int localNrOfCells = cellDescription->getGridLayout().getDataSpaceWithoutGuarding().getElementCount();
+            const int localNrOfCells = cellDescription->getGridLayout().getDataSpaceWithoutGuarding().productOfComponents();
             std::cout << "macro particles per gpu: "
                 << localNrOfCells * particleInit::NUM_PARTICLES_PER_CELL * (1 + 1 * ENABLE_IONS) << std::endl;
             std::cout << "typical macro particle weighting: " << NUM_EL_PER_PARTICLE << std::endl;

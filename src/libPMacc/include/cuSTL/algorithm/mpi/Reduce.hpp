@@ -35,6 +35,19 @@ namespace algorithm
 namespace mpi
 {
 
+/** Reduce algorithm for mpi
+ * 
+ * \tparam dim dimension of the mpi node volume which has to be reduced.
+ * 
+ * This algorithm reduces node-wise. For each node you pass a data container as source
+ * and another container of the same size as destination. The result is stored in
+ * the destination container of the root node.
+ * 
+ * The data values of the container are reduced independently of each other.
+ * 
+ * The dimension of the container need not be the same as dim.
+ * 
+ */
 template<int dim>
 class Reduce
 {
@@ -42,16 +55,37 @@ private:
     MPI_Comm comm;
     bool m_participate;
 public:
+    /** constructor
+     * 
+     * \param zone The zone specifies which mpi-nodes participate in the reduce operation.
+     * \param setThisAsRoot Set this node explicitly as root. May only be true for one node.
+     *
+     * if setThisAsRoot is not set mpi chooses the root node.
+     * 
+     */
     Reduce(const zone::SphericZone<dim>& zone, bool setThisAsRoot = false);
     ~Reduce();
     
+    /* execute the algorithm
+     * 
+     * \param dest destination container
+     * \param src source container
+     * \param ExprOrFunctor functor with two arguments which returns the result of the reduce operation. 
+     *        May also be a lambda expression (e.g. _1 + _2).
+     * 
+     * Since only the functor's type is given, the functor must have a standart constructor.
+     * 
+     */
     template<typename Type, int conDim, typename ExprOrFunctor>
     void operator()(container::HostBuffer<Type, conDim>& dest, 
                     const container::HostBuffer<Type, conDim>& src,
                     ExprOrFunctor) const;
            
+    // Returns whether this node is within the zone.
     inline bool participate() const {return m_participate;}
+    // Returns whether this node is the root node.
     inline bool root() const;
+    // Returns the mpi rank of this node.
     inline int rank() const;
 };
     

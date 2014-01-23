@@ -110,7 +110,7 @@ void Reduce<BlockDim>::operator()(const DestCursor& destCursor, const Zone& _zon
                                                 destCursor.getMarker()));
     container::DeviceBuffer<type, 1>* partialSum[2];
     partialSum[0] = new container::DeviceBuffer<type, 1>
-        (_zone.size.volume() / BlockDim().vec().volume());
+        (_zone.size.productOfComponents() / BlockDim().vec().productOfComponents());
     partialSum[1] = new container::DeviceBuffer<type, 1>(partialSum[0]->size());
     int curDestBuffer = 0;
     int partialSumSize = partialSum[curDestBuffer]->size().x();
