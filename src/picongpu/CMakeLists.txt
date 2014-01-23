@@ -277,6 +277,8 @@ find_path(PIC_SPLASH_ROOT_DIR
   PATHS ENV SPLASH_ROOT
   DOC "libSplash ROOT location (provides HDF5 output)"
 )
+set(PIC_SPLASH_VERSION_MIN "1.1.0")
+set(PIC_SPLASH_VERSION_OK OFF)
 
 if(PIC_SPLASH_ROOT_DIR)
     # find version
@@ -284,16 +286,29 @@ if(PIC_SPLASH_ROOT_DIR)
          PIC_SPLASH_VERSION_MAJOR_HPP REGEX "#define SPLASH_VERSION_MAJOR ")
     file(STRINGS "${PIC_SPLASH_ROOT_DIR}/include/splash/version.hpp"
          PIC_SPLASH_VERSION_MINOR_HPP REGEX "#define SPLASH_VERSION_MINOR ")
+    file(STRINGS "${PIC_SPLASH_ROOT_DIR}/include/splash/version.hpp"
+         PIC_SPLASH_VERSION_PATCH_HPP REGEX "#define SPLASH_VERSION_PATCH ")
     string(REGEX MATCH "([0-9]+)" PIC_SPLASH_VERSION_MAJOR
                                 ${PIC_SPLASH_VERSION_MAJOR_HPP})
     string(REGEX MATCH "([0-9]+)" PIC_SPLASH_VERSION_MINOR
                                 ${PIC_SPLASH_VERSION_MINOR_HPP})
+    string(REGEX MATCH "([0-9]+)" PIC_SPLASH_VERSION_PATCH
+                                ${PIC_SPLASH_VERSION_PATCH_HPP})
 
-    set(PIC_SPLASH_VERSION "${PIC_SPLASH_VERSION_MAJOR}.${PIC_SPLASH_VERSION_MINOR}")
+    set(PIC_SPLASH_VERSION "${PIC_SPLASH_VERSION_MAJOR}.${PIC_SPLASH_VERSION_MINOR}.${PIC_SPLASH_VERSION_PATCH}")
 
-    # status output and require hdf5
+    # status output and check version
     message(STATUS "Found libSplash: ${PIC_SPLASH_ROOT_DIR} "
                    "(found version \"${PIC_SPLASH_VERSION}\")")
+    if("${PIC_SPLASH_VERSION}" VERSION_LESS "${PIC_SPLASH_VERSION_MIN}")
+        message(WARNING "libSplash version is smaller than the required version ${PIC_SPLASH_VERSION_MIN} - not using")
+    else()
+        set(PIC_SPLASH_VERSION_OK ON)
+    endif()
+endif(PIC_SPLASH_ROOT_DIR)
+
+if(PIC_SPLASH_VERSION_OK)
+    # require hdf5
     find_package(HDF5 REQUIRED)
 
     # libSplash compiled with parallel support?
@@ -328,9 +343,9 @@ if(PIC_SPLASH_ROOT_DIR)
     set_target_properties(splash_static PROPERTIES IMPORTED_LOCATION
                           ${PIC_SPLASH_ROOT_DIR}/lib/libsplash.a)
     set(LIBS ${LIBS} splash_static ${HDF5_LIBRARIES})
-else(PIC_SPLASH_ROOT_DIR)
+else(PIC_SPLASH_VERSION_OK)
     message(STATUS "Could NOT find libSplash for hdf5 output")
-endif(PIC_SPLASH_ROOT_DIR)
+endif(PIC_SPLASH_VERSION_OK)
 
 
 ################################################################################
