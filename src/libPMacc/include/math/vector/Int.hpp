@@ -17,12 +17,12 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
-#ifndef STLPICINT_HPP
-#define STLPICINT_HPP
+ */
 
-#include "Vector.hpp"
+#ifndef STLPICINT_HPP
+#    define STLPICINT_HPP
+
+#    include "Vector.hpp"
 
 namespace PMacc
 {
@@ -32,14 +32,41 @@ namespace math
 template<int dim>
 struct Int : public Vector<int, dim>
 {
-    HDINLINE Int() {}
-    HDINLINE Int(int x) : Vector<int, dim>(x) {}
-    HDINLINE Int(int x, int y) : Vector<int, dim>(x,y) {}
-    HDINLINE Int(int x, int y, int z) : Vector<int, dim>(x,y,z) {}
-    template<typename OtherType>
-    HDINLINE Int(const Vector<OtherType, dim>& vec) : Vector<int, dim>(vec) {}
-};
+
+    typedef Vector<int, dim> BaseType;
+    HDINLINE Int()
+    {
+    }
+
+    HDINLINE Int(int x) : BaseType(x)
+    {
+    }
+
+    HDINLINE Int(int x, int y) : BaseType(x, y)
+    {
+    }
+
+    HDINLINE Int(int x, int y, int z) : BaseType(x, y, z)
+    {
+    }
+
+    /*! only allow explicit cast*/
+    template<
+    typename T_OtherType,
+    typename T_OtherAccessor,
+    typename T_OtherNavigator,
+    template <typename, int> class T_OtherStorage>
+    HDINLINE explicit Int(const Vector<T_OtherType, dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& vec) :
+    BaseType(vec)
+    {
+    }
     
+    HDINLINE Int(const BaseType& vec) :
+    BaseType(vec)
+    {
+    }
+};
+
 } // math
 } // PMacc
 

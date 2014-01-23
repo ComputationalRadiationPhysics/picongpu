@@ -19,7 +19,8 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */
 
-#ifndef VECTOR_HPP
+#pragma once
+
 #define VECTOR_HPP
 
 #include "result_of_Functor.hpp"
@@ -40,82 +41,48 @@ namespace math
 namespace detail
 {
 
-template<typename Type, int dim>
-struct Vector_components;
-
-template<typename Type>
-struct Vector_components<Type, 0 >
+template<typename T_Type, int T_Dim>
+struct Vector_components
 {
-};
+    static const int dim = T_Dim;
+    typedef T_Type type;
 
-template<typename Type>
-struct Vector_components<Type, 1 >
-{
-    PMACC_ALIGN(_x, Type);
+    /*align full vector*/
+    PMACC_ALIGN(v[dim], type);
 
-    HDINLINE Vector_components()
+    HDINLINE
+    type& operator[](const int idx)
     {
+        return v[idx];
     }
 
     HDINLINE
-    Vector_components(const Type & x) : _x(x)
+    const type& operator[](const int idx) const
     {
+        return v[idx];
     }
 };
 
-template<typename Type>
-struct Vector_components<Type, 2 >
-{
-    PMACC_ALIGN(_x, Type);
-    PMACC_ALIGN(_y, Type);
-
-    HDINLINE Vector_components()
-    {
-    }
-
-    HDINLINE
-    Vector_components(const Type& x, const Type & y) : _x(x), _y(y)
-    {
-    }
-};
-
-template<typename Type>
-struct Vector_components<Type, 3 >
-{
-    //Type x, y, z;
-    PMACC_ALIGN(_x, Type);
-    PMACC_ALIGN(_y, Type);
-    PMACC_ALIGN(_z, Type);
-
-    HDINLINE Vector_components()
-    {
-    }
-
-    HDINLINE
-    Vector_components(const Type& x, const Type& y, const Type & z) : _x(x), _y(y), _z(z)
-    {
-    }
-};
-
-}
+} //namespace detail
 
 namespace tag
 {
 struct Vector;
 }
 
-template<typename Type, int _dim,
-typename _Accessor = StandartAccessor,
-typename _Navigator = StandartNavigator>
-//__optimal_align__((dim==0) ? 1 : dim * sizeof(Type))
-struct Vector : public detail::Vector_components<Type, _dim>, _Accessor, _Navigator
+template<typename T_Type, int T_dim,
+typename T_Accessor = StandartAccessor,
+typename T_Navigator = StandartNavigator,
+template <typename, int> class T_Storage = detail::Vector_components>
+struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protected T_Navigator
 {
-    typedef Type type;
-    static const int dim = _dim;
+    typedef T_Storage<T_Type, T_dim> Storage;
+    typedef typename Storage::type type;
+    static const int dim = Storage::dim;
     typedef tag::Vector tag;
-    typedef _Accessor Accessor;
-    typedef _Navigator Navigator;
-    typedef Vector<Type, dim, Accessor, Navigator> This;
+    typedef T_Accessor Accessor;
+    typedef T_Navigator Navigator;
+    typedef Vector<type, dim, Accessor, Navigator, T_Storage> This;
 
     /*Vectors without elements are not allowed*/
     BOOST_STATIC_ASSERT(dim > 0);
@@ -139,7 +106,7 @@ struct Vector : public detail::Vector_components<Type, _dim>, _Accessor, _Naviga
     }
 
     HDINLINE
-    Vector(const Type x, const Type y)
+    Vector(const type x, const type y)
     {
         BOOST_STATIC_ASSERT(dim == 2);
         (*this)[0] = x;
@@ -147,7 +114,7 @@ struct Vector : public detail::Vector_components<Type, _dim>, _Accessor, _Naviga
     }
 
     HDINLINE
-    Vector(const Type x, const Type y, const Type z)
+    Vector(const type x, const type y, const type z)
     {
         BOOST_STATIC_ASSERT(dim == 3);
         (*this)[0] = x;
@@ -156,48 +123,52 @@ struct Vector : public detail::Vector_components<Type, _dim>, _Accessor, _Naviga
     }
 
     HDINLINE
-    Vector(const Type& value)
+    Vector(const T_Type& value)
     {
         for (int i = 0; i < dim; i++)
             (*this)[i] = value;
     }
 
-    template<typename OtherType, typename OtherAccessor, typename OtherNavigator >
-    HDINLINE Vector(Vector<OtherType, dim, OtherAccessor, OtherNavigator>& other)
+    HDINLINE Vector(const This& other)
     {
         for (int i = 0; i < dim; i++)
-            (*this)[i] = (Type) other[i];
+            (*this)[i] = other[i];
     }
 
-    template<typename OtherType, typename OtherAccessor, typename OtherNavigator >
-    HDINLINE Vector(const Vector<OtherType, dim, OtherAccessor, OtherNavigator>& other)
+    template<
+    typename T_OtherType,
+    typename T_OtherAccessor,
+    typename T_OtherNavigator,
+    template <typename, int> class T_OtherStorage>
+    HDINLINE explicit Vector(const Vector<
+                             T_OtherType,
+                             dim,
+                             T_OtherAccessor,
+                             T_OtherNavigator,
+                             T_OtherStorage
+                             >&
+                             other)
     {
         for (int i = 0; i < dim; i++)
-            (*this)[i] = (Type) other[i];
+            (*this)[i] = static_cast<type> (other[i]);
     }
 
-    HDINLINE const Vector<type, dim>& vec() const
+    HDINLINE const This& vec() const
     {
         return *this;
     }
 
-    HDINLINE Vector<type, dim>& vec()
+    HDINLINE This& vec()
     {
         return *this;
     }
 
-    template<typename OtherAccessor, typename OtherNavigator >
+    template<
+    typename T_OtherAccessor,
+    typename T_OtherNavigator,
+    template <typename, int> class T_OtherStorage>
     HDINLINE This&
-    operator=(Vector<Type, dim, OtherAccessor, OtherNavigator>& rhs)
-    {
-        for (int i = 0; i < dim; i++)
-            (*this)[i] = rhs[i];
-        return *this;
-    }
-
-    template<typename OtherAccessor, typename OtherNavigator >
-    HDINLINE This&
-    operator=(const Vector<Type, dim, OtherAccessor, OtherNavigator>& rhs)
+    operator=(const Vector<type, dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& rhs)
     {
         for (int i = 0; i < dim; i++)
             (*this)[i] = rhs[i];
@@ -205,56 +176,56 @@ struct Vector : public detail::Vector_components<Type, _dim>, _Accessor, _Naviga
     }
 
     HDINLINE
-    Type& operator[](const int idx)
+    type& operator[](const int idx)
     {
-        return Accessor::operator()((&this->_x)[Navigator::operator()(idx)]);
+        return Accessor::operator()(Storage::operator[](Navigator::operator()(idx)));
     }
 
     HDINLINE
-    const Type& operator[](const int idx) const
+    const type& operator[](const int idx) const
     {
-        return Accessor::operator()((&this->_x)[Navigator::operator()(idx)]);
+        return Accessor::operator()(Storage::operator[](Navigator::operator()(idx)));
     }
 
-    HDINLINE Type & x()
+    HDINLINE type & x()
     {
         return (*this)[0];
     }
 
-    HDINLINE Type & y()
+    HDINLINE type & y()
     {
         BOOST_STATIC_ASSERT(dim >= 2);
         return (*this)[1];
     }
 
-    HDINLINE Type & z()
+    HDINLINE type & z()
     {
         BOOST_STATIC_ASSERT(dim >= 3);
         return (*this)[2];
     }
 
-    HDINLINE const Type & x() const
+    HDINLINE const type & x() const
     {
         return (*this)[0];
     }
 
-    HDINLINE const Type & y() const
+    HDINLINE const type & y() const
     {
         BOOST_STATIC_ASSERT(dim >= 2);
         return (*this)[1];
     }
 
-    HDINLINE const Type & z() const
+    HDINLINE const type & z() const
     {
         BOOST_STATIC_ASSERT(dim >= 3);
         return (*this)[2];
     }
 
     template<int shrinkedDim >
-    HDINLINE Vector<Type, shrinkedDim, Accessor, Navigator> shrink(const int startIdx = 0) const
+    HDINLINE Vector<type, shrinkedDim, Accessor, Navigator, T_Storage> shrink(const int startIdx = 0) const
     {
         BOOST_STATIC_ASSERT(shrinkedDim <= dim);
-        Vector<Type, shrinkedDim, Accessor, Navigator> result;
+        Vector<type, shrinkedDim, Accessor, Navigator> result;
         for (int i = 0; i < shrinkedDim; i++)
             result[i] = (*this)[(startIdx + i) % dim];
         return result;
@@ -265,51 +236,119 @@ struct Vector : public detail::Vector_components<Type, _dim>, _Accessor, _Naviga
      *
      * @return product of components
      */
-    HDINLINE Type productOfComponents() const
+    HDINLINE type productOfComponents() const
     {
-        Type result = (*this)[0];
+        type result = (*this)[0];
         for (int i = 1; i < dim; i++)
             result *= (*this)[i];
         return result;
     }
 
-    HDINLINE Vector<Type, dim>& operator+=(const Vector<Type, dim>& other)
+    /*! += operator 
+     * @param other instance with same type and dimension like the left instance
+     * @return reference to manipulated left instance
+     */
+    template<
+    typename T_OtherAccessor,
+    typename T_OtherNavigator,
+    template <typename, int> class T_OtherStorage>
+    HDINLINE This&
+    operator+=(const Vector<
+               type, dim,
+               T_OtherAccessor, T_OtherNavigator, T_OtherStorage>&
+               other)
     {
         for (int i = 0; i < dim; i++)
             (*this)[i] += other[i];
         return *this;
     }
 
-    HDINLINE Vector<Type, dim>& operator-=(const Vector<Type, dim>& other)
+    /*! -= operator 
+     * @param other instance with same type and dimension like the left instance
+     * @return reference to manipulated left instance
+     */
+    template<
+    typename T_OtherAccessor,
+    typename T_OtherNavigator,
+    template <typename, int> class T_OtherStorage>
+    HDINLINE This&
+    operator-=(const Vector<
+               type, dim,
+               T_OtherAccessor, T_OtherNavigator, T_OtherStorage>&
+               other)
     {
         for (int i = 0; i < dim; i++)
             (*this)[i] -= other[i];
         return *this;
     }
 
-    HDINLINE Vector<Type, dim>& operator*=(const Vector<Type, dim>& other)
+    /*! *= operator 
+     * @param other instance with same type and dimension like the left instance
+     * @return reference to manipulated left instance
+     */
+    template<
+    typename T_OtherAccessor,
+    typename T_OtherNavigator,
+    template <typename, int> class T_OtherStorage>
+    HDINLINE This&
+    operator*=(const Vector<
+               type, dim,
+               T_OtherAccessor, T_OtherNavigator, T_OtherStorage>&
+               other)
     {
+
         for (int i = 0; i < dim; i++)
             (*this)[i] *= other[i];
         return *this;
     }
 
-    HDINLINE Vector<Type, dim>& operator/=(const Vector<Type, dim>& other)
+    /*! /= operator 
+     * @param other instance with same type and dimension like the left instance
+     * @return reference to manipulated left instance
+     */
+    template<
+    typename T_OtherAccessor,
+    typename T_OtherNavigator,
+    template <typename, int> class T_OtherStorage>
+    HDINLINE This&
+    operator/=(const Vector<
+               type, dim,
+               T_OtherAccessor, T_OtherNavigator, T_OtherStorage>&
+               other)
     {
+
         for (int i = 0; i < dim; i++)
             (*this)[i] /= other[i];
         return *this;
     }
 
-    HDINLINE Vector<Type, dim>& operator*=(const Type & other)
+    HDINLINE This& operator+=(const type & other)
     {
+
+        for (int i = 0; i < dim; i++)
+            (*this)[i] += other;
+        return *this;
+    }
+
+    HDINLINE This& operator-=(const type & other)
+    {
+
+        for (int i = 0; i < dim; i++)
+            (*this)[i] -= other;
+        return *this;
+    }
+
+    HDINLINE This& operator*=(const type & other)
+    {
+
         for (int i = 0; i < dim; i++)
             (*this)[i] *= other;
         return *this;
     }
 
-    HDINLINE Vector<Type, dim>& operator/=(const Type & other)
+    HDINLINE This& operator/=(const type & other)
     {
+
         for (int i = 0; i < dim; i++)
             (*this)[i] /= other;
         return *this;
@@ -323,9 +362,10 @@ struct Vector : public detail::Vector_components<Type, _dim>, _Accessor, _Naviga
      * @param other Vector to compare to
      * @return true if all components in both vectors are equal, else false
      */
-    HDINLINE bool operator==(const Vector<Type, dim, Accessor, Navigator>& rhs) const
+    HDINLINE bool operator==(const This& rhs) const
     {
         for (int i = 0; i < dim; i++)
+
             if ((*this)[i] != rhs[i]) return false;
         return true;
     }
@@ -338,8 +378,9 @@ struct Vector : public detail::Vector_components<Type, _dim>, _Accessor, _Naviga
      * @param other Vector to compare to
      * @return true if one component in both vectors are not equal, else false
      */
-    HDINLINE bool operator!=(const Vector<Type, dim, Accessor, Navigator>& rhs) const
+    HDINLINE bool operator!=(const This& rhs) const
     {
+
         return !((*this) == rhs);
     }
 
@@ -347,6 +388,7 @@ struct Vector : public detail::Vector_components<Type, _dim>, _Accessor, _Naviga
     {
         std::stringstream stream;
         stream << "{" << (*this)[0];
+
         for (int i = 1; i < dim; ++i)
             stream << "," << (*this)[i];
         stream << "}";
@@ -363,6 +405,7 @@ struct Vector<Type, 0 >
     template<typename OtherType >
     HDINLINE operator Vector<OtherType, 0 > () const
     {
+
         return Vector<OtherType, 0 > ();
     }
 };
@@ -370,90 +413,218 @@ struct Vector<Type, 0 >
 template<typename Type, int dim, typename Accessor, typename Navigator>
 std::ostream& operator<<(std::ostream& s, const Vector<Type, dim, Accessor, Navigator>& vec)
 {
+
     return s << vec.toString();
 }
 
-template<typename Type, int dim, typename Accessor, typename Navigator>
-HDINLINE
-Vector<Type, dim> operator+(const Vector<Type, dim, Accessor, Navigator>& lhs, const Vector<Type, dim, Accessor, Navigator>& rhs)
+template<typename T_Type, int T_Dim,
+typename T_Accessor,
+typename T_Navigator,
+template <typename, int> class T_Storage,
+typename T_OtherAccessor,
+typename T_OtherNavigator,
+template <typename, int> class T_OtherStorage
+>
+HDINLINE Vector<T_Type, T_Dim>
+operator+(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs,
+          const Vector<T_Type, T_Dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& rhs)
 {
-    Vector<Type, dim, Accessor, Navigator> result(lhs);
+    /* to avoid allocation side effects the result is always a vector 
+     * with default policies*/
+    Vector<T_Type, T_Dim> result(lhs);
     result += rhs;
     return result;
 }
 
-template<typename Type, int dim, typename Accessor, typename Navigator>
-HDINLINE
-Vector<Type, dim> operator-(const Vector<Type, dim, Accessor, Navigator>& lhs, const Vector<Type, dim, Accessor, Navigator>& rhs)
+template<typename T_Type, int T_Dim,
+typename T_Accessor,
+typename T_Navigator,
+template <typename, int> class T_Storage
+>
+HDINLINE Vector<T_Type, T_Dim>
+operator+(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs,
+          const T_Type& rhs)
 {
-    Vector<Type, dim, Accessor, Navigator> result(lhs);
+    /* to avoid allocation side effects the result is always a vector 
+     * with default policies*/
+    Vector<T_Type, T_Dim> result(lhs);
+    result += rhs;
+    return result;
+}
+
+template<typename T_Type, int T_Dim,
+typename T_Accessor,
+typename T_Navigator,
+template <typename, int> class T_Storage,
+typename T_OtherAccessor,
+typename T_OtherNavigator,
+template <typename, int> class T_OtherStorage
+>
+HDINLINE Vector<T_Type, T_Dim>
+operator-(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs,
+          const Vector<T_Type, T_Dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& rhs)
+{
+    /* to avoid allocation side effects the result is always a vector 
+     * with default policies*/
+    Vector<T_Type, T_Dim> result(lhs);
     result -= rhs;
     return result;
 }
 
-template<typename Type, int dim, typename Accessor, typename Navigator>
-HDINLINE
-Vector<Type, dim> operator*(const Vector<Type, dim, Accessor, Navigator>& lhs, const Vector<Type, dim, Accessor, Navigator>& rhs)
+template<typename T_Type, int T_Dim,
+typename T_Accessor,
+typename T_Navigator,
+template <typename, int> class T_Storage,
+typename T_OtherAccessor,
+typename T_OtherNavigator,
+template <typename, int> class T_OtherStorage
+>
+HDINLINE Vector<T_Type, T_Dim>
+operator*(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs,
+          const Vector<T_Type, T_Dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& rhs)
 {
-    Vector<Type, dim, Accessor, Navigator> result(lhs);
+    /* to avoid allocation side effects the result is always a vector 
+     * with default policies*/
+    Vector<T_Type, T_Dim> result(lhs);
     result *= rhs;
     return result;
 }
 
-template<typename Type, int dim, typename Accessor, typename Navigator>
-HDINLINE
-Vector<Type, dim> operator/(const Vector<Type, dim, Accessor, Navigator>& lhs, const Vector<Type, dim, Accessor, Navigator>& rhs)
+template<
+typename T_Type, int T_Dim,
+typename T_Accessor,
+typename T_Navigator,
+template <typename, int> class T_Storage,
+typename T_OtherAccessor,
+typename T_OtherNavigator,
+template <typename, int> class T_OtherStorage
+>
+HDINLINE Vector<T_Type, T_Dim>
+operator/(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs,
+          const Vector<T_Type, T_Dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& rhs)
 {
-    Vector<Type, dim, Accessor, Navigator> result(lhs);
+    /* to avoid allocation side effects the result is always a vector 
+     * with default policies*/
+    Vector<T_Type, T_Dim> result(lhs);
     result /= rhs;
     return result;
 }
 
-template<typename Type, int dim, typename Accessor, typename Navigator>
-HDINLINE
-Vector<Type, dim> operator*(const Vector<Type, dim, Accessor, Navigator>& lhs, const Type& rhs)
+template<
+typename T_Type, int T_Dim,
+typename T_Accessor,
+typename T_Navigator,
+template <typename, int> class T_Storage
+>
+HDINLINE Vector<T_Type, T_Dim>
+operator*(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs, const T_Type& rhs)
 {
-    Vector<Type, dim, Accessor, Navigator> result(lhs);
+    /* to avoid allocation side effects the result is always a vector 
+     * with default policies*/
+    Vector<T_Type, T_Dim> result(lhs);
     result *= rhs;
     return result;
 }
 
-template<typename Type, int dim, typename Accessor, typename Navigator>
-HDINLINE
-Vector<Type, dim> operator*(const Type& lhs, const Vector<Type, dim, Accessor, Navigator>& rhs)
+template<
+typename T_Type, int T_Dim,
+typename T_Accessor,
+typename T_Navigator,
+template <typename, int> class T_Storage
+>
+HDINLINE Vector<T_Type, T_Dim>
+operator*(const T_Type& lhs, const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& rhs)
 {
-    Vector<Type, dim, Accessor, Navigator> result(rhs);
+    /* to avoid allocation side effects the result is always a vector 
+     * with default policies*/
+    Vector<T_Type, T_Dim> result(rhs);
     result *= lhs;
     return result;
 }
 
-template<typename Type, int dim, typename Accessor, typename Navigator>
-HDINLINE
-Vector<Type, dim> operator/(const Vector<Type, dim, Accessor, Navigator>& lhs, const Type& rhs)
+template<
+typename T_Type, int T_Dim,
+typename T_Accessor,
+typename T_Navigator,
+template <typename, int> class T_Storage
+>
+HDINLINE Vector<T_Type, T_Dim>
+operator/(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs, const T_Type& rhs)
 {
-    Vector<Type, dim, Accessor, Navigator> result(lhs);
+    /* to avoid allocation side effects the result is always a vector 
+     * with default policies*/
+    Vector<T_Type, T_Dim> result(lhs);
     result /= rhs;
     return result;
 }
 
-template<typename Type, int dim, typename Accessor, typename Navigator>
-HDINLINE
-Vector<Type, dim> operator-(const Vector<Type, dim, Accessor, Navigator>& vec)
+template<
+typename T_Type, int T_Dim,
+typename T_Accessor,
+typename T_Navigator,
+template <typename, int> class T_Storage
+>
+HDINLINE Vector<T_Type, T_Dim>
+operator-(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& vec)
 {
-    Vector<Type, dim, Accessor, Navigator> result(vec);
-    for (int i = 0; i < dim; i++)
+    /* to avoid allocation side effects the result is always a vector 
+     * with default policies*/
+    Vector<T_Type, T_Dim> result(vec);
+
+    for (int i = 0; i < T_Dim; i++)
         result[i] = -result[i];
     return result;
 }
 
-template<typename Type>
-HDINLINE Type linearize(const Vector<Type, 1 > & size, const Vector<Type, 2 > & pos)
+template<
+typename T_Type, int T_Dim,
+typename T_Accessor,
+typename T_Navigator,
+template <typename, int> class T_Storage,
+typename T_OtherAccessor,
+typename T_OtherNavigator,
+template <typename, int> class T_OtherStorage
+>
+HDINLINE Vector<bool, T_Dim>
+operator>=(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs,
+           const Vector<T_Type, T_Dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& rhs)
+{
+    /* to avoid allocation side effects the result is always a vector 
+     * with default policies*/
+    Vector<bool, T_Dim > result;
+    for (int i = 0; i < T_Dim; ++i)
+        result[i] = (lhs[i] >= rhs[i]);
+    return result;
+}
+
+template<
+typename T_Type,
+typename T_Accessor,
+typename T_Navigator,
+template <typename, int> class T_Storage,
+typename T_OtherAccessor,
+typename T_OtherNavigator,
+template <typename, int> class T_OtherStorage
+>
+HDINLINE T_Type
+linearize(const Vector<T_Type, 1, T_Accessor, T_Navigator, T_Storage >& size,
+          const Vector<T_Type, 2, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& pos)
 {
     return pos.y() * size.x() + pos.x();
 }
 
-template<typename Type>
-HDINLINE Type linearize(const Vector<Type, 2 > & size, const Vector<Type, 3 > & pos)
+template<
+typename T_Type,
+typename T_Accessor,
+typename T_Navigator,
+template <typename, int> class T_Storage,
+typename T_OtherAccessor,
+typename T_OtherNavigator,
+template <typename, int> class T_OtherStorage
+>
+HDINLINE T_Type
+linearize(const Vector<T_Type, 2, T_Accessor, T_Navigator, T_Storage >& size,
+          const Vector<T_Type, 3, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& pos)
 {
     return pos.z() * size.x() * size.y() + pos.y() * size.x() + pos.x();
 }
@@ -462,6 +633,7 @@ template<typename Vector>
 HDINLINE Vector floor(const Vector& vector)
 {
     Vector result;
+
     for (int i = 0; i < Vector::dim; i++)
         result[i] = floorf(vector[i]);
     return result;
@@ -471,6 +643,7 @@ template<typename Lhs, typename Rhs>
 HDINLINE Lhs operator%(const Lhs& lhs, const Rhs& rhs)
 {
     Lhs result;
+
     for (int i = 0; i < Lhs::dim; i++)
         result[i] = lhs[i] % rhs[i];
     return result;
@@ -480,6 +653,7 @@ template<typename Type, int dim>
 HDINLINE Type abs2(const Vector<Type, dim>& vec)
 {
     Type result = vec.x() * vec.x();
+
     for (int i = 1; i < dim; i++)
         result += vec[i] * vec[i];
     return result;
@@ -488,6 +662,7 @@ HDINLINE Type abs2(const Vector<Type, dim>& vec)
 template<typename Type, int dim>
 HDINLINE Type abs(const Vector<Type, dim>& vec)
 {
+
     return sqrtf(abs2(vec));
 }
 
@@ -496,6 +671,7 @@ HDINLINE
 Type dot(const Vector<Type, dim>& a, const Vector<Type, dim>& b)
 {
     Type result = a.x() * b.x();
+
     for (int i = 1; i < dim; i++)
         result += a[i] * b[i];
     return result;
@@ -507,6 +683,7 @@ struct Abs2
     template<typename Type, int dim >
     HDINLINE Type operator()(const Vector<Type, dim>& vec)
     {
+
         return abs2(vec);
     }
 };
@@ -521,7 +698,7 @@ struct Abs
     }
 };
 
-} // math
+} //namespace math
 
 namespace result_of
 {
@@ -538,7 +715,5 @@ struct Functor<math::Abs, TVector>
     typedef typename TVector::type type;
 };
 
-} // result_of
-} // PMacc
-
-#endif // VECTOR_HPP
+} //namespace result_of
+} //namespace PMacc

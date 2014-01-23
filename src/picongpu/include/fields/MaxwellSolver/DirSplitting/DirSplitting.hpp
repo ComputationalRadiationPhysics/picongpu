@@ -64,14 +64,18 @@ public:
         typedef PMacc::math::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> GuardDim;
     
         DataConnector &dc = DataConnector::getInstance();
-        
+
         FieldE& fieldE = dc.getData<FieldE > (FIELD_E, true);
         FieldB& fieldB = dc.getData<FieldB > (FIELD_B, true);
 
         BOOST_AUTO(fieldE_coreBorder,
-            fieldE.getGridBuffer().getDeviceBuffer().cartBuffer().view(GuardDim().vec(), -GuardDim().vec()));
+            fieldE.getGridBuffer().getDeviceBuffer().
+                   cartBuffer().view(typeCast<int>(GuardDim().vec()),
+                                     -typeCast<int>(GuardDim().vec())));
         BOOST_AUTO(fieldB_coreBorder,
-            fieldB.getGridBuffer().getDeviceBuffer().cartBuffer().view(GuardDim().vec(), -GuardDim().vec()));
+            fieldB.getGridBuffer().getDeviceBuffer().
+            cartBuffer().view(typeCast<int>(GuardDim().vec()),
+                              -typeCast<int>(GuardDim().vec())));
         
         using namespace cursor::tools;
         using namespace PMacc::math::tools;

@@ -70,13 +70,8 @@ struct Push
          * 
          * If we don't use this fermi crash in this kernel in the time step n+1 in field interpolation
          */
-        pos.x() += float_X(1.0) + (vel.x() * DELTA_T / CELL_WIDTH);
-        pos.y() += float_X(1.0) + (vel.y() * DELTA_T / CELL_HEIGHT);
-        pos.z() += float_X(1.0) + (vel.z() * DELTA_T / CELL_DEPTH);
-
-        pos.x() -= float_X(1.0);
-        pos.y() -= float_X(1.0);
-        pos.z() -= float_X(1.0);
+        pos += (vel * deltaT / cell_size)+float_X(1.0);
+        pos -= float_X(1.0);
 
     }
 };

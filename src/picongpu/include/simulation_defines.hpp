@@ -25,6 +25,7 @@
 #include <stdint.h>
 #include "types.h"
 #include <simulation_types.hpp>
+#include "pmacc_renamings.hpp"
 
 
 namespace picongpu
