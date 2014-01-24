@@ -32,7 +32,7 @@ namespace picongpu
     using namespace PMacc;
 }
 
-/* IMPORTEND we need to use #include <...> for local files
+/* IMPORTANT we need to use #include <...> for local files
  * else we get problems with our EXTENTION_PATH from cmake which
  * overwrites local defined include files. 
  */
