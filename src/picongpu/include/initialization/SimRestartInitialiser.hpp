@@ -100,7 +100,7 @@ public:
 
     static void loadParticles(uint32_t simulationStep,
                               ParallelDomainCollector& dataCollector,
-                              std::string prefix,
+                              std::string subGroup,
                               BufferType& particles,
                               DataSpace<DIM3> globalDomainOffset,
                               DataSpace<DIM3> localDomainSize,
@@ -141,7 +141,7 @@ public:
         uint64Quint particlesInfo[gc.getGlobalSize()];
         Dimensions particlesInfoSizeRead;
         
-        dataCollector.read(simulationStep, (std::string(prefix) + std::string("_particles_info")).c_str(),
+        dataCollector.read(simulationStep, (std::string(subGroup) + std::string("/particles_info")).c_str(),
                 particlesInfoSizeRead, particlesInfo);
         
         assert(particlesInfoSizeRead[0] == gc.getGlobalSize());
@@ -173,14 +173,14 @@ public:
         typedef bool* ptrBool;
         ptrBool radiationFlag = NULL;
         loadParticleData<bool> (&radiationFlag, simulationStep, dataCollector,
-                                dim_radiationFlag, *ctBool, prefix + std::string("_radiationFlag"),
+                                dim_radiationFlag, *ctBool, subGroup + std::string("_radiationFlag"),
                                 particleCount, particleOffset);
 #endif
 #endif
 
         
         loadParticleData<float> (&weighting, simulationStep, dataCollector,
-                                 dim_weighting, *ctFloat, prefix + std::string("_weighting"),
+                                 dim_weighting, *ctFloat, subGroup + std::string("/weighting"),
                                  particleCount, particleOffset);
 
         assert(weighting != NULL);
@@ -196,12 +196,12 @@ public:
 
             // read relative positions for particles in cells
             loadParticleData<float> (&(relativePositions[i]), simulationStep, dataCollector,
-                                     dim_pos, *ctFloat, prefix + std::string("_position_") + name_lookup[i],
+                                     dim_pos, *ctFloat, subGroup + std::string("/position/") + name_lookup[i],
                                      particleCount, particleOffset);
 
             // read simulation relative cell positions
             loadParticleData<int > (&(cellPositions[i]), simulationStep, dataCollector,
-                                    dim_cell, *ctInt, prefix + std::string("_globalCellIdx_") + name_lookup[i],
+                                    dim_cell, *ctInt, subGroup + std::string("/globalCellIdx/") + name_lookup[i],
                                     particleCount, particleOffset);
 
             // update simulation relative cell positions from file to 
@@ -213,13 +213,13 @@ public:
 
             // read momentum of particles
             loadParticleData<float> (&(momentums[i]), simulationStep, dataCollector,
-                                     dim_mom, *ctFloat, prefix + std::string("_momentum_") + name_lookup[i],
+                                     dim_mom, *ctFloat, subGroup + std::string("/momentum/") + name_lookup[i],
                                      particleCount, particleOffset);
 
 #if(ENABLE_RADIATION == 1)
             // read old momentum of particles
             loadParticleData<float> (&(momentums_mt1[i]), simulationStep, dataCollector,
-                                     dim_mom_mt1, *ctFloat, prefix + std::string("_momentumPrev1_") + name_lookup[i],
+                                     dim_mom_mt1, *ctFloat, subGroup + std::string("/momentumPrev1/") + name_lookup[i],
                                      particleCount, particleOffset);
 #endif
 
@@ -473,7 +473,8 @@ public:
             RestartParticleLoader<EBuffer, DIM>::loadParticles(
                                                                simulationStep,
                                                                *dataCollector,
-                                                               EBuffer::FrameType::getName(),
+                                                               std::string("particles/") +
+                                                                EBuffer::FrameType::getName(),
                                                                static_cast<EBuffer&> (data),
                                                                globalDomainOffset,
                                                                localDomainSize,
@@ -498,7 +499,9 @@ public:
                         RestartParticleLoader<EBuffer, DIM>::loadParticles(
                                                                            simulationStep,
                                                                            *dataCollector,
-                                                                           "_bottom_e",
+                                                                           std::string("particles/") +
+                                                                            EBuffer::FrameType::getName() +
+                                                                            std::string("/_ghosts"),
                                                                            static_cast<EBuffer&> (data),
                                                                            globalDomainOffset,
                                                                            localDomainSize,
@@ -528,7 +531,8 @@ public:
             RestartParticleLoader<IBuffer, DIM>::loadParticles(
                                                                simulationStep,
                                                                *dataCollector,
-                                                               IBuffer::FrameType::getName(),
+                                                               std::string("particles/") +
+                                                                IBuffer::FrameType::getName(),
                                                                static_cast<IBuffer&> (data),
                                                                globalDomainOffset,
                                                                localDomainSize,
@@ -551,7 +555,9 @@ public:
                         RestartParticleLoader<IBuffer, DIM>::loadParticles(
                                                                            simulationStep,
                                                                            *dataCollector,
-                                                                           "_bottom_i",
+                                                                           std::string("particles/") +
+                                                                            IBuffer::FrameType::getName() +
+                                                                            std::string("/_ghosts"),
                                                                            static_cast<IBuffer&> (data),
                                                                            globalDomainOffset,
                                                                            localDomainSize,
@@ -632,7 +638,8 @@ private:
             DomainCollector::DomDataClass data_class;
             DataContainer *field_container =
                 dataCollector->readDomain(simulationStep,
-                                          (objectName + std::string("_") + name_lookup[i]).c_str(),
+                                          (std::string("fields/") + objectName +
+                                            std::string("/") + name_lookup[i]).c_str(),
                                           domain_offset,
                                           domain_size,
                                           &data_class);

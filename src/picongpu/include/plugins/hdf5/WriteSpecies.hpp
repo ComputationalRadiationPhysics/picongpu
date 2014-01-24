@@ -149,7 +149,7 @@ public:
 
     template<typename Space>
     HINLINE void operator()(RefWrapper<ThreadParams*> params,
-                            std::string prefix,
+                            std::string subGroup,
                             const DomainInformation domInfo,
                             const Space particleOffset)
     {
@@ -220,7 +220,8 @@ public:
         }
         /*dump to hdf5 file*/        
         ForEach<typename Hdf5FrameType::ValueTypeSeq, hdf5::ParticleAttribute<void> > writeToHdf5;
-        writeToHdf5(params, byRef(hostFrame), prefix + FrameType::getName(), domInfo, totalNumParticles);
+        writeToHdf5(params, byRef(hostFrame), std::string("particles/") + FrameType::getName() + std::string("/") + subGroup,
+                domInfo, totalNumParticles);
 
         /*write species counter table to hdf5 file*/
         log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) writing particle index table for %1%") % Hdf5FrameType::getName();
@@ -248,7 +249,8 @@ public:
                 Dimensions(gc.getGlobalRank(), 0, 0),
                 ctUInt64_5, 1,
                 Dimensions(1, 1, 1),
-                (prefix + FrameType::getName() + std::string("_particles_info")).c_str(),
+                (std::string("particles/") + FrameType::getName() + std::string("/") +
+                    subGroup + std::string("/particles_info")).c_str(),
                 particlesMetaInfo);
         }
         log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) writing particle index table for %1%") % Hdf5FrameType::getName();

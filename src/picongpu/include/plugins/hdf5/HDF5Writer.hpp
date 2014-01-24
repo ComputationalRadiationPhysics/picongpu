@@ -437,10 +437,10 @@ private:
 
         for (uint32_t d = 0; d < nComponents; d++)
         {
-            std::stringstream str;
-            str << name;
+            std::stringstream datasetName;
+            datasetName << "fields/" << name;
             if (nComponents > 1)
-                str << "_" << name_lookup.at(d);
+                datasetName << "/" << name_lookup.at(d);
             
             Dimensions sizeSrcBuffer(field_full[0] * nComponents, field_full[1], field_full[2]);
             Dimensions srcStride(nComponents, 1, 1);
@@ -457,7 +457,7 @@ private:
                                                srcStride,
                                                sizeSrcData,
                                                srcOffset,
-                                               str.str().c_str(), /* data set name */
+                                               datasetName.str().c_str(), /* data set name */
                                                splashGlobalDomainOffset, /* \todo offset of the global domain */
                                                splashGlobalDomainSize, /* size of the global domain */
                                                DomainCollector::GridType,
@@ -467,7 +467,7 @@ private:
             ColTypeDouble ctDouble;
 
             params->dataCollector->writeAttribute(params->currentStep,
-                                                  ctDouble, str.str().c_str(),
+                                                  ctDouble, datasetName.str().c_str(),
                                                   "sim_unit", &(unit.at(d)));
         }
 
@@ -540,7 +540,7 @@ private:
             /* for restart we only need bottom ghosts for particles */
             log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing particle species bottom.");
             /* print all particle species */
-            writeSpecies(ref(threadParams), std::string("_bottom_"), domInfo, particleOffset);
+            writeSpecies(ref(threadParams), std::string("_ghosts"), domInfo, particleOffset);
             log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species bottom.");
         }
         return NULL;

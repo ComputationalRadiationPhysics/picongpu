@@ -164,7 +164,7 @@ FieldE::getUnit( )
 std::string
 FieldE::getName( )
 {
-    return "fields_FieldE";
+    return "FieldE";
 }
 
 uint32_t

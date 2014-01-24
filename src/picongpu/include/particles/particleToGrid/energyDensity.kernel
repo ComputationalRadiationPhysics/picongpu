@@ -94,23 +94,23 @@ namespace picongpu
             HINLINE std::string getName( ) const
             {
                 if( calcType == ComputeEnergyDensityOptions::calcDensity )
-                    return "fields_Density";
+                    return "Density";
                 else
                 if( calcType == ComputeEnergyDensityOptions::calcEnergy )
-                    return "fields_ParticleEnergy";
+                    return "ParticleEnergy";
                 else
                 if( calcType == ComputeEnergyDensityOptions::calcEnergyDensity )
-                    return "fields_EnergyDensity";
+                    return "EnergyDensity";
                 else
                 if( calcType == ComputeEnergyDensityOptions::calcCounter )
-                    return "fields_ParticleCounter";
+                    return "ParticleCounter";
 #if(ENABLE_RADIATION == 1)
                 else
                 if( calcType == ComputeEnergyDensityOptions::calcLarmorEnergy )
                     return "fields_ParticleLarmorEnergy";
 #endif
                 else
-                    return "fields_FieldTmp";
+                    return "FieldTmp";
             }
 
             template<class FrameType, class TVecSuperCell, class BoxTmp >
