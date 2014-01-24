@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -17,10 +17,9 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
-#ifndef STLPICUINT_HPP
-#define STLPICUINT_HPP
+ */
+
+#pragma once
 
 #include "Vector.hpp"
 
@@ -32,14 +31,40 @@ namespace math
 template<int dim>
 struct UInt : public Vector<uint32_t, dim>
 {
-    HDINLINE UInt() {}
-    HDINLINE UInt(uint32_t x) : Vector<uint32_t, dim>(x) {}
-    HDINLINE UInt(uint32_t x, uint32_t y) : Vector<uint32_t, dim>(x,y) {}
-    HDINLINE UInt(uint32_t x, uint32_t y, uint32_t z) : Vector<uint32_t, dim>(x,y,z) {}
-    HDINLINE UInt(const Vector<uint32_t, dim>& vec) : Vector<uint32_t, dim>(vec) {}
+    typedef Vector<uint32_t, dim> BaseType;
+
+    HDINLINE UInt()
+    {
+    }
+
+    HDINLINE UInt(uint32_t x) : BaseType(x)
+    {
+    }
+
+    HDINLINE UInt(uint32_t x, uint32_t y) : BaseType(x, y)
+    {
+    }
+
+    HDINLINE UInt(uint32_t x, uint32_t y, uint32_t z) : BaseType(x, y, z)
+    {
+    }
+
+    /*! only allow explicit cast*/
+    template<
+    typename T_OtherType,
+    typename T_OtherAccessor,
+    typename T_OtherNavigator,
+    template <typename, int> class T_OtherStorage>
+    HDINLINE explicit UInt(const Vector<T_OtherType, dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& vec) :
+    BaseType(vec)
+    {
+    }
+
+    HDINLINE UInt(const BaseType& vec) :
+    BaseType(vec)
+    {
+    }
 };
-    
+
 } // math
 } // PMacc
-
-#endif // STLPICUINT_HPP

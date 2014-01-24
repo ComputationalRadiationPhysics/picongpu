@@ -1,22 +1,22 @@
 /**
  * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera, Wen Fu
  *
- * This file is part of PIConGPU. 
+ * This file is part of PIConGPU.
  * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
  
 #ifndef PARTICLES_KERNEL
 #define	PARTICLES_KERNEL
@@ -446,24 +446,25 @@ struct PushParticlePerFrame
          * if pos positive and >1 dir is set to +1
          * 0 (NULL) if particle stay in cell
          */
-        DataSpace<DIM3> dir(math::float2int_rd(pos.x()), math::float2int_rd(pos.y()), math::float2int_rd(pos.z()));
+        DataSpace<DIM3> dir;
+        for(uint32_t i=0;i<simDim;++i)
+            dir[i]=math::float2int_rd(pos[i]);
 
-        pos -= float3_X(dir.x(), dir.y(), dir.z()); //typeCast<float3_X > (dir);
+        pos -= typeCast<float_X > (dir);
         particle[position_] = pos;
 
         /* new local cell position after particle move
          * can be out of supercell 
          */
-        localCell.x() += dir.x();
-        localCell.y() += dir.y();
-        localCell.z() += dir.z();
+        localCell += dir;
 
-        /* if particle is inside of the supercell the unsigned representation
-         * of dir is always >= size of the supercell         * 
+        /* ATTENTION ATTENTION we cast to unsigned, this means that a negative
+         * direction is know a very very big number, than we compare with supercell!
+         * 
+         * if particle is inside of the supercell the **unsigned** representation
+         * of dir is always >= size of the supercell
          */
-        dir.x() = (static_cast<unsigned int> (localCell.x()) >= TVec::x) * dir.x();
-        dir.y() = (static_cast<unsigned int> (localCell.y()) >= TVec::y) * dir.y();
-        dir.z() = (static_cast<unsigned int> (localCell.z()) >= TVec::z) * dir.z();
+        dir = typeCast<int>(typeCast<uint32_t >( localCell) >= typeCast<uint32_t >(TVec::getDataSpace())) * dir;
 
         /* if partice is outside of the supercell we use mod to
          * set particle at cell supercell_size to 1
@@ -476,18 +477,16 @@ struct PushParticlePerFrame
          */
 
         /*dir is only +1 or -1 if particle is outside of supercell
-         * cell-(dir*superCell_size)=y
+         * y=cell-(dir*superCell_size)
          * y=0 if dir==-1
          * y=superCell_size if dir==+1
          * for dir 0 localCel is not changed
          */
-        localCell.x() -= (dir.x() * TVec::x);
-        localCell.y() -= (dir.y() * TVec::y);
-        localCell.z() -= (dir.z() * TVec::z);
+        localCell -= (dir * TVec::getDataSpace());
         /*calculate one dimensional cell index*/
         particle[localCellIdx_] = DataSpaceOperations<TVec::dim>::template map<TVec > (localCell);
 
-        /* (dir + int(dir < 0)*3) = (dir + 3) %3 = y
+        /* [ dir + int(dir < 0)*3 ] == [ (dir + 3) %3 = y ]
          * but without modulo
          * y=0 for dir = 0
          * y=1 for dir = 1
@@ -499,12 +498,6 @@ struct PushParticlePerFrame
             (dir.z() + int(dir.z() < 0)*3) * BACK;
 
         particle[multiMask_] = direction;
-
-        /* check if pos is [0,1)
-         * if(pos.x()>=1.0f || pos.x()<0.0f) printf("pos.x %f\n",pos.x());
-         *  if(pos.y()>=1.0f || pos.y()<0.0f) printf("pos.y %f\n",pos.y());
-         *  if(pos.z()>=1.0f || pos.z()<0.0f) printf("pos.z %f\n",pos.z());
-         */
 
         /* set our tuning flag if minimal one particle leave the supercell
          * This flag is needed for later fast shift of particles only if needed

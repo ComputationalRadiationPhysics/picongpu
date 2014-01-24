@@ -28,7 +28,7 @@
 #include <iostream>
 
 #include "types.h"
-#include "math/vector/Int.hpp"
+#include "math/vector/Vector.hpp"
 #include "math/vector/Size_t.hpp"
 
 
@@ -44,11 +44,12 @@ namespace PMacc
      * @tparam DIM dimension (1-3) of the dataspace
      */
     template <unsigned DIM>
-class DataSpace : public math::Int<DIM>
+    class DataSpace : public math::Vector<int,DIM>
     {
     public:
         
         static const int Dim=DIM;
+        typedef math::Vector<int,DIM> BaseType;
 
         /**
          * default constructor.
@@ -73,8 +74,8 @@ class DataSpace : public math::Int<DIM>
                 (*this)[i] = *(&(value.x) + i);
             }
         }
-
-        HDINLINE DataSpace(const DataSpace<DIM>& value) : math::Int<DIM>(value)
+ 
+       HDINLINE DataSpace(const DataSpace<DIM>& value) : BaseType(value)
         {
         }
 
@@ -102,7 +103,7 @@ class DataSpace : public math::Int<DIM>
          */
         HDINLINE DataSpace(int x, int y, int z);
               
-        HDINLINE DataSpace(const math::Int<DIM>& vec)
+        HDINLINE DataSpace(const BaseType& vec)
         {
             for (uint32_t i = 0; i < DIM; ++i)
             {
@@ -209,7 +210,7 @@ class DataSpace : public math::Int<DIM>
          * @param other DataSpace to divide by
          * @return the new DataSpace
          */
-        HDINLINE DataSpace<DIM> operator/(DataSpace<DIM> const& other) const
+        HDINLINE DataSpace<DIM> operator/(const DataSpace<DIM>& other) const
         {
             DataSpace<DIM> tmp;
             for (uint32_t i = 0; i < DIM; ++i)
@@ -241,7 +242,7 @@ class DataSpace : public math::Int<DIM>
          * @param other DataSpace to multiply with
          * @return the new DataSpace
          */
-        HDINLINE DataSpace<DIM> operator*(DataSpace<DIM> const& other) const
+        HDINLINE DataSpace<DIM> operator*(const DataSpace<DIM>& other) const
         {
             DataSpace<DIM> tmp;
             for (uint32_t i = 0; i < DIM; ++i)

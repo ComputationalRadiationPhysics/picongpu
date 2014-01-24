@@ -48,7 +48,7 @@ inline bool Manager::execute( id_t taskToWait )
 {
 #ifdef DEBUG_EVENTS
     static int old_max = 0;
-    static int deep = -1
+    static int deep = -1;
         static int counter = 0;
     ++counter;
 

@@ -26,6 +26,7 @@ namespace PMacc
 namespace math
 {
 
+/** \todo rename this class to AccessorIdentity*/
 struct StandartAccessor
 {
 template<typename Data>

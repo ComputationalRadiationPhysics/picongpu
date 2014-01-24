@@ -66,7 +66,7 @@ struct Push
         const MomType momentum_prime = momentum_atZero + factor * eField;
         const float_X gamma_prime = gamma(momentum_prime, mass);
         //sqrtf(1.0 + abs2(momentum_prime*(1.0/(mass * SPEED_OF_LIGHT))));
-        const sqrt_Vay::float3_X tau = factor / mass * bField;
+        const sqrt_Vay::float3_X tau(factor / mass * bField);
         const sqrt_Vay::float_X u_star = math::dot( typeCast<sqrt_Vay::float_X>(momentum_prime), tau ) / typeCast<sqrt_Vay::float_X>( SPEED_OF_LIGHT * mass );
         const sqrt_Vay::float_X sigma = gamma_prime * gamma_prime - math::abs2( tau );
         const sqrt_Vay::float_X gamma_atPlusHalf = math::sqrt( sqrt_Vay::float_X(0.5) *
@@ -75,7 +75,7 @@ struct Push
                           sqrt_Vay::float_X(4.0) * ( math::abs2( tau ) + u_star * u_star ) )
             )
                                                     );
-        const float3_X t = tau * (float_X(1.0) / gamma_atPlusHalf);
+        const float3_X t(tau * (float_X(1.0) / gamma_atPlusHalf));
         const float_X s = float_X(1.0) / (float_X(1.0) + math::abs2(t));
         const MomType momentum_atPlusHalf = s * (momentum_prime + math::dot(momentum_prime, t) * t + math::cross(momentum_prime, t));
 
