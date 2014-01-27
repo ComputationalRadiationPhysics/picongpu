@@ -523,6 +523,10 @@ private:
         {
             sendExchanges[i] = NULL;
             receiveExchanges[i] = NULL;
+            /* fill array with valid empty events to avoid side effects if
+             * array is accessed without calling hasExchange() before usage */
+            receiveEvents[i]=EventTask();
+            sendEvents[i]=EventTask();
         }
         if (buildDeviceBuffer)
         {
