@@ -1,0 +1,14 @@
+--- # Limits for run-time tests in the folder examples/
+limits:
+  description: |
+               This file contains the limits for allowed run-time tests in the
+               example's `documentation.yml`. Maintainers of the examples
+               should not exceed this limits, else their tests will be
+               considered as *failed*.
+               A zero-value for a limit means *no limit*.
+
+  tests:       5                   # the maximum number of tests per example
+  gpus:        16                  # the maximum number of GPUs a test can use
+  walltime:    01:00:00            # the TOTAL walltime that is allowed for ALL
+                                   #   tests of A SINGLE example to finish,
+                                   #   including pre- and post-processing
