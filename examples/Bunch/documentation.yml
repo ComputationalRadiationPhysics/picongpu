@@ -1,4 +1,4 @@
---- # Documentation for the Kelvin-Helmholtz Example
+--- # Documentation for the Bunch Example
 example:
   name:        Thomson scattering from laser electron-bunch interaction
   short:       Bunch
