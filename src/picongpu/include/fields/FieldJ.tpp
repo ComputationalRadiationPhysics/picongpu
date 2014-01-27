@@ -177,7 +177,7 @@ FieldJ::getUnit( )
 std::string
 FieldJ::getName( )
 {
-    return "fields_FieldJ";
+    return "FieldJ";
 }
 
 uint32_t
