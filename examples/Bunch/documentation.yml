@@ -41,8 +41,8 @@ test:
   - nonlinearThomsonScattering:
       name:        nonlinear Thomson scattering from an electron bunch Test
       description: |
-                   This test simulates an electron bunch with an reltivistic
-                   gamma factor of gamma=5.0 with an laser with a_0=1.5.
+                   This test simulates an electron bunch with a relativistic
+                   gamma factor of gamma=5.0 and with a laser with a_0=1.5.
                    The resulting radiation should scale with the number of 
                    real electrons (incoherent radiation). 
       cmakeflag:   0
