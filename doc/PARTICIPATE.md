@@ -20,15 +20,6 @@ Contents
 
 *******************************************************************************
 
-to do list:
-- [ ] coding guide lines, styles/fileHeaders/...
-- [x] commit rules
-- [x] compile suite movie -> COMMIT.md
-- [x] git for svn users
-- [x] explain pull requests
-
-*******************************************************************************
-
 Code - Version Control
 ----------------------
 
@@ -282,9 +273,10 @@ Coding Guide Lines
 ------------------
 
 Well - there are some! ;)
-- Please improve the
-  [current draft](https://github.com/ComputationalRadiationPhysics/picongpu/wiki/Coding-Guide-Lines)
-  in our wiki
+- Please follow our recommendations in our
+  [wiki page](https://github.com/ComputationalRadiationPhysics/picongpu/wiki/Coding-Guide-Lines).
+- The `uncrustify` script at [picongpu_uncrustify.cfg] can be used for
+  auto-formatting your code.
 
 Please **add the according license header** snippet to your *new files*:
 - for PIConGPU (GPLv3+): `src/tools/bin/addLicense <FileName>`
