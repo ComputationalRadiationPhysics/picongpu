@@ -147,7 +147,7 @@ struct EsirkepovNative
         {
             float_X W = DS(line.pos0.z() - i, line.pos1.z() - i) * tmp;
             accumulated_J += -this->charge * (float_X(1.0) / float_X(CELL_VOLUME * DELTA_T)) * W * cellEdgeLength;
-            /*this branch differgence speedup this algorith because we had fewer collisions*/
+            /* the branch divergence here still over-compensates for the fewer collisions in the atomic adds */
             if(accumulated_J!=float_X(0.0))
                 atomicAddWrapper(&((*cursorJ(0, 0, i)).z()), accumulated_J);
         }
