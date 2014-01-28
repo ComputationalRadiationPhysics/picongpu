@@ -246,7 +246,7 @@ private:
                                    simDim, /* NDims of the field data (scalar, vector, ...) */
                                    /* source buffer, stride, data size, offset */
                                    bufferSize,
-                                   "count", /* data set name */
+                                   "makroParticleCount", /* data set name */
                                    splashGlobalOffsetFile,
                                    bufferSize,
                                    splashGlobalDomainOffset, /* \todo offset of the global domain */
