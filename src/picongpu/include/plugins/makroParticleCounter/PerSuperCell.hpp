@@ -98,6 +98,14 @@ __global__ void CountMakroParticle(ParBox parBox, CounterBox counterBox, Mapping
 }
 
 /** Count makro particle of a species and write down the result to a global HDF5 file.
+ * 
+ * - count the total number of makro particle per supercell
+ * - store one number (size_t) per supercell in a mesh
+ * - Output: - create a folder with the name of the plugin
+ *           - per time step one file with the name "result_[currentStep].h5" is created
+ * - HDF5 Format: - default lib splash output for meshes
+ *                - the attribute name in the HDF5 file is "makroParticleCount"
+ *      
  */
 template<class ParticlesType>
 class PerSuperCell : public ISimulationIO, public IPluginModule
@@ -181,7 +189,7 @@ private:
             /* local count of supercells without any guards*/
             DataSpace<simDim> localSuperCells(simBox.getLocalSize() / SuperCellSize::getDataSpace());
             localResult = new GridBufferType(localSuperCells);
-            
+
             /* create folder for hdf5 files*/
             mkdir((foldername).c_str(), 0755);
         }
@@ -189,8 +197,7 @@ private:
 
     void moduleUnload()
     {
-        if (localResult != NULL)
-            delete localResult;
+        __delete(localResult);
     }
 
     template< uint32_t AREA>
@@ -208,8 +215,8 @@ private:
              localResult->getDeviceBuffer().getDataBox(), mapper);
 
         localResult->deviceToHost();
-        
-        
+
+
 
         /*############ dump data #############################################*/
         PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
@@ -308,7 +315,7 @@ private:
         try
         {
             log<picLog::INPUT_OUTPUT > ("HDF5 open DataCollector with file: %1%") % foldername;
-            dataCollector->open( (foldername+std::string("/result")).c_str(), h5_attr);
+            dataCollector->open((foldername + std::string("/result")).c_str(), h5_attr);
         }
         catch (DCException e)
         {
