@@ -43,13 +43,13 @@ const double UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picong
 //const double _A0  = _PEAK_INTENSITY_SI * UNITCONV_Intens_to_A0;
 
 /** unit: none */
-//const double _A0  = 1.5;
+const double _A0  = 1.5;
 
 /** unit: Volt /meter */
-//const double AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
+const double AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
 
 /** unit: Volt /meter */
-const double AMPLITUDE_SI = 1.738e13;
+//const double AMPLITUDE_SI = 1.738e13;
 
 /** Pulse length: sigma of std. gauss for intensity (E^2)
  *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
