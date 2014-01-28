@@ -38,18 +38,19 @@ namespace PMacc
  * Implementation of the MappedBuffer interface.
  */
 template <class TYPE, unsigned DIM>
-class MappedBuffer : public DeviceBufferIntern<TYPE, DIM>
+class MappedBuffer : public Buffer<TYPE, DIM> // DeviceBufferIntern<TYPE, DIM>
 {
 public:
 
-    typedef typename DeviceBufferIntern<TYPE, DIM>::DataBoxType DataBoxType;
+    typedef typename Buffer<TYPE, DIM>::DataBoxType DataBoxType;
 
     /**
      * constructor
      * @param dataSpace DataSpace describing the size of the HostBufferIntern to be created
      */
     MappedBuffer(DataSpace<DIM> dataSpace) throw (std::bad_alloc) :
-    DeviceBufferIntern<TYPE, DIM>(dataSpace, 42),
+    //DeviceBufferIntern<TYPE, DIM>(dataSpace, 42),
+    Buffer<TYPE, DIM>(dataSpace),
     pointer(NULL),ownPointer(true)
     {
         CUDA_CHECK(cudaMallocHost(&pointer, dataSpace.productOfComponents() * sizeof (TYPE), cudaHostAllocMapped));
@@ -90,7 +91,7 @@ public:
         __setTransactionEvent(__endTransaction());
     }
 
-    void copyFrom(DeviceBuffer<TYPE, DIM>& other)
+    void copyFrom(Buffer<TYPE, DIM>& other)
     {
         __startAtomicTransaction(__getTransactionEvent());
         assert(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
@@ -133,7 +134,7 @@ public:
 
     void setCurrentSize(const size_t size)
     {
-        DeviceBufferIntern<TYPE, DIM>::setCurrentSize(size);
+        Buffer<TYPE, DIM>::setCurrentSize(size);
     }
 
     const cudaPitchedPtr getCudaPitched() const
@@ -160,7 +161,7 @@ public:
     {
         /* \todo rethink what operation we really need */
         __startOperation(ITask::TASK_HOST);
-        __startOperation(ITask::TASK_CUDA);
+        //__startOperation(ITask::TASK_CUDA);
         TYPE* dPointer;
         cudaHostGetDevicePointer( &dPointer, pointer, 0 );
         return DataBoxType(PitchedBox<TYPE, DIM > (dPointer, DataSpace<DIM > (),
