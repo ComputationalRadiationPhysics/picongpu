@@ -1,0 +1,322 @@
+/**
+ * Copyright 2013 Rene Widera
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+#pragma once
+
+#include "types.h"
+#include "simulation_defines.hpp"
+
+#include "mappings/kernel/AreaMapping.hpp"
+
+#include <string>
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+
+#include "moduleSystem/Module.hpp"
+#include "plugins/IPluginModule.hpp"
+
+#include "memory/buffers/GridBuffer.hpp"
+
+
+#include <splash/splash.h>
+#include <sys/stat.h>
+
+namespace picongpu
+{
+using namespace PMacc;
+using namespace splash;
+
+template<class ParBox, class CounterBox, class Mapping>
+__global__ void CountMakroParticle(ParBox parBox, CounterBox counterBox, Mapping mapper)
+{
+
+    typedef MappingDesc::SuperCellSize SuperCellSize;
+    typedef typename ParBox::FrameType FrameType;
+
+    const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+    /* counterBox has no guarding supercells*/
+    const DataSpace<simDim> counterCell = block - mapper.getGuardingSuperCells();
+
+    const DataSpace<simDim > threadIndex(threadIdx);
+    const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
+
+    __shared__ uint64_cu counterValue;
+    __shared__ FrameType *frame;
+    __shared__ bool isValid;
+
+    if (linearThreadIdx == 0)
+    {
+        counterValue = 0;
+        frame = &(parBox.getLastFrame(block, isValid));
+        if (!isValid)
+        {
+            counterBox(counterCell) = counterValue;
+        }
+    }
+    __syncthreads();
+    if (!isValid)
+        return; //end kernel if we have no frames
+
+    bool isParticle = (*frame)[linearThreadIdx][multiMask_];
+
+    while (isValid)
+    {
+        if (isParticle)
+        {
+            atomicAdd(&counterValue, static_cast<uint64_cu> (1LU));
+        }
+        __syncthreads();
+        if (linearThreadIdx == 0)
+        {
+            frame = &(parBox.getPreviousFrame(*frame, isValid));
+        }
+        isParticle = true;
+        __syncthreads();
+    }
+
+    if (linearThreadIdx == 0)
+        counterBox(counterCell) = counterValue;
+}
+
+/** Count makro particle of a species and write down the result to a global HDF5 file.
+ */
+template<class ParticlesType>
+class PerSuperCell : public ISimulationIO, public IPluginModule
+{
+private:
+
+
+    typedef MappingDesc::SuperCellSize SuperCellSize;
+    typedef GridBuffer<size_t, simDim> GridBufferType;
+
+    ParticlesType *particles;
+
+    MappingDesc *cellDescription;
+    uint32_t notifyFrequency;
+
+    std::string analyzerName;
+    std::string analyzerPrefix;
+    std::string foldername;
+    mpi::MPIReduce reduce;
+
+    GridBufferType* localResult;
+
+    ParallelDomainCollector *dataCollector;
+    // set attributes for datacollector files
+    DataCollector::FileCreationAttr h5_attr;
+
+public:
+
+    PerSuperCell(std::string name, std::string prefix) :
+    analyzerName(name),
+    analyzerPrefix(prefix),
+    foldername(name),
+    particles(NULL),
+    cellDescription(NULL),
+    notifyFrequency(0),
+    localResult(NULL),
+    dataCollector(NULL)
+    {
+        ModuleConnector::getInstance().registerModule(this);
+    }
+
+    virtual ~PerSuperCell()
+    {
+
+    }
+
+    void notify(uint32_t currentStep)
+    {
+        DataConnector &dc = DataConnector::getInstance();
+
+        particles = &(dc.getData<ParticlesType > ((uint32_t) ParticlesType::FrameType::CommunicationTag, true));
+
+        countMakroParticles < CORE + BORDER > (currentStep);
+    }
+
+    void moduleRegisterHelp(po::options_description& desc)
+    {
+        desc.add_options()
+            ((analyzerPrefix + ".period").c_str(),
+             po::value<uint32_t > (&notifyFrequency), "enable analyser [for each n-th step]");
+    }
+
+    std::string moduleGetName() const
+    {
+        return analyzerName;
+    }
+
+    void setMappingDescription(MappingDesc *cellDescription)
+    {
+        this->cellDescription = cellDescription;
+    }
+
+private:
+
+    void moduleLoad()
+    {
+        if (notifyFrequency > 0)
+        {
+            DataConnector::getInstance().registerObserver(this, notifyFrequency);
+            PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
+            /* local count of supercells without any guards*/
+            DataSpace<simDim> localSuperCells(simBox.getLocalSize() / SuperCellSize::getDataSpace());
+            localResult = new GridBufferType(localSuperCells);
+            
+            /* create folder for hdf5 files*/
+            mkdir((foldername).c_str(), 0755);
+        }
+    }
+
+    void moduleUnload()
+    {
+        if (localResult != NULL)
+            delete localResult;
+    }
+
+    template< uint32_t AREA>
+    void countMakroParticles(uint32_t currentStep)
+    {
+        openH5File();
+
+        /*############ count particles #######################################*/
+        typedef MappingDesc::SuperCellSize SuperCellSize;
+        AreaMapping<AREA, MappingDesc> mapper(*cellDescription);
+
+        __cudaKernel(CountMakroParticle)
+            (mapper.getGridDim(), SuperCellSize::getDataSpace())
+            (particles->getDeviceParticlesBox(),
+             localResult->getDeviceBuffer().getDataBox(), mapper);
+
+        localResult->deviceToHost();
+        
+        
+
+        /*############ dump data #############################################*/
+        PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
+
+        DataSpace<simDim> localSize(simBox.getLocalSize() / SuperCellSize::getDataSpace());
+        DataSpace<simDim> globalOffset(simBox.getGlobalOffset() / SuperCellSize::getDataSpace());
+        DataSpace<simDim> globalSize(simBox.getGlobalSize() / SuperCellSize::getDataSpace());
+
+
+
+        Dimensions splashGlobalDomainOffset(0, 0, 0);
+        Dimensions splashGlobalOffsetFile(0, 0, 0);
+        Dimensions splashGlobalDomainSize(1, 1, 1);
+        Dimensions bufferSize(1, 1, 1);
+
+        for (uint32_t d = 0; d < simDim; ++d)
+        {
+            splashGlobalOffsetFile[d] = globalOffset[d];
+            splashGlobalDomainSize[d] = globalSize[d];
+            bufferSize[d] = localSize[d];
+        }
+
+        size_t* ptr = localResult->getHostBuffer().getPointer();
+
+        dataCollector->writeDomain(currentStep, /* id == time step */
+                                   ColTypeUInt64(), /* data type */
+                                   simDim, /* NDims of the field data (scalar, vector, ...) */
+                                   /* source buffer, stride, data size, offset */
+                                   bufferSize,
+                                   "count", /* data set name */
+                                   splashGlobalOffsetFile,
+                                   bufferSize,
+                                   splashGlobalDomainOffset, /* \todo offset of the global domain */
+                                   splashGlobalDomainSize, /* size of the global domain */
+                                   DomainCollector::GridType,
+                                   ptr);
+
+        closeH5File();
+    }
+
+    void closeH5File()
+    {
+        if (dataCollector != NULL)
+        {
+            log<picLog::INPUT_OUTPUT > ("HDF5 close DataCollector with file: %1%") % foldername;
+            dataCollector->close();
+        }
+    }
+
+    void openH5File()
+    {
+
+        if (dataCollector == NULL)
+        {
+            DataSpace<simDim> mpi_pos;
+            DataSpace<simDim> mpi_size;
+
+            Dimensions splashMpiPos;
+            Dimensions splashMpiSize;
+
+            GridController<simDim> &gc = GridController<simDim>::getInstance();
+            /* It is important that we never change the mpi_pos after this point 
+             * because we get problems with the restart.
+             * Otherwise we do not know which gpu must load the ghost parts around
+             * the sliding window.
+             */
+            mpi_pos = gc.getPosition();
+            mpi_size = gc.getGpuNodes();
+
+            splashMpiPos.set(0, 0, 0);
+            splashMpiSize.set(1, 1, 1);
+
+            for (uint32_t i = 0; i < simDim; ++i)
+            {
+                splashMpiPos[i] = mpi_pos[i];
+                splashMpiSize[i] = mpi_size[i];
+            }
+
+
+            const uint32_t maxOpenFilesPerNode = 1;
+            dataCollector = new ParallelDomainCollector(
+                                                        gc.getCommunicator().getMPIComm(),
+                                                        gc.getCommunicator().getMPIInfo(),
+                                                        splashMpiSize,
+                                                        maxOpenFilesPerNode);
+            // set attributes for datacollector files
+            DataCollector::FileCreationAttr h5_attr;
+            h5_attr.enableCompression = false;
+            h5_attr.fileAccType = DataCollector::FAT_CREATE;
+            h5_attr.mpiPosition.set(splashMpiPos);
+            h5_attr.mpiSize.set(splashMpiSize);
+        }
+
+
+        // open datacollector
+        try
+        {
+            log<picLog::INPUT_OUTPUT > ("HDF5 open DataCollector with file: %1%") % foldername;
+            dataCollector->open( (foldername+std::string("/result")).c_str(), h5_attr);
+        }
+        catch (DCException e)
+        {
+            std::cerr << e.what() << std::endl;
+            throw std::runtime_error("Failed to open datacollector");
+        }
+    }
+
+};
+
+} //namespace picongpu
