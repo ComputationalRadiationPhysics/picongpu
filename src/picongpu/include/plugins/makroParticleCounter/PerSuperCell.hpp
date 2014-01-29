@@ -262,7 +262,8 @@ private:
     {
         if (dataCollector != NULL)
         {
-            log<picLog::INPUT_OUTPUT > ("HDF5 close DataCollector with file: %1%") % foldername;
+            std::string filename = (foldername + std::string("/result"));
+            log<picLog::INPUT_OUTPUT > ("HDF5 close DataCollector with file: %1%") % filename;
             dataCollector->close();
         }
     }
@@ -279,11 +280,7 @@ private:
             Dimensions splashMpiSize;
 
             GridController<simDim> &gc = GridController<simDim>::getInstance();
-            /* It is important that we never change the mpi_pos after this point 
-             * because we get problems with the restart.
-             * Otherwise we do not know which gpu must load the ghost parts around
-             * the sliding window.
-             */
+
             mpi_pos = gc.getPosition();
             mpi_size = gc.getGpuNodes();
 
@@ -315,8 +312,10 @@ private:
         // open datacollector
         try
         {
-            log<picLog::INPUT_OUTPUT > ("HDF5 open DataCollector with file: %1%") % foldername;
-            dataCollector->open((foldername + std::string("/result")).c_str(), h5_attr);
+            std::string filename = (foldername + std::string("/result"));
+            log<picLog::INPUT_OUTPUT > ("HDF5 open DataCollector with file: %1%") %
+                filename;
+            dataCollector->open(filename.c_str(), h5_attr);
         }
         catch (DCException e)
         {
