@@ -237,7 +237,8 @@ private:
         for (uint32_t d = 0; d < simDim; ++d)
         {
             splashGlobalOffset[d] = globalOffset[d];
-            splashGlobalSize[d]=splashGlobalDomainSize[d] = globalSize[d];
+            splashGlobalSize[d] = globalSize[d];
+            splashGlobalDomainSize[d] = globalSize[d];
             localBufferSize[d] = localSize[d];
         }
 
