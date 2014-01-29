@@ -121,6 +121,8 @@ namespace PMacc
          * @return pointer which point to device memory of current size
          */
         virtual size_t* getCurrentSizeOnDevicePointer() = 0;
+        
+        virtual size_t* getCurrentSizeHostSidePointer()=0;
 
         /**
          * Sets current size of any dimension.
@@ -139,6 +141,8 @@ namespace PMacc
          * @return internal pitched cuda pointer
          */
         virtual const cudaPitchedPtr getCudaPitched() const = 0;
+        
+        virtual size_t getPitch() const = 0;
 
         /**
          * Copies data from the given HostBuffer to this DeviceBuffer.

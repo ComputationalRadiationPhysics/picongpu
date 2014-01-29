@@ -35,20 +35,20 @@ namespace PMacc
 {
 
     template <class TYPE, unsigned DIM>
-    class HostBufferIntern;
+    class HostBuffer;
     template <class TYPE, unsigned DIM>
-    class DeviceBufferIntern;
+    class DeviceBuffer;
 
     template <class TYPE, unsigned DIM>
     class TaskCopyDeviceToHostBase : public StreamTask
     {
     public:
 
-        TaskCopyDeviceToHostBase(const DeviceBuffer<TYPE, DIM>& src, HostBuffer<TYPE, DIM>& dst) :
+        TaskCopyDeviceToHostBase( DeviceBuffer<TYPE, DIM>& src, HostBuffer<TYPE, DIM>& dst) :
         StreamTask()
         {
-            this->host = (HostBufferIntern<TYPE, DIM>*) & dst;
-            this->device = (DeviceBufferIntern<TYPE, DIM>*) & src;
+            this->host =  & dst;
+            this->device =  & src;
         }
 
         virtual ~TaskCopyDeviceToHostBase()
@@ -100,8 +100,8 @@ namespace PMacc
             //std::cout<<"-----------fast D2H"<<std::endl;;
         }
 
-        HostBufferIntern<TYPE, DIM> *host;
-        DeviceBufferIntern<TYPE, DIM> *device;
+        HostBuffer<TYPE, DIM> *host;
+        DeviceBuffer<TYPE, DIM> *device;
     };
 
     template <class TYPE, unsigned DIM>
@@ -112,7 +112,7 @@ namespace PMacc
     {
     public:
 
-        TaskCopyDeviceToHost(const DeviceBuffer<TYPE, DIM1>& src, HostBuffer<TYPE, DIM1>& dst) :
+        TaskCopyDeviceToHost( DeviceBuffer<TYPE, DIM1>& src, HostBuffer<TYPE, DIM1>& dst) :
         TaskCopyDeviceToHostBase<TYPE, DIM1>(src, dst)
         {
         }
@@ -138,7 +138,7 @@ namespace PMacc
     {
     public:
 
-        TaskCopyDeviceToHost(const DeviceBuffer<TYPE, DIM2>& src, HostBuffer<TYPE, DIM2>& dst) :
+        TaskCopyDeviceToHost(DeviceBuffer<TYPE, DIM2>& src, HostBuffer<TYPE, DIM2>& dst) :
         TaskCopyDeviceToHostBase<TYPE, DIM2>(src, dst)
         {
         }
@@ -165,7 +165,7 @@ namespace PMacc
     {
     public:
 
-        TaskCopyDeviceToHost(const DeviceBuffer<TYPE, DIM3>& src, HostBuffer<TYPE, DIM3>& dst) :
+        TaskCopyDeviceToHost( DeviceBuffer<TYPE, DIM3>& src, HostBuffer<TYPE, DIM3>& dst) :
         TaskCopyDeviceToHostBase<TYPE, DIM3>(src, dst)
         {
         }

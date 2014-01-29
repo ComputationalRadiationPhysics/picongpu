@@ -151,7 +151,7 @@ namespace PMacc
             __startOperation(ITask::TASK_HOST);  
             return *current_size;
         }
-
+        
         /*! sets the current size (count of elements)
          * @param newsize new current size
          */

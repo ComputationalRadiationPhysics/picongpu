@@ -140,7 +140,7 @@ public:
     {
         init(sizeOnDevice, false);
         this->deviceBuffer = new DeviceBufferIntern<TYPE, DIM >
-                (*((DeviceBufferIntern<TYPE, DIM>*) & otherDeviceBuffer), /*!\todo: not nice but work, fix me*/
+                (otherDeviceBuffer, /*!\todo: not nice but work, fix me*/
                  this->gridLayout.getDataSpace(), DataSpace<DIM > (), sizeOnDevice);
     }
 
@@ -157,7 +157,7 @@ public:
     {
         init(sizeOnDevice, false, false);
         this->deviceBuffer = new DeviceBufferIntern<TYPE, DIM >
-                (*((DeviceBufferIntern<TYPE, DIM>*) & otherDeviceBuffer), /*!\todo: not nice but work, fix me*/
+                (otherDeviceBuffer, /*!\todo: not nice but work, fix me*/
                  this->gridLayout.getDataSpace(), offsetDevice, sizeOnDevice);
         this->hostBuffer = new HostBufferIntern<TYPE, DIM >
                 (*((HostBufferIntern<TYPE, DIM>*) & otherHostBuffer), /*!\todo: not nice but work, fix me*/
