@@ -198,6 +198,7 @@ private:
     void moduleUnload()
     {
         __delete(localResult);
+        __delete(dataCollector);
     }
 
     template< uint32_t AREA>
@@ -228,27 +229,27 @@ private:
 
 
         Dimensions splashGlobalDomainOffset(0, 0, 0);
-        Dimensions splashGlobalOffsetFile(0, 0, 0);
+        Dimensions splashGlobalOffset(0, 0, 0);
         Dimensions splashGlobalDomainSize(1, 1, 1);
-        Dimensions bufferSize(1, 1, 1);
+        Dimensions splashGlobalSize(1, 1, 1);
+        Dimensions localBufferSize(1, 1, 1);
 
         for (uint32_t d = 0; d < simDim; ++d)
         {
-            splashGlobalOffsetFile[d] = globalOffset[d];
-            splashGlobalDomainSize[d] = globalSize[d];
-            bufferSize[d] = localSize[d];
+            splashGlobalOffset[d] = globalOffset[d];
+            splashGlobalSize[d]=splashGlobalDomainSize[d] = globalSize[d];
+            localBufferSize[d] = localSize[d];
         }
 
         size_t* ptr = localResult->getHostBuffer().getPointer();
 
         dataCollector->writeDomain(currentStep, /* id == time step */
+                                   splashGlobalSize,
+                                   splashGlobalOffset,
                                    ColTypeUInt64(), /* data type */
                                    simDim, /* NDims of the field data (scalar, vector, ...) */
-                                   /* source buffer, stride, data size, offset */
-                                   bufferSize,
+                                   localBufferSize,
                                    "makroParticleCount", /* data set name */
-                                   splashGlobalOffsetFile,
-                                   bufferSize,
                                    splashGlobalDomainOffset, /* \todo offset of the global domain */
                                    splashGlobalDomainSize, /* size of the global domain */
                                    DomainCollector::GridType,
