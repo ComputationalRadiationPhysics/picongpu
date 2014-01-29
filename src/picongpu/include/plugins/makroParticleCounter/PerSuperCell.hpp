@@ -249,7 +249,7 @@ private:
                                    ColTypeUInt64(), /* data type */
                                    simDim, /* NDims of the field data (scalar, vector, ...) */
                                    localBufferSize,
-                                   "makroParticleCount", /* data set name */
+                                   "makroParticlePerSupercell", /* data set name */
                                    splashGlobalDomainOffset, /* \todo offset of the global domain */
                                    splashGlobalDomainSize, /* size of the global domain */
                                    DomainCollector::GridType,
@@ -262,7 +262,7 @@ private:
     {
         if (dataCollector != NULL)
         {
-            std::string filename = (foldername + std::string("/result"));
+            std::string filename = (foldername + std::string("/makroParticlePerSupercell"));
             log<picLog::INPUT_OUTPUT > ("HDF5 close DataCollector with file: %1%") % filename;
             dataCollector->close();
         }
@@ -312,7 +312,7 @@ private:
         // open datacollector
         try
         {
-            std::string filename = (foldername + std::string("/result"));
+            std::string filename = (foldername + std::string("/makroParticlePerSupercell"));
             log<picLog::INPUT_OUTPUT > ("HDF5 open DataCollector with file: %1%") %
                 filename;
             dataCollector->open(filename.c_str(), h5_attr);
