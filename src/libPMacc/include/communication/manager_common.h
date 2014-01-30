@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera, Wolfgang Hoenig
+ * Copyright 2013-2014 Rene Widera, Wolfgang Hoenig, Axel Huebl
  *
  * This file is part of libPMacc. 
  * 
@@ -18,9 +18,10 @@
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
-#ifndef MANAGER_COMMON_H
-#define MANAGER_COMMON_H
+
+#pragma once
+
+#include <cstdio>
 
 const int GridManagerRank = 0;
 
@@ -33,6 +34,3 @@ enum {
 };
 
 #define MPI_CHECK(cmd) {int error = cmd; if(error!=MPI_SUCCESS){printf("<%s>:%i ",__FILE__,__LINE__); throw std::runtime_error(std::string("[MPI] Error"));}}
-
-
-#endif
