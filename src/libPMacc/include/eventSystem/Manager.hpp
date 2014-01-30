@@ -32,10 +32,7 @@
 namespace PMacc
 {
     // forward declaration    
-//    class EventTask;    
-    
-    template<unsigned DIM>
-    class Environment;
+    class EventTask;    
     
     /**
      * Manages the event system by executing and waiting for tasks.

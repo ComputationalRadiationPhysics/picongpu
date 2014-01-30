@@ -57,7 +57,11 @@ namespace PMacc
          *
          * @return pointer to current size
          */
-        virtual size_t* getCurrentSizePointer();
+        virtual size_t* getCurrentSizePointer()
+        {
+            __startOperation(ITask::TASK_HOST);
+            return this->current_size;
+        }
 
     protected:
 
@@ -66,12 +70,18 @@ namespace PMacc
          *
          * @param dataSpace size of each dimension of the buffer
          */
-        HostBuffer(DataSpace<DIM> dataSpace);
+        HostBuffer(DataSpace<DIM> dataSpace) :
+        Buffer<TYPE, DIM>(dataSpace)
+        {
+
+        }
 
         /**
          * Destructor.
          */
-        virtual ~HostBuffer();
+        virtual ~HostBuffer()
+        {
+        };
     };
 
 } //namespace PMacc

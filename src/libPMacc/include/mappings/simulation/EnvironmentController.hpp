@@ -30,9 +30,6 @@
 namespace PMacc
 {
 
-    template<unsigned DIM>
-    class Environment;
-
 class EnvironmentController
 {
 public:

@@ -1,74 +1,84 @@
-/* 
- * File:   Environment.hpp
- * Author: conrad
+/**
+ * Copyright 2014 Felix Schmitt, Conrad Schumann
  *
- * Created on 20. Januar 2014, 16:18
+ * This file is part of libPMacc. 
+ * 
+ * libPMacc is free software: you can redistribute it and/or modify 
+ * it under the terms of of either the GNU General Public License or 
+ * the GNU Lesser General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * libPMacc is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License and the GNU Lesser General Public License 
+ * for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * and the GNU Lesser General Public License along with libPMacc. 
+ * If not, see <http://www.gnu.org/licenses/>. 
  */
 
-#ifndef ENVIRONMENT_HPP
-#define	ENVIRONMENT_HPP
+#pragma once 
 
-// include Ausklammerungen für GameOfLife
+#include "eventSystem/EventSystem.hpp"
 
-#include "dataManagement/DataConnector.hpp"
 #include "mappings/simulation/GridController.hpp"
 #include "mappings/simulation/SubGrid.hpp"
 #include "mappings/simulation/EnvironmentController.hpp"
 
-#include "moduleSystem/ModuleConnector.hpp"
 
-#include "particles/tasks/ParticleFactory.hpp"
-
-#include "eventSystem/tasks/Factory.hpp"
-#include "eventSystem/Manager.hpp"
-#include "eventSystem/transactions/TransactionManager.hpp"
-#include "eventSystem/streams/StreamController.hpp"
-
-#include "memory/buffers/GridBuffer.hpp"
-#include "nvidia/memory/MemoryInfo.hpp"
-
-
-namespace PMacc {
-    //using namespace gol;
+namespace PMacc
+{
 
     template <unsigned DIM = DIM1>
-    class Environment {
+    class Environment
+    {
     public:
 
-        GridController<DIM>& getGridController() {
+        GridController<DIM>& getGridController()
+        {
             return GridController<DIM>::getInstance();
-        };
+        }
 
-        StreamController& getStreamController() {
+        StreamController& getStreamController()
+        {
             return StreamController::getInstance();
-        };
+        }
 
-        Manager& getManager() {
+        Manager& getManager()
+        {
             return Manager::getInstance();
-        };
+        }
 
-        TransactionManager& getTransactionManager() {
+        TransactionManager& getTransactionManager()
+        {
             return TransactionManager::getInstance();
-        };
+        }
 
-        SubGrid<DIM>& getSubGrid() {
+        SubGrid<DIM>& getSubGrid()
+        {
             return SubGrid<DIM>::getInstance();
-        };
+        }
 
-        EnvironmentController& getEnvironmentController() {
+        EnvironmentController& getEnvironmentController()
+        {
             return EnvironmentController::getInstance();
-        };
+        }
 
-        Factory& getFactory() {
+        Factory& getFactory()
+        {
             return Factory::getInstance();
         }
 
-        static Environment<DIM>& getInstance() {
+        static Environment<DIM>& getInstance()
+        {
             static Environment<DIM> instance;
             return instance;
-        };
+        }
 
-        void init(DataSpace<DIM> gridSize, DataSpace<DIM> devices, DataSpace<DIM> periodic) {
+        void init(DataSpace<DIM> gridSize, DataSpace<DIM> devices, DataSpace<DIM> periodic)
+        {
             GridController<DIM>::getInstance().init(devices, periodic);
 
             StreamController::getInstance();
@@ -80,19 +90,20 @@ namespace PMacc {
             SubGrid<DIM>::getInstance().init(localGridSize, gridSize, GridController<DIM>::getInstance().getPosition() * localGridSize);
 
             EnvironmentController::getInstance();
-        };
+        }
 
-        void deinit() {
-        };
+        void deinit()
+        {
+        }
 
     private:
 
-        Environment() {
+        Environment()
+        {
+        }
 
-        };
         Environment(const Environment&);
 
-        ~Environment();
         Environment& operator=(const Environment&);
 
     };
@@ -106,5 +117,4 @@ namespace PMacc {
 #define __setTransactionEvent(event) (Environment<>::getInstance().getTransactionManager().setTransactionEvent((event)))
 
 }
-#endif	/* ENVIRONMENT_HPP */
 

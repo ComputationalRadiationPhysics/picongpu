@@ -30,140 +30,138 @@
 namespace PMacc
 {
     
-    template<unsigned DIM>
-    class Environment;
 
-template <unsigned DIM>
-class SimulationBox
-{
-    typedef DataSpace<DIM> Size;
-    static const uint32_t Dim = DIM;
-public:
-
-    SimulationBox(const Size& localSize,
-                           const Size& globalSize,
-                           const Size& globalOffset) :
-    localSize(localSize),
-    globalSize(globalSize),
-    globalOffset(globalOffset)
+    template <unsigned DIM>
+    class SimulationBox
     {
-        /*prevent a mismatch of localSize and globalSize */
-        for (uint32_t i = 0; i < Dim; ++i)
-            assert(localSize[i] <= globalSize[i]);
-    }
+        typedef DataSpace<DIM> Size;
+        static const uint32_t Dim = DIM;
+        public:
 
-    SimulationBox()
+        SimulationBox(const Size& localSize,
+                      const Size& globalSize,
+                      const Size& globalOffset) :
+                      localSize(localSize),
+                      globalSize(globalSize),
+                      globalOffset(globalOffset)
+        {
+                        /*prevent a mismatch of localSize and globalSize */
+                        for (uint32_t i = 0; i < Dim; ++i)
+                        assert(localSize[i] <= globalSize[i]);
+        }
+
+        SimulationBox()
+        {
+
+        }
+
+        /** get size of global simulation box (in cells)
+        *      
+        */
+        HDINLINE Size getGlobalSize() const
+        {
+            return globalSize;
+        }
+
+        /**
+         * Get size of local simulation area.
+         * 
+         * @return size of local simulation area
+         */
+        HDINLINE Size getLocalSize() const
+        {
+            return localSize;
+        }
+
+        /**
+         * Get distance from global origin to local origin (in cells)
+         *
+         * local null point=Top/Left in 2D, Top/Left/Front in 3D
+         * 
+         * @return offset to local origin of ordinates
+         */
+        HDINLINE Size getGlobalOffset() const
+        {
+            return globalOffset;
+        }
+
+        HDINLINE void setGlobalOffset(const Size& offset)
+        {
+            globalOffset = offset;
+        }
+
+    private:
+        Size globalSize;
+        Size localSize;
+        Size globalOffset;
+
+    };
+
+    template <unsigned DIM>
+    class SubGrid
     {
+    public:
 
-    }
+    //    typedef SubGrid<DIM> MyType; TODO: delete getInstance()
+        typedef DataSpace<DIM> Size;
 
-    /** get size of global simulation box (in cells)
-     *      
-     */
-    HDINLINE Size getGlobalSize() const
-    {
-        return globalSize;
-    }
+    //    static MyType& getInstance()
+    //    {
+    //        static MyType instance;
+    //        return instance;
+    //    }
 
-    /**
-     * Get size of local simulation area.
-     * 
-     * @return size of local simulation area
-     */
-    HDINLINE Size getLocalSize() const
-    {
-        return localSize;
-    }
+        void init(const Size localSize,
+                  const Size globalSize,
+                  const Size globalOffset)
+        {
+            SimulationBox<DIM> box(localSize, globalSize, globalOffset);
+            simBox = box;
+        }
 
-    /**
-     * Get distance from global origin to local origin (in cells)
-     *
-     * local null point=Top/Left in 2D, Top/Left/Front in 3D
-     * 
-     * @return offset to local origin of ordinates
-     */
-    HDINLINE Size getGlobalOffset() const
-    {
-        return globalOffset;
-    }
+        void setGlobalOffset(const Size& offset)
+        {
+            simBox.setGlobalOffset(offset);
+        }
 
-    HDINLINE void setGlobalOffset(const Size& offset)
-    {
-        globalOffset = offset;
-    }
+        const SimulationBox<DIM> getSimulationBox() const
+        {
+            return simBox;
+        }
 
-private:
-    Size globalSize;
-    Size localSize;
-    Size globalOffset;
+    private:
 
-};
+        friend Environment<DIM>;
 
-template <unsigned DIM>
-class SubGrid
-{
-public:
+        /**
+         * Constructor
+         */
+        SubGrid()
+        {
 
-//    typedef SubGrid<DIM> MyType; TODO: delete getInstance()
-    typedef DataSpace<DIM> Size;
+        }
 
-//    static MyType& getInstance()
-//    {
-//        static MyType instance;
-//        return instance;
-//    }
+        static SubGrid<DIM>& getInstance()
+        {
+            static SubGrid<DIM> instance;
+            return instance;
+        }
 
-    void init(const Size localSize,
-              const Size globalSize,
-              const Size globalOffset)
-    {
-        SimulationBox<DIM> box(localSize, globalSize, globalOffset);
-        simBox = box;
-    }
+        virtual ~SubGrid()
+        {
+        }
 
-    void setGlobalOffset(const Size& offset)
-    {
-        simBox.setGlobalOffset(offset);
-    }
+        /**
+         * Constructor
+         */
+        SubGrid(const SubGrid& gc)
+        {
 
-    const SimulationBox<DIM> getSimulationBox() const
-    {
-        return simBox;
-    }
+        }
 
-private:
 
-    friend Environment<DIM>;
-    
-    /**
-     * Constructor
-     */
-    SubGrid()
-    {
-
-    }
-
-    static SubGrid<DIM>& getInstance()
-    {
-        static SubGrid<DIM> instance;
-        return instance;
-    }
-    
-    virtual ~SubGrid()
-    {
-    }
-
-    /**
-     * Constructor
-     */
-    SubGrid(const SubGrid& gc)
-    {
-
-    }
-
-    
-    SimulationBox<DIM> simBox;
-};
+        SimulationBox<DIM> simBox;
+    };
 
 
 } //namespace PMacc

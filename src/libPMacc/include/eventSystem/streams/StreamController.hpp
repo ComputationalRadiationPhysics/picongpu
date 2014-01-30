@@ -32,9 +32,6 @@
 
 namespace PMacc
 {
-    template<unsigned DIM>
-    class Environment;
-
     /**
      * Manages a pool of EventStreams and gives access to them.
      * This class is a singleton.

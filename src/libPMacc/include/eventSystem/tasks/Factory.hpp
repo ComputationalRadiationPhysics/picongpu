@@ -39,10 +39,7 @@ namespace PMacc
     class Exchange;
 
     class TaskKernel;
-    
-    template<unsigned DIM>
-    class Environment;
-
+        
     /**
      * Singleton Factory-pattern class for creation of several types of EventTasks.
      * Tasks are not actually 'returned' but immediately initialised and

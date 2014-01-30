@@ -33,9 +33,7 @@
 
 namespace PMacc
 {
-        template<unsigned T>
-        class Environment;
-    
+     
         /**
          * GridController manages grid information.
          *

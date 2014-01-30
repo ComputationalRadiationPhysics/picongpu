@@ -196,7 +196,10 @@ inline void Manager::addPassiveTask( ITask *task )
 
 inline Manager::Manager( )
 {
-    //Environment<>::getInstance( ).getStreamController( ); //be sure that Streamcontroller created is before EventController
+    /**
+     * The \see Environment ensures that the \see StreamController is
+     * already created before calling this
+     */
     eventPool = new EventPool( );
     eventPool->addEvents( 300 );
 }
