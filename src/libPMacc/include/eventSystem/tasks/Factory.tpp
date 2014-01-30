@@ -42,7 +42,7 @@
 
 namespace PMacc
 {
-
+    
     /**
      * creates a TaskCopyHostToDevice
      * @param src HostBuffer to copy data from
@@ -220,14 +220,14 @@ namespace PMacc
 
     inline EventTask Factory::startTask(ITask& task, ITask *registeringTask )
     {
-        if (registeringTask != NULL)
+        if (registeringTask != NULL){
             task.addObserver(registeringTask);
-
+        }
         EventTask event(task.getId());
 
         task.init();
-        Manager::getInstance().addTask(&task);
-        TransactionManager::getInstance().setTransactionEvent(event);
+        Environment<>::getInstance().getManager().addTask(&task);
+        Environment<>::getInstance().getTransactionManager().setTransactionEvent(event);
         
         return event;
     }

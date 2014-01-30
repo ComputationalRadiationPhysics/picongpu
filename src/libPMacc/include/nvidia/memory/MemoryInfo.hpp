@@ -40,12 +40,6 @@ class MemoryInfo
 {
 public:
 
-    static MemoryInfo& getInstance()
-    {
-        static MemoryInfo instance;
-        return instance;
-    }
-
     /**
      * Returns information about device memory.
      *
@@ -88,6 +82,8 @@ protected:
     size_t reservedMem;
 
 private:
+    
+    friend Environment<DIM1>;
 
     MemoryInfo() :
     reservedMem(0)

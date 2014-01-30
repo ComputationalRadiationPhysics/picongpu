@@ -25,16 +25,18 @@
 #include <map>
 #include <cassert>
 
-#include "eventSystem/EventSystem.hpp"
+#include "eventSystem/tasks/ITask.hpp"
 #include "eventSystem/events/EventPool.hpp"
 
 
 namespace PMacc
 {
-
-    // forward declaration
-    class EventTask;
-
+    // forward declaration    
+//    class EventTask;    
+    
+    template<unsigned DIM>
+    class Environment;
+    
     /**
      * Manages the event system by executing and waiting for tasks.
      */
@@ -48,7 +50,6 @@ namespace PMacc
 
         void event(id_t eventId, EventType type, IEventData* data);
 
-        static Manager& getInstance();
 
         /*! Return a ITask pointer if ITask is not finished
          * @return ITask pointer if Task is not finished else NULL
@@ -81,7 +82,11 @@ namespace PMacc
 
 
     private:
-
+        
+        friend Environment<DIM1>;
+        friend Environment<DIM2>;
+        friend Environment<DIM3>;
+        
         inline ITask* getPassiveITaskIfNotFinished(id_t taskId) const;
 
         inline ITask* getActiveITaskIfNotFinished(id_t taskId) const;
@@ -91,6 +96,12 @@ namespace PMacc
         Manager(const Manager& cc);
 
         virtual ~Manager();
+        
+        static Manager& getInstance()
+        {
+            static Manager instance;
+            return instance;
+        }
 
         TaskMap tasks;
         TaskMap passiveTasks;

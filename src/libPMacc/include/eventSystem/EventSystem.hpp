@@ -28,7 +28,10 @@
 #include "eventSystem/transactions/TransactionManager.hpp"
 #include "eventSystem/transactions/Transaction.hpp"
 #include "eventSystem/Manager.hpp"
-
+#include "eventSystem/tasks/Factory.hpp"
+#include "eventSystem/tasks/TaskKernel.hpp"
+#include "memory/buffers/Buffer.hpp"
+#include "memory/buffers/HostBuffer.hpp"
 
 
 #include "eventSystem/Manager.tpp"
@@ -37,7 +40,10 @@
 #include "eventSystem/transactions/TransactionManager.tpp"
 #include "eventSystem/events/EventTask.tpp"
 #include "eventSystem/events/EventNotify.tpp"
-#include "eventSystem/tasks/Factory.hpp"
+#include "eventSystem/tasks/Factory.tpp"
+#include "eventSystem/tasks/TaskKernel.tpp"
+#include "memory/buffers/Buffer.tpp"
+#include "memory/buffers/HostBuffer.tpp"
 
 
 

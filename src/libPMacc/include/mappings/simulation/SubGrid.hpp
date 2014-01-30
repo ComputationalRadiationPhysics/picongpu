@@ -29,6 +29,9 @@
 
 namespace PMacc
 {
+    
+    template<unsigned DIM>
+    class Environment;
 
 template <unsigned DIM>
 class SimulationBox
@@ -101,14 +104,14 @@ class SubGrid
 {
 public:
 
-    typedef SubGrid<DIM> MyType;
+//    typedef SubGrid<DIM> MyType; TODO: delete getInstance()
     typedef DataSpace<DIM> Size;
 
-    static MyType& getInstance()
-    {
-        static MyType instance;
-        return instance;
-    }
+//    static MyType& getInstance()
+//    {
+//        static MyType instance;
+//        return instance;
+//    }
 
     void init(const Size localSize,
               const Size globalSize,
@@ -130,6 +133,8 @@ public:
 
 private:
 
+    friend Environment<DIM>;
+    
     /**
      * Constructor
      */
@@ -138,6 +143,12 @@ private:
 
     }
 
+    static SubGrid<DIM>& getInstance()
+    {
+        static SubGrid<DIM> instance;
+        return instance;
+    }
+    
     virtual ~SubGrid()
     {
     }
@@ -150,7 +161,7 @@ private:
 
     }
 
-
+    
     SimulationBox<DIM> simBox;
 };
 

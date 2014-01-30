@@ -22,6 +22,7 @@
 #include "cuSTL/container/allocator/tag.h"
 #include <iostream>
 #include <eventSystem/EventSystem.hpp>
+#include "Environment.hpp"
 
 namespace PMacc
 {

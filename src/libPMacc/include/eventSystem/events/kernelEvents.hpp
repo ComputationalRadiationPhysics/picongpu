@@ -26,6 +26,7 @@
 #include "ppFunctions.hpp"
 #include <boost/preprocessor/control/if.hpp>
 #include "dimensions/DataSpace.hpp"
+#include "Environment.hpp"
 #include "eventSystem/EventSystem.hpp"
 
 namespace PMacc
@@ -78,7 +79,7 @@ namespace PMacc
  */
 #define __cudaKernel(kernelname) {                                                      \
     CUDA_CHECK_KERNEL_MSG(cudaThreadSynchronize(),"Crash before kernel call");          \
-    TaskKernel *taskKernel =  Factory::getInstance().createTaskKernel(#kernelname);     \
+    TaskKernel *taskKernel =  Environment<>::getInstance().getFactory().createTaskKernel(#kernelname);     \
     kernelname PMACC_CUDAKERNELCONFIG
 
 }

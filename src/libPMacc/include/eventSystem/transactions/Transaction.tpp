@@ -30,13 +30,13 @@ namespace PMacc
 
 Transaction::Transaction( EventTask event, bool isAtomic ) : baseEvent( event ), eventStream( NULL ), isAtomic( isAtomic )
 {
-    eventStream = StreamController::getInstance( ).getNextStream( );
+    eventStream = Environment<>::getInstance().getStreamController().getNextStream( );
     event.waitForFinished( );
 }
 
 inline EventTask Transaction::setTransactionEvent( const EventTask& event )
 {
-    Manager &manager = Manager::getInstance( );
+    Manager &manager = Environment<>::getInstance().getManager();
     ITask* baseTask = manager.getITaskIfNotFinished( event.getTaskId( ) );
 
     if ( baseTask != NULL )

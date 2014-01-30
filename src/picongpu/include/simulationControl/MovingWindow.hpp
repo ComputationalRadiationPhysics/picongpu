@@ -35,7 +35,9 @@ using namespace PMacc;
 class MovingWindow
 {
 private:
-
+    
+    friend class Environment;
+    
     MovingWindow() : slidingWindowActive(false), slideCounter(0), lastSlideStep(0)
     {
     }
@@ -74,17 +76,6 @@ public:
     bool isSlidingWindowActive()
     {
         return slidingWindowActive;
-    }
-
-    /**
-     * Returns an instance of MovingWindow
-     *
-     * @return an instance
-     */
-    static MovingWindow& getInstance()
-    {
-        static MovingWindow instance;
-        return instance;
     }
 
     /** create a virtual window which descripe local and global offsets and local size which is impotant

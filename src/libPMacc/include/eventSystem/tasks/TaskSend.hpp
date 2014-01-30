@@ -57,16 +57,16 @@ namespace PMacc
             state = InitDone;
             if (exchange->hasDeviceDoubleBuffer())
             {
-                Factory::getInstance().createTaskCopyDeviceToDevice(exchange->getDeviceBuffer(),
+                Environment<>::getInstance().getFactory().createTaskCopyDeviceToDevice(exchange->getDeviceBuffer(),
                                                                                exchange->getDeviceDoubleBuffer()
                                                                                );
-                copyEvent = Factory::getInstance().createTaskCopyDeviceToHost(exchange->getDeviceDoubleBuffer(),
+                copyEvent = Environment<>::getInstance().getFactory().createTaskCopyDeviceToHost(exchange->getDeviceDoubleBuffer(),
                                                                                          exchange->getHostBuffer(),
                                                                                          this);
             }
             else
             {
-                copyEvent = Factory::getInstance().createTaskCopyDeviceToHost(exchange->getDeviceBuffer(),
+                copyEvent = Environment<>::getInstance().getFactory().createTaskCopyDeviceToHost(exchange->getDeviceBuffer(),
                                                                                          exchange->getHostBuffer(),
                                                                                          this);
             }
@@ -83,7 +83,7 @@ namespace PMacc
                 case DeviceToHostFinished:
                     state = SendDone;
                     __startTransaction();
-                    Factory::getInstance().createTaskSendMPI(exchange, this);
+                    Environment<>::getInstance().getFactory().createTaskSendMPI(exchange, this);
                     __endTransaction(); //we need no blocking because we get a singnal if transaction is finished
                     break;
                 case SendDone:

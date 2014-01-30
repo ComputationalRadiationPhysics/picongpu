@@ -50,7 +50,7 @@ public:
     virtual void init()
     {
         __startAtomicTransaction();
-        this->request = EnvironmentController::getInstance()
+        this->request = Environment<>::getInstance().getEnvironmentController()
                 .getCommunicator().startReceive(
                                                 exchange->getExchangeType(),
                                                 (char*) exchange->getHostBuffer().getBasePointer(),

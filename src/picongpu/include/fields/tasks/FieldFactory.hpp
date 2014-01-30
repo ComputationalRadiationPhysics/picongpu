@@ -46,6 +46,8 @@ namespace PMacc
          * @param task_out returns the newly created task
          * @param registeringTask optional pointer to an ITask which should be registered at the new task as an observer
          */
+        friend class Environment;
+        
         template<class Field>
         EventTask createTaskFieldReceiveAndInsert(Field &buffer,
         ITask *registeringTask = NULL);
@@ -67,16 +69,6 @@ namespace PMacc
         template<class Field>
         EventTask createTaskFieldSendExchange(Field &buffer, uint32_t exchange,
         ITask *registeringTask = NULL);
-
-        /**
-         * returns the instance of this factory
-         * @return the instance
-         */
-        static FieldFactory& getInstance()
-        {
-            static FieldFactory instance;
-            return instance;
-        }
 
     private:
 

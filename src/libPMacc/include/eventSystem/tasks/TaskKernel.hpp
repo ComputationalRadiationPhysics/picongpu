@@ -27,57 +27,28 @@
 #include <cuda.h>
 
 #include "eventSystem/tasks/StreamTask.hpp"
-#include "eventSystem/streams/EventStream.hpp"
-#include "eventSystem/EventSystem.hpp"
+#include "eventSystem/events/IEventData.hpp"
 
 namespace PMacc
 {
-
+     
     class TaskKernel : public StreamTask
     {
     public:
 
-        TaskKernel(std::string kernelName) :
-        StreamTask(),
-        kernelName(kernelName),
-        canBeChecked(false)
-        {
-        }
+        TaskKernel(std::string kernelName);
 
-        virtual ~TaskKernel()
-        {
-            notify(this->myId, KERNEL, NULL);
-        }
+        virtual ~TaskKernel();
 
-        bool executeIntern() throw (std::runtime_error)
-        {
-            if(canBeChecked)
-            {
-                return isFinished();
-            }
-            return false;
-        }
+        bool executeIntern() throw (std::runtime_error);
 
-        void event(id_t, EventType, IEventData*)
-        {
-        }
+        void event(id_t, EventType, IEventData*);
 
-        void activateChecks()
-        {
-            canBeChecked = true;
-            this->activate();
-            Manager::getInstance().addTask(this);
-            __setTransactionEvent(EventTask(this->getId()));
-        }
+        void activateChecks();
 
-        virtual std::string toString()
-        {
-            return std::string("TaskKernel ") + kernelName;
-        }
+        virtual std::string toString();
 
-        virtual void init()
-        {
-        }
+        virtual void init();
 
     private:
         bool canBeChecked;

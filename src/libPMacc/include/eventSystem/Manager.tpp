@@ -22,6 +22,7 @@
 #include <set>
 #include <iostream>
 
+#include "eventSystem/EventSystem.hpp"
 #include "eventSystem/streams/StreamController.hpp"
 #include "eventSystem/Manager.hpp"
 #include <stdlib.h>
@@ -112,11 +113,7 @@ inline void Manager::event( id_t eventId, EventType, IEventData* )
     passiveTasks.erase( eventId );
 }
 
-inline Manager& Manager::getInstance( )
-{
-    static Manager instance;
-    return instance;
-}
+
 
 inline ITask* Manager::getITaskIfNotFinished( id_t taskId ) const
 {
@@ -199,7 +196,7 @@ inline void Manager::addPassiveTask( ITask *task )
 
 inline Manager::Manager( )
 {
-    StreamController::getInstance( ); //be sure that Streamcontroller created is before EventController
+    //Environment<>::getInstance( ).getStreamController( ); //be sure that Streamcontroller created is before EventController
     eventPool = new EventPool( );
     eventPool->addEvents( 300 );
 }

@@ -33,210 +33,214 @@
 
 namespace PMacc
 {
-
-/**
- * GridController manages grid information.
- *
- * GridController provides information for a DIM-dimensional grid
- * such as the number of GPU nodes and the current node's position in the grid
- * and manages sliding window.
- * GridController is a singleton.
- *
- * @tparam DIM dimension of the controlled grid
- */
-template <unsigned DIM>
-class GridController
-{
-public:
-
-    /**
-     * Initialisation of the controller.
-     *
-     * This methode must be called before any subgrids or buffers are used.
-     *
-     * @param nodes number of GPU nodes in each dimension
-     * @param periodic specifying whether the grid is periodic (1) or not (0) in each dimension
-     */
-    void init(DataSpace<DIM> nodes, DataSpace<DIM> periodic = DataSpace<DIM>())
-    {
-        static bool commIsInit = false;
-        if (!commIsInit)
+        template<unsigned T>
+        class Environment;
+    
+        /**
+         * GridController manages grid information.
+         *
+         * GridController provides information for a DIM-dimensional grid
+         * such as the number of GPU nodes and the current node's position in the grid
+         * and manages sliding window.
+         * GridController is a singleton.
+         *
+         * @tparam DIM dimension of the controlled grid
+         */
+        template <unsigned DIM>
+        class GridController
         {
-            gpuNodes = nodes;
+        public:
 
-            DataSpace<DIM3> tmp;
-            DataSpace<DIM3> periodicTmp;
-            tmp[0] = nodes[0];
-            periodicTmp[0] = periodic[0];
-            if (DIM < DIM2)
+            /**
+             * Initialisation of the controller.
+             *
+             * This methode must be called before any subgrids or buffers are used.
+             *
+             * @param nodes number of GPU nodes in each dimension
+             * @param periodic specifying whether the grid is periodic (1) or not (0) in each dimension
+             */
+            void init(DataSpace<DIM> nodes, DataSpace<DIM> periodic = DataSpace<DIM>())
             {
-                tmp[1] = 1;
-                periodicTmp[1] = 1;
+                static bool commIsInit = false;
+                if (!commIsInit)
+                {
+                    gpuNodes = nodes;
+
+                    DataSpace<DIM3> tmp;
+                    DataSpace<DIM3> periodicTmp;
+                    tmp[0] = nodes[0];
+                    periodicTmp[0] = periodic[0];
+                    if (DIM < DIM2)
+                    {
+                        tmp[1] = 1;
+                        periodicTmp[1] = 1;
+                    }
+                    else
+                    {
+                        tmp[1] = nodes[1];
+                        periodicTmp[1] = periodic[1];
+                    }
+
+                    if (DIM < DIM3)
+                    {
+                        tmp[2] = 1;
+                        periodicTmp[2] = 1;
+                    }
+                    else
+                    {
+                        tmp[2] = nodes[2];
+                        periodicTmp[2] = periodic[2];
+                    }
+
+                    comm.init(tmp, periodicTmp);
+                    commIsInit = true;
+
+                    Environment<DIM>::getInstance().getEnvironmentController().setCommunicator(comm);
+                }
             }
-            else
+
+            /**
+             * Returns the number of GPU nodes in each dimension.
+             *
+             * @return number of nodes
+             */
+            const DataSpace<DIM> getGpuNodes() const
             {
-                tmp[1] = nodes[1];
-                periodicTmp[1] = periodic[1];
+                return gpuNodes;
             }
 
-            if (DIM < DIM3)
+            /**
+             * Returns the position of the calling process' GPU in the grid.
+             *
+             * @return current GPU position
+             * */
+            const DataSpace<DIM> getPosition()
             {
-                tmp[2] = 1;
-                periodicTmp[2] = 1;
+                return comm.getCoordinates();
             }
-            else
+
+            /**
+             * Returns the local rank of the caller on the current host.
+             *
+             * return local rank on host
+             */
+            uint32_t getHostRank()
             {
-                tmp[2] = nodes[2];
-                periodicTmp[2] = periodic[2];
+                return comm.getHostRank();
             }
 
-            comm.init(tmp, periodicTmp);
-            commIsInit = true;
+            /**
+             * Returns the global rank of the caller among all hosts.
+             *
+             * @return global rank
+             */
+            uint32_t getGlobalRank()
+            {
+                return comm.getRank();
+            }
 
-            EnvironmentController::getInstance().setCommunicator(comm);
-        }
-    }
+            /**
+             * Returns the global size of the caller among all hosts.
+             *
+             * @return global number of ranks
+             */
+            uint32_t getGlobalSize()
+            {
+                return comm.getSize();
+            }
 
-    /**
-     * Returns the instance of the controller.
-     *
-     * This class is a singleton class.
-     *
-     * @return a controller instance
-     */
-    static GridController<DIM>& getInstance()
-    {
-        static GridController<DIM> instance;
-        return instance;
-    }
+            /**
+             * Initialises a slide of the simulation area.
+             *
+             * Starts a slide of the simulation area. In the process, GPU nodes are
+             * reassigned to new grid positions to enable large simulation areas
+             * to be computed.
+             * All nodes in the simulation must call this function at the same iteration.
+             *
+             * @return true if the position of the calling GPU is switched to the end, false otherwise
+             */
+            bool slide()
+            {
+                Environment<DIM>::getInstance().getManager().waitForAllTasks();//wait that all TAsk are finisehd
 
-    /**
-     * Returns the number of GPU nodes in each dimension.
-     *
-     * @return number of nodes
-     */
-    const DataSpace<DIM> getGpuNodes() const
-    {
-        return gpuNodes;
-    }
+                bool result=comm.slide();
 
-    /**
-     * Returns the position of the calling process' GPU in the grid.
-     *
-     * @return current GPU position
-     * */
-    const DataSpace<DIM> getPosition()
-    {
-        return comm.getCoordinates();
-    }
+                /* if we slide we must change our globalOffset of the simulation
+                 * (only change slide direction Y)
+                 */
+                int gpuOffset_y = this->getPosition().y();
+                PMACC_AUTO(simBox, SubGrid<DIM>::getInstance().getSimulationBox());
+                DataSpace<DIM> globalOffset(simBox.getGlobalOffset());
+                /* this is allowed in the case that we use sliding window
+                 * because size in Y direction is the same for all gpus domains
+                 */
+                globalOffset.y() = gpuOffset_y * simBox.getLocalSize().y();
+                Environment<DIM>::getInstance().getSubGrid().setGlobalOffset(globalOffset);
+                //SubGrid<DIM>::getInstance().setGlobalOffset(globalOffset);
 
-    /**
-     * Returns the local rank of the caller on the current host.
-     *
-     * return local rank on host
-     */
-    uint32_t getHostRank()
-    {
-        return comm.getHostRank();
-    }
+                return result;
+            }
 
-    /**
-     * Returns the global rank of the caller among all hosts.
-     *
-     * @return global rank
-     */
-    uint32_t getGlobalRank()
-    {
-        return comm.getRank();
-    }
+            /**
+             * Returns a Mask which describes all neighbouring GPU nodes.
+             *
+             * @return Mask with all neighbors
+             */
+            const Mask& getCommunicationMask() const
+            {
+                return Environment<DIM>::getInstance().getEnvironmentController().getCommunicationMask();
+            }
 
-    /**
-     * Returns the global size of the caller among all hosts.
-     *
-     * @return global number of ranks
-     */
-    uint32_t getGlobalSize()
-    {
-        return comm.getSize();
-    }
+            CommunicatorMPI<DIM>& getCommunicator()
+            {
+                return comm;
+            }
 
-    /**
-     * Initialises a slide of the simulation area.
-     *
-     * Starts a slide of the simulation area. In the process, GPU nodes are
-     * reassigned to new grid positions to enable large simulation areas
-     * to be computed.
-     * All nodes in the simulation must call this function at the same iteration.
-     *
-     * @return true if the position of the calling GPU is switched to the end, false otherwise
-     */
-    bool slide()
-    {
-        Manager::getInstance().waitForAllTasks(); //wait that all TAsk are finisehd
+        private:
 
-        bool result=comm.slide();
+            friend Environment<DIM>;
+            /**
+             * Constructor
+             */
+            GridController() : gpuNodes(DataSpace<DIM>())
+            {
 
-        /* if we slide we must change our globalOffset of the simulation
-         * (only change slide direction Y)
-         */
-        int gpuOffset_y = this->getPosition().y();
-        PMACC_AUTO(simBox, SubGrid<DIM>::getInstance().getSimulationBox());
-        DataSpace<DIM> globalOffset(simBox.getGlobalOffset());
-        /* this is allowed in the case that we use sliding window
-         * because size in Y direction is the same for all gpus domains
-         */
-        globalOffset.y() = gpuOffset_y * simBox.getLocalSize().y();
-        SubGrid<DIM>::getInstance().setGlobalOffset(globalOffset);
+            }
 
-        return result;
-    }
+            /**
+             * Constructor
+             */
+            GridController(const GridController& gc)
+            {
 
-    /**
-     * Returns a Mask which describes all neighbouring GPU nodes.
-     *
-     * @return Mask with all neighbors
-     */
-    const Mask& getCommunicationMask() const
-    {
-        return EnvironmentController::getInstance().getCommunicationMask();
-    }
+            }
 
-    CommunicatorMPI<DIM>& getCommunicator()
-    {
-        return comm;
-    }
+            /**
+             * Returns the instance of the controller.
+             *
+             * This class is a singleton class.
+             *
+             * @return a controller instance
+             */
+            static GridController<DIM>& getInstance()
+            {
+                static GridController<DIM> instance;
+                return instance;
+            }
+            
+            /**
+             * Communicator for MPI
+             */
+            static CommunicatorMPI<DIM> comm;
 
-private:
+            /**
+             * number of GPU nodes for each direction
+             */
+            DataSpace<DIM> gpuNodes;
+        };
 
-    /**
-     * Constructor
-     */
-    GridController() : gpuNodes(DataSpace<DIM>())
-    {
-
-    }
-
-    /**
-     * Constructor
-     */
-    GridController(const GridController& gc)
-    {
-
-    }
-
-    /**
-     * Communicator for MPI
-     */
-    static CommunicatorMPI<DIM> comm;
-
-    /**
-     * number of GPU nodes for each direction
-     */
-    DataSpace<DIM> gpuNodes;
-};
-
-template <unsigned DIM>
-CommunicatorMPI<DIM> GridController<DIM>::comm;
+        template <unsigned DIM>
+        CommunicatorMPI<DIM> GridController<DIM>::comm;
 
 } //namespace PMacc
 
