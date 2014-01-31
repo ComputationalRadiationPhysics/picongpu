@@ -31,6 +31,7 @@
 
 #include "mappings/simulation/EnvironmentController.hpp"
 #include "memory/buffers/ExchangeIntern.hpp"
+#include "memory/buffers/MappedBuffer.hpp"
 #include "memory/buffers/HostBufferIntern.hpp"
 #include "memory/buffers/DeviceBufferIntern.hpp"
 
@@ -142,6 +143,17 @@ public:
         this->deviceBuffer = new DeviceBufferIntern<TYPE, DIM >
                 (*((DeviceBufferIntern<TYPE, DIM>*) & otherDeviceBuffer), /*!\todo: not nice but work, fix me*/
                  this->gridLayout.getDataSpace(), DataSpace<DIM > (), sizeOnDevice);
+    }
+
+    GridBuffer(MappedBuffer<TYPE, DIM>& otherDeviceBuffer, GridLayout<DIM> gridLayout) :
+    gridLayout(gridLayout),
+    hasOneExchange(false),
+    maxExchange(0)
+    {
+        init(false, false, false);
+        this->deviceBuffer = new DeviceBufferIntern<TYPE, DIM >
+                (*((DeviceBufferIntern<TYPE, DIM>*) & otherDeviceBuffer),
+                 this->gridLayout.getDataSpace(), DataSpace<DIM > (), false);
     }
 
     GridBuffer(
