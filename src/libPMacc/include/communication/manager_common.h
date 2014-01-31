@@ -21,7 +21,9 @@
 
 #pragma once
 
-#include <cstdio>
+#include <iostream>
+#include <stdexcept>
+#include <string>
 
 const int GridManagerRank = 0;
 
@@ -33,4 +35,4 @@ enum {
   gridExchangeTag = 5
 };
 
-#define MPI_CHECK(cmd) {int error = cmd; if(error!=MPI_SUCCESS){printf("<%s>:%i ",__FILE__,__LINE__); throw std::runtime_error(std::string("[MPI] Error"));}}
+#define MPI_CHECK(cmd) {int error = cmd; if(error!=MPI_SUCCESS){std::cerr << "<" << __FILE__ << ">:" << __LINE__; throw std::runtime_error(std::string("[MPI] Error"));}}
