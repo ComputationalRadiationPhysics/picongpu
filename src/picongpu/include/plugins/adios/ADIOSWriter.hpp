@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2014 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -18,7 +18,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include <pthread.h>
@@ -29,11 +28,11 @@
 
 #include "types.h"
 #include "simulation_types.hpp"
-#include "plugins/hdf5/HDF5Writer.def"
+#include "plugins/adios/ADIOSWriter.def"
 
 #include "particles/frame_types.hpp"
 
-#include <splash/splash.h>
+#include <adios.h>
 
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
@@ -66,32 +65,30 @@
 #include "RefWrapper.hpp"
 #include <boost/type_traits.hpp>
 
-
-#include "plugins/hdf5/WriteSpecies.hpp"
+#include "plugins/adios/WriteSpecies.hpp"
 
 
 namespace picongpu
 {
 
-namespace hdf5
+namespace adios
 {
 
 using namespace PMacc;
 
-using namespace splash;
 namespace bmpl = boost::mpl;
 
 namespace po = boost::program_options;
 
 /**
- * Writes simulation data to hdf5 files using libSplash.
+ * Writes simulation data to adios files.
  * Implements the ISimulationIO interface.
  *
  * @param ElectronsBuffer class description for electrons
  * @param IonsBuffer class description for ions
  * @param simDim dimension of the simulation (2-3)
  */
-class HDF5Writer : public ISimulationIO, public IPluginModule
+class ADIOSWriter : public ISimulationIO, public IPluginModule
 {
 public:
 
@@ -101,7 +98,7 @@ public:
 
 private:
 
-    /* fiter is a rule which describe which particles shuld copy to host*/
+    /* fiter is a rule which describes which particles should be copyied to host*/
     MyParticleFilter filter;
 
     template<typename UnitType>
@@ -113,11 +110,11 @@ private:
         return tmp;
     }
 
-    /** Write calculated fields to HDF5 file.
+    /** Write calculated fields to adios file.
      *
      */
     template< typename T >
-    struct GetDCFields
+    struct GetFields
     {
     private:
 
@@ -133,16 +130,14 @@ private:
         HDINLINE void operator()(RefWrapper<ThreadParams*> params, const DomainInformation domInfo)
         {
 #ifndef __CUDA_ARCH__
-            ColTypeFloat ctFloat;
-
             DataConnector &dc = DataConnector::getInstance();
 
             T* field = &(dc.getData<T > (T::getCommTag()));
             params.get()->gridLayout = field->getGridLayout();
 
             writeField(params.get(),
+                       sizeof(float),
                        domInfo,
-                       ctFloat,
                        T::numComponents,
                        T::getName(),
                        getUnit(),
@@ -155,12 +150,12 @@ private:
     };
 
     /** Calculate FieldTmp with given solver and particle species
-     * and write them to hdf5.
+     * and write them to adios.
      *
-     * FieldTmp is calculated on device and than dumped to HDF5.
+     * FieldTmp is calculated on device and than dumped to adios.
      */
     template< typename ThisSolver, typename ThisSpecies >
-    struct GetDCFields<FieldTmpOperation<ThisSolver, ThisSpecies> >
+    struct GetFields<FieldTmpOperation<ThisSolver, ThisSpecies> >
     {
 
         /*
@@ -180,9 +175,9 @@ private:
     private:
         typedef typename FieldTmp::ValueType ValueType;
         typedef typename GetComponentsType<ValueType>::type ComponentType;
-        typedef typename PICToSplash<ComponentType>::type SplashType;
+        typedef typename PICToADIOS<ComponentType>::type AdiosType;
 
-        /** Create a name for the hdf5 identifier.
+        /** Create a name for the adios identifier.
          */
         template< typename Solver, typename Species >
         static std::string getName()
@@ -231,10 +226,11 @@ private:
             SplashType splashType;
 
             params.get()->gridLayout = fieldTmp->getGridLayout();
-            /*write data to HDF5 file*/
+            /*write data to ADIOS file*/
             writeField(params.get(),
+                       sizeof(float),
                        domInfo,
-                       splashType,
+                       adiosType,
                        components,
                        getName<ThisSolver, ThisSpecies>(),
                        getUnit<ThisSolver>(),
@@ -248,14 +244,14 @@ private:
 
 public:
 
-    HDF5Writer() :
-    filename("h5"),
+    ADIOSWriter() :
+    filename("simDataAdios"),
     notifyFrequency(0)
     {
         ModuleConnector::getInstance().registerModule(this);
     }
 
-    virtual ~HDF5Writer()
+    virtual ~ADIOSWriter()
     {
 
     }
@@ -263,20 +259,19 @@ public:
     void moduleRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
-            ("hdf5.period", po::value<uint32_t > (&notifyFrequency)->default_value(0),
-             "enable HDF5 IO [for each n-th step]")
-            ("hdf5.file", po::value<std::string > (&filename)->default_value(filename),
-             "HDF5 output file");
+            ("adios.period", po::value<uint32_t > (&notifyFrequency)->default_value(0),
+             "enable ADIOS IO [for each n-th step]")
+            ("adios.file", po::value<std::string > (&filename)->default_value(filename),
+             "ADIOS output file");
     }
 
     std::string moduleGetName() const
     {
-        return "HDF5Writer";
+        return "ADIOSWriter";
     }
 
     void setMappingDescription(MappingDesc *cellDescription)
     {
-
         this->cellDescription = cellDescription;
     }
 
@@ -299,63 +294,52 @@ public:
 
         __getTransactionEvent().waitForFinished();
 
-        openH5File();
+        openAdiosFile();
 
-        writeHDF5((void*) &mThreadParams);
+        writeAdios((void*) &mThreadParams);
 
-        closeH5File();
+        closeAdiosFile();
 
     }
 
 private:
 
-    void closeH5File()
+    void closeAdiosFile()
     {
-        if (mThreadParams.dataCollector != NULL)
+        if (mThreadParams.adiosHandle != ADIOS_INVALID_HANDLE)
         {
-            log<picLog::INPUT_OUTPUT > ("HDF5 close DataCollector with file: %1%") % filename;
-            mThreadParams.dataCollector->close();
+            log<picLog::INPUT_OUTPUT > ("ADIOS: closing file: %1%") % filename;
+            adios_close(mThreadParams.adiosHandle);
+
+            __deleteArray(mThreadParams.fieldBfr);
         }
     }
 
-    void openH5File()
+    void openAdiosFile()
     {
-        const uint32_t maxOpenFilesPerNode = 4;
-        if ( mThreadParams.dataCollector == NULL)
-        {
-            GridController<simDim> &gc = GridController<simDim>::getInstance();
-            mThreadParams.dataCollector = new ParallelDomainCollector(
-                        gc.getCommunicator().getMPIComm(),
-                        gc.getCommunicator().getMPIInfo(),
-                        splashMpiSize,
-                        maxOpenFilesPerNode);
-        }
-        // set attributes for datacollector files
-        DataCollector::FileCreationAttr attr;
-        attr.enableCompression = false;
-        attr.fileAccType = DataCollector::FAT_CREATE;
-        attr.mpiPosition.set(splashMpiPos);
-        attr.mpiSize.set(splashMpiSize);
+        GridController<simDim> &gc = GridController<simDim>::getInstance();
 
-        // open datacollector
-        try
-        {
-            log<picLog::INPUT_OUTPUT > ("HDF5 open DataCollector with file: %1%") % filename;
-            mThreadParams.dataCollector->open(filename.c_str(), attr);
-        }
-        catch (DCException e)
-        {
-            std::cerr << e.what() << std::endl;
-            throw std::runtime_error("Failed to open datacollector");
-        }
+        std::stringstream full_filename;
+        full_filename << filename << "_" << mThreadParams.currentStep << ".bp";
 
+        // open adios file
+        log<picLog::INPUT_OUTPUT > ("ADIOS open file: %1%") % filename;
+        mThreadParams.adiosHandle = ADIOS_INVALID_HANDLE;
+        adios_open(&(mThreadParams.adiosHandle), "fields", full_filename.str().c_str(),
+            "w", gc.getCommunicator().getMPIComm());
+        
+        if (mThreadParams.adiosHandle == ADIOS_INVALID_HANDLE)
+            throw std::runtime_error("Failed to open ADIOS file");
+
+        mThreadParams.fieldBfr = new float[mThreadParams.window.localSize.productOfComponents()];
     }
 
     void moduleLoad()
     {
         if (notifyFrequency > 0)
         {
-            mThreadParams.dataCollector = NULL;
+            mThreadParams.adiosHandle = ADIOS_INVALID_HANDLE;
+            mThreadParams.fieldBfr = NULL;
             mThreadParams.gridPosition =
                 SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset();
 
@@ -367,17 +351,10 @@ private:
              */
             mpi_pos = gc.getPosition();
             mpi_size = gc.getGpuNodes();
-            
-            splashMpiPos.set(0, 0, 0);
-            splashMpiSize.set(1, 1, 1);
-            
-            for (uint32_t i = 0; i < simDim; ++i)
-            {
-                splashMpiPos[i] = mpi_pos[i];
-                splashMpiSize[i] = mpi_size[i];
-            }
 
             DataConnector::getInstance().registerObserver(this, notifyFrequency);
+            
+            adios_init(xmlFilename.c_str(), gc.getCommunicator().getMPIComm());
         }
 
         loaded = true;
@@ -385,19 +362,18 @@ private:
 
     void moduleUnload()
     {
-        if (mThreadParams.dataCollector != NULL)
+        if (notifyFrequency > 0)
         {
-            delete mThreadParams.dataCollector;
-            mThreadParams.dataCollector = NULL;
+            adios_finalize(GridController<simDim>::getInstance().getCommunicator().getRank());
         }
     }
 
-    static void writeField(ThreadParams *params, const DomainInformation domInfo,
-                           CollectionType& colType,
+    static void writeField(ThreadParams *params, const uint32_t sizePtrType,
+                           const DomainInformation domInfo,
                            const uint32_t nComponents, const std::string name,
                            std::vector<double> unit, void *ptr)
     {
-        log<picLog::INPUT_OUTPUT > ("HDF5 write field: %1% %2% %3%") %
+        log<picLog::INPUT_OUTPUT > ("ADIOS: write field: %1% %2% %3%") %
             name % nComponents % ptr;
 
         std::vector<std::string> name_lookup;
@@ -418,11 +394,12 @@ private:
          */
         DataSpace<simDim> globalSlideOffset = DataSpace<simDim>(
                                                                 0,
-                                                                params->window.slides * params->window.localFullSize.y(),
+                                                                params->window.slides *
+                                                                params->window.localFullSize.y(),
                                                                 0);
-        Dimensions splashGlobalDomainOffset(0, 0, 0);
-        Dimensions splashGlobalOffsetFile(0, 0, 0);
-        Dimensions splashGlobalDomainSize(1, 1, 1);
+        DataSpace<simDim> splashGlobalDomainOffset;
+        DataSpace<simDim> splashGlobalOffsetFile;
+        DataSpace<simDim> splashGlobalDomainSize;
 
         for (uint32_t d = 0; d < simDim; ++d)
         {
@@ -434,56 +411,51 @@ private:
         splashGlobalOffsetFile[1] = std::max(0, domInfo.domainOffset[1] -
                 domInfo.globalDomainOffset[1]);
 
-
         for (uint32_t d = 0; d < nComponents; d++)
         {
             std::stringstream datasetName;
-            datasetName << "fields/" << name;
+            datasetName << "fields_" << name;
             if (nComponents > 1)
-                datasetName << "/" << name_lookup.at(d);
+                datasetName << "_" << name_lookup.at(d);
             
-            Dimensions sizeSrcBuffer(field_full[0] * nComponents, field_full[1], field_full[2]);
-            Dimensions srcStride(nComponents, 1, 1);
-            Dimensions sizeSrcData(field_no_guard[0], field_no_guard[1], field_no_guard[2]);
-            Dimensions srcOffset(field_guard[0] * nComponents + d, field_guard[1], field_guard[2]);
+            const size_t plane_full_size = field_full[1] * field_full[0] * nComponents;
+            const size_t plane_no_guard_size = field_no_guard[1] * field_no_guard[0];
 
-            params->dataCollector->writeDomain(params->currentStep, /* id == time step */
-                                               splashGlobalDomainSize,
-                                               splashGlobalOffsetFile,
-                                               colType, /* data type */
-                                               simDim, /* NDims of the field data (scalar, vector, ...) */
-                                               /* source buffer, stride, data size, offset */
-                                               sizeSrcBuffer,
-                                               srcStride,
-                                               sizeSrcData,
-                                               srcOffset,
-                                               datasetName.str().c_str(), /* data set name */
-                                               splashGlobalDomainOffset, /* \todo offset of the global domain */
-                                               splashGlobalDomainSize, /* size of the global domain */
-                                               DomainCollector::GridType,
-                                               ptr);
+            // copy strided data from source to temporary buffer
+            for (int z = 0; z < field_no_guard[2]; ++z)
+                for (int y = 0; y < field_no_guard[1]; ++y)
+                {
+                    const size_t base_index_src =
+                                (z + field_guard[2]) * plane_full_size +
+                                (y + field_guard[1]) * field_full[0] * nComponents;
 
-            /*simulation attributes for data*/
-            ColTypeDouble ctDouble;
+                    const size_t base_index_dst =
+                                z * plane_no_guard_size +
+                                y * field_no_guard[0];
 
-            params->dataCollector->writeAttribute(params->currentStep,
-                                                  ctDouble, datasetName.str().c_str(),
-                                                  "sim_unit", &(unit.at(d)));
+                    for (int x = 0; x < field_no_guard[0]; ++x)
+                    {
+                        size_t index_src = base_index_src + (x + field_guard[0]) * nComponents + d;
+                        size_t index_dst = base_index_dst + x;
+
+                        params->fieldBfr[index_dst] = ((float*)ptr)[index_src];
+                    }
+                }
+
+                // write the actual field data
+                adios_write(params->adiosHandle, datasetName.str().c_str(), params->fieldBfr);
         }
 
     }
 
-    static void *writeHDF5(void *p_args)
+    static void *writeAdios(void *p_args)
     {
 
         // synchronize, because following operations will be blocking anyway
         ThreadParams *threadParams = (ThreadParams*) (p_args);
 
-        /* write number of slides to timestep in hdf5 file*/
-        uint32_t slides = threadParams->window.slides;
-        ColTypeUInt32 ctUInt32;
-        threadParams->dataCollector->writeAttribute(threadParams->currentStep,
-                                              ctUInt32, NULL, "sim_slides", &(slides));
+        /* write number of slides to timestep in adios file*/
+        //uint32_t slides = threadParams->window.slides;
 
         /* build clean domain info (picongpu view) */
         DomainInformation domInfo;
@@ -503,15 +475,16 @@ private:
         particleOffset.y() -= threadParams->window.globalSimulationOffset.y();
 
         /*print all fields*/
-        ForEach<FileOutputFields, GetDCFields<void> > forEachGetFields;
+        ForEach<FileOutputFields, GetFields<void> > forEachGetFields;
         forEachGetFields(ref(threadParams), domInfo);
 
         /*print all particle species*/
-        log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing particle species.");
+        /*log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) writing particle species.");
         ForEach<FileOutputParticles, WriteSpecies<void> > writeSpecies;
         writeSpecies(ref(threadParams), std::string(), domInfo, particleOffset);
-        log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species.");
+        log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing particle species.");*/
 
+        return NULL;
 
         if (MovingWindow::getInstance().isSlidingWindowActive())
         {
@@ -538,10 +511,10 @@ private:
                 domInfo.domainSize.y() = 0;
             }
             /* for restart we only need bottom ghosts for particles */
-            log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing particle species bottom.");
+            log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) writing particle species bottom.");
             /* print all particle species */
             writeSpecies(ref(threadParams), std::string("_ghosts"), domInfo, particleOffset);
-            log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species bottom.");
+            log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing particle species bottom.");
         }
         return NULL;
     }
@@ -555,11 +528,8 @@ private:
 
     DataSpace<simDim> mpi_pos;
     DataSpace<simDim> mpi_size;
-
-    Dimensions splashMpiPos;
-    Dimensions splashMpiSize;
 };
 
-} //namespace hdf5
+} //namespace adios
 } //namespace picongpu
 

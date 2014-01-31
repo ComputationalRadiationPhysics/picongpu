@@ -1,5 +1,5 @@
 #
-# Copyright 2013 Axel Huebl, Benjamin Schneider, Felix Schmitt, Heiko Burau, Rene Widera
+# Copyright 2013-2014 Axel Huebl, Benjamin Schneider, Felix Schmitt, Heiko Burau, Rene Widera
 #
 # This file is part of PIConGPU.
 #
@@ -229,6 +229,48 @@ if(PIC_ENABLE_INSITU_VOLVIS)
 	include_directories(SYSTEM ${ICET_INCLUDE_DIRS})
 	set(LIBS ${LIBS} ${ICET_CORE_LIBS} ${ICET_MPI_LIBS})
 endif(PIC_ENABLE_INSITU_VOLVIS)
+
+
+################################################################################
+# ADIOS
+################################################################################
+
+option(PIC_ENABLE_ADIOS "create picongpu with ADIOS support" OFF)
+
+if(PIC_ENABLE_ADIOS)
+    # find adios installation
+    find_path(PIC_ADIOS_ROOT_DIR
+      NAMES include/adios.h lib/libadios.so
+      PATHS ENV ADIOS_ROOT
+      DOC "ADIOS ROOT location. (only used if ADIOS is enabled)"
+    )
+
+    if(PIC_ADIOS_ROOT_DIR)
+        message(STATUS "Found ADIOS: "${PIC_ADIOS_ROOT_DIR})
+        add_definitions(-DENABLE_ADIOS=1)
+        include_directories(SYSTEM ${PIC_ADIOS_ROOT_DIR}/include)
+        link_directories(${PIC_ADIOS_ROOT_DIR}/lib)
+        set(LIBS ${LIBS} adios)
+    elseif(PIC_ADIOS_ROOT_DIR)
+        message(STATUS "Could NOT find ADIOS")
+    endif(PIC_ADIOS_ROOT_DIR)
+
+    # find mxml installation
+    find_path(PIC_MXML_ROOT_DIR
+      NAMES include/mxml.h lib/libmxml.so
+      PATHS ENV MXML_ROOT
+      DOC "MXML ROOT location. (only used if ADIOS is enabled)"
+    )
+
+   if(PIC_MXML_ROOT_DIR)
+        message(STATUS "Found MXML: "${PIC_MXML_ROOT_DIR})
+        include_directories(SYSTEM ${PIC_MXML_ROOT_DIR}/include)
+        link_directories(${PIC_MXML_ROOT_DIR}/lib)
+        set(LIBS ${LIBS} mxml)
+    elseif(PIC_MXML_ROOT_DIR)
+        message(STATUS "Could NOT find MXML")
+    endif(PIC_MXML_ROOT_DIR)
+endif(PIC_ENABLE_ADIOS)
 
 
 ################################################################################

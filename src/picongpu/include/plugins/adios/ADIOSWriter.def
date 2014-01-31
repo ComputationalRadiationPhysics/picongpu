@@ -1,0 +1,89 @@
+/**
+ * Copyright 2014 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ *
+ * This file is part of PIConGPU. 
+ * 
+ * PIConGPU is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * 
+ * PIConGPU is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * along with PIConGPU.  
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */
+
+
+
+#pragma once
+
+#include "types.h"
+#include "simulation_types.hpp"
+#include "particles/frame_types.hpp"
+#include "simulationControl/MovingWindow.hpp"
+
+
+
+namespace picongpu
+{
+
+namespace adios
+{
+using namespace PMacc;
+
+namespace bmpl = boost::mpl;
+
+namespace po = boost::program_options;
+
+#define ADIOS_INVALID_HANDLE 0
+
+struct ThreadParams
+{
+    uint32_t currentStep;
+    int64_t adiosHandle;
+    GridLayout<simDim> gridLayout;
+    DataSpace<simDim> gridPosition;
+    MappingDesc *cellDescription;
+    
+    float *fieldBfr;
+
+    VirtualWindow window;
+};
+
+struct DomainInformation
+{
+    /* Offset from simulation origin to moving window */
+    DataSpace<simDim> globalDomainOffset;
+    /* Total size of current simulation area (i.e. moving window size) */
+    DataSpace<simDim> globalDomainSize;
+
+    /* Offset from simulation origin to this GPU */
+    DataSpace<simDim> domainOffset;
+    /* Size of this GPU */
+    DataSpace<simDim> domainSize;
+    
+    /* Offset of simulation area (i.e. moving window) from start of this GPU.
+     * >= 0 for top GPUs, 0 otherwise */
+    DataSpace<simDim> localDomainOffset;
+
+};
+
+/**
+ * Writes simulation data to adios files.
+ * Implements the ISimulationIO interface.
+ *
+ * @param ElectronsBuffer class description for electrons
+ * @param IonsBuffer class description for ions
+ * @param simDim dimension of the simulation (2-3)
+ */
+
+class ADIOSWriter;
+
+} //namespace adios
+} //namespace picongpu
+
