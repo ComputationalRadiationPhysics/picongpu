@@ -68,6 +68,8 @@ public:
      */
     virtual ~HostBufferIntern() throw (std::runtime_error)
     {
+        __startOperation(ITask::TASK_HOST);
+
         if (pointer && ownPointer)
         {
             CUDA_CHECK(cudaFreeHost(pointer));

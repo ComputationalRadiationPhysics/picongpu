@@ -86,6 +86,8 @@ namespace PMacc
 
         virtual ~DeviceBufferIntern()
         {
+            __startOperation(ITask::TASK_CUDA);
+
             if (sizeOnDevice)
             {
                 CUDA_CHECK(cudaFree(sizeOnDevicePtr));
