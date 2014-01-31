@@ -60,6 +60,9 @@ public:
      */
     virtual ~MappedBufferIntern() throw (std::runtime_error)
     {
+        __startOperation(ITask::TASK_CUDA);
+        __startOperation(ITask::TASK_HOST);
+
         if (pointer && ownPointer)
         {
             CUDA_CHECK(cudaFreeHost(pointer));
