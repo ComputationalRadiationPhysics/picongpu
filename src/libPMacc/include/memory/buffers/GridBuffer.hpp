@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ */
 
 
 #ifndef _GRIDBUFFER_HPP
@@ -140,8 +140,10 @@ public:
     {
         init(sizeOnDevice, false);
         this->deviceBuffer = new DeviceBufferIntern<TYPE, DIM >
-                (otherDeviceBuffer, /*!\todo: not nice but work, fix me*/
-                 this->gridLayout.getDataSpace(), DataSpace<DIM > (), sizeOnDevice);
+            (otherDeviceBuffer,
+             this->gridLayout.getDataSpace(),
+             DataSpace<DIM > (),
+             sizeOnDevice);
     }
 
     GridBuffer(
@@ -157,11 +159,13 @@ public:
     {
         init(sizeOnDevice, false, false);
         this->deviceBuffer = new DeviceBufferIntern<TYPE, DIM >
-                (otherDeviceBuffer, /*!\todo: not nice but work, fix me*/
-                 this->gridLayout.getDataSpace(), offsetDevice, sizeOnDevice);
+            (otherDeviceBuffer,
+             this->gridLayout.getDataSpace(),
+             offsetDevice, sizeOnDevice);
         this->hostBuffer = new HostBufferIntern<TYPE, DIM >
-                (*((HostBufferIntern<TYPE, DIM>*) & otherHostBuffer), /*!\todo: not nice but work, fix me*/
-                 this->gridLayout.getDataSpace(), offsetHost);
+            (*((HostBufferIntern<TYPE, DIM>*) & otherHostBuffer),
+             this->gridLayout.getDataSpace(),
+             offsetHost);
     }
 
     /**
@@ -239,8 +243,8 @@ public:
                 {
                     std::stringstream message;
                     message << "unique exchange communication tag ("
-                            << uniqCommunicationTag << ") witch is created from communicationTag ("
-                            << communicationTag << ") allready used for other gridbuffer exchange";
+                        << uniqCommunicationTag << ") witch is created from communicationTag ("
+                        << communicationTag << ") allready used for other gridbuffer exchange";
                     throw std::runtime_error(message.str());
                 }
                 hasOneExchange = true;
@@ -257,14 +261,14 @@ public:
                 ExchangeType recvex = Mask::getMirroredExchangeType(ex);
                 maxExchange = std::max(maxExchange, recvex + 1u);
                 receiveExchanges[recvex] =
-                        new ExchangeIntern<BORDERTYPE, DIM > (
-                                                              *deviceBuffer,
-                                                              gridLayout,
-                                                              guardingCells,
-                                                              recvex,
-                                                              uniqCommunicationTag,
-                                                              dataPlace == GUARD ? GUARD : BORDER,
-                                                              sizeOnDevice);
+                    new ExchangeIntern<BORDERTYPE, DIM > (
+                                                          *deviceBuffer,
+                                                          gridLayout,
+                                                          guardingCells,
+                                                          recvex,
+                                                          uniqCommunicationTag,
+                                                          dataPlace == GUARD ? GUARD : BORDER,
+                                                          sizeOnDevice);
             }
         }
     }
@@ -302,8 +306,8 @@ public:
                     {
                         std::stringstream message;
                         message << "unique exchange communication tag ("
-                                << uniqCommunicationTag << ") witch is created from communicationTag ("
-                                << communicationTag << ") allready used for other gridbuffer exchange";
+                            << uniqCommunicationTag << ") witch is created from communicationTag ("
+                            << communicationTag << ") allready used for other gridbuffer exchange";
                         throw std::runtime_error(message.str());
                     }
                     hasOneExchange = true;
@@ -525,8 +529,8 @@ private:
             receiveExchanges[i] = NULL;
             /* fill array with valid empty events to avoid side effects if
              * array is accessed without calling hasExchange() before usage */
-            receiveEvents[i]=EventTask();
-            sendEvents[i]=EventTask();
+            receiveEvents[i] = EventTask();
+            sendEvents[i] = EventTask();
         }
         if (buildDeviceBuffer)
         {

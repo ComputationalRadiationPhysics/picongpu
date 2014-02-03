@@ -122,6 +122,10 @@ namespace PMacc
          */
         virtual size_t* getCurrentSizeOnDevicePointer() = 0;
         
+        /** Returns host pointer of current size storage
+         * 
+         * @return pointer to stored value on host side
+         */
         virtual size_t* getCurrentSizeHostSidePointer()=0;
 
         /**
@@ -142,6 +146,10 @@ namespace PMacc
          */
         virtual const cudaPitchedPtr getCudaPitched() const = 0;
         
+        /** get line pitch of memory in byte
+         * 
+         * @return size of one line in memory
+         */
         virtual size_t getPitch() const = 0;
 
         /**

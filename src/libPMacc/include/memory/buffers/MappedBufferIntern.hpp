@@ -33,8 +33,10 @@
 namespace PMacc
 {
 
-/**
- * Implementation of the MappedBufferIntern interface.
+/** Implementation of the DeviceBuffer interface for cuda mapped memory
+ * 
+ * For all pmacc tasks and functions this buffer looks like native device buffer
+ * but in real it is stored in host memory.
  */
 template <class TYPE, unsigned DIM>
 class MappedBufferIntern : public DeviceBuffer<TYPE, DIM> // DeviceBufferIntern<TYPE, DIM>
@@ -43,10 +45,6 @@ public:
 
     typedef typename DeviceBuffer<TYPE, DIM>::DataBoxType DataBoxType;
 
-    /**
-     * constructor
-     * @param dataSpace DataSpace describing the size of the HostBufferIntern to be created
-     */
     MappedBufferIntern(DataSpace<DIM> dataSpace) throw (std::bad_alloc) :
     DeviceBuffer<TYPE, DIM>(dataSpace),
     pointer(NULL), ownPointer(true)
@@ -69,8 +67,8 @@ public:
         }
     }
 
-    /*! Get pointer of memory
-     * @return pointer to memory
+    /*! Get unchanged device pointer of memory
+     * @return device pointer to memory
      */
     TYPE* getBasePointer()
     {
@@ -78,6 +76,13 @@ public:
         return (TYPE*) this->getCudaPitched().ptr;
     }
 
+    /*! Get device pointer of memory
+     * 
+     * This pointer is shifted by the offset, if this buffer points to other
+     * existing buffer
+     * 
+     * @return device pointer to memory
+     */
     TYPE* getPointer()
     {
         __startOperation(ITask::TASK_HOST);
