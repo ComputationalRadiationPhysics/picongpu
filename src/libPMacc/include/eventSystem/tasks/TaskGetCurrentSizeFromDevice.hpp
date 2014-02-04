@@ -38,7 +38,7 @@ namespace PMacc
 
 
 template <class TYPE, unsigned DIM>
-class DeviceBufferIntern;
+class DeviceBuffer;
 
 template <class TYPE, unsigned DIM>
 class TaskGetCurrentSizeFromDevice : public StreamTask
@@ -48,7 +48,7 @@ public:
     TaskGetCurrentSizeFromDevice(DeviceBuffer<TYPE,DIM>& buffer):
     StreamTask()
     {
-        this->buffer = (DeviceBufferIntern<TYPE, DIM>*) & buffer;
+        this->buffer =  & buffer;
     }
 
     virtual ~TaskGetCurrentSizeFromDevice()
@@ -82,7 +82,7 @@ public:
 
 private:
 
-    DeviceBufferIntern<TYPE, DIM> *buffer;
+    DeviceBuffer<TYPE, DIM> *buffer;
 };
 
 } //namespace PMacc

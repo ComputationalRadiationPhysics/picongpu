@@ -73,11 +73,11 @@ namespace PMacc
 
         }
 
-        DeviceBufferIntern(DeviceBufferIntern& source, DataSpace<DIM> dataSpace, DataSpace<DIM> offset, bool sizeOnDevice = false) :
+        DeviceBufferIntern(DeviceBuffer<TYPE,DIM>& source, DataSpace<DIM> dataSpace, DataSpace<DIM> offset, bool sizeOnDevice = false) :
         DeviceBuffer<TYPE, DIM>(dataSpace),
         sizeOnDevice(sizeOnDevice),
         offset(offset + source.getOffset()),
-        data(source.data),
+        data(source.getCudaPitched()),
         useOtherMemory(true)
         {
             createSizeOnDevice(sizeOnDevice);
@@ -86,6 +86,8 @@ namespace PMacc
 
         virtual ~DeviceBufferIntern()
         {
+            __startOperation(ITask::TASK_CUDA);
+
             if (sizeOnDevice)
             {
                 CUDA_CHECK(cudaFree(sizeOnDevicePtr));

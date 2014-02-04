@@ -50,7 +50,7 @@ namespace PMacc
      * @param registeringTask optional pointer to an ITask which should be registered at the new task as an observer
      */
     template <class TYPE, unsigned DIM>
-    inline EventTask Factory::createTaskCopyHostToDevice(const HostBuffer<TYPE, DIM>& src, DeviceBuffer<TYPE, DIM>& dst,
+    inline EventTask Factory::createTaskCopyHostToDevice(HostBuffer<TYPE, DIM>& src, DeviceBuffer<TYPE, DIM>& dst,
     ITask *registeringTask)
     {
 
@@ -66,7 +66,7 @@ namespace PMacc
      * @param registeringTask optional pointer to an ITask which should be registered at the new task as an observer
      */
     template <class TYPE, unsigned DIM>
-    inline EventTask Factory::createTaskCopyDeviceToHost(const DeviceBuffer<TYPE, DIM>& src,
+    inline EventTask Factory::createTaskCopyDeviceToHost(DeviceBuffer<TYPE, DIM>& src,
     HostBuffer<TYPE, DIM>& dst,
     ITask *registeringTask)
     {
@@ -82,7 +82,7 @@ namespace PMacc
      * @param registeringTask optional pointer to an ITask which should be registered at the new task as an observer
      */
     template <class TYPE, unsigned DIM>
-    inline EventTask Factory::createTaskCopyDeviceToDevice(const DeviceBuffer<TYPE, DIM>& src, DeviceBuffer<TYPE, DIM>& dst,
+    inline EventTask Factory::createTaskCopyDeviceToDevice( DeviceBuffer<TYPE, DIM>& src, DeviceBuffer<TYPE, DIM>& dst,
     ITask *registeringTask)
     {
         TaskCopyDeviceToDevice<TYPE, DIM>* task = new TaskCopyDeviceToDevice<TYPE, DIM > (src, dst);

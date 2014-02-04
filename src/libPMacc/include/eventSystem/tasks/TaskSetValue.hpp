@@ -31,7 +31,7 @@
 #include "memory/boxes/DataBox.hpp"
 
 #include "eventSystem/EventSystem.hpp"
-#include "memory/buffers/DeviceBufferIntern.hpp"
+#include "memory/buffers/DeviceBuffer.hpp"
 #include "eventSystem/tasks/StreamTask.hpp"
 #include "mappings/simulation/EnvironmentController.hpp"
 
@@ -122,7 +122,7 @@ __global__ void kernelSetValue(DataBox data, const TYPE value, const DataSpace<D
 
 
 template <class TYPE, unsigned DIM>
-class DeviceBufferIntern;
+class DeviceBuffer;
 
 /*Set a value for a GridBuffer on the defice
  * TYPE  = data type (e.g. float, float2)
@@ -141,7 +141,7 @@ public:
     StreamTask(),
     value(value)
     {
-        this->destination = static_cast<DeviceBufferIntern<TYPE, DIM>*> (& dst);
+        this->destination = static_cast<DeviceBuffer<TYPE, DIM>*> (& dst);
     }
 
     virtual ~TaskSetValue()
@@ -195,7 +195,7 @@ private:
         this->activate();
     }
 
-    DeviceBufferIntern<TYPE, DIM> *destination;
+    DeviceBuffer<TYPE, DIM> *destination;
     //TYPE *valuePointer_dev;
     TYPE *valuePointer_host;
     TYPE value;
@@ -210,7 +210,7 @@ public:
     StreamTask(),
     value(value)
     {
-        this->destination = static_cast<DeviceBufferIntern<TYPE, DIM>*> (& dst);
+        this->destination = & dst;
     }
 
     virtual ~TaskSetValue()
@@ -261,7 +261,7 @@ private:
         this->activate();
     }
 
-    DeviceBufferIntern<TYPE, DIM> *destination;
+    DeviceBuffer<TYPE, DIM> *destination;
     TYPE value;
 };
 
