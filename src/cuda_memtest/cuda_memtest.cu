@@ -50,6 +50,8 @@
 #include <cuda.h>
 
 #define MAX_NUM_GPUS 8
+bool useMappedMemory;
+void* mappedHostPtr;
 char hostname[64];
 unsigned int verbose =0;
 unsigned int interactive =0;
@@ -174,13 +176,22 @@ thread_func(void* _arg)
 
     tot_num_blocks = MIN(tot_num_blocks, free/BLOCKSIZE - 16);
     do{
-	tot_num_blocks -= 16 ; //maigc number 16 MB
-	DEBUG_PRINTF("Trying to allocate %d MB\n", tot_num_blocks);
-	if (tot_num_blocks <= 0){
-		FPRINTF("ERROR: cannot allocate any memory from GPU\n");
-		exit(ERR_GENERAL);
-	}
-	cudaMalloc((void**)&ptr, tot_num_blocks* BLOCKSIZE); 
+        tot_num_blocks -= 16 ; //maigc number 16 MB
+        DEBUG_PRINTF("Trying to allocate %d MB\n", tot_num_blocks);
+        if (tot_num_blocks <= 0){
+            FPRINTF("ERROR: cannot allocate any memory from GPU\n");
+            exit(ERR_GENERAL);
+        }
+        if(useMappedMemory)
+        {
+            //create cuda mapped memory
+            cudaHostAlloc((void**)&mappedHostPtr,tot_num_blocks* BLOCKSIZE,cudaHostAllocMapped);
+            cudaHostGetDevicePointer(&ptr,mappedHostPtr,0);
+        }
+        else
+        {
+            cudaMalloc((void**)&ptr, tot_num_blocks* BLOCKSIZE); 
+        }
     }while(cudaGetLastError() != cudaSuccess);
     
     PRINTF("Allocated %d MB\n", tot_num_blocks);
@@ -224,6 +235,7 @@ usage(char** argv)
 	    
     printf("Usage:%s [options]\n", argv[0]);    
     printf("options:\n");
+    printf("--mappedMem                 run all checks with cuda mapped memory instead of native device memory\n");
     printf("--silent                    Do not print out progress message (default)\n");
     printf("--device <idx>              Designate one device for test\n");
     printf("--interactive               Progress info will be printed in the same line\n");
@@ -259,7 +271,8 @@ int
 main(int argc, char** argv)
 {
     int i;
-    
+    useMappedMemory=false;
+    mappedHostPtr=NULL;
     
     if (argc >=2 ){
 	if( strcmp(argv[1], "--help")== 0){
@@ -294,6 +307,11 @@ main(int argc, char** argv)
 	
 	if( strcmp(argv[i], "--help")== 0){
 	    usage(argv);
+	}
+    
+    if( strcmp(argv[i], "--mappedMem")== 0){
+	    useMappedMemory=true;
+        continue;
 	}
 	
 	if( strcmp(argv[i], "--verbose") == 0){
