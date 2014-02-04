@@ -39,7 +39,7 @@ namespace PMacc
  * but in real it is stored in host memory.
  */
 template <class TYPE, unsigned DIM>
-class MappedBufferIntern : public DeviceBuffer<TYPE, DIM> // DeviceBufferIntern<TYPE, DIM>
+class MappedBufferIntern : public DeviceBuffer<TYPE, DIM>
 {
 public:
 
