@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2014 Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -31,8 +31,6 @@
 namespace picongpu
 {
 
-namespace hdf5
-{
 using namespace PMacc;
 
 
@@ -115,9 +113,6 @@ __global__ void copySpecies(int* counter, T_DestFrame destFrame, T_SrcBox srcBox
         __syncthreads();
     }
 }
-
-
-} //namspace hdf5
 
 } //namespace picongpu
 

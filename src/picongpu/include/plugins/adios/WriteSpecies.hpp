@@ -159,7 +159,6 @@ public:
         /*write species counter table to adios file*/
         log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) writing particle index table for %1%") % AdiosFrameType::getName();
         {
-            ColTypeUInt64_5Array ctUInt64_5;
             GridController<simDim>& gc = GridController<simDim>::getInstance();
             
             const size_t pos_offset = 2;
@@ -176,7 +175,7 @@ public:
             if (particleOffset[1] < 0) // 1 == y
                 particlesMetaInfo[pos_offset + 1] = 0;
 
-            params.get()->dataCollector->write(
+            /*params.get()->dataCollector->write(
                 params.get()->currentStep,
                 Dimensions(gc.getGlobalSize(), 1, 1),
                 Dimensions(gc.getGlobalRank(), 0, 0),
@@ -184,7 +183,7 @@ public:
                 Dimensions(1, 1, 1),
                 (std::string("particles/") + FrameType::getName() + std::string("/") +
                     subGroup + std::string("/particles_info")).c_str(),
-                particlesMetaInfo);
+                particlesMetaInfo);*/
         }
         log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) writing particle index table for %1%") % AdiosFrameType::getName();
         

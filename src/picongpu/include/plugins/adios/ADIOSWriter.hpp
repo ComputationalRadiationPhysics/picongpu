@@ -110,8 +110,8 @@ private:
         return tmp;
     }
 
-    /** Write calculated fields to adios file.
-     *
+    /** 
+     * Write calculated fields to adios file.
      */
     template< typename T >
     struct GetFields
@@ -135,8 +135,10 @@ private:
             T* field = &(dc.getData<T > (T::getCommTag()));
             params.get()->gridLayout = field->getGridLayout();
 
+            PICToAdios<float> adiosType;
             writeField(params.get(),
                        sizeof(float),
+                       adiosType.type,
                        domInfo,
                        T::numComponents,
                        T::getName(),
@@ -175,7 +177,6 @@ private:
     private:
         typedef typename FieldTmp::ValueType ValueType;
         typedef typename GetComponentsType<ValueType>::type ComponentType;
-        typedef typename PICToADIOS<ComponentType>::type AdiosType;
 
         /** Create a name for the adios identifier.
          */
@@ -223,14 +224,14 @@ private:
             /*## finish update field ##*/
 
             const uint32_t components = GetNComponents<ValueType>::value;
-            SplashType splashType;
+            PICToAdios<ComponentType> adiosType;
 
             params.get()->gridLayout = fieldTmp->getGridLayout();
             /*write data to ADIOS file*/
             writeField(params.get(),
-                       sizeof(float),
+                       sizeof(ComponentType),
+                       adiosType.type,
                        domInfo,
-                       adiosType,
                        components,
                        getName<ThisSolver, ThisSpecies>(),
                        getUnit<ThisSolver>(),
@@ -238,6 +239,125 @@ private:
 
             dc.releaseData(FIELD_TMP);
 
+        }
+
+    };
+    
+    static void defineFieldVar(ThreadParams* params, const DomainInformation domInfo,
+        uint32_t nComponents, ADIOS_DATATYPES adiosType, const std::string name)
+    {
+        const std::string name_lookup_tpl[] = {"x", "y", "z", "w"};
+        
+        std::stringstream fieldLocalSizeStr;
+        std::stringstream fieldGlobalSizeStr;
+        std::stringstream fieldGlobalOffsetStr;
+        
+        for (uint32_t d = 0; d < simDim; ++d)
+        {
+            fieldLocalSizeStr << ADIOS_SIZE_LOCAL << name_lookup_tpl[d];
+            fieldGlobalSizeStr << ADIOS_SIZE_GLOBAL << name_lookup_tpl[d];
+            fieldGlobalOffsetStr << ADIOS_OFFSET_GLOBAL << name_lookup_tpl[d];
+
+            if (d < simDim - 1)
+            {
+                fieldLocalSizeStr << ",";
+                fieldGlobalSizeStr << ",";
+                fieldGlobalOffsetStr << ",";
+            }
+        }
+        
+        for (uint32_t c = 0; c < nComponents; c++)
+        {
+            std::stringstream datasetName;
+            datasetName << ADIOS_FIELDS_NAME << "_" << name;
+            if (nComponents > 1)
+                datasetName << "_" << name_lookup_tpl[c];
+            
+            /* define adios var for field, e.g. field_FieldE_y */
+            int64_t adiosFieldVarId = adios_define_var(
+                    params->adiosFieldsGroup,
+                    datasetName.str().c_str(),
+                    "",
+                    adiosType,
+                    fieldLocalSizeStr.str().c_str(),
+                    fieldGlobalSizeStr.str().c_str(),
+                    fieldGlobalOffsetStr.str().c_str());
+            
+            params->adiosFieldVarIds.push_back(adiosFieldVarId);
+        }
+    }
+    
+    /**
+     * Collect field sizes to set adios group size.
+     */
+    template< typename T >
+    struct CollectFieldsSizes
+    {        
+    public:
+
+        HDINLINE void operator()(RefWrapper<ThreadParams*> params, const DomainInformation domInfo)
+        {
+#ifndef __CUDA_ARCH__
+            const uint32_t components = T::numComponents;
+
+            uint64_t localGroupSize = 
+                    (domInfo.globalDomainSize.productOfComponents() *
+                    sizeof(float) + 3 * sizeof(int)) *
+                    components;
+            
+            params.get()->adiosGroupSize += localGroupSize;
+            
+            PICToAdios<float> adiosType;
+            defineFieldVar(params.get(), domInfo, components, adiosType.type, T::getName());
+#endif
+        }
+    };
+    
+    /**
+     * Collect field sizes to set adios group size.
+     * Specialization.
+     */
+    template< typename ThisSolver, typename ThisSpecies >
+    struct CollectFieldsSizes<FieldTmpOperation<ThisSolver, ThisSpecies> >
+    {
+    public:
+        
+        PMACC_NO_NVCC_HDWARNING
+        HDINLINE void operator()(RefWrapper<ThreadParams*> tparam, const DomainInformation domInfo)
+        {
+            this->operator_impl(tparam, domInfo);
+        }
+        
+   private:
+        typedef typename FieldTmp::ValueType ValueType;
+        typedef typename GetComponentsType<ValueType>::type ComponentType;
+        
+        /** Create a name for the adios identifier.
+         */
+        template< typename Solver, typename Species >
+        static std::string getName()
+        {
+            std::stringstream str;
+            str << FieldTmp::getName<Solver>();
+            str << "_";
+            str << Species::FrameType::getName();
+            return str.str();
+        }
+
+        HINLINE void operator_impl(RefWrapper<ThreadParams*> params, const DomainInformation domInfo)
+        {
+            const uint32_t components = GetNComponents<ValueType>::value;
+
+            uint64_t localGroupSize = 
+                    domInfo.globalDomainSize.productOfComponents() *
+                    sizeof(ComponentType) *
+                    components;
+            
+            params.get()->adiosGroupSize += localGroupSize;
+            
+            PICToAdios<ComponentType> adiosType;
+            defineFieldVar(params.get(), domInfo, components, adiosType.type,
+                    getName<ThisSolver, ThisSpecies>());
         }
 
     };
@@ -294,43 +414,29 @@ public:
 
         __getTransactionEvent().waitForFinished();
 
-        openAdiosFile();
+        beginAdios();
 
         writeAdios((void*) &mThreadParams);
 
-        closeAdiosFile();
-
+        endAdios();
     }
 
 private:
 
-    void closeAdiosFile()
-    {
-        if (mThreadParams.adiosHandle != ADIOS_INVALID_HANDLE)
-        {
-            log<picLog::INPUT_OUTPUT > ("ADIOS: closing file: %1%") % filename;
-            adios_close(mThreadParams.adiosHandle);
-
-            __deleteArray(mThreadParams.fieldBfr);
-        }
+    void endAdios()
+    {        
+        __deleteArray(mThreadParams.fieldBfr);
     }
 
-    void openAdiosFile()
+    void beginAdios()
     {
-        GridController<simDim> &gc = GridController<simDim>::getInstance();
-
         std::stringstream full_filename;
         full_filename << filename << "_" << mThreadParams.currentStep << ".bp";
 
-        // open adios file
-        log<picLog::INPUT_OUTPUT > ("ADIOS open file: %1%") % filename;
-        mThreadParams.adiosHandle = ADIOS_INVALID_HANDLE;
-        adios_open(&(mThreadParams.adiosHandle), "fields", full_filename.str().c_str(),
-            "w", gc.getCommunicator().getMPIComm());
-        
-        if (mThreadParams.adiosHandle == ADIOS_INVALID_HANDLE)
-            throw std::runtime_error("Failed to open ADIOS file");
+        mThreadParams.fullFilename = full_filename.str();
+        mThreadParams.adiosFileHandle = ADIOS_INVALID_HANDLE;
 
+        mThreadParams.fieldBfr = NULL;
         mThreadParams.fieldBfr = new float[mThreadParams.window.localSize.productOfComponents()];
     }
 
@@ -338,8 +444,6 @@ private:
     {
         if (notifyFrequency > 0)
         {
-            mThreadParams.adiosHandle = ADIOS_INVALID_HANDLE;
-            mThreadParams.fieldBfr = NULL;
             mThreadParams.gridPosition =
                 SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset();
 
@@ -354,7 +458,12 @@ private:
 
             DataConnector::getInstance().registerObserver(this, notifyFrequency);
             
-            adios_init(xmlFilename.c_str(), gc.getCommunicator().getMPIComm());
+            /* Initialize adios library */
+            MPI_CHECK(MPI_Comm_dup(gc.getCommunicator().getMPIComm(), &(mThreadParams.adiosComm)));
+            ADIOS_CMD(adios_init_noxml(mThreadParams.adiosComm));
+
+            /* allocate 1MB buffer (we need a buffer even if it is too small) */
+            ADIOS_CMD(adios_allocate_buffer(ADIOS_BUFFER_ALLOC_NOW, 1));
         }
 
         loaded = true;
@@ -364,11 +473,14 @@ private:
     {
         if (notifyFrequency > 0)
         {
-            adios_finalize(GridController<simDim>::getInstance().getCommunicator().getRank());
+            /* Finalize adios library */
+            ADIOS_CMD(adios_finalize(GridController<simDim>::getInstance()
+                    .getCommunicator().getRank()));
         }
     }
 
     static void writeField(ThreadParams *params, const uint32_t sizePtrType,
+                           ADIOS_DATATYPES adiosType,
                            const DomainInformation domInfo,
                            const uint32_t nComponents, const std::string name,
                            std::vector<double> unit, void *ptr)
@@ -376,53 +488,21 @@ private:
         log<picLog::INPUT_OUTPUT > ("ADIOS: write field: %1% %2% %3%") %
             name % nComponents % ptr;
 
-        std::vector<std::string> name_lookup;
-        {
-            const std::string name_lookup_tpl[] = {"x", "y", "z", "w"};
-            for (uint32_t d = 0; d < nComponents; d++)
-                name_lookup.push_back(name_lookup_tpl[d]);
-        }
-
-        /*data to describe source buffer*/
+        /* data to describe source buffer */
         GridLayout<simDim> field_layout = params->gridLayout;
         DataSpace<simDim> field_full = field_layout.getDataSpace();
         DataSpace<simDim> field_no_guard = domInfo.domainSize;
         DataSpace<simDim> field_guard = field_layout.getGuard() + domInfo.localDomainOffset;
-        /* globalSlideOffset due to gpu slides between origin at time step 0
-         * and origin at current time step
-         * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
-         */
-        DataSpace<simDim> globalSlideOffset = DataSpace<simDim>(
-                                                                0,
-                                                                params->window.slides *
-                                                                params->window.localFullSize.y(),
-                                                                0);
-        DataSpace<simDim> splashGlobalDomainOffset;
-        DataSpace<simDim> splashGlobalOffsetFile;
-        DataSpace<simDim> splashGlobalDomainSize;
 
-        for (uint32_t d = 0; d < simDim; ++d)
-        {
-            splashGlobalOffsetFile[d] = domInfo.domainOffset[d];
-            splashGlobalDomainOffset[d] = domInfo.globalDomainOffset[d] + globalSlideOffset[d];
-            splashGlobalDomainSize[d] = domInfo.globalDomainSize[d];
-        }
-        
-        splashGlobalOffsetFile[1] = std::max(0, domInfo.domainOffset[1] -
-                domInfo.globalDomainOffset[1]);
-
+        /* write the actual field data */
         for (uint32_t d = 0; d < nComponents; d++)
-        {
-            std::stringstream datasetName;
-            datasetName << "fields_" << name;
-            if (nComponents > 1)
-                datasetName << "_" << name_lookup.at(d);
-            
+        {            
             const size_t plane_full_size = field_full[1] * field_full[0] * nComponents;
             const size_t plane_no_guard_size = field_no_guard[1] * field_no_guard[0];
 
-            // copy strided data from source to temporary buffer
+            /* copy strided data from source to temporary buffer */
             for (int z = 0; z < field_no_guard[2]; ++z)
+            {
                 for (int y = 0; y < field_no_guard[1]; ++y)
                 {
                     const size_t base_index_src =
@@ -441,11 +521,39 @@ private:
                         params->fieldBfr[index_dst] = ((float*)ptr)[index_src];
                     }
                 }
+            }
 
-                // write the actual field data
-                adios_write(params->adiosHandle, datasetName.str().c_str(), params->fieldBfr);
+            /* Write the actual field data. The id is on the front of the list. */
+            if (params->adiosFieldVarIds.empty())
+                throw std::runtime_error("Cannot write field (var id list is empty)");
+            
+            int64_t adiosFieldVarId = *(params->adiosFieldVarIds.begin());
+            params->adiosFieldVarIds.pop_front();
+            ADIOS_CMD(adios_write_byid(params->adiosFileHandle, adiosFieldVarId, params->fieldBfr));
         }
+    }
+    
+    static void defineAdiosFieldVars(ThreadParams *params, DomainInformation &domInfo)
+    {
+        /* create adios size/offset variables required for writing the actual field data */        
+        const std::string name_lookup_tpl[] = {"x", "y", "z"};
 
+        for (uint32_t d = 0; d < simDim; ++d)
+        {
+            params->adiosSizeVarIds[d] = adios_define_var(params->adiosFieldsGroup,
+                    (std::string(ADIOS_SIZE_LOCAL) + name_lookup_tpl[d]).c_str(),
+                    "", adios_integer, 0, 0, 0);
+            
+            params->adiosTotalSizeVarIds[d] = adios_define_var(params->adiosFieldsGroup,
+                    (std::string(ADIOS_SIZE_GLOBAL) + name_lookup_tpl[d]).c_str(),
+                    "", adios_integer, 0, 0, 0);
+            
+            params->adiosOffsetVarIds[d] = adios_define_var(params->adiosFieldsGroup,
+                    (std::string(ADIOS_OFFSET_GLOBAL) + name_lookup_tpl[d]).c_str(),
+                    "", adios_integer, 0, 0, 0);
+            
+            params->adiosGroupSize += sizeof(int) * 3;
+        }
     }
 
     static void *writeAdios(void *p_args)
@@ -454,12 +562,12 @@ private:
         // synchronize, because following operations will be blocking anyway
         ThreadParams *threadParams = (ThreadParams*) (p_args);
 
-        /* write number of slides to timestep in adios file*/
-        //uint32_t slides = threadParams->window.slides;
+        /* write number of slides to timestep in adios file */
+        uint32_t slides = threadParams->window.slides;
 
         /* build clean domain info (picongpu view) */
         DomainInformation domInfo;
-        /* set global offset (from physical origin) to our first gpu data area*/
+        /* set global offset (from physical origin) to our first gpu data area */
         domInfo.localDomainOffset = threadParams->window.localOffset;
         domInfo.globalDomainOffset = threadParams->window.globalSimulationOffset;
         domInfo.globalDomainSize = threadParams->window.globalWindowSize;
@@ -470,21 +578,85 @@ private:
         domInfo.domainOffset += domInfo.localDomainOffset;
         domInfo.domainSize = threadParams->window.localSize;
 
-        /* y direction can be negative for first gpu*/
+        /* y direction can be negative for first gpu */
         DataSpace<simDim> particleOffset(threadParams->gridPosition);
         particleOffset.y() -= threadParams->window.globalSimulationOffset.y();
 
-        /*print all fields*/
+        /* create adios group for fields without statistics */
+        ADIOS_CMD(adios_declare_group(&(threadParams->adiosFieldsGroup),
+                ADIOS_FIELDS_NAME, "iteration", adios_flag_no));
+        ADIOS_CMD(adios_select_method(threadParams->adiosFieldsGroup, "MPI", "", ""));
+        
+        /* define global variables */
+        threadParams->adiosGroupSize = 2 * sizeof(unsigned int);
+        ADIOS_CMD_EXPECT_NONZERO(adios_define_var(threadParams->adiosFieldsGroup,
+                "iteration", "", adios_unsigned_integer, 0, 0, 0));
+        ADIOS_CMD_EXPECT_NONZERO(adios_define_var(threadParams->adiosFieldsGroup,
+                "sim_slides", "", adios_unsigned_integer, 0, 0, 0));
+        defineAdiosFieldVars(threadParams, domInfo);
+        
+        /* collect size information for each field to be written and define 
+         * field variables
+         */
+        threadParams->adiosFieldVarIds.clear();
+        ForEach<FileOutputFields, CollectFieldsSizes<void> > forEachCollectFieldsSizes;
+        forEachCollectFieldsSizes(ref(threadParams), domInfo);
+
+        /* open adios file. all variables need to be defined at this point */
+        log<picLog::INPUT_OUTPUT > ("ADIOS open file: %1%") % threadParams->fullFilename;
+        ADIOS_CMD(adios_open(&(threadParams->adiosFileHandle),
+                ADIOS_FIELDS_NAME,
+                threadParams->fullFilename.c_str(),
+                "w",
+                threadParams->adiosComm));
+        
+        if (threadParams->adiosFileHandle == ADIOS_INVALID_HANDLE)
+            throw std::runtime_error("Failed to open ADIOS file");
+        
+        /* set adios group size (total size of all data to be written) */
+        uint64_t adiosTotalSize;
+        ADIOS_CMD(adios_group_size(threadParams->adiosFileHandle,
+                threadParams->adiosGroupSize, &adiosTotalSize));
+        
+        /* write global variables */
+        ADIOS_CMD(adios_write(threadParams->adiosFileHandle, "iteration",
+                &(threadParams->currentStep)));
+        ADIOS_CMD(adios_write(threadParams->adiosFileHandle, "sim_slides", &slides));
+        
+        /* write created variable values */
+        for (uint32_t d = 0; d < simDim; ++d)
+        {
+            int offset = domInfo.domainOffset[d];
+            
+            if (1 == d)
+                offset = std::max(0, domInfo.domainOffset[1] - domInfo.globalDomainOffset[1]);
+            
+            ADIOS_CMD(adios_write_byid(threadParams->adiosFileHandle,
+                    threadParams->adiosSizeVarIds[d], &(domInfo.domainSize[d])));
+            ADIOS_CMD(adios_write_byid(threadParams->adiosFileHandle,
+                    threadParams->adiosTotalSizeVarIds[d], &(domInfo.globalDomainSize[d])));
+            ADIOS_CMD(adios_write_byid(threadParams->adiosFileHandle,
+                    threadParams->adiosOffsetVarIds[d], &offset));
+        }
+        
+        /* write fields */
         ForEach<FileOutputFields, GetFields<void> > forEachGetFields;
         forEachGetFields(ref(threadParams), domInfo);
-
-        /*print all particle species*/
-        /*log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) writing particle species.");
-        ForEach<FileOutputParticles, WriteSpecies<void> > writeSpecies;
-        writeSpecies(ref(threadParams), std::string(), domInfo, particleOffset);
-        log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing particle species.");*/
+        
+        /* close adios file, most liekly the actual write point */
+        log<picLog::INPUT_OUTPUT > ("ADIOS: closing file: %1%") % threadParams->fullFilename;
+        ADIOS_CMD(adios_close(threadParams->adiosFileHandle));
+        
+        /*\todo: copied from adios example, we might not need this ? */
+        MPI_Barrier(threadParams->adiosComm);
 
         return NULL;
+        
+        /*print all particle species*/
+        log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) writing particle species.");
+        ForEach<FileOutputParticles, WriteSpecies<void> > writeSpecies;
+        writeSpecies(ref(threadParams), std::string(), domInfo, particleOffset);
+        log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing particle species.");
 
         if (MovingWindow::getInstance().isSlidingWindowActive())
         {

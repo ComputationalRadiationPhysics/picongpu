@@ -23,7 +23,7 @@
 #include "types.h"
 #include "simulation_types.hpp"
 #include "plugins/adios/ADIOSWriter.def"
-//#include "traits/PICToSplash.hpp"
+#include "traits/PICToAdios.hpp"
 #include "traits/GetComponentsType.hpp"
 #include "traits/GetNComponents.hpp"
 
@@ -62,29 +62,19 @@ struct ParticleAttribute
                             const size_t elements)
     {
 
-        typedef T_Identifier Identifier;
+        /*typedef T_Identifier Identifier;
         typedef typename Identifier::type ValueType;
         const uint32_t components = GetNComponents<ValueType>::value;
         typedef typename GetComponentsType<ValueType>::type ComponentType;
 
-        typedef typename ADIOSToSplash<ComponentType>::type AdiosType;
+        typedef typename PICtoAdios<ComponentType>::type AdiosType;
 
         log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) write species attribute: %1%") % Identifier::getName();
 
-        SplashType splashType;
+        AdiosType adiosType;
         const std::string name_lookup[] = {"x", "y", "z"};
 
         std::vector<double> unit = Unit<T_Identifier>::get();
-
-        /* globalSlideOffset due to gpu slides between origin at time step 0
-         * and origin at current time step
-         * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
-         */
-        DataSpace<simDim> globalSlideOffset = DataSpace<simDim>(
-                                                                0,
-                                                                params.get()->window.slides *
-                                                                params.get()->window.localFullSize.y(),
-                                                                0);
 
         Dimensions splashDomainOffset(0, 0, 0);
         Dimensions splashGlobalDomainOffset(0, 0, 0);
@@ -110,7 +100,7 @@ struct ParticleAttribute
             ValueType* dataPtr = frame.get().getIdentifier(Identifier()).getPointer();
 
             params.get()->dataCollector->writeDomain(params.get()->currentStep, 
-                                                     splashType, 
+                                                     adiosType, 
                                                      1u, 
                                                      Dimensions(elements*components, 1, 1),
                                                      Dimensions(components, 1, 1),
@@ -133,7 +123,7 @@ struct ParticleAttribute
 
         }
         log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) write species attribute: %1%") %
-            Identifier::getName();
+            Identifier::getName();*/
     }
 
 };
