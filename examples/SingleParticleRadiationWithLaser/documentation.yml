@@ -40,8 +40,8 @@ test:
   - nonlinearThomsonScattering:
       name:        nonlinear Thomson scattering from a single electron
       description: |
-                   This test simulates an electron bunch with a relativistic
-                   gamma factor of gamma=5.0 and with a laser with a_0=1.0.
+                   This test simulates an electron with a relativistic gamma 
+                   factor of gamma=5.0 interacting with a laser of a_0=1.0.
                    The resulting radiation should be boosted in the direction 
                    of the electron's momentum and should contain higher
                    harmonics do to the high laser intensity. 
