@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -17,11 +17,9 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ */
 
-
-#ifndef _TASKSETVALUE_HPP
-#define _TASKSETVALUE_HPP
+#pragma once
 
 #include <cuda_runtime_api.h>
 #include <cuda.h>
@@ -35,125 +33,103 @@
 #include "eventSystem/tasks/StreamTask.hpp"
 #include "mappings/simulation/EnvironmentController.hpp"
 
+#include <boost/type_traits/remove_pointer.hpp>
+#include <boost/type_traits.hpp>
+
 namespace PMacc
 {
-
-template <class DataBox>
-__global__ void kernelSetValue(DataBox data ,const DataSpace<DIM3> size)
+namespace taskSetValueHelper
 {
-    DataSpace<DIM3> idx;
 
-    idx[0] = blockDim.x * (blockIdx.x/size.z()) + threadIdx.x;
-    idx[1] = blockDim.y * blockIdx.y;
-    idx[2] = blockIdx.x%size.z();
+/** define access operation normal values
+ */
+template<typename T_Type, bool isPointer>
+struct Value
+{
+    typedef const T_Type type;
+
+    HDINLINE type& operator()(type& v) const
+    {
+        return v;
+    }
+};
+
+/** define access operation for pointer
+ * 
+ * access first element of a pointer
+ */
+template<typename T_Type>
+struct Value<T_Type, true>
+{
+    typedef const T_Type PtrType;
+    typedef const typename boost::remove_pointer<PtrType>::type type;
+
+    HDINLINE type& operator()(PtrType v) const
+    {
+        return *v;
+    }
+};
+
+/** Get access to a value from a pointer or reference with the same method
+ */
+template<typename T_Type>
+HDINLINE typename Value<T_Type, boost::is_pointer<T_Type>::value >::type&
+getValue(T_Type value)
+{
+    typedef Value<T_Type, boost::is_pointer<T_Type>::value > Functor;
+    return Functor()(value);
+}
+
+}
+
+template <class DataBox, typename T_ValueType, typename Space>
+__global__ void kernelSetValue(DataBox data, const T_ValueType value, const Space size)
+{
+    const Space threadIndex(threadIdx);
+    const Space blockIndex(blockIdx);
+    const Space gridSize(blockDim);
+
+    Space idx(gridSize * blockIndex + threadIndex);
 
     if (idx.x() >= size.x())
         return;
-    data[idx.z()][idx.y()][idx.x()] = *data;
-}
-
-template <class DataBox>
-__global__ void kernelSetValue(DataBox data, const DataSpace<DIM2> size)
-{
-    DataSpace<DIM2> idx;
-
-    idx[0] = blockDim.x * blockIdx.x + threadIdx.x;
-    idx[1] = blockDim.y * blockIdx.y + threadIdx.y;
-
-    if (idx.x() >= size.x())
-        return;
-
-    data[idx.y()][idx.x()] = *data;
-}
-
-template <class DataBox>
-__global__ void kernelSetValue(DataBox data, const DataSpace<DIM1> size)
-{
-    size_t idx;
-
-    idx = blockDim.x * blockIdx.x + threadIdx.x;
-
-    if (idx >= size.x())
-        return;
-
-    data[idx] = *data;
-}
-
-template <class DataBox,typename TYPE>
-__global__ void kernelSetValue(DataBox data, const TYPE value, const DataSpace<DIM3> size)
-{
-    DataSpace<DIM3> idx;
-
-    idx[0] = blockDim.x * (blockIdx.x/size.z()) + threadIdx.x;
-    idx[1] = blockDim.y * blockIdx.y;
-    idx[2] = blockIdx.x%size.z();
-
-    if (idx.x() >= size.x())
-        return;
-    data[idx.z()][idx.y()][idx.x()] = value;
-}
-
-template <class DataBox,typename TYPE>
-__global__ void kernelSetValue(DataBox data, const TYPE value, const DataSpace<DIM2> size)
-{
-    DataSpace<DIM2> idx;
-
-    idx[0] = blockDim.x * blockIdx.x + threadIdx.x;
-    idx[1] = blockDim.y * blockIdx.y + threadIdx.y;
-
-    if (idx.x() >= size.x())
-        return;
-
-    data[idx.y()][idx.x()] = value;
-}
-
-template <class DataBox,typename TYPE>
-__global__ void kernelSetValue(DataBox data, const TYPE value, const DataSpace<DIM1> size)
-{
-    int idx;
-
-    idx = blockDim.x * blockIdx.x + threadIdx.x;
-
-    if (idx >= size.x())
-        return;
-
-    data[idx] = value;
+    data(idx) = taskSetValueHelper::getValue(value);
 }
 
 
 template <class TYPE, unsigned DIM>
 class DeviceBuffer;
 
-/*Set a value for a GridBuffer on the defice
- * TYPE  = data type (e.g. float, float2)
- * DIM   = dimension of the GridBuffer
- * SMALL = true if TYPE can send via kernel parameter (on cuda TYPE must be smaller than 256 byte)
+/** Set all cells of a GridBuffer on the device to a given value
+ * 
+ * T_ValueType  = data type (e.g. float, float2)
+ * T_dim   = dimension of the GridBuffer
+ * T_isSmallValue = true if T_ValueType can send via kernel parameter (on cuda T_ValueType must be smaller than 256 byte)
  */
-template <class TYPE, unsigned DIM,bool SMALL>
+template <class T_ValueType, unsigned T_dim, bool T_isSmallValue>
 class TaskSetValue;
 
-template <class TYPE, unsigned DIM>
-class TaskSetValue<TYPE,DIM,false> : public StreamTask
+template <class T_ValueType, unsigned T_dim>
+class TaskSetValueBase : public StreamTask
 {
 public:
+    typedef T_ValueType ValueType;
+    static const uint32_t dim = T_dim;
 
-    TaskSetValue(DeviceBuffer<TYPE, DIM>& dst, const TYPE& value) :
+    TaskSetValueBase(DeviceBuffer<ValueType, dim>& dst, const ValueType& value) :
     StreamTask(),
     value(value)
     {
         this->destination = static_cast<DeviceBuffer<TYPE, DIM>*> (& dst);
     }
 
-    virtual ~TaskSetValue()
+    virtual ~TaskSetValueBase()
     {
         notify(this->myId, SETVALUE, NULL);
-        CUDA_CHECK(cudaFreeHost(valuePointer_host));
+
     }
 
-    virtual void init()
-    {
-        setValue();
-    }
+    virtual void init() = 0;
 
     bool executeIntern() throw (std::runtime_error)
     {
@@ -171,101 +147,97 @@ protected:
         return "TaskSetValue";
     }
 
-private:
-
-    void setValue()
-    {
-        size_t current_size = destination->getCurrentSize();
-        const DataSpace<DIM> tmp(destination->getCurrentDataSpace(current_size));
-        dim3 gridSize = tmp;
-
-        gridSize.x = (gridSize.x+255) / 256; //round up without ceil
-        gridSize.x *= gridSize.z;
-        gridSize.z = 1;
-
-        CUDA_CHECK(cudaMallocHost(&valuePointer_host, sizeof (TYPE)));
-        *valuePointer_host = value; //copy value to new place
-
-        CUDA_CHECK(cudaMemcpyAsync(
-                                   destination->getPointer(), valuePointer_host, sizeof (TYPE),
-                                   cudaMemcpyHostToDevice, this->getCudaStream()));
-        kernelSetValue << <gridSize, 256, 0, this->getCudaStream() >> >
-                (destination->getDataBox(), tmp);
-
-        this->activate();
-    }
-
-    DeviceBuffer<TYPE, DIM> *destination;
-    //TYPE *valuePointer_dev;
-    TYPE *valuePointer_host;
-    TYPE value;
+    DeviceBufferIntern<ValueType, dim> *destination;
+    ValueType value;
 };
 
-template <class TYPE, unsigned DIM>
-class TaskSetValue<TYPE,DIM,true> : public StreamTask
+/** implementation for small values (<= 256byte)
+ */
+template <class T_ValueType, unsigned T_dim>
+class TaskSetValue<T_ValueType, T_dim, true> : public TaskSetValueBase<T_ValueType, T_dim>
 {
 public:
+    typedef T_ValueType ValueType;
+    static const uint32_t dim = T_dim;
 
-    TaskSetValue(DeviceBuffer<TYPE, DIM>& dst, const TYPE &value) :
-    StreamTask(),
-    value(value)
+    TaskSetValue(DeviceBuffer<ValueType, dim>& dst, const ValueType& value) :
+    TaskSetValueBase<ValueType, dim>(dst, value)
     {
-        this->destination = & dst;
     }
 
     virtual ~TaskSetValue()
     {
-        notify(this->myId, SETVALUE, NULL);
 
     }
 
     virtual void init()
     {
+        size_t current_size = this->destination->getCurrentSize();
+        const DataSpace<dim> area_size(this->destination->getCurrentDataSpace(current_size));
+        dim3 gridSize = area_size;
 
-        setValue();
-
-    }
-
-    bool executeIntern() throw (std::runtime_error)
-    {
-        return isFinished();
-    }
-
-    void event(id_t, EventType, IEventData*)
-    {
-    }
-
-protected:
-
-    std::string toString()
-    {
-        return "TaskSetValueSmall";
-    }
-
-private:
-
-    void setValue()
-    {
-
-        size_t current_size = destination->getCurrentSize();
-        DataSpace<DIM> tmp = destination->getCurrentDataSpace(current_size);
-        dim3 gridSize = tmp;
-
-        gridSize.x = (gridSize.x+255) / 256; //round up without ceil
-        gridSize.x *= gridSize.z;
-        gridSize.z = 1;
+        /* line wise thread blocks*/
+        gridSize.x = ceil(double(gridSize.x) / 256.);
 
         kernelSetValue << <gridSize, 256, 0, this->getCudaStream() >> >
-                (destination->getDataBox(), value,tmp);
+            (this->destination->getDataBox(), this->value, area_size);
+
+        this->activate();
+    }
+};
+
+/** implementation for small values (>256 byte)
+ * 
+ * This function use memcopy to copy a instance of value to gpu and 
+ * than run a kernel which assign this instance to all cells.
+ */
+template <class T_ValueType, unsigned T_dim>
+class TaskSetValue<T_ValueType, T_dim, false> : public TaskSetValueBase<T_ValueType, T_dim>
+{
+public:
+    typedef T_ValueType ValueType;
+    static const uint32_t dim = T_dim;
+
+    TaskSetValue(DeviceBuffer<ValueType, dim>& dst, const ValueType& value) :
+    TaskSetValueBase<ValueType, dim>(dst, value), valuePointer_host(NULL)
+    {
+    }
+
+    virtual ~TaskSetValue()
+    {
+        if (valuePointer_host != NULL)
+        {
+            CUDA_CHECK(cudaFreeHost(valuePointer_host));
+            valuePointer_host = NULL;
+        }
+    }
+
+    void init()
+    {
+        size_t current_size = this->destination->getCurrentSize();
+        const DataSpace<dim> area_size(this->destination->getCurrentDataSpace(current_size));
+        dim3 gridSize = area_size;
+
+        /* line wise thread blocks*/
+        gridSize.x = ceil(double(gridSize.x) / 256.);
+
+        ValueType* devicePtr = this->destination->getPointer();
+
+        CUDA_CHECK(cudaMallocHost(&valuePointer_host, sizeof (ValueType)));
+        *valuePointer_host = this->value; //copy value to new place
+
+        CUDA_CHECK(cudaMemcpyAsync(
+                                   devicePtr, valuePointer_host, sizeof (ValueType),
+                                   cudaMemcpyHostToDevice, this->getCudaStream()));
+        kernelSetValue << <gridSize, 256, 0, this->getCudaStream() >> >
+            (this->destination->getDataBox(), devicePtr, area_size);
 
         this->activate();
     }
 
-    DeviceBuffer<TYPE, DIM> *destination;
-    TYPE value;
+private:
+    ValueType *valuePointer_host;
+
 };
 
 } //namespace PMacc
-
-
-#endif	/* _TASKSETVALUE_HPP */

@@ -43,11 +43,6 @@ public:
     {
     }
 
-    virtual ~SuperCell()
-    {
-
-    }
-
     HDINLINE TYPE& FirstFrameIdx()
     {
         return firstFrameIdx;
