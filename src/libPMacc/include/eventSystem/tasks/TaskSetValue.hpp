@@ -41,7 +41,7 @@ namespace PMacc
 namespace taskSetValueHelper
 {
 
-/** define access operation normal values
+/** define access operation for non-pointer types
  */
 template<typename T_Type, bool isPointer>
 struct Value
@@ -54,7 +54,7 @@ struct Value
     }
 };
 
-/** define access operation for pointer
+/** define access operation for pointer types
  * 
  * access first element of a pointer
  */
@@ -104,7 +104,7 @@ class DeviceBuffer;
  * 
  * T_ValueType  = data type (e.g. float, float2)
  * T_dim   = dimension of the GridBuffer
- * T_isSmallValue = true if T_ValueType can send via kernel parameter (on cuda T_ValueType must be smaller than 256 byte)
+ * T_isSmallValue = true if T_ValueType can be send via kernel parameter (on cuda T_ValueType must be smaller than 256 byte)
  */
 template <class T_ValueType, unsigned T_dim, bool T_isSmallValue>
 class TaskSetValue;
@@ -188,8 +188,8 @@ public:
 
 /** implementation for small values (>256 byte)
  * 
- * This function use memcopy to copy a instance of value to gpu and 
- * than run a kernel which assign this instance to all cells.
+ * This class use CUDA memcopy to copy a instance of T_ValueType to gpu and 
+ * run a kernel which assign this value to all cells.
  */
 template <class T_ValueType, unsigned T_dim>
 class TaskSetValue<T_ValueType, T_dim, false> : public TaskSetValueBase<T_ValueType, T_dim>
