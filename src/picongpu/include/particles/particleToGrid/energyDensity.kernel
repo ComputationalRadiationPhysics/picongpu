@@ -171,7 +171,7 @@ public:
             const DataSpace<simDim> offsetToBaseCell = multidimensionalIndex-lowMargin;
             float3_X assign;
             for (uint32_t d = 0; d < simDim; ++d)
-                assign = AssignmentFunction()(float_X(offsetToBaseCell[d]) - pos[d]);
+                assign[d] = AssignmentFunction()(float_X(offsetToBaseCell[d]) - pos[d]);
 
 
             /** multiply charge, devide by cell volume and multiply by
