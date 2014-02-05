@@ -120,7 +120,7 @@ public:
     StreamTask(),
     value(value)
     {
-        this->destination = static_cast<DeviceBuffer<TYPE, DIM>*> (& dst);
+        this->destination = &dst;
     }
 
     virtual ~TaskSetValueBase()
@@ -147,7 +147,7 @@ protected:
         return "TaskSetValue";
     }
 
-    DeviceBufferIntern<ValueType, dim> *destination;
+    DeviceBuffer<ValueType, dim> *destination;
     ValueType value;
 };
 
