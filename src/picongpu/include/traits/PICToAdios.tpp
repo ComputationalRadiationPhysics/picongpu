@@ -40,14 +40,24 @@ namespace traits
         type(adios_integer) {}
     };
     
-    /** Trait for unsigned int */
+    /** Trait for uint32_t */
     template<>
-    struct PICToAdios<unsigned int>
+    struct PICToAdios<uint32_t>
     {
         ADIOS_DATATYPES type;
         
         PICToAdios() :
         type(adios_unsigned_integer) {}
+    };
+    
+    /** Trait for uint64_t */
+    template<>
+    struct PICToAdios<uint64_t>
+    {
+        ADIOS_DATATYPES type;
+        
+        PICToAdios() :
+        type(adios_unsigned_long) {}
     };
 
     /** Trait for float */

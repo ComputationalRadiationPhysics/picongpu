@@ -27,7 +27,6 @@
 #include "traits/GetComponentsType.hpp"
 #include "traits/GetNComponents.hpp"
 
-
 namespace picongpu
 {
 
@@ -47,83 +46,44 @@ struct ParticleAttribute
 
     /** write attribute to adios file
      * 
-     * @param params wrapped params with domainwriter, ...
-     * @param frame frame with all particles 
-     * @param prefix a name prefix for adios attribute (is combined to: prefix_nameOfAttribute)
-     * @param simOffset offset from window origin of thedomain
-     * @param localSize local domain size 
+     * @param params wrapped params
+     * @param elements elements of this attribute
      */
     template<typename FrameType>
     HINLINE void operator()(
                             const RefWrapper<ThreadParams*> params,
                             const RefWrapper<FrameType> frame,
-                            const std::string subGroup,
-                            const DomainInformation domInfo,
                             const size_t elements)
     {
 
-        /*typedef T_Identifier Identifier;
+        typedef T_Identifier Identifier;
         typedef typename Identifier::type ValueType;
         const uint32_t components = GetNComponents<ValueType>::value;
         typedef typename GetComponentsType<ValueType>::type ComponentType;
 
-        typedef typename PICtoAdios<ComponentType>::type AdiosType;
-
         log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) write species attribute: %1%") % Identifier::getName();
 
-        AdiosType adiosType;
-        const std::string name_lookup[] = {"x", "y", "z"};
-
-        std::vector<double> unit = Unit<T_Identifier>::get();
-
-        Dimensions splashDomainOffset(0, 0, 0);
-        Dimensions splashGlobalDomainOffset(0, 0, 0);
-
-        Dimensions splashDomainSize(1, 1, 1);
-        Dimensions splashGlobalDomainSize(1, 1, 1);
-
-        for (uint32_t d = 0; d < simDim; ++d)
-        {
-            splashDomainOffset[d] = domInfo.domainOffset[d] + globalSlideOffset[d];
-            splashGlobalDomainOffset[d] = domInfo.globalDomainOffset[d] + globalSlideOffset[d];
-            splashGlobalDomainSize[d] = domInfo.globalDomainSize[d];
-            splashDomainSize[d] = domInfo.domainSize[d];
-        }
-
+        ComponentType* tmpBfr = new ComponentType[elements];
+        
         for (uint32_t d = 0; d < components; d++)
         {
-            std::stringstream datasetName;
-            datasetName << subGroup << "/" << T_Identifier::getName();
-            if (components > 1)
-                datasetName << "/" << name_lookup[d];
-
             ValueType* dataPtr = frame.get().getIdentifier(Identifier()).getPointer();
+            
+            /* copy strided data from source to temporary buffer */
+            for (size_t i = 0; i < elements; ++i)
+            {
+                tmpBfr[i] = ((ComponentType*)dataPtr)[i * components];
+            }
 
-            params.get()->dataCollector->writeDomain(params.get()->currentStep, 
-                                                     adiosType, 
-                                                     1u, 
-                                                     Dimensions(elements*components, 1, 1),
-                                                     Dimensions(components, 1, 1),
-                                                     Dimensions(elements, 1, 1),
-                                                     Dimensions(d, 0, 0),
-                                                     datasetName.str().c_str(), 
-                                                     splashDomainOffset, 
-                                                     splashDomainSize, 
-                                                     splashGlobalDomainOffset, 
-                                                     splashGlobalDomainSize, 
-                                                     DomainCollector::PolyType,
-                                                     dataPtr);
-
-            ColTypeDouble ctDouble;
-            if (unit.size() >= (d + 1))
-                params.get()->dataCollector->writeAttribute(params.get()->currentStep,
-                                                            ctDouble, datasetName.str().c_str(),
-                                                            "sim_unit", &(unit.at(d)));
-
-
+            int64_t adiosAttributeVarId = *(params.get()->adiosParticleAttrVarIds.begin());
+            params.get()->adiosParticleAttrVarIds.pop_front();
+            ADIOS_CMD(adios_write_byid(params.get()->adiosFileHandle, adiosAttributeVarId, tmpBfr));
         }
+        
+        __deleteArray(tmpBfr);
+
         log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) write species attribute: %1%") %
-            Identifier::getName();*/
+            Identifier::getName();
     }
 
 };

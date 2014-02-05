@@ -60,67 +60,6 @@ TYPE_ARRAY(UInt64_5, H5T_INTEL_U64, uint64_t, 5);
 using namespace splash;
 namespace bmpl = boost::mpl;
 
-template<typename T_Type>
-struct MallocMemory
-{
-    typedef typename T_Type::type type;
-
-    template<typename ValueType >
-    HINLINE void operator()(RefWrapper<ValueType> v1, const size_t size) const
-    {
-        type* ptr = NULL;
-        if (size != 0)
-        {
-            CUDA_CHECK(cudaHostAlloc(&ptr, size * sizeof (type), cudaHostAllocMapped));
-        }
-        v1.get().getIdentifier(T_Type()) = VectorDataBox<type>(ptr);
-
-    }
-};
-
-template<typename T_Type>
-struct GetDevicePtr
-{
-    typedef typename T_Type::type type;
-
-    template<typename ValueType >
-    HINLINE void operator()(RefWrapper<ValueType> dest, RefWrapper<ValueType> src) const
-    {
-        type* ptr = NULL;
-        type* srcPtr = src.get().getIdentifier(T_Type()).getPointer();
-        if (srcPtr != NULL)
-        {
-            CUDA_CHECK(cudaHostGetDevicePointer(&ptr, srcPtr, 0));
-        }
-        dest.get().getIdentifier(T_Type()) =
-            VectorDataBox<type>(ptr);
-    }
-};
-
-template<typename T_Type>
-struct FreeMemory
-{
-    typedef typename T_Type::type type;
-
-    template<typename ValueType >
-    HINLINE void operator()(RefWrapper<ValueType> value) const
-    {
-        type* ptr = value.get().getIdentifier(T_Type()).getPointer();
-        if (ptr != NULL)
-            CUDA_CHECK(cudaFreeHost(ptr));
-    }
-};
-
-/*functor to create a pair for a MapTupel map*/
-template<typename InType>
-struct OperatorCreateVectorBox
-{
-    typedef
-    bmpl::pair< InType,
-    PMacc::VectorDataBox< typename InType::type > >
-    type;
-};
-
 /** Write copy particle to host memory and dump to HDF5 file
  * 
  * @tparam T_Species type of species 

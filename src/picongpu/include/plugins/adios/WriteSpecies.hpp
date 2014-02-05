@@ -82,41 +82,36 @@ public:
 
     template<typename Space>
     HINLINE void operator()(RefWrapper<ThreadParams*> params,
-                            std::string subGroup,
                             const DomainInformation domInfo,
                             const Space particleOffset)
     {
         log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) write species: %1%") % AdiosFrameType::getName();
         DataConnector &dc = DataConnector::getInstance();
-        /*load particle without copy particle data to host*/
+        /* load particle without copy particle data to host */
         ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(ThisSpecies::FrameType::CommunicationTag, true));
 
-        // count total number of particles on the device
-        uint64_cu totalNumParticles = 0;
-
-        PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
-
+        /* count total number of particles on the device */
         log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) count particles: %1%") % AdiosFrameType::getName();
+        uint64_cu totalNumParticles = 0;
         totalNumParticles = PMacc::CountParticles::countOnDevice < CORE + BORDER > (
                                                                                     *speciesTmp,
                                                                                     *(params.get()->cellDescription),
                                                                                     domInfo.localDomainOffset,
                                                                                     domInfo.domainSize);
-
-
         log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) count particles: %1% = %2%") % AdiosFrameType::getName() % totalNumParticles;
-        AdiosFrameType hostFrame;
-        log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) malloc mapped memory: %1%") % AdiosFrameType::getName();
-        /*malloc mapped memory*/
-        ForEach<typename AdiosFrameType::ValueTypeSeq, MallocMemory<void> > mallocMem;
-        mallocMem(byRef(hostFrame), totalNumParticles);
-        log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) malloc mapped memory: %1%") % AdiosFrameType::getName();
 
-        if (totalNumParticles != 0)
+        if (totalNumParticles > 0)
         {
+            AdiosFrameType hostFrame;
+            log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) malloc mapped memory: %1%") % AdiosFrameType::getName();
+
+            /* malloc mapped memory */
+            ForEach<typename AdiosFrameType::ValueTypeSeq, MallocMemory<void> > mallocMem;
+            mallocMem(byRef(hostFrame), totalNumParticles);
+            log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) malloc mapped memory: %1%") % AdiosFrameType::getName();
 
             log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) get mapped memory device pointer: %1%") % AdiosFrameType::getName();
-            /*load device pointer of mapped memory*/
+            /* load device pointer of mapped memory */
             AdiosFrameType deviceFrame;
             ForEach<typename AdiosFrameType::ValueTypeSeq, GetDevicePtr<void> > getDevicePtr;
             getDevicePtr(byRef(deviceFrame), byRef(hostFrame));
@@ -126,7 +121,7 @@ public:
             typedef bmpl::vector< PositionFilter3D<> > usedFilters;
             typedef typename FilterFactory<usedFilters>::FilterType MyParticleFilter;
             MyParticleFilter filter;
-            /*activeate filter pipline if moving window is activated*/
+            /* activeate filter pipeline if moving window is activated */
             filter.setStatus(MovingWindow::getInstance().isSlidingWindowActive());
             filter.setWindowPosition(domInfo.localDomainOffset, domInfo.domainSize);
 
@@ -148,15 +143,20 @@ public:
             log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) copy particle to host: %1%") % AdiosFrameType::getName();
             __getTransactionEvent().waitForFinished();
             log<picLog::INPUT_OUTPUT > ("ADIOS:  all events are finished: %1%") % AdiosFrameType::getName();
-            /*this cost a little bit of time but adios writing is slower*/
+            /* this costs a little bit of time but adios writing is slower */
             assert((uint64_cu) counterBuffer.getHostBuffer().getDataBox()[0] == totalNumParticles);
+            
+            /* dump to adios file */        
+            ForEach<typename AdiosFrameType::ValueTypeSeq, adios::ParticleAttribute<void> > writeToAdios;
+            writeToAdios(params, byRef(hostFrame), totalNumParticles);
+            
+            /* free host memory */
+            ForEach<typename AdiosFrameType::ValueTypeSeq, FreeMemory<void> > freeMem;
+            freeMem(byRef(hostFrame));
+            log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing species: %1%") % AdiosFrameType::getName();
         }
-        /*dump to adios file*/        
-        ForEach<typename AdiosFrameType::ValueTypeSeq, adios::ParticleAttribute<void> > writeToAdios;
-        writeToAdios(params, byRef(hostFrame), std::string("particles/") + FrameType::getName() + std::string("/") + subGroup,
-                domInfo, totalNumParticles);
 
-        /*write species counter table to adios file*/
+        /* write species counter table to adios file */
         log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) writing particle index table for %1%") % AdiosFrameType::getName();
         {
             GridController<simDim>& gc = GridController<simDim>::getInstance();
@@ -174,23 +174,12 @@ public:
             
             if (particleOffset[1] < 0) // 1 == y
                 particlesMetaInfo[pos_offset + 1] = 0;
-
-            /*params.get()->dataCollector->write(
-                params.get()->currentStep,
-                Dimensions(gc.getGlobalSize(), 1, 1),
-                Dimensions(gc.getGlobalRank(), 0, 0),
-                ctUInt64_5, 1,
-                Dimensions(1, 1, 1),
-                (std::string("particles/") + FrameType::getName() + std::string("/") +
-                    subGroup + std::string("/particles_info")).c_str(),
-                particlesMetaInfo);*/
+            
+            int64_t adiosIndexVarId = *(params.get()->adiosSpeciesIndexVarIds.begin());
+            params.get()->adiosSpeciesIndexVarIds.pop_front();
+            ADIOS_CMD(adios_write_byid(params.get()->adiosFileHandle, adiosIndexVarId, particlesMetaInfo));
         }
-        log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) writing particle index table for %1%") % AdiosFrameType::getName();
-        
-        /*free host memory*/
-        ForEach<typename AdiosFrameType::ValueTypeSeq, FreeMemory<void> > freeMem;
-        freeMem(byRef(hostFrame));
-        log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing species: %1%") % AdiosFrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) writing particle index table for %1%") % AdiosFrameType::getName(); 
     }
 };
 
