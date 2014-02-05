@@ -38,12 +38,11 @@
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
 #include "fields/FieldJ.hpp"
-#include "fields/FieldTmp.def"
 #include "fields/FieldTmp.hpp"
 #include "particles/particleFilter/FilterFactory.hpp"
 #include "particles/particleFilter/PositionFilter.hpp"
 #include "particles/particleToGrid/energyDensity.kernel"
-#include "particles/operations/CountParticles.hpp" 
+#include "particles/operations/CountParticles.hpp"
 
 #include "dataManagement/DataConnector.hpp"
 #include "mappings/simulation/GridController.hpp"

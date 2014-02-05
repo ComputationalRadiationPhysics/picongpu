@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -24,6 +24,7 @@
 #include "simulation_classTypes.hpp"
 #include "fields/SimulationFieldHelper.hpp"
 
+#include "fields/Fields.def"
 #include "particles/ParticlesBase.hpp"
 #include "particles/memory/buffers/ParticlesBuffer.hpp"
 
@@ -34,10 +35,6 @@
 namespace picongpu
 {
 using namespace PMacc;
-
-class FieldJ;
-class FieldB;
-class FieldE;
 
 template< typename T_DataVector, typename T_MethodsVector>
 class Particles : public ParticlesBase<T_DataVector,T_MethodsVector, MappingDesc>, public ISimulationData

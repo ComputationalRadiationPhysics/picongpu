@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -19,9 +19,7 @@
  */ 
  
 
-
-#ifndef FIELDE_HPP
-#define	FIELDE_HPP
+#pragma once
 
 #include <string>
 
@@ -30,7 +28,7 @@
 #include "simulation_defines.hpp"
 #include "simulation_classTypes.hpp"
 
-
+#include "Fields.def"
 #include "fields/SimulationFieldHelper.hpp"
 #include "dataManagement/ISimulationData.hpp"
 
@@ -47,8 +45,6 @@
 namespace picongpu
 {
     using namespace PMacc;
-
-    class FieldB;
 
     class FieldE: public SimulationFieldHelper<MappingDesc>, public ISimulationData
     {
@@ -106,9 +102,6 @@ namespace picongpu
     };
 
 
-}
+} // namespace picongpu
 
 #include "fields/FieldE.tpp"
-
-#endif	/* FIELDE_HPP */
-

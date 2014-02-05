@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -26,11 +26,10 @@
 
 /*pic default*/
 #include "types.h"
-#include "fields/FieldTmp.def"
 #include "simulation_defines.hpp"
 #include "simulation_classTypes.hpp"
 
-
+#include "fields/Fields.def"
 #include "fields/SimulationFieldHelper.hpp"
 #include "dataManagement/ISimulationData.hpp"
 
