@@ -153,11 +153,18 @@ public:
         __startOperation(ITask::TASK_CUDA);
         TYPE* dPointer;
         cudaHostGetDevicePointer(&dPointer, pointer, 0);
-
+        
+        /* on 1D memory we have no size for y, therefore we set y to 1 to
+         * get a valid cudaPitchedPtr
+         */
+        int size_y=1;
+        if(DIM>DIM1)
+            size_y= this->data_space[1];
+            
         return make_cudaPitchedPtr(dPointer,
                                    this->data_space.x() * sizeof (TYPE),
                                    this->data_space.x(),
-                                   this->data_space.y()
+                                   size_y
                                    );
     }
     
