@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -19,8 +19,7 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-#ifndef TVEC_H
-#define TVEC_H
+#pragma once
 
 #include "dimensions/DataSpace.hpp"
 #include "math/vector/compile-time/Int.hpp"
@@ -240,21 +239,41 @@ namespace PMacc
         typedef typename math::CT::Int<X,Y,Z> type;
     };
     
+    namespace detail
+    {
+        template<uint32_t T_Dim,typename T_Type >
+        struct toTVec;
+    
+        template<int X, int Y, int Z >
+        struct toTVec<3u,math::CT::Int<X,Y,Z> >
+        {
+            typedef TVec<(uint32_t)X, (uint32_t)Y, (uint32_t)Z> type;
+        };
+
+        template<typename X, typename Y, typename Z >
+        struct toTVec<3u,math::CT::Vector<X,Y,Z> >
+        {
+            typedef TVec<X::value,Y::value,Z::value> type;
+        };
+        
+        template<int X, int Y, int Z >
+        struct toTVec<2u,math::CT::Int<X,Y,Z> >
+        {
+            typedef TVec<(uint32_t)X, (uint32_t)Y> type;
+        };
+
+        template<typename X, typename Y, typename Z >
+        struct toTVec<2u,math::CT::Vector<X,Y,Z> >
+        {
+            typedef TVec<X::value,Y::value> type;
+        };
+    }
+    
     template<typename Vector>
-    struct toTVec {};
-    
-    template<int X, int Y, int Z >
-    struct toTVec<math::CT::Int<X,Y,Z> >
+    struct toTVec
     {
-        typedef TVec<(uint32_t)X, (uint32_t)Y, (uint32_t)Z> type;
+        typedef typename detail::toTVec<Vector::dim,Vector>::type type;
     };
     
-    template<typename X, typename Y, typename Z >
-    struct toTVec<math::CT::Vector<X,Y,Z> >
-    {
-        typedef TVec<X::value,Y::value,Z::value> type;
-    };
+
 }
-
-#endif	/* TVEC_H */
-
