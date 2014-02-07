@@ -94,7 +94,7 @@ class ADIOSWriter : public ISimulationIO, public IPluginModule
 public:
 
     /* filter particles by global position*/
-    typedef bmpl::vector< PositionFilter3D<> > usedFilters;
+    typedef bmpl::vector< typename GetPositionFilter<simDim>::type > usedFilters;
     typedef typename FilterFactory<usedFilters>::FilterType MyParticleFilter;
 
 private:

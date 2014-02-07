@@ -79,7 +79,7 @@ public:
         DataSpace<dim> pos = this->superCellIdx + localCellIdx;
         bool result = false;
         for (uint32_t d = 0; d < dim; ++d)
-            result&& = (this->offset[d] <= pos[d]) && (this->max[d] > pos[d]);
+            result= result && (this->offset[d] <= pos[d]) && (pos[d]<this->max[d]);
         return Base::operator() (frame, id) && result;
     }
 
@@ -87,17 +87,16 @@ public:
 
 } //namespace privatePositionFilter
 
-
 /** This wrapper class is needed because for filters we are only allowed to
  * define one template parameter "base" (it is a constrain from FilterFactory)
  */
 template<class Base = NullFrame>
-class PositionFilter3D : public privatePositionFilter::PositionFilter<dim3, Base>
+class PositionFilter3D : public privatePositionFilter::PositionFilter<DIM3, Base>
 {
 };
 
 template<class Base = NullFrame>
-class PositionFilter2D : public privatePositionFilter::PositionFilter<dim2, Base>
+class PositionFilter2D : public privatePositionFilter::PositionFilter<DIM2, Base>
 {
 };
 
