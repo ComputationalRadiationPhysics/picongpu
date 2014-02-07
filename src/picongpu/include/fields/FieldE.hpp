@@ -49,14 +49,14 @@ namespace picongpu
     class FieldE: public SimulationFieldHelper<MappingDesc>, public ISimulationData
     {
     public:
-        typedef float3_X FloatE;
-        typedef typename promoteType<float_64, FloatE>::ValueType UnitValueType;
-        static const int numComponents = FloatE::dim;
+        typedef float3_X ValueType;
+        typedef typename promoteType<float_64, ValueType>::type UnitValueType;
+        static const int numComponents = ValueType::dim;
         
         static const uint32_t FloatEDim = simDim;
         typedef MappingDesc::SuperCellSize SuperCellSize;
         
-        typedef DataBox<PitchedBox<FloatE, simDim> > DataBoxType;
+        typedef DataBox<PitchedBox<ValueType, simDim> > DataBoxType;
 
 
         FieldE(MappingDesc cellDescription);
@@ -79,7 +79,7 @@ namespace picongpu
 
         DataBoxType getHostDataBox();
         
-        GridBuffer<FloatE,simDim>& getGridBuffer();
+        GridBuffer<ValueType,simDim>& getGridBuffer();
 
         GridLayout<simDim> getGridLayout();
 
@@ -94,7 +94,7 @@ namespace picongpu
         void absorbeBorder();
         
 
-        GridBuffer<FloatE,simDim> *fieldE;
+        GridBuffer<ValueType,simDim> *fieldE;
 
         FieldB *fieldB;
 

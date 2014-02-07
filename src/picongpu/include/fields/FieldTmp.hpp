@@ -52,7 +52,7 @@ namespace picongpu
     {
     public:
         typedef float1_X ValueType;
-        typedef typename promoteType<float_64, ValueType>::ValueType UnitValueType;
+        typedef typename promoteType<float_64, ValueType>::type UnitValueType;
 
         typedef MappingDesc::SuperCellSize SuperCellSize;
         typedef DataBox<PitchedBox<ValueType, simDim> > DataBoxType;

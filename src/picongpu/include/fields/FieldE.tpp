@@ -51,7 +51,7 @@ FieldE::FieldE( MappingDesc cellDescription ) :
 SimulationFieldHelper<MappingDesc>( cellDescription ),
 fieldB( NULL )
 {
-    fieldE = new GridBuffer<FloatE, simDim > ( cellDescription.getGridLayout( ) );
+    fieldE = new GridBuffer<ValueType, simDim > ( cellDescription.getGridLayout( ) );
 
     /* Calculate the maximum Neighbors we need from MAX(ParticleShape, FieldSolver) */
     typedef typename PMacc::math::CT::max<
@@ -119,7 +119,7 @@ FieldE::DataBoxType FieldE::getHostDataBox( )
     return fieldE->getHostBuffer( ).getDataBox( );
 }
 
-GridBuffer<FieldE::FloatE, simDim> &FieldE::getGridBuffer( )
+GridBuffer<FieldE::ValueType, simDim> &FieldE::getGridBuffer( )
 {
     return *fieldE;
 }

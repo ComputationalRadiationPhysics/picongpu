@@ -59,13 +59,13 @@ namespace picongpu
     class FieldJ: public SimulationFieldHelper<MappingDesc>, public ISimulationData
     {
     public:
-        typedef float3_X FloatJ;
-        typedef typename promoteType<float_64, FloatJ>::ValueType UnitValueType;
-        static const int numComponents = FloatJ::dim;
+        typedef float3_X ValueType;
+        typedef typename promoteType<float_64, ValueType>::type UnitValueType;
+        static const int numComponents = ValueType::dim;
         
         static const uint32_t FloatJDim = simDim;
         
-        typedef DataBox<PitchedBox<FloatJ, simDim> > DataBoxType;
+        typedef DataBox<PitchedBox<ValueType, simDim> > DataBoxType;
                 
         FieldJ(MappingDesc cellDescription);
 
@@ -97,7 +97,7 @@ namespace picongpu
         
         void syncToDevice()
         {
-            FloatJ tmp=float3_X(0.,0.,0.);
+            ValueType tmp=float3_X(0.,0.,0.);
             fieldJ.getDeviceBuffer().setValue(tmp);
         }
         
@@ -105,7 +105,7 @@ namespace picongpu
         
         DataBoxType getHostDataBox() {return fieldJ.getHostBuffer().getDataBox();}
         
-        GridBuffer<FloatJ, simDim> &getGridBuffer();
+        GridBuffer<ValueType, simDim> &getGridBuffer();
         
         /* Bash particles in a direction.
          * Copy all particles from the guard of a direction to the device exchange buffer
@@ -118,7 +118,7 @@ namespace picongpu
 
     private:
         
-        GridBuffer<FloatJ, FloatJDim> fieldJ;
+        GridBuffer<ValueType, FloatJDim> fieldJ;
 
         FieldE *fieldE;
     };

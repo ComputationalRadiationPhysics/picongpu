@@ -46,10 +46,6 @@ namespace picongpu
 
 using namespace PMacc;
 
-
-
-
-typedef FieldJ::FloatJ FloatJ;
 typedef typename FieldJ::DataBoxType J_DataBox;
 
 template<int workerMultiplier, class BlockDescription_, uint32_t AREA, class JBox, class ParBox, class Mapping, class FrameSolver>

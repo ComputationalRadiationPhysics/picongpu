@@ -231,8 +231,8 @@ namespace promoteType
 template<typename PromoteToType, typename OldType, int dim>
 struct promoteType<PromoteToType, ::PMacc::math::Vector<OldType, dim> >
 {
-    typedef typename promoteType<OldType, PromoteToType>::ValueType PartType;
-    typedef ::PMacc::math::Vector<PartType, dim> ValueType;
+    typedef typename promoteType<OldType, PromoteToType>::type PartType;
+    typedef ::PMacc::math::Vector<PartType, dim> type;
 };
 
 } //namespace promoteType
