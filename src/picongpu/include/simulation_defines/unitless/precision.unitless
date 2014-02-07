@@ -31,35 +31,40 @@ namespace picongpu
     {
         typedef precisionType float_X;
         /*32 Bit defines*/
-        typedef ::PMacc::math::Vector<float_X, DIM1> float1_X;
-        typedef ::PMacc::math::Vector<float_X, DIM2> float2_X;
-        typedef ::PMacc::math::Vector<float_X, DIM3> float3_X;
+        typedef ::PMacc::math::Vector<float_X, 1> float1_X;
+        typedef ::PMacc::math::Vector<float_X, 2> float2_X;
+        typedef ::PMacc::math::Vector<float_X, 3> float3_X;
+        typedef ::PMacc::math::Vector<float_X, simDim> floatD_X;
     }
     
     namespace precision64Bit
     {
         typedef precisionType float_X;
         /*32 Bit defines*/
-        typedef ::PMacc::math::Vector<float_X, DIM1> float1_X;
-        typedef ::PMacc::math::Vector<float_X, DIM2> float2_X;
-        typedef ::PMacc::math::Vector<float_X, DIM3> float3_X;
+        typedef ::PMacc::math::Vector<float_X, 1> float1_X;
+        typedef ::PMacc::math::Vector<float_X, 2> float2_X;
+        typedef ::PMacc::math::Vector<float_X, 3> float3_X;
+        typedef ::PMacc::math::Vector<float_X, simDim> floatD_X;
     }
 
     typedef precision32Bit::float_X float_32;
     typedef precision64Bit::float_X float_64;
 
     /*variable precision defines*/
-    typedef ::PMacc::math::Vector<float_X, DIM1> float1_X;
-    typedef ::PMacc::math::Vector<float_X, DIM2> float2_X;
-    typedef ::PMacc::math::Vector<float_X, DIM3> float3_X;
+    typedef ::PMacc::math::Vector<float_X, 1> float1_X;
+    typedef ::PMacc::math::Vector<float_X, 2> float2_X;
+    typedef ::PMacc::math::Vector<float_X, 3> float3_X;
+    typedef ::PMacc::math::Vector<float_X, simDim> floatD_X;
     /*32 Bit defines*/
     typedef precision32Bit::float1_X float1_32;
     typedef precision32Bit::float2_X float2_32;
     typedef precision32Bit::float3_X float3_32;
+    typedef precision32Bit::floatD_X floatD_32;
     /*64 Bit defines*/
     typedef precision64Bit::float1_X float1_64;
     typedef precision64Bit::float2_X float2_64;
     typedef precision64Bit::float3_X float3_64;
+    typedef precision64Bit::floatD_X floatD_64;
 
     typedef precisionSqrt::precisionType sqrt_X;
     typedef precisionExp::precisionType exp_X;
