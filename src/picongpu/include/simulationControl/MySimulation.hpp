@@ -453,24 +453,20 @@ private:
     template<uint32_t DIM>
     void checkGridConfiguration(DataSpace<DIM> globalGridSize, GridLayout<DIM>)
     {
+        
+        for(uint32_t i=0;i<simDim;++i)
+        {
         // global size must a devisor of supercell size
         // note: this is redundant, while using the local condition below
 
-        assert(globalGridSize.x() % MappingDesc::SuperCellSize::x == 0);
-        assert(globalGridSize.y() % MappingDesc::SuperCellSize::y == 0);
-        assert(globalGridSize.z() % MappingDesc::SuperCellSize::z == 0);
-
+        assert(globalGridSize[i] % MappingDesc::SuperCellSize::getDataSpace()[i] == 0);
         // local size must a devisor of supercell size
-        assert(gridSizeLocal[0] % MappingDesc::SuperCellSize::x == 0);
-        assert(gridSizeLocal[1] % MappingDesc::SuperCellSize::y == 0);
-        assert(gridSizeLocal[2] % MappingDesc::SuperCellSize::z == 0);
-
+        assert(gridSizeLocal[i] % MappingDesc::SuperCellSize::getDataSpace()[i] == 0);
         // local size must be at least 3 supercells (1x core + 2x border)
         // note: size of border = guard_size (in supercells)
         // \todo we have to add the guard_x/y/z for modified supercells here
-        assert((uint32_t) gridSizeLocal[0] / MappingDesc::SuperCellSize::x >= 3 * GUARD_SIZE);
-        assert((uint32_t) gridSizeLocal[1] / MappingDesc::SuperCellSize::y >= 3 * GUARD_SIZE);
-        assert((uint32_t) gridSizeLocal[2] / MappingDesc::SuperCellSize::z >= 3 * GUARD_SIZE);
+        assert( (uint32_t) gridSizeLocal[i] / MappingDesc::SuperCellSize::getDataSpace()[i] >= 3 * GUARD_SIZE);
+        }
     }
 
 
