@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 #pragma once
 
 #include "simulation_defines.hpp"
@@ -39,7 +39,6 @@ namespace currentSolverEsirkepov
 {
 using namespace PMacc;
 
-
 /**
  * \class Esirkepov implements the current deposition algorithm from T.Zh. Esirkepov
  * for an arbitrary particle assign function given as a template parameter.
@@ -60,10 +59,10 @@ struct EsirkepovNative
     float_X charge;
 
     template<typename DataBoxJ, typename PosType, typename VelType, typename ChargeType >
-        DINLINE void operator()(DataBoxJ dataBoxJ,
-                                const PosType pos,
-                                const VelType velocity,
-                                const ChargeType charge, const float3_X& cellSize, const float_X deltaTime)
+    DINLINE void operator()(DataBoxJ dataBoxJ,
+                            const PosType pos,
+                            const VelType velocity,
+                            const ChargeType charge, const float3_X& cellSize, const float_X deltaTime)
     {
         this->charge = charge;
         const float3_X deltaPos = float3_X(velocity.x() * deltaTime / cellSize.x(),
@@ -93,9 +92,9 @@ struct EsirkepovNative
      * \param cellEdgeLength length of edge of the cell in z-direction
      */
     template<typename CursorJ >
-        DINLINE void cptCurrent1D(CursorJ cursorJ,
-                                  Line line,
-                                  const float_X cellEdgeLength)
+    DINLINE void cptCurrent1D(CursorJ cursorJ,
+                              Line line,
+                              const float_X cellEdgeLength)
     {
         /* We need no shifts of the coordinate system because W is defined on point (0,0,0)
          *
@@ -125,10 +124,10 @@ struct EsirkepovNative
      * \param cellEdgeLength length of edge of the cell in z-direction
      */
     template<typename CursorJ >
-        DINLINE void cptCurrentInLineOfCells(
-                                             const CursorJ& cursorJ,
-                                             const Line& line,
-                                             const float_X cellEdgeLength)
+    DINLINE void cptCurrentInLineOfCells(
+                                         const CursorJ& cursorJ,
+                                         const Line& line,
+                                         const float_X cellEdgeLength)
     {
         const int a = -currentLowerMargin;
         const int b = currentUpperMargin;
