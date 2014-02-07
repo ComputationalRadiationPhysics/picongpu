@@ -118,7 +118,7 @@ public:
             log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) get mapped memory device pointer: %1%") % AdiosFrameType::getName();
 
             log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) copy particle to host: %1%") % AdiosFrameType::getName();
-            typedef bmpl::vector< PositionFilter3D<> > usedFilters;
+            typedef bmpl::vector< typename GetPositionFilter<simDim>::type > usedFilters;
             typedef typename FilterFactory<usedFilters>::FilterType MyParticleFilter;
             MyParticleFilter filter;
             /* activeate filter pipeline if moving window is activated */

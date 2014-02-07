@@ -96,12 +96,12 @@ class HDF5Writer : public ISimulationIO, public IPluginModule
 public:
 
     /* filter particles by global position*/
-    typedef bmpl::vector< PositionFilter3D<> > usedFilters;
+    typedef bmpl::vector< typename GetPositionFilter<simDim>::type > usedFilters;
     typedef typename FilterFactory<usedFilters>::FilterType MyParticleFilter;
 
 private:
 
-    /* fiter is a rule which describe which particles shuld copy to host*/
+    /* filter is a rule which describe which particles should copy to host*/
     MyParticleFilter filter;
 
     template<typename UnitType>
