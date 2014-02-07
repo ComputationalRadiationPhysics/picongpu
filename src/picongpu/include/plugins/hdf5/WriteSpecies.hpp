@@ -133,7 +133,7 @@ public:
             typedef bmpl::vector< PositionFilter3D<> > usedFilters;
             typedef typename FilterFactory<usedFilters>::FilterType MyParticleFilter;
             MyParticleFilter filter;
-            /*activeate filter pipline if moving window is activated*/
+            /* activate filter pipeline if moving window is activated */
             filter.setStatus(MovingWindow::getInstance().isSlidingWindowActive());
             filter.setWindowPosition(domInfo.localDomainOffset, domInfo.domainSize);
 

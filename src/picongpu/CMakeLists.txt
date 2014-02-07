@@ -235,25 +235,18 @@ endif(PIC_ENABLE_INSITU_VOLVIS)
 # ADIOS
 ################################################################################
 
-option(PIC_ENABLE_ADIOS "create picongpu with ADIOS support" OFF)
+# find adios installation
+find_path(PIC_ADIOS_ROOT_DIR
+  NAMES include/adios.h lib/libadios.so
+  PATHS ENV ADIOS_ROOT
+  DOC "ADIOS ROOT location. (only used if ADIOS is enabled)"
+)
 
-if(PIC_ENABLE_ADIOS)
-    # find adios installation
-    find_path(PIC_ADIOS_ROOT_DIR
-      NAMES include/adios.h lib/libadios.so
-      PATHS ENV ADIOS_ROOT
-      DOC "ADIOS ROOT location. (only used if ADIOS is enabled)"
-    )
-
-    if(PIC_ADIOS_ROOT_DIR)
-        message(STATUS "Found ADIOS: "${PIC_ADIOS_ROOT_DIR})
-        add_definitions(-DENABLE_ADIOS=1)
-        include_directories(SYSTEM ${PIC_ADIOS_ROOT_DIR}/include)
-        link_directories(${PIC_ADIOS_ROOT_DIR}/lib)
-        set(LIBS ${LIBS} adios)
-    elseif(PIC_ADIOS_ROOT_DIR)
-        message(STATUS "Could NOT find ADIOS")
-    endif(PIC_ADIOS_ROOT_DIR)
+if(PIC_ADIOS_ROOT_DIR)
+    message(STATUS "Found ADIOS: "${PIC_ADIOS_ROOT_DIR})
+    include_directories(SYSTEM ${PIC_ADIOS_ROOT_DIR}/include)
+    link_directories(${PIC_ADIOS_ROOT_DIR}/lib)
+    set(LIBS ${LIBS} adios)
 
     # find mxml installation
     find_path(PIC_MXML_ROOT_DIR
@@ -267,10 +260,15 @@ if(PIC_ENABLE_ADIOS)
         include_directories(SYSTEM ${PIC_MXML_ROOT_DIR}/include)
         link_directories(${PIC_MXML_ROOT_DIR}/lib)
         set(LIBS ${LIBS} mxml)
+
+        add_definitions(-DENABLE_ADIOS=1)
     elseif(PIC_MXML_ROOT_DIR)
-        message(STATUS "Could NOT find MXML")
+        message(STATUS "Could NOT find MXML (ADIOS will be disabled)")
     endif(PIC_MXML_ROOT_DIR)
-endif(PIC_ENABLE_ADIOS)
+
+elseif(PIC_ADIOS_ROOT_DIR)
+    message(STATUS "Could NOT find ADIOS")
+endif(PIC_ADIOS_ROOT_DIR)
 
 
 ################################################################################

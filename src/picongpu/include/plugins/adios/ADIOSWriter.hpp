@@ -473,6 +473,7 @@ private:
             DataConnector::getInstance().registerObserver(this, notifyFrequency);
             
             /* Initialize adios library */
+            mThreadParams.adiosComm = MPI_COMM_NULL;
             MPI_CHECK(MPI_Comm_dup(gc.getCommunicator().getMPIComm(), &(mThreadParams.adiosComm)));
             mThreadParams.adiosBufferInitialized = false;
         }
@@ -482,6 +483,13 @@ private:
 
     void moduleUnload()
     {
+        if (notifyFrequency > 0)
+        {
+            if (mThreadParams.adiosComm != MPI_COMM_NULL)
+            {
+                MPI_CHECK(MPI_Comm_free(&(mThreadParams.adiosComm)));
+            }
+        }
     }
 
     static void writeField(ThreadParams *params, const uint32_t sizePtrType,
@@ -563,7 +571,7 @@ private:
             params->adiosGroupSize += sizeof(int) * 3;
         }
     }
-
+    
     static void *writeAdios(void *p_args)
     {
 
@@ -696,6 +704,7 @@ private:
         {
             int offset = domInfo.domainOffset[d];
             
+            /* dimension 1 is y and is the direction of the moving window (if any) */
             if (1 == d)
                 offset = std::max(0, domInfo.domainOffset[1] - domInfo.globalDomainOffset[1]);
             
