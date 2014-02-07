@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -503,12 +503,12 @@ private:
         particleOffset.y() -= threadParams->window.globalSimulationOffset.y();
 
         /*print all fields*/
-        ForEach<Hdf5OutputFields, GetDCFields<void> > forEachGetFields;
+        ForEach<FileOutputFields, GetDCFields<void> > forEachGetFields;
         forEachGetFields(ref(threadParams), domInfo);
 
         /*print all particle species*/
         log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing particle species.");
-        ForEach<Hdf5OutputParticles, WriteSpecies<void> > writeSpecies;
+        ForEach<FileOutputParticles, WriteSpecies<void> > writeSpecies;
         writeSpecies(ref(threadParams), std::string(), domInfo, particleOffset);
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species.");
 
