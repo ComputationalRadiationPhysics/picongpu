@@ -101,7 +101,7 @@ public:
 
 private:
 
-    /* fiter is a rule which describe which particles shuld copy to host*/
+    /* filter is a rule which describe which particles should copy to host*/
     MyParticleFilter filter;
 
     template<typename UnitType>
