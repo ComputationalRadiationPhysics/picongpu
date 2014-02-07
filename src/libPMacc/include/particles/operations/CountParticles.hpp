@@ -149,7 +149,7 @@ struct CountParticles
     template<uint32_t AREA, class PBuffer, class CellDesc, class Space>
     static uint64_cu countOnDevice(PBuffer& buffer, CellDesc cellDescription, const Space& origin, const Space& size)
     {
-        typedef bmpl::vector< PositionFilter3D<> > usedFilters;
+        typedef bmpl::vector< typename GetPositionFilter<Space::Dim>::type > usedFilters;
         typedef typename FilterFactory<usedFilters>::FilterType MyParticleFilter;
         MyParticleFilter filter;
         filter.setStatus(true); /*activeate filter pipline*/
