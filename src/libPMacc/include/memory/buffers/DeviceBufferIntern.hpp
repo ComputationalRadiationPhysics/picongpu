@@ -259,7 +259,6 @@ namespace PMacc
             }
             if (DIM == DIM2)
             {
-                data.xsize = this->data_space[0]* sizeof (TYPE);
                 data.ysize = this->data_space[1];
                 log<ggLog::MEMORY >("Create device 2D data: %1% MiB") % ( data.xsize * data.ysize / 1024 / 1024 );
                 CUDA_CHECK(cudaMallocPitch(&data.ptr, &data.pitch, data.xsize , data.ysize));
