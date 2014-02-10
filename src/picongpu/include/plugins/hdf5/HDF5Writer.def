@@ -43,6 +43,11 @@ namespace po = boost::program_options;
 
 struct ThreadParams
 {
+    /* set at least the pointers to NULL by default */
+    ThreadParams() : dataCollector(NULL),
+        cellDescription(NULL)
+    {}
+
     uint32_t currentStep;
     ParallelDomainCollector *dataCollector;
     GridLayout<simDim> gridLayout;

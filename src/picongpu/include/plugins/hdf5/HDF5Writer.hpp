@@ -353,9 +353,9 @@ private:
 
     void moduleLoad()
     {
-        mThreadParams.dataCollector = NULL;
         if (notifyFrequency > 0)
         {
+            mThreadParams.dataCollector = NULL;
             mThreadParams.gridPosition =
                 SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset();
 
@@ -386,8 +386,7 @@ private:
     void moduleUnload()
     {
         if (notifyFrequency > 0)
-            if (mThreadParams.dataCollector != NULL)
-                __delete(mThreadParams.dataCollector);
+            __delete(mThreadParams.dataCollector);
     }
 
     static void writeField(ThreadParams *params, const DomainInformation domInfo,
