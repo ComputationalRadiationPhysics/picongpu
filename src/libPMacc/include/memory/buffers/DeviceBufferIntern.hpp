@@ -112,7 +112,7 @@ namespace PMacc
                 }
                 if (DIM == DIM2)
                 {
-                    CUDA_CHECK(cudaMemset2D(data.ptr, data.pitch, 0, data.xsize * sizeof (TYPE), data.ysize));
+                    CUDA_CHECK(cudaMemset2D(data.ptr, data.pitch, 0, data.xsize , data.ysize));
                 }
                 if (DIM == DIM3)
                 {
@@ -249,20 +249,19 @@ namespace PMacc
             __startOperation(ITask::TASK_CUDA);
             data.ptr = NULL;
             data.pitch = 1;
-            data.xsize = this->data_space[0];
+            data.xsize = this->data_space[0]* sizeof (TYPE);
             data.ysize = 1;
 
             if (DIM == DIM1)
             {
-                log<ggLog::MEMORY >("Create device 1D data: %1% MiB") % ( this->data_space[0] * sizeof (TYPE) / 1024 / 1024 );
-                CUDA_CHECK(cudaMallocPitch(&data.ptr, &data.pitch, this->data_space[0] * sizeof (TYPE), 1));
+                log<ggLog::MEMORY >("Create device 1D data: %1% MiB") % ( data.xsize  / 1024 / 1024 );
+                CUDA_CHECK(cudaMallocPitch(&data.ptr, &data.pitch, data.xsize , 1));
             }
             if (DIM == DIM2)
             {
-                data.xsize = this->data_space[0];
                 data.ysize = this->data_space[1];
-                log<ggLog::MEMORY >("Create device 2D data: %1% MiB") % ( data.xsize * data.ysize * sizeof (TYPE) / 1024 / 1024 );
-                CUDA_CHECK(cudaMallocPitch(&data.ptr, &data.pitch, data.xsize * sizeof (TYPE), data.ysize));
+                log<ggLog::MEMORY >("Create device 2D data: %1% MiB") % ( data.xsize * data.ysize / 1024 / 1024 );
+                CUDA_CHECK(cudaMallocPitch(&data.ptr, &data.pitch, data.xsize , data.ysize));
 
             }
             if (DIM == DIM3)
@@ -286,7 +285,7 @@ namespace PMacc
             __startOperation(ITask::TASK_CUDA);
             data.ptr = NULL;
             data.pitch = 1;
-            data.xsize = this->data_space[0];
+            data.xsize = this->data_space[0]* sizeof (TYPE);
             data.ysize = 1;
 
             log<ggLog::MEMORY >("Create device fake data: %1% MiB") % ( this->data_space.productOfComponents() * sizeof (TYPE) / 1024 / 1024 );
