@@ -353,9 +353,9 @@ private:
 
     void moduleLoad()
     {
+        mThreadParams.dataCollector = NULL;
         if (notifyFrequency > 0)
         {
-            mThreadParams.dataCollector = NULL;
             mThreadParams.gridPosition =
                 SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset();
 
@@ -367,10 +367,10 @@ private:
              */
             mpi_pos = gc.getPosition();
             mpi_size = gc.getGpuNodes();
-            
+
             splashMpiPos.set(0, 0, 0);
             splashMpiSize.set(1, 1, 1);
-            
+
             for (uint32_t i = 0; i < simDim; ++i)
             {
                 splashMpiPos[i] = mpi_pos[i];
@@ -385,11 +385,9 @@ private:
 
     void moduleUnload()
     {
-        if (mThreadParams.dataCollector != NULL)
-        {
-            delete mThreadParams.dataCollector;
-            mThreadParams.dataCollector = NULL;
-        }
+        if (notifyFrequency > 0)
+            if (mThreadParams.dataCollector != NULL)
+                __delete(mThreadParams.dataCollector);
     }
 
     static void writeField(ThreadParams *params, const DomainInformation domInfo,
