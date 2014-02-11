@@ -119,6 +119,9 @@ private:
     struct GetDCFields
     {
     private:
+        typedef typename T::ValueType ValueType;
+        typedef typename GetComponentsType<ValueType>::type ComponentType;
+        typedef typename PICToSplash<ComponentType>::type SplashType;
 
         static std::vector<double> getUnit()
         {
@@ -132,8 +135,7 @@ private:
         HDINLINE void operator()(RefWrapper<ThreadParams*> params, const DomainInformation domInfo)
         {
 #ifndef __CUDA_ARCH__
-            ColTypeFloat ctFloat;
-
+            SplashType splashType;
             DataConnector &dc = DataConnector::getInstance();
 
             T* field = &(dc.getData<T > (T::getCommTag()));
@@ -141,8 +143,8 @@ private:
 
             writeField(params.get(),
                        domInfo,
-                       ctFloat,
-                       T::numComponents,
+                       splashType,
+                       GetNComponents<ValueType>::value,
                        T::getName(),
                        getUnit(),
                        field->getHostDataBox().getPointer());
@@ -354,7 +356,6 @@ private:
     {
         if (notifyFrequency > 0)
         {
-            mThreadParams.dataCollector = NULL;
             mThreadParams.gridPosition =
                 SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset();
 
