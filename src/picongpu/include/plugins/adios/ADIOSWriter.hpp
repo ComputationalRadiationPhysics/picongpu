@@ -37,7 +37,6 @@
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
 #include "fields/FieldJ.hpp"
-#include "fields/FieldTmp.def"
 #include "fields/FieldTmp.hpp"
 #include "particles/particleFilter/FilterFactory.hpp"
 #include "particles/particleFilter/PositionFilter.hpp"
@@ -118,6 +117,8 @@ private:
     struct GetFields
     {
     private:
+        typedef typename T::ValueType ValueType;
+        typedef typename GetComponentsType<ValueType>::type ComponentType;
 
         static std::vector<double> getUnit()
         {
@@ -136,12 +137,12 @@ private:
             T* field = &(dc.getData<T > (T::getCommTag()));
             params.get()->gridLayout = field->getGridLayout();
 
-            PICToAdios<float> adiosType;
+            PICToAdios<ComponentType> adiosType;
             writeField(params.get(),
-                       sizeof(float),
+                       sizeof(ComponentType),
                        adiosType.type,
                        domInfo,
-                       T::numComponents,
+                       GetNComponents<ValueType>::value,
                        T::getName(),
                        getUnit(),
                        field->getHostDataBox().getPointer());
