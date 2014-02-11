@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -29,30 +29,25 @@ namespace algorithms
 namespace math
 {
 
-namespace detail
-{
-
 template<typename Type>
 struct Floor;
 
 template<typename Type>
 struct Float2int_rd;
 
-} //namespace detail
 
 template<typename T1>
-HDINLINE static typename detail::Floor< T1>::result floor(T1 value)
+HDINLINE static typename Floor< T1>::result floor(T1 value)
 {
-    return detail::Floor< T1 > ()(value);
+    return Floor< T1 > ()(value);
 }
 
 template<typename T1>
-DINLINE static typename detail::Float2int_rd< T1>::result float2int_rd(T1 value)
+DINLINE static typename Float2int_rd< T1>::result float2int_rd(T1 value)
 {
-    return detail::Float2int_rd< T1 > ()(value);
+    return Float2int_rd< T1 > ()(value);
 }
 
 } //namespace math
 } //namespace algorithms
 }//namespace PMacc
-

@@ -29,13 +29,8 @@ namespace algorithms
 namespace math
 {
 
-namespace detail
-{
-
 template<typename T1, typename T2>
 struct Pow;
-
-} //namespace detail
 
 
 /** Raised the base to the power exponent
@@ -45,9 +40,9 @@ struct Pow;
  * @return base rased to the power exponent 
  */
 template<typename T1, typename T2>
-HDINLINE static typename detail::Pow< T1, T2 >::result pow(const T1& base,const T2& exponent)
+HDINLINE static typename Pow< T1, T2 >::result pow(const T1& base,const T2& exponent)
 {
-    return detail::Pow< T1, T2 > ()(base, exponent);
+    return Pow< T1, T2 > ()(base, exponent);
 }
 
 } //namespace math

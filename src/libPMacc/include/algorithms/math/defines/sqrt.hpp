@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -28,9 +28,6 @@ namespace algorithms
 namespace math
 {
 
-namespace detail
-{
-
 template<typename Type>
 struct Sqrt;
 
@@ -38,18 +35,16 @@ template<typename Type>
 struct RSqrt;
 
 
-} //namespace detail
-
 template<typename T1>
-HDINLINE static typename detail::Sqrt< T1 >::result sqrt(const T1& value)
+HDINLINE static typename Sqrt< T1 >::result sqrt(const T1& value)
 {
-    return detail::Sqrt< T1 > ()(value);
+    return Sqrt< T1 > ()(value);
 }
 
 template<typename T1>
-HDINLINE static typename detail::RSqrt< T1 >::result rsqrt(const T1& value)
+HDINLINE static typename RSqrt< T1 >::result rsqrt(const T1& value)
 {
-    return detail::RSqrt< T1 > ()(value);
+    return RSqrt< T1 > ()(value);
 }
 
 } //namespace math
