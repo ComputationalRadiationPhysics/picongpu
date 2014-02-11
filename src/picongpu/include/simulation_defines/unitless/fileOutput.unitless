@@ -25,21 +25,17 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
 
-#include "fields/FieldE.hpp"
-#include "fields/FieldB.hpp"
-#include "fields/FieldJ.hpp"
-#include "fields/FieldTmp.def"
-
-#include "particles/Species.hpp"
-
-#include "particles/particleToGrid/energyDensity.kernel"
-
 #include "compileTime/conversion/MakeSeq.hpp"
+
+/** some forward declarations we need */
+#include "fields/Fields.def"
+#include "particles/Species.hpp"
+#include "particles/particleToGrid/energyDensity.kernel"
 
 namespace picongpu
 {
     /** Note: you will need at least FieldE and FieldB for restart
-     *       capability!
+     *        capabilities!
      *  Possible fields: FieldE, FieldB, FieldJ
      */
     typedef typename MakeSeq<FieldE, FieldB>::type NativeFileOutputFields;
@@ -47,7 +43,7 @@ namespace picongpu
     typedef VectorAllSpecies FileOutputParticles;
     
     /** TimeAvg Fields
-     * \todo Reduce/Avg on host-side RAM with an analyser
+     * \todo Reduce/Avg on host-side RAM with a plugin
      */
     
     /** FieldTmp output (calculated at runtime)
@@ -69,7 +65,7 @@ namespace picongpu
             ComputeEnergyDensityOptions::calcCounter
         > TmpParticleCounter;
 
-    /** List of solvers which use TmpField and electons*/
+    /** List of solvers that use FieldTmp and electrons */
     typedef typename MakeSeq<
 #if (ENABLE_ELECTRONS == 1)
         FieldTmpOperation< TmpParticleDensity, PIC_Electrons > ,
@@ -77,7 +73,7 @@ namespace picongpu
 #endif
     >::type PluginsFileOutputFieldsElectrons;
 
-    /** List of solvers which use TmpField and ions*/
+    /** List of solvers that use FieldTmp and ions */
     typedef typename MakeSeq<
 #if (ENABLE_IONS == 1)
         FieldTmpOperation< TmpParticleDensity, PIC_Ions >,

@@ -95,7 +95,7 @@ void FieldJ::synchronize( )
     fieldJ.deviceToHost( );
 }
 
-GridBuffer<FieldJ::FloatJ, simDim> &FieldJ::getGridBuffer( )
+GridBuffer<FieldJ::ValueType, simDim> &FieldJ::getGridBuffer( )
 {
     return fieldJ;
 }
@@ -162,7 +162,7 @@ void FieldJ::reset( uint32_t )
 
 void FieldJ::clear( )
 {
-    FloatJ tmp = float3_X( 0., 0., 0. );
+    ValueType tmp = float3_X( 0., 0., 0. );
     fieldJ.getDeviceBuffer( ).setValue( tmp );
     //fieldJ.reset(false);
 }
