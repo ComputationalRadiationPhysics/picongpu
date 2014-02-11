@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -29,30 +29,25 @@ namespace algorithms
 namespace math
 {
 
-namespace detail
-{
-
 template<typename Type>
 struct Abs;
 
 template<typename Type>
 struct Abs2;
 
-} //namespace detail
 
 template<typename T1>
-HDINLINE static typename detail::Abs< T1>::result abs(T1 value)
+HDINLINE static typename Abs< T1>::result abs(T1 value)
 {
-    return detail::Abs< T1 > ()(value);
+    return Abs< T1 > ()(value);
 }
 
 template<typename T1>
-HDINLINE static typename detail::Abs2< T1 >::result abs2(const T1& value)
+HDINLINE static typename Abs2< T1 >::result abs2(const T1& value)
 {
-    return detail::Abs2< T1 > ()(value);
+    return Abs2< T1 > ()(value);
 }
 
 } //namespace math
 } //namespace algorithms
 }//namespace PMacc
-

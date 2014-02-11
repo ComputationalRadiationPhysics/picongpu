@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013-2014 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of libPMacc. 
  * 
@@ -29,8 +29,6 @@ namespace algorithms
 namespace math
 {
 
-namespace detail
-{
 
 template<typename Type>
 struct Exp;
@@ -38,23 +36,19 @@ struct Exp;
 template<typename Type>
 struct Log;
 
-
-} //namespace detail
-
 template<typename T1>
-HDINLINE static typename detail::Exp< T1 >::result exp(const T1& value)
+HDINLINE static typename Exp< T1 >::result exp(const T1& value)
 {
-    return detail::Exp< T1 > ()(value);
+    return Exp< T1 > ()(value);
 }
 
 template<typename T1>
-HDINLINE static typename detail::Log< T1 >::result log(const T1& value)
+HDINLINE static typename Log< T1 >::result log(const T1& value)
 {
-    return detail::Log< T1 > ()(value);
+    return Log< T1 > ()(value);
 }
 
 
 } //namespace math
 } //namespace algorithms
 }//namespace PMacc
-

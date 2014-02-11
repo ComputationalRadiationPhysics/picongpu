@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2014 Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -55,8 +55,6 @@ namespace algorithms
 {
 namespace typeCast
 {
-namespace detail
-{
 
 template<unsigned T_Dim>
 struct TypeCast<int, PMacc::DataSpace<T_Dim> >
@@ -79,7 +77,7 @@ struct TypeCast<T_CastToType, PMacc::DataSpace<T_Dim>  >
         return result( vector );
     }
 };
-}//namespace detail
+
 } //namespace typecast
 } //namespace algorithms
 

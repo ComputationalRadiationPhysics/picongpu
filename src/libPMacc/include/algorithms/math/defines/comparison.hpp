@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -29,30 +29,25 @@ namespace algorithms
 namespace math
 {
 
-namespace detail
-{
-
 template<typename T1,typename T2>
 struct Max;
 
 template<typename T1,typename T2>
 struct Min;
 
-} //namespace detail
 
 template<typename T1,typename T2>
-HDINLINE static typename detail::Min< T1,T2>::result min(const T1& value1,const T2& value2)
+HDINLINE static typename Min< T1,T2>::result min(const T1& value1,const T2& value2)
 {
-    return detail::Min< T1,T2 > ()(value1,value2);
+    return Min< T1,T2 > ()(value1,value2);
 }
 
 template<typename T1,typename T2>
-HDINLINE static typename detail::Max< T1,T2 >::result max(const T1& value1,const T2& value2)
+HDINLINE static typename Max< T1,T2 >::result max(const T1& value1,const T2& value2)
 {
-    return detail::Max< T1,T2 > ()(value1,value2);
+    return Max< T1,T2 > ()(value1,value2);
 }
 
 } //namespace math
 } //namespace algorithms
 }//namespace PMacc
-

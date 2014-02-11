@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -28,20 +28,15 @@ namespace algorithms
 namespace math
 {
 
-namespace detail
-{
-
 template<typename Type1, typename Type2>
 struct Dot;
 
-} //namespace detail
 
 template<typename T1, typename T2>
-HDINLINE static typename detail::Dot< T1, T2 >::result dot(const T1& value, const T2& value2)
+HDINLINE static typename Dot< T1, T2 >::result dot(const T1& value, const T2& value2)
 {
-    return detail::Dot< T1, T2 > ()(value, value2);
+    return Dot< T1, T2 > ()(value, value2);
 }
 } //namespace math
 } //namespace algorithms
 }//namespace PMacc
-

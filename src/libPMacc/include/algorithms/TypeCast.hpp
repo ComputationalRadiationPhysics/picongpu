@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -27,8 +27,6 @@ namespace algorithms
 {
 namespace typeCast
 {
-namespace detail
-{
 
 template<typename CastToType, typename Type>
 struct TypeCast
@@ -41,15 +39,13 @@ struct TypeCast
     }
 };
 
-} //namespace detail
 
 template<typename CastToType, typename Type>
-HDINLINE static typename detail::TypeCast<CastToType, Type>::result typeCast(const Type& value)
+HDINLINE static typename TypeCast<CastToType, Type>::result typeCast(const Type& value)
 {
-    return detail::TypeCast<CastToType, Type > ()(value);
+    return TypeCast<CastToType, Type > ()(value);
 }
 
 } //namespace typeCast
 } //namespace algorithms
 }//namespace PMacc
-

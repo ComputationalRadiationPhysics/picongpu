@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013-2014 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of libPMacc. 
  * 
@@ -29,8 +29,6 @@ namespace PMacc
 namespace algorithms
 {
 namespace math
-{
-namespace detail
 {
 
 template<>
@@ -82,13 +80,6 @@ struct Sinc<float>
     }
 };
 
-
-
-
-
-
-} //namespace detail
 } //namespace math
 } //namespace algorithms
 } // namespace PMacc
-

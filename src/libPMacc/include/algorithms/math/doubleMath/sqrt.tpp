@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -31,8 +31,6 @@ namespace algorithms
 {
 namespace math
 {
-namespace detail
-{
 
 template<>
 struct Sqrt<double>
@@ -56,9 +54,6 @@ struct RSqrt<double>
     }
 };
 
-} //namespace detail
 } //namespace math
 } //namespace algorithms
 } // namespace PMacc
-
-
