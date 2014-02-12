@@ -72,12 +72,10 @@ mkdir simOutput 2> /dev/null
 cd simOutput
 
 # Run CUDA memtest to check GPU's health
-srun !TBG_dstPath/picongpu/bin/cuda_memtest.sh
+srun -K1 !TBG_dstPath/picongpu/bin/cuda_memtest.sh
 
 # Run PIConGPU
 if [ $? -eq 0 ] ; then
-  srun !TBG_dstPath/picongpu/bin/picongpu !TBG_programParams
+  srun -K1 !TBG_dstPath/picongpu/bin/picongpu !TBG_programParams
 fi
 
-# Kill
-srun killall -9 picongpu
