@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -16,12 +16,10 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
 
 
-#ifndef ENERGYFIELDS_HPP
-#define	ENERGYFIELDS_HPP
+#pragma once
 
 #include <iostream>
 #include <fstream>
@@ -42,6 +40,9 @@
 #include "mpi/reduceMethods/Reduce.hpp"
 #include "mpi/MPIReduce.hpp"
 #include "nvidia/functors/Add.hpp"
+#include "nvidia/reduce/Reduce.hpp"
+#include "memory/boxes/DataBoxDim1Access.hpp"
+#include "memory/boxes/DataBoxUnaryTransform.hpp"
 
 namespace picongpu
 {
@@ -49,63 +50,18 @@ using namespace PMacc;
 
 namespace po = boost::program_options;
 
-typedef typename FieldB::DataBoxType B_DataBox;
-typedef typename FieldE::DataBoxType E_DataBox;
-
-template<class Mapping>
-__global__ void kernelEnergy(E_DataBox fieldE, B_DataBox fieldB, float* gEnergy, Mapping mapper)
+namespace energyFields
 {
+template<typename T_Type>
+struct cast64Bit
+{
+    typedef float_64 result;
 
-    //__shared__ float_X sh_sumE2;
-    //__shared__ float_X sh_sumB2;
-    __shared__ float_X sh_sumEn;
-
-    __syncthreads(); /*wait that all shared memory is initialised*/
-
-    typedef typename Mapping::SuperCellSize SuperCellSize;
-    const DataSpace<simDim > threadIndex(threadIdx);
-    const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (
-                                                                                           threadIndex
-                                                                                           );
-
-    if (linearThreadIdx == 0)
+    HDINLINE typename TypeCast<result, T_Type>::result operator()(const T_Type& value) const
     {
-        //sh_sumE2 = float_X(0.0);
-        //sh_sumB2 = float_X(0.0);
-        sh_sumEn = float_X(0.0);
+        return typeCast<result>(value);
     }
-
-    __syncthreads();
-
-    const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
-    const DataSpace<simDim> cell(superCellIdx * SuperCellSize() + threadIndex);
-
-    const float3_X b = fieldB(cell);
-    const float3_X e = fieldE(cell);
-
-    const float_X myE2 = e.x() * e.x() + e.y() * e.y() + e.z() * e.z();
-    const float_X myB2 = b.x() * b.x() + b.y() * b.y() + b.z() * b.z();
-
-    const float_X volume = CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH;
-    const float_X myEn = ((EPS0 * myE2) + (myB2 * (float_X(1.0) / MUE0))) * (volume * float_X(0.5));
-
-    //atomicAddWrapper(&sh_sumE2, myE2);
-    //atomicAddWrapper(&sh_sumB2, myB2);
-    atomicAddWrapper(&sh_sumEn, myEn);
-
-    __syncthreads();
-
-    if (linearThreadIdx == 0)
-    {
-        //const float_X volume = double(MappingDesc::SuperCellSize::elements) * CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH;
-        //double globalEnergy = ((double) (EPS0 * sh_sumE2) + (double) (sh_sumB2 * (float_X(1.0) / MUE0))) * (double) (volume * float_X(0.5));
-        //atomicAddWrapper(gEnergy, globalEnergy);
-
-        //atomicAddWrapper(&gEnergy[0], double(sh_sumE2));
-        //atomicAddWrapper(&gEnergy[1], double(sh_sumB2));
-
-        atomicAddWrapper(&gEnergy[0], sh_sumEn);
-    }
+};
 }
 
 class EnergyFields : public ISimulationIO, public IPluginModule
@@ -116,7 +72,6 @@ private:
 
     MappingDesc *cellDescription;
     uint32_t notifyFrequency;
-    GridBuffer<float, DIM1> *energy;
 
     std::string analyzerName;
     std::string analyzerPrefix;
@@ -125,8 +80,9 @@ private:
     /*only rank 0 create a file*/
     bool writeToFile;
 
-    mpi::MPIReduce reduce;
+    mpi::MPIReduce mpiReduce;
 
+    nvidia::reduce::Reduce localReduce;
 
 public:
 
@@ -138,10 +94,9 @@ public:
     analyzerPrefix(prefix),
     filename(name + ".dat"),
     notifyFrequency(0),
-    writeToFile(false)
+    writeToFile(false),
+    localReduce(1024)
     {
-
-
         ModuleConnector::getInstance().registerModule(this);
     }
 
@@ -156,7 +111,7 @@ public:
 
         fieldE = &(dc.getData<FieldE > (FIELD_E, true));
         fieldB = &(dc.getData<FieldB > (FIELD_B, true));
-        getEnergyFields < CORE + BORDER > (currentStep);
+        getEnergyFields(currentStep);
     }
 
     void moduleRegisterHelp(po::options_description& desc)
@@ -180,11 +135,9 @@ private:
 
     void moduleLoad()
     {
-
         if (notifyFrequency > 0)
         {
-            writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce());
-            energy = new GridBuffer<float, DIM1 > (DataSpace<DIM1 > (1)); //create one int on gpu und host
+            writeToFile = mpiReduce.hasResult(mpi::reduceMethods::Reduce());
 
             if (writeToFile)
             {
@@ -197,7 +150,6 @@ private:
                 //create header of the file
                 outFile << "#step Joule" << " \n";
             }
-
             DataConnector::getInstance().registerObserver(this, notifyFrequency);
         }
     }
@@ -214,44 +166,57 @@ private:
                     std::cerr << "Error on flushing file [" << filename << "]. " << std::endl;
                 outFile.close();
             }
-            if (energy)
-                delete energy;
         }
     }
 
-    template< uint32_t AREA>
     void getEnergyFields(uint32_t currentStep)
     {
-        energy->getDeviceBuffer().setValue(0.0);
-        dim3 block(MappingDesc::SuperCellSize::getDataSpace());
+        float_64 fieldEReduced = reduceField(fieldE);
+        float_64 fieldBReduced = reduceField(fieldB);
 
-        __picKernelArea(kernelEnergy, *cellDescription, AREA)
-            (block)
-            (fieldE->getDeviceDataBox(),
-             fieldB->getDeviceDataBox(),
-             energy->getDeviceBuffer().getBasePointer());
-        energy->deviceToHost();
+        float_64 localFieldEnergy = ((EPS0 * fieldEReduced) + (fieldBReduced * (float_X(1.0) / MUE0))) * (CELL_VOLUME * float_X(0.5));
+        float_64 globalEnergy=0.0;
 
-        double globalEnergy = double( energy->getHostBuffer().getBasePointer()[0]);
-        double reducedValue;
-        reduce(nvidia::functors::Add(),
-               &reducedValue,
-               &globalEnergy,
-               1,
-               mpi::reduceMethods::Reduce());
+        mpiReduce(nvidia::functors::Add(),
+                  &globalEnergy,
+                  &localFieldEnergy,
+                  1,
+                  mpi::reduceMethods::Reduce());
 
         if (writeToFile)
         {
             typedef std::numeric_limits< float_64 > dbl;
 
             outFile.precision(dbl::digits10);
-            outFile << currentStep << " " << std::scientific << reducedValue * UNIT_ENERGY << std::endl;
+            outFile << currentStep << " " << std::scientific << globalEnergy * UNIT_ENERGY << std::endl;
         }
+    }
+
+private:
+
+    template<typename T_Field>
+    float_64 reduceField(T_Field* field)
+    {
+        /*define stacked DataBox's for reduce algorithm*/
+        typedef DataBoxUnaryTransform<typename T_Field::DataBoxType, math::Abs2 > TransformedBox;
+        typedef DataBoxUnaryTransform<TransformedBox, energyFields::cast64Bit > Box64bit;
+        typedef DataBoxDim1Access<Box64bit > D1Box;
+
+        /* reduce field E*/
+        DataSpace<simDim> fieldSize = field->getGridLayout().getDataSpaceWithoutGuarding();
+        DataSpace<simDim> fieldGuard = field->getGridLayout().getGuard();
+
+        TransformedBox fieldTransform(field->getDeviceDataBox().shift(fieldGuard));
+        Box64bit field64bit(fieldTransform);
+        D1Box d1Access(field64bit, fieldSize);
+
+        float_64 fieldReduced = localReduce(nvidia::functors::Add(),
+                                            d1Access,
+                                            fieldSize.productOfComponents());
+
+        return fieldReduced;
     }
 
 };
 
-}
-
-#endif	/* ENERGYFIELDS_HPP */
-
+} //namespace picongpu
