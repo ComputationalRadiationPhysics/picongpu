@@ -48,15 +48,20 @@ namespace PMacc
                     const uint32_t l_tid = threadIdx.x;
                     const uint32_t tid = blockIdx.x * blockDim.x + l_tid;
                     const uint32_t globalThreadCount = gridDim.x * blockDim.x;
-                    extern __shared__ Type s_mem[];
+                    
+                    /* cuda can not handle extern shared memory were the type is 
+                     * defined by a template
+                     * - therefore we use type int for the definition (dirty but OK) */
+                    extern __shared__ int s_mem_extern[];
+                    /* create a pointer with the right type*/
+                    Type* s_mem=(Type*)s_mem_extern;
 
                     if (tid >= src_count) return; /*end not needed threads*/
                     
-                    __syncthreads(); /*wait that all shared memory is initialised*/
+                    __syncthreads(); /*wait that all shared memory is initialized*/
 
                     /*fill shared mem*/
                     Type r_value = src[tid];
-                    //    printf("tid=%i\n", tid);
                     /*reduce not readed global memory to shared*/
                     uint32_t i = tid + globalThreadCount;
                     while (i < src_count)
@@ -78,18 +83,13 @@ namespace PMacc
 
 
                         chunk_count = ceilf(half_threads);
-                        // printf("chunk_count=%i lid=%i\n", chunk_count, l_tid);
-                        //float3 s1=s_mem[l_tid];
-                        // float3 s2=s_mem[l_tid + chunk_count];
                         func(s_mem[l_tid], s_mem[l_tid + chunk_count]);
 
-                        //if (src_count == 16) printf("smem %f %i\n", s1.x(), l_tid);
-                        // if (src_count == 16) printf("smem2 %f %i\n", s2.x(), l_tid + chunk_count);
                         __syncthreads();
                     }
 
                     func2(dest[blockIdx.x], s_mem[0]);
-                    // printf("erg=%f\n", dest[blockIdx.x].x());
+
                 }
             }
 
@@ -136,7 +136,6 @@ namespace PMacc
 
                     uint32_t blocks = threads / 2 / blockcount;
                     if (blocks == 0) blocks = 1;
-                    //std::cout << "count=" << blockcount << " blocks=" << blocks << " n=" << n << std::endl;
                     __cudaKernel((kernel::reduce < Type >))(blocks, blockcount, blockcount * sizeof (Type))(src, n, dest, func,
                                                                                                             PMacc::nvidia::functors::Assign());
                     n = blocks;
@@ -153,13 +152,13 @@ namespace PMacc
                             uint32_t useBlocks = blocks - blockOffset;
                             uint32_t problemSize = n - (blockOffset * blockcount);
                             Type* srcPtr = dest + (blockOffset * blockcount);
-                            // std::cout << "count=" << blockcount << " blocks=" << useBlocks << " n=" << problemSize + (blockOffset * blockcount) << std::endl;
+                            
                             __cudaKernel((kernel::reduce < Type >))(useBlocks, blockcount, blockcount * sizeof (Type))(srcPtr, problemSize, dest, func, func);
                             blocks = blockOffset*blockcount;
                         }
                         else
                         {
-                            //  std::cout << "ass count=" << blockcount << " blocks=" << blocks << " n=" << n << std::endl;
+
                             __cudaKernel((kernel::reduce < Type >))(blocks, blockcount, blockcount * sizeof (Type))(dest, n, dest, func,
                                                                                                                     PMacc::nvidia::functors::Assign());
                         }
@@ -170,7 +169,6 @@ namespace PMacc
                         if (blocks == 0 && n > 1) blocks = 1;
                     }
 
-                    // std::cout << "-------------" << blocks << std::endl;
                     reduceBuffer->deviceToHost();
                     __getTransactionEvent().waitForFinished();
                     return *((Type*) (reduceBuffer->getHostBuffer().getBasePointer()));
