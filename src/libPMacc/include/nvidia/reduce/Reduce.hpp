@@ -49,7 +49,7 @@ namespace PMacc
                     const uint32_t tid = blockIdx.x * blockDim.x + l_tid;
                     const uint32_t globalThreadCount = gridDim.x * blockDim.x;
                     
-                    /* cuda can't handle extern shared memory were the type is 
+                    /* cuda can not handle extern shared memory were the type is 
                      * defined by a template
                      * - therefore we use type int for the definition (dirty but OK) */
                     extern __shared__ int s_mem_extern[];
@@ -83,6 +83,7 @@ namespace PMacc
 
 
                         chunk_count = ceilf(half_threads);
+                        func(s_mem[l_tid], s_mem[l_tid + chunk_count]);
 
                         __syncthreads();
                     }
