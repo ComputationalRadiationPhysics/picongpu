@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU. 
  * 
@@ -174,21 +174,11 @@ namespace picongpu
                     }
                     dr = r - pos;
                     
-                    dr.x() *= ( float_X(1.0) / CELL_WIDTH );
-                    dr.y() *= ( float_X(1.0) / CELL_HEIGHT );
-                    dr.z() *= ( float_X(1.0) / CELL_DEPTH );
+                    dr *= float3_X(1.0) / cell_size;
+
                 }
 
-                /* IMPORTANT: 
-                 * use float_X(1.0)+X-float_X(1.0) because the rounding of float_X can create position from [-float_X(1.0),2.f],
-                 * this breaks ower definition that after position change (if statements later) the position must [float_X(0.0),float_X(1.0))
-                 * 1.e-9+float_X(1.0) = float_X(1.0) (this is not allowed!!!
-                 * 
-                 * If we don't use this fermi crash in this kernel in the time step n+1 in field interpolation
-                 */
-                pos += float3_X( float_X(1.0), float_X(1.0), float_X(1.0) ) + dr;
-                pos -= float3_X( float_X(1.0), float_X(1.0), float_X(1.0) );
-
+                pos += dr;
             }
         };
     } //namespace
