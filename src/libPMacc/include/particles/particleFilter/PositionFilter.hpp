@@ -77,7 +77,7 @@ public:
             typename FRAME::SuperCellSize
             > ((uint32_t) (frame[id][localCellIdx_]));
         DataSpace<dim> pos = this->superCellIdx + localCellIdx;
-        bool result = false;
+        bool result = true;
         for (uint32_t d = 0; d < dim; ++d)
             result= result && (this->offset[d] <= pos[d]) && (pos[d]<this->max[d]);
         return Base::operator() (frame, id) && result;
