@@ -448,13 +448,13 @@ struct PushParticlePerFrame
              * pos in range [-1;2)
              * 
              * If pos is negative and very near to 0 (e.g. pos < -1e-8)
-             * and we move pos with pis+=1.0 back to normal in cell postion
+             * and we move pos with pos+=1.0 back to normal in cell postion
              * we get a rounding error and pos is assigned to 1. This breaks
              * our in cell definition range [0,1)
              * 
              * if pos negativ moveDir is set to -1
              * if pos positive and >1 moveDir is set to +1
-             * 0 (NULL) if particle stay in cell
+             * 0 (zero) if particle stays in cell
              */     
             float_X moveDir = math::floor(pos[i]);
             /* shift pos back to cell range [0;1)*/
@@ -462,12 +462,19 @@ struct PushParticlePerFrame
             /* check for rounding errors and correct them
              * if position now is 1 we have a rounding error
              * 
-             * We correct moveDir that we not have left the cell, thus
+             * We correct moveDir that we not have left the cell
              */
-            const float_X correctValue=math::floor(pos[i]);
-            moveDir += correctValue;
+            const float_X valueCorrector=math::floor(pos[i]);
+            /* One has also to correct moveDir for the following reason:
+             * Imagine a new particle moves to -1e-20, leaving the cell to the left,
+             * setting moveDir to -1.
+             * The new in-cell position will be -1e-20 + 1.0, 
+             * which can flip to 1.0 (wrong value).
+             * We move the particle back to the old cell at position 0.0 and 
+             * moveDir has to be corrected back, too (add +1 again).*/
+            moveDir += valueCorrector;
             /* If we have corrected moveDir we must set pos to 0 */
-            pos[i] -= correctValue;
+            pos[i] -= valueCorrector;
             dir[i] = typeCast<int>(moveDir);
         }
         particle[position_] = pos;

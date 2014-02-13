@@ -46,11 +46,10 @@ namespace picongpu
                 const float_X mom_abs = abs( mom );
                 const PosType vel = mom * ( SPEED_OF_LIGHT / mom_abs );
 
-
-                pos.x() += (vel.x() * DELTA_T / CELL_WIDTH);
-                pos.y() += (vel.y() * DELTA_T / CELL_HEIGHT);
-                pos.z() += (vel.z() * DELTA_T / CELL_DEPTH);
-
+                for(uint32_t d=0;d<simDim;++d)
+                {
+                    pos[d] += (vel[d] * DELTA_T) / cell_size[d]; 
+                }   
             }
         };
     } //namespace
