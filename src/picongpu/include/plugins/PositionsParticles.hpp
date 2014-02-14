@@ -53,7 +53,7 @@ struct SglParticle
     float_X charge;
     float_X gamma;
 
-    SglParticle() : position(0.0,0.0,0.0), momentum(0.0,0.0, 0.0), mass(0.0),
+    SglParticle() : position(0.0), momentum(0.0), mass(0.0),
         weighting(0.0), charge(0.0), gamma(0.0)
     {
     }
@@ -62,19 +62,22 @@ struct SglParticle
 
     //! todo 
 
-    float3_64 getGlobalCell() const
+    floatD_64 getGlobalCell() const
     {
-        return float3_64( typeCast<float_64>(globalCellOffset.x()) + typeCast<float_64>(position.x()),
-                          typeCast<float_64>(globalCellOffset.y()) + typeCast<float_64>(position.y()),
-                          typeCast<float_64>(globalCellOffset.z()) + typeCast<float_64>(position.z()) );
+        floatD_64 doubleGlobalCellOffset;
+        for(uint32_t i=0;i<simDim;++i)
+            doubleGlobalCellOffset[i]=globalCellOffset[i];
+        
+        return floatD_64( doubleGlobalCellOffset+ typeCast<float_64>(position));
     }
 
     template<typename T>
         friend std::ostream& operator<<(std::ostream& out, const SglParticle<T>& v)
     {
-        const float3_64 pos( v.getGlobalCell().x() * SI::CELL_WIDTH_SI,
-                             v.getGlobalCell().y() * SI::CELL_HEIGHT_SI,
-                             v.getGlobalCell().z() * SI::CELL_DEPTH_SI   );
+        float3_64 pos;
+        for(uint32_t i=0;i<simDim;++i)
+            pos[i]=( v.getGlobalCell().x() * cell_size[i]*UNIT_LENGTH);
+     
         const float3_64 mom( typeCast<float_64>(v.momentum.x()) * UNIT_MASS * UNIT_SPEED,
                              typeCast<float_64>(v.momentum.y()) * UNIT_MASS * UNIT_SPEED,
                              typeCast<float_64>(v.momentum.z()) * UNIT_MASS * UNIT_SPEED );
@@ -162,7 +165,7 @@ class PositionsParticles : public ISimulationIO, public IPluginModule
 {
 private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
-    typedef float3_X FloatPos;
+    typedef floatD_X FloatPos;
 
     ParticlesType *particles;
 

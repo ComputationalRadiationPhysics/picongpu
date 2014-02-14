@@ -26,7 +26,7 @@
 #include "types.h"
 #include "simulation_defines.hpp"
 #include "simulation_types.hpp"
-#include "plugins/radiation/parameters.hpp"
+
 
 #include "particles/Species.hpp"
 #include "plugins/CountParticles.hpp"
@@ -41,7 +41,8 @@
 #include "plugins/InSituVolumeRenderer.hpp"
 #endif
 
-#if(ENABLE_RADIATION == 1)
+#if(ENABLE_RADIATION == 1 && SIMDIM==DIM3)
+#include "plugins/radiation/parameters.hpp"
 #include "plugins/Radiation.hpp"
 #endif
 #include "particles/Species.hpp"
@@ -56,11 +57,13 @@
 #include "plugins/output/images/PngCreator.hpp"
 #endif
 
-#include "plugins/IntensityModule.hpp"
+
 /// That's an abstract ImageModule for Png and Binary Density output
 /// \todo rename PngModule to ImageModule or similar
 #include "plugins/PngModule.hpp"
 
+#if(SIMDIM==DIM3)
+#include "plugins/IntensityModule.hpp"
 
 #include "plugins/FieldEnergy.hpp"
 #if(PIC_ENABLE_PNG==1)
@@ -69,7 +72,7 @@
 #include "plugins/ParticleSpectrum.hpp"
 #include "plugins/TotalDivJ.hpp"
 #include "plugins/SliceFieldPrinterMulti.hpp"
-
+#endif
 
 #include "plugins/output/images/Visualisation.hpp"
 
@@ -107,21 +110,22 @@ private:
 #endif
     typedef ParticleDensity<PIC_Electrons, DensityToBinary, float_X> ElectronsBinaryDensityBuilder;
 
+#if(SIMDIM==DIM3)
 #if(PIC_ENABLE_PNG==1)
-    typedef heiko::ParticleDensity<PIC_Electrons> HeikoParticleDensity;
-
+        typedef heiko::ParticleDensity<PIC_Electrons> HeikoParticleDensity;
+        
 #endif
-    typedef ParticleSpectrum<PIC_Electrons> ElectronSpectrum;
-    typedef SliceFieldPrinterMulti<FieldE, FIELD_E> SliceFieldEPrinter;
-    typedef SliceFieldPrinterMulti<FieldB, FIELD_B> SliceFieldBPrinter;
-
-    typedef LiveViewModule<PIC_Electrons > LiveImageElectrons;
-    typedef PngModule<ElectronsBinaryDensityBuilder > BinDensityElectrons;
-    typedef CountParticles<PIC_Electrons> ElectronCounter;
-    typedef EnergyParticles<PIC_Electrons> EnergyElectrons;
-    typedef PositionsParticles<PIC_Electrons> PositionElectrons;
-    typedef BinEnergyParticles<PIC_Electrons> BinEnergyElectrons;
-#if(ENABLE_RADIATION == 1)
+        typedef ParticleSpectrum<PIC_Electrons> ElectronSpectrum;
+        typedef SliceFieldPrinterMulti<FieldE, FIELD_E> SliceFieldEPrinter;
+        typedef SliceFieldPrinterMulti<FieldB, FIELD_B> SliceFieldBPrinter;
+#endif
+        typedef LiveViewModule<PIC_Electrons > LiveImageElectrons;
+        typedef PngModule<ElectronsBinaryDensityBuilder > BinDensityElectrons;
+        typedef CountParticles<PIC_Electrons> ElectronCounter;
+        typedef EnergyParticles<PIC_Electrons> EnergyElectrons;
+        typedef PositionsParticles<PIC_Electrons> PositionElectrons;
+        typedef BinEnergyParticles<PIC_Electrons> BinEnergyElectrons;
+#if(ENABLE_RADIATION == 1 && SIMDIM==DIM3)
     typedef Radiation<PIC_Electrons> RadiationElectrons;
 #endif
 #endif
@@ -162,6 +166,7 @@ private:
         modules.push_back(new SumCurrents());
         modules.push_back(new LineSliceFields());
 
+#if(SIMDIM==DIM3)
         modules.push_back(new FieldEnergy("FieldEnergy [keV/m^3]", "field_energy"));
 #if(PIC_ENABLE_PNG==1)
         modules.push_back(new HeikoParticleDensity("HeikoParticleDensity", "heiko_pd"));
@@ -170,7 +175,10 @@ private:
         modules.push_back(new TotalDivJ("change of total charge per timestep (single gpu)", "totalDivJ"));
         modules.push_back(new SliceFieldEPrinter("FieldE: prints a slice of the E-field", "FieldE"));
         modules.push_back(new SliceFieldBPrinter("FieldB: prints a slice of the B-field", "FieldB"));
-
+        
+        modules.push_back(new IntensityModule("Intensity", "intensity"));
+#endif
+        
 #if (ENABLE_ELECTRONS == 1)
         modules.push_back(new LiveImageElectrons("LiveImageElectrons", "live_e"));
 #if(PIC_ENABLE_PNG==1)
@@ -194,11 +202,9 @@ private:
         modules.push_back(new EnergyIons("EnergyIons", "energy_i"));
 #endif
 
-#if(ENABLE_RADIATION == 1)
+#if(ENABLE_RADIATION == 1 && SIMDIM==DIM3)
         modules.push_back(new RadiationElectrons("RadiationElectrons", "radiation_e"));
 #endif
-
-        modules.push_back(new IntensityModule("Intensity", "intensity"));
 
 #if (ENABLE_INSITU_VOLVIS == 1)
         modules.push_back(new InSituVolumeRenderer("InSituVolumeRenderer", "insituvolvis"));

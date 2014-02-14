@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 
 
 #ifndef SUMCURRENTS_HPP
@@ -125,11 +125,17 @@ public:
 
         // gCurrent is just j
         // j = I/A
+#if(SIMDIM==DIM3)
         const float3_X realCurrent(
                                    gCurrent.x() * CELL_HEIGHT * CELL_DEPTH,
                                    gCurrent.y() * CELL_WIDTH * CELL_DEPTH,
                                    gCurrent.z() * CELL_WIDTH * CELL_HEIGHT);
-
+#elif(SIMDIM==DIM2)
+        const float3_X realCurrent(
+                                   gCurrent.x() * CELL_HEIGHT,
+                                   gCurrent.y() * CELL_WIDTH,
+                                   gCurrent.z() * CELL_WIDTH * CELL_HEIGHT);
+#endif
         float3_64 realCurrent_SI(
                                  double(realCurrent.x()) * (UNIT_CHARGE / UNIT_TIME),
                                  double(realCurrent.y()) * (UNIT_CHARGE / UNIT_TIME),

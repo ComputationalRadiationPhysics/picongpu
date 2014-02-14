@@ -118,10 +118,18 @@ namespace picongpu
                                                            charToAxisNumber(getValue(axis, i)[0]),
                                                            charToAxisNumber(getValue(axis, i)[1])
                                                            );
-                                VisType* tmp = new VisType(analyzerName, pngCreator, frequ, transpose, getValue(slicePoints, i));
-                                visIO.push_back(tmp);
-                                tmp->setMappingDescription(cellDescription);
-                                tmp->init();
+                                /* if simulation run in 2D ignore all xz, yz slices (we had no z direction)*/
+                                if( simDim==DIM3 || (transpose.x()!=2 ||transpose.y()!=2  ))
+                                {                                    
+                                    VisType* tmp = new VisType(analyzerName, pngCreator, frequ, transpose, getValue(slicePoints, i));
+                                    visIO.push_back(tmp);
+                                    tmp->setMappingDescription(cellDescription);
+                                    tmp->init();
+                                }
+                                else
+                                {
+                                    std::cerr<<"[WARNING] You run a 2D simulation png output for axis: "<<getValue(axis, i)<<" is disabled"<<std::endl;
+                                }
                             }
                             else
                                 throw std::runtime_error((std::string("[Png Module] wrong charecter count in axis: ") + getValue(axis, i)).c_str());

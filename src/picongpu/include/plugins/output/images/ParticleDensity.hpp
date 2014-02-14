@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 
 
 #ifndef PARTICLEDENSITY_HPP
@@ -59,7 +59,6 @@ namespace picongpu
 {
 using namespace PMacc;
 
-
 template<class ParBox, class Mapping, typename Type_>
 __global__ void
 kernelParticleDensity(ParBox pb,
@@ -94,10 +93,11 @@ kernelParticleDensity(ParBox pb,
     //\todo: guard size should not be set to (fixed) 1 here
     const DataSpace<simDim> realCell(blockOffset + threadId); //delete guard from cell idx
 
-
+#if(SIMDIM==DIM3)
     uint32_t globalCell = realCell[sliceDim] + globalOffset;
 
     if (globalCell == slice)
+#endif
     {
         isValid = true;
         isImageThread = true;
@@ -120,8 +120,8 @@ kernelParticleDensity(ParBox pb,
 
     const DataSpace<simDim> blockSize(blockDim);
     SharedMem counter(PitchedBox<float_X, DIM2 > ((float_X*) shBlock,
-                                              DataSpace<DIM2 > (),
-                                              blockSize[transpose.x()] * sizeof (float_X)));
+                                                  DataSpace<DIM2 > (),
+                                                  blockSize[transpose.x()] * sizeof (float_X)));
 
     if (isImageThread)
     {
@@ -137,14 +137,16 @@ kernelParticleDensity(ParBox pb,
 
     while (isValid) //move over all Frames
     {
-        PMACC_AUTO(particle,(*frame)[localId]);
+        PMACC_AUTO(particle, (*frame)[localId]);
         if (particle[multiMask_] == 1)
         {
             int cellIdx = particle[localCellIdx_];
             // we only draw the first slice of cells in the super cell (z == 0)
-            const DataSpace<DIM3> particleCellId(DataSpaceOperations<DIM3>::template map<Block > (cellIdx));
+            const DataSpace<simDim> particleCellId(DataSpaceOperations<simDim>::template map<Block > (cellIdx));
+#if(SIMDIM==DIM3)
             uint32_t globalParticleCell = particleCellId[sliceDim] + globalOffset + blockOffset[sliceDim];
             if (globalParticleCell == slice)
+#endif
             {
                 const DataSpace<DIM2> reducedCell(particleCellId[transpose.x()], particleCellId[transpose.y()]);
                 atomicAddWrapper(&(counter(reducedCell)), particle[weighting_] / NUM_EL_PER_PARTICLE);
@@ -210,6 +212,7 @@ public:
         const DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
         VirtualWindow window(MovingWindow::getInstance().getVirtualWindow(currentStep));
 
+        /*sliceOffset is only used in 3D*/
         sliceOffset = (int) ((float) (window.globalWindowSize[sliceDim]) * slicePoint) + window.globalSimulationOffset[sliceDim];
 
         if (!doDrawing())
@@ -234,6 +237,12 @@ public:
         DataSpace<simDim> blockSize(MappingDesc::SuperCellSize::getDataSpace());
         DataSpace<DIM2> blockSize2D(blockSize[transpose.x()], blockSize[transpose.y()]);
 
+        uint32_t globalOffset = 0;
+#if(SIMDIM==DIM3)
+        globalOffset = SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset()[sliceDim];
+#endif
+
+
         //create density image of particles
         __picKernelArea((kernelParticleDensity), *cellDescription, CORE + BORDER)
             (SuperCellSize::getDataSpace(), blockSize2D.productOfComponents() * sizeof (float_X))
@@ -241,7 +250,7 @@ public:
              img->getDeviceBuffer().getDataBox(),
              transpose,
              sliceOffset,
-             (SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset())[sliceDim], sliceDim
+             globalOffset, sliceDim
              );
 
 
@@ -254,21 +263,22 @@ public:
         PMACC_AUTO(hostBox, img->getHostBuffer().getDataBox());
 
         PMACC_AUTO(resultBox, gather(hostBox, header));
-        
+
         // units
-        const float_64 cellVolume = CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH;
-        const float_64 unitVolume = UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH;
+        const float_64 cellVolume = CELL_VOLUME;
+        float_64 unitVolume = 1;
+        for(uint32_t i=0;i<simDim;i++)
+            unitVolume*=UNIT_LENGTH;
         // that's a hack, but works for all species
         //const float_64 charge = typeCast<float_64>(
         //    ParticlesType::FrameType().getCharge(NUM_EL_PER_PARTICLE)) /
         //    typeCast<float_64>(NUM_EL_PER_PARTICLE) * UNIT_CHARGE;
-        
+
         // Note: multiply NUM_EL_PER_PARTICLE again
         //       because of normalization during atomicAdd above
         //       to avoid float overflow for weightings
         const float_64 unit = typeCast<float_64>(NUM_EL_PER_PARTICLE)
-                            / ( cellVolume * unitVolume );
-                            // * charge
+            / (cellVolume * unitVolume);
         if (isMaster)
             output(resultBox.shift(header.window.offset), unit, header.window.size, header);
     }
@@ -285,7 +295,9 @@ public:
             sliceOffset = (int) ((float) (window.globalWindowSize[sliceDim]) * slicePoint) + window.globalSimulationOffset[sliceDim];
             const DataSpace<simDim> gpus = GridController<simDim>::getInstance().getGpuNodes();
 
-            float_32 cellSize[3] = {CELL_WIDTH, CELL_HEIGHT, CELL_DEPTH};
+            float_32 cellSize[3]={0,0,0};
+            for(uint32_t i=0;i<simDim;++i)
+                cellSize[i]= cell_size[i];
             header.update(*cellDescription, window, transpose, 0, cellSize, gpus);
 
             img = new GridBuffer<Type_, DIM2 > (header.node.maxSize);
@@ -301,9 +313,13 @@ private:
         PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
         const DataSpace<simDim> globalRootCellPos(simBox.getGlobalOffset());
         const DataSpace<simDim> localSize(simBox.getLocalSize());
+#if(SIMDIM==DIM3)
         const bool tmp = globalRootCellPos[sliceDim] + localSize[sliceDim] > sliceOffset &&
-            globalRootCellPos[sliceDim] <= sliceOffset;
+             globalRootCellPos[sliceDim] <= sliceOffset;
         return tmp;
+#else
+        return true;
+#endif
     }
 
 

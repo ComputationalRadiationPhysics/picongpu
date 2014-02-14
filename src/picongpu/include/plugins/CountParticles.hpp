@@ -103,7 +103,7 @@ public:
     {
         desc.add_options()
             ((analyzerPrefix + ".period").c_str(),
-             po::value<uint32_t > (&notifyFrequency), "enable analyser [for each n-th step]");
+             po::value<uint32_t > (&notifyFrequency), "enable plugin [for each n-th step]");
     }
 
     std::string moduleGetName() const
@@ -129,7 +129,7 @@ private:
                 outFile.open(filename.c_str(), std::ofstream::out | std::ostream::trunc);
                 if (!outFile)
                 {
-                    std::cerr << "Can't open file [" << filename << "] for output, diasble analyser output. " << std::endl;
+                    std::cerr << "Can't open file [" << filename << "] for output, disable plugin output. " << std::endl;
                     writeToFile = false;
                 }
                 //create header of the file
@@ -185,7 +185,7 @@ private:
                &size,
                1,
                mpi::reduceMethods::Reduce());
-
+        
         if (writeToFile)
         {
             if (picLog::log_level & picLog::CRITICAL::lvl)
