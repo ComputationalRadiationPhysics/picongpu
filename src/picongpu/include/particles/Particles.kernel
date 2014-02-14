@@ -407,7 +407,7 @@ struct PushParticlePerFrame
         PMACC_AUTO(particle,frame[localIdx]);
         const float_X weighting = particle[weighting_];
 
-        float3_X pos = particle[position_];
+        floatD_X pos = particle[position_];
         const int particleCellIdx = particle[localCellIdx_];
 
         DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec > (particleCellIdx));

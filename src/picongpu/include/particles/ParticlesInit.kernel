@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -16,12 +16,12 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
-#ifndef PARTICLESINIT_KERNEL
-#define PARTICLESINIT_KERNEL
+ */
+
+#pragma once
 
 #include "types.h"
+#include "simulation_defines.hpp"
 #include "particles/Particles.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
 
@@ -39,7 +39,6 @@ namespace picongpu
 
 using namespace PMacc;
 
-
 /** Returns the electron density.
  *  That means:
  *     The REAL number of electrons density in units of volume**-3,
@@ -53,10 +52,11 @@ using namespace PMacc;
 template<unsigned int Dim>
 DINLINE float_X calcRealDensity(const DataSpace<Dim>& offset, const DataSpace<Dim>& cellIdx)
 {
-    float_X value = gasProfile::calcNormedDensitiy( float3_X((cellIdx.x() + offset.x()) * CELL_WIDTH,
-                                                             (cellIdx.y() + offset.y()) * CELL_HEIGHT,
-                                                             (cellIdx.z() + offset.z()) * CELL_DEPTH),
-                                                    UNIT_LENGTH ) * GAS_DENSITY;
+    floatD_X physicalCellPosition;
+    for (uint32_t i = 0; i < simDim; ++i)
+        physicalCellPosition[i] = (cellIdx[i] + offset[i]) * cell_size[i];
+
+    const float_X value = gasProfile::calcNormedDensitiy(physicalCellPosition) * GAS_DENSITY;
     return value;
 }
 
@@ -89,12 +89,9 @@ __global__ void kernelFillGridWithParticles(ParBox pb,
                                                                          superCellIdx);
 
 
-    //append only a empty frame in guarding blocks
-    if (block.x() == 0 || block.x() == superCells.x() - 1) return;
-    if (block.y() == 0 || block.y() == superCells.y() - 1) return;
-#if (SIMDIM == DIM3)
-    if (block.z() == 0 || block.z() == superCells.z() - 1) return;
-#endif
+    /* do not add particle to guarding super cells */
+    for(uint32_t d=0;d<simDim;++d)
+        if (block[d] == 0 || block[d] == superCells[d] - 1) return;
 
     /*get local cell idx*/
     const DataSpace<simDim> idx(superCellIdx * SuperCellSize() + threadIndex);
@@ -131,8 +128,11 @@ __global__ void kernelFillGridWithParticles(ParBox pb,
 
     /*multiply density factor to calculated manipulated middle density*/
     const float_X realDensity = densityFactor * calcRealDensity(gpuCelloffset, idx - SuperCellSize::getDataSpace());
-    const float_X realElPerCell = realDensity
-        * CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH;
+#if(SIMDIM==DIM3)
+    const float_X realElPerCell = realDensity * CELL_VOLUME;
+#elif(SIMDIM==DIM2)
+    const float_X realElPerCell = realDensity * CELL_VOLUME * SPEED_OF_LIGHT * DELTA_T;
+#endif
 
     __shared__ int finished;
     if (linearThreadIdx == 0)
@@ -173,12 +173,9 @@ __global__ void kernelFillGridWithParticles(ParBox pb,
             finished = 1; //clear flag
         __syncthreads();
 
-        float3_X pos = initMethods.getPosition(rng,
+        floatD_X pos = initMethods.getPosition(rng,
                                                totalNumParsPerCell,
                                                totalNumParsPerCell - numParsPerCell);
-        //pos.x() = 1.0 - rng();
-        //pos.y() = 1.0 - rng();
-        //pos.z() = 1.0 - rng();
 
         if (numParsPerCell > 0)
         {
@@ -187,7 +184,7 @@ __global__ void kernelFillGridWithParticles(ParBox pb,
             particle[multiMask_] = 1;
             particle[localCellIdx_]= linearThreadIdx;
             particle[weighting_] = macroWeighting;
-            particle[momentum_] = float3_X(0,0,0);
+            particle[momentum_] = float3_X(0.0);
 
 #if(ENABLE_RADIATION == 1)
             particle[momentumPrev1_] = momentumPrev1::getDefaultValue();
@@ -215,6 +212,3 @@ __global__ void kernelFillGridWithParticles(ParBox pb,
 }
 
 }
-
-
-#endif  //end  PARTICLESINIT_KERNEL

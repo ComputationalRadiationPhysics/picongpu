@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 
 
 #pragma once
@@ -27,29 +27,29 @@
 
 namespace picongpu
 {
-    namespace gasGaussianCloud
-    {
+namespace gasGaussianCloud
+{
 
-        /** Calculate the gas density, divided by the maximum density GAS_DENSITY
-         * 
-         * @param y as distance in propagation direction (unit: meters / UNIT_LENGTH)
-         * @return float_X between 0.0 and 1.0
-         */
-        DINLINE float_X calcNormedDensitiy( float3_X pos, float_64 )
-        {
-            if (pos.y() < VACUUM_Y) return float_X(0.0);
+/** Calculate the gas density, divided by the maximum density GAS_DENSITY
+ * 
+ * @param y as distance in propagation direction (unit: meters / UNIT_LENGTH)
+ * @return float_X between 0.0 and 1.0
+ */
+DINLINE float_X calcNormedDensitiy(floatD_X pos)
+{
+    if (pos.y() < VACUUM_Y) return float_X(0.0);
 
-            const float3_X exponent = float3_X( math::abs((pos.x() - GAS_CENTER_X)/GAS_SIGMA_X),
-                                                 math::abs((pos.y() - GAS_CENTER_Y)/GAS_SIGMA_Y),
-                                                 math::abs((pos.z() - GAS_CENTER_Z)/GAS_SIGMA_Z) );
+    floatD_X exponent  = float_X(math::abs((pos - GAS_CENTER) / GAS_SIGMA));
 
-            const float_X density = math::exp(GAS_FACTOR * __powf(exponent.x(), GAS_POWER))
-                                * math::exp(GAS_FACTOR * __powf(exponent.y(), GAS_POWER))
-                                * math::exp(GAS_FACTOR * __powf(exponent.z(), GAS_POWER));
-            return density;
-        }
-    }
+
+    float_X density=1; 
+    for(uint32_t d=0;d<simDim;++d)
+    density *= math::exp(GAS_FACTOR * __powf(exponent[d], GAS_POWER));
+    
+    return density;
 }
+} //namespace gasGaussianCloud
+} //namespace picongpu
 
 
 
