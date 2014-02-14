@@ -33,15 +33,18 @@ namespace picongpu
     const float_X CELL_WIDTH = float_X (SI::CELL_WIDTH_SI / UNIT_LENGTH); //normalized to UNIT_LENGTH
     const float_X CELL_HEIGHT = float_X (SI::CELL_HEIGHT_SI / UNIT_LENGTH); //normalized to UNIT_LENGTH
     const float_X CELL_DEPTH = float_X(SI::CELL_DEPTH_SI / UNIT_LENGTH); // normalized to UNIT_LENGTH
-    const float_X CELL_VOLUME = CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH;
+    CONST_VECTOR(float_X,simDim,cell_size,CELL_WIDTH,CELL_HEIGHT,CELL_DEPTH);
     
-    CONST_VECTOR(float_X,SIMDIM,cell_size,CELL_WIDTH,CELL_HEIGHT,CELL_DEPTH);
-
+#if (SIMDIM==DIM3)
+    const float_X CELL_VOLUME = CELL_WIDTH * CELL_HEIGHT *CELL_DEPTH;
     /* Courant-Friedrichs-Levy-Condition for Field Solver: */
+    PMACC_CASSERT_MSG(Courant_Friedrichs_Levy_condition_failure____check_your_gridConfig_param_file,  
+                     (PMACC_MIN(CELL_DEPTH,PMACC_MIN(CELL_WIDTH,CELL_HEIGHT))/SPEED_OF_LIGHT/DELTA_T)>1.77f); 
+#elif(SIMDIM==DIM2)
+    const float_X CELL_VOLUME = CELL_WIDTH * CELL_HEIGHT ;
+        /* Courant-Friedrichs-Levy-Condition for Field Solver: */
     PMACC_CASSERT_MSG(Courant_Friedrichs_Levy_condition_failure____check_your_gridConfig_param_file,
-                        (PMACC_MIN(CELL_DEPTH,PMACC_MIN(CELL_WIDTH,CELL_HEIGHT))/SPEED_OF_LIGHT/DELTA_T)>1.77f);               
-
+                      (PMACC_MIN(CELL_WIDTH,CELL_HEIGHT)/SPEED_OF_LIGHT/DELTA_T)>1.77f);               
+#endif
+        
 }
-
-
-

@@ -24,4 +24,3 @@
 
 #include "static_assert.hpp"
 
-PMACC_CASSERT_MSG(at_the_moment_we_support_only_3Dimension____please_change_SIMDIM_in_components_param_file,SIMDIM==3);

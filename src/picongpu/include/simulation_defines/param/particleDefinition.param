@@ -48,11 +48,11 @@ alias(position);
 alias(globalCellIdx);
 
 /** specialisation for the relative in-cell position */
-value_identifier(float3_X,position_pic,float3_X(0.,0.,0.));
+value_identifier(floatD_X,position_pic,floatD_X(0.));
 /** momentum at timestep t */
-value_identifier(float3_X,momentum,float3_X(0.,0.,0.));
+value_identifier(float3_X,momentum,float3_X(0.));
 /** momentum at (previous) timestep t-1 */
-value_identifier(float3_X,momentumPrev1,float3_X(0.,0.,0.));  
+value_identifier(float3_X,momentumPrev1,float3_X(0.));  
 /** weighting of the macro particle */
 value_identifier(float_X,weighting,0.0);
 /** use this particle for radiation diagnostics */
@@ -62,7 +62,7 @@ value_identifier(bool,radiationFlag,false);
  * \todo: use simDim (problem is that simDim is defined in componentsConfig.param
  * and is loaded after all other param files)
  */
-value_identifier(DataSpace<3>,globalCellIdx_pic,DataSpace<3>());  
+value_identifier(DataSpace<simDim>,globalCellIdx_pic,DataSpace<simDim>());  
 
 /*The next parts is not nice, we change this in a later update with new interfaces
  * \todo: add compile time methods to create particle species

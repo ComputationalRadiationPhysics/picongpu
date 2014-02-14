@@ -26,8 +26,13 @@ namespace picongpu
 {
     /** Number of electrons per particle (= macro particle weighting)
      *  unit: none */
-    const float_X NUM_EL_PER_PARTICLE = float_X(SI::GAS_DENSITY_SI*SI::CELL_WIDTH_SI*SI::CELL_HEIGHT_SI*SI::CELL_DEPTH_SI)
-                                    / float_X(particleInit::NUM_PARTICLES_PER_CELL);
+#if(SIMDIM==DIM3)
+    const float_X NUM_EL_PER_PARTICLE = float_64(SI::GAS_DENSITY_SI*SI::CELL_WIDTH_SI*SI::CELL_HEIGHT_SI *SI::CELL_DEPTH_SI )
+                                    / float_64(particleInit::NUM_PARTICLES_PER_CELL);
+#elif(SIMDIM==DIM2)
+    const float_X NUM_EL_PER_PARTICLE = float_64(SI::GAS_DENSITY_SI*SI::CELL_WIDTH_SI*SI::CELL_HEIGHT_SI*SI::SPEED_OF_LIGHT_SI*SI::DELTA_T_SI )
+                                    / float_64(particleInit::NUM_PARTICLES_PER_CELL);
+#endif
     /** Number of ions per particle
      *  unit: none */
     const float_X NUM_ION_PER_PARTICLE = NUM_EL_PER_PARTICLE;

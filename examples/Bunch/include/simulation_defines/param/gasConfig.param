@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Richard Pausch
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -81,14 +81,14 @@ namespace picongpu
          */
         namespace SI
         {
-            /** Y-Position where the linear slope ends and the exponential slope
-             *  begins
-             *  unit: meter
-             */
-            const double GAS_Y_MAX_SI = 1.0e-3;
-            
-            /** Parameters for the linear slope:
-             *  For Y <= GAS_Y_MAX_SI:
+           /** Y-Position where the linear slope ends and the exponential slope
+            *  begins
+            *  unit: meter
+            */
+           const double GAS_Y_MAX_SI = 1.0e-3;
+
+           /** Parameters for the linear slope:
+            *  For Y <= GAS_Y_MAX_SI:
             *    \rho / GAS_DENSITY = A * Y + B
             *                       = element [0.0; 1.0]
             *  unit for A: 1/m
@@ -205,7 +205,7 @@ namespace picongpu
                  * @param pos vector with offset to the global (left top front) cell
                  * @return float_X between 0.0 and 1.0
                  */
-                DINLINE float_64 operator()( float3_64 pos )
+                DINLINE float_64 operator()( floatD_64 pos )
                 {
                     const float_64 y = pos.y() * 1000.0; // m -> mm
 
