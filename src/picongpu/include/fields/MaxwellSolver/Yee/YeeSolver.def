@@ -30,8 +30,8 @@ namespace picongpu
 {
 namespace yeeSolver
 {
-typedef Curl<DifferenceToLower> CurlLeft;
-typedef Curl<DifferenceToUpper> CurlRight;
+typedef Curl<DifferenceToLower<simDim> > CurlLeft;
+typedef Curl<DifferenceToUpper<simDim> > CurlRight;
 
 template<class CurlE = CurlRight, class CurlB = CurlLeft>
 class YeeSolver;

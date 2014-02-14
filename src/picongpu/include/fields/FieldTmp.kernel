@@ -134,6 +134,7 @@ namespace picongpu
         }
         else if( ( direction.y( ) == 1 ) && ( threadIdx.y >= exchangeSize.y( ) ) ) return;
 
+#if (SIMDIM==DIM3)
         if( direction.z( ) == -1 )
         {
             if( threadIdx.z < TILE_DEPTH - exchangeSize.z( ) ) return;
@@ -141,7 +142,7 @@ namespace picongpu
         }
         else
             if( ( direction.z( ) == 1 ) && ( threadIdx.z >= exchangeSize.z( ) ) ) return;
-
+#endif
         targetJ( targetCell ) = fieldTmp( sourceCell );
     }
 
@@ -187,7 +188,7 @@ namespace picongpu
             if( threadIdx.y >= exchangeSize.y( ) ) return;
             targetCell.y( ) += TILE_HEIGHT;
         }
-
+#if (SIMDIM==DIM3)
         if( direction.z( ) == 1 )
         {
             if( threadIdx.z < TILE_DEPTH - exchangeSize.z( ) ) return;
@@ -199,7 +200,7 @@ namespace picongpu
             if( threadIdx.z >= exchangeSize.z( ) ) return;
             targetCell.z( ) += TILE_DEPTH;
         }
-
+#endif
         fieldTmp( targetCell ) += sourceTmp( sourceCell );
     }
 

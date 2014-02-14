@@ -72,7 +72,7 @@ namespace picongpu
         const DataSpace<simDim> endGuard( UpperMargin( ).vec( ) );
 
         /*go over all directions*/
-        for( uint32_t i = 1; i < 27; ++i )
+        for( uint32_t i = 1; i < numberOfNeighbors[simDim]; ++i )
         {
             DataSpace<simDim> relativMask = Mask::getRelativeDirections<simDim > ( i );
             /*guarding cells depend on direction
@@ -115,12 +115,10 @@ namespace picongpu
             typename toTVec<typename FrameSolver::UpperMargin>::type
             > BlockArea;
 
-        StrideMapping<AREA, DIM3, MappingDesc> mapper( cellDescription );
+        StrideMapping<AREA, simDim, MappingDesc> mapper( cellDescription );
         typename ParticlesClass::ParticlesBoxType pBox = parClass.getDeviceParticlesBox( );
         FieldTmp::DataBoxType tmpBox = this->fieldTmp->getDeviceBuffer( ).getDataBox( );
-        FrameSolver solver;/*(
-                            float3_X( CELL_WIDTH, CELL_HEIGHT, CELL_DEPTH ),
-                            DELTA_T );*/
+        FrameSolver solver;
 
         __startAtomicTransaction( __getTransactionEvent( ) );
         do

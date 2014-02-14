@@ -44,7 +44,7 @@ public:
     static void absorbBorder(uint32_t currentStep, MappingDesc &cellDescription, BoxedMemory deviceBox)
     {
         VirtualWindow win = MovingWindow::getInstance().getVirtualWindow(currentStep);
-        for (uint32_t i = 1; i <= FRONT; ++i)
+        for (uint32_t i = 1; i < numberOfNeighbors[simDim]; ++i)
         {
             /* only call for plains: left right top bottom back front*/
             if (FRONT % i == 0 && !(GridController<simDim>::getInstance().getCommunicationMask().isSet(i)))

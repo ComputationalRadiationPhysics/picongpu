@@ -161,7 +161,7 @@ template<class ParticleAlgo, class Velocity, class TVec>
 struct ComputeCurrentPerFrame
 {
 
-    HDINLINE ComputeCurrentPerFrame(const float3_X cellSize, const float_X deltaTime) :
+    HDINLINE ComputeCurrentPerFrame(const floatD_X cellSize, const float_X deltaTime) :
     cellSize(cellSize), deltaTime(deltaTime)
     {
     }
@@ -170,12 +170,12 @@ struct ComputeCurrentPerFrame
     DINLINE void operator()(FrameType& frame, const int localIdx, BoxJ & jBox)
     {
 
-        PMACC_AUTO(particle,frame[localIdx]);
+        PMACC_AUTO(particle, frame[localIdx]);
         const float_X weighting = particle[weighting_];
-        const float3_X pos = particle[position_];
+        const floatD_X pos = particle[position_];
         const int particleCellIdx = particle[localCellIdx_];
         const float_X charge = particle.getCharge(weighting);
-        const DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec > (particleCellIdx));
+        const DataSpace<simDim> localCell(DataSpaceOperations<simDim>::template map<TVec > (particleCellIdx));
 
         Velocity velocity;
         const float3_X vel = velocity(
@@ -193,7 +193,7 @@ struct ComputeCurrentPerFrame
     }
 
 private:
-    const PMACC_ALIGN(cellSize, float3_X);
+    const PMACC_ALIGN(cellSize, floatD_X);
     const PMACC_ALIGN(deltaTime, float);
 };
 
@@ -228,7 +228,8 @@ __global__ void kernelBashCurrent(J_DataBox fieldJ,
                                       mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx))
                                       * Mapping::SuperCellSize::getDataSpace()
                                       );
-    const DataSpace<Mapping::Dim> sourceCell(blockCell + DataSpace<simDim > (threadIdx));
+    const DataSpace<Mapping::Dim> threadIndex(threadIdx);
+    const DataSpace<Mapping::Dim> sourceCell(blockCell + threadIndex);
 
     /*origin in area from local GPU*/
     DataSpace<simDim> nullSourceCell(
@@ -237,27 +238,15 @@ __global__ void kernelBashCurrent(J_DataBox fieldJ,
                                      );
     DataSpace<simDim> targetCell(sourceCell - nullSourceCell);
 
-    if (direction.x() == -1)
+    for (uint32_t d = 0; d < simDim; ++d)
     {
-        if (threadIdx.x < TILE_WIDTH - exchangeSize.x()) return;
-        targetCell.x() -= TILE_WIDTH - exchangeSize.x();
+        if (direction[d] == -1)
+        {
+            if (threadIndex[d] < tile_size[d] - exchangeSize[d]) return;
+            targetCell[d] -= tile_size[d] - exchangeSize[d];
+        }
+        else if ((direction[d] == 1) && (threadIndex[d] >= exchangeSize[d])) return;
     }
-    else if ((direction.x() == 1) && (threadIdx.x >= exchangeSize.x())) return;
-    if (direction.y() == -1)
-    {
-        if (threadIdx.y < TILE_HEIGHT - exchangeSize.y()) return;
-        targetCell.y() -= TILE_HEIGHT - exchangeSize.y();
-    }
-    else if ((direction.y() == 1) && (threadIdx.y >= exchangeSize.y())) return;
-
-    if (direction.z() == -1)
-    {
-        if (threadIdx.z < TILE_DEPTH - exchangeSize.z()) return;
-        targetCell.z() -= TILE_DEPTH - exchangeSize.z();
-    }
-    else
-
-        if ((direction.z() == 1) && (threadIdx.z >= exchangeSize.z())) return;
 
     targetJ(targetCell) = fieldJ(sourceCell);
 }
@@ -269,11 +258,12 @@ __global__ void kernelInsertCurrent(J_DataBox fieldJ,
                                     DataSpace<simDim> direction,
                                     Mapping mapper)
 {
+    const DataSpace<Mapping::Dim> threadIndex(threadIdx);
     const DataSpace<simDim> blockCell(
                                       mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx))
                                       * Mapping::SuperCellSize::getDataSpace()
                                       );
-    DataSpace<Mapping::Dim> targetCell(blockCell + DataSpace<simDim > (threadIdx));
+    DataSpace<Mapping::Dim> targetCell(blockCell + threadIndex);
 
     /*origin in area from local GPU*/
     DataSpace<simDim> nullSourceCell(
@@ -282,41 +272,21 @@ __global__ void kernelInsertCurrent(J_DataBox fieldJ,
                                      );
     DataSpace<simDim> sourceCell(targetCell - nullSourceCell);
 
-    if (direction.x() == 1)
+    for (uint32_t d = 0; d < simDim; ++d)
     {
-        if (threadIdx.x < TILE_WIDTH - exchangeSize.x()) return;
-        sourceCell.x() -= TILE_WIDTH - exchangeSize.x();
-        targetCell.x() -= TILE_WIDTH;
+        if (direction[d] == 1)
+        {
+            if (threadIndex[d] < tile_size[d] - exchangeSize[d]) return;
+            sourceCell[d] -= tile_size[d] - exchangeSize[d];
+            targetCell[d] -= tile_size[d];
+        }
+        else if (direction[d] == -1)
+        {
+            if (threadIndex[d] >= exchangeSize[d]) return;
+            targetCell[d] += tile_size[d];
+        }
     }
-    else if (direction.x() == -1)
-    {
-        if (threadIdx.x >= exchangeSize.x()) return;
-        targetCell.x() += TILE_WIDTH;
-    }
-    if (direction.y() == 1)
-    {
-        if (threadIdx.y < TILE_HEIGHT - exchangeSize.y()) return;
-        sourceCell.y() -= TILE_HEIGHT - exchangeSize.y();
-        targetCell.y() -= TILE_HEIGHT;
-    }
-    else if (direction.y() == -1)
-    {
-        if (threadIdx.y >= exchangeSize.y()) return;
-        targetCell.y() += TILE_HEIGHT;
-    }
-
-    if (direction.z() == 1)
-    {
-        if (threadIdx.z < TILE_DEPTH - exchangeSize.z()) return;
-        sourceCell.z() -= TILE_DEPTH - exchangeSize.z();
-        targetCell.z() -= TILE_DEPTH;
-    }
-    else if (direction.z() == -1)
-    {
-        if (threadIdx.z >= exchangeSize.z()) return;
-        targetCell.z() += TILE_DEPTH;
-    }
-
+    
     fieldJ(targetCell) += sourceJ(sourceCell);
 }
 
