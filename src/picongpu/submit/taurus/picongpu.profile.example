@@ -4,7 +4,7 @@ module purge
 #
 module load oscar-modules llview
 module load cmake/2.8.11 git
-module load cuda
+module load cuda/5.0.35
 module load bullxmpi
 module load gnuplot/4.6.1
 
