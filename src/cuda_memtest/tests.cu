@@ -1339,7 +1339,7 @@ test8(char* ptr, unsigned int tot_num_blocks)
     }
     
     if (iteration < MAX_ITERATION){	
-	PRINTF("%dth repeating test8 because there are %d errors found in last run, p1=%x, p2=%p\n", iteration, err, p1, p2);	
+	PRINTF("%dth repeating test8 because there are %d errors found in last run, p1=%x, p2=%x\n", iteration, err, p1, p2);
 	iteration++;
 	err = 0;
 	goto repeat;
