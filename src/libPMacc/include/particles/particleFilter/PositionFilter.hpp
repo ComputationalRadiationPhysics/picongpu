@@ -50,7 +50,7 @@ public:
     {
     }
 
-    HDINLINE virtual ~PositionFilter()
+    HDINLINE ~PositionFilter()
     {
     }
 

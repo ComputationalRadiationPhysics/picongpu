@@ -17,8 +17,8 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 #pragma once
 
 #include "types.h"
@@ -141,6 +141,13 @@ public:
         __shared__ TYPE mem_sh[_Y_][_X_];
         __syncthreads(); /*wait that all shared memory is initialised*/
         return SharedBox<TYPE, TVec<_X_, _Y_> >((TYPE*) mem_sh);
+    }
+
+    HDINLINE PMacc::cursor::CT::BufferCursor<TYPE, ::PMacc::math::CT::Int<sizeof (TYPE) * _X_> >
+    toCursor() const
+    {
+        return PMacc::cursor::CT::BufferCursor<TYPE, ::PMacc::math::CT::Int<sizeof (TYPE) * _X_> >
+            ((TYPE*) fixedPointer);
     }
 
 protected:
