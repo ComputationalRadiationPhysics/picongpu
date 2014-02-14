@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2013 Axel Huebl, Rene Widera
+# Copyright 2013-2014 Axel Huebl, Rene Widera
 #
 # This file is part of PIConGPU. 
 # 
@@ -30,6 +30,7 @@
 #   - increase by 1, no gaps
 
 flags[0]="-DCUDA_ARCH=sm_20"
+flags[1]="-DCUDA_ARCH=sm_35 -DPARAM_OVERWRITES:LIST=-DPARAM_DIMENSION=DIM2"
 
 
 ################################################################################

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2013 Axel Huebl, Rene Widera
+# Copyright 2013-2014 Axel Huebl, Rene Widera
 #
 # This file is part of PIConGPU. 
 # 
@@ -37,6 +37,10 @@ flags[4]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_CURRENTSOLVER=curren
 flags[5]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_PRECISION=precision64Bit"
 flags[6]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_FIELDSOLVER=fieldSolverDirSplitting;-DPARAM_PRECISION=precision64Bit"
 flags[7]="-DCUDA_ARCH=sm_35 -DPARAM_OVERWRITES:LIST=-DPARAM_GASPROFILE=gasNone;-DENABLE_CURRENT=0"
+flags[8]="-DCUDA_ARCH=sm_20;-DPARAM_DIMENSION=DIM2"
+flags[9]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_CURRENTSOLVER=currentSolverEsirkepov;-DPARAM_PARTICLESHAPE=shapeCIC;-DPARAM_DIMENSION=DIM2"
+flags[10]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_PRECISION=precision64Bit;-DPARAM_DIMENSION=DIM2"
+flags[11]="-DCUDA_ARCH=sm_35 -DPARAM_OVERWRITES:LIST=-DPARAM_GASPROFILE=gasNone;-DENABLE_CURRENT=0;-DPARAM_DIMENSION=DIM2"
 ################################################################################
 # execution
 
