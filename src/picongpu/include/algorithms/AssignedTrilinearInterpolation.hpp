@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 
 
 #pragma once
@@ -68,9 +68,9 @@ struct AssignedTrilinearInterpolation
      * interpolate on grid points in range [Begin;End]
      */
     template<class AssignmentFunction,int Begin,int End,class Cursor >
-        static HDINLINE
-        typename ::PMacc::result_of::Functor<AssignedTrilinearInterpolation, Cursor>::type
-        interpolate(const Cursor& cursor, const float3_X & pos)
+    static HDINLINE
+    typename ::PMacc::result_of::Functor<AssignedTrilinearInterpolation, Cursor>::type
+    interpolate(const Cursor& cursor, const float3_X & pos)
     {
         typedef typename ::PMacc::result_of::Functor<AssignedTrilinearInterpolation, Cursor>::type type;
 
@@ -95,6 +95,31 @@ struct AssignedTrilinearInterpolation
             result_z += result_y * AssignmentFunction()(z - pos.z());
         }
         return result_z;
+    }
+
+    /** Implemanmtation for 2D position*/
+    template<class AssignmentFunction, int Begin, int End, class Cursor >
+    static HDINLINE
+    typename ::PMacc::result_of::Functor<AssignedTrilinearInterpolation, Cursor>::type
+    interpolate(const Cursor& cursor, const float2_X & pos)
+    {
+        typedef typename ::PMacc::result_of::Functor<AssignedTrilinearInterpolation, Cursor>::type type;
+
+
+        type result_y = type(0.0);
+#pragma unroll 4
+        for (float_X y = Begin; y <= End; y += float_X(1.0))
+        {
+            type result_x = type(0.0);
+#pragma unroll 4
+            for (float_X x = Begin; x <= End; x += float_X(1.0))
+                //a form factor is the "amount of particle" that is affected by this cell
+                //so we have to sum over: cell_value * form_factor
+                result_x += *cursor(x, y ) * AssignmentFunction()(x - pos.x());
+
+            result_y += result_x * AssignmentFunction()(y - pos.y());
+        }
+        return result_y;
     }
 };
 

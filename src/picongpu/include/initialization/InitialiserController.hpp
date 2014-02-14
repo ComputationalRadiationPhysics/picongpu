@@ -32,9 +32,11 @@
 #include "fields/FieldE.hpp"
 #include "fields/FieldB.hpp"
 
+
 #if (ENABLE_HDF5==1)
 #include "initialization/SimRestartInitialiser.hpp"
 #endif
+
 #include "initialization/SimStartInitialiser.hpp"
 #include "particles/Species.hpp"
 
@@ -60,9 +62,6 @@ public:
     restartFile("h5"),
     xmlFile("sim.x()ml"),
     simStartInitialiser(NULL)
-#if(ENABLE_SIMLIB==1)
-    , simDescriptionInitialiser(NULL)
-#endif
 #if (ENABLE_HDF5==1)
     , simRestartInitialiser(NULL)
 #endif
@@ -84,8 +83,12 @@ public:
         if (GridController<simDim>::getInstance().getGlobalRank() == 0)
         {
             std::cout << "max weighting " << NUM_EL_PER_PARTICLE << std::endl;
-            std::cout << "courant=min(deltaCellSize)/dt/c > 1.77 ? "
-                << std::min(CELL_WIDTH, std::min(CELL_DEPTH, CELL_HEIGHT)) / SPEED_OF_LIGHT / DELTA_T << std::endl;
+            std::cout << "courant=min(deltaCellSize)/dt/c > 1.77 ? ";
+#if(SIMDIM==DIM2)
+            std::cout<< std::min(CELL_WIDTH, CELL_HEIGHT) / SPEED_OF_LIGHT / DELTA_T << std::endl;
+#elif (SIMDIM==DIM3)
+            std::cout<< std::min(CELL_WIDTH, std::min(CELL_DEPTH, CELL_HEIGHT)) / SPEED_OF_LIGHT / DELTA_T << std::endl;
+#endif
             if (gasProfile::GAS_ENABLED)
                 std::cout << "omega_pe * dt <= 0.1 ? " << sqrt(GAS_DENSITY * Q_EL / M_EL * Q_EL / EPS0) * DELTA_T << std::endl;
             if (laserProfile::INIT_TIME > float_X(0.0))
@@ -106,7 +109,7 @@ public:
             std::cout << "UNIT_EFIELD" << " " << UNIT_EFIELD << std::endl;
             std::cout << "UNIT_BFIELD" << " " << UNIT_BFIELD << std::endl;
             std::cout << "UNIT_ENERGY" << " " << UNIT_ENERGY << std::endl;
-            
+     
 #if (ENABLE_HDF5==1)
             // check for HDF5 restart capability
             typedef typename boost::mpl::find<FileOutputFields, FieldE>::type itFindFieldE;
@@ -121,7 +124,6 @@ public:
 #endif
         }
 
-        
 #if (ENABLE_HDF5==1)
         // restart simulation by loading from hdf5 data file
         // the simulation will start after the last saved iteration
@@ -144,7 +146,6 @@ public:
             return simulationStep;
         }
 #endif
-
         // start simulation using default values
         simStartInitialiser = new SimStartInitialiser<PIC_Electrons, PIC_Ions > ();
         DataConnector::getInstance().initialise(*simStartInitialiser, 0);
@@ -211,9 +212,6 @@ private:
     SimStartInitialiser<PIC_Electrons, PIC_Ions>* simStartInitialiser;
 #if (ENABLE_HDF5==1)
     SimRestartInitialiser<PIC_Electrons, PIC_Ions, simDim> *simRestartInitialiser;
-#endif
-#if(ENABLE_SIMLIB==1)
-    SimDescriptionInitialiser<PIC_Electrons, PIC_Ions, simDim> *simDescriptionInitialiser;
 #endif
 
     bool loadSim;

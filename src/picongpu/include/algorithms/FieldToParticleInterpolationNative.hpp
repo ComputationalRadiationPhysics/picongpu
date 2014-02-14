@@ -46,11 +46,11 @@ struct FieldToParticleInterpolationNative
 
     static const int lowerMargin = supp / 2;
     static const int upperMargin = (supp + 1) / 2;
-    typedef PMacc::math::CT::Int<lowerMargin, lowerMargin, lowerMargin> LowerMargin;
-    typedef PMacc::math::CT::Int<upperMargin, upperMargin, upperMargin> UpperMargin;
+    typedef typename PMacc::math::CT::make_Int<simDim,lowerMargin>::type LowerMargin;
+    typedef typename PMacc::math::CT::make_Int<simDim,upperMargin>::type UpperMargin;
 
     template<class Cursor, class VecVector_ >
-    HDINLINE float3_X operator()(Cursor field, const float3_X& particlePos,
+    HDINLINE float3_X operator()(Cursor field, const floatD_X& particlePos,
                                  const VecVector_ & fieldPos)
     {
         using namespace lambda;
@@ -69,7 +69,7 @@ struct FieldToParticleInterpolationNative
          */
 
         BOOST_AUTO(field_x, PMacc::cursor::make_FunctorCursor(field, _1[mpl::int_ < 0 > ()]));
-        float3_X pos_tmp(particlePos);
+        floatD_X pos_tmp(particlePos);
         GridShiftMethod()(field_x, pos_tmp, fieldPos.x());
         float_X result_x = InterpolationMethod::template interpolate<AssignmentFunction, -lowerMargin, upperMargin > (field_x, pos_tmp);
 

@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 
 
 #pragma once
@@ -40,12 +40,11 @@ struct ShiftCoordinateSystemNative
      * @param fieldPos vector with relative coordinates for shift ( value range [0.0;0.5] )
      */
     template<typename Cursor, typename Vector >
-        HDINLINE void operator()(Cursor& cursor, Vector& vector, const float3_X & fieldPos)
+    HDINLINE void operator()(Cursor& cursor, Vector& vector, const float3_X & fieldPos)
     {
-
-        vector -= fieldPos;
-
+        for (uint32_t i = 0; i < simDim; ++i)
+            vector[i] -= fieldPos[i];
     }
 };
 
-} // picongpu
+} // namespace picongpu
