@@ -69,7 +69,7 @@ struct EsirkepovNative
                                            velocity.y() * deltaTime / cellSize.y(),
                                            velocity.z() * deltaTime / cellSize.z());
         const PosType oldPos = pos - deltaPos;
-        Line line(oldPos, pos);
+        const Line<float3_X> line(oldPos, pos);
         BOOST_AUTO(cursorJ, dataBoxJ.toCursor());
 
         /**
@@ -93,7 +93,7 @@ struct EsirkepovNative
      */
     template<typename CursorJ >
     DINLINE void cptCurrent1D(CursorJ cursorJ,
-                              Line line,
+                              const Line<float3_X>& line,
                               const float_X cellEdgeLength)
     {
         /* We need no shifts of the coordinate system because W is defined on point (0,0,0)
@@ -126,7 +126,7 @@ struct EsirkepovNative
     template<typename CursorJ >
     DINLINE void cptCurrentInLineOfCells(
                                          const CursorJ& cursorJ,
-                                         const Line& line,
+                                         const Line<float3_X>& line,
                                          const float_X cellEdgeLength)
     {
         const int a = -currentLowerMargin;
