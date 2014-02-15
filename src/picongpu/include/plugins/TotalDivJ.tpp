@@ -86,7 +86,7 @@ void TotalDivJ::notify(uint32_t currentStep)
         
     container::DeviceBuffer<float, 3> fieldDivJ(fieldJ.size());
     zone::SphericZone<3> coreBorderZone(fieldJ.zone().size - (size_t)2*BlockDim().vec(),
-                                        fieldJ.zone().offset + (vec::Int<3>)BlockDim().vec());
+                                        fieldJ.zone().offset + typeCast<int>(BlockDim().vec()));
     //std::cout << coreBorderZone.size << ", " << coreBorderZone.offset << std::endl;
     using namespace lambda;
     algorithm::kernel::Foreach<BlockDim>()

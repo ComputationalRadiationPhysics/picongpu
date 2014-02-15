@@ -61,7 +61,7 @@ struct ParticleAttribute
     HINLINE void operator()(
                             const RefWrapper<ThreadParams*> params,
                             const RefWrapper<FrameType> frame,
-                            const std::string prefix,
+                            const std::string subGroup,
                             const DomainInformation domInfo,
                             const size_t elements)
     {
@@ -73,7 +73,7 @@ struct ParticleAttribute
 
         typedef typename PICToSplash<ComponentType>::type SplashType;
 
-        log<picLog::INPUT_OUTPUT > ("HDF5: write species attribute: %1%") % Identifier::getName();
+        log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) write species attribute: %1%") % Identifier::getName();
 
         SplashType splashType;
         const std::string name_lookup[] = {"x", "y", "z"};
@@ -86,7 +86,8 @@ struct ParticleAttribute
          */
         DataSpace<simDim> globalSlideOffset = DataSpace<simDim>(
                                                                 0,
-                                                                params.get()->window.slides * params.get()->window.localFullSize.y(),
+                                                                params.get()->window.slides *
+                                                                params.get()->window.localFullSize.y(),
                                                                 0);
 
         Dimensions splashDomainOffset(0, 0, 0);
@@ -105,10 +106,10 @@ struct ParticleAttribute
 
         for (uint32_t d = 0; d < components; d++)
         {
-            std::stringstream str;
-            str << prefix << "_" << T_Identifier::getName();
+            std::stringstream datasetName;
+            datasetName << subGroup << "/" << T_Identifier::getName();
             if (components > 1)
-                str << "_" << name_lookup[d];
+                datasetName << "/" << name_lookup[d];
 
             ValueType* dataPtr = frame.get().getIdentifier(Identifier()).getPointer();
 
@@ -119,7 +120,7 @@ struct ParticleAttribute
                                                      Dimensions(components, 1, 1),
                                                      Dimensions(elements, 1, 1),
                                                      Dimensions(d, 0, 0),
-                                                     str.str().c_str(), 
+                                                     datasetName.str().c_str(), 
                                                      splashDomainOffset, 
                                                      splashDomainSize, 
                                                      splashGlobalDomainOffset, 
@@ -130,11 +131,13 @@ struct ParticleAttribute
             ColTypeDouble ctDouble;
             if (unit.size() >= (d + 1))
                 params.get()->dataCollector->writeAttribute(params.get()->currentStep,
-                                                            ctDouble, str.str().c_str(), "sim_unit", &(unit.at(d)));
+                                                            ctDouble, datasetName.str().c_str(),
+                                                            "sim_unit", &(unit.at(d)));
 
 
         }
-        log<picLog::INPUT_OUTPUT > ("HDF5: Finish write species attribute: %1%") % Identifier::getName();
+        log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) write species attribute: %1%") %
+            Identifier::getName();
     }
 
 };

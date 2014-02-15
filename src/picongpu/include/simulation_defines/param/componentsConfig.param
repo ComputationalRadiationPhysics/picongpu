@@ -16,15 +16,11 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 
 #pragma once
 
-
-#define SIMDIM DIM3
-
-const uint32_t simDim = SIMDIM;
 
 namespace picongpu
 {
@@ -105,5 +101,3 @@ namespace currentSolver = currentSolverEsirkepov;
 #define ENABLE_CURRENT 1
 
 }
-
-

@@ -73,12 +73,34 @@ namespace RT
             (mapper, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _), lambda::make_Functor(functor));                           \
     }
     
+/** Foreach algorithm that calls a cuda kernel
+ * 
+ * This is the run-time version of kernel::Foreach where the
+ * cuda blockDim is specified in the constructor
+ * 
+ */
 struct Foreach
 {
     math::Size_t<3> _blockDim;
     
+    /* \param _blockDim size of the cuda blockDim.
+     * 
+     * blockDim has to fit into the computing volume.
+     * E.g. (8,8,4) fits into (256, 256, 256)
+     * 
+     */
     Foreach(math::Size_t<3> _blockDim) : _blockDim(_blockDim) {}
     
+    /* operator()(zone, cursor0, cursor1, ..., cursorN-1, functor or lambdaFun)
+     * 
+     * \param zone Accepts currently only a zone::SphericZone object (e.g. containerObj.zone())
+     * \param cursorN cursor for the N-th data source (e.g. containerObj.origin())
+     * \param functor or lambdaFun either a functor with N arguments or a N-ary lambda function (e.g. _1 = _2)
+     * 
+     * The functor or lambdaFun is called for each cell within the zone.
+     * It is called like functor(*cursor0(cellId), ..., *cursorN(cellId))
+     * 
+     */
     BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(FOREACH_KERNEL_MAX_PARAMS), FOREACH_OPERATOR, _)
 };
 

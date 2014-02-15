@@ -25,7 +25,7 @@
 
 
 #include "dimensions/DataSpace.hpp"
-
+#include "dimensions/DataSpaceOperations.hpp"
 #include "mappings/simulation/EnvironmentController.hpp"
 #include "communication/CommunicatorMPI.hpp"
 #include "eventSystem/EventSystem.hpp"
@@ -125,9 +125,20 @@ public:
      *
      * @return current GPU position
      * */
-    const DataSpace<DIM> getPosition()
+    const DataSpace<DIM> getPosition() const
     {
         return comm.getCoordinates();
+    }
+    
+    /**
+     * Returns the scalar position (rank) of this GPU,
+     * depending on its current grid position 
+     * 
+     * @return current grid position as scalar value
+     */
+    uint32_t getScalarPosition() const
+    {
+        return DataSpaceOperations<DIM>::map(getGpuNodes(), getPosition());
     }
 
     /**
@@ -141,9 +152,9 @@ public:
     }
 
     /**
-     * Returns the global rank of the caller among all hosts.
+     * Returns the global MPI rank of the caller among all hosts.
      *
-     * @return global rank
+     * @return global MPI rank
      */
     uint32_t getGlobalRank()
     {
@@ -151,9 +162,9 @@ public:
     }
 
     /**
-     * Returns the global size of the caller among all hosts.
+     * Returns the global MPI size.
      *
-     * @return global number of ranks
+     * @return global number of MPI ranks
      */
     uint32_t getGlobalSize()
     {
@@ -172,22 +183,26 @@ public:
      */
     bool slide()
     {
-        Manager::getInstance().waitForAllTasks(); //wait that all TAsk are finisehd
+        /* wait that all tasks are finished */
+        Manager::getInstance().waitForAllTasks();
 
-        bool result=comm.slide();
+        bool result = comm.slide();
 
-        /* if we slide we must change our globalOffset of the simulation
-         * (only change slide direction Y)
-         */
-        int gpuOffset_y = this->getPosition().y();
-        PMACC_AUTO(simBox, SubGrid<DIM>::getInstance().getSimulationBox());
-        DataSpace<DIM> globalOffset(simBox.getGlobalOffset());
-        /* this is allowed in the case that we use sliding window
-         * because size in Y direction is the same for all gpus domains
-         */
-        globalOffset.y() = gpuOffset_y * simBox.getLocalSize().y();
-        SubGrid<DIM>::getInstance().setGlobalOffset(globalOffset);
+        updateGlobalOffset();
 
+        return result;
+    }
+    
+    /**
+     * Slides multiple times.
+     * 
+     * @param[in] numSlides number of slides
+     * @return true if the position of gpu is switched to the end, else false
+     */
+    bool setNumSlides(size_t numSlides)
+    {
+        bool result = comm.setNumSlides(numSlides);
+        updateGlobalOffset();
         return result;
     }
 
@@ -201,6 +216,11 @@ public:
         return EnvironmentController::getInstance().getCommunicationMask();
     }
 
+    /**
+     * Returns the MPI communicator class
+     * 
+     * @return current CommunicatorMPI
+     */
     CommunicatorMPI<DIM>& getCommunicator()
     {
         return comm;
@@ -222,6 +242,26 @@ private:
     GridController(const GridController& gc)
     {
 
+    }
+    
+    /**
+     * Sets globalOffset using the current position.
+     * 
+     * (This function is idempotent)
+     */
+    void updateGlobalOffset()
+    {
+        /* if we slide we must change our globalOffset of the simulation
+         * (only change slide direction Y)
+         */
+        int gpuOffset_y = this->getPosition().y();
+        PMACC_AUTO(simBox, SubGrid<DIM>::getInstance().getSimulationBox());
+        DataSpace<DIM> globalOffset(simBox.getGlobalOffset());
+        /* this is allowed in the case that we use sliding window
+         * because size in Y direction is the same for all gpus domains
+         */
+        globalOffset.y() = gpuOffset_y * simBox.getLocalSize().y();
+        SubGrid<DIM>::getInstance().setGlobalOffset(globalOffset);
     }
 
     /**

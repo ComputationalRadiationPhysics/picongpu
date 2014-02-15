@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013-2014 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of libPMacc. 
  * 
@@ -29,8 +29,6 @@ namespace algorithms
 
 namespace math
 {
-namespace detail
-{
 
 template<typename Type>
 struct Sin;
@@ -45,38 +43,30 @@ template<typename Type>
 struct Sinc;
 
 
-
-} //namespace detail
-
 template<typename T1>
-HDINLINE static typename detail::Sin< T1 >::result sin(const T1& value)
+HDINLINE static typename Sin< T1 >::result sin(const T1& value)
 {
-    return detail::Sin< T1 > ()(value);
+    return Sin< T1 > ()(value);
 }
 
 template<typename T1>
-HDINLINE static typename detail::Cos<T1>::result cos(const T1& value)
+HDINLINE static typename Cos<T1>::result cos(const T1& value)
 {
-    return detail::Cos< T1 > ()(value);
+    return Cos< T1 > ()(value);
 }
 
 template<typename ArgType, typename SinType, typename CosType>
-HDINLINE static typename detail::SinCos< ArgType, SinType, CosType >::result sincos(ArgType arg, SinType& sinValue, CosType& cosValue)
+HDINLINE static typename SinCos< ArgType, SinType, CosType >::result sincos(ArgType arg, SinType& sinValue, CosType& cosValue)
 {
-    return detail::SinCos< ArgType, SinType, CosType > ()(arg, sinValue, cosValue);
+    return SinCos< ArgType, SinType, CosType > ()(arg, sinValue, cosValue);
 }
 
 template<typename T1>
-HDINLINE static typename detail::Sinc<T1>::result sinc(const T1& value)
+HDINLINE static typename Sinc<T1>::result sinc(const T1& value)
 {
-    return detail::Sinc< T1 > ()(value);
+    return Sinc< T1 > ()(value);
 }
-
-
-
-
 
 } //namespace math
 } //namespace algorithms
 }//namespace PMacc
-

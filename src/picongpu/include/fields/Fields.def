@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 RenÃ© Widera, Axel Huebl
+ * Copyright 2013-2014 Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -12,15 +12,13 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
- * along with PIConGPU. 
+ * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>
  */
 
 #pragma once
-
-#include "simulation_defines.hpp"
 
 namespace picongpu
 {
@@ -44,5 +42,14 @@ namespace picongpu
      *  "gridded" particle data (charge density, energy density, ...)
      */
     class FieldTmp;
+
+    /** Electric Field, \see FieldE.hpp */
+    class FieldE;
+
+    /** Magnetic Field, \see FieldB.hpp */
+    class FieldB;
+
+    /** Current Density j, \see FieldJ.hpp */
+    class FieldJ;
     
-}//namespace picongpu
+} // namespace picongpu

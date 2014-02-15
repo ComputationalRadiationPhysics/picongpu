@@ -32,20 +32,20 @@ namespace PMacc
 {
 
     template <class TYPE, unsigned DIM>
-    class HostBufferIntern;
+    class HostBuffer;
     template <class TYPE, unsigned DIM>
-    class DeviceBufferIntern;
+    class DeviceBuffer;
 
     template <class TYPE, unsigned DIM>
     class TaskCopyHostToDeviceBase : public StreamTask
     {
     public:
 
-        TaskCopyHostToDeviceBase(const HostBuffer<TYPE, DIM>& src, DeviceBuffer<TYPE, DIM>& dst) :
+        TaskCopyHostToDeviceBase(HostBuffer<TYPE, DIM>& src, DeviceBuffer<TYPE, DIM>& dst) :
         StreamTask()
         {
-            this->host = (HostBufferIntern<TYPE, DIM>*) & src;
-            this->device = (DeviceBufferIntern<TYPE, DIM>*) & dst;
+            this->host =  & src;
+            this->device =  & dst;
         }
 
         virtual ~TaskCopyHostToDeviceBase()
@@ -69,7 +69,7 @@ namespace PMacc
             size_t current_size = host->getCurrentSize();
             DataSpace<DIM> hostCurrentSize = host->getCurrentDataSpace(current_size);
             if (host->is1D() && device->is1D())
-                fastCopy(host->getPointer(), device->getPointer(), hostCurrentSize.getElementCount());
+                fastCopy(host->getPointer(), device->getPointer(), hostCurrentSize.productOfComponents());
             else
                 copy(hostCurrentSize);
             device->setCurrentSize(current_size);
@@ -98,8 +98,8 @@ namespace PMacc
         }
 
 
-        HostBufferIntern<TYPE, DIM> *host;
-        DeviceBufferIntern<TYPE, DIM> *device;
+        HostBuffer<TYPE, DIM> *host;
+        DeviceBuffer<TYPE, DIM> *device;
 
     };
 
@@ -111,7 +111,7 @@ namespace PMacc
     {
     public:
 
-        TaskCopyHostToDevice(const HostBuffer<TYPE, DIM1>& src, DeviceBuffer<TYPE, DIM1>& dst) :
+        TaskCopyHostToDevice(HostBuffer<TYPE, DIM1>& src, DeviceBuffer<TYPE, DIM1>& dst) :
         TaskCopyHostToDeviceBase<TYPE, DIM1>(src, dst)
         {
         }
@@ -131,7 +131,7 @@ namespace PMacc
     {
     public:
 
-        TaskCopyHostToDevice(const HostBuffer<TYPE, DIM2>& src, DeviceBuffer<TYPE, DIM2>& dst) :
+        TaskCopyHostToDevice( HostBuffer<TYPE, DIM2>& src, DeviceBuffer<TYPE, DIM2>& dst) :
         TaskCopyHostToDeviceBase<TYPE, DIM2>(src, dst)
         {
         }
@@ -155,7 +155,7 @@ namespace PMacc
     {
     public:
 
-        TaskCopyHostToDevice(const HostBuffer<TYPE, DIM3>& src, DeviceBuffer<TYPE, DIM3>& dst) :
+        TaskCopyHostToDevice( HostBuffer<TYPE, DIM3>& src, DeviceBuffer<TYPE, DIM3>& dst) :
         TaskCopyHostToDeviceBase<TYPE, DIM3>(src, dst)
         {
         }

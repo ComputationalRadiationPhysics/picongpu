@@ -42,7 +42,7 @@ namespace PMacc
 {
 
 template <class TYPE, unsigned DIM>
-class DeviceBufferIntern;
+class DeviceBuffer;
 
 template <class TYPE, unsigned DIM>
 class TaskSetCurrentSizeOnDevice : public StreamTask
@@ -53,7 +53,7 @@ public:
     StreamTask(),
     size(size)
     {
-        this->destination = static_cast<DeviceBufferIntern<TYPE, DIM>*> (& dst);
+        this->destination = & dst;
     }
 
     virtual ~TaskSetCurrentSizeOnDevice()
@@ -91,7 +91,7 @@ private:
         activate();
     }
 
-    DeviceBufferIntern<TYPE, DIM> *destination;
+    DeviceBuffer<TYPE, DIM> *destination;
     const size_t size;
 };
 

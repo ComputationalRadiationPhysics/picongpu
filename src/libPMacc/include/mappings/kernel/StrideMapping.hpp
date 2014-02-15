@@ -96,7 +96,7 @@ public:
         linearOffset++;
         offset = DataSpaceOperations<Dim>::map(DataSpace<DIM>::create(stride), linearOffset);
 
-        return linearOffset < DataSpace<DIM>::create(stride).getElementCount();
+        return linearOffset < DataSpace<DIM>::create(stride).productOfComponents();
     }
 
 private:

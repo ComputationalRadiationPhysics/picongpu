@@ -3,30 +3,33 @@ module purge
 # General modules #############################################################
 #
 module load oscar-modules llview
-module load cmake/2.8.2
-module load git cuda/5.5.11 bullxmpi
-
+module load cmake/2.8.11 git
+module load cuda/5.0.35
+module load bullxmpi
+module load gnuplot/4.6.1
 
 # Compilers ###################################################################
 ### GCC
-module load gcc/4.7.1 boost
-export BOOST_ROOT=$BOOST_INC/..
+#module load gcc/4.6.2 boost/1.54.0-gnu4.6
 ### ICC
-#module load intel/12.1
-#export CC=`which icc`
-#export CXX=`which icpc`
+module load intel/12.1 boost/1.54.0-intel12.1
 #export BOOST_ROOT=$HOME/lib/boost_1_54_intel_12_1
 #export BOOST_INC=$BOOST_ROOT/include
 #export BOOST_LIB=$BOOST_ROOT/lib
-#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$BOOST_LIB
+### PGI
+# must be set in `which <pgiDir>/bin/localrc`:
+#   set NOSWITCHERROR=YES;
+#module load pgi/14.1 boost/1.55.0-pgi14.1
 
 # Environment #################################################################
 #
+#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$BOOST_LIB
+
 export PNGWRITER_ROOT=$HOME/lib/pngwriter
 export HDF5_ROOT=$HOME/lib/hdf5
 export SPLASH_ROOT=$HOME/lib/splash
 
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/lib/hdf5/lib
+export LD_LIBRARY_PATH=$HOME/lib/hdf5/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/lib/pngwriter/lib/
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/lib/splash/lib/
 

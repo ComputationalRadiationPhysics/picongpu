@@ -36,6 +36,15 @@ namespace PMacc
 namespace cursor
 {
     
+/** A cursor is used to access a single datum and to jump to another one. 
+ * It is always located at a certain datum. Think of a generalized iterator.
+ * \tparam _Accessor Policy functor class that is called inside operator*().
+ * It typically returns a reference to the current selected datum.
+ * \tparam _Navigator Policy functor class that is called inside operator()().
+ * It jumps to another datum.
+ * \tparam _Marker Runtime data that is used by the accessor and the navigator.
+ * This is typically a data pointer.
+ */
 template<typename _Accessor, typename _Navigator, typename _Marker>
 class Cursor : private _Accessor, _Navigator
 {
@@ -45,8 +54,8 @@ public:
     typedef _Accessor Accessor;
     typedef _Navigator Navigator;
     typedef _Marker Marker;
-    typedef Cursor<Accessor, Navigator, Marker> result_type;
     typedef Cursor<Accessor, Navigator, Marker> This;
+    typedef This result_type;
 protected:
     Marker marker;
 public:
@@ -56,6 +65,10 @@ public:
              const Marker& marker)
                 : Accessor(accessor), Navigator(navigator), marker(marker) {}
 
+    /** access 
+     * \return Accessor's return type. 
+     * Typically a reference to the current selected single datum.
+     */
     HDINLINE
     type operator*()
     {
@@ -68,6 +81,11 @@ public:
         return Accessor::operator()(this->marker);
     }
     
+    /** jumping
+     * \param jump Specifies a jump relative to the current selected datum.
+     * This is usually a int vector but may be any type that navigator accepts.
+     * \return A new cursor, which has jumped according to the jump param.
+     */
     template<typename Jump>
     HDINLINE This operator()(const Jump& jump) const
     {
@@ -75,24 +93,30 @@ public:
                     Navigator::operator()(this->marker, jump));
     }
     
+    /* convenient method which is available if the navigator accepts a Int<1> */
     HDINLINE This operator()(int x) const
     {
         return (*this)(math::Int<1>(x));
     }
     
+    /* convenient method which is available if the navigator accepts a Int<2> */
     HDINLINE This operator()(int x, int y) const
     {
         return (*this)(math::Int<2u>(x, y));
     }
     
+    /* convenient method which is available if the navigator accepts a Int<3> */
     HDINLINE This operator()(int x, int y, int z) const
     {
         return (*this)(math::Int<3>(x, y, z));
     }
     
+    /* convenient method which is available if the navigator implements operator++ */
     HDINLINE void operator++() {Navigator::operator++;}
+    /* convenient method which is available if the navigator implements operator-- */
     HDINLINE void operator--() {Navigator::operator--;}
     
+    /* jump and access in one call */
     template<typename Jump>
     HDINLINE
     type operator[](const Jump& jump)
@@ -107,9 +131,11 @@ public:
         return *((*this)(jump));
     }
 
+    /* This is a dirty workaround to enable and disable safe-cursor checks. */
     HDINLINE void enableChecking() {this->marker.enableChecking();}
     HDINLINE void disableChecking() {this->marker.disableChecking();}
     
+    /* getters */
     HDINLINE
     const _Accessor& getAccessor() const {return *this;}
     HDINLINE
@@ -118,6 +144,7 @@ public:
     const Marker& getMarker() const {return this->marker;}
 };
 
+/* convenient function to construct a cursor by passing its constructor arguments */
 template<typename Accessor, typename Navigator, typename Marker>
 HDINLINE Cursor<Accessor, Navigator, Marker> make_Cursor
 (const Accessor& accessor, const Navigator& navigator, const Marker& marker)
@@ -128,6 +155,7 @@ HDINLINE Cursor<Accessor, Navigator, Marker> make_Cursor
 namespace traits
 {
     
+/* type trait to get the cursor's dimension if it has one */
 template<typename _Accessor, typename _Navigator, typename _Marker>
 struct dim< PMacc::cursor::Cursor<_Accessor, _Navigator, _Marker> >
 {

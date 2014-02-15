@@ -1,6 +1,98 @@
 Change Log / Release Log for PIConGPU
 ================================================================
 
+Open Beta RC4
+-------------
+**Date:** TBA
+
+This is the 4th release candidate, a *pre-beta* version.
+
+### Changes to "Open Beta RC3"
+
+**.param file changes:**
+ - n/a
+
+**New Features:**
+ - n/a
+
+**Bug fixes:**
+ - n/a
+
+**Misc:**
+ - n/a
+
+
+Open Beta RC3
+-------------
+**Date:** 2014-02-14
+
+This is the third release candidate, a *pre-beta* version.
+
+### Changes to "Open Beta RC2"
+
+**.param and .cfg file changes:**
+ - `componentsConfig.param`:
+   - remove simDim defines #134 #137
+     (example how to update your existing `componentsConfig.param`, see
+     [https://github.com/ax3l/picongpu/commit/af1f20790ad2aa15e6fc2c9a51d8c870437a5fb7])
+ - `dimension.param`: new file with simDim setting #134
+   - only add this file to your example/test/config if you want to change it
+     from the default value (3D)
+ - `fieldConfig.param`: renamed to `fieldSolver.param` #131
+ - `fieldBackground.param`: new file to add external background fields #131
+ - cfg files cleaned up #153 #193
+
+**New Features:**
+ - background fields for E and B #131
+ - write parallel hdf5 with libSplash 1.1 #141 #151 #156 #191 #196
+ - new plugins
+   - ADIOS output support #179 #196
+   - makroParticleCounter/PerSuperCell #163
+ - cuda_memtest can check mapped memory now #173
+ - EnergyDensity works for 2-3D now #175
+ - new type floatD_X shall be used for position types (2-3D) #184
+ - libPMacc
+   - new functors for multiplications and substractions #135
+   - opened more interfaces to old functors #197
+   - MappedMemoryBuffer added #169 #182
+   - unary transformations can be performed on DataBox'es now,
+     allowing for non-commutative operations in reduces #204
+
+**Bug fixes:**
+ - libPMacc
+   - GridBuffer could deadlock if called uninitialized #149
+   - TaskSetValue was broken for all arrays with x-size != n*256 #174
+   - CUDA 6.0 runs crashed during cudaSetDeviceFlags #200
+   - extern shared mem could not be used with templated types #199
+ - tbg
+   - clearify error message if the tpl file does not exist #130
+ - HDF5Writer did not write ions any more #188
+ - return type of failing Slurm runs fixed #198 #205
+ - particles in-cell position fixed with cleaner algorithm #209
+
+**Misc:**
+ - documentation improved for
+   - cuSTL #116
+   - gasConfig.param describe slopes better (no syntax changes) #126
+   - agreed on coding guide lines #155 #161 #140
+   - example documentation started #160 #162 #176
+   - taurus (slurm based HPC cluster) updates #206
+ - IDE: ignore Code::Blocks files #125
+ - Esirkepov performance improvement by 30% #139
+ - MySimulation asserts refactored for nD #187
+ - Fields.def with field forward declarations added,
+   refactored to provide common ValueType #178
+ - icc warnings in cuda_memcheck fixed #210
+ - libPMacc
+   - refactored math::vector to play with DataSpace #138 #147
+   - addLicense script updated #167
+   - MPI_CHECK writes to stderr now #168
+   - TVec from/to CT::Int conversion #185
+   - PositionFilter works for 2-3D now #189 #207
+   - DeviceBuffer cudaPitchedPtr handling clean up #186
+   - DataBoxDim1Access refactored #202
+
+
 Open Beta RC2
 -------------
 **Date:** 2013-11-27
@@ -10,12 +102,12 @@ This is the second release candidate, a *pre-beta* version.
 ### Changes to "Open Beta RC1"
 
 **.param file changes:**
- - gasConfig.param:
+ - `gasConfig.param`:
    - add gasFreeFormula #96
-     (example how to update your existing gasConfig.param, see
+     (example how to update your existing `gasConfig.param`, see
      [https://github.com/ComputationalRadiationPhysics/picongpu/pull/96/files#diff-1])
    - add inner radius to gasSphereFlanks #66
-     (example how to update your existing gasConfig.param, see
+     (example how to update your existing `gasConfig.param`, see
      [https://github.com/ComputationalRadiationPhysics/picongpu/pull/66/files#diff-0])
 
 **New Features:**

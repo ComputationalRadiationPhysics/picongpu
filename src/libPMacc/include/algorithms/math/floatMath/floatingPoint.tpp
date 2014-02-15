@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -32,9 +32,6 @@ namespace algorithms
 namespace math
 {
 
-namespace detail
-{
-
 template<>
 struct Floor<float>
 {
@@ -57,8 +54,6 @@ struct Float2int_rd<float>
     }
 };
 
-} //namespace detail
 } //namespace math
 } //namespace algorithms
 } // namespace PMacc
-

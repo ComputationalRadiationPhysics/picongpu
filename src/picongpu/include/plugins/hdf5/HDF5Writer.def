@@ -43,8 +43,13 @@ namespace po = boost::program_options;
 
 struct ThreadParams
 {
+    /* set at least the pointers to NULL by default */
+    ThreadParams() : dataCollector(NULL),
+        cellDescription(NULL)
+    {}
+
     uint32_t currentStep;
-    DomainCollector *dataCollector;
+    ParallelDomainCollector *dataCollector;
     GridLayout<simDim> gridLayout;
     DataSpace<simDim> gridPosition;
     MappingDesc *cellDescription;
@@ -54,18 +59,18 @@ struct ThreadParams
 
 struct DomainInformation
 {
-    /* offset relative to global origin (first data point)
-     * to data from first gpu
-     */
+    /* Offset from simulation origin to moving window */
     DataSpace<simDim> globalDomainOffset;
+    /* Total size of current simulation area (i.e. moving window size) */
     DataSpace<simDim> globalDomainSize;
-    /* offset relative to global origin (first data point)
-     * to local data
-     */
+
+    /* Offset from simulation origin to this GPU */
     DataSpace<simDim> domainOffset;
+    /* Size of this GPU */
     DataSpace<simDim> domainSize;
     
-    /* offset on device*/
+    /* Offset of simulation area (i.e. moving window) from start of this GPU.
+     * >= 0 for top GPUs, 0 otherwise */
     DataSpace<simDim> localDomainOffset;
 
 };

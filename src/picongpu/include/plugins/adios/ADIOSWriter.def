@@ -1,0 +1,132 @@
+/**
+ * Copyright 2014 Felix Schmitt
+ *
+ * This file is part of PIConGPU. 
+ * 
+ * PIConGPU is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * 
+ * PIConGPU is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * along with PIConGPU.  
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */
+
+
+
+#pragma once
+
+#include <adios.h>
+#include <list>
+
+#include "types.h"
+#include "simulation_types.hpp"
+#include "particles/frame_types.hpp"
+#include "simulationControl/MovingWindow.hpp"
+
+namespace picongpu
+{
+
+namespace adios
+{
+using namespace PMacc;
+
+namespace bmpl = boost::mpl;
+
+namespace po = boost::program_options;
+
+#define ADIOS_INVALID_HANDLE -1
+#define ADIOS_SUCCESS       err_no_error
+#define ADIOS_GROUP_NAME     "data"
+
+#define ADIOS_PATH_ROOT      "/data/"
+#define ADIOS_PATH_FIELDS    "fields/"
+#define ADIOS_PATH_PARTICLES "particles/"
+
+#define ADIOS_SIZE_LOCAL     "size_"
+#define ADIOS_SIZE_GLOBAL    "totalSize_"
+#define ADIOS_OFFSET_GLOBAL  "offset_"
+
+#define ADIOS_CMD(_cmd)                                                        \
+{                                                                              \
+    int _err_code = _cmd;                                                      \
+    if (_err_code != ADIOS_SUCCESS)                                            \
+        log<picLog::INPUT_OUTPUT > ("ADIOS: error at cmd '%1%': '%2%'") %      \
+            #_cmd % _err_code;                                                 \
+}
+
+#define ADIOS_CMD_EXPECT_NONZERO(_cmd)                                         \
+{                                                                              \
+    int _err_code = _cmd;                                                      \
+    if (_err_code == 0)                                                        \
+        log<picLog::INPUT_OUTPUT > ("ADIOS: error at cmd '%1%': '%2%'") %      \
+            #_cmd % _err_code;                                                 \
+}
+
+struct ThreadParams
+{
+    uint32_t currentStep;
+    std::string fullFilename;
+
+    MPI_Comm adiosComm;                     /* MPI communicator for adios lib */
+    bool adiosBufferInitialized;            /* set if ADIOS buffer has been allocated */
+    int64_t adiosFileHandle;                /* ADIOS file handle */
+    int64_t adiosGroupHandle;               /* ADIOS group handle */
+    uint64_t adiosGroupSize;                /* size of ADIOS group in bytes */
+    std::string adiosBasePath;              /* base path for the current step */
+    
+    int64_t adiosSizeVarIds[simDim];        /* var IDs for ADIOS_SIZE_LOCAL_x/y/z */
+    int64_t adiosTotalSizeVarIds[simDim];   /* var IDs for ADIOS_SIZE_GLOBAL_x/y/z */
+    int64_t adiosOffsetVarIds[simDim];      /* var IDs for ADIOS_OFFSET_GLOBAL_x/y/z */
+    
+    std::list<int64_t> adiosFieldVarIds;        /* var IDs for fields in order of appearance */
+    std::list<int64_t> adiosParticleAttrVarIds; /* var IDs for particle attributes in order of appearance */
+    std::list<int64_t> adiosSpeciesIndexVarIds; /* var IDs for species index tables in order of appearance */
+    
+    GridLayout<simDim> gridLayout;
+    DataSpace<simDim> gridPosition;
+    MappingDesc *cellDescription;
+    
+    float *fieldBfr;                        /* temp. buffer for fields */
+
+    VirtualWindow window;
+};
+
+struct DomainInformation
+{
+    /* Offset from simulation origin to moving window */
+    DataSpace<simDim> globalDomainOffset;
+    /* Total size of current simulation area (i.e. moving window size) */
+    DataSpace<simDim> globalDomainSize;
+
+    /* Offset from simulation origin to this GPU */
+    DataSpace<simDim> domainOffset;
+    /* Size of this GPU */
+    DataSpace<simDim> domainSize;
+    
+    /* Offset of simulation area (i.e. moving window) from start of this GPU.
+     * >= 0 for top GPUs, 0 otherwise */
+    DataSpace<simDim> localDomainOffset;
+
+};
+
+/**
+ * Writes simulation data to adios files.
+ * Implements the ISimulationIO interface.
+ *
+ * @param ElectronsBuffer class description for electrons
+ * @param IonsBuffer class description for ions
+ * @param simDim dimension of the simulation (2-3)
+ */
+
+class ADIOSWriter;
+
+} //namespace adios
+} //namespace picongpu
+

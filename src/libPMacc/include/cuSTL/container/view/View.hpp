@@ -26,10 +26,19 @@ namespace PMacc
 namespace container
 {
 
+/** Represents a clipped area of its inherited container.
+ *
+ * View are not designed to do hard data copies.
+ * Views don't take care of reference counters. So if the corresponding
+ * container dies, all views become invalid.
+ * Usual way to contruct a view goes with container.view(...);
+ * \tparam Buffer Corresponding container type
+ */
 template<typename Buffer>
 struct View : public Buffer
 {
     HDINLINE View() {}
+    
     template<typename TBuffer>
     HDINLINE View(const View<TBuffer>& other)
     {
@@ -38,6 +47,9 @@ struct View : public Buffer
     
     HDINLINE ~View() 
     {
+        /* increment the reference counter because the container's destructor decrements it.
+         * We want to compensate this.
+         */
         (*this->refCount)++;
     }
     
@@ -52,6 +64,10 @@ struct View : public Buffer
         return *this;
     }
 
+private:
+    // forbid view = container
+    HDINLINE Buffer& 
+    operator=(const Buffer& rhs);
 };
     
     

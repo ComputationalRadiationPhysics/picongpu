@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -17,10 +17,9 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
-#ifndef STLPICFLOAT_HPP
-#define STLPICFLOAT_HPP
+ */
+
+#pragma once
 
 #include "Vector.hpp"
 
@@ -32,24 +31,58 @@ namespace math
 template<int dim>
 struct Float : public Vector<float, dim>
 {
-    HDINLINE Float() {}
-    HDINLINE Float(float x) : Vector<float, dim>(x) {}
-    HDINLINE Float(float x, float y) : Vector<float, dim>(x,y) {}
-    HDINLINE Float(float x, float y, float z) : Vector<float, dim>(x,y,z) {}
-    HDINLINE Float(const Vector<float, dim>& vec) : Vector<float, dim>(vec) {}
-    
-    HDINLINE Float(float1 vec) : Vector<float, dim>(vec.x) {}
-    HDINLINE Float(float2 vec) : Vector<float, dim>(vec.x, vec.y) {}
-    HDINLINE Float(float3 vec) : Vector<float, dim>(vec.x, vec.y, vec.z) {}
-    
+    typedef Vector<float, dim> BaseType;
+
+    HDINLINE Float()
+    {
+    }
+
+    HDINLINE Float(float x) : BaseType(x)
+    {
+    }
+
+    HDINLINE Float(float x, float y) : BaseType(x, y)
+    {
+    }
+
+    HDINLINE Float(float x, float y, float z) : BaseType(x, y, z)
+    {
+    }
+
+    /*! only allow explicit cast*/
+    template<
+    typename T_OtherType,
+    typename T_OtherAccessor,
+    typename T_OtherNavigator,
+    template <typename, int> class T_OtherStorage>
+    HDINLINE explicit Float(const Vector<T_OtherType, dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& vec) :
+    BaseType(vec)
+    {
+    }
+
+    HDINLINE Float(const BaseType& vec) :
+    BaseType(vec)
+    {
+    }
+
+    HDINLINE Float(float1 vec) : BaseType(vec.x)
+    {
+    }
+
+    HDINLINE Float(float2 vec) : BaseType(vec.x, vec.y)
+    {
+    }
+
+    HDINLINE Float(float3 vec) : BaseType(vec.x, vec.y, vec.z)
+    {
+    }
+
     HDINLINE operator float3() const
     {
         BOOST_STATIC_ASSERT(dim == 3);
         return make_float3(this->x(), this->y(), this->z());
     }
 };
-    
+
 } // math
 } // PMacc
-
-#endif // STLPICFLOAT_HPP

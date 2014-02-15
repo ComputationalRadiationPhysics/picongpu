@@ -31,13 +31,13 @@ namespace promoteType
     // general: use first type
     template<class T1, class T2>
     struct promoteType {
-        typedef T1 ValueType;
+        typedef T1 type;
     };
     
     // special: promote float to double
     template< >
     struct promoteType<float, double> {
-        typedef double ValueType;
+        typedef double type;
     };
     
 

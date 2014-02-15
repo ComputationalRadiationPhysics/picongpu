@@ -73,11 +73,11 @@ namespace PMacc
 
         }
 
-        DeviceBufferIntern(DeviceBufferIntern& source, DataSpace<DIM> dataSpace, DataSpace<DIM> offset, bool sizeOnDevice = false) :
+        DeviceBufferIntern(DeviceBuffer<TYPE,DIM>& source, DataSpace<DIM> dataSpace, DataSpace<DIM> offset, bool sizeOnDevice = false) :
         DeviceBuffer<TYPE, DIM>(dataSpace),
         sizeOnDevice(sizeOnDevice),
         offset(offset + source.getOffset()),
-        data(source.data),
+        data(source.getCudaPitched()),
         useOtherMemory(true)
         {
             createSizeOnDevice(sizeOnDevice);
@@ -86,6 +86,8 @@ namespace PMacc
 
         virtual ~DeviceBufferIntern()
         {
+            __startOperation(ITask::TASK_CUDA);
+
             if (sizeOnDevice)
             {
                 CUDA_CHECK(cudaFree(sizeOnDevicePtr));
@@ -99,7 +101,7 @@ namespace PMacc
 
         void reset(bool preserveData = true)
         {
-            this->setCurrentSize(Buffer<TYPE, DIM>::getDataSpace().getElementCount());
+            this->setCurrentSize(Buffer<TYPE, DIM>::getDataSpace().productOfComponents());
 
             __startOperation(ITask::TASK_CUDA);
             if (!preserveData)
@@ -110,7 +112,7 @@ namespace PMacc
                 }
                 if (DIM == DIM2)
                 {
-                    CUDA_CHECK(cudaMemset2D(data.ptr, data.pitch, 0, data.xsize * sizeof (TYPE), data.ysize));
+                    CUDA_CHECK(cudaMemset2D(data.ptr, data.pitch, 0, data.xsize , data.ysize));
                 }
                 if (DIM == DIM3)
                 {
@@ -247,20 +249,19 @@ namespace PMacc
             __startOperation(ITask::TASK_CUDA);
             data.ptr = NULL;
             data.pitch = 1;
-            data.xsize = this->data_space[0];
+            data.xsize = this->data_space[0]* sizeof (TYPE);
             data.ysize = 1;
 
             if (DIM == DIM1)
             {
-                log<ggLog::MEMORY >("Create device 1D data: %1% MiB") % ( this->data_space[0] * sizeof (TYPE) / 1024 / 1024 );
-                CUDA_CHECK(cudaMallocPitch(&data.ptr, &data.pitch, this->data_space[0] * sizeof (TYPE), 1));
+                log<ggLog::MEMORY >("Create device 1D data: %1% MiB") % ( data.xsize  / 1024 / 1024 );
+                CUDA_CHECK(cudaMallocPitch(&data.ptr, &data.pitch, data.xsize , 1));
             }
             if (DIM == DIM2)
             {
-                data.xsize = this->data_space[0];
                 data.ysize = this->data_space[1];
-                log<ggLog::MEMORY >("Create device 2D data: %1% MiB") % ( data.xsize * data.ysize * sizeof (TYPE) / 1024 / 1024 );
-                CUDA_CHECK(cudaMallocPitch(&data.ptr, &data.pitch, data.xsize * sizeof (TYPE), data.ysize));
+                log<ggLog::MEMORY >("Create device 2D data: %1% MiB") % ( data.xsize * data.ysize / 1024 / 1024 );
+                CUDA_CHECK(cudaMallocPitch(&data.ptr, &data.pitch, data.xsize , data.ysize));
 
             }
             if (DIM == DIM3)
@@ -270,7 +271,7 @@ namespace PMacc
                 extent.height = this->data_space[1];
                 extent.depth = this->data_space[2];
 
-                log<ggLog::MEMORY >("Create device 3D data: %1% MiB") % ( this->data_space.getElementCount() * sizeof (TYPE) / 1024 / 1024 );
+                log<ggLog::MEMORY >("Create device 3D data: %1% MiB") % ( this->data_space.productOfComponents() * sizeof (TYPE) / 1024 / 1024 );
                 CUDA_CHECK(cudaMalloc3D(&data, extent));
             }
 
@@ -284,11 +285,11 @@ namespace PMacc
             __startOperation(ITask::TASK_CUDA);
             data.ptr = NULL;
             data.pitch = 1;
-            data.xsize = this->data_space[0];
+            data.xsize = this->data_space[0]* sizeof (TYPE);
             data.ysize = 1;
 
-            log<ggLog::MEMORY >("Create device fake data: %1% MiB") % ( this->data_space.getElementCount() * sizeof (TYPE) / 1024 / 1024 );
-            CUDA_CHECK(cudaMallocPitch(&data.ptr, &data.pitch, this->data_space.getElementCount() * sizeof (TYPE), 1));
+            log<ggLog::MEMORY >("Create device fake data: %1% MiB") % ( this->data_space.productOfComponents() * sizeof (TYPE) / 1024 / 1024 );
+            CUDA_CHECK(cudaMallocPitch(&data.ptr, &data.pitch, this->data_space.productOfComponents() * sizeof (TYPE), 1));
 
             //fake the pitch, thus we can use this 1D Buffer as 2D or 3D
             data.pitch = this->data_space[0] * sizeof (TYPE);
@@ -310,7 +311,7 @@ namespace PMacc
             {
                 CUDA_CHECK(cudaMalloc(&sizeOnDevicePtr, sizeof (size_t)));
             }
-            setCurrentSize(Buffer<TYPE, DIM>::getDataSpace().getElementCount());
+            setCurrentSize(Buffer<TYPE, DIM>::getDataSpace().productOfComponents());
         }
 
     private:

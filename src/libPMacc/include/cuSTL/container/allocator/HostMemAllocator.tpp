@@ -32,7 +32,7 @@ HostMemAllocator<Type, _dim>::allocate(const math::Size_t<_dim>& size)
     Type* dataPointer;
     math::Size_t<_dim-1> pitch;
 
-    CUDA_CHECK_NO_EXCEP(cudaMallocHost((void**)&dataPointer, sizeof(Type) * size.volume()));
+    CUDA_CHECK_NO_EXCEP(cudaMallocHost((void**)&dataPointer, sizeof(Type) * size.productOfComponents()));
     if(dim == 2u)
     {
         pitch[0] = size[0] * sizeof(Type);
@@ -61,7 +61,7 @@ HostMemAllocator<Type, 1>::allocate(const math::Size_t<1>& size)
     Type* dataPointer;
     math::Size_t<0> pitch;
 
-    CUDA_CHECK_NO_EXCEP(cudaMallocHost((void**)&dataPointer, sizeof(Type) * size.volume()));
+    CUDA_CHECK_NO_EXCEP(cudaMallocHost((void**)&dataPointer, sizeof(Type) * size.productOfComponents()));
     
     return cursor::BufferCursor<Type, 1>(dataPointer, pitch);
 #endif

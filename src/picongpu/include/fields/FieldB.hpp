@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -20,8 +20,7 @@
  
 
 
-#ifndef FIELDB_HPP
-#define	FIELDB_HPP
+#pragma once
 
 #include <string>
 
@@ -30,7 +29,7 @@
 #include "simulation_defines.hpp"
 #include "simulation_classTypes.hpp"
 
-
+#include "Fields.def"
 #include "fields/SimulationFieldHelper.hpp"
 #include "dataManagement/ISimulationData.hpp"
 
@@ -48,17 +47,14 @@ namespace picongpu
 {
     using namespace PMacc;
 
-    class FieldE;
-
-
     class FieldB : public SimulationFieldHelper<MappingDesc>, public ISimulationData
     {
     public:
-        typedef float3_X FloatB;
-        typedef typename promoteType<float_64, FloatB>::ValueType UnitValueType;
-        static const int numComponents = FloatB::dim;
+        typedef float3_X ValueType;
+        typedef typename promoteType<float_64, ValueType>::type UnitValueType;
+        static const int numComponents = ValueType::dim;
         
-        typedef DataBox<PitchedBox<FloatB, simDim> > DataBoxType;
+        typedef DataBox<PitchedBox<ValueType, simDim> > DataBoxType;
 
         static const uint32_t FloatBDim = simDim;
         typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -85,7 +81,7 @@ namespace picongpu
 
         DataBoxType getDeviceDataBox();
 
-        GridBuffer<FloatB, simDim> &getGridBuffer();
+        GridBuffer<ValueType, simDim> &getGridBuffer();
 
 
         void synchronize();
@@ -98,7 +94,7 @@ namespace picongpu
 
         void laserManipulation(uint32_t currentStep);
 
-        GridBuffer<FloatB, simDim> *fieldB;
+        GridBuffer<ValueType, simDim> *fieldB;
 
         FieldE *fieldE;
         LaserPhysics *laser;
@@ -108,6 +104,3 @@ namespace picongpu
 }
 
 #include "fields/FieldB.tpp"
-
-#endif	/* FIELDB_HPP */
-

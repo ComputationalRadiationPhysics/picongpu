@@ -146,7 +146,7 @@ void Reduce<dim>::operator()
     MPI_Op user_op;  
     MPI_CHECK(MPI_Op_create(&detail::MPI_User_Op<Functor, Type>::callback, 1, &user_op));
     
-    MPI_CHECK(MPI_Reduce(&(*src.origin()), &(*dest.origin()), sizeof(Type) * dest.size().volume(),
+    MPI_CHECK(MPI_Reduce(&(*src.origin()), &(*dest.origin()), sizeof(Type) * dest.size().productOfComponents(),
         MPI_CHAR, user_op, 0, this->comm));
     
     MPI_CHECK(MPI_Op_free(&user_op));

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2014 Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -27,6 +27,9 @@
 #include "traits/GetComponentsType.hpp"
 #include "traits/GetNComponents.hpp"
 
+#include "algorithms/math.hpp"
+#include "algorithms/TypeCast.hpp"
+
 namespace PMacc
 {
 
@@ -47,5 +50,35 @@ struct GetNComponents<DataSpace<DIM>,false >
 };
 
 }// namespace traits
+
+namespace algorithms
+{
+namespace typeCast
+{
+
+template<unsigned T_Dim>
+struct TypeCast<int, PMacc::DataSpace<T_Dim> >
+{
+    typedef const PMacc::DataSpace<T_Dim>& result;
+
+    HDINLINE result operator( )(const PMacc::DataSpace<T_Dim>& vector ) const
+    {
+        return vector;
+    }
+};
+
+template<typename T_CastToType, unsigned T_Dim>
+struct TypeCast<T_CastToType, PMacc::DataSpace<T_Dim>  >
+{
+    typedef ::PMacc::math::Vector<T_CastToType, T_Dim> result;
+
+    HDINLINE result operator( )(const PMacc::DataSpace<T_Dim>& vector ) const
+    {
+        return result( vector );
+    }
+};
+
+} //namespace typecast
+} //namespace algorithms
 
 } //namespace PMacc

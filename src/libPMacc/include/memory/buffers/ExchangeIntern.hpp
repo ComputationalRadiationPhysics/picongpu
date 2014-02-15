@@ -35,6 +35,9 @@
 #include "eventSystem/tasks/Factory.hpp"
 #include "eventSystem/tasks/TaskReceive.hpp"
 
+#include "memory/buffers/DeviceBufferIntern.hpp"
+#include "memory/buffers/HostBufferIntern.hpp"
+
 namespace PMacc
 {
 

@@ -62,6 +62,13 @@ namespace PMacc
             __startOperation(ITask::TASK_HOST);
             return this->current_size;
         }
+        
+        /**
+         * Destructor.
+         */
+        virtual ~HostBuffer()
+        {
+        };
 
     protected:
 
@@ -75,13 +82,6 @@ namespace PMacc
         {
 
         }
-
-        /**
-         * Destructor.
-         */
-        virtual ~HostBuffer()
-        {
-        };
     };
 
 } //namespace PMacc

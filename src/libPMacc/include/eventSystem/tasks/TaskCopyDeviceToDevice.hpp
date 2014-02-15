@@ -34,18 +34,18 @@ namespace PMacc
 {
 
     template <class TYPE, unsigned DIM>
-    class DeviceBufferIntern;
+    class DeviceBuffer;
 
     template <class TYPE, unsigned DIM>
     class TaskCopyDeviceToDeviceBase : public StreamTask
     {
     public:
 
-        TaskCopyDeviceToDeviceBase(const DeviceBuffer<TYPE, DIM>& src, DeviceBuffer<TYPE, DIM>& dst) :
+        TaskCopyDeviceToDeviceBase( DeviceBuffer<TYPE, DIM>& src, DeviceBuffer<TYPE, DIM>& dst) :
         StreamTask()
         {
-            this->source = (DeviceBufferIntern<TYPE, DIM>*) & src;
-            this->destination = (DeviceBufferIntern<TYPE, DIM>*) & dst;
+            this->source = & src;
+            this->destination =  & dst;
         }
 
         virtual ~TaskCopyDeviceToDeviceBase()
@@ -70,7 +70,7 @@ namespace PMacc
             destination->setCurrentSize(current_size);
             DataSpace<DIM> devCurrentSize = source->getCurrentDataSpace(current_size);
             if (source->is1D() && destination->is1D())
-                fastCopy(source->getPointer(), destination->getPointer(), devCurrentSize.getElementCount());
+                fastCopy(source->getPointer(), destination->getPointer(), devCurrentSize.productOfComponents());
             else
                 copy(devCurrentSize);
 
@@ -95,8 +95,8 @@ namespace PMacc
                                        this->getCudaStream()));
         }
 
-        DeviceBufferIntern<TYPE, DIM> *source;
-        DeviceBufferIntern<TYPE, DIM> *destination;
+        DeviceBuffer<TYPE, DIM> *source;
+        DeviceBuffer<TYPE, DIM> *destination;
     };
 
 
@@ -108,7 +108,7 @@ namespace PMacc
     {
     public:
 
-        TaskCopyDeviceToDevice(const DeviceBuffer<TYPE, DIM1>& src, DeviceBuffer<TYPE, DIM1>& dst) :
+        TaskCopyDeviceToDevice(DeviceBuffer<TYPE, DIM1>& src, DeviceBuffer<TYPE, DIM1>& dst) :
         TaskCopyDeviceToDeviceBase<TYPE, DIM1>(src, dst)
         {
         }
@@ -131,7 +131,7 @@ namespace PMacc
     {
     public:
 
-        TaskCopyDeviceToDevice(const DeviceBuffer<TYPE, DIM2>& src, DeviceBuffer<TYPE, DIM2>& dst) :
+        TaskCopyDeviceToDevice( DeviceBuffer<TYPE, DIM2>& src, DeviceBuffer<TYPE, DIM2>& dst) :
         TaskCopyDeviceToDeviceBase<TYPE, DIM2>(src, dst)
         {
         }
@@ -158,7 +158,7 @@ namespace PMacc
     {
     public:
 
-        TaskCopyDeviceToDevice(const DeviceBuffer<TYPE, DIM3>& src, DeviceBuffer<TYPE, DIM3>& dst) :
+        TaskCopyDeviceToDevice( DeviceBuffer<TYPE, DIM3>& src, DeviceBuffer<TYPE, DIM3>& dst) :
         TaskCopyDeviceToDeviceBase<TYPE, DIM3>(src, dst)
         {
         }
@@ -170,7 +170,7 @@ namespace PMacc
 
             cudaMemcpy3DParms params;
 
-            //  assert(this->source->getDataSpace().getElementCount() <= this->destination->getDataSpace().getElementCount());
+            //  assert(this->source->getDataSpace().productOfComponents() <= this->destination->getDataSpace().productOfComponents());
 
             params.srcArray = NULL;
             params.srcPos = make_cudaPos(

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -19,9 +19,7 @@
  */ 
  
 
-
-#ifndef FIELDE_HPP
-#define	FIELDE_HPP
+#pragma once
 
 #include <string>
 
@@ -30,7 +28,7 @@
 #include "simulation_defines.hpp"
 #include "simulation_classTypes.hpp"
 
-
+#include "Fields.def"
 #include "fields/SimulationFieldHelper.hpp"
 #include "dataManagement/ISimulationData.hpp"
 
@@ -48,19 +46,17 @@ namespace picongpu
 {
     using namespace PMacc;
 
-    class FieldB;
-
     class FieldE: public SimulationFieldHelper<MappingDesc>, public ISimulationData
     {
     public:
-        typedef float3_X FloatE;
-        typedef typename promoteType<float_64, FloatE>::ValueType UnitValueType;
-        static const int numComponents = FloatE::dim;
+        typedef float3_X ValueType;
+        typedef typename promoteType<float_64, ValueType>::type UnitValueType;
+        static const int numComponents = ValueType::dim;
         
         static const uint32_t FloatEDim = simDim;
         typedef MappingDesc::SuperCellSize SuperCellSize;
         
-        typedef DataBox<PitchedBox<FloatE, simDim> > DataBoxType;
+        typedef DataBox<PitchedBox<ValueType, simDim> > DataBoxType;
 
 
         FieldE(MappingDesc cellDescription);
@@ -83,7 +79,7 @@ namespace picongpu
 
         DataBoxType getHostDataBox();
         
-        GridBuffer<FloatE,simDim>& getGridBuffer();
+        GridBuffer<ValueType,simDim>& getGridBuffer();
 
         GridLayout<simDim> getGridLayout();
 
@@ -98,7 +94,7 @@ namespace picongpu
         void absorbeBorder();
         
 
-        GridBuffer<FloatE,simDim> *fieldE;
+        GridBuffer<ValueType,simDim> *fieldE;
 
         FieldB *fieldB;
 
@@ -106,9 +102,6 @@ namespace picongpu
     };
 
 
-}
+} // namespace picongpu
 
 #include "fields/FieldE.tpp"
-
-#endif	/* FIELDE_HPP */
-

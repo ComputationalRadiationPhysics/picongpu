@@ -67,8 +67,9 @@ void SliceFieldPrinter<Field, FieldId>::notify(uint32_t currentStep)
     DataConnector &dc = DataConnector::getInstance();
 
     BOOST_AUTO(field_coreBorder,
-        dc.getData<Field > (FieldId, true).getGridBuffer().getDeviceBuffer().cartBuffer().view
-            (BlockDim().vec(), -BlockDim().vec()));
+        dc.getData<Field > (FieldId, true).getGridBuffer().
+            getDeviceBuffer().cartBuffer().
+            view(typeCast<int>(BlockDim().vec()), -typeCast<int>(BlockDim().vec())));
 
     std::ostringstream filename;
     filename << this->fieldName << "_" << currentStep << ".dat";

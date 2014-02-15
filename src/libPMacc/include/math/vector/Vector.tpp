@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -56,8 +56,6 @@ namespace PMacc
 namespace algorithms
 {
 namespace math
-{
-namespace detail
 {
 
 /*#### comparison ############################################################*/
@@ -181,7 +179,6 @@ struct Pow< ::PMacc::math::Vector<T1, dim>, T2 >
     }
 };
 
-}//namespace detail
 } //namespace math
 } //namespace algorithms
 } // namespace PMacc
@@ -191,8 +188,6 @@ namespace PMacc
 namespace algorithms
 {
 namespace typeCast
-{
-namespace detail
 {
 
 template<typename CastToType, int dim>
@@ -216,7 +211,7 @@ struct TypeCast<CastToType, ::PMacc::math::Vector<OldType, dim> >
         return result( vector );
     }
 };
-}//namespace detail
+
 } //namespace typecast
 } //namespace algorithms
 } //PMacc
@@ -231,8 +226,8 @@ namespace promoteType
 template<typename PromoteToType, typename OldType, int dim>
 struct promoteType<PromoteToType, ::PMacc::math::Vector<OldType, dim> >
 {
-    typedef typename promoteType<OldType, PromoteToType>::ValueType PartType;
-    typedef ::PMacc::math::Vector<PartType, dim> ValueType;
+    typedef typename promoteType<OldType, PromoteToType>::type PartType;
+    typedef ::PMacc::math::Vector<PartType, dim> type;
 };
 
 } //namespace promoteType

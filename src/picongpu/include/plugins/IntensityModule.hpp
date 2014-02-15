@@ -230,7 +230,7 @@ private:
         const int yGlobalSize = simBox.getGlobalSize().y();
         const int yLocalSize = localSize.y();
 
-        const int gpus = GridController<simDim>::getInstance().getGpuNodes().getElementCount();
+        const int gpus = GridController<simDim>::getInstance().getGpuNodes().productOfComponents();
         
         
         /**\todo: fixme I cant work with not regular domains (use mpi_gatherv)*/

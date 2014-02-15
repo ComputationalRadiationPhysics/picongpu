@@ -31,7 +31,7 @@ DeviceMemEvenPitch<Type, _dim>::allocate(const math::Size_t<_dim>& size)
     Type* dataPointer;
     math::Size_t<_dim-1> pitch;
 
-    CUDA_CHECK(cudaMalloc((void**)&dataPointer, sizeof(Type) * size.volume()));
+    CUDA_CHECK(cudaMalloc((void**)&dataPointer, sizeof(Type) * size.productOfComponents()));
     
     if (dim == 2u)
     {

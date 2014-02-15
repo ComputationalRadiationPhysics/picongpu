@@ -31,17 +31,25 @@ namespace PMacc
 namespace cursor
 {
 
+/** A SafeCursor is like a cursor, except that it checks its validity before each access.
+ */
 template<typename Cursor>
 class SafeCursor : public Cursor
 {
 public:
     static const int dim = PMacc::cursor::traits::dim<Cursor>::value;
 private:
+    /* \todo: Use a zone instead of lowerExtent and UpperExtent */
     const math::Int<dim> lowerExtent;
     const math::Int<dim> upperExtent;
     math::Int<dim> offset;
     bool enabled;
 public:
+    /**
+     * \param cursor Base cursor
+     * \param lowerExtent Top left corner of valid range, inside the range.
+     * \param upperExtent Bottom right corner of valid range, inside the range.
+     */
     HDINLINE SafeCursor(const Cursor& cursor, 
                         const math::Int<dim>& lowerExtent,
                         const math::Int<dim>& upperExtent)
@@ -133,6 +141,7 @@ private:
 namespace traits
 {
     
+/* type trait to get the safe-cursor's dimension if it has one */
 template<typename Cursor>
 struct dim<SafeCursor<Cursor> >
 {
@@ -141,6 +150,7 @@ struct dim<SafeCursor<Cursor> >
     
 } // traits
 
+/* convenient function to construct a safe-cursor by passing its constructor arguments */
 template<typename Cursor>
 HDINLINE SafeCursor<Cursor> make_SafeCursor(
     const Cursor& cursor,

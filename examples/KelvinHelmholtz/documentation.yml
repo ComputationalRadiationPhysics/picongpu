@@ -1,0 +1,67 @@
+--- # Documentation for the Kelvin-Helmholtz Example
+example:
+  name:        Kelvin-Hemholtz Instability
+  short:       KelvinHelmholtz
+  author:      Axel Huebl <a.huebl (at) hzdr.de>, E. Paulo Alves, Thomas Grismayer
+  maintainer:  Axel Huebl <a.huebl (at) hzdr.de>
+
+  description: |
+               ... This should be an *extensive* documentation for the
+               physicists using this example. Quote references
+               ... Example references: *Alves12, *Bussmann13 ...
+
+  references:
+    - Alves12: &Alves12
+        author:  ...
+        title:   ...
+        journal: ...
+        year:    ...
+        link:    doi link!
+    - Bussmann13: &Bussmann13
+        author:  ...
+        title:   ...
+        journal: ...
+        year:    ...
+        link:    doi link!
+
+--- # Run-Time Tests for the Kelvin-Helmholtz Example
+test:
+  - growthRate:
+      name:        Kelvin-Helmholtz e-/e+ Growth Rate Test
+      description: |
+                   This test runs the simulation with an electrons-positrons
+                   gas and measures the growth rate of the characteristic B_z
+                   field over time.
+                   This is a very crutal test to see if the plasma dynamics
+                   comes up right.
+      cmakeflag:   0
+      cfgfile:     submit/0016gpus.cfg
+      gpus:        16
+
+      pre-run:
+        - echo "Starting KHI Growth Rate Test"
+        - echo "Just printing even more here..."
+      post-run:
+        - echo "Check number of particles..."
+        - echo "Check total energy..."
+        - echo "Creating Energy(B_z) over time plot..."
+        - echo "Fit to expected growth rate..."
+        - echo "Check charge conservation..."
+        - echo "ok / failed"
+
+  - relativistic:
+      name:        Relativistic Kelvin-Helmholtz e-/p+ setting
+      description: |
+                   This test runs the simulation with an electrons-protons
+                   gas and a relativistic inital velocity of the streams...
+      cmakeflag:   1
+      cfgfile:     submit/0016gpus.cfg
+      gpus:        16
+
+      pre-run:
+        - echo "Starting Relativisitic KHI"
+      post-run:
+        - echo "Check number of particles..."
+        - echo "creating Energy(B_z) over time plot..."
+        - echo "fit ..."
+        - echo "measure artificial cherenkov / total energy..."

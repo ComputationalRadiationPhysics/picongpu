@@ -1,5 +1,5 @@
 #
-# Copyright 2013 Axel Huebl, Benjamin Schneider, Felix Schmitt, Heiko Burau, Rene Widera
+# Copyright 2013-2014 Axel Huebl, Benjamin Schneider, Felix Schmitt, Heiko Burau, Rene Widera
 #
 # This file is part of PIConGPU.
 #
@@ -232,6 +232,46 @@ endif(PIC_ENABLE_INSITU_VOLVIS)
 
 
 ################################################################################
+# ADIOS
+################################################################################
+
+# find adios installation
+find_path(PIC_ADIOS_ROOT_DIR
+  NAMES include/adios.h lib/libadios.so
+  PATHS ENV ADIOS_ROOT
+  DOC "ADIOS ROOT location. (only used if ADIOS is enabled)"
+)
+
+if(PIC_ADIOS_ROOT_DIR)
+    message(STATUS "Found ADIOS: "${PIC_ADIOS_ROOT_DIR})
+    include_directories(SYSTEM ${PIC_ADIOS_ROOT_DIR}/include)
+    link_directories(${PIC_ADIOS_ROOT_DIR}/lib)
+    set(LIBS ${LIBS} adios)
+
+    # find mxml installation
+    find_path(PIC_MXML_ROOT_DIR
+      NAMES include/mxml.h lib/libmxml.so
+      PATHS ENV MXML_ROOT
+      DOC "MXML ROOT location. (only used if ADIOS is enabled)"
+    )
+
+   if(PIC_MXML_ROOT_DIR)
+        message(STATUS "Found MXML: "${PIC_MXML_ROOT_DIR})
+        include_directories(SYSTEM ${PIC_MXML_ROOT_DIR}/include)
+        link_directories(${PIC_MXML_ROOT_DIR}/lib)
+        set(LIBS ${LIBS} mxml)
+
+        add_definitions(-DENABLE_ADIOS=1)
+    elseif(PIC_MXML_ROOT_DIR)
+        message(STATUS "Could NOT find MXML (ADIOS will be disabled)")
+    endif(PIC_MXML_ROOT_DIR)
+
+elseif(PIC_ADIOS_ROOT_DIR)
+    message(STATUS "Could NOT find ADIOS")
+endif(PIC_ADIOS_ROOT_DIR)
+
+
+################################################################################
 # Warnings
 ################################################################################
 
@@ -273,40 +313,57 @@ include_directories(${PMACC_ROOT_DIR}/include)
 
 # find libSplash installation
 find_path(PIC_SPLASH_ROOT_DIR
-  NAMES include/splash.h lib/libsplash.a
+  NAMES include/splash/splash.h lib/libsplash.a
   PATHS ENV SPLASH_ROOT
   DOC "libSplash ROOT location (provides HDF5 output)"
 )
+set(PIC_SPLASH_VERSION_MIN "1.1.0")
+set(PIC_SPLASH_VERSION_OK OFF)
 
 if(PIC_SPLASH_ROOT_DIR)
     # find version
-    file(STRINGS "${PIC_SPLASH_ROOT_DIR}/include/version.hpp"
+    file(STRINGS "${PIC_SPLASH_ROOT_DIR}/include/splash/version.hpp"
          PIC_SPLASH_VERSION_MAJOR_HPP REGEX "#define SPLASH_VERSION_MAJOR ")
-    file(STRINGS "${PIC_SPLASH_ROOT_DIR}/include/version.hpp"
+    file(STRINGS "${PIC_SPLASH_ROOT_DIR}/include/splash/version.hpp"
          PIC_SPLASH_VERSION_MINOR_HPP REGEX "#define SPLASH_VERSION_MINOR ")
+    file(STRINGS "${PIC_SPLASH_ROOT_DIR}/include/splash/version.hpp"
+         PIC_SPLASH_VERSION_PATCH_HPP REGEX "#define SPLASH_VERSION_PATCH ")
     string(REGEX MATCH "([0-9]+)" PIC_SPLASH_VERSION_MAJOR
                                 ${PIC_SPLASH_VERSION_MAJOR_HPP})
     string(REGEX MATCH "([0-9]+)" PIC_SPLASH_VERSION_MINOR
                                 ${PIC_SPLASH_VERSION_MINOR_HPP})
+    string(REGEX MATCH "([0-9]+)" PIC_SPLASH_VERSION_PATCH
+                                ${PIC_SPLASH_VERSION_PATCH_HPP})
 
-    set(PIC_SPLASH_VERSION "${PIC_SPLASH_VERSION_MAJOR}.${PIC_SPLASH_VERSION_MINOR}")
+    set(PIC_SPLASH_VERSION "${PIC_SPLASH_VERSION_MAJOR}.${PIC_SPLASH_VERSION_MINOR}.${PIC_SPLASH_VERSION_PATCH}")
 
-    # status output and require hdf5
+    # status output and check version
     message(STATUS "Found libSplash: ${PIC_SPLASH_ROOT_DIR} "
                    "(found version \"${PIC_SPLASH_VERSION}\")")
+    if("${PIC_SPLASH_VERSION}" VERSION_LESS "${PIC_SPLASH_VERSION_MIN}")
+        message(WARNING "libSplash version is smaller than the required version ${PIC_SPLASH_VERSION_MIN} - not using")
+    else()
+        set(PIC_SPLASH_VERSION_OK ON)
+    endif()
+endif(PIC_SPLASH_ROOT_DIR)
+
+if(PIC_SPLASH_VERSION_OK)
+    # require hdf5
     find_package(HDF5 REQUIRED)
 
     # libSplash compiled with parallel support?
-    file(STRINGS "${PIC_SPLASH_ROOT_DIR}/include/splash.h" _splash_H_CONTENTS
+    file(STRINGS "${PIC_SPLASH_ROOT_DIR}/include/splash/splash.h" _splash_H_CONTENTS
          REGEX "#define SPLASH_SUPPORTED_PARALLEL ")
     string(REGEX MATCH "([0-9]+)" _splash_IS_PARALLEL "${_splash_H_CONTENTS}")
 
-    # check parallel libSplash to parallel hdf5 compatibility
+    # check that libSplash supports parallel and is compatible with hdf5
     if("${_splash_IS_PARALLEL}")
        message(STATUS "libSplash supports PARALLEL output")
        if(NOT HDF5_IS_PARALLEL)
            message(FATAL_ERROR "libSplash compiled with PARALLEL support but HDF5 lacks it...")
        endif(NOT HDF5_IS_PARALLEL)
+    else("${_splash_IS_PARALLEL}")
+        message(FATAL_ERROR "libSplash with PARALLEL support is required")
     endif("${_splash_IS_PARALLEL}")
 
     add_definitions(-DENABLE_HDF5=1)
@@ -326,9 +383,9 @@ if(PIC_SPLASH_ROOT_DIR)
     set_target_properties(splash_static PROPERTIES IMPORTED_LOCATION
                           ${PIC_SPLASH_ROOT_DIR}/lib/libsplash.a)
     set(LIBS ${LIBS} splash_static ${HDF5_LIBRARIES})
-else(PIC_SPLASH_ROOT_DIR)
+else(PIC_SPLASH_VERSION_OK)
     message(STATUS "Could NOT find libSplash for hdf5 output")
-endif(PIC_SPLASH_ROOT_DIR)
+endif(PIC_SPLASH_VERSION_OK)
 
 
 ################################################################################

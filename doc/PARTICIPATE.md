@@ -20,15 +20,6 @@ Contents
 
 *******************************************************************************
 
-to do list:
-- [ ] coding guide lines, styles/fileHeaders/...
-- [x] commit rules
-- [x] compile suite movie -> COMMIT.md
-- [x] git for svn users
-- [x] explain pull requests
-
-*******************************************************************************
-
 Code - Version Control
 ----------------------
 
@@ -278,16 +269,19 @@ More [best practices](http://codeinthehole.com/writing/pull-requests-and-other-g
 
 *******************************************************************************
 
-coding guide lines
+Coding Guide Lines
 ------------------
 
 Well - there are some! ;)
-- *coming soon* (in a separate file)
+- Please follow our recommendations in our
+  [wiki page](https://github.com/ComputationalRadiationPhysics/picongpu/wiki/Coding-Guide-Lines).
+- The `uncrustify` script at [picongpu_uncrustify.cfg] can be used for
+  auto-formatting your code.
 
 Please **add the according license header** snippet to your *new files*:
 - for PIConGPU (GPLv3+): `src/tools/bin/addLicense <FileName>`
 - for libraries (LGPLv3+ & GPLv3+):
-  `export PROJECT_NAME=libgpugrid && src/tools/bin/addLicense <FileName>`
+  `export PROJECT_NAME=libPMacc && src/tools/bin/addLicense <FileName>`
 - delete other headers: `src/tools/bin/deleteHeadComment <FileName>`
 - add license to all .hpp files within a directory (recursive):
   `export PROJECT_NAME=PIConGPU && src/tools/bin/findAndDo <PATH> "*.hpp" src/tools/bin/addLicense`

@@ -86,7 +86,7 @@ typedef typename MakeSeq<
 
 typedef typename MakeSeq<
     #if (ENABLE_IONS == 1)
-    PIC_Electrons
+    PIC_Ions
     #endif
 >::type Species2;
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2014 Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -31,9 +31,6 @@ namespace algorithms
 {
 namespace math
 {
-namespace detail
-{
-
 /*C++98 standard define a separate version for int and double exponent*/
 
 template<>
@@ -59,9 +56,6 @@ struct Pow<double, int>
 };
 
 
-} //namespace detail
 } //namespace math
 } //namespace algorithms
 } // namespace PMacc
-
-

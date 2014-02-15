@@ -55,7 +55,7 @@ SimulationFieldHelper<MappingDesc>( cellDescription ),
 fieldE( NULL )
 {
     /*#####create FieldB###############*/
-    fieldB = new GridBuffer<FloatB, simDim > ( cellDescription.getGridLayout( ) );
+    fieldB = new GridBuffer<ValueType, simDim > ( cellDescription.getGridLayout( ) );
 
     /* Calculate the maximum Neighbors we need from MAX(ParticleShape, FieldSolver) */
     typedef typename PMacc::math::CT::max<
@@ -140,7 +140,7 @@ FieldB::DataBoxType FieldB::getDeviceDataBox( )
     return fieldB->getDeviceBuffer( ).getDataBox( );
 }
 
-GridBuffer<FieldB::FloatB, simDim> &FieldB::getGridBuffer( )
+GridBuffer<FieldB::ValueType, simDim> &FieldB::getGridBuffer( )
 {
 
     return *fieldB;
@@ -161,7 +161,7 @@ FieldB::getUnit( )
 std::string
 FieldB::getName( )
 {
-    return "fields_FieldB";
+    return "FieldB";
 }
 
 uint32_t

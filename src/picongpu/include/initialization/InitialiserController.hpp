@@ -90,7 +90,7 @@ public:
                 std::cout << "omega_pe * dt <= 0.1 ? " << sqrt(GAS_DENSITY * Q_EL / M_EL * Q_EL / EPS0) * DELTA_T << std::endl;
             if (laserProfile::INIT_TIME > float_X(0.0))
                 std::cout << "y-cells per wavelength: " << laserProfile::WAVE_LENGTH / CELL_HEIGHT << std::endl;
-            const int localNrOfCells = cellDescription->getGridLayout().getDataSpaceWithoutGuarding().getElementCount();
+            const int localNrOfCells = cellDescription->getGridLayout().getDataSpaceWithoutGuarding().productOfComponents();
             std::cout << "macro particles per gpu: "
                 << localNrOfCells * particleInit::NUM_PARTICLES_PER_CELL * (1 + 1 * ENABLE_IONS) << std::endl;
             std::cout << "typical macro particle weighting: " << NUM_EL_PER_PARTICLE << std::endl;
@@ -109,9 +109,9 @@ public:
             
 #if (ENABLE_HDF5==1)
             // check for HDF5 restart capability
-            typedef typename boost::mpl::find<Hdf5OutputFields, FieldE>::type itFindFieldE;
-            typedef typename boost::mpl::find<Hdf5OutputFields, FieldB>::type itFindFieldB;
-            typedef typename boost::mpl::end< Hdf5OutputFields>::type itEnd;
+            typedef typename boost::mpl::find<FileOutputFields, FieldE>::type itFindFieldE;
+            typedef typename boost::mpl::find<FileOutputFields, FieldB>::type itFindFieldB;
+            typedef typename boost::mpl::end< FileOutputFields>::type itEnd;
             const bool restartImpossible = (boost::is_same<itFindFieldE, itEnd>::value)
                                         || (boost::is_same<itFindFieldB, itEnd>::value);
             if( restartImpossible )
@@ -121,8 +121,7 @@ public:
 #endif
         }
 
-        DataSpace<simDim> globalRootCell(SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset());
-
+        
 #if (ENABLE_HDF5==1)
         // restart simulation by loading from hdf5 data file
         // the simulation will start after the last saved iteration
@@ -130,7 +129,6 @@ public:
         {
             simRestartInitialiser = new SimRestartInitialiser<PIC_Electrons, PIC_Ions, simDim > (
                                                                                                  restartFile.c_str(),
-                                                                                                 globalRootCell,
                                                                                                  cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
 
             DataConnector::getInstance().initialise(*simRestartInitialiser, 0);
@@ -141,7 +139,7 @@ public:
             delete simRestartInitialiser;
             simRestartInitialiser = NULL;
 
-            std::cout << "Loading from hdf5 finished, can start program" << std::endl;
+            log<picLog::SIMULATION_STATE > ("Loading from hdf5 finished, can start program");
 
             return simulationStep;
         }
@@ -154,7 +152,7 @@ public:
         delete simStartInitialiser;
         simStartInitialiser = NULL;
 
-        std::cout << "Loading from default values finished, can start program" << std::endl;
+        log<picLog::SIMULATION_STATE > ("Loading from default values finished, can start program");
 
         return 0;
     }

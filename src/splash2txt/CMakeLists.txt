@@ -1,5 +1,5 @@
 #
-# Copyright 2013 Felix Schmitt, Axel Huebl, Rene Widera
+# Copyright 2013-2014 Felix Schmitt, Axel Huebl, René Widera
 #
 # This file is part of splash2txt. 
 # 
@@ -32,8 +32,10 @@ cmake_minimum_required(VERSION 2.8.5)
 
 project(splash2txt)
 
-set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{MPI_ROOT}"
-    "$ENV{BOOST_ROOT}" "$ENV{HDF5_ROOT}")
+set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{BOOST_ROOT}" "$ENV{HDF5_ROOT}"
+    "$ENV{MPI_ROOT}")
+
+include_directories(include)
 
 
 ################################################################################
@@ -48,6 +50,20 @@ endif(NOT S2T_RELEASE)
 
 
 ################################################################################
+# Find MPI
+################################################################################
+
+find_package(MPI)
+include_directories(SYSTEM ${MPI_C_INCLUDE_PATH})
+set(LIBS ${LIBS} ${MPI_C_LIBRARIES})
+
+# bullxmpi fails if it can not find its c++ counter part
+if(MPI_CXX_FOUND) 
+    set(LIBS ${LIBS} ${MPI_CXX_LIBRARIES})
+endif(MPI_CXX_FOUND)
+
+
+################################################################################
 # Find HDF5
 ################################################################################
 
@@ -56,22 +72,6 @@ find_package(HDF5 REQUIRED)
 include_directories(${HDF5_INCLUDE_DIR})
 link_directories(${HDF5_LIBRARY_DIRS})
 set(LIBS ${LIBS} hdf5)
-
-
-################################################################################
-# Find MPI (optional, required by parallel hdf5)
-################################################################################
-
-find_package(MPI)
-if(MPI_C_FOUND)
-    include_directories(SYSTEM ${MPI_C_INCLUDE_PATH})
-    set(LIBS ${LIBS} ${MPI_C_LIBRARIES})
-endif(MPI_C_FOUND)
-
-# bullxmpi fails if it can not find its c++ counter part
-if(MPI_CXX_FOUND)
-    set(LIBS ${LIBS} ${MPI_CXX_LIBRARIES})
-endif(MPI_CXX_FOUND)
 
 
 ################################################################################

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -25,29 +25,25 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
 
-#include "fields/FieldE.hpp"
-#include "fields/FieldB.hpp"
-#include "fields/FieldJ.hpp"
-#include "fields/FieldTmp.def"
-
-#include "particles/Species.hpp"
-
-#include "particles/particleToGrid/energyDensity.kernel"
-
 #include "compileTime/conversion/MakeSeq.hpp"
+
+/** some forward declarations we need */
+#include "fields/Fields.def"
+#include "particles/Species.hpp"
+#include "particles/particleToGrid/energyDensity.kernel"
 
 namespace picongpu
 {
     /** Note: you will need at least FieldE and FieldB for restart
-     *       capability!
+     *        capabilities!
      *  Possible fields: FieldE, FieldB, FieldJ
      */
-    typedef typename MakeSeq<FieldE, FieldB>::type NativeHdf5OutputFields;
+    typedef typename MakeSeq<FieldE, FieldB>::type NativeFileOutputFields;
     
-    typedef VectorAllSpecies Hdf5OutputParticles;
+    typedef VectorAllSpecies FileOutputParticles;
     
     /** TimeAvg Fields
-     * \todo Reduce/Avg on host-side RAM with an analyser
+     * \todo Reduce/Avg on host-side RAM with a plugin
      */
     
     /** FieldTmp output (calculated at runtime)
@@ -69,27 +65,27 @@ namespace picongpu
             ComputeEnergyDensityOptions::calcCounter
         > TmpParticleCounter;
 
-    /** List of solvers which use TmpField and electons*/
+    /** List of solvers that use FieldTmp and electrons */
     typedef typename MakeSeq<
 #if (ENABLE_ELECTRONS == 1)
         FieldTmpOperation< TmpParticleDensity, PIC_Electrons > ,
         FieldTmpOperation< TmpParticleEnergyDensity, PIC_Electrons >
 #endif
-    >::type PluginsHdf5OutputFieldsElectrons;
+    >::type PluginsFileOutputFieldsElectrons;
 
-    /** List of solvers which use TmpField and ions*/
+    /** List of solvers that use FieldTmp and ions */
     typedef typename MakeSeq<
 #if (ENABLE_IONS == 1)
         FieldTmpOperation< TmpParticleDensity, PIC_Ions >,
         FieldTmpOperation< TmpParticleEnergyDensity, PIC_Ions >
 #endif
-    >::type PluginsHdf5OutputFieldsIons;
+    >::type PluginsFileOutputFieldsIons;
     
     
-    /** This list is use to dump fields to HDf5. */
+    /** This list is use to dump fields to a file. */
     typedef typename MakeSeq<
-            NativeHdf5OutputFields,
-            PluginsHdf5OutputFieldsElectrons,
-            PluginsHdf5OutputFieldsIons
-    >::type Hdf5OutputFields;
+            NativeFileOutputFields,
+            PluginsFileOutputFieldsElectrons,
+            PluginsFileOutputFieldsIons
+    >::type FileOutputFields;
 }

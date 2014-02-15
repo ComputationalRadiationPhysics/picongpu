@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 
 
 #ifndef MYSIMULATION_HPP
@@ -47,6 +47,7 @@
 #include "fields/FieldJ.hpp"
 #include "fields/FieldTmp.hpp"
 #include "fields/MaxwellSolver/Solvers.hpp"
+#include "fields/background/cellwiseOperation.hpp"
 #include "initialization/IInitModule.hpp"
 #include "initialization/ParserGridDistribution.hpp"
 
@@ -56,6 +57,7 @@
 #include "nvidia/reduce/Reduce.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
 #include "nvidia/functors/Add.hpp"
+#include "nvidia/functors/Sub.hpp"
 
 namespace picongpu
 {
@@ -161,18 +163,18 @@ public:
         }
 
         GridController<simDim>::getInstance().init(gpus, isPeriodic);
-        DataSpace<simDim> myGPUpos( GridController<simDim>::getInstance().getPosition() );
-        
+        DataSpace<simDim> myGPUpos(GridController<simDim>::getInstance().getPosition());
+
         // calculate the number of local grid cells and
         // the local cell offset to the global box        
         for (uint32_t dim = 0; dim < gridDistribution.size(); ++dim)
         {
             // parse string
-            ParserGridDistribution parserGD( gridDistribution.at(dim) );
-            
+            ParserGridDistribution parserGD(gridDistribution.at(dim));
+
             // calculate local grid points & offset
-            gridSizeLocal[dim] = parserGD.getLocalSize( myGPUpos[dim] );
-            gridOffset[dim] = parserGD.getOffset( myGPUpos[dim], global_grid_size[dim] );
+            gridSizeLocal[dim] = parserGD.getLocalSize(myGPUpos[dim]);
+            gridOffset[dim] = parserGD.getOffset(myGPUpos[dim], global_grid_size[dim]);
         }
         // by default: use an equal distributed box for all omitted params
         for (uint32_t dim = gridDistribution.size(); dim < simDim; ++dim)
@@ -185,10 +187,8 @@ public:
         MovingWindow::getInstance().setSlidingWindow(slidingWindow);
         MovingWindow::getInstance().setGpuCount(gpus);
 
-        log<picLog::DOMAINS > ("rank(%1% %2% %3%) localsize(%4% %5% %6%) localoffset(%7% %8% %9%)") %
-            myGPUpos.x() % myGPUpos.y() % myGPUpos.z() %
-            gridSizeLocal.x() % gridSizeLocal.y() % gridSizeLocal.z() %
-            gridOffset.x() % gridOffset.y() % gridOffset.z();
+        log<picLog::DOMAINS > ("rank %1%; localsize %2%; localoffset %3%;") %
+            myGPUpos.toString() % gridSizeLocal.toString() % gridOffset.toString();
 
         /*init SubGrid for global use*/
         SubGrid<simDim>::getInstance().init(gridSizeLocal, global_grid_size, gridOffset);
@@ -235,7 +235,7 @@ public:
         __delete(fieldE);
 
         __delete(fieldJ);
-        
+
         __delete(fieldTmp);
 
         __delete(myFieldSolver);
@@ -252,12 +252,13 @@ public:
 
     virtual uint32_t init()
     {
-        namespace nvmem=PMacc::nvidia::memory;
+        namespace nvmem = PMacc::nvidia::memory;
         // create simulation data such as fields and particles
         fieldB = new FieldB(*cellDescription);
         fieldE = new FieldE(*cellDescription);
         fieldJ = new FieldJ(*cellDescription);
         fieldTmp = new FieldTmp(*cellDescription);
+        pushBGField = new cellwiseOperation::CellwiseOperation < CORE + BORDER + GUARD > (*cellDescription);
 
         //std::cout<<"Grid x="<<layout.getDataSpace().x()<<" y="<<layout.getDataSpace().y()<<std::endl;
 
@@ -339,6 +340,14 @@ public:
      */
     virtual void runOneStep(uint32_t currentStep)
     {
+        namespace nvfct = PMacc::nvidia::functors;
+
+        /** add background field for particle pusher */
+        (*pushBGField)(fieldE, nvfct::Add(), fieldBackgroundE(fieldE->getUnit()),
+                       currentStep, fieldBackgroundE::InfluenceParticlePusher);
+        (*pushBGField)(fieldB, nvfct::Add(), fieldBackgroundB(fieldB->getUnit()),
+                       currentStep, fieldBackgroundB::InfluenceParticlePusher);
+
 #if (ENABLE_IONS == 1)
         __startTransaction(__getTransactionEvent());
         //std::cout << "Begin update Ions" << std::endl;
@@ -355,6 +364,12 @@ public:
         EventTask eRecvElectrons = electrons->asyncCommunication(__getTransactionEvent());
         EventTask eElectrons = __endTransaction();
 #endif
+
+        /** remove background field for particle pusher */
+        (*pushBGField)(fieldE, nvfct::Sub(), fieldBackgroundE(fieldE->getUnit()),
+                       currentStep, fieldBackgroundE::InfluenceParticlePusher);
+        (*pushBGField)(fieldB, nvfct::Sub(), fieldBackgroundB(fieldB->getUnit()),
+                       currentStep, fieldBackgroundB::InfluenceParticlePusher);
 
         this->myFieldSolver->update_beforeCurrent(currentStep);
 
@@ -387,7 +402,7 @@ public:
     virtual void movingWindowCheck(uint32_t currentStep)
     {
         if (MovingWindow::getInstance().getVirtualWindow(currentStep).doSlide)
-        {           
+        {
             slide(currentStep);
             log<picLog::PHYSICS > ("slide in step %1%") % currentStep;
         }
@@ -438,24 +453,20 @@ private:
     template<uint32_t DIM>
     void checkGridConfiguration(DataSpace<DIM> globalGridSize, GridLayout<DIM>)
     {
+        
+        for(uint32_t i=0;i<simDim;++i)
+        {
         // global size must a devisor of supercell size
         // note: this is redundant, while using the local condition below
 
-        assert(globalGridSize.x() % MappingDesc::SuperCellSize::x == 0);
-        assert(globalGridSize.y() % MappingDesc::SuperCellSize::y == 0);
-        assert(globalGridSize.z() % MappingDesc::SuperCellSize::z == 0);
-
+        assert(globalGridSize[i] % MappingDesc::SuperCellSize::getDataSpace()[i] == 0);
         // local size must a devisor of supercell size
-        assert(gridSizeLocal[0] % MappingDesc::SuperCellSize::x == 0);
-        assert(gridSizeLocal[1] % MappingDesc::SuperCellSize::y == 0);
-        assert(gridSizeLocal[2] % MappingDesc::SuperCellSize::z == 0);
-
+        assert(gridSizeLocal[i] % MappingDesc::SuperCellSize::getDataSpace()[i] == 0);
         // local size must be at least 3 supercells (1x core + 2x border)
         // note: size of border = guard_size (in supercells)
         // \todo we have to add the guard_x/y/z for modified supercells here
-        assert( (uint32_t) gridSizeLocal[0] / MappingDesc::SuperCellSize::x >= 3 * GUARD_SIZE);
-        assert( (uint32_t) gridSizeLocal[1] / MappingDesc::SuperCellSize::y >= 3 * GUARD_SIZE);
-        assert( (uint32_t) gridSizeLocal[2] / MappingDesc::SuperCellSize::z >= 3 * GUARD_SIZE);
+        assert( (uint32_t) gridSizeLocal[i] / MappingDesc::SuperCellSize::getDataSpace()[i] >= 3 * GUARD_SIZE);
+        }
     }
 
 
@@ -468,6 +479,7 @@ protected:
 
     // field solver
     fieldSolver::FieldSolver* myFieldSolver;
+    cellwiseOperation::CellwiseOperation< CORE + BORDER + GUARD >* pushBGField;
 
     // particles
 #if (ENABLE_IONS == 1)
@@ -493,7 +505,7 @@ protected:
     DataSpace<simDim> gridSizeLocal;
     DataSpace<simDim> gridOffset;
     std::vector<uint32_t> periodic;
-    
+
     std::vector<std::string> gridDistribution;
 
     bool slidingWindow;
