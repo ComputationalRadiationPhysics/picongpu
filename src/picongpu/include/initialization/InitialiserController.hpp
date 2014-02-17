@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -19,9 +19,7 @@
  */ 
  
 
-
-#ifndef INITIALISERCONTROLLER_HPP
-#define	INITIALISERCONTROLLER_HPP
+#pragma once
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -83,12 +81,14 @@ public:
         if (GridController<simDim>::getInstance().getGlobalRank() == 0)
         {
             std::cout << "max weighting " << NUM_EL_PER_PARTICLE << std::endl;
-            std::cout << "courant=min(deltaCellSize)/dt/c > 1.77 ? ";
-#if(SIMDIM==DIM2)
-            std::cout<< std::min(CELL_WIDTH, CELL_HEIGHT) / SPEED_OF_LIGHT / DELTA_T << std::endl;
-#elif (SIMDIM==DIM3)
-            std::cout<< std::min(CELL_WIDTH, std::min(CELL_DEPTH, CELL_HEIGHT)) / SPEED_OF_LIGHT / DELTA_T << std::endl;
-#endif
+            
+            float_X shortestSide=cell_size.x();
+            for(uint32_t d=1;d<simDim;++d)
+                shortestSide=std::min(shortestSide,cell_size[d]);
+                        
+            std::cout << "courant=min(deltaCellSize)/dt/c > 1.77 ? "<< 
+                         shortestSide / SPEED_OF_LIGHT / DELTA_T << std::endl;
+
             if (gasProfile::GAS_ENABLED)
                 std::cout << "omega_pe * dt <= 0.1 ? " << sqrt(GAS_DENSITY * Q_EL / M_EL * Q_EL / EPS0) * DELTA_T << std::endl;
             if (laserProfile::INIT_TIME > float_X(0.0))
@@ -221,7 +221,4 @@ private:
 
 };
 
-}
-
-#endif	/* INITIALISERCONTROLLER_HPP */
-
+} //namespace picongpu

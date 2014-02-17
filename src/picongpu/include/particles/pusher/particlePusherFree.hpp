@@ -19,9 +19,7 @@
  */ 
  
 
-
-#ifndef PARTICLEPUSHERFREE_HPP
-#define	PARTICLEPUSHERFREE_HPP
+#pragma once
 
 #include "types.h"
 
@@ -55,6 +53,3 @@ namespace picongpu
         };
     } //namespace
 }
-
-#endif	/* PARTICLEPUSHERFREE_HPP */
-

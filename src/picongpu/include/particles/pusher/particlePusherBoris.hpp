@@ -71,4 +71,3 @@ struct Push
 };
 } //namespace particlePusherBoris
 } //namepsace  picongpu
-
