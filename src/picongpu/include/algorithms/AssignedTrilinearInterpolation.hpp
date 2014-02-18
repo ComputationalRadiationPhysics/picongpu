@@ -97,7 +97,7 @@ struct AssignedTrilinearInterpolation
         return result_z;
     }
 
-    /** Implemanmtation for 2D position*/
+    /** Implementation for 2D position*/
     template<class AssignmentFunction, int Begin, int End, class Cursor >
     static HDINLINE
     typename ::PMacc::result_of::Functor<AssignedTrilinearInterpolation, Cursor>::type

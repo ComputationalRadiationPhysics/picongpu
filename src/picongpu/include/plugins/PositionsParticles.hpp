@@ -66,7 +66,7 @@ struct SglParticle
     {
         floatD_64 doubleGlobalCellOffset;
         for(uint32_t i=0;i<simDim;++i)
-            doubleGlobalCellOffset[i]=globalCellOffset[i];
+            doubleGlobalCellOffset[i]=float_64(globalCellOffset[i]);
         
         return floatD_64( doubleGlobalCellOffset+ typeCast<float_64>(position));
     }
@@ -74,9 +74,9 @@ struct SglParticle
     template<typename T>
         friend std::ostream& operator<<(std::ostream& out, const SglParticle<T>& v)
     {
-        float3_64 pos;
+        floatD_64 pos;
         for(uint32_t i=0;i<simDim;++i)
-            pos[i]=( v.getGlobalCell().x() * cell_size[i]*UNIT_LENGTH);
+            pos[i]=( v.getGlobalCell()[i] * cell_size[i]*UNIT_LENGTH);
      
         const float3_64 mom( typeCast<float_64>(v.momentum.x()) * UNIT_MASS * UNIT_SPEED,
                              typeCast<float_64>(v.momentum.y()) * UNIT_MASS * UNIT_SPEED,

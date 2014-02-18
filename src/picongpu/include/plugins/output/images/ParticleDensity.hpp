@@ -266,7 +266,7 @@ public:
 
         // units
         const float_64 cellVolume = CELL_VOLUME;
-        float_64 unitVolume = 1;
+        float_64 unitVolume = 1.;
         for(uint32_t i=0;i<simDim;i++)
             unitVolume*=UNIT_LENGTH;
         // that's a hack, but works for all species

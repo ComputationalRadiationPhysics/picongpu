@@ -128,11 +128,7 @@ __global__ void kernelFillGridWithParticles(ParBox pb,
 
     /*multiply density factor to calculated manipulated middle density*/
     const float_X realDensity = densityFactor * calcRealDensity(gpuCelloffset, idx - SuperCellSize::getDataSpace());
-#if(SIMDIM==DIM3)
     const float_X realElPerCell = realDensity * CELL_VOLUME;
-#elif(SIMDIM==DIM2)
-    const float_X realElPerCell = realDensity * CELL_VOLUME * SPEED_OF_LIGHT * DELTA_T;
-#endif
 
     __shared__ int finished;
     if (linearThreadIdx == 0)

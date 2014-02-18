@@ -128,7 +128,8 @@ namespace picongpu
                                 }
                                 else
                                 {
-                                    std::cerr<<"[WARNING] You run a 2D simulation png output for axis: "<<getValue(axis, i)<<" is disabled"<<std::endl;
+                                    std::cerr << "[WARNING] You are running a 2D simulation: png output along the axis "<<
+                                                 getValue(axis, i) << " will be ignored" << std::endl;
                                 }
                             }
                             else
