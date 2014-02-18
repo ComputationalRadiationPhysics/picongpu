@@ -29,6 +29,7 @@
 
 #include "types.h"
 #include "simulation_types.hpp"
+#include "simulation_defines.hpp"
 #include "plugins/hdf5/HDF5Writer.def"
 
 #include "particles/frame_types.hpp"
@@ -477,6 +478,60 @@ private:
         }
 
     }
+    
+    typedef PICToSplash<float_X>::type SplashFloatXType;
+    
+    static void writeMetaAttributes(ThreadParams *threadParams)
+    {
+        ColTypeUInt32 ctUInt32;
+        ColTypeDouble ctDouble;
+        SplashFloatXType splashFloatXType;
+        ParallelDomainCollector *dc = threadParams->dataCollector;
+        
+        /* write number of slides */
+        uint32_t slides = threadParams->window.slides;
+        
+        dc->writeAttribute(threadParams->currentStep,
+                                              ctUInt32, NULL, "sim_slides", &slides);
+        
+        /* write normed grid parameters */
+        dc->writeAttribute(threadParams->currentStep,
+                splashFloatXType, NULL, "delta_t", &DELTA_T);
+        dc->writeAttribute(threadParams->currentStep,
+                splashFloatXType, NULL, "cell_width", &CELL_WIDTH);
+        dc->writeAttribute(threadParams->currentStep,
+                splashFloatXType, NULL, "cell_height", &CELL_HEIGHT);
+        dc->writeAttribute(threadParams->currentStep,
+                splashFloatXType, NULL, "cell_depth", &CELL_DEPTH);
+        
+        /* write base units */
+        dc->writeAttribute(threadParams->currentStep,
+                ctDouble, NULL, "unit_charge", &UNIT_CHARGE);
+        dc->writeAttribute(threadParams->currentStep,
+                ctDouble, NULL, "unit_energy", &UNIT_ENERGY);
+        dc->writeAttribute(threadParams->currentStep,
+                ctDouble, NULL, "unit_length", &UNIT_LENGTH);
+        dc->writeAttribute(threadParams->currentStep,
+                ctDouble, NULL, "unit_mass", &UNIT_MASS);
+        dc->writeAttribute(threadParams->currentStep,
+                ctDouble, NULL, "unit_speed", &UNIT_SPEED);
+        dc->writeAttribute(threadParams->currentStep,
+                ctDouble, NULL, "unit_time", &UNIT_TIME);
+        
+        /* write physical constants */
+        dc->writeAttribute(threadParams->currentStep,
+                splashFloatXType, NULL, "q_el", &Q_EL);
+        dc->writeAttribute(threadParams->currentStep,
+                splashFloatXType, NULL, "m_el", &M_EL);
+        dc->writeAttribute(threadParams->currentStep,
+                splashFloatXType, NULL, "q_ion", &Q_ION);
+        dc->writeAttribute(threadParams->currentStep,
+                splashFloatXType, NULL, "m_ion", &M_ION);
+        dc->writeAttribute(threadParams->currentStep,
+                splashFloatXType, NULL, "mue0", &MUE0);
+        dc->writeAttribute(threadParams->currentStep,
+                splashFloatXType, NULL, "eps0", &EPS0);
+    }
 
     static void *writeHDF5(void *p_args)
     {
@@ -484,11 +539,7 @@ private:
         // synchronize, because following operations will be blocking anyway
         ThreadParams *threadParams = (ThreadParams*) (p_args);
 
-        /* write number of slides to timestep in hdf5 file*/
-        uint32_t slides = threadParams->window.slides;
-        ColTypeUInt32 ctUInt32;
-        threadParams->dataCollector->writeAttribute(threadParams->currentStep,
-                                              ctUInt32, NULL, "sim_slides", &(slides));
+        writeMetaAttributes(threadParams);
 
         /* build clean domain info (picongpu view) */
         DomainInformation domInfo;
