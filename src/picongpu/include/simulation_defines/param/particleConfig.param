@@ -99,9 +99,14 @@ namespace picongpu
         const uint32_t NUM_PARTICLES_PER_CELL_Z = 1;
         
         /* Do not change this */
+#if(SIMDIM==DIM3)
         const uint32_t NUM_PARTICLES_PER_CELL = NUM_PARTICLES_PER_CELL_X
                                               * NUM_PARTICLES_PER_CELL_Y
-                                              * NUM_PARTICLES_PER_CELL_Z; 
+                                              * NUM_PARTICLES_PER_CELL_Z;
+#elif(SIMDIM==DIM2)
+        const uint32_t NUM_PARTICLES_PER_CELL = NUM_PARTICLES_PER_CELL_X
+                                              * NUM_PARTICLES_PER_CELL_Y;
+#endif
     }
 
 }

@@ -413,10 +413,9 @@ private:
          * and origin at current time step
          * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
          */
-        DataSpace<simDim> globalSlideOffset = DataSpace<simDim>(
-                                                                0,
-                                                                params->window.slides * params->window.localFullSize.y(),
-                                                                0);
+        DataSpace<simDim> globalSlideOffset;
+        globalSlideOffset.y()+=params->window.slides * params->window.localFullSize.y();
+
         Dimensions splashGlobalDomainOffset(0, 0, 0);
         Dimensions splashGlobalOffsetFile(0, 0, 0);
         Dimensions splashGlobalDomainSize(1, 1, 1);
@@ -439,11 +438,20 @@ private:
             if (nComponents > 1)
                 datasetName << "/" << name_lookup.at(d);
             
-            Dimensions sizeSrcBuffer(field_full[0] * nComponents, field_full[1], field_full[2]);
+            Dimensions sizeSrcBuffer(1,1,1);
             Dimensions srcStride(nComponents, 1, 1);
-            Dimensions sizeSrcData(field_no_guard[0], field_no_guard[1], field_no_guard[2]);
-            Dimensions srcOffset(field_guard[0] * nComponents + d, field_guard[1], field_guard[2]);
+            Dimensions sizeSrcData(1, 1,1);
+            Dimensions srcOffset(0,0,0);
 
+            for(uint32_t i=0;i<simDim;++i)
+            {
+                sizeSrcBuffer[i]=field_full[i];
+                sizeSrcData[i]=field_no_guard[i];
+                srcOffset[i]=field_guard[i];
+            }
+            sizeSrcBuffer[0]*=nComponents;
+            srcOffset[0]*=nComponents;
+            
             params->dataCollector->writeDomain(params->currentStep, /* id == time step */
                                                splashGlobalDomainSize,
                                                splashGlobalOffsetFile,

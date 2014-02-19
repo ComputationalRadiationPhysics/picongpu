@@ -19,9 +19,7 @@
  */ 
  
 
-
-#ifndef PARTICLEPUSHERVAY_HPP
-#define	PARTICLEPUSHERVAY_HPP
+#pragma once
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -89,8 +87,5 @@ struct Push
         }   
     }
 };
-} //namespace
-}
-
-#endif	/* PARTICLEPUSHERVAY_HPP */
-
+} //namespace particlePusherVay
+} //namespace picongpu

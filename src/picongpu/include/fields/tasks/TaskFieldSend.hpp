@@ -41,10 +41,7 @@ namespace PMacc
 
         enum
         {
-            Dim = DIM3,
-            /* Exchanges in 2D=9 and in 3D=27
-             */
-            Exchanges = 27
+            Dim = picongpu::simDim
         };
 
         TaskFieldSend(Field &buffer) :
@@ -56,7 +53,7 @@ namespace PMacc
             state = Init;
             EventTask serialEvent = __getTransactionEvent();
 
-            for (int i = 1; i < Exchanges; ++i)
+            for (uint32_t i = 1; i < numberOfNeighbors[Dim]; ++i)
             {
                 if (buffer.getGridBuffer().hasSendExchange(i))
                 {

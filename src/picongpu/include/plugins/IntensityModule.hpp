@@ -52,7 +52,7 @@ using namespace PMacc;
  * is not optimized, it checks any partcile position if its realy a particle
  */
 template<class FieldBox, class BoxMax, class BoxIntegral>
-__global__ void kernelIntensity(FieldBox field, DataSpace<DIM3> cellsCount, BoxMax boxMax, BoxIntegral integralBox)
+__global__ void kernelIntensity(FieldBox field, DataSpace<simDim> cellsCount, BoxMax boxMax, BoxIntegral integralBox)
 {
 
     typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -276,12 +276,16 @@ private:
                       UNIT_EFIELD
                       );
 
+            double unit=UNIT_EFIELD*CELL_VOLUME*SI::EPS0_SI;
+            for(uint32_t i=0;i<simDim;++i)
+                unit*=UNIT_LENGTH;
+            
             writeFile(currentStep,
                       integretedAll + window.globalSimulationOffset.y(),
                       window.globalWindowSize.y(),
                       physicelYCellOffset,
                       outFileIntegrated,
-                      UNIT_EFIELD * SI::CELL_HEIGHT_SI * SI::CELL_WIDTH_SI * SI::CELL_DEPTH_SI * SI::EPS0_SI
+                      unit
                       );
         }
 

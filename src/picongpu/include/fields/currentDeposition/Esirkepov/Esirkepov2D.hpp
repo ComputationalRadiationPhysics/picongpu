@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2014 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 #pragma once
 
 #include "simulation_defines.hpp"
@@ -28,14 +28,15 @@
 #include "basicOperations.hpp"
 #include <cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
 #include <cuSTL/cursor/compile-time/SafeCursor.hpp>
+#include "fields/currentDeposition/Esirkepov/Esirkepov.hpp"
 #include "fields/currentDeposition/Esirkepov/Line.hpp"
+#include "algorithms/Velocity.hpp"
 
 namespace picongpu
 {
 namespace currentSolverEsirkepov
 {
 using namespace PMacc;
-
 
 /**
  * \class Esirkepov implements the current deposition algorithm from T.Zh. Esirkepov
@@ -44,18 +45,15 @@ using namespace PMacc;
  * paper: "Exact charge conservation scheme for Particle-in-Cell simulation
  *  with an arbitrary form-factor"
  */
-template<uint32_t T_Dim,typename ParticleAssign, typename NumericalCellType>
-struct Esirkepov;
-
 template<typename ParticleAssign, typename NumericalCellType>
-struct Esirkepov<DIM3, ParticleAssign, NumericalCellType>
+struct Esirkepov<DIM2,ParticleAssign,NumericalCellType>
 {
     static const int supp = ParticleAssign::support;
 
     static const int currentLowerMargin = supp / 2 + 1;
     static const int currentUpperMargin = (supp + 1) / 2 + 1;
-    typedef PMacc::math::CT::Int<currentLowerMargin, currentLowerMargin, currentLowerMargin> LowerMargin;
-    typedef PMacc::math::CT::Int<currentUpperMargin, currentUpperMargin, currentUpperMargin> UpperMargin;
+    typedef typename PMacc::math::CT::make_Int<DIM2,currentLowerMargin>::type LowerMargin;
+    typedef typename PMacc::math::CT::make_Int<DIM2,currentUpperMargin>::type UpperMargin;
 
     /* begin and end border is calculated for a particle with a support which travels
      * to the negative direction.
@@ -71,17 +69,16 @@ struct Esirkepov<DIM3, ParticleAssign, NumericalCellType>
     float_X charge;
 
     template<typename DataBoxJ, typename PosType, typename VelType, typename ChargeType >
-        DINLINE void operator()(DataBoxJ dataBoxJ,
-                                const PosType pos,
-                                const VelType velocity,
-                                const ChargeType charge, const float3_X& cellSize, const float_X deltaTime)
+    DINLINE void operator()(DataBoxJ dataBoxJ,
+                            const PosType pos,
+                            const VelType velocity,
+                            const ChargeType charge, const float2_X& cellSize, const float_X deltaTime)
     {
         this->charge = charge;
-        const float3_X deltaPos = float3_X(velocity.x() * deltaTime / cellSize.x(),
-                                           velocity.y() * deltaTime / cellSize.y(),
-                                           velocity.z() * deltaTime / cellSize.z());
+        const float2_X deltaPos = float2_X(velocity.x() * deltaTime / cellSize.x(),
+                                           velocity.y() * deltaTime / cellSize.y() );
         const PosType oldPos = pos - deltaPos;
-        Line<float3_X> line(oldPos, pos);
+        Line<float2_X> line(oldPos, pos);
         BOOST_AUTO(cursorJ, dataBoxJ.toCursor());
 
         if (speciesParticleShape::ParticleShape::support % 2 == 1)
@@ -102,17 +99,15 @@ struct Esirkepov<DIM3, ParticleAssign, NumericalCellType>
              * 
              * floor(pos*2.0) is equal (pos > 0.5)
              */
-            float3_X coordinate_shift(
+            float2_X coordinate_shift(
                                       float_X(math::floor(pos.x() * float_X(2.0))),
-                                      float_X(math::floor(pos.y() * float_X(2.0))),
-                                      float_X(math::floor(pos.z() * float_X(2.0)))
+                                      float_X(math::floor(pos.y() * float_X(2.0))) 
                                       );
             cursorJ = cursorJ(
-                              PMacc::math::Int < 3 > (
-                                                 coordinate_shift.x(),
-                                                 coordinate_shift.y(),
-                                                 coordinate_shift.z()
-                                                 ));
+                              PMacc::math::Int < 2 > (
+                                                      coordinate_shift.x(),
+                                                      coordinate_shift.y() 
+                                                      ));
             //same as: pos = pos - coordinate_shift;
             line.pos0 -= (coordinate_shift);
             line.pos1 -= (coordinate_shift);
@@ -126,9 +121,9 @@ struct Esirkepov<DIM3, ParticleAssign, NumericalCellType>
          */
 
         using namespace cursor::tools;
-        cptCurrent1D(twistVectorFieldAxes<PMacc::math::CT::Int < 1, 2, 0 > >(cursorJ), rotateOrigin < 1, 2, 0 > (line), cellSize.x());
-        cptCurrent1D(twistVectorFieldAxes<PMacc::math::CT::Int < 2, 0, 1 > >(cursorJ), rotateOrigin < 2, 0, 1 > (line), cellSize.y());
-        cptCurrent1D(cursorJ, line, cellSize.z());
+        cptCurrent1D(cursorJ, line, cellSize.x());
+        cptCurrent1D(twistVectorFieldAxes<PMacc::math::CT::Int < 1, 0 > >(cursorJ), rotateOrigin < 1, 0 > (line), cellSize.y());
+        cptCurrentZ(cursorJ, line, velocity.z());
     }
 
     /**
@@ -138,9 +133,9 @@ struct Esirkepov<DIM3, ParticleAssign, NumericalCellType>
      * \param cellEdgeLength length of edge of the cell in z-direction
      */
     template<typename CursorJ >
-        DINLINE void cptCurrent1D(CursorJ cursorJ,
-                                  const Line<float3_X>& line,
-                                  const float_X cellEdgeLength)
+    DINLINE void cptCurrent1D(CursorJ cursorJ,
+                              const Line<float2_X>& line,
+                              const float_X cellEdgeLength)
     {
         /* We need no shifts of the coordinate system because W is defined on point (0,0,0)
          *
@@ -157,6 +152,25 @@ struct Esirkepov<DIM3, ParticleAssign, NumericalCellType>
          * We calculate pos0-pos1 because we have done our coordinate shifts with
          * pos1 and need the information if pos0 is left or right of pos1.
          */
+
+        const int offset_y = math::floor(line.pos0.y() - line.pos1.y() + float_X(1.0));
+
+        /* pick every cell in the xy-plane that is overlapped by particle's
+         * form factor and deposite the current for the cells above and beneath
+         * that cell and for the cell itself.
+         */
+
+        for (int y = begin + offset_y; y <= end + offset_y; y++)
+        {
+            cptCurrentInLineOfCells(cursorJ(0, y), line - float2_X(0., y), cellEdgeLength);
+        }
+    }
+
+    template<typename CursorJ >
+    DINLINE void cptCurrentZ(CursorJ cursorJ,
+                             const Line<float2_X>& line,
+                             const float_X v_z)
+    {
         const int offset_x = math::floor(line.pos0.x() - line.pos1.x() + float_X(1.0));
         const int offset_y = math::floor(line.pos0.y() - line.pos1.y() + float_X(1.0));
 
@@ -168,10 +182,9 @@ struct Esirkepov<DIM3, ParticleAssign, NumericalCellType>
         {
             for (int y = begin + offset_y; y <= end + offset_y; y++)
             {
-                cptCurrentInLineOfCells(cursorJ(x, y, 0), line - float3_X(x, y, float_X(0.0)), cellEdgeLength);
+                cptCurrentZInCell(cursorJ(x, y), line - float2_X(x, y), v_z);
             }
         }
-
     }
 
     /**
@@ -181,32 +194,47 @@ struct Esirkepov<DIM3, ParticleAssign, NumericalCellType>
      * \param cellEdgeLength length of edge of the cell in z-direction
      */
     template<typename CursorJ >
-        DINLINE void cptCurrentInLineOfCells(
-                                             const CursorJ& cursorJ,
-                                             const Line<float3_X>& line,
-                                             const float_X cellEdgeLength)
+    DINLINE void cptCurrentInLineOfCells(
+                                         const CursorJ& cursorJ,
+                                         const Line<float2_X>& line,
+                                         const float_X cellEdgeLength)
     {
- 
-        float_X tmp =
-            S0(line.pos0.x()) * S0(line.pos0.y()) +
+
+        const float_X tmp = (S0(line.pos0.y()) + float_X(0.5) * DS(line.pos0.y(), line.pos1.y()));
+
+
+        /* integrate W, which is the divergence of the current density, in x-direction
+         * to get the current density j
+         */
+        const int offset_x = math::floor(line.pos0.x() - line.pos1.x() + float_X(1.0));
+
+        float_X accumulated_J = float_X(0.0);
+        for (int i = begin + offset_x; i <= end + offset_x; i++)
+        {
+            float_X W = DS(line.pos0.x()-i, line.pos1.x()-i) * tmp;
+            accumulated_J += -this->charge * (float_X(1.0) / float_X(CELL_VOLUME * DELTA_T)) * W * cellEdgeLength;
+            if(accumulated_J!=float_X(0.0))
+                atomicAddWrapper(&((*cursorJ(i, 0)).x()), accumulated_J);
+        }
+    }
+
+    template<typename CursorJ >
+    DINLINE void cptCurrentZInCell(
+                                   const CursorJ& cursorJ,
+                                   const Line<float2_X>& line,
+                                   const float_X v_z)
+    {
+
+
+        float_X W = S0(line.pos0.x()) * S0(line.pos0.y()) +
             float_X(0.5) * DS(line.pos0.x(), line.pos1.x()) * S0(line.pos0.y()) +
             float_X(0.5) * S0(line.pos0.x()) * DS(line.pos0.y(), line.pos1.y()) +
             (float_X(1.0) / float_X(3.0)) * DS(line.pos0.x(), line.pos1.x()) * DS(line.pos0.y(), line.pos1.y());
 
-        /* integrate W, which is the divergence of the current density, in z-direction
-         * to get the current density j
-         */
-        const int offset_z = math::floor(line.pos0.z() - line.pos1.z() + float_X(1.0));
+        const float_X j_z = this->charge * (float_X(1.0) / float_X(CELL_VOLUME)) * W * v_z;
+        if(j_z!=float_X(0.0))
+            atomicAddWrapper(&((*cursorJ(0, 0)).z()), j_z);
 
-        float_X accumulated_J = float_X(0.0);
-        for (int i = begin + offset_z; i <= end + offset_z; i++)
-        {
-            float_X W = DS(line.pos0.z() - i, line.pos1.z() - i) * tmp;
-            accumulated_J += -this->charge * (float_X(1.0) / float_X(CELL_VOLUME * DELTA_T)) * W * cellEdgeLength;
-            /* the branch divergence here still over-compensates for the fewer collisions in the (expensive) atomic adds */
-            if(accumulated_J!=float_X(0.0))
-                atomicAddWrapper(&((*cursorJ(0, 0, i)).z()), accumulated_J);
-        }
     }
 
     DINLINE float_X S0(const float_X k)
@@ -222,24 +250,4 @@ struct Esirkepov<DIM3, ParticleAssign, NumericalCellType>
 
 } //namespace currentSolverEsirkepov
 
-namespace traits
-{
-
-/*Get margin of a solver
- * class must define a LowerMargin and UpperMargin 
- */
-template<uint32_t T_Dim,typename ParticleShape, typename NumericalCellType>
-struct GetMargin<picongpu::currentSolverEsirkepov::Esirkepov<T_Dim,ParticleShape, NumericalCellType> >
-{
-private:
-    typedef picongpu::currentSolverEsirkepov::Esirkepov<T_Dim,ParticleShape, NumericalCellType> Solver;
-public:
-    typedef typename Solver::LowerMargin LowerMargin;
-    typedef typename Solver::UpperMargin UpperMargin;
-};
-
-} //namespace traits
-
 } //namespace picongpu
-
-#include "fields/currentDeposition/Esirkepov/Esirkepov2D.hpp"

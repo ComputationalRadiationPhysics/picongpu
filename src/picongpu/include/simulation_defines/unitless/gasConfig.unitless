@@ -66,6 +66,9 @@ namespace picongpu
         const float_X GAS_X = float_X( SI::GAS_X_SI / UNIT_LENGTH );
         const float_X GAS_Y = float_X( SI::GAS_Y_SI / UNIT_LENGTH );
         const float_X GAS_Z = float_X( SI::GAS_Z_SI / UNIT_LENGTH );
+    
+        CONST_VECTOR(float_X,simDim,GAS_SIZE,GAS_X,GAS_Y,GAS_Z);
+
         const float_X GAS_EXP = float_X( SI::GAS_EXP_SI * UNIT_LENGTH );
         
         const bool GAS_ENABLED = true;
@@ -77,9 +80,14 @@ namespace picongpu
         const float_X GAS_CENTER_X = float_X( SI::GAS_CENTER_X_SI / UNIT_LENGTH); //unit: meter
         const float_X GAS_CENTER_Y = float_X( SI::GAS_CENTER_Y_SI / UNIT_LENGTH); //unit: meter
         const float_X GAS_CENTER_Z = float_X( SI::GAS_CENTER_Z_SI / UNIT_LENGTH); //unit: meter
+    
+        CONST_VECTOR(float_X,simDim,GAS_CENTER,GAS_CENTER_X,GAS_CENTER_Y,GAS_CENTER_Z);
+
         const float_X GAS_SIGMA_X = float_X( SI::GAS_SIGMA_X_SI / UNIT_LENGTH); //unit: meter
         const float_X GAS_SIGMA_Y = float_X( SI::GAS_SIGMA_Y_SI / UNIT_LENGTH); //unit: meter
         const float_X GAS_SIGMA_Z = float_X( SI::GAS_SIGMA_Z_SI / UNIT_LENGTH); //unit: meter
+    
+        CONST_VECTOR(float_X,simDim,GAS_SIGMA,GAS_SIGMA_X,GAS_SIGMA_Y,GAS_SIGMA_Z);
         const bool GAS_ENABLED = true;
     }
 

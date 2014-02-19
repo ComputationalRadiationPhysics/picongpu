@@ -86,8 +86,10 @@ namespace picongpu
 
 
         // slice out one cell along an axis
-        if ((globalCell.x() == globalNrOfCells.x() / 2) &&
-                (globalCell.z() == globalNrOfCells.z() / 2))
+        if ((globalCell.x() == globalNrOfCells.x() / 2))
+#if(SIMDIM==DIM3)
+                if(globalCell.z() == globalNrOfCells.z() / 2)
+#endif
             sliceDataField[localCellWG.y()] = e;
 
         __syncthreads();
@@ -157,9 +159,11 @@ namespace picongpu
             // check if the current GPU contains the "middle slice" along
             // X_global / 2; Y_global / 2 over Z
             if (globalCellIdOffset.x() <= globalNrOfCells.x() / 2 &&
-                    globalCellIdOffset.x() + nrOfGpuCells.x() > globalNrOfCells.x() / 2 &&
-                    globalCellIdOffset.z() <= globalNrOfCells.z() / 2 &&
+                    globalCellIdOffset.x() + nrOfGpuCells.x() > globalNrOfCells.x() / 2)
+#if(SIMDIM==DIM3)
+                if( globalCellIdOffset.z() <= globalNrOfCells.z() / 2 &&
                     globalCellIdOffset.z() + nrOfGpuCells.z() > globalNrOfCells.z() / 2)
+#endif
                 for (int i = 0; i < nrOfGpuCells.y(); ++i)
                 {
                     const double xPos = double( i + globalCellIdOffset.y()) * SI::CELL_HEIGHT_SI;

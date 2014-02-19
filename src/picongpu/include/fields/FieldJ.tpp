@@ -57,7 +57,7 @@ fieldJ( cellDescription.getGridLayout( ) ), fieldE( NULL )
     const DataSpace<simDim> endGuard( UpperMargin( ).vec( ) );
 
     /*go over all directions*/
-    for ( uint32_t i = 1; i < 27; ++i )
+    for ( uint32_t i = 1; i < numberOfNeighbors[simDim]; ++i )
     {
         DataSpace<simDim> relativMask = Mask::getRelativeDirections<simDim > ( i );
         /*guarding cells depend on direction
@@ -203,15 +203,18 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t ) throw (std::in
         typename toTVec<GetMargin<currentSolver::CurrentSolver>::UpperMargin>::type
         > BlockArea;
 
-    StrideMapping<AREA, DIM3, MappingDesc> mapper( cellDescription );
+    StrideMapping<AREA, simDim, MappingDesc> mapper( cellDescription );
     typename ParticlesClass::ParticlesBoxType pBox = parClass.getDeviceParticlesBox( );
     FieldJ::DataBoxType jBox = this->fieldJ.getDeviceBuffer( ).getDataBox( );
+    floatD_X cellSize;
+    for(uint32_t i=0;i<simDim;++i)
+        cellSize[i]=cell_size[i];
     FrameSolver solver(
-                        float3_X( CELL_WIDTH, CELL_HEIGHT, CELL_DEPTH ),
+                        cellSize,
                         DELTA_T );
     
     DataSpace<simDim> blockSize(mapper.getSuperCellSize( ));
-    blockSize.z()*=workerMultiplier;
+    blockSize[simDim-1]*=workerMultiplier;
 
     __startAtomicTransaction( __getTransactionEvent( ) );
     do

@@ -16,14 +16,14 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 
 
 #ifndef _TASKFIELDRECEIVEANDINSERT_HPP
 #define	_TASKFIELDRECEIVEANDINSERT_HPP
 
-
+#include "simulation_defines.hpp"
 #include "eventSystem/EventSystem.hpp"
 #include "fields/tasks/FieldFactory.hpp"
 #include "eventSystem/tasks/ITask.hpp"
@@ -41,14 +41,9 @@ class TaskFieldReceiveAndInsert : public MPITask
 {
 public:
 
-    enum
-    {
-        Dim = DIM3,
-        /* Exchanges in 2D=9 and in 3D=27
-         */
-        Exchanges = 27
-    };
 
+    static const uint32_t Dim = picongpu::simDim;
+ 
     TaskFieldReceiveAndInsert(Field &buffer) :
     buffer(buffer),
     state(Constructor)
@@ -60,7 +55,7 @@ public:
         state = Init;
         EventTask serialEvent = __getTransactionEvent();
 
-        for (int i = 1; i < Exchanges; ++i)
+        for (uint32_t i = 1; i < numberOfNeighbors[Dim]; ++i)
         {
             if (buffer.getGridBuffer().hasReceiveExchange(i))
             {
@@ -87,7 +82,7 @@ public:
         case Insert:
             state = Wait;
             __startAtomicTransaction();
-            for (int i = 1; i < Exchanges; ++i)
+            for (uint32_t i = 1; i < numberOfNeighbors[Dim]; ++i)
             {
                 if (buffer.getGridBuffer().hasReceiveExchange(i))
                 {

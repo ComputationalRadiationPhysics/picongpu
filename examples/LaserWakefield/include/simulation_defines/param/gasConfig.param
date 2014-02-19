@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -205,7 +205,7 @@ namespace picongpu
                  * @param pos vector with offset to the global (left top front) cell
                  * @return float_X between 0.0 and 1.0
                  */
-                DINLINE float_64 operator()( float3_64 pos )
+                DINLINE float_64 operator()( floatD_64 pos )
                 {
                     const float_64 y = pos.y() * 1000.0; // m -> mm
 

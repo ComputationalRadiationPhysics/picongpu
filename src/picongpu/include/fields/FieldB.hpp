@@ -56,7 +56,6 @@ namespace picongpu
         
         typedef DataBox<PitchedBox<ValueType, simDim> > DataBoxType;
 
-        static const uint32_t FloatBDim = simDim;
         typedef MappingDesc::SuperCellSize SuperCellSize;
 
         FieldB( MappingDesc cellDescription);
