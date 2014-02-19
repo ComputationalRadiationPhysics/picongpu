@@ -31,8 +31,11 @@ doc = Document()
 vector_idents = ["x", "y", "z", "w"]
 vector_delim = "/"
 
-# get the base name part for a vector attribute name
 def get_vector_basename(vector_name):
+    """
+    Return the base name part for a vector attribute name
+    """
+
     str_len = len(vector_name)
     
     if str_len < 3:
@@ -45,9 +48,11 @@ def get_vector_basename(vector_name):
     return None
 
 
-# merge child attribute nodes of base_node as new vector attribute
-# nodes if possible
 def merge_attributes(base_node):
+    """
+    Merge child attribute nodes of base_node as new vector attribute nodes if possible
+    """
+
     vectors_map = dict()
     # sort all child attribute nodes of base_node into a map
     # according to their base name part
@@ -96,6 +101,10 @@ def merge_attributes(base_node):
             
 
 def transform_xdmf_xml(root):
+    """
+    Transform XDMF XML tree starting at node root
+    """
+
     for grid_node in root.getElementsByTagName("Grid"):
         if grid_node.getAttribute("GridType") == "Uniform":
             merge_attributes(grid_node)
@@ -104,6 +113,10 @@ def transform_xdmf_xml(root):
 # program functions
 
 def get_args_parser():
+    """
+    Return the argument parser for this script
+    """
+
     parser = argparse.ArgumentParser(description="Create a PIConGPU XDMF meta "
         "description file from a libSplash HDF5 file.")
 
@@ -120,6 +133,10 @@ def get_args_parser():
 
 
 def main():
+    """
+    Main
+    """
+
     # get arguments from command line
     args_parser = get_args_parser()
     args = args_parser.parse_args()
