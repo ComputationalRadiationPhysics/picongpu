@@ -501,8 +501,11 @@ private:
                 splashFloatXType, NULL, "cell_width", &CELL_WIDTH);
         dc->writeAttribute(threadParams->currentStep,
                 splashFloatXType, NULL, "cell_height", &CELL_HEIGHT);
-        dc->writeAttribute(threadParams->currentStep,
-                splashFloatXType, NULL, "cell_depth", &CELL_DEPTH);
+        if (simDim == DIM3)
+        {
+            dc->writeAttribute(threadParams->currentStep,
+                    splashFloatXType, NULL, "cell_depth", &CELL_DEPTH);
+        }
         
         /* write base units */
         dc->writeAttribute(threadParams->currentStep,
