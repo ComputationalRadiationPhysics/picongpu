@@ -162,6 +162,9 @@ public:
         ForEach<typename Hdf5FrameType::ValueTypeSeq, hdf5::ParticleAttribute<void> > writeToHdf5;
         writeToHdf5(params, byRef(hostFrame), std::string("particles/") + FrameType::getName() + std::string("/") + subGroup,
                 domInfo, totalNumParticles);
+        
+        /* write meta attributes for species */
+        writeMetaAttributes(params.get());
 
         /*write species counter table to hdf5 file*/
         log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) writing particle index table for %1%") % Hdf5FrameType::getName();
@@ -199,6 +202,33 @@ public:
         ForEach<typename Hdf5FrameType::ValueTypeSeq, FreeMemory<void> > freeMem;
         freeMem(byRef(hostFrame));
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing species: %1%") % Hdf5FrameType::getName();
+    }
+    
+private:
+        
+    static void writeMetaAttributes(ThreadParams* params)
+    {
+        typedef typename PICToSplash<typename FrameType::ChargeType>::type SplashChargeType;
+        typedef typename PICToSplash<typename FrameType::MassType>::type SplashMassType;
+        typedef PICToSplash<float_X>::type SplashFloatXType;
+        
+        SplashChargeType splashChargeType;
+        SplashMassType splashMassType;
+        SplashFloatXType splashFloatXType;
+        
+        const std::string groupName = std::string("particles/") + FrameType::getName();
+        
+        const typename FrameType::ChargeType charge = FrameType::getCharge(1.0);
+        params->dataCollector->writeAttribute(params->currentStep,
+                splashChargeType, groupName.c_str(), "unit_charge", &charge);
+        
+        const typename FrameType::MassType mass = FrameType::getMass(1.0);
+        params->dataCollector->writeAttribute(params->currentStep,
+                splashMassType, groupName.c_str(), "unit_mass", &mass);
+        
+        const float_X m0_2 = FrameType::getM0_2(1.0);
+        params->dataCollector->writeAttribute(params->currentStep,
+                splashFloatXType, groupName.c_str(), "unit_m0_2", &m0_2);
     }
 };
 

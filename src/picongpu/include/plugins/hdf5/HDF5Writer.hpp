@@ -486,7 +486,9 @@ private:
         ColTypeUInt32 ctUInt32;
         ColTypeDouble ctDouble;
         SplashFloatXType splashFloatXType;
+
         ParallelDomainCollector *dc = threadParams->dataCollector;
+        uint32_t currentStep = threadParams->currentStep;
         
         /* write number of slides */
         uint32_t slides = threadParams->window.slides;
@@ -495,45 +497,23 @@ private:
                                               ctUInt32, NULL, "sim_slides", &slides);
         
         /* write normed grid parameters */
-        dc->writeAttribute(threadParams->currentStep,
-                splashFloatXType, NULL, "delta_t", &DELTA_T);
-        dc->writeAttribute(threadParams->currentStep,
-                splashFloatXType, NULL, "cell_width", &CELL_WIDTH);
-        dc->writeAttribute(threadParams->currentStep,
-                splashFloatXType, NULL, "cell_height", &CELL_HEIGHT);
+        dc->writeAttribute(currentStep, splashFloatXType, NULL, "delta_t", &DELTA_T);
+        dc->writeAttribute(currentStep, splashFloatXType, NULL, "cell_width", &CELL_WIDTH);
+        dc->writeAttribute(currentStep, splashFloatXType, NULL, "cell_height", &CELL_HEIGHT);
         if (simDim == DIM3)
         {
-            dc->writeAttribute(threadParams->currentStep,
-                    splashFloatXType, NULL, "cell_depth", &CELL_DEPTH);
+            dc->writeAttribute(currentStep, splashFloatXType, NULL, "cell_depth", &CELL_DEPTH);
         }
         
         /* write base units */
-        dc->writeAttribute(threadParams->currentStep,
-                ctDouble, NULL, "unit_charge", &UNIT_CHARGE);
-        dc->writeAttribute(threadParams->currentStep,
-                ctDouble, NULL, "unit_energy", &UNIT_ENERGY);
-        dc->writeAttribute(threadParams->currentStep,
-                ctDouble, NULL, "unit_length", &UNIT_LENGTH);
-        dc->writeAttribute(threadParams->currentStep,
-                ctDouble, NULL, "unit_mass", &UNIT_MASS);
-        dc->writeAttribute(threadParams->currentStep,
-                ctDouble, NULL, "unit_speed", &UNIT_SPEED);
-        dc->writeAttribute(threadParams->currentStep,
-                ctDouble, NULL, "unit_time", &UNIT_TIME);
+        dc->writeAttribute(currentStep, ctDouble, NULL, "unit_energy", &UNIT_ENERGY);
+        dc->writeAttribute(currentStep, ctDouble, NULL, "unit_length", &UNIT_LENGTH);
+        dc->writeAttribute(currentStep, ctDouble, NULL, "unit_speed", &UNIT_SPEED);
+        dc->writeAttribute(currentStep, ctDouble, NULL, "unit_time", &UNIT_TIME);
         
         /* write physical constants */
-        dc->writeAttribute(threadParams->currentStep,
-                splashFloatXType, NULL, "q_el", &Q_EL);
-        dc->writeAttribute(threadParams->currentStep,
-                splashFloatXType, NULL, "m_el", &M_EL);
-        dc->writeAttribute(threadParams->currentStep,
-                splashFloatXType, NULL, "q_ion", &Q_ION);
-        dc->writeAttribute(threadParams->currentStep,
-                splashFloatXType, NULL, "m_ion", &M_ION);
-        dc->writeAttribute(threadParams->currentStep,
-                splashFloatXType, NULL, "mue0", &MUE0);
-        dc->writeAttribute(threadParams->currentStep,
-                splashFloatXType, NULL, "eps0", &EPS0);
+        dc->writeAttribute(currentStep, splashFloatXType, NULL, "mue0", &MUE0);
+        dc->writeAttribute(currentStep, splashFloatXType, NULL, "eps0", &EPS0);
     }
 
     static void *writeHDF5(void *p_args)
