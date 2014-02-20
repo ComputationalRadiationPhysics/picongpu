@@ -210,11 +210,9 @@ private:
     {
         typedef typename PICToSplash<typename FrameType::ChargeType>::type SplashChargeType;
         typedef typename PICToSplash<typename FrameType::MassType>::type SplashMassType;
-        typedef PICToSplash<float_X>::type SplashFloatXType;
         
         SplashChargeType splashChargeType;
         SplashMassType splashMassType;
-        SplashFloatXType splashFloatXType;
         
         const std::string groupName = std::string("particles/") + FrameType::getName();
         
@@ -225,10 +223,6 @@ private:
         const typename FrameType::MassType mass = FrameType::getMass(1.0);
         params->dataCollector->writeAttribute(params->currentStep,
                 splashMassType, groupName.c_str(), "unit_mass", &mass);
-        
-        const float_X m0_2 = FrameType::getM0_2(1.0);
-        params->dataCollector->writeAttribute(params->currentStep,
-                splashFloatXType, groupName.c_str(), "unit_m0_2", &m0_2);
     }
 };
 
