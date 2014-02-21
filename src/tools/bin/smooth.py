@@ -180,3 +180,4 @@ if __name__ == "__main__":
     help(__info__)
     help(makeOddNumber)
     help(gaussWindow)
+    help(smooth)
