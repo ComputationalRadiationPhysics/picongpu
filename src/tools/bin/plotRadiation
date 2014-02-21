@@ -229,8 +229,8 @@ from matplotlib import colors as colors
 import pylab
 
 # window/pdf size
-window_width = 16
-window_hight = 10
+window_width = 14.4
+window_hight = 9
 
 # font sizes
 tickfontsize=28
@@ -334,7 +334,7 @@ for myfile in args.path2Data:
         dataZoomed = smooth.smooth2D(dataZoomed, sigma_omega, len_omega_smooth, sigma_theta, len_theta_smooth)
 
     # figure environement (is needed to be deleted for next file)
-    FG = plt.figure(0, figsize=(window_width, window_hight))
+    FG = plt.figure("Plot Radiation", figsize=(window_width, window_hight))
 
     # subplot environment
     SP = plt.subplot(111, autoscale_on=True, xlim=(omega_min_draw, omega_max_draw), ylim=(theta_min_draw, theta_max_draw))
@@ -406,8 +406,8 @@ for myfile in args.path2Data:
 
     # set appearance of plot
     plt.subplots_adjust(left=0.13,
-                        right=0.88,
-                        bottom=0.13,
+                        right=0.85,
+                        bottom=0.15,
                         top=0.95,
                         wspace=0.0,
                         hspace=0.0)
