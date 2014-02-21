@@ -43,6 +43,7 @@ import matplotlib
 import sys
 import warnings
 from numpy import *
+from matplotlib.colors import LogNorm
 
 tested_matplotlib_version = '1.2.0'
 if matplotlib.__version__ != tested_matplotlib_version:
@@ -64,9 +65,9 @@ windows or storing options, labels, etc..
 import argparse
 
 parser = argparse.ArgumentParser(  
-    description=__doc__, 
-    epilog='For further questions please contact Richard Pausch.'
-    )
+            description=__doc__, 
+            epilog='For further questions please contact Richard Pausch.'
+            )
 
 # Path to input files (several are possible) - necesairy argument
 parser.add_argument('path2Data', metavar='Path to input file', type=file, nargs='+', 
@@ -114,7 +115,9 @@ parser.add_argument('--labelTheta', '-y', metavar='string', default='$\\theta/^\
                             [default: $\\\\theta/^\circ$]''')
 
 # set label c-axis
-parser.add_argument('--labelColorbar', metavar='string', default='',
+parser.add_argument('--labelColorbar', metavar='string', 
+                    default="$\\frac{\\mathrm{d} ^2I}{\\mathrm{d} \\omega \\mathrm{d} \
+                               \\Omega}/$Js",
                     help='''Label text for colorbar (c-axis) in LaTeX style. [default: 
                             $\\\\frac{\\\\mathrm{d} ^2I}{\\\\mathrm{d} \\\\omega 
                             \\\\mathrm{d} \\\\Omega}/$Js$]''')
@@ -183,26 +186,25 @@ omega_max_draw = args.outputExtend[1]
 theta_min_draw = args.outputExtend[2]
 theta_max_draw = args.outputExtend[3]
 
-#set flags:
+# set flags:
 Nfiles = len(args.path2Data)
 manyFiles = False
 if(Nfiles>1):
     manyFiles = True
 
+# set scaling function of color plot
+if args.logIntensity:
+    colorNorm = LogNorm()
+else:
+    colorNorm = None
 
-if args.labelColorbar == '':
-    if args.logIntensity:
-        args.labelColorbar = "$\\log_{10} \\frac{\\mathrm{d} ^2I}{\\mathrm{d} \\omega \\mathrm{d} \\Omega}/$a.u."
-    else:
-        args.labelColorbar = "$\\frac{\\mathrm{d} ^2I}{\\mathrm{d} \\omega \\mathrm{d} \\Omega}/$Js"
-
-#check if extents are consistent
+# check if extents are consistent
 if(args.logOmega):
     if min(omega_min_data, omega_min_draw, omega_max_data, omega_max_draw) <= 0:
-        raise Exception, "omega <= 0 is not allowed"
+        raise Exception("omega <= 0 is not allowed")
 else:
     if min(omega_min_data, omega_min_draw, omega_max_data, omega_max_draw) < 0:
-        raise Exception, "omega < 0 is not allowed"
+        raise Exception("omega < 0 is not allowed")
 
 
 # set interpolation
@@ -220,7 +222,6 @@ if args.outputPDF:
 
 from matplotlib import pyplot as plt
 from matplotlib import colors as colors
-#from numpy.fft import fft2, ifft2
 import pylab
 
 # window/pdf size
@@ -228,11 +229,10 @@ window_width = 16
 window_hight = 10
 
 # font sizes
-tickfontsize=24*1.2
-labelfontsize=26*1.5
-labelfontsize2=28*.15
-labelfontsize3=30*1.5
-exponentsize=12*1.5
+tickfontsize=28
+labelfontsize=39
+labelfontsize_colorbar=45
+exponentsize=18
 
 # distance between ticks and label
 pylab.rcParams['xtick.major.pad']='10'
@@ -285,10 +285,8 @@ my_cmap = colors.LinearSegmentedColormap('my_colormap',cdict,256)
 ################# run through all files an create spectral plots #######################################
 
 for myfile in args.path2Data:
-    # load data
-    #print myfile
+    # load ascii data files
     data = loadtxt(myfile)
-
 
     # select only theta range of interest
     if(args.split[0] != -1 and args.split[1] != -1):
@@ -327,7 +325,6 @@ for myfile in args.path2Data:
 
     # subplot environment
     SP = plt.subplot(111, autoscale_on=True, xlim=(omega_min_draw, omega_max_draw), ylim=(theta_min_draw, theta_max_draw))
-    #plt.title(title, fontsize=labelfontsize)
 
     # labels 
     plt.xlabel(args.labelOmega, fontsize=labelfontsize)
@@ -336,32 +333,54 @@ for myfile in args.path2Data:
     plt.yticks(size=tickfontsize)
     SP.set_yticks(linspace(theta_min_draw, theta_max_draw, 5))
 
-    # logarithmic or normal scaled data
-    if args.logIntensity:
-        dataplot = log10(dataZoomed)
-    else:
-        dataplot = dataZoomed
+    #dataplot = dataZoomed
 
     #find max for imshow/colorbar
-    maxData = dataplot.max()
-    if  not args.imshowMax:
+    maxData = dataZoomed.max()
+    if not args.imshowMax:
         args.imshowMax = maxData
     
 
     # plot data: (only call!!!)
-    cax =  SP.imshow(dataplot, extent=(omega_min_draw, omega_max_draw,  theta_min_draw, theta_max_draw), interpolation=my_interpolation, aspect='auto', origin='lower', cmap=my_cmap, vmax=args.imshowMax)
+    cax =  SP.imshow(dataZoomed, 
+                     extent=(omega_min_draw, omega_max_draw,  theta_min_draw, theta_max_draw), 
+                     interpolation=my_interpolation, 
+                     aspect='auto', 
+                     origin='lower', 
+                     cmap=my_cmap, 
+                     vmax=args.imshowMax,
+                     norm=colorNorm)
 
     if(args.colorbarBlackAndWhite):
-      CP = SP.contour(dataplot, 4, extent=(omega_min_draw, omega_max_draw,  theta_min_draw, theta_max_draw), interpolation=my_interpolation, aspect='auto', origin='lower',  cmap=plt.cm.gray, vmax=args.imshowMax, linewiths=2, linestyles='solid')
-      plt.clabel(CP, inline=1, fontsize=16, fmt='%1.1e')
+        CP = SP.contour(dataZoomed, 
+                        4, 
+                        extent=(omega_min_draw, omega_max_draw,  theta_min_draw, theta_max_draw), 
+                        interpolation=my_interpolation, 
+                        aspect='auto', 
+                        origin='lower',  
+                        cmap=plt.cm.gray, 
+                        vmax=args.imshowMax, 
+                        linewiths=2, 
+                        linestyles='solid',
+                        norm=colorNorm)
+
+        plt.clabel(CP, inline=1, fontsize=16, fmt='%1.1e')
 
     # set omega-(x)-scale to log if needed
     if(args.logOmega):
         SP.set_xscale('log')
 
     # create  colorbar
-    CB = plt.colorbar(cax, format='%2.2e', pad=0.04)#, anchor=(1.7, 0.0))  
-    CB.set_label(args.labelColorbar, fontsize=labelfontsize3)
+    if args.logIntensity:
+        colorbarFormat = None
+    else:
+        colorbarFormat = '%2.2e'
+
+    CB = plt.colorbar(cax, 
+                      format=colorbarFormat, 
+                      pad=0.04)
+    CB.set_label(args.labelColorbar, 
+                 fontsize=labelfontsize_colorbar)
 
     # resize label of colorbar 
     for t in CB.ax.get_yticklabels():
