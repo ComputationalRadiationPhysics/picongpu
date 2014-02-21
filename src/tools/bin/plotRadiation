@@ -40,7 +40,7 @@ is used.
 '''
 
 import matplotlib
-import sys
+import sys, os, re
 import warnings
 from numpy import *
 from matplotlib.colors import LogNorm
@@ -410,14 +410,18 @@ for myfile in args.path2Data:
                         hspace=0.0)
 
     # get name of file 
-    filename = str(myfile)
-    filename = filename[filename.find("open file '")+11:filename.find("',")]
-    filename = filename[filename.rfind("/")+1:filename.rfind(".")]
+    filename = os.path.basename(myfile.name)
+    filename_template = filename[0:filename.rfind(".")]
+    filename_template = re.sub(r'\d+', '{:09d}', filename_template)
+    index_filename = int(re.findall(r'\d+', filename)[0])
+ 
 
     # store or show plot
     if args.outputPDF:
         if manyFiles:
-            plt.savefig(args.outputName + "_" + filename + ".pdf", format='pdf')
+            filename_temp = filename_template.format(index_filename)
+            filename_temp = "{}_{}.pdf".format(args.outputName, filename_temp)
+            plt.savefig(filename_temp, format='pdf')
         else:
             plt.savefig(args.outputName + ".pdf", format='pdf')
     else:
