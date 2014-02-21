@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 #
 # Copyright 2013 Richard Pausch
 #
@@ -23,7 +23,7 @@ import os
 from numpy import *
 from matplotlib import pyplot as plt
 import argparse
-
+from matplotlib.colors import LogNorm
 
 __doc__ = '''This tool analyzes spectra for different directions.
              By giving the data files to analyze, a statistic
@@ -111,11 +111,12 @@ for myfile in args.path2Data:
                     ylim=(theta_min_data, theta_max_data))
         
         # colorplot
-        plt.imshow(log10(data), 
+        plt.imshow(data, 
                    extent=(omega_min_data, omega_max_data, theta_min_data, theta_max_data), 
                    aspect='auto', 
                    origin='lower', 
-                   interpolation='nearest')
+                   interpolation='nearest',
+                   norm=LogNorm())
 
         # selected region
         plt.axhspan(theta_min_analy, theta_max_analy,  
