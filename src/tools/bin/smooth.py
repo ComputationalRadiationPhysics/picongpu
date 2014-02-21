@@ -47,8 +47,10 @@ def makeOddNumber(number, larger=True):
 
     """
     if number % 2 is 1:
+        # in case number is odd
         return number
     elif number % 2 is 0:
+        # in case number is even
         if larger:
             return number +1
         else:
