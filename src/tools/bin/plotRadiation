@@ -347,10 +347,13 @@ for myfile in args.path2Data:
     SP.set_yticks(linspace(theta_min_draw, theta_max_draw, 5))
 
     #find max for imshow/colorbar
-    maxData = dataZoomed.max()
     if not args.imshowMax:
-        args.imshowMax = maxData
-    
+        maxData = dataZoomed.max()
+        imshowMax = maxData
+    else:
+        imshowMax = args.imshowMax
+
+
     # plot data: (only call!!!)
     cax =  SP.imshow(dataZoomed, 
                      extent=(omega_min_draw, omega_max_draw,  theta_min_draw, theta_max_draw), 
@@ -358,7 +361,7 @@ for myfile in args.path2Data:
                      aspect='auto', 
                      origin='lower', 
                      cmap=my_cmap, 
-                     vmax=args.imshowMax,
+                     vmax=imshowMax,
                      norm=colorNorm)
 
     if(args.contour):
@@ -370,7 +373,7 @@ for myfile in args.path2Data:
                         aspect='auto', 
                         origin='lower',  
                         cmap=plt.cm.gray, 
-                        vmax=args.imshowMax, 
+                        vmax=imshowMax, 
                         linewiths=2, 
                         linestyles='solid',
                         norm=colorNorm)
@@ -411,13 +414,18 @@ for myfile in args.path2Data:
 
     # get name of file 
     filename = os.path.basename(myfile.name)
-    filename_template = filename[0:filename.rfind(".")]
-    filename_template = re.sub(r'\d+', '{:09d}', filename_template)
-    index_filename = int(re.findall(r'\d+', filename)[0])
- 
 
+ 
     # store or show plot
     if args.outputPDF:
+        # generate template for multi file output
+        filename_template = filename[0:filename.rfind(".")]
+        filename_template = re.sub(r'\d+', '{:09d}', filename_template)
+    
+        # extract index
+        index_filename = int(re.findall(r'\d+', filename)[0])
+
+        # one or many file?
         if manyFiles:
             filename_temp = filename_template.format(index_filename)
             filename_temp = "{}_{}.pdf".format(args.outputName, filename_temp)
