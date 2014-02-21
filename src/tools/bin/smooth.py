@@ -79,7 +79,7 @@ def gaussWindow(N, sigma):
     """
     This function returns N discrete points of a Gauss function 
     with a standard deviation of sigma (in units of discrete points).
-    The return values are symetric and stretch from +/- one sigma.
+    The return values are symetric and strech from 0 to N-1.
 
     ATTENTION: this gauss function is NOT normalized.
 
@@ -90,6 +90,9 @@ def gaussWindow(N, sigma):
     sigma - float 
             standard deviation in units of descrete points
 
+    Returns:
+    --------
+    returns N symetric samples of e^(-0.5*(x/sigma)^2) 
     """
     length = (N/float(sigma)) # +/- range bins  to  calculate
     return numpy.exp(-0.5 * (numpy.linspace(-length, length, N))**2) # not normalized
