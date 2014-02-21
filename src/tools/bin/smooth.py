@@ -97,22 +97,36 @@ def gaussWindow(N, sigma):
 
 def smooth(x, sigma, window_len = 11, fkt=gaussWindow):
     """ 
-    A function that returnes smoothed 1D-data from data x.
+    A function that returns smoothed 1D-data from given data.
 
-    x           - original (noisy) data
-    sigma       - standard deviation used by the window function (fkt)
-    window_len  - number of bins used for the window function (fkt)
+    Parameters:
+    -----------
+    x           - numpy.ndarray (1D)
+                  original (noisy) data
+    sigma       - float
+                  standard deviation used by the window function 'fkt'
+    window_len  - int (optinal)
+                  number of bins used for the window function 'fkt'
                   default: 11 bins
-    fkt         - window function
+    fkt         - function (optional)
+                  window function used for smoothing
                   default: smooth.gaussWindow
+
+    Returns:
+    --------
+    returns smoothed data with samle length as x
 
     """
     # extending the data at the beginning and at the end
     # to apply the window at the borders
     s = numpy.r_[x[window_len-1:0:-1], x, x[-1:-window_len:-1]]
-    w = fkt(window_len, sigma) # window values
+
+    w = fkt(window_len, sigma) # compute window values
+
+    # smooth data by convolution with window function
     y = numpy.convolve(w/w.sum(), s, mode='valid') #smoothed data with borders
     overlap = window_len/2 # usually window_len is odd, and int-devision is used
+
     return y[overlap:len(y)-overlap] # smoothed data without added borders
 
 
