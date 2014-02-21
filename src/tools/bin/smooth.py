@@ -21,6 +21,21 @@
 import numpy
 import sys
 
+def __info__():
+    """
+    This is the 'smooth' module which provides several functions that 
+    provide methods to smooth data from simulation or experiments.
+    It can be applied to 1D and 2D data sets.
+
+    If you are running this module as executable program from your 
+    shell, you will now have a look at all manuals of the functions
+    provided by this module.
+
+    To contine press 'q'.
+    """
+
+
+
 def makeOddNumber(number, larger=True):
     """
     This function takes a number and returns the next odd number.
@@ -62,10 +77,18 @@ def makeOddNumber(number, larger=True):
 
 def gaussWindow(N, sigma):
     """
-    This function returns a Gauss function for N discrete points 
-    and a standard deviation of sigma discrete points.
+    This function returns N discrete points of a Gauss function 
+    with a standard deviation of sigma (in units of discrete points).
+    The return values are symetric and stretch from +/- one sigma.
 
     ATTENTION: this gauss function is NOT normalized.
+
+    Parameters:
+    -----------
+    N     - int
+            number of sample and return points
+    sigma - float 
+            standard deviation in units of descrete points
 
     """
     length = (N/float(sigma)) # +/- range bins  to  calculate
@@ -138,3 +161,8 @@ def smooth2D(data, sigma_x = 10, len_x = 50, sigma_y = 10, len_y = 50, fkt=gauss
 
 
 
+if __name__ == "__main__":
+    # call all function manuals  
+    help(__info__)
+    help(makeOddNumber)
+    help(gaussWindow)
