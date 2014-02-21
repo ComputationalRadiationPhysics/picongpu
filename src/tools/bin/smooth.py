@@ -33,6 +33,18 @@ def makeOddNumber(number, larger=True):
     makeOddNumber(6) --> 7
     makeOddNumber(22, larger=False) --> 21
 
+    Parameters:
+    -----------
+    number int
+           number to which the next odd number is requested
+    larger bool (optinal, default=True)
+           select wheter nnext odd number should be larger (True)
+           or smaler (False) than number
+
+    Return:
+    -------
+    returns next odd number
+
     """
     if number % 2 is 1:
         return number
@@ -42,8 +54,8 @@ def makeOddNumber(number, larger=True):
         else:
             return number -1
     else:
-        print >> sys.stderr, "ERROR:", self.func_name, "number neather odd nor even"
-        raise
+        error_msg = "ERROR: {} -> number (= {}) neather odd nor even".format(self.func_name, number)
+        raise Exception(error_msg)
 
 
 def gaussWindow(N, sigma):
