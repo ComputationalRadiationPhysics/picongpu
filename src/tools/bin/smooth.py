@@ -21,6 +21,12 @@
 import numpy
 import sys
 
+__doc__ = "This is the 'smooth' module which provides several functions that\n\
+provide methods to smooth data from simulation or experiments.\n\
+It can be applied to 1D and 2D data sets."
+
+
+
 def __info__():
     """
     This is the 'smooth' module which provides several functions that 
@@ -213,3 +219,4 @@ if __name__ == "__main__":
     help(gaussWindow)
     help(smooth)
     help(smooth2D)
+
