@@ -57,6 +57,7 @@ def get_basegroup(name):
     """
     Return the base group part for an attribute name (without vector extension)
     """
+
     index = name.rfind(NAME_DELIM)
     if index == -1:
         return None
@@ -65,6 +66,25 @@ def get_basegroup(name):
 
 
 def join_from_components(node_list, prefix, suffix, operation, dims):
+    """
+    Parameters:
+    ----------------
+    node_list: list of Elements
+               nodes to join
+    prefix:    string
+               prefix of join operation, e.g. 'JOIN('
+    suffix:    string
+               suffix of join operation, e.g. ')'
+    operation: string
+               operator for join, e.g. '+'
+    dims:      string
+               dimensions of nodes in node_list
+    Returns:
+    ----------------
+    return: Element
+            new DataItem node
+    """
+
     join_base = doc.createElement("DataItem")
     join_base.setAttribute("ItemType", "Function")
     join_base.setAttribute("Dimensions", "{} {}".format(dims, len(node_list)))
@@ -86,6 +106,20 @@ def join_from_components(node_list, prefix, suffix, operation, dims):
 
 
 def create_vector_attribute(new_name, node_list):
+    """
+    Parameters:
+    ----------------
+    new_name:  string
+               name of the new vector Attribute node
+    node_list: list of Elements
+               XDMF DataItem elements to combine in a new vector Attribute node
+
+    Returns:
+    ----------------
+    return: Element
+            new vector Attribute node
+    """
+
     vector_node = doc.createElement("Attribute")
     vector_node.setAttribute("Name", new_name)
     vector_node.setAttribute("AttributeType", "Vector")
@@ -102,10 +136,39 @@ def create_vector_attribute(new_name, node_list):
 
 
 def combine_positions(node_list, dims):
+    """
+    Combine position node using '+' operator
+    
+    Parameters:
+    ----------------
+    node_list: list of Elements
+               position nodes to combine
+    dims: string
+          dimensions of nodes in node_list
+
+    Returns:
+    ----------------
+    return: Element
+            combined positions node
+    """
+
     return join_from_components(node_list, "", "", "+", dims)
 
 
 def create_position_geometry(node_list, dims):
+    """
+    Create a 2/3D Geometry XDMF node
+    
+    Parameters:
+    ----------------
+    node_list: list of Elements
+               list of positions to join to a 2/3D geometry
+    Returns:
+    ----------------
+    return: Element
+            new Geometry XDMF node
+    """
+
     geom_node = doc.createElement("Geometry")
     
     if len(node_list) == 2:
@@ -123,6 +186,11 @@ def merge_grid_attributes(base_node):
     """
     Merge child attribute nodes of grid-type base_node as
     new vector attribute nodes if possible
+    
+    Parameters:
+    ----------------
+    base_node: Element
+               base node (parent) for which children attributes shall be merged
     """
 
     vectors_map = dict()
@@ -141,7 +209,7 @@ def merge_grid_attributes(base_node):
             
     # iterate over all map entries (basename, list of components/nodes)
     for (key, value_list) in vectors_map.items():
-        print "replacing nodes for basename {} with a {}-element vector".format(key, len(value_list))
+        #print "replacing nodes for basename {} with a {}-element vector".format(key, len(value_list))
         vector_node = create_vector_attribute(key, value_list)
         
         # old component nodes are removed from the xml tree
@@ -155,6 +223,11 @@ def merge_poly_attributes(base_node):
     """
     Merge child attribute nodes of poly-type base_node as
     new vector attribute nodes if possible, combine geometry attributes
+    
+    Parameters:
+    ----------------
+    base_node: Element
+               base node (parent) for which children attributes shall be merged
     """
     
     vectors_map = dict()
@@ -241,6 +314,11 @@ def merge_poly_attributes(base_node):
 def transform_xdmf_xml(root):
     """
     Transform XDMF XML tree starting at node root
+    
+    Parameters:
+    ----------------
+    root: Element
+          XML root element
     """
 
     for grid_node in root.getElementsByTagName("Grid"):
@@ -257,6 +335,11 @@ def transform_xdmf_xml(root):
 def get_args_parser():
     """
     Return the argument parser for this script
+    
+    Returns:
+    ----------------
+    return: ArgumentParser
+            command line args parser
     """
 
     parser = argparse.ArgumentParser(description="Create a PIConGPU XDMF meta "
