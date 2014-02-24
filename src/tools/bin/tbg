@@ -135,7 +135,7 @@ function check_final
             echo $org_line | awk -v line=$n '{ if ($0 ~ /'$nrv_or'/) print "line "line }'
         done < <(echo -e "$org_file")
 
-        # abort script (will no be submitted)
+        # abort script (will not be submitted)
         exit 1
     fi
 }
