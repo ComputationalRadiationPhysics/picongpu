@@ -121,7 +121,7 @@ function check_final
     not_replaced_cnt=`echo $not_replaced | wc -w`
 
     if [ $not_replaced_cnt -gt 0 ] ; then
-        echo "WARNING: $not_replaced_cnt variable(s) _not_ replaced from template (tpl):"
+        echo "ERROR: $not_replaced_cnt variable(s) _not_ replaced from template (tpl):"
         echo $not_replaced
 
         #create an OR concated pattern
@@ -134,6 +134,9 @@ function check_final
             n=$(( n+1 ))
             echo $org_line | awk -v line=$n '{ if ($0 ~ /'$nrv_or'/) print "line "line }'
         done < <(echo -e "$org_file")
+
+        # abort script (will no be submitted)
+        exit 1
     fi
 }
 
