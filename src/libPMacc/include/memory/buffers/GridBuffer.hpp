@@ -385,7 +385,7 @@ public:
     Mask getSendMask() const
     {
         // std::cout << "sendMask: " << sendMask << " " << EnvironmentController::getInstance().getCommunicationMask() << " " << (EnvironmentController::getInstance().getCommunicationMask() & sendMask) << std::endl;
-        return (Environment<>::getInstance().getEnvironmentController().getCommunicationMask() & sendMask);
+        return (Environment<DIM>::getInstance().getEnvironmentController().getCommunicationMask() & sendMask);
     }
 
     /**
@@ -396,7 +396,7 @@ public:
     Mask getReceiveMask() const
     {
         //std::cout << "receiveMask: " << this->sendMask.getMirroredMask() << " " << (this->sendMask.getMirroredMask() & EnvironmentController::getInstance().getCommunicationMask()) << std::endl;
-        return (Environment<>::getInstance().getEnvironmentController().getCommunicationMask() & receiveMask);
+        return (Environment<DIM>::getInstance().getEnvironmentController().getCommunicationMask() & receiveMask);
     }
 
     /**

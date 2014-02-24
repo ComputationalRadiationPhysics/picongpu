@@ -81,7 +81,7 @@ public:
      */
     virtual uint32_t init()
     {
-        if (GridController<simDim>::getInstance().getGlobalRank() == 0)
+        if (Environment<simDim>::getInstance().getGridController().getGlobalRank() == 0)
         {
             std::cout << "max weighting " << NUM_EL_PER_PARTICLE << std::endl;
             std::cout << "courant=min(deltaCellSize)/dt/c > 1.77 ? "
@@ -121,7 +121,7 @@ public:
 #endif
         }
 
-        DataSpace<simDim> globalRootCell(SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset());
+        DataSpace<simDim> globalRootCell(Environment<simDim>::getInstance().getSubGrid().getSimulationBox().getGlobalOffset());
 
 #if (ENABLE_HDF5==1)
         // restart simulation by loading from hdf5 data file

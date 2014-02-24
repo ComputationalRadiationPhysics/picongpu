@@ -157,7 +157,7 @@ public:
         // count total number of particles on the device
         uint64_cu totalNumParticles = 0;
 
-        PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
+        PMACC_AUTO(simBox, Environment<simDim>::getInstance().getSubGrid().getSimulationBox());
 
         log<picLog::INPUT_OUTPUT > ("HDF5: count particles: %1%") % Hdf5FrameType::getName();
         totalNumParticles = PMacc::CountParticles::countOnDevice < CORE + BORDER > (

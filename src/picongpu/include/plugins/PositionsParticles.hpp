@@ -199,7 +199,7 @@ public:
         particles = &(dc.getData<ParticlesType > ((uint32_t) ParticlesType::FrameType::CommunicationTag, true));
 
 
-        const int rank = GridController<simDim>::getInstance().getGlobalRank();
+        const int rank = Environment<simDim>::getInstance().getGridController().getGlobalRank();
         const SglParticle<FloatPos> positionParticle = getPositionsParticles < CORE + BORDER > (currentStep);
 
         /*FORMAT OUTPUT*/
@@ -263,7 +263,7 @@ private:
         DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
         VirtualWindow window(MovingWindow::getInstance().getVirtualWindow(currentStep));
 
-        DataSpace<simDim> gpuPhyCellOffset(SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset());
+        DataSpace<simDim> gpuPhyCellOffset(Environment<simDim>::getInstance().getSubGrid().getSimulationBox().getGlobalOffset());
         gpuPhyCellOffset.y() += (localSize.y() * window.slides);
 
         gParticle->getHostBuffer().getDataBox()[0].globalCellOffset += gpuPhyCellOffset;

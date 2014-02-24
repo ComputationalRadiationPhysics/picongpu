@@ -28,12 +28,11 @@
 
 #include "mappings/simulation/EnvironmentController.hpp"
 #include "communication/CommunicatorMPI.hpp"
-#include "eventSystem/EventSystem.hpp"
 #include "mappings/simulation/SubGrid.hpp"
 
 namespace PMacc
 {
-     
+    
         /**
          * GridController manages grid information.
          *
@@ -167,7 +166,7 @@ namespace PMacc
                  * (only change slide direction Y)
                  */
                 int gpuOffset_y = this->getPosition().y();
-                PMACC_AUTO(simBox, SubGrid<DIM>::getInstance().getSimulationBox());
+                PMACC_AUTO(simBox, Environment<DIM>::getInstance().getSubGrid().getSimulationBox());
                 DataSpace<DIM> globalOffset(simBox.getGlobalOffset());
                 /* this is allowed in the case that we use sliding window
                  * because size in Y direction is the same for all gpus domains

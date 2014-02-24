@@ -57,16 +57,16 @@ namespace PMacc
             state = InitDone;
             if (exchange->hasDeviceDoubleBuffer())
             {
-                Environment<>::getInstance().getFactory().createTaskCopyDeviceToDevice(exchange->getDeviceBuffer(),
+                Environment<DIM>::getInstance().getFactory().createTaskCopyDeviceToDevice(exchange->getDeviceBuffer(),
                                                                                exchange->getDeviceDoubleBuffer()
                                                                                );
-                copyEvent = Environment<>::getInstance().getFactory().createTaskCopyDeviceToHost(exchange->getDeviceDoubleBuffer(),
+                copyEvent = Environment<DIM>::getInstance().getFactory().createTaskCopyDeviceToHost(exchange->getDeviceDoubleBuffer(),
                                                                                          exchange->getHostBuffer(),
                                                                                          this);
             }
             else
             {
-                copyEvent = Environment<>::getInstance().getFactory().createTaskCopyDeviceToHost(exchange->getDeviceBuffer(),
+                copyEvent = Environment<DIM>::getInstance().getFactory().createTaskCopyDeviceToHost(exchange->getDeviceBuffer(),
                                                                                          exchange->getHostBuffer(),
                                                                                          this);
             }
@@ -83,7 +83,7 @@ namespace PMacc
                 case DeviceToHostFinished:
                     state = SendDone;
                     __startTransaction();
-                    Environment<>::getInstance().getFactory().createTaskSendMPI(exchange, this);
+                    Environment<DIM>::getInstance().getFactory().createTaskSendMPI(exchange, this);
                     __endTransaction(); //we need no blocking because we get a singnal if transaction is finished
                     break;
                 case SendDone:

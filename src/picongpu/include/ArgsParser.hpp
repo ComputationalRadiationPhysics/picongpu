@@ -43,7 +43,13 @@ namespace picongpu
     class ArgsParser
     {
     public:
-        friend class Environment;
+        
+        /**
+         * Returns an instance of ArgsParser
+         *
+         * @return an instance
+         */
+        static ArgsParser& getInstance();
         
         void addOptions(po::options_description desc)
         {

@@ -78,7 +78,7 @@ void FieldEnergy::notify(uint32_t currentStep)
     BOOST_AUTO(fieldB_coreBorder,
             fieldB.getGridBuffer().getDeviceBuffer().cartBuffer().view(BlockDim().vec(), -BlockDim().vec()));
             
-    PMacc::GridController<3>& con = PMacc::GridController<3>::getInstance();
+    PMacc::GridController<3>& con = PMacc::Environment<3>::getInstance().getGridController();
     PMacc::math::Size_t<3> gpuDim = (math::Size_t<3>)con.getGpuNodes();
     PMacc::math::Size_t<3> globalGridSize = gpuDim * fieldE_coreBorder.size();
     int globalCellZPos = globalGridSize.z() / 2;

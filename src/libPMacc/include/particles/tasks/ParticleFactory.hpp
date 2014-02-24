@@ -68,10 +68,18 @@ namespace PMacc
         EventTask createTaskSendParticlesExchange(ParBase &parBase, uint32_t exchange,
         ITask *registeringTask = NULL);
 
+        /**
+         * returns the instance of this factory
+         * @return the instance
+         */
+        static ParticleFactory& getInstance()
+        {
+            static ParticleFactory instance;
+            return instance;
+        }
+
     private:
 
-        friend Environment<DIM1>;
-        
         ParticleFactory() { };
 
         ParticleFactory(const ParticleFactory&) { };

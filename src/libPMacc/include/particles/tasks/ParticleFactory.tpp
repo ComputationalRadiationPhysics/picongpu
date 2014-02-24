@@ -37,7 +37,7 @@ namespace PMacc
     {
         TaskParticlesReceive<ParBase>* task = new TaskParticlesReceive<ParBase > (parBase);
 
-        return Factory::getInstance().startTask(*task, registeringTask);
+        return Environment<>::getInstance().getFactory().startTask(*task, registeringTask);
     }
 
     template<class ParBase>
@@ -46,7 +46,7 @@ namespace PMacc
     {
         TaskReceiveParticlesExchange<ParBase>* task = new TaskReceiveParticlesExchange<ParBase > (parBase, exchange);
 
-        return Factory::getInstance().startTask(*task, registeringTask);
+        return Environment<>::getInstance().getFactory().startTask(*task, registeringTask);
     }
 
     template<class ParBase>
@@ -55,7 +55,7 @@ namespace PMacc
     {
         TaskParticlesSend<ParBase>* task = new TaskParticlesSend<ParBase > (parBase);
 
-        return Factory::getInstance().startTask(*task, registeringTask);
+        return Environment<>::getInstance().getFactory().startTask(*task, registeringTask);
     }
 
     template<class ParBase>
@@ -64,7 +64,7 @@ namespace PMacc
     {
         TaskSendParticlesExchange<ParBase>* task = new TaskSendParticlesExchange<ParBase > (parBase, exchange);
 
-        return Factory::getInstance().startTask(*task, registeringTask);
+        return Environment<>::getInstance().getFactory().startTask(*task, registeringTask);
     }
 
 

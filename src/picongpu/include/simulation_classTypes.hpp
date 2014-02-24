@@ -77,7 +77,7 @@ namespace picongpu
 #define __picKernelArea(kernelname,description,area) {                               \
     CUDA_CHECK_KERNEL_MSG(cudaThreadSynchronize(),"picKernelArea crash before kernel call");       \
     AreaMapping<area,MappingDesc> mapper(description);                               \
-    TaskKernel *taskKernel =  Factory::getInstance().createTaskKernel(#kernelname);  \
+    TaskKernel *taskKernel =  Environment<>::getInstance().getFactory().createTaskKernel(#kernelname);  \
     kernelname PIC_PMACC_CUDAKERNELCONFIG
 
 }

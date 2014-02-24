@@ -36,7 +36,6 @@ class MovingWindow
 {
 private:
     
-    friend class Environment;
     
     MovingWindow() : slidingWindowActive(false), slideCounter(0), lastSlideStep(0)
     {
@@ -78,6 +77,17 @@ public:
         return slidingWindowActive;
     }
 
+    /**
+     * Returns an instance of MovingWindow
+     *
+     * @return an instance
+     */
+    static MovingWindow& getInstance()
+    {
+        static MovingWindow instance;
+        return instance;
+    }
+
     /** create a virtual window which descripe local and global offsets and local size which is impotant
      *  for domain calculations to dump subvolumes of the full computing domain
      * 
@@ -88,7 +98,7 @@ public:
     {
 
         VirtualWindow window(slideCounter);
-        DataSpace<simDim> gridSize(SubGrid<simDim>::getInstance().getSimulationBox().getLocalSize());
+        DataSpace<simDim> gridSize(Environment<simDim>::getInstance().getSubGrid().getSimulationBox().getLocalSize());
         const DataSpace<simDim> globalWindowSize = DataSpace<DIM3 > (simSize[0],
                                                                      simSize[1] - gridSize.y() * slidingWindowActive,
                                                                      simSize[2]);
@@ -133,7 +143,7 @@ public:
                 window.globalSimulationOffset.y() = offsetFirstGPU;
             }
 
-            Mask comm_mask = GridController<simDim>::getInstance().getCommunicationMask();
+            Mask comm_mask = Environment<simDim>::getInstance().getGridController().getCommunicationMask();
 
             const bool isTopGpu = !comm_mask.isSet(TOP);
             const bool isBottomGpu = !comm_mask.isSet(BOTTOM);

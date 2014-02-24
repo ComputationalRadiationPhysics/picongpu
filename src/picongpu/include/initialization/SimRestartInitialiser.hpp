@@ -419,7 +419,7 @@ public:
         // call super class
         AbstractInitialiser::setup();
 
-        GridController<DIM> &gc = GridController<DIM>::getInstance();
+        GridController<DIM> &gc = Environment<DIM>::getInstance().getGridController();
         mpiPos = gc.getPosition();
         mpiSize = gc.getGpuNodes();
 
@@ -622,7 +622,7 @@ private:
                                             window.slides * window.localFullSize.y(),
                                             0);
 
-        DataSpace<DIM> globalOffset(SubGrid<DIM>::getInstance().getSimulationBox().getGlobalOffset());
+        DataSpace<DIM> globalOffset(Environment<DIM>::getInstance().getSubGrid().getSimulationBox().getGlobalOffset());
         Dimensions domain_offset(globalOffset.x() + globalSlideOffset.x(),
                                  globalOffset.y() + globalSlideOffset.y(),
                                  globalOffset.z() + globalSlideOffset.z());

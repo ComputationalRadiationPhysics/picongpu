@@ -184,7 +184,7 @@ private:
     {
         if (notifyFrequency > 0)
         {
-            writeToFile = GridController<simDim>::getInstance().getGlobalRank() == 0;
+            writeToFile = Environment<simDim>::getInstance().getGridController().getGlobalRank() == 0;
             int yCells = cellDescription->getGridLayout().getDataSpaceWithoutGuarding().y();
 
             localMaxIntensity = new GridBuffer<float, DIM1 > (DataSpace<DIM1 > (yCells)); //create one int on gpu und host
@@ -225,12 +225,12 @@ private:
         const DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
         VirtualWindow window(MovingWindow::getInstance().getVirtualWindow( currentStep));
 
-        PMACC_AUTO(simBox,SubGrid<simDim>::getInstance().getSimulationBox());
+        PMACC_AUTO(simBox,Environment<simDim>::getInstance().getSubGrid().getSimulationBox());
         
         const int yGlobalSize = simBox.getGlobalSize().y();
         const int yLocalSize = localSize.y();
 
-        const int gpus = GridController<simDim>::getInstance().getGpuNodes().getElementCount();
+        const int gpus = Environment<simDim>::getInstance().getGridController().getGpuNodes().getElementCount();
         
         
         /**\todo: fixme I cant work with not regular domains (use mpi_gatherv)*/

@@ -166,6 +166,8 @@ namespace PMacc
     private:
         
         friend Environment<DIM1>;
+        friend Environment<DIM2>;
+        friend Environment<DIM3>;
         
         Factory() {};
 

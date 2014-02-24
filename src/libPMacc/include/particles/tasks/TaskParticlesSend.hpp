@@ -77,7 +77,7 @@ public:
         case Init:
             break;
         case WaitForSend:
-            return NULL == Manager::getInstance().getITaskIfNotFinished(tmpEvent.getTaskId());
+            return NULL == Environment<>::getInstance().getManager().getITaskIfNotFinished(tmpEvent.getTaskId());
         default:
             return false;
         }

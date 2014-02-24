@@ -139,7 +139,7 @@ void FieldE::laserManipulation( uint32_t currentStep )
      * - we already performed a slide
      */
     if ( ( currentStep * DELTA_T ) >= laserProfile::INIT_TIME ||
-         GridController<simDim>::getInstance( ).getCommunicationMask( ).isSet( TOP ) || win.slides != 0 ) return;
+         Environment<simDim>::getInstance().getGridController().getCommunicationMask( ).isSet( TOP ) || win.slides != 0 ) return;
 
 
     __cudaKernel( kernelLaserE )

@@ -117,7 +117,7 @@ public:
         fieldJ = &(dc.getData<FieldJ > (FIELD_J, true));
 
 
-        const int rank = GridController<simDim>::getInstance().getGlobalRank();
+        const int rank = Environment<simDim>::getInstance().getGridController().getGlobalRank();
         const float3_X gCurrent = getSumCurrents();
 
         //const DataSpace<simDim> nrOfGpuCells = MappingDesc::SuperCellSize::getDataSpace()

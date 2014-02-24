@@ -241,7 +241,7 @@ public:
              img->getDeviceBuffer().getDataBox(),
              transpose,
              sliceOffset,
-             (SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset())[sliceDim], sliceDim
+             (Environment<simDim>::getInstance().getSubGrid().getSimulationBox().getGlobalOffset())[sliceDim], sliceDim
              );
 
 
@@ -283,7 +283,7 @@ public:
 
             VirtualWindow window(MovingWindow::getInstance().getVirtualWindow(0));
             sliceOffset = (int) ((float) (window.globalWindowSize[sliceDim]) * slicePoint) + window.globalSimulationOffset[sliceDim];
-            const DataSpace<simDim> gpus = GridController<simDim>::getInstance().getGpuNodes();
+            const DataSpace<simDim> gpus = Environment<simDim>::getInstance().getGridController().getGpuNodes();
 
             float_32 cellSize[3] = {CELL_WIDTH, CELL_HEIGHT, CELL_DEPTH};
             header.update(*cellDescription, window, transpose, 0, cellSize, gpus);
@@ -298,7 +298,7 @@ private:
 
     bool doDrawing()
     {
-        PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
+        PMACC_AUTO(simBox, Environment<simDim>::getInstance().getSubGrid().getSimulationBox());
         const DataSpace<simDim> globalRootCellPos(simBox.getGlobalOffset());
         const DataSpace<simDim> localSize(simBox.getLocalSize());
         const bool tmp = globalRootCellPos[sliceDim] + localSize[sliceDim] > sliceOffset &&

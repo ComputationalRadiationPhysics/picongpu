@@ -685,7 +685,7 @@ private:
 
             // Some funny things that make it possible for the kernel to calculate
             // the absolut position of the particles
-            PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
+            PMACC_AUTO(simBox, Environment<simDim>::getInstance().getSubGrid().getSimulationBox());
             DataSpace<simDim> localSize(simBox.getLocalSize());
             VirtualWindow window(MovingWindow::getInstance().getVirtualWindow(currentStep));
             DataSpace<simDim> globalOffset(simBox.getGlobalOffset());
@@ -931,7 +931,7 @@ private:
         // the absolut position of the particles
         DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
         VirtualWindow window(MovingWindow::getInstance().getVirtualWindow(currentStep));
-        DataSpace<simDim> globalOffset(SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset());
+        DataSpace<simDim> globalOffset(Environment<simDim>::getInstance().getSubGrid().getSimulationBox().getGlobalOffset());
         globalOffset.y() += (localSize.y() * window.slides);
 
         // PIC-like kernel call of the radiation kernel

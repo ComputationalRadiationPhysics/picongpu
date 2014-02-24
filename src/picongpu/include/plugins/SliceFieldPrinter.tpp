@@ -83,7 +83,7 @@ void SliceFieldPrinter<Field, FieldId>::printSlice(const TField& field, int nAxi
     using namespace vec::tools;
     typedef vec::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> BlockDim;
         
-    PMacc::GridController<3>& con = PMacc::GridController<3>::getInstance();
+    PMacc::GridController<3>& con = PMacc::Environment<3>::getInstance().getGridController();
     vec::Size_t<3> gpuDim = (vec::Size_t<3>)con.getGpuNodes();
     vec::Size_t<3> globalGridSize = gpuDim * field.size();
     int globalPlane = globalGridSize[nAxis] * slicePoint;

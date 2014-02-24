@@ -162,8 +162,8 @@ public:
             isPeriodic[i] = periodic[i];
         }
 
-        GridController<simDim>::getInstance().init(gpus, isPeriodic);
-        DataSpace<simDim> myGPUpos( GridController<simDim>::getInstance().getPosition() );
+        Environment<simDim>::getInstance().getGridController().init(gpus, isPeriodic);
+        DataSpace<simDim> myGPUpos( Environment<simDim>::getInstance().getGridController().getPosition() );
         
         // calculate the number of local grid cells and
         // the local cell offset to the global box        
@@ -193,7 +193,7 @@ public:
             gridOffset.x() % gridOffset.y() % gridOffset.z();
 
         /*init SubGrid for global use*/
-        SubGrid<simDim>::getInstance().init(gridSizeLocal, global_grid_size, gridOffset);
+        Environment<simDim>::getInstance().getSubGrid().init(gridSizeLocal, global_grid_size, gridOffset);
 
         SimulationHelper<simDim>::moduleLoad();
 
@@ -202,7 +202,7 @@ public:
 
         checkGridConfiguration(global_grid_size, cellDescription->getGridLayout());
 
-        if (GridController<simDim>::getInstance().getGlobalRank() == 0)
+        if (Environment<simDim>::getInstance().getGridController().getGlobalRank() == 0)
         {
             if (slidingWindow)
                 log<picLog::PHYSICS > ("Sliding Window is ON");
@@ -308,7 +308,7 @@ public:
         ions->init(*fieldE, *fieldB, *fieldJ, PAR_IONS);
 #endif      
         //disabled because of a transaction system bug
-        StreamController::getInstance().addStreams(6);
+        Environment<>::getInstance().getStreamController().addStreams(6);
 
         uint32_t step = 0;
 
@@ -427,7 +427,7 @@ public:
 
     void slide(uint32_t currentStep)
     {
-        GridController<simDim>& gc = GridController<simDim>::getInstance();
+        GridController<simDim>& gc = Environment<simDim>::getInstance().getGridController();
 
         if (gc.slide())
         {

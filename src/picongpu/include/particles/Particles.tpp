@@ -167,7 +167,7 @@ template< typename T_DataVector, typename T_MethodsVector>
 void Particles<T_DataVector,T_MethodsVector>::initFill( uint32_t currentStep )
 {
     VirtualWindow window = MovingWindow::getInstance( ).getVirtualWindow( currentStep );
-    PMACC_AUTO( simBox, SubGrid<simDim>::getInstance( ).getSimulationBox( ) );
+    PMACC_AUTO( simBox, Environment<simDim>::getInstance().getSubGrid().getSimulationBox( ) );
 
     /*calculate real simulation area offset from the beginning of the simulation*/
     DataSpace<simDim> localCells = gridLayout.getDataSpaceWithoutGuarding( );
@@ -175,8 +175,8 @@ void Particles<T_DataVector,T_MethodsVector>::initFill( uint32_t currentStep )
     gpuCellOffset.y( ) += window.slides * localCells.y( );
 
     // seed= (MPI_SIZE*CommunicationTag+MPI_Rank)^AlgoSeed 
-    uint32_t seed = GridController<DIM3>::getInstance( ).getGlobalSize( ) * FrameType::CommunicationTag
-        + GridController<DIM3>::getInstance( ).getGlobalRank( );
+    uint32_t seed = Environment<DIM3>::getInstance().getGridController().getGlobalSize( ) * FrameType::CommunicationTag
+        + Environment<DIM3>::getInstance().getGridController().getGlobalRank( );
     seed ^= POSITION_SEED;
     dim3 block( MappingDesc::SuperCellSize::getDataSpace( ) );
 
@@ -218,8 +218,8 @@ void Particles<T_DataVector,T_MethodsVector>::deviceAddTemperature( float_X ener
     dim3 block( MappingDesc::SuperCellSize::getDataSpace( ) );
     DataSpace<simDim> superCells = this->particlesBuffer->getSuperCellsCount( );
     // seed= (MPI_SIZE*CommunicationTag+MPI_Rank)^AlgoSeed 
-    uint32_t seed = GridController<DIM3>::getInstance( ).getGlobalSize( ) * FrameType::CommunicationTag
-        + GridController<DIM3>::getInstance( ).getGlobalRank( );
+    uint32_t seed = Environment<DIM3>::getInstance().getGridController().getGlobalSize( ) * FrameType::CommunicationTag
+        + Environment<DIM3>::getInstance().getGridController().getGlobalRank( );
     seed ^= TEMPERATURE_SEED;
 
     __picKernelArea( kernelAddTemperature, this->cellDescription, CORE + BORDER + GUARD )
@@ -236,7 +236,7 @@ void Particles<T_DataVector,T_MethodsVector>::deviceSetDrift( uint32_t currentSt
 
     dim3 block( MappingDesc::SuperCellSize::getDataSpace( ) );
 
-    PMACC_AUTO( simBox, SubGrid<simDim>::getInstance( ).getSimulationBox( ) );
+    PMACC_AUTO( simBox, Environment<simDim>::getInstance().getSubGrid().getSimulationBox( ) );
     const DataSpace<simDim> localNrOfCells( simBox.getLocalSize( ) );
     const DataSpace<simDim> globalNrOfCells( simBox.getGlobalSize( ) );
 

@@ -127,7 +127,7 @@ void ParticleDensity<ParticlesType>::notify(uint32_t currentStep)
     container::DeviceBuffer<int, 2> density(coreBorderZone.size.shrink<2>((plane+1)%3));
     density.assign(0);
     
-    PMacc::GridController<3>& con = PMacc::GridController<3>::getInstance();
+    PMacc::GridController<3>& con = PMacc::Environment<3>::getInstance().getGridController();
     vec::Size_t<3> gpuDim = (vec::Size_t<3>)con.getGpuNodes();
     vec::Size_t<3> globalGridSize = gpuDim * coreBorderZone.size;
     

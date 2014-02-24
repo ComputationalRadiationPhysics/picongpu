@@ -77,7 +77,7 @@ public:
         elong = laserProfile::laserLongitudinal(currentStep,
                                                 phase);
 
-        SubGrid<simDim>& sg = SubGrid<simDim>::getInstance();
+        SubGrid<simDim>& sg = Environment<simDim>::getInstance().getSubGrid();
         PMACC_AUTO(simBox,sg.getSimulationBox());
         
         const DataSpace<simDim> globalCellOffset(simBox.getGlobalOffset());

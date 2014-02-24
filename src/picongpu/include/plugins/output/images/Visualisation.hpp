@@ -523,7 +523,7 @@ public:
         FieldJ* fieldJ = &(dc.getData<FieldJ > (FIELD_J, true));
         ParticlesType* particles = &(dc.getData<ParticlesType > (particleTag, true));
         
-        PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
+        PMACC_AUTO(simBox, Environment<simDim>::getInstance().getSubGrid().getSimulationBox());
 
         typedef MappingDesc::SuperCellSize SuperCellSize;
         assert(cellDescription != NULL);
@@ -627,7 +627,7 @@ public:
             sliceOffset = (int) ((float) (window.globalWindowSize[sliceDim]) * slicePoint) + window.globalSimulationOffset[sliceDim];
 
 
-            const DataSpace<simDim> gpus = GridController<simDim>::getInstance().getGpuNodes();
+            const DataSpace<simDim> gpus = Environment<simDim>::getInstance().getGridController().getGpuNodes();
 
             float_32 cellSize[3] = {CELL_WIDTH, CELL_HEIGHT, CELL_DEPTH};
 
@@ -650,8 +650,8 @@ private:
     bool doDrawing()
     {
         assert(cellDescription != NULL);
-        const DataSpace<simDim> globalRootCellPos(SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset());
-        const bool tmp = globalRootCellPos[sliceDim] + SubGrid<simDim>::getInstance().getSimulationBox().getLocalSize()[sliceDim] > sliceOffset &&
+        const DataSpace<simDim> globalRootCellPos(Environment<simDim>::getInstance().getSubGrid().getSimulationBox().getGlobalOffset());
+        const bool tmp = globalRootCellPos[sliceDim] + Environment<simDim>::getInstance().getSubGrid().getSimulationBox().getLocalSize()[sliceDim] > sliceOffset &&
             globalRootCellPos[sliceDim] <= sliceOffset;
         /* std::cout << "do drawing ." << tmp << "." <<
                  globalRootCellPos[sliceDim] + cellDescription->getGridLayout().getDataSpaceWithoutGuarding()[sliceDim] << ">" << sliceOffset <<

@@ -290,7 +290,7 @@ public:
     {
 
         mThreadParams.currentStep = (int32_t) currentStep;
-        mThreadParams.gridPosition = SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset();
+        mThreadParams.gridPosition = Environment<simDim>::getInstance().getSubGrid().getSimulationBox().getGlobalOffset();
         mThreadParams.cellDescription = this->cellDescription;
         this->filter.setStatus(false);
 
@@ -372,9 +372,9 @@ private:
         if (notifyFrequency > 0)
         {
             mThreadParams.gridPosition =
-                SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset();
+                Environment<simDim>::getInstance().getSubGrid().getSimulationBox().getGlobalOffset();
 
-            GridController<simDim> &gc = GridController<simDim>::getInstance();
+            GridController<simDim> &gc = Environment<simDim>::getInstance().getGridController();
             /* it is important that we never change the mpi_pos after this point 
              * because we get problems with the restart.
              * Otherwise we not know which gpu must load the ghost parts around

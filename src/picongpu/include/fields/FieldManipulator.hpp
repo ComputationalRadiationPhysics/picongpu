@@ -47,7 +47,7 @@ public:
         for (uint32_t i = 1; i <= FRONT; ++i)
         {
             /* only call for plains: left right top bottom back front*/
-            if (FRONT % i == 0 && !(GridController<simDim>::getInstance().getCommunicationMask().isSet(i)))
+            if (FRONT % i == 0 && !(Environment<simDim>::getInstance().getGridController().getCommunicationMask().isSet(i)))
             {
                 uint32_t direction = 0; /*set direction to X (default)*/
                 if (i >= BOTTOM && TOP <= TOP)

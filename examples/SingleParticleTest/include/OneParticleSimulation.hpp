@@ -158,7 +158,7 @@ public:
         GridLayout<DIM3> gridLayout(simBox.getLocalSize(), MappingDesc::SuperCellSize::getDataSpace());
         if (MovingWindow::getInstance().getVirtualWindow(currentStep).doSlide)
         {
-            GridController<simDim>& gc = GridController<simDim>::getInstance();
+            GridController<simDim>& gc = Environment<simDim>::getInstance().getGridController();
             if (gc.slide())
             {
                 electrons->reset(currentStep);

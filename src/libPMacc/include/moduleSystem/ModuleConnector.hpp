@@ -34,6 +34,12 @@ namespace PMacc
     {
     public:
 
+        static ModuleConnector& getInstance()
+        {
+            static ModuleConnector instance;
+            return instance;
+        }
+
         void registerModule(Module *module)
         throw (ModuleException)
         {
@@ -92,8 +98,6 @@ namespace PMacc
 
     private:
 
-        friend Environment<DIM1>;
-        
         ModuleConnector()
         {
 

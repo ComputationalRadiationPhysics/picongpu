@@ -76,7 +76,7 @@ namespace PMacc
                 case Init:
                     break;
                 case WaitForReceived:
-                    if (NULL == Manager::getInstance().getITaskIfNotFinished(tmpEvent.getTaskId()))
+                    if (NULL == Environment<>::getInstance().getManager().getITaskIfNotFinished(tmpEvent.getTaskId()))
                         state = CallFillGaps;
                     break;
                 case CallFillGaps:
@@ -91,7 +91,7 @@ namespace PMacc
                 case WaitForFillGaps:
                     break;
                 case Finish:
-                    return NULL == Manager::getInstance().getITaskIfNotFinished(tmpEvent.getTaskId());
+                    return NULL == Environment<>::getInstance().getManager().getITaskIfNotFinished(tmpEvent.getTaskId());
                 default:
                     return false;
             }

@@ -118,7 +118,7 @@ public:
 
     GridController<DIM> & getGridController()
     {
-        return GridController<DIM>::getInstance();
+        return Environment<DIM>::getInstance().getGridController();
     }
     
     void dumpTimes(TimeIntervall &tSimCalculation, TimeIntervall&, double& roundAvg, uint32_t currentStep)
@@ -182,7 +182,7 @@ public:
         }       
 
         //simulatation end
-        Manager::getInstance().waitForAllTasks();
+        Environment<>::getInstance().getManager().waitForAllTasks();
 
         tSimCalculation.toggleEnd();
 
@@ -217,9 +217,9 @@ public:
 
         /* call all singeltons to solve dependencies for program exit
          */
-        StreamController::getInstance();
-        Manager::getInstance();
-        TransactionManager::getInstance();
+        Environment<>::getInstance().getStreamController();
+        Environment<>::getInstance().getManager();
+        Environment<>::getInstance().getTransactionManager();
 
         output = (getGridController().getGlobalRank() == 0);
     }
