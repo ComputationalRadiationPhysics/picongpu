@@ -149,7 +149,7 @@ function get_tooltpl_value
     cat /dev/stdin | grep $1 | cut -d"=" -f2- | tooltpl_replace  $2
 }
 
-function absulte_path()
+function absolute_path()
 {
     cd $1
     pwd
@@ -157,8 +157,8 @@ function absulte_path()
 
 help()
 {
-    echo "tbg (template batch generator) create new folder for a batch job"
-    echo "and copy in all importend files"
+    echo "TBG (template batch generator)"
+    echo "create a new folder for a batch job and copy in all important files"
     echo ""
     echo "usage: tbg -c cfgFile [-s submitsystem] [-t templateFile] [-p project] [-o \"VARNAME1=10 VARNAME2=5\"] [-h] destinationPath"
     echo ""
@@ -182,7 +182,6 @@ help()
     echo " TBG_cfgFile                   - full absolut path and name of cfg file"
     echo " TBG_projectPath               - absolut project path (see option --project)"
     echo " TBG_dstPath                   - absolute path to destination directory"
-    
 }
 
 #!/bin/bash
@@ -249,7 +248,7 @@ if [ ! -f $cfg_file ] ; then
     exit 1;
 fi
 
-projectPath=`absulte_path $projectPath`
+projectPath=`absolute_path $projectPath`
 
 job_name=`basename "$outDir"`
 # (up to 15 characters, no blank spaces, reduce to alphanumeric characters)
@@ -282,7 +281,7 @@ export TBG_jobName="$job_name"
 export TBG_jobNameShort="$job_shortname"
 cfgFileName=`basename $cfg_file`
 cfgRelativPath=`dirname $cfg_file`
-export TBG_cfgPath=`absulte_path "$cfgRelativPath"`
+export TBG_cfgPath=`absolute_path "$cfgRelativPath"`
 export TBG_cfgFile="$TBG_cfgPath/$cfgFileName"
 
 export TBG_projectPath="$projectPath"
