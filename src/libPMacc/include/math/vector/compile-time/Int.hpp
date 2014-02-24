@@ -41,8 +41,9 @@ namespace CT
  * @tparam z value for z allowed range [INT_MIN;INT_MAX-1]
  * @tparam dummy only for intern usage (to support Int<>)
  * 
- * default parameter is used to distinguish between values given by
- * the user and unset values.
+ * note: dummy is used to to distinguish between Int<> and Int<x,y,z>
+ * If no dummy is used Int<> is interpreted to Int<default,default,default> 
+ * and the dim of Int<> is 3 instead of 0 (zero)
  */
 template<int x = traits::limits::Max<int>::value, 
          int y = traits::limits::Max<int>::value, 

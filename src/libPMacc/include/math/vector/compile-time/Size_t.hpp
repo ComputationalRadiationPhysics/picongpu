@@ -41,8 +41,9 @@ namespace CT
  * @tparam z value for z allowed range [0;max size_t value -1]
  * @tparam dummy only for intern usage (to support Size_t<>)
  * 
- * default parameter is used to distinguish between values given by
- * the user and unset values.
+ * note: dummy is used to to distinguish between Size_t<> and Size_t<x,y,z>
+ * If no dummy is used Size_t<> is interpreted to Size_t<default,default,default> 
+ * and the dim of Size_t<> is 3 instead of 0 (zero)
  */
 template<size_t x = traits::limits::Max<size_t>::value, 
          size_t y = traits::limits::Max<size_t>::value, 
