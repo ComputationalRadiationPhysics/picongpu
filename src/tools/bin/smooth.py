@@ -127,15 +127,15 @@ def smooth(x, sigma, window_len = 11, fkt=gaussWindow):
 
     """
     # check input:
-    if type(data) != np.ndarray:
+    if type(x) != numpy.ndarray:
         error_msg = "ERROR: {} input needs to by a 1D numpy array. Data type is {}".format(
-                     self.func_name, type(data))
+                     self.func_name, type(x))
         raise Exception(error_msg)
 
-    if len(data.shape) != 1:
+    if len(x.shape) != 1:
         # not a 1D array
         error_msg = "ERROR: {} input needs to by a 1D numpy array. Data shape is {}".format(
-                     self.func_name, data.shape )
+                     self.func_name, x.shape )
         raise Exception(error_msg)
 
     # extending the data at the beginning and at the end
@@ -182,7 +182,7 @@ def smooth2D(data, sigma_x = 10, len_x = 50, sigma_y = 10, len_y = 50, fkt=gauss
 
     """
     # cehck input
-    if type(data) != np.ndarray:
+    if type(data) != numpy.ndarray:
         error_msg = "ERROR: {} input needs to by a 2D numpy array. Data type is {}".format(
                      self.func_name, type(data))
         raise Exception(error_msg)
