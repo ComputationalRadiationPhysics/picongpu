@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2013 Axel Huebl, Rene Widera, Richard Pausch
+# Copyright 2013-2014 Axel Huebl, Rene Widera, Richard Pausch
 #
 # This file is part of PIConGPU.
 #
@@ -30,11 +30,11 @@
 
 
 #######################
-# $1 name of variable with template descriptions 
+# $1 name of variable with template descriptions
 ########################
 function tooltpl_replace
 {
-     
+
     eval tooltpl_replace_data="\$$1"
     eval tooltpl_replace_input="\$$2"
 
@@ -77,12 +77,12 @@ function run_cfg_and_get_solved_variables
     do
       eval "$i"
     done
-      
-    #filter all TBG variables   
+
+    #filter all TBG variables
     tooltbl_env=`set | grep "^[[:alpha:]][[:alnum:]_]*=.*" | grep -v tooltpl  `
 
     data="$tooltbl_env"
-    
+
     unresolved_vars=`echo -e "$data" | grep "\![[:alpha:]][[:alnum:]_]*" | wc -l`
     unresolved_vars_old=$(( unresolved_vars + 1))
 
@@ -121,7 +121,7 @@ function check_final
     not_replaced_cnt=`echo $not_replaced | wc -w`
 
     if [ $not_replaced_cnt -gt 0 ] ; then
-        echo "WARNING: $not_replaced_cnt variable(s) _not_ replaced from template (tpl):"
+        echo "ERROR: $not_replaced_cnt variable(s) _not_ replaced from template (tpl):"
         echo $not_replaced
 
         #create an OR concated pattern
@@ -134,6 +134,9 @@ function check_final
             n=$(( n+1 ))
             echo $org_line | awk -v line=$n '{ if ($0 ~ /'$nrv_or'/) print "line "line }'
         done < <(echo -e "$org_file")
+
+        # abort script (will not be submitted)
+        exit 1
     fi
 }
 
@@ -146,7 +149,7 @@ function get_tooltpl_value
     cat /dev/stdin | grep $1 | cut -d"=" -f2- | tooltpl_replace  $2
 }
 
-function absulte_path()
+function absolute_path()
 {
     cd $1
     pwd
@@ -154,12 +157,13 @@ function absulte_path()
 
 help()
 {
-    echo "tbg (template batch generator) create new folder for a batch job"
-    echo "and copy in all importend files"
+    echo "TBG (template batch generator)"
+    echo "create a new folder for a batch job and copy in all important files"
     echo ""
     echo "usage: tbg -c cfgFile [-s submitsystem] [-t templateFile] [-p project] [-o \"VARNAME1=10 VARNAME2=5\"] [-h] destinationPath"
     echo ""
     echo "-c | --cfg      file           - Configuration file to set up batch file."
+    echo "-s | --submit   command        - Submit command (qsub, \"qsub -h\", sbatch, ...)"
     echo "-t | --tpl      file           - Template to create a batch file from."
     echo "                                 tbg will use stdin, if no file is specified."
     echo "-p | --project  folder         - Project folder containing sourcecode and binaries"
@@ -171,14 +175,13 @@ help()
     echo "destinationPath                - Directory for simulation output. "
     echo " "
     echo " "
-    echo "tbg exports the following variables, which can used in cfg and tpl files any time:"
+    echo "TBG exports the following variables, which can be used in cfg and tpl files at any time:"
     echo " TBG_jobName                   - name of the job"
     echo " TBG_jobNameShort              - short name of the job, without blanks"
     echo " TBG_cfgPath                   - absolut path to cfg file"
     echo " TBG_cfgFile                   - full absolut path and name of cfg file"
     echo " TBG_projectPath               - absolut project path (see option --project)"
     echo " TBG_dstPath                   - absolute path to destination directory"
-    
 }
 
 #!/bin/bash
@@ -245,7 +248,7 @@ if [ ! -f $cfg_file ] ; then
     exit 1;
 fi
 
-projectPath=`absulte_path $projectPath`
+projectPath=`absolute_path $projectPath`
 
 job_name=`basename "$outDir"`
 # (up to 15 characters, no blank spaces, reduce to alphanumeric characters)
@@ -278,7 +281,7 @@ export TBG_jobName="$job_name"
 export TBG_jobNameShort="$job_shortname"
 cfgFileName=`basename $cfg_file`
 cfgRelativPath=`dirname $cfg_file`
-export TBG_cfgPath=`absulte_path "$cfgRelativPath"`
+export TBG_cfgPath=`absolute_path "$cfgRelativPath"`
 export TBG_cfgFile="$TBG_cfgPath/$cfgFileName"
 
 export TBG_projectPath="$projectPath"
@@ -310,4 +313,6 @@ check_final tbg/submit.start "$tooltpl_file_data"
 
 if [ -n "$submit_command" ] ; then
     $submit_command tbg/submit.start
+else
+    echo "nothing to submit (-s option set?)"
 fi
