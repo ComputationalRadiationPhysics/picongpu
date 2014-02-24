@@ -24,6 +24,7 @@
 #include <stdint.h>
 #include "Vector.hpp"
 #include <boost/mpl/integral_c.hpp>
+#include "traits/Limits.hpp"
 
 namespace PMacc
 {
@@ -32,17 +33,21 @@ namespace math
 namespace CT
 {
     
-/** Compiletime int vector
+/** Compile time int vector
  * 
- * default parameter for all parameters: domain of definition divided by 2
  * 
- * @tparam x value for x
- * @tparam y value for y
- * @tparam z value for z
- * @tparam dummy only for intern usage (at the moment not used)
+ * @tparam x value for x allowed range [INT_MIN;INT_MAX-1]
+ * @tparam y value for y allowed range [INT_MIN;INT_MAX-1]
+ * @tparam z value for z allowed range [INT_MIN;INT_MAX-1]
+ * @tparam dummy only for intern usage (to support Int<>)
+ * 
+ * default parameter is used to distinguish between values given by
+ * the user and unset values.
  */
-template<int x = 0xFFFFFFFF/2, int y = 0xFFFFFFFF/2, int z = 0xFFFFFFFF/2,
-         int dummy = 0xFFFFFFFF/2>
+template<int x = traits::limits::Max<int>::value, 
+         int y = traits::limits::Max<int>::value, 
+         int z = traits::limits::Max<int>::value,
+         typename dummy = mpl::na>
 struct Int;
 
 template<>
@@ -51,27 +56,18 @@ struct Int<> : public CT::Vector<>
 
 template<int x>
 struct Int<x> : public CT::Vector<mpl::integral_c<int, x> >
-{
-    typedef CT::Vector<mpl::integral_c<int, x> > vector_type;
-};
+{};
 
 template<int x, int y>
 struct Int<x, y> : public CT::Vector<mpl::integral_c<int, x>,
                                      mpl::integral_c<int, y> >
-{
-    typedef CT::Vector<mpl::integral_c<int, x>,
-                       mpl::integral_c<int, y> > vector_type;
-};
+{};
 
 template<int x, int y, int z>
 struct Int<x, y, z> : public CT::Vector<mpl::integral_c<int, x>,
                                                    mpl::integral_c<int, y>,
                                                    mpl::integral_c<int, z> >
-{
-    typedef CT::Vector<mpl::integral_c<int, x>,
-                       mpl::integral_c<int, y>,
-                       mpl::integral_c<int, z> > vector_type;
-};
+{};
 
 template<int dim, int val>
 struct make_Int;
