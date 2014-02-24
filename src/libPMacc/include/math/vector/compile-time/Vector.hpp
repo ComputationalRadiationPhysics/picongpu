@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -19,8 +19,7 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-#ifndef STLPICCTVECTOR_HPP
-#define STLPICCTVECTOR_HPP
+#pragma once
 
 #include <stdint.h>
 #include <boost/mpl/size.hpp>
@@ -29,7 +28,7 @@
 #include <boost/mpl/integral_c.hpp>
 #include <boost/mpl/aux_/na.hpp>
 #include <boost/mpl/plus.hpp>
-#include <boost/mpl/max.hpp>
+#include <boost/mpl/min_max.hpp>
 #include <boost/mpl/times.hpp>
 //#include <boost/mpl/arithmetic.hpp>
 #include "../Vector.hpp"
@@ -184,16 +183,16 @@ template<typename ArgA0, typename ArgA1,
          typename ArgB0, typename ArgB1>
 struct mul<CT::Vector<ArgA0, ArgA1>, CT::Vector<ArgB0, ArgB1> >
 {
-    typedef CT::Vector<typename mpl::plus<ArgA0, ArgB0>::type,
-                       typename mpl::plus<ArgA1, ArgB1>::type> type;
+    typedef CT::Vector<typename mpl::times<ArgA0, ArgB0>::type,
+                       typename mpl::times<ArgA1, ArgB1>::type> type;
 };
 template<typename ArgA0, typename ArgA1, typename ArgA2,
          typename ArgB0, typename ArgB1, typename ArgB2>
 struct mul<CT::Vector<ArgA0, ArgA1, ArgA2>, CT::Vector<ArgB0, ArgB1, ArgB2> >
 {
-    typedef CT::Vector<typename mpl::plus<ArgA0, ArgB0>::type,
-                       typename mpl::plus<ArgA1, ArgB1>::type,
-                       typename mpl::plus<ArgA2, ArgB2>::type> type;
+    typedef CT::Vector<typename mpl::times<ArgA0, ArgB0>::type,
+                       typename mpl::times<ArgA1, ArgB1>::type,
+                       typename mpl::times<ArgA2, ArgB2>::type> type;
 };
 
 template<typename Lhs, typename Rhs>
@@ -218,16 +217,16 @@ template<typename ArgA0, typename ArgA1,
          typename ArgB0, typename ArgB1>
 struct max<CT::Vector<ArgA0, ArgA1>, CT::Vector<ArgB0, ArgB1> >
 {
-    typedef CT::Vector<typename mpl::plus<ArgA0, ArgB0>::type,
-                       typename mpl::plus<ArgA1, ArgB1>::type> type;
+    typedef CT::Vector<typename mpl::max<ArgA0, ArgB0>::type,
+                       typename mpl::max<ArgA1, ArgB1>::type> type;
 };
 template<typename ArgA0, typename ArgA1, typename ArgA2,
          typename ArgB0, typename ArgB1, typename ArgB2>
 struct max<CT::Vector<ArgA0, ArgA1, ArgA2>, CT::Vector<ArgB0, ArgB1, ArgB2> >
 {
-    typedef CT::Vector<typename mpl::plus<ArgA0, ArgB0>::type,
-                       typename mpl::plus<ArgA1, ArgB1>::type,
-                       typename mpl::plus<ArgA2, ArgB2>::type> type;
+    typedef CT::Vector<typename mpl::max<ArgA0, ArgB0>::type,
+                       typename mpl::max<ArgA1, ArgB1>::type,
+                       typename mpl::max<ArgA2, ArgB2>::type> type;
 };
 
 template<typename Lhs, typename Rhs>
@@ -296,5 +295,3 @@ struct volume<Vec, 3>
 } // CT
 } // math
 } // PMacc
-
-#endif //STLPICCTVECTOR_HPP
