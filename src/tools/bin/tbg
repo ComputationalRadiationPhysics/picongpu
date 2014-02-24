@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2013 Axel Huebl, Rene Widera, Richard Pausch
+# Copyright 2013-2014 Axel Huebl, Rene Widera, Richard Pausch
 #
 # This file is part of PIConGPU.
 #
@@ -30,11 +30,11 @@
 
 
 #######################
-# $1 name of variable with template descriptions 
+# $1 name of variable with template descriptions
 ########################
 function tooltpl_replace
 {
-     
+
     eval tooltpl_replace_data="\$$1"
     eval tooltpl_replace_input="\$$2"
 
@@ -77,12 +77,12 @@ function run_cfg_and_get_solved_variables
     do
       eval "$i"
     done
-      
-    #filter all TBG variables   
+
+    #filter all TBG variables
     tooltbl_env=`set | grep "^[[:alpha:]][[:alnum:]_]*=.*" | grep -v tooltpl  `
 
     data="$tooltbl_env"
-    
+
     unresolved_vars=`echo -e "$data" | grep "\![[:alpha:]][[:alnum:]_]*" | wc -l`
     unresolved_vars_old=$(( unresolved_vars + 1))
 
@@ -160,6 +160,7 @@ help()
     echo "usage: tbg -c cfgFile [-s submitsystem] [-t templateFile] [-p project] [-o \"VARNAME1=10 VARNAME2=5\"] [-h] destinationPath"
     echo ""
     echo "-c | --cfg      file           - Configuration file to set up batch file."
+    echo "-s | --submit   command        - Submit command (qsub, \"qsub -h\", sbatch, ...)"
     echo "-t | --tpl      file           - Template to create a batch file from."
     echo "                                 tbg will use stdin, if no file is specified."
     echo "-p | --project  folder         - Project folder containing sourcecode and binaries"
@@ -310,4 +311,6 @@ check_final tbg/submit.start "$tooltpl_file_data"
 
 if [ -n "$submit_command" ] ; then
     $submit_command tbg/submit.start
+else
+    echo "nothing to submit (-s option set?)"
 fi
