@@ -175,7 +175,7 @@ help()
     echo "destinationPath                - Directory for simulation output. "
     echo " "
     echo " "
-    echo "tbg exports the following variables, which can used in cfg and tpl files any time:"
+    echo "TBG exports the following variables, which can be used in cfg and tpl files at any time:"
     echo " TBG_jobName                   - name of the job"
     echo " TBG_jobNameShort              - short name of the job, without blanks"
     echo " TBG_cfgPath                   - absolut path to cfg file"
