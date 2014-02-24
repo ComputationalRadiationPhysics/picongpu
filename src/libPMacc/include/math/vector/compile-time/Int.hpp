@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -19,8 +19,7 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-#ifndef STLPICCTINT_HPP
-#define STLPICCTINT_HPP
+#pragma once
 
 #include <stdint.h>
 #include "Vector.hpp"
@@ -33,8 +32,17 @@ namespace math
 namespace CT
 {
     
-template<int x = 123456789, int y = 123456789, int z = 123456789,
-         int dummy = 123456789>
+/** Compiletime int vector
+ * 
+ * default parameter for all parameters: domain of definition divided by 2
+ * 
+ * @tparam x value for x
+ * @tparam y value for y
+ * @tparam z value for z
+ * @tparam dummy only for intern usage (at the moment not used)
+ */
+template<int x = 0xFFFFFFFF/2, int y = 0xFFFFFFFF/2, int z = 0xFFFFFFFF/2,
+         int dummy = 0xFFFFFFFF/2>
 struct Int;
 
 template<>
@@ -89,5 +97,3 @@ struct make_Int<3, val>
 } // CT
 } // math
 } // PMacc
-
-#endif //STLPICCTINT_HPP
