@@ -36,9 +36,15 @@ namespace CT
 
 template<typename X = mpl::void_,
          typename Y = mpl::void_,
-         typename Z = mpl::void_,
-         typename Dummy = mpl::na>
-struct Float;
+         typename Z = mpl::void_>
+struct Float
+{
+    typedef X x;
+    typedef Y y;
+    typedef Z z;
+    
+    static const int dim = 3;
+};
 
 template<>
 struct Float<> {};
@@ -58,16 +64,6 @@ struct Float<X, Y>
     typedef Y y;
     
     static const int dim = 2u;
-};
-
-template<typename X, typename Y, typename Z>
-struct Float<X, Y, Z>
-{
-    typedef X x;
-    typedef Y y;
-    typedef Z z;
-    
-    static const int dim = 3;
 };
 
 } // CT

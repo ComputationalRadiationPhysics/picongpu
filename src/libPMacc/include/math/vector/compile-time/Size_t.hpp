@@ -39,17 +39,17 @@ namespace CT
  * @tparam x value for x allowed range [0;max size_t value -1]
  * @tparam y value for y allowed range [0;max size_t value -1]
  * @tparam z value for z allowed range [0;max size_t value -1]
- * @tparam dummy only for intern usage (to support Size_t<>)
  * 
- * note: dummy is used to to distinguish between Size_t<> and Size_t<x,y,z>
- * If no dummy is used Size_t<> is interpreted to Size_t<default,default,default> 
- * and the dim of Size_t<> is 3 instead of 0 (zero)
+ * default parameter is used to distinguish between values given by
+ * the user and unset values.
  */
 template<size_t x = traits::limits::Max<size_t>::value, 
          size_t y = traits::limits::Max<size_t>::value, 
-         size_t z = traits::limits::Max<size_t>::value,
-         typename dummy = mpl::na>
-struct Size_t;
+         size_t z = traits::limits::Max<size_t>::value>
+struct Size_t : public CT::Vector<mpl::integral_c<size_t, x>,
+                                  mpl::integral_c<size_t, y>,
+                                  mpl::integral_c<size_t, z> >
+{};
 
 template<>
 struct Size_t<> : public CT::Vector<>
@@ -62,12 +62,6 @@ struct Size_t<x> : public CT::Vector<mpl::integral_c<size_t, x> >
 template<size_t x, size_t y>
 struct Size_t<x, y> : public CT::Vector<mpl::integral_c<size_t, x>,
                                         mpl::integral_c<size_t, y> >
-{};
-
-template<size_t x, size_t y, size_t z>
-struct Size_t<x, y, z> : public CT::Vector<mpl::integral_c<size_t, x>,
-                                                   mpl::integral_c<size_t, y>,
-                                                   mpl::integral_c<size_t, z> >
 {};
     
 } // CT

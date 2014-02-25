@@ -39,17 +39,17 @@ namespace CT
  * @tparam x value for x allowed range [0;max uint32_t value -1]
  * @tparam y value for y allowed range [0;max uint32_t value -1]
  * @tparam z value for z allowed range [0;max uint32_t value -1]
- * @tparam dummy only for intern usage (to support UInt<>)
  * 
- * note: dummy is used to to distinguish between UInt<> and UInt<x,y,z>
- * If no dummy is used UInt<> is interpreted to UInt<default,default,default> 
- * and the dim of UInt<> is 3 instead of 0 (zero)
+ * default parameter is used to distinguish between values given by
+ * the user and unset values.
  */
 template<uint32_t x = traits::limits::Max<uint32_t>::value, 
          uint32_t y = traits::limits::Max<uint32_t>::value, 
-         uint32_t z = traits::limits::Max<uint32_t>::value,
-         typename dummy = mpl::na>
-struct UInt;
+         uint32_t z = traits::limits::Max<uint32_t>::value>
+struct UInt : public CT::Vector<mpl::integral_c<uint32_t, x>,
+                                                   mpl::integral_c<uint32_t, y>,
+                                                   mpl::integral_c<uint32_t, z> >
+{};
 
 template<>
 struct UInt<> : public CT::Vector<>
@@ -64,11 +64,7 @@ struct UInt<x, y> : public CT::Vector<mpl::integral_c<uint32_t, x>,
                                                 mpl::integral_c<uint32_t, y> >
 {};
 
-template<uint32_t x, uint32_t y, uint32_t z>
-struct UInt<x, y, z> : public CT::Vector<mpl::integral_c<uint32_t, x>,
-                                                   mpl::integral_c<uint32_t, y>,
-                                                   mpl::integral_c<uint32_t, z> >
-{};
+
     
 } // CT
 } // math

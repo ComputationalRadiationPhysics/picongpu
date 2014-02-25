@@ -39,17 +39,17 @@ namespace CT
  * @tparam x value for x allowed range [INT_MIN;INT_MAX-1]
  * @tparam y value for y allowed range [INT_MIN;INT_MAX-1]
  * @tparam z value for z allowed range [INT_MIN;INT_MAX-1]
- * @tparam dummy only for intern usage (to support Int<>)
  * 
- * note: dummy is used to to distinguish between Int<> and Int<x,y,z>
- * If no dummy is used Int<> is interpreted to Int<default,default,default> 
- * and the dim of Int<> is 3 instead of 0 (zero)
+ * default parameter is used to distinguish between values given by
+ * the user and unset values.
  */
 template<int x = traits::limits::Max<int>::value, 
          int y = traits::limits::Max<int>::value, 
-         int z = traits::limits::Max<int>::value,
-         typename dummy = mpl::na>
-struct Int;
+         int z = traits::limits::Max<int>::value>
+struct Int: public CT::Vector<mpl::integral_c<int, x>,
+                              mpl::integral_c<int, y>,
+                              mpl::integral_c<int, z> >
+{};
 
 template<>
 struct Int<> : public CT::Vector<>
@@ -64,11 +64,7 @@ struct Int<x, y> : public CT::Vector<mpl::integral_c<int, x>,
                                      mpl::integral_c<int, y> >
 {};
 
-template<int x, int y, int z>
-struct Int<x, y, z> : public CT::Vector<mpl::integral_c<int, x>,
-                                                   mpl::integral_c<int, y>,
-                                                   mpl::integral_c<int, z> >
-{};
+
 
 template<int dim, int val>
 struct make_Int;
