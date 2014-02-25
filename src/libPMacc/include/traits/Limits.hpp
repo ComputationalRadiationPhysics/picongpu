@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2014 Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -17,55 +17,37 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
+
 #pragma once
 
-#include <stdint.h>
-#include <boost/mpl/void.hpp>
-#include "../../utils/FloatWrapper.hpp"
-
-namespace mpl = boost::mpl;
+#include "types.h"
 
 namespace PMacc
 {
-namespace math
+namespace traits
 {
-namespace CT
+namespace limits
 {
+/** get maximum finite value
+ * 
+ * @tparam T_Type any type
+ * @result ::value
+ */
+template<typename T_Type>
+struct Max;
 
-template<typename X = mpl::void_,
-         typename Y = mpl::void_,
-         typename Z = mpl::void_>
-struct Float
-{
-    typedef X x;
-    typedef Y y;
-    typedef Z z;
-    
-    static const int dim = 3;
-};
+/** get minimum finite value
+ * 
+ * @tparam T_Type any type
+ * @result ::value
+ */
+template<typename T_Type>
+struct Min;
 
-template<>
-struct Float<> {};
+} //namespace limits
+} //namespace traits
+} //namespace PMacc
 
-template<typename X>
-struct Float<X>
-{
-    typedef X x;
-    
-    static const int dim = 1;
-};
-
-template<typename X, typename Y>
-struct Float<X, Y>
-{
-    typedef X x;
-    typedef Y y;
-    
-    static const int dim = 2u;
-};
-
-} // CT
-} // math
-} // PMacc
+#include "traits/Limits.tpp"
