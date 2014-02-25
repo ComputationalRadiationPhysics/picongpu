@@ -91,6 +91,8 @@ namespace picongpu
         template<uint32_t AREA>
         void addCurrentToE();
 
+        SimulationDataId getUniqueId();
+        
         void synchronize();
         
         void syncToDevice()

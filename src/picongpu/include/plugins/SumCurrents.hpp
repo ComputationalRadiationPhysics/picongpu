@@ -114,7 +114,7 @@ public:
     {
         DataConnector &dc = DataConnector::getInstance();
 
-        fieldJ = &(dc.getData<FieldJ > (FIELD_J, true));
+        fieldJ = &(dc.getData<FieldJ > (FieldJ::getName(), true));
 
 
         const int rank = GridController<simDim>::getInstance().getGlobalRank();

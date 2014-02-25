@@ -88,7 +88,7 @@ public:
         log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) write species: %1%") % AdiosFrameType::getName();
         DataConnector &dc = DataConnector::getInstance();
         /* load particle without copy particle data to host */
-        ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(ThisSpecies::FrameType::CommunicationTag, true));
+        ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(ThisSpecies::FrameType::getName(), true));
 
         /* count total number of particles on the device */
         log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) count particles: %1%") % AdiosFrameType::getName();

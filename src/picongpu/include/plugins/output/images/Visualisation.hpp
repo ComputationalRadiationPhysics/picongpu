@@ -483,7 +483,7 @@ public:
     output(output),
     analyzerName(name),
     cellDescription(NULL),
-    particleTag(ParticlesType::FrameType::CommunicationTag),
+    particleTag(ParticlesType::FrameType::getName()),
     notifyFrequency(notifyFrequency),
     transpose(transpose),
     slicePoint(slicePoint),
@@ -532,9 +532,9 @@ public:
         DataConnector &dc = DataConnector::getInstance();
         // Data does not need to be synchronized as visualization is
         // done at the device.
-        FieldB *fieldB = &(dc.getData<FieldB > (FIELD_B, true));
-        FieldE* fieldE = &(dc.getData<FieldE > (FIELD_E, true));
-        FieldJ* fieldJ = &(dc.getData<FieldJ > (FIELD_J, true));
+        FieldB *fieldB = &(dc.getData<FieldB > (FieldB::getName(), true));
+        FieldE* fieldE = &(dc.getData<FieldE > (FieldE::getName(), true));
+        FieldJ* fieldJ = &(dc.getData<FieldJ > (FieldJ::getName(), true));
         ParticlesType* particles = &(dc.getData<ParticlesType > (particleTag, true));
 
         PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
@@ -682,7 +682,7 @@ private:
 
 
     MappingDesc *cellDescription;
-    uint32_t particleTag;
+    SimulationDataId particleTag;
 
     GridBuffer<float3_X, DIM2 > *img;
 

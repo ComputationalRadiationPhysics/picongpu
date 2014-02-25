@@ -299,11 +299,11 @@ public:
         this->myFieldSolver = new fieldSolver::FieldSolver(*cellDescription);
 
 #if (ENABLE_ELECTRONS == 1)
-        electrons->init(*fieldE, *fieldB, *fieldJ, PAR_ELECTRONS);
+        electrons->init(*fieldE, *fieldB, *fieldJ, electrons->getUniqueId());
 #endif
 
 #if (ENABLE_IONS == 1)
-        ions->init(*fieldE, *fieldB, *fieldJ, PAR_IONS);
+        ions->init(*fieldE, *fieldB, *fieldJ, ions->getUniqueId());
 #endif      
         //disabled because of a transaction system bug
         StreamController::getInstance().addStreams(6);

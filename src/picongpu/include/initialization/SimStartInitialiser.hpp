@@ -44,19 +44,20 @@ class SimStartInitialiser : public AbstractInitialiser
 {
 public:
 
-    void init(uint32_t id, ISimulationData& data, uint32_t currentStep)
+    void init(SimulationDataId id, ISimulationData& data, uint32_t currentStep)
     {
         // add ids for other types if necessary
         // fields are initialised by their constructor
-        switch (id)
+        if (id == EBuffer::FrameType::getName())
         {
-        case PAR_ELECTRONS:
             initElectrons(static_cast<EBuffer&> (data), currentStep);
-            break;
+            return;
+        }
 
-        case PAR_IONS:
+        if (id == IBuffer::FrameType::getName())
+        {
             initIons(static_cast<IBuffer&> (data), currentStep);
-            break;
+            return;
         }
     }
 
@@ -81,7 +82,7 @@ private:
     {
 
         //copy electrons' values to ions
-        EBuffer &e_buffer = DataConnector::getInstance().getData<EBuffer>(PAR_ELECTRONS);
+        EBuffer &e_buffer = DataConnector::getInstance().getData<EBuffer>(EBuffer::FrameType::getName());
 
         ions.deviceCloneFrom(e_buffer);
 

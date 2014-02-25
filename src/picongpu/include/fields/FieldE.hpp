@@ -82,6 +82,8 @@ namespace picongpu
 
         GridLayout<simDim> getGridLayout();
 
+        SimulationDataId getUniqueId();
+        
         void synchronize();
         
         void syncToDevice();

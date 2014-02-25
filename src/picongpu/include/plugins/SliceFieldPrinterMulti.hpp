@@ -35,7 +35,7 @@ namespace po = boost::program_options;
 
 #include <string>
 
-template<typename Field, int FieldId>
+template<typename Field>
 class SliceFieldPrinterMulti : public ISimulationIO, public IPluginModule
 {
 private:
@@ -46,7 +46,7 @@ private:
     std::vector<int> plane;
     std::vector<float_X> slicePoint;
     MappingDesc *cellDescription;
-    std::vector<SliceFieldPrinter<Field, FieldId> > childs;
+    std::vector<SliceFieldPrinter<Field> > childs;
         
     void moduleLoad();
     void moduleUnload();

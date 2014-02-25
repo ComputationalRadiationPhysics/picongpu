@@ -86,6 +86,11 @@ FieldE::~FieldE( )
     delete fieldE;
 }
 
+SimulationDataId FieldE::getUniqueId()
+{
+    return getName();
+}
+
 void FieldE::synchronize( )
 {
     fieldE->deviceToHost( );
@@ -106,7 +111,7 @@ void FieldE::init( FieldB &fieldB, LaserPhysics &laserPhysics )
     this->fieldB = &fieldB;
     this->laser = &laserPhysics;
 
-    DataConnector::getInstance( ).registerData( *this, FIELD_E );
+    DataConnector::getInstance( ).registerData( *this, getUniqueId() );
 }
 
 FieldE::DataBoxType FieldE::getDeviceDataBox( )

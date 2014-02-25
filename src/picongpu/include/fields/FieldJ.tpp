@@ -90,6 +90,11 @@ FieldJ::~FieldJ( )
 {
 }
 
+SimulationDataId FieldJ::getUniqueId()
+{
+    return getName();
+}
+
 void FieldJ::synchronize( )
 {
     fieldJ.deviceToHost( );
@@ -148,7 +153,7 @@ void FieldJ::init( FieldE &fieldE )
 {
     this->fieldE = &fieldE;
 
-    DataConnector::getInstance( ).registerData( *this, FIELD_J );
+    DataConnector::getInstance( ).registerData( *this, getUniqueId() );
 }
 
 GridLayout<simDim> FieldJ::getGridLayout( )

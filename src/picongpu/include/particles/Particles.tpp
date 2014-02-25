@@ -105,6 +105,12 @@ Particles<T_DataVector, T_MethodsVector>::~Particles( )
 }
 
 template< typename T_DataVector, typename T_MethodsVector>
+SimulationDataId Particles<T_DataVector, T_MethodsVector>::getUniqueId()
+{
+    return FrameType::getName();
+}
+
+template< typename T_DataVector, typename T_MethodsVector>
 void Particles<T_DataVector, T_MethodsVector>::synchronize( )
 {
     this->particlesBuffer->deviceToHost( );
@@ -117,7 +123,7 @@ void Particles<T_DataVector, T_MethodsVector>::syncToDevice( )
 }
 
 template< typename T_DataVector, typename T_MethodsVector>
-void Particles<T_DataVector, T_MethodsVector>::init( FieldE &fieldE, FieldB &fieldB, FieldJ &fieldJ, int datasetID )
+void Particles<T_DataVector, T_MethodsVector>::init( FieldE &fieldE, FieldB &fieldB, FieldJ &fieldJ, SimulationDataId datasetID )
 {
     this->fieldE = &fieldE;
     this->fieldB = &fieldB;

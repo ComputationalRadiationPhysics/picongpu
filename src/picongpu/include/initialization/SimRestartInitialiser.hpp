@@ -438,12 +438,10 @@ public:
         AbstractInitialiser::teardown();
     }
 
-    void init(uint32_t id, ISimulationData& data, uint32_t)
+    void init(SimulationDataId id, ISimulationData& data, uint32_t)
     {
-        switch (id)
-        {
-#if (ENABLE_ELECTRONS == 1)       
-        case PAR_ELECTRONS:
+#if (ENABLE_ELECTRONS == 1)  
+        if (id == EBuffer::FrameType::getName())
         {
             VirtualWindow window = MovingWindow::getInstance().getVirtualWindow(simulationStep);
             DataSpace<simDim> globalDomainOffset(gridPosition);
@@ -496,11 +494,11 @@ public:
                     log<picLog::INPUT_OUTPUT > ("Finished loading electrons bottom");
                 }
             }
+            return;
         }
-            break;
 #endif
 #if (ENABLE_IONS == 1)
-        case PAR_IONS:
+        if (id == IBuffer::FrameType::getName())
         {
             VirtualWindow window = MovingWindow::getInstance().getVirtualWindow(simulationStep);
             DataSpace<simDim> globalDomainOffset(gridPosition);
@@ -552,22 +550,25 @@ public:
                     log<picLog::INPUT_OUTPUT > ("Finished loading ions bottom");
                 }
             }
+            return;
         }
-            break;
 
 #endif
-        case FIELD_E:
+        if (id == FieldE::getName())
+        {
             initField(static_cast<FieldE&> (data).getGridBuffer(), FieldE::getName());
-            break;
+            return;
+        }
 
-        case FIELD_B:
+        if (id == FieldB::getName())
+        {
             initField(static_cast<FieldB&> (data).getGridBuffer(), FieldB::getName());
             //copy field B to Bavg (this is not exact but a good approximation)
             //cloneField(static_cast<FieldB&> (data).getGridBufferBavg(), static_cast<FieldB&> (data).getGridBuffer(), "Bavg");
             //this copy is only needed if we not write Bavg in HDF5 file
             //send all B fields thus simulation are of neighbors is on all gpus
             static_cast<FieldB&> (data).asyncCommunication(__getTransactionEvent()).waitForFinished();
-            break;
+            return;
         }
     }
 

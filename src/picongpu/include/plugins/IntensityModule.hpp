@@ -330,7 +330,7 @@ private:
     {
         DataConnector &dc = DataConnector::getInstance();
 
-        FieldE* fieldE = &(dc.getData<FieldE > (FIELD_E, true));
+        FieldE* fieldE = &(dc.getData<FieldE > (FieldE::getName(), true));
 
         /*start only worker for any supercell in laser propagation direction*/
         dim3 grid(1, cellDescription->getGridSuperCells().y() - cellDescription->getGuardingSuperCells());

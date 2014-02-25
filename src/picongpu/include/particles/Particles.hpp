@@ -57,7 +57,7 @@ public:
 
     virtual void reset(uint32_t currentStep);
 
-    void init(FieldE &fieldE, FieldB &fieldB, FieldJ &fieldJ, int datasetID);
+    void init(FieldE &fieldE, FieldB &fieldB, FieldJ &fieldJ, SimulationDataId datasetID);
 
     void update(uint32_t currentStep);
 
@@ -70,12 +70,14 @@ public:
 
     void deviceSetDrift(uint32_t currentStep);
 
+    SimulationDataId getUniqueId();
+    
     void synchronize();
 
     void syncToDevice();
 
 private:
-    int datasetID;
+    SimulationDataId datasetID;
     GridLayout<simDim> gridLayout;
 
 

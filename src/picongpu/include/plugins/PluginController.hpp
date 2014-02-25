@@ -118,8 +118,8 @@ private:
         
 #endif
         typedef ParticleSpectrum<PIC_Electrons> ElectronSpectrum;
-        typedef SliceFieldPrinterMulti<FieldE, FIELD_E> SliceFieldEPrinter;
-        typedef SliceFieldPrinterMulti<FieldB, FIELD_B> SliceFieldBPrinter;
+        typedef SliceFieldPrinterMulti<FieldE> SliceFieldEPrinter;
+        typedef SliceFieldPrinterMulti<FieldB> SliceFieldBPrinter;
 #endif
         typedef LiveViewModule<PIC_Electrons > LiveImageElectrons;
         typedef PngModule<ElectronsBinaryDensityBuilder > BinDensityElectrons;

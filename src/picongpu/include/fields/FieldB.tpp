@@ -92,6 +92,11 @@ FieldB::~FieldB( )
     delete fieldB;
 }
 
+SimulationDataId FieldB::getUniqueId()
+{
+    return getName();
+}
+
 void FieldB::synchronize( )
 {
     fieldB->deviceToHost( );
@@ -116,7 +121,7 @@ void FieldB::init( FieldE &fieldE, LaserPhysics &laserPhysics )
     this->fieldE = &fieldE;
     this->laser = &laserPhysics;
 
-    DataConnector::getInstance( ).registerData( *this, FIELD_B );
+    DataConnector::getInstance( ).registerData( *this, getUniqueId() );
 }
 
 GridLayout<simDim> FieldB::getGridLayout( )
