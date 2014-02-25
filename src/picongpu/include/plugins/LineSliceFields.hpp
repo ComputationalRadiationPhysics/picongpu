@@ -114,7 +114,7 @@ namespace picongpu
         cellDescription(NULL),
         notifyFrequency(0)
         {
-            ModuleConnector::getInstance().registerModule(this);
+            Environment<>::getInstance().getModuleConnector().registerModule(this);
         }
 
         virtual ~LineSliceFields()
@@ -126,7 +126,7 @@ namespace picongpu
         {
             typedef typename MappingDesc::SuperCellSize SuperCellSize;
 
-            DataConnector& dc = DataConnector::getInstance();
+            DataConnector& dc = Environment<>::getInstance().getDataConnector();
 
             fieldE = &(dc.getData<FieldE > (FIELD_E, true));
             fieldB = &(dc.getData<FieldB > (FIELD_B, true));
@@ -209,7 +209,7 @@ namespace picongpu
                 sliceDataField = new GridBuffer<float3_X, DIM1 >
                         (DataSpace<DIM1 > (nrOfGpuCells.y()));
 
-                DataConnector::getInstance().registerObserver(this, notifyFrequency);
+                Environment<>::getInstance().getDataConnector().registerObserver(this, notifyFrequency);
 
                 const int rank = Environment<simDim>::getInstance().getGridController().getGlobalRank();
 

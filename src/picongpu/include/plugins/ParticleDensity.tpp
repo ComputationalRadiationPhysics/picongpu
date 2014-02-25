@@ -78,7 +78,7 @@ template<typename ParticlesType>
 ParticleDensity<ParticlesType>::ParticleDensity(std::string name, std::string prefix)
     : name(name), prefix(prefix)
 {
-    ModuleConnector::getInstance().registerModule(this);
+    Environment<>::getInstance().getModuleConnector().registerModule(this);
 }
 
 template<typename ParticlesType>
@@ -104,7 +104,7 @@ std::string ParticleDensity<ParticlesType>::moduleGetName() const {return this->
 template<typename ParticlesType>
 void ParticleDensity<ParticlesType>::moduleLoad()
 {
-    DataConnector::getInstance().registerObserver(this, this->notifyFrequency);
+    Environment<>::getInstance().getDataConnector().registerObserver(this, this->notifyFrequency);
 }
 
 template<typename ParticlesType>
@@ -113,7 +113,7 @@ void ParticleDensity<ParticlesType>::moduleUnload(){}
 template<typename ParticlesType>
 void ParticleDensity<ParticlesType>::notify(uint32_t currentStep)
 {
-    DataConnector &dc = DataConnector::getInstance();
+    DataConnector &dc = Environment<>::getInstance().getDataConnector();
     this->particles = &(dc.getData<ParticlesType > ((uint32_t) ParticlesType::FrameType::CommunicationTag, true));
     
 

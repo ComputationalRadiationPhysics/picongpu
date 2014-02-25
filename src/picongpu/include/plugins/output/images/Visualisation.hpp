@@ -515,7 +515,7 @@ public:
 
     void createImage(uint32_t currentStep, VirtualWindow window)
     {
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::getInstance().getDataConnector();
         // Data does not need to be synchronized as visualization is
         // done at the device.
         FieldB *fieldB = &(dc.getData<FieldB > (FIELD_B, true));
@@ -636,7 +636,7 @@ public:
             img = new GridBuffer<float3_X, DIM2 > (header.node.maxSize);
 
 
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
+            Environment<>::getInstance().getDataConnector().registerObserver(this, notifyFrequency);
 
             bool isDrawing = doDrawing();
             isMaster = gather.init(isDrawing);

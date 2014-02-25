@@ -43,7 +43,7 @@ namespace picongpu
 template<typename Field, int FieldId>
 void SliceFieldPrinter<Field, FieldId>::moduleLoad()
 {
-    DataConnector::getInstance().registerObserver(this, this->notifyFrequency);
+    Environment<>::getInstance().getDataConnector().registerObserver(this, this->notifyFrequency);
     namespace vec = ::PMacc::math;
     typedef vec::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> BlockDim;
     
@@ -64,7 +64,7 @@ void SliceFieldPrinter<Field, FieldId>::notify(uint32_t currentStep)
 {
     namespace vec = ::PMacc::math;
     typedef vec::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> BlockDim;
-    DataConnector &dc = DataConnector::getInstance();
+    DataConnector &dc = Environment<>::getInstance().getDataConnector();
 
     BOOST_AUTO(field_coreBorder,
         dc.getData<Field > (FieldId, true).getGridBuffer().getDeviceBuffer().cartBuffer().view

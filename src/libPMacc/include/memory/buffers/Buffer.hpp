@@ -30,6 +30,7 @@
 #include "dimensions/DataSpace.hpp"
 #include "memory/boxes/DataBox.hpp"
 #include "memory/boxes/PitchedBox.hpp"
+#include "Environment.hpp"
 
 namespace PMacc
 {

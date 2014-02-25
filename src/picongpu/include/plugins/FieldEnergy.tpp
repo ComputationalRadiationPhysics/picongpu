@@ -44,7 +44,7 @@ namespace picongpu
 FieldEnergy::FieldEnergy(std::string name, std::string prefix)
     : name(name), prefix(prefix)
 {
-    ModuleConnector::getInstance().registerModule(this);
+    Environment<>::getInstance().getModuleConnector().registerModule(this);
 }
 
 void FieldEnergy::moduleRegisterHelp(po::options_description& desc)
@@ -58,7 +58,7 @@ std::string FieldEnergy::moduleGetName() const {return this->name;}
 
 void FieldEnergy::moduleLoad()
 {
-    DataConnector::getInstance().registerObserver(this, this->notifyFrequency);
+    Environment<>::getInstance().getDataConnector().registerObserver(this, this->notifyFrequency);
 }
 void FieldEnergy::moduleUnload(){}
 
@@ -69,7 +69,7 @@ void FieldEnergy::notify(uint32_t currentStep)
     using namespace math;
     typedef math::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> BlockDim;
     
-    DataConnector &dc = DataConnector::getInstance();
+    DataConnector &dc = Environment<>::getInstance().getDataConnector();
     FieldE& fieldE = dc.getData<FieldE > (FIELD_E, true);
     FieldB& fieldB = dc.getData<FieldB > (FIELD_B, true);
 

@@ -185,7 +185,7 @@ public:
     notifyFrequency(0)
     {
 
-        ModuleConnector::getInstance().registerModule(this);
+        Environment<>::getInstance().getModuleConnector().registerModule(this);
     }
 
     virtual ~PositionsParticles()
@@ -194,7 +194,7 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::getInstance().getDataConnector();
 
         particles = &(dc.getData<ParticlesType > ((uint32_t) ParticlesType::FrameType::CommunicationTag, true));
 
@@ -235,7 +235,7 @@ private:
             //create one float3_X on gpu und host
             gParticle = new GridBuffer<SglParticle<FloatPos>, DIM1 > (DataSpace<DIM1 > (1));
 
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
+            Environment<>::getInstance().getDataConnector().registerObserver(this, notifyFrequency);
         }
     }
 

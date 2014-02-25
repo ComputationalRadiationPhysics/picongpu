@@ -274,7 +274,7 @@ public:
 #endif
 
         size_t freeGpuMem(0);
-        nvmem::MemoryInfo::getInstance().getMemoryInfo(&freeGpuMem);
+        Environment<>::getInstance().getEnvMemoryInfo().getMemoryInfo(&freeGpuMem);
         freeGpuMem -= totalFreeGpuMemory;
 
 #if (ENABLE_IONS == 1)
@@ -283,13 +283,13 @@ public:
 #endif
 #if (ENABLE_ELECTRONS == 1)
         size_t memElectrons(0);
-        nvmem::MemoryInfo::getInstance().getMemoryInfo(&memElectrons);
+        Environment<>::getInstance().getEnvMemoryInfo().getMemoryInfo(&memElectrons);
         memElectrons -= totalFreeGpuMemory;
         log<picLog::MEMORY > ("free mem before electrons %1% MiB") % (memElectrons / 1024 / 1024);
         electrons->createParticleBuffer(freeGpuMem * memFractionElectrons);
 #endif
 
-        nvmem::MemoryInfo::getInstance().getMemoryInfo(&freeGpuMem);
+        Environment<>::getInstance().getEnvMemoryInfo().getMemoryInfo(&freeGpuMem);
         log<picLog::MEMORY > ("free mem after all mem is allocated %1% MiB") % (freeGpuMem / 1024 / 1024);
 
         fieldB->init(*fieldE, *laser);
@@ -316,7 +316,7 @@ public:
             step = initialiserController->init();
 
 
-        nvmem::MemoryInfo::getInstance().getMemoryInfo(&freeGpuMem);
+        Environment<>::getInstance().getEnvMemoryInfo().getMemoryInfo(&freeGpuMem);
         log<picLog::MEMORY > ("free mem after all particles are initialized %1% MiB") % (freeGpuMem / 1024 / 1024);
 
         // communicate all fields

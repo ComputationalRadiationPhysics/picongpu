@@ -73,12 +73,6 @@ namespace PMacc
     {
     public:
 
-        static DataConnector& getInstance()
-        {
-            static DataConnector instance;
-            return instance;
-        }
-
         /**
          * Notifies observers that data should be dumped.
          *
@@ -216,6 +210,17 @@ namespace PMacc
         }
 
     private:
+        
+        friend Environment<DIM1>;
+        friend Environment<DIM2>;
+        friend Environment<DIM3>;
+        
+        static DataConnector& getInstance()
+        {
+            static DataConnector instance;
+            return instance;
+        }
+        
         Mapping<uint32_t, Dataset*> datasets;
         Mapping<ISimulationIO*, uint32_t> observers;
 

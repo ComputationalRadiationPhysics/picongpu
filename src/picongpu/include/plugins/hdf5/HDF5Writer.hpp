@@ -135,7 +135,7 @@ private:
 #ifndef __CUDA_ARCH__
             ColTypeFloat ctFloat;
 
-            DataConnector &dc = DataConnector::getInstance();
+            DataConnector &dc = Environment<>::getInstance().getDataConnector();
 
             T* field = &(dc.getData<T > (T::getCommTag()));
             params.get()->gridLayout = field->getGridLayout();
@@ -206,7 +206,7 @@ private:
 
         HINLINE void operator_impl(RefWrapper<ThreadParams*> params, const DomainInformation domInfo)
         {
-            DataConnector &dc = DataConnector::getInstance();
+            DataConnector &dc = Environment<>::getInstance().getDataConnector();
 
             /*## update field ##*/
 
@@ -254,7 +254,7 @@ public:
     compression(false),
     continueFile(false)
     {
-        ModuleConnector::getInstance().registerModule(this);
+        Environment<>::getInstance().getModuleConnector().registerModule(this);
     }
 
     virtual ~HDF5Writer()
@@ -383,7 +383,7 @@ private:
             mpi_pos = gc.getPosition();
             mpi_size = gc.getGpuNodes();
 
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
+            Environment<>::getInstance().getDataConnector().registerObserver(this, notifyFrequency);
         }
 
         loaded = true;

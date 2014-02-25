@@ -112,8 +112,8 @@ public:
      */
     virtual void dumpOneStep(uint32_t currentStep)
     {
-        DataConnector::getInstance().invalidate();
-        DataConnector::getInstance().dumpData(currentStep);
+        Environment<DIM>::getInstance().getDataConnector().invalidate();
+        Environment<DIM>::getInstance().getDataConnector().dumpData(currentStep);
     }
 
     GridController<DIM> & getGridController()
@@ -217,9 +217,9 @@ public:
 
         /* call all singeltons to solve dependencies for program exit
          */
-        Environment<>::getInstance().getStreamController();
-        Environment<>::getInstance().getManager();
-        Environment<>::getInstance().getTransactionManager();
+        Environment<DIM>::getInstance().getStreamController();
+        Environment<DIM>::getInstance().getManager();
+        Environment<DIM>::getInstance().getTransactionManager();
 
         output = (getGridController().getGlobalRank() == 0);
     }

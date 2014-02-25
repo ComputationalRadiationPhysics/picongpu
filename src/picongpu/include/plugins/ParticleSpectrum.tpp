@@ -110,7 +110,7 @@ template<typename ParticlesType>
 ParticleSpectrum<ParticlesType>::ParticleSpectrum(std::string name, std::string prefix)
     : name(name), prefix(prefix)
 {
-    ModuleConnector::getInstance().registerModule(this);
+    Environment<>::getInstance().getModuleConnector().registerModule(this);
 }
 
 template<typename ParticlesType>
@@ -136,7 +136,7 @@ std::string ParticleSpectrum<ParticlesType>::moduleGetName() const {return this-
 template<typename ParticlesType>
 void ParticleSpectrum<ParticlesType>::moduleLoad()
 {
-    DataConnector::getInstance().registerObserver(this, this->notifyFrequency);
+    Environment<>::getInstance().getDataConnector().registerObserver(this, this->notifyFrequency);
     
     this->minEnergy = this->minEnergy * UNITCONV_keV_to_Joule / UNIT_ENERGY;
     this->maxEnergy = this->maxEnergy * UNITCONV_keV_to_Joule / UNIT_ENERGY;
@@ -162,7 +162,7 @@ struct GetBin
 template<typename ParticlesType>
 void ParticleSpectrum<ParticlesType>::notify(uint32_t)
 {/*
-    DataConnector &dc = DataConnector::getInstance();
+    DataConnector &dc = Environment<>::getInstance().getDataConnector();
     this->particles = &(dc.getData<ParticlesType > ((uint32_t) ParticlesType::FrameType::CommunicationTag, true));
     
     namespace vec = ::vector;

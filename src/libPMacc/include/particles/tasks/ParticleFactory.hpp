@@ -67,7 +67,7 @@ namespace PMacc
         template<class ParBase>
         EventTask createTaskSendParticlesExchange(ParBase &parBase, uint32_t exchange,
         ITask *registeringTask = NULL);
-
+        
         /**
          * returns the instance of this factory
          * @return the instance
@@ -77,7 +77,7 @@ namespace PMacc
             static ParticleFactory instance;
             return instance;
         }
-
+        
     private:
 
         ParticleFactory() { };

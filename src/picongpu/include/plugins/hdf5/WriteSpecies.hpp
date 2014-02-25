@@ -150,7 +150,7 @@ public:
                             const DomainInformation domInfo,const Space particleOffset)
     {
         log<picLog::INPUT_OUTPUT > ("HDF5: write species: %1%") % Hdf5FrameType::getName();
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::getInstance().getDataConnector();
         /*load particle without copy particle data to host*/
         ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(ThisSpecies::FrameType::CommunicationTag, true));
 

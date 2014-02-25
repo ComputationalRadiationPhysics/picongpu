@@ -26,7 +26,6 @@
 #include "ppFunctions.hpp"
 #include <boost/preprocessor/control/if.hpp>
 #include "dimensions/DataSpace.hpp"
-#include "Environment.hpp"
 #include "eventSystem/EventSystem.hpp"
 
 namespace PMacc

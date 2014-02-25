@@ -147,7 +147,7 @@ public:
     notifyFrequency(0),
     writeToFile(false)
     {
-        ModuleConnector::getInstance().registerModule(this);
+        Environment<>::getInstance().getModuleConnector().registerModule(this);
     }
 
     virtual ~IntensityModule()
@@ -196,7 +196,7 @@ private:
                 createFile(analyzerName + "_integrated.dat", outFileIntegrated);
             }
 
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
+            Environment<>::getInstance().getDataConnector().registerObserver(this, notifyFrequency);
         }
     }
 
@@ -324,7 +324,7 @@ private:
      */
     void calcIntensity(uint32_t)
     {
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::getInstance().getDataConnector();
 
         FieldE* fieldE = &(dc.getData<FieldE > (FIELD_E, true));
 

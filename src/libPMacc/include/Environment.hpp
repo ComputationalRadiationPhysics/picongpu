@@ -26,6 +26,11 @@
 #include "mappings/simulation/GridController.hpp"
 #include "mappings/simulation/SubGrid.hpp"
 #include "mappings/simulation/EnvironmentController.hpp"
+#include "eventSystem/streams/StreamController.hpp"
+#include "dataManagement/DataConnector.hpp"
+#include "moduleSystem/ModuleConnector.hpp"
+#include "nvidia/memory/MemoryInfo.hpp"
+
 
 
 namespace PMacc
@@ -70,13 +75,29 @@ namespace PMacc
         {
             return Factory::getInstance();
         }
-
+        
+        DataConnector& getDataConnector()
+        {
+            return DataConnector::getInstance();
+        }
+        
+        ModuleConnector& getModuleConnector()
+        {
+            return ModuleConnector::getInstance();
+        }
+        
+        nvidia::memory::MemoryInfo& getEnvMemoryInfo()
+        {
+            return nvidia::memory::MemoryInfo::getInstance();
+        }
+        
+        
         static Environment<DIM>& getInstance()
         {
             static Environment<DIM> instance;
             return instance;
         }
-
+        
         void init(DataSpace<DIM> gridSize, DataSpace<DIM> devices, DataSpace<DIM> periodic)
         {
             GridController<DIM>::getInstance().init(devices, periodic);
@@ -90,6 +111,13 @@ namespace PMacc
             SubGrid<DIM>::getInstance().init(localGridSize, gridSize, GridController<DIM>::getInstance().getPosition() * localGridSize);
 
             EnvironmentController::getInstance();
+            
+            DataConnector::getInstance();
+            
+            ModuleConnector::getInstance(); 
+            
+            nvidia::memory::MemoryInfo::getInstance();  
+            
         }
 
         void deinit()

@@ -26,6 +26,7 @@
 #include "types.h"
 #include "simulation_defines.hpp"
 
+#include "Environment.hpp"
 
 #include "moduleSystem/ModuleConnector.hpp"
 
@@ -67,7 +68,7 @@ public:
     , simRestartInitialiser(NULL)
 #endif
     {
-        //ModuleConnector::getInstance().registerModule(this);
+        //Environment<>::getInstance().getModuleConnector().registerModule(this);
     }
 
     virtual ~InitialiserController()
@@ -133,7 +134,7 @@ public:
                                                                                                  globalRootCell,
                                                                                                  cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
 
-            DataConnector::getInstance().initialise(*simRestartInitialiser, 0);
+            Environment<>::getInstance().getDataConnector().initialise(*simRestartInitialiser, 0);
 
             uint32_t simulationStep = simRestartInitialiser->getSimulationStep() + 1;
 
@@ -149,7 +150,7 @@ public:
 
         // start simulation using default values
         simStartInitialiser = new SimStartInitialiser<PIC_Electrons, PIC_Ions > ();
-        DataConnector::getInstance().initialise(*simStartInitialiser, 0);
+        Environment<>::getInstance().getDataConnector().initialise(*simStartInitialiser, 0);
         __getTransactionEvent().waitForFinished();
         delete simStartInitialiser;
         simStartInitialiser = NULL;
@@ -198,7 +199,7 @@ public:
     {
 
         simStartInitialiser = new SimStartInitialiser<PIC_Electrons, PIC_Ions > ();
-        DataConnector::getInstance().initialise(*simStartInitialiser, currentStep);
+        Environment<>::getInstance().getDataConnector().initialise(*simStartInitialiser, currentStep);
         __getTransactionEvent().waitForFinished();
         delete simStartInitialiser;
         simStartInitialiser = NULL;

@@ -226,7 +226,7 @@ public:
 
     void createImage(uint32_t currentStep, VirtualWindow window)
     {
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::getInstance().getDataConnector();
         ParticlesType* particles = &(dc.getData<ParticlesType > (particleTag, true));
 
         typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -279,7 +279,7 @@ public:
         {
             const DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
 
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
+            Environment<>::getInstance().getDataConnector().registerObserver(this, notifyFrequency);
 
             VirtualWindow window(MovingWindow::getInstance().getVirtualWindow(0));
             sliceOffset = (int) ((float) (window.globalWindowSize[sliceDim]) * slicePoint) + window.globalSimulationOffset[sliceDim];

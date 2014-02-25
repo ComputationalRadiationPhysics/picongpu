@@ -121,7 +121,7 @@ void Particles<T_DataVector,T_MethodsVector>::init( FieldE &fieldE, FieldB &fiel
 
     this->datasetID = datasetID;
 
-    DataConnector::getInstance( ).registerData( *this, datasetID );
+    Environment<>::getInstance( ).getDataConnector().registerData( *this, datasetID );
 }
 
 template< typename T_DataVector, typename T_MethodsVector>

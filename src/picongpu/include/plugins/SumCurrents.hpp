@@ -102,7 +102,7 @@ public:
     notifyFrequency(0)
     {
 
-        ModuleConnector::getInstance().registerModule(this);
+        Environment<>::getInstance().getModuleConnector().registerModule(this);
     }
 
     virtual ~SumCurrents()
@@ -112,7 +112,7 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::getInstance().getDataConnector();
 
         fieldJ = &(dc.getData<FieldJ > (FIELD_J, true));
 
@@ -169,7 +169,7 @@ private:
         {
             sumcurrents = new GridBuffer<float3_X, DIM1 > (DataSpace<DIM1 > (1)); //create one int on gpu und host
 
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
+            Environment<>::getInstance().getDataConnector().registerObserver(this, notifyFrequency);
         }
     }
 

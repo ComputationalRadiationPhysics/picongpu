@@ -551,7 +551,7 @@ public:
     radRestart(false)
     {
 
-        ModuleConnector::getInstance().registerModule(this);
+        Environment<>::getInstance().getModuleConnector().registerModule(this);
     }
 
     virtual ~Radiation()
@@ -569,7 +569,7 @@ public:
     void notify(uint32_t currentStep)
     {
 
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::getInstance().getDataConnector();
 
         particles = &(dc.getData<ParticlesType > ((uint32_t) ParticlesType::FrameType::CommunicationTag, true));
 
@@ -647,7 +647,7 @@ private:
             freqFkt = freqInit.getFunctor();
 
 
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
+            Environment<>::getInstance().getDataConnector().registerObserver(this, notifyFrequency);
 
             if (isMaster && totalRad)
             {
