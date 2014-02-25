@@ -86,7 +86,7 @@ public:
 
         BOOST_AUTO(fieldE_coreBorder,
              this->fieldE->getGridBuffer().getDeviceBuffer().cartBuffer().view(
-                   typeCast<int>(GuardDim().vec()), -typeCast<int>(GuardDim().vec())));
+                   precisionCast<int>(GuardDim().vec()), -precisionCast<int>(GuardDim().vec())));
                    
         this->eField_zt[0] = new container::DeviceBuffer<float, 2 > (Size_t < 2 > (fieldE_coreBorder.size().z(), this->collectTimesteps));
         this->eField_zt[1] = new container::DeviceBuffer<float, 2 >(this->eField_zt[0]->size());
@@ -178,7 +178,7 @@ public:
 
         BOOST_AUTO(fieldE_coreBorder,
            this->fieldE->getGridBuffer().getDeviceBuffer().cartBuffer().view(
-                typeCast<int>(GuardDim().vec()), -typeCast<int>(GuardDim().vec())));
+                precisionCast<int>(GuardDim().vec()), -precisionCast<int>(GuardDim().vec())));
 
         for (size_t z = 0; z < eField_zt[0]->size().x(); z++)
         {

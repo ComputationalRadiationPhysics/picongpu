@@ -180,7 +180,7 @@ __global__ void kernelAddTemperature(ParticlesBox<FRAME, simDim> pb, float_X ene
             // Which makes sense, since it means that we use a macroMass
             // and a macroEnergy now.
             const float3_X mom = tmpRand * (float_X) math::sqrt(
-                                                                typeCast<sqrt_X > (
+                                                                precisionCast<sqrt_X > (
                                                                                    macroEnergy * frame->getMass(macroWeighting)
                                                                                    )
                                                                 );
@@ -475,7 +475,7 @@ struct PushParticlePerFrame
             moveDir += valueCorrector;
             /* If we have corrected moveDir we must set pos to 0 */
             pos[i] -= valueCorrector;
-            dir[i] = typeCast<int>(moveDir);
+            dir[i] = precisionCast<int>(moveDir);
         }
         particle[position_] = pos;
 
@@ -490,7 +490,7 @@ struct PushParticlePerFrame
          * if particle is inside of the supercell the **unsigned** representation
          * of dir is always >= size of the supercell
          */
-        dir = typeCast<int>(typeCast<uint32_t >( localCell) >= typeCast<uint32_t >(TVec::getDataSpace())) * dir;
+        dir = precisionCast<int>(precisionCast<uint32_t >( localCell) >= precisionCast<uint32_t >(TVec::getDataSpace())) * dir;
 
         /* if partice is outside of the supercell we use mod to
          * set particle at cell supercell_size to 1

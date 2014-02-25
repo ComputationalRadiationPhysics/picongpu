@@ -39,16 +39,16 @@ namespace picongpu
             if (pos.y() < VACUUM_Y) return float_X(0.0);
 
             float_64 _unit_length=UNIT_LENGTH;
-            const floatD_64 pos_SI = typeCast<float_64>( pos ) * _unit_length;
+            const floatD_64 pos_SI = precisionCast<float_64>( pos ) * _unit_length;
 
             /* expected return value of the profile: [0.0:1.0] */
             SI::GasProfile gasProfile;
             const float_64 density_dbl = gasProfile( pos_SI );
 
-            float_X density = typeCast<float_X>( density_dbl );
+            float_X density = precisionCast<float_X>( density_dbl );
 
             /* validate formula and clip to [0.0:1.0] */
-            density *= typeCast<float_X>( density >= 0.0 );
+            density *= precisionCast<float_X>( density >= 0.0 );
             if( density > 1.0 ) density = 1.0;
 
             return density;

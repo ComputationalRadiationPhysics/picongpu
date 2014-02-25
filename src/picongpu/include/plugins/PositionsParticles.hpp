@@ -68,7 +68,7 @@ struct SglParticle
         for(uint32_t i=0;i<simDim;++i)
             doubleGlobalCellOffset[i]=float_64(globalCellOffset[i]);
         
-        return floatD_64( doubleGlobalCellOffset+ typeCast<float_64>(position));
+        return floatD_64( doubleGlobalCellOffset+ precisionCast<float_64>(position));
     }
 
     template<typename T>
@@ -78,19 +78,19 @@ struct SglParticle
         for(uint32_t i=0;i<simDim;++i)
             pos[i]=( v.getGlobalCell()[i] * cell_size[i]*UNIT_LENGTH);
      
-        const float3_64 mom( typeCast<float_64>(v.momentum.x()) * UNIT_MASS * UNIT_SPEED,
-                             typeCast<float_64>(v.momentum.y()) * UNIT_MASS * UNIT_SPEED,
-                             typeCast<float_64>(v.momentum.z()) * UNIT_MASS * UNIT_SPEED );
+        const float3_64 mom( precisionCast<float_64>(v.momentum.x()) * UNIT_MASS * UNIT_SPEED,
+                             precisionCast<float_64>(v.momentum.y()) * UNIT_MASS * UNIT_SPEED,
+                             precisionCast<float_64>(v.momentum.z()) * UNIT_MASS * UNIT_SPEED );
         
-        const float_64 mass = typeCast<float_64>(v.mass) * UNIT_MASS;
-        const float_64 charge = typeCast<float_64>(v.charge) * UNIT_CHARGE;
+        const float_64 mass = precisionCast<float_64>(v.mass) * UNIT_MASS;
+        const float_64 charge = precisionCast<float_64>(v.charge) * UNIT_CHARGE;
 
         typedef std::numeric_limits< float_64 > dbl;
         out.precision(dbl::digits10);
 
         out << std::scientific << pos << " " << mom << " " << mass << " "
-            << typeCast<float_64>(v.weighting)
-            << " " << charge << " " << typeCast<float_64>(v.gamma);
+            << precisionCast<float_64>(v.weighting)
+            << " " << charge << " " << precisionCast<float_64>(v.gamma);
         return out;
     }
 };

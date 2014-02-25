@@ -59,7 +59,7 @@ struct cast64Bit
 
     HDINLINE typename TypeCast<result, T_Type>::result operator()(const T_Type& value) const
     {
-        return typeCast<result>(value);
+        return precisionCast<result>(value);
     }
 };
 }

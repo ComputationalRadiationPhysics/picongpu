@@ -53,7 +53,7 @@ struct VillaBune
                                 velocity.y() * deltaTime / cellSize.y(),
                                 velocity.z() * deltaTime / cellSize.z());
 
-        const PosType oldPos = (PosType) (typeCast<float_X > (pos) - deltaPos);
+        const PosType oldPos = (PosType) (precisionCast<float_X > (pos) - deltaPos);
 
         addCurrentSplitX(oldPos, pos, charge, boxJ_par, deltaTime);
     }

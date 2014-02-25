@@ -81,7 +81,7 @@ typedef double precisionType;
 }
 
 namespace math = PMacc::algorithms::math;
-using namespace PMacc::algorithms::typeCast;
+using namespace PMacc::algorithms::precisionCast;
 using namespace PMacc::algorithms::promoteType;
 using namespace PMacc::algorithms::forEach;
 using namespace PMacc::traits;

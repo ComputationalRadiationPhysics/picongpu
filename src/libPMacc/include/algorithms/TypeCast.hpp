@@ -25,7 +25,7 @@ namespace PMacc
 {
 namespace algorithms
 {
-namespace typeCast
+namespace precisionCast
 {
 
 template<typename CastToType, typename Type>
@@ -41,11 +41,11 @@ struct TypeCast
 
 
 template<typename CastToType, typename Type>
-HDINLINE static typename TypeCast<CastToType, Type>::result typeCast(const Type& value)
+HDINLINE static typename TypeCast<CastToType, Type>::result precisionCast(const Type& value)
 {
     return TypeCast<CastToType, Type > ()(value);
 }
 
-} //namespace typeCast
+} //namespace precisionCast
 } //namespace algorithms
 }//namespace PMacc
