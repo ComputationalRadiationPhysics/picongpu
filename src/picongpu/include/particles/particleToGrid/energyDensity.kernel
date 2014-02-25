@@ -57,8 +57,7 @@ public:
     typedef typename PMacc::math::CT::make_Int<simDim, lowerMargin>::type LowerMargin;
     typedef typename PMacc::math::CT::make_Int<simDim, upperMargin>::type UpperMargin;
 
-    HDINLINE ComputeEnergyDensityPerFrame() /* const float3_X cellSize, const float_X deltaTime ) :
-            cellSize( cellSize ), deltaTime( deltaTime ) */
+    HDINLINE ComputeEnergyDensityPerFrame()
     {
     }
 
@@ -204,10 +203,6 @@ public:
 
         }
     }
-
-private:
-    //const PMACC_ALIGN( cellSize, float3_X );
-    //const PMACC_ALIGN( deltaTime, float );
 };
 
 } // namespace particleToGrid
