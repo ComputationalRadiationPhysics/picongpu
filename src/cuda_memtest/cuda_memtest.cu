@@ -541,7 +541,7 @@ main(int argc, char** argv)
 
     struct timeval t0, t1;
     int ht=0;
-    double wait_time = 30;
+    double wait_time = 500;
     gettimeofday(&t0, NULL);
     
     while(1){
