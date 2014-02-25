@@ -174,7 +174,7 @@ namespace picongpu
                     }
                     dr = r - pos;
                     
-                    dr *= float3_X(1.0) / cell_size;
+                    dr *= float3_X(1.0) / cellSize;
 
                 }
 

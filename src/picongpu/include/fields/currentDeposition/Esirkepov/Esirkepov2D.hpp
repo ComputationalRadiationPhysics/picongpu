@@ -75,8 +75,8 @@ struct Esirkepov<DIM2,ParticleAssign,NumericalCellType>
                             const ChargeType charge, const float_X deltaTime)
     {
         this->charge = charge;
-        const float2_X deltaPos = float2_X(velocity.x() * deltaTime / cell_size.x(),
-                                           velocity.y() * deltaTime / cell_size.y() );
+        const float2_X deltaPos = float2_X(velocity.x() * deltaTime / cellSize.x(),
+                                           velocity.y() * deltaTime / cellSize.y() );
         const PosType oldPos = pos - deltaPos;
         Line<float2_X> line(oldPos, pos);
         BOOST_AUTO(cursorJ, dataBoxJ.toCursor());
@@ -121,8 +121,8 @@ struct Esirkepov<DIM2,ParticleAssign,NumericalCellType>
          */
 
         using namespace cursor::tools;
-        cptCurrent1D(cursorJ, line, cell_size.x());
-        cptCurrent1D(twistVectorFieldAxes<PMacc::math::CT::Int < 1, 0 > >(cursorJ), rotateOrigin < 1, 0 > (line), cell_size.y());
+        cptCurrent1D(cursorJ, line, cellSize.x());
+        cptCurrent1D(twistVectorFieldAxes<PMacc::math::CT::Int < 1, 0 > >(cursorJ), rotateOrigin < 1, 0 > (line), cellSize.y());
         cptCurrentZ(cursorJ, line, velocity.z());
     }
 

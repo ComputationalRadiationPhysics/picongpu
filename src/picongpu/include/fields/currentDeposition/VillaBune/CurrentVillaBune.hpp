@@ -49,9 +49,9 @@ struct VillaBune
         //   that means: dx_real   = v.x() * dt
         //               dx_inCell = v.x() * dt / cellSize.x()
         const float3_X deltaPos(
-                                velocity.x() * deltaTime / cell_size.x(),
-                                velocity.y() * deltaTime / cell_size.y(),
-                                velocity.z() * deltaTime / cell_size.z());
+                                velocity.x() * deltaTime / cellSize.x(),
+                                velocity.y() * deltaTime / cellSize.y(),
+                                velocity.z() * deltaTime / cellSize.z());
 
         const PosType oldPos = (PosType) (typeCast<float_X > (pos) - deltaPos);
 

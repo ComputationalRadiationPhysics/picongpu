@@ -42,12 +42,12 @@ namespace picongpu
             DINLINE void operator()(BoxJ& boxJ_par, /*box which is shifted to particles cell*/
                                        const PosType pos,
                                        const VelType velocity,
-                                       const ChargeType charge, const float3_X& cell_size, const float_X deltaTime)
+                                       const ChargeType charge, const float_X deltaTime)
             {
                 typename BoxJ::ValueType j = velocity * charge * deltaTime;
-                j.x() *= (1.0 / (cell_size.y() * cell_size.z()));
-                j.y() *= (1.0 / (cell_size.x() * cell_size.z()));
-                j.z() *= (1.0 / (cell_size.x() * cell_size.y()));
+                j.x() *= (1.0 / (cellSize.y() * cellSize.z()));
+                j.y() *= (1.0 / (cellSize.x() * cellSize.z()));
+                j.z() *= (1.0 / (cellSize.x() * cellSize.y()));
 
                 const DataSpace<DIM3> nearestCell(
                                                   __float2_Xint_rd(pos.x() + float_X(0.5)),

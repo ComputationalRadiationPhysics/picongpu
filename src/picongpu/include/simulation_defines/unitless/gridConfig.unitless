@@ -33,7 +33,7 @@ namespace picongpu
     const float_X CELL_WIDTH = float_X (SI::CELL_WIDTH_SI / UNIT_LENGTH); //normalized to UNIT_LENGTH
     const float_X CELL_HEIGHT = float_X (SI::CELL_HEIGHT_SI / UNIT_LENGTH); //normalized to UNIT_LENGTH
     const float_X CELL_DEPTH = float_X(SI::CELL_DEPTH_SI / UNIT_LENGTH); // normalized to UNIT_LENGTH
-    CONST_VECTOR(float_X,simDim,cell_size,CELL_WIDTH,CELL_HEIGHT,CELL_DEPTH);
+    CONST_VECTOR(float_X,simDim,cellSize,CELL_WIDTH,CELL_HEIGHT,CELL_DEPTH);
     
 #if (SIMDIM==DIM3)
     const float_X CELL_VOLUME = CELL_WIDTH * CELL_HEIGHT *CELL_DEPTH;

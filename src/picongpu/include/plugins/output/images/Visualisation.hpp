@@ -649,7 +649,7 @@ public:
 
             float_32 cellSizeArr[3]={0,0,0};
             for(uint32_t i=0;i<simDim;++i)
-                cellSizeArr[i]= cell_size[i];
+                cellSizeArr[i]= cellSize[i];
             
             header.update(*cellDescription, window, transpose, 0, cellSizeArr, gpus);
 

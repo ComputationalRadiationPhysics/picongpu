@@ -77,9 +77,9 @@ struct Esirkepov<DIM3, ParticleAssign, NumericalCellType>
                                 const ChargeType charge, const float_X deltaTime)
     {
         this->charge = charge;
-        const float3_X deltaPos = float3_X(velocity.x() * deltaTime / cell_size.x(),
-                                           velocity.y() * deltaTime / cell_size.y(),
-                                           velocity.z() * deltaTime / cell_size.z());
+        const float3_X deltaPos = float3_X(velocity.x() * deltaTime / cellSize.x(),
+                                           velocity.y() * deltaTime / cellSize.y(),
+                                           velocity.z() * deltaTime / cellSize.z());
         const PosType oldPos = pos - deltaPos;
         Line<float3_X> line(oldPos, pos);
         BOOST_AUTO(cursorJ, dataBoxJ.toCursor());
@@ -126,9 +126,9 @@ struct Esirkepov<DIM3, ParticleAssign, NumericalCellType>
          */
 
         using namespace cursor::tools;
-        cptCurrent1D(twistVectorFieldAxes<PMacc::math::CT::Int < 1, 2, 0 > >(cursorJ), rotateOrigin < 1, 2, 0 > (line), cell_size.x());
-        cptCurrent1D(twistVectorFieldAxes<PMacc::math::CT::Int < 2, 0, 1 > >(cursorJ), rotateOrigin < 2, 0, 1 > (line), cell_size.y());
-        cptCurrent1D(cursorJ, line, cell_size.z());
+        cptCurrent1D(twistVectorFieldAxes<PMacc::math::CT::Int < 1, 2, 0 > >(cursorJ), rotateOrigin < 1, 2, 0 > (line), cellSize.x());
+        cptCurrent1D(twistVectorFieldAxes<PMacc::math::CT::Int < 2, 0, 1 > >(cursorJ), rotateOrigin < 2, 0, 1 > (line), cellSize.y());
+        cptCurrent1D(cursorJ, line, cellSize.z());
     }
 
     /**

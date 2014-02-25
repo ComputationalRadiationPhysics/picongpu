@@ -493,9 +493,9 @@ struct PushParticlePerFrame
         dir = typeCast<int>(typeCast<uint32_t >( localCell) >= typeCast<uint32_t >(TVec::getDataSpace())) * dir;
 
         /* if partice is outside of the supercell we use mod to
-         * set particle at cell supercell_size to 1
-         * and partticle at cell -1 to supercell_size-1
-         * % (mod) can't use with negativ numbers, we add one supercell_size to hide this
+         * set particle at cell supercellSize to 1
+         * and partticle at cell -1 to supercellSize-1
+         * % (mod) can't use with negativ numbers, we add one supercellSize to hide this
          *
         localCell.x() = (localCell.x() + TVec::x) % TVec::x;
         localCell.y() = (localCell.y() + TVec::y) % TVec::y;
