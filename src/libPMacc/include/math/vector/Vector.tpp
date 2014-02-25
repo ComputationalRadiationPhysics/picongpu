@@ -187,7 +187,7 @@ namespace PMacc
 {
 namespace algorithms
 {
-namespace typeCast
+namespace precisionCast
 {
 
 template<typename CastToType, int dim>

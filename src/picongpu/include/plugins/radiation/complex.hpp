@@ -54,8 +54,8 @@ public:
 
     HDINLINE Complex_T euler(T magnitude, const T& phase)
     {
-        real = magnitude * picongpu::math::cos(picongpu::typeCast<picongpu::float_X>(phase));
-        imaginary = magnitude * picongpu::math::sin(picongpu::typeCast<picongpu::float_X>(phase));
+        real = magnitude * picongpu::math::cos(picongpu::precisionCast<picongpu::float_X>(phase));
+        imaginary = magnitude * picongpu::math::sin(picongpu::precisionCast<picongpu::float_X>(phase));
         return *this;
     }
 

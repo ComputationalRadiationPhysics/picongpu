@@ -270,14 +270,14 @@ public:
         for(uint32_t i=0;i<simDim;i++)
             unitVolume*=UNIT_LENGTH;
         // that's a hack, but works for all species
-        //const float_64 charge = typeCast<float_64>(
+        //const float_64 charge = precisionCast<float_64>(
         //    ParticlesType::FrameType().getCharge(NUM_EL_PER_PARTICLE)) /
-        //    typeCast<float_64>(NUM_EL_PER_PARTICLE) * UNIT_CHARGE;
+        //    precisionCast<float_64>(NUM_EL_PER_PARTICLE) * UNIT_CHARGE;
 
         // Note: multiply NUM_EL_PER_PARTICLE again
         //       because of normalization during atomicAdd above
         //       to avoid float overflow for weightings
-        const float_64 unit = typeCast<float_64>(NUM_EL_PER_PARTICLE)
+        const float_64 unit = precisionCast<float_64>(NUM_EL_PER_PARTICLE)
             / (cellVolume * unitVolume);
         if (isMaster)
             output(resultBox.shift(header.window.offset), unit, header.window.size, header);

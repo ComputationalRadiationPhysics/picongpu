@@ -70,12 +70,12 @@ public:
 
         BOOST_AUTO(fieldE_coreBorder,
             fieldE.getGridBuffer().getDeviceBuffer().
-                   cartBuffer().view(typeCast<int>(GuardDim().vec()),
-                                     -typeCast<int>(GuardDim().vec())));
+                   cartBuffer().view(precisionCast<int>(GuardDim().vec()),
+                                     -precisionCast<int>(GuardDim().vec())));
         BOOST_AUTO(fieldB_coreBorder,
             fieldB.getGridBuffer().getDeviceBuffer().
-            cartBuffer().view(typeCast<int>(GuardDim().vec()),
-                              -typeCast<int>(GuardDim().vec())));
+            cartBuffer().view(precisionCast<int>(GuardDim().vec()),
+                              -precisionCast<int>(GuardDim().vec())));
         
         using namespace cursor::tools;
         using namespace PMacc::math::tools;

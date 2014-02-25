@@ -114,7 +114,7 @@ namespace picongpu
                     }
                     else
                     {
-                        const ValueType value = typeCast<ValueType>(data[y][x])
+                        const ValueType value = precisionCast<ValueType>(data[y][x])
                                               * unit;
 
                         /** \info take care, that gnuplots binary matrix does

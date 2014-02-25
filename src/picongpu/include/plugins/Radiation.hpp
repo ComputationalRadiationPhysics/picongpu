@@ -393,7 +393,7 @@ void kernelRadiationParticles(ParBox pb,
                                 // is considered
                                 // the form factor influences the real amplitude
 #if (__COHERENTINCOHERENTWEIGHTING__==1)
-                                const vec2 weighted_real_amp = real_amplitude_s[j] * typeCast<float_64 >
+                                const vec2 weighted_real_amp = real_amplitude_s[j] * precisionCast<float_64 >
                                     (myRadFormFactor(radWeighting_s[j], omega, look));
 #else
                                 // if coherent/incoherent radiation of single macro-particle 

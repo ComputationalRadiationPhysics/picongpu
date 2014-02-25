@@ -67,7 +67,7 @@ public:
         DataSpace<simDim> inCellCoordinate = DataSpaceOperations<simDim>::map(numParDirection, curParticle);
 
 
-        return floatD_X(typeCast<float_X>(inCellCoordinate) * spacing + spacing * float_X(0.5));
+        return floatD_X(precisionCast<float_X>(inCellCoordinate) * spacing + spacing * float_X(0.5));
     }
 
     /** If the particles to initialize (numParsPerCell) end up with a 

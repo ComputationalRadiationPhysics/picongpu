@@ -55,7 +55,7 @@ namespace picongpu
              *       multiplying with DELTA_T_SI */
 
             /* specify your E-Field in V/m and convert to PIConGPU units */
-            const float_X sinArg = typeCast<float_X>( y_SI / period_SI * 2.0 * PI );
+            const float_X sinArg = precisionCast<float_X>( y_SI / period_SI * 2.0 * PI );
             return float3_X(0.0, math::sin( sinArg ) / unitField[1], 0.0);
         }
     };
@@ -87,7 +87,7 @@ namespace picongpu
              *       multiplying with DELTA_T_SI */
 
             /* specify your B-Field in T and convert to PIConGPU units */
-            const float_X sinArg = typeCast<float_X>( y_SI / period_SI * 2.0 * PI );
+            const float_X sinArg = precisionCast<float_X>( y_SI / period_SI * 2.0 * PI );
             return float3_X(0.0, math::cos( sinArg ) / unitField[1], 0.0);
         }
     };
