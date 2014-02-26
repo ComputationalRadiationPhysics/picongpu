@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include "types.h"
 #include "particles/Identifier.hpp"
 #include "compileTime/conversion/MakeSeq.hpp"
 #include "dimensions/DataSpace.hpp"

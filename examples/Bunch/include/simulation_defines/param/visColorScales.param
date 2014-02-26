@@ -23,7 +23,6 @@
 #ifndef COLORSCALES_HPP
 #define	COLORSCALES_HPP
 
-#include "types.h"
 #include "basicOperations.hpp"
 
 namespace picongpu

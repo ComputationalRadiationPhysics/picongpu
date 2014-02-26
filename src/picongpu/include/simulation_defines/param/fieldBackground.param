@@ -20,9 +20,6 @@
 
 #pragma once
 
-#include "physicalConstants.param"
-#include "gridConfig.param"
-
 /** Load external background fields
  * 
  */
