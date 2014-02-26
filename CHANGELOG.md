@@ -10,7 +10,12 @@ This is the 4th release candidate, a *pre-beta* version.
 ### Changes to "Open Beta RC3"
 
 **.param file changes:**
- - n/a
+ - Removed unnesseary includes #234 from:
+   `observer.hpp`, `physicalConstants.param`, `visColorScales.param`,
+   `visualization.param`, `particleConfig.param`, `gasConfig.param`,
+   `fieldBackground.param`, `particleDefinition.param`
+   see the lines that should be removed in
+   (#234)[https://github.com/ComputationalRadiationPhysics/picongpu/pull/234/files]
 
 **New Features:**
  - n/a
