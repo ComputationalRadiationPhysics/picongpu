@@ -44,7 +44,15 @@ namespace picongpu
      */
     DINLINE vec2 observation_direction(const int observation_id_extern)
     {
-      
+      /** Computes observation angles along the x-y plane.
+       *  Assuming electron(s) fly in -x direction and the laser
+       *  propages in +x direction, the observation angles are centered 
+       *  around the -y-axis (0,-1,0) .
+       *  By setting gamma, the angle range can be adjusted to the
+       *  energy of the electrons.
+       */
+
+
       /* in this case only one id is needed: an index for theta */
       const int my_theta_id = observation_id_extern;
 
@@ -57,9 +65,10 @@ namespace picongpu
       const numtype2 delta_theta =  2.0 * gamma_times_thetaMax / (parameters::N_theta); 
 
       /* compute angle theta for index */
-      const numtype2 theta(my_theta_id * delta_theta + picongpu::PI - gamma_times_thetaMax); 
+      const numtype2 theta(my_theta_id * delta_theta - gamma_times_thetaMax + picongpu::PI); 
+      /* + picongpu::PI -> turn observation direction 180 degrees towards -y */
 
-      /* the observation angles are centered around y-axis (0,1,0) */
+      /* compute observation unit vector */
       return vec2(sinf(theta), cosf(theta), 0.0);
       
     }
