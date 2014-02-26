@@ -111,7 +111,7 @@ void FieldE::init( FieldB &fieldB, LaserPhysics &laserPhysics )
     this->fieldB = &fieldB;
     this->laser = &laserPhysics;
 
-    DataConnector::getInstance( ).registerData( *this, getUniqueId() );
+    DataConnector::getInstance( ).registerData( *this );
 }
 
 FieldE::DataBoxType FieldE::getDeviceDataBox( )

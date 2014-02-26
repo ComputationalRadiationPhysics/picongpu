@@ -153,7 +153,7 @@ void FieldJ::init( FieldE &fieldE )
 {
     this->fieldE = &fieldE;
 
-    DataConnector::getInstance( ).registerData( *this, getUniqueId() );
+    DataConnector::getInstance( ).registerData( *this );
 }
 
 GridLayout<simDim> FieldJ::getGridLayout( )

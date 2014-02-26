@@ -265,10 +265,12 @@ public:
         laser = new LaserPhysics(cellDescription->getGridLayout());
 
 #if (ENABLE_IONS == 1)
-        ions = new PIC_Ions(cellDescription->getGridLayout(), *cellDescription);
+        ions = new PIC_Ions(cellDescription->getGridLayout(), *cellDescription,
+                PIC_Ions::FrameType::getName());
 #endif
 #if (ENABLE_ELECTRONS == 1)
-        electrons = new PIC_Electrons(cellDescription->getGridLayout(), *cellDescription);
+        electrons = new PIC_Electrons(cellDescription->getGridLayout(), *cellDescription,
+                PIC_Electrons::FrameType::getName());
 #endif
 
         size_t freeGpuMem(0);
@@ -299,11 +301,11 @@ public:
         this->myFieldSolver = new fieldSolver::FieldSolver(*cellDescription);
 
 #if (ENABLE_ELECTRONS == 1)
-        electrons->init(*fieldE, *fieldB, *fieldJ, electrons->getUniqueId());
+        electrons->init(*fieldE, *fieldB, *fieldJ);
 #endif
 
 #if (ENABLE_IONS == 1)
-        ions->init(*fieldE, *fieldB, *fieldJ, ions->getUniqueId());
+        ions->init(*fieldE, *fieldB, *fieldJ);
 #endif      
         //disabled because of a transaction system bug
         StreamController::getInstance().addStreams(6);

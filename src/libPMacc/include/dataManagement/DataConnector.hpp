@@ -160,10 +160,10 @@ namespace PMacc
          * (Check with DataConnector::hasData when necessary.)
          *
          * @param data simulation data to store in the Dataset
-         * @param id new identifier for the Dataset
          */
-        void registerData(ISimulationData &data, SimulationDataId id)
+        void registerData(ISimulationData &data)
         {
+            SimulationDataId id = data.getUniqueId();
             if (hasData(id))
                 throw std::runtime_error(getExceptionStringForID("DataConnector dataset ID already exists", id));
 
