@@ -1,5 +1,6 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Klaus Steiniger
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Klaus Steiniger,
+ * Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -571,7 +572,7 @@ public:
 
         DataConnector &dc = DataConnector::getInstance();
 
-        particles = &(dc.getData<ParticlesType > ((uint32_t) ParticlesType::FrameType::CommunicationTag, true));
+        particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
 
         if (currentStep >= radStart)
         {

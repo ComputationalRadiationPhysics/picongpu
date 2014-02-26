@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -44,8 +44,10 @@ class SimStartInitialiser : public AbstractInitialiser
 {
 public:
 
-    void init(SimulationDataId id, ISimulationData& data, uint32_t currentStep)
+    void init(ISimulationData& data, uint32_t currentStep)
     {
+        SimulationDataId id = data.getUniqueId();
+        
         // add ids for other types if necessary
         // fields are initialised by their constructor
         if (id == EBuffer::FrameType::getName())

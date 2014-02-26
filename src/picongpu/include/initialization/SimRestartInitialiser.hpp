@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -438,8 +438,10 @@ public:
         AbstractInitialiser::teardown();
     }
 
-    void init(SimulationDataId id, ISimulationData& data, uint32_t)
+    void init(ISimulationData& data, uint32_t)
     {
+        SimulationDataId id = data.getUniqueId();
+
 #if (ENABLE_ELECTRONS == 1)  
         if (id == EBuffer::FrameType::getName())
         {

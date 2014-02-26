@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera, Felix Schmitt
+ * Copyright 2013-2014 Rene Widera, Felix Schmitt
  *
  * This file is part of libPMacc. 
  * 
@@ -142,12 +142,18 @@ namespace PMacc
         {
             currentStep = initialiser.setup();
 
-            for (SimulationDataId id = datasets.sorter->begin();
-                    datasets.sorter->isValid(); id = datasets.sorter->getNext())
+            if (datasets.sorter->isValid())
             {
-                ISimulationData& data = datasets.mapping[id]->getData();
-                
-                initialiser.init(id, data, currentStep);
+                for (SimulationDataId id = datasets.sorter->begin();
+                        datasets.sorter->isValid(); id = datasets.sorter->getNext())
+                {
+                    ISimulationData& data = datasets.mapping[id]->getData();
+
+                    initialiser.init(data, currentStep);
+                    
+                    if (!datasets.sorter->hasNext())
+                        break;
+                }
             }
             
             initialiser.teardown();

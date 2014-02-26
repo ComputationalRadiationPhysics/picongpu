@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera, Felix Schmitt
+ * Copyright 2013-2014 Rene Widera, Felix Schmitt
  *
  * This file is part of libPMacc. 
  * 
@@ -40,7 +40,7 @@ namespace PMacc
     public:
         ListSorter()
         {
-            
+            iter = ids.end();
         }
         
         ~ListSorter() {}
@@ -48,6 +48,8 @@ namespace PMacc
         void add(ID_TYPE id)
         {
             ids.push_back(id);
+            if (iter == ids.end())
+                iter = ids.begin();
         }
         
         ID_TYPE begin()

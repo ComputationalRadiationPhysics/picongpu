@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -58,11 +58,7 @@ public:
     loadSim(false),
     restartSim(false),
     restartFile("h5"),
-    xmlFile("sim.x()ml"),
-    simStartInitialiser(NULL)
-#if (ENABLE_HDF5==1)
-    , simRestartInitialiser(NULL)
-#endif
+    xmlFile("sim.x()ml")
     {
         //ModuleConnector::getInstance().registerModule(this);
     }
@@ -129,31 +125,28 @@ public:
         // the simulation will start after the last saved iteration
         if (restartSim)
         {
-            simRestartInitialiser = new SimRestartInitialiser<PIC_Electrons, PIC_Ions, simDim > (
-                                                                                                 restartFile.c_str(),
-                                                                                                 cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
+            SimRestartInitialiser<PIC_Electrons, PIC_Ions, simDim> simRestartInitialiser(
+                restartFile.c_str(), cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
 
-            DataConnector::getInstance().initialise(*simRestartInitialiser, 0);
+            DataConnector::getInstance().initialise(simRestartInitialiser, 0);
 
-            uint32_t simulationStep = simRestartInitialiser->getSimulationStep() + 1;
+            uint32_t simulationStep = simRestartInitialiser.getSimulationStep() + 1;
 
             __getTransactionEvent().waitForFinished();
-            delete simRestartInitialiser;
-            simRestartInitialiser = NULL;
 
             log<picLog::SIMULATION_STATE > ("Loading from hdf5 finished, can start program");
 
             return simulationStep;
-        }
+        } else
 #endif
-        // start simulation using default values
-        simStartInitialiser = new SimStartInitialiser<PIC_Electrons, PIC_Ions > ();
-        DataConnector::getInstance().initialise(*simStartInitialiser, 0);
-        __getTransactionEvent().waitForFinished();
-        delete simStartInitialiser;
-        simStartInitialiser = NULL;
+        {
+            // start simulation using default values
+            SimStartInitialiser<PIC_Electrons, PIC_Ions> simStartInitialiser;
+            DataConnector::getInstance().initialise(simStartInitialiser, 0);
+            __getTransactionEvent().waitForFinished();
 
-        log<picLog::SIMULATION_STATE > ("Loading from default values finished, can start program");
+            log<picLog::SIMULATION_STATE > ("Loading from default values finished, can start program");
+        }
 
         return 0;
     }
@@ -195,24 +188,14 @@ public:
 
     virtual void slide(uint32_t currentStep)
     {
-
-        simStartInitialiser = new SimStartInitialiser<PIC_Electrons, PIC_Ions > ();
-        DataConnector::getInstance().initialise(*simStartInitialiser, currentStep);
+        SimStartInitialiser<PIC_Electrons, PIC_Ions> simStartInitialiser;
+        DataConnector::getInstance().initialise(simStartInitialiser, currentStep);
         __getTransactionEvent().waitForFinished();
-        delete simStartInitialiser;
-        simStartInitialiser = NULL;
-
     }
 
 private:
     /*Descripe simulation area*/
     MappingDesc *cellDescription;
-
-    // different initialisers for simulation data
-    SimStartInitialiser<PIC_Electrons, PIC_Ions>* simStartInitialiser;
-#if (ENABLE_HDF5==1)
-    SimRestartInitialiser<PIC_Electrons, PIC_Ions, simDim> *simRestartInitialiser;
-#endif
 
     bool loadSim;
     bool restartSim;
