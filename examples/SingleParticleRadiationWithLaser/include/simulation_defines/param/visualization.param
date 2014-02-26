@@ -25,7 +25,7 @@
 #include <cmath>
 
 #include "basicOperations.hpp"
-#include "visColorScales.param"
+
 
 namespace picongpu
 {
@@ -83,4 +83,3 @@ DINLINE float_X preChannel3(const float3_X& field_B, const float3_X& field_E, co
 }
 }
 }
-

@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include "simulation_defines/param/gridConfig.param"
 
 namespace picongpu
 {

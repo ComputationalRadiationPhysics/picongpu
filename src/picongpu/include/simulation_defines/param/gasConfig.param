@@ -21,8 +21,6 @@
 
 #pragma once
 
-#include "types.h"
-
 namespace picongpu
 {
     namespace SI

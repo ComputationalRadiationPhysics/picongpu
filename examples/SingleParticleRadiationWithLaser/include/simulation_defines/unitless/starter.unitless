@@ -22,10 +22,6 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
-
-
-#include "simulation_defines.hpp"
 #include "plugins/PluginController.hpp"
 #include "initialization/InitModuleNone.hpp"
 #include "OneParticleSimulation.hpp"
@@ -46,4 +42,3 @@ namespace picongpu
         > SimStarter;
     }
 }
-

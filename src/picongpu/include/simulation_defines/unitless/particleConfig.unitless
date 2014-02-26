@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include "simulation_defines/param/particleConfig.param"
 #include "static_assert.hpp"
 
 namespace picongpu

@@ -22,10 +22,6 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
-
-
-#include "simulation_defines.hpp"
 #include "plugins/PluginController.hpp"
 #include "initialization/InitialiserController.hpp"
 #include "ThermalTestSimulation.hpp"
@@ -47,4 +43,3 @@ namespace picongpu
         > SimStarter;
     }
 }
-

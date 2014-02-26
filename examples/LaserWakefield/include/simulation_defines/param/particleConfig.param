@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include "simulation_defines/param/gasConfig.param"
 #include "particles/shapes.hpp"
 
 namespace picongpu
