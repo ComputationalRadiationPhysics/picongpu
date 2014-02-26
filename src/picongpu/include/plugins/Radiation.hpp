@@ -54,7 +54,6 @@
 #endif
 
 #include "plugins/radiation/radFormFactor.hpp"
-#include "simulation_defines/param/observer.hpp"
 #include "sys/stat.h"
 
 
