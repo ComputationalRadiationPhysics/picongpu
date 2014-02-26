@@ -206,12 +206,7 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t ) throw (std::in
     StrideMapping<AREA, simDim, MappingDesc> mapper( cellDescription );
     typename ParticlesClass::ParticlesBoxType pBox = parClass.getDeviceParticlesBox( );
     FieldJ::DataBoxType jBox = this->fieldJ.getDeviceBuffer( ).getDataBox( );
-    floatD_X cellSize;
-    for(uint32_t i=0;i<simDim;++i)
-        cellSize[i]=cell_size[i];
-    FrameSolver solver(
-                        cellSize,
-                        DELTA_T );
+    FrameSolver solver( DELTA_T );
     
     DataSpace<simDim> blockSize(mapper.getSuperCellSize( ));
     blockSize[simDim-1]*=workerMultiplier;

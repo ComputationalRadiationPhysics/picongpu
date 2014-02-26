@@ -83,7 +83,7 @@ struct Push
         
         for(uint32_t d=0;d<simDim;++d)
         {
-            pos[d] += (vel[d] * DELTA_T) / cell_size[d]; 
+            pos[d] += (vel[d] * DELTA_T) / cellSize[d]; 
         }   
     }
 };

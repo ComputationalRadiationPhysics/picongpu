@@ -74,8 +74,8 @@ namespace picongpu
             //std::string filename(name + "_" + step.str() + ".bin");
             std::string filename(name + "_" + step.str() + ".dat");
 
-            double x_cell = header.sim.cellSize[0];
-            double y_cell = header.sim.cellSize[1];
+            double x_cell = header.sim.cellSizeArr[0];
+            double y_cell = header.sim.cellSizeArr[1];
 
             double x_simOff = header.sim.simOffsetToNull[0];
             double y_simOff = header.sim.simOffsetToNull[1];

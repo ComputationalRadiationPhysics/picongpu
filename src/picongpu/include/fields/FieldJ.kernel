@@ -161,8 +161,8 @@ template<class ParticleAlgo, class Velocity, class TVec>
 struct ComputeCurrentPerFrame
 {
 
-    HDINLINE ComputeCurrentPerFrame(const floatD_X cellSize, const float_X deltaTime) :
-    cellSize(cellSize), deltaTime(deltaTime)
+    HDINLINE ComputeCurrentPerFrame(const float_X deltaTime) :
+    deltaTime(deltaTime)
     {
     }
 
@@ -187,13 +187,11 @@ struct ComputeCurrentPerFrame
                     pos,
                     vel,
                     charge,
-                    cellSize,
                     deltaTime
                     );
     }
 
 private:
-    const PMACC_ALIGN(cellSize, floatD_X);
     const PMACC_ALIGN(deltaTime, float);
 };
 

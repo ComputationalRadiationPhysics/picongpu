@@ -62,7 +62,7 @@ struct EsirkepovNative
     DINLINE void operator()(DataBoxJ dataBoxJ,
                             const PosType pos,
                             const VelType velocity,
-                            const ChargeType charge, const float3_X& cellSize, const float_X deltaTime)
+                            const ChargeType charge, const float_X deltaTime)
     {
         this->charge = charge;
         const float3_X deltaPos = float3_X(velocity.x() * deltaTime / cellSize.x(),

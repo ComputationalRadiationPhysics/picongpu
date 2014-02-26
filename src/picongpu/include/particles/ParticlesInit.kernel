@@ -54,7 +54,7 @@ DINLINE float_X calcRealDensity(const DataSpace<Dim>& offset, const DataSpace<Di
 {
     floatD_X physicalCellPosition;
     for (uint32_t i = 0; i < simDim; ++i)
-        physicalCellPosition[i] = (cellIdx[i] + offset[i]) * cell_size[i];
+        physicalCellPosition[i] = (cellIdx[i] + offset[i]) * cellSize[i];
 
     const float_X value = gasProfile::calcNormedDensitiy(physicalCellPosition) * GAS_DENSITY;
     return value;

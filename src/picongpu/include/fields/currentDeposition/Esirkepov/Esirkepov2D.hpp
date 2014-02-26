@@ -72,7 +72,7 @@ struct Esirkepov<DIM2,ParticleAssign,NumericalCellType>
     DINLINE void operator()(DataBoxJ dataBoxJ,
                             const PosType pos,
                             const VelType velocity,
-                            const ChargeType charge, const float2_X& cellSize, const float_X deltaTime)
+                            const ChargeType charge, const float_X deltaTime)
     {
         this->charge = charge;
         const float2_X deltaPos = float2_X(velocity.x() * deltaTime / cellSize.x(),

@@ -40,7 +40,7 @@ struct Unit<position<T_Type> >
       /* in-cell position needs two transformations to get to SI:
          in-cell [0;1) -> dimensionless scaling to grid -> SI*/
       for(uint32_t i=0;i<simDim;++i)
-        unit[i]=cell_size[i]*UNIT_LENGTH;
+        unit[i]=cellSize[i]*UNIT_LENGTH;
 
       return unit;
   }

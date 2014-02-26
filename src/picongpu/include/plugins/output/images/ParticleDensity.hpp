@@ -295,10 +295,10 @@ public:
             sliceOffset = (int) ((float) (window.globalWindowSize[sliceDim]) * slicePoint) + window.globalSimulationOffset[sliceDim];
             const DataSpace<simDim> gpus = GridController<simDim>::getInstance().getGpuNodes();
 
-            float_32 cellSize[3]={0,0,0};
+            float_32 cellSizeArr[3]={0,0,0};
             for(uint32_t i=0;i<simDim;++i)
-                cellSize[i]= cell_size[i];
-            header.update(*cellDescription, window, transpose, 0, cellSize, gpus);
+                cellSizeArr[i]= cellSize[i];
+            header.update(*cellDescription, window, transpose, 0, cellSizeArr, gpus);
 
             img = new GridBuffer<Type_, DIM2 > (header.node.maxSize);
 

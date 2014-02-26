@@ -82,9 +82,9 @@ public:
         {
             std::cout << "max weighting " << NUM_EL_PER_PARTICLE << std::endl;
             
-            float_X shortestSide=cell_size.x();
+            float_X shortestSide=cellSize.x();
             for(uint32_t d=1;d<simDim;++d)
-                shortestSide=std::min(shortestSide,cell_size[d]);
+                shortestSide=std::min(shortestSide,cellSize[d]);
                         
             std::cout << "courant=min(deltaCellSize)/dt/c > 1.77 ? "<< 
                          shortestSide / SPEED_OF_LIGHT / DELTA_T << std::endl;
