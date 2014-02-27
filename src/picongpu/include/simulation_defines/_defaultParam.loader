@@ -41,5 +41,5 @@
 #include "simulation_defines/param/pusherConfig.param"
 #include "simulation_defines/param/radiationConfig.param"
 #include "simulation_defines/param/fieldBackground.param"
-#include "simulation_defines/param/observer.param"
+#include "simulation_defines/param/radiationObserver.param"
 
