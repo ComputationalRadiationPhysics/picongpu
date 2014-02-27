@@ -19,10 +19,7 @@
  */ 
  
 
-
-
 #pragma once
-
 
 namespace picongpu
 {
@@ -30,7 +27,7 @@ namespace picongpu
   {
     /** Compute observation angles 
      *
-     * This function is used in the Radiation plugin kernel to compute 
+     * This function is used in the Radiation plug-in kernel to compute 
      * the observation directions given as a unit vector pointing
      * towards a 'virtual' detector
      *
