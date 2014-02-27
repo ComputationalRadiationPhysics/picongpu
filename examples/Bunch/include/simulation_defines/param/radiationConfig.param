@@ -139,7 +139,7 @@ namespace parameters
 
 const float RadiationGamma = 5.;
 
-const unsigned int N_theta = 128; // number of looking directions
+const unsigned int N_observer = 128; // number of looking directions
 
 
 
