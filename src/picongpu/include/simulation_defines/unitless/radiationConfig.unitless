@@ -72,7 +72,7 @@ namespace picongpu
 namespace parameters
 {
 
-    const unsigned int gridsize_theta = N_theta; // size of grid /dim: y); radiation
+    const unsigned int gridsize_theta = N_observer; // size of grid /dim: y); radiation
 
 }
 
