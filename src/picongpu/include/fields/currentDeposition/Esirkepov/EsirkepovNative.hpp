@@ -111,7 +111,17 @@ struct EsirkepovNative
         {
             for (int y = a; y <= b; y++)
             {
-                cptCurrentInLineOfCells(cursorJ(x, y, 0), line - float3_X(x, y, float_X(0.0)), cellEdgeLength);
+                /* move from grid coordinate system to inside particle coordinate 
+                 * system by the operation: 
+                 * relativeGridDistance = grid_point - particle_position
+                 * 
+                 * relativeGridDistance -> represent the relative distance from the
+                 * particle to a grid point
+                 * 
+                 * distance in z direction is distance to the grid origin
+                 */
+                const Line<float3_X> relativeGridDistance(float3_X(x, y, float_X(0.0)) - line);
+                cptCurrentInLineOfCells(cursorJ(x, y, 0), relativeGridDistance , cellEdgeLength);
             }
         }
 
@@ -144,7 +154,10 @@ struct EsirkepovNative
         float_X accumulated_J = float_X(0.0);
         for (int i = a; i <= b; i++)
         {
-            float_X W = DS(line.pos0.z() - i, line.pos1.z() - i) * tmp;
+            /* we are still in the particle coordinate system therefore distance
+             * between grid point in z = distance_to_grid_origin + grid_point_z
+             */
+            float_X W = DS(line.pos0.z() + i, line.pos1.z() + i) * tmp;
             accumulated_J += -this->charge * (float_X(1.0) / float_X(CELL_VOLUME * DELTA_T)) * W * cellEdgeLength;
             atomicAddWrapper(&((*cursorJ(0, 0, i)).z()), accumulated_J);
         }

@@ -66,7 +66,7 @@ struct Esirkepov<DIM3, ParticleAssign, NumericalCellType>
      * (supp + 1) % 2 is 1 for even supports else 0
      */
     static const int begin = -supp / 2 + (supp + 1) % 2 - 1;
-    static const int end = supp / 2;
+    static const int end = begin+supp;
 
     float_X charge;
 
@@ -157,8 +157,8 @@ struct Esirkepov<DIM3, ParticleAssign, NumericalCellType>
          * We calculate pos0-pos1 because we have done our coordinate shifts with
          * pos1 and need the information if pos0 is left or right of pos1.
          */
-        const int offset_x = math::floor(line.pos0.x() - line.pos1.x() + float_X(1.0));
-        const int offset_y = math::floor(line.pos0.y() - line.pos1.y() + float_X(1.0));
+        const int offset_x = int(line.pos0.x() > line.pos1.x());
+        const int offset_y = int(line.pos0.y() > line.pos1.y());
 
         /* pick every cell in the xy-plane that is overlapped by particle's
          * form factor and deposite the current for the cells above and beneath
@@ -168,7 +168,17 @@ struct Esirkepov<DIM3, ParticleAssign, NumericalCellType>
         {
             for (int y = begin + offset_y; y <= end + offset_y; y++)
             {
-                cptCurrentInLineOfCells(cursorJ(x, y, 0), line - float3_X(x, y, float_X(0.0)), cellEdgeLength);
+                /* move from grid coordinate system to inside particle coordinate 
+                 * system by the operation: 
+                 * relativeGridDistance = grid_point - particle_position
+                 * 
+                 * relativeGridDistance -> represent the relative distance from the
+                 * particle to a grid point
+                 * 
+                 * distance in z direction is distance to the grid origin
+                 */
+                const Line<float3_X> relativeGridDistance(float3_X(x, y, 0)-line);
+                cptCurrentInLineOfCells(cursorJ(x, y, 0), relativeGridDistance, cellEdgeLength);
             }
         }
 
@@ -196,12 +206,15 @@ struct Esirkepov<DIM3, ParticleAssign, NumericalCellType>
         /* integrate W, which is the divergence of the current density, in z-direction
          * to get the current density j
          */
-        const int offset_z = math::floor(line.pos0.z() - line.pos1.z() + float_X(1.0));
+        const int offset_z = int(line.pos0.z() < line.pos1.z());
 
         float_X accumulated_J = float_X(0.0);
         for (int i = begin + offset_z; i <= end + offset_z; i++)
         {
-            float_X W = DS(line.pos0.z() - i, line.pos1.z() - i) * tmp;
+            /* we are still in the particle coordinate system therefore distance
+             * between grid point in z = distance_to_grid_origin + grid_point_z
+             */
+            float_X W = DS(line.pos0.z() + i, line.pos1.z() + i) * tmp;
             accumulated_J += -this->charge * (float_X(1.0) / float_X(CELL_VOLUME * DELTA_T)) * W * cellEdgeLength;
             /* the branch divergence here still over-compensates for the fewer collisions in the (expensive) atomic adds */
             if(accumulated_J!=float_X(0.0))

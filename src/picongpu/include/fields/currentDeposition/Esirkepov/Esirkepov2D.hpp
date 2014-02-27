@@ -64,7 +64,7 @@ struct Esirkepov<DIM2,ParticleAssign,NumericalCellType>
      * (supp + 1) % 2 is 1 for even supports else 0
      */
     static const int begin = -supp / 2 + (supp + 1) % 2 - 1;
-    static const int end = supp / 2;
+    static const int end = begin+supp;
 
     float_X charge;
 
@@ -153,7 +153,7 @@ struct Esirkepov<DIM2,ParticleAssign,NumericalCellType>
          * pos1 and need the information if pos0 is left or right of pos1.
          */
 
-        const int offset_y = math::floor(line.pos0.y() - line.pos1.y() + float_X(1.0));
+        const int offset_y = int(line.pos0.y() > line.pos1.y());
 
         /* pick every cell in the xy-plane that is overlapped by particle's
          * form factor and deposite the current for the cells above and beneath
@@ -162,7 +162,17 @@ struct Esirkepov<DIM2,ParticleAssign,NumericalCellType>
 
         for (int y = begin + offset_y; y <= end + offset_y; y++)
         {
-            cptCurrentInLineOfCells(cursorJ(0, y), line - float2_X(0., y), cellEdgeLength);
+            /* move from grid coordinate system to inside particle coordinate 
+             * system by the operation: 
+             * relativeGridDistance = grid_point - particle_position
+             * 
+             * relativeGridDistance -> represent the relative distance from the
+             * particle to a grid point
+             * 
+             * distance in x direction is distance to the grid origin
+             */
+            const Line<float2_X> relativeGridDistance(float2_X(float_X(0.0),y) - line);
+            cptCurrentInLineOfCells(cursorJ(0, y), relativeGridDistance, cellEdgeLength);
         }
     }
 
@@ -171,8 +181,8 @@ struct Esirkepov<DIM2,ParticleAssign,NumericalCellType>
                              const Line<float2_X>& line,
                              const float_X v_z)
     {
-        const int offset_x = math::floor(line.pos0.x() - line.pos1.x() + float_X(1.0));
-        const int offset_y = math::floor(line.pos0.y() - line.pos1.y() + float_X(1.0));
+        const int offset_x = int(line.pos0.x() > line.pos1.x());
+        const int offset_y = int(line.pos0.y() > line.pos1.y());
 
         /* pick every cell in the xy-plane that is overlapped by particle's
          * form factor and deposite the current for the cells above and beneath
@@ -182,7 +192,17 @@ struct Esirkepov<DIM2,ParticleAssign,NumericalCellType>
         {
             for (int y = begin + offset_y; y <= end + offset_y; y++)
             {
-                cptCurrentZInCell(cursorJ(x, y), line - float2_X(x, y), v_z);
+                /* move from grid coordinate system to inside particle coordinate 
+                 * system by the operation: 
+                 * relativeGridDistance = grid_point - particle_position
+                 * 
+                 * relativeGridDistance -> represent the relative distance from the
+                 * particle to a grid point
+                 * 
+                 * distance in y direction is distance to the grid origin
+                 */
+                const Line<float2_X> relativeGridDistance(float2_X(x,y) - line);
+                cptCurrentZInCell(cursorJ(x, y), relativeGridDistance, v_z);
             }
         }
     }
@@ -206,12 +226,15 @@ struct Esirkepov<DIM2,ParticleAssign,NumericalCellType>
         /* integrate W, which is the divergence of the current density, in x-direction
          * to get the current density j
          */
-        const int offset_x = math::floor(line.pos0.x() - line.pos1.x() + float_X(1.0));
+        const int offset_x = int(line.pos0.x() < line.pos1.x());
 
         float_X accumulated_J = float_X(0.0);
         for (int i = begin + offset_x; i <= end + offset_x; i++)
         {
-            float_X W = DS(line.pos0.x()-i, line.pos1.x()-i) * tmp;
+            /* we are still in the particle coordinate system therefore distance
+             * between grid point in x = distance_to_grid_origin + grid_point_x
+             */
+            float_X W = DS(line.pos0.x()+i, line.pos1.x()+i) * tmp;
             accumulated_J += -this->charge * (float_X(1.0) / float_X(CELL_VOLUME * DELTA_T)) * W * cellEdgeLength;
             if(accumulated_J!=float_X(0.0))
                 atomicAddWrapper(&((*cursorJ(i, 0)).x()), accumulated_J);
