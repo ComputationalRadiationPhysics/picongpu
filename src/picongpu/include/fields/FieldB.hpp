@@ -82,6 +82,7 @@ namespace picongpu
 
         GridBuffer<ValueType, simDim> &getGridBuffer();
 
+        SimulationDataId getUniqueId();
 
         void synchronize();
 

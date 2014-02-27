@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -82,7 +82,7 @@ void TotalDivJ::notify(uint32_t currentStep)
     DataConnector &dc = DataConnector::getInstance();
     
     container::PseudoBuffer<float3_X, 3> fieldJ
-        (dc.getData<FieldJ > (FIELD_J, true).getGridBuffer().getDeviceBuffer());
+        (dc.getData<FieldJ > (FieldJ::getName(), true).getGridBuffer().getDeviceBuffer());
         
     container::DeviceBuffer<float, 3> fieldDivJ(fieldJ.size());
     zone::SphericZone<3> coreBorderZone(fieldJ.zone().size - (size_t)2*BlockDim().vec(),

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -92,6 +92,11 @@ FieldB::~FieldB( )
     delete fieldB;
 }
 
+SimulationDataId FieldB::getUniqueId()
+{
+    return getName();
+}
+
 void FieldB::synchronize( )
 {
     fieldB->deviceToHost( );
@@ -116,7 +121,7 @@ void FieldB::init( FieldE &fieldE, LaserPhysics &laserPhysics )
     this->fieldE = &fieldE;
     this->laser = &laserPhysics;
 
-    DataConnector::getInstance( ).registerData( *this, FIELD_B );
+    DataConnector::getInstance( ).registerData( *this );
 }
 
 GridLayout<simDim> FieldB::getGridLayout( )

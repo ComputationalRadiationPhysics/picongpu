@@ -70,8 +70,8 @@ void FieldEnergy::notify(uint32_t currentStep)
     typedef math::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> BlockDim;
     
     DataConnector &dc = DataConnector::getInstance();
-    FieldE& fieldE = dc.getData<FieldE > (FIELD_E, true);
-    FieldB& fieldB = dc.getData<FieldB > (FIELD_B, true);
+    FieldE& fieldE = dc.getData<FieldE > (FieldE::getName(), true);
+    FieldB& fieldB = dc.getData<FieldB > (FieldB::getName(), true);
 
     BOOST_AUTO(fieldE_coreBorder,
             fieldE.getGridBuffer().getDeviceBuffer().cartBuffer().view(precisionCast<int>(BlockDim().vec()), -precisionCast<int>(BlockDim().vec())));

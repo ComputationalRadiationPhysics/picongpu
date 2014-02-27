@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -53,9 +53,11 @@ using namespace PMacc;
 
 template< typename T_DataVector, typename T_MethodsVector>
 Particles<T_DataVector, T_MethodsVector>::Particles( GridLayout<simDim> gridLayout,
-                                                     MappingDesc cellDescription ) :
-ParticlesBase<T_DataVector, T_MethodsVector, MappingDesc>( cellDescription ), fieldB( NULL ), fieldE( NULL ), fieldJurrent( NULL ), gridLayout( gridLayout )
-{
+                                                     MappingDesc cellDescription,
+                                                     SimulationDataId datasetID ) :
+ParticlesBase<T_DataVector, T_MethodsVector, MappingDesc>( cellDescription ), fieldB( NULL ), fieldE( NULL ), fieldJurrent( NULL ), gridLayout( gridLayout ),
+datasetID( datasetID )
+{ 
     size_t sizeOfExchanges = 2 * 2 * ( BYTES_EXCHANGE_X + BYTES_EXCHANGE_Y + BYTES_EXCHANGE_Z ) + BYTES_EXCHANGE_X * 2 * 8;
 
     
@@ -105,6 +107,12 @@ Particles<T_DataVector, T_MethodsVector>::~Particles( )
 }
 
 template< typename T_DataVector, typename T_MethodsVector>
+SimulationDataId Particles<T_DataVector, T_MethodsVector>::getUniqueId()
+{
+    return datasetID;
+}
+
+template< typename T_DataVector, typename T_MethodsVector>
 void Particles<T_DataVector, T_MethodsVector>::synchronize( )
 {
     this->particlesBuffer->deviceToHost( );
@@ -117,15 +125,13 @@ void Particles<T_DataVector, T_MethodsVector>::syncToDevice( )
 }
 
 template< typename T_DataVector, typename T_MethodsVector>
-void Particles<T_DataVector, T_MethodsVector>::init( FieldE &fieldE, FieldB &fieldB, FieldJ &fieldJ, int datasetID )
+void Particles<T_DataVector, T_MethodsVector>::init( FieldE &fieldE, FieldB &fieldB, FieldJ &fieldJ )
 {
     this->fieldE = &fieldE;
     this->fieldB = &fieldB;
     this->fieldJurrent = &fieldJ;
 
-    this->datasetID = datasetID;
-
-    DataConnector::getInstance( ).registerData( *this, datasetID );
+    DataConnector::getInstance( ).registerData( *this );
 }
 
 template< typename T_DataVector, typename T_MethodsVector>

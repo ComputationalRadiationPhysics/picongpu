@@ -186,7 +186,7 @@ public:
     output(output),
     analyzerName(name),
     cellDescription(NULL),
-    particleTag(ParticlesType::FrameType::CommunicationTag),
+    particleTag(ParticlesType::FrameType::getName()),
     notifyFrequency(notifyFrequency),
     transpose(transpose),
     slicePoint(slicePoint),
@@ -324,7 +324,7 @@ private:
 
 
     MappingDesc *cellDescription;
-    uint32_t particleTag;
+    SimulationDataId particleTag;
 
     GridBuffer<Type_, DIM2> *img;
 

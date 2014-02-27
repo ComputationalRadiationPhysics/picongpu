@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -131,6 +131,11 @@ namespace picongpu
         __setTransactionEvent( __endTransaction( ) );
     }
 
+    SimulationDataId FieldTmp::getUniqueId()
+    {
+        return getName();
+    }
+    
     void FieldTmp::synchronize( )
     {
         fieldTmp->deviceToHost( );
@@ -187,7 +192,7 @@ namespace picongpu
 
     void FieldTmp::init( )
     {
-        DataConnector::getInstance( ).registerData( *this, FIELD_TMP );
+        DataConnector::getInstance( ).registerData( *this );
     }
 
     FieldTmp::DataBoxType FieldTmp::getDeviceDataBox( )
@@ -200,7 +205,7 @@ namespace picongpu
         return fieldTmp->getHostBuffer( ).getDataBox( );
     }
 
-    GridBuffer<FieldTmp::ValueType, simDim> &FieldTmp::getGridBuffer( )
+    GridBuffer<typename FieldTmp::ValueType, simDim> &FieldTmp::getGridBuffer( )
     {
         return *fieldTmp;
     }
@@ -224,11 +229,10 @@ namespace picongpu
     }
     
 
-    template<class FrameSolver >
     std::string
     FieldTmp::getName( )
     {
-        return FrameSolver().getName();
+        return "FieldTmp";
     }
     
     uint32_t

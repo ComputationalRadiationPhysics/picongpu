@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -90,6 +90,11 @@ FieldJ::~FieldJ( )
 {
 }
 
+SimulationDataId FieldJ::getUniqueId()
+{
+    return getName();
+}
+
 void FieldJ::synchronize( )
 {
     fieldJ.deviceToHost( );
@@ -148,7 +153,7 @@ void FieldJ::init( FieldE &fieldE )
 {
     this->fieldE = &fieldE;
 
-    DataConnector::getInstance( ).registerData( *this, FIELD_J );
+    DataConnector::getInstance( ).registerData( *this );
 }
 
 GridLayout<simDim> FieldJ::getGridLayout( )

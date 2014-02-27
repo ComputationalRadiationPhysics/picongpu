@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2014 Rene Widera, Felix Schmitt
  *
  * This file is part of libPMacc. 
  * 
@@ -52,10 +52,10 @@ namespace PMacc
         /**
          * Initialises simulation data (concrete type of data is described by id).
          * 
-         * @param id identifier for simulation data (identifies type, too)
          * @param data reference to actual simulation data
+         * @param currentStep current simulation iteration
          */
-        virtual void init(uint32_t id, ISimulationData& data,uint32_t currentStep) = 0;
+        virtual void init(ISimulationData& data, uint32_t currentStep) = 0;
     };
     
 }
