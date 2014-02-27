@@ -86,13 +86,13 @@ namespace picongpu
 
       /* compute step with between two angles for range [angle_??_start : angle_??_end] */
       const numtype2 delta_angle_theta =  (angle_theta_start - 
-					   angle_theta_start) / (N_angle_split-1.0);
+					   angle_theta_end) / (N_angle_split-1.0);
       const numtype2 delta_angle_phi   =  (angle_phi_start - 
-					   angle_phi_start)   / (N_angle_split-1.0);
+					   angle_phi_end)   / (N_angle_split-1.0);
 
       /* compute observation angles */
-      const numtype2 theta(  my_index_theta * delta_angle_theta + angle_range_theta_start );
-      const numtype2 phi(    my_index_phi   * delta_angle_phi   - angle_range_phi_start   ); 
+      const numtype2 theta(  my_index_theta * delta_angle_theta + angle_theta_start );
+      const numtype2 phi(    my_index_phi   * delta_angle_phi   - angle_phi_start   ); 
 
       /* compute observation unit vector */
       return vec2( sinf(theta)*cosf(phi) , sinf(theta)*sinf(phi) , cosf(theta) ) ;
