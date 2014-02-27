@@ -55,10 +55,8 @@ public:
 
     InitialiserController() :
     cellDescription(NULL),
-    loadSim(false),
     restartSim(false),
-    restartFile("h5"),
-    xmlFile("sim.x()ml")
+    restartFile("h5")
     {
         //ModuleConnector::getInstance().registerModule(this);
     }
@@ -153,10 +151,6 @@ public:
 
     void moduleLoad()
     {
-        if (loadSim && restartSim)
-        {
-            throw ModuleException("Invalid configuration. Can't use --load and --restart together");
-        }
     }
 
     void moduleUnload()
@@ -165,14 +159,13 @@ public:
 
     void moduleRegisterHelp(po::options_description& desc)
     {
-        desc.add_options()
-            ("load", po::value<bool>(&loadSim)->zero_tokens(), "load simulation from xml description")
-            ("xml-infile", po::value<std::string > (&xmlFile)->default_value(xmlFile), "simulation description file")
 #if (ENABLE_HDF5==1)
+        desc.add_options()
+
             ("restart", po::value<bool>(&restartSim)->zero_tokens(), "restart simulation from HDF5")
             ("restart-file", po::value<std::string > (&restartFile)->default_value(restartFile), "HDF5 file to restart simulation from")
-#endif
             ;
+#endif
     }
 
     std::string moduleGetName() const
@@ -197,10 +190,8 @@ private:
     /*Descripe simulation area*/
     MappingDesc *cellDescription;
 
-    bool loadSim;
     bool restartSim;
     std::string restartFile;
-    std::string xmlFile;
 
 };
 
