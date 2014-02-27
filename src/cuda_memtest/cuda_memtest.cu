@@ -176,7 +176,7 @@ thread_func(void* _arg)
 
     tot_num_blocks = MIN(tot_num_blocks, free/BLOCKSIZE - 16);
     do{
-        tot_num_blocks -= 16 ; //maigc number 16 MB
+        tot_num_blocks -= 16 ; //magic number 16 MB
         DEBUG_PRINTF("Trying to allocate %d MB\n", tot_num_blocks);
         if (tot_num_blocks <= 0){
             FPRINTF("ERROR: cannot allocate any memory from GPU\n");
