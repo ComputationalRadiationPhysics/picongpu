@@ -19,8 +19,6 @@
  */ 
  
 
-
-
 #pragma once
 
 namespace picongpu
@@ -29,7 +27,7 @@ namespace picongpu
   {
     /** Compute observation angles 
      *
-     * This function is used in the Radiation plugin kernel to compute 
+     * This function is used in the Radiation plug-in kernel to compute 
      * the observation directions given as a unit vector pointing
      * towards a 'virtual' detector
      *
@@ -46,24 +44,55 @@ namespace picongpu
       /** compute observation directions for 2D virtual detector field 
        *  pointing toward the +x direction
        *  with observation angles ranging from
-       *  theta = [90 degree - angle_range : 90 degree + angle range]
-       *  phi   = [-angle_range : +angle_range]
+       *  theta = [angle_theta_start : angle_theta_end]
+       *  phi   = [angle_phi_start   : angle_phi_end  ]
+       *  every block index moves the phi angle from its start value toward 
+       *  its end value until the observation_id_extern reaches N_split.
+       *  After that the theta angle moves further from its start
+       *  value towards its end value while phi is reset to its start
+       *  value.
+       *
+       *  The unit vector pointing towards the observing virtual detector
+       *  can be described using theta and phi by:
+       *  x_value = sin(theta) * cos(phi)
+       *  y_value = sin(theta) * sin(phi)
+       *  z_value = cos(theta)
+       *  These are the standard spherical coordinates.
+       *
+       *  The default setup describes an detector array of 
+       *  16x16 detectors ranging from -pi/8= -22.5 degrees 
+       *  to +pi/8= +22.5 degrees for both angles with the center
+       *  pointing toward the x-axis (laser propagation direction).
        */
 
-      /* generate twi indices from single block index */
-      const int N_angle_split = 16;
+      /* generate two indices from single block index */
+      const int N_angle_split = 16; /* index split distance */
+      /* get column index for computing angle theta: */
       const int my_index_theta = observation_id_extern / N_angle_split;
+      /* get row index for computing angle phi: */
       const int my_index_phi = observation_id_extern % N_angle_split;
 
-      /* set up observation angle range */
-      const numtype2 angle_range= picongpu::PI/8.0;
 
-      /* compute step with bewteen two angles for range [-angle_range : +angle_range] */
-      const numtype2 delta_angle =  2.0 * angle_range / (N_angle_split);
+      /* set up observation angle range */
+      /* angles range for theta */
+      const numtype2 angle_theta_start = - picongpu::PI/8.0
+	                                         + 0.5*picongpu::PI; /* [rad] */
+      const numtype2 angle_theta_end   = + picongpu::PI/8.0
+	                                         + 0.5*picongpu::PI; /* [rad] */
+      /* angles range for phi */
+      const numtype2 angle_phi_start = - picongpu::PI/8.0; /* [rad] */
+      const numtype2 angle_phi_end   = + picongpu::PI/8.0; /* [rad] */
+
+
+      /* compute step with between two angles for range [angle_??_start : angle_??_end] */
+      const numtype2 delta_angle_theta =  (angle_theta_start - 
+					   angle_theta_start) / (N_angle_split-1.0);
+      const numtype2 delta_angle_phi   =  (angle_phi_start - 
+					   angle_phi_start)   / (N_angle_split-1.0);
 
       /* compute observation angles */
-      const numtype2 theta(  my_index_theta * delta_angle - angle_range + 0.5*picongpu::PI);
-      const numtype2 phi(    my_index_phi   * delta_angle - angle_range); 
+      const numtype2 theta(  my_index_theta * delta_angle_theta + angle_range_theta_start );
+      const numtype2 phi(    my_index_phi   * delta_angle_phi   - angle_range_phi_start   ); 
 
       /* compute observation unit vector */
       return vec2( sinf(theta)*cosf(phi) , sinf(theta)*sinf(phi) , cosf(theta) ) ;
