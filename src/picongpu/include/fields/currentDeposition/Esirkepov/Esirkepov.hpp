@@ -43,12 +43,15 @@ using namespace PMacc;
  * See available shapes at "intermediateLib/particleShape".
  * paper: "Exact charge conservation scheme for Particle-in-Cell simulation
  *  with an arbitrary form-factor"
+ * 
+ * \tparam T_Dim Implementation for 2D or 3D
+ * \tparam T_ParticleShape the particle shape for the species, \see picongpu::particleShape
  */
-template<uint32_t T_Dim, typename T_ParticleShape, typename NumericalCellType>
+template<uint32_t T_Dim, typename T_ParticleShape>
 struct Esirkepov;
 
-template<typename T_ParticleShape, typename NumericalCellType>
-struct Esirkepov<DIM3, T_ParticleShape, NumericalCellType>
+template<typename T_ParticleShape>
+struct Esirkepov<DIM3, T_ParticleShape>
 {
     typedef typename T_ParticleShape::ChargeAssignment ParticleAssign;
     static const int supp = ParticleAssign::support;
@@ -60,7 +63,7 @@ struct Esirkepov<DIM3, T_ParticleShape, NumericalCellType>
 
     /* begin and end border is calculated for the current time step were the old 
      * position of the particle in the previous time step is smaller than the current position
-     * Later on all coordinates shifted thus we can solve the charge calculation
+     * Later on all coordinates are shifted thus we can solve the charge calculation
      * in support + 1 steps.
      * 
      * For the case were previous position is greater than current position we correct
@@ -159,9 +162,9 @@ struct Esirkepov<DIM3, T_ParticleShape, NumericalCellType>
         {
             for (int j = begin + offset_j; j < end + offset_j; ++j)
             {
-                /* This is the implementation of the W(i,j,k,3) version from
+                /* This is the implementation of the FORTRAN W(i,j,k,3)/ C style W(i,j,k,2) version from
                  * Esirkepov paper. All coordinates are rotated before thus we can 
-                 * always use W(i,j,k,3).
+                 * always use C style W(i,j,k,2).
                  */
                 float_X tmp =
                     S0(line, i, 0) * S0(line, j, 1) +
@@ -186,7 +189,7 @@ struct Esirkepov<DIM3, T_ParticleShape, NumericalCellType>
     /** calculate S0 (see paper)
      * @param line element with previous and current position of the particle
      * @param gridPoint used grid point to evaluate assignment shape
-     * @param d dimension range [0,2] means [x,y,z]
+     * @param d dimension range {0,1,2} means {x,y,z}
      *          different to Esirkepov paper, here we use C style
      */
     DINLINE float_X S0(const Line<float3_X>& line, const float_X gridPoint, const float_X d)
@@ -197,7 +200,7 @@ struct Esirkepov<DIM3, T_ParticleShape, NumericalCellType>
     /** calculate DS (see paper)
      * @param line element with previous and current position of the particle
      * @param gridPoint used grid point to evaluate assignment shape
-     * @param d dimension range [0,2] means [x,y,z]
+     * @param d dimension range {0,1,2} means {x,y,z}]
      *          different to Esirkepov paper, here we use C style
      */
     DINLINE float_X DS(const Line<float3_X>& line, const float_X gridPoint, const float_X d)
@@ -214,11 +217,11 @@ namespace traits
 /*Get margin of a solver
  * class must define a LowerMargin and UpperMargin 
  */
-template<uint32_t T_Dim, typename T_ParticleShape, typename NumericalCellType>
-struct GetMargin<picongpu::currentSolverEsirkepov::Esirkepov<T_Dim, T_ParticleShape, NumericalCellType> >
+template<uint32_t T_Dim, typename T_ParticleShape>
+struct GetMargin<picongpu::currentSolverEsirkepov::Esirkepov<T_Dim, T_ParticleShape> >
 {
 private:
-    typedef picongpu::currentSolverEsirkepov::Esirkepov<T_Dim, T_ParticleShape, NumericalCellType> Solver;
+    typedef picongpu::currentSolverEsirkepov::Esirkepov<T_Dim, T_ParticleShape> Solver;
 public:
     typedef typename Solver::LowerMargin LowerMargin;
     typedef typename Solver::UpperMargin UpperMargin;

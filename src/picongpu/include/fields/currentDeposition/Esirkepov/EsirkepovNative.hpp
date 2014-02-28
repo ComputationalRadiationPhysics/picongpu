@@ -46,7 +46,7 @@ using namespace PMacc;
  * paper: "Exact charge conservation scheme for Particle-in-Cell simulation
  *  with an arbitrary form-factor"
  */
-template<typename T_ParticleShape, typename NumericalCellType>
+template<typename T_ParticleShape>
 struct EsirkepovNative
 {
     typedef typename T_ParticleShape::ChargeAssignment ParticleAssign;
@@ -135,7 +135,7 @@ struct EsirkepovNative
     /** calculate S0 (see paper)
      * @param line element with previous and current position of the particle
      * @param gridPoint used grid point to evaluate assignment shape
-     * @param d dimension range [1,3] means [x,y,z]
+     * @param d dimension range {1,2,3} means {x,y,z}
      *        same like in Esirkepov paper (FORTAN style)
      */
     DINLINE float_X S0(const Line<float3_X>& line, const float_X gridPoint, const float_X d)
@@ -146,7 +146,7 @@ struct EsirkepovNative
     /** calculate DS (see paper)
      * @param line element with previous and current position of the particle
      * @param gridPoint used grid point to evaluate assignment shape
-     * @param d dimension range [1,3] means [x,y,z]
+     * @param d dimension range {1,2,3} means {x,y,z}
      *        same like in Esirkepov paper (FORTAN style)
      */
     DINLINE float_X DS(const Line<float3_X>& line, const float_X gridPoint, const float_X d)
@@ -163,11 +163,11 @@ namespace traits
 /*Get margin of a solver
  * class must define a LowerMargin and UpperMargin 
  */
-template<typename T_ParticleShape, typename NumericalCellType>
-struct GetMargin<picongpu::currentSolverEsirkepov::EsirkepovNative<T_ParticleShape, NumericalCellType> >
+template<typename T_ParticleShape>
+struct GetMargin<picongpu::currentSolverEsirkepov::EsirkepovNative<T_ParticleShape> >
 {
 private:
-    typedef picongpu::currentSolverEsirkepov::EsirkepovNative<T_ParticleShape, NumericalCellType> Solver;
+    typedef picongpu::currentSolverEsirkepov::EsirkepovNative<T_ParticleShape> Solver;
 public:
     typedef typename Solver::LowerMargin LowerMargin;
     typedef typename Solver::UpperMargin UpperMargin;
