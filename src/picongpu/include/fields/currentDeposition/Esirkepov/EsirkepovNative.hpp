@@ -46,9 +46,10 @@ using namespace PMacc;
  * paper: "Exact charge conservation scheme for Particle-in-Cell simulation
  *  with an arbitrary form-factor"
  */
-template<typename ParticleAssign, typename NumericalCellType>
+template<typename T_ParticleAssign, typename NumericalCellType>
 struct EsirkepovNative
 {
+    typedef typename T_ParticleAssign::ChargeAssignment ParticleAssign;
     static const int supp = ParticleAssign::support;
 
     static const int currentLowerMargin = supp / 2 + 1;
@@ -56,8 +57,24 @@ struct EsirkepovNative
     typedef PMacc::math::CT::Int<currentLowerMargin, currentLowerMargin, currentLowerMargin> LowerMargin;
     typedef PMacc::math::CT::Int<currentUpperMargin, currentUpperMargin, currentUpperMargin> UpperMargin;
 
+
+    /* begin and end border is calculated for the current time step were the old 
+     * position of the particle in the previous time step is smaller than the current position
+     * Later on all coordinates shifted thus we can solve the charge calculation
+     * in support + 1 steps.
+     * 
+     * For the case were previous position is greater than current position we correct
+     * begin and end on runtime and add +1 to begin and end.
+     */
+    static const int begin = currentLowerMargin;
+    static const int end = currentUpperMargin + 1;
+
     float_X charge;
 
+    /* At the moment Esirkepov only support YeeCell were W is defined at origin (0,0,0)
+     *
+     * \todo: please fix me that we can use CenteredCell
+     */
     template<typename DataBoxJ, typename PosType, typename VelType, typename ChargeType >
     DINLINE void operator()(DataBoxJ dataBoxJ,
                             const PosType pos,
@@ -69,7 +86,7 @@ struct EsirkepovNative
                                            velocity.y() * deltaTime / cellSize.y(),
                                            velocity.z() * deltaTime / cellSize.z());
         const PosType oldPos = pos - deltaPos;
-        const Line<float3_X> line(oldPos, pos);
+        Line<float3_X> line(oldPos, pos);
         BOOST_AUTO(cursorJ, dataBoxJ.toCursor());
 
         /**
@@ -96,81 +113,52 @@ struct EsirkepovNative
                               const Line<float3_X>& line,
                               const float_X cellEdgeLength)
     {
-        /* We need no shifts of the coordinate system because W is defined on point (0,0,0)
-         *
-         * \todo: W is only on point (0,0,0) if we use Yee, please fix me for CenteredCell
-         */
-        const int a = -currentLowerMargin;
-        const int b = currentUpperMargin;
-
         /* pick every cell in the xy-plane that is overlapped by particle's
-         * form factor and deposite the current for the cells above and beneath
+         * form factor and deposit the current for the cells above and beneath
          * that cell and for the cell itself.
          */
-        for (int x = a; x <= b; x++)
+        for (int i = begin; i < end; ++i)
         {
-            for (int y = a; y <= b; y++)
+            for (int j = begin; j < end; ++j)
             {
-                /* move from grid coordinate system to inside particle coordinate 
-                 * system by the operation: 
-                 * relativeGridDistance = grid_point - particle_position
-                 * 
-                 * relativeGridDistance -> represent the relative distance from the
-                 * particle to a grid point
-                 * 
-                 * distance in z direction is distance to the grid origin
-                 */
-                const Line<float3_X> relativeGridDistance(float3_X(x, y, float_X(0.0)) - line);
-                cptCurrentInLineOfCells(cursorJ(x, y, 0), relativeGridDistance , cellEdgeLength);
+                float_X tmp =
+                    S0(line, i, 1) * S0(line, j, 2) +
+                    float_X(0.5) * DS(line, i, 1) * S0(line, j, 2) +
+                    float_X(0.5) * S0(line, i, 1) * DS(line, j, 2) +
+                    (float_X(1.0) / float_X(3.0)) * DS(line, i, 1) * DS(line, j, 2);
+
+                float_X accumulated_J = float_X(0.0);
+                for (int k = begin; k < end; ++k)
+                {
+                    float_X W = DS(line, k, 3) * tmp;
+                    accumulated_J += -this->charge * (float_X(1.0) / float_X(CELL_VOLUME * DELTA_T)) * W * cellEdgeLength;
+                    atomicAddWrapper(&((*cursorJ(i, j, k)).z()), accumulated_J);
+                }
             }
         }
 
     }
 
-    /**
-     * deposites current in a line of cells in z-direction
-     * \param cursorJ cursor pointing at the current density field of the particle's cell
-     * \param line trajectory of the particle from to last to the current time step
-     * \param cellEdgeLength length of edge of the cell in z-direction
+    /** calculate S0 (see paper)
+     * @param line element with previous and current position of the particle
+     * @param gridPoint used grid point to evaluate assignment shape
+     * @param d dimension range [1,3] means [x,y,z]
+     *        same like in Esirkepov paper (FORTAN style)
      */
-    template<typename CursorJ >
-    DINLINE void cptCurrentInLineOfCells(
-                                         const CursorJ& cursorJ,
-                                         const Line<float3_X>& line,
-                                         const float_X cellEdgeLength)
+    DINLINE float_X S0(const Line<float3_X>& line, const float_X gridPoint, const float_X d)
     {
-        const int a = -currentLowerMargin;
-        const int b = currentUpperMargin;
-
-        float_X tmp =
-            S0(line.pos0.x()) * S0(line.pos0.y()) +
-            float_X(0.5) * DS(line.pos0.x(), line.pos1.x()) * S0(line.pos0.y()) +
-            float_X(0.5) * S0(line.pos0.x()) * DS(line.pos0.y(), line.pos1.y()) +
-            (float_X(1.0) / float_X(3.0)) * DS(line.pos0.x(), line.pos1.x()) * DS(line.pos0.y(), line.pos1.y());
-
-        /* integrate W, which is the divergence of the current density, in z-direction
-         * to get the current density j
-         */
-        float_X accumulated_J = float_X(0.0);
-        for (int i = a; i <= b; i++)
-        {
-            /* we are still in the particle coordinate system therefore distance
-             * between grid point in z = distance_to_grid_origin + grid_point_z
-             */
-            float_X W = DS(line.pos0.z() + i, line.pos1.z() + i) * tmp;
-            accumulated_J += -this->charge * (float_X(1.0) / float_X(CELL_VOLUME * DELTA_T)) * W * cellEdgeLength;
-            atomicAddWrapper(&((*cursorJ(0, 0, i)).z()), accumulated_J);
-        }
+        return ParticleAssign()(gridPoint - line.pos0[d - 1]);
     }
 
-    DINLINE float_X S0(const float_X k)
+    /** calculate DS (see paper)
+     * @param line element with previous and current position of the particle
+     * @param gridPoint used grid point to evaluate assignment shape
+     * @param d dimension range [1,3] means [x,y,z]
+     *        same like in Esirkepov paper (FORTAN style)
+     */
+    DINLINE float_X DS(const Line<float3_X>& line, const float_X gridPoint, const float_X d)
     {
-        return ParticleAssign()(k);
-    }
-
-    DINLINE float_X DS(const float_X k0, const float_X k1)
-    {
-        return ParticleAssign()(k1) - ParticleAssign()(k0);
+        return ParticleAssign()(gridPoint - line.pos1[d - 1]) - ParticleAssign()(gridPoint - line.pos0[d - 1]);
     }
 };
 
@@ -182,11 +170,11 @@ namespace traits
 /*Get margin of a solver
  * class must define a LowerMargin and UpperMargin 
  */
-template<typename ParticleShape, typename NumericalCellType>
-struct GetMargin<picongpu::currentSolverEsirkepov::EsirkepovNative<ParticleShape, NumericalCellType> >
+template<typename T_ParticleShape, typename NumericalCellType>
+struct GetMargin<picongpu::currentSolverEsirkepov::EsirkepovNative<T_ParticleShape, NumericalCellType> >
 {
 private:
-    typedef picongpu::currentSolverEsirkepov::EsirkepovNative<ParticleShape, NumericalCellType> Solver;
+    typedef picongpu::currentSolverEsirkepov::EsirkepovNative<T_ParticleShape, NumericalCellType> Solver;
 public:
     typedef typename Solver::LowerMargin LowerMargin;
     typedef typename Solver::UpperMargin UpperMargin;
