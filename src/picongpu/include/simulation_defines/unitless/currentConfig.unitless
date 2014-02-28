@@ -45,14 +45,14 @@ namespace picongpu
     namespace currentSolverEsirkepovNative
     {
         using namespace picongpu::currentSolverEsirkepov;
-        typedef EsirkepovNative<typename speciesParticleShape::ParticleShape::ChargeAssignment,
+        typedef EsirkepovNative<typename speciesParticleShape::ParticleShape,
                           fieldSolver::NumericalCellType> CurrentSolver;
     }
 #endif
     
     namespace currentSolverEsirkepov
     {
-        typedef Esirkepov<simDim,typename speciesParticleShape::ParticleShape::ChargeAssignment,
+        typedef Esirkepov<simDim,typename speciesParticleShape::ParticleShape,
                           fieldSolver::NumericalCellType> CurrentSolver;
     }
     
