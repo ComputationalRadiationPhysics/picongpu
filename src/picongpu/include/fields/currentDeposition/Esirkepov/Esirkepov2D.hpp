@@ -45,26 +45,27 @@ using namespace PMacc;
  * paper: "Exact charge conservation scheme for Particle-in-Cell simulation
  *  with an arbitrary form-factor"
  */
-template<typename ParticleAssign, typename NumericalCellType>
-struct Esirkepov<DIM2,ParticleAssign,NumericalCellType>
+template<typename T_ParticleShape, typename NumericalCellType>
+struct Esirkepov<DIM2, T_ParticleShape, NumericalCellType>
 {
+    typedef typename T_ParticleShape::ChargeAssignment ParticleAssign;
     static const int supp = ParticleAssign::support;
 
-    static const int currentLowerMargin = supp / 2 + 1;
+    static const int currentLowerMargin = supp / 2 + 1 - (supp + 1) % 2;
     static const int currentUpperMargin = (supp + 1) / 2 + 1;
-    typedef typename PMacc::math::CT::make_Int<DIM2,currentLowerMargin>::type LowerMargin;
-    typedef typename PMacc::math::CT::make_Int<DIM2,currentUpperMargin>::type UpperMargin;
+    typedef typename PMacc::math::CT::make_Int<DIM2, currentLowerMargin>::type LowerMargin;
+    typedef typename PMacc::math::CT::make_Int<DIM2, currentUpperMargin>::type UpperMargin;
 
-    /* begin and end border is calculated for a particle with a support which travels
-     * to the negative direction.
+    /* begin and end border is calculated for the current time step were the old 
+     * position of the particle in the previous time step is smaller than the current position
      * Later on all coordinates shifted thus we can solve the charge calculation
-     * independend from the position of the particle. That means we must not look
-     * if a particle position is >0.5 oder not (this is done by coordinate shifting to this defined range)
+     * in support + 1 steps.
      * 
-     * (supp + 1) % 2 is 1 for even supports else 0
+     * For the case were previous position is greater than current position we correct
+     * begin and end on runtime and add +1 to begin and end.
      */
-    static const int begin = -supp / 2 + (supp + 1) % 2 - 1;
-    static const int end = begin+supp;
+    static const int begin = -currentLowerMargin;
+    static const int end = begin + supp + 1;
 
     float_X charge;
 
@@ -76,7 +77,7 @@ struct Esirkepov<DIM2,ParticleAssign,NumericalCellType>
     {
         this->charge = charge;
         const float2_X deltaPos = float2_X(velocity.x() * deltaTime / cellSize.x(),
-                                           velocity.y() * deltaTime / cellSize.y() );
+                                           velocity.y() * deltaTime / cellSize.y());
         const PosType oldPos = pos - deltaPos;
         Line<float2_X> line(oldPos, pos);
         BOOST_AUTO(cursorJ, dataBoxJ.toCursor());
@@ -101,12 +102,12 @@ struct Esirkepov<DIM2,ParticleAssign,NumericalCellType>
              */
             float2_X coordinate_shift(
                                       float_X(math::floor(pos.x() * float_X(2.0))),
-                                      float_X(math::floor(pos.y() * float_X(2.0))) 
+                                      float_X(math::floor(pos.y() * float_X(2.0)))
                                       );
             cursorJ = cursorJ(
                               PMacc::math::Int < 2 > (
                                                       coordinate_shift.x(),
-                                                      coordinate_shift.y() 
+                                                      coordinate_shift.y()
                                                       ));
             //same as: pos = pos - coordinate_shift;
             line.pos0 -= (coordinate_shift);
@@ -137,43 +138,35 @@ struct Esirkepov<DIM2,ParticleAssign,NumericalCellType>
                               const Line<float2_X>& line,
                               const float_X cellEdgeLength)
     {
-        /* We need no shifts of the coordinate system because W is defined on point (0,0,0)
-         *
-         * \todo: W is only on point (0,0,0) if we use Yee, please fix me for CenteredCell
-         */
-
-
-        /* Now we check if particle travel to negativ or positiv direction.
-         * If particle travels to positiv direction we change the gridintervall
-         * from [begin;end] to [begin+1;end+1].
-         * For particle which travel to negativ direction we change nothing, 
-         * because begin and end by default are defined for negativ travel particles
+        /* Check if particle position in previous step was greater or
+         * smaller than current position.
          * 
-         * We calculate pos0-pos1 because we have done our coordinate shifts with
-         * pos1 and need the information if pos0 is left or right of pos1.
+         * If previous position was greater than current position we change our interval
+         * from [begin,end) to [begin+1,end+1).
          */
+        const int offset_i = int(line.pos0.x() > line.pos1.x());
+        const int offset_j = int(line.pos0.y() > line.pos1.y());
 
-        const int offset_y = int(line.pos0.y() > line.pos1.y());
 
-        /* pick every cell in the xy-plane that is overlapped by particle's
-         * form factor and deposite the current for the cells above and beneath
-         * that cell and for the cell itself.
-         */
-
-        for (int y = begin + offset_y; y <= end + offset_y; y++)
+        for (int j = begin + offset_j; j < end + offset_j; ++j)
         {
-            /* move from grid coordinate system to inside particle coordinate 
-             * system by the operation: 
-             * relativeGridDistance = grid_point - particle_position
-             * 
-             * relativeGridDistance -> represent the relative distance from the
-             * particle to a grid point
-             * 
-             * distance in x direction is distance to the grid origin
+            /* This is the implementation of the W(i,j,1) version from
+             * Esirkepov paper. All coordinates are rotated before thus we can 
+             * always use W(i,j,1).
              */
-            const Line<float2_X> relativeGridDistance(float2_X(float_X(0.0),y) - line);
-            cptCurrentInLineOfCells(cursorJ(0, y), relativeGridDistance, cellEdgeLength);
+            float_X tmp = S0(line, j, 1) + float_X(0.5) * DS(line, j, 1);
+
+            float_X accumulated_J = float_X(0.0);
+            for (int i = begin + offset_i; i < end + offset_i; ++i)
+            {
+                float_X W = DS(line, i, 0) * tmp;
+                accumulated_J += -this->charge * (float_X(1.0) / float_X(CELL_VOLUME * DELTA_T)) * W * cellEdgeLength;
+                /* the branch divergence here still over-compensates for the fewer collisions in the (expensive) atomic adds */
+                if (accumulated_J != float_X(0.0))
+                    atomicAddWrapper(&((*cursorJ(i, j)).x()), accumulated_J);
+            }
         }
+
     }
 
     template<typename CursorJ >
@@ -181,93 +174,53 @@ struct Esirkepov<DIM2,ParticleAssign,NumericalCellType>
                              const Line<float2_X>& line,
                              const float_X v_z)
     {
-        const int offset_x = int(line.pos0.x() > line.pos1.x());
-        const int offset_y = int(line.pos0.y() > line.pos1.y());
-
-        /* pick every cell in the xy-plane that is overlapped by particle's
-         * form factor and deposite the current for the cells above and beneath
-         * that cell and for the cell itself.
+        /* Check if particle position in previous step was greater or
+         * smaller than current position.
+         * 
+         * If previous position was greater than current position we change our interval
+         * from [begin,end) to [begin+1,end+1).
          */
-        for (int x = begin + offset_x; x <= end + offset_x; x++)
+        const int offset_i = int(line.pos0.x() > line.pos1.x());
+        const int offset_j = int(line.pos0.y() > line.pos1.y());
+
+
+        for (int j = begin + offset_j; j < end + offset_j; ++j)
         {
-            for (int y = begin + offset_y; y <= end + offset_y; y++)
+            for (int i = begin + offset_i; i < end + offset_i; ++i)
             {
-                /* move from grid coordinate system to inside particle coordinate 
-                 * system by the operation: 
-                 * relativeGridDistance = grid_point - particle_position
-                 * 
-                 * relativeGridDistance -> represent the relative distance from the
-                 * particle to a grid point
-                 * 
-                 * distance in y direction is distance to the grid origin
-                 */
-                const Line<float2_X> relativeGridDistance(float2_X(x,y) - line);
-                cptCurrentZInCell(cursorJ(x, y), relativeGridDistance, v_z);
+                float_X W = S0(line, i, 0) * S0(line, j, 1) +
+                    float_X(0.5) * DS(line, i, 0) * S0(line, j, 1) +
+                    float_X(0.5) * S0(line, i, 0) * DS(line, j, 1)+
+                    (float_X(1.0) / float_X(3.0)) * DS(line, i, 0) * DS(line, j, 1);
+
+                const float_X j_z = this->charge * (float_X(1.0) / float_X(CELL_VOLUME)) * W * v_z;
+                if (j_z != float_X(0.0))
+                    atomicAddWrapper(&((*cursorJ(i, j)).z()), j_z);
             }
         }
+
     }
 
-    /**
-     * deposites current in a line of cells in z-direction
-     * \param cursorJ cursor pointing at the current density field of the particle's cell
-     * \param line trajectory of the particle from to last to the current time step
-     * \param cellEdgeLength length of edge of the cell in z-direction
+    /** calculate S0 (see paper)
+     * @param line element with previous and current position of the particle
+     * @param gridPoint used grid point to evaluate assignment shape
+     * @param d dimension range [0,2] means [x,y,z]
+     *          different to Esirkepov paper, here we use C style
      */
-    template<typename CursorJ >
-    DINLINE void cptCurrentInLineOfCells(
-                                         const CursorJ& cursorJ,
-                                         const Line<float2_X>& line,
-                                         const float_X cellEdgeLength)
+    DINLINE float_X S0(const Line<float2_X>& line, const float_X gridPoint, const float_X d)
     {
-
-        const float_X tmp = (S0(line.pos0.y()) + float_X(0.5) * DS(line.pos0.y(), line.pos1.y()));
-
-
-        /* integrate W, which is the divergence of the current density, in x-direction
-         * to get the current density j
-         */
-        const int offset_x = int(line.pos0.x() < line.pos1.x());
-
-        float_X accumulated_J = float_X(0.0);
-        for (int i = begin + offset_x; i <= end + offset_x; i++)
-        {
-            /* we are still in the particle coordinate system therefore distance
-             * between grid point in x = distance_to_grid_origin + grid_point_x
-             */
-            float_X W = DS(line.pos0.x()+i, line.pos1.x()+i) * tmp;
-            accumulated_J += -this->charge * (float_X(1.0) / float_X(CELL_VOLUME * DELTA_T)) * W * cellEdgeLength;
-            if(accumulated_J!=float_X(0.0))
-                atomicAddWrapper(&((*cursorJ(i, 0)).x()), accumulated_J);
-        }
+        return ParticleAssign()(gridPoint - line.pos0[d]);
     }
 
-    template<typename CursorJ >
-    DINLINE void cptCurrentZInCell(
-                                   const CursorJ& cursorJ,
-                                   const Line<float2_X>& line,
-                                   const float_X v_z)
+    /** calculate DS (see paper)
+     * @param line element with previous and current position of the particle
+     * @param gridPoint used grid point to evaluate assignment shape
+     * @param d dimension range [0,2] means [x,y,z]
+     *          different to Esirkepov paper, here we use C style
+     */
+    DINLINE float_X DS(const Line<float2_X>& line, const float_X gridPoint, const float_X d)
     {
-
-
-        float_X W = S0(line.pos0.x()) * S0(line.pos0.y()) +
-            float_X(0.5) * DS(line.pos0.x(), line.pos1.x()) * S0(line.pos0.y()) +
-            float_X(0.5) * S0(line.pos0.x()) * DS(line.pos0.y(), line.pos1.y()) +
-            (float_X(1.0) / float_X(3.0)) * DS(line.pos0.x(), line.pos1.x()) * DS(line.pos0.y(), line.pos1.y());
-
-        const float_X j_z = this->charge * (float_X(1.0) / float_X(CELL_VOLUME)) * W * v_z;
-        if(j_z!=float_X(0.0))
-            atomicAddWrapper(&((*cursorJ(0, 0)).z()), j_z);
-
-    }
-
-    DINLINE float_X S0(const float_X k)
-    {
-        return ParticleAssign()(k);
-    }
-
-    DINLINE float_X DS(const float_X k0, const float_X k1)
-    {
-        return ParticleAssign()(k1) - ParticleAssign()(k0);
+        return ParticleAssign()(gridPoint - line.pos1[d]) - ParticleAssign()(gridPoint - line.pos0[d]);
     }
 };
 

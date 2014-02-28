@@ -46,10 +46,10 @@ using namespace PMacc;
  * paper: "Exact charge conservation scheme for Particle-in-Cell simulation
  *  with an arbitrary form-factor"
  */
-template<typename T_ParticleAssign, typename NumericalCellType>
+template<typename T_ParticleShape, typename NumericalCellType>
 struct EsirkepovNative
 {
-    typedef typename T_ParticleAssign::ChargeAssignment ParticleAssign;
+    typedef typename T_ParticleShape::ChargeAssignment ParticleAssign;
     static const int supp = ParticleAssign::support;
 
     static const int currentLowerMargin = supp / 2 + 1;
@@ -58,15 +58,8 @@ struct EsirkepovNative
     typedef PMacc::math::CT::Int<currentUpperMargin, currentUpperMargin, currentUpperMargin> UpperMargin;
 
 
-    /* begin and end border is calculated for the current time step were the old 
-     * position of the particle in the previous time step is smaller than the current position
-     * Later on all coordinates shifted thus we can solve the charge calculation
-     * in support + 1 steps.
-     * 
-     * For the case were previous position is greater than current position we correct
-     * begin and end on runtime and add +1 to begin and end.
-     */
-    static const int begin = currentLowerMargin;
+    /* iterate over all grid points */
+    static const int begin = -currentLowerMargin;
     static const int end = currentUpperMargin + 1;
 
     float_X charge;

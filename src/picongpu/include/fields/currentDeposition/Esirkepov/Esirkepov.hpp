@@ -44,16 +44,16 @@ using namespace PMacc;
  * paper: "Exact charge conservation scheme for Particle-in-Cell simulation
  *  with an arbitrary form-factor"
  */
-template<uint32_t T_Dim, typename T_ParticleAssign, typename NumericalCellType>
+template<uint32_t T_Dim, typename T_ParticleShape, typename NumericalCellType>
 struct Esirkepov;
 
-template<typename T_ParticleAssign, typename NumericalCellType>
-struct Esirkepov<DIM3, T_ParticleAssign, NumericalCellType>
+template<typename T_ParticleShape, typename NumericalCellType>
+struct Esirkepov<DIM3, T_ParticleShape, NumericalCellType>
 {
-    typedef typename T_ParticleAssign::ChargeAssignment ParticleAssign;
+    typedef typename T_ParticleShape::ChargeAssignment ParticleAssign;
     static const int supp = ParticleAssign::support;
 
-    static const int currentLowerMargin = supp / 2 + 1;
+    static const int currentLowerMargin = supp / 2 + 1 -(supp + 1) % 2 ;
     static const int currentUpperMargin = (supp + 1) / 2 + 1;
     typedef PMacc::math::CT::Int<currentLowerMargin, currentLowerMargin, currentLowerMargin> LowerMargin;
     typedef PMacc::math::CT::Int<currentUpperMargin, currentUpperMargin, currentUpperMargin> UpperMargin;
@@ -66,7 +66,7 @@ struct Esirkepov<DIM3, T_ParticleAssign, NumericalCellType>
      * For the case were previous position is greater than current position we correct
      * begin and end on runtime and add +1 to begin and end.
      */
-    static const int begin = -supp / 2 + (supp + 1) % 2 - 1;
+    static const int begin = -currentLowerMargin;
     static const int end = begin + supp + 1;
 
     float_X charge;
@@ -141,7 +141,7 @@ struct Esirkepov<DIM3, T_ParticleAssign, NumericalCellType>
                               const Line<float3_X>& line,
                               const float_X cellEdgeLength)
     {
-        /* Now we check if particle position in previous step was greater or
+        /* Check if particle position in previous step was greater or
          * smaller than current position.
          * 
          * If previous position was greater than current position we change our interval
