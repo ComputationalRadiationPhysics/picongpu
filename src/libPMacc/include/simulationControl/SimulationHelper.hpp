@@ -217,7 +217,7 @@ public:
 
         /* call all singeltons to solve dependencies for program exit
          */
-        StreamController::getInstance();
+        StreamController::getInstance().activate();
         Manager::getInstance();
         TransactionManager::getInstance();
 

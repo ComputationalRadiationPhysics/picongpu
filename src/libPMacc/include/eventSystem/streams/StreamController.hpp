@@ -47,6 +47,8 @@ namespace PMacc
          */
         EventStream* getNextStream()
         {
+            if(!isActivetd)
+                throw std::runtime_error(std::string("StreamController is not activated but getNextStream() was called"));
             size_t oldIndex = currentStreamIndex;
             currentStreamIndex++;
             if (currentStreamIndex == streams.size())
@@ -86,7 +88,7 @@ namespace PMacc
         }
 
         /**
-         * Adds count addtional EventStreams to the queue.
+         * Add additional EventStreams to the queue.
          * @param count number of EventStreams to add.
          */
         void addStreams(size_t count)
@@ -95,6 +97,16 @@ namespace PMacc
             {
                 streams.push_back(new EventStream());
             }
+        }
+        
+        /** enable StreamController and add streams
+         * 
+         * If StreamController is not activated getNextStream() crash on first usage
+         */
+        void activate()
+        {
+            addStreams(1);
+            isActivetd=true;
         }
 
         /**
@@ -112,14 +124,14 @@ namespace PMacc
          * Constructor.
          * adds one EventStream to the controller
          */
-        StreamController()
+        StreamController() : isActivetd(false)
         {
-            addStreams(1);
             currentStreamIndex = 0;
         }
 
         std::vector<EventStream*> streams;
         size_t currentStreamIndex;
+        bool isActivetd;
 
     };
 
