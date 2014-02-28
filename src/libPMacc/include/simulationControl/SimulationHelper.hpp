@@ -286,7 +286,7 @@ private:
             log<ggLog::CUDA_RT > ("Device is selected by CUDA automaticly. (because cudaComputeModeDefault is not set)");
         }
         /* disabled because we get an error with CUDA 6.0 and more than one gpu per node*/
-        //CUDA_CHECK(cudaSetDeviceFlags(cudaDeviceScheduleYield));
+        CUDA_CHECK(cudaSetDeviceFlags(cudaDeviceScheduleYield));
     }
 
     //! how often calculated data will be dumped (picture or other format)

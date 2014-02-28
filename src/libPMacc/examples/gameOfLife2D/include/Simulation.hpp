@@ -69,7 +69,7 @@ public:
         GC::getInstance().init(devices, periodic);
         setDevice((int) (GC::getInstance().getHostRank())); //do this after gridcontroller init
 
-        StreamController::getInstance();
+        StreamController::getInstance().activate();
         Manager::getInstance();
         TransactionManager::getInstance();
 
