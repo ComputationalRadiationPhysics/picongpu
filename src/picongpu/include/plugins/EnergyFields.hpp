@@ -168,6 +168,7 @@ private:
                     std::cerr << "Error on flushing file [" << filename << "]. " << std::endl;
                 outFile.close();
             }
+            __delete(localReduce);
         }
     }
 
