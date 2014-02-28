@@ -23,12 +23,8 @@
 #define	_TASKPARTICLESRECEIVE_HPP
 
 
+#include "Environment.hpp"
 #include "eventSystem/EventSystem.hpp"
-#include "particles/tasks/ParticleFactory.hpp"
-#include "eventSystem/tasks/ITask.hpp"
-#include "eventSystem/tasks/MPITask.hpp"
-#include "eventSystem/events/EventDataReceive.hpp"
-
 
 
 namespace PMacc
@@ -61,7 +57,7 @@ namespace PMacc
                 if (parBase.getParticlesBuffer().hasReceiveExchange(i))
                 {
                     __startAtomicTransaction(serialEvent);
-                    ParticleFactory::getInstance().createTaskReceiveParticlesExchange(parBase, i);
+                    Environment<>::getInstance().getParticleFactory().createTaskReceiveParticlesExchange(parBase, i);
                     tmpEvent += __endTransaction();
                 }
             }
