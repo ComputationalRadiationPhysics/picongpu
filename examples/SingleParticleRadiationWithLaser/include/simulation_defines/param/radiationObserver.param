@@ -59,7 +59,7 @@ namespace picongpu
       const numtype2 thetaMax = gamma_times_thetaMax / gamma; /* max angle */
 
       /* stepwith of theta for from [-thetaMax : +thetaMax] */
-      const numtype2 delta_theta =  2.0 * gamma_times_thetaMax / (parameters::N_observer); 
+      const numtype2 delta_theta =  2.0 * thetaMax / (parameters::N_observer); 
 
       /* compute angle theta for index */
       const numtype2 theta(my_theta_id * delta_theta - gamma_times_thetaMax + picongpu::PI); 
