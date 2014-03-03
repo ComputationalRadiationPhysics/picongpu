@@ -188,7 +188,7 @@ public:
     notifyFrequency(0)
     {
 
-        ModuleConnector::getInstance().registerModule(this);
+        Environment<>::getInstance().getModuleConnector().registerModule(this);
     }
 
     virtual ~PositionsParticles()
@@ -197,12 +197,12 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::getInstance().getDataConnector();
 
         particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
 
 
-        const int rank = GridController<simDim>::getInstance().getGlobalRank();
+        const int rank = Environment<simDim>::getInstance().getGridController().getGlobalRank();
         const SglParticle<FloatPos> positionParticle = getPositionsParticles < CORE + BORDER > (currentStep);
 
         /*FORMAT OUTPUT*/
@@ -238,7 +238,7 @@ private:
             //create one float3_X on gpu und host
             gParticle = new GridBuffer<SglParticle<FloatPos>, DIM1 > (DataSpace<DIM1 > (1));
 
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
+            Environment<>::getInstance().getDataConnector().registerObserver(this, notifyFrequency);
         }
     }
 
@@ -266,7 +266,7 @@ private:
         DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
         VirtualWindow window(MovingWindow::getInstance().getVirtualWindow(currentStep));
 
-        DataSpace<simDim> gpuPhyCellOffset(SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset());
+        DataSpace<simDim> gpuPhyCellOffset(Environment<simDim>::getInstance().getSubGrid().getSimulationBox().getGlobalOffset());
         gpuPhyCellOffset.y() += (localSize.y() * window.slides);
 
         gParticle->getHostBuffer().getDataBox()[0].globalCellOffset += gpuPhyCellOffset;

@@ -22,13 +22,8 @@
 #ifndef _TASKPARTICLESSEND_HPP
 #define	_TASKPARTICLESSEND_HPP
 
-
+#include "Environment.hpp"
 #include "eventSystem/EventSystem.hpp"
-#include "particles/tasks/ParticleFactory.hpp"
-#include "eventSystem/tasks/ITask.hpp"
-#include "eventSystem/tasks/MPITask.hpp"
-#include "eventSystem/events/EventDataReceive.hpp"
-
 
 namespace PMacc
 {
@@ -62,7 +57,7 @@ public:
             if (parBase.getParticlesBuffer().hasSendExchange(i))
             {
                 __startAtomicTransaction(serialEvent);
-                ParticleFactory::getInstance().createTaskSendParticlesExchange(parBase, i);
+                Environment<>::getInstance().getParticleFactory().createTaskSendParticlesExchange(parBase, i);
                 tmpEvent += __endTransaction();
             }
         }
@@ -77,7 +72,7 @@ public:
         case Init:
             break;
         case WaitForSend:
-            return NULL == Manager::getInstance().getITaskIfNotFinished(tmpEvent.getTaskId());
+            return NULL == Environment<>::getInstance().getManager().getITaskIfNotFinished(tmpEvent.getTaskId());
         default:
             return false;
         }

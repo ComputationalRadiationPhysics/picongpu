@@ -389,7 +389,7 @@ public:
     Mask getSendMask() const
     {
         // std::cout << "sendMask: " << sendMask << " " << EnvironmentController::getInstance().getCommunicationMask() << " " << (EnvironmentController::getInstance().getCommunicationMask() & sendMask) << std::endl;
-        return (EnvironmentController::getInstance().getCommunicationMask() & sendMask);
+        return (Environment<DIM>::getInstance().getEnvironmentController().getCommunicationMask() & sendMask);
     }
 
     /**
@@ -400,7 +400,7 @@ public:
     Mask getReceiveMask() const
     {
         //std::cout << "receiveMask: " << this->sendMask.getMirroredMask() << " " << (this->sendMask.getMirroredMask() & EnvironmentController::getInstance().getCommunicationMask()) << std::endl;
-        return (EnvironmentController::getInstance().getCommunicationMask() & receiveMask);
+        return (Environment<DIM>::getInstance().getEnvironmentController().getCommunicationMask() & receiveMask);
     }
 
     /**
@@ -520,6 +520,8 @@ public:
     }
 
 private:
+    
+    friend Environment<DIM>;
 
     void init(bool sizeOnDevice, bool buildDeviceBuffer = true, bool buildHostBuffer = true)
     {

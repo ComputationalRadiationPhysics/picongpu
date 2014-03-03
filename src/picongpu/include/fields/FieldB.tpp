@@ -121,7 +121,7 @@ void FieldB::init( FieldE &fieldE, LaserPhysics &laserPhysics )
     this->fieldE = &fieldE;
     this->laser = &laserPhysics;
 
-    DataConnector::getInstance( ).registerData( *this );
+    Environment<>::getInstance().getDataConnector().registerData( *this );
 }
 
 GridLayout<simDim> FieldB::getGridLayout( )

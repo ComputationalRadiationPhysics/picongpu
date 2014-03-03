@@ -192,7 +192,7 @@ namespace picongpu
 
     void FieldTmp::init( )
     {
-        DataConnector::getInstance( ).registerData( *this );
+        Environment<>::getInstance().getDataConnector().registerData( *this );
     }
 
     FieldTmp::DataBoxType FieldTmp::getDeviceDataBox( )

@@ -65,16 +65,12 @@ public:
     Simulation(uint32_t rule, int32_t steps, Space gridSize, Space devices, Space periodic) :
     evo(rule), steps(steps), gridSize(gridSize), isMaster(false), buff1(NULL), buff2(NULL)
     {
-        /*IMPORTANT: this must called at first PMacc function, before any other grid magic can used*/
-        GC::getInstance().init(devices, periodic);
-        setDevice((int) (GC::getInstance().getHostRank())); //do this after gridcontroller init
+        Environment<DIM2>::getInstance().init(devices, periodic, gridSize);
+        
+        GridController<DIM2>& gc = Environment<DIM2>::getInstance().getGridController();
+        
+        setDevice((int) (gc.getHostRank())); //do this after gridcontroller init
 
-        StreamController::getInstance().activate();
-        Manager::getInstance();
-        TransactionManager::getInstance();
-
-        Space localGridSize(gridSize / devices);
-        SubGrid<DIM2>::getInstance().init(localGridSize, gridSize, GC::getInstance().getPosition() * localGridSize);
     }
 
     virtual ~Simulation()
@@ -90,7 +86,7 @@ public:
 
     void init()
     {
-        PMACC_AUTO(simBox, SubGrid<DIM2>::getInstance().getSimulationBox());
+        PMACC_AUTO(simBox, Environment<DIM2>::getInstance().getSubGrid().getSimulationBox());
         GridLayout<DIM2> layout(simBox.getLocalSize(),
                                 MappingDesc::SuperCellSize::getDataSpace());
         evo.init(MappingDesc(layout.getDataSpace(), 1, 1));

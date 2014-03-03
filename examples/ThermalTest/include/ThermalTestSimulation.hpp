@@ -22,6 +22,7 @@
 #define	TERMALTESTSIMULATION_HPP
 
 #include "simulation_defines.hpp"
+#include "Environment.hpp"
 
 #include "simulationControl/MySimulation.hpp"
 
@@ -114,7 +115,7 @@ public:
     {
         using namespace ::PMacc::math;
 
-        PMacc::GridController<SIMDIM>& con = PMacc::GridController<SIMDIM>::getInstance();
+        PMACC_AUTO(&con,Environment<simDim>::getInstance().getGridController());
         Size_t<SIMDIM> gpuDim = (Size_t<SIMDIM>)con.getGpuNodes();
         Int<3> gpuPos = (Int<3>)con.getPosition();
         zone::SphericZone<SIMDIM> gpuGatheringZone(Size_t<SIMDIM > (1, 1, gpuDim.z()));

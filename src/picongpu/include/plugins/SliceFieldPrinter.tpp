@@ -43,7 +43,7 @@ namespace picongpu
 template<typename Field>
 void SliceFieldPrinter<Field>::moduleLoad()
 {
-    DataConnector::getInstance().registerObserver(this, this->notifyFrequency);
+    Environment<>::getInstance().getDataConnector().registerObserver(this, this->notifyFrequency);
     namespace vec = ::PMacc::math;
     typedef vec::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> BlockDim;
     
@@ -64,7 +64,7 @@ void SliceFieldPrinter<Field>::notify(uint32_t currentStep)
 {
     namespace vec = ::PMacc::math;
     typedef vec::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> BlockDim;
-    DataConnector &dc = DataConnector::getInstance();
+    DataConnector &dc = Environment<>::getInstance().getDataConnector();
 
     BOOST_AUTO(field_coreBorder,
         dc.getData<Field > (Field::getName(), true).getGridBuffer().
@@ -84,7 +84,7 @@ void SliceFieldPrinter<Field>::printSlice(const TField& field, int nAxis, float 
     using namespace vec::tools;
     typedef vec::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> BlockDim;
         
-    PMacc::GridController<3>& con = PMacc::GridController<3>::getInstance();
+    PMacc::GridController<3>& con = PMacc::Environment<3>::getInstance().getGridController();
     vec::Size_t<3> gpuDim = (vec::Size_t<3>)con.getGpuNodes();
     vec::Size_t<3> globalGridSize = gpuDim * field.size();
     int globalPlane = globalGridSize[nAxis] * slicePoint;

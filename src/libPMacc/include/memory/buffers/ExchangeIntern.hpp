@@ -222,12 +222,12 @@ namespace PMacc
         EventTask startSend(EventTask &copyEvent)
         {
             //assert(recvTask != NULL);
-            return Factory::getInstance().createTaskSend(*this, copyEvent);
+            return Environment<>::getInstance().getFactory().createTaskSend(*this, copyEvent);
         }
 
         EventTask startReceive()
         {
-            return Factory::getInstance().createTaskReceive(*this);
+            return Environment<>::getInstance().getFactory().createTaskReceive(*this);
         }
 
     protected:

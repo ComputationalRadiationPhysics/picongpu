@@ -551,7 +551,7 @@ public:
     radRestart(false)
     {
 
-        ModuleConnector::getInstance().registerModule(this);
+        Environment<>::getInstance().getModuleConnector().registerModule(this);
     }
 
     virtual ~Radiation()
@@ -569,7 +569,7 @@ public:
     void notify(uint32_t currentStep)
     {
 
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::getInstance().getDataConnector();
 
         particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
 
@@ -647,7 +647,7 @@ private:
             freqFkt = freqInit.getFunctor();
 
 
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
+            Environment<>::getInstance().getDataConnector().registerObserver(this, notifyFrequency);
 
             if (isMaster && totalRad)
             {
@@ -685,7 +685,7 @@ private:
 
             // Some funny things that make it possible for the kernel to calculate
             // the absolut position of the particles
-            PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
+            PMACC_AUTO(simBox, Environment<simDim>::getInstance().getSubGrid().getSimulationBox());
             DataSpace<simDim> localSize(simBox.getLocalSize());
             VirtualWindow window(MovingWindow::getInstance().getVirtualWindow(currentStep));
             DataSpace<simDim> globalOffset(simBox.getGlobalOffset());
@@ -931,7 +931,7 @@ private:
         // the absolut position of the particles
         DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
         VirtualWindow window(MovingWindow::getInstance().getVirtualWindow(currentStep));
-        DataSpace<simDim> globalOffset(SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset());
+        DataSpace<simDim> globalOffset(Environment<simDim>::getInstance().getSubGrid().getSimulationBox().getGlobalOffset());
         globalOffset.y() += (localSize.y() * window.slides);
 
         // PIC-like kernel call of the radiation kernel

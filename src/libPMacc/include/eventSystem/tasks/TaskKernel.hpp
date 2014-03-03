@@ -32,7 +32,7 @@
 
 namespace PMacc
 {
-
+     
     class TaskKernel : public StreamTask
     {
     public:
@@ -66,7 +66,8 @@ namespace PMacc
         {
             canBeChecked = true;
             this->activate();
-            Manager::getInstance().addTask(this);
+            
+            Environment<>::getInstance().getManager().addTask(this);
             __setTransactionEvent(EventTask(this->getId()));
         }
 

@@ -62,7 +62,7 @@ public:
         case Init:
             break;
         case WaitForReceive:
-            if (NULL == Manager::getInstance().getITaskIfNotFinished(initDependency.getTaskId()))
+            if (NULL == Environment<>::getInstance().getManager().getITaskIfNotFinished(initDependency.getTaskId()))
             {
                 state = Finished;
                 return true;

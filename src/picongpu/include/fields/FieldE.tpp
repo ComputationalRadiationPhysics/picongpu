@@ -111,7 +111,7 @@ void FieldE::init( FieldB &fieldB, LaserPhysics &laserPhysics )
     this->fieldB = &fieldB;
     this->laser = &laserPhysics;
 
-    DataConnector::getInstance( ).registerData( *this );
+    Environment<>::getInstance().getDataConnector().registerData( *this);
 }
 
 FieldE::DataBoxType FieldE::getDeviceDataBox( )
@@ -144,7 +144,7 @@ void FieldE::laserManipulation( uint32_t currentStep )
      * - we already performed a slide
      */
     if ( ( currentStep * DELTA_T ) >= laserProfile::INIT_TIME ||
-         GridController<simDim>::getInstance( ).getCommunicationMask( ).isSet( TOP ) || win.slides != 0 ) return;
+         Environment<simDim>::getInstance().getGridController().getCommunicationMask( ).isSet( TOP ) || win.slides != 0 ) return;
 
     DataSpace<simDim-1> gridBlocks;
     DataSpace<simDim-1> blockSize;

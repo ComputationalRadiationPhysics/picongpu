@@ -21,8 +21,9 @@
  
 #include <cuda_runtime.h>
 
-#include "eventSystem/transactions/TransactionManager.hpp"
-#include "eventSystem/tasks/ITask.hpp"
+#include "Environment.hpp"
+//#include "eventSystem/EventSystem.hpp"
+#include "eventSystem/tasks/StreamTask.hpp"
 #include "eventSystem/streams/EventStream.hpp"
 
 
@@ -83,13 +84,13 @@ inline void StreamTask::setEventStream( EventStream* newStream )
 inline cudaStream_t StreamTask::getCudaStream( )
 {
     if ( stream == NULL )
-        stream = TransactionManager::getInstance( ).getEventStream( TASK_CUDA );
+        stream = Environment<>::getInstance().getTransactionManager().getEventStream( TASK_CUDA );
     return stream->getCudaStream( );
 }
 
 inline void StreamTask::activate( )
 {
-    cudaEvent = Manager::getInstance( ).getEventPool( ).getNextEvent( );
+    cudaEvent = Environment<>::getInstance().getManager().getEventPool( ).getNextEvent( );
     this->getEventStream( )->recordEvent( cudaEvent );
     hasCudaEvent = true;
 }

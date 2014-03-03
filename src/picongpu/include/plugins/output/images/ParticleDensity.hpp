@@ -229,7 +229,7 @@ public:
 
     void createImage(uint32_t currentStep, VirtualWindow window)
     {
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::getInstance().getDataConnector();
         ParticlesType* particles = &(dc.getData<ParticlesType > (particleTag, true));
 
         typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -239,7 +239,7 @@ public:
 
         uint32_t globalOffset = 0;
 #if(SIMDIM==DIM3)
-        globalOffset = SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset()[sliceDim];
+        globalOffset = Environment<simDim>::getInstance().getSubGrid().getSimulationBox().getGlobalOffset()[sliceDim];
 #endif
 
 
@@ -289,11 +289,11 @@ public:
         {
             const DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
 
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
+            Environment<>::getInstance().getDataConnector().registerObserver(this, notifyFrequency);
 
             VirtualWindow window(MovingWindow::getInstance().getVirtualWindow(0));
             sliceOffset = (int) ((float) (window.globalWindowSize[sliceDim]) * slicePoint) + window.globalSimulationOffset[sliceDim];
-            const DataSpace<simDim> gpus = GridController<simDim>::getInstance().getGpuNodes();
+            const DataSpace<simDim> gpus = Environment<simDim>::getInstance().getGridController().getGpuNodes();
 
             float_32 cellSizeArr[3]={0,0,0};
             for(uint32_t i=0;i<simDim;++i)
@@ -310,7 +310,7 @@ private:
 
     bool doDrawing()
     {
-        PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
+        PMACC_AUTO(simBox, Environment<simDim>::getInstance().getSubGrid().getSimulationBox());
         const DataSpace<simDim> globalRootCellPos(simBox.getGlobalOffset());
         const DataSpace<simDim> localSize(simBox.getLocalSize());
 #if(SIMDIM==DIM3)

@@ -529,7 +529,7 @@ public:
 
     void createImage(uint32_t currentStep, VirtualWindow window)
     {
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::getInstance().getDataConnector();
         // Data does not need to be synchronized as visualization is
         // done at the device.
         FieldB *fieldB = &(dc.getData<FieldB > (FieldB::getName(), true));
@@ -537,10 +537,10 @@ public:
         FieldJ* fieldJ = &(dc.getData<FieldJ > (FieldJ::getName(), true));
         ParticlesType* particles = &(dc.getData<ParticlesType > (particleTag, true));
 
-        PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
+        PMACC_AUTO(simBox, Environment<simDim>::getInstance().getSubGrid().getSimulationBox());
         uint32_t globalOffset = 0;
 #if(SIMDIM==DIM3)
-        globalOffset = SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset()[sliceDim];
+        globalOffset = Environment<simDim>::getInstance().getSubGrid().getSimulationBox().getGlobalOffset()[sliceDim];
 #endif
         
         typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -645,7 +645,7 @@ public:
             sliceOffset = (int) ((float) (window.globalWindowSize[sliceDim]) * slicePoint) + window.globalSimulationOffset[sliceDim];
 
 
-            const DataSpace<simDim> gpus = GridController<simDim>::getInstance().getGpuNodes();
+            const DataSpace<simDim> gpus = Environment<simDim>::getInstance().getGridController().getGpuNodes();
 
             float_32 cellSizeArr[3]={0,0,0};
             for(uint32_t i=0;i<simDim;++i)
@@ -656,7 +656,7 @@ public:
             img = new GridBuffer<float3_X, DIM2 > (header.node.maxSize);
 
 
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
+            Environment<>::getInstance().getDataConnector().registerObserver(this, notifyFrequency);
 
             bool isDrawing = doDrawing();
             isMaster = gather.init(isDrawing);
@@ -670,9 +670,9 @@ private:
     bool doDrawing()
     {
         assert(cellDescription != NULL);
-        const DataSpace<simDim> globalRootCellPos(SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset());
+        const DataSpace<simDim> globalRootCellPos(Environment<simDim>::getInstance().getSubGrid().getSimulationBox().getGlobalOffset());
 #if(SIMDIM==DIM3)
-        const bool tmp = globalRootCellPos[sliceDim] + SubGrid<simDim>::getInstance().getSimulationBox().getLocalSize()[sliceDim] > sliceOffset &&
+        const bool tmp = globalRootCellPos[sliceDim] + Environment<simDim>::getInstance().getSubGrid().getSimulationBox().getLocalSize()[sliceDim] > sliceOffset &&
               globalRootCellPos[sliceDim] <= sliceOffset;
         return tmp;
 #else

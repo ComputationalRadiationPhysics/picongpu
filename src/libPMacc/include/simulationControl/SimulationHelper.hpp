@@ -112,13 +112,13 @@ public:
      */
     virtual void dumpOneStep(uint32_t currentStep)
     {
-        DataConnector::getInstance().invalidate();
-        DataConnector::getInstance().dumpData(currentStep);
+        Environment<DIM>::getInstance().getDataConnector().invalidate();
+        Environment<DIM>::getInstance().getDataConnector().dumpData(currentStep);
     }
 
     GridController<DIM> & getGridController()
     {
-        return GridController<DIM>::getInstance();
+        return Environment<DIM>::getInstance().getGridController();
     }
     
     void dumpTimes(TimeIntervall &tSimCalculation, TimeIntervall&, double& roundAvg, uint32_t currentStep)
@@ -182,7 +182,7 @@ public:
         }       
 
         //simulatation end
-        Manager::getInstance().waitForAllTasks();
+        Environment<>::getInstance().getManager().waitForAllTasks();
 
         tSimCalculation.toggleEnd();
 
@@ -214,12 +214,6 @@ public:
     {
         calcProgress();
         setDevice((int) (getGridController().getHostRank())); //do this after gridcontroller init
-
-        /* call all singeltons to solve dependencies for program exit
-         */
-        StreamController::getInstance().activate();
-        Manager::getInstance();
-        TransactionManager::getInstance();
 
         output = (getGridController().getGlobalRank() == 0);
     }

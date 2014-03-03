@@ -36,7 +36,7 @@ Gather<dim>::Gather(const zone::SphericZone<dim>& _zone) : comm(MPI_COMM_NULL)
 {
     using namespace PMacc::math;
     
-    PMacc::GridController<dim>& con = PMacc::GridController<dim>::getInstance();
+    PMacc::GridController<dim>& con = PMacc::Environment<dim>::getInstance().getGridController();
     Int<dim> pos = con.getPosition();
     
     int numWorldRanks; MPI_Comm_size(MPI_COMM_WORLD, &numWorldRanks);

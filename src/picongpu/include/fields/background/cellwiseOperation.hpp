@@ -96,7 +96,7 @@ namespace cellwiseOperation
                 return;
 
             /** offset due to being the n-th GPU */
-            DataSpace<simDim> totalCellOffset(SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset());
+            DataSpace<simDim> totalCellOffset(Environment<simDim>::getInstance().getSubGrid().getSimulationBox().getGlobalOffset());
             VirtualWindow window = MovingWindow::getInstance().getVirtualWindow( currentStep );
 
             /** Assumption: all GPUs have the same number of cells in
