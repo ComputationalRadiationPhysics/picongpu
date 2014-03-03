@@ -52,6 +52,7 @@ namespace po = boost::program_options;
 
 namespace energyFields
 {
+
 template<typename T_Type>
 struct cast64Bit
 {
@@ -82,7 +83,7 @@ private:
 
     mpi::MPIReduce mpiReduce;
 
-    nvidia::reduce::Reduce localReduce;
+    nvidia::reduce::Reduce* localReduce;
 
 public:
 
@@ -95,7 +96,7 @@ public:
     filename(name + ".dat"),
     notifyFrequency(0),
     writeToFile(false),
-    localReduce(1024)
+    localReduce(NULL)
     {
         ModuleConnector::getInstance().registerModule(this);
     }
@@ -137,6 +138,7 @@ private:
     {
         if (notifyFrequency > 0)
         {
+            localReduce = new nvidia::reduce::Reduce(1024);
             writeToFile = mpiReduce.hasResult(mpi::reduceMethods::Reduce());
 
             if (writeToFile)
@@ -166,6 +168,7 @@ private:
                     std::cerr << "Error on flushing file [" << filename << "]. " << std::endl;
                 outFile.close();
             }
+            __delete(localReduce);
         }
     }
 
@@ -175,7 +178,7 @@ private:
         float_64 fieldBReduced = reduceField(fieldB);
 
         float_64 localFieldEnergy = ((EPS0 * fieldEReduced) + (fieldBReduced * (float_X(1.0) / MUE0))) * (CELL_VOLUME * float_X(0.5));
-        float_64 globalEnergy=0.0;
+        float_64 globalEnergy = 0.0;
 
         mpiReduce(nvidia::functors::Add(),
                   &globalEnergy,
@@ -210,9 +213,9 @@ private:
         Box64bit field64bit(fieldTransform);
         D1Box d1Access(field64bit, fieldSize);
 
-        float_64 fieldReduced = localReduce(nvidia::functors::Add(),
-                                            d1Access,
-                                            fieldSize.productOfComponents());
+        float_64 fieldReduced = (*localReduce)(nvidia::functors::Add(),
+                                               d1Access,
+                                               fieldSize.productOfComponents());
 
         return fieldReduced;
     }
