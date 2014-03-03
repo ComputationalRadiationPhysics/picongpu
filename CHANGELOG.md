@@ -19,6 +19,9 @@ This is the 4th release candidate, a *pre-beta* version.
  - Renamed `observer.hpp` -> `radiationObserver.param` #237
    Changed variable name `N_theta` to `N_observer`
    [https://github.com/PrometheusPi/picongpu/commit/9e487ec30ade10ece44fc19fd7a815b8dfe58f61#diff-9]
+ - Added background FieldJ (current) capability #245
+   Add the following lines to your `fieldBackground.param`:
+   https://github.com/ax3l/picongpu/commit/7b22f37c6a58250d6623cfbc821c4f996145aad9#diff-1
 
 **New Features:**
  - n/a
