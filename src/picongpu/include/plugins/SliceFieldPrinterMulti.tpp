@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Heiko Burau, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -42,15 +42,15 @@
 namespace picongpu
 {
 
-template<typename Field, int FieldId>
-SliceFieldPrinterMulti<Field, FieldId>::SliceFieldPrinterMulti(std::string name, std::string prefix)
+template<typename Field>
+SliceFieldPrinterMulti<Field>::SliceFieldPrinterMulti(std::string name, std::string prefix)
     : name(name), prefix(prefix)
 {
     ModuleConnector::getInstance().registerModule(this);
 }
 
-template<typename Field, int FieldId>
-void SliceFieldPrinterMulti<Field, FieldId>::moduleRegisterHelp(po::options_description& desc)
+template<typename Field>
+void SliceFieldPrinterMulti<Field>::moduleRegisterHelp(po::options_description& desc)
 {
     desc.add_options()
         ((this->prefix + "_frequency").c_str(),
@@ -66,11 +66,11 @@ void SliceFieldPrinterMulti<Field, FieldId>::moduleRegisterHelp(po::options_desc
         po::value<std::vector<float_X> > (&this->slicePoint)->multitoken(), "slice point 0.0 <= x <= 1.0");
 }
 
-template<typename Field, int FieldId>
-std::string SliceFieldPrinterMulti<Field, FieldId>::moduleGetName() const {return this->name;}
+template<typename Field>
+std::string SliceFieldPrinterMulti<Field>::moduleGetName() const {return this->name;}
 
-template<typename Field, int FieldId>
-void SliceFieldPrinterMulti<Field, FieldId>::moduleLoad()
+template<typename Field>
+void SliceFieldPrinterMulti<Field>::moduleLoad()
 {
     this->childs.resize(this->notifyFrequency.size());
     for(uint32_t i = 0; i < this->childs.size(); i++)
@@ -84,15 +84,15 @@ void SliceFieldPrinterMulti<Field, FieldId>::moduleLoad()
     }
 }
 
-template<typename Field, int FieldId>
-void SliceFieldPrinterMulti<Field, FieldId>::moduleUnload()
+template<typename Field>
+void SliceFieldPrinterMulti<Field>::moduleUnload()
 {
     for(uint32_t i = 0; i < this->childs.size(); i++)
         this->childs[i].moduleUnload();
 }
 
-template<typename Field, int FieldId>
-void SliceFieldPrinterMulti<Field, FieldId>::setMappingDescription(MappingDesc* desc)
+template<typename Field>
+void SliceFieldPrinterMulti<Field>::setMappingDescription(MappingDesc* desc)
 {
     this->cellDescription = desc;
 }

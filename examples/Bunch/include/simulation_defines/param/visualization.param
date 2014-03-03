@@ -23,9 +23,7 @@
 #pragma once
 
 #include <cmath>
-#include "simulation_defines.hpp"
 #include "basicOperations.hpp"
-#include "visColorScales.param"
 
 namespace picongpu
 {

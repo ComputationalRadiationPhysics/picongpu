@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -45,7 +45,6 @@ const double electrons_memory_factor = 2;
 const uint32_t TILE_WIDTH = 8;
 const uint32_t TILE_HEIGHT = 8;
 const uint32_t TILE_DEPTH = 4;
-const uint32_t TILE_SIZE = TILE_WIDTH * TILE_HEIGHT * TILE_DEPTH;
 
 const uint32_t GUARD_SIZE = 1;
 

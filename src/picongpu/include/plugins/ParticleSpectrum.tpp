@@ -163,13 +163,13 @@ template<typename ParticlesType>
 void ParticleSpectrum<ParticlesType>::notify(uint32_t)
 {/*
     DataConnector &dc = DataConnector::getInstance();
-    this->particles = &(dc.getData<ParticlesType > ((uint32_t) ParticlesType::FrameType::CommunicationTag, true));
+    this->particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
     
     namespace vec = ::vector;
     using namespace vec;
     typedef vec::CT::Size_t<8,8,4> BlockDim;
     container::PseudoBuffer<float3_X, 3> fieldE
-        (dc.getData<FieldE > (FIELD_E, true).getGridBuffer().getDeviceBuffer());
+        (dc.getData<FieldE > (FieldE::getName(), true).getGridBuffer().getDeviceBuffer());
     zone::SphericZone<3> coreBorderZone(fieldE.zone().size - (size_t)2*BlockDim().vec(),
                                         fieldE.zone().offset + (vec::Int<3>)BlockDim().vec());
     

@@ -1,6 +1,5 @@
-#!/usr/bin/env python
 #
-# Copyright 2013 Richard Pausch
+# Copyright 2013-2014 Richard Pausch
 #
 # This file is part of PIConGPU.
 #
@@ -22,6 +21,27 @@
 import numpy
 import sys
 
+__doc__ = "This is the 'smooth' module which provides several functions that\n\
+provide methods to smooth data from simulation or experiments.\n\
+It can be applied to 1D and 2D data sets."
+
+
+
+def __info__():
+    """
+    This is the 'smooth' module which provides several functions that 
+    provide methods to smooth data from simulation or experiments.
+    It can be applied to 1D and 2D data sets.
+
+    If you are running this module as executable program from your 
+    shell, you will now have a look at all manuals of the functions
+    provided by this module.
+
+    To contine press 'q'.
+    """
+
+
+
 def makeOddNumber(number, larger=True):
     """
     This function takes a number and returns the next odd number.
@@ -34,26 +54,51 @@ def makeOddNumber(number, larger=True):
     makeOddNumber(6) --> 7
     makeOddNumber(22, larger=False) --> 21
 
+    Parameters:
+    -----------
+    number int
+           number to which the next odd number is requested
+    larger bool (optinal, default=True)
+           select wheter nnext odd number should be larger (True)
+           or smaler (False) than number
+
+    Return:
+    -------
+    returns next odd number
+
     """
     if number % 2 is 1:
+        # in case number is odd
         return number
     elif number % 2 is 0:
+        # in case number is even
         if larger:
             return number +1
         else:
             return number -1
     else:
-        print >> sys.stderr, "ERROR:", self.func_name, "number neather odd nor even"
-        raise
+        error_msg = "ERROR: {} -> number (= {}) neather odd nor even".format(self.func_name, number)
+        raise Exception(error_msg)
 
 
 def gaussWindow(N, sigma):
     """
-    This function returns a Gauss function for N discrete points 
-    and a standard deviation of sigma discrete points.
+    This function returns N discrete points of a Gauss function 
+    with a standard deviation of sigma (in units of discrete points).
+    The return values are symetric and strech from 0 to N-1.
 
     ATTENTION: this gauss function is NOT normalized.
 
+    Parameters:
+    -----------
+    N     - int
+            number of sample and return points
+    sigma - float 
+            standard deviation in units of descrete points
+
+    Returns:
+    --------
+    returns N symetric samples of e^(-0.5*(x/sigma)^2) 
     """
     length = (N/float(sigma)) # +/- range bins  to  calculate
     return numpy.exp(-0.5 * (numpy.linspace(-length, length, N))**2) # not normalized
@@ -61,22 +106,48 @@ def gaussWindow(N, sigma):
 
 def smooth(x, sigma, window_len = 11, fkt=gaussWindow):
     """ 
-    A function that returnes smoothed 1D-data from data x.
+    A function that returns smoothed 1D-data from given data.
 
-    x           - original (noisy) data
-    sigma       - standard deviation used by the window function (fkt)
-    window_len  - number of bins used for the window function (fkt)
+    Parameters:
+    -----------
+    x           - numpy.ndarray (1D)
+                  original (noisy) data
+    sigma       - float
+                  standard deviation used by the window function 'fkt'
+    window_len  - int (optinal)
+                  number of bins used for the window function 'fkt'
                   default: 11 bins
-    fkt         - window function
+    fkt         - function (optional)
+                  window function used for smoothing
                   default: smooth.gaussWindow
 
+    Returns:
+    --------
+    returns smoothed data with samle length as x
+
     """
+    # check input:
+    if type(x) != numpy.ndarray:
+        error_msg = "ERROR: {} input needs to by a 1D numpy array. Data type is {}".format(
+                     self.func_name, type(x))
+        raise Exception(error_msg)
+
+    if len(x.shape) != 1:
+        # not a 1D array
+        error_msg = "ERROR: {} input needs to by a 1D numpy array. Data shape is {}".format(
+                     self.func_name, x.shape )
+        raise Exception(error_msg)
+
     # extending the data at the beginning and at the end
     # to apply the window at the borders
     s = numpy.r_[x[window_len-1:0:-1], x, x[-1:-window_len:-1]]
-    w = fkt(window_len, sigma) # window values
+
+    w = fkt(window_len, sigma) # compute window values
+
+    # smooth data by convolution with window function
     y = numpy.convolve(w/w.sum(), s, mode='valid') #smoothed data with borders
     overlap = window_len/2 # usually window_len is odd, and int-devision is used
+
     return y[overlap:len(y)-overlap] # smoothed data without added borders
 
 
@@ -85,43 +156,67 @@ def smooth2D(data, sigma_x = 10, len_x = 50, sigma_y = 10, len_y = 50, fkt=gauss
     """
     This function smoothes the noisy data of a 2D array.
 
-    data       - original (noisy) data  
-                 needs to be a 2D array
-    sigma_x    - standard deviation of the window function (fkt) in x-direction
+    Parameters:
+    -----------
+    data       - numpy.ndaray (2D)
+                 original (noisy) data - needs to be a 2D array
+    sigma_x    - float (optinal)
+                 standard deviation of the window function 'fkt' in x-direction
                  default: 10 bins
-    len_x      - number of bins used for the window function (fkt) in x-direction
+    len_x      - int (optional)
+                 number of bins used for the window function 'fkt' in x-direction
                  default: 50
-    sigma_y    - standard deviation of the window function (fkt) in y-direction
+    sigma_y    - float (optinal)
+                 standard deviation of the window function 'fkt' in y-direction
                  default: 10 bins
-    len_y      - number of bins used for the window function (fkt) in y-direction
+    len_y      - int (optinal)
+                 number of bins used for the window function 'fkt' in y-direction
                  default: 50
-    fkt        - window function
+    fkt        - function (optinal)
+                 window function
                  default: smooth.gaussWindow
 
+    Returns:
+    --------
+    smooth 2D-data with same dimensions as 'data'
+
     """
+    # cehck input
+    if type(data) != numpy.ndarray:
+        error_msg = "ERROR: {} input needs to by a 2D numpy array. Data type is {}".format(
+                     self.func_name, type(data))
+        raise Exception(error_msg)
+
     data_cp = data.copy() # make a copy since python is handling arrays by reference
-    try:
-        if len(data.shape) != 2:
-            # not a 2D array
-            raise
-    
-        # make add window bins (maximum value included)
-        len_x = makeOddNumber(len_x)
-        len_y = makeOddNumber(len_y)
 
-        # smooth x
-        for i in range(len(data_cp)):
-            data_cp[i] = smooth(data_cp[i], sigma_x, window_len=len_x, fkt=gaussWindow)
+    if len(data.shape) != 2:
+        # not a 2D array
+        error_msg = "ERROR: {} input needs to by a 2D numpy array. Data shape is {}".format(
+                     self.func_name, data.shape )
+        raise Exception(error_msg)
 
-        # smooth y
-        for j in range(len(data_cp[0])):
-            data_cp[:, j] = smooth(data_cp[:, j], sigma_y, window_len=len_y, fkt=gaussWindow)
+    # make add window bins (maximum value included)
+    len_x = makeOddNumber(len_x)
+    len_y = makeOddNumber(len_y)
 
-        # return smoothed copy
-        return data_cp
-    except:
-        print >> sys.stderr, "ERROR:", self.func_name, "input needs to by a 2D numpy array"
-        raise
+    # smooth x
+    for i in range(len(data_cp)):
+        data_cp[i] = smooth(data_cp[i], sigma_x, window_len=len_x, fkt=gaussWindow)
+
+    # smooth y
+    for j in range(len(data_cp[0])):
+        data_cp[:, j] = smooth(data_cp[:, j], sigma_y, window_len=len_y, fkt=gaussWindow)
+
+    # return smoothed copy
+    return data_cp
 
 
+
+if __name__ == "__main__":
+    # call all function manuals  
+    help(__info__)
+    help(makeOddNumber)
+    help(gaussWindow)
+    help(smooth)
+    help(smooth2D)
 

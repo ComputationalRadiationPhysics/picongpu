@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Heiko Burau, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -32,10 +32,10 @@ namespace po = boost::program_options;
 
 #include <string>
 
-template<typename Field, int FieldId>
+template<typename Field>
 class SliceFieldPrinterMulti;
 
-template<typename Field, int FieldId>
+template<typename Field>
 class SliceFieldPrinter : public ISimulationIO
 {
 private:
@@ -52,7 +52,7 @@ private:
     template<typename TField>
     void printSlice(const TField& field, int nAxis, float slicePoint, std::string filename);
     
-    friend class SliceFieldPrinterMulti<Field, FieldId>;
+    friend class SliceFieldPrinterMulti<Field>;
 public:
     void notify(uint32_t currentStep);
     void setMappingDescription(MappingDesc* desc) {this->cellDescription = desc;}

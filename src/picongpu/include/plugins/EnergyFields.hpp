@@ -59,7 +59,7 @@ struct cast64Bit
 
     HDINLINE typename TypeCast<result, T_Type>::result operator()(const T_Type& value) const
     {
-        return typeCast<result>(value);
+        return precisionCast<result>(value);
     }
 };
 }
@@ -109,8 +109,8 @@ public:
     {
         DataConnector &dc = DataConnector::getInstance();
 
-        fieldE = &(dc.getData<FieldE > (FIELD_E, true));
-        fieldB = &(dc.getData<FieldB > (FIELD_B, true));
+        fieldE = &(dc.getData<FieldE > (FieldE::getName(), true));
+        fieldB = &(dc.getData<FieldB > (FieldB::getName(), true));
         getEnergyFields(currentStep);
     }
 

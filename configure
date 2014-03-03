@@ -49,7 +49,7 @@ cmakeFlagsNr=0
 eval set -- "$OPTS"
 
 while true ; do
-    case "$1" in  
+    case "$1" in
         -a|--arch)
             cuda_arch="-DCUDA_ARCH=$2"
             shift
@@ -77,8 +77,8 @@ done
 
 extension_param="$*"
 
-if [ -z "$extension_param" ] ; then
-   echo "No case path is given." >&2
+if [ ! -d "$extension_param" ] ; then
+   echo "Path \"$extension_param\" does not exist." >&2
    exit 1
 fi
 #check for cmakeFlags file (interprete with sh)

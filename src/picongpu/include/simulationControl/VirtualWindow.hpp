@@ -46,19 +46,19 @@ struct VirtualWindow
     {
     }
     /*difference between grid NULL point and first seen data of the simulation*/
-    DataSpace<DIM3> globalSimulationOffset;
+    DataSpace<simDim> globalSimulationOffset;
 
     /*local offset from local NULL point*/
-    DataSpace<DIM3> localOffset;
+    DataSpace<simDim> localOffset;
 
     /*new size of local grid which contains the manipulation with the local offset (oldsize-localOffset)*/
-    DataSpace<DIM3> localSize;
+    DataSpace<simDim> localSize;
 
-    DataSpace<DIM3> globalWindowSize;
+    DataSpace<simDim> globalWindowSize;
 
-    DataSpace<DIM3> localFullSize;
+    DataSpace<simDim> localFullSize;
 
-    DataSpace<DIM3> globalSimulationSize;
+    DataSpace<simDim> globalSimulationSize;
 
     /*slides since begin of the simulation*/
     uint32_t slides;

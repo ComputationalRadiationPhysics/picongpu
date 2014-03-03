@@ -24,6 +24,7 @@
 #define	MESSAGEHEADER_HPP
 
 #include "types.h"
+#include "simulation_defines.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "iostream"
 #include "stdlib.h"
@@ -57,7 +58,7 @@ struct MessageHeader
                 picongpu::VirtualWindow vWindow,
                 Size2D transpose,
                 uint32_t currentStep,
-                float* cellSize = NULL,
+                float* cellSizeArr = NULL,
                 const PMacc::DataSpace<CellDesc::Dim> gpus = PMacc::DataSpace<CellDesc::Dim > ())
     {
         using namespace PMacc;
@@ -86,13 +87,13 @@ struct MessageHeader
         const DataSpace<Dim> windowSize = vWindow.globalWindowSize;
         window.size = DataSpace<DIM2 > (windowSize[transpose.x()], windowSize[transpose.y()]);
 
-        if (cellSize != NULL)
+        if (cellSizeArr != NULL)
         {
             float scale[2];
-            scale[0] = cellSize[transpose.x()];
-            scale[1] = cellSize[transpose.y()];
-            sim.cellSize[0] = cellSize[transpose.x()];
-            sim.cellSize[1] = cellSize[transpose.y()];
+            scale[0] = cellSizeArr[transpose.x()];
+            scale[1] = cellSizeArr[transpose.y()];
+            sim.cellSizeArr[0] = cellSizeArr[transpose.x()];
+            sim.cellSizeArr[1] = cellSizeArr[transpose.y()];
 
             const float scale0to1 = scale[0] / scale[1];
             

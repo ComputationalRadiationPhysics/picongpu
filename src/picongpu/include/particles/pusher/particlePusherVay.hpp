@@ -19,9 +19,7 @@
  */ 
  
 
-
-#ifndef PARTICLEPUSHERVAY_HPP
-#define	PARTICLEPUSHERVAY_HPP
+#pragma once
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -67,7 +65,7 @@ struct Push
         const float_X gamma_prime = gamma(momentum_prime, mass);
         //sqrtf(1.0 + abs2(momentum_prime*(1.0/(mass * SPEED_OF_LIGHT))));
         const sqrt_Vay::float3_X tau(factor / mass * bField);
-        const sqrt_Vay::float_X u_star = math::dot( typeCast<sqrt_Vay::float_X>(momentum_prime), tau ) / typeCast<sqrt_Vay::float_X>( SPEED_OF_LIGHT * mass );
+        const sqrt_Vay::float_X u_star = math::dot( precisionCast<sqrt_Vay::float_X>(momentum_prime), tau ) / precisionCast<sqrt_Vay::float_X>( SPEED_OF_LIGHT * mass );
         const sqrt_Vay::float_X sigma = gamma_prime * gamma_prime - math::abs2( tau );
         const sqrt_Vay::float_X gamma_atPlusHalf = math::sqrt( sqrt_Vay::float_X(0.5) *
             ( sigma +
@@ -85,12 +83,9 @@ struct Push
         
         for(uint32_t d=0;d<simDim;++d)
         {
-            pos[d] += (vel[d] * DELTA_T) / cell_size[d]; 
+            pos[d] += (vel[d] * DELTA_T) / cellSize[d]; 
         }   
     }
 };
-} //namespace
-}
-
-#endif	/* PARTICLEPUSHERVAY_HPP */
-
+} //namespace particlePusherVay
+} //namespace picongpu

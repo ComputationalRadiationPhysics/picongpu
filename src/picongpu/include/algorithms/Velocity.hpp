@@ -37,7 +37,7 @@ namespace picongpu
             const float_X rc2 = MUE0_EPS0;
             const float_X m0_2 = mass0*mass0;
             const float_X fMom2 = math::abs2(mom);
-            float_X t = math::rsqrt(typeCast<sqrt_X>(m0_2 + fMom2 * rc2));
+            float_X t = math::rsqrt(precisionCast<sqrt_X>(m0_2 + fMom2 * rc2));
             return t * mom;
         }
     };

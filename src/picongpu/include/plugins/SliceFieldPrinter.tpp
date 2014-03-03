@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Heiko Burau, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -40,8 +40,8 @@
 namespace picongpu
 {
 
-template<typename Field, int FieldId>
-void SliceFieldPrinter<Field, FieldId>::moduleLoad()
+template<typename Field>
+void SliceFieldPrinter<Field>::moduleLoad()
 {
     DataConnector::getInstance().registerObserver(this, this->notifyFrequency);
     namespace vec = ::PMacc::math;
@@ -53,32 +53,32 @@ void SliceFieldPrinter<Field, FieldId>::moduleLoad()
         size.shrink<2>((this->plane+1)%3));
 }
 
-template<typename Field, int FieldId>
-void SliceFieldPrinter<Field, FieldId>::moduleUnload()
+template<typename Field>
+void SliceFieldPrinter<Field>::moduleUnload()
 {
     delete this->dBuffer;
 }
 
-template<typename Field, int FieldId>
-void SliceFieldPrinter<Field, FieldId>::notify(uint32_t currentStep)
+template<typename Field>
+void SliceFieldPrinter<Field>::notify(uint32_t currentStep)
 {
     namespace vec = ::PMacc::math;
     typedef vec::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> BlockDim;
     DataConnector &dc = DataConnector::getInstance();
 
     BOOST_AUTO(field_coreBorder,
-        dc.getData<Field > (FieldId, true).getGridBuffer().
+        dc.getData<Field > (Field::getName(), true).getGridBuffer().
             getDeviceBuffer().cartBuffer().
-            view(typeCast<int>(BlockDim().vec()), -typeCast<int>(BlockDim().vec())));
+            view(precisionCast<int>(BlockDim().vec()), -precisionCast<int>(BlockDim().vec())));
 
     std::ostringstream filename;
     filename << this->fieldName << "_" << currentStep << ".dat";
     printSlice(field_coreBorder, this->plane, this->slicePoint, filename.str());
 }
 
-template<typename Field, int FieldId>
+template<typename Field>
 template<typename TField>
-void SliceFieldPrinter<Field, FieldId>::printSlice(const TField& field, int nAxis, float slicePoint, std::string filename)
+void SliceFieldPrinter<Field>::printSlice(const TField& field, int nAxis, float slicePoint, std::string filename)
 {
     namespace vec = PMacc::math;
     using namespace vec::tools;
@@ -104,10 +104,8 @@ void SliceFieldPrinter<Field, FieldId>::printSlice(const TField& field, int nAxi
     using namespace lambda;
     vec::UInt<3> twistedVector((nAxis+1)%3, (nAxis+2)%3, nAxis);
     
-    float_X SI;
-    if(FieldId == FIELD_E)
-        SI = UNIT_EFIELD;
-    else if(FieldId == FIELD_B)
+    float_X SI = UNIT_EFIELD;
+    if(Field::getName() == FieldB::getName())
         SI = UNIT_BFIELD;
 
     algorithm::kernel::Foreach<vec::CT::UInt<4,4,1> >()(

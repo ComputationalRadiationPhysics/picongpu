@@ -1,5 +1,6 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Klaus Steiniger
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Klaus Steiniger,
+ * Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -54,7 +55,6 @@
 #endif
 
 #include "plugins/radiation/radFormFactor.hpp"
-#include "simulation_defines/param/observer.hpp"
 #include "sys/stat.h"
 
 
@@ -393,7 +393,7 @@ void kernelRadiationParticles(ParBox pb,
                                 // is considered
                                 // the form factor influences the real amplitude
 #if (__COHERENTINCOHERENTWEIGHTING__==1)
-                                const vec2 weighted_real_amp = real_amplitude_s[j] * typeCast<float_64 >
+                                const vec2 weighted_real_amp = real_amplitude_s[j] * precisionCast<float_64 >
                                     (myRadFormFactor(radWeighting_s[j], omega, look));
 #else
                                 // if coherent/incoherent radiation of single macro-particle 
@@ -571,7 +571,7 @@ public:
 
         DataConnector &dc = DataConnector::getInstance();
 
-        particles = &(dc.getData<ParticlesType > ((uint32_t) ParticlesType::FrameType::CommunicationTag, true));
+        particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
 
         if (currentStep >= radStart)
         {
@@ -639,7 +639,7 @@ private:
         {
             /*only rank 0 create a file*/
             isMaster = reduce.hasResult(mpi::reduceMethods::Reduce());
-            const int elements_amplitude = radiation_frequencies::N_omega * parameters::N_theta; // storage for amplitude results on GPU
+            const int elements_amplitude = radiation_frequencies::N_omega * parameters::N_observer; // storage for amplitude results on GPU
 
             radiation = new GridBuffer<Amplitude, DIM1 > (DataSpace<DIM1 > (elements_amplitude)); //create one int on gpu und host
 
@@ -720,7 +720,7 @@ private:
     void combineData(const DataSpace<simDim> currentGPUpos)
     {
 
-        const unsigned int elements_amplitude = radiation_frequencies::N_omega * parameters::N_theta; // storage for amplitude results on GPU
+        const unsigned int elements_amplitude = radiation_frequencies::N_omega * parameters::N_observer; // storage for amplitude results on GPU
         Amplitude *result = new Amplitude[elements_amplitude];
 
 
@@ -817,7 +817,7 @@ private:
         }
         else
         {
-            for (unsigned int index_direction = 0; index_direction < parameters::N_theta; ++index_direction) // over all directions
+            for (unsigned int index_direction = 0; index_direction < parameters::N_observer; ++index_direction) // over all directions
             {
                 for (unsigned index_omega = 0; index_omega < radiation_frequencies::N_omega; ++index_omega) // over all frequencies
                 {
@@ -851,7 +851,7 @@ private:
         }
         else
         {
-            outFile.write((char*) values, sizeof (Amplitude) * parameters::N_theta * radiation_frequencies::N_omega);
+            outFile.write((char*) values, sizeof (Amplitude) * parameters::N_observer * radiation_frequencies::N_omega);
         }
 
         outFile.close();
@@ -868,7 +868,7 @@ private:
         }
         else
         {
-            inFile.read((char*) values, sizeof (Amplitude) * parameters::N_theta * radiation_frequencies::N_omega);
+            inFile.read((char*) values, sizeof (Amplitude) * parameters::N_observer * radiation_frequencies::N_omega);
             std::cout << "Radiation: backup files have been loaded." << std::endl;
         }
 
@@ -908,8 +908,8 @@ private:
          *  turned out to be slower on fermis (couple percent) and 
          *  definitly slower on kepler k20)
          */
-        const int N_theta = parameters::N_theta;
-        const dim3 gridDim_rad(N_theta);
+        const int N_observer = parameters::N_observer;
+        const dim3 gridDim_rad(N_observer);
 
         /* number of threads per block = number of cells in a super cell
          *          = number of particles in a Frame 

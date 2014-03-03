@@ -19,8 +19,6 @@
  */ 
  
 
-
-
 #include "fields/tasks/FieldFactory.hpp"
 #include "fields/tasks/TaskFieldReceiveAndInsert.hpp"
 #include "fields/tasks/TaskFieldReceiveAndInsertExchange.hpp"

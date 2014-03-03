@@ -10,7 +10,15 @@ This is the 4th release candidate, a *pre-beta* version.
 ### Changes to "Open Beta RC3"
 
 **.param file changes:**
- - n/a
+ - Removed unnesseary includes #234 from:
+   `observer.hpp`, `physicalConstants.param`, `visColorScales.param`,
+   `visualization.param`, `particleConfig.param`, `gasConfig.param`,
+   `fieldBackground.param`, `particleDefinition.param`
+   see the lines that should be removed in
+   [#234](https://github.com/ComputationalRadiationPhysics/picongpu/pull/234/files)
+ - Renamed `observer.hpp` -> `radiationObserver.param` #237
+   Changed variable name `N_theta` to `N_observer`
+   [https://github.com/PrometheusPi/picongpu/commit/9e487ec30ade10ece44fc19fd7a815b8dfe58f61#diff-9]
 
 **New Features:**
  - n/a

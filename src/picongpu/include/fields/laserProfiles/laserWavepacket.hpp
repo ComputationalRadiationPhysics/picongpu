@@ -109,9 +109,9 @@ HDINLINE float3_X laserTransversal(float3_X elong, const float_X, const float_X 
     const double exponent = r2 / (W0 * W0);
 #if !defined(__CUDA_ARCH__) // Host code path
 
-    return elong * typeCast<float3_X > (exp(-0.5 * exponent));
+    return elong * precisionCast<float3_X > (exp(-0.5 * exponent));
 #else
-    return elong * typeCast<float3_X > (math::exp(-0.5 * exponent));
+    return elong * precisionCast<float3_X > (math::exp(-0.5 * exponent));
 #endif
 }
 
