@@ -20,12 +20,11 @@
  */ 
  
 
+#include "Environment.hpp"
 #include "eventSystem/EventSystem.hpp"
 
 #include "fields/SimulationFieldHelper.hpp"
 #include "mappings/kernel/ExchangeMapping.hpp"
-
-#include "particles/tasks/ParticleFactory.hpp"
 
 #include "particles/memory/boxes/ParticlesBox.hpp"
 #include "particles/memory/buffers/ParticlesBuffer.hpp"
@@ -77,11 +76,11 @@ namespace PMacc
     {
         EventTask ret;
         __startTransaction(event);
-        ParticleFactory::getInstance().createTaskParticlesReceive(*this);
+        Environment<>::getInstance().getParticleFactory().createTaskParticlesReceive(*this);
         ret = __endTransaction();
 
         __startTransaction(event);
-        ParticleFactory::getInstance().createTaskParticlesSend(*this);
+        Environment<>::getInstance().getParticleFactory().createTaskParticlesSend(*this);
         ret += __endTransaction();
         return ret;
     }

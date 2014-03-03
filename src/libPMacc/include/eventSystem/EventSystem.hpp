@@ -19,12 +19,12 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-#ifndef EVENTSYSTEM_HPP
-#define	EVENTSYSTEM_HPP
+#pragma once
 
 #include "eventSystem/events/EventTask.hpp"
 #include "eventSystem/events/EventNotify.hpp"
 #include "eventSystem/tasks/StreamTask.hpp"
+#include "eventSystem/tasks/MPITask.hpp"
 #include "eventSystem/transactions/TransactionManager.hpp"
 #include "eventSystem/transactions/Transaction.hpp"
 #include "eventSystem/Manager.hpp"
@@ -38,8 +38,3 @@
 #include "eventSystem/events/EventTask.tpp"
 #include "eventSystem/events/EventNotify.tpp"
 #include "eventSystem/tasks/Factory.tpp"
-
-
-
-#endif	/* EVENTSYSTEM_HPP */
-

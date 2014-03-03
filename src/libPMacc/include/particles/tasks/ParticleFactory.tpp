@@ -19,14 +19,16 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
 
+
+#pragma once
+
+#include "eventSystem/EventSystem.hpp"
 #include "particles/tasks/ParticleFactory.hpp"
+
 #include "particles/tasks/TaskSendParticlesExchange.hpp"
 #include "particles/tasks/TaskReceiveParticlesExchange.hpp"
 #include "particles/tasks/TaskParticlesReceive.hpp"
 #include "particles/tasks/TaskParticlesSend.hpp"
-
-#include "eventSystem/tasks/Factory.hpp"
-#include "eventSystem/tasks/ITask.hpp"
 
 namespace PMacc
 {

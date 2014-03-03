@@ -22,6 +22,7 @@
 #pragma once 
 
 #include "eventSystem/EventSystem.hpp"
+#include "particles/tasks/ParticleFactory.hpp"
 
 #include "mappings/simulation/GridController.hpp"
 #include "mappings/simulation/SubGrid.hpp"
@@ -74,6 +75,11 @@ namespace PMacc
         Factory& getFactory()
         {
             return Factory::getInstance();
+        }
+        
+        ParticleFactory& getParticleFactory()
+        {
+            return ParticleFactory::getInstance();
         }
         
         DataConnector& getDataConnector()
@@ -146,3 +152,4 @@ namespace PMacc
 
 }
 
+#include "particles/tasks/ParticleFactory.tpp"
