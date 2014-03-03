@@ -115,7 +115,7 @@ namespace picongpu
             /* note: you can also transform the time step to seconds by
              *       multiplying with DELTA_T_SI */
 
-            /* specify your J-Field in T and convert to PIConGPU units */
+            /* specify your J-Field in A/m^2 and convert to PIConGPU units */
             const float_X sinArg = precisionCast<float_X>( y_SI / period_SI * 2.0 * PI );
             return float3_X(0.0, math::cos( sinArg ) / unitField[1], 0.0);
         }
