@@ -248,6 +248,8 @@ public:
 
 #endif
         __delete(laser);
+        __delete(pushBGField);
+        __delete(currentBGField);
     }
 
     virtual uint32_t init()
@@ -259,6 +261,7 @@ public:
         fieldJ = new FieldJ(*cellDescription);
         fieldTmp = new FieldTmp(*cellDescription);
         pushBGField = new cellwiseOperation::CellwiseOperation < CORE + BORDER + GUARD > (*cellDescription);
+        currentBGField = new cellwiseOperation::CellwiseOperation < CORE + BORDER + GUARD > (*cellDescription);
 
         //std::cout<<"Grid x="<<layout.getDataSpace().x()<<" y="<<layout.getDataSpace().y()<<std::endl;
 
@@ -377,6 +380,10 @@ public:
 
         fieldJ->clear();
 
+        /** add "external" background current */
+        (*currentBGField)(fieldJ, nvfct::Add(), fieldBackgroundJ(fieldJ->getUnit()),
+                          currentStep, fieldBackgroundJ::activated);
+
 #if (ENABLE_IONS == 1)
         __setTransactionEvent(eRecvIons + eIons);
 #if (ENABLE_CURRENT ==1)
@@ -482,6 +489,7 @@ protected:
     // field solver
     fieldSolver::FieldSolver* myFieldSolver;
     cellwiseOperation::CellwiseOperation< CORE + BORDER + GUARD >* pushBGField;
+    cellwiseOperation::CellwiseOperation< CORE + BORDER + GUARD >* currentBGField;
 
     // particles
 #if (ENABLE_IONS == 1)
