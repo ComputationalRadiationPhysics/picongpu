@@ -33,7 +33,7 @@ namespace picongpu
 
         /* We use this to calculate your SI input back to our unit system */
         const float3_64 unitField;
-        HDINLINE fieldBackgroundE( const float3_64 unitField_ ) : unitField(unitField_)
+        HDINLINE fieldBackgroundE( const float3_64 unitField ) : unitField(unitField)
         {}
 
         /** Specify your background field E(r,t) here
@@ -65,7 +65,7 @@ namespace picongpu
 
         /* We use this to calculate your SI input back to our unit system */
         const float3_64 unitField;
-        HDINLINE fieldBackgroundB( const float3_64 unitField_ ) : unitField(unitField_)
+        HDINLINE fieldBackgroundB( const float3_64 unitField ) : unitField(unitField)
         {}
 
         /** Specify your background field B(r,t) here
@@ -97,7 +97,7 @@ namespace picongpu
 
         /* We use this to calculate your SI input back to our unit system */
         const float3_64 unitField;
-        HDINLINE fieldBackgroundJ( const float3_64 unitField_ ) : unitField(unitField_)
+        HDINLINE fieldBackgroundJ( const float3_64 unitField ) : unitField(unitField)
         {}
 
         /** Specify your background field J(r,t) here
