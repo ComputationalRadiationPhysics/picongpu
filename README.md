@@ -123,7 +123,7 @@ Developers
 
 ### How to participate
 
-See [PARTICIPATE.md](doc/PARTICIPATE.md)
+See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 Active Team
 -----------
