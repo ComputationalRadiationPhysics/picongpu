@@ -140,7 +140,7 @@ Active Team
 - Axel Huebl*
 - Richard Pausch*
 - Felix Schmitt*
-- Benjamin Schneider
+- Conrad Schumann
 - Rene Widera*
 
 ### Participants, Former Members and Thanks
@@ -152,6 +152,7 @@ The PIConGPU Team expresses its thanks to:
 - Wen Fu
 - Wolfgang Hoehnig
 - Remi Lehe
+- Benjamin Schneider
 - Joseph Schuchart
 - Klaus Steiniger
 
