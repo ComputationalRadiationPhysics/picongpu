@@ -80,7 +80,7 @@ namespace picongpu
 
         virtual void start()
         {
-            ModuleConnector& module_connector = Environment<>::getInstance().getModuleConnector();
+            ModuleConnector& module_connector = Environment<>::get().ModuleConnector();
             module_connector.loadModules();
             log<picLog::SIMULATION_STATE > ("Startup");
             simulationClass->setInitController(initClass);
@@ -94,7 +94,7 @@ namespace picongpu
         bool parseConfigs(int argc, char **argv)
         {
             ArgsParser& ap = ArgsParser::getInstance();
-            ModuleConnector& module_connector = Environment<>::getInstance().getModuleConnector();
+            ModuleConnector& module_connector = Environment<>::get().ModuleConnector();
 
             po::options_description simDesc(simulationClass->moduleGetName());
             simulationClass->moduleRegisterHelp(simDesc);
@@ -132,7 +132,7 @@ namespace picongpu
 
         void moduleUnload()
         {
-            ModuleConnector& module_connector = Environment<>::getInstance().getModuleConnector();
+            ModuleConnector& module_connector = Environment<>::get().ModuleConnector();
             module_connector.unloadModules();
             initClass->unload();
             analyserClass->unload();

@@ -135,10 +135,10 @@ private:
             DataConnector &dc = DataConnector::getInstance();
 
             T* field = &(dc.getData<T > (T::getName()));
-            params.get()->gridLayout = field->getGridLayout();
+            params.getInstance()->gridLayout = field->getGridLayout();
 
             PICToAdios<ComponentType> adiosType;
-            writeField(params.get(),
+            writeField(params.getInstance(),
                        sizeof(ComponentType),
                        adiosType.type,
                        domInfo,
@@ -213,7 +213,7 @@ private:
 
             fieldTmp->getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType(0.0));
             /*run algorithm*/
-            fieldTmp->computeValue < CORE + BORDER, Solver > (*speciesTmp, params.get()->currentStep);
+            fieldTmp->computeValue < CORE + BORDER, Solver > (*speciesTmp, params.getInstance()->currentStep);
 
             EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
             __setTransactionEvent(fieldTmpEvent);
@@ -225,9 +225,9 @@ private:
             const uint32_t components = GetNComponents<ValueType>::value;
             PICToAdios<ComponentType> adiosType;
 
-            params.get()->gridLayout = fieldTmp->getGridLayout();
+            params.getInstance()->gridLayout = fieldTmp->getGridLayout();
             /*write data to ADIOS file*/
-            writeField(params.get(),
+            writeField(params.getInstance(),
                        sizeof(ComponentType),
                        adiosType.type,
                        domInfo,
@@ -307,10 +307,10 @@ private:
                     sizeof(float) + 3 * sizeof(int)) *
                     components;
             
-            params.get()->adiosGroupSize += localGroupSize;
+            params.getInstance()->adiosGroupSize += localGroupSize;
             
             PICToAdios<float> adiosType;
-            defineFieldVar(params.get(), domInfo, components, adiosType.type, T::getName());
+            defineFieldVar(params.getInstance(), domInfo, components, adiosType.type, T::getName());
 #endif
         }
     };
@@ -354,10 +354,10 @@ private:
                     sizeof(ComponentType) *
                     components;
             
-            params.get()->adiosGroupSize += localGroupSize;
+            params.getInstance()->adiosGroupSize += localGroupSize;
             
             PICToAdios<ComponentType> adiosType;
-            defineFieldVar(params.get(), domInfo, components, adiosType.type, getName());
+            defineFieldVar(params.getInstance(), domInfo, components, adiosType.type, getName());
         }
 
     };

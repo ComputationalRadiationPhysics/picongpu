@@ -82,7 +82,7 @@ public:
     notifyFrequency(0),
     writeToFile(false)
     {
-        Environment<>::getInstance().getModuleConnector().registerModule(this);
+        Environment<>::get().ModuleConnector().registerModule(this);
     }
 
     virtual ~CountParticles()
@@ -92,7 +92,7 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = Environment<>::getInstance().getDataConnector();
+        DataConnector &dc = Environment<>::get().DataConnector();
 
         particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
 
@@ -136,7 +136,7 @@ private:
                 outFile << "#step count" << " \n";
             }
 
-            Environment<>::getInstance().getDataConnector().registerObserver(this, notifyFrequency);
+            Environment<>::get().DataConnector().registerObserver(this, notifyFrequency);
         }
     }
 
@@ -160,7 +160,7 @@ private:
     {
         uint64_cu size;
 
-        PMACC_AUTO(simBox, Environment<simDim>::getInstance().getSubGrid().getSimulationBox());
+        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
         const DataSpace<simDim> localSize(simBox.getLocalSize());
 
         /*count local particles*/

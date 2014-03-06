@@ -114,7 +114,7 @@ public:
 
     HINLINE DataSpace<DIM> getGlobalSuperCells() const
     {
-        return Environment<DIM>::getInstance().getGridController().getGpuNodes() * (gridSuperCells - 2 * guardingSuperCells);
+        return Environment<DIM>::get().GridController().getGpuNodes() * (gridSuperCells - 2 * guardingSuperCells);
     }
 
 

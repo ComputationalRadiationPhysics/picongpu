@@ -49,7 +49,7 @@ public:
     virtual void init()
     {
         __startTransaction();
-        this->request = Environment<DIM>::getInstance().getEnvironmentController()
+        this->request = Environment<DIM>::get().EnvironmentController()
                 .getCommunicator().startSend(
                                              exchange->getExchangeType(),
                                              (char*) exchange->getHostBuffer().getPointer(),

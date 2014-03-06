@@ -78,7 +78,7 @@ template<typename ParticlesType>
 ParticleDensity<ParticlesType>::ParticleDensity(std::string name, std::string prefix)
     : name(name), prefix(prefix)
 {
-    Environment<>::getInstance().getModuleConnector().registerModule(this);
+    Environment<>::get().ModuleConnector().registerModule(this);
 }
 
 template<typename ParticlesType>
@@ -104,7 +104,7 @@ std::string ParticleDensity<ParticlesType>::moduleGetName() const {return this->
 template<typename ParticlesType>
 void ParticleDensity<ParticlesType>::moduleLoad()
 {
-    Environment<>::getInstance().getDataConnector().registerObserver(this, this->notifyFrequency);
+    Environment<>::get().DataConnector().registerObserver(this, this->notifyFrequency);
 }
 
 template<typename ParticlesType>
@@ -113,7 +113,7 @@ void ParticleDensity<ParticlesType>::moduleUnload(){}
 template<typename ParticlesType>
 void ParticleDensity<ParticlesType>::notify(uint32_t currentStep)
 {
-    DataConnector &dc = Environment<>::getInstance().getDataConnector();
+    DataConnector &dc = Environment<>::get().DataConnector();
     this->particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
     
 
@@ -127,7 +127,7 @@ void ParticleDensity<ParticlesType>::notify(uint32_t currentStep)
     container::DeviceBuffer<int, 2> density(coreBorderZone.size.shrink<2>((plane+1)%3));
     density.assign(0);
     
-    PMacc::GridController<3>& con = PMacc::Environment<3>::getInstance().getGridController();
+    PMacc::GridController<3>& con = PMacc::Environment<3>::get().GridController();
     vec::Size_t<3> gpuDim = (vec::Size_t<3>)con.getGpuNodes();
     vec::Size_t<3> globalGridSize = gpuDim * coreBorderZone.size;
     

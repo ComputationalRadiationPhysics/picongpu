@@ -39,7 +39,7 @@ Reduce<dim>::Reduce(const zone::SphericZone<dim>& _zone, bool setThisAsRoot) : c
 {
     using namespace math;
       
-    PMACC_AUTO(&con,Environment<dim>::getInstance().getGridController());
+    PMACC_AUTO(&con,Environment<dim>::getInstance().GridController());
     
     typedef std::pair<Int<dim>, bool> PosFlag;
     PosFlag posFlag;

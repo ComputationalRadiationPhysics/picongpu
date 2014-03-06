@@ -23,6 +23,8 @@
 import glob
 import argparse
 from xml.dom.minidom import Document
+import sys
+sys.path.append("/home/schuma/Git/libsplash/tools/")
 import splash2xdmf
 
 doc = Document()
@@ -103,8 +105,8 @@ def join_from_components(node_list, prefix, suffix, operation, dims):
     function_str += suffix
     join_base.setAttribute("Function", "{}".format(function_str))
     return join_base
-
-
+            
+    
 def create_vector_attribute(new_name, node_list):
     """
     Parameters:
@@ -123,17 +125,29 @@ def create_vector_attribute(new_name, node_list):
     vector_node = doc.createElement("Attribute")
     vector_node.setAttribute("Name", new_name)
     vector_node.setAttribute("AttributeType", "Vector")
-    
     dims = node_list[0].firstChild.getAttribute("Dimensions")
     
     data_item_list = list()
     for node in node_list:
-        data_item_list.append(node.firstChild)
-    vector_data = join_from_components(data_item_list, "JOIN(", ")", ",", dims)
-    
-    vector_node.appendChild(vector_data)
+        print node.getAttribute("Value")
+ 
+    #    for (attr_name, attr_value) in attr_n.attrs.items():
+    #        if not attr_name.startswith("_"):
+    #            information = doc.createElement("Information")
+    #            information.setAttribute("Name", attr_name)
+    #            information.setAttribute("Value", "{}".format(attr_value))
+    #            vector_node.appendChild(information)
+      	child_list = node.childNodes
+
+	for item in child_list:
+            if item.tagName == "DataItem":        	
+	        data_item_list.append(item)
+	        vector_data = join_from_components(data_item_list, "JOIN(", ")", ",", dims)
+                vector_node.appendChild(vector_data)
+   
     return vector_node
 
+	
 
 def combine_positions(node_list, dims):
     """
@@ -298,7 +312,8 @@ def merge_poly_attributes(base_node):
         
         combined_pos_nodes = list()
         for i in range(len(pos_vector_list)):
-            combined_node = combine_positions([gcellidx_vector_list[i].firstChild, pos_vector_list[i].firstChild], number_of_elements)
+	    		    
+            combined_node = combine_positions([gcellidx_vector_list[i].lastChild, pos_vector_list[i].lastChild], number_of_elements)
             combined_pos_nodes.append(combined_node)
             
         geom_node = create_position_geometry(combined_pos_nodes, number_of_elements)

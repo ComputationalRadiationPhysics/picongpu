@@ -37,7 +37,7 @@ namespace PMacc
     {
         TaskFieldReceiveAndInsert<Field>* task = new TaskFieldReceiveAndInsert<Field > (buffer);
 
-        return Environment<>::getInstance().getFactory().startTask(*task, registeringTask);
+        return Environment<>::get().Factory().startTask(*task, registeringTask);
     }
 
     template<class Field>
@@ -46,7 +46,7 @@ namespace PMacc
     {
         TaskFieldReceiveAndInsertExchange<Field>* task = new TaskFieldReceiveAndInsertExchange<Field > (buffer, exchange);
 
-        return Environment<>::getInstance().getFactory().startTask(*task, registeringTask);
+        return Environment<>::get().Factory().startTask(*task, registeringTask);
     }
 
     template<class Field>
@@ -55,7 +55,7 @@ namespace PMacc
     {
         TaskFieldSend<Field>* task = new TaskFieldSend<Field > (buffer);
 
-        return Environment<>::getInstance().getFactory().startTask(*task, registeringTask);
+        return Environment<>::get().Factory().startTask(*task, registeringTask);
     }
 
     template<class Field>
@@ -64,7 +64,7 @@ namespace PMacc
     {
         TaskFieldSendExchange<Field>* task = new TaskFieldSendExchange<Field > (buffer, exchange);
 
-        return Environment<>::getInstance().getFactory().startTask(*task, registeringTask);
+        return Environment<>::get().Factory().startTask(*task, registeringTask);
     }
 
 

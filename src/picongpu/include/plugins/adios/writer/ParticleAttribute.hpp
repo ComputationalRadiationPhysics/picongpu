@@ -67,7 +67,7 @@ struct ParticleAttribute
         
         for (uint32_t d = 0; d < components; d++)
         {
-            ValueType* dataPtr = frame.get().getIdentifier(Identifier()).getPointer();
+            ValueType* dataPtr = frame.getInstance().getIdentifier(Identifier()).getPointer();
             
             /* copy strided data from source to temporary buffer */
             for (size_t i = 0; i < elements; ++i)
@@ -75,9 +75,9 @@ struct ParticleAttribute
                 tmpBfr[i] = ((ComponentType*)dataPtr)[i * components];
             }
 
-            int64_t adiosAttributeVarId = *(params.get()->adiosParticleAttrVarIds.begin());
-            params.get()->adiosParticleAttrVarIds.pop_front();
-            ADIOS_CMD(adios_write_byid(params.get()->adiosFileHandle, adiosAttributeVarId, tmpBfr));
+            int64_t adiosAttributeVarId = *(params.getInstance()->adiosParticleAttrVarIds.begin());
+            params.getInstance()->adiosParticleAttrVarIds.pop_front();
+            ADIOS_CMD(adios_write_byid(params.getInstance()->adiosFileHandle, adiosAttributeVarId, tmpBfr));
         }
         
         __deleteArray(tmpBfr);

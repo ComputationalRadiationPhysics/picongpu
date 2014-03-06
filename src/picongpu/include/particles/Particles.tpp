@@ -131,7 +131,7 @@ void Particles<T_DataVector, T_MethodsVector>::init( FieldE &fieldE, FieldB &fie
     this->fieldB = &fieldB;
     this->fieldJurrent = &fieldJ;
 
-    Environment<>::getInstance( ).getDataConnector().registerData( *this );
+    Environment<>::get( ).DataConnector().registerData( *this );
 }
 
 template< typename T_DataVector, typename T_MethodsVector>
@@ -177,7 +177,7 @@ template< typename T_DataVector, typename T_MethodsVector>
 void Particles<T_DataVector, T_MethodsVector>::initFill( uint32_t currentStep )
 {
     VirtualWindow window = MovingWindow::getInstance( ).getVirtualWindow( currentStep );
-    PMACC_AUTO( simBox, Environment<simDim>::getInstance().getSubGrid().getSimulationBox( ) );
+    PMACC_AUTO( simBox, Environment<simDim>::get().SubGrid().getSimulationBox( ) );
 
     /*calculate real simulation area offset from the beginning of the simulation*/
     DataSpace<simDim> localCells = gridLayout.getDataSpaceWithoutGuarding( );
@@ -185,8 +185,8 @@ void Particles<T_DataVector, T_MethodsVector>::initFill( uint32_t currentStep )
     gpuCellOffset.y( ) += window.slides * localCells.y( );
 
 
-    uint32_t seed = Environment<simDim>::getInstance().getGridController().getGlobalSize( ) * FrameType::CommunicationTag
-        + Environment<simDim>::getInstance().getGridController().getGlobalRank( );
+    uint32_t seed = Environment<simDim>::get().GridController().getGlobalSize( ) * FrameType::CommunicationTag
+        + Environment<simDim>::get().GridController().getGlobalRank( );
     seed ^= POSITION_SEED;
     dim3 block( MappingDesc::SuperCellSize::getDataSpace( ) );
 
@@ -228,8 +228,8 @@ void Particles<T_DataVector, T_MethodsVector>::deviceAddTemperature( float_X ene
     dim3 block( MappingDesc::SuperCellSize::getDataSpace( ) );
     DataSpace<simDim> superCells = this->particlesBuffer->getSuperCellsCount( );
 
-    uint32_t seed = Environment<simDim>::getInstance().getGridController().getGlobalSize( ) * FrameType::CommunicationTag
-        + Environment<simDim>::getInstance().getGridController().getGlobalRank( );
+    uint32_t seed = Environment<simDim>::get().GridController().getGlobalSize( ) * FrameType::CommunicationTag
+        + Environment<simDim>::get().GridController().getGlobalRank( );
     seed ^= TEMPERATURE_SEED;
 
     __picKernelArea( kernelAddTemperature, this->cellDescription, CORE + BORDER + GUARD )
@@ -246,7 +246,7 @@ void Particles<T_DataVector, T_MethodsVector>::deviceSetDrift( uint32_t currentS
 
     dim3 block( MappingDesc::SuperCellSize::getDataSpace( ) );
 
-    PMACC_AUTO( simBox, Environment<simDim>::getInstance().getSubGrid().getSimulationBox( ) );
+    PMACC_AUTO( simBox, Environment<simDim>::get().SubGrid().getSimulationBox( ) );
     const DataSpace<simDim> localNrOfCells( simBox.getLocalSize( ) );
     const DataSpace<simDim> globalNrOfCells( simBox.getGlobalSize( ) );
 

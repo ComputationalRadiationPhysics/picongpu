@@ -30,7 +30,7 @@ namespace traits
     /** Get unit of date which are represented by a identifier
      * 
      * \tparam T_Identifier any picongpu identifier
-     * \return \p std::vector<double> ::get() as static public methode
+     * \return \p std::vector<double> ::getInstance() as static public methode
      */
     template<typename T_Identifier>
     struct Unit;

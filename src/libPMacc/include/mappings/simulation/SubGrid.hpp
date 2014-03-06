@@ -132,7 +132,7 @@ namespace PMacc
     private:
 
         friend Environment<DIM>;
-
+        
         /**
          * Constructor
          */

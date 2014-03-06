@@ -98,7 +98,7 @@ public:
     {
 
         VirtualWindow window(slideCounter);
-        DataSpace<simDim> gridSize(Environment<simDim>::getInstance().getSubGrid().getSimulationBox().getLocalSize());
+        DataSpace<simDim> gridSize(Environment<simDim>::get().SubGrid().getSimulationBox().getLocalSize());
         DataSpace<simDim> globalWindowSize(simSize);
         globalWindowSize.y()-=gridSize.y() * slidingWindowActive;
 
@@ -142,7 +142,7 @@ public:
                 window.globalSimulationOffset.y() = offsetFirstGPU;
             }
 
-            Mask comm_mask = Environment<simDim>::getInstance().getGridController().getCommunicationMask();
+            Mask comm_mask = Environment<simDim>::get().GridController().getCommunicationMask();
 
             const bool isTopGpu = !comm_mask.isSet(TOP);
             const bool isBottomGpu = !comm_mask.isSet(BOTTOM);

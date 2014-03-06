@@ -115,7 +115,7 @@ public:
     {
         using namespace ::PMacc::math;
 
-        PMACC_AUTO(&con,Environment<simDim>::getInstance().getGridController());
+        PMACC_AUTO(&con,Environment<simDim>::get().getGridController());
         Size_t<SIMDIM> gpuDim = (Size_t<SIMDIM>)con.getGpuNodes();
         Int<3> gpuPos = (Int<3>)con.getPosition();
         zone::SphericZone<SIMDIM> gpuGatheringZone(Size_t<SIMDIM > (1, 1, gpuDim.z()));

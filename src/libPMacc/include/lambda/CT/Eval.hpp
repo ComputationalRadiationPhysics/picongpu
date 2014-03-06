@@ -235,7 +235,7 @@ struct Eval<CT::Expression<lambda::Expression<exprTypes::terminal, mpl::vector<R
     HDINLINE Child0&
     operator()(const TerminalTuple& terminalTuple, ArgsTuple) const
     {
-        return terminalTuple.at(mpl::int_<terminalTypeIdx>()).get();
+        return terminalTuple.at(mpl::int_<terminalTypeIdx>()).getInstance();
     }
 };
 

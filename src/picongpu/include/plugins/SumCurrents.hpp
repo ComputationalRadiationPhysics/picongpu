@@ -102,7 +102,7 @@ public:
     notifyFrequency(0)
     {
 
-        Environment<>::getInstance().getModuleConnector().registerModule(this);
+        Environment<>::get().ModuleConnector().registerModule(this);
     }
 
     virtual ~SumCurrents()
@@ -112,12 +112,12 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = Environment<>::getInstance().getDataConnector();
+        DataConnector &dc = Environment<>::get().DataConnector();
 
         fieldJ = &(dc.getData<FieldJ > (FieldJ::getName(), true));
 
 
-        const int rank = Environment<simDim>::getInstance().getGridController().getGlobalRank();
+        const int rank = Environment<simDim>::get().GridController().getGlobalRank();
         const float3_X gCurrent = getSumCurrents();
 
         //const DataSpace<simDim> nrOfGpuCells = MappingDesc::SuperCellSize::getDataSpace()
@@ -175,7 +175,7 @@ private:
         {
             sumcurrents = new GridBuffer<float3_X, DIM1 > (DataSpace<DIM1 > (1)); //create one int on gpu und host
 
-            Environment<>::getInstance().getDataConnector().registerObserver(this, notifyFrequency);
+            Environment<>::get().DataConnector().registerObserver(this, notifyFrequency);
         }
     }
 
