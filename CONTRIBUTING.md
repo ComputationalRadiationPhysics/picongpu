@@ -245,7 +245,7 @@ could *improve* ( *That looks awesome, all right!* ), simply change your
 to **update the pull request**.
 
 As a **best practive agreement**, we wait for at least **two** of our
-[maintainers](../README.md#maintainers-and-core-developers) to review the pull
+[maintainers](README.md#maintainers-and-core-developers) to review the pull
 request until it is merged.
 
 Sharing is caring! Thank you for participating, **you are great**!
@@ -293,7 +293,7 @@ Please **add the according license header** snippet to your *new files*:
 Commit Rules
 ------------
 
-See our [commit rules page](COMMIT.md)
+See our [commit rules page](doc/COMMIT.md)
 
 *******************************************************************************
 
