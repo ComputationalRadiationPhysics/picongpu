@@ -67,13 +67,13 @@ public:
     }
         
     HDINLINE
-    Type& get() 
+    Type& getInstance() 
     {
         return myRef;
     }
     
         HDINLINE
-    Type& get() const
+    Type& getInstance() const
     {
         return myRef;
     }

@@ -62,10 +62,10 @@ struct GatherSlice
             reset();
         }
 
-        int countRanks = GridController<simDim>::getInstance().getGpuNodes().productOfComponents();
+        int countRanks = Environment<simDim>::get().GridController().getGpuNodes().productOfComponents();
         int gatherRanks[countRanks];
         int groupRanks[countRanks];
-        mpiRank = GridController<simDim>::getInstance().getGlobalRank();
+        mpiRank = Environment<simDim>::get().GridController().getGlobalRank();
         if (!isActive)
             mpiRank = -1;
 

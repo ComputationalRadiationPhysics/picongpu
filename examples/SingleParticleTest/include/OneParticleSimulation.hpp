@@ -24,7 +24,7 @@
 #define	ONEPARTICLESIMULATION_HPP
 
 #include "simulation_defines.hpp"
-
+#include "Environment.hpp"
 #include "simulationControl/MySimulation.hpp"
 
 #include "simulationControl/SimulationHelper.hpp"
@@ -75,7 +75,7 @@ public:
 
         MySimulation::init();
 
-        if (GridController<DIM3>::getInstance().getGlobalRank() == 0)
+        if (Environment<simDim>::get().getGridController().getGlobalRank() == 0)
         {
             std::cout << "max weighting " << NUM_EL_PER_PARTICLE << std::endl;
             std::cout << "courant=min(deltaCellSize)/dt/c > 1.77 ? " << std::min(CELL_WIDTH, std::min(CELL_DEPTH, CELL_HEIGHT)) / SPEED_OF_LIGHT / DELTA_T << std::endl;
@@ -93,7 +93,7 @@ public:
 
         //add one particle in simulation
         //
-        PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
+        PMACC_AUTO(simBox, Environment<simDim>::get().getSubGrid().getSimulationBox());
 
         const DataSpace<simDim> halfSimSize(simBox.getGlobalSize() / 2);
 
@@ -154,11 +154,11 @@ public:
 
     virtual void movingWindowCheck(uint32_t currentStep)
     {
-        PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
+        PMACC_AUTO(simBox, Environment<simDim>::get().getSubGrid().getSimulationBox());
         GridLayout<DIM3> gridLayout(simBox.getLocalSize(), MappingDesc::SuperCellSize::getDataSpace());
         if (MovingWindow::getInstance().getVirtualWindow(currentStep).doSlide)
         {
-            GridController<simDim>& gc = GridController<simDim>::getInstance();
+            GridController<simDim>& gc = Environment<simDim>::get().getGridController();
             if (gc.slide())
             {
                 electrons->reset(currentStep);

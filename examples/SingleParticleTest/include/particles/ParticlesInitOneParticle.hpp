@@ -90,7 +90,7 @@ namespace picongpu
         static void addOneParticle(ParticlesClass& parClass, MappingDesc cellDescription, DataSpace<DIM3> globalCell)
         {
 
-            PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
+            PMACC_AUTO(simBox, Environment<simDim>::get().getSubGrid().getSimulationBox());
             const DataSpace<DIM3> globalTopLeft = simBox.getGlobalOffset();
             const DataSpace<DIM3> localSimulationArea = simBox.getLocalSize();
             DataSpace<DIM3> localParCell = globalCell - globalTopLeft;

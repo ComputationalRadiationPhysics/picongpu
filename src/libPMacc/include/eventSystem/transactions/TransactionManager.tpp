@@ -100,4 +100,5 @@ inline TransactionManager& TransactionManager::getInstance( )
     return instance;
 }
 
+
 }

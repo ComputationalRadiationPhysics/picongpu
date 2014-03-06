@@ -94,7 +94,7 @@ template< int T >
 struct typicalFields
 {
 
-    HDINLINE static float3_X get()
+    HDINLINE static float3_X getInstance()
     {
         return float3_X(float_X(1.0), float_X(1.0), float_X(1.0));
     }
@@ -104,7 +104,7 @@ template< >
 struct typicalFields < -1 >
 {
 
-    HDINLINE static float3_X get()
+    HDINLINE static float3_X getInstance()
     {
         return float3_X(float_X(1.0), float_X(1.0), float_X(1.0));
     }
@@ -114,7 +114,7 @@ template< >
 struct typicalFields < 1 >
 {
 
-    HDINLINE static float3_X get()
+    HDINLINE static float3_X getInstance()
     {
 #if !(EM_FIELD_SCALE_CHANNEL1 == 1 || EM_FIELD_SCALE_CHANNEL2 == 1 || EM_FIELD_SCALE_CHANNEL3 == 1)
         return float3_X(float_X(1.0), float_X(1.0), float_X(1.0));
@@ -133,7 +133,7 @@ template< >
 struct typicalFields < 2 >
 {
 
-    HDINLINE static float3_X get()
+    HDINLINE static float3_X getInstance()
     {
 #if !(EM_FIELD_SCALE_CHANNEL1 == 2 || EM_FIELD_SCALE_CHANNEL2 == 2 || EM_FIELD_SCALE_CHANNEL3 == 2)
         return float3_X(float_X(1.0), float_X(1.0), float_X(1.0));
@@ -159,7 +159,7 @@ template< >
 struct typicalFields < 3 >
 {
 
-    HDINLINE static float3_X get()
+    HDINLINE static float3_X getInstance()
     {
 #if !(EM_FIELD_SCALE_CHANNEL1 == 3 || EM_FIELD_SCALE_CHANNEL2 == 3 || EM_FIELD_SCALE_CHANNEL3 == 3)
         return float3_X(float_X(1.0), float_X(1.0), float_X(1.0));
@@ -179,7 +179,7 @@ template< >
 struct typicalFields < 4 >
 {
 
-    HDINLINE static float3_X get()
+    HDINLINE static float3_X getInstance()
     {
 #if !(EM_FIELD_SCALE_CHANNEL1 == 4 || EM_FIELD_SCALE_CHANNEL2 == 4 || EM_FIELD_SCALE_CHANNEL3 == 4)
         return float3_X(float_X(1.0), float_X(1.0), float_X(1.0));
@@ -199,7 +199,7 @@ template< >
 struct typicalFields < 5 >
 {
 
-    HDINLINE static float3_X get()
+    HDINLINE static float3_X getInstance()
     {
 #if !(EM_FIELD_SCALE_CHANNEL1 == 5 || EM_FIELD_SCALE_CHANNEL2 == 5 || EM_FIELD_SCALE_CHANNEL3 == 5)
         return float3_X(float_X(1.0), float_X(1.0), float_X(1.0));
@@ -270,29 +270,29 @@ __global__ void kernelPaintFields(
 
     // typical values of the fields to normalize them to [0,1]
     //
-    pic.x() = visPreview::preChannel1(field_b / typicalFields<EM_FIELD_SCALE_CHANNEL1>::get().x(),
-                                      field_e / typicalFields<EM_FIELD_SCALE_CHANNEL1>::get().y(),
-                                      field_j / typicalFields<EM_FIELD_SCALE_CHANNEL1>::get().z());
-    pic.y() = visPreview::preChannel2(field_b / typicalFields<EM_FIELD_SCALE_CHANNEL2>::get().x(),
-                                      field_e / typicalFields<EM_FIELD_SCALE_CHANNEL2>::get().y(),
-                                      field_j / typicalFields<EM_FIELD_SCALE_CHANNEL2>::get().z());
-    pic.z() = visPreview::preChannel3(field_b / typicalFields<EM_FIELD_SCALE_CHANNEL3>::get().x(),
-                                      field_e / typicalFields<EM_FIELD_SCALE_CHANNEL3>::get().y(),
-                                      field_j / typicalFields<EM_FIELD_SCALE_CHANNEL3>::get().z());
+    pic.x() = visPreview::preChannel1(field_b / typicalFields<EM_FIELD_SCALE_CHANNEL1>::getInstance().x(),
+                                      field_e / typicalFields<EM_FIELD_SCALE_CHANNEL1>::getInstance().y(),
+                                      field_j / typicalFields<EM_FIELD_SCALE_CHANNEL1>::getInstance().z());
+    pic.y() = visPreview::preChannel2(field_b / typicalFields<EM_FIELD_SCALE_CHANNEL2>::getInstance().x(),
+                                      field_e / typicalFields<EM_FIELD_SCALE_CHANNEL2>::getInstance().y(),
+                                      field_j / typicalFields<EM_FIELD_SCALE_CHANNEL2>::getInstance().z());
+    pic.z() = visPreview::preChannel3(field_b / typicalFields<EM_FIELD_SCALE_CHANNEL3>::getInstance().x(),
+                                      field_e / typicalFields<EM_FIELD_SCALE_CHANNEL3>::getInstance().y(),
+                                      field_j / typicalFields<EM_FIELD_SCALE_CHANNEL3>::getInstance().z());
     //visPreview::preChannel1Col::addRGB(pic,
-    //                                   visPreview::preChannel1(field_b * typicalFields<EM_FIELD_SCALE_CHANNEL1>::get().x(),
-    //                                                           field_e * typicalFields<EM_FIELD_SCALE_CHANNEL1>::get().y(),
-    //                                                           field_j * typicalFields<EM_FIELD_SCALE_CHANNEL1>::get().z()),
+    //                                   visPreview::preChannel1(field_b * typicalFields<EM_FIELD_SCALE_CHANNEL1>::getInstance().x(),
+    //                                                           field_e * typicalFields<EM_FIELD_SCALE_CHANNEL1>::getInstance().y(),
+    //                                                           field_j * typicalFields<EM_FIELD_SCALE_CHANNEL1>::getInstance().z()),
     //                                   visPreview::preChannel1_opacity);
     //visPreview::preChannel2Col::addRGB(pic,
-    //                                   visPreview::preChannel2(field_b * typicalFields<EM_FIELD_SCALE_CHANNEL2>::get().x(),
-    //                                                           field_e * typicalFields<EM_FIELD_SCALE_CHANNEL2>::get().y(),
-    //                                                           field_j * typicalFields<EM_FIELD_SCALE_CHANNEL2>::get().z()),
+    //                                   visPreview::preChannel2(field_b * typicalFields<EM_FIELD_SCALE_CHANNEL2>::getInstance().x(),
+    //                                                           field_e * typicalFields<EM_FIELD_SCALE_CHANNEL2>::getInstance().y(),
+    //                                                           field_j * typicalFields<EM_FIELD_SCALE_CHANNEL2>::getInstance().z()),
     //                                   visPreview::preChannel2_opacity);
     //visPreview::preChannel3Col::addRGB(pic,
-    //                                   visPreview::preChannel3(field_b * typicalFields<EM_FIELD_SCALE_CHANNEL3>::get().x(),
-    //                                                           field_e * typicalFields<EM_FIELD_SCALE_CHANNEL3>::get().y(),
-    //                                                           field_j * typicalFields<EM_FIELD_SCALE_CHANNEL3>::get().z()),
+    //                                   visPreview::preChannel3(field_b * typicalFields<EM_FIELD_SCALE_CHANNEL3>::getInstance().x(),
+    //                                                           field_e * typicalFields<EM_FIELD_SCALE_CHANNEL3>::getInstance().y(),
+    //                                                           field_j * typicalFields<EM_FIELD_SCALE_CHANNEL3>::getInstance().z()),
     //                                   visPreview::preChannel3_opacity);
 
 
@@ -529,7 +529,7 @@ public:
 
     void createImage(uint32_t currentStep, VirtualWindow window)
     {
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::get().DataConnector();
         // Data does not need to be synchronized as visualization is
         // done at the device.
         FieldB *fieldB = &(dc.getData<FieldB > (FieldB::getName(), true));
@@ -537,10 +537,10 @@ public:
         FieldJ* fieldJ = &(dc.getData<FieldJ > (FieldJ::getName(), true));
         ParticlesType* particles = &(dc.getData<ParticlesType > (particleTag, true));
 
-        PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
+        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
         uint32_t globalOffset = 0;
 #if(SIMDIM==DIM3)
-        globalOffset = SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset()[sliceDim];
+        globalOffset = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset()[sliceDim];
 #endif
         
         typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -645,7 +645,7 @@ public:
             sliceOffset = (int) ((float) (window.globalWindowSize[sliceDim]) * slicePoint) + window.globalSimulationOffset[sliceDim];
 
 
-            const DataSpace<simDim> gpus = GridController<simDim>::getInstance().getGpuNodes();
+            const DataSpace<simDim> gpus = Environment<simDim>::get().GridController().getGpuNodes();
 
             float_32 cellSizeArr[3]={0,0,0};
             for(uint32_t i=0;i<simDim;++i)
@@ -656,7 +656,7 @@ public:
             img = new GridBuffer<float3_X, DIM2 > (header.node.maxSize);
 
 
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
+            Environment<>::get().DataConnector().registerObserver(this, notifyFrequency);
 
             bool isDrawing = doDrawing();
             isMaster = gather.init(isDrawing);
@@ -670,9 +670,9 @@ private:
     bool doDrawing()
     {
         assert(cellDescription != NULL);
-        const DataSpace<simDim> globalRootCellPos(SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset());
+        const DataSpace<simDim> globalRootCellPos(Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset());
 #if(SIMDIM==DIM3)
-        const bool tmp = globalRootCellPos[sliceDim] + SubGrid<simDim>::getInstance().getSimulationBox().getLocalSize()[sliceDim] > sliceOffset &&
+        const bool tmp = globalRootCellPos[sliceDim] + Environment<simDim>::get().SubGrid().getSimulationBox().getLocalSize()[sliceDim] > sliceOffset &&
               globalRootCellPos[sliceDim] <= sliceOffset;
         return tmp;
 #else

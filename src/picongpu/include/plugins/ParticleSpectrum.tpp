@@ -71,7 +71,7 @@ struct Particle2Histrogram
             energy = sqrtf(mom2 * c2 + mass2 * c2*c2) - mass * c2;
         int bin = math::float2int_rd(Histogram::type::numBins * (energy - minEnergy) / (maxEnergy - minEnergy)) + 1;
         bin = max(0, bin); bin = min(Histogram::type::numBinsEx-1, bin);
-        atomicAddWrapper(&(histogram.get().bin[bin]), weighting);
+        atomicAddWrapper(&(histogram.getInstance().bin[bin]), weighting);
     }
 };
 
@@ -110,7 +110,7 @@ template<typename ParticlesType>
 ParticleSpectrum<ParticlesType>::ParticleSpectrum(std::string name, std::string prefix)
     : name(name), prefix(prefix)
 {
-    ModuleConnector::getInstance().registerModule(this);
+    Environment<>::get().ModuleConnector().registerModule(this);
 }
 
 template<typename ParticlesType>
@@ -136,7 +136,7 @@ std::string ParticleSpectrum<ParticlesType>::moduleGetName() const {return this-
 template<typename ParticlesType>
 void ParticleSpectrum<ParticlesType>::moduleLoad()
 {
-    DataConnector::getInstance().registerObserver(this, this->notifyFrequency);
+    Environment<>::get().DataConnector().registerObserver(this, this->notifyFrequency);
     
     this->minEnergy = this->minEnergy * UNITCONV_keV_to_Joule / UNIT_ENERGY;
     this->maxEnergy = this->maxEnergy * UNITCONV_keV_to_Joule / UNIT_ENERGY;
@@ -162,7 +162,7 @@ struct GetBin
 template<typename ParticlesType>
 void ParticleSpectrum<ParticlesType>::notify(uint32_t)
 {/*
-    DataConnector &dc = DataConnector::getInstance();
+    DataConnector &dc = Environment<>::get().DataConnector();
     this->particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
     
     namespace vec = ::vector;
@@ -197,7 +197,7 @@ void ParticleSpectrum<ParticlesType>::notify(uint32_t)
     container::HostBuffer<float, 1> spectrumMPI(numBinsEx), globalSpectrum(numBinsEx);
     for(size_t i = 0; i < numBinsEx; i++) spectrumMPI.origin()[(int)i] = (*spectrumHost.origin()).bin[i];
     
-    PMacc::GridController<3>& con = PMacc::GridController<3>::getInstance();
+    PMacc::GridController<3>& con = PMacc::Environment<3>::get().GridController();
     vec::Size_t<3> gpuDim = (vec::Size_t<3>)con.getGpuNodes();
     zone::SphericZone<3> gpuReducingZone(gpuDim);
     algorithm::mpi::Reduce<3> reduce(gpuReducingZone);

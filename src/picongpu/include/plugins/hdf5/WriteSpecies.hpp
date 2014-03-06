@@ -94,19 +94,19 @@ public:
                             const Space particleOffset)
     {
         log<picLog::INPUT_OUTPUT > ("HDF5: (begin) write species: %1%") % Hdf5FrameType::getName();
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::get().DataConnector();
         /* load particle without copy particle data to host */
         ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(ThisSpecies::FrameType::getName(), true));
 
         /* count total number of particles on the device */
         uint64_cu totalNumParticles = 0;
 
-        PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
+        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
 
         log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) count particles: %1%") % Hdf5FrameType::getName();
         totalNumParticles = PMacc::CountParticles::countOnDevice < CORE + BORDER > (
                                                                                     *speciesTmp,
-                                                                                    *(params.get()->cellDescription),
+                                                                                    *(params.getInstance()->cellDescription),
                                                                                     domInfo.localDomainOffset,
                                                                                     domInfo.domainSize);
 
@@ -141,7 +141,7 @@ public:
             DataSpace<simDim> superCells = speciesTmp->getParticlesBuffer().getSuperCellsCount();
 
             GridBuffer<int, DIM1> counterBuffer(DataSpace<DIM1>(1));
-            AreaMapping < CORE + BORDER, MappingDesc > mapper(*(params.get()->cellDescription));
+            AreaMapping < CORE + BORDER, MappingDesc > mapper(*(params.getInstance()->cellDescription));
 
             __cudaKernel(copySpecies)
                 (mapper.getGridDim(), block)
@@ -164,7 +164,7 @@ public:
                 domInfo, totalNumParticles);
         
         /* write meta attributes for species */
-        writeMetaAttributes(params.get());
+        writeMetaAttributes(params.getInstance());
 
         /*write species counter table to hdf5 file*/
         log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) writing particle index table for %1%") % Hdf5FrameType::getName();
@@ -186,8 +186,8 @@ public:
             if (particleOffset[1] < 0) // 1 == y
                 particlesMetaInfo[pos_offset + 1] = 0;
 
-            params.get()->dataCollector->write(
-                params.get()->currentStep,
+            params.getInstance()->dataCollector->write(
+                params.getInstance()->currentStep,
                 Dimensions(gc.getGlobalSize(), 1, 1),
                 Dimensions(gc.getGlobalRank(), 0, 0),
                 ctUInt64_5, 1,

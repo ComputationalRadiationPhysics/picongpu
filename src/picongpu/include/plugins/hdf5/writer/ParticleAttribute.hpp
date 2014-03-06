@@ -78,14 +78,14 @@ struct ParticleAttribute
         SplashType splashType;
         const std::string name_lookup[] = {"x", "y", "z"};
 
-        std::vector<double> unit = Unit<T_Identifier>::get();
+        std::vector<double> unit = Unit<T_Identifier>::getInstance();
 
         /* globalSlideOffset due to gpu slides between origin at time step 0
          * and origin at current time step
          * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
          */
         DataSpace<simDim> globalSlideOffset;
-        globalSlideOffset.y()+=params.get()->window.slides * params.get()->window.localFullSize.y();
+        globalSlideOffset.y()+=params.getInstance()->window.slides * params.getInstance()->window.localFullSize.y();
 
         Dimensions splashDomainOffset(0, 0, 0);
         Dimensions splashGlobalDomainOffset(0, 0, 0);
@@ -108,9 +108,9 @@ struct ParticleAttribute
             if (components > 1)
                 datasetName << "/" << name_lookup[d];
 
-            ValueType* dataPtr = frame.get().getIdentifier(Identifier()).getPointer();
+            ValueType* dataPtr = frame.getInstance().getIdentifier(Identifier()).getPointer();
 
-            params.get()->dataCollector->writeDomain(params.get()->currentStep, 
+            params.getInstance()->dataCollector->writeDomain(params.getInstance()->currentStep, 
                                                      splashType, 
                                                      1u, 
                                                      Dimensions(elements*components, 1, 1),
@@ -127,7 +127,7 @@ struct ParticleAttribute
 
             ColTypeDouble ctDouble;
             if (unit.size() >= (d + 1))
-                params.get()->dataCollector->writeAttribute(params.get()->currentStep,
+                params.getInstance()->dataCollector->writeAttribute(params.getInstance()->currentStep,
                                                             ctDouble, datasetName.str().c_str(),
                                                             "sim_unit", &(unit.at(d)));
 

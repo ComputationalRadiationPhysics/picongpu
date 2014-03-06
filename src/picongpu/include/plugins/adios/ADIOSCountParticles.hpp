@@ -99,7 +99,7 @@ public:
         uint64_cu totalNumParticles = 0;
         totalNumParticles = PMacc::CountParticles::countOnDevice < CORE + BORDER > (
                                                                                     *speciesTmp,
-                                                                                    *(params.get()->cellDescription),
+                                                                                    *(params.getInstance()->cellDescription),
                                                                                     domInfo.localDomainOffset,
                                                                                     domInfo.domainSize);
 
@@ -144,8 +144,8 @@ public:
             indexVarOffsetStr << localTableSize * gc.getGlobalRank();
             
             int64_t adiosSpeciesIndexVar = adios_define_var(
-                params.get()->adiosGroupHandle,
-                (params.get()->adiosBasePath + std::string(ADIOS_PATH_PARTICLES) +
+                params.getInstance()->adiosGroupHandle,
+                (params.getInstance()->adiosBasePath + std::string(ADIOS_PATH_PARTICLES) +
                     FrameType::getName() + std::string("/") + subGroup +
                     std::string("particles_info")).c_str(),
                 NULL,
@@ -154,9 +154,9 @@ public:
                 indexVarGlobalSizeStr.str().c_str(),
                 indexVarOffsetStr.str().c_str());
 
-            params.get()->adiosSpeciesIndexVarIds.push_back(adiosSpeciesIndexVar);
+            params.getInstance()->adiosSpeciesIndexVarIds.push_back(adiosSpeciesIndexVar);
             
-            params.get()->adiosGroupSize += sizeof(uint64_t) * localTableSize * gc.getGlobalSize();
+            params.getInstance()->adiosGroupSize += sizeof(uint64_t) * localTableSize * gc.getGlobalSize();
         }
     }
 };

@@ -137,12 +137,12 @@ private:
         {
 #ifndef __CUDA_ARCH__
             SplashType splashType;
-            DataConnector &dc = DataConnector::getInstance();
+            DataConnector &dc = Environment<>::get().DataConnector();
 
             T* field = &(dc.getData<T > (T::getName()));
-            params.get()->gridLayout = field->getGridLayout();
+            params.getInstance()->gridLayout = field->getGridLayout();
 
-            writeField(params.get(),
+            writeField(params.getInstance(),
                        domInfo,
                        splashType,
                        GetNComponents<ValueType>::value,
@@ -206,7 +206,7 @@ private:
 
         HINLINE void operator_impl(RefWrapper<ThreadParams*> params, const DomainInformation domInfo)
         {
-            DataConnector &dc = DataConnector::getInstance();
+            DataConnector &dc = Environment<>::get().DataConnector();
 
             /*## update field ##*/
 
@@ -217,7 +217,7 @@ private:
 
             fieldTmp->getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType(0.0));
             /*run algorithm*/
-            fieldTmp->computeValue < CORE + BORDER, Solver > (*speciesTmp, params.get()->currentStep);
+            fieldTmp->computeValue < CORE + BORDER, Solver > (*speciesTmp, params.getInstance()->currentStep);
 
             EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
             __setTransactionEvent(fieldTmpEvent);
@@ -229,9 +229,9 @@ private:
             const uint32_t components = GetNComponents<ValueType>::value;
             SplashType splashType;
 
-            params.get()->gridLayout = fieldTmp->getGridLayout();
+            params.getInstance()->gridLayout = fieldTmp->getGridLayout();
             /*write data to HDF5 file*/
-            writeField(params.get(),
+            writeField(params.getInstance(),
                        domInfo,
                        splashType,
                        components,
@@ -251,7 +251,7 @@ public:
     filename("h5"),
     notifyFrequency(0)
     {
-        ModuleConnector::getInstance().registerModule(this);
+        Environment<>::get().ModuleConnector().registerModule(this);
     }
 
     virtual ~HDF5Writer()
@@ -282,7 +282,7 @@ public:
     __host__ void notify(uint32_t currentStep)
     {
         mThreadParams.currentStep = (int32_t) currentStep;
-        mThreadParams.gridPosition = SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset();
+        mThreadParams.gridPosition = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
         mThreadParams.cellDescription = this->cellDescription;
         this->filter.setStatus(false);
 
@@ -355,9 +355,9 @@ private:
         if (notifyFrequency > 0)
         {
             mThreadParams.gridPosition =
-                SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset();
+                Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
 
-            GridController<simDim> &gc = GridController<simDim>::getInstance();
+            GridController<simDim> &gc = Environment<simDim>::get().GridController();
             /* It is important that we never change the mpi_pos after this point 
              * because we get problems with the restart.
              * Otherwise we do not know which gpu must load the ghost parts around
@@ -375,7 +375,7 @@ private:
                 splashMpiSize[i] = mpi_size[i];
             }
 
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
+            Environment<>::get().DataConnector().registerObserver(this, notifyFrequency);
         }
 
         loaded = true;

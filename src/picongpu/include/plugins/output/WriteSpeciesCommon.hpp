@@ -60,7 +60,7 @@ struct MallocMemory
         {
             CUDA_CHECK(cudaHostAlloc(&ptr, size * sizeof (type), cudaHostAllocMapped));
         }
-        v1.get().getIdentifier(T_Type()) = VectorDataBox<type>(ptr);
+        v1.getInstance().getIdentifier(T_Type()) = VectorDataBox<type>(ptr);
 
     }
 };
@@ -74,12 +74,12 @@ struct GetDevicePtr
     HINLINE void operator()(RefWrapper<ValueType> dest, RefWrapper<ValueType> src) const
     {
         type* ptr = NULL;
-        type* srcPtr = src.get().getIdentifier(T_Type()).getPointer();
+        type* srcPtr = src.getInstance().getIdentifier(T_Type()).getPointer();
         if (srcPtr != NULL)
         {
             CUDA_CHECK(cudaHostGetDevicePointer(&ptr, srcPtr, 0));
         }
-        dest.get().getIdentifier(T_Type()) =
+        dest.getInstance().getIdentifier(T_Type()) =
             VectorDataBox<type>(ptr);
     }
 };
@@ -92,7 +92,7 @@ struct FreeMemory
     template<typename ValueType >
     HINLINE void operator()(RefWrapper<ValueType> value) const
     {
-        type* ptr = value.get().getIdentifier(T_Type()).getPointer();
+        type* ptr = value.getInstance().getIdentifier(T_Type()).getPointer();
         if (ptr != NULL)
             CUDA_CHECK(cudaFreeHost(ptr));
     }

@@ -95,7 +95,7 @@ public:
         uint64_cu totalNumParticles = 0;
         totalNumParticles = PMacc::CountParticles::countOnDevice < CORE + BORDER > (
                                                                                     *speciesTmp,
-                                                                                    *(params.get()->cellDescription),
+                                                                                    *(params.getInstance()->cellDescription),
                                                                                     domInfo.localDomainOffset,
                                                                                     domInfo.domainSize);
         log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) count particles: %1% = %2%") % AdiosFrameType::getName() % totalNumParticles;
@@ -129,7 +129,7 @@ public:
             DataSpace<simDim> superCells = speciesTmp->getParticlesBuffer().getSuperCellsCount();
 
             GridBuffer<int, DIM1> counterBuffer(DataSpace<DIM1>(1));
-            AreaMapping < CORE + BORDER, MappingDesc > mapper(*(params.get()->cellDescription));
+            AreaMapping < CORE + BORDER, MappingDesc > mapper(*(params.getInstance()->cellDescription));
 
             __cudaKernel(copySpecies)
                 (mapper.getGridDim(), block)
@@ -175,9 +175,9 @@ public:
             if (particleOffset[1] < 0) // 1 == y
                 particlesMetaInfo[pos_offset + 1] = 0;
             
-            int64_t adiosIndexVarId = *(params.get()->adiosSpeciesIndexVarIds.begin());
-            params.get()->adiosSpeciesIndexVarIds.pop_front();
-            ADIOS_CMD(adios_write_byid(params.get()->adiosFileHandle, adiosIndexVarId, particlesMetaInfo));
+            int64_t adiosIndexVarId = *(params.getInstance()->adiosSpeciesIndexVarIds.begin());
+            params.getInstance()->adiosSpeciesIndexVarIds.pop_front();
+            ADIOS_CMD(adios_write_byid(params.getInstance()->adiosFileHandle, adiosIndexVarId, particlesMetaInfo));
         }
         log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) writing particle index table for %1%") % AdiosFrameType::getName(); 
     }

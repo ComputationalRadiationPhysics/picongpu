@@ -39,7 +39,7 @@ struct CopyIdentifier
     HDINLINE
     void operator()(RefWrapper<T_T1> dest, const T_T2& src) 
     {
-        dest.get()[T_Key()]=src[T_Key()];
+        dest.getInstance()[T_Key()]=src[T_Key()];
     }
     
  

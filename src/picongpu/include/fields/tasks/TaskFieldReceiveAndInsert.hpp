@@ -74,7 +74,7 @@ public:
         case Init:
             break;
         case WaitForReceived:
-            if (NULL == Manager::getInstance().getITaskIfNotFinished(tmpEvent.getTaskId()))
+            if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
             {
                 state = Insert;
             }
@@ -95,7 +95,7 @@ public:
         case Wait:
             break;
         case WaitInsertFinished:
-            if (NULL == Manager::getInstance().getITaskIfNotFinished(tmpEvent.getTaskId()))
+            if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
             {
                 state = Finish;
                 return true;

@@ -21,13 +21,9 @@
  
 #pragma once
 
-#include "eventSystem/EventSystem.hpp"
-
 #include "particles/ParticlesBase.kernel"
 #include "fields/SimulationFieldHelper.hpp"
 #include "mappings/kernel/ExchangeMapping.hpp"
-
-#include "particles/tasks/ParticleFactory.hpp"
 
 #include "particles/memory/boxes/ParticlesBox.hpp"
 #include "particles/memory/buffers/ParticlesBuffer.hpp"
