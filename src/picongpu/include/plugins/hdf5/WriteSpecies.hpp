@@ -94,14 +94,14 @@ public:
                             const Space particleOffset)
     {
         log<picLog::INPUT_OUTPUT > ("HDF5: (begin) write species: %1%") % Hdf5FrameType::getName();
-        DataConnector &dc = Environment<>::getInstance().getDataConnector();
+        DataConnector &dc = Environment<>::get().DataConnector();
         /* load particle without copy particle data to host */
         ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(ThisSpecies::FrameType::getName(), true));
 
         /* count total number of particles on the device */
         uint64_cu totalNumParticles = 0;
 
-        PMACC_AUTO(simBox, Environment<simDim>::getInstance().getSubGrid().getSimulationBox());
+        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
 
         log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) count particles: %1%") % Hdf5FrameType::getName();
         totalNumParticles = PMacc::CountParticles::countOnDevice < CORE + BORDER > (
@@ -170,7 +170,7 @@ public:
         log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) writing particle index table for %1%") % Hdf5FrameType::getName();
         {
             ColTypeUInt64_5Array ctUInt64_5;
-            GridController<simDim>& gc = GridController<simDim>::getInstance();
+            GridController<simDim>& gc = Environment<simDim>::get().GridController();
             
             const size_t pos_offset = 2;
             

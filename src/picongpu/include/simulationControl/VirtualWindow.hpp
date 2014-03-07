@@ -39,7 +39,7 @@ struct VirtualWindow
     }
 
     VirtualWindow(uint32_t slides, bool doSlide = false) :
-    localSize(Environment<simDim>::getInstance().getSubGrid().getSimulationBox().getLocalSize()),
+    localSize(Environment<simDim>::get().SubGrid().getSimulationBox().getLocalSize()),
     localFullSize(localSize),
     slides(slides),
     doSlide(doSlide)

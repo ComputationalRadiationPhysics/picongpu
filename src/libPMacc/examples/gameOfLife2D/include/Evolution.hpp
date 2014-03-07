@@ -123,7 +123,7 @@ namespace gol
         void initEvolution(const DBox & writeBox, float fraction)
         {
             AreaMapping < CORE + BORDER, MappingDesc > mapper(mapping);
-            GridController<DIM2>& gc = Environment<DIM2>::getInstance().getGridController();
+            GridController<DIM2>& gc = Environment<DIM2>::get().GridController();
             uint32_t seed = gc.getGlobalSize() + gc.getGlobalRank();
 
             __cudaKernel(kernel::randomInit)

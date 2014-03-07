@@ -59,7 +59,7 @@ public:
     restartSim(false),
     restartFile("h5")
     {
-        //Environment<>::getInstance().getModuleConnector().registerModule(this);
+        //Environment<>::get().ModuleConnector().registerModule(this);
     }
 
     virtual ~InitialiserController()
@@ -73,7 +73,7 @@ public:
      */
     virtual uint32_t init()
     {
-        if (Environment<simDim>::getInstance().getGridController().getGlobalRank() == 0)
+        if (Environment<simDim>::get().GridController().getGlobalRank() == 0)
         {
             std::cout << "max weighting " << NUM_EL_PER_PARTICLE << std::endl;
             
@@ -127,7 +127,7 @@ public:
             SimRestartInitialiser<PIC_Electrons, PIC_Ions, simDim> simRestartInitialiser(
                 restartFile.c_str(), cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
 
-            Environment<>::getInstance().getDataConnector().initialise(simRestartInitialiser, 0);
+            Environment<>::get().DataConnector().initialise(simRestartInitialiser, 0);
 
             uint32_t simulationStep = simRestartInitialiser.getSimulationStep() + 1;
 
@@ -141,7 +141,7 @@ public:
         {
             // start simulation using default values
             SimStartInitialiser<PIC_Electrons, PIC_Ions> simStartInitialiser;
-            Environment<>::getInstance().getDataConnector().initialise(simStartInitialiser, 0);
+            Environment<>::get().DataConnector().initialise(simStartInitialiser, 0);
             __getTransactionEvent().waitForFinished();
 
             log<picLog::SIMULATION_STATE > ("Loading from default values finished, can start program");
@@ -183,7 +183,7 @@ public:
     virtual void slide(uint32_t currentStep)
     {
         SimStartInitialiser<PIC_Electrons, PIC_Ions> simStartInitialiser;
-        Environment<>::getInstance().getDataConnector().initialise(simStartInitialiser, currentStep);
+        Environment<>::get().DataConnector().initialise(simStartInitialiser, currentStep);
         __getTransactionEvent().waitForFinished();
     }
 

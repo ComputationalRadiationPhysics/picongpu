@@ -76,7 +76,7 @@ struct MessageHeader
         if (gpus.productOfComponents() != 0)
             sim.nodes = DataSpace<DIM2 > (gpus[transpose.x()], gpus[transpose.y()]);
         
-        PMACC_AUTO(simBox,Environment<simDim>::getInstance().getSubGrid().getSimulationBox());
+        PMACC_AUTO(simBox,Environment<simDim>::get().SubGrid().getSimulationBox());
         
         const DataSpace<Dim> globalSize(simBox.getGlobalSize());
         sim.size.x() = globalSize[transpose.x()];

@@ -65,7 +65,7 @@ namespace PMacc
                     break;
                 case WaitForReceive:
 
-                    if (NULL == Environment<>::getInstance().getManager().getITaskIfNotFinished(lastReceiveEvent.getTaskId()))
+                    if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(lastReceiveEvent.getTaskId()))
                     {
                         state = InitInsert;
                         //bash is finished
@@ -81,7 +81,7 @@ namespace PMacc
                 case InitInsert:
                     break;
                 case WaitForInsert:
-                    if (NULL == Environment<>::getInstance().getManager().getITaskIfNotFinished(tmpEvent.getTaskId()))
+                    if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
                     {
                         state=Wait;
                         assert(lastSize <= maxSize);

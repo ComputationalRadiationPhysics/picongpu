@@ -178,7 +178,7 @@ public:
     notifyFrequency(0),
     writeToFile(false)
     {
-        Environment<>::getInstance().getModuleConnector().registerModule(this);
+        Environment<>::get().ModuleConnector().registerModule(this);
     }
 
     virtual ~EnergyParticles()
@@ -188,7 +188,7 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = Environment<>::getInstance().getDataConnector();
+        DataConnector &dc = Environment<>::get().DataConnector();
 
         particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
 
@@ -233,7 +233,7 @@ private:
                 outFile << "#step Ekin_Joule E_Joule" << " \n";
             }
 
-            Environment<>::getInstance().getDataConnector().registerObserver(this, notifyFrequency);
+            Environment<>::get().DataConnector().registerObserver(this, notifyFrequency);
         }
     }
 

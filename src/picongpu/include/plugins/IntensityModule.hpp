@@ -147,7 +147,7 @@ public:
     notifyFrequency(0),
     writeToFile(false)
     {
-        Environment<>::getInstance().getModuleConnector().registerModule(this);
+        Environment<>::get().ModuleConnector().registerModule(this);
     }
 
     virtual ~IntensityModule()
@@ -184,7 +184,7 @@ private:
     {
         if (notifyFrequency > 0)
         {
-            writeToFile = Environment<simDim>::getInstance().getGridController().getGlobalRank() == 0;
+            writeToFile = Environment<simDim>::get().GridController().getGlobalRank() == 0;
             int yCells = cellDescription->getGridLayout().getDataSpaceWithoutGuarding().y();
 
             localMaxIntensity = new GridBuffer<float, DIM1 > (DataSpace<DIM1 > (yCells)); //create one int on gpu und host
@@ -196,7 +196,7 @@ private:
                 createFile(analyzerName + "_integrated.dat", outFileIntegrated);
             }
 
-            Environment<>::getInstance().getDataConnector().registerObserver(this, notifyFrequency);
+            Environment<>::get().DataConnector().registerObserver(this, notifyFrequency);
         }
     }
 
@@ -225,12 +225,12 @@ private:
         const DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
         VirtualWindow window(MovingWindow::getInstance().getVirtualWindow( currentStep));
 
-        PMACC_AUTO(simBox,Environment<simDim>::getInstance().getSubGrid().getSimulationBox());
+        PMACC_AUTO(simBox,Environment<simDim>::get().SubGrid().getSimulationBox());
         
         const int yGlobalSize = simBox.getGlobalSize().y();
         const int yLocalSize = localSize.y();
 
-        const int gpus = Environment<simDim>::getInstance().getGridController().getGpuNodes().productOfComponents();
+        const int gpus = Environment<simDim>::get().GridController().getGpuNodes().productOfComponents();
         
         
         /**\todo: fixme I cant work with not regular domains (use mpi_gatherv)*/
@@ -328,7 +328,7 @@ private:
      */
     void calcIntensity(uint32_t)
     {
-        DataConnector &dc = Environment<>::getInstance().getDataConnector();
+        DataConnector &dc = Environment<>::get().DataConnector();
 
         FieldE* fieldE = &(dc.getData<FieldE > (FieldE::getName(), true));
 

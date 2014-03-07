@@ -75,7 +75,7 @@ public:
 
         MySimulation::init();
 
-        if (Environment<simDim>::getInstance().getGridController().getGlobalRank() == 0)
+        if (Environment<simDim>::get().GridController().getGlobalRank() == 0)
         {
             std::cout << "max weighting " << NUM_EL_PER_PARTICLE << std::endl;
             std::cout << "courant=min(deltaCellSize)/dt/c > 1.77 ? " << std::min(CELL_WIDTH, std::min(CELL_DEPTH, CELL_HEIGHT)) / SPEED_OF_LIGHT / DELTA_T << std::endl;
@@ -93,7 +93,7 @@ public:
 
         //add one particle in simulation
         //
-        PMACC_AUTO(simBox, Environment<simDim>::getInstance().getSubGrid().getSimulationBox());
+        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
 
         const DataSpace<simDim> halfSimSize(simBox.getGlobalSize() / 2);
 
@@ -154,11 +154,11 @@ public:
 
     virtual void movingWindowCheck(uint32_t currentStep)
     {
-        PMACC_AUTO(simBox, Environment<simDim>::getInstance().getSubGrid().getSimulationBox());
+        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
         GridLayout<DIM3> gridLayout(simBox.getLocalSize(), MappingDesc::SuperCellSize::getDataSpace());
         if (MovingWindow::getInstance().getVirtualWindow(currentStep).doSlide)
         {
-            GridController<simDim>& gc = Environment<simDim>::getInstance().getGridController();
+            GridController<simDim>& gc = Environment<simDim>::get().GridController();
             if (gc.slide())
             {
                 electrons->reset(currentStep);

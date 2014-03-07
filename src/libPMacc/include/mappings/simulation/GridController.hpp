@@ -92,7 +92,7 @@ namespace PMacc
                     comm.init(tmp, periodicTmp);
                     commIsInit = true;
 
-                    Environment<DIM>::getInstance().getEnvironmentController().setCommunicator(comm);
+                    Environment<DIM>::get().EnvironmentController().setCommunicator(comm);
                 }
             }
 
@@ -170,7 +170,7 @@ namespace PMacc
             bool slide()
             {              
                /* wait that all tasks are finished */
-               Environment<DIM>::getInstance().getManager().waitForAllTasks();//
+               Environment<DIM>::get().Manager().waitForAllTasks();//
 
         bool result = comm.slide();
 
@@ -200,7 +200,7 @@ namespace PMacc
              */
             const Mask& getCommunicationMask() const
             {
-                return Environment<DIM>::getInstance().getEnvironmentController().getCommunicationMask();
+                return Environment<DIM>::get().EnvironmentController().getCommunicationMask();
             }
 
     /**
@@ -243,13 +243,13 @@ namespace PMacc
          * (only change slide direction Y)
          */
         int gpuOffset_y = this->getPosition().y();
-        PMACC_AUTO(simBox, Environment<DIM>::getInstance().getSubGrid().getSimulationBox());
+        PMACC_AUTO(simBox, Environment<DIM>::get().SubGrid().getSimulationBox());
         DataSpace<DIM> globalOffset(simBox.getGlobalOffset());
         /* this is allowed in the case that we use sliding window
          * because size in Y direction is the same for all gpus domains
          */
         globalOffset.y() = gpuOffset_y * simBox.getLocalSize().y();
-        Environment<DIM>::getInstance().getSubGrid().setGlobalOffset(globalOffset);
+        Environment<DIM>::get().SubGrid().setGlobalOffset(globalOffset);
             }
 
             /**

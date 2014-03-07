@@ -190,7 +190,7 @@ namespace PMacc
             if (sizeOnDevice)
             {
                 __startTransaction(__getTransactionEvent());
-                Environment<>::getInstance().getFactory().createTaskGetCurrentSizeFromDevice(*this);
+                Environment<>::get().Factory().createTaskGetCurrentSizeFromDevice(*this);
                 __endTransaction().waitForFinished();
             }
 
@@ -203,7 +203,7 @@ namespace PMacc
 
             if (sizeOnDevice)
             {
-                Environment<>::getInstance().getFactory().createTaskSetCurrentSizeOnDevice(
+                Environment<>::get().Factory().createTaskSetCurrentSizeOnDevice(
                                                                         *this, size);
             }
         }
@@ -212,7 +212,7 @@ namespace PMacc
         {
             __startAtomicTransaction(__getTransactionEvent());
             assert(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
-            Environment<>::getInstance().getFactory().createTaskCopyHostToDevice(other, *this);
+            Environment<>::get().Factory().createTaskCopyHostToDevice(other, *this);
             __setTransactionEvent(__endTransaction());
         }
 
@@ -220,7 +220,7 @@ namespace PMacc
         {
             __startAtomicTransaction(__getTransactionEvent());
             assert(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
-            Environment<>::getInstance().getFactory().createTaskCopyDeviceToDevice(other, *this);
+            Environment<>::get().Factory().createTaskCopyDeviceToDevice(other, *this);
             __setTransactionEvent(__endTransaction());
         }
 
@@ -237,7 +237,7 @@ namespace PMacc
 
         virtual void setValue(const TYPE& value)
         {
-            Environment<>::getInstance().getFactory().createTaskSetValue(*this, value);
+            Environment<>::get().Factory().createTaskSetValue(*this, value);
         };
 
     private:

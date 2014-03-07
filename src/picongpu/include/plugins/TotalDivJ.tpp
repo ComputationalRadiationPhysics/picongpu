@@ -42,7 +42,7 @@ namespace picongpu
 TotalDivJ::TotalDivJ(std::string name, std::string prefix)
     : name(name), prefix(prefix)
 {
-    Environment<>::getInstance().getModuleConnector().registerModule(this);
+    Environment<>::get().ModuleConnector().registerModule(this);
 }
 
 void TotalDivJ::moduleRegisterHelp(po::options_description& desc)
@@ -56,7 +56,7 @@ std::string TotalDivJ::moduleGetName() const {return this->name;}
 
 void TotalDivJ::moduleLoad()
 {
-    Environment<>::getInstance().getDataConnector().registerObserver(this, this->notifyFrequency);
+    Environment<>::get().DataConnector().registerObserver(this, this->notifyFrequency);
 }
 void TotalDivJ::moduleUnload(){}
 
@@ -79,7 +79,7 @@ void TotalDivJ::notify(uint32_t currentStep)
     using namespace vec;
     typedef vec::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> BlockDim;
     
-    DataConnector &dc = Environment<>::getInstance().getDataConnector();
+    DataConnector &dc = Environment<>::get().DataConnector();
     
     container::PseudoBuffer<float3_X, 3> fieldJ
         (dc.getData<FieldJ > (FieldJ::getName(), true).getGridBuffer().getDeviceBuffer());

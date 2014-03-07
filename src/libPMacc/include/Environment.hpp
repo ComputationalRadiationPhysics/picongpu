@@ -42,63 +42,63 @@ namespace PMacc
     {
     public:
 
-        GridController<DIM>& getGridController()
+        PMacc::GridController<DIM>& GridController()
         {
-            return GridController<DIM>::getInstance();
+            return PMacc::GridController<DIM>::getInstance();
         }
 
-        StreamController& getStreamController()
+        StreamController& StreamController()
         {
             return StreamController::getInstance();
         }
 
-        Manager& getManager()
+        Manager& Manager()
         {
             return Manager::getInstance();
         }
 
-        TransactionManager& getTransactionManager()
+        TransactionManager& TransactionManager()
         {
             return TransactionManager::getInstance();
         }
 
-        SubGrid<DIM>& getSubGrid()
+        PMacc::SubGrid<DIM>& SubGrid()
         {
-            return SubGrid<DIM>::getInstance();
+            return PMacc::SubGrid<DIM>::getInstance();
         }
 
-        EnvironmentController& getEnvironmentController()
+        EnvironmentController& EnvironmentController()
         {
             return EnvironmentController::getInstance();
         }
 
-        Factory& getFactory()
+        Factory& Factory()
         {
             return Factory::getInstance();
         }
         
-        ParticleFactory& getParticleFactory()
+        ParticleFactory& ParticleFactory()
         {
             return ParticleFactory::getInstance();
         }
         
-        DataConnector& getDataConnector()
+        DataConnector& DataConnector()
         {
             return DataConnector::getInstance();
         }
         
-        ModuleConnector& getModuleConnector()
+        ModuleConnector& ModuleConnector()
         {
             return ModuleConnector::getInstance();
         }
         
-        nvidia::memory::MemoryInfo& getEnvMemoryInfo()
+        nvidia::memory::MemoryInfo& EnvMemoryInfo()
         {
             return nvidia::memory::MemoryInfo::getInstance();
         }
         
         
-        static Environment<DIM>& getInstance()
+        static Environment<DIM>& get()
         {
             static Environment<DIM> instance;
             return instance;
@@ -106,7 +106,7 @@ namespace PMacc
         
         void init(DataSpace<DIM> gridSize, DataSpace<DIM> devices, DataSpace<DIM> periodic)
         {
-            GridController<DIM>::getInstance().init(devices, periodic);
+            PMacc::GridController<DIM>::getInstance().init(devices, periodic);
 
             StreamController::getInstance().activate();
 
@@ -114,7 +114,7 @@ namespace PMacc
 
             DataSpace<DIM> localGridSize(gridSize / devices);
 
-            SubGrid<DIM>::getInstance().init(localGridSize, gridSize, GridController<DIM>::getInstance().getPosition() * localGridSize);
+            PMacc::SubGrid<DIM>::getInstance().init(localGridSize, gridSize, PMacc::GridController<DIM>::getInstance().getPosition() * localGridSize);
 
             EnvironmentController::getInstance();
             
@@ -142,13 +142,13 @@ namespace PMacc
 
     };
 
-#define __startTransaction(...) (Environment<>::getInstance().getTransactionManager().startTransaction(__VA_ARGS__))
-#define __startAtomicTransaction(...) (Environment<>::getInstance().getTransactionManager().startAtomicTransaction(__VA_ARGS__))
-#define __endTransaction() (Environment<>::getInstance().getTransactionManager().endTransaction())
-#define __startOperation(opType) (Environment<>::getInstance().getTransactionManager().startOperation(opType))
-#define __getEventStream(opType) (Environment<>::getInstance().getTransactionManager().getEventStream(opType))
-#define __getTransactionEvent() (Environment<>::getInstance().getTransactionManager().getTransactionEvent())
-#define __setTransactionEvent(event) (Environment<>::getInstance().getTransactionManager().setTransactionEvent((event)))
+#define __startTransaction(...) (Environment<>::get().TransactionManager().startTransaction(__VA_ARGS__))
+#define __startAtomicTransaction(...) (Environment<>::get().TransactionManager().startAtomicTransaction(__VA_ARGS__))
+#define __endTransaction() (Environment<>::get().TransactionManager().endTransaction())
+#define __startOperation(opType) (Environment<>::get().TransactionManager().startOperation(opType))
+#define __getEventStream(opType) (Environment<>::get().TransactionManager().getEventStream(opType))
+#define __getTransactionEvent() (Environment<>::get().TransactionManager().getTransactionEvent())
+#define __setTransactionEvent(event) (Environment<>::get().TransactionManager().setTransactionEvent((event)))
 
 }
 

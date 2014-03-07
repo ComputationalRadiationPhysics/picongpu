@@ -84,13 +84,13 @@ inline void StreamTask::setEventStream( EventStream* newStream )
 inline cudaStream_t StreamTask::getCudaStream( )
 {
     if ( stream == NULL )
-        stream = Environment<>::getInstance().getTransactionManager().getEventStream( TASK_CUDA );
+        stream = Environment<>::get().TransactionManager().getEventStream( TASK_CUDA );
     return stream->getCudaStream( );
 }
 
 inline void StreamTask::activate( )
 {
-    cudaEvent = Environment<>::getInstance().getManager().getEventPool( ).getNextEvent( );
+    cudaEvent = Environment<>::get().Manager().getEventPool( ).getNextEvent( );
     this->getEventStream( )->recordEvent( cudaEvent );
     hasCudaEvent = true;
 }

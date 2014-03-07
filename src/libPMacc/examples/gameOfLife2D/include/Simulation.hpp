@@ -65,9 +65,9 @@ public:
     Simulation(uint32_t rule, int32_t steps, Space gridSize, Space devices, Space periodic) :
     evo(rule), steps(steps), gridSize(gridSize), isMaster(false), buff1(NULL), buff2(NULL)
     {
-        Environment<DIM2>::getInstance().init(devices, periodic, gridSize);
+        Environment<DIM2>::get().init(devices, periodic, gridSize);
         
-        GridController<DIM2>& gc = Environment<DIM2>::getInstance().getGridController();
+        GridController<DIM2>& gc = Environment<DIM2>::get().GridController();
         
         setDevice((int) (gc.getHostRank())); //do this after gridcontroller init
 
@@ -86,7 +86,7 @@ public:
 
     void init()
     {
-        PMACC_AUTO(simBox, Environment<DIM2>::getInstance().getSubGrid().getSimulationBox());
+        PMACC_AUTO(simBox, Environment<DIM2>::get().SubGrid().getSimulationBox());
         GridLayout<DIM2> layout(simBox.getLocalSize(),
                                 MappingDesc::SuperCellSize::getDataSpace());
         evo.init(MappingDesc(layout.getDataSpace(), 1, 1));

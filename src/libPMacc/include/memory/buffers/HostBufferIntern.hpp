@@ -94,7 +94,7 @@ public:
     void copyFrom(DeviceBuffer<TYPE, DIM>& other)
     {
         assert(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
-        Environment<>::getInstance().getFactory().createTaskCopyDeviceToHost(other, *this);
+        Environment<>::get().Factory().createTaskCopyDeviceToHost(other, *this);
     }
 
     void reset(bool preserveData = true)

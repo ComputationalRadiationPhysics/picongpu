@@ -57,7 +57,7 @@ namespace PMacc
                 if (parBase.getParticlesBuffer().hasReceiveExchange(i))
                 {
                     __startAtomicTransaction(serialEvent);
-                    Environment<>::getInstance().getParticleFactory().createTaskReceiveParticlesExchange(parBase, i);
+                    Environment<>::get().ParticleFactory().createTaskReceiveParticlesExchange(parBase, i);
                     tmpEvent += __endTransaction();
                 }
             }
@@ -72,7 +72,7 @@ namespace PMacc
                 case Init:
                     break;
                 case WaitForReceived:
-                    if (NULL == Environment<>::getInstance().getManager().getITaskIfNotFinished(tmpEvent.getTaskId()))
+                    if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
                         state = CallFillGaps;
                     break;
                 case CallFillGaps:
@@ -87,7 +87,7 @@ namespace PMacc
                 case WaitForFillGaps:
                     break;
                 case Finish:
-                    return NULL == Environment<>::getInstance().getManager().getITaskIfNotFinished(tmpEvent.getTaskId());
+                    return NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId());
                 default:
                     return false;
             }

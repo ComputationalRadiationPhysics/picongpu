@@ -226,8 +226,8 @@ namespace PMacc
         EventTask event(task.getId());
 
         task.init();
-        Environment<>::getInstance().getManager().addTask(&task);
-        Environment<>::getInstance().getTransactionManager().setTransactionEvent(event);
+        Environment<>::get().Manager().addTask(&task);
+        Environment<>::get().TransactionManager().setTransactionEvent(event);
         
         return event;
     }

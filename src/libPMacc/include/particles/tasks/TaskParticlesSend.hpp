@@ -57,7 +57,7 @@ public:
             if (parBase.getParticlesBuffer().hasSendExchange(i))
             {
                 __startAtomicTransaction(serialEvent);
-                Environment<>::getInstance().getParticleFactory().createTaskSendParticlesExchange(parBase, i);
+                Environment<>::get().ParticleFactory().createTaskSendParticlesExchange(parBase, i);
                 tmpEvent += __endTransaction();
             }
         }
@@ -72,7 +72,7 @@ public:
         case Init:
             break;
         case WaitForSend:
-            return NULL == Environment<>::getInstance().getManager().getITaskIfNotFinished(tmpEvent.getTaskId());
+            return NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId());
         default:
             return false;
         }

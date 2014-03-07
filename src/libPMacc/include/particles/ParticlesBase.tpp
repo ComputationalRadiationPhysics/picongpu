@@ -76,11 +76,11 @@ namespace PMacc
     {
         EventTask ret;
         __startTransaction(event);
-        Environment<>::getInstance().getParticleFactory().createTaskParticlesReceive(*this);
+        Environment<>::get().ParticleFactory().createTaskParticlesReceive(*this);
         ret = __endTransaction();
 
         __startTransaction(event);
-        Environment<>::getInstance().getParticleFactory().createTaskParticlesSend(*this);
+        Environment<>::get().ParticleFactory().createTaskParticlesSend(*this);
         ret += __endTransaction();
         return ret;
     }

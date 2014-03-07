@@ -137,7 +137,7 @@ private:
         {
 #ifndef __CUDA_ARCH__
             SplashType splashType;
-            DataConnector &dc = Environment<>::getInstance().getDataConnector();
+            DataConnector &dc = Environment<>::get().DataConnector();
 
             T* field = &(dc.getData<T > (T::getName()));
             params.get()->gridLayout = field->getGridLayout();
@@ -206,7 +206,7 @@ private:
 
         HINLINE void operator_impl(RefWrapper<ThreadParams*> params, const DomainInformation domInfo)
         {
-            DataConnector &dc = Environment<>::getInstance().getDataConnector();
+            DataConnector &dc = Environment<>::get().DataConnector();
 
             /*## update field ##*/
 
@@ -251,7 +251,7 @@ public:
     filename("h5"),
     notifyFrequency(0)
     {
-        Environment<>::getInstance().getModuleConnector().registerModule(this);
+        Environment<>::get().ModuleConnector().registerModule(this);
     }
 
     virtual ~HDF5Writer()
@@ -282,7 +282,7 @@ public:
     __host__ void notify(uint32_t currentStep)
     {
         mThreadParams.currentStep = (int32_t) currentStep;
-        mThreadParams.gridPosition = Environment<simDim>::getInstance().getSubGrid().getSimulationBox().getGlobalOffset();
+        mThreadParams.gridPosition = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
         mThreadParams.cellDescription = this->cellDescription;
         this->filter.setStatus(false);
 
@@ -322,7 +322,7 @@ private:
         const uint32_t maxOpenFilesPerNode = 4;
         if ( mThreadParams.dataCollector == NULL)
         {
-            GridController<simDim> &gc = GridController<simDim>::getInstance();
+            GridController<simDim> &gc = Environment<simDim>::get().GridController();
             mThreadParams.dataCollector = new ParallelDomainCollector(
                         gc.getCommunicator().getMPIComm(),
                         gc.getCommunicator().getMPIInfo(),
@@ -355,9 +355,9 @@ private:
         if (notifyFrequency > 0)
         {
             mThreadParams.gridPosition =
-                Environment<simDim>::getInstance().getSubGrid().getSimulationBox().getGlobalOffset();
+                Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
 
-            GridController<simDim> &gc = Environment<simDim>::getInstance().getGridController();
+            GridController<simDim> &gc = Environment<simDim>::get().GridController();
             /* It is important that we never change the mpi_pos after this point 
              * because we get problems with the restart.
              * Otherwise we do not know which gpu must load the ghost parts around
@@ -375,7 +375,7 @@ private:
                 splashMpiSize[i] = mpi_size[i];
             }
 
-            Environment<>::getInstance().getDataConnector().registerObserver(this, notifyFrequency);
+            Environment<>::get().DataConnector().registerObserver(this, notifyFrequency);
         }
 
         loaded = true;
