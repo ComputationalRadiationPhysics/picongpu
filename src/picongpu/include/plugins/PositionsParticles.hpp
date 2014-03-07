@@ -53,7 +53,7 @@ struct SglParticle
     float_X charge;
     float_X gamma;
 
-    SglParticle() : position(0.0,0.0,0.0), momentum(0.0,0.0, 0.0), mass(0.0),
+    SglParticle() : position(0.0), momentum(0.0), mass(0.0),
         weighting(0.0), charge(0.0), gamma(0.0)
     {
     }
@@ -62,32 +62,35 @@ struct SglParticle
 
     //! todo 
 
-    float3_64 getGlobalCell() const
+    floatD_64 getGlobalCell() const
     {
-        return float3_64( typeCast<float_64>(globalCellOffset.x()) + typeCast<float_64>(position.x()),
-                          typeCast<float_64>(globalCellOffset.y()) + typeCast<float_64>(position.y()),
-                          typeCast<float_64>(globalCellOffset.z()) + typeCast<float_64>(position.z()) );
+        floatD_64 doubleGlobalCellOffset;
+        for(uint32_t i=0;i<simDim;++i)
+            doubleGlobalCellOffset[i]=float_64(globalCellOffset[i]);
+        
+        return floatD_64( doubleGlobalCellOffset+ precisionCast<float_64>(position));
     }
 
     template<typename T>
         friend std::ostream& operator<<(std::ostream& out, const SglParticle<T>& v)
     {
-        const float3_64 pos( v.getGlobalCell().x() * SI::CELL_WIDTH_SI,
-                             v.getGlobalCell().y() * SI::CELL_HEIGHT_SI,
-                             v.getGlobalCell().z() * SI::CELL_DEPTH_SI   );
-        const float3_64 mom( typeCast<float_64>(v.momentum.x()) * UNIT_MASS * UNIT_SPEED,
-                             typeCast<float_64>(v.momentum.y()) * UNIT_MASS * UNIT_SPEED,
-                             typeCast<float_64>(v.momentum.z()) * UNIT_MASS * UNIT_SPEED );
+        floatD_64 pos;
+        for(uint32_t i=0;i<simDim;++i)
+            pos[i]=( v.getGlobalCell()[i] * cellSize[i]*UNIT_LENGTH);
+     
+        const float3_64 mom( precisionCast<float_64>(v.momentum.x()) * UNIT_MASS * UNIT_SPEED,
+                             precisionCast<float_64>(v.momentum.y()) * UNIT_MASS * UNIT_SPEED,
+                             precisionCast<float_64>(v.momentum.z()) * UNIT_MASS * UNIT_SPEED );
         
-        const float_64 mass = typeCast<float_64>(v.mass) * UNIT_MASS;
-        const float_64 charge = typeCast<float_64>(v.charge) * UNIT_CHARGE;
+        const float_64 mass = precisionCast<float_64>(v.mass) * UNIT_MASS;
+        const float_64 charge = precisionCast<float_64>(v.charge) * UNIT_CHARGE;
 
         typedef std::numeric_limits< float_64 > dbl;
         out.precision(dbl::digits10);
 
         out << std::scientific << pos << " " << mom << " " << mass << " "
-            << typeCast<float_64>(v.weighting)
-            << " " << charge << " " << typeCast<float_64>(v.gamma);
+            << precisionCast<float_64>(v.weighting)
+            << " " << charge << " " << precisionCast<float_64>(v.gamma);
         return out;
     }
 };
@@ -162,7 +165,7 @@ class PositionsParticles : public ISimulationIO, public IPluginModule
 {
 private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
-    typedef float3_X FloatPos;
+    typedef floatD_X FloatPos;
 
     ParticlesType *particles;
 
@@ -185,7 +188,7 @@ public:
     notifyFrequency(0)
     {
 
-        ModuleConnector::getInstance().registerModule(this);
+        Environment<>::get().ModuleConnector().registerModule(this);
     }
 
     virtual ~PositionsParticles()
@@ -194,12 +197,12 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::get().DataConnector();
 
-        particles = &(dc.getData<ParticlesType > ((uint32_t) ParticlesType::FrameType::CommunicationTag, true));
+        particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
 
 
-        const int rank = GridController<simDim>::getInstance().getGlobalRank();
+        const int rank = Environment<simDim>::get().GridController().getGlobalRank();
         const SglParticle<FloatPos> positionParticle = getPositionsParticles < CORE + BORDER > (currentStep);
 
         /*FORMAT OUTPUT*/
@@ -235,7 +238,7 @@ private:
             //create one float3_X on gpu und host
             gParticle = new GridBuffer<SglParticle<FloatPos>, DIM1 > (DataSpace<DIM1 > (1));
 
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
+            Environment<>::get().DataConnector().registerObserver(this, notifyFrequency);
         }
     }
 
@@ -263,7 +266,7 @@ private:
         DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
         VirtualWindow window(MovingWindow::getInstance().getVirtualWindow(currentStep));
 
-        DataSpace<simDim> gpuPhyCellOffset(SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset());
+        DataSpace<simDim> gpuPhyCellOffset(Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset());
         gpuPhyCellOffset.y() += (localSize.y() * window.slides);
 
         gParticle->getHostBuffer().getDataBox()[0].globalCellOffset += gpuPhyCellOffset;

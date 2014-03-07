@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 
 
 #ifndef IMAGE2D_HPP
@@ -239,21 +239,31 @@ __global__ void kernelPaintFields(
                                     realCell[transpose.y()]);
     const DataSpace<simDim> realCell2(blockOffset + threadId); //delete guard from cell idx
 
+#if (SIMDIM==DIM3)
     uint32_t globalCell = realCell2[sliceDim] + globalOffset;
 
     if (globalCell != slice)
         return;
-
+#endif
     // set fields of this cell to vars
     typename BBox::ValueType field_b = fieldB(cell);
     typename EBox::ValueType field_e = fieldE(cell);
     typename JBox::ValueType field_j = fieldJ(cell);
+
+#if(SIMDIM==DIM3)
     field_j = float3_X(
                        field_j.x() * CELL_HEIGHT * CELL_DEPTH,
                        field_j.y() * CELL_WIDTH * CELL_DEPTH,
                        field_j.z() * CELL_WIDTH * CELL_HEIGHT
                        );
-    
+#elif (SIMDIM==DIM2)
+    field_j = float3_X(
+                       field_j.x() * CELL_HEIGHT,
+                       field_j.y() * CELL_WIDTH,
+                       field_j.z() * CELL_WIDTH * CELL_HEIGHT
+                       );
+#endif
+
     // reset picture to black
     //   color range for each RGB channel: [0.0, 1.0]
     float3_X pic = float3_X(0., 0., 0.);
@@ -323,10 +333,11 @@ kernelPaintParticles3D(ParBox pb,
     //\todo: guard size should not be set to (fixed) 1 here
     const DataSpace<simDim> realCell(blockOffset + threadId); //delete guard from cell idx
 
-
+#if(SIMDIM==DIM3)
     uint32_t globalCell = realCell[sliceDim] + globalOffset;
 
     if (globalCell == slice)
+#endif
     {
         atomicExch((int*) &isValid, 1); /*WAW Error in cuda-memcheck racecheck*/
         isImageThread = true;
@@ -349,8 +360,8 @@ kernelPaintParticles3D(ParBox pb,
 
     const DataSpace<simDim> blockSize(blockDim);
     SharedMem counter(PitchedBox<float_X, DIM2 > ((float_X*) shBlock,
-                                              DataSpace<DIM2 > (),
-                                              blockSize[transpose.x()] * sizeof (float_X)));
+                                                  DataSpace<DIM2 > (),
+                                                  blockSize[transpose.x()] * sizeof (float_X)));
 
     if (isImageThread)
     {
@@ -371,9 +382,11 @@ kernelPaintParticles3D(ParBox pb,
         {
             int cellIdx = particle[localCellIdx_];
             // we only draw the first slice of cells in the super cell (z == 0)
-            const DataSpace<DIM3> particleCellId(DataSpaceOperations<DIM3>::template map<Block > (cellIdx));
+            const DataSpace<simDim> particleCellId(DataSpaceOperations<simDim>::template map<Block > (cellIdx));
+#if(SIMDIM==DIM3)
             uint32_t globalParticleCell = particleCellId[sliceDim] + globalOffset + blockOffset[sliceDim];
             if (globalParticleCell == slice)
+#endif
             {
                 const DataSpace<DIM2> reducedCell(particleCellId[transpose.x()], particleCellId[transpose.y()]);
                 atomicAddWrapper(&(counter(reducedCell)), particle[weighting_] / NUM_EL_PER_PARTICLE);
@@ -470,7 +483,7 @@ public:
     output(output),
     analyzerName(name),
     cellDescription(NULL),
-    particleTag(ParticlesType::FrameType::CommunicationTag),
+    particleTag(ParticlesType::FrameType::getName()),
     notifyFrequency(notifyFrequency),
     transpose(transpose),
     slicePoint(slicePoint),
@@ -498,8 +511,9 @@ public:
         const DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
         VirtualWindow window(MovingWindow::getInstance().getVirtualWindow(currentStep));
 
+        /*sliceOffset is only used in 3D*/
         sliceOffset = (int) ((float) (window.globalWindowSize[sliceDim]) * slicePoint) + window.globalSimulationOffset[sliceDim];
-        
+
         if (!doDrawing())
         {
             return;
@@ -515,16 +529,20 @@ public:
 
     void createImage(uint32_t currentStep, VirtualWindow window)
     {
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::get().DataConnector();
         // Data does not need to be synchronized as visualization is
         // done at the device.
-        FieldB *fieldB = &(dc.getData<FieldB > (FIELD_B, true));
-        FieldE* fieldE = &(dc.getData<FieldE > (FIELD_E, true));
-        FieldJ* fieldJ = &(dc.getData<FieldJ > (FIELD_J, true));
+        FieldB *fieldB = &(dc.getData<FieldB > (FieldB::getName(), true));
+        FieldE* fieldE = &(dc.getData<FieldE > (FieldE::getName(), true));
+        FieldJ* fieldJ = &(dc.getData<FieldJ > (FieldJ::getName(), true));
         ParticlesType* particles = &(dc.getData<ParticlesType > (particleTag, true));
-        
-        PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
 
+        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
+        uint32_t globalOffset = 0;
+#if(SIMDIM==DIM3)
+        globalOffset = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset()[sliceDim];
+#endif
+        
         typedef MappingDesc::SuperCellSize SuperCellSize;
         assert(cellDescription != NULL);
         //create image fields
@@ -536,7 +554,7 @@ public:
              img->getDeviceBuffer().getDataBox(),
              transpose,
              sliceOffset,
-             simBox.getGlobalOffset()[sliceDim], sliceDim
+             globalOffset, sliceDim
              );
 
         // find maximum for img.x()/y and z and return it as float3_X
@@ -585,7 +603,7 @@ public:
              img->getDeviceBuffer().getDataBox(),
              transpose,
              sliceOffset,
-             simBox.getGlobalOffset()[sliceDim], sliceDim
+             globalOffset, sliceDim
              );
 
         // send the RGB image back to host
@@ -627,16 +645,18 @@ public:
             sliceOffset = (int) ((float) (window.globalWindowSize[sliceDim]) * slicePoint) + window.globalSimulationOffset[sliceDim];
 
 
-            const DataSpace<simDim> gpus = GridController<simDim>::getInstance().getGpuNodes();
+            const DataSpace<simDim> gpus = Environment<simDim>::get().GridController().getGpuNodes();
 
-            float_32 cellSize[3] = {CELL_WIDTH, CELL_HEIGHT, CELL_DEPTH};
-
-            header.update(*cellDescription, window, transpose, 0, cellSize, gpus);
+            float_32 cellSizeArr[3]={0,0,0};
+            for(uint32_t i=0;i<simDim;++i)
+                cellSizeArr[i]= cellSize[i];
+            
+            header.update(*cellDescription, window, transpose, 0, cellSizeArr, gpus);
 
             img = new GridBuffer<float3_X, DIM2 > (header.node.maxSize);
 
 
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
+            Environment<>::get().DataConnector().registerObserver(this, notifyFrequency);
 
             bool isDrawing = doDrawing();
             isMaster = gather.init(isDrawing);
@@ -650,18 +670,19 @@ private:
     bool doDrawing()
     {
         assert(cellDescription != NULL);
-        const DataSpace<simDim> globalRootCellPos(SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset());
-        const bool tmp = globalRootCellPos[sliceDim] + SubGrid<simDim>::getInstance().getSimulationBox().getLocalSize()[sliceDim] > sliceOffset &&
-            globalRootCellPos[sliceDim] <= sliceOffset;
-        /* std::cout << "do drawing ." << tmp << "." <<
-                 globalRootCellPos[sliceDim] + cellDescription->getGridLayout().getDataSpaceWithoutGuarding()[sliceDim] << ">" << sliceOffset <<
-                 "&&" << globalRootCellPos[sliceDim] << "<=" << sliceOffset << std::endl;*/
+        const DataSpace<simDim> globalRootCellPos(Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset());
+#if(SIMDIM==DIM3)
+        const bool tmp = globalRootCellPos[sliceDim] + Environment<simDim>::get().SubGrid().getSimulationBox().getLocalSize()[sliceDim] > sliceOffset &&
+              globalRootCellPos[sliceDim] <= sliceOffset;
         return tmp;
+#else
+        return true;
+#endif
     }
 
 
     MappingDesc *cellDescription;
-    uint32_t particleTag;
+    SimulationDataId particleTag;
 
     GridBuffer<float3_X, DIM2 > *img;
 

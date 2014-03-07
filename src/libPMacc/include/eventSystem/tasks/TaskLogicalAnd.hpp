@@ -80,7 +80,7 @@ namespace PMacc
             {
                 task1 = 0;
                 /* \todo: there is a bug in this part of code
-                 * ITask* task = Manager::getInstance().getITaskIfNotFinished(task2);
+                 * ITask* task = Environment<>::get().Manager().getITaskIfNotFinished(task2);
                 if (task != NULL)
                 {
                     ITask::TaskType type = task->getTaskType();
@@ -95,7 +95,7 @@ namespace PMacc
                 task2 = 0;
                /* if (task1 != 0)
                 {
-                    ITask* task = Manager::getInstance().getITaskIfNotFinished(task1);
+                    ITask* task = Environment<>::get().Manager().getITaskIfNotFinished(task1);
                     if (task != NULL)
                     {
                         ITask::TaskType type = task->getTaskType();
@@ -113,7 +113,7 @@ namespace PMacc
             {
                 //notify(this->myId, LOGICALAND, NULL);
                 delete this;
-               // Manager::getInstance().finished(myId);
+               // Environment<>::get().Manager().finished(myId);
             }
         }
 

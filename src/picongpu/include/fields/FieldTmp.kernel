@@ -108,11 +108,12 @@ namespace picongpu
                                      DataSpace<simDim> direction,
                                      Mapping mapper )
     {
+        const DataSpace<Mapping::Dim> threadIndex(threadIdx);
         const DataSpace<simDim> blockCell(
                                            mapper.getSuperCellIndex( DataSpace<simDim > ( blockIdx ) )
                                            * Mapping::SuperCellSize::getDataSpace( )
                                            );
-        const DataSpace<Mapping::Dim> sourceCell( blockCell + DataSpace<simDim > ( threadIdx ) );
+        const DataSpace<Mapping::Dim> sourceCell( blockCell + threadIndex );
 
         /*origin in area from local GPU*/
         DataSpace<simDim> nullSourceCell(
@@ -121,27 +122,15 @@ namespace picongpu
                                           );
         DataSpace<simDim> targetCell( sourceCell - nullSourceCell );
 
-        if( direction.x( ) == -1 )
+        for (uint32_t d = 0; d < simDim; ++d)
         {
-            if( threadIdx.x < TILE_WIDTH - exchangeSize.x( ) ) return;
-            targetCell.x( ) -= TILE_WIDTH - exchangeSize.x( );
-        }
-        else if( ( direction.x( ) == 1 ) && ( threadIdx.x >= exchangeSize.x( ) ) ) return;
-        if( direction.y( ) == -1 )
-        {
-            if( threadIdx.y < TILE_HEIGHT - exchangeSize.y( ) ) return;
-            targetCell.y( ) -= TILE_HEIGHT - exchangeSize.y( );
-        }
-        else if( ( direction.y( ) == 1 ) && ( threadIdx.y >= exchangeSize.y( ) ) ) return;
-
-        if( direction.z( ) == -1 )
-        {
-            if( threadIdx.z < TILE_DEPTH - exchangeSize.z( ) ) return;
-            targetCell.z( ) -= TILE_DEPTH - exchangeSize.z( );
-        }
-        else
-            if( ( direction.z( ) == 1 ) && ( threadIdx.z >= exchangeSize.z( ) ) ) return;
-
+            if( direction[d] == -1 )
+            {
+                if( threadIndex[d] < tile_size[d] - exchangeSize[d] ) return;
+                targetCell[d] -= tile_size[d] - exchangeSize[d];
+            }
+            else if( ( direction[d] == 1 ) && ( threadIndex[d] >= exchangeSize[d] ) ) return;
+        }        
         targetJ( targetCell ) = fieldTmp( sourceCell );
     }
 
@@ -152,11 +141,12 @@ namespace picongpu
                                        DataSpace<simDim> direction,
                                        Mapping mapper )
     {
+        const DataSpace<Mapping::Dim> threadIndex(threadIdx);
         const DataSpace<simDim> blockCell(
                                            mapper.getSuperCellIndex( DataSpace<simDim > ( blockIdx ) )
                                            * Mapping::SuperCellSize::getDataSpace( )
                                            );
-        DataSpace<Mapping::Dim> targetCell( blockCell + DataSpace<simDim > ( threadIdx ) );
+        DataSpace<Mapping::Dim> targetCell( blockCell + threadIndex );
 
         /*origin in area from local GPU*/
         DataSpace<simDim> nullSourceCell(
@@ -165,43 +155,22 @@ namespace picongpu
                                           );
         DataSpace<simDim> sourceCell( targetCell - nullSourceCell );
 
-        if( direction.x( ) == 1 )
+        for (uint32_t d = 0; d < simDim; ++d)
         {
-            if( threadIdx.x < TILE_WIDTH - exchangeSize.x( ) ) return;
-            sourceCell.x( ) -= TILE_WIDTH - exchangeSize.x( );
-            targetCell.x( ) -= TILE_WIDTH;
+            if( direction[d] == 1 )
+            {
+                if( threadIndex[d] < tile_size[d] - exchangeSize[d] ) return;
+                sourceCell[d] -= tile_size[d] - exchangeSize[d];
+                targetCell[d] -= tile_size[d];
+            }
+            else if( direction[d] == -1 )
+            {
+                if( threadIndex[d] >= exchangeSize[d] ) return;
+                targetCell[d] += tile_size[d];
+            }
         }
-        else if( direction.x( ) == -1 )
-        {
-            if( threadIdx.x >= exchangeSize.x( ) ) return;
-            targetCell.x( ) += TILE_WIDTH;
-        }
-        if( direction.y( ) == 1 )
-        {
-            if( threadIdx.y < TILE_HEIGHT - exchangeSize.y( ) ) return;
-            sourceCell.y( ) -= TILE_HEIGHT - exchangeSize.y( );
-            targetCell.y( ) -= TILE_HEIGHT;
-        }
-        else if( direction.y( ) == -1 )
-        {
-            if( threadIdx.y >= exchangeSize.y( ) ) return;
-            targetCell.y( ) += TILE_HEIGHT;
-        }
-
-        if( direction.z( ) == 1 )
-        {
-            if( threadIdx.z < TILE_DEPTH - exchangeSize.z( ) ) return;
-            sourceCell.z( ) -= TILE_DEPTH - exchangeSize.z( );
-            targetCell.z( ) -= TILE_DEPTH;
-        }
-        else if( direction.z( ) == -1 )
-        {
-            if( threadIdx.z >= exchangeSize.z( ) ) return;
-            targetCell.z( ) += TILE_DEPTH;
-        }
-
+        
         fieldTmp( targetCell ) += sourceTmp( sourceCell );
     }
 
 } // namespace picongpu
-

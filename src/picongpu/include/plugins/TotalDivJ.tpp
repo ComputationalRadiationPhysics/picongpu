@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -42,7 +42,7 @@ namespace picongpu
 TotalDivJ::TotalDivJ(std::string name, std::string prefix)
     : name(name), prefix(prefix)
 {
-    ModuleConnector::getInstance().registerModule(this);
+    Environment<>::get().ModuleConnector().registerModule(this);
 }
 
 void TotalDivJ::moduleRegisterHelp(po::options_description& desc)
@@ -56,7 +56,7 @@ std::string TotalDivJ::moduleGetName() const {return this->name;}
 
 void TotalDivJ::moduleLoad()
 {
-    DataConnector::getInstance().registerObserver(this, this->notifyFrequency);
+    Environment<>::get().DataConnector().registerObserver(this, this->notifyFrequency);
 }
 void TotalDivJ::moduleUnload(){}
 
@@ -79,14 +79,14 @@ void TotalDivJ::notify(uint32_t currentStep)
     using namespace vec;
     typedef vec::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> BlockDim;
     
-    DataConnector &dc = DataConnector::getInstance();
+    DataConnector &dc = Environment<>::get().DataConnector();
     
     container::PseudoBuffer<float3_X, 3> fieldJ
-        (dc.getData<FieldJ > (FIELD_J, true).getGridBuffer().getDeviceBuffer());
+        (dc.getData<FieldJ > (FieldJ::getName(), true).getGridBuffer().getDeviceBuffer());
         
     container::DeviceBuffer<float, 3> fieldDivJ(fieldJ.size());
     zone::SphericZone<3> coreBorderZone(fieldJ.zone().size - (size_t)2*BlockDim().vec(),
-                                        fieldJ.zone().offset + typeCast<int>(BlockDim().vec()));
+                                        fieldJ.zone().offset + precisionCast<int>(BlockDim().vec()));
     //std::cout << coreBorderZone.size << ", " << coreBorderZone.offset << std::endl;
     using namespace lambda;
     algorithm::kernel::Foreach<BlockDim>()

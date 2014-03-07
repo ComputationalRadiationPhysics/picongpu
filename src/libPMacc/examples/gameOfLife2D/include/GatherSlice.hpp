@@ -104,10 +104,10 @@ struct GatherSlice
     {
         header = mHeader;
 
-        int countRanks = GridController<DIM2>::getInstance().getGpuNodes().productOfComponents();
+        int countRanks = Environment<DIM2>::get().GridController().getGpuNodes().productOfComponents();
         int gatherRanks[countRanks];
         int groupRanks[countRanks];
-        mpiRank = GridController<DIM2>::getInstance().getGlobalRank();
+        mpiRank = Environment<DIM2>::get().GridController().getGlobalRank();
         if (!isActive)
             mpiRank = -1;
 

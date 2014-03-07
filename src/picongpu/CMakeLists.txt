@@ -317,7 +317,7 @@ find_path(PIC_SPLASH_ROOT_DIR
   PATHS ENV SPLASH_ROOT
   DOC "libSplash ROOT location (provides HDF5 output)"
 )
-set(PIC_SPLASH_VERSION_MIN "1.1.0")
+set(PIC_SPLASH_VERSION_MIN "1.1.1")
 set(PIC_SPLASH_VERSION_OK OFF)
 
 if(PIC_SPLASH_ROOT_DIR)
@@ -495,12 +495,12 @@ install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/scripts/" DESTINATION bin
 if( (NOT "${CMAKE_INSTALL_PREFIX}" STREQUAL "${PIC_EXTENSION_PATH}") OR 
     (NOT EXISTS "${CMAKE_INSTALL_PREFIX}/include"))
 
-    #copy all importend subfolders to install folder
+    #copy all important subfolders to install folder
     foreach(dir ${PIC_COPY_ON_INSTALL})
 
       #if source not exists than copy
       if(NOT EXISTS "${CMAKE_INSTALL_PREFIX}/${dir}")
-          #copy importend subfolders from extension path (default PIConGPU parameter)
+          #copy important subfolders from extension path (default PIConGPU parameter)
           if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${dir}/")
             install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${dir}/."
               DESTINATION "${CMAKE_INSTALL_PREFIX}/${dir}"
@@ -509,7 +509,7 @@ if( (NOT "${CMAKE_INSTALL_PREFIX}" STREQUAL "${PIC_EXTENSION_PATH}") OR
             )
           endif()
 
-          #copy importend subfolders from extension path (from extension path)
+          #copy important subfolders from extension path (from extension path)
           if(EXISTS "${PIC_EXTENSION_PATH}/${dir}/")
             install(DIRECTORY "${PIC_EXTENSION_PATH}/${dir}/."
                DESTINATION "${CMAKE_INSTALL_PREFIX}/${dir}"

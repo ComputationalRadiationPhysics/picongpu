@@ -22,6 +22,7 @@
 #define	TERMALTESTSIMULATION_HPP
 
 #include "simulation_defines.hpp"
+#include "Environment.hpp"
 
 #include "simulationControl/MySimulation.hpp"
 
@@ -86,7 +87,7 @@ public:
 
         BOOST_AUTO(fieldE_coreBorder,
              this->fieldE->getGridBuffer().getDeviceBuffer().cartBuffer().view(
-                   typeCast<int>(GuardDim().vec()), -typeCast<int>(GuardDim().vec())));
+                   precisionCast<int>(GuardDim().vec()), -precisionCast<int>(GuardDim().vec())));
                    
         this->eField_zt[0] = new container::DeviceBuffer<float, 2 > (Size_t < 2 > (fieldE_coreBorder.size().z(), this->collectTimesteps));
         this->eField_zt[1] = new container::DeviceBuffer<float, 2 >(this->eField_zt[0]->size());
@@ -114,7 +115,7 @@ public:
     {
         using namespace ::PMacc::math;
 
-        PMacc::GridController<SIMDIM>& con = PMacc::GridController<SIMDIM>::getInstance();
+        PMACC_AUTO(&con,Environment<simDim>::get().GridController());
         Size_t<SIMDIM> gpuDim = (Size_t<SIMDIM>)con.getGpuNodes();
         Int<3> gpuPos = (Int<3>)con.getPosition();
         zone::SphericZone<SIMDIM> gpuGatheringZone(Size_t<SIMDIM > (1, 1, gpuDim.z()));
@@ -178,7 +179,7 @@ public:
 
         BOOST_AUTO(fieldE_coreBorder,
            this->fieldE->getGridBuffer().getDeviceBuffer().cartBuffer().view(
-                typeCast<int>(GuardDim().vec()), -typeCast<int>(GuardDim().vec())));
+                precisionCast<int>(GuardDim().vec()), -precisionCast<int>(GuardDim().vec())));
 
         for (size_t z = 0; z < eField_zt[0]->size().x(); z++)
         {

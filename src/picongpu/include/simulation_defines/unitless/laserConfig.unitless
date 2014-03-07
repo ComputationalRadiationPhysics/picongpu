@@ -99,4 +99,3 @@ namespace picongpu
 #include "fields/laserProfiles/laserPlaneWave.hpp"
 #include "fields/laserProfiles/laserPolynom.hpp"
 #include "fields/laserProfiles/laserNone.hpp"
-

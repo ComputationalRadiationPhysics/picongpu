@@ -16,12 +16,18 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 #pragma once
 
 namespace picongpu
 {
+    CONST_VECTOR(int,simDim,tile_size,TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH);
+#if (SIMDIM==DIM3)
+    const uint32_t TILE_SIZE = TILE_WIDTH * TILE_HEIGHT*TILE_DEPTH;
+#elif (SIMDIM==DIM2)
+    const uint32_t TILE_SIZE = TILE_WIDTH * TILE_HEIGHT;
+#endif
 
 #if (ENABLE_IONS == 1 && ENABLE_ELECTRONS == 1)
 const double memFractionIons = ions_memory_factor / (ions_memory_factor + electrons_memory_factor);

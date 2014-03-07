@@ -19,8 +19,7 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-#ifndef STLPICCTFLOAT_HPP
-#define STLPICCTFLOAT_HPP
+#pragma once
 
 #include <stdint.h>
 #include <boost/mpl/void.hpp>
@@ -37,9 +36,15 @@ namespace CT
 
 template<typename X = mpl::void_,
          typename Y = mpl::void_,
-         typename Z = mpl::void_,
-         typename Dummy = mpl::void_>
-struct Float;
+         typename Z = mpl::void_>
+struct Float
+{
+    typedef X x;
+    typedef Y y;
+    typedef Z z;
+    
+    static const int dim = 3;
+};
 
 template<>
 struct Float<> {};
@@ -61,18 +66,6 @@ struct Float<X, Y>
     static const int dim = 2u;
 };
 
-template<typename X, typename Y, typename Z>
-struct Float<X, Y, Z>
-{
-    typedef X x;
-    typedef Y y;
-    typedef Z z;
-    
-    static const int dim = 3;
-};
-
 } // CT
 } // math
 } // PMacc
-
-#endif //STLPICCTFLOAT_HPP

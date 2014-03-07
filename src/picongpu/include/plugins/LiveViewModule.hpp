@@ -59,7 +59,7 @@ namespace picongpu
         analyzerPrefix(prefix),
         cellDescription(NULL)
         {
-            ModuleConnector::getInstance().registerModule(this);
+            Environment<>::get().ModuleConnector().registerModule(this);
         }
 
         virtual ~LiveViewModule()

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 
 
 #ifndef SUMCURRENTS_HPP
@@ -102,7 +102,7 @@ public:
     notifyFrequency(0)
     {
 
-        ModuleConnector::getInstance().registerModule(this);
+        Environment<>::get().ModuleConnector().registerModule(this);
     }
 
     virtual ~SumCurrents()
@@ -112,12 +112,12 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::get().DataConnector();
 
-        fieldJ = &(dc.getData<FieldJ > (FIELD_J, true));
+        fieldJ = &(dc.getData<FieldJ > (FieldJ::getName(), true));
 
 
-        const int rank = GridController<simDim>::getInstance().getGlobalRank();
+        const int rank = Environment<simDim>::get().GridController().getGlobalRank();
         const float3_X gCurrent = getSumCurrents();
 
         //const DataSpace<simDim> nrOfGpuCells = MappingDesc::SuperCellSize::getDataSpace()
@@ -125,11 +125,17 @@ public:
 
         // gCurrent is just j
         // j = I/A
+#if(SIMDIM==DIM3)
         const float3_X realCurrent(
                                    gCurrent.x() * CELL_HEIGHT * CELL_DEPTH,
                                    gCurrent.y() * CELL_WIDTH * CELL_DEPTH,
                                    gCurrent.z() * CELL_WIDTH * CELL_HEIGHT);
-
+#elif(SIMDIM==DIM2)
+        const float3_X realCurrent(
+                                   gCurrent.x() * CELL_HEIGHT,
+                                   gCurrent.y() * CELL_WIDTH,
+                                   gCurrent.z() * CELL_WIDTH * CELL_HEIGHT);
+#endif
         float3_64 realCurrent_SI(
                                  double(realCurrent.x()) * (UNIT_CHARGE / UNIT_TIME),
                                  double(realCurrent.y()) * (UNIT_CHARGE / UNIT_TIME),
@@ -169,7 +175,7 @@ private:
         {
             sumcurrents = new GridBuffer<float3_X, DIM1 > (DataSpace<DIM1 > (1)); //create one int on gpu und host
 
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
+            Environment<>::get().DataConnector().registerObserver(this, notifyFrequency);
         }
     }
 

@@ -30,6 +30,8 @@
 namespace PMacc
 {
 
+template<unsigned DIM>
+class Environment;
 
 class EnvironmentController
 {
@@ -62,20 +64,21 @@ public:
         this->comm = &comm;
     }
 
-
-    /*! Get instance of this class
-     * This class is a singelton implementation
+private:
+    
+    friend Environment<DIM1>;
+    friend Environment<DIM2>;
+    friend Environment<DIM3>;
+    
+    /*! Default constructor.
      */
+    EnvironmentController() {}
+    
     static EnvironmentController& getInstance()
     {
         static EnvironmentController instance;
         return instance;
     }
-
-private:
-    /*! Default constructor.
-     */
-    EnvironmentController() {}
 
 private:
 

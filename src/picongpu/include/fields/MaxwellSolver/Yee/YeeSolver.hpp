@@ -96,10 +96,10 @@ public:
         
     YeeSolver(MappingDesc cellDescription) : cellDescription(cellDescription)
     {
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::get().DataConnector();
 
-        this->fieldE = &dc.getData<FieldE > (FIELD_E, true);
-        this->fieldB = &dc.getData<FieldB > (FIELD_B, true);
+        this->fieldE = &dc.getData<FieldE > (FieldE::getName(), true);
+        this->fieldB = &dc.getData<FieldB > (FieldB::getName(), true);
     }
     
     void update_beforeCurrent(uint32_t)

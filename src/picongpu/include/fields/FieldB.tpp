@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 #include <iostream>
 #include "simulation_defines.hpp"
 
@@ -71,7 +71,7 @@ fieldE( NULL )
     const DataSpace<simDim> endGuard( UpperMargin( ).vec( ) );
 
     /*go over all directions*/
-    for ( int i = 1; i < 27; ++i )
+    for ( int i = 1; i < numberOfNeighbors[simDim]; ++i )
     {
         DataSpace<simDim> relativMask = Mask::getRelativeDirections<simDim > ( i );
         /* guarding cells depend on direction
@@ -80,10 +80,7 @@ fieldE( NULL )
          */
         DataSpace<simDim> guardingCells;
         for ( uint32_t d = 0; d < simDim; ++d )
-            guardingCells[d] =
-            ( relativMask[d] == -1 ?
-              originGuard[d] :
-              endGuard[d] );
+            guardingCells[d] = ( relativMask[d] == -1 ? originGuard[d] : endGuard[d] );
         fieldB->addExchange( GUARD, i, guardingCells, FIELD_B );
     }
 
@@ -93,6 +90,11 @@ FieldB::~FieldB( )
 {
 
     delete fieldB;
+}
+
+SimulationDataId FieldB::getUniqueId()
+{
+    return getName();
 }
 
 void FieldB::synchronize( )
@@ -119,7 +121,7 @@ void FieldB::init( FieldE &fieldE, LaserPhysics &laserPhysics )
     this->fieldE = &fieldE;
     this->laser = &laserPhysics;
 
-    DataConnector::getInstance( ).registerData( *this, FIELD_B );
+    Environment<>::get().DataConnector().registerData( *this );
 }
 
 GridLayout<simDim> FieldB::getGridLayout( )

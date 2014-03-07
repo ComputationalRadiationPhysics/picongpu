@@ -35,7 +35,8 @@ using namespace PMacc;
 class MovingWindow
 {
 private:
-
+    
+    
     MovingWindow() : slidingWindowActive(false), slideCounter(0), lastSlideStep(0)
     {
     }
@@ -97,10 +98,9 @@ public:
     {
 
         VirtualWindow window(slideCounter);
-        DataSpace<simDim> gridSize(SubGrid<simDim>::getInstance().getSimulationBox().getLocalSize());
-        const DataSpace<simDim> globalWindowSize = DataSpace<DIM3 > (simSize[0],
-                                                                     simSize[1] - gridSize.y() * slidingWindowActive,
-                                                                     simSize[2]);
+        DataSpace<simDim> gridSize(Environment<simDim>::get().SubGrid().getSimulationBox().getLocalSize());
+        DataSpace<simDim> globalWindowSize(simSize);
+        globalWindowSize.y()-=gridSize.y() * slidingWindowActive;
 
         window.globalWindowSize = globalWindowSize;
         window.globalSimulationSize = simSize;
@@ -142,7 +142,7 @@ public:
                 window.globalSimulationOffset.y() = offsetFirstGPU;
             }
 
-            Mask comm_mask = GridController<simDim>::getInstance().getCommunicationMask();
+            Mask comm_mask = Environment<simDim>::get().GridController().getCommunicationMask();
 
             const bool isTopGpu = !comm_mask.isSet(TOP);
             const bool isBottomGpu = !comm_mask.isSet(BOTTOM);

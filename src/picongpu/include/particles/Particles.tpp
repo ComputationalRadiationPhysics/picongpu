@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 #include <iostream>
 
 #include "simulation_defines.hpp"
@@ -52,25 +52,31 @@ namespace picongpu
 using namespace PMacc;
 
 template< typename T_DataVector, typename T_MethodsVector>
-Particles<T_DataVector,T_MethodsVector>::Particles( GridLayout<simDim> gridLayout,
-                                    MappingDesc cellDescription ) :
-ParticlesBase<T_DataVector,T_MethodsVector, MappingDesc>( cellDescription ), fieldB( NULL ), fieldE( NULL ), fieldJurrent( NULL ), gridLayout( gridLayout )
-{
+Particles<T_DataVector, T_MethodsVector>::Particles( GridLayout<simDim> gridLayout,
+                                                     MappingDesc cellDescription,
+                                                     SimulationDataId datasetID ) :
+ParticlesBase<T_DataVector, T_MethodsVector, MappingDesc>( cellDescription ), fieldB( NULL ), fieldE( NULL ), fieldJurrent( NULL ), gridLayout( gridLayout ),
+datasetID( datasetID )
+{ 
     size_t sizeOfExchanges = 2 * 2 * ( BYTES_EXCHANGE_X + BYTES_EXCHANGE_Y + BYTES_EXCHANGE_Z ) + BYTES_EXCHANGE_X * 2 * 8;
 
-
+    
     this->particlesBuffer = new BufferType( gridLayout.getDataSpace( ), gridLayout.getGuard( ) );
 
-    log<picLog::MEMORY > ("size for all exchange = %1% MiB") % ( (double) sizeOfExchanges / 1024. / 1024. );
+    log<picLog::MEMORY > ( "size for all exchange = %1% MiB" ) % ( (double) sizeOfExchanges / 1024. / 1024. );
 
     this->particlesBuffer->addExchange( Mask( LEFT ) + Mask( RIGHT ), BYTES_EXCHANGE_X, FrameType::CommunicationTag );
     this->particlesBuffer->addExchange( Mask( TOP ) + Mask( BOTTOM ), BYTES_EXCHANGE_Y, FrameType::CommunicationTag );
+    //edges of the simulation area
+    this->particlesBuffer->addExchange( Mask( RIGHT + TOP ) + Mask( LEFT + TOP ) +
+                                        Mask( LEFT + BOTTOM ) + Mask( RIGHT + BOTTOM ), BYTES_EDGES, FrameType::CommunicationTag );
+
+#if(SIMDIM==DIM3)
     this->particlesBuffer->addExchange( Mask( FRONT ) + Mask( BACK ), BYTES_EXCHANGE_Z, FrameType::CommunicationTag );
     //edges of the simulation area
     this->particlesBuffer->addExchange( Mask( FRONT + TOP ) + Mask( BACK + TOP ) +
-                                        Mask( FRONT + BOTTOM ) + Mask( BACK + BOTTOM ) +
-                                        Mask( RIGHT + TOP ) + Mask( LEFT + TOP ) +
-                                        Mask( LEFT + BOTTOM ) + Mask( RIGHT + BOTTOM ), BYTES_EDGES, FrameType::CommunicationTag );
+                                        Mask( FRONT + BOTTOM ) + Mask( BACK + BOTTOM ),
+                                        BYTES_EDGES, FrameType::CommunicationTag );
     this->particlesBuffer->addExchange( Mask( FRONT + RIGHT ) + Mask( BACK + RIGHT ) +
                                         Mask( FRONT + LEFT ) + Mask( BACK + LEFT ),
                                         BYTES_EDGES, FrameType::CommunicationTag );
@@ -79,11 +85,11 @@ ParticlesBase<T_DataVector,T_MethodsVector, MappingDesc>( cellDescription ), fie
                                         BYTES_CORNER, FrameType::CommunicationTag );
     this->particlesBuffer->addExchange( Mask( TOP + FRONT + LEFT ) + Mask( TOP + BACK + LEFT ) + Mask( BOTTOM + FRONT + LEFT ) + Mask( BOTTOM + BACK + LEFT ),
                                         BYTES_CORNER, FrameType::CommunicationTag );
-
+#endif
 }
 
 template< typename T_DataVector, typename T_MethodsVector>
-void Particles<T_DataVector,T_MethodsVector>::createParticleBuffer( size_t gpuMemory )
+void Particles<T_DataVector, T_MethodsVector>::createParticleBuffer( size_t gpuMemory )
 {
 
     /*!\todo: this is the 4GB fix for GPUs with more than 4GB memory*/
@@ -95,37 +101,41 @@ void Particles<T_DataVector,T_MethodsVector>::createParticleBuffer( size_t gpuMe
 }
 
 template< typename T_DataVector, typename T_MethodsVector>
-Particles<T_DataVector,T_MethodsVector>::~Particles( )
+Particles<T_DataVector, T_MethodsVector>::~Particles( )
 {
     delete this->particlesBuffer;
 }
 
 template< typename T_DataVector, typename T_MethodsVector>
-void Particles<T_DataVector,T_MethodsVector>::synchronize( )
+SimulationDataId Particles<T_DataVector, T_MethodsVector>::getUniqueId()
+{
+    return datasetID;
+}
+
+template< typename T_DataVector, typename T_MethodsVector>
+void Particles<T_DataVector, T_MethodsVector>::synchronize( )
 {
     this->particlesBuffer->deviceToHost( );
 }
 
 template< typename T_DataVector, typename T_MethodsVector>
-void Particles<T_DataVector,T_MethodsVector>::syncToDevice( )
+void Particles<T_DataVector, T_MethodsVector>::syncToDevice( )
 {
     this->particlesBuffer->hostToDevice( );
 }
 
 template< typename T_DataVector, typename T_MethodsVector>
-void Particles<T_DataVector,T_MethodsVector>::init( FieldE &fieldE, FieldB &fieldB, FieldJ &fieldJ, int datasetID )
+void Particles<T_DataVector, T_MethodsVector>::init( FieldE &fieldE, FieldB &fieldB, FieldJ &fieldJ )
 {
     this->fieldE = &fieldE;
     this->fieldB = &fieldB;
     this->fieldJurrent = &fieldJ;
 
-    this->datasetID = datasetID;
-
-    DataConnector::getInstance( ).registerData( *this, datasetID );
+    Environment<>::get( ).DataConnector().registerData( *this );
 }
 
 template< typename T_DataVector, typename T_MethodsVector>
-void Particles<T_DataVector,T_MethodsVector>::update( uint32_t )
+void Particles<T_DataVector, T_MethodsVector>::update( uint32_t )
 {
     typedef particlePusher::ParticlePusher ParticlePush;
 
@@ -158,25 +168,25 @@ void Particles<T_DataVector,T_MethodsVector>::update( uint32_t )
 }
 
 template< typename T_DataVector, typename T_MethodsVector>
-void Particles<T_DataVector,T_MethodsVector>::reset( uint32_t )
+void Particles<T_DataVector, T_MethodsVector>::reset( uint32_t )
 {
     this->particlesBuffer->reset( );
 }
 
 template< typename T_DataVector, typename T_MethodsVector>
-void Particles<T_DataVector,T_MethodsVector>::initFill( uint32_t currentStep )
+void Particles<T_DataVector, T_MethodsVector>::initFill( uint32_t currentStep )
 {
     VirtualWindow window = MovingWindow::getInstance( ).getVirtualWindow( currentStep );
-    PMACC_AUTO( simBox, SubGrid<simDim>::getInstance( ).getSimulationBox( ) );
+    PMACC_AUTO( simBox, Environment<simDim>::get().SubGrid().getSimulationBox( ) );
 
     /*calculate real simulation area offset from the beginning of the simulation*/
     DataSpace<simDim> localCells = gridLayout.getDataSpaceWithoutGuarding( );
     DataSpace<simDim> gpuCellOffset = simBox.getGlobalOffset( );
     gpuCellOffset.y( ) += window.slides * localCells.y( );
 
-    // seed= (MPI_SIZE*CommunicationTag+MPI_Rank)^AlgoSeed 
-    uint32_t seed = GridController<DIM3>::getInstance( ).getGlobalSize( ) * FrameType::CommunicationTag
-        + GridController<DIM3>::getInstance( ).getGlobalRank( );
+
+    uint32_t seed = Environment<simDim>::get().GridController().getGlobalSize( ) * FrameType::CommunicationTag
+        + Environment<simDim>::get().GridController().getGlobalRank( );
     seed ^= POSITION_SEED;
     dim3 block( MappingDesc::SuperCellSize::getDataSpace( ) );
 
@@ -198,7 +208,7 @@ void Particles<T_DataVector,T_MethodsVector>::initFill( uint32_t currentStep )
 
 template< typename T_DataVector, typename T_MethodsVector>
 template< typename t_DataVector, typename t_MethodsVector>
-void Particles<T_DataVector,T_MethodsVector>::deviceCloneFrom( Particles<t_DataVector,t_MethodsVector> &src )
+void Particles<T_DataVector, T_MethodsVector>::deviceCloneFrom( Particles<t_DataVector, t_MethodsVector> &src )
 {
     dim3 block( TILE_SIZE );
     DataSpace<simDim> superCells = this->particlesBuffer->getSuperCellsCount( );
@@ -213,13 +223,13 @@ void Particles<T_DataVector,T_MethodsVector>::deviceCloneFrom( Particles<t_DataV
 }
 
 template< typename T_DataVector, typename T_MethodsVector>
-void Particles<T_DataVector,T_MethodsVector>::deviceAddTemperature( float_X energy )
+void Particles<T_DataVector, T_MethodsVector>::deviceAddTemperature( float_X energy )
 {
     dim3 block( MappingDesc::SuperCellSize::getDataSpace( ) );
     DataSpace<simDim> superCells = this->particlesBuffer->getSuperCellsCount( );
-    // seed= (MPI_SIZE*CommunicationTag+MPI_Rank)^AlgoSeed 
-    uint32_t seed = GridController<DIM3>::getInstance( ).getGlobalSize( ) * FrameType::CommunicationTag
-        + GridController<DIM3>::getInstance( ).getGlobalRank( );
+
+    uint32_t seed = Environment<simDim>::get().GridController().getGlobalSize( ) * FrameType::CommunicationTag
+        + Environment<simDim>::get().GridController().getGlobalRank( );
     seed ^= TEMPERATURE_SEED;
 
     __picKernelArea( kernelAddTemperature, this->cellDescription, CORE + BORDER + GUARD )
@@ -230,13 +240,13 @@ void Particles<T_DataVector,T_MethodsVector>::deviceAddTemperature( float_X ener
 }
 
 template< typename T_DataVector, typename T_MethodsVector>
-void Particles<T_DataVector,T_MethodsVector>::deviceSetDrift( uint32_t currentStep )
+void Particles<T_DataVector, T_MethodsVector>::deviceSetDrift( uint32_t currentStep )
 {
     VirtualWindow window = MovingWindow::getInstance( ).getVirtualWindow( currentStep );
 
     dim3 block( MappingDesc::SuperCellSize::getDataSpace( ) );
 
-    PMACC_AUTO( simBox, SubGrid<simDim>::getInstance( ).getSimulationBox( ) );
+    PMACC_AUTO( simBox, Environment<simDim>::get().SubGrid().getSimulationBox( ) );
     const DataSpace<simDim> localNrOfCells( simBox.getLocalSize( ) );
     const DataSpace<simDim> globalNrOfCells( simBox.getGlobalSize( ) );
 

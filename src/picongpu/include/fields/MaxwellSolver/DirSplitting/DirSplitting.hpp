@@ -63,19 +63,19 @@ public:
     {
         typedef PMacc::math::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> GuardDim;
     
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::get().DataConnector();
 
-        FieldE& fieldE = dc.getData<FieldE > (FIELD_E, true);
-        FieldB& fieldB = dc.getData<FieldB > (FIELD_B, true);
+        FieldE& fieldE = dc.getData<FieldE > (FieldE::getName(), true);
+        FieldB& fieldB = dc.getData<FieldB > (FieldB::getName(), true);
 
         BOOST_AUTO(fieldE_coreBorder,
             fieldE.getGridBuffer().getDeviceBuffer().
-                   cartBuffer().view(typeCast<int>(GuardDim().vec()),
-                                     -typeCast<int>(GuardDim().vec())));
+                   cartBuffer().view(precisionCast<int>(GuardDim().vec()),
+                                     -precisionCast<int>(GuardDim().vec())));
         BOOST_AUTO(fieldB_coreBorder,
             fieldB.getGridBuffer().getDeviceBuffer().
-            cartBuffer().view(typeCast<int>(GuardDim().vec()),
-                              -typeCast<int>(GuardDim().vec())));
+            cartBuffer().view(precisionCast<int>(GuardDim().vec()),
+                              -precisionCast<int>(GuardDim().vec())));
         
         using namespace cursor::tools;
         using namespace PMacc::math::tools;
@@ -103,7 +103,7 @@ public:
                   twistVectorAxes<Orientation_Z>(gridSize));
         
         if (laserProfile::INIT_TIME > float_X(0.0))
-            dc.getData<FieldE > (FIELD_E, true).laserManipulation(currentStep);
+            dc.getData<FieldE > (FieldE::getName(), true).laserManipulation(currentStep);
         
         __setTransactionEvent(fieldE.asyncCommunication(__getTransactionEvent()));
         __setTransactionEvent(fieldB.asyncCommunication(__getTransactionEvent()));

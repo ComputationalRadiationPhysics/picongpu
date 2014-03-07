@@ -40,14 +40,6 @@ class TaskFieldReceiveAndInsertExchange : public MPITask
 {
 public:
 
-    enum
-    {
-        Dim = DIM3,
-        /* Exchanges in 2D=9 and in 3D=27
-         */
-        Exchanges = 27
-    };
-
     TaskFieldReceiveAndInsertExchange(Field &buffer, uint32_t exchange) :
     buffer(buffer),
     exchange(exchange),
@@ -70,7 +62,7 @@ public:
         case Init:
             break;
         case WaitForReceive:
-            if (NULL == Manager::getInstance().getITaskIfNotFinished(initDependency.getTaskId()))
+            if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(initDependency.getTaskId()))
             {
                 state = Finished;
                 return true;

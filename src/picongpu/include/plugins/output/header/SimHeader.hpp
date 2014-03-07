@@ -37,7 +37,7 @@ struct SimHeader
     Size2D simOffsetToNull;
     uint32_t step;
     float scale[2];
-    float cellSize[2];
+    float cellSizeArr[2];
     
 
     SimHeader()
@@ -58,7 +58,7 @@ struct SimHeader
         ocons << "SimHeader.nodes " << nodes.x() << " " << nodes.y() << std::endl;
         ocons << "SimHeader.step " << step << std::endl;
         ocons << "SimHeader.scale " << scale[0] << " " << scale[1] << std::endl;
-        ocons << "SimHeader.cellSize " << cellSize[0] << " " << cellSize[1] << std::endl;
+        ocons << "SimHeader.cellSize " << cellSizeArr[0] << " " << cellSizeArr[1] << std::endl;
     }
 
 };

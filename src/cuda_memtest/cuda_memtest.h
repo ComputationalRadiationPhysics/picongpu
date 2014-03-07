@@ -44,7 +44,7 @@
 #include <stdio.h>
 #include <pthread.h>
 
-#define VERSION "1.2.2"
+#define VERSION "1.2.3"
 
 #define ERR_BAD_STATE  -1
 #define ERR_GENERAL -999

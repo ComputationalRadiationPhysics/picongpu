@@ -40,14 +40,6 @@ namespace PMacc
     {
     public:
 
-        enum
-        {
-            Dim = DIM3,
-            /* Exchanges in 2D=9 and in 3D=27
-             */
-            Exchanges = 27
-        };
-
         TaskFieldSendExchange(Field &buffer, uint32_t exchange) :
         buffer(buffer),
         exchange(exchange),
@@ -73,7 +65,7 @@ namespace PMacc
                 break;
             case WaitForBash:
 
-                if (NULL == Manager::getInstance().getITaskIfNotFinished(initDependency.getTaskId()) )
+                if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(initDependency.getTaskId()) )
                 {
                     state = InitSend;
                     sendEvent = buffer.getGridBuffer().asyncSend(EventTask(), exchange, initDependency);
@@ -84,7 +76,7 @@ namespace PMacc
             case InitSend:
                 break;
             case WaitForSendEnd:
-                if (NULL == Manager::getInstance().getITaskIfNotFinished(sendEvent.getTaskId()))
+                if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(sendEvent.getTaskId()))
                 {
                     state = Finished;
                     return true;

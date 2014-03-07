@@ -24,12 +24,6 @@
 
 
 #include "eventSystem/EventSystem.hpp"
-#include "particles/tasks/ParticleFactory.hpp"
-#include "eventSystem/tasks/ITask.hpp"
-#include "eventSystem/tasks/MPITask.hpp"
-#include "eventSystem/events/EventDataReceive.hpp"
-
-
 
 namespace PMacc
 {
@@ -73,8 +67,8 @@ namespace PMacc
                     break;
                 case WaitForBash:
 
-                    if (NULL == Manager::getInstance().getITaskIfNotFinished(tmpEvent.getTaskId()) &&
-                        NULL == Manager::getInstance().getITaskIfNotFinished(lastSendEvent.getTaskId()))
+                    if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()) &&
+                        NULL == Environment<>::get().Manager().getITaskIfNotFinished(lastSendEvent.getTaskId()))
                     {
                         state = InitSend;
                         //bash is finished
@@ -90,7 +84,7 @@ namespace PMacc
                 case InitSend:
                     break;
                 case WaitForSend:
-                    if (NULL == Manager::getInstance().getITaskIfNotFinished(tmpEvent.getTaskId()))
+                    if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
                     {
                         assert(lastSize<=maxSize);
                         //check for next bash round
@@ -105,7 +99,7 @@ namespace PMacc
                     }
                     break;
                 case WaitForSendEnd:
-                    if (NULL == Manager::getInstance().getITaskIfNotFinished(lastSendEvent.getTaskId()))
+                    if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(lastSendEvent.getTaskId()))
                     {
                         state = Finished;
                         return true;

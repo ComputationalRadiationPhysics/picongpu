@@ -16,45 +16,71 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
 
 
-#ifndef DIFFERENCETOLOWER_HPP
-#define	DIFFERENCETOLOWER_HPP
+#pragma once
 
 #include "types.h"
 #include "math/vector/compile-time/Int.hpp"
 
 namespace picongpu
 {
-    using namespace PMacc;
+using namespace PMacc;
 
-    struct DifferenceToLower
-    {
+template<unsigned T_Dim>
+struct DifferenceToLower;
+
+template<>
+struct DifferenceToLower<DIM3>
+{
         typedef PMacc::math::CT::Int<0,0,0> OffsetEnd;
         typedef PMacc::math::CT::Int<1,1,1> OffsetOrigin;
 
-        template<class Memory >
-        HDINLINE typename Memory::ValueType operator()(const Memory& mem, const uint32_t direction) const
+    template<class Memory >
+    HDINLINE typename Memory::ValueType operator()(const Memory& mem, const uint32_t direction) const
+    {
+        const float_X reciWidth = float_X(1.0) / CELL_WIDTH;
+        const float_X reciHeight = float_X(1.0) / CELL_HEIGHT;
+        const float_X reciDepth = float_X(1.0) / CELL_DEPTH;
+        switch (direction)
         {
-            const float_X reciWidth = float_X(1.0) / CELL_WIDTH;
-            const float_X reciHeight = float_X(1.0) / CELL_HEIGHT;
-            const float_X reciDepth = float_X(1.0) / CELL_DEPTH;
-            switch (direction)
-            {
-            case 0:
-                return (mem[0][0][0] - mem[0][0][-1]) * reciWidth;
-            case 1:
-                return (mem[0][0][0] - mem[0][-1][0]) * reciHeight;
-            case 2:
-                return (mem[0][0][0] - mem[-1][0][0]) * reciDepth;
-            }
-            return float3_X(NAN, NAN, NAN);
+        case 0:
+            return (mem[0][0][0] - mem[0][0][-1]) * reciWidth;
+        case 1:
+            return (mem[0][0][0] - mem[0][-1][0]) * reciHeight;
+        case 2:
+            return (mem[0][0][0] - mem[-1][0][0]) * reciDepth;
         }
-    };
-}
+        return float3_X(NAN, NAN, NAN);
+    }
+};
 
 
-#endif	/* DIFFERENCETOLOWER_HPP */
+template<>
+struct DifferenceToLower<DIM2>
+{
+    typedef PMacc::math::CT::Int<0, 0> OffsetEnd;
+    typedef PMacc::math::CT::Int<1, 1> OffsetOrigin;
 
+    template<class Memory >
+    HDINLINE typename Memory::ValueType operator()(const Memory& mem, const uint32_t direction) const
+    {
+        const float_X reciWidth = float_X(1.0) / CELL_WIDTH;
+        const float_X reciHeight = float_X(1.0) / CELL_HEIGHT;
+
+        switch (direction)
+        {
+        case 0:
+            return (mem[0][0] - mem[0][-1]) * reciWidth;
+        case 1:
+            return (mem[0][0] - mem[-1][0]) * reciHeight;
+        case 2:
+            return float3_X(0., 0., 0.);
+
+        }
+        return float3_X(NAN, NAN, NAN);
+    }
+};
+
+} //namespace picongpu

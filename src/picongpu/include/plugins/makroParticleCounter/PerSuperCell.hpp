@@ -144,7 +144,7 @@ public:
     localResult(NULL),
     dataCollector(NULL)
     {
-        ModuleConnector::getInstance().registerModule(this);
+        Environment<>::get().ModuleConnector().registerModule(this);
     }
 
     virtual ~PerSuperCell()
@@ -154,9 +154,9 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::get().DataConnector();
 
-        particles = &(dc.getData<ParticlesType > ((uint32_t) ParticlesType::FrameType::CommunicationTag, true));
+        particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
 
         countMakroParticles < CORE + BORDER > (currentStep);
     }
@@ -184,8 +184,8 @@ private:
     {
         if (notifyFrequency > 0)
         {
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
-            PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
+            Environment<>::get().DataConnector().registerObserver(this, notifyFrequency);
+            PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
             /* local count of supercells without any guards*/
             DataSpace<simDim> localSuperCells(simBox.getLocalSize() / SuperCellSize::getDataSpace());
             localResult = new GridBufferType(localSuperCells);
@@ -220,7 +220,7 @@ private:
 
 
         /*############ dump data #############################################*/
-        PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
+        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
 
         DataSpace<simDim> localSize(simBox.getLocalSize() / SuperCellSize::getDataSpace());
         DataSpace<simDim> globalOffset(simBox.getGlobalOffset() / SuperCellSize::getDataSpace());
@@ -280,7 +280,7 @@ private:
             Dimensions splashMpiPos;
             Dimensions splashMpiSize;
 
-            GridController<simDim> &gc = GridController<simDim>::getInstance();
+            GridController<simDim> &gc = Environment<simDim>::get().GridController();
 
             mpi_pos = gc.getPosition();
             mpi_size = gc.getGpuNodes();

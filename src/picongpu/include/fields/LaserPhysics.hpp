@@ -49,7 +49,15 @@ public:
     HDINLINE float3_X getManipulation(DataSpace<simDim> iOffset)
     {
         const float_X posX = float_X(globalCentered.x() + iOffset.x()) * CELL_WIDTH;
-        const float_X posZ = float_X(globalCentered.z() + iOffset.z()) * CELL_DEPTH;
+        
+        /*! \todo this is very dirty, please fix laserTransversal interface and use floatD_X
+            and not posX,posY */
+        const float_X posZ =
+#if (SIMDIM==DIM3)
+        float_X(globalCentered.z() + iOffset.z()) * CELL_DEPTH;
+#else
+        0.0;
+#endif
 
         return laserProfile::laserTransversal(elong, phase, posX, posZ);
     }
@@ -77,7 +85,7 @@ public:
         elong = laserProfile::laserLongitudinal(currentStep,
                                                 phase);
 
-        SubGrid<simDim>& sg = SubGrid<simDim>::getInstance();
+        SubGrid<simDim>& sg = Environment<simDim>::get().SubGrid();
         PMACC_AUTO(simBox,sg.getSimulationBox());
         
         const DataSpace<simDim> globalCellOffset(simBox.getGlobalOffset());

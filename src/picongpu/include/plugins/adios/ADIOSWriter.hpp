@@ -132,9 +132,9 @@ private:
         HDINLINE void operator()(RefWrapper<ThreadParams*> params, const DomainInformation domInfo)
         {
 #ifndef __CUDA_ARCH__
-            DataConnector &dc = DataConnector::getInstance();
+            DataConnector &dc = Environment<simDim>::get().DataConnector();
 
-            T* field = &(dc.getData<T > (T::getCommTag()));
+            T* field = &(dc.getData<T > (T::getName()));
             params.get()->gridLayout = field->getGridLayout();
 
             PICToAdios<ComponentType> adiosType;
@@ -147,7 +147,7 @@ private:
                        getUnit(),
                        field->getHostDataBox().getPointer());
 
-            dc.releaseData(T::getCommTag());
+            dc.releaseData(T::getName());
 #endif
         }
 
@@ -158,8 +158,8 @@ private:
      *
      * FieldTmp is calculated on device and than dumped to adios.
      */
-    template< typename ThisSolver, typename ThisSpecies >
-    struct GetFields<FieldTmpOperation<ThisSolver, ThisSpecies> >
+    template< typename Solver, typename Species >
+    struct GetFields<FieldTmpOperation<Solver, Species> >
     {
 
         /*
@@ -182,18 +182,16 @@ private:
 
         /** Create a name for the adios identifier.
          */
-        template< typename Solver, typename Species >
         static std::string getName()
         {
             std::stringstream str;
-            str << FieldTmp::getName<Solver>();
+            str << Solver().getName();
             str << "_";
             str << Species::FrameType::getName();
             return str.str();
         }
 
         /** Get the unit for the result from the solver*/
-        template<typename Solver>
         static std::vector<double> getUnit()
         {
             typedef typename FieldTmp::UnitValueType UnitType;
@@ -204,25 +202,24 @@ private:
 
         HINLINE void operator_impl(RefWrapper<ThreadParams*> params, const DomainInformation domInfo)
         {
-            DataConnector &dc = DataConnector::getInstance();
+            DataConnector &dc = Environment<>::get().DataConnector();
 
             /*## update field ##*/
 
             /*load FieldTmp without copy data to host*/
-            FieldTmp* fieldTmp = &(dc.getData<FieldTmp > (FIELD_TMP, true));
+            FieldTmp* fieldTmp = &(dc.getData<FieldTmp > (FieldTmp::getName(), true));
             /*load particle without copy particle data to host*/
-            ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(
-                                                                 ThisSpecies::FrameType::CommunicationTag, true));
+            Species* speciesTmp = &(dc.getData<Species >(Species::FrameType::getName(), true));
 
             fieldTmp->getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType(0.0));
             /*run algorithm*/
-            fieldTmp->computeValue < CORE + BORDER, ThisSolver > (*speciesTmp, params.get()->currentStep);
+            fieldTmp->computeValue < CORE + BORDER, Solver > (*speciesTmp, params.get()->currentStep);
 
             EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
             __setTransactionEvent(fieldTmpEvent);
             /* copy data to host that we can write same to disk*/
             fieldTmp->getGridBuffer().deviceToHost();
-            dc.releaseData(ThisSpecies::FrameType::CommunicationTag);
+            dc.releaseData(Species::FrameType::getName());
             /*## finish update field ##*/
 
             const uint32_t components = GetNComponents<ValueType>::value;
@@ -235,11 +232,11 @@ private:
                        adiosType.type,
                        domInfo,
                        components,
-                       getName<ThisSolver, ThisSpecies>(),
-                       getUnit<ThisSolver>(),
+                       getName(),
+                       getUnit(),
                        fieldTmp->getHostDataBox().getPointer());
 
-            dc.releaseData(FIELD_TMP);
+            dc.releaseData(FieldTmp::getName());
 
         }
 
@@ -322,8 +319,8 @@ private:
      * Collect field sizes to set adios group size.
      * Specialization.
      */
-    template< typename ThisSolver, typename ThisSpecies >
-    struct CollectFieldsSizes<FieldTmpOperation<ThisSolver, ThisSpecies> >
+    template< typename Solver, typename Species >
+    struct CollectFieldsSizes<FieldTmpOperation<Solver, Species> >
     {
     public:
         
@@ -339,11 +336,10 @@ private:
         
         /** Create a name for the adios identifier.
          */
-        template< typename Solver, typename Species >
         static std::string getName()
         {
             std::stringstream str;
-            str << FieldTmp::getName<Solver>();
+            str << Solver().getName();
             str << "_";
             str << Species::FrameType::getName();
             return str.str();
@@ -361,8 +357,7 @@ private:
             params.get()->adiosGroupSize += localGroupSize;
             
             PICToAdios<ComponentType> adiosType;
-            defineFieldVar(params.get(), domInfo, components, adiosType.type,
-                    getName<ThisSolver, ThisSpecies>());
+            defineFieldVar(params.get(), domInfo, components, adiosType.type, getName());
         }
 
     };
@@ -373,7 +368,7 @@ public:
     filename("simDataAdios"),
     notifyFrequency(0)
     {
-        ModuleConnector::getInstance().registerModule(this);
+        Environment<>::get().ModuleConnector().registerModule(this);
     }
 
     virtual ~ADIOSWriter()
@@ -403,7 +398,7 @@ public:
     __host__ void notify(uint32_t currentStep)
     {
         mThreadParams.currentStep = (int32_t) currentStep;
-        mThreadParams.gridPosition = SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset();
+        mThreadParams.gridPosition = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
         mThreadParams.cellDescription = this->cellDescription;
         this->filter.setStatus(false);
 
@@ -431,7 +426,7 @@ private:
     void endAdios()
     {        
         /* Finalize adios library */
-        ADIOS_CMD(adios_finalize(GridController<simDim>::getInstance()
+        ADIOS_CMD(adios_finalize(Environment<simDim>::get().GridController()
                 .getCommunicator().getRank()));
         
         __deleteArray(mThreadParams.fieldBfr);
@@ -459,10 +454,9 @@ private:
     {
         if (notifyFrequency > 0)
         {
-            mThreadParams.gridPosition =
-                SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset();
+            mThreadParams.gridPosition = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
 
-            GridController<simDim> &gc = GridController<simDim>::getInstance();
+            GridController<simDim> &gc = Environment<simDim>::get().GridController();
             /* It is important that we never change the mpi_pos after this point 
              * because we get problems with the restart.
              * Otherwise we do not know which gpu must load the ghost parts around
@@ -471,7 +465,7 @@ private:
             mpi_pos = gc.getPosition();
             mpi_size = gc.getGpuNodes();
 
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
+            Environment<>::get().DataConnector().registerObserver(this, notifyFrequency);
             
             /* Initialize adios library */
             mThreadParams.adiosComm = MPI_COMM_NULL;

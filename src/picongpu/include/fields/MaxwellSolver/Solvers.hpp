@@ -16,13 +16,15 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 
 
 #pragma once
 
 #include "None/NoSolver.hpp"
 #include "Yee/YeeSolver.hpp"
+#if (SIMDIM==3)
 #include "Lehe/LeheSolver.hpp"
 #include "DirSplitting/DirSplitting.hpp"
+#endif

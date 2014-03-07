@@ -1,0 +1,74 @@
+/**
+ * Copyright 2013-2014 Heiko Burau, Richard Pausch
+ *
+ * This file is part of PIConGPU. 
+ * 
+ * PIConGPU is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * 
+ * PIConGPU is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * along with PIConGPU.  
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+ 
+
+#pragma once
+
+namespace picongpu
+{
+  namespace radiation_observer
+  {
+    /** Compute observation angles 
+     *
+     * This function is used in the Radiation plug-in kernel to compute 
+     * the observation directions given as a unit vector pointing
+     * towards a 'virtual' detector
+     *
+     * @param    observation_id_extern
+     *           int index that identifies each block on the GPU
+     *           to compute the observation direction
+     *
+     * @return   unit vector pointing in observation direction
+     *           type: vec2
+     * 
+     */
+    DINLINE vec2 observation_direction(const int observation_id_extern)
+    {
+      /** Computes observation angles along the x-y plane.
+       *  Assuming electron(s) fly in -x direction and the laser
+       *  propages in +x direction, the observation angles are centered 
+       *  around the -y-axis (0,-1,0) .
+       *  By setting gamma, the angle range can be adjusted to the
+       *  energy of the electrons.
+       */
+
+
+      /* in this case only one id is needed: an index for theta */
+      const int my_theta_id = observation_id_extern;
+
+      /* set up: */
+      const numtype2 gamma_times_thetaMax = 1.5; /* max normalized angle */
+      const numtype2 gamma = 5.0;                /* relativistic gamma */
+      const numtype2 thetaMax = gamma_times_thetaMax / gamma; /* max angle */
+
+      /* stepwith of theta for from [-thetaMax : +thetaMax] */
+      const numtype2 delta_theta =  2.0 * gamma_times_thetaMax / (parameters::N_observer); 
+
+      /* compute angle theta for index */
+      const numtype2 theta(my_theta_id * delta_theta - gamma_times_thetaMax + picongpu::PI); 
+      /* + picongpu::PI -> turn observation direction 180 degrees towards -y */
+
+      /* compute observation unit vector */
+      return vec2(sinf(theta), cosf(theta), 0.0);
+      
+    }
+    
+  } // end namespace radiation_observer
+} // end namespace picongpu

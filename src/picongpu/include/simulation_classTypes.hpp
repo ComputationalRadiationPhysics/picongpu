@@ -38,8 +38,14 @@ namespace picongpu
     //short name for access verbose types of picongpu
     typedef PIConGPUVerbose picLog;
 
-    typedef MappingDescription<simDim, TVec<TILE_WIDTH, TILE_HEIGHT, TILE_DEPTH> > MappingDesc;
+    typedef MappingDescription<simDim, TVec<TILE_WIDTH, TILE_HEIGHT
+    #if(SIMDIM==DIM3)
+    , TILE_DEPTH
+    #endif
+    > > MappingDesc;
+
 } //namespace picongpu
+
 /**
  * Appends kernel arguments to generated code and activates kernel task.
  *
@@ -73,5 +79,5 @@ namespace picongpu
 #define __picKernelArea(kernelname,description,area) {                               \
     CUDA_CHECK_KERNEL_MSG(cudaThreadSynchronize(),"picKernelArea crash before kernel call");       \
     AreaMapping<area,MappingDesc> mapper(description);                               \
-    TaskKernel *taskKernel =  Factory::getInstance().createTaskKernel(#kernelname);  \
+    TaskKernel *taskKernel =  Environment<>::get().Factory().createTaskKernel(#kernelname);  \
     kernelname PIC_PMACC_CUDAKERNELCONFIG

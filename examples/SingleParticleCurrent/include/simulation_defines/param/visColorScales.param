@@ -19,11 +19,7 @@
  */ 
  
 
-
-#ifndef COLORSCALES_HPP
-#define	COLORSCALES_HPP
-
-#include "types.h"
+#pragma once
 #include "basicOperations.hpp"
 
 namespace picongpu
@@ -117,5 +113,3 @@ namespace picongpu
 
     }
 }
-
-#endif	/* COLORSCALES_HPP */

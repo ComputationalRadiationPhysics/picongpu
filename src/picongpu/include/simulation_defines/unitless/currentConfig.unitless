@@ -22,11 +22,13 @@
 
 #pragma once
 
+#if(SIMDIM==DIM3)
 #include "fields/currentDeposition/VillaBune/CurrentVillaBune.hpp"
+#include "fields/currentDeposition/Esirkepov/EsirkepovNative.hpp"
+#endif
 #include "traits/IsSameType.hpp"
 
 
-#include "fields/currentDeposition/Esirkepov/EsirkepovNative.hpp"
 #include "fields/currentDeposition/Esirkepov/Esirkepov.hpp"
 #include "fields/numericalCellTypes/YeeCell.hpp"
 
@@ -34,26 +36,25 @@
 namespace picongpu
 {
 
+#if (SIMDIM==DIM3)
     namespace currentSolverVillaBune
     {
         typedef VillaBune CurrentSolver;
     }
 
-
     namespace currentSolverEsirkepovNative
     {
         using namespace picongpu::currentSolverEsirkepov;
-        typedef EsirkepovNative<typename speciesParticleShape::ParticleShape::ChargeAssignment,
-                          fieldSolver::NumericalCellType> CurrentSolver;
+        typedef EsirkepovNative<typename speciesParticleShape::ParticleShape> CurrentSolver;
     }
+#endif
     
     namespace currentSolverEsirkepov
     {
-        typedef Esirkepov<typename speciesParticleShape::ParticleShape::ChargeAssignment,
-                          fieldSolver::NumericalCellType> CurrentSolver;
+        typedef Esirkepov<simDim,typename speciesParticleShape::ParticleShape> CurrentSolver;
     }
     
-    
+#if (SIMDIM==DIM3)    
     /* ASSERTS for invalid combinations to help the user -------------------- */
     
     /* VillaBune: field to particle interpolation _requires_ the CIC shape
@@ -68,6 +69,7 @@ namespace picongpu
     
     PMACC_CASSERT_MSG(currentSolverVillaBune_requires_shapeCIC_in_particleConfig, \
                         vVBorOther);
+#endif
 }
 
 

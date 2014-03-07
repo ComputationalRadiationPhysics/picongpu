@@ -52,7 +52,7 @@ using namespace PMacc;
  * is not optimized, it checks any partcile position if its realy a particle
  */
 template<class FieldBox, class BoxMax, class BoxIntegral>
-__global__ void kernelIntensity(FieldBox field, DataSpace<DIM3> cellsCount, BoxMax boxMax, BoxIntegral integralBox)
+__global__ void kernelIntensity(FieldBox field, DataSpace<simDim> cellsCount, BoxMax boxMax, BoxIntegral integralBox)
 {
 
     typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -147,7 +147,7 @@ public:
     notifyFrequency(0),
     writeToFile(false)
     {
-        ModuleConnector::getInstance().registerModule(this);
+        Environment<>::get().ModuleConnector().registerModule(this);
     }
 
     virtual ~IntensityModule()
@@ -184,7 +184,7 @@ private:
     {
         if (notifyFrequency > 0)
         {
-            writeToFile = GridController<simDim>::getInstance().getGlobalRank() == 0;
+            writeToFile = Environment<simDim>::get().GridController().getGlobalRank() == 0;
             int yCells = cellDescription->getGridLayout().getDataSpaceWithoutGuarding().y();
 
             localMaxIntensity = new GridBuffer<float, DIM1 > (DataSpace<DIM1 > (yCells)); //create one int on gpu und host
@@ -196,7 +196,7 @@ private:
                 createFile(analyzerName + "_integrated.dat", outFileIntegrated);
             }
 
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
+            Environment<>::get().DataConnector().registerObserver(this, notifyFrequency);
         }
     }
 
@@ -225,12 +225,12 @@ private:
         const DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
         VirtualWindow window(MovingWindow::getInstance().getVirtualWindow( currentStep));
 
-        PMACC_AUTO(simBox,SubGrid<simDim>::getInstance().getSimulationBox());
+        PMACC_AUTO(simBox,Environment<simDim>::get().SubGrid().getSimulationBox());
         
         const int yGlobalSize = simBox.getGlobalSize().y();
         const int yLocalSize = localSize.y();
 
-        const int gpus = GridController<simDim>::getInstance().getGpuNodes().productOfComponents();
+        const int gpus = Environment<simDim>::get().GridController().getGpuNodes().productOfComponents();
         
         
         /**\todo: fixme I cant work with not regular domains (use mpi_gatherv)*/
@@ -276,12 +276,16 @@ private:
                       UNIT_EFIELD
                       );
 
+            double unit=UNIT_EFIELD*CELL_VOLUME*SI::EPS0_SI;
+            for(uint32_t i=0;i<simDim;++i)
+                unit*=UNIT_LENGTH;
+            
             writeFile(currentStep,
                       integretedAll + window.globalSimulationOffset.y(),
                       window.globalWindowSize.y(),
                       physicelYCellOffset,
                       outFileIntegrated,
-                      UNIT_EFIELD * SI::CELL_HEIGHT_SI * SI::CELL_WIDTH_SI * SI::CELL_DEPTH_SI * SI::EPS0_SI
+                      unit
                       );
         }
 
@@ -324,9 +328,9 @@ private:
      */
     void calcIntensity(uint32_t)
     {
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::get().DataConnector();
 
-        FieldE* fieldE = &(dc.getData<FieldE > (FIELD_E, true));
+        FieldE* fieldE = &(dc.getData<FieldE > (FieldE::getName(), true));
 
         /*start only worker for any supercell in laser propagation direction*/
         dim3 grid(1, cellDescription->getGridSuperCells().y() - cellDescription->getGuardingSuperCells());
