@@ -7,7 +7,7 @@ Open Beta RC5
 
 This is the 5th release candidate, a *pre-beta* version.
 
-### Changes to "Open Beta RC3"
+### Changes to "Open Beta RC4"
 
 **.param file changes:**
  - n/a
