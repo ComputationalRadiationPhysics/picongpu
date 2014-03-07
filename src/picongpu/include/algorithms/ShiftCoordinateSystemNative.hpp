@@ -40,7 +40,7 @@ struct ShiftCoordinateSystemNative
      * @param fieldPos vector with relative coordinates for shift ( value range [0.0;0.5] )
      */
     template<typename Cursor, typename Vector >
-    HDINLINE void operator()(Cursor& cursor, Vector& vector, const float3_X & fieldPos)
+    HDINLINE void operator()(Cursor& cursor, Vector& vector, const floatD_X & fieldPos)
     {
         for (uint32_t i = 0; i < simDim; ++i)
             vector[i] -= fieldPos[i];
