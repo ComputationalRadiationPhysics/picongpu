@@ -1,9 +1,30 @@
 Change Log / Release Log for PIConGPU
 ================================================================
 
-Open Beta RC4
+Open Beta RC5
 -------------
 **Date:** TBA
+
+This is the 5th release candidate, a *pre-beta* version.
+
+### Changes to "Open Beta RC3"
+
+**.param file changes:**
+ - n/a
+
+**New Features:**
+ - n/a
+
+**Bug fixes:**
+ - n/a
+
+**Misc:**
+ - n/a
+
+
+Open Beta RC4
+-------------
+**Date:** 2014-03-07
 
 This is the 4th release candidate, a *pre-beta* version.
 
@@ -16,7 +37,7 @@ This is the 4th release candidate, a *pre-beta* version.
    `fieldBackground.param`, `particleDefinition.param`
    see the lines that should be removed in
    [#234](https://github.com/ComputationalRadiationPhysics/picongpu/pull/234/files)
- - Renamed `observer.hpp` -> `radiationObserver.param` #237
+ - Renamed `observer.hpp` -> `radiationObserver.param` #237 #241
    Changed variable name `N_theta` to `N_observer`
    https://github.com/ComputationalRadiationPhysics/picongpu/commit/9e487ec30ade10ece44fc19fd7a815b8dfe58f61#diff-9
  - Added background FieldJ (current) capability #245
@@ -24,13 +45,33 @@ This is the 4th release candidate, a *pre-beta* version.
    https://github.com/ComputationalRadiationPhysics/picongpu/commit/7b22f37c6a58250d6623cfbc821c4f996145aad9#diff-1
 
 **New Features:**
- - n/a
+ - 2D support for basic PIC cycle #212
+ - hdf5 output xdmf meta description added: ParaView/VisIt support #219
+ - background current (FieldJ) can be added now #245
 
 **Bug fixes:**
- - n/a
+ - beta-rc3 was broken for some clusters due to an init bug #239
+ - examples/WeibelTransverse 4 GPU example was broken #221
+ - smooth script was broken for 1D fields #223
+ - configure non-existing path did not throw an error #229
+ - compile time vector "max" was broken #224
+ - cuda_memtest did throw false negatives on hypnos #231 #236
+ - plugin "png" did not compile for missing freetype #248
 
 **Misc:**
- - n/a
+ - documentation updates
+   - radiation post processing scripts #222
+   - more meta data in hdf5 output #216
+   - tbg help extended and warnings to errors #226
+   - doc/PARTICIPATE.md is now GitHub's CONTRIBUTING.md #247 #252
+   - slurm interactive queue one-liner added #250
+   - developers updated #251
+ - clean up / refactoring
+   - cell_size -> cellSize #227
+   - typeCast -> precisionCast #228
+   - param file includes (see above for details) #234
+   - DataConnector interface redesign #218 #232
+   - Esirkepov implementation "paper-like" #238
 
 
 Open Beta RC3
