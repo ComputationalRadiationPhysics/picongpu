@@ -71,7 +71,6 @@ namespace picongpu
         template<class FrameSolver >
         static UnitValueType getUnit();
         
-        template<class FrameSolver >
         static std::string getName();
         
         static uint32_t getCommTag();
@@ -91,6 +90,8 @@ namespace picongpu
         template<uint32_t AREA, class FrameSolver, class ParticlesClass>
         void computeValue(ParticlesClass& parClass, uint32_t currentStep);
 
+        SimulationDataId getUniqueId();
+        
         void synchronize( );
 
         void syncToDevice( );

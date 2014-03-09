@@ -56,7 +56,6 @@ namespace picongpu
         
         typedef DataBox<PitchedBox<ValueType, simDim> > DataBoxType;
 
-        static const uint32_t FloatBDim = simDim;
         typedef MappingDesc::SuperCellSize SuperCellSize;
 
         FieldB( MappingDesc cellDescription);
@@ -83,6 +82,7 @@ namespace picongpu
 
         GridBuffer<ValueType, simDim> &getGridBuffer();
 
+        SimulationDataId getUniqueId();
 
         void synchronize();
 

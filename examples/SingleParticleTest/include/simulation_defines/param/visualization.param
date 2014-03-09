@@ -25,7 +25,6 @@
 #include <cmath>
 
 #include "basicOperations.hpp"
-#include "visColorScales.param"
 
 namespace picongpu
 {

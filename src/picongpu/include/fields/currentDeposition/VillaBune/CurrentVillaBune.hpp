@@ -42,7 +42,7 @@ struct VillaBune
     DINLINE void operator()(BoxJ& boxJ_par, /*box which is shifted to particles cell*/
                                const PosType pos,
                                const VelType velocity,
-                               const ChargeType charge, const float3_X& cellSize, const float_X deltaTime)
+                               const ChargeType charge, const float_X deltaTime)
     {
 
         // normalize deltaPos to innerCell units [0.; 1.)
@@ -53,7 +53,7 @@ struct VillaBune
                                 velocity.y() * deltaTime / cellSize.y(),
                                 velocity.z() * deltaTime / cellSize.z());
 
-        const PosType oldPos = (PosType) (typeCast<float_X > (pos) - deltaPos);
+        const PosType oldPos = (PosType) (precisionCast<float_X > (pos) - deltaPos);
 
         addCurrentSplitX(oldPos, pos, charge, boxJ_par, deltaTime);
     }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -19,12 +19,12 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-#ifndef STLPICCTUINT_HPP
-#define STLPICCTUINT_HPP
+#pragma once
 
 #include <stdint.h>
 #include "Vector.hpp"
 #include <boost/mpl/integral_c.hpp>
+#include "traits/Limits.hpp"
 
 namespace PMacc
 {
@@ -32,10 +32,24 @@ namespace math
 {
 namespace CT
 {
-    
-template<uint32_t x = (uint32_t)-1, uint32_t y = (uint32_t)-1, uint32_t z = (uint32_t)-1,
-         uint32_t dummy = (uint32_t)-1>
-struct UInt;
+
+/** Compile time uint vector
+ * 
+ * 
+ * @tparam x value for x allowed range [0;max uint32_t value -1]
+ * @tparam y value for y allowed range [0;max uint32_t value -1]
+ * @tparam z value for z allowed range [0;max uint32_t value -1]
+ * 
+ * default parameter is used to distinguish between values given by
+ * the user and unset values.
+ */
+template<uint32_t x = traits::limits::Max<uint32_t>::value, 
+         uint32_t y = traits::limits::Max<uint32_t>::value, 
+         uint32_t z = traits::limits::Max<uint32_t>::value>
+struct UInt : public CT::Vector<mpl::integral_c<uint32_t, x>,
+                                                   mpl::integral_c<uint32_t, y>,
+                                                   mpl::integral_c<uint32_t, z> >
+{};
 
 template<>
 struct UInt<> : public CT::Vector<>
@@ -50,14 +64,8 @@ struct UInt<x, y> : public CT::Vector<mpl::integral_c<uint32_t, x>,
                                                 mpl::integral_c<uint32_t, y> >
 {};
 
-template<uint32_t x, uint32_t y, uint32_t z>
-struct UInt<x, y, z> : public CT::Vector<mpl::integral_c<uint32_t, x>,
-                                                   mpl::integral_c<uint32_t, y>,
-                                                   mpl::integral_c<uint32_t, z> >
-{};
+
     
 } // CT
 } // math
 } // PMacc
-
-#endif //STLPICCTUINT_HPP

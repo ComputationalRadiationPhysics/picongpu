@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -19,12 +19,12 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-#ifndef STLPICCTINT_HPP
-#define STLPICCTINT_HPP
+#pragma once
 
 #include <stdint.h>
 #include "Vector.hpp"
 #include <boost/mpl/integral_c.hpp>
+#include "traits/Limits.hpp"
 
 namespace PMacc
 {
@@ -33,9 +33,23 @@ namespace math
 namespace CT
 {
     
-template<int x = 123456789, int y = 123456789, int z = 123456789,
-         int dummy = 123456789>
-struct Int;
+/** Compile time int vector
+ * 
+ * 
+ * @tparam x value for x allowed range [INT_MIN;INT_MAX-1]
+ * @tparam y value for y allowed range [INT_MIN;INT_MAX-1]
+ * @tparam z value for z allowed range [INT_MIN;INT_MAX-1]
+ * 
+ * default parameter is used to distinguish between values given by
+ * the user and unset values.
+ */
+template<int x = traits::limits::Max<int>::value, 
+         int y = traits::limits::Max<int>::value, 
+         int z = traits::limits::Max<int>::value>
+struct Int: public CT::Vector<mpl::integral_c<int, x>,
+                              mpl::integral_c<int, y>,
+                              mpl::integral_c<int, z> >
+{};
 
 template<>
 struct Int<> : public CT::Vector<>
@@ -43,27 +57,14 @@ struct Int<> : public CT::Vector<>
 
 template<int x>
 struct Int<x> : public CT::Vector<mpl::integral_c<int, x> >
-{
-    typedef CT::Vector<mpl::integral_c<int, x> > vector_type;
-};
+{};
 
 template<int x, int y>
 struct Int<x, y> : public CT::Vector<mpl::integral_c<int, x>,
                                      mpl::integral_c<int, y> >
-{
-    typedef CT::Vector<mpl::integral_c<int, x>,
-                       mpl::integral_c<int, y> > vector_type;
-};
+{};
 
-template<int x, int y, int z>
-struct Int<x, y, z> : public CT::Vector<mpl::integral_c<int, x>,
-                                                   mpl::integral_c<int, y>,
-                                                   mpl::integral_c<int, z> >
-{
-    typedef CT::Vector<mpl::integral_c<int, x>,
-                       mpl::integral_c<int, y>,
-                       mpl::integral_c<int, z> > vector_type;
-};
+
 
 template<int dim, int val>
 struct make_Int;
@@ -89,5 +90,3 @@ struct make_Int<3, val>
 } // CT
 } // math
 } // PMacc
-
-#endif //STLPICCTINT_HPP

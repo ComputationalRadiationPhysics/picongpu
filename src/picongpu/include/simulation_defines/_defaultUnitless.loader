@@ -26,7 +26,6 @@
 #pragma once
 
 #include "simulation_defines/unitless/memory.unitless"
-#include "simulation_defines/unitless/componentsConfig.unitless"
 #include "simulation_defines/unitless/physicalConstants.unitless"
 #include "simulation_defines/unitless/gridConfig.unitless"
 #include "simulation_defines/unitless/gasConfig.unitless"

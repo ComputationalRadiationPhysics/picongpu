@@ -1,13 +1,13 @@
 Change Log / Release Log for PIConGPU
 ================================================================
 
-Open Beta RC4
+Open Beta RC5
 -------------
 **Date:** TBA
 
-This is the 4th release candidate, a *pre-beta* version.
+This is the 5th release candidate, a *pre-beta* version.
 
-### Changes to "Open Beta RC3"
+### Changes to "Open Beta RC4"
 
 **.param file changes:**
  - n/a
@@ -22,6 +22,58 @@ This is the 4th release candidate, a *pre-beta* version.
  - n/a
 
 
+Open Beta RC4
+-------------
+**Date:** 2014-03-07
+
+This is the 4th release candidate, a *pre-beta* version.
+
+### Changes to "Open Beta RC3"
+
+**.param file changes:**
+ - Removed unnesseary includes #234 from:
+   `observer.hpp`, `physicalConstants.param`, `visColorScales.param`,
+   `visualization.param`, `particleConfig.param`, `gasConfig.param`,
+   `fieldBackground.param`, `particleDefinition.param`
+   see the lines that should be removed in
+   [#234](https://github.com/ComputationalRadiationPhysics/picongpu/pull/234/files)
+ - Renamed `observer.hpp` -> `radiationObserver.param` #237 #241
+   Changed variable name `N_theta` to `N_observer`
+   https://github.com/ComputationalRadiationPhysics/picongpu/commit/9e487ec30ade10ece44fc19fd7a815b8dfe58f61#diff-9
+ - Added background FieldJ (current) capability #245
+   Add the following lines to your `fieldBackground.param`:
+   https://github.com/ComputationalRadiationPhysics/picongpu/commit/7b22f37c6a58250d6623cfbc821c4f996145aad9#diff-1
+
+**New Features:**
+ - 2D support for basic PIC cycle #212
+ - hdf5 output xdmf meta description added: ParaView/VisIt support #219
+ - background current (FieldJ) can be added now #245
+
+**Bug fixes:**
+ - beta-rc3 was broken for some clusters due to an init bug #239
+ - examples/WeibelTransverse 4 GPU example was broken #221
+ - smooth script was broken for 1D fields #223
+ - configure non-existing path did not throw an error #229
+ - compile time vector "max" was broken #224
+ - cuda_memtest did throw false negatives on hypnos #231 #236
+ - plugin "png" did not compile for missing freetype #248
+
+**Misc:**
+ - documentation updates
+   - radiation post processing scripts #222
+   - more meta data in hdf5 output #216
+   - tbg help extended and warnings to errors #226
+   - doc/PARTICIPATE.md is now GitHub's CONTRIBUTING.md #247 #252
+   - slurm interactive queue one-liner added #250
+   - developers updated #251
+ - clean up / refactoring
+   - cell_size -> cellSize #227
+   - typeCast -> precisionCast #228
+   - param file includes (see above for details) #234
+   - DataConnector interface redesign #218 #232
+   - Esirkepov implementation "paper-like" #238
+
+
 Open Beta RC3
 -------------
 **Date:** 2014-02-14
@@ -34,7 +86,7 @@ This is the third release candidate, a *pre-beta* version.
  - `componentsConfig.param`:
    - remove simDim defines #134 #137
      (example how to update your existing `componentsConfig.param`, see
-     [https://github.com/ax3l/picongpu/commit/af1f20790ad2aa15e6fc2c9a51d8c870437a5fb7])
+     https://github.com/ComputationalRadiationPhysics/picongpu/commit/af1f20790ad2aa15e6fc2c9a51d8c870437a5fb7)
  - `dimension.param`: new file with simDim setting #134
    - only add this file to your example/test/config if you want to change it
      from the default value (3D)
@@ -105,10 +157,10 @@ This is the second release candidate, a *pre-beta* version.
  - `gasConfig.param`:
    - add gasFreeFormula #96
      (example how to update your existing `gasConfig.param`, see
-     [https://github.com/ComputationalRadiationPhysics/picongpu/pull/96/files#diff-1])
+     https://github.com/ComputationalRadiationPhysics/picongpu/pull/96/files#diff-1)
    - add inner radius to gasSphereFlanks #66
      (example how to update your existing `gasConfig.param`, see
-     [https://github.com/ComputationalRadiationPhysics/picongpu/pull/66/files#diff-0])
+     https://github.com/ComputationalRadiationPhysics/picongpu/pull/66/files#diff-0)
 
 **New Features:**
  - A change log was introduced for master releases #93

@@ -156,7 +156,7 @@ public:
     {
         DataConnector &dc = DataConnector::getInstance();
 
-        particles = &(dc.getData<ParticlesType > ((uint32_t) ParticlesType::FrameType::CommunicationTag, true));
+        particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
 
         countMakroParticles < CORE + BORDER > (currentStep);
     }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2014 Rene Widera, Felix Schmitt
  *
  * This file is part of libPMacc. 
  * 
@@ -116,7 +116,7 @@ namespace PMacc
          * @param id id of the Dataset to query
          * @return if dataset with id is registered
          */
-        bool hasData(uint32_t id)
+        bool hasData(SimulationDataId id)
         {
             return datasets.mapping.find(id) != datasets.mapping.end();
         }
@@ -126,7 +126,7 @@ namespace PMacc
          */
         void invalidate()
         {
-            std::map<uint32_t, Dataset*>::iterator iter = datasets.mapping.begin();
+            std::map<SimulationDataId, Dataset*>::iterator iter = datasets.mapping.begin();
             for (; iter != datasets.mapping.end(); ++iter)
                 iter->second->invalidate();
         }
@@ -142,12 +142,18 @@ namespace PMacc
         {
             currentStep = initialiser.setup();
 
-            for (uint32_t id = datasets.sorter->begin();
-                    datasets.sorter->isValid(); id = datasets.sorter->getNext())
+            if (datasets.sorter->isValid())
             {
-                ISimulationData& data = datasets.mapping[id]->getData();
-                
-                initialiser.init(id, data, currentStep);
+                for (SimulationDataId id = datasets.sorter->begin();
+                        datasets.sorter->isValid(); id = datasets.sorter->getNext())
+                {
+                    ISimulationData& data = datasets.mapping[id]->getData();
+
+                    initialiser.init(data, currentStep);
+                    
+                    if (!datasets.sorter->hasNext())
+                        break;
+                }
             }
             
             initialiser.teardown();
@@ -160,10 +166,10 @@ namespace PMacc
          * (Check with DataConnector::hasData when necessary.)
          *
          * @param data simulation data to store in the Dataset
-         * @param id new identifier for the Dataset
          */
-        void registerData(ISimulationData &data, uint32_t id)
+        void registerData(ISimulationData &data)
         {
+            SimulationDataId id = data.getUniqueId();
             if (hasData(id))
                 throw std::runtime_error(getExceptionStringForID("DataConnector dataset ID already exists", id));
 
@@ -190,9 +196,9 @@ namespace PMacc
          * @return returns a reference to the data of type TYPE
          */
         template<class TYPE>
-        TYPE &getData(uint32_t id, bool noSync = false)
+        TYPE &getData(SimulationDataId id, bool noSync = false)
         {
-            std::map<uint32_t, Dataset*>::const_iterator iter = datasets.mapping.find(id);
+            std::map<SimulationDataId, Dataset*>::const_iterator iter = datasets.mapping.find(id);
 
             if (iter == datasets.mapping.end())
                 throw std::runtime_error(getExceptionStringForID("Invalid DataConnector dataset ID", id));
@@ -211,23 +217,23 @@ namespace PMacc
          * 
          * @param id id for the dataset previously acquired using getData()
          */
-        void releaseData(uint32_t)
+        void releaseData(SimulationDataId)
         {
         }
 
     private:
-        Mapping<uint32_t, Dataset*> datasets;
+        Mapping<SimulationDataId, Dataset*> datasets;
         Mapping<ISimulationIO*, uint32_t> observers;
 
         DataConnector()
         {
-            datasets.sorter = new ListSorter<uint32_t > ();
+            datasets.sorter = new ListSorter<SimulationDataId > ();
             observers.sorter = new ListSorter<ISimulationIO*>();
         };
 
         virtual ~DataConnector()
         {
-            std::map<uint32_t, Dataset*>::const_iterator iter;
+            std::map<SimulationDataId, Dataset*>::const_iterator iter;
             for (iter = datasets.mapping.begin(); iter != datasets.mapping.end(); iter++)
                 delete iter->second;
 
@@ -244,7 +250,7 @@ namespace PMacc
             }
         }
         
-        std::string getExceptionStringForID(const char *msg, uint32_t id)
+        std::string getExceptionStringForID(const char *msg, SimulationDataId id)
         {
             std::stringstream stream;
             stream << msg << " (" << id << ")";

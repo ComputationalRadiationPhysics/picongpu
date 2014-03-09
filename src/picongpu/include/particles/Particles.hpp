@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -48,7 +48,7 @@ public:
     typedef typename ParticlesBaseType::ParticlesBoxType ParticlesBoxType;
 
 
-    Particles(GridLayout<simDim> gridLayout, MappingDesc cellDescription);
+    Particles(GridLayout<simDim> gridLayout, MappingDesc cellDescription, SimulationDataId datasetID);
 
     virtual ~Particles();
 
@@ -57,7 +57,7 @@ public:
 
     virtual void reset(uint32_t currentStep);
 
-    void init(FieldE &fieldE, FieldB &fieldB, FieldJ &fieldJ, int datasetID);
+    void init(FieldE &fieldE, FieldB &fieldB, FieldJ &fieldJ);
 
     void update(uint32_t currentStep);
 
@@ -70,12 +70,14 @@ public:
 
     void deviceSetDrift(uint32_t currentStep);
 
+    SimulationDataId getUniqueId();
+    
     void synchronize();
 
     void syncToDevice();
 
 private:
-    int datasetID;
+    SimulationDataId datasetID;
     GridLayout<simDim> gridLayout;
 
 

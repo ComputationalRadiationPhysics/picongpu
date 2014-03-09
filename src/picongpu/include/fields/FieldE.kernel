@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 #ifndef FIELDE_KERNEL
 #define	FIELDE_KERNEL
 
@@ -35,45 +35,58 @@
 
 namespace picongpu
 {
-    using namespace PMacc;
+using namespace PMacc;
 
-    template<class EBox>
-    __global__ void kernelLaserE(EBox fieldE, LaserManipulator lMan)
+template<class EBox>
+__global__ void kernelLaserE(EBox fieldE, LaserManipulator lMan)
+{
+    DataSpace<simDim> cellOffset;
+    
+    cellOffset.x() = (blockIdx.x * blockDim.x) + threadIdx.x;
+    DataSpace<simDim> EFieldOffset;
+    EFieldOffset.x() = cellOffset.x() + (MappingDesc::SuperCellSize::x * GUARD_SIZE);
+    EFieldOffset.y() = MappingDesc::SuperCellSize::y*GUARD_SIZE;
+
+#if (SIMDIM==DIM3)
+    cellOffset.z() = (blockIdx.y * blockDim.y) + threadIdx.y;
+    EFieldOffset.z() = cellOffset.z() + (MappingDesc::SuperCellSize::z * GUARD_SIZE);
+#endif
+
+    //uint32_t zOffset 
+
+    /** Calculate how many neighbors to the left we have
+     * to initialize the laser in the E-Field
+     * 
+     * Example: Yee needs one neighbor to perform dB = curlE
+     *            -> initialize in y=0 plane
+     *          A second order solver could need 2 neighbors left:
+     *            -> initialize in y=0 and y=1 plane
+     * 
+     * Question: Why do other codes initialize the B-Field instead?
+     * Answer:   Because our fields are defined on the lower cell side
+     *           (C-Style ftw). Therefore, our curls (for example Yee)
+     *           are shifted nabla+ <-> nabla- compared to Fortran codes
+     *           (in other words: curlLeft <-> curlRight)
+     *           for E and B.
+     *           For this reason, we have to initialize E instead of B.
+     * 
+     * Problem: that's still not our case. For example our Yee does a
+     *          dE = curlLeft(B) - therefor, we should init B, too.
+     */
+    //const int max_y_neighbors = Get<fieldSolver::FieldSolver::OffsetOrigin_E, 1 >::value;
+    const int max_y_neighbors = 1;
+
+    for (int totalOffsetY = 0; totalOffsetY < max_y_neighbors; ++totalOffsetY)
     {
-        uint32_t xOffset = (blockIdx.x * blockDim.x) + threadIdx.x;
-        uint32_t zOffset = (blockIdx.y * blockDim.y) + threadIdx.y;
-
-        /** Calculate how many neighbors to the left we have
-         * to initialize the laser in the E-Field
+        /** \todo Right now, the phase could be wrong ( == is cloned)
+         *        \See LaserPhysics.hpp
          * 
-         * Example: Yee needs one neighbor to perform dB = curlE
-         *            -> initialize in y=0 plane
-         *          A second order solver could need 2 neighbors left:
-         *            -> initialize in y=0 and y=1 plane
-         * 
-         * Question: Why do other codes initialize the B-Field instead?
-         * Answer:   Because our fields are defined on the lower cell side
-         *           (C-Style ftw). Therefore, our curls (for example Yee)
-         *           are shifted nabla+ <-> nabla- compared to Fortran codes
-         *           (in other words: curlLeft <-> curlRight)
-         *           for E and B.
-         *           For this reason, we have to initialize E instead of B.
-         * 
-         * Problem: that's still not our case. For example our Yee does a
-         *          dE = curlLeft(B) - therefor, we should init B, too.
+         *  \todo What about the B-Field in the second plane?
          */
-        //const int max_y_neighbors = Get<fieldSolver::FieldSolver::OffsetOrigin_E, 1 >::value;
-        const int max_y_neighbors = 1;
-
-        for( int yOffset = 0; yOffset < max_y_neighbors; ++yOffset )
-            /** \todo Right now, the phase could be wrong ( == is cloned)
-             *        \See LaserPhysics.hpp
-             * 
-             *  \todo What about the B-Field in the second plane?
-             */
-            fieldE[zOffset + TILE_DEPTH][MappingDesc::SuperCellSize::y][xOffset + TILE_WIDTH] =
-                lMan.getManipulation( DataSpace<simDim > ( xOffset, yOffset, zOffset ) );
+        cellOffset.y()=totalOffsetY;
+        fieldE(EFieldOffset) = lMan.getManipulation(cellOffset);
     }
+}
 
 }
 

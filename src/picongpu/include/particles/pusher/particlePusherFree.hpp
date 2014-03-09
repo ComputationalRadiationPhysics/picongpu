@@ -19,9 +19,7 @@
  */ 
  
 
-
-#ifndef PARTICLEPUSHERFREE_HPP
-#define	PARTICLEPUSHERFREE_HPP
+#pragma once
 
 #include "types.h"
 
@@ -49,12 +47,9 @@ namespace picongpu
 
                 for(uint32_t d=0;d<simDim;++d)
                 {
-                    pos[d] += (vel[d] * DELTA_T) / cell_size[d]; 
+                    pos[d] += (vel[d] * DELTA_T) / cellSize[d]; 
                 }   
             }
         };
     } //namespace
 }
-
-#endif	/* PARTICLEPUSHERFREE_HPP */
-

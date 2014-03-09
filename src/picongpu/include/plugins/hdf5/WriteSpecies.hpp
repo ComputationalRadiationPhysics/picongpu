@@ -95,10 +95,10 @@ public:
     {
         log<picLog::INPUT_OUTPUT > ("HDF5: (begin) write species: %1%") % Hdf5FrameType::getName();
         DataConnector &dc = DataConnector::getInstance();
-        /*load particle without copy particle data to host*/
-        ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(ThisSpecies::FrameType::CommunicationTag, true));
+        /* load particle without copy particle data to host */
+        ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(ThisSpecies::FrameType::getName(), true));
 
-        // count total number of particles on the device
+        /* count total number of particles on the device */
         uint64_cu totalNumParticles = 0;
 
         PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
@@ -162,6 +162,9 @@ public:
         ForEach<typename Hdf5FrameType::ValueTypeSeq, hdf5::ParticleAttribute<void> > writeToHdf5;
         writeToHdf5(params, byRef(hostFrame), std::string("particles/") + FrameType::getName() + std::string("/") + subGroup,
                 domInfo, totalNumParticles);
+        
+        /* write meta attributes for species */
+        writeMetaAttributes(params.get());
 
         /*write species counter table to hdf5 file*/
         log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) writing particle index table for %1%") % Hdf5FrameType::getName();
@@ -199,6 +202,30 @@ public:
         ForEach<typename Hdf5FrameType::ValueTypeSeq, FreeMemory<void> > freeMem;
         freeMem(byRef(hostFrame));
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing species: %1%") % Hdf5FrameType::getName();
+    }
+    
+private:
+     
+    /**
+     * Writes additional meta-attributes directly to species group
+     * 
+     * @param params thread parameters
+     */
+    static void writeMetaAttributes(ThreadParams* params)
+    {
+        typedef typename PICToSplash<float_64>::type SplashFloat64Type;
+        
+        SplashFloat64Type splashType;
+        
+        const std::string groupName = std::string("particles/") + FrameType::getName();
+        
+        const float_64 charge = (float_64)FrameType::getCharge(1.0);
+        params->dataCollector->writeAttribute(params->currentStep,
+                splashType, groupName.c_str(), "charge", &charge);
+        
+        const float_64 mass = (float_64)FrameType::getMass(1.0);
+        params->dataCollector->writeAttribute(params->currentStep,
+                splashType, groupName.c_str(), "mass", &mass);
     }
 };
 

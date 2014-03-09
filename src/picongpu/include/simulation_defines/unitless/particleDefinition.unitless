@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include "types.h"
 #include <vector>
 #include "traits/Unit.hpp"
 
@@ -37,10 +36,12 @@ struct Unit<position<T_Type> >
 {
   static std::vector<double> get()
   {
-      std::vector<double> unit(DIM3);
-      unit[0]=CELL_WIDTH*UNIT_LENGTH;
-      unit[1]=CELL_HEIGHT*UNIT_LENGTH;
-      unit[2]=CELL_DEPTH*UNIT_LENGTH;
+      std::vector<double> unit(simDim);
+      /* in-cell position needs two transformations to get to SI:
+         in-cell [0;1) -> dimensionless scaling to grid -> SI*/
+      for(uint32_t i=0;i<simDim;++i)
+        unit[i]=cellSize[i]*UNIT_LENGTH;
+
       return unit;
   }
 };
@@ -96,10 +97,9 @@ struct Unit<globalCellIdx<T_Type> >
 {
   static std::vector<double> get()
   {
-      std::vector<double> unit(DIM3);
-      unit[0]=CELL_WIDTH*UNIT_LENGTH;
-      unit[1]=CELL_HEIGHT*UNIT_LENGTH;
-      unit[2]=CELL_DEPTH*UNIT_LENGTH;
+      std::vector<double> unit(simDim);
+      for(uint32_t i=0;i<simDim;++i)
+        unit[i]=1.0;
       return unit;
   }
 };

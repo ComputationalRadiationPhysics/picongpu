@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -19,12 +19,12 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-#ifndef STLPICCTSIZE_T_HPP
-#define STLPICCTSIZE_T_HPP
+#pragma once
 
 #include <stdint.h>
 #include "Vector.hpp"
 #include <boost/mpl/integral_c.hpp>
+#include "traits/Limits.hpp"
 
 namespace PMacc
 {
@@ -32,37 +32,38 @@ namespace math
 {
 namespace CT
 {
-    
-template<size_t x = (size_t)-1, size_t y = (size_t)-1, size_t z = (size_t)-1,
-         size_t dummy = (size_t)-1>
-struct Size_t;
+
+/** Compile time size_t vector
+ * 
+ * 
+ * @tparam x value for x allowed range [0;max size_t value -1]
+ * @tparam y value for y allowed range [0;max size_t value -1]
+ * @tparam z value for z allowed range [0;max size_t value -1]
+ * 
+ * default parameter is used to distinguish between values given by
+ * the user and unset values.
+ */
+template<size_t x = traits::limits::Max<size_t>::value, 
+         size_t y = traits::limits::Max<size_t>::value, 
+         size_t z = traits::limits::Max<size_t>::value>
+struct Size_t : public CT::Vector<mpl::integral_c<size_t, x>,
+                                  mpl::integral_c<size_t, y>,
+                                  mpl::integral_c<size_t, z> >
+{};
+
+template<>
+struct Size_t<> : public CT::Vector<>
+{};
 
 template<size_t x>
 struct Size_t<x> : public CT::Vector<mpl::integral_c<size_t, x> >
-{
-    typedef CT::Vector<mpl::integral_c<size_t, x> > vector_type;
-};
+{};
 
 template<size_t x, size_t y>
 struct Size_t<x, y> : public CT::Vector<mpl::integral_c<size_t, x>,
                                         mpl::integral_c<size_t, y> >
-{
-    typedef CT::Vector<mpl::integral_c<size_t, x>,
-                       mpl::integral_c<size_t, y> > vector_type;
-};
-
-template<size_t x, size_t y, size_t z>
-struct Size_t<x, y, z> : public CT::Vector<mpl::integral_c<size_t, x>,
-                                                   mpl::integral_c<size_t, y>,
-                                                   mpl::integral_c<size_t, z> >
-{
-    typedef CT::Vector<mpl::integral_c<size_t, x>,
-                       mpl::integral_c<size_t, y>,
-                       mpl::integral_c<size_t, z> > vector_type;
-};
+{};
     
 } // CT
 } // math
 } // PMacc
-
-#endif //STLPICCTSIZE_T_HPP

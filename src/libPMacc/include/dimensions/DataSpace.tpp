@@ -53,7 +53,7 @@ struct GetNComponents<DataSpace<DIM>,false >
 
 namespace algorithms
 {
-namespace typeCast
+namespace precisionCast
 {
 
 template<unsigned T_Dim>

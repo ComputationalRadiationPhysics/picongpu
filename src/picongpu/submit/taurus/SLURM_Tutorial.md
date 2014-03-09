@@ -1,8 +1,16 @@
-SLURM examples:
+SLURM examples
+==============
+
 - `tbg -s sbatch -c submit/0008gpus.cfg -t submit/taurus/k20x_profile.tpl $SCRATCH/runs/test123`
+
+- interactive job:
+  - `salloc --time=1:00:00 --gres=gpu:2 --nodes=1 --ntasks-per-node=2 --cpus-per-task=8 --partition gpu-interactive`
+  - e.g. `srun "hostname"`
+
 - details for my jobs:
   - `scontrol -d show job 12345`
   - ``` squeue -u `whoami` -l```
+
 - details for queues:
   - `squeue -p queueName -l` (list full queue)
   - `squeue -p queueName --start` (show start times for pending jobs)

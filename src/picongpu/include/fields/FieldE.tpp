@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -67,7 +67,7 @@ fieldB( NULL )
     const DataSpace<simDim> endGuard( UpperMargin( ).vec( ) );
 
     /*receive from all directions*/
-    for ( uint32_t i = 1; i < 27; ++i )
+    for ( uint32_t i = 1; i < numberOfNeighbors[simDim]; ++i )
     {
         DataSpace<simDim> relativMask = Mask::getRelativeDirections<simDim > ( i );
         /*guarding cells depend on direction
@@ -84,6 +84,11 @@ fieldB( NULL )
 FieldE::~FieldE( )
 {
     delete fieldE;
+}
+
+SimulationDataId FieldE::getUniqueId()
+{
+    return getName();
 }
 
 void FieldE::synchronize( )
@@ -106,7 +111,7 @@ void FieldE::init( FieldB &fieldB, LaserPhysics &laserPhysics )
     this->fieldB = &fieldB;
     this->laser = &laserPhysics;
 
-    DataConnector::getInstance( ).registerData( *this, FIELD_E );
+    DataConnector::getInstance( ).registerData( *this );
 }
 
 FieldE::DataBoxType FieldE::getDeviceDataBox( )
@@ -141,11 +146,17 @@ void FieldE::laserManipulation( uint32_t currentStep )
     if ( ( currentStep * DELTA_T ) >= laserProfile::INIT_TIME ||
          GridController<simDim>::getInstance( ).getCommunicationMask( ).isSet( TOP ) || win.slides != 0 ) return;
 
-
+    DataSpace<simDim-1> gridBlocks;
+    DataSpace<simDim-1> blockSize;
+    gridBlocks.x()=fieldE->getGridLayout( ).getDataSpaceWithoutGuarding( ).x( ) / SuperCellSize::x;
+    blockSize.x()=SuperCellSize::x;
+#if(SIMDIM ==DIM3)
+    gridBlocks.y()=fieldE->getGridLayout( ).getDataSpaceWithoutGuarding( ).z( ) / SuperCellSize::z;
+    blockSize.y()=SuperCellSize::z;
+#endif
     __cudaKernel( kernelLaserE )
-        ( dim3( fieldE->getGridLayout( ).getDataSpaceWithoutGuarding( ).x( ) / SuperCellSize::x,
-                fieldE->getGridLayout( ).getDataSpaceWithoutGuarding( ).z( ) / SuperCellSize::z ),
-          dim3( SuperCellSize::x, SuperCellSize::z ) )
+        ( gridBlocks,
+          blockSize )
         ( this->getDeviceDataBox( ), laser->getLaserManipulator( currentStep ) );
 }
 

@@ -22,8 +22,6 @@
 
 #pragma once
 
-#include "simulation_defines/param/testExtension.param"
-
 namespace picongpu
 {
     // Constant Background Fields

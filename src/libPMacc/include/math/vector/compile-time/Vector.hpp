@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -19,8 +19,7 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-#ifndef STLPICCTVECTOR_HPP
-#define STLPICCTVECTOR_HPP
+#pragma once
 
 #include <stdint.h>
 #include <boost/mpl/size.hpp>
@@ -29,11 +28,13 @@
 #include <boost/mpl/integral_c.hpp>
 #include <boost/mpl/aux_/na.hpp>
 #include <boost/mpl/plus.hpp>
-#include <boost/mpl/max.hpp>
+#include <boost/mpl/min_max.hpp>
 #include <boost/mpl/times.hpp>
 //#include <boost/mpl/arithmetic.hpp>
 #include "../Vector.hpp"
 #include <boost/mpl/int.hpp>
+#include <boost/mpl/apply.hpp>
+#include <boost/mpl/accumulate.hpp>
 
 namespace PMacc
 {
@@ -109,16 +110,19 @@ struct Vector
     typedef Arg0 x;
     typedef Arg1 y;
     typedef Arg2 z;
+    
+    typedef mpl::vector<x, y, z> mplVector;
+    
     template<int element>
     struct at
     {
-        typedef typename mpl::at_c<mpl::vector<Arg0, Arg1, Arg2>, element>::type type;
+        typedef typename mpl::at_c<mplVector, element>::type type;
     };
-    typedef typename detail::TypeSelector<Arg0>::type type;
-    typedef Vector<Arg0, Arg1, Arg2> This;
+    typedef typename detail::TypeSelector<x>::type type;
+    typedef Vector<x, y, z> This;
     typedef This vector_type;
     
-    static const int dim = mpl::size<mpl::vector<Arg0, Arg1, Arg2> >::type::value;
+    static const int dim = mpl::size<mplVector >::type::value;
     
     template<typename OtherType>
     HDINLINE
@@ -136,165 +140,117 @@ struct Vector
 
 //*********************************************************
 
-//________________________A D D____________________________
-template<typename Lhs, typename Rhs, typename dummy = mpl::na>
-struct add;
+//________________________OperatorBase____________________________
+template<typename Lhs, typename Rhs, typename T_BinaryOperator>
+struct applyOperator
+{
+    typedef typename applyOperator<typename Lhs::vector_type, 
+                         typename Rhs::vector_type, T_BinaryOperator>::type type;
+};
 
-template<typename ArgA0,
-         typename ArgB0>
-struct add<CT::Vector<ArgA0>, CT::Vector<ArgB0> >
+template<typename T_TypeA,
+         typename T_TypeB,
+         typename T_BinaryOperator>
+struct applyOperator<CT::Vector<T_TypeA>, CT::Vector<T_TypeB>,T_BinaryOperator>
 {
-    typedef CT::Vector<typename mpl::plus<ArgA0, ArgB0>::type> type;
+    typedef typename mpl::apply<T_BinaryOperator, T_TypeA,T_TypeB>::type OpResult;
+    typedef CT::Vector<OpResult> type;
 };
-template<typename ArgA0, typename ArgA1,
-         typename ArgB0, typename ArgB1>
-struct add<CT::Vector<ArgA0, ArgA1>, CT::Vector<ArgB0, ArgB1> >
+
+template<typename T_TypeA0, typename T_TypeA1,
+         typename T_TypeB0, typename T_TypeB1,
+         typename T_BinaryOperator>
+struct applyOperator<CT::Vector<T_TypeA0, T_TypeA1>,
+                     CT::Vector<T_TypeB0, T_TypeB1>,
+                     T_BinaryOperator>
 {
-    typedef CT::Vector<typename mpl::plus<ArgA0, ArgB0>::type,
-                       typename mpl::plus<ArgA1, ArgB1>::type> type;
+    typedef typename mpl::apply<T_BinaryOperator, T_TypeA0,T_TypeB0>::type OpResult0;
+    typedef typename mpl::apply<T_BinaryOperator, T_TypeA1,T_TypeB1>::type OpResult1;
+    typedef CT::Vector<OpResult0, OpResult1> type;
 };
-template<typename ArgA0, typename ArgA1, typename ArgA2,
-         typename ArgB0, typename ArgB1, typename ArgB2>
-struct add<CT::Vector<ArgA0, ArgA1, ArgA2>, CT::Vector<ArgB0, ArgB1, ArgB2> >
+
+template<typename T_TypeA0, typename T_TypeA1, typename T_TypeA2,
+         typename T_TypeB0, typename T_TypeB1, typename T_TypeB2,
+         typename T_BinaryOperator>
+struct applyOperator<CT::Vector<T_TypeA0, T_TypeA1, T_TypeA2>,
+                     CT::Vector<T_TypeB0, T_TypeB1, T_TypeB2>,
+                     T_BinaryOperator>
 {
-    typedef CT::Vector<typename mpl::plus<ArgA0, ArgB0>::type,
-                       typename mpl::plus<ArgA1, ArgB1>::type,
-                       typename mpl::plus<ArgA2, ArgB2>::type> type;
+    typedef typename mpl::apply<T_BinaryOperator, T_TypeA0,T_TypeB0>::type OpResult0;
+    typedef typename mpl::apply<T_BinaryOperator, T_TypeA1,T_TypeB1>::type OpResult1;
+    typedef typename mpl::apply<T_BinaryOperator, T_TypeA2,T_TypeB2>::type OpResult2;
+    typedef CT::Vector<OpResult0, OpResult1, OpResult2> type;
 };
+
+//________________________A D D____________________________
 
 template<typename Lhs, typename Rhs>
-struct add<Lhs, Rhs>
+struct add
 {
-    typedef typename add<typename Lhs::vector_type, 
-                         typename Rhs::vector_type>::type type;
+    typedef typename applyOperator<
+                         typename Lhs::vector_type, 
+                         typename Rhs::vector_type,
+                         mpl::plus<mpl::_1, mpl::_2> >::type type;
 };
 
 //________________________M U L____________________________
 
-template<typename Lhs, typename Rhs, typename dummy = mpl::na>
-struct mul;
-
-template<typename ArgA0,
-         typename ArgB0>
-struct mul<CT::Vector<ArgA0>, CT::Vector<ArgB0> >
-{
-    typedef CT::Vector<typename mpl::times<ArgA0, ArgB0>::type> type;
-};
-template<typename ArgA0, typename ArgA1,
-         typename ArgB0, typename ArgB1>
-struct mul<CT::Vector<ArgA0, ArgA1>, CT::Vector<ArgB0, ArgB1> >
-{
-    typedef CT::Vector<typename mpl::plus<ArgA0, ArgB0>::type,
-                       typename mpl::plus<ArgA1, ArgB1>::type> type;
-};
-template<typename ArgA0, typename ArgA1, typename ArgA2,
-         typename ArgB0, typename ArgB1, typename ArgB2>
-struct mul<CT::Vector<ArgA0, ArgA1, ArgA2>, CT::Vector<ArgB0, ArgB1, ArgB2> >
-{
-    typedef CT::Vector<typename mpl::plus<ArgA0, ArgB0>::type,
-                       typename mpl::plus<ArgA1, ArgB1>::type,
-                       typename mpl::plus<ArgA2, ArgB2>::type> type;
-};
-
 template<typename Lhs, typename Rhs>
-struct mul<Lhs, Rhs>
+struct mul
 {
-    typedef typename mul<typename Lhs::vector_type, 
-                         typename Rhs::vector_type>::type type;
+    typedef typename applyOperator<
+                         typename Lhs::vector_type, 
+                         typename Rhs::vector_type,
+                         mpl::times<mpl::_1, mpl::_2> >::type type;
 };
 
 //________________________M A X____________________________
 
-template<typename Lhs, typename Rhs, typename dummy = mpl::na>
-struct max;
+template<typename Lhs, typename Rhs>
+struct max
+{
+    typedef typename applyOperator<
+                         typename Lhs::vector_type, 
+                         typename Rhs::vector_type,
+                         mpl::max<mpl::_1, mpl::_2> >::type type;
+};
 
-template<typename ArgA0,
-         typename ArgB0>
-struct max<CT::Vector<ArgA0>, CT::Vector<ArgB0> >
-{
-    typedef CT::Vector<typename mpl::max<ArgA0, ArgB0>::type> type;
-};
-template<typename ArgA0, typename ArgA1,
-         typename ArgB0, typename ArgB1>
-struct max<CT::Vector<ArgA0, ArgA1>, CT::Vector<ArgB0, ArgB1> >
-{
-    typedef CT::Vector<typename mpl::plus<ArgA0, ArgB0>::type,
-                       typename mpl::plus<ArgA1, ArgB1>::type> type;
-};
-template<typename ArgA0, typename ArgA1, typename ArgA2,
-         typename ArgB0, typename ArgB1, typename ArgB2>
-struct max<CT::Vector<ArgA0, ArgA1, ArgA2>, CT::Vector<ArgB0, ArgB1, ArgB2> >
-{
-    typedef CT::Vector<typename mpl::plus<ArgA0, ArgB0>::type,
-                       typename mpl::plus<ArgA1, ArgB1>::type,
-                       typename mpl::plus<ArgA2, ArgB2>::type> type;
-};
+//________________________M I N____________________________
 
 template<typename Lhs, typename Rhs>
-struct max<Lhs, Rhs>
+struct min
 {
-    typedef typename max<typename Lhs::vector_type, 
-                         typename Rhs::vector_type>::type type;
+    typedef typename applyOperator<
+                         typename Lhs::vector_type, 
+                         typename Rhs::vector_type,
+                         mpl::min<mpl::_1, mpl::_2> >::type type;
 };
 
 //________________________D O T____________________________
 
-template<typename Lhs, typename Rhs, typename dummy = mpl::na>
-struct dot;
-
-template<typename ArgA0,
-         typename ArgB0>
-struct dot<CT::Vector<ArgA0>, CT::Vector<ArgB0> >
-{
-    typedef typename mul<ArgA0, ArgB0>::type type;
-};
-template<typename ArgA0, typename ArgA1,
-         typename ArgB0, typename ArgB1>
-struct dot<CT::Vector<ArgA0, ArgA1>, CT::Vector<ArgB0, ArgB1> >
-{
-    typedef typename add<typename mul<ArgA0, ArgB0>::type,
-                         typename mul<ArgA1, ArgB1>::type>::type type;
-};
-template<typename ArgA0, typename ArgA1, typename ArgA2,
-         typename ArgB0, typename ArgB1, typename ArgB2>
-struct dot<CT::Vector<ArgA0, ArgA1, ArgA2>, CT::Vector<ArgB0, ArgB1, ArgB2> >
-{
-    typedef typename add<
-            typename add<typename mul<ArgA0, ArgB0>::type,
-                         typename mul<ArgA1, ArgB1>::type>::type,
-                         typename mul<ArgA2, ArgB2>::type>::type type;
-};
-
 template<typename Lhs, typename Rhs>
-struct dot<Lhs, Rhs>
+struct dot
 {
-    typedef typename dot<typename Lhs::vector_type, 
-                         typename Rhs::vector_type>::type type;
+    typedef typename mul<Lhs,Rhs>::type MulResult;
+    typedef typename mpl::accumulate<
+            typename MulResult::mplVector,
+            mpl::int_<0>,
+            mpl::plus<mpl::_1,mpl::_2>
+    >::type type;
 };
 
 //________________________V O L U M E____________________________
 
-template<typename Vec, int dim = Vec::dim>
-struct volume;
-
-template<typename Vec>
-struct volume<Vec, 1>
+template<typename T_Vec>
+struct volume
 {
-    typedef typename Vec::x type;
-};
-template<typename Vec>
-struct volume<Vec, 2>
-{
-    typedef typename mpl::times<typename Vec::x, typename Vec::y>::type type;
-};
-template<typename Vec>
-struct volume<Vec, 3>
-{
-    typedef typename mpl::times<typename Vec::x, typename Vec::y, typename Vec::z>::type type;
+    typedef typename mpl::accumulate<
+            typename T_Vec::mplVector,
+            mpl::int_<1>,
+            mpl::times<mpl::_1,mpl::_2>
+    >::type type;
 };
 
 } // CT
 } // math
 } // PMacc
-
-#endif //STLPICCTVECTOR_HPP

@@ -40,17 +40,17 @@ namespace picongpu
         
         typedef typename MappingDesc::SuperCellSize SuperCellSize;
 
-        DINLINE float_X getM0_2(const float_X weighting)
+        HDINLINE static float_X getM0_2(const float_X weighting)
         {
             return (M_EL * M_EL * weighting * weighting);
         }
 
-        DINLINE MassType getMass(const float_X weighting)
+        HDINLINE static MassType getMass(const float_X weighting)
         {
             return (M_EL * weighting);
         }
 
-        DINLINE ChargeType getCharge(const float_X weighting)
+        HDINLINE static ChargeType getCharge(const float_X weighting)
         {
             return (Q_EL * weighting);
         }
