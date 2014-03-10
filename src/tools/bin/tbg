@@ -248,6 +248,15 @@ if [ ! -f $cfg_file ] ; then
     exit 1;
 fi
 
+# cfg file sanity check - space after \ at EOL ?
+cfg_err=`egrep "\\\[[:space:]]$" $cfg_file | wc -l`
+if [ cfg_err != 0 ] ; then
+    echo "ERROR: file \"$cfg_file\" contains spaces after line continuation \\"
+    echo "Check the following lines for end-of-line spaces:"
+    egrep -n "\\\[[:space:]]$" $cfg_file
+    exit 1;
+fi
+
 projectPath=`absolute_path $projectPath`
 
 job_name=`basename "$outDir"`
