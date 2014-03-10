@@ -13,7 +13,9 @@ Requirements
       `--slave /usr/bin/g++ g++ /usr/bin/g++-4.4`
   - *experimental alternatives:* **icc 12.1** with **cuda 5.5**
 
-- [CUDA 5.5](https://developer.nvidia.com/cuda-downloads) or higher
+- [CUDA 5.0](https://developer.nvidia.com/cuda-downloads) or higher
+  - **Attention:** You must use at least the 5.5+ [drivers](http://www.nvidia.com/Drivers)
+    even if you run with CUDA 5.0. Supported drivers: 319.82+/331.22+
 
 - at least one **CUDA** capable **GPU**
   - *Compute capability* **sm\_20** or higher

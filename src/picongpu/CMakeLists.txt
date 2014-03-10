@@ -61,7 +61,7 @@ find_package(CUDA 5.0 REQUIRED)
 
 if(CUDA_VERSION VERSION_LESS 5.5)
     message(STATUS "CUDA Toolkit < 5.5 detected. We strongly recommend to still "
-                   "use CUDA 5.5+ drivers!")
+                   "use CUDA 5.5+ drivers (319.82 or higher)!")
 endif(CUDA_VERSION VERSION_LESS 5.5)
 
 set(CUDA_ARCH sm_20 CACHE STRING "Set GPU architecture")
