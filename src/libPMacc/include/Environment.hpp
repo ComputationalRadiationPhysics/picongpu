@@ -104,17 +104,19 @@ namespace PMacc
             return instance;
         }
         
-        void init(DataSpace<DIM> gridSize, DataSpace<DIM> devices, DataSpace<DIM> periodic)
+        void initDevices(DataSpace<DIM> devices, DataSpace<DIM> periodic)
         {
             PMacc::GridController<DIM>::getInstance().init(devices, periodic);
 
             StreamController::getInstance().activate();
 
             TransactionManager::getInstance();
+            
+        }
 
-            DataSpace<DIM> localGridSize(gridSize / devices);
-
-            PMacc::SubGrid<DIM>::getInstance().init(localGridSize, gridSize, PMacc::GridController<DIM>::getInstance().getPosition() * localGridSize);
+        void initGrids(DataSpace<DIM> gridSizeGlobal, DataSpace<DIM> gridSizeLocal, DataSpace<DIM> gridOffset)
+        {
+            PMacc::SubGrid<DIM>::getInstance().init(gridSizeLocal, gridSizeGlobal, gridOffset);
 
             EnvironmentController::getInstance();
             

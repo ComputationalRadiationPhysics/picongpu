@@ -162,7 +162,7 @@ public:
             isPeriodic[i] = periodic[i];
         }
         
-        Environment<simDim>::get().init(global_grid_size, gpus, isPeriodic);
+        Environment<simDim>::get().initDevices(gpus, isPeriodic);
 
         DataSpace<simDim> myGPUpos( Environment<simDim>::get().GridController().getPosition() );
 
@@ -183,6 +183,8 @@ public:
             gridSizeLocal[dim] = global_grid_size[dim] / gpus[dim];
             gridOffset[dim] = gridSizeLocal[dim] * myGPUpos[dim];
         }
+        
+        Environment<simDim>::get().initGrids(global_grid_size, gridSizeLocal, gridOffset);
 
         MovingWindow::getInstance().setGlobalSimSize(global_grid_size);
         MovingWindow::getInstance().setSlidingWindow(slidingWindow);
@@ -190,9 +192,6 @@ public:
 
         log<picLog::DOMAINS > ("rank %1%; localsize %2%; localoffset %3%;") %
             myGPUpos.toString() % gridSizeLocal.toString() % gridOffset.toString();
-
-        /*init SubGrid for global use*/
-        Environment<simDim>::get().SubGrid().init(gridSizeLocal, global_grid_size, gridOffset);
 
         SimulationHelper<simDim>::moduleLoad();
 
