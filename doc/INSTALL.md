@@ -6,8 +6,11 @@ Requirements
 
 ### Mandatory
 
-- **gcc** 4.3 to 4.6 (depends on current CUDA version)
-  - *Debian/Ubuntu:* `apt-get install gcc-4.4 build-essential`
+- **gcc** 4.3 to 4.7 (depends on current CUDA version)
+  - *Debian/Ubuntu:*
+    - `sudo apt-get install gcc-4.4 g++-4.4 build-essential`
+    - `sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.4 60 \`
+      `--slave /usr/bin/g++ g++ /usr/bin/g++-4.4`
   - *experimental alternatives:* **icc 12.1** with **cuda 5.5**
 
 - [CUDA 5.5](https://developer.nvidia.com/cuda-downloads) or higher
@@ -26,7 +29,7 @@ Requirements
 - **zlib**
   - *Debian/Ubuntu:* `sudo apt-get install zlib1g-dev`
 
-- **boost** 1.47.0 or higher ("program options", "regex" and nearly all compile time libs)
+- **boost** 1.49.0 or higher ("program options", "regex" and nearly all compile time libs)
   - download from [http://www.boost.org/](http://sourceforge.net/projects/boost/files/boost/1.49.0/boost_1_49_0.tar.gz/download),
       e.g. version 1.49.0
   - *Debian/Ubuntu:* `sudo apt-get install libboost-program-options-dev libboost-regex-dev`
