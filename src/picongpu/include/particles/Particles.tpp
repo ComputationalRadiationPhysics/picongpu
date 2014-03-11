@@ -33,6 +33,7 @@
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
 #include "fields/FieldJ.hpp"
+#include "fields/FieldTmp.hpp"
 
 #include "particles/memory/buffers/ParticlesBuffer.hpp"
 #include "ParticlesInit.kernel"
@@ -55,7 +56,8 @@ template< typename T_DataVector, typename T_MethodsVector>
 Particles<T_DataVector, T_MethodsVector>::Particles( GridLayout<simDim> gridLayout,
                                                      MappingDesc cellDescription,
                                                      SimulationDataId datasetID ) :
-ParticlesBase<T_DataVector, T_MethodsVector, MappingDesc>( cellDescription ), fieldB( NULL ), fieldE( NULL ), fieldJurrent( NULL ), gridLayout( gridLayout ),
+ParticlesBase<T_DataVector, T_MethodsVector, MappingDesc>( cellDescription ),
+fieldB( NULL ), fieldE( NULL ), fieldJurrent( NULL ), fieldTmp( NULL ), gridLayout( gridLayout ),
 datasetID( datasetID )
 { 
     size_t sizeOfExchanges = 2 * 2 * ( BYTES_EXCHANGE_X + BYTES_EXCHANGE_Y + BYTES_EXCHANGE_Z ) + BYTES_EXCHANGE_X * 2 * 8;
@@ -125,11 +127,12 @@ void Particles<T_DataVector, T_MethodsVector>::syncToDevice( )
 }
 
 template< typename T_DataVector, typename T_MethodsVector>
-void Particles<T_DataVector, T_MethodsVector>::init( FieldE &fieldE, FieldB &fieldB, FieldJ &fieldJ )
+void Particles<T_DataVector, T_MethodsVector>::init( FieldE &fieldE, FieldB &fieldB, FieldJ &fieldJ, FieldTmp &fieldTmp )
 {
     this->fieldE = &fieldE;
     this->fieldB = &fieldB;
     this->fieldJurrent = &fieldJ;
+    this->fieldTmp = &fieldTmp;
 
     Environment<>::get( ).DataConnector().registerData( *this );
 }
@@ -193,17 +196,34 @@ void Particles<T_DataVector, T_MethodsVector>::initFill( uint32_t currentStep )
     if ( gasProfile::GAS_ENABLED )
     {
         const DataSpace<simDim> globalNrOfCells = simBox.getGlobalSize( );
+        
+        if (!gasProfile::gasSetup(this->fieldTmp->getGridBuffer()))
+        {
+            log<picLog::SIMULATION_STATE > ("Failed to setup gas profile");
+        }
 
         __picKernelArea( kernelFillGridWithParticles, this->cellDescription, CORE + BORDER + GUARD )
             (block)
             ( this->particlesBuffer->getDeviceParticleBox( ),
-              this->particlesBuffer->hasSendExchange( TOP ), gpuCellOffset, seed, globalNrOfCells.y( ) );
+              this->particlesBuffer->hasSendExchange( TOP ),
+              gpuCellOffset,
+              seed,
+              globalNrOfCells.y( ),
+              this->fieldTmp->getDeviceDataBox());
     }
 
     this->fillAllGaps( );
 
     log<picLog::SIMULATION_STATE > ( "Wait for init particles finished (y offset = %1%)" ) % gpuCellOffset.y( );
     __getTransactionEvent( ).waitForFinished( );
+    
+    if ( gasProfile::GAS_ENABLED )
+    {
+        if (!gasProfile::gasTeardown())
+        {
+            log<picLog::SIMULATION_STATE > ("Failed to teardown gas profile");
+        }
+    }
 }
 
 template< typename T_DataVector, typename T_MethodsVector>

@@ -304,11 +304,11 @@ public:
         this->myFieldSolver = new fieldSolver::FieldSolver(*cellDescription);
 
 #if (ENABLE_ELECTRONS == 1)
-        electrons->init(*fieldE, *fieldB, *fieldJ);
+        electrons->init(*fieldE, *fieldB, *fieldJ, *fieldTmp);
 #endif
 
 #if (ENABLE_IONS == 1)
-        ions->init(*fieldE, *fieldB, *fieldJ);
+        ions->init(*fieldE, *fieldB, *fieldJ, *fieldTmp);
 #endif      
         //disabled because of a transaction system bug
         Environment<>::get().StreamController().addStreams(6);
