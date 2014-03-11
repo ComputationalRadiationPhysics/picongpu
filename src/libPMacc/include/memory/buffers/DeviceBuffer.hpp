@@ -165,7 +165,7 @@ namespace PMacc
          * @param other the DeviceBuffer to copy from
          */
         virtual void copyFrom(DeviceBuffer<TYPE, DIM>& other) = 0;
-
+        
     };
 
 } //namespace PMacc

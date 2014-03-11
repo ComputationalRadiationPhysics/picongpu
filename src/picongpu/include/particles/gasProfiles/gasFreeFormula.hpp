@@ -23,18 +23,32 @@
 
 #include "types.h"
 #include "simulation_defines.hpp"
+#include "memory/boxes/DataBox.hpp"
+#include "memory/boxes/PitchedBox.hpp"
 
 namespace picongpu
 {
     namespace gasFreeFormula
     {
+        template<class FieldBufferHost>
+        bool gasSetup(FieldBufferHost fieldBufferHost)
+        {
+            return true;
+        }
+        
+        bool gasTeardown(void)
+        {
+            return true;
+        }
 
         /** Calculate the gas density, divided by the maximum density GAS_DENSITY
          * 
          * @param pos as 3D length vector offset to global left top front cell
          * @return float_X between 0.0 and 1.0
          */
-        DINLINE float_X calcNormedDensitiy( floatD_X pos)
+        template<unsigned DIM, typename FieldBox>
+        DINLINE float_X calcNormedDensity( floatD_X pos, const DataSpace<DIM>& cellIdx,
+                FieldBox fieldTmp )
         {
             if (pos.y() < VACUUM_Y) return float_X(0.0);
 

@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "types.h"
 #include "memory/buffers/GridBuffer.hpp"
 #include "mappings/simulation/GridController.hpp"
 
@@ -46,7 +47,8 @@ namespace picongpu
     using namespace PMacc;
 
     FieldTmp::FieldTmp( MappingDesc cellDescription ) :
-    SimulationFieldHelper<MappingDesc>( cellDescription )
+    SimulationFieldHelper<MappingDesc>( cellDescription ),
+    fieldTmp( NULL )
     {
         fieldTmp = new GridBuffer<ValueType, simDim > ( cellDescription.getGridLayout( ) );
 
@@ -103,7 +105,7 @@ namespace picongpu
 
     FieldTmp::~FieldTmp( )
     {
-        delete fieldTmp;
+        __delete( fieldTmp );
     }
 
     template<uint32_t AREA, class FrameSolver, class ParticlesClass>
