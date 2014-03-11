@@ -111,23 +111,23 @@ namespace PMacc
              *
              * @return current GPU position
              * */
-    const DataSpace<DIM> getPosition() const
+            const DataSpace<DIM> getPosition() const
             {
                 return comm.getCoordinates();
             }
     
             /**
-     * Returns the scalar position (rank) of this GPU,
-     * depending on its current grid position 
-     * 
-     * @return current grid position as scalar value
-     */
-    uint32_t getScalarPosition() const
-    {
-        return DataSpaceOperations<DIM>::map(getGpuNodes(), getPosition());
-    }
+             * Returns the scalar position (rank) of this GPU,
+             * depending on its current grid position 
+             * 
+             * @return current grid position as scalar value
+             */
+            uint32_t getScalarPosition() const
+            {
+                return DataSpaceOperations<DIM>::map(getGpuNodes(), getPosition());
+            }
 
-    /**
+            /**
              * Returns the local rank of the caller on the current host.
              *
              * return local rank on host
@@ -138,9 +138,9 @@ namespace PMacc
             }
 
             /**
-     * Returns the global MPI rank of the caller among all hosts.
+             * Returns the global MPI rank of the caller among all hosts.
              *
-     * @return global MPI rank
+             * @return global MPI rank
              */
             uint32_t getGlobalRank()
             {
@@ -148,9 +148,9 @@ namespace PMacc
             }
 
             /**
-     * Returns the global MPI size.
+             * Returns the global MPI size.
              *
-     * @return global number of MPI ranks
+             * @return global number of MPI ranks
              */
             uint32_t getGlobalSize()
             {
@@ -172,28 +172,28 @@ namespace PMacc
                /* wait that all tasks are finished */
                Environment<DIM>::get().Manager().waitForAllTasks();//
 
-        bool result = comm.slide();
+               bool result = comm.slide();
 
-        updateGlobalOffset();
-                //SubGrid<DIM>::getInstance().setGlobalOffset(globalOffset);
+               updateGlobalOffset();
+               //SubGrid<DIM>::getInstance().setGlobalOffset(globalOffset);
 
-                return result;
+               return result;
             }
     
             /**
-     * Slides multiple times.
-     * 
-     * @param[in] numSlides number of slides
-     * @return true if the position of gpu is switched to the end, else false
-     */
-    bool setNumSlides(size_t numSlides)
-    {
-        bool result = comm.setNumSlides(numSlides);
-        updateGlobalOffset();
-        return result;
-    }
+             * Slides multiple times.
+             * 
+             * @param[in] numSlides number of slides
+             * @return true if the position of gpu is switched to the end, else false
+             */
+            bool setNumSlides(size_t numSlides)
+            {
+                bool result = comm.setNumSlides(numSlides);
+                updateGlobalOffset();
+                return result;
+            }
 
-    /**
+            /**
              * Returns a Mask which describes all neighbouring GPU nodes.
              *
              * @return Mask with all neighbors
@@ -203,11 +203,11 @@ namespace PMacc
                 return Environment<DIM>::get().EnvironmentController().getCommunicationMask();
             }
 
-    /**
-     * Returns the MPI communicator class
-     * 
-     * @return current CommunicatorMPI
-     */
+            /**
+             * Returns the MPI communicator class
+             * 
+             * @return current CommunicatorMPI
+             */
             CommunicatorMPI<DIM>& getCommunicator()
             {
                 return comm;
@@ -230,26 +230,26 @@ namespace PMacc
             GridController(const GridController& gc)
             {
 
-    }
+            }
     
-    /**
-     * Sets globalOffset using the current position.
-     * 
-     * (This function is idempotent)
-     */
-    void updateGlobalOffset()
-    {
-        /* if we slide we must change our globalOffset of the simulation
-         * (only change slide direction Y)
-         */
-        int gpuOffset_y = this->getPosition().y();
-        PMACC_AUTO(simBox, Environment<DIM>::get().SubGrid().getSimulationBox());
-        DataSpace<DIM> globalOffset(simBox.getGlobalOffset());
-        /* this is allowed in the case that we use sliding window
-         * because size in Y direction is the same for all gpus domains
-         */
-        globalOffset.y() = gpuOffset_y * simBox.getLocalSize().y();
-        Environment<DIM>::get().SubGrid().setGlobalOffset(globalOffset);
+            /**
+             * Sets globalOffset using the current position.
+             * 
+             * (This function is idempotent)
+             */
+            void updateGlobalOffset()
+            {
+                /* if we slide we must change our globalOffset of the simulation
+                 * (only change slide direction Y)
+                 */
+                int gpuOffset_y = this->getPosition().y();
+                PMACC_AUTO(simBox, Environment<DIM>::get().SubGrid().getSimulationBox());
+                DataSpace<DIM> globalOffset(simBox.getGlobalOffset());
+                /* this is allowed in the case that we use sliding window
+                 * because size in Y direction is the same for all gpus domains
+                 */
+                globalOffset.y() = gpuOffset_y * simBox.getLocalSize().y();
+                Environment<DIM>::get().SubGrid().setGlobalOffset(globalOffset);
             }
 
             /**

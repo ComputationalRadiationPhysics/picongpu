@@ -65,12 +65,11 @@ public:
     Simulation(uint32_t rule, int32_t steps, Space gridSize, Space devices, Space periodic) :
     evo(rule), steps(steps), gridSize(gridSize), isMaster(false), buff1(NULL), buff2(NULL)
     {
-        Environment<DIM2>::get().init(devices, periodic, gridSize);
-        
-        GridController<DIM2>& gc = Environment<DIM2>::get().GridController();
-        
-        setDevice((int) (gc.getHostRank())); //do this after gridcontroller init
+       Environment<DIM2>::get().initDevices(devices, periodic);
 
+       GridController<DIM2> gc = Environment<DIM2>::get().GridController(); 
+       Space localGridSize(gridSize / devices);
+       Environment<DIM2>::get().initGrids(localGridSize, gridSize, gc.getPosition() * localGridSize);
     }
 
     virtual ~Simulation()

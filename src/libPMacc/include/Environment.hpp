@@ -37,6 +37,10 @@
 namespace PMacc
 {
 
+    /**
+     * Global Environment singleton for Picongpu
+     */
+    
     template <unsigned DIM = DIM1>
     class Environment
     {
@@ -108,6 +112,8 @@ namespace PMacc
         {
             PMacc::GridController<DIM>::getInstance().init(devices, periodic);
 
+            setDevice((int) (PMacc::GridController<DIM>::getInstance().getHostRank()));
+            
             StreamController::getInstance().activate();
 
             TransactionManager::getInstance();
@@ -141,6 +147,43 @@ namespace PMacc
         Environment(const Environment&);
 
         Environment& operator=(const Environment&);
+        
+        void setDevice(int deviceNumber)
+        {
+            int num_gpus = 0; //count of gpus
+            cudaGetDeviceCount(&num_gpus);
+            //##ERROR handling
+            if (num_gpus < 1) //check if cuda device ist found
+            {
+                throw std::runtime_error("no CUDA capable devices detected");
+            }
+            else if (num_gpus < deviceNumber) //check if i can select device with diviceNumber
+            {
+                std::cerr << "no CUDA device " << deviceNumber << ", only " << num_gpus << " devices found" << std::endl;
+                throw std::runtime_error("CUDA capable devices can't be selected");
+            }
+
+            cudaDeviceProp devProp;
+            cudaError rc;
+            CUDA_CHECK(cudaGetDeviceProperties(&devProp, deviceNumber));
+            if (devProp.computeMode == cudaComputeModeDefault)
+            {
+                CUDA_CHECK(rc = cudaSetDevice(deviceNumber));
+                if (cudaSuccess == rc)
+                {
+                    cudaDeviceProp dprop;
+                    cudaGetDeviceProperties(&dprop, deviceNumber);
+                    //!\todo: write this only on debug
+                    log<ggLog::CUDA_RT > ("Set device to %1%: %2%") % deviceNumber % dprop.name;
+                }
+            }
+            else
+            {
+                //gpu mode is cudaComputeModeExclusiveProcess and a free device is automaticly selected.
+                log<ggLog::CUDA_RT > ("Device is selected by CUDA automaticly. (because cudaComputeModeDefault is not set)");
+            }
+            CUDA_CHECK(cudaSetDeviceFlags(cudaDeviceScheduleYield));
+        }
 
     };
 
