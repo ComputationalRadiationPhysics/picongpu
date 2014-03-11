@@ -10,10 +10,10 @@ module swap gcc gcc/4.7.2
 export CC="`which cc` -target=compute_node"
 export CXX="`which CC` -target=compute_node"
 # symbol bug work around
-MY_CRAY_LIBS=/opt/gcc/4.7.2/snos/lib64
-export LD_PRELOAD=$MY_CRAY_LIBS/libstdc++.so.6:$LD_PRELOAD
-export LD_PRELOAD=$MY_CRAY_LIBS/libgomp.so.1:$LD_PRELOAD
-export LD_PRELOAD=$MY_CRAY_LIBS/libgfortran.so.3:$LD_PRELOAD
+#MY_CRAY_LIBS=/opt/gcc/4.7.2/snos/lib64
+#export LD_PRELOAD=$MY_CRAY_LIBS/libstdc++.so.6:$LD_PRELOAD
+#export LD_PRELOAD=$MY_CRAY_LIBS/libgomp.so.1:$LD_PRELOAD
+#export LD_PRELOAD=$MY_CRAY_LIBS/libgfortran.so.3:$LD_PRELOAD
 
 # required tools and libs
 module load git cmake
@@ -35,7 +35,7 @@ export ADIOS_ROOT=$ADIOS_DIR
 # afterwards install pngwriter yourself:
 #   https://github.com/ax3l/pngwriter#install
 export LIBPNG_ROOT=$MEMBERWORK/$proj/lib/libpng
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LIBPNG_ROOT/lib:
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LIBPNG_ROOT/lib
 export PNGWRITER_ROOT=$MEMBERWORK/$proj/lib/pngwriter
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PNGWRITER_ROOT/lib
 
