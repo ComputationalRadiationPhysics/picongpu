@@ -266,7 +266,7 @@ if(PIC_ADIOS_ROOT_DIR)
         message(STATUS "Could NOT find MXML (ADIOS will be disabled)")
     endif(PIC_MXML_ROOT_DIR)
 
-elseif(PIC_ADIOS_ROOT_DIR)
+else(PIC_ADIOS_ROOT_DIR)
     message(STATUS "Could NOT find ADIOS")
 endif(PIC_ADIOS_ROOT_DIR)
 
