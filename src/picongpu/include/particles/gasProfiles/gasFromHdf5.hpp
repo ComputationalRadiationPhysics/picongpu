@@ -23,8 +23,7 @@
 
 #include "types.h"
 #include "simulation_defines.hpp"
-#include "memory/boxes/DataBox.hpp"
-#include "memory/boxes/PitchedBox.hpp"
+#include "memory/buffers/GridBuffer.hpp"
 #include "simulationControl/MovingWindow.hpp"
 
 #include <splash/splash.h>
@@ -36,8 +35,8 @@ namespace picongpu
     namespace gasFromHdf5
     {
 
-        template<class FieldBufferHost>
-        bool gasSetup(FieldBufferHost fieldBufferHost)
+        template<class Type>
+        bool gasSetup(GridBuffer<Type, simDim> &fieldBuffer)
         {
             GridController<simDim> &gc = GridController<simDim>::getInstance();
             const uint32_t maxOpenFilesPerNode = 4;
@@ -82,7 +81,8 @@ namespace picongpu
                 DataSpace<simDim> globalSlideOffset;
                 globalSlideOffset.y() = window.slides * window.localFullSize.y();
 
-                DataSpace<simDim> globalOffset(SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset());
+                DataSpace<simDim> globalOffset(SubGrid<simDim>::getInstance().
+                    getSimulationBox().getGlobalOffset());
 
                 Dimensions domainOffset(0, 0, 0);
                 for (uint32_t d = 0; d < simDim; ++d)
@@ -97,7 +97,13 @@ namespace picongpu
                     domainSize[d] = localDomainSize[d];
 
                 Dimensions sizeRead(0, 0, 0);
-                fieldBufferHost.getHostBuffer().setValue(float1_X(0.));
+                fieldBuffer.getHostBuffer().setValue(float1_X(0.));
+                
+                size_t bufferSize = (size_t)fieldBuffer.getHostBuffer().getDataSpace().productOfComponents();
+                typename GridBuffer<Type, simDim>::DataBoxType dataBox =
+                    fieldBuffer.getHostBuffer().getDataBox();
+                typedef typename Type::type ValueType;
+                ValueType *tmpBfr = new ValueType[bufferSize];
                 
                 pdc.read(
                         gasHdf5Iteration,
@@ -105,11 +111,23 @@ namespace picongpu
                         domainOffset,
                         gasHdf5Dataset,
                         sizeRead,
-                        fieldBufferHost.getHostBuffer().getPointer());
+                        tmpBfr);
 
                 pdc.close();
+                
+                if (sizeRead.getScalarSize() != bufferSize)
+                {
+                    return false;
+                }
+                
+                for (size_t i = 0; i < bufferSize; ++i)
+                {
+                    dataBox(DataSpace<simDim>(0, 0, 0))[0] = tmpBfr[i];
+                }
+                
+                __delete(tmpBfr);
 
-                fieldBufferHost.hostToDevice();
+                fieldBuffer.hostToDevice();
                 __getTransactionEvent().waitForFinished();
 
             } catch (DCException e)
@@ -118,11 +136,6 @@ namespace picongpu
                 return false;
             }
 
-            return true;
-        }
-
-        bool gasTeardown(void)
-        {
             return true;
         }
 

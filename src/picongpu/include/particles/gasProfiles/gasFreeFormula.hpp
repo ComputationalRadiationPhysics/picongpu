@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl
+ * Copyright 2013-2014 Axel Huebl, Felix Schmitt
  *
  * This file is part of PIConGPU.
  *
@@ -23,20 +23,14 @@
 
 #include "types.h"
 #include "simulation_defines.hpp"
-#include "memory/boxes/DataBox.hpp"
-#include "memory/boxes/PitchedBox.hpp"
+#include "memory/buffers/GridBuffer.hpp"
 
 namespace picongpu
 {
     namespace gasFreeFormula
     {
-        template<class FieldBufferHost>
-        bool gasSetup(FieldBufferHost fieldBufferHost)
-        {
-            return true;
-        }
-        
-        bool gasTeardown(void)
+        template<class Type>
+        bool gasSetup(GridBuffer<Type, simDim> &fieldBuffer)
         {
             return true;
         }

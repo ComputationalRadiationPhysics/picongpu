@@ -173,24 +173,14 @@ public:
      */
     virtual ~GridBuffer()
     {
-        for (uint32_t i = 1; i < 27; ++i)
+        for (uint32_t i = 0; i < 27; ++i)
         {
-            if (sendExchanges[i] != NULL)
-            {
-                delete sendExchanges[i];
-                sendExchanges[i] = NULL;
-            }
-            if (sendExchanges[i] != NULL)
-            {
-                delete receiveExchanges[i];
-                receiveExchanges[i] = NULL;
-            }
+            __delete(sendExchanges[i]);
+            __delete(receiveExchanges[i]);
         }
 
-        delete hostBuffer;
-        hostBuffer = NULL;
-        delete deviceBuffer;
-        deviceBuffer = NULL;
+        __delete(hostBuffer);
+        __delete(deviceBuffer);
     }
 
     /**

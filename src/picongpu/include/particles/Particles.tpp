@@ -197,7 +197,10 @@ void Particles<T_DataVector, T_MethodsVector>::initFill( uint32_t currentStep )
     {
         const DataSpace<simDim> globalNrOfCells = simBox.getGlobalSize( );
         
-        if (!gasProfile::gasSetup(this->fieldTmp->getGridBuffer()))
+        GridBuffer<typename FieldTmp::ValueType, simDim> &fieldTmpGridBuffer = this->fieldTmp->getGridBuffer();
+        FieldTmp::DataBoxType dataBox = fieldTmpGridBuffer.getDeviceBuffer().getDataBox();
+        
+        if (!gasProfile::gasSetup(fieldTmpGridBuffer))
         {
             log<picLog::SIMULATION_STATE > ("Failed to setup gas profile");
         }
@@ -209,21 +212,13 @@ void Particles<T_DataVector, T_MethodsVector>::initFill( uint32_t currentStep )
               gpuCellOffset,
               seed,
               globalNrOfCells.y( ),
-              this->fieldTmp->getDeviceDataBox());
+              dataBox);
     }
 
     this->fillAllGaps( );
 
     log<picLog::SIMULATION_STATE > ( "Wait for init particles finished (y offset = %1%)" ) % gpuCellOffset.y( );
     __getTransactionEvent( ).waitForFinished( );
-    
-    if ( gasProfile::GAS_ENABLED )
-    {
-        if (!gasProfile::gasTeardown())
-        {
-            log<picLog::SIMULATION_STATE > ("Failed to teardown gas profile");
-        }
-    }
 }
 
 template< typename T_DataVector, typename T_MethodsVector>
