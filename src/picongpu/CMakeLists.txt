@@ -262,7 +262,7 @@ if(PIC_ADIOS_ROOT_DIR)
         set(LIBS ${LIBS} mxml)
 
         add_definitions(-DENABLE_ADIOS=1)
-    elseif(PIC_MXML_ROOT_DIR)
+    else(PIC_MXML_ROOT_DIR)
         message(STATUS "Could NOT find MXML (ADIOS will be disabled)")
     endif(PIC_MXML_ROOT_DIR)
 
