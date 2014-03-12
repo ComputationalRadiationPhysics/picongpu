@@ -197,7 +197,7 @@ void Particles<T_DataVector, T_MethodsVector>::initFill( uint32_t currentStep )
     {
         const DataSpace<simDim> globalNrOfCells = simBox.getGlobalSize( );
         
-        GridBuffer<typename FieldTmp::ValueType, simDim> &fieldTmpGridBuffer = this->fieldTmp->getGridBuffer();
+        PMACC_AUTO( &fieldTmpGridBuffer, this->fieldTmp->getGridBuffer() );
         FieldTmp::DataBoxType dataBox = fieldTmpGridBuffer.getDeviceBuffer().getDataBox();
         
         if (!gasProfile::gasSetup(fieldTmpGridBuffer))
