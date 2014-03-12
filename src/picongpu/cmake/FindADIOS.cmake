@@ -121,9 +121,13 @@ if(ADIOS_ROOT_DIR)
 
 else(ADIOS_ROOT_DIR)
     set(ADIOS_FOUND FALSE)
+endif(ADIOS_ROOT_DIR)
+
+# unset checked variables if not found
+if(NOT ADIOS_FOUND)
     unset(ADIOS_INCLUDE_DIRS)
     unset(ADIOS_LIBRARIES)
-endif(ADIOS_ROOT_DIR)
+endif(NOT ADIOS_FOUND)
 
 
 ################################################################################
