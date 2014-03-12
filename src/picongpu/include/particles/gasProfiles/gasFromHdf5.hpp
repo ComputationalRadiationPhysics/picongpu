@@ -24,6 +24,7 @@
 #include "types.h"
 #include "simulation_defines.hpp"
 #include "memory/buffers/GridBuffer.hpp"
+#include "memory/boxes/DataBoxDim1Access.hpp"
 #include "simulationControl/MovingWindow.hpp"
 
 #include <splash/splash.h>
@@ -44,15 +45,17 @@ namespace picongpu
             Dimensions mpiSizeHdf5(1, 1, 1);
             for (uint32_t i = 0; i < simDim; ++i)
                 mpiSizeHdf5[i] = gc.getGpuNodes()[i];
-
+                
+            /* get a new ParallelDataCollector for our MPI rank and size*/
             ParallelDataCollector pdc(
-                    gc.getCommunicator().getMPIComm(),
-                    gc.getCommunicator().getMPIInfo(),
-                    mpiSizeHdf5,
-                    maxOpenFilesPerNode);
+                gc.getCommunicator().getMPIComm(),
+                gc.getCommunicator().getMPIInfo(),
+                mpiSizeHdf5,
+                maxOpenFilesPerNode);
 
             try
             {
+                /* setup ParallelDataCollector pdc to read the density information from hdf5 */
                 DataSpace<simDim> mpiPos = gc.getPosition();
                 DataSpace<simDim> mpiSize = gc.getGpuNodes();
 
@@ -72,6 +75,7 @@ namespace picongpu
 
                 pdc.open(gasHdf5Filename, attr);
 
+                /* set which part of the hdf5 file our MPI rank reads */
                 VirtualWindow window = MovingWindow::getInstance().getVirtualWindow(0);
 
                 /* globalSlideOffset due to gpu slides between origin at time step 0
@@ -96,15 +100,25 @@ namespace picongpu
                 for (uint32_t d = 0; d < simDim; ++d)
                     domainSize[d] = localDomainSize[d];
 
-                Dimensions sizeRead(0, 0, 0);
+                /* clear host buffer */
                 fieldBuffer.getHostBuffer().setValue(float1_X(0.));
                 
-                size_t bufferSize = (size_t)fieldBuffer.getHostBuffer().getDataSpace().productOfComponents();
-                typename GridBuffer<Type, simDim>::DataBoxType dataBox =
-                    fieldBuffer.getHostBuffer().getDataBox();
+                /* get dimensions */
+                DataSpace<simDim> fieldNoGuards = fieldBuffer.getGridLayout().getDataSpaceWithoutGuarding();
+                DataSpace<simDim> guards = fieldBuffer.getGridLayout().getGuard();
+                int bufferSize = fieldNoGuards.productOfComponents();
+
+                PMACC_AUTO(dataBox, fieldBuffer.getHostBuffer().getDataBox());
+                typedef DataBoxDim1Access< typename GridBuffer<Type, simDim >::DataBoxType > D1Box;
+                
+                /* get a 1D access object to the databox which ignores guarding */
+                D1Box d1RAccess(dataBox.shift(guards), fieldNoGuards);
+                
+                /* allocate temporary buffer for hdf5 data */
                 typedef typename Type::type ValueType;
                 ValueType *tmpBfr = new ValueType[bufferSize];
                 
+                Dimensions sizeRead(0, 0, 0);
                 pdc.read(
                         gasHdf5Iteration,
                         domainSize,
@@ -115,18 +129,20 @@ namespace picongpu
 
                 pdc.close();
                 
-                if (sizeRead.getScalarSize() != bufferSize)
+                if (sizeRead.getScalarSize() != (size_t)bufferSize)
                 {
                     return false;
                 }
                 
-                for (size_t i = 0; i < bufferSize; ++i)
+                /* copy from temporary buffer to fieldTmp host buffer */
+                for (int i = 0; i < bufferSize; ++i)
                 {
-                    dataBox(DataSpace<simDim>(0, 0, 0))[0] = tmpBfr[i];
+                    d1RAccess[i].x() = tmpBfr[i];
                 }
                 
                 __delete(tmpBfr);
 
+                /* copy host data to the device */
                 fieldBuffer.hostToDevice();
                 __getTransactionEvent().waitForFinished();
 
@@ -139,16 +155,18 @@ namespace picongpu
             return true;
         }
 
-        /** Calculate the gas density, divided by the maximum density GAS_DENSITY
+        /** Load the gas density from fieldTmp
          * 
-         * @param pos as 3D length vector offset to global left top front cell
+         * @param pos as DIM-D length vector offset to global left top front cell
+         * @param cellIdx local cell id
+         * @param fieldTmp DataBox accessing for fieldTmp
          * @return float_X between 0.0 and 1.0
          */
         template<unsigned DIM, typename FieldBox>
         DINLINE float_X calcNormedDensity(floatD_X pos, const DataSpace<DIM>& cellIdx,
                 FieldBox fieldTmp)
         {
-            return precisionCast<float_X>(1.0);
+            return precisionCast<float_X>(fieldTmp(cellIdx).x());
         }
     }
 }

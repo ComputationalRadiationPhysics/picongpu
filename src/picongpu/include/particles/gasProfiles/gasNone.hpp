@@ -42,8 +42,7 @@ namespace picongpu
          * @return float_X between 0.0 and 1.0
          */
         template<unsigned DIM, typename FieldBox>
-        DINLINE float_X calcNormedDensity( floatD_X pos, const DataSpace<DIM>& cellIdx,
-                FieldBox fieldTmp )
+        DINLINE float_X calcNormedDensity( floatD_X pos, const DataSpace<DIM>&, FieldBox )
         {
 
             return float_X(0.0);
