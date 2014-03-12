@@ -50,7 +50,7 @@ cmake_minimum_required(VERSION 2.8.5)
 # ADIOS
 ################################################################################
 
-# we start by assuming we found ADIOS and fasily if some
+# we start by assuming we found ADIOS and falsify it if some
 # dependencies are missing (or if we did not find ADIOS at all)
 set(ADIOS_FOUND TRUE)
 
