@@ -95,12 +95,14 @@ namespace picongpu
         /** Initialize a gas profile */
         const bool GAS_ENABLED = true;
     }
-    
+  
+#if (ENABLE_HDF5 == 1)
     namespace gasFromHdf5
     {
         /** Initialize a gas profile */
         const bool GAS_ENABLED = true;
     }
+#endif
 
     namespace gasNone
     {
@@ -118,5 +120,7 @@ namespace picongpu
 #include "particles/gasProfiles/gasHomogenous.hpp"
 #include "particles/gasProfiles/gasSphereFlanks.hpp"
 #include "particles/gasProfiles/gasFreeFormula.hpp"
+#if (ENABLE_HDF5 == 1)
 #include "particles/gasProfiles/gasFromHdf5.hpp"
+#endif
 #include "particles/gasProfiles/gasNone.hpp"
