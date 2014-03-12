@@ -242,6 +242,7 @@ find_path(PIC_ADIOS_ROOT_DIR
   DOC "ADIOS ROOT location. (only used if ADIOS is enabled)"
 )
 
+option(PIC_ADIOS_ENABLED "Enable ADIOS output plugin (if available)" ON)
 if(PIC_ADIOS_ROOT_DIR)
     message(STATUS "Found ADIOS: "${PIC_ADIOS_ROOT_DIR})
     include_directories(SYSTEM ${PIC_ADIOS_ROOT_DIR}/include)
@@ -255,20 +256,50 @@ if(PIC_ADIOS_ROOT_DIR)
       DOC "MXML ROOT location. (only used if ADIOS is enabled)"
     )
 
-   if(PIC_MXML_ROOT_DIR)
+    if(PIC_MXML_ROOT_DIR)
         message(STATUS "Found MXML: "${PIC_MXML_ROOT_DIR})
         include_directories(SYSTEM ${PIC_MXML_ROOT_DIR}/include)
         link_directories(${PIC_MXML_ROOT_DIR}/lib)
         set(LIBS ${LIBS} mxml)
-
-        add_definitions(-DENABLE_ADIOS=1)
     else(PIC_MXML_ROOT_DIR)
+        set(PIC_ADIOS_ENABLED OFF)
         message(STATUS "Could NOT find MXML (ADIOS will be disabled)")
     endif(PIC_MXML_ROOT_DIR)
 
+    # check for further dependencies (right now Dataspaces)
+    execute_process(COMMAND adios_config -l
+                    OUTPUT_VARIABLE ADIOS_LINKFLAGS)
+    message(STATUS "Additional linker flags for ADIOS: ${ADIOS_LINKFLAGS}")
+
+    # find dataspaces installation (if compiled in)
+    if("${ADIOS_LINKFLAGS}" MATCHES "ldspaces")
+        find_path(PIC_DATASPACES_ROOT_DIR
+          NAMES include/dataspaces.h lib/libdspaces.a
+          PATHS ENV DATASPACES_ROOT
+          DOC "DATASPACES ROOT location. (only used if ADIOS is enabled)"
+        )
+
+       if(PIC_DATASPACES_ROOT_DIR)
+            message(STATUS "Found Dataspaces: "${PIC_DATASPACES_ROOT_DIR})
+            include_directories(SYSTEM ${PIC_DATASPACES_ROOT_DIR}/include)
+            link_directories(${PIC_DATASPACES_ROOT_DIR}/lib)
+            set(LIBS ${LIBS} dspaces dscommon dart)
+
+        else(PIC_DATASPACES_ROOT_DIR)
+            set(PIC_ADIOS_ENABLED OFF)
+            message(STATUS "Could NOT find DATASPACES (ADIOS will be disabled)")
+        endif(PIC_DATASPACES_ROOT_DIR)
+    endif()
+
 else(PIC_ADIOS_ROOT_DIR)
+    set(PIC_ADIOS_ENABLED OFF)
     message(STATUS "Could NOT find ADIOS")
 endif(PIC_ADIOS_ROOT_DIR)
+
+# finally enable adios if all dependencies are satisfied
+if(PIC_ADIOS_ENABLED)
+    add_definitions(-DENABLE_ADIOS=1)
+endif(PIC_ADIOS_ENABLED)
 
 
 ################################################################################
