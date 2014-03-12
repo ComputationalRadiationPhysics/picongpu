@@ -71,7 +71,7 @@ fieldE( NULL )
     const DataSpace<simDim> endGuard( UpperMargin( ).vec( ) );
 
     /*go over all directions*/
-    for ( int i = 1; i < numberOfNeighbors[simDim]; ++i )
+    for ( uint32_t i = 1; i < numberOfNeighbors[simDim]; ++i )
     {
         DataSpace<simDim> relativMask = Mask::getRelativeDirections<simDim > ( i );
         /* guarding cells depend on direction
