@@ -24,10 +24,11 @@ export MPI_ROOT=$MPICH_DIR
 
 # plugins (optional) ################################################
 module load cray-hdf5-parallel/1.8.9
-module load adios/1.6.0 mxml/2.6
+module load adios/1.6.0 mxml/2.6 dataspaces/1.3.0
 export HDF5_ROOT=$HDF5_DIR
 export ADIOS_ROOT=$ADIOS_DIR
 export MXML_ROOT=$MXML_DIR
+export DATASPACES_ROOT=$DATASPACES_DIR
 
 # download libSplash and compile it yourself from
 #   https://github.com/ComputationalRadiationPhysics/libSplash/
