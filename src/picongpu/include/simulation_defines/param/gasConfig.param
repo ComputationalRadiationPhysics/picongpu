@@ -220,13 +220,15 @@ namespace picongpu
             };
         }
     }
-    
+  
+#if (ENABLE_HDF5 == 1)
     namespace gasFromHdf5
     {
         const char *gasHdf5Filename = "gas";
         const int32_t gasHdf5Iteration = 0;
         const char *gasHdf5Dataset = "fields/Density_e";
     }
+#endif
 
     namespace gasNone
     {
