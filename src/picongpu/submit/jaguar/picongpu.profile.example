@@ -28,6 +28,11 @@ module load adios/1.6.0
 export HDF5_ROOT=$HDF5_DIR
 export ADIOS_ROOT=$ADIOS_DIR
 
+# download libSplash and compile it yourself from
+#   https://github.com/ComputationalRadiationPhysics/libSplash/
+export SPLASH_ROOT=$MEMBERWORK/$proj/lib/splash
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$SPLASH_ROOT/lib
+
 # download libpng.h and compile yourself with
 #   http://www.libpng.org/pub/png/libpng.html
 #   tar -xvf libpng-1.6.9.tar.gz
@@ -41,4 +46,8 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PNGWRITER_ROOT/lib
 
 # helper variables and tools ########################################
 export PICSRC=$HOME/src/picongpu
+
 export PATH=$PATH:$PICSRC/src/tools/bin
+export PATH=$PATH:$SPLASH_ROOT/bin
+
+export PYTHONPATH=$PYTHONPATH:$SPLASH_ROOT/bin
