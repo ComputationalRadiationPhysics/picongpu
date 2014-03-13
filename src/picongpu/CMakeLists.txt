@@ -239,6 +239,7 @@ endif(PIC_ENABLE_INSITU_VOLVIS)
 ################################################################################
 
 # find adios installation
+set(ADIOS_USE_STATIC_LIBS ON)
 find_package(ADIOS 1.6.0)
 
 if(ADIOS_FOUND)

@@ -20,16 +20,22 @@
 # If this variable is not set, make sure that at least the according `bin/`
 # directory of ADIOS is in your PATH environment variable.
 #
+# Set the following CMake variables BEFORE calling find_packages to
+# influence this module:
+#   ADIOS_USE_STATIC_LIBS - Set to ON to force the use of static
+#                           libraries.  Default: OFF
+#
 # This module will define the following variables:
-#   ADIOS_INCLUDE_DIRS   - Include directories for the ADIOS headers.
-#   ADIOS_LIBRARIES      - ADIOS libraries.
-#   ADIOS_FOUND          - TRUE if FindADIOS found a working install
-#   ADIOS_VERSION        - Version in format Major.Minor.Patch
+#   ADIOS_INCLUDE_DIRS    - Include directories for the ADIOS headers.
+#   ADIOS_LIBRARIES       - ADIOS libraries.
+#   ADIOS_FOUND           - TRUE if FindADIOS found a working install
+#   ADIOS_VERSION         - Version in format Major.Minor.Patch
 #
 # Not used for now:
-#   ADIOS_DEFINITIONS    - Compiler definitions you should add with
-#                          add_definitions(${ADIOS_DEFINITIONS})
+#   ADIOS_DEFINITIONS     - Compiler definitions you should add with
+#                           add_definitions(${ADIOS_DEFINITIONS})
 #
+
 
 ################################################################################
 # Copyright 2014 Axel Huebl, Felix Schmitt                          
@@ -51,6 +57,7 @@
 # If not, see <http://www.gnu.org/licenses/>.
 ################################################################################
 
+
 ################################################################################
 # Required cmake version
 ################################################################################
@@ -66,6 +73,7 @@ cmake_minimum_required(VERSION 2.8.5)
 # dependencies are missing (or if we did not find ADIOS at all)
 set(ADIOS_FOUND TRUE)
 
+
 # find `adios_config` program #################################################
 #   check the ADIOS_ROOT hint and the normal PATH
 find_file(_ADIOS_CONFIG
@@ -78,6 +86,7 @@ else(_ADIOS_CONFIG)
     set(ADIOS_FOUND FALSE)
     message(STATUS "Can NOT find 'adios_config' - set ADIOS_ROOT or check your PATH")
 endif(_ADIOS_CONFIG)
+
 
 # check `adios_config` program ################################################
 execute_process(COMMAND ${_ADIOS_CONFIG} -l
@@ -100,6 +109,15 @@ if(NOT IS_DIRECTORY "${ADIOS_ROOT_DIR}")
     set(ADIOS_FOUND FALSE)
     message(STATUS "The directory provided by 'adios_config -d' does not exist: ${ADIOS_ROOT_DIR}")
 endif()
+
+
+# option: use only static libs ################################################
+if(ADIOS_USE_STATIC_LIBS)
+    # carfully: we have to restore the original path in the end
+    set(_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES})
+    set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
+endif()
+
 
 # we found something in ADIOS_ROOT_DIR and adios_config works #################
 if(ADIOS_FOUND)
@@ -127,37 +145,20 @@ if(ADIOS_FOUND)
     string(REGEX MATCHALL "-l([A-Za-z_0-9\\.-]+)" _ADIOS_LIBS "${ADIOS_LINKFLAGS}")
 
     foreach(_LIB ${_ADIOS_LIBS})
-        string(REPLACE "-l" "lib" _LIB ${_LIB})
+        string(REPLACE "-l" "" _LIB ${_LIB})
 
         # find static lib: absolute path in -L then default
-        set(_LE "a")
         unset(_LIB_DIR CACHE)
         unset(_LIB_DIR)
-        set(_LIB_PREF "")
-        find_path(_LIB_DIR NAMES "${_LIB}.${_LE}" PATHS ${ADIOS_LIBRARY_DIRS})
-        if(NOT _LIB_DIR)
-            set(_LIB_PREF "lib/")
-            find_path(_LIB_DIR NAMES "${_LIB_PREF}${_LIB}.${_LE}")
-        endif(NOT _LIB_DIR)
-
-        # not found? find shared lib!
-        if(NOT _LIB_DIR)
-            set(_LE "so")
-            set(_LIB_PREF "")
-            find_path(_LIB_DIR NAMES "${_LIB}.${_LE}" PATHS ${ADIOS_LIBRARY_DIRS})
-            if(NOT _LIB_DIR)
-                set(_LIB_PREF "lib/")
-                find_path(_LIB_DIR NAMES "${_LIB_PREF}${_LIB}.${_LE}")
-            endif(NOT _LIB_DIR)
-        endif(NOT _LIB_DIR)
+        find_library(_LIB_DIR NAMES ${_LIB} PATHS ${ADIOS_LIBRARY_DIRS})
 
         # found?
         if(_LIB_DIR)
-            message(STATUS "Found ${_LIB} in ${_LIB_DIR}/${_LIB_PREF}")
-            list(APPEND ADIOS_LIBRARIES "${_LIB_DIR}/${_LIB_PREF}${_LIB}.${_LE}")
+            message(STATUS "Found ${_LIB} in ${_LIB_DIR}")
+            list(APPEND ADIOS_LIBRARIES "${_LIB_DIR}")
         else(_LIB_DIR)
             set(ADIOS_FOUND FALSE)
-            message(STATUS "ADIOS: Could NOT find library '${_LIB}.a'/'${_LIB}.so'")
+            message(STATUS "ADIOS: Could NOT find library '${_LIB}'")
         endif(_LIB_DIR)
 
     endforeach()
@@ -183,6 +184,12 @@ if(NOT ADIOS_FOUND)
     unset(ADIOS_INCLUDE_DIRS)
     unset(ADIOS_LIBRARIES)
 endif(NOT ADIOS_FOUND)
+
+
+# restore CMAKE_FIND_LIBRARY_SUFFIXES if manipulated by this module ###########
+if(ADIOS_USE_STATIC_LIBS)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ${_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES})
+endif()
 
 
 ################################################################################
