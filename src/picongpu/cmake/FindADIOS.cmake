@@ -17,6 +17,9 @@
 # To provide a hint to the module where to find the ADIOS installation,
 # set the ADIOS_ROOT environment variable.
 #
+# If this variable is not set, make sure that at least the according `bin/`
+# directory of ADIOS is in your PATH environment variable.
+#
 # This module will define the following variables:
 #   ADIOS_INCLUDE_DIRS   - Include directories for the ADIOS headers.
 #   ADIOS_LIBRARIES      - ADIOS libraries.
@@ -63,28 +66,43 @@ cmake_minimum_required(VERSION 2.8.5)
 # dependencies are missing (or if we did not find ADIOS at all)
 set(ADIOS_FOUND TRUE)
 
-# check at ADIOS_ROOT
-find_path(ADIOS_ROOT_DIR
-  NAMES include/adios.h lib/libadios.so
-  PATHS ENV ADIOS_ROOT
-  DOC "ADIOS ROOT location"
-)
+# find `adios_config` program #################################################
+#   check the ADIOS_ROOT hint and the normal PATH
+find_file(_ADIOS_CONFIG
+    NAME adios_config
+    PATHS $ENV{ADIOS_ROOT}/bin $ENV{PATH})
 
-# check `adios_config` program
-execute_process(COMMAND adios_config -l
+if(_ADIOS_CONFIG)
+    message(STATUS "Found 'adios_config': ${_ADIOS_CONFIG}")
+else(_ADIOS_CONFIG)
+    set(ADIOS_FOUND FALSE)
+    message(STATUS "Can NOT find 'adios_config' - set ADIOS_ROOT or check your PATH")
+endif(_ADIOS_CONFIG)
+
+# check `adios_config` program ################################################
+execute_process(COMMAND ${_ADIOS_CONFIG} -l
                 OUTPUT_VARIABLE ADIOS_LINKFLAGS
                 RESULT_VARIABLE ADIOS_CONFIG_RETURN)
 if(NOT ADIOS_CONFIG_RETURN EQUAL 0)
-    set(ADIOS_CONFIG_RETURN FALSE)
-    message(STATUS "Can NOT find adios_config helper - check your PATH")
+    set(ADIOS_FOUND FALSE)
+    message(STATUS "Can NOT execute 'adios_config' - check file permissions")
 else()
-    set(ADIOS_CONFIG_RETURN TRUE)
     # trim trailing newlines
     string(REGEX REPLACE "(\r?\n)+$" "" ADIOS_LINKFLAGS "${ADIOS_LINKFLAGS}")
 endif()
 
-# we found something in ADIOS_ROOT and adios_config works
-if(ADIOS_ROOT_DIR AND ADIOS_CONFIG_RETURN)
+# find ADIOS_ROOT_DIR
+execute_process(COMMAND ${_ADIOS_CONFIG} -d
+                OUTPUT_VARIABLE ADIOS_ROOT_DIR)
+# trim trailing newlines
+string(REGEX REPLACE "(\r?\n)+$" "" ADIOS_ROOT_DIR "${ADIOS_ROOT_DIR}")
+if(NOT IS_DIRECTORY "${ADIOS_ROOT_DIR}")
+    set(ADIOS_FOUND FALSE)
+    message(STATUS "The directory provided by 'adios_config -d' does not exist: ${ADIOS_ROOT_DIR}")
+endif()
+
+# we found something in ADIOS_ROOT_DIR and adios_config works #################
+if(ADIOS_FOUND)
     # ADIOS headers
     list(APPEND ADIOS_INCLUDE_DIRS ${ADIOS_ROOT_DIR}/include)
 
@@ -92,12 +110,16 @@ if(ADIOS_ROOT_DIR AND ADIOS_CONFIG_RETURN)
     message(STATUS "ADIOS linker flags (unparsed): ${ADIOS_LINKFLAGS}")
 
     # find all library paths -L
-    set(ADIOS_LIBRARY_DIRS "")# ${CMAKE_PREFIX_PATH}
+    #   note: this can cause trouble if some libs are specified twice from
+    #         different sources (quite unlikely)
+    #         http://www.cmake.org/pipermail/cmake/2008-November/025128.html
+    set(ADIOS_LIBRARY_DIRS "")
     string(REGEX MATCHALL "-L([A-Za-z_0-9/\\.-]+)" _ADIOS_LIBDIRS "${ADIOS_LINKFLAGS}")
     foreach(_LIBDIR ${_ADIOS_LIBDIRS})
         string(REPLACE "-L" "" _LIBDIR ${_LIBDIR})
         list(APPEND ADIOS_LIBRARY_DIRS ${_LIBDIR})
     endforeach()
+    # we could append ${CMAKE_PREFIX_PATH} now but that is not really necessary
 
     #message(STATUS "ADIOS DIRS to look for libs: ${ADIOS_LIBRARY_DIRS}")
 
@@ -149,14 +171,12 @@ if(ADIOS_ROOT_DIR AND ADIOS_CONFIG_RETURN)
     #message(STATUS "ADIOS required components: ${ADIOS_FIND_COMPONENTS}")
 
     # add the version string
-    execute_process(COMMAND adios_config -v
+    execute_process(COMMAND ${_ADIOS_CONFIG} -v
                     OUTPUT_VARIABLE ADIOS_VERSION)
     # trim trailing newlines
     string(REGEX REPLACE "(\r?\n)+$" "" ADIOS_VERSION "${ADIOS_VERSION}")
 
-else(ADIOS_ROOT_DIR AND ADIOS_CONFIG_RETURN)
-    set(ADIOS_FOUND FALSE)
-endif(ADIOS_ROOT_DIR AND ADIOS_CONFIG_RETURN)
+endif(ADIOS_FOUND)
 
 # unset checked variables if not found
 if(NOT ADIOS_FOUND)
