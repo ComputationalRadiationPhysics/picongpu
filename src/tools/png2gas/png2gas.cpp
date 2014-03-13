@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ */
 
 #include <iostream>
 #include <string>
@@ -36,16 +36,18 @@ typedef struct
     std::string densityDataset;
     int iteration;
     Dimensions dataSize;
+    Dimensions dataOffset;
 } Options;
 
 bool parseCmdLine(int argc, char **argv, Options &options)
 {
     try
     {
-        std::vector<size_t> sizes;
+        std::vector<size_t> sizes, offset;
         options.filename = "";
         options.densityFilename = "gas";
         options.densityDataset = "fields/Density_e";
+        options.dataOffset.set(0, 0, 0);
         options.iteration = 0;
 
         std::stringstream desc_stream;
@@ -56,6 +58,7 @@ bool parseCmdLine(int argc, char **argv, Options &options)
         desc.add_options()
                 ("help,h", "print help message")
                 ("grid,g", po::value<std::vector<size_t> > (&sizes)->multitoken(), "3D Grid dimensions")
+                ("offset", po::value<std::vector<size_t> > (&offset)->multitoken(), "3D Grid offset, default (0,0,0)")
                 ("png", po::value<std::string > (&options.filename), "Input PNG file")
                 ("iteration,i", po::value<int > (&options.iteration)->default_value(options.iteration),
                 "Iteration (timestep) for density data")
@@ -95,6 +98,19 @@ bool parseCmdLine(int argc, char **argv, Options &options)
 
         options.dataSize.set(sizes[0], sizes[1], sizes[2]);
 
+        if (vm.count("offset"))
+        {
+            if (offset.size() != 3)
+            {
+                std::cerr << "Error: Please specify 3D offset." << std::endl;
+                std::cerr << std::endl << desc << std::endl;
+                return false;
+            }
+            
+            options.dataOffset.set(offset[0], offset[1], offset[2]);
+        }
+        
+
     } catch (boost::program_options::error& e)
     {
         std::cerr << e.what() << std::endl;
@@ -122,7 +138,7 @@ int main(int argc, char **argv)
     pngwriter image(data_size[1], data_size[0], 0, (options.filename + std::string(".tmp")).c_str());
     image.readfromfile(options.filename.c_str());
 
-    if (image.getwidth() != (int)data_size[1] || image.getheight() != (int)data_size[0])
+    if (image.getwidth() != (int) data_size[1] || image.getheight() != (int) data_size[0])
     {
         image.close();
         std::cerr << "Invalid image size (" << image.getwidth() << "," <<
@@ -156,15 +172,25 @@ int main(int argc, char **argv)
             options.iteration << ".h5'" << std::endl;
 
     /* write density information to HDF5 */
-    ParallelDataCollector *pdc = new
-            ParallelDataCollector(MPI_COMM_WORLD, MPI_INFO_NULL, Dimensions(1, 1, 1), 1);
+    ParallelDomainCollector *pdc = new
+            ParallelDomainCollector(MPI_COMM_WORLD, MPI_INFO_NULL, Dimensions(1, 1, 1), 1);
     DataCollector::FileCreationAttr attr;
     DataCollector::initFileCreationAttr(attr);
     pdc->open(options.densityFilename.c_str(), attr);
 
     ColTypeFloat ctFloat;
-    pdc->write(options.iteration, ctFloat, data_size.getDims(),
-            data_size, options.densityDataset.c_str(), data);
+    pdc->writeDomain(
+            options.iteration,
+            ctFloat,
+            data_size.getDims(),
+            data_size,
+            options.densityDataset.c_str(),
+            options.dataOffset,
+            data_size,
+            options.dataOffset,
+            data_size,
+            DomainCollector::GridType,
+            data);
 
     pdc->close();
     delete pdc;
