@@ -6,7 +6,7 @@ Requirements
 
 ### Mandatory
 
-- **gcc** 4.3 to 4.7 (depends on current CUDA version)
+- **gcc** 4.4 to 4.8 (depends on current CUDA version)
   - *Debian/Ubuntu:*
     - `sudo apt-get install gcc-4.4 g++-4.4 build-essential`
     - `sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.4 60 \`
