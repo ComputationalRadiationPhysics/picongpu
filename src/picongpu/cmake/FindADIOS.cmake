@@ -76,20 +76,20 @@ set(ADIOS_FOUND TRUE)
 
 # find `adios_config` program #################################################
 #   check the ADIOS_ROOT hint and the normal PATH
-find_file(_ADIOS_CONFIG
+find_file(ADIOS_CONFIG
     NAME adios_config
     PATHS $ENV{ADIOS_ROOT}/bin $ENV{PATH})
 
-if(_ADIOS_CONFIG)
-    message(STATUS "Found 'adios_config': ${_ADIOS_CONFIG}")
-else(_ADIOS_CONFIG)
+if(ADIOS_CONFIG)
+    message(STATUS "Found 'adios_config': ${ADIOS_CONFIG}")
+else(ADIOS_CONFIG)
     set(ADIOS_FOUND FALSE)
     message(STATUS "Can NOT find 'adios_config' - set ADIOS_ROOT or check your PATH")
-endif(_ADIOS_CONFIG)
+endif(ADIOS_CONFIG)
 
 
 # check `adios_config` program ################################################
-execute_process(COMMAND ${_ADIOS_CONFIG} -l
+execute_process(COMMAND ${ADIOS_CONFIG} -l
                 OUTPUT_VARIABLE ADIOS_LINKFLAGS
                 RESULT_VARIABLE ADIOS_CONFIG_RETURN)
 if(NOT ADIOS_CONFIG_RETURN EQUAL 0)
@@ -101,7 +101,7 @@ else()
 endif()
 
 # find ADIOS_ROOT_DIR
-execute_process(COMMAND ${_ADIOS_CONFIG} -d
+execute_process(COMMAND ${ADIOS_CONFIG} -d
                 OUTPUT_VARIABLE ADIOS_ROOT_DIR)
 # trim trailing newlines
 string(REGEX REPLACE "(\r?\n)+$" "" ADIOS_ROOT_DIR "${ADIOS_ROOT_DIR}")
@@ -148,8 +148,6 @@ if(ADIOS_FOUND)
         string(REPLACE "-l" "" _LIB ${_LIB})
 
         # find static lib: absolute path in -L then default
-        unset(_LIB_DIR CACHE)
-        unset(_LIB_DIR)
         find_library(_LIB_DIR NAMES ${_LIB} PATHS ${ADIOS_LIBRARY_DIRS})
 
         # found?
@@ -161,6 +159,9 @@ if(ADIOS_FOUND)
             message(STATUS "ADIOS: Could NOT find library '${_LIB}'")
         endif(_LIB_DIR)
 
+        # clean cached var
+        unset(_LIB_DIR CACHE)
+        unset(_LIB_DIR)
     endforeach()
 
     # simplify lists and check for missing components (not implemented)
@@ -172,7 +173,7 @@ if(ADIOS_FOUND)
     #message(STATUS "ADIOS required components: ${ADIOS_FIND_COMPONENTS}")
 
     # add the version string
-    execute_process(COMMAND ${_ADIOS_CONFIG} -v
+    execute_process(COMMAND ${ADIOS_CONFIG} -v
                     OUTPUT_VARIABLE ADIOS_VERSION)
     # trim trailing newlines
     string(REGEX REPLACE "(\r?\n)+$" "" ADIOS_VERSION "${ADIOS_VERSION}")
@@ -192,9 +193,9 @@ if(ADIOS_USE_STATIC_LIBS)
 endif()
 
 
-################################################################################
+###############################################################################
 # FindPackage Options
-################################################################################
+###############################################################################
 
 # handles the REQUIRED, QUIET and version-related arguments for find_package
 include(FindPackageHandleStandardArgs)
