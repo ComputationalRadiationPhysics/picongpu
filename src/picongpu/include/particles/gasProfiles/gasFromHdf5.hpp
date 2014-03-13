@@ -105,14 +105,13 @@ namespace picongpu
                 
                 /* get dimensions */
                 DataSpace<simDim> fieldNoGuards = fieldBuffer.getGridLayout().getDataSpaceWithoutGuarding();
-                DataSpace<simDim> guards = fieldBuffer.getGridLayout().getGuard();
                 int bufferSize = fieldNoGuards.productOfComponents();
 
                 PMACC_AUTO(dataBox, fieldBuffer.getHostBuffer().getDataBox());
                 typedef DataBoxDim1Access< typename GridBuffer<Type, simDim >::DataBoxType > D1Box;
                 
-                /* get a 1D access object to the databox which ignores guarding */
-                D1Box d1RAccess(dataBox.shift(guards), fieldNoGuards);
+                /* get a 1D access object to the databox */
+                D1Box d1RAccess(dataBox, fieldNoGuards);
                 
                 /* allocate temporary buffer for hdf5 data */
                 typedef typename Type::type ValueType;

@@ -23,4 +23,8 @@ Required libraries:
 png2gas requires a png file with the same size (width, height) as the density data (y, x)
 you want to create. Run `png2gas --help` for detailed usage information.
 
+Valid density input images are greyscale PNGs. The **Value** component of the image in
+HSV colorspace is used to compute the normalized density as a 32bit float value in [0.0,1.0].
+White (Value = 1.0) in the input image is considered no density/vacuum and thus converted to
+a density value of 0.0. Black is converted accordingly.
 
