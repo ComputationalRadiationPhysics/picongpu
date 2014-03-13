@@ -131,25 +131,29 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    for (int x = 0; x < (int)data_size[0]; ++x)
-        for (int y = 0; y < (int)data_size[1]; ++y)
+    for (size_t x = 0; x < data_size[0]; ++x)
+        for (size_t y = 0; y < data_size[1]; ++y)
         {
-            double px_value = image.dread(1 + y, 1 + (data_size[0] - x - 1), 3);
+            /* pngwriter coordinates start at (1,1) and the y direction is inverted */
+            double px_value = image.dreadHSV(1 + y, 1 + (data_size[0] - x - 1), 3);
             float color = 1.0 - px_value;
 
             image.plot(1 + y, 1 + (data_size[0] - x - 1), color, color, color);
 
-            for (int z = 0; z < (int)data_size[2]; ++z)
+            for (size_t z = 0; z < data_size[2]; ++z)
             {
                 size_t index = z * (data_size[0] * data_size[1]) + y * data_size[0] + x;
                 data[index] = color;
             }
         }
+
+    /* write and close the output png */
     image.close();
 
     std::cout << " Creating density HDF5 file '" << options.densityFilename << "_" <<
             options.iteration << ".h5'" << std::endl;
 
+    /* write density information to HDF5 */
     ParallelDataCollector *pdc = new
             ParallelDataCollector(MPI_COMM_WORLD, MPI_INFO_NULL, Dimensions(1, 1, 1), 1);
     DataCollector::FileCreationAttr attr;
