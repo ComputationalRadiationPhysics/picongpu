@@ -197,6 +197,7 @@ endif()
 ################################################################################
 
 # handles the REQUIRED, QUIET and version-related arguments for find_package
+include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(ADIOS
     REQUIRED_VARS ADIOS_LIBRARIES ADIOS_INCLUDE_DIRS
     VERSION_VAR ADIOS_VERSION
