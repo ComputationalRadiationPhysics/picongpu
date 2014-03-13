@@ -100,8 +100,8 @@ namespace picongpu
                 for (uint32_t d = 0; d < simDim; ++d)
                     domainSize[d] = localDomainSize[d];
 
-                /* clear host buffer */
-                fieldBuffer.getHostBuffer().setValue(float1_X(0.));
+                /* clear host buffer with default value */
+                fieldBuffer.getHostBuffer().setValue(float1_X(gasDefaultValue));
                 
                 /* get dimensions */
                 DataSpace<simDim> fieldNoGuards = fieldBuffer.getGridLayout().getDataSpaceWithoutGuarding();

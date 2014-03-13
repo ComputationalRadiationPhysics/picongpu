@@ -135,10 +135,12 @@ int main(int argc, char **argv)
         for (size_t y = 0; y < data_size[1]; ++y)
         {
             /* pngwriter coordinates start at (1,1) and the y direction is inverted */
-            double px_value = image.dreadHSV(1 + y, 1 + (data_size[0] - x - 1), 3);
-            float color = 1.0 - px_value;
+            int pos_x = 1 + y;
+            int pos_y = 1 + (data_size[0] - x - 1);
 
-            image.plot(1 + y, 1 + (data_size[0] - x - 1), color, color, color);
+            double color = image.dreadHSV(pos_x, pos_y, 3);
+
+            image.plot(pos_x, pos_y, color, color, color);
 
             for (size_t z = 0; z < data_size[2]; ++z)
             {
