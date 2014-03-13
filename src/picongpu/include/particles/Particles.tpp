@@ -200,7 +200,7 @@ void Particles<T_DataVector, T_MethodsVector>::initFill( uint32_t currentStep )
         PMACC_AUTO( &fieldTmpGridBuffer, this->fieldTmp->getGridBuffer() );
         FieldTmp::DataBoxType dataBox = fieldTmpGridBuffer.getDeviceBuffer().getDataBox();
         
-        if (!gasProfile::gasSetup(fieldTmpGridBuffer))
+        if (!gasProfile::gasSetup(fieldTmpGridBuffer, window))
         {
             log<picLog::SIMULATION_STATE > ("Failed to setup gas profile");
         }
@@ -212,7 +212,7 @@ void Particles<T_DataVector, T_MethodsVector>::initFill( uint32_t currentStep )
               gpuCellOffset,
               seed,
               globalNrOfCells.y( ),
-              dataBox);
+              dataBox.shift(this->fieldTmp->getGridLayout().getGuard()));
     }
 
     this->fillAllGaps( );

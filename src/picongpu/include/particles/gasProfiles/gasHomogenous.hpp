@@ -26,13 +26,14 @@
 #include "types.h"
 #include "simulation_defines.hpp"
 #include "memory/buffers/GridBuffer.hpp"
+#include "simulationControl/VirtualWindow.hpp"
 
 namespace picongpu
 {
     namespace gasHomogenous
     {
         template<class Type>
-        bool gasSetup( GridBuffer<Type, simDim>& )
+        bool gasSetup( GridBuffer<Type, simDim>&, VirtualWindow& )
         {
             return true;
         }
