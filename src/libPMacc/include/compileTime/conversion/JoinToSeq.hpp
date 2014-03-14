@@ -39,7 +39,7 @@ namespace bmpl = boost::mpl;
  * @tparam T_2 a boost mpl sequence or single type
  */
 
-template<class T_1, class T_2 = bmpl::vector<> >
+template<typename T_1, typename T_2 = bmpl::vector0<> >
 struct JoinToSeq
 {
 private:
