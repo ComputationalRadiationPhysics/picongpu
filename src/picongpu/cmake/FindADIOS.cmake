@@ -89,26 +89,28 @@ endif(ADIOS_CONFIG)
 
 
 # check `adios_config` program ################################################
-execute_process(COMMAND ${ADIOS_CONFIG} -l
-                OUTPUT_VARIABLE ADIOS_LINKFLAGS
-                RESULT_VARIABLE ADIOS_CONFIG_RETURN)
-if(NOT ADIOS_CONFIG_RETURN EQUAL 0)
-    set(ADIOS_FOUND FALSE)
-    message(STATUS "Can NOT execute 'adios_config' - check file permissions")
-else()
-    # trim trailing newlines
-    string(REGEX REPLACE "(\r?\n)+$" "" ADIOS_LINKFLAGS "${ADIOS_LINKFLAGS}")
-endif()
+if(ADIOS_FOUND)
+    execute_process(COMMAND ${ADIOS_CONFIG} -l
+                    OUTPUT_VARIABLE ADIOS_LINKFLAGS
+                    RESULT_VARIABLE ADIOS_CONFIG_RETURN)
+    if(NOT ADIOS_CONFIG_RETURN EQUAL 0)
+        set(ADIOS_FOUND FALSE)
+        message(STATUS "Can NOT execute 'adios_config' - check file permissions")
+    else()
+        # trim trailing newlines
+        string(REGEX REPLACE "(\r?\n)+$" "" ADIOS_LINKFLAGS "${ADIOS_LINKFLAGS}")
+    endif()
 
-# find ADIOS_ROOT_DIR
-execute_process(COMMAND ${ADIOS_CONFIG} -d
-                OUTPUT_VARIABLE ADIOS_ROOT_DIR)
-# trim trailing newlines
-string(REGEX REPLACE "(\r?\n)+$" "" ADIOS_ROOT_DIR "${ADIOS_ROOT_DIR}")
-if(NOT IS_DIRECTORY "${ADIOS_ROOT_DIR}")
-    set(ADIOS_FOUND FALSE)
-    message(STATUS "The directory provided by 'adios_config -d' does not exist: ${ADIOS_ROOT_DIR}")
-endif()
+    # find ADIOS_ROOT_DIR
+    execute_process(COMMAND ${ADIOS_CONFIG} -d
+                    OUTPUT_VARIABLE ADIOS_ROOT_DIR)
+    # trim trailing newlines
+    string(REGEX REPLACE "(\r?\n)+$" "" ADIOS_ROOT_DIR "${ADIOS_ROOT_DIR}")
+    if(NOT IS_DIRECTORY "${ADIOS_ROOT_DIR}")
+        set(ADIOS_FOUND FALSE)
+        message(STATUS "The directory provided by 'adios_config -d' does not exist: ${ADIOS_ROOT_DIR}")
+    endif()
+endif(ADIOS_FOUND)
 
 
 # option: use only static libs ################################################
