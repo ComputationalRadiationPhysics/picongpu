@@ -36,6 +36,7 @@ identifier(pmacc_isAlias);
         template<typename T=PMacc::pmacc_void,typename T_IsAlias=PMacc::pmacc_isAlias> \
         struct name:public T                                                   \
         {                                                                      \
+            typedef T ThisType;                                                \
             static HDINLINE char* getName()                                    \
             {                                                                  \
                      return #name;                                             \
@@ -63,5 +64,8 @@ identifier(pmacc_isAlias);
  * to specialized an alies do: aliesName<valueIdentifierName>
  * to create a instance of this alies you can use:
  *      aliesName();   or aliesName
+ * 
+ * get type which is represented by the alias
+ *      typedef typename name::ThisType type;
  */
 #define alias(name) PMACC_alias(name,__COUNTER__)
