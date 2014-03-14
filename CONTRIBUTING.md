@@ -275,8 +275,8 @@ Coding Guide Lines
 Well - there are some! ;)
 - Please follow our recommendations in our
   [wiki page](https://github.com/ComputationalRadiationPhysics/picongpu/wiki/Coding-Guide-Lines).
-- The `uncrustify` script at [picongpu_uncrustify.cfg] can be used for
-  auto-formatting your code.
+- The `uncrustify` script [picongpu_uncrustify.cfg](doc/picongpu_uncrustify.cfg)
+  can be used for auto-formatting your code.
 
 Please **add the according license header** snippet to your *new files*:
 - for PIConGPU (GPLv3+): `src/tools/bin/addLicense <FileName>`
