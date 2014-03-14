@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -225,8 +225,8 @@ namespace picongpu
     namespace gasFromHdf5
     {
         const char *gasHdf5Filename = "gas";
-        const int32_t gasHdf5Iteration = 0;
         const char *gasHdf5Dataset = "fields/Density_e";
+        const int32_t gasHdf5Iteration = 0;
         const float_X gasDefaultValue = 0.0;
     }
 #endif
