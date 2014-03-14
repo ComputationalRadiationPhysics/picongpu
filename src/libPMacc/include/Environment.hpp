@@ -134,7 +134,7 @@ namespace PMacc
             
         }
 
-        void deinit()
+        void finalize()
         {
         }
 
