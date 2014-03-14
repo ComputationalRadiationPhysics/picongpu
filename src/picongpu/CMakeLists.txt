@@ -52,6 +52,9 @@ project(PIConGPU)
 set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{MPI_ROOT}"
     "$ENV{CUDA_ROOT}" "$ENV{BOOST_ROOT}" "$ENV{HDF5_ROOT}" "$ENV{VT_ROOT}")
 
+# own modules for find_packages
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
+
 
 ################################################################################
 # Find CUDA 
@@ -236,70 +239,15 @@ endif(PIC_ENABLE_INSITU_VOLVIS)
 ################################################################################
 
 # find adios installation
-find_path(PIC_ADIOS_ROOT_DIR
-  NAMES include/adios.h lib/libadios.so
-  PATHS ENV ADIOS_ROOT
-  DOC "ADIOS ROOT location. (only used if ADIOS is enabled)"
-)
+#   set(ADIOS_USE_STATIC_LIBS ON) # force static linking
+find_package(ADIOS 1.6.0)
 
-option(PIC_ADIOS_ENABLED "Enable ADIOS output plugin (if available)" ON)
-if(PIC_ADIOS_ROOT_DIR)
-    message(STATUS "Found ADIOS: "${PIC_ADIOS_ROOT_DIR})
-    include_directories(SYSTEM ${PIC_ADIOS_ROOT_DIR}/include)
-    link_directories(${PIC_ADIOS_ROOT_DIR}/lib)
-    set(LIBS ${LIBS} adios)
-
-    # find mxml installation
-    find_path(PIC_MXML_ROOT_DIR
-      NAMES include/mxml.h lib/libmxml.so
-      PATHS ENV MXML_ROOT
-      DOC "MXML ROOT location. (only used if ADIOS is enabled)"
-    )
-
-    if(PIC_MXML_ROOT_DIR)
-        message(STATUS "Found MXML: "${PIC_MXML_ROOT_DIR})
-        include_directories(SYSTEM ${PIC_MXML_ROOT_DIR}/include)
-        link_directories(${PIC_MXML_ROOT_DIR}/lib)
-        set(LIBS ${LIBS} mxml)
-    else(PIC_MXML_ROOT_DIR)
-        set(PIC_ADIOS_ENABLED OFF)
-        message(STATUS "Could NOT find MXML (ADIOS will be disabled)")
-    endif(PIC_MXML_ROOT_DIR)
-
-    # check for further dependencies (right now Dataspaces)
-    execute_process(COMMAND adios_config -l
-                    OUTPUT_VARIABLE ADIOS_LINKFLAGS)
-    message(STATUS "Additional linker flags for ADIOS: ${ADIOS_LINKFLAGS}")
-
-    # find dataspaces installation (if compiled in)
-    if("${ADIOS_LINKFLAGS}" MATCHES "ldspaces")
-        find_path(PIC_DATASPACES_ROOT_DIR
-          NAMES include/dataspaces.h lib/libdspaces.a
-          PATHS ENV DATASPACES_ROOT
-          DOC "DATASPACES ROOT location. (only used if ADIOS is enabled)"
-        )
-
-       if(PIC_DATASPACES_ROOT_DIR)
-            message(STATUS "Found Dataspaces: "${PIC_DATASPACES_ROOT_DIR})
-            include_directories(SYSTEM ${PIC_DATASPACES_ROOT_DIR}/include)
-            link_directories(${PIC_DATASPACES_ROOT_DIR}/lib)
-            set(LIBS ${LIBS} dspaces dscommon dart)
-
-        else(PIC_DATASPACES_ROOT_DIR)
-            set(PIC_ADIOS_ENABLED OFF)
-            message(STATUS "Could NOT find DATASPACES (ADIOS will be disabled)")
-        endif(PIC_DATASPACES_ROOT_DIR)
-    endif()
-
-else(PIC_ADIOS_ROOT_DIR)
-    set(PIC_ADIOS_ENABLED OFF)
-    message(STATUS "Could NOT find ADIOS")
-endif(PIC_ADIOS_ROOT_DIR)
-
-# finally enable adios if all dependencies are satisfied
-if(PIC_ADIOS_ENABLED)
+if(ADIOS_FOUND)
     add_definitions(-DENABLE_ADIOS=1)
-endif(PIC_ADIOS_ENABLED)
+
+    include_directories(SYSTEM ${ADIOS_INCLUDE_DIRS})
+    set(LIBS ${LIBS} ${ADIOS_LIBRARIES})
+endif(ADIOS_FOUND)
 
 
 ################################################################################
