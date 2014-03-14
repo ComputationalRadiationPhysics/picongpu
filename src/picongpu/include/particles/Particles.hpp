@@ -58,8 +58,7 @@ public:
 
     void init(FieldE &fieldE, FieldB &fieldB, FieldJ &fieldJ, FieldTmp &fieldTmp);
 
-    template<typename T_Pusher>
-    void update(T_Pusher,uint32_t currentStep);
+    void update(uint32_t currentStep);
 
     void initFill(uint32_t currentStep);
 

@@ -40,8 +40,8 @@ namespace PMacc
  */
 template<
 typename T_ValueTypeSeq,
-typename T_MethodsList = bmpl::vector<>,
-typename T_Flags = bmpl::vector<> >
+typename T_MethodsList = bmpl::vector0<>,
+typename T_Flags = bmpl::vector0<> >
 struct ParticleDescription
 {
     typedef T_ValueTypeSeq ValueTypeSeq;

@@ -28,6 +28,7 @@
 #include "particles/Particles.hpp"
 #include "particles/species/ions/IonMethods.hpp"
 #include "particles/species/electrons/ElectronMethods.hpp"
+#include "particles/ParticleDescription.hpp"
 
 namespace picongpu
 {
@@ -66,16 +67,8 @@ typename MakeSeq<
     >::type
 Species2_data;
 
-typedef Particles<
-    Species1_data,
-    ElectronsMethodsList
-> PIC_Electrons;
-
-typedef Particles<
-    Species2_data,
-    IonsMethodsList
-> PIC_Ions;
-
+typedef Particles<ParticleDescription<Species1_data, ElectronsMethodsList> > PIC_Electrons;
+typedef Particles<ParticleDescription<Species2_data, IonsMethodsList> > PIC_Ions;
 
 /** \todo: not nice, but this should be changed in the future*/
 typedef typename MakeSeq<
@@ -96,3 +89,5 @@ typedef typename MakeSeq<
 >::type VectorAllSpecies;
 
 } //namespace picongpu
+
+#include "particles/Particles.tpp"
