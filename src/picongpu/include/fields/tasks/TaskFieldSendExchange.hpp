@@ -65,7 +65,7 @@ namespace PMacc
                 break;
             case WaitForBash:
 
-                if (NULL == Manager::getInstance().getITaskIfNotFinished(initDependency.getTaskId()) )
+                if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(initDependency.getTaskId()) )
                 {
                     state = InitSend;
                     sendEvent = buffer.getGridBuffer().asyncSend(EventTask(), exchange, initDependency);
@@ -76,7 +76,7 @@ namespace PMacc
             case InitSend:
                 break;
             case WaitForSendEnd:
-                if (NULL == Manager::getInstance().getITaskIfNotFinished(sendEvent.getTaskId()))
+                if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(sendEvent.getTaskId()))
                 {
                     state = Finished;
                     return true;

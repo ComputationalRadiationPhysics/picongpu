@@ -23,12 +23,8 @@
 #define	_TASKPARTICLESRECEIVE_HPP
 
 
+#include "Environment.hpp"
 #include "eventSystem/EventSystem.hpp"
-#include "particles/tasks/ParticleFactory.hpp"
-#include "eventSystem/tasks/ITask.hpp"
-#include "eventSystem/tasks/MPITask.hpp"
-#include "eventSystem/events/EventDataReceive.hpp"
-
 
 
 namespace PMacc
@@ -61,7 +57,7 @@ namespace PMacc
                 if (parBase.getParticlesBuffer().hasReceiveExchange(i))
                 {
                     __startAtomicTransaction(serialEvent);
-                    ParticleFactory::getInstance().createTaskReceiveParticlesExchange(parBase, i);
+                    Environment<>::get().ParticleFactory().createTaskReceiveParticlesExchange(parBase, i);
                     tmpEvent += __endTransaction();
                 }
             }
@@ -76,7 +72,7 @@ namespace PMacc
                 case Init:
                     break;
                 case WaitForReceived:
-                    if (NULL == Manager::getInstance().getITaskIfNotFinished(tmpEvent.getTaskId()))
+                    if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
                         state = CallFillGaps;
                     break;
                 case CallFillGaps:
@@ -91,7 +87,7 @@ namespace PMacc
                 case WaitForFillGaps:
                     break;
                 case Finish:
-                    return NULL == Manager::getInstance().getITaskIfNotFinished(tmpEvent.getTaskId());
+                    return NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId());
                 default:
                     return false;
             }

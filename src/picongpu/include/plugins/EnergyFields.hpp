@@ -98,7 +98,7 @@ public:
     writeToFile(false),
     localReduce(NULL)
     {
-        ModuleConnector::getInstance().registerModule(this);
+        Environment<>::get().ModuleConnector().registerModule(this);
     }
 
     virtual ~EnergyFields()
@@ -108,7 +108,7 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::get().DataConnector();
 
         fieldE = &(dc.getData<FieldE > (FieldE::getName(), true));
         fieldB = &(dc.getData<FieldB > (FieldB::getName(), true));
@@ -152,7 +152,7 @@ private:
                 //create header of the file
                 outFile << "#step Joule" << " \n";
             }
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
+            Environment<>::get().DataConnector().registerObserver(this, notifyFrequency);
         }
     }
 

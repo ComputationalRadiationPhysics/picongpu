@@ -246,7 +246,7 @@ public:
     writeToFile(false),
     enableDetector(false)
     {
-        ModuleConnector::getInstance().registerModule(this);
+        Environment<>::get().ModuleConnector().registerModule(this);
     }
 
     virtual ~BinEnergyParticles()
@@ -256,7 +256,7 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::get().DataConnector();
 
         particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
         calBinEnergyParticles < CORE + BORDER > (currentStep);
@@ -327,7 +327,7 @@ private:
                 outFile << ">" << maxEnergy << " count" << std::endl;
             }
 
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
+            Environment<>::get().DataConnector().registerObserver(this, notifyFrequency);
         }
     }
 

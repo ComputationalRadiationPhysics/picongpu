@@ -161,9 +161,10 @@ public:
             gpus[i] = devices[i];
             isPeriodic[i] = periodic[i];
         }
+        
+        Environment<simDim>::get().initDevices(gpus, isPeriodic);
 
-        GridController<simDim>::getInstance().init(gpus, isPeriodic);
-        DataSpace<simDim> myGPUpos(GridController<simDim>::getInstance().getPosition());
+        DataSpace<simDim> myGPUpos( Environment<simDim>::get().GridController().getPosition() );
 
         // calculate the number of local grid cells and
         // the local cell offset to the global box        
@@ -182,6 +183,8 @@ public:
             gridSizeLocal[dim] = global_grid_size[dim] / gpus[dim];
             gridOffset[dim] = gridSizeLocal[dim] * myGPUpos[dim];
         }
+        
+        Environment<simDim>::get().initGrids(global_grid_size, gridSizeLocal, gridOffset);
 
         MovingWindow::getInstance().setGlobalSimSize(global_grid_size);
         MovingWindow::getInstance().setSlidingWindow(slidingWindow);
@@ -190,9 +193,6 @@ public:
         log<picLog::DOMAINS > ("rank %1%; localsize %2%; localoffset %3%;") %
             myGPUpos.toString() % gridSizeLocal.toString() % gridOffset.toString();
 
-        /*init SubGrid for global use*/
-        SubGrid<simDim>::getInstance().init(gridSizeLocal, global_grid_size, gridOffset);
-
         SimulationHelper<simDim>::moduleLoad();
 
         GridLayout<SIMDIM> layout(gridSizeLocal, MappingDesc::SuperCellSize::getDataSpace());
@@ -200,7 +200,7 @@ public:
 
         checkGridConfiguration(global_grid_size, cellDescription->getGridLayout());
 
-        if (GridController<simDim>::getInstance().getGlobalRank() == 0)
+        if (Environment<simDim>::get().GridController().getGlobalRank() == 0)
         {
             if (slidingWindow)
                 log<picLog::PHYSICS > ("Sliding Window is ON");
@@ -277,7 +277,7 @@ public:
 #endif
 
         size_t freeGpuMem(0);
-        nvmem::MemoryInfo::getInstance().getMemoryInfo(&freeGpuMem);
+        Environment<>::get().EnvMemoryInfo().getMemoryInfo(&freeGpuMem);
         freeGpuMem -= totalFreeGpuMemory;
 
 #if (ENABLE_IONS == 1)
@@ -286,13 +286,13 @@ public:
 #endif
 #if (ENABLE_ELECTRONS == 1)
         size_t memElectrons(0);
-        nvmem::MemoryInfo::getInstance().getMemoryInfo(&memElectrons);
+        Environment<>::get().EnvMemoryInfo().getMemoryInfo(&memElectrons);
         memElectrons -= totalFreeGpuMemory;
         log<picLog::MEMORY > ("free mem before electrons %1% MiB") % (memElectrons / 1024 / 1024);
         electrons->createParticleBuffer(freeGpuMem * memFractionElectrons);
 #endif
 
-        nvmem::MemoryInfo::getInstance().getMemoryInfo(&freeGpuMem);
+        Environment<>::get().EnvMemoryInfo().getMemoryInfo(&freeGpuMem);
         log<picLog::MEMORY > ("free mem after all mem is allocated %1% MiB") % (freeGpuMem / 1024 / 1024);
 
         fieldB->init(*fieldE, *laser);
@@ -311,7 +311,7 @@ public:
         ions->init(*fieldE, *fieldB, *fieldJ);
 #endif      
         //disabled because of a transaction system bug
-        StreamController::getInstance().addStreams(6);
+        Environment<>::get().StreamController().addStreams(6);
 
         uint32_t step = 0;
 
@@ -319,7 +319,7 @@ public:
             step = initialiserController->init();
 
 
-        nvmem::MemoryInfo::getInstance().getMemoryInfo(&freeGpuMem);
+        Environment<>::get().EnvMemoryInfo().getMemoryInfo(&freeGpuMem);
         log<picLog::MEMORY > ("free mem after all particles are initialized %1% MiB") % (freeGpuMem / 1024 / 1024);
 
         // communicate all fields
@@ -434,7 +434,7 @@ public:
 
     void slide(uint32_t currentStep)
     {
-        GridController<simDim>& gc = GridController<simDim>::getInstance();
+        GridController<simDim>& gc = Environment<simDim>::get().GridController();
 
         if (gc.slide())
         {

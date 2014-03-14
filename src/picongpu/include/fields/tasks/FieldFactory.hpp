@@ -77,7 +77,7 @@ namespace PMacc
             static FieldFactory instance;
             return instance;
         }
-
+        
     private:
 
         FieldFactory() { };

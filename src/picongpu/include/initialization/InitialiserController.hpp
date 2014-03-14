@@ -24,6 +24,7 @@
 #include "types.h"
 #include "simulation_defines.hpp"
 
+#include "Environment.hpp"
 
 #include "moduleSystem/ModuleConnector.hpp"
 
@@ -58,7 +59,7 @@ public:
     restartSim(false),
     restartFile("h5")
     {
-        //ModuleConnector::getInstance().registerModule(this);
+        //Environment<>::get().ModuleConnector().registerModule(this);
     }
 
     virtual ~InitialiserController()
@@ -72,7 +73,7 @@ public:
      */
     virtual uint32_t init()
     {
-        if (GridController<simDim>::getInstance().getGlobalRank() == 0)
+        if (Environment<simDim>::get().GridController().getGlobalRank() == 0)
         {
             std::cout << "max weighting " << NUM_EL_PER_PARTICLE << std::endl;
             
@@ -126,7 +127,7 @@ public:
             SimRestartInitialiser<PIC_Electrons, PIC_Ions, simDim> simRestartInitialiser(
                 restartFile.c_str(), cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
 
-            DataConnector::getInstance().initialise(simRestartInitialiser, 0);
+            Environment<>::get().DataConnector().initialise(simRestartInitialiser, 0);
 
             uint32_t simulationStep = simRestartInitialiser.getSimulationStep() + 1;
 
@@ -140,7 +141,7 @@ public:
         {
             // start simulation using default values
             SimStartInitialiser<PIC_Electrons, PIC_Ions> simStartInitialiser;
-            DataConnector::getInstance().initialise(simStartInitialiser, 0);
+            Environment<>::get().DataConnector().initialise(simStartInitialiser, 0);
             __getTransactionEvent().waitForFinished();
 
             log<picLog::SIMULATION_STATE > ("Loading from default values finished, can start program");
@@ -182,7 +183,7 @@ public:
     virtual void slide(uint32_t currentStep)
     {
         SimStartInitialiser<PIC_Electrons, PIC_Ions> simStartInitialiser;
-        DataConnector::getInstance().initialise(simStartInitialiser, currentStep);
+        Environment<>::get().DataConnector().initialise(simStartInitialiser, currentStep);
         __getTransactionEvent().waitForFinished();
     }
 

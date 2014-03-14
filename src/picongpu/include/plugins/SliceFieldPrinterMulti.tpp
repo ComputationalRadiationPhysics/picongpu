@@ -46,7 +46,7 @@ template<typename Field>
 SliceFieldPrinterMulti<Field>::SliceFieldPrinterMulti(std::string name, std::string prefix)
     : name(name), prefix(prefix)
 {
-    ModuleConnector::getInstance().registerModule(this);
+    Environment<>::get().ModuleConnector().registerModule(this);
 }
 
 template<typename Field>
