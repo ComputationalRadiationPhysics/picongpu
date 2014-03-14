@@ -22,7 +22,6 @@
 
 #include "types.h"
 #include "simulation_classTypes.hpp"
-#include "fields/SimulationFieldHelper.hpp"
 
 #include "fields/Fields.def"
 #include "particles/ParticlesBase.hpp"
@@ -36,12 +35,12 @@ namespace picongpu
 {
 using namespace PMacc;
 
-template< typename T_DataVector, typename T_MethodsVector>
-class Particles : public ParticlesBase<T_DataVector,T_MethodsVector, MappingDesc>, public ISimulationData
+template<typename T_ParticleDescription>
+class Particles : public ParticlesBase<T_ParticleDescription, MappingDesc>, public ISimulationData
 {
 public:
 
-    typedef ParticlesBase<T_DataVector,T_MethodsVector, MappingDesc> ParticlesBaseType;
+    typedef ParticlesBase<T_ParticleDescription, MappingDesc> ParticlesBaseType;
     typedef typename ParticlesBaseType::BufferType BufferType;
     typedef typename ParticlesBaseType::FrameType FrameType;
     typedef typename ParticlesBaseType::FrameTypeBorder FrameTypeBorder;
@@ -59,12 +58,13 @@ public:
 
     void init(FieldE &fieldE, FieldB &fieldB, FieldJ &fieldJ, FieldTmp &fieldTmp);
 
-    void update(uint32_t currentStep);
+    template<typename T_Pusher>
+    void update(T_Pusher,uint32_t currentStep);
 
     void initFill(uint32_t currentStep);
 
-    template< typename t_DataVector,typename t_MethodsVector>
-    void deviceCloneFrom(Particles<t_DataVector,t_MethodsVector> &src);
+    template< typename t_ParticleDescription>
+    void deviceCloneFrom(Particles<t_ParticleDescription> &src);
 
     void deviceAddTemperature(float_X temperature);
 
@@ -91,5 +91,3 @@ private:
 
 
 } //namespace picongpu
-
-#include "particles/Particles.tpp"
