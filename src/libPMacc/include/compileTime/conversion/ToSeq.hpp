@@ -38,7 +38,7 @@ namespace bmpl = boost::mpl;
 template<typename T_Type>
 struct ToSeq
 {
-    typedef typename bmpl::if_<bmpl::is_sequence< T_Type >,T_Type,bmpl::vector<T_Type> >::type type;
+    typedef typename bmpl::if_<bmpl::is_sequence< T_Type >,T_Type,bmpl::vector1<T_Type> >::type type;
 };
 
 }//namespace PMacc
