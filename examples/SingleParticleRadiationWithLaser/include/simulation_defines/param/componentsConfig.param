@@ -53,6 +53,7 @@ namespace fieldSolver = fieldSolverYee;
  *  - gasHomogenous : constant gas density with a certain length
  *  - gasSphereFlanks : constant sphere droplet with exponential decr envelope
  *  - gasFreeFormula: use a custom formula (slower)
+ *  - gasFromHdf5: load gas density from HDF5 file
  *  - gasNone : just stay with a vacuum
  */
 namespace gasProfile = gasNone;
