@@ -35,7 +35,7 @@
 
 #include "basicOperations.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
-#include "plugins/IPluginModule.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 
 namespace picongpu
 {
@@ -84,7 +84,7 @@ __global__ void kernelSumCurrents(J_DataBox fieldJ, float3_X* gCurrent, Mapping 
     }
 }
 
-class SumCurrents : public ISimulationIO, public IPluginModule
+class SumCurrents : public ISimulationIO, public ISimulationPlugin
 {
 private:
     FieldJ* fieldJ;
@@ -102,7 +102,7 @@ public:
     notifyFrequency(0)
     {
 
-        Environment<>::get().ModuleConnector().registerModule(this);
+        Environment<>::get().PluginConnector().registerPlugin(this);
     }
 
     virtual ~SumCurrents()
@@ -151,13 +151,13 @@ public:
             realCurrent_SI << " Abs:" << math::abs(realCurrent_SI) << std::endl;
     }
 
-    void moduleRegisterHelp(po::options_description& desc)
+    void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
             ("sumcurr.period", po::value<uint32_t > (&notifyFrequency), "enable analyser [for each n-th step]");
     }
 
-    std::string moduleGetName() const
+    std::string pluginGetName() const
     {
         return "SumCurrents";
     }
@@ -169,7 +169,7 @@ public:
 
 private:
 
-    void moduleLoad()
+    void pluginLoad()
     {
         if (notifyFrequency > 0)
         {
@@ -179,7 +179,7 @@ private:
         }
     }
 
-    void moduleUnload()
+    void pluginUnload()
     {
         if (notifyFrequency > 0)
         {

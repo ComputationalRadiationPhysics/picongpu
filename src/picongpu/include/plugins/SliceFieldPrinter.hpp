@@ -46,8 +46,8 @@ private:
     MappingDesc *cellDescription;
     container::DeviceBuffer<float3_X, 2>* dBuffer;
         
-    void moduleLoad();
-    void moduleUnload();
+    void pluginLoad();
+    void pluginUnload();
     
     template<typename TField>
     void printSlice(const TField& field, int nAxis, float slicePoint, std::string filename);

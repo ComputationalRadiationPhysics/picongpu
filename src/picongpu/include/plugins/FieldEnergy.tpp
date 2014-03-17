@@ -44,23 +44,23 @@ namespace picongpu
 FieldEnergy::FieldEnergy(std::string name, std::string prefix)
     : name(name), prefix(prefix)
 {
-    Environment<>::get().ModuleConnector().registerModule(this);
+    Environment<>::get().PluginConnector().registerPlugin(this);
 }
 
-void FieldEnergy::moduleRegisterHelp(po::options_description& desc)
+void FieldEnergy::pluginRegisterHelp(po::options_description& desc)
 {
     desc.add_options()
         ((this->prefix + "_frequency").c_str(),
         po::value<uint32_t > (&this->notifyFrequency)->default_value(0), "notifyFrequency");
 }
 
-std::string FieldEnergy::moduleGetName() const {return this->name;}
+std::string FieldEnergy::pluginGetName() const {return this->name;}
 
-void FieldEnergy::moduleLoad()
+void FieldEnergy::pluginLoad()
 {
     Environment<>::get().DataConnector().registerObserver(this, this->notifyFrequency);
 }
-void FieldEnergy::moduleUnload(){}
+void FieldEnergy::pluginUnload(){}
 
 void FieldEnergy::notify(uint32_t currentStep)
 {

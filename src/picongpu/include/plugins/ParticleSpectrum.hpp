@@ -22,7 +22,7 @@
 #define ANALYSIS_PARTICLESPECTRUM_HPP
 
 
-#include "plugins/IPluginModule.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 #include "dataManagement/ISimulationIO.hpp"
 #include "simulation_classTypes.hpp" //\todo: muss in ISimulationIO.hpp
 
@@ -33,7 +33,7 @@ using namespace PMacc;
 namespace po = boost::program_options;
 
 template<typename ParticlesType>
-class ParticleSpectrum : public ISimulationIO, public IPluginModule
+class ParticleSpectrum : public ISimulationIO, public ISimulationPlugin
 {
 private:
     std::string name;
@@ -44,16 +44,16 @@ private:
     static const int numBinsEx = numBins+2;
     ParticlesType *particles;
         
-    void moduleLoad();
-    void moduleUnload();
+    void pluginLoad();
+    void pluginUnload();
 public:
     ParticleSpectrum(std::string name, std::string prefix);
     ~ParticleSpectrum() {}
 
     void notify(uint32_t currentStep);
     void setMappingDescription(MappingDesc*) {}
-    void moduleRegisterHelp(po::options_description& desc);
-    std::string moduleGetName() const;
+    void pluginRegisterHelp(po::options_description& desc);
+    std::string pluginGetName() const;
 };
 
 namespace detail

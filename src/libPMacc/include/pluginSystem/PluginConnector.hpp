@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2014 Rene Widera, Felix Schmitt
  *
  * This file is part of libPMacc. 
  * 
@@ -19,38 +19,37 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-#ifndef MODULECONNECTOR_HPP
-#define	MODULECONNECTOR_HPP
+#pragma once
 
 #include <list>
 
-#include "moduleSystem/Module.hpp"
+#include "pluginSystem/IPlugin.hpp"
 
 namespace PMacc
 {
     namespace po = boost::program_options;
 
-    class ModuleConnector
+    class PluginConnector
     {
     public:
 
-        void registerModule(Module *module)
-        throw (ModuleException)
+        void registerPlugin(IPlugin *plugin)
+        throw (PluginException)
         {
-            if (module != NULL)
+            if (plugin != NULL)
             {
-                modules.push_back(module);
+                plugins.push_back(plugin);
             }
             else
-                throw ModuleException("Registering NULL as a module is not allowed.");
+                throw PluginException("Registering NULL as a plugin is not allowed.");
         }
 
-        void loadModules()
-        throw (ModuleException)
+        void loadPlugins()
+        throw (PluginException)
         {
-            // load all modules
-            for (std::list<Module*>::reverse_iterator iter = modules.rbegin();
-                 iter != modules.rend(); ++iter)
+            // load all plugins
+            for (std::list<IPlugin*>::reverse_iterator iter = plugins.rbegin();
+                 iter != plugins.rend(); ++iter)
             {
                 if (!(*iter)->isLoaded())
                 {
@@ -59,12 +58,12 @@ namespace PMacc
             }
         }
 
-        void unloadModules()
-        throw (ModuleException)
+        void unloadPlugins()
+        throw (PluginException)
         {
-            // unload all modules
-            for (std::list<Module*>::reverse_iterator iter = modules.rbegin();
-                 iter != modules.rend(); ++iter)
+            // unload all plugins
+            for (std::list<IPlugin*>::reverse_iterator iter = plugins.rbegin();
+                 iter != plugins.rend(); ++iter)
             {
                 if ((*iter)->isLoaded())
                 {
@@ -77,13 +76,13 @@ namespace PMacc
         {
             std::list<po::options_description> help_options;
 
-            for (std::list<Module*>::iterator iter = modules.begin();
-                 iter != modules.end(); ++iter)
+            for (std::list<IPlugin*>::iterator iter = plugins.begin();
+                 iter != plugins.end(); ++iter)
             {
-                // create a new help options section for this module,
+                // create a new help options section for this plugin,
                 // fill it and add to list of options
-                po::options_description desc((*iter)->moduleGetName());
-                (*iter)->moduleRegisterHelp(desc);
+                po::options_description desc((*iter)->pluginGetName());
+                (*iter)->pluginRegisterHelp(desc);
                 help_options.push_back(desc);
             }
 
@@ -96,25 +95,22 @@ namespace PMacc
         friend Environment<DIM2>;
         friend Environment<DIM3>;
         
-        static ModuleConnector& getInstance()
+        static PluginConnector& getInstance()
         {
-            static ModuleConnector instance;
+            static PluginConnector instance;
             return instance;
         }
 
-        ModuleConnector()
+        PluginConnector()
         {
 
         }
 
-        virtual ~ModuleConnector()
+        virtual ~PluginConnector()
         {
 
         }
 
-        std::list<Module*> modules;
+        std::list<IPlugin*> plugins;
     };
 }
-
-#endif	/* MODULECONNECTOR_HPP */
-

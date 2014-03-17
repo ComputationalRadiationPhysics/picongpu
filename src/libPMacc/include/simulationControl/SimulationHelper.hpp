@@ -37,7 +37,7 @@
 
 
 #include "eventSystem/EventSystem.hpp"
-#include "moduleSystem/Module.hpp"
+#include "pluginSystem/IPlugin.hpp"
 
 
 namespace PMacc
@@ -52,7 +52,7 @@ namespace PMacc
  * @tparam DIM base dimension for the simulation (2-3)
  */
 template<unsigned DIM>
-class SimulationHelper : public Module
+class SimulationHelper : public IPlugin
 {
 public:
 
@@ -197,7 +197,7 @@ public:
 
     }
 
-    virtual void moduleRegisterHelp(po::options_description& desc)
+    virtual void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
             ("steps,s", po::value<uint32_t > (&runSteps), "simulation steps")
@@ -205,19 +205,19 @@ public:
              "print time statistics after p percent to stdout");
     }
 
-    std::string moduleGetName() const
+    std::string pluginGetName() const
     {
         return "SimulationHelper";
     }
 
-    virtual void moduleLoad()
+    virtual void pluginLoad()
     {
         calcProgress();
 
         output = (getGridController().getGlobalRank() == 0);
     }
 
-    virtual void moduleUnload()
+    virtual void pluginUnload()
     {
     }
 

@@ -110,11 +110,11 @@ template<typename ParticlesType>
 ParticleSpectrum<ParticlesType>::ParticleSpectrum(std::string name, std::string prefix)
     : name(name), prefix(prefix)
 {
-    Environment<>::get().ModuleConnector().registerModule(this);
+    Environment<>::get().PluginConnector().registerPlugin(this);
 }
 
 template<typename ParticlesType>
-void ParticleSpectrum<ParticlesType>::moduleRegisterHelp(po::options_description& desc)
+void ParticleSpectrum<ParticlesType>::pluginRegisterHelp(po::options_description& desc)
 {
     desc.add_options()
         ((this->prefix + "_frequency").c_str(),
@@ -131,10 +131,10 @@ void ParticleSpectrum<ParticlesType>::moduleRegisterHelp(po::options_description
 }
 
 template<typename ParticlesType>
-std::string ParticleSpectrum<ParticlesType>::moduleGetName() const {return this->name;}
+std::string ParticleSpectrum<ParticlesType>::pluginGetName() const {return this->name;}
 
 template<typename ParticlesType>
-void ParticleSpectrum<ParticlesType>::moduleLoad()
+void ParticleSpectrum<ParticlesType>::pluginLoad()
 {
     Environment<>::get().DataConnector().registerObserver(this, this->notifyFrequency);
     
@@ -143,7 +143,7 @@ void ParticleSpectrum<ParticlesType>::moduleLoad()
 }
 
 template<typename ParticlesType>
-void ParticleSpectrum<ParticlesType>::moduleUnload(){}
+void ParticleSpectrum<ParticlesType>::pluginUnload(){}
 
 struct GetBin
 {

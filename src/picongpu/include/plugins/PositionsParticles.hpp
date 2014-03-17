@@ -35,7 +35,7 @@
 #include "mappings/kernel/AreaMapping.hpp"
 
 #include "algorithms/Gamma.hpp"
-#include "plugins/IPluginModule.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 
 namespace picongpu
 {
@@ -161,7 +161,7 @@ __global__ void kernelPositionsParticles(ParticlesBox<FRAME, simDim> pb,
 }
 
 template<class ParticlesType>
-class PositionsParticles : public ISimulationIO, public IPluginModule
+class PositionsParticles : public ISimulationIO, public ISimulationPlugin
 {
 private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -188,7 +188,7 @@ public:
     notifyFrequency(0)
     {
 
-        Environment<>::get().ModuleConnector().registerModule(this);
+        Environment<>::get().PluginConnector().registerPlugin(this);
     }
 
     virtual ~PositionsParticles()
@@ -212,14 +212,14 @@ public:
             << positionParticle << "\n"; // no flush
     }
 
-    void moduleRegisterHelp(po::options_description& desc)
+    void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
             ((analyzerPrefix + ".period").c_str(),
              po::value<uint32_t > (&notifyFrequency), "enable analyser [for each n-th step]");
     }
 
-    std::string moduleGetName() const
+    std::string pluginGetName() const
     {
         return analyzerName;
     }
@@ -231,7 +231,7 @@ public:
 
 private:
 
-    void moduleLoad()
+    void pluginLoad()
     {
         if (notifyFrequency > 0)
         {
@@ -242,7 +242,7 @@ private:
         }
     }
 
-    void moduleUnload()
+    void pluginUnload()
     {
         __delete(gParticle);
     }

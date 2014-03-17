@@ -48,11 +48,11 @@
 #include "fields/FieldTmp.hpp"
 #include "fields/MaxwellSolver/Solvers.hpp"
 #include "fields/background/cellwiseOperation.hpp"
-#include "initialization/IInitModule.hpp"
+#include "initialization/IInitPlugin.hpp"
 #include "initialization/ParserGridDistribution.hpp"
 
 #include "particles/Species.hpp"
-#include "moduleSystem/Module.hpp"
+#include "pluginSystem/IPlugin.hpp"
 
 #include "nvidia/reduce/Reduce.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
@@ -92,9 +92,9 @@ public:
 #endif
     }
 
-    virtual void moduleRegisterHelp(po::options_description& desc)
+    virtual void pluginRegisterHelp(po::options_description& desc)
     {
-        SimulationHelper<simDim>::moduleRegisterHelp(desc);
+        SimulationHelper<simDim>::pluginRegisterHelp(desc);
         desc.add_options()
             ("devices,d", po::value<std::vector<uint32_t> > (&devices)->multitoken(), "number of devices in each dimension")
 
@@ -115,12 +115,12 @@ public:
             ("moving,m", po::value<bool>(&slidingWindow)->zero_tokens(), "enable sliding/moving window");
     }
 
-    std::string moduleGetName() const
+    std::string pluginGetName() const
     {
         return "PIConGPU";
     }
 
-    virtual void moduleLoad()
+    virtual void pluginLoad()
     {
 
 
@@ -193,7 +193,7 @@ public:
         log<picLog::DOMAINS > ("rank %1%; localsize %2%; localoffset %3%;") %
             myGPUpos.toString() % gridSizeLocal.toString() % gridOffset.toString();
 
-        SimulationHelper<simDim>::moduleLoad();
+        SimulationHelper<simDim>::pluginLoad();
 
         GridLayout<SIMDIM> layout(gridSizeLocal, MappingDesc::SuperCellSize::getDataSpace());
         cellDescription = new MappingDesc(layout.getDataSpace(), GUARD_SIZE, GUARD_SIZE);
@@ -226,10 +226,10 @@ public:
 
     }
 
-    virtual void moduleUnload()
+    virtual void pluginUnload()
     {
 
-        SimulationHelper<simDim>::moduleUnload();
+        SimulationHelper<simDim>::pluginUnload();
         __delete(fieldB);
 
         __delete(fieldE);
@@ -444,7 +444,7 @@ public:
         }
     }
 
-    virtual void setInitController(IInitModule *initController)
+    virtual void setInitController(IInitPlugin *initController)
     {
 
         assert(initController != NULL);
@@ -503,7 +503,7 @@ protected:
 
     // output classes
 
-    IInitModule* initialiserController;
+    IInitPlugin* initialiserController;
 
     MappingDesc* cellDescription;
 

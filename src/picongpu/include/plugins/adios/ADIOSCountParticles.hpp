@@ -26,7 +26,7 @@
 #include "simulation_types.hpp"
 #include "plugins/adios/ADIOSWriter.def"
 
-#include "plugins/IPluginModule.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
 #include <boost/type_traits/is_same.hpp>

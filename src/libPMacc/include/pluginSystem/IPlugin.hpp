@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2014 Rene Widera, Felix Schmitt
  *
  * This file is part of libPMacc. 
  * 
@@ -20,8 +20,7 @@
  */ 
  
 
-#ifndef MODULE_HPP
-#define	MODULE_HPP
+#pragma once
 
 #include <stdexcept>
 #include <string>
@@ -33,42 +32,42 @@ namespace PMacc
 {
     namespace po = boost::program_options;
 
-    class ModuleException : /*virtual*/ public std::runtime_error
+    class PluginException : public std::runtime_error
     {
     public:
 
-        ModuleException(const char* message) : std::runtime_error(message)
+        PluginException(const char* message) : std::runtime_error(message)
         {
         }
 
-        ModuleException(std::string message) : std::runtime_error(message.c_str())
+        PluginException(std::string message) : std::runtime_error(message.c_str())
         {
         }
     };
 
-    class Module
+    class IPlugin
     {
     public:
 
-        Module() :
+        IPlugin() :
         loaded(false)
         {
 
         }
 
-        virtual ~Module()
+        virtual ~IPlugin()
         {
         }
 
         virtual void load()
         {
-            moduleLoad();
+            pluginLoad();
             loaded = true;
         }
 
         virtual void unload()
         {
-            moduleUnload();
+            pluginUnload();
             loaded = false;
         }
 
@@ -77,18 +76,15 @@ namespace PMacc
             return loaded;
         }
 
-        virtual void moduleRegisterHelp(po::options_description& desc) = 0;
+        virtual void pluginRegisterHelp(po::options_description& desc) = 0;
 
-        virtual std::string moduleGetName() const = 0;
+        virtual std::string pluginGetName() const = 0;
 
     protected:
-        virtual void moduleLoad() = 0;
+        virtual void pluginLoad() = 0;
 
-        virtual void moduleUnload() = 0;
+        virtual void pluginUnload() = 0;
 
         bool loaded;
     };
 }
-
-#endif	/* MODULE_HPP */
-

@@ -48,11 +48,11 @@
 #include "mappings/simulation/SubGrid.hpp"
 #include "dimensions/GridLayout.hpp"
 #include "dataManagement/ISimulationIO.hpp"
-#include "moduleSystem/ModuleConnector.hpp"
+#include "pluginSystem/PluginConnector.hpp"
 #include "simulationControl/MovingWindow.hpp"
 #include "dimensions/TVec.h"
 
-#include "plugins/IPluginModule.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
 #include <boost/type_traits/is_same.hpp>
@@ -88,7 +88,7 @@ namespace po = boost::program_options;
  * @param IonsBuffer class description for ions
  * @param simDim dimension of the simulation (2-3)
  */
-class ADIOSWriter : public ISimulationIO, public IPluginModule
+class ADIOSWriter : public ISimulationIO, public ISimulationPlugin
 {
 public:
 
@@ -368,7 +368,7 @@ public:
     filename("simDataAdios"),
     notifyFrequency(0)
     {
-        Environment<>::get().ModuleConnector().registerModule(this);
+        Environment<>::get().PluginConnector().registerPlugin(this);
     }
 
     virtual ~ADIOSWriter()
@@ -376,7 +376,7 @@ public:
 
     }
 
-    void moduleRegisterHelp(po::options_description& desc)
+    void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
             ("adios.period", po::value<uint32_t > (&notifyFrequency)->default_value(0),
@@ -385,7 +385,7 @@ public:
              "ADIOS output file");
     }
 
-    std::string moduleGetName() const
+    std::string pluginGetName() const
     {
         return "ADIOSWriter";
     }
@@ -450,7 +450,7 @@ private:
         ADIOS_CMD(adios_init_noxml(mThreadParams.adiosComm));
     }
 
-    void moduleLoad()
+    void pluginLoad()
     {
         if (notifyFrequency > 0)
         {
@@ -476,7 +476,7 @@ private:
         loaded = true;
     }
 
-    void moduleUnload()
+    void pluginUnload()
     {
         if (notifyFrequency > 0)
         {

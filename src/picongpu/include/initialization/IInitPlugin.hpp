@@ -20,59 +20,27 @@
  
 
 
-#ifndef INITMODULENONE_HPP
-#define	INITMODULENONE_HPP
+#pragma once
 
-#include "initialization/IInitModule.hpp"
-
+#include "types.h"
+#include "pluginSystem/PluginConnector.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 
 
 namespace picongpu
 {
     using namespace PMacc;
 
-    class InitModuleNone : public IInitModule
+    class IInitPlugin :  public ISimulationPlugin
     {
     public:
+        virtual void slide(uint32_t currentStep) = 0;
+        virtual uint32_t init() = 0;
 
-        virtual void slide(uint32_t currentStep)
+        virtual ~IInitPlugin()
         {
         }
-
-        virtual uint32_t init()
-        {
-            return 0;
-        }
-
-        virtual ~InitModuleNone()
-        {
-        }
-
-        virtual void moduleRegisterHelp(po::options_description& desc)
-        {
-        }
-
-        virtual std::string moduleGetName() const
-        {
-            return "InitModuleNone";
-        }
-
-        virtual void setMappingDescription(MappingDesc *cellDescription)
-        {
-        }
-
-    protected:
-
-        virtual void moduleLoad()
-        {
-        }
-
-        virtual void moduleUnload()
-        {
-        }
+        
     };
-
 }
-
-#endif	/* INITMODULENONE_HPP */
 

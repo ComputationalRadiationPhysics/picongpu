@@ -22,7 +22,7 @@
 #define ANALYSIS_PARTICLEDENSITY_HPP
 
 
-#include "plugins/IPluginModule.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 #include "dataManagement/ISimulationIO.hpp"
 #include "simulation_classTypes.hpp" //\todo: muss in ISimulationIO.hpp
 
@@ -35,7 +35,7 @@ using namespace PMacc;
 namespace po = boost::program_options;
 
 template<typename ParticlesType>
-class ParticleDensity : public ISimulationIO, public IPluginModule
+class ParticleDensity : public ISimulationIO, public ISimulationPlugin
 {
 private:
     std::string name;
@@ -46,16 +46,16 @@ private:
     float_X slicePoint;
     ParticlesType *particles;
         
-    void moduleLoad();
-    void moduleUnload();
+    void pluginLoad();
+    void pluginUnload();
 public:
     ParticleDensity(std::string name, std::string prefix);
     ~ParticleDensity() {}
 
     void notify(uint32_t currentStep);
     void setMappingDescription(MappingDesc*) {}
-    void moduleRegisterHelp(po::options_description& desc);
-    std::string moduleGetName() const;
+    void pluginRegisterHelp(po::options_description& desc);
+    std::string pluginGetName() const;
 };
 
 }

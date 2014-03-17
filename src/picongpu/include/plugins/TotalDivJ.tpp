@@ -42,23 +42,23 @@ namespace picongpu
 TotalDivJ::TotalDivJ(std::string name, std::string prefix)
     : name(name), prefix(prefix)
 {
-    Environment<>::get().ModuleConnector().registerModule(this);
+    Environment<>::get().PluginConnector().registerPlugin(this);
 }
 
-void TotalDivJ::moduleRegisterHelp(po::options_description& desc)
+void TotalDivJ::pluginRegisterHelp(po::options_description& desc)
 {
     desc.add_options()
         ((this->prefix + "_frequency").c_str(),
         po::value<uint32_t > (&this->notifyFrequency)->default_value(0), "notifyFrequency");
 }
 
-std::string TotalDivJ::moduleGetName() const {return this->name;}
+std::string TotalDivJ::pluginGetName() const {return this->name;}
 
-void TotalDivJ::moduleLoad()
+void TotalDivJ::pluginLoad()
 {
     Environment<>::get().DataConnector().registerObserver(this, this->notifyFrequency);
 }
-void TotalDivJ::moduleUnload(){}
+void TotalDivJ::pluginUnload(){}
 
 struct Div
 {

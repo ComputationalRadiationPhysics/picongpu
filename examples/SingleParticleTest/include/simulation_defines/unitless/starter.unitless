@@ -23,7 +23,7 @@
 #pragma once
 
 #include "plugins/PluginController.hpp"
-#include "initialization/InitModuleNone.hpp"
+#include "initialization/InitPluginNone.hpp"
 #include "OneParticleSimulation.hpp"
 #include "simulationControl/SimulationStarter.hpp"
 
@@ -36,7 +36,7 @@ namespace picongpu
     {
         typedef ::picongpu::SimulationStarter
         <
-        ::picongpu::InitModuleNone,
+        ::picongpu::InitPluginNone,
         ::picongpu::PluginController,
         ::picongpu::OneParticleSimulation
         > SimStarter;

@@ -50,11 +50,11 @@
 #include "mappings/simulation/SubGrid.hpp"
 #include "dimensions/GridLayout.hpp"
 #include "dataManagement/ISimulationIO.hpp"
-#include "moduleSystem/ModuleConnector.hpp"
+#include "pluginSystem/PluginConnector.hpp"
 #include "simulationControl/MovingWindow.hpp"
 #include "dimensions/TVec.h"
 
-#include "plugins/IPluginModule.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
 #include <boost/type_traits/is_same.hpp>
@@ -91,7 +91,7 @@ namespace po = boost::program_options;
  * @param IonsBuffer class description for ions
  * @param simDim dimension of the simulation (2-3)
  */
-class HDF5Writer : public ISimulationIO, public IPluginModule
+class HDF5Writer : public ISimulationIO, public ISimulationPlugin
 {
 public:
 
@@ -251,7 +251,7 @@ public:
     filename("h5"),
     notifyFrequency(0)
     {
-        Environment<>::get().ModuleConnector().registerModule(this);
+        Environment<>::get().PluginConnector().registerPlugin(this);
     }
 
     virtual ~HDF5Writer()
@@ -259,7 +259,7 @@ public:
 
     }
 
-    void moduleRegisterHelp(po::options_description& desc)
+    void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
             ("hdf5.period", po::value<uint32_t > (&notifyFrequency)->default_value(0),
@@ -268,7 +268,7 @@ public:
              "HDF5 output file");
     }
 
-    std::string moduleGetName() const
+    std::string pluginGetName() const
     {
         return "HDF5Writer";
     }
@@ -350,7 +350,7 @@ private:
 
     }
 
-    void moduleLoad()
+    void pluginLoad()
     {
         if (notifyFrequency > 0)
         {
@@ -381,7 +381,7 @@ private:
         loaded = true;
     }
 
-    void moduleUnload()
+    void pluginUnload()
     {
         if (notifyFrequency > 0)
             __delete(mThreadParams.dataCollector);

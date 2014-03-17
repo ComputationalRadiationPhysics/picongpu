@@ -31,8 +31,8 @@
 #include <iomanip>
 #include <fstream>
 
-#include "moduleSystem/Module.hpp"
-#include "plugins/IPluginModule.hpp"
+#include "pluginSystem/IPlugin.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 
 #include "memory/buffers/GridBuffer.hpp"
 
@@ -108,7 +108,7 @@ __global__ void CountMakroParticle(ParBox parBox, CounterBox counterBox, Mapping
  *      
  */
 template<class ParticlesType>
-class PerSuperCell : public ISimulationIO, public IPluginModule
+class PerSuperCell : public ISimulationIO, public ISimulationPlugin
 {
 private:
 
@@ -144,7 +144,7 @@ public:
     localResult(NULL),
     dataCollector(NULL)
     {
-        Environment<>::get().ModuleConnector().registerModule(this);
+        Environment<>::get().PluginConnector().registerPlugin(this);
     }
 
     virtual ~PerSuperCell()
@@ -161,14 +161,14 @@ public:
         countMakroParticles < CORE + BORDER > (currentStep);
     }
 
-    void moduleRegisterHelp(po::options_description& desc)
+    void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
             ((analyzerPrefix + ".period").c_str(),
              po::value<uint32_t > (&notifyFrequency), "enable analyser [for each n-th step]");
     }
 
-    std::string moduleGetName() const
+    std::string pluginGetName() const
     {
         return analyzerName;
     }
@@ -180,7 +180,7 @@ public:
 
 private:
 
-    void moduleLoad()
+    void pluginLoad()
     {
         if (notifyFrequency > 0)
         {
@@ -195,7 +195,7 @@ private:
         }
     }
 
-    void moduleUnload()
+    void pluginUnload()
     {
         __delete(localResult);
         __delete(dataCollector);

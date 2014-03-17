@@ -29,7 +29,7 @@
 #include "mappings/simulation/EnvironmentController.hpp"
 #include "eventSystem/streams/StreamController.hpp"
 #include "dataManagement/DataConnector.hpp"
-#include "moduleSystem/ModuleConnector.hpp"
+#include "pluginSystem/PluginConnector.hpp"
 #include "nvidia/memory/MemoryInfo.hpp"
 
 
@@ -91,9 +91,9 @@ namespace PMacc
             return DataConnector::getInstance();
         }
         
-        ModuleConnector& ModuleConnector()
+        PluginConnector& PluginConnector()
         {
-            return ModuleConnector::getInstance();
+            return PluginConnector::getInstance();
         }
         
         nvidia::memory::MemoryInfo& EnvMemoryInfo()
@@ -128,7 +128,7 @@ namespace PMacc
             
             DataConnector::getInstance();
             
-            ModuleConnector::getInstance(); 
+            PluginConnector::getInstance(); 
             
             nvidia::memory::MemoryInfo::getInstance();  
             
