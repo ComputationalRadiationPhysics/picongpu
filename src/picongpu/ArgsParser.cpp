@@ -112,7 +112,7 @@ namespace picongpu
                 return false;
             }
         }
-        catch ( boost::program_options::error e )
+        catch ( boost::program_options::error& e )
         {
             throw std::runtime_error( e.what( ) );
         }
