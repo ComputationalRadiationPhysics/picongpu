@@ -141,5 +141,32 @@ const float RadiationGamma = 5.f;
 const unsigned int N_observer = 128; // number of looking directions
 
 
+//////////////////////////////////////////////////
+
+
+
+namespace picongpu
+{
+
+// add a window function weighting to the radiation in order
+// to avoid ringing effects from sharpe boundaries
+// 1 = on  (slower and more memory, but with noise/ringing reduction)
+// 0 = off (faster but might contain ringing)
+#define __RADWINDOWFUNCTION__ 0
+
+
+
+/* Choose different window function in order to get better ringing reduction
+ * radWindowFunctionRectangle
+ * radWindowFunctionTriangle
+ */
+namespace radWindowFunctionRectangle { }
+namespace radWindowFunctionTriangle { }
+
+namespace radWindowFunction_selected = radWindowFunctionTriangle;
+
+
+}//namespace picongpu
+
 
 }
