@@ -52,11 +52,11 @@ namespace picongpu
 
 using namespace PMacc;
 
-template< typename T_DataVector, typename T_MethodsVector>
-Particles<T_DataVector, T_MethodsVector>::Particles( GridLayout<simDim> gridLayout,
-                                                     MappingDesc cellDescription,
-                                                     SimulationDataId datasetID ) :
-ParticlesBase<T_DataVector, T_MethodsVector, MappingDesc>( cellDescription ),
+template<typename T_ParticleDescription>
+Particles<T_ParticleDescription>::Particles( GridLayout<simDim> gridLayout,
+                                             MappingDesc cellDescription,
+                                             SimulationDataId datasetID) :
+ParticlesBase<T_ParticleDescription, MappingDesc>( cellDescription ),
 fieldB( NULL ), fieldE( NULL ), fieldJurrent( NULL ), fieldTmp( NULL ), gridLayout( gridLayout ),
 datasetID( datasetID )
 { 
@@ -90,8 +90,8 @@ datasetID( datasetID )
 #endif
 }
 
-template< typename T_DataVector, typename T_MethodsVector>
-void Particles<T_DataVector, T_MethodsVector>::createParticleBuffer( size_t gpuMemory )
+template< typename T_ParticleDescription>
+void Particles<T_ParticleDescription>::createParticleBuffer( size_t gpuMemory )
 {
 
     /*!\todo: this is the 4GB fix for GPUs with more than 4GB memory*/
@@ -102,32 +102,32 @@ void Particles<T_DataVector, T_MethodsVector>::createParticleBuffer( size_t gpuM
 
 }
 
-template< typename T_DataVector, typename T_MethodsVector>
-Particles<T_DataVector, T_MethodsVector>::~Particles( )
+template< typename T_ParticleDescription>
+Particles<T_ParticleDescription>::~Particles( )
 {
     delete this->particlesBuffer;
 }
 
-template< typename T_DataVector, typename T_MethodsVector>
-SimulationDataId Particles<T_DataVector, T_MethodsVector>::getUniqueId()
+template< typename T_ParticleDescription>
+SimulationDataId Particles<T_ParticleDescription>::getUniqueId( )
 {
     return datasetID;
 }
 
-template< typename T_DataVector, typename T_MethodsVector>
-void Particles<T_DataVector, T_MethodsVector>::synchronize( )
+template< typename T_ParticleDescription>
+void Particles<T_ParticleDescription>::synchronize( )
 {
     this->particlesBuffer->deviceToHost( );
 }
 
-template< typename T_DataVector, typename T_MethodsVector>
-void Particles<T_DataVector, T_MethodsVector>::syncToDevice( )
+template< typename T_ParticleDescription>
+void Particles<T_ParticleDescription>::syncToDevice( )
 {
     this->particlesBuffer->hostToDevice( );
 }
 
-template< typename T_DataVector, typename T_MethodsVector>
-void Particles<T_DataVector, T_MethodsVector>::init( FieldE &fieldE, FieldB &fieldB, FieldJ &fieldJ, FieldTmp &fieldTmp )
+template<typename T_ParticleDescription>
+void Particles<T_ParticleDescription>::init( FieldE &fieldE, FieldB &fieldB, FieldJ &fieldJ, FieldTmp &fieldTmp )
 {
     this->fieldE = &fieldE;
     this->fieldB = &fieldB;
@@ -137,8 +137,14 @@ void Particles<T_DataVector, T_MethodsVector>::init( FieldE &fieldE, FieldB &fie
     Environment<>::get( ).DataConnector().registerData( *this );
 }
 
-template< typename T_DataVector, typename T_MethodsVector>
-void Particles<T_DataVector, T_MethodsVector>::update( uint32_t )
+template<typename T>
+struct GetType
+{
+    typedef typename T::type type;
+};
+
+template<typename T_ParticleDescription>
+void Particles<T_ParticleDescription>::update(uint32_t )
 {
     typedef particlePusher::ParticlePusher ParticlePush;
 
@@ -170,14 +176,14 @@ void Particles<T_DataVector, T_MethodsVector>::update( uint32_t )
 
 }
 
-template< typename T_DataVector, typename T_MethodsVector>
-void Particles<T_DataVector, T_MethodsVector>::reset( uint32_t )
+template< typename T_ParticleDescription>
+void Particles<T_ParticleDescription>::reset( uint32_t )
 {
     this->particlesBuffer->reset( );
 }
 
-template< typename T_DataVector, typename T_MethodsVector>
-void Particles<T_DataVector, T_MethodsVector>::initFill( uint32_t currentStep )
+template< typename T_ParticleDescription>
+void Particles<T_ParticleDescription>::initFill( uint32_t currentStep )
 {
     VirtualWindow window = MovingWindow::getInstance( ).getVirtualWindow( currentStep );
     PMACC_AUTO( simBox, Environment<simDim>::get().SubGrid().getSimulationBox( ) );
@@ -221,9 +227,9 @@ void Particles<T_DataVector, T_MethodsVector>::initFill( uint32_t currentStep )
     __getTransactionEvent( ).waitForFinished( );
 }
 
-template< typename T_DataVector, typename T_MethodsVector>
-template< typename t_DataVector, typename t_MethodsVector>
-void Particles<T_DataVector, T_MethodsVector>::deviceCloneFrom( Particles<t_DataVector, t_MethodsVector> &src )
+template< typename T_ParticleDescription>
+template< typename t_ParticleDescription>
+void Particles<T_ParticleDescription>::deviceCloneFrom( Particles< t_ParticleDescription> &src )
 {
     dim3 block( TILE_SIZE );
     DataSpace<simDim> superCells = this->particlesBuffer->getSuperCellsCount( );
@@ -237,8 +243,8 @@ void Particles<T_DataVector, T_MethodsVector>::deviceCloneFrom( Particles<t_Data
     __getTransactionEvent( ).waitForFinished( );
 }
 
-template< typename T_DataVector, typename T_MethodsVector>
-void Particles<T_DataVector, T_MethodsVector>::deviceAddTemperature( float_X energy )
+template< typename T_ParticleDescription>
+void Particles<T_ParticleDescription>::deviceAddTemperature( float_X energy )
 {
     dim3 block( MappingDesc::SuperCellSize::getDataSpace( ) );
     DataSpace<simDim> superCells = this->particlesBuffer->getSuperCellsCount( );
@@ -254,8 +260,8 @@ void Particles<T_DataVector, T_MethodsVector>::deviceAddTemperature( float_X ene
     __getTransactionEvent( ).waitForFinished( );
 }
 
-template< typename T_DataVector, typename T_MethodsVector>
-void Particles<T_DataVector, T_MethodsVector>::deviceSetDrift( uint32_t currentStep )
+template< typename T_ParticleDescription>
+void Particles<T_ParticleDescription>::deviceSetDrift( uint32_t currentStep )
 {
     VirtualWindow window = MovingWindow::getInstance( ).getVirtualWindow( currentStep );
 
@@ -267,7 +273,7 @@ void Particles<T_DataVector, T_MethodsVector>::deviceSetDrift( uint32_t currentS
 
     /* calculate real simulation area offset from the beginning of the simulation 
      */
-    uint32_t simulationYCell = simBox.getGlobalOffset().y( ) +
+    uint32_t simulationYCell = simBox.getGlobalOffset( ).y( ) +
         ( window.slides * localNrOfCells.y( ) );
 
     __picKernelArea( kernelSetDrift, this->cellDescription, CORE + BORDER + GUARD )
