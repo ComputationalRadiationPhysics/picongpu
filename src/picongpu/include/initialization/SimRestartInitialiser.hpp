@@ -71,8 +71,10 @@ private:
                                  uint64_t numParticles,
                                  uint64_t particlesLoadOffset)
     {
-        // allocate memory for particles
-        *dst = new TYPE[numParticles];
+        /* allocate memory for particles */
+        /* workaround, as "*dst = new TYPE[numParticles]" is treated by some compilers as VLA */
+        uint8_t *ptr = new uint8_t[numParticles * sizeof(TYPE)];
+        *dst = (TYPE*)ptr;
         memset(*dst, 0, sizeof (TYPE) * numParticles);
 
         // read particles from file 
