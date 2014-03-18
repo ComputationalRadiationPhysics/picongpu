@@ -44,6 +44,7 @@
 #include "plugins/radiation/particle.hpp"
 #include "plugins/radiation/amplitude.hpp"
 #include "plugins/radiation/calc_amplitude.hpp"
+#include "plugins/radiation/windowFunctions.hpp"
 
 #include "mpi/reduceMethods/Reduce.hpp"
 #include "mpi/MPIReduce.hpp"
@@ -103,7 +104,8 @@ void kernelRadiationParticles(ParBox pb,
                               DataSpace<simDim> globalOffset,
                               uint32_t currentStep,
                               Mapping mapper,
-                              radiation_frequencies::FreqFunctor freqFkt)
+                              radiation_frequencies::FreqFunctor freqFkt,
+			      DataSpace<simDim> simBoxSize)
 {
 
     typedef typename MappingDesc::SuperCellSize Block;
@@ -277,7 +279,8 @@ void kernelRadiationParticles(ParBox pb,
                              */
                             const float_X weighting = par[weighting_];
 
-                            /* only of coherent and incoherent radiation of a sibgle macro-particle is
+
+                            /* only of coherent and incoherent radiation of a single macro-particle is
                              * considered, the weighting of each macro-particle needs to be stored
                              * in order to be considered when the actual frequency calulation is done
                              */
@@ -339,6 +342,31 @@ void kernelRadiationParticles(ParBox pb,
 #if (__NYQUISTCHECK__==1)
                             lowpass_s[saveParticleAt] = NyquistLowPass(look, particle);
 #endif
+
+
+			    /* the particle charge is used to include the weighting
+			     * of the window function filter without needing more memory */
+#if (__RADWINDOWFUNCTION__==1)
+			    /* start with a factor of one */
+			    float_X windowFactor = 1.0;
+			    
+			    /* window in x dimension */
+			    windowFactor *= radWindowFunction_selected::radWindowFunction(
+								particle_locationNow.x(), 
+								(simBoxSize.getGlobalSize()).x());
+			    /* window in y dimension */
+			    windowFactor *= radWindowFunction_selected::radWindowFunction(
+								particle_locationNow.y(), 
+								(simBoxSize.getGlobalSize()).y());
+			    /* window in z dimension */
+			    windowFactor *= radWindowFunction_selected::radWindowFunction(
+								particle_locationNow.z(), 
+								(simBoxSize.getGlobalSize()).z());
+
+			    /* apply window function factor to amplitude */
+			    real_amplitude_s[saveParticleAt] *= windowFactor;
+#endif
+
 
 
                         } // END: if a particle needs to be considered
@@ -944,7 +972,9 @@ private:
              /*Pointer to memory of radiated amplitude on the device*/
              radiation->getDeviceBuffer().getDataBox(),
              globalOffset,
-             currentStep, *cellDescription, freqFkt
+             currentStep, *cellDescription, 
+	     freqFkt,
+	     simBox.getGlobalSize()	     
              );
 
         if (dumpPeriod != 0 && currentStep % dumpPeriod == 0)
