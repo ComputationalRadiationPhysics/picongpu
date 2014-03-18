@@ -962,6 +962,9 @@ private:
         DataSpace<simDim> globalOffset(Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset());
         globalOffset.y() += (localSize.y() * window.slides);
 
+	/* what is this good for? */
+	PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
+
         // PIC-like kernel call of the radiation kernel
         __cudaKernel(kernelRadiationParticles)
             (gridDim_rad, blockDim_rad)

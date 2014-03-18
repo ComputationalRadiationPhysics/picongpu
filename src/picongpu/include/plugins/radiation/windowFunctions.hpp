@@ -50,22 +50,22 @@ namespace picongpu
 	 * @returns weighting factor to reduce ringing effects due to
          *          sharp spacial boundaries
 	 */
-	if (position_x < 0.0):
+	if (position_x < 0.0)
 	  {
 	    /* checks whether position is in front of the sim box
 	     * should not happen */
 	    return 0.0;
 	  }
-	else if (position_x > L_x):
+	else if (position_x > L_x)
 	  {
 	    /* checks whether position is behind of the sim box
 	     * should not happen */
 	    return 0.0;
 	  }
-	else:		 
+	else
 	  {
 	    /* return 1.0 if position_x is in the sim box */
-	    return 1.0
+	    return 1.0;
 	  }
       }
     private:
@@ -73,7 +73,7 @@ namespace picongpu
     };
       
   } /* end namespace: radWindowFunctionRectangle */
-
+  
 
 
 
@@ -114,29 +114,29 @@ namespace picongpu
 	 * @returns weighting factor to reduce ringing effects due to
          *          sharp spacial boundaries
 	 */
-	if (position_x < 0.0):
+	if (position_x < 0.0)
 	  {
 	    /* checks whether position is in front of the sim box
 	     * should not happen */
 	    return 0.0;
 	  }
-	else if (position_x > L_x):
+	else if (position_x > L_x)
 	  {
 	    /* checks whether position is behind of the sim box
 	     * should not happen */
 	    return 0.0;
 	  }
-	else:		 
+	else		 
 	  {
 	    /* changes coordinate system to center of sim box */
-	    const float_X x = possition_x - L_x*0.5;
+	    const float_X x = position_x - L_x*0.5;
 	    /* part needed by both branches */
 	    const float_X y = 2.0*x/L_x;
-	    if (x<0):
+	    if (x<0)
 	      {
 		return 1.0 + y;
 	      }
-	    else:
+	    else
 	      {
 		return 1.0 - y;
 	      }	  
@@ -146,6 +146,10 @@ namespace picongpu
       /* no private methods */
     };
       
-  } /* end namespace: radWindowFunctionTriangle */
+  } 
+  /* end namespace: radWindowFunctionTriangle */
   
-} /* end namespace: picongpu */ 
+} 
+/* end namespace: picongpu */ 
+
+
