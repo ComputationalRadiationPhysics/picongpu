@@ -355,13 +355,13 @@ void kernelRadiationParticles(ParBox pb,
 			    
 			    /* window in x dimension */
 			    windowFactor *= winFkt(particle_locationNow.x(),
-						   simBoxSize.x());
+						   simBoxSize.x() * CELL_WIDTH);
 			    /* window in y dimension */
 			    windowFactor *= winFkt(particle_locationNow.y(), 
-						   simBoxSize.y());
+						   simBoxSize.y() * CELL_HEIGHT);
 			    /* window in z dimension */
 			    windowFactor *= winFkt(particle_locationNow.z(), 
-						   simBoxSize.z());
+						   simBoxSize.z() * CELL_DEPTH);
 
 			    /* TODO: How to do this for 2D automatically? */
 
