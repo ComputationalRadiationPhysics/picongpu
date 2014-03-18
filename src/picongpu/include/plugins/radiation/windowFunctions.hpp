@@ -23,13 +23,129 @@
 namespace picongpu
 {
 
-  namespace radWindowFunction
+
+
+  namespace radWindowFunctionRectangle
   {
 
-    
+    class radWindowFunction
+    {
+    public:
+      HDINLINE radWindowFunction(void)
+      { }
+      
+      HDINLINE float_X operator()(const float_X position_x, const float_X L_x) const
+      {
+	
+	/* 1D Window function accordig to the box window:
+	 *
+	 * f(x) = {1.0        : (-L_x/2 <= t <= +L_x/2 )
+	 *        {0.0        : in any other case
+	 * with x beeing possition_x - L_x/2
+	 *
+	 * @param position_x = 1D position
+	 * @param L_x        = length of the simulated area
+	 *                     assuming that the simulation ranges
+	 *                     from 0 to L_x in the choosen dimension
+	 * @returns weighting factor to reduce ringing effects due to
+         *          sharp spacial boundaries
+	 */
+	if (position_x < 0.0):
+	  {
+	    /* checks whether position is in front of the sim box
+	     * should not happen */
+	    return 0.0;
+	  }
+	else if (position_x > L_x):
+	  {
+	    /* checks whether position is behind of the sim box
+	     * should not happen */
+	    return 0.0;
+	  }
+	else:		 
+	  {
+	    /* return 1.0 if position_x is in the sim box */
+	    return 1.0
+	  }
+      }
+    private:
+      /* no private methods */
+    };
+      
+  } /* end namespace: radWindowFunctionBox */
 
 
 
-  } /* end namespace: radWindowFunction */
 
+
+
+
+
+
+
+
+
+
+
+
+  namespace radWindowFunctionRectangle
+  {
+
+    class radWindowFunction
+    {
+    public:
+      HDINLINE radWindowFunction(void)
+      { }
+      
+      HDINLINE float_X operator()(const float_X position_x, const float_X L_x) const
+      {
+	
+	/* 1D Window function accordig to the rectangle window:
+	 *
+	 * f(x) = {1+2x/L_x : (-L_x/2 <= t <= 0      )
+	 *        {1-2x/L_x : (0      <= t <= +L_x/2 )
+	 *        {0.0      : in any other case
+	 * with x beeing possition_x - L_x/2
+	 *
+	 * @param position_x = 1D position
+	 * @param L_x        = length of the simulated area
+	 *                     assuming that the simulation ranges
+	 *                     from 0 to L_x in the choosen dimension
+	 * @returns weighting factor to reduce ringing effects due to
+         *          sharp spacial boundaries
+	 */
+	if (position_x < 0.0):
+	  {
+	    /* checks whether position is in front of the sim box
+	     * should not happen */
+	    return 0.0;
+	  }
+	else if (position_x > L_x):
+	  {
+	    /* checks whether position is behind of the sim box
+	     * should not happen */
+	    return 0.0;
+	  }
+	else:		 
+	  {
+	    /* changes coordinate system to center of sim box */
+	    const float_X x = possition_x - L_x*0.5;
+	    /* part needed by both branches */
+	    const float_X y = 2.0*x/L_x;
+	    if (x<0):
+	      {
+		return 1.0 + y;
+	      }
+	    else:
+	      {
+		return 1.0 - y;
+	      }	  
+	  }
+      }
+    private:
+      /* no private methods */
+    };
+      
+  } /* end namespace: radWindowFunctionRectangle */
+  
 } /* end namespace: picongpu */ 
