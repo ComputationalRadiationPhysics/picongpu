@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2014 Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -30,32 +30,28 @@
 /** define a unique identifier with name, type and a default value
  * @param in_type type of the value
  * @param name name of identifier
- * @param in_default default value of in_type (can be a constructor of a class)
  * 
  * The created identifier has the following options:
- *          getDefaultValue() - return the default value
  *          getName()         - return the name of the identifier
- *          ::type            - get type of the value 
+ *          ::type            - get contained type
+ *          ::ThisType        - get type of the created class by it self
  * 
- * e.g. value_identifier(float,length,0.0f)
+ * e.g. named_type(float,length)
  *      typedef length::type value_type; // is float
- *      value_type x= length::getDefault();  //set x to 0.f
+ *      typedef length::ThisType X;  // is class length
  *      printf("Identifier name: %s",length::getName()); //print Identifier name: length
  * 
  * to create a instance of this value_identifier you can use:
  *      length();   or length_
  * 
  */
-#define value_identifier(in_type,name,in_default)                              \
+#define named_type(in_type,name,...)                                           \
         identifier(name,                                                       \
         typedef name ThisType;                                                 \
         typedef in_type type;                                                  \
-        static HDINLINE type getDefaultValue()                                 \
-        {                                                                      \
-                return in_default;                                             \
-        }                                                                      \
         static HDINLINE char* getName()                                        \
         {                                                                      \
                 return #name;                                                  \
         }                                                                      \
+        __VA_ARGS__                                                            \
     )
