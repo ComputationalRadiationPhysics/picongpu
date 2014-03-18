@@ -34,10 +34,10 @@ identifier(pmacc_isAlias);
 /*define special makros for creating classes which are only used as identifer*/
 #define PMACC_alias(name,id)                                                   \
     namespace PMACC_JOIN(placeholder_definition,id) {                          \
-        template<typename T=PMacc::pmacc_void,typename T_IsAlias=PMacc::pmacc_isAlias> \
-        struct name:public T                                                   \
+        template<typename T_Type=PMacc::pmacc_void,typename T_IsAlias=PMacc::pmacc_isAlias> \
+        struct name:public T_Type                                                   \
         {                                                                      \
-            typedef T ThisType;                                                \
+            typedef T_Type ThisType;                                                \
             static HDINLINE char* getName()                                    \
             {                                                                  \
                      return #name;                                             \

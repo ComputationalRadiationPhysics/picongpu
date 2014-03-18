@@ -27,13 +27,13 @@
 
 /* No namespace is needed because we only have defines*/
 
-/** define a spezial identifier with name, type and a default value
+/** define a unique identifier with name, type and a default value
  * @param in_type type of the value
  * @param name name of identifier
  * @param in_default default value of in_type (can be a constructor of a class)
  * 
- * The created identifier has the folowing options:
- *          getDefaultValue() - return the defualt value
+ * The created identifier has the following options:
+ *          getDefaultValue() - return the default value
  *          getName()         - return the name of the identifier
  *          ::type            - get type of the value 
  * 

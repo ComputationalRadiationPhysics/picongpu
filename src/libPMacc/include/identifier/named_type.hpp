@@ -27,17 +27,18 @@
 
 /* No namespace is needed because we only have defines*/
 
-/** define a spezial identifier with name, type and a default value
+/** define a unique identifier with name, type and a default value
  * @param in_type type of the value
  * @param name name of identifier
  * 
- * The created identifier has the folowing options:
- *          getDefaultValue() - return the defualt value
+ * The created identifier has the following options:
  *          getName()         - return the name of the identifier
- *          ::type            - get type of the value 
+ *          ::type            - get contained type
+ *          ::ThisType        - get type of the created class by it self
  * 
  * e.g. named_type(float,length)
  *      typedef length::type value_type; // is float
+ *      typedef length::ThisType X;  // is class length
  *      printf("Identifier name: %s",length::getName()); //print Identifier name: length
  * 
  * to create a instance of this value_identifier you can use:
