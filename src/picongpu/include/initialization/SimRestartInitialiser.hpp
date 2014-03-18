@@ -61,7 +61,7 @@ class RestartParticleLoader
 {
 private:
 
-    template<class TYPE>
+    template<typename TYPE>
     static void loadParticleData(TYPE **dst,
                                  uint32_t simulationStep,
                                  ParallelDomainCollector& dataCollector,
@@ -72,7 +72,8 @@ private:
                                  uint64_t particlesLoadOffset)
     {
         // allocate memory for particles
-        *dst = new TYPE[numParticles];
+        uint8_t *ptr = new uint8_t[numParticles * sizeof(TYPE)];
+        *dst = (TYPE*)ptr;
         memset(*dst, 0, sizeof (TYPE) * numParticles);
 
         // read particles from file 
