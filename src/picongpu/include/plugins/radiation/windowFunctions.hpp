@@ -37,7 +37,7 @@ namespace picongpu
       HDINLINE float_X operator()(const float_X position_x, const float_X L_x) const
       {
 	
-	/* 1D Window function accordig to the box window:
+	/* 1D Window function accordig to the rectangle window:
 	 *
 	 * f(x) = {1.0        : (-L_x/2 <= t <= +L_x/2 )
 	 *        {0.0        : in any other case
@@ -72,7 +72,7 @@ namespace picongpu
       /* no private methods */
     };
       
-  } /* end namespace: radWindowFunctionBox */
+  } /* end namespace: radWindowFunctionRectangle */
 
 
 
@@ -88,7 +88,7 @@ namespace picongpu
 
 
 
-  namespace radWindowFunctionRectangle
+  namespace radWindowFunctionTriangle
   {
 
     class radWindowFunction
@@ -100,7 +100,7 @@ namespace picongpu
       HDINLINE float_X operator()(const float_X position_x, const float_X L_x) const
       {
 	
-	/* 1D Window function accordig to the rectangle window:
+	/* 1D Window function accordig to the triangle window:
 	 *
 	 * f(x) = {1+2x/L_x : (-L_x/2 <= t <= 0      )
 	 *        {1-2x/L_x : (0      <= t <= +L_x/2 )
@@ -146,6 +146,6 @@ namespace picongpu
       /* no private methods */
     };
       
-  } /* end namespace: radWindowFunctionRectangle */
+  } /* end namespace: radWindowFunctionTriangle */
   
 } /* end namespace: picongpu */ 
