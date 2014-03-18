@@ -36,7 +36,7 @@
 
 #include "simulation_classTypes.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
-#include "plugins/IPluginModule.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 
 #include "mpi/reduceMethods/Reduce.hpp"
 #include "mpi/MPIReduce.hpp"
@@ -197,7 +197,7 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
 }
 
 template<class ParticlesType>
-class BinEnergyParticles : public ISimulationIO, public IPluginModule
+class BinEnergyParticles : public ISimulationIO, public ISimulationPlugin
 {
 private:
 
@@ -246,7 +246,7 @@ public:
     writeToFile(false),
     enableDetector(false)
     {
-        Environment<>::get().ModuleConnector().registerModule(this);
+        Environment<>::get().PluginConnector().registerPlugin(this);
     }
 
     virtual ~BinEnergyParticles()
@@ -262,7 +262,7 @@ public:
         calBinEnergyParticles < CORE + BORDER > (currentStep);
     }
 
-    void moduleRegisterHelp(po::options_description& desc)
+    void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
             ((analyzerPrefix + ".period").c_str(), po::value<uint32_t > (&notifyFrequency)->default_value(0), "enable analyser [for each n-th step]")
@@ -274,7 +274,7 @@ public:
             ((analyzerPrefix + ".slitDetectorZ").c_str(), po::value<float_X > (&slitDetectorZ)->default_value(0.0), "size of the detector slit in Z [in meters] (if not set, all particles are counted)");
     }
 
-    std::string moduleGetName() const
+    std::string pluginGetName() const
     {
         return analyzerName;
     }
@@ -286,7 +286,7 @@ public:
 
 private:
 
-    void moduleLoad()
+    void pluginLoad()
     {
         if (notifyFrequency > 0)
         {
@@ -331,7 +331,7 @@ private:
         }
     }
 
-    void moduleUnload()
+    void pluginUnload()
     {
         if (notifyFrequency > 0)
         {

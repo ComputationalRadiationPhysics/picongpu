@@ -37,7 +37,7 @@
 
 #include "simulation_classTypes.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
-#include "plugins/IPluginModule.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 
 #include "plugins/radiation/parameters.hpp"
 #include "plugins/radiation/check_consistency.hpp"
@@ -469,7 +469,7 @@ void kernelRadiationParticles(ParBox pb,
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 template<class ParticlesType>
-class Radiation : public ISimulationIO, public IPluginModule
+class Radiation : public ISimulationIO, public ISimulationPlugin
 {
 private:
 
@@ -551,7 +551,7 @@ public:
     radRestart(false)
     {
 
-        Environment<>::get().ModuleConnector().registerModule(this);
+        Environment<>::get().PluginConnector().registerPlugin(this);
     }
 
     virtual ~Radiation()
@@ -591,7 +591,7 @@ public:
         }
     }
 
-    void moduleRegisterHelp(po::options_description& desc)
+    void pluginRegisterHelp(po::options_description& desc)
     {
 
         desc.add_options()
@@ -609,7 +609,7 @@ public:
             ((analyzerPrefix + ".restart").c_str(), po::value<bool > (&radRestart)->default_value(false), "enable(1)/disable(0) restart flag");
     }
 
-    std::string moduleGetName() const
+    std::string pluginGetName() const
     {
 
         return analyzerName;
@@ -624,7 +624,7 @@ public:
 private:
 
     /**
-     * The module is loaded on every host pc, and therefor this function is 
+     * The plugin is loaded on every host pc, and therefor this function is 
      * executed on every host pc.
      * One host with MPI rank 0 is defined to be the master.
      * It creates a folder where all the 
@@ -633,7 +633,7 @@ private:
      * intermediate values.
      * On every host data structure for storage of the calculated radiation 
      * is created.       */
-    void moduleLoad()
+    void pluginLoad()
     {
         if (notifyFrequency > 0)
         {
@@ -678,7 +678,7 @@ private:
         }
     }
 
-    void moduleUnload()
+    void pluginUnload()
     {
         if (notifyFrequency > 0)
         {
@@ -708,7 +708,7 @@ private:
     /**
      * This function is called by the calculateRadiationParticles() function
      * if storing of intermediate results is activated (dumpPeriod != 0) 
-     * otherwise it is invoked by moduleUnload().
+     * otherwise it is invoked by pluginUnload().
      * 
      * On every host the calculated radiation (radiation from the particles
      * on that device for all directions and frequencies) is transferred 

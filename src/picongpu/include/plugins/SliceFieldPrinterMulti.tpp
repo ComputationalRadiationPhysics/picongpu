@@ -46,11 +46,11 @@ template<typename Field>
 SliceFieldPrinterMulti<Field>::SliceFieldPrinterMulti(std::string name, std::string prefix)
     : name(name), prefix(prefix)
 {
-    Environment<>::get().ModuleConnector().registerModule(this);
+    Environment<>::get().PluginConnector().registerPlugin(this);
 }
 
 template<typename Field>
-void SliceFieldPrinterMulti<Field>::moduleRegisterHelp(po::options_description& desc)
+void SliceFieldPrinterMulti<Field>::pluginRegisterHelp(po::options_description& desc)
 {
     desc.add_options()
         ((this->prefix + "_frequency").c_str(),
@@ -67,10 +67,10 @@ void SliceFieldPrinterMulti<Field>::moduleRegisterHelp(po::options_description& 
 }
 
 template<typename Field>
-std::string SliceFieldPrinterMulti<Field>::moduleGetName() const {return this->name;}
+std::string SliceFieldPrinterMulti<Field>::pluginGetName() const {return this->name;}
 
 template<typename Field>
-void SliceFieldPrinterMulti<Field>::moduleLoad()
+void SliceFieldPrinterMulti<Field>::pluginLoad()
 {
     this->childs.resize(this->notifyFrequency.size());
     for(uint32_t i = 0; i < this->childs.size(); i++)
@@ -80,15 +80,15 @@ void SliceFieldPrinterMulti<Field>::moduleLoad()
         this->childs[i].fieldName = this->fieldName[i];
         this->childs[i].plane = this->plane[i];
         this->childs[i].slicePoint = this->slicePoint[i];
-        this->childs[i].moduleLoad();
+        this->childs[i].pluginLoad();
     }
 }
 
 template<typename Field>
-void SliceFieldPrinterMulti<Field>::moduleUnload()
+void SliceFieldPrinterMulti<Field>::pluginUnload()
 {
     for(uint32_t i = 0; i < this->childs.size(); i++)
-        this->childs[i].moduleUnload();
+        this->childs[i].pluginUnload();
 }
 
 template<typename Field>

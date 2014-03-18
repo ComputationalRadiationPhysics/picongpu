@@ -41,7 +41,7 @@ namespace picongpu
 {
 
 template<typename Field>
-void SliceFieldPrinter<Field>::moduleLoad()
+void SliceFieldPrinter<Field>::pluginLoad()
 {
     Environment<>::get().DataConnector().registerObserver(this, this->notifyFrequency);
     namespace vec = ::PMacc::math;
@@ -54,7 +54,7 @@ void SliceFieldPrinter<Field>::moduleLoad()
 }
 
 template<typename Field>
-void SliceFieldPrinter<Field>::moduleUnload()
+void SliceFieldPrinter<Field>::pluginUnload()
 {
     delete this->dBuffer;
 }

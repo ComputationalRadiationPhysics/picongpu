@@ -36,7 +36,7 @@ namespace po = boost::program_options;
 #include <string>
 
 template<typename Field>
-class SliceFieldPrinterMulti : public ISimulationIO, public IPluginModule
+class SliceFieldPrinterMulti : public ISimulationIO, public ISimulationPlugin
 {
 private:
     std::string name;
@@ -48,8 +48,8 @@ private:
     MappingDesc *cellDescription;
     std::vector<SliceFieldPrinter<Field> > childs;
         
-    void moduleLoad();
-    void moduleUnload();
+    void pluginLoad();
+    void pluginUnload();
     
 public:
     SliceFieldPrinterMulti(std::string name, std::string prefix);
@@ -57,8 +57,8 @@ public:
 
     void notify(uint32_t) {}
     void setMappingDescription(MappingDesc* desc);
-    void moduleRegisterHelp(po::options_description& desc);
-    std::string moduleGetName() const;
+    void pluginRegisterHelp(po::options_description& desc);
+    std::string pluginGetName() const;
 };
 
 }

@@ -78,11 +78,11 @@ template<typename ParticlesType>
 ParticleDensity<ParticlesType>::ParticleDensity(std::string name, std::string prefix)
     : name(name), prefix(prefix)
 {
-    Environment<>::get().ModuleConnector().registerModule(this);
+    Environment<>::get().PluginConnector().registerPlugin(this);
 }
 
 template<typename ParticlesType>
-void ParticleDensity<ParticlesType>::moduleRegisterHelp(po::options_description& desc)
+void ParticleDensity<ParticlesType>::pluginRegisterHelp(po::options_description& desc)
 {
     desc.add_options()
         ((this->prefix + "_frequency").c_str(),
@@ -99,16 +99,16 @@ void ParticleDensity<ParticlesType>::moduleRegisterHelp(po::options_description&
 }
 
 template<typename ParticlesType>
-std::string ParticleDensity<ParticlesType>::moduleGetName() const {return this->name;}
+std::string ParticleDensity<ParticlesType>::pluginGetName() const {return this->name;}
 
 template<typename ParticlesType>
-void ParticleDensity<ParticlesType>::moduleLoad()
+void ParticleDensity<ParticlesType>::pluginLoad()
 {
     Environment<>::get().DataConnector().registerObserver(this, this->notifyFrequency);
 }
 
 template<typename ParticlesType>
-void ParticleDensity<ParticlesType>::moduleUnload(){}
+void ParticleDensity<ParticlesType>::pluginUnload(){}
 
 template<typename ParticlesType>
 void ParticleDensity<ParticlesType>::notify(uint32_t currentStep)

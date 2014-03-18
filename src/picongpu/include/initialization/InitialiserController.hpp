@@ -26,7 +26,7 @@
 
 #include "Environment.hpp"
 
-#include "moduleSystem/ModuleConnector.hpp"
+#include "pluginSystem/PluginConnector.hpp"
 
 #include "fields/FieldE.hpp"
 #include "fields/FieldB.hpp"
@@ -39,7 +39,7 @@
 #include "initialization/SimStartInitialiser.hpp"
 #include "particles/Species.hpp"
 
-#include "initialization/IInitModule.hpp"
+#include "initialization/IInitPlugin.hpp"
 
 #include <boost/mpl/find.hpp>
 
@@ -50,7 +50,7 @@ using namespace PMacc;
 
 namespace po = boost::program_options;
 
-class InitialiserController : public IInitModule
+class InitialiserController : public IInitPlugin
 {
 public:
 
@@ -59,7 +59,6 @@ public:
     restartSim(false),
     restartFile("h5")
     {
-        //Environment<>::get().ModuleConnector().registerModule(this);
     }
 
     virtual ~InitialiserController()
@@ -150,15 +149,15 @@ public:
         return 0;
     }
 
-    void moduleLoad()
+    void pluginLoad()
     {
     }
 
-    void moduleUnload()
+    void pluginUnload()
     {
     }
 
-    void moduleRegisterHelp(po::options_description& desc)
+    void pluginRegisterHelp(po::options_description& desc)
     {
 #if (ENABLE_HDF5==1)
         desc.add_options()
@@ -169,7 +168,7 @@ public:
 #endif
     }
 
-    std::string moduleGetName() const
+    std::string pluginGetName() const
     {
         return "Initializers";
     }

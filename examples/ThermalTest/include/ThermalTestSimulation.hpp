@@ -95,14 +95,14 @@ public:
         return 0;
     }
 
-    void moduleRegisterHelp(po::options_description& desc)
+    void pluginRegisterHelp(po::options_description& desc)
     {
-        MySimulation::moduleRegisterHelp(desc);
+        MySimulation::pluginRegisterHelp(desc);
     }
 
-    void moduleLoad()
+    void pluginLoad()
     {
-        MySimulation::moduleLoad();
+        MySimulation::pluginLoad();
     }
 
     virtual ~ThermalTestSimulation()

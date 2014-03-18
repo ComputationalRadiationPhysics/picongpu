@@ -41,7 +41,7 @@
 
 #include "basicOperations.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
-#include "plugins/IPluginModule.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 
 namespace picongpu
 {
@@ -95,7 +95,7 @@ namespace picongpu
         __syncthreads();
     }
 
-    class LineSliceFields : public ISimulationIO, public IPluginModule
+    class LineSliceFields : public ISimulationIO, public ISimulationPlugin
     {
     private:
         FieldE* fieldE;
@@ -116,7 +116,7 @@ namespace picongpu
         cellDescription(NULL),
         notifyFrequency(0)
         {
-            Environment<>::get().ModuleConnector().registerModule(this);
+            Environment<>::get().PluginConnector().registerPlugin(this);
         }
 
         virtual ~LineSliceFields()
@@ -184,13 +184,13 @@ namespace picongpu
             outfile << std::endl;
         }
 
-        void moduleRegisterHelp(po::options_description& desc)
+        void pluginRegisterHelp(po::options_description& desc)
         {
             desc.add_options()
                     ("lslice.period", po::value<uint32_t > (&notifyFrequency), "enable analyser [for each n-th step]");
         }
 
-        std::string moduleGetName() const
+        std::string pluginGetName() const
         {
             return "LineSliceFields";
         }
@@ -201,7 +201,7 @@ namespace picongpu
         }
 
     private:
-        void moduleLoad()
+        void pluginLoad()
         {
             if (notifyFrequency > 0)
             {
@@ -227,7 +227,7 @@ namespace picongpu
             }
         }
 
-        void moduleUnload()
+        void pluginUnload()
         {
             if (notifyFrequency > 0)
             {

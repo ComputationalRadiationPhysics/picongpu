@@ -20,8 +20,7 @@
  
 
 
-#ifndef INTENSITYMODULE_HPP
-#define	INTENSITYMODULE_HPP
+#pragma once
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -36,7 +35,7 @@
 #include <fstream>
 #include <mpi.h>
 
-#include "plugins/IPluginModule.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 
 #include "fields/FieldE.hpp"
 #include "memory/boxes/CachedBox.hpp"
@@ -114,7 +113,7 @@ __global__ void kernelIntensity(FieldBox field, DataSpace<simDim> cellsCount, Bo
 
 }
 
-class IntensityModule : public ISimulationIO, public IPluginModule
+class IntensityPlugin : public ISimulationIO, public ISimulationPlugin
 {
 private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -138,7 +137,7 @@ public:
      * max is only the SI  value of the amplitude (V/m)
      * integrated is the integral of amplidude of X and Z on Y position (is V/m in cell volume)
      */
-    IntensityModule(std::string name, std::string prefix) :
+    IntensityPlugin(std::string name, std::string prefix) :
     analyzerName(name),
     analyzerPrefix(prefix),
     localMaxIntensity(NULL),
@@ -147,10 +146,10 @@ public:
     notifyFrequency(0),
     writeToFile(false)
     {
-        Environment<>::get().ModuleConnector().registerModule(this);
+        Environment<>::get().PluginConnector().registerPlugin(this);
     }
 
-    virtual ~IntensityModule()
+    virtual ~IntensityPlugin()
     {
 
     }
@@ -161,14 +160,14 @@ public:
         combineData(currentStep);
     }
 
-    void moduleRegisterHelp(po::options_description& desc)
+    void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
             ((analyzerPrefix + ".period").c_str(),
              po::value<uint32_t > (&notifyFrequency), "enable analyser [for each n-th step]");
     }
 
-    std::string moduleGetName() const
+    std::string pluginGetName() const
     {
         return analyzerName;
     }
@@ -180,7 +179,7 @@ public:
 
 private:
 
-    void moduleLoad()
+    void pluginLoad()
     {
         if (notifyFrequency > 0)
         {
@@ -200,7 +199,7 @@ private:
         }
     }
 
-    void moduleUnload()
+    void pluginUnload()
     {
         if (notifyFrequency > 0)
         {
@@ -375,13 +374,11 @@ private:
         stream.flush();
         stream << std::endl; //now all data are written to file
         if (stream.fail())
-            std::cerr << "Error on flushing file inIntesityModule. " << std::endl;
+            std::cerr << "Error on flushing file in IntensityPlugin. " << std::endl;
         stream.close();
     }
 
 };
 
 }
-
-#endif	/* INTENSITYMODULE_HPP */
 

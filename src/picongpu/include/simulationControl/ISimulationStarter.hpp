@@ -27,14 +27,14 @@
 #include "simulation_defines.hpp"
 
 
-#include "moduleSystem/Module.hpp"
+#include "pluginSystem/IPlugin.hpp"
 
 namespace picongpu
 {
     using namespace PMacc;
 
     
-    class ISimulationStarter : public Module
+    class ISimulationStarter : public IPlugin
     {
     public:
 
@@ -51,7 +51,7 @@ namespace picongpu
         virtual bool parseConfigs(int argc, char **argv) = 0;
 
         /*start simulation
-         * is called after parsConfig and moduleLoad
+         * is called after parsConfig and pluginLoad
          */
         virtual void start() = 0;
     };
