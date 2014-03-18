@@ -56,7 +56,7 @@ template<typename T_ParticleDescription>
 Particles<T_ParticleDescription>::Particles( GridLayout<simDim> gridLayout,
                                              MappingDesc cellDescription,
                                              SimulationDataId datasetID) :
-ParticlesBase<T_DataVector, T_MethodsVector, MappingDesc>( cellDescription ),
+ParticlesBase<T_ParticleDescription, MappingDesc>( cellDescription ),
 fieldB( NULL ), fieldE( NULL ), fieldJurrent( NULL ), fieldTmp( NULL ), gridLayout( gridLayout ),
 datasetID( datasetID )
 { 
@@ -126,8 +126,8 @@ void Particles<T_ParticleDescription>::syncToDevice( )
     this->particlesBuffer->hostToDevice( );
 }
 
-template< typename T_ParticleDescription>
-void Particles<T_DataVector, T_MethodsVector>::init( FieldE &fieldE, FieldB &fieldB, FieldJ &fieldJ, FieldTmp &fieldTmp )
+template<typename T_ParticleDescription>
+void Particles<T_ParticleDescription>::init( FieldE &fieldE, FieldB &fieldB, FieldJ &fieldJ, FieldTmp &fieldTmp )
 {
     this->fieldE = &fieldE;
     this->fieldB = &fieldB;
