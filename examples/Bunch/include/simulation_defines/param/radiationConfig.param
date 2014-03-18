@@ -141,7 +141,7 @@ const float RadiationGamma = 5.;
 
 const unsigned int N_observer = 128; // number of looking directions
 
-
+} /* end namespace parameters */
 
 
 //////////////////////////////////////////////////
@@ -173,4 +173,4 @@ namespace radWindowFunction_selected = radWindowFunctionTriangle;
 
 
 
-}
+
