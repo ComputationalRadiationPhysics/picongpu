@@ -23,16 +23,15 @@
 namespace picongpu
 {
 
+  /* several window functions behind namespaces: */
 
 
   namespace radWindowFunctionRectangle
   {
-
     struct radWindowFunction
     {
       HDINLINE float_X operator()(const float_X position_x, const float_X L_x) const
       {
-	
 	/* 1D Window function according to the rectangle window:
 	 *
 	 * f(x) = {1.0        : (-L_x/2 <= x <= +L_x/2 )
@@ -65,31 +64,16 @@ namespace picongpu
 	  }
       }
     };
-      
   } /* end namespace: radWindowFunctionRectangle */
   
 
 
-
-
-
-
-
-
-
-
-
-
-
-
   namespace radWindowFunctionTriangle
   {
-
     struct radWindowFunction
     {
       HDINLINE float_X operator()(const float_X position_x, const float_X L_x) const
       {
-	
 	/* 1D Window function according to the triangle window:
 	 *
 	 * f(x) = {1+2x/L_x : (-L_x/2 <= x <= 0      )
@@ -133,11 +117,10 @@ namespace picongpu
 	  }
       }
     };
-      
-  } 
-  /* end namespace: radWindowFunctionTriangle */
-  
-} 
-/* end namespace: picongpu */ 
+  } /* end namespace: radWindowFunctionTriangle */
+
+
+
+}  /* end namespace: picongpu */
 
 
