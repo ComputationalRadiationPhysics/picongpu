@@ -136,7 +136,7 @@ std::string ParticleSpectrum<ParticlesType>::pluginGetName() const {return this-
 template<typename ParticlesType>
 void ParticleSpectrum<ParticlesType>::pluginLoad()
 {
-    Environment<>::get().DataConnector().registerObserver(this, this->notifyFrequency);
+    Environment<>::get().PluginConnector().setNotificationFrequency(this, this->notifyFrequency);
     
     this->minEnergy = this->minEnergy * UNITCONV_keV_to_Joule / UNIT_ENERGY;
     this->maxEnergy = this->maxEnergy * UNITCONV_keV_to_Joule / UNIT_ENERGY;

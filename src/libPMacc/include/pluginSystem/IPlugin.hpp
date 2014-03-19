@@ -32,6 +32,9 @@ namespace PMacc
 {
     namespace po = boost::program_options;
 
+    /*
+     * Exception for plugin or plugin-management related errors.
+     */
     class PluginException : public std::runtime_error
     {
     public:
@@ -45,6 +48,9 @@ namespace PMacc
         }
     };
 
+    /*
+     * IPlugin interface.
+     */
     class IPlugin
     {
     public:
@@ -75,15 +81,40 @@ namespace PMacc
         {
             return loaded;
         }
+        
+        /**
+         * Notification callback.
+         * Plugins can set their requested notification frequency at the PluginConnector
+         *
+         * @param currentStep current simulation iteration step
+         */
+        virtual void notify(uint32_t currentStep) = 0;
 
+        /**
+         * Register command line parameters for this plugin.
+         * Parameters are parsed and set prior to plugin load.
+         * 
+         * @param desc boost::program_options description
+         */
         virtual void pluginRegisterHelp(po::options_description& desc) = 0;
 
+        /**
+         * Return the name of this plugin for status messages.
+         * 
+         * @return plugin name
+         */
         virtual std::string pluginGetName() const = 0;
 
     protected:
-        virtual void pluginLoad() = 0;
+        virtual void pluginLoad()
+        {
+            /* override this function if necessary */
+        }
 
-        virtual void pluginUnload() = 0;
+        virtual void pluginUnload()
+        {
+            /* override this function if necessary */
+        }
 
         bool loaded;
     };

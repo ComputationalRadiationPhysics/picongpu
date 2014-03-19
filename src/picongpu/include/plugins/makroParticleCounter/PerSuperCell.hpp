@@ -31,7 +31,6 @@
 #include <iomanip>
 #include <fstream>
 
-#include "pluginSystem/IPlugin.hpp"
 #include "plugins/ISimulationPlugin.hpp"
 
 #include "memory/buffers/GridBuffer.hpp"
@@ -108,7 +107,7 @@ __global__ void CountMakroParticle(ParBox parBox, CounterBox counterBox, Mapping
  *      
  */
 template<class ParticlesType>
-class PerSuperCell : public ISimulationIO, public ISimulationPlugin
+class PerSuperCell : public ISimulationPlugin
 {
 private:
 
@@ -184,7 +183,7 @@ private:
     {
         if (notifyFrequency > 0)
         {
-            Environment<>::get().DataConnector().registerObserver(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
             PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
             /* local count of supercells without any guards*/
             DataSpace<simDim> localSuperCells(simBox.getLocalSize() / SuperCellSize::getDataSpace());

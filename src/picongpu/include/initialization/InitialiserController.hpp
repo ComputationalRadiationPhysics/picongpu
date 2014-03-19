@@ -149,12 +149,9 @@ public:
         return 0;
     }
 
-    void pluginLoad()
+    void notify(uint32_t)
     {
-    }
-
-    void pluginUnload()
-    {
+        // nothing to do here
     }
 
     void pluginRegisterHelp(po::options_description& desc)

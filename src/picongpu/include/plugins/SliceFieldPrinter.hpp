@@ -22,6 +22,7 @@
 
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "math/vector/Float.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 
 namespace picongpu
 {
@@ -36,7 +37,7 @@ template<typename Field>
 class SliceFieldPrinterMulti;
 
 template<typename Field>
-class SliceFieldPrinter : public ISimulationIO
+class SliceFieldPrinter : public ISimulationPlugin
 {
 private:
     uint32_t notifyFrequency;
@@ -55,6 +56,8 @@ private:
     friend class SliceFieldPrinterMulti<Field>;
 public:
     void notify(uint32_t currentStep);
+    std::string pluginGetName() const;
+    void pluginRegisterHelp(po::options_description& desc);
     void setMappingDescription(MappingDesc* desc) {this->cellDescription = desc;}
 };
 

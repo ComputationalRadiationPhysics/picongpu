@@ -43,7 +43,7 @@ namespace picongpu
 template<typename Field>
 void SliceFieldPrinter<Field>::pluginLoad()
 {
-    Environment<>::get().DataConnector().registerObserver(this, this->notifyFrequency);
+    Environment<>::get().PluginConnector().setNotificationFrequency(this, this->notifyFrequency);
     namespace vec = ::PMacc::math;
     typedef vec::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> BlockDim;
     
@@ -57,6 +57,18 @@ template<typename Field>
 void SliceFieldPrinter<Field>::pluginUnload()
 {
     delete this->dBuffer;
+}
+
+template<typename Field>
+void SliceFieldPrinter<Field>::pluginRegisterHelp(po::options_description&)
+{
+    // nothing to do here
+}
+
+template<typename Field>
+std::string SliceFieldPrinter<Field>::pluginGetName() const
+{
+    return "SliceFieldPrinter";
 }
 
 template<typename Field>

@@ -47,7 +47,6 @@
 #include "mappings/simulation/GridController.hpp"
 #include "mappings/simulation/SubGrid.hpp"
 #include "dimensions/GridLayout.hpp"
-#include "dataManagement/ISimulationIO.hpp"
 #include "pluginSystem/PluginConnector.hpp"
 #include "simulationControl/MovingWindow.hpp"
 #include "dimensions/TVec.h"
@@ -82,13 +81,13 @@ namespace po = boost::program_options;
 
 /**
  * Writes simulation data to adios files.
- * Implements the ISimulationIO interface.
+ * Implements the ISimulationPlugin interface.
  *
  * @param ElectronsBuffer class description for electrons
  * @param IonsBuffer class description for ions
  * @param simDim dimension of the simulation (2-3)
  */
-class ADIOSWriter : public ISimulationIO, public ISimulationPlugin
+class ADIOSWriter : public ISimulationPlugin
 {
 public:
 
@@ -465,7 +464,7 @@ private:
             mpi_pos = gc.getPosition();
             mpi_size = gc.getGpuNodes();
 
-            Environment<>::get().DataConnector().registerObserver(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
             
             /* Initialize adios library */
             mThreadParams.adiosComm = MPI_COMM_NULL;

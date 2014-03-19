@@ -23,8 +23,6 @@
 
 
 #include "plugins/ISimulationPlugin.hpp"
-#include "dataManagement/ISimulationIO.hpp"
-#include "simulation_classTypes.hpp" //\todo: muss in ISimulationIO.hpp
 
 namespace picongpu
 {
@@ -33,7 +31,7 @@ using namespace PMacc;
 namespace po = boost::program_options;
 
 template<typename ParticlesType>
-class ParticleSpectrum : public ISimulationIO, public ISimulationPlugin
+class ParticleSpectrum : public ISimulationPlugin
 {
 private:
     std::string name;

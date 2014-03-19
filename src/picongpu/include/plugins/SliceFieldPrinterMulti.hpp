@@ -36,7 +36,7 @@ namespace po = boost::program_options;
 #include <string>
 
 template<typename Field>
-class SliceFieldPrinterMulti : public ISimulationIO, public ISimulationPlugin
+class SliceFieldPrinterMulti : public ISimulationPlugin
 {
 private:
     std::string name;

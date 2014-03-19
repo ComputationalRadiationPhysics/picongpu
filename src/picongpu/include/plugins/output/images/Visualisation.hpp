@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -20,8 +20,7 @@
 
 
 
-#ifndef IMAGE2D_HPP
-#define	IMAGE2D_HPP
+#pragma once
 
 #include "simulation_defines.hpp"
 #include "types.h"
@@ -40,7 +39,7 @@
 #include "particles/memory/boxes/ParticlesBox.hpp"
 
 #include "dataManagement/DataConnector.hpp"
-#include "dataManagement/ISimulationIO.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 #include "dimensions/TVec.h"
 
 #include "memory/boxes/DataBox.hpp"
@@ -470,7 +469,7 @@ __global__ void channelsToRGB(Mem mem, uint32_t n)
  * Visulization is performed in an additional thread.
  */
 template<class ParticlesType, class Output>
-class Visualisation : public ISimulationIO
+class Visualisation : public ISimulationPlugin
 {
 private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -495,6 +494,9 @@ public:
             sliceDim = 1;
         if ((transpose.x() == 1 || transpose.y() == 1) && sliceDim == 1)
             sliceDim = 2;
+        
+        Environment<>::get().PluginConnector().registerPlugin(this);
+        Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
     }
 
     virtual ~Visualisation()
@@ -503,6 +505,11 @@ public:
         {
             __delete(img);
         }
+    }
+    
+    std::string pluginGetName() const
+    {
+        return "Visualisation";
     }
 
     void notify(uint32_t currentStep)
@@ -655,14 +662,16 @@ public:
 
             img = new GridBuffer<float3_X, DIM2 > (header.node.maxSize);
 
-
-            Environment<>::get().DataConnector().registerObserver(this, notifyFrequency);
-
             bool isDrawing = doDrawing();
             isMaster = gather.init(isDrawing);
             reduce.participate(isDrawing);
 
         }
+    }
+    
+    void pluginRegisterHelp(po::options_description& desc)
+    {
+        // nothing to do here
     }
 
 private:
@@ -708,5 +717,3 @@ private:
 
 }
 
-
-#endif	/* IMAGE2D_HPP */

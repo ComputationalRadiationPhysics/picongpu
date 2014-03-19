@@ -197,7 +197,7 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
 }
 
 template<class ParticlesType>
-class BinEnergyParticles : public ISimulationIO, public ISimulationPlugin
+class BinEnergyParticles : public ISimulationPlugin
 {
 private:
 
@@ -327,7 +327,7 @@ private:
                 outFile << ">" << maxEnergy << " count" << std::endl;
             }
 
-            Environment<>::get().DataConnector().registerObserver(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
         }
     }
 

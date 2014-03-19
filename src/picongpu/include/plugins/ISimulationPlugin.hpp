@@ -25,6 +25,7 @@
 #include "types.h"
 #include "simulation_defines.hpp"
 #include "simulation_types.hpp"
+#include "simulation_classTypes.hpp"
 #include "pluginSystem/PluginConnector.hpp"
 #include "pluginSystem/IPlugin.hpp"
 

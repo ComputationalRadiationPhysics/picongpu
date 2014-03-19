@@ -29,21 +29,33 @@ namespace PMacc
 {
     namespace po = boost::program_options;
 
+    /**
+     * Plugin registration and management class.
+     */
     class PluginConnector
     {
     public:
 
+        /**
+         * Register a plugin for loading/unloading and notifications.
+         * To allow plugin notifications, call setNotificationFrequency after registration.
+         * 
+         * @param plugin plugin to register
+         */
         void registerPlugin(IPlugin *plugin)
         throw (PluginException)
         {
             if (plugin != NULL)
-            {
+            { 
                 plugins.push_back(plugin);
             }
             else
                 throw PluginException("Registering NULL as a plugin is not allowed.");
         }
 
+        /**
+         * Calls load on all registered, not loaded plugins
+         */
         void loadPlugins()
         throw (PluginException)
         {
@@ -58,6 +70,9 @@ namespace PMacc
             }
         }
 
+        /**
+         * Unloads all registered, loaded plugins
+         */
         void unloadPlugins()
         throw (PluginException)
         {
@@ -72,6 +87,11 @@ namespace PMacc
             }
         }
 
+        /**
+         * Publishes command line parameters for registered plugins.
+         *  
+         * @return list of boost program_options command line parameters
+         */
         std::list<po::options_description> registerHelp()
         {
             std::list<po::options_description> help_options;
@@ -87,6 +107,37 @@ namespace PMacc
             }
 
             return help_options;
+        }
+        
+        /**
+         * Set the notification frequency for a registered plugin.
+         * 
+         * @param plugin plugin to set frequency for
+         * @param frequency notification frequency
+         */
+        void setNotificationFrequency(IPlugin* plugin, uint32_t frequency)
+        {
+            notificationMap[plugin] = frequency;
+        }
+        
+        /**
+         * Notifies observers that data should be dumped.
+         *
+         * @param currentStep current simulation iteration step
+         */
+        void notifyPlugins(uint32_t currentStep)
+        {
+            for (std::list<IPlugin*>::iterator iter = plugins.begin();
+                    iter != plugins.end(); ++iter)
+            {
+                IPlugin* plugin = *iter;
+                if (notificationMap.find(plugin) != notificationMap.end())
+                {
+                    uint32_t frequency = notificationMap[plugin];
+                    if (frequency > 0 && (currentStep % frequency == 0))
+                        plugin->notify(currentStep);
+                }
+            }
         }
 
     private:
@@ -112,5 +163,6 @@ namespace PMacc
         }
 
         std::list<IPlugin*> plugins;
+        std::map<IPlugin*, uint32_t> notificationMap;
     };
 }

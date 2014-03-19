@@ -469,7 +469,7 @@ void kernelRadiationParticles(ParBox pb,
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 template<class ParticlesType>
-class Radiation : public ISimulationIO, public ISimulationPlugin
+class Radiation : public ISimulationPlugin
 {
 private:
 
@@ -647,7 +647,7 @@ private:
             freqFkt = freqInit.getFunctor();
 
 
-            Environment<>::get().DataConnector().registerObserver(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
 
             if (isMaster && totalRad)
             {

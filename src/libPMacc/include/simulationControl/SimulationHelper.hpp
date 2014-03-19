@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -20,8 +20,7 @@
  */ 
  
 
-#ifndef SIMULATIONHELPER_HPP
-#define	SIMULATIONHELPER_HPP
+#pragma once
 
 #include <cuda_runtime_api.h>
 #include <iostream>
@@ -113,7 +112,7 @@ public:
     virtual void dumpOneStep(uint32_t currentStep)
     {
         Environment<DIM>::get().DataConnector().invalidate();
-        Environment<DIM>::get().DataConnector().dumpData(currentStep);
+        Environment<DIM>::get().PluginConnector().notifyPlugins(currentStep);
     }
 
     GridController<DIM> & getGridController()
@@ -257,7 +256,4 @@ private:
 
 };
 } // namespace PMacc
-
-
-#endif	/* SIMULATIONHELPER_HPP */
 

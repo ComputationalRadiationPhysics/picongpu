@@ -52,7 +52,7 @@ namespace picongpu
 using namespace PMacc;
 
 template<class ParticlesType>
-class CountParticles : public ISimulationIO, public ISimulationPlugin
+class CountParticles : public ISimulationPlugin
 {
 private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -136,7 +136,7 @@ private:
                 outFile << "#step count" << " \n";
             }
 
-            Environment<>::get().DataConnector().registerObserver(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
         }
     }
 

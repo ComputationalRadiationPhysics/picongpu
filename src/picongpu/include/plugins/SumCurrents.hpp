@@ -84,7 +84,7 @@ __global__ void kernelSumCurrents(J_DataBox fieldJ, float3_X* gCurrent, Mapping 
     }
 }
 
-class SumCurrents : public ISimulationIO, public ISimulationPlugin
+class SumCurrents : public ISimulationPlugin
 {
 private:
     FieldJ* fieldJ;
@@ -175,7 +175,7 @@ private:
         {
             sumcurrents = new GridBuffer<float3_X, DIM1 > (DataSpace<DIM1 > (1)); //create one int on gpu und host
 
-            Environment<>::get().DataConnector().registerObserver(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
         }
     }
 
