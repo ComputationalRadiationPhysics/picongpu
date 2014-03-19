@@ -42,6 +42,10 @@ namespace picongpu
         {
             return 0;
         }
+        
+        void notify(uint32_t)
+        {
+        }
 
         virtual ~InitPluginNone()
         {
