@@ -37,11 +37,11 @@ namespace picongpu
       HDINLINE float_X operator()(const float_X position_x, const float_X L_x) const
       {
 	
-	/* 1D Window function accordig to the rectangle window:
+	/* 1D Window function according to the rectangle window:
 	 *
-	 * f(x) = {1.0        : (-L_x/2 <= t <= +L_x/2 )
+	 * f(x) = {1.0        : (-L_x/2 <= x <= +L_x/2 )
 	 *        {0.0        : in any other case
-	 * with x beeing possition_x - L_x/2
+	 * with x being possition_x - L_x/2
 	 *
 	 * @param position_x = 1D position
 	 * @param L_x        = length of the simulated area
@@ -100,12 +100,12 @@ namespace picongpu
       HDINLINE float_X operator()(const float_X position_x, const float_X L_x) const
       {
 	
-	/* 1D Window function accordig to the triangle window:
+	/* 1D Window function according to the triangle window:
 	 *
-	 * f(x) = {1+2x/L_x : (-L_x/2 <= t <= 0      )
-	 *        {1-2x/L_x : (0      <= t <= +L_x/2 )
+	 * f(x) = {1+2x/L_x : (-L_x/2 <= x <= 0      )
+	 *        {1-2x/L_x : (0      <= x <= +L_x/2 )
 	 *        {0.0      : in any other case
-	 * with x beeing possition_x - L_x/2
+	 * with x being possition_x - L_x/2
 	 *
 	 * @param position_x = 1D position
 	 * @param L_x        = length of the simulated area
