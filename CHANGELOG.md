@@ -10,10 +10,11 @@ This is the 5th release candidate, a *pre-beta* version.
 ### Changes to "Open Beta RC4"
 
 **.param file changes:**
- - n/a
+ - Added selection of optional window functions in `radiationConfig.param` #286
 
 **New Features:**
- - n/a
+ - Radiation includes now optional window functions to reduce ringing effects 
+   caused by sharp boundaries. #286
 
 **Bug fixes:**
  - n/a
