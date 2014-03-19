@@ -28,12 +28,8 @@ namespace picongpu
   namespace radWindowFunctionRectangle
   {
 
-    class radWindowFunction
+    struct radWindowFunction
     {
-    public:
-      HDINLINE radWindowFunction(void)
-      { }
-      
       HDINLINE float_X operator()(const float_X position_x, const float_X L_x) const
       {
 	
@@ -68,8 +64,6 @@ namespace picongpu
 	    return 1.0;
 	  }
       }
-    private:
-      /* no private methods */
     };
       
   } /* end namespace: radWindowFunctionRectangle */
@@ -91,12 +85,8 @@ namespace picongpu
   namespace radWindowFunctionTriangle
   {
 
-    class radWindowFunction
+    struct radWindowFunction
     {
-    public:
-      HDINLINE radWindowFunction(void)
-      { }
-      
       HDINLINE float_X operator()(const float_X position_x, const float_X L_x) const
       {
 	
@@ -142,8 +132,6 @@ namespace picongpu
 	      }	  
 	  }
       }
-    private:
-      /* no private methods */
     };
       
   } 
