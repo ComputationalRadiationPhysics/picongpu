@@ -346,7 +346,7 @@ void kernelRadiationParticles(ParBox pb,
 
 			    /* the particle amplitude is used to include the weighting
 			     * of the window function filter without needing more memory */
-#if (__RADWINDOWFUNCTION__==1)
+#if (PIC_RADWINDOWFUNCTION==1)
 
 			    const radWindowFunction_selected::radWindowFunction winFkt;
 
