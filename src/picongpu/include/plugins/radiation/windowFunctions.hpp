@@ -37,7 +37,7 @@ namespace picongpu
 	 *
 	 * f(x) = {1.0        : (-L_x/2 <= x <= +L_x/2 )
 	 *        {0.0        : in any other case
-	 * with x being possition_x - L_x/2
+	 * with x being position_x - L_x/2
 	 *
 	 * @param position_x = 1D position
 	 * @param L_x        = length of the simulated area
@@ -95,7 +95,7 @@ namespace picongpu
 	 * f(x) = {1+2x/L_x : (-L_x/2 <= x <= 0      )
 	 *        {1-2x/L_x : (0      <= x <= +L_x/2 )
 	 *        {0.0      : in any other case
-	 * with x being possition_x - L_x/2
+	 * with x being position_x - L_x/2
 	 *
 	 * @param position_x = 1D position
 	 * @param L_x        = length of the simulated area
