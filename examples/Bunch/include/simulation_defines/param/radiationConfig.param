@@ -153,7 +153,7 @@ namespace picongpu
 
 // add a window function weighting to the radiation in order
 // to avoid ringing effects from sharpe boundaries
-// 1 = on  (slower and more memory, but with noise/ringing reduction)
+// 1 = on  (slower but with noise/ringing reduction)
 // 0 = off (faster but might contain ringing)
 #define __RADWINDOWFUNCTION__ 0
 
