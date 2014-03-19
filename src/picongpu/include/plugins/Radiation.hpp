@@ -353,12 +353,27 @@ void kernelRadiationParticles(ParBox pb,
 			    /* start with a factor of one */
 			    float_X windowFactor = 1.0;
 
+			    /* TODO: How to do this for 2D automatically? */
 			    /* window in each  dimension */
-			    for (uint32_t d = 0; d < simDim; ++d)
+			    /* not supported yet */
+			    /*for (uint32_t d = 0; d < simDim; ++d)
 			      {
-				windowFactor *= winFkt(particle_locationNow[d], simBoxSize[d] * CELL_SIZE[d]);
+				windowFactor *= winFkt(particle_locationNow[d], 
+						       simBoxSize[d] * cellSize[d]);
 			      }
+			    */
 
+			    /* window in x dimension */
+			    windowFactor *= winFkt(particle_locationNow.x(),
+						   simBoxSize.x() * CELL_WIDTH);
+			    /* window in y dimension */
+			    windowFactor *= winFkt(particle_locationNow.y(), 
+						   simBoxSize.y() * CELL_HEIGHT);
+			    /* window in z dimension */
+			    windowFactor *= winFkt(particle_locationNow.z(), 
+						   simBoxSize.z() * CELL_DEPTH);
+
+			    /* apply window function factor to amplitude */
 			    real_amplitude_s[saveParticleAt] *= windowFactor;
 #endif
 
