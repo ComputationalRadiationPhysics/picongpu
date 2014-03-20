@@ -1,0 +1,149 @@
+/**
+ * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera, Wen Fu
+ *
+ * This file is part of PIConGPU. 
+ * 
+ * PIConGPU is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * 
+ * PIConGPU is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * along with PIConGPU.  
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+ 
+#ifndef PARTICLES_KERNEL
+#define	PARTICLES_KERNEL
+
+#include "types.h"
+#include "particles/frame_types.hpp"
+#include "particles/memory/boxes/ParticlesBox.hpp"
+#include "particles/memory/boxes/TileDataBox.hpp"
+#include "simulation_types.hpp"
+#include "simulation_defines.hpp"
+
+#include "fields/FieldE.hpp"
+#include "fields/FieldB.hpp"
+
+#include "memory/boxes/DataBox.hpp"
+#include "memory/boxes/CachedBox.hpp"
+
+#include <curand_kernel.h>
+
+#include "nvidia/functors/Assign.hpp"
+#include "mappings/threads/ThreadCollective.hpp"
+
+#include "plugins/radiation/parameters.hpp"
+#if(ENABLE_RADIATION == 1)
+#include "plugins/radiation/particles/PushExtension.hpp"
+#endif
+
+#include "nvidia/rng/RNG.hpp"
+#include "nvidia/rng/methods/Xor.hpp"
+#include "nvidia/rng/distributions/Normal_float.hpp"
+
+#include "particles/operations/Assign.hpp"
+#include "particles/operations/Deselect.hpp"
+
+#include "plugins/GetAttributes.kernel"
+
+namespace picongpu
+{
+
+using namespace PMacc;
+
+template<class BlockDescription_, class ParBox, class BBox, class EBox, class Mapping, class FrameSolver>
+__global__ void kernelMoveAndMarkParticles(ParBox pb,
+                                           EBox fieldE,
+                                           BBox fieldB,
+                                           FrameSolver frameSolver,
+                                           Mapping mapper)
+{
+    /* definitions for domain variables, like indices of blocks and threads
+     *  
+     * conversion from block to linear frames */
+    typedef typename BlockDescription_::SuperCellSize SuperCellSize;
+    const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+
+
+    const DataSpace<simDim > threadIndex(threadIdx);
+    const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
+
+
+    const DataSpace<simDim> blockCell = block * SuperCellSize::getDataSpace();
+
+    __syncthreads();
+
+
+    __shared__ typename ParBox::FrameType *frame;
+    __shared__ bool isValid;
+    __shared__ int mustShift;
+    __shared__ lcellId_t particlesInSuperCell;
+
+    __syncthreads(); /*wait that all shared memory is initialised*/
+
+    if (linearThreadIdx == 0)
+    {
+        mustShift = 0;
+        frame = &(pb.getLastFrame(block, isValid));
+        particlesInSuperCell = pb.getSuperCell(block).getSizeLastFrame();
+    }
+
+    __syncthreads();
+    if (!isValid)
+        return; //end kernel if we have no frames
+
+    PMACC_AUTO(cachedB, CachedBox::create < 0, typename BBox::ValueType > (BlockDescription_()));
+    PMACC_AUTO(fieldBBlock, fieldB.shift(blockCell));
+
+    nvidia::functors::Assign assign;
+    ThreadCollective<BlockDescription_> collectiv(linearThreadIdx);
+    collectiv(
+              assign,
+              cachedB,
+              fieldBBlock
+              );
+    PMACC_AUTO(cachedE, CachedBox::create < 1, typename EBox::ValueType > (BlockDescription_()));
+    PMACC_AUTO(fieldEBlock, fieldE.shift(blockCell));
+    collectiv(
+              assign,
+              cachedE,
+              fieldEBlock
+              );
+    __syncthreads();
+
+    /*move other frames and call frame solver*/
+    while (isValid)
+    {
+        if (linearThreadIdx < particlesInSuperCell)
+        {
+            frameSolver(*frame, linearThreadIdx, cachedB, cachedE, mustShift);
+        }
+        __syncthreads();
+        if (linearThreadIdx == 0)
+        {
+            frame = &(pb.getPreviousFrame(*frame, isValid));
+            particlesInSuperCell = SuperCellSize::elements;
+        }
+        // isParticle = true;
+        __syncthreads();
+    }
+    /*set in SuperCell the mustShift flag which is a optimization for shift particles and fillGaps*/
+    if (linearThreadIdx == 0 && mustShift == 1)
+    {
+        pb.getSuperCell(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx))).setMustShift(true);
+    }
+
+}
+
+
+} //namespace
+
+
+#endif  //end  PARTICLES_KERNEL
