@@ -104,7 +104,7 @@ namespace picongpu
   namespace radFormFactor_CIC_1Dy { }
   namespace radFormFactor_incoherent { }
 
-  namespace radFormFactor_selected = radFormFactor_CIC_3D;
+  namespace radFormFactor = radFormFactor_CIC_3D;
 
 
 }//namespace picongpu                                                                          
@@ -171,7 +171,7 @@ namespace picongpu
 namespace radWindowFunctionRectangle { }
 namespace radWindowFunctionTriangle { }
 
-namespace radWindowFunction_selected = radWindowFunctionTriangle;
+namespace radWindowFunction = radWindowFunctionTriangle;
 
 
 }//namespace picongpu
