@@ -52,7 +52,6 @@ def get_vector_basename(vector_name):
     return None
 
 
-
 def get_basegroup(name):
     """
     Return the base group part for an attribute name (without vector extension)
@@ -102,7 +101,6 @@ def join_from_components(node_list, prefix, suffix, operation, dims):
 
     function_str += suffix
     join_base.setAttribute("Function", "{}".format(function_str))
-    
     return join_base
 
 
@@ -126,7 +124,6 @@ def create_vector_attribute(new_name, node_list):
     vector_node.setAttribute("AttributeType", "Vector")
     
     dims = node_list[0].firstChild.getAttribute("Dimensions")
-    n_childs = node_list[0].childNodes        
 	    
     data_item_list = list()
     info_item_list = list()
@@ -154,7 +151,6 @@ def create_vector_attribute(new_name, node_list):
     vector_data = join_from_components(data_item_list, "JOIN(", ")", ",", dims)
     vector_node.appendChild(vector_data)
     return vector_node
-
 
 
 def combine_positions(node_list, dims):
