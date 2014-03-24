@@ -26,10 +26,10 @@ export MPI_ROOT=$MPICH_DIR
 #   configure with -c "-DVAMPIR_ENABLE=ON"
 #   e.g.:
 #     $PICSRC/configure -c "-DVAMPIR_ENABLE=ON" ~/paramSets/case001
-export CC="`which vtcc` -target=compute_node"
-export CXX="`which vtcxx` -target=compute_node"
 module load vampirtrace/5.14.4
 export VT_ROOT=$VAMPIRTRACE_DIR
+export CC="`which vtcc` -target=compute_node"
+export CXX="`which vtcxx` -target=compute_node"
 
 # plugins (optional) ################################################
 module load cray-hdf5-parallel/1.8.9
