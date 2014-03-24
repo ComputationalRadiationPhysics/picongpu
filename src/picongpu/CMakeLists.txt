@@ -32,11 +32,16 @@ cmake_minimum_required(VERSION 2.8.5)
 option(VAMPIR_ENABLE "Create PIConGPU with VampirTrace support" OFF)
 if(VAMPIR_ENABLE)
     message(STATUS "Building with VampirTrace support")
-    set(CMAKE_CXX_COMPILER "vtc++")
-    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -vt:hyb -L/$ENV{VT_ROOT}/lib
+    set(VAMPIR_ROOT "$ENV{VT_ROOT}")
+    if(NOT VAMPIR_ROOT)
+        message(FATAL_ERROR "Environment variable VT_ROOT not set!")
+    endif(NOT VAMPIR_ROOT)
+    #set(CMAKE_CXX_COMPILER "vtc++")
+    # set CC and CXX to vtcc/vtcxx
+    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -vt:hyb -L$ENV{VT_ROOT}/lib
         -finstrument-functions-exclude-file-list=${CMAKE_CXX_INST_FILE_FILTER}
         -finstrument-functions-exclude-function-list=${CMAKE_CXX_INST_FUNC_FILTER} -DVTRACE")
-    set(CMAKE_CXX_FLAGS_DEFAULT "${CMAKE_CXX_FLAGS_DEFAULT} -vt:hyb -L/$ENV{VT_ROOT}/lib
+    set(CMAKE_CXX_FLAGS_DEFAULT "${CMAKE_CXX_FLAGS_DEFAULT} -L$ENV{VT_ROOT}/lib
         -finstrument-functions-exclude-file-list=${CMAKE_CXX_INST_FILE_FILTER}
         -finstrument-functions-exclude-function-list=${CMAKE_CXX_INST_FUNC_FILTER} -DVTRACE")
 endif(VAMPIR_ENABLE)
