@@ -41,6 +41,10 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wno-pmf-conversions -Wno-deprecated")
 
+# own modules for find_packages
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../picongpu/cmake/)
+
 
 ################################################################################
 # Build type (debug, release)
@@ -100,81 +104,19 @@ endif(PIC_PNGWRITER_ROOT_DIR)
 # libSplash (+ hdf5 due to required headers)
 ################################################################################
 
-find_path(PIC_SPLASH_ROOT_DIR
-  NAMES include/splash/splash.h lib/libsplash.a
-  PATHS ENV SPLASH_ROOT
-  DOC "libSplash ROOT location (provides HDF5 output)"
-)
-set(PIC_SPLASH_VERSION_MIN "1.1.1")
-set(PIC_SPLASH_VERSION_OK OFF)
+# find libSplash installation
+# prefer static libraries over shared ones (but do not force them)
+set(Splash_USE_STATIC_LIBS ON)
+find_package(Splash 1.1.1 REQUIRED COMPONENTS PARALLEL)
 
-if(PIC_SPLASH_ROOT_DIR)
-    # find version
-    file(STRINGS "${PIC_SPLASH_ROOT_DIR}/include/splash/version.hpp"
-         PIC_SPLASH_VERSION_MAJOR_HPP REGEX "#define SPLASH_VERSION_MAJOR ")
-    file(STRINGS "${PIC_SPLASH_ROOT_DIR}/include/splash/version.hpp"
-         PIC_SPLASH_VERSION_MINOR_HPP REGEX "#define SPLASH_VERSION_MINOR ")
-    file(STRINGS "${PIC_SPLASH_ROOT_DIR}/include/splash/version.hpp"
-         PIC_SPLASH_VERSION_PATCH_HPP REGEX "#define SPLASH_VERSION_PATCH ")
-    string(REGEX MATCH "([0-9]+)" PIC_SPLASH_VERSION_MAJOR
-                                ${PIC_SPLASH_VERSION_MAJOR_HPP})
-    string(REGEX MATCH "([0-9]+)" PIC_SPLASH_VERSION_MINOR
-                                ${PIC_SPLASH_VERSION_MINOR_HPP})
-    string(REGEX MATCH "([0-9]+)" PIC_SPLASH_VERSION_PATCH
-                                ${PIC_SPLASH_VERSION_PATCH_HPP})
-
-    set(PIC_SPLASH_VERSION "${PIC_SPLASH_VERSION_MAJOR}.${PIC_SPLASH_VERSION_MINOR}.${PIC_SPLASH_VERSION_PATCH}")
-
-    # status output and check version
-    message(STATUS "Found libSplash: ${PIC_SPLASH_ROOT_DIR} "
-                   "(found version \"${PIC_SPLASH_VERSION}\")")
-    if("${PIC_SPLASH_VERSION}" VERSION_LESS "${PIC_SPLASH_VERSION_MIN}")
-        message(WARNING "libSplash version is smaller than the required version ${PIC_SPLASH_VERSION_MIN} - not using")
-    else()
-        set(PIC_SPLASH_VERSION_OK ON)
-    endif()
-endif(PIC_SPLASH_ROOT_DIR)
-
-if(PIC_SPLASH_VERSION_OK)
-    # require hdf5
-    find_package(HDF5 REQUIRED)
-
-    # add include information
-    include_directories(SYSTEM ${HDF5_INCLUDE_DIRS})
-    include_directories(SYSTEM ${PIC_SPLASH_ROOT_DIR}/include)
-
-    # libSplash compiled with parallel support?
-    file(STRINGS "${PIC_SPLASH_ROOT_DIR}/include/splash/splash.h" _splash_H_CONTENTS
-         REGEX "#define SPLASH_SUPPORTED_PARALLEL ")
-    string(REGEX MATCH "([0-9]+)" _splash_IS_PARALLEL "${_splash_H_CONTENTS}")
-
-    # check that libSplash supports parallel and is compatible with hdf5
-    if("${_splash_IS_PARALLEL}")
-       message(STATUS "libSplash supports PARALLEL output")
-       if(NOT HDF5_IS_PARALLEL)
-           message(FATAL_ERROR "libSplash compiled with PARALLEL support but HDF5 lacks it...")
-       endif(NOT HDF5_IS_PARALLEL)
-
-        find_package(MPI REQUIRED)
-        include_directories(SYSTEM ${MPI_C_INCLUDE_PATH})
-        set(LIBS ${LIBS} ${MPI_C_LIBRARIES})
-
-        # bullxmpi fails if it can not find its c++ counter part
-        if(MPI_CXX_FOUND) 
-            set(LIBS ${LIBS} ${MPI_CXX_LIBRARIES})
-        endif(MPI_CXX_FOUND)
-    else("${_splash_IS_PARALLEL}")
-        message(FATAL_ERROR "Parallel libSplash is required")
-    endif("${_splash_IS_PARALLEL}")
-
-    # static
-    add_library(splash_static STATIC IMPORTED)
-    set_target_properties(splash_static PROPERTIES IMPORTED_LOCATION
-                          ${PIC_SPLASH_ROOT_DIR}/lib/libsplash.a)
-    set(LIBS ${LIBS} splash_static ${HDF5_LIBRARIES})
-else(PIC_SPLASH_VERSION_OK)
-    message(FATAL_ERROR "Could not find libSplash for hdf5 output")
-endif(PIC_SPLASH_VERSION_OK)
+if(Splash_FOUND)
+    include_directories(SYSTEM ${Splash_INCLUDE_DIRS})
+    list(APPEND Splash_DEFINITIONS "-DENABLE_HDF5=1")
+    add_definitions(${Splash_DEFINITIONS})
+    message(STATUS "libSplash compiler definitions: ${Splash_DEFINITIONS}")
+    message(STATUS "libSplash includes: ${Splash_INCLUDE_DIRS}")
+    set(LIBS ${LIBS} ${Splash_LIBRARIES})
+endif(Splash_FOUND)
 
 
 ################################################################################
