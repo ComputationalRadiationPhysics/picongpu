@@ -107,3 +107,10 @@ add_executable(splash2txt
      )
 
 target_link_libraries(splash2txt m ${LIBS})
+
+
+################################################################################
+# Install
+################################################################################
+
+install(TARGETS splash2txt RUNTIME DESTINATION .)
