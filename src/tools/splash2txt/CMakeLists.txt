@@ -37,7 +37,7 @@ set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{BOOST_ROOT}" "$ENV{HDF5
 
 # own modules for find_packages
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../picongpu/cmake/)
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/)
 
 include_directories(include)
 
