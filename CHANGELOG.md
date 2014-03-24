@@ -10,11 +10,12 @@ This is the 5th release candidate, a *pre-beta* version.
 ### Changes to "Open Beta RC4"
 
 **.param file changes:**
- - Added selection of optional window functions in `radiationConfig.param` #286
+ - Added selection of optional window functions in `radiationConfig.param`
+  [#286](https://github.com/ComputationalRadiationPhysics/picongpu/pull/286/files#diff-1)
 
 **New Features:**
- - Radiation includes now optional window functions to reduce ringing effects 
-   caused by sharp boundaries. #286
+ - Radiation plugin: add optional window functions to reduce ringing effects
+   caused by sharp boundaries #286
 
 **Bug fixes:**
  - n/a
