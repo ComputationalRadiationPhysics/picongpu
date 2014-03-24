@@ -113,7 +113,7 @@ __global__ void kernelIntensity(FieldBox field, DataSpace<simDim> cellsCount, Bo
 
 }
 
-class IntensityPlugin : public ISimulationIO, public ISimulationPlugin
+class IntensityPlugin : public ISimulationPlugin
 {
 private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -195,7 +195,7 @@ private:
                 createFile(analyzerName + "_integrated.dat", outFileIntegrated);
             }
 
-            Environment<>::get().DataConnector().registerObserver(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
         }
     }
 

@@ -252,6 +252,11 @@ public:
         __delete(currentBGField);
     }
 
+    void notify(uint32_t)
+    {
+        
+    }
+    
     virtual uint32_t init()
     {
         namespace nvmem = PMacc::nvidia::memory;

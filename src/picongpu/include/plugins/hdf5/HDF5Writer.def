@@ -77,7 +77,7 @@ struct DomainInformation
 
 /**
  * Writes simulation data to hdf5 files.
- * Implements the ISimulationIO interface.
+ * Implements the ISimulationPlugin interface.
  *
  * @param ElectronsBuffer class description for electrons
  * @param IonsBuffer class description for ions

@@ -139,6 +139,11 @@ namespace picongpu
             }
             visIO.clear();
         }
+        
+        void notify(uint32_t currentStep)
+        {
+            // nothing to do here
+        }
 
         /*! Get value of the postition in a vector
          * @return value at id postition, if id >= size of vector last valid value is given back

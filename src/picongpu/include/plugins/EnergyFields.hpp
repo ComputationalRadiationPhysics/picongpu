@@ -65,7 +65,7 @@ struct cast64Bit
 };
 }
 
-class EnergyFields : public ISimulationIO, public ISimulationPlugin
+class EnergyFields : public ISimulationPlugin
 {
 private:
     FieldE* fieldE;
@@ -152,7 +152,7 @@ private:
                 //create header of the file
                 outFile << "#step Joule" << " \n";
             }
-            Environment<>::get().DataConnector().registerObserver(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
         }
     }
 

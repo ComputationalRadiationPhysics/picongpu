@@ -90,6 +90,10 @@ namespace picongpu
         virtual void pluginRegisterHelp(po::options_description&)
         {
         }
+        
+        void notify(uint32_t)
+        {
+        }
 
         bool parseConfigs(int argc, char **argv)
         {

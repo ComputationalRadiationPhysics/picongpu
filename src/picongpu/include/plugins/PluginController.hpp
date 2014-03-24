@@ -20,8 +20,7 @@
 
 
 
-#ifndef ANALYSISCONTROLLER_HPP
-#define	ANALYSISCONTROLLER_HPP
+#pragma once
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -99,6 +98,9 @@ namespace picongpu
 
 using namespace PMacc;
 
+/**
+ * Plugin management controller for user-level plugins.
+ */
 class PluginController : public ISimulationPlugin
 {
 private:
@@ -114,19 +116,20 @@ private:
 
 #if(SIMDIM==DIM3)
 #if(PIC_ENABLE_PNG==1)
-        typedef heiko::ParticleDensity<PIC_Electrons> HeikoParticleDensity;
-        
+    typedef heiko::ParticleDensity<PIC_Electrons> HeikoParticleDensity;   
 #endif
-        typedef ParticleSpectrum<PIC_Electrons> ElectronSpectrum;
-        typedef SliceFieldPrinterMulti<FieldE> SliceFieldEPrinter;
-        typedef SliceFieldPrinterMulti<FieldB> SliceFieldBPrinter;
+
+    typedef ParticleSpectrum<PIC_Electrons> ElectronSpectrum;
+    typedef SliceFieldPrinterMulti<FieldE> SliceFieldEPrinter;
+    typedef SliceFieldPrinterMulti<FieldB> SliceFieldBPrinter;
 #endif
-        typedef LiveViewPlugin<PIC_Electrons > LiveImageElectrons;
-        typedef PngPlugin<ElectronsBinaryDensityBuilder > BinDensityElectrons;
-        typedef CountParticles<PIC_Electrons> ElectronCounter;
-        typedef EnergyParticles<PIC_Electrons> EnergyElectrons;
-        typedef PositionsParticles<PIC_Electrons> PositionElectrons;
-        typedef BinEnergyParticles<PIC_Electrons> BinEnergyElectrons;
+
+    typedef LiveViewPlugin<PIC_Electrons > LiveImageElectrons;
+    typedef PngPlugin<ElectronsBinaryDensityBuilder > BinDensityElectrons;
+    typedef CountParticles<PIC_Electrons> ElectronCounter;
+    typedef EnergyParticles<PIC_Electrons> EnergyElectrons;
+    typedef PositionsParticles<PIC_Electrons> PositionElectrons;
+    typedef BinEnergyParticles<PIC_Electrons> BinEnergyElectrons;
 #if(ENABLE_RADIATION == 1 && SIMDIM==DIM3)
     typedef Radiation<PIC_Electrons> RadiationElectrons;
 #endif
@@ -154,6 +157,9 @@ private:
 #endif
 #endif
 
+    /**
+     * Initialises the controller by adding all user plugins to its internal list.
+     */
     virtual void init()
     {
 #if (ENABLE_HDF5 == 1)
@@ -221,6 +227,14 @@ private:
         plugins.push_back(new IonMakroParticleCounterPerSuperCell("IonsMakroParticleCounterPerSuperCell","countPerSuperCell_i"));
 #endif
 #endif
+        
+        /**
+         * Add your plugin here, guard with pragmas if it depends on compile-time switches.
+         * Plugins must be heap-allocated (use 'new').
+         * Plugins are free'd automatically.
+         * Plugins should use a short but descriptive prefix for all command line parameters, e.g.
+         * 'my_plugin.period', or 'my_plugin.parameter'.
+         */
     }
 
 
@@ -250,15 +264,15 @@ public:
 
     virtual void pluginRegisterHelp(po::options_description&)
     {
-
+        // no help required at the moment
     }
 
     std::string pluginGetName() const
     {
-        return "Analyser";
+        return "PluginController";
     }
 
-    virtual void pluginLoad()
+    void notify(uint32_t)
     {
 
     }
@@ -276,5 +290,3 @@ public:
 };
 
 }
-
-#endif	/* ANALYSISCONTROLLER_HPP */

@@ -95,7 +95,7 @@ namespace picongpu
         __syncthreads();
     }
 
-    class LineSliceFields : public ISimulationIO, public ISimulationPlugin
+    class LineSliceFields : public ISimulationPlugin
     {
     private:
         FieldE* fieldE;
@@ -213,7 +213,7 @@ namespace picongpu
                 sliceDataField = new GridBuffer<float3_X, DIM1 >
                         (DataSpace<DIM1 > (nrOfGpuCells.y()));
 
-                Environment<>::get().DataConnector().registerObserver(this, notifyFrequency);
+                Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
 
                 const int rank = Environment<simDim>::get().GridController().getGlobalRank();
 

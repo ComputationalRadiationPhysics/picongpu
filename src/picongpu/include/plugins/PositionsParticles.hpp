@@ -161,7 +161,7 @@ __global__ void kernelPositionsParticles(ParticlesBox<FRAME, simDim> pb,
 }
 
 template<class ParticlesType>
-class PositionsParticles : public ISimulationIO, public ISimulationPlugin
+class PositionsParticles : public ISimulationPlugin
 {
 private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -238,7 +238,7 @@ private:
             //create one float3_X on gpu und host
             gParticle = new GridBuffer<SglParticle<FloatPos>, DIM1 > (DataSpace<DIM1 > (1));
 
-            Environment<>::get().DataConnector().registerObserver(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
         }
     }
 

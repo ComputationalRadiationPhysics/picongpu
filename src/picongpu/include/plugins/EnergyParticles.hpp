@@ -144,7 +144,7 @@ __global__ void kernelEnergyParticles(ParticlesBox<FRAME, simDim> pb,
 }
 
 template<class ParticlesType>
-class EnergyParticles : public ISimulationIO, public ISimulationPlugin
+class EnergyParticles : public ISimulationPlugin
 {
 private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -233,7 +233,7 @@ private:
                 outFile << "#step Ekin_Joule E_Joule" << " \n";
             }
 
-            Environment<>::get().DataConnector().registerObserver(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
         }
     }
 
