@@ -23,6 +23,7 @@
 import glob
 import argparse
 from xml.dom.minidom import Document
+from xml.dom.minidom import parseString
 import splash2xdmf
 
 doc = Document()
@@ -44,7 +45,7 @@ def get_vector_basename(vector_name):
     
     if str_len < 3:
         return None
-    
+
     for ident in VECTOR_IDENTS:
         if vector_name[str_len - 1] == ident and vector_name[str_len - 2] == NAME_DELIM:
             return vector_name[0:(str_len - 2)]
@@ -102,6 +103,7 @@ def join_from_components(node_list, prefix, suffix, operation, dims):
 
     function_str += suffix
     join_base.setAttribute("Function", "{}".format(function_str))
+    
     return join_base
 
 
@@ -125,14 +127,35 @@ def create_vector_attribute(new_name, node_list):
     vector_node.setAttribute("AttributeType", "Vector")
     
     dims = node_list[0].firstChild.getAttribute("Dimensions")
-    
+    n_childs = node_list[0].childNodes        
+	    
     data_item_list = list()
+    info_item_list = list()
+
     for node in node_list:
-        data_item_list.append(node.firstChild)
+	children = node.childNodes
+	tmp_data_node = None
+	tmp_info_nodes = list();
+
+	for child in children:
+	    if child.nodeName == "Information":
+	 	tmp_info_nodes.append(child)
+		
+ 	    if child.nodeName == "DataItem":
+		tmp_data_node = child;
+
+	if tmp_data_node == None:
+            print "Error: no DataItem found"
+
+	for tmp_info_node in tmp_info_nodes:
+            tmp_data_node.appendChild(tmp_info_node)
+
+	data_item_list.append(tmp_data_node)
+		    
     vector_data = join_from_components(data_item_list, "JOIN(", ")", ",", dims)
-    
     vector_node.appendChild(vector_data)
     return vector_node
+
 
 
 def combine_positions(node_list, dims):
@@ -298,7 +321,20 @@ def merge_poly_attributes(base_node):
         
         combined_pos_nodes = list()
         for i in range(len(pos_vector_list)):
-            combined_node = combine_positions([gcellidx_vector_list[i].firstChild, pos_vector_list[i].firstChild], number_of_elements)
+	    pos_data_item = None;
+	    gcell_data_item = None;
+
+            for v_data in gcellidx_vector_list[i].childNodes:
+	        if v_data.nodeName == "DataItem":
+		    gcell_data_item = v_data
+		    break
+		   
+	    for p_data in pos_vector_list[i].childNodes:
+	        if p_data.nodeName == "DataItem":
+	 	    pos_data_item = p_data
+		    break
+	    
+            combined_node = combine_positions([gcell_data_item, pos_data_item], number_of_elements)
             combined_pos_nodes.append(combined_node)
             
         geom_node = create_position_geometry(combined_pos_nodes, number_of_elements)
