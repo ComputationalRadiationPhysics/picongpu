@@ -23,7 +23,6 @@
 import glob
 import argparse
 from xml.dom.minidom import Document
-from xml.dom.minidom import parseString
 import splash2xdmf
 
 doc = Document()
