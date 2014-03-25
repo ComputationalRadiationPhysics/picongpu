@@ -126,7 +126,6 @@ def create_vector_attribute(new_name, node_list):
     dims = node_list[0].firstChild.getAttribute("Dimensions")
 	    
     data_item_list = list()
-    info_item_list = list()
 
     for node in node_list:
 	children = node.childNodes
