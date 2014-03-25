@@ -122,8 +122,6 @@ def create_vector_attribute(new_name, node_list):
     vector_node = doc.createElement("Attribute")
     vector_node.setAttribute("Name", new_name)
     vector_node.setAttribute("AttributeType", "Vector")
-    
-    dims = node_list[0].firstChild.getAttribute("Dimensions")
 	    
     data_item_list = list()
 
@@ -146,6 +144,9 @@ def create_vector_attribute(new_name, node_list):
             tmp_data_node.appendChild(tmp_info_node)
 
 	data_item_list.append(tmp_data_node)
+
+    
+    dims = data_item_list[0].getAttribute("Dimensions")
 		    
     vector_data = join_from_components(data_item_list, "JOIN(", ")", ",", dims)
     vector_node.appendChild(vector_data)
@@ -281,7 +282,11 @@ def merge_poly_attributes(base_node):
         for (vectorName, vectorAttrs) in groupMap.items():
             if vectorName.endswith("/{}".format(NAME_POSITION)):
                 pos_vector_list = vectorAttrs
-                number_of_elements = vectorAttrs[0].firstChild.getAttribute("Dimensions")
+		for i in pos_vector_list:
+		    for children in i.childNodes:
+		        if children.nodeName == "DataItem":
+			    number_of_elements =children.getAttribute("Dimensions")
+
             else:
                 if vectorName.endswith("/{}".format(NAME_GLOBALCELLIDX)):
                     gcellidx_vector_list = vectorAttrs
