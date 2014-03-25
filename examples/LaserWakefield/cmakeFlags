@@ -29,7 +29,7 @@
 #   - start with zero index
 #   - increase by 1, no gaps
 
-flags[0]="-DCUDA_ARCH=sm_20"
+flags[0]="-DCUDA_ARCH=sm_35"
 flags[1]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_FIELDSOLVER=fieldSolverLehe;-DPARAM_PARTICLEPUSHER=particlePusherVay"
 flags[2]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_FIELDSOLVER=fieldSolverDirSplitting"
 flags[3]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_CURRENTSOLVER=currentSolverEsirkepov;-DPARAM_PARTICLESHAPE=shapeCIC"
