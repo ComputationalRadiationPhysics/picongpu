@@ -285,7 +285,7 @@ def merge_poly_attributes(base_node):
 		for i in pos_vector_list:
 		    for child in i.childNodes:
 		        if child.nodeName == "DataItem":
-			    number_of_elements =child.getAttribute("Dimensions")
+			    number_of_elements = child.getAttribute("Dimensions")
 
             else:
                 if vectorName.endswith("/{}".format(NAME_GLOBALCELLIDX)):
