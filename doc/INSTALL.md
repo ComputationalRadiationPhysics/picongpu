@@ -214,7 +214,7 @@ To build PIConGPU with tracing support, change the steps in the example to:
 
 (8.) `cd ~/paramSets/case001`: goto installed programm
 
-(9.) `tbg -c submit/0016.gpus.cfg -t submit/hypnos/k20_vampir_profile.tpl
+(9.) `tbg -s qsub -c submit/0016gpus.cfg -t submit/hypnos/k20_vampir_profile.tpl
        ~/runs/testBatchVampir`
 
 *******************************************************************************
