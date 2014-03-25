@@ -26,24 +26,6 @@ cmake_minimum_required(VERSION 2.8.5)
 
 
 ################################################################################
-# Pre-project (any compiler must be set here)
-################################################################################
-
-option(VAMPIR_ENABLE "Create PIConGPU with VampirTrace support" OFF)
-if(VAMPIR_ENABLE)
-    message(STATUS "Building with VampirTrace support")
-    set(VAMPIR_ROOT "$ENV{VT_ROOT}")
-    if(NOT VAMPIR_ROOT)
-        message(FATAL_ERROR "Environment variable VT_ROOT not set!")
-    endif(NOT VAMPIR_ROOT)
-    # set(CMAKE_CXX_COMPILER "vtc++")
-    # -> set CC and CXX to vtcc/vtcxx
-    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -vt:hyb -L/$ENV{VT_ROOT}/lib -finstrument-functions-exclude-file-list=${CMAKE_CXX_INST_FILE_FILTER} -finstrument-functions-exclude-function-list=${CMAKE_CXX_INST_FUNC_FILTER} -DVTRACE")
-    set(CMAKE_CXX_FLAGS_DEFAULT "${CMAKE_CXX_FLAGS_DEFAULT} -L/$ENV{VT_ROOT}/lib -finstrument-functions-exclude-file-list=${CMAKE_CXX_INST_FILE_FILTER} -finstrument-functions-exclude-function-list=${CMAKE_CXX_INST_FUNC_FILTER} -DVTRACE")
-endif(VAMPIR_ENABLE)
-
-
-################################################################################
 # Project 
 ################################################################################
 
@@ -55,6 +37,52 @@ set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{MPI_ROOT}"
 
 # own modules for find_packages
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
+
+
+################################################################################
+# VampirTrace
+################################################################################
+
+option(VAMPIR_ENABLE "Create PIConGPU with VampirTrace support" OFF)
+
+# set filters
+
+if(VAMPIR_ENABLE)
+    message(STATUS "Building with VampirTrace support")
+    set(VAMPIR_ROOT "$ENV{VT_ROOT}")
+    if(NOT VAMPIR_ROOT)
+        message(FATAL_ERROR "Environment variable VT_ROOT not set!")
+    endif(NOT VAMPIR_ROOT)
+
+    # compile flags
+    execute_process(COMMAND $ENV{VT_ROOT}/bin/vtc++ -vt:hyb -vt:showme-compile
+                    OUTPUT_VARIABLE VT_COMPILEFLAGS
+                    RESULT_VARIABLE VT_CONFIG_RETURN)
+    if(NOT VT_CONFIG_RETURN EQUAL 0)
+        message(FATAL_ERROR "Can NOT execute 'vtc++' at $ENV{VT_ROOT}/bin/vtc++ - check file permissions")
+    else()
+        # trim trailing newlines
+        string(REGEX REPLACE "(\r?\n)+$" "" VT_COMPILEFLAGS "${VT_COMPILEFLAGS}")
+    endif()
+    # link flags
+    execute_process(COMMAND $ENV{VT_ROOT}/bin/vtc++ -vt:hyb -vt:showme-link
+                    OUTPUT_VARIABLE VT_LINKFLAGS)
+    string(REGEX REPLACE "(\r?\n)+$" "" VT_LINKFLAGS "${VT_LINKFLAGS}")
+
+    # set filters
+    set(CMAKE_CXX_INST_FILE_FILTER "stl,usr/include,libgpugrid,vector_types.h,Vector.hpp,DeviceBuffer.hpp,DeviceBufferIntern.hpp,Buffer.hpp,StrideMapping.hpp,StrideMappingMethods.hpp,MappingDescription.hpp,AreaMapping.hpp,AreaMappingMethods.hpp,ExchangeMapping.hpp,ExchangeMappingMethods.hpp,DataSpace.hpp,Manager.hpp,Manager.tpp,Transaction.hpp,Transaction.tpp,TransactionManager.hpp,TransactionManager.tpp,Vector.tpp,Mask.hpp,ITask.hpp,EventTask.hpp,EventTask.tpp,StandartAccessor.hpp,StandartNavigator.hpp,HostBuffer.hpp,HostBufferIntern.hpp")
+    set(CMAKE_CXX_INST_FUNC_FILTER "vector,Vector,dim3,GPUGrid,execute,allocator,Task,Manager,Transaction,Mask,operator,DataSpace,PitchedBox,Event,new,getGridDim,GetCurrentDataSpaces,MappingDescription,getOffset,getParticlesBuffer,getDataSpace,getInstance")
+
+    # modify our flags
+    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} ${VT_LINKFLAGS}")
+    set(CMAKE_CXX_FLAGS_DEFAULT "${CMAKE_CXX_FLAGS_DEFAULT} ${VT_COMPILEFLAGS}")
+
+    # for manual instrumentation and hints that vampir is enabled in our code
+    add_definitions(-DVTRACE)
+
+    # titan work around: currently (5.14.4) the -D defines are not provided by -vt:showme-compile
+    add_definitions(-DMPICH_IGNORE_CXX_SEEK)
+endif(VAMPIR_ENABLE)
 
 
 ################################################################################
