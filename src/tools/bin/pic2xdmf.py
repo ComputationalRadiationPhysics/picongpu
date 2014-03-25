@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2014 Felix Schmitt
+# Copyright 2014 Felix Schmitt, Conrad Schumann
 #
 # This file is part of PIConGPU.
 #
@@ -388,7 +388,9 @@ def get_args_parser():
     
     parser.add_argument("-t", "--time", help="Aggregate information over a "
         "time-series of libSplash data", action="store_true")
-        
+
+    parser.add_argument("--fullpath", help="Disables relative node-path", action="store_true")
+    
     return parser
 
 
@@ -415,7 +417,7 @@ def main():
         splash_files.append(splashFilename)
         
     # create the basic xml structure using splas2xdmf
-    xdmf_root = splash2xdmf.create_xdmf_xml(splash_files)
+    xdmf_root = splash2xdmf.create_xdmf_xml(splash_files, args)
     # transform this xml using our pic semantic knowledge
     transform_xdmf_xml(xdmf_root)
 
