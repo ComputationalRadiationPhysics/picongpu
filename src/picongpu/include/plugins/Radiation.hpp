@@ -348,7 +348,7 @@ void kernelRadiationParticles(ParBox pb,
 			     * of the window function filter without needing more memory */
 #if (PIC_RADWINDOWFUNCTION==1)
 
-			    const radWindowFunction_selected::radWindowFunction winFkt;
+			    const radWindowFunction::radWindowFunction winFkt;
 
 			    /* start with a factor of one */
 			    float_X windowFactor = 1.0;
@@ -403,7 +403,7 @@ void kernelRadiationParticles(ParBox pb,
                         // if coherent and incoherent radiation of a single macro-particle 
                         // is considered, creare a form factor object
 #if (__COHERENTINCOHERENTWEIGHTING__==1)
-                        const radFormFactor_selected::radFormFactor myRadFormFactor;
+                        const radFormFactor::radFormFactor myRadFormFactor;
 #endif
 
                         /* Particle loop: thread runs through loaded particle data
