@@ -286,7 +286,6 @@ def merge_poly_attributes(base_node):
 		    for child in i.childNodes:
 		        if child.nodeName == "DataItem":
 			    number_of_elements = child.getAttribute("Dimensions")
-
             else:
                 if vectorName.endswith("/{}".format(NAME_GLOBALCELLIDX)):
                     gcellidx_vector_list = vectorAttrs
@@ -389,7 +388,7 @@ def get_args_parser():
     parser.add_argument("-t", "--time", help="Aggregate information over a "
         "time-series of libSplash data", action="store_true")
 
-    parser.add_argument("--fullpath", help="Disables relative node-path", action="store_true")
+    parser.add_argument("--fullpath", help="Use absolute paths for HDF5 files", action="store_true")
     
     return parser
 
