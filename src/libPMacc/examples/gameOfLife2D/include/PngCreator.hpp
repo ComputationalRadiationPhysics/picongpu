@@ -32,11 +32,11 @@ namespace gol
     {
 
         template<class DBox>
-        void operator() (uint32_t currentStep, DBox data, Space dataSize)
+        void operator() (uint32_t currentStep, DBox data, Space dataSize, std::string fileprefix = std::string("gol_"))
         {
             std::stringstream step;
             step << std::setw(6) << std::setfill('0') << currentStep;
-            std::string filename("gol_" + step.str() + ".png");
+            std::string filename(fileprefix + "_" + step.str() + ".png");
             pngwriter png(dataSize.x(), dataSize.y(), 0, filename.c_str());
             png.setcompressionlevel(9);
 
