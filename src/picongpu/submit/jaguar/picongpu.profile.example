@@ -9,7 +9,8 @@ module swap gcc gcc/4.7.2
 #   (CMake likes to unwrap the Cray wrappers)
 export CC="`which cc` -target=compute_node"
 export CXX="`which CC` -target=compute_node"
-# symbol bug work around
+
+# symbol bug work around (should not be required)
 #MY_CRAY_LIBS=/opt/gcc/4.7.2/snos/lib64
 #export LD_PRELOAD=$MY_CRAY_LIBS/libstdc++.so.6:$LD_PRELOAD
 #export LD_PRELOAD=$MY_CRAY_LIBS/libgomp.so.1:$LD_PRELOAD
@@ -22,13 +23,20 @@ module load boost/1.53.0
 export BOOST_ROOT=$BOOST_DIR
 export MPI_ROOT=$MPICH_DIR
 
+# vampirtrace (optional) ############################################
+#   configure with -c "-DVAMPIR_ENABLE=ON"
+#   e.g.:
+#     $PICSRC/configure -c "-DVAMPIR_ENABLE=ON" ~/paramSets/case001
+module load vampirtrace/5.14.4
+export VT_ROOT=$VAMPIRTRACE_DIR
+
 # plugins (optional) ################################################
 module load cray-hdf5-parallel/1.8.9
-module load adios/1.6.0 mxml/2.6 dataspaces/1.3.0
+#module load adios/1.6.0 mxml/2.6 dataspaces/1.3.0
 export HDF5_ROOT=$HDF5_DIR
-export ADIOS_ROOT=$ADIOS_DIR
-export MXML_ROOT=$MXML_DIR
-export DATASPACES_ROOT=$DATASPACES_DIR
+#export ADIOS_ROOT=$ADIOS_DIR
+#export MXML_ROOT=$MXML_DIR
+#export DATASPACES_ROOT=$DATASPACES_DIR
 
 # download libSplash and compile it yourself from
 #   https://github.com/ComputationalRadiationPhysics/libSplash/
