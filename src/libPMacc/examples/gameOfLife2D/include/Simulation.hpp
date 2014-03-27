@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2014 Rene Widera, Maximilian Knespel
  *
  * This file is part of libPMacc. 
  * 
@@ -67,7 +67,7 @@ public:
     {
        Environment<DIM2>::get().initDevices(devices, periodic);
 
-       GridController<DIM2> gc = Environment<DIM2>::get().GridController(); 
+       GridController<DIM2> & gc = Environment<DIM2>::get().GridController(); 
        Space localGridSize(gridSize / devices);
        Environment<DIM2>::get().initGrids(localGridSize, gridSize, gc.getPosition() * localGridSize);
     }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Maximilian Knespel
  *
  * This file is part of libPMacc. 
  * 
@@ -151,7 +151,7 @@ struct GatherSlice
                                                        ));
         MessageHeader mHeader;
         MessageHeader* fakeHeader = &mHeader;
-        memcpy(fakeHeader, &header, MessageHeader::bytes);
+        memcpy(fakeHeader, &header, sizeof(header) );
 
         char* recvHeader = new char[ MessageHeader::bytes * numRanks];
 
