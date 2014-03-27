@@ -101,6 +101,10 @@ struct ParticleAttribute
             splashDomainSize[d] = domInfo.domainSize[d];
         }
 
+        typedef typename GetComponentsType<ValueType>::type ComponentValueType;
+        
+        ComponentValueType* tmpArray = new ComponentValueType[elements];
+        
         for (uint32_t d = 0; d < components; d++)
         {
             std::stringstream datasetName;
@@ -109,21 +113,25 @@ struct ParticleAttribute
                 datasetName << "/" << name_lookup[d];
 
             ValueType* dataPtr = frame.get().getIdentifier(Identifier()).getPointer();
-
+            for (size_t i = 0; i < elements; ++i)
+            {
+                tmpArray[i] = ((ComponentValueType*)dataPtr)[i * components]+d;
+            }
+  
             params.get()->dataCollector->writeDomain(params.get()->currentStep, 
                                                      splashType, 
                                                      1u, 
-                                                     Dimensions(elements*components, 1, 1),
-                                                     Dimensions(components, 1, 1),
                                                      Dimensions(elements, 1, 1),
-                                                     Dimensions(d, 0, 0),
+                                                     Dimensions(1, 1, 1),
+                                                     Dimensions(elements, 1, 1),
+                                                     Dimensions(0, 0, 0),
                                                      datasetName.str().c_str(), 
                                                      splashDomainOffset, 
                                                      splashDomainSize, 
                                                      splashGlobalDomainOffset, 
                                                      splashGlobalDomainSize, 
                                                      DomainCollector::PolyType,
-                                                     dataPtr);
+                                                     tmpArray);
 
             ColTypeDouble ctDouble;
             if (unit.size() >= (d + 1))
@@ -133,6 +141,7 @@ struct ParticleAttribute
 
 
         }
+        delete[] tmpArray;
         log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) write species attribute: %1%") %
             Identifier::getName();
     }
