@@ -69,7 +69,7 @@ public:
 
        GridController<DIM2> & gc = Environment<DIM2>::get().GridController(); 
        Space localGridSize(gridSize / devices);
-       Environment<DIM2>::get().initGrids(localGridSize, gridSize, gc.getPosition() * localGridSize);
+       Environment<DIM2>::get().initGrids(gridSize, localGridSize, gc.getPosition() * localGridSize);
     }
 
     virtual ~Simulation()
