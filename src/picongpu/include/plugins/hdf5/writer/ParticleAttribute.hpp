@@ -115,7 +115,7 @@ struct ParticleAttribute
             ValueType* dataPtr = frame.get().getIdentifier(Identifier()).getPointer();
             for (size_t i = 0; i < elements; ++i)
             {
-                tmpArray[i] = ((ComponentValueType*)dataPtr)[i * components]+d;
+                tmpArray[i] = ((ComponentValueType*)dataPtr)[i * components + d];
             }
   
             params.get()->dataCollector->writeDomain(params.get()->currentStep, 
