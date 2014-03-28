@@ -21,8 +21,9 @@
 #
 # Set the following CMake variables BEFORE calling find_packages to
 # change the behavior of this module:
-#   Splash_USE_STATIC_LIBS - Set to ON to force linking to the static
-#                            library and its dependencies. Default: OFF
+#   Splash_USE_STATIC_LIBS - Set to ON to prefer linking to the static
+#                            library and its static dependencies. Note that it
+#                            can fall back to shared libraries. Default: OFF
 #
 # This module will define the following variables:
 #   Splash_INCLUDE_DIRS    - Include directories for the Splash headers.
@@ -71,16 +72,6 @@ cmake_minimum_required(VERSION 2.8.5)
 # dependencies are missing (or if we did not find Splash at all)
 set(Splash_FOUND TRUE)
 
-# option: use only static libs ################################################
-#
-if(Splash_USE_STATIC_LIBS)
-    # carfully: we have to restore the original path in the end
-    set(_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES})
-    set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
-    # link HDF5 static, too
-    set(HDF5_USE_STATIC_LIBRARIES ON)
-endif()
-
 # find libSplash installation #################################################
 #
 find_path(Splash_ROOT_DIR
@@ -97,35 +88,40 @@ if(Splash_ROOT_DIR)
     # Splash definitions ######################################################
     #
 
+    # option: prefer static libs ##############################################
+    #
+    if(Splash_USE_STATIC_LIBS)
+        # carefully: we have to restore the original path in the end
+        set(_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES})
+        set(CMAKE_FIND_LIBRARY_SUFFIXES .a .so)
+    endif()
+
     # Splash libraries ########################################################
     #
     find_library(Splash_LIBRARIES
       NAMES splash
       PATHS $ENV{SPLASH_ROOT}/lib)
 
-    # find version ############################################################
+    # restore CMAKE_FIND_LIBRARY_SUFFIXES if manipulated by this module #######
     #
-    file(STRINGS "${Splash_ROOT_DIR}/include/splash/version.hpp"
-         Splash_VERSION_MAJOR_HPP REGEX "#define SPLASH_VERSION_MAJOR ")
-    file(STRINGS "${Splash_ROOT_DIR}/include/splash/version.hpp"
-         Splash_VERSION_MINOR_HPP REGEX "#define SPLASH_VERSION_MINOR ")
-    file(STRINGS "${Splash_ROOT_DIR}/include/splash/version.hpp"
-         Splash_VERSION_PATCH_HPP REGEX "#define SPLASH_VERSION_PATCH ")
-    string(REGEX MATCH "([0-9]+)" Splash_VERSION_MAJOR
-                                ${Splash_VERSION_MAJOR_HPP})
-    string(REGEX MATCH "([0-9]+)" Splash_VERSION_MINOR
-                                ${Splash_VERSION_MINOR_HPP})
-    string(REGEX MATCH "([0-9]+)" Splash_VERSION_PATCH
-                                ${Splash_VERSION_PATCH_HPP})
-
-    set(Splash_VERSION "${Splash_VERSION_MAJOR}.${Splash_VERSION_MINOR}.${Splash_VERSION_PATCH}")
+    if(Splash_USE_STATIC_LIBS)
+        set(CMAKE_FIND_LIBRARY_SUFFIXES ${_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES})
+    endif()
 
     # require hdf5 ############################################################
     #
+    if(Splash_USE_STATIC_LIBS)
+        set(HDF5_USE_STATIC_LIBRARIES ON)
+    endif()
     find_package(HDF5 REQUIRED)
     list(APPEND Splash_INCLUDE_DIRS ${HDF5_INCLUDE_DIRS})
     list(APPEND Splash_DEFINITIONS ${HDF5_DEFINITIONS})
     list(APPEND Splash_LIBRARIES ${HDF5_LIBRARIES})
+
+    # restore old settings
+    if(Splash_USE_STATIC_LIBS)
+        unset(HDF5_USE_STATIC_LIBRARIES)
+    endif()
 
     # libSplash compiled with parallel support? ###############################
     #
@@ -178,6 +174,23 @@ if(Splash_ROOT_DIR)
         message(STATUS "Missing COMPONENTS in libSplash: ${Splash_MISSING_COMPONENTS}")
     endif()
 
+    # find version ############################################################
+    #
+    file(STRINGS "${Splash_ROOT_DIR}/include/splash/version.hpp"
+         Splash_VERSION_MAJOR_HPP REGEX "#define SPLASH_VERSION_MAJOR ")
+    file(STRINGS "${Splash_ROOT_DIR}/include/splash/version.hpp"
+         Splash_VERSION_MINOR_HPP REGEX "#define SPLASH_VERSION_MINOR ")
+    file(STRINGS "${Splash_ROOT_DIR}/include/splash/version.hpp"
+         Splash_VERSION_PATCH_HPP REGEX "#define SPLASH_VERSION_PATCH ")
+    string(REGEX MATCH "([0-9]+)" Splash_VERSION_MAJOR
+                                ${Splash_VERSION_MAJOR_HPP})
+    string(REGEX MATCH "([0-9]+)" Splash_VERSION_MINOR
+                                ${Splash_VERSION_MINOR_HPP})
+    string(REGEX MATCH "([0-9]+)" Splash_VERSION_PATCH
+                                ${Splash_VERSION_PATCH_HPP})
+
+    set(Splash_VERSION "${Splash_VERSION_MAJOR}.${Splash_VERSION_MINOR}.${Splash_VERSION_PATCH}")
+
 else(Splash_ROOT_DIR)
     set(Splash_FOUND FALSE)
     message(STATUS "Can NOT find libSplash for HDF5 output - set SPLASH_ROOT")
@@ -191,14 +204,6 @@ if(NOT Splash_FOUND)
     unset(Splash_LIBRARIES)
     unset(Splash_IS_PARALLEL)
 endif(NOT Splash_FOUND)
-
-
-# restore CMAKE_FIND_LIBRARY_SUFFIXES if manipulated by this module ###########
-#
-if(Splash_USE_STATIC_LIBS)
-    set(CMAKE_FIND_LIBRARY_SUFFIXES ${_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES})
-    unset(HDF5_USE_STATIC_LIBRARIES)
-endif()
 
 
 ###############################################################################

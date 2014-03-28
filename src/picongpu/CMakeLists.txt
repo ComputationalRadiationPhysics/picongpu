@@ -336,7 +336,8 @@ include_directories(${PMACC_ROOT_DIR}/include)
 ################################################################################
 
 # find libSplash installation
-#   set(Splash_USE_STATIC_LIBS ON) # force static linking
+# prefer static libraries over shared ones (but do not force them)
+set(Splash_USE_STATIC_LIBS ON)
 find_package(Splash 1.1.1 COMPONENTS PARALLEL)
 
 if(Splash_FOUND)
