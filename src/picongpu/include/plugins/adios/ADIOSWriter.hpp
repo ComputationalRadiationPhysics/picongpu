@@ -302,7 +302,7 @@ private:
             const uint32_t components = T::numComponents;
 
             uint64_t localGroupSize = 
-                    (domInfo.globalDomainSize.productOfComponents() *
+                    (domInfo.domainSize.productOfComponents() *
                     sizeof(float) + 3 * sizeof(int)) *
                     components;
             
@@ -349,7 +349,7 @@ private:
             const uint32_t components = GetNComponents<ValueType>::value;
 
             uint64_t localGroupSize = 
-                    domInfo.globalDomainSize.productOfComponents() *
+                    domInfo.domainSize.productOfComponents() *
                     sizeof(ComponentType) *
                     components;
             
