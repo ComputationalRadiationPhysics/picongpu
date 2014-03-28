@@ -89,6 +89,14 @@ namespace PMacc
          * @param currentStep current simulation iteration step
          */
         virtual void notify(uint32_t currentStep) = 0;
+        
+        /**
+         * Restart notification callback.
+         * 
+         * 
+         * @param restartStep simulation iteration step to restart from
+         */
+        virtual void restart(uint32_t restartStep) = 0;
 
         /**
          * Register command line parameters for this plugin.
