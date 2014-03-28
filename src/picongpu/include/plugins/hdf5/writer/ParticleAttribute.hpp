@@ -141,7 +141,8 @@ struct ParticleAttribute
 
 
         }
-        delete[] tmpArray;
+        __deleteArray(tmpArray);
+        
         log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) write species attribute: %1%") %
             Identifier::getName();
     }
