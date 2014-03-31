@@ -25,7 +25,9 @@
 
 #include "simulation_types.hpp"
 #include "dataManagement/AbstractInitialiser.hpp"
-#include "dataManagement/DataConnector.hpp"
+//#include "dataManagement/DataConnector.hpp"
+
+#include "Environment.hpp"
 
 namespace picongpu
 {
@@ -84,7 +86,7 @@ private:
     {
 
         //copy electrons' values to ions
-        EBuffer &e_buffer = DataConnector::getInstance().getData<EBuffer>(EBuffer::FrameType::getName());
+        EBuffer &e_buffer = Environment<>::get().DataConnector().getData<EBuffer>(EBuffer::FrameType::getName());
 
         ions.deviceCloneFrom(e_buffer);
 

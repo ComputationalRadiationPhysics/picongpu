@@ -44,9 +44,6 @@
 namespace picongpu
 {
     using namespace PMacc;
-
-    template< typename,typename>
-    class Particles;
     
     // The fieldJ saves the current density j
     //

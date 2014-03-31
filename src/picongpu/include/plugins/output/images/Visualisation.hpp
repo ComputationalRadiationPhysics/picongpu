@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -20,8 +20,7 @@
 
 
 
-#ifndef IMAGE2D_HPP
-#define	IMAGE2D_HPP
+#pragma once
 
 #include "simulation_defines.hpp"
 #include "types.h"
@@ -40,7 +39,7 @@
 #include "particles/memory/boxes/ParticlesBox.hpp"
 
 #include "dataManagement/DataConnector.hpp"
-#include "dataManagement/ISimulationIO.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 #include "dimensions/TVec.h"
 
 #include "memory/boxes/DataBox.hpp"
@@ -470,7 +469,7 @@ __global__ void channelsToRGB(Mem mem, uint32_t n)
  * Visulization is performed in an additional thread.
  */
 template<class ParticlesType, class Output>
-class Visualisation : public ISimulationIO
+class Visualisation : public ISimulationPlugin
 {
 private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -495,6 +494,9 @@ public:
             sliceDim = 1;
         if ((transpose.x() == 1 || transpose.y() == 1) && sliceDim == 1)
             sliceDim = 2;
+        
+        Environment<>::get().PluginConnector().registerPlugin(this);
+        Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
     }
 
     virtual ~Visualisation()
@@ -503,6 +505,11 @@ public:
         {
             __delete(img);
         }
+    }
+    
+    std::string pluginGetName() const
+    {
+        return "Visualisation";
     }
 
     void notify(uint32_t currentStep)
@@ -529,7 +536,7 @@ public:
 
     void createImage(uint32_t currentStep, VirtualWindow window)
     {
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::get().DataConnector();
         // Data does not need to be synchronized as visualization is
         // done at the device.
         FieldB *fieldB = &(dc.getData<FieldB > (FieldB::getName(), true));
@@ -537,10 +544,10 @@ public:
         FieldJ* fieldJ = &(dc.getData<FieldJ > (FieldJ::getName(), true));
         ParticlesType* particles = &(dc.getData<ParticlesType > (particleTag, true));
 
-        PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
+        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
         uint32_t globalOffset = 0;
 #if(SIMDIM==DIM3)
-        globalOffset = SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset()[sliceDim];
+        globalOffset = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset()[sliceDim];
 #endif
         
         typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -645,7 +652,7 @@ public:
             sliceOffset = (int) ((float) (window.globalWindowSize[sliceDim]) * slicePoint) + window.globalSimulationOffset[sliceDim];
 
 
-            const DataSpace<simDim> gpus = GridController<simDim>::getInstance().getGpuNodes();
+            const DataSpace<simDim> gpus = Environment<simDim>::get().GridController().getGpuNodes();
 
             float_32 cellSizeArr[3]={0,0,0};
             for(uint32_t i=0;i<simDim;++i)
@@ -655,14 +662,16 @@ public:
 
             img = new GridBuffer<float3_X, DIM2 > (header.node.maxSize);
 
-
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
-
             bool isDrawing = doDrawing();
             isMaster = gather.init(isDrawing);
             reduce.participate(isDrawing);
 
         }
+    }
+    
+    void pluginRegisterHelp(po::options_description& desc)
+    {
+        // nothing to do here
     }
 
 private:
@@ -670,9 +679,9 @@ private:
     bool doDrawing()
     {
         assert(cellDescription != NULL);
-        const DataSpace<simDim> globalRootCellPos(SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset());
+        const DataSpace<simDim> globalRootCellPos(Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset());
 #if(SIMDIM==DIM3)
-        const bool tmp = globalRootCellPos[sliceDim] + SubGrid<simDim>::getInstance().getSimulationBox().getLocalSize()[sliceDim] > sliceOffset &&
+        const bool tmp = globalRootCellPos[sliceDim] + Environment<simDim>::get().SubGrid().getSimulationBox().getLocalSize()[sliceDim] > sliceOffset &&
               globalRootCellPos[sliceDim] <= sliceOffset;
         return tmp;
 #else
@@ -708,5 +717,3 @@ private:
 
 }
 
-
-#endif	/* IMAGE2D_HPP */

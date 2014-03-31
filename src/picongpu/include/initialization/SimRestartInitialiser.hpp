@@ -71,8 +71,10 @@ private:
                                  uint64_t numParticles,
                                  uint64_t particlesLoadOffset)
     {
-        // allocate memory for particles
-        *dst = new TYPE[numParticles];
+        /* allocate memory for particles */
+        /* workaround, as "*dst = new TYPE[numParticles]" is treated by some compilers as VLA */
+        uint8_t *ptr = new uint8_t[numParticles * sizeof(TYPE)];
+        *dst = (TYPE*)ptr;
         memset(*dst, 0, sizeof (TYPE) * numParticles);
 
         // read particles from file 
@@ -96,7 +98,7 @@ public:
                               DataSpace<simDim> logicalToPhysicalOffset
                               )
     {
-        GridController<simDim> &gc = GridController<simDim>::getInstance();
+        GridController<simDim> &gc = Environment<simDim>::get().GridController();
 
         // first, load all data arrays from hdf5 file
         CollectionType *ctFloat;
@@ -357,7 +359,7 @@ public:
     simulationStep(0),
     localGridSize(localGridSize)
     {
-        GridController<simDim> &gc = GridController<simDim>::getInstance();
+        GridController<simDim> &gc = Environment<simDim>::get().GridController();
         const uint32_t maxOpenFilesPerNode = 4;
 
         Dimensions mpiSizeHdf5(1, 1, 1);
@@ -386,7 +388,7 @@ public:
         // call super class
         AbstractInitialiser::setup();
 
-        GridController<DIM> &gc = GridController<DIM>::getInstance();
+        GridController<DIM> &gc = Environment<DIM>::get().GridController();
         DataSpace<DIM> mpiPos = gc.getPosition();
         DataSpace<DIM> mpiSize = gc.getGpuNodes();
 
@@ -425,7 +427,7 @@ public:
         MovingWindow::getInstance().setSlideCounter((uint32_t) slides);
         gc.setNumSlides(slides);
 
-        gridPosition = SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset();
+        gridPosition = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
 
         return simulationStep + 1;
     }
@@ -602,13 +604,13 @@ private:
         DataSpace<simDim> globalSlideOffset;
         globalSlideOffset.y() = window.slides * window.localFullSize.y();
 
-        DataSpace<DIM> globalOffset(SubGrid<DIM>::getInstance().getSimulationBox().getGlobalOffset());
+        DataSpace<DIM> globalOffset(Environment<DIM>::get().SubGrid().getSimulationBox().getGlobalOffset());
 
         Dimensions domain_offset(0, 0, 0);
         for (uint32_t d = 0; d < simDim; ++d)
             domain_offset[d] = globalOffset[d] + globalSlideOffset[d];
 
-        if (GridController<simDim>::getInstance().getPosition().y() == 0)
+        if (Environment<simDim>::get().GridController().getPosition().y() == 0)
             domain_offset[1] += window.globalSimulationOffset.y();
 
         DataSpace<simDim> localDomainSize = window.localSize;

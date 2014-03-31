@@ -24,7 +24,7 @@
 #include "simulation_types.hpp"
 #include "plugins/adios/ADIOSWriter.def"
 
-#include "plugins/IPluginModule.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
 #include <boost/type_traits/is_same.hpp>
@@ -86,7 +86,7 @@ public:
                             const Space particleOffset)
     {
         log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) write species: %1%") % AdiosFrameType::getName();
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::get().DataConnector();
         /* load particle without copy particle data to host */
         ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(ThisSpecies::FrameType::getName(), true));
 
@@ -159,7 +159,7 @@ public:
         /* write species counter table to adios file */
         log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) writing particle index table for %1%") % AdiosFrameType::getName();
         {
-            GridController<simDim>& gc = GridController<simDim>::getInstance();
+            GridController<simDim>& gc = Environment<simDim>::get().GridController();
             
             const size_t pos_offset = 2;
             

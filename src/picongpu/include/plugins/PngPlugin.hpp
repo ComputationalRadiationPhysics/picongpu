@@ -20,8 +20,7 @@
  
 
 
-#ifndef LIVEVIEWMODULE_HPP
-#define	LIVEVIEWMODULE_HPP
+#pragma once
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -29,11 +28,10 @@
 #include "dimensions/DataSpace.hpp"
 
 #include "simulation_classTypes.hpp"
-#include "plugins/IPluginModule.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 #include <vector>
 #include <list>
-#include "plugins/output/images/Visualisation.hpp"
-#include "plugins/output/images/LiveViewClient.hpp"
+
 
 #include <cassert>
 
@@ -44,42 +42,42 @@ namespace picongpu
 {
     using namespace PMacc;
 
+
     namespace po = boost::program_options;
 
-    template<class ParticlesType>
-    class LiveViewModule : public IPluginModule
+    template<class VisClass>
+    class PngPlugin : public ISimulationPlugin
     {
     public:
 
-        typedef Visualisation<ParticlesType, LiveViewClient> VisType;
+        typedef VisClass VisType;
         typedef std::list<VisType*> VisPointerList;
 
-        LiveViewModule(std::string name, std::string prefix) :
+        PngPlugin(std::string name, std::string prefix) :
         analyzerName(name),
         analyzerPrefix(prefix),
         cellDescription(NULL)
         {
-            ModuleConnector::getInstance().registerModule(this);
+            Environment<>::get().PluginConnector().registerPlugin(this);
         }
 
-        virtual ~LiveViewModule()
+        virtual ~PngPlugin()
         {
 
         }
 
-        std::string moduleGetName() const
+        std::string pluginGetName() const
         {
             return analyzerName;
         }
 
-        void moduleRegisterHelp(po::options_description& desc)
+        void pluginRegisterHelp(po::options_description& desc)
         {
             desc.add_options()
-                    ((analyzerPrefix + ".period").c_str(), po::value<std::vector<uint32_t> > (&notifyFrequencys)->multitoken(), "enable images/visualisation [for each n-th step]")
-                    ((analyzerPrefix + ".ip").c_str(), po::value<std::vector<std::string > > (&ips)->multitoken(), "ip of server")
-                    ((analyzerPrefix + ".port").c_str(), po::value<std::vector<std::string > > (&ports)->multitoken(), "port of server")
+                    ((analyzerPrefix + ".period").c_str(), po::value<std::vector<uint32_t> > (&notifyFrequencys)->multitoken(), "enable data output [for each n-th step]")
                     ((analyzerPrefix + ".axis").c_str(), po::value<std::vector<std::string > > (&axis)->multitoken(), "axis which are shown [valid values x,y,z] example: yz")
-                    ((analyzerPrefix + ".slicePoint").c_str(), po::value<std::vector<float> > (&slicePoints)->multitoken(), "value range: 0 <= x <= 1 , point of the slice");
+                    ((analyzerPrefix + ".slicePoint").c_str(), po::value<std::vector<float> > (&slicePoints)->multitoken(), "value range: 0 <= x <= 1 , point of the slice")
+                    ((analyzerPrefix + ".folder").c_str(), po::value<std::vector<std::string> > (&folders)->multitoken(), "folder for output files");
         }
 
         void setMappingDescription(MappingDesc *cellDescription)
@@ -90,17 +88,15 @@ namespace picongpu
 
     private:
 
-        void moduleLoad()
+        void pluginLoad()
         {
 
             if (0 != notifyFrequencys.size())
             {
                 if (0 != slicePoints.size() &&
-                    0 != ports.size() &&
-                    0 != ips.size() &&
                     0 != axis.size())
                 {
-                    for (int i = 0; i < (int) ports.size(); ++i)
+                    for (int i = 0; i < (int) slicePoints.size(); ++i) /*!\todo: use vactor with max elements*/
                     {
                         uint32_t frequ = getValue(notifyFrequencys, i);
                         if (frequ != 0)
@@ -108,29 +104,46 @@ namespace picongpu
 
                             if (getValue(axis, i).length() == 2u)
                             {
-                                LiveViewClient liveViewClient(getValue(ips, i), getValue(ports, i));
+                                std::stringstream o_slicePoint;
+                                o_slicePoint << getValue(slicePoints, i);
+                                /*add default value for folder*/
+                                if (folders.empty())
+                                {
+                                    folders.push_back(std::string("."));
+                                }
+                                std::string filename(analyzerName + "_" + getValue(axis, i) + "_" + o_slicePoint.str());
+                                typename VisType::CreatorType pngCreator(filename, getValue(folders, i));
                                 DataSpace<DIM2 > transpose(
                                                            charToAxisNumber(getValue(axis, i)[0]),
                                                            charToAxisNumber(getValue(axis, i)[1])
                                                            );
-                                VisType* tmp = new VisType(analyzerName, liveViewClient, frequ, transpose, getValue(slicePoints, i));
-                                visIO.push_back(tmp);
-                                tmp->setMappingDescription(cellDescription);
-                                tmp->init();
+                                /* if simulation run in 2D ignore all xz, yz slices (we had no z direction)*/
+                                if( simDim==DIM3 || (transpose.x()!=2 ||transpose.y()!=2  ))
+                                {                                    
+                                    VisType* tmp = new VisType(analyzerName, pngCreator, frequ, transpose, getValue(slicePoints, i));
+                                    visIO.push_back(tmp);
+                                    tmp->setMappingDescription(cellDescription);
+                                    tmp->init();
+                                }
+                                else
+                                {
+                                    std::cerr << "[WARNING] You are running a 2D simulation: png output along the axis "<<
+                                                 getValue(axis, i) << " will be ignored" << std::endl;
+                                }
                             }
                             else
-                                throw std::runtime_error((std::string("[Live View] wrong charecter count in axis: ") + getValue(axis, i)).c_str());
+                                throw std::runtime_error((std::string("[Png Plugin] wrong charecter count in axis: ") + getValue(axis, i)).c_str());
                         }
                     }
                 }
                 else
                 {
-                    throw std::runtime_error("[Live View] One parameter is missing");
+                    throw std::runtime_error("[Png Plugin] One parameter is missing");
                 }
             }
         }
 
-        void moduleUnload()
+        void pluginUnload()
         {
             for (typename VisPointerList::iterator iter = visIO.begin();
                  iter != visIO.end();
@@ -140,6 +153,11 @@ namespace picongpu
             }
             visIO.clear();
         }
+        
+        void notify(uint32_t currentStep)
+        {
+            // nothing to do here
+        }
 
         /*! Get value of the postition in a vector
          * @return value at id postition, if id >= size of vector last valid value is given back
@@ -148,7 +166,7 @@ namespace picongpu
         typename Vec::value_type getValue(Vec vec, size_t id)
         {
             if (vec.size() == 0)
-                throw std::runtime_error("[Live View] getValue is used with a parameter set with no parameters (count is 0)");
+                throw std::runtime_error("[Livew View] getValue is used with a parameter set with no parameters (count is 0)");
             if (id >= vec.size())
             {
                 return vec[vec.size() - 1];
@@ -171,8 +189,7 @@ namespace picongpu
 
         std::vector<uint32_t> notifyFrequencys;
         std::vector<float> slicePoints;
-        std::vector<std::string> ips;
-        std::vector<std::string> ports;
+        std::vector<std::string> folders;
         std::vector<std::string> axis;
         VisPointerList visIO;
 
@@ -181,6 +198,4 @@ namespace picongpu
     };
 
 }//namespace
-
-#endif	/* LIVEVIEWMODULE_HPP */
 

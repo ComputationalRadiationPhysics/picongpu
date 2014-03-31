@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -20,8 +20,7 @@
 
 
 
-#ifndef PARTICLEDENSITY_HPP
-#define	PARTICLEDENSITY_HPP
+#pragma once
 
 #include "simulation_defines.hpp"
 #include "types.h"
@@ -35,7 +34,6 @@
 #include "particles/memory/boxes/ParticlesBox.hpp"
 
 #include "dataManagement/DataConnector.hpp"
-#include "dataManagement/ISimulationIO.hpp"
 #include "dimensions/TVec.h"
 
 #include "memory/boxes/DataBox.hpp"
@@ -54,6 +52,7 @@
 #include "memory/boxes/PitchedBox.hpp"
 #include "plugins/output/header/MessageHeader.hpp"
 #include "plugins/output/GatherSlice.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 
 namespace picongpu
 {
@@ -173,7 +172,7 @@ kernelParticleDensity(ParBox pb,
  * Visulization is performed in an additional thread.
  */
 template<class ParticlesType, class Output, typename Type_ = float_X>
-class ParticleDensity : public ISimulationIO
+class ParticleDensity : public ISimulationPlugin
 {
 private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -197,6 +196,9 @@ public:
             sliceDim = 1;
         if ((transpose.x() == 1 || transpose.y() == 1) && sliceDim == 1)
             sliceDim = 2;
+        
+        Environment<>::get().PluginConnector().registerPlugin(this);
+        Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
     }
 
     virtual ~ParticleDensity()
@@ -221,6 +223,16 @@ public:
         }
         createImage(currentStep, window);
     }
+    
+    void pluginRegisterHelp(po::options_description&)
+    {
+        // nothing to do here
+    }
+    
+    std::string pluginGetName() const
+    {
+        return "ParticleDensity";
+    }
 
     void setMappingDescription(MappingDesc *cellDescription)
     {
@@ -229,7 +241,7 @@ public:
 
     void createImage(uint32_t currentStep, VirtualWindow window)
     {
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::get().DataConnector();
         ParticlesType* particles = &(dc.getData<ParticlesType > (particleTag, true));
 
         typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -239,7 +251,7 @@ public:
 
         uint32_t globalOffset = 0;
 #if(SIMDIM==DIM3)
-        globalOffset = SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset()[sliceDim];
+        globalOffset = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset()[sliceDim];
 #endif
 
 
@@ -289,11 +301,9 @@ public:
         {
             const DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
 
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
-
             VirtualWindow window(MovingWindow::getInstance().getVirtualWindow(0));
             sliceOffset = (int) ((float) (window.globalWindowSize[sliceDim]) * slicePoint) + window.globalSimulationOffset[sliceDim];
-            const DataSpace<simDim> gpus = GridController<simDim>::getInstance().getGpuNodes();
+            const DataSpace<simDim> gpus = Environment<simDim>::get().GridController().getGpuNodes();
 
             float_32 cellSizeArr[3]={0,0,0};
             for(uint32_t i=0;i<simDim;++i)
@@ -310,7 +320,7 @@ private:
 
     bool doDrawing()
     {
-        PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
+        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
         const DataSpace<simDim> globalRootCellPos(simBox.getGlobalOffset());
         const DataSpace<simDim> localSize(simBox.getLocalSize());
 #if(SIMDIM==DIM3)
@@ -349,5 +359,3 @@ private:
 
 }
 
-
-#endif	/* PARTICLEDENSITY_HPP */

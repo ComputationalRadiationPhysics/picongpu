@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Maximilian Knespel
  *
  * This file is part of libPMacc. 
  * 
@@ -53,10 +53,6 @@ struct MessageHeader
         nodeGuardCells = layout.getGuard();
     }
 
-    enum
-    {
-        bytes = 128
-    };
     Space simSize;
     Space nodeSize;
     Space nodePictureSize;
@@ -104,10 +100,10 @@ struct GatherSlice
     {
         header = mHeader;
 
-        int countRanks = GridController<DIM2>::getInstance().getGpuNodes().productOfComponents();
+        int countRanks = Environment<DIM2>::get().GridController().getGpuNodes().productOfComponents();
         int gatherRanks[countRanks];
         int groupRanks[countRanks];
-        mpiRank = GridController<DIM2>::getInstance().getGlobalRank();
+        mpiRank = Environment<DIM2>::get().GridController().getGlobalRank();
         if (!isActive)
             mpiRank = -1;
 
@@ -151,15 +147,15 @@ struct GatherSlice
                                                        ));
         MessageHeader mHeader;
         MessageHeader* fakeHeader = &mHeader;
-        memcpy(fakeHeader, &header, MessageHeader::bytes);
+        memcpy(fakeHeader, &header, sizeof(MessageHeader));
 
-        char* recvHeader = new char[ MessageHeader::bytes * numRanks];
+        char* recvHeader = new char[ sizeof(MessageHeader)* numRanks];
 
         if (fullData == NULL && mpiRank == 0)
             fullData = (char*) new ValueType[header.nodeSize.productOfComponents() * numRanks];
 
 
-        MPI_CHECK(MPI_Gather(fakeHeader, MessageHeader::bytes, MPI_CHAR, recvHeader, MessageHeader::bytes,
+        MPI_CHECK(MPI_Gather(fakeHeader, sizeof(MessageHeader), MPI_CHAR, recvHeader, sizeof(MessageHeader),
                              MPI_CHAR, 0, comm));
 
         const size_t elementsCount = header.nodeSize.productOfComponents() * sizeof (ValueType);
@@ -187,7 +183,7 @@ struct GatherSlice
 
             for (int i = 0; i < numRanks; ++i)
             {
-                MessageHeader* head = (MessageHeader*) (recvHeader + MessageHeader::bytes * i);
+                MessageHeader* head = (MessageHeader*) (recvHeader + sizeof(MessageHeader)* i);
                 Box srcBox = Box(PitchedBox<ValueType, DIM2 > (
                                                                (ValueType*) fullData,
                                                                Space(0, head->nodeSize.y() * i),

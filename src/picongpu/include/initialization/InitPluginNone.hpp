@@ -20,10 +20,9 @@
  
 
 
-#ifndef INITMODULENONE_HPP
-#define	INITMODULENONE_HPP
+#pragma once
 
-#include "initialization/IInitModule.hpp"
+#include "initialization/IInitPlugin.hpp"
 
 
 
@@ -31,7 +30,7 @@ namespace picongpu
 {
     using namespace PMacc;
 
-    class InitModuleNone : public IInitModule
+    class InitPluginNone : public IInitPlugin
     {
     public:
 
@@ -43,18 +42,22 @@ namespace picongpu
         {
             return 0;
         }
-
-        virtual ~InitModuleNone()
+        
+        void notify(uint32_t)
         {
         }
 
-        virtual void moduleRegisterHelp(po::options_description& desc)
+        virtual ~InitPluginNone()
         {
         }
 
-        virtual std::string moduleGetName() const
+        virtual void pluginRegisterHelp(po::options_description& desc)
         {
-            return "InitModuleNone";
+        }
+
+        virtual std::string pluginGetName() const
+        {
+            return "InitPluginNone";
         }
 
         virtual void setMappingDescription(MappingDesc *cellDescription)
@@ -63,16 +66,14 @@ namespace picongpu
 
     protected:
 
-        virtual void moduleLoad()
+        virtual void pluginLoad()
         {
         }
 
-        virtual void moduleUnload()
+        virtual void pluginUnload()
         {
         }
     };
 
 }
-
-#endif	/* INITMODULENONE_HPP */
 

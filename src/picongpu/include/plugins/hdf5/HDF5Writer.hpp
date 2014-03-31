@@ -49,12 +49,11 @@
 #include "mappings/simulation/GridController.hpp"
 #include "mappings/simulation/SubGrid.hpp"
 #include "dimensions/GridLayout.hpp"
-#include "dataManagement/ISimulationIO.hpp"
-#include "moduleSystem/ModuleConnector.hpp"
+#include "pluginSystem/PluginConnector.hpp"
 #include "simulationControl/MovingWindow.hpp"
 #include "dimensions/TVec.h"
 
-#include "plugins/IPluginModule.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
 #include <boost/type_traits/is_same.hpp>
@@ -85,13 +84,13 @@ namespace po = boost::program_options;
 
 /**
  * Writes simulation data to hdf5 files using libSplash.
- * Implements the ISimulationIO interface.
+ * Implements the ISimulationPlugin interface.
  *
  * @param ElectronsBuffer class description for electrons
  * @param IonsBuffer class description for ions
  * @param simDim dimension of the simulation (2-3)
  */
-class HDF5Writer : public ISimulationIO, public IPluginModule
+class HDF5Writer : public ISimulationPlugin
 {
 public:
 
@@ -137,7 +136,7 @@ private:
         {
 #ifndef __CUDA_ARCH__
             SplashType splashType;
-            DataConnector &dc = DataConnector::getInstance();
+            DataConnector &dc = Environment<>::get().DataConnector();
 
             T* field = &(dc.getData<T > (T::getName()));
             params.get()->gridLayout = field->getGridLayout();
@@ -206,7 +205,7 @@ private:
 
         HINLINE void operator_impl(RefWrapper<ThreadParams*> params, const DomainInformation domInfo)
         {
-            DataConnector &dc = DataConnector::getInstance();
+            DataConnector &dc = Environment<>::get().DataConnector();
 
             /*## update field ##*/
 
@@ -251,7 +250,7 @@ public:
     filename("h5"),
     notifyFrequency(0)
     {
-        ModuleConnector::getInstance().registerModule(this);
+        Environment<>::get().PluginConnector().registerPlugin(this);
     }
 
     virtual ~HDF5Writer()
@@ -259,7 +258,7 @@ public:
 
     }
 
-    void moduleRegisterHelp(po::options_description& desc)
+    void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
             ("hdf5.period", po::value<uint32_t > (&notifyFrequency)->default_value(0),
@@ -268,7 +267,7 @@ public:
              "HDF5 output file");
     }
 
-    std::string moduleGetName() const
+    std::string pluginGetName() const
     {
         return "HDF5Writer";
     }
@@ -282,7 +281,7 @@ public:
     __host__ void notify(uint32_t currentStep)
     {
         mThreadParams.currentStep = (int32_t) currentStep;
-        mThreadParams.gridPosition = SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset();
+        mThreadParams.gridPosition = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
         mThreadParams.cellDescription = this->cellDescription;
         this->filter.setStatus(false);
 
@@ -322,7 +321,7 @@ private:
         const uint32_t maxOpenFilesPerNode = 4;
         if ( mThreadParams.dataCollector == NULL)
         {
-            GridController<simDim> &gc = GridController<simDim>::getInstance();
+            GridController<simDim> &gc = Environment<simDim>::get().GridController();
             mThreadParams.dataCollector = new ParallelDomainCollector(
                         gc.getCommunicator().getMPIComm(),
                         gc.getCommunicator().getMPIInfo(),
@@ -350,14 +349,14 @@ private:
 
     }
 
-    void moduleLoad()
+    void pluginLoad()
     {
         if (notifyFrequency > 0)
         {
             mThreadParams.gridPosition =
-                SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset();
+                Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
 
-            GridController<simDim> &gc = GridController<simDim>::getInstance();
+            GridController<simDim> &gc = Environment<simDim>::get().GridController();
             /* It is important that we never change the mpi_pos after this point 
              * because we get problems with the restart.
              * Otherwise we do not know which gpu must load the ghost parts around
@@ -375,13 +374,13 @@ private:
                 splashMpiSize[i] = mpi_size[i];
             }
 
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
         }
 
         loaded = true;
     }
 
-    void moduleUnload()
+    void pluginUnload()
     {
         if (notifyFrequency > 0)
             __delete(mThreadParams.dataCollector);

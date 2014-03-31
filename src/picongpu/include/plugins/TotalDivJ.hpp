@@ -21,9 +21,7 @@
 #ifndef ANALYSIS_TOTALDIVJ_HPP
 #define ANALYSIS_TOTALDIVJ_HPP
 
-#include "plugins/IPluginModule.hpp"
-#include "dataManagement/ISimulationIO.hpp"
-#include "simulation_classTypes.hpp" //\todo: muss in ISimulationIO.hpp
+#include "plugins/ISimulationPlugin.hpp"
 
 namespace picongpu
 {
@@ -31,23 +29,22 @@ using namespace PMacc;
 
 namespace po = boost::program_options;
 
-class TotalDivJ : public ISimulationIO, public IPluginModule
+class TotalDivJ : public ISimulationPlugin
 {
 private:
     std::string name;
     std::string prefix;
     uint32_t notifyFrequency;
         
-    void moduleLoad();
-    void moduleUnload();
+    void pluginLoad();
 public:
     TotalDivJ(std::string name, std::string prefix);
     virtual ~TotalDivJ() {}
 
     void notify(uint32_t currentStep);
     void setMappingDescription(MappingDesc*) {}
-    void moduleRegisterHelp(po::options_description& desc);
-    std::string moduleGetName() const;
+    void pluginRegisterHelp(po::options_description& desc);
+    std::string pluginGetName() const;
 };
 
 }

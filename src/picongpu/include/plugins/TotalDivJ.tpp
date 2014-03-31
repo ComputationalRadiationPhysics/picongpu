@@ -42,23 +42,22 @@ namespace picongpu
 TotalDivJ::TotalDivJ(std::string name, std::string prefix)
     : name(name), prefix(prefix)
 {
-    ModuleConnector::getInstance().registerModule(this);
+    Environment<>::get().PluginConnector().registerPlugin(this);
 }
 
-void TotalDivJ::moduleRegisterHelp(po::options_description& desc)
+void TotalDivJ::pluginRegisterHelp(po::options_description& desc)
 {
     desc.add_options()
         ((this->prefix + "_frequency").c_str(),
         po::value<uint32_t > (&this->notifyFrequency)->default_value(0), "notifyFrequency");
 }
 
-std::string TotalDivJ::moduleGetName() const {return this->name;}
+std::string TotalDivJ::pluginGetName() const {return this->name;}
 
-void TotalDivJ::moduleLoad()
+void TotalDivJ::pluginLoad()
 {
-    DataConnector::getInstance().registerObserver(this, this->notifyFrequency);
+    Environment<>::get().PluginConnector().setNotificationFrequency(this, this->notifyFrequency);
 }
-void TotalDivJ::moduleUnload(){}
 
 struct Div
 {
@@ -79,7 +78,7 @@ void TotalDivJ::notify(uint32_t currentStep)
     using namespace vec;
     typedef vec::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> BlockDim;
     
-    DataConnector &dc = DataConnector::getInstance();
+    DataConnector &dc = Environment<>::get().DataConnector();
     
     container::PseudoBuffer<float3_X, 3> fieldJ
         (dc.getData<FieldJ > (FieldJ::getName(), true).getGridBuffer().getDeviceBuffer());

@@ -96,7 +96,7 @@ public:
         
     YeeSolver(MappingDesc cellDescription) : cellDescription(cellDescription)
     {
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::get().DataConnector();
 
         this->fieldE = &dc.getData<FieldE > (FieldE::getName(), true);
         this->fieldB = &dc.getData<FieldB > (FieldB::getName(), true);

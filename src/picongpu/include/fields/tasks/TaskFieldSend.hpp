@@ -72,7 +72,7 @@ namespace PMacc
                 case Init:
                     break;
                 case WaitForSend:
-                    return NULL == Manager::getInstance().getITaskIfNotFinished(tmpEvent.getTaskId());
+                    return NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId());
                 default:
                     return false;
             }

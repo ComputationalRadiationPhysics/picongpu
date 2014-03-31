@@ -26,7 +26,7 @@
 #include "simulation_types.hpp"
 #include "plugins/adios/ADIOSWriter.def"
 
-#include "plugins/IPluginModule.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
 #include <boost/type_traits/is_same.hpp>
@@ -87,8 +87,8 @@ public:
                             const std::string subGroup,
                             const DomainInformation domInfo)
     {
-        DataConnector &dc = DataConnector::getInstance();
-        GridController<simDim>& gc = GridController<simDim>::getInstance();
+        DataConnector &dc = Environment<>::get().DataConnector();
+        GridController<simDim>& gc = Environment<simDim>::get().GridController();
         uint64_t mpiSize = gc.getGlobalSize();
         uint64_t mpiRank = gc.getGlobalRank();
         

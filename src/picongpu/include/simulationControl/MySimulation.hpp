@@ -48,11 +48,11 @@
 #include "fields/FieldTmp.hpp"
 #include "fields/MaxwellSolver/Solvers.hpp"
 #include "fields/background/cellwiseOperation.hpp"
-#include "initialization/IInitModule.hpp"
+#include "initialization/IInitPlugin.hpp"
 #include "initialization/ParserGridDistribution.hpp"
 
 #include "particles/Species.hpp"
-#include "moduleSystem/Module.hpp"
+#include "pluginSystem/IPlugin.hpp"
 
 #include "nvidia/reduce/Reduce.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
@@ -92,9 +92,9 @@ public:
 #endif
     }
 
-    virtual void moduleRegisterHelp(po::options_description& desc)
+    virtual void pluginRegisterHelp(po::options_description& desc)
     {
-        SimulationHelper<simDim>::moduleRegisterHelp(desc);
+        SimulationHelper<simDim>::pluginRegisterHelp(desc);
         desc.add_options()
             ("devices,d", po::value<std::vector<uint32_t> > (&devices)->multitoken(), "number of devices in each dimension")
 
@@ -115,12 +115,12 @@ public:
             ("moving,m", po::value<bool>(&slidingWindow)->zero_tokens(), "enable sliding/moving window");
     }
 
-    std::string moduleGetName() const
+    std::string pluginGetName() const
     {
         return "PIConGPU";
     }
 
-    virtual void moduleLoad()
+    virtual void pluginLoad()
     {
 
 
@@ -161,9 +161,10 @@ public:
             gpus[i] = devices[i];
             isPeriodic[i] = periodic[i];
         }
+        
+        Environment<simDim>::get().initDevices(gpus, isPeriodic);
 
-        GridController<simDim>::getInstance().init(gpus, isPeriodic);
-        DataSpace<simDim> myGPUpos(GridController<simDim>::getInstance().getPosition());
+        DataSpace<simDim> myGPUpos( Environment<simDim>::get().GridController().getPosition() );
 
         // calculate the number of local grid cells and
         // the local cell offset to the global box        
@@ -182,6 +183,8 @@ public:
             gridSizeLocal[dim] = global_grid_size[dim] / gpus[dim];
             gridOffset[dim] = gridSizeLocal[dim] * myGPUpos[dim];
         }
+        
+        Environment<simDim>::get().initGrids(global_grid_size, gridSizeLocal, gridOffset);
 
         MovingWindow::getInstance().setGlobalSimSize(global_grid_size);
         MovingWindow::getInstance().setSlidingWindow(slidingWindow);
@@ -190,17 +193,14 @@ public:
         log<picLog::DOMAINS > ("rank %1%; localsize %2%; localoffset %3%;") %
             myGPUpos.toString() % gridSizeLocal.toString() % gridOffset.toString();
 
-        /*init SubGrid for global use*/
-        SubGrid<simDim>::getInstance().init(gridSizeLocal, global_grid_size, gridOffset);
-
-        SimulationHelper<simDim>::moduleLoad();
+        SimulationHelper<simDim>::pluginLoad();
 
         GridLayout<SIMDIM> layout(gridSizeLocal, MappingDesc::SuperCellSize::getDataSpace());
         cellDescription = new MappingDesc(layout.getDataSpace(), GUARD_SIZE, GUARD_SIZE);
 
         checkGridConfiguration(global_grid_size, cellDescription->getGridLayout());
 
-        if (GridController<simDim>::getInstance().getGlobalRank() == 0)
+        if (Environment<simDim>::get().GridController().getGlobalRank() == 0)
         {
             if (slidingWindow)
                 log<picLog::PHYSICS > ("Sliding Window is ON");
@@ -226,10 +226,10 @@ public:
 
     }
 
-    virtual void moduleUnload()
+    virtual void pluginUnload()
     {
 
-        SimulationHelper<simDim>::moduleUnload();
+        SimulationHelper<simDim>::pluginUnload();
         __delete(fieldB);
 
         __delete(fieldE);
@@ -252,6 +252,11 @@ public:
         __delete(currentBGField);
     }
 
+    void notify(uint32_t)
+    {
+        
+    }
+    
     virtual uint32_t init()
     {
         namespace nvmem = PMacc::nvidia::memory;
@@ -277,7 +282,7 @@ public:
 #endif
 
         size_t freeGpuMem(0);
-        nvmem::MemoryInfo::getInstance().getMemoryInfo(&freeGpuMem);
+        Environment<>::get().EnvMemoryInfo().getMemoryInfo(&freeGpuMem);
         freeGpuMem -= totalFreeGpuMemory;
 
 #if (ENABLE_IONS == 1)
@@ -286,13 +291,13 @@ public:
 #endif
 #if (ENABLE_ELECTRONS == 1)
         size_t memElectrons(0);
-        nvmem::MemoryInfo::getInstance().getMemoryInfo(&memElectrons);
+        Environment<>::get().EnvMemoryInfo().getMemoryInfo(&memElectrons);
         memElectrons -= totalFreeGpuMemory;
         log<picLog::MEMORY > ("free mem before electrons %1% MiB") % (memElectrons / 1024 / 1024);
         electrons->createParticleBuffer(freeGpuMem * memFractionElectrons);
 #endif
 
-        nvmem::MemoryInfo::getInstance().getMemoryInfo(&freeGpuMem);
+        Environment<>::get().EnvMemoryInfo().getMemoryInfo(&freeGpuMem);
         log<picLog::MEMORY > ("free mem after all mem is allocated %1% MiB") % (freeGpuMem / 1024 / 1024);
 
         fieldB->init(*fieldE, *laser);
@@ -304,14 +309,14 @@ public:
         this->myFieldSolver = new fieldSolver::FieldSolver(*cellDescription);
 
 #if (ENABLE_ELECTRONS == 1)
-        electrons->init(*fieldE, *fieldB, *fieldJ);
+        electrons->init(*fieldE, *fieldB, *fieldJ, *fieldTmp);
 #endif
 
 #if (ENABLE_IONS == 1)
-        ions->init(*fieldE, *fieldB, *fieldJ);
+        ions->init(*fieldE, *fieldB, *fieldJ, *fieldTmp);
 #endif      
         //disabled because of a transaction system bug
-        StreamController::getInstance().addStreams(6);
+        Environment<>::get().StreamController().addStreams(6);
 
         uint32_t step = 0;
 
@@ -319,7 +324,7 @@ public:
             step = initialiserController->init();
 
 
-        nvmem::MemoryInfo::getInstance().getMemoryInfo(&freeGpuMem);
+        Environment<>::get().EnvMemoryInfo().getMemoryInfo(&freeGpuMem);
         log<picLog::MEMORY > ("free mem after all particles are initialized %1% MiB") % (freeGpuMem / 1024 / 1024);
 
         // communicate all fields
@@ -434,7 +439,7 @@ public:
 
     void slide(uint32_t currentStep)
     {
-        GridController<simDim>& gc = GridController<simDim>::getInstance();
+        GridController<simDim>& gc = Environment<simDim>::get().GridController();
 
         if (gc.slide())
         {
@@ -444,7 +449,7 @@ public:
         }
     }
 
-    virtual void setInitController(IInitModule *initController)
+    virtual void setInitController(IInitPlugin *initController)
     {
 
         assert(initController != NULL);
@@ -503,7 +508,7 @@ protected:
 
     // output classes
 
-    IInitModule* initialiserController;
+    IInitPlugin* initialiserController;
 
     MappingDesc* cellDescription;
 

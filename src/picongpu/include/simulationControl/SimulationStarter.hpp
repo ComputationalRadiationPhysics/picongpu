@@ -36,8 +36,8 @@
 #include "mappings/simulation/GridController.hpp"
 #include "dimensions/GridLayout.hpp"
 #include "mappings/kernel/MappingDescription.hpp"
-#include "moduleSystem/ModuleConnector.hpp"
-#include "moduleSystem/Module.hpp"
+#include "pluginSystem/PluginConnector.hpp"
+#include "pluginSystem/IPlugin.hpp"
 #include "simulationControl/ISimulationStarter.hpp"
 
 namespace picongpu
@@ -73,43 +73,47 @@ namespace picongpu
             __delete(simulationClass);
         }
 
-        virtual std::string moduleGetName() const
+        virtual std::string pluginGetName() const
         {
             return "PIConGPU simulation starter";
         }
 
         virtual void start()
         {
-            ModuleConnector& module_connector = ModuleConnector::getInstance();
-            module_connector.loadModules();
+            PluginConnector& pluginConnector = Environment<>::get().PluginConnector();
+            pluginConnector.loadPlugins();
             log<picLog::SIMULATION_STATE > ("Startup");
             simulationClass->setInitController(initClass);
             simulationClass->startSimulation();
         }
 
-        virtual void moduleRegisterHelp(po::options_description&)
+        virtual void pluginRegisterHelp(po::options_description&)
+        {
+        }
+        
+        void notify(uint32_t)
         {
         }
 
         bool parseConfigs(int argc, char **argv)
         {
             ArgsParser& ap = ArgsParser::getInstance();
-            ModuleConnector& module_connector = ModuleConnector::getInstance();
+            PluginConnector& pluginConnector = Environment<>::get().PluginConnector();
 
-            po::options_description simDesc(simulationClass->moduleGetName());
-            simulationClass->moduleRegisterHelp(simDesc);
+            po::options_description simDesc(simulationClass->pluginGetName());
+            simulationClass->pluginRegisterHelp(simDesc);
             ap.addOptions(simDesc);
 
-            po::options_description initDesc(initClass->moduleGetName());
-            initClass->moduleRegisterHelp(initDesc);
+            po::options_description initDesc(initClass->pluginGetName());
+            initClass->pluginRegisterHelp(initDesc);
             ap.addOptions(initDesc);
 
-            po::options_description analyserDesc(analyserClass->moduleGetName());
-            analyserClass->moduleRegisterHelp(analyserDesc);
+            po::options_description analyserDesc(analyserClass->pluginGetName());
+            analyserClass->pluginRegisterHelp(analyserDesc);
             ap.addOptions(analyserDesc);
 
             // setup all boost::program_options and add to ArgsParser
-            BoostOptionsList options = module_connector.registerHelp();
+            BoostOptionsList options = pluginConnector.registerHelp();
 
             for (BoostOptionsList::const_iterator iter = options.begin();
                  iter != options.end(); ++iter)
@@ -122,7 +126,7 @@ namespace picongpu
         }
     protected:
 
-        void moduleLoad()
+        void pluginLoad()
         {
             simulationClass->load();
             mappingDesc = simulationClass->getMappingDescription();
@@ -130,10 +134,10 @@ namespace picongpu
             initClass->setMappingDescription(mappingDesc);
         }
 
-        void moduleUnload()
+        void pluginUnload()
         {
-            ModuleConnector& module_connector = ModuleConnector::getInstance();
-            module_connector.unloadModules();
+            PluginConnector& pluginConnector = Environment<>::get().PluginConnector();
+            pluginConnector.unloadPlugins();
             initClass->unload();
             analyserClass->unload();
             simulationClass->unload();

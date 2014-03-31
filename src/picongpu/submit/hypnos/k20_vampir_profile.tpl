@@ -27,7 +27,7 @@ TBG_mailAdress="someone@example.com"
 
 # 4 gpus per node if we need more than 4 gpus else same count as TBG_tasks
 TBG_gpusPerNode=`if [ $TBG_tasks -gt 4 ] ; then echo 4; else echo $TBG_tasks; fi`
-    
+
 #number of cores per parallel node / default is 2 cores per gpu on k20 queue
 TBG_coresPerNode="$(( TBG_gpusPerNode * 2 ))"
 
@@ -56,7 +56,7 @@ cd !TBG_dstPath
 export MODULES_NO_OUTPUT=1
 source ~/picongpu.profile
 unset MODULES_NO_OUTPUT
-    
+
 export VT_MPI_IGNORE_FILTER=yes
 export VT_PFORM_GDIR=traces
 export VT_FILE_PREFIX=trace
@@ -70,15 +70,15 @@ export VT_GPUTRACE=yes,cupti,idle,memusage,concurrent
 export VT_VERBOSE=1
 export VT_CUPTI_METRICS=
 export VT_CUDATRACE_BUFFER_SIZE=200M
-                   
-                    
+
+
 #set user rights to u=rwx;g=r-x;o=---
-umask 0027 
-    
+umask 0027
+
 mkdir simOutput 2> /dev/null
 cd simOutput
 
-#wait that all nodes see ouput folder
+# wait for all nodes to see the output folder
 sleep 1
 
 mpiexec --prefix $MPIHOME -tag-output --display-map -x LIBRARY_PATH -x LD_LIBRARY_PATH -am !TBG_dstPath/tbg/openib.conf  -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/picongpu/bin/cuda_memtest.sh

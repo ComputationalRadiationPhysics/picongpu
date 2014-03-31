@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -23,6 +23,8 @@
 #include "types.h"
 #include "simulation_defines.hpp"
 #include "particles/Particles.hpp"
+#include "memory/boxes/DataBox.hpp"
+#include "memory/boxes/PitchedBox.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
 
 #include "simulation_defines.hpp"
@@ -49,20 +51,23 @@ using namespace PMacc;
  * @param cellIdx the current cell on this gpu
  * @return a float_X which stands for the real number of electrons per volume
  */
-template<unsigned int Dim>
-DINLINE float_X calcRealDensity(const DataSpace<Dim>& offset, const DataSpace<Dim>& cellIdx)
+template<unsigned int Dim, typename FieldBox>
+DINLINE float_X calcRealDensity(const DataSpace<Dim>& offset,
+        const DataSpace<Dim>& localCellIdx, FieldBox fieldTmp)
 {
     floatD_X physicalCellPosition;
     for (uint32_t i = 0; i < simDim; ++i)
-        physicalCellPosition[i] = (cellIdx[i] + offset[i]) * cellSize[i];
+        physicalCellPosition[i] = (localCellIdx[i] + offset[i]) * cellSize[i];
 
-    const float_X value = gasProfile::calcNormedDensitiy(physicalCellPosition) * GAS_DENSITY;
+    const float_X value = gasProfile::calcNormedDensity(physicalCellPosition, localCellIdx, fieldTmp) * GAS_DENSITY;
     return value;
 }
 
-template< typename ParBox, class Mapping>
+template< typename ParBox, typename FieldBox, class Mapping>
 __global__ void kernelFillGridWithParticles(ParBox pb,
-                                            bool isNotTop, DataSpace<simDim> gpuCelloffset, uint32_t seed, uint32_t gNrCellsY,
+                                            bool isNotTop, DataSpace<simDim> gpuCelloffset,
+                                            uint32_t seed, uint32_t gNrCellsY,
+                                            FieldBox fieldTmp,
                                             Mapping mapper)
 {
     namespace nvrng = nvidia::rng;
@@ -127,7 +132,8 @@ __global__ void kernelFillGridWithParticles(ParBox pb,
 
 
     /*multiply density factor to calculated manipulated middle density*/
-    const float_X realDensity = densityFactor * calcRealDensity(gpuCelloffset, idx - SuperCellSize::getDataSpace());
+    const float_X realDensity = densityFactor * calcRealDensity(gpuCelloffset,
+            localCellIdx, fieldTmp);
     const float_X realElPerCell = realDensity * CELL_VOLUME;
 
     __shared__ int finished;

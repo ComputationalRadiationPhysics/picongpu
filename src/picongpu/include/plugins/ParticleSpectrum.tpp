@@ -110,11 +110,11 @@ template<typename ParticlesType>
 ParticleSpectrum<ParticlesType>::ParticleSpectrum(std::string name, std::string prefix)
     : name(name), prefix(prefix)
 {
-    ModuleConnector::getInstance().registerModule(this);
+    Environment<>::get().PluginConnector().registerPlugin(this);
 }
 
 template<typename ParticlesType>
-void ParticleSpectrum<ParticlesType>::moduleRegisterHelp(po::options_description& desc)
+void ParticleSpectrum<ParticlesType>::pluginRegisterHelp(po::options_description& desc)
 {
     desc.add_options()
         ((this->prefix + "_frequency").c_str(),
@@ -131,19 +131,19 @@ void ParticleSpectrum<ParticlesType>::moduleRegisterHelp(po::options_description
 }
 
 template<typename ParticlesType>
-std::string ParticleSpectrum<ParticlesType>::moduleGetName() const {return this->name;}
+std::string ParticleSpectrum<ParticlesType>::pluginGetName() const {return this->name;}
 
 template<typename ParticlesType>
-void ParticleSpectrum<ParticlesType>::moduleLoad()
+void ParticleSpectrum<ParticlesType>::pluginLoad()
 {
-    DataConnector::getInstance().registerObserver(this, this->notifyFrequency);
+    Environment<>::get().PluginConnector().setNotificationFrequency(this, this->notifyFrequency);
     
     this->minEnergy = this->minEnergy * UNITCONV_keV_to_Joule / UNIT_ENERGY;
     this->maxEnergy = this->maxEnergy * UNITCONV_keV_to_Joule / UNIT_ENERGY;
 }
 
 template<typename ParticlesType>
-void ParticleSpectrum<ParticlesType>::moduleUnload(){}
+void ParticleSpectrum<ParticlesType>::pluginUnload(){}
 
 struct GetBin
 {
@@ -162,7 +162,7 @@ struct GetBin
 template<typename ParticlesType>
 void ParticleSpectrum<ParticlesType>::notify(uint32_t)
 {/*
-    DataConnector &dc = DataConnector::getInstance();
+    DataConnector &dc = Environment<>::get().DataConnector();
     this->particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
     
     namespace vec = ::vector;
@@ -197,7 +197,7 @@ void ParticleSpectrum<ParticlesType>::notify(uint32_t)
     container::HostBuffer<float, 1> spectrumMPI(numBinsEx), globalSpectrum(numBinsEx);
     for(size_t i = 0; i < numBinsEx; i++) spectrumMPI.origin()[(int)i] = (*spectrumHost.origin()).bin[i];
     
-    PMacc::GridController<3>& con = PMacc::GridController<3>::getInstance();
+    PMacc::GridController<3>& con = PMacc::Environment<3>::get().GridController();
     vec::Size_t<3> gpuDim = (vec::Size_t<3>)con.getGpuNodes();
     zone::SphericZone<3> gpuReducingZone(gpuDim);
     algorithm::mpi::Reduce<3> reduce(gpuReducingZone);

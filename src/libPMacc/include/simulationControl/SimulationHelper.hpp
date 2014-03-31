@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Rene Widera
  *
  * This file is part of libPMacc. 
  * 
@@ -20,8 +20,7 @@
  */ 
  
 
-#ifndef SIMULATIONHELPER_HPP
-#define	SIMULATIONHELPER_HPP
+#pragma once
 
 #include <cuda_runtime_api.h>
 #include <iostream>
@@ -37,7 +36,7 @@
 
 
 #include "eventSystem/EventSystem.hpp"
-#include "moduleSystem/Module.hpp"
+#include "pluginSystem/IPlugin.hpp"
 
 
 namespace PMacc
@@ -52,7 +51,7 @@ namespace PMacc
  * @tparam DIM base dimension for the simulation (2-3)
  */
 template<unsigned DIM>
-class SimulationHelper : public Module
+class SimulationHelper : public IPlugin
 {
 public:
 
@@ -112,13 +111,13 @@ public:
      */
     virtual void dumpOneStep(uint32_t currentStep)
     {
-        DataConnector::getInstance().invalidate();
-        DataConnector::getInstance().dumpData(currentStep);
+        Environment<DIM>::get().DataConnector().invalidate();
+        Environment<DIM>::get().PluginConnector().notifyPlugins(currentStep);
     }
 
     GridController<DIM> & getGridController()
     {
-        return GridController<DIM>::getInstance();
+        return Environment<DIM>::get().GridController();
     }
     
     void dumpTimes(TimeIntervall &tSimCalculation, TimeIntervall&, double& roundAvg, uint32_t currentStep)
@@ -182,7 +181,7 @@ public:
         }       
 
         //simulatation end
-        Manager::getInstance().waitForAllTasks();
+        Environment<>::get().Manager().waitForAllTasks();
 
         tSimCalculation.toggleEnd();
 
@@ -197,7 +196,7 @@ public:
 
     }
 
-    virtual void moduleRegisterHelp(po::options_description& desc)
+    virtual void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
             ("steps,s", po::value<uint32_t > (&runSteps), "simulation steps")
@@ -205,26 +204,19 @@ public:
              "print time statistics after p percent to stdout");
     }
 
-    std::string moduleGetName() const
+    std::string pluginGetName() const
     {
         return "SimulationHelper";
     }
 
-    virtual void moduleLoad()
+    virtual void pluginLoad()
     {
         calcProgress();
-        setDevice((int) (getGridController().getHostRank())); //do this after gridcontroller init
-
-        /* call all singeltons to solve dependencies for program exit
-         */
-        StreamController::getInstance().activate();
-        Manager::getInstance();
-        TransactionManager::getInstance();
 
         output = (getGridController().getGlobalRank() == 0);
     }
 
-    virtual void moduleUnload()
+    virtual void pluginUnload()
     {
     }
 
@@ -251,43 +243,6 @@ private:
             showProgressAnyStep = 1;
     }
 
-    void setDevice(int deviceNumber)
-    {
-        int num_gpus = 0; //count of gpus
-        cudaGetDeviceCount(&num_gpus);
-        //##ERROR handling
-        if (num_gpus < 1) //check if cuda device ist found
-        {
-            throw std::runtime_error("no CUDA capable devices detected");
-        }
-        else if (num_gpus < deviceNumber) //check if i can select device with diviceNumber
-        {
-            std::cerr << "no CUDA device " << deviceNumber << ", only " << num_gpus << " devices found" << std::endl;
-            throw std::runtime_error("CUDA capable devices can't be selected");
-        }
-
-        cudaDeviceProp devProp;
-        cudaError rc;
-        CUDA_CHECK(cudaGetDeviceProperties(&devProp, deviceNumber));
-        if (devProp.computeMode == cudaComputeModeDefault)
-        {
-            CUDA_CHECK(rc = cudaSetDevice(deviceNumber));
-            if (cudaSuccess == rc)
-            {
-                cudaDeviceProp dprop;
-                cudaGetDeviceProperties(&dprop, deviceNumber);
-                //!\todo: write this only on debug
-                log<ggLog::CUDA_RT > ("Set device to %1%: %2%") % deviceNumber % dprop.name;
-            }
-        }
-        else
-        {
-            //gpu mode is cudaComputeModeExclusiveProcess and a free device is automaticly selected.
-            log<ggLog::CUDA_RT > ("Device is selected by CUDA automaticly. (because cudaComputeModeDefault is not set)");
-        }
-        CUDA_CHECK(cudaSetDeviceFlags(cudaDeviceScheduleYield));
-    }
-
     //! how often calculated data will be dumped (picture or other format)
     uint32_t dumpAnyStep;
 
@@ -301,7 +256,4 @@ private:
 
 };
 } // namespace PMacc
-
-
-#endif	/* SIMULATIONHELPER_HPP */
 
