@@ -84,8 +84,10 @@ then
     branch=`echo -e "$sched" | grep '"branch"' | head -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
 
     git clone -q $git_b .
+    # simulate a merge of the commit on the base branch
     git checkout -q -b mergeTest $sha_b
-    git pull -q $git $sha
+    git remote add -f pull_repo $git > /dev/null 2>&1
+    git merge -q $sha
     if [ $? -ne 0 ] ; then
         # merge failed
         cd -
