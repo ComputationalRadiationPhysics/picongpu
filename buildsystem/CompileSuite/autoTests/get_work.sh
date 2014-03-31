@@ -85,7 +85,7 @@ then
 
     git clone -q $git_b .
     git checkout -q -b mergeTest $sha_b
-    git pull -q $git $branch
+    git pull -q $git $sha
     if [ $? -ne 0 ] ; then
         # merge failed
         cd -
