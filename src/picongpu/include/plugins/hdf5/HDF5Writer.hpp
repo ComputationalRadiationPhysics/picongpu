@@ -139,12 +139,12 @@ private:
             T* field = &(dc.getData<T > (T::getName()));
             params.get()->gridLayout = field->getGridLayout();
 
-            writeField<ValueType>(params.get(),
+            writeField(params.get(),
                        domInfo,
                        T::getName(),
                        getUnit(),
                        field->getHostDataBox(),
-                       ValueType() );
+                       ValueType());
 
             dc.releaseData(T::getName());
 #endif
@@ -228,7 +228,7 @@ private:
                        getName(),
                        getUnit(),
                        fieldTmp->getHostDataBox(),
-                       ValueType() 
+                       ValueType()
                        );
 
             dc.releaseData(FieldTmp::getName());
@@ -312,14 +312,14 @@ private:
     void openH5File()
     {
         const uint32_t maxOpenFilesPerNode = 4;
-        if ( mThreadParams.dataCollector == NULL)
+        if (mThreadParams.dataCollector == NULL)
         {
             GridController<simDim> &gc = Environment<simDim>::get().GridController();
             mThreadParams.dataCollector = new ParallelDomainCollector(
-                        gc.getCommunicator().getMPIComm(),
-                        gc.getCommunicator().getMPIInfo(),
-                        splashMpiSize,
-                        maxOpenFilesPerNode);
+                                                                      gc.getCommunicator().getMPIComm(),
+                                                                      gc.getCommunicator().getMPIInfo(),
+                                                                      splashMpiSize,
+                                                                      maxOpenFilesPerNode);
         }
         // set attributes for datacollector files
         DataCollector::FileCreationAttr attr;
@@ -379,11 +379,11 @@ private:
             __delete(mThreadParams.dataCollector);
     }
 
-    template<typename T_ValueType,typename T_DataBoxType>
-    static void writeField(ThreadParams *params, 
+    template<typename T_ValueType, typename T_DataBoxType>
+    static void writeField(ThreadParams *params,
                            const DomainInformation domInfo,
                            const std::string name,
-                           std::vector<double> unit, 
+                           std::vector<double> unit,
                            T_DataBoxType dataBox,
                            const T_ValueType&
                            )
@@ -391,10 +391,10 @@ private:
         typedef T_DataBoxType NativeDataBoxType;
         typedef T_ValueType ValueType;
         typedef typename GetComponentsType<ValueType>::type ComponentType;
-        typedef typename PICToSplash<ComponentType>::type SplashType;    
-        
+        typedef typename PICToSplash<ComponentType>::type SplashType;
+
         const uint32_t nComponents = GetNComponents<ValueType>::value;
-        
+
         log<picLog::INPUT_OUTPUT > ("HDF5 write field: %1% %2%") %
             name % nComponents;
 
@@ -414,7 +414,7 @@ private:
          * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
          */
         DataSpace<simDim> globalSlideOffset;
-        globalSlideOffset.y()+=params->window.slides * params->window.localFullSize.y();
+        globalSlideOffset.y() += params->window.slides * params->window.localFullSize.y();
 
         Dimensions splashGlobalDomainOffset(0, 0, 0);
         Dimensions splashGlobalOffsetFile(0, 0, 0);
@@ -426,15 +426,15 @@ private:
             splashGlobalDomainOffset[d] = domInfo.globalDomainOffset[d] + globalSlideOffset[d];
             splashGlobalDomainSize[d] = domInfo.globalDomainSize[d];
         }
-        
+
         splashGlobalOffsetFile[1] = std::max(0, domInfo.domainOffset[1] -
-                domInfo.globalDomainOffset[1]);
+                                             domInfo.globalDomainOffset[1]);
 
         SplashType splashType;
-        
-        size_t tmpArrySize=field_no_guard.productOfComponents();
-        ComponentType* tmpArray = new ComponentType[tmpArrySize];
-        
+
+        size_t tmpArraySize = field_no_guard.productOfComponents();
+        ComponentType* tmpArray = new ComponentType[tmpArraySize];
+
         typedef DataBoxDim1Access<NativeDataBoxType > D1Box;
         D1Box d1Access(dataBox.shift(field_guard), field_no_guard);
 
@@ -443,37 +443,29 @@ private:
             /* copy data to temp array
              * tmpArray has the size of the data without any offsets
              */
-            for (size_t i = 0; i < tmpArrySize; ++i)
+            for (size_t i = 0; i < tmpArraySize; ++i)
             {
                 tmpArray[i] = d1Access[i][d];
             }
-            
+
             std::stringstream datasetName;
             datasetName << "fields/" << name;
             if (nComponents > 1)
                 datasetName << "/" << name_lookup.at(d);
-            
-            Dimensions sizeSrcBuffer(1,1,1);
-            Dimensions srcStride(1, 1, 1);
-            Dimensions sizeSrcData(1, 1,1);
-            Dimensions srcOffset(0,0,0);
 
-            for(uint32_t i=0;i<simDim;++i)
+            Dimensions sizeSrcData(1, 1, 1);
+
+            for (uint32_t i = 0; i < simDim; ++i)
             {
-                sizeSrcBuffer[i]=field_no_guard[i];
-                sizeSrcData[i]=field_no_guard[i];
+                sizeSrcData[i] = field_no_guard[i];
             }
-            
+
             params->dataCollector->writeDomain(params->currentStep, /* id == time step */
                                                splashGlobalDomainSize,
                                                splashGlobalOffsetFile,
                                                splashType, /* data type */
                                                simDim, /* NDims of the field data (scalar, vector, ...) */
-                                               /* source buffer, stride, data size, offset */
-                                               sizeSrcBuffer,
-                                               srcStride,
                                                sizeSrcData,
-                                               srcOffset,
                                                datasetName.str().c_str(), /* data set name */
                                                splashGlobalDomainOffset, /* \todo offset of the global domain */
                                                splashGlobalDomainSize, /* size of the global domain */
@@ -490,9 +482,9 @@ private:
         __deleteArray(tmpArray);
 
     }
-    
+
     typedef PICToSplash<float_X>::type SplashFloatXType;
-    
+
     static void writeMetaAttributes(ThreadParams *threadParams)
     {
         ColTypeUInt32 ctUInt32;
@@ -501,13 +493,13 @@ private:
 
         ParallelDomainCollector *dc = threadParams->dataCollector;
         uint32_t currentStep = threadParams->currentStep;
-        
+
         /* write number of slides */
         uint32_t slides = threadParams->window.slides;
-        
+
         dc->writeAttribute(threadParams->currentStep,
-                                              ctUInt32, NULL, "sim_slides", &slides);
-        
+                           ctUInt32, NULL, "sim_slides", &slides);
+
         /* write normed grid parameters */
         dc->writeAttribute(currentStep, splashFloatXType, NULL, "delta_t", &DELTA_T);
         dc->writeAttribute(currentStep, splashFloatXType, NULL, "cell_width", &CELL_WIDTH);
@@ -516,13 +508,13 @@ private:
         {
             dc->writeAttribute(currentStep, splashFloatXType, NULL, "cell_depth", &CELL_DEPTH);
         }
-        
+
         /* write base units */
         dc->writeAttribute(currentStep, ctDouble, NULL, "unit_energy", &UNIT_ENERGY);
         dc->writeAttribute(currentStep, ctDouble, NULL, "unit_length", &UNIT_LENGTH);
         dc->writeAttribute(currentStep, ctDouble, NULL, "unit_speed", &UNIT_SPEED);
         dc->writeAttribute(currentStep, ctDouble, NULL, "unit_time", &UNIT_TIME);
-        
+
         /* write physical constants */
         dc->writeAttribute(currentStep, splashFloatXType, NULL, "mue0", &MUE0);
         dc->writeAttribute(currentStep, splashFloatXType, NULL, "eps0", &EPS0);
