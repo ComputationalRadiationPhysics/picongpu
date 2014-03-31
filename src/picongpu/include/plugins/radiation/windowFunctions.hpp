@@ -30,22 +30,31 @@ namespace picongpu
   {
     struct radWindowFunction
     {
+      /** 1D Window function according to the rectangle window:
+       *
+       * f(position_x) = {1.0     : (0 <= position_x <= L_x )
+       *                 {0.0     : in any other case
+       *
+       * @param position_x = 1D position
+       * @param L_x        = length of the simulated area
+       *                     assuming that the simulation ranges
+       *                     from 0 to L_x in the choosen dimension
+       * @returns weighting factor to reduce ringing effects due to
+       *          sharp spacial boundaries
+       **/
       HDINLINE float_X operator()(const float_X position_x, const float_X L_x) const
       {
-	/* 1D Window function according to the rectangle window:
-	 *
-	 * f(x) = {1.0        : (0 <= position_x <= L_x )
-	 *        {0.0        : in any other case
-	 *
-	 * @param position_x = 1D position
-	 * @param L_x        = length of the simulated area
-	 *                     assuming that the simulation ranges
-	 *                     from 0 to L_x in the choosen dimension
-	 * @returns weighting factor to reduce ringing effects due to
-         *          sharp spacial boundaries
+	/* an optimized formula is implemented 
+	 * 
+	 * transform position to make box symetric:
+	 * x_prime = position_x - 1/2 * L_x
+	 * 
+	 * then: f(x_position) = f(x_prime)
+	 * f(x_prime) = { 1.0     : -L_x/2 <= x_prime <= +L_x/2
+	 *              { 0.0     : in any other case
 	 */
-	const float_X x = position_x - L_x*0.5;
-	return float_X(math::abs(x) <= float_X(0.5) * L_x);
+	const float_X x_prime = position_x - L_x*float_X(0.5);
+	return float_X(math::abs(x_prime) <= float_X(0.5) * L_x);
       }
     };
   } /* namespace radWindowFunctionRectangle */
