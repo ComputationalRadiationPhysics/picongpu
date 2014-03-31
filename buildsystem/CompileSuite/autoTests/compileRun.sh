@@ -40,7 +40,7 @@ buildDir="/home/"$user"/tmp_build"
 
 case "$1" in
     start)
-	$0 "asyncStart" &
+	$0 "asyncStart" > $exch"/cron.log" 2>&1 &
 	;;
     asyncStart)
         # clean tmp build folder
@@ -51,9 +51,6 @@ case "$1" in
 
         # set some env, like nvcc alias
         exec_user=". ~/.login &&"
-        # disable png and HDF5
-        exec_user="$exec_user export PIC_COMPILE_SUITE_CMAKE='-DPIC_ENABLE_PNG=OFF"
-        exec_user="$exec_user -DPIC_ENABLE_HDF5=OFF -DCUDA_ARCH=sm_20' &&"
         # compile
         exec_user="$exec_user $picExport/compile -l -q -j $numParallel $picExport/examples $buildDir "
         #exec_user="$exec_user $picExport/compile -q $picExport/examples/TermalTest $buildDir "
