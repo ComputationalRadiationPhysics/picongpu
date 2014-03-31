@@ -276,7 +276,7 @@ private:
             /* watch out for race conditions when writing to the same file!   *
              * output here is difference between buffer before and thereafter */
             if (isMaster) { 
-                pngdiff(currentStep, difpic, gridSize, "dif/dif");
+                pngdiff(currentStep, difpic, gridSize, "dif_");
             }
             
             /* Every MPI-Thread = every CUDA kernel writes it's buffer into a *
@@ -288,7 +288,7 @@ private:
             PngCreator pngpartial;
             std::stringstream filename;
             filename 
-               << "partial/Rank-" << std::setw(3) << std::setfill('0') << gc.getGlobalRank()
+               << "partial_Rank-" << std::setw(3) << std::setfill('0') << gc.getGlobalRank()
                << "_x-Pos-" << std::setw(3) << std::setfill('0') << simBox.getGlobalOffset()[0]
                << "_y-Pos-" << std::setw(3) << std::setfill('0') << simBox.getGlobalOffset()[1] << "\0";
             pngpartial( currentStep, write->getHostBuffer().getDataBox(), write->getGridLayout().getDataSpace(), filename.str() );
