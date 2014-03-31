@@ -34,9 +34,8 @@ namespace picongpu
       {
 	/* 1D Window function according to the rectangle window:
 	 *
-	 * f(x) = {1.0        : (-L_x/2 <= x <= +L_x/2 )
+	 * f(x) = {1.0        : (0 <= position_x <= L_x )
 	 *        {0.0        : in any other case
-	 * with x being position_x - L_x/2
 	 *
 	 * @param position_x = 1D position
 	 * @param L_x        = length of the simulated area
@@ -45,7 +44,8 @@ namespace picongpu
 	 * @returns weighting factor to reduce ringing effects due to
          *          sharp spacial boundaries
 	 */
-	return float_X(math::abs(position_x- L_x)<=float_X(0.5*L_x));
+	const float_X x = position_x - L_x*0.5;
+	return float_X(math::abs(x) <= float_X(0.5) * L_x);
       }
     };
   } /* namespace radWindowFunctionRectangle */
