@@ -87,19 +87,23 @@ namespace gol
                                    float fraction,
                                    Mapping mapper)
         {
+            //get position in grid in SCs from blockID
             const Space block(mapper.getSuperCellIndex(Space(blockIdx)));
+            //convert position in unit of cells
             const Space blockCell = block * Mapping::SuperCellSize();
+            //convert CUDA dim3 to DataSpace<DIM3> (useless calc time)
             const Space threadIndex(threadIdx);
             const uint32_t cellIdx = DataSpaceOperations<DIM2>::map(
-                                                                    mapper.getGridSuperCells() * Mapping::SuperCellSize(),
-                                                                    blockCell + threadIndex);
+                    mapper.getGridSuperCells() * Mapping::SuperCellSize(),
+                    blockCell + threadIndex);
 
-            PMACC_AUTO(rng,
-                         nvidia::rng::create(
-                                             nvidia::rng::methods::Xor(seed, cellIdx),
-                                             nvidia::rng::distributions::Uniform_float()));
+            //get uniform random number from seed 
+            PMACC_AUTO(rng, nvidia::rng::create(
+                                nvidia::rng::methods::Xor(seed, cellIdx),
+                                nvidia::rng::distributions::Uniform_float()));
 
-            buffWrite(blockCell + threadIndex) = (rng() <= fraction);
+            //write 1/white if uniform number 0<rng0<1 also smaller than fraction
+            buffWrite(blockCell+threadIndex) = ( rng()<=fraction );
         }
     }
 
