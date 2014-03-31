@@ -295,20 +295,23 @@ private:
     struct CollectFieldsSizes
     {        
     public:
+        typedef typename T::ValueType ValueType;
+        typedef typename GetComponentsType<ValueType>::type ComponentType;
 
         HDINLINE void operator()(RefWrapper<ThreadParams*> params, const DomainInformation domInfo)
         {
 #ifndef __CUDA_ARCH__
             const uint32_t components = T::numComponents;
 
+            // adios buffer size for this dataset (all components)
             uint64_t localGroupSize = 
-                    (domInfo.globalDomainSize.productOfComponents() *
-                    sizeof(float) + 3 * sizeof(int)) *
+                    domInfo.domainSize.productOfComponents() *
+                    sizeof(ComponentType) *
                     components;
             
             params.get()->adiosGroupSize += localGroupSize;
             
-            PICToAdios<float> adiosType;
+            PICToAdios<ComponentType> adiosType;
             defineFieldVar(params.get(), domInfo, components, adiosType.type, T::getName());
 #endif
         }
@@ -348,8 +351,9 @@ private:
         {
             const uint32_t components = GetNComponents<ValueType>::value;
 
+            // adios buffer size for this dataset (all components)
             uint64_t localGroupSize = 
-                    domInfo.globalDomainSize.productOfComponents() *
+                    domInfo.domainSize.productOfComponents() *
                     sizeof(ComponentType) *
                     components;
             
