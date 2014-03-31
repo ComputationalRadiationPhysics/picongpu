@@ -73,7 +73,7 @@ namespace picongpu
          *          sharp spacial boundaries
 	 */
 	float_X x = position_x - float_X(0.5)*L_x;
-	return float_X(math::abs(x) <= float_X(0.5)*L_x * (float_X(1.0)- 
+	return float_X(math::abs(x) <= float_X(0.5)*L_x * (float_X(1.0)-
 					   float_X(2.0)/L_x * math::abs(x) );
       }
     };
@@ -82,3 +82,4 @@ namespace picongpu
 
 
 }  /* namespace picongpu */
+
