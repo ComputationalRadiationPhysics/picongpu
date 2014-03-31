@@ -65,22 +65,22 @@ namespace picongpu
   {
     struct radWindowFunction
     {
+      /** 1D Window function according to the triangle window:
+       *
+       * x = position_x - L_x/2
+       * f(x) = {1+2x/L_x : (-L_x/2 <= x <= 0      )
+       *        {1-2x/L_x : (0      <= x <= +L_x/2 )
+       *        {0.0      : in any other case
+       *
+       * @param position_x = 1D position
+       * @param L_x        = length of the simulated area
+       *                     assuming that the simulation ranges
+       *                     from 0 to L_x in the choosen dimension
+       * @returns weighting factor to reduce ringing effects due to
+       *          sharp spacial boundaries
+       **/
       HDINLINE float_X operator()(const float_X position_x, const float_X L_x) const
       {
-	/* 1D Window function according to the triangle window:
-	 *
-	 * x = position_x - L_x/2
-	 * f(x) = {1+2x/L_x : (-L_x/2 <= x <= 0      )
-	 *        {1-2x/L_x : (0      <= x <= +L_x/2 )
-	 *        {0.0      : in any other case
-	 *
-	 * @param position_x = 1D position
-	 * @param L_x        = length of the simulated area
-	 *                     assuming that the simulation ranges
-	 *                     from 0 to L_x in the choosen dimension
-	 * @returns weighting factor to reduce ringing effects due to
-         *          sharp spacial boundaries
-	 */
 	float_X x = position_x - float_X(0.5)*L_x;
 	return float_X(math::abs(x) <= float_X(0.5)*L_x * (float_X(1.0)-
 					   float_X(2.0)/L_x * math::abs(x) );
