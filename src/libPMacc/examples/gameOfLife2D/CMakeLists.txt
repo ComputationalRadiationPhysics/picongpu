@@ -38,6 +38,9 @@ project (GameOfLife)
 #set helper pathes to find libraries and packages
 set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{MPI_ROOT}" "$ENV{CUDA_ROOT}" "$ENV{BOOST_ROOT}")
 
+# own modules for find_packages
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/)
+
 IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     SET(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}" CACHE PATH "install prefix" FORCE)
 ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) 
@@ -88,11 +91,6 @@ ENDIF(CUDA_KEEP_FILES)
 ##END CUDA##
 
 
-OPTION(GOL_ENABLE_PNG "create gameOfLife png output support (need pngwriter)" ON)
-IF(GOL_ENABLE_PNG)
-    ADD_DEFINITIONS(-DGOL_ENABLE_PNG=1)
-ENDIF(GOL_ENABLE_PNG)
-
 #########################################################################
 # Configure include directories
 
@@ -114,25 +112,62 @@ ENDIF(PMACC_BLOCKING_KERNEL)
 SET(PMACC_VERBOSE "0" CACHE STRING "set verbose level for libPMacc")
 ADD_DEFINITIONS(-DPMACC_VERBOSE_LVL=${PMACC_VERBOSE})
 
-#PNGWRITER
-IF(GOL_ENABLE_PNG)
-  find_path(GOL_PNGWRITER_ROOT_DIR
-    NAMES include/pngwriter.h
-    PATHS ENV PNGWRITER_ROOT 
-    DOC "pngwriter root location. (only used if GOL_ENABLE_PNG is enabled)"
-    )
-ENDIF(GOL_ENABLE_PNG)
-IF(GOL_ENABLE_PNG)
-    INCLUDE_DIRECTORIES(${GOL_PNGWRITER_ROOT_DIR}/include /usr/include/freetype2/)
-    LINK_DIRECTORIES(${GOL_PNGWRITER_ROOT_DIR}/lib)
-    SET(LIBS ${LIBS} png pngwriter freetype)
-ENDIF(GOL_ENABLE_PNG)
 
-#Boost from system
+################################################################################
+# PNGwriter
+################################################################################
+
+# find PNGwriter installation
+# prefer static libraries over shared ones (but do not force them)
+set(PNGwriter_USE_STATIC_LIBS ON)
+find_package(PNGwriter REQUIRED)
+
+if(PNGwriter_FOUND)
+    include_directories(SYSTEM ${PNGwriter_INCLUDE_DIRS})
+    list(APPEND PNGwriter_DEFINITIONS "-DGOL_ENABLE_PNG=1")
+    add_definitions(${PNGwriter_DEFINITIONS})
+    set(LIBS ${LIBS} ${PNGwriter_LIBRARIES})
+endif(PNGwriter_FOUND)
+
+
+###############################################################################
+# Boost from system
+###############################################################################
+
 FIND_PACKAGE(Boost REQUIRED COMPONENTS program_options regex)
 INCLUDE_DIRECTORIES(AFTER ${Boost_INCLUDE_DIRS})
 LINK_DIRECTORIES(${Boost_LIBRARY_DIR})
 SET(LIBS ${LIBS} ${Boost_LIBRARIES})
+
+# work-arounds
+if(Boost_VERSION EQUAL 105500)
+    # see https://svn.boost.org/trac/boost/ticket/9392
+    message(STATUS "Boost: Applying noinline work around")
+    set(CMAKE_CXX_FLAGS
+        "${CMAKE_CXX_FLAGS} -DBOOST_NOINLINE='__attribute__ ((noinline))'")
+endif(Boost_VERSION EQUAL 105500)
+
+
+################################################################################
+# Warnings
+################################################################################
+
+# GNU
+if(CMAKE_COMPILER_IS_GNUCXX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter")
+# ICC
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_VARIADIC_TEMPLATES")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_CXX11_VARIADIC_TEMPLATES")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_FENV_H")
+# PGI
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "PGI")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Minform=inform")
+endif()
 
 
 ################################################################################

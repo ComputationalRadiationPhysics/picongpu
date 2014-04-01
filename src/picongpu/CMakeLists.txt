@@ -344,39 +344,25 @@ if(Splash_FOUND)
     include_directories(SYSTEM ${Splash_INCLUDE_DIRS})
     list(APPEND Splash_DEFINITIONS "-DENABLE_HDF5=1")
     add_definitions(${Splash_DEFINITIONS})
-    message(STATUS "libSplash compiler definitions: ${Splash_DEFINITIONS}")
     set(LIBS ${LIBS} ${Splash_LIBRARIES})
 endif(Splash_FOUND)
 
 
 ################################################################################
-# PNGWRITER
+# PNGwriter
 ################################################################################
 
-find_path(PIC_PNGWRITER_ROOT_DIR
-    NAMES include/pngwriter.h
-    PATHS ENV PNGWRITER_ROOT 
-    DOC "pngwriter ROOT location")
+# find PNGwriter installation
+# prefer static libraries over shared ones (but do not force them)
+set(PNGwriter_USE_STATIC_LIBS ON)
+find_package(PNGwriter)
 
-if(PIC_PNGWRITER_ROOT_DIR)
-    message(STATUS "Found PNGWriter: "${PIC_PNGWRITER_ROOT_DIR})
-
-    add_definitions(-DPIC_ENABLE_PNG=1)
-    include_directories(SYSTEM ${PIC_PNGWRITER_ROOT_DIR}/include)
-    link_directories(${PIC_PNGWRITER_ROOT_DIR}/lib)
-    set(LIBS ${LIBS} png pngwriter)
-
-    # freetype support enabled?
-    include(FindFreetype)
-    if(FREETYPE_FOUND)
-      include_directories(${FREETYPE_INCLUDE_DIRS})
-      set(LIBS ${LIBS} ${FREETYPE_LIBRARIES})
-    else(FREETYPE_FOUND)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNO_FREETYPE")
-    endif(FREETYPE_FOUND)
-else(PIC_PNGWRITER_ROOT_DIR)
-    message(STATUS "Could NOT find PNGWriter")
-endif(PIC_PNGWRITER_ROOT_DIR)
+if(PNGwriter_FOUND)
+    include_directories(SYSTEM ${PNGwriter_INCLUDE_DIRS})
+    list(APPEND PNGwriter_DEFINITIONS "-DPIC_ENABLE_PNG=1")
+    add_definitions(${PNGwriter_DEFINITIONS})
+    set(LIBS ${LIBS} ${PNGwriter_LIBRARIES})
+endif(PNGwriter_FOUND)
 
 
 ################################################################################
