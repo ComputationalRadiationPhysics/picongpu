@@ -130,7 +130,7 @@ if(Splash_ROOT_DIR)
     string(REGEX MATCH "([0-9]+)" Splash_IS_PARALLEL "${_splash_H_CONTENTS}")
 
     # check that libSplash supports parallel and is compatible with hdf5
-    # if necesary find MPI, too
+    # if necessary find MPI, too
     if("${Splash_IS_PARALLEL}")
        set(Splash_IS_PARALLEL TRUE)
        message(STATUS "libSplash supports PARALLEL output")

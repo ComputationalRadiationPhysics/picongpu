@@ -1,5 +1,5 @@
 #
-# Copyright 2013-2014 Felix Schmitt, Axel Huebl, René Widera
+# Copyright 2013-2014 Felix Schmitt, Axel Huebl, Rene Widera
 #
 # This file is part of splash2txt. 
 # 
