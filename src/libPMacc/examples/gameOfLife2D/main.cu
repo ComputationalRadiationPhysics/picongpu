@@ -44,13 +44,13 @@ int main( int argc, char **argv )
 
     MPI_CHECK( MPI_Init( &argc, &argv ) );
 
-    typedef ::gol::Space Space;
+    typedef ::gol::Space/*PMacc::DataSpace<DIM2>*/ Space;
 
-    std::vector<uint32_t> devices;
-    std::vector<uint32_t> gridSize;
+    std::vector<uint32_t>  devices; //will be set by boost program argument option "-d 3 3 3"
+    std::vector<uint32_t> gridSize; //same but with g
     std::vector<uint32_t> periodic;
-    uint32_t steps;
-    std::string rule;
+    uint32_t                 steps;
+    std::string               rule; //Game of Life Simulation Rules like 23/3
 
     po::options_description desc( "Allowed options" );
     desc.add_options( )
@@ -104,20 +104,21 @@ int main( int argc, char **argv )
     }
 
 
-    Space gpus( devices[0], devices[1] );
-    Space grid( gridSize[0], gridSize[1] );
+    //after checking all input values, copy into DataSpace Datatype
+    Space    gpus(  devices[0],  devices[1] );
+    Space    grid( gridSize[0], gridSize[1] );
     Space endless( periodic[0], periodic[1] );
 
-    uint32_t ruleMask = 0;
-    size_t strLen = rule.length( );
-    size_t gPoint = rule.find( '/' );
+    uint32_t       ruleMask = 0;
+    size_t           strLen = rule.length( );
+    size_t           gPoint = rule.find  ( '/' );
     std::string stayAliveIf = rule.substr( 0, gPoint );
-    std::string newBornIf = rule.substr( gPoint + 1, strLen - gPoint - 1 );
+    std::string   newBornIf = rule.substr( gPoint + 1, strLen - gPoint - 1 );
 
 
     for ( int i = 0; i < newBornIf.length( ); ++i )
     {
-        std::stringstream ss;
+        std::stringstream ss;   //used for converting const char* "123" to int 123
         ss << newBornIf[i];
         int shift;
         ss >> shift;
@@ -133,6 +134,7 @@ int main( int argc, char **argv )
     }
     std::cout << "newborn if=" << newBornIf << " stay alive if=" << stayAliveIf << " mask=" << ruleMask << std::endl;
 
+    //give arguments and start simulation of Game of Life
     gol::Simulation sim( ruleMask, steps, grid, gpus, endless );
     sim.init( );
     sim.start( );
