@@ -57,9 +57,14 @@ int main( int argc, char **argv )
             ( "help,h", "produce help message" )
             ( "steps,s", po::value<uint32_t > ( &steps ), "simulation steps" )
             ( "rule,r", po::value<std::string > ( &rule ), "simulation rule etc. 23/3" )
-            ( "devices,d", po::value<std::vector<uint32_t> > ( &devices )->multitoken( ), "number of devices in each dimension" )
+            ( "devices,d", po::value<std::vector<uint32_t> > ( &devices )->multitoken( ), 
+              "number of devices in each dimension (only 1D or 2D). If you use more than "
+              "one device in total, you will need to run mpirun with \"mpirun -n "
+              "<DeviceCount.x*DeviceCount.y> ./gameOfLife" )
             ( "grid,g", po::value<std::vector<uint32_t> > ( &gridSize )->multitoken( ),
-              "size of the simulation grid (real size maybe smaller because each GPU needs a border)" )
+              "size of the simulation grid (real size may be smaller because each GPU "
+              "needs a border) (must be 2D, e.g.: -g 4 4) Because of border total each "
+              "direction should be greater or equal than 3*16=48" )
             ( "periodic", po::value<std::vector<uint32_t> > ( &periodic )->multitoken( ),
               "specifying whether the grid is periodic (1) or not (0) in each dimension, default: no periodic dimensions" );
 
