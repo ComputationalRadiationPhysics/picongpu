@@ -39,7 +39,7 @@ namespace bmpl = boost::mpl;
  * 
  * @tparam T_In a boost mpl sequence or single type
  */
-template<class T_In>
+template<typename T_In>
 struct MakeSeqFromNestedSeq
 {
 private:
@@ -48,7 +48,7 @@ private:
 public:
     typedef typename bmpl::fold<
       Seq,
-      bmpl::vector<>,
+      bmpl::vector0<>,
       JoinToSeq<bmpl::_1,bmpl::_2>
     >::type type;
 };

@@ -20,13 +20,10 @@
  */ 
  
 
-#ifndef _PARTICLEFACTORY_HPP
-#define	_PARTICLEFACTORY_HPP
+#pragma once
 
-#include "memory/buffers/Exchange.hpp"
-
-#include "eventSystem/tasks/Factory.hpp"
-#include "eventSystem/tasks/ITask.hpp"
+#include "Environment.hpp"
+#include "eventSystem/EventSystem.hpp"
 
 namespace PMacc
 {
@@ -67,7 +64,14 @@ namespace PMacc
         template<class ParBase>
         EventTask createTaskSendParticlesExchange(ParBase &parBase, uint32_t exchange,
         ITask *registeringTask = NULL);
-
+        
+        
+    private:
+        
+        friend Environment<DIM1>;
+        friend Environment<DIM2>;
+        friend Environment<DIM3>;
+        
         /**
          * returns the instance of this factory
          * @return the instance
@@ -78,8 +82,6 @@ namespace PMacc
             return instance;
         }
 
-    private:
-
         ParticleFactory() { };
 
         ParticleFactory(const ParticleFactory&) { };
@@ -87,8 +89,3 @@ namespace PMacc
     };
 
 } //namespace PMacc
-
-#include "particles/tasks/ParticleFactory.tpp"
-
-#endif	/* _PARTICLEFACTORY_HPP */
-

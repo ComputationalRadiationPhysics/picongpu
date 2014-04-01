@@ -32,7 +32,6 @@
 
 namespace PMacc
 {
-
     /**
      * Manages a pool of EventStreams and gives access to them.
      * This class is a singleton.
@@ -55,17 +54,6 @@ namespace PMacc
                 currentStreamIndex = 0;
 
             return streams[oldIndex];
-        }
-
-        /**
-         * Get instance of this class.
-         * This class is a singleton class.
-         * @return an instance
-         */
-        static StreamController& getInstance()
-        {
-            static StreamController instance;
-            return instance;
         }
 
         /**
@@ -119,12 +107,27 @@ namespace PMacc
         }
 
     private:
-
+        
+        friend Environment<DIM1>;
+        friend Environment<DIM2>;
+        friend Environment<DIM3>;
+        
         /**
          * Constructor.
          */
         StreamController() : isActivated(false),currentStreamIndex(0)
         {
+        }
+        
+        /**
+         * Get instance of this class.
+         * This class is a singleton class.
+         * @return an instance
+         */
+        static StreamController& getInstance()
+        {
+            static StreamController instance;
+            return instance;
         }
 
         std::vector<EventStream*> streams;

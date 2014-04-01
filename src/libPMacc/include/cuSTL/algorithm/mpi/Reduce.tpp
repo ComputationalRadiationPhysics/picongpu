@@ -38,8 +38,8 @@ template<int dim>
 Reduce<dim>::Reduce(const zone::SphericZone<dim>& _zone, bool setThisAsRoot) : comm(MPI_COMM_NULL)
 {
     using namespace math;
-    
-    PMacc::GridController<dim>& con = PMacc::GridController<dim>::getInstance();    
+      
+    PMACC_AUTO(&con,Environment<dim>::get().GridController());
     
     typedef std::pair<Int<dim>, bool> PosFlag;
     PosFlag posFlag;

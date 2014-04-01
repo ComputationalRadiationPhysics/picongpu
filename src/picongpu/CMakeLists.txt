@@ -26,23 +26,6 @@ cmake_minimum_required(VERSION 2.8.5)
 
 
 ################################################################################
-# Pre-project (any compiler must be set here)
-################################################################################
-
-option(VAMPIR_ENABLE "Create PIConGPU with VampirTrace support" OFF)
-if(VAMPIR_ENABLE)
-    message(STATUS "Building with VampirTrace support")
-    set(CMAKE_CXX_COMPILER "vtc++")
-    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -vt:hyb -L/$ENV{VT_ROOT}/lib
-        -finstrument-functions-exclude-file-list=${CMAKE_CXX_INST_FILE_FILTER}
-        -finstrument-functions-exclude-function-list=${CMAKE_CXX_INST_FUNC_FILTER} -DVTRACE")
-    set(CMAKE_CXX_FLAGS_DEFAULT "${CMAKE_CXX_FLAGS_DEFAULT} -vt:hyb -L/$ENV{VT_ROOT}/lib
-        -finstrument-functions-exclude-file-list=${CMAKE_CXX_INST_FILE_FILTER}
-        -finstrument-functions-exclude-function-list=${CMAKE_CXX_INST_FUNC_FILTER} -DVTRACE")
-endif(VAMPIR_ENABLE)
-
-
-################################################################################
 # Project 
 ################################################################################
 
@@ -51,6 +34,9 @@ project(PIConGPU)
 # set helper pathes to find libraries and packages
 set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{MPI_ROOT}"
     "$ENV{CUDA_ROOT}" "$ENV{BOOST_ROOT}" "$ENV{HDF5_ROOT}" "$ENV{VT_ROOT}")
+
+# own modules for find_packages
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
 
 
 ################################################################################
@@ -61,7 +47,7 @@ find_package(CUDA 5.0 REQUIRED)
 
 if(CUDA_VERSION VERSION_LESS 5.5)
     message(STATUS "CUDA Toolkit < 5.5 detected. We strongly recommend to still "
-                   "use CUDA 5.5+ drivers!")
+                   "use CUDA 5.5+ drivers (319.82 or higher)!")
 endif(CUDA_VERSION VERSION_LESS 5.5)
 
 set(CUDA_ARCH sm_20 CACHE STRING "Set GPU architecture")
@@ -96,6 +82,66 @@ if(CUDA_KEEP_FILES)
     make_directory("${PROJECT_BINARY_DIR}/nvcc_tmp")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" --keep --keep-dir "${PROJECT_BINARY_DIR}/nvcc_tmp")
 endif(CUDA_KEEP_FILES)
+
+
+################################################################################
+# VampirTrace
+################################################################################
+
+option(VAMPIR_ENABLE "Create PIConGPU with VampirTrace support" OFF)
+
+# set filters: please do NOT use line breaks WITHIN the string!
+set(VT_INST_FILE_FILTER
+    "stl,usr/include,libgpugrid,vector_types.h,Vector.hpp,DeviceBuffer.hpp,DeviceBufferIntern.hpp,Buffer.hpp,StrideMapping.hpp,StrideMappingMethods.hpp,MappingDescription.hpp,AreaMapping.hpp,AreaMappingMethods.hpp,ExchangeMapping.hpp,ExchangeMappingMethods.hpp,DataSpace.hpp,Manager.hpp,Manager.tpp,Transaction.hpp,Transaction.tpp,TransactionManager.hpp,TransactionManager.tpp,Vector.tpp,Mask.hpp,ITask.hpp,EventTask.hpp,EventTask.tpp,StandartAccessor.hpp,StandartNavigator.hpp,HostBuffer.hpp,HostBufferIntern.hpp"
+    CACHE STRING "VampirTrace: Files to exclude from instrumentation")
+set(VT_INST_FUNC_FILTER
+    "vector,Vector,dim3,GPUGrid,execute,allocator,Task,Manager,Transaction,Mask,operator,DataSpace,PitchedBox,Event,new,getGridDim,GetCurrentDataSpaces,MappingDescription,getOffset,getParticlesBuffer,getDataSpace,getInstance"
+    CACHE STRING "VampirTrace: Functions to exclude from instrumentation")
+
+if(VAMPIR_ENABLE)
+    message(STATUS "Building with VampirTrace support")
+    set(VAMPIR_ROOT "$ENV{VT_ROOT}")
+    if(NOT VAMPIR_ROOT)
+        message(FATAL_ERROR "Environment variable VT_ROOT not set!")
+    endif(NOT VAMPIR_ROOT)
+
+    # compile flags
+    execute_process(COMMAND $ENV{VT_ROOT}/bin/vtc++ -vt:hyb -vt:showme-compile
+                    OUTPUT_VARIABLE VT_COMPILEFLAGS
+                    RESULT_VARIABLE VT_CONFIG_RETURN)
+    if(NOT VT_CONFIG_RETURN EQUAL 0)
+        message(FATAL_ERROR "Can NOT execute 'vtc++' at $ENV{VT_ROOT}/bin/vtc++ - check file permissions")
+    else()
+        # trim trailing newlines
+        string(REGEX REPLACE "(\r?\n)+$" "" VT_COMPILEFLAGS "${VT_COMPILEFLAGS}")
+    endif()
+    # link flags
+    execute_process(COMMAND $ENV{VT_ROOT}/bin/vtc++ -vt:hyb -vt:showme-link
+                    OUTPUT_VARIABLE VT_LINKFLAGS)
+    string(REGEX REPLACE "(\r?\n)+$" "" VT_LINKFLAGS "${VT_LINKFLAGS}")
+
+    # bugfix showme
+    string(REPLACE "--as-needed" "--no-as-needed" VT_LINKFLAGS "${VT_LINKFLAGS}")
+
+    # modify our flags
+    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} ${VT_LINKFLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${VT_COMPILEFLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -finstrument-functions-exclude-file-list=${VT_INST_FILE_FILTER}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -finstrument-functions-exclude-function-list=${VT_INST_FUNC_FILTER}")
+
+    # nvcc flags (rly necessary?)
+    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}
+        -Xcompiler=-finstrument-functions,-finstrument-functions-exclude-file-list=\\\"${VT_INST_FILE_FILTER}\\\"
+        -Xcompiler=-finstrument-functions-exclude-function-list=\\\"${VT_INST_FUNC_FILTER}\\\"
+        -Xcompiler=-DVTRACE -Xcompiler=-I\\\"${VT_ROOT}/include/vampirtrace\\\"
+        -v)
+
+    # for manual instrumentation and hints that vampir is enabled in our code
+    add_definitions(-DVTRACE)
+
+    # titan work around: currently (5.14.4) the -D defines are not provided by -vt:showme-compile
+    add_definitions(-DMPICH_IGNORE_CXX_SEEK)
+endif(VAMPIR_ENABLE)
 
 
 ################################################################################
@@ -236,39 +282,15 @@ endif(PIC_ENABLE_INSITU_VOLVIS)
 ################################################################################
 
 # find adios installation
-find_path(PIC_ADIOS_ROOT_DIR
-  NAMES include/adios.h lib/libadios.so
-  PATHS ENV ADIOS_ROOT
-  DOC "ADIOS ROOT location. (only used if ADIOS is enabled)"
-)
+#   set(ADIOS_USE_STATIC_LIBS ON) # force static linking
+find_package(ADIOS 1.6.0)
 
-if(PIC_ADIOS_ROOT_DIR)
-    message(STATUS "Found ADIOS: "${PIC_ADIOS_ROOT_DIR})
-    include_directories(SYSTEM ${PIC_ADIOS_ROOT_DIR}/include)
-    link_directories(${PIC_ADIOS_ROOT_DIR}/lib)
-    set(LIBS ${LIBS} adios)
+if(ADIOS_FOUND)
+    add_definitions(-DENABLE_ADIOS=1)
 
-    # find mxml installation
-    find_path(PIC_MXML_ROOT_DIR
-      NAMES include/mxml.h lib/libmxml.so
-      PATHS ENV MXML_ROOT
-      DOC "MXML ROOT location. (only used if ADIOS is enabled)"
-    )
-
-   if(PIC_MXML_ROOT_DIR)
-        message(STATUS "Found MXML: "${PIC_MXML_ROOT_DIR})
-        include_directories(SYSTEM ${PIC_MXML_ROOT_DIR}/include)
-        link_directories(${PIC_MXML_ROOT_DIR}/lib)
-        set(LIBS ${LIBS} mxml)
-
-        add_definitions(-DENABLE_ADIOS=1)
-    elseif(PIC_MXML_ROOT_DIR)
-        message(STATUS "Could NOT find MXML (ADIOS will be disabled)")
-    endif(PIC_MXML_ROOT_DIR)
-
-elseif(PIC_ADIOS_ROOT_DIR)
-    message(STATUS "Could NOT find ADIOS")
-endif(PIC_ADIOS_ROOT_DIR)
+    include_directories(SYSTEM ${ADIOS_INCLUDE_DIRS})
+    set(LIBS ${LIBS} ${ADIOS_LIBRARIES})
+endif(ADIOS_FOUND)
 
 
 ################################################################################
@@ -281,6 +303,8 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter")
+    # new warning in gcc 4.8 (flag ignored in previous version)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedefs")
 # ICC
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
@@ -436,25 +460,6 @@ set(PIC_COPY_ON_INSTALL "include/simulation_defines" "submit" CACHE LIST
 
 include_directories(include)
 include_directories(BEFORE ${PIC_EXTENSION_PATH}/include)
-
-
-################################################################################
-# VampirTrace support
-################################################################################
-
-if(VAMPIR_ENABLE)
-    find_path(PIC_VT_ROOT_DIR
-        NAMES include/vampirtrace/vt_user.h lib/libvt-hyb.so
-        PATHS ENV VT_ROOT 
-        DOC "VampirTrace ROOT location")
-
-    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}
-        -Xcompiler=-finstrument-functions,-finstrument-functions-exclude-file-list=\\\"${CMAKE_CXX_INST_FILE_FILTER}\\\"
-        -Xcompiler=-finstrument-functions-exclude-function-list=\\\"${CMAKE_CXX_INST_FUNC_FILTER}\\\"
-        -Xcompiler=-DVTRACE -Xcompiler=-I\\\"${PIC_VT_ROOT_DIR}/include/vampirtrace\\\"
-        -v)
-    set(LIBS vt-hyb ${LIBS})
-endif(VAMPIR_ENABLE)
 
 
 ################################################################################

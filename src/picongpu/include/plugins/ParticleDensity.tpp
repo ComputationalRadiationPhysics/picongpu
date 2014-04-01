@@ -78,11 +78,11 @@ template<typename ParticlesType>
 ParticleDensity<ParticlesType>::ParticleDensity(std::string name, std::string prefix)
     : name(name), prefix(prefix)
 {
-    ModuleConnector::getInstance().registerModule(this);
+    Environment<>::get().PluginConnector().registerPlugin(this);
 }
 
 template<typename ParticlesType>
-void ParticleDensity<ParticlesType>::moduleRegisterHelp(po::options_description& desc)
+void ParticleDensity<ParticlesType>::pluginRegisterHelp(po::options_description& desc)
 {
     desc.add_options()
         ((this->prefix + "_frequency").c_str(),
@@ -99,21 +99,18 @@ void ParticleDensity<ParticlesType>::moduleRegisterHelp(po::options_description&
 }
 
 template<typename ParticlesType>
-std::string ParticleDensity<ParticlesType>::moduleGetName() const {return this->name;}
+std::string ParticleDensity<ParticlesType>::pluginGetName() const {return this->name;}
 
 template<typename ParticlesType>
-void ParticleDensity<ParticlesType>::moduleLoad()
+void ParticleDensity<ParticlesType>::pluginLoad()
 {
-    DataConnector::getInstance().registerObserver(this, this->notifyFrequency);
+    Environment<>::get().PluginConnector().setNotificationFrequency(this, this->notifyFrequency);
 }
-
-template<typename ParticlesType>
-void ParticleDensity<ParticlesType>::moduleUnload(){}
 
 template<typename ParticlesType>
 void ParticleDensity<ParticlesType>::notify(uint32_t currentStep)
 {
-    DataConnector &dc = DataConnector::getInstance();
+    DataConnector &dc = Environment<>::get().DataConnector();
     this->particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
     
 
@@ -127,7 +124,7 @@ void ParticleDensity<ParticlesType>::notify(uint32_t currentStep)
     container::DeviceBuffer<int, 2> density(coreBorderZone.size.shrink<2>((plane+1)%3));
     density.assign(0);
     
-    PMacc::GridController<3>& con = PMacc::GridController<3>::getInstance();
+    PMacc::GridController<3>& con = PMacc::Environment<3>::get().GridController();
     vec::Size_t<3> gpuDim = (vec::Size_t<3>)con.getGpuNodes();
     vec::Size_t<3> globalGridSize = gpuDim * coreBorderZone.size;
     

@@ -80,7 +80,7 @@ namespace picongpu
                     ( "config,c", po::value<std::vector<std::string> > ( &config_files )->multitoken( ), "Config file(s)" )
                     ;
 
-            // add all options from modules
+            // add all options from plugins
             for ( std::list<po::options_description>::iterator iter = options.begin( );
                   iter != options.end( ); ++iter )
                 desc.add( *iter );
@@ -112,7 +112,7 @@ namespace picongpu
                 return false;
             }
         }
-        catch ( boost::program_options::error e )
+        catch ( boost::program_options::error& e )
         {
             throw std::runtime_error( e.what( ) );
         }

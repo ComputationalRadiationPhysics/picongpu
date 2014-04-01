@@ -47,12 +47,11 @@
 #include "mappings/simulation/GridController.hpp"
 #include "mappings/simulation/SubGrid.hpp"
 #include "dimensions/GridLayout.hpp"
-#include "dataManagement/ISimulationIO.hpp"
-#include "moduleSystem/ModuleConnector.hpp"
+#include "pluginSystem/PluginConnector.hpp"
 #include "simulationControl/MovingWindow.hpp"
 #include "dimensions/TVec.h"
 
-#include "plugins/IPluginModule.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
 #include <boost/type_traits/is_same.hpp>
@@ -82,13 +81,13 @@ namespace po = boost::program_options;
 
 /**
  * Writes simulation data to adios files.
- * Implements the ISimulationIO interface.
+ * Implements the ISimulationPlugin interface.
  *
  * @param ElectronsBuffer class description for electrons
  * @param IonsBuffer class description for ions
  * @param simDim dimension of the simulation (2-3)
  */
-class ADIOSWriter : public ISimulationIO, public IPluginModule
+class ADIOSWriter : public ISimulationPlugin
 {
 public:
 
@@ -132,7 +131,7 @@ private:
         HDINLINE void operator()(RefWrapper<ThreadParams*> params, const DomainInformation domInfo)
         {
 #ifndef __CUDA_ARCH__
-            DataConnector &dc = DataConnector::getInstance();
+            DataConnector &dc = Environment<simDim>::get().DataConnector();
 
             T* field = &(dc.getData<T > (T::getName()));
             params.get()->gridLayout = field->getGridLayout();
@@ -202,7 +201,7 @@ private:
 
         HINLINE void operator_impl(RefWrapper<ThreadParams*> params, const DomainInformation domInfo)
         {
-            DataConnector &dc = DataConnector::getInstance();
+            DataConnector &dc = Environment<>::get().DataConnector();
 
             /*## update field ##*/
 
@@ -296,20 +295,23 @@ private:
     struct CollectFieldsSizes
     {        
     public:
+        typedef typename T::ValueType ValueType;
+        typedef typename GetComponentsType<ValueType>::type ComponentType;
 
         HDINLINE void operator()(RefWrapper<ThreadParams*> params, const DomainInformation domInfo)
         {
 #ifndef __CUDA_ARCH__
             const uint32_t components = T::numComponents;
 
+            // adios buffer size for this dataset (all components)
             uint64_t localGroupSize = 
-                    (domInfo.globalDomainSize.productOfComponents() *
-                    sizeof(float) + 3 * sizeof(int)) *
+                    domInfo.domainSize.productOfComponents() *
+                    sizeof(ComponentType) *
                     components;
             
             params.get()->adiosGroupSize += localGroupSize;
             
-            PICToAdios<float> adiosType;
+            PICToAdios<ComponentType> adiosType;
             defineFieldVar(params.get(), domInfo, components, adiosType.type, T::getName());
 #endif
         }
@@ -349,8 +351,9 @@ private:
         {
             const uint32_t components = GetNComponents<ValueType>::value;
 
+            // adios buffer size for this dataset (all components)
             uint64_t localGroupSize = 
-                    domInfo.globalDomainSize.productOfComponents() *
+                    domInfo.domainSize.productOfComponents() *
                     sizeof(ComponentType) *
                     components;
             
@@ -368,7 +371,7 @@ public:
     filename("simDataAdios"),
     notifyFrequency(0)
     {
-        ModuleConnector::getInstance().registerModule(this);
+        Environment<>::get().PluginConnector().registerPlugin(this);
     }
 
     virtual ~ADIOSWriter()
@@ -376,7 +379,7 @@ public:
 
     }
 
-    void moduleRegisterHelp(po::options_description& desc)
+    void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
             ("adios.period", po::value<uint32_t > (&notifyFrequency)->default_value(0),
@@ -385,7 +388,7 @@ public:
              "ADIOS output file");
     }
 
-    std::string moduleGetName() const
+    std::string pluginGetName() const
     {
         return "ADIOSWriter";
     }
@@ -398,7 +401,7 @@ public:
     __host__ void notify(uint32_t currentStep)
     {
         mThreadParams.currentStep = (int32_t) currentStep;
-        mThreadParams.gridPosition = SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset();
+        mThreadParams.gridPosition = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
         mThreadParams.cellDescription = this->cellDescription;
         this->filter.setStatus(false);
 
@@ -426,7 +429,7 @@ private:
     void endAdios()
     {        
         /* Finalize adios library */
-        ADIOS_CMD(adios_finalize(GridController<simDim>::getInstance()
+        ADIOS_CMD(adios_finalize(Environment<simDim>::get().GridController()
                 .getCommunicator().getRank()));
         
         __deleteArray(mThreadParams.fieldBfr);
@@ -450,14 +453,13 @@ private:
         ADIOS_CMD(adios_init_noxml(mThreadParams.adiosComm));
     }
 
-    void moduleLoad()
+    void pluginLoad()
     {
         if (notifyFrequency > 0)
         {
-            mThreadParams.gridPosition =
-                SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset();
+            mThreadParams.gridPosition = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
 
-            GridController<simDim> &gc = GridController<simDim>::getInstance();
+            GridController<simDim> &gc = Environment<simDim>::get().GridController();
             /* It is important that we never change the mpi_pos after this point 
              * because we get problems with the restart.
              * Otherwise we do not know which gpu must load the ghost parts around
@@ -466,7 +468,7 @@ private:
             mpi_pos = gc.getPosition();
             mpi_size = gc.getGpuNodes();
 
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
             
             /* Initialize adios library */
             mThreadParams.adiosComm = MPI_COMM_NULL;
@@ -477,7 +479,7 @@ private:
         loaded = true;
     }
 
-    void moduleUnload()
+    void pluginUnload()
     {
         if (notifyFrequency > 0)
         {

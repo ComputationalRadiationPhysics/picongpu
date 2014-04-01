@@ -87,18 +87,22 @@ namespace gol
                                    float fraction,
                                    Mapping mapper)
         {
+            //get position in grid in units of SuperCells from blockID
             const Space block(mapper.getSuperCellIndex(Space(blockIdx)));
+            //convert position in unit of cells
             const Space blockCell = block * Mapping::SuperCellSize();
+            //convert CUDA dim3 to DataSpace<DIM3> (useless calculation time ???)
             const Space threadIndex(threadIdx);
             const uint32_t cellIdx = DataSpaceOperations<DIM2>::map(
-                                                                    mapper.getGridSuperCells() * Mapping::SuperCellSize(),
-                                                                    blockCell + threadIndex);
+                    mapper.getGridSuperCells() * Mapping::SuperCellSize(),
+                    blockCell + threadIndex);
 
-            PMACC_AUTO(rng,
-                         nvidia::rng::create(
-                                             nvidia::rng::methods::Xor(seed, cellIdx),
-                                             nvidia::rng::distributions::Uniform_float()));
+            //get uniform random number from seed 
+            PMACC_AUTO(rng, nvidia::rng::create(
+                                nvidia::rng::methods::Xor(seed, cellIdx),
+                                nvidia::rng::distributions::Uniform_float()));
 
+            //write 1/white if uniform number 0<rng0<1 also smaller than fraction
             buffWrite(blockCell + threadIndex) = (rng() <= fraction);
         }
     }
@@ -123,7 +127,8 @@ namespace gol
         void initEvolution(const DBox & writeBox, float fraction)
         {
             AreaMapping < CORE + BORDER, MappingDesc > mapper(mapping);
-            uint32_t seed = GC::getInstance().getGlobalSize() + GC::getInstance().getGlobalRank();
+            GridController<DIM2>& gc = Environment<DIM2>::get().GridController();
+            uint32_t seed = gc.getGlobalSize() + gc.getGlobalRank();
 
             __cudaKernel(kernel::randomInit)
                     (mapper.getGridDim(), MappingDesc::SuperCellSize::getDataSpace())

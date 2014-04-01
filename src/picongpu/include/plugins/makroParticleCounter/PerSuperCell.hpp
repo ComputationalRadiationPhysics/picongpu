@@ -31,8 +31,7 @@
 #include <iomanip>
 #include <fstream>
 
-#include "moduleSystem/Module.hpp"
-#include "plugins/IPluginModule.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 
 #include "memory/buffers/GridBuffer.hpp"
 
@@ -108,7 +107,7 @@ __global__ void CountMakroParticle(ParBox parBox, CounterBox counterBox, Mapping
  *      
  */
 template<class ParticlesType>
-class PerSuperCell : public ISimulationIO, public IPluginModule
+class PerSuperCell : public ISimulationPlugin
 {
 private:
 
@@ -144,7 +143,7 @@ public:
     localResult(NULL),
     dataCollector(NULL)
     {
-        ModuleConnector::getInstance().registerModule(this);
+        Environment<>::get().PluginConnector().registerPlugin(this);
     }
 
     virtual ~PerSuperCell()
@@ -154,21 +153,21 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::get().DataConnector();
 
         particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
 
         countMakroParticles < CORE + BORDER > (currentStep);
     }
 
-    void moduleRegisterHelp(po::options_description& desc)
+    void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
             ((analyzerPrefix + ".period").c_str(),
              po::value<uint32_t > (&notifyFrequency), "enable analyser [for each n-th step]");
     }
 
-    std::string moduleGetName() const
+    std::string pluginGetName() const
     {
         return analyzerName;
     }
@@ -180,12 +179,12 @@ public:
 
 private:
 
-    void moduleLoad()
+    void pluginLoad()
     {
         if (notifyFrequency > 0)
         {
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
-            PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
+            Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
+            PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
             /* local count of supercells without any guards*/
             DataSpace<simDim> localSuperCells(simBox.getLocalSize() / SuperCellSize::getDataSpace());
             localResult = new GridBufferType(localSuperCells);
@@ -195,7 +194,7 @@ private:
         }
     }
 
-    void moduleUnload()
+    void pluginUnload()
     {
         __delete(localResult);
         __delete(dataCollector);
@@ -220,7 +219,7 @@ private:
 
 
         /*############ dump data #############################################*/
-        PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
+        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
 
         DataSpace<simDim> localSize(simBox.getLocalSize() / SuperCellSize::getDataSpace());
         DataSpace<simDim> globalOffset(simBox.getGlobalOffset() / SuperCellSize::getDataSpace());
@@ -280,7 +279,7 @@ private:
             Dimensions splashMpiPos;
             Dimensions splashMpiSize;
 
-            GridController<simDim> &gc = GridController<simDim>::getInstance();
+            GridController<simDim> &gc = Environment<simDim>::get().GridController();
 
             mpi_pos = gc.getPosition();
             mpi_size = gc.getGpuNodes();

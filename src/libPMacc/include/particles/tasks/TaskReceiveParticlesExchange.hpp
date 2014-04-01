@@ -23,14 +23,7 @@
 #ifndef _TASKRECEIVEPARTICLESEXCHANGE_HPP
 #define	_TASKRECEIVEPARTICLESEXCHANGE_HPP
 
-
 #include "eventSystem/EventSystem.hpp"
-#include "particles/tasks/ParticleFactory.hpp"
-#include "eventSystem/tasks/ITask.hpp"
-#include "eventSystem/tasks/MPITask.hpp"
-#include "eventSystem/events/EventDataReceive.hpp"
-
-
 
 namespace PMacc
 {
@@ -72,7 +65,7 @@ namespace PMacc
                     break;
                 case WaitForReceive:
 
-                    if (NULL == Manager::getInstance().getITaskIfNotFinished(lastReceiveEvent.getTaskId()))
+                    if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(lastReceiveEvent.getTaskId()))
                     {
                         state = InitInsert;
                         //bash is finished
@@ -88,7 +81,7 @@ namespace PMacc
                 case InitInsert:
                     break;
                 case WaitForInsert:
-                    if (NULL == Manager::getInstance().getITaskIfNotFinished(tmpEvent.getTaskId()))
+                    if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
                     {
                         state=Wait;
                         assert(lastSize <= maxSize);

@@ -37,13 +37,14 @@
 
 #include "simulation_classTypes.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
-#include "plugins/IPluginModule.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 
 #include "plugins/radiation/parameters.hpp"
 #include "plugins/radiation/check_consistency.hpp"
 #include "plugins/radiation/particle.hpp"
 #include "plugins/radiation/amplitude.hpp"
 #include "plugins/radiation/calc_amplitude.hpp"
+#include "plugins/radiation/windowFunctions.hpp"
 
 #include "mpi/reduceMethods/Reduce.hpp"
 #include "mpi/MPIReduce.hpp"
@@ -103,7 +104,8 @@ void kernelRadiationParticles(ParBox pb,
                               DataSpace<simDim> globalOffset,
                               uint32_t currentStep,
                               Mapping mapper,
-                              radiation_frequencies::FreqFunctor freqFkt)
+                              radiation_frequencies::FreqFunctor freqFkt,
+			      DataSpace<simDim> simBoxSize)
 {
 
     typedef typename MappingDesc::SuperCellSize Block;
@@ -277,7 +279,8 @@ void kernelRadiationParticles(ParBox pb,
                              */
                             const float_X weighting = par[weighting_];
 
-                            /* only of coherent and incoherent radiation of a sibgle macro-particle is
+
+                            /* only of coherent and incoherent radiation of a single macro-particle is
                              * considered, the weighting of each macro-particle needs to be stored
                              * in order to be considered when the actual frequency calulation is done
                              */
@@ -341,6 +344,41 @@ void kernelRadiationParticles(ParBox pb,
 #endif
 
 
+			    /* the particle amplitude is used to include the weighting
+			     * of the window function filter without needing more memory */
+#if (PIC_RADWINDOWFUNCTION==1)
+
+			    const radWindowFunction::radWindowFunction winFkt;
+
+			    /* start with a factor of one */
+			    float_X windowFactor = 1.0;
+
+			    /* TODO: How to do this for 2D automatically? */
+			    /* window in each  dimension */
+			    /* not supported yet */
+			    /*for (uint32_t d = 0; d < simDim; ++d)
+			      {
+				windowFactor *= winFkt(particle_locationNow[d], 
+						       simBoxSize[d] * cellSize[d]);
+			      }
+			    */
+
+			    /* window in x dimension */
+			    windowFactor *= winFkt(particle_locationNow.x(),
+						   simBoxSize.x() * CELL_WIDTH);
+			    /* window in y dimension */
+			    windowFactor *= winFkt(particle_locationNow.y(), 
+						   simBoxSize.y() * CELL_HEIGHT);
+			    /* window in z dimension */
+			    windowFactor *= winFkt(particle_locationNow.z(), 
+						   simBoxSize.z() * CELL_DEPTH);
+
+			    /* apply window function factor to amplitude */
+			    real_amplitude_s[saveParticleAt] *= windowFactor;
+#endif
+
+
+
                         } // END: if a particle needs to be considered
                     } // END: only threads with particles are running 
 
@@ -365,7 +403,7 @@ void kernelRadiationParticles(ParBox pb,
                         // if coherent and incoherent radiation of a single macro-particle 
                         // is considered, creare a form factor object
 #if (__COHERENTINCOHERENTWEIGHTING__==1)
-                        const radFormFactor_selected::radFormFactor myRadFormFactor;
+                        const radFormFactor::radFormFactor myRadFormFactor;
 #endif
 
                         /* Particle loop: thread runs through loaded particle data
@@ -469,7 +507,7 @@ void kernelRadiationParticles(ParBox pb,
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 template<class ParticlesType>
-class Radiation : public ISimulationIO, public IPluginModule
+class Radiation : public ISimulationPlugin
 {
 private:
 
@@ -551,7 +589,7 @@ public:
     radRestart(false)
     {
 
-        ModuleConnector::getInstance().registerModule(this);
+        Environment<>::get().PluginConnector().registerPlugin(this);
     }
 
     virtual ~Radiation()
@@ -569,7 +607,7 @@ public:
     void notify(uint32_t currentStep)
     {
 
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::get().DataConnector();
 
         particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
 
@@ -591,7 +629,7 @@ public:
         }
     }
 
-    void moduleRegisterHelp(po::options_description& desc)
+    void pluginRegisterHelp(po::options_description& desc)
     {
 
         desc.add_options()
@@ -609,7 +647,7 @@ public:
             ((analyzerPrefix + ".restart").c_str(), po::value<bool > (&radRestart)->default_value(false), "enable(1)/disable(0) restart flag");
     }
 
-    std::string moduleGetName() const
+    std::string pluginGetName() const
     {
 
         return analyzerName;
@@ -624,7 +662,7 @@ public:
 private:
 
     /**
-     * The module is loaded on every host pc, and therefor this function is 
+     * The plugin is loaded on every host pc, and therefor this function is 
      * executed on every host pc.
      * One host with MPI rank 0 is defined to be the master.
      * It creates a folder where all the 
@@ -633,7 +671,7 @@ private:
      * intermediate values.
      * On every host data structure for storage of the calculated radiation 
      * is created.       */
-    void moduleLoad()
+    void pluginLoad()
     {
         if (notifyFrequency > 0)
         {
@@ -647,7 +685,7 @@ private:
             freqFkt = freqInit.getFunctor();
 
 
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
 
             if (isMaster && totalRad)
             {
@@ -678,14 +716,14 @@ private:
         }
     }
 
-    void moduleUnload()
+    void pluginUnload()
     {
         if (notifyFrequency > 0)
         {
 
             // Some funny things that make it possible for the kernel to calculate
             // the absolut position of the particles
-            PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
+            PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
             DataSpace<simDim> localSize(simBox.getLocalSize());
             VirtualWindow window(MovingWindow::getInstance().getVirtualWindow(currentStep));
             DataSpace<simDim> globalOffset(simBox.getGlobalOffset());
@@ -708,7 +746,7 @@ private:
     /**
      * This function is called by the calculateRadiationParticles() function
      * if storing of intermediate results is activated (dumpPeriod != 0) 
-     * otherwise it is invoked by moduleUnload().
+     * otherwise it is invoked by pluginUnload().
      * 
      * On every host the calculated radiation (radiation from the particles
      * on that device for all directions and frequencies) is transferred 
@@ -931,8 +969,10 @@ private:
         // the absolut position of the particles
         DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
         VirtualWindow window(MovingWindow::getInstance().getVirtualWindow(currentStep));
-        DataSpace<simDim> globalOffset(SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset());
+	PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
+	DataSpace<simDim> globalOffset(simBox.getGlobalOffset());
         globalOffset.y() += (localSize.y() * window.slides);
+
 
         // PIC-like kernel call of the radiation kernel
         __cudaKernel(kernelRadiationParticles)
@@ -944,7 +984,9 @@ private:
              /*Pointer to memory of radiated amplitude on the device*/
              radiation->getDeviceBuffer().getDataBox(),
              globalOffset,
-             currentStep, *cellDescription, freqFkt
+             currentStep, *cellDescription, 
+	     freqFkt,
+	     simBox.getGlobalSize()	     
              );
 
         if (dumpPeriod != 0 && currentStep % dumpPeriod == 0)

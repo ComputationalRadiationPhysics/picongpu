@@ -20,12 +20,11 @@
  */ 
  
 
+#include "Environment.hpp"
 #include "eventSystem/EventSystem.hpp"
 
 #include "fields/SimulationFieldHelper.hpp"
 #include "mappings/kernel/ExchangeMapping.hpp"
-
-#include "particles/tasks/ParticleFactory.hpp"
 
 #include "particles/memory/boxes/ParticlesBox.hpp"
 #include "particles/memory/buffers/ParticlesBuffer.hpp"
@@ -34,8 +33,8 @@
 namespace PMacc
 {
 
-    template<typename PositionType,class UserTypeList, class MappingDesc>
-    void ParticlesBase<PositionType,UserTypeList, MappingDesc>::bashParticles(uint32_t exchangeType)
+    template<typename T_ParticleDescription, class MappingDesc>
+    void ParticlesBase<T_ParticleDescription, MappingDesc>::bashParticles(uint32_t exchangeType)
     {
         if (particlesBuffer->hasSendExchange(exchangeType))
         {
@@ -52,8 +51,8 @@ namespace PMacc
         }
     }
 
-    template<typename PositionType,class UserTypeList, class MappingDesc>
-    void ParticlesBase<PositionType,UserTypeList, MappingDesc>::insertParticles(uint32_t exchangeType)
+    template<typename T_ParticleDescription, class MappingDesc>
+    void ParticlesBase<T_ParticleDescription, MappingDesc>::insertParticles(uint32_t exchangeType)
     {
         if (particlesBuffer->hasReceiveExchange(exchangeType))
         {
@@ -72,16 +71,16 @@ namespace PMacc
         }
     }
 
-    template<typename PositionType,class UserTypeList, class MappingDesc>
-    EventTask ParticlesBase<PositionType,UserTypeList, MappingDesc>::asyncCommunication(EventTask event)
+    template<typename T_ParticleDescription, class MappingDesc>
+    EventTask ParticlesBase<T_ParticleDescription, MappingDesc>::asyncCommunication(EventTask event)
     {
         EventTask ret;
         __startTransaction(event);
-        ParticleFactory::getInstance().createTaskParticlesReceive(*this);
+        Environment<>::get().ParticleFactory().createTaskParticlesReceive(*this);
         ret = __endTransaction();
 
         __startTransaction(event);
-        ParticleFactory::getInstance().createTaskParticlesSend(*this);
+        Environment<>::get().ParticleFactory().createTaskParticlesSend(*this);
         ret += __endTransaction();
         return ret;
     }

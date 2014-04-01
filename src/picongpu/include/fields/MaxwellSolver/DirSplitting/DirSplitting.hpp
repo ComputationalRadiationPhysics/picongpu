@@ -63,7 +63,7 @@ public:
     {
         typedef PMacc::math::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> GuardDim;
     
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::get().DataConnector();
 
         FieldE& fieldE = dc.getData<FieldE > (FieldE::getName(), true);
         FieldB& fieldB = dc.getData<FieldB > (FieldB::getName(), true);

@@ -56,14 +56,14 @@ cd $cnf_gitdir
             echo "Merge conflict detected. Aborting..."
 
             state=-1
-            # git log infos
-            logEntry=`git log -1`
-            lastUser=`git log -1 --format=%an`
-            lastUserMail=`git log -1 --format=%ae`
+            # git log infos of TO-BE-MERGED branch (that failed)
+            sha=`cat .git/MERGE_HEAD`
+            logEntry="*Merge Conflict Detected*"`echo && git log $sha -1`
+            lastUser=`git log $sha -1 --format=%an`
+            lastUserMail=`git log $sha -1 --format=%ae`
             if [ -z "$lastUserMail" ] ; then
                 lastUserMail="example@example.com"
             fi
-            sha=`git log -1 --format=%H`
             eventid=`cat "$thisDir"runGuard`
 
             # create conclusion, update status (and send mails)

@@ -173,24 +173,14 @@ public:
      */
     virtual ~GridBuffer()
     {
-        for (uint32_t i = 1; i < 27; ++i)
+        for (uint32_t i = 0; i < 27; ++i)
         {
-            if (sendExchanges[i] != NULL)
-            {
-                delete sendExchanges[i];
-                sendExchanges[i] = NULL;
-            }
-            if (sendExchanges[i] != NULL)
-            {
-                delete receiveExchanges[i];
-                receiveExchanges[i] = NULL;
-            }
+            __delete(sendExchanges[i]);
+            __delete(receiveExchanges[i]);
         }
 
-        delete hostBuffer;
-        hostBuffer = NULL;
-        delete deviceBuffer;
-        deviceBuffer = NULL;
+        __delete(hostBuffer);
+        __delete(deviceBuffer);
     }
 
     /**
@@ -389,7 +379,7 @@ public:
     Mask getSendMask() const
     {
         // std::cout << "sendMask: " << sendMask << " " << EnvironmentController::getInstance().getCommunicationMask() << " " << (EnvironmentController::getInstance().getCommunicationMask() & sendMask) << std::endl;
-        return (EnvironmentController::getInstance().getCommunicationMask() & sendMask);
+        return (Environment<DIM>::get().EnvironmentController().getCommunicationMask() & sendMask);
     }
 
     /**
@@ -400,7 +390,7 @@ public:
     Mask getReceiveMask() const
     {
         //std::cout << "receiveMask: " << this->sendMask.getMirroredMask() << " " << (this->sendMask.getMirroredMask() & EnvironmentController::getInstance().getCommunicationMask()) << std::endl;
-        return (EnvironmentController::getInstance().getCommunicationMask() & receiveMask);
+        return (Environment<DIM>::get().EnvironmentController().getCommunicationMask() & receiveMask);
     }
 
     /**
@@ -520,6 +510,8 @@ public:
     }
 
 private:
+    
+    friend Environment<DIM>;
 
     void init(bool sizeOnDevice, bool buildDeviceBuffer = true, bool buildHostBuffer = true)
     {

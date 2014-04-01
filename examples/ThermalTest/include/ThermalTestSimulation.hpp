@@ -22,6 +22,7 @@
 #define	TERMALTESTSIMULATION_HPP
 
 #include "simulation_defines.hpp"
+#include "Environment.hpp"
 
 #include "simulationControl/MySimulation.hpp"
 
@@ -94,14 +95,14 @@ public:
         return 0;
     }
 
-    void moduleRegisterHelp(po::options_description& desc)
+    void pluginRegisterHelp(po::options_description& desc)
     {
-        MySimulation::moduleRegisterHelp(desc);
+        MySimulation::pluginRegisterHelp(desc);
     }
 
-    void moduleLoad()
+    void pluginLoad()
     {
-        MySimulation::moduleLoad();
+        MySimulation::pluginLoad();
     }
 
     virtual ~ThermalTestSimulation()
@@ -114,7 +115,7 @@ public:
     {
         using namespace ::PMacc::math;
 
-        PMacc::GridController<SIMDIM>& con = PMacc::GridController<SIMDIM>::getInstance();
+        PMACC_AUTO(&con,Environment<simDim>::get().GridController());
         Size_t<SIMDIM> gpuDim = (Size_t<SIMDIM>)con.getGpuNodes();
         Int<3> gpuPos = (Int<3>)con.getPosition();
         zone::SphericZone<SIMDIM> gpuGatheringZone(Size_t<SIMDIM > (1, 1, gpuDim.z()));

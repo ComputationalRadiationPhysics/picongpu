@@ -60,7 +60,7 @@ namespace PMacc
  * @tparam SuperCellSize TVec which descripe size of a superce
  * @tparam DIM dimension of the buffer (1-3)
  */
-template<typename T_DataVector, typename T_MethodsVector, class SuperCellSize_, unsigned DIM>
+template<typename T_ParticleDescription, class SuperCellSize_, unsigned DIM>
 class ParticlesBuffer
 {
 public:
@@ -70,17 +70,17 @@ public:
     {
         typedef
         bmpl::pair<Key,
-            StaticArray<typename Key::type,SuperCellSize_::elements> >
-            type;
+        StaticArray<typename Key::type, SuperCellSize_::elements> >
+        type;
     };
-    
+
     template<typename Key>
     struct OperatorCreatePairStaticArrayOneElement
     {
         typedef
         bmpl::pair<Key,
-            StaticArray<typename Key::type,1u> >
-            type;
+        StaticArray<typename Key::type, 1u > >
+        type;
     };
 
 
@@ -90,20 +90,26 @@ public:
 
     typedef
     typename MakeSeq<
-        T_DataVector,
-        localCellIdx, 
-        multiMask
+    typename T_ParticleDescription::ValueTypeSeq,
+    localCellIdx,
+    multiMask
     >::type full_particleList;
-    
+
     typedef
     typename MakeSeq<
-        T_DataVector,
-        localCellIdx
+    typename T_ParticleDescription::ValueTypeSeq,
+    localCellIdx
     >::type border_particleList;
 
-    typedef Frame<OperatorCreatePairStaticArrayWithSuperCellSize,full_particleList,T_MethodsVector> ParticleType;
+    typedef Frame<
+    OperatorCreatePairStaticArrayWithSuperCellSize, full_particleList,
+    typename T_ParticleDescription::MethodsList,
+    typename T_ParticleDescription::FlagsList> ParticleType;
 
-    typedef Frame<OperatorCreatePairStaticArrayOneElement,border_particleList,T_MethodsVector> ParticleTypeBorder;
+    typedef Frame<OperatorCreatePairStaticArrayOneElement,
+    border_particleList,
+    typename T_ParticleDescription::MethodsList,
+    typename T_ParticleDescription::FlagsList> ParticleTypeBorder;
 
 
 private:

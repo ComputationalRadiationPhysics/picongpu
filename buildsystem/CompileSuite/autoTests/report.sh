@@ -130,16 +130,16 @@ $logEntry"
     #textJSON=$(echo "$text" | sed 's|\\|\\\\|g' | sed 's|\"|\\\"|g' | sed 's|\/|\\\/|g')
     textJSON=${text//\\/\\\\} # \
     textJSON=${textJSON//\//\\\/} # /
-    textJSON=${textJSON//\'/\\\'} # '
+#    textJSON=${textJSON//\'/\\\'} # ' should not be escaped in JSON
     textJSON=${textJSON//\"/\\\"} # "
     textJSON=${textJSON//	/\\t} # \t
     textJSON=${textJSON//
-/\\\n} # \n
-    textJSON=${textJSON//^M/\\\r} # \r
-    textJSON=${textJSON//^L/\\\f} # \f
-    textJSON=${textJSON//^H/\\\b} # \b
+/\\n} # \n
+    textJSON=${textJSON//^M/\\r} # \r
+    textJSON=${textJSON//^L/\\f} # \f
+    textJSON=${textJSON//^H/\\b} # \b
     postParams='payload={"action":"report","eventid":'$eventid',"result":"'$stateName'","output":"'"$textJSON"'"}'
-    curl -d"$postParams" $cnf_scheduler 2>/dev/null
+    curl --raw -d"$postParams" $cnf_scheduler
     if [ $? -ne 0 ]; then
         echo "Error contacting scheduler at $cnf_scheduler"
         exit 1

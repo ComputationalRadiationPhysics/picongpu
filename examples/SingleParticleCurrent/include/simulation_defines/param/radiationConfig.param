@@ -110,7 +110,7 @@ namespace picongpu
   namespace radFormFactor_CIC_1Dy { }
   namespace radFormFactor_incoherent { }
 
-  namespace radFormFactor_selected = radFormFactor_CIC_3D;
+  namespace radFormFactor = radFormFactor_CIC_3D;
 
 
 }//namespace picongpu                                                                          
@@ -150,6 +150,34 @@ namespace parameters
 
   const unsigned int N_observer = 128; // number of looking directions                                                                                                                         
 
+} /* end namespace parameters */
+
+//////////////////////////////////////////////////
 
 
-}
+
+namespace picongpu
+{
+
+// add a window function weighting to the radiation in order
+// to avoid ringing effects from sharpe boundaries
+// 1 = on  (slower but with noise/ringing reduction)
+// 0 = off (faster but might contain ringing)
+#define PIC_RADWINDOWFUNCTION 0
+
+
+
+/* Choose different window function in order to get better ringing reduction
+ * radWindowFunctionRectangle
+ * radWindowFunctionTriangle
+ */
+namespace radWindowFunctionRectangle { }
+namespace radWindowFunctionTriangle { }
+
+namespace radWindowFunction = radWindowFunctionTriangle;
+
+
+}//namespace picongpu
+
+
+

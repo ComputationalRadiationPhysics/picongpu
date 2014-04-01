@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Anton Helm, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Anton Helm, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -58,6 +58,7 @@ namespace fieldSolver = PARAM_FIELDSOLVER;
  *  - gasHomogenous : constant gas density with a certain length
  *  - gasSphereFlanks : constant sphere droplet with exponential decr envelope
  *  - gasFreeFormula: use a custom formula (slower)
+ *  - gasFromHdf5: load gas density from HDF5 file
  *  - gasNone : just stay with a vacuum
  */
 #ifndef PARAM_GASPROFILE

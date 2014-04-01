@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -20,30 +20,29 @@
  
 
 
-#ifndef IINITMODULE_HPP
-#define	IINITMODULE_HPP
+#pragma once
 
 #include "types.h"
-#include "moduleSystem/ModuleConnector.hpp"
-#include "plugins/IPluginModule.hpp"
+#include "simulation_defines.hpp"
+#include "simulation_types.hpp"
+#include "simulation_classTypes.hpp"
+#include "pluginSystem/PluginConnector.hpp"
+#include "pluginSystem/IPlugin.hpp"
 
 
 namespace picongpu
 {
     using namespace PMacc;
 
-    class IInitModule :  public IPluginModule
+    class ISimulationPlugin : public IPlugin
     {
     public:
-        virtual void slide(uint32_t currentStep) = 0;
-        virtual uint32_t init() = 0;
+        virtual void setMappingDescription(MappingDesc *cellDescription) = 0;
 
-        virtual ~IInitModule()
+        virtual ~ISimulationPlugin()
         {
-        }
-        
+        };
     };
-}
 
-#endif	/* IINITMODULE_HPP */
+}
 

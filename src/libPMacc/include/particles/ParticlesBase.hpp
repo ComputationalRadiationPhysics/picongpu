@@ -17,17 +17,13 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
-#pragma once
+ */
 
-#include "eventSystem/EventSystem.hpp"
+#pragma once
 
 #include "particles/ParticlesBase.kernel"
 #include "fields/SimulationFieldHelper.hpp"
 #include "mappings/kernel/ExchangeMapping.hpp"
-
-#include "particles/tasks/ParticleFactory.hpp"
 
 #include "particles/memory/boxes/ParticlesBox.hpp"
 #include "particles/memory/buffers/ParticlesBuffer.hpp"
@@ -38,14 +34,14 @@
 namespace PMacc
 {
 
-template<typename T_DataVector, typename T_MethodsVector, class MappingDesc>
+template<typename T_ParticleDescription, class MappingDesc>
 class ParticlesBase : public SimulationFieldHelper<MappingDesc>
 {
 public:
 
     /* Type of used partciles buffer
      */
-    typedef ParticlesBuffer<T_DataVector, T_MethodsVector, typename MappingDesc::SuperCellSize, MappingDesc::Dim> BufferType;
+    typedef ParticlesBuffer<T_ParticleDescription, typename MappingDesc::SuperCellSize, MappingDesc::Dim> BufferType;
 
     /* Type of frame in particles buffer
      */

@@ -71,7 +71,7 @@ fieldE( NULL )
     const DataSpace<simDim> endGuard( UpperMargin( ).vec( ) );
 
     /*go over all directions*/
-    for ( int i = 1; i < numberOfNeighbors[simDim]; ++i )
+    for ( uint32_t i = 1; i < numberOfNeighbors[simDim]; ++i )
     {
         DataSpace<simDim> relativMask = Mask::getRelativeDirections<simDim > ( i );
         /* guarding cells depend on direction
@@ -121,7 +121,7 @@ void FieldB::init( FieldE &fieldE, LaserPhysics &laserPhysics )
     this->fieldE = &fieldE;
     this->laser = &laserPhysics;
 
-    DataConnector::getInstance( ).registerData( *this );
+    Environment<>::get().DataConnector().registerData( *this );
 }
 
 GridLayout<simDim> FieldB::getGridLayout( )

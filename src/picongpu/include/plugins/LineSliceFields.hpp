@@ -41,7 +41,7 @@
 
 #include "basicOperations.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
-#include "plugins/IPluginModule.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 
 namespace picongpu
 {
@@ -95,7 +95,7 @@ namespace picongpu
         __syncthreads();
     }
 
-    class LineSliceFields : public ISimulationIO, public IPluginModule
+    class LineSliceFields : public ISimulationPlugin
     {
     private:
         FieldE* fieldE;
@@ -116,7 +116,7 @@ namespace picongpu
         cellDescription(NULL),
         notifyFrequency(0)
         {
-            ModuleConnector::getInstance().registerModule(this);
+            Environment<>::get().PluginConnector().registerPlugin(this);
         }
 
         virtual ~LineSliceFields()
@@ -128,16 +128,16 @@ namespace picongpu
         {
             typedef typename MappingDesc::SuperCellSize SuperCellSize;
 
-            DataConnector& dc = DataConnector::getInstance();
+            DataConnector& dc = Environment<>::get().DataConnector();
 
             fieldE = &(dc.getData<FieldE > (FieldE::getName(), true));
             fieldB = &(dc.getData<FieldB > (FieldB::getName(), true));
 
 
-            const int rank = GridController<simDim>::getInstance().getGlobalRank();
+            const int rank = Environment<simDim>::get().GridController().getGlobalRank();
             getLineSliceFields < CORE + BORDER > ();
             
-            PMACC_AUTO(simBox,SubGrid<simDim>::getInstance().getSimulationBox());
+            PMACC_AUTO(simBox,Environment<simDim>::get().SubGrid().getSimulationBox());
             
 
             // number of cells on the current CPU for each direction
@@ -184,13 +184,13 @@ namespace picongpu
             outfile << std::endl;
         }
 
-        void moduleRegisterHelp(po::options_description& desc)
+        void pluginRegisterHelp(po::options_description& desc)
         {
             desc.add_options()
                     ("lslice.period", po::value<uint32_t > (&notifyFrequency), "enable analyser [for each n-th step]");
         }
 
-        std::string moduleGetName() const
+        std::string pluginGetName() const
         {
             return "LineSliceFields";
         }
@@ -201,21 +201,21 @@ namespace picongpu
         }
 
     private:
-        void moduleLoad()
+        void pluginLoad()
         {
             if (notifyFrequency > 0)
             {
                 // number of cells on the current CPU for each direction
-                const DataSpace<simDim> nrOfGpuCells = SubGrid<simDim>::getInstance().getSimulationBox().getLocalSize();
+                const DataSpace<simDim> nrOfGpuCells = Environment<simDim>::get().SubGrid().getSimulationBox().getLocalSize();
 
                 // create as much storage as cells in the direction we are interested in:
                 // on gpu und host
                 sliceDataField = new GridBuffer<float3_X, DIM1 >
                         (DataSpace<DIM1 > (nrOfGpuCells.y()));
 
-                DataConnector::getInstance().registerObserver(this, notifyFrequency);
+                Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
 
-                const int rank = GridController<simDim>::getInstance().getGlobalRank();
+                const int rank = Environment<simDim>::get().GridController().getGlobalRank();
 
                 // open output file
                 std::stringstream oFileName;
@@ -227,7 +227,7 @@ namespace picongpu
             }
         }
 
-        void moduleUnload()
+        void pluginUnload()
         {
             if (notifyFrequency > 0)
             {
@@ -248,7 +248,7 @@ namespace picongpu
             sliceDataField->getDeviceBuffer().setValue(tmpFloat3);
             dim3 block(SuperCellSize::getDataSpace());
 
-            PMACC_AUTO(simBox,SubGrid<simDim>::getInstance().getSimulationBox());
+            PMACC_AUTO(simBox,Environment<simDim>::get().SubGrid().getSimulationBox());
             // global cell id offset (without guardings!)
             // returns the global id offset of the "first" border cell on a GPU
             const DataSpace<simDim> globalCellIdOffset(simBox.getGlobalOffset());
