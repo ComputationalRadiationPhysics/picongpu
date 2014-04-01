@@ -44,6 +44,7 @@
 #include "plugins/radiation/particle.hpp"
 #include "plugins/radiation/amplitude.hpp"
 #include "plugins/radiation/calc_amplitude.hpp"
+#include "plugins/radiation/windowFunctions.hpp"
 
 #include "mpi/reduceMethods/Reduce.hpp"
 #include "mpi/MPIReduce.hpp"
@@ -103,7 +104,8 @@ void kernelRadiationParticles(ParBox pb,
                               DataSpace<simDim> globalOffset,
                               uint32_t currentStep,
                               Mapping mapper,
-                              radiation_frequencies::FreqFunctor freqFkt)
+                              radiation_frequencies::FreqFunctor freqFkt,
+			      DataSpace<simDim> simBoxSize)
 {
 
     typedef typename MappingDesc::SuperCellSize Block;
@@ -277,7 +279,8 @@ void kernelRadiationParticles(ParBox pb,
                              */
                             const float_X weighting = par[weighting_];
 
-                            /* only of coherent and incoherent radiation of a sibgle macro-particle is
+
+                            /* only of coherent and incoherent radiation of a single macro-particle is
                              * considered, the weighting of each macro-particle needs to be stored
                              * in order to be considered when the actual frequency calulation is done
                              */
@@ -341,6 +344,41 @@ void kernelRadiationParticles(ParBox pb,
 #endif
 
 
+			    /* the particle amplitude is used to include the weighting
+			     * of the window function filter without needing more memory */
+#if (PIC_RADWINDOWFUNCTION==1)
+
+			    const radWindowFunction::radWindowFunction winFkt;
+
+			    /* start with a factor of one */
+			    float_X windowFactor = 1.0;
+
+			    /* TODO: How to do this for 2D automatically? */
+			    /* window in each  dimension */
+			    /* not supported yet */
+			    /*for (uint32_t d = 0; d < simDim; ++d)
+			      {
+				windowFactor *= winFkt(particle_locationNow[d], 
+						       simBoxSize[d] * cellSize[d]);
+			      }
+			    */
+
+			    /* window in x dimension */
+			    windowFactor *= winFkt(particle_locationNow.x(),
+						   simBoxSize.x() * CELL_WIDTH);
+			    /* window in y dimension */
+			    windowFactor *= winFkt(particle_locationNow.y(), 
+						   simBoxSize.y() * CELL_HEIGHT);
+			    /* window in z dimension */
+			    windowFactor *= winFkt(particle_locationNow.z(), 
+						   simBoxSize.z() * CELL_DEPTH);
+
+			    /* apply window function factor to amplitude */
+			    real_amplitude_s[saveParticleAt] *= windowFactor;
+#endif
+
+
+
                         } // END: if a particle needs to be considered
                     } // END: only threads with particles are running 
 
@@ -365,7 +403,7 @@ void kernelRadiationParticles(ParBox pb,
                         // if coherent and incoherent radiation of a single macro-particle 
                         // is considered, creare a form factor object
 #if (__COHERENTINCOHERENTWEIGHTING__==1)
-                        const radFormFactor_selected::radFormFactor myRadFormFactor;
+                        const radFormFactor::radFormFactor myRadFormFactor;
 #endif
 
                         /* Particle loop: thread runs through loaded particle data
@@ -931,8 +969,10 @@ private:
         // the absolut position of the particles
         DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
         VirtualWindow window(MovingWindow::getInstance().getVirtualWindow(currentStep));
-        DataSpace<simDim> globalOffset(Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset());
+	PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
+	DataSpace<simDim> globalOffset(simBox.getGlobalOffset());
         globalOffset.y() += (localSize.y() * window.slides);
+
 
         // PIC-like kernel call of the radiation kernel
         __cudaKernel(kernelRadiationParticles)
@@ -944,7 +984,9 @@ private:
              /*Pointer to memory of radiated amplitude on the device*/
              radiation->getDeviceBuffer().getDataBox(),
              globalOffset,
-             currentStep, *cellDescription, freqFkt
+             currentStep, *cellDescription, 
+	     freqFkt,
+	     simBox.getGlobalSize()	     
              );
 
         if (dumpPeriod != 0 && currentStep % dumpPeriod == 0)
