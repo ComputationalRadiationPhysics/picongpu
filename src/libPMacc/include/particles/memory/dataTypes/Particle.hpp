@@ -59,6 +59,7 @@ struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
 {
     typedef T_FrameType FrameType;
     typedef T_ValueTypeSeq ValueTypeSeq;
+    typedef typename FrameType::Name Name;
     typedef Particle<FrameType, ValueTypeSeq> ThisType;
     typedef typename FrameType::MethodsList MethodsList;
 

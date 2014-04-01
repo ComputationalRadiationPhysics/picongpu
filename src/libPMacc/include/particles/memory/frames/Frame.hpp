@@ -46,6 +46,8 @@
 #include "traits/GetFlagType.hpp"
 #include <boost/mpl/contains.hpp>
 
+#include "particles/ParticleDescription.hpp"
+#include <boost/mpl/string.hpp>
 
 namespace PMacc
 {
@@ -65,17 +67,17 @@ namespace pmacc = PMacc;
  *                 (e.g. useSolverXY, calcRadiation, ...) 
  */
 template<template<typename> class T_CreatePairOperator,
-typename T_ValueTypeSeq,
-typename T_MethodsList = bmpl::list<>,
-typename T_Flags = bmpl::list<> >
+typename T_ParticleDescription >
 struct Frame :
-public InheritLinearly<T_MethodsList>,
-protected pmath::MapTuple<typename SeqToMap<T_ValueTypeSeq, T_CreatePairOperator>::type, pmath::AlignedData>
+public InheritLinearly<typename T_ParticleDescription::MethodsList>,
+    protected pmath::MapTuple<typename SeqToMap<typename T_ParticleDescription::ValueTypeSeq, T_CreatePairOperator>::type, pmath::AlignedData>
 {
-    typedef T_ValueTypeSeq ValueTypeSeq;
-    typedef T_MethodsList MethodsList;
-    typedef T_Flags FlagList;
-    typedef Frame<T_CreatePairOperator, ValueTypeSeq, MethodsList, FlagList> ThisType;
+    typedef T_ParticleDescription ParticleDescription;
+    typedef typename ParticleDescription::Name Name;
+    typedef typename ParticleDescription::ValueTypeSeq ValueTypeSeq;
+    typedef typename ParticleDescription::MethodsList MethodsList;
+    typedef typename ParticleDescription::FlagsList FlagList;
+    typedef Frame<T_CreatePairOperator, ParticleDescription> ThisType;
     /* definition of the MapTupel where we inherit from*/
     typedef pmath::MapTuple<typename SeqToMap<ValueTypeSeq, T_CreatePairOperator>::type, pmath::AlignedData> BaseType;
 
@@ -140,6 +142,11 @@ protected pmath::MapTuple<typename SeqToMap<T_ValueTypeSeq, T_CreatePairOperator
         typedef typename GetKeyFromAlias<ValueTypeSeq, T_Key>::type Key;
         return BaseType::operator[](Key());
     }
+    
+    HINLINE static std::string getName()
+    {
+        return std::string(boost::mpl::c_str<Name>::value);
+    }
 
 };
 
@@ -148,17 +155,15 @@ namespace traits
 
 template<typename T_IdentifierName,
 template<typename> class T_CreatePairOperator,
-typename T_ValueTypeSeq,
-typename T_MethodsList,
-typename T_Flags
+typename T_ParticleDescription
 >
 struct HasIdentifier<
-PMacc::Frame<T_CreatePairOperator, T_ValueTypeSeq, T_MethodsList, T_Flags>,
+PMacc::Frame<T_CreatePairOperator, T_ParticleDescription>,
 T_IdentifierName
 >
 {
 private:
-    typedef PMacc::Frame<T_CreatePairOperator, T_ValueTypeSeq, T_MethodsList, T_Flags> FrameType;
+    typedef PMacc::Frame<T_CreatePairOperator, T_ParticleDescription> FrameType;
 public:
     typedef typename FrameType::ValueTypeSeq ValueTypeSeq;
     /* if T_IdentifierName is void_ than we have no T_IdentifierName in our Sequence.
@@ -171,17 +176,13 @@ public:
 
 template<typename T_IdentifierName,
 template<typename> class T_CreatePairOperator,
-typename T_ValueTypeSeq,
-typename T_MethodsList,
-typename T_Flags
+typename T_ParticleDescription
 >
 struct HasFlag<
-PMacc::Frame<T_CreatePairOperator, T_ValueTypeSeq, T_MethodsList, T_Flags>,
-T_IdentifierName
->
+PMacc::Frame<T_CreatePairOperator, T_ParticleDescription>,T_IdentifierName>
 {
 private:
-    typedef PMacc::Frame<T_CreatePairOperator, T_ValueTypeSeq, T_MethodsList, T_Flags> FrameType;
+    typedef PMacc::Frame<T_CreatePairOperator,T_ParticleDescription> FrameType;
     typedef typename GetFlagType<FrameType,T_IdentifierName>::type SolvedAliasName;
     typedef typename FrameType::FlagList FlagList;
 public:
@@ -191,17 +192,13 @@ public:
 
 template<typename T_IdentifierName,
 template<typename> class T_CreatePairOperator,
-typename T_ValueTypeSeq,
-typename T_MethodsList,
-typename T_Flags
+typename T_ParticleDescription
 >
 struct GetFlagType<
-PMacc::Frame<T_CreatePairOperator, T_ValueTypeSeq, T_MethodsList, T_Flags>,
-T_IdentifierName
->
+PMacc::Frame<T_CreatePairOperator, T_ParticleDescription>,T_IdentifierName>
 {
 private:
-    typedef PMacc::Frame<T_CreatePairOperator, T_ValueTypeSeq, T_MethodsList, T_Flags> FrameType;
+    typedef PMacc::Frame<T_CreatePairOperator, T_ParticleDescription> FrameType;
     typedef typename FrameType::FlagList FlagList;
 public:
     

@@ -48,6 +48,8 @@
 #include "particles/memory/dataTypes/StaticArray.hpp"
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
+#include "particles/ParticleDescription.hpp"
+
 
 namespace PMacc
 {
@@ -101,15 +103,25 @@ public:
     localCellIdx
     >::type border_particleList;
 
-    typedef Frame<
-    OperatorCreatePairStaticArrayWithSuperCellSize, full_particleList,
+    typedef ParticleDescription<
+    typename T_ParticleDescription::Name,
+    full_particleList,
     typename T_ParticleDescription::MethodsList,
-    typename T_ParticleDescription::FlagsList> ParticleType;
+    typename T_ParticleDescription::FlagsList
+    > ParticleDescriptionDefault;
 
-    typedef Frame<OperatorCreatePairStaticArrayOneElement,
+    typedef Frame<
+    OperatorCreatePairStaticArrayWithSuperCellSize, ParticleDescriptionDefault> ParticleType;
+
+
+    typedef ParticleDescription<
+    typename T_ParticleDescription::Name,
     border_particleList,
     typename T_ParticleDescription::MethodsList,
-    typename T_ParticleDescription::FlagsList> ParticleTypeBorder;
+    typename T_ParticleDescription::FlagsList
+    > ParticleDescriptionBorder;
+
+    typedef Frame<OperatorCreatePairStaticArrayOneElement, ParticleDescriptionBorder> ParticleTypeBorder;
 
 
 private:

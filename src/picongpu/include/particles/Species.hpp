@@ -29,6 +29,7 @@
 #include "particles/species/ions/IonMethods.hpp"
 #include "particles/species/electrons/ElectronMethods.hpp"
 #include "particles/ParticleDescription.hpp"
+#include <boost/mpl/string.hpp>
 
 namespace picongpu
 {
@@ -67,8 +68,8 @@ typename MakeSeq<
     >::type
 Species2_data;
 
-typedef Particles<ParticleDescription<Species1_data, ElectronsMethodsList> > PIC_Electrons;
-typedef Particles<ParticleDescription<Species2_data, IonsMethodsList> > PIC_Ions;
+typedef Particles<ParticleDescription<boost::mpl::string<'e'>,Species1_data, ElectronsMethodsList> > PIC_Electrons;
+typedef Particles<ParticleDescription<boost::mpl::string<'i'>,Species2_data, IonsMethodsList> > PIC_Ions;
 
 /** \todo: not nice, but this should be changed in the future*/
 typedef typename MakeSeq<

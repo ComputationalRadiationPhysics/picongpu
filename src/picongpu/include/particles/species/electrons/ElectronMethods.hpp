@@ -54,11 +54,6 @@ namespace picongpu
         {
             return (Q_EL * weighting);
         }
-        
-        HINLINE static std::string getName( )
-        {
-            return "e";
-        }
 
         enum
         {

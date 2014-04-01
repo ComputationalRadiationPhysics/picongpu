@@ -33,6 +33,8 @@ namespace PMacc
  * 
  * This type holds no runtime data, this is only to describe all elements of a particle
  *
+ * @tparam T_Name name of discriped particle (e.g. electron, ion)
+ *                type must be a boost::mpl::string
  * @tparam T_ValueTypeSeq sequence with value_identifier
  * @tparam T_MethodsList sequence of classes with particle methods 
  *                       (e.g. calculate mass, gamma, ...)
@@ -40,11 +42,13 @@ namespace PMacc
  *                 (e.g. useSolverXY, calcRadiation, ...) 
  */
 template<
+typename T_Name,
 typename T_ValueTypeSeq,
 typename T_MethodsList = bmpl::vector0<>,
 typename T_Flags = bmpl::vector0<> >
 struct ParticleDescription
 {
+    typedef T_Name Name;
     typedef T_ValueTypeSeq ValueTypeSeq;
     typedef T_MethodsList MethodsList;
     typedef T_Flags FlagsList;

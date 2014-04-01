@@ -43,6 +43,7 @@
 
 #include "plugins/adios/writer/ParticleAttribute.hpp"
 #include "compileTime/conversion/RemoveFromSeq.hpp"
+#include "particles/ParticleDescription.hpp"
 
 namespace picongpu
 {
@@ -78,8 +79,10 @@ public:
             globalCellIdx<globalCellIdx_pic>
     >::type ParticleNewAttributeList;
 
-    typedef Frame<OperatorCreateVectorBox, ParticleNewAttributeList, ParticleMethodsList> AdiosFrameType;
-
+    typedef Frame<OperatorCreateVectorBox, 
+        ParticleDescription<typename FrameType::Name,ParticleNewAttributeList, ParticleMethodsList> 
+    > AdiosFrameType;
+    
     template<typename Space>
     HINLINE void operator()(RefWrapper<ThreadParams*> params,
                             const DomainInformation domInfo,

@@ -46,6 +46,7 @@
 
 #include "plugins/hdf5/writer/ParticleAttribute.hpp"
 #include "compileTime/conversion/RemoveFromSeq.hpp"
+#include "particles/ParticleDescription.hpp"
 
 namespace picongpu
 {
@@ -85,7 +86,9 @@ public:
             globalCellIdx<globalCellIdx_pic>
     >::type ParticleNewAttributeList;
 
-    typedef Frame<OperatorCreateVectorBox, ParticleNewAttributeList, ParticleMethodsList> Hdf5FrameType;
+    typedef Frame<OperatorCreateVectorBox, 
+        ParticleDescription<typename FrameType::Name,ParticleNewAttributeList, ParticleMethodsList> 
+    > Hdf5FrameType;
 
     template<typename Space>
     HINLINE void operator()(RefWrapper<ThreadParams*> params,
