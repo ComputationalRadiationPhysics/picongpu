@@ -1,5 +1,5 @@
 #
-# Copyright 2013-2014 Felix Schmitt, Axel Huebl, René Widera
+# Copyright 2013-2014 Felix Schmitt, Axel Huebl, Rene Widera
 #
 # This file is part of splash2txt. 
 # 
@@ -35,6 +35,10 @@ project(splash2txt)
 set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{BOOST_ROOT}" "$ENV{HDF5_ROOT}"
     "$ENV{MPI_ROOT}")
 
+# own modules for find_packages
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/)
+
 include_directories(include)
 
 
@@ -64,31 +68,21 @@ endif(MPI_CXX_FOUND)
 
 
 ################################################################################
-# Find HDF5
+# libSplash (+ hdf5 due to required headers)
 ################################################################################
 
-find_package(HDF5 REQUIRED)
+# find libSplash installation
+# prefer static libraries over shared ones (but do not force them)
+set(Splash_USE_STATIC_LIBS ON)
+find_package(Splash 1.1.1 COMPONENTS PARALLEL)
 
-include_directories(${HDF5_INCLUDE_DIR})
-link_directories(${HDF5_LIBRARY_DIRS})
-set(LIBS ${LIBS} hdf5)
-
-
-################################################################################
-# Find libSplash
-################################################################################
-
-find_path(S2T_LIBSPLASH_ROOT_DIR
-  NAMES include/sdc_defines.hpp lib/libsplash.a
-  PATHS ENV SPLASH_ROOT
-  DOC "libSplash ROOT location. (only used if HDF5 is enabled)"
-  )
-
-include_directories("${S2T_LIBSPLASH_ROOT_DIR}/include")
-add_library(splash_static STATIC IMPORTED)
-set_target_properties(splash_static PROPERTIES
-	IMPORTED_LOCATION "${S2T_LIBSPLASH_ROOT_DIR}/lib/libsplash.a")
-set(LIBS ${LIBS} splash_static)
+if(Splash_FOUND)
+    include_directories(SYSTEM ${Splash_INCLUDE_DIRS})
+    list(APPEND Splash_DEFINITIONS "-DENABLE_HDF5=1")
+    add_definitions(${Splash_DEFINITIONS})
+    message(STATUS "libSplash compiler definitions: ${Splash_DEFINITIONS}")
+    set(LIBS ${LIBS} ${Splash_LIBRARIES})
+endif(Splash_FOUND)
 
 
 ################################################################################
@@ -113,3 +107,10 @@ add_executable(splash2txt
      )
 
 target_link_libraries(splash2txt m ${LIBS})
+
+
+################################################################################
+# Install
+################################################################################
+
+install(TARGETS splash2txt RUNTIME DESTINATION .)

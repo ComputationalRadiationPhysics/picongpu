@@ -40,7 +40,9 @@ Requirements
   - *Debian/Ubuntu:* `sudo apt-get install git`
 
 - **PIConGPU**
-    - `git clone https://github.com/ComputationalRadiationPhysics/picongpu.git ~/src/picongpu`
+    - `git clone https://github.com/ComputationalRadiationPhysics/picongpu.git $HOME/src/picongpu`
+    - `export PICSRC=$HOME/src/picongpu`
+      (you should add this to your `~/.bashrc`)
 
 ### Optional Libraries
 
@@ -92,15 +94,22 @@ We recomment to install at least **pngwriter**.
       to `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/lib/hdf5/lib`
 
 - **splash2txt** (requires *libSplash* and *boost* "program_options", "regex")
-    - inofficial tool shipped with the PIConGPU
-    - assume you [downloaded](#requirements) PIConGPU to `~/src/picongpu`
+    - converts slices in dumped hdf5 files to plain txt matrices
+    - assume you [downloaded](#requirements) PIConGPU to `PICSRC=$HOME/src/picongpu`
     - `mkdir -p ~/build && cd ~/build`
-    - `cmake ~/src/picongpu/src/splash2txt`
+    - `cmake -DCMAKE_INSTALL_PREFIX=$PICSRC/src/tools/bin $PICSRC/src/tools/splash2txt`
     - `make`
-    - copy the binary `splash2txt` to a place in your `$PATH`)
+    - `make install`
+    - add the directory of the binary `splash2txt`, `$PICSRC/src/tools/bin`,
+      to a place in your `$PATH`
     - options:
       - `splash2txt --help`
       - list all available datasets: `splash2txt --list <FILE_PREFIX>`
+
+- **png2gas** (requires *libSplash*, *pngwriter* and *boost* "program_options")
+    - converts png files to hdf5 files that can be used as an input for a
+      species initial density profiles
+    - compile and install exactly as *splash2txt* above
 
 - for **VampirTrace** support
     - download 5.14.4 or higher, e.g. from 
