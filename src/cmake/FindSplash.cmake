@@ -110,18 +110,18 @@ if(Splash_ROOT_DIR)
 
     # require hdf5 ############################################################
     #
-    if(Splash_USE_STATIC_LIBS)
-        set(HDF5_USE_STATIC_LIBRARIES ON)
-    endif()
+    #if(Splash_USE_STATIC_LIBS)
+    #    set(HDF5_USE_STATIC_LIBRARIES ON)
+    #endif()
     find_package(HDF5 REQUIRED)
     list(APPEND Splash_INCLUDE_DIRS ${HDF5_INCLUDE_DIRS})
     list(APPEND Splash_DEFINITIONS ${HDF5_DEFINITIONS})
     list(APPEND Splash_LIBRARIES ${HDF5_LIBRARIES})
 
     # restore old settings
-    if(Splash_USE_STATIC_LIBS)
-        unset(HDF5_USE_STATIC_LIBRARIES)
-    endif()
+    #if(Splash_USE_STATIC_LIBS)
+    #    unset(HDF5_USE_STATIC_LIBRARIES)
+    #endif()
 
     # libSplash compiled with parallel support? ###############################
     #
