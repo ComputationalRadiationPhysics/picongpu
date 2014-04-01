@@ -51,7 +51,7 @@ cnf_from="someone@example.com"
 cnf_rctp_to="someoneelse@example.com"
 
 # preview N lines of the compile output for failing examples
-cnf_mail_preview=38
+cnf_mail_preview=60
 
 # global functions ############################################################
 #
