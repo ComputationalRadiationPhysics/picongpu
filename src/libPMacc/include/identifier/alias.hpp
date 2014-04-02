@@ -56,13 +56,13 @@ identifier(pmacc_isAlias);
 
 /** create an alias
  * 
- * an alias is a unspecialized type of a identifier or a value_identifier
+ * an alias is a unspecialized type of an identifier or a value_identifier
  * 
  * @param name name of alias
  * 
- * example: alias(aliesName); //create type varname
+ * example: alias(aliasName); //create type varname
  * 
- * to specialized an alies do: aliesName<valueIdentifierName>
+ * to specialize an alias do: aliasName<valueIdentifierName>
  * to create a instance of this alies you can use:
  *      aliesName();   or aliesName
  * 

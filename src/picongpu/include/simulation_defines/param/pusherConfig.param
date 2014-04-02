@@ -22,7 +22,7 @@
 
 #pragma once
 
-/**! discripe particle pusher method
+/**! describe particle pusher method
  * Define a solver for current with the name "Pusher"
  * 
  * etc.: typedef MyOwnPusherClass ParticlePusher;
