@@ -60,12 +60,9 @@ namespace po = boost::program_options;
 class HelloWorld : public ISimulationIO, public IPluginModule
 {
 private:
-//    FieldE* fieldE;
-//    FieldB* fieldB;
 
     MappingDesc *cellDescription;
     uint32_t notifyFrequency;
-    //GridBuffer<float, DIM1> *energy;
     GridBuffer<float, DIM1> *number;
 
     std::string analyzerName;
@@ -81,8 +78,6 @@ private:
 public:
 
     HelloWorld(std::string name, std::string prefix) :
-//    fieldE(NULL),
-//    fieldB(NULL),
     cellDescription(NULL),
     analyzerName(name),
     analyzerPrefix(prefix),
@@ -110,22 +105,22 @@ public:
         // fill with ones
         deviceBuffer.assign(1);
         
-//        // create result container
-//        container::DeviceBuffer<int, 1> deviceResult(1);
-//        
-//        using namespace lambda;
-//        // reduce algorithm
-//        PMacc::algorithm::kernel::Reduce<PMacc::math::CT::Int<4, 4, 1> > reduce;
-//        reduce(deviceResult.origin(), deviceBuffer.zone(), deviceBuffer.origin(), _1 + _2);
-//        
-//        // create host Buffer
-//        container::HostBuffer<int, 1> hostResult(1);
-//        
-//        // copy result from device to host
-//        hostResult = deviceResult;
-//        
-//        // print result
-//        std::cout << hostResult << std::endl;
+        // create result container
+        container::DeviceBuffer<int, 1> deviceResult(1);
+        
+        using namespace lambda;
+        // reduce algorithm
+        PMacc::algorithm::kernel::Reduce<PMacc::math::CT::Int<4, 4, 1> > reduce;
+        reduce(deviceResult.origin(), deviceBuffer.zone(), deviceBuffer.origin(), _1 + _2);
+        
+        // create host Buffer
+        container::HostBuffer<int, 1> hostResult(1);
+        
+        // copy result from device to host
+        hostResult = deviceResult;
+        
+        // print result
+        std::cout << hostResult << std::endl;
     }
 
     void moduleRegisterHelp(po::options_description& desc)
