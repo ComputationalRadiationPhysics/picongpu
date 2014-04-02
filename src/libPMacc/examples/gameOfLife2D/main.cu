@@ -64,7 +64,7 @@ int main( int argc, char **argv )
             ( "grid,g", po::value<std::vector<uint32_t> > ( &gridSize )->multitoken( ),
               "size of the simulation grid (must be 2D, e.g.: -g 4 4). Because of the border, which is one supercell = 16 cells wide, "
               "the size in each direction should be greater or equal than 3*16=48, so that the core is nonempty" )
-            ( "periodic", po::value<std::vector<uint32_t> > ( &periodic )->multitoken( ),
+            ( "periodic,p", po::value<std::vector<uint32_t> > ( &periodic )->multitoken( ),
               "specifying whether the grid is periodic (1) or not (0) in each dimension, default: no periodic dimensions" );
 
     // parse command line options and config file and store values in vm
