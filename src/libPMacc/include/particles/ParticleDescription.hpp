@@ -58,6 +58,13 @@ struct ParticleDescription
 
 };
 
+
+/** Get ParticleDescription with a new ValueTypeSeq
+ * 
+ * @tparam T_OldParticleDescription base description
+ * @tparam T_NewValueTypeSeq new boost mpl sequence with value types
+ * @treturn ::type new ParticleDescription
+ */
 template<typename T_OldParticleDescription,typename T_NewValueTypeSeq>
 struct ReplaceValueTypeSeq
 {
