@@ -38,7 +38,6 @@ namespace picongpu
         typedef float_X MassType;
         typedef float_X ChargeType;
         
-        typedef typename MappingDesc::SuperCellSize SuperCellSize;
 
         HDINLINE static float_X getM0_2(const float_X weighting)
         {
@@ -53,11 +52,6 @@ namespace picongpu
         HDINLINE static ChargeType getCharge(const float_X weighting)
         {
             return (Q_EL * weighting);
-        }
-        
-        HINLINE static std::string getName( )
-        {
-            return "e";
         }
 
         enum

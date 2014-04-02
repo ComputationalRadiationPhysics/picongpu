@@ -48,6 +48,8 @@
 #include "particles/memory/dataTypes/StaticArray.hpp"
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
+#include "particles/ParticleDescription.hpp"
+
 
 namespace PMacc
 {
@@ -101,15 +103,18 @@ public:
     localCellIdx
     >::type border_particleList;
 
-    typedef Frame<
-    OperatorCreatePairStaticArrayWithSuperCellSize, full_particleList,
-    typename T_ParticleDescription::MethodsList,
-    typename T_ParticleDescription::FlagsList> ParticleType;
+    typedef 
+    typename ReplaceValueTypeSeq<T_ParticleDescription,full_particleList>::type 
+    ParticleDescriptionDefault;
 
-    typedef Frame<OperatorCreatePairStaticArrayOneElement,
-    border_particleList,
-    typename T_ParticleDescription::MethodsList,
-    typename T_ParticleDescription::FlagsList> ParticleTypeBorder;
+    typedef Frame<
+    OperatorCreatePairStaticArrayWithSuperCellSize, ParticleDescriptionDefault> ParticleType;
+    
+    typedef 
+    typename ReplaceValueTypeSeq<T_ParticleDescription,border_particleList>::type 
+    ParticleDescriptionBorder;
+
+    typedef Frame<OperatorCreatePairStaticArrayOneElement, ParticleDescriptionBorder> ParticleTypeBorder;
 
 
 private:

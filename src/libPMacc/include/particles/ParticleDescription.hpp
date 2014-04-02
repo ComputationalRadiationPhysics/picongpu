@@ -27,12 +27,15 @@
 namespace PMacc
 {
 
-
-
 /** ParticleDescription defines attributes, methods and flags of a particle
  * 
- * This type holds no runtime data, this is only to describe all elements of a particle
+ * This class holds no runtime data.
+ * The class holds information about the name, attributes, flags and methods of a
+ * particle.
  *
+ * @tparam T_Name name of discribed particle (e.g. electron, ion)
+ *                type must be a boost::mpl::string
+ * @tparam T_SuperCellSize compile time size of a super cell
  * @tparam T_ValueTypeSeq sequence with value_identifier
  * @tparam T_MethodsList sequence of classes with particle methods 
  *                       (e.g. calculate mass, gamma, ...)
@@ -40,15 +43,40 @@ namespace PMacc
  *                 (e.g. useSolverXY, calcRadiation, ...) 
  */
 template<
+typename T_Name,
+typename T_SuperCellSize,
 typename T_ValueTypeSeq,
 typename T_MethodsList = bmpl::vector0<>,
 typename T_Flags = bmpl::vector0<> >
 struct ParticleDescription
 {
+    typedef T_Name Name;
+    typedef T_SuperCellSize SuperCellSize;
     typedef T_ValueTypeSeq ValueTypeSeq;
     typedef T_MethodsList MethodsList;
     typedef T_Flags FlagsList;
-    typedef ParticleDescription<ValueTypeSeq, MethodsList, FlagsList> ThisType;
+    typedef ParticleDescription<Name, SuperCellSize, ValueTypeSeq, MethodsList, FlagsList> ThisType;
+
 };
+
+
+/** Get ParticleDescription with a new ValueTypeSeq
+ * 
+ * @tparam T_OldParticleDescription base description
+ * @tparam T_NewValueTypeSeq new boost mpl sequence with value types
+ * @treturn ::type new ParticleDescription
+ */
+template<typename T_OldParticleDescription,typename T_NewValueTypeSeq>
+struct ReplaceValueTypeSeq
+{
+    typedef T_OldParticleDescription OldParticleDescription;
+    typedef ParticleDescription<
+        typename OldParticleDescription::Name, 
+        typename OldParticleDescription::SuperCellSize, 
+        T_NewValueTypeSeq, 
+        typename OldParticleDescription::MethodsList, 
+        typename OldParticleDescription::FlagsList> type;
+};
+
 
 } //namespace PMacc
