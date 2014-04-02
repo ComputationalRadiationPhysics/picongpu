@@ -44,13 +44,13 @@ int main( int argc, char **argv )
 
     MPI_CHECK( MPI_Init( &argc, &argv ) );
 
-    typedef ::gol::Space/*PMacc::DataSpace<DIM2>*/ Space;
+    typedef ::gol::Space Space;
 
-    std::vector<uint32_t>  devices; //will be set by boost program argument option "-d 3 3 3"
-    std::vector<uint32_t> gridSize; //same but with g
+    std::vector<uint32_t> devices;  /* will be set by boost program argument option "-d 3 3 3" */
+    std::vector<uint32_t> gridSize; /* same but with -g */
     std::vector<uint32_t> periodic;
-    uint32_t                 steps;
-    std::string               rule; //Game of Life Simulation Rules like 23/3
+    uint32_t steps;
+    std::string rule; /* Game of Life Simulation Rules like 23/3 */
 
     po::options_description desc( "Allowed options" );
     desc.add_options( )
@@ -60,11 +60,10 @@ int main( int argc, char **argv )
             ( "devices,d", po::value<std::vector<uint32_t> > ( &devices )->multitoken( ), 
               "number of devices in each dimension (only 1D or 2D). If you use more than "
               "one device in total, you will need to run mpirun with \"mpirun -n "
-              "<DeviceCount.x*DeviceCount.y> ./gameOfLife" )
+              "<DeviceCount.x*DeviceCount.y> ./gameOfLife\"" )
             ( "grid,g", po::value<std::vector<uint32_t> > ( &gridSize )->multitoken( ),
-              "size of the simulation grid (real size may be smaller because each GPU "
-              "needs a border) (must be 2D, e.g.: -g 4 4) Because of border total each "
-              "direction should be greater or equal than 3*16=48" )
+              "size of the simulation grid (must be 2D, e.g.: -g 4 4). Because of the border, which is one supercell = 16 cells wide, "
+              "the size in each direction should be greater or equal than 3*16=48, so that the core is nonempty" )
             ( "periodic", po::value<std::vector<uint32_t> > ( &periodic )->multitoken( ),
               "specifying whether the grid is periodic (1) or not (0) in each dimension, default: no periodic dimensions" );
 
@@ -105,18 +104,18 @@ int main( int argc, char **argv )
 
 
     //after checking all input values, copy into DataSpace Datatype
-    Space    gpus(  devices[0],  devices[1] );
-    Space    grid( gridSize[0], gridSize[1] );
+    Space gpus( devices[0], devices[1] );
+    Space grid( gridSize[0], gridSize[1] );
     Space endless( periodic[0], periodic[1] );
 
-    uint32_t       ruleMask = 0;
-    size_t           strLen = rule.length( );
-    size_t           gPoint = rule.find  ( '/' );
+    uint32_t ruleMask = 0;
+    size_t strLen = rule.length( );
+    size_t gPoint = rule.find( '/' );
     std::string stayAliveIf = rule.substr( 0, gPoint );
-    std::string   newBornIf = rule.substr( gPoint + 1, strLen - gPoint - 1 );
+    std::string newBornIf = rule.substr( gPoint + 1, strLen - gPoint - 1 );
 
 
-    for ( int i = 0; i < newBornIf.length( ); ++i )
+    for ( unsigned int i = 0; i < newBornIf.length( ); ++i )
     {
         std::stringstream ss;   //used for converting const char* "123" to int 123
         ss << newBornIf[i];
@@ -124,7 +123,7 @@ int main( int argc, char **argv )
         ss >> shift;
         ruleMask = ruleMask | 1 << ( shift + 9 );
     }
-    for ( int i = 0; i < stayAliveIf.length( ); ++i )
+    for ( unsigned int i = 0; i < stayAliveIf.length( ); ++i )
     {
         std::stringstream ss;
         ss << stayAliveIf[i];
@@ -134,7 +133,7 @@ int main( int argc, char **argv )
     }
     std::cout << "newborn if=" << newBornIf << " stay alive if=" << stayAliveIf << " mask=" << ruleMask << std::endl;
 
-    //give arguments and start simulation of Game of Life
+    /* start game of life simulation */
     gol::Simulation sim( ruleMask, steps, grid, gpus, endless );
     sim.init( );
     sim.start( );
