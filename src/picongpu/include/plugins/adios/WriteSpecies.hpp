@@ -66,8 +66,8 @@ public:
 
     typedef T_Species ThisSpecies;
     typedef typename ThisSpecies::FrameType FrameType;
+    typedef typename FrameType::ParticleDescription ParticleDescription; 
     typedef typename FrameType::ValueTypeSeq ParticleAttributeList;
-    typedef typename FrameType::MethodsList ParticleMethodsList;
 
     /* delete multiMask and localCellIdx in adios particle*/
     typedef bmpl::vector<multiMask,localCellIdx> TypesToDelete;
@@ -78,10 +78,12 @@ public:
             ParticleCleanedAttributeList, 
             globalCellIdx<globalCellIdx_pic>
     >::type ParticleNewAttributeList;
-
-    typedef Frame<OperatorCreateVectorBox, 
-        ParticleDescription<typename FrameType::Name,ParticleNewAttributeList, ParticleMethodsList> 
-    > AdiosFrameType;
+    
+    typedef 
+    typename ReplaceValueTypeSeq<ParticleDescription, ParticleNewAttributeList>::type 
+    NewParticleDescription;
+    
+    typedef Frame<OperatorCreateVectorBox, NewParticleDescription> AdiosFrameType;
     
     template<typename Space>
     HINLINE void operator()(RefWrapper<ThreadParams*> params,
