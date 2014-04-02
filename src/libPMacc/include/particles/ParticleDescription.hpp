@@ -27,8 +27,6 @@
 namespace PMacc
 {
 
-
-
 /** ParticleDescription defines attributes, methods and flags of a particle
  * 
  * This class holds no runtime data.
@@ -45,16 +43,32 @@ namespace PMacc
  */
 template<
 typename T_Name,
+typename T_SuperCellSize,
 typename T_ValueTypeSeq,
 typename T_MethodsList = bmpl::vector0<>,
 typename T_Flags = bmpl::vector0<> >
 struct ParticleDescription
 {
     typedef T_Name Name;
+    typedef T_SuperCellSize SuperCellSize;
     typedef T_ValueTypeSeq ValueTypeSeq;
     typedef T_MethodsList MethodsList;
     typedef T_Flags FlagsList;
-    typedef ParticleDescription<ValueTypeSeq, MethodsList, FlagsList> ThisType;
+    typedef ParticleDescription<Name, SuperCellSize, ValueTypeSeq, MethodsList, FlagsList> ThisType;
+
 };
+
+template<typename T_OldParticleDescription,typename T_NewValueTypeSeq>
+struct ReplaceValueTypeSeq
+{
+    typedef T_OldParticleDescription OldParticleDescription;
+    typedef ParticleDescription<
+        typename OldParticleDescription::Name, 
+        typename OldParticleDescription::SuperCellSize, 
+        T_NewValueTypeSeq, 
+        typename OldParticleDescription::MethodsList, 
+        typename OldParticleDescription::FlagsList> type;
+};
+
 
 } //namespace PMacc

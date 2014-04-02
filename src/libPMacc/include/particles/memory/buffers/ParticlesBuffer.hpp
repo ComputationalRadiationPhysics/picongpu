@@ -103,23 +103,16 @@ public:
     localCellIdx
     >::type border_particleList;
 
-    typedef ParticleDescription<
-    typename T_ParticleDescription::Name,
-    full_particleList,
-    typename T_ParticleDescription::MethodsList,
-    typename T_ParticleDescription::FlagsList
-    > ParticleDescriptionDefault;
+    typedef 
+    typename ReplaceValueTypeSeq<T_ParticleDescription,full_particleList>::type 
+    ParticleDescriptionDefault;
 
     typedef Frame<
     OperatorCreatePairStaticArrayWithSuperCellSize, ParticleDescriptionDefault> ParticleType;
-
-
-    typedef ParticleDescription<
-    typename T_ParticleDescription::Name,
-    border_particleList,
-    typename T_ParticleDescription::MethodsList,
-    typename T_ParticleDescription::FlagsList
-    > ParticleDescriptionBorder;
+    
+    typedef 
+    typename ReplaceValueTypeSeq<T_ParticleDescription,border_particleList>::type 
+    ParticleDescriptionBorder;
 
     typedef Frame<OperatorCreatePairStaticArrayOneElement, ParticleDescriptionBorder> ParticleTypeBorder;
 

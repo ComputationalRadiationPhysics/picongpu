@@ -74,6 +74,7 @@ public InheritLinearly<typename T_ParticleDescription::MethodsList>,
 {
     typedef T_ParticleDescription ParticleDescription;
     typedef typename ParticleDescription::Name Name;
+    typedef typename ParticleDescription::SuperCellSize SuperCellSize;
     typedef typename ParticleDescription::ValueTypeSeq ValueTypeSeq;
     typedef typename ParticleDescription::MethodsList MethodsList;
     typedef typename ParticleDescription::FlagsList FlagList;
