@@ -91,7 +91,7 @@ namespace gol
             const Space block(mapper.getSuperCellIndex(Space(blockIdx)));
             //convert position in unit of cells
             const Space blockCell = block * Mapping::SuperCellSize();
-            //convert CUDA dim3 to DataSpace<DIM3> (useless calculation time ???)
+            //convert CUDA dim3 to DataSpace<DIM3>
             const Space threadIndex(threadIdx);
             const uint32_t cellIdx = DataSpaceOperations<DIM2>::map(
                     mapper.getGridSuperCells() * Mapping::SuperCellSize(),
