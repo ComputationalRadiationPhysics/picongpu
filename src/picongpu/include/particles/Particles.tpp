@@ -27,6 +27,9 @@
 
 #include "particles/Particles.kernel"
 
+// Ionization
+#include "particles/ionization/ionization.hpp"
+
 #include "dataManagement/DataConnector.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
 
@@ -170,7 +173,8 @@ void Particles<T_ParticleDescription>::update(uint32_t )
           FrameSolver( )
           );
 
-
+    /* shift particles - WHERE TO? HOW?
+     * fill the gaps in the simulation - WITH WHAT? */
     ParticlesBaseType::template shiftParticles < CORE + BORDER > ( );
     this->fillAllGaps( );
 

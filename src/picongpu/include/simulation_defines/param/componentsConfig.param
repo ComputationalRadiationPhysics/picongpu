@@ -88,6 +88,15 @@ namespace particlePusher = particlePusherBoris;
 /*enable (1) or disable (0) electrons*/
 #define ENABLE_ELECTRONS 1
 
+///* Ionization Model Configuration ----------------------------------------
+// * 
+// * For development purposes: ---------------------------------------------
+// * - particleIonizerNone : no particle is ionized
+// */
+//namespace particleIonizer = particleIonizerNone;
+///*enable (1) or disable (0) ionization*/
+//#define ENABLE_IONIZATION 1
+
 /** select current solver method -----------------------------------------
  *  - currentSolverEsirkepov: particle shapes - CIC, TSC, PCS (1st to 3rd order)
  *  - currentSolverVillaBune: particle shapes - CIC (1st order) only

@@ -12,7 +12,7 @@
 #include <iostream>
 
 #include "simulation_defines.hpp"
-#include "Particles.hpp"
+#include "particles/Particles.hpp"
 #include <cassert>
 
 
@@ -26,7 +26,7 @@
 #include "fields/FieldJ.hpp"
 
 #include "particles/memory/buffers/ParticlesBuffer.hpp"
-#include "ParticlesInit.kernel"
+#include "particles/ParticlesInit.kernel"
 #include "mappings/simulation/GridController.hpp"
 
 #include "simulationControl/MovingWindow.hpp"
@@ -56,9 +56,6 @@
 #include "mappings/threads/ThreadCollective.hpp"
 
 #include "plugins/radiation/parameters.hpp"
-#if(ENABLE_RADIATION == 1)
-#include "plugins/radiation/particles/PushExtension.hpp"
-#endif
 
 #include "nvidia/rng/RNG.hpp"
 #include "nvidia/rng/methods/Xor.hpp"
@@ -75,75 +72,91 @@ namespace picongpu
     
 using namespace PMacc;
 
-/* UPDATE */
+    
 
-template< typename T_DataVector, typename T_MethodsVector>
-void Particles<T_DataVector,T_MethodsVector>::update( uint32_t )
+/* IONIZE PER FRAME (formerly PUSH PER FRAME from Particles.kernel) */
+
+template<class IonizeAlgo, class TVec, class NumericalCellType>
+struct IonizeParticlePerFrame
 {
-    /* particle pusher - to be replaced with ionization routine */
-    typedef particlePusher::ParticlePusher ParticlePush;
-    
-    /* margins around the supercell for the interpolation of the field on the cells */
-    typedef typename GetMargin<fieldSolver::FieldToParticleInterpolation>::LowerMargin LowerMargin;
-    typedef typename GetMargin<fieldSolver::FieldToParticleInterpolation>::UpperMargin UpperMargin;
-    
-    /* frame solver that moves over the frames with the particles and executes an operation on them */
-    typedef PushParticlePerFrame<ParticlePush, MappingDesc::SuperCellSize,
-        fieldSolver::NumericalCellType > FrameSolver;
-    
-    /* relevant area of a block */
-    typedef SuperCellDescription<
-        typename MappingDesc::SuperCellSize,
-        typename toTVec<LowerMargin>::type,
-        typename toTVec<UpperMargin>::type
-        > BlockArea;
 
-    /* 3-dim vector : number of threads to be started in every dimension */
-    dim3 block( MappingDesc::SuperCellSize::getDataSpace( ) );
+    template<class FrameType, class BoxB, class BoxE >
+    DINLINE void operator()(FrameType& frame, int localIdx, BoxB& bBox, BoxE& eBox, int& mustShift)
+    {
 
-    /* kernel call : instead of name<<<blocks, threads>>> (args, ...) 
-       "blocks" will be calculated from "this->cellDescription" and "CORE + BORDER" 
-       "threads" is calculated from the previously defined vector "block" */
-    __picKernelArea( kernelMoveAndMarkParticles<BlockArea>, this->cellDescription, CORE + BORDER )
-        (block)
-        ( this->getDeviceParticlesBox( ),
-          this->fieldE->getDeviceDataBox( ),
-          this->fieldB->getDeviceDataBox( ),
-          FrameSolver( )
-          );
+        typedef TVec Block;
 
-    /* shift particles - WHERE TO? HOW?
-     * fill the gaps in the simulation - WITH WHAT? */
-    ParticlesBaseType::template shiftParticles < CORE + BORDER > ( );
-    this->fillAllGaps( );
+        typedef typename BoxB::ValueType BType;
+        typedef typename BoxE::ValueType EType;
 
-}
+        PMACC_AUTO(particle,frame[localIdx]);
+        const float_X weighting = particle[weighting_];
 
-/* MOVE AND MARK */
+        float3_X pos = particle[position_];
+        const int particleCellIdx = particle[localCellIdx_];
+
+        DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec > (particleCellIdx));
+
+       
+        EType eField = fieldSolver::FieldToParticleInterpolation()
+            (eBox.shift(localCell).toCursor(), pos, NumericalCellType::getEFieldPosition());
+        BType bField = fieldSolver::FieldToParticleInterpolation()
+            (bBox.shift(localCell).toCursor(), pos,NumericalCellType::getBFieldPosition());
+
+        float3_X mom = particle[momentum_];
+        const float_X mass = frame.getMass(weighting);
+
+        IonizeAlgo ionizer;
+        ionizer(
+             bField, eField,
+             pos,
+             mom,
+             mass,
+             frame.getCharge(weighting)
+             );
+        
+        particle[momentum_] = mom;
+
+
+        particle[position_] = pos;
+
+        /*calculate one dimensional cell index*/
+        particle[localCellIdx_] = DataSpaceOperations<TVec::dim>::template map<TVec > (localCell);
+
+
+        //particle[multiMask_] = direction;
+
+    }
+};
+
+/* MARK PARTICLE (formerly MOVE AND MARK from Particles.kernel) */
 
 template<class BlockDescription_, class ParBox, class BBox, class EBox, class Mapping, class FrameSolver>
-__global__ void kernelMoveAndMarkParticles(ParBox pb,
-                                           EBox fieldE,
-                                           BBox fieldB,
-                                           FrameSolver frameSolver,
-                                           Mapping mapper)
+__global__ void kernelIonizeParticles(ParBox pb,
+                                      EBox fieldE,
+                                      BBox fieldB,
+                                      FrameSolver frameSolver,
+                                      Mapping mapper)
 {
     /* definitions for domain variables, like indices of blocks and threads
      *  
      * conversion from block to linear frames */
     typedef typename BlockDescription_::SuperCellSize SuperCellSize;
+    /* "offset" 3D distance to origin in units of super cells */
     const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
 
-
+    /* 3D vector from origin of the block to a cell in units of cells */
     const DataSpace<simDim > threadIndex(threadIdx);
+    /* conversion from a 3D cell coordinate to a linear coordinate of the cell in its super cell */
     const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
 
-
+    /* "offset" from origin of the grid in unit of cells */
     const DataSpace<simDim> blockCell = block * SuperCellSize::getDataSpace();
 
     __syncthreads();
 
-
+    /* "particle box" : container/iterator where the particles live in 
+     * and where one can get the frame in a super cell from */
     __shared__ typename ParBox::FrameType *frame;
     __shared__ bool isValid;
     __shared__ int mustShift;
@@ -151,6 +164,8 @@ __global__ void kernelMoveAndMarkParticles(ParBox pb,
 
     __syncthreads(); /*wait that all shared memory is initialized*/
 
+    /* find last frame in super cell 
+     * define particlesInSuperCell as the number of particles in that frame */
     if (linearThreadIdx == 0)
     {
         mustShift = 0;
@@ -162,9 +177,10 @@ __global__ void kernelMoveAndMarkParticles(ParBox pb,
     if (!isValid)
         return; //end kernel if we have no frames
 
+    /* caching of E and B fields */
     PMACC_AUTO(cachedB, CachedBox::create < 0, typename BBox::ValueType > (BlockDescription_()));
     PMACC_AUTO(fieldBBlock, fieldB.shift(blockCell));
-
+    
     nvidia::functors::Assign assign;
     ThreadCollective<BlockDescription_> collectiv(linearThreadIdx);
     collectiv(
@@ -181,11 +197,16 @@ __global__ void kernelMoveAndMarkParticles(ParBox pb,
               );
     __syncthreads();
 
-    /* move over frames and call frame solver*/
+    /* move over frames and call frame solver 
+     * frames are worked on in backwards order to avoid asking about if their is another frame
+     * --> performance 
+     * because all frames are completely filled except the last and apart from that last frame 
+     * one wants to make sure that all threads are working and every frame is worked on */
     while (isValid)
     {
         if (linearThreadIdx < particlesInSuperCell)
         {
+            /* actual operation on the particles */
             frameSolver(*frame, linearThreadIdx, cachedB, cachedE, mustShift);
         }
         __syncthreads();
@@ -204,12 +225,15 @@ __global__ void kernelMoveAndMarkParticles(ParBox pb,
     }
 
 }
-
-    /* PARTICLE PUSHER */
-    namespace particlePusherFree
+    
+/* IONIZE (former UPDATE from Particles.tpp) */
+#include "algorithms/Gamma.hpp"
+#include "algorithms/Velocity.hpp"
+//hard code
+namespace particleIonizerNone
     {
         template<class Velocity, class Gamma>
-        struct Push
+        struct Ionize
         {
 
             template<typename EType, typename BType, typename PosType, typename MomType, typename MassType, typename ChargeType >
@@ -221,27 +245,63 @@ __global__ void kernelMoveAndMarkParticles(ParBox pb,
                                                         const MassType mass,
                                                         const ChargeType charge)
             {
-
-                Velocity velocity;
-                const PosType vel = velocity(mom, mass);
-
-                /* IMPORTANT: 
-                 * use float_X(1.0)+X-float_X(1.0) because the rounding of float_X can create position from [-float_X(1.0),2.f],
-                 * this breaks ower definition that after position change (if statements later) the position must [float_X(0.0),float_X(1.0))
-                 * 1.e-9+float_X(1.0) = float_X(1.0) (this is not allowed!!!
-                 * 
-                 * If we don't use this fermi crash in this kernel in the time step n+1 in field interpolation
-                 */
-                pos.x() += float_X(1.0) + (vel.x() * DELTA_T / CELL_WIDTH);
-                pos.y() += float_X(1.0) + (vel.y() * DELTA_T / CELL_HEIGHT);
-                pos.z() += float_X(1.0) + (vel.z() * DELTA_T / CELL_DEPTH);
-
-                pos.x() -= float_X(1.0);
-                pos.y() -= float_X(1.0);
-                pos.z() -= float_X(1.0);
-
+                int firstIndex = blockIdx.x * blockIdx.y * blockIdx.z * threadIdx.x * threadIdx.y * threadIdx.z;
+                if (firstIndex == 0)
+                {
+                    printf("Hello I am the Kernel!");
+                }
             }
         };
-    } //namespace
+    
+        typedef Ionize<Velocity, Gamma<> > ParticleIonizer;
+    }
+
+namespace particleIonizer = particleIonizerNone;
+
+//end hard code
+
+template< typename T_DataVector, typename T_MethodsVector>
+void Particles<T_DataVector,T_MethodsVector>::ionize( uint32_t )
+{
+    /* particle ionization routine */
+    
+    typedef particleIonizer::ParticleIonizer ParticleIonize;
+    
+    /* margins around the supercell for the interpolation of the field on the cells */
+    typedef typename GetMargin<fieldSolver::FieldToParticleInterpolation>::LowerMargin LowerMargin;
+    typedef typename GetMargin<fieldSolver::FieldToParticleInterpolation>::UpperMargin UpperMargin;
+    
+    /* frame solver that moves over the frames with the particles and executes an operation on them */
+    typedef IonizeParticlePerFrame<ParticleIonize, MappingDesc::SuperCellSize,
+        fieldSolver::NumericalCellType > FrameSolver;
+    
+    /* relevant area of a block */
+    typedef SuperCellDescription<
+        typename MappingDesc::SuperCellSize,
+        typename toTVec<LowerMargin>::type,
+        typename toTVec<UpperMargin>::type
+        > BlockArea;
+
+    /* 3-dim vector : number of threads to be started in every dimension */
+    dim3 block( MappingDesc::SuperCellSize::getDataSpace( ) );
+
+    /* kernel call : instead of name<<<blocks, threads>>> (args, ...) 
+       "blocks" will be calculated from "this->cellDescription" and "CORE + BORDER" 
+       "threads" is calculated from the previously defined vector "block" */
+    printf("Call the Colonel!\n");
+    __picKernelArea( kernelIonizeParticles<BlockArea>, this->cellDescription, CORE + BORDER )
+        (block)
+        ( this->getDeviceParticlesBox( ),
+          this->fieldE->getDeviceDataBox( ),
+          this->fieldB->getDeviceDataBox( ),
+          FrameSolver( )
+          );
+
+    /* shift particles - WHERE TO? HOW?
+     * fill the gaps in the simulation - WITH WHAT? */
+    ParticlesBaseType::template shiftParticles < CORE + BORDER > ( );
+    this->fillAllGaps( );
+    
+}
 
 }

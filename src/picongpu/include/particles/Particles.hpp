@@ -74,6 +74,9 @@ public:
     void synchronize();
 
     void syncToDevice();
+    
+    //Ionization
+    void ionize(uint32_t currentStep);
 
 private:
     SimulationDataId datasetID;

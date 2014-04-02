@@ -1,0 +1,25 @@
+/* 
+ * File:   ionizerConfig.unitless
+ * Author: garten70
+ *
+ * Created on March 24, 2014, 2:17 PM
+ */
+
+#pragma once
+
+#include "algorithms/Gamma.hpp"
+#include "algorithms/Velocity.hpp"
+
+
+#include "particles/ionization/ionizer/particleIonizerNone.hpp"
+
+namespace picongpu
+{
+    namespace particleIonizerNone
+    {
+        typedef Ionize<Velocity, Gamma<> > ParticleIonizer;
+    }
+
+
+}
+

@@ -357,7 +357,13 @@ public:
                        currentStep, fieldBackgroundE::InfluenceParticlePusher);
         (*pushBGField)(fieldB, nvfct::Add(), fieldBackgroundB(fieldB->getUnit()),
                        currentStep, fieldBackgroundB::InfluenceParticlePusher);
-
+/* Ionization */
+//#if (ENABLE_IONS == 1) && (ENABLE_ELECTRONS == 1) && (ENABLE_IONIZATION == 1)  
+#if (ENABLE_IONS == 1)        
+        std::cout << "Begin Ionization of Ions" << std::endl;
+        ions->ionize(currentStep);
+        std::cout << "End Ionization of Ions" << std::endl;
+#endif  
 #if (ENABLE_IONS == 1)
         __startTransaction(__getTransactionEvent());
         //std::cout << "Begin update Ions" << std::endl;
