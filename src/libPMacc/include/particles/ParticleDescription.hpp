@@ -35,6 +35,7 @@ namespace PMacc
  *
  * @tparam T_Name name of discribed particle (e.g. electron, ion)
  *                type must be a boost::mpl::string
+ * @tparam T_SuperCellSize compile time size of a super cell
  * @tparam T_ValueTypeSeq sequence with value_identifier
  * @tparam T_MethodsList sequence of classes with particle methods 
  *                       (e.g. calculate mass, gamma, ...)
