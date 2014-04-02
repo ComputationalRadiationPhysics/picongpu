@@ -297,8 +297,8 @@ private:
                 enableDetector = true;
 
             realNumBins = numBins + 2;
-            minEnergy = minEnergy * UNITCONV_keV_to_Joule / UNIT_ENERGY;
-            maxEnergy = maxEnergy * UNITCONV_keV_to_Joule / UNIT_ENERGY;
+            minEnergy = minEnergy * UNITCONV_keV_to_Joule * UNIT_ENERGY;
+            maxEnergy = maxEnergy * UNITCONV_keV_to_Joule * UNIT_ENERGY;
 
             //create an array of double on gpu und host
             gBins = new GridBuffer<double, DIM1 > (DataSpace<DIM1 > (realNumBins));
