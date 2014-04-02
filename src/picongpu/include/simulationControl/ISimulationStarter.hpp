@@ -54,6 +54,11 @@ namespace picongpu
          * is called after parsConfig and pluginLoad
          */
         virtual void start() = 0;
+        
+        virtual void restart(uint32_t)
+        {
+            // nothing to do here
+        }
     };
 }
 

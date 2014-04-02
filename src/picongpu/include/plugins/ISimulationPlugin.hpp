@@ -38,6 +38,11 @@ namespace picongpu
     {
     public:
         virtual void setMappingDescription(MappingDesc *cellDescription) = 0;
+        
+        void restart(uint32_t)
+        {
+            // override to enable restart capabilities
+        }
 
         virtual ~ISimulationPlugin()
         {

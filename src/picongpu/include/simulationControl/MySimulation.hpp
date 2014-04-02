@@ -76,12 +76,19 @@ class MySimulation : public SimulationHelper<simDim>
 public:
 
     /**
-     * Constructor.
-     *
-     * @param globalGridSize DataSpace describing the initial global grid size for the whole simulation
-     * @param gpus DataSpace describing the grid of available GPU devices
+     * Constructor
      */
-    MySimulation() : laser(NULL), fieldB(NULL), fieldE(NULL), fieldJ(NULL), fieldTmp(NULL), cellDescription(NULL), initialiserController(NULL), slidingWindow(false)
+    MySimulation() : 
+    laser(NULL), 
+    fieldB(NULL),
+    fieldE(NULL),
+    fieldJ(NULL),
+    fieldTmp(NULL),
+    cellDescription(NULL),
+    initialiserController(NULL),
+    slidingWindow(false),
+    restartStep(0),
+    restartRequested(false)
     {
 #if (ENABLE_IONS == 1)
         ions = NULL;
@@ -112,7 +119,9 @@ public:
             ("periodic", po::value<std::vector<uint32_t> > (&periodic)->multitoken(),
              "specifying whether the grid is periodic (1) or not (0) in each dimension, default: no periodic dimensions")
 
-            ("moving,m", po::value<bool>(&slidingWindow)->zero_tokens(), "enable sliding/moving window");
+            ("moving,m", po::value<bool>(&slidingWindow)->zero_tokens(), "enable sliding/moving window")
+            ("restart", po::value<bool>(&restartRequested)->zero_tokens(), "Restart simulation")
+            ("restart-step", po::value<uint32_t>(&restartStep), "Iteration to restart from");
     }
 
     std::string pluginGetName() const
@@ -122,8 +131,6 @@ public:
 
     virtual void pluginLoad()
     {
-
-
         //fill periodic with 0
         while (periodic.size() < 3)
             periodic.push_back(0);
@@ -315,13 +322,24 @@ public:
 #if (ENABLE_IONS == 1)
         ions->init(*fieldE, *fieldB, *fieldJ, *fieldTmp);
 #endif      
-        //disabled because of a transaction system bug
+
         Environment<>::get().StreamController().addStreams(6);
 
         uint32_t step = 0;
 
         if (initialiserController)
-            step = initialiserController->init();
+        {
+            initialiserController->printInformation();
+            if (restartRequested)
+            {
+                initialiserController->restart(restartStep);
+                step = restartStep + 1;
+            }
+            else
+            {
+                initialiserController->init();
+            }
+        }
 
 
         Environment<>::get().EnvMemoryInfo().getMemoryInfo(&freeGpuMem);
@@ -338,9 +356,6 @@ public:
 
     virtual ~MySimulation()
     {
-
-
-
     }
 
     /**
@@ -524,6 +539,8 @@ protected:
     std::vector<std::string> gridDistribution;
 
     bool slidingWindow;
+    uint32_t restartStep;
+    bool restartRequested;
 
 };
 }

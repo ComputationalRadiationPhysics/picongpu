@@ -139,6 +139,15 @@ namespace PMacc
                 }
             }
         }
+        
+        void restartPlugins(uint32_t restartStep)
+        {
+            for (std::list<IPlugin*>::iterator iter = plugins.begin();
+                    iter != plugins.end(); ++iter)
+            {
+                (*iter)->restart(restartStep);
+            }
+        }
 
     private:
         

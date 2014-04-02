@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2014 Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -35,7 +35,8 @@ namespace picongpu
     {
     public:
         virtual void slide(uint32_t currentStep) = 0;
-        virtual uint32_t init() = 0;
+        virtual void init() = 0;
+        virtual void printInformation() = 0;
 
         virtual ~IInitPlugin()
         {
