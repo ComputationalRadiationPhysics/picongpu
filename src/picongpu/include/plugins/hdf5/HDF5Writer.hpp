@@ -65,10 +65,9 @@
 #include "RefWrapper.hpp"
 #include <boost/type_traits.hpp>
 
-
 #include "plugins/hdf5/WriteSpecies.hpp"
 #include "plugins/hdf5/restart/RestartFieldLoader.hpp"
-#include "restart/RestartParticleLoader.hpp"
+#include "plugins/hdf5/restart/RestartParticleLoader.hpp"
 
 namespace picongpu
 {
@@ -86,10 +85,6 @@ namespace po = boost::program_options;
 /**
  * Writes simulation data to hdf5 files using libSplash.
  * Implements the ISimulationPlugin interface.
- *
- * @param ElectronsBuffer class description for electrons
- * @param IonsBuffer class description for ions
- * @param simDim dimension of the simulation (2-3)
  */
 class HDF5Writer : public ISimulationPlugin
 {
@@ -113,8 +108,10 @@ private:
         return tmp;
     }
 
-    /** Write calculated fields to HDF5 file.
+    /** 
+     * Write calculated fields to HDF5 file.
      *
+     * @tparam T field class
      */
     template< typename T >
     struct GetDCFields
@@ -160,6 +157,9 @@ private:
      * and write them to hdf5.
      *
      * FieldTmp is calculated on device and than dumped to HDF5.
+     * 
+     * @tparam Solver solver class for species
+     * @tparam Species species/particles class
      */
     template< typename Solver, typename Species >
     struct GetDCFields<FieldTmpOperation<Solver, Species> >
@@ -245,7 +245,11 @@ private:
 
     };
     
-    
+    /**
+     * Load field from HDF5 file
+     * 
+     * @tparam FieldType field class to load
+     */
     template< typename FieldType >
     struct LoadFields
     {
@@ -260,6 +264,7 @@ private:
             /* load field without copying data to host */
             FieldType* field = &(dc.getData<FieldType > (FieldType::getName(), true));
 
+            /* load from HDF5 */
             RestartFieldLoader::loadField(
                     field->getGridBuffer(),
                     FieldType::getName(),
@@ -272,6 +277,11 @@ private:
 
     };
     
+    /**
+     * Load particles from HDF5 file
+     * 
+     * @tparam ParticleType particle class to load
+     */
     template< typename ParticleType >
     struct LoadParticles
     {
@@ -286,6 +296,7 @@ private:
             /* load species without copying data to host */
             ParticleType* particles = &(dc.getData<ParticleType >(ParticleType::FrameType::getName(), true));
             
+            /* setup domain information for HDF5 file access */
             VirtualWindow window = MovingWindow::getInstance().getVirtualWindow(tp->currentStep);
             DataSpace<simDim> globalDomainOffset(gridPosition);
             DataSpace<simDim> logicalToPhysicalOffset(gridPosition - window.globalSimulationOffset);
@@ -296,6 +307,7 @@ private:
 
             DataSpace<simDim> localDomainSize(window.localSize);
 
+            /* load particle data */
             RestartParticleLoader<ParticleType>::loadParticles(
                     tp->currentStep,
                     *(tp->dataCollector),
@@ -305,6 +317,7 @@ private:
                     localDomainSize,
                     logicalToPhysicalOffset);
             
+            /* load ghost data if moving window is activated */
             if (MovingWindow::getInstance().isSlidingWindowActive())
             {
                 globalDomainOffset = gridPosition;

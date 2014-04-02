@@ -40,6 +40,9 @@ namespace picongpu
 namespace hdf5
 {
 
+/**
+ * Helper class for HDF5Writer plugin to load fields from parallel libSplash files.
+ */
 class RestartFieldLoader
 {
 public:

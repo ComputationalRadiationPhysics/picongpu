@@ -31,11 +31,6 @@
 #include "fields/FieldE.hpp"
 #include "fields/FieldB.hpp"
 
-
-#if (ENABLE_HDF5==1)
-#include "initialization/SimRestartInitialiser.hpp"
-#endif
-
 #include "initialization/SimStartInitialiser.hpp"
 #include "particles/Species.hpp"
 
@@ -64,7 +59,7 @@ public:
     }
 
     /**
-     * Initializes simulation state.
+     * Initialize simulation state at timestep 0
      */
     virtual void init()
     {
@@ -79,7 +74,7 @@ public:
     }
     
     /**
-     * Loads simulation state.
+     * Load persistent simulation state from \p restartStep
      */
     virtual void restart(uint32_t restartStep)
     {
@@ -94,7 +89,7 @@ public:
     }
 
     /**
-     * Print interesting initialization information.
+     * Print interesting initialization information
      */
     virtual void printInformation()
     {
@@ -138,9 +133,11 @@ public:
             const bool restartImpossible = (boost::is_same<itFindFieldE, itEnd>::value)
                                         || (boost::is_same<itFindFieldB, itEnd>::value);
             if( restartImpossible )
+            {
                 std::cout << "WARNING: HDF5 restart impossible! (dump at least "
                           << "FieldE and FieldB in hdf5Output.unitless)"
                           << std::endl;
+            }
 #endif
         }
     }
