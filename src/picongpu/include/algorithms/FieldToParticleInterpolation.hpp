@@ -43,7 +43,7 @@ namespace picongpu
 template<class T_Shape, class InterpolationMethod>
 struct FieldToParticleInterpolation
 {
-    typedef typename T_Shape::ChargeAssignment AssignmentFunction;
+    typedef typename T_Shape::ChargeAssignmentOnSupport AssignmentFunction;
     static const int supp = AssignmentFunction::support;
 
     static const int lowerMargin = supp / 2;
