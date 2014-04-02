@@ -110,6 +110,10 @@ if(Splash_ROOT_DIR)
 
     # require hdf5 ############################################################
     #
+    # disabled: Some libraries like libdl are also included by MPI and would
+    #           be linked once static once dynamic. Upgrading MPI to static
+    #           binding is too intrusive so we stay with only libSplash static
+    #           and everything else "default".
     #if(Splash_USE_STATIC_LIBS)
     #    set(HDF5_USE_STATIC_LIBRARIES ON)
     #endif()
