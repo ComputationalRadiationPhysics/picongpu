@@ -29,6 +29,7 @@
 namespace picongpu
 {
 
+template<uint32_t T_support>
 struct ShiftCoordinateSystem
 {
 
@@ -44,7 +45,7 @@ struct ShiftCoordinateSystem
     {
         floatD_X coordinate_shift;
 
-        if (speciesParticleShape::ParticleShape::support % 2 == 0)
+        if (T_support % 2 == 0)
         {
             //even support
 
