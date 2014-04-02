@@ -297,6 +297,11 @@ private:
                 enableDetector = true;
 
             realNumBins = numBins + 2;
+	    /* store energy values [keV] for output file */
+            const float_X minEnergy_keV = minEnergy;
+            const float_X maxEnergy_keV = maxEnergy;
+
+	    /* convert energy values from keV to PIConGPU units */
             minEnergy = minEnergy * UNITCONV_keV_to_Joule / UNIT_ENERGY;
             maxEnergy = maxEnergy * UNITCONV_keV_to_Joule / UNIT_ENERGY;
 
@@ -317,14 +322,14 @@ private:
                     writeToFile = false;
                 }
                 //create header of the file
-                outFile << "#step <" << minEnergy << " ";
-                float_X binEnergy = (maxEnergy - minEnergy) * UNITCONV_Joule_to_keV * UNIT_ENERGY / (float) numBins;
+                outFile << "#step <" << minEnergy_keV << " ";
+                float_X binEnergy = (maxEnergy_keV - minEnergy_keV) / (float) numBins;
                 for (int i = 1; i < realNumBins - 1; ++i)
                 {
 
-                    outFile << minEnergy + ((float) i * binEnergy) << " ";
+                    outFile << minEnergy_keV + ((float) i * binEnergy) << " ";
                 }
-                outFile << ">" << maxEnergy << " count" << std::endl;
+                outFile << ">" << maxEnergy_keV << " count" << std::endl;
             }
 
             Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
