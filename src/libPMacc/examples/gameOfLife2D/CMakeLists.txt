@@ -118,8 +118,6 @@ ADD_DEFINITIONS(-DPMACC_VERBOSE_LVL=${PMACC_VERBOSE})
 ################################################################################
 
 # find PNGwriter installation
-# prefer static libraries over shared ones (but do not force them)
-set(PNGwriter_USE_STATIC_LIBS ON)
 find_package(PNGwriter REQUIRED)
 
 if(PNGwriter_FOUND)
