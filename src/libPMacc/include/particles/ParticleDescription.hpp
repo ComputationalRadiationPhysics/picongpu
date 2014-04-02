@@ -31,9 +31,11 @@ namespace PMacc
 
 /** ParticleDescription defines attributes, methods and flags of a particle
  * 
- * This type holds no runtime data, this is only to describe all elements of a particle
+ * This class holds no runtime data.
+ * The class holds information about the name, attributes, flags and methods of a
+ * particle.
  *
- * @tparam T_Name name of discriped particle (e.g. electron, ion)
+ * @tparam T_Name name of discribed particle (e.g. electron, ion)
  *                type must be a boost::mpl::string
  * @tparam T_ValueTypeSeq sequence with value_identifier
  * @tparam T_MethodsList sequence of classes with particle methods 
