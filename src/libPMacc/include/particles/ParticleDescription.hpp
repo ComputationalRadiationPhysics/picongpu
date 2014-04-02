@@ -23,6 +23,7 @@
 #pragma once
 
 #include <boost/mpl/vector.hpp>
+#include "compileTime/conversion/ToSeq.hpp"
 
 namespace PMacc
 {
@@ -36,26 +37,27 @@ namespace PMacc
  * @tparam T_Name name of discribed particle (e.g. electron, ion)
  *                type must be a boost::mpl::string
  * @tparam T_SuperCellSize compile time size of a super cell
- * @tparam T_ValueTypeSeq sequence with value_identifier
- * @tparam T_MethodsList sequence of classes with particle methods 
- *                       (e.g. calculate mass, gamma, ...)
- * @tparam T_Flags sequence with idenifierer to add fags on a frame 
- *                 (e.g. useSolverXY, calcRadiation, ...) 
+ * @tparam T_ValueTypeSeq sequence or single type with value_identifier
+ * @tparam T_Flags sequence or single type with idenifierer to add fags on a frame
+ * @tparam T_MethodsList sequence or single class with particle methods 
+ *                       (e.g. calculate mass, gamma, ...) 
+ *                       (e.g. useSolverXY, calcRadiation, ...) 
  */
 template<
 typename T_Name,
 typename T_SuperCellSize,
 typename T_ValueTypeSeq,
-typename T_MethodsList = bmpl::vector0<>,
-typename T_Flags = bmpl::vector0<> >
+typename T_Flags = bmpl::vector0<>,
+typename T_MethodsList = bmpl::vector0<> 
+>
 struct ParticleDescription
 {
     typedef T_Name Name;
     typedef T_SuperCellSize SuperCellSize;
-    typedef T_ValueTypeSeq ValueTypeSeq;
-    typedef T_MethodsList MethodsList;
-    typedef T_Flags FlagsList;
-    typedef ParticleDescription<Name, SuperCellSize, ValueTypeSeq, MethodsList, FlagsList> ThisType;
+    typedef typename ToSeq<T_ValueTypeSeq>::type ValueTypeSeq;
+    typedef typename ToSeq<T_MethodsList>::type MethodsList;
+    typedef typename ToSeq<T_Flags>::type FlagsList;
+    typedef ParticleDescription<Name, SuperCellSize, ValueTypeSeq, FlagsList, MethodsList> ThisType;
 
 };
 
@@ -73,9 +75,10 @@ struct ReplaceValueTypeSeq
     typedef ParticleDescription<
         typename OldParticleDescription::Name, 
         typename OldParticleDescription::SuperCellSize, 
-        T_NewValueTypeSeq, 
-        typename OldParticleDescription::MethodsList, 
-        typename OldParticleDescription::FlagsList> type;
+        typename ToSeq<T_NewValueTypeSeq>::type, 
+        typename OldParticleDescription::FlagsList,
+        typename OldParticleDescription::MethodsList
+    > type;
 };
 
 
