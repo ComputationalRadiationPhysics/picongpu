@@ -28,22 +28,17 @@ namespace PMacc
 namespace traits
 {
 
-/** Checks if a Objects has an flag
+/** Get Flag
  * 
  * @tparam T_Object any object (class or typename)
  * @tparam T_Key a class which is used as identifier
  * 
  * This struct must define 
- * ::type (boost::bool_<>)
+ * ::type
  */
 template<typename T_Object, typename T_Key>
 struct GetFlagType;
 
-template<typename T_Object, typename T_Key>
-static bool getFlagType(const T_Object& obj,const T_Key& key)
-{
-    return GetFlagType<T_Object,T_Key>::type::value;
-}
 
 }//namespace traits
 
