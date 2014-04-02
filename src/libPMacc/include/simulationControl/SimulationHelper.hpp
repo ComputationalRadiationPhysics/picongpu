@@ -147,25 +147,25 @@ public:
         uint32_t currentStep = init();
         tInit.toggleEnd();
 
-
         TimeIntervall tSimCalculation;
         TimeIntervall tRound;
         double roundAvg = 0.0;
 
-        /*dump initial step if simulation start without restart*/
-        if (currentStep == 0)
-            dumpOneStep(currentStep);
+        /* dump initial step if simulation starts without restart */
+        if (currentStep == 0) {
+         //   dumpOneStep(currentStep);
+        }
         else
             currentStep--; //we dump before calculation, thus we must go on step back if we do a restart
+        
+        dumpOneStep(currentStep);
 
         movingWindowCheck(currentStep); //if we restart at any step check if we must slide
 
-        /*dum 0% output*/
+        /* dump 0% output */
         dumpTimes(tSimCalculation,tRound,roundAvg,currentStep);
         while (currentStep < runSteps)
         {
-
-
             tRound.toggleStart();
             runOneStep(currentStep);
             tRound.toggleEnd();
@@ -190,9 +190,7 @@ public:
             std::cout << "calculation  simulation time: " <<
                 tSimCalculation.printInterval() << " = " <<
                 (int) (tSimCalculation.getInterval() / 1000.) << " sec" << std::endl;
-
         }
-
 
     }
 
@@ -209,14 +207,18 @@ public:
         return "SimulationHelper";
     }
 
-    virtual void pluginLoad()
+    void pluginLoad()
     {
         calcProgress();
 
         output = (getGridController().getGlobalRank() == 0);
     }
 
-    virtual void pluginUnload()
+    void pluginUnload()
+    {
+    }
+    
+    void restart(uint32_t)
     {
     }
 
@@ -233,18 +235,13 @@ private:
      */
     void calcProgress()
     {
-        if (progress == 0)
+        if (progress == 0 || progress > 100)
             progress = 100;
-        else
-            if (progress > 100)
-            progress = 100;
+
         showProgressAnyStep = (uint32_t) ((double) runSteps / 100. * (double) progress);
         if (showProgressAnyStep == 0)
             showProgressAnyStep = 1;
     }
-
-    //! how often calculated data will be dumped (picture or other format)
-    uint32_t dumpAnyStep;
 
     bool output;
 

@@ -356,9 +356,6 @@ public:
 
     virtual ~MySimulation()
     {
-
-
-
     }
 
     /**

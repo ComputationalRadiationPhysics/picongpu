@@ -69,11 +69,13 @@ public:
     virtual void init()
     {
         // start simulation using default values
+        log<picLog::SIMULATION_STATE > ("Starting simulation from timestep 0");
+        
         SimStartInitialiser<PIC_Electrons, PIC_Ions> simStartInitialiser;
         Environment<>::get().DataConnector().initialise(simStartInitialiser, 0);
         __getTransactionEvent().waitForFinished();
 
-        log<picLog::SIMULATION_STATE > ("Loading from default values finished, can start program");
+        log<picLog::SIMULATION_STATE > ("Loading from default values finished");
     }
     
     /**
@@ -83,14 +85,12 @@ public:
     {
         // restart simulation by loading from persistent data
         // the simulation will start after restartStep
-        SimRestartInitialiser<PIC_Electrons, PIC_Ions, simDim> simRestartInitialiser(
-            restartFile.c_str(), cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
-
-        Environment<>::get().DataConnector().initialise(simRestartInitialiser, 0);
-        __getTransactionEvent().waitForFinished();
+        log<picLog::SIMULATION_STATE > ("Restarting simulation from timestep %1%") % restartStep;
+        
         Environment<>::get().PluginConnector().restartPlugins(restartStep);
+        __getTransactionEvent().waitForFinished();
 
-        log<picLog::SIMULATION_STATE > ("Loading from persistent data finished, can start program");
+        log<picLog::SIMULATION_STATE > ("Loading from persistent data finished");
     }
 
     /**

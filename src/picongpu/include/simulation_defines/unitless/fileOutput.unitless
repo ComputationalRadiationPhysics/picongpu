@@ -42,6 +42,8 @@ namespace picongpu
     
     typedef VectorAllSpecies FileOutputParticles;
     
+    typedef VectorAllSpecies FileRestartParticles;
+    
     /** TimeAvg Fields
      * \todo Reduce/Avg on host-side RAM with a plugin
      */
@@ -88,4 +90,9 @@ namespace picongpu
             PluginsFileOutputFieldsElectrons,
             PluginsFileOutputFieldsIons
     >::type FileOutputFields;
+    
+    /** This list is use to restarts fields from a file. */
+    typedef typename MakeSeq<
+            NativeFileOutputFields
+    >::type FileRestartFields;
 }

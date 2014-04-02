@@ -39,7 +39,7 @@ namespace picongpu
     public:
         virtual void setMappingDescription(MappingDesc *cellDescription) = 0;
         
-        virtual void restart(uint32_t restartStep)
+        void restart(uint32_t)
         {
             // override to enable restart capabilities
         }
