@@ -20,8 +20,7 @@
  */
 
 
-#ifndef SIMULATION_HPP
-#define SIMULATION_HPP
+#pragma once
 
 #include "types.hpp"
 #include "dimensions/DataSpace.hpp"
@@ -47,18 +46,18 @@ namespace gol
 class Simulation
 {
 private:
-    //TVec<16,16> is arbitrarily chosen SuperCellSize!
+    /* TVec<16,16> is arbitrarily chosen SuperCellSize! */
     typedef MappingDescription<DIM2, TVec < 16, 16 > > MappingDesc;
     typedef Evolution<MappingDesc> Evolutiontype;
 
     Space gridSize;
-    //holds rule mask derived from 23/3 input, see Evolution.hpp
+    /* holds rule mask derived from 23/3 input, \see Evolution.hpp */
     Evolutiontype evo;
     GatherSlice gather;
 
-    //for storing black and white(live or dead) data for gol
-    Buffer* buff1; //Buffer(see types.h) for swapping between old and new world
-    Buffer* buff2; //like evolve(buff2 &, const buff1) would work internally
+    /* for storing black (dead) and white (alive) data for gol */
+    Buffer* buff1; /* Buffer(\see types.h) for swapping between old and new world */
+    Buffer* buff2; /* like evolve(buff2 &, const buff1) would work internally */
     uint32_t steps;
 
     bool isMaster;
@@ -130,7 +129,7 @@ public:
          * init stores the arguments internally in a MappingDesc private      *
          * variable which stores the layout regarding Core, Border and guard  *
          * in units of SuperCells to be used by the kernel to identify itself.*
-         * Don't understand why a new datatype is necessary for this, when    *
+         * Don't understand why a new data type is necessary for this, when   *
          * there is already SubGrid available ???                             */
         evo.init(MappingDesc(layout.getDataSpace(), 1, 1));
 
@@ -144,7 +143,7 @@ public:
          * It's not clear which number corresponds to which direction, but    *
          * also doesn't matter here. In 3D this would be 26 directions. In 2D *
          * it would be 8. I don't know why 9 directions are initialized...??? */
-        for (uint32_t i = 1; i <= 9; ++i)
+        for (uint32_t i = 1; i < numberOfNeighbors[DIM2]; ++i)
         {
             /* types.hpp: enum CommunicationTags{ BUFF1 = 0u, BUFF2 = 1u };   */
             buff1->addExchange(GUARD, Mask(i), gardingCells, BUFF1);
@@ -189,7 +188,6 @@ private:
 
     void oneStep(uint32_t currentStep, Buffer* read, Buffer* write)
     {
-        /* Environment<>::get().TransactionManager().getTransactionEvent() <=>*/
         PMACC_AUTO(splitEvent, __getTransactionEvent());
         /* GridBuffer 'read' will use 'splitEvent' to schedule transaction    *
          * tasks from the Guard of this local Area to the Borders of the      *
@@ -216,46 +214,5 @@ private:
 
     }
 
-    /* Not used anymore, because it's now in Environment.hpp ??? */
-    void setDevice(int deviceNumber)
-    {
-        int num_gpus = 0; //count of gpus
-        cudaGetDeviceCount(&num_gpus);
-        //##ERROR handling
-        if (num_gpus < 1) //check if cuda device ist found
-        {
-            throw std::runtime_error("no CUDA capable devices detected");
-        }
-        else if (num_gpus < deviceNumber) //check if i can select device with diviceNumber
-        {
-            std::cerr << "no CUDA device " << deviceNumber << ", only " << num_gpus << " devices found" << std::endl;
-            throw std::runtime_error("CUDA capable devices can't be selected");
-        }
-
-        cudaDeviceProp devProp;
-        cudaError rc;
-        CUDA_CHECK(cudaGetDeviceProperties(&devProp, deviceNumber));
-        if (devProp.computeMode == cudaComputeModeDefault)
-        {
-            CUDA_CHECK(rc = cudaSetDevice(deviceNumber));
-            if (cudaSuccess == rc)
-            {
-                cudaDeviceProp dprop;
-                cudaGetDeviceProperties(&dprop, deviceNumber);
-                //!\todo: write this only on debug
-                log<ggLog::CUDA_RT > ("Set device to %1%: %2%") % deviceNumber % dprop.name;
-            }
-        }
-        else
-        {
-            //gpu mode is cudaComputeModeExclusiveProcess and a free device is automaticly selected.
-            log<ggLog::CUDA_RT > ("Device is selected by CUDA automaticly. (because cudaComputeModeDefault is not set)");
-        }
-        CUDA_CHECK(cudaSetDeviceFlags(cudaDeviceScheduleYield));
-    }
-
 };
 }
-
-#endif  /* SIMULATION_HPP */
-
