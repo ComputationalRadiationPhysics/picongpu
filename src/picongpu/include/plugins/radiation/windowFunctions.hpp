@@ -115,7 +115,8 @@ namespace picongpu
 	const float_X x = position_x - L_x*float_X(0.5);
 	const float_X a = 0.08; /* ideal parameter: -43dB reduction */
 	const float_X cosinusValue = math::cos(M_PI*x/L_x);
-	return a + (float_X(1.0)-a)*cosinusValue*cosinusValue;
+	return float_X(math::abs(x) <= float_X(0.5)*L_x) 
+	  * (a + (float_X(1.0)-a)*cosinusValue*cosinusValue);
       }
     };
   } /* namespace radWindowFunctionHamming */
@@ -145,7 +146,8 @@ namespace picongpu
 	const float_X x = position_x - L_x*float_X(0.5);
 	const float_X lambda = float_X(5.0)/L_x; /* larger is better, but too large means no data */
 	const float_X cosinusValue = math::cos(M_PI*x/L_x);
-	return math::exp(float_X(-1.0)*lambda*math::abs(x))*cosinusValue*cosinusValue;
+	return float_X(math::abs(x) <= float_X(0.5)*L_x) 
+	  * (math::exp(float_X(-1.0)*lambda*math::abs(x))*cosinusValue*cosinusValue);
       }
     };
   } /* namespace radWindowFunctionTriplett */
@@ -175,7 +177,8 @@ namespace picongpu
 	const float_X x = position_x - L_x*float_X(0.5);
 	const float_X sigma = float_X(0.4)*L_x; /* smaller is better, but too small means no data */
 	const float_X relativPosition = x/sigma; /* optimization */
-	return math::exp(float_X(-0.5)*relativPosition*relativPosition);
+	return float_X(math::abs(x) <= float_X(0.5)*L_x) 
+	  * (math::exp(float_X(-0.5)*relativPosition*relativPosition));
       }
     };
   } /* namespace radWindowFunctionGauss */
