@@ -91,6 +91,7 @@ namespace picongpu
   } /* namespace radWindowFunctionTriangle */
 
 
+
   namespace radWindowFunctionHamming
   {
     struct radWindowFunction
@@ -129,7 +130,7 @@ namespace picongpu
        *
        * x      = position_x - L_x/2
        * lambda = decay parameter of the Triplett window 
-       * f(x) = {exp(-lambda*|x|)+cos^2(pi*t/L_x) : (-L_x/2 <= x <= +L_x/2 )
+       * f(x) = {exp(-lambda*|x|)*cos^2(pi*t/L_x) : (-L_x/2 <= x <= +L_x/2 )
        *        {0.0                              : in any other case
        *
        * @param position_x = 1D position
@@ -142,17 +143,42 @@ namespace picongpu
       HDINLINE float_X operator()(const float_X position_x, const float_X L_x) const
       {
 	const float_X x = position_x - L_x*float_X(0.5);
-	const float_X lambda = float_X(3.0)/L_x /* larger is better, but too large means no data */
+	const float_X lambda = float_X(5.0)/L_x; /* larger is better, but too large means no data */
 	const float_X cosinusValue = math::cos(M_PI*x/L_x);
-	return math::exp(-lambda*math::abs(x))*cosinusValue*cosinusValue;
+	return math::exp(float_X(-1.0)*lambda*math::abs(x))*cosinusValue*cosinusValue;
       }
     };
   } /* namespace radWindowFunctionTriplett */
 
 
 
-
-
+  namespace radWindowFunctionGauss
+  {
+    struct radWindowFunction
+    {
+      /** 1D Window function according to the Gauss window:
+       *
+       * x     = position_x - L_x/2
+       * sigma = standard deviation of the Gauss window
+       * f(x) = {exp(-0.5*x^2/sigma^2)   : (-L_x/2 <= x <= +L_x/2 )
+       *        {0.0                     : in any other case
+       *
+       * @param position_x = 1D position
+       * @param L_x        = length of the simulated area
+       *                     assuming that the simulation ranges
+       *                     from 0 to L_x in the choosen dimension
+       * @returns weighting factor to reduce ringing effects due to
+       *          sharp spacial boundaries
+       **/
+      HDINLINE float_X operator()(const float_X position_x, const float_X L_x) const
+      {
+	const float_X x = position_x - L_x*float_X(0.5);
+	const float_X sigma = float_X(0.4)*L_x; /* smaller is better, but too small means no data */
+	const float_X relativPosition = x/sigma; /* optimization */
+	return math::exp(float_X(-0.5)*relativPosition*relativPosition);
+      }
+    };
+  } /* namespace radWindowFunctionGauss */
 
 
 }  /* namespace picongpu */
