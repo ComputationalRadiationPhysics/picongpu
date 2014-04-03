@@ -333,5 +333,75 @@ public:
     }
 };
 
+
+/**
+ * Hepler class for HDF5Writer (forEach operator) to load a particle species from HDF5
+ * 
+ * @tparam ParticleType particle class to load
+ */
+template< typename ParticleType >
+struct LoadParticles
+{
+public:
+
+    HDINLINE void operator()(RefWrapper<ThreadParams*> params, const DataSpace<simDim> gridPosition)
+    {
+#ifndef __CUDA_ARCH__
+        DataConnector &dc = Environment<>::get().DataConnector();
+        ThreadParams *tp = params.get();
+
+        /* load species without copying data to host */
+        ParticleType* particles = &(dc.getData<ParticleType >(ParticleType::FrameType::getName(), true));
+
+        /* setup domain information for HDF5 file access */
+        VirtualWindow window = MovingWindow::getInstance().getVirtualWindow(tp->currentStep);
+        DataSpace<simDim> globalDomainOffset(gridPosition);
+        DataSpace<simDim> logicalToPhysicalOffset(gridPosition - window.globalSimulationOffset);
+
+        /* domains are always positive */
+        if (globalDomainOffset.y() == 0)
+            globalDomainOffset.y() = window.globalSimulationOffset.y();
+
+        DataSpace<simDim> localDomainSize(window.localSize);
+
+        /* load particle data */
+        RestartParticleLoader<ParticleType>::loadParticles(
+                tp->currentStep,
+                *(tp->dataCollector),
+                std::string("particles/") + ParticleType::FrameType::getName(),
+                *particles,
+                globalDomainOffset,
+                localDomainSize,
+                logicalToPhysicalOffset);
+
+        /* load ghost data if moving window is activated */
+        if (MovingWindow::getInstance().isSlidingWindowActive())
+        {
+            globalDomainOffset = gridPosition;
+            globalDomainOffset.y() += window.localSize.y();
+
+            localDomainSize = window.localFullSize;
+            localDomainSize.y() -= window.localSize.y();
+
+            DataSpace<simDim> particleOffset = gridPosition;
+            particleOffset.y() = -window.localSize.y();
+
+            RestartParticleLoader<ParticleType>::loadParticles(
+                    tp->currentStep,
+                    *(tp->dataCollector),
+                    std::string("particles/") + ParticleType::FrameType::getName() +
+                    std::string("/_ghosts"),
+                    *particles,
+                    globalDomainOffset,
+                    localDomainSize,
+                    particleOffset);
+        }
+
+        dc.releaseData(ParticleType::FrameType::getName());
+#endif
+    }
+
+};
+
 } //namespace hdf5
 } //namespace picongpu

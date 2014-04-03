@@ -141,6 +141,38 @@ public:
     }
 };
 
+/**
+ * Hepler class for HDF5Writer (forEach operator) to load a field from HDF5
+ * 
+ * @tparam FieldType field class to load
+ */
+template< typename FieldType >
+struct LoadFields
+{
+public:
+
+    HDINLINE void operator()(RefWrapper<ThreadParams*> params)
+    {
+#ifndef __CUDA_ARCH__
+        DataConnector &dc = Environment<>::get().DataConnector();
+        ThreadParams *tp = params.get();
+
+        /* load field without copying data to host */
+        FieldType* field = &(dc.getData<FieldType > (FieldType::getName(), true));
+
+        /* load from HDF5 */
+        RestartFieldLoader::loadField(
+                field->getGridBuffer(),
+                FieldType::getName(),
+                tp->currentStep,
+                *(tp->dataCollector));
+
+        dc.releaseData(FieldType::getName());
+#endif
+    }
+
+};
+
 using namespace PMacc;
 using namespace splash;
 

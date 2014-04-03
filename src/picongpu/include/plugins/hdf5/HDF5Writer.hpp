@@ -65,6 +65,7 @@
 #include "RefWrapper.hpp"
 #include <boost/type_traits.hpp>
 
+#include "plugins/hdf5/WriteFields.hpp"
 #include "plugins/hdf5/WriteSpecies.hpp"
 #include "plugins/hdf5/restart/RestartFieldLoader.hpp"
 #include "plugins/hdf5/restart/RestartParticleLoader.hpp"
@@ -89,256 +90,6 @@ namespace po = boost::program_options;
  */
 class HDF5Writer : public ISimulationPlugin
 {
-public:
-
-    /* filter particles by global position*/
-    typedef bmpl::vector< typename GetPositionFilter<simDim>::type > usedFilters;
-    typedef typename FilterFactory<usedFilters>::FilterType MyParticleFilter;
-
-private:
-
-    /* filter is a rule which describe which particles should copy to host*/
-    MyParticleFilter filter;
-
-    template<typename UnitType>
-    static std::vector<double> createUnit(UnitType unit, uint32_t numComponents)
-    {
-        std::vector<double> tmp(numComponents);
-        for (uint i = 0; i < numComponents; ++i)
-            tmp[i] = unit[i];
-        return tmp;
-    }
-
-    /** 
-     * Write calculated fields to HDF5 file.
-     *
-     * @tparam T field class
-     */
-    template< typename T >
-    struct GetDCFields
-    {
-    private:
-        typedef typename T::ValueType ValueType;
-
-        static std::vector<double> getUnit()
-        {
-            typedef typename T::UnitValueType UnitType;
-            UnitType unit = T::getUnit();
-            return createUnit(unit, T::numComponents);
-        }
-
-    public:
-
-        HDINLINE void operator()(RefWrapper<ThreadParams*> params, const DomainInformation domInfo)
-        {
-#ifndef __CUDA_ARCH__
-            DataConnector &dc = Environment<>::get().DataConnector();
-
-            T* field = &(dc.getData<T > (T::getName()));
-            params.get()->gridLayout = field->getGridLayout();
-
-            writeField(params.get(),
-                       domInfo,
-                       T::getName(),
-                       getUnit(),
-                       field->getHostDataBox(),
-                       ValueType());
-
-            dc.releaseData(T::getName());
-#endif
-        }
-
-    };
-
-    /** Calculate FieldTmp with given solver and particle species
-     * and write them to hdf5.
-     *
-     * FieldTmp is calculated on device and than dumped to HDF5.
-     * 
-     * @tparam Solver solver class for species
-     * @tparam Species species/particles class
-     */
-    template< typename Solver, typename Species >
-    struct GetDCFields<FieldTmpOperation<Solver, Species> >
-    {
-
-        /*
-         * This is only a wrapper function to allow disable nvcc warnings.
-         * Warning: calling a __host__ function from __host__ __device__
-         * function.
-         * Use of PMACC_NO_NVCC_HDWARNING is not possible if we call a virtual
-         * method inside of the method were we disable the warnings.
-         * Therefore we create this method and call a new method were we can
-         * call virtual functions.
-         */
-        PMACC_NO_NVCC_HDWARNING
-        HDINLINE void operator()(RefWrapper<ThreadParams*> tparam, const DomainInformation domInfo)
-        {
-            this->operator_impl(tparam, domInfo);
-        }
-    private:
-        typedef typename FieldTmp::ValueType ValueType;
-
-        /** Create a name for the hdf5 identifier.
-         */
-        static std::string getName()
-        {
-            std::stringstream str;
-            str << Solver().getName();
-            str << "_";
-            str << Species::FrameType::getName();
-            return str.str();
-        }
-
-        /** Get the unit for the result from the solver*/
-        static std::vector<double> getUnit()
-        {
-            typedef typename FieldTmp::UnitValueType UnitType;
-            UnitType unit = FieldTmp::getUnit<Solver>();
-            const uint32_t components = GetNComponents<ValueType>::value;
-            return createUnit(unit, components);
-        }
-
-        HINLINE void operator_impl(RefWrapper<ThreadParams*> params, const DomainInformation domInfo)
-        {
-            DataConnector &dc = Environment<>::get().DataConnector();
-
-            /*## update field ##*/
-
-            /*load FieldTmp without copy data to host*/
-            FieldTmp* fieldTmp = &(dc.getData<FieldTmp > (FieldTmp::getName(), true));
-            /*load particle without copy particle data to host*/
-            Species* speciesTmp = &(dc.getData<Species >(Species::FrameType::getName(), true));
-
-            fieldTmp->getGridBuffer().getDeviceBuffer().setValue(ValueType(0.0));
-            /*run algorithm*/
-            fieldTmp->computeValue < CORE + BORDER, Solver > (*speciesTmp, params.get()->currentStep);
-
-            EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
-            __setTransactionEvent(fieldTmpEvent);
-            /* copy data to host that we can write same to disk*/
-            fieldTmp->getGridBuffer().deviceToHost();
-            dc.releaseData(Species::FrameType::getName());
-            /*## finish update field ##*/
-
-
-            params.get()->gridLayout = fieldTmp->getGridLayout();
-            /*write data to HDF5 file*/
-            writeField(params.get(),
-                       domInfo,
-                       getName(),
-                       getUnit(),
-                       fieldTmp->getHostDataBox(),
-                       ValueType()
-                       );
-
-            dc.releaseData(FieldTmp::getName());
-
-        }
-
-    };
-    
-    /**
-     * Load field from HDF5 file
-     * 
-     * @tparam FieldType field class to load
-     */
-    template< typename FieldType >
-    struct LoadFields
-    {
-    public:
-
-        HDINLINE void operator()(RefWrapper<ThreadParams*> params)
-        {
-#ifndef __CUDA_ARCH__
-            DataConnector &dc = Environment<>::get().DataConnector();
-            ThreadParams *tp = params.get();
-
-            /* load field without copying data to host */
-            FieldType* field = &(dc.getData<FieldType > (FieldType::getName(), true));
-
-            /* load from HDF5 */
-            RestartFieldLoader::loadField(
-                    field->getGridBuffer(),
-                    FieldType::getName(),
-                    tp->currentStep,
-                    *(tp->dataCollector));
-
-            dc.releaseData(FieldType::getName());
-#endif
-        }
-
-    };
-    
-    /**
-     * Load particles from HDF5 file
-     * 
-     * @tparam ParticleType particle class to load
-     */
-    template< typename ParticleType >
-    struct LoadParticles
-    {
-    public:
-
-        HDINLINE void operator()(RefWrapper<ThreadParams*> params, const DataSpace<simDim> gridPosition)
-        {
-#ifndef __CUDA_ARCH__
-            DataConnector &dc = Environment<>::get().DataConnector();
-            ThreadParams *tp = params.get();
-
-            /* load species without copying data to host */
-            ParticleType* particles = &(dc.getData<ParticleType >(ParticleType::FrameType::getName(), true));
-            
-            /* setup domain information for HDF5 file access */
-            VirtualWindow window = MovingWindow::getInstance().getVirtualWindow(tp->currentStep);
-            DataSpace<simDim> globalDomainOffset(gridPosition);
-            DataSpace<simDim> logicalToPhysicalOffset(gridPosition - window.globalSimulationOffset);
-
-            /* domains are always positive */
-            if (globalDomainOffset.y() == 0)
-                globalDomainOffset.y() = window.globalSimulationOffset.y();
-
-            DataSpace<simDim> localDomainSize(window.localSize);
-
-            /* load particle data */
-            RestartParticleLoader<ParticleType>::loadParticles(
-                    tp->currentStep,
-                    *(tp->dataCollector),
-                    std::string("particles/") + ParticleType::FrameType::getName(),
-                    *particles,
-                    globalDomainOffset,
-                    localDomainSize,
-                    logicalToPhysicalOffset);
-            
-            /* load ghost data if moving window is activated */
-            if (MovingWindow::getInstance().isSlidingWindowActive())
-            {
-                globalDomainOffset = gridPosition;
-                globalDomainOffset.y() += window.localSize.y();
-
-                localDomainSize = window.localFullSize;
-                localDomainSize.y() -= window.localSize.y();
-
-                DataSpace<simDim> particleOffset = gridPosition;
-                particleOffset.y() = -window.localSize.y();
-
-                RestartParticleLoader<ParticleType>::loadParticles(
-                        tp->currentStep,
-                        *(tp->dataCollector),
-                        std::string("particles/") + ParticleType::FrameType::getName() +
-                        std::string("/_ghosts"),
-                        *particles,
-                        globalDomainOffset,
-                        localDomainSize,
-                        particleOffset);
-            }
-
-            dc.releaseData(ParticleType::FrameType::getName());
-#endif
-        }
-
-    };
-
 public:
 
     HDF5Writer() :
@@ -381,17 +132,7 @@ public:
         mThreadParams.currentStep = (int32_t) currentStep;
         mThreadParams.gridPosition = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
         mThreadParams.cellDescription = this->cellDescription;
-        this->filter.setStatus(false);
-
         mThreadParams.window = MovingWindow::getInstance().getVirtualWindow(currentStep);
-
-        if (MovingWindow::getInstance().isSlidingWindowActive())
-        {
-            //enable filters for sliding window and configurate position filter
-            this->filter.setStatus(true);
-
-            this->filter.setWindowPosition(mThreadParams.window.localOffset, mThreadParams.window.localSize);
-        }
 
         __getTransactionEvent().waitForFinished();
 
@@ -547,110 +288,6 @@ private:
             __delete(mThreadParams.dataCollector);
     }
 
-    template<typename T_ValueType, typename T_DataBoxType>
-    static void writeField(ThreadParams *params,
-                           const DomainInformation domInfo,
-                           const std::string name,
-                           std::vector<double> unit,
-                           T_DataBoxType dataBox,
-                           const T_ValueType&
-                           )
-    {
-        typedef T_DataBoxType NativeDataBoxType;
-        typedef T_ValueType ValueType;
-        typedef typename GetComponentsType<ValueType>::type ComponentType;
-        typedef typename PICToSplash<ComponentType>::type SplashType;
-
-        const uint32_t nComponents = GetNComponents<ValueType>::value;
-
-        log<picLog::INPUT_OUTPUT > ("HDF5 write field: %1% %2%") %
-            name % nComponents;
-
-        std::vector<std::string> name_lookup;
-        {
-            const std::string name_lookup_tpl[] = {"x", "y", "z", "w"};
-            for (uint32_t d = 0; d < nComponents; d++)
-                name_lookup.push_back(name_lookup_tpl[d]);
-        }
-
-        /*data to describe source buffer*/
-        GridLayout<simDim> field_layout = params->gridLayout;
-        DataSpace<simDim> field_no_guard = domInfo.domainSize;
-        DataSpace<simDim> field_guard = field_layout.getGuard() + domInfo.localDomainOffset;
-        /* globalSlideOffset due to gpu slides between origin at time step 0
-         * and origin at current time step
-         * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
-         */
-        DataSpace<simDim> globalSlideOffset;
-        globalSlideOffset.y() += params->window.slides * params->window.localFullSize.y();
-
-        Dimensions splashGlobalDomainOffset(0, 0, 0);
-        Dimensions splashGlobalOffsetFile(0, 0, 0);
-        Dimensions splashGlobalDomainSize(1, 1, 1);
-
-        for (uint32_t d = 0; d < simDim; ++d)
-        {
-            splashGlobalOffsetFile[d] = domInfo.domainOffset[d];
-            splashGlobalDomainOffset[d] = domInfo.globalDomainOffset[d] + globalSlideOffset[d];
-            splashGlobalDomainSize[d] = domInfo.globalDomainSize[d];
-        }
-
-        splashGlobalOffsetFile[1] = std::max(0, domInfo.domainOffset[1] -
-                                             domInfo.globalDomainOffset[1]);
-
-        SplashType splashType;
-
-        size_t tmpArraySize = field_no_guard.productOfComponents();
-        ComponentType* tmpArray = new ComponentType[tmpArraySize];
-
-        typedef DataBoxDim1Access<NativeDataBoxType > D1Box;
-        D1Box d1Access(dataBox.shift(field_guard), field_no_guard);
-
-        for (uint32_t d = 0; d < nComponents; d++)
-        {
-            /* copy data to temp array
-             * tmpArray has the size of the data without any offsets
-             */
-            for (size_t i = 0; i < tmpArraySize; ++i)
-            {
-                tmpArray[i] = d1Access[i][d];
-            }
-
-            std::stringstream datasetName;
-            datasetName << "fields/" << name;
-            if (nComponents > 1)
-                datasetName << "/" << name_lookup.at(d);
-
-            Dimensions sizeSrcData(1, 1, 1);
-
-            for (uint32_t i = 0; i < simDim; ++i)
-            {
-                sizeSrcData[i] = field_no_guard[i];
-            }
-
-            params->dataCollector->writeDomain(params->currentStep, /* id == time step */
-                                               splashGlobalDomainSize,
-                                               splashGlobalOffsetFile,
-                                               splashType, /* data type */
-                                               simDim, /* NDims of the field data (scalar, vector, ...) */
-                                               sizeSrcData,
-                                               datasetName.str().c_str(), /* data set name */
-                                               splashGlobalDomainOffset, /* \todo offset of the global domain */
-                                               splashGlobalDomainSize, /* size of the global domain */
-                                               DomainCollector::GridType,
-                                               tmpArray);
-
-            /*simulation attributes for data*/
-            ColTypeDouble ctDouble;
-
-            params->dataCollector->writeAttribute(params->currentStep,
-                                                  ctDouble, datasetName.str().c_str(),
-                                                  "sim_unit", &(unit.at(d)));
-        }
-        __deleteArray(tmpArray);
-
-    }
-
     typedef PICToSplash<float_X>::type SplashFloatXType;
 
     static void writeMetaAttributes(ThreadParams *threadParams)
@@ -714,8 +351,10 @@ private:
         particleOffset.y() -= threadParams->window.globalSimulationOffset.y();
 
         /*print all fields*/
-        ForEach<FileOutputFields, GetDCFields<void> > forEachGetFields;
-        forEachGetFields(ref(threadParams), domInfo);
+        log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing fields.");
+        ForEach<FileOutputFields, WriteFields<void> > forEachWriteFields;
+        forEachWriteFields(ref(threadParams), domInfo);
+        log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing fields.");
 
         /*print all particle species*/
         log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing particle species.");
