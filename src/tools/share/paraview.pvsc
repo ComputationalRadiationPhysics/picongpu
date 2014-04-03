@@ -1,0 +1,55 @@
+<Servers>
+  <Server name="hypnos2" configuration="" resource="csrc://localhost:11111">
+    <CommandStartup>
+      <Options>
+        <Option name="SSH_USER" label="SSH Username" save="true">
+          <String default="huebl" />
+        </Option>
+        <Option name="LOGIN_SERVER" label="Login Server" save="true">
+          <String default="uts.fz-rossendorf.de" />
+        </Option>
+        <Option name="HEAD_NODE" label="Head Node" save="true">
+          <String default="hypnos2" />
+        </Option>
+        <Option name="NUM_NODES" label="# of laser nodes">
+          <Range type="int" min="1" max="88" step="1" default="8" />
+        </Option>
+      </Options>
+      <Command exec="bash" timeout="0" delay="5">
+        <Arguments>
+          <Argument value="-c"/>
+          <Argument value="eval echo -e '\#PBS -q laser\\n
+\#PBS -l walltime=01:00:00\\n
+\#PBS -N pvserver\\n
+\#PBS -l nodes=8:ppn=64\\n
+\#PBS -d .\\n
+\#PBS -o stdout\\n
+\#PBS -e stderr\\n
+cd .\\n
+shopt -s expand_aliases\\n
+export MODULES_NO_OUTPUT=1\\n
+. /etc/profile.modules\\n
+unset MODULES_NO_OUTPUT\\n
+module load devel/python/2.7.5\\n
+module load numlib/icet/2.1.1\\n
+module load compiler/gnu/64/opt/4.8.2\\n
+module load mpi/openmpi/1.7.4\\n
+module load tools/infiniband/1.0.0\\n
+module load tools/mesa/7.8\\n
+module load analysis/paraview/3.98.laser-2\\n
+which pvserver\\n
+echo starting\\n
+mpiexec -npernode 64 -n 256
+    \`which pvserver\` --use-offscreen-rendering -rc -ch=hypnos2\\n
+\# some interesting flags one can use:\\n
+\#   --mca mpi_yield_when_idle 1\\n
+\#       reduces load while idle - no busy loop\\n
+\#       http://www.open-mpi.org/faq/?category=running#force-aggressive-degraded\\n
+\#   -am \~/openib.conf\\n
+\#       in case you send HUGE data chunks over infiniband
+' | ssh -p 44333 huebl@localhost 'cat > ~/startParaView; /opt/torque/bin/qsub ~/startParaView'"/>
+        </Arguments>
+      </Command>
+    </CommandStartup>
+  </Server>
+</Servers>
