@@ -393,7 +393,7 @@ def get_args_parser():
 
     parser.add_argument("--fullpath", help="Use absolute paths for HDF5 files", action="store_true")
 
-    parser.add_argument("--splitgrid", help="Split the XML-tree in grid and poly and make seperate output file for each", action="store_true")
+    parser.add_argument("--no_splitgrid", help="Split the XML-tree in grid and poly and make seperate output file for each", action="store_true")
     
     return parser
 
@@ -428,7 +428,16 @@ def main():
             print "The script was stopped, because your output filename doesn't have\nan ending paraview can work with. Please use the ending '.xmf'!"
             sys.exit()
 
-    if args.splitgrid:
+    if args.no_splitgrid:
+        # create the basic xml structure using splash2xdmf
+        xdmf_root = splash2xdmf.create_xdmf_xml(splash_files, args)
+        # transform this xml using our pic semantic knowledge
+        transform_xdmf_xml(xdmf_root)
+        # create a xml file from the transformed structure
+        doc.appendChild(xdmf_root)
+        # write data to output file
+        splash2xdmf.write_xml_to_file(output_filename, doc)
+    else:
         # create the basic xml structure for grid and poly using splash2xdmf
         grid_xdmf_root, poly_xdmf_root = splash2xdmf.create_xdmf_xml(splash_files, args)
         # transform these xml using our pic semantic knowledge
@@ -445,15 +454,7 @@ def main():
                 splash2xdmf.write_xml_to_file(output_file, grid_doc)
 	    if output_file.endswith("_poly.xmf"):
 		splash2xdmf.write_xml_to_file(output_file, poly_doc)
-    else:
-        # create the basic xml structure using splash2xdmf
-        xdmf_root = splash2xdmf.create_xdmf_xml(splash_files, args)
-        # transform this xml using our pic semantic knowledge
-        transform_xdmf_xml(xdmf_root)
-        # create a xml file from the transformed structure
-        doc.appendChild(xdmf_root)
-        # write data to output file
-        splash2xdmf.write_xml_to_file(output_filename, doc)
+
 
 if __name__ == "__main__":
     main()
