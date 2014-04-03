@@ -20,12 +20,15 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
+import sys
 import glob
 import argparse
 from xml.dom.minidom import Document
 import splash2xdmf
 
 doc = Document()
+grid_doc = Document()
+poly_doc = Document()
 
 # identifiers for vector components
 VECTOR_IDENTS = ["x", "y", "z", "w"]
@@ -389,6 +392,8 @@ def get_args_parser():
         "time-series of libSplash data", action="store_true")
 
     parser.add_argument("--fullpath", help="Use absolute paths for HDF5 files", action="store_true")
+
+    parser.add_argument("--splitgrid", help="Split the XML-tree in grid and poly and make seperate output file for each", action="store_true")
     
     return parser
 
@@ -397,7 +402,6 @@ def main():
     """
     Main
     """
-
     # get arguments from command line
     args_parser = get_args_parser()
     args = args_parser.parse_args()
@@ -415,19 +419,35 @@ def main():
     else:
         splash_files.append(splashFilename)
         
-    # create the basic xml structure using splas2xdmf
-    xdmf_root = splash2xdmf.create_xdmf_xml(splash_files, args)
-    # transform this xml using our pic semantic knowledge
-    transform_xdmf_xml(xdmf_root)
-
-    # create a xml file from the transformed structure
-    doc.appendChild(xdmf_root)
-    
     output_filename = "{}.xmf".format(splashFilename)
+    
     if args.o:
-        output_filename = args.o
-    splash2xdmf.write_xml_to_file(output_filename, doc)
+        if args.o.endswith(".xmf"):
+            output_filename = args.o
+        else:
+            print "The script was stopped, because your output filename doesn't have\nan ending paraview can work with. Please use the ending '.xmf'!"
+            sys.exit()
 
+    if args.splitgrid:
+        grid_xdmf_root, poly_xdmf_root = splash2xdmf.create_xdmf_xml(splash_files, args)
+	transform_xdmf_xml(grid_xdmf_root)
+        transform_xdmf_xml(poly_xdmf_root)
+        grid_doc.appendChild(grid_xdmf_root)
+        poly_doc.appendChild(poly_xdmf_root)
+	output_filename_list = splash2xdmf.handle_user_filename(output_filename)
+	for output_file in output_filename_list:
+	    if output_file.endswith("_grid.xmf"):
+                splash2xdmf.write_xml_to_file(output_file, grid_doc)
+	    if output_file.endswith("_poly.xmf"):
+		splash2xdmf.write_xml_to_file(output_file, poly_doc)
+    else:
+        # create the basic xml structure using splas2xdmf
+        xdmf_root = splash2xdmf.create_xdmf_xml(splash_files, args)
+        # transform this xml using our pic semantic knowledge
+        transform_xdmf_xml(xdmf_root)
+        # create a xml file from the transformed structure
+        doc.appendChild(xdmf_root)
+        splash2xdmf.write_xml_to_file(output_filename, doc)
 
 if __name__ == "__main__":
     main()
