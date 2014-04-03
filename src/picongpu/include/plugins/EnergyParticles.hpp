@@ -20,9 +20,7 @@
  */ 
  
 
-
-#ifndef ENERGYPARTICLES_HPP
-#define	ENERGYPARTICLES_HPP
+#pragma once
 
 #include <string>
 #include <iostream>
@@ -324,6 +322,4 @@ private:
 };
 
 }
-
-#endif	/* ENERGYPARTICLES_HPP */
 
