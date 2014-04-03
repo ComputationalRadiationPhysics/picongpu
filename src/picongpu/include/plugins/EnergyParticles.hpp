@@ -237,7 +237,7 @@ private:
             /* decide which MPI-rank writes output: */
 	    writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce()); 
 
-	    /* create one int on gpu and host: */
+	    /* create two ints on gpu and host: */
             gEnergy = new GridBuffer<double, DIM1 > (DataSpace<DIM1 > (2));
 
             if (writeToFile) /*
