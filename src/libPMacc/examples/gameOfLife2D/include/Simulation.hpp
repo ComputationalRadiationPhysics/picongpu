@@ -1,22 +1,22 @@
 /**
  * Copyright 2013-2014 Rene Widera, Maximilian Knespel
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 
@@ -74,20 +74,20 @@ public:
          *  Host MPI processes where hostRank == deviceNumber, if the device  *
          *  is not marked to be used exclusively by another process. This     *
          *  affects: cudaMalloc,cudaKernelLaunch,                             *
-         * -Then the CUDA Stream Controller is activated and one stream is    * 
+         * -Then the CUDA Stream Controller is activated and one stream is    *
          *  added. It's basically a List of cudaStreams. Used to parallelize  *
          *  Memory transfers and calculations.                                *
          * -Initialize TransactionManager                                     */
         Environment<DIM2>::get().initDevices(devices, periodic);
-        
+
         /* Now we have allocated every node to a grid position in the GC. We  *
          * use that grid position to allocate every node to a position in the *
          * physic grid. Using the localGridSize = the number of cells per     *
          * node = number of cells / nodes, we can get the position of the     *
          * current node as an offset in numbers of cells                      */
-        GridController<DIM2> & gc = Environment<DIM2>::get().GridController(); 
+        GridController<DIM2> & gc = Environment<DIM2>::get().GridController();
         Space localGridSize(gridSize / devices);
-        
+
         /* - First this forwards its arguments to SubGrid.init(), which saves *
          *   these inside a private SimulationBox Object                      *
          * - Create Singletons: EnvironmentController, DataConnector,         *
@@ -113,7 +113,7 @@ public:
          * local SimulationSize and where the local SimArea is in the greater *
          * scheme using Offsets from global LEFT,TOP, FRONT                   */
         PMACC_AUTO(simBox, Environment<DIM2>::get().SubGrid().getSimulationBox());
-        
+
         /* Recall that in types.hpp the following is defined:                 *
          *     typedef MappingDescription<DIM2, TVec<16,16> > MappingDesc;    *
          * where TVec<16,16> is arbitrarily(!) chosen SuperCellSize and DIM2  *
@@ -122,9 +122,9 @@ public:
          * This is the guard size (here set to be one Supercell wide in all   *
          * directions). Meaning we have 16*16*(2*grid.x+2*grid.y+4) more      *
          * cells in GridLayout than in SimulationBox.                         */
-        GridLayout<DIM2> layout( simBox.getLocalSize(), 
+        GridLayout<DIM2> layout( simBox.getLocalSize(),
                                  MappingDesc::SuperCellSize::getDataSpace());
-        
+
         /* getDataSpace will return DataSpace( grid.x +16+16, grid.y +16+16)  *
          * init stores the arguments internally in a MappingDesc private      *
          * variable which stores the layout regarding Core, Border and guard  *
@@ -138,18 +138,23 @@ public:
 
         Space gardingCells(1, 1);
         /* TODO: Here here the directions are actually like one would imagine:*
-         * bit 1 to 9 are 0 or 1. (Note that bit 0 is forgotten/unused ??? )  *
-         * 1 to 9 represent: left, right, bottom, top, lefttop, leftbottom, ..*
-         * It's not clear which number corresponds to which direction, but    *
-         * also doesn't matter here. In 3D this would be 26 directions. In 2D *
-         * it would be 8. I don't know why 9 directions are initialized...??? */
+         * bit 1 to 9 are 0 or 1. (Note that bit 0 is forgotten/unused ??? )  */
         for (uint32_t i = 1; i < numberOfNeighbors[DIM2]; ++i)
         {
+            /* to check which number corresponds to which direction, you can  *
+             * use the following member of class Mask like done in the two    *
+             * lines below:                                                   *
+             * DataSpace<DIM2>relVec = Mask::getRelativeDirections<DIM2>(i);  *
+             * std::cout << "Direction:" << i << " => Vec: (" << relVec[0]    *
+             *           << "," << relVec[1] << ")\n";                        *
+             * The result is: 1:right(1,0), 2:left(-1,0), 3:up(0,1),          *
+             *    4:up right(1,1), 5:(-1,1), 6:(0,-1), 7:(1,-1), 8:(-1,-1)    */
+
             /* types.hpp: enum CommunicationTags{ BUFF1 = 0u, BUFF2 = 1u };   */
             buff1->addExchange(GUARD, Mask(i), gardingCells, BUFF1);
             buff2->addExchange(GUARD, Mask(i), gardingCells, BUFF2);
         }
-        
+
         /* In contrast to this usage of directions there exists an enum in    *
          * libPMacc/include/types.h:                                          *
          *    enum ExchangeType { RIGHT = 1u, LEFT = 2u, BOTTOM = 3u,         *
@@ -202,7 +207,7 @@ private:
         /* Join communication with worker tasks, Now all next tasks run sequential */
         __setTransactionEvent(send);
         /* Calculate Borders */
-        evo.run<BORDER>( read->getDeviceBuffer().getDataBox(), 
+        evo.run<BORDER>( read->getDeviceBuffer().getDataBox(),
                          write->getDeviceBuffer().getDataBox() );
         write->deviceToHost();
 
