@@ -20,9 +20,7 @@
  */ 
  
 
-
-#ifndef BINENERGYPARTICLES_HPP
-#define	BINENERGYPARTICLES_HPP
+#pragma once
 
 #include <string>
 #include <iostream>
@@ -76,7 +74,7 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
      * 0 is for <minEnergy
      * (numBins+2)-1 is for >maxEnergy
      */
-    extern __shared__ float_X shBin[]; //size must be numBins+2 because we have <min and >max
+    extern __shared__ float_X shBin[]; /* size must be numBins+2 because we have <min and >max */
 
     __syncthreads(); /*wait that all shared memory is initialised*/
 
@@ -96,7 +94,7 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
         frame = &(pb.getLastFrame(superCellIdx, isValid));
         particlesInSuperCell = pb.getSuperCell(superCellIdx).getSizeLastFrame();
     }
-    //set all bins to 0
+    /* set all bins to 0 */
     for (int i = linearThreadIdx; i < realNumBins; i += threads)
     {
         shBin[i] = float_X(0.);
@@ -104,17 +102,15 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
 
     __syncthreads();
     if (!isValid)
-        return; //end kernel if we have no frames
-
-    // bool isParticle = frame->getMultiMask()[linearThreadIdx];
+      return; /* end kernel if we have no frames */
 
     while (isValid)
     {
         if (linearThreadIdx < particlesInSuperCell)
         {
             PMACC_AUTO(particle,(*frame)[linearThreadIdx]);
-            // kinetic Energy for Particles: E^2 = p^2*c^2 + m^2*c^4
-            //                                   = c^2 * [p^2 + m^2*c^2]
+            /* kinetic Energy for Particles: E^2 = p^2*c^2 + m^2*c^4
+	     *                                   = c^2 * [p^2 + m^2*c^2] */
             const float3_X mom = particle[momentum_];
 
             bool calcParticle = true;
@@ -131,6 +127,7 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
 
             if (calcParticle)
             {
+		/* TODO: this is a duplication of the code in EnergyParticles - in seperate file? */
                 const float_X mom2 = math::abs2(mom);
                 const float_X weighting = particle[weighting_];
                 const float_X mass = frame->getMass(weighting);
@@ -143,18 +140,18 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
 
                 if (gamma < 1.005f)
                 {
-                    _local_energy = mom2 / (2.0f * mass); //not relativistic use equation with more precision
+		    _local_energy = mom2 / (2.0f * mass); /* not relativistic use equation with more precision */
                 }
                 else
                 {
-                    // kinetic Energy for Particles: E = (sqrt[p^2*c^2 /(m^2*c^4)+ 1] -1) m*c^2
-                    //                                   = c^2 * [p^2 + m^2*c^2]-m*c^2
-                    //                                 = (gamma - 1) * m * c^2
+		    /* kinetic Energy for Particles: E = (sqrt[p^2*c^2 /(m^2*c^4)+ 1] -1) m*c^2
+                     *                                   = c^2 * [p^2 + m^2*c^2]-m*c^2
+		     *                                 = (gamma - 1) * m * c^2   */
                     _local_energy = (gamma - float_X(1.0)) * mass*c2;
                 }
                 _local_energy /= weighting;
 
-                /*+1 move value from 1 to numBins+1*/
+                /* +1 move value from 1 to numBins+1 */
                 int binNumber = math::floor((_local_energy - minEnergy) /
                                       (maxEnergy - minEnergy) * (float) numBins) + 1;
 
@@ -174,8 +171,8 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
                  * I think this is a problem with extern shared mem and atmic (only on TESLA)
                  * NEXT BUG: don't do uint32_t w=__float2uint_rn(weighting); and use w for atomic, this create wrong results
                  */
-                // overflow for big weighting reduces in shared mem
-                //atomicAdd(&(shBin[binNumber]), (uint32_t) weighting);
+                /* overflow for big weighting reduces in shared mem */
+                /* atomicAdd(&(shBin[binNumber]), (uint32_t) weighting); */
                 const float_X normedWeighting = float_X(weighting) / float_X(NUM_EL_PER_PARTICLE);
                 atomicAddWrapper(&(shBin[binNumber]), normedWeighting);
             }
@@ -299,7 +296,7 @@ private:
 
             realNumBins = numBins + 2;
 
-            //create an array of double on gpu und host
+            /* create an array of double on gpu und host */
             gBins = new GridBuffer<double, DIM1 > (DataSpace<DIM1 > (realNumBins));
             binReduced = new double[realNumBins];
             for (int i = 0; i < realNumBins; ++i)
@@ -315,7 +312,7 @@ private:
                     std::cerr << "Can't open file [" << filename << "] for output, diasble analyser output. " << std::endl;
                     writeToFile = false;
                 }
-                //create header of the file
+                /* create header of the file */
                 outFile << "#step <" << minEnergy_keV << " ";
                 float_X binEnergy = (maxEnergy_keV - minEnergy_keV) / (float) numBins;
                 for (int i = 1; i < realNumBins - 1; ++i)
@@ -337,7 +334,7 @@ private:
             if (writeToFile)
             {
                 outFile.flush();
-                outFile << std::endl; //now all data are written to file
+                outFile << std::endl; /* now all data are written to file */
                 if (outFile.fail())
                     std::cerr << "Error on flushing file [" << filename << "]. " << std::endl;
                 outFile.close();
@@ -362,7 +359,7 @@ private:
         {
             maximumSlopeToDetectorX = (slitDetectorX / 2.0) / (distanceToDetector);
             maximumSlopeToDetectorZ = (slitDetectorZ / 2.0) / (distanceToDetector);
-            //maximumSlopeToDetector = (radiusDetector * radiusDetector) / (distanceToDetector * distanceToDetector);
+            /* maximumSlopeToDetector = (radiusDetector * radiusDetector) / (distanceToDetector * distanceToDetector); */
         }
 
 	/* convert energy values from keV to PIConGPU units */
@@ -389,10 +386,10 @@ private:
 
             outFile.precision(dbl::digits10);
 
-            //write data to file
+            /* write data to file */
             double count_particles = 0.0;
             outFile << currentStep << " "
-                << std::scientific; // for floating points, ignored for ints
+		    << std::scientific; /*  for floating points, ignored for ints */
 
             for (int i = 0; i < realNumBins; ++i)
             {
@@ -401,8 +398,8 @@ private:
             }
             outFile << std::scientific << count_particles * double(NUM_EL_PER_PARTICLE)
                 << std::endl;
-            // endl: Flush any step to the file.
-            // Thus, we will have data if the program should crash.
+            /* endl: Flush any step to the file.
+	     * Thus, we will have data if the program should crash. */
         }
     }
 
@@ -410,5 +407,5 @@ private:
 
 }
 
-#endif	/* BINENERGYPARTICLES_HPP */
+
 
