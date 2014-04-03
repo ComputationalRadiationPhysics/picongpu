@@ -393,7 +393,7 @@ def get_args_parser():
 
     parser.add_argument("--fullpath", help="Use absolute paths for HDF5 files", action="store_true")
 
-    parser.add_argument("--no_splitgrid", help="Split the XML-tree in grid and poly and make seperate output file for each", action="store_true")
+    parser.add_argument("--no_splitgrid", help="Avoid the XML-tree to be split in grid and poly grids for seperate output files", action="store_true")
     
     return parser
 
