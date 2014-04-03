@@ -121,6 +121,35 @@ namespace picongpu
 
 
 
+  namespace radWindowFunctionTriplett
+  {
+    struct radWindowFunction
+    {
+      /** 1D Window function according to the Triplett window:
+       *
+       * x      = position_x - L_x/2
+       * lambda = decay parameter of the Triplett window 
+       * f(x) = {exp(-lambda*|x|)+cos^2(pi*t/L_x) : (-L_x/2 <= x <= +L_x/2 )
+       *        {0.0                              : in any other case
+       *
+       * @param position_x = 1D position
+       * @param L_x        = length of the simulated area
+       *                     assuming that the simulation ranges
+       *                     from 0 to L_x in the choosen dimension
+       * @returns weighting factor to reduce ringing effects due to
+       *          sharp spacial boundaries
+       **/
+      HDINLINE float_X operator()(const float_X position_x, const float_X L_x) const
+      {
+	const float_X x = position_x - L_x*float_X(0.5);
+	const float_X lambda = float_X(3.0)/L_x /* larger is better, but too large means no data */
+	const float_X cosinusValue = math::cos(M_PI*x/L_x);
+	return math::exp(-lambda*math::abs(x))*cosinusValue*cosinusValue;
+      }
+    };
+  } /* namespace radWindowFunctionTriplett */
+
+
 
 
 
