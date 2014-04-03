@@ -29,6 +29,7 @@
 namespace picongpu
 {
 
+template<uint32_t T_support>
 struct ShiftCoordinateSystemNative
 {
 
