@@ -219,8 +219,8 @@ private:
     int numBins;
     int realNumBins;
     /*in picongpu units*/
-    float_X minEnergy;
-    float_X maxEnergy;
+    float_X minEnergy_keV;
+    float_X maxEnergy_keV;
 
     float_X distanceToDetector;
     float_X slitDetectorX;
@@ -268,8 +268,8 @@ public:
         desc.add_options()
             ((analyzerPrefix + ".period").c_str(), po::value<uint32_t > (&notifyFrequency)->default_value(0), "enable analyser [for each n-th step]")
             ((analyzerPrefix + ".binCount").c_str(), po::value<int > (&numBins)->default_value(1024), "binCount")
-            ((analyzerPrefix + ".minEnergy").c_str(), po::value<float_X > (&minEnergy)->default_value(0.0), "minEnergy[in keV]")
-            ((analyzerPrefix + ".maxEnergy").c_str(), po::value<float_X > (&maxEnergy), "maxEnergy[in keV]")
+            ((analyzerPrefix + ".minEnergy").c_str(), po::value<float_X > (&minEnergy_keV)->default_value(0.0), "minEnergy[in keV]")
+            ((analyzerPrefix + ".maxEnergy").c_str(), po::value<float_X > (&maxEnergy_keV), "maxEnergy[in keV]")
             ((analyzerPrefix + ".distanceToDetector").c_str(), po::value<float_X > (&distanceToDetector)->default_value(0.0), "distance between gas and detector, assumptions: simulated area in y direction << distance to detector AND simulated area in X,Z << slit [in meters]  (if not set, all particles are counted)")
             ((analyzerPrefix + ".slitDetectorX").c_str(), po::value<float_X > (&slitDetectorX)->default_value(0.0), "size of the detector slit in X [in meters] (if not set, all particles are counted)")
             ((analyzerPrefix + ".slitDetectorZ").c_str(), po::value<float_X > (&slitDetectorZ)->default_value(0.0), "size of the detector slit in Z [in meters] (if not set, all particles are counted)");
@@ -298,13 +298,6 @@ private:
                 enableDetector = true;
 
             realNumBins = numBins + 2;
-	    /* store energy values [keV] for output file */
-            const float_X minEnergy_keV = minEnergy;
-            const float_X maxEnergy_keV = maxEnergy;
-
-	    /* convert energy values from keV to PIConGPU units */
-            minEnergy = minEnergy * UNITCONV_keV_to_Joule / UNIT_ENERGY;
-            maxEnergy = maxEnergy * UNITCONV_keV_to_Joule / UNIT_ENERGY;
 
             //create an array of double on gpu und host
             gBins = new GridBuffer<double, DIM1 > (DataSpace<DIM1 > (realNumBins));
@@ -371,6 +364,10 @@ private:
             maximumSlopeToDetectorZ = (slitDetectorZ / 2.0) / (distanceToDetector);
             //maximumSlopeToDetector = (radiusDetector * radiusDetector) / (distanceToDetector * distanceToDetector);
         }
+
+	/* convert energy values from keV to PIConGPU units */
+	const float_X minEnergy = minEnergy_keV * UNITCONV_keV_to_Joule / UNIT_ENERGY;
+	const float_X maxEnergy = maxEnergy_keV * UNITCONV_keV_to_Joule / UNIT_ENERGY;
 
         __picKernelArea(kernelBinEnergyParticles, *cellDescription, AREA)
             (block, (realNumBins) * sizeof (float_X))
