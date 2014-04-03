@@ -11,7 +11,9 @@ This is the 5th release candidate, a *pre-beta* version.
 
 **.param file changes:**
  - Added selection of optional window functions in `radiationConfig.param`
-  [#286](https://github.com/ComputationalRadiationPhysics/picongpu/pull/286/files#diff-1)
+   [#286](https://github.com/ComputationalRadiationPhysics/picongpu/pull/286/files#diff-1)
+ - Added more window functions in `radiationConfig.param`
+   [#320](https://github.com/ComputationalRadiationPhysics/picongpu/pull/320/files#diff-1)  
  - removed double `#define __COHERENTINCOHERENTWEIGHTING__ 1` in some example radiationConfig.param
    [#323](https://github.com/ComputationalRadiationPhysics/picongpu/pull/323/files)
 
