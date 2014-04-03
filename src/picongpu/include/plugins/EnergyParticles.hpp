@@ -158,22 +158,20 @@ class EnergyParticles : public ISimulationPlugin
 private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
 
-    ParticlesType *particles;
+    ParticlesType *particles; /* pointer to particle data */
 
-
-    GridBuffer<double, DIM1> *gEnergy;
+    GridBuffer<double, DIM1> *gEnergy; /* energy values (global on GPU) */
     MappingDesc *cellDescription;
-    uint32_t notifyFrequency;
+    uint32_t notifyFrequency; /* periodocity of computing the partical energy */
 
-    std::string analyzerName;
-    std::string analyzerPrefix;
-    std::string filename;
+    std::string analyzerName; /* name (used for output file too) */
+    std::string analyzerPrefix; /* prefix used for command line arguments */
+    std::string filename; /* output file name */
 
-    std::ofstream outFile;
-    /*only rank 0 create a file*/
-    bool writeToFile;
+    std::ofstream outFile; /* file output stream */
+    bool writeToFile;   /* only rank 0 create a file */
 
-    mpi::MPIReduce reduce;
+    mpi::MPIReduce reduce; /* MPI reduce to add all energies over several GPUs */
 
 public:
 
@@ -187,6 +185,7 @@ public:
     notifyFrequency(0),
     writeToFile(false)
     {
+        /* register this plugin */
         Environment<>::get().PluginConnector().registerPlugin(this);
     }
 
@@ -195,27 +194,35 @@ public:
 
     }
 
+  /** this code is executed if the current time step is supposed to compute 
+   * the energy **/
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = Environment<>::get().DataConnector();
+        DataConnector &dc = Environment<>::get().DataConnector(); /* get data connector */
 
+	/* use data connector to get particle data */
         particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
 
+	/* call the method that calls the plugin kernel */
         calculateEnergyParticles < CORE + BORDER > (currentStep);
     }
 
+  /** method used by plugin controler to get --help description **/
     void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
             ((analyzerPrefix + ".period").c_str(),
-             po::value<uint32_t > (&notifyFrequency), "enable analyser [for each n-th step]");
+             po::value<uint32_t > (&notifyFrequency), 
+	     "compute kinetic and total energy [for each n-th step] enable analyser by setting a non-zero value");
     }
 
+  /** method giving the plugin name (used by plugin control) **/
     std::string pluginGetName() const
     {
         return analyzerName;
     }
 
+  /** set cell description in this plugin **/
     void setMappingDescription(MappingDesc *cellDescription)
     {
         this->cellDescription = cellDescription;
@@ -223,74 +230,93 @@ public:
 
 private:
 
+    /** method to initialize plugin output and variables **/
     void pluginLoad()
     {
-        if (notifyFrequency > 0)
+      if (notifyFrequency > 0) /* only if plugin is called at least once */
         {
-            writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce());
-            gEnergy = new GridBuffer<double, DIM1 > (DataSpace<DIM1 > (2)); //create one int on gpu und host
+            /* decide which MPI-rank writes output: */
+	    writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce()); 
 
-            if (writeToFile)
+	    /* create one int on gpu and host: */
+            gEnergy = new GridBuffer<double, DIM1 > (DataSpace<DIM1 > (2));
+
+            if (writeToFile) /*
             {
+	        /* open output file */
                 outFile.open(filename.c_str(), std::ofstream::out | std::ostream::trunc);
+
+		/* error handling: */
                 if (!outFile)
                 {
-                    std::cerr << "Can't open file [" << filename << "] for output, diasble analyser output. " << std::endl;
+                    std::cerr << "Can't open file [" << filename 
+			      << "] for output, diasble analyser output. " << std::endl;
                     writeToFile = false;
                 }
-                //create header of the file
+
+                /* create header of the file */
                 outFile << "#step Ekin_Joule E_Joule" << " \n";
             }
 
+            /* set how often the plugin should be executed while PIConGPU is running */
             Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
         }
     }
 
+    /** method to quit plugin **/
     void pluginUnload()
     {
-        if (notifyFrequency > 0)
+        if (notifyFrequency > 0) /* only if plugin is called at least once */
         {
             if (writeToFile)
             {
                 outFile.flush();
-                outFile << std::endl; //now all data are written to file
+                outFile << std::endl; /* now all data are written to file */
+
+		/* error handling: */
                 if (outFile.fail())
                     std::cerr << "Error on flushing file [" << filename << "]. " << std::endl;
                 outFile.close();
             }
 
-            __delete(gEnergy);
+            __delete(gEnergy); /* free global memory on GPU */
         }
     }
 
+    /** method to call analysis and plugin-kernel calls **/
     template< uint32_t AREA>
     void calculateEnergyParticles(uint32_t currentStep)
     {
-        gEnergy->getDeviceBuffer().setValue(0.0);
-        dim3 block(MappingDesc::SuperCellSize::getDataSpace());
+        gEnergy->getDeviceBuffer().setValue(0.0); /* init global energy with zero */
+        dim3 block(MappingDesc::SuperCellSize::getDataSpace()); /* GPU parallelization */
 
+	/* kernel call = sum all particle energies on GPU */
         __picKernelArea(kernelEnergyParticles, *cellDescription, AREA)
             (block)
             (particles->getDeviceParticlesBox(),
              gEnergy->getDeviceBuffer().getDataBox());
-        gEnergy->deviceToHost();
 
+        gEnergy->deviceToHost(); /* get energy from GPU */
 
-        double reducedEnergy[2];
+        double reducedEnergy[2]; /* create storage for kinetic and total energy */
 
+	/* add energies from all GPUs using MPI: */
         reduce(nvidia::functors::Add(),
                reducedEnergy,
                gEnergy->getHostBuffer().getBasePointer(),
                2,
                mpi::reduceMethods::Reduce());
 
+	/* print timestep, kinetic energy and total energy to file: */
         if (writeToFile)
         {
             typedef std::numeric_limits< float_64 > dbl;
 
             outFile.precision(dbl::digits10);
-            outFile << currentStep << " " << std::scientific << reducedEnergy[0] * UNIT_ENERGY << " " <<
-                reducedEnergy[1] * UNIT_ENERGY << std::endl;
+            outFile << currentStep << " " 
+		    << std::scientific 
+		    << reducedEnergy[0] * UNIT_ENERGY << " " 
+		    << reducedEnergy[1] * UNIT_ENERGY << std::endl;
         }
     }
 
