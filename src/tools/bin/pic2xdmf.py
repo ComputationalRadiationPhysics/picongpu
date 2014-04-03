@@ -429,24 +429,30 @@ def main():
             sys.exit()
 
     if args.splitgrid:
+        # create the basic xml structure for grid and poly using splash2xdmf
         grid_xdmf_root, poly_xdmf_root = splash2xdmf.create_xdmf_xml(splash_files, args)
-	transform_xdmf_xml(grid_xdmf_root)
+        # transform these xml using our pic semantic knowledge
+        transform_xdmf_xml(grid_xdmf_root)
         transform_xdmf_xml(poly_xdmf_root)
+        # create the xml files from the transformed structures
         grid_doc.appendChild(grid_xdmf_root)
         poly_doc.appendChild(poly_xdmf_root)
+        # create list of two output filenames with _grid and _poly extension
 	output_filename_list = splash2xdmf.handle_user_filename(output_filename)
+        # use output filename list to write data to the relating output file
 	for output_file in output_filename_list:
 	    if output_file.endswith("_grid.xmf"):
                 splash2xdmf.write_xml_to_file(output_file, grid_doc)
 	    if output_file.endswith("_poly.xmf"):
 		splash2xdmf.write_xml_to_file(output_file, poly_doc)
     else:
-        # create the basic xml structure using splas2xdmf
+        # create the basic xml structure using splash2xdmf
         xdmf_root = splash2xdmf.create_xdmf_xml(splash_files, args)
         # transform this xml using our pic semantic knowledge
         transform_xdmf_xml(xdmf_root)
         # create a xml file from the transformed structure
         doc.appendChild(xdmf_root)
+        # write data to output file
         splash2xdmf.write_xml_to_file(output_filename, doc)
 
 if __name__ == "__main__":
