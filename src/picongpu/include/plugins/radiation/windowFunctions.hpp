@@ -131,7 +131,7 @@ namespace picongpu
        *
        * x      = position_x - L_x/2
        * lambda = decay parameter of the Triplett window 
-       * f(x) = {exp(-lambda*|x|)*cos^2(pi*t/L_x) : (-L_x/2 <= x <= +L_x/2 )
+       * f(x) = {exp(-lambda*|x|)*cos^2(pi*x/L_x) : (-L_x/2 <= x <= +L_x/2 )
        *        {0.0                              : in any other case
        *
        * @param position_x = 1D position
