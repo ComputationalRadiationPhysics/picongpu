@@ -72,7 +72,7 @@ __global__ void kernelEnergyParticles(ParticlesBox<FRAME, simDim> pb,
     const DataSpace<simDim > threadIndex(threadIdx);
     const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
 
-    if (linearThreadIdx == 0) /* only thread 0 runs inital set up */
+    if (linearThreadIdx == 0) /* only thread 0 runs initial set up */
     {
         const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
         frame = &(pb.getLastFrame(superCellIdx, isValid)); /* get first(=last) frame */
@@ -84,7 +84,7 @@ __global__ void kernelEnergyParticles(ParticlesBox<FRAME, simDim> pb,
     if (!isValid)
         return; /* end kernel if we have no frames */
 
-    /* this checks if the particle loaded by a thread is filled with a particle
+    /* this checks if the data loaded by a thread is filled with a particle
      * or not. Only applies to the first loaded frame (=last frame) */
     bool isParticle = (*frame)[linearThreadIdx][multiMask_];
 
@@ -107,21 +107,21 @@ __global__ void kernelEnergyParticles(ParticlesBox<FRAME, simDim> pb,
 
             if (gamma < 1.005f) /* if particle energy is low enough: */
             {
-	        /* not relativistic use equation with more precision */
+	        /* not relativistic: use equation with more precision */
                 _local_energyKin += mom2 / (2.0f * mass); 
             }
             else /* if particle is relativistic */
             {
-	        /* kinetic Energy for Particles: E = (gamma - 1) * m * c^2
+	        /* kinetic energy for particles: E = (gamma - 1) * m * c^2
                  *                                    gamma = sqrt( 1 + (p/m/c)^2 )
 		 * _local_energyKin += (sqrtf(mom2 / (mass * mass * c2) + 1.) - 1.) * mass * c2;
 		 */
                 _local_energyKin += (gamma - float_X(1.0)) * mass*c2;
             }
 
-            /* total Energy for Particles: E^2 = p^2*c^2 + m^2*c^4
-	     *                                   = c^2 * [p^2 + m^2*c^2]
-	     */
+            /* total energy for particles: E^2 = p^2*c^2 + m^2*c^4
+             *                                   = c^2 * [p^2 + m^2*c^2]
+             */
             _local_energy += sqrtf(mom2 + mass * mass * c2) * SPEED_OF_LIGHT;
 
         }
@@ -133,7 +133,7 @@ __global__ void kernelEnergyParticles(ParticlesBox<FRAME, simDim> pb,
             /* set frame to next particle frame */
             frame = &(pb.getPreviousFrame(*frame, isValid));
         }
-        isParticle = true; /* all following frames contain particles */
+        isParticle = true; /* all following frames are filled with particles */
         __syncthreads(); /* wait till thread 0 is done */
     }
 
@@ -161,14 +161,14 @@ private:
 
     GridBuffer<double, DIM1> *gEnergy; /* energy values (global on GPU) */
     MappingDesc *cellDescription;
-    uint32_t notifyFrequency; /* periodocity of computing the partical energy */
+    uint32_t notifyFrequency; /* periodocity of computing the particle energy */
 
     std::string analyzerName; /* name (used for output file too) */
     std::string analyzerPrefix; /* prefix used for command line arguments */
     std::string filename; /* output file name */
 
     std::ofstream outFile; /* file output stream */
-    bool writeToFile;   /* only rank 0 create a file */
+    bool writeToFile;   /* only rank 0 creates a file */
 
     mpi::MPIReduce reduce; /* MPI reduce to add all energies over several GPUs */
 
@@ -206,7 +206,7 @@ public:
         calculateEnergyParticles < CORE + BORDER > (currentStep);
     }
 
-  /** method used by plugin controler to get --help description **/
+  /** method used by plugin controller to get --help description **/
     void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
@@ -232,15 +232,15 @@ private:
     /** method to initialize plugin output and variables **/
     void pluginLoad()
     {
-      if (notifyFrequency > 0) /* only if plugin is called at least once */
+        if (notifyFrequency > 0) /* only if plugin is called at least once */
         {
             /* decide which MPI-rank writes output: */
-	    writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce()); 
+            writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce()); 
 
 	    /* create two ints on gpu and host: */
             gEnergy = new GridBuffer<double, DIM1 > (DataSpace<DIM1 > (2));
 
-            if (writeToFile) /*
+            if (writeToFile) /* only MPI rank that writes to file: */
             {
 	        /* open output file */
                 outFile.open(filename.c_str(), std::ofstream::out | std::ostream::trunc);
@@ -249,7 +249,7 @@ private:
                 if (!outFile)
                 {
                     std::cerr << "Can't open file [" << filename 
-			      << "] for output, diasble analyser output. " << std::endl;
+                              << "] for output, diasble analyser output. " << std::endl;
                     writeToFile = false;
                 }
 
@@ -270,7 +270,7 @@ private:
             if (writeToFile)
             {
                 outFile.flush();
-                outFile << std::endl; /* now all data are written to file */
+                outFile << std::endl; /* now all data is written to file */
 
 		/* error handling: */
                 if (outFile.fail())
