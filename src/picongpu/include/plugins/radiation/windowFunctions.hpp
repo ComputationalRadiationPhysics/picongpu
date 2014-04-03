@@ -176,9 +176,9 @@ namespace picongpu
       {
 	const float_X x = position_x - L_x*float_X(0.5);
 	const float_X sigma = float_X(0.4)*L_x; /* smaller is better, but too small means no data */
-	const float_X relativPosition = x/sigma; /* optimization */
+	const float_X relativePosition = x/sigma; /* optimization */
 	return float_X(math::abs(x) <= float_X(0.5)*L_x) 
-	  * (math::exp(float_X(-0.5)*relativPosition*relativPosition));
+	  * (math::exp(float_X(-0.5)*relativePosition*relativePosition));
       }
     };
   } /* namespace radWindowFunctionGauss */
