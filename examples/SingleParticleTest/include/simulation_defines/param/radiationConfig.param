@@ -129,11 +129,6 @@ namespace parameters
 // 0 = off (faster but with fourier reflections)
 #define __NYQUISTCHECK__ 0
 
-// corect treatment of coherent and incoherent  radiation from macroparticles
-// 1 = on  (slower and more memory, but correct quantitativ treatment)
-// 0 = off (faster but macroparticles are treated as highly charged, point-like particle)
-#define __COHERENTINCOHERENTWEIGHTING__ 0
-
 
 //marked every N particle for calculate radiation
 //mark no particle at beginning
