@@ -68,11 +68,9 @@ if [ $? -ne 0 ] ; then
 fi;
 echo copying;
 cat ~/startParaView | ssh -p 44334 huebl@localhost 'cat > ~/startParaView; /opt/torque/bin/qsub ~/startParaView';
-sleep 1;
-echo tunneling2
-kill `ps aux | grep 'ssh -p 44334 -f -R' | grep -v 'grep' | sed 's/\(.[^ \t]*\)[ \t]*\(.[^ \t]*\)\(.*\)/\2/'` 2>/dev/null;
-ssh -p 44334 -f -R `expr $NUM_PORT$ + 1`:localhost:11111 huebl@localhost -N;
-ssh -p 44334 $SSH_USER$@localhost 'ssh -g -f -L $NUM_PORT$:localhost:'`expr $NUM_PORT$ + 1`' localhost -N';
+sleep 2;
+echo tunneling2;
+ssh -p 44334 -R 10.0.2.253:$NUM_PORT$:localhost:11111 huebl@localhost -N;
 "/>
         </Arguments>
       </Command>
