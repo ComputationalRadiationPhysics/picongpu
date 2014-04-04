@@ -127,7 +127,7 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
 
             if (calcParticle)
             {
-		/* TODO: this is a duplication of the code in EnergyParticles - in seperate file? */
+		/* \todo: this is a duplication of the code in EnergyParticles - in separate file? */
                 const float_X mom2 = math::abs2(mom);
                 const float_X weighting = particle[weighting_];
                 const float_X mass = frame->getMass(weighting);
