@@ -215,7 +215,7 @@ private:
     uint32_t notifyFrequency;
     int numBins;
     int realNumBins;
-    /*in picongpu units*/
+    /* variables for energy limits of the histogram in keV */
     float_X minEnergy_keV;
     float_X maxEnergy_keV;
 
@@ -226,7 +226,7 @@ private:
 
     std::ofstream outFile;
 
-    /*only rank 0 create a file*/
+    /* only rank 0 create a file */
     bool writeToFile;
 
     mpi::MPIReduce reduce;
