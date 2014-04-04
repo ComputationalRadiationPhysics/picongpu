@@ -111,7 +111,7 @@ public:
     {
         /* copy singleton simulationBox data to simbox simBox holds global and*
          * local SimulationSize and where the local SimArea is in the greater *
-         * scheme using Offsets from global LEFT,TOP, FRONT                   */
+         * scheme using Offsets from global LEFT, TOP, FRONT                  */
         PMACC_AUTO(simBox, Environment<DIM2>::get().SubGrid().getSimulationBox());
 
         /* Recall that in types.hpp the following is defined:                 *
@@ -128,17 +128,13 @@ public:
         /* getDataSpace will return DataSpace( grid.x +16+16, grid.y +16+16)  *
          * init stores the arguments internally in a MappingDesc private      *
          * variable which stores the layout regarding Core, Border and guard  *
-         * in units of SuperCells to be used by the kernel to identify itself.*
-         * Don't understand why a new data type is necessary for this, when   *
-         * there is already SubGrid available ???                             */
+         * in units of SuperCells to be used by the kernel to identify itself.*/
         evo.init(MappingDesc(layout.getDataSpace(), 1, 1));
 
         buff1 = new Buffer(layout, false);
         buff2 = new Buffer(layout, false);
 
         Space gardingCells(1, 1);
-        /* TODO: Here here the directions are actually like one would imagine:*
-         * bit 1 to 9 are 0 or 1. (Note that bit 0 is forgotten/unused ??? )  */
         for (uint32_t i = 1; i < numberOfNeighbors[DIM2]; ++i)
         {
             /* to check which number corresponds to which direction, you can  *
@@ -155,20 +151,12 @@ public:
             buff2->addExchange(GUARD, Mask(i), gardingCells, BUFF2);
         }
 
-        /* In contrast to this usage of directions there exists an enum in    *
-         * libPMacc/include/types.h:                                          *
-         *    enum ExchangeType { RIGHT = 1u, LEFT = 2u, BOTTOM = 3u,         *
-         *                        TOP   = 6u, BACK = 9u, FRONT  = 18u   };    *
-         * Meaning we have said something like addExchange(GUARD, Mask(BACK), *
-         * ...) But even so, buff1->getSendMask().containsExchangeType(i)     *
-         * returns true for 0<=i<=8 and false for i=9, which is correct...??? */
-
          /* Both next lines are defined in GatherSlice.hpp:                   *
           *  -gather saves the MessageHeader object                           *
           *  -Then do an Allgather for the gloabalRanks from GC, sort out     *
           *  -inactive processes (second/boolean ,argument in gather.init) and*
           *   save new MPI_COMMUNICATOR created from these into private var.  *
-          *  -return rank == 0                                                */
+          *  -return if rank == 0                                             */
         MessageHeader header(gridSize, layout, simBox.getGlobalOffset());
         isMaster = gather.init(header, true);
 
