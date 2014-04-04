@@ -110,7 +110,7 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
         {
             PMACC_AUTO(particle,(*frame)[linearThreadIdx]);
             /* kinetic Energy for Particles: E^2 = p^2*c^2 + m^2*c^4
-	     *                                   = c^2 * [p^2 + m^2*c^2] */
+             *                                   = c^2 * [p^2 + m^2*c^2] */
             const float3_X mom = particle[momentum_];
 
             bool calcParticle = true;
@@ -127,7 +127,7 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
 
             if (calcParticle)
             {
-		/* \todo: this is a duplication of the code in EnergyParticles - in separate file? */
+                /* \todo: this is a duplication of the code in EnergyParticles - in separate file? */
                 const float_X mom2 = math::abs2(mom);
                 const float_X weighting = particle[weighting_];
                 const float_X mass = frame->getMass(weighting);
@@ -140,13 +140,13 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
 
                 if (gamma < 1.005f)
                 {
-		    _local_energy = mom2 / (2.0f * mass); /* not relativistic use equation with more precision */
+                    _local_energy = mom2 / (2.0f * mass); /* not relativistic use equation with more precision */
                 }
                 else
                 {
-		    /* kinetic Energy for Particles: E = (sqrt[p^2*c^2 /(m^2*c^4)+ 1] -1) m*c^2
+                    /* kinetic Energy for Particles: E = (sqrt[p^2*c^2 /(m^2*c^4)+ 1] -1) m*c^2
                      *                                   = c^2 * [p^2 + m^2*c^2]-m*c^2
-		     *                                 = (gamma - 1) * m * c^2   */
+                     *                                 = (gamma - 1) * m * c^2   */
                     _local_energy = (gamma - float_X(1.0)) * mass*c2;
                 }
                 _local_energy /= weighting;
@@ -362,9 +362,9 @@ private:
             /* maximumSlopeToDetector = (radiusDetector * radiusDetector) / (distanceToDetector * distanceToDetector); */
         }
 
-	/* convert energy values from keV to PIConGPU units */
-	const float_X minEnergy = minEnergy_keV * UNITCONV_keV_to_Joule / UNIT_ENERGY;
-	const float_X maxEnergy = maxEnergy_keV * UNITCONV_keV_to_Joule / UNIT_ENERGY;
+        /* convert energy values from keV to PIConGPU units */
+        const float_X minEnergy = minEnergy_keV * UNITCONV_keV_to_Joule / UNIT_ENERGY;
+        const float_X maxEnergy = maxEnergy_keV * UNITCONV_keV_to_Joule / UNIT_ENERGY;
 
         __picKernelArea(kernelBinEnergyParticles, *cellDescription, AREA)
             (block, (realNumBins) * sizeof (float_X))
@@ -389,7 +389,7 @@ private:
             /* write data to file */
             double count_particles = 0.0;
             outFile << currentStep << " "
-		    << std::scientific; /*  for floating points, ignored for ints */
+                    << std::scientific; /*  for floating points, ignored for ints */
 
             for (int i = 0; i < realNumBins; ++i)
             {
@@ -399,7 +399,7 @@ private:
             outFile << std::scientific << count_particles * double(NUM_EL_PER_PARTICLE)
                 << std::endl;
             /* endl: Flush any step to the file.
-	     * Thus, we will have data if the program should crash. */
+             * Thus, we will have data if the program should crash. */
         }
     }
 
