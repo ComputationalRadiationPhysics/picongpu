@@ -30,7 +30,7 @@
 /** some forward declarations we need */
 #include "fields/Fields.def"
 #include "particles/Species.hpp"
-#include "particles/particleToGrid/energyDensity.kernel"
+#include "particles/particleToGrid/ComputeGridValuePerFrame.hpp"
 
 namespace picongpu
 {
@@ -52,19 +52,19 @@ namespace picongpu
      */
     using namespace particleToGrid;
     
-    typedef ComputeEnergyDensityPerFrame<
+    typedef ComputeGridValuePerFrame<
             speciesParticleShape::ParticleShape::ChargeAssignment,
-            ComputeEnergyDensityOptions::calcDensity
+            ComputeGridValueOptions::calcDensity
         > TmpParticleDensity;
     
-    typedef ComputeEnergyDensityPerFrame<
+    typedef ComputeGridValuePerFrame<
             speciesParticleShape::ParticleShape::ChargeAssignment,
-            ComputeEnergyDensityOptions::calcEnergyDensity
+            ComputeGridValueOptions::calcEnergyDensity
         > TmpParticleEnergyDensity;
     
-    typedef ComputeEnergyDensityPerFrame<
+    typedef ComputeGridValuePerFrame<
             particleShape::Counter::ChargeAssignment,
-            ComputeEnergyDensityOptions::calcCounter
+            ComputeGridValueOptions::calcCounter
         > TmpParticleCounter;
 
     /** List of solvers that use FieldTmp and electrons */
