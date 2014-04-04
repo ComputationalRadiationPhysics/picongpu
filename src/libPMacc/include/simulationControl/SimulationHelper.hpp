@@ -60,7 +60,7 @@ public:
      * 
      */
     SimulationHelper() :
-    runSteps(1),
+    runSteps(0),
     checkpointFrequency(0),
     restartStep(0),
     restartRequested(false)
