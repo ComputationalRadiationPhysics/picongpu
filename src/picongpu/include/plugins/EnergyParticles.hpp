@@ -92,10 +92,10 @@ __global__ void kernelEnergyParticles(ParticlesBox<FRAME, simDim> pb,
     {
         if (isParticle)
         {
-	  
-	    PMACC_AUTO(particle,(*frame)[linearThreadIdx]); /* get one particle */
+          
+            PMACC_AUTO(particle,(*frame)[linearThreadIdx]); /* get one particle */
             const float3_X mom = particle[momentum_]; /* get particle momentum */
-	    /* and compute square of absolute momentum of one particle: */
+            /* and compute square of absolute momentum of one particle: */
             const float_X mom2 = mom.x() * mom.x() + mom.y() * mom.y() + mom.z() * mom.z();
 
             const float_X weighting = particle[weighting_]; /* get macro particle weighting */
@@ -107,15 +107,15 @@ __global__ void kernelEnergyParticles(ParticlesBox<FRAME, simDim> pb,
 
             if (gamma < 1.005f) /* if particle energy is low enough: */
             {
-	        /* not relativistic: use equation with more precision */
+                /* not relativistic: use equation with more precision */
                 _local_energyKin += mom2 / (2.0f * mass); 
             }
             else /* if particle is relativistic */
             {
-	        /* kinetic energy for particles: E = (gamma - 1) * m * c^2
+                /* kinetic energy for particles: E = (gamma - 1) * m * c^2
                  *                                    gamma = sqrt( 1 + (p/m/c)^2 )
-		 * _local_energyKin += (sqrtf(mom2 / (mass * mass * c2) + 1.) - 1.) * mass * c2;
-		 */
+                 * _local_energyKin += (sqrtf(mom2 / (mass * mass * c2) + 1.) - 1.) * mass * c2;
+                 */
                 _local_energyKin += (gamma - float_X(1.0)) * mass*c2;
             }
 
@@ -127,7 +127,7 @@ __global__ void kernelEnergyParticles(ParticlesBox<FRAME, simDim> pb,
         }
         __syncthreads(); /* wait till all threads have added their particle energies */
 
-	/* get next particle frame */
+        /* get next particle frame */
         if (linearThreadIdx == 0) 
         {
             /* set frame to next particle frame */
@@ -199,10 +199,10 @@ public:
     {
         DataConnector &dc = Environment<>::get().DataConnector(); /* get data connector */
 
-	/* use data connector to get particle data */
+        /* use data connector to get particle data */
         particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
 
-	/* call the method that calls the plugin kernel */
+        /* call the method that calls the plugin kernel */
         calculateEnergyParticles < CORE + BORDER > (currentStep);
     }
 
@@ -212,7 +212,7 @@ public:
         desc.add_options()
             ((analyzerPrefix + ".period").c_str(),
              po::value<uint32_t > (&notifyFrequency), 
-	     "compute kinetic and total energy [for each n-th step] enable analyser by setting a non-zero value");
+             "compute kinetic and total energy [for each n-th step] enable analyser by setting a non-zero value");
     }
 
   /** method giving the plugin name (used by plugin control) **/
@@ -237,15 +237,15 @@ private:
             /* decide which MPI-rank writes output: */
             writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce()); 
 
-	    /* create two ints on gpu and host: */
+            /* create two ints on gpu and host: */
             gEnergy = new GridBuffer<double, DIM1 > (DataSpace<DIM1 > (2));
 
             if (writeToFile) /* only MPI rank that writes to file: */
             {
-	        /* open output file */
+                /* open output file */
                 outFile.open(filename.c_str(), std::ofstream::out | std::ostream::trunc);
 
-		/* error handling: */
+                /* error handling: */
                 if (!outFile)
                 {
                     std::cerr << "Can't open file [" << filename 
@@ -272,7 +272,7 @@ private:
                 outFile.flush();
                 outFile << std::endl; /* now all data is written to file */
 
-		/* error handling: */
+                /* error handling: */
                 if (outFile.fail())
                     std::cerr << "Error on flushing file [" << filename << "]. " << std::endl;
                 outFile.close();
@@ -289,7 +289,7 @@ private:
         gEnergy->getDeviceBuffer().setValue(0.0); /* init global energy with zero */
         dim3 block(MappingDesc::SuperCellSize::getDataSpace()); /* GPU parallelization */
 
-	/* kernel call = sum all particle energies on GPU */
+        /* kernel call = sum all particle energies on GPU */
         __picKernelArea(kernelEnergyParticles, *cellDescription, AREA)
             (block)
             (particles->getDeviceParticlesBox(),
@@ -299,23 +299,23 @@ private:
 
         double reducedEnergy[2]; /* create storage for kinetic and total energy */
 
-	/* add energies from all GPUs using MPI: */
+        /* add energies from all GPUs using MPI: */
         reduce(nvidia::functors::Add(),
                reducedEnergy,
                gEnergy->getHostBuffer().getBasePointer(),
                2,
                mpi::reduceMethods::Reduce());
 
-	/* print timestep, kinetic energy and total energy to file: */
+        /* print timestep, kinetic energy and total energy to file: */
         if (writeToFile)
         {
             typedef std::numeric_limits< float_64 > dbl;
 
             outFile.precision(dbl::digits10);
             outFile << currentStep << " " 
-		    << std::scientific 
-		    << reducedEnergy[0] * UNIT_ENERGY << " " 
-		    << reducedEnergy[1] * UNIT_ENERGY << std::endl;
+                    << std::scientific 
+                    << reducedEnergy[0] * UNIT_ENERGY << " " 
+                    << reducedEnergy[1] * UNIT_ENERGY << std::endl;
         }
     }
 
