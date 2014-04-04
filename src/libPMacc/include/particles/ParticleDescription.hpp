@@ -38,7 +38,7 @@ namespace PMacc
  *                type must be a boost::mpl::string
  * @tparam T_SuperCellSize compile time size of a super cell
  * @tparam T_ValueTypeSeq sequence or single type with value_identifier
- * @tparam T_Flags sequence or single type with idenifierer to add fags on a frame
+ * @tparam T_Flags sequence or single type with identifier to add fags on a frame
  * @tparam T_MethodsList sequence or single class with particle methods 
  *                       (e.g. calculate mass, gamma, ...) 
  *                       (e.g. useSolverXY, calcRadiation, ...) 

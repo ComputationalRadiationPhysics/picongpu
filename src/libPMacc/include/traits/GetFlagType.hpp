@@ -28,13 +28,12 @@ namespace PMacc
 namespace traits
 {
 
-/** Get Flag
+/** Get Flag of an Object
  * 
  * @tparam T_Object any object (class or typename)
  * @tparam T_Key a class which is used as identifier
  * 
- * This struct must define 
- * ::type
+ * @treturn ::type
  */
 template<typename T_Object, typename T_Key>
 struct GetFlagType;
