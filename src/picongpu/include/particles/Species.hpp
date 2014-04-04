@@ -73,6 +73,7 @@ typedef Particles<
         boost::mpl::string<'e'>,
         MappingDesc::SuperCellSize,
         Species1_data,
+        boost::mpl::vector0<>,
         ElectronsMethodsList
     >
 > PIC_Electrons;
@@ -82,6 +83,7 @@ typedef Particles<
         boost::mpl::string<'i'>,
         MappingDesc::SuperCellSize,
         Species2_data,
+        boost::mpl::vector0<>,
         IonsMethodsList
     >
 > PIC_Ions;
