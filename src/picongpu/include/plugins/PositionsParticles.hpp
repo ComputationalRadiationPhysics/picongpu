@@ -35,7 +35,7 @@
 #include "mappings/kernel/AreaMapping.hpp"
 
 #include "algorithms/Gamma.hpp"
-#include "plugins/ISimulationPlugin.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 
 namespace picongpu
 {
@@ -161,7 +161,7 @@ __global__ void kernelPositionsParticles(ParticlesBox<FRAME, simDim> pb,
 }
 
 template<class ParticlesType>
-class PositionsParticles : public ISimulationPlugin
+class PositionsParticles : public ILightweightPlugin
 {
 private:
     typedef MappingDesc::SuperCellSize SuperCellSize;

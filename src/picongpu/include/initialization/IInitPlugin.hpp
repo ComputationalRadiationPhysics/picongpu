@@ -24,14 +24,14 @@
 
 #include "types.h"
 #include "pluginSystem/PluginConnector.hpp"
-#include "plugins/ISimulationPlugin.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 
 
 namespace picongpu
 {
     using namespace PMacc;
 
-    class IInitPlugin :  public ISimulationPlugin
+    class IInitPlugin :  public ILightweightPlugin
     {
     public:
         virtual void slide(uint32_t currentStep) = 0;

@@ -35,7 +35,7 @@
 #include <fstream>
 #include <mpi.h>
 
-#include "plugins/ISimulationPlugin.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 
 #include "fields/FieldE.hpp"
 #include "memory/boxes/CachedBox.hpp"
@@ -113,7 +113,7 @@ __global__ void kernelIntensity(FieldBox field, DataSpace<simDim> cellsCount, Bo
 
 }
 
-class IntensityPlugin : public ISimulationPlugin
+class IntensityPlugin : public ILightweightPlugin
 {
 private:
     typedef MappingDesc::SuperCellSize SuperCellSize;

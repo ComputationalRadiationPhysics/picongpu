@@ -37,7 +37,7 @@
 
 #include "simulation_classTypes.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
-#include "plugins/ISimulationPlugin.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 
 #include "plugins/radiation/parameters.hpp"
 #include "plugins/radiation/check_consistency.hpp"
@@ -507,7 +507,7 @@ void kernelRadiationParticles(ParBox pb,
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 template<class ParticlesType>
-class Radiation : public ISimulationPlugin
+class Radiation : public ILightweightPlugin
 {
 private:
 

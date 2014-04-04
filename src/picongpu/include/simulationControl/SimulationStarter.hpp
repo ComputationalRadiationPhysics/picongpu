@@ -37,7 +37,6 @@
 #include "dimensions/GridLayout.hpp"
 #include "mappings/kernel/MappingDescription.hpp"
 #include "pluginSystem/PluginConnector.hpp"
-#include "pluginSystem/IPlugin.hpp"
 #include "simulationControl/ISimulationStarter.hpp"
 
 namespace picongpu

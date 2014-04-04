@@ -22,7 +22,7 @@
 #define ANALYSIS_PARTICLESPECTRUM_HPP
 
 
-#include "plugins/ISimulationPlugin.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 
 namespace picongpu
 {
@@ -31,7 +31,7 @@ using namespace PMacc;
 namespace po = boost::program_options;
 
 template<typename ParticlesType>
-class ParticleSpectrum : public ISimulationPlugin
+class ParticleSpectrum : public ILightweightPlugin
 {
 private:
     std::string name;

@@ -49,6 +49,7 @@ struct ThreadParams
     {}
 
     uint32_t currentStep;
+    bool isCheckpoint;
     ParallelDomainCollector *dataCollector;
     GridLayout<simDim> gridLayout;
     DataSpace<simDim> gridPosition;

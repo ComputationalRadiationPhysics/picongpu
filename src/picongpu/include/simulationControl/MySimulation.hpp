@@ -52,7 +52,6 @@
 #include "initialization/ParserGridDistribution.hpp"
 
 #include "particles/Species.hpp"
-#include "pluginSystem/IPlugin.hpp"
 
 #include "nvidia/reduce/Reduce.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
@@ -86,9 +85,7 @@ public:
     fieldTmp(NULL),
     cellDescription(NULL),
     initialiserController(NULL),
-    slidingWindow(false),
-    restartStep(0),
-    restartRequested(false)
+    slidingWindow(false)
     {
 #if (ENABLE_IONS == 1)
         ions = NULL;
@@ -119,9 +116,7 @@ public:
             ("periodic", po::value<std::vector<uint32_t> > (&periodic)->multitoken(),
              "specifying whether the grid is periodic (1) or not (0) in each dimension, default: no periodic dimensions")
 
-            ("moving,m", po::value<bool>(&slidingWindow)->zero_tokens(), "enable sliding/moving window")
-            ("restart", po::value<bool>(&restartRequested)->zero_tokens(), "Restart simulation")
-            ("restart-step", po::value<uint32_t>(&restartStep), "Iteration to restart from");
+            ("moving,m", po::value<bool>(&slidingWindow)->zero_tokens(), "enable sliding/moving window");
     }
 
     std::string pluginGetName() const
@@ -330,10 +325,10 @@ public:
         if (initialiserController)
         {
             initialiserController->printInformation();
-            if (restartRequested)
+            if (this->restartRequested)
             {
-                initialiserController->restart(restartStep);
-                step = restartStep + 1;
+                initialiserController->restart(this->restartStep);
+                step = this->restartStep + 1;
             }
             else
             {
@@ -539,9 +534,6 @@ protected:
     std::vector<std::string> gridDistribution;
 
     bool slidingWindow;
-    uint32_t restartStep;
-    bool restartRequested;
-
 };
 }
 

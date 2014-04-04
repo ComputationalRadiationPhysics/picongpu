@@ -21,7 +21,7 @@
 #ifndef ANALYSIS_TOTALDIVJ_HPP
 #define ANALYSIS_TOTALDIVJ_HPP
 
-#include "plugins/ISimulationPlugin.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 
 namespace picongpu
 {
@@ -29,7 +29,7 @@ using namespace PMacc;
 
 namespace po = boost::program_options;
 
-class TotalDivJ : public ISimulationPlugin
+class TotalDivJ : public ILightweightPlugin
 {
 private:
     std::string name;

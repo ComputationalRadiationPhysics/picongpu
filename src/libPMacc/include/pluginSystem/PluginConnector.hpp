@@ -121,7 +121,7 @@ namespace PMacc
         }
         
         /**
-         * Notifies observers that data should be dumped.
+         * Notifies plugins that data should be dumped.
          *
          * @param currentStep current simulation iteration step
          */
@@ -140,6 +140,25 @@ namespace PMacc
             }
         }
         
+        /**
+         * Notifies plugins that a restartable checkpoint should be dumped.
+         * 
+         * @param currentStep current simulation iteration step
+         */
+        void checkpointPlugins(uint32_t currentStep)
+        {
+            for (std::list<IPlugin*>::iterator iter = plugins.begin();
+                    iter != plugins.end(); ++iter)
+            {
+                (*iter)->checkpoint(currentStep);
+            }
+        }
+        
+        /**
+         * Notifies plugins that a restart is required.
+         * 
+         * @param restartStep simulation iteration to restart from
+         */
         void restartPlugins(uint32_t restartStep)
         {
             for (std::list<IPlugin*>::iterator iter = plugins.begin();

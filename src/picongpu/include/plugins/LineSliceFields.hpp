@@ -41,7 +41,7 @@
 
 #include "basicOperations.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
-#include "plugins/ISimulationPlugin.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 
 namespace picongpu
 {
@@ -95,7 +95,7 @@ namespace picongpu
         __syncthreads();
     }
 
-    class LineSliceFields : public ISimulationPlugin
+    class LineSliceFields : public ILightweightPlugin
     {
     private:
         FieldE* fieldE;

@@ -31,7 +31,7 @@
 #include <iomanip>
 #include <fstream>
 
-#include "plugins/ISimulationPlugin.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 
 #include "memory/buffers/GridBuffer.hpp"
 
@@ -107,7 +107,7 @@ __global__ void CountMakroParticle(ParBox parBox, CounterBox counterBox, Mapping
  *      
  */
 template<class ParticlesType>
-class PerSuperCell : public ISimulationPlugin
+class PerSuperCell : public ILightweightPlugin
 {
 private:
 

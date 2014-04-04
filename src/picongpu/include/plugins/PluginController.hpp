@@ -50,6 +50,7 @@
 #include "mappings/kernel/MappingDescription.hpp"
 
 #include "plugins/LiveViewPlugin.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 #include "plugins/ISimulationPlugin.hpp"
 
 #if(PIC_ENABLE_PNG==1)
@@ -101,7 +102,7 @@ using namespace PMacc;
 /**
  * Plugin management controller for user-level plugins.
  */
-class PluginController : public ISimulationPlugin
+class PluginController : public ILightweightPlugin
 {
 private:
 
