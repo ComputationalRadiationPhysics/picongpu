@@ -108,9 +108,8 @@ power user only release**! We hereby emphasize that you should wait for our
 release.
 
 Visit [picongpu.hzdr.de](http://picongpu.hzdr.de) to learn more about PIC
-codes. See the
-[getting started guide](http://www.youtube.com/watch?v=7ybsD8G4Rsk)
-(more documents coming soon) and
+codes. See the [user guide](https://github.com/ComputationalRadiationPhysics/picongpu/wiki), 
+our [getting started video](http://www.youtube.com/watch?v=7ybsD8G4Rsk) and
 [contact](http://www.hzdr.de/db/Cms?pNid=132&pOid=30354) us!
 
 **Upgrades:** Every time we update the *master* branch, we publish a new release
