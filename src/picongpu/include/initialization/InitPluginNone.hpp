@@ -38,9 +38,12 @@ namespace picongpu
         {
         }
 
-        virtual uint32_t init()
+        virtual void init()
         {
-            return 0;
+        }
+        
+        virtual void printInformation()
+        {
         }
         
         void notify(uint32_t)

@@ -31,11 +31,6 @@
 #include "fields/FieldE.hpp"
 #include "fields/FieldB.hpp"
 
-
-#if (ENABLE_HDF5==1)
-#include "initialization/SimRestartInitialiser.hpp"
-#endif
-
 #include "initialization/SimStartInitialiser.hpp"
 #include "particles/Species.hpp"
 
@@ -55,9 +50,7 @@ class InitialiserController : public IInitPlugin
 public:
 
     InitialiserController() :
-    cellDescription(NULL),
-    restartSim(false),
-    restartFile("h5")
+    cellDescription(NULL)
     {
     }
 
@@ -66,19 +59,47 @@ public:
     }
 
     /**
-     * Initializes simulation state.
-     * 
-     * @return returns the first step of the simulation
+     * Initialize simulation state at timestep 0
      */
-    virtual uint32_t init()
+    virtual void init()
+    {
+        // start simulation using default values
+        log<picLog::SIMULATION_STATE > ("Starting simulation from timestep 0");
+        
+        SimStartInitialiser<PIC_Electrons, PIC_Ions> simStartInitialiser;
+        Environment<>::get().DataConnector().initialise(simStartInitialiser, 0);
+        __getTransactionEvent().waitForFinished();
+
+        log<picLog::SIMULATION_STATE > ("Loading from default values finished");
+    }
+    
+    /**
+     * Load persistent simulation state from \p restartStep
+     */
+    virtual void restart(uint32_t restartStep)
+    {
+        // restart simulation by loading from persistent data
+        // the simulation will start after restartStep
+        log<picLog::SIMULATION_STATE > ("Restarting simulation from timestep %1%") % restartStep;
+        
+        Environment<>::get().PluginConnector().restartPlugins(restartStep);
+        __getTransactionEvent().waitForFinished();
+
+        log<picLog::SIMULATION_STATE > ("Loading from persistent data finished");
+    }
+
+    /**
+     * Print interesting initialization information
+     */
+    virtual void printInformation()
     {
         if (Environment<simDim>::get().GridController().getGlobalRank() == 0)
         {
             std::cout << "max weighting " << NUM_EL_PER_PARTICLE << std::endl;
             
-            float_X shortestSide=cellSize.x();
+            float_X shortestSide = cellSize.x();
             for(uint32_t d=1;d<simDim;++d)
-                shortestSide=std::min(shortestSide,cellSize[d]);
+                shortestSide=std::min(shortestSide, cellSize[d]);
                         
             std::cout << "courant=min(deltaCellSize)/dt/c > 1.77 ? "<< 
                          shortestSide / SPEED_OF_LIGHT / DELTA_T << std::endl;
@@ -112,41 +133,13 @@ public:
             const bool restartImpossible = (boost::is_same<itFindFieldE, itEnd>::value)
                                         || (boost::is_same<itFindFieldB, itEnd>::value);
             if( restartImpossible )
+            {
                 std::cout << "WARNING: HDF5 restart impossible! (dump at least "
                           << "FieldE and FieldB in hdf5Output.unitless)"
                           << std::endl;
+            }
 #endif
         }
-
-#if (ENABLE_HDF5==1)
-        // restart simulation by loading from hdf5 data file
-        // the simulation will start after the last saved iteration
-        if (restartSim)
-        {
-            SimRestartInitialiser<PIC_Electrons, PIC_Ions, simDim> simRestartInitialiser(
-                restartFile.c_str(), cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
-
-            Environment<>::get().DataConnector().initialise(simRestartInitialiser, 0);
-
-            uint32_t simulationStep = simRestartInitialiser.getSimulationStep() + 1;
-
-            __getTransactionEvent().waitForFinished();
-
-            log<picLog::SIMULATION_STATE > ("Loading from hdf5 finished, can start program");
-
-            return simulationStep;
-        } else
-#endif
-        {
-            // start simulation using default values
-            SimStartInitialiser<PIC_Electrons, PIC_Ions> simStartInitialiser;
-            Environment<>::get().DataConnector().initialise(simStartInitialiser, 0);
-            __getTransactionEvent().waitForFinished();
-
-            log<picLog::SIMULATION_STATE > ("Loading from default values finished, can start program");
-        }
-
-        return 0;
     }
 
     void notify(uint32_t)
@@ -156,13 +149,7 @@ public:
 
     void pluginRegisterHelp(po::options_description& desc)
     {
-#if (ENABLE_HDF5==1)
-        desc.add_options()
-
-            ("restart", po::value<bool>(&restartSim)->zero_tokens(), "restart simulation from HDF5")
-            ("restart-file", po::value<std::string > (&restartFile)->default_value(restartFile), "HDF5 file to restart simulation from")
-            ;
-#endif
+        // nothing to do here
     }
 
     std::string pluginGetName() const
