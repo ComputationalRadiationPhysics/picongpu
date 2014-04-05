@@ -1,0 +1,78 @@
+/**
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+
+#pragma once
+
+#include "simulation_defines.hpp"
+
+namespace picongpu
+{
+namespace particleToGrid
+{
+
+struct ComputeGridValueOptions
+{
+    static const uint32_t calcDensity = 0u;
+    static const uint32_t calcEnergy = 1u;
+    static const uint32_t calcEnergyDensity = 2u;
+    static const uint32_t calcCounter = 3u;
+#if(ENABLE_RADIATION == 1)
+    static const uint32_t calcLarmorEnergy = 4u;
+#endif
+};
+
+template<class T_ParticleShape, uint32_t calcType>
+class ComputeGridValuePerFrame
+{
+public:
+
+    typedef typename T_ParticleShape::ChargeAssignment AssignmentFunction;
+    static const int supp = AssignmentFunction::support;
+
+    static const int lowerMargin = supp / 2;
+    static const int upperMargin = (supp + 1) / 2;
+    typedef typename PMacc::math::CT::make_Int<simDim, lowerMargin>::type LowerMargin;
+    typedef typename PMacc::math::CT::make_Int<simDim, upperMargin>::type UpperMargin;
+
+    HDINLINE ComputeGridValuePerFrame()
+    {
+    }
+
+    /** return unit for this solver
+     * 
+     * @return solver unit
+     */
+    HDINLINE float1_64 getUnit() const;
+
+    /** return name of the this solver
+     * @return name of solver
+     */
+    HINLINE std::string getName() const;
+
+    template<class FrameType, class TVecSuperCell, class BoxTmp >
+    DINLINE void operator()(FrameType& frame, const int localIdx,
+                            const TVecSuperCell superCell,
+                            BoxTmp& tmpBox);
+};
+
+} // namespace particleToGrid
+} // namespace picongpu
