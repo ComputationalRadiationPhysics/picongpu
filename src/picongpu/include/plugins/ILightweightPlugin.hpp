@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Rene Widera, Felix Schmitt
+ * Copyright 2014 Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -17,31 +17,33 @@
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
-
 
 #pragma once
 
-#include "types.h"
-#include "pluginSystem/PluginConnector.hpp"
-#include "plugins/ILightweightPlugin.hpp"
-
+#include "plugins/ISimulationPlugin.hpp"
 
 namespace picongpu
 {
-    using namespace PMacc;
-
-    class IInitPlugin :  public ILightweightPlugin
+    /**
+     * Interface for a lightweight simulation plugin
+     * without checkpoint/restart capabilities.
+     */
+    class ILightweightPlugin : public ISimulationPlugin
     {
     public:
-        virtual void slide(uint32_t currentStep) = 0;
-        virtual void init() = 0;
-        virtual void printInformation() = 0;
-
-        virtual ~IInitPlugin()
+        void restart(uint32_t)
         {
+            // disable checkpoint/restart capabilities for lightweight plugins
         }
         
+        void checkpoint(uint32_t)
+        {
+            // disable checkpoint/restart capabilities for lightweight plugins
+        }
+        
+        virtual ~ILightweightPlugin()
+        {
+            
+        }
     };
-}
-
+} //namespace picongpu

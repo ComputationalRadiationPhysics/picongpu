@@ -50,7 +50,7 @@
 #include "simulationControl/MovingWindow.hpp"
 #include "dimensions/TVec.h"
 
-#include "plugins/ISimulationPlugin.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
 #include <boost/type_traits/is_same.hpp>
@@ -80,13 +80,13 @@ namespace po = boost::program_options;
 
 /**
  * Writes simulation data to adios files.
- * Implements the ISimulationPlugin interface.
+ * Implements the ILightweightPlugin interface.
  *
  * @param ElectronsBuffer class description for electrons
  * @param IonsBuffer class description for ions
  * @param simDim dimension of the simulation (2-3)
  */
-class ADIOSWriter : public ISimulationPlugin
+class ADIOSWriter : public ILightweightPlugin
 {
 public:
 

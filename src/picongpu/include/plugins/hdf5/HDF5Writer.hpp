@@ -93,8 +93,10 @@ public:
 
     HDF5Writer() :
     filename("h5"),
+    checkpointFilename(""),
     restartFilename(""),
-    notifyFrequency(0)
+    notifyFrequency(0),
+    lastCheckpoint(-1)
     {
         Environment<>::get().PluginConnector().registerPlugin(this);
     }
@@ -110,9 +112,11 @@ public:
             ("hdf5.period", po::value<uint32_t > (&notifyFrequency)->default_value(0),
              "enable HDF5 IO [for each n-th step]")
             ("hdf5.file", po::value<std::string > (&filename)->default_value(filename),
-             "HDF5 output file")
+             "HDF5 output filename (prefix)")
+            ("hdf5.checkpoint-file", po::value<std::string > (&checkpointFilename),
+             "Optional HDF5 checkpoint filename (prefix)")
             ("hdf5.restart-file", po::value<std::string > (&restartFilename),
-             "HDF5 restart file");
+             "HDF5 restart filename (prefix)");
     }
 
     std::string pluginGetName() const
@@ -128,18 +132,14 @@ public:
 
     __host__ void notify(uint32_t currentStep)
     {
-        mThreadParams.currentStep = (int32_t) currentStep;
-        mThreadParams.gridPosition = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
-        mThreadParams.cellDescription = this->cellDescription;
-        mThreadParams.window = MovingWindow::getInstance().getVirtualWindow(currentStep);
-
-        __getTransactionEvent().waitForFinished();
-
-        openH5File();
-
-        writeHDF5((void*) &mThreadParams);
-
-        closeH5File();
+        if ((int64_t)currentStep > lastCheckpoint)
+            notificationReceived(currentStep, false);
+    }
+    
+    void checkpoint(uint32_t currentStep)
+    {
+        notificationReceived(currentStep, true);
+        lastCheckpoint = currentStep;
     }
     
     void restart(uint32_t restartStep)
@@ -207,12 +207,12 @@ private:
     {
         if (mThreadParams.dataCollector != NULL)
         {
-            log<picLog::INPUT_OUTPUT > ("HDF5 close DataCollector with file: %1%") % filename;
+            log<picLog::INPUT_OUTPUT > ("HDF5 close DataCollector");
             mThreadParams.dataCollector->close();
         }
     }
 
-    void openH5File()
+    void openH5File(const std::string h5Filename)
     {
         const uint32_t maxOpenFilesPerNode = 4;
         if (mThreadParams.dataCollector == NULL)
@@ -234,8 +234,8 @@ private:
         // open datacollector
         try
         {
-            log<picLog::INPUT_OUTPUT > ("HDF5 open DataCollector with file: %1%") % filename;
-            mThreadParams.dataCollector->open(filename.c_str(), attr);
+            log<picLog::INPUT_OUTPUT > ("HDF5 open DataCollector with file: %1%") % h5Filename;
+            mThreadParams.dataCollector->open(h5Filename.c_str(), attr);
         }
         catch (DCException e)
         {
@@ -243,6 +243,27 @@ private:
             throw std::runtime_error("Failed to open datacollector");
         }
 
+    }
+    
+    void notificationReceived(uint32_t currentStep, bool isCheckpoint)
+    {
+        mThreadParams.isCheckpoint = isCheckpoint;
+        mThreadParams.currentStep = (int32_t) currentStep;
+        mThreadParams.gridPosition = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
+        mThreadParams.cellDescription = this->cellDescription;
+        mThreadParams.window = MovingWindow::getInstance().getVirtualWindow(currentStep);
+
+        __getTransactionEvent().waitForFinished();
+
+        std::string fname = filename;
+        if (isCheckpoint && (checkpointFilename != ""))
+            fname = checkpointFilename;
+        
+        openH5File(fname);
+
+        writeHDF5((void*) &mThreadParams);
+
+        closeH5File();
     }
 
     void pluginLoad()
@@ -326,7 +347,6 @@ private:
 
     static void *writeHDF5(void *p_args)
     {
-
         // synchronize, because following operations will be blocking anyway
         ThreadParams *threadParams = (ThreadParams*) (p_args);
 
@@ -362,7 +382,7 @@ private:
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species.");
 
 
-        if (MovingWindow::getInstance().isSlidingWindowActive())
+        if (threadParams->isCheckpoint && MovingWindow::getInstance().isSlidingWindowActive())
         {
             /* data domain = domain inside the sliding window
              * ghost domain = domain under the data domain (is laying only on bottom gpus)
@@ -400,7 +420,9 @@ private:
     MappingDesc *cellDescription;
 
     uint32_t notifyFrequency;
+    int64_t lastCheckpoint;
     std::string filename;
+    std::string checkpointFilename;
     std::string restartFilename;
 
     DataSpace<simDim> mpi_pos;

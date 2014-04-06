@@ -91,6 +91,13 @@ namespace PMacc
         virtual void notify(uint32_t currentStep) = 0;
         
         /**
+         * Notifies plugins that a (restartable) checkpoint should be created for this timestep.
+         * 
+         * @param currentStep cuurent simulation iteration step
+         */
+        virtual void checkpoint(uint32_t currentStep) = 0;
+        
+        /**
          * Restart notification callback.
          * 
          * 

@@ -59,6 +59,11 @@ namespace picongpu
         {
             // nothing to do here
         }
+        
+        virtual void checkpoint(uint32_t)
+        {
+            // nothing to do here
+        }
     };
 }
 

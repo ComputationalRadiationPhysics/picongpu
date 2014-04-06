@@ -59,7 +59,11 @@ public:
      * Constructor
      * 
      */
-    SimulationHelper()
+    SimulationHelper() :
+    runSteps(0),
+    checkpointFrequency(0),
+    restartStep(0),
+    restartRequested(false)
     {
         tSimulation.toggleStart();
         tInit.toggleStart();
@@ -112,6 +116,13 @@ public:
     virtual void dumpOneStep(uint32_t currentStep)
     {
         Environment<DIM>::get().DataConnector().invalidate();
+        
+        /* trigger checkpoint notification first to allow plugins to skip standard notify */
+        if (checkpointFrequency && (currentStep % checkpointFrequency == 0))
+        {
+            Environment<DIM>::get().PluginConnector().checkpointPlugins(currentStep);
+        }
+        
         Environment<DIM>::get().PluginConnector().notifyPlugins(currentStep);
     }
 
@@ -194,9 +205,12 @@ public:
     virtual void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
-            ("steps,s", po::value<uint32_t > (&runSteps), "simulation steps")
+            ("steps,s", po::value<uint32_t > (&runSteps), "Simulation steps")
             ("percent,p", po::value<uint16_t > (&progress)->default_value(5),
-             "print time statistics after p percent to stdout");
+             "Print time statistics after p percent to stdout")
+            ("restart", po::value<bool>(&restartRequested)->zero_tokens(), "Restart simulation")
+            ("restart-step", po::value<uint32_t>(&restartStep), "Checkpoint step to restart from")
+            ("checkpoints", po::value<uint32_t>(&checkpointFrequency), "Frequency for checkpoint creation");
     }
 
     std::string pluginGetName() const
@@ -218,10 +232,23 @@ public:
     void restart(uint32_t)
     {
     }
+    
+    void checkpoint(uint32_t)
+    {
+    }
 
 protected:
-    //! how much time steps shall be calculated
+    /* number of simulation steps to compute */
     uint32_t runSteps;
+    
+    /* frequency for checkpoint creation */
+    uint32_t checkpointFrequency;
+    
+    /* checkpoint step to restart from */
+    uint32_t restartStep;
+    
+    /* restart requested */
+    bool restartRequested;
 
 private:
 

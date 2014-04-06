@@ -21,7 +21,7 @@
 #ifndef ANALYSIS_FIELDENERGY_HPP
 #define ANALYSIS_FIELDENERGY_HPP
 
-#include "plugins/ISimulationPlugin.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 
 namespace picongpu
 {
@@ -29,7 +29,7 @@ using namespace PMacc;
 
 namespace po = boost::program_options;
 
-class FieldEnergy : public ISimulationPlugin
+class FieldEnergy : public ILightweightPlugin
 {
 private:
     std::string name;

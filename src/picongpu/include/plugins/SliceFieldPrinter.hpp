@@ -22,7 +22,7 @@
 
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "math/vector/Float.hpp"
-#include "plugins/ISimulationPlugin.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 
 namespace picongpu
 {
@@ -37,7 +37,7 @@ template<typename Field>
 class SliceFieldPrinterMulti;
 
 template<typename Field>
-class SliceFieldPrinter : public ISimulationPlugin
+class SliceFieldPrinter : public ILightweightPlugin
 {
 private:
     uint32_t notifyFrequency;

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -26,7 +26,6 @@
 #include "simulation_defines.hpp"
 #include "simulation_types.hpp"
 #include "simulation_classTypes.hpp"
-#include "pluginSystem/PluginConnector.hpp"
 #include "pluginSystem/IPlugin.hpp"
 
 
@@ -34,20 +33,17 @@ namespace picongpu
 {
     using namespace PMacc;
 
+    /**
+     * Interface for a simulation plugin in PIConGPU which has a MappingDesc.
+     */
     class ISimulationPlugin : public IPlugin
     {
     public:
         virtual void setMappingDescription(MappingDesc *cellDescription) = 0;
-        
-        void restart(uint32_t)
-        {
-            // override to enable restart capabilities
-        }
 
         virtual ~ISimulationPlugin()
         {
-        };
+        }
     };
-
 }
 

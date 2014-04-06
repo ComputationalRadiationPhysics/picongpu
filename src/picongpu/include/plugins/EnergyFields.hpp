@@ -35,7 +35,7 @@
 
 #include "basicOperations.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
-#include "plugins/ISimulationPlugin.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 
 #include "mpi/reduceMethods/Reduce.hpp"
 #include "mpi/MPIReduce.hpp"
@@ -65,7 +65,7 @@ struct cast64Bit
 };
 }
 
-class EnergyFields : public ISimulationPlugin
+class EnergyFields : public ILightweightPlugin
 {
 private:
     FieldE* fieldE;

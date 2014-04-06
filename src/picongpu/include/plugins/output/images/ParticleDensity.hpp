@@ -52,7 +52,7 @@
 #include "memory/boxes/PitchedBox.hpp"
 #include "plugins/output/header/MessageHeader.hpp"
 #include "plugins/output/GatherSlice.hpp"
-#include "plugins/ISimulationPlugin.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 
 namespace picongpu
 {
@@ -172,7 +172,7 @@ kernelParticleDensity(ParBox pb,
  * Visulization is performed in an additional thread.
  */
 template<class ParticlesType, class Output, typename Type_ = float_X>
-class ParticleDensity : public ISimulationPlugin
+class ParticleDensity : public ILightweightPlugin
 {
 private:
     typedef MappingDesc::SuperCellSize SuperCellSize;

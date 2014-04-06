@@ -39,7 +39,7 @@
 #include "particles/memory/boxes/ParticlesBox.hpp"
 
 #include "dataManagement/DataConnector.hpp"
-#include "plugins/ISimulationPlugin.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 #include "dimensions/TVec.h"
 
 #include "memory/boxes/DataBox.hpp"
@@ -469,7 +469,7 @@ __global__ void channelsToRGB(Mem mem, uint32_t n)
  * Visulization is performed in an additional thread.
  */
 template<class ParticlesType, class Output>
-class Visualisation : public ISimulationPlugin
+class Visualisation : public ILightweightPlugin
 {
 private:
     typedef MappingDesc::SuperCellSize SuperCellSize;

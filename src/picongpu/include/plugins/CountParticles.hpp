@@ -35,8 +35,7 @@
 #include <iomanip>
 #include <fstream>
 
-#include "pluginSystem/IPlugin.hpp"
-#include "plugins/ISimulationPlugin.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 
 #include "mpi/reduceMethods/Reduce.hpp"
 #include "mpi/MPIReduce.hpp"
@@ -52,7 +51,7 @@ namespace picongpu
 using namespace PMacc;
 
 template<class ParticlesType>
-class CountParticles : public ISimulationPlugin
+class CountParticles : public ILightweightPlugin
 {
 private:
     typedef MappingDesc::SuperCellSize SuperCellSize;

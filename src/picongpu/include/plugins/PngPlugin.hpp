@@ -28,7 +28,7 @@
 #include "dimensions/DataSpace.hpp"
 
 #include "simulation_classTypes.hpp"
-#include "plugins/ISimulationPlugin.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 #include <vector>
 #include <list>
 
@@ -46,7 +46,7 @@ namespace picongpu
     namespace po = boost::program_options;
 
     template<class VisClass>
-    class PngPlugin : public ISimulationPlugin
+    class PngPlugin : public ILightweightPlugin
     {
     public:
 

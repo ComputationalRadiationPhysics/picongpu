@@ -21,7 +21,7 @@
 #pragma once
 
 
-#include "plugins/ISimulationPlugin.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 
 namespace picongpu
 {
@@ -32,7 +32,7 @@ using namespace PMacc;
 namespace po = boost::program_options;
 
 template<typename ParticlesType>
-class ParticleDensity : public ISimulationPlugin
+class ParticleDensity : public ILightweightPlugin
 {
 private:
     std::string name;
