@@ -46,29 +46,33 @@ int main( int argc, char **argv )
 
     typedef ::gol::Space Space;
 
-    std::vector<uint32_t> devices;
-    std::vector<uint32_t> gridSize;
+    std::vector<uint32_t> devices;  /* will be set by boost program argument option "-d 3 3 3" */
+    std::vector<uint32_t> gridSize; /* same but with -g */
     std::vector<uint32_t> periodic;
     uint32_t steps;
-    std::string rule;
+    std::string rule; /* Game of Life Simulation Rules like 23/3 */
 
     po::options_description desc( "Allowed options" );
     desc.add_options( )
             ( "help,h", "produce help message" )
             ( "steps,s", po::value<uint32_t > ( &steps ), "simulation steps" )
             ( "rule,r", po::value<std::string > ( &rule ), "simulation rule etc. 23/3" )
-            ( "devices,d", po::value<std::vector<uint32_t> > ( &devices )->multitoken( ), "number of devices in each dimension" )
+            ( "devices,d", po::value<std::vector<uint32_t> > ( &devices )->multitoken( ), 
+              "number of devices in each dimension (only 1D or 2D). If you use more than "
+              "one device in total, you will need to run mpirun with \"mpirun -n "
+              "<DeviceCount.x*DeviceCount.y> ./gameOfLife\"" )
             ( "grid,g", po::value<std::vector<uint32_t> > ( &gridSize )->multitoken( ),
-              "size of the simulation grid (real size maybe smaller because each GPU needs a border)" )
-            ( "periodic", po::value<std::vector<uint32_t> > ( &periodic )->multitoken( ),
+              "size of the simulation grid (must be 2D, e.g.: -g 128 128). Because of the border, which is one supercell = 16 cells wide, "
+              "the size in each direction should be greater or equal than 3*16=48 per device, so that the core will be non-empty" )
+            ( "periodic,p", po::value<std::vector<uint32_t> > ( &periodic )->multitoken( ),
               "specifying whether the grid is periodic (1) or not (0) in each dimension, default: no periodic dimensions" );
 
-    // parse command line options and config file and store values in vm
+    /* parse command line options and config file and store values in vm */
     po::variables_map vm;
     po::store( boost::program_options::parse_command_line( argc, argv, desc ), vm );
     po::notify( vm );
 
-    // print help message and quit simulation
+    /* print help message and quit simulation */
     if ( vm.count( "help" ) )
     {
         MPI_CHECK( MPI_Finalize( ) );
@@ -77,11 +81,11 @@ int main( int argc, char **argv )
     }
 
 
-    //fill periodic with 0
+    /* fill periodic with 0 */
     while ( periodic.size( ) < DIM2 )
         periodic.push_back( 0 );
 
-    // check on correct number of devices. fill with default value 1 for missing dimensions
+    /* check on correct number of devices. fill with default value 1 for missing dimensions */
     if ( devices.size( ) > DIM2 )
     {
         std::cerr << "Invalid number of devices.\nuse [-d dx=1 dy=1 dz=1]" << std::endl;
@@ -90,7 +94,7 @@ int main( int argc, char **argv )
         while ( devices.size( ) < DIM2 )
             devices.push_back( 1 );
 
-    // check on correct grid size. fill with default grid size value 1 for missing 3. dimension
+    /* check on correct grid size. fill with default grid size value 1 for missing 3. dimension */
     if ( gridSize.size( ) != DIM2 )
     {
         std::cerr << "Invalid or missing grid size.\nuse -g width height [depth=1]" << std::endl;
@@ -99,6 +103,7 @@ int main( int argc, char **argv )
     }
 
 
+    /* after checking all input values, copy into DataSpace Datatype */
     Space gpus( devices[0], devices[1] );
     Space grid( gridSize[0], gridSize[1] );
     Space endless( periodic[0], periodic[1] );
@@ -110,15 +115,15 @@ int main( int argc, char **argv )
     std::string newBornIf = rule.substr( gPoint + 1, strLen - gPoint - 1 );
 
 
-    for ( int i = 0; i < newBornIf.length( ); ++i )
+    for ( unsigned int i = 0; i < newBornIf.length( ); ++i )
     {
-        std::stringstream ss;
+        std::stringstream ss;   /* used for converting const char* "123" to int 123 */
         ss << newBornIf[i];
         int shift;
         ss >> shift;
         ruleMask = ruleMask | 1 << ( shift + 9 );
     }
-    for ( int i = 0; i < stayAliveIf.length( ); ++i )
+    for ( unsigned int i = 0; i < stayAliveIf.length( ); ++i )
     {
         std::stringstream ss;
         ss << stayAliveIf[i];
@@ -128,6 +133,7 @@ int main( int argc, char **argv )
     }
     std::cout << "newborn if=" << newBornIf << " stay alive if=" << stayAliveIf << " mask=" << ruleMask << std::endl;
 
+    /* start game of life simulation */
     gol::Simulation sim( ruleMask, steps, grid, gpus, endless );
     sim.init( );
     sim.start( );
