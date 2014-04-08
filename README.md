@@ -137,6 +137,7 @@ Active Team
 - Heiko Burau*
 - Anton Helm
 - Axel Huebl*
+- Maximilian Knespel
 - Richard Pausch*
 - Felix Schmitt*
 - Conrad Schumann
