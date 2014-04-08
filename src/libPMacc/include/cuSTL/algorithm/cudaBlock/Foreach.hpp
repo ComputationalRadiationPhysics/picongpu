@@ -79,18 +79,20 @@ namespace detail
 
 #define SHIFTACCESS_CURSOR(Z, N, _) forward(c ## N [pos])
 
-#define FOREACH_OPERATOR(Z, N, _)                                              \
+#define FOREACH_OPERATOR(Z, N, _)                                                  \
+    /*      <             , typename C0, ..., typename C(N-1)  ,              > */ \
     template<typename Zone, BOOST_PP_ENUM_PARAMS(N, typename C), typename Functor> \
+    /*                     (      C0 c0, ..., C(N-1) c(N-1)           ,       ) */ \
     DINLINE void operator()(Zone, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), const Functor& functor) \
-    {                                                                          \
-        BOOST_AUTO(functor_, lambda::make_Functor(functor));                   \
+    {                                                                              \
+        BOOST_AUTO(functor_, lambda::make_Functor(functor));                       \
         const int dataVolume = math::CT::volume<typename Zone::Size>::type::value; \
-        const int blockVolume = math::CT::volume<BlockDim>::type::value;       \
-        for(int i = this->linearThreadIdx; i < dataVolume; i += blockVolume)   \
-        {                                                                      \
-            math::Int<Zone::dim> pos = detail::getPos<Zone::dim>()( Zone(), i ); \
-            functor_(BOOST_PP_ENUM(N, SHIFTACCESS_CURSOR, _));                 \
-        }                                                                      \
+        const int blockVolume = math::CT::volume<BlockDim>::type::value;           \
+        for(int i = this->linearThreadIdx; i < dataVolume; i += blockVolume)       \
+        {                                                                          \
+            math::Int<Zone::dim> pos = detail::getPos<Zone::dim>()( Zone(), i );   \
+            functor_(BOOST_PP_ENUM(N, SHIFTACCESS_CURSOR, _));                     \
+        }                                                                          \
     }
 
 /** Foreach algorithm that is executed by one cuda thread block
