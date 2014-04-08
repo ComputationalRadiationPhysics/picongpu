@@ -98,24 +98,6 @@ struct ThreadParams
     VirtualWindow window;
 };
 
-struct DomainInformation
-{
-    /* Offset from simulation origin to moving window */
-    DataSpace<simDim> globalDomainOffset;
-    /* Total size of current simulation area (i.e. moving window size) */
-    DataSpace<simDim> globalDomainSize;
-
-    /* Offset from simulation origin to this GPU */
-    DataSpace<simDim> domainOffset;
-    /* Size of this GPU */
-    DataSpace<simDim> domainSize;
-    
-    /* Offset of simulation area (i.e. moving window) from start of this GPU.
-     * >= 0 for top GPUs, 0 otherwise */
-    DataSpace<simDim> localDomainOffset;
-
-};
-
 /**
  * Writes simulation data to adios files.
  * Implements the ISimulationPlugin interface.
