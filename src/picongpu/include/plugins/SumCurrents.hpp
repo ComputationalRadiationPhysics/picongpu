@@ -67,8 +67,7 @@ __global__ void kernelSumCurrents(J_DataBox fieldJ, float3_X* gCurrent, Mapping 
     const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
     const DataSpace<simDim> cell(superCellIdx * SuperCellSize() + threadIndex);
 
-    const float3_X J = fieldJ(cell);
-    const float3_X myJ = float3_X(J.x(), J.y(), J.z());
+    const float3_X myJ = fieldJ(cell);
 
     atomicAddWrapper(&(sh_sumJ.x()), myJ.x());
     atomicAddWrapper(&(sh_sumJ.y()), myJ.y());
