@@ -109,10 +109,10 @@ namespace picongpu
                            - 1 * ( ! this->isPlaneReduceRoot );
 
             MPI_Group world_group, new_group;
-            MPI_CHECK(MPI_Allgather( &myRootRank, 1, MPI_INTEGER,
+            MPI_CHECK(MPI_Allgather( &myRootRank, 1, MPI_INT,
                                      &(planeReduceRootRanks.front()),
-                                     (int)planeReduceRootRanks.size(),
-                                     MPI_INTEGER,
+                                     1,
+                                     MPI_INT,
                                      MPI_COMM_WORLD ));
 
             /* remove all non-roots (-1 values) */
