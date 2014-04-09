@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -18,10 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */
 
-
-
-#ifndef MOVINGWINDOW_HPP
-#define	MOVINGWINDOW_HPP
+#pragma once
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -31,6 +28,28 @@
 namespace picongpu
 {
 using namespace PMacc;
+
+/**
+ * Structure holding domain information for this GPU.
+ * Current domain information can be obtained using MovingWindow class.
+ */
+struct DomainInformation
+{
+    /* Offset from simulation origin to moving window */
+    DataSpace<simDim> globalDomainOffset;
+    /* Total size of current simulation area (i.e. moving window size) */
+    DataSpace<simDim> globalDomainSize;
+
+    /* Offset from simulation origin to this GPU */
+    DataSpace<simDim> domainOffset;
+    /* Size of this GPU */
+    DataSpace<simDim> domainSize;
+    
+    /* Offset of simulation area (i.e. moving window) from start of this GPU.
+     * >= 0 for top GPUs, 0 otherwise */
+    DataSpace<simDim> localDomainOffset;
+
+};
 
 class MovingWindow
 {
@@ -51,27 +70,52 @@ private:
     uint32_t lastSlideStep;
 public:
 
-    void setGlobalSimSize(DataSpace<simDim> size)
+    /**
+     * Set the global simulation size (in cells)
+     * 
+     * @param size global simulation size
+     */
+    void setGlobalSimSize(const DataSpace<simDim> size)
     {
         simSize = size;
     }
 
-    void setGpuCount(DataSpace<simDim> count)
+    /**
+     * Set the number of GPUs in each dimension
+     * 
+     * @param count number of simulating GPUs
+     */
+    void setGpuCount(const DataSpace<simDim> count)
     {
         gpu = count;
     }
 
+    /**
+     * Enable or disable sliding window
+     * 
+     * @param value true to enable, false otherwise
+     */
     void setSlidingWindow(bool value)
     {
         slidingWindowActive = value;
     }
 
+    /**
+     * Set the number of already performed moving window slides
+     * 
+     * @param slides number of slides
+     */
     void setSlideCounter(uint32_t slides)
     {
         slideCounter = slides;
-        lastSlideStep=slides;
+        lastSlideStep = slides;
     }
 
+    /**
+     * Returns if sliding window is active
+     * 
+     * @return true if active, false otherwise
+     */
     bool isSlidingWindowActive()
     {
         return slidingWindowActive;
@@ -88,19 +132,19 @@ public:
         return instance;
     }
 
-    /** create a virtual window which descripe local and global offsets and local size which is impotant
+    /** create a virtual window which descripe local and global offsets and local size which is important
      *  for domain calculations to dump subvolumes of the full computing domain
      * 
      * @param currentStep simulation step
      * @return description of virtual window
      */
-    VirtualWindow getVirtualWindow(const uint32_t currentStep)
+    VirtualWindow getVirtualWindow(uint32_t currentStep)
     {
 
         VirtualWindow window(slideCounter);
         DataSpace<simDim> gridSize(Environment<simDim>::get().SubGrid().getSimulationBox().getLocalSize());
         DataSpace<simDim> globalWindowSize(simSize);
-        globalWindowSize.y()-=gridSize.y() * slidingWindowActive;
+        globalWindowSize.y() -= gridSize.y() * slidingWindowActive;
 
         window.globalWindowSize = globalWindowSize;
         window.globalSimulationSize = simSize;
@@ -168,10 +212,64 @@ public:
 
         return window;
     }
+    
+    /**
+     * Get domain information for the currently active simulation grid
+     * 
+     * @param currentStep current simulation step
+     * @return active grid domain information
+     */
+    DomainInformation getActiveDomain(uint32_t currentStep)
+    {
+        DomainInformation domInfo;
+        VirtualWindow window = getVirtualWindow(currentStep);
+
+        /* set global offset (from physical origin) to our first gpu data area */
+        domInfo.localDomainOffset = window.localOffset;
+        domInfo.globalDomainOffset = window.globalSimulationOffset;
+        domInfo.globalDomainSize = window.globalWindowSize;
+        domInfo.domainOffset = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
+
+        /* change only the offset of the first gpu
+         * localDomainOffset is only non zero for the gpus on top
+         */
+        domInfo.domainOffset += domInfo.localDomainOffset;
+        domInfo.domainSize = window.localSize;
+        
+        return domInfo;
+    }
+    
+    /**
+     * Get domain information for the ghost part of the simulation grid
+     * 
+     * @param currentStep current simulation step
+     * @return ghost grid domain information
+     */
+    DomainInformation getGhostDomain(uint32_t currentStep)
+    {
+        DomainInformation domInfo = getActiveDomain(currentStep);
+        VirtualWindow window = getVirtualWindow(currentStep);
+        
+        domInfo.globalDomainOffset.y() += domInfo.globalDomainSize.y();
+        domInfo.domainOffset.y() = domInfo.globalDomainOffset.y();
+        domInfo.domainSize = window.localFullSize;
+        domInfo.domainSize.y() -= window.localSize.y();
+        domInfo.globalDomainSize = window.globalSimulationSize;
+        domInfo.globalDomainSize.y() -= domInfo.globalDomainOffset.y();
+        domInfo.localDomainOffset = DataSpace<simDim > ();
+        /* only important for bottom gpus */
+        domInfo.localDomainOffset.y() = window.localSize.y();
+        
+        if (window.isBottom == false)
+        {
+            /* set size for all gpu to zero which are not bottom gpus */
+            domInfo.domainSize.y() = 0;
+        }
+        
+        return domInfo;
+    }
 
 };
 
-} //namespace
-
-#endif	/* MOVINGWINDOW_HPP */
+} //namespace picongpu
 

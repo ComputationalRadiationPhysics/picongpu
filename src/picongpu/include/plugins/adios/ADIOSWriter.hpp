@@ -580,16 +580,7 @@ private:
 
         /* build clean domain info (picongpu view) */
         DomainInformation domInfo, domInfoGhosts;
-        /* set global offset (from physical origin) to our first gpu data area */
-        domInfo.localDomainOffset = threadParams->window.localOffset;
-        domInfo.globalDomainOffset = threadParams->window.globalSimulationOffset;
-        domInfo.globalDomainSize = threadParams->window.globalWindowSize;
-        domInfo.domainOffset = threadParams->gridPosition;
-        /* change only the offset of the first gpu
-         * localDomainOffset is only non zero for the gpus on top
-         */
-        domInfo.domainOffset += domInfo.localDomainOffset;
-        domInfo.domainSize = threadParams->window.localSize;
+        domInfo = MovingWindow::getInstance().getActiveDomain(threadParams->currentStep);
         
         /* y direction can be negative for first gpu */
         DataSpace<simDim> particleOffset(threadParams->gridPosition);
@@ -597,31 +588,7 @@ private:
         
         if (MovingWindow::getInstance().isSlidingWindowActive())
         {
-            domInfoGhosts.domainOffset = domInfo.domainOffset;
-            domInfoGhosts.domainSize = domInfo.domainSize;
-            domInfoGhosts.globalDomainOffset = domInfo.globalDomainOffset;
-            domInfoGhosts.globalDomainSize = domInfo.globalDomainSize;
-            domInfoGhosts.localDomainOffset = domInfo.localDomainOffset;
-            
-            /* data domain = domain inside the sliding window
-             * ghost domain = domain under the data domain (is laying only on bottom gpus)
-             * end of data domain is the beginning of the ghost domain
-             */
-            domInfoGhosts.globalDomainOffset.y() += domInfoGhosts.globalDomainSize.y();
-            domInfoGhosts.domainOffset.y() = domInfoGhosts.globalDomainOffset.y();
-            domInfoGhosts.domainSize = threadParams->window.localFullSize;
-            domInfoGhosts.domainSize.y() -= threadParams->window.localSize.y();
-            domInfoGhosts.globalDomainSize = threadParams->window.globalSimulationSize;
-            domInfoGhosts.globalDomainSize.y() -= domInfoGhosts.globalDomainOffset.y();
-            domInfoGhosts.localDomainOffset = DataSpace<simDim > ();
-            /* only important for bottom gpus*/
-            domInfoGhosts.localDomainOffset.y() = threadParams->window.localSize.y();
-            
-            if (threadParams->window.isBottom == false)
-            {
-                /* set size for all gpus to zero which are not bottom gpus*/
-                domInfoGhosts.domainSize.y() = 0;
-            }
+            domInfoGhosts = MovingWindow::getInstance().getGhostDomain(threadParams->currentStep);
         }
 
         /* create adios group for fields without statistics */

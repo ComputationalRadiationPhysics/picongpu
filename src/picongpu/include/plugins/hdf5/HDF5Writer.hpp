@@ -352,18 +352,9 @@ private:
 
         writeMetaAttributes(threadParams);
 
-        /* build clean domain info (picongpu view) */
-        DomainInformation domInfo;
-        /* set global offset (from physical origin) to our first gpu data area*/
-        domInfo.localDomainOffset = threadParams->window.localOffset;
-        domInfo.globalDomainOffset = threadParams->window.globalSimulationOffset;
-        domInfo.globalDomainSize = threadParams->window.globalWindowSize;
-        domInfo.domainOffset = threadParams->gridPosition;
-        /* change only the offset of the first gpu
-         * localDomainOffset is only non zero for the gpus on top
-         */
-        domInfo.domainOffset += domInfo.localDomainOffset;
-        domInfo.domainSize = threadParams->window.localSize;
+        /* get clean domain info (picongpu view) */
+        DomainInformation domInfo = 
+                MovingWindow::getInstance().getActiveDomain(threadParams->currentStep);
 
         /* y direction can be negative for first gpu*/
         DataSpace<simDim> particleOffset(threadParams->gridPosition);
@@ -384,32 +375,16 @@ private:
 
         if (threadParams->isCheckpoint && MovingWindow::getInstance().isSlidingWindowActive())
         {
-            /* data domain = domain inside the sliding window
-             * ghost domain = domain under the data domain (is laying only on bottom gpus)
-             * end of data domain is the beginning of the ghost domain
-             */
-            domInfo.globalDomainOffset.y() += domInfo.globalDomainSize.y();
-            domInfo.domainOffset.y() = domInfo.globalDomainOffset.y();
-            domInfo.domainSize = threadParams->window.localFullSize;
-            domInfo.domainSize.y() -= threadParams->window.localSize.y();
-            domInfo.globalDomainSize = threadParams->window.globalSimulationSize;
-            domInfo.globalDomainSize.y() -= domInfo.globalDomainOffset.y();
-            domInfo.localDomainOffset = DataSpace<simDim > ();
-            /* only important for bottom gpus*/
-            domInfo.localDomainOffset.y() = threadParams->window.localSize.y();
+            DomainInformation domInfoGhosts = 
+                    MovingWindow::getInstance().getGhostDomain(threadParams->currentStep);
 
             particleOffset = threadParams->gridPosition;
             particleOffset.y() = -threadParams->window.localSize.y();
 
-            if (threadParams->window.isBottom == false)
-            {
-                /* set size for all gpu to zero which are not bottom gpus*/
-                domInfo.domainSize.y() = 0;
-            }
             /* for restart we only need bottom ghosts for particles */
             log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing particle species bottom.");
             /* print all particle species */
-            writeSpecies(ref(threadParams), std::string("_ghosts"), domInfo, particleOffset);
+            writeSpecies(ref(threadParams), std::string("_ghosts"), domInfoGhosts, particleOffset);
             log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species bottom.");
         }
         return NULL;
