@@ -32,7 +32,7 @@
 #include <utility>
 #include <iostream>
 
-#include <splash.h>
+#include "splash/splash.h"
 
 namespace picongpu
 {
@@ -46,7 +46,7 @@ namespace picongpu
         typedef T_Type Type;
         const int bufDim = T_bufDim;
 
-        PMacc::GridController<simDim>& gc = PMacc::GridController<simDim>::getInstance();
+        PMacc::GridController<simDim>& gc = PMacc::Environment<simDim>::get().GridController();
         PMacc::math::Size_t<simDim> gpuDim = gc.getGpuNodes();
         PMacc::math::Int<simDim> gpuPos = gc.getPosition();
 
@@ -95,7 +95,7 @@ namespace picongpu
                                                       1 );
 
         /** global buffer size (aka splash domain) */
-        PMacc::SubGrid<simDim>& sg = PMacc::SubGrid<simDim>::getInstance();
+        PMacc::SubGrid<simDim>& sg = Environment<simDim>::get().SubGrid();
         const size_t rOffset = sg.getSimulationBox().getGlobalOffset()[axis_element.first];
         const size_t rSize = sg.getSimulationBox().getGlobalSize()[axis_element.first];
         splash::Dimensions phaseSpace_size( rSize, hBuffer.size().y(), 1 );

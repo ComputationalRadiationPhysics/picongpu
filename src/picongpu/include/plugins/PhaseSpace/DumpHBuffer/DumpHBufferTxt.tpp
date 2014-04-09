@@ -38,7 +38,7 @@ namespace picongpu
                                   const uint32_t currentStep,
                                   MPI_Comm& mpiComm ) const
     {
-        PMacc::GridController<simDim>& gc = PMacc::GridController<simDim>::getInstance();
+        PMacc::GridController<simDim>& gc = PMacc::Environment<simDim>::get().GridController();
         PMacc::math::Int<simDim> gpuPos = gc.getPosition();
         
         std::string fCoords("xyz");

@@ -86,7 +86,7 @@ namespace picongpu
             const float_X weighting = particle[weighting_];
             const float_X charge    = particle.getCharge( weighting );
             const float_PS particleChargeDensity =
-              typeCast<float_PS>( charge / ( CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH ) );
+              precisionCast<float_PS>( charge / ( CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH ) );
 
             const float_X rel_bin = (mom_i - axis_p_range.first)
                                   / (axis_p_range.second - axis_p_range.first);

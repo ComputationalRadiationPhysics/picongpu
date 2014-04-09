@@ -21,8 +21,7 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "dataManagement/ISimulationIO.hpp"
-#include "plugins/IPluginModule.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 
 #include "plugins/PhaseSpace/PhaseSpace.hpp"
 
@@ -38,7 +37,7 @@ namespace picongpu
     namespace po = boost::program_options;
 
     template<class T_AssignmentFunction, class T_Species>
-    class PhaseSpaceMulti : public ISimulationIO, public IPluginModule
+    class PhaseSpaceMulti : public ILightweightPlugin
     {
     public:
         typedef T_AssignmentFunction AssignmentFunction;
@@ -66,8 +65,8 @@ namespace picongpu
         std::vector<Child > childs;
         size_t numChilds;
 
-        void moduleLoad();
-        void moduleUnload();
+        void pluginLoad();
+        void pluginUnload();
 
     public:
         PhaseSpaceMulti( const std::string _name, const std::string _prefix );
@@ -75,9 +74,9 @@ namespace picongpu
 
         void notify( uint32_t ) {}
         void setMappingDescription( MappingDesc* cellDescription);
-        void moduleRegisterHelp( po::options_description& desc );
+        void pluginRegisterHelp( po::options_description& desc );
 
-        std::string moduleGetName() const { return this->name; }
+        std::string pluginGetName() const { return this->name; }
     };
 
 }

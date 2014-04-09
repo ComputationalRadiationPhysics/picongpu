@@ -59,9 +59,9 @@ namespace picongpu
     }
 
     template<class AssignmentFunction, class Species>
-    void PhaseSpace<AssignmentFunction, Species>::moduleLoad()
+    void PhaseSpace<AssignmentFunction, Species>::pluginLoad()
     {
-        DataConnector::getInstance().registerObserver(this, this->notifyPeriod);
+        Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyPeriod);
 
         const uint32_t r_element = this->axis_element.first;
 
@@ -77,7 +77,7 @@ namespace picongpu
          *                         spatial y and z direction to node with
          *                         lowest y and z position and same x range
          */
-        PMacc::GridController<simDim>& gc = PMacc::GridController<simDim>::getInstance();
+        PMacc::GridController<simDim>& gc = PMacc::Environment<simDim>::get().GridController();
         PMacc::math::Size_t<simDim> gpuDim = gc.getGpuNodes();
         PMacc::math::Int<simDim> gpuPos = gc.getPosition();
 
@@ -130,7 +130,7 @@ namespace picongpu
     }
 
     template<class AssignmentFunction, class Species>
-    void PhaseSpace<AssignmentFunction, Species>::moduleUnload()
+    void PhaseSpace<AssignmentFunction, Species>::pluginUnload()
     {
         __delete( this->dBuffer );
         __delete( planeReduce );
@@ -143,7 +143,7 @@ namespace picongpu
     template<uint32_t r_dir>
     void PhaseSpace<AssignmentFunction, Species>::calcPhaseSpace( )
     {
-        const PMacc::math::Int<3> guardCells = SuperCellSize().vec() * size_t(GUARD_SIZE);
+        const PMacc::math::Int<3> guardCells = precisionCast<int>(SuperCellSize().vec()) * int(GUARD_SIZE);
         const PMacc::math::Size_t<3> coreBorderSuperCells( this->cellDescription->getGridSuperCells() - 2*int(GUARD_SIZE) );
         const PMacc::math::Size_t<3> coreBorderCells( coreBorderSuperCells.x() * SuperCellSize().vec().x(),
                                                       coreBorderSuperCells.y() * SuperCellSize().vec().y(),
@@ -172,8 +172,8 @@ namespace picongpu
     void PhaseSpace<AssignmentFunction, Species>::notify( uint32_t currentStep )
     {
         /* register particle species observer */
-        DataConnector &dc = DataConnector::getInstance( );
-        this->particles = &(dc.getData<Species > ((uint32_t) Species::FrameType::CommunicationTag, true));
+        DataConnector &dc = Environment<>::get().DataConnector();
+        this->particles = &(dc.getData<Species > (Species::FrameType::getName(), true));
 
         /* reset device buffer */
         this->dBuffer->assign( float_PS(0.0) );
@@ -209,7 +209,7 @@ namespace picongpu
             return;
 
         /** \todo communicate GUARD and add it to the two neighbors BORDER */
-        PMacc::SubGrid<simDim>& sg = PMacc::SubGrid<simDim>::getInstance();
+        PMacc::SubGrid<simDim>& sg = Environment<simDim>::get().SubGrid();
         container::HostBuffer<float_PS, 2> hReducedBuffer_noGuard( sg.getSimulationBox().getLocalSize()[this->axis_element.first],
                                                                   this->p_bins );
         algorithm::host::Foreach forEachCopyWithoutGuard;

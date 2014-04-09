@@ -21,10 +21,9 @@
 #pragma once
 
 #include "mpi.h"
-#include <splash.h>
+#include "splash/splash.h"
 
 #include "communication/manager_common.h"
-#include "mappings/simulation/GridController.hpp"
 #include "mappings/simulation/SubGrid.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
@@ -67,7 +66,7 @@ namespace picongpu
         pdc.open( filename.str().c_str(), fAttr );
 
         /** calculate global size of the phase space **************************/
-        PMacc::SubGrid<simDim>& sg = PMacc::SubGrid<simDim>::getInstance();
+        PMacc::SubGrid<simDim>& sg = Environment<simDim>::get().SubGrid();
         const size_t rOffset = sg.getSimulationBox().getGlobalOffset()[axis_element.first];
         const size_t rSize = sg.getSimulationBox().getGlobalSize()[axis_element.first];
         splash::Dimensions phaseSpace_size( rSize, hBuffer.size().y(), 1 );

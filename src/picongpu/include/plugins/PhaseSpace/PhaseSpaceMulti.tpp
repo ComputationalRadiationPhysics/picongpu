@@ -34,11 +34,12 @@ namespace picongpu
                                                                    const std::string _prefix ) :
         name(_name), prefix(_prefix), numChilds(0u), cellDescription(NULL)
     {
-        ModuleConnector::getInstance().registerModule(this);
+        /* register our plugin during creation */
+        Environment<>::get().PluginConnector().registerPlugin(this);
     }
 
     template<class AssignmentFunction, class Species>
-    void PhaseSpaceMulti<AssignmentFunction, Species>::moduleRegisterHelp( po::options_description& desc )
+    void PhaseSpaceMulti<AssignmentFunction, Species>::pluginRegisterHelp( po::options_description& desc )
     {
         desc.add_options()
             ((this->prefix + ".period").c_str(),
@@ -58,7 +59,7 @@ namespace picongpu
     }
 
     template<class AssignmentFunction, class Species>
-    void PhaseSpaceMulti<AssignmentFunction, Species>::moduleLoad( )
+    void PhaseSpaceMulti<AssignmentFunction, Species>::pluginLoad( )
     {
         this->numChilds = this->notifyPeriod.size();
 
@@ -86,7 +87,7 @@ namespace picongpu
             else if( this->element_space.at(i) == "z" )
                 el_space = Child::z;
             else
-                throw ModuleException("[Plugin] [" + this->name + "] space must be x, y or z" );
+                throw PluginException("[Plugin] [" + this->name + "] space must be x, y or z" );
 
             uint32_t el_momentum = Child::px;
             if( this->element_momentum.at(i) == "px" )
@@ -96,7 +97,7 @@ namespace picongpu
             else if( this->element_momentum.at(i) == "pz" )
                 el_momentum = Child::pz;
             else
-                throw ModuleException("[Plugin] [" + this->name + "] momentum must be px, py or pz" );
+                throw PluginException("[Plugin] [" + this->name + "] momentum must be px, py or pz" );
 
             std::pair<uint32_t, uint32_t> new_elements( el_space, el_momentum );
 
@@ -108,11 +109,11 @@ namespace picongpu
 
             this->childs.push_back( newPS );
             this->childs.at(i).setMappingDescription( this->cellDescription );
-            this->childs.at(i).moduleLoad();
+            this->childs.at(i).pluginLoad();
         }
 
         /** create dir */
-        PMacc::GridController<simDim>& gc = PMacc::GridController<simDim>::getInstance();
+        PMacc::GridController<simDim>& gc = PMacc::Environment<simDim>::get().GridController();
         if( gc.getGlobalRank() == 0 )
         {
             mkdir("phaseSpace", 0755);
@@ -120,10 +121,10 @@ namespace picongpu
     }
 
     template<class AssignmentFunction, class Species>
-    void PhaseSpaceMulti<AssignmentFunction, Species>::moduleUnload( )
+    void PhaseSpaceMulti<AssignmentFunction, Species>::pluginUnload( )
     {
         for(uint32_t i = 0; i < this->numChilds; i++)
-            this->childs.at(i).moduleUnload();
+            this->childs.at(i).pluginUnload();
     }
 
     template<class AssignmentFunction, class Species>

@@ -24,7 +24,7 @@
 
 #include "simulation_defines.hpp"
 #include "communication/manager_common.h"
-#include "dataManagement/ISimulationIO.hpp"
+#include "pluginSystem/INotify.hpp"
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
 #include "cuSTL/algorithm/mpi/Reduce.hpp"
@@ -39,7 +39,7 @@ namespace picongpu
     namespace po = boost::program_options;
 
     template<class T_AssignmentFunction, class T_Species>
-    class PhaseSpace : public ISimulationIO
+    class PhaseSpace : public INotify
     {
     public:
         typedef T_AssignmentFunction AssignmentFunction;
@@ -72,7 +72,7 @@ namespace picongpu
 
         typedef PhaseSpace<AssignmentFunction, Species> This;
         typedef PMacc::math::CT::Size_t<TILE_WIDTH, TILE_HEIGHT, TILE_DEPTH> SuperCellSize;
-        
+
     public:
         enum element_coordinate
         { x = 0u, y = 1u, z = 2u };
@@ -91,8 +91,8 @@ namespace picongpu
         void calcPhaseSpace( );
         void setMappingDescription( MappingDesc* cellDescription);
 
-        void moduleLoad();
-        void moduleUnload();
+        void pluginLoad();
+        void pluginUnload();
     };
 
 }

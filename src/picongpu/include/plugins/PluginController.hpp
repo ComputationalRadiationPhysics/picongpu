@@ -35,7 +35,9 @@
 #include "plugins/PositionsParticles.hpp"
 #include "plugins/BinEnergyParticles.hpp"
 #include "plugins/LineSliceFields.hpp"
+#if(SIMDIM==DIM3)
 #include "plugins/PhaseSpace/PhaseSpaceMulti.hpp"
+#endif
 
 #if (ENABLE_INSITU_VOLVIS == 1)
 #include "plugins/InSituVolumeRenderer.hpp"
@@ -115,8 +117,10 @@ private:
     typedef PngPlugin<ElectronsPngBuilder > PngImageElectrons;
 #endif
     typedef ParticleDensity<PIC_Electrons, DensityToBinary, float_X> ElectronsBinaryDensityBuilder;
+#if(SIMDIM==DIM3)
     /* speciesParticleShape::ParticleShape::ChargeAssignment */
     typedef PhaseSpaceMulti<particleShape::Counter::ChargeAssignment, PIC_Electrons> PhaseSpaceElectrons;
+#endif
 
 #if(SIMDIM==DIM3)
 #if(PIC_ENABLE_PNG==1)
@@ -179,7 +183,6 @@ private:
         plugins.push_back(new EnergyFields("EnergyFields", "energy_fields"));
         plugins.push_back(new SumCurrents());
         plugins.push_back(new LineSliceFields());
-        modules.push_back(new PhaseSpaceElectrons("PhaseSpace Electrons", "ps_e"));
 
 #if(SIMDIM==DIM3)
         plugins.push_back(new FieldEnergy("FieldEnergy [keV/m^3]", "field_energy"));
@@ -195,6 +198,9 @@ private:
 #endif
         
 #if (ENABLE_ELECTRONS == 1)
+#if(SIMDIM==DIM3)
+        plugins.push_back(new PhaseSpaceElectrons("PhaseSpace Electrons", "ps_e"));
+#endif
         plugins.push_back(new LiveImageElectrons("LiveImageElectrons", "live_e"));
 #if(PIC_ENABLE_PNG==1)
         plugins.push_back(new PngImageElectrons("PngImageElectrons", "png_e"));

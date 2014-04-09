@@ -29,7 +29,7 @@
 #include <utility>
 
 #if (ENABLE_HDF5==1)
-#include <splash.h>
+#include "splash/splash.h"
 #endif
 
 namespace picongpu
