@@ -25,8 +25,9 @@
 #include <stdexcept>
 #include <string>
 
-
 #include <boost/program_options/options_description.hpp>
+
+#include "pluginSystem/INotify.hpp"
 
 namespace PMacc
 {
@@ -51,7 +52,7 @@ namespace PMacc
     /*
      * IPlugin interface.
      */
-    class IPlugin
+    class IPlugin : public INotify
     {
     public:
 
@@ -81,15 +82,7 @@ namespace PMacc
         {
             return loaded;
         }
-        
-        /**
-         * Notification callback.
-         * Plugins can set their requested notification frequency at the PluginConnector
-         *
-         * @param currentStep current simulation iteration step
-         */
-        virtual void notify(uint32_t currentStep) = 0;
-        
+
         /**
          * Notifies plugins that a (restartable) checkpoint should be created for this timestep.
          * 
