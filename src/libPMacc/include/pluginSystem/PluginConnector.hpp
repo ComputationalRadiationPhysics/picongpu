@@ -113,10 +113,7 @@ namespace PMacc
 
         /** Set the notification frequency
          *
-         * Note: this works for a registered plugin but it is enought to implement
-         *       the INotify interface.
-         *
-         * @param notify, e.g. an IPlugin to set a notify frequency for
+         * @param notifiedObj the object to notify, e.g. an IPlugin instance
          * @param frequency notification frequency
          */
         void setNotificationFrequency(INotify* notifiedObj, uint32_t frequency)
