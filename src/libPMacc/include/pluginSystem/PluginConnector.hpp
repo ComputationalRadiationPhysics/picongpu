@@ -23,6 +23,7 @@
 
 #include <list>
 
+#include "pluginSystem/INotify.hpp"
 #include "pluginSystem/IPlugin.hpp"
 
 namespace PMacc
@@ -36,10 +37,11 @@ namespace PMacc
     {
     public:
 
-        /**
-         * Register a plugin for loading/unloading and notifications.
-         * To allow plugin notifications, call setNotificationFrequency after registration.
-         * 
+        /** Register a plugin for loading/unloading and notifications
+         *
+         * To trigger plugin notifications, call \see setNotificationFrequency after
+         * registration.
+         *
          * @param plugin plugin to register
          */
         void registerPlugin(IPlugin *plugin)
@@ -108,18 +110,20 @@ namespace PMacc
 
             return help_options;
         }
-        
-        /**
-         * Set the notification frequency for a registered plugin.
-         * 
-         * @param plugin plugin to set frequency for
+
+        /** Set the notification frequency
+         *
+         * Note: this works for a registered plugin but it is enought to implement
+         *       the INotify interface.
+         *
+         * @param notify, e.g. an IPlugin to set a notify frequency for
          * @param frequency notification frequency
          */
-        void setNotificationFrequency(IPlugin* plugin, uint32_t frequency)
+        void setNotificationFrequency(INotify* notifiedObj, uint32_t frequency)
         {
-            notificationMap[plugin] = frequency;
+            notificationMap[notifiedObj] = frequency;
         }
-        
+
         /**
          * Notifies plugins that data should be dumped.
          *
@@ -127,19 +131,16 @@ namespace PMacc
          */
         void notifyPlugins(uint32_t currentStep)
         {
-            for (std::list<IPlugin*>::iterator iter = plugins.begin();
-                    iter != plugins.end(); ++iter)
+            for (std::map<INotify*, uint32_t>::iterator iter = notificationMap.begin();
+                    iter != notificationMap.end(); ++iter)
             {
-                IPlugin* plugin = *iter;
-                if (notificationMap.find(plugin) != notificationMap.end())
-                {
-                    uint32_t frequency = notificationMap[plugin];
-                    if (frequency > 0 && (currentStep % frequency == 0))
-                        plugin->notify(currentStep);
-                }
+                INotify* notifiedObj = iter->first;
+                uint32_t frequency = iter->second;
+                if (frequency > 0 && (currentStep % frequency == 0))
+                    notifiedObj->notify(currentStep);
             }
         }
-        
+
         /**
          * Notifies plugins that a restartable checkpoint should be dumped.
          * 
@@ -191,6 +192,6 @@ namespace PMacc
         }
 
         std::list<IPlugin*> plugins;
-        std::map<IPlugin*, uint32_t> notificationMap;
+        std::map<INotify*, uint32_t> notificationMap;
     };
 }
