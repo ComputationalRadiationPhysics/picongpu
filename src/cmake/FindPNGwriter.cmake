@@ -14,7 +14,8 @@
 # To provide a hint to this module where to find the PNGwriter installation,
 # set the PNGWRITER_ROOT environment variable.
 #
-# This module requires a valid installation of libpng which in turn requires ZLib.
+# This module requires a valid installation of libpng (1.2.9+) which in turn
+# requires ZLib.
 #
 # Set the following CMake variables BEFORE calling find_packages to
 # change the behavior of this module:
@@ -90,7 +91,7 @@ endif()
 
 # find libpng install #########################################################
 #
-find_package(PNG)
+find_package(PNG 1.2.9)
 
 if(NOT PNG_FOUND)
     set(PNGwriter_FOUND FALSE)
