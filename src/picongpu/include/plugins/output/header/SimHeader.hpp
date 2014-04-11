@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -17,11 +17,8 @@
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
 
-
-#ifndef SIMHEADER_HPP
-#define	SIMHEADER_HPP
+#pragma once
 
 #include "types.h"
 #include "dimensions/DataSpace.hpp"
@@ -64,7 +61,3 @@ struct SimHeader
     }
 
 };
-
-
-#endif	/* SIMHEADER_HPP */
-
