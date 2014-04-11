@@ -1,0 +1,12 @@
+/* 
+ * File:   ionizationEnergies.param
+ * Author: garten70
+ * 
+ * Created on April 4, 2014, 2:17 PM
+ * 
+ * Header for the constant ionization energies of the different atom species
+ */
+
+#pragma once
+
+

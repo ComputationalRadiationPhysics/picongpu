@@ -260,8 +260,8 @@ namespace particleIonizer = particleIonizerNone;
 
 //end hard code
 
-template< typename T_DataVector, typename T_MethodsVector>
-void Particles<T_DataVector,T_MethodsVector>::ionize( uint32_t )
+template< typename T_ParticleDescription >
+void Particles<T_ParticleDescription>::ionize( uint32_t )
 {
     /* particle ionization routine */
     

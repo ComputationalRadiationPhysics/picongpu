@@ -62,6 +62,9 @@ value_identifier(bool,radiationFlag,false);
  * and is loaded after all other param files)
  */
 value_identifier(DataSpace<simDim>,globalCellIdx_pic,DataSpace<simDim>());  
+/** charge state of the particle - only reasonable for ions */
+value_identifier(uint32_t,chargeState,0);
+
 
 /*The next parts is not nice, we change this in a later update with new interfaces
  * \todo: add compile time methods to create particle species
