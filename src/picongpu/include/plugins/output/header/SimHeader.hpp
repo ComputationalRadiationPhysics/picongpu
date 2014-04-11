@@ -40,10 +40,12 @@ struct SimHeader
     float cellSizeArr[2];
     
 
-    SimHeader()
+    SimHeader() : step(0)
     {
         scale[0] = 1.f;
         scale[1] = 1.f;
+        cellSizeArr[0] = 0.f;
+        cellSizeArr[1] = 0.f;
     }
 
     void setScale(float x, float y)

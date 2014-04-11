@@ -27,6 +27,10 @@ struct DataHeader
 {
 
     uint32_t byte;
+    
+    DataHeader() : byte(0)
+    {
+    }
 
     void writeToConsole(std::ostream& ocons) const
     {
