@@ -62,7 +62,7 @@ namespace picongpu
         /** range [pMin : pMax] in m_e c */
         std::vector<std::pair<float_X, float_X> > axis_p_range;
 
-        std::vector<Child > childs;
+        std::vector<Child* > childs;
         size_t numChilds;
 
         void pluginLoad();

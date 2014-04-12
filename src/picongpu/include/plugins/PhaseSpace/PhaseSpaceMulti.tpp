@@ -1,5 +1,4 @@
-/**
- * Copyright 2013 Axel Huebl
+/** Copyright 2013-2014 Axel Huebl
  *
  * This file is part of PIConGPU. 
  * 
@@ -101,21 +100,23 @@ namespace picongpu
 
             std::pair<uint32_t, uint32_t> new_elements( el_space, el_momentum );
 
-            PhaseSpace<AssignmentFunction, Species> newPS( this->name,
+            PhaseSpace<AssignmentFunction, Species>* newPS =
+              new PhaseSpace<AssignmentFunction, Species>( this->name,
                                                            this->prefix,
                                                            this->notifyPeriod.at(i),
                                                            new_p_range,
                                                            new_elements );
 
             this->childs.push_back( newPS );
-            this->childs.at(i).setMappingDescription( this->cellDescription );
-            this->childs.at(i).pluginLoad();
+            this->childs.at(i)->setMappingDescription( this->cellDescription );
+            this->childs.at(i)->pluginLoad();
         }
 
         /** create dir */
         PMacc::GridController<simDim>& gc = PMacc::Environment<simDim>::get().GridController();
         if( gc.getGlobalRank() == 0 )
         {
+            /** \todo make this a boost filesystem call */
             mkdir("phaseSpace", 0755);
         }
     }
@@ -124,7 +125,10 @@ namespace picongpu
     void PhaseSpaceMulti<AssignmentFunction, Species>::pluginUnload( )
     {
         for(uint32_t i = 0; i < this->numChilds; i++)
-            this->childs.at(i).pluginUnload();
+        {
+            this->childs.at(i)->pluginUnload();
+            __delete( this->childs.at(i) );
+        }
     }
 
     template<class AssignmentFunction, class Species>
@@ -132,4 +136,5 @@ namespace picongpu
     {
         this->cellDescription = desc;
     }
-}
+
+} /* namespace picongpu */

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -124,7 +124,7 @@ namespace picongpu
 
             MPI_CHECK(MPI_Comm_group( MPI_COMM_WORLD, &world_group ));
             MPI_CHECK(MPI_Group_incl( world_group, ranks.size(), ranks.data(), &new_group ));
-            MPI_CHECK(MPI_Comm_create( MPI_COMM_WORLD, new_group, &this->commFileWriter ));
+            MPI_CHECK(MPI_Comm_create( MPI_COMM_WORLD, new_group, &commFileWriter ));
             MPI_CHECK(MPI_Group_free( &new_group ));
         }
     }
@@ -135,8 +135,8 @@ namespace picongpu
         __delete( this->dBuffer );
         __delete( planeReduce );
 
-        if( this->commFileWriter != MPI_COMM_NULL )
-                MPI_CHECK(MPI_Comm_free( &this->commFileWriter ));
+        if( commFileWriter != MPI_COMM_NULL )
+            MPI_CHECK(MPI_Comm_free( &commFileWriter ));
     }
 
     template<class AssignmentFunction, class Species >
@@ -237,4 +237,4 @@ namespace picongpu
         this->cellDescription = cellDescription;
     }
 
-} // namespace picongpu
+} /* namespace picongpu */

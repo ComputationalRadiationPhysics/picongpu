@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl
+ * Copyright 2013-2014 Axel Huebl
  *
  * This file is part of PIConGPU. 
  * 
@@ -47,9 +47,7 @@ namespace picongpu
         typedef T_Type Type;
         const int bufDim = T_bufDim;
 
-        std::ostringstream filename;
-        filename << "phaseSpace/PhaseSpace_"
-                 << currentStep;
+        std::string filename( "phaseSpace/PhaseSpace" );
 
         /** get size of the fileWriter communicator ***************************/
         int size;
@@ -63,7 +61,7 @@ namespace picongpu
         DataCollector::initFileCreationAttr(fAttr);
         fAttr.fileAccType = DataCollector::FAT_CREATE;
 
-        pdc.open( filename.str().c_str(), fAttr );
+        pdc.open( filename.c_str(), fAttr );
 
         /** calculate global size of the phase space **************************/
         PMacc::SubGrid<simDim>& sg = Environment<simDim>::get().SubGrid();
@@ -104,6 +102,9 @@ namespace picongpu
                             "sim_unit", &unit );
 
         /** close file ********************************************************/
+#if (SPLASH_VERSION_MAJOR>=1) && (SPLASH_VERSION_MINOR>=2)
+        pdc.finalize();
+#endif
         pdc.close();
     }
 
