@@ -183,7 +183,7 @@ private:
     {
         if (notifyFrequency > 0)
         {
-            Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
             PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
             /* local count of supercells without any guards*/
             DataSpace<simDim> localSuperCells(simBox.getLocalSize() / SuperCellSize::getDataSpace());

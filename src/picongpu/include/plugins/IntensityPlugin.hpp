@@ -195,7 +195,7 @@ private:
                 createFile(analyzerName + "_integrated.dat", outFileIntegrated);
             }
 
-            Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
         }
     }
 

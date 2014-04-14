@@ -213,7 +213,7 @@ namespace picongpu
                 sliceDataField = new GridBuffer<float3_X, DIM1 >
                         (DataSpace<DIM1 > (nrOfGpuCells.y()));
 
-                Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
+                Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
 
                 const int rank = Environment<simDim>::get().GridController().getGlobalRank();
 

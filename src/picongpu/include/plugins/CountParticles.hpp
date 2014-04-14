@@ -135,7 +135,7 @@ private:
                 outFile << "#step count" << " \n";
             }
 
-            Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
         }
     }
 

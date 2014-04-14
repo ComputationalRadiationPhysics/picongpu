@@ -685,7 +685,7 @@ private:
             freqFkt = freqInit.getFunctor();
 
 
-            Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
 
             if (isMaster && totalRad)
             {

@@ -58,7 +58,7 @@ std::string FieldEnergy::pluginGetName() const {return this->name;}
 
 void FieldEnergy::pluginLoad()
 {
-    Environment<>::get().PluginConnector().setNotificationFrequency(this, this->notifyFrequency);
+    Environment<>::get().PluginConnector().setNotificationPeriod(this, this->notifyFrequency);
 }
 
 void FieldEnergy::notify(uint32_t currentStep)

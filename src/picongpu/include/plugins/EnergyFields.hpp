@@ -152,7 +152,7 @@ private:
                 //create header of the file
                 outFile << "#step Joule" << " \n";
             }
-            Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
         }
     }
 
