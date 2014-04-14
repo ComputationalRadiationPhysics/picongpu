@@ -20,8 +20,8 @@
 
 #pragma once
 
-#include "mpi.h"
-#include "splash/splash.h"
+#include <mpi.h>
+#include <splash/splash.h>
 
 #include "simulation_defines.hpp"
 #include "communication/manager_common.h"
