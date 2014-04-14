@@ -1,24 +1,25 @@
 /**
- * Copyright 2013-2014 Rene Widera, Felix Schmitt
+ * Copyright 2013-2014 Rene Widera, Felix Schmitt, Axel Huebl
  *
- * This file is part of libPMacc. 
- * 
+ * This file is part of libPMacc.
+ *
  * libPMacc is free software: you can redistribute it and/or modify 
  * it under the terms of of either the GNU General Public License or 
  * the GNU Lesser General Public License as published by 
  * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
+ * (at your option) any later version.
+ *
  * libPMacc is distributed in the hope that it will be useful, 
  * but WITHOUT ANY WARRANTY; without even the implied warranty of 
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
  * GNU General Public License and the GNU Lesser General Public License 
  * for more details. 
- * 
+ *
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libPMacc. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 #pragma once
 
 #include <list>
@@ -35,6 +36,9 @@ namespace PMacc
      */
     class PluginConnector
     {
+    private:
+        typedef std::list<std::pair<INotify*, uint32_t> > NotificationList;
+
     public:
 
         /** Register a plugin for loading/unloading and notifications
@@ -48,7 +52,7 @@ namespace PMacc
         throw (PluginException)
         {
             if (plugin != NULL)
-            { 
+            {
                 plugins.push_back(plugin);
             }
             else
@@ -91,7 +95,7 @@ namespace PMacc
 
         /**
          * Publishes command line parameters for registered plugins.
-         *  
+         *
          * @return list of boost program_options command line parameters
          */
         std::list<po::options_description> registerHelp()
@@ -113,12 +117,20 @@ namespace PMacc
 
         /** Set the notification frequency
          *
+         *  \todo rename to setNotificationPeriod
+         *
          * @param notifiedObj the object to notify, e.g. an IPlugin instance
-         * @param frequency notification frequency
+         * @param period notification period
          */
-        void setNotificationFrequency(INotify* notifiedObj, uint32_t frequency)
+        void setNotificationFrequency(INotify* notifiedObj, uint32_t period)
         {
-            notificationMap[notifiedObj] = frequency;
+            if (notifiedObj != NULL)
+            {
+                if (period > 0)
+                    notificationList.push_back( std::make_pair(notifiedObj, period) );
+            }
+            else
+                throw PluginException("Notifications for a NULL object are not allowed.");
         }
 
         /**
@@ -128,19 +140,19 @@ namespace PMacc
          */
         void notifyPlugins(uint32_t currentStep)
         {
-            for (std::map<INotify*, uint32_t>::iterator iter = notificationMap.begin();
-                    iter != notificationMap.end(); ++iter)
+            for (NotificationList::iterator iter = notificationList.begin();
+                    iter != notificationList.end(); ++iter)
             {
                 INotify* notifiedObj = iter->first;
-                uint32_t frequency = iter->second;
-                if (frequency > 0 && (currentStep % frequency == 0))
+                uint32_t period = iter->second;
+                if (currentStep % period == 0)
                     notifiedObj->notify(currentStep);
             }
         }
 
         /**
          * Notifies plugins that a restartable checkpoint should be dumped.
-         * 
+         *
          * @param currentStep current simulation iteration step
          */
         void checkpointPlugins(uint32_t currentStep)
@@ -151,10 +163,10 @@ namespace PMacc
                 (*iter)->checkpoint(currentStep);
             }
         }
-        
+
         /**
          * Notifies plugins that a restart is required.
-         * 
+         *
          * @param restartStep simulation iteration to restart from
          */
         void restartPlugins(uint32_t restartStep)
@@ -167,11 +179,11 @@ namespace PMacc
         }
 
     private:
-        
+
         friend Environment<DIM1>;
         friend Environment<DIM2>;
         friend Environment<DIM3>;
-        
+
         static PluginConnector& getInstance()
         {
             static PluginConnector instance;
@@ -189,6 +201,6 @@ namespace PMacc
         }
 
         std::list<IPlugin*> plugins;
-        std::map<INotify*, uint32_t> notificationMap;
+        NotificationList notificationList;
     };
 }
