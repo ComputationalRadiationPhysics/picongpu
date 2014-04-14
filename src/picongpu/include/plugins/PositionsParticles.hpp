@@ -238,7 +238,7 @@ private:
             //create one float3_X on gpu und host
             gParticle = new GridBuffer<SglParticle<FloatPos>, DIM1 > (DataSpace<DIM1 > (1));
 
-            Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
         }
     }
 

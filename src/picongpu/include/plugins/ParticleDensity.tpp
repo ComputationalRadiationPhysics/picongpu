@@ -104,7 +104,7 @@ std::string ParticleDensity<ParticlesType>::pluginGetName() const {return this->
 template<typename ParticlesType>
 void ParticleDensity<ParticlesType>::pluginLoad()
 {
-    Environment<>::get().PluginConnector().setNotificationFrequency(this, this->notifyFrequency);
+    Environment<>::get().PluginConnector().setNotificationPeriod(this, this->notifyFrequency);
 }
 
 template<typename ParticlesType>

@@ -323,7 +323,7 @@ private:
                 outFile << ">" << maxEnergy_keV << " count" << std::endl;
             }
 
-            Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
         }
     }
 

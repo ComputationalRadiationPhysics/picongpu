@@ -258,7 +258,7 @@ private:
             }
 
             /* set how often the plugin should be executed while PIConGPU is running */
-            Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
         }
     }
 

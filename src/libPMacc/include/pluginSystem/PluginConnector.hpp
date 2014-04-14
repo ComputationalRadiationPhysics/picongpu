@@ -43,7 +43,7 @@ namespace PMacc
 
         /** Register a plugin for loading/unloading and notifications
          *
-         * To trigger plugin notifications, call \see setNotificationFrequency after
+         * To trigger plugin notifications, call \see setNotificationPeriod after
          * registration.
          *
          * @param plugin plugin to register
@@ -115,14 +115,12 @@ namespace PMacc
             return help_options;
         }
 
-        /** Set the notification frequency
-         *
-         *  \todo rename to setNotificationPeriod
+        /** Set the notification period
          *
          * @param notifiedObj the object to notify, e.g. an IPlugin instance
          * @param period notification period
          */
-        void setNotificationFrequency(INotify* notifiedObj, uint32_t period)
+        void setNotificationPeriod(INotify* notifiedObj, uint32_t period)
         {
             if (notifiedObj != NULL)
             {

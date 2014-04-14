@@ -43,7 +43,7 @@ namespace picongpu
 template<typename Field>
 void SliceFieldPrinter<Field>::pluginLoad()
 {
-    Environment<>::get().PluginConnector().setNotificationFrequency(this, this->notifyFrequency);
+    Environment<>::get().PluginConnector().setNotificationPeriod(this, this->notifyFrequency);
     namespace vec = ::PMacc::math;
     typedef vec::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> BlockDim;
     

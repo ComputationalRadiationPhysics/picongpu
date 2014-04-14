@@ -496,7 +496,7 @@ public:
             sliceDim = 2;
         
         Environment<>::get().PluginConnector().registerPlugin(this);
-        Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
+        Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
     }
 
     virtual ~Visualisation()

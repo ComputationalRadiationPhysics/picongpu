@@ -56,7 +56,7 @@ std::string TotalDivJ::pluginGetName() const {return this->name;}
 
 void TotalDivJ::pluginLoad()
 {
-    Environment<>::get().PluginConnector().setNotificationFrequency(this, this->notifyFrequency);
+    Environment<>::get().PluginConnector().setNotificationPeriod(this, this->notifyFrequency);
 }
 
 struct Div

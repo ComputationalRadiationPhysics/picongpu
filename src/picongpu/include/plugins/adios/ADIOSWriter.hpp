@@ -467,7 +467,7 @@ private:
             mpi_pos = gc.getPosition();
             mpi_size = gc.getGpuNodes();
 
-            Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
             
             /* Initialize adios library */
             mThreadParams.adiosComm = MPI_COMM_NULL;

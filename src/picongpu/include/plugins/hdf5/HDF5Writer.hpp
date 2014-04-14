@@ -291,7 +291,7 @@ private:
                 splashMpiSize[i] = mpi_size[i];
             }
 
-            Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
         }
         
         if (restartFilename == "")
