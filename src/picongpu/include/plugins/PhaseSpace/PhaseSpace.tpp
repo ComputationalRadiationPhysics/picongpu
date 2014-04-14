@@ -39,7 +39,7 @@
 #include "PhaseSpace.hpp"
 #include "PhaseSpaceFunctors.hpp"
 
-#include "DumpHBuffer/DumpHBuffer.hpp"
+#include "DumpHBufferSplashP.hpp"
 
 namespace picongpu
 {
