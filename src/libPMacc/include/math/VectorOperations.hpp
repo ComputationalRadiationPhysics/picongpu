@@ -46,18 +46,18 @@ namespace math
          *
          *  \tparam T_ctVec math::CT::vector type like \see math::CT::Int
          *  \param math::CT::vector with spatial size to map the index to
-         *  \param index linear index to be mapped
+         *  \param linearIndex linear index to be mapped
          *  \return runtime math::vector of dimension T_Dim
          */
         template<typename T_ctVec>
         DINLINE
         typename T_ctVec::RT_type
-        operator()( T_ctVec, const int linearThreadIdx )
+        operator()( T_ctVec, const int linearIndex )
         {
             return typename T_ctVec::RT_type(
-                (linearThreadIdx  % T_ctVec::x::value),
-                ((linearThreadIdx % (T_ctVec::x::value * T_ctVec::y::value)) / T_ctVec::x::value),
-                (linearThreadIdx  / (T_ctVec::x::value * T_ctVec::y::value)));
+                (linearIndex  % T_ctVec::x::value),
+                ((linearIndex % (T_ctVec::x::value * T_ctVec::y::value)) / T_ctVec::x::value),
+                (linearIndex  / (T_ctVec::x::value * T_ctVec::y::value)));
         }
     };
 
@@ -67,11 +67,11 @@ namespace math
         template<typename T_ctVec>
         DINLINE
         typename T_ctVec::RT_type
-        operator()( T_ctVec, const int linearThreadIdx )
+        operator()( T_ctVec, const int linearIndex )
         {
             return typename T_ctVec::RT_type(
-                (linearThreadIdx % T_ctVec::x::value),
-                (linearThreadIdx / T_ctVec::x::value));
+                (linearIndex % T_ctVec::x::value),
+                (linearIndex / T_ctVec::x::value));
         }
     };
 
@@ -81,9 +81,9 @@ namespace math
         template<typename T_ctVec>
         DINLINE
         typename T_ctVec::RT_type
-        operator()( T_ctVec, const int linearThreadIdx )
+        operator()( T_ctVec, const int linearIndex )
         {
-            return typename T_ctVec::RT_type( linearThreadIdx );
+            return typename T_ctVec::RT_type( linearIndex );
         }
     };
 
