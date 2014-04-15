@@ -61,7 +61,13 @@ namespace picongpu
             typedef T_Type Type;
             const int bufDim = T_bufDim;
 
-            std::string filename( "phaseSpace/PhaseSpace" );
+            /** file name *********************************************************
+             *    phaseSpace/PhaseSpace_xpy_timestep.h5                           */
+            std::string fCoords("xyz");
+            std::ostringstream filename;
+            filename << "phaseSpace/PhaseSpace_"
+                     << fCoords.at(axis_element.first)
+                     << "p" << fCoords.at(axis_element.second);
 
             /** get size of the fileWriter communicator ***************************/
             int size;
@@ -73,9 +79,8 @@ namespace picongpu
 
             DataCollector::FileCreationAttr fAttr;
             DataCollector::initFileCreationAttr(fAttr);
-            fAttr.fileAccType = DataCollector::FAT_CREATE;
 
-            pdc.open( filename.c_str(), fAttr );
+            pdc.open( filename.str().c_str(), fAttr );
 
             /** calculate global size of the phase space **************************/
             PMacc::SubGrid<simDim>& sg = Environment<simDim>::get().SubGrid();
@@ -90,7 +95,6 @@ namespace picongpu
                                                           1 );
 
             /** Dataset Name ******************************************************/
-            std::string fCoords("xyz");
             std::ostringstream dataSetName;
             /* xpx or ypz or ... */
             dataSetName << fCoords.at(axis_element.first)

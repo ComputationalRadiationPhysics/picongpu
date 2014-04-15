@@ -61,7 +61,7 @@ namespace picongpu
     template<class AssignmentFunction, class Species>
     void PhaseSpace<AssignmentFunction, Species>::pluginLoad()
     {
-        Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyPeriod);
+        Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
 
         const uint32_t r_element = this->axis_element.first;
 
@@ -106,7 +106,7 @@ namespace picongpu
             std::vector<int> planeReduceRootRanks( gc.getGlobalSize(), -1 );
             /* Am I one of the planeReduce root ranks? my global rank : -1 */
             int myRootRank = gc.getGlobalRank() * this->isPlaneReduceRoot
-                           - 1 * ( ! this->isPlaneReduceRoot );
+                           - ( ! this->isPlaneReduceRoot );
 
             MPI_Group world_group, new_group;
             MPI_CHECK(MPI_Allgather( &myRootRank, 1, MPI_INT,
@@ -126,6 +126,7 @@ namespace picongpu
             MPI_CHECK(MPI_Group_incl( world_group, ranks.size(), ranks.data(), &new_group ));
             MPI_CHECK(MPI_Comm_create( MPI_COMM_WORLD, new_group, &commFileWriter ));
             MPI_CHECK(MPI_Group_free( &new_group ));
+            MPI_CHECK(MPI_Group_free( &world_group ));
         }
     }
 
@@ -150,7 +151,7 @@ namespace picongpu
                                                       coreBorderSuperCells.z() * SuperCellSize().vec().z() );
 
         /* select CORE + BORDER for all cells
-         * CORE + BORDER is contiguous, Heiko calls this a "topological spheric zone"
+         * CORE + BORDER is contiguous, in cuSTL we call this a "topological spheric zone"
          */
         zone::SphericZone<3> zoneCoreBorder( coreBorderCells, guardCells );
 

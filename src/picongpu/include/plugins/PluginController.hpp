@@ -217,6 +217,9 @@ private:
 #endif
 
 #if (ENABLE_IONS == 1)
+#if(SIMDIM==DIM3 && ENABLE_HDF5 == 1)
+        plugins.push_back(new PhaseSpaceIons("PhaseSpace Ions", "ps_i"));
+#endif
         plugins.push_back(new LiveImageIons("LiveImageIons", "live_i"));
 #if(PIC_ENABLE_PNG==1)
         plugins.push_back(new PngImageIons("PngImageIons", "png_i"));

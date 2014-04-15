@@ -54,7 +54,7 @@ namespace picongpu
      * Every particle in a frame of particles will end up here.
      * We calculate where in space the owning (super) cell lives and
      * add the particle to the shared memory buffer for that phase
-     * space snipped the super cell contributes to.
+     * space snippet the super cell contributes to.
      *
      * \tparam r_dir spatial direction of the phase space (0,1,2)
      * \tparam p_bins number of bins in momentum space \see PhaseSpace.hpp

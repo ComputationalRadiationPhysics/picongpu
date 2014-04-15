@@ -19,7 +19,7 @@
 
 #include "PhaseSpaceMulti.hpp"
 
-#include "sys/stat.h"
+#include <sys/stat.h>
 
 #pragma once
 
@@ -31,7 +31,7 @@ namespace picongpu
     template<class AssignmentFunction, class Species>
     PhaseSpaceMulti<AssignmentFunction, Species>::PhaseSpaceMulti( const std::string _name,
                                                                    const std::string _prefix ) :
-        name(_name), prefix(_prefix), numChilds(0u), cellDescription(NULL)
+        name(_name), prefix(_prefix), numChildren(0u), cellDescription(NULL)
     {
         /* register our plugin during creation */
         Environment<>::get().PluginConnector().registerPlugin(this);
@@ -42,28 +42,24 @@ namespace picongpu
     {
         desc.add_options()
             ((this->prefix + ".period").c_str(),
-            po::value<std::vector<uint32_t> > (&this->notifyPeriod)->multitoken(), "notify period");
-        desc.add_options()
+              po::value<std::vector<uint32_t> > (&this->notifyPeriod)->multitoken(), "notify period")
             ((this->prefix + ".space").c_str(),
-            po::value<std::vector<std::string> > (&this->element_space)->multitoken(), "spatial dimension (x, y, z)");
-        desc.add_options()
+              po::value<std::vector<std::string> > (&this->element_space)->multitoken(), "spatial dimension (x, y, z)")
             ((this->prefix + ".momentum").c_str(),
-            po::value<std::vector<std::string> > (&this->element_momentum)->multitoken(), "momentum space (px, py, pz)");
-        desc.add_options()
+              po::value<std::vector<std::string> > (&this->element_momentum)->multitoken(), "momentum space (px, py, pz)")
             ((this->prefix + ".min").c_str(),
-            po::value<std::vector<float_X> > (&this->momentum_range_min)->multitoken(), "min range momentum [m_e c]");
-        desc.add_options()
+              po::value<std::vector<float_X> > (&this->momentum_range_min)->multitoken(), "min range momentum [m_e c]")
             ((this->prefix + ".max").c_str(),
-            po::value<std::vector<float_X> > (&this->momentum_range_max)->multitoken(), "max range momentum [m_e c]");
+              po::value<std::vector<float_X> > (&this->momentum_range_max)->multitoken(), "max range momentum [m_e c]");
     }
 
     template<class AssignmentFunction, class Species>
     void PhaseSpaceMulti<AssignmentFunction, Species>::pluginLoad( )
     {
-        this->numChilds = this->notifyPeriod.size();
+        this->numChildren = this->notifyPeriod.size();
 
-        this->childs.reserve( this->numChilds );
-        for(uint32_t i = 0; i < this->numChilds; i++)
+        this->children.reserve( this->numChildren );
+        for(uint32_t i = 0; i < this->numChildren; i++)
         {
             /* unit is m_e c - we use the typical weighting already since it
              * scales linear in momentum and we avoid over- & under-flows
@@ -71,7 +67,7 @@ namespace picongpu
              * "typical macro particle momentum scale"
              *
              * we correct that during the output of the pAxis range
-             * (linearly shinking the single particle scale again)
+             * (linearly shrinking the single particle scale again)
              */
             float_X unit_pRange = float_X( double(NUM_EL_PER_PARTICLE) *
                                            double(M_EL) * double(SPEED_OF_LIGHT) );
@@ -107,9 +103,9 @@ namespace picongpu
                                                            new_p_range,
                                                            new_elements );
 
-            this->childs.push_back( newPS );
-            this->childs.at(i)->setMappingDescription( this->cellDescription );
-            this->childs.at(i)->pluginLoad();
+            this->children.push_back( newPS );
+            this->children.at(i)->setMappingDescription( this->cellDescription );
+            this->children.at(i)->pluginLoad();
         }
 
         /** create dir */
@@ -124,10 +120,10 @@ namespace picongpu
     template<class AssignmentFunction, class Species>
     void PhaseSpaceMulti<AssignmentFunction, Species>::pluginUnload( )
     {
-        for(uint32_t i = 0; i < this->numChilds; i++)
+        for(uint32_t i = 0; i < this->numChildren; i++)
         {
-            this->childs.at(i)->pluginUnload();
-            __delete( this->childs.at(i) );
+            this->children.at(i)->pluginUnload();
+            __delete( this->children.at(i) );
         }
     }
 
