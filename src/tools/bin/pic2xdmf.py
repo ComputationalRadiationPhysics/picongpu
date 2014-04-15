@@ -418,6 +418,8 @@ def main():
             splash_files.append(s_filename)
     else:
         splash_files.append(splashFilename)
+        tmp = splashFilename.rfind(".h5")
+        splashFilename = splashFilename[:tmp]
         
     output_filename = "{}.xmf".format(splashFilename)
     
