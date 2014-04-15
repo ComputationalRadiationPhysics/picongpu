@@ -148,7 +148,7 @@ private:
     typedef Visualisation<PIC_Ions, PngCreator> IonsPngBuilder;
     typedef PngPlugin<IonsPngBuilder > PngImageIons;
 #endif
-#if(SIMDIM==3 && ENABLE_HDF5 == 1)
+#if(SIMDIM==DIM3 && ENABLE_HDF5 == 1)
     /* speciesParticleShape::ParticleShape::ChargeAssignment */
     typedef PhaseSpaceMulti<particleShape::Counter::ChargeAssignment, PIC_Ions> PhaseSpaceIons;
 #endif

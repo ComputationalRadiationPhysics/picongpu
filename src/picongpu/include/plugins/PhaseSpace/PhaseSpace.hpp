@@ -28,7 +28,7 @@
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
 #include "cuSTL/algorithm/mpi/Reduce.hpp"
-#include "math/vector/compile-time/Size_t.hpp"
+#include "math/vector/compile-time/UInt.hpp"
 
 #include <string>
 #include <utility>
@@ -58,7 +58,7 @@ namespace picongpu
         std::pair<float_X, float_X> axis_p_range;
         uint32_t r_bins;
 
-        static const uint32_t p_bins = 1024;
+        static const uint32_t num_pbins = 1024;
         typedef float_32 float_PS;
 
         container::DeviceBuffer<float_PS, 2>* dBuffer;
@@ -71,7 +71,7 @@ namespace picongpu
         MPI_Comm commFileWriter;
 
         typedef PhaseSpace<AssignmentFunction, Species> This;
-        typedef PMacc::math::CT::Size_t<TILE_WIDTH, TILE_HEIGHT, TILE_DEPTH> SuperCellSize;
+        typedef PMacc::math::CT::UInt<TILE_WIDTH, TILE_HEIGHT, TILE_DEPTH> SuperCellSize;
 
     public:
         enum element_coordinate

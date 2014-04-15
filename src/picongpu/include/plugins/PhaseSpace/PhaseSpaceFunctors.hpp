@@ -26,6 +26,8 @@
 #include "cuSTL/algorithm/kernel/Foreach.hpp"
 #include "cuSTL/algorithm/kernel/ForeachBlock.hpp"
 #include "math/vector/Int.hpp"
+#include "math/vector/UInt.hpp"
+#include "math/VectorOperations.hpp"
 #include "particles/access/Cell2Particle.hpp"
 
 #include "PhaseSpace.hpp"
@@ -57,14 +59,22 @@ namespace picongpu
      * space snippet the super cell contributes to.
      *
      * \tparam r_dir spatial direction of the phase space (0,1,2)
-     * \tparam p_bins number of bins in momentum space \see PhaseSpace.hpp
+     * \tparam num_pbins number of bins in momentum space \see PhaseSpace.hpp
      * \tparam SuperCellSize how many cells form a super cell \see memory.param
      */
-    template<uint32_t r_dir, uint32_t p_bins, typename SuperCellSize>
+    template<uint32_t r_dir, uint32_t num_pbins, typename SuperCellSize>
     struct FunctorParticle
     {
         typedef void result_type;
 
+        /** Functor implementation
+         *
+         * \param frame current frame for this block
+         * \param particleID id of the particle in the current frame
+         * \param curDBufferOriginInBlock section of the phase space, shifted to the start of the block
+         * \param el_p coordinate of the momentum \see PhaseSpace::axis_element
+         * \param axis_p_range range of the momentum coordinate \see PhaseSpace::axis_p_range
+         */
         template<typename FramePtr, typename float_PS, typename Pitch >
         DINLINE void operator()( FramePtr frame,
                                  uint16_t particleID,
@@ -78,27 +88,25 @@ namespace picongpu
 
             /* cell id in this block */
             const int linearCellIdx = particle[localCellIdx_];
-            const PMacc::math::Int<3> cellIdx(
-                linearCellIdx  % SuperCellSize::x::value,
-                (linearCellIdx % (SuperCellSize::x::value * SuperCellSize::y::value)) / SuperCellSize::x::value,
-                linearCellIdx  / (SuperCellSize::x::value * SuperCellSize::y::value) );
+            const PMacc::math::UInt<DIM3> cellIdx(
+                PMacc::math::MapToPos<DIM3>()( SuperCellSize(), linearCellIdx ) );
 
-            const int r_bin         = cellIdx[r_dir];
+            const uint32_t r_bin    = cellIdx[r_dir];
             const float_X weighting = particle[weighting_];
             const float_X charge    = particle.getCharge( weighting );
             const float_PS particleChargeDensity =
-              precisionCast<float_PS>( charge / ( CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH ) );
+              precisionCast<float_PS>( charge / CELL_VOLUME );
 
             const float_X rel_bin = (mom_i - axis_p_range.first)
                                   / (axis_p_range.second - axis_p_range.first);
-            int p_bin = int( rel_bin * float_X(p_bins) );
+            int p_bin = int( rel_bin * float_X(num_pbins) );
 
             /* out-of-range bins back to min/max
              * p_bin < 0 ? p_bin = 0;
-             * p_bin > (p_bins-1) ? p_bin = p_bins-1;
+             * p_bin > (num_pbins-1) ? p_bin = num_pbins-1;
              */
             p_bin *= int(p_bin >= 0);
-            p_bin += int(p_bin >= p_bins) * (p_bins - 1 - p_bin);
+            p_bin += int(p_bin >= num_pbins) * (num_pbins - 1 - p_bin);
 
             /** \todo take particle shape into account */
             atomicAddWrapper( &(*curDBufferOriginInBlock( r_bin, p_bin )),
@@ -116,10 +124,10 @@ namespace picongpu
      * \tparam Species the particle species to create the phase space for
      * \tparam SuperCellSize how many cells form a super cell \see memory.param
      * \tparam float_PS type for each bin in the phase space
-     * \tparam p_bins number of bins in momentum space \see PhaseSpace.hpp
+     * \tparam num_pbins number of bins in momentum space \see PhaseSpace.hpp
      * \tparam r_dir spatial direction of the phase space (0,1,2)
      */
-    template<typename Species, typename SuperCellSize, typename float_PS, uint32_t p_bins, uint32_t r_dir>
+    template<typename Species, typename SuperCellSize, typename float_PS, uint32_t num_pbins, uint32_t r_dir>
     struct FunctorBlock
     {
         typedef void result_type;
@@ -143,12 +151,13 @@ namespace picongpu
          */
         DINLINE void operator()( const PMacc::math::Int<3>& indexBlockOffset )
         {
-            const PMacc::math::Int<3> indexInBlock( threadIdx.x, threadIdx.y, threadIdx.z );
-            const PMacc::math::Int<3> indexGlobal = indexBlockOffset + indexInBlock;
+            /** \todo write math::Vector constructor that supports dim3 */
+            const PMacc::math::Int<DIM3> indexInBlock( threadIdx.x, threadIdx.y, threadIdx.z );
+            const PMacc::math::Int<DIM3> indexGlobal = indexBlockOffset + indexInBlock;
 
             /* create shared mem */
             const uint32_t blockCellsInDir = SuperCellSize::template at<r_dir>::type::value;
-            typedef PMacc::math::CT::Int<blockCellsInDir, p_bins> dBufferSizeInBlock;
+            typedef PMacc::math::CT::Int<blockCellsInDir, num_pbins> dBufferSizeInBlock;
             container::CT::SharedBuffer<float_PS, dBufferSizeInBlock > dBufferInBlock;
 
             /* init shared mem */
@@ -162,7 +171,7 @@ namespace picongpu
             }
             __syncthreads();
 
-            FunctorParticle<r_dir, p_bins, SuperCellSize> functorParticle;
+            FunctorParticle<r_dir, num_pbins, SuperCellSize> functorParticle;
             particleAccess::Cell2Particle<SuperCellSize> forEachParticleInCell;
             forEachParticleInCell( /* mandatory params */
                                    particlesBox, indexGlobal, functorParticle,

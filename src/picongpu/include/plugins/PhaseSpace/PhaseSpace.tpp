@@ -66,10 +66,10 @@ namespace picongpu
         const uint32_t r_element = this->axis_element.first;
 
         /* CORE + BORDER + GUARD elements for spatial bins */
-        this->r_bins = SuperCellSize().vec()[r_element]
+        this->r_bins = SuperCellSize().toRT()[r_element]
                      * this->cellDescription->getGridSuperCells()[r_element];
 
-        this->dBuffer = new container::DeviceBuffer<float_PS, 2>( r_bins, this->p_bins );
+        this->dBuffer = new container::DeviceBuffer<float_PS, 2>( r_bins, this->num_pbins );
 
         /* reduce-add phase space from other GPUs in range [r;r+dr]x[p0;p1]
          * to "lowest" node in range
@@ -144,20 +144,19 @@ namespace picongpu
     template<uint32_t r_dir>
     void PhaseSpace<AssignmentFunction, Species>::calcPhaseSpace( )
     {
-        const PMacc::math::Int<3> guardCells = precisionCast<int>(SuperCellSize().vec()) * int(GUARD_SIZE);
-        const PMacc::math::Size_t<3> coreBorderSuperCells( this->cellDescription->getGridSuperCells() - 2*int(GUARD_SIZE) );
-        const PMacc::math::Size_t<3> coreBorderCells( coreBorderSuperCells.x() * SuperCellSize().vec().x(),
-                                                      coreBorderSuperCells.y() * SuperCellSize().vec().y(),
-                                                      coreBorderSuperCells.z() * SuperCellSize().vec().z() );
+        const PMacc::math::Int<DIM3> guardCells = precisionCast<int>(SuperCellSize().toRT()) * int(GUARD_SIZE);
+        const PMacc::math::Size_t<DIM3> coreBorderSuperCells( this->cellDescription->getGridSuperCells() - 2*int(GUARD_SIZE) );
+        const PMacc::math::Size_t<DIM3> coreBorderCells = coreBorderSuperCells *
+            precisionCast<size_t>( SuperCellSize().toRT() );
 
         /* select CORE + BORDER for all cells
          * CORE + BORDER is contiguous, in cuSTL we call this a "topological spheric zone"
          */
-        zone::SphericZone<3> zoneCoreBorder( coreBorderCells, guardCells );
+        zone::SphericZone<DIM3> zoneCoreBorder( coreBorderCells, guardCells );
 
         algorithm::kernel::ForeachBlock<SuperCellSize> forEachSuperCell;
 
-        FunctorBlock<Species, SuperCellSize, float_PS, p_bins, r_dir> functorBlock(
+        FunctorBlock<Species, SuperCellSize, float_PS, num_pbins, r_dir> functorBlock(
             this->particles->getDeviceParticlesBox(), dBuffer->origin(),
             this->axis_element.second, this->axis_p_range );
 
@@ -212,12 +211,12 @@ namespace picongpu
         /** \todo communicate GUARD and add it to the two neighbors BORDER */
         PMacc::SubGrid<simDim>& sg = Environment<simDim>::get().SubGrid();
         container::HostBuffer<float_PS, 2> hReducedBuffer_noGuard( sg.getSimulationBox().getLocalSize()[this->axis_element.first],
-                                                                  this->p_bins );
+                                                                  this->num_pbins );
         algorithm::host::Foreach forEachCopyWithoutGuard;
         forEachCopyWithoutGuard(/* area to work on */
                                 hReducedBuffer_noGuard.zone(),
                                 /* data below - passed to functor operator() */
-                                hReducedBuffer.origin()(SuperCellSize().vec()[this->axis_element.first] * GUARD_SIZE, 0),
+                                hReducedBuffer.origin()(SuperCellSize().toRT()[this->axis_element.first] * GUARD_SIZE, 0),
                                 hReducedBuffer_noGuard.origin(),
                                 /* functor */
                                 _2 = _1);
