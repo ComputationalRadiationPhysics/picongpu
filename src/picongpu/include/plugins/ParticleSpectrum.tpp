@@ -100,7 +100,7 @@ struct ParticleSpectrumKernel
         particleAccess::Cell2Particle<BlockDim>()
             (pb, blockCellIdx, Particle2Histrogram(minEnergy, maxEnergy), ref(shHistogram));
             
-        ::PMacc::math::Int<3> _blockIdx = blockCellIdx / (PMacc::math::Int<3>)(BlockDim().vec());
+        ::PMacc::math::Int<3> _blockIdx = blockCellIdx / (PMacc::math::Int<3>)(BlockDim().toRT());
         __syncthreads();
         result[_blockIdx] = shHistogram;
     }
@@ -170,17 +170,17 @@ void ParticleSpectrum<ParticlesType>::notify(uint32_t)
     typedef vec::CT::Size_t<8,8,4> BlockDim;
     container::PseudoBuffer<float3_X, 3> fieldE
         (dc.getData<FieldE > (FieldE::getName(), true).getGridBuffer().getDeviceBuffer());
-    zone::SphericZone<3> coreBorderZone(fieldE.zone().size - (size_t)2*BlockDim().vec(),
-                                        fieldE.zone().offset + (vec::Int<3>)BlockDim().vec());
+    zone::SphericZone<3> coreBorderZone(fieldE.zone().size - (size_t)2*BlockDim().toRT(),
+                                        fieldE.zone().offset + (vec::Int<3>)BlockDim().toRT());
     
-    container::DeviceBuffer<detail::Histrogram<numBins>, 3> spectrumBlocks(coreBorderZone.size / BlockDim().vec());
+    container::DeviceBuffer<detail::Histrogram<numBins>, 3> spectrumBlocks(coreBorderZone.size / BlockDim().toRT());
     
     using namespace lambda;
     algorithm::kernel::ForeachBlock<BlockDim>()
         (coreBorderZone, cursor::make_MultiIndexCursor<3>(),
         expr(ParticleSpectrumKernel<BlockDim, numBins>(minEnergy, maxEnergy))
             (this->particles->getDeviceParticlesBox(),
-            _1, spectrumBlocks.origin()(-coreBorderZone.offset / (vec::Int<3>)BlockDim().vec())));
+            _1, spectrumBlocks.origin()(-coreBorderZone.offset / (vec::Int<3>)BlockDim().toRT())));
         
     container::DeviceBuffer<detail::Histrogram<numBins>, 1> spectrum(1);
     for(int i = 0; i < numBinsEx; i++)

@@ -47,8 +47,8 @@ void SliceFieldPrinter<Field>::pluginLoad()
     namespace vec = ::PMacc::math;
     typedef vec::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> BlockDim;
     
-    vec::Size_t<3> size = vec::Size_t<3>(this->cellDescription->getGridSuperCells()) * BlockDim().vec()
-        - (size_t)2 * BlockDim().vec();
+    vec::Size_t<3> size = vec::Size_t<3>(this->cellDescription->getGridSuperCells()) * BlockDim().toRT()
+        - (size_t)2 * BlockDim().toRT();
     this->dBuffer = new container::DeviceBuffer<float3_X, 2>(
         size.shrink<2>((this->plane+1)%3));
 }
@@ -81,7 +81,7 @@ void SliceFieldPrinter<Field>::notify(uint32_t currentStep)
     BOOST_AUTO(field_coreBorder,
         dc.getData<Field > (Field::getName(), true).getGridBuffer().
             getDeviceBuffer().cartBuffer().
-            view(precisionCast<int>(BlockDim().vec()), -precisionCast<int>(BlockDim().vec())));
+            view(precisionCast<int>(BlockDim().toRT()), -precisionCast<int>(BlockDim().toRT())));
 
     std::ostringstream filename;
     filename << this->fieldName << "_" << currentStep << ".dat";

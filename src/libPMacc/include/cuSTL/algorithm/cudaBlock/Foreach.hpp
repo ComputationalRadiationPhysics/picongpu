@@ -22,10 +22,12 @@
 
 #pragma once
 
-#include <types.h>
-#include <math/vector/Int.hpp>
-#include <math/vector/compile-time/Int.hpp>
-#include <forward.hpp>
+#include "types.h"
+#include "algorithms/TypeCast.hpp"
+#include "math/vector/Int.hpp"
+#include "math/vector/compile-time/Int.hpp"
+#include "math/VectorOperations.hpp"
+#include "forward.hpp"
 
 namespace PMacc
 {
@@ -33,46 +35,6 @@ namespace algorithm
 {
 namespace cudaBlock
 {
-namespace detail
-{
-    template<uint32_t dim>
-    struct getPos;
-
-    template<>
-    struct getPos<3>
-    {
-        template<typename Zone>
-        DINLINE math::Int<3> operator()( Zone, const int linearThreadIdx )
-        {
-            return math::Int<3>(
-                Zone::Offset::x::value + (linearThreadIdx  % Zone::Size::x::value),
-                Zone::Offset::y::value + ((linearThreadIdx % (Zone::Size::x::value * Zone::Size::y::value)) / Zone::Size::x::value),
-                Zone::Offset::z::value + (linearThreadIdx  / (Zone::Size::x::value * Zone::Size::y::value)));
-        }
-    };
-
-    template<>
-    struct getPos<2>
-    {
-        template<typename Zone>
-        DINLINE math::Int<2> operator()( Zone, const int linearThreadIdx )
-        {
-            return math::Int<2>(
-                Zone::Offset::x::value + (linearThreadIdx % Zone::Size::x::value),
-                Zone::Offset::y::value + (linearThreadIdx / Zone::Size::x::value));
-        }
-    };
-
-    template<>
-    struct getPos<1>
-    {
-        template<typename Zone>
-        DINLINE math::Int<1> operator()( Zone, const int linearThreadIdx )
-        {
-            return math::Int<1>( Zone::Offset::x::value + linearThreadIdx );
-        }
-    };
-} // namespace detail
 
 #ifndef FOREACH_KERNEL_MAX_PARAMS
 #define FOREACH_KERNEL_MAX_PARAMS 4
@@ -89,9 +51,15 @@ namespace detail
         BOOST_AUTO(functor_, lambda::make_Functor(functor));                       \
         const int dataVolume = math::CT::volume<typename Zone::Size>::type::value; \
         const int blockVolume = math::CT::volume<BlockDim>::type::value;           \
+                                                                                   \
+        typedef typename math::Int<Zone::dim> PosType;                             \
+        using namespace PMacc::algorithms::precisionCast;                          \
+                                                                                   \
         for(int i = this->linearThreadIdx; i < dataVolume; i += blockVolume)       \
         {                                                                          \
-            math::Int<Zone::dim> pos = detail::getPos<Zone::dim>()( Zone(), i );   \
+            PosType pos = Zone::Offset().toRT() +                                  \
+                          precisionCast<typename PosType::type>(                   \
+                            math::MapToPos<Zone::dim>()( Zone::Size(), i ) );      \
             functor_(BOOST_PP_ENUM(N, SHIFTACCESS_CURSOR, _));                     \
         }                                                                          \
     }

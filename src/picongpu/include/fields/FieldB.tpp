@@ -67,8 +67,8 @@ fieldE( NULL )
         GetMargin<fieldSolver::FieldSolver, FIELD_B>::UpperMargin
         >::type UpperMargin;
 
-    const DataSpace<simDim> originGuard( LowerMargin( ).vec( ) );
-    const DataSpace<simDim> endGuard( UpperMargin( ).vec( ) );
+    const DataSpace<simDim> originGuard( LowerMargin( ).toRT( ) );
+    const DataSpace<simDim> endGuard( UpperMargin( ).toRT( ) );
 
     /*go over all directions*/
     for ( uint32_t i = 1; i < numberOfNeighbors[simDim]; ++i )

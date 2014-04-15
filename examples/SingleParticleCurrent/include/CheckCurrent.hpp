@@ -70,7 +70,7 @@ struct CheckCurrent
 
         container::HostBuffer<float3_X, 3> fieldJ_with_guards(fieldJ_device.size());
         fieldJ_with_guards = fieldJ_device;
-        container::View<container::HostBuffer<float3_X, 3> > fieldJ(fieldJ_with_guards.view(precisionCast<int>(GuardDim().vec()), -precisionCast<int>(GuardDim().vec())));
+        container::View<container::HostBuffer<float3_X, 3> > fieldJ(fieldJ_with_guards.view(precisionCast<int>(GuardDim().toRT()), -precisionCast<int>(GuardDim().toRT())));
         
         float3_X beta(BETA0_X, BETA0_Y, BETA0_Z);
         

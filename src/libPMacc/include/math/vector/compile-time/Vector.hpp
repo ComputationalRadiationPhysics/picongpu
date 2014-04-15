@@ -118,12 +118,14 @@ struct Vector
     {
         typedef typename mpl::at_c<mplVector, element>::type type;
     };
+
+    static const int dim = mpl::size<mplVector >::type::value;
+
     typedef typename detail::TypeSelector<x>::type type;
     typedef Vector<x, y, z> This;
+    typedef math::Vector<type, dim> RT_type;
     typedef This vector_type;
-    
-    static const int dim = mpl::size<mplVector >::type::value;
-    
+
     template<typename OtherType>
     HDINLINE
     operator math::Vector<OtherType, dim>() const
@@ -132,7 +134,15 @@ struct Vector
         math::CT::detail::VectorFromCT<dim>()(result, *this);
         return result;
     }
-    HDINLINE math::Vector<type, dim> vec() const
+
+    /** Create a runtime Vector
+     *
+     *  Creates the corresponding runtime vector
+     *  object
+     *
+     *  \return RT_type runtime vector with same value type
+     */
+    HDINLINE RT_type toRT() const
     {
         return (math::Vector<type, dim>)(*this);
     }

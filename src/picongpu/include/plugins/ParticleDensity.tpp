@@ -66,7 +66,7 @@ struct ParticleDensityKernel
                                linearCellIdx / (BlockDim::x::value * BlockDim::y::value));
         if(cellIdx[planeDir] != localPlane) return;
 
-        ::PMacc::math::Int<3> globalCellIdx = blockCellIdx - (PMacc::math::Int<3>)BlockDim().vec() + cellIdx;
+        ::PMacc::math::Int<3> globalCellIdx = blockCellIdx - (PMacc::math::Int<3>)BlockDim().toRT() + cellIdx;
         /// \warn reduce a normalized float_X with particleAccess::Weight() / NUM_EL_PER_PARTICLE
         ///       to avoid overflows for heavy weightings
         ///
@@ -118,8 +118,8 @@ void ParticleDensity<ParticlesType>::notify(uint32_t currentStep)
     typedef vec::CT::Size_t<TILE_WIDTH, TILE_HEIGHT, TILE_DEPTH> BlockDim;
     container::PseudoBuffer<float3_X, 3> fieldE
         (dc.getData<FieldE > (FieldE::getName(), true).getGridBuffer().getDeviceBuffer());
-    zone::SphericZone<3> coreBorderZone(fieldE.zone().size - (size_t)2*BlockDim().vec(),
-                                        fieldE.zone().offset + (vec::Int<3>)BlockDim().vec());
+    zone::SphericZone<3> coreBorderZone(fieldE.zone().size - (size_t)2*BlockDim().toRT(),
+                                        fieldE.zone().offset + (vec::Int<3>)BlockDim().toRT());
 
     container::DeviceBuffer<int, 2> density(coreBorderZone.size.shrink<2>((plane+1)%3));
     density.assign(0);
@@ -131,8 +131,8 @@ void ParticleDensity<ParticlesType>::notify(uint32_t currentStep)
     int globalPlanePos = globalGridSize[plane] * this->slicePoint;
     int localPlanePos = globalPlanePos % coreBorderZone.size[plane];
     int gpuPos = globalPlanePos / coreBorderZone.size[plane];
-    int superCell = localPlanePos / BlockDim().vec()[plane];
-    int cellWithinSuperCell = localPlanePos % BlockDim().vec()[plane];
+    int superCell = localPlanePos / BlockDim().toRT()[plane];
+    int cellWithinSuperCell = localPlanePos % BlockDim().toRT()[plane];
     vec::Size_t<3> planeVec(0); planeVec[plane] = 1;
     vec::Size_t<3> orthoPlaneVec(1); orthoPlaneVec[plane] = 0;
     
@@ -141,8 +141,8 @@ void ParticleDensity<ParticlesType>::notify(uint32_t currentStep)
     algorithm::mpi::Gather<3> gather(gpuGatheringZone);
     if(!gather.participate()) return;
     
-    zone::SphericZone<3> superCellSliceZone(orthoPlaneVec * coreBorderZone.size + planeVec * (vec::Size_t<3>)BlockDim().vec(),
-                                            coreBorderZone.offset + (vec::Int<3>)planeVec * superCell * (int)BlockDim().vec()[plane]);
+    zone::SphericZone<3> superCellSliceZone(orthoPlaneVec * coreBorderZone.size + planeVec * (vec::Size_t<3>)BlockDim().toRT(),
+                                            coreBorderZone.offset + (vec::Int<3>)planeVec * superCell * (int)BlockDim().toRT()[plane]);
     
     using namespace lambda;
     algorithm::kernel::ForeachBlock<BlockDim>()

@@ -73,9 +73,9 @@ void FieldEnergy::notify(uint32_t currentStep)
     FieldB& fieldB = dc.getData<FieldB > (FieldB::getName(), true);
 
     BOOST_AUTO(fieldE_coreBorder,
-            fieldE.getGridBuffer().getDeviceBuffer().cartBuffer().view(precisionCast<int>(BlockDim().vec()), -precisionCast<int>(BlockDim().vec())));
+            fieldE.getGridBuffer().getDeviceBuffer().cartBuffer().view(precisionCast<int>(BlockDim().toRT()), -precisionCast<int>(BlockDim().toRT())));
     BOOST_AUTO(fieldB_coreBorder,
-            fieldB.getGridBuffer().getDeviceBuffer().cartBuffer().view(precisionCast<int>(BlockDim().vec()), -precisionCast<int>(BlockDim().vec())));
+            fieldB.getGridBuffer().getDeviceBuffer().cartBuffer().view(precisionCast<int>(BlockDim().toRT()), -precisionCast<int>(BlockDim().toRT())));
             
     PMacc::GridController<3>& con = PMacc::Environment<3>::get().GridController();
     PMacc::math::Size_t<3> gpuDim = (math::Size_t<3>)con.getGpuNodes();
