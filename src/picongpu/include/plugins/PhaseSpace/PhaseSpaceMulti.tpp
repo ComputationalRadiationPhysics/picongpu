@@ -44,9 +44,9 @@ namespace picongpu
             ((this->prefix + ".period").c_str(),
               po::value<std::vector<uint32_t> > (&this->notifyPeriod)->multitoken(), "notify period")
             ((this->prefix + ".space").c_str(),
-              po::value<std::vector<std::string> > (&this->element_space)->multitoken(), "spatial dimension (x, y, z)")
+              po::value<std::vector<std::string> > (&this->element_space)->multitoken(), "spatial component (x, y, z)")
             ((this->prefix + ".momentum").c_str(),
-              po::value<std::vector<std::string> > (&this->element_momentum)->multitoken(), "momentum space (px, py, pz)")
+              po::value<std::vector<std::string> > (&this->element_momentum)->multitoken(), "momentum component (px, py, pz)")
             ((this->prefix + ".min").c_str(),
               po::value<std::vector<float_X> > (&this->momentum_range_min)->multitoken(), "min range momentum [m_e c]")
             ((this->prefix + ".max").c_str(),

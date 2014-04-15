@@ -73,6 +73,7 @@ namespace picongpu
                                  const std::pair<float_X, float_X>& axis_p_range )
         {
             PMACC_AUTO( particle, (*frame)[particleID] );
+            /** \todo this can become a functor to be even more flexible */
             const float_X mom_i = particle[momentum_][el_p];
 
             /* cell id in this block */
@@ -97,8 +98,7 @@ namespace picongpu
              * p_bin > (p_bins-1) ? p_bin = p_bins-1;
              */
             p_bin *= int(p_bin >= 0);
-            if( p_bin >= p_bins )
-                p_bin = p_bins - 1;
+            p_bin += int(p_bin >= p_bins) * (p_bins - 1 - p_bin);
 
             /** \todo take particle shape into account */
             atomicAddWrapper( &(*curDBufferOriginInBlock( r_bin, p_bin )),
