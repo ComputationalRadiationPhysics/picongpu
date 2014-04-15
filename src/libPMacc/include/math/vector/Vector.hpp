@@ -151,12 +151,12 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
             (*this)[i] = static_cast<type> (other[i]);
     }
 
-    HDINLINE const This& vec() const
+    HDINLINE const This& toRT() const
     {
         return *this;
     }
 
-    HDINLINE This& vec()
+    HDINLINE This& toRT()
     {
         return *this;
     }

@@ -53,8 +53,8 @@ fieldJ( cellDescription.getGridLayout( ) ), fieldE( NULL )
     typedef typename GetMargin<ParticleCurrentSolver>::LowerMargin LowerMargin;
     typedef typename GetMargin<ParticleCurrentSolver>::UpperMargin UpperMargin;
 
-    const DataSpace<simDim> originGuard( LowerMargin( ).vec( ) );
-    const DataSpace<simDim> endGuard( UpperMargin( ).vec( ) );
+    const DataSpace<simDim> originGuard( LowerMargin( ).toRT( ) );
+    const DataSpace<simDim> endGuard( UpperMargin( ).toRT( ) );
 
     /*go over all directions*/
     for ( uint32_t i = 1; i < numberOfNeighbors[simDim]; ++i )

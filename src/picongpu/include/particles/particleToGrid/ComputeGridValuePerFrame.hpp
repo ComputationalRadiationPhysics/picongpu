@@ -133,8 +133,8 @@ ComputeGridValuePerFrame<T_ParticleShape, calcType>::operator()
     /** loop around local super cell position (regarding shape)
      * \todo take care of non-yee cells
      */
-    const DataSpace<simDim> lowMargin(LowerMargin().vec());
-    const DataSpace<simDim> upMargin(UpperMargin().vec());
+    const DataSpace<simDim> lowMargin(LowerMargin().toRT());
+    const DataSpace<simDim> upMargin(UpperMargin().toRT());
 
     const DataSpace<simDim> marginSpace(upMargin + lowMargin);
 

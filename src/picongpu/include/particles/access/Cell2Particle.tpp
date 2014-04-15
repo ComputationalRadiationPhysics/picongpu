@@ -41,7 +41,7 @@ DINLINE void Cell2Particle<SuperCellSize>::operator() \
 (TParticlesBox pb, const CellIndex& cellIndex, Functor functor \
 BOOST_PP_ENUM_TRAILING(N, NORMAL_ARGS, _)) \
 { \
-    CellIndex superCellIdx = cellIndex / (CellIndex)SuperCellSize().vec(); \
+    CellIndex superCellIdx = cellIndex / (CellIndex)SuperCellSize().toRT(); \
     \
     uint16_t linearThreadIdx = threadIdx.z * SuperCellSize::x::value * SuperCellSize::y::value + \
                                threadIdx.y * SuperCellSize::x::value + threadIdx.x; \
