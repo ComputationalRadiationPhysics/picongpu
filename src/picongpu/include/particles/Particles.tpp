@@ -38,6 +38,7 @@
 #include "particles/memory/buffers/ParticlesBuffer.hpp"
 #include "ParticlesInit.kernel"
 #include "mappings/simulation/GridController.hpp"
+#include "mpi/SeedPerRank.hpp"
 
 #include "simulationControl/MovingWindow.hpp"
 
@@ -193,9 +194,9 @@ void Particles<T_ParticleDescription>::initFill( uint32_t currentStep )
     DataSpace<simDim> gpuCellOffset = simBox.getGlobalOffset( );
     gpuCellOffset.y( ) += window.slides * localCells.y( );
 
-
-    uint32_t seed = Environment<simDim>::get().GridController().getGlobalSize( ) * FrameType::CommunicationTag
-        + Environment<simDim>::get().GridController().getGlobalRank( );
+    GlobalSeed globalSeed;
+    mpi::SeedPerRank<simDim> seedPerRank;
+    uint32_t seed = seedPerRank( globalSeed(), FrameType::CommunicationTag );
     seed ^= POSITION_SEED;
     dim3 block( MappingDesc::SuperCellSize::getDataSpace( ) );
 
@@ -249,8 +250,9 @@ void Particles<T_ParticleDescription>::deviceAddTemperature( float_X energy )
     dim3 block( MappingDesc::SuperCellSize::getDataSpace( ) );
     DataSpace<simDim> superCells = this->particlesBuffer->getSuperCellsCount( );
 
-    uint32_t seed = Environment<simDim>::get().GridController().getGlobalSize( ) * FrameType::CommunicationTag
-        + Environment<simDim>::get().GridController().getGlobalRank( );
+    GlobalSeed globalSeed;
+    mpi::SeedPerRank<simDim> seedPerRank;
+    uint32_t seed = seedPerRank( globalSeed(), FrameType::CommunicationTag );
     seed ^= TEMPERATURE_SEED;
 
     __picKernelArea( kernelAddTemperature, this->cellDescription, CORE + BORDER + GUARD )
