@@ -16,7 +16,8 @@ This is the 5th release candidate, a *pre-beta* version.
    [#320](https://github.com/ComputationalRadiationPhysics/picongpu/pull/320/files#diff-1)  
  - removed double `#define __COHERENTINCOHERENTWEIGHTING__ 1` in some example radiationConfig.param
    [#323](https://github.com/ComputationalRadiationPhysics/picongpu/pull/323/files)
- - new file: `seed.param` allows to vary the starting conditions of "identical" runs #353
+ - new file: `seed.param` allows to vary the starting conditions of "identical" runs
+   [#353](https://github.com/ComputationalRadiationPhysics/picongpu/pull/353)
 
 **New Features:**
  - Radiation plugin: add optional window functions to reduce ringing effects
