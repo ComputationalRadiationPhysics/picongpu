@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU. 
  * 
@@ -32,13 +32,13 @@ namespace picongpu
         const double DELTA_T_SI = 1.5e-16;
         /** equals X
          *  unit: meter */
-        const double CELL_WIDTH_SI = 8.75e-8;//8.4e-8;
+        const double CELL_WIDTH_SI = 9.34635e-8;
         /** equals Y - the propagation direction
          *  unit: meter */
-        const double CELL_HEIGHT_SI = 8.75e-8;//8.4e-8;
+        const double CELL_HEIGHT_SI = 9.34635e-8;
         /** equals Z
          *  unit: meter */
-        const double CELL_DEPTH_SI = 8.75e-8;//8.4e-8;
+        const double CELL_DEPTH_SI = 9.34635e-8;
     }
 
     //! Defines the size of the absorbing zone (in cells)
