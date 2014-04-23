@@ -35,6 +35,9 @@
 #include "plugins/PositionsParticles.hpp"
 #include "plugins/BinEnergyParticles.hpp"
 #include "plugins/LineSliceFields.hpp"
+#if(SIMDIM==DIM3 && ENABLE_HDF5 == 1)
+#include "plugins/PhaseSpace/PhaseSpaceMulti.hpp"
+#endif
 
 #if (ENABLE_INSITU_VOLVIS == 1)
 #include "plugins/InSituVolumeRenderer.hpp"
@@ -116,6 +119,10 @@ private:
     typedef ParticleDensity<PIC_Electrons, DensityToBinary, float_X> ElectronsBinaryDensityBuilder;
 
 #if(SIMDIM==DIM3)
+#if(ENABLE_HDF5 == 1)
+    /* speciesParticleShape::ParticleShape::ChargeAssignment */
+    typedef PhaseSpaceMulti<particleShape::Counter::ChargeAssignment, PIC_Electrons> PhaseSpaceElectrons;
+#endif
 #if(PIC_ENABLE_PNG==1)
     typedef heiko::ParticleDensity<PIC_Electrons> HeikoParticleDensity;   
 #endif
@@ -140,6 +147,10 @@ private:
 #if(PIC_ENABLE_PNG==1)
     typedef Visualisation<PIC_Ions, PngCreator> IonsPngBuilder;
     typedef PngPlugin<IonsPngBuilder > PngImageIons;
+#endif
+#if(SIMDIM==DIM3 && ENABLE_HDF5 == 1)
+    /* speciesParticleShape::ParticleShape::ChargeAssignment */
+    typedef PhaseSpaceMulti<particleShape::Counter::ChargeAssignment, PIC_Ions> PhaseSpaceIons;
 #endif
     typedef ParticleDensity<PIC_Ions, DensityToBinary, float_X> IonsBinaryDensityBuilder;
     typedef PngPlugin<IonsBinaryDensityBuilder > BinDensityIons;
@@ -167,12 +178,12 @@ private:
         plugins.push_back(new hdf5::HDF5Writer());
 #endif
 
-#if(SIMDIM==DIM3)        
+#if(SIMDIM==DIM3)
 #if (ENABLE_ADIOS == 1)
         plugins.push_back(new adios::ADIOSWriter());
 #endif
 #endif
-            
+
         plugins.push_back(new EnergyFields("EnergyFields", "energy_fields"));
         plugins.push_back(new SumCurrents());
         plugins.push_back(new LineSliceFields());
@@ -191,6 +202,9 @@ private:
 #endif
         
 #if (ENABLE_ELECTRONS == 1)
+#if(SIMDIM==DIM3 && ENABLE_HDF5 == 1)
+        plugins.push_back(new PhaseSpaceElectrons("PhaseSpace Electrons", "ps_e"));
+#endif
         plugins.push_back(new LiveImageElectrons("LiveImageElectrons", "live_e"));
 #if(PIC_ENABLE_PNG==1)
         plugins.push_back(new PngImageElectrons("PngImageElectrons", "png_e"));
@@ -203,6 +217,9 @@ private:
 #endif
 
 #if (ENABLE_IONS == 1)
+#if(SIMDIM==DIM3 && ENABLE_HDF5 == 1)
+        plugins.push_back(new PhaseSpaceIons("PhaseSpace Ions", "ps_i"));
+#endif
         plugins.push_back(new LiveImageIons("LiveImageIons", "live_i"));
 #if(PIC_ENABLE_PNG==1)
         plugins.push_back(new PngImageIons("PngImageIons", "png_i"));
