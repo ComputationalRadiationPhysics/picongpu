@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -18,8 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */
 
-#ifndef FIELDJ_KERNEL
-#define	FIELDJ_KERNEL
+#pragma once
 
 #include "types.h"
 #include "particles/frame_types.hpp"
@@ -68,93 +67,59 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
     const int virtualLinearId = linearThreadIdx - (virtualBlockId * cellsPerSuperCell);
 
 
-    __shared__ FrameType * frame[workerMultiplier];
-    __shared__ bool isValid[workerMultiplier];
-    __shared__ lcellId_t particlesInSuperCell;
+    FrameType* frame = NULL;
+    bool isValid = false;
+    lcellId_t particlesInSuperCell = 0;
 
-    __syncthreads(); /*wait that all shared memory is initialised*/
-
-    if (linearThreadIdx == 0)
-    {
-        frame[0] = &(boxPar.getLastFrame(block, isValid[0]));
+    frame = &(boxPar.getLastFrame(block, isValid));
+    if (isValid && virtualBlockId == 0)
         particlesInSuperCell = boxPar.getSuperCell(block).getSizeLastFrame();
-        /* Set all isValid flags with id >0 to false.
-         * isValid[0] is already initialized!!
-         * Read valid frames.
-         */
-        for (int i = 1; i < workerMultiplier; ++i)
-        {
-            isValid[i] = false;
-            if (isValid[i - 1])
-                frame[i] = &(boxPar.getPreviousFrame(*(frame[i - 1]), isValid[i]));
-        }
-    }
-    __syncthreads();
 
-    /* only leave calculation if we have no frames
-     * If we have a frame than we need all threads for
-     * filling shared memory
-     */
-    if (!(isValid[0]))
-        return;
+    /* select N-th (N=virtualBlockId) frame from the end of the list*/
+    for (int i = 1; (i <= virtualBlockId) && isValid; ++i)
+    {
+        particlesInSuperCell = SuperCellSize::elements;
+        frame = &(boxPar.getPreviousFrame(*frame, isValid));
+    }
 
     /* This memory is used by all virtual blocks*/
     PMACC_AUTO(cachedJ, CachedBox::create < 0, typename JBox::ValueType > (BlockDescription_()));
+
+    __syncthreads();
 
     Set<typename JBox::ValueType > set(float3_X(0.0, 0.0, 0.0));
     ThreadCollective<BlockDescription_, cellsPerSuperCell * workerMultiplier> collectivSet(linearThreadIdx);
     collectivSet(set, cachedJ);
 
-    /* all threads of a virtual block will leave if it has no frame */
-    if (!(isValid[virtualBlockId]))
-        return;
-
     __syncthreads();
-    /* all threads can check isValid[0] because we know that
-     * we are at end of frame list if isValid[0] is not valid
-     */
-    while (isValid[virtualBlockId])
+
+    while (isValid)
     {
-        /* virtualBlockId != 0 no need to check particlesInSuperCell 
-         * because only last frame is not full filled
+        /* this test is only importend for the last frame
+         * if frame is not the last one particlesInSuperCell==particles count in supercell
          */
-        if (virtualBlockId != 0 || linearThreadIdx < particlesInSuperCell)
+        if (virtualLinearId < particlesInSuperCell)
         {
-            frameSolver(*(frame[virtualBlockId]),
+            frameSolver(*frame,
                         virtualLinearId,
                         cachedJ);
         }
-        __syncthreads();
-        if (linearThreadIdx == 0)
+
+        particlesInSuperCell = SuperCellSize::elements;
+        for (int i = 0; (i < workerMultiplier) && isValid; ++i)
         {
-            particlesInSuperCell = SuperCellSize::elements;
-            isValid[0] = isValid[workerMultiplier - 1];
-            if (isValid[workerMultiplier - 1])
-                frame[0] = &(boxPar.getPreviousFrame(*(frame[workerMultiplier - 1]), isValid[0]));
-            /* read all frames in sequential order
-             * but only if workerMultiplier>=1 */
-            for (int i = 1; i < workerMultiplier; ++i)
-            {
-                isValid[i] = false;
-                if (isValid[i - 1])
-                    frame[i] = &(boxPar.getPreviousFrame(*(frame[i - 1]), isValid[i]));
-            }
+            frame = &(boxPar.getPreviousFrame(*frame, isValid));
         }
-        __syncthreads();
     }
+
     /* we wait that all threads finish the loop*/
     __syncthreads();
-    /* Write to global memory
-     * We only use virtual block 0, other frame could have left already */
-    if (virtualBlockId == 0)
-    {
-        nvidia::functors::Add add;
-        const DataSpace<simDim> blockCell = block * SuperCellSize::getDataSpace();
-        ThreadCollective<BlockDescription_, cellsPerSuperCell> collectivAdd(linearThreadIdx);
-        PMACC_AUTO(fieldJBlock, fieldJ.shift(blockCell));
-        collectivAdd(add, fieldJBlock, cachedJ);
-    }
-    __syncthreads();
+
+    nvidia::functors::Add add;
+    const DataSpace<simDim> blockCell = block * SuperCellSize::getDataSpace();
+    ThreadCollective<BlockDescription_, cellsPerSuperCell * workerMultiplier> collectivAdd(linearThreadIdx);
+    PMACC_AUTO(fieldJBlock, fieldJ.shift(blockCell));
+    collectivAdd(add, fieldJBlock, cachedJ);
 }
 
 template<class ParticleAlgo, class Velocity, class TVec>
@@ -284,11 +249,8 @@ __global__ void kernelInsertCurrent(J_DataBox fieldJ,
             targetCell[d] += tile_size[d];
         }
     }
-    
+
     fieldJ(targetCell) += sourceJ(sourceCell);
 }
 
 }
-
-
-#endif  //end FIELDJ_KERNEL
