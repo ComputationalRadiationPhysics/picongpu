@@ -1,24 +1,24 @@
 /**
  * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
 
+#pragma once
 
 #include "memory/buffers/GridBuffer.hpp"
 #include "mappings/simulation/GridController.hpp"
@@ -67,12 +67,12 @@ fieldB( NULL )
     const DataSpace<simDim> endGuard( UpperMargin( ).toRT( ) );
 
     /*receive from all directions*/
-    for ( uint32_t i = 1; i < numberOfNeighbors[simDim]; ++i )
+    for ( uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i )
     {
         DataSpace<simDim> relativMask = Mask::getRelativeDirections<simDim > ( i );
         /*guarding cells depend on direction
          * for negativ direction use originGuard else endGuard (relativ direction ZERO is ignored)
-         * don't switch end and origin because this is a readbuffer and no sendbuffer 
+         * don't switch end and origin because this is a readbuffer and no sendbuffer
          */
         DataSpace<simDim> guardingCells;
         for ( uint32_t d = 0; d < simDim; ++d )
@@ -137,7 +137,7 @@ GridLayout< simDim> FieldE::getGridLayout( )
 void FieldE::laserManipulation( uint32_t currentStep )
 {
     VirtualWindow win=MovingWindow::getInstance().getVirtualWindow(currentStep);
-    
+
     /* Disable laser if
      * - init time of laser is over or
      * - we have periodic boundaries in Y direction or

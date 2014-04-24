@@ -1,29 +1,29 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2014 Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
 
-#ifndef _TASKRECEIVEPARTICLESEXCHANGE_HPP
-#define	_TASKRECEIVEPARTICLESEXCHANGE_HPP
+
+#pragma once
 
 #include "eventSystem/EventSystem.hpp"
+#include "traits/NumberOfExchanges.hpp"
 
 namespace PMacc
 {
@@ -35,10 +35,8 @@ namespace PMacc
 
         enum
         {
-            Dim = DIM3,
-            /* Exchanges in 2D=9 and in 3D=27
-             */
-            Exchanges = 27
+            Dim = ParBase::Dim,
+            Exchanges = traits::NumberOfExchanges<Dim>::value
         };
 
         TaskReceiveParticlesExchange(ParBase &parBase, uint32_t exchange) :
@@ -90,7 +88,7 @@ namespace PMacc
                         {
                             std::cerr << "recv max size " << maxSize << " particles" << std::endl;
                             init(); //call init and run a full send cycle
-                            
+
                         }
                         else
                         {
@@ -150,7 +148,3 @@ namespace PMacc
     };
 
 } //namespace PMacc
-
-
-#endif	/* _TASKRECEIVEPARTICLESEXCHANGE_HPP */
-

@@ -1,22 +1,22 @@
 /**
  * Copyright 2013 Felix Schmitt, Heiko Burau, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "types.h"
@@ -31,6 +31,7 @@
 
 #include "particles/operations/Assign.hpp"
 #include "particles/operations/Deselect.hpp"
+#include "traits/NumberOfExchanges.hpp"
 
 namespace PMacc
 {
@@ -50,7 +51,7 @@ __global__ void kernelShiftParticles(ParticlesBox<FRAME, Mapping::Dim> pb, Mappi
     {
         TileSize = Mapping::SuperCellSize::elements,
         Dim = Mapping::Dim,
-        Exchanges = Mapping::Neighbors
+        Exchanges = traits::NumberOfExchanges<Dim>::value
     };
 
 
@@ -111,7 +112,7 @@ __global__ void kernelShiftParticles(ParticlesBox<FRAME, Mapping::Dim> pb, Mappi
     {
         lcellId_t destParticleIdx = INV_LOC_IDX;
 
-        //switch to value to [-2, EXCHANGES - 1] 
+        //switch to value to [-2, EXCHANGES - 1]
         //-2 is no particle
         //-1 is particle but it is not shifted
         const int direction = (*frame)[threadIdx.x][multiMask_] - 2;
@@ -432,7 +433,7 @@ __global__ void kernelBashParticles(ParticlesBox<FRAME, Mapping::Dim> pb,
 
     // asymmetric, because corners are exchanged only in y-directions
     /*   const DataSpace<Dim> directions = Mask::getRelativeDirections<Dim > (mapper.getExchangeType());
-    
+
        if (directions.y() != 0 && directions.x() == 0)
            superCellIdx.x() -= mapper.getGuardingSuperCells();*/
     __shared__ uint32_t numBashedParticles;

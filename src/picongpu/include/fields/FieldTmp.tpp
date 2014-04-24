@@ -1,23 +1,22 @@
 /**
  * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
 
 
 #pragma once
@@ -54,7 +53,7 @@ namespace picongpu
 
         /** \todo The exchange has to be resetted and set again regarding the
          *  temporary "Fill-"Functor we want to use.
-         * 
+         *
          *  Problem: buffers don't allow "bigger" exchange during run time.
          *           so let's stay with the maximum guards.
          */
@@ -73,7 +72,7 @@ namespace picongpu
         const DataSpace<simDim> endGuard( UpperMargin( ).toRT( ) );
 
         /*go over all directions*/
-        for( uint32_t i = 1; i < numberOfNeighbors[simDim]; ++i )
+        for( uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i )
         {
             DataSpace<simDim> relativMask = Mask::getRelativeDirections<simDim > ( i );
             /*guarding cells depend on direction
@@ -81,7 +80,7 @@ namespace picongpu
             DataSpace<simDim> guardingCells;
             for( uint32_t d = 0; d < simDim; ++d )
             {
-                /*originGuard and endGuard are switch because we send data 
+                /*originGuard and endGuard are switch because we send data
                  * e.g. from left I get endGuardingCells and from right I originGuardingCells
                  */
                 switch( relativMask[d] )
@@ -136,7 +135,7 @@ namespace picongpu
     {
         return getName();
     }
-    
+
     void FieldTmp::synchronize( )
     {
         fieldTmp->deviceToHost( );
@@ -221,21 +220,21 @@ namespace picongpu
         fieldTmp->getHostBuffer( ).reset( true );
         fieldTmp->getDeviceBuffer( ).reset( false );
     }
-    
+
     template<class FrameSolver >
     typename FieldTmp::UnitValueType
     FieldTmp::getUnit( )
     {
         return FrameSolver().getUnit();
     }
-    
+
 
     std::string
     FieldTmp::getName( )
     {
         return "FieldTmp";
     }
-    
+
     uint32_t
     FieldTmp::getCommTag( )
     {
