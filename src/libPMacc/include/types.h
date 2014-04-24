@@ -1,22 +1,22 @@
 /**
  * Copyright 2013 Felix Schmitt, Heiko Burau, Rene Widera, Wolfgang Hoenig
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 #pragma once
@@ -57,11 +57,11 @@ typedef long long int int64_cu;
 /*
  * Disable nvcc warning:
  * calling a __host__ function from __host__ __device__ function.
- * 
+ *
  * Usage:
  * PMACC_NO_NVCC_HDWARNING
  * HDINLINE function_declaration()
- *  
+ *
  * It is not possible to disable the warning for a __host__ function
  * if there are calls of virtual functions inside. For this case use a wrapper
  * function.
@@ -85,9 +85,6 @@ enum ExchangeType
 {
     RIGHT = 1u, LEFT = 2u, BOTTOM = 3u, TOP = 6u, BACK = 9u, FRONT = 18u // 3er-System
 };
-
-/** define number of neighbors for 1D/2D/3D simulations */
-const uint32_t numberOfNeighbors[4]={0,LEFT+RIGHT,TOP+BOTTOM,BACK+FRONT};
 
 /**
  * Defines number of dimensions (1-3)
@@ -154,8 +151,8 @@ enum EventType
         ((byte)<=64?64:128        \
         ))))))))
 
-#define PMACC_ALIGN(var,...) __optimal_align__(sizeof(__VA_ARGS__)) __VA_ARGS__ var 
-#define PMACC_ALIGN8(var,...) __align__(8) __VA_ARGS__ var 
+#define PMACC_ALIGN(var,...) __optimal_align__(sizeof(__VA_ARGS__)) __VA_ARGS__ var
+#define PMACC_ALIGN8(var,...) __align__(8) __VA_ARGS__ var
 
 /*! area which is calculated
  *

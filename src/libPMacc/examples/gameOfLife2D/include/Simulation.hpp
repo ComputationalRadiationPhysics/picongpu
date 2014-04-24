@@ -8,6 +8,7 @@
  * the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ * 
  * libPMacc is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -34,8 +35,7 @@
 #include "eventSystem/EventSystem.hpp"
 
 #include "GatherSlice.hpp"
-
-
+#include "traits/NumberOfExchanges.hpp"
 
 #include <string>
 #include "PngCreator.hpp"
@@ -135,7 +135,7 @@ public:
         buff2 = new Buffer(layout, false);
 
         Space gardingCells(1, 1);
-        for (uint32_t i = 1; i < numberOfNeighbors[DIM2]; ++i)
+        for (uint32_t i = 1; i < traits::NumberOfExchanges<DIM2>::value; ++i)
         {
             /* to check which number corresponds to which direction, you can  *
              * use the following member of class Mask like done in the two    *

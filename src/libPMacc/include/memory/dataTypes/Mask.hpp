@@ -1,30 +1,30 @@
 /**
- * Copyright 2013 Felix Schmitt, Heiko Burau, Rene Widera, Wolfgang Hoenig
+ * Copyright 2013-2014 Felix Schmitt, Heiko Burau, Rene Widera, Wolfgang Hoenig
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
-#ifndef _MASK_HPP
-#define	_MASK_HPP
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
 
 #include "types.h"
 
 #include "dimensions/DataSpace.hpp"
+#include "traits/NumberOfExchanges.hpp"
 
 namespace PMacc
 {
@@ -202,7 +202,7 @@ namespace PMacc
          */
         static ExchangeType getMirroredExchangeType(uint32_t ex)
         {
-            if (ex >= numberOfNeighbors[DIM3])
+            if (ex >= traits::NumberOfExchanges<DIM3>::value)
                 throw std::runtime_error("parameter exceeds allowed maximum");
 
             Mask mask(ex);
@@ -236,7 +236,7 @@ namespace PMacc
     };
 
     template<>
-    HDINLINE DataSpace<DIM1> Mask::getRelativeDirections(const uint32_t ex) 
+    HDINLINE DataSpace<DIM1> Mask::getRelativeDirections(const uint32_t ex)
     {
         switch (ex)
         {
@@ -250,7 +250,7 @@ namespace PMacc
     }
 
     template<>
-    HDINLINE DataSpace<DIM2> Mask::getRelativeDirections(const uint32_t ex) 
+    HDINLINE DataSpace<DIM2> Mask::getRelativeDirections(const uint32_t ex)
     {
         DataSpace<DIM2> tmp;
 
@@ -277,7 +277,7 @@ namespace PMacc
     }
 
     template<>
-    HDINLINE DataSpace<DIM3> Mask::getRelativeDirections(const uint32_t ex) 
+    HDINLINE DataSpace<DIM3> Mask::getRelativeDirections(const uint32_t ex)
     {
         DataSpace<DIM3> tmp;
 
@@ -315,6 +315,3 @@ namespace PMacc
     }
 
 }
-
-#endif	/* _MASK_HPP */
-
