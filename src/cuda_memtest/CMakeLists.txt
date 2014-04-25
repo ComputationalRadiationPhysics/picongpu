@@ -16,8 +16,7 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) 
 
 # set helper pathes to find libraries and packages
-set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{MPI_ROOT}" "$ENV{CUDA_ROOT}"
-    "$ENV{BOOST_ROOT}" "$ENV{HDF5_ROOT}")
+set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{CUDA_ROOT}")
 
 
 ################################################################################
@@ -26,7 +25,6 @@ set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{MPI_ROOT}" "$ENV{CUDA_R
 
 find_package(CUDA REQUIRED)
 
-if(SAME_NVCC_FLAGS_IN_SUBPROJECTS)
   set(CUDA_ARCH sm_13 CACHE STRING "set GPU architecture" )
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${nvcc_flags} -arch=${CUDA_ARCH})
 
@@ -43,7 +41,6 @@ if(SAME_NVCC_FLAGS_IN_SUBPROJECTS)
     make_directory("${PROJECT_BINARY_DIR}/nvcc_tmp")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" --keep --keep-dir "${PROJECT_BINARY_DIR}/nvcc_tmp")
   endif()
-endif()
 
 
 ################################################################################
