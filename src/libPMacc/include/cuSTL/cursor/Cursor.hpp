@@ -136,9 +136,8 @@ public:
         return *((*this)(jump));
     }
 
-    /* This is a dirty workaround to enable and disable safe-cursor checks. 
-     * Can be substituted by ordinary functions instead of methods.
-     */
+    /* This is a dirty workaround to enable and disable safe-cursor checks.*/
+    /** \todo: Can be substituted by ordinary functions instead of methods.*/
     HDINLINE void enableChecking() {this->marker.enableChecking();}
     HDINLINE void disableChecking() {this->marker.disableChecking();}
     

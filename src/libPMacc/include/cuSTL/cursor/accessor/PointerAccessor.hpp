@@ -32,7 +32,9 @@ struct PointerAccessor
 {
     typedef Type& type;
     
-    /* Here a reference is returned because one expects a reference
+    /** Returns the dereferenced pointer of type 'Type'
+     * 
+     * Here a reference is returned because one expects a reference
      * if an ordinary c++ pointer is dereferenced too.
      * There is no danger if the cursor object is temporary.
      */
