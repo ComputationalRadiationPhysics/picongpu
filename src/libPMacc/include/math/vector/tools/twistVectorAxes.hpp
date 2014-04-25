@@ -22,6 +22,7 @@
 #pragma once
 
 #include <math/vector/navigator/PermutedNavigator.hpp>
+#include <math/vector/navigator/StackedNavigator.hpp>
 
 namespace PMacc
 {
@@ -37,16 +38,26 @@ template<typename Axes, typename TVector>
 struct TwistVectorAxes
 {
     typedef math::Vector<typename TVector::type, TVector::dim, typename TVector::Accessor,
-                math::PermutedNavigator<Axes> >& type;
+            math::StackedNavigator<typename TVector::Navigator, math::PermutedNavigator<Axes> > >& type;
 };
     
 } // result_of
     
+/** Returns a reference of vector with twisted axes.
+ * 
+ * The axes twist operation is done in place. This means that the result refers to the 
+ * memory of the input vector. The input vector's navigator policy is replaced by 
+ * a new navigator which merely consists of the old navigator plus a twisting navigator.
+ * This new navigator does not use any real memory.
+ */
 template<typename Axes, typename TVector>
 HDINLINE
-typename result_of::TwistVectorAxes<Axes, TVector>::type&
+typename result_of::TwistVectorAxes<Axes, TVector>::type
 twistVectorAxes(TVector& vector)
 {
+    /* The reinterpret_cast is valid because the target type is the same than the
+     * input type except its navigator policy which does not occupy any memory though.
+     */
     return reinterpret_cast<typename result_of::TwistVectorAxes<Axes, TVector>::type>(vector);
 }
     

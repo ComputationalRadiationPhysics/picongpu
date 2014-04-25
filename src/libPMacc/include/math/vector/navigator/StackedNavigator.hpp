@@ -21,32 +21,19 @@
  
 #pragma once
 
-#include "types.h"
-#include "math/vector/tools/twistVectorAxes.hpp"
-
 namespace PMacc
 {
-namespace cursor
+namespace math
 {
-    
-template<typename TCursor, typename Axes>
-struct TwistAxesAccessor
+
+template<typename NaviA, typename NaviB>
+struct StackedNavigator
 {
-    typedef typename math::tools::result_of::TwistVectorAxes<
-        Axes, typename TCursor::pureType>::type type;
-    
-    /** Returns a reference to the result of '*cursor' (with twisted axes). 
-     * 
-     * Be aware that the underlying cursor must not be a temporary object if '*cursor'
-     * refers to something inside the cursor.
-     */
-    HDINLINE type operator()(TCursor& cursor)
+    HDINLINE int operator()(int component) const
     {
-        return math::tools::twistVectorAxes<Axes>(*cursor);
+        return NaviB()(NaviA()(component));
     }
-    
-    ///\todo: implement const method here with a const TCursor& argument and 'type' as return type.
 };
-    
-} // cursor
+
+} // math
 } // PMacc
