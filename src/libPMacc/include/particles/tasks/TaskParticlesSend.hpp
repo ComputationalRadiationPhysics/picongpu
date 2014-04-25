@@ -58,6 +58,12 @@ public:
                 Environment<>::get().ParticleFactory().createTaskSendParticlesExchange(parBase, i);
                 tmpEvent += __endTransaction();
             }
+            else
+            {
+                __startAtomicTransaction(serialEvent);
+                parBase.deleteGuardParticles(i);
+                tmpEvent += __endTransaction();
+            }
         }
 
         state = WaitForSend;

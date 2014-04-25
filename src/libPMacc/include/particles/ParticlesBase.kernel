@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -8,6 +8,7 @@
  * the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ *
  * libPMacc is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -414,6 +415,56 @@ __global__ void kernelFillGaps(ParticlesBox<FRAME, Mapping::Dim> pb, Mapping map
         }
         __syncthreads();
     }
+}
+
+template< class T_ParticleBox, class Mapping>
+__global__ void kernelDeleteParticles(T_ParticleBox pb,
+                                      Mapping mapper)
+{
+    using namespace particles::operations;
+
+    typedef T_ParticleBox ParticleBox;
+    typedef typename ParticleBox::FrameType FrameType;
+
+    enum
+    {
+        Dim = Mapping::Dim
+    };
+
+    DataSpace<Dim> superCellIdx = mapper.getSuperCellIndex(DataSpace<Dim > (blockIdx));
+    const int linearThreadIdx = threadIdx.x;
+
+    __shared__ FrameType *frame;
+    __shared__ bool isValid;
+
+    __syncthreads(); /*wait that all shared memory is initialised*/
+
+    if (linearThreadIdx == 0)
+    {
+        frame = &(pb.getLastFrame(superCellIdx, isValid));
+    }
+
+    __syncthreads();
+
+    while (isValid)
+    {
+
+        PMACC_AUTO(particle, ((*frame)[linearThreadIdx]));
+        particle[multiMask_] = 0; //delete particle
+
+        __syncthreads();
+
+        if (linearThreadIdx == 0)
+        {
+            frame = &(pb.getPreviousFrame(*frame, isValid));
+            isValid = isValid && pb.removeLastFrame(superCellIdx); //always remove the last frame
+        }
+        __syncthreads();
+    }
+
+    if (linearThreadIdx == 0)
+        pb.getSuperCell(superCellIdx).setSizeLastFrame(0);
+
 }
 
 template< class FRAME, class BORDER, class Mapping>
