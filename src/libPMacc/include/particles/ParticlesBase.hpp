@@ -8,7 +8,7 @@
  * the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * libPMacc is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -126,10 +126,10 @@ public:
     {
         this->fillGaps < BORDER > ();
     }
-    
+
     /* Delete all particles in GUARD for one direction.
      */
-    void deleteParticles(uint32_t exchangeType);
+    void deleteGuardParticles(uint32_t exchangeType);
 
     /* Bash particles in a direction.
      * Copy all particles from the guard of a direction to the device exchange buffer

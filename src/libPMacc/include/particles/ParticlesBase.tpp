@@ -8,7 +8,7 @@
  * the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * libPMacc is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 #include "Environment.hpp"
 #include "eventSystem/EventSystem.hpp"
@@ -34,7 +34,7 @@
 namespace PMacc
 {
     template<typename T_ParticleDescription, class MappingDesc>
-    void ParticlesBase<T_ParticleDescription, MappingDesc>::deleteParticles(uint32_t exchangeType)
+    void ParticlesBase<T_ParticleDescription, MappingDesc>::deleteGuardParticles(uint32_t exchangeType)
     {
 
         ExchangeMapping<GUARD, MappingDesc> mapper(this->cellDescription, exchangeType);
@@ -42,7 +42,7 @@ namespace PMacc
 
         __cudaKernel(kernelDeleteParticles)
                 (grid, TileSize)
-                (particlesBuffer->getDeviceParticleBox(), mapper); 
+                (particlesBuffer->getDeviceParticleBox(), mapper);
     }
 
     template<typename T_ParticleDescription, class MappingDesc>
@@ -58,7 +58,7 @@ namespace PMacc
             __cudaKernel(kernelBashParticles)
                     (grid, TileSize)
                     (particlesBuffer->getDeviceParticleBox(),
-                    particlesBuffer->getSendExchangeStack(exchangeType).getDeviceExchangePushDataBox(), mapper); 
+                    particlesBuffer->getSendExchangeStack(exchangeType).getDeviceExchangePushDataBox(), mapper);
         }
     }
 

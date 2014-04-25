@@ -61,7 +61,7 @@ public:
             else
             {
                 __startAtomicTransaction(serialEvent);
-                parBase.deleteParticles(i);
+                parBase.deleteGuardParticles(i);
                 tmpEvent += __endTransaction();
             }
         }
