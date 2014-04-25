@@ -38,6 +38,8 @@ struct CursorAccessor
     {
         return *cursor;
     }
+    
+    ///\todo: implement const method here with a const TCursor& argument and 'type' as return type.
 };
     
 } // cursor
