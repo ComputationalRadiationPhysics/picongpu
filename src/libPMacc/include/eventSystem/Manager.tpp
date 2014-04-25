@@ -1,24 +1,24 @@
 /**
  * Copyright 2013 Felix Schmitt, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <set>
 #include <iostream>
 
@@ -34,9 +34,7 @@ namespace PMacc
 
 inline Manager::~Manager( )
 {
-    //std::cout << "Manager destructor" << std::endl;
-
-    //! \todo: this bring a bug because communicator is deletet but we need tham
+     //! \todo: this bring a bug because communicator is deletet but we need tham
     // ... nice
     CUDA_CHECK( cudaGetLastError( ) );
     waitForAllTasks( );
@@ -57,8 +55,7 @@ inline bool Manager::execute( id_t taskToWait )
     if ( deep > old_max )
     {
         old_max = deep;
-        // std::cout << "Manager execution deep: "<<deep << std::endl;
-    }
+     }
 #endif
 
     static TaskMap::iterator iter = tasks.begin( );
@@ -152,7 +149,7 @@ inline void Manager::waitForFinished( id_t taskId )
         }
         while ( getPassiveITaskIfNotFinished( taskId ) != NULL );
 
-        return; //we can jump out because task is passive task 
+        return; //we can jump out because task is passive task
     }
 
     //check if task is  active and wait on it
