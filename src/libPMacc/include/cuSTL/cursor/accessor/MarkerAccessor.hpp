@@ -32,6 +32,11 @@ struct MarkerAccessor
 {
     typedef const Marker type;
     
+    /* Here a copy of marker is returned because the cursor object
+     * could be a temporary object. Therefore any reference or const-reference
+     * of marker is dangerous. If you want to have a reference to marker use e.g. 
+     * FunctorAccessor or Cursor::getMarker().
+     */
     HDINLINE
     type operator()(const Marker& marker) const
     {

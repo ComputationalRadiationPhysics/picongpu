@@ -35,10 +35,16 @@ struct TwistAxesAccessor
     typedef typename math::tools::result_of::TwistVectorAxes<
         Axes, typename TCursor::pureType>::type& type;
     
+    /* Returns a reference to the result of '*cursor' (with twisted axes).
+     * Be aware that the underlying cursor must not be a temporary object if '*cursor'
+     * refers to something inside the cursor.
+     */
     HDINLINE type operator()(TCursor& cursor)
     {
         return math::tools::twistVectorAxes<Axes>(*cursor);
     }
+    
+    // implement const method here with a const TCursor& argument and 'type' as return type.
 };
     
 } // cursor

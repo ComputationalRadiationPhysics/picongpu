@@ -43,8 +43,13 @@ struct FunctorAccessor
     template<typename TCursor>
     HDINLINE type operator()(TCursor& cursor)
     {
+        /* if *cursor returns a reference it is wrapped into a RefWrapper by forward.
+         * This way functor may accept const Type& arguments exclusivly.
+         */
         return this->functor(forward(*cursor));
     }
+    
+    // implement const method here with a const TCursor& argument and 'type' as return type.
 };
     
 } // cursor

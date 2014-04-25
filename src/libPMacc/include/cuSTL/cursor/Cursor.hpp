@@ -75,6 +75,11 @@ public:
         return Accessor::operator()(this->marker);
     }
     
+    /* This is a const method which is called for a const cursor object.
+     * A const cursor object does *not* mean that the data it points to
+     * is neccessarily constant too. This is why here the return type is
+     * the same as for the non-const method above.
+     */
     HDINLINE
     type operator*() const
     {
@@ -131,7 +136,9 @@ public:
         return *((*this)(jump));
     }
 
-    /* This is a dirty workaround to enable and disable safe-cursor checks. */
+    /* This is a dirty workaround to enable and disable safe-cursor checks. 
+     * Can be substituted by ordinary functions instead of methods.
+     */
     HDINLINE void enableChecking() {this->marker.enableChecking();}
     HDINLINE void disableChecking() {this->marker.disableChecking();}
     
