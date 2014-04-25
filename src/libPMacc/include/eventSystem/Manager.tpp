@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, Rene Widera
+ * Copyright 2013-2014 Felix Schmitt, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -34,8 +34,6 @@ namespace PMacc
 
 inline Manager::~Manager( )
 {
-     //! \todo: this bring a bug because communicator is deletet but we need tham
-    // ... nice
     CUDA_CHECK( cudaGetLastError( ) );
     waitForAllTasks( );
     CUDA_CHECK( cudaGetLastError( ) );
@@ -64,7 +62,6 @@ inline bool Manager::execute( id_t taskToWait )
         iter = tasks.begin( );
 
     // this is the slow but very save variant to delete taks in a map
-    //TaskMap finishedTasks;
     while ( iter != tasks.end( ) )
     {
         id_t id = iter->first;
@@ -177,15 +174,12 @@ inline void Manager::waitForAllTasks( )
 inline void Manager::addTask( ITask *task )
 {
     assert( task != NULL );
-    //  assert(tasks.find(task->getId()) == tasks.end());
-
     tasks[task->getId( )] = task;
 }
 
 inline void Manager::addPassiveTask( ITask *task )
 {
     assert( task != NULL );
-    // assert(passiveTasks.find(task->getId()) == passiveTasks.end());
 
     task->addObserver( this );
     passiveTasks[task->getId( )] = task;
