@@ -58,6 +58,9 @@ namespace picongpu
     {
         this->numChildren = this->notifyPeriod.size();
 
+        if( this->numChildren == 0 )
+            return;
+
         this->children.reserve( this->numChildren );
         for(uint32_t i = 0; i < this->numChildren; i++)
         {
