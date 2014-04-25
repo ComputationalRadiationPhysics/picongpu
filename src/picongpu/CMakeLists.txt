@@ -232,6 +232,13 @@ endif(PARAM_OVERWRITES)
 
 
 ################################################################################
+# Add External Projects
+################################################################################
+
+include(ExternalProject)
+
+
+################################################################################
 # load cuda_memtest project
 ################################################################################
 
@@ -242,7 +249,11 @@ find_path(CUDA_MEMTEST_DIR
         DOC "path to cuda_memtest"
         )
 
-add_subdirectory(${CUDA_MEMTEST_DIR} "${CMAKE_CURRENT_BINARY_DIR}/build_cuda_memtest")
+ExternalProject_Add(cuda_memtest
+  DOWNLOAD_COMMAND ""
+  PREFIX "${CUDA_MEMTEST_DIR}/../../"
+  BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/build_cuda_memtest"
+  CMAKE_ARGS "CUDA_ARCH=${CUDA_ARCH}")
 
 
 ################################################################################
@@ -255,7 +266,10 @@ find_path(MPI_INFO_DIR
         DOC "path to mpiInfo"
         )
 
-add_subdirectory(${MPI_INFO_DIR} "${CMAKE_CURRENT_BINARY_DIR}/build_mpiInfo")
+ExternalProject_Add(mpiInfo
+        DOWNLOAD_COMMAND ""
+        PREFIX "${MPI_INFO_DIR}/../../"
+        BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/build_mpiInfo")
 
 
 ################################################################################
