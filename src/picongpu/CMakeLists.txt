@@ -201,8 +201,9 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 if(Boost_VERSION EQUAL 105500)
     # see https://svn.boost.org/trac/boost/ticket/9392
     message(STATUS "Boost: Applying noinline work around")
-    set(CMAKE_CXX_FLAGS
-        "${CMAKE_CXX_FLAGS} -DBOOST_NOINLINE='__attribute__ ((noinline))'")
+    # avoid warning for CMake >= 2.8.12
+    set(CUDA_NVCC_FLAGS
+      "${CUDA_NVCC_FLAGS} \"-DBOOST_NOINLINE=__attribute__((noinline))\" ")
 endif(Boost_VERSION EQUAL 105500)
 
 
@@ -242,7 +243,8 @@ find_path(CUDA_MEMTEST_DIR
         DOC "path to cuda_memtest"
         )
 
-add_subdirectory(${CUDA_MEMTEST_DIR} "${CMAKE_CURRENT_BINARY_DIR}/build_cuda_memtest")
+add_subdirectory(${CUDA_MEMTEST_DIR}
+                 "${CMAKE_CURRENT_BINARY_DIR}/build_cuda_memtest")
 
 
 ################################################################################
@@ -255,7 +257,8 @@ find_path(MPI_INFO_DIR
         DOC "path to mpiInfo"
         )
 
-add_subdirectory(${MPI_INFO_DIR} "${CMAKE_CURRENT_BINARY_DIR}/build_mpiInfo")
+add_subdirectory(${MPI_INFO_DIR}
+                 "${CMAKE_CURRENT_BINARY_DIR}/build_mpiInfo")
 
 
 ################################################################################
