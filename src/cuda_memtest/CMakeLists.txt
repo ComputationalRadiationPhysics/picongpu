@@ -25,6 +25,7 @@ set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{CUDA_ROOT}")
 
 find_package(CUDA REQUIRED)
 
+if(SAME_NVCC_FLAGS_IN_SUBPROJECTS)
   set(CUDA_ARCH sm_13 CACHE STRING "set GPU architecture" )
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${nvcc_flags} -arch=${CUDA_ARCH})
 
@@ -41,6 +42,7 @@ find_package(CUDA REQUIRED)
     make_directory("${PROJECT_BINARY_DIR}/nvcc_tmp")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" --keep --keep-dir "${PROJECT_BINARY_DIR}/nvcc_tmp")
   endif()
+endif()
 
 
 ################################################################################
