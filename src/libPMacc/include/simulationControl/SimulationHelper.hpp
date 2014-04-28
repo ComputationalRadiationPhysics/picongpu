@@ -65,7 +65,7 @@ public:
     checkpointPeriod(0),
     checkpointDirectory("checkpoints"),
     numCheckpoints(0),
-    restartStep(0),
+    restartStep(-1),
     restartDirectory("checkpoints"),
     restartRequested(false)
     {
@@ -223,7 +223,7 @@ public:
             ("restart", po::value<bool>(&restartRequested)->zero_tokens(), "Restart simulation")
             ("restart-directory", po::value<std::string>(&restartDirectory)->default_value(restartDirectory),
                 "Directory containing checkpoints for a restart")
-            ("restart-step", po::value<uint32_t>(&restartStep), "Checkpoint step to restart from")
+            ("restart-step", po::value<int32_t>(&restartStep), "Checkpoint step to restart from")
             ("checkpoints", po::value<uint32_t>(&checkpointPeriod), "Period for checkpoint creation")
             ("checkpoint-directory", po::value<std::string>(&checkpointDirectory)->default_value(checkpointDirectory),
                 "Directory for checkpoints");
@@ -267,7 +267,7 @@ protected:
     uint32_t numCheckpoints;
     
     /* checkpoint step to restart from */
-    uint32_t restartStep;
+    int32_t restartStep;
     
     /* common directory for restarts */
     std::string restartDirectory;

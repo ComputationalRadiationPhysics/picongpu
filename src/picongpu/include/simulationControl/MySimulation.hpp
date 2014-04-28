@@ -326,7 +326,12 @@ public:
             initialiserController->printInformation();
             if (this->restartRequested)
             {
-                initialiserController->restart(this->restartStep, this->restartDirectory);
+                if (restartStep < 0)
+                {
+                    throw std::runtime_error("Restart failed. You must provide the '--restart-step' argument. See picongpu --help.");
+                }
+                
+                initialiserController->restart((uint32_t)this->restartStep, this->restartDirectory);
                 step = this->restartStep + 1;
             }
             else
