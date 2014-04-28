@@ -86,6 +86,12 @@ protected:
             __cudaKernel(kernelShiftParticles)
                 (mapper.getGridDim(), TileSize)
                 (pBox, mapper);
+            __cudaKernel(kernelFillGaps)
+                (mapper.getGridDim(), TileSize)
+                (pBox, mapper);
+            __cudaKernel(kernelFillGapsLastFrame)
+                (mapper.getGridDim(), TileSize)
+                (pBox, mapper);
         }
         while (mapper.next());
 
