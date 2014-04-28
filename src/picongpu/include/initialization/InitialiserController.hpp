@@ -16,8 +16,7 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
 
 #pragma once
 
@@ -65,14 +64,14 @@ public:
     {
         // start simulation using default values
         log<picLog::SIMULATION_STATE > ("Starting simulation from timestep 0");
-        
+
         SimStartInitialiser<PIC_Electrons, PIC_Ions> simStartInitialiser;
         Environment<>::get().DataConnector().initialise(simStartInitialiser, 0);
         __getTransactionEvent().waitForFinished();
 
         log<picLog::SIMULATION_STATE > ("Loading from default values finished");
     }
-    
+
     /**
      * Load persistent simulation state from \p restartStep
      */
@@ -81,7 +80,7 @@ public:
         // restart simulation by loading from persistent data
         // the simulation will start after restartStep
         log<picLog::SIMULATION_STATE > ("Restarting simulation from timestep %1%") % restartStep;
-        
+
         Environment<>::get().PluginConnector().restartPlugins(restartStep);
         __getTransactionEvent().waitForFinished();
 
@@ -95,50 +94,34 @@ public:
     {
         if (Environment<simDim>::get().GridController().getGlobalRank() == 0)
         {
-            std::cout << "max weighting " << NUM_EL_PER_PARTICLE << std::endl;
-            
-            float_X shortestSide = cellSize.x();
-            for(uint32_t d=1;d<simDim;++d)
-                shortestSide=std::min(shortestSide, cellSize[d]);
-                        
-            std::cout << "courant=min(deltaCellSize)/dt/c > 1.77 ? "<< 
-                         shortestSide / SPEED_OF_LIGHT / DELTA_T << std::endl;
+            log<picLog::PHYSICS >("max weighting %1%") % NUM_EL_PER_PARTICLE;
+
+            log<picLog::PHYSICS >("Courant dt <= %1% ? %2% ") %
+                                 (SPEED_OF_LIGHT/math::sqrt(INV_CELL2_SUM)) %
+                                 (SPEED_OF_LIGHT * DELTA_T);
 
             if (gasProfile::GAS_ENABLED)
-                std::cout << "omega_pe * dt <= 0.1 ? " << sqrt(GAS_DENSITY * Q_EL / M_EL * Q_EL / EPS0) * DELTA_T << std::endl;
+                log<picLog::PHYSICS >("omega_pe * dt <= 0.1 ? %1%") %
+                                     (sqrt(GAS_DENSITY * Q_EL / M_EL * Q_EL / EPS0) * DELTA_T);
             if (laserProfile::INIT_TIME > float_X(0.0))
-                std::cout << "y-cells per wavelength: " << laserProfile::WAVE_LENGTH / CELL_HEIGHT << std::endl;
+                log<picLog::PHYSICS >("y-cells per wavelength: %1%") %
+                                     (laserProfile::WAVE_LENGTH / CELL_HEIGHT);
             const int localNrOfCells = cellDescription->getGridLayout().getDataSpaceWithoutGuarding().productOfComponents();
-            std::cout << "macro particles per gpu: "
-                << localNrOfCells * particleInit::NUM_PARTICLES_PER_CELL * (1 + 1 * ENABLE_IONS) << std::endl;
-            std::cout << "typical macro particle weighting: " << NUM_EL_PER_PARTICLE << std::endl;
+            log<picLog::PHYSICS >("macro particles per gpu: %1%") %
+                                 (localNrOfCells * particleInit::NUM_PARTICLES_PER_CELL * (1 + 1 * ENABLE_IONS));
+            log<picLog::PHYSICS >("typical macro particle weighting: %1%") % (NUM_EL_PER_PARTICLE);
 
             //const float_X y_R = M_PI * laserProfile::W0 * laserProfile::W0 / laserProfile::WAVE_LENGTH; //rayleigh length (in y-direction)
             //std::cout << "focus/y_Rayleigh: " << laserProfile::FOCUS_POS / y_R << std::endl;
 
-            std::cout << "UNIT_SPEED" << " " << UNIT_SPEED << std::endl;
-            std::cout << "UNIT_TIME" << " " << UNIT_TIME << std::endl;
-            std::cout << "UNIT_LENGTH" << " " << UNIT_LENGTH << std::endl;
-            std::cout << "UNIT_MASS" << " " << UNIT_MASS << std::endl;
-            std::cout << "UNIT_CHARGE" << " " << UNIT_CHARGE << std::endl;
-            std::cout << "UNIT_EFIELD" << " " << UNIT_EFIELD << std::endl;
-            std::cout << "UNIT_BFIELD" << " " << UNIT_BFIELD << std::endl;
-            std::cout << "UNIT_ENERGY" << " " << UNIT_ENERGY << std::endl;
-     
-#if (ENABLE_HDF5==1)
-            // check for HDF5 restart capability
-            typedef typename boost::mpl::find<FileOutputFields, FieldE>::type itFindFieldE;
-            typedef typename boost::mpl::find<FileOutputFields, FieldB>::type itFindFieldB;
-            typedef typename boost::mpl::end< FileOutputFields>::type itEnd;
-            const bool restartImpossible = (boost::is_same<itFindFieldE, itEnd>::value)
-                                        || (boost::is_same<itFindFieldB, itEnd>::value);
-            if( restartImpossible )
-            {
-                std::cout << "WARNING: HDF5 restart impossible! (dump at least "
-                          << "FieldE and FieldB in hdf5Output.unitless)"
-                          << std::endl;
-            }
-#endif
+            log<picLog::PHYSICS >("UNIT_SPEED %1%") % UNIT_SPEED;
+            log<picLog::PHYSICS >("UNIT_TIME %1%") % UNIT_TIME;
+            log<picLog::PHYSICS >("UNIT_LENGTH %1%") % UNIT_LENGTH;
+            log<picLog::PHYSICS >("UNIT_MASS %1%") % UNIT_MASS;
+            log<picLog::PHYSICS >("UNIT_CHARGE %1%") % UNIT_CHARGE;
+            log<picLog::PHYSICS >("UNIT_EFIELD %1%") % UNIT_EFIELD;
+            log<picLog::PHYSICS >("UNIT_BFIELD %1%") % UNIT_BFIELD;
+            log<picLog::PHYSICS >("UNIT_ENERGY %1%") % UNIT_ENERGY;
         }
     }
 
