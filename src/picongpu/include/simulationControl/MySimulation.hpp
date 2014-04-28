@@ -316,6 +316,7 @@ public:
         ions->init(*fieldE, *fieldB, *fieldJ, *fieldTmp);
 #endif      
 
+        /* add CUDA streams to the StreamController for concurrent execution */
         Environment<>::get().StreamController().addStreams(6);
 
         uint32_t step = 0;
@@ -325,7 +326,7 @@ public:
             initialiserController->printInformation();
             if (this->restartRequested)
             {
-                initialiserController->restart(this->restartStep);
+                initialiserController->restart(this->restartStep, this->restartDirectory);
                 step = this->restartStep + 1;
             }
             else

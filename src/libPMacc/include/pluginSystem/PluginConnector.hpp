@@ -152,13 +152,14 @@ namespace PMacc
          * Notifies plugins that a restartable checkpoint should be dumped.
          *
          * @param currentStep current simulation iteration step
+         * @param checkpointDirectory common directory for checkpoints
          */
-        void checkpointPlugins(uint32_t currentStep)
+        void checkpointPlugins(uint32_t currentStep, const std::string checkpointDirectory)
         {
             for (std::list<IPlugin*>::iterator iter = plugins.begin();
                     iter != plugins.end(); ++iter)
             {
-                (*iter)->checkpoint(currentStep);
+                (*iter)->checkpoint(currentStep, checkpointDirectory);
             }
         }
 
@@ -166,13 +167,14 @@ namespace PMacc
          * Notifies plugins that a restart is required.
          *
          * @param restartStep simulation iteration to restart from
+         * @param restartDirectory common restart directory (contains checkpoints)
          */
-        void restartPlugins(uint32_t restartStep)
+        void restartPlugins(uint32_t restartStep, const std::string restartDirectory)
         {
             for (std::list<IPlugin*>::iterator iter = plugins.begin();
                     iter != plugins.end(); ++iter)
             {
-                (*iter)->restart(restartStep);
+                (*iter)->restart(restartStep, restartDirectory);
             }
         }
 

@@ -75,13 +75,14 @@ public:
     /**
      * Load persistent simulation state from \p restartStep
      */
-    virtual void restart(uint32_t restartStep)
+    virtual void restart(uint32_t restartStep, const std::string restartDirectory)
     {
         // restart simulation by loading from persistent data
         // the simulation will start after restartStep
-        log<picLog::SIMULATION_STATE > ("Restarting simulation from timestep %1%") % restartStep;
+        log<picLog::SIMULATION_STATE > ("Restarting simulation from timestep %1% in directory '%2%'") % 
+            restartStep % restartDirectory;
 
-        Environment<>::get().PluginConnector().restartPlugins(restartStep);
+        Environment<>::get().PluginConnector().restartPlugins(restartStep, restartDirectory);
         __getTransactionEvent().waitForFinished();
 
         log<picLog::SIMULATION_STATE > ("Loading from persistent data finished");

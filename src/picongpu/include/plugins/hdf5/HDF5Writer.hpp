@@ -60,6 +60,7 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/begin_end.hpp>
 #include <boost/mpl/find.hpp>
+#include <boost/filesystem.hpp>
 
 #include "RefWrapper.hpp"
 #include <boost/type_traits.hpp>
@@ -134,12 +135,14 @@ public:
         notificationReceived(currentStep, false);
     }
     
-    void checkpoint(uint32_t currentStep)
+    void checkpoint(uint32_t currentStep, const std::string checkpointDirectory)
     {
+        this->checkpointDirectory = checkpointDirectory;
+        
         notificationReceived(currentStep, true);
     }
     
-    void restart(uint32_t restartStep)
+    void restart(uint32_t restartStep, const std::string restartDirectory)
     {
         const uint32_t maxOpenFilesPerNode = 4;
         GridController<simDim> &gc = Environment<simDim>::get().GridController();
@@ -156,6 +159,12 @@ public:
         attr.fileAccType = DataCollector::FAT_READ;
         attr.mpiPosition.set(splashMpiPos);
         attr.mpiSize.set(splashMpiSize);
+        
+        /* if restartFilename is relative, prepend with restartDirectory */
+        if (!boost::filesystem::path(restartFilename).has_root_path())
+        {
+            restartFilename = restartDirectory + std::string("/") + restartFilename;
+        }
         
         /* open datacollector */
         try
@@ -199,7 +208,7 @@ public:
     }
 
 private:
-
+    
     void closeH5File()
     {
         if (mThreadParams.dataCollector != NULL)
@@ -253,8 +262,17 @@ private:
         __getTransactionEvent().waitForFinished();
 
         std::string fname = filename;
-        if (isCheckpoint && (checkpointFilename != ""))
-            fname = checkpointFilename;
+        if (isCheckpoint)
+        {
+            /* if checkpointFilename is relative, prepend with checkpointDirectory */
+            if (!boost::filesystem::path(checkpointFilename).has_root_path())
+            {
+                fname = checkpointDirectory + std::string("/") + checkpointFilename;
+            } else
+            {
+                fname = checkpointFilename;
+            }
+        }
         
         openH5File(fname);
 
@@ -417,6 +435,7 @@ private:
     std::string filename;
     std::string checkpointFilename;
     std::string restartFilename;
+    std::string checkpointDirectory;
 
     DataSpace<simDim> mpi_pos;
     DataSpace<simDim> mpi_size;
