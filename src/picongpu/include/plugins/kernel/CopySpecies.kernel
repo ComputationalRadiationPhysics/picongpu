@@ -34,7 +34,7 @@ namespace picongpu
 using namespace PMacc;
 
 
-namespace bmpl = boost::mpl;
+
 
 /** copy particle of a species to a host frame
  * 

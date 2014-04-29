@@ -74,7 +74,7 @@ namespace adios
 
 using namespace PMacc;
 
-namespace bmpl = boost::mpl;
+
 
 namespace po = boost::program_options;
 

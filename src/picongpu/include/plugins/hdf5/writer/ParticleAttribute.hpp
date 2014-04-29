@@ -39,7 +39,7 @@ namespace hdf5
 using namespace PMacc;
 
 using namespace splash;
-namespace bmpl = boost::mpl;
+
 
 /** write attribute of a particle to hdf5 file
  * 
