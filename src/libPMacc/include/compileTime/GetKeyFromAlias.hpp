@@ -1,22 +1,22 @@
 /**
  * Copyright 2013 Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 #pragma once
@@ -34,26 +34,26 @@
 
 namespace PMacc
 {
-namespace bmpl = boost::mpl;
+
 
 
 template<typename T_MPLSeq,
-        typename T_Key
+         typename T_Key
 >
 struct GetKeyFromAlias
 {
 
     /*create a map where Key is a undeclared alias and value is real type*/
-    typedef typename SeqToMap<T_MPLSeq,TypeToAliasPair>::type AliasMap;
+    typedef typename SeqToMap<T_MPLSeq,TypeToAliasPair<bmpl::_1> >::type AliasMap;
     /*create a map where Key and value is real type*/
-    typedef typename SeqToMap<T_MPLSeq,TypeToPair>::type KeyMap;
+    typedef typename SeqToMap<T_MPLSeq,TypeToPair<bmpl::_1> >::type KeyMap;
     /*combine both maps*/
     typedef bmpl::inserter< KeyMap, bmpl::insert<bmpl::_1, bmpl::_2> > Map_inserter;
     typedef typename bmpl::copy<
         AliasMap,
         Map_inserter
         >::type FullMap;
-    /* search for given key, 
+    /* search for given key,
      * - we get the real type if key found
      * - else we get boost::mpl::void_
      */

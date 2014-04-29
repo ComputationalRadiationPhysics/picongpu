@@ -37,7 +37,7 @@
 
 namespace PMacc
 {
-namespace bmpl = boost::mpl;
+
 
 template <class list_>
 struct LinearInherit;

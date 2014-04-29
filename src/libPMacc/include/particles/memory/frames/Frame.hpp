@@ -51,22 +51,22 @@
 
 namespace PMacc
 {
-namespace bmpl = boost::mpl;
+
 namespace pmath = PMacc::math;
 namespace pmacc = PMacc;
 
 /** Frame is a storage for arbitrary number >0 of Particles with attributes
  *
  * @tparam T_CreatePairOperator unary template operator to create a boost pair
- *                              from single type ( pair<name,dataType> ) 
+ *                              from single type ( pair<name,dataType> )
  *                              @see MapTupel
  * @tparam T_ValueTypeSeq sequence with value_identifier
- * @tparam T_MethodsList sequence of classes with particle methods 
+ * @tparam T_MethodsList sequence of classes with particle methods
  *                       (e.g. calculate mass, gamma, ...)
- * @tparam T_Flags sequence with idenifierer to add fags on a frame 
- *                 (e.g. useSolverXY, calcRadiation, ...) 
+ * @tparam T_Flags sequence with idenifierer to add fags on a frame
+ *                 (e.g. useSolverXY, calcRadiation, ...)
  */
-template<template<typename> class T_CreatePairOperator,
+template<typename T_CreatePairOperator,
 typename T_ParticleDescription >
 struct Frame :
 public InheritLinearly<typename T_ParticleDescription::MethodsList>,
@@ -121,7 +121,7 @@ public InheritLinearly<typename T_ParticleDescription::MethodsList>,
 
      /** access attribute with a identifier
      *
-     * @param T_Key instance of identifier type 
+     * @param T_Key instance of identifier type
      *              (can be an alias, value_identifier or any other class)
      * @return result of operator[] of MapTupel
      */
@@ -143,7 +143,7 @@ public InheritLinearly<typename T_ParticleDescription::MethodsList>,
         typedef typename GetKeyFromAlias<ValueTypeSeq, T_Key>::type Key;
         return BaseType::operator[](Key());
     }
-    
+
     HINLINE static std::string getName()
     {
         return std::string(boost::mpl::c_str<Name>::value);
@@ -155,7 +155,7 @@ namespace traits
 {
 
 template<typename T_IdentifierName,
-template<typename> class T_CreatePairOperator,
+typename T_CreatePairOperator,
 typename T_ParticleDescription
 >
 struct HasIdentifier<
@@ -176,7 +176,7 @@ public:
 };
 
 template<typename T_IdentifierName,
-template<typename> class T_CreatePairOperator,
+typename T_CreatePairOperator,
 typename T_ParticleDescription
 >
 struct HasFlag<
@@ -187,12 +187,12 @@ private:
     typedef typename GetFlagType<FrameType,T_IdentifierName>::type SolvedAliasName;
     typedef typename FrameType::FlagList FlagList;
 public:
-  
+
     typedef bmpl::contains<FlagList, SolvedAliasName> type;
 };
 
 template<typename T_IdentifierName,
-template<typename> class T_CreatePairOperator,
+typename T_CreatePairOperator,
 typename T_ParticleDescription
 >
 struct GetFlagType<
@@ -202,7 +202,7 @@ private:
     typedef PMacc::Frame<T_CreatePairOperator, T_ParticleDescription> FrameType;
     typedef typename FrameType::FlagList FlagList;
 public:
-    
+
     typedef typename GetKeyFromAlias<FlagList, T_IdentifierName>::type type;
 };
 

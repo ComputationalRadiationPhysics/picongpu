@@ -1,22 +1,22 @@
 /**
  * Copyright 2013 Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 #pragma once
@@ -42,16 +42,16 @@
 
 namespace PMacc
 {
-namespace bmpl = boost::mpl;
+
 namespace pmath = PMacc::math;
 namespace pmacc = PMacc;
 
 /** A single particle of a @see Frame
- * 
+ *
  * A instance of this Particle is only a reference to a dataset of @see Frame
- * 
+ *
  * @tparam T_FrameType type of the parent frame
- * @tparam T_ValueTypeSeq sequence with all attribute identifier 
+ * @tparam T_ValueTypeSeq sequence with all attribute identifier
  *                        (can be a subset of T_FrameType::ValueTypeSeq)
  */
 template<typename T_FrameType, typename T_ValueTypeSeq = typename T_FrameType::ValueTypeSeq>
@@ -67,14 +67,14 @@ struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
     /* IMPORTANT: store first value with big size to avoid
      * that pointer is copyed byte by byte because data are not alligned
      * in this case
-     * 
+     *
      * in this case sizeof(uint32_t)>sizeof(reference)
      */
     /** index of particle inside the Frame*/
     const uint32_t idx;
     /** reference to parent frame where this particle is from*/
     FrameType& frame;
-    
+
     /** create particle
      *
      * @param frame reference to parent frame
@@ -91,7 +91,7 @@ struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
 
     /** access attribute with a identifier
      *
-     * @param T_Key instance of identifier type 
+     * @param T_Key instance of identifier type
      *              (can be an alias, value_identifier or any other class)
      * @return result of operator[] of the Frame
      */
@@ -173,7 +173,7 @@ PMacc::Particle<T_FrameType2, T_ValueTypeSeq2>
     void operator()(Dest& dest, const Src& src)
     {
         algorithms::forEach::ForEach<typename Dest::ValueTypeSeq,
-            CopyIdentifier<void> > copy;
+            CopyIdentifier<bmpl::_1> > copy;
         copy(byRef(dest), src);
     };
 };
@@ -192,7 +192,7 @@ PMacc::Particle<T_FrameType, T_ValueTypeSeq>
     typedef T_ValueTypeSeq ValueTypeSeq;
     typedef PMacc::Particle<FrameType, ValueTypeSeq> ParticleType;
     typedef T_MPLSeqWithObjectsToRemove MPLSeqWithObjectsToRemove;
-    
+
     /* translate aliases to full specialized identifier*/
     typedef typename ResolveAliases<MPLSeqWithObjectsToRemove, ValueTypeSeq>::type ResolvedSeqWithObjectsToRemove;
     /* remove types from original particle attribute list*/
