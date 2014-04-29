@@ -70,7 +70,7 @@ echo copying;
 cat ~/startParaView | ssh -p 44334 $SSH_USER$@localhost 'cat > ~/startParaView; /opt/torque/bin/qsub ~/startParaView';
 sleep 2;
 echo tunneling2;
-kill `ps aux | grep 'ssh -p 44334 -R' | sed 's/\(.[^ \t]*\)[ \t]*\(.[^ \t]*\)\(.*\)/\2/'` 2>/dev/null;
+kill `ps aux | grep 'ssh -p 44334 -R' | grep -v paraview | sed 's/\(.[^ \t]*\)[ \t]*\(.[^ \t]*\)\(.*\)/\2/'` 2>/dev/null;
 ssh -p 44334 -R 10.0.2.253:$NUM_PORT$:localhost:11111 $SSH_USER$@localhost -N;
 "/>
         </Arguments>
