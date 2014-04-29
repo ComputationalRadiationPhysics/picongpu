@@ -9,7 +9,7 @@ This is the 5th release candidate, a *pre-beta* version.
 
 ### Changes to "Open Beta RC4"
 
-**.param file changes:**
+**.param and .unitless file changes:**
  - Added selection of optional window functions in `radiationConfig.param`
    [#286](https://github.com/ComputationalRadiationPhysics/picongpu/pull/286/files#diff-1)
  - Added more window functions in `radiationConfig.param`
@@ -18,6 +18,8 @@ This is the 5th release candidate, a *pre-beta* version.
    [#323](https://github.com/ComputationalRadiationPhysics/picongpu/pull/323/files)
  - new file: `seed.param` allows to vary the starting conditions of "identical" runs
    [#353](https://github.com/ComputationalRadiationPhysics/picongpu/pull/353)
+ - Corrected CFL criteria (to be less conservative) in `gridConfig.unitless`
+   [#371](https://github.com/ComputationalRadiationPhysics/picongpu/pull/371/files#diff-1)
 
 **New Features:**
  - Radiation plugin: add optional window functions to reduce ringing effects
