@@ -28,9 +28,10 @@ namespace picongpu
 {
 
 /*! Particle Shape definitions --------------------------------------------------
- *  - shapeCIC : ...
- *  - shapeTSC : ... (need CUDA_ARCH>=sm_20)
- *  - shapePCS : ... (need CUDA_ARCH>=sm_20)
+     *  - shapeNGP : 0th order (not implemented)
+     *  - shapeCIC : 1st order
+     *  - shapeTSC : 2nd order (requires CUDA_ARCH>=sm_20)
+     *  - shapePCS : 3rd order (requires CUDA_ARCH>=sm_20)
  */
 namespace speciesParticleShape = shapeCIC;
 
@@ -56,13 +57,12 @@ const double PARTICLE_INIT_DRIFT_DIRECTION_MIDDLE = -1.0;
 /*change density of middle area in proportion to default density*/
 const double PARTICLE_INIT_DENSITY_FACTOR_MIDDLE = 1.0;
 
-
 /** Normal vector of the initial drift
  *  length: gets normalized afterwards
  *  unit: none */
-const double PARTICLE_INIT_DRIFT_DIRECTION_X = 1.0f;
-const double PARTICLE_INIT_DRIFT_DIRECTION_Y = 0.0f;
-const double PARTICLE_INIT_DRIFT_DIRECTION_Z = 0.0f;
+const double PARTICLE_INIT_DRIFT_DIRECTION_X = 1.0;
+const double PARTICLE_INIT_DRIFT_DIRECTION_Y = 0.0;
+const double PARTICLE_INIT_DRIFT_DIRECTION_Z = 0.0;
 
 /** You can manipulate the drift vector of ions by this factor
  *  unit: none */
@@ -80,7 +80,7 @@ const double MIDDLE_DRIFT_INV_SIZE_REL = 0.5;
 /** a particle with a weighting below MIN_WEIGHTING will not
  *      be created / will be deleted
  *  unit: none */
-const float_X MIN_WEIGHTING = 10.f;
+const float_X MIN_WEIGHTING = 10.0;
 
 namespace particleInitRandomPos
 {

@@ -72,6 +72,7 @@ namespace radiationNyquist
   const float NyquistFactor = 0.5;
 }
 
+
 }//namespace picongpu
 
 
@@ -100,7 +101,6 @@ namespace picongpu
   namespace radFormFactor_CIC_1Dy { }
   namespace radFormFactor_incoherent { }
 
-
   namespace radFormFactor = radFormFactor_CIC_3D;
 
 
@@ -109,7 +109,6 @@ namespace picongpu
 
 
 ///////////////////////////////////////////////////////////                                    
-
 
 
 
@@ -125,9 +124,11 @@ namespace parameters
 #define __NYQUISTCHECK__ 1
 
 
+
 //marked every N particle for calculate radiation                                                                                                                                         
 //mark no particle at beginning                                                                                                                                                           
 #define RAD_MARK_PARTICLE 1
+
 //disable or enable gamme filter                                                                                                                                                          
 //diable (0) / enable (1)                                                                                                                                                                 
 #define RAD_ACTIVATE_GAMMA_FILTER 0
@@ -136,8 +137,9 @@ const float RadiationGamma = 5.;
 
 const unsigned int N_observer = 128; // number of looking directions
 
-} /* end namespace parameters */
 
+
+} /* end namespace parameters */
 
 //////////////////////////////////////////////////
 
@@ -171,7 +173,6 @@ namespace radWindowFunction = radWindowFunctionTriangle;
 
 
 }//namespace picongpu
-
 
 
 

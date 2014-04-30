@@ -46,7 +46,6 @@ const uint32_t TILE_WIDTH = 8;
 const uint32_t TILE_HEIGHT = 8;
 const uint32_t TILE_DEPTH = 4;
 
-
 const uint32_t GUARD_SIZE = 1;
 
 //! how many bytes for buffer is reserved to communication in one direction

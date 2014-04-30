@@ -32,7 +32,6 @@
 #include "plugins/radiation/parameters.hpp"
 #include "plugins/radiation/debug/PIConGPUVerboseLogRadiation.hpp"
 
-
 namespace picongpu
 {
 namespace rad_linear_frequencies
@@ -67,13 +66,14 @@ const unsigned int N_omega = 2048; // number of frequencies
 
 namespace radiation_frequencies = rad_linear_frequencies;
 
+
 namespace radiationNyquist
 {
   const float NyquistFactor = 0.5;
 }
 
-}//namespace picongpu
 
+}//namespace picongpu
 
 
 
@@ -113,10 +113,6 @@ namespace picongpu
 
 
 
-
-
-
-
 namespace parameters
 {
 /*!enable radiation calculation*/
@@ -128,6 +124,7 @@ namespace parameters
 #define __NYQUISTCHECK__ 1
 
 
+
 //marked every N particle for calculate radiation
 //mark no particle at beginning
 #define RAD_MARK_PARTICLE 1
@@ -136,9 +133,11 @@ namespace parameters
 //diable (0) / enable (1)
 #define RAD_ACTIVATE_GAMMA_FILTER 0
 
-const float RadiationGamma = 5.f;
+const float RadiationGamma = 5.;
 
 const unsigned int N_observer = 128; // number of looking directions
+
+
 
 } /* end namespace parameters */
 

@@ -53,9 +53,9 @@ namespace picongpu
     
             takes GAS_CENTER_LEFT for y < GAS_CENTER_LEFT,
                   GAS_CENTER_RIGHT for y > GAS_CENTER_RIGHT,
-            and exponent = 0.f for GAS_CENTER_LEFT < y < GAS_CENTER_RIGHT */
-        const float_X GAS_FACTOR = -1.0f;
-        const float_X GAS_POWER = 4.0f;
+            and exponent = float_X(0.0) for GAS_CENTER_LEFT < y < GAS_CENTER_RIGHT */
+        const float_X GAS_FACTOR = -1.0;
+        const float_X GAS_POWER = 4.0;
 
         namespace SI
         {
@@ -101,8 +101,8 @@ namespace picongpu
         namespace SI
         {
             /** Parameters for the exponential slope
-             *  For Y > GAS_Y_MAX_SI:
-             *   let Y' = Y - GAS_Y_MAX_SI
+             *  For Y > GAS_MAX_SI:
+             *    let Y' = Y - GAS_MAX_SI
              *    \rho = exp[ - Y' * D ]
              *         = element [0.0; 1.0]
              *  unit: 1/m
@@ -170,8 +170,8 @@ namespace picongpu
     
             takes GAS_CENTER_LEFT for y < GAS_CENTER_LEFT,
                   GAS_CENTER_RIGHT for y > GAS_CENTER_RIGHT,
-            and exponent = 0.f for GAS_CENTER_LEFT < y < GAS_CENTER_RIGHT */
-        const float_X GAS_FACTOR = -1.0f;
+            and exponent = float_X(0.0) for GAS_CENTER_LEFT < y < GAS_CENTER_RIGHT */
+        const float_X GAS_FACTOR = -float_X(1.0);
         const float_X GAS_POWER = 4.0f;
 
         namespace SI
@@ -205,7 +205,7 @@ namespace picongpu
                  * @param pos vector with offset to the global (left top front) cell
                  * @return float_X between 0.0 and 1.0
                  */
-                DINLINE float_64 operator()( float3_64 pos )
+                DINLINE float_64 operator()( floatD_64 pos )
                 {
                     const float_64 y = pos.y() * 1000.0; // m -> mm
 

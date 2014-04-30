@@ -32,10 +32,7 @@ namespace picongpu
  *  - precision64Bit : use 64Bit floating point numbers (need CUDA_ARCH>=sm_20)
  *                     [significant digits 15 to 16]
  */
-#ifndef PARAM_PRECISION
-#define PARAM_PRECISION precision32Bit
-#endif
-namespace precisionPIConGPU      = PARAM_PRECISION;
+namespace precisionPIConGPU      = precision32Bit;
 
 /*! Select a precision special operations (can be different from simulation precision)
  *  - precisionPIConGPU : use precision which is selected on top (precisionPIConGPU)
