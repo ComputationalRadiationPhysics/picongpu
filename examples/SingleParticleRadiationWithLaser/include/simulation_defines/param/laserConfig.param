@@ -93,6 +93,17 @@ const double WAVE_LENGTH_SI = 0.8e-6;
 const double UNITCONV_Intens_to_A0 = ::picongpu::SI::ELECTRON_CHARGE_SI * ::picongpu::SI::ELECTRON_CHARGE_SI * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI / (4.0 * PI * PI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::EPS0_SI);
 const double UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
 
+/** unit: W / m^2 */
+//const double _PEAK_INTENSITY_SI = 3.4e19 * 1.0e4;
+/** unit: none */
+//const double _A0  = _PEAK_INTENSITY_SI * UNITCONV_Intens_to_A0;
+
+/** unit: none */
+//const double _A0  = 1.5;
+
+/** unit: Volt /meter */
+//const double AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
+
 /** unit: Volt /meter */
 const double AMPLITUDE_SI = 1.738e13;
 
