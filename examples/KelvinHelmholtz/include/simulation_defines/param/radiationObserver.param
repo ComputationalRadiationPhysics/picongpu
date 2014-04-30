@@ -41,28 +41,10 @@ namespace picongpu
      */
     DINLINE vec2 observation_direction(const int observation_id_extern)
     {
-      /** compute observation directions for 2D virtual detector field 
-       *  pointing toward the +x direction
-       *  with observation angles ranging from
-       *  theta = [angle_theta_start : angle_theta_end]
-       *  phi   = [angle_phi_start   : angle_phi_end  ]
-       *  every block index moves the phi angle from its start value toward 
-       *  its end value until the observation_id_extern reaches N_split.
-       *  After that the theta angle moves further from its start
-       *  value towards its end value while phi is reset to its start
-       *  value.
-       *
-       *  The unit vector pointing towards the observing virtual detector
-       *  can be described using theta and phi by:
-       *  x_value = sin(theta) * cos(phi)
-       *  y_value = sin(theta) * sin(phi)
-       *  z_value = cos(theta)
-       *  These are the standard spherical coordinates.
-       *
-       *  The default setup describes an detector array of 
-       *  16x16 detectors ranging from -pi/8= -22.5 degrees 
-       *  to +pi/8= +22.5 degrees for both angles with the center
-       *  pointing toward the x-axis (laser propagation direction).
+      /** This computes observation directions for one octant 
+       *  of a sphere around the simulation area.
+       *  The axises of the octant point towards:
+       *  (+1,0,0) ; (0,+1,0) ; (0,0,-1)
        */
         
       /* generate two indices from single block index */

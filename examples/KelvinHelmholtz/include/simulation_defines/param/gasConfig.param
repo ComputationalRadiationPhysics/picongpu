@@ -101,8 +101,8 @@ namespace picongpu
         namespace SI
         {
             /** Parameters for the exponential slope
-             *  For Y > GAS_MAX_SI:
-             *    let Y' = Y - GAS_MAX_SI
+             *  For Y > GAS_Y_MAX_SI:
+             *    let Y' = Y - GAS_Y_MAX_SI
              *    \rho = exp[ - Y' * D ]
              *         = element [0.0; 1.0]
              *  unit: 1/m

@@ -49,7 +49,7 @@ const double _A0  = 1.5;
 const double AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
 
 /** unit: Volt /meter */
-const double AMPLITUDE_SI = 1.738e13;
+//const double AMPLITUDE_SI = 1.738e13;
 
 /** Pulse length: sigma of std. gauss for intensity (E^2)
  *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
