@@ -41,13 +41,13 @@ namespace picongpu
 
     /*! Field Configuration --------------------------------------------------
      *  - fieldSolverYee : standard Yee solver
- *  - fieldSolverLehe: Num. Cherenkov free field solver in a choosen direction
- *  - fieldSolverDirSplitting: Sentoku's Directional Splitting Method
- *  - fieldSolverNone: disable the vacuum update of E and B
- * 
- * * For development purposes: ---------------------------------------------
- *  - fieldSolverYeeNative : generic version of fieldSolverYee 
- *    (need more shared memory per gpu and is slow)
+     *  - fieldSolverLehe: Num. Cherenkov free field solver in a choosen direction
+     *  - fieldSolverDirSplitting: Sentoku's Directional Splitting Method
+     *  - fieldSolverNone: disable the vacuum update of E and B
+     * 
+     * * For development purposes: ---------------------------------------------
+     *  - fieldSolverYeeNative : generic version of fieldSolverYee 
+     *    (need more shared memory per gpu and is slow)
      */
     namespace fieldSolver = fieldSolverYee;
 
@@ -70,16 +70,16 @@ namespace picongpu
      */
     namespace particleInit = particleInitQuietStart;
 
-/*! particle pusher Configuration ----------------------------------------
- *  - particlePusherVay   : better suited relativistic boris pusher
- *  - particlePusherBoris : standard boris pusher
+    /*! particle pusher Configuration ----------------------------------------
+     *  - particlePusherVay   : better suited relativistic boris pusher
+     *  - particlePusherBoris : standard boris pusher
      * 
- * For development purposes: ---------------------------------------------
- *  - particlePusherNone  : no particle is pushed
- *  - particlePusherAxl   : a pusher developed at HZDR during 2011 (testing)
- *  - particlePusherFree  : free propagation, ignore fields
- *                            (= free stream model)
- *  - particlePusherPhot  : propagate with c in direction of normalized mom.
+     * For development purposes: ---------------------------------------------
+     *  - particlePusherNone  : no particle is pushed
+     *  - particlePusherAxl   : a pusher developed at HZDR during 2011 (testing)
+     *  - particlePusherFree  : free propagation, ignore fields
+     *                            (= free stream model)
+     *  - particlePusherPhot  : propagate with c in direction of normalized mom.
      */
     namespace particlePusher = particlePusherBoris;
     /*enable (1) or disable (0) ions*/
@@ -88,12 +88,12 @@ namespace picongpu
 #define ENABLE_ELECTRONS 1
 
     /** select current solver method -----------------------------------------
- *  - currentSolverEsirkepov: particle shapes - CIC, TSC, PCS (1st to 3rd order)
- *  - currentSolverVillaBune: particle shapes - CIC (1st order) only
- *   
- *  For development purposes: ---------------------------------------------
- *  - currentSolverEsirkepovNative: generic version of currentSolverEsirkepov
- *    without optimisation (~4x slower and need more shared memory)
+     *  - currentSolverEsirkepov: particle shapes - CIC, TSC, PCS (1st to 3rd order)
+     *  - currentSolverVillaBune: particle shapes - CIC (1st order) only
+     *   
+     *  For development purposes: ---------------------------------------------
+     *  - currentSolverEsirkepovNative: generic version of currentSolverEsirkepov
+     *    without optimisation (~4x slower and need more shared memory)
      */
     namespace currentSolver = currentSolverEsirkepov;
     /*enable (1) or disable (0) current calculation*/

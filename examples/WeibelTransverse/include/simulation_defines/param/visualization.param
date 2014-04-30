@@ -52,10 +52,10 @@ namespace picongpu
 #define EM_FIELD_SCALE_CHANNEL3 2
         
         // multiply highest undisturbed particle density with factor
-const float_X preParticleDens_opacity = 0.25;
-const float_X preChannel1_opacity = 1.0;
-const float_X preChannel2_opacity = 1.0;
-const float_X preChannel3_opacity = 1.0;
+        const float_X preParticleDens_opacity = 0.25;
+        const float_X preChannel1_opacity = 1.0;
+        const float_X preChannel2_opacity = 1.0;
+        const float_X preChannel3_opacity = 1.0;
         
         // specify color scales for each channel
         namespace preParticleDensCol = colorScales::red;
