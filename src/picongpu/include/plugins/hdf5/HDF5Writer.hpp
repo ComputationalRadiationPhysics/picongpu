@@ -185,11 +185,11 @@ public:
         ThreadParams *params = &mThreadParams;
         
         /* load all fields */
-        ForEach<FileRestartFields, LoadFields<void> > forEachLoadFields;
+        ForEach<FileCheckpointFields, LoadFields<void> > forEachLoadFields;
         forEachLoadFields(ref(params));
         
         /* load all particles */
-        ForEach<FileRestartParticles, LoadParticles<void> > forEachLoadSpecies;
+        ForEach<FileCheckpointParticles, LoadParticles<void> > forEachLoadSpecies;
         forEachLoadSpecies(ref(params), gridPosition);
         
         /* close datacollector */
@@ -344,7 +344,6 @@ private:
 
     static void *writeHDF5(void *p_args)
     {
-        // synchronize, because following operations will be blocking anyway
         ThreadParams *threadParams = (ThreadParams*) (p_args);
 
         writeMetaAttributes(threadParams);
@@ -357,16 +356,30 @@ private:
         DataSpace<simDim> particleOffset(threadParams->gridPosition);
         particleOffset.y() -= threadParams->window.globalSimulationOffset.y();
 
-        /*print all fields*/
+        /* write all fields */
         log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing fields.");
-        ForEach<FileOutputFields, WriteFields<void> > forEachWriteFields;
-        forEachWriteFields(ref(threadParams), domInfo);
+        if (threadParams->isCheckpoint)
+        {
+            ForEach<FileCheckpointFields, WriteFields<void> > forEachWriteFields;
+            forEachWriteFields(ref(threadParams), domInfo);
+        } else
+        {
+            ForEach<FileOutputFields, WriteFields<void> > forEachWriteFields;
+            forEachWriteFields(ref(threadParams), domInfo);
+        }
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing fields.");
 
-        /*print all particle species*/
+        /* write all particle species */
         log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing particle species.");
-        ForEach<FileOutputParticles, WriteSpecies<void> > writeSpecies;
-        writeSpecies(ref(threadParams), std::string(), domInfo, particleOffset);
+        if (threadParams->isCheckpoint)
+        {
+            ForEach<FileCheckpointParticles, WriteSpecies<void> > writeSpecies;
+            writeSpecies(ref(threadParams), std::string(), domInfo, particleOffset);
+        } else
+        {
+            ForEach<FileOutputParticles, WriteSpecies<void> > writeSpecies;
+            writeSpecies(ref(threadParams), std::string(), domInfo, particleOffset);
+        }
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species.");
 
 
@@ -378,10 +391,18 @@ private:
             particleOffset = threadParams->gridPosition;
             particleOffset.y() = -threadParams->window.localSize.y();
 
-            /* for restart we only need bottom ghosts for particles */
-            log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing particle species bottom.");
+            /* for checkpoints we only need bottom ghosts for particles */
             /* print all particle species */
-            writeSpecies(ref(threadParams), std::string("_ghosts"), domInfoGhosts, particleOffset);
+            log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing particle species bottom.");
+            if (threadParams->isCheckpoint)
+            {
+                ForEach<FileCheckpointParticles, WriteSpecies<void> > writeSpecies;
+                writeSpecies(ref(threadParams), std::string("_ghosts"), domInfoGhosts, particleOffset);
+            } else
+            {
+                ForEach<FileOutputParticles, WriteSpecies<void> > writeSpecies;
+                writeSpecies(ref(threadParams), std::string("_ghosts"), domInfoGhosts, particleOffset);
+            }
             log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species bottom.");
         }
         return NULL;

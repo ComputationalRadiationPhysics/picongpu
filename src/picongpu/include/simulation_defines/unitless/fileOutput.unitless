@@ -34,15 +34,12 @@
 
 namespace picongpu
 {
-    /** Note: you will need at least FieldE and FieldB for restart
-     *        capabilities!
+    /** 
      *  Possible fields: FieldE, FieldB, FieldJ
      */
     typedef typename MakeSeq<FieldE, FieldB>::type NativeFileOutputFields;
     
     typedef VectorAllSpecies FileOutputParticles;
-    
-    typedef VectorAllSpecies FileRestartParticles;
     
     /** TimeAvg Fields
      * \todo Reduce/Avg on host-side RAM with a plugin
@@ -90,9 +87,4 @@ namespace picongpu
             PluginsFileOutputFieldsElectrons,
             PluginsFileOutputFieldsIons
     >::type FileOutputFields;
-    
-    /** This list is use to restarts fields from a file. */
-    typedef typename MakeSeq<
-            NativeFileOutputFields
-    >::type FileRestartFields;
 }
