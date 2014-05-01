@@ -92,13 +92,14 @@ namespace picongpu
             PMacc::SubGrid<simDim>& sg = Environment<simDim>::get().SubGrid();
             const size_t rOffset = sg.getSimulationBox().getGlobalOffset()[axis_element.first];
             const size_t rSize = sg.getSimulationBox().getGlobalSize()[axis_element.first];
-            splash::Dimensions phaseSpace_size( rSize, hBuffer.size().y(), 1 );
-            splash::Dimensions phaseSpace_global_offset( rOffset, 0, 0 );
 
-            /** local buffer size (aka splash subdomain) **********************/
-            splash::Dimensions phaseSpace_size_local( hBuffer.size().x(),
-                                                      hBuffer.size().y(),
-                                                      1 );
+            /* globalDomain of the phase space */
+            splash::Dimensions globalPhaseSpace_size( rSize, hBuffer.size().y(), 1 );
+            /* localDomain: offset of it in the globalDomain and size */
+            splash::Dimensions localPhaseSpace_offset( rOffset, 0, 0 );
+            splash::Dimensions localPhaseSpace_size( hBuffer.size().x(),
+                                                     hBuffer.size().y(),
+                                                     1 );
 
             /** Dataset Name **************************************************/
             std::ostringstream dataSetName;
@@ -113,18 +114,18 @@ namespace picongpu
 
             pdc.writeDomain( currentStep,
                              /* global domain and my local offset within it */
-                             phaseSpace_size,
-                             phaseSpace_global_offset,
+                             globalPhaseSpace_size,
+                             localPhaseSpace_offset,
                              /* */
                              ctPhaseSpace,
                              bufDim,
                              /* local data set dimensions */
-                             phaseSpace_size_local,
+                             localPhaseSpace_size,
                              /* data set name */
                              dataSetName.str().c_str(),
                              /* global domain */
                              splash::Dimensions( 0, 0, 0 ),
-                             phaseSpace_size,
+                             globalPhaseSpace_size,
                              /* dataClass, buffer */
                              DomainCollector::GridType,
                              &(*hBuffer.origin()) );
