@@ -90,11 +90,21 @@ namespace picongpu
 
             /** calculate global size of the phase space **********************/
             PMacc::SubGrid<simDim>& sg = Environment<simDim>::get().SubGrid();
-            const size_t rOffset = sg.getSimulationBox().getGlobalOffset()[axis_element.first];
-            const size_t rSize = sg.getSimulationBox().getGlobalSize()[axis_element.first];
+            PMACC_AUTO( simBox, Environment<simDim>::get().SubGrid().getSimulationBox( ) );
+            const size_t rOffset = simBox.getGlobalOffset()[axis_element.first];
+            const size_t rSize = simBox.getGlobalSize()[axis_element.first];
 
             /* globalDomain of the phase space */
             splash::Dimensions globalPhaseSpace_size( rSize, hBuffer.size().y(), 1 );
+            /* moving window meta information */
+            splash::Dimensions globalPhaseSpace_offset( 0, 0, 0 );
+            if( axis_element.first == 1 ) /* spatial axis == y */
+            {
+                VirtualWindow window = MovingWindow::getInstance( ).getVirtualWindow( currentStep );
+                globalPhaseSpace_offset.set( window.slides * simBox.getLocalSize( ).y(),
+                                             0, 0 );
+            }
+
             /* localDomain: offset of it in the globalDomain and size */
             splash::Dimensions localPhaseSpace_offset( rOffset, 0, 0 );
             splash::Dimensions localPhaseSpace_size( hBuffer.size().x(),
@@ -124,7 +134,7 @@ namespace picongpu
                              /* data set name */
                              dataSetName.str().c_str(),
                              /* global domain */
-                             splash::Dimensions( 0, 0, 0 ),
+                             globalPhaseSpace_offset,
                              globalPhaseSpace_size,
                              /* dataClass, buffer */
                              DomainCollector::GridType,
