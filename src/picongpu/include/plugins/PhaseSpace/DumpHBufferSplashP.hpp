@@ -25,6 +25,7 @@
 
 #include "simulation_defines.hpp"
 #include "communication/manager_common.h"
+#include "mappings/simulation/GridController.hpp"
 #include "mappings/simulation/SubGrid.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
@@ -61,57 +62,70 @@ namespace picongpu
             typedef T_Type Type;
             const int bufDim = T_bufDim;
 
-            /** file name *********************************************************
-             *    phaseSpace/PhaseSpace_xpy_timestep.h5                           */
+            /** file name *****************************************************
+             *    phaseSpace/PhaseSpace_xpy_timestep.h5                       */
             std::string fCoords("xyz");
             std::ostringstream filename;
             filename << "phaseSpace/PhaseSpace_"
                      << fCoords.at(axis_element.first)
                      << "p" << fCoords.at(axis_element.second);
 
-            /** get size of the fileWriter communicator ***************************/
+            /** get size of the fileWriter communicator ***********************/
             int size;
             MPI_CHECK(MPI_Comm_size( mpiComm, &size ));
 
-            /** create parallel domain collector **********************************/
+            /** create parallel domain collector ******************************/
             ParallelDomainCollector pdc(
                 mpiComm, MPI_INFO_NULL, Dimensions(size, 1, 1), 10 );
 
+            PMacc::GridController<simDim>& gc =
+                PMacc::Environment<simDim>::get().GridController();
             DataCollector::FileCreationAttr fAttr;
+            Dimensions mpiPosition( gc.getPosition()[axis_element.first], 0, 0 );
+            fAttr.mpiPosition.set( mpiPosition );
+
             DataCollector::initFileCreationAttr(fAttr);
 
             pdc.open( filename.str().c_str(), fAttr );
 
-            /** calculate global size of the phase space **************************/
+            /** calculate global size of the phase space **********************/
             PMacc::SubGrid<simDim>& sg = Environment<simDim>::get().SubGrid();
             const size_t rOffset = sg.getSimulationBox().getGlobalOffset()[axis_element.first];
             const size_t rSize = sg.getSimulationBox().getGlobalSize()[axis_element.first];
             splash::Dimensions phaseSpace_size( rSize, hBuffer.size().y(), 1 );
             splash::Dimensions phaseSpace_global_offset( rOffset, 0, 0 );
 
-            /** local buffer size (aka splash subdomain) **************************/
+            /** local buffer size (aka splash subdomain) **********************/
             splash::Dimensions phaseSpace_size_local( hBuffer.size().x(),
-                                                          hBuffer.size().y(),
-                                                          1 );
+                                                      hBuffer.size().y(),
+                                                      1 );
 
-            /** Dataset Name ******************************************************/
+            /** Dataset Name **************************************************/
             std::ostringstream dataSetName;
             /* xpx or ypz or ... */
             dataSetName << fCoords.at(axis_element.first)
                         << "p" << fCoords.at(axis_element.second);
 
-            /** write local domain ************************************************/
+            /** write local domain ********************************************/
             typename PICToSplash<Type>::type ctPhaseSpace;
 
+            std::cout << "ps dump my start: " << rOffset << std::endl;
+
             pdc.writeDomain( currentStep,
+                             /* global domain and my local offset within it */
+                             phaseSpace_size,
+                             phaseSpace_global_offset,
+                             /* */
                              ctPhaseSpace,
                              bufDim,
+                             /* local data set dimensions */
                              phaseSpace_size_local,
+                             /* data set name */
                              dataSetName.str().c_str(),
-                             phaseSpace_global_offset,
-                             phaseSpace_size_local,
+                             /* global domain */
                              splash::Dimensions( 0, 0, 0 ),
                              phaseSpace_size,
+                             /* dataClass, buffer */
                              DomainCollector::GridType,
                              &(*hBuffer.origin()) );
 
@@ -119,7 +133,7 @@ namespace picongpu
             pdc.writeAttribute( currentStep, ctDouble, dataSetName.str().c_str(),
                                 "sim_unit", &unit );
 
-            /** close file ********************************************************/
+            /** close file ****************************************************/
 #if (SPLASH_VERSION_MAJOR>1) || ((SPLASH_VERSION_MAJOR==1) && (SPLASH_VERSION_MINOR>=2))
             pdc.finalize();
 #endif
