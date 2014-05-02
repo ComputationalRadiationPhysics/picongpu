@@ -209,6 +209,8 @@ namespace picongpu
             return;
 
         /** \todo communicate GUARD and add it to the two neighbors BORDER */
+
+        /** prepare local output buffer of the phase space*/
         PMacc::SubGrid<simDim>& sg = Environment<simDim>::get().SubGrid();
         container::HostBuffer<float_PS, 2> hReducedBuffer_noGuard( sg.getSimulationBox().getLocalSize()[this->axis_element.first],
                                                                   this->num_pbins );
