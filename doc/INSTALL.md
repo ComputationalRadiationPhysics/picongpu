@@ -31,10 +31,10 @@ Requirements
 - **zlib**
   - *Debian/Ubuntu:* `sudo apt-get install zlib1g-dev`
 
-- **boost** 1.49.0 or higher ("program options", "regex" and nearly all compile time libs)
+- **boost** 1.49.0 or higher ("program options", "regex" , "filesystem", "system" and nearly all compile time libs)
   - download from [http://www.boost.org/](http://sourceforge.net/projects/boost/files/boost/1.49.0/boost_1_49_0.tar.gz/download),
       e.g. version 1.49.0
-  - *Debian/Ubuntu:* `sudo apt-get install libboost-program-options-dev libboost-regex-dev`
+  - *Debian/Ubuntu:* `sudo apt-get install libboost-program-options-dev libboost-regex-dev libboost-filesystem-dev libboost-system-dev`
 
 - **git** 1.7.9.5 or [higher](https://help.github.com/articles/https-cloning-errors)
   - *Debian/Ubuntu:* `sudo apt-get install git`

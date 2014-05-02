@@ -87,16 +87,18 @@ namespace PMacc
          * Notifies plugins that a (restartable) checkpoint should be created for this timestep.
          * 
          * @param currentStep cuurent simulation iteration step
+         * @param checkpointDirectory common directory for checkpoints
          */
-        virtual void checkpoint(uint32_t currentStep) = 0;
+        virtual void checkpoint(uint32_t currentStep, const std::string checkpointDirectory) = 0;
         
         /**
          * Restart notification callback.
          * 
          * 
          * @param restartStep simulation iteration step to restart from
+         * @param restartDirectory common restart directory (contains checkpoints)
          */
-        virtual void restart(uint32_t restartStep) = 0;
+        virtual void restart(uint32_t restartStep, const std::string restartDirectory) = 0;
 
         /**
          * Register command line parameters for this plugin.

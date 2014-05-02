@@ -55,12 +55,12 @@ namespace picongpu
          */
         virtual void start() = 0;
         
-        virtual void restart(uint32_t)
+        virtual void restart(uint32_t, const std::string)
         {
             // nothing to do here
         }
         
-        virtual void checkpoint(uint32_t)
+        virtual void checkpoint(uint32_t, const std::string)
         {
             // nothing to do here
         }

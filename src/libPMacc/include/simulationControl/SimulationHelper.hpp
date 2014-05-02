@@ -25,6 +25,7 @@
 #include <cuda_runtime_api.h>
 #include <iostream>
 #include <iomanip>
+#include <boost/filesystem.hpp>
 
 #include "types.h"
 
@@ -61,8 +62,11 @@ public:
      */
     SimulationHelper() :
     runSteps(0),
-    checkpointFrequency(0),
-    restartStep(0),
+    checkpointPeriod(0),
+    checkpointDirectory("checkpoints"),
+    numCheckpoints(0),
+    restartStep(-1),
+    restartDirectory("checkpoints"),
     restartRequested(false)
     {
         tSimulation.toggleStart();
@@ -118,9 +122,17 @@ public:
         Environment<DIM>::get().DataConnector().invalidate();
         
         /* trigger checkpoint notification first to allow plugins to skip standard notify */
-        if (checkpointFrequency && (currentStep % checkpointFrequency == 0))
+        if (checkpointPeriod && (currentStep % checkpointPeriod == 0))
         {
-            Environment<DIM>::get().PluginConnector().checkpointPlugins(currentStep);
+            /* create directory containing checkpoints  */
+            if (numCheckpoints == 0)
+            {
+                boost::filesystem::create_directories(checkpointDirectory);
+            }
+            
+            Environment<DIM>::get().PluginConnector().checkpointPlugins(currentStep,
+                                                                        checkpointDirectory);
+            numCheckpoints++;
         }
         
         Environment<DIM>::get().PluginConnector().notifyPlugins(currentStep);
@@ -209,8 +221,12 @@ public:
             ("percent,p", po::value<uint16_t > (&progress)->default_value(5),
              "Print time statistics after p percent to stdout")
             ("restart", po::value<bool>(&restartRequested)->zero_tokens(), "Restart simulation")
-            ("restart-step", po::value<uint32_t>(&restartStep), "Checkpoint step to restart from")
-            ("checkpoints", po::value<uint32_t>(&checkpointFrequency), "Frequency for checkpoint creation");
+            ("restart-directory", po::value<std::string>(&restartDirectory)->default_value(restartDirectory),
+                "Directory containing checkpoints for a restart")
+            ("restart-step", po::value<int32_t>(&restartStep), "Checkpoint step to restart from")
+            ("checkpoints", po::value<uint32_t>(&checkpointPeriod), "Period for checkpoint creation")
+            ("checkpoint-directory", po::value<std::string>(&checkpointDirectory)->default_value(checkpointDirectory),
+                "Directory for checkpoints");
     }
 
     std::string pluginGetName() const
@@ -229,11 +245,11 @@ public:
     {
     }
     
-    void restart(uint32_t)
+    void restart(uint32_t, const std::string)
     {
     }
     
-    void checkpoint(uint32_t)
+    void checkpoint(uint32_t, const std::string)
     {
     }
 
@@ -241,11 +257,20 @@ protected:
     /* number of simulation steps to compute */
     uint32_t runSteps;
     
-    /* frequency for checkpoint creation */
-    uint32_t checkpointFrequency;
+    /* period for checkpoint creation */
+    uint32_t checkpointPeriod;
+    
+    /* common directory for checkpoints */
+    std::string checkpointDirectory;
+    
+    /* number of checkpoints written */
+    uint32_t numCheckpoints;
     
     /* checkpoint step to restart from */
-    uint32_t restartStep;
+    int32_t restartStep;
+    
+    /* common directory for restarts */
+    std::string restartDirectory;
     
     /* restart requested */
     bool restartRequested;
