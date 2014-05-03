@@ -19,7 +19,6 @@
  */ 
  
 
-
 #pragma once
 
 #include <cmath>
@@ -77,7 +76,7 @@ DINLINE float_X preChannel2(const float3_X& field_B, const float3_X& field_E, co
 
 DINLINE float_X preChannel3(const float3_X& field_B, const float3_X& field_E, const float3_X& field_J)
 {
-    return float_X(-1.0) * field_E.y();
+    return -float_X(1.0) * field_E.y();
 }
 }
 }

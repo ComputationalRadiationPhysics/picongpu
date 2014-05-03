@@ -79,7 +79,6 @@ enum PolarisationType
     CIRCULAR = 4u,
 };
 const PolarisationType Polarisation = CIRCULAR;
-
 }
 
 namespace laserPulseFrontTilt
@@ -128,7 +127,7 @@ enum PolarisationType
 {
 LINEAR_X = 1u,
 LINEAR_Z = 2u,
-CIRCULAR = 4u,
+CIRCULAR = 4u
 };
 const PolarisationType Polarisation = LINEAR_X;
 }
@@ -277,11 +276,6 @@ const double W0x_SI = 4.246e-6; // waist in x-direction
 const double W0z_SI = W0x_SI; // waist in z-direction
 }
 }
-
-
-
-
-
 
 namespace laserNone
 {

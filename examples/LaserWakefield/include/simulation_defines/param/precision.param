@@ -32,6 +32,7 @@ namespace picongpu
  *  - precision64Bit : use 64Bit floating point numbers (need CUDA_ARCH>=sm_20)
  *                     [significant digits 15 to 16]
  */
+/* PARAM_PRECISION is required for tests */
 #ifndef PARAM_PRECISION
 #define PARAM_PRECISION precision32Bit
 #endif

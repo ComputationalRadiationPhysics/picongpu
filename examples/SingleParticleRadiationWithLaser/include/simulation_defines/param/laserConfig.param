@@ -70,7 +70,7 @@ const double FOCUS_POS_SI = 4.62e-5;
 }
 /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
  *  unit: none */
-const double PULSE_INIT = 20.0f;
+const double PULSE_INIT = 20.0;
 
 enum PolarisationType
 {
@@ -79,7 +79,6 @@ enum PolarisationType
     CIRCULAR = 4u,
 };
 const PolarisationType Polarisation = CIRCULAR;
-
 }
 
 namespace laserPulseFrontTilt
@@ -139,7 +138,7 @@ enum PolarisationType
 {
     LINEAR_X = 1u,
     LINEAR_Z = 2u,
-    CIRCULAR = 4u,
+    CIRCULAR = 4u
 };
 const PolarisationType Polarisation = LINEAR_X;
 }
@@ -240,9 +239,10 @@ const double W0_SI = 4.246e-6;
 /** The laser pulse will be initialized half of PULSE_INIT times of the PULSE_LENGTH before plateau
     and half at the end of the plateau
  *  unit: none */
-const double RAMP_INIT = 20.0f;
+const double RAMP_INIT = 20.0;
 
 }
+
 
 namespace laserPolynom
 {

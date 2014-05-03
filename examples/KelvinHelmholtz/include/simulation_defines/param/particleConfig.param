@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include "simulation_defines/param/gasConfig.param"
 #include "particles/shapes.hpp"
 
 namespace picongpu
@@ -61,9 +60,9 @@ const double PARTICLE_INIT_DENSITY_FACTOR_MIDDLE = 1.0;
 /** Normal vector of the initial drift
  *  length: gets normalized afterwards
  *  unit: none */
-const float_X PARTICLE_INIT_DRIFT_DIRECTION_X = 1.0f;
-const float_X PARTICLE_INIT_DRIFT_DIRECTION_Y = 0.0f;
-const float_X PARTICLE_INIT_DRIFT_DIRECTION_Z = 0.0f;
+const float_X PARTICLE_INIT_DRIFT_DIRECTION_X = 1.0;
+const float_X PARTICLE_INIT_DRIFT_DIRECTION_Y = 0.0;
+const float_X PARTICLE_INIT_DRIFT_DIRECTION_Z = 0.0;
 
 /** You can manipulate the flow vector of ions by this factor
  *  unit: none */
@@ -81,7 +80,7 @@ const double MIDDLE_DRIFT_INV_SIZE_REL = 0.5;
 /** a particle with a weighting below MIN_WEIGHTING will not
  *      be created / will be deleted
  *  unit: none */
-const float_X MIN_WEIGHTING = 10.f;
+const float_X MIN_WEIGHTING = 10.0;
 
 namespace particleInitRandomPos
 {

@@ -139,7 +139,7 @@ const unsigned int N_observer = 256; // number of looking directions
 
 
 
-
+} /* end namespace parameters */
 
 //////////////////////////////////////////////////
 
@@ -176,4 +176,3 @@ namespace radWindowFunction = radWindowFunctionTriangle;
 
 
 
-}

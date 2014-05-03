@@ -39,8 +39,7 @@ namespace picongpu
         /** equals Z
          *  unit: meter */
         const double CELL_DEPTH_SI = CELL_WIDTH_SI;
-    }
-    
+    } //namespace SI
     
         //! Defines the size of the absorbing zone (in cells)
     const uint32_t ABSORBER_CELLS[3][2] = {
@@ -56,6 +55,8 @@ namespace picongpu
         {1.0e-3, 1.0e-3}  /*z direction [negative,positive]*/
     }; //unit: none 
 
+    const uint32_t ABSORBER_FADE_IN_STEPS = 16;
+    
     /** When to move the co-moving window.
      *  An initial pseudo particle, flying with the speed of light,
      *  is fired at the begin of the simulation.

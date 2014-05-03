@@ -82,6 +82,7 @@ namespace radiationNyquist
 
 
 
+
 ///////////////////////////////////////////////////                                            
 
 
@@ -116,9 +117,6 @@ namespace picongpu
 
 
 
-
-
-
 namespace parameters
 {
 /*!enable radiation calculation*/
@@ -128,6 +126,7 @@ namespace parameters
 // 1 = on  (slower and more memory, no fourier reflections)
 // 0 = off (faster but with fourier reflections)
 #define __NYQUISTCHECK__ 0
+
 
 
 //marked every N particle for calculate radiation
@@ -140,6 +139,7 @@ namespace parameters
 const float RadiationGamma = 5.;
 
 const unsigned int N_observer = 256; // number of looking directions
+
 
 
 } /* end namespace parameters */
@@ -176,7 +176,6 @@ namespace radWindowFunction = radWindowFunctionTriangle;
 
 
 }//namespace picongpu
-
 
 
 
