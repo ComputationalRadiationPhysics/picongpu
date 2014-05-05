@@ -271,28 +271,31 @@ struct volume
  * This operation is designed to handle vectors with up to 3 components
  *
  * @tparam T_Vec vector to shrink
- * @tparam T_dim finale component count
+ * @tparam T_dim target component count
  * @treturn ::type new shrinked vector
  */
 template<typename T_Vec, uint32_t T_dim>
-struct shrinkTo
+struct shrinkTo;
+
+template<typename T_Vec>
+struct shrinkTo<T_Vec,DIM3>
 {
-    typedef typename T_Vec Vec;
-    typedef typename CT::Vector<typename Vec::x, typename Vec::y, typename Vec::z> type;
+    typedef T_Vec Vec;
+    typedef CT::Vector<typename Vec::x, typename Vec::y, typename Vec::z> type;
 };
 
 template<typename T_Vec>
 struct shrinkTo<T_Vec,DIM2>
 {
-    typedef typename T_Vec Vec;
-    typedef typename CT::Vector<typename Vec::x, typename Vec::y, mpl::na> type;
+    typedef T_Vec Vec;
+    typedef CT::Vector<typename Vec::x, typename Vec::y, mpl::na> type;
 };
 
 template<typename T_Vec>
 struct shrinkTo<T_Vec,DIM1>
 {
-    typedef typename T_Vec Vec;
-    typedef typename CT::Vector<typename Vec::x, mpl::na, mpl::na> type;
+    typedef T_Vec Vec;
+    typedef CT::Vector<typename Vec::x, mpl::na, mpl::na> type;
 };
 
 } // CT
