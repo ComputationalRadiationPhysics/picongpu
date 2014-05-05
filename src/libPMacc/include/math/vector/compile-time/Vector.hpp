@@ -8,6 +8,7 @@
  * the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ *
  * libPMacc is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -21,6 +22,7 @@
 
 #pragma once
 
+#include "types.h"
 #include <stdint.h>
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/at.hpp>
@@ -260,6 +262,37 @@ struct volume
             mpl::int_<1>,
             mpl::times<mpl::_1,mpl::_2>
     >::type type;
+};
+
+//________________________S H R I N K T O________________________
+
+/** shrink CT vector to given component count (dimension)
+ *
+ * This operation is designed to handle vectors with up to 3 components
+ *
+ * @tparam T_Vec vector to shrink
+ * @tparam T_dim finale component count
+ * @treturn ::type new shrinked vector
+ */
+template<typename T_Vec, uint32_t T_dim>
+struct shrinkTo
+{
+    typedef typename T_Vec Vec;
+    typedef typename CT::Vector<typename Vec::x, typename Vec::y, typename Vec::z> type;
+};
+
+template<typename T_Vec>
+struct shrinkTo<T_Vec,DIM2>
+{
+    typedef typename T_Vec Vec;
+    typedef typename CT::Vector<typename Vec::x, typename Vec::y, mpl::na> type;
+};
+
+template<typename T_Vec>
+struct shrinkTo<T_Vec,DIM1>
+{
+    typedef typename T_Vec Vec;
+    typedef typename CT::Vector<typename Vec::x, mpl::na, mpl::na> type;
 };
 
 } // CT
