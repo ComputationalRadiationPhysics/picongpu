@@ -57,9 +57,8 @@ namespace PMacc
 /**
  * Describes DIM-dimensional buffer for particles data on the host.
  *
- * @tParam PositionType type of prosition
- * @tparam UserTypeList typelist of user classes for particle operations
- * @tparam SuperCellSize TVec which descripe size of a superce
+ * @tParam T_ParticleDescription Object which describe a frame @see ParticleDescription.hpp
+ * @tparam SuperCellSize_ TVec which descripe size of a superce
  * @tparam DIM dimension of the buffer (1-3)
  */
 template<typename T_ParticleDescription, class SuperCellSize_, unsigned DIM>

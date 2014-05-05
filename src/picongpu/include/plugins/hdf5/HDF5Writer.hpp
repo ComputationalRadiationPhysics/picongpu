@@ -138,7 +138,7 @@ public:
     void checkpoint(uint32_t currentStep, const std::string checkpointDirectory)
     {
         this->checkpointDirectory = checkpointDirectory;
-        
+
         notificationReceived(currentStep, true);
     }
 
@@ -165,7 +165,7 @@ public:
         {
             restartFilename = restartDirectory + std::string("/") + restartFilename;
         }
-        
+
         /* open datacollector */
         try
         {
@@ -304,7 +304,7 @@ private:
             splashMpiSize[i] = mpi_size[i];
         }
 
-       
+
         /* only register for notify callback when .period is set on command line */
         if (notifyPeriod > 0)
         {
@@ -322,8 +322,6 @@ private:
     void pluginUnload()
     {
         __delete(mThreadParams.dataCollector);
-        if (notifyFrequency > 0)
-            __delete(mThreadParams.dataCollector);
     }
 
     typedef PICToSplash<float_X>::type SplashFloatXType;

@@ -54,7 +54,15 @@
  */
 
 #ifndef PMACC_MAX_FUNCTOR_OPERATOR_PARAMS
-#define PMACC_MAX_FUNCTOR_OPERATOR_PARAMS 6
+/** number of parameters in operator()
+ *
+ * Maximal number of parameter which can be passed to ForEach `operator()` and
+ * `operator() const`.
+ * The count of parameters depends of the `operator()` from T_Functor.
+ * If you need more than 10 parameter set  PMACC_MAX_FUNCTOR_OPERATOR_PARAMS
+ * to a higher number.
+ */
+#define PMACC_MAX_FUNCTOR_OPERATOR_PARAMS 10
 #endif
 
 namespace PMacc
@@ -171,17 +179,17 @@ struct CallFunctorOfIterator<itBegin, itEnd, true>
 
 /** Compile-Time for each for Boost::MPL Type Lists
  *
- *  \tparam MPLSeq A mpl sequence that can be accessed by mpl::begin, mpl::end, mpl::next
- *  \tparam Functor A unary lambda functor with a HDINLINE void operator()(...) method
- *          _1 is substituted by Accessor result with boost::mpl::apply by elements from MPLSeq.
+ *  \tparam T_MPLSeq A mpl sequence that can be accessed by mpl::begin, mpl::end, mpl::next
+ *  \tparam T_Functor An unary lambda functor with a HDINLINE void operator()(...) method
+ *          _1 is substituted by Accessor's result using boost::mpl::apply with elements from T_MPLSeq.
  *          The maximum number of parameters for the operator() is limited by
  *          PMACC_MAX_FUNCTOR_OPERATOR_PARAMS
- *  \tparam Accessor A unary lambda operation
+ *  \tparam T_Accessor An unary lambda operation
  *
  * Example:
  *      MPLSeq = boost::mpl::vector<int,float>
  *      Functor = any unary lambda functor
- *      Accessor = lambda operastion identity
+ *      Accessor = lambda operation identity
  *
  *      definition: F(X) means boost::apply<F,X>
  *

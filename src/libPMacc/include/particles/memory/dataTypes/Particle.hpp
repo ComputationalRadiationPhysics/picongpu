@@ -51,7 +51,7 @@ namespace pmacc = PMacc;
  * A instance of this Particle is only a reference to a dataset of @see Frame
  *
  * @tparam T_FrameType type of the parent frame
- * @tparam T_ValueTypeSeq sequence with all attribute identifier
+ * @tparam T_ValueTypeSeq sequence with all attribute identifiers
  *                        (can be a subset of T_FrameType::ValueTypeSeq)
  */
 template<typename T_FrameType, typename T_ValueTypeSeq = typename T_FrameType::ValueTypeSeq>

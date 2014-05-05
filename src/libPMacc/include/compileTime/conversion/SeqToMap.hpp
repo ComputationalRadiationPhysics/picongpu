@@ -41,10 +41,10 @@ namespace PMacc
 /** convert boost mpl sequence to a mpl map
  *
  * @tparam T_MPLSeq any boost mpl sequence
- * @tparam T_UnaryOperator unaray operator to translate type from the sequence
+ * @tparam T_UnaryOperator unary operator to translate type from the sequence
  * to a mpl pair
- * @tparam T_Accessor operator which is used before the type from the sequence is
- * passed to T_UnaryOperator
+ * @tparam T_Accessor An unary lambda operator which is used before the type
+ * from the sequence is passed to T_UnaryOperator
  * @return ::type mpl map
  */
 template<typename T_MPLSeq,

@@ -27,7 +27,7 @@
 #include <cuda.h>
 #include <stdexcept>
 
-#include "boost/typeof/std/utility.hpp"
+#include <boost/typeof/std/utility.hpp>
 #include "debug/PMaccVerbose.hpp"
 #include <boost/mpl/placeholders.hpp>
 

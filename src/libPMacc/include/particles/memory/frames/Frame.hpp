@@ -63,7 +63,7 @@ namespace pmacc = PMacc;
  * @tparam T_ValueTypeSeq sequence with value_identifier
  * @tparam T_MethodsList sequence of classes with particle methods
  *                       (e.g. calculate mass, gamma, ...)
- * @tparam T_Flags sequence with idenifierer to add fags on a frame
+ * @tparam T_Flags sequence with identifiers to add flags on a frame
  *                 (e.g. useSolverXY, calcRadiation, ...)
  */
 template<typename T_CreatePairOperator,
