@@ -1,23 +1,23 @@
 /**
  * Copyright 2013 Felix Schmitt, Heiko Burau, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
 
 
 #ifndef DATASPACEOPERATIONS_HPP
@@ -33,7 +33,7 @@ namespace PMacc
 
     /**
      * Implements operations on DataSpace objects such as reduce and extend.
-     * 
+     *
      * @tparam DIM number of dimensions (1-3) of the DataSpace object to operate on
      */
     template<unsigned DIM>
@@ -42,7 +42,7 @@ namespace PMacc
     public:
         /**
          * Maps a 1D position to a DIM dimensional target of size TVEC.
-         * 
+         *
          * @tparam TVEC dimensions of the target
          * @param pos 1D position to map to traget grid
          * @param target size of target grid (dummy)
@@ -145,13 +145,13 @@ namespace PMacc
         template<class TVEC>
         static HDINLINE DataSpace<DIM2> map(uint32_t pos)
         {
-            return DataSpace<DIM2 > (pos % TVEC::x, pos / TVEC::x);
+            return DataSpace<DIM2 > (pos % TVEC::x::value, pos / TVEC::x::value);
         }
 
         template<class TVEC>
         static HDINLINE uint32_t map(const DataSpace<DIM2>& pos)
         {
-            return pos.y() * TVEC::x + pos.x();
+            return pos.y() * TVEC::x::value + pos.x();
         }
 
         static HDINLINE DataSpace<DIM2> map(const DataSpace<DIM2>& size, uint32_t pos)
@@ -252,9 +252,9 @@ namespace PMacc
         template<class TVEC>
         static HDINLINE DataSpace<DIM3> map(uint32_t pos)
         {
-            return DataSpace<DIM3 > (pos % TVEC::x,
-                                     (pos % (TVEC::x * TVEC::y)) / TVEC::x,
-                                     pos / (TVEC::x * TVEC::y));
+            return DataSpace<DIM3 > (pos % TVEC::x::value,
+                                    (pos % (TVEC::x::value * TVEC::y::value)) / TVEC::x::value,
+                                     pos / (TVEC::x::value * TVEC::y::value));
         }
 
         static HDINLINE DataSpace<DIM3> map(const DataSpace<DIM3>& size, uint32_t pos)
@@ -267,7 +267,7 @@ namespace PMacc
         template<class TVEC>
         static HDINLINE uint32_t map(const DataSpace<DIM3>& pos)
         {
-            return pos.z() * TVEC::x * TVEC::y + pos.y() * TVEC::x + pos.x();
+            return pos.z() * TVEC::x::value * TVEC::y::value + pos.y() * TVEC::x::value + pos.x();
         }
 
         static HDINLINE uint32_t map(const DataSpace<DIM3>& size, const DataSpace<DIM3>& pos)
