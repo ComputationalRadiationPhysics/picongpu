@@ -206,8 +206,8 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t ) throw (std::in
 
     typedef SuperCellDescription<
         typename MappingDesc::SuperCellSize,
-        typename toTVec<GetMargin<currentSolver::CurrentSolver>::LowerMargin>::type,
-        typename toTVec<GetMargin<currentSolver::CurrentSolver>::UpperMargin>::type
+        GetMargin<currentSolver::CurrentSolver>::LowerMargin,
+        GetMargin<currentSolver::CurrentSolver>::UpperMargin
         > BlockArea;
 
     StrideMapping<AREA, simDim, MappingDesc> mapper( cellDescription );

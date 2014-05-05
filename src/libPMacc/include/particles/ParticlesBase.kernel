@@ -50,7 +50,7 @@ __global__ void kernelShiftParticles(ParticlesBox<FRAME, Mapping::Dim> pb, Mappi
      */
     enum
     {
-        TileSize = Mapping::SuperCellSize::elements,
+        TileSize = math::CT::volume<typename Mapping::SuperCellSize>::type::value,
         Dim = Mapping::Dim,
         Exchanges = traits::NumberOfExchanges<Dim>::value
     };
@@ -241,7 +241,7 @@ __global__ void kernelFillGapsLastFrame(ParticlesBox<FRAME, Mapping::Dim> pb, Ma
 
     enum
     {
-        TileSize = Mapping::SuperCellSize::elements,
+        TileSize = math::CT::volume<typename Mapping::SuperCellSize>::type::value,
         Dim = Mapping::Dim
     };
 
@@ -312,7 +312,7 @@ __global__ void kernelFillGaps(ParticlesBox<FRAME, Mapping::Dim> pb, Mapping map
 
     enum
     {
-        TileSize = Mapping::SuperCellSize::elements,
+        TileSize = math::CT::volume<typename Mapping::SuperCellSize>::type::value,
         Dim = Mapping::Dim
     };
 
@@ -476,7 +476,7 @@ __global__ void kernelBashParticles(ParticlesBox<FRAME, Mapping::Dim> pb,
 
     enum
     {
-        TileSize = Mapping::SuperCellSize::elements,
+        TileSize = math::CT::volume<typename Mapping::SuperCellSize>::type::value,
         Dim = Mapping::Dim
     };
 
@@ -571,7 +571,7 @@ __global__ void kernelInsertParticles(ParticlesBox<FRAME, Mapping::Dim> pb,
 
     enum
     {
-        TileSize = Mapping::SuperCellSize::elements,
+        TileSize = math::CT::volume<typename Mapping::SuperCellSize>::type::value,
         Dim = Mapping::Dim
     };
 

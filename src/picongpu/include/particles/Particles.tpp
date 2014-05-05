@@ -157,8 +157,8 @@ void Particles<T_ParticleDescription>::update(uint32_t )
 
     typedef SuperCellDescription<
         typename MappingDesc::SuperCellSize,
-        typename toTVec<LowerMargin>::type,
-        typename toTVec<UpperMargin>::type
+        LowerMargin,
+        UpperMargin
         > BlockArea;
 
     dim3 block( MappingDesc::SuperCellSize::getDataSpace( ) );

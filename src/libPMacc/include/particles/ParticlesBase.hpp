@@ -60,7 +60,7 @@ public:
     {
         Dim = MappingDesc::Dim,
         Exchanges = traits::NumberOfExchanges<Dim>::value,
-        TileSize = MappingDesc::SuperCellSize::elements
+        TileSize = math::CT::volume<typename MappingDesc::SuperCellSize>::type::value
     };
 
 protected:

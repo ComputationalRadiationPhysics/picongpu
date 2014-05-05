@@ -1,24 +1,24 @@
 /**
  * Copyright 2013 Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #pragma once
 
 #include "types.h"
@@ -79,7 +79,7 @@ __global__ void kernelCountParticles(PBox pb,
         if (linearThreadIdx == 0)
         {
             frame = &(pb.getPreviousFrame(*frame, isValid));
-            particlesInSuperCell = SuperCellSize::elements;
+            particlesInSuperCell = math::CT::volume<SuperCellSize>::type::value;
         }
         __syncthreads();
     }
@@ -94,10 +94,10 @@ __global__ void kernelCountParticles(PBox pb,
 struct CountParticles
 {
 
-    /** Get particle count 
-     * 
+    /** Get particle count
+     *
      * @tparam AREA area were particles are counted (CORE, BORDER, GUARD)
-     * 
+     *
      * @param buffer source particle buffer
      * @param cellDescription instance of MappingDesction
      * @param filter filter instance which must inharid from PositionFilter
@@ -123,8 +123,8 @@ struct CountParticles
         return *(counter.getHostBuffer().getDataBox());
     }
 
-    /** Get particle count 
-     * 
+    /** Get particle count
+     *
      * @param buffer source particle buffer
      * @param cellDescription instance of MappingDesction
      * @param filter filter instance which must inharid from PositionFilter
@@ -136,14 +136,14 @@ struct CountParticles
         return PMacc::CountParticles::countOnDevice < CORE + BORDER + GUARD > (buffer, cellDescription, filter);
     }
 
-    /** Get particle count 
-     * 
+    /** Get particle count
+     *
      * @tparam AREA area were particles are counted (CORE, BORDER, GUARD)
-     * 
+     *
      * @param buffer source particle buffer
      * @param cellDescription instance of MappingDesction
      * @param origin local cell position (can be negative)
-     * @param size local size in cells for checked volume 
+     * @param size local size in cells for checked volume
      * @return number of particles in defined area
      */
     template<uint32_t AREA, class PBuffer, class CellDesc, class Space>
@@ -157,12 +157,12 @@ struct CountParticles
         return PMacc::CountParticles::countOnDevice<AREA>(buffer, cellDescription, filter);
     }
 
-    /** Get particle count 
-     * 
+    /** Get particle count
+     *
      * @param buffer source particle buffer
      * @param cellDescription instance of MappingDesction
      * @param origin local cell position (can be negative)
-     * @param size local size in cells for checked volume 
+     * @param size local size in cells for checked volume
      * @return number of particles in defined area
      */
     template< class PBuffer, class Filter, class CellDesc, class Space>

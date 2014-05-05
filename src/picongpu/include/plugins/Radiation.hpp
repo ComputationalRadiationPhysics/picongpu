@@ -2,23 +2,23 @@
  * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Klaus Steiniger,
  * Felix Schmitt
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 
 #ifndef RADIATION_HPP
@@ -71,24 +71,24 @@ namespace po = boost::program_options;
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * The radiation kernel calculates for all particles on the device the 
+ * The radiation kernel calculates for all particles on the device the
  * emitted radiation for every direction and every frequency.
  * The parallelization is as follows:
- *  - There are as many Blocks of threads as there are directions for which 
- *    radiation needs to be calculated. (A block of threads shares 
+ *  - There are as many Blocks of threads as there are directions for which
+ *    radiation needs to be calculated. (A block of threads shares
  *    shared memory)
- *  - The number of threads per block is equal to the number of cells per 
+ *  - The number of threads per block is equal to the number of cells per
  *    super cells which is also equal to the number of particles per frame
- * 
- * The procedure starts with calculating unique ids for the threads and 
+ *
+ * The procedure starts with calculating unique ids for the threads and
  * initializing the shared memory.
  * Then a loop over all super cells starts.
- * Every thread loads a particle from that super cell and calculates its 
- * retarted time and its real amplitude (both is dependent of the direction). 
- * For every Particle 
+ * Every thread loads a particle from that super cell and calculates its
+ * retarted time and its real amplitude (both is dependent of the direction).
+ * For every Particle
  * exists therefor a unique space within the shared memory.
- * After that, a thread calculates for a specific frequency the emitted 
- * radiation of all particles. 
+ * After that, a thread calculates for a specific frequency the emitted
+ * radiation of all particles.
  * @param pb
  * @param radiation
  * @param globalOffset
@@ -113,13 +113,13 @@ void kernelRadiationParticles(ParBox pb,
 
     __shared__ FRAME *frame; // pointer to  frame storing particles
     __shared__ bool isValid; // bool saying if frame is valid
-    __shared__ lcellId_t particlesInFrame; // number  of paricles in current frame 
+    __shared__ lcellId_t particlesInFrame; // number  of paricles in current frame
 
     using namespace parameters; // parameters of radiation
 
     /// calculate radiated Amplitude
-    /* parallelized in 1 dimensions: 
-     * looking direction (theta) 
+    /* parallelized in 1 dimensions:
+     * looking direction (theta)
      * (not anymore data handling)
      * create shared memory for particle data to reduce global memory calls
      * every thread in a block loads one particle and every thread runs
@@ -127,26 +127,27 @@ void kernelRadiationParticles(ParBox pb,
      * for all frequencies
      */
 
+    const int blockSize=math::CT::volume<Block>::type::value;
     // vectorial part of the integrand in the Jackson formula
-    __shared__ vec2 real_amplitude_s[Block::elements];
+    __shared__ vec2 real_amplitude_s[blockSize];
 
     // retarded time
-    __shared__ numtype2 t_ret_s[Block::elements];
+    __shared__ numtype2 t_ret_s[blockSize];
 
-    // storage for macro particle weighting needed if 
+    // storage for macro particle weighting needed if
     // the coherent and incoherent radiation of a single
     // macro-particle needs to be considered
 #if (__COHERENTINCOHERENTWEIGHTING__==1)
-    __shared__ float_X radWeighting_s[Block::elements];
+    __shared__ float_X radWeighting_s[blockSize];
 #endif
 
-    // particle counter used if not all particles are considered for 
+    // particle counter used if not all particles are considered for
     // radiation calculation
     __shared__ int counter_s;
 
     // memory for Nyquist frequency at current time step
-#if (__NYQUISTCHECK__==1) 
-    __shared__ NyquistLowPass lowpass_s[Block::elements];
+#if (__NYQUISTCHECK__==1)
+    __shared__ NyquistLowPass lowpass_s[blockSize];
 #endif
 
 
@@ -171,15 +172,15 @@ void kernelRadiationParticles(ParBox pb,
     // number of super cells on GPU
     const DataSpace<DIM3> superCellsCount(mapper.getGridSuperCells());
 
-    // go over all super cells on GPU 
+    // go over all super cells on GPU
     // but ignore all guarding supercells
     for (int z = guardingSuperCells; z < superCellsCount.z() - guardingSuperCells; ++z)
         for (int y = guardingSuperCells; y < superCellsCount.y() - guardingSuperCells; ++y)
             for (int x = guardingSuperCells; x < superCellsCount.x() - guardingSuperCells; ++x)
             {
-                /* warpId != 1 synchronization is needed, 
-                   since a racecondition can occure if "continue loop" is called, 
-                   all threads must wait for the selection of a new frame 
+                /* warpId != 1 synchronization is needed,
+                   since a racecondition can occure if "continue loop" is called,
+                   all threads must wait for the selection of a new frame
                    untill all threads have evaluated "isValid"
                  */
                 __syncthreads();
@@ -191,9 +192,9 @@ void kernelRadiationParticles(ParBox pb,
                 // -guardingSuperCells remove guarding block
 
                 /*
-                 * The Master process (thread 0) in every thread block is in 
-                 * charge of loading a Frame from 
-                 * the current super cell and evaluate the total number of 
+                 * The Master process (thread 0) in every thread block is in
+                 * charge of loading a Frame from
+                 * the current super cell and evaluate the total number of
                  * particles in this frame.
                  */
                 if (linearThreadIdx == 0)
@@ -209,23 +210,23 @@ void kernelRadiationParticles(ParBox pb,
 
                 __syncthreads();
 
-                /* goto next supercell 
-                 * 
-                 * if "isValid" is false then there is no frames 
+                /* goto next supercell
+                 *
+                 * if "isValid" is false then there is no frames
                  * inside the superCell (anymore)
                  */
                 while (isValid)
                 {
-                    // only threads with particles are running 
+                    // only threads with particles are running
                     if (linearThreadIdx < particlesInFrame)
                     {
 
                         /* initializes "saveParticleAt" flag with -1
                          * because "counter_s" wil never be -1
                          * therfore, if a particle is saved, a value of counter
-                         * is stored in "saveParticleAt" != -1 
+                         * is stored in "saveParticleAt" != -1
                          * THIS IS ACTUALLY ONLY NEEDED IF: the radiation flag was set
-                         * LATER: can this be optimized? 
+                         * LATER: can this be optimized?
                          */
                         int saveParticleAt = -1;
                         PMACC_AUTO(par,(*frame)[linearThreadIdx]);
@@ -239,20 +240,20 @@ void kernelRadiationParticles(ParBox pb,
 #endif
                             saveParticleAt = atomicAdd(&counter_s, 1);
                         /* for information:
-                         *   atomicAdd returns an int with the previous 
+                         *   atomicAdd returns an int with the previous
                          *   value of "counter_s" != -1
                          *   therefore, if a particle is selected
-                         *   "saveParticleAs" != -1 
+                         *   "saveParticleAs" != -1
                          */
 
                         // if a particle needs to be considered
                         if (saveParticleAt != -1)
                         {
 
-                            // calculate global position 
+                            // calculate global position
                             lcellId_t cellIdx = par[localCellIdx_];
 
-                            // position inside of the cell 
+                            // position inside of the cell
                             float3_X pos = par[position_];
 
                             // calculate global position of cell
@@ -272,10 +273,10 @@ void kernelRadiationParticles(ParBox pb,
 
 
                             /* get macro-particle weighting
-                             * 
+                             *
                              * Info:
-                             * the weighting is the number of real particles described 
-                             * by a macro-particle 
+                             * the weighting is the number of real particles described
+                             * by a macro-particle
                              */
                             const float_X weighting = par[weighting_];
 
@@ -303,7 +304,7 @@ void kernelRadiationParticles(ParBox pb,
                                                     particle_momentumNow,
                                                     particle_mass);
 
-                            // set up amplitude calculator 
+                            // set up amplitude calculator
                             typedef Calc_Amplitude< Retarded_time_1, Old_DFT > Calc_Amplitude_n_sim_1;
 
                             // calculate amplitude
@@ -317,8 +318,8 @@ void kernelRadiationParticles(ParBox pb,
                             // get charge of single electron ! (weighting=1.0f)
                             const picongpu::float_X particle_charge = par.getCharge(1.0f);
 
-                            // compute real amplitude of macro-particle with a charge of 
-                            // a single electron 
+                            // compute real amplitude of macro-particle with a charge of
+                            // a single electron
                             real_amplitude_s[saveParticleAt] = amplitude3.get_vector(look) *
                                 particle_charge *
                                 (numtype2) DELTA_T;
@@ -334,7 +335,7 @@ void kernelRadiationParticles(ParBox pb,
                                 (numtype2) DELTA_T;
 #endif
 
-                            // retarded time stored in shared memory 
+                            // retarded time stored in shared memory
                             t_ret_s[saveParticleAt] = amplitude3.get_t_ret(look);
 
                             // if Nyquist-limter is used, then the NyquistLowPlass object
@@ -358,7 +359,7 @@ void kernelRadiationParticles(ParBox pb,
 			    /* not supported yet */
 			    /*for (uint32_t d = 0; d < simDim; ++d)
 			      {
-				windowFactor *= winFkt(particle_locationNow[d], 
+				windowFactor *= winFkt(particle_locationNow[d],
 						       simBoxSize[d] * cellSize[d]);
 			      }
 			    */
@@ -367,10 +368,10 @@ void kernelRadiationParticles(ParBox pb,
 			    windowFactor *= winFkt(particle_locationNow.x(),
 						   simBoxSize.x() * CELL_WIDTH);
 			    /* window in y dimension */
-			    windowFactor *= winFkt(particle_locationNow.y(), 
+			    windowFactor *= winFkt(particle_locationNow.y(),
 						   simBoxSize.y() * CELL_HEIGHT);
 			    /* window in z dimension */
-			    windowFactor *= winFkt(particle_locationNow.z(), 
+			    windowFactor *= winFkt(particle_locationNow.z(),
 						   simBoxSize.z() * CELL_DEPTH);
 
 			    /* apply window function factor to amplitude */
@@ -380,7 +381,7 @@ void kernelRadiationParticles(ParBox pb,
 
 
                         } // END: if a particle needs to be considered
-                    } // END: only threads with particles are running 
+                    } // END: only threads with particles are running
 
 
                     __syncthreads(); // wait till every thread has loaded its particle data
@@ -388,7 +389,7 @@ void kernelRadiationParticles(ParBox pb,
 
 
                     // run over all ony valid omegas for this thread
-                    for (int o = linearThreadIdx; o < radiation_frequencies::N_omega; o += Block::elements)
+                    for (int o = linearThreadIdx; o < radiation_frequencies::N_omega; o += blockSize)
                     {
 
                         /* storage for amplitude (complex 3D vector)
@@ -396,11 +397,11 @@ void kernelRadiationParticles(ParBox pb,
                          */
                         Amplitude amplitude = Amplitude::zero();
 
-                        // compute frequency "omega" using for-loop-index "o" 
+                        // compute frequency "omega" using for-loop-index "o"
                         const numtype2 omega = freqFkt(o);
 
 
-                        // if coherent and incoherent radiation of a single macro-particle 
+                        // if coherent and incoherent radiation of a single macro-particle
                         // is considered, creare a form factor object
 #if (__COHERENTINCOHERENTWEIGHTING__==1)
                         const radFormFactor::radFormFactor myRadFormFactor;
@@ -408,9 +409,9 @@ void kernelRadiationParticles(ParBox pb,
 
                         /* Particle loop: thread runs through loaded particle data
                          *
-                         * Summation of Jackson radiation formula integrand 
-                         * over all electrons for fixed, thread-specific 
-                         * frequency 
+                         * Summation of Jackson radiation formula integrand
+                         * over all electrons for fixed, thread-specific
+                         * frequency
                          */
                         for (int j = 0; j < counter_s; ++j)
                         {
@@ -427,14 +428,14 @@ void kernelRadiationParticles(ParBox pb,
                                  ****************************************************/
 
 
-                                // if coherent/incoherent radiation of single macro-particle 
+                                // if coherent/incoherent radiation of single macro-particle
                                 // is considered
                                 // the form factor influences the real amplitude
 #if (__COHERENTINCOHERENTWEIGHTING__==1)
                                 const vec2 weighted_real_amp = real_amplitude_s[j] * precisionCast<float_64 >
                                     (myRadFormFactor(radWeighting_s[j], omega, look));
 #else
-                                // if coherent/incoherent radiation of single macro-particle 
+                                // if coherent/incoherent radiation of single macro-particle
                                 // is NOT considered
                                 // no change on real amplitude is performed
                                 const vec2 weighted_real_amp = real_amplitude_s[j];
@@ -476,12 +477,12 @@ void kernelRadiationParticles(ParBox pb,
                         /* First threads starts loading next frame of the super-cell:
                          *
                          * Info:
-                         *   The Calculation starts with the last super cell, all 
-                         *   other super cells before that are full and 
-                         *   therefore have Block::elements (=256) number of 
+                         *   The Calculation starts with the last super cell, all
+                         *   other super cells before that are full and
+                         *   therefore have elements in super cell (=256) number of
                          *   particles
                          */
-                        particlesInFrame = Block::elements;
+                        particlesInFrame = blockSize;
                         frame = &(pb.getPreviousFrame(*frame, isValid));
                         counter_s = 0;
                     }
@@ -526,7 +527,7 @@ private:
      * Object that stores the complex radiated amplitude on host and device.
      * Radiated amplitude is a function of theta (looking direction) and
      * frequency. Layout of the radiation array is:
-     * [omega_1(theta_1),omega_2(theta_1),...,omega_N-omega(theta_1), 
+     * [omega_1(theta_1),omega_2(theta_1),...,omega_N-omega(theta_1),
      *   omega_1(theta_2),omega_2(theta_2),...,omega_N-omega(theta_N-theta)]
      */
     GridBuffer<Amplitude, DIM1> *radiation;
@@ -553,7 +554,7 @@ private:
 
     /**
      * Data structure for storage and summation of the intermediate values of
-     * the calculated Amplitude from every host for every direction and 
+     * the calculated Amplitude from every host for every direction and
      * frequency.
      */
     Amplitude* timeSumArray;
@@ -598,10 +599,10 @@ public:
     }
 
     /**
-     * This function represents what is actually calculated if the analyzer 
-     * is called. Here, one only sets the particles pointer to the data of 
-     * the latest time step and calls the 'calculateRadiationParticles' 
-     * function if for the actual time step radiation is to be calculated. 
+     * This function represents what is actually calculated if the analyzer
+     * is called. Here, one only sets the particles pointer to the data of
+     * the latest time step and calls the 'calculateRadiationParticles'
+     * function if for the actual time step radiation is to be calculated.
      * @param currentStep
      */
     void notify(uint32_t currentStep)
@@ -620,7 +621,7 @@ public:
                 log<radLog::SIMULATION_STATE > ("radiation gets calculated: timestep %1% ") % currentStep;
 
                 /* CORE + BORDER is PIC black magic, currently not needed
-                 * 
+                 *
                  */
                 calculateRadiationParticles < CORE + BORDER > (currentStep);
 
@@ -662,14 +663,14 @@ public:
 private:
 
     /**
-     * The plugin is loaded on every host pc, and therefor this function is 
+     * The plugin is loaded on every host pc, and therefor this function is
      * executed on every host pc.
      * One host with MPI rank 0 is defined to be the master.
-     * It creates a folder where all the 
+     * It creates a folder where all the
      * results are saved and, depending on the type of radiation calculation,
-     * creates an additional data structure for the summation of all 
+     * creates an additional data structure for the summation of all
      * intermediate values.
-     * On every host data structure for storage of the calculated radiation 
+     * On every host data structure for storage of the calculated radiation
      * is created.       */
     void pluginLoad()
     {
@@ -745,15 +746,15 @@ private:
 
     /**
      * This function is called by the calculateRadiationParticles() function
-     * if storing of intermediate results is activated (dumpPeriod != 0) 
+     * if storing of intermediate results is activated (dumpPeriod != 0)
      * otherwise it is invoked by pluginUnload().
-     * 
+     *
      * On every host the calculated radiation (radiation from the particles
-     * on that device for all directions and frequencies) is transferred 
-     * from the gpu to the host, and then the data from all hosts is 
-     * combined on the master host. Hence, the emitted radiation of all 
-     * particles for every direction and step is available on the master 
-     * host. 
+     * on that device for all directions and frequencies) is transferred
+     * from the gpu to the host, and then the data from all hosts is
+     * combined on the master host. Hence, the emitted radiation of all
+     * particles for every direction and step is available on the master
+     * host.
      */
     void combineData(const DataSpace<simDim> currentGPUpos)
     {
@@ -838,8 +839,8 @@ private:
     }
 
     /**
-     * From the collected data from all hosts the radiated intensity is 
-     * calculated by calculating the absolute value squared and multiplying 
+     * From the collected data from all hosts the radiated intensity is
+     * calculated by calculating the absolute value squared and multiplying
      * this with with the appropriate physics constants.
      * @param values
      * @param name
@@ -859,7 +860,7 @@ private:
             {
                 for (unsigned index_omega = 0; index_omega < radiation_frequencies::N_omega; ++index_omega) // over all frequencies
                 {
-                    // Take Amplitude for one direction and frequency, 
+                    // Take Amplitude for one direction and frequency,
                     // calculate the square of the absolute value
                     // and write to file.
                     outFile <<
@@ -914,11 +915,11 @@ private:
     }
 
     /**
-     * This functions calls the radiation kernel. It specifies how the 
+     * This functions calls the radiation kernel. It specifies how the
      * calculation is parallelized.
      *      gridDim_rad is the number of Thread-Blocks in a grid
      *      blockDim_rad is the number of threads per block
-     * 
+     *
      * -----------------------------------------------------------
      * | Grid                                                    |
      * |   --------------   --------------                       |
@@ -928,12 +929,12 @@ private:
      * |   |th1    th2  |   |th1    th2  |                       |
      * |   --------------   --------------                       |
      * -----------------------------------------------------------
-     * 
-     * !!! The TEMPLATE parameter is not used anymore. 
+     *
+     * !!! The TEMPLATE parameter is not used anymore.
      * !!! But the calculations it is supposed to do is hard coded in the
      *     kernel.
      * !!! THIS NEEDS TO BE CHANGED !!!
-     * 
+     *
      * @param currentStep
      */
     template< uint32_t AREA> /*This Template Parameter is not used anymore*/
@@ -942,23 +943,23 @@ private:
         this->currentStep = currentStep;
 
         /* the parallelization is ONLY over directions:
-         * (a combinded parallelization over direction AND frequencies 
-         *  turned out to be slower on fermis (couple percent) and 
+         * (a combinded parallelization over direction AND frequencies
+         *  turned out to be slower on fermis (couple percent) and
          *  definitly slower on kepler k20)
          */
         const int N_observer = parameters::N_observer;
         const dim3 gridDim_rad(N_observer);
 
         /* number of threads per block = number of cells in a super cell
-         *          = number of particles in a Frame 
+         *          = number of particles in a Frame
          *          (THIS IS PIConGPU SPECIFIC)
-         * A Frame is the entity that stores particles. 
-         * A super cell can have many Frames. 
+         * A Frame is the entity that stores particles.
+         * A super cell can have many Frames.
          * Particles in a Frame can be accessed in parallel.
          * It has a fixed size of 256.
          */
 
-        const dim3 blockDim_rad(MappingDesc::SuperCellSize::elements);
+        const dim3 blockDim_rad(math::CT::volume<typename MappingDesc::SuperCellSize>::type::value);
 
 
         // std::cout<<"Grid: "<<gridDim_rad.x()<<" "<<gridDim_rad.y()<<" "<<gridDim_rad.z()<<std::endl;
@@ -984,9 +985,9 @@ private:
              /*Pointer to memory of radiated amplitude on the device*/
              radiation->getDeviceBuffer().getDataBox(),
              globalOffset,
-             currentStep, *cellDescription, 
+             currentStep, *cellDescription,
 	     freqFkt,
-	     simBox.getGlobalSize()	     
+	     simBox.getGlobalSize()
              );
 
         if (dumpPeriod != 0 && currentStep % dumpPeriod == 0)
