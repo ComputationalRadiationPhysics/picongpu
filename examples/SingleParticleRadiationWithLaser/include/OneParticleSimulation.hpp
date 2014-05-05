@@ -100,7 +100,7 @@ public:
         MappingDesc cellDescription = MappingDesc(layout.getDataSpace(), GUARD_SIZE, GUARD_SIZE);
 
         DataSpace<DIM3> centerXZPlan(halfSimSize);
-        centerXZPlan.y() = OneParticleOffset; //1380;//MappingDesc::SuperCellSize::y + 32;
+        centerXZPlan.y() = OneParticleOffset; //1380;//MappingDesc::SuperCellSize::y::value + 32;
 
         ParticlesInitOneParticle<PIC_Electrons>::addOneParticle(*(this->electrons),
                                                                 cellDescription,

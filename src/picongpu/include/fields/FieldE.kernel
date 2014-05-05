@@ -44,12 +44,12 @@ __global__ void kernelLaserE(EBox fieldE, LaserManipulator lMan)
     
     cellOffset.x() = (blockIdx.x * blockDim.x) + threadIdx.x;
     DataSpace<simDim> EFieldOffset;
-    EFieldOffset.x() = cellOffset.x() + (MappingDesc::SuperCellSize::x * GUARD_SIZE);
-    EFieldOffset.y() = MappingDesc::SuperCellSize::y*GUARD_SIZE;
+    EFieldOffset.x() = cellOffset.x() + (MappingDesc::SuperCellSize::x::value * GUARD_SIZE);
+    EFieldOffset.y() = MappingDesc::SuperCellSize::y::value*GUARD_SIZE;
 
 #if (SIMDIM==DIM3)
     cellOffset.z() = (blockIdx.y * blockDim.y) + threadIdx.y;
-    EFieldOffset.z() = cellOffset.z() + (MappingDesc::SuperCellSize::z * GUARD_SIZE);
+    EFieldOffset.z() = cellOffset.z() + (MappingDesc::SuperCellSize::z::value * GUARD_SIZE);
 #endif
 
     //uint32_t zOffset 

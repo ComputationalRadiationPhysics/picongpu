@@ -55,8 +55,8 @@ __global__ void kernelIntensity(FieldBox field, DataSpace<simDim> cellsCount, Bo
 {
 
     typedef MappingDesc::SuperCellSize SuperCellSize;
-    __shared__ float_X s_integrated[SuperCellSize::y];
-    __shared__ float_X s_max[SuperCellSize::y];
+    __shared__ float_X s_integrated[SuperCellSize::y::value];
+    __shared__ float_X s_max[SuperCellSize::y::value];
 
     __syncthreads(); /*wait that all shared memory is initialised*/
 
@@ -67,8 +67,8 @@ __global__ void kernelIntensity(FieldBox field, DataSpace<simDim> cellsCount, Bo
 
     PMACC_AUTO(s_field, CachedBox::create < 0, float> (SuperCell2D()));
 
-    int y = blockIdx.y * SuperCellSize::y + threadIdx.y;
-    int yGlobal = y + SuperCellSize::y;
+    int y = blockIdx.y * SuperCellSize::y::value + threadIdx.y;
+    int yGlobal = y + SuperCellSize::y::value;
     const DataSpace<DIM2> threadId(threadIdx);
 
     if (threadId.x() == 0)
@@ -80,10 +80,10 @@ __global__ void kernelIntensity(FieldBox field, DataSpace<simDim> cellsCount, Bo
     __syncthreads();
 
     /*move cell wise over z direction(without garding cells)*/
-    for (int z = GUARD_SIZE * SuperCellSize::z; z < cellsCount.z() - GUARD_SIZE * SuperCellSize::z; ++z)
+    for (int z = GUARD_SIZE * SuperCellSize::z::value; z < cellsCount.z() - GUARD_SIZE * SuperCellSize::z::value; ++z)
     {
         /*move supercell wise over x direction without guarding*/
-        for (int x = GUARD_SIZE * SuperCellSize::x + threadId.x(); x < cellsCount.x() - GUARD_SIZE * SuperCellSize::x; x += SuperCellSize::x)
+        for (int x = GUARD_SIZE * SuperCellSize::x::value + threadId.x(); x < cellsCount.x() - GUARD_SIZE * SuperCellSize::x::value; x += SuperCellSize::x::value)
         {
             const float3_X field_at_point(field(DataSpace<DIM3 > (x, yGlobal, z)));
             s_field(threadId) = math::abs2(field_at_point);
@@ -91,7 +91,7 @@ __global__ void kernelIntensity(FieldBox field, DataSpace<simDim> cellsCount, Bo
             if (threadId.x() == 0)
             {
                 /*master threads moves cell wise over 2D supercell*/
-                for (int x_local = 0; x_local < SuperCellSize::x; ++x_local)
+                for (int x_local = 0; x_local < SuperCellSize::x::value; ++x_local)
                 {
                     DataSpace<DIM2> localId(x_local, threadId.y());
                     s_integrated[threadId.y()] += s_field(localId);
