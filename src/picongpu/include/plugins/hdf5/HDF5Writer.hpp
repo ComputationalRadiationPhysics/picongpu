@@ -50,7 +50,7 @@
 #include "dimensions/GridLayout.hpp"
 #include "pluginSystem/PluginConnector.hpp"
 #include "simulationControl/MovingWindow.hpp"
-#include "dimensions/TVec.h"
+#include "math/vector/compile-time/Int.hpp"
 
 #include "plugins/ISimulationPlugin.hpp"
 #include <boost/mpl/vector.hpp>

@@ -26,7 +26,7 @@
 #include "types.h"
 #include "dimensions/DataSpace.hpp"
 #include "memory/dataTypes/Mask.hpp"
-#include "dimensions/TVec.h"
+#include "math/vector/compile-time/Int.hpp"
 
 namespace PMacc
 {

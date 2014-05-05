@@ -33,7 +33,7 @@
 #include "eventSystem/EventSystem.hpp"
 #include "particles/memory/dataTypes/SuperCell.hpp"
 
-#include "dimensions/TVec.h"
+#include "math/vector/compile-time/Int.hpp"
 
 #include "particles/boostExtension/InheritGenerators.hpp"
 #include "compileTime/conversion/MakeSeq.hpp"

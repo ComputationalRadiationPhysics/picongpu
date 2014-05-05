@@ -46,8 +46,8 @@ namespace gol
 class Simulation
 {
 private:
-    /* TVec<16,16> is arbitrarily chosen SuperCellSize! */
-    typedef MappingDescription<DIM2, TVec < 16, 16 > > MappingDesc;
+    /* math::CT::Int<16,16> is arbitrarily chosen SuperCellSize! */
+    typedef MappingDescription<DIM2, math::CT::Int< 16, 16 > > MappingDesc;
     typedef Evolution<MappingDesc> Evolutiontype;
 
     Space gridSize;
@@ -115,8 +115,8 @@ public:
         PMACC_AUTO(simBox, Environment<DIM2>::get().SubGrid().getSimulationBox());
 
         /* Recall that in types.hpp the following is defined:                 *
-         *     typedef MappingDescription<DIM2, TVec<16,16> > MappingDesc;    *
-         * where TVec<16,16> is arbitrarily(!) chosen SuperCellSize and DIM2  *
+         *     typedef MappingDescription<DIM2, math::CT::Int<16,16> > MappingDesc;    *
+         * where math::CT::Int<16,16> is arbitrarily(!) chosen SuperCellSize and DIM2  *
          * is the dimension of the grid.                                      *
          * Expression of 2nd argument translates to DataSpace<DIM3>(16,16,0). *
          * This is the guard size (here set to be one Supercell wide in all   *

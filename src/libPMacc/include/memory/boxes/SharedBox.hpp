@@ -22,7 +22,7 @@
 #pragma once
 
 #include "types.h"
-#include "dimensions/TVec.h"
+#include "math/vector/compile-time/Int.hpp"
 
 
 #include <cuSTL/cursor/compile-time/BufferCursor.hpp>    
@@ -36,7 +36,7 @@ template<typename TYPE, class TVector>
 class SharedBox;
 
 template<typename TYPE, uint32_t _X_>
-class SharedBox<TYPE, TVec<_X_> >
+class SharedBox<TYPE, math::CT::Int<_X_> >
 {
 public:
 
@@ -46,7 +46,7 @@ public:
     };
     typedef TYPE ValueType;
     typedef ValueType& RefValueType;
-    typedef SharedBox<TYPE, TVec<_X_> > ReducedType;
+    typedef SharedBox<TYPE, math::CT::Int<_X_> > ReducedType;
 
     HDINLINE RefValueType operator[](const int idx)
     {
@@ -82,11 +82,11 @@ public:
     }
 
     /*this call synchronize a block and must called from any thread and not inside a if clauses*/
-    static DINLINE SharedBox<TYPE, TVec<_X_> > init()
+    static DINLINE SharedBox<TYPE, math::CT::Int<_X_> > init()
     {
         __shared__ TYPE mem_sh[_X_];
         __syncthreads(); /*wait that all shared memory is initialised*/
-        return SharedBox<TYPE, TVec<_X_> >((TYPE*) mem_sh);
+        return SharedBox<TYPE, math::CT::Int<_X_> >((TYPE*) mem_sh);
     }
 
 protected:
@@ -95,7 +95,7 @@ protected:
 };
 
 template<typename TYPE, uint32_t _X_, uint32_t _Y_>
-class SharedBox<TYPE, TVec<_X_, _Y_> >
+class SharedBox<TYPE, math::CT::Int<_X_, _Y_> >
 {
 public:
 
@@ -105,7 +105,7 @@ public:
     };
     typedef TYPE ValueType;
     typedef ValueType& RefValueType;
-    typedef SharedBox<TYPE, TVec<_X_> > ReducedType;
+    typedef SharedBox<TYPE, math::CT::Int<_X_> > ReducedType;
 
     HDINLINE SharedBox(TYPE* pointer = NULL) :
     fixedPointer(pointer)
@@ -136,11 +136,11 @@ public:
     }
 
     /*this call synchronize a block and must called from any thread and not inside a if clauses*/
-    static DINLINE SharedBox<TYPE, TVec<_X_, _Y_> > init()
+    static DINLINE SharedBox<TYPE, math::CT::Int<_X_, _Y_> > init()
     {
         __shared__ TYPE mem_sh[_Y_][_X_];
         __syncthreads(); /*wait that all shared memory is initialised*/
-        return SharedBox<TYPE, TVec<_X_, _Y_> >((TYPE*) mem_sh);
+        return SharedBox<TYPE, math::CT::Int<_X_, _Y_> >((TYPE*) mem_sh);
     }
 
     HDINLINE PMacc::cursor::CT::BufferCursor<TYPE, ::PMacc::math::CT::Int<sizeof (TYPE) * _X_> >
@@ -156,7 +156,7 @@ protected:
 };
 
 template<typename TYPE, uint32_t _X_, uint32_t _Y_, uint32_t _Z_>
-class SharedBox<TYPE, TVec<_X_, _Y_, _Z_> >
+class SharedBox<TYPE, math::CT::Int<_X_, _Y_, _Z_> >
 {
 public:
 
@@ -166,7 +166,7 @@ public:
     };
     typedef TYPE ValueType;
     typedef ValueType& RefValueType;
-    typedef SharedBox<TYPE, TVec<_X_, _Y_> > ReducedType;
+    typedef SharedBox<TYPE, math::CT::Int<_X_, _Y_> > ReducedType;
 
     HDINLINE ReducedType operator[](const int idx)
     {
@@ -206,11 +206,11 @@ public:
     }
 
     /*this call synchronize a block and must called from any thread and not inside a if clauses*/
-    static DINLINE SharedBox<TYPE, TVec<_X_, _Y_, _Z_> > init()
+    static DINLINE SharedBox<TYPE, math::CT::Int<_X_, _Y_, _Z_> > init()
     {
         __shared__ TYPE mem_sh[_Z_][_Y_][_X_];
         __syncthreads(); /*wait that all shared memory is initialised*/
-        return SharedBox<TYPE, TVec<_X_, _Y_, _Z_> >((TYPE*) mem_sh);
+        return SharedBox<TYPE, math::CT::Int<_X_, _Y_, _Z_> >((TYPE*) mem_sh);
     }
 
 protected:

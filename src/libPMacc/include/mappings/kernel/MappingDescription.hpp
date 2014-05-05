@@ -19,8 +19,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MAPPINGDESCRIPTION_H
-#define	MAPPINGDESCRIPTION_H
+#pragma once
 
 #include <builtin_types.h>
 #include <stdexcept>
@@ -29,6 +28,7 @@
 #include "mappings/simulation/GridController.hpp"
 #include "dimensions/GridLayout.hpp"
 #include "mappings/kernel/CudaGridDimRestrictions.hpp"
+#include "math/vector/compile-time/Int.hpp"
 
 namespace PMacc
 {
@@ -126,10 +126,4 @@ protected:
 
 };
 
-
 } // namespace PMacc
-
-
-
-#endif	/* MappingDescription_H */
-

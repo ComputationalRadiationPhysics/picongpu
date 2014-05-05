@@ -25,7 +25,7 @@
 #include "simulation_defines.hpp"
 #include "types.h"
 
-#include "dimensions/TVec.h"
+#include "math/vector/compile-time/Int.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
 
@@ -34,7 +34,7 @@
 #include "particles/memory/boxes/ParticlesBox.hpp"
 
 #include "dataManagement/DataConnector.hpp"
-#include "dimensions/TVec.h"
+#include "math/vector/compile-time/Int.hpp"
 
 #include "memory/boxes/DataBox.hpp"
 #include "memory/boxes/SharedBox.hpp"

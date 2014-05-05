@@ -21,7 +21,7 @@
 #ifndef FIELDE_KERNEL
 #define	FIELDE_KERNEL
 
-#include "dimensions/TVec.h"
+#include "math/vector/compile-time/Int.hpp"
 #include "fields/LaserPhysics.hpp"
 
 #include "simulation_classTypes.hpp"

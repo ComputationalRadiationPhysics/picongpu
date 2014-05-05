@@ -40,7 +40,7 @@
 #include "fields/FieldE.hpp"
 #include "memory/boxes/CachedBox.hpp"
 #include "basicOperations.hpp"
-#include "dimensions/TVec.h"
+#include "math/vector/compile-time/Int.hpp"
 #include "dimensions/SuperCellDescription.hpp"
 
 namespace picongpu

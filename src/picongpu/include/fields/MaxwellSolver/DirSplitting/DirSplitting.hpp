@@ -23,7 +23,7 @@
 #include "DirSplitting.def"
 
 #include "simulation_defines.hpp"
-#include "dimensions/TVec.h"
+#include "math/vector/compile-time/Int.hpp"
 
 #include <fields/MaxwellSolver/DirSplitting/DirSplitting.kernel>
 #include <math/vector/Int.hpp>
