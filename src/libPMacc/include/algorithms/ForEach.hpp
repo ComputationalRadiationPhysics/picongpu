@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -8,6 +8,7 @@
  * the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ *
  * libPMacc is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -73,7 +74,7 @@ namespace algorithms
  */
 #define PMACC_FOREACH_OPERATOR_NO_USAGE(Z, N, PMACC_PP_CONST)                  \
     PMACC_NO_NVCC_HDWARNING                                                    \
-    /* if N != 0 we add ```template<``` */                                     \
+    /* if N != 0 we add `template<` */                                         \
     BOOST_PP_IF(BOOST_PP_NOT_EQUAL(N,0),template<,BOOST_PP_EMPTY())            \
     /*      <typename T0, ... , typename TN     > */                           \
     BOOST_PP_ENUM_PARAMS(N, typename T)                                        \
@@ -93,7 +94,7 @@ namespace algorithms
  */
 #define PMACC_FOREACH_OPERATOR(Z, N, PMACC_PP_CONST)                           \
     PMACC_NO_NVCC_HDWARNING                                                    \
-    /* if N != 0 we add ```template<``` */                                     \
+    /* if N != 0 we add `template<` */                                         \
     BOOST_PP_IF(BOOST_PP_NOT_EQUAL(N,0),template<,BOOST_PP_EMPTY())            \
     /* typename T0, ... , typename TN      */                                  \
     BOOST_PP_ENUM_PARAMS(N, typename T)                                        \
