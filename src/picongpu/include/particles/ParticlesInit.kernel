@@ -1,21 +1,21 @@
 /**
  * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 #pragma once
@@ -46,7 +46,7 @@ using namespace PMacc;
  *     The REAL number of electrons density in units of volume**-3,
  *       normed to UNIT_LENGHT**3
  *     That is NOT the macro electron density.
- * 
+ *
  * @param offset The gpu offset (left top front cell in 3D)
  * @param cellIdx the current cell on this gpu
  * @return a float_X which stands for the real number of electrons per volume
@@ -99,10 +99,10 @@ __global__ void kernelFillGridWithParticles(ParBox pb,
         if (block[d] == 0 || block[d] == superCells[d] - 1) return;
 
     /*get local cell idx*/
-    const DataSpace<simDim> idx(superCellIdx * SuperCellSize() + threadIndex);
+    const DataSpace<simDim> idx(superCellIdx * SuperCellSize::toRT() + threadIndex);
 
     /*delete garding cells \todo: what is if we have more than one block guarding cells*/
-    const DataSpace<simDim> localCellIdx = idx - SuperCellSize::getDataSpace();
+    const DataSpace<simDim> localCellIdx = idx - SuperCellSize::toRT();
     /*global position in simulation units (meter)*/
     const float_X yPos = (localCellIdx.y() + gpuCelloffset.y()) * CELL_HEIGHT;
 
@@ -124,7 +124,7 @@ __global__ void kernelFillGridWithParticles(ParBox pb,
     }
 
     const uint32_t cellIdx = DataSpaceOperations<simDim>::map(
-                                                              mapper.getGridSuperCells() * SuperCellSize(),
+                                                              mapper.getGridSuperCells() * SuperCellSize::toRT(),
                                                               idx);
     PMACC_AUTO(rng, nvrng::create(rngMethods::Xor(seed, cellIdx), rngDistributions::Uniform_float()));
 
@@ -191,7 +191,7 @@ __global__ void kernelFillGridWithParticles(ParBox pb,
 #if(ENABLE_RADIATION == 1)
             particle[momentumPrev1_] = momentumPrev1::getDefaultValue();
 #if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
-#if(RAD_MARK_PARTICLE==0) 
+#if(RAD_MARK_PARTICLE==0)
             //if we need gamma filter but no mark particles at begin of simulation we set all to false
             particle[radiationFlag_] = radiationFlag::getDefaultValue();
 #else

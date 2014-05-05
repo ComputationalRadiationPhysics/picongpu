@@ -127,7 +127,7 @@ void kernelRadiationParticles(ParBox pb,
      * for all frequencies
      */
 
-    const int blockSize=math::CT::volume<Block>::type::value;
+    const int blockSize=PMacc::math::CT::volume<Block>::type::value;
     // vectorial part of the integrand in the Jackson formula
     __shared__ vec2 real_amplitude_s[blockSize];
 
@@ -188,7 +188,7 @@ void kernelRadiationParticles(ParBox pb,
                 const DataSpace<DIM3> superCell(x, y, z); // select SuperCell
                 const DataSpace<simDim> superCellOffset(globalOffset
                                                         + ((superCell - guardingSuperCells)
-                                                           * Block::getDataSpace()));
+                                                           * Block::toRT()));
                 // -guardingSuperCells remove guarding block
 
                 /*
@@ -959,7 +959,7 @@ private:
          * It has a fixed size of 256.
          */
 
-        const dim3 blockDim_rad(math::CT::volume<typename MappingDesc::SuperCellSize>::type::value);
+        const dim3 blockDim_rad(PMacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value);
 
 
         // std::cout<<"Grid: "<<gridDim_rad.x()<<" "<<gridDim_rad.y()<<" "<<gridDim_rad.z()<<std::endl;

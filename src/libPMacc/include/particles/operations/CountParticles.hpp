@@ -108,7 +108,7 @@ struct CountParticles
     {
         GridBuffer<uint64_cu, DIM1> counter(DataSpace<DIM1>(1));
 
-        dim3 block(CellDesc::SuperCellSize::getDataSpace());
+        dim3 block(CellDesc::SuperCellSize::toRT().toDim3());
 
         AreaMapping<AREA, CellDesc> mapper(cellDescription);
 

@@ -73,7 +73,7 @@ private:
                 > BlockArea;
 
         __picKernelArea((kernelUpdateE<BlockArea, CurlB>), cellDescription, AREA)
-                (SuperCellSize::getDataSpace())
+                (SuperCellSize::toRT().toDim3())
                 (this->fieldE->getDeviceDataBox(), this->fieldB->getDeviceDataBox());
     }
 
@@ -87,7 +87,7 @@ private:
                 > BlockArea;
 
         __picKernelArea((kernelUpdateBHalf<BlockArea, CurlE>), cellDescription, AREA)
-                (SuperCellSize::getDataSpace())
+                (SuperCellSize::toRT().toDim3())
                 (this->fieldB->getDeviceDataBox(),
                 this->fieldE->getDeviceDataBox());
     }

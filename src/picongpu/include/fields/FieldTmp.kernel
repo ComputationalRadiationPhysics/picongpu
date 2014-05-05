@@ -83,19 +83,19 @@ namespace picongpu
         {
             if( linearThreadIdx < particlesInSuperCell )
             {
-                frameSolver( *frame, linearThreadIdx, SuperCellSize(), cachedVal );
+                frameSolver( *frame, linearThreadIdx, SuperCellSize::toRT(), cachedVal );
             }
             __syncthreads( );
             if( linearThreadIdx == 0 )
             {
                 frame = &( boxPar.getPreviousFrame( *frame, isValid ) );
-                particlesInSuperCell = math::CT::volume<SuperCellSize>::type::value;
+                particlesInSuperCell = PMacc::math::CT::volume<SuperCellSize>::type::value;
             }
             __syncthreads( );
         }
 
         nvidia::functors::Add add;
-        const DataSpace<simDim> blockCell = block * MappingDesc::SuperCellSize::getDataSpace( );
+        const DataSpace<simDim> blockCell = block * MappingDesc::SuperCellSize::toRT( );
         PMACC_AUTO( fieldTmpBlock, fieldTmp.shift( blockCell ) );
         collectiv( add, fieldTmpBlock, cachedVal );
         __syncthreads( );
@@ -111,14 +111,14 @@ namespace picongpu
         const DataSpace<Mapping::Dim> threadIndex(threadIdx);
         const DataSpace<simDim> blockCell(
                                            mapper.getSuperCellIndex( DataSpace<simDim > ( blockIdx ) )
-                                           * Mapping::SuperCellSize::getDataSpace( )
+                                           * Mapping::SuperCellSize::toRT( )
                                            );
         const DataSpace<Mapping::Dim> sourceCell( blockCell + threadIndex );
 
         /*origin in area from local GPU*/
         DataSpace<simDim> nullSourceCell(
                                           mapper.getSuperCellIndex( DataSpace<simDim > ( ) )
-                                          * Mapping::SuperCellSize::getDataSpace( )
+                                          * Mapping::SuperCellSize::toRT( )
                                           );
         DataSpace<simDim> targetCell( sourceCell - nullSourceCell );
 
@@ -144,14 +144,14 @@ namespace picongpu
         const DataSpace<Mapping::Dim> threadIndex(threadIdx);
         const DataSpace<simDim> blockCell(
                                            mapper.getSuperCellIndex( DataSpace<simDim > ( blockIdx ) )
-                                           * Mapping::SuperCellSize::getDataSpace( )
+                                           * Mapping::SuperCellSize::toRT( )
                                            );
         DataSpace<Mapping::Dim> targetCell( blockCell + threadIndex );
 
         /*origin in area from local GPU*/
         DataSpace<simDim> nullSourceCell(
                                           mapper.getSuperCellIndex( DataSpace<simDim > ( ) )
-                                          * Mapping::SuperCellSize::getDataSpace( )
+                                          * Mapping::SuperCellSize::toRT( )
                                           );
         DataSpace<simDim> sourceCell( targetCell - nullSourceCell );
 

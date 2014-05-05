@@ -107,8 +107,6 @@ public:
         /* count total number of particles on the device */
         uint64_cu totalNumParticles = 0;
 
-        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
-
         log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) count particles: %1%") % Hdf5FrameType::getName();
         totalNumParticles = PMacc::CountParticles::countOnDevice < CORE + BORDER > (
                                                                                     *speciesTmp,
@@ -144,7 +142,6 @@ public:
             filter.setWindowPosition(domInfo.localDomainOffset, domInfo.domainSize);
 
             dim3 block(TILE_SIZE);
-            DataSpace<simDim> superCells = speciesTmp->getParticlesBuffer().getSuperCellsCount();
 
             GridBuffer<int, DIM1> counterBuffer(DataSpace<DIM1>(1));
             AreaMapping < CORE + BORDER, MappingDesc > mapper(*(params.get()->cellDescription));

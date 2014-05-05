@@ -110,7 +110,7 @@ ComputeGridValuePerFrame<T_ParticleShape, calcType>::operator()
     const float_X charge = frame.getCharge(weighting);
 
     const int particleCellIdx = particle[localCellIdx_];
-    const DataSpace<TVecSuperCell::dim> localCell(DataSpaceOperations<TVecSuperCell::dim>::template map<TVecSuperCell > (particleCellIdx));
+    const DataSpace<TVecSuperCell::dim> localCell(DataSpaceOperations<TVecSuperCell::dim>::map(superCell,particleCellIdx));
 
     Gamma<float_X> calcGamma;
     const typename Gamma<float_X>::valueType gamma = calcGamma(mom, mass);

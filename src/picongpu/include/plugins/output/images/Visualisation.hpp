@@ -1,21 +1,21 @@
 /**
  * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Felix Schmitt
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 
@@ -228,11 +228,11 @@ __global__ void kernelPaintFields(
     typedef typename MappingDesc::SuperCellSize Block;
     const DataSpace<simDim> threadId(threadIdx);
     const DataSpace<simDim> block = mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx));
-    const DataSpace<simDim> cell(block * Block::getDataSpace() + threadId);
-    const DataSpace<simDim> blockOffset((block - mapper.getGuardingSuperCells()) * Block::getDataSpace());
+    const DataSpace<simDim> cell(block * Block::toRT() + threadId);
+    const DataSpace<simDim> blockOffset((block - mapper.getGuardingSuperCells()) * Block::toRT());
 
 
-    const DataSpace<simDim> realCell(cell - MappingDesc::SuperCellSize::getDataSpace() * mapper.getGuardingSuperCells()); //delete guard from cell idx
+    const DataSpace<simDim> realCell(cell - MappingDesc::SuperCellSize::toRT() * mapper.getGuardingSuperCells()); //delete guard from cell idx
     const DataSpace<DIM2> imageCell(
                                     realCell[transpose.x()],
                                     realCell[transpose.y()]);
@@ -319,10 +319,10 @@ kernelPaintParticles3D(ParBox pb,
     const DataSpace<simDim> threadId(threadIdx);
     const DataSpace<DIM2> localCell(threadId[transpose.x()], threadId[transpose.y()]);
     const DataSpace<simDim> block = mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx));
-    const DataSpace<simDim> blockOffset((block - 1) * Block::getDataSpace());
+    const DataSpace<simDim> blockOffset((block - 1) * Block::toRT());
 
 
-    int localId = threadIdx.z * Block::x * Block::y + threadIdx.y * Block::x + threadIdx.x;
+    int localId = threadIdx.z * Block::x::value * Block::y::value + threadIdx.y * Block::x::value + threadIdx.x;
 
 
     if (localId == 0)
@@ -494,7 +494,7 @@ public:
             sliceDim = 1;
         if ((transpose.x() == 1 || transpose.y() == 1) && sliceDim == 1)
             sliceDim = 2;
-        
+
         Environment<>::get().PluginConnector().registerPlugin(this);
         Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
     }
@@ -506,7 +506,7 @@ public:
             __delete(img);
         }
     }
-    
+
     std::string pluginGetName() const
     {
         return "Visualisation";
@@ -549,12 +549,12 @@ public:
 #if(SIMDIM==DIM3)
         globalOffset = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset()[sliceDim];
 #endif
-        
+
         typedef MappingDesc::SuperCellSize SuperCellSize;
         assert(cellDescription != NULL);
         //create image fields
         __picKernelArea((kernelPaintFields), *cellDescription, CORE + BORDER)
-            (SuperCellSize::getDataSpace())
+            (SuperCellSize::toRT().toDim3())
             (fieldE->getDeviceDataBox(),
              fieldB->getDeviceDataBox(),
              fieldJ->getDeviceDataBox(),
@@ -590,8 +590,8 @@ public:
         max.z() = float_X(1.0);
 #endif
 
-        //We don't know the superCellSize at compile time 
-        // (because of the runtime dimension selection in any analyser), 
+        //We don't know the superCellSize at compile time
+        // (because of the runtime dimension selection in any analyser),
         // thus we must use a one dimension kernel and no mapper
         __cudaKernel(vis_kernels::divideAnyCell)(ceil((double) elements / 256), 256)(d1access, elements, max);
 #endif
@@ -600,12 +600,12 @@ public:
         __cudaKernel(vis_kernels::channelsToRGB)(ceil((double) elements / 256), 256)(d1access, elements);
 
         // add density color channel
-        DataSpace<simDim> blockSize(MappingDesc::SuperCellSize::getDataSpace());
+        DataSpace<simDim> blockSize(MappingDesc::SuperCellSize::toRT());
         DataSpace<DIM2> blockSize2D(blockSize[transpose.x()], blockSize[transpose.y()]);
 
         //create image particles
         __picKernelArea((kernelPaintParticles3D), *cellDescription, CORE + BORDER)
-            (SuperCellSize::getDataSpace(), blockSize2D.productOfComponents() * sizeof (int))
+            (SuperCellSize::toRT().toDim3(), blockSize2D.productOfComponents() * sizeof (int))
             (particles->getDeviceParticlesBox(),
              img->getDeviceBuffer().getDataBox(),
              transpose,
@@ -657,7 +657,7 @@ public:
             float_32 cellSizeArr[3]={0,0,0};
             for(uint32_t i=0;i<simDim;++i)
                 cellSizeArr[i]= cellSize[i];
-            
+
             header.update(*cellDescription, window, transpose, 0, cellSizeArr, gpus);
 
             img = new GridBuffer<float3_X, DIM2 > (header.node.maxSize);
@@ -668,7 +668,7 @@ public:
 
         }
     }
-    
+
     void pluginRegisterHelp(po::options_description& desc)
     {
         // nothing to do here

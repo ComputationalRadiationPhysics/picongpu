@@ -138,9 +138,9 @@ __global__ void kernelAddTemperature(ParticlesBox<FRAME, simDim> pb, float_X ene
                                                                          mapper.getGridSuperCells(),
                                                                          superCellIdx);
 
-    const DataSpace<simDim> idx(superCellIdx * SuperCellSize() + threadIndex);
+    const DataSpace<simDim> idx(superCellIdx * SuperCellSize::toRT() + threadIndex);
     const uint32_t cellIdx = DataSpaceOperations<simDim>::map(
-                                                              mapper.getGridSuperCells() * SuperCellSize(),
+                                                              mapper.getGridSuperCells() * SuperCellSize::toRT(),
                                                               idx);
     PMACC_AUTO(rng, nvrng::create(rngMethods::Xor(seed, cellIdx), rngDistributions::Normal_float()));
 
@@ -222,7 +222,7 @@ __global__ void kernelSetDrift(ParBox pb,
                                                                          mapper.getGridSuperCells(),
                                                                          superCellIdx);
 
-    const DataSpace<simDim> idx(superCellIdx * SuperCellSize() + threadIndex);
+    const DataSpace<simDim> idx(superCellIdx * SuperCellSize::toRT() + threadIndex);
 
     __syncthreads();
 
@@ -249,7 +249,7 @@ __global__ void kernelSetDrift(ParBox pb,
             else
             {
                 // get cells global y position
-                const DataSpace<simDim> cellIdx = idx - SuperCellSize::getDataSpace();
+                const DataSpace<simDim> cellIdx = idx - SuperCellSize::toRT();
                 const float_X yPos = (cellIdx.y() + offsetY) * CELL_HEIGHT;
 
                 // inverse flow area
@@ -325,7 +325,7 @@ __global__ void kernelMoveAndMarkParticles(ParBox pb,
     const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
 
 
-    const DataSpace<simDim> blockCell = block * SuperCellSize::getDataSpace();
+    const DataSpace<simDim> blockCell = block * SuperCellSize::toRT();
 
 
 
@@ -377,7 +377,7 @@ __global__ void kernelMoveAndMarkParticles(ParBox pb,
             frameSolver(*frame, linearThreadIdx, cachedB, cachedE, mustShift);
         }
         frame = &(pb.getPreviousFrame(*frame, isValid));
-        particlesInSuperCell = math::CT::volume<SuperCellSize>::type::value;
+        particlesInSuperCell = PMacc::math::CT::volume<SuperCellSize>::type::value;
 
     }
     __syncthreads();
@@ -487,7 +487,7 @@ struct PushParticlePerFrame
          * if particle is inside of the supercell the **unsigned** representation
          * of dir is always >= size of the supercell
          */
-        dir = precisionCast<int>(precisionCast<uint32_t >(localCell) >= precisionCast<uint32_t >(TVec::getDataSpace())) * dir;
+        dir = precisionCast<int>(precisionCast<uint32_t >(localCell) >= precisionCast<uint32_t >(TVec::toRT())) * dir;
 
         /* if partice is outside of the supercell we use mod to
          * set particle at cell supercellSize to 1
@@ -505,7 +505,7 @@ struct PushParticlePerFrame
          * y=superCell_size if dir==+1
          * for dir 0 localCel is not changed
          */
-        localCell -= (dir * TVec::getDataSpace());
+        localCell -= (dir * TVec::toRT());
         /*calculate one dimensional cell index*/
         particle[localCellIdx_] = DataSpaceOperations<TVec::dim>::template map<TVec > (localCell);
 

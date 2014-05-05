@@ -1,23 +1,23 @@
 /**
  * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 
 #ifndef LINESLICEFIELDS_HPP
@@ -72,7 +72,7 @@ namespace picongpu
         __syncthreads();
 
         // GPU-local cell id with lower GPU-local guarding
-        const DataSpace<simDim> localCell(superCellIdx * SuperCellSize() + threadIndex);
+        const DataSpace<simDim> localCell(superCellIdx * SuperCellSize::toRT() + threadIndex);
 
         const float3_X b = fieldB(localCell);
         const float3_X e = fieldE(localCell);
@@ -80,7 +80,7 @@ namespace picongpu
         // GPU-local cell id without lower GPU-local guarding
         const DataSpace<simDim> localCellWG(
                 localCell
-                - SuperCellSize::getDataSpace() * mapper.getGuardingSuperCells());
+                - SuperCellSize::toRT() * mapper.getGuardingSuperCells());
         // global cell id
         const DataSpace<simDim> globalCell = localCellWG + globalCellIdOffset;
 
@@ -136,14 +136,14 @@ namespace picongpu
 
             const int rank = Environment<simDim>::get().GridController().getGlobalRank();
             getLineSliceFields < CORE + BORDER > ();
-            
+
             PMACC_AUTO(simBox,Environment<simDim>::get().SubGrid().getSimulationBox());
-            
+
 
             // number of cells on the current CPU for each direction
             const DataSpace<simDim> nrOfGpuCells = cellDescription->getGridLayout().getDataSpaceWithoutGuarding();
 
-            
+
             // global cell id offset (without guardings!)
             // returns the global id offset of the "first" border cell on a GPU
             const DataSpace<simDim> globalCellIdOffset(simBox.getGlobalOffset());
@@ -246,7 +246,7 @@ namespace picongpu
 
             const float3_X tmpFloat3(float3_X(float_X(0.0), float_X(0.0), float_X(0.0)));
             sliceDataField->getDeviceBuffer().setValue(tmpFloat3);
-            dim3 block(SuperCellSize::getDataSpace());
+            dim3 block(SuperCellSize::toRT().toDim3());
 
             PMACC_AUTO(simBox,Environment<simDim>::get().SubGrid().getSimulationBox());
             // global cell id offset (without guardings!)

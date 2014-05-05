@@ -83,7 +83,7 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
 
 
     typedef typename Mapping::SuperCellSize SuperCellSize;
-    const int threads = math::CT::volume<SuperCellSize>::type::value;
+    const int threads = PMacc::math::CT::volume<SuperCellSize>::type::value;
 
     const DataSpace<simDim > threadIndex(threadIdx);
     const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
@@ -181,7 +181,7 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
         if (linearThreadIdx == 0)
         {
             frame = &(pb.getPreviousFrame(*frame, isValid));
-            particlesInSuperCell = math::CT::volume<Block>::type::value;
+            particlesInSuperCell = PMacc::math::CT::volume<Block>::type::value;
         }
         __syncthreads();
     }
@@ -349,7 +349,7 @@ private:
     void calBinEnergyParticles(uint32_t currentStep)
     {
         gBins->getDeviceBuffer().setValue(0);
-        dim3 block(MappingDesc::SuperCellSize::getDataSpace());
+        dim3 block(MappingDesc::SuperCellSize::toRT().toDim3());
 
         /** Assumption: distanceToDetector >> simulated Area in y-Direction
          *          AND     simulated area in X,Z << slit  */

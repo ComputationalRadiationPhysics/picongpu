@@ -236,7 +236,7 @@ void FieldJ::addCurrentToE( )
     __picKernelArea( ( kernelAddCurrentToE ),
                      cellDescription,
                      AREA )
-        ( MappingDesc::SuperCellSize::getDataSpace( ) )
+        ( MappingDesc::SuperCellSize::toRT( ).toDim3() )
         ( this->fieldE->getDeviceDataBox( ),
           this->fieldJ.getDeviceBuffer( ).getDataBox( ) );
 }
