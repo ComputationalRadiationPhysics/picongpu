@@ -62,7 +62,7 @@ namespace picongpu
 {
   namespace rad_frequencies_from_list
   {
-    const unsigned int blocksize_omega = math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
+    const unsigned int blocksize_omega = PMacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
     const unsigned int gridsize_omega = N_omega / blocksize_omega; // size of grid (dim: x); radiation
   }
 }

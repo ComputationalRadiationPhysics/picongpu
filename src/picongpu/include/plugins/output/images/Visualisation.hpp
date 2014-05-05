@@ -544,7 +544,6 @@ public:
         FieldJ* fieldJ = &(dc.getData<FieldJ > (FieldJ::getName(), true));
         ParticlesType* particles = &(dc.getData<ParticlesType > (particleTag, true));
 
-        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
         uint32_t globalOffset = 0;
 #if(SIMDIM==DIM3)
         globalOffset = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset()[sliceDim];

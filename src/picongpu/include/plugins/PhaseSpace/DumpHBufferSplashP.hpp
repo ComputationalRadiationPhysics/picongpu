@@ -89,7 +89,6 @@ namespace picongpu
             pdc.open( filename.str().c_str(), fAttr );
 
             /** calculate global size of the phase space **********************/
-            PMacc::SubGrid<simDim>& sg = Environment<simDim>::get().SubGrid();
             PMACC_AUTO( simBox, Environment<simDim>::get().SubGrid().getSimulationBox( ) );
             const size_t rOffset = simBox.getGlobalOffset()[axis_element.first];
             const size_t rSize = simBox.getGlobalSize()[axis_element.first];
