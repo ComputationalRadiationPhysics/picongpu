@@ -53,7 +53,7 @@ namespace gol
             PMACC_AUTO(cache, CachedBox::create < 0, Type > (BlockArea()));
 
             const Space block(mapper.getSuperCellIndex(Space(blockIdx)));
-            const Space blockCell = block * Mapping::SuperCellSize();
+            const Space blockCell = block * Mapping::SuperCellSize::toRT();
             const Space threadIndex(threadIdx);
             PMACC_AUTO(buffRead_shifted, buffRead.shift(blockCell));
 
@@ -90,11 +90,11 @@ namespace gol
             /* get position in grid in units of SuperCells from blockID */
             const Space block(mapper.getSuperCellIndex(Space(blockIdx)));
             /* convert position in unit of cells */
-            const Space blockCell = block * Mapping::SuperCellSize();
+            const Space blockCell = block * Mapping::SuperCellSize::toRT();
             /* convert CUDA dim3 to DataSpace<DIM3> */
             const Space threadIndex(threadIdx);
             const uint32_t cellIdx = DataSpaceOperations<DIM2>::map(
-                    mapper.getGridSuperCells() * Mapping::SuperCellSize(),
+                    mapper.getGridSuperCells() * Mapping::SuperCellSize::toRT(),
                     blockCell + threadIndex);
 
             /* get uniform random number from seed  */
@@ -131,7 +131,7 @@ namespace gol
             uint32_t seed = gc.getGlobalSize() + gc.getGlobalRank();
 
             __cudaKernel(kernel::randomInit)
-                    (mapper.getGridDim(), MappingDesc::SuperCellSize::getDataSpace())
+                    (mapper.getGridDim(), MappingDesc::SuperCellSize::toRT().toDim3())
                     (
                      writeBox,
                      seed,
@@ -144,7 +144,7 @@ namespace gol
         {
             AreaMapping < Area, MappingDesc > mapper(mapping);
             __cudaKernel(kernel::evolution)
-                    (mapper.getGridDim(), MappingDesc::SuperCellSize::getDataSpace())
+                    (mapper.getGridDim(), MappingDesc::SuperCellSize::toRT().toDim3())
                     (readBox,
                      writeBox,
                      rule,

@@ -123,7 +123,7 @@ public:
          * directions). Meaning we have 16*16*(2*grid.x+2*grid.y+4) more      *
          * cells in GridLayout than in SimulationBox.                         */
         GridLayout<DIM2> layout( simBox.getLocalSize(),
-                                 MappingDesc::SuperCellSize::getDataSpace());
+                                 MappingDesc::SuperCellSize::toRT());
 
         /* getDataSpace will return DataSpace( grid.x +16+16, grid.y +16+16)  *
          * init stores the arguments internally in a MappingDesc private      *
