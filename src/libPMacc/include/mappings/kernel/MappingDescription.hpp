@@ -54,9 +54,9 @@ public:
     typedef SuperCellSize_ SuperCellSize;
 
     MappingDescription(DataSpace<DIM> localGridCells = DataSpace<DIM> (),
-                       uint32_t borderSuperCells = 0,
-                       uint32_t guardingSuperCells = 0) :
-    gridSuperCells(localGridCells / SuperCellSize::getDataSpace()), /*block count per dimension*/
+                       int borderSuperCells = 0,
+                       int guardingSuperCells = 0) :
+    gridSuperCells(localGridCells / SuperCellSize::toRT()), /*block count per dimension*/
     guardingSuperCells(guardingSuperCells),
     borderSuperCells(borderSuperCells)
     {
@@ -76,12 +76,12 @@ public:
         return this->gridSuperCells;
     }
 
-    HDINLINE uint32_t getBorderSuperCells() const
+    HDINLINE int getBorderSuperCells() const
     {
         return borderSuperCells;
     }
 
-    HDINLINE uint32_t getGuardingSuperCells() const
+    HDINLINE int getGuardingSuperCells() const
     {
         return guardingSuperCells;
     }
@@ -98,17 +98,17 @@ public:
      */
     HINLINE DataSpace<DIM> getRootSuperCellCoordinate(const DataSpace<DIM> globalOffset)
     {
-        return globalOffset/SuperCellSize::getDataSpace();
+        return globalOffset/SuperCellSize::toRT();
     }
 
     HDINLINE DataSpace<DIM> getSuperCellSize() const
     {
-        return SuperCellSize::getDataSpace();
+        return SuperCellSize::toRT();
     }
 
     HDINLINE GridLayout<DIM> getGridLayout() const
     {
-        return GridLayout<DIM > (SuperCellSize::getDataSpace()*(gridSuperCells - 2 * guardingSuperCells), SuperCellSize::getDataSpace() * guardingSuperCells);
+        return GridLayout<DIM > (SuperCellSize::toRT()*(gridSuperCells - 2 * guardingSuperCells), SuperCellSize::toRT() * guardingSuperCells);
     }
 
     HINLINE DataSpace<DIM> getGlobalSuperCells() const
@@ -121,8 +121,8 @@ protected:
 
     //\todo: keine Eigenschaft einer Zelle
     PMACC_ALIGN(gridSuperCells, DataSpace<DIM>);
-    PMACC_ALIGN(guardingSuperCells, uint32_t);
-    PMACC_ALIGN(borderSuperCells, uint32_t);
+    PMACC_ALIGN(guardingSuperCells, int);
+    PMACC_ALIGN(borderSuperCells, int);
 
 };
 
