@@ -101,7 +101,7 @@ namespace cellwiseOperation
 
             /** Assumption: all GPUs have the same number of cells in
              *              y direction for sliding window */
-            totalCellOffset.y() += window.slides * window.localFullSize.y();
+            totalCellOffset.y() += window.slides * window.localDomainSize.y();
             /* the first block will start with less offset if started in the GUARD */
             if( T_Area & GUARD)
                 totalCellOffset -= cellDescription.getSuperCellSize() * cellDescription.getGuardingSuperCells();

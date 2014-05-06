@@ -267,10 +267,10 @@ private:
                 }
             }
 
-            size_t physicelYCellOffset = window.slides * yLocalSize + window.globalSimulationOffset.y();
+            size_t physicelYCellOffset = window.slides * yLocalSize + window.globalDimensions.offset.y();
             writeFile(currentStep,
-                      maxAll + window.globalSimulationOffset.y(),
-                      window.globalWindowSize.y(),
+                      maxAll + window.globalDimensions.offset.y(),
+                      window.globalDimensions.size.y(),
                       physicelYCellOffset,
                       outFileMax,
                       UNIT_EFIELD
@@ -281,8 +281,8 @@ private:
                 unit*=UNIT_LENGTH;
 
             writeFile(currentStep,
-                      integretedAll + window.globalSimulationOffset.y(),
-                      window.globalWindowSize.y(),
+                      integretedAll + window.globalDimensions.offset.y(),
+                      window.globalDimensions.size.y(),
                       physicelYCellOffset,
                       outFileIntegrated,
                       unit

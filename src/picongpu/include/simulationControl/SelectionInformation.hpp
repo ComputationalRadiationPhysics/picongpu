@@ -27,7 +27,7 @@ namespace picongpu
 using namespace PMacc;
 
 /**
- * Contains domain and window information.
+ * Groups local, global and total domain and window information.
  * 
  * For a detailed description of domains and windows, see the PIConGPU wiki page:
  * https://github.com/ComputationalRadiationPhysics/picongpu/wiki/PIConGPU-domain-definitions
@@ -53,6 +53,18 @@ struct SelectionInformation
      * volume of the moving window (current simulation volume) on this GPU
      * offset relative to globalMovingWindow */
     Selection<DIM> localMovingWindow; 
+    
+    HINLINE const std::string toString(void) const
+    {
+        std::stringstream str;
+        str << "[ totalDomain = " << totalDomain.toString() <<
+                " globalDomain = " << globalDomain.toString() <<
+                " localDomain = " << localDomain.toString() <<
+                " globalMovingWindow = " << globalMovingWindow.toString() <<
+                " localMovingWindow = " << localMovingWindow.toString() << " ]";
+        
+        return str.str();
+    }
 };
 
 } // namespace picongpu

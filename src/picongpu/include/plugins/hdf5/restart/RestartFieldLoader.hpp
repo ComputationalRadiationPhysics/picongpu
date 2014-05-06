@@ -64,7 +64,7 @@ public:
          * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
          */
         DataSpace<simDim> globalSlideOffset;
-        globalSlideOffset.y() = window.slides * window.localFullSize.y();
+        globalSlideOffset.y() = window.slides * window.localDomainSize.y();
 
         DataSpace<simDim> globalOffset(Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset());
 
@@ -73,9 +73,9 @@ public:
             domain_offset[d] = globalOffset[d] + globalSlideOffset[d];
 
         if (Environment<simDim>::get().GridController().getPosition().y() == 0)
-            domain_offset[1] += window.globalSimulationOffset.y();
+            domain_offset[1] += window.globalDimensions.offset.y();
 
-        DataSpace<simDim> localDomainSize = window.localSize;
+        DataSpace<simDim> localDomainSize = window.localDimensions.size;
         Dimensions domain_size;
         for (uint32_t d = 0; d < simDim; ++d)
             domain_size[d] = localDomainSize[d];
@@ -102,7 +102,7 @@ public:
                 /* calculate index inside the moving window domain which is located on the local grid*/
                 DataSpace<simDim> destIdx = DataSpaceOperations<simDim>::map(localDomainSize, linearId);
                 /* jump over guard and local sliding window offset*/
-                destIdx += field_guard + window.localOffset;
+                destIdx += field_guard + window.localDimensions.offset;
 
                 destBox(destIdx)[i] = ((float_X*) (field_container->getIndex(0)->getData()))[linearId];
             }

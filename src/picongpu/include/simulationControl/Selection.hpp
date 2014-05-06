@@ -21,6 +21,7 @@
 #pragma once
 
 #include "types.h"
+#include <sstream>
 
 namespace picongpu
 {
@@ -34,11 +35,25 @@ template <unsigned DIM>
 class Selection
 {
 public:
-    Selection()
-    {
-        
-    }
     
+    /**
+     * Constructor
+     * Size and offset initialized to 0 (empty selection)
+     */
+    Selection(void)
+    {
+        for (uint32_t i = 0; i < DIM; ++i)
+        {
+            size[i] = 0;
+            offset[i] = 0;
+        }
+    } 
+   
+    /**
+     * Copy constructor
+     * 
+     * @param other Selection to copy information from
+     */
     Selection(const Selection<DIM>& other) :
     size(other.size),
     offset(other.offset)
@@ -46,11 +61,57 @@ public:
         
     }
     
+    /**
+     * Constructor
+     * Offset is initialized to 0.
+     * 
+     * @param size DataSpace for selection size
+     */
+    Selection(DataSpace<DIM> size) :
+    size(size)
+    {
+        for (uint32_t i = 0; i < DIM; ++i)
+        {
+            offset[i] = 0;
+        }
+    }
+    
+    /**
+     * Constructor
+     * 
+     * @param size DataSpace for selection size
+     * @param offset DataSpace for selection offset
+     */
     Selection(DataSpace<DIM> size, DataSpace<DIM> offset) :
     size(size),
     offset(offset)
     {
         
+    }
+    
+    HINLINE const std::string toString(void) const
+    {
+        std::stringstream str;
+        str << "{ size = (";
+        
+        for (uint32_t i = 0; i < DIM; ++i)
+        {
+            str << size[i];
+            if (i < DIM-1)
+                str << ", ";
+        }
+        
+        str << ") offset = (";
+        
+        for (uint32_t i = 0; i < DIM; ++i)
+        {
+            str << offset[i];
+            if (i < DIM-1)
+                str << ", ";
+        }
+        
+        str << ") }";
+        return str.str();
     }
     
     DataSpace<DIM> size;

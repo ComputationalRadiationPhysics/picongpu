@@ -370,10 +370,14 @@ private:
         /* get clean domain info (picongpu view) */
         DomainInformation domInfo =
                 MovingWindow::getInstance().getActiveDomain(threadParams->currentStep);
+        
+        SelectionInformation<simDim> selectionInfo =
+                MovingWindow::getInstance().getSelectionInformation(threadParams->currentStep);
+        std::cout << selectionInfo.toString() << std::endl;
 
         /* y direction can be negative for first gpu*/
         DataSpace<simDim> particleOffset(threadParams->gridPosition);
-        particleOffset.y() -= threadParams->window.globalSimulationOffset.y();
+        particleOffset.y() -= threadParams->window.globalDimensions.offset.y();
 
         /* write all fields */
         log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing fields.");
@@ -408,7 +412,7 @@ private:
                     MovingWindow::getInstance().getGhostDomain(threadParams->currentStep);
 
             particleOffset = threadParams->gridPosition;
-            particleOffset.y() = -threadParams->window.localSize.y();
+            particleOffset.y() = -threadParams->window.localDimensions.size.y();
 
             /* for checkpoints we only need bottom ghosts for particles */
             /* print all particle species */
