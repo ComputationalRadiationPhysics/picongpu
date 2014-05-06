@@ -66,7 +66,8 @@ if [ $? -ne 0 ] ; then
   echo 'opening ssh tunnel to $HEAD_NODE$';
   ssh -f -L 44334:hypnos2:22 $SSH_USER$@uts.fz-rossendorf.de -N;
   sleep 1;
-  pidof ssh | sed 's/ /,/g' > ~/.basicHypnosTunnel;
+  echo -n 'Proxy to $HEAD_NODE$ established with process id ';
+  pidof ssh | sed 's/ /,/g' | tee ~/.basicHypnosTunnel;
 fi;
 echo copying;
 cat ~/.startParaView | ssh -p 44334 $SSH_USER$@localhost 'cat > ~/startParaView; /opt/torque/bin/qsub ~/startParaView';
@@ -74,7 +75,8 @@ echo tunneling2;
 kill `cat ~/.paraviewLastTunnel`;
 ssh -f -p 44334 -R 10.0.2.253:$NUM_PORT$:localhost:11111 $SSH_USER$@localhost -N;
 sleep 1;
-pidof -o `cat ~/.basicHypnosTunnel` ssh > ~/.paraviewLastTunnel;
+echo -n 'started session tunnel with process id ';
+pidof -o `cat ~/.basicHypnosTunnel` ssh | tee ~/.paraviewLastTunnel;
 "/>
         </Arguments>
       </Command>
