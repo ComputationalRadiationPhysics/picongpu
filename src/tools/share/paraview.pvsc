@@ -53,25 +53,28 @@ mpiexec -npernode NUM_PPN -n \`expr NUM_NODES \\* NUM_PPN\`
 \#       http://www.open-mpi.org/faq/?category=running#force-aggressive-degraded\\n
 \#   -am \~/openib.conf\\n
 \#       in case you send HUGE data chunks over infiniband
-' > ~/startParaView;
+' > ~/.startParaView;
 echo replacing;
-sed -i 's/NUM_NODES/$NUM_NODES$/g' ~/startParaView;
-sed -i 's/NUM_PPN/$NUM_PPN$/g' ~/startParaView;
-sed -i 's/T_WALLTIME/$T_WALLTIME$/g' ~/startParaView;
-sed -i 's/HEAD_NODE/$HEAD_NODE$/g' ~/startParaView;
-sed -i 's/NUM_PORT/$NUM_PORT$/g' ~/startParaView;
+sed -i 's/NUM_NODES/$NUM_NODES$/g' ~/.startParaView;
+sed -i 's/NUM_PPN/$NUM_PPN$/g' ~/.startParaView;
+sed -i 's/T_WALLTIME/$T_WALLTIME$/g' ~/.startParaView;
+sed -i 's/HEAD_NODE/$HEAD_NODE$/g' ~/.startParaView;
+sed -i 's/NUM_PORT/$NUM_PORT$/g' ~/.startParaView;
 echo tunneling;
 ssh -p 44334 $SSH_USER$@localhost 'exit 0' 2>/dev/null 1>/dev/null;
 if [ $? -ne 0 ] ; then
-  echo 'opened ssh tunnel to $HEAD_NODE$';
+  echo 'opening ssh tunnel to $HEAD_NODE$';
   ssh -f -L 44334:hypnos2:22 $SSH_USER$@uts.fz-rossendorf.de -N;
+  sleep 1;
+  pidof ssh | sed 's/ /,/g' > ~/.basicHypnosTunnel;
 fi;
 echo copying;
-cat ~/startParaView | ssh -p 44334 $SSH_USER$@localhost 'cat > ~/startParaView; /opt/torque/bin/qsub ~/startParaView';
-sleep 2;
+cat ~/.startParaView | ssh -p 44334 $SSH_USER$@localhost 'cat > ~/startParaView; /opt/torque/bin/qsub ~/startParaView';
 echo tunneling2;
-kill `ps aux | grep 'ssh -p 44334 -R' | grep -v paraview | sed 's/\(.[^ \t]*\)[ \t]*\(.[^ \t]*\)\(.*\)/\2/'` 2>/dev/null;
-ssh -p 44334 -R 10.0.2.253:$NUM_PORT$:localhost:11111 $SSH_USER$@localhost -N;
+kill -9 `cat ~/.paraviewLastTunnel`;
+ssh -f -p 44334 -R 10.0.2.253:$NUM_PORT$:localhost:11111 $SSH_USER$@localhost -N;
+sleep 1;
+pidof -o `cat ~/.basicHypnosTunnel` ssh > ~/.paraviewLastTunnel;
 "/>
         </Arguments>
       </Command>
