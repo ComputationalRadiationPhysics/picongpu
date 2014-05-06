@@ -171,7 +171,7 @@ public:
             if (firstMoveStep <= currentStep)
             {
                 const uint32_t stepsInLastGPU = (currentStep + stepsInFuture) % stepsPerGPU;
-                //moveing window start
+                /* moving window start */
                 if (firstSlideStep <= currentStep && stepsInLastGPU == 0)
                 {
                     window.doSlide = true;
@@ -217,6 +217,12 @@ public:
         return window;
     }
     
+    /**
+     * Return domain and window information for the current timestep
+     * 
+     * @param currentStep current simulation timestep
+     * @return current domain and window sizes and offsets
+     */
     SelectionInformation<simDim> getSelectionInformation(uint32_t currentStep)
     {
         SelectionInformation<simDim> selectionInfo;
@@ -225,11 +231,12 @@ public:
         VirtualWindow window = getVirtualWindow(currentStep);
         const SimulationBox<simDim> &simBox = Environment<simDim>::get().SubGrid().getSimulationBox();
         
-        /* fill selectionInfo */
+        /* fill selectionInfo domains part */
         selectionInfo.totalDomain = Selection<simDim>(simBox.getGlobalSize());
         selectionInfo.globalDomain = Selection<simDim>(simBox.getGlobalSize());
         selectionInfo.localDomain = Selection<simDim>(simBox.getLocalSize(), simBox.getGlobalOffset());
         
+        /* fill selectionInfo windows part */
         selectionInfo.globalMovingWindow = window.globalDimensions;
         
         selectionInfo.localMovingWindow.offset = selectionInfo.localDomain.offset - selectionInfo.globalMovingWindow.offset;

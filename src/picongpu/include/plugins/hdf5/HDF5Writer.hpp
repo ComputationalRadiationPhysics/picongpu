@@ -370,10 +370,6 @@ private:
         /* get clean domain info (picongpu view) */
         DomainInformation domInfo =
                 MovingWindow::getInstance().getActiveDomain(threadParams->currentStep);
-        
-        SelectionInformation<simDim> selectionInfo =
-                MovingWindow::getInstance().getSelectionInformation(threadParams->currentStep);
-        std::cout << selectionInfo.toString() << std::endl;
 
         /* y direction can be negative for first gpu*/
         DataSpace<simDim> particleOffset(threadParams->gridPosition);
