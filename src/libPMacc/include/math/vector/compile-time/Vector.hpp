@@ -30,11 +30,10 @@
 #include <boost/mpl/plus.hpp>
 #include <boost/mpl/min_max.hpp>
 #include <boost/mpl/times.hpp>
-//#include <boost/mpl/arithmetic.hpp>
-#include "../Vector.hpp"
 #include <boost/mpl/int.hpp>
 #include <boost/mpl/apply.hpp>
 #include <boost/mpl/accumulate.hpp>
+#include "math/Vector.hpp"
 
 namespace PMacc
 {

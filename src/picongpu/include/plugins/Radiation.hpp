@@ -113,7 +113,7 @@ void kernelRadiationParticles(ParBox pb,
 
     __shared__ FRAME *frame; // pointer to  frame storing particles
     __shared__ bool isValid; // bool saying if frame is valid
-    __shared__ lcellId_t particlesInFrame; // number  of paricles in current frame
+    __shared__ lcellId_t particlesInFrame; // number  of particles in current frame
 
     using namespace parameters; // parameters of radiation
 
@@ -212,7 +212,7 @@ void kernelRadiationParticles(ParBox pb,
 
                 /* goto next supercell
                  *
-                 * if "isValid" is false then there is no frames
+                 * if "isValid" is false then there is no frame
                  * inside the superCell (anymore)
                  */
                 while (isValid)
@@ -477,10 +477,8 @@ void kernelRadiationParticles(ParBox pb,
                         /* First threads starts loading next frame of the super-cell:
                          *
                          * Info:
-                         *   The Calculation starts with the last super cell, all
-                         *   other super cells before that are full and
-                         *   therefore have elements in super cell (=256) number of
-                         *   particles
+                         *   The calculation starts with the last SuperCell (must not be full filled)
+                         *   all previous SuperCells are full with particles
                          */
                         particlesInFrame = blockSize;
                         frame = &(pb.getPreviousFrame(*frame, isValid));
@@ -956,7 +954,6 @@ private:
          * A Frame is the entity that stores particles.
          * A super cell can have many Frames.
          * Particles in a Frame can be accessed in parallel.
-         * It has a fixed size of 256.
          */
 
         const dim3 blockDim_rad(PMacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value);
