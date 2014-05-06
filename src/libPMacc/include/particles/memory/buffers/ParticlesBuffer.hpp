@@ -33,7 +33,7 @@
 #include "eventSystem/EventSystem.hpp"
 #include "particles/memory/dataTypes/SuperCell.hpp"
 
-#include "dimensions/TVec.h"
+#include "math/vector/compile-time/Int.hpp"
 
 #include "particles/boostExtension/InheritGenerators.hpp"
 #include "compileTime/conversion/MakeSeq.hpp"
@@ -103,7 +103,7 @@ public:
     ParticleDescriptionDefault;
 
     typedef Frame<
-    OperatorCreatePairStaticArray<SuperCellSize::elements >, ParticleDescriptionDefault> ParticleType;
+    OperatorCreatePairStaticArray<PMacc::math::CT::volume<SuperCellSize>::type::value >, ParticleDescriptionDefault> ParticleType;
 
     typedef
     typename ReplaceValueTypeSeq<T_ParticleDescription, border_particleList>::type

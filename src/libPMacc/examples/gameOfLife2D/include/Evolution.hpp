@@ -1,28 +1,28 @@
 /**
  * Copyright 2013 Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #pragma once
 
 #include "types.hpp"
-#include "dimensions/TVec.h"
+#include "math/vector/compile-time/Int.hpp"
 #include "mappings/threads/ThreadCollective.hpp"
 #include "nvidia/functors/Assign.hpp"
 #include "memory/boxes/CachedBox.hpp"
@@ -47,13 +47,13 @@ namespace gol
             typedef typename BoxReadOnly::ValueType Type;
             typedef SuperCellDescription<
                     typename Mapping::SuperCellSize,
-                    TVec < 1, 1 >,
-                    TVec < 1, 1 >
+                    math::CT::Int< 1, 1 >,
+                    math::CT::Int< 1, 1 >
                     > BlockArea;
             PMACC_AUTO(cache, CachedBox::create < 0, Type > (BlockArea()));
 
             const Space block(mapper.getSuperCellIndex(Space(blockIdx)));
-            const Space blockCell = block * Mapping::SuperCellSize();
+            const Space blockCell = block * Mapping::SuperCellSize::toRT();
             const Space threadIndex(threadIdx);
             PMACC_AUTO(buffRead_shifted, buffRead.shift(blockCell));
 
@@ -90,11 +90,11 @@ namespace gol
             /* get position in grid in units of SuperCells from blockID */
             const Space block(mapper.getSuperCellIndex(Space(blockIdx)));
             /* convert position in unit of cells */
-            const Space blockCell = block * Mapping::SuperCellSize();
+            const Space blockCell = block * Mapping::SuperCellSize::toRT();
             /* convert CUDA dim3 to DataSpace<DIM3> */
             const Space threadIndex(threadIdx);
             const uint32_t cellIdx = DataSpaceOperations<DIM2>::map(
-                    mapper.getGridSuperCells() * Mapping::SuperCellSize(),
+                    mapper.getGridSuperCells() * Mapping::SuperCellSize::toRT(),
                     blockCell + threadIndex);
 
             /* get uniform random number from seed  */
@@ -131,7 +131,7 @@ namespace gol
             uint32_t seed = gc.getGlobalSize() + gc.getGlobalRank();
 
             __cudaKernel(kernel::randomInit)
-                    (mapper.getGridDim(), MappingDesc::SuperCellSize::getDataSpace())
+                    (mapper.getGridDim(), MappingDesc::SuperCellSize::toRT().toDim3())
                     (
                      writeBox,
                      seed,
@@ -144,7 +144,7 @@ namespace gol
         {
             AreaMapping < Area, MappingDesc > mapper(mapping);
             __cudaKernel(kernel::evolution)
-                    (mapper.getGridDim(), MappingDesc::SuperCellSize::getDataSpace())
+                    (mapper.getGridDim(), MappingDesc::SuperCellSize::toRT().toDim3())
                     (readBox,
                      writeBox,
                      rule,

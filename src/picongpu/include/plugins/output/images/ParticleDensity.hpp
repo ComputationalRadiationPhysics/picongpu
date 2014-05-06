@@ -1,21 +1,21 @@
 /**
  * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 
@@ -25,7 +25,7 @@
 #include "simulation_defines.hpp"
 #include "types.h"
 
-#include "dimensions/TVec.h"
+#include "math/vector/compile-time/Int.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
 
@@ -34,7 +34,7 @@
 #include "particles/memory/boxes/ParticlesBox.hpp"
 
 #include "dataManagement/DataConnector.hpp"
-#include "dimensions/TVec.h"
+#include "math/vector/compile-time/Int.hpp"
 
 #include "memory/boxes/DataBox.hpp"
 #include "memory/boxes/SharedBox.hpp"
@@ -79,10 +79,10 @@ kernelParticleDensity(ParBox pb,
     const DataSpace<simDim> threadId(threadIdx);
     const DataSpace<DIM2> localCell(threadId[transpose.x()], threadId[transpose.y()]);
     const DataSpace<simDim> block = mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx));
-    const DataSpace<simDim> blockOffset((block - 1) * Block::getDataSpace());
+    const DataSpace<simDim> blockOffset((block - 1) * Block::toRT());
 
 
-    int localId = threadIdx.z * Block::x * Block::y + threadIdx.y * Block::x + threadIdx.x;
+    int localId = threadIdx.z * Block::x::value * Block::y::value + threadIdx.y * Block::x::value + threadIdx.x;
 
 
     if (localId == 0)
@@ -196,7 +196,7 @@ public:
             sliceDim = 1;
         if ((transpose.x() == 1 || transpose.y() == 1) && sliceDim == 1)
             sliceDim = 2;
-        
+
         Environment<>::get().PluginConnector().registerPlugin(this);
         Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
     }
@@ -223,12 +223,12 @@ public:
         }
         createImage(currentStep, window);
     }
-    
+
     void pluginRegisterHelp(po::options_description&)
     {
         // nothing to do here
     }
-    
+
     std::string pluginGetName() const
     {
         return "ParticleDensity";
@@ -246,7 +246,7 @@ public:
 
         typedef MappingDesc::SuperCellSize SuperCellSize;
 
-        DataSpace<simDim> blockSize(MappingDesc::SuperCellSize::getDataSpace());
+        DataSpace<simDim> blockSize(MappingDesc::SuperCellSize::toRT());
         DataSpace<DIM2> blockSize2D(blockSize[transpose.x()], blockSize[transpose.y()]);
 
         uint32_t globalOffset = 0;
@@ -257,7 +257,7 @@ public:
 
         //create density image of particles
         __picKernelArea((kernelParticleDensity), *cellDescription, CORE + BORDER)
-            (SuperCellSize::getDataSpace(), blockSize2D.productOfComponents() * sizeof (float_X))
+            (SuperCellSize::toRT().toDim3(), blockSize2D.productOfComponents() * sizeof (float_X))
             (particles->getDeviceParticlesBox(),
              img->getDeviceBuffer().getDataBox(),
              transpose,

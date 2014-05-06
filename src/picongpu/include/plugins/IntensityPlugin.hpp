@@ -1,23 +1,23 @@
 /**
  * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 
 #pragma once
@@ -40,8 +40,9 @@
 #include "fields/FieldE.hpp"
 #include "memory/boxes/CachedBox.hpp"
 #include "basicOperations.hpp"
-#include "dimensions/TVec.h"
+#include "math/vector/compile-time/Int.hpp"
 #include "dimensions/SuperCellDescription.hpp"
+#include "math/vector/compile-time/Vector.hpp"
 
 namespace picongpu
 {
@@ -55,20 +56,20 @@ __global__ void kernelIntensity(FieldBox field, DataSpace<simDim> cellsCount, Bo
 {
 
     typedef MappingDesc::SuperCellSize SuperCellSize;
-    __shared__ float_X s_integrated[SuperCellSize::y];
-    __shared__ float_X s_max[SuperCellSize::y];
+    __shared__ float_X s_integrated[SuperCellSize::y::value];
+    __shared__ float_X s_max[SuperCellSize::y::value];
 
     __syncthreads(); /*wait that all shared memory is initialised*/
 
     /*descripe size of a worker block for cached memory*/
     typedef SuperCellDescription<
-        SuperCellSize::TVec2D
+        PMacc::math::CT::Int<SuperCellSize::x::value,SuperCellSize::y::value>
         > SuperCell2D;
 
     PMACC_AUTO(s_field, CachedBox::create < 0, float> (SuperCell2D()));
 
-    int y = blockIdx.y * SuperCellSize::y + threadIdx.y;
-    int yGlobal = y + SuperCellSize::y;
+    int y = blockIdx.y * SuperCellSize::y::value + threadIdx.y;
+    int yGlobal = y + SuperCellSize::y::value;
     const DataSpace<DIM2> threadId(threadIdx);
 
     if (threadId.x() == 0)
@@ -80,10 +81,10 @@ __global__ void kernelIntensity(FieldBox field, DataSpace<simDim> cellsCount, Bo
     __syncthreads();
 
     /*move cell wise over z direction(without garding cells)*/
-    for (int z = GUARD_SIZE * SuperCellSize::z; z < cellsCount.z() - GUARD_SIZE * SuperCellSize::z; ++z)
+    for (int z = GUARD_SIZE * SuperCellSize::z::value; z < cellsCount.z() - GUARD_SIZE * SuperCellSize::z::value; ++z)
     {
         /*move supercell wise over x direction without guarding*/
-        for (int x = GUARD_SIZE * SuperCellSize::x + threadId.x(); x < cellsCount.x() - GUARD_SIZE * SuperCellSize::x; x += SuperCellSize::x)
+        for (int x = GUARD_SIZE * SuperCellSize::x::value + threadId.x(); x < cellsCount.x() - GUARD_SIZE * SuperCellSize::x::value; x += SuperCellSize::x::value)
         {
             const float3_X field_at_point(field(DataSpace<DIM3 > (x, yGlobal, z)));
             s_field(threadId) = math::abs2(field_at_point);
@@ -91,7 +92,7 @@ __global__ void kernelIntensity(FieldBox field, DataSpace<simDim> cellsCount, Bo
             if (threadId.x() == 0)
             {
                 /*master threads moves cell wise over 2D supercell*/
-                for (int x_local = 0; x_local < SuperCellSize::x; ++x_local)
+                for (int x_local = 0; x_local < SuperCellSize::x::value; ++x_local)
                 {
                     DataSpace<DIM2> localId(x_local, threadId.y());
                     s_integrated[threadId.y()] += s_field(localId);
@@ -216,7 +217,7 @@ private:
 private:
 
     /* reduce data from all gpus to one array
-     * @param currentStep simulation step  
+     * @param currentStep simulation step
      */
     void combineData(uint32_t currentStep)
     {
@@ -225,13 +226,13 @@ private:
         VirtualWindow window(MovingWindow::getInstance().getVirtualWindow( currentStep));
 
         PMACC_AUTO(simBox,Environment<simDim>::get().SubGrid().getSimulationBox());
-        
+
         const int yGlobalSize = simBox.getGlobalSize().y();
         const int yLocalSize = localSize.y();
 
         const int gpus = Environment<simDim>::get().GridController().getGpuNodes().productOfComponents();
-        
-        
+
+
         /**\todo: fixme I cant work with not regular domains (use mpi_gatherv)*/
         DataSpace<simDim> globalRootCell(simBox.getGlobalOffset());
         int yOffset = globalRootCell.y();
@@ -278,7 +279,7 @@ private:
             double unit=UNIT_EFIELD*CELL_VOLUME*SI::EPS0_SI;
             for(uint32_t i=0;i<simDim;++i)
                 unit*=UNIT_LENGTH;
-            
+
             writeFile(currentStep,
                       integretedAll + window.globalSimulationOffset.y(),
                       window.globalWindowSize.y(),
@@ -297,7 +298,7 @@ private:
 
     /* write data from array to a file
      * write current step to first column
-     * 
+     *
      * @param currentStep simulation step
      * @param array shifted source array (begin printing from first element)
      * @param count number of elements to print
@@ -322,7 +323,7 @@ private:
 
     /* run calculation of intensity
      * sync all result data to host side
-     * 
+     *
      * @param currenstep simulation step
      */
     void calcIntensity(uint32_t)
@@ -334,7 +335,8 @@ private:
         /*start only worker for any supercell in laser propagation direction*/
         dim3 grid(1, cellDescription->getGridSuperCells().y() - cellDescription->getGuardingSuperCells());
         /*use only 2D slice XY for supercell handling*/
-        dim3 block(MappingDesc::SuperCellSize::TVec2D::getDataSpace());
+        typedef typename MappingDesc::SuperCellSize SuperCellSize;
+        dim3 block(PMacc::math::CT::Vector<SuperCellSize::x,SuperCellSize::y>::toRT().toDim3());
 
         __cudaKernel(kernelIntensity)
             (grid, block)

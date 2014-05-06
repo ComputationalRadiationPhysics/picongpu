@@ -2,20 +2,20 @@
  * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Wen Fu
  *
  * This file is part of PIConGPU.
- * 
+ *
  * PIConGPU is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 #pragma once
@@ -138,9 +138,9 @@ __global__ void kernelAddTemperature(ParticlesBox<FRAME, simDim> pb, float_X ene
                                                                          mapper.getGridSuperCells(),
                                                                          superCellIdx);
 
-    const DataSpace<simDim> idx(superCellIdx * SuperCellSize() + threadIndex);
+    const DataSpace<simDim> idx(superCellIdx * SuperCellSize::toRT() + threadIndex);
     const uint32_t cellIdx = DataSpaceOperations<simDim>::map(
-                                                              mapper.getGridSuperCells() * SuperCellSize(),
+                                                              mapper.getGridSuperCells() * SuperCellSize::toRT(),
                                                               idx);
     PMACC_AUTO(rng, nvrng::create(rngMethods::Xor(seed, cellIdx), rngDistributions::Normal_float()));
 
@@ -222,7 +222,7 @@ __global__ void kernelSetDrift(ParBox pb,
                                                                          mapper.getGridSuperCells(),
                                                                          superCellIdx);
 
-    const DataSpace<simDim> idx(superCellIdx * SuperCellSize() + threadIndex);
+    const DataSpace<simDim> idx(superCellIdx * SuperCellSize::toRT() + threadIndex);
 
     __syncthreads();
 
@@ -249,7 +249,7 @@ __global__ void kernelSetDrift(ParBox pb,
             else
             {
                 // get cells global y position
-                const DataSpace<simDim> cellIdx = idx - SuperCellSize::getDataSpace();
+                const DataSpace<simDim> cellIdx = idx - SuperCellSize::toRT();
                 const float_X yPos = (cellIdx.y() + offsetY) * CELL_HEIGHT;
 
                 // inverse flow area
@@ -325,7 +325,7 @@ __global__ void kernelMoveAndMarkParticles(ParBox pb,
     const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
 
 
-    const DataSpace<simDim> blockCell = block * SuperCellSize::getDataSpace();
+    const DataSpace<simDim> blockCell = block * SuperCellSize::toRT();
 
 
 
@@ -377,7 +377,7 @@ __global__ void kernelMoveAndMarkParticles(ParBox pb,
             frameSolver(*frame, linearThreadIdx, cachedB, cachedE, mustShift);
         }
         frame = &(pb.getPreviousFrame(*frame, isValid));
-        particlesInSuperCell = SuperCellSize::elements;
+        particlesInSuperCell = PMacc::math::CT::volume<SuperCellSize>::type::value;
 
     }
     __syncthreads();
@@ -417,7 +417,7 @@ struct PushParticlePerFrame
 
         float3_X mom = particle[momentum_];
         const float_X mass = frame.getMass(weighting);
-#if(ENABLE_RADIATION == 1) 
+#if(ENABLE_RADIATION == 1)
         radiation::PushExtension < (RAD_MARK_PARTICLE > 1) || (RAD_ACTIVATE_GAMMA_FILTER != 0) > extensionRadiation;
         float3_X& mom_mt1 = particle[momentumPrev1_];
 #if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
@@ -443,12 +443,12 @@ struct PushParticlePerFrame
         {
             /* ATTENTION we must handle float rounding errors
              * pos in range [-1;2)
-             * 
+             *
              * If pos is negative and very near to 0 (e.g. pos < -1e-8)
              * and we move pos with pos+=1.0 back to normal in cell postion
              * we get a rounding error and pos is assigned to 1. This breaks
              * our in cell definition range [0,1)
-             * 
+             *
              * if pos negativ moveDir is set to -1
              * if pos positive and >1 moveDir is set to +1
              * 0 (zero) if particle stays in cell
@@ -458,16 +458,16 @@ struct PushParticlePerFrame
             pos[i] -= moveDir;
             /* check for rounding errors and correct them
              * if position now is 1 we have a rounding error
-             * 
+             *
              * We correct moveDir that we not have left the cell
              */
             const float_X valueCorrector = math::floor(pos[i]);
             /* One has also to correct moveDir for the following reason:
              * Imagine a new particle moves to -1e-20, leaving the cell to the left,
              * setting moveDir to -1.
-             * The new in-cell position will be -1e-20 + 1.0, 
+             * The new in-cell position will be -1e-20 + 1.0,
              * which can flip to 1.0 (wrong value).
-             * We move the particle back to the old cell at position 0.0 and 
+             * We move the particle back to the old cell at position 0.0 and
              * moveDir has to be corrected back, too (add +1 again).*/
             moveDir += valueCorrector;
             /* If we have corrected moveDir we must set pos to 0 */
@@ -477,17 +477,17 @@ struct PushParticlePerFrame
         particle[position_] = pos;
 
         /* new local cell position after particle move
-         * can be out of supercell 
+         * can be out of supercell
          */
         localCell += dir;
 
         /* ATTENTION ATTENTION we cast to unsigned, this means that a negative
          * direction is know a very very big number, than we compare with supercell!
-         * 
+         *
          * if particle is inside of the supercell the **unsigned** representation
          * of dir is always >= size of the supercell
          */
-        dir = precisionCast<int>(precisionCast<uint32_t >(localCell) >= precisionCast<uint32_t >(TVec::getDataSpace())) * dir;
+        dir = precisionCast<int>(precisionCast<uint32_t >(localCell) >= precisionCast<uint32_t >(TVec::toRT())) * dir;
 
         /* if partice is outside of the supercell we use mod to
          * set particle at cell supercellSize to 1
@@ -505,7 +505,7 @@ struct PushParticlePerFrame
          * y=superCell_size if dir==+1
          * for dir 0 localCel is not changed
          */
-        localCell -= (dir * TVec::getDataSpace());
+        localCell -= (dir * TVec::toRT());
         /*calculate one dimensional cell index*/
         particle[localCellIdx_] = DataSpaceOperations<TVec::dim>::template map<TVec > (localCell);
 

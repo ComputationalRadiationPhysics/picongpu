@@ -25,7 +25,7 @@
 
 #include "types.h"
 #include "dimensions/DataSpace.hpp"
-#include "dimensions/TVec.h"
+#include "math/vector/compile-time/Int.hpp"
 
 namespace picongpu
 {
@@ -35,8 +35,8 @@ namespace picongpu
 
         struct NgpSolver
         {
-            typedef TVec < 0, 0, 0 > OffsetOrigin;
-            typedef TVec < 1, 1, 1 > OffsetEnd;
+            typedef math::CT::Int< 0, 0, 0 > OffsetOrigin;
+            typedef math::CT::Int< 1, 1, 1 > OffsetEnd;
 
             template<class BoxJ, typename PosType, typename VelType, typename ChargeType >
             DINLINE void operator()(BoxJ& boxJ_par, /*box which is shifted to particles cell*/

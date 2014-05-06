@@ -55,10 +55,10 @@ namespace cellwiseOperation
         const uint32_t currentStep, Mapping mapper )
     {
         const DataSpace<simDim> block( mapper.getSuperCellIndex( DataSpace<simDim>( blockIdx ) ) );
-        const DataSpace<simDim> blockCell = block * MappingDesc::SuperCellSize::getDataSpace();
+        const DataSpace<simDim> blockCell = block * MappingDesc::SuperCellSize::toRT();
 
         const DataSpace<simDim> threadIndex( threadIdx );
-        
+
         opFunctor( field( blockCell + threadIndex ),
                    valFunctor( blockCell + threadIndex + totalCellOffset,
                                currentStep )
@@ -74,16 +74,16 @@ namespace cellwiseOperation
     {
     private:
         typedef MappingDesc::SuperCellSize SuperCellSize;
-        
+
         MappingDesc cellDescription;
-        
+
     public:
         CellwiseOperation(MappingDesc cellDescription) : cellDescription(cellDescription)
         {
         }
 
         /* Functor call to execute the op/valFunctor on a given field
-         * 
+         *
          * \tparam ValFunctor A Value-Producing functor for a given cell
          *                    in time and space
          * \tparam OpFunctor A manipulating functor like PMacc::nvidia::functors::add
@@ -111,7 +111,7 @@ namespace cellwiseOperation
 
             /* start kernel */
             __picKernelArea((kernelCellwiseOperation<T_OpFunctor>), cellDescription, T_Area)
-                    (SuperCellSize::getDataSpace())
+                    (SuperCellSize::toRT().toDim3())
                     (field->getDeviceDataBox(), opFunctor, valFunctor, totalCellOffset, currentStep);
         }
     };

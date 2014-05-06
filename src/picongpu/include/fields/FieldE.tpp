@@ -148,11 +148,11 @@ void FieldE::laserManipulation( uint32_t currentStep )
 
     DataSpace<simDim-1> gridBlocks;
     DataSpace<simDim-1> blockSize;
-    gridBlocks.x()=fieldE->getGridLayout( ).getDataSpaceWithoutGuarding( ).x( ) / SuperCellSize::x;
-    blockSize.x()=SuperCellSize::x;
+    gridBlocks.x()=fieldE->getGridLayout( ).getDataSpaceWithoutGuarding( ).x( ) / SuperCellSize::x::value;
+    blockSize.x()=SuperCellSize::x::value;
 #if(SIMDIM ==DIM3)
-    gridBlocks.y()=fieldE->getGridLayout( ).getDataSpaceWithoutGuarding( ).z( ) / SuperCellSize::z;
-    blockSize.y()=SuperCellSize::z;
+    gridBlocks.y()=fieldE->getGridLayout( ).getDataSpaceWithoutGuarding( ).z( ) / SuperCellSize::z::value;
+    blockSize.y()=SuperCellSize::z::value;
 #endif
     __cudaKernel( kernelLaserE )
         ( gridBlocks,

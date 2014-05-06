@@ -1,42 +1,42 @@
 /**
  * Copyright 2013 Heiko Burau, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 #pragma once
 
 #include "types.h"
-#include "dimensions/TVec.h"
+#include "math/vector/compile-time/Int.hpp"
 
 
-#include <cuSTL/cursor/compile-time/BufferCursor.hpp>    
+#include <cuSTL/cursor/compile-time/BufferCursor.hpp>
 #include <math/vector/Float.hpp>
 
 
 namespace PMacc
 {
 
-template<typename TYPE, class TVector>
+template<typename T_TYPE, class T_Vector,uint32_t T_dim=T_Vector::dim>
 class SharedBox;
 
-template<typename TYPE, uint32_t _X_>
-class SharedBox<TYPE, TVec<_X_> >
+template<typename T_TYPE, class T_Vector>
+class SharedBox<T_TYPE, T_Vector,DIM1 >
 {
 public:
 
@@ -44,9 +44,11 @@ public:
     {
         Dim = DIM1
     };
-    typedef TYPE ValueType;
+    typedef T_TYPE ValueType;
     typedef ValueType& RefValueType;
-    typedef SharedBox<TYPE, TVec<_X_> > ReducedType;
+    typedef T_Vector Size;
+    typedef SharedBox<ValueType, math::CT::Int<Size::x::value> > ReducedType;
+    typedef SharedBox<ValueType, T_Vector,DIM1 > This;
 
     HDINLINE RefValueType operator[](const int idx)
     {
@@ -58,7 +60,7 @@ public:
         return fixedPointer[idx];
     }
 
-    HDINLINE SharedBox(TYPE* pointer) :
+    HDINLINE SharedBox(ValueType* pointer) :
     fixedPointer(pointer)
     {
     }
@@ -76,26 +78,26 @@ public:
         return *(fixedPointer);
     }
 
-    HDINLINE TYPE* getPointer()
+    HDINLINE ValueType* getPointer()
     {
         return fixedPointer;
     }
 
     /*this call synchronize a block and must called from any thread and not inside a if clauses*/
-    static DINLINE SharedBox<TYPE, TVec<_X_> > init()
+    static DINLINE This init()
     {
-        __shared__ TYPE mem_sh[_X_];
+        __shared__ ValueType mem_sh[Size::x::value];
         __syncthreads(); /*wait that all shared memory is initialised*/
-        return SharedBox<TYPE, TVec<_X_> >((TYPE*) mem_sh);
+        return SharedBox<ValueType, math::CT::Int<Size::x::value> >((ValueType*) mem_sh);
     }
 
 protected:
 
-    PMACC_ALIGN(fixedPointer, TYPE*);
+    PMACC_ALIGN(fixedPointer, ValueType*);
 };
 
-template<typename TYPE, uint32_t _X_, uint32_t _Y_>
-class SharedBox<TYPE, TVec<_X_, _Y_> >
+template<typename T_TYPE, class T_Vector>
+class SharedBox<T_TYPE, T_Vector,DIM2 >
 {
 public:
 
@@ -103,23 +105,25 @@ public:
     {
         Dim = DIM2
     };
-    typedef TYPE ValueType;
+    typedef T_TYPE ValueType;
     typedef ValueType& RefValueType;
-    typedef SharedBox<TYPE, TVec<_X_> > ReducedType;
+    typedef T_Vector Size;
+    typedef SharedBox<ValueType, math::CT::Int<Size::x::value> > ReducedType;
+    typedef SharedBox<ValueType, T_Vector,DIM2 > This;
 
-    HDINLINE SharedBox(TYPE* pointer = NULL) :
+    HDINLINE SharedBox(ValueType* pointer = NULL) :
     fixedPointer(pointer)
     {
     }
 
     HDINLINE ReducedType operator[](const int idx)
     {
-        return ReducedType(this->fixedPointer + idx * (int) (_X_));
+        return ReducedType(this->fixedPointer + idx * Size::x::value);
     }
 
     HDINLINE ReducedType operator[](const int idx) const
     {
-        return ReducedType(this->fixedPointer + idx * (int) (_X_));
+        return ReducedType(this->fixedPointer + idx * Size::x::value);
     }
 
     /*!return the first value in the box (list)
@@ -127,36 +131,36 @@ public:
      */
     HDINLINE RefValueType operator*()
     {
-        return *((TYPE*) fixedPointer);
+        return *((ValueType*) fixedPointer);
     }
 
-    HDINLINE TYPE* getPointer()
+    HDINLINE ValueType* getPointer()
     {
         return fixedPointer;
     }
 
     /*this call synchronize a block and must called from any thread and not inside a if clauses*/
-    static DINLINE SharedBox<TYPE, TVec<_X_, _Y_> > init()
+    static DINLINE This init()
     {
-        __shared__ TYPE mem_sh[_Y_][_X_];
+        __shared__ ValueType mem_sh[Size::y::value][Size::x::value];
         __syncthreads(); /*wait that all shared memory is initialised*/
-        return SharedBox<TYPE, TVec<_X_, _Y_> >((TYPE*) mem_sh);
+        return This((ValueType*) mem_sh);
     }
 
-    HDINLINE PMacc::cursor::CT::BufferCursor<TYPE, ::PMacc::math::CT::Int<sizeof (TYPE) * _X_> >
+    HDINLINE PMacc::cursor::CT::BufferCursor<ValueType, ::PMacc::math::CT::Int<sizeof (ValueType) * Size::x::value> >
     toCursor() const
     {
-        return PMacc::cursor::CT::BufferCursor<TYPE, ::PMacc::math::CT::Int<sizeof (TYPE) * _X_> >
-            ((TYPE*) fixedPointer);
+        return PMacc::cursor::CT::BufferCursor<ValueType, ::PMacc::math::CT::Int<sizeof (ValueType) * Size::x::value> >
+            ((ValueType*) fixedPointer);
     }
 
 protected:
 
-    PMACC_ALIGN(fixedPointer, TYPE*);
+    PMACC_ALIGN(fixedPointer, ValueType*);
 };
 
-template<typename TYPE, uint32_t _X_, uint32_t _Y_, uint32_t _Z_>
-class SharedBox<TYPE, TVec<_X_, _Y_, _Z_> >
+template<typename T_TYPE, class T_Vector>
+class SharedBox<T_TYPE, T_Vector,DIM3 >
 {
 public:
 
@@ -164,21 +168,23 @@ public:
     {
         Dim = DIM3
     };
-    typedef TYPE ValueType;
+    typedef T_TYPE ValueType;
     typedef ValueType& RefValueType;
-    typedef SharedBox<TYPE, TVec<_X_, _Y_> > ReducedType;
+    typedef T_Vector Size;
+    typedef SharedBox<ValueType, math::CT::Int<Size::x::value, Size::y::value> > ReducedType;
+    typedef SharedBox<ValueType, T_Vector,DIM3 > This;
 
     HDINLINE ReducedType operator[](const int idx)
     {
-        return ReducedType(this->fixedPointer + idx * (int) (_X_ * _Y_));
+        return ReducedType(this->fixedPointer + idx *  (Size::x::value * Size::y::value));
     }
 
     HDINLINE ReducedType operator[](const int idx) const
     {
-        return ReducedType(this->fixedPointer + idx * (int) (_X_ * _Y_));
+        return ReducedType(this->fixedPointer + idx *  (Size::x::value *Size::y::value));
     }
 
-    HDINLINE SharedBox(TYPE* pointer = NULL) :
+    HDINLINE SharedBox(ValueType* pointer = NULL) :
     fixedPointer(pointer)
     {
     }
@@ -191,31 +197,31 @@ public:
         return *(fixedPointer);
     }
 
-    HDINLINE TYPE* getPointer()
+    HDINLINE ValueType* getPointer()
     {
         return fixedPointer;
     }
 
-    HDINLINE PMacc::cursor::CT::BufferCursor<TYPE, ::PMacc::math::CT::Int<sizeof (TYPE) * _X_,
-    sizeof (TYPE) * _X_ * _Y_> >
+    HDINLINE PMacc::cursor::CT::BufferCursor<ValueType, ::PMacc::math::CT::Int<sizeof (ValueType) * Size::x::value,
+    sizeof (ValueType) * Size::x::value * Size::y::value> >
     toCursor() const
     {
-        return PMacc::cursor::CT::BufferCursor<TYPE, ::PMacc::math::CT::Int<sizeof (TYPE) * _X_,
-            sizeof (TYPE) * _X_ * _Y_> >
-            ((TYPE*)fixedPointer);
+        return PMacc::cursor::CT::BufferCursor<ValueType, ::PMacc::math::CT::Int<sizeof (ValueType) * Size::x::value,
+            sizeof (ValueType) * Size::x::value * Size::y::value> >
+            ((ValueType*)fixedPointer);
     }
 
     /*this call synchronize a block and must called from any thread and not inside a if clauses*/
-    static DINLINE SharedBox<TYPE, TVec<_X_, _Y_, _Z_> > init()
+    static DINLINE This init()
     {
-        __shared__ TYPE mem_sh[_Z_][_Y_][_X_];
+        __shared__ ValueType mem_sh[Size::z::value][Size::y::value][Size::x::value];
         __syncthreads(); /*wait that all shared memory is initialised*/
-        return SharedBox<TYPE, TVec<_X_, _Y_, _Z_> >((TYPE*) mem_sh);
+        return This((ValueType*) mem_sh);
     }
 
 protected:
 
-    PMACC_ALIGN(fixedPointer, TYPE*);
+    PMACC_ALIGN(fixedPointer, ValueType*);
 
 };
 

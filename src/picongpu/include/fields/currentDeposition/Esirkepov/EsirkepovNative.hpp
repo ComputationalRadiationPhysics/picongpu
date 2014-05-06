@@ -25,7 +25,7 @@
 #include "math/vector/UInt.hpp"
 #include "types.h"
 #include "dimensions/DataSpace.hpp"
-#include "dimensions/TVec.h"
+#include "math/vector/compile-time/Int.hpp"
 #include "cuSTL/cursor/Cursor.hpp"
 #include "basicOperations.hpp"
 #include <cuSTL/cursor/tools/twistVectorFieldAxes.hpp>

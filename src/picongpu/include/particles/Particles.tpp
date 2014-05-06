@@ -157,11 +157,11 @@ void Particles<T_ParticleDescription>::update(uint32_t )
 
     typedef SuperCellDescription<
         typename MappingDesc::SuperCellSize,
-        typename toTVec<LowerMargin>::type,
-        typename toTVec<UpperMargin>::type
+        LowerMargin,
+        UpperMargin
         > BlockArea;
 
-    dim3 block( MappingDesc::SuperCellSize::getDataSpace( ) );
+    dim3 block( MappingDesc::SuperCellSize::toRT().toDim3() );
 
     __picKernelArea( kernelMoveAndMarkParticles<BlockArea>, this->cellDescription, CORE + BORDER )
         (block)
@@ -195,7 +195,7 @@ void Particles<T_ParticleDescription>::initFill( uint32_t currentStep )
     mpi::SeedPerRank<simDim> seedPerRank;
     uint32_t seed = seedPerRank( globalSeed(), FrameType::CommunicationTag );
     seed ^= POSITION_SEED;
-    dim3 block( MappingDesc::SuperCellSize::getDataSpace( ) );
+    dim3 block( MappingDesc::SuperCellSize::toRT( ).toDim3() );
 
     if ( gasProfile::GAS_ENABLED )
     {
@@ -230,7 +230,6 @@ template< typename t_ParticleDescription>
 void Particles<T_ParticleDescription>::deviceCloneFrom( Particles< t_ParticleDescription> &src )
 {
     dim3 block( TILE_SIZE );
-    DataSpace<simDim> superCells = this->particlesBuffer->getSuperCellsCount( );
 
     __picKernelArea( kernelCloneParticles, this->cellDescription, CORE + BORDER + GUARD )
         (block) ( this->getDeviceParticlesBox( ), src.getDeviceParticlesBox( ) );
@@ -244,8 +243,7 @@ void Particles<T_ParticleDescription>::deviceCloneFrom( Particles< t_ParticleDes
 template< typename T_ParticleDescription>
 void Particles<T_ParticleDescription>::deviceAddTemperature( float_X energy )
 {
-    dim3 block( MappingDesc::SuperCellSize::getDataSpace( ) );
-    DataSpace<simDim> superCells = this->particlesBuffer->getSuperCellsCount( );
+    dim3 block( MappingDesc::SuperCellSize::toRT( ).toDim3() );
 
     GlobalSeed globalSeed;
     mpi::SeedPerRank<simDim> seedPerRank;
@@ -264,7 +262,7 @@ void Particles<T_ParticleDescription>::deviceSetDrift( uint32_t currentStep )
 {
     VirtualWindow window = MovingWindow::getInstance( ).getVirtualWindow( currentStep );
 
-    dim3 block( MappingDesc::SuperCellSize::getDataSpace( ) );
+    dim3 block( MappingDesc::SuperCellSize::toRT( ).toDim3() );
 
     PMACC_AUTO( simBox, Environment<simDim>::get().SubGrid().getSimulationBox( ) );
     const DataSpace<simDim> localNrOfCells( simBox.getLocalSize( ) );

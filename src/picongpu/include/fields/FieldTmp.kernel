@@ -1,23 +1,23 @@
 /**
  * Copyright 2013 Axel Huebl, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 
 #pragma once
@@ -42,7 +42,7 @@
 namespace picongpu
 {
     using namespace PMacc;
-    
+
 
     template<class BlockDescription_, uint32_t AREA, class TmpBox, class ParBox, class FrameSolver, class Mapping>
     __global__ void kernelComputeSupercells( TmpBox fieldTmp, ParBox boxPar, FrameSolver frameSolver, Mapping mapper )
@@ -83,19 +83,19 @@ namespace picongpu
         {
             if( linearThreadIdx < particlesInSuperCell )
             {
-                frameSolver( *frame, linearThreadIdx, SuperCellSize(), cachedVal );
+                frameSolver( *frame, linearThreadIdx, SuperCellSize::toRT(), cachedVal );
             }
             __syncthreads( );
             if( linearThreadIdx == 0 )
             {
                 frame = &( boxPar.getPreviousFrame( *frame, isValid ) );
-                particlesInSuperCell = SuperCellSize::elements;
+                particlesInSuperCell = PMacc::math::CT::volume<SuperCellSize>::type::value;
             }
             __syncthreads( );
         }
 
         nvidia::functors::Add add;
-        const DataSpace<simDim> blockCell = block * MappingDesc::SuperCellSize::getDataSpace( );
+        const DataSpace<simDim> blockCell = block * MappingDesc::SuperCellSize::toRT( );
         PMACC_AUTO( fieldTmpBlock, fieldTmp.shift( blockCell ) );
         collectiv( add, fieldTmpBlock, cachedVal );
         __syncthreads( );
@@ -111,14 +111,14 @@ namespace picongpu
         const DataSpace<Mapping::Dim> threadIndex(threadIdx);
         const DataSpace<simDim> blockCell(
                                            mapper.getSuperCellIndex( DataSpace<simDim > ( blockIdx ) )
-                                           * Mapping::SuperCellSize::getDataSpace( )
+                                           * Mapping::SuperCellSize::toRT( )
                                            );
         const DataSpace<Mapping::Dim> sourceCell( blockCell + threadIndex );
 
         /*origin in area from local GPU*/
         DataSpace<simDim> nullSourceCell(
                                           mapper.getSuperCellIndex( DataSpace<simDim > ( ) )
-                                          * Mapping::SuperCellSize::getDataSpace( )
+                                          * Mapping::SuperCellSize::toRT( )
                                           );
         DataSpace<simDim> targetCell( sourceCell - nullSourceCell );
 
@@ -130,7 +130,7 @@ namespace picongpu
                 targetCell[d] -= tile_size[d] - exchangeSize[d];
             }
             else if( ( direction[d] == 1 ) && ( threadIndex[d] >= exchangeSize[d] ) ) return;
-        }        
+        }
         targetJ( targetCell ) = fieldTmp( sourceCell );
     }
 
@@ -144,14 +144,14 @@ namespace picongpu
         const DataSpace<Mapping::Dim> threadIndex(threadIdx);
         const DataSpace<simDim> blockCell(
                                            mapper.getSuperCellIndex( DataSpace<simDim > ( blockIdx ) )
-                                           * Mapping::SuperCellSize::getDataSpace( )
+                                           * Mapping::SuperCellSize::toRT( )
                                            );
         DataSpace<Mapping::Dim> targetCell( blockCell + threadIndex );
 
         /*origin in area from local GPU*/
         DataSpace<simDim> nullSourceCell(
                                           mapper.getSuperCellIndex( DataSpace<simDim > ( ) )
-                                          * Mapping::SuperCellSize::getDataSpace( )
+                                          * Mapping::SuperCellSize::toRT( )
                                           );
         DataSpace<simDim> sourceCell( targetCell - nullSourceCell );
 
@@ -169,7 +169,7 @@ namespace picongpu
                 targetCell[d] += tile_size[d];
             }
         }
-        
+
         fieldTmp( targetCell ) += sourceTmp( sourceCell );
     }
 

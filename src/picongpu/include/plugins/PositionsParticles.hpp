@@ -1,23 +1,23 @@
 /**
  * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 
 #ifndef POSITIONSPARTICLES_HPP
@@ -60,14 +60,14 @@ struct SglParticle
 
     DataSpace<simDim> globalCellOffset;
 
-    //! todo 
+    //! todo
 
     floatD_64 getGlobalCell() const
     {
         floatD_64 doubleGlobalCellOffset;
         for(uint32_t i=0;i<simDim;++i)
             doubleGlobalCellOffset[i]=float_64(globalCellOffset[i]);
-        
+
         return floatD_64( doubleGlobalCellOffset+ precisionCast<float_64>(position));
     }
 
@@ -77,11 +77,11 @@ struct SglParticle
         floatD_64 pos;
         for(uint32_t i=0;i<simDim;++i)
             pos[i]=( v.getGlobalCell()[i] * cellSize[i]*UNIT_LENGTH);
-     
+
         const float3_64 mom( precisionCast<float_64>(v.momentum.x()) * UNIT_MASS * UNIT_SPEED,
                              precisionCast<float_64>(v.momentum.y()) * UNIT_MASS * UNIT_SPEED,
                              precisionCast<float_64>(v.momentum.z()) * UNIT_MASS * UNIT_SPEED );
-        
+
         const float_64 mass = precisionCast<float_64>(v.mass) * UNIT_MASS;
         const float_64 charge = precisionCast<float_64>(v.charge) * UNIT_CHARGE;
 
@@ -146,7 +146,7 @@ __global__ void kernelPositionsParticles(ParticlesBox<FRAME, simDim> pb,
 
 
             gParticle->globalCellOffset = (superCellIdx - mapper.getGuardingSuperCells())
-                * MappingDesc::SuperCellSize::getDataSpace()
+                * MappingDesc::SuperCellSize::toRT()
                 + frameCellOffset;
         }
         __syncthreads();
@@ -255,7 +255,7 @@ private:
         SglParticle<FloatPos> positionParticleTmp;
 
         gParticle->getDeviceBuffer().setValue(positionParticleTmp);
-        dim3 block(SuperCellSize::getDataSpace());
+        dim3 block(SuperCellSize::toRT().toDim3());
 
         __picKernelArea(kernelPositionsParticles, *cellDescription, AREA)
             (block)

@@ -1,24 +1,24 @@
 /**
  * Copyright 2013-2014 Heiko Burau, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #pragma once
 
 #include <stdint.h>
@@ -30,11 +30,10 @@
 #include <boost/mpl/plus.hpp>
 #include <boost/mpl/min_max.hpp>
 #include <boost/mpl/times.hpp>
-//#include <boost/mpl/arithmetic.hpp>
-#include "../Vector.hpp"
 #include <boost/mpl/int.hpp>
 #include <boost/mpl/apply.hpp>
 #include <boost/mpl/accumulate.hpp>
+#include "math/Vector.hpp"
 
 namespace PMacc
 {
@@ -42,7 +41,7 @@ namespace math
 {
 namespace CT
 {
-    
+
 namespace mpl = boost::mpl;
 
 namespace detail
@@ -99,7 +98,7 @@ struct TypeSelector<mpl::na>
 };
 
 }
-    
+
 namespace mpl = boost::mpl;
 
 template<typename Arg0 = mpl::na,
@@ -110,9 +109,9 @@ struct Vector
     typedef Arg0 x;
     typedef Arg1 y;
     typedef Arg2 z;
-    
+
     typedef mpl::vector<x, y, z> mplVector;
-    
+
     template<int element>
     struct at
     {
@@ -142,9 +141,11 @@ struct Vector
      *
      *  \return RT_type runtime vector with same value type
      */
-    HDINLINE RT_type toRT() const
+    static HDINLINE RT_type toRT()
     {
-        return (math::Vector<type, dim>)(*this);
+        math::Vector<type, dim> result;
+        math::CT::detail::VectorFromCT<dim>()(result, This());
+        return result;
     }
 };
 
@@ -154,7 +155,7 @@ struct Vector
 template<typename Lhs, typename Rhs, typename T_BinaryOperator>
 struct applyOperator
 {
-    typedef typename applyOperator<typename Lhs::vector_type, 
+    typedef typename applyOperator<typename Lhs::vector_type,
                          typename Rhs::vector_type, T_BinaryOperator>::type type;
 };
 
@@ -198,7 +199,7 @@ template<typename Lhs, typename Rhs>
 struct add
 {
     typedef typename applyOperator<
-                         typename Lhs::vector_type, 
+                         typename Lhs::vector_type,
                          typename Rhs::vector_type,
                          mpl::plus<mpl::_1, mpl::_2> >::type type;
 };
@@ -209,7 +210,7 @@ template<typename Lhs, typename Rhs>
 struct mul
 {
     typedef typename applyOperator<
-                         typename Lhs::vector_type, 
+                         typename Lhs::vector_type,
                          typename Rhs::vector_type,
                          mpl::times<mpl::_1, mpl::_2> >::type type;
 };
@@ -220,7 +221,7 @@ template<typename Lhs, typename Rhs>
 struct max
 {
     typedef typename applyOperator<
-                         typename Lhs::vector_type, 
+                         typename Lhs::vector_type,
                          typename Rhs::vector_type,
                          mpl::max<mpl::_1, mpl::_2> >::type type;
 };
@@ -231,7 +232,7 @@ template<typename Lhs, typename Rhs>
 struct min
 {
     typedef typename applyOperator<
-                         typename Lhs::vector_type, 
+                         typename Lhs::vector_type,
                          typename Rhs::vector_type,
                          mpl::min<mpl::_1, mpl::_2> >::type type;
 };

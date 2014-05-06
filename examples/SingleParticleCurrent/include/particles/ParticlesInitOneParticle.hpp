@@ -105,8 +105,8 @@ public:
         }
 
         //calculate supercell 
-        DataSpace<DIM3> localSuperCell = (localParCell / MappingDesc::SuperCellSize::getDataSpace());
-        DataSpace<DIM3> cellInSuperCell = localParCell - (localSuperCell * MappingDesc::SuperCellSize::getDataSpace());
+        DataSpace<DIM3> localSuperCell = (localParCell / MappingDesc::SuperCellSize::toRT());
+        DataSpace<DIM3> cellInSuperCell = localParCell - (localSuperCell * MappingDesc::SuperCellSize::toRT());
         //add garding blocks to supercell 
         localSuperCell = localSuperCell + cellDescription.getGuardingSuperCells();
 

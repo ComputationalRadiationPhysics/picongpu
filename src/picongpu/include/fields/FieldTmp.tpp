@@ -111,8 +111,8 @@ namespace picongpu
     {
         typedef SuperCellDescription<
             typename MappingDesc::SuperCellSize,
-            typename toTVec<typename FrameSolver::LowerMargin>::type,
-            typename toTVec<typename FrameSolver::UpperMargin>::type
+            typename FrameSolver::LowerMargin,
+            typename FrameSolver::UpperMargin
             > BlockArea;
 
         StrideMapping<AREA, simDim, MappingDesc> mapper( cellDescription );

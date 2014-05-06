@@ -1,24 +1,24 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Heiko Burau, 
+ * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Heiko Burau,
  *                     Rene Widera, Richard Pausch
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 #pragma once
 
@@ -49,7 +49,7 @@ using namespace PMacc;
 namespace po = boost::program_options;
 
 /** This kernel computes the kinetic and total energy summed over
- *  all particles of a species.  
+ *  all particles of a species.
  **/
 template<class FRAME, class DBox, class Mapping>
 __global__ void kernelEnergyParticles(ParticlesBox<FRAME, simDim> pb,
@@ -92,7 +92,7 @@ __global__ void kernelEnergyParticles(ParticlesBox<FRAME, simDim> pb,
     {
         if (isParticle)
         {
-          
+
             PMACC_AUTO(particle,(*frame)[linearThreadIdx]); /* get one particle */
             const float3_X mom = particle[momentum_]; /* get particle momentum */
             /* and compute square of absolute momentum of one particle: */
@@ -100,7 +100,7 @@ __global__ void kernelEnergyParticles(ParticlesBox<FRAME, simDim> pb,
 
             const float_X weighting = particle[weighting_]; /* get macro particle weighting */
             const float_X mass = frame->getMass(weighting); /* compute mass using weighting */
-            const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT; 
+            const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
 
             Gamma<> calcGamma; /* functor for computing relativistic gamma factor */
             const float_X gamma = calcGamma(mom, mass); /* compute relativistic gamma */
@@ -108,7 +108,7 @@ __global__ void kernelEnergyParticles(ParticlesBox<FRAME, simDim> pb,
             if (gamma < 1.005f) /* if particle energy is low enough: */
             {
                 /* not relativistic: use equation with more precision */
-                _local_energyKin += mom2 / (2.0f * mass); 
+                _local_energyKin += mom2 / (2.0f * mass);
             }
             else /* if particle is relativistic */
             {
@@ -128,7 +128,7 @@ __global__ void kernelEnergyParticles(ParticlesBox<FRAME, simDim> pb,
         __syncthreads(); /* wait till all threads have added their particle energies */
 
         /* get next particle frame */
-        if (linearThreadIdx == 0) 
+        if (linearThreadIdx == 0)
         {
             /* set frame to next particle frame */
             frame = &(pb.getPreviousFrame(*frame, isValid));
@@ -193,7 +193,7 @@ public:
 
     }
 
-  /** this code is executed if the current time step is supposed to compute 
+  /** this code is executed if the current time step is supposed to compute
    * the energy **/
     void notify(uint32_t currentStep)
     {
@@ -211,7 +211,7 @@ public:
     {
         desc.add_options()
             ((analyzerPrefix + ".period").c_str(),
-             po::value<uint32_t > (&notifyFrequency), 
+             po::value<uint32_t > (&notifyFrequency),
              "compute kinetic and total energy [for each n-th step] enable analyser by setting a non-zero value");
     }
 
@@ -235,7 +235,7 @@ private:
         if (notifyFrequency > 0) /* only if plugin is called at least once */
         {
             /* decide which MPI-rank writes output: */
-            writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce()); 
+            writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce());
 
             /* create two ints on gpu and host: */
             gEnergy = new GridBuffer<double, DIM1 > (DataSpace<DIM1 > (2));
@@ -248,7 +248,7 @@ private:
                 /* error handling: */
                 if (!outFile)
                 {
-                    std::cerr << "Can't open file [" << filename 
+                    std::cerr << "Can't open file [" << filename
                               << "] for output, diasble analyser output. " << std::endl;
                     writeToFile = false;
                 }
@@ -287,7 +287,7 @@ private:
     void calculateEnergyParticles(uint32_t currentStep)
     {
         gEnergy->getDeviceBuffer().setValue(0.0); /* init global energy with zero */
-        dim3 block(MappingDesc::SuperCellSize::getDataSpace()); /* GPU parallelization */
+        dim3 block(MappingDesc::SuperCellSize::toRT().toDim3()); /* GPU parallelization */
 
         /* kernel call = sum all particle energies on GPU */
         __picKernelArea(kernelEnergyParticles, *cellDescription, AREA)
@@ -312,9 +312,9 @@ private:
             typedef std::numeric_limits< float_64 > dbl;
 
             outFile.precision(dbl::digits10);
-            outFile << currentStep << " " 
-                    << std::scientific 
-                    << reducedEnergy[0] * UNIT_ENERGY << " " 
+            outFile << currentStep << " "
+                    << std::scientific
+                    << reducedEnergy[0] * UNIT_ENERGY << " "
                     << reducedEnergy[1] * UNIT_ENERGY << std::endl;
         }
     }
