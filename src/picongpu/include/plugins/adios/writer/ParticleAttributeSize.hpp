@@ -34,7 +34,7 @@ namespace adios
 {
 using namespace PMacc;
 
-namespace bmpl = boost::mpl;
+
 
 /** collect size of a particle attribute
  * 

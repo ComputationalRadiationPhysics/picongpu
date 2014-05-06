@@ -80,7 +80,7 @@ namespace hdf5
 using namespace PMacc;
 
 using namespace splash;
-namespace bmpl = boost::mpl;
+
 
 namespace po = boost::program_options;
 
@@ -134,14 +134,14 @@ public:
     {
         notificationReceived(currentStep, false);
     }
-    
+
     void checkpoint(uint32_t currentStep, const std::string checkpointDirectory)
     {
         this->checkpointDirectory = checkpointDirectory;
-        
+
         notificationReceived(currentStep, true);
     }
-    
+
     void restart(uint32_t restartStep, const std::string restartDirectory)
     {
         const uint32_t maxOpenFilesPerNode = 4;
@@ -153,19 +153,19 @@ public:
                         maxOpenFilesPerNode);
 
         mThreadParams.currentStep = restartStep;
-        
+
         /* set attributes for datacollector files */
         DataCollector::FileCreationAttr attr;
         attr.fileAccType = DataCollector::FAT_READ;
         attr.mpiPosition.set(splashMpiPos);
         attr.mpiSize.set(splashMpiSize);
-        
+
         /* if restartFilename is relative, prepend with restartDirectory */
         if (!boost::filesystem::path(restartFilename).has_root_path())
         {
             restartFilename = restartDirectory + std::string("/") + restartFilename;
         }
-        
+
         /* open datacollector */
         try
         {
@@ -177,7 +177,7 @@ public:
             std::cerr << e.what() << std::endl;
             throw std::runtime_error("Failed to open datacollector");
         }
-        
+
         /* load number of slides to initialize MovingWindow */
         int slides = 0;
         mThreadParams.dataCollector->readAttribute(restartStep, NULL, "sim_slides", &slides);
@@ -186,21 +186,21 @@ public:
         log<picLog::INPUT_OUTPUT > ("Setting slide count for moving window to %1%") % slides;
         MovingWindow::getInstance().setSlideCounter((uint32_t) slides);
         gc.setNumSlides(slides);
-        
-        DataSpace<simDim> gridPosition = 
+
+        DataSpace<simDim> gridPosition =
                 Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
         log<picLog::INPUT_OUTPUT > ("Grid position is %1%") % gridPosition.toString();
-        
+
         ThreadParams *params = &mThreadParams;
-        
+
         /* load all fields */
-        ForEach<FileCheckpointFields, LoadFields<void> > forEachLoadFields;
+        ForEach<FileCheckpointFields, LoadFields<bmpl::_1> > forEachLoadFields;
         forEachLoadFields(ref(params));
-        
+
         /* load all particles */
-        ForEach<FileCheckpointParticles, LoadParticles<void> > forEachLoadSpecies;
+        ForEach<FileCheckpointParticles, LoadParticles<bmpl::_1> > forEachLoadSpecies;
         forEachLoadSpecies(ref(params), gridPosition);
-        
+
         /* close datacollector */
         log<picLog::INPUT_OUTPUT > ("HDF5 close DataCollector with file: %1%") % restartFilename;
         mThreadParams.dataCollector->close();
@@ -208,7 +208,7 @@ public:
     }
 
 private:
-    
+
     void closeH5File()
     {
         if (mThreadParams.dataCollector != NULL)
@@ -250,7 +250,7 @@ private:
         }
 
     }
-    
+
     void notificationReceived(uint32_t currentStep, bool isCheckpoint)
     {
         mThreadParams.isCheckpoint = isCheckpoint;
@@ -273,7 +273,7 @@ private:
                 fname = checkpointFilename;
             }
         }
-        
+
         openH5File(fname);
 
         writeHDF5((void*) &mThreadParams);
@@ -287,7 +287,7 @@ private:
             Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
 
         GridController<simDim> &gc = Environment<simDim>::get().GridController();
-        /* It is important that we never change the mpi_pos after this point 
+        /* It is important that we never change the mpi_pos after this point
          * because we get problems with the restart.
          * Otherwise we do not know which gpu must load the ghost parts around
          * the sliding window.
@@ -304,12 +304,13 @@ private:
             splashMpiSize[i] = mpi_size[i];
         }
 
+
         /* only register for notify callback when .period is set on command line */
         if (notifyPeriod > 0)
         {
             Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
         }
-        
+
         if (restartFilename == "")
         {
             restartFilename = checkpointFilename;
@@ -367,7 +368,7 @@ private:
         writeMetaAttributes(threadParams);
 
         /* get clean domain info (picongpu view) */
-        DomainInformation domInfo = 
+        DomainInformation domInfo =
                 MovingWindow::getInstance().getActiveDomain(threadParams->currentStep);
 
         /* y direction can be negative for first gpu*/
@@ -378,11 +379,11 @@ private:
         log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing fields.");
         if (threadParams->isCheckpoint)
         {
-            ForEach<FileCheckpointFields, WriteFields<void> > forEachWriteFields;
+            ForEach<FileCheckpointFields, WriteFields<bmpl::_1> > forEachWriteFields;
             forEachWriteFields(ref(threadParams), domInfo);
         } else
         {
-            ForEach<FileOutputFields, WriteFields<void> > forEachWriteFields;
+            ForEach<FileOutputFields, WriteFields<bmpl::_1> > forEachWriteFields;
             forEachWriteFields(ref(threadParams), domInfo);
         }
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing fields.");
@@ -391,11 +392,11 @@ private:
         log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing particle species.");
         if (threadParams->isCheckpoint)
         {
-            ForEach<FileCheckpointParticles, WriteSpecies<void> > writeSpecies;
+            ForEach<FileCheckpointParticles, WriteSpecies<bmpl::_1> > writeSpecies;
             writeSpecies(ref(threadParams), std::string(), domInfo, particleOffset);
         } else
         {
-            ForEach<FileOutputParticles, WriteSpecies<void> > writeSpecies;
+            ForEach<FileOutputParticles, WriteSpecies<bmpl::_1> > writeSpecies;
             writeSpecies(ref(threadParams), std::string(), domInfo, particleOffset);
         }
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species.");
@@ -403,7 +404,7 @@ private:
 
         if (threadParams->isCheckpoint && MovingWindow::getInstance().isSlidingWindowActive())
         {
-            DomainInformation domInfoGhosts = 
+            DomainInformation domInfoGhosts =
                     MovingWindow::getInstance().getGhostDomain(threadParams->currentStep);
 
             particleOffset = threadParams->gridPosition;
@@ -414,11 +415,11 @@ private:
             log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing particle species bottom.");
             if (threadParams->isCheckpoint)
             {
-                ForEach<FileCheckpointParticles, WriteSpecies<void> > writeSpecies;
+                ForEach<FileCheckpointParticles, WriteSpecies<bmpl::_1>  > writeSpecies;
                 writeSpecies(ref(threadParams), std::string("_ghosts"), domInfoGhosts, particleOffset);
             } else
             {
-                ForEach<FileOutputParticles, WriteSpecies<void> > writeSpecies;
+                ForEach<FileOutputParticles, WriteSpecies<bmpl::_1> > writeSpecies;
                 writeSpecies(ref(threadParams), std::string("_ghosts"), domInfoGhosts, particleOffset);
             }
             log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species bottom.");
@@ -446,4 +447,3 @@ private:
 
 } //namespace hdf5
 } //namespace picongpu
-

@@ -27,8 +27,9 @@
 #include <cuda.h>
 #include <stdexcept>
 
-#include "boost/typeof/std/utility.hpp"
+#include <boost/typeof/std/utility.hpp>
 #include "debug/PMaccVerbose.hpp"
+#include <boost/mpl/placeholders.hpp>
 
 #define BOOST_MPL_LIMIT_VECTOR_SIZE 20
 #define BOOST_MPL_LIMIT_MAP_SIZE 20
@@ -41,6 +42,7 @@
 namespace PMacc
 {
 
+namespace bmpl = boost::mpl;
 //short name for access verbose types of libPMacc
 typedef PMaccVerbose ggLog;
 

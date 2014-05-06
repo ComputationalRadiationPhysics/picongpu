@@ -34,7 +34,7 @@ namespace adios
 {
 using namespace PMacc;
 
-namespace bmpl = boost::mpl;
+
 
 /** write attribute of a particle to adios file
  * 

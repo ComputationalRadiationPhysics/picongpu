@@ -52,7 +52,7 @@ namespace adios
 {
 using namespace PMacc;
 
-namespace bmpl = boost::mpl;
+
 
 /** Write copy particle to host memory and dump to ADIOS file
  * 
