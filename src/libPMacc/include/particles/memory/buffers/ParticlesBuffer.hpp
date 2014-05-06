@@ -103,7 +103,7 @@ public:
     ParticleDescriptionDefault;
 
     typedef Frame<
-    OperatorCreatePairStaticArray<SuperCellSize::elements >, ParticleDescriptionDefault> ParticleType;
+    OperatorCreatePairStaticArray<PMacc::math::CT::volume<SuperCellSize>::type::value >, ParticleDescriptionDefault> ParticleType;
 
     typedef
     typename ReplaceValueTypeSeq<T_ParticleDescription, border_particleList>::type
