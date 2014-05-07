@@ -34,11 +34,22 @@ namespace tools
 namespace result_of
 {
     
-template<typename Axes, typename TVector>
+template<typename Axes,
+typename T_Vector>
 struct TwistVectorAxes
 {
-    typedef math::Vector<typename TVector::type, TVector::dim, typename TVector::Accessor,
-            math::StackedNavigator<typename TVector::Navigator, math::PermutedNavigator<Axes> > >& type;
+    typedef typename TwistVectorAxes<Axes,typename T_Vector::This>::type type;
+    };
+
+template<typename Axes,
+typename T_Type, int T_Dim,
+typename T_Accessor,
+typename T_Navigator,
+template <typename, int> class T_Storage>
+struct TwistVectorAxes<Axes,math::Vector<T_Type,T_Dim,T_Accessor,T_Navigator,T_Storage> >
+{
+    typedef math::Vector<T_Type, T_Dim, T_Accessor,
+            math::StackedNavigator<T_Navigator, math::PermutedNavigator<Axes> >,T_Storage >& type;
 };
     
 } // result_of
@@ -49,13 +60,17 @@ struct TwistVectorAxes
  * memory of the input vector. The input vector's navigator policy is replaced by 
  * a new navigator which merely consists of the old navigator plus a twisting navigator.
  * This new navigator does not use any real memory.
+ * 
+ * \tparam Axes Mapped indices
+ * \param vector vector to be twisted
+ * \return reference of the input vector with twisted axes.
  */
 template<typename Axes, typename TVector>
 HDINLINE
 typename result_of::TwistVectorAxes<Axes, TVector>::type
 twistVectorAxes(TVector& vector)
 {
-    /* The reinterpret_cast is valid because the target type is the same than the
+    /* The reinterpret_cast is valid because the target type is the same as the
      * input type except its navigator policy which does not occupy any memory though.
      */
     return reinterpret_cast<typename result_of::TwistVectorAxes<Axes, TVector>::type>(vector);
