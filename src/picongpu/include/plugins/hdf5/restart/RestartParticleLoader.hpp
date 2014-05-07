@@ -356,13 +356,13 @@ public:
         /* setup domain information for HDF5 file access */
         VirtualWindow window = MovingWindow::getInstance().getVirtualWindow(tp->currentStep);
         DataSpace<simDim> globalDomainOffset(gridPosition);
-        DataSpace<simDim> logicalToPhysicalOffset(gridPosition - window.globalSimulationOffset);
+        DataSpace<simDim> logicalToPhysicalOffset(gridPosition - window.globalDimensions.offset);
 
         /* domains are always positive */
         if (globalDomainOffset.y() == 0)
-            globalDomainOffset.y() = window.globalSimulationOffset.y();
+            globalDomainOffset.y() = window.globalDimensions.offset.y();
 
-        DataSpace<simDim> localDomainSize(window.localSize);
+        DataSpace<simDim> localDomainSize(window.localDimensions.size);
 
         /* load particle data */
         RestartParticleLoader<ParticleType>::loadParticles(
@@ -378,13 +378,13 @@ public:
         if (MovingWindow::getInstance().isSlidingWindowActive())
         {
             globalDomainOffset = gridPosition;
-            globalDomainOffset.y() += window.localSize.y();
+            globalDomainOffset.y() += window.localDimensions.size.y();
 
-            localDomainSize = window.localFullSize;
-            localDomainSize.y() -= window.localSize.y();
+            localDomainSize = window.localDomainSize;
+            localDomainSize.y() -= window.localDimensions.size.y();
 
             DataSpace<simDim> particleOffset = gridPosition;
-            particleOffset.y() = -window.localSize.y();
+            particleOffset.y() = -window.localDimensions.size.y();
 
             RestartParticleLoader<ParticleType>::loadParticles(
                     tp->currentStep,

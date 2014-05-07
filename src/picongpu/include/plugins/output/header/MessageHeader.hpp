@@ -76,7 +76,7 @@ struct MessageHeader
         if (gpus.productOfComponents() != 0)
             sim.nodes = DataSpace<DIM2 > (gpus[transpose.x()], gpus[transpose.y()]);
         
-        PMACC_AUTO(simBox,Environment<simDim>::get().SubGrid().getSimulationBox());
+        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
         
         const DataSpace<Dim> globalSize(simBox.getGlobalSize());
         sim.size.x() = globalSize[transpose.x()];
@@ -84,7 +84,7 @@ struct MessageHeader
         
         node.maxSize = DataSpace<DIM2 > (localSize[transpose.x()], localSize[transpose.y()]);
 
-        const DataSpace<Dim> windowSize = vWindow.globalWindowSize;
+        const DataSpace<Dim> windowSize = vWindow.globalDimensions.size;
         window.size = DataSpace<DIM2 > (windowSize[transpose.x()], windowSize[transpose.y()]);
 
         if (cellSizeArr != NULL)
@@ -112,8 +112,8 @@ struct MessageHeader
         }
 
         const DataSpace<Dim> offsetToSimNull(simBox.getGlobalOffset());
-        const DataSpace<Dim> windowOffsetToSimNull(vWindow.globalSimulationOffset);
-        const DataSpace<Dim> localOffset(vWindow.localOffset);
+        const DataSpace<Dim> windowOffsetToSimNull(vWindow.globalDimensions.offset);
+        const DataSpace<Dim> localOffset(vWindow.localDimensions.offset);
 
         const DataSpace<DIM2> localOffset2D(localOffset[transpose.x()], localOffset[transpose.y()]);
         node.localOffset = localOffset2D;
@@ -129,7 +129,7 @@ struct MessageHeader
         const DataSpace<DIM2> windowOffsetToSimNull2D(windowOffsetToSimNull[transpose.x()], windowOffsetToSimNull[transpose.y()]);
         window.offset = windowOffsetToSimNull2D;
 
-        const DataSpace<Dim> currentLocalSize(vWindow.localSize);
+        const DataSpace<Dim> currentLocalSize(vWindow.localDimensions.size);
         const DataSpace<DIM2> currentLocalSize2D(currentLocalSize[transpose.x()], currentLocalSize[transpose.y()]);
         node.size = currentLocalSize2D;
 

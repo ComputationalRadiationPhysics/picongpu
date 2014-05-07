@@ -24,6 +24,7 @@
 #include "simulation_defines.hpp"
 
 #include "simulationControl/VirtualWindow.hpp"
+#include "simulationControl/SelectionInformation.hpp"
 
 namespace picongpu
 {
@@ -132,24 +133,23 @@ public:
         return instance;
     }
 
-    /** create a virtual window which descripe local and global offsets and local size which is important
-     *  for domain calculations to dump subvolumes of the full computing domain
+    /** 
+     * Create a virtual window which describes local and global offsets and local size
+     * which is important for domain calculations to dump subvolumes of the full computing domain
      * 
-     * @param currentStep simulation step
-     * @return description of virtual window
+     * @param currentStep current simulation step
+     * @return the virtual window
      */
     VirtualWindow getVirtualWindow(uint32_t currentStep)
     {
-
         VirtualWindow window(slideCounter);
-        DataSpace<simDim> gridSize(Environment<simDim>::get().SubGrid().getSimulationBox().getLocalSize());
+        DataSpace<simDim> localGridSize(Environment<simDim>::get().SubGrid().getSimulationBox().getLocalSize());
         DataSpace<simDim> globalWindowSize(simSize);
-        globalWindowSize.y() -= gridSize.y() * slidingWindowActive;
+        globalWindowSize.y() -= localGridSize.y() * slidingWindowActive;
 
-        window.globalWindowSize = globalWindowSize;
-        window.globalSimulationSize = simSize;
+        window.globalDimensions.size = globalWindowSize;
 
-        if (this->slidingWindowActive)
+        if (slidingWindowActive)
         {
             const uint32_t devices = gpu.y();
             const double cell_height = (double) CELL_HEIGHT;
@@ -158,10 +158,11 @@ public:
             uint32_t stepsInFuture = ceil(stepsInFuture_tmp);
             double stepsInFutureAfterComma = stepsInFuture_tmp - (double) stepsInFuture; /*later used for calculate smoother offsets*/
 
-            /*round to nearest step thus we get smaller sliding differgenze
-             * this is valid if we activate sliding window because y direction has same size for all gpus
+            /* round to nearest step so we get smaller sliding dfference
+             * this is valid if we activate sliding window because y direction has
+             * the same size for all gpus
              */
-            const uint32_t stepsPerGPU = (uint32_t) math::floor((double) (gridSize.y() * cell_height) / light_way_per_step + 0.5);
+            const uint32_t stepsPerGPU = (uint32_t) math::floor((double) (localGridSize.y() * cell_height) / light_way_per_step + 0.5);
             const uint32_t firstSlideStep = stepsPerGPU * devices - stepsInFuture;
             const uint32_t firstMoveStep = stepsPerGPU * (devices - 1) - stepsInFuture;
 
@@ -170,7 +171,7 @@ public:
             if (firstMoveStep <= currentStep)
             {
                 const uint32_t stepsInLastGPU = (currentStep + stepsInFuture) % stepsPerGPU;
-                //moveing window start
+                /* moving window start */
                 if (firstSlideStep <= currentStep && stepsInLastGPU == 0)
                 {
                     window.doSlide = true;
@@ -180,14 +181,17 @@ public:
                 }
                 window.slides = slideCounter;
 
-                /*round to nearest cell to have smoother offset jumps*/
+                /* round to nearest cell to have smoother offset jumps */
                 offsetFirstGPU = math::floor(((double) stepsInLastGPU + stepsInFutureAfterComma) * light_way_per_step / cell_height + 0.5);
 
-                window.globalSimulationOffset.y() = offsetFirstGPU;
+                /* global offset is all 0 except for y dimension */
+                window.globalDimensions.offset.y() = offsetFirstGPU;
             }
 
             Mask comm_mask = Environment<simDim>::get().GridController().getCommunicationMask();
 
+            /* set top/bottom if there are no communication partners
+             * for this GPU in the respective direction */
             const bool isTopGpu = !comm_mask.isSet(TOP);
             const bool isBottomGpu = !comm_mask.isSet(BOTTOM);
             window.isTop = isTopGpu;
@@ -198,19 +202,65 @@ public:
                 //  std::cout << "----\nstep " << currentStep << " firstMove " << firstMoveStep << std::endl;
                 ///  std::cout << "firstSlide" << firstSlideStep << " steps in last " << (double) ((uint32_t) (currentStep + stepsInFuture) % (uint32_t) stepsPerGPU) << std::endl;
                 //   std::cout << "Top off: " << offsetFirstGPU << " size " << window.localSize.y() - offsetFirstGPU << std::endl;
-                window.localOffset.y() = offsetFirstGPU;
-                window.localSize.y() -= offsetFirstGPU;
+                window.localDimensions.offset.y() = offsetFirstGPU;
+                window.localDimensions.size.y() -= offsetFirstGPU;
             }
             else if (isBottomGpu)
             {
                 //std::cout<<"Bo  size "<<offsetFirstGPU<<std::endl;
-                window.localSize.y() = offsetFirstGPU;
+                window.localDimensions.size.y() = offsetFirstGPU;
             }
 
 
         }
 
         return window;
+    }
+    
+    /**
+     * Return domain and window information for the current timestep
+     * 
+     * @param currentStep current simulation timestep
+     * @return current domain and window sizes and offsets
+     */
+    SelectionInformation<simDim> getSelectionInformation(uint32_t currentStep)
+    {
+        SelectionInformation<simDim> selectionInfo;
+        
+        /* gather all required information */
+        VirtualWindow window = getVirtualWindow(currentStep);
+        const SimulationBox<simDim> &simBox = Environment<simDim>::get().SubGrid().getSimulationBox();
+        
+        /* fill selectionInfo domains part */
+        selectionInfo.totalDomain = Selection<simDim>(simBox.getGlobalSize());
+        selectionInfo.globalDomain = Selection<simDim>(simBox.getGlobalSize());
+        selectionInfo.localDomain = Selection<simDim>(simBox.getLocalSize(), simBox.getGlobalOffset());
+        
+        /* fill selectionInfo windows part */
+        selectionInfo.globalMovingWindow = window.globalDimensions;
+        
+        selectionInfo.localMovingWindow.offset = selectionInfo.localDomain.offset - selectionInfo.globalMovingWindow.offset;
+        
+        for (uint32_t i = 0; i < simDim; ++i)
+        {
+            if (selectionInfo.globalMovingWindow.offset[i] > selectionInfo.localDomain.offset[i])
+            {
+                selectionInfo.localMovingWindow.offset[i] = 0;
+            }
+            
+            if (selectionInfo.globalMovingWindow.offset[i] > 
+                    selectionInfo.localDomain.offset[i] + selectionInfo.localDomain.size[i])
+            {
+                selectionInfo.localMovingWindow.size[i] = 0;
+            }
+        }
+        
+        selectionInfo.localMovingWindow.size = 
+                selectionInfo.localDomain.offset + selectionInfo.localDomain.size - 
+                selectionInfo.globalMovingWindow.offset -
+                selectionInfo.localMovingWindow.offset;
+        
+        return selectionInfo;
     }
     
     /**
@@ -222,19 +272,21 @@ public:
     DomainInformation getActiveDomain(uint32_t currentStep)
     {
         DomainInformation domInfo;
+        
+        /* gather all required information */
         VirtualWindow window = getVirtualWindow(currentStep);
 
         /* set global offset (from physical origin) to our first gpu data area */
-        domInfo.localDomainOffset = window.localOffset;
-        domInfo.globalDomainOffset = window.globalSimulationOffset;
-        domInfo.globalDomainSize = window.globalWindowSize;
+        domInfo.localDomainOffset = window.localDimensions.offset;
+        domInfo.globalDomainOffset = window.globalDimensions.offset;
+        domInfo.globalDomainSize = window.globalDimensions.size;
         domInfo.domainOffset = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
 
         /* change only the offset of the first gpu
          * localDomainOffset is only non zero for the gpus on top
          */
         domInfo.domainOffset += domInfo.localDomainOffset;
-        domInfo.domainSize = window.localSize;
+        domInfo.domainSize = window.localDimensions.size;
         
         return domInfo;
     }
@@ -252,13 +304,13 @@ public:
         
         domInfo.globalDomainOffset.y() += domInfo.globalDomainSize.y();
         domInfo.domainOffset.y() = domInfo.globalDomainOffset.y();
-        domInfo.domainSize = window.localFullSize;
-        domInfo.domainSize.y() -= window.localSize.y();
-        domInfo.globalDomainSize = window.globalSimulationSize;
+        domInfo.domainSize = window.localDomainSize;
+        domInfo.domainSize.y() -= window.localDimensions.size.y();
+        domInfo.globalDomainSize = simSize;
         domInfo.globalDomainSize.y() -= domInfo.globalDomainOffset.y();
         domInfo.localDomainOffset = DataSpace<simDim > ();
         /* only important for bottom gpus */
-        domInfo.localDomainOffset.y() = window.localSize.y();
+        domInfo.localDomainOffset.y() = window.localDimensions.size.y();
         
         if (window.isBottom == false)
         {

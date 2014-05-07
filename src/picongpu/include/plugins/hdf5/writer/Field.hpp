@@ -74,7 +74,7 @@ struct Field
          * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
          */
         DataSpace<simDim> globalSlideOffset;
-        globalSlideOffset.y() += params->window.slides * params->window.localFullSize.y();
+        globalSlideOffset.y() += params->window.slides * params->window.localDomainSize.y();
 
         Dimensions splashGlobalDomainOffset(0, 0, 0);
         Dimensions splashGlobalOffsetFile(0, 0, 0);

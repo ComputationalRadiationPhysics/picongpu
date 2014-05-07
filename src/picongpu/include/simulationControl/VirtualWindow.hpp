@@ -25,6 +25,7 @@
 
 #include "types.h"
 #include "mappings/simulation/SubGrid.hpp"
+#include "simulationControl/Selection.hpp"
 
 namespace picongpu
 {
@@ -33,42 +34,58 @@ using namespace PMacc;
 struct VirtualWindow
 {
 
+    /**
+     * Constructor
+     * 
+     * Initializes number of slides to 0
+     */
     VirtualWindow() :
-    slides(0), doSlide(false), isTop(false), isBottom(false)
+    localDimensions(Environment<simDim>::get().SubGrid().getSimulationBox().getLocalSize()),
+    localDomainSize(localDimensions.size),
+    slides(0),
+    doSlide(false),
+    isTop(false),
+    isBottom(false)
     {
     }
 
+    /**
+     * Constructor
+     * 
+     * @param slides number of slides since start of simulation
+     * @param doSlide
+     */
     VirtualWindow(uint32_t slides, bool doSlide = false) :
-    localSize(Environment<simDim>::get().SubGrid().getSimulationBox().getLocalSize()),
-    localFullSize(localSize),
+    localDimensions(Environment<simDim>::get().SubGrid().getSimulationBox().getLocalSize()),
+    localDomainSize(localDimensions.size),
     slides(slides),
-    doSlide(doSlide)
+    doSlide(doSlide),
+    isTop(false),
+    isBottom(false)
     {
     }
-    /*difference between grid NULL point and first seen data of the simulation*/
-    DataSpace<simDim> globalSimulationOffset;
 
-    /*local offset from local NULL point*/
-    DataSpace<simDim> localOffset;
+    /* Dimensions (size/offset) of the global virtual window over all GPUs */
+    Selection<simDim> globalDimensions;
+    
+    /* Dimensions (size/offset) of the local virtual window on this GPU */
+    Selection<simDim> localDimensions;
 
-    /*new size of local grid which contains the manipulation with the local offset (oldsize-localOffset)*/
-    DataSpace<simDim> localSize;
+    /* domain size of this GPU */
+    DataSpace<simDim> localDomainSize;
 
-    DataSpace<simDim> globalWindowSize;
-
-    DataSpace<simDim> localFullSize;
-
-    DataSpace<simDim> globalSimulationSize;
-
-    /*slides since begin of the simulation*/
+    /* number of slides since the begin of the simulation */
     uint32_t slides;
 
-    /*true if simulation slide in the current round*/
+    /* true if simulation slide in the current round */
     bool doSlide;
 
-    //only set if sliding window is active
+    /* True if this is a 'top' GPU (y position is 0), false otherwise
+     * only set if sliding window is active */
     bool isTop;
-    //only set if sliding window is active
+    
+    /* True if this is a 'bottom' GPU (y position is y_size - 1), false otherwise
+     * only set if sliding window is active */
     bool isBottom;
 };
 }

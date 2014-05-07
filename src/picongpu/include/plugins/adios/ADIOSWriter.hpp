@@ -411,7 +411,8 @@ public:
             //enable filters for sliding window and configurate position filter
             this->filter.setStatus(true);
 
-            this->filter.setWindowPosition(mThreadParams.window.localOffset, mThreadParams.window.localSize);
+            this->filter.setWindowPosition(mThreadParams.window.localDimensions.offset,
+                    mThreadParams.window.localDimensions.size);
         }
 
         __getTransactionEvent().waitForFinished();
@@ -443,7 +444,7 @@ private:
         mThreadParams.adiosFileHandle = ADIOS_INVALID_HANDLE;
 
         mThreadParams.fieldBfr = NULL;
-        mThreadParams.fieldBfr = new float[mThreadParams.window.localSize.productOfComponents()];
+        mThreadParams.fieldBfr = new float[mThreadParams.window.localDimensions.size.productOfComponents()];
         
         std::stringstream adiosPathBase;
         adiosPathBase << ADIOS_PATH_ROOT << mThreadParams.currentStep << "/";
@@ -584,7 +585,7 @@ private:
         
         /* y direction can be negative for first gpu */
         DataSpace<simDim> particleOffset(threadParams->gridPosition);
-        particleOffset.y() -= threadParams->window.globalSimulationOffset.y();
+        particleOffset.y() -= threadParams->window.globalDimensions.offset.y();
         
         if (MovingWindow::getInstance().isSlidingWindowActive())
         {
@@ -615,7 +616,7 @@ private:
          * field variables
          */
         threadParams->adiosFieldVarIds.clear();
-        ForEach<FileOutputFields, CollectFieldsSizes<void> > forEachCollectFieldsSizes;
+        ForEach<FileOutputFields, CollectFieldsSizes<bmpl::_1> > forEachCollectFieldsSizes;
         forEachCollectFieldsSizes(ref(threadParams), domInfo);
         
         /* collect size information for all attributes of all species and define
@@ -623,12 +624,12 @@ private:
          */
         threadParams->adiosParticleAttrVarIds.clear();
         threadParams->adiosSpeciesIndexVarIds.clear();
-        ForEach<FileOutputParticles, ADIOSCountParticles<void> > adiosCountParticles;
+        ForEach<FileOutputParticles, ADIOSCountParticles<bmpl::_1> > adiosCountParticles;
         adiosCountParticles(ref(threadParams), std::string(), domInfo);
         
         if (MovingWindow::getInstance().isSlidingWindowActive())
         {
-            ForEach<FileOutputParticles, ADIOSCountParticles<void> > adiosCountParticles;
+            ForEach<FileOutputParticles, ADIOSCountParticles<bmpl::_1> > adiosCountParticles;
             adiosCountParticles(ref(threadParams), std::string("_ghosts/"), domInfoGhosts);
         }
 
@@ -681,19 +682,19 @@ private:
         }
         
         /* write fields */
-        ForEach<FileOutputFields, GetFields<void> > forEachGetFields;
+        ForEach<FileOutputFields, GetFields<bmpl::_1> > forEachGetFields;
         forEachGetFields(ref(threadParams), domInfo);
         
         /* print all particle species */
         log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) writing particle species.");
-        ForEach<FileOutputParticles, WriteSpecies<void> > writeSpecies;
+        ForEach<FileOutputParticles, WriteSpecies<bmpl::_1> > writeSpecies;
         writeSpecies(ref(threadParams), domInfo, particleOffset);
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing particle species.");
 
         if (MovingWindow::getInstance().isSlidingWindowActive())
         {
             particleOffset = threadParams->gridPosition;
-            particleOffset.y() = -threadParams->window.localSize.y();
+            particleOffset.y() = -threadParams->window.localDimensions.size.y();
             
             /* print all particle species */
             log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) writing particle species ghosts.");
