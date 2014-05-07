@@ -145,6 +145,48 @@ endif(VAMPIR_ENABLE)
 
 
 ################################################################################
+# Score-P
+################################################################################
+
+option(SCOREP_ENABLE "Create PIConGPU with Score-P support" OFF)
+
+if(SCOREP_ENABLE)
+    message(STATUS "Building with Score-P support")
+    set(SCOREP_ROOT "$ENV{SCOREP_ROOT}")
+    if(NOT SCOREP_ROOT)
+        message(FATAL_ERROR "Environment variable SCOREP_ROOT not set!")
+    endif(NOT SCOREP_ROOT)
+
+    # compile flags
+    execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --nocompiler --cflags
+                    OUTPUT_VARIABLE SCOREP_COMPILEFLAGS
+                    RESULT_VARIABLE SCOREP_CONFIG_RETURN)
+    # link flags
+    execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --cuda --mpp=mpi --ldflags
+                    OUTPUT_VARIABLE SCOREP_LINKFLAGS)
+    # libraries
+    execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --cuda --mpp=mpi --libs
+                    OUTPUT_VARIABLE SCOREP_LIBFLAGS)
+    string(STRIP "${SCOREP_LIBFLAGS}" SCOREP_LIBFLAGS)
+
+    # subsystem iniialization file
+    execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --cuda --mpp=mpi --adapter-init
+                    OUTPUT_VARIABLE SCOREP_INIT_FILE)
+    file(WRITE ${CMAKE_BINARY_DIR}/scorep_init.c "${SCOREP_INIT_FILE}")
+
+    if(SCOREP_ENABLE)
+        set(SCOREP_SRCFILES "${CMAKE_BINARY_DIR}/scorep_init.c")
+    endif(SCOREP_ENABLE)
+
+    # modify our flags
+    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} ${SCOREP_LINKFLAGS} -target=compute_node")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SCOREP_COMPILEFLAGS} -target=compute_node")
+
+    add_definitions(-DMPICH_IGNORE_CXX_SEEK)
+endif(SCOREP_ENABLE)
+
+
+################################################################################
 # Build type (debug, release)
 ################################################################################
 
@@ -393,13 +435,21 @@ include_directories(BEFORE ${PIC_EXTENSION_PATH}/include)
 file(GLOB CUDASRCFILES "*.cu")
 file(GLOB SRCFILES "*.cpp")
 
+
+
 cuda_add_executable(picongpu
     ${CUDASRCFILES}
     ${SRCFILES}
+    ${SCOREP_SRCFILES}
 )
 
 target_link_libraries(picongpu  ${LIBS} ${CUDA_CUDART_LIBRARY} z m)
 
+if(SCOREP_ENABLE)
+    # Score-P libraries must be linked after the object to prevent symbols
+    # from being stripped on Titan
+    target_link_libraries(picongpu ${SCOREP_LIBFLAGS})
+endif(SCOREP_ENABLE)
 
 ################################################################################
 # Install PIConGPU
