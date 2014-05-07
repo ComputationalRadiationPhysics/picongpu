@@ -125,10 +125,12 @@ struct Field
                                                splashGlobalOffsetFile,
                                                splashType, /* data type */
                                                simDim, /* NDims of the field data (scalar, vector, ...) */
-                                               sizeSrcData,
+                                               Selection(sizeSrcData),
                                                datasetName.str().c_str(), /* data set name */
-                                               splashGlobalDomainOffset, /* \todo offset of the global domain */
-                                               splashGlobalDomainSize, /* size of the global domain */
+                                               Domain(
+                                                      splashGlobalDomainOffset, /* offset of the global domain */
+                                                      splashGlobalDomainSize /* size of the global domain */
+                                               ),
                                                DomainCollector::GridType,
                                                tmpArray);
 

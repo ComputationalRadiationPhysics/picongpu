@@ -89,11 +89,10 @@ public:
             DomainCollector::DomDataClass data_class;
             DataContainer *field_container =
                 domainCollector.readDomain(restartStep,
-                                          (std::string("fields/") + objectName +
-                                           std::string("/") + name_lookup[i]).c_str(),
-                                          domain_offset,
-                                          domain_size,
-                                          &data_class);
+                                           (std::string("fields/") + objectName +
+                                            std::string("/") + name_lookup[i]).c_str(),
+                                           Domain(domain_offset, domain_size),
+                                           &data_class);
 
             int elementCount = localDomainSize.productOfComponents();
 

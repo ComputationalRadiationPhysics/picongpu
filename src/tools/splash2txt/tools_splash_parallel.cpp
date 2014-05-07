@@ -44,6 +44,7 @@ errorStream(std::cerr)
 ToolsSplashParallel::~ToolsSplashParallel()
 {
     dc.close();
+    dc.finalize();
 }
 
 void ToolsSplashParallel::printElement(DCDataType dataType,

@@ -193,6 +193,7 @@ int main(int argc, char **argv)
             data);
 
     pdc->close();
+    pdc->finalize();
     delete pdc;
 
     delete[] data;
