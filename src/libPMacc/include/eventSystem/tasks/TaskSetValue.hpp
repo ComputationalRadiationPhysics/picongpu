@@ -1,22 +1,22 @@
 /**
  * Copyright 2013-2014 Felix Schmitt, Heiko Burau, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 #pragma once
@@ -55,7 +55,7 @@ struct Value
 };
 
 /** define access operation for pointer types
- * 
+ *
  * access first element of a pointer
  */
 template<typename T_Type>
@@ -74,7 +74,7 @@ struct Value<T_Type, true>
  */
 template<typename T_Type>
 HDINLINE typename Value<T_Type, boost::is_pointer<T_Type>::value >::type&
-getValue(T_Type value)
+getValue(T_Type& value)
 {
     typedef Value<T_Type, boost::is_pointer<T_Type>::value > Functor;
     return Functor()(value);
@@ -101,7 +101,7 @@ template <class TYPE, unsigned DIM>
 class DeviceBuffer;
 
 /** Set all cells of a GridBuffer on the device to a given value
- * 
+ *
  * T_ValueType  = data type (e.g. float, float2)
  * T_dim   = dimension of the GridBuffer
  * T_isSmallValue = true if T_ValueType can be send via kernel parameter (on cuda T_ValueType must be smaller than 256 byte)
@@ -187,8 +187,8 @@ public:
 };
 
 /** implementation for small values (>256 byte)
- * 
- * This class use CUDA memcopy to copy a instance of T_ValueType to gpu and 
+ *
+ * This class use CUDA memcopy to copy a instance of T_ValueType to gpu and
  * run a kernel which assign this value to all cells.
  */
 template <class T_ValueType, unsigned T_dim>
