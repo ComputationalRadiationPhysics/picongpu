@@ -92,25 +92,8 @@ public:
     HINLINE const std::string toString(void) const
     {
         std::stringstream str;
-        str << "{ size = (";
-        
-        for (uint32_t i = 0; i < DIM; ++i)
-        {
-            str << size[i];
-            if (i < DIM-1)
-                str << ", ";
-        }
-        
-        str << ") offset = (";
-        
-        for (uint32_t i = 0; i < DIM; ++i)
-        {
-            str << offset[i];
-            if (i < DIM-1)
-                str << ", ";
-        }
-        
-        str << ") }";
+        str << "{ size = " << size.toString() <<
+               " offset = " << offset.toString() << " }";
         return str.str();
     }
     
