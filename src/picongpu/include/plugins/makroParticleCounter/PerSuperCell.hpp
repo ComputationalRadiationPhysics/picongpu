@@ -197,6 +197,10 @@ private:
     void pluginUnload()
     {
         __delete(localResult);
+        
+        if (dataCollector)
+            dataCollector->finalize();
+        
         __delete(dataCollector);
     }
 
@@ -243,15 +247,17 @@ private:
 
         size_t* ptr = localResult->getHostBuffer().getPointer();
 
-        dataCollector->writeDomain(currentStep, /* id == time step */
-                                   splashGlobalSize,
-                                   splashGlobalOffset,
-                                   ColTypeUInt64(), /* data type */
-                                   simDim, /* NDims of the field data (scalar, vector, ...) */
-                                   localBufferSize,
-                                   "makroParticlePerSupercell", /* data set name */
-                                   splashGlobalDomainOffset, /* \todo offset of the global domain */
-                                   splashGlobalDomainSize, /* size of the global domain */
+        dataCollector->writeDomain(currentStep,                     /* id == time step */
+                                   splashGlobalSize,                /* total size of dataset over all processes */
+                                   splashGlobalOffset,              /* write offset for this process */
+                                   ColTypeUInt64(),                 /* data type */
+                                   simDim,                          /* NDims of the field data (scalar, vector, ...) */
+                                   splash::Selection(localBufferSize),
+                                   "makroParticlePerSupercell",     /* data set name */
+                                   splash::Domain(
+                                          splashGlobalDomainOffset, /* offset of the global domain */
+                                          splashGlobalDomainSize    /* size of the global domain */
+                                   ),
                                    DomainCollector::GridType,
                                    ptr);
 

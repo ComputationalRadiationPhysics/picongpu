@@ -204,6 +204,10 @@ public:
         /* close datacollector */
         log<picLog::INPUT_OUTPUT > ("HDF5 close DataCollector with file: %1%") % restartFilename;
         mThreadParams.dataCollector->close();
+        
+        if (mThreadParams.dataCollector)
+            mThreadParams.dataCollector->finalize();
+
         __delete(mThreadParams.dataCollector);
     }
 
@@ -321,6 +325,9 @@ private:
 
     void pluginUnload()
     {
+        if (mThreadParams.dataCollector)
+            mThreadParams.dataCollector->finalize();
+        
         __delete(mThreadParams.dataCollector);
     }
 

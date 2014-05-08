@@ -183,16 +183,21 @@ int main(int argc, char **argv)
             options.iteration,
             ctFloat,
             data_size.getDims(),
-            data_size,
+            Selection(data_size),
             options.densityDataset.c_str(),
-            options.dataOffset,
-            data_size,
-            options.dataOffset,
-            data_size,
+            Domain(
+                   options.dataOffset,
+                   data_size
+            ),
+            Domain(
+                   options.dataOffset,
+                   data_size
+            ),
             DomainCollector::GridType,
             data);
 
     pdc->close();
+    pdc->finalize();
     delete pdc;
 
     delete[] data;

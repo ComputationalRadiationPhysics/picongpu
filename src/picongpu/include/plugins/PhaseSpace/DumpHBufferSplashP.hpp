@@ -129,12 +129,14 @@ namespace picongpu
                              ctPhaseSpace,
                              bufDim,
                              /* local data set dimensions */
-                             localPhaseSpace_size,
+                             splash::Selection(localPhaseSpace_size),
                              /* data set name */
                              dataSetName.str().c_str(),
                              /* global domain */
-                             globalPhaseSpace_offset,
-                             globalPhaseSpace_size,
+                             splash::Domain(
+                                    globalPhaseSpace_offset,
+                                    globalPhaseSpace_size
+                             ),
                              /* dataClass, buffer */
                              DomainCollector::GridType,
                              &(*hBuffer.origin()) );
