@@ -32,13 +32,13 @@
 namespace PMacc
 {
 
-/** create shared momory on gpu
+/** create shared memory on gpu
  *
  * @tparam T_TYPE type of memory objects
  * @tparam T_Vector CT::Vector with size description (per dimension)
  * @tparam T_id unique id for this object
  *              (is needed if more than one instance of shared memory in one kernel is used)
- * @tparam T_dim dimension of the momory (supports DIM1,DIM2 and DIM3)
+ * @tparam T_dim dimension of the memory (supports DIM1,DIM2 and DIM3)
  */
 template<typename T_TYPE, class T_Vector, uint32_t T_id=0, uint32_t T_dim=T_Vector::dim>
 class SharedBox;

@@ -188,8 +188,8 @@ public:
 
 /** implementation for small values (>256 byte)
  *
- * This class use CUDA memcopy to copy a instance of T_ValueType to gpu and
- * run a kernel which assign this value to all cells.
+ * This class uses CUDA memcopy to copy an instance of T_ValueType to the GPU
+ * and runs a kernel which assigns this value to all cells.
  */
 template <class T_ValueType, unsigned T_dim>
 class TaskSetValue<T_ValueType, T_dim, false> : public TaskSetValueBase<T_ValueType, T_dim>
