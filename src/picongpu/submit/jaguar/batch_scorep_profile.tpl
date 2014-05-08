@@ -1,21 +1,21 @@
 #!/bin/bash
 # Copyright 2013-2014 Axel Huebl, Rene Widera, Felix Schmitt
-# 
-# This file is part of PIConGPU. 
-# 
-# PIConGPU is free software: you can redistribute it and/or modify 
-# it under the terms of the GNU General Public License as published by 
-# the Free Software Foundation, either version 3 of the License, or 
-# (at your option) any later version. 
-# 
-# PIConGPU is distributed in the hope that it will be useful, 
-# but WITHOUT ANY WARRANTY; without even the implied warranty of 
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-# GNU General Public License for more details. 
-# 
-# You should have received a copy of the GNU General Public License 
-# along with PIConGPU.  
-# If not, see <http://www.gnu.org/licenses/>. 
+#
+# This file is part of PIConGPU.
+#
+# PIConGPU is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# PIConGPU is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with PIConGPU.
+# If not, see <http://www.gnu.org/licenses/>.
 #
 
 
@@ -56,7 +56,7 @@ pwd
 
 
 source $MEMBERWORK/aph005/picongpu.profile 2>/dev/null
-        
+
 export SCOREP_ENABLE_PROFILING=no
 export SCOREP_ENABLE_TRACING=yes
 export SCOREP_EXPERIMENT_DIRECTORY=traces

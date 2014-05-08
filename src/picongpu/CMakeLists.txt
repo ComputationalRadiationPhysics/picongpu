@@ -161,6 +161,10 @@ if(SCOREP_ENABLE)
     execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --nocompiler --cflags
                     OUTPUT_VARIABLE SCOREP_COMPILEFLAGS
                     RESULT_VARIABLE SCOREP_CONFIG_RETURN)
+    if(NOT SCOREP_CONFIG_RETURN EQUAL 0)
+        message(FATAL_ERROR "Can NOT execute 'scorep-config' at $ENV{SCOREP_ROOT}/bin/scorep-config - check file permissions")
+    endif()
+
     # link flags
     execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --cuda --mpp=mpi --ldflags
                     OUTPUT_VARIABLE SCOREP_LINKFLAGS)
@@ -181,8 +185,6 @@ if(SCOREP_ENABLE)
     # modify our flags
     set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} ${SCOREP_LINKFLAGS} -target=compute_node")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SCOREP_COMPILEFLAGS} -target=compute_node")
-
-    add_definitions(-DMPICH_IGNORE_CXX_SEEK)
 endif(SCOREP_ENABLE)
 
 
