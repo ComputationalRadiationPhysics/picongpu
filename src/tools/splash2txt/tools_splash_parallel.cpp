@@ -275,8 +275,7 @@ void ToolsSplashParallel::convertToText()
             // poly type
 
             excontainer.container = dc.readDomain(options.step, iter->c_str(),
-                    total_domain.getOffset(),
-                    total_domain.getSize(), NULL, true);
+                    Domain(total_domain.getOffset(), total_domain.getSize()), NULL, true);
         } else
         {
             // grid type
@@ -296,7 +295,7 @@ void ToolsSplashParallel::convertToText()
                 }
 
             excontainer.container = dc.readDomain(options.step, iter->c_str(),
-                    offset, domain_size, NULL);
+                    Domain(offset, domain_size), NULL);
         }
 
         // read unit
