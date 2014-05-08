@@ -72,6 +72,7 @@ fi;
 echo copying;
 cat ~/.startParaView | ssh -p 44334 $SSH_USER$@localhost 'cat > ~/startParaView; /opt/torque/bin/qsub ~/startParaView';
 echo tunneling2;
+ps aux | grep 'ssh' | sed 's/\(.[^ \t]*\)[ \t]*\(.[^ \t]*\)\(.*\)/\2/' | grep -P `cat ~/.paraviewLastTunnel | sed s/\ /\|/g ` > ~/.paraviewLastTunnel;
 kill `cat ~/.paraviewLastTunnel`;
 ssh -f -p 44334 -R 10.0.2.253:$NUM_PORT$:localhost:11111 $SSH_USER$@localhost -N;
 sleep 1;
