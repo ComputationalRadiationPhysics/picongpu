@@ -22,7 +22,7 @@
 
 #include "simulationControl/Selection.hpp"
 #include "simulationControl/DomainInformation.hpp"
-#include "simulationControl/VirtualWindow.hpp"
+#include "simulationControl/Window.hpp"
 
 namespace picongpu
 {
@@ -40,7 +40,7 @@ struct SelectionInformation
     DomainInformation domains;
 
     /** information on the moving window */
-    VirtualWindow movingWindow;
+    Window movingWindow;
 
     /** selection on this GPU */
     Selection<simDim> localSelection;

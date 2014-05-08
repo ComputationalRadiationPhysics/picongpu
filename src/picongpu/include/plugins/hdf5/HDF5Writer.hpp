@@ -179,12 +179,12 @@ public:
         }
 
         /* load number of slides to initialize MovingWindow */
-        int slides = 0;
+        uint32_t slides = 0;
         mThreadParams.dataCollector->readAttribute(restartStep, NULL, "sim_slides", &slides);
 
         /* apply slides to set gpus to last/written configuration */
         log<picLog::INPUT_OUTPUT > ("Setting slide count for moving window to %1%") % slides;
-        MovingWindow::getInstance().setSlideCounter((uint32_t) slides);
+        MovingWindow::getInstance().setSlideCounter(slides);
         gc.setNumSlides(slides);
 
         DataSpace<simDim> gridPosition =
@@ -261,7 +261,7 @@ private:
         mThreadParams.currentStep = (int32_t) currentStep;
         mThreadParams.gridPosition = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
         mThreadParams.cellDescription = this->cellDescription;
-        mThreadParams.window = MovingWindow::getInstance().getVirtualWindow(currentStep);
+        mThreadParams.window = MovingWindow::getInstance().getWindow(currentStep);
 
         __getTransactionEvent().waitForFinished();
 
@@ -343,7 +343,7 @@ private:
         uint32_t currentStep = threadParams->currentStep;
 
         /* write number of slides */
-        uint32_t slides = threadParams->window.slides;
+        const uint32_t slides = MovingWindow::getInstance().getSlideCounter(threadParams->currentStep);
 
         dc->writeAttribute(threadParams->currentStep,
                            ctUInt32, NULL, "sim_slides", &slides);

@@ -724,9 +724,9 @@ private:
             // the absolut position of the particles
             PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
             DataSpace<simDim> localSize(simBox.getLocalSize());
-            VirtualWindow window(MovingWindow::getInstance().getVirtualWindow(currentStep));
+            const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
             DataSpace<simDim> globalOffset(simBox.getGlobalOffset());
-            globalOffset.y() += (localSize.y() * window.slides);
+            globalOffset.y() += (localSize.y() * numSlides);
 
             //only print data at end of simulation
             if (dumpPeriod == 0)
@@ -966,10 +966,10 @@ private:
         // Some funny things that make it possible for the kernel to calculate
         // the absolut position of the particles
         DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
-        VirtualWindow window(MovingWindow::getInstance().getVirtualWindow(currentStep));
-	PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
-	DataSpace<simDim> globalOffset(simBox.getGlobalOffset());
-        globalOffset.y() += (localSize.y() * window.slides);
+        const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
+        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
+        DataSpace<simDim> globalOffset(simBox.getGlobalOffset());
+        globalOffset.y() += (localSize.y() * numSlides);
 
 
         // PIC-like kernel call of the radiation kernel

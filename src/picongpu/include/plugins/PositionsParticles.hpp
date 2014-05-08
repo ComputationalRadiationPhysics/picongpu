@@ -264,10 +264,10 @@ private:
         gParticle->deviceToHost();
 
         DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
-        VirtualWindow window(MovingWindow::getInstance().getVirtualWindow(currentStep));
+        const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
 
         DataSpace<simDim> gpuPhyCellOffset(Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset());
-        gpuPhyCellOffset.y() += (localSize.y() * window.slides);
+        gpuPhyCellOffset.y() += (localSize.y() * numSlides);
 
         gParticle->getHostBuffer().getDataBox()[0].globalCellOffset += gpuPhyCellOffset;
 

@@ -95,7 +95,7 @@ struct ThreadParams
     
     float *fieldBfr;                        /* temp. buffer for fields */
 
-    VirtualWindow window;
+    Window window;
 };
 
 /**

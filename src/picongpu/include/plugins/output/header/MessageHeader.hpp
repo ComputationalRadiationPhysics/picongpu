@@ -35,7 +35,7 @@
 //#include "plugins/output/header/ColorHeader.hpp"
 #include "plugins/output/header/WindowHeader.hpp"
 
-#include "simulationControl/VirtualWindow.hpp"
+#include "simulationControl/Window.hpp"
 
 
 typedef PMacc::DataSpace<DIM2> Size2D;
@@ -55,7 +55,7 @@ struct MessageHeader
 
     template<class CellDesc >
     void update(CellDesc & cellDesc,
-                picongpu::VirtualWindow vWindow,
+                picongpu::Window vWindow,
                 Size2D transpose,
                 uint32_t currentStep,
                 float* cellSizeArr = NULL,
@@ -136,11 +136,12 @@ struct MessageHeader
         sim.step = currentStep;
 
         /*add sliding windo informations to header*/
+        const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
         sim.simOffsetToNull = DataSpace<DIM2 > ();
         if (transpose.x() == 1)
-            sim.simOffsetToNull.x() = node.maxSize.x() * vWindow.slides;
+            sim.simOffsetToNull.x() = node.maxSize.x() * numSlides;
         else if (transpose.y() == 1)
-            sim.simOffsetToNull.y() = node.maxSize.y() * vWindow.slides;
+            sim.simOffsetToNull.y() = node.maxSize.y() * numSlides;
 
     }
 

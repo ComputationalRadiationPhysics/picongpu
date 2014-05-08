@@ -23,7 +23,8 @@
 #include "types.h"
 #include "simulation_defines.hpp"
 
-#include "simulationControl/VirtualWindow.hpp"
+#include "simulationControl/DomainInformation.hpp"
+#include "simulationControl/Window.hpp"
 #include "simulationControl/SelectionInformation.hpp"
 
 namespace picongpu
@@ -40,6 +41,53 @@ private:
     }
 
     MovingWindow(MovingWindow& cc);
+    
+    void getCurrentSlideInfo(uint32_t currentStep, bool *doSlide, double *offsetFirstGPU) const
+    {
+        if (doSlide)
+            *doSlide = false;
+        
+        if (offsetFirstGPU)
+            *offsetFirstGPU = 0.0;
+        
+        DomainInformation domInfo;
+        const uint32_t windowGlobalDimY = simSize.y() - domInfo.localDomain.size.y() * slidingWindowActive;
+        
+        const uint32_t devices = gpu.y();
+        const double cell_height = (double) CELL_HEIGHT;
+        const double light_way_per_step = ((double) SPEED_OF_LIGHT * (double) DELTA_T);
+        double stepsInFuture_tmp = (windowGlobalDimY * cell_height / light_way_per_step) * (1.0 - slide_point);
+        uint32_t stepsInFuture = ceil(stepsInFuture_tmp);
+        /* later used to calculate smoother offsets */
+        double stepsInFutureAfterComma = stepsInFuture_tmp - (double) stepsInFuture; 
+
+        /* round to nearest step so we get smaller sliding dfference
+         * this is valid if we activate sliding window because y direction has
+         * the same size for all gpus
+         */
+        const uint32_t stepsPerGPU = (uint32_t) math::floor(
+            (double) (domInfo.localDomain.size.y() * cell_height) / light_way_per_step + 0.5);
+        const uint32_t firstSlideStep = stepsPerGPU * devices - stepsInFuture;
+        const uint32_t firstMoveStep = stepsPerGPU * (devices - 1) - stepsInFuture;
+
+        if (firstMoveStep <= currentStep)
+        {
+            const uint32_t stepsInLastGPU = (currentStep + stepsInFuture) % stepsPerGPU;
+            /* moving window start */
+            if (firstSlideStep <= currentStep && stepsInLastGPU == 0)
+            {
+                if (doSlide)
+                    *doSlide = true;
+            }
+
+            /* round to nearest cell to have smoother offset jumps */
+            if (offsetFirstGPU)
+            {
+                *offsetFirstGPU = math::floor(((double) stepsInLastGPU + stepsInFutureAfterComma) *
+                        light_way_per_step / cell_height + 0.5);
+            }
+        }
+    }
 
 
     DataSpace<simDim> simSize;
@@ -89,15 +137,51 @@ public:
         slideCounter = slides;
         lastSlideStep = slides;
     }
+    
+    uint32_t getSlideCounter(uint32_t currentStep)
+    {
+        bool doSlide = false;
+        getCurrentSlideInfo(currentStep, &doSlide, NULL);
+
+        if (doSlide && (lastSlideStep != currentStep))
+        {
+            slideCounter++;
+            lastSlideStep = currentStep;
+        }
+        
+        return slideCounter;
+    }
 
     /**
      * Returns if sliding window is active
      *
      * @return true if active, false otherwise
      */
-    bool isSlidingWindowActive()
+    bool isSlidingWindowActive() const
     {
         return slidingWindowActive;
+    }
+    
+    bool slideInCurrentStep(uint32_t currentStep) const
+    {
+        bool doSlide = false;
+        
+        if (slidingWindowActive)
+        {
+            getCurrentSlideInfo(currentStep, &doSlide, NULL);
+        }
+        
+        return doSlide;
+    }
+    
+    /** 
+     * Return true if this is a 'bottom' GPU (y position is y_size - 1), false otherwise
+     * only set if sliding window is active
+     */
+    bool isBottomGPU(void) const
+    {
+        Mask comm_mask = Environment<simDim>::get().GridController().getCommunicationMask();
+        return !comm_mask.isSet(BOTTOM);
     }
 
     /**
@@ -112,16 +196,16 @@ public:
     }
 
     /**
-     * Create a virtual window which describes local and global offsets and local size
-     * which is important for domain calculations to dump subvolumes of the full computing domain
+     * Create a window which describes local and global offsets
+     * and sizes of the moving window.
      *
      * @param currentStep current simulation step
-     * @return the virtual window
+     * @return moving window
      */
-    VirtualWindow getVirtualWindow(uint32_t currentStep)
+    Window getWindow(uint32_t currentStep) const
     {
         DomainInformation domInfo;
-        VirtualWindow window(slideCounter);
+        Window window;
 
         window.localDimensions = Selection<simDim>(domInfo.localDomain.size);
 
@@ -130,51 +214,17 @@ public:
 
         if (slidingWindowActive)
         {
-            const uint32_t devices = gpu.y();
-            const double cell_height = (double) CELL_HEIGHT;
-            const double light_way_per_step = ((double) SPEED_OF_LIGHT * (double) DELTA_T);
-            double stepsInFuture_tmp = (window.globalDimensions.size.y() * cell_height / light_way_per_step) * (1.0 - slide_point);
-            uint32_t stepsInFuture = ceil(stepsInFuture_tmp);
-            double stepsInFutureAfterComma = stepsInFuture_tmp - (double) stepsInFuture; /*later used for calculate smoother offsets*/
-
-            /* round to nearest step so we get smaller sliding dfference
-             * this is valid if we activate sliding window because y direction has
-             * the same size for all gpus
-             */
-            const uint32_t stepsPerGPU = (uint32_t) math::floor((double) (domInfo.localDomain.size.y() * cell_height) / light_way_per_step + 0.5);
-            const uint32_t firstSlideStep = stepsPerGPU * devices - stepsInFuture;
-            const uint32_t firstMoveStep = stepsPerGPU * (devices - 1) - stepsInFuture;
-
             double offsetFirstGPU = 0.0;
+            getCurrentSlideInfo(currentStep, NULL, &offsetFirstGPU);
 
-            if (firstMoveStep <= currentStep)
-            {
-                const uint32_t stepsInLastGPU = (currentStep + stepsInFuture) % stepsPerGPU;
-                /* moving window start */
-                if (firstSlideStep <= currentStep && stepsInLastGPU == 0)
-                {
-                    window.doSlide = true;
-                    if (lastSlideStep != currentStep)
-                        slideCounter++;
-                    lastSlideStep = currentStep;
-                }
-                window.slides = slideCounter;
-
-                /* round to nearest cell to have smoother offset jumps */
-                offsetFirstGPU = math::floor(((double) stepsInLastGPU + stepsInFutureAfterComma) * light_way_per_step / cell_height + 0.5);
-
-                /* global offset is all 0 except for y dimension */
-                window.globalDimensions.offset.y() = offsetFirstGPU;
-            }
-
-            Mask comm_mask = Environment<simDim>::get().GridController().getCommunicationMask();
+            /* global offset is all 0 except for y dimension */
+            window.globalDimensions.offset.y() = offsetFirstGPU;
 
             /* set top/bottom if there are no communication partners
              * for this GPU in the respective direction */
+            const Mask comm_mask = Environment<simDim>::get().GridController().getCommunicationMask();
             const bool isTopGpu = !comm_mask.isSet(TOP);
             const bool isBottomGpu = !comm_mask.isSet(BOTTOM);
-            window.isTop = isTopGpu;
-            window.isBottom = isBottomGpu;
 
             if (isTopGpu)
             {
@@ -201,7 +251,7 @@ public:
         SelectionInformation sInfo;
 
         /* gather all required information */
-        sInfo.movingWindow = getVirtualWindow(currentStep);
+        sInfo.movingWindow = getWindow(currentStep);
 
         sInfo.selectionOffset = sInfo.movingWindow.localDimensions.offset;
 
@@ -238,7 +288,15 @@ public:
         /* only important for bottom gpus */
         sInfo.selectionOffset.y() = sInfo.movingWindow.localDimensions.size.y();
 
-        if (sInfo.movingWindow.isBottom == false)
+        bool isBottomGpu = false;
+        
+        if (slidingWindowActive)
+        {
+            const Mask comm_mask = Environment<simDim>::get().GridController().getCommunicationMask();
+            isBottomGpu = !comm_mask.isSet(BOTTOM);
+        }
+        
+        if (isBottomGpu == false)
         {
             /* set size for all gpu to zero which are not bottom gpus */
             sInfo.localSelection.size.y() = 0;

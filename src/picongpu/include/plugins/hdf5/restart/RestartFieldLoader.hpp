@@ -53,7 +53,8 @@ public:
         log<picLog::INPUT_OUTPUT > ("Begin loading field '%1%'") % objectName;
         DataSpace<simDim> field_guard = field.getGridLayout().getGuard();
 
-        VirtualWindow window = MovingWindow::getInstance().getVirtualWindow(restartStep);
+        const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(restartStep);
+        const Window window = MovingWindow::getInstance().getWindow(restartStep);
         DomainInformation domInfo;
 
         field.getHostBuffer().setValue(float3_X(0.));
@@ -65,7 +66,7 @@ public:
          * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
          */
         DataSpace<simDim> globalSlideOffset;
-        globalSlideOffset.y() = window.slides * domInfo.localDomain.size.y();
+        globalSlideOffset.y() = numSlides * domInfo.localDomain.size.y();
 
         DataSpace<simDim> globalOffset(Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset());
 

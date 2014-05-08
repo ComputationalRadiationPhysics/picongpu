@@ -85,7 +85,8 @@ struct ParticleAttribute
          * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
          */
         DataSpace<simDim> globalSlideOffset;
-        globalSlideOffset.y() += params.get()->window.slides * selectionInfo.domains.localDomain.size.y();
+        const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(params.get()->currentStep);
+        globalSlideOffset.y() += numSlides * selectionInfo.domains.localDomain.size.y();
 
         Dimensions splashDomainOffset(0, 0, 0);
         Dimensions splashGlobalDomainOffset(0, 0, 0);

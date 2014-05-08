@@ -55,7 +55,7 @@ struct ThreadParams
     DataSpace<simDim> gridPosition;
     MappingDesc *cellDescription;
 
-    VirtualWindow window;
+    Window window;
 };
 
 /**

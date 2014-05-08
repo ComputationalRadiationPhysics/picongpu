@@ -99,8 +99,8 @@ namespace picongpu
             splash::Dimensions globalPhaseSpace_offset( 0, 0, 0 );
             if( axis_element.first == 1 ) /* spatial axis == y */
             {
-                VirtualWindow window = MovingWindow::getInstance( ).getVirtualWindow( currentStep );
-                globalPhaseSpace_offset.set( window.slides * simBox.getLocalSize( ).y(),
+                const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
+                globalPhaseSpace_offset.set( numSlides * simBox.getLocalSize( ).y(),
                                              0, 0 );
             }
 

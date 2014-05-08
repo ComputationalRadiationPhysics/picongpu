@@ -354,7 +354,7 @@ public:
         ParticleType* particles = &(dc.getData<ParticleType >(ParticleType::FrameType::getName(), true));
 
         /* setup domain information for HDF5 file access */
-        VirtualWindow window = MovingWindow::getInstance().getVirtualWindow(tp->currentStep);
+        const Window window = MovingWindow::getInstance().getWindow(tp->currentStep);
         DomainInformation domInfo;
         DataSpace<simDim> globalDomainOffset(gridPosition);
         DataSpace<simDim> logicalToPhysicalOffset(gridPosition - window.globalDimensions.offset);

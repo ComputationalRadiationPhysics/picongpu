@@ -183,13 +183,14 @@ void Particles<T_ParticleDescription>::reset( uint32_t )
 template< typename T_ParticleDescription>
 void Particles<T_ParticleDescription>::initFill( uint32_t currentStep )
 {
-    VirtualWindow window = MovingWindow::getInstance( ).getVirtualWindow( currentStep );
+    Window window = MovingWindow::getInstance( ).getWindow( currentStep );
+    const uint32_t numSlides = MovingWindow::getInstance( ).getSlideCounter( currentStep );
     PMACC_AUTO( simBox, Environment<simDim>::get().SubGrid().getSimulationBox( ) );
 
     /*calculate real simulation area offset from the beginning of the simulation*/
     DataSpace<simDim> localCells = gridLayout.getDataSpaceWithoutGuarding( );
     DataSpace<simDim> gpuCellOffset = simBox.getGlobalOffset( );
-    gpuCellOffset.y( ) += window.slides * localCells.y( );
+    gpuCellOffset.y( ) += numSlides * localCells.y( );
 
     GlobalSeed globalSeed;
     mpi::SeedPerRank<simDim> seedPerRank;
@@ -260,7 +261,7 @@ void Particles<T_ParticleDescription>::deviceAddTemperature( float_X energy )
 template< typename T_ParticleDescription>
 void Particles<T_ParticleDescription>::deviceSetDrift( uint32_t currentStep )
 {
-    VirtualWindow window = MovingWindow::getInstance( ).getVirtualWindow( currentStep );
+    const uint32_t numSlides = MovingWindow::getInstance( ).getSlideCounter( currentStep );
 
     dim3 block( MappingDesc::SuperCellSize::toRT( ).toDim3() );
 
@@ -271,7 +272,7 @@ void Particles<T_ParticleDescription>::deviceSetDrift( uint32_t currentStep )
     /* calculate real simulation area offset from the beginning of the simulation
      */
     uint32_t simulationYCell = simBox.getGlobalOffset( ).y( ) +
-        ( window.slides * localNrOfCells.y( ) );
+        ( numSlides * localNrOfCells.y( ) );
 
     __picKernelArea( kernelSetDrift, this->cellDescription, CORE + BORDER + GUARD )
         (block)

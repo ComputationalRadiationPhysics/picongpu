@@ -429,7 +429,7 @@ public:
 
     virtual void movingWindowCheck(uint32_t currentStep)
     {
-        if (MovingWindow::getInstance().getVirtualWindow(currentStep).doSlide)
+        if (MovingWindow::getInstance().slideInCurrentStep(currentStep))
         {
             slide(currentStep);
         }

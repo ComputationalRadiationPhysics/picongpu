@@ -404,7 +404,7 @@ public:
         mThreadParams.cellDescription = this->cellDescription;
         this->filter.setStatus(false);
 
-        mThreadParams.window = MovingWindow::getInstance().getVirtualWindow(currentStep);
+        mThreadParams.window = MovingWindow::getInstance().getWindow(currentStep);
 
         if (MovingWindow::getInstance().isSlidingWindowActive())
         {
@@ -576,20 +576,22 @@ private:
         // synchronize, because following operations will be blocking anyway
         ThreadParams *threadParams = (ThreadParams*) (p_args);
 
+        MovingWindow &movingWindow = MovingWindow::getInstance();
+        
         /* write number of slides to timestep in adios file */
-        uint32_t slides = threadParams->window.slides;
+        uint32_t slides = movingWindow.getSlideCounter(threadParams->currentStep);
 
         /* build clean domain info (picongpu view) */
         SelectionInformation selectionInfo, selectionInfoGhosts;
-        selectionInfo = MovingWindow::getInstance().getActiveSelection(threadParams->currentStep);
+        selectionInfo = movingWindow.getActiveSelection(threadParams->currentStep);
         
         /* y direction can be negative for first gpu */
         DataSpace<simDim> particleOffset(threadParams->gridPosition);
         particleOffset.y() -= threadParams->window.globalDimensions.offset.y();
         
-        if (MovingWindow::getInstance().isSlidingWindowActive())
+        if (movingWindow.isSlidingWindowActive())
         {
-            selectionInfoGhosts = MovingWindow::getInstance().getGhostSelection(threadParams->currentStep);
+            selectionInfoGhosts = movingWindow.getGhostSelection(threadParams->currentStep);
         }
 
         /* create adios group for fields without statistics */
@@ -627,7 +629,7 @@ private:
         ForEach<FileOutputParticles, ADIOSCountParticles<bmpl::_1> > adiosCountParticles;
         adiosCountParticles(ref(threadParams), std::string(), selectionInfo);
         
-        if (MovingWindow::getInstance().isSlidingWindowActive())
+        if (movingWindow.isSlidingWindowActive())
         {
             ForEach<FileOutputParticles, ADIOSCountParticles<bmpl::_1> > adiosCountParticles;
             adiosCountParticles(ref(threadParams), std::string("_ghosts/"), selectionInfoGhosts);
@@ -691,7 +693,7 @@ private:
         writeSpecies(ref(threadParams), selectionInfo, particleOffset);
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing particle species.");
 
-        if (MovingWindow::getInstance().isSlidingWindowActive())
+        if (movingWindow.isSlidingWindowActive())
         {
             particleOffset = threadParams->gridPosition;
             particleOffset.y() = -threadParams->window.localDimensions.size.y();

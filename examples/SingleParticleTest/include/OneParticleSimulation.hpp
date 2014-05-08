@@ -156,7 +156,7 @@ public:
     {
         PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
         GridLayout<DIM3> gridLayout(simBox.getLocalSize(), MappingDesc::SuperCellSize::toRT());
-        if (MovingWindow::getInstance().getVirtualWindow(currentStep).doSlide)
+        if (MovingWindow::getInstance().slideInCurrentStep(currentStep))
         {
             GridController<simDim>& gc = Environment<simDim>::get().GridController();
             if (gc.slide())

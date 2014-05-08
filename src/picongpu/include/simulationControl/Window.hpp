@@ -29,62 +29,18 @@ namespace picongpu
 using namespace PMacc;
 
 /**
- * VirtualWindow describes sizes, offsets and other information specific
- * to PIConGPUs moving window scheme.
+ * Window describes sizes and offsets.
  *
  * For a detailed description of windows, see the PIConGPU wiki page:
  * https://github.com/ComputationalRadiationPhysics/picongpu/wiki/PIConGPU-domain-definitions
  */
-struct VirtualWindow
+struct Window
 {
-public:
-
-    /**
-     * Constructor
-     *
-     * Initializes number of slides to 0
-     */
-    VirtualWindow() :
-    slides(0),
-    doSlide(false),
-    isTop(false),
-    isBottom(false)
-    {
-    }
-
-    /**
-     * Constructor
-     *
-     * @param slides number of slides since start of simulation
-     * @param doSlide
-     */
-    VirtualWindow(uint32_t slides, bool doSlide = false) :
-    slides(slides),
-    doSlide(doSlide),
-    isTop(false),
-    isBottom(false)
-    {
-    }
-
     /* Dimensions (size/offset) of the global virtual window over all GPUs */
     Selection<simDim> globalDimensions;
 
     /* Dimensions (size/offset) of the local virtual window on this GPU */
     Selection<simDim> localDimensions;
-
-    /* number of slides since the begin of the simulation */
-    uint32_t slides;
-
-    /* true if simulation slide in the current round */
-    bool doSlide;
-
-    /* True if this is a 'top' GPU (y position is 0), false otherwise
-     * only set if sliding window is active */
-    bool isTop;
-
-    /* True if this is a 'bottom' GPU (y position is y_size - 1), false otherwise
-     * only set if sliding window is active */
-    bool isBottom;
 };
 }
 
