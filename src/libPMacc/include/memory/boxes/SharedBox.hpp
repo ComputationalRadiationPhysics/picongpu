@@ -32,11 +32,19 @@
 namespace PMacc
 {
 
-template<typename T_TYPE, class T_Vector,uint32_t T_dim=T_Vector::dim>
+/** create shared memory on gpu
+ *
+ * @tparam T_TYPE type of memory objects
+ * @tparam T_Vector CT::Vector with size description (per dimension)
+ * @tparam T_id unique id for this object
+ *              (is needed if more than one instance of shared memory in one kernel is used)
+ * @tparam T_dim dimension of the memory (supports DIM1,DIM2 and DIM3)
+ */
+template<typename T_TYPE, class T_Vector, uint32_t T_id=0, uint32_t T_dim=T_Vector::dim>
 class SharedBox;
 
-template<typename T_TYPE, class T_Vector>
-class SharedBox<T_TYPE, T_Vector,DIM1 >
+template<typename T_TYPE, class T_Vector, uint32_t T_id>
+class SharedBox<T_TYPE, T_Vector, T_id, DIM1>
 {
 public:
 
@@ -47,8 +55,8 @@ public:
     typedef T_TYPE ValueType;
     typedef ValueType& RefValueType;
     typedef T_Vector Size;
-    typedef SharedBox<ValueType, math::CT::Int<Size::x::value> > ReducedType;
-    typedef SharedBox<ValueType, T_Vector,DIM1 > This;
+    typedef SharedBox<ValueType, math::CT::Int<Size::x::value>, T_id > ReducedType;
+    typedef SharedBox<ValueType, T_Vector, T_id,DIM1 > This;
 
     HDINLINE RefValueType operator[](const int idx)
     {
@@ -88,7 +96,7 @@ public:
     {
         __shared__ ValueType mem_sh[Size::x::value];
         __syncthreads(); /*wait that all shared memory is initialised*/
-        return SharedBox<ValueType, math::CT::Int<Size::x::value> >((ValueType*) mem_sh);
+        return This((ValueType*) mem_sh);
     }
 
 protected:
@@ -96,8 +104,8 @@ protected:
     PMACC_ALIGN(fixedPointer, ValueType*);
 };
 
-template<typename T_TYPE, class T_Vector>
-class SharedBox<T_TYPE, T_Vector,DIM2 >
+template<typename T_TYPE, class T_Vector, uint32_t T_id>
+class SharedBox<T_TYPE, T_Vector,T_id, DIM2 >
 {
 public:
 
@@ -108,8 +116,8 @@ public:
     typedef T_TYPE ValueType;
     typedef ValueType& RefValueType;
     typedef T_Vector Size;
-    typedef SharedBox<ValueType, math::CT::Int<Size::x::value> > ReducedType;
-    typedef SharedBox<ValueType, T_Vector,DIM2 > This;
+    typedef SharedBox<ValueType, math::CT::Int<Size::x::value>, T_id > ReducedType;
+    typedef SharedBox<ValueType, T_Vector, T_id, DIM2 > This;
 
     HDINLINE SharedBox(ValueType* pointer = NULL) :
     fixedPointer(pointer)
@@ -159,8 +167,8 @@ protected:
     PMACC_ALIGN(fixedPointer, ValueType*);
 };
 
-template<typename T_TYPE, class T_Vector>
-class SharedBox<T_TYPE, T_Vector,DIM3 >
+template<typename T_TYPE, class T_Vector, uint32_t T_id>
+class SharedBox<T_TYPE, T_Vector, T_id, DIM3>
 {
 public:
 
@@ -171,8 +179,8 @@ public:
     typedef T_TYPE ValueType;
     typedef ValueType& RefValueType;
     typedef T_Vector Size;
-    typedef SharedBox<ValueType, math::CT::Int<Size::x::value, Size::y::value> > ReducedType;
-    typedef SharedBox<ValueType, T_Vector,DIM3 > This;
+    typedef SharedBox<ValueType, math::CT::Int<Size::x::value, Size::y::value>, T_id > ReducedType;
+    typedef SharedBox<ValueType, T_Vector, T_id, DIM3 > This;
 
     HDINLINE ReducedType operator[](const int idx)
     {

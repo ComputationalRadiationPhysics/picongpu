@@ -33,19 +33,19 @@ namespace PMacc
     namespace intern
     {
 
-        template< typename ValueType_, class BlockDescription_, uint32_t Id_>
+        template< typename T_ValueType, class T_BlockDescription, uint32_t T_Id>
         class CachedBox
         {
         public:
-            typedef BlockDescription_ BlockDescription;
-            typedef ValueType_ ValueType;
+            typedef T_BlockDescription BlockDescription;
+            typedef T_ValueType ValueType;
         private:
             typedef typename BlockDescription::SuperCellSize SuperCellSize;
             typedef typename BlockDescription::FullSuperCellSize FullSuperCellSize;
             typedef typename BlockDescription::OffsetOrigin OffsetOrigin;
 
         public:
-            typedef DataBox<SharedBox<ValueType, FullSuperCellSize> > Type;
+            typedef DataBox<SharedBox<ValueType, FullSuperCellSize,T_Id> > Type;
 
             HDINLINE static Type create()
             {
