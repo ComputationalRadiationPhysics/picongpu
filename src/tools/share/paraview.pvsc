@@ -72,16 +72,21 @@ echo 'Copy job script to $HEAD_NODE$';
 cat ~/.startParaView | ssh -p 44334 $SSH_USER$@localhost 'cat > ~/startParaView; /opt/torque/bin/qsub ~/startParaView';
 echo 'Check if old reverse connection tunnels still persist';
 if [ -s ~/.paraviewLastTunnel ] ; then
+  COMMENT='Check if the last recorded tunnel corresponds to a still active ssh process';
   pidof ssh | grep -oE `cat ~/.paraviewLastTunnel | sed s/\ /\|/g` > ~/.paraviewLastTunnel;
   if [ -s ~/.paraviewLastTunnel ] ; then
+    COMMENT='If the last recorded tunnel is still active kill it';
     kill `cat ~/.paraviewLastTunnel`;
   fi;
 fi;
 echo 'Open new reverse connection tunnel for the current session';
+COMMENT='Already running SSH connections are CLEAN and should not be killed';
+COMMENT='We store them in a temp file as an exclude list';
 pidof ssh | sed 's/ /,/g' > ~/.paraviewOtherSSH;
 ssh -f -p 44334 -R 10.0.2.253:$NUM_PORT$:localhost:11111 $SSH_USER$@localhost -N;
 sleep 1;
 echo -n 'Started session tunnel with process id ';
+COMMENT='Record new ssh process PID and remove temp file with PID excludes';
 pidof -o `cat ~/.paraviewOtherSSH` ssh | tee ~/.paraviewLastTunnel;
 rm ~/.paraviewOtherSSH;
 "/>
