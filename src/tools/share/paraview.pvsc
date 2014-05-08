@@ -66,18 +66,23 @@ if [ $? -ne 0 ] ; then
   echo 'opening ssh tunnel to $HEAD_NODE$';
   ssh -f -L 44334:hypnos2:22 $SSH_USER$@uts.fz-rossendorf.de -N;
   sleep 1;
-  echo -n 'Proxy to $HEAD_NODE$ established with process id ';
-  pidof ssh | sed 's/ /,/g' | tee ~/.basicHypnosTunnel;
+  echo 'Permanent proxy to ssh port of $HEAD_NODE$ established';
 fi;
 echo copying;
 cat ~/.startParaView | ssh -p 44334 $SSH_USER$@localhost 'cat > ~/startParaView; /opt/torque/bin/qsub ~/startParaView';
 echo tunneling2;
-ps aux | grep 'ssh' | sed 's/\(.[^ \t]*\)[ \t]*\(.[^ \t]*\)\(.*\)/\2/' | grep -P `cat ~/.paraviewLastTunnel | sed s/\ /\|/g ` > ~/.paraviewLastTunnel;
-kill `cat ~/.paraviewLastTunnel`;
+if [ -s ~/.paraviewLastTunnel ] ; then
+  pidof ssh | grep -oE `cat ~/.paraviewLastTunnel | sed s/\ /\|/g` > ~/.paraviewLastTunnel;
+  if [ -s ~/.paraviewLastTunnel ] ; then
+    kill `cat ~/.paraviewLastTunnel`;
+  fi;
+fi;
+pidof ssh | sed 's/ /,/g' > ~/.paraviewOtherSSH;
 ssh -f -p 44334 -R 10.0.2.253:$NUM_PORT$:localhost:11111 $SSH_USER$@localhost -N;
 sleep 1;
 echo -n 'started session tunnel with process id ';
-pidof -o `cat ~/.basicHypnosTunnel` ssh | tee ~/.paraviewLastTunnel;
+pidof -o `cat ~/.paraviewOtherSSH` ssh | tee ~/.paraviewLastTunnel;
+rm ~/.paraviewOtherSSH;
 "/>
         </Arguments>
       </Command>
