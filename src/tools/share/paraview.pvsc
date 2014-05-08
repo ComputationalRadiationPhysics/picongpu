@@ -54,13 +54,13 @@ mpiexec -npernode NUM_PPN -n \`expr NUM_NODES \\* NUM_PPN\`
 \#   -am \~/openib.conf\\n
 \#       in case you send HUGE data chunks over infiniband
 ' > ~/.startParaView;
-echo replacing;
+echo 'Replacing space holders in job script';
 sed -i 's/NUM_NODES/$NUM_NODES$/g' ~/.startParaView;
 sed -i 's/NUM_PPN/$NUM_PPN$/g' ~/.startParaView;
 sed -i 's/T_WALLTIME/$T_WALLTIME$/g' ~/.startParaView;
 sed -i 's/HEAD_NODE/$HEAD_NODE$/g' ~/.startParaView;
 sed -i 's/NUM_PORT/$NUM_PORT$/g' ~/.startParaView;
-echo tunneling;
+echo 'Checking tunnel to SSH port of $HEAD_NODE$';
 ssh -p 44334 $SSH_USER$@localhost 'exit 0' 2>/dev/null 1>/dev/null;
 if [ $? -ne 0 ] ; then
   echo 'opening ssh tunnel to $HEAD_NODE$';
@@ -68,19 +68,20 @@ if [ $? -ne 0 ] ; then
   sleep 1;
   echo 'Permanent proxy to ssh port of $HEAD_NODE$ established';
 fi;
-echo copying;
+echo 'Copy job script to $HEAD_NODE$';
 cat ~/.startParaView | ssh -p 44334 $SSH_USER$@localhost 'cat > ~/startParaView; /opt/torque/bin/qsub ~/startParaView';
-echo tunneling2;
+echo 'Check if old reverse connection tunnels still persist';
 if [ -s ~/.paraviewLastTunnel ] ; then
   pidof ssh | grep -oE `cat ~/.paraviewLastTunnel | sed s/\ /\|/g` > ~/.paraviewLastTunnel;
   if [ -s ~/.paraviewLastTunnel ] ; then
     kill `cat ~/.paraviewLastTunnel`;
   fi;
 fi;
+echo 'Open new reverse connection tunnel for the current session';
 pidof ssh | sed 's/ /,/g' > ~/.paraviewOtherSSH;
 ssh -f -p 44334 -R 10.0.2.253:$NUM_PORT$:localhost:11111 $SSH_USER$@localhost -N;
 sleep 1;
-echo -n 'started session tunnel with process id ';
+echo -n 'Started session tunnel with process id ';
 pidof -o `cat ~/.paraviewOtherSSH` ssh | tee ~/.paraviewLastTunnel;
 rm ~/.paraviewOtherSSH;
 "/>
