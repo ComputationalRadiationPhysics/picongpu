@@ -1,27 +1,24 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2014 Rene Widera, Felix Schmitt
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
 
-
-#ifndef VIRTUALWINDOW_HPP
-#define	VIRTUALWINDOW_HPP
+#pragma once
 
 #include "types.h"
 #include "mappings/simulation/SubGrid.hpp"
@@ -31,17 +28,23 @@ namespace picongpu
 {
 using namespace PMacc;
 
+/**
+ * VirtualWindow describes sizes, offsets and other information specific
+ * to PIConGPUs moving window scheme.
+ *
+ * For a detailed description of windows, see the PIConGPU wiki page:
+ * https://github.com/ComputationalRadiationPhysics/picongpu/wiki/PIConGPU-domain-definitions
+ */
 struct VirtualWindow
 {
+public:
 
     /**
      * Constructor
-     * 
+     *
      * Initializes number of slides to 0
      */
     VirtualWindow() :
-    localDimensions(Environment<simDim>::get().SubGrid().getSimulationBox().getLocalSize()),
-    localDomainSize(localDimensions.size),
     slides(0),
     doSlide(false),
     isTop(false),
@@ -51,13 +54,11 @@ struct VirtualWindow
 
     /**
      * Constructor
-     * 
+     *
      * @param slides number of slides since start of simulation
      * @param doSlide
      */
     VirtualWindow(uint32_t slides, bool doSlide = false) :
-    localDimensions(Environment<simDim>::get().SubGrid().getSimulationBox().getLocalSize()),
-    localDomainSize(localDimensions.size),
     slides(slides),
     doSlide(doSlide),
     isTop(false),
@@ -67,12 +68,9 @@ struct VirtualWindow
 
     /* Dimensions (size/offset) of the global virtual window over all GPUs */
     Selection<simDim> globalDimensions;
-    
+
     /* Dimensions (size/offset) of the local virtual window on this GPU */
     Selection<simDim> localDimensions;
-
-    /* domain size of this GPU */
-    DataSpace<simDim> localDomainSize;
 
     /* number of slides since the begin of the simulation */
     uint32_t slides;
@@ -83,12 +81,10 @@ struct VirtualWindow
     /* True if this is a 'top' GPU (y position is 0), false otherwise
      * only set if sliding window is active */
     bool isTop;
-    
+
     /* True if this is a 'bottom' GPU (y position is y_size - 1), false otherwise
      * only set if sliding window is active */
     bool isBottom;
 };
 }
-
-#endif	/* VIRTUALWINDOW_HPP */
 

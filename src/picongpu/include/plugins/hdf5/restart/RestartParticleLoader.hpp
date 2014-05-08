@@ -355,6 +355,7 @@ public:
 
         /* setup domain information for HDF5 file access */
         VirtualWindow window = MovingWindow::getInstance().getVirtualWindow(tp->currentStep);
+        DomainInformation domInfo;
         DataSpace<simDim> globalDomainOffset(gridPosition);
         DataSpace<simDim> logicalToPhysicalOffset(gridPosition - window.globalDimensions.offset);
 
@@ -380,7 +381,7 @@ public:
             globalDomainOffset = gridPosition;
             globalDomainOffset.y() += window.localDimensions.size.y();
 
-            localDomainSize = window.localDomainSize;
+            localDomainSize = domInfo.localDomain.size;
             localDomainSize.y() -= window.localDimensions.size.y();
 
             DataSpace<simDim> particleOffset = gridPosition;

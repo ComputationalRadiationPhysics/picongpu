@@ -375,8 +375,8 @@ private:
         writeMetaAttributes(threadParams);
 
         /* get clean domain info (picongpu view) */
-        DomainInformation domInfo =
-                MovingWindow::getInstance().getActiveDomain(threadParams->currentStep);
+        SelectionInformation selectionInfo =
+                MovingWindow::getInstance().getActiveSelection(threadParams->currentStep);
 
         /* y direction can be negative for first gpu*/
         DataSpace<simDim> particleOffset(threadParams->gridPosition);
@@ -387,11 +387,11 @@ private:
         if (threadParams->isCheckpoint)
         {
             ForEach<FileCheckpointFields, WriteFields<bmpl::_1> > forEachWriteFields;
-            forEachWriteFields(ref(threadParams), domInfo);
+            forEachWriteFields(ref(threadParams), selectionInfo);
         } else
         {
             ForEach<FileOutputFields, WriteFields<bmpl::_1> > forEachWriteFields;
-            forEachWriteFields(ref(threadParams), domInfo);
+            forEachWriteFields(ref(threadParams), selectionInfo);
         }
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing fields.");
 
@@ -400,19 +400,19 @@ private:
         if (threadParams->isCheckpoint)
         {
             ForEach<FileCheckpointParticles, WriteSpecies<bmpl::_1> > writeSpecies;
-            writeSpecies(ref(threadParams), std::string(), domInfo, particleOffset);
+            writeSpecies(ref(threadParams), std::string(), selectionInfo, particleOffset);
         } else
         {
             ForEach<FileOutputParticles, WriteSpecies<bmpl::_1> > writeSpecies;
-            writeSpecies(ref(threadParams), std::string(), domInfo, particleOffset);
+            writeSpecies(ref(threadParams), std::string(), selectionInfo, particleOffset);
         }
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species.");
 
 
         if (threadParams->isCheckpoint && MovingWindow::getInstance().isSlidingWindowActive())
         {
-            DomainInformation domInfoGhosts =
-                    MovingWindow::getInstance().getGhostDomain(threadParams->currentStep);
+            SelectionInformation selectionInfoGhosts =
+                    MovingWindow::getInstance().getGhostSelection(threadParams->currentStep);
 
             particleOffset = threadParams->gridPosition;
             particleOffset.y() = -threadParams->window.localDimensions.size.y();
@@ -423,11 +423,11 @@ private:
             if (threadParams->isCheckpoint)
             {
                 ForEach<FileCheckpointParticles, WriteSpecies<bmpl::_1>  > writeSpecies;
-                writeSpecies(ref(threadParams), std::string("_ghosts"), domInfoGhosts, particleOffset);
+                writeSpecies(ref(threadParams), std::string("_ghosts"), selectionInfoGhosts, particleOffset);
             } else
             {
                 ForEach<FileOutputParticles, WriteSpecies<bmpl::_1> > writeSpecies;
-                writeSpecies(ref(threadParams), std::string("_ghosts"), domInfoGhosts, particleOffset);
+                writeSpecies(ref(threadParams), std::string("_ghosts"), selectionInfoGhosts, particleOffset);
             }
             log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species bottom.");
         }

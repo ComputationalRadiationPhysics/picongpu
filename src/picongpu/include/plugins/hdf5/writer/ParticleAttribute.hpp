@@ -62,7 +62,7 @@ struct ParticleAttribute
                             const RefWrapper<ThreadParams*> params,
                             const RefWrapper<FrameType> frame,
                             const std::string subGroup,
-                            const DomainInformation domInfo,
+                            const SelectionInformation selectionInfo,
                             const size_t elements)
     {
 
@@ -85,7 +85,7 @@ struct ParticleAttribute
          * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
          */
         DataSpace<simDim> globalSlideOffset;
-        globalSlideOffset.y()+=params.get()->window.slides * params.get()->window.localDomainSize.y();
+        globalSlideOffset.y() += params.get()->window.slides * selectionInfo.domains.localDomain.size.y();
 
         Dimensions splashDomainOffset(0, 0, 0);
         Dimensions splashGlobalDomainOffset(0, 0, 0);
@@ -95,10 +95,10 @@ struct ParticleAttribute
 
         for (uint32_t d = 0; d < simDim; ++d)
         {
-            splashDomainOffset[d] = domInfo.domainOffset[d] + globalSlideOffset[d];
-            splashGlobalDomainOffset[d] = domInfo.globalDomainOffset[d] + globalSlideOffset[d];
-            splashGlobalDomainSize[d] = domInfo.globalDomainSize[d];
-            splashDomainSize[d] = domInfo.domainSize[d];
+            splashDomainOffset[d] = selectionInfo.localSelection.offset[d] + globalSlideOffset[d];
+            splashGlobalDomainOffset[d] = selectionInfo.globalSelection.offset[d] + globalSlideOffset[d];
+            splashGlobalDomainSize[d] = selectionInfo.globalSelection.size[d];
+            splashDomainSize[d] = selectionInfo.localSelection.size[d];
         }
 
         typedef typename GetComponentsType<ValueType>::type ComponentValueType;

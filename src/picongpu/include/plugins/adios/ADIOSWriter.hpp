@@ -127,7 +127,7 @@ private:
 
     public:
 
-        HDINLINE void operator()(RefWrapper<ThreadParams*> params, const DomainInformation domInfo)
+        HDINLINE void operator()(RefWrapper<ThreadParams*> params, const SelectionInformation selectionInfo)
         {
 #ifndef __CUDA_ARCH__
             DataConnector &dc = Environment<simDim>::get().DataConnector();
@@ -139,7 +139,7 @@ private:
             writeField(params.get(),
                        sizeof(ComponentType),
                        adiosType.type,
-                       domInfo,
+                       selectionInfo,
                        GetNComponents<ValueType>::value,
                        T::getName(),
                        getUnit(),
@@ -170,9 +170,9 @@ private:
          * call virtual functions.
          */
         PMACC_NO_NVCC_HDWARNING
-        HDINLINE void operator()(RefWrapper<ThreadParams*> tparam, const DomainInformation domInfo)
+        HDINLINE void operator()(RefWrapper<ThreadParams*> tparam, const SelectionInformation selectionInfo)
         {
-            this->operator_impl(tparam, domInfo);
+            this->operator_impl(tparam, selectionInfo);
         }
     private:
         typedef typename FieldTmp::ValueType ValueType;
@@ -198,7 +198,7 @@ private:
             return createUnit(unit, components);
         }
 
-        HINLINE void operator_impl(RefWrapper<ThreadParams*> params, const DomainInformation domInfo)
+        HINLINE void operator_impl(RefWrapper<ThreadParams*> params, const SelectionInformation selectionInfo)
         {
             DataConnector &dc = Environment<>::get().DataConnector();
 
@@ -228,7 +228,7 @@ private:
             writeField(params.get(),
                        sizeof(ComponentType),
                        adiosType.type,
-                       domInfo,
+                       selectionInfo,
                        components,
                        getName(),
                        getUnit(),
@@ -240,7 +240,7 @@ private:
 
     };
     
-    static void defineFieldVar(ThreadParams* params, const DomainInformation domInfo,
+    static void defineFieldVar(ThreadParams* params, const SelectionInformation selectionInfo,
         uint32_t nComponents, ADIOS_DATATYPES adiosType, const std::string name)
     {
         const std::string name_lookup_tpl[] = {"x", "y", "z", "w"};
@@ -297,21 +297,21 @@ private:
         typedef typename T::ValueType ValueType;
         typedef typename GetComponentsType<ValueType>::type ComponentType;
 
-        HDINLINE void operator()(RefWrapper<ThreadParams*> params, const DomainInformation domInfo)
+        HDINLINE void operator()(RefWrapper<ThreadParams*> params, const SelectionInformation selectionInfo)
         {
 #ifndef __CUDA_ARCH__
             const uint32_t components = T::numComponents;
 
             // adios buffer size for this dataset (all components)
             uint64_t localGroupSize = 
-                    domInfo.domainSize.productOfComponents() *
+                    selectionInfo.localSelection.size.productOfComponents() *
                     sizeof(ComponentType) *
                     components;
             
             params.get()->adiosGroupSize += localGroupSize;
             
             PICToAdios<ComponentType> adiosType;
-            defineFieldVar(params.get(), domInfo, components, adiosType.type, T::getName());
+            defineFieldVar(params.get(), selectionInfo, components, adiosType.type, T::getName());
 #endif
         }
     };
@@ -326,9 +326,9 @@ private:
     public:
         
         PMACC_NO_NVCC_HDWARNING
-        HDINLINE void operator()(RefWrapper<ThreadParams*> tparam, const DomainInformation domInfo)
+        HDINLINE void operator()(RefWrapper<ThreadParams*> tparam, const SelectionInformation selectionInfo)
         {
-            this->operator_impl(tparam, domInfo);
+            this->operator_impl(tparam, selectionInfo);
         }
         
    private:
@@ -346,20 +346,20 @@ private:
             return str.str();
         }
 
-        HINLINE void operator_impl(RefWrapper<ThreadParams*> params, const DomainInformation domInfo)
+        HINLINE void operator_impl(RefWrapper<ThreadParams*> params, const SelectionInformation selectionInfo)
         {
             const uint32_t components = GetNComponents<ValueType>::value;
 
             // adios buffer size for this dataset (all components)
             uint64_t localGroupSize = 
-                    domInfo.domainSize.productOfComponents() *
+                    selectionInfo.localSelection.size.productOfComponents() *
                     sizeof(ComponentType) *
                     components;
             
             params.get()->adiosGroupSize += localGroupSize;
             
             PICToAdios<ComponentType> adiosType;
-            defineFieldVar(params.get(), domInfo, components, adiosType.type, getName());
+            defineFieldVar(params.get(), selectionInfo, components, adiosType.type, getName());
         }
 
     };
@@ -492,7 +492,7 @@ private:
 
     static void writeField(ThreadParams *params, const uint32_t sizePtrType,
                            ADIOS_DATATYPES adiosType,
-                           const DomainInformation domInfo,
+                           const SelectionInformation selectionInfo,
                            const uint32_t nComponents, const std::string name,
                            std::vector<double> unit, void *ptr)
     {
@@ -502,8 +502,8 @@ private:
         /* data to describe source buffer */
         GridLayout<simDim> field_layout = params->gridLayout;
         DataSpace<simDim> field_full = field_layout.getDataSpace();
-        DataSpace<simDim> field_no_guard = domInfo.domainSize;
-        DataSpace<simDim> field_guard = field_layout.getGuard() + domInfo.localDomainOffset;
+        DataSpace<simDim> field_no_guard = selectionInfo.localSelection.size;
+        DataSpace<simDim> field_guard = field_layout.getGuard() + selectionInfo.selectionOffset;
 
         /* write the actual field data */
         for (uint32_t d = 0; d < nComponents; d++)
@@ -544,7 +544,7 @@ private:
         }
     }
     
-    static void defineAdiosFieldVars(ThreadParams *params, DomainInformation &domInfo)
+    static void defineAdiosFieldVars(ThreadParams *params)
     {
         /* create adios size/offset variables required for writing the actual field data */        
         const std::string name_lookup_tpl[] = {"x", "y", "z"};
@@ -580,8 +580,8 @@ private:
         uint32_t slides = threadParams->window.slides;
 
         /* build clean domain info (picongpu view) */
-        DomainInformation domInfo, domInfoGhosts;
-        domInfo = MovingWindow::getInstance().getActiveDomain(threadParams->currentStep);
+        SelectionInformation selectionInfo, selectionInfoGhosts;
+        selectionInfo = MovingWindow::getInstance().getActiveSelection(threadParams->currentStep);
         
         /* y direction can be negative for first gpu */
         DataSpace<simDim> particleOffset(threadParams->gridPosition);
@@ -589,7 +589,7 @@ private:
         
         if (MovingWindow::getInstance().isSlidingWindowActive())
         {
-            domInfoGhosts = MovingWindow::getInstance().getGhostDomain(threadParams->currentStep);
+            selectionInfoGhosts = MovingWindow::getInstance().getGhostSelection(threadParams->currentStep);
         }
 
         /* create adios group for fields without statistics */
@@ -610,14 +610,14 @@ private:
                 (threadParams->adiosBasePath + std::string("sim_slides")).c_str(),
                 NULL, adios_unsigned_integer, 0, 0, 0));
         
-        defineAdiosFieldVars(threadParams, domInfo);
+        defineAdiosFieldVars(threadParams);
         
         /* collect size information for each field to be written and define 
          * field variables
          */
         threadParams->adiosFieldVarIds.clear();
         ForEach<FileOutputFields, CollectFieldsSizes<bmpl::_1> > forEachCollectFieldsSizes;
-        forEachCollectFieldsSizes(ref(threadParams), domInfo);
+        forEachCollectFieldsSizes(ref(threadParams), selectionInfo);
         
         /* collect size information for all attributes of all species and define
          * particle variables
@@ -625,12 +625,12 @@ private:
         threadParams->adiosParticleAttrVarIds.clear();
         threadParams->adiosSpeciesIndexVarIds.clear();
         ForEach<FileOutputParticles, ADIOSCountParticles<bmpl::_1> > adiosCountParticles;
-        adiosCountParticles(ref(threadParams), std::string(), domInfo);
+        adiosCountParticles(ref(threadParams), std::string(), selectionInfo);
         
         if (MovingWindow::getInstance().isSlidingWindowActive())
         {
             ForEach<FileOutputParticles, ADIOSCountParticles<bmpl::_1> > adiosCountParticles;
-            adiosCountParticles(ref(threadParams), std::string("_ghosts/"), domInfoGhosts);
+            adiosCountParticles(ref(threadParams), std::string("_ghosts/"), selectionInfoGhosts);
         }
 
 
@@ -667,28 +667,28 @@ private:
         /* write created variable values */
         for (uint32_t d = 0; d < simDim; ++d)
         {
-            int offset = domInfo.domainOffset[d];
+            int offset = selectionInfo.localSelection.offset[d];
             
             /* dimension 1 is y and is the direction of the moving window (if any) */
             if (1 == d)
-                offset = std::max(0, domInfo.domainOffset[1] - domInfo.globalDomainOffset[1]);
+                offset = std::max(0, selectionInfo.localSelection.offset[1] - selectionInfo.globalSelection.offset[1]);
             
             ADIOS_CMD(adios_write_byid(threadParams->adiosFileHandle,
-                    threadParams->adiosSizeVarIds[d], &(domInfo.domainSize[d])));
+                    threadParams->adiosSizeVarIds[d], &(selectionInfo.localSelection.size[d])));
             ADIOS_CMD(adios_write_byid(threadParams->adiosFileHandle,
-                    threadParams->adiosTotalSizeVarIds[d], &(domInfo.globalDomainSize[d])));
+                    threadParams->adiosTotalSizeVarIds[d], &(selectionInfo.globalSelection.size[d])));
             ADIOS_CMD(adios_write_byid(threadParams->adiosFileHandle,
                     threadParams->adiosOffsetVarIds[d], &offset));
         }
         
         /* write fields */
         ForEach<FileOutputFields, GetFields<bmpl::_1> > forEachGetFields;
-        forEachGetFields(ref(threadParams), domInfo);
+        forEachGetFields(ref(threadParams), selectionInfo);
         
         /* print all particle species */
         log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) writing particle species.");
         ForEach<FileOutputParticles, WriteSpecies<bmpl::_1> > writeSpecies;
-        writeSpecies(ref(threadParams), domInfo, particleOffset);
+        writeSpecies(ref(threadParams), selectionInfo, particleOffset);
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing particle species.");
 
         if (MovingWindow::getInstance().isSlidingWindowActive())
@@ -698,7 +698,7 @@ private:
             
             /* print all particle species */
             log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) writing particle species ghosts.");
-            writeSpecies(ref(threadParams), domInfoGhosts, particleOffset);
+            writeSpecies(ref(threadParams), selectionInfoGhosts, particleOffset);
             log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing particle species ghosts.");
         }
 

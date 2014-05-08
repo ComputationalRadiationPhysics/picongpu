@@ -54,6 +54,7 @@ public:
         DataSpace<simDim> field_guard = field.getGridLayout().getGuard();
 
         VirtualWindow window = MovingWindow::getInstance().getVirtualWindow(restartStep);
+        DomainInformation domInfo;
 
         field.getHostBuffer().setValue(float3_X(0.));
 
@@ -64,7 +65,7 @@ public:
          * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
          */
         DataSpace<simDim> globalSlideOffset;
-        globalSlideOffset.y() = window.slides * window.localDomainSize.y();
+        globalSlideOffset.y() = window.slides * domInfo.localDomain.size.y();
 
         DataSpace<simDim> globalOffset(Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset());
 

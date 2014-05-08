@@ -96,7 +96,7 @@ public:
     template<typename Space>
     HINLINE void operator()(RefWrapper<ThreadParams*> params,
                             std::string subGroup,
-                            const DomainInformation domInfo,
+                            const SelectionInformation selectionInfo,
                             const Space particleOffset)
     {
         log<picLog::INPUT_OUTPUT > ("HDF5: (begin) write species: %1%") % Hdf5FrameType::getName();
@@ -111,8 +111,8 @@ public:
         totalNumParticles = PMacc::CountParticles::countOnDevice < CORE + BORDER > (
                                                                                     *speciesTmp,
                                                                                     *(params.get()->cellDescription),
-                                                                                    domInfo.localDomainOffset,
-                                                                                    domInfo.domainSize);
+                                                                                    selectionInfo.selectionOffset,
+                                                                                    selectionInfo.localSelection.size);
 
 
         log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) count particles: %1% = %2%") % Hdf5FrameType::getName() % totalNumParticles;
@@ -139,7 +139,7 @@ public:
             MyParticleFilter filter;
             /* activate filter pipeline if moving window is activated */
             filter.setStatus(MovingWindow::getInstance().isSlidingWindowActive());
-            filter.setWindowPosition(domInfo.localDomainOffset, domInfo.domainSize);
+            filter.setWindowPosition(selectionInfo.selectionOffset, selectionInfo.localSelection.size);
 
             dim3 block(TILE_SIZE);
 
@@ -164,7 +164,7 @@ public:
         /*dump to hdf5 file*/
         ForEach<typename Hdf5FrameType::ValueTypeSeq, hdf5::ParticleAttribute<bmpl::_1> > writeToHdf5;
         writeToHdf5(params, byRef(hostFrame), std::string("particles/") + FrameType::getName() + std::string("/") + subGroup,
-                domInfo, totalNumParticles);
+                selectionInfo, totalNumParticles);
 
         /* write meta attributes for species */
         writeMetaAttributes(params.get());

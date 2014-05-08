@@ -40,6 +40,7 @@ namespace picongpu
         bool gasSetup(GridBuffer<Type, simDim> &fieldBuffer, VirtualWindow &window)
         {
             GridController<simDim> &gc = Environment<simDim>::get().GridController();
+            DomainInformation domInfo;
             const uint32_t maxOpenFilesPerNode = 1;
 
             /* get a new ParallelDomainCollector for our MPI rank only*/
@@ -60,7 +61,7 @@ namespace picongpu
 
                 /* set which part of the hdf5 file our MPI rank reads */
                 DataSpace<simDim> globalSlideOffset;
-                globalSlideOffset.y() = window.slides * window.localDomainSize.y();
+                globalSlideOffset.y() = window.slides * domInfo.localDomain.size.y();
 
                 DataSpace<simDim> globalOffset(Environment<simDim>::get().SubGrid().
                         getSimulationBox().getGlobalOffset());
@@ -72,7 +73,7 @@ namespace picongpu
                 if (gc.getPosition().y() == 0)
                     domainOffset[1] += window.globalDimensions.offset.y();
 
-                DataSpace<simDim> localDomainSize = window.localDomainSize;
+                DataSpace<simDim> localDomainSize = domInfo.localDomain.size;
                 Dimensions domainSize(1, 1, 1);
                 for (uint32_t d = 0; d < simDim; ++d)
                     domainSize[d] = localDomainSize[d];

@@ -89,7 +89,7 @@ public:
 
     HINLINE void operator()(RefWrapper<ThreadParams*> params,
                             const std::string subGroup,
-                            const DomainInformation domInfo)
+                            const SelectionInformation selectionInfo)
     {
         DataConnector &dc = Environment<>::get().DataConnector();
         GridController<simDim>& gc = Environment<simDim>::get().GridController();
@@ -104,8 +104,8 @@ public:
         totalNumParticles = PMacc::CountParticles::countOnDevice < CORE + BORDER > (
                                                                                     *speciesTmp,
                                                                                     *(params.get()->cellDescription),
-                                                                                    domInfo.localDomainOffset,
-                                                                                    domInfo.domainSize);
+                                                                                    selectionInfo.selectionOffset,
+                                                                                    selectionInfo.localSelection.size);
 
         /* MPI_Allgather to compute global size and my offset */
         uint64_t myNumParticles = totalNumParticles;

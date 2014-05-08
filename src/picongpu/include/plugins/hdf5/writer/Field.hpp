@@ -41,7 +41,7 @@ struct Field
 
     template<typename T_ValueType, typename T_DataBoxType>
     static void writeField(ThreadParams *params,
-                           const DomainInformation domInfo,
+                           const SelectionInformation selectionInfo,
                            const std::string name,
                            std::vector<double> unit,
                            T_DataBoxType dataBox,
@@ -67,14 +67,14 @@ struct Field
 
         /*data to describe source buffer*/
         GridLayout<simDim> field_layout = params->gridLayout;
-        DataSpace<simDim> field_no_guard = domInfo.domainSize;
-        DataSpace<simDim> field_guard = field_layout.getGuard() + domInfo.localDomainOffset;
+        DataSpace<simDim> field_no_guard = selectionInfo.localSelection.size;
+        DataSpace<simDim> field_guard = field_layout.getGuard() + selectionInfo.selectionOffset;
         /* globalSlideOffset due to gpu slides between origin at time step 0
          * and origin at current time step
          * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
          */
         DataSpace<simDim> globalSlideOffset;
-        globalSlideOffset.y() += params->window.slides * params->window.localDomainSize.y();
+        globalSlideOffset.y() += params->window.slides * selectionInfo.domains.localDomain.size.y();
 
         Dimensions splashGlobalDomainOffset(0, 0, 0);
         Dimensions splashGlobalOffsetFile(0, 0, 0);
@@ -82,13 +82,13 @@ struct Field
 
         for (uint32_t d = 0; d < simDim; ++d)
         {
-            splashGlobalOffsetFile[d] = domInfo.domainOffset[d];
-            splashGlobalDomainOffset[d] = domInfo.globalDomainOffset[d] + globalSlideOffset[d];
-            splashGlobalDomainSize[d] = domInfo.globalDomainSize[d];
+            splashGlobalOffsetFile[d] = selectionInfo.localSelection.offset[d];
+            splashGlobalDomainOffset[d] = selectionInfo.globalSelection.offset[d] + globalSlideOffset[d];
+            splashGlobalDomainSize[d] = selectionInfo.globalSelection.size[d];
         }
 
-        splashGlobalOffsetFile[1] = std::max(0, domInfo.domainOffset[1] -
-                                             domInfo.globalDomainOffset[1]);
+        splashGlobalOffsetFile[1] = std::max(0, selectionInfo.localSelection.offset[1] -
+                                             selectionInfo.globalSelection.offset[1]);
 
         SplashType splashType;
 

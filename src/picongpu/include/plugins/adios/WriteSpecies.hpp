@@ -87,7 +87,7 @@ public:
     
     template<typename Space>
     HINLINE void operator()(RefWrapper<ThreadParams*> params,
-                            const DomainInformation domInfo,
+                            const SelectionInformation selectionInfo,
                             const Space particleOffset)
     {
         log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) write species: %1%") % AdiosFrameType::getName();
@@ -101,8 +101,8 @@ public:
         totalNumParticles = PMacc::CountParticles::countOnDevice < CORE + BORDER > (
                                                                                     *speciesTmp,
                                                                                     *(params.get()->cellDescription),
-                                                                                    domInfo.localDomainOffset,
-                                                                                    domInfo.domainSize);
+                                                                                    selectionInfo.selectionOffset,
+                                                                                    selectionInfo.localSelection.size);
         log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) count particles: %1% = %2%") % AdiosFrameType::getName() % totalNumParticles;
 
         if (totalNumParticles > 0)
@@ -128,10 +128,9 @@ public:
             MyParticleFilter filter;
             /* activeate filter pipeline if moving window is activated */
             filter.setStatus(MovingWindow::getInstance().isSlidingWindowActive());
-            filter.setWindowPosition(domInfo.localDomainOffset, domInfo.domainSize);
+            filter.setWindowPosition(selectionInfo.selectionOffset, selectionInfo.localSelection.size);
 
             dim3 block(TILE_SIZE);
-            DataSpace<simDim> superCells = speciesTmp->getParticlesBuffer().getSuperCellsCount();
 
             GridBuffer<int, DIM1> counterBuffer(DataSpace<DIM1>(1));
             AreaMapping < CORE + BORDER, MappingDesc > mapper(*(params.get()->cellDescription));
