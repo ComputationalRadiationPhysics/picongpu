@@ -129,11 +129,11 @@ namespace picongpu
                              ctPhaseSpace,
                              bufDim,
                              /* local data set dimensions */
-                             Selection(localPhaseSpace_size),
+                             splash::Selection(localPhaseSpace_size),
                              /* data set name */
                              dataSetName.str().c_str(),
                              /* global domain */
-                             Domain(
+                             splash::Domain(
                                     globalPhaseSpace_offset,
                                     globalPhaseSpace_size
                              ),

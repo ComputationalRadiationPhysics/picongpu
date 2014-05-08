@@ -121,13 +121,13 @@ struct ParticleAttribute
             params.get()->dataCollector->writeDomain(params.get()->currentStep, 
                                                      splashType, 
                                                      1u, 
-                                                     Selection(Dimensions(elements, 1, 1)),
+                                                     splash::Selection(Dimensions(elements, 1, 1)),
                                                      datasetName.str().c_str(), 
-                                                     Domain(
+                                                     splash::Domain(
                                                             splashDomainOffset, 
                                                             splashDomainSize
                                                      ),
-                                                     Domain(
+                                                     splash::Domain(
                                                             splashGlobalDomainOffset, 
                                                             splashGlobalDomainSize
                                                      ),

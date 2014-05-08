@@ -120,16 +120,16 @@ struct Field
                 sizeSrcData[i] = field_no_guard[i];
             }
 
-            params->dataCollector->writeDomain(params->currentStep, /* id == time step */
-                                               splashGlobalDomainSize,
-                                               splashGlobalOffsetFile,
-                                               splashType, /* data type */
-                                               simDim, /* NDims of the field data (scalar, vector, ...) */
-                                               Selection(sizeSrcData),
-                                               datasetName.str().c_str(), /* data set name */
-                                               Domain(
+            params->dataCollector->writeDomain(params->currentStep,             /* id == time step */
+                                               splashGlobalDomainSize,          /* total size of dataset over all processes */
+                                               splashGlobalOffsetFile,          /* write offset for this process */
+                                               splashType,                      /* data type */
+                                               simDim,                          /* NDims of the field data (scalar, vector, ...) */
+                                               splash::Selection(sizeSrcData),  /* data size of this process */
+                                               datasetName.str().c_str(),       /* data set name */
+                                               splash::Domain(
                                                       splashGlobalDomainOffset, /* offset of the global domain */
-                                                      splashGlobalDomainSize /* size of the global domain */
+                                                      splashGlobalDomainSize    /* size of the global domain */
                                                ),
                                                DomainCollector::GridType,
                                                tmpArray);

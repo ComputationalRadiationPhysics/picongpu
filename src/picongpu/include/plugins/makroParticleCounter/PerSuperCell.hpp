@@ -248,13 +248,13 @@ private:
         size_t* ptr = localResult->getHostBuffer().getPointer();
 
         dataCollector->writeDomain(currentStep,                     /* id == time step */
-                                   splashGlobalSize,
-                                   splashGlobalOffset,
+                                   splashGlobalSize,                /* total size of dataset over all processes */
+                                   splashGlobalOffset,              /* write offset for this process */
                                    ColTypeUInt64(),                 /* data type */
                                    simDim,                          /* NDims of the field data (scalar, vector, ...) */
-                                   Selection(localBufferSize),
+                                   splash::Selection(localBufferSize),
                                    "makroParticlePerSupercell",     /* data set name */
-                                   Domain(
+                                   splash::Domain(
                                           splashGlobalDomainOffset, /* offset of the global domain */
                                           splashGlobalDomainSize    /* size of the global domain */
                                    ),
