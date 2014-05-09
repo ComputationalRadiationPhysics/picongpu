@@ -57,16 +57,16 @@ namespace PMacc
             state = InitDone;
             if (exchange->hasDeviceDoubleBuffer())
             {
-                Environment<DIM>::get().Factory().createTaskCopyDeviceToDevice(exchange->getDeviceBuffer(),
+                Environment<>::get().Factory().createTaskCopyDeviceToDevice(exchange->getDeviceBuffer(),
                                                                                exchange->getDeviceDoubleBuffer()
                                                                                );
-                copyEvent = Environment<DIM>::get().Factory().createTaskCopyDeviceToHost(exchange->getDeviceDoubleBuffer(),
+                copyEvent = Environment<>::get().Factory().createTaskCopyDeviceToHost(exchange->getDeviceDoubleBuffer(),
                                                                                          exchange->getHostBuffer(),
                                                                                          this);
             }
             else
             {
-                copyEvent = Environment<DIM>::get().Factory().createTaskCopyDeviceToHost(exchange->getDeviceBuffer(),
+                copyEvent = Environment<>::get().Factory().createTaskCopyDeviceToHost(exchange->getDeviceBuffer(),
                                                                                          exchange->getHostBuffer(),
                                                                                          this);
             }
@@ -83,7 +83,7 @@ namespace PMacc
                 case DeviceToHostFinished:
                     state = SendDone;
                     __startTransaction();
-                    Environment<DIM>::get().Factory().createTaskSendMPI(exchange, this);
+                    Environment<>::get().Factory().createTaskSendMPI(exchange, this);
                     __endTransaction(); //we need no blocking because we get a singnal if transaction is finished
                     break;
                 case SendDone:
