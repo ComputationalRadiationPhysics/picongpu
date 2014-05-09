@@ -1,20 +1,20 @@
 /** Copyright 2013-2014 Axel Huebl
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "PhaseSpaceMulti.hpp"
@@ -48,9 +48,9 @@ namespace picongpu
             ((this->prefix + ".momentum").c_str(),
               po::value<std::vector<std::string> > (&this->element_momentum)->multitoken(), "momentum component (px, py, pz)")
             ((this->prefix + ".min").c_str(),
-              po::value<std::vector<float_X> > (&this->momentum_range_min)->multitoken(), "min range momentum [m_e c]")
+              po::value<std::vector<float_X> > (&this->momentum_range_min)->multitoken(), "min range momentum [m_species c]")
             ((this->prefix + ".max").c_str(),
-              po::value<std::vector<float_X> > (&this->momentum_range_max)->multitoken(), "max range momentum [m_e c]");
+              po::value<std::vector<float_X> > (&this->momentum_range_max)->multitoken(), "max range momentum [m_species c]");
     }
 
     template<class AssignmentFunction, class Species>
@@ -64,18 +64,19 @@ namespace picongpu
         this->children.reserve( this->numChildren );
         for(uint32_t i = 0; i < this->numChildren; i++)
         {
-            /* unit is m_e c - we use the typical weighting already since it
-             * scales linear in momentum and we avoid over- & under-flows
+            /* unit is m_species c - we use the typical weighting already since
+             * it scales linear in momentum and we avoid over- & under-flows
              * during momentum-binning while staying at a
              * "typical macro particle momentum scale"
              *
              * we correct that during the output of the pAxis range
              * (linearly shrinking the single particle scale again)
              */
-            float_X unit_pRange = float_X( double(NUM_EL_PER_PARTICLE) *
-                                           double(M_EL) * double(SPEED_OF_LIGHT) );
-            std::pair<float_X, float_X> new_p_range( this->momentum_range_min.at(i) * unit_pRange,
-                                                     this->momentum_range_max.at(i) * unit_pRange );
+            float_X pRangeMakro_unit = float_X( Species::FrameType::getMass(NUM_EL_PER_PARTICLE) *
+                                                SPEED_OF_LIGHT );
+            std::pair<float_X, float_X> new_p_range(
+                    this->momentum_range_min.at(i) * pRangeMakro_unit,
+                    this->momentum_range_max.at(i) * pRangeMakro_unit );
             /* String to Enum conversion */
             uint32_t el_space;
             if( this->element_space.at(i) == "x" )

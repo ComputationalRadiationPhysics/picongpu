@@ -53,10 +53,12 @@ namespace picongpu
          */
         template<typename T_Type, int T_bufDim>
         void operator()( const PMacc::container::HostBuffer<T_Type, T_bufDim>& hBuffer,
-                          const std::pair<uint32_t, uint32_t> axis_element,
-                          const double unit,
-                          const uint32_t currentStep,
-                          MPI_Comm& mpiComm ) const
+                         const std::pair<uint32_t, uint32_t> axis_element,
+                         const std::pair<float_X, float_X> axis_p_range,
+                         const float_64 pRange_unit,
+                         const float_64 unit,
+                         const uint32_t currentStep,
+                         MPI_Comm& mpiComm ) const
         {
             using namespace splash;
             typedef T_Type Type;
@@ -95,13 +97,18 @@ namespace picongpu
 
             /* globalDomain of the phase space */
             splash::Dimensions globalPhaseSpace_size( rSize, hBuffer.size().y(), 1 );
-            /* moving window meta information */
+
+            /* global moving window meta information */
             splash::Dimensions globalPhaseSpace_offset( 0, 0, 0 );
+            int movingWindowOffset = 0;
+            int movingWindowSize   = rSize;
             if( axis_element.first == 1 ) /* spatial axis == y */
             {
                 const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
-                globalPhaseSpace_offset.set( numSlides * simBox.getLocalSize( ).y(),
-                                             0, 0 );
+                globalPhaseSpace_offset.set( numSlides * simBox.getLocalSize( ).y(), 0, 0 );
+                Window window = MovingWindow::getInstance( ).getWindow( currentStep );
+                movingWindowOffset = window.globalDimensions.offset[axis_element.first];
+                movingWindowSize = window.globalDimensions.size[axis_element.first];
             }
 
             /* localDomain: offset of it in the globalDomain and size */
@@ -141,14 +148,39 @@ namespace picongpu
                              DomainCollector::GridType,
                              &(*hBuffer.origin()) );
 
-            ColTypeDouble ctDouble;
-            pdc.writeAttribute( currentStep, ctDouble, dataSetName.str().c_str(),
+            /** meta attributes for the data set: unit, range, moving window **/
+            typedef PICToSplash<float_X>::type  SplashFloatXType;
+            typedef PICToSplash<float_64>::type SplashFloat64Type;
+            ColTypeInt ctInt;
+            SplashFloat64Type ctFloat64;
+            SplashFloatXType  ctFloatX;
+
+            pdc.writeAttribute( currentStep, ctFloat64, dataSetName.str().c_str(),
                                 "sim_unit", &unit );
+            pdc.writeAttribute( currentStep, ctFloat64, dataSetName.str().c_str(),
+                                "p_unit", &pRange_unit );
+            pdc.writeAttribute( currentStep, ctFloatX, dataSetName.str().c_str(),
+                                "p_min", &(axis_p_range.first) );
+            pdc.writeAttribute( currentStep, ctFloatX, dataSetName.str().c_str(),
+                                "p_max", &(axis_p_range.second) );
+            pdc.writeAttribute( currentStep, ctInt, dataSetName.str().c_str(),
+                                "movingWindowOffset", &movingWindowOffset );
+            pdc.writeAttribute( currentStep, ctInt, dataSetName.str().c_str(),
+                                "movingWindowSize", &movingWindowSize );
+
+            pdc.writeAttribute( currentStep, ctFloatX, dataSetName.str().c_str(),
+                                "dr", &(cellSize[axis_element.first]) );
+            pdc.writeAttribute( currentStep, ctFloatX, dataSetName.str().c_str(),
+                                "dV", &CELL_VOLUME );
+            pdc.writeAttribute( currentStep, ctFloat64, dataSetName.str().c_str(),
+                                "dr_unit", &UNIT_LENGTH );
+            pdc.writeAttribute( currentStep, ctFloatX, dataSetName.str().c_str(),
+                                "dt", &DELTA_T );
+            pdc.writeAttribute( currentStep, ctFloat64, dataSetName.str().c_str(),
+                                "dt_unit", &UNIT_TIME );
 
             /** close file ****************************************************/
-#if (SPLASH_VERSION_MAJOR>1) || ((SPLASH_VERSION_MAJOR==1) && (SPLASH_VERSION_MINOR>=2))
             pdc.finalize();
-#endif
             pdc.close();
         }
     };

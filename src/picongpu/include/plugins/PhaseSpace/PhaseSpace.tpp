@@ -224,12 +224,24 @@ namespace picongpu
                                 _2 = _1);
 
         /* write to file */
-        const double UNIT_VOLUME = ( UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH );
-        const double unit = UNIT_CHARGE / UNIT_VOLUME;
+        const float_64 UNIT_VOLUME = math::pow( UNIT_LENGTH, (int)simDim );
+        const float_64 unit = UNIT_CHARGE / UNIT_VOLUME;
+
+        /* (momentum) p range: unit is m_species * c
+         *   During the kernels we calculate with a typical MAKRO momentum range
+         *   to avoid over- / underflows. Now for the dump the meta information
+         *   on the p-axis should be scaled to represent single/real particles.
+         *   \see PhaseSpaceMulti::pluginLoad( ) */
+        float_64 pRange_unit = float_64( Species::FrameType::getMass(1.0) ) *
+                               float_64( SPEED_OF_LIGHT ) *
+                               UNIT_MASS * UNIT_SPEED;
+
         DumpHBuffer dumpHBuffer;
 
         if( this->commFileWriter != MPI_COMM_NULL )
-            dumpHBuffer( hReducedBuffer_noGuard, this->axis_element, unit, currentStep, this->commFileWriter );
+            dumpHBuffer( hReducedBuffer_noGuard, this->axis_element,
+                         this->axis_p_range, pRange_unit,
+                         unit, currentStep, this->commFileWriter );
     }
 
     template<class AssignmentFunction, class Species>
