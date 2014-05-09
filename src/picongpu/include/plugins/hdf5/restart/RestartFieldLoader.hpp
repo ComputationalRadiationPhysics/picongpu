@@ -51,11 +51,11 @@ public:
             ParallelDomainCollector &domainCollector)
     {
         log<picLog::INPUT_OUTPUT > ("Begin loading field '%1%'") % objectName;
-        DataSpace<simDim> field_guard = field.getGridLayout().getGuard();
+        const DataSpace<simDim> field_guard = field.getGridLayout().getGuard();
 
         const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(restartStep);
         const Window window = MovingWindow::getInstance().getWindow(restartStep);
-        DomainInformation domInfo;
+        const DomainInformation domInfo;
 
         field.getHostBuffer().setValue(float3_X(0.));
 
@@ -77,31 +77,31 @@ public:
         if (Environment<simDim>::get().GridController().getPosition().y() == 0)
             domain_offset[1] += window.globalDimensions.offset.y();
 
-        DataSpace<simDim> localDomainSize = window.localDimensions.size;
-        Dimensions domain_size;
+        Dimensions local_domain_size;
         for (uint32_t d = 0; d < simDim; ++d)
-            domain_size[d] = localDomainSize[d];
+            local_domain_size[d] = window.localDimensions.size[d];
 
         PMACC_AUTO(destBox, field.getHostBuffer().getDataBox());
         for (uint32_t i = 0; i < simDim; ++i)
         {
             // Read the subdomain which belongs to our mpi position.
             // The total grid size must match the grid size of the stored data.
-            log<picLog::INPUT_OUTPUT > ("Read from domain: offset=%1% size=%2%") % domain_offset.toString() % domain_size.toString();
+            log<picLog::INPUT_OUTPUT > ("Read from domain: offset=%1% size=%2%") %
+                domain_offset.toString() % local_domain_size.toString();
             DomainCollector::DomDataClass data_class;
             DataContainer *field_container =
                 domainCollector.readDomain(restartStep,
                                            (std::string("fields/") + objectName +
                                             std::string("/") + name_lookup[i]).c_str(),
-                                           Domain(domain_offset, domain_size),
+                                           Domain(domain_offset, local_domain_size),
                                            &data_class);
 
-            int elementCount = localDomainSize.productOfComponents();
+            int elementCount = window.localDimensions.size.productOfComponents();
 
             for (int linearId = 0; linearId < elementCount; ++linearId)
             {
                 /* calculate index inside the moving window domain which is located on the local grid*/
-                DataSpace<simDim> destIdx = DataSpaceOperations<simDim>::map(localDomainSize, linearId);
+                DataSpace<simDim> destIdx = DataSpaceOperations<simDim>::map(window.localDimensions.size, linearId);
                 /* jump over guard and local sliding window offset*/
                 destIdx += field_guard + window.localDimensions.offset;
 
@@ -115,7 +115,8 @@ public:
 
         __getTransactionEvent().waitForFinished();
 
-        log<picLog::INPUT_OUTPUT > ("Read from domain: offset=%1% size=%2%") % domain_offset.toString() % domain_size.toString();
+        log<picLog::INPUT_OUTPUT > ("Read from domain: offset=%1% size=%2%") %
+            domain_offset.toString() % local_domain_size.toString();
         log<picLog::INPUT_OUTPUT > ("Finished loading field '%1%'") % objectName;
     }
 

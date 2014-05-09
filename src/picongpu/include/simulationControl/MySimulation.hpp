@@ -186,9 +186,7 @@ public:
         
         Environment<simDim>::get().initGrids(global_grid_size, gridSizeLocal, gridOffset);
 
-        MovingWindow::getInstance().setGlobalSimSize(global_grid_size);
         MovingWindow::getInstance().setSlidingWindow(slidingWindow);
-        MovingWindow::getInstance().setGpuCount(gpus);
 
         log<picLog::DOMAINS > ("rank %1%; localsize %2%; localoffset %3%;") %
             myGPUpos.toString() % gridSizeLocal.toString() % gridOffset.toString();

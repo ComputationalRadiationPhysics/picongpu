@@ -71,7 +71,7 @@ private:
 
 public:
 
-    HDINLINE void operator()(RefWrapper<ThreadParams*> params, const SelectionInformation selectionInfo)
+    HDINLINE void operator()(RefWrapper<ThreadParams*> params)
     {
 #ifndef __CUDA_ARCH__
         DataConnector &dc = Environment<>::get().DataConnector();
@@ -80,7 +80,6 @@ public:
         params.get()->gridLayout = field->getGridLayout();
 
         Field::writeField(params.get(),
-                          selectionInfo,
                           T::getName(),
                           getUnit(),
                           field->getHostDataBox(),
@@ -114,9 +113,9 @@ public:
      * call virtual functions.
      */
     PMACC_NO_NVCC_HDWARNING
-    HDINLINE void operator()(RefWrapper<ThreadParams*> tparam, const SelectionInformation selectionInfo)
+    HDINLINE void operator()(RefWrapper<ThreadParams*> tparam)
     {
-        this->operator_impl(tparam, selectionInfo);
+        this->operator_impl(tparam);
     }
 
 private:
@@ -142,7 +141,7 @@ private:
         return CreateUnit::createUnit(unit, components);
     }
 
-    HINLINE void operator_impl(RefWrapper<ThreadParams*> params, const SelectionInformation selectionInfo)
+    HINLINE void operator_impl(RefWrapper<ThreadParams*> params)
     {
         DataConnector &dc = Environment<>::get().DataConnector();
 
@@ -168,7 +167,6 @@ private:
         params.get()->gridLayout = fieldTmp->getGridLayout();
         /*write data to HDF5 file*/
         Field::writeField(params.get(),
-                          selectionInfo,
                           getName(),
                           getUnit(),
                           fieldTmp->getHostDataBox(),

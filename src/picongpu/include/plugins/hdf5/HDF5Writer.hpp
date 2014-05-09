@@ -199,7 +199,7 @@ public:
 
         /* load all particles */
         ForEach<FileCheckpointParticles, LoadParticles<bmpl::_1> > forEachLoadSpecies;
-        forEachLoadSpecies(ref(params), gridPosition);
+        forEachLoadSpecies(ref(params));
 
         /* close datacollector */
         log<picLog::INPUT_OUTPUT > ("HDF5 close DataCollector with file: %1%") % restartFilename;
@@ -255,13 +255,19 @@ private:
 
     }
 
+    /**
+     * Notification for dump or checkpoint received
+     *
+     * @param currentStep current simulation step
+     * @param isCheckpoint checkpoint notification
+     */
     void notificationReceived(uint32_t currentStep, bool isCheckpoint)
     {
+        DomainInformation domInfo;
         mThreadParams.isCheckpoint = isCheckpoint;
-        mThreadParams.currentStep = (int32_t) currentStep;
+        mThreadParams.currentStep = currentStep;
         mThreadParams.gridPosition = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
         mThreadParams.cellDescription = this->cellDescription;
-        mThreadParams.window = MovingWindow::getInstance().getWindow(currentStep);
 
         __getTransactionEvent().waitForFinished();
 
@@ -275,6 +281,22 @@ private:
             } else
             {
                 fname = checkpointFilename;
+            }
+
+            mThreadParams.window = MovingWindow::getInstance().getDomainWindow(currentStep);
+        } else
+        {
+            mThreadParams.window = MovingWindow::getInstance().getWindow(currentStep);
+        }
+
+        for (uint32_t i = 0; i < simDim; ++i)
+        {
+            mThreadParams.localWindowToDomainOffset[i] = 0;
+            if (mThreadParams.window.globalDimensions.offset[i] > domInfo[i].globalDomain.offset[i])
+            {
+                mThreadParams.localWindowToDomainOffset[i] =
+                        mThreadParams.window.globalDimensions.offset[i] -
+                        domInfo[i].globalDomain.offset[i];
             }
         }
 
@@ -374,10 +396,6 @@ private:
 
         writeMetaAttributes(threadParams);
 
-        /* get clean domain info (picongpu view) */
-        SelectionInformation selectionInfo =
-                MovingWindow::getInstance().getActiveSelection(threadParams->currentStep);
-
         /* y direction can be negative for first gpu*/
         DataSpace<simDim> particleOffset(threadParams->gridPosition);
         particleOffset.y() -= threadParams->window.globalDimensions.offset.y();
@@ -387,11 +405,11 @@ private:
         if (threadParams->isCheckpoint)
         {
             ForEach<FileCheckpointFields, WriteFields<bmpl::_1> > forEachWriteFields;
-            forEachWriteFields(ref(threadParams), selectionInfo);
+            forEachWriteFields(ref(threadParams));
         } else
         {
             ForEach<FileOutputFields, WriteFields<bmpl::_1> > forEachWriteFields;
-            forEachWriteFields(ref(threadParams), selectionInfo);
+            forEachWriteFields(ref(threadParams));
         }
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing fields.");
 
@@ -400,37 +418,14 @@ private:
         if (threadParams->isCheckpoint)
         {
             ForEach<FileCheckpointParticles, WriteSpecies<bmpl::_1> > writeSpecies;
-            writeSpecies(ref(threadParams), std::string(), selectionInfo, particleOffset);
+            writeSpecies(ref(threadParams), std::string(), particleOffset);
         } else
         {
             ForEach<FileOutputParticles, WriteSpecies<bmpl::_1> > writeSpecies;
-            writeSpecies(ref(threadParams), std::string(), selectionInfo, particleOffset);
+            writeSpecies(ref(threadParams), std::string(), particleOffset);
         }
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species.");
 
-
-        if (threadParams->isCheckpoint && MovingWindow::getInstance().isSlidingWindowActive())
-        {
-            SelectionInformation selectionInfoGhosts =
-                    MovingWindow::getInstance().getGhostSelection(threadParams->currentStep);
-
-            particleOffset = threadParams->gridPosition;
-            particleOffset.y() = -threadParams->window.localDimensions.size.y();
-
-            /* for checkpoints we only need bottom ghosts for particles */
-            /* print all particle species */
-            log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing particle species bottom.");
-            if (threadParams->isCheckpoint)
-            {
-                ForEach<FileCheckpointParticles, WriteSpecies<bmpl::_1>  > writeSpecies;
-                writeSpecies(ref(threadParams), std::string("_ghosts"), selectionInfoGhosts, particleOffset);
-            } else
-            {
-                ForEach<FileOutputParticles, WriteSpecies<bmpl::_1> > writeSpecies;
-                writeSpecies(ref(threadParams), std::string("_ghosts"), selectionInfoGhosts, particleOffset);
-            }
-            log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species bottom.");
-        }
         return NULL;
     }
 

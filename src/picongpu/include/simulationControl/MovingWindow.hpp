@@ -25,12 +25,16 @@
 
 #include "simulationControl/DomainInformation.hpp"
 #include "simulationControl/Window.hpp"
-#include "simulationControl/SelectionInformation.hpp"
+#include "Window.hpp"
 
 namespace picongpu
 {
 using namespace PMacc;
 
+/**
+ * Singleton class managing the moving window, slides.
+ * Can be used to create window views on the grid.
+ */
 class MovingWindow
 {
 private:
@@ -41,25 +45,26 @@ private:
     }
 
     MovingWindow(MovingWindow& cc);
-    
+
     void getCurrentSlideInfo(uint32_t currentStep, bool *doSlide, double *offsetFirstGPU) const
     {
         if (doSlide)
             *doSlide = false;
-        
+
         if (offsetFirstGPU)
             *offsetFirstGPU = 0.0;
-        
-        DomainInformation domInfo;
-        const uint32_t windowGlobalDimY = simSize.y() - domInfo.localDomain.size.y() * slidingWindowActive;
-        
-        const uint32_t devices = gpu.y();
+
+        const DomainInformation domInfo;
+        const uint32_t windowGlobalDimY =
+            domInfo.globalDomain.size.y() - domInfo.localDomain.size.y() * slidingWindowActive;
+
+        const uint32_t devices_y = Environment<simDim>::get().GridController().getGpuNodes().y();
         const double cell_height = (double) CELL_HEIGHT;
         const double light_way_per_step = ((double) SPEED_OF_LIGHT * (double) DELTA_T);
         double stepsInFuture_tmp = (windowGlobalDimY * cell_height / light_way_per_step) * (1.0 - slide_point);
         uint32_t stepsInFuture = ceil(stepsInFuture_tmp);
         /* later used to calculate smoother offsets */
-        double stepsInFutureAfterComma = stepsInFuture_tmp - (double) stepsInFuture; 
+        double stepsInFutureAfterComma = stepsInFuture_tmp - (double) stepsInFuture;
 
         /* round to nearest step so we get smaller sliding dfference
          * this is valid if we activate sliding window because y direction has
@@ -67,8 +72,8 @@ private:
          */
         const uint32_t stepsPerGPU = (uint32_t) math::floor(
             (double) (domInfo.localDomain.size.y() * cell_height) / light_way_per_step + 0.5);
-        const uint32_t firstSlideStep = stepsPerGPU * devices - stepsInFuture;
-        const uint32_t firstMoveStep = stepsPerGPU * (devices - 1) - stepsInFuture;
+        const uint32_t firstSlideStep = stepsPerGPU * devices_y - stepsInFuture;
+        const uint32_t firstMoveStep = stepsPerGPU * (devices_y - 1) - stepsInFuture;
 
         if (firstMoveStep <= currentStep)
         {
@@ -89,33 +94,18 @@ private:
         }
     }
 
-
-    DataSpace<simDim> simSize;
-    DataSpace<simDim> gpu;
+    /** true is sliding window is activated */
     bool slidingWindowActive;
+    
+    /** current number of slides since start of simulation */
     uint32_t slideCounter;
+    
+    /**
+     * last simulation step with slide
+     * used to prevent multiple slides per simulation step
+     */
     uint32_t lastSlideStep;
 public:
-
-    /**
-     * Set the global simulation size (in cells)
-     *
-     * @param size global simulation size
-     */
-    void setGlobalSimSize(const DataSpace<simDim> size)
-    {
-        simSize = size;
-    }
-
-    /**
-     * Set the number of GPUs in each dimension
-     *
-     * @param count number of simulating GPUs
-     */
-    void setGpuCount(const DataSpace<simDim> count)
-    {
-        gpu = count;
-    }
 
     /**
      * Enable or disable sliding window
@@ -137,7 +127,14 @@ public:
         slideCounter = slides;
         lastSlideStep = slides;
     }
-    
+
+    /**
+     * Return the number of slides since start of simulation.
+     * If slide occurs in \p currentStep, it is included in the result.
+     * 
+     * @param currentStep current simulation step
+     * @return number of slides
+     */
     uint32_t getSlideCounter(uint32_t currentStep)
     {
         bool doSlide = false;
@@ -148,7 +145,7 @@ public:
             slideCounter++;
             lastSlideStep = currentStep;
         }
-        
+
         return slideCounter;
     }
 
@@ -161,20 +158,26 @@ public:
     {
         return slidingWindowActive;
     }
-    
+
+    /**
+     * Return if a slide occurs in the current simulation step.
+     * 
+     * @param currentStep current simulation step
+     * @return true if slide in current step, false otherwise
+     */
     bool slideInCurrentStep(uint32_t currentStep) const
     {
         bool doSlide = false;
-        
+
         if (slidingWindowActive)
         {
             getCurrentSlideInfo(currentStep, &doSlide, NULL);
         }
-        
+
         return doSlide;
     }
-    
-    /** 
+
+    /**
      * Return true if this is a 'bottom' GPU (y position is y_size - 1), false otherwise
      * only set if sliding window is active
      */
@@ -196,7 +199,7 @@ public:
     }
 
     /**
-     * Create a window which describes local and global offsets
+     * Return a window which describes local and global offsets
      * and sizes of the moving window.
      *
      * @param currentStep current simulation step
@@ -208,8 +211,7 @@ public:
         Window window;
 
         window.localDimensions = Selection<simDim>(domInfo.localDomain.size);
-
-        window.globalDimensions = Selection<simDim>(simSize);
+        window.globalDimensions = Selection<simDim>(domInfo.globalDomain.size);
         window.globalDimensions.size.y() -= domInfo.localDomain.size.y() * slidingWindowActive;
 
         if (slidingWindowActive)
@@ -241,68 +243,20 @@ public:
     }
 
     /**
-     * Return selection information for the currently active simulation grid
-     *
-     * @param currentStep current simulation timestep
-     * @return current domain and window sizes and offsets and active selection
-     */
-    SelectionInformation getActiveSelection(uint32_t currentStep)
-    {
-        SelectionInformation sInfo;
-
-        /* gather all required information */
-        sInfo.movingWindow = getWindow(currentStep);
-
-        sInfo.selectionOffset = sInfo.movingWindow.localDimensions.offset;
-
-        sInfo.globalSelection = sInfo.movingWindow.globalDimensions;
-        sInfo.localSelection.size = sInfo.movingWindow.localDimensions.size;
-        sInfo.localSelection.offset = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
-
-        /* change only the offset of the first gpu
-         * localDomainOffset is only non zero for the gpus on top
-         */
-        sInfo.localSelection.offset += sInfo.selectionOffset;
-
-        return sInfo;
-    }
-
-    /**
-     * Return selection information for the current ghost part of the simulation grid
+     * Return a window which describes the complete simulation domain.
      *
      * @param currentStep current simulation step
-     * @return current domain and window sizes and offsets and ghost selection
+     * @return window over global/local domain
      */
-    SelectionInformation getGhostSelection(uint32_t currentStep)
+    Window getDomainWindow(uint32_t currentStep) const
     {
-        SelectionInformation sInfo = getActiveSelection(currentStep);
+        DomainInformation domInfo;
+        Window window;
 
-        sInfo.globalSelection.offset.y() += sInfo.globalSelection.size.y();
-        sInfo.localSelection.offset.y() = sInfo.globalSelection.offset.y();
-        sInfo.localSelection.size = sInfo.domains.localDomain.size;
-        sInfo.localSelection.size.y() -= sInfo.movingWindow.localDimensions.size.y();
-        sInfo.globalSelection.size = simSize;
-        sInfo.globalSelection.size.y() -= sInfo.globalSelection.offset.y();
-        sInfo.selectionOffset = DataSpace<simDim > ();
+        window.localDimensions = domInfo.localDomain;
+        window.globalDimensions = domInfo.globalDomain;
 
-        /* only important for bottom gpus */
-        sInfo.selectionOffset.y() = sInfo.movingWindow.localDimensions.size.y();
-
-        bool isBottomGpu = false;
-        
-        if (slidingWindowActive)
-        {
-            const Mask comm_mask = Environment<simDim>::get().GridController().getCommunicationMask();
-            isBottomGpu = !comm_mask.isSet(BOTTOM);
-        }
-        
-        if (isBottomGpu == false)
-        {
-            /* set size for all gpu to zero which are not bottom gpus */
-            sInfo.localSelection.size.y() = 0;
-        }
-
-        return sInfo;
+        return window;
     }
 
 };

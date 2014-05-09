@@ -344,7 +344,7 @@ struct LoadParticles
 {
 public:
 
-    HDINLINE void operator()(RefWrapper<ThreadParams*> params, const DataSpace<simDim> gridPosition)
+    HDINLINE void operator()(RefWrapper<ThreadParams*> params)
     {
 #ifndef __CUDA_ARCH__
         DataConnector &dc = Environment<>::get().DataConnector();
@@ -355,15 +355,7 @@ public:
 
         /* setup domain information for HDF5 file access */
         const Window window = MovingWindow::getInstance().getWindow(tp->currentStep);
-        DomainInformation domInfo;
-        DataSpace<simDim> globalDomainOffset(gridPosition);
-        DataSpace<simDim> logicalToPhysicalOffset(gridPosition - window.globalDimensions.offset);
-
-        /* domains are always positive */
-        if (globalDomainOffset.y() == 0)
-            globalDomainOffset.y() = window.globalDimensions.offset.y();
-
-        DataSpace<simDim> localDomainSize(window.localDimensions.size);
+        DataSpace<simDim> localWindowGlobalDomainOffset(window.globalDimensions.offset + window.localDimensions.offset);
 
         /* load particle data */
         RestartParticleLoader<ParticleType>::loadParticles(
@@ -371,32 +363,9 @@ public:
                 *(tp->dataCollector),
                 std::string("particles/") + ParticleType::FrameType::getName(),
                 *particles,
-                globalDomainOffset,
-                localDomainSize,
-                logicalToPhysicalOffset);
-
-        /* load ghost data if moving window is activated */
-        if (MovingWindow::getInstance().isSlidingWindowActive())
-        {
-            globalDomainOffset = gridPosition;
-            globalDomainOffset.y() += window.localDimensions.size.y();
-
-            localDomainSize = domInfo.localDomain.size;
-            localDomainSize.y() -= window.localDimensions.size.y();
-
-            DataSpace<simDim> particleOffset = gridPosition;
-            particleOffset.y() = -window.localDimensions.size.y();
-
-            RestartParticleLoader<ParticleType>::loadParticles(
-                    tp->currentStep,
-                    *(tp->dataCollector),
-                    std::string("particles/") + ParticleType::FrameType::getName() +
-                    std::string("/_ghosts"),
-                    *particles,
-                    globalDomainOffset,
-                    localDomainSize,
-                    particleOffset);
-        }
+                localWindowGlobalDomainOffset,
+                window.localDimensions.size,
+                window.localDimensions.offset);
 
         dc.releaseData(ParticleType::FrameType::getName());
 #endif
