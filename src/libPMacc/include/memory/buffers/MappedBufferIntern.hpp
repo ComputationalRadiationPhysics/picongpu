@@ -93,7 +93,7 @@ public:
     {
         __startAtomicTransaction(__getTransactionEvent());
         assert(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
-        Environment<DIM>::get().Factory().createTaskCopyHostToDevice(other, *this);
+        Environment<>::get().Factory().createTaskCopyHostToDevice(other, *this);
         __setTransactionEvent(__endTransaction());
     }
 
@@ -101,7 +101,7 @@ public:
     {
         __startAtomicTransaction(__getTransactionEvent());
         assert(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
-        Environment<DIM>::get().Factory().createTaskCopyDeviceToDevice(other, *this);
+        Environment<>::get().Factory().createTaskCopyDeviceToDevice(other, *this);
         __setTransactionEvent(__endTransaction());
     }
 
