@@ -126,8 +126,6 @@ namespace picongpu
             /** write local domain ********************************************/
             typename PICToSplash<Type>::type ctPhaseSpace;
 
-            std::cout << "ps dump my start: " << rOffset << std::endl;
-
             pdc.writeDomain( currentStep,
                              /* global domain and my local offset within it */
                              globalPhaseSpace_size,
