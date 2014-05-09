@@ -108,17 +108,15 @@ if(VAMPIR_ENABLE)
     # compile flags
     execute_process(COMMAND $ENV{VT_ROOT}/bin/vtc++ -vt:hyb -vt:showme-compile
                     OUTPUT_VARIABLE VT_COMPILEFLAGS
-                    RESULT_VARIABLE VT_CONFIG_RETURN)
+                    RESULT_VARIABLE VT_CONFIG_RETURN
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
     if(NOT VT_CONFIG_RETURN EQUAL 0)
         message(FATAL_ERROR "Can NOT execute 'vtc++' at $ENV{VT_ROOT}/bin/vtc++ - check file permissions")
-    else()
-        # trim trailing newlines
-        string(REGEX REPLACE "(\r?\n)+$" "" VT_COMPILEFLAGS "${VT_COMPILEFLAGS}")
     endif()
     # link flags
     execute_process(COMMAND $ENV{VT_ROOT}/bin/vtc++ -vt:hyb -vt:showme-link
-                    OUTPUT_VARIABLE VT_LINKFLAGS)
-    string(REGEX REPLACE "(\r?\n)+$" "" VT_LINKFLAGS "${VT_LINKFLAGS}")
+                    OUTPUT_VARIABLE VT_LINKFLAGS
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
 
     # bugfix showme
     string(REPLACE "--as-needed" "--no-as-needed" VT_LINKFLAGS "${VT_LINKFLAGS}")
@@ -160,22 +158,25 @@ if(SCOREP_ENABLE)
     # compile flags
     execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --nocompiler --cflags
                     OUTPUT_VARIABLE SCOREP_COMPILEFLAGS
-                    RESULT_VARIABLE SCOREP_CONFIG_RETURN)
+                    RESULT_VARIABLE SCOREP_CONFIG_RETURN
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
     if(NOT SCOREP_CONFIG_RETURN EQUAL 0)
         message(FATAL_ERROR "Can NOT execute 'scorep-config' at $ENV{SCOREP_ROOT}/bin/scorep-config - check file permissions")
     endif()
 
     # link flags
     execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --cuda --mpp=mpi --ldflags
-                    OUTPUT_VARIABLE SCOREP_LINKFLAGS)
+                    OUTPUT_VARIABLE SCOREP_LINKFLAGS
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
     # libraries
     execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --cuda --mpp=mpi --libs
-                    OUTPUT_VARIABLE SCOREP_LIBFLAGS)
-    string(STRIP "${SCOREP_LIBFLAGS}" SCOREP_LIBFLAGS)
+                    OUTPUT_VARIABLE SCOREP_LIBFLAGS
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
 
     # subsystem iniialization file
     execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --cuda --mpp=mpi --adapter-init
-                    OUTPUT_VARIABLE SCOREP_INIT_FILE)
+                    OUTPUT_VARIABLE SCOREP_INIT_FILE
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
     file(WRITE ${CMAKE_BINARY_DIR}/scorep_init.c "${SCOREP_INIT_FILE}")
 
     if(SCOREP_ENABLE)
