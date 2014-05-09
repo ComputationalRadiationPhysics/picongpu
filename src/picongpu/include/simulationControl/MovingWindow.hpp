@@ -199,8 +199,7 @@ public:
     }
 
     /**
-     * Return a window which describes local and global offsets
-     * and sizes of the moving window.
+     * Return a window which describes the global and local moving window
      *
      * @param currentStep current simulation step
      * @return moving window
@@ -243,7 +242,7 @@ public:
     }
 
     /**
-     * Return a window which describes the complete simulation domain.
+     * Return a window which describes the global and local domain
      *
      * @param currentStep current simulation step
      * @return window over global/local domain

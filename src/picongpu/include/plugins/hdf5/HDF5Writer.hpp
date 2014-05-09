@@ -292,11 +292,11 @@ private:
         for (uint32_t i = 0; i < simDim; ++i)
         {
             mThreadParams.localWindowToDomainOffset[i] = 0;
-            if (mThreadParams.window.globalDimensions.offset[i] > domInfo[i].globalDomain.offset[i])
+            if (mThreadParams.window.globalDimensions.offset[i] > domInfo.globalDomain.offset[i])
             {
                 mThreadParams.localWindowToDomainOffset[i] =
                         mThreadParams.window.globalDimensions.offset[i] -
-                        domInfo[i].globalDomain.offset[i];
+                        domInfo.globalDomain.offset[i];
             }
         }
 

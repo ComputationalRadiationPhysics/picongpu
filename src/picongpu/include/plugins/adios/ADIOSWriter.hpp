@@ -298,7 +298,7 @@ private:
 
             // adios buffer size for this dataset (all components)
             uint64_t localGroupSize =
-                    params.get().window.localDimensions.size.productOfComponents() *
+                    params.get()->window.localDimensions.size.productOfComponents() *
                     sizeof(ComponentType) *
                     components;
 
@@ -393,6 +393,7 @@ public:
 
     __host__ void notify(uint32_t currentStep)
     {
+        DomainInformation domInfo;
         mThreadParams.currentStep = (int32_t) currentStep;
         mThreadParams.gridPosition = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
         mThreadParams.cellDescription = this->cellDescription;
@@ -413,11 +414,11 @@ public:
         for (uint32_t i = 0; i < simDim; ++i)
         {
             mThreadParams.localWindowToDomainOffset[i] = 0;
-            if (mThreadParams.window.globalDimensions.offset[i] > domInfo[i].globalDomain.offset[i])
+            if (mThreadParams.window.globalDimensions.offset[i] > domInfo.globalDomain.offset[i])
             {
                 mThreadParams.localWindowToDomainOffset[i] =
                         mThreadParams.window.globalDimensions.offset[i] -
-                        domInfo[i].globalDomain.offset[i];
+                        domInfo.globalDomain.offset[i];
             }
         }
 
