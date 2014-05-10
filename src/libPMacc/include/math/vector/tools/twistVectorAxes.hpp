@@ -34,22 +34,22 @@ namespace tools
 namespace result_of
 {
     
-template<typename Axes,
+template<typename T_Axes,
 typename T_Vector>
 struct TwistVectorAxes
 {
-    typedef typename TwistVectorAxes<Axes,typename T_Vector::This>::type type;
+    typedef typename TwistVectorAxes<T_Axes,typename T_Vector::This>::type type;
     };
 
-template<typename Axes,
+template<typename T_Axes,
 typename T_Type, int T_Dim,
 typename T_Accessor,
 typename T_Navigator,
 template <typename, int> class T_Storage>
-struct TwistVectorAxes<Axes,math::Vector<T_Type,T_Dim,T_Accessor,T_Navigator,T_Storage> >
+struct TwistVectorAxes<T_Axes,math::Vector<T_Type,T_Dim,T_Accessor,T_Navigator,T_Storage> >
 {
     typedef math::Vector<T_Type, T_Dim, T_Accessor,
-            math::StackedNavigator<T_Navigator, math::PermutedNavigator<Axes> >,T_Storage >& type;
+            math::StackedNavigator<T_Navigator, math::PermutedNavigator<T_Axes> >,T_Storage >& type;
 };
     
 } // result_of
