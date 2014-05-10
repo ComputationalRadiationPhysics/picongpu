@@ -61,19 +61,20 @@ struct TwistVectorAxes<Axes,math::Vector<T_Type,T_Dim,T_Accessor,T_Navigator,T_S
  * a new navigator which merely consists of the old navigator plus a twisting navigator.
  * This new navigator does not use any real memory.
  * 
- * \tparam Axes Mapped indices
+ * \tparam T_Axes Mapped indices
+ * \tparam T_Vector type of vector to be twisted
  * \param vector vector to be twisted
  * \return reference of the input vector with twisted axes.
  */
-template<typename Axes, typename TVector>
+template<typename T_Axes, typename T_Vector>
 HDINLINE
-typename result_of::TwistVectorAxes<Axes, TVector>::type
-twistVectorAxes(TVector& vector)
+typename result_of::TwistVectorAxes<T_Axes, T_Vector>::type
+twistVectorAxes(T_Vector& vector)
 {
     /* The reinterpret_cast is valid because the target type is the same as the
      * input type except its navigator policy which does not occupy any memory though.
      */
-    return reinterpret_cast<typename result_of::TwistVectorAxes<Axes, TVector>::type>(vector);
+    return reinterpret_cast<typename result_of::TwistVectorAxes<T_Axes, T_Vector>::type>(vector);
 }
     
 } // tools
