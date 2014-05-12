@@ -13,16 +13,7 @@ Requirements
       `--slave /usr/bin/g++ g++ /usr/bin/g++-4.4`
   - *Arch Linux:*
     - `sudo pacman --sync base-devel`
-    - in case the installed version of **gcc** is too new for the current CUDA
-      version, you can compile an older version:  
-      `mkdir $HOME/gcc46_build/`  
-      `wget https://aur.archlinux.org/packages/gc/gcc46/PKGBUILD`  
-      `makepkg --syncdeps`  
-      `sudo pacman --upgrade gcc-4.6.4.pkg.tar.xz`  
-      if you did this, keep in mind to use the custom gcc for compiling (e.g.
-      by setting the appropriate environment variables:  
-      `export CXX=/usr/bin/g++-4.6` and `export CC=/usr/bin/gcc-4.6`) and read
-      the [Installation Notes](INSTALL.md#installation-notes) carefully.
+    - the installed version of **gcc** might be too new. [Compile an older gcc](https://gist.github.com/slizzered/a9dc4e13cb1c7fffec53)
   - *experimental alternatives:* **icc 12.1** with **cuda 5.5**
 
 - [CUDA 5.0](https://developer.nvidia.com/cuda-downloads) or higher
