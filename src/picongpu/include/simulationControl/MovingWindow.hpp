@@ -247,7 +247,7 @@ public:
      * @param currentStep current simulation step
      * @return window over global/local domain
      */
-    Window getDomainWindow(uint32_t currentStep) const
+    Window getDomainAsWindow(uint32_t currentStep) const
     {
         DomainInformation domInfo;
         Window window;

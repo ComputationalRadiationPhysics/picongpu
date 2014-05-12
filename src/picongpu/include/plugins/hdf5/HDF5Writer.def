@@ -61,8 +61,6 @@ struct ThreadParams
     /** description of the grid/field layout, including guards etc. */
     GridLayout<simDim> gridLayout;
 
-    DataSpace<simDim> gridPosition;
-
     /** cell description */
     MappingDesc *cellDescription;
 

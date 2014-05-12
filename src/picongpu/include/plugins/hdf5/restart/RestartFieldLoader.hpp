@@ -47,14 +47,13 @@ class RestartFieldLoader
 {
 public:
     template<class Data>
-    static void loadField(Data& field, std::string objectName, uint32_t restartStep,
-            ParallelDomainCollector &domainCollector)
+    static void loadField(Data& field, std::string objectName, ThreadParams *params)
     {
         log<picLog::INPUT_OUTPUT > ("Begin loading field '%1%'") % objectName;
         const DataSpace<simDim> field_guard = field.getGridLayout().getGuard();
 
-        const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(restartStep);
-        const Window window = MovingWindow::getInstance().getWindow(restartStep);
+        const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(params->currentStep);
+        std::cout << "num slides = " << numSlides << std::endl;
         const DomainInformation domInfo;
 
         field.getHostBuffer().setValue(float3_X(0.));
@@ -68,18 +67,18 @@ public:
         DataSpace<simDim> globalSlideOffset;
         globalSlideOffset.y() = numSlides * domInfo.localDomain.size.y();
 
-        DataSpace<simDim> globalOffset(Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset());
-
         Dimensions domain_offset(0, 0, 0);
         for (uint32_t d = 0; d < simDim; ++d)
-            domain_offset[d] = globalOffset[d] + globalSlideOffset[d];
+            domain_offset[d] = domInfo.localDomain.offset[d] + globalSlideOffset[d];
 
         if (Environment<simDim>::get().GridController().getPosition().y() == 0)
-            domain_offset[1] += window.globalDimensions.offset.y();
-
+            domain_offset[1] += params->window.globalDimensions.offset.y();
+        
         Dimensions local_domain_size;
         for (uint32_t d = 0; d < simDim; ++d)
-            local_domain_size[d] = window.localDimensions.size[d];
+            local_domain_size[d] = params->window.localDimensions.size[d];
+        
+        std::cout << "window localDims = " << params->window.localDimensions.toString() << std::endl;
 
         PMACC_AUTO(destBox, field.getHostBuffer().getDataBox());
         for (uint32_t i = 0; i < simDim; ++i)
@@ -90,20 +89,20 @@ public:
                 domain_offset.toString() % local_domain_size.toString();
             DomainCollector::DomDataClass data_class;
             DataContainer *field_container =
-                domainCollector.readDomain(restartStep,
+                params->dataCollector->readDomain(params->currentStep,
                                            (std::string("fields/") + objectName +
                                             std::string("/") + name_lookup[i]).c_str(),
                                            Domain(domain_offset, local_domain_size),
                                            &data_class);
 
-            int elementCount = window.localDimensions.size.productOfComponents();
+            int elementCount = params->window.localDimensions.size.productOfComponents();
 
             for (int linearId = 0; linearId < elementCount; ++linearId)
             {
                 /* calculate index inside the moving window domain which is located on the local grid*/
-                DataSpace<simDim> destIdx = DataSpaceOperations<simDim>::map(window.localDimensions.size, linearId);
+                DataSpace<simDim> destIdx = DataSpaceOperations<simDim>::map(params->window.localDimensions.size, linearId);
                 /* jump over guard and local sliding window offset*/
-                destIdx += field_guard + window.localDimensions.offset;
+                destIdx += field_guard + params->window.localDimensions.offset;
 
                 destBox(destIdx)[i] = ((float_X*) (field_container->getIndex(0)->getData()))[linearId];
             }
@@ -166,8 +165,7 @@ public:
         RestartFieldLoader::loadField(
                 field->getGridBuffer(),
                 FieldType::getName(),
-                tp->currentStep,
-                *(tp->dataCollector));
+                tp);
 
         dc.releaseData(FieldType::getName());
 #endif

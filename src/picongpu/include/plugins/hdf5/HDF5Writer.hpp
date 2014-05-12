@@ -187,16 +187,12 @@ public:
         MovingWindow::getInstance().setSlideCounter(slides);
         gc.setNumSlides(slides);
         
-        /* set window for restart, local complete global domain */
-        mThreadParams.window = MovingWindow::getInstance().getDomainWindow(restartStep);
+        /* set window for restart, complete global domain */
+        mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(restartStep);
         for (uint32_t i = 0; i < simDim; ++i)
         {
             mThreadParams.localWindowToDomainOffset[i] = 0;
         }
-
-        DataSpace<simDim> gridPosition =
-                Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
-        log<picLog::INPUT_OUTPUT > ("Grid position is %1%") % gridPosition.toString();
 
         ThreadParams *params = &mThreadParams;
 
@@ -273,7 +269,6 @@ private:
         DomainInformation domInfo;
         mThreadParams.isCheckpoint = isCheckpoint;
         mThreadParams.currentStep = currentStep;
-        mThreadParams.gridPosition = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
         mThreadParams.cellDescription = this->cellDescription;
 
         __getTransactionEvent().waitForFinished();
@@ -290,7 +285,7 @@ private:
                 fname = checkpointFilename;
             }
 
-            mThreadParams.window = MovingWindow::getInstance().getDomainWindow(currentStep);
+            mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(currentStep);
         } else
         {
             mThreadParams.window = MovingWindow::getInstance().getWindow(currentStep);
@@ -316,9 +311,6 @@ private:
 
     void pluginLoad()
     {
-        mThreadParams.gridPosition =
-            Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
-
         GridController<simDim> &gc = Environment<simDim>::get().GridController();
         /* It is important that we never change the mpi_pos after this point
          * because we get problems with the restart.
@@ -391,6 +383,10 @@ private:
         dc->writeAttribute(currentStep, ctDouble, NULL, "unit_length", &UNIT_LENGTH);
         dc->writeAttribute(currentStep, ctDouble, NULL, "unit_speed", &UNIT_SPEED);
         dc->writeAttribute(currentStep, ctDouble, NULL, "unit_time", &UNIT_TIME);
+        dc->writeAttribute(currentStep, ctDouble, NULL, "unit_mass", &UNIT_MASS);
+        dc->writeAttribute(currentStep, ctDouble, NULL, "unit_charge", &UNIT_CHARGE);
+        dc->writeAttribute(currentStep, ctDouble, NULL, "unit_efield", &UNIT_EFIELD);
+        dc->writeAttribute(currentStep, ctDouble, NULL, "unit_bfield", &UNIT_BFIELD);
 
         /* write physical constants */
         dc->writeAttribute(currentStep, splashFloatXType, NULL, "mue0", &MUE0);
@@ -400,12 +396,16 @@ private:
     static void *writeHDF5(void *p_args)
     {
         ThreadParams *threadParams = (ThreadParams*) (p_args);
+        DomainInformation domInfo;
 
         writeMetaAttributes(threadParams);
 
         /* y direction can be negative for first gpu*/
-        DataSpace<simDim> particleOffset(threadParams->gridPosition);
+        DataSpace<simDim> particleOffset(domInfo.localDomain.offset);
         particleOffset.y() -= threadParams->window.globalDimensions.offset.y();
+        
+        std::cout << "window globalDim " << threadParams->window.globalDimensions.toString() << std::endl;
+        std::cout << "particleOffset " << particleOffset.toString() << std::endl;
 
         /* write all fields */
         log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing fields.");

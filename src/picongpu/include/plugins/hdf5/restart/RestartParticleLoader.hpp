@@ -80,19 +80,22 @@ private:
     }
 
 public:
-
-    static void loadParticles(uint32_t restartStep,
-                              ParallelDomainCollector& dataCollector,
+    
+    static void loadParticles(ThreadParams *params,
                               std::string subGroup,
-                              BufferType& particles,
-                              DataSpace<simDim> globalDomainOffset,
-                              DataSpace<simDim> localDomainSize,
-                              DataSpace<simDim> logicalToPhysicalOffset
+                              BufferType& particles
                               )
     {
         log<picLog::INPUT_OUTPUT > ("Begin loading species '%1%'") % subGroup;
 
         GridController<simDim> &gc = Environment<simDim>::get().GridController();
+        
+        const DomainInformation domInfo;
+        const DataSpace<simDim> logicalToPhysicalOffset(
+            domInfo.localDomain.offset - params->window.globalDimensions.offset);
+        
+        std::cout << "window globalDim " << params->window.globalDimensions.toString() << std::endl;
+        std::cout << "particleOffset " << logicalToPhysicalOffset.toString() << std::endl;
 
         // first, load all data arrays from hdf5 file
         CollectionType *ctFloat;
@@ -126,8 +129,10 @@ public:
         uint64Quint particlesInfo[gc.getGlobalSize()];
         Dimensions particlesInfoSizeRead;
 
-        dataCollector.read(restartStep, (std::string(subGroup) + std::string("/particles_info")).c_str(),
-                           particlesInfoSizeRead, particlesInfo);
+        params->dataCollector->read(params->currentStep, 
+                                    (std::string(subGroup) + std::string("/particles_info")).c_str(),
+                                    particlesInfoSizeRead,
+                                    particlesInfo);
 
         assert(particlesInfoSizeRead[0] == gc.getGlobalSize());
 
@@ -157,14 +162,14 @@ public:
         CollectionType *ctBool = new ColTypeBool();
         typedef bool* ptrBool;
         ptrBool radiationFlag = NULL;
-        loadParticleData<bool> (&radiationFlag, restartStep, dataCollector,
+        loadParticleData<bool> (&radiationFlag, params->currentStep, *(params->dataCollector),
                                 dim_radiationFlag, *ctBool, subGroup + std::string("_radiationFlag"),
                                 particleCount, particleOffset);
 #endif
 #endif
 
 
-        loadParticleData<float> (&weighting, restartStep, dataCollector,
+        loadParticleData<float> (&weighting, params->currentStep, *(params->dataCollector),
                                  dim_weighting, *ctFloat, subGroup + std::string("/weighting"),
                                  particleCount, particleOffset);
 
@@ -180,30 +185,29 @@ public:
 #endif
 
             // read relative positions for particles in cells
-            loadParticleData<float> (&(relativePositions[i]), restartStep, dataCollector,
+            loadParticleData<float> (&(relativePositions[i]), params->currentStep, *(params->dataCollector),
                                      dim_pos, *ctFloat, subGroup + std::string("/position/") + name_lookup[i],
                                      particleCount, particleOffset);
 
             // read simulation relative cell positions
-            loadParticleData<int > (&(cellPositions[i]), restartStep, dataCollector,
+            loadParticleData<int > (&(cellPositions[i]), params->currentStep, *(params->dataCollector),
                                     dim_cell, *ctInt, subGroup + std::string("/globalCellIdx/") + name_lookup[i],
                                     particleCount, particleOffset);
 
             // update simulation relative cell positions from file to
             // gpu-relative positions for new configuration
-            //if (gridPosition[i] > 0)
             for (uint32_t elem = 0; elem < dim_cell.getScalarSize(); ++elem)
                 cellPositions[i][elem] -= logicalToPhysicalOffset[i];
 
 
             // read momentum of particles
-            loadParticleData<float> (&(momentums[i]), restartStep, dataCollector,
+            loadParticleData<float> (&(momentums[i]), params->currentStep, *(params->dataCollector),
                                      dim_mom, *ctFloat, subGroup + std::string("/momentum/") + name_lookup[i],
                                      particleCount, particleOffset);
 
 #if(ENABLE_RADIATION == 1)
             // read old momentum of particles
-            loadParticleData<float> (&(momentums_mt1[i]), restartStep, dataCollector,
+            loadParticleData<float> (&(momentums_mt1[i]), params->currentStep, *(params->dataCollector),
                                      dim_mom_mt1, *ctFloat, subGroup + std::string("/momentumPrev1/") + name_lookup[i],
                                      particleCount, particleOffset);
 #endif
@@ -248,7 +252,8 @@ public:
             DataSpace<simDim> superCellPos = (cellPosOnGPU / superCellSize);
 
             // get gpu-global super cell offset in cells
-            DataSpace<simDim> superCellOffset = superCellPos * superCellSize; //without guarding (need to calculate cell in supercell)
+            //without guarding (need to calculate cell in supercell)
+            DataSpace<simDim> superCellOffset = superCellPos * superCellSize;
             // cell position in super cell
             DataSpace<simDim> cellPosInSuperCell = cellPosOnGPU - superCellOffset;
 
@@ -351,21 +356,14 @@ public:
         ThreadParams *tp = params.get();
 
         /* load species without copying data to host */
-        ParticleType* particles = &(dc.getData<ParticleType >(ParticleType::FrameType::getName(), true));
-
-        /* setup domain information for HDF5 file access */
-        const Window window = MovingWindow::getInstance().getWindow(tp->currentStep);
-        DataSpace<simDim> localWindowGlobalDomainOffset(window.globalDimensions.offset + window.localDimensions.offset);
+        ParticleType* particles = &(dc.getData<ParticleType >(
+                ParticleType::FrameType::getName(), true));
 
         /* load particle data */
         RestartParticleLoader<ParticleType>::loadParticles(
-                tp->currentStep,
-                *(tp->dataCollector),
+                tp,
                 std::string("particles/") + ParticleType::FrameType::getName(),
-                *particles,
-                localWindowGlobalDomainOffset,
-                window.localDimensions.size,
-                window.localDimensions.offset);
+                *particles);
 
         dc.releaseData(ParticleType::FrameType::getName());
 #endif

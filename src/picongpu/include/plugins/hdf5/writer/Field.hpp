@@ -83,12 +83,12 @@ struct Field
 
         for (uint32_t d = 0; d < simDim; ++d)
         {
-            splashGlobalOffsetFile[d] = params->window.localDimensions.offset[d];
+            splashGlobalOffsetFile[d] = domInfo.localDomain.offset[d];
             splashGlobalDomainOffset[d] = params->window.globalDimensions.offset[d] + globalSlideOffset[d];
             splashGlobalDomainSize[d] = params->window.globalDimensions.size[d];
         }
 
-        splashGlobalOffsetFile[1] = std::max(0, params->window.localDimensions.offset[1] -
+        splashGlobalOffsetFile[1] = std::max(0, domInfo.localDomain.offset[1] -
                                              params->window.globalDimensions.offset[1]);
 
         SplashType splashType;
