@@ -186,6 +186,13 @@ public:
         log<picLog::INPUT_OUTPUT > ("Setting slide count for moving window to %1%") % slides;
         MovingWindow::getInstance().setSlideCounter(slides);
         gc.setNumSlides(slides);
+        
+        /* set window for restart, local complete global domain */
+        mThreadParams.window = MovingWindow::getInstance().getDomainWindow(restartStep);
+        for (uint32_t i = 0; i < simDim; ++i)
+        {
+            mThreadParams.localWindowToDomainOffset[i] = 0;
+        }
 
         DataSpace<simDim> gridPosition =
                 Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
