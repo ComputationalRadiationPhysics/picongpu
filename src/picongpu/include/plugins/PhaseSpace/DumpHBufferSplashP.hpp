@@ -27,6 +27,7 @@
 #include "communication/manager_common.h"
 #include "mappings/simulation/GridController.hpp"
 #include "mappings/simulation/SubGrid.hpp"
+#include "simulationControl/DomainInformation.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
 #include "math/vector/Int.hpp"
@@ -35,6 +36,7 @@
 #include <fstream>
 #include <sstream>
 #include <utility>
+#include <cassert>
 
 namespace picongpu
 {
@@ -90,30 +92,32 @@ namespace picongpu
 
             pdc.open( filename.str().c_str(), fAttr );
 
-            /** calculate global size of the phase space **********************/
-            PMACC_AUTO( simBox, Environment<simDim>::get().SubGrid().getSimulationBox( ) );
-            const size_t rOffset = simBox.getGlobalOffset()[axis_element.first];
-            const size_t rSize = simBox.getGlobalSize()[axis_element.first];
+            /** calculate local and global size of the phase space ***********/
+            const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
+            const DomainInformation domInfo;
+            const int rLocalOffset = domInfo.localDomain.offset[axis_element.first];
+            const int rLocalSize = domInfo.localDomain.size[axis_element.first];
+            assert( (int)hBuffer.size().x() == rLocalSize );
 
             /* globalDomain of the phase space */
-            splash::Dimensions globalPhaseSpace_size( rSize, hBuffer.size().y(), 1 );
+            splash::Dimensions globalPhaseSpace_size( domInfo.globalDomain.size[axis_element.first],
+                                                      hBuffer.size().y(), 1 );
 
             /* global moving window meta information */
             splash::Dimensions globalPhaseSpace_offset( 0, 0, 0 );
-            int movingWindowOffset = 0;
-            int movingWindowSize   = rSize;
+            int globalMovingWindowOffset = 0;
+            int globalMovingWindowSize   = domInfo.globalDomain.size[axis_element.first];
             if( axis_element.first == 1 ) /* spatial axis == y */
             {
-                const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
-                globalPhaseSpace_offset.set( numSlides * simBox.getLocalSize( ).y(), 0, 0 );
+                globalPhaseSpace_offset.set( numSlides * domInfo.localDomain.size.y(), 0, 0 );
                 Window window = MovingWindow::getInstance( ).getWindow( currentStep );
-                movingWindowOffset = window.globalDimensions.offset[axis_element.first];
-                movingWindowSize = window.globalDimensions.size[axis_element.first];
+                globalMovingWindowOffset = window.globalDimensions.offset[axis_element.first];
+                globalMovingWindowSize = window.globalDimensions.size[axis_element.first];
             }
 
             /* localDomain: offset of it in the globalDomain and size */
-            splash::Dimensions localPhaseSpace_offset( rOffset, 0, 0 );
-            splash::Dimensions localPhaseSpace_size( hBuffer.size().x(),
+            splash::Dimensions localPhaseSpace_offset( rLocalOffset, 0, 0 );
+            splash::Dimensions localPhaseSpace_size( rLocalSize,
                                                      hBuffer.size().y(),
                                                      1 );
 
@@ -162,9 +166,9 @@ namespace picongpu
             pdc.writeAttribute( currentStep, ctFloatX, dataSetName.str().c_str(),
                                 "p_max", &(axis_p_range.second) );
             pdc.writeAttribute( currentStep, ctInt, dataSetName.str().c_str(),
-                                "movingWindowOffset", &movingWindowOffset );
+                                "movingWindowOffset", &globalMovingWindowOffset );
             pdc.writeAttribute( currentStep, ctInt, dataSetName.str().c_str(),
-                                "movingWindowSize", &movingWindowSize );
+                                "movingWindowSize", &globalMovingWindowSize );
 
             pdc.writeAttribute( currentStep, ctFloatX, dataSetName.str().c_str(),
                                 "dr", &(cellSize[axis_element.first]) );
