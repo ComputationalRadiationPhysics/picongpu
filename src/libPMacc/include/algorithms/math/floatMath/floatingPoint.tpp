@@ -48,9 +48,13 @@ struct Float2int_rd<float>
 {
     typedef float result;
 
-    DINLINE result operator( )(result value)
+    HDINLINE result operator( )(result value)
     {
+#if __CUDA_ARCH__
         return ::__float2int_rd( value );
+#else
+        return static_cast<int>(floor(value));
+#endif
     }
 };
 
