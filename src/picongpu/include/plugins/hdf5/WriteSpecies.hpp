@@ -138,7 +138,8 @@ public:
             MyParticleFilter filter;
             /* activate filter pipeline if moving window is activated */
             filter.setStatus(MovingWindow::getInstance().isSlidingWindowActive());
-            filter.setWindowPosition(params.get()->localWindowToDomainOffset, params.get()->window.localDimensions.size);
+            filter.setWindowPosition(params.get()->localWindowToDomainOffset,
+                                     params.get()->window.localDimensions.size);
 
             dim3 block(TILE_SIZE);
 

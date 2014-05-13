@@ -93,9 +93,6 @@ public:
         const DomainInformation domInfo;
         const DataSpace<simDim> logicalToPhysicalOffset(
             domInfo.localDomain.offset - params->window.globalDimensions.offset);
-        
-        std::cout << "window globalDim " << params->window.globalDimensions.toString() << std::endl;
-        std::cout << "particleOffset " << logicalToPhysicalOffset.toString() << std::endl;
 
         // first, load all data arrays from hdf5 file
         CollectionType *ctFloat;

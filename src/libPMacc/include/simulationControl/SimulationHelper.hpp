@@ -174,16 +174,11 @@ public:
         TimeIntervall tRound;
         double roundAvg = 0.0;
 
-        /* dump initial step if simulation starts without restart */
-        if (currentStep != 0)
-            currentStep--;
-        
-        dumpOneStep(currentStep);
-            
-        //if (currentStep == 0)
-            //dumpOneStep(currentStep);
-        //else
-          //  currentStep--; //we dump before calculation, thus we must go on step back if we do a restart
+        /* dump initial step if simulation starts without restart */            
+        if (currentStep == 0)
+            dumpOneStep(currentStep);
+        else
+            currentStep--; //we dump before calculation, thus we must go on step back if we do a restart
 
         movingWindowCheck(currentStep); //if we restart at any step check if we must slide
 

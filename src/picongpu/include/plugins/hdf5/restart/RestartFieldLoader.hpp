@@ -53,7 +53,6 @@ public:
         const DataSpace<simDim> field_guard = field.getGridLayout().getGuard();
 
         const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(params->currentStep);
-        std::cout << "num slides = " << numSlides << std::endl;
         const DomainInformation domInfo;
 
         field.getHostBuffer().setValue(float3_X(0.));
@@ -77,8 +76,6 @@ public:
         Dimensions local_domain_size;
         for (uint32_t d = 0; d < simDim; ++d)
             local_domain_size[d] = params->window.localDimensions.size[d];
-        
-        std::cout << "window localDims = " << params->window.localDimensions.toString() << std::endl;
 
         PMACC_AUTO(destBox, field.getHostBuffer().getDataBox());
         for (uint32_t i = 0; i < simDim; ++i)
@@ -102,7 +99,7 @@ public:
                 /* calculate index inside the moving window domain which is located on the local grid*/
                 DataSpace<simDim> destIdx = DataSpaceOperations<simDim>::map(params->window.localDimensions.size, linearId);
                 /* jump over guard and local sliding window offset*/
-                destIdx += field_guard + params->window.localDimensions.offset;
+                destIdx += field_guard + params->localWindowToDomainOffset;
 
                 destBox(destIdx)[i] = ((float_X*) (field_container->getIndex(0)->getData()))[linearId];
             }

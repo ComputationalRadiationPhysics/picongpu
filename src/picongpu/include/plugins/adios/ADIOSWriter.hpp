@@ -362,7 +362,7 @@ public:
 
     ADIOSWriter() :
     filename("simDataAdios"),
-    notifyFrequency(0)
+    notifyPeriod(0)
     {
         Environment<>::get().PluginConnector().registerPlugin(this);
     }
@@ -375,7 +375,7 @@ public:
     void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
-            ("adios.period", po::value<uint32_t > (&notifyFrequency)->default_value(0),
+            ("adios.period", po::value<uint32_t > (&notifyPeriod)->default_value(0),
              "enable ADIOS IO [for each n-th step]")
             ("adios.file", po::value<std::string > (&filename)->default_value(filename),
              "ADIOS output file");
@@ -393,9 +393,8 @@ public:
 
     __host__ void notify(uint32_t currentStep)
     {
-        DomainInformation domInfo;
+        const DomainInformation domInfo;
         mThreadParams.currentStep = (int32_t) currentStep;
-        mThreadParams.gridPosition = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
         mThreadParams.cellDescription = this->cellDescription;
         this->filter.setStatus(false);
 
@@ -414,11 +413,11 @@ public:
         for (uint32_t i = 0; i < simDim; ++i)
         {
             mThreadParams.localWindowToDomainOffset[i] = 0;
-            if (mThreadParams.window.globalDimensions.offset[i] > domInfo.globalDomain.offset[i])
+            if (mThreadParams.window.globalDimensions.offset[i] > domInfo.localDomain.offset[i])
             {
                 mThreadParams.localWindowToDomainOffset[i] =
                         mThreadParams.window.globalDimensions.offset[i] -
-                        domInfo.globalDomain.offset[i];
+                        domInfo.localDomain.offset[i];
             }
         }
 
@@ -462,10 +461,8 @@ private:
 
     void pluginLoad()
     {
-        if (notifyFrequency > 0)
+        if (notifyPeriod > 0)
         {
-            mThreadParams.gridPosition = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
-
             GridController<simDim> &gc = Environment<simDim>::get().GridController();
             /* It is important that we never change the mpi_pos after this point
              * because we get problems with the restart.
@@ -475,7 +472,7 @@ private:
             mpi_pos = gc.getPosition();
             mpi_size = gc.getGpuNodes();
 
-            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
 
             /* Initialize adios library */
             mThreadParams.adiosComm = MPI_COMM_NULL;
@@ -488,7 +485,7 @@ private:
 
     void pluginUnload()
     {
-        if (notifyFrequency > 0)
+        if (notifyPeriod > 0)
         {
             if (mThreadParams.adiosComm != MPI_COMM_NULL)
             {
@@ -582,13 +579,14 @@ private:
         // synchronize, because following operations will be blocking anyway
         ThreadParams *threadParams = (ThreadParams*) (p_args);
 
+        const DomainInformation domInfo;
         MovingWindow &movingWindow = MovingWindow::getInstance();
 
         /* write number of slides to timestep in adios file */
         uint32_t slides = movingWindow.getSlideCounter(threadParams->currentStep);
 
         /* y direction can be negative for first gpu */
-        DataSpace<simDim> particleOffset(threadParams->gridPosition);
+        DataSpace<simDim> particleOffset(domInfo.localDomain.offset);
         particleOffset.y() -= threadParams->window.globalDimensions.offset.y();
 
         /* create adios group for fields without statistics */
@@ -699,7 +697,7 @@ private:
 
     MappingDesc *cellDescription;
 
-    uint32_t notifyFrequency;
+    uint32_t notifyPeriod;
     std::string filename;
 
     DataSpace<simDim> mpi_pos;

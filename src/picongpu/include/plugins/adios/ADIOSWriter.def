@@ -90,7 +90,6 @@ struct ThreadParams
     std::list<int64_t> adiosSpeciesIndexVarIds; /* var IDs for species index tables in order of appearance */
     
     GridLayout<simDim> gridLayout;
-    DataSpace<simDim> gridPosition;
     MappingDesc *cellDescription;
     
     float *fieldBfr;                        /* temp. buffer for fields */

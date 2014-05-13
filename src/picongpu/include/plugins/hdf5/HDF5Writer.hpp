@@ -294,11 +294,11 @@ private:
         for (uint32_t i = 0; i < simDim; ++i)
         {
             mThreadParams.localWindowToDomainOffset[i] = 0;
-            if (mThreadParams.window.globalDimensions.offset[i] > domInfo.globalDomain.offset[i])
+            if (mThreadParams.window.globalDimensions.offset[i] > domInfo.localDomain.offset[i])
             {
                 mThreadParams.localWindowToDomainOffset[i] =
                         mThreadParams.window.globalDimensions.offset[i] -
-                        domInfo.globalDomain.offset[i];
+                        domInfo.localDomain.offset[i];
             }
         }
 
@@ -403,9 +403,6 @@ private:
         /* y direction can be negative for first gpu*/
         DataSpace<simDim> particleOffset(domInfo.localDomain.offset);
         particleOffset.y() -= threadParams->window.globalDimensions.offset.y();
-        
-        std::cout << "window globalDim " << threadParams->window.globalDimensions.toString() << std::endl;
-        std::cout << "particleOffset " << particleOffset.toString() << std::endl;
 
         /* write all fields */
         log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing fields.");
