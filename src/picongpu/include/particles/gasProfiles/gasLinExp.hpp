@@ -25,14 +25,14 @@
 #include "types.h"
 #include "simulation_defines.hpp"
 #include "memory/buffers/GridBuffer.hpp"
-#include "simulationControl/VirtualWindow.hpp"
+#include "simulationControl/Window.hpp"
 
 namespace picongpu
 {
     namespace gasLinExp
     {
         template<class Type>
-        bool gasSetup( GridBuffer<Type, simDim>&, VirtualWindow& )
+        bool gasSetup( GridBuffer<Type, simDim>&, Window& )
         {
             return true;
         }

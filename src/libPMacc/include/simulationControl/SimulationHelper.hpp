@@ -174,7 +174,7 @@ public:
         TimeIntervall tRound;
         double roundAvg = 0.0;
 
-        /* dump initial step if simulation starts without restart */
+        /* dump initial step if simulation starts without restart */            
         if (currentStep == 0)
             dumpOneStep(currentStep);
         else

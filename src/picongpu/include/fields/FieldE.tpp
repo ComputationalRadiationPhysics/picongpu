@@ -136,7 +136,7 @@ GridLayout< simDim> FieldE::getGridLayout( )
 
 void FieldE::laserManipulation( uint32_t currentStep )
 {
-    VirtualWindow win=MovingWindow::getInstance().getVirtualWindow(currentStep);
+    const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
 
     /* Disable laser if
      * - init time of laser is over or
@@ -144,7 +144,7 @@ void FieldE::laserManipulation( uint32_t currentStep )
      * - we already performed a slide
      */
     if ( ( currentStep * DELTA_T ) >= laserProfile::INIT_TIME ||
-         Environment<simDim>::get().GridController().getCommunicationMask( ).isSet( TOP ) || win.slides != 0 ) return;
+         Environment<simDim>::get().GridController().getCommunicationMask( ).isSet( TOP ) || numSlides != 0 ) return;
 
     DataSpace<simDim-1> gridBlocks;
     DataSpace<simDim-1> blockSize;

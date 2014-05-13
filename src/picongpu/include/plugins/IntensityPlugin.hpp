@@ -223,7 +223,7 @@ private:
     {
 
         const DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
-        VirtualWindow window(MovingWindow::getInstance().getVirtualWindow( currentStep));
+        Window window(MovingWindow::getInstance().getWindow( currentStep));
 
         PMACC_AUTO(simBox,Environment<simDim>::get().SubGrid().getSimulationBox());
 
@@ -267,7 +267,8 @@ private:
                 }
             }
 
-            size_t physicelYCellOffset = window.slides * yLocalSize + window.globalDimensions.offset.y();
+            const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
+            size_t physicelYCellOffset = numSlides * yLocalSize + window.globalDimensions.offset.y();
             writeFile(currentStep,
                       maxAll + window.globalDimensions.offset.y(),
                       window.globalDimensions.size.y(),

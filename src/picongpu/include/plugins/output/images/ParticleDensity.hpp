@@ -212,7 +212,7 @@ public:
     void notify(uint32_t currentStep)
     {
         const DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
-        VirtualWindow window(MovingWindow::getInstance().getVirtualWindow(currentStep));
+        Window window(MovingWindow::getInstance().getWindow(currentStep));
 
         /*sliceOffset is only used in 3D*/
         sliceOffset = (int) ((float) (window.globalDimensions.size[sliceDim]) * slicePoint) + 
@@ -240,7 +240,7 @@ public:
         this->cellDescription = cellDescription;
     }
 
-    void createImage(uint32_t currentStep, VirtualWindow window)
+    void createImage(uint32_t currentStep, Window window)
     {
         DataConnector &dc = Environment<>::get().DataConnector();
         ParticlesType* particles = &(dc.getData<ParticlesType > (particleTag, true));
@@ -302,7 +302,7 @@ public:
         {
             const DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
 
-            VirtualWindow window(MovingWindow::getInstance().getVirtualWindow(0));
+            Window window(MovingWindow::getInstance().getWindow(0));
             sliceOffset = (int) ((float) (window.globalDimensions.size[sliceDim]) * slicePoint) + 
                     window.globalDimensions.offset[sliceDim];
             const DataSpace<simDim> gpus = Environment<simDim>::get().GridController().getGpuNodes();

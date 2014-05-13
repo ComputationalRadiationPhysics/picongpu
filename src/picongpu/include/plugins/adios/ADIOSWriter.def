@@ -71,7 +71,7 @@ namespace po = boost::program_options;
 
 struct ThreadParams
 {
-    uint32_t currentStep;
+    uint32_t currentStep;                   /** current simulation step */
     std::string fullFilename;
 
     MPI_Comm adiosComm;                     /* MPI communicator for adios lib */
@@ -90,21 +90,18 @@ struct ThreadParams
     std::list<int64_t> adiosSpeciesIndexVarIds; /* var IDs for species index tables in order of appearance */
     
     GridLayout<simDim> gridLayout;
-    DataSpace<simDim> gridPosition;
     MappingDesc *cellDescription;
     
     float *fieldBfr;                        /* temp. buffer for fields */
 
-    VirtualWindow window;
+    Window window;                          /** window describing the volume to be dumped */
+    
+    DataSpace<simDim> localWindowToDomainOffset;    /** offset from local moving window to local domain */
 };
 
 /**
  * Writes simulation data to adios files.
- * Implements the ISimulationPlugin interface.
- *
- * @param ElectronsBuffer class description for electrons
- * @param IonsBuffer class description for ions
- * @param simDim dimension of the simulation (2-3)
+ * Implements the ILightweightPlugin interface.
  */
 
 class ADIOSWriter;

@@ -62,7 +62,6 @@ struct ParticleAttribute
                             const RefWrapper<ThreadParams*> params,
                             const RefWrapper<FrameType> frame,
                             const std::string subGroup,
-                            const DomainInformation domInfo,
                             const size_t elements)
     {
 
@@ -70,8 +69,9 @@ struct ParticleAttribute
         typedef typename Identifier::type ValueType;
         const uint32_t components = GetNComponents<ValueType>::value;
         typedef typename GetComponentsType<ValueType>::type ComponentType;
-
         typedef typename PICToSplash<ComponentType>::type SplashType;
+        
+        const ThreadParams *threadParams = params.get();
 
         log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) write species attribute: %1%") % Identifier::getName();
 
@@ -85,7 +85,9 @@ struct ParticleAttribute
          * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
          */
         DataSpace<simDim> globalSlideOffset;
-        globalSlideOffset.y()+=params.get()->window.slides * params.get()->window.localDomainSize.y();
+        const DomainInformation domInfo;
+        const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(threadParams->currentStep);
+        globalSlideOffset.y() += numSlides * domInfo.localDomain.size.y();
 
         Dimensions splashDomainOffset(0, 0, 0);
         Dimensions splashGlobalDomainOffset(0, 0, 0);
@@ -95,10 +97,10 @@ struct ParticleAttribute
 
         for (uint32_t d = 0; d < simDim; ++d)
         {
-            splashDomainOffset[d] = domInfo.domainOffset[d] + globalSlideOffset[d];
-            splashGlobalDomainOffset[d] = domInfo.globalDomainOffset[d] + globalSlideOffset[d];
-            splashGlobalDomainSize[d] = domInfo.globalDomainSize[d];
-            splashDomainSize[d] = domInfo.domainSize[d];
+            splashDomainOffset[d] = threadParams->window.localDimensions.offset[d] + globalSlideOffset[d];
+            splashGlobalDomainOffset[d] = threadParams->window.globalDimensions.offset[d] + globalSlideOffset[d];
+            splashGlobalDomainSize[d] = threadParams->window.globalDimensions.size[d];
+            splashDomainSize[d] = threadParams->window.localDimensions.size[d];
         }
 
         typedef typename GetComponentsType<ValueType>::type ComponentValueType;
@@ -118,7 +120,7 @@ struct ParticleAttribute
                 tmpArray[i] = ((ComponentValueType*)dataPtr)[i * components + d];
             }
   
-            params.get()->dataCollector->writeDomain(params.get()->currentStep, 
+            threadParams->dataCollector->writeDomain(threadParams->currentStep, 
                                                      splashType, 
                                                      1u, 
                                                      splash::Selection(Dimensions(elements, 1, 1)),
@@ -136,7 +138,7 @@ struct ParticleAttribute
 
             ColTypeDouble ctDouble;
             if (unit.size() >= (d + 1))
-                params.get()->dataCollector->writeAttribute(params.get()->currentStep,
+                threadParams->dataCollector->writeAttribute(threadParams->currentStep,
                                                             ctDouble, datasetName.str().c_str(),
                                                             "sim_unit", &(unit.at(d)));
 

@@ -29,7 +29,8 @@ using namespace PMacc;
 
 /**
  * Any DIM-dimensional selection of a simulation volume with a size and offset.
- * Can represent actual simulation data (domains) or overlays (windows).
+ * 
+ * @tparam DIM number of dimensions
  */
 template <unsigned DIM>
 class Selection
@@ -89,6 +90,11 @@ public:
         
     }
     
+    /**
+     * Return a string representation
+     * 
+     * @return string representation
+     */
     HINLINE const std::string toString(void) const
     {
         std::stringstream str;
