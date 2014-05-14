@@ -312,7 +312,7 @@ struct shrinkTo<T_Vec, DIM1>
  * @tparam T_Vec math::CT::Vector which should be changed
  * @tparam T_ComponentPos number of component to changed (type must be bmpl::integral_c<uint32_t,X>)
  * @tparam T_Value new value
- * @treturn ::type
+ * @tparam[out] ::type
  */
 template<typename T_Vec, typename T_ComponentPos, typename T_Value>
 struct Assign;

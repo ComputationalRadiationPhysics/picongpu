@@ -42,12 +42,12 @@ namespace PMacc
 {
 namespace bmpl = boost::mpl;
 
-/** Assign to any element in a vector with CT::Vector(s) a type to a given
- *  component number
+/** Assign to each element in a sequence of CT::Vector(s) a type at a given
+ *  component position
  *
  * @tparam T_InVector sequence with CT::Vector
- * @tparam T_ComponentPos number of component to changed (type must be bmpl::integral_c<uint32_t,X>)
- * @tparam T_Element value (type) which should be replace component at position T_Component
+ * @tparam T_ComponentPos position of the component to be changed (type must be bmpl::integral_c<uint32_t,X>)
+ * @tparam T_Element value (type) which should replace the component at position T_Component
  *                   in the CT::Vector elements
  */
 template<typename T_InVector,
@@ -67,9 +67,13 @@ struct AssignToAnyElementInVector
 
 namespace detail
 {
-/** Create tupel out of N-dimensional sequences
+/** Create tuples out of the elements of N sequences
  *
- * @tparam T_MplSeq N-dimensional sequence with input values
+ * Combines all elements of N given sequences in T_MplSeq into N-tuples.
+ * If the number of elements in each sequence is S0, S1, ... S(N-1)
+ * than the resulting sequence will contain S0 * S1 * ... S(N-1) tuples.
+ *
+ * @tparam T_MplSeq sequence of input sequences
  * @tparam T_TmpResult temporary result
  * @tparam T_isEmpty true if T_MplSeq is empty else false
  */
@@ -92,8 +96,8 @@ struct AllCombinations<T_MplSeq, T_TmpResult, false >
     typedef typename MakeSeq<LastElement>::type LastElementAsSequence;
     typedef typename bmpl::pop_back<MplSeq>::type ShrinkedRangeVector;
 
-    /* copy last given sequence to a mpl::vector to be shure that we can call later on
-     * mpl::transform also if input sequence is mpl::range_c
+    /* copy last given sequence to a mpl::vector to be sure that we can later on
+     * call mpl::transform even if the input sequence is mpl::range_c
      */
     typedef typename bmpl::copy<LastElementAsSequence, bmpl::back_inserter< bmpl::vector0<> > >::type TmpVector;
 
@@ -118,17 +122,21 @@ struct AllCombinations<T_MplSeq, T_TmpResult, true >
 } //detail
 
 
-
-/** Create tupel out of N-dimensional sequences
+/** Create tuples out of the elements of N sequences
  *
- * @tparam T_MplSeq - N-dimensional sequence with input values
- *                    or single type (e.g. bmpl::integral_c<uint32_t,5>)
- *                    (if T_MplSeq is onyl one type it is transformed to a sequence)
+ * Combines all elements of N given sequences in T_MplSeq into N-tuples.
+ * If the number of elements in each sequence is S0, S1, ... S(N-1)
+ * than the resulting sequence will contain S0 * S1 * ... S(N-1) tuples.
+ *
+ * @tparam T_MplSeq N-dimensional sequence with input values
+ *                  or single type (e.g. bmpl::integral_c<uint32_t,5>)
+ *                  (if T_MplSeq is only one type it will be transformed to a sequence)
+ * @tparam[out] ::type MplSequence of N-tuples
  *
  * example:
  *
  * sequence  == [ ]
- * tupel     == ( )
+ * tuple     == ( )
  *
  * T_MplSeq = [[1,2],[1],[4,3]]
  * combined to
@@ -146,8 +154,9 @@ struct AllCombinations
     typedef typename MakeSeq<LastElement>::type LastElementAsSequence;
 
     typedef typename bmpl::pop_back<MplSeq>::type ShrinkedRangeVector;
-    /* copy last given sequence to a mpl::vector to be shure that we can call later on
-     * mpl::transform also if input sequence is mpl::range_c */
+    /* copy last given sequence to a mpl::vector to be sure that we can later on
+     * call mpl::transform even if the input sequence is mpl::range_c
+     */
     typedef typename bmpl::copy<LastElementAsSequence, bmpl::back_inserter< bmpl::vector0<> > >::type TmpVector;
 
 
@@ -159,7 +168,7 @@ struct AllCombinations
     PMacc::math::CT::Assign<EmptyVector, bmpl::integral_c<uint32_t, rangeVectorSize - 1 >, bmpl::_1>
     >::type FirstList;
 
-    /* */
+    /* result type: MplSequence of N-tuples */
     typedef typename detail::AllCombinations<ShrinkedRangeVector, FirstList>::type type;
 };
 

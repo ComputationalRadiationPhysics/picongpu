@@ -33,11 +33,11 @@
 namespace picongpu
 {
 
-/** calculate offset to move coordinate system in a easy to use system
+/** calculate offset to move coordinate system in an easy to use system
  *
- * There are to cases:
+ * There are two cases:
  *  - system with even shape and odd shape
- *  - for more see documentation of the implementaion
+ *  - for more see documentation of the implementation
  */
 template<bool T_isEvenShape>
 struct GetOffsetToStaticShapeSystem;
@@ -69,7 +69,7 @@ struct AssignToDim
     }
 };
 
-/** shift to new coordinat system
+/** shift to new coordinate system
  *
  * @tparam T_supports CT::Vector with support
  */
@@ -77,16 +77,16 @@ template<typename T_supports>
 struct ShiftCoordinateSystem
 {
 
-    /** shift to new coordinat system
+    /** shift to new coordinate system
      *
      * shift cursor and vector to new coordinate system
-     * @param [in,out] curser curser to memory
-     * @param [in,out] vector short vector with coordinates in old system
+     * @param[in,out] cursor cursor to memory
+     * @param[in,out] vector short vector with coordinates in old system
      *                        - defined for [0.0;1.0) per dimension
      * @param fieldPos vector with relative coordinates for shift ( value range [0.0;0.5] )
      *
      * After this coordinate shift vector has well defined ranges per dimension,
-     * with any defined fieldPos:
+     * for each defined fieldPos:
      *
      * - Even Support: vector is always [0.0;1.0)
      * - Odd Support: vector is always [-0.5;0.5)
@@ -94,6 +94,9 @@ struct ShiftCoordinateSystem
     template<typename T_Cursor, typename T_Vector, typename T_FieldType >
     HDINLINE void operator()(T_Cursor& cursor, T_Vector& vector, const T_FieldType & fieldPos)
     {
+        /** \todo check if a static assert on
+         *  "T_Cursor::dim" == T_Vector::dim ==  T_FieldType::dim is possible
+         *  and does not waste registers */
         const uint32_t dim = T_Vector::dim;
 
         typedef boost::mpl::vector1 < boost::mpl::range_c<uint32_t, 0, dim > > Size;

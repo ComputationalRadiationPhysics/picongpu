@@ -32,7 +32,7 @@ namespace picongpu
 
 /** interpolate field which are defined on a grid to a point inside of a grid
  *
- * interpolate around of a point from -AssignmentFunction::support/2 to
+ * interpolate around a point from -AssignmentFunction::support/2 to
  * (AssignmentFunction::support+1)/2
  *
  * \tparam GridShiftMethod functor which shift coordinate system that al value are
