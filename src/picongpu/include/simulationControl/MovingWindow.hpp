@@ -39,14 +39,13 @@ class MovingWindow
 {
 private:
 
-
     MovingWindow() : slidingWindowActive(false), slideCounter(0), lastSlideStep(0)
     {
     }
 
     MovingWindow(MovingWindow& cc);
 
-    void getCurrentSlideInfo(uint32_t currentStep, bool *doSlide, double *offsetFirstGPU) const
+    void getCurrentSlideInfo(uint32_t currentStep, bool *doSlide, double *offsetFirstGPU)
     {
         if (doSlide)
             *doSlide = false;
@@ -71,7 +70,7 @@ private:
          * the same size for all gpus
          */
         const uint32_t stepsPerGPU = (uint32_t) math::floor(
-            (double) (domInfo.localDomain.size.y() * cell_height) / light_way_per_step + 0.5);
+                                                            (double) (domInfo.localDomain.size.y() * cell_height) / light_way_per_step + 0.5);
         const uint32_t firstSlideStep = stepsPerGPU * devices_y - stepsInFuture;
         const uint32_t firstMoveStep = stepsPerGPU * (devices_y - 1) - stepsInFuture;
 
@@ -81,6 +80,7 @@ private:
             /* moving window start */
             if (firstSlideStep <= currentStep && stepsInLastGPU == 0)
             {
+                incrementSlideCounter(currentStep);
                 if (doSlide)
                     *doSlide = true;
             }
@@ -89,17 +89,34 @@ private:
             if (offsetFirstGPU)
             {
                 *offsetFirstGPU = math::floor(((double) stepsInLastGPU + stepsInFutureAfterComma) *
-                        light_way_per_step / cell_height + 0.5);
+                                              light_way_per_step / cell_height + 0.5);
             }
+        }
+    }
+
+    /** increment slide counter
+     *
+     * It is allowed to call this function more than once per time step
+     * The function take care that the counter is always incremented once
+     * per simulation step
+     *
+     * @param current simulation step
+     */
+    void incrementSlideCounter(const uint32_t currentStep)
+    {
+        if (lastSlideStep != currentStep)
+        {
+            slideCounter++;
+            lastSlideStep = currentStep;
         }
     }
 
     /** true is sliding window is activated */
     bool slidingWindowActive;
-    
+
     /** current number of slides since start of simulation */
     uint32_t slideCounter;
-    
+
     /**
      * last simulation step with slide
      * used to prevent multiple slides per simulation step
@@ -131,21 +148,13 @@ public:
     /**
      * Return the number of slides since start of simulation.
      * If slide occurs in \p currentStep, it is included in the result.
-     * 
+     *
      * @param currentStep current simulation step
      * @return number of slides
      */
     uint32_t getSlideCounter(uint32_t currentStep)
     {
-        bool doSlide = false;
-        getCurrentSlideInfo(currentStep, &doSlide, NULL);
-
-        if (doSlide && (lastSlideStep != currentStep))
-        {
-            slideCounter++;
-            lastSlideStep = currentStep;
-        }
-
+        getCurrentSlideInfo(currentStep, NULL, NULL);
         return slideCounter;
     }
 
@@ -161,11 +170,11 @@ public:
 
     /**
      * Return if a slide occurs in the current simulation step.
-     * 
+     *
      * @param currentStep current simulation step
      * @return true if slide in current step, false otherwise
      */
-    bool slideInCurrentStep(uint32_t currentStep) const
+    bool slideInCurrentStep(uint32_t currentStep)
     {
         bool doSlide = false;
 
@@ -204,7 +213,7 @@ public:
      * @param currentStep current simulation step
      * @return moving window
      */
-    Window getWindow(uint32_t currentStep) const
+    Window getWindow(uint32_t currentStep)
     {
         DomainInformation domInfo;
         Window window;
