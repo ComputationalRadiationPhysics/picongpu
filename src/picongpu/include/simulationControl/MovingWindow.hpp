@@ -97,7 +97,7 @@ private:
     /** increment slide counter
      *
      * It is allowed to call this function more than once per time step
-     * The function take care that the counter is always incremented once
+     * The function takes care that the counter is only incremented once
      * per simulation step
      *
      * @param current simulation step
