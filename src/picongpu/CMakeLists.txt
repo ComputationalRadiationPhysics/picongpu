@@ -451,7 +451,7 @@ target_link_libraries(picongpu  ${LIBS} ${CUDA_CUDART_LIBRARY} z m)
 if(SCOREP_ENABLE)
     # Score-P libraries must be linked after the object to prevent symbols
     # from being stripped on Titan
-	string(STRIP "${SCOREP_LIBFLAGS}" SCOREP_LIBFLAGS)
+    string(STRIP "${SCOREP_LIBFLAGS}" SCOREP_LIBFLAGS)
     target_link_libraries(picongpu ${SCOREP_LIBFLAGS})
 endif(SCOREP_ENABLE)
 
