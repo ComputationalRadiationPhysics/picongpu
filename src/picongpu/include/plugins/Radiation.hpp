@@ -20,9 +20,7 @@
  */
 
 
-
-#ifndef RADIATION_HPP
-#define	RADIATION_HPP
+#pragma once
 
 #include <string>
 #include <iostream>
@@ -999,5 +997,5 @@ private:
 
 }
 
-#endif	/* RADIATION_HPP */
+
 
