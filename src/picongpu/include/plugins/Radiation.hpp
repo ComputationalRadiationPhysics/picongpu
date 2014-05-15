@@ -35,7 +35,8 @@
 
 #include "simulation_classTypes.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
-#include "plugins/ILightweightPlugin.hpp"
+#include "plugins/ISimulationPlugin.hpp"
+
 
 #include "plugins/radiation/parameters.hpp"
 #include "plugins/radiation/check_consistency.hpp"
@@ -93,6 +94,7 @@ namespace po = boost::program_options;
  * @param currentStep
  * @param mapper
  * @param freqFkt
+ * @param simBoxSize
  */
 template<class ParBox, class DBox, class Mapping>
 __global__
@@ -504,7 +506,7 @@ void kernelRadiationParticles(ParBox pb,
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 template<class ParticlesType>
-class Radiation : public ILightweightPlugin
+class Radiation : public ISimulationPlugin
 {
 private:
 
@@ -874,6 +876,22 @@ private:
         }
     }
 
+public:
+    void restart(uint32_t timeStep, const std::string restartDirectory)
+    {
+    
+    }
+        
+    void checkpoint(uint32_t timeStep, const std::string restartDirectory)
+    {
+      std::stringstream t_step;
+      t_step << timeStep;
+
+      writeBackup(timeSumArray, restartDirectory + "/" + std::string("radRestart") + "_" + t_step.str() + ".dat");
+    }
+
+
+private:
     void writeBackup(Amplitude* values, std::string name)
     {
 
