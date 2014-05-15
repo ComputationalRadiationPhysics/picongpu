@@ -20,6 +20,8 @@ This is the 5th release candidate, a *pre-beta* version.
    [#353](https://github.com/ComputationalRadiationPhysics/picongpu/pull/353)
  - Corrected CFL criteria (to be less conservative) in `gridConfig.unitless`
    [#371](https://github.com/ComputationalRadiationPhysics/picongpu/pull/371/files#diff-1)
+ - Update `radiationConfig.unitless`: adjust to new supercell size naming
+   [#394](https://github.com/ComputationalRadiationPhysics/picongpu/pull/394/files#diff-61)
 
 **New Features:**
  - Radiation plugin: add optional window functions to reduce ringing effects
