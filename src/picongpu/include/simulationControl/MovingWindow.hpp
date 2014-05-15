@@ -138,11 +138,15 @@ public:
      * Set the number of already performed moving window slides
      *
      * @param slides number of slides
+     * @param currentStep current simulation timestep
      */
-    void setSlideCounter(uint32_t slides)
+    void setSlideCounter(uint32_t slides,uint32_t currentStep)
     {
         slideCounter = slides;
-        lastSlideStep = slides;
+        /* secure that we can not change the slide counter with `incrementSlideCounter()`
+         * in the same time step again
+         */
+        lastSlideStep = currentStep;
     }
 
     /**
