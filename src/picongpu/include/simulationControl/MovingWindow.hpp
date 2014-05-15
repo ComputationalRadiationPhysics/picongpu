@@ -220,6 +220,8 @@ public:
 
         window.localDimensions = Selection<simDim>(domInfo.localDomain.size);
         window.globalDimensions = Selection<simDim>(domInfo.globalDomain.size);
+        
+        /* If sliding is inactive, moving window is the same as global domain (substract 0)*/
         window.globalDimensions.size.y() -= domInfo.localDomain.size.y() * slidingWindowActive;
 
         if (slidingWindowActive)
@@ -238,12 +240,17 @@ public:
 
             if (isTopGpu)
             {
-                window.localDimensions.offset.y() = offsetFirstGPU;
+                /* local window offset is relative to global window start */
+                window.localDimensions.offset.y() = 0;
                 window.localDimensions.size.y() -= offsetFirstGPU;
             }
-            else if (isBottomGpu)
+            else
             {
-                window.localDimensions.size.y() = offsetFirstGPU;
+                window.localDimensions.offset.y() = domInfo.localDomain.offset.y() - offsetFirstGPU;
+                if (isBottomGpu)
+                {
+                    window.localDimensions.size.y() = offsetFirstGPU;
+                }
             }
         }
 
