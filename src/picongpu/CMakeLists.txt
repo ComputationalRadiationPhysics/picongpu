@@ -172,6 +172,7 @@ if(SCOREP_ENABLE)
     execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --cuda --mpp=mpi --libs
                     OUTPUT_VARIABLE SCOREP_LIBFLAGS
                     OUTPUT_STRIP_TRAILING_WHITESPACE)
+    string(STRIP "${SCOREP_LIBFLAGS}" SCOREP_LIBFLAGS)
 
     # subsystem iniialization file
     execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --cuda --mpp=mpi --adapter-init
@@ -451,7 +452,6 @@ target_link_libraries(picongpu  ${LIBS} ${CUDA_CUDART_LIBRARY} z m)
 if(SCOREP_ENABLE)
     # Score-P libraries must be linked after the object to prevent symbols
     # from being stripped on Titan
-    string(STRIP "${SCOREP_LIBFLAGS}" SCOREP_LIBFLAGS)
     target_link_libraries(picongpu ${SCOREP_LIBFLAGS})
 endif(SCOREP_ENABLE)
 
