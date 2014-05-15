@@ -54,6 +54,7 @@ struct VectorFromCT;
 template<>
 struct VectorFromCT<1>
 {
+
     template<typename Vec, typename CTVec>
     HDINLINE void operator()(Vec& vec, CTVec) const
     {
@@ -62,9 +63,11 @@ struct VectorFromCT<1>
         vec[0] = (typename Vec::type)CTVec::x::value;
     }
 };
+
 template<>
 struct VectorFromCT<2>
 {
+
     template<typename Vec, typename CTVec>
     HDINLINE void operator()(Vec& vec, CTVec) const
     {
@@ -74,9 +77,11 @@ struct VectorFromCT<2>
         vec[1] = (typename Vec::type)CTVec::y::value;
     }
 };
+
 template<>
 struct VectorFromCT<3>
 {
+
     template<typename Vec, typename CTVec>
     HDINLINE void operator()(Vec& vec, CTVec) const
     {
@@ -93,6 +98,7 @@ struct TypeSelector
 {
     typedef typename Arg0::value_type type;
 };
+
 template<>
 struct TypeSelector<mpl::na>
 {
@@ -104,8 +110,8 @@ struct TypeSelector<mpl::na>
 namespace mpl = boost::mpl;
 
 template<typename Arg0 = mpl::na,
-         typename Arg1 = mpl::na,
-         typename Arg2 = mpl::na>
+typename Arg1 = mpl::na,
+typename Arg2 = mpl::na>
 struct Vector
 {
     typedef Arg0 x;
@@ -154,44 +160,45 @@ struct Vector
 //*********************************************************
 
 //________________________OperatorBase____________________________
+
 template<typename Lhs, typename Rhs, typename T_BinaryOperator>
 struct applyOperator
 {
     typedef typename applyOperator<typename Lhs::vector_type,
-                         typename Rhs::vector_type, T_BinaryOperator>::type type;
+    typename Rhs::vector_type, T_BinaryOperator>::type type;
 };
 
 template<typename T_TypeA,
-         typename T_TypeB,
-         typename T_BinaryOperator>
-struct applyOperator<CT::Vector<T_TypeA>, CT::Vector<T_TypeB>,T_BinaryOperator>
+typename T_TypeB,
+typename T_BinaryOperator>
+struct applyOperator<CT::Vector<T_TypeA>, CT::Vector<T_TypeB>, T_BinaryOperator>
 {
-    typedef typename mpl::apply<T_BinaryOperator, T_TypeA,T_TypeB>::type OpResult;
+    typedef typename mpl::apply<T_BinaryOperator, T_TypeA, T_TypeB>::type OpResult;
     typedef CT::Vector<OpResult> type;
 };
 
 template<typename T_TypeA0, typename T_TypeA1,
-         typename T_TypeB0, typename T_TypeB1,
-         typename T_BinaryOperator>
+typename T_TypeB0, typename T_TypeB1,
+typename T_BinaryOperator>
 struct applyOperator<CT::Vector<T_TypeA0, T_TypeA1>,
-                     CT::Vector<T_TypeB0, T_TypeB1>,
-                     T_BinaryOperator>
+CT::Vector<T_TypeB0, T_TypeB1>,
+T_BinaryOperator>
 {
-    typedef typename mpl::apply<T_BinaryOperator, T_TypeA0,T_TypeB0>::type OpResult0;
-    typedef typename mpl::apply<T_BinaryOperator, T_TypeA1,T_TypeB1>::type OpResult1;
+    typedef typename mpl::apply<T_BinaryOperator, T_TypeA0, T_TypeB0>::type OpResult0;
+    typedef typename mpl::apply<T_BinaryOperator, T_TypeA1, T_TypeB1>::type OpResult1;
     typedef CT::Vector<OpResult0, OpResult1> type;
 };
 
 template<typename T_TypeA0, typename T_TypeA1, typename T_TypeA2,
-         typename T_TypeB0, typename T_TypeB1, typename T_TypeB2,
-         typename T_BinaryOperator>
+typename T_TypeB0, typename T_TypeB1, typename T_TypeB2,
+typename T_BinaryOperator>
 struct applyOperator<CT::Vector<T_TypeA0, T_TypeA1, T_TypeA2>,
-                     CT::Vector<T_TypeB0, T_TypeB1, T_TypeB2>,
-                     T_BinaryOperator>
+CT::Vector<T_TypeB0, T_TypeB1, T_TypeB2>,
+T_BinaryOperator>
 {
-    typedef typename mpl::apply<T_BinaryOperator, T_TypeA0,T_TypeB0>::type OpResult0;
-    typedef typename mpl::apply<T_BinaryOperator, T_TypeA1,T_TypeB1>::type OpResult1;
-    typedef typename mpl::apply<T_BinaryOperator, T_TypeA2,T_TypeB2>::type OpResult2;
+    typedef typename mpl::apply<T_BinaryOperator, T_TypeA0, T_TypeB0>::type OpResult0;
+    typedef typename mpl::apply<T_BinaryOperator, T_TypeA1, T_TypeB1>::type OpResult1;
+    typedef typename mpl::apply<T_BinaryOperator, T_TypeA2, T_TypeB2>::type OpResult2;
     typedef CT::Vector<OpResult0, OpResult1, OpResult2> type;
 };
 
@@ -201,9 +208,9 @@ template<typename Lhs, typename Rhs>
 struct add
 {
     typedef typename applyOperator<
-                         typename Lhs::vector_type,
-                         typename Rhs::vector_type,
-                         mpl::plus<mpl::_1, mpl::_2> >::type type;
+    typename Lhs::vector_type,
+    typename Rhs::vector_type,
+    mpl::plus<mpl::_1, mpl::_2> >::type type;
 };
 
 //________________________M U L____________________________
@@ -212,9 +219,9 @@ template<typename Lhs, typename Rhs>
 struct mul
 {
     typedef typename applyOperator<
-                         typename Lhs::vector_type,
-                         typename Rhs::vector_type,
-                         mpl::times<mpl::_1, mpl::_2> >::type type;
+    typename Lhs::vector_type,
+    typename Rhs::vector_type,
+    mpl::times<mpl::_1, mpl::_2> >::type type;
 };
 
 //________________________M A X____________________________
@@ -223,9 +230,9 @@ template<typename Lhs, typename Rhs>
 struct max
 {
     typedef typename applyOperator<
-                         typename Lhs::vector_type,
-                         typename Rhs::vector_type,
-                         mpl::max<mpl::_1, mpl::_2> >::type type;
+    typename Lhs::vector_type,
+    typename Rhs::vector_type,
+    mpl::max<mpl::_1, mpl::_2> >::type type;
 };
 
 //________________________M I N____________________________
@@ -234,9 +241,9 @@ template<typename Lhs, typename Rhs>
 struct min
 {
     typedef typename applyOperator<
-                         typename Lhs::vector_type,
-                         typename Rhs::vector_type,
-                         mpl::min<mpl::_1, mpl::_2> >::type type;
+    typename Lhs::vector_type,
+    typename Rhs::vector_type,
+    mpl::min<mpl::_1, mpl::_2> >::type type;
 };
 
 //________________________D O T____________________________
@@ -244,11 +251,11 @@ struct min
 template<typename Lhs, typename Rhs>
 struct dot
 {
-    typedef typename mul<Lhs,Rhs>::type MulResult;
+    typedef typename mul<Lhs, Rhs>::type MulResult;
     typedef typename mpl::accumulate<
-            typename MulResult::mplVector,
-            mpl::int_<0>,
-            mpl::plus<mpl::_1,mpl::_2>
+    typename MulResult::mplVector,
+    mpl::int_<0>,
+    mpl::plus<mpl::_1, mpl::_2>
     >::type type;
 };
 
@@ -258,9 +265,9 @@ template<typename T_Vec>
 struct volume
 {
     typedef typename mpl::accumulate<
-            typename T_Vec::mplVector,
-            mpl::int_<1>,
-            mpl::times<mpl::_1,mpl::_2>
+    typename T_Vec::mplVector,
+    mpl::int_<1>,
+    mpl::times<mpl::_1, mpl::_2>
     >::type type;
 };
 
@@ -278,24 +285,54 @@ template<typename T_Vec, uint32_t T_dim>
 struct shrinkTo;
 
 template<typename T_Vec>
-struct shrinkTo<T_Vec,DIM3>
+struct shrinkTo<T_Vec, DIM3>
 {
     typedef T_Vec Vec;
     typedef CT::Vector<typename Vec::x, typename Vec::y, typename Vec::z> type;
 };
 
 template<typename T_Vec>
-struct shrinkTo<T_Vec,DIM2>
+struct shrinkTo<T_Vec, DIM2>
 {
     typedef T_Vec Vec;
     typedef CT::Vector<typename Vec::x, typename Vec::y, mpl::na> type;
 };
 
 template<typename T_Vec>
-struct shrinkTo<T_Vec,DIM1>
+struct shrinkTo<T_Vec, DIM1>
 {
     typedef T_Vec Vec;
     typedef CT::Vector<typename Vec::x, mpl::na, mpl::na> type;
+};
+
+//________________________A S S I G N________________________
+
+/** Assign a type to a given component in the CT::Vector
+ *
+ * @tparam T_Vec math::CT::Vector which should be changed
+ * @tparam T_ComponentPos number of component to changed (type must be bmpl::integral_c<uint32_t,X>)
+ * @tparam T_Value new value
+ * @tparam[out] ::type
+ */
+template<typename T_Vec, typename T_ComponentPos, typename T_Value>
+struct Assign;
+
+template<typename T_Value, typename T_0, typename T_1, typename T_2>
+struct Assign<PMacc::math::CT::Vector<T_0, T_1, T_2>, bmpl::integral_c<uint32_t,0> , T_Value>
+{
+    typedef PMacc::math::CT::Vector<T_Value, T_1, T_2> type;
+};
+
+template<typename T_Value, typename T_0, typename T_1, typename T_2>
+struct Assign<PMacc::math::CT::Vector<T_0, T_1, T_2>, bmpl::integral_c<uint32_t,1>, T_Value>
+{
+    typedef PMacc::math::CT::Vector<T_0, T_Value, T_2> type;
+};
+
+template<typename T_Value, typename T_0, typename T_1, typename T_2>
+struct Assign<PMacc::math::CT::Vector<T_0, T_1, T_2>, bmpl::integral_c<uint32_t,2>, T_Value>
+{
+    typedef PMacc::math::CT::Vector<T_0, T_1, T_Value> type;
 };
 
 } // CT

@@ -1,21 +1,21 @@
 /**
  * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 
@@ -26,59 +26,121 @@
 #include "types.h"
 #include "math/vector/Int.hpp"
 
+#include <boost/mpl/range_c.hpp>
+#include <boost/mpl/vector.hpp>
+#include "compileTime/AllCombinations.hpp"
+
 namespace picongpu
 {
 
-template<uint32_t T_support>
+/** calculate offset to move coordinate system in an easy to use system
+ *
+ * There are two cases:
+ *  - system with even shape and odd shape
+ *  - for more see documentation of the implementation
+ */
+template<bool T_isEvenShape>
+struct GetOffsetToStaticShapeSystem;
+
+template<typename T_Component, typename T_Supports>
+struct AssignToDim
+{
+
+    template<typename T_Type, typename T_Vector, typename T_FieldType>
+    HDINLINE void
+    operator()(const RefWrapper<T_Type> cursor, const RefWrapper<T_Vector>& pos, const T_FieldType& fieldPos)
+    {
+        const uint32_t dim = T_Vector::dim;
+        typedef typename T_Vector::type ValueType;
+
+        typedef T_Supports Supports;
+        typedef T_Component Component;
+
+        const uint32_t component = Component::x::value;
+        const uint32_t support = Supports::template at<component>::type::value;
+        const bool isEven = (support % 2) == 0;
+
+
+        const ValueType v_pos = pos.get()[component] - fieldPos[component];
+        DataSpace< dim > intShift;
+        intShift[component] = GetOffsetToStaticShapeSystem <isEven>()(v_pos);
+        cursor.get() = cursor.get()(intShift);
+        pos.get()[component] = v_pos - ValueType(intShift[component]);
+    }
+};
+
+/** shift to new coordinate system
+ *
+ * @tparam T_supports CT::Vector with support
+ */
+template<typename T_supports>
 struct ShiftCoordinateSystem
 {
 
-    /**shift to new coordinat system
-     * 
+    /** shift to new coordinate system
+     *
      * shift cursor and vector to new coordinate system
-     * @param curser curser to memory
-     * @param vector short vector with coordinates in old system
+     * @param[in,out] cursor cursor to memory
+     * @param[in,out] vector short vector with coordinates in old system
+     *                        - defined for [0.0;1.0) per dimension
      * @param fieldPos vector with relative coordinates for shift ( value range [0.0;0.5] )
+     *
+     * After this coordinate shift vector has well defined ranges per dimension,
+     * for each defined fieldPos:
+     *
+     * - Even Support: vector is always [0.0;1.0)
+     * - Odd Support: vector is always [-0.5;0.5)
      */
-    template<typename Cursor, typename Vector >
-    HDINLINE void operator()(Cursor& cursor, Vector& vector, const floatD_X & fieldPos)
+    template<typename T_Cursor, typename T_Vector, typename T_FieldType >
+    HDINLINE void operator()(T_Cursor& cursor, T_Vector& vector, const T_FieldType & fieldPos)
     {
-        floatD_X coordinate_shift;
+        /** \todo check if a static assert on
+         *  "T_Cursor::dim" == T_Vector::dim ==  T_FieldType::dim is possible
+         *  and does not waste registers */
+        const uint32_t dim = T_Vector::dim;
 
-        if (T_support % 2 == 0)
-        {
-            //even support
+        typedef boost::mpl::vector1 < boost::mpl::range_c<uint32_t, 0, dim > > Size;
+        typedef typename AllCombinations<Size>::type CombiTypes;
 
-            /* for any direction
-             * if fieldPos == 0.5 and vector<0.5 
-             * shift curser+(-1) and new_vector=old_vector-(-1)
-             * 
-             * (vector.x() < fieldPos.x()) is equal ((fieldPos == 0.5) && (vector<0.5))
-             */
+        ForEach<CombiTypes, AssignToDim<bmpl::_1, T_supports> > shift;
+        shift(byRef(cursor), byRef(vector), fieldPos);
 
-            for (uint32_t i = 0; i < simDim; ++i)
-                coordinate_shift[i] = -float_X(vector[i] < fieldPos[i]);
-        }
-        else
-        {
-            //odd support
+    }
+};
 
-            /* for any direction
-             * if fieldPos < 0.5 and vector> 0.5 
-             * shift curser+1 and new_vector=old_vector-1
-             */
-            for (uint32_t i = 0; i < simDim; ++i)
-                coordinate_shift[i] = float_X(vector[i] > float_X(0.5) && fieldPos[i] != float_X(0.5));
-        }
 
-        PMacc::math::Int < simDim > intShift(coordinate_shift);
+/** Offset calculation for even support
+ *
+ * @param pos position of the particle relative to the grid
+ *            - defined for [-0.5;1.0)
+ * @return offset for the old system ( new system = old_system - offset)
+ */
+template<>
+struct GetOffsetToStaticShapeSystem<true>
+{
 
-        cursor = cursor(intShift);
+    template<typename T_Type>
+    HDINLINE int operator()(const T_Type& pos)
+    {
+        return math::float2int_rd(pos);
+    }
+};
 
-        //same as: vector = vector - fieldPos - coordinate_shift;
-        for (uint32_t i = 0; i < simDim; ++i)
-            vector[i] -= (fieldPos[i] + coordinate_shift[i]);
 
+/** Offset calculation for odd support
+ *
+ * @param pos position of the particle relative to the grid
+ *            - defined for [-0.5;1.0)
+ * @return offset for the old system ( new system = old_system - offset)
+ */
+template<>
+struct GetOffsetToStaticShapeSystem<false>
+{
+
+    template<typename T_Type>
+    HDINLINE int operator()(const T_Type& pos)
+    {
+        return int(pos >= T_Type(0.5));
     }
 };
 
