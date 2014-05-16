@@ -8,7 +8,7 @@
  * the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * libPMacc is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -61,7 +61,7 @@ struct DeviceMemAssigner
          */
         boost::math::gcd_evaluator<size_t> gcd; // greatest common divisor
         math::Size_t<3> blockDim(1);
-        int maxValues[] = {8, 4, 2}; // maximum values for each dimension
+        int maxValues[] = {16, 16, 4}; // maximum values for each dimension
         for(int i = 0; i < dim; i++)
             blockDim[i] = gcd(size[i], maxValues[dim-1]);
         /* the maximum number of threads per block for devices with
