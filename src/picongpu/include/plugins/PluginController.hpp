@@ -45,7 +45,7 @@
 
 #if(ENABLE_RADIATION == 1 && SIMDIM==DIM3)
 #include "plugins/radiation/parameters.hpp"
-#include "plugins/Radiation.hpp"
+#include "plugins/radiation/Radiation.hpp"
 #endif
 #include "particles/Species.hpp"
 #include "simulation_classTypes.hpp"

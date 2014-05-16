@@ -44,7 +44,7 @@
 
 #include "sys/stat.h"
 
-#include "plugins/Radiation.kernel"
+#include "plugins/radiation/Radiation.kernel"
 
 
 namespace picongpu
