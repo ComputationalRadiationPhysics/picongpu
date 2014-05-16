@@ -43,8 +43,10 @@
 #include <boost/preprocessor/facilities/empty.hpp>
 #include <boost/preprocessor/control/if.hpp>
 #include <boost/preprocessor/comparison/not_equal.hpp>
+#include <boost/preprocessor/repetition/enum_trailing.hpp>
 #include <boost/mpl/apply.hpp>
 #include <boost/mpl/transform.hpp>
+#include "forward.hpp"
 
 
 /* Help to read this file:
@@ -95,6 +97,9 @@ namespace algorithms
     }/*end of operator()*/
 
 
+/** makro creates getForwardedValue(tn) */
+#define PMACC_GETFORWARDVALUE(z, n, value_name) getForwardedValue( t##n )
+
 /** create operator() for ForEach
  *
  * template<typename T0, ... , typename TN>
@@ -112,8 +117,8 @@ namespace algorithms
     /*        ( const T0& t0, ... , const TN& tN           ) */                \
     operator()( BOOST_PP_ENUM_BINARY_PARAMS(N, const T, &t)) PMACC_PP_CONST    \
     {                                                                          \
-        /*           (t0, ..., tn               ) */                           \
-        Functor()(BOOST_PP_ENUM_PARAMS(N, t));                                 \
+        /*       (getForwardedValue(t0), ..., getForwardedValue(tn) ) */       \
+        Functor()(BOOST_PP_ENUM(N,PMACC_GETFORWARDVALUE, t));                  \
         /*        (t0, ..., tn               ) */                              \
         NextCall()(BOOST_PP_ENUM_PARAMS(N, t));                                \
     } /*end of operator()*/
@@ -237,6 +242,7 @@ struct ForEach
 /* delete all preprocessor defines to avoid conflicts in other files */
 #undef PMACC_FOREACH_OPERATOR
 #undef PMACC_FOREACH_OPERATOR_NO_USAGE
+#undef PMACC_GETFORWARDVALUE
 
 } // namespace forEach
 } // namespace algorithms
