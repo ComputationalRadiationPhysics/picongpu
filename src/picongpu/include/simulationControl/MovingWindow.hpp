@@ -143,7 +143,7 @@ public:
     void setSlideCounter(uint32_t slides,uint32_t currentStep)
     {
         slideCounter = slides;
-        /* secure that we can not change the slide counter with `incrementSlideCounter()`
+        /* ensure that we will not change the slide counter with `incrementSlideCounter()`
          * in the same time step again
          */
         lastSlideStep = currentStep;
