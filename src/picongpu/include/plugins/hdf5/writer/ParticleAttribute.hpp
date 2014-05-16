@@ -59,8 +59,8 @@ struct ParticleAttribute
      */
     template<typename FrameType>
     HINLINE void operator()(
-                            const RefWrapper<ThreadParams*> params,
-                            const RefWrapper<FrameType> frame,
+                            ThreadParams* params,
+                            FrameType& frame,
                             const std::string subGroup,
                             const size_t elements)
     {
@@ -71,7 +71,7 @@ struct ParticleAttribute
         typedef typename GetComponentsType<ValueType>::type ComponentType;
         typedef typename PICToSplash<ComponentType>::type SplashType;
         
-        const ThreadParams *threadParams = params.get();
+        const ThreadParams *threadParams = params;
 
         log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) write species attribute: %1%") % Identifier::getName();
 
@@ -114,7 +114,7 @@ struct ParticleAttribute
             if (components > 1)
                 datasetName << "/" << name_lookup[d];
 
-            ValueType* dataPtr = frame.get().getIdentifier(Identifier()).getPointer();
+            ValueType* dataPtr = frame.getIdentifier(Identifier()).getPointer();
             for (size_t i = 0; i < elements; ++i)
             {
                 tmpArray[i] = ((ComponentValueType*)dataPtr)[i * components + d];

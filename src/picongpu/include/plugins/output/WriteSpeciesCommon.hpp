@@ -33,7 +33,6 @@
 #include <boost/mpl/find.hpp>
 #include "compileTime/conversion/MakeSeq.hpp"
 
-#include "RefWrapper.hpp"
 #include <boost/type_traits.hpp>
 
 #include "mappings/kernel/AreaMapping.hpp"
@@ -51,7 +50,7 @@ template<typename T_Type>
 struct MallocMemory
 {
     template<typename ValueType >
-    HINLINE void operator()(RefWrapper<ValueType> v1, const size_t size) const
+    HINLINE void operator()(ValueType& v1, const size_t size) const
     {
         typedef typename T_Type::type type;
 
@@ -60,7 +59,7 @@ struct MallocMemory
         {
             CUDA_CHECK(cudaHostAlloc(&ptr, size * sizeof (type), cudaHostAllocMapped));
         }
-        v1.get().getIdentifier(T_Type()) = VectorDataBox<type>(ptr);
+        v1.getIdentifier(T_Type()) = VectorDataBox<type>(ptr);
 
     }
 };
@@ -69,17 +68,17 @@ template<typename T_Type>
 struct GetDevicePtr
 {
     template<typename ValueType >
-    HINLINE void operator()(RefWrapper<ValueType> dest, RefWrapper<ValueType> src) const
+    HINLINE void operator()(ValueType& dest, ValueType& src) const
     {
         typedef typename T_Type::type type;
 
         type* ptr = NULL;
-        type* srcPtr = src.get().getIdentifier(T_Type()).getPointer();
+        type* srcPtr = src.getIdentifier(T_Type()).getPointer();
         if (srcPtr != NULL)
         {
             CUDA_CHECK(cudaHostGetDevicePointer(&ptr, srcPtr, 0));
         }
-        dest.get().getIdentifier(T_Type()) =
+        dest.getIdentifier(T_Type()) =
             VectorDataBox<type>(ptr);
     }
 };
@@ -88,11 +87,11 @@ template<typename T_Type>
 struct FreeMemory
     {
     template<typename ValueType >
-    HINLINE void operator()(RefWrapper<ValueType> value) const
+    HINLINE void operator()(ValueType& value) const
     {
         typedef typename T_Type::type type;
 
-        type* ptr = value.get().getIdentifier(T_Type()).getPointer();
+        type* ptr = value.getIdentifier(T_Type()).getPointer();
         if (ptr != NULL)
             CUDA_CHECK(cudaFreeHost(ptr));
     }

@@ -49,7 +49,7 @@ struct ParticleAttributeSize
      * @param elements number of particles for this attribute 
      */
     HINLINE void operator()(
-                            const RefWrapper<ThreadParams*> params,
+                            ThreadParams* params,
                             const std::string subGroup,
                             const size_t elements,
                             const size_t globalElements,

@@ -149,11 +149,11 @@ struct LoadFields
 {
 public:
 
-    HDINLINE void operator()(RefWrapper<ThreadParams*> params)
+    HDINLINE void operator()(ThreadParams* params)
     {
 #ifndef __CUDA_ARCH__
         DataConnector &dc = Environment<>::get().DataConnector();
-        ThreadParams *tp = params.get();
+        ThreadParams *tp = params;
 
         /* load field without copying data to host */
         FieldType* field = &(dc.getData<FieldType > (FieldType::getName(), true));

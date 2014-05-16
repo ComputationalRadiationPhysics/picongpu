@@ -59,7 +59,6 @@
 #include <boost/mpl/begin_end.hpp>
 #include <boost/mpl/find.hpp>
 
-#include "RefWrapper.hpp"
 #include <boost/type_traits.hpp>
 
 #include "plugins/adios/WriteSpecies.hpp"
@@ -123,16 +122,16 @@ private:
 
     public:
 
-        HDINLINE void operator()(RefWrapper<ThreadParams*> params)
+        HDINLINE void operator()(ThreadParams* params)
         {
 #ifndef __CUDA_ARCH__
             DataConnector &dc = Environment<simDim>::get().DataConnector();
 
             T* field = &(dc.getData<T > (T::getName()));
-            params.get()->gridLayout = field->getGridLayout();
+            params->gridLayout = field->getGridLayout();
 
             PICToAdios<ComponentType> adiosType;
-            writeField(params.get(),
+            writeField(params,
                        sizeof(ComponentType),
                        adiosType.type,
                        GetNComponents<ValueType>::value,
@@ -165,7 +164,7 @@ private:
          * call virtual functions.
          */
         PMACC_NO_NVCC_HDWARNING
-        HDINLINE void operator()(RefWrapper<ThreadParams*> tparam)
+        HDINLINE void operator()(ThreadParams* tparam)
         {
             this->operator_impl(tparam);
         }
@@ -193,7 +192,7 @@ private:
             return createUnit(unit, components);
         }
 
-        HINLINE void operator_impl(RefWrapper<ThreadParams*> params)
+        HINLINE void operator_impl(ThreadParams* params)
         {
             DataConnector &dc = Environment<>::get().DataConnector();
 
@@ -206,7 +205,7 @@ private:
 
             fieldTmp->getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType(0.0));
             /*run algorithm*/
-            fieldTmp->computeValue < CORE + BORDER, Solver > (*speciesTmp, params.get()->currentStep);
+            fieldTmp->computeValue < CORE + BORDER, Solver > (*speciesTmp, params->currentStep);
 
             EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
             __setTransactionEvent(fieldTmpEvent);
@@ -218,9 +217,9 @@ private:
             const uint32_t components = GetNComponents<ValueType>::value;
             PICToAdios<ComponentType> adiosType;
 
-            params.get()->gridLayout = fieldTmp->getGridLayout();
+            params->gridLayout = fieldTmp->getGridLayout();
             /*write data to ADIOS file*/
-            writeField(params.get(),
+            writeField(params,
                        sizeof(ComponentType),
                        adiosType.type,
                        components,
@@ -291,21 +290,21 @@ private:
         typedef typename T::ValueType ValueType;
         typedef typename GetComponentsType<ValueType>::type ComponentType;
 
-        HDINLINE void operator()(RefWrapper<ThreadParams*> params)
+        HDINLINE void operator()(ThreadParams* params)
         {
 #ifndef __CUDA_ARCH__
             const uint32_t components = T::numComponents;
 
             // adios buffer size for this dataset (all components)
             uint64_t localGroupSize =
-                    params.get()->window.localDimensions.size.productOfComponents() *
+                    params->window.localDimensions.size.productOfComponents() *
                     sizeof(ComponentType) *
                     components;
 
-            params.get()->adiosGroupSize += localGroupSize;
+            params->adiosGroupSize += localGroupSize;
 
             PICToAdios<ComponentType> adiosType;
-            defineFieldVar(params.get(), components, adiosType.type, T::getName());
+            defineFieldVar(params, components, adiosType.type, T::getName());
 #endif
         }
     };
@@ -320,7 +319,7 @@ private:
     public:
 
         PMACC_NO_NVCC_HDWARNING
-        HDINLINE void operator()(RefWrapper<ThreadParams*> tparam)
+        HDINLINE void operator()(ThreadParams* tparam)
         {
             this->operator_impl(tparam);
         }
@@ -340,20 +339,20 @@ private:
             return str.str();
         }
 
-        HINLINE void operator_impl(RefWrapper<ThreadParams*> params)
+        HINLINE void operator_impl(ThreadParams* params)
         {
             const uint32_t components = GetNComponents<ValueType>::value;
 
             // adios buffer size for this dataset (all components)
             uint64_t localGroupSize =
-                    params.get()->window.localDimensions.size.productOfComponents() *
+                    params->window.localDimensions.size.productOfComponents() *
                     sizeof(ComponentType) *
                     components;
 
-            params.get()->adiosGroupSize += localGroupSize;
+            params->adiosGroupSize += localGroupSize;
 
             PICToAdios<ComponentType> adiosType;
-            defineFieldVar(params.get(), components, adiosType.type, getName());
+            defineFieldVar(params, components, adiosType.type, getName());
         }
 
     };

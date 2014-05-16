@@ -62,7 +62,6 @@
 #include <boost/mpl/find.hpp>
 #include <boost/filesystem.hpp>
 
-#include "RefWrapper.hpp"
 #include <boost/type_traits.hpp>
 
 #include "plugins/hdf5/WriteFields.hpp"

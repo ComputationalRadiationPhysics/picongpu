@@ -37,7 +37,6 @@
 #include <boost/mpl/find.hpp>
 #include "compileTime/conversion/MakeSeq.hpp"
 
-#include "RefWrapper.hpp"
 #include <boost/type_traits.hpp>
 
 #include "plugins/output/WriteSpeciesCommon.hpp"
@@ -94,7 +93,7 @@ public:
     typedef Frame<OperatorCreateVectorBox, NewParticleDescription> Hdf5FrameType;
 
     template<typename Space>
-    HINLINE void operator()(RefWrapper<ThreadParams*> params,
+    HINLINE void operator()(ThreadParams* params,
                             std::string subGroup,
                             const Space particleOffset)
     {
@@ -109,9 +108,9 @@ public:
         log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) count particles: %1%") % Hdf5FrameType::getName();
         totalNumParticles = PMacc::CountParticles::countOnDevice < CORE + BORDER > (
                                                                                     *speciesTmp,
-                                                                                    *(params.get()->cellDescription),
-                                                                                    params.get()->localWindowToDomainOffset,
-                                                                                    params.get()->window.localDimensions.size);
+                                                                                    *(params->cellDescription),
+                                                                                    params->localWindowToDomainOffset,
+                                                                                    params->window.localDimensions.size);
 
 
         log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) count particles: %1% = %2%") % Hdf5FrameType::getName() % totalNumParticles;
@@ -138,13 +137,13 @@ public:
             MyParticleFilter filter;
             /* activate filter pipeline if moving window is activated */
             filter.setStatus(MovingWindow::getInstance().isSlidingWindowActive());
-            filter.setWindowPosition(params.get()->localWindowToDomainOffset,
-                                     params.get()->window.localDimensions.size);
+            filter.setWindowPosition(params->localWindowToDomainOffset,
+                                     params->window.localDimensions.size);
 
             dim3 block(TILE_SIZE);
 
             GridBuffer<int, DIM1> counterBuffer(DataSpace<DIM1>(1));
-            AreaMapping < CORE + BORDER, MappingDesc > mapper(*(params.get()->cellDescription));
+            AreaMapping < CORE + BORDER, MappingDesc > mapper(*(params->cellDescription));
 
             __cudaKernel(copySpecies)
                 (mapper.getGridDim(), block)
@@ -167,7 +166,7 @@ public:
                 totalNumParticles);
 
         /* write meta attributes for species */
-        writeMetaAttributes(params.get());
+        writeMetaAttributes(params);
 
         /*write species counter table to hdf5 file*/
         log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) writing particle index table for %1%") % Hdf5FrameType::getName();
@@ -189,8 +188,8 @@ public:
             if (particleOffset[1] < 0) // 1 == y
                 particlesMetaInfo[pos_offset + 1] = 0;
 
-            params.get()->dataCollector->write(
-                params.get()->currentStep,
+            params->dataCollector->write(
+                params->currentStep,
                 Dimensions(gc.getGlobalSize(), 1, 1),
                 Dimensions(gc.getGlobalRank(), 0, 0),
                 ctUInt64_5, 1,
