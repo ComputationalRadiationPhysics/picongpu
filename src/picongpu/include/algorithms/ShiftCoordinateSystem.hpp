@@ -48,7 +48,7 @@ struct AssignToDim
 
     template<typename T_Type, typename T_Vector, typename T_FieldType>
     HDINLINE void
-    operator()(const RefWrapper<T_Type> cursor, const RefWrapper<T_Vector>& pos, const T_FieldType& fieldPos)
+    operator()(T_Type& cursor, T_Vector& pos, const T_FieldType& fieldPos)
     {
         const uint32_t dim = T_Vector::dim;
         typedef typename T_Vector::type ValueType;
@@ -61,11 +61,11 @@ struct AssignToDim
         const bool isEven = (support % 2) == 0;
 
 
-        const ValueType v_pos = pos.get()[component] - fieldPos[component];
+        const ValueType v_pos = pos[component] - fieldPos[component];
         DataSpace< dim > intShift;
         intShift[component] = GetOffsetToStaticShapeSystem <isEven>()(v_pos);
-        cursor.get() = cursor.get()(intShift);
-        pos.get()[component] = v_pos - ValueType(intShift[component]);
+        cursor = cursor(intShift);
+        pos[component] = v_pos - ValueType(intShift[component]);
     }
 };
 
@@ -103,7 +103,7 @@ struct ShiftCoordinateSystem
         typedef typename AllCombinations<Size>::type CombiTypes;
 
         ForEach<CombiTypes, AssignToDim<bmpl::_1, T_supports> > shift;
-        shift(byRef(cursor), byRef(vector), fieldPos);
+        shift(forward(cursor), forward(vector), fieldPos);
 
     }
 };

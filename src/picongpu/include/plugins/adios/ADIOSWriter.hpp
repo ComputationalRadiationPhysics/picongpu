@@ -613,7 +613,7 @@ private:
          */
         threadParams->adiosFieldVarIds.clear();
         ForEach<FileOutputFields, CollectFieldsSizes<bmpl::_1> > forEachCollectFieldsSizes;
-        forEachCollectFieldsSizes(ref(threadParams));
+        forEachCollectFieldsSizes(threadParams);
 
         /* collect size information for all attributes of all species and define
          * particle variables
@@ -621,7 +621,7 @@ private:
         threadParams->adiosParticleAttrVarIds.clear();
         threadParams->adiosSpeciesIndexVarIds.clear();
         ForEach<FileOutputParticles, ADIOSCountParticles<bmpl::_1> > adiosCountParticles;
-        adiosCountParticles(ref(threadParams), std::string());
+        adiosCountParticles(threadParams, std::string());
 
         /* allocate buffer in MB according to our current group size */
         if (!threadParams->adiosBufferInitialized)
@@ -674,12 +674,12 @@ private:
 
         /* write fields */
         ForEach<FileOutputFields, GetFields<bmpl::_1> > forEachGetFields;
-        forEachGetFields(ref(threadParams));
+        forEachGetFields(threadParams);
 
         /* print all particle species */
         log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) writing particle species.");
         ForEach<FileOutputParticles, WriteSpecies<bmpl::_1> > writeSpecies;
-        writeSpecies(ref(threadParams), particleOffset);
+        writeSpecies(threadParams, particleOffset);
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing particle species.");
 
         /* close adios file, most liekly the actual write point */

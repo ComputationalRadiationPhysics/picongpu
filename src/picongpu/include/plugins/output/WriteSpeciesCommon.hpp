@@ -68,7 +68,7 @@ template<typename T_Type>
 struct GetDevicePtr
 {
     template<typename ValueType >
-    HINLINE void operator()(ValueType& dest, ValueType& src) const
+    HINLINE void operator()(ValueType& dest, ValueType& src)
     {
         typedef typename T_Type::type type;
 
@@ -78,8 +78,7 @@ struct GetDevicePtr
         {
             CUDA_CHECK(cudaHostGetDevicePointer(&ptr, srcPtr, 0));
         }
-        dest.getIdentifier(T_Type()) =
-            VectorDataBox<type>(ptr);
+        dest.getIdentifier(T_Type()) = VectorDataBox<type>(ptr);
     }
 };
 

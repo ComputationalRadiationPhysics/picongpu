@@ -118,7 +118,7 @@ public:
         log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) malloc mapped memory: %1%") % Hdf5FrameType::getName();
         /*malloc mapped memory*/
         ForEach<typename Hdf5FrameType::ValueTypeSeq, MallocMemory<bmpl::_1> > mallocMem;
-        mallocMem(byRef(hostFrame), totalNumParticles);
+        mallocMem(forward(hostFrame), totalNumParticles);
         log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) malloc mapped memory: %1%") % Hdf5FrameType::getName();
 
         if (totalNumParticles != 0)
@@ -128,7 +128,7 @@ public:
             /*load device pointer of mapped memory*/
             Hdf5FrameType deviceFrame;
             ForEach<typename Hdf5FrameType::ValueTypeSeq, GetDevicePtr<bmpl::_1> > getDevicePtr;
-            getDevicePtr(byRef(deviceFrame), byRef(hostFrame));
+            getDevicePtr(forward(deviceFrame), forward(hostFrame));
             log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) get mapped memory device pointer: %1%") % Hdf5FrameType::getName();
 
             log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) copy particle to host: %1%") % Hdf5FrameType::getName();
@@ -162,7 +162,7 @@ public:
         }
         /*dump to hdf5 file*/
         ForEach<typename Hdf5FrameType::ValueTypeSeq, hdf5::ParticleAttribute<bmpl::_1> > writeToHdf5;
-        writeToHdf5(params, byRef(hostFrame), std::string("particles/") + FrameType::getName() + std::string("/") + subGroup,
+        writeToHdf5(params, forward(hostFrame), std::string("particles/") + FrameType::getName() + std::string("/") + subGroup,
                 totalNumParticles);
 
         /* write meta attributes for species */
@@ -202,7 +202,7 @@ public:
 
         /*free host memory*/
         ForEach<typename Hdf5FrameType::ValueTypeSeq, FreeMemory<bmpl::_1> > freeMem;
-        freeMem(byRef(hostFrame));
+        freeMem(forward(hostFrame));
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing species: %1%") % Hdf5FrameType::getName();
     }
 

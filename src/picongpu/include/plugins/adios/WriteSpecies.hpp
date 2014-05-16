@@ -110,14 +110,14 @@ public:
 
             /* malloc mapped memory */
             ForEach<typename AdiosFrameType::ValueTypeSeq, MallocMemory<bmpl::_1> > mallocMem;
-            mallocMem(byRef(hostFrame), totalNumParticles);
+            mallocMem(forward(hostFrame), totalNumParticles);
             log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) malloc mapped memory: %1%") % AdiosFrameType::getName();
 
             log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) get mapped memory device pointer: %1%") % AdiosFrameType::getName();
             /* load device pointer of mapped memory */
             AdiosFrameType deviceFrame;
             ForEach<typename AdiosFrameType::ValueTypeSeq, GetDevicePtr<bmpl::_1> > getDevicePtr;
-            getDevicePtr(byRef(deviceFrame), byRef(hostFrame));
+            getDevicePtr(forward(deviceFrame), forward(hostFrame));
             log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) get mapped memory device pointer: %1%") % AdiosFrameType::getName();
 
             log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) copy particle to host: %1%") % AdiosFrameType::getName();
@@ -151,11 +151,11 @@ public:
 
             /* dump to adios file */
             ForEach<typename AdiosFrameType::ValueTypeSeq, adios::ParticleAttribute<bmpl::_1> > writeToAdios;
-            writeToAdios(params, byRef(hostFrame), totalNumParticles);
+            writeToAdios(params, forward(hostFrame), totalNumParticles);
 
             /* free host memory */
             ForEach<typename AdiosFrameType::ValueTypeSeq, FreeMemory<bmpl::_1> > freeMem;
-            freeMem(byRef(hostFrame));
+            freeMem(forward(hostFrame));
             log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing species: %1%") % AdiosFrameType::getName();
         }
 
