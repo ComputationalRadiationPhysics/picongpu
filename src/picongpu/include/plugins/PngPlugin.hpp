@@ -1,23 +1,23 @@
 /**
  * Copyright 2013 Axel Huebl, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 
 #pragma once
@@ -118,8 +118,8 @@ namespace picongpu
                                                            charToAxisNumber(getValue(axis, i)[1])
                                                            );
                                 /* if simulation run in 2D ignore all xz, yz slices (we had no z direction)*/
-                                if( simDim==DIM3 || (transpose.x()!=2 ||transpose.y()!=2  ))
-                                {                                    
+                                if( simDim==DIM3 || (transpose.x()!=2 && transpose.y()!=2  ))
+                                {
                                     VisType* tmp = new VisType(analyzerName, pngCreator, frequ, transpose, getValue(slicePoints, i));
                                     visIO.push_back(tmp);
                                     tmp->setMappingDescription(cellDescription);
@@ -153,7 +153,7 @@ namespace picongpu
             }
             visIO.clear();
         }
-        
+
         void notify(uint32_t currentStep)
         {
             // nothing to do here
