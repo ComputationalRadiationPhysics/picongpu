@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -29,6 +29,7 @@
 
 #include "simulation_classTypes.hpp"
 #include "plugins/ILightweightPlugin.hpp"
+#include "simulationControl/MovingWindow.hpp"
 #include <vector>
 #include <list>
 
@@ -113,12 +114,25 @@ namespace picongpu
                                 }
                                 std::string filename(analyzerName + "_" + getValue(axis, i) + "_" + o_slicePoint.str());
                                 typename VisType::CreatorType pngCreator(filename, getValue(folders, i));
+                                /** \todo rename me: transpose is the wrong name `swivel` is better
+                                 *
+                                 * `transpose` is used to map components from one vector to an other, in any order
+                                 *
+                                 * example: transpose[2,1] means: use x and z from an other vector
+                                 */
                                 DataSpace<DIM2 > transpose(
                                                            charToAxisNumber(getValue(axis, i)[0]),
                                                            charToAxisNumber(getValue(axis, i)[1])
                                                            );
                                 /* if simulation run in 2D ignore all xz, yz slices (we had no z direction)*/
-                                if( simDim==DIM3 || (transpose.x()!=2 && transpose.y()!=2  ))
+                                const bool isAllowed2DSlice= (simDim==DIM3) || (transpose.x()!=2 && transpose.y()!=2);
+                                const bool isSlidingWindowActive=MovingWindow::getInstance().isSlidingWindowActive();
+                                /* if sliding window is active we are not allowed to create pngs from xz slice
+                                 * This means one dimension in transpose must contain 1 (y direction)
+                                 */
+                                const bool isAllowedMovingWindowSlice=!isSlidingWindowActive ||
+                                                                      (transpose.x()==1 || transpose.y()==1);
+                                if( isAllowed2DSlice && isAllowedMovingWindowSlice )
                                 {
                                     VisType* tmp = new VisType(analyzerName, pngCreator, frequ, transpose, getValue(slicePoints, i));
                                     visIO.push_back(tmp);
@@ -127,7 +141,11 @@ namespace picongpu
                                 }
                                 else
                                 {
-                                    std::cerr << "[WARNING] You are running a 2D simulation: png output along the axis "<<
+                                    if(!isAllowedMovingWindowSlice)
+                                        std::cerr << "[WARNING] You are running a simulation with moving window: png output along the axis "<<
+                                                 getValue(axis, i) << " will be ignored" << std::endl;
+                                    if(!isAllowed2DSlice)
+                                        std::cerr << "[WARNING] You are running a 2D simulation: png output along the axis "<<
                                                  getValue(axis, i) << " will be ignored" << std::endl;
                                 }
                             }
