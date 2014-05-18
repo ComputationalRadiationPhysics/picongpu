@@ -75,6 +75,7 @@ Reduce<dim>::Reduce(const zone::SphericZone<dim>& _zone, bool setThisAsRoot) : c
     MPI_CHECK(MPI_Group_incl(world_group, new_ranks.size(), new_ranks.data(), &new_group));
     MPI_CHECK(MPI_Comm_create(MPI_COMM_WORLD, new_group, &this->comm));
     MPI_CHECK(MPI_Group_free(&new_group));
+    MPI_CHECK(MPI_Group_free(&world_group));
 }
 
 template<int dim>
