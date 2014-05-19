@@ -82,23 +82,41 @@ namespace picongpu
         PMacc::math::Int<simDim> gpuPos = gc.getPosition();
 
         /* my plane means: the r_element I am calculating should be 1GPU in width */
-        PMacc::math::Size_t<simDim> transversalPlane(gpuDim);
-        transversalPlane[this->axis_element.first] = 1;
-        /* my plane means: the offset for the transversal plane to my r_element
-         * should be zero
-         */
-        PMacc::math::Int<simDim> longOffset(0);
-        longOffset[this->axis_element.first] = gpuPos[this->axis_element.first];
+        PMacc::math::Size_t<simDim> sizeTransversalPlane(gpuDim);
+        sizeTransversalPlane[this->axis_element.first] = 1;
 
-        zone::SphericZone<simDim> zoneTransversalPlane( transversalPlane, longOffset );
+        for( int planePos = 0; planePos <= (int)gpuDim[this->axis_element.first]; ++planePos )
+        {
+            /* my plane means: the offset for the transversal plane to my r_element
+             * should be zero
+             */
+            PMacc::math::Int<simDim> longOffset(0);
+            longOffset[this->axis_element.first] = planePos;
 
-        /* Am I the lowest GPU in my plane? */
-        PMacc::math::Int<simDim> planePos(gpuPos);
-        planePos[this->axis_element.first] = 0;
-        this->isPlaneReduceRoot = ( planePos == PMacc::math::Int<simDim>(0) );
+            zone::SphericZone<simDim> zoneTransversalPlane( sizeTransversalPlane, longOffset );
 
-        this->planeReduce = new algorithm::mpi::Reduce<simDim>( zoneTransversalPlane,
-                                                                this->isPlaneReduceRoot );
+            /* Am I the lowest GPU in my plane? */
+            bool isGroupRoot = false;
+            bool isInGroup   = ( gpuPos[this->axis_element.first] == planePos );
+            if( isInGroup )
+            {
+                PMacc::math::Int<simDim> inPlaneGPU(gpuPos);
+                inPlaneGPU[this->axis_element.first] = 0;
+                if( inPlaneGPU == PMacc::math::Int<simDim>(0) )
+                    isGroupRoot = true;
+            }
+
+            algorithm::mpi::Reduce<simDim>* createReduce =
+                new algorithm::mpi::Reduce<simDim>( zoneTransversalPlane,
+                                                    isGroupRoot );
+            if( isInGroup )
+            {
+                this->planeReduce = createReduce;
+                this->isPlaneReduceRoot = isGroupRoot;
+            }
+            else
+                __delete( createReduce );
+        }
 
         /* Create communicator with ranks of each plane reduce root */
         {
@@ -198,6 +216,8 @@ namespace picongpu
          */
         using namespace lambda;
         container::HostBuffer<float_PS, 2> hReducedBuffer( hBuffer.size() );
+        hReducedBuffer.assign( float_PS(0.0) );
+
         (*this->planeReduce)( /* parameters: dest, source */
                              hReducedBuffer,
                              hBuffer,
