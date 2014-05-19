@@ -26,8 +26,10 @@
 #include "math/vector/UInt.hpp"
 #include "math/vector/Size_t.hpp"
 #include "math/vector/Float.hpp"
+#include "math/ConstVector.hpp"
 #include "math/vector/compile-time/Vector.hpp"
 #include "math/vector/compile-time/Int.hpp"
 #include "math/vector/compile-time/Size_t.hpp"
+#include "math/vector/compile-time/UInt.hpp"
 
 #include "math/vector/Vector.tpp"
