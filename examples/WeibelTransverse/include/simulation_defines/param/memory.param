@@ -19,8 +19,10 @@
  */ 
  
 
-
 #pragma once
+
+#include "math/Vector.hpp"
+#include "mappings/kernel/MappingDescription.hpp"
 
 namespace picongpu
 {
@@ -41,11 +43,16 @@ const size_t totalFreeGpuMemory = 400 *1024*1024;
 const double ions_memory_factor = 2;
 const double electrons_memory_factor = 2;
 
+/* short namepsace*/
+namespace mCT=PMacc::math::CT;
+/** size of a superCell
+ * 
+ * volume of a superCell must be <= 1024
+ */
+typedef typename mCT::shrinkTo<mCT::Int<8, 8, 4>, simDim>::type SuperCellSize;
 
-const uint32_t TILE_WIDTH = 8;
-const uint32_t TILE_HEIGHT = 8;
-const uint32_t TILE_DEPTH = 4;
-
+/** define the object for mapping superCells to cells*/
+typedef MappingDescription<simDim, SuperCellSize> MappingDesc;
 const uint32_t GUARD_SIZE = 1;
 
 //! how many bytes for buffer is reserved to communication in one direction
@@ -54,8 +61,4 @@ const uint32_t BYTES_EXCHANGE_Y = 12 * 512 * 1024; //12 MiB
 const uint32_t BYTES_EXCHANGE_Z = 256 * 256 * 1024; //256 MiB
 const uint32_t BYTES_CORNER = 2 * 256 * 1024; //2 MiB
 const uint32_t BYTES_EDGES = 8 * 256 * 1024; //8 MiB
-}
-//namespace picongpu
-
-
-
+}//namespace picongpu
