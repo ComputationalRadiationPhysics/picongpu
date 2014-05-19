@@ -22,7 +22,7 @@
 #pragma once
 
 #include "types.h"
-#include "math/vector/compile-time/Int.hpp"
+#include "math/Vector.hpp"
 
 namespace picongpu
 {

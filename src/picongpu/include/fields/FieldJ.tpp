@@ -37,7 +37,7 @@
 
 #include "fields/numericalCellTypes/NumericalCellTypes.hpp"
 
-#include "math/vector/compile-time/Vector.hpp"
+#include "math/Vector.hpp"
 
 namespace picongpu
 {

@@ -25,7 +25,7 @@
 #include "simulation_defines.hpp"
 #include "types.h"
 
-#include "math/vector/compile-time/Vector.hpp"
+#include "math/Vector.hpp"
 #include "particles/particleToGrid/ComputeGridValuePerFrame.def"
 
 #include "algorithms/Gamma.hpp"

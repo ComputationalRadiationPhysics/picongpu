@@ -29,7 +29,7 @@
 #include "math/vector/Size_t.hpp"
 #include "cuSTL/algorithm/kernel/run-time/Foreach.hpp"
 #include "lambda/Expression.hpp"
-#include "math/vector/compile-time/Int.hpp"
+#include "math/Vector.hpp"
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/at.hpp>
 #include "types.h"

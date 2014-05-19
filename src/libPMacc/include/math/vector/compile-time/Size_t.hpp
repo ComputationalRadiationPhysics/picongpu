@@ -22,7 +22,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "Vector.hpp"
+#include "math/Vector.hpp"
 #include <boost/mpl/integral_c.hpp>
 #include "traits/Limits.hpp"
 
@@ -47,8 +47,8 @@ template<size_t x = traits::limits::Max<size_t>::value,
          size_t y = traits::limits::Max<size_t>::value, 
          size_t z = traits::limits::Max<size_t>::value>
 struct Size_t : public CT::Vector<mpl::integral_c<size_t, x>,
-                                  mpl::integral_c<size_t, y>,
-                                  mpl::integral_c<size_t, z> >
+                              mpl::integral_c<size_t, y>,
+                              mpl::integral_c<size_t, z> >
 {};
 
 template<>
@@ -61,7 +61,7 @@ struct Size_t<x> : public CT::Vector<mpl::integral_c<size_t, x> >
 
 template<size_t x, size_t y>
 struct Size_t<x, y> : public CT::Vector<mpl::integral_c<size_t, x>,
-                                        mpl::integral_c<size_t, y> >
+                                    mpl::integral_c<size_t, y> >
 {};
     
 } // CT

@@ -23,7 +23,7 @@
 #pragma once
 
 #include "static_assert.hpp"
-#include "math/ConstVector.hpp"
+#include "math/Vector.hpp"
 
 namespace picongpu
 {

@@ -25,7 +25,7 @@
 #include "types.h"
 #include "algorithms/TypeCast.hpp"
 #include "math/vector/Int.hpp"
-#include "math/vector/compile-time/Int.hpp"
+#include "math/Vector.hpp"
 #include "math/VectorOperations.hpp"
 #include "forward.hpp"
 

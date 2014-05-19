@@ -48,7 +48,7 @@
 #include "dimensions/GridLayout.hpp"
 #include "pluginSystem/PluginConnector.hpp"
 #include "simulationControl/MovingWindow.hpp"
-#include "math/vector/compile-time/Int.hpp"
+#include "math/Vector.hpp"
 
 #include "plugins/ILightweightPlugin.hpp"
 #include <boost/mpl/vector.hpp>

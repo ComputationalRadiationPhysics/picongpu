@@ -205,8 +205,8 @@ __global__ void kernelBashCurrent(J_DataBox fieldJ,
     {
         if (direction[d] == -1)
         {
-            if (threadIndex[d] < tile_size[d] - exchangeSize[d]) return;
-            targetCell[d] -= tile_size[d] - exchangeSize[d];
+            if (threadIndex[d] < SuperCellSize::toRT()[d] - exchangeSize[d]) return;
+            targetCell[d] -= SuperCellSize::toRT()[d] - exchangeSize[d];
         }
         else if ((direction[d] == 1) && (threadIndex[d] >= exchangeSize[d])) return;
     }
@@ -239,14 +239,14 @@ __global__ void kernelInsertCurrent(J_DataBox fieldJ,
     {
         if (direction[d] == 1)
         {
-            if (threadIndex[d] < tile_size[d] - exchangeSize[d]) return;
-            sourceCell[d] -= tile_size[d] - exchangeSize[d];
-            targetCell[d] -= tile_size[d];
+            if (threadIndex[d] < SuperCellSize::toRT()[d] - exchangeSize[d]) return;
+            sourceCell[d] -= SuperCellSize::toRT()[d] - exchangeSize[d];
+            targetCell[d] -= SuperCellSize::toRT()[d];
         }
         else if (direction[d] == -1)
         {
             if (threadIndex[d] >= exchangeSize[d]) return;
-            targetCell[d] += tile_size[d];
+            targetCell[d] += SuperCellSize::toRT()[d];
         }
     }
 

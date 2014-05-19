@@ -23,11 +23,10 @@
 #define CONTAINER_CT_CTCARTBUFFER_HPP
 
 #include "types.h"
-#include "math/vector/compile-time/UInt.hpp"
+#include "math/Vector.hpp"
 #include "cuSTL/cursor/compile-time/BufferCursor.hpp"
 #include "cuSTL/cursor/navigator/CartNavigator.hpp"
 #include "cuSTL/cursor/accessor/PointerAccessor.hpp"
-#include <math/vector/compile-time/Int.hpp>
 #include <cuSTL/zone/compile-time/SphericZone.hpp>
 
 namespace PMacc

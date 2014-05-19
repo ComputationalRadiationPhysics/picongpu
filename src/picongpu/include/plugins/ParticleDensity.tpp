@@ -25,8 +25,7 @@
 #include "dataManagement/DataConnector.hpp"
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
-#include "math/vector/compile-time/Int.hpp"
-#include "math/vector/compile-time/Size_t.hpp"
+#include "math/Vector.hpp"
 #include "cuSTL/algorithm/mpi/Gather.hpp"
 #include "cuSTL/algorithm/kernel/Reduce.hpp"
 #include "cuSTL/algorithm/kernel/ForeachBlock.hpp"
@@ -115,11 +114,11 @@ void ParticleDensity<ParticlesType>::notify(uint32_t currentStep)
     
 
     namespace vec = ::PMacc::math;
-    typedef vec::CT::Size_t<TILE_WIDTH, TILE_HEIGHT, TILE_DEPTH> BlockDim;
+    typedef SuperCellSize BlockDim;
     container::PseudoBuffer<float3_X, 3> fieldE
         (dc.getData<FieldE > (FieldE::getName(), true).getGridBuffer().getDeviceBuffer());
-    zone::SphericZone<3> coreBorderZone(fieldE.zone().size - (size_t)2*BlockDim().toRT(),
-                                        fieldE.zone().offset + (vec::Int<3>)BlockDim().toRT());
+    zone::SphericZone<3> coreBorderZone(fieldE.zone().size - precisionCast<size_t>(2*BlockDim::toRT()),
+                                        fieldE.zone().offset + BlockDim::toRT());
 
     container::DeviceBuffer<int, 2> density(coreBorderZone.size.shrink<2>((plane+1)%3));
     density.assign(0);

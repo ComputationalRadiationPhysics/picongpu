@@ -23,7 +23,7 @@
 #pragma once
 
 
-#include "math/vector/Vector.hpp"
+#include "math/Vector.hpp"
 #include "algorithms/math.hpp"
 #include "algorithms/TypeCast.hpp"
 #include "mpi/GetMPI_StructAsArray.hpp"

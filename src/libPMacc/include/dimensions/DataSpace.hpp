@@ -28,8 +28,7 @@
 #include <iostream>
 
 #include "types.h"
-#include "math/vector/Vector.hpp"
-#include "math/vector/Size_t.hpp"
+#include "math/Vector.hpp"
 
 
 namespace PMacc

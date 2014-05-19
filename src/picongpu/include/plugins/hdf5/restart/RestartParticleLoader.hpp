@@ -262,7 +262,7 @@ public:
 
 
             // grab next empty frame
-            if (superCellPos != oldSuperCellPos || localId == TILE_SIZE)
+            if (superCellPos != oldSuperCellPos || localId == PMacc::math::CT::volume<SuperCellSize>::type::value)
             {
                 localId = 0;
                 frame = &(particlesBox.getEmptyFrame());
@@ -271,13 +271,13 @@ public:
             }
 
             for (uint32_t d = 0; d < simDim; ++d)
-                assert(cellPosInSuperCell[d] < tile_size[d]);
+                assert(cellPosInSuperCell[d] < SuperCellSize::toRT()[d]);
 
             PMacc::lcellId_t localCellId(DataSpaceOperations<simDim>::map(superCellSize, cellPosInSuperCell));
 
             // write to frame
-            assert(localId < TILE_SIZE);
-            assert((uint32_t) (localCellId) < TILE_SIZE);
+            assert(localId < (uint32_t)PMacc::math::CT::volume<SuperCellSize>::type::value);
+            assert((uint32_t) (localCellId) < PMacc::math::CT::volume<SuperCellSize>::type::value);
 
             PMACC_AUTO(particle, ((*frame)[localId]));
 
