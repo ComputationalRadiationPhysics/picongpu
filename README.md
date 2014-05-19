@@ -65,11 +65,11 @@ member of the [Dresden CUDA Center of Excellence](http://ccoe-dresden.de/) that
 cooperates on a broad range of scientific CUDA applications, workshops and
 teaching efforts.
 
-Referencing
+Attribution
 -----------
 
 PIConGPU is a *scientific project*. If you **present and/or publish** scientific
-results that used PIConGPU, you should set this as a **reference**.
+results that used PIConGPU, you should set a **reference** to show your support.
 
 Our according **up-to-date publication** at **the time of your publication**
 should be inquired from:
