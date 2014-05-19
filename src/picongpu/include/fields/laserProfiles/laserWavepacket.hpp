@@ -104,8 +104,8 @@ HINLINE float3_X laserLongitudinal(uint32_t currentStep, float_X& phase)
 HDINLINE float3_X laserTransversal(float3_X elong, const float_X, const float_X posX, const float_X posZ)
 {
 
-    const float_X exp_x = posX * posX / (W0_x * W0_x);
-    const float_X exp_z = posZ * posZ / (W0_z * W0_z);
+    const float_X exp_x = posX * posX / (W0_X * W0_X);
+    const float_X exp_z = posZ * posZ / (W0_Z * W0_Z);
 
 
 #if !defined(__CUDA_ARCH__) // Host code path
