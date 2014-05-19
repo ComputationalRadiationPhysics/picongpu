@@ -1,23 +1,24 @@
 /**
- * Copyright 2013 Heiko Burau
+ * Copyright 2013-2014 Heiko Burau, Axel Huebl
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include "mappings/simulation/GridController.hpp"
 #include <iostream>
@@ -69,10 +70,11 @@ Reduce<dim>::Reduce(const zone::SphericZone<dim>& _zone, bool setThisAsRoot) : c
         if(i == myWorldId) this->m_participate = true;
     }
     
-    MPI_Group world_group, new_group;
+    MPI_Group world_group = MPI_GROUP_NULL;
+    MPI_Group new_group = MPI_GROUP_NULL;
 
     MPI_CHECK(MPI_Comm_group(MPI_COMM_WORLD, &world_group));
-    MPI_CHECK(MPI_Group_incl(world_group, new_ranks.size(), new_ranks.data(), &new_group));
+    MPI_CHECK(MPI_Group_incl(world_group, new_ranks.size(), &(new_ranks.front()), &new_group));
     MPI_CHECK(MPI_Comm_create(MPI_COMM_WORLD, new_group, &this->comm));
     MPI_CHECK(MPI_Group_free(&new_group));
     MPI_CHECK(MPI_Group_free(&world_group));
