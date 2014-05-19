@@ -172,6 +172,7 @@ if(SCOREP_ENABLE)
     execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --cuda --mpp=mpi --libs
                     OUTPUT_VARIABLE SCOREP_LIBFLAGS
                     OUTPUT_STRIP_TRAILING_WHITESPACE)
+    string(STRIP "${SCOREP_LIBFLAGS}" SCOREP_LIBFLAGS)
 
     # subsystem iniialization file
     execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --cuda --mpp=mpi --adapter-init
