@@ -57,8 +57,8 @@ struct GetForwardedValue<RefWrapper<T_Type> >
 
 /** get forwarded value
  *
- * @tparam arbitrary type of parameter
- * 
+ * @tparam T_Type arbitrary type of parameter
+ *
  * @param arg forwarded value
  * @return reference to original value
  */
@@ -72,10 +72,10 @@ getForwardedValue(const T_Type& arg)
 
 /** function to forward changeable value as const variable
  *
- * any variable which should changeable in functor but must passed over
- * constant helper functor classes are packed in a constant
- * type and can passed (forwarded) to functor
- *
+ * any variable that should be changeable in the functor but must be passed via
+ * constant helper functor classes is packed in a constant type and can passed
+ * (forwarded) to functor
+ * 
  * To get original forwarded type back @see getForwardedValue
  */
 template<typename T_Type>

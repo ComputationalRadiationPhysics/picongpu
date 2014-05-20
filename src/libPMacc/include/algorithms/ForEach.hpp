@@ -98,7 +98,7 @@ namespace algorithms
 
 
 /** makro creates getForwardedValue(tn) */
-#define PMACC_GETFORWARDVALUE(z, n, value_name) getForwardedValue( t##n )
+#define PMACC_GET_FORWARDED_VALUE(_, n, value_name) getForwardedValue( value_name##n )
 
 /** create operator() for ForEach
  *
@@ -118,7 +118,7 @@ namespace algorithms
     operator()( BOOST_PP_ENUM_BINARY_PARAMS(N, const T, &t)) PMACC_PP_CONST    \
     {                                                                          \
         /*       (getForwardedValue(t0), ..., getForwardedValue(tn) ) */       \
-        Functor()(BOOST_PP_ENUM(N,PMACC_GETFORWARDVALUE, t));                  \
+        Functor()(BOOST_PP_ENUM(N,PMACC_GET_FORWARDED_VALUE, t));              \
         /*        (t0, ..., tn               ) */                              \
         NextCall()(BOOST_PP_ENUM_PARAMS(N, t));                                \
     } /*end of operator()*/
@@ -242,7 +242,7 @@ struct ForEach
 /* delete all preprocessor defines to avoid conflicts in other files */
 #undef PMACC_FOREACH_OPERATOR
 #undef PMACC_FOREACH_OPERATOR_NO_USAGE
-#undef PMACC_GETFORWARDVALUE
+#undef PMACC_GET_FORWARDED_VALUE
 
 } // namespace forEach
 } // namespace algorithms
