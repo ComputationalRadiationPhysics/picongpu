@@ -80,25 +80,27 @@ namespace picongpu
             /* String to Enum conversion */
             uint32_t el_space;
             if( this->element_space.at(i) == "x" )
-                el_space = Child::x;
+                el_space = AxisDescription::x;
             else if( this->element_space.at(i) == "y" )
-                el_space = Child::y;
+                el_space = AxisDescription::y;
             else if( this->element_space.at(i) == "z" )
-                el_space = Child::z;
+                el_space = AxisDescription::z;
             else
                 throw PluginException("[Plugin] [" + this->name + "] space must be x, y or z" );
 
-            uint32_t el_momentum = Child::px;
+            uint32_t el_momentum = AxisDescription::px;
             if( this->element_momentum.at(i) == "px" )
-                el_momentum = Child::px;
+                el_momentum = AxisDescription::px;
             else if( this->element_momentum.at(i) == "py" )
-                el_momentum = Child::py;
+                el_momentum = AxisDescription::py;
             else if( this->element_momentum.at(i) == "pz" )
-                el_momentum = Child::pz;
+                el_momentum = AxisDescription::pz;
             else
                 throw PluginException("[Plugin] [" + this->name + "] momentum must be px, py or pz" );
 
-            std::pair<uint32_t, uint32_t> new_elements( el_momentum, el_space );
+            AxisDescription new_elements;
+            new_elements.momentum = el_momentum;
+            new_elements.space = el_space;
 
             PhaseSpace<AssignmentFunction, Species>* newPS =
               new PhaseSpace<AssignmentFunction, Species>( this->name,

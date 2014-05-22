@@ -45,7 +45,8 @@ namespace picongpu
     {
         typedef void result_type;
 
-        DINLINE void operator()( Type& dest, const Type src )
+        DINLINE void
+        operator()( Type& dest, const Type src )
         {
             atomicAddWrapper( &dest, src );
         }
@@ -58,7 +59,7 @@ namespace picongpu
      * add the particle to the shared memory buffer for that phase
      * space snippet the super cell contributes to.
      *
-     * \tparam r_dir spatial direction of the phase space (0,1,2)
+     * \tparam r_dir spatial direction of the phase space (0,1,2) \see AxisDescription
      * \tparam num_pbins number of bins in momentum space \see PhaseSpace.hpp
      * \tparam SuperCellSize how many cells form a super cell \see memory.param
      */
@@ -72,15 +73,16 @@ namespace picongpu
          * \param frame current frame for this block
          * \param particleID id of the particle in the current frame
          * \param curDBufferOriginInBlock section of the phase space, shifted to the start of the block
-         * \param el_p coordinate of the momentum \see PhaseSpace::axis_element
+         * \param el_p coordinate of the momentum \see PhaseSpace::axis_element \see AxisDescription
          * \param axis_p_range range of the momentum coordinate \see PhaseSpace::axis_p_range
          */
         template<typename FramePtr, typename float_PS, typename Pitch >
-        DINLINE void operator()( FramePtr frame,
-                                 uint16_t particleID,
-                                 cursor::CT::BufferCursor<float_PS, Pitch> curDBufferOriginInBlock,
-                                 const uint32_t el_p,
-                                 const std::pair<float_X, float_X>& axis_p_range )
+        DINLINE void
+        operator()( FramePtr frame,
+                    uint16_t particleID,
+                    cursor::CT::BufferCursor<float_PS, Pitch> curDBufferOriginInBlock,
+                    const uint32_t el_p,
+                    const std::pair<float_X, float_X>& axis_p_range )
         {
             PMACC_AUTO( particle, (*frame)[particleID] );
             /** \todo this can become a functor to be even more flexible */
@@ -125,7 +127,7 @@ namespace picongpu
      * \tparam SuperCellSize how many cells form a super cell \see memory.param
      * \tparam float_PS type for each bin in the phase space
      * \tparam num_pbins number of bins in momentum space \see PhaseSpace.hpp
-     * \tparam r_dir spatial direction of the phase space (0,1,2)
+     * \tparam r_dir spatial direction of the phase space (0,1,2) \see AxisDescription
      */
     template<typename Species, typename SuperCellSize, typename float_PS, uint32_t num_pbins, uint32_t r_dir>
     struct FunctorBlock
@@ -139,17 +141,30 @@ namespace picongpu
         uint32_t p_element;
         std::pair<float_X, float_X> axis_p_range;
 
+        /** Constructor to transfer params to device
+         *
+         * \param pb ParticleBox for a species
+         * \param cur cursor to start of the local phase space in global memory
+         * \param p_dir direction of the 2D phase space in momentum \see AxisDescription
+         * \param p_range range of the momentum axis \see PhaseSpace::axis_p_range
+         */
+        HDINLINE
         FunctorBlock( const TParticlesBox& pb,
                       cursor::BufferCursor<float_PS, 2> cur,
-                      const uint32_t p_el,
-                      const std::pair<float_X, float_X>& a_ran ) :
-        particlesBox(pb), curOriginPhaseSpace(cur), p_element(p_el),
-        axis_p_range(a_ran)
+                      const uint32_t p_dir,
+                      const std::pair<float_X, float_X>& p_range ) :
+        particlesBox(pb), curOriginPhaseSpace(cur), p_element(p_dir),
+        axis_p_range(p_range)
         {}
 
         /** Called for the first cell of each block #-of-cells-in-block times
+         *
+         * \param indexBlockOffset cell index in global memory, describes where
+         *                         the current block starts
+         *                         \see cuSTL/algorithm/kernel/ForeachBlock.hpp
          */
-        DINLINE void operator()( const PMacc::math::Int<3>& indexBlockOffset )
+        DINLINE void
+        operator()( const PMacc::math::Int<3>& indexBlockOffset )
         {
             /** \todo write math::Vector constructor that supports dim3 */
             //const PMacc::math::Int<DIM3> indexInBlock( threadIdx.x, threadIdx.y, threadIdx.z );

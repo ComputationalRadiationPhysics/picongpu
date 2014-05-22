@@ -24,6 +24,7 @@
 #include <splash/splash.h>
 
 #include "simulation_defines.hpp"
+#include "plugins/PhaseSpace/AxisDescription.hpp"
 #include "communication/manager_common.h"
 #include "mappings/simulation/GridController.hpp"
 #include "mappings/simulation/SubGrid.hpp"
@@ -58,7 +59,7 @@ namespace picongpu
          */
         template<typename T_Type, int T_bufDim>
         void operator()( const PMacc::container::HostBuffer<T_Type, T_bufDim>& hBuffer,
-                         const std::pair<uint32_t, uint32_t> axis_element,
+                         const AxisDescription axis_element,
                          const std::pair<float_X, float_X> axis_p_range,
                          const float_64 pRange_unit,
                          const float_64 unit,
@@ -74,8 +75,8 @@ namespace picongpu
             std::string fCoords("xyz");
             std::ostringstream filename;
             filename << "phaseSpace/PhaseSpace_"
-                     << fCoords.at(axis_element.second)
-                     << "p" << fCoords.at(axis_element.first);
+                     << fCoords.at(axis_element.space)
+                     << "p" << fCoords.at(axis_element.momentum);
 
             /** get size of the fileWriter communicator ***********************/
             int size;
@@ -88,7 +89,7 @@ namespace picongpu
             PMacc::GridController<simDim>& gc =
                 PMacc::Environment<simDim>::get().GridController();
             DataCollector::FileCreationAttr fAttr;
-            Dimensions mpiPosition( gc.getPosition()[axis_element.second], 0, 0 );
+            Dimensions mpiPosition( gc.getPosition()[axis_element.space], 0, 0 );
             fAttr.mpiPosition.set( mpiPosition );
 
             DataCollector::initFileCreationAttr(fAttr);
@@ -97,30 +98,30 @@ namespace picongpu
 
             /** calculate GUARD offset in the source hBuffer *****************/
             const uint32_t rGuardCells =
-                SuperCellSize().toRT()[this->axis_element.second] * GUARD_SIZE;
+                SuperCellSize().toRT()[axis_element.space] * GUARD_SIZE;
 
             /** calculate local and global size of the phase space ***********/
             const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
             const DomainInformation domInfo;
-            const int rLocalOffset = domInfo.localDomain.offset[axis_element.second];
-            const int rLocalSize = domInfo.localDomain.size[axis_element.second];
-            assert( int(hBuffer.size().y() - 2*rGuardCells) == rLocalSize );
+            const int rLocalOffset = domInfo.localDomain.offset[axis_element.space];
+            const int rLocalSize = int(hBuffer.size().y() - 2*rGuardCells);
+            assert( rLocalSize == domInfo.localDomain.size[axis_element.space] );
 
             /* globalDomain of the phase space */
             splash::Dimensions globalPhaseSpace_size( hBuffer.size().x(),
-                                                      domInfo.globalDomain.size[axis_element.second],
+                                                      domInfo.globalDomain.size[axis_element.space],
                                                       1 );
 
             /* global moving window meta information */
             splash::Dimensions globalPhaseSpace_offset( 0, 0, 0 );
             int globalMovingWindowOffset = 0;
-            int globalMovingWindowSize   = domInfo.globalDomain.size[axis_element.second];
-            if( axis_element.second == 1 ) /* spatial axis == y */
+            int globalMovingWindowSize   = domInfo.globalDomain.size[axis_element.space];
+            if( axis_element.space == AxisDescription::y ) /* spatial axis == y */
             {
                 globalPhaseSpace_offset.set( 0, numSlides * domInfo.localDomain.size.y(), 0 );
                 Window window = MovingWindow::getInstance( ).getWindow( currentStep );
-                globalMovingWindowOffset = window.globalDimensions.offset[axis_element.second];
-                globalMovingWindowSize = window.globalDimensions.size[axis_element.second];
+                globalMovingWindowOffset = window.globalDimensions.offset[axis_element.space];
+                globalMovingWindowSize = window.globalDimensions.size[axis_element.space];
             }
 
             /* localDomain: offset of it in the globalDomain and size */
@@ -132,8 +133,8 @@ namespace picongpu
             /** Dataset Name **************************************************/
             std::ostringstream dataSetName;
             /* xpx or ypz or ... */
-            dataSetName << fCoords.at(axis_element.second)
-                        << "p" << fCoords.at(axis_element.first);
+            dataSetName << fCoords.at(axis_element.space)
+                        << "p" << fCoords.at(axis_element.momentum);
 
             /** debug log *****************************************************/
             int rank;
@@ -187,7 +188,7 @@ namespace picongpu
                                 "movingWindowSize", &globalMovingWindowSize );
 
             pdc.writeAttribute( currentStep, ctFloatX, dataSetName.str().c_str(),
-                                "dr", &(cellSize[axis_element.second]) );
+                                "dr", &(cellSize[axis_element.space]) );
             pdc.writeAttribute( currentStep, ctFloatX, dataSetName.str().c_str(),
                                 "dV", &CELL_VOLUME );
             pdc.writeAttribute( currentStep, ctFloat64, dataSetName.str().c_str(),

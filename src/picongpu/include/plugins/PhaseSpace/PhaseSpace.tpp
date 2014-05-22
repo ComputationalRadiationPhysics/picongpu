@@ -50,7 +50,7 @@ namespace picongpu
                                                          const std::string _prefix,
                                                          const uint32_t _notifyPeriod,
                                                          const std::pair<float_X, float_X>& _p_range,
-                                                         const std::pair<uint32_t, uint32_t>& _element ) :
+                                                         const AxisDescription& _element ) :
     cellDescription(NULL), name(_name), prefix(_prefix), particles(NULL),
     dBuffer(NULL), axis_p_range(_p_range), axis_element(_element),
     notifyPeriod(_notifyPeriod), isPlaneReduceRoot(false),
@@ -63,7 +63,7 @@ namespace picongpu
     {
         Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
 
-        const uint32_t r_element = this->axis_element.second;
+        const uint32_t r_element = this->axis_element.space;
 
         /* CORE + BORDER + GUARD elements for spatial bins */
         this->r_bins = SuperCellSize().toRT()[r_element]
@@ -83,25 +83,25 @@ namespace picongpu
 
         /* my plane means: the r_element I am calculating should be 1GPU in width */
         PMacc::math::Size_t<simDim> sizeTransversalPlane(gpuDim);
-        sizeTransversalPlane[this->axis_element.second] = 1;
+        sizeTransversalPlane[this->axis_element.space] = 1;
 
-        for( int planePos = 0; planePos <= (int)gpuDim[this->axis_element.second]; ++planePos )
+        for( int planePos = 0; planePos <= (int)gpuDim[this->axis_element.space]; ++planePos )
         {
             /* my plane means: the offset for the transversal plane to my r_element
              * should be zero
              */
             PMacc::math::Int<simDim> longOffset(0);
-            longOffset[this->axis_element.second] = planePos;
+            longOffset[this->axis_element.space] = planePos;
 
             zone::SphericZone<simDim> zoneTransversalPlane( sizeTransversalPlane, longOffset );
 
             /* Am I the lowest GPU in my plane? */
             bool isGroupRoot = false;
-            bool isInGroup   = ( gpuPos[this->axis_element.second] == planePos );
+            bool isInGroup   = ( gpuPos[this->axis_element.space] == planePos );
             if( isInGroup )
             {
                 PMacc::math::Int<simDim> inPlaneGPU(gpuPos);
-                inPlaneGPU[this->axis_element.second] = 0;
+                inPlaneGPU[this->axis_element.space] = 0;
                 if( inPlaneGPU == PMacc::math::Int<simDim>(0) )
                     isGroupRoot = true;
             }
@@ -176,7 +176,7 @@ namespace picongpu
 
         FunctorBlock<Species, SuperCellSize, float_PS, num_pbins, r_dir> functorBlock(
             this->particles->getDeviceParticlesBox(), dBuffer->origin(),
-            this->axis_element.first, this->axis_p_range );
+            this->axis_element.momentum, this->axis_p_range );
 
         forEachSuperCell( /* area to work on */
                           zoneCoreBorder,
@@ -197,12 +197,12 @@ namespace picongpu
         this->dBuffer->assign( float_PS(0.0) );
 
         /* calculate local phase space */
-        if( this->axis_element.second == This::x )
-            calcPhaseSpace<This::x>();
-        else if( this->axis_element.second == This::y )
-            calcPhaseSpace<This::y>();
+        if( this->axis_element.space == AxisDescription::x )
+            calcPhaseSpace<AxisDescription::x>();
+        else if( this->axis_element.space == AxisDescription::y )
+            calcPhaseSpace<AxisDescription::y>();
         else
-            calcPhaseSpace<This::z>();
+            calcPhaseSpace<AxisDescription::z>();
 
         /* transfer to host */
         container::HostBuffer<float_PS, 2> hBuffer( this->dBuffer->size() );
