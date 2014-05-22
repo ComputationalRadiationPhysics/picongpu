@@ -230,20 +230,6 @@ namespace picongpu
 
         /** \todo communicate GUARD and add it to the two neighbors BORDER */
 
-        /** prepare local output buffer of the phase space*/
-        //PMacc::SubGrid<simDim>& sg = Environment<simDim>::get().SubGrid();
-        //container::HostBuffer<float_PS, 2> hReducedBuffer_noGuard( this->num_pbins,
-        //                                                           sg.getSimulationBox().getLocalSize()[this->axis_element.second]
-        //                                                          );
-        //algorithm::host::Foreach forEachCopyWithoutGuard;
-        //forEachCopyWithoutGuard(/* area to work on */
-        //                        hReducedBuffer_noGuard.zone(),
-        //                        /* data below - passed to functor operator() */
-        //                        hReducedBuffer.origin()(0, SuperCellSize().toRT()[this->axis_element.second] * GUARD_SIZE),
-        //                        hReducedBuffer_noGuard.origin(),
-        //                        /* functor */
-        //                        _2 = _1);
-
         /* write to file */
         const float_64 UNIT_VOLUME = math::pow( UNIT_LENGTH, (int)simDim );
         const float_64 unit = UNIT_CHARGE / UNIT_VOLUME;

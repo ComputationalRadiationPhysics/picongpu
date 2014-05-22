@@ -42,13 +42,16 @@ namespace picongpu
 {
     class DumpHBuffer
     {
+    private:
+       typedef PMacc::math::CT::UInt<TILE_WIDTH, TILE_HEIGHT, TILE_DEPTH> SuperCellSize;
+
     public:
         /** Dump the PhaseSpace host Buffer
          *
          * \tparam Type the HBuffers element type
          * \tparam int the HBuffers dimension
-         * \param hBuffer const reference to the hBuffer
-         * \param axis_element plot to create: e.g. py, x from element_coordinate/momentum
+         * \param hBuffer const reference to the hBuffer, including guard cells in spatial dimension
+         * \param axis_element plot to create: e.g. py, x from momentum/spatial-coordinate
          * \param unit sim unit of the buffer
          * \param currentStep current time step
          * \param mpiComm communicator of the participating ranks
@@ -92,12 +95,16 @@ namespace picongpu
 
             pdc.open( filename.str().c_str(), fAttr );
 
+            /** calculate GUARD offset in the source hBuffer *****************/
+            const uint32_t rGuardCells =
+                SuperCellSize().toRT()[this->axis_element.second] * GUARD_SIZE;
+
             /** calculate local and global size of the phase space ***********/
             const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
             const DomainInformation domInfo;
             const int rLocalOffset = domInfo.localDomain.offset[axis_element.second];
             const int rLocalSize = domInfo.localDomain.size[axis_element.second];
-            assert( (int)hBuffer.size().y() - 16 == rLocalSize );
+            assert( int(hBuffer.size().y() - 2*rGuardCells) == rLocalSize );
 
             /* globalDomain of the phase space */
             splash::Dimensions globalPhaseSpace_size( hBuffer.size().x(),
@@ -132,7 +139,7 @@ namespace picongpu
             int rank;
             MPI_CHECK(MPI_Comm_rank( mpiComm, &rank ));
             log<picLog::INPUT_OUTPUT > ("Dump buffer %1% to %2% at offset %3% with size %4% for total size %5% for rank %6% / %7%")
-                % ( *(hBuffer.origin()(0,8)) ) % dataSetName.str() % localPhaseSpace_offset.toString()
+                % ( *(hBuffer.origin()(0,rGuardCells)) ) % dataSetName.str() % localPhaseSpace_offset.toString()
                 % localPhaseSpace_size.toString() % globalPhaseSpace_size.toString()
                 % rank % size;
 
@@ -157,7 +164,7 @@ namespace picongpu
                              ),
                              /* dataClass, buffer */
                              DomainCollector::GridType,
-                             &(*hBuffer.origin()(0,8)) );
+                             &(*hBuffer.origin()(0,rGuardCells)) );
 
             /** meta attributes for the data set: unit, range, moving window **/
             typedef PICToSplash<float_X>::type  SplashFloatXType;
