@@ -1,21 +1,21 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 #pragma once
@@ -28,6 +28,7 @@
 #include "basicOperations.hpp"
 #include <cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
 #include <cuSTL/cursor/compile-time/SafeCursor.hpp>
+#include "fields/currentDeposition/Esirkepov/Esirkepov.def"
 #include "fields/currentDeposition/Esirkepov/Line.hpp"
 
 namespace picongpu
@@ -37,35 +38,22 @@ namespace currentSolverEsirkepov
 using namespace PMacc;
 
 
-/**
- * \class Esirkepov implements the current deposition algorithm from T.Zh. Esirkepov
- * for an arbitrary particle assign function given as a template parameter.
- * See available shapes at "intermediateLib/particleShape".
- * paper: "Exact charge conservation scheme for Particle-in-Cell simulation
- *  with an arbitrary form-factor"
- * 
- * \tparam T_Dim Implementation for 2D or 3D
- * \tparam T_ParticleShape the particle shape for the species, \see picongpu::particleShape
- */
-template<uint32_t T_Dim, typename T_ParticleShape>
-struct Esirkepov;
-
 template<typename T_ParticleShape>
-struct Esirkepov<DIM3, T_ParticleShape>
+struct Esirkepov<T_ParticleShape,DIM3>
 {
     typedef typename T_ParticleShape::ChargeAssignment ParticleAssign;
     static const int supp = ParticleAssign::support;
 
-    static const int currentLowerMargin = supp / 2 + 1 -(supp + 1) % 2 ;
+    static const int currentLowerMargin = supp / 2 + 1 - (supp + 1) % 2;
     static const int currentUpperMargin = (supp + 1) / 2 + 1;
     typedef PMacc::math::CT::Int<currentLowerMargin, currentLowerMargin, currentLowerMargin> LowerMargin;
     typedef PMacc::math::CT::Int<currentUpperMargin, currentUpperMargin, currentUpperMargin> UpperMargin;
 
-    /* begin and end border is calculated for the current time step were the old 
+    /* begin and end border is calculated for the current time step were the old
      * position of the particle in the previous time step is smaller than the current position
      * Later on all coordinates are shifted thus we can solve the charge calculation
      * in support + 1 steps.
-     * 
+     *
      * For the case were previous position is greater than current position we correct
      * begin and end on runtime and add +1 to begin and end.
      */
@@ -79,10 +67,11 @@ struct Esirkepov<DIM3, T_ParticleShape>
      * \todo: please fix me that we can use CenteredCell
      */
     template<typename DataBoxJ, typename PosType, typename VelType, typename ChargeType >
-        DINLINE void operator()(DataBoxJ dataBoxJ,
-                                const PosType pos,
-                                const VelType velocity,
-                                const ChargeType charge, const float_X deltaTime)
+    DINLINE void operator()(DataBoxJ dataBoxJ,
+                            const PosType pos,
+                            const VelType velocity,
+                            const ChargeType charge,
+                            const float_X deltaTime)
     {
         this->charge = charge;
         const float3_X deltaPos = float3_X(velocity.x() * deltaTime / cellSize.x(),
@@ -92,7 +81,7 @@ struct Esirkepov<DIM3, T_ParticleShape>
         Line<float3_X> line(oldPos, pos);
         BOOST_AUTO(cursorJ, dataBoxJ.toCursor());
 
-        if (speciesParticleShape::ParticleShape::support % 2 == 1)
+        if (supp % 2 == 1)
         {
             /* odd support
              * shift coordinate system that we always can solve Esirkepov by going
@@ -100,9 +89,9 @@ struct Esirkepov<DIM3, T_ParticleShape>
              */
 
             /* for any direction
-             * if pos> 0.5 
+             * if pos> 0.5
              * shift curser+1 and new_pos=old_pos-1
-             * 
+             *
              * floor(pos*2.0) is equal (pos > 0.5)
              */
             float3_X coordinate_shift(
@@ -146,7 +135,7 @@ struct Esirkepov<DIM3, T_ParticleShape>
     {
         /* Check if particle position in previous step was greater or
          * smaller than current position.
-         * 
+         *
          * If previous position was greater than current position we change our interval
          * from [begin,end) to [begin+1,end+1).
          */
@@ -163,7 +152,7 @@ struct Esirkepov<DIM3, T_ParticleShape>
             for (int j = begin + offset_j; j < end + offset_j; ++j)
             {
                 /* This is the implementation of the FORTRAN W(i,j,k,3)/ C style W(i,j,k,2) version from
-                 * Esirkepov paper. All coordinates are rotated before thus we can 
+                 * Esirkepov paper. All coordinates are rotated before thus we can
                  * always use C style W(i,j,k,2).
                  */
                 float_X tmp =
@@ -175,7 +164,7 @@ struct Esirkepov<DIM3, T_ParticleShape>
                 float_X accumulated_J = float_X(0.0);
                 for (int k = begin + offset_k; k < end + offset_k; ++k)
                 {
-                    float_X W = DS(line,k,2) * tmp;
+                    float_X W = DS(line, k, 2) * tmp;
                     accumulated_J += -this->charge * (float_X(1.0) / float_X(CELL_VOLUME * DELTA_T)) * W * cellEdgeLength;
                     /* the branch divergence here still over-compensates for the fewer collisions in the (expensive) atomic adds */
                     if (accumulated_J != float_X(0.0))
@@ -205,29 +194,11 @@ struct Esirkepov<DIM3, T_ParticleShape>
      */
     DINLINE float_X DS(const Line<float3_X>& line, const float_X gridPoint, const float_X d)
     {
-        return ParticleAssign()(gridPoint-line.pos1[d]) - ParticleAssign()(gridPoint-line.pos0[d]);
+        return ParticleAssign()(gridPoint - line.pos1[d]) - ParticleAssign()(gridPoint - line.pos0[d]);
     }
 };
 
 } //namespace currentSolverEsirkepov
-
-namespace traits
-{
-
-/*Get margin of a solver
- * class must define a LowerMargin and UpperMargin 
- */
-template<uint32_t T_Dim, typename T_ParticleShape>
-struct GetMargin<picongpu::currentSolverEsirkepov::Esirkepov<T_Dim, T_ParticleShape> >
-{
-private:
-    typedef picongpu::currentSolverEsirkepov::Esirkepov<T_Dim, T_ParticleShape> Solver;
-public:
-    typedef typename Solver::LowerMargin LowerMargin;
-    typedef typename Solver::UpperMargin UpperMargin;
-};
-
-} //namespace traits
 
 } //namespace picongpu
 
