@@ -62,5 +62,5 @@ unset MODULES_NO_OUTPUT
 mkdir simOutput 2> /dev/null
 cd simOutput
 
-mpirun -n TBG_tasks --display-map -am tbg/openib.conf   ../picongpu/bin/picongpu TBG_programParams
+mpirun -n TBG_tasks --display-map -am tbg/openib.conf --mca mpi_leave_pinned 0 ../picongpu/bin/picongpu TBG_programParams
 
