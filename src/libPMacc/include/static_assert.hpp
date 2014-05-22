@@ -32,27 +32,42 @@ namespace PMacc
     struct StaticAssertError
     {
     };
+
+    template<typename T_Type=StaticAssertError>
+    struct GetStaticAssertInfoType
+    {
+        typedef T_Type type;
+    };
 }
 
 /** call BOOST_MPL_ASSERT_MSG and add unique id to message
  * @param cond an integral constant expression
  * @param msg a message those must a valid variable name (composition of characters_,A-Z,a-z)
  * @param unique_id pre compiler unique id
+ * @param typeInfo a type those is shown in error message
  */
-#define PMACC_STATIC_ASSERT_MSG_DO2(cond,msg,unique_id)                        \
-    BOOST_MPL_ASSERT_MSG(cond,PMACC_JOIN(msg,PMACC_JOIN(_________,unique_id)),(PMacc::StaticAssertError))
-
+#define PMACC_STATIC_ASSERT_MSG_DO2(cond, msg, unique_id, typeInfo)            \
+    BOOST_MPL_ASSERT_MSG(cond,PMACC_JOIN(msg,PMACC_JOIN(_________,unique_id)),(typeInfo))
 
 /*! static assert with error message
  * @param cond A condition which return true or false.
  * @param msg A message which is shown if the condition is false. Msg must a valid c++ variable name (etc. _only_human_make_mistakes)
+ * @param ... (optional) a type those is shown in error message
  */
-#define PMACC_STATIC_ASSERT_MSG(cond,msg) PMACC_STATIC_ASSERT_MSG_DO2(cond,msg,__COUNTER__)
+#define PMACC_STATIC_ASSERT_MSG(cond,msg,...)                                  \
+    PMACC_STATIC_ASSERT_MSG_DO2(cond,msg,__COUNTER__,typename GetStaticAssertInfoType<__VA_ARGS__>::type)
 
 /*! static assert
  * @param cond A condition which return true or false.
  */
-#define PMACC_STATIC_ASSERT(cond) PMACC_STATIC_ASSERT_MSG_DO2(cond,STATIC_ASSERTION_FAILURE,__COUNTER__)
+#define PMACC_STATIC_ASSERT(cond) PMACC_STATIC_ASSERT_MSG(cond,STATIC_ASSERTION_FAILURE)
+
+/*! static assert wrapper which is easier to use than \see PMACC_STATIC_ASSERT_MSG
+ * @param msg A message which is shown if the condition is false. Msg must a valid c++ variable name (etc. _only_human_make_mistakes)
+ * @param typeInfo a type those is shown in error message
+ * @param ... A condition which return true or false.
+ */
+#define PMACC_CASSERT_MSG_TYPE(msg,typeInfo,...) PMACC_STATIC_ASSERT_MSG((__VA_ARGS__),msg,typeInfo)
 
 /*! static assert wrapper which is easier to use than \see PMACC_STATIC_ASSERT_MSG
  * @param msg A message which is shown if the condition is false. Msg must a valid c++ variable name (etc. _only_human_make_mistakes)
@@ -64,7 +79,6 @@ namespace PMacc
  * @param ... A condition which return true or false.
  */
 #define PMACC_CASSERT(...) PMACC_STATIC_ASSERT((__VA_ARGS__))
-
 
 /*! static assert for undefined const variables
  *    using the SFINAE principle
