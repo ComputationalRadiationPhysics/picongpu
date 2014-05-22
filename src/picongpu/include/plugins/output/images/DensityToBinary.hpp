@@ -1,23 +1,23 @@
 /**
  * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 
 #ifndef DENSITYTOBINARY_HPP
@@ -41,7 +41,7 @@
 namespace picongpu
 {
     using namespace PMacc;
-    
+
 
     struct DensityToBinary
     {
@@ -83,7 +83,7 @@ namespace picongpu
             DataSpace<DIM2> gOffset = header.window.offset;
 
             std::ofstream file(filename.c_str(), std::ofstream::out ); //| std::ofstream::binary);
-            
+
             typedef std::numeric_limits< ValueType > dbl;
             file.precision(dbl::digits10);
             file << std::scientific;
@@ -91,7 +91,7 @@ namespace picongpu
             ValueType sizex = (int) size.x();
             //file.write((char*) (&sizex), sizeof (ValueType));
             file << sizex << " ";
-            
+
             //first line with y header information
             for (int x = 0; x < size.x(); ++x)
             {
@@ -100,7 +100,7 @@ namespace picongpu
                 file << cellPos << " ";
             }
             file << std::endl;
-            
+
             //the first column is for x header information
             for (int y = 0; y < size.y(); ++y)
             {
@@ -114,7 +114,7 @@ namespace picongpu
                     }
                     else
                     {
-                        const ValueType value = precisionCast<ValueType>(data[y][x])
+                        const ValueType value = precisionCast<ValueType>(data[y][x-1])
                                               * unit;
 
                         /** \info take care, that gnuplots binary matrix does
