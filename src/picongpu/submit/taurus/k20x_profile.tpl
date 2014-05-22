@@ -71,6 +71,11 @@ umask 0027
 mkdir simOutput 2> /dev/null
 cd simOutput
 
+# we are not sure if the current bullxmpi/1.2.4.3 catches pinned memory correctly
+#   support ticket [Ticket:2014052241001186] srun: mpi mca flags
+#   see bug https://github.com/ComputationalRadiationPhysics/picongpu/pull/438
+export OMPI_MCA_mpi_leave_pinned=0
+
 # Run CUDA memtest to check GPU's health
 srun -K1 !TBG_dstPath/picongpu/bin/cuda_memtest.sh
 
