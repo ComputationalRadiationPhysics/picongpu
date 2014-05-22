@@ -49,6 +49,10 @@ struct VillaBune
                             const VelType velocity,
                             const ChargeType charge, const float_X deltaTime)
     {
+        /* VillaBune: field to particle interpolation _requires_ the CIC shape
+         */
+        PMACC_CASSERT_MSG(currentSolverVillaBune_requires_shapeCIC_in_particleConfig,
+                    speciesParticleShape::ParticleShape::support == 2);
 
         // normalize deltaPos to innerCell units [0.; 1.)
         //   that means: dx_real   = v.x() * dt
