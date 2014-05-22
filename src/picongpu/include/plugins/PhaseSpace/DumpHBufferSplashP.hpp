@@ -44,7 +44,7 @@ namespace picongpu
     class DumpHBuffer
     {
     private:
-       typedef PMacc::math::CT::UInt<TILE_WIDTH, TILE_HEIGHT, TILE_DEPTH> SuperCellSize;
+       typedef typename MappingDesc::SuperCellSize SuperCellSize;
 
     public:
         /** Dump the PhaseSpace host Buffer
@@ -105,20 +105,21 @@ namespace picongpu
             const DomainInformation domInfo;
             const int rLocalOffset = domInfo.localDomain.offset[axis_element.space];
             const int rLocalSize = int(hBuffer.size().y() - 2*rGuardCells);
+            const int rGlobalSize = domInfo.globalDomain.size[axis_element.space];
             assert( rLocalSize == domInfo.localDomain.size[axis_element.space] );
 
             /* globalDomain of the phase space */
             splash::Dimensions globalPhaseSpace_size( hBuffer.size().x(),
-                                                      domInfo.globalDomain.size[axis_element.space],
+                                                      rGlobalSize,
                                                       1 );
 
             /* global moving window meta information */
             splash::Dimensions globalPhaseSpace_offset( 0, 0, 0 );
             int globalMovingWindowOffset = 0;
-            int globalMovingWindowSize   = domInfo.globalDomain.size[axis_element.space];
+            int globalMovingWindowSize   = rGlobalSize;
             if( axis_element.space == AxisDescription::y ) /* spatial axis == y */
             {
-                globalPhaseSpace_offset.set( 0, numSlides * domInfo.localDomain.size.y(), 0 );
+                globalPhaseSpace_offset.set( 0, numSlides * rLocalSize, 0 );
                 Window window = MovingWindow::getInstance( ).getWindow( currentStep );
                 globalMovingWindowOffset = window.globalDimensions.offset[axis_element.space];
                 globalMovingWindowSize = window.globalDimensions.size[axis_element.space];

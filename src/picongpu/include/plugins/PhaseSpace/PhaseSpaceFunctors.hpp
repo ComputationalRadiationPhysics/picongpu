@@ -167,8 +167,7 @@ namespace picongpu
         operator()( const PMacc::math::Int<3>& indexBlockOffset )
         {
             /** \todo write math::Vector constructor that supports dim3 */
-            //const PMacc::math::Int<DIM3> indexInBlock( threadIdx.x, threadIdx.y, threadIdx.z );
-            const PMacc::math::Int<DIM3> indexGlobal = indexBlockOffset;// + indexInBlock;
+            const PMacc::math::Int<DIM3> indexGlobal = indexBlockOffset;
 
             /* create shared mem */
             const uint32_t blockCellsInDir = SuperCellSize::template at<r_dir>::type::value;
