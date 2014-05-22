@@ -67,7 +67,7 @@ namespace PMacc
  * @param typeInfo a type those is shown in error message
  * @param ... A condition which return true or false.
  */
-#define PMACC_CASSERT_TYPE_MSG(msg,typeInfo,...) PMACC_STATIC_ASSERT_MSG((__VA_ARGS__),msg,typeInfo)
+#define PMACC_CASSERT_MSG_TYPE(msg,typeInfo,...) PMACC_STATIC_ASSERT_MSG((__VA_ARGS__),msg,typeInfo)
 
 /*! static assert wrapper which is easier to use than \see PMACC_STATIC_ASSERT_MSG
  * @param msg A message which is shown if the condition is false. Msg must a valid c++ variable name (etc. _only_human_make_mistakes)

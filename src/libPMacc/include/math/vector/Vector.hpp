@@ -83,7 +83,7 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
     typedef Vector<type, dim, Accessor, Navigator, T_Storage> This;
 
     /*Vectors without elements are not allowed*/
-    BOOST_STATIC_ASSERT(dim > 0);
+    PMACC_CASSERT_MSG(math_Vector__with_DIM_0_is_not_allowed,dim > 0);
 
     template<class> struct result;
 
@@ -106,7 +106,7 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
     HDINLINE
     Vector(const type x, const type y)
     {
-        BOOST_STATIC_ASSERT(dim == 2);
+        PMACC_CASSERT_MSG(math_Vector__constructor_is_only_allowed_for_DIM2,dim == 2);
         (*this)[0] = x;
         (*this)[1] = y;
     }
@@ -114,7 +114,7 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
     HDINLINE
     Vector(const type x, const type y, const type z)
     {
-        BOOST_STATIC_ASSERT(dim == 3);
+        PMACC_CASSERT_MSG(math_Vector__constructor_is_only_allowed_for_DIM3,dim == 3);
         (*this)[0] = x;
         (*this)[1] = y;
         (*this)[2] = z;
@@ -192,13 +192,13 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
 
     HDINLINE type & y()
     {
-        BOOST_STATIC_ASSERT(dim >= 2);
+        PMACC_CASSERT_MSG(math_Vector__access_to_y_is_not_allowed_DIM_lesser_than_2,dim >= 2);
         return (*this)[1];
     }
 
     HDINLINE type & z()
     {
-        BOOST_STATIC_ASSERT(dim >= 3);
+        PMACC_CASSERT_MSG(math_Vector__access_to_y_is_not_allowed_DIM_lesser_than_3,dim >= 3);
         return (*this)[2];
     }
 
@@ -209,20 +209,20 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
 
     HDINLINE const type & y() const
     {
-        BOOST_STATIC_ASSERT(dim >= 2);
+        PMACC_CASSERT_MSG(math_Vector__access_to_y_is_not_allowed_DIM_lesser_than_2,dim >= 2);
         return (*this)[1];
     }
 
     HDINLINE const type & z() const
     {
-        BOOST_STATIC_ASSERT(dim >= 3);
+        PMACC_CASSERT_MSG(math_Vector__access_to_y_is_not_allowed_DIM_lesser_than_3,dim >= 3);
         return (*this)[2];
     }
 
     template<int shrinkedDim >
     HDINLINE Vector<type, shrinkedDim, Accessor, Navigator, T_Storage> shrink(const int startIdx = 0) const
     {
-        BOOST_STATIC_ASSERT(shrinkedDim <= dim);
+        PMACC_CASSERT_MSG(math_Vector__shrinkedDim_DIM_must_be_lesser_or_equal_to_Vector_DIM,shrinkedDim <= dim);
         Vector<type, shrinkedDim, Accessor, Navigator> result;
         for (int i = 0; i < shrinkedDim; i++)
             result[i] = (*this)[(startIdx + i) % dim];
