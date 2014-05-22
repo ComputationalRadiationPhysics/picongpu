@@ -63,15 +63,15 @@ namespace picongpu
     {
         Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
 
-        const uint32_t r_element = this->axis_element.first;
+        const uint32_t r_element = this->axis_element.second;
 
         /* CORE + BORDER + GUARD elements for spatial bins */
         this->r_bins = SuperCellSize().toRT()[r_element]
                      * this->cellDescription->getGridSuperCells()[r_element];
 
-        this->dBuffer = new container::DeviceBuffer<float_PS, 2>( r_bins, this->num_pbins );
+        this->dBuffer = new container::DeviceBuffer<float_PS, 2>( this->num_pbins, r_bins );
 
-        /* reduce-add phase space from other GPUs in range [r;r+dr]x[p0;p1]
+        /* reduce-add phase space from other GPUs in range [p0;p1]x[r;r+dr]
          * to "lowest" node in range
          * e.g.: phase space x-py: reduce-add all nodes with same x range in
          *                         spatial y and z direction to node with
@@ -83,25 +83,25 @@ namespace picongpu
 
         /* my plane means: the r_element I am calculating should be 1GPU in width */
         PMacc::math::Size_t<simDim> sizeTransversalPlane(gpuDim);
-        sizeTransversalPlane[this->axis_element.first] = 1;
+        sizeTransversalPlane[this->axis_element.second] = 1;
 
-        for( int planePos = 0; planePos <= (int)gpuDim[this->axis_element.first]; ++planePos )
+        for( int planePos = 0; planePos <= (int)gpuDim[this->axis_element.second]; ++planePos )
         {
             /* my plane means: the offset for the transversal plane to my r_element
              * should be zero
              */
             PMacc::math::Int<simDim> longOffset(0);
-            longOffset[this->axis_element.first] = planePos;
+            longOffset[this->axis_element.second] = planePos;
 
             zone::SphericZone<simDim> zoneTransversalPlane( sizeTransversalPlane, longOffset );
 
             /* Am I the lowest GPU in my plane? */
             bool isGroupRoot = false;
-            bool isInGroup   = ( gpuPos[this->axis_element.first] == planePos );
+            bool isInGroup   = ( gpuPos[this->axis_element.second] == planePos );
             if( isInGroup )
             {
                 PMacc::math::Int<simDim> inPlaneGPU(gpuPos);
-                inPlaneGPU[this->axis_element.first] = 0;
+                inPlaneGPU[this->axis_element.second] = 0;
                 if( inPlaneGPU == PMacc::math::Int<simDim>(0) )
                     isGroupRoot = true;
             }
@@ -176,7 +176,7 @@ namespace picongpu
 
         FunctorBlock<Species, SuperCellSize, float_PS, num_pbins, r_dir> functorBlock(
             this->particles->getDeviceParticlesBox(), dBuffer->origin(),
-            this->axis_element.second, this->axis_p_range );
+            this->axis_element.first, this->axis_p_range );
 
         forEachSuperCell( /* area to work on */
                           zoneCoreBorder,
@@ -197,9 +197,9 @@ namespace picongpu
         this->dBuffer->assign( float_PS(0.0) );
 
         /* calculate local phase space */
-        if( this->axis_element.first == This::x )
+        if( this->axis_element.second == This::x )
             calcPhaseSpace<This::x>();
-        else if( this->axis_element.first == This::y )
+        else if( this->axis_element.second == This::y )
             calcPhaseSpace<This::y>();
         else
             calcPhaseSpace<This::z>();
@@ -208,7 +208,7 @@ namespace picongpu
         container::HostBuffer<float_PS, 2> hBuffer( this->dBuffer->size() );
         hBuffer = *this->dBuffer;
 
-        /* reduce-add phase space from other GPUs in range [r;r+dr]x[p0;p1]
+        /* reduce-add phase space from other GPUs in range [p0;p1]x[r;r+dr]
          * to "lowest" node in range
          * e.g.: phase space x-py: reduce-add all nodes with same x range in
          *                         spatial y and z direction to node with
@@ -231,17 +231,18 @@ namespace picongpu
         /** \todo communicate GUARD and add it to the two neighbors BORDER */
 
         /** prepare local output buffer of the phase space*/
-        PMacc::SubGrid<simDim>& sg = Environment<simDim>::get().SubGrid();
-        container::HostBuffer<float_PS, 2> hReducedBuffer_noGuard( sg.getSimulationBox().getLocalSize()[this->axis_element.first],
-                                                                  this->num_pbins );
-        algorithm::host::Foreach forEachCopyWithoutGuard;
-        forEachCopyWithoutGuard(/* area to work on */
-                                hReducedBuffer_noGuard.zone(),
-                                /* data below - passed to functor operator() */
-                                hReducedBuffer.origin()(SuperCellSize().toRT()[this->axis_element.first] * GUARD_SIZE, 0),
-                                hReducedBuffer_noGuard.origin(),
-                                /* functor */
-                                _2 = _1);
+        //PMacc::SubGrid<simDim>& sg = Environment<simDim>::get().SubGrid();
+        //container::HostBuffer<float_PS, 2> hReducedBuffer_noGuard( this->num_pbins,
+        //                                                           sg.getSimulationBox().getLocalSize()[this->axis_element.second]
+        //                                                          );
+        //algorithm::host::Foreach forEachCopyWithoutGuard;
+        //forEachCopyWithoutGuard(/* area to work on */
+        //                        hReducedBuffer_noGuard.zone(),
+        //                        /* data below - passed to functor operator() */
+        //                        hReducedBuffer.origin()(0, SuperCellSize().toRT()[this->axis_element.second] * GUARD_SIZE),
+        //                        hReducedBuffer_noGuard.origin(),
+        //                        /* functor */
+        //                        _2 = _1);
 
         /* write to file */
         const float_64 UNIT_VOLUME = math::pow( UNIT_LENGTH, (int)simDim );
@@ -259,7 +260,7 @@ namespace picongpu
         DumpHBuffer dumpHBuffer;
 
         if( this->commFileWriter != MPI_COMM_NULL )
-            dumpHBuffer( hReducedBuffer_noGuard, this->axis_element,
+            dumpHBuffer( hReducedBuffer, this->axis_element,
                          this->axis_p_range, pRange_unit,
                          unit, currentStep, this->commFileWriter );
     }

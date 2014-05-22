@@ -48,7 +48,7 @@ namespace picongpu
          * \tparam Type the HBuffers element type
          * \tparam int the HBuffers dimension
          * \param hBuffer const reference to the hBuffer
-         * \param axis_element plot to create: e.g. x, py from element_coordinate/momentum
+         * \param axis_element plot to create: e.g. py, x from element_coordinate/momentum
          * \param unit sim unit of the buffer
          * \param currentStep current time step
          * \param mpiComm communicator of the participating ranks
@@ -60,7 +60,7 @@ namespace picongpu
                          const float_64 pRange_unit,
                          const float_64 unit,
                          const uint32_t currentStep,
-                         MPI_Comm& mpiComm ) const
+                         MPI_Comm mpiComm ) const
         {
             using namespace splash;
             typedef T_Type Type;
@@ -71,8 +71,8 @@ namespace picongpu
             std::string fCoords("xyz");
             std::ostringstream filename;
             filename << "phaseSpace/PhaseSpace_"
-                     << fCoords.at(axis_element.first)
-                     << "p" << fCoords.at(axis_element.second);
+                     << fCoords.at(axis_element.second)
+                     << "p" << fCoords.at(axis_element.first);
 
             /** get size of the fileWriter communicator ***********************/
             int size;
@@ -85,7 +85,7 @@ namespace picongpu
             PMacc::GridController<simDim>& gc =
                 PMacc::Environment<simDim>::get().GridController();
             DataCollector::FileCreationAttr fAttr;
-            Dimensions mpiPosition( gc.getPosition()[axis_element.first], 0, 0 );
+            Dimensions mpiPosition( gc.getPosition()[axis_element.second], 0, 0 );
             fAttr.mpiPosition.set( mpiPosition );
 
             DataCollector::initFileCreationAttr(fAttr);
@@ -95,37 +95,46 @@ namespace picongpu
             /** calculate local and global size of the phase space ***********/
             const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
             const DomainInformation domInfo;
-            const int rLocalOffset = domInfo.localDomain.offset[axis_element.first];
-            const int rLocalSize = domInfo.localDomain.size[axis_element.first];
-            assert( (int)hBuffer.size().x() == rLocalSize );
+            const int rLocalOffset = domInfo.localDomain.offset[axis_element.second];
+            const int rLocalSize = domInfo.localDomain.size[axis_element.second];
+            assert( (int)hBuffer.size().y() - 16 == rLocalSize );
 
             /* globalDomain of the phase space */
-            splash::Dimensions globalPhaseSpace_size( domInfo.globalDomain.size[axis_element.first],
-                                                      hBuffer.size().y(), 1 );
+            splash::Dimensions globalPhaseSpace_size( hBuffer.size().x(),
+                                                      domInfo.globalDomain.size[axis_element.second],
+                                                      1 );
 
             /* global moving window meta information */
             splash::Dimensions globalPhaseSpace_offset( 0, 0, 0 );
             int globalMovingWindowOffset = 0;
-            int globalMovingWindowSize   = domInfo.globalDomain.size[axis_element.first];
-            if( axis_element.first == 1 ) /* spatial axis == y */
+            int globalMovingWindowSize   = domInfo.globalDomain.size[axis_element.second];
+            if( axis_element.second == 1 ) /* spatial axis == y */
             {
-                globalPhaseSpace_offset.set( numSlides * domInfo.localDomain.size.y(), 0, 0 );
+                globalPhaseSpace_offset.set( 0, numSlides * domInfo.localDomain.size.y(), 0 );
                 Window window = MovingWindow::getInstance( ).getWindow( currentStep );
-                globalMovingWindowOffset = window.globalDimensions.offset[axis_element.first];
-                globalMovingWindowSize = window.globalDimensions.size[axis_element.first];
+                globalMovingWindowOffset = window.globalDimensions.offset[axis_element.second];
+                globalMovingWindowSize = window.globalDimensions.size[axis_element.second];
             }
 
             /* localDomain: offset of it in the globalDomain and size */
-            splash::Dimensions localPhaseSpace_offset( rLocalOffset, 0, 0 );
-            splash::Dimensions localPhaseSpace_size( rLocalSize,
-                                                     hBuffer.size().y(),
+            splash::Dimensions localPhaseSpace_offset( 0, rLocalOffset, 0 );
+            splash::Dimensions localPhaseSpace_size( hBuffer.size().x(),
+                                                     rLocalSize,
                                                      1 );
 
             /** Dataset Name **************************************************/
             std::ostringstream dataSetName;
             /* xpx or ypz or ... */
-            dataSetName << fCoords.at(axis_element.first)
-                        << "p" << fCoords.at(axis_element.second);
+            dataSetName << fCoords.at(axis_element.second)
+                        << "p" << fCoords.at(axis_element.first);
+
+            /** debug log *****************************************************/
+            int rank;
+            MPI_CHECK(MPI_Comm_rank( mpiComm, &rank ));
+            log<picLog::INPUT_OUTPUT > ("Dump buffer %1% to %2% at offset %3% with size %4% for total size %5% for rank %6% / %7%")
+                % ( *(hBuffer.origin()(0,8)) ) % dataSetName.str() % localPhaseSpace_offset.toString()
+                % localPhaseSpace_size.toString() % globalPhaseSpace_size.toString()
+                % rank % size;
 
             /** write local domain ********************************************/
             typename PICToSplash<Type>::type ctPhaseSpace;
@@ -148,7 +157,7 @@ namespace picongpu
                              ),
                              /* dataClass, buffer */
                              DomainCollector::GridType,
-                             &(*hBuffer.origin()) );
+                             &(*hBuffer.origin()(0,8)) );
 
             /** meta attributes for the data set: unit, range, moving window **/
             typedef PICToSplash<float_X>::type  SplashFloatXType;
@@ -171,7 +180,7 @@ namespace picongpu
                                 "movingWindowSize", &globalMovingWindowSize );
 
             pdc.writeAttribute( currentStep, ctFloatX, dataSetName.str().c_str(),
-                                "dr", &(cellSize[axis_element.first]) );
+                                "dr", &(cellSize[axis_element.second]) );
             pdc.writeAttribute( currentStep, ctFloatX, dataSetName.str().c_str(),
                                 "dV", &CELL_VOLUME );
             pdc.writeAttribute( currentStep, ctFloat64, dataSetName.str().c_str(),

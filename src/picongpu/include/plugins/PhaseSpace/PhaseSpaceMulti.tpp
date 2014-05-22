@@ -98,7 +98,7 @@ namespace picongpu
             else
                 throw PluginException("[Plugin] [" + this->name + "] momentum must be px, py or pz" );
 
-            std::pair<uint32_t, uint32_t> new_elements( el_space, el_momentum );
+            std::pair<uint32_t, uint32_t> new_elements( el_momentum, el_space );
 
             PhaseSpace<AssignmentFunction, Species>* newPS =
               new PhaseSpace<AssignmentFunction, Species>( this->name,

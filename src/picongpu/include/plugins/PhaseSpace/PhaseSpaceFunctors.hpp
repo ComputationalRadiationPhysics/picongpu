@@ -109,7 +109,7 @@ namespace picongpu
             p_bin += int(p_bin >= num_pbins) * (num_pbins - 1 - p_bin);
 
             /** \todo take particle shape into account */
-            atomicAddWrapper( &(*curDBufferOriginInBlock( r_bin, p_bin )),
+            atomicAddWrapper( &(*curDBufferOriginInBlock( p_bin, r_bin )),
                               particleChargeDensity );
         }
     };
@@ -152,12 +152,12 @@ namespace picongpu
         DINLINE void operator()( const PMacc::math::Int<3>& indexBlockOffset )
         {
             /** \todo write math::Vector constructor that supports dim3 */
-            const PMacc::math::Int<DIM3> indexInBlock( threadIdx.x, threadIdx.y, threadIdx.z );
-            const PMacc::math::Int<DIM3> indexGlobal = indexBlockOffset + indexInBlock;
+            //const PMacc::math::Int<DIM3> indexInBlock( threadIdx.x, threadIdx.y, threadIdx.z );
+            const PMacc::math::Int<DIM3> indexGlobal = indexBlockOffset;// + indexInBlock;
 
             /* create shared mem */
             const uint32_t blockCellsInDir = SuperCellSize::template at<r_dir>::type::value;
-            typedef PMacc::math::CT::Int<blockCellsInDir, num_pbins> dBufferSizeInBlock;
+            typedef PMacc::math::CT::Int<num_pbins, blockCellsInDir> dBufferSizeInBlock;
             container::CT::SharedBuffer<float_PS, dBufferSizeInBlock > dBufferInBlock;
 
             /* init shared mem */
@@ -187,7 +187,7 @@ namespace picongpu
                                   dBufferInBlock.zone(),
                                   /* data below - cursors will be shifted and
                                    * dereferenced */
-                                  curOriginPhaseSpace(indexBlockOffset[r_dir], 0),
+                                  curOriginPhaseSpace(0, indexBlockOffset[r_dir]),
                                   dBufferInBlock.origin(),
                                   /* functor */
                                   FunctorAtomicAdd<float_PS>() );

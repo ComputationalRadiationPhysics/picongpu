@@ -52,7 +52,7 @@ namespace picongpu
         Species *particles;
         MappingDesc *cellDescription;
 
-        /** plot to create: e.g. x, py from element_coordinate/momentum */
+        /** plot to create: e.g. py, x from element_coordinate/momentum */
         std::pair<uint32_t, uint32_t> axis_element;
         /** range [pMin : pMax] in m_e c */
         std::pair<float_X, float_X> axis_p_range;

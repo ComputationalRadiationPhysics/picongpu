@@ -57,7 +57,7 @@ namespace picongpu
         std::vector<float_X> momentum_range_min;
         std::vector<float_X> momentum_range_max;
 
-        /** plot to create: e.g. x, py from element_coordinate/momentum */
+        /** plot to create: e.g. py, x from element_coordinate/momentum */
         std::vector<std::pair<uint32_t, uint32_t> > axis_element;
         /** range [pMin : pMax] in m_e c */
         std::vector<std::pair<float_X, float_X> > axis_p_range;
