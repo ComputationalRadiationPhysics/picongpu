@@ -30,6 +30,8 @@
 #include "cuSTL/algorithm/mpi/Reduce.hpp"
 #include "math/vector/compile-time/UInt.hpp"
 
+#include "plugins/PhaseSpace/AxisDescription.hpp"
+
 #include <string>
 #include <utility>
 
@@ -52,8 +54,8 @@ namespace picongpu
         Species *particles;
         MappingDesc *cellDescription;
 
-        /** plot to create: e.g. x, py from element_coordinate/momentum */
-        std::pair<uint32_t, uint32_t> axis_element;
+        /** plot to create: e.g. py, x from element_coordinate/momentum */
+        AxisDescription axis_element;
         /** range [pMin : pMax] in m_e c */
         std::pair<float_X, float_X> axis_p_range;
         uint32_t r_bins;
@@ -70,20 +72,14 @@ namespace picongpu
          */
         MPI_Comm commFileWriter;
 
-        typedef PhaseSpace<AssignmentFunction, Species> This;
         typedef PMacc::math::CT::UInt<TILE_WIDTH, TILE_HEIGHT, TILE_DEPTH> SuperCellSize;
 
     public:
-        enum element_coordinate
-        { x = 0u, y = 1u, z = 2u };
-        enum element_momentum
-        { px = 0u, py = 1u, pz = 2u };
-
         PhaseSpace( const std::string _name,
                      const std::string _prefix,
                      const uint32_t _notifyPeriod,
                      const std::pair<float_X, float_X>& _p_range,
-                     const std::pair<uint32_t, uint32_t>& _element );
+                     const AxisDescription& _element );
         virtual ~PhaseSpace(){}
 
         void notify( uint32_t currentStep );

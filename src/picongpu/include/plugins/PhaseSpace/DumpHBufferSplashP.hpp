@@ -24,9 +24,11 @@
 #include <splash/splash.h>
 
 #include "simulation_defines.hpp"
+#include "plugins/PhaseSpace/AxisDescription.hpp"
 #include "communication/manager_common.h"
 #include "mappings/simulation/GridController.hpp"
 #include "mappings/simulation/SubGrid.hpp"
+#include "simulationControl/DomainInformation.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
 #include "math/vector/Int.hpp"
@@ -35,28 +37,34 @@
 #include <fstream>
 #include <sstream>
 #include <utility>
+#include <cassert>
 
 namespace picongpu
 {
     class DumpHBuffer
     {
+    private:
+       typedef typename MappingDesc::SuperCellSize SuperCellSize;
+
     public:
         /** Dump the PhaseSpace host Buffer
          *
          * \tparam Type the HBuffers element type
          * \tparam int the HBuffers dimension
-         * \param hBuffer const reference to the hBuffer
-         * \param axis_element plot to create: e.g. x, py from element_coordinate/momentum
+         * \param hBuffer const reference to the hBuffer, including guard cells in spatial dimension
+         * \param axis_element plot to create: e.g. py, x from momentum/spatial-coordinate
          * \param unit sim unit of the buffer
          * \param currentStep current time step
          * \param mpiComm communicator of the participating ranks
          */
         template<typename T_Type, int T_bufDim>
         void operator()( const PMacc::container::HostBuffer<T_Type, T_bufDim>& hBuffer,
-                          const std::pair<uint32_t, uint32_t> axis_element,
-                          const double unit,
-                          const uint32_t currentStep,
-                          MPI_Comm& mpiComm ) const
+                         const AxisDescription axis_element,
+                         const std::pair<float_X, float_X> axis_p_range,
+                         const float_64 pRange_unit,
+                         const float_64 unit,
+                         const uint32_t currentStep,
+                         MPI_Comm mpiComm ) const
         {
             using namespace splash;
             typedef T_Type Type;
@@ -67,8 +75,8 @@ namespace picongpu
             std::string fCoords("xyz");
             std::ostringstream filename;
             filename << "phaseSpace/PhaseSpace_"
-                     << fCoords.at(axis_element.first)
-                     << "p" << fCoords.at(axis_element.second);
+                     << fCoords.at(axis_element.space)
+                     << "p" << fCoords.at(axis_element.momentum);
 
             /** get size of the fileWriter communicator ***********************/
             int size;
@@ -81,45 +89,64 @@ namespace picongpu
             PMacc::GridController<simDim>& gc =
                 PMacc::Environment<simDim>::get().GridController();
             DataCollector::FileCreationAttr fAttr;
-            Dimensions mpiPosition( gc.getPosition()[axis_element.first], 0, 0 );
+            Dimensions mpiPosition( gc.getPosition()[axis_element.space], 0, 0 );
             fAttr.mpiPosition.set( mpiPosition );
 
             DataCollector::initFileCreationAttr(fAttr);
 
             pdc.open( filename.str().c_str(), fAttr );
 
-            /** calculate global size of the phase space **********************/
-            PMACC_AUTO( simBox, Environment<simDim>::get().SubGrid().getSimulationBox( ) );
-            const size_t rOffset = simBox.getGlobalOffset()[axis_element.first];
-            const size_t rSize = simBox.getGlobalSize()[axis_element.first];
+            /** calculate GUARD offset in the source hBuffer *****************/
+            const uint32_t rGuardCells =
+                SuperCellSize().toRT()[axis_element.space] * GUARD_SIZE;
+
+            /** calculate local and global size of the phase space ***********/
+            const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
+            const DomainInformation domInfo;
+            const int rLocalOffset = domInfo.localDomain.offset[axis_element.space];
+            const int rLocalSize = int(hBuffer.size().y() - 2*rGuardCells);
+            const int rGlobalSize = domInfo.globalDomain.size[axis_element.space];
+            assert( rLocalSize == domInfo.localDomain.size[axis_element.space] );
 
             /* globalDomain of the phase space */
-            splash::Dimensions globalPhaseSpace_size( rSize, hBuffer.size().y(), 1 );
-            /* moving window meta information */
+            splash::Dimensions globalPhaseSpace_size( hBuffer.size().x(),
+                                                      rGlobalSize,
+                                                      1 );
+
+            /* global moving window meta information */
             splash::Dimensions globalPhaseSpace_offset( 0, 0, 0 );
-            if( axis_element.first == 1 ) /* spatial axis == y */
+            int globalMovingWindowOffset = 0;
+            int globalMovingWindowSize   = rGlobalSize;
+            if( axis_element.space == AxisDescription::y ) /* spatial axis == y */
             {
-                const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
-                globalPhaseSpace_offset.set( numSlides * simBox.getLocalSize( ).y(),
-                                             0, 0 );
+                globalPhaseSpace_offset.set( 0, numSlides * rLocalSize, 0 );
+                Window window = MovingWindow::getInstance( ).getWindow( currentStep );
+                globalMovingWindowOffset = window.globalDimensions.offset[axis_element.space];
+                globalMovingWindowSize = window.globalDimensions.size[axis_element.space];
             }
 
             /* localDomain: offset of it in the globalDomain and size */
-            splash::Dimensions localPhaseSpace_offset( rOffset, 0, 0 );
+            splash::Dimensions localPhaseSpace_offset( 0, rLocalOffset, 0 );
             splash::Dimensions localPhaseSpace_size( hBuffer.size().x(),
-                                                     hBuffer.size().y(),
+                                                     rLocalSize,
                                                      1 );
 
             /** Dataset Name **************************************************/
             std::ostringstream dataSetName;
             /* xpx or ypz or ... */
-            dataSetName << fCoords.at(axis_element.first)
-                        << "p" << fCoords.at(axis_element.second);
+            dataSetName << fCoords.at(axis_element.space)
+                        << "p" << fCoords.at(axis_element.momentum);
+
+            /** debug log *****************************************************/
+            int rank;
+            MPI_CHECK(MPI_Comm_rank( mpiComm, &rank ));
+            log<picLog::INPUT_OUTPUT > ("Dump buffer %1% to %2% at offset %3% with size %4% for total size %5% for rank %6% / %7%")
+                % ( *(hBuffer.origin()(0,rGuardCells)) ) % dataSetName.str() % localPhaseSpace_offset.toString()
+                % localPhaseSpace_size.toString() % globalPhaseSpace_size.toString()
+                % rank % size;
 
             /** write local domain ********************************************/
             typename PICToSplash<Type>::type ctPhaseSpace;
-
-            std::cout << "ps dump my start: " << rOffset << std::endl;
 
             pdc.writeDomain( currentStep,
                              /* global domain and my local offset within it */
@@ -139,16 +166,41 @@ namespace picongpu
                              ),
                              /* dataClass, buffer */
                              DomainCollector::GridType,
-                             &(*hBuffer.origin()) );
+                             &(*hBuffer.origin()(0,rGuardCells)) );
 
-            ColTypeDouble ctDouble;
-            pdc.writeAttribute( currentStep, ctDouble, dataSetName.str().c_str(),
+            /** meta attributes for the data set: unit, range, moving window **/
+            typedef PICToSplash<float_X>::type  SplashFloatXType;
+            typedef PICToSplash<float_64>::type SplashFloat64Type;
+            ColTypeInt ctInt;
+            SplashFloat64Type ctFloat64;
+            SplashFloatXType  ctFloatX;
+
+            pdc.writeAttribute( currentStep, ctFloat64, dataSetName.str().c_str(),
                                 "sim_unit", &unit );
+            pdc.writeAttribute( currentStep, ctFloat64, dataSetName.str().c_str(),
+                                "p_unit", &pRange_unit );
+            pdc.writeAttribute( currentStep, ctFloatX, dataSetName.str().c_str(),
+                                "p_min", &(axis_p_range.first) );
+            pdc.writeAttribute( currentStep, ctFloatX, dataSetName.str().c_str(),
+                                "p_max", &(axis_p_range.second) );
+            pdc.writeAttribute( currentStep, ctInt, dataSetName.str().c_str(),
+                                "movingWindowOffset", &globalMovingWindowOffset );
+            pdc.writeAttribute( currentStep, ctInt, dataSetName.str().c_str(),
+                                "movingWindowSize", &globalMovingWindowSize );
+
+            pdc.writeAttribute( currentStep, ctFloatX, dataSetName.str().c_str(),
+                                "dr", &(cellSize[axis_element.space]) );
+            pdc.writeAttribute( currentStep, ctFloatX, dataSetName.str().c_str(),
+                                "dV", &CELL_VOLUME );
+            pdc.writeAttribute( currentStep, ctFloat64, dataSetName.str().c_str(),
+                                "dr_unit", &UNIT_LENGTH );
+            pdc.writeAttribute( currentStep, ctFloatX, dataSetName.str().c_str(),
+                                "dt", &DELTA_T );
+            pdc.writeAttribute( currentStep, ctFloat64, dataSetName.str().c_str(),
+                                "dt_unit", &UNIT_TIME );
 
             /** close file ****************************************************/
-#if (SPLASH_VERSION_MAJOR>1) || ((SPLASH_VERSION_MAJOR==1) && (SPLASH_VERSION_MINOR>=2))
             pdc.finalize();
-#endif
             pdc.close();
         }
     };
