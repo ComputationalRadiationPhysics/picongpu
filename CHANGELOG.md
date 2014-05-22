@@ -13,21 +13,30 @@ libSplash 1.2+ for HDF5 output.
 
 ### Changes to "Open Beta RC4"
 
-**.param and .unitless file changes:**
+**.param file changes:**
  - Added selection of optional window functions in `radiationConfig.param`
    [#286](https://github.com/ComputationalRadiationPhysics/picongpu/pull/286/files#diff-1)
  - Added more window functions in `radiationConfig.param`
    [#320](https://github.com/ComputationalRadiationPhysics/picongpu/pull/320/files#diff-1)
- - removed double `#define __COHERENTINCOHERENTWEIGHTING__ 1` in some example radiationConfig.param
+ - removed double `#define __COHERENTINCOHERENTWEIGHTING__ 1` in some examples `radiationConfig.param`
    [#323](https://github.com/ComputationalRadiationPhysics/picongpu/pull/323/files)
  - new file: `seed.param` allows to vary the starting conditions of "identical" runs
    [#353](https://github.com/ComputationalRadiationPhysics/picongpu/pull/353)
- - Corrected CFL criteria (to be less conservative) in `gridConfig.unitless`
-   [#371](https://github.com/ComputationalRadiationPhysics/picongpu/pull/371/files#diff-1)
- - Update `radiationConfig.unitless`: adjust to new supercell size naming
-   [#394](https://github.com/ComputationalRadiationPhysics/picongpu/pull/394/files#diff-61)
  - Updated a huge amount of `.param` files to remove outdated comments
    [#384](https://github.com/ComputationalRadiationPhysics/picongpu/pull/384)
+ - Update `gasConfig.param`/`gasConfig.unitless` and doc string in `componentsConfig.param`
+   with new gasFromHdf5 profile
+   [#280](https://github.com/ComputationalRadiationPhysics/picongpu/pull/280/files)
+
+**.unitless file changes:**
+ - update `fileOutput.unitless` and add new file `checkpoints.unitless`
+   [#387](https://github.com/ComputationalRadiationPhysics/picongpu/pull/387/files)
+ - update `fieldSolver.unitless`
+   [#314](https://github.com/ComputationalRadiationPhysics/picongpu/pull/314/files#diff-5)
+ - Update `radiationConfig.unitless`: adjust to new supercell size naming
+   [#394](https://github.com/ComputationalRadiationPhysics/picongpu/pull/394/files#diff-61)
+ - Corrected CFL criteria (to be less conservative) in `gridConfig.unitless`
+   [#371](https://github.com/ComputationalRadiationPhysics/picongpu/pull/371/files#diff-1)
 
 **New Features:**
  - Radiation plugin: add optional window functions to reduce ringing effects
