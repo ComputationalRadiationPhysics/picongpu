@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Anton Helm, Richard Pausch
+ * Copyright 2013-2014 Anton Helm, Richard Pausch
  *
  * This file is part of PIConGPU. 
  * 
@@ -221,9 +221,12 @@ const double PULSE_LENGTH_SI = 10.615e-15 / 4.0; //5.0e-15; //25.0e-15 / 1.17741
 
 /** beam waist: distance from the axis where the pulse intensity (E^2)
  *              decreases to its 1/e^2-th part,
- *              at the focus position of the laser
+ *              WO_X_SI is this distance in x-direction
+ *              W0_Z_SI is this distance in z-direction
+ *              if both values are equal, the laser has a circular shape in x-z
  *  unit: meter */
-const double W0_SI = 4.246e-6;
+const double W0_X_SI = 4.246e-6;
+const double W0_Z_SI = W0_X_SI;
 }
 /** The laser pulse will be initialized half of PULSE_INIT times of the PULSE_LENGTH before plateau
 and half at the end of the plateau

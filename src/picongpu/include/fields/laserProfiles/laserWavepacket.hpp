@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU. 
  * 
@@ -104,14 +104,15 @@ HINLINE float3_X laserLongitudinal(uint32_t currentStep, float_X& phase)
 HDINLINE float3_X laserTransversal(float3_X elong, const float_X, const float_X posX, const float_X posZ)
 {
 
-    const float_X r2 = posX * posX + posZ * posZ;
+    const float_X exp_x = posX * posX / (W0_X * W0_X);
+    const float_X exp_z = posZ * posZ / (W0_Z * W0_Z);
 
-    const double exponent = r2 / (W0 * W0);
+
 #if !defined(__CUDA_ARCH__) // Host code path
 
-    return elong * precisionCast<float3_X > (exp(-0.5 * exponent));
+    return elong * precisionCast<float3_X > (exp(-0.5 * (exp_x + exp_z) ));
 #else
-    return elong * precisionCast<float3_X > (math::exp(-0.5 * exponent));
+    return elong * precisionCast<float3_X > (math::exp(-0.5 * (exp_x + exp_z) ));
 #endif
 }
 
