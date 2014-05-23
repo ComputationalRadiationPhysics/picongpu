@@ -3,13 +3,14 @@ Change Log / Release Log for PIConGPU
 
 Open Beta RC5
 -------------
-**Date:** TBA
+**Date:** 2014-05-28
 
 This is the 5th release candidate, a *pre-beta* version.
 
-We rebuild our complete plugin and restart scheme, most changes
-are not backward compatible and you will have to upgrade to
-libSplash 1.2+ for HDF5 output.
+We rebuild our complete plugin and restart scheme, most of these
+changes are not backwards compatible and you will have to upgrade
+to libSplash 1.2+ for HDF5 output (this just means: you can
+not restart from a beta-rc4 checkpoint with this release).
 
 ### Changes to "Open Beta RC4"
 
@@ -47,7 +48,6 @@ libSplash 1.2+ for HDF5 output.
  - base seed for binary idential simulations now exposed in seed.param #351 #353
  - particle kernels without "early returns" #359 #360
  - lowered memory foot print during shiftParticles #367
- - improved speed of compute current by 30% ...
  - ShiftCoordinateSystem refactored #414
  - tools:
    - tbg warns about broken line continuations in tpl files #259
