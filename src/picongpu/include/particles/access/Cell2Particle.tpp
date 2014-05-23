@@ -21,7 +21,6 @@
 #include <stdint.h>
 #include "math/vector/compile-time/Vector.hpp"
 #include "math/MapTuple.hpp"
-#include "RefWrapper.hpp"
 #include <boost/mpl/void.hpp>
 
 namespace mpl = boost::mpl;

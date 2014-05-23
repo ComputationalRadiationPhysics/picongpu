@@ -346,11 +346,11 @@ struct LoadParticles
 {
 public:
 
-    HDINLINE void operator()(RefWrapper<ThreadParams*> params)
+    HDINLINE void operator()(ThreadParams* params)
     {
 #ifndef __CUDA_ARCH__
         DataConnector &dc = Environment<>::get().DataConnector();
-        ThreadParams *tp = params.get();
+        ThreadParams *tp = params;
 
         /* load species without copying data to host */
         ParticleType* particles = &(dc.getData<ParticleType >(

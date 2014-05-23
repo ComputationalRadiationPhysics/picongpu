@@ -23,7 +23,6 @@
 
 #include "types.h"
 #include "particles/Identifier.hpp"
-#include "RefWrapper.hpp"
 #include "traits/HasIdentifier.hpp"
 
 namespace PMacc
@@ -37,9 +36,9 @@ struct CopyIdentifier
 {
     template<typename T_T1,typename T_T2>
     HDINLINE
-    void operator()(RefWrapper<T_T1> dest, const T_T2& src) 
+    void operator()(T_T1& dest, const T_T2& src) 
     {
-        dest.get()[T_Key()]=src[T_Key()];
+        dest[T_Key()]=src[T_Key()];
     }
     
  

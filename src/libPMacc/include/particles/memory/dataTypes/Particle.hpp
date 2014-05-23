@@ -174,7 +174,7 @@ PMacc::Particle<T_FrameType2, T_ValueTypeSeq2>
     {
         algorithms::forEach::ForEach<typename Dest::ValueTypeSeq,
             CopyIdentifier<bmpl::_1> > copy;
-        copy(byRef(dest), src);
+        copy(forward(dest), src);
     };
 };
 

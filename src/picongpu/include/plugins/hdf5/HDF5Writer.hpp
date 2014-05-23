@@ -62,7 +62,6 @@
 #include <boost/mpl/find.hpp>
 #include <boost/filesystem.hpp>
 
-#include "RefWrapper.hpp"
 #include <boost/type_traits.hpp>
 
 #include "plugins/hdf5/WriteFields.hpp"
@@ -186,7 +185,7 @@ public:
         log<picLog::INPUT_OUTPUT > ("Setting slide count for moving window to %1%") % slides;
         MovingWindow::getInstance().setSlideCounter(slides,restartStep);
         gc.setNumSlides(slides);
-        
+
         /* set window for restart, complete global domain */
         mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(restartStep);
         for (uint32_t i = 0; i < simDim; ++i)
@@ -198,16 +197,16 @@ public:
 
         /* load all fields */
         ForEach<FileCheckpointFields, LoadFields<bmpl::_1> > forEachLoadFields;
-        forEachLoadFields(ref(params));
+        forEachLoadFields(params);
 
         /* load all particles */
         ForEach<FileCheckpointParticles, LoadParticles<bmpl::_1> > forEachLoadSpecies;
-        forEachLoadSpecies(ref(params));
+        forEachLoadSpecies(params);
 
         /* close datacollector */
         log<picLog::INPUT_OUTPUT > ("HDF5 close DataCollector with file: %1%") % restartFilename;
         mThreadParams.dataCollector->close();
-        
+
         if (mThreadParams.dataCollector)
             mThreadParams.dataCollector->finalize();
 
@@ -348,7 +347,7 @@ private:
     {
         if (mThreadParams.dataCollector)
             mThreadParams.dataCollector->finalize();
-        
+
         __delete(mThreadParams.dataCollector);
     }
 
@@ -409,11 +408,11 @@ private:
         if (threadParams->isCheckpoint)
         {
             ForEach<FileCheckpointFields, WriteFields<bmpl::_1> > forEachWriteFields;
-            forEachWriteFields(ref(threadParams));
+            forEachWriteFields(threadParams);
         } else
         {
             ForEach<FileOutputFields, WriteFields<bmpl::_1> > forEachWriteFields;
-            forEachWriteFields(ref(threadParams));
+            forEachWriteFields(threadParams);
         }
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing fields.");
 
@@ -422,11 +421,11 @@ private:
         if (threadParams->isCheckpoint)
         {
             ForEach<FileCheckpointParticles, WriteSpecies<bmpl::_1> > writeSpecies;
-            writeSpecies(ref(threadParams), std::string(), particleOffset);
+            writeSpecies(threadParams, std::string(), particleOffset);
         } else
         {
             ForEach<FileOutputParticles, WriteSpecies<bmpl::_1> > writeSpecies;
-            writeSpecies(ref(threadParams), std::string(), particleOffset);
+            writeSpecies(threadParams, std::string(), particleOffset);
         }
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species.");
 

@@ -51,8 +51,8 @@ struct ParticleAttribute
      */
     template<typename FrameType>
     HINLINE void operator()(
-                            const RefWrapper<ThreadParams*> params,
-                            const RefWrapper<FrameType> frame,
+                            ThreadParams* params,
+                            FrameType& frame,
                             const size_t elements)
     {
 
@@ -67,7 +67,7 @@ struct ParticleAttribute
         
         for (uint32_t d = 0; d < components; d++)
         {
-            ValueType* dataPtr = frame.get().getIdentifier(Identifier()).getPointer();
+            ValueType* dataPtr = frame.getIdentifier(Identifier()).getPointer();
             
             /* copy strided data from source to temporary buffer */
             for (size_t i = 0; i < elements; ++i)
@@ -75,9 +75,9 @@ struct ParticleAttribute
                 tmpBfr[i] = ((ComponentType*)dataPtr)[d + i * components];
             }
 
-            int64_t adiosAttributeVarId = *(params.get()->adiosParticleAttrVarIds.begin());
-            params.get()->adiosParticleAttrVarIds.pop_front();
-            ADIOS_CMD(adios_write_byid(params.get()->adiosFileHandle, adiosAttributeVarId, tmpBfr));
+            int64_t adiosAttributeVarId = *(params->adiosParticleAttrVarIds.begin());
+            params->adiosParticleAttrVarIds.pop_front();
+            ADIOS_CMD(adios_write_byid(params->adiosFileHandle, adiosAttributeVarId, tmpBfr));
         }
         
         __deleteArray(tmpBfr);

@@ -71,15 +71,15 @@ private:
 
 public:
 
-    HDINLINE void operator()(RefWrapper<ThreadParams*> params)
+    HDINLINE void operator()(ThreadParams* params)
     {
 #ifndef __CUDA_ARCH__
         DataConnector &dc = Environment<>::get().DataConnector();
 
         T* field = &(dc.getData<T > (T::getName()));
-        params.get()->gridLayout = field->getGridLayout();
+        params->gridLayout = field->getGridLayout();
 
-        Field::writeField(params.get(),
+        Field::writeField(params,
                           T::getName(),
                           getUnit(),
                           field->getHostDataBox(),
@@ -113,7 +113,7 @@ public:
      * call virtual functions.
      */
     PMACC_NO_NVCC_HDWARNING
-    HDINLINE void operator()(RefWrapper<ThreadParams*> tparam)
+    HDINLINE void operator()(ThreadParams* tparam)
     {
         this->operator_impl(tparam);
     }
@@ -141,7 +141,7 @@ private:
         return CreateUnit::createUnit(unit, components);
     }
 
-    HINLINE void operator_impl(RefWrapper<ThreadParams*> params)
+    HINLINE void operator_impl(ThreadParams* params)
     {
         DataConnector &dc = Environment<>::get().DataConnector();
 
@@ -154,7 +154,7 @@ private:
 
         fieldTmp->getGridBuffer().getDeviceBuffer().setValue(ValueType(0.0));
         /*run algorithm*/
-        fieldTmp->computeValue < CORE + BORDER, Solver > (*speciesTmp, params.get()->currentStep);
+        fieldTmp->computeValue < CORE + BORDER, Solver > (*speciesTmp, params->currentStep);
 
         EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
         __setTransactionEvent(fieldTmpEvent);
@@ -164,9 +164,9 @@ private:
         /*## finish update field ##*/
 
 
-        params.get()->gridLayout = fieldTmp->getGridLayout();
+        params->gridLayout = fieldTmp->getGridLayout();
         /*write data to HDF5 file*/
-        Field::writeField(params.get(),
+        Field::writeField(params,
                           getName(),
                           getUnit(),
                           fieldTmp->getHostDataBox(),

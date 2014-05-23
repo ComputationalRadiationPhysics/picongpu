@@ -37,7 +37,6 @@
 #include <boost/mpl/find.hpp>
 #include "compileTime/conversion/MakeSeq.hpp"
 
-#include "RefWrapper.hpp"
 #include <boost/type_traits.hpp>
 
 #include "plugins/output/WriteSpeciesCommon.hpp"
@@ -94,7 +93,7 @@ public:
     typedef Frame<OperatorCreateVectorBox, NewParticleDescription> Hdf5FrameType;
 
     template<typename Space>
-    HINLINE void operator()(RefWrapper<ThreadParams*> params,
+    HINLINE void operator()(ThreadParams* params,
                             std::string subGroup,
                             const Space particleOffset)
     {
@@ -109,9 +108,9 @@ public:
         log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) count particles: %1%") % Hdf5FrameType::getName();
         totalNumParticles = PMacc::CountParticles::countOnDevice < CORE + BORDER > (
                                                                                     *speciesTmp,
-                                                                                    *(params.get()->cellDescription),
-                                                                                    params.get()->localWindowToDomainOffset,
-                                                                                    params.get()->window.localDimensions.size);
+                                                                                    *(params->cellDescription),
+                                                                                    params->localWindowToDomainOffset,
+                                                                                    params->window.localDimensions.size);
 
 
         log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) count particles: %1% = %2%") % Hdf5FrameType::getName() % totalNumParticles;
@@ -119,7 +118,7 @@ public:
         log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) malloc mapped memory: %1%") % Hdf5FrameType::getName();
         /*malloc mapped memory*/
         ForEach<typename Hdf5FrameType::ValueTypeSeq, MallocMemory<bmpl::_1> > mallocMem;
-        mallocMem(byRef(hostFrame), totalNumParticles);
+        mallocMem(forward(hostFrame), totalNumParticles);
         log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) malloc mapped memory: %1%") % Hdf5FrameType::getName();
 
         if (totalNumParticles != 0)
@@ -129,7 +128,7 @@ public:
             /*load device pointer of mapped memory*/
             Hdf5FrameType deviceFrame;
             ForEach<typename Hdf5FrameType::ValueTypeSeq, GetDevicePtr<bmpl::_1> > getDevicePtr;
-            getDevicePtr(byRef(deviceFrame), byRef(hostFrame));
+            getDevicePtr(forward(deviceFrame), forward(hostFrame));
             log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) get mapped memory device pointer: %1%") % Hdf5FrameType::getName();
 
             log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) copy particle to host: %1%") % Hdf5FrameType::getName();
@@ -138,13 +137,13 @@ public:
             MyParticleFilter filter;
             /* activate filter pipeline if moving window is activated */
             filter.setStatus(MovingWindow::getInstance().isSlidingWindowActive());
-            filter.setWindowPosition(params.get()->localWindowToDomainOffset,
-                                     params.get()->window.localDimensions.size);
+            filter.setWindowPosition(params->localWindowToDomainOffset,
+                                     params->window.localDimensions.size);
 
             dim3 block(TILE_SIZE);
 
             GridBuffer<int, DIM1> counterBuffer(DataSpace<DIM1>(1));
-            AreaMapping < CORE + BORDER, MappingDesc > mapper(*(params.get()->cellDescription));
+            AreaMapping < CORE + BORDER, MappingDesc > mapper(*(params->cellDescription));
 
             __cudaKernel(copySpecies)
                 (mapper.getGridDim(), block)
@@ -163,11 +162,11 @@ public:
         }
         /*dump to hdf5 file*/
         ForEach<typename Hdf5FrameType::ValueTypeSeq, hdf5::ParticleAttribute<bmpl::_1> > writeToHdf5;
-        writeToHdf5(params, byRef(hostFrame), std::string("particles/") + FrameType::getName() + std::string("/") + subGroup,
+        writeToHdf5(params, forward(hostFrame), std::string("particles/") + FrameType::getName() + std::string("/") + subGroup,
                 totalNumParticles);
 
         /* write meta attributes for species */
-        writeMetaAttributes(params.get());
+        writeMetaAttributes(params);
 
         /*write species counter table to hdf5 file*/
         log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) writing particle index table for %1%") % Hdf5FrameType::getName();
@@ -189,8 +188,8 @@ public:
             if (particleOffset[1] < 0) // 1 == y
                 particlesMetaInfo[pos_offset + 1] = 0;
 
-            params.get()->dataCollector->write(
-                params.get()->currentStep,
+            params->dataCollector->write(
+                params->currentStep,
                 Dimensions(gc.getGlobalSize(), 1, 1),
                 Dimensions(gc.getGlobalRank(), 0, 0),
                 ctUInt64_5, 1,
@@ -203,7 +202,7 @@ public:
 
         /*free host memory*/
         ForEach<typename Hdf5FrameType::ValueTypeSeq, FreeMemory<bmpl::_1> > freeMem;
-        freeMem(byRef(hostFrame));
+        freeMem(forward(hostFrame));
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing species: %1%") % Hdf5FrameType::getName();
     }
 
