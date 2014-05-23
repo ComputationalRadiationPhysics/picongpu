@@ -1,23 +1,23 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 
 #pragma once
@@ -28,6 +28,8 @@
 #include "math/vector/compile-time/Int.hpp"
 #include "basicOperations.hpp"
 #include "math/vector/compile-time/Int.hpp"
+#include "traits/IsSameType.hpp"
+#include "particles/shapes/CIC.hpp"
 
 namespace picongpu
 {
@@ -35,14 +37,17 @@ namespace currentSolverVillaBune
 {
 using namespace PMacc;
 
+template<typename T_ParticleShape>
 struct VillaBune
 {
+    /* this solver only supports the CIC shape */
+    BOOST_STATIC_ASSERT(T_ParticleShape::support==2 );
 
     template<class BoxJ, typename PosType, typename VelType, typename ChargeType >
     DINLINE void operator()(BoxJ& boxJ_par, /*box which is shifted to particles cell*/
-                               const PosType pos,
-                               const VelType velocity,
-                               const ChargeType charge, const float_X deltaTime)
+                            const PosType pos,
+                            const VelType velocity,
+                            const ChargeType charge, const float_X deltaTime)
     {
 
         // normalize deltaPos to innerCell units [0.; 1.)
@@ -64,7 +69,7 @@ private:
 
     template<class Buffer >
     DINLINE void addCurrentSplitX(const float3_X& oldPos, const float3_X& newPos,
-                                     const float_X charge, Buffer & mem, const float_X deltaTime)
+                                  const float_X charge, Buffer & mem, const float_X deltaTime)
     {
 
         if (math::float2int_rd(oldPos.x()) != math::float2int_rd(newPos.x()))
@@ -80,7 +85,7 @@ private:
 
     template<class Buffer >
     DINLINE void addCurrentToSingleCell(float3_X meanPos, const float3_X& deltaPos,
-                                           const float_X charge, Buffer & memIn, const float_X deltaTime)
+                                        const float_X charge, Buffer & memIn, const float_X deltaTime)
     {
         //shift to the cell meanPos belongs to
         //because meanPos may exceed the range [0,1)
@@ -172,7 +177,7 @@ private:
 
     template<class Buffer >
     DINLINE void addCurrentSplitZ(const float3_X &oldPos, const float3_X &newPos,
-                                     const float_X charge, Buffer & mem, const float_X deltaTime)
+                                  const float_X charge, Buffer & mem, const float_X deltaTime)
     {
 
         if (math::float2int_rd(oldPos.z()) != math::float2int_rd(newPos.z()))
@@ -198,7 +203,7 @@ private:
 
     template<class Buffer >
     DINLINE void addCurrentSplitY(const float3_X& oldPos, const float3_X& newPos,
-                                     const float_X charge, Buffer & mem, const float_X deltaTime)
+                                  const float_X charge, Buffer & mem, const float_X deltaTime)
     {
 
         if (math::float2int_rd(oldPos.y()) != math::float2int_rd(newPos.y()))
@@ -219,8 +224,8 @@ private:
 namespace traits
 {
 
-template<>
-struct GetMargin<picongpu::currentSolverVillaBune::VillaBune>
+template<typename T_ParticleShape>
+struct GetMargin<picongpu::currentSolverVillaBune::VillaBune<T_ParticleShape> >
 {
     typedef ::PMacc::math::CT::Int < 1, 1, 1 > LowerMargin;
     typedef ::PMacc::math::CT::Int < 2, 2, 2 > UpperMargin;

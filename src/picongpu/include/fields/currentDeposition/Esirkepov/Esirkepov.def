@@ -1,0 +1,70 @@
+/**
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+#pragma once
+
+#include "simulation_defines.hpp"
+
+
+namespace picongpu
+{
+namespace currentSolverEsirkepov
+{
+using namespace PMacc;
+
+
+/**
+ * \class Esirkepov implements the current deposition algorithm from T.Zh. Esirkepov
+ * for an arbitrary particle assign function given as a template parameter.
+ * See available shapes at "intermediateLib/particleShape".
+ * paper: "Exact charge conservation scheme for Particle-in-Cell simulation
+ *  with an arbitrary form-factor"
+ *
+ * \tparam T_ParticleShape the particle shape for the species, \see picongpu::particles::shapes
+ * \tparam T_Dim Implementation for 2D or 3D
+ */
+template<typename ParticleShape,uint32_t T_dim=simDim>
+struct Esirkepov;
+
+template<typename ParticleAssign>
+struct EsirkepovNative;
+
+} //namespace currentSolverEsirkepov
+
+namespace traits
+{
+
+/*Get margin of a solver
+ * class must define a LowerMargin and UpperMargin
+ */
+template<typename ParticleShape,uint32_t T_dim>
+struct GetMargin<picongpu::currentSolverEsirkepov::Esirkepov<ParticleShape,T_dim> >
+{
+private:
+    typedef picongpu::currentSolverEsirkepov::Esirkepov<ParticleShape,T_dim> Solver;
+public:
+    typedef typename Solver::LowerMargin LowerMargin;
+    typedef typename Solver::UpperMargin UpperMargin;
+};
+
+} //namespace traits
+
+} //namespace picongpu

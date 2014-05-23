@@ -1,37 +1,30 @@
 /**
  * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 
 #pragma once
 
-#if(SIMDIM==DIM3)
-#include "fields/currentDeposition/VillaBune/CurrentVillaBune.hpp"
-#include "fields/currentDeposition/Esirkepov/EsirkepovNative.hpp"
-#endif
+#include "fields/currentDeposition/Solver.def"
+#include "fields/currentDeposition/Solver.hpp"
 #include "traits/IsSameType.hpp"
-
-
-#include "fields/currentDeposition/Esirkepov/Esirkepov.hpp"
-#include "fields/numericalCellTypes/YeeCell.hpp"
-
 
 namespace picongpu
 {
@@ -39,7 +32,7 @@ namespace picongpu
 #if (SIMDIM==DIM3)
     namespace currentSolverVillaBune
     {
-        typedef VillaBune CurrentSolver;
+        typedef VillaBune<> CurrentSolver;
     }
 
     namespace currentSolverEsirkepovNative
@@ -48,29 +41,26 @@ namespace picongpu
         typedef EsirkepovNative<typename speciesParticleShape::ParticleShape> CurrentSolver;
     }
 #endif
-    
+
     namespace currentSolverEsirkepov
     {
-        typedef Esirkepov<simDim,typename speciesParticleShape::ParticleShape> CurrentSolver;
+        typedef Esirkepov<typename speciesParticleShape::ParticleShape,simDim> CurrentSolver;
     }
-    
-#if (SIMDIM==DIM3)    
+
+#if (SIMDIM==DIM3)
     /* ASSERTS for invalid combinations to help the user -------------------- */
-    
+
     /* VillaBune: field to particle interpolation _requires_ the CIC shape
      * Esirkepov: arbitrary particle shapes possible
      */
-    const bool isVillaBune = PMacc::IsSameType<currentSolver::CurrentSolver, 
-                                currentSolverVillaBune::VillaBune>::result;
-    
+    const bool isVillaBune = PMacc::IsSameType<currentSolver::CurrentSolver,
+                                currentSolverVillaBune::VillaBune<> >::result;
+
     // require valid VillaBune or _not_ VillaBune
     const bool vVBorOther = ( speciesParticleShape::ParticleShape::support == 2 ||
                                (! isVillaBune) );
-    
+
     PMACC_CASSERT_MSG(currentSolverVillaBune_requires_shapeCIC_in_particleConfig, \
                         vVBorOther);
 #endif
 }
-
-
-
