@@ -40,105 +40,96 @@
 
 namespace picongpu
 {
-    using namespace PMacc;
+using namespace PMacc;
 
+struct DensityToBinary
+{
+    typedef float_64 ValueType;
 
-    struct DensityToBinary
+    DensityToBinary(std::string name, std::string folder) : name(folder + "/" + name), folder(folder), createFolder(true)
     {
-        typedef float_64 ValueType;
+    }
 
-        DensityToBinary(std::string name, std::string folder) : name(folder + "/" + name), folder(folder), createFolder(true)
+    ~DensityToBinary()
+    {
+    }
+
+    template<class Box>
+    void operator()(
+                    const Box data,
+                    const ValueType unit,
+                    const Size2D size,
+                    const MessageHeader & header)
+    {
+
+        if (createFolder)
         {
+            mkdir((folder).c_str(), 0755);
+            createFolder = false;
         }
 
-        ~DensityToBinary()
+        std::stringstream step;
+        step << std::setw(6) << std::setfill('0') << header.sim.step;
+        //std::string filename(name + "_" + step.str() + ".bin");
+        std::string filename(name + "_" + step.str() + ".dat");
+
+        double x_cell = header.sim.cellSizeArr[0];
+        double y_cell = header.sim.cellSizeArr[1];
+
+        double x_simOff = header.sim.simOffsetToNull[0];
+        double y_simOff = header.sim.simOffsetToNull[1];
+
+        DataSpace<DIM2> gOffset = header.window.offset;
+
+        std::ofstream file(filename.c_str(), std::ofstream::out); //| std::ofstream::binary);
+
+        typedef std::numeric_limits< ValueType > dbl;
+        file.precision(dbl::digits10);
+        file << std::scientific;
+
+        ValueType sizex = (int) size.x();
+        //file.write((char*) (&sizex), sizeof (ValueType));
+        file << sizex << " ";
+
+        //first line with y header information
+        for (int x = 0; x < size.x(); ++x)
         {
+            ValueType cellPos = (ValueType) ((x + x_simOff + gOffset.x()) * x_cell * UNIT_LENGTH);
+            //file.write((char*) &(cellPos), sizeof (ValueType));
+            file << cellPos << " ";
         }
+        file << std::endl;
 
-        template<class Box>
-        void operator()(
-                        const Box data,
-                        const ValueType unit,
-                        const Size2D size,
-                        const MessageHeader & header)
+        //the first column is for x header information
+        for (int y = 0; y < size.y(); ++y)
         {
-
-            if (createFolder)
-            {
-                mkdir((folder).c_str(), 0755);
-                createFolder = false;
-            }
-
-            std::stringstream step;
-            step << std::setw(6) << std::setfill('0') << header.sim.step;
-            //std::string filename(name + "_" + step.str() + ".bin");
-            std::string filename(name + "_" + step.str() + ".dat");
-
-            double x_cell = header.sim.cellSizeArr[0];
-            double y_cell = header.sim.cellSizeArr[1];
-
-            double x_simOff = header.sim.simOffsetToNull[0];
-            double y_simOff = header.sim.simOffsetToNull[1];
-
-            DataSpace<DIM2> gOffset = header.window.offset;
-
-            std::ofstream file(filename.c_str(), std::ofstream::out ); //| std::ofstream::binary);
-
-            typedef std::numeric_limits< ValueType > dbl;
-            file.precision(dbl::digits10);
-            file << std::scientific;
-
-            ValueType sizex = (int) size.x();
-            //file.write((char*) (&sizex), sizeof (ValueType));
-            file << sizex << " ";
-
-            //first line with y header information
+            const ValueType cellPos = (ValueType) ((y + y_simOff + gOffset.y()) * y_cell * UNIT_LENGTH);
+            file << cellPos;
             for (int x = 0; x < size.x(); ++x)
             {
-                ValueType cellPos = (ValueType) ((x + x_simOff + gOffset.x()) * x_cell * UNIT_LENGTH);
-                //file.write((char*) &(cellPos), sizeof (ValueType));
-                file << cellPos << " ";
+                const ValueType value = precisionCast<ValueType>(data[y][x]) * unit;
+
+                /** \info take care, that gnuplots binary matrix does
+                 *        not support float64 (IEEE float32 only)
+                 *  \see http://stackoverflow.com/questions/8751154/looking-at-binary-output-from-fortran-on-gnuplot
+                 *       http://gnuplot.sourceforge.net/docs_4.2/node101.html
+                 */
+                //file.write((char*) &(value), sizeof (ValueType));
+                file << " " << value;
             }
             file << std::endl;
-
-            //the first column is for x header information
-            for (int y = 0; y < size.y(); ++y)
-            {
-                for (int x = 0; x <= size.x(); ++x)
-                {
-                    if (x == 0)
-                    {
-                        ValueType cellPos = (ValueType) ((y + y_simOff + gOffset.y()) * y_cell * UNIT_LENGTH);
-                        //file.write((char*) &(cellPos), sizeof (ValueType));
-                        file << cellPos;
-                    }
-                    else
-                    {
-                        const ValueType value = precisionCast<ValueType>(data[y][x-1])
-                                              * unit;
-
-                        /** \info take care, that gnuplots binary matrix does
-                         *        not support float64 (IEEE float32 only)
-                         *  \see http://stackoverflow.com/questions/8751154/looking-at-binary-output-from-fortran-on-gnuplot
-                         *       http://gnuplot.sourceforge.net/docs_4.2/node101.html
-                         */
-                        //file.write((char*) &(value), sizeof (ValueType));
-                        file << " " << value;
-                    }
-                }
-                file << std::endl;
-            }
-
-            file.close();
         }
 
-    private:
+        file.close();
+    }
 
-        std::string name;
-        std::string folder;
-        bool createFolder;
+private:
 
-    };
+    std::string name;
+    std::string folder;
+    bool createFolder;
+
+};
 
 }//namespace
 

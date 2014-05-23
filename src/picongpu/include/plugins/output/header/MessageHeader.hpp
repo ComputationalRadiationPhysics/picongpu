@@ -145,12 +145,12 @@ struct MessageHeader
 
     static MessageHeader * create()
     {
-        return (MessageHeader*) malloc(bytes);
+        return (MessageHeader*) new uint8_t(bytes);
     }
 
     static void destroy(MessageHeader * obj)
     {
-        if(obj) free(obj);
+        __delete(obj);
     }
 
     DataHeader data;
