@@ -38,11 +38,10 @@ namespace picongpu
 {
 using namespace PMacc;
 
-
 struct GatherSlice
 {
 
-    GatherSlice() : mpiRank(-1), numRanks(0), filteredData(NULL), fullData(NULL), isMPICommInitialized(false)
+    GatherSlice() : mpiRank(-1), numRanks(0), filteredData(NULL), comm(MPI_COMM_NULL), fullData(NULL), isMPICommInitialized(false)
     {
     }
 
@@ -80,8 +79,8 @@ struct GatherSlice
             }
         }
 
-        MPI_Group group;
-        MPI_Group newgroup;
+        MPI_Group group = MPI_GROUP_NULL;
+        MPI_Group newgroup = MPI_GROUP_NULL;
         MPI_CHECK(MPI_Comm_group(MPI_COMM_WORLD, &group));
         MPI_CHECK(MPI_Group_incl(group, numRanks, groupRanks, &newgroup));
 
@@ -92,6 +91,8 @@ struct GatherSlice
             MPI_Comm_rank(comm, &mpiRank);
             isMPICommInitialized = true;
         }
+        MPI_CHECK(MPI_Group_free(&group));
+        MPI_CHECK(MPI_Group_free(&newgroup));
 
         return mpiRank == 0;
     }
@@ -109,7 +110,7 @@ struct GatherSlice
                                                        ));
 
         MessageHeader* fakeHeader = MessageHeader::create();
-        memcpy(fakeHeader, &header, sizeof(MessageHeader));
+        memcpy(fakeHeader, &header, sizeof (MessageHeader));
 
         char* recvHeader = new char[ MessageHeader::bytes * numRanks];
 

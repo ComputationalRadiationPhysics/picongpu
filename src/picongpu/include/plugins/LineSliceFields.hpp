@@ -231,8 +231,7 @@ namespace picongpu
         {
             if (notifyFrequency > 0)
             {
-                if (sliceDataField)
-                    delete sliceDataField;
+                __delete(sliceDataField);
 
                 // close the output file
                 outfile.close();

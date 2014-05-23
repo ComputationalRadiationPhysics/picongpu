@@ -1,24 +1,24 @@
 /**
  * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 #ifndef REDUCE_HPP
 #define	REDUCE_HPP
@@ -48,8 +48,8 @@ namespace PMacc
                     const uint32_t l_tid = threadIdx.x;
                     const uint32_t tid = blockIdx.x * blockDim.x + l_tid;
                     const uint32_t globalThreadCount = gridDim.x * blockDim.x;
-                    
-                    /* cuda can not handle extern shared memory were the type is 
+
+                    /* cuda can not handle extern shared memory were the type is
                      * defined by a template
                      * - therefore we use type int for the definition (dirty but OK) */
                     extern __shared__ int s_mem_extern[];
@@ -57,7 +57,7 @@ namespace PMacc
                     Type* s_mem=(Type*)s_mem_extern;
 
                     if (tid >= src_count) return; /*end not needed threads*/
-                    
+
                     __syncthreads(); /*wait that all shared memory is initialized*/
 
                     /*fill shared mem*/
@@ -103,19 +103,19 @@ namespace PMacc
                  * @param sharedMemByte limit the usage of shared memory per block on gpu
                  */
                 HINLINE Reduce(const uint32_t byte, const uint32_t sharedMemByte = 4 * 1024) :
-                byte(byte), sharedMemByte(sharedMemByte)
+                byte(byte), sharedMemByte(sharedMemByte), reduceBuffer(NULL)
                 {
 
                     reduceBuffer = new GridBuffer<char, DIM1 > (DataSpace<DIM1 > (byte));
                 }
 
                 /* Reduce elements in global gpu memeory
-                 * 
+                 *
                  * @param func binary functor for reduce which takes two arguments, first argument is the source and get the new reduced value.
                  * Functor must specialize the function getMPI_Op.
                  * @param src a class or a pointer where the reduce algorithm can access the value by operator [] (one dimension access)
                  * @param n number of elements to reduce
-                 * 
+                 *
                  * @return reduced value
                  */
                 template<class Functor, typename Src>
@@ -152,7 +152,7 @@ namespace PMacc
                             uint32_t useBlocks = blocks - blockOffset;
                             uint32_t problemSize = n - (blockOffset * blockcount);
                             Type* srcPtr = dest + (blockOffset * blockcount);
-                            
+
                             __cudaKernel((kernel::reduce < Type >))(useBlocks, blockcount, blockcount * sizeof (Type))(srcPtr, problemSize, dest, func, func);
                             blocks = blockOffset*blockcount;
                         }
@@ -177,7 +177,7 @@ namespace PMacc
 
                 virtual ~Reduce()
                 {
-                    __delete(reduceBuffer);                    
+                    __delete(reduceBuffer);
                 }
 
             private:

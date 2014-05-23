@@ -62,10 +62,10 @@ using namespace PMacc;
 
 /**
  * Global simulation controller class.
- * 
+ *
  * Initialises simulation data and defines the simulation steps
  * for each iteration.
- * 
+ *
  * @tparam DIM the dimension (2-3) for the simulation
  */
 class MySimulation : public SimulationHelper<simDim>
@@ -75,8 +75,8 @@ public:
     /**
      * Constructor
      */
-    MySimulation() : 
-    laser(NULL), 
+    MySimulation() :
+    laser(NULL),
     fieldB(NULL),
     fieldE(NULL),
     fieldJ(NULL),
@@ -161,13 +161,13 @@ public:
             gpus[i] = devices[i];
             isPeriodic[i] = periodic[i];
         }
-        
+
         Environment<simDim>::get().initDevices(gpus, isPeriodic);
 
         DataSpace<simDim> myGPUpos( Environment<simDim>::get().GridController().getPosition() );
 
         // calculate the number of local grid cells and
-        // the local cell offset to the global box        
+        // the local cell offset to the global box
         for (uint32_t dim = 0; dim < gridDistribution.size(); ++dim)
         {
             // parse string
@@ -183,7 +183,7 @@ public:
             gridSizeLocal[dim] = global_grid_size[dim] / gpus[dim];
             gridOffset[dim] = gridSizeLocal[dim] * myGPUpos[dim];
         }
-        
+
         Environment<simDim>::get().initGrids(global_grid_size, gridSizeLocal, gridOffset);
 
         MovingWindow::getInstance().setSlidingWindow(slidingWindow);
@@ -248,13 +248,14 @@ public:
         __delete(laser);
         __delete(pushBGField);
         __delete(currentBGField);
+        __delete(cellDescription);
     }
 
     void notify(uint32_t)
     {
-        
+
     }
-    
+
     virtual uint32_t init()
     {
         namespace nvmem = PMacc::nvidia::memory;
@@ -312,7 +313,7 @@ public:
 
 #if (ENABLE_IONS == 1)
         ions->init(*fieldE, *fieldB, *fieldJ, *fieldTmp);
-#endif      
+#endif
 
         /* add CUDA streams to the StreamController for concurrent execution */
         Environment<>::get().StreamController().addStreams(6);
@@ -328,7 +329,7 @@ public:
                 {
                     throw std::runtime_error("Restart failed. You must provide the '--restart-step' argument. See picongpu --help.");
                 }
-                
+
                 initialiserController->restart((uint32_t)this->restartStep, this->restartDirectory);
                 step = this->restartStep + 1;
             }
@@ -478,7 +479,7 @@ private:
     template<uint32_t DIM>
     void checkGridConfiguration(DataSpace<DIM> globalGridSize, GridLayout<DIM>)
     {
-        
+
         for(uint32_t i=0;i<simDim;++i)
         {
         // global size must a devisor of supercell size

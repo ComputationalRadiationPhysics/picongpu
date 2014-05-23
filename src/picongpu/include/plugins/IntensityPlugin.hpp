@@ -289,11 +289,11 @@ private:
                       );
         }
 
-        delete[] yOffsetsAll;
-        delete[] maxAll;
-        delete[] integretedAll;
-        delete[] maxAllTmp;
-        delete[] integretedAllTmp;
+        __deleteArray(yOffsetsAll);
+        __deleteArray(maxAll);
+        __deleteArray(integretedAll);
+        __deleteArray(maxAllTmp);
+        __deleteArray(integretedAllTmp);
     }
 
     /* write data from array to a file

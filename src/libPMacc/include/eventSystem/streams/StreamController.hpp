@@ -1,24 +1,24 @@
 /**
  * Copyright 2013 Felix Schmitt, Rene Widera, Wolfgang Hoenig
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 #ifndef _STREAMCONTROLLER_HPP
 #define	_STREAMCONTROLLER_HPP
@@ -65,10 +65,10 @@ namespace PMacc
 
             for (size_t i = 0; i < streams.size(); i++)
             {
-                delete streams[i];
+                __delete(streams[i]);
             }
             streams.clear();
-            
+
             /* This is the single point in PIC where ALL CUDA work must be finished. */
             /* Accessing CUDA objects after this point may fail! */
             CUDA_CHECK(cudaDeviceSynchronize());
@@ -86,9 +86,9 @@ namespace PMacc
                 streams.push_back(new EventStream());
             }
         }
-        
+
         /** enable StreamController and add one stream
-         * 
+         *
          * If StreamController is not activated getNextStream() will crash on its first call
          */
         void activate()
@@ -107,18 +107,18 @@ namespace PMacc
         }
 
     private:
-        
+
         friend Environment<DIM1>;
         friend Environment<DIM2>;
         friend Environment<DIM3>;
-        
+
         /**
          * Constructor.
          */
         StreamController() : isActivated(false),currentStreamIndex(0)
         {
         }
-        
+
         /**
          * Get instance of this class.
          * This class is a singleton class.

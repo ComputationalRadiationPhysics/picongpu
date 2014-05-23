@@ -91,7 +91,7 @@ fieldE( NULL )
 FieldB::~FieldB( )
 {
 
-    delete fieldB;
+    __delete(fieldB);
 }
 
 SimulationDataId FieldB::getUniqueId()

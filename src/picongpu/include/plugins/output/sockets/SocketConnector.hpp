@@ -111,7 +111,7 @@ public:
             MessageHeader* header = (MessageHeader*) tmp;
             header->data.byte = (uint32_t) zipedSize;
             write(SocketFD, tmp, zipedSize + MessageHeader::bytes);
-            delete [] tmp;
+            __deleteArray(tmp);
         }
     }
 
