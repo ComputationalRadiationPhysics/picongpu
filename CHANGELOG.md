@@ -1,6 +1,29 @@
 Change Log / Release Log for PIConGPU
 ================================================================
 
+
+Open Beta RC6
+-------------
+**Date:** TBA
+
+This is the 5th release candidate, a *pre-beta* version.
+
+### Changes to "Open Beta RC5"
+
+**.param and .unitless file changes:**
+ - Add option to make front of laser wavepacket elliptic
+   changes in `laserConfig.param` and `laserConfig.unitless`
+   [#434](https://github.com/ComputationalRadiationPhysics/picongpu/pull/434/files#diff-5)
+   [#434](https://github.com/ComputationalRadiationPhysics/picongpu/pull/434/files#diff-6)
+
+**New Features:**
+ - laser Wavepacket supports now an elliptic pulse shape
+
+**Bug fixes:**
+
+**Misc:**
+
+
 Open Beta RC5
 -------------
 **Date:** 2014-05-28
