@@ -22,7 +22,7 @@
 #ifndef CURSOR_CT_TWISTEDAXESNAVIGATOR_HPP
 #define CURSOR_CT_TWISTEDAXESNAVIGATOR_HPP
 
-#include <math/vector/compile-time/Int.hpp>
+#include "math/Vector.hpp"
 
 namespace PMacc
 {

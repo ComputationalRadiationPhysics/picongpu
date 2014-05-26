@@ -23,15 +23,13 @@
 #include "DirSplitting.def"
 
 #include "simulation_defines.hpp"
-#include "math/vector/compile-time/Int.hpp"
 
 #include <fields/MaxwellSolver/DirSplitting/DirSplitting.kernel>
 #include <math/vector/Int.hpp>
 #include <dataManagement/DataConnector.hpp>
 #include <fields/FieldB.hpp>
 #include <fields/FieldE.hpp>
-#include <math/vector/compile-time/Int.hpp>
-#include <math/vector/compile-time/Size_t.hpp>
+#include "math/Vector.hpp"
 #include <cuSTL/algorithm/kernel/ForeachBlock.hpp>
 #include <lambda/Expression.hpp>
 #include <cuSTL/cursor/NestedCursor.hpp>
@@ -48,7 +46,7 @@ private:
     template<typename CursorE, typename CursorB, typename GridSize>
     void propagate(CursorE cursorE, CursorB cursorB, GridSize gridSize) const
     {
-        typedef PMacc::math::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> BlockDim;
+        typedef SuperCellSize BlockDim;
         
         algorithm::kernel::ForeachBlock<BlockDim> foreach;
         foreach(zone::SphericZone<3>(PMacc::math::Size_t<3>(BlockDim::x::value, gridSize.y(), gridSize.z())),
@@ -61,7 +59,7 @@ public:
         
     void update_beforeCurrent(uint32_t currentStep) const
     {
-        typedef PMacc::math::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> GuardDim;
+        typedef SuperCellSize GuardDim;
     
         DataConnector &dc = Environment<>::get().DataConnector();
 
@@ -70,12 +68,12 @@ public:
 
         BOOST_AUTO(fieldE_coreBorder,
             fieldE.getGridBuffer().getDeviceBuffer().
-                   cartBuffer().view(precisionCast<int>(GuardDim().toRT()),
-                                     -precisionCast<int>(GuardDim().toRT())));
+                   cartBuffer().view(GuardDim().toRT(),
+                                     -GuardDim().toRT()));
         BOOST_AUTO(fieldB_coreBorder,
             fieldB.getGridBuffer().getDeviceBuffer().
-            cartBuffer().view(precisionCast<int>(GuardDim().toRT()),
-                              -precisionCast<int>(GuardDim().toRT())));
+            cartBuffer().view(GuardDim().toRT(),
+                              -GuardDim().toRT()));
         
         using namespace cursor::tools;
         using namespace PMacc::math::tools;

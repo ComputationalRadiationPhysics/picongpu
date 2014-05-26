@@ -22,7 +22,7 @@
 #pragma once
 
 #include "types.hpp"
-#include "math/vector/compile-time/Int.hpp"
+#include "math/Vector.hpp"
 #include "mappings/threads/ThreadCollective.hpp"
 #include "nvidia/functors/Assign.hpp"
 #include "memory/boxes/CachedBox.hpp"

@@ -28,7 +28,7 @@
 #include "mappings/simulation/GridController.hpp"
 #include "dimensions/GridLayout.hpp"
 #include "mappings/kernel/CudaGridDimRestrictions.hpp"
-#include "math/vector/compile-time/Int.hpp"
+#include "math/Vector.hpp"
 
 namespace PMacc
 {

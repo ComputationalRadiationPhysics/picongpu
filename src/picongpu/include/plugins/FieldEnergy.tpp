@@ -25,8 +25,7 @@
 #include "dataManagement/DataConnector.hpp"
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
-#include "math/vector/compile-time/Int.hpp"
-#include "math/vector/compile-time/Size_t.hpp"
+#include "math/Vector.hpp"
 #include "cuSTL/algorithm/mpi/Gather.hpp"
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
@@ -66,16 +65,16 @@ void FieldEnergy::notify(uint32_t currentStep)
 
     namespace math = PMacc::math;
     using namespace math;
-    typedef math::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> BlockDim;
+    typedef SuperCellSize BlockDim;
     
     DataConnector &dc = Environment<>::get().DataConnector();
     FieldE& fieldE = dc.getData<FieldE > (FieldE::getName(), true);
     FieldB& fieldB = dc.getData<FieldB > (FieldB::getName(), true);
 
     BOOST_AUTO(fieldE_coreBorder,
-            fieldE.getGridBuffer().getDeviceBuffer().cartBuffer().view(precisionCast<int>(BlockDim().toRT()), -precisionCast<int>(BlockDim().toRT())));
+            fieldE.getGridBuffer().getDeviceBuffer().cartBuffer().view(BlockDim().toRT(), -BlockDim().toRT()));
     BOOST_AUTO(fieldB_coreBorder,
-            fieldB.getGridBuffer().getDeviceBuffer().cartBuffer().view(precisionCast<int>(BlockDim().toRT()), -precisionCast<int>(BlockDim().toRT())));
+            fieldB.getGridBuffer().getDeviceBuffer().cartBuffer().view(BlockDim().toRT(), -BlockDim().toRT()));
             
     PMacc::GridController<3>& con = PMacc::Environment<3>::get().GridController();
     PMacc::math::Size_t<3> gpuDim = (math::Size_t<3>)con.getGpuNodes();
@@ -93,7 +92,7 @@ void FieldEnergy::notify(uint32_t currentStep)
     using namespace lambda;
     BOOST_AUTO(_abs2, expr(math::Abs2()));
     
-    algorithm::kernel::Foreach<math::CT::Int<TILE_WIDTH,TILE_HEIGHT,1> >()(
+    algorithm::kernel::Foreach<math::CT::Int<BlockDim::x::value,BlockDim::y::value,1> >()(
         energyDBuffer.zone(), energyDBuffer.origin(),
                               cursor::tools::slice(fieldE_coreBorder.origin()(0,0,localCellZPos)),
                               cursor::tools::slice(fieldB_coreBorder.origin()(0,0,localCellZPos)),

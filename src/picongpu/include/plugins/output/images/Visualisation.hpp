@@ -30,7 +30,6 @@
 #include "fields/FieldE.hpp"
 #include "fields/FieldJ.hpp"
 
-#include "math/vector/compile-time/Int.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
 
@@ -40,7 +39,7 @@
 
 #include "dataManagement/DataConnector.hpp"
 #include "plugins/ILightweightPlugin.hpp"
-#include "math/vector/compile-time/Int.hpp"
+#include "math/Vector.hpp"
 
 #include "memory/boxes/DataBox.hpp"
 #include "memory/boxes/SharedBox.hpp"

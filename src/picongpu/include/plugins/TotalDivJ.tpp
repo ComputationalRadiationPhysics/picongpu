@@ -24,8 +24,7 @@
 #include "cuSTL/container/PseudoBuffer.hpp"
 #include "dataManagement/DataConnector.hpp"
 #include "fields/FieldJ.hpp"
-#include "math/vector/compile-time/Int.hpp"
-#include "math/vector/compile-time/Size_t.hpp"
+#include "math/Vector.hpp"
 #include "cuSTL/algorithm/mpi/Gather.hpp"
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
@@ -76,7 +75,7 @@ void TotalDivJ::notify(uint32_t currentStep)
 {
     namespace vec = PMacc::math;
     using namespace vec;
-    typedef vec::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> BlockDim;
+    typedef SuperCellSize BlockDim;
     
     DataConnector &dc = Environment<>::get().DataConnector();
     
@@ -84,8 +83,8 @@ void TotalDivJ::notify(uint32_t currentStep)
         (dc.getData<FieldJ > (FieldJ::getName(), true).getGridBuffer().getDeviceBuffer());
         
     container::DeviceBuffer<float, 3> fieldDivJ(fieldJ.size());
-    zone::SphericZone<3> coreBorderZone(fieldJ.zone().size - (size_t)2*BlockDim().toRT(),
-                                        fieldJ.zone().offset + precisionCast<int>(BlockDim().toRT()));
+    zone::SphericZone<3> coreBorderZone(fieldJ.zone().size - precisionCast<size_t>(2*BlockDim::toRT()),
+                                        fieldJ.zone().offset + BlockDim::toRT());
     //std::cout << coreBorderZone.size << ", " << coreBorderZone.offset << std::endl;
     using namespace lambda;
     algorithm::kernel::Foreach<BlockDim>()

@@ -140,7 +140,7 @@ public:
             filter.setWindowPosition(params->localWindowToDomainOffset,
                                      params->window.localDimensions.size);
 
-            dim3 block(TILE_SIZE);
+            dim3 block(PMacc::math::CT::volume<SuperCellSize>::type::value);
 
             GridBuffer<int, DIM1> counterBuffer(DataSpace<DIM1>(1));
             AreaMapping < CORE + BORDER, MappingDesc > mapper(*(params->cellDescription));

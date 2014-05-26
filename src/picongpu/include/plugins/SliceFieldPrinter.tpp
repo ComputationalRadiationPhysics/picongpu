@@ -24,8 +24,7 @@
 #include "dataManagement/DataConnector.hpp"
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
-#include "math/vector/compile-time/Int.hpp"
-#include "math/vector/compile-time/Size_t.hpp"
+#include "math/Vector.hpp"
 #include "cuSTL/algorithm/mpi/Gather.hpp"
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
@@ -45,10 +44,10 @@ void SliceFieldPrinter<Field>::pluginLoad()
 {
     Environment<>::get().PluginConnector().setNotificationPeriod(this, this->notifyFrequency);
     namespace vec = ::PMacc::math;
-    typedef vec::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> BlockDim;
+    typedef SuperCellSize BlockDim;
     
-    vec::Size_t<3> size = vec::Size_t<3>(this->cellDescription->getGridSuperCells()) * BlockDim().toRT()
-        - (size_t)2 * BlockDim().toRT();
+    vec::Size_t<3> size = vec::Size_t<3>(this->cellDescription->getGridSuperCells()) * precisionCast<size_t>(BlockDim::toRT())
+        - precisionCast<size_t>(2 * BlockDim::toRT());
     this->dBuffer = new container::DeviceBuffer<float3_X, 2>(
         size.shrink<2>((this->plane+1)%3));
 }
@@ -75,13 +74,13 @@ template<typename Field>
 void SliceFieldPrinter<Field>::notify(uint32_t currentStep)
 {
     namespace vec = ::PMacc::math;
-    typedef vec::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> BlockDim;
+    typedef SuperCellSize BlockDim;
     DataConnector &dc = Environment<>::get().DataConnector();
 
     BOOST_AUTO(field_coreBorder,
         dc.getData<Field > (Field::getName(), true).getGridBuffer().
             getDeviceBuffer().cartBuffer().
-            view(precisionCast<int>(BlockDim().toRT()), -precisionCast<int>(BlockDim().toRT())));
+            view(BlockDim::toRT(), -BlockDim::toRT()));
 
     std::ostringstream filename;
     filename << this->fieldName << "_" << currentStep << ".dat";
@@ -94,7 +93,6 @@ void SliceFieldPrinter<Field>::printSlice(const TField& field, int nAxis, float 
 {
     namespace vec = PMacc::math;
     using namespace vec::tools;
-    typedef vec::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> BlockDim;
         
     PMacc::GridController<3>& con = PMacc::Environment<3>::get().GridController();
     vec::Size_t<3> gpuDim = (vec::Size_t<3>)con.getGpuNodes();

@@ -28,7 +28,7 @@
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
 #include "cuSTL/algorithm/mpi/Reduce.hpp"
-#include "math/vector/compile-time/UInt.hpp"
+#include "math/Vector.hpp"
 
 #include "plugins/PhaseSpace/AxisDescription.hpp"
 
@@ -72,7 +72,6 @@ namespace picongpu
          */
         MPI_Comm commFileWriter;
 
-        typedef PMacc::math::CT::UInt<TILE_WIDTH, TILE_HEIGHT, TILE_DEPTH> SuperCellSize;
 
     public:
         PhaseSpace( const std::string _name,

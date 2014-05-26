@@ -25,9 +25,8 @@
 #include "types.h"
 #include "simulation_defines.hpp"
 #include "dimensions/DataSpace.hpp"
-#include "math/vector/compile-time/Int.hpp"
 #include "basicOperations.hpp"
-#include "math/vector/compile-time/Int.hpp"
+#include "math/Vector.hpp"
 #include "traits/IsSameType.hpp"
 #include "particles/shapes/CIC.hpp"
 

@@ -24,7 +24,7 @@
 
 #include "types.h"
 #include "dimensions/DataSpace.hpp"
-#include "math/vector/compile-time/Vector.hpp"
+#include "math/Vector.hpp"
 
 namespace PMacc
 {

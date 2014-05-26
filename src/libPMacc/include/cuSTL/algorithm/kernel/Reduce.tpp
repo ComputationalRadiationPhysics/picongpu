@@ -23,7 +23,7 @@
 #include "cuSTL/algorithm/kernel/Foreach.hpp"
 #include "lambda/Expression.hpp"
 #include "cuSTL/container/compile-time/SharedBuffer.hpp"
-#include "math/vector/compile-time/Int.hpp"
+#include "math/Vector.hpp"
 #include "cuSTL/cursor/NestedCursor.hpp"
 #include "cuSTL/zone/SphericZone.hpp"
 #include <boost/type_traits/remove_reference.hpp>

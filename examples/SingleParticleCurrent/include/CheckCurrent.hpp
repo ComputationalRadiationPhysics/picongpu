@@ -25,7 +25,7 @@
 #include "cuSTL/container/view/View.hpp"
 #include "cuSTL/cursor/MultiIndexCursor.hpp"
 #include "cuSTL/algorithm/kernel/Foreach.hpp"
-#include "math/vector/compile-time/Int.hpp"
+#include "math/Vector.hpp"
 
 namespace picongpu
 {
@@ -62,7 +62,7 @@ struct CheckCurrent
     void operator ()(FieldJ& _fieldJ_device)
     {
 
-        typedef PMacc::math::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> GuardDim;
+        typedef SuperCellSize GuardDim;
     
         // Get fieldJ without guards
         BOOST_AUTO(fieldJ_device, 
@@ -70,7 +70,7 @@ struct CheckCurrent
 
         container::HostBuffer<float3_X, 3> fieldJ_with_guards(fieldJ_device.size());
         fieldJ_with_guards = fieldJ_device;
-        container::View<container::HostBuffer<float3_X, 3> > fieldJ(fieldJ_with_guards.view(precisionCast<int>(GuardDim().toRT()), -precisionCast<int>(GuardDim().toRT())));
+        container::View<container::HostBuffer<float3_X, 3> > fieldJ(fieldJ_with_guards.view(GuardDim::toRT(), -GuardDim::toRT()));
         
         float3_X beta(BETA0_X, BETA0_Y, BETA0_Z);
         

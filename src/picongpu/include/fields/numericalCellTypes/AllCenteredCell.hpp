@@ -23,7 +23,7 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include <math/vector/compile-time/Int.hpp>
+#include "math/Vector.hpp"
 
 namespace picongpu
 {

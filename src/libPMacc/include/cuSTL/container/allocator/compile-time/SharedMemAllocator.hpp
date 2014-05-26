@@ -22,7 +22,7 @@
 #ifndef ALLOCATOR_SHAREDMEMALLOCATOR_HPP
 #define ALLOCATOR_SHAREDMEMALLOCATOR_HPP
 
-#include "math/vector/compile-time/UInt.hpp"
+#include "math/Vector.hpp"
 #include "cuSTL/cursor/compile-time/BufferCursor.hpp"
 
 namespace PMacc

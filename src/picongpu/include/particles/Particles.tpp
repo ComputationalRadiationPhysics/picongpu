@@ -230,7 +230,7 @@ template< typename T_ParticleDescription>
 template< typename t_ParticleDescription>
 void Particles<T_ParticleDescription>::deviceCloneFrom( Particles< t_ParticleDescription> &src )
 {
-    dim3 block( TILE_SIZE );
+    dim3 block( PMacc::math::CT::volume<SuperCellSize>::type::value );
 
     __picKernelArea( kernelCloneParticles, this->cellDescription, CORE + BORDER + GUARD )
         (block) ( this->getDeviceParticlesBox( ), src.getDeviceParticlesBox( ) );

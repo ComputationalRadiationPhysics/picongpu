@@ -52,8 +52,7 @@
 #include "cuSTL/algorithm/mpi/Gather.hpp"
 #include "cuSTL/algorithm/mpi/Reduce.hpp"
 #include "lambda/Expression.hpp"
-#include "math/vector/compile-time/Int.hpp"
-#include "math/vector/compile-time/Size_t.hpp"
+#include "math/Vector.hpp"
 #include "cuSTL/cursor/tools/slice.hpp"
 #include "cuSTL/cursor/FunctorCursor.hpp"
 
@@ -210,7 +209,7 @@ private:
     container::DeviceBuffer<float, 2 >* eField_zt[2];
 
     typedef PMacc::math::CT::Size_t < 16, 16, 1 > BlockDim;
-    typedef PMacc::math::CT::Size_t<TILE_WIDTH, TILE_HEIGHT, TILE_DEPTH> GuardDim;
+    typedef SuperCellSize GuardDim;
 };
 
 } // namespace picongpu
