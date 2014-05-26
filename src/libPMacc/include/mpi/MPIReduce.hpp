@@ -42,7 +42,7 @@ struct MPIReduce
 {
 
     /*reduce data over selected mpi nodes*/
-    MPIReduce() : mpiRank(-1), numRanks(0),comm(MPI_COMM_NULL), isMPICommInitialized(false)
+    MPIReduce() : mpiRank(-1), numRanks(0), comm(MPI_COMM_NULL), isMPICommInitialized(false)
     {
         participate(true);
     }
@@ -107,8 +107,8 @@ struct MPIReduce
             }
         }
 
-        MPI_Group group=MPI_GROUP_NULL;
-        MPI_Group newgroup=MPI_GROUP_NULL;
+        MPI_Group group = MPI_GROUP_NULL;
+        MPI_Group newgroup = MPI_GROUP_NULL;
         MPI_CHECK(MPI_Comm_group(MPI_COMM_WORLD, &group));
         MPI_CHECK(MPI_Group_incl(group, numRanks, groupRanks, &newgroup));
 
