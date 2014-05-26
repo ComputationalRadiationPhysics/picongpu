@@ -41,39 +41,42 @@ namespace PMacc
 }
 
 /** call BOOST_MPL_ASSERT_MSG and add unique id to message
- * @param cond an integral constant expression
- * @param msg a message those must a valid variable name (composition of characters_,A-Z,a-z)
- * @param unique_id pre compiler unique id
- * @param typeInfo a type those is shown in error message
+ * @param pmacc_cond an integral constant expression
+ * @param pmacc_msg a message which must a valid variable name (composition of characters_,A-Z,a-z)
+ * @param pmacc_unique_id pre compiler unique id
+ * @param pmacc_typeInfo a type that is shown in error message
  */
-#define PMACC_STATIC_ASSERT_MSG_DO2(cond, msg, unique_id, typeInfo)            \
-    BOOST_MPL_ASSERT_MSG(cond,PMACC_JOIN(msg,PMACC_JOIN(_________,unique_id)),(typeInfo))
+#define PMACC_STATIC_ASSERT_MSG_DO2(pmacc_cond, pmacc_msg, pmacc_unique_id, pmacc_typeInfo) \
+    BOOST_MPL_ASSERT_MSG(pmacc_cond,PMACC_JOIN(pmacc_msg,PMACC_JOIN(_________,pmacc_unique_id)),(pmacc_typeInfo))
 
 /*! static assert with error message
- * @param cond A condition which return true or false.
- * @param msg A message which is shown if the condition is false. Msg must a valid c++ variable name (etc. _only_human_make_mistakes)
- * @param ... (optional) a type those is shown in error message
+ * @param pmacc_cond A condition which return true or false.
+ * @param pmacc_msg A message which is shown if the condition is false. Msg must a valid c++ variable name (etc. _only_human_make_mistakes)
+ * @param ... (optional) a type that is shown in error message
  */
-#define PMACC_STATIC_ASSERT_MSG(cond,msg,...)                                  \
-    PMACC_STATIC_ASSERT_MSG_DO2(cond,msg,__COUNTER__,typename PMacc::GetStaticAssertInfoType<__VA_ARGS__>::type)
+#define PMACC_STATIC_ASSERT_MSG(pmacc_cond,pmacc_msg,...)                      \
+    PMACC_STATIC_ASSERT_MSG_DO2(pmacc_cond,pmacc_msg,__COUNTER__,typename PMacc::GetStaticAssertInfoType<__VA_ARGS__>::type)
 
 /*! static assert
- * @param cond A condition which return true or false.
+ * @param pmacc_cond A condition which return true or false.
  */
-#define PMACC_STATIC_ASSERT(cond) PMACC_STATIC_ASSERT_MSG(cond,STATIC_ASSERTION_FAILURE)
+#define PMACC_STATIC_ASSERT(pmacc_cond)                                        \
+    PMACC_STATIC_ASSERT_MSG(pmacc_cond,STATIC_ASSERTION_FAILURE)
 
 /*! static assert wrapper which is easier to use than \see PMACC_STATIC_ASSERT_MSG
- * @param msg A message which is shown if the condition is false. Msg must a valid c++ variable name (etc. _only_human_make_mistakes)
- * @param typeInfo a type those is shown in error message
+ * @param pmacc_msg A message which is shown if the condition is false. Msg must a valid c++ variable name (etc. _only_human_make_mistakes)
+ * @param pmacc_typeInfo a type that is shown in error message
  * @param ... A condition which return true or false.
  */
-#define PMACC_CASSERT_MSG_TYPE(msg,typeInfo,...) PMACC_STATIC_ASSERT_MSG((__VA_ARGS__),msg,typeInfo)
+#define PMACC_CASSERT_MSG_TYPE(pmacc_msg,pmacc_typeInfo,...)                   \
+    PMACC_STATIC_ASSERT_MSG((__VA_ARGS__),pmacc_msg,pmacc_typeInfo)
 
 /*! static assert wrapper which is easier to use than \see PMACC_STATIC_ASSERT_MSG
- * @param msg A message which is shown if the condition is false. Msg must a valid c++ variable name (etc. _only_human_make_mistakes)
+ * @param pmacc_msg A message which is shown if the condition is false. Msg must a valid c++ variable name (etc. _only_human_make_mistakes)
  * @param ... A condition which return true or false.
  */
-#define PMACC_CASSERT_MSG(msg,...) PMACC_STATIC_ASSERT_MSG((__VA_ARGS__),msg)
+#define PMACC_CASSERT_MSG(pmacc_msg,...)                                       \
+    PMACC_STATIC_ASSERT_MSG((__VA_ARGS__),pmacc_msg)
 
 /*! static assert
  * @param ... A condition which return true or false.
@@ -87,17 +90,17 @@ namespace PMacc
  * @param nmspace The name of the namespace
  * @param var The variable to look for.
  */
-#define PMACC_DEF_IN_NAMESPACE_MSG(msg,nmspace,var) \
-  namespace msg {                       \
-    using nmspace::var;                 \
-    namespace fallback                  \
-    {                                   \
-      struct var                        \
-      {                                 \
-        double d[9999];                 \
-        char   c;                       \
-      };                                \
-    }                                   \
-    using fallback::var;                \
-  }                                     \
-  PMACC_CASSERT_MSG( msg, ((sizeof(msg::var))!=(sizeof(msg::fallback::var))) );
+#define PMACC_DEF_IN_NAMESPACE_MSG(pmacc_msg,nmspace,var)                      \
+  namespace pmacc_msg {                                                        \
+    using nmspace::var;                                                        \
+    namespace fallback                                                         \
+    {                                                                          \
+      struct var                                                               \
+      {                                                                        \
+        double d[9999];                                                        \
+        char   c;                                                              \
+      };                                                                       \
+    }                                                                          \
+    using fallback::var;                                                       \
+  }                                                                            \
+  PMACC_CASSERT_MSG( pmacc_msg, ((sizeof(pmacc_msg::var))!=(sizeof(pmacc_msg::fallback::var))) );
