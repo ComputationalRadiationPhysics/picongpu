@@ -226,7 +226,7 @@ namespace picongpu
          *              if both values are equal, the laser has a circular shape in x-z
          *  unit: meter */
         const double W0_X_SI = 4.246e-6;
-        const double W0_Z_SI = W0_Z_SI;
+        const double W0_Z_SI = W0_X_SI;
 
     }
     /** The laser pulse will be initialized half of PULSE_INIT times of the PULSE_LENGTH before plateau
