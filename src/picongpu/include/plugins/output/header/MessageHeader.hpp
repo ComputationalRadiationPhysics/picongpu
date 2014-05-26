@@ -1,23 +1,23 @@
 /**
  * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 
 #ifndef MESSAGEHEADER_HPP
@@ -49,9 +49,7 @@ struct MessageHeader
         bytes = realBytes < 120 ? 128 : 256
     };
 
-    MessageHeader()
-    {
-    }
+
 
     template<class CellDesc >
     void update(CellDesc & cellDesc,
@@ -75,13 +73,13 @@ struct MessageHeader
         /*update only if nuber of gpus are set, else use old value*/
         if (gpus.productOfComponents() != 0)
             sim.nodes = DataSpace<DIM2 > (gpus[transpose.x()], gpus[transpose.y()]);
-        
+
         PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
-        
+
         const DataSpace<Dim> globalSize(simBox.getGlobalSize());
         sim.size.x() = globalSize[transpose.x()];
         sim.size.y() = globalSize[transpose.y()];
-        
+
         node.maxSize = DataSpace<DIM2 > (localSize[transpose.x()], localSize[transpose.y()]);
 
         const DataSpace<Dim> windowSize = vWindow.globalDimensions.size;
@@ -96,7 +94,7 @@ struct MessageHeader
             sim.cellSizeArr[1] = cellSizeArr[transpose.y()];
 
             const float scale0to1 = scale[0] / scale[1];
-            
+
             if (scale0to1 > 1.0f)
             {
                 sim.setScale(scale0to1, 1.f);
@@ -147,12 +145,12 @@ struct MessageHeader
 
     static MessageHeader * create()
     {
-        return (MessageHeader*) malloc(bytes);
+        return (MessageHeader*) new uint8_t(bytes);
     }
 
     static void destroy(MessageHeader * obj)
     {
-        free(obj);
+        __delete(obj);
     }
 
     DataHeader data;
@@ -171,6 +169,14 @@ struct MessageHeader
         //color.writeToConsole(  ocons );
         //ocons << "-------\n" << std::endl;
     }
+
+private:
+        /** constructor
+         *
+         * it is only allowed to create Message header with @see create()
+         */
+        MessageHeader();
+
 };
 
 #endif	/* MESSAGEHEADER_HPP */

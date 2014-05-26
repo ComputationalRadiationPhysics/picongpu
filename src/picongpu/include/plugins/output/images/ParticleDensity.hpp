@@ -189,6 +189,7 @@ public:
     notifyFrequency(notifyFrequency),
     transpose(transpose),
     slicePoint(slicePoint),
+    header(NULL),
     isMaster(false)
     {
         sliceDim = 0;
@@ -206,6 +207,7 @@ public:
         if (notifyFrequency > 0)
         {
             __delete(img);
+            MessageHeader::destroy(header);
         }
     }
 
@@ -215,7 +217,7 @@ public:
         Window window(MovingWindow::getInstance().getWindow(currentStep));
 
         /*sliceOffset is only used in 3D*/
-        sliceOffset = (int) ((float) (window.globalDimensions.size[sliceDim]) * slicePoint) + 
+        sliceOffset = (int) ((float) (window.globalDimensions.size[sliceDim]) * slicePoint) +
                 window.globalDimensions.offset[sliceDim];
 
         if (!doDrawing())
@@ -269,13 +271,13 @@ public:
 
         img->deviceToHost();
 
-        header.update(*cellDescription, window, transpose, currentStep);
+        header->update(*cellDescription, window, transpose, currentStep);
 
         __getTransactionEvent().waitForFinished(); //wait for copy picture
 
         PMACC_AUTO(hostBox, img->getHostBuffer().getDataBox());
 
-        PMACC_AUTO(resultBox, gather(hostBox, header));
+        PMACC_AUTO(resultBox, gather(hostBox, *header));
 
         // units
         const float_64 cellVolume = CELL_VOLUME;
@@ -293,7 +295,7 @@ public:
         const float_64 unit = precisionCast<float_64>(NUM_EL_PER_PARTICLE)
             / (cellVolume * unitVolume);
         if (isMaster)
-            output(resultBox.shift(header.window.offset), unit, header.window.size, header);
+            output(resultBox.shift(header->window.offset), unit, header->window.size, *header);
     }
 
     void init()
@@ -303,16 +305,17 @@ public:
             const DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
 
             Window window(MovingWindow::getInstance().getWindow(0));
-            sliceOffset = (int) ((float) (window.globalDimensions.size[sliceDim]) * slicePoint) + 
+            sliceOffset = (int) ((float) (window.globalDimensions.size[sliceDim]) * slicePoint) +
                     window.globalDimensions.offset[sliceDim];
             const DataSpace<simDim> gpus = Environment<simDim>::get().GridController().getGpuNodes();
 
             float_32 cellSizeArr[3]={0,0,0};
             for(uint32_t i=0;i<simDim;++i)
                 cellSizeArr[i]= cellSize[i];
-            header.update(*cellDescription, window, transpose, 0, cellSizeArr, gpus);
+            this->header=MessageHeader::create();
+            header->update(*cellDescription, window, transpose, 0, cellSizeArr, gpus);
 
-            img = new GridBuffer<Type_, DIM2 > (header.node.maxSize);
+            img = new GridBuffer<Type_, DIM2 > (header->node.maxSize);
 
             isMaster = gather.init(doDrawing());
         }
@@ -350,7 +353,7 @@ private:
     DataSpace<DIM2> transpose;
     uint32_t sliceDim;
 
-    MessageHeader header;
+    MessageHeader *header;
 
     Output output;
     GatherSlice gather;
