@@ -1,27 +1,28 @@
 /**
- * Copyright 2013 Felix Schmitt, Rene Widera
+ * Copyright 2013-2014 Felix Schmitt, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <set>
 #include <iostream>
 
+#include "eventSystem/EventSystem.hpp"
 #include "eventSystem/streams/StreamController.hpp"
 #include "eventSystem/Manager.hpp"
 #include <stdlib.h>
@@ -33,10 +34,6 @@ namespace PMacc
 
 inline Manager::~Manager( )
 {
-    //std::cout << "Manager destructor" << std::endl;
-
-    //! \todo: this bring a bug because communicator is deletet but we need tham
-    // ... nice
     CUDA_CHECK( cudaGetLastError( ) );
     waitForAllTasks( );
     CUDA_CHECK( cudaGetLastError( ) );
@@ -56,8 +53,7 @@ inline bool Manager::execute( id_t taskToWait )
     if ( deep > old_max )
     {
         old_max = deep;
-        // std::cout << "Manager execution deep: "<<deep << std::endl;
-    }
+     }
 #endif
 
     static TaskMap::iterator iter = tasks.begin( );
@@ -66,7 +62,6 @@ inline bool Manager::execute( id_t taskToWait )
         iter = tasks.begin( );
 
     // this is the slow but very save variant to delete taks in a map
-    //TaskMap finishedTasks;
     while ( iter != tasks.end( ) )
     {
         id_t id = iter->first;
@@ -112,11 +107,7 @@ inline void Manager::event( id_t eventId, EventType, IEventData* )
     passiveTasks.erase( eventId );
 }
 
-inline Manager& Manager::getInstance( )
-{
-    static Manager instance;
-    return instance;
-}
+
 
 inline ITask* Manager::getITaskIfNotFinished( id_t taskId ) const
 {
@@ -155,7 +146,7 @@ inline void Manager::waitForFinished( id_t taskId )
         }
         while ( getPassiveITaskIfNotFinished( taskId ) != NULL );
 
-        return; //we can jump out because task is passive task 
+        return; //we can jump out because task is passive task
     }
 
     //check if task is  active and wait on it
@@ -183,15 +174,12 @@ inline void Manager::waitForAllTasks( )
 inline void Manager::addTask( ITask *task )
 {
     assert( task != NULL );
-    //  assert(tasks.find(task->getId()) == tasks.end());
-
     tasks[task->getId( )] = task;
 }
 
 inline void Manager::addPassiveTask( ITask *task )
 {
     assert( task != NULL );
-    // assert(passiveTasks.find(task->getId()) == passiveTasks.end());
 
     task->addObserver( this );
     passiveTasks[task->getId( )] = task;
@@ -199,7 +187,10 @@ inline void Manager::addPassiveTask( ITask *task )
 
 inline Manager::Manager( )
 {
-    StreamController::getInstance( ); //be sure that Streamcontroller created is before EventController
+    /**
+     * The \see Environment ensures that the \see StreamController is
+     * already created before calling this
+     */
     eventPool = new EventPool( );
     eventPool->addEvents( 300 );
 }

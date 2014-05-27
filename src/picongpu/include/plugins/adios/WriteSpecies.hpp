@@ -1,21 +1,21 @@
 /**
  * Copyright 2014 Rene Widera, Felix Schmitt
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 #pragma once
@@ -24,7 +24,7 @@
 #include "simulation_types.hpp"
 #include "plugins/adios/ADIOSWriter.def"
 
-#include "plugins/IPluginModule.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
 #include <boost/type_traits/is_same.hpp>
@@ -43,6 +43,7 @@
 
 #include "plugins/adios/writer/ParticleAttribute.hpp"
 #include "compileTime/conversion/RemoveFromSeq.hpp"
+#include "particles/ParticleDescription.hpp"
 
 namespace picongpu
 {
@@ -51,12 +52,12 @@ namespace adios
 {
 using namespace PMacc;
 
-namespace bmpl = boost::mpl;
+
 
 /** Write copy particle to host memory and dump to ADIOS file
- * 
- * @tparam T_Species type of species 
- * 
+ *
+ * @tparam T_Species type of species
+ *
  */
 template< typename T_Species >
 struct WriteSpecies
@@ -65,8 +66,8 @@ public:
 
     typedef T_Species ThisSpecies;
     typedef typename ThisSpecies::FrameType FrameType;
+    typedef typename FrameType::ParticleDescription ParticleDescription;
     typedef typename FrameType::ValueTypeSeq ParticleAttributeList;
-    typedef typename FrameType::MethodsList ParticleMethodsList;
 
     /* delete multiMask and localCellIdx in adios particle*/
     typedef bmpl::vector<multiMask,localCellIdx> TypesToDelete;
@@ -74,19 +75,22 @@ public:
 
     /* add globalCellIdx for adios particle*/
     typedef typename MakeSeq<
-            ParticleCleanedAttributeList, 
+            ParticleCleanedAttributeList,
             globalCellIdx<globalCellIdx_pic>
     >::type ParticleNewAttributeList;
 
-    typedef Frame<OperatorCreateVectorBox, ParticleNewAttributeList, ParticleMethodsList> AdiosFrameType;
+    typedef
+    typename ReplaceValueTypeSeq<ParticleDescription, ParticleNewAttributeList>::type
+    NewParticleDescription;
+
+    typedef Frame<OperatorCreateVectorBox, NewParticleDescription> AdiosFrameType;
 
     template<typename Space>
     HINLINE void operator()(RefWrapper<ThreadParams*> params,
-                            const DomainInformation domInfo,
                             const Space particleOffset)
     {
         log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) write species: %1%") % AdiosFrameType::getName();
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::get().DataConnector();
         /* load particle without copy particle data to host */
         ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(ThisSpecies::FrameType::getName(), true));
 
@@ -96,8 +100,8 @@ public:
         totalNumParticles = PMacc::CountParticles::countOnDevice < CORE + BORDER > (
                                                                                     *speciesTmp,
                                                                                     *(params.get()->cellDescription),
-                                                                                    domInfo.localDomainOffset,
-                                                                                    domInfo.domainSize);
+                                                                                    params.get()->localWindowToDomainOffset,
+                                                                                    params.get()->window.localDimensions.size);
         log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) count particles: %1% = %2%") % AdiosFrameType::getName() % totalNumParticles;
 
         if (totalNumParticles > 0)
@@ -106,14 +110,14 @@ public:
             log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) malloc mapped memory: %1%") % AdiosFrameType::getName();
 
             /* malloc mapped memory */
-            ForEach<typename AdiosFrameType::ValueTypeSeq, MallocMemory<void> > mallocMem;
+            ForEach<typename AdiosFrameType::ValueTypeSeq, MallocMemory<bmpl::_1> > mallocMem;
             mallocMem(byRef(hostFrame), totalNumParticles);
             log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) malloc mapped memory: %1%") % AdiosFrameType::getName();
 
             log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) get mapped memory device pointer: %1%") % AdiosFrameType::getName();
             /* load device pointer of mapped memory */
             AdiosFrameType deviceFrame;
-            ForEach<typename AdiosFrameType::ValueTypeSeq, GetDevicePtr<void> > getDevicePtr;
+            ForEach<typename AdiosFrameType::ValueTypeSeq, GetDevicePtr<bmpl::_1> > getDevicePtr;
             getDevicePtr(byRef(deviceFrame), byRef(hostFrame));
             log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) get mapped memory device pointer: %1%") % AdiosFrameType::getName();
 
@@ -123,10 +127,10 @@ public:
             MyParticleFilter filter;
             /* activeate filter pipeline if moving window is activated */
             filter.setStatus(MovingWindow::getInstance().isSlidingWindowActive());
-            filter.setWindowPosition(domInfo.localDomainOffset, domInfo.domainSize);
+            filter.setWindowPosition(params.get()->localWindowToDomainOffset,
+                                     params.get()->window.localDimensions.size);
 
             dim3 block(TILE_SIZE);
-            DataSpace<simDim> superCells = speciesTmp->getParticlesBuffer().getSuperCellsCount();
 
             GridBuffer<int, DIM1> counterBuffer(DataSpace<DIM1>(1));
             AreaMapping < CORE + BORDER, MappingDesc > mapper(*(params.get()->cellDescription));
@@ -145,13 +149,13 @@ public:
             log<picLog::INPUT_OUTPUT > ("ADIOS:  all events are finished: %1%") % AdiosFrameType::getName();
             /* this costs a little bit of time but adios writing is slower */
             assert((uint64_cu) counterBuffer.getHostBuffer().getDataBox()[0] == totalNumParticles);
-            
-            /* dump to adios file */        
-            ForEach<typename AdiosFrameType::ValueTypeSeq, adios::ParticleAttribute<void> > writeToAdios;
+
+            /* dump to adios file */
+            ForEach<typename AdiosFrameType::ValueTypeSeq, adios::ParticleAttribute<bmpl::_1> > writeToAdios;
             writeToAdios(params, byRef(hostFrame), totalNumParticles);
-            
+
             /* free host memory */
-            ForEach<typename AdiosFrameType::ValueTypeSeq, FreeMemory<void> > freeMem;
+            ForEach<typename AdiosFrameType::ValueTypeSeq, FreeMemory<bmpl::_1> > freeMem;
             freeMem(byRef(hostFrame));
             log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing species: %1%") % AdiosFrameType::getName();
         }
@@ -159,27 +163,27 @@ public:
         /* write species counter table to adios file */
         log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) writing particle index table for %1%") % AdiosFrameType::getName();
         {
-            GridController<simDim>& gc = GridController<simDim>::getInstance();
-            
+            GridController<simDim>& gc = Environment<simDim>::get().GridController();
+
             const size_t pos_offset = 2;
-            
+
             /* particlesMetaInfo = (num particles, scalar position, particle offset x, y, z) */
             uint64_t particlesMetaInfo[5] = {totalNumParticles, gc.getScalarPosition(), 0, 0, 0};
             for (size_t d = 0; d < simDim; ++d)
                 particlesMetaInfo[pos_offset + d] = particleOffset[d];
-            
+
             /* prevent that top (y) gpus have negative value here */
             if (gc.getPosition().y() == 0)
                 particlesMetaInfo[pos_offset + 1] = 0;
-            
+
             if (particleOffset[1] < 0) // 1 == y
                 particlesMetaInfo[pos_offset + 1] = 0;
-            
+
             int64_t adiosIndexVarId = *(params.get()->adiosSpeciesIndexVarIds.begin());
             params.get()->adiosSpeciesIndexVarIds.pop_front();
             ADIOS_CMD(adios_write_byid(params.get()->adiosFileHandle, adiosIndexVarId, particlesMetaInfo));
         }
-        log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) writing particle index table for %1%") % AdiosFrameType::getName(); 
+        log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) writing particle index table for %1%") % AdiosFrameType::getName();
     }
 };
 

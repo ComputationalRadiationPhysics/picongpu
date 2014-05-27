@@ -21,9 +21,7 @@
 #ifndef ANALYSIS_FIELDENERGY_HPP
 #define ANALYSIS_FIELDENERGY_HPP
 
-#include "plugins/IPluginModule.hpp"
-#include "dataManagement/ISimulationIO.hpp"
-#include "simulation_classTypes.hpp" //\todo: muss in ISimulationIO.hpp
+#include "plugins/ILightweightPlugin.hpp"
 
 namespace picongpu
 {
@@ -31,23 +29,22 @@ using namespace PMacc;
 
 namespace po = boost::program_options;
 
-class FieldEnergy : public ISimulationIO, public IPluginModule
+class FieldEnergy : public ILightweightPlugin
 {
 private:
     std::string name;
     std::string prefix;
     uint32_t notifyFrequency;
         
-    void moduleLoad();
-    void moduleUnload();
+    void pluginLoad();
 public:
     FieldEnergy(std::string name, std::string prefix);
     virtual ~FieldEnergy() {}
 
     void notify(uint32_t currentStep);
     void setMappingDescription(MappingDesc*) {}
-    void moduleRegisterHelp(po::options_description& desc);
-    std::string moduleGetName() const;
+    void pluginRegisterHelp(po::options_description& desc);
+    std::string pluginGetName() const;
 };
 
 }

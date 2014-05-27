@@ -1,35 +1,28 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2014 Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
-#ifndef _TASKSENDPARTICLESEXCHANGE_HPP
-#define	_TASKSENDPARTICLESEXCHANGE_HPP
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
 
+
+#pragma once
 
 #include "eventSystem/EventSystem.hpp"
-#include "particles/tasks/ParticleFactory.hpp"
-#include "eventSystem/tasks/ITask.hpp"
-#include "eventSystem/tasks/MPITask.hpp"
-#include "eventSystem/events/EventDataReceive.hpp"
-
-
 
 namespace PMacc
 {
@@ -41,10 +34,7 @@ namespace PMacc
 
         enum
         {
-            Dim = DIM3,
-            /* Exchanges in 2D=9 and in 3D=27
-             */
-            Exchanges = 27
+            Dim = ParBase::Dim,
         };
 
         TaskSendParticlesExchange(ParBase &parBase, uint32_t exchange) :
@@ -73,8 +63,8 @@ namespace PMacc
                     break;
                 case WaitForBash:
 
-                    if (NULL == Manager::getInstance().getITaskIfNotFinished(tmpEvent.getTaskId()) &&
-                        NULL == Manager::getInstance().getITaskIfNotFinished(lastSendEvent.getTaskId()))
+                    if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()) &&
+                        NULL == Environment<>::get().Manager().getITaskIfNotFinished(lastSendEvent.getTaskId()))
                     {
                         state = InitSend;
                         //bash is finished
@@ -90,7 +80,7 @@ namespace PMacc
                 case InitSend:
                     break;
                 case WaitForSend:
-                    if (NULL == Manager::getInstance().getITaskIfNotFinished(tmpEvent.getTaskId()))
+                    if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
                     {
                         assert(lastSize<=maxSize);
                         //check for next bash round
@@ -98,14 +88,14 @@ namespace PMacc
                         {
                             std::cerr<<"send max size "<<maxSize<<" particles"<<std::endl;
                             init(); //call init and run a full send cycle
-                            
+
                         }
                         else
                             state = WaitForSendEnd;
                     }
                     break;
                 case WaitForSendEnd:
-                    if (NULL == Manager::getInstance().getITaskIfNotFinished(lastSendEvent.getTaskId()))
+                    if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(lastSendEvent.getTaskId()))
                     {
                         state = Finished;
                         return true;
@@ -158,7 +148,3 @@ namespace PMacc
     };
 
 } //namespace PMacc
-
-
-#endif	/* _TASKSENDPARTICLESEXCHANGE_HPP */
-

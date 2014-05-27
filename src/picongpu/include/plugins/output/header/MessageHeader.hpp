@@ -35,7 +35,7 @@
 //#include "plugins/output/header/ColorHeader.hpp"
 #include "plugins/output/header/WindowHeader.hpp"
 
-#include "simulationControl/VirtualWindow.hpp"
+#include "simulationControl/Window.hpp"
 
 
 typedef PMacc::DataSpace<DIM2> Size2D;
@@ -55,7 +55,7 @@ struct MessageHeader
 
     template<class CellDesc >
     void update(CellDesc & cellDesc,
-                picongpu::VirtualWindow vWindow,
+                picongpu::Window vWindow,
                 Size2D transpose,
                 uint32_t currentStep,
                 float* cellSizeArr = NULL,
@@ -76,7 +76,7 @@ struct MessageHeader
         if (gpus.productOfComponents() != 0)
             sim.nodes = DataSpace<DIM2 > (gpus[transpose.x()], gpus[transpose.y()]);
         
-        PMACC_AUTO(simBox,SubGrid<simDim>::getInstance().getSimulationBox());
+        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
         
         const DataSpace<Dim> globalSize(simBox.getGlobalSize());
         sim.size.x() = globalSize[transpose.x()];
@@ -84,7 +84,7 @@ struct MessageHeader
         
         node.maxSize = DataSpace<DIM2 > (localSize[transpose.x()], localSize[transpose.y()]);
 
-        const DataSpace<Dim> windowSize = vWindow.globalWindowSize;
+        const DataSpace<Dim> windowSize = vWindow.globalDimensions.size;
         window.size = DataSpace<DIM2 > (windowSize[transpose.x()], windowSize[transpose.y()]);
 
         if (cellSizeArr != NULL)
@@ -112,8 +112,8 @@ struct MessageHeader
         }
 
         const DataSpace<Dim> offsetToSimNull(simBox.getGlobalOffset());
-        const DataSpace<Dim> windowOffsetToSimNull(vWindow.globalSimulationOffset);
-        const DataSpace<Dim> localOffset(vWindow.localOffset);
+        const DataSpace<Dim> windowOffsetToSimNull(vWindow.globalDimensions.offset);
+        const DataSpace<Dim> localOffset(vWindow.localDimensions.offset);
 
         const DataSpace<DIM2> localOffset2D(localOffset[transpose.x()], localOffset[transpose.y()]);
         node.localOffset = localOffset2D;
@@ -129,18 +129,19 @@ struct MessageHeader
         const DataSpace<DIM2> windowOffsetToSimNull2D(windowOffsetToSimNull[transpose.x()], windowOffsetToSimNull[transpose.y()]);
         window.offset = windowOffsetToSimNull2D;
 
-        const DataSpace<Dim> currentLocalSize(vWindow.localSize);
+        const DataSpace<Dim> currentLocalSize(vWindow.localDimensions.size);
         const DataSpace<DIM2> currentLocalSize2D(currentLocalSize[transpose.x()], currentLocalSize[transpose.y()]);
         node.size = currentLocalSize2D;
 
         sim.step = currentStep;
 
         /*add sliding windo informations to header*/
+        const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
         sim.simOffsetToNull = DataSpace<DIM2 > ();
         if (transpose.x() == 1)
-            sim.simOffsetToNull.x() = node.maxSize.x() * vWindow.slides;
+            sim.simOffsetToNull.x() = node.maxSize.x() * numSlides;
         else if (transpose.y() == 1)
-            sim.simOffsetToNull.y() = node.maxSize.y() * vWindow.slides;
+            sim.simOffsetToNull.y() = node.maxSize.y() * numSlides;
 
     }
 

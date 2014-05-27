@@ -90,7 +90,7 @@ public:
     static void addOneParticle(ParticlesClass& parClass, MappingDesc cellDescription, DataSpace<DIM3> globalCell)
     {
 
-        PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
+        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
         const DataSpace<DIM3> globalTopLeft = simBox.getGlobalOffset();
         const DataSpace<DIM3> localSimulationArea = simBox.getLocalSize();
         
@@ -105,8 +105,8 @@ public:
         }
 
         //calculate supercell 
-        DataSpace<DIM3> localSuperCell = (localParCell / MappingDesc::SuperCellSize::getDataSpace());
-        DataSpace<DIM3> cellInSuperCell = localParCell - (localSuperCell * MappingDesc::SuperCellSize::getDataSpace());
+        DataSpace<DIM3> localSuperCell = (localParCell / MappingDesc::SuperCellSize::toRT());
+        DataSpace<DIM3> cellInSuperCell = localParCell - (localSuperCell * MappingDesc::SuperCellSize::toRT());
         //add garding blocks to supercell 
         localSuperCell = localSuperCell + cellDescription.getGuardingSuperCells();
 

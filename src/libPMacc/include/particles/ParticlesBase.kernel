@@ -1,22 +1,23 @@
 /**
- * Copyright 2013 Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Felix Schmitt, Heiko Burau, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "types.h"
@@ -31,6 +32,7 @@
 
 #include "particles/operations/Assign.hpp"
 #include "particles/operations/Deselect.hpp"
+#include "traits/NumberOfExchanges.hpp"
 
 namespace PMacc
 {
@@ -48,9 +50,9 @@ __global__ void kernelShiftParticles(ParticlesBox<FRAME, Mapping::Dim> pb, Mappi
      */
     enum
     {
-        TileSize = Mapping::SuperCellSize::elements,
+        TileSize = math::CT::volume<typename Mapping::SuperCellSize>::type::value,
         Dim = Mapping::Dim,
-        Exchanges = Mapping::Neighbors
+        Exchanges = traits::NumberOfExchanges<Dim>::value
     };
 
 
@@ -111,7 +113,7 @@ __global__ void kernelShiftParticles(ParticlesBox<FRAME, Mapping::Dim> pb, Mappi
     {
         lcellId_t destParticleIdx = INV_LOC_IDX;
 
-        //switch to value to [-2, EXCHANGES - 1] 
+        //switch to value to [-2, EXCHANGES - 1]
         //-2 is no particle
         //-1 is particle but it is not shifted
         const int direction = (*frame)[threadIdx.x][multiMask_] - 2;
@@ -239,7 +241,7 @@ __global__ void kernelFillGapsLastFrame(ParticlesBox<FRAME, Mapping::Dim> pb, Ma
 
     enum
     {
-        TileSize = Mapping::SuperCellSize::elements,
+        TileSize = math::CT::volume<typename Mapping::SuperCellSize>::type::value,
         Dim = Mapping::Dim
     };
 
@@ -310,7 +312,7 @@ __global__ void kernelFillGaps(ParticlesBox<FRAME, Mapping::Dim> pb, Mapping map
 
     enum
     {
-        TileSize = Mapping::SuperCellSize::elements,
+        TileSize = math::CT::volume<typename Mapping::SuperCellSize>::type::value,
         Dim = Mapping::Dim
     };
 
@@ -415,6 +417,56 @@ __global__ void kernelFillGaps(ParticlesBox<FRAME, Mapping::Dim> pb, Mapping map
     }
 }
 
+template< class T_ParticleBox, class Mapping>
+__global__ void kernelDeleteParticles(T_ParticleBox pb,
+                                      Mapping mapper)
+{
+    using namespace particles::operations;
+
+    typedef T_ParticleBox ParticleBox;
+    typedef typename ParticleBox::FrameType FrameType;
+
+    enum
+    {
+        Dim = Mapping::Dim
+    };
+
+    DataSpace<Dim> superCellIdx = mapper.getSuperCellIndex(DataSpace<Dim > (blockIdx));
+    const int linearThreadIdx = threadIdx.x;
+
+    __shared__ FrameType *frame;
+    __shared__ bool isValid;
+
+    __syncthreads(); /*wait that all shared memory is initialised*/
+
+    if (linearThreadIdx == 0)
+    {
+        frame = &(pb.getLastFrame(superCellIdx, isValid));
+    }
+
+    __syncthreads();
+
+    while (isValid)
+    {
+
+        PMACC_AUTO(particle, ((*frame)[linearThreadIdx]));
+        particle[multiMask_] = 0; //delete particle
+
+        __syncthreads();
+
+        if (linearThreadIdx == 0)
+        {
+            frame = &(pb.getPreviousFrame(*frame, isValid));
+            isValid = isValid && pb.removeLastFrame(superCellIdx); //always remove the last frame
+        }
+        __syncthreads();
+    }
+
+    if (linearThreadIdx == 0)
+        pb.getSuperCell(superCellIdx).setSizeLastFrame(0);
+
+}
+
 template< class FRAME, class BORDER, class Mapping>
 __global__ void kernelBashParticles(ParticlesBox<FRAME, Mapping::Dim> pb,
                                     ExchangePushDataBox<vint_t, BORDER, Mapping::Dim - 1 > border,
@@ -424,7 +476,7 @@ __global__ void kernelBashParticles(ParticlesBox<FRAME, Mapping::Dim> pb,
 
     enum
     {
-        TileSize = Mapping::SuperCellSize::elements,
+        TileSize = math::CT::volume<typename Mapping::SuperCellSize>::type::value,
         Dim = Mapping::Dim
     };
 
@@ -432,7 +484,7 @@ __global__ void kernelBashParticles(ParticlesBox<FRAME, Mapping::Dim> pb,
 
     // asymmetric, because corners are exchanged only in y-directions
     /*   const DataSpace<Dim> directions = Mask::getRelativeDirections<Dim > (mapper.getExchangeType());
-    
+
        if (directions.y() != 0 && directions.x() == 0)
            superCellIdx.x() -= mapper.getGuardingSuperCells();*/
     __shared__ uint32_t numBashedParticles;
@@ -519,7 +571,7 @@ __global__ void kernelInsertParticles(ParticlesBox<FRAME, Mapping::Dim> pb,
 
     enum
     {
-        TileSize = Mapping::SuperCellSize::elements,
+        TileSize = math::CT::volume<typename Mapping::SuperCellSize>::type::value,
         Dim = Mapping::Dim
     };
 

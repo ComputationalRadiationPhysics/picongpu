@@ -51,4 +51,4 @@ export LD_LIBRARY_PATH="TBG_outDir/build_libsplash:TBG_outDir/build_simlib:$LD_L
 mkdir simOutput 2> /dev/null
 cd simOutput
 
-mpirun  --display-map -am openib.conf  -n TBG_tasks ../picongpu/bin/picongpu TBG_programParams
+mpirun  --display-map -am openib.conf --mca mpi_leave_pinned 0 -n TBG_tasks ../picongpu/bin/picongpu TBG_programParams

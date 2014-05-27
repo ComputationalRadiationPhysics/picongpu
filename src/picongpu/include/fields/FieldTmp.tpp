@@ -1,27 +1,27 @@
 /**
  * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
 
 
 #pragma once
 
+#include "types.h"
 #include "memory/buffers/GridBuffer.hpp"
 #include "mappings/simulation/GridController.hpp"
 
@@ -46,13 +46,14 @@ namespace picongpu
     using namespace PMacc;
 
     FieldTmp::FieldTmp( MappingDesc cellDescription ) :
-    SimulationFieldHelper<MappingDesc>( cellDescription )
+    SimulationFieldHelper<MappingDesc>( cellDescription ),
+    fieldTmp( NULL )
     {
         fieldTmp = new GridBuffer<ValueType, simDim > ( cellDescription.getGridLayout( ) );
 
         /** \todo The exchange has to be resetted and set again regarding the
          *  temporary "Fill-"Functor we want to use.
-         * 
+         *
          *  Problem: buffers don't allow "bigger" exchange during run time.
          *           so let's stay with the maximum guards.
          */
@@ -60,19 +61,18 @@ namespace picongpu
         const DataSpace<simDim> coreBorderSize = cellDescription.getGridLayout( ).getDataSpaceWithoutGuarding( );
 
         typedef picongpu::FieldToParticleInterpolationNative<
-            ShiftCoordinateSystemNative,
-            speciesParticleShape::ParticleShape::ChargeAssignment,
+            speciesParticleShape::ParticleShape,
             AssignedTrilinearInterpolation> maxMarginsFrameSolver;
 
         /* The maximum Neighbors we need will be given by the ParticleShape */
         typedef typename GetMargin<maxMarginsFrameSolver>::LowerMargin LowerMargin;
         typedef typename GetMargin<maxMarginsFrameSolver>::UpperMargin UpperMargin;
 
-        const DataSpace<simDim> originGuard( LowerMargin( ).vec( ) );
-        const DataSpace<simDim> endGuard( UpperMargin( ).vec( ) );
+        const DataSpace<simDim> originGuard( LowerMargin( ).toRT( ) );
+        const DataSpace<simDim> endGuard( UpperMargin( ).toRT( ) );
 
         /*go over all directions*/
-        for( uint32_t i = 1; i < numberOfNeighbors[simDim]; ++i )
+        for( uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i )
         {
             DataSpace<simDim> relativMask = Mask::getRelativeDirections<simDim > ( i );
             /*guarding cells depend on direction
@@ -80,7 +80,7 @@ namespace picongpu
             DataSpace<simDim> guardingCells;
             for( uint32_t d = 0; d < simDim; ++d )
             {
-                /*originGuard and endGuard are switch because we send data 
+                /*originGuard and endGuard are switch because we send data
                  * e.g. from left I get endGuardingCells and from right I originGuardingCells
                  */
                 switch( relativMask[d] )
@@ -103,7 +103,7 @@ namespace picongpu
 
     FieldTmp::~FieldTmp( )
     {
-        delete fieldTmp;
+        __delete( fieldTmp );
     }
 
     template<uint32_t AREA, class FrameSolver, class ParticlesClass>
@@ -111,8 +111,8 @@ namespace picongpu
     {
         typedef SuperCellDescription<
             typename MappingDesc::SuperCellSize,
-            typename toTVec<typename FrameSolver::LowerMargin>::type,
-            typename toTVec<typename FrameSolver::UpperMargin>::type
+            typename FrameSolver::LowerMargin,
+            typename FrameSolver::UpperMargin
             > BlockArea;
 
         StrideMapping<AREA, simDim, MappingDesc> mapper( cellDescription );
@@ -135,7 +135,7 @@ namespace picongpu
     {
         return getName();
     }
-    
+
     void FieldTmp::synchronize( )
     {
         fieldTmp->deviceToHost( );
@@ -192,7 +192,7 @@ namespace picongpu
 
     void FieldTmp::init( )
     {
-        DataConnector::getInstance( ).registerData( *this );
+        Environment<>::get().DataConnector().registerData( *this );
     }
 
     FieldTmp::DataBoxType FieldTmp::getDeviceDataBox( )
@@ -220,21 +220,21 @@ namespace picongpu
         fieldTmp->getHostBuffer( ).reset( true );
         fieldTmp->getDeviceBuffer( ).reset( false );
     }
-    
+
     template<class FrameSolver >
     typename FieldTmp::UnitValueType
     FieldTmp::getUnit( )
     {
         return FrameSolver().getUnit();
     }
-    
+
 
     std::string
     FieldTmp::getName( )
     {
         return "FieldTmp";
     }
-    
+
     uint32_t
     FieldTmp::getCommTag( )
     {

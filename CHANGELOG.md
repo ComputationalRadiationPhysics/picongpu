@@ -3,23 +3,127 @@ Change Log / Release Log for PIConGPU
 
 Open Beta RC5
 -------------
-**Date:** TBA
+**Date:** 2014-05-28
 
 This is the 5th release candidate, a *pre-beta* version.
+
+We rebuild our complete plugin and restart scheme, most of these
+changes are not backwards compatible and you will have to upgrade
+to libSplash 1.2+ for HDF5 output (this just means: you can
+not restart from a beta-rc4 checkpoint with this release).
 
 ### Changes to "Open Beta RC4"
 
 **.param file changes:**
- - n/a
+ - Added selection of optional window functions in `radiationConfig.param`
+   [#286](https://github.com/ComputationalRadiationPhysics/picongpu/pull/286/files#diff-1)
+ - Added more window functions in `radiationConfig.param`
+   [#320](https://github.com/ComputationalRadiationPhysics/picongpu/pull/320/files#diff-1)
+ - removed double `#define __COHERENTINCOHERENTWEIGHTING__ 1` in some examples `radiationConfig.param`
+   [#323](https://github.com/ComputationalRadiationPhysics/picongpu/pull/323/files)
+ - new file: `seed.param` allows to vary the starting conditions of "identical" runs
+   [#353](https://github.com/ComputationalRadiationPhysics/picongpu/pull/353)
+ - Updated a huge amount of `.param` files to remove outdated comments
+   [#384](https://github.com/ComputationalRadiationPhysics/picongpu/pull/384)
+ - Update `gasConfig.param`/`gasConfig.unitless` and doc string in `componentsConfig.param`
+   with new gasFromHdf5 profile
+   [#280](https://github.com/ComputationalRadiationPhysics/picongpu/pull/280/files)
+
+**.unitless file changes:**
+ - update `fileOutput.unitless` and add new file `checkpoints.unitless`
+   [#387](https://github.com/ComputationalRadiationPhysics/picongpu/pull/387/files)
+ - update `fieldSolver.unitless`
+   [#314](https://github.com/ComputationalRadiationPhysics/picongpu/pull/314/files#diff-5)
+ - Update `radiationConfig.unitless`: adjust to new supercell size naming
+   [#394](https://github.com/ComputationalRadiationPhysics/picongpu/pull/394/files#diff-61)
+ - Corrected CFL criteria (to be less conservative) in `gridConfig.unitless`
+   [#371](https://github.com/ComputationalRadiationPhysics/picongpu/pull/371/files#diff-1)
 
 **New Features:**
- - n/a
+ - Radiation plugin: add optional window functions to reduce ringing effects
+   caused by sharp boundaries #286 #323 #320
+ - load gas profiles from png #280
+ - restart mechanism rebuild #326 #375 #358 #387 #376 #417
+ - new unified naming scheme for domain and window sizes/offsets #128 #334 #396 #403 #413 #421
+ - base seed for binary idential simulations now exposed in seed.param #351 #353
+ - particle kernels without "early returns" #359 #360
+ - lowered memory foot print during shiftParticles #367
+ - ShiftCoordinateSystem refactored #414
+ - tools:
+   - tbg warns about broken line continuations in tpl files #259
+   - new CMake modules for: ADIOS, libSplash, PNGwriter #271 #304 #307 #308 #406
+   - pic2xdmf
+     - supports information tags #290 #294
+     - one xdmf for grids and one for particles #318 #345
+   - Vampir and Score-P support updated/added #293 #291 #399 #422
+   - ParaView remote server description for Hypnos (HZDR) added #355 #397
+ - plugins
+   - former name: "modules" #283
+   - completely refactored #287 #336 #342 #344
+   - restart capabilites added (partially) #315 #326 #425
+   - new 2D phase space analysis added #347 #364 #391 #407
+   - libSplash 1.2+ upgrade (incompatible output to previous versions) #388 #402
+ - libPMacc
+   - new Environment class provides all singletons #254 #276 #404 #405
+   - new particle traits, methods and flags #279 #306 #311 #314 #312
+   - cuSTL ForEach on 1-3D data sets #335
+   - cuSTL twistVectorAxes refactored #370
+   - NumberOfExchanges replaced numberOfNeighbors implementation #362
+   - new math functions: tan, float2int_rd (host) #374 #410
+   - CT::Vector now supports ::shrink #392
 
 **Bug fixes:**
- - n/a
+ - CUDA 5.5 and 6.0 support was broken #401
+ - command line argument parser messages were broken #281 #270 #309
+ - avoid deadlock in computeCurrent, remove early returns #359
+ - particles that move in the absorbing GUARD are now cleaned up #363
+ - CFL criteria fixed (the old one was too conservative) #165 #371 #379
+ - non-GPU-aware (old-stable) MPI versions could malform host-side
+   pinned/page-locked buffers for subsequent cudaMalloc/cudaFree calls
+   (core routines not affected) #438
+ - ADIOS
+   - particle output was broken #296
+   - CMake build was broken #260 #268
+ - libSplash
+   - output performance drastically improved #297
+ - libPMacc
+   - GameOfLife example was broken #295
+   - log compile broken for high log level #372
+   - cuSTL assign was broken for big data sets #431
+   - cuSTL reduce minor memory leak fixed #433
+ - compile suite updated and messages escaped #301 #385
+ - plugins
+   - BinEnergyParticles header corrected #317 #319
+   - PNG undefined buffer values fixed #339
+   - PNG in 2D did not ignore invalid slides #432
+ - examples
+   - Kelvin-Helmholtz example box size corrected #352
+   - Bunch/SingleParticleRadiationWithLaser observation angle fixed #424
 
 **Misc:**
- - n/a
+ - more generic 2 vs 3D algorithms #255
+ - experimental PGI support removed #257
+ - gcc 4.3 support dropped #264
+ - various gcc warnings fixed #266 #284
+ - CMake 3.8.12-2 warnings fixed #366
+ - picongpu.profile example added for
+   - Titan (ORNL) #263
+   - Hypnos (HZDR) #415
+ - documentation updated #275 #337 #338 #357 #409
+ - wiki started: plugins, developer hints, simulation control, examples #288 #321 #328
+ - particle interfaces clened up #278
+ - ParticleToGrid kernels refactored #329
+ - slide log is now part of the SIMULATION_STATE level #354
+ - additional NGP current implementation removed #429
+ - libPMacc
+   - GameOfLife example documented #305
+   - compile time vector refactored #349
+   - shortened compile time template error messages #277
+   - cuSTL inline documentation added #365
+   - compile time operators and ForEach refactored #380
+   - TVec removed in preference of CT::Vector #394
+ - new developers added #331 #373
+ - Attribution text updated and BibTex added #428
 
 
 Open Beta RC4

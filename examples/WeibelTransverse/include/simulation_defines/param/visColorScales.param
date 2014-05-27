@@ -19,6 +19,7 @@
  */ 
  
 
+
 #pragma once
 
 #include "basicOperations.hpp"
@@ -43,7 +44,7 @@ namespace picongpu
                                   const float_X value,
                                   const float_X opacity )
             {
-                const float3_X myChannel = float3_X( 1.0f, 1.0f, 1.0f );
+                const float3_X myChannel( 1.0, 1.0, 1.0 );
                 img = img
                       - opacity * float3_X( myChannel.x() * img.x(),
                                                myChannel.y() * img.y(),
@@ -58,12 +59,12 @@ namespace picongpu
                                   const float_X value,
                                   const float_X opacity )
             {
-                const float3_X myChannel = float3_X( 1.0f, 1.0f, 1.0f );
+                const float3_X myChannel( 1.0, 1.0, 1.0 );
                 img = img
                       - opacity * float3_X( myChannel.x() * img.x(),
                                                myChannel.y() * img.y(),
                                                myChannel.z() * img.z() )
-                      + myChannel * (1.0f - value ) * opacity;
+                      + myChannel * (float_X(1.0) - value ) * opacity;
             }
         }
         
@@ -73,7 +74,7 @@ namespace picongpu
                                   const float_X value,
                                   const float_X opacity )
             {
-                const float3_X myChannel = float3_X( 1.0f, 0.0f, 0.0f );
+                const float3_X myChannel( 1.0, 0.0, 0.0 );
                 img = img
                       - opacity * float3_X( myChannel.x() * img.x(),
                                                myChannel.y() * img.y(),
@@ -88,7 +89,7 @@ namespace picongpu
                                   const float_X value,
                                   const float_X opacity )
             {
-                const float3_X myChannel = float3_X( 0.0f, 1.0f, 0.0f );
+                const float3_X myChannel( 0.0, 1.0, 0.0 );
                 img = img
                       - opacity * float3_X( myChannel.x() * img.x(),
                                                myChannel.y() * img.y(),
@@ -103,7 +104,7 @@ namespace picongpu
                                   const float_X value,
                                   const float_X opacity )
             {
-                const float3_X myChannel = float3_X( 0.0f, 0.0f, 1.0f );
+                const float3_X myChannel( 0.0, 0.0, 1.0 );
                 img = img
                       - opacity * float3_X( myChannel.x() * img.x(),
                                                myChannel.y() * img.y(),

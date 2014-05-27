@@ -25,7 +25,7 @@
 #include "types.h"
 #include "simulation_defines.hpp"
 #include "dimensions/DataSpace.hpp"
-#include "dimensions/TVec.h"
+#include "math/vector/compile-time/Int.hpp"
 #include "basicOperations.hpp"
 #include "math/vector/compile-time/Int.hpp"
 

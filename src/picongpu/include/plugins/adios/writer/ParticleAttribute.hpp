@@ -34,7 +34,7 @@ namespace adios
 {
 using namespace PMacc;
 
-namespace bmpl = boost::mpl;
+
 
 /** write attribute of a particle to adios file
  * 
@@ -72,7 +72,7 @@ struct ParticleAttribute
             /* copy strided data from source to temporary buffer */
             for (size_t i = 0; i < elements; ++i)
             {
-                tmpBfr[i] = ((ComponentType*)dataPtr)[i * components];
+                tmpBfr[i] = ((ComponentType*)dataPtr)[d + i * components];
             }
 
             int64_t adiosAttributeVarId = *(params.get()->adiosParticleAttrVarIds.begin());

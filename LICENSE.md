@@ -1,7 +1,7 @@
  PIConGPU - Licenses
 ================================================================================
 
-**Copyright 2009-2013** Florian Berninger, Heiko Burau, Robert Dietrich, Wen Fu,
+**Copyright 2009-2014** Florian Berninger, Heiko Burau, Robert Dietrich, Wen Fu,
                         Anton Helm, Wolfgang Hoehnig, Axel Huebl, Remi Lehe,
                         Richard Pausch, Felix Schmitt, Benjamin Schneider,
                         Joseph Schuchart, Klaus Steiniger, Rene Widera
@@ -18,14 +18,14 @@ The **main simulation** is licensed under the **GPLv3+**. See
  - `examples`
  - `doc`
  - `src/picongpu`
- - `src/tools`
+ - `src/tools` (without `splash2txt`)
  - `src/mpiInfo`
  
 All **libraries** are *dual licensed* under the **GLPv3+ and LGPLv3+**. See
 [COPYING](COPYING) and [COPYING.LESSER](COPYING.LESSER).
 If not stated otherwise explicitly, that affects:
  - `src/libPMacc`
- - `src/splash2txt`
+ - `src/tools/splash2txt`
 
 **other licenses**:
  - `src/cuda_memtest`:

@@ -1,23 +1,23 @@
 /**
  * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 
 #ifndef LINESLICEFIELDS_HPP
@@ -41,7 +41,7 @@
 
 #include "basicOperations.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
-#include "plugins/IPluginModule.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 
 namespace picongpu
 {
@@ -72,7 +72,7 @@ namespace picongpu
         __syncthreads();
 
         // GPU-local cell id with lower GPU-local guarding
-        const DataSpace<simDim> localCell(superCellIdx * SuperCellSize() + threadIndex);
+        const DataSpace<simDim> localCell(superCellIdx * SuperCellSize::toRT() + threadIndex);
 
         const float3_X b = fieldB(localCell);
         const float3_X e = fieldE(localCell);
@@ -80,7 +80,7 @@ namespace picongpu
         // GPU-local cell id without lower GPU-local guarding
         const DataSpace<simDim> localCellWG(
                 localCell
-                - SuperCellSize::getDataSpace() * mapper.getGuardingSuperCells());
+                - SuperCellSize::toRT() * mapper.getGuardingSuperCells());
         // global cell id
         const DataSpace<simDim> globalCell = localCellWG + globalCellIdOffset;
 
@@ -95,7 +95,7 @@ namespace picongpu
         __syncthreads();
     }
 
-    class LineSliceFields : public ISimulationIO, public IPluginModule
+    class LineSliceFields : public ILightweightPlugin
     {
     private:
         FieldE* fieldE;
@@ -116,7 +116,7 @@ namespace picongpu
         cellDescription(NULL),
         notifyFrequency(0)
         {
-            ModuleConnector::getInstance().registerModule(this);
+            Environment<>::get().PluginConnector().registerPlugin(this);
         }
 
         virtual ~LineSliceFields()
@@ -128,22 +128,22 @@ namespace picongpu
         {
             typedef typename MappingDesc::SuperCellSize SuperCellSize;
 
-            DataConnector& dc = DataConnector::getInstance();
+            DataConnector& dc = Environment<>::get().DataConnector();
 
             fieldE = &(dc.getData<FieldE > (FieldE::getName(), true));
             fieldB = &(dc.getData<FieldB > (FieldB::getName(), true));
 
 
-            const int rank = GridController<simDim>::getInstance().getGlobalRank();
+            const int rank = Environment<simDim>::get().GridController().getGlobalRank();
             getLineSliceFields < CORE + BORDER > ();
-            
-            PMACC_AUTO(simBox,SubGrid<simDim>::getInstance().getSimulationBox());
-            
+
+            PMACC_AUTO(simBox,Environment<simDim>::get().SubGrid().getSimulationBox());
+
 
             // number of cells on the current CPU for each direction
             const DataSpace<simDim> nrOfGpuCells = cellDescription->getGridLayout().getDataSpaceWithoutGuarding();
 
-            
+
             // global cell id offset (without guardings!)
             // returns the global id offset of the "first" border cell on a GPU
             const DataSpace<simDim> globalCellIdOffset(simBox.getGlobalOffset());
@@ -184,13 +184,13 @@ namespace picongpu
             outfile << std::endl;
         }
 
-        void moduleRegisterHelp(po::options_description& desc)
+        void pluginRegisterHelp(po::options_description& desc)
         {
             desc.add_options()
                     ("lslice.period", po::value<uint32_t > (&notifyFrequency), "enable analyser [for each n-th step]");
         }
 
-        std::string moduleGetName() const
+        std::string pluginGetName() const
         {
             return "LineSliceFields";
         }
@@ -201,21 +201,21 @@ namespace picongpu
         }
 
     private:
-        void moduleLoad()
+        void pluginLoad()
         {
             if (notifyFrequency > 0)
             {
                 // number of cells on the current CPU for each direction
-                const DataSpace<simDim> nrOfGpuCells = SubGrid<simDim>::getInstance().getSimulationBox().getLocalSize();
+                const DataSpace<simDim> nrOfGpuCells = Environment<simDim>::get().SubGrid().getSimulationBox().getLocalSize();
 
                 // create as much storage as cells in the direction we are interested in:
                 // on gpu und host
                 sliceDataField = new GridBuffer<float3_X, DIM1 >
                         (DataSpace<DIM1 > (nrOfGpuCells.y()));
 
-                DataConnector::getInstance().registerObserver(this, notifyFrequency);
+                Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
 
-                const int rank = GridController<simDim>::getInstance().getGlobalRank();
+                const int rank = Environment<simDim>::get().GridController().getGlobalRank();
 
                 // open output file
                 std::stringstream oFileName;
@@ -227,7 +227,7 @@ namespace picongpu
             }
         }
 
-        void moduleUnload()
+        void pluginUnload()
         {
             if (notifyFrequency > 0)
             {
@@ -246,9 +246,9 @@ namespace picongpu
 
             const float3_X tmpFloat3(float3_X(float_X(0.0), float_X(0.0), float_X(0.0)));
             sliceDataField->getDeviceBuffer().setValue(tmpFloat3);
-            dim3 block(SuperCellSize::getDataSpace());
+            dim3 block(SuperCellSize::toRT().toDim3());
 
-            PMACC_AUTO(simBox,SubGrid<simDim>::getInstance().getSimulationBox());
+            PMACC_AUTO(simBox,Environment<simDim>::get().SubGrid().getSimulationBox());
             // global cell id offset (without guardings!)
             // returns the global id offset of the "first" border cell on a GPU
             const DataSpace<simDim> globalCellIdOffset(simBox.getGlobalOffset());

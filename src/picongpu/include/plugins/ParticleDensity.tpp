@@ -66,7 +66,7 @@ struct ParticleDensityKernel
                                linearCellIdx / (BlockDim::x::value * BlockDim::y::value));
         if(cellIdx[planeDir] != localPlane) return;
 
-        ::PMacc::math::Int<3> globalCellIdx = blockCellIdx - (PMacc::math::Int<3>)BlockDim().vec() + cellIdx;
+        ::PMacc::math::Int<3> globalCellIdx = blockCellIdx - (PMacc::math::Int<3>)BlockDim().toRT() + cellIdx;
         /// \warn reduce a normalized float_X with particleAccess::Weight() / NUM_EL_PER_PARTICLE
         ///       to avoid overflows for heavy weightings
         ///
@@ -78,11 +78,11 @@ template<typename ParticlesType>
 ParticleDensity<ParticlesType>::ParticleDensity(std::string name, std::string prefix)
     : name(name), prefix(prefix)
 {
-    ModuleConnector::getInstance().registerModule(this);
+    Environment<>::get().PluginConnector().registerPlugin(this);
 }
 
 template<typename ParticlesType>
-void ParticleDensity<ParticlesType>::moduleRegisterHelp(po::options_description& desc)
+void ParticleDensity<ParticlesType>::pluginRegisterHelp(po::options_description& desc)
 {
     desc.add_options()
         ((this->prefix + "_frequency").c_str(),
@@ -99,21 +99,18 @@ void ParticleDensity<ParticlesType>::moduleRegisterHelp(po::options_description&
 }
 
 template<typename ParticlesType>
-std::string ParticleDensity<ParticlesType>::moduleGetName() const {return this->name;}
+std::string ParticleDensity<ParticlesType>::pluginGetName() const {return this->name;}
 
 template<typename ParticlesType>
-void ParticleDensity<ParticlesType>::moduleLoad()
+void ParticleDensity<ParticlesType>::pluginLoad()
 {
-    DataConnector::getInstance().registerObserver(this, this->notifyFrequency);
+    Environment<>::get().PluginConnector().setNotificationPeriod(this, this->notifyFrequency);
 }
-
-template<typename ParticlesType>
-void ParticleDensity<ParticlesType>::moduleUnload(){}
 
 template<typename ParticlesType>
 void ParticleDensity<ParticlesType>::notify(uint32_t currentStep)
 {
-    DataConnector &dc = DataConnector::getInstance();
+    DataConnector &dc = Environment<>::get().DataConnector();
     this->particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
     
 
@@ -121,21 +118,21 @@ void ParticleDensity<ParticlesType>::notify(uint32_t currentStep)
     typedef vec::CT::Size_t<TILE_WIDTH, TILE_HEIGHT, TILE_DEPTH> BlockDim;
     container::PseudoBuffer<float3_X, 3> fieldE
         (dc.getData<FieldE > (FieldE::getName(), true).getGridBuffer().getDeviceBuffer());
-    zone::SphericZone<3> coreBorderZone(fieldE.zone().size - (size_t)2*BlockDim().vec(),
-                                        fieldE.zone().offset + (vec::Int<3>)BlockDim().vec());
+    zone::SphericZone<3> coreBorderZone(fieldE.zone().size - (size_t)2*BlockDim().toRT(),
+                                        fieldE.zone().offset + (vec::Int<3>)BlockDim().toRT());
 
     container::DeviceBuffer<int, 2> density(coreBorderZone.size.shrink<2>((plane+1)%3));
     density.assign(0);
     
-    PMacc::GridController<3>& con = PMacc::GridController<3>::getInstance();
+    PMacc::GridController<3>& con = PMacc::Environment<3>::get().GridController();
     vec::Size_t<3> gpuDim = (vec::Size_t<3>)con.getGpuNodes();
     vec::Size_t<3> globalGridSize = gpuDim * coreBorderZone.size;
     
     int globalPlanePos = globalGridSize[plane] * this->slicePoint;
     int localPlanePos = globalPlanePos % coreBorderZone.size[plane];
     int gpuPos = globalPlanePos / coreBorderZone.size[plane];
-    int superCell = localPlanePos / BlockDim().vec()[plane];
-    int cellWithinSuperCell = localPlanePos % BlockDim().vec()[plane];
+    int superCell = localPlanePos / BlockDim().toRT()[plane];
+    int cellWithinSuperCell = localPlanePos % BlockDim().toRT()[plane];
     vec::Size_t<3> planeVec(0); planeVec[plane] = 1;
     vec::Size_t<3> orthoPlaneVec(1); orthoPlaneVec[plane] = 0;
     
@@ -144,8 +141,8 @@ void ParticleDensity<ParticlesType>::notify(uint32_t currentStep)
     algorithm::mpi::Gather<3> gather(gpuGatheringZone);
     if(!gather.participate()) return;
     
-    zone::SphericZone<3> superCellSliceZone(orthoPlaneVec * coreBorderZone.size + planeVec * (vec::Size_t<3>)BlockDim().vec(),
-                                            coreBorderZone.offset + (vec::Int<3>)planeVec * superCell * (int)BlockDim().vec()[plane]);
+    zone::SphericZone<3> superCellSliceZone(orthoPlaneVec * coreBorderZone.size + planeVec * (vec::Size_t<3>)BlockDim().toRT(),
+                                            coreBorderZone.offset + (vec::Int<3>)planeVec * superCell * (int)BlockDim().toRT()[plane]);
     
     using namespace lambda;
     algorithm::kernel::ForeachBlock<BlockDim>()

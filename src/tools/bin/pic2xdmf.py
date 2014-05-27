@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2014 Felix Schmitt
+# Copyright 2014 Felix Schmitt, Conrad Schumann
 #
 # This file is part of PIConGPU.
 #
@@ -20,12 +20,15 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
+import sys
 import glob
 import argparse
 from xml.dom.minidom import Document
 import splash2xdmf
 
 doc = Document()
+grid_doc = Document()
+poly_doc = Document()
 
 # identifiers for vector components
 VECTOR_IDENTS = ["x", "y", "z", "w"]
@@ -44,13 +47,12 @@ def get_vector_basename(vector_name):
     
     if str_len < 3:
         return None
-    
+
     for ident in VECTOR_IDENTS:
         if vector_name[str_len - 1] == ident and vector_name[str_len - 2] == NAME_DELIM:
             return vector_name[0:(str_len - 2)]
         
     return None
-
 
 
 def get_basegroup(name):
@@ -123,14 +125,33 @@ def create_vector_attribute(new_name, node_list):
     vector_node = doc.createElement("Attribute")
     vector_node.setAttribute("Name", new_name)
     vector_node.setAttribute("AttributeType", "Vector")
-    
-    dims = node_list[0].firstChild.getAttribute("Dimensions")
-    
+	    
     data_item_list = list()
+
     for node in node_list:
-        data_item_list.append(node.firstChild)
-    vector_data = join_from_components(data_item_list, "JOIN(", ")", ",", dims)
+	children = node.childNodes
+	tmp_data_node = None
+	tmp_info_nodes = list();
+
+	for child in children:
+	    if child.nodeName == "Information":
+	 	tmp_info_nodes.append(child)
+		
+ 	    if child.nodeName == "DataItem":
+		tmp_data_node = child;
+
+	if tmp_data_node == None:
+            print "Error: no DataItem found"
+
+	for tmp_info_node in tmp_info_nodes:
+            tmp_data_node.appendChild(tmp_info_node)
+
+	data_item_list.append(tmp_data_node)
+
     
+    dims = data_item_list[0].getAttribute("Dimensions")
+		    
+    vector_data = join_from_components(data_item_list, "JOIN(", ")", ",", dims)
     vector_node.appendChild(vector_data)
     return vector_node
 
@@ -264,7 +285,10 @@ def merge_poly_attributes(base_node):
         for (vectorName, vectorAttrs) in groupMap.items():
             if vectorName.endswith("/{}".format(NAME_POSITION)):
                 pos_vector_list = vectorAttrs
-                number_of_elements = vectorAttrs[0].firstChild.getAttribute("Dimensions")
+		for i in pos_vector_list:
+		    for child in i.childNodes:
+		        if child.nodeName == "DataItem":
+			    number_of_elements = child.getAttribute("Dimensions")
             else:
                 if vectorName.endswith("/{}".format(NAME_GLOBALCELLIDX)):
                     gcellidx_vector_list = vectorAttrs
@@ -298,7 +322,20 @@ def merge_poly_attributes(base_node):
         
         combined_pos_nodes = list()
         for i in range(len(pos_vector_list)):
-            combined_node = combine_positions([gcellidx_vector_list[i].firstChild, pos_vector_list[i].firstChild], number_of_elements)
+	    pos_data_item = None;
+	    gcell_data_item = None;
+
+            for v_data in gcellidx_vector_list[i].childNodes:
+	        if v_data.nodeName == "DataItem":
+		    gcell_data_item = v_data
+		    break
+		   
+	    for p_data in pos_vector_list[i].childNodes:
+	        if p_data.nodeName == "DataItem":
+	 	    pos_data_item = p_data
+		    break
+	    
+            combined_node = combine_positions([gcell_data_item, pos_data_item], number_of_elements)
             combined_pos_nodes.append(combined_node)
             
         geom_node = create_position_geometry(combined_pos_nodes, number_of_elements)
@@ -353,7 +390,11 @@ def get_args_parser():
     
     parser.add_argument("-t", "--time", help="Aggregate information over a "
         "time-series of libSplash data", action="store_true")
-        
+
+    parser.add_argument("--fullpath", help="Use absolute paths for HDF5 files", action="store_true")
+
+    parser.add_argument("--no_splitgrid", help="Avoid the XML-tree to be split in grid and poly grids for seperate output files", action="store_true")
+    
     return parser
 
 
@@ -361,7 +402,6 @@ def main():
     """
     Main
     """
-
     # get arguments from command line
     args_parser = get_args_parser()
     args = args_parser.parse_args()
@@ -378,19 +418,44 @@ def main():
             splash_files.append(s_filename)
     else:
         splash_files.append(splashFilename)
+        tmp = splashFilename.rfind(".h5")
+        splashFilename = splashFilename[:tmp]
         
-    # create the basic xml structure using splas2xdmf
-    xdmf_root = splash2xdmf.create_xdmf_xml(splash_files)
-    # transform this xml using our pic semantic knowledge
-    transform_xdmf_xml(xdmf_root)
-
-    # create a xml file from the transformed structure
-    doc.appendChild(xdmf_root)
-    
     output_filename = "{}.xmf".format(splashFilename)
+    
     if args.o:
-        output_filename = args.o
-    splash2xdmf.write_xml_to_file(output_filename, doc)
+        if args.o.endswith(".xmf"):
+            output_filename = args.o
+        else:
+            print "The script was stopped, because your output filename doesn't have\nan ending paraview can work with. Please use the ending '.xmf'!"
+            sys.exit()
+
+    if args.no_splitgrid:
+        # create the basic xml structure using splash2xdmf
+        xdmf_root = splash2xdmf.create_xdmf_xml(splash_files, args)
+        # transform this xml using our pic semantic knowledge
+        transform_xdmf_xml(xdmf_root)
+        # create a xml file from the transformed structure
+        doc.appendChild(xdmf_root)
+        # write data to output file
+        splash2xdmf.write_xml_to_file(output_filename, doc)
+    else:
+        # create the basic xml structure for grid and poly using splash2xdmf
+        grid_xdmf_root, poly_xdmf_root = splash2xdmf.create_xdmf_xml(splash_files, args)
+        # transform these xml using our pic semantic knowledge
+        transform_xdmf_xml(grid_xdmf_root)
+        transform_xdmf_xml(poly_xdmf_root)
+        # create the xml files from the transformed structures
+        grid_doc.appendChild(grid_xdmf_root)
+        poly_doc.appendChild(poly_xdmf_root)
+        # create list of two output filenames with _grid and _poly extension
+	output_filename_list = splash2xdmf.handle_user_filename(output_filename)
+        # use output filename list to write data to the relating output file
+	for output_file in output_filename_list:
+	    if output_file.endswith("_grid.xmf"):
+                splash2xdmf.write_xml_to_file(output_file, grid_doc)
+	    if output_file.endswith("_poly.xmf"):
+		splash2xdmf.write_xml_to_file(output_file, poly_doc)
 
 
 if __name__ == "__main__":

@@ -25,7 +25,7 @@
 
 #include "mappings/kernel/MappingDescription.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
-#include "dimensions/TVec.h"
+#include "math/vector/compile-time/Int.hpp"
 #include "eventSystem/EventSystem.hpp"
 
 #include "debug/PIConGPUVerbose.hpp"
@@ -38,7 +38,7 @@ namespace picongpu
     //short name for access verbose types of picongpu
     typedef PIConGPUVerbose picLog;
 
-    typedef MappingDescription<simDim, TVec<TILE_WIDTH, TILE_HEIGHT
+    typedef MappingDescription<simDim, PMacc::math::CT::Int<TILE_WIDTH, TILE_HEIGHT
     #if(SIMDIM==DIM3)
     , TILE_DEPTH
     #endif
@@ -71,7 +71,7 @@ namespace picongpu
  * Calls a CUDA kernel and creates an EventTask which represents the kernel.
  *
  * gridsize for kernel call is set by mapper
- * last argument of kernel call is add by mapper and is the mapper 
+ * last argument of kernel call is add by mapper and is the mapper
  *
  * @param kernelname name of the CUDA kernel (can also used with templates etc. myKernnel<1>)
  * @param area area type for which the kernel is called
@@ -79,5 +79,5 @@ namespace picongpu
 #define __picKernelArea(kernelname,description,area) {                               \
     CUDA_CHECK_KERNEL_MSG(cudaThreadSynchronize(),"picKernelArea crash before kernel call");       \
     AreaMapping<area,MappingDesc> mapper(description);                               \
-    TaskKernel *taskKernel =  Factory::getInstance().createTaskKernel(#kernelname);  \
+    TaskKernel *taskKernel =  Environment<>::get().Factory().createTaskKernel(#kernelname);  \
     kernelname PIC_PMACC_CUDAKERNELCONFIG

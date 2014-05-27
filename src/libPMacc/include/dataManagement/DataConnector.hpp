@@ -19,15 +19,13 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-#ifndef DATACONNECTOR_HPP
-#define	DATACONNECTOR_HPP
+#pragma once
 
 #include <map>
 #include <sstream>
 #include <stdexcept>
 
 #include "dataManagement/Dataset.hpp"
-#include "dataManagement/ISimulationIO.hpp"
 #include "dataManagement/ISimulationData.hpp"
 #include "dataManagement/AbstractInitialiser.hpp"
 #include "dataManagement/ListSorter.hpp"
@@ -64,51 +62,11 @@ namespace PMacc
     };
 
     /**
-     * Singleton class which registers simulation Dataset and
-     * data handler (ISimulationIO).
-     *
-     * Data handlers are notified about pending output data.
+     * Singleton class which registers simulation data and tracks their state.
      */
     class DataConnector
     {
     public:
-
-        static DataConnector& getInstance()
-        {
-            static DataConnector instance;
-            return instance;
-        }
-
-        /**
-         * Notifies observers that data should be dumped.
-         *
-         * @param currentStep current simulation iteration step
-         */
-        void dumpData(uint32_t currentStep)
-        {
-            for (ISimulationIO* ioclass = observers.sorter->begin();
-                    observers.sorter->isValid(); ioclass = observers.sorter->getNext())
-            {
-                uint32_t frequency = observers.mapping[ioclass];
-                if (currentStep % frequency == 0)
-                    ioclass->notify(currentStep);
-            }
-        }
-
-        /**
-         * Registers an ISimulationIO observer at this observable.
-         *
-         * @param observer simulation IO handler to register
-         * @param notifyFrequency frequency observers should be notified
-         */
-        void registerObserver(ISimulationIO *observer, uint32_t notifyFrequency)
-        {
-            if (notifyFrequency > 0)
-            {
-                observers.mapping[observer] = notifyFrequency;
-                observers.sorter->add(observer);
-            }
-        }
 
         /**
          * Returns if data with identifier id is registered.
@@ -222,13 +180,22 @@ namespace PMacc
         }
 
     private:
+        
+        friend Environment<DIM1>;
+        friend Environment<DIM2>;
+        friend Environment<DIM3>;
+        
+        static DataConnector& getInstance()
+        {
+            static DataConnector instance;
+            return instance;
+        }
+
         Mapping<SimulationDataId, Dataset*> datasets;
-        Mapping<ISimulationIO*, uint32_t> observers;
 
         DataConnector()
         {
             datasets.sorter = new ListSorter<SimulationDataId > ();
-            observers.sorter = new ListSorter<ISimulationIO*>();
         };
 
         virtual ~DataConnector()
@@ -242,12 +209,6 @@ namespace PMacc
                 delete datasets.sorter;
                 datasets.sorter = NULL;
             }
-
-            if (observers.sorter != NULL)
-            {
-                delete observers.sorter;
-                observers.sorter = NULL;
-            }
         }
         
         std::string getExceptionStringForID(const char *msg, SimulationDataId id)
@@ -259,6 +220,4 @@ namespace PMacc
     };
 
 }
-
-#endif	/* DATACONNECTOR_HPP */
 

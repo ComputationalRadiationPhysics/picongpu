@@ -1,3 +1,7 @@
+std::* -- 0
+*boost::* -- 0
+PMacc::Environment* -- 0
+PMacc::algorithms::* -- 0
 *Event* -- 0
 *MPI_Test* -- 0
 *new* -- 0

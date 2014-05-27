@@ -27,7 +27,6 @@
 #include "eventSystem/tasks/ITask.hpp"
 #include "eventSystem/streams/EventStream.hpp"
 
-
 namespace PMacc
 {
     template <class TYPE, unsigned DIM>
@@ -40,7 +39,7 @@ namespace PMacc
     class Exchange;
 
     class TaskKernel;
-
+        
     /**
      * Singleton Factory-pattern class for creation of several types of EventTasks.
      * Tasks are not actually 'returned' but immediately initialised and
@@ -157,16 +156,6 @@ namespace PMacc
         TaskKernel* createTaskKernel(std::string kernelname, ITask *registeringTask = NULL);
 
         /**
-         * returns the instance of this factory
-         * @return the instance
-         */
-        static Factory& getInstance()
-        {
-            static Factory instance;
-            return instance;
-        }
-
-        /**
          * Starts a task by initialising it and adding it to the Manager's queue.
          *
          * @param task the ITask to start
@@ -175,17 +164,24 @@ namespace PMacc
         EventTask startTask(ITask& task, ITask *registeringTask);
 
     private:
-
-        Factory() {
- };
+        
+        friend Environment<DIM1>;
+        friend Environment<DIM2>;
+        friend Environment<DIM3>;
+        
+        Factory() {};
 
         Factory(const Factory&) { };
+        
+        static Factory& getInstance()
+        {
+            static Factory instance;
+            return instance;
+        }
 
     };
 
 } //namespace PMacc
-
-#include "eventSystem/tasks/Factory.tpp"
 
 
 #endif	/* _FACTORY_HPP */

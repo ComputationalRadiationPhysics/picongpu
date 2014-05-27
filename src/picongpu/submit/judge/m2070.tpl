@@ -78,8 +78,8 @@ export LD_LIBRARY_PATH=$BOOST_LIB_EXT:$LD_LIBRARY_PATH:$PNGWRITER_ROOT/lib:$CUDA
 mkdir simOutput 2> /dev/null
 cd simOutput
 
-mpiexec -np !TBG_tasks  !TBG_dstPath/picongpu/bin/cuda_memtest.sh
+mpiexec -np !TBG_tasks --mca mpi_leave_pinned 0 !TBG_dstPath/picongpu/bin/cuda_memtest.sh
 
 if [ $? -eq 0 ] ; then
-   mpiexec  -np !TBG_tasks  !TBG_dstPath/picongpu/bin/picongpu !TBG_programParams
+   mpiexec  -np !TBG_tasks --mca mpi_leave_pinned 0 !TBG_dstPath/picongpu/bin/picongpu !TBG_programParams
 fi 

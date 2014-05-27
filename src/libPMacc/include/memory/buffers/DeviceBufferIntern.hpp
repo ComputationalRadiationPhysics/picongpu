@@ -1,23 +1,23 @@
 /**
  * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
 
 
 #ifndef _DEVICEBUFFERINTERN_HPP
@@ -190,7 +190,7 @@ namespace PMacc
             if (sizeOnDevice)
             {
                 __startTransaction(__getTransactionEvent());
-                Factory::getInstance().createTaskGetCurrentSizeFromDevice(*this);
+                Environment<>::get().Factory().createTaskGetCurrentSizeFromDevice(*this);
                 __endTransaction().waitForFinished();
             }
 
@@ -203,16 +203,16 @@ namespace PMacc
 
             if (sizeOnDevice)
             {
-                Factory::getInstance().createTaskSetCurrentSizeOnDevice(
+                Environment<>::get().Factory().createTaskSetCurrentSizeOnDevice(
                                                                         *this, size);
             }
         }
-        
+
         void copyFrom(HostBuffer<TYPE, DIM>& other)
         {
             __startAtomicTransaction(__getTransactionEvent());
             assert(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
-            Factory::getInstance().createTaskCopyHostToDevice(other, *this);
+            Environment<>::get().Factory().createTaskCopyHostToDevice(other, *this);
             __setTransactionEvent(__endTransaction());
         }
 
@@ -220,7 +220,7 @@ namespace PMacc
         {
             __startAtomicTransaction(__getTransactionEvent());
             assert(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
-            Factory::getInstance().createTaskCopyDeviceToDevice(other, *this);
+            Environment<>::get().Factory().createTaskCopyDeviceToDevice(other, *this);
             __setTransactionEvent(__endTransaction());
         }
 
@@ -237,7 +237,7 @@ namespace PMacc
 
         virtual void setValue(const TYPE& value)
         {
-            Factory::getInstance().createTaskSetValue(*this, value);
+            Environment<>::get().Factory().createTaskSetValue(*this, value);
         };
 
     private:

@@ -77,8 +77,9 @@ namespace radiationNyquist
 }
 
 
-
 }//namespace picongpu
+
+
 
 
 
@@ -104,7 +105,7 @@ namespace picongpu
   namespace radFormFactor_CIC_1Dy { }
   namespace radFormFactor_incoherent { }
 
-  namespace radFormFactor_selected = radFormFactor_CIC_3D;
+  namespace radFormFactor = radFormFactor_CIC_3D;
 
 
 }//namespace picongpu                                                                          
@@ -112,8 +113,6 @@ namespace picongpu
 
 
 ///////////////////////////////////////////////////////////                                    
-
-
 
 
 
@@ -131,10 +130,6 @@ namespace parameters
 // 0 = off (faster but with fourier reflections)
 #define __NYQUISTCHECK__ 0
 
-// corect treatment of coherent and incoherent  radiation from macroparticles
-// 1 = on  (slower and more memory, but correct quantitativ treatment)
-// 0 = off (faster but macroparticles are treated as highly charged, point-like particle)
-#define __COHERENTINCOHERENTWEIGHTING__ 0
 
 
 //marked every N particle for calculate radiation
@@ -150,5 +145,40 @@ const unsigned int N_observer = 256; // number of looking directions
 
 
 
-}
+} /* end namespace parameters */
+
+//////////////////////////////////////////////////
+
+
+
+namespace picongpu
+{
+
+// add a window function weighting to the radiation in order
+// to avoid ringing effects from sharpe boundaries
+// 1 = on  (slower but with noise/ringing reduction)
+// 0 = off (faster but might contain ringing)
+#define PIC_RADWINDOWFUNCTION 1
+
+
+
+/* Choose different window function in order to get better ringing reduction
+ * radWindowFunctionRectangle
+ * radWindowFunctionTriangle
+ * radWindowFunctionHamming
+ * radWindowFunctionTriplett
+ * radWindowFunctionGauss
+ */
+namespace radWindowFunctionRectangle { }
+namespace radWindowFunctionTriangle { }
+namespace radWindowFunctionHamming { }
+namespace radWindowFunctionTriplett { }
+namespace radWindowFunctionGauss { }
+
+namespace radWindowFunction = radWindowFunctionTriangle;
+
+
+}//namespace picongpu
+
+
 

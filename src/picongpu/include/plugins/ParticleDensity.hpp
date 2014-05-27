@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Heiko Burau, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -18,13 +18,10 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-#ifndef ANALYSIS_PARTICLEDENSITY_HPP
-#define ANALYSIS_PARTICLEDENSITY_HPP
+#pragma once
 
 
-#include "plugins/IPluginModule.hpp"
-#include "dataManagement/ISimulationIO.hpp"
-#include "simulation_classTypes.hpp" //\todo: muss in ISimulationIO.hpp
+#include "plugins/ILightweightPlugin.hpp"
 
 namespace picongpu
 {
@@ -35,7 +32,7 @@ using namespace PMacc;
 namespace po = boost::program_options;
 
 template<typename ParticlesType>
-class ParticleDensity : public ISimulationIO, public IPluginModule
+class ParticleDensity : public ILightweightPlugin
 {
 private:
     std::string name;
@@ -45,22 +42,21 @@ private:
     int plane;
     float_X slicePoint;
     ParticlesType *particles;
-        
-    void moduleLoad();
-    void moduleUnload();
+
 public:
     ParticleDensity(std::string name, std::string prefix);
     ~ParticleDensity() {}
 
     void notify(uint32_t currentStep);
     void setMappingDescription(MappingDesc*) {}
-    void moduleRegisterHelp(po::options_description& desc);
-    std::string moduleGetName() const;
+    void pluginRegisterHelp(po::options_description& desc);
+    std::string pluginGetName() const;
+    
+private:
+    void pluginLoad();    
 };
 
 }
 }
 
 #include "ParticleDensity.tpp"
-
-#endif // ANALYSIS_PARTICLEDENSITY_HPP

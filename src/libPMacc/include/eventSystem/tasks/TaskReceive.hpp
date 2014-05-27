@@ -49,7 +49,7 @@ namespace PMacc
         virtual void init()
         {
             state = WaitForReceived;
-            Factory::getInstance().createTaskReceiveMPI(exchange, this);
+            Environment<>::get().Factory().createTaskReceiveMPI(exchange, this);
         }
 
         bool executeIntern()
@@ -65,16 +65,16 @@ namespace PMacc
                     if (exchange->hasDeviceDoubleBuffer())
                     {
 
-                        Factory::getInstance().createTaskCopyHostToDevice(exchange->getHostBuffer(),
+                        Environment<>::get().Factory().createTaskCopyHostToDevice(exchange->getHostBuffer(),
                                                                                      exchange->getDeviceDoubleBuffer());
-                        Factory::getInstance().createTaskCopyDeviceToDevice(exchange->getDeviceDoubleBuffer(),
+                        Environment<>::get().Factory().createTaskCopyDeviceToDevice(exchange->getDeviceDoubleBuffer(),
                                                                                        exchange->getDeviceBuffer(),
                                                                                        this);
                     }
                     else
                     {
 
-                        Factory::getInstance().createTaskCopyHostToDevice(exchange->getHostBuffer(),
+                        Environment<>::get().Factory().createTaskCopyHostToDevice(exchange->getHostBuffer(),
                                                                                      exchange->getDeviceBuffer(),
                                                                                      this);
                     }

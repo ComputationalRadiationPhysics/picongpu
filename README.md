@@ -65,11 +65,11 @@ member of the [Dresden CUDA Center of Excellence](http://ccoe-dresden.de/) that
 cooperates on a broad range of scientific CUDA applications, workshops and
 teaching efforts.
 
-Referencing
+Attribution
 -----------
 
 PIConGPU is a *scientific project*. If you **present and/or publish** scientific
-results that used PIConGPU, you should set this as a **reference**.
+results that used PIConGPU, you should set a **reference** to show your support.
 
 Our according **up-to-date publication** at **the time of your publication**
 should be inquired from:
@@ -135,8 +135,9 @@ Active Team
 ### Maintainers* and core developers
 
 - Heiko Burau*
-- Anton Helm
+- Carlchristian Eckert
 - Axel Huebl*
+- Maximilian Knespel
 - Richard Pausch*
 - Felix Schmitt*
 - Conrad Schumann
@@ -149,6 +150,7 @@ The PIConGPU Team expresses its thanks to:
 - Florian Berninger
 - Robert Dietrich
 - Wen Fu
+- Anton Helm
 - Wolfgang Hoehnig
 - Remi Lehe
 - Benjamin Schneider

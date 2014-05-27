@@ -45,8 +45,7 @@ namespace fieldSolverNone
     typedef yeeCell::YeeCell NumericalCellType;
     
     typedef picongpu::FieldToParticleInterpolationNative<
-    ShiftCoordinateSystemNative,
-    speciesParticleShape::ParticleShape::ChargeAssignment,
+    speciesParticleShape::ParticleShape,
     AssignedTrilinearInterpolation> FieldToParticleInterpolation;
 }
 
@@ -56,8 +55,7 @@ namespace fieldSolverYeeNative
     typedef yeeCell::YeeCell NumericalCellType;
 
     typedef picongpu::FieldToParticleInterpolationNative<
-    ShiftCoordinateSystemNative,
-    speciesParticleShape::ParticleShape::ChargeAssignment,
+    speciesParticleShape::ParticleShape,
     AssignedTrilinearInterpolation> FieldToParticleInterpolation;
 }
 
@@ -67,8 +65,7 @@ namespace fieldSolverYee
     typedef yeeCell::YeeCell NumericalCellType;
 
     typedef picongpu::FieldToParticleInterpolation<
-    ShiftCoordinateSystem,
-    speciesParticleShape::ParticleShape::ChargeAssignmentOnSupport,
+    speciesParticleShape::ParticleShape,
     AssignedTrilinearInterpolation> FieldToParticleInterpolation;
 }
 
@@ -79,8 +76,7 @@ namespace fieldSolverDirSplitting
     typedef allCenteredCell::AllCenteredCell NumericalCellType;
 
     typedef picongpu::FieldToParticleInterpolationNative<
-    ShiftCoordinateSystemNative,
-    speciesParticleShape::ParticleShape::ChargeAssignment,
+    speciesParticleShape::ParticleShape,
     AssignedTrilinearInterpolation> FieldToParticleInterpolation;
 }
 
@@ -90,8 +86,7 @@ namespace fieldSolverLehe
     typedef yeeCell::YeeCell NumericalCellType;
     
     typedef picongpu::FieldToParticleInterpolationNative<
-    ShiftCoordinateSystemNative,
-    speciesParticleShape::ParticleShape::ChargeAssignment,
+    speciesParticleShape::ParticleShape,
     AssignedTrilinearInterpolation> FieldToParticleInterpolation;
 }
 #endif

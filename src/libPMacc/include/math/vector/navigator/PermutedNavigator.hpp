@@ -31,7 +31,7 @@ struct PermutedNavigator
 {
     HDINLINE int operator()(int component) const
     {
-        return Permutation().vec()[component];
+        return Permutation().toRT()[component];
     }
 };
 

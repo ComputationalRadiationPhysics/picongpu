@@ -44,23 +44,22 @@ namespace picongpu
 FieldEnergy::FieldEnergy(std::string name, std::string prefix)
     : name(name), prefix(prefix)
 {
-    ModuleConnector::getInstance().registerModule(this);
+    Environment<>::get().PluginConnector().registerPlugin(this);
 }
 
-void FieldEnergy::moduleRegisterHelp(po::options_description& desc)
+void FieldEnergy::pluginRegisterHelp(po::options_description& desc)
 {
     desc.add_options()
         ((this->prefix + "_frequency").c_str(),
         po::value<uint32_t > (&this->notifyFrequency)->default_value(0), "notifyFrequency");
 }
 
-std::string FieldEnergy::moduleGetName() const {return this->name;}
+std::string FieldEnergy::pluginGetName() const {return this->name;}
 
-void FieldEnergy::moduleLoad()
+void FieldEnergy::pluginLoad()
 {
-    DataConnector::getInstance().registerObserver(this, this->notifyFrequency);
+    Environment<>::get().PluginConnector().setNotificationPeriod(this, this->notifyFrequency);
 }
-void FieldEnergy::moduleUnload(){}
 
 void FieldEnergy::notify(uint32_t currentStep)
 {
@@ -69,16 +68,16 @@ void FieldEnergy::notify(uint32_t currentStep)
     using namespace math;
     typedef math::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> BlockDim;
     
-    DataConnector &dc = DataConnector::getInstance();
+    DataConnector &dc = Environment<>::get().DataConnector();
     FieldE& fieldE = dc.getData<FieldE > (FieldE::getName(), true);
     FieldB& fieldB = dc.getData<FieldB > (FieldB::getName(), true);
 
     BOOST_AUTO(fieldE_coreBorder,
-            fieldE.getGridBuffer().getDeviceBuffer().cartBuffer().view(precisionCast<int>(BlockDim().vec()), -precisionCast<int>(BlockDim().vec())));
+            fieldE.getGridBuffer().getDeviceBuffer().cartBuffer().view(precisionCast<int>(BlockDim().toRT()), -precisionCast<int>(BlockDim().toRT())));
     BOOST_AUTO(fieldB_coreBorder,
-            fieldB.getGridBuffer().getDeviceBuffer().cartBuffer().view(precisionCast<int>(BlockDim().vec()), -precisionCast<int>(BlockDim().vec())));
+            fieldB.getGridBuffer().getDeviceBuffer().cartBuffer().view(precisionCast<int>(BlockDim().toRT()), -precisionCast<int>(BlockDim().toRT())));
             
-    PMacc::GridController<3>& con = PMacc::GridController<3>::getInstance();
+    PMacc::GridController<3>& con = PMacc::Environment<3>::get().GridController();
     PMacc::math::Size_t<3> gpuDim = (math::Size_t<3>)con.getGpuNodes();
     PMacc::math::Size_t<3> globalGridSize = gpuDim * fieldE_coreBorder.size();
     int globalCellZPos = globalGridSize.z() / 2;

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2013 Axel Huebl, Rene Widera
+# Copyright 2013-2014 Axel Huebl, Rene Widera, Felix Schmitt
 # 
 # This file is part of PIConGPU. 
 # 
@@ -26,5 +26,6 @@ cp -r $TBG_projectPath/include picongpu
 cp -r $TBG_projectPath/submit picongpu
 cp -a $TBG_cfgPath/openib.conf tbg
 cp $TBG_cfgPath/cuda.filter tbg
+cp $TBG_cfgPath/scorep.filter tbg
 cp $0 tbg
 

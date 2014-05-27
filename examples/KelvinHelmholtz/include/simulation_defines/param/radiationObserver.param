@@ -41,16 +41,17 @@ namespace picongpu
      */
     DINLINE vec2 observation_direction(const int observation_id_extern)
     {
-
       /** This computes observation directions for one octant 
        *  of a sphere around the simulation area.
        *  The axises of the octant point towards:
        *  (+1,0,0) ; (0,+1,0) ; (0,0,-1)
        */
         
-      /* get two indices from one block index */
-      const int N_angle_split = 16;
+      /* generate two indices from single block index */
+      const int N_angle_split = 16; /* index split distance */
+      /* get column index for computing angle theta: */
       const int my_index_theta = observation_id_extern / N_angle_split;
+      /* get row index for computing angle phi: */
       const int my_index_phi = observation_id_extern % N_angle_split;
 
       /*  range for BOTH angles */

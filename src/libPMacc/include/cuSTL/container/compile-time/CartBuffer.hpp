@@ -69,6 +69,8 @@ public:
     originCustomAxes(const math::UInt<dim>& axes) const;
     */
     DINLINE math::Size_t<dim> size() const {return math::Size_t<dim>(Size());}
+    
+    DINLINE Zone zone() const { return Zone(); }
 };
  
 } // CT

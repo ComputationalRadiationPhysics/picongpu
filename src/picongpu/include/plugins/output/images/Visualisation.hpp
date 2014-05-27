@@ -1,27 +1,26 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Felix Schmitt
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 
 
-#ifndef IMAGE2D_HPP
-#define	IMAGE2D_HPP
+#pragma once
 
 #include "simulation_defines.hpp"
 #include "types.h"
@@ -31,7 +30,7 @@
 #include "fields/FieldE.hpp"
 #include "fields/FieldJ.hpp"
 
-#include "dimensions/TVec.h"
+#include "math/vector/compile-time/Int.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
 
@@ -40,8 +39,8 @@
 #include "particles/memory/boxes/ParticlesBox.hpp"
 
 #include "dataManagement/DataConnector.hpp"
-#include "dataManagement/ISimulationIO.hpp"
-#include "dimensions/TVec.h"
+#include "plugins/ILightweightPlugin.hpp"
+#include "math/vector/compile-time/Int.hpp"
 
 #include "memory/boxes/DataBox.hpp"
 #include "memory/boxes/SharedBox.hpp"
@@ -229,11 +228,11 @@ __global__ void kernelPaintFields(
     typedef typename MappingDesc::SuperCellSize Block;
     const DataSpace<simDim> threadId(threadIdx);
     const DataSpace<simDim> block = mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx));
-    const DataSpace<simDim> cell(block * Block::getDataSpace() + threadId);
-    const DataSpace<simDim> blockOffset((block - mapper.getGuardingSuperCells()) * Block::getDataSpace());
+    const DataSpace<simDim> cell(block * Block::toRT() + threadId);
+    const DataSpace<simDim> blockOffset((block - mapper.getGuardingSuperCells()) * Block::toRT());
 
 
-    const DataSpace<simDim> realCell(cell - MappingDesc::SuperCellSize::getDataSpace() * mapper.getGuardingSuperCells()); //delete guard from cell idx
+    const DataSpace<simDim> realCell(cell - MappingDesc::SuperCellSize::toRT() * mapper.getGuardingSuperCells()); //delete guard from cell idx
     const DataSpace<DIM2> imageCell(
                                     realCell[transpose.x()],
                                     realCell[transpose.y()]);
@@ -320,10 +319,10 @@ kernelPaintParticles3D(ParBox pb,
     const DataSpace<simDim> threadId(threadIdx);
     const DataSpace<DIM2> localCell(threadId[transpose.x()], threadId[transpose.y()]);
     const DataSpace<simDim> block = mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx));
-    const DataSpace<simDim> blockOffset((block - 1) * Block::getDataSpace());
+    const DataSpace<simDim> blockOffset((block - 1) * Block::toRT());
 
 
-    int localId = threadIdx.z * Block::x * Block::y + threadIdx.y * Block::x + threadIdx.x;
+    int localId = threadIdx.z * Block::x::value * Block::y::value + threadIdx.y * Block::x::value + threadIdx.x;
 
 
     if (localId == 0)
@@ -470,7 +469,7 @@ __global__ void channelsToRGB(Mem mem, uint32_t n)
  * Visulization is performed in an additional thread.
  */
 template<class ParticlesType, class Output>
-class Visualisation : public ISimulationIO
+class Visualisation : public ILightweightPlugin
 {
 private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -495,6 +494,9 @@ public:
             sliceDim = 1;
         if ((transpose.x() == 1 || transpose.y() == 1) && sliceDim == 1)
             sliceDim = 2;
+
+        Environment<>::get().PluginConnector().registerPlugin(this);
+        Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
     }
 
     virtual ~Visualisation()
@@ -505,14 +507,19 @@ public:
         }
     }
 
+    std::string pluginGetName() const
+    {
+        return "Visualisation";
+    }
+
     void notify(uint32_t currentStep)
     {
         assert(cellDescription != NULL);
         const DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
-        VirtualWindow window(MovingWindow::getInstance().getVirtualWindow(currentStep));
+        Window window(MovingWindow::getInstance().getWindow(currentStep));
 
         /*sliceOffset is only used in 3D*/
-        sliceOffset = (int) ((float) (window.globalWindowSize[sliceDim]) * slicePoint) + window.globalSimulationOffset[sliceDim];
+        sliceOffset = (int) ((float) (window.globalDimensions.size[sliceDim]) * slicePoint) + window.globalDimensions.offset[sliceDim];
 
         if (!doDrawing())
         {
@@ -527,9 +534,9 @@ public:
         this->cellDescription = cellDescription;
     }
 
-    void createImage(uint32_t currentStep, VirtualWindow window)
+    void createImage(uint32_t currentStep, Window window)
     {
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::get().DataConnector();
         // Data does not need to be synchronized as visualization is
         // done at the device.
         FieldB *fieldB = &(dc.getData<FieldB > (FieldB::getName(), true));
@@ -537,17 +544,16 @@ public:
         FieldJ* fieldJ = &(dc.getData<FieldJ > (FieldJ::getName(), true));
         ParticlesType* particles = &(dc.getData<ParticlesType > (particleTag, true));
 
-        PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
         uint32_t globalOffset = 0;
 #if(SIMDIM==DIM3)
-        globalOffset = SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset()[sliceDim];
+        globalOffset = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset()[sliceDim];
 #endif
-        
+
         typedef MappingDesc::SuperCellSize SuperCellSize;
         assert(cellDescription != NULL);
         //create image fields
         __picKernelArea((kernelPaintFields), *cellDescription, CORE + BORDER)
-            (SuperCellSize::getDataSpace())
+            (SuperCellSize::toRT().toDim3())
             (fieldE->getDeviceDataBox(),
              fieldB->getDeviceDataBox(),
              fieldJ->getDeviceDataBox(),
@@ -583,8 +589,8 @@ public:
         max.z() = float_X(1.0);
 #endif
 
-        //We don't know the superCellSize at compile time 
-        // (because of the runtime dimension selection in any analyser), 
+        //We don't know the superCellSize at compile time
+        // (because of the runtime dimension selection in any analyser),
         // thus we must use a one dimension kernel and no mapper
         __cudaKernel(vis_kernels::divideAnyCell)(ceil((double) elements / 256), 256)(d1access, elements, max);
 #endif
@@ -593,12 +599,12 @@ public:
         __cudaKernel(vis_kernels::channelsToRGB)(ceil((double) elements / 256), 256)(d1access, elements);
 
         // add density color channel
-        DataSpace<simDim> blockSize(MappingDesc::SuperCellSize::getDataSpace());
+        DataSpace<simDim> blockSize(MappingDesc::SuperCellSize::toRT());
         DataSpace<DIM2> blockSize2D(blockSize[transpose.x()], blockSize[transpose.y()]);
 
         //create image particles
         __picKernelArea((kernelPaintParticles3D), *cellDescription, CORE + BORDER)
-            (SuperCellSize::getDataSpace(), blockSize2D.productOfComponents() * sizeof (int))
+            (SuperCellSize::toRT().toDim3(), blockSize2D.productOfComponents() * sizeof (int))
             (particles->getDeviceParticlesBox(),
              img->getDeviceBuffer().getDataBox(),
              transpose,
@@ -641,22 +647,19 @@ public:
             assert(cellDescription != NULL);
             const DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
 
-            VirtualWindow window(MovingWindow::getInstance().getVirtualWindow(0));
-            sliceOffset = (int) ((float) (window.globalWindowSize[sliceDim]) * slicePoint) + window.globalSimulationOffset[sliceDim];
+            Window window(MovingWindow::getInstance().getWindow(0));
+            sliceOffset = (int) ((float) (window.globalDimensions.size[sliceDim]) * slicePoint) + window.globalDimensions.offset[sliceDim];
 
 
-            const DataSpace<simDim> gpus = GridController<simDim>::getInstance().getGpuNodes();
+            const DataSpace<simDim> gpus = Environment<simDim>::get().GridController().getGpuNodes();
 
             float_32 cellSizeArr[3]={0,0,0};
             for(uint32_t i=0;i<simDim;++i)
                 cellSizeArr[i]= cellSize[i];
-            
+
             header.update(*cellDescription, window, transpose, 0, cellSizeArr, gpus);
 
             img = new GridBuffer<float3_X, DIM2 > (header.node.maxSize);
-
-
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
 
             bool isDrawing = doDrawing();
             isMaster = gather.init(isDrawing);
@@ -665,14 +668,19 @@ public:
         }
     }
 
+    void pluginRegisterHelp(po::options_description& desc)
+    {
+        // nothing to do here
+    }
+
 private:
 
     bool doDrawing()
     {
         assert(cellDescription != NULL);
-        const DataSpace<simDim> globalRootCellPos(SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset());
+        const DataSpace<simDim> globalRootCellPos(Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset());
 #if(SIMDIM==DIM3)
-        const bool tmp = globalRootCellPos[sliceDim] + SubGrid<simDim>::getInstance().getSimulationBox().getLocalSize()[sliceDim] > sliceOffset &&
+        const bool tmp = globalRootCellPos[sliceDim] + Environment<simDim>::get().SubGrid().getSimulationBox().getLocalSize()[sliceDim] > sliceOffset &&
               globalRootCellPos[sliceDim] <= sliceOffset;
         return tmp;
 #else
@@ -708,5 +716,3 @@ private:
 
 }
 
-
-#endif	/* IMAGE2D_HPP */

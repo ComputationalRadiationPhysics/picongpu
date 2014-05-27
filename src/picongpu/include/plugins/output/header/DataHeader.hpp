@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -18,15 +18,16 @@
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
  
-
-
-#ifndef DATAHEADER_HPP
-#define	DATAHEADER_HPP
+#pragma once
 
 struct DataHeader
 {
 
     uint32_t byte;
+    
+    DataHeader() : byte(0)
+    {
+    }
 
     void writeToConsole(std::ostream& ocons) const
     {
@@ -34,6 +35,3 @@ struct DataHeader
     }
 
 };
-
-#endif	/* DATAHEADER_HPP */
-

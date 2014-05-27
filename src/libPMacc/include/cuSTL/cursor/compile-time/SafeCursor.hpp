@@ -110,10 +110,10 @@ private:
         #pragma unroll
         for(int i = 0; i < dim; i++)
         {
-            if(this->offset[i] < LowerExtent().vec()[i] ||
-               this->offset[i] > UpperExtent().vec()[i])
+            if(this->offset[i] < LowerExtent().toRT()[i] ||
+               this->offset[i] > UpperExtent().toRT()[i])
                 printf("error[cursor]: index %d out of range: %d is not within [%d, %d]\n", 
-                    i, this->offset[i], LowerExtent().vec()[i], UpperExtent().vec()[i]);
+                    i, this->offset[i], LowerExtent().toRT()[i], UpperExtent().toRT()[i]);
         }
     }
 };

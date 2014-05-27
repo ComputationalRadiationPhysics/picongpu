@@ -38,11 +38,11 @@ function conclusion {
     state="$1"
     echo "State: $state"
     lastUser="$2"
-    #echo "lastUser: $lastUser"
+    echo "lastUser: $lastUser"
     lastUserMail="$3"
     #echo "email: $lastUserMail"
     sha="$4"
-    #echo "sha: $sha"
+    echo "sha: $sha"
     eventid="$5"
     echo "eventid: $eventid"
     logEntry="$6"
@@ -126,20 +126,11 @@ $logEntry"
 
     # report to scheduler
     #
-    # escape / \ and " (to do: control codes < U+0020 )
-    #textJSON=$(echo "$text" | sed 's|\\|\\\\|g' | sed 's|\"|\\\"|g' | sed 's|\/|\\\/|g')
-    textJSON=${text//\\/\\\\} # \
-    textJSON=${textJSON//\//\\\/} # /
-    textJSON=${textJSON//\'/\\\'} # '
-    textJSON=${textJSON//\"/\\\"} # "
-    textJSON=${textJSON//	/\\t} # \t
-    textJSON=${textJSON//
-/\\\n} # \n
-    textJSON=${textJSON//^M/\\\r} # \r
-    textJSON=${textJSON//^L/\\\f} # \f
-    textJSON=${textJSON//^H/\\\b} # \b
-    postParams='payload={"action":"report","eventid":'$eventid',"result":"'$stateName'","output":"'"$textJSON"'"}'
-    curl -d"$postParams" $cnf_scheduler 2>/dev/null
+    # escape special characters
+    textJSON=`echo -n "$text" | python -c 'import json,sys; print json.dumps(sys.stdin.read())'`
+    postParams='{"action":"report","eventid":'$eventid',"result":"'$stateName'","output":'$textJSON'}'
+    echo -n "$postParams" > "$thisDir"lastPostParams.log
+    curl -X POST --data-urlencode payload@"$thisDir"lastPostParams.log $cnf_scheduler
     if [ $? -ne 0 ]; then
         echo "Error contacting scheduler at $cnf_scheduler"
         exit 1
