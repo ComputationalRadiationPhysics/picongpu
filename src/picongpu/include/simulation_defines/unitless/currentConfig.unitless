@@ -47,20 +47,4 @@ namespace picongpu
         typedef Esirkepov<typename speciesParticleShape::ParticleShape,simDim> CurrentSolver;
     }
 
-#if (SIMDIM==DIM3)
-    /* ASSERTS for invalid combinations to help the user -------------------- */
-
-    /* VillaBune: field to particle interpolation _requires_ the CIC shape
-     * Esirkepov: arbitrary particle shapes possible
-     */
-    const bool isVillaBune = PMacc::IsSameType<currentSolver::CurrentSolver,
-                                currentSolverVillaBune::VillaBune<> >::result;
-
-    // require valid VillaBune or _not_ VillaBune
-    const bool vVBorOther = ( speciesParticleShape::ParticleShape::support == 2 ||
-                               (! isVillaBune) );
-
-    PMACC_CASSERT_MSG(currentSolverVillaBune_requires_shapeCIC_in_particleConfig, \
-                        vVBorOther);
-#endif
 }

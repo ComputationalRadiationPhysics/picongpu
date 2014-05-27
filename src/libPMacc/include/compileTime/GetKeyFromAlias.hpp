@@ -67,7 +67,7 @@ struct GetKeyFromAlias_assert
 {
     typedef typename GetKeyFromAlias<T_MPLSeq,T_Key>::type type;
     /*this assert fails if T_Key was not found*/
-    BOOST_STATIC_ASSERT( (!boost::is_same<type,bmpl::void_>::value));
+    PMACC_CASSERT_MSG_TYPE(key_not_found,T_Key,(!boost::is_same<type,bmpl::void_>::value));
 };
 
 }//namespace PMacc
