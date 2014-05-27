@@ -192,13 +192,13 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
 
     HDINLINE type & y()
     {
-        PMACC_CASSERT_MSG(math_Vector__access_to_y_is_not_allowed_DIM_lesser_than_2,dim >= 2);
+        PMACC_CASSERT_MSG(math_Vector__access_to_y_is_not_allowed_for_DIM_lesser_than_2,dim >= 2);
         return (*this)[1];
     }
 
     HDINLINE type & z()
     {
-        PMACC_CASSERT_MSG(math_Vector__access_to_y_is_not_allowed_DIM_lesser_than_3,dim >= 3);
+        PMACC_CASSERT_MSG(math_Vector__access_to_z_is_not_allowed_for_DIM_lesser_than_3,dim >= 3);
         return (*this)[2];
     }
 
@@ -209,13 +209,13 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
 
     HDINLINE const type & y() const
     {
-        PMACC_CASSERT_MSG(math_Vector__access_to_y_is_not_allowed_DIM_lesser_than_2,dim >= 2);
+        PMACC_CASSERT_MSG(math_Vector__access_to_y_is_not_allowed_for_DIM_lesser_than_2,dim >= 2);
         return (*this)[1];
     }
 
     HDINLINE const type & z() const
     {
-        PMACC_CASSERT_MSG(math_Vector__access_to_y_is_not_allowed_DIM_lesser_than_3,dim >= 3);
+        PMACC_CASSERT_MSG(math_Vector__access_to_z_is_not_allowed_for_DIM_lesser_than_3,dim >= 3);
         return (*this)[2];
     }
 
