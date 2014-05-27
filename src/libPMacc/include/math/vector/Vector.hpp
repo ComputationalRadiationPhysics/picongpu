@@ -404,8 +404,9 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
 
         if(enclosing_size > 0)
         {
-            locale_enclosing_begin=enclosings[0%locale_enclosing_begin];
-            locale_enclosing_end=enclosings[1%locale_enclosing_begin];
+            /* % avoid out of memory access */
+            locale_enclosing_begin=enclosings[0%enclosing_size];
+            locale_enclosing_end=enclosings[1%enclosing_size];
         }
 
         std::stringstream stream;
