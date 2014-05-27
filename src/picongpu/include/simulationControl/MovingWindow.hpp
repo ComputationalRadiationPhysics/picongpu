@@ -74,7 +74,7 @@ private:
         const uint32_t firstSlideStep = stepsPerGPU * devices_y - stepsInFuture;
         const uint32_t firstMoveStep = stepsPerGPU * (devices_y - 1) - stepsInFuture;
 
-        if (firstMoveStep <= currentStep)
+        if (slidingWindowActive==true && firstMoveStep <= currentStep)
         {
             const uint32_t stepsInLastGPU = (currentStep + stepsInFuture) % stepsPerGPU;
             /* moving window start */
@@ -104,7 +104,7 @@ private:
      */
     void incrementSlideCounter(const uint32_t currentStep)
     {
-        if (lastSlideStep != currentStep)
+        if (slidingWindowActive==true && lastSlideStep != currentStep)
         {
             slideCounter++;
             lastSlideStep = currentStep;
@@ -224,7 +224,7 @@ public:
 
         window.localDimensions = Selection<simDim>(domInfo.localDomain.size);
         window.globalDimensions = Selection<simDim>(domInfo.globalDomain.size);
-        
+
         /* If sliding is inactive, moving window is the same as global domain (substract 0)*/
         window.globalDimensions.size.y() -= domInfo.localDomain.size.y() * slidingWindowActive;
 
