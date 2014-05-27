@@ -124,7 +124,7 @@ namespace PMacc
                 {
                    /* - the result of a functor can be a reference or a const value
                     * - it is not allowed to create const or reference memory
-                    *   thus we delete `references` and `const` qualifier */
+                    *   thus we remove `references` and `const` qualifiers */
                    typedef typename boost::remove_const<
                                typename boost::remove_reference<
                                    typename traits::GetValueType<Src>::ValueType
