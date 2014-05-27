@@ -63,7 +63,7 @@ struct ParticleAttributeSize
         
         typedef typename traits::PICToAdios<ComponentType> AdiosType;
 
-        params.get()->adiosGroupSize += elements * components * sizeof(ComponentType);
+        params->adiosGroupSize += elements * components * sizeof(ComponentType);
         
         /* define adios var for particle attribute */
         AdiosType adiosType;
@@ -72,7 +72,7 @@ struct ParticleAttributeSize
         for (uint32_t d = 0; d < components; d++)
         {
             std::stringstream datasetName;
-            datasetName << params.get()->adiosBasePath << ADIOS_PATH_PARTICLES <<
+            datasetName << params->adiosBasePath << ADIOS_PATH_PARTICLES <<
                     subGroup << T_Identifier::getName();
             if (components > 1)
                 datasetName << "/" << name_lookup[d];
@@ -88,7 +88,7 @@ struct ParticleAttributeSize
             offsetStr << globalOffset;
 
             int64_t adiosParticleAttrId = adios_define_var(
-                params.get()->adiosGroupHandle,
+                params->adiosGroupHandle,
                 datasetName.str().c_str(),
                 NULL,
                 adiosType.type,
@@ -96,7 +96,7 @@ struct ParticleAttributeSize
                 globalSizeStr.str().c_str(),
                 offsetStr.str().c_str());
 
-            params.get()->adiosParticleAttrVarIds.push_back(adiosParticleAttrId);
+            params->adiosParticleAttrVarIds.push_back(adiosParticleAttrId);
         }
 
         
