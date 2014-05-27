@@ -394,7 +394,6 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
      * example:
      * .toString(";","|")     -> |x;...;z|
      * .toString(",","[]")    -> [x,...,z]
-     * .toString(",","[]ABC") -> [x,...,z]
      */
     std::string toString(const std::string separator = ",", const std::string enclosings = "{}") const
     {
