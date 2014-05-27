@@ -336,7 +336,6 @@ private:
 #endif
     }
 
-
     MappingDesc *cellDescription;
     SimulationDataId particleTag;
 
@@ -345,21 +344,13 @@ private:
     int sliceOffset;
     uint32_t notifyFrequency;
     float_X slicePoint;
-
     std::string analyzerName;
-
-
     DataSpace<DIM2> transpose;
     uint32_t sliceDim;
-
     MessageHeader *header;
-
     Output output;
     GatherSlice gather;
     bool isMaster;
 };
 
-
-
-}
-
+} //namespace picongpu
