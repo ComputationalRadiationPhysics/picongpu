@@ -217,7 +217,7 @@ public:
 
         /*sliceOffset is only used in 3D*/
         sliceOffset = (int) ((float) (window.globalDimensions.size[sliceDim]) * slicePoint) +
-                window.globalDimensions.offset[sliceDim];
+            window.globalDimensions.offset[sliceDim];
 
         if (!doDrawing())
         {
@@ -281,8 +281,8 @@ public:
         // units
         const float_64 cellVolume = CELL_VOLUME;
         float_64 unitVolume = 1.;
-        for(uint32_t i=0;i<simDim;i++)
-            unitVolume*=UNIT_LENGTH;
+        for (uint32_t i = 0; i < simDim; i++)
+            unitVolume *= UNIT_LENGTH;
         // that's a hack, but works for all species
         //const float_64 charge = precisionCast<float_64>(
         //    ParticlesType::FrameType().getCharge(NUM_EL_PER_PARTICLE)) /
@@ -305,13 +305,13 @@ public:
 
             Window window(MovingWindow::getInstance().getWindow(0));
             sliceOffset = (int) ((float) (window.globalDimensions.size[sliceDim]) * slicePoint) +
-                    window.globalDimensions.offset[sliceDim];
+                window.globalDimensions.offset[sliceDim];
             const DataSpace<simDim> gpus = Environment<simDim>::get().GridController().getGpuNodes();
 
-            float_32 cellSizeArr[3]={0,0,0};
-            for(uint32_t i=0;i<simDim;++i)
-                cellSizeArr[i]= cellSize[i];
-            this->header=MessageHeader::create();
+            float_32 cellSizeArr[3] = {0, 0, 0};
+            for (uint32_t i = 0; i < simDim; ++i)
+                cellSizeArr[i] = cellSize[i];
+            this->header = MessageHeader::create();
             header->update(*cellDescription, window, transpose, 0, cellSizeArr, gpus);
 
             img = new GridBuffer<Type_, DIM2 > (header->node.maxSize);
@@ -329,13 +329,12 @@ private:
         const DataSpace<simDim> localSize(simBox.getLocalSize());
 #if(SIMDIM==DIM3)
         const bool tmp = globalRootCellPos[sliceDim] + localSize[sliceDim] > sliceOffset &&
-             globalRootCellPos[sliceDim] <= sliceOffset;
+            globalRootCellPos[sliceDim] <= sliceOffset;
         return tmp;
 #else
         return true;
 #endif
     }
-
 
     MappingDesc *cellDescription;
     SimulationDataId particleTag;
@@ -345,21 +344,13 @@ private:
     int sliceOffset;
     uint32_t notifyFrequency;
     float_X slicePoint;
-
     std::string analyzerName;
-
-
     DataSpace<DIM2> transpose;
     uint32_t sliceDim;
-
     MessageHeader *header;
-
     Output output;
     GatherSlice gather;
     bool isMaster;
 };
 
-
-
-}
-
+} //namespace picongpu

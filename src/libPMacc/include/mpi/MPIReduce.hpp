@@ -1,24 +1,24 @@
 /**
  * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #pragma once
 
 #include "types.h"
@@ -42,7 +42,7 @@ struct MPIReduce
 {
 
     /*reduce data over selected mpi nodes*/
-    MPIReduce() : mpiRank(-1), numRanks(0), isMPICommInitialized(false)
+    MPIReduce() : mpiRank(-1), numRanks(0), comm(MPI_COMM_NULL), isMPICommInitialized(false)
     {
         participate(true);
     }
@@ -72,7 +72,7 @@ struct MPIReduce
         return this->hasResult(::PMacc::mpi::reduceMethods::AllReduce());
     }
 
-    /* Activate participation for reduce algorithm. 
+    /* Activate participation for reduce algorithm.
      * Must called from any mpi process. This function use global blocking mpi calls.
      * @param isActive true if mpi rank should be part of reduce operation, else false
      */
@@ -103,12 +103,12 @@ struct MPIReduce
             if (reduceRank[i] != -1)
             {
                 groupRanks[numRanks] = reduceRank[i];
-                numRanks++;
+                numRanks++ ;
             }
         }
 
-        MPI_Group group;
-        MPI_Group newgroup;
+        MPI_Group group = MPI_GROUP_NULL;
+        MPI_Group newgroup = MPI_GROUP_NULL;
         MPI_CHECK(MPI_Comm_group(MPI_COMM_WORLD, &group));
         MPI_CHECK(MPI_Group_incl(group, numRanks, groupRanks, &newgroup));
 
@@ -119,18 +119,20 @@ struct MPIReduce
             MPI_CHECK(MPI_Comm_rank(comm, &mpiRank));
             isMPICommInitialized = true;
         }
+        MPI_CHECK(MPI_Group_free(&group));
+        MPI_CHECK(MPI_Group_free(&newgroup));
     }
 
     /* Reduce elements on cpu memory
      * call hasResult to see if returned value is valid
-     * 
+     *
      * @param func binary functor for reduce which takes two arguments, first argument is the source and get the new reduced value.
      * Functor must specialize the function getMPI_Op.
      * @param dest buffer for result data
      * @param src a class or a pointer where the reduce algorithm can access the value by operator [] (one dimension access)
      * @param n number of elements to reduce
      * @param method mpi method for reduce
-     * 
+     *
      */
     template<class Functor, typename Type, class ReduceMethod >
     HINLINE void operator()(Functor func,
@@ -152,14 +154,14 @@ struct MPIReduce
 
     /* Reduce elements on cpu memory
      * the default reduce method is allReduce which means that any host get the reduced value back
-     * 
+     *
      * @param func binary functor for reduce which takes two arguments, first argument is the source and get the new reduced value.
      * Functor must specialize the function getMPI_Op.
      * @param dest buffer for result data
      * @param src a class or a pointer where the reduce algorithm can access the value by operator [] (one dimension access)
      * @param n number of elements to reduce
-     * 
-     * @return reduced value 
+     *
+     * @return reduced value
      */
     template<class Functor, typename Type >
     HINLINE void operator()(Functor func,

@@ -1,24 +1,24 @@
 /**
  * Copyright 2013 Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 
 #ifndef _EXCHANGEINTERN_HPP
@@ -51,13 +51,13 @@ namespace PMacc
 
         ExchangeIntern(DeviceBufferIntern<TYPE, DIM>& source, GridLayout<DIM> memoryLayout, DataSpace<DIM> guardingCells, uint32_t exchange,
                        uint32_t communicationTag, uint32_t area = BORDER, bool sizeOnDevice = false) :
-        Exchange<TYPE, DIM>(exchange, communicationTag)
+        Exchange<TYPE, DIM>(exchange, communicationTag), deviceDoubleBuffer(NULL)
         {
 
             assert(!guardingCells.isOneDimensionGreaterThan(memoryLayout.getGuard()));
 
             DataSpace<DIM> tmp_size = memoryLayout.getDataSpaceWithoutGuarding();
-            /*  
+            /*
               DataSpace<DIM> tmp_size = memoryLayout.getDataSpace() - memoryLayout.getGuard() -
                       memoryLayout.getGuard(); delete on each side 2xguard*/
 
@@ -123,10 +123,9 @@ namespace PMacc
 
         virtual ~ExchangeIntern()
         {
-            delete hostBuffer;
-            delete deviceBuffer;
-            if (deviceDoubleBuffer)
-                delete deviceDoubleBuffer;
+            __delete(hostBuffer);
+            __delete(deviceBuffer);
+            __delete(deviceDoubleBuffer);
         }
 
         DataSpace<DIM> exchangeTypeToOffset(uint32_t exchange, GridLayout<DIM> &memoryLayout,

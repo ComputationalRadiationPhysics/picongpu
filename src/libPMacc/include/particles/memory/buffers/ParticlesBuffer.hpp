@@ -170,12 +170,12 @@ public:
      */
     virtual ~ParticlesBuffer()
     {
-        delete superCells;
-        delete frames;
-        delete framesExchanges;
-        delete nextFrames;
-        delete prevFrames;
-        delete exchangeMemoryIndexer;
+        __delete(superCells);
+        __delete(frames);
+        __delete(framesExchanges);
+        __delete(nextFrames);
+        __delete(prevFrames);
+        __delete(exchangeMemoryIndexer);
     }
 
     /**

@@ -287,11 +287,10 @@ private:
                 combineData(globalOffset);
             if (isMaster && totalRad)
             {
-                delete[] timeSumArray;
+                __deleteArray(timeSumArray);
             }
 
-            if (radiation)
-                delete radiation;
+            __delete(radiation);
             CUDA_CHECK(cudaGetLastError());
         }
     }
@@ -384,7 +383,7 @@ private:
                 writeFile(result, folderLastRad + "/" + filename_prefix + "_" + o_step.str() + ".dat");
         }
 
-        delete[] result;
+        __deleteArray(result);
 
         lastStep = currentStep;
         lastGPUpos = currentGPUpos;
@@ -433,9 +432,9 @@ private:
 public:
     void restart(uint32_t timeStep, const std::string restartDirectory)
     {
-    
+
     }
-        
+
     void checkpoint(uint32_t timeStep, const std::string restartDirectory)
     {
       std::stringstream t_step;

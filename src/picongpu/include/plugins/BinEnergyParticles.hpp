@@ -341,7 +341,7 @@ private:
             }
 
             __delete(gBins);
-            delete[] binReduced;
+            __deleteArray(binReduced);
         }
     }
 

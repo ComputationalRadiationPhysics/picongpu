@@ -49,8 +49,6 @@ struct MessageHeader
         bytes = realBytes < 120 ? 128 : 256
     };
 
-
-
     template<class CellDesc >
     void update(CellDesc & cellDesc,
                 picongpu::Window vWindow,
@@ -159,23 +157,20 @@ struct MessageHeader
     NodeHeader node;
     //ColorHeader color; will be used later on to save channel ranges
 
-    void writeToConsole( std::ostream& ocons ) const
+    void writeToConsole(std::ostream& ocons) const
     {
-        //ocons << "-------" << std::endl;
-        data.writeToConsole(   ocons );
-        sim.writeToConsole(    ocons );
-        window.writeToConsole( ocons );
-        node.writeToConsole(   ocons );
-        //color.writeToConsole(  ocons );
-        //ocons << "-------\n" << std::endl;
+        data.writeToConsole(ocons);
+        sim.writeToConsole(ocons);
+        window.writeToConsole(ocons);
+        node.writeToConsole(ocons);
     }
 
 private:
-        /** constructor
-         *
-         * it is only allowed to create Message header with @see create()
-         */
-        MessageHeader();
+    /** constructor
+     *
+     * it is only allowed to create Message header with @see create()
+     */
+    MessageHeader();
 
 };
 

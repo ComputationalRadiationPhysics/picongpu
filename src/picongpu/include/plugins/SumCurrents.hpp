@@ -179,8 +179,7 @@ private:
     {
         if (notifyFrequency > 0)
         {
-            if (sumcurrents)
-                delete sumcurrents;
+            __delete(sumcurrents);
         }
     }
 
