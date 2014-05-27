@@ -27,6 +27,7 @@
 
 #include "nvidia/functors/Assign.hpp"
 #include "traits/GetValueType.hpp"
+#include <boost/type_traits.hpp>
 
 namespace PMacc
 {
@@ -121,7 +122,14 @@ namespace PMacc
                 template<class Functor, typename Src>
                 HINLINE typename traits::GetValueType<Src>::ValueType operator()(Functor func, Src src, uint32_t n)
                 {
-                    typedef typename traits::GetValueType<Src>::ValueType Type;
+                   /* - the result of a functor can be a reference or a const value
+                    * - it is not allowed to create const or reference memory
+                    *   thus we delete `references` and `const` qualifier */
+                   typedef typename boost::remove_const<
+                               typename boost::remove_reference<
+                                   typename traits::GetValueType<Src>::ValueType
+                               >::type
+                           >::type Type;
 
                     uint32_t blockcount = optimalThreadsPerBlock(n, sizeof (Type));
 
