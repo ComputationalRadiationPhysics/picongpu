@@ -382,14 +382,38 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
         return !((*this) == rhs);
     }
 
-    std::string toString() const
+    /** create string out of the vector
+     *
+     * @param separator string to separate components of the vector
+     * @param enclosings string with size 2 to enclose vector
+     *                   size == 0 ? no enclose symbols
+     *                   size == 1 ? means enclose symbol begin and end are equal
+     *                   size >= 2 ? letter[0] = begin enclose symbol
+     *                               letter[1] = end enclose symbol
+     *
+     * example:
+     * .toString(";","|")     -> |x;...;z|
+     * .toString(",","[]")    -> [x,...,z]
+     */
+    std::string toString(const std::string separator = ",", const std::string enclosings = "{}") const
     {
+        std::string locale_enclosing_begin;
+        std::string locale_enclosing_end;
+        size_t enclosing_size=enclosings.size();
+
+        if(enclosing_size > 0)
+        {
+            /* % avoid out of memory access */
+            locale_enclosing_begin=enclosings[0%enclosing_size];
+            locale_enclosing_end=enclosings[1%enclosing_size];
+        }
+
         std::stringstream stream;
-        stream << "{" << (*this)[0];
+        stream << locale_enclosing_begin << (*this)[0];
 
         for (int i = 1; i < dim; ++i)
-            stream << "," << (*this)[i];
-        stream << "}";
+            stream << separator << (*this)[i];
+        stream << locale_enclosing_end;
         return stream.str();
     }
 
