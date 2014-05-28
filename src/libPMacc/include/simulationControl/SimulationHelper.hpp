@@ -67,7 +67,8 @@ public:
     numCheckpoints(0),
     restartStep(-1),
     restartDirectory("checkpoints"),
-    restartRequested(false)
+    restartRequested(false),
+    CHECKPOINT_MASTER_FILE("checkpoints.txt")
     {
         tSimulation.toggleStart();
         tInit.toggleStart();
@@ -132,6 +133,14 @@ public:
             
             Environment<DIM>::get().PluginConnector().checkpointPlugins(currentStep,
                                                                         checkpointDirectory);
+            
+            GridController<DIM> &gc = Environment<DIM>::get().GridController();
+            MPI_CHECK(MPI_Barrier(gc.getCommunicator().getMPIComm()));
+            
+            if (gc.getGlobalRank() == 0)
+            {
+                writeCheckpointStep(currentStep);
+            }
             numCheckpoints++;
         }
         
@@ -274,6 +283,9 @@ protected:
     
     /* restart requested */
     bool restartRequested;
+    
+    /* filename for checkpoint master file with all checkpoint timesteps */
+    const std::string CHECKPOINT_MASTER_FILE;
 
 private:
 
@@ -290,6 +302,26 @@ private:
         showProgressAnyStep = (uint32_t) ((double) runSteps / 100. * (double) progress);
         if (showProgressAnyStep == 0)
             showProgressAnyStep = 1;
+    }
+    
+    /**
+     * Append \p checkpointStep to the master checkpoint file
+     * 
+     * @param checkpointStep current checkpoint step
+     */
+    void writeCheckpointStep(const uint32_t checkpointStep)
+    {
+        std::ofstream file;
+        const std::string checkpointMasterFile =
+            checkpointDirectory + std::string("/") + CHECKPOINT_MASTER_FILE;
+        
+        file.open(checkpointMasterFile.c_str(), std::ofstream::app);
+        
+        if (!file)
+            throw std::runtime_error("Failed to write checkpoint master file");
+        
+        file << checkpointStep << std::endl;
+        file.close();
     }
 
     bool output;

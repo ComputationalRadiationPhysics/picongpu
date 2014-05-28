@@ -24,6 +24,7 @@
 #include <cassert>
 #include <string>
 #include <vector>
+#include <boost/lexical_cast.hpp>
 
 #include "types.h"
 #include "simulationControl/SimulationHelper.hpp"
@@ -325,9 +326,16 @@ public:
             initialiserController->printInformation();
             if (this->restartRequested)
             {
-                if (restartStep < 0)
+                /* we do not require --restart-step if a master checkpoint file is found */
+                if (this->restartStep < 0)
                 {
-                    throw std::runtime_error("Restart failed. You must provide the '--restart-step' argument. See picongpu --help.");
+                    this->restartStep = readCheckpointMasterFile();
+                    
+                    if (this->restartStep < 0)
+                    {
+                        throw std::runtime_error(
+                                "Restart failed. You must provide the '--restart-step' argument. See picongpu --help.");
+                    }
                 }
 
                 initialiserController->restart((uint32_t)this->restartStep, this->restartDirectory);
@@ -495,6 +503,47 @@ private:
         }
     }
 
+    /**
+     * Return the last line of the checkpoint master file if any
+     * 
+     * @return last checkpoint timestep or -1
+     */
+    int32_t readCheckpointMasterFile(void)
+    {
+        int32_t lastCheckpointStep = -1;
+        
+        const std::string checkpointMasterFile = 
+            this->restartDirectory + std::string("/") + this->CHECKPOINT_MASTER_FILE;
+        
+        if (boost::filesystem::exists(checkpointMasterFile))
+        {
+            std::ifstream file;
+            file.open(checkpointMasterFile.c_str());
+            
+            /* read each line, last line will become the returned checkpoint step */
+            std::string line;
+            while (file)
+            {
+                std::getline(file, line);
+                
+                if (line.size() > 0)
+                {
+                    try {
+                        lastCheckpointStep = boost::lexical_cast<int32_t>(line);
+                    } catch( boost::bad_lexical_cast const& )
+                    {
+                        std::cerr << "Warning: checkpoint master file contains invalid data (" 
+                                << line << ")" << std::endl;
+                        lastCheckpointStep = -1;
+                    }
+                }
+            }
+            
+            file.close();
+        }
+        
+        return lastCheckpointStep;
+    }
 
 protected:
     // fields
