@@ -12,6 +12,10 @@ changes are not backwards compatible and you will have to upgrade
 to libSplash 1.2+ for HDF5 output (this just means: you can
 not restart from a beta-rc4 checkpoint with this release).
 
+HDF5 output with libSplash does not contain *ghost*/*guard* data
+any more. These information are just necessary for checkpoints
+(which are now separated from the regular output).
+
 ### Changes to "Open Beta RC4"
 
 **.param file changes:**
