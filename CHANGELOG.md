@@ -93,6 +93,7 @@ any more. These information are just necessary for checkpoints
  - libPMacc
    - GameOfLife example was broken #295
    - log compile broken for high log level #372
+   - global reduce did not work for references/const #448
    - cuSTL assign was broken for big data sets #431
    - cuSTL reduce minor memory leak fixed #433
  - compile suite updated and messages escaped #301 #385
