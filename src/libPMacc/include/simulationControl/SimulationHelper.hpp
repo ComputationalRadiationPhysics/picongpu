@@ -133,7 +133,14 @@ public:
             
             Environment<DIM>::get().PluginConnector().checkpointPlugins(currentStep,
                                                                         checkpointDirectory);
-            writeCheckpointStep(currentStep);
+            
+            GridController<DIM> &gc = Environment<DIM>::get().GridController();
+            MPI_CHECK(MPI_Barrier(gc.getCommunicator().getMPIComm()));
+            
+            if (gc.getGlobalRank() == 0)
+            {
+                writeCheckpointStep(currentStep);
+            }
             numCheckpoints++;
         }
         
