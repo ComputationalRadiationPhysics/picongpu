@@ -143,7 +143,7 @@ struct MessageHeader
 
     static MessageHeader * create()
     {
-        return (MessageHeader*) new uint8_t(bytes);
+        return (MessageHeader*) new uint8_t[bytes];
     }
 
     static void destroy(MessageHeader * obj)
