@@ -525,13 +525,17 @@ private:
             while (file)
             {
                 std::getline(file, line);
-                try {
-                    lastCheckpointStep = boost::lexical_cast<int32_t>(line);
-                } catch( boost::bad_lexical_cast const& )
+                
+                if (line.size() > 0)
                 {
-                    std::cerr << "Warning: checkpoint master file contains invalid data (" 
-                            << line << ")" << std::endl;
-                    lastCheckpointStep = -1;
+                    try {
+                        lastCheckpointStep = boost::lexical_cast<int32_t>(line);
+                    } catch( boost::bad_lexical_cast const& )
+                    {
+                        std::cerr << "Warning: checkpoint master file contains invalid data (" 
+                                << line << ")" << std::endl;
+                        lastCheckpointStep = -1;
+                    }
                 }
             }
             
