@@ -80,7 +80,7 @@ private:
     }
 
 public:
-    
+
     static void loadParticles(ThreadParams *params,
                               std::string subGroup,
                               BufferType& particles
@@ -89,7 +89,7 @@ public:
         log<picLog::INPUT_OUTPUT > ("Begin loading species '%1%'") % subGroup;
 
         GridController<simDim> &gc = Environment<simDim>::get().GridController();
-        
+
         const DomainInformation domInfo;
         const DataSpace<simDim> logicalToPhysicalOffset(
             domInfo.localDomain.offset - params->window.globalDimensions.offset);
@@ -126,7 +126,7 @@ public:
         uint64Quint particlesInfo[gc.getGlobalSize()];
         Dimensions particlesInfoSizeRead;
 
-        params->dataCollector->read(params->currentStep, 
+        params->dataCollector->read(params->currentStep,
                                     (std::string(subGroup) + std::string("/particles_info")).c_str(),
                                     particlesInfoSizeRead,
                                     particlesInfo);
@@ -262,7 +262,7 @@ public:
 
 
             // grab next empty frame
-            if (superCellPos != oldSuperCellPos || localId == PMacc::math::CT::volume<SuperCellSize>::type::value)
+            if (superCellPos != oldSuperCellPos || localId == (uint32_t)PMacc::math::CT::volume<SuperCellSize>::type::value)
             {
                 localId = 0;
                 frame = &(particlesBox.getEmptyFrame());
