@@ -57,32 +57,15 @@ function conclusion {
     # Positive
     if [ "$state" -gt "0" ] ; then
         stateName="success"
-        # "award" mail?
-        award=$(( state % cnf_congrats ))
-        if [ "$award" -eq "0" ] ; then
-            subject="[Award] $lastUser @ $sha"
-            text="You won a *team award*! $cnf_congrats in a row! *congrats*! :)"
-        fi
-
-        # problem "fixed" mail?
-        if [ "$state" -eq "1" ] ; then
-            subject="[Fixed] $lastUser @ $sha"
-            text="$lastUser *fixed* PIConGPU! We love you!"
-        fi
+        subject="[Build OK] $lastUser @ $sha"
+        text="Tested commit from $lastUser was clean! Well done yo!"
     fi
 
     # Test Failed - inform users
     if [ "$state" -lt "0" ] ; then
         stateName="failure"
-        # first fail
-        if [ "$state" -eq "-1" ] ; then
-            subject="[Failed] $lastUser @ $sha"
-            text="_Errors_ occured! Dare you *$lastUser*! Pls fix them ... Allez garcon!"
-        # still failing
-        else
-            subject="[Still Failing] $lastUser @ $sha"
-            text="_Errors_ occured! Compile *still* failing ($lastUser did _not_ fix all errors...)"
-        fi
+        subject="[Failed] $lastUser @ $sha"
+        text="_Errors_ occured! Dare you *$lastUser*! Pls fix them ... Allez garcon!"
         # parse errors
         text="$text
 
@@ -115,14 +98,7 @@ $fT
 *LogEntry*:
 $logEntry"
 
-    # send mail
-    echo "Mail Subject: $subject"
-    #echo "Mail Text: $text"
-    #echo "Mail attachement: $compileOutputFile"
-
-    #if [ ! -z "$subject" ] ; then
-    #    send_mail "$subject" "$text" "$compileOutputFile"
-    #fi
+    echo "Summary: $subject"
 
     # report to scheduler
     #
@@ -135,29 +111,4 @@ $logEntry"
         echo "Error contacting scheduler at $cnf_scheduler"
         exit 1
     fi
-}
-
-# send mail via mailx
-#   debian: apt-get install heirloom-mailx
-# $1: subject
-# $2: body
-# $3: attachement
-#
-function send_mail()
-{
-    subject="[CompileSuite] $1"
-    export smtp="$cnf_smtp"
-    #export smtp-auth-user="$smtp-auth-user"
-    #export smtp-auth-password="$cnf_smtp-auth-password"
-    #sendcharsets=...
-    export from="$cnf_from"
-    export rctp_to="$cnf_rctp_to"
-
-    if [ ! -z "$3" ] && [ -f "$3" ] ; then
-      echo "$2" | mailx -a "$3" -s "$subject" "$rctp_to"
-    else
-      echo "$2" | mailx -s "$subject" "$rctp_to"
-    fi
-
-    echo "Mail send!"
 }
