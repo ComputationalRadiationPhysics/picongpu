@@ -297,6 +297,11 @@ private:
             showProgressAnyStep = 1;
     }
     
+    /**
+     * Append \p checkpointStep to the master checkpoint file
+     * 
+     * @param checkpointStep current checkpoint step
+     */
     void writeCheckpointStep(const uint32_t checkpointStep)
     {
         std::ofstream file;
