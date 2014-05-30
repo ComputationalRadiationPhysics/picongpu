@@ -88,7 +88,7 @@ namespace picongpu
     {
         if (createFolder)
         {
-            mkdir((folder).c_str(), 0755);
+            PMACC_CREATE_PERM_DIR(folder);
             createFolder = false;
         }
 

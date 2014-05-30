@@ -25,7 +25,6 @@
 #include <cuda_runtime_api.h>
 #include <iostream>
 #include <iomanip>
-#include <boost/filesystem.hpp>
 
 #include "types.h"
 
@@ -128,7 +127,7 @@ public:
             /* create directory containing checkpoints  */
             if (numCheckpoints == 0)
             {
-                boost::filesystem::create_directories(checkpointDirectory);
+                PMACC_CREATE_PERM_DIR(checkpointDirectory);
             }
             
             Environment<DIM>::get().PluginConnector().checkpointPlugins(currentStep,

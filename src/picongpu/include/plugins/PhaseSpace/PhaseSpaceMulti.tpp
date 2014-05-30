@@ -119,7 +119,7 @@ namespace picongpu
         if( gc.getGlobalRank() == 0 )
         {
             /** \todo make this a boost filesystem call */
-            mkdir("phaseSpace", 0755);
+            PMACC_CREATE_PERM_DIR("phaseSpace");
         }
     }
 

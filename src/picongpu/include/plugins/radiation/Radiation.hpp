@@ -242,19 +242,19 @@ private:
 
             if (isMaster && totalRad)
             {
-                mkdir("radRestart", 0755);
+                BOOST_CREATE_PERM_DIR("radRestart");
             }
 
 
             if (isMaster && radPerGPU)
             {
-                mkdir((folderRadPerGPU).c_str(), 0755);
+                BOOST_CREATE_PERM_DIR(folderRadPerGPU);
             }
 
             if (isMaster && totalRad)
             {
                 //create folder for total output
-                mkdir((folderTotalRad).c_str(), 0755);
+                BOOST_CREATE_PERM_DIR(folderTotalRad);
                 timeSumArray = new Amplitude[elements_amplitude];
                 for (int i = 0; i < elements_amplitude; ++i)
                     timeSumArray[i] = Amplitude();
@@ -263,7 +263,7 @@ private:
             {
                 //create folder for total output
 
-                mkdir((folderLastRad).c_str(), 0755);
+                BOOST_CREATE_PERM_DIR(folderLastRad);
             }
 
         }
