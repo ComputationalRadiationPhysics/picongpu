@@ -1,0 +1,93 @@
+/**
+ * Copyright 2014 Rene Widera
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+
+#pragma once
+
+#include "simulation_defines.hpp"
+#include "particles/Identifier.hpp"
+#include "compileTime/conversion/MakeSeq.hpp"
+#include "dimensions/DataSpace.hpp"
+#include "identifier/identifier.hpp"
+#include "identifier/alias.hpp"
+#include "identifier/value_identifier.hpp"
+
+namespace picongpu
+{
+
+/** relative (to cell origin) in-cell position of a particle
+ * With this definition we not define any type like float3,double3,...
+ * This is only a name without a specialization
+ */
+alias(position);
+/** cell index the particle lives in, relative to the global moving window origin
+ * This alias is only used for dumping hdf5, the index is only valid for the
+ * current time step.
+ */
+alias(globalCellIdx);
+
+/** specialization for the relative in-cell position */
+value_identifier(floatD_X,position_pic,floatD_X(0.));
+/** momentum at timestep t */
+value_identifier(float3_X,momentum,float3_X(0.));
+/** momentum at (previous) timestep t-1 */
+value_identifier(float3_X,momentumPrev1,float3_X(0.));
+/** weighting of the macro particle */
+value_identifier(float_X, weighting, 0.0);
+/** use this particle for radiation diagnostics */
+value_identifier(bool, radiationFlag, false);
+
+/** specialization global position inside a domain (relative to origin of the
+ * moving window) and is loaded after all other param files)
+ */
+value_identifier(DataSpace<simDim>,globalCellIdx_pic,DataSpace<simDim>());
+
+/*! alias for particle shape @see species.param */
+alias(shape);
+
+/*! alias for particle pusher @see species.param */
+alias(particlePusher);
+
+/*! alias for particle to field interpolation @see species.param */
+alias(interpolation);
+
+/*! alias for particle current solver @see species.param */
+alias(current);
+
+template<uint32_t T_commTag>
+struct CommunicationId
+{
+    static const uint32_t CommunicationTag=T_commTag;
+};
+
+/* Factor of the species / sum of all species = relative memory usage
+ *   Example:
+ *     factor for ions = 1;
+ *     factor for electrons = 4;
+ *   Result: electrons (80%) get 4 times more memory than ions (20%).
+ */
+template<size_t T_memFactor>
+struct MemoryFactor
+{
+    static const size_t memFactor=T_memFactor;
+};
+
+} //namespace picongpu

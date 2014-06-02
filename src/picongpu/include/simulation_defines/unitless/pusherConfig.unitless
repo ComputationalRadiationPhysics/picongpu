@@ -1,23 +1,23 @@
 /**
  * Copyright 2013 Axel Huebl, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 
 #pragma once
@@ -37,42 +37,45 @@
 
 namespace picongpu
 {
-    namespace particlePusherBoris
-    {
-        typedef Push<Velocity, Gamma<> > ParticlePusher;
-    }
 
-    namespace particlePusherNone
-    {
-        typedef Push<Velocity, Gamma<> > ParticlePusher;
-    }
+namespace particles
+{
+namespace pusher
+{
 
-    namespace particlePusherVay
-    {
-       typedef Push<Velocity, Gamma<> > ParticlePusher;
-    }
-    
-    namespace particlePusherFree
-    {
-
-        typedef Push<Velocity, Gamma<> > ParticlePusher;
-    }
-    
-    namespace particlePusherPhot
-    {
-       typedef Push<Velocity, Gamma<> > ParticlePusher;
-    }
+struct None
+{
+    typedef particlePusherNone::Push type;
+};
 
 #if(SIMDIM==DIM3)
-    namespace particlePusherAxl
-    {
 
-        typedef Push<Velocity, Gamma<> > ParticlePusher;
-    }
+struct Axel
+{
+    typedef particlePusherAxl::Push<Velocity, Gamma<> > type;
+};
 #endif
 
-}
+struct Boris
+{
+    typedef particlePusherBoris::Push<Velocity, Gamma<> > type;
+};
 
+struct Vay
+{
+    typedef particlePusherVay::Push<Velocity, Gamma<> > type;
+};
 
+struct Free
+{
+    typedef particlePusherFree::Push<Velocity, Gamma<> > type;
+};
 
+struct Photon
+{
+    typedef particlePusherPhot::Push<Velocity, Gamma<> > type;
+};
 
+} //namespace pusher
+} //namespace particles
+} //namespace picongpu

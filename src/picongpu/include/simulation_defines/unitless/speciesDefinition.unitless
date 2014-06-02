@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2014 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -19,32 +19,38 @@
  */
 
 
-
 #pragma once
 
-#include "fields/currentDeposition/Solver.def"
+#include "particles/traits/GetMass.hpp"
+#include "particles/traits/GetCharge.hpp"
 #include "fields/currentDeposition/Solver.hpp"
-#include "traits/IsSameType.hpp"
+#include "particles/Particles.tpp"
 
 namespace picongpu
 {
 
-#if (SIMDIM==DIM3)
-    namespace currentSolverVillaBune
-    {
-        typedef VillaBune<> CurrentSolver;
-    }
+template<>
+HDINLINE static float_X getMass<typename PIC_Ions::FrameType>(float_X weighting)
+{
+    return M_ION*weighting;
+};
 
-    namespace currentSolverEsirkepovNative
-    {
-        using namespace picongpu::currentSolverEsirkepov;
-        typedef EsirkepovNative<typename speciesParticleShape::ParticleShape> CurrentSolver;
-    }
-#endif
+template<>
+HDINLINE static float_X getCharge<typename PIC_Ions::FrameType>(float_X weighting)
+{
+    return Q_ION*weighting;
+};
 
-    namespace currentSolverEsirkepov
-    {
-        typedef Esirkepov<typename speciesParticleShape::ParticleShape,simDim> CurrentSolver;
-    }
+template<>
+HDINLINE static float_X getMass<typename PIC_Electrons::FrameType>(float_X weighting)
+{
+    return M_EL*weighting;
+};
 
-}
+template<>
+HDINLINE static float_X getCharge<typename PIC_Electrons::FrameType>(float_X weighting)
+{
+    return Q_EL*weighting;
+};
+
+} //namespace picongpu
