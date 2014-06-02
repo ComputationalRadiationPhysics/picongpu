@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -18,10 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef POSITIONSPARTICLES_HPP
-#define	POSITIONSPARTICLES_HPP
+#pragma once
 
 #include <string>
 #include <iostream>
@@ -134,8 +131,8 @@ __global__ void kernelPositionsParticles(ParticlesBox<FRAME, simDim> pb,
             gParticle->position = particle[position_];
             gParticle->momentum = particle[momentum_];
             gParticle->weighting = particle[weighting_];
-            gParticle->mass = frame->getMass(gParticle->weighting);
-            gParticle->charge = frame->getCharge(gParticle->weighting);
+            gParticle->mass = getMass(gParticle->weighting,*frame);
+            gParticle->charge = getCharge(gParticle->weighting,*frame);
             gParticle->gamma = Gamma<>()(gParticle->momentum, gParticle->mass);
 
             // storage number in the actual frame
@@ -278,7 +275,3 @@ private:
 };
 
 }
-
-
-#endif	/* POSITIONSPARTICLES_HPP */
-

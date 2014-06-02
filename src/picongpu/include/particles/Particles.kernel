@@ -58,7 +58,7 @@ using namespace PMacc;
 template<class MYFRAME, class OTHERFRAME, class Mapping>
 __global__ void kernelCloneParticles(ParticlesBox<MYFRAME, simDim> myBox, ParticlesBox<OTHERFRAME, simDim> otherBox, Mapping mapper)
 {
-    using namespace particles::operations;
+    using namespace PMacc::particles::operations;
 
     __shared__ OTHERFRAME *frame;
 
@@ -181,7 +181,7 @@ __global__ void kernelAddTemperature(ParticlesBox<FRAME, simDim> pb, float_X ene
             // and a macroEnergy now.
             const float3_X mom = tmpRand * (float_X) math::sqrt(
                                                                 precisionCast<sqrt_X > (
-                                                                                        macroEnergy * frame->getMass(macroWeighting)
+                                                                                   macroEnergy * getMass<FRAME>(macroWeighting)
                                                                                         )
                                                                 );
             particle[momentum_] += mom;
@@ -268,10 +268,9 @@ __global__ void kernelSetDrift(ParBox pb,
                     myGamma = PARTICLE_INIT_DRIFT_GAMMA_MIDDLE;
                 }
 
-                typedef typename FRAME::MassType MassType;
                 PMACC_AUTO(particle, ((*frame)[linearThreadIdx]));
                 const float_X macroWeighting = particle[weighting_];
-                const MassType macroMass = frame->getMass(macroWeighting);
+                const float_X macroMass =  getMass<FRAME>(macroWeighting);
 
 
                 const float_64 PARTICLE_INIT_DRIFT_BETA =
@@ -388,7 +387,7 @@ __global__ void kernelMoveAndMarkParticles(ParBox pb,
     }
 }
 
-template<class PushAlgo, class TVec, class NumericalCellType>
+template<class PushAlgo, class TVec, class T_Field2ParticleInterpolation, class NumericalCellType>
 struct PushParticlePerFrame
 {
 
@@ -397,6 +396,7 @@ struct PushParticlePerFrame
     {
 
         typedef TVec Block;
+        typedef T_Field2ParticleInterpolation Field2ParticleInterpolation;
 
         typedef typename BoxB::ValueType BType;
         typedef typename BoxE::ValueType EType;
@@ -410,13 +410,13 @@ struct PushParticlePerFrame
         DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec > (particleCellIdx));
 
 
-        EType eField = fieldSolver::FieldToParticleInterpolation()
+        EType eField = Field2ParticleInterpolation()
             (eBox.shift(localCell).toCursor(), pos, NumericalCellType::getEFieldPosition());
-        BType bField = fieldSolver::FieldToParticleInterpolation()
+        BType bField =Field2ParticleInterpolation()
             (bBox.shift(localCell).toCursor(), pos, NumericalCellType::getBFieldPosition());
 
         float3_X mom = particle[momentum_];
-        const float_X mass = frame.getMass(weighting);
+        const float_X mass = getMass<FrameType>(weighting);
 #if(ENABLE_RADIATION == 1)
         radiation::PushExtension < (RAD_MARK_PARTICLE > 1) || (RAD_ACTIVATE_GAMMA_FILTER != 0) > extensionRadiation;
         float3_X& mom_mt1 = particle[momentumPrev1_];
@@ -433,7 +433,7 @@ struct PushParticlePerFrame
              pos,
              mom,
              mass,
-             frame.getCharge(weighting)
+             getCharge<FrameType>(weighting)
              );
         particle[momentum_] = mom;
 
