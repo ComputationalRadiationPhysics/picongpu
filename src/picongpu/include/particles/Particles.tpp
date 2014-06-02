@@ -18,6 +18,9 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+
+#pragma once
+
 #include <iostream>
 
 #include "simulation_defines.hpp"
@@ -46,6 +49,8 @@
 #include <limits>
 
 #include "fields/numericalCellTypes/YeeCell.hpp"
+
+#include "particles/traits/GetPusher.hpp"
 
 namespace picongpu
 {
@@ -138,21 +143,23 @@ void Particles<T_ParticleDescription>::init( FieldE &fieldE, FieldB &fieldB, Fie
     Environment<>::get( ).DataConnector().registerData( *this );
 }
 
-template<typename T>
-struct GetType
-{
-    typedef typename T::type type;
-};
-
 template<typename T_ParticleDescription>
 void Particles<T_ParticleDescription>::update(uint32_t )
 {
-    typedef particlePusher::ParticlePusher ParticlePush;
+    typedef typename HasFlag<FrameType,particlePusher<> >::type hasPusher;
+    typedef typename GetFlagType<FrameType,particlePusher<> >::type SearchedPusher;
 
-    typedef typename GetMargin<fieldSolver::FieldToParticleInterpolation>::LowerMargin LowerMargin;
-    typedef typename GetMargin<fieldSolver::FieldToParticleInterpolation>::UpperMargin UpperMargin;
+    /* if no pusher was defined we use PusherNone as fallback */
+    typedef typename bmpl::if_<hasPusher,SearchedPusher,particles::pusher::None >::type SelectPusher;
+    typedef typename SelectPusher::type ParticlePush;
+
+    typedef typename GetFlagType<FrameType,interpolation<> >::type::ThisType InterpolationSchema;
+
+    typedef typename GetMargin<InterpolationSchema>::LowerMargin LowerMargin;
+    typedef typename GetMargin<InterpolationSchema>::UpperMargin UpperMargin;
 
     typedef PushParticlePerFrame<ParticlePush, MappingDesc::SuperCellSize,
+        InterpolationSchema,
         fieldSolver::NumericalCellType > FrameSolver;
 
     typedef SuperCellDescription<
