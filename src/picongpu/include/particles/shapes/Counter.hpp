@@ -1,23 +1,22 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
 
 
 #pragma once
@@ -26,7 +25,9 @@
 
 namespace picongpu
 {
-namespace particleShape
+namespace particles
+{
+namespace shapes
 {
 
     namespace shared_Counter
@@ -43,18 +44,18 @@ namespace particleShape
 
     } // namespace shared_Counter
 
-    struct Counter : public picongpu::particleShape::shared_Counter::Counter
+    struct Counter : public shared_Counter::Counter
     {
 
-        struct ChargeAssignment : public picongpu::particleShape::shared_Counter::Counter
+        struct ChargeAssignment : public shared_Counter::Counter
         {
 
             HDINLINE float_X operator()(const float_X x)
             {
                 /*       -
                  *       |  1               if 0<=x<1
-                 * W(x)=<|  
-                 *       |  0               otherwise 
+                 * W(x)=<|
+                 *       |  0               otherwise
                  *       -
                  */
 
@@ -65,7 +66,7 @@ namespace particleShape
             }
         };
 
-        struct ChargeAssignmentOnSupport : public picongpu::particleShape::shared_Counter::Counter
+        struct ChargeAssignmentOnSupport : public shared_Counter::Counter
         {
 
             /** form factor of this particle shape.
@@ -83,5 +84,6 @@ namespace particleShape
 
     };
 
-} // namespace particleShape
+} // namespace shapes
+} // namespace particles
 } // namespace picongpu
