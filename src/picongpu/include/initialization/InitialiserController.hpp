@@ -31,7 +31,6 @@
 #include "fields/FieldB.hpp"
 
 #include "initialization/SimStartInitialiser.hpp"
-#include "particles/Species.hpp"
 
 #include "initialization/IInitPlugin.hpp"
 

@@ -22,7 +22,6 @@
 #define	FIELDE_KERNEL
 
 #include "math/Vector.hpp"
-#include "fields/LaserPhysics.hpp"
 
 #include "simulation_classTypes.hpp"
 
