@@ -47,13 +47,8 @@
 
 #include <assert.h>
 
-#include "particles/Species.hpp"
-
 #include "plugins/PluginController.hpp"
-
 #include "particles/ParticlesInitOneParticle.hpp"
-
-#include "particles/Species.hpp"
 
 
 namespace picongpu
@@ -103,7 +98,7 @@ public:
         DataSpace<DIM3> centerXZPlan(halfSimSize);
         centerXZPlan.y() = OneParticleOffset;
 
-        ParticlesInitOneParticle<PIC_Electrons>::addOneParticle(*(this->electrons),
+        ParticlesInitOneParticle<PIC_Electrons>::addOneParticle(*particleStorage[TypeAsIdentifier<PIC_Electrons>()],
                                                                 cellDescription,
                                                                 centerXZPlan);
 
@@ -138,16 +133,16 @@ public:
     {
         fieldJ->clear();
         __startTransaction(__getTransactionEvent());
-        //std::cout << "Begin update Electrons" << std::endl;
-        electrons->update(currentStep);
-        //std::cout << "End update Electrons" << std::endl;
-        EventTask eRecvElectrons = electrons->asyncCommunication(__getTransactionEvent());
+
+        particleStorage[TypeAsIdentifier<PIC_Electrons>()]->update(currentStep);
+
+        EventTask eRecvElectrons = particleStorage[TypeAsIdentifier<PIC_Electrons>()]->asyncCommunication(__getTransactionEvent());
         EventTask eElectrons = __endTransaction();
 
         __setTransactionEvent(eRecvElectrons + eElectrons);
 
 #if (ENABLE_CURRENT == 1)
-        fieldJ->computeCurrent < CORE + BORDER, PIC_Electrons > (*electrons, currentStep);
+        fieldJ->computeCurrent < CORE + BORDER, PIC_Electrons > (*particleStorage[TypeAsIdentifier<PIC_Electrons>()], currentStep);
 #endif
 
     }
@@ -161,7 +156,7 @@ public:
             GridController<simDim>& gc = Environment<simDim>::get().GridController();
             if (gc.slide())
             {
-                electrons->reset(currentStep);
+                particleStorage[TypeAsIdentifier<PIC_Electrons>()]->reset(currentStep);
                 //set E field
                 //
                 float3_X tmpE;
@@ -188,4 +183,3 @@ public:
 } // namespace picongpu
 
 #endif	/* ONEPARTICLESIMULATION_HPP */
-
