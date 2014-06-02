@@ -26,7 +26,7 @@
 
 namespace picongpu
 {
-namespace currentSolverEsirkepov
+namespace currentSolver
 {
 using namespace PMacc;
 
@@ -47,7 +47,7 @@ struct Esirkepov;
 template<typename ParticleAssign>
 struct EsirkepovNative;
 
-} //namespace currentSolverEsirkepov
+} //namespace currentSolver
 
 namespace traits
 {
@@ -56,10 +56,10 @@ namespace traits
  * class must define a LowerMargin and UpperMargin
  */
 template<typename ParticleShape,uint32_t T_dim>
-struct GetMargin<picongpu::currentSolverEsirkepov::Esirkepov<ParticleShape,T_dim> >
+struct GetMargin<picongpu::currentSolver::Esirkepov<ParticleShape,T_dim> >
 {
 private:
-    typedef picongpu::currentSolverEsirkepov::Esirkepov<ParticleShape,T_dim> Solver;
+    typedef picongpu::currentSolver::Esirkepov<ParticleShape,T_dim> Solver;
 public:
     typedef typename Solver::LowerMargin LowerMargin;
     typedef typename Solver::UpperMargin UpperMargin;
