@@ -239,22 +239,26 @@ private:
 
 
             Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
-
+            PMacc::Filesystem<simDim>& fs = Environment<simDim>::get().Filesystem();
+            
             if (isMaster && totalRad)
             {
-                BOOST_CREATE_PERM_DIR("radRestart");
+                fs.createDirectory("radRestart");
+                fs.setDirectoryPermissions("radRestart");
             }
 
 
             if (isMaster && radPerGPU)
             {
-                BOOST_CREATE_PERM_DIR(folderRadPerGPU);
+                fs.createDirectory(folderRadPerGPU);
+                fs.setDirectoryPermissions(folderRadPerGPU);
             }
 
             if (isMaster && totalRad)
             {
                 //create folder for total output
-                BOOST_CREATE_PERM_DIR(folderTotalRad);
+                fs.createDirectory(folderTotalRad);
+                fs.setDirectoryPermissions(folderTotalRad);
                 timeSumArray = new Amplitude[elements_amplitude];
                 for (int i = 0; i < elements_amplitude; ++i)
                     timeSumArray[i] = Amplitude();
@@ -262,8 +266,8 @@ private:
             if (isMaster && lastRad)
             {
                 //create folder for total output
-
-                BOOST_CREATE_PERM_DIR(folderLastRad);
+                fs.createDirectory(folderLastRad);
+                fs.setDirectoryPermissions(folderLastRad);
             }
 
         }
