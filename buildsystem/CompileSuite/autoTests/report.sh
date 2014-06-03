@@ -106,7 +106,7 @@ $logEntry"
     textJSON=`echo -n "$text" | python -c 'import json,sys; print json.dumps(sys.stdin.read())'`
     postParams='{"action":"report","eventid":'$eventid',"result":"'$stateName'","output":'$textJSON'}'
     echo -n "$postParams" > "$thisDir"lastPostParams.log
-    curl -X POST --data-urlencode payload@"$thisDir"lastPostParams.log $cnf_scheduler
+    curl -s -X POST --data-urlencode payload@"$thisDir"lastPostParams.log $cnf_scheduler
     if [ $? -ne 0 ]; then
         echo "Error contacting scheduler at $cnf_scheduler"
         exit 1
