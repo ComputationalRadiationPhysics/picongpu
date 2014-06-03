@@ -23,10 +23,10 @@
 #include <utility>
 
 #include "cuSTL/cursor/MultiIndexCursor.hpp"
-#include "cuSTL/algorithm/kernel/Foreach.hpp"
+#include "cuSTL/algorithm/cudaBlock/Foreach.hpp"
 #include "cuSTL/algorithm/kernel/ForeachBlock.hpp"
-#include "math/vector/Int.hpp"
-#include "math/vector/UInt.hpp"
+#include "cuSTL/container/compile-time/SharedBuffer.hpp"
+#include "math/Vector.hpp"
 #include "math/VectorOperations.hpp"
 #include "particles/access/Cell2Particle.hpp"
 
@@ -90,8 +90,8 @@ namespace picongpu
 
             /* cell id in this block */
             const int linearCellIdx = particle[localCellIdx_];
-            const PMacc::math::UInt<DIM3> cellIdx(
-                PMacc::math::MapToPos<DIM3>()( SuperCellSize(), linearCellIdx ) );
+            const PMacc::math::UInt<simDim> cellIdx(
+                PMacc::math::MapToPos<simDim>()( SuperCellSize(), linearCellIdx ) );
 
             const uint32_t r_bin    = cellIdx[r_dir];
             const float_X weighting = particle[weighting_];
@@ -164,18 +164,18 @@ namespace picongpu
          *                         \see cuSTL/algorithm/kernel/ForeachBlock.hpp
          */
         DINLINE void
-        operator()( const PMacc::math::Int<3>& indexBlockOffset )
+        operator()( const PMacc::math::Int<simDim>& indexBlockOffset )
         {
             /** \todo write math::Vector constructor that supports dim3 */
-            const PMacc::math::Int<DIM3> indexGlobal = indexBlockOffset;
+            const PMacc::math::Int<simDim> indexGlobal = indexBlockOffset;
 
             /* create shared mem */
-            const uint32_t blockCellsInDir = SuperCellSize::template at<r_dir>::type::value;
-            typedef PMacc::math::CT::Int<num_pbins, blockCellsInDir> dBufferSizeInBlock;
+            const int blockCellsInDir = SuperCellSize::template at<r_dir>::type::value;
+            typedef typename PMacc::math::CT::Int<num_pbins, blockCellsInDir> dBufferSizeInBlock;
             container::CT::SharedBuffer<float_PS, dBufferSizeInBlock > dBufferInBlock;
 
             /* init shared mem */
-            algorithm::cudaBlock::Foreach<SuperCellSize> forEachThreadInBlock;
+            PMacc::algorithm::cudaBlock::Foreach<SuperCellSize> forEachThreadInBlock;
             {
                 using namespace lambda;
                 DECLARE_PLACEHOLDERS();

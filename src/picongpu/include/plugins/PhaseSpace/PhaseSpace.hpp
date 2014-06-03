@@ -72,7 +72,6 @@ namespace picongpu
          */
         MPI_Comm commFileWriter;
 
-
     public:
         PhaseSpace( const std::string _name,
                      const std::string _prefix,
