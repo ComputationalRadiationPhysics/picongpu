@@ -84,8 +84,6 @@ public:
 
         }
 
-        StreamController::getInstance().addStreams(2);
-
         PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
 
         const DataSpace<simDim> halfSimSize(simBox.getGlobalSize() / 2);
