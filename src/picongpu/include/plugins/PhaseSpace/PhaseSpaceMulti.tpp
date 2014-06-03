@@ -102,16 +102,24 @@ namespace picongpu
             new_elements.momentum = el_momentum;
             new_elements.space = el_space;
 
-            PhaseSpace<AssignmentFunction, Species>* newPS =
-              new PhaseSpace<AssignmentFunction, Species>( this->name,
-                                                           this->prefix,
-                                                           this->notifyPeriod.at(i),
-                                                           new_p_range,
-                                                           new_elements );
+            if( simDim == DIM2 && el_space == AxisDescription::z )
+                std::cerr << "[Plugin] [" + this->name + "] Skip requested output for "
+                          << this->element_space.at(i)
+                          << this->element_momentum.at(i)
+                          << std::endl;
+            else
+            {
+                PhaseSpace<AssignmentFunction, Species>* newPS =
+                  new PhaseSpace<AssignmentFunction, Species>( this->name,
+                                                               this->prefix,
+                                                               this->notifyPeriod.at(i),
+                                                               new_p_range,
+                                                               new_elements );
 
-            this->children.push_back( newPS );
-            this->children.at(i)->setMappingDescription( this->cellDescription );
-            this->children.at(i)->pluginLoad();
+                this->children.push_back( newPS );
+                this->children.at(i)->setMappingDescription( this->cellDescription );
+                this->children.at(i)->pluginLoad();
+            }
         }
 
         /** create dir */

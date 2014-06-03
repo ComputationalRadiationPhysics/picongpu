@@ -35,9 +35,7 @@
 #include "plugins/PositionsParticles.hpp"
 #include "plugins/BinEnergyParticles.hpp"
 #include "plugins/LineSliceFields.hpp"
-#if(SIMDIM==DIM3 && ENABLE_HDF5 == 1)
 #include "plugins/PhaseSpace/PhaseSpaceMulti.hpp"
-#endif
 
 #if (ENABLE_INSITU_VOLVIS == 1)
 #include "plugins/InSituVolumeRenderer.hpp"
@@ -118,11 +116,11 @@ private:
 #endif
     typedef ParticleDensity<PIC_Electrons, DensityToBinary, float_X> ElectronsBinaryDensityBuilder;
 
-#if(SIMDIM==DIM3)
 #if(ENABLE_HDF5 == 1)
     /* speciesParticleShape::ParticleShape::ChargeAssignment */
     typedef PhaseSpaceMulti<particleShape::Counter::ChargeAssignment, PIC_Electrons> PhaseSpaceElectrons;
 #endif
+#if(SIMDIM==DIM3)
 #if(PIC_ENABLE_PNG==1)
     typedef heiko::ParticleDensity<PIC_Electrons> HeikoParticleDensity;   
 #endif
@@ -148,7 +146,7 @@ private:
     typedef Visualisation<PIC_Ions, PngCreator> IonsPngBuilder;
     typedef PngPlugin<IonsPngBuilder > PngImageIons;
 #endif
-#if(SIMDIM==DIM3 && ENABLE_HDF5 == 1)
+#if(ENABLE_HDF5 == 1)
     /* speciesParticleShape::ParticleShape::ChargeAssignment */
     typedef PhaseSpaceMulti<particleShape::Counter::ChargeAssignment, PIC_Ions> PhaseSpaceIons;
 #endif
@@ -202,7 +200,7 @@ private:
 #endif
         
 #if (ENABLE_ELECTRONS == 1)
-#if(SIMDIM==DIM3 && ENABLE_HDF5 == 1)
+#if(ENABLE_HDF5 == 1)
         plugins.push_back(new PhaseSpaceElectrons("PhaseSpace Electrons", "ps_e"));
 #endif
         plugins.push_back(new LiveImageElectrons("LiveImageElectrons", "live_e"));
@@ -217,7 +215,7 @@ private:
 #endif
 
 #if (ENABLE_IONS == 1)
-#if(SIMDIM==DIM3 && ENABLE_HDF5 == 1)
+#if(ENABLE_HDF5 == 1)
         plugins.push_back(new PhaseSpaceIons("PhaseSpace Ions", "ps_i"));
 #endif
         plugins.push_back(new LiveImageIons("LiveImageIons", "live_i"));
