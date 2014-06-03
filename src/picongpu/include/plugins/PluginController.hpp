@@ -35,7 +35,9 @@
 #include "plugins/PositionsParticles.hpp"
 #include "plugins/BinEnergyParticles.hpp"
 #include "plugins/LineSliceFields.hpp"
+#if(ENABLE_HDF5 == 1)
 #include "plugins/PhaseSpace/PhaseSpaceMulti.hpp"
+#endif
 
 #if (ENABLE_INSITU_VOLVIS == 1)
 #include "plugins/InSituVolumeRenderer.hpp"
