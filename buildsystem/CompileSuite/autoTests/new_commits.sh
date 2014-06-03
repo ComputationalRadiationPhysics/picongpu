@@ -107,7 +107,7 @@ cd $cnf_gitdir
             # add information to the head of the output
             cp $cnf_builddir"/outputColored" $cnf_builddir"/outputColored_short"
             echo "" > $cnf_builddir"/outputColored"
-            if [ $numParallel -gt 1 ] ; then
+            if [ $cnf_numParallel -gt 1 ] ; then
                 for i in `ls $cnf_builddir"/build/"`
                 do
                     returnCode=`cat $cnf_builddir"/build/"$i"/returnCode"`
@@ -122,9 +122,6 @@ cd $cnf_gitdir
             cat $cnf_builddir"/outputColored" | \
               sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g" \
               > $cnf_builddir"/output"
-
-            rm -rf $cnf_builddir"/outputColored.gz"
-            gzip $cnf_builddir"/outputColored"
 
             echo "Error Analysis:"
 
