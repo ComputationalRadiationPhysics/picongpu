@@ -23,6 +23,7 @@
 #define CURSOR_MULTIINDEXCURSOR
 
 #include "Cursor.hpp"
+#include "accessor/MarkerAccessor.hpp"
 #include "navigator/MultiIndexNavigator.hpp"
 #include "math/vector/Int.hpp"
 
