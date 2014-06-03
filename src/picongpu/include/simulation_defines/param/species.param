@@ -47,7 +47,6 @@ namespace picongpu
  *  - particles::shapes::PCS : 3rd order (requires CUDA_ARCH>=sm_20)
  *
  *  example:             typedef particles::shapes::CIC CICShape;
- *  use as species flag: shape<NGPShape>
  */
 typedef particles::shapes::TSC UsedParticleShape;
 
@@ -60,7 +59,7 @@ typedef FieldToParticleInterpolation<UsedParticleShape, AssignedTrilinearInterpo
  *
  * For development purposes: ---------------------------------------------------
  * - EsirkepovNative<SHAPE> : generic version of currentSolverEsirkepov
- *   without optimization (~4x slower and need more shared memory)
+ *   without optimization (~4x slower and needs more shared memory)
  */
 typedef currentSolver::Esirkepov<UsedParticleShape> UsedParticleCurrentSolver;
 

@@ -96,7 +96,7 @@ struct FreeMemory
     }
 };
 
-/*functor to create a pair for a MapTupel map*/
+/*functor to create a pair for a MapTuple map*/
 struct OperatorCreateVectorBox
 {
     template<typename InType>

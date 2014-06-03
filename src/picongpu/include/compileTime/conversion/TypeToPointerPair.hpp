@@ -30,7 +30,8 @@ namespace picongpu
 
 /** Wrapper to use any type as identifier
  *
- * Wrapp a type without
+ * Wrap a type thus we can call default constructor on every class
+ * This is needed to support that any type can used as identifier in for math::MapTuple
  */
 template<typename T_Type>
 struct TypeAsIdentifier
@@ -38,6 +39,10 @@ struct TypeAsIdentifier
     typedef T_Type type;
 };
 
+/** Unary functor to wrap any type with TypeAsIdentifier
+ *
+ * @tparam T_Type to to wrap
+ */
 template<typename T_Type>
 struct Cover
 {

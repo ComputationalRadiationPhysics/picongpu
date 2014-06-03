@@ -132,16 +132,16 @@ template<typename T_SpeciesName, typename T_Area>
 struct ComputeCurrent
 {
 
-    template<typename T_StorageTupel>
+    template<typename T_StorageTuple>
     HINLINE void operator()( FieldJ* fieldJ,
-                            T_StorageTupel& tupel,
+                            T_StorageTuple& tuple,
                             const uint32_t currentStep) const
     {
         typedef T_SpeciesName SpeciesName;
         typedef typename SpeciesName::type SpeciesType;
 
-        PMACC_AUTO(speciePtr, tupel[SpeciesName()]);
-        fieldJ->computeCurrent<T_Area::value, SpeciesType> (*speciePtr, currentStep);
+        PMACC_AUTO(speciesPtr, tuple[SpeciesName()]);
+        fieldJ->computeCurrent<T_Area::value, SpeciesType> (*speciesPtr, currentStep);
     }
 };
 

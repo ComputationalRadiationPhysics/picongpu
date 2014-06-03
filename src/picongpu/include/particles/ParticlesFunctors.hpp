@@ -40,10 +40,10 @@ struct AssignNull
 {
     typedef T_Type SpeciesName;
 
-    template<typename T_StorageTupel>
-    void operator()(T_StorageTupel& tupel)
+    template<typename T_StorageTuple>
+    void operator()(T_StorageTuple& tuple)
     {
-        tupel[SpeciesName()] = NULL;
+        tuple[SpeciesName()] = NULL;
     }
 };
 
@@ -52,10 +52,10 @@ struct CallDelete
 {
     typedef T_Type SpeciesName;
 
-    template<typename T_StorageTupel>
-    void operator()(T_StorageTupel& tupel)
+    template<typename T_StorageTuple>
+    void operator()(T_StorageTuple& tuple)
     {
-        __delete(tupel[SpeciesName()]);
+        __delete(tuple[SpeciesName()]);
     }
 };
 
@@ -65,10 +65,10 @@ struct CreateSpecies
     typedef T_Type SpeciesName;
     typedef typename T_Type::type SpeciesType;
 
-    template<typename T_StorageTupel, typename T_CellDescription>
-    HINLINE void operator()(T_StorageTupel& tupel, T_CellDescription* cellDesc) const
+    template<typename T_StorageTuple, typename T_CellDescription>
+    HINLINE void operator()(T_StorageTuple& tuple, T_CellDescription* cellDesc) const
     {
-        tupel[SpeciesName()] = new SpeciesType(cellDesc->getGridLayout(), *cellDesc, SpeciesType::FrameType::getName());
+        tuple[SpeciesName()] = new SpeciesType(cellDesc->getGridLayout(), *cellDesc, SpeciesType::FrameType::getName());
     }
 };
 
@@ -84,8 +84,8 @@ struct CallCreateParticleBuffer
     typedef T_Type SpeciesName;
     typedef typename SpeciesName::type SpeciesType;
 
-    template<typename T_StorageTupel>
-    HINLINE void operator()(T_StorageTupel& tupel, const size_t freeGpuMem) const
+    template<typename T_StorageTuple>
+    HINLINE void operator()(T_StorageTuple& tuple, const size_t freeGpuMem) const
     {
 
         const size_t myMemFactor = SpeciesType::FrameType::memFactor;
@@ -102,7 +102,7 @@ struct CallCreateParticleBuffer
             (byte / 1024 / 1024) %
             SpeciesType::FrameType::getName();
 
-        tupel[SpeciesName()]->createParticleBuffer(byte);
+        tuple[SpeciesName()]->createParticleBuffer(byte);
     }
 };
 
@@ -112,14 +112,14 @@ struct CallInit
     typedef T_Type SpeciesName;
     typedef typename T_Type::type SpeciesType;
 
-    template<typename T_StorageTupel>
-    HINLINE void operator()(T_StorageTupel& tupel,
+    template<typename T_StorageTuple>
+    HINLINE void operator()(T_StorageTuple& tuple,
                             FieldE* fieldE,
                             FieldB* fieldB,
                             FieldJ* fieldJ,
                             FieldTmp* fieldTmp) const
     {
-        tupel[SpeciesName()]->init(*fieldE, *fieldB, *fieldJ, *fieldTmp);
+        tuple[SpeciesName()]->init(*fieldE, *fieldB, *fieldJ, *fieldTmp);
     }
 };
 
@@ -129,11 +129,11 @@ struct CallReset
     typedef T_SpeciesName SpeciesName;
     typedef typename SpeciesName::type SpeciesType;
 
-    template<typename T_StorageTupel>
-    HINLINE void operator()(T_StorageTupel& tupel,
+    template<typename T_StorageTuple>
+    HINLINE void operator()(T_StorageTuple& tuple,
                             const uint32_t currentStep)
     {
-        tupel[SpeciesName()]->reset(currentStep);
+        tuple[SpeciesName()]->reset(currentStep);
     }
 };
 
@@ -144,9 +144,9 @@ struct CallUpdate
     typedef typename SpeciesName::type SpeciesType;
     typedef typename SpeciesType::FrameType FrameType;
 
-    template<typename T_StorageTupel, typename T_Event>
+    template<typename T_StorageTuple, typename T_Event>
     HINLINE void operator()(
-                            T_StorageTupel& tupel,
+                            T_StorageTuple& tuple,
                             const uint32_t currentStep,
                             const T_Event eventInt,
                             T_Event& updateEvent,
@@ -156,11 +156,11 @@ struct CallUpdate
         typedef typename HasFlag<FrameType, particlePusher<> >::type hasPusher;
         if (hasPusher::value)
         {
-            PMACC_AUTO(speciePtr, tupel[SpeciesName()]);
+            PMACC_AUTO(speciesPtr, tuple[SpeciesName()]);
 
             __startTransaction(eventInt);
-            speciePtr->update(currentStep);
-            commEvent += speciePtr->asyncCommunication(__getTransactionEvent());
+            speciesPtr->update(currentStep);
+            commEvent += speciesPtr->asyncCommunication(__getTransactionEvent());
             updateEvent += __endTransaction();
         }
     }

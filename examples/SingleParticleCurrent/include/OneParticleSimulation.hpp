@@ -84,9 +84,7 @@ public:
 
         }
 
-
-        //diabled because we have a transaction bug
-        //StreamController::getInstance().addStreams(6);
+        StreamController::getInstance().addStreams(2);
 
         PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
 
