@@ -27,9 +27,8 @@
 #include <cuda.h>
 #include <stdexcept>
 
+#include <boost/typeof/std/utility.hpp>
 #include "debug/PMaccVerbose.hpp"
-#include "mappings/simulation/GridController.hpp"
-#include "simulation_defines.hpp"
 #include <boost/mpl/placeholders.hpp>
 #include <boost/filesystem.hpp>
 
@@ -172,24 +171,5 @@ enum AreaType
 
 #define __delete(var) if((var)) { delete (var); var=NULL; }
 #define __deleteArray(var) if((var)) { delete[] (var); var=NULL; }
-
-/* set folder permissions using boost::filesystem */
-#define PMACC_SET_DIR_PERM(dir)             \
-    {                                       \
-        /* set permissions */               \
-        bfs::permissions(dir,               \
-                        bfs::owner_all |    \
-                        bfs::group_read |   \
-                        bfs::group_exe |    \
-                        bfs::others_read |  \
-                        bfs::others_exe);   \
-    }
-
-/* create directory and set permissions using boost::filesystem */
-#define PMACC_CREATE_PERM_DIR(dir)          \
-    {                                       \
-        bfs::create_directories(dir);       \
-        PMACC_SET_DIR_PERM(dir);            \ /* \todo fix this, move to new class/singleton */
-    }
 
 } //namespace PMacc

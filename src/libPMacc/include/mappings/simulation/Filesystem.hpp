@@ -1,0 +1,127 @@
+/**
+ * Copyright 2014 Felix Schmitt
+ *
+ * This file is part of libPMacc. 
+ * 
+ * libPMacc is free software: you can redistribute it and/or modify 
+ * it under the terms of of either the GNU General Public License or 
+ * the GNU Lesser General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * libPMacc is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License and the GNU Lesser General Public License 
+ * for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * and the GNU Lesser General Public License along with libPMacc. 
+ * If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+ 
+
+#ifndef _FILESYSTEM_HPP
+#define	_FILESYSTEM_HPP
+
+#include <boost/filesystem.hpp>
+#include "types.h"
+#include "mappings/simulation/GridController.hpp"
+
+namespace PMacc
+{
+    
+        /**
+         * 
+         */
+        template<unsigned DIM>
+        class Filesystem
+        {
+        public:
+
+            /**
+             * Create directory with default permissions
+             * 
+             * @param dir name of directory
+             */
+            void createDirectory(const std::string dir)
+            {
+                /* does not throw if the directory exists or has been created */
+                bfs::create_directories(dir);
+            }
+            
+            /**
+             * Set 755 permissions for a directory
+             * 
+             * @param dir name of directory
+             */
+            void setDirectoryPermissions(const std::string dir)
+            {
+                /* set permissions */
+                bfs::permissions(dir,
+                                 bfs::owner_all |
+                                 bfs::group_read |
+                                 bfs::group_exe | 
+                                 bfs::others_read |
+                                 bfs::others_exe);
+            }
+            
+            /**
+             * Create directory and set 755 permissions by root rank.
+             * 
+             * @param dir name of directory
+             */
+            void createDirectoryWithPermissions(const std::string dir)
+            {
+                GridController<DIM>& gc = Environment<DIM>::get().GridController();
+                
+                createDirectory(dir);
+                
+                if (gc.getGlobalRank() == 0)
+                {
+                    /* must be set by only one process to avoid races */
+                    setDirectoryPermissions(dir);
+                }
+            }
+
+        private:
+
+            friend Environment<DIM>;
+            
+            /**
+             * Constructor
+             */
+            Filesystem()
+            {
+
+            }
+
+            /**
+             * Constructor
+             */
+            Filesystem(const Filesystem& fs)
+            {
+
+            }
+
+            /**
+             * Returns the instance of the filesystem class.
+             *
+             * This class is a singleton class.
+             *
+             * @return a filesystem instance
+             */
+            static Filesystem<DIM>& getInstance()
+            {
+                static Filesystem<DIM> instance;
+                return instance;
+            }
+        };
+
+} //namespace PMacc
+
+
+
+#endif	/* _FILESYSTEM_HPP */
+
+
+

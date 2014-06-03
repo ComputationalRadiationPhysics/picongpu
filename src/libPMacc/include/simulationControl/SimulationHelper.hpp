@@ -127,7 +127,7 @@ public:
             /* create directory containing checkpoints  */
             if (numCheckpoints == 0)
             {
-                PMACC_CREATE_PERM_DIR(checkpointDirectory);
+                Environment<DIM>::get().Filesystem().createDirectoryWithPermissions(checkpointDirectory);
             }
             
             Environment<DIM>::get().PluginConnector().checkpointPlugins(currentStep,

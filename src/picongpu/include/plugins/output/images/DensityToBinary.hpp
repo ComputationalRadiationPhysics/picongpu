@@ -64,7 +64,7 @@ struct DensityToBinary
 
         if (createFolder)
         {
-            PMACC_CREATE_PERM_DIR(folder);
+            Environment<simDim>::get().Filesystem().createDirectoryWithPermissions(folder);
             createFolder = false;
         }
 
