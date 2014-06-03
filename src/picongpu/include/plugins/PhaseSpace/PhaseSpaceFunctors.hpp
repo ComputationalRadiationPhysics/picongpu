@@ -26,10 +26,8 @@
 #include "cuSTL/algorithm/cudaBlock/Foreach.hpp"
 #include "cuSTL/algorithm/kernel/ForeachBlock.hpp"
 #include "cuSTL/container/compile-time/SharedBuffer.hpp"
-#include "math/vector/Int.hpp"
-#include "math/vector/UInt.hpp"
+#include "math/Vector.hpp"
 #include "math/VectorOperations.hpp"
-#include "math/vector/compile-time/Int.hpp"
 #include "particles/access/Cell2Particle.hpp"
 
 #include "PhaseSpace.hpp"
