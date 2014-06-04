@@ -91,6 +91,6 @@ cd simOutput
 $MPI_ROOT/bin/mpirun !TBG_dstPath/picongpu/bin/cuda_memtest.sh
 
 if [ $? -eq 0 ] ; then
-   $MPI_ROOT/bin/mpirun -x VT_MPI_IGNORE_FILTER -x VT_PFORM_GDIR -x VT_FILE_PREFIX -x VT_BUFFER_SIZE -x VT_MAX_FLUSHES -x VT_GNU_DEMANGLE -x VT_PTHREAD_REUSE -x VT_FILTER_SPEC -x VT_UNIFY -x VT_GPUTRACE -x VT_VERBOSE -x VT_CUPTI_METRICS -x VT_CUDATRACE_BUFFER_SIZE --display-map -am !TBG_dstPath/tbg/openib.conf   !TBG_dstPath/picongpu/bin/picongpu !TBG_programParams
+   $MPI_ROOT/bin/mpirun -x VT_MPI_IGNORE_FILTER -x VT_PFORM_GDIR -x VT_FILE_PREFIX -x VT_BUFFER_SIZE -x VT_MAX_FLUSHES -x VT_GNU_DEMANGLE -x VT_PTHREAD_REUSE -x VT_FILTER_SPEC -x VT_UNIFY -x VT_GPUTRACE -x VT_VERBOSE -x VT_CUPTI_METRICS -x VT_CUDATRACE_BUFFER_SIZE --display-map -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 !TBG_dstPath/picongpu/bin/picongpu !TBG_programParams
 fi           
 

@@ -53,11 +53,6 @@ namespace picongpu
             return (Q_ION * weighting);
         }
         
-        HINLINE static std::string getName( )
-        {
-            return "i";
-        }
-
         enum
         {
             CommunicationTag = PAR_IONS

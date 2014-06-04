@@ -117,7 +117,7 @@ struct SphericMapper<3, BlockSize>
     math::Int<3> operator()(const math::Int<3>& _blockIdx,
                              const math::Int<3>& _threadIdx) const
     {
-        return math::Int<3>( _blockIdx * (math::Int<3>)BlockSize().vec() + _threadIdx );
+        return math::Int<3>( _blockIdx * (math::Int<3>)BlockSize().toRT() + _threadIdx );
     }
 
     HDINLINE

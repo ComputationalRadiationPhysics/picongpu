@@ -28,6 +28,8 @@
 #include "particles/Particles.hpp"
 #include "particles/species/ions/IonMethods.hpp"
 #include "particles/species/electrons/ElectronMethods.hpp"
+#include "particles/ParticleDescription.hpp"
+#include <boost/mpl/string.hpp>
 
 namespace picongpu
 {
@@ -37,14 +39,14 @@ using namespace PMacc;
 /*add old momentum for radiation plugin*/
 typedef typename MakeSeq<
 #if(ENABLE_RADIATION == 1)
-    momentumPrev1
+momentumPrev1
 #endif
 >::type AttributMomentum_mt1;
 
 /*add old radiation flag for radiation plugin*/
 typedef typename MakeSeq<
 #if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
-    radiationFlag
+radiationFlag
 #endif
 >::type AttributRadiationFlag;
 
@@ -52,47 +54,58 @@ typedef typename MakeSeq<
 
 typedef
 typename MakeSeq<
-            ElectronsDataList, 
-            AttributMomentum_mt1, 
-            AttributRadiationFlag
+        ElectronsDataList,
+        AttributMomentum_mt1,
+        AttributRadiationFlag
     >::type
 Species1_data;
 
 typedef
 typename MakeSeq<
-            IonsDataList, 
-            AttributMomentum_mt1, 
-            AttributRadiationFlag
+        IonsDataList,
+        AttributMomentum_mt1,
+        AttributRadiationFlag
     >::type
 Species2_data;
 
 typedef Particles<
-    Species1_data,
-    ElectronsMethodsList
+    ParticleDescription<
+        boost::mpl::string<'e'>,
+        MappingDesc::SuperCellSize,
+        Species1_data,
+        boost::mpl::vector0<>,
+        ElectronsMethodsList
+    >
 > PIC_Electrons;
 
 typedef Particles<
-    Species2_data,
-    IonsMethodsList
+    ParticleDescription<
+        boost::mpl::string<'i'>,
+        MappingDesc::SuperCellSize,
+        Species2_data,
+        boost::mpl::vector0<>,
+        IonsMethodsList
+    >
 > PIC_Ions;
-
 
 /** \todo: not nice, but this should be changed in the future*/
 typedef typename MakeSeq<
-    #if (ENABLE_ELECTRONS == 1)
-    PIC_Electrons
-    #endif
+#if (ENABLE_ELECTRONS == 1)
+PIC_Electrons
+#endif
 >::type Species1;
 
 typedef typename MakeSeq<
-    #if (ENABLE_IONS == 1)
-    PIC_Ions
-    #endif
+#if (ENABLE_IONS == 1)
+PIC_Ions
+#endif
 >::type Species2;
 
 typedef typename MakeSeq<
-    Species1,
-    Species2
+Species1,
+Species2
 >::type VectorAllSpecies;
 
 } //namespace picongpu
+
+#include "particles/Particles.tpp"

@@ -1,22 +1,22 @@
 /**
  * Copyright 2013-2014 Heiko Burau, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 #pragma once
@@ -151,12 +151,12 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
             (*this)[i] = static_cast<type> (other[i]);
     }
 
-    HDINLINE const This& vec() const
+    HDINLINE const This& toRT() const
     {
         return *this;
     }
 
-    HDINLINE This& vec()
+    HDINLINE This& toRT()
     {
         return *this;
     }
@@ -242,7 +242,7 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
         return result;
     }
 
-    /*! += operator 
+    /*! += operator
      * @param other instance with same type and dimension like the left instance
      * @return reference to manipulated left instance
      */
@@ -261,7 +261,7 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
         return *this;
     }
 
-    /*! -= operator 
+    /*! -= operator
      * @param other instance with same type and dimension like the left instance
      * @return reference to manipulated left instance
      */
@@ -280,7 +280,7 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
         return *this;
     }
 
-    /*! *= operator 
+    /*! *= operator
      * @param other instance with same type and dimension like the left instance
      * @return reference to manipulated left instance
      */
@@ -300,7 +300,7 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
         return *this;
     }
 
-    /*! /= operator 
+    /*! /= operator
      * @param other instance with same type and dimension like the left instance
      * @return reference to manipulated left instance
      */
@@ -392,6 +392,15 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
         stream << "}";
         return stream.str();
     }
+
+    HDINLINE dim3 toDim3() const
+    {
+        dim3 result;
+        unsigned int* ptr = &result.x;
+        for (int d = 0; d < dim; ++d)
+            ptr[d] = (*this)[d];
+        return result;
+    }
 };
 
 template<typename Type>
@@ -427,7 +436,7 @@ HDINLINE Vector<T_Type, T_Dim>
 operator+(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs,
           const Vector<T_Type, T_Dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& rhs)
 {
-    /* to avoid allocation side effects the result is always a vector 
+    /* to avoid allocation side effects the result is always a vector
      * with default policies*/
     Vector<T_Type, T_Dim> result(lhs);
     result += rhs;
@@ -443,7 +452,7 @@ HDINLINE Vector<T_Type, T_Dim>
 operator+(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs,
           const T_Type& rhs)
 {
-    /* to avoid allocation side effects the result is always a vector 
+    /* to avoid allocation side effects the result is always a vector
      * with default policies*/
     Vector<T_Type, T_Dim> result(lhs);
     result += rhs;
@@ -462,7 +471,23 @@ HDINLINE Vector<T_Type, T_Dim>
 operator-(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs,
           const Vector<T_Type, T_Dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& rhs)
 {
-    /* to avoid allocation side effects the result is always a vector 
+    /* to avoid allocation side effects the result is always a vector
+     * with default policies*/
+    Vector<T_Type, T_Dim> result(lhs);
+    result -= rhs;
+    return result;
+}
+
+template<typename T_Type, int T_Dim,
+typename T_Accessor,
+typename T_Navigator,
+template <typename, int> class T_Storage
+>
+HDINLINE Vector<T_Type, T_Dim>
+operator-(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs,
+          const T_Type& rhs)
+{
+    /* to avoid allocation side effects the result is always a vector
      * with default policies*/
     Vector<T_Type, T_Dim> result(lhs);
     result -= rhs;
@@ -481,7 +506,7 @@ HDINLINE Vector<T_Type, T_Dim>
 operator*(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs,
           const Vector<T_Type, T_Dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& rhs)
 {
-    /* to avoid allocation side effects the result is always a vector 
+    /* to avoid allocation side effects the result is always a vector
      * with default policies*/
     Vector<T_Type, T_Dim> result(lhs);
     result *= rhs;
@@ -501,7 +526,7 @@ HDINLINE Vector<T_Type, T_Dim>
 operator/(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs,
           const Vector<T_Type, T_Dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& rhs)
 {
-    /* to avoid allocation side effects the result is always a vector 
+    /* to avoid allocation side effects the result is always a vector
      * with default policies*/
     Vector<T_Type, T_Dim> result(lhs);
     result /= rhs;
@@ -517,7 +542,7 @@ template <typename, int> class T_Storage
 HDINLINE Vector<T_Type, T_Dim>
 operator*(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs, const T_Type& rhs)
 {
-    /* to avoid allocation side effects the result is always a vector 
+    /* to avoid allocation side effects the result is always a vector
      * with default policies*/
     Vector<T_Type, T_Dim> result(lhs);
     result *= rhs;
@@ -533,7 +558,7 @@ template <typename, int> class T_Storage
 HDINLINE Vector<T_Type, T_Dim>
 operator*(const T_Type& lhs, const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& rhs)
 {
-    /* to avoid allocation side effects the result is always a vector 
+    /* to avoid allocation side effects the result is always a vector
      * with default policies*/
     Vector<T_Type, T_Dim> result(rhs);
     result *= lhs;
@@ -549,7 +574,7 @@ template <typename, int> class T_Storage
 HDINLINE Vector<T_Type, T_Dim>
 operator/(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs, const T_Type& rhs)
 {
-    /* to avoid allocation side effects the result is always a vector 
+    /* to avoid allocation side effects the result is always a vector
      * with default policies*/
     Vector<T_Type, T_Dim> result(lhs);
     result /= rhs;
@@ -565,7 +590,7 @@ template <typename, int> class T_Storage
 HDINLINE Vector<T_Type, T_Dim>
 operator-(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& vec)
 {
-    /* to avoid allocation side effects the result is always a vector 
+    /* to avoid allocation side effects the result is always a vector
      * with default policies*/
     Vector<T_Type, T_Dim> result(vec);
 
@@ -587,7 +612,7 @@ HDINLINE Vector<bool, T_Dim>
 operator>=(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs,
            const Vector<T_Type, T_Dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& rhs)
 {
-    /* to avoid allocation side effects the result is always a vector 
+    /* to avoid allocation side effects the result is always a vector
      * with default policies*/
     Vector<bool, T_Dim > result;
     for (int i = 0; i < T_Dim; ++i)

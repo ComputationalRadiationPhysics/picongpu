@@ -28,6 +28,9 @@
 namespace PMacc
 {
 // forward declaration
+template<unsigned DIM>
+class Environment;
+    
 class Transaction;
 
 class EventStream;
@@ -43,8 +46,6 @@ public:
      * Destructor.
      */
     virtual ~TransactionManager();
-
-    static TransactionManager& getInstance();
 
     /**
      * Adds a new transaction to the stack.
@@ -93,21 +94,19 @@ public:
     EventStream* getEventStream(ITask::TaskType op);
 
 private:
+    
+    friend Environment<DIM1>;
+    friend Environment<DIM2>;
+    friend Environment<DIM3>;
+    
     TransactionManager();
 
     TransactionManager(const TransactionManager& cc);
+    
+    static TransactionManager& getInstance();
 
     std::stack<Transaction> transactions;
 };
-
-
-#define __startTransaction(...) (TransactionManager::getInstance().startTransaction(__VA_ARGS__))
-#define __startAtomicTransaction(...) (TransactionManager::getInstance().startAtomicTransaction(__VA_ARGS__))
-#define __endTransaction() (TransactionManager::getInstance().endTransaction())
-#define __startOperation(opType) (TransactionManager::getInstance().startOperation(opType))
-#define __getEventStream(opType) (TransactionManager::getInstance().getEventStream(opType))
-#define __getTransactionEvent() (TransactionManager::getInstance().getTransactionEvent())
-#define __setTransactionEvent(event) (TransactionManager::getInstance().setTransactionEvent((event)))
 
 
 }

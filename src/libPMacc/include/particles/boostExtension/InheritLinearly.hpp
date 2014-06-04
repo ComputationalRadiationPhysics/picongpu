@@ -30,7 +30,7 @@
 
 namespace PMacc
 {
-namespace bmpl = boost::mpl;
+
 
 namespace detail
 {

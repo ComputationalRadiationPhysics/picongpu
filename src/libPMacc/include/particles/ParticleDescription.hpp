@@ -1,0 +1,85 @@
+/**
+ * Copyright 2014 Rene Widera
+ *
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include <boost/mpl/vector.hpp>
+#include "compileTime/conversion/ToSeq.hpp"
+
+namespace PMacc
+{
+
+/** ParticleDescription defines attributes, methods and flags of a particle
+ * 
+ * This class holds no runtime data.
+ * The class holds information about the name, attributes, flags and methods of a
+ * particle.
+ *
+ * @tparam T_Name name of discribed particle (e.g. electron, ion)
+ *                type must be a boost::mpl::string
+ * @tparam T_SuperCellSize compile time size of a super cell
+ * @tparam T_ValueTypeSeq sequence or single type with value_identifier
+ * @tparam T_Flags sequence or single type with identifier to add fags on a frame
+ * @tparam T_MethodsList sequence or single class with particle methods 
+ *                       (e.g. calculate mass, gamma, ...) 
+ *                       (e.g. useSolverXY, calcRadiation, ...) 
+ */
+template<
+typename T_Name,
+typename T_SuperCellSize,
+typename T_ValueTypeSeq,
+typename T_Flags = bmpl::vector0<>,
+typename T_MethodsList = bmpl::vector0<> 
+>
+struct ParticleDescription
+{
+    typedef T_Name Name;
+    typedef T_SuperCellSize SuperCellSize;
+    typedef typename ToSeq<T_ValueTypeSeq>::type ValueTypeSeq;
+    typedef typename ToSeq<T_MethodsList>::type MethodsList;
+    typedef typename ToSeq<T_Flags>::type FlagsList;
+    typedef ParticleDescription<Name, SuperCellSize, ValueTypeSeq, FlagsList, MethodsList> ThisType;
+
+};
+
+
+/** Get ParticleDescription with a new ValueTypeSeq
+ * 
+ * @tparam T_OldParticleDescription base description
+ * @tparam T_NewValueTypeSeq new boost mpl sequence with value types
+ * @treturn ::type new ParticleDescription
+ */
+template<typename T_OldParticleDescription,typename T_NewValueTypeSeq>
+struct ReplaceValueTypeSeq
+{
+    typedef T_OldParticleDescription OldParticleDescription;
+    typedef ParticleDescription<
+        typename OldParticleDescription::Name, 
+        typename OldParticleDescription::SuperCellSize, 
+        typename ToSeq<T_NewValueTypeSeq>::type, 
+        typename OldParticleDescription::FlagsList,
+        typename OldParticleDescription::MethodsList
+    > type;
+};
+
+
+} //namespace PMacc

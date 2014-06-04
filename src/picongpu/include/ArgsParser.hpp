@@ -43,7 +43,7 @@ namespace picongpu
     class ArgsParser
     {
     public:
-
+        
         /**
          * Returns an instance of ArgsParser
          *

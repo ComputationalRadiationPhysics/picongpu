@@ -1,27 +1,25 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+ *                     Richard Pausch
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef MYSIMULATION_HPP
-#define	MYSIMULATION_HPP
+#pragma once
 
 #include <cassert>
 #include <string>
@@ -48,11 +46,10 @@
 #include "fields/FieldTmp.hpp"
 #include "fields/MaxwellSolver/Solvers.hpp"
 #include "fields/background/cellwiseOperation.hpp"
-#include "initialization/IInitModule.hpp"
+#include "initialization/IInitPlugin.hpp"
 #include "initialization/ParserGridDistribution.hpp"
 
 #include "particles/Species.hpp"
-#include "moduleSystem/Module.hpp"
 
 #include "nvidia/reduce/Reduce.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
@@ -76,12 +73,17 @@ class MySimulation : public SimulationHelper<simDim>
 public:
 
     /**
-     * Constructor.
-     *
-     * @param globalGridSize DataSpace describing the initial global grid size for the whole simulation
-     * @param gpus DataSpace describing the grid of available GPU devices
+     * Constructor
      */
-    MySimulation() : laser(NULL), fieldB(NULL), fieldE(NULL), fieldJ(NULL), fieldTmp(NULL), cellDescription(NULL), initialiserController(NULL), slidingWindow(false)
+    MySimulation() : 
+    laser(NULL), 
+    fieldB(NULL),
+    fieldE(NULL),
+    fieldJ(NULL),
+    fieldTmp(NULL),
+    cellDescription(NULL),
+    initialiserController(NULL),
+    slidingWindow(false)
     {
 #if (ENABLE_IONS == 1)
         ions = NULL;
@@ -92,9 +94,9 @@ public:
 #endif
     }
 
-    virtual void moduleRegisterHelp(po::options_description& desc)
+    virtual void pluginRegisterHelp(po::options_description& desc)
     {
-        SimulationHelper<simDim>::moduleRegisterHelp(desc);
+        SimulationHelper<simDim>::pluginRegisterHelp(desc);
         desc.add_options()
             ("devices,d", po::value<std::vector<uint32_t> > (&devices)->multitoken(), "number of devices in each dimension")
 
@@ -115,15 +117,13 @@ public:
             ("moving,m", po::value<bool>(&slidingWindow)->zero_tokens(), "enable sliding/moving window");
     }
 
-    std::string moduleGetName() const
+    std::string pluginGetName() const
     {
         return "PIConGPU";
     }
 
-    virtual void moduleLoad()
+    virtual void pluginLoad()
     {
-
-
         //fill periodic with 0
         while (periodic.size() < 3)
             periodic.push_back(0);
@@ -161,9 +161,10 @@ public:
             gpus[i] = devices[i];
             isPeriodic[i] = periodic[i];
         }
+        
+        Environment<simDim>::get().initDevices(gpus, isPeriodic);
 
-        GridController<simDim>::getInstance().init(gpus, isPeriodic);
-        DataSpace<simDim> myGPUpos(GridController<simDim>::getInstance().getPosition());
+        DataSpace<simDim> myGPUpos( Environment<simDim>::get().GridController().getPosition() );
 
         // calculate the number of local grid cells and
         // the local cell offset to the global box        
@@ -182,25 +183,22 @@ public:
             gridSizeLocal[dim] = global_grid_size[dim] / gpus[dim];
             gridOffset[dim] = gridSizeLocal[dim] * myGPUpos[dim];
         }
+        
+        Environment<simDim>::get().initGrids(global_grid_size, gridSizeLocal, gridOffset);
 
-        MovingWindow::getInstance().setGlobalSimSize(global_grid_size);
         MovingWindow::getInstance().setSlidingWindow(slidingWindow);
-        MovingWindow::getInstance().setGpuCount(gpus);
 
         log<picLog::DOMAINS > ("rank %1%; localsize %2%; localoffset %3%;") %
             myGPUpos.toString() % gridSizeLocal.toString() % gridOffset.toString();
 
-        /*init SubGrid for global use*/
-        SubGrid<simDim>::getInstance().init(gridSizeLocal, global_grid_size, gridOffset);
+        SimulationHelper<simDim>::pluginLoad();
 
-        SimulationHelper<simDim>::moduleLoad();
-
-        GridLayout<SIMDIM> layout(gridSizeLocal, MappingDesc::SuperCellSize::getDataSpace());
+        GridLayout<SIMDIM> layout(gridSizeLocal, MappingDesc::SuperCellSize::toRT());
         cellDescription = new MappingDesc(layout.getDataSpace(), GUARD_SIZE, GUARD_SIZE);
 
         checkGridConfiguration(global_grid_size, cellDescription->getGridLayout());
 
-        if (GridController<simDim>::getInstance().getGlobalRank() == 0)
+        if (Environment<simDim>::get().GridController().getGlobalRank() == 0)
         {
             if (slidingWindow)
                 log<picLog::PHYSICS > ("Sliding Window is ON");
@@ -226,10 +224,10 @@ public:
 
     }
 
-    virtual void moduleUnload()
+    virtual void pluginUnload()
     {
 
-        SimulationHelper<simDim>::moduleUnload();
+        SimulationHelper<simDim>::pluginUnload();
         __delete(fieldB);
 
         __delete(fieldE);
@@ -252,6 +250,11 @@ public:
         __delete(currentBGField);
     }
 
+    void notify(uint32_t)
+    {
+        
+    }
+    
     virtual uint32_t init()
     {
         namespace nvmem = PMacc::nvidia::memory;
@@ -277,7 +280,7 @@ public:
 #endif
 
         size_t freeGpuMem(0);
-        nvmem::MemoryInfo::getInstance().getMemoryInfo(&freeGpuMem);
+        Environment<>::get().EnvMemoryInfo().getMemoryInfo(&freeGpuMem);
         freeGpuMem -= totalFreeGpuMemory;
 
 #if (ENABLE_IONS == 1)
@@ -286,13 +289,13 @@ public:
 #endif
 #if (ENABLE_ELECTRONS == 1)
         size_t memElectrons(0);
-        nvmem::MemoryInfo::getInstance().getMemoryInfo(&memElectrons);
+        Environment<>::get().EnvMemoryInfo().getMemoryInfo(&memElectrons);
         memElectrons -= totalFreeGpuMemory;
         log<picLog::MEMORY > ("free mem before electrons %1% MiB") % (memElectrons / 1024 / 1024);
         electrons->createParticleBuffer(freeGpuMem * memFractionElectrons);
 #endif
 
-        nvmem::MemoryInfo::getInstance().getMemoryInfo(&freeGpuMem);
+        Environment<>::get().EnvMemoryInfo().getMemoryInfo(&freeGpuMem);
         log<picLog::MEMORY > ("free mem after all mem is allocated %1% MiB") % (freeGpuMem / 1024 / 1024);
 
         fieldB->init(*fieldE, *laser);
@@ -304,22 +307,39 @@ public:
         this->myFieldSolver = new fieldSolver::FieldSolver(*cellDescription);
 
 #if (ENABLE_ELECTRONS == 1)
-        electrons->init(*fieldE, *fieldB, *fieldJ);
+        electrons->init(*fieldE, *fieldB, *fieldJ, *fieldTmp);
 #endif
 
 #if (ENABLE_IONS == 1)
-        ions->init(*fieldE, *fieldB, *fieldJ);
+        ions->init(*fieldE, *fieldB, *fieldJ, *fieldTmp);
 #endif      
-        //disabled because of a transaction system bug
-        StreamController::getInstance().addStreams(6);
+
+        /* add CUDA streams to the StreamController for concurrent execution */
+        Environment<>::get().StreamController().addStreams(6);
 
         uint32_t step = 0;
 
         if (initialiserController)
-            step = initialiserController->init();
+        {
+            initialiserController->printInformation();
+            if (this->restartRequested)
+            {
+                if (restartStep < 0)
+                {
+                    throw std::runtime_error("Restart failed. You must provide the '--restart-step' argument. See picongpu --help.");
+                }
+                
+                initialiserController->restart((uint32_t)this->restartStep, this->restartDirectory);
+                step = this->restartStep + 1;
+            }
+            else
+            {
+                initialiserController->init();
+            }
+        }
 
 
-        nvmem::MemoryInfo::getInstance().getMemoryInfo(&freeGpuMem);
+        Environment<>::get().EnvMemoryInfo().getMemoryInfo(&freeGpuMem);
         log<picLog::MEMORY > ("free mem after all particles are initialized %1% MiB") % (freeGpuMem / 1024 / 1024);
 
         // communicate all fields
@@ -333,9 +353,6 @@ public:
 
     virtual ~MySimulation()
     {
-
-
-
     }
 
     /**
@@ -410,10 +427,9 @@ public:
 
     virtual void movingWindowCheck(uint32_t currentStep)
     {
-        if (MovingWindow::getInstance().getVirtualWindow(currentStep).doSlide)
+        if (MovingWindow::getInstance().slideInCurrentStep(currentStep))
         {
             slide(currentStep);
-            log<picLog::PHYSICS > ("slide in step %1%") % currentStep;
         }
     }
 
@@ -434,17 +450,17 @@ public:
 
     void slide(uint32_t currentStep)
     {
-        GridController<simDim>& gc = GridController<simDim>::getInstance();
+        GridController<simDim>& gc = Environment<simDim>::get().GridController();
 
         if (gc.slide())
         {
-
+            log<picLog::SIMULATION_STATE > ("slide in step %1%") % currentStep;
             resetAll(currentStep);
             initialiserController->slide(currentStep);
         }
     }
 
-    virtual void setInitController(IInitModule *initController)
+    virtual void setInitController(IInitPlugin *initController)
     {
 
         assert(initController != NULL);
@@ -468,13 +484,13 @@ private:
         // global size must a devisor of supercell size
         // note: this is redundant, while using the local condition below
 
-        assert(globalGridSize[i] % MappingDesc::SuperCellSize::getDataSpace()[i] == 0);
+        assert(globalGridSize[i] % MappingDesc::SuperCellSize::toRT()[i] == 0);
         // local size must a devisor of supercell size
-        assert(gridSizeLocal[i] % MappingDesc::SuperCellSize::getDataSpace()[i] == 0);
+        assert(gridSizeLocal[i] % MappingDesc::SuperCellSize::toRT()[i] == 0);
         // local size must be at least 3 supercells (1x core + 2x border)
         // note: size of border = guard_size (in supercells)
         // \todo we have to add the guard_x/y/z for modified supercells here
-        assert( (uint32_t) gridSizeLocal[i] / MappingDesc::SuperCellSize::getDataSpace()[i] >= 3 * GUARD_SIZE);
+        assert( (uint32_t) gridSizeLocal[i] / MappingDesc::SuperCellSize::toRT()[i] >= 3 * GUARD_SIZE);
         }
     }
 
@@ -503,7 +519,7 @@ protected:
 
     // output classes
 
-    IInitModule* initialiserController;
+    IInitPlugin* initialiserController;
 
     MappingDesc* cellDescription;
 
@@ -519,9 +535,5 @@ protected:
     std::vector<std::string> gridDistribution;
 
     bool slidingWindow;
-
 };
-}
-
-#endif	/* MYSIMULATION_HPP */
-
+} /* namespace picongpu */

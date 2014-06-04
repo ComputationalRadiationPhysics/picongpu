@@ -6,11 +6,20 @@ Requirements
 
 ### Mandatory
 
-- **gcc** 4.3 to 4.6 (depends on current CUDA version)
-  - *Debian/Ubuntu:* `apt-get install gcc-4.4 build-essential`
-  - *experimental alternatives:* **icc 12.1** and **pgi 13.6** with **cuda 5.5**
+- **gcc** 4.4 to 4.8 (depends on current CUDA version)
+  - *Debian/Ubuntu:*
+    - `sudo apt-get install gcc-4.4 g++-4.4 build-essential`
+    - `sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.4 60 \`
+      `--slave /usr/bin/g++ g++ /usr/bin/g++-4.4`
+  - *Arch Linux:*
+    - `sudo pacman --sync base-devel`
+    - the installed version of **gcc** might be too new. [Compile an older gcc](https://gist.github.com/slizzered/a9dc4e13cb1c7fffec53)
+  - *experimental alternatives:* **icc 12.1** with **cuda 5.5**
 
-- [CUDA 5.5](https://developer.nvidia.com/cuda-downloads) or higher
+- [CUDA 5.0](https://developer.nvidia.com/cuda-downloads) or higher
+  - **Attention:** You must use at least the 5.5+ [drivers](http://www.nvidia.com/Drivers)
+    even if you run with CUDA 5.0. Supported drivers: 319.82+/331.22+
+  - *Arch Linux:* `sudo pacman --sync cuda`
 
 - at least one **CUDA** capable **GPU**
   - *Compute capability* **sm\_20** or higher
@@ -19,23 +28,30 @@ Requirements
 
 - **cmake** 2.8.5 or higher
   - *Debian/Ubuntu:* `sudo apt-get install cmake file cmake-curses-gui`
+  - *Arch Linux:* `sudo pacman --sync cmake`
 
 - **OpenMPI** 1.4 or higher
   - Debian/Ubuntu: `sudo apt-get install libopenmpi-dev`
+  - Arch Linux: `sudo pacman --sync openmpi`
 
 - **zlib**
   - *Debian/Ubuntu:* `sudo apt-get install zlib1g-dev`
+  - *Arch Linux:* `sudo pacman --sync zlib`
 
-- **boost** 1.47.0 or higher ("program options", "regex" and nearly all compile time libs)
+- **boost** 1.49.0 or higher ("program options", "regex" , "filesystem", "system" and nearly all compile time libs)
   - download from [http://www.boost.org/](http://sourceforge.net/projects/boost/files/boost/1.49.0/boost_1_49_0.tar.gz/download),
       e.g. version 1.49.0
-  - *Debian/Ubuntu:* `sudo apt-get install libboost-program-options-dev libboost-regex-dev`
+  - *Debian/Ubuntu:* `sudo apt-get install libboost-program-options-dev libboost-regex-dev libboost-filesystem-dev libboost-system-dev`
+  - *Arch Linux:* `sudo pacman --sync boost`
 
 - **git** 1.7.9.5 or [higher](https://help.github.com/articles/https-cloning-errors)
   - *Debian/Ubuntu:* `sudo apt-get install git`
+  - *Arch Linux:* `sudo pacman --sync git`
 
 - **PIConGPU**
-    - `git clone https://github.com/ComputationalRadiationPhysics/picongpu.git ~/src/picongpu`
+    - `git clone https://github.com/ComputationalRadiationPhysics/picongpu.git $HOME/src/picongpu`
+    - `export PICSRC=$HOME/src/picongpu`
+      (you should add this to your `~/.bashrc`)
 
 ### Optional Libraries
 
@@ -45,7 +61,9 @@ We recomment to install at least **pngwriter**.
 - **pngwriter**
     - download our modified version from
       [github.com/ax3l/pngwriter](https://github.com/ax3l/pngwriter)
-    - Requires [libpng](http://www.libpng.org/), *Debian/Ubuntu:* `sudo apt-get install libpng-dev`
+    - Requires [libpng](http://www.libpng.org/),
+      - *Debian/Ubuntu:* `sudo apt-get install libpng-dev`
+      - *Arch Linux:* `sudo pacman --sync libpng`
     - example:
       - `mkdir -p ~/src ~/build ~/lib`
       - `git clone https://github.com/ax3l/pngwriter.git ~/src/pngwriter/`
@@ -58,6 +76,7 @@ We recomment to install at least **pngwriter**.
 
 - **libSplash** (requires *hdf5*, *boost program-options*)
     - *Debian/Ubuntu dependencies:* `sudo apt-get install libhdf5-openmpi-dev libboost-program-options-dev`
+    - *Arch Linux dependencies:* `sudo pacman --sync hdf5-openmpi boost`
     - example:
       - `mkdir -p ~/src ~/build ~/lib`
       - `git clone https://github.com/ComputationalRadiationPhysics/libSplash.git ~/src/splash/`
@@ -70,6 +89,7 @@ We recomment to install at least **pngwriter**.
 
 - **hdf5** >= 1.8.6, standard shared version (no c++, enable parallel), e.g. `hdf5/1.8.5-threadsafe`
     - *Debian/Ubuntu:* `sudo apt-get install libhdf5-openmpi-dev`
+    - *Arch Linux:* `sudo pacman --sync hdf5-openmpi`
     - example:
       - `mkdir -p ~/src ~/build ~/lib`
       - `cd ~/src`
@@ -87,15 +107,22 @@ We recomment to install at least **pngwriter**.
       to `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/lib/hdf5/lib`
 
 - **splash2txt** (requires *libSplash* and *boost* "program_options", "regex")
-    - inofficial tool shipped with the PIConGPU
-    - assume you [downloaded](#requirements) PIConGPU to `~/src/picongpu`
+    - converts slices in dumped hdf5 files to plain txt matrices
+    - assume you [downloaded](#requirements) PIConGPU to `PICSRC=$HOME/src/picongpu`
     - `mkdir -p ~/build && cd ~/build`
-    - `cmake ~/src/picongpu/src/splash2txt`
+    - `cmake -DCMAKE_INSTALL_PREFIX=$PICSRC/src/tools/bin $PICSRC/src/tools/splash2txt`
     - `make`
-    - copy the binary `splash2txt` to a place in your `$PATH`)
+    - `make install`
+    - add the directory of the binary `splash2txt`, `$PICSRC/src/tools/bin`,
+      to a place in your `$PATH`
     - options:
       - `splash2txt --help`
       - list all available datasets: `splash2txt --list <FILE_PREFIX>`
+
+- **png2gas** (requires *libSplash*, *pngwriter* and *boost* "program_options")
+    - converts png files to hdf5 files that can be used as an input for a
+      species initial density profiles
+    - compile and install exactly as *splash2txt* above
 
 - for **VampirTrace** support
     - download 5.14.4 or higher, e.g. from 
@@ -209,7 +236,7 @@ To build PIConGPU with tracing support, change the steps in the example to:
 
 (8.) `cd ~/paramSets/case001`: goto installed programm
 
-(9.) `tbg -c submit/0016.gpus.cfg -t submit/hypnos/k20_vampir_profile.tpl
+(9.) `tbg -s qsub -c submit/0016gpus.cfg -t submit/hypnos/k20_vampir_profile.tpl
        ~/runs/testBatchVampir`
 
 *******************************************************************************

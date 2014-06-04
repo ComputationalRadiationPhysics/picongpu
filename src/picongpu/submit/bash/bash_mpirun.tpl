@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2013 Axel Huebl, Anton Helm, Rene Widera
+# Copyright 2013-2014 Axel Huebl, Anton Helm, Rene Widera
 # 
 # This file is part of PIConGPU. 
 # 
@@ -46,10 +46,10 @@ umask 0027
 mkdir simOutput 2> /dev/null
 cd simOutput
 
-mpirun --display-map -am !TBG_dstPath/tbg/openib.conf  -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/picongpu/bin/cuda_memtest.sh
+mpirun --display-map -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/picongpu/bin/cuda_memtest.sh
 
 if [ $? -eq 0 ] ; then
-  mpirun  -tag-output --display-map -am !TBG_dstPath/tbg/openib.conf -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/picongpu/bin/picongpu !TBG_programParams
+  mpirun  -tag-output --display-map -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/picongpu/bin/picongpu !TBG_programParams
 fi
 
 mpirun  -npernode !TBG_gpusPerNode -n !TBG_tasks killall -9 picongpu

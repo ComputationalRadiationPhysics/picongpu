@@ -35,7 +35,7 @@
 
 #include "basicOperations.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
-#include "plugins/IPluginModule.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 
 #include "mpi/reduceMethods/Reduce.hpp"
 #include "mpi/MPIReduce.hpp"
@@ -65,7 +65,7 @@ struct cast64Bit
 };
 }
 
-class EnergyFields : public ISimulationIO, public IPluginModule
+class EnergyFields : public ILightweightPlugin
 {
 private:
     FieldE* fieldE;
@@ -98,7 +98,7 @@ public:
     writeToFile(false),
     localReduce(NULL)
     {
-        ModuleConnector::getInstance().registerModule(this);
+        Environment<>::get().PluginConnector().registerPlugin(this);
     }
 
     virtual ~EnergyFields()
@@ -108,21 +108,21 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::get().DataConnector();
 
         fieldE = &(dc.getData<FieldE > (FieldE::getName(), true));
         fieldB = &(dc.getData<FieldB > (FieldB::getName(), true));
         getEnergyFields(currentStep);
     }
 
-    void moduleRegisterHelp(po::options_description& desc)
+    void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
             ((analyzerPrefix + ".period").c_str(),
              po::value<uint32_t > (&notifyFrequency)->default_value(0), "enable analyser [for each n-th step]");
     }
 
-    std::string moduleGetName() const
+    std::string pluginGetName() const
     {
         return analyzerName;
     }
@@ -134,7 +134,7 @@ public:
 
 private:
 
-    void moduleLoad()
+    void pluginLoad()
     {
         if (notifyFrequency > 0)
         {
@@ -152,11 +152,11 @@ private:
                 //create header of the file
                 outFile << "#step Joule" << " \n";
             }
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
         }
     }
 
-    void moduleUnload()
+    void pluginUnload()
     {
         if (notifyFrequency > 0)
         {

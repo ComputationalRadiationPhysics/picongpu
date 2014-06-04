@@ -19,13 +19,10 @@
  */ 
  
 
-
 #pragma once
 
 #include <cmath>
-
 #include "basicOperations.hpp"
-
 
 namespace picongpu
 {
@@ -55,10 +52,10 @@ namespace visPreview
 #define EM_FIELD_SCALE_CHANNEL3 -1
 
 // multiply highest undisturbed particle density with factor
-const float_X preParticleDens_opacity = 1.f;
-const float_X preChannel1_opacity = 1.f;
-const float_X preChannel2_opacity = 1.f;
-const float_X preChannel3_opacity = 1.f;
+const float_X preParticleDens_opacity = 1.0;
+const float_X preChannel1_opacity = 1.0;
+const float_X preChannel2_opacity = 1.0;
+const float_X preChannel3_opacity = 1.0;
 
 // specify color scales for each channel
 namespace preParticleDensCol = colorScales::red;
@@ -79,7 +76,8 @@ DINLINE float_X preChannel2(const float3_X& field_B, const float3_X& field_E, co
 
 DINLINE float_X preChannel3(const float3_X& field_B, const float3_X& field_E, const float3_X& field_J)
 {
-    return -1.0f * field_E.y();
+    return -float_X(1.0) * field_E.y();
 }
 }
 }
+

@@ -1,0 +1,29 @@
+export PICSRC=/home/`whoami`/src/picongpu
+
+if [ -f /etc/profile.modules ]
+then
+        . /etc/profile.modules
+        module purge
+#       export MODULES_NO_OUTPUT=1
+        module load compiler/gnu/64/opt/4.6.2
+        module load devel/cmake/2.8.10
+        module load tools/infiniband/2.0.0
+        module load mpi/openmpi/1.6.3
+        module load devel/boost/1.54.0
+        module load devel/cuda/6.0
+        module load filelib/hdf5-parallel/1.8.11
+        module load filelib/libsplash/1.2.0
+        module load devel/subversion/1.6.6
+        module load analysis/gnuplot/4.2.6
+        module load tools/pngwriter/0.5.4
+
+        #module load devel/valgrind/3.8.1
+
+#       unset MODULES_NO_OUTPUT
+fi
+
+alias getk20='qsub -I -q k20 -lwalltime=00:30:00 -lnodes=1:ppn=8'
+alias getlaser='qsub -I -q laser -lwalltime=00:30:00 -lnodes=1:ppn=16'
+
+export PATH=$PATH:$PICSRC/src/splash2txt/build
+export PATH=$PATH:$PICSRC/src/tools/bin

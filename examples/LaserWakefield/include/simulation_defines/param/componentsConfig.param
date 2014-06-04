@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Anton Helm, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Anton Helm, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -44,6 +44,10 @@ namespace laserProfile = laserGaussianBeam;
  *  - fieldSolverLehe: Num. Cherenkov free field solver in a choosen direction
  *  - fieldSolverDirSplitting: Sentoku's Directional Splitting Method
  *  - fieldSolverNone: disable the vacuum update of E and B
+ * 
+ * * For development purposes: ---------------------------------------------
+ *  - fieldSolverYeeNative : generic version of fieldSolverYee 
+ *    (need more shared memory per gpu and is slow)
  */
 #ifndef PARAM_FIELDSOLVER
 #define PARAM_FIELDSOLVER fieldSolverYee
@@ -58,6 +62,7 @@ namespace fieldSolver = PARAM_FIELDSOLVER;
  *  - gasHomogenous : constant gas density with a certain length
  *  - gasSphereFlanks : constant sphere droplet with exponential decr envelope
  *  - gasFreeFormula: use a custom formula (slower)
+ *  - gasFromHdf5: load gas density from HDF5 file
  *  - gasNone : just stay with a vacuum
  */
 #ifndef PARAM_GASPROFILE
@@ -95,6 +100,10 @@ namespace particlePusher = PARAM_PARTICLEPUSHER;
 /** select current solver method -----------------------------------------
  *  - currentSolverEsirkepov: particle shapes - CIC, TSC, PCS (1st to 3rd order)
  *  - currentSolverVillaBune: particle shapes - CIC (1st order) only
+ *   
+ *  For development purposes: ---------------------------------------------
+ *  - currentSolverEsirkepovNative: generic version of currentSolverEsirkepov
+ *    without optimisation (~4x slower and need more shared memory)
  */
 #ifndef PARAM_CURRENTSOLVER
 #define PARAM_CURRENTSOLVER currentSolverEsirkepov

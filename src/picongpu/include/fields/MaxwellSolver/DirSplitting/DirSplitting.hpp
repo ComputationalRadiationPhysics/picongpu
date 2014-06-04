@@ -23,7 +23,7 @@
 #include "DirSplitting.def"
 
 #include "simulation_defines.hpp"
-#include "dimensions/TVec.h"
+#include "math/vector/compile-time/Int.hpp"
 
 #include <fields/MaxwellSolver/DirSplitting/DirSplitting.kernel>
 #include <math/vector/Int.hpp>
@@ -63,19 +63,19 @@ public:
     {
         typedef PMacc::math::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> GuardDim;
     
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::get().DataConnector();
 
         FieldE& fieldE = dc.getData<FieldE > (FieldE::getName(), true);
         FieldB& fieldB = dc.getData<FieldB > (FieldB::getName(), true);
 
         BOOST_AUTO(fieldE_coreBorder,
             fieldE.getGridBuffer().getDeviceBuffer().
-                   cartBuffer().view(precisionCast<int>(GuardDim().vec()),
-                                     -precisionCast<int>(GuardDim().vec())));
+                   cartBuffer().view(precisionCast<int>(GuardDim().toRT()),
+                                     -precisionCast<int>(GuardDim().toRT())));
         BOOST_AUTO(fieldB_coreBorder,
             fieldB.getGridBuffer().getDeviceBuffer().
-            cartBuffer().view(precisionCast<int>(GuardDim().vec()),
-                              -precisionCast<int>(GuardDim().vec())));
+            cartBuffer().view(precisionCast<int>(GuardDim().toRT()),
+                              -precisionCast<int>(GuardDim().toRT())));
         
         using namespace cursor::tools;
         using namespace PMacc::math::tools;

@@ -1,32 +1,31 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 
 
-#ifndef PARTICLEDENSITY_HPP
-#define	PARTICLEDENSITY_HPP
+#pragma once
 
 #include "simulation_defines.hpp"
 #include "types.h"
 
-#include "dimensions/TVec.h"
+#include "math/vector/compile-time/Int.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
 
@@ -35,8 +34,7 @@
 #include "particles/memory/boxes/ParticlesBox.hpp"
 
 #include "dataManagement/DataConnector.hpp"
-#include "dataManagement/ISimulationIO.hpp"
-#include "dimensions/TVec.h"
+#include "math/vector/compile-time/Int.hpp"
 
 #include "memory/boxes/DataBox.hpp"
 #include "memory/boxes/SharedBox.hpp"
@@ -54,6 +52,7 @@
 #include "memory/boxes/PitchedBox.hpp"
 #include "plugins/output/header/MessageHeader.hpp"
 #include "plugins/output/GatherSlice.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 
 namespace picongpu
 {
@@ -80,10 +79,10 @@ kernelParticleDensity(ParBox pb,
     const DataSpace<simDim> threadId(threadIdx);
     const DataSpace<DIM2> localCell(threadId[transpose.x()], threadId[transpose.y()]);
     const DataSpace<simDim> block = mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx));
-    const DataSpace<simDim> blockOffset((block - 1) * Block::getDataSpace());
+    const DataSpace<simDim> blockOffset((block - 1) * Block::toRT());
 
 
-    int localId = threadIdx.z * Block::x * Block::y + threadIdx.y * Block::x + threadIdx.x;
+    int localId = threadIdx.z * Block::x::value * Block::y::value + threadIdx.y * Block::x::value + threadIdx.x;
 
 
     if (localId == 0)
@@ -173,7 +172,7 @@ kernelParticleDensity(ParBox pb,
  * Visulization is performed in an additional thread.
  */
 template<class ParticlesType, class Output, typename Type_ = float_X>
-class ParticleDensity : public ISimulationIO
+class ParticleDensity : public ILightweightPlugin
 {
 private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -197,6 +196,9 @@ public:
             sliceDim = 1;
         if ((transpose.x() == 1 || transpose.y() == 1) && sliceDim == 1)
             sliceDim = 2;
+
+        Environment<>::get().PluginConnector().registerPlugin(this);
+        Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
     }
 
     virtual ~ParticleDensity()
@@ -210,10 +212,11 @@ public:
     void notify(uint32_t currentStep)
     {
         const DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
-        VirtualWindow window(MovingWindow::getInstance().getVirtualWindow(currentStep));
+        Window window(MovingWindow::getInstance().getWindow(currentStep));
 
         /*sliceOffset is only used in 3D*/
-        sliceOffset = (int) ((float) (window.globalWindowSize[sliceDim]) * slicePoint) + window.globalSimulationOffset[sliceDim];
+        sliceOffset = (int) ((float) (window.globalDimensions.size[sliceDim]) * slicePoint) + 
+                window.globalDimensions.offset[sliceDim];
 
         if (!doDrawing())
         {
@@ -222,30 +225,40 @@ public:
         createImage(currentStep, window);
     }
 
+    void pluginRegisterHelp(po::options_description&)
+    {
+        // nothing to do here
+    }
+
+    std::string pluginGetName() const
+    {
+        return "ParticleDensity";
+    }
+
     void setMappingDescription(MappingDesc *cellDescription)
     {
         this->cellDescription = cellDescription;
     }
 
-    void createImage(uint32_t currentStep, VirtualWindow window)
+    void createImage(uint32_t currentStep, Window window)
     {
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::get().DataConnector();
         ParticlesType* particles = &(dc.getData<ParticlesType > (particleTag, true));
 
         typedef MappingDesc::SuperCellSize SuperCellSize;
 
-        DataSpace<simDim> blockSize(MappingDesc::SuperCellSize::getDataSpace());
+        DataSpace<simDim> blockSize(MappingDesc::SuperCellSize::toRT());
         DataSpace<DIM2> blockSize2D(blockSize[transpose.x()], blockSize[transpose.y()]);
 
         uint32_t globalOffset = 0;
 #if(SIMDIM==DIM3)
-        globalOffset = SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset()[sliceDim];
+        globalOffset = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset()[sliceDim];
 #endif
 
 
         //create density image of particles
         __picKernelArea((kernelParticleDensity), *cellDescription, CORE + BORDER)
-            (SuperCellSize::getDataSpace(), blockSize2D.productOfComponents() * sizeof (float_X))
+            (SuperCellSize::toRT().toDim3(), blockSize2D.productOfComponents() * sizeof (float_X))
             (particles->getDeviceParticlesBox(),
              img->getDeviceBuffer().getDataBox(),
              transpose,
@@ -289,11 +302,10 @@ public:
         {
             const DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
 
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
-
-            VirtualWindow window(MovingWindow::getInstance().getVirtualWindow(0));
-            sliceOffset = (int) ((float) (window.globalWindowSize[sliceDim]) * slicePoint) + window.globalSimulationOffset[sliceDim];
-            const DataSpace<simDim> gpus = GridController<simDim>::getInstance().getGpuNodes();
+            Window window(MovingWindow::getInstance().getWindow(0));
+            sliceOffset = (int) ((float) (window.globalDimensions.size[sliceDim]) * slicePoint) + 
+                    window.globalDimensions.offset[sliceDim];
+            const DataSpace<simDim> gpus = Environment<simDim>::get().GridController().getGpuNodes();
 
             float_32 cellSizeArr[3]={0,0,0};
             for(uint32_t i=0;i<simDim;++i)
@@ -310,7 +322,7 @@ private:
 
     bool doDrawing()
     {
-        PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
+        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
         const DataSpace<simDim> globalRootCellPos(simBox.getGlobalOffset());
         const DataSpace<simDim> localSize(simBox.getLocalSize());
 #if(SIMDIM==DIM3)
@@ -349,5 +361,3 @@ private:
 
 }
 
-
-#endif	/* PARTICLEDENSITY_HPP */

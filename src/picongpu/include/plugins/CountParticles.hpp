@@ -35,8 +35,7 @@
 #include <iomanip>
 #include <fstream>
 
-#include "moduleSystem/Module.hpp"
-#include "plugins/IPluginModule.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 
 #include "mpi/reduceMethods/Reduce.hpp"
 #include "mpi/MPIReduce.hpp"
@@ -52,7 +51,7 @@ namespace picongpu
 using namespace PMacc;
 
 template<class ParticlesType>
-class CountParticles : public ISimulationIO, public IPluginModule
+class CountParticles : public ILightweightPlugin
 {
 private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -82,7 +81,7 @@ public:
     notifyFrequency(0),
     writeToFile(false)
     {
-        ModuleConnector::getInstance().registerModule(this);
+        Environment<>::get().PluginConnector().registerPlugin(this);
     }
 
     virtual ~CountParticles()
@@ -92,21 +91,21 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::get().DataConnector();
 
         particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
 
         countParticles < CORE + BORDER > (currentStep);
     }
 
-    void moduleRegisterHelp(po::options_description& desc)
+    void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
             ((analyzerPrefix + ".period").c_str(),
              po::value<uint32_t > (&notifyFrequency), "enable plugin [for each n-th step]");
     }
 
-    std::string moduleGetName() const
+    std::string pluginGetName() const
     {
         return analyzerName;
     }
@@ -118,7 +117,7 @@ public:
 
 private:
 
-    void moduleLoad()
+    void pluginLoad()
     {
         if (notifyFrequency > 0)
         {
@@ -136,11 +135,11 @@ private:
                 outFile << "#step count" << " \n";
             }
 
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
         }
     }
 
-    void moduleUnload()
+    void pluginUnload()
     {
         if (notifyFrequency > 0)
         {
@@ -160,7 +159,7 @@ private:
     {
         uint64_cu size;
 
-        PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
+        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
         const DataSpace<simDim> localSize(simBox.getLocalSize());
 
         /*count local particles*/

@@ -1,22 +1,22 @@
 /**
  * Copyright 2013 Axel Huebl, Felix Schmitt, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef PARTICLESBUFFER_HPP
@@ -33,7 +33,7 @@
 #include "eventSystem/EventSystem.hpp"
 #include "particles/memory/dataTypes/SuperCell.hpp"
 
-#include "dimensions/TVec.h"
+#include "math/vector/compile-time/Int.hpp"
 
 #include "particles/boostExtension/InheritGenerators.hpp"
 #include "compileTime/conversion/MakeSeq.hpp"
@@ -48,6 +48,8 @@
 #include "particles/memory/dataTypes/StaticArray.hpp"
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
+#include "particles/ParticleDescription.hpp"
+
 
 namespace PMacc
 {
@@ -55,34 +57,29 @@ namespace PMacc
 /**
  * Describes DIM-dimensional buffer for particles data on the host.
  *
- * @tParam PositionType type of prosition 
- * @tparam UserTypeList typelist of user classes for particle operations
- * @tparam SuperCellSize TVec which descripe size of a superce
+ * @tParam T_ParticleDescription Object which describe a frame @see ParticleDescription.hpp
+ * @tparam SuperCellSize_ TVec which descripe size of a superce
  * @tparam DIM dimension of the buffer (1-3)
  */
-template<typename T_DataVector, typename T_MethodsVector, class SuperCellSize_, unsigned DIM>
+template<typename T_ParticleDescription, class SuperCellSize_, unsigned DIM>
 class ParticlesBuffer
 {
 public:
 
-    template<typename Key>
-    struct OperatorCreatePairStaticArrayWithSuperCellSize
+    /** create static array
+     */
+    template<uint32_t T_size>
+    struct OperatorCreatePairStaticArray
     {
-        typedef
-        bmpl::pair<Key,
-            StaticArray<typename Key::type,SuperCellSize_::elements> >
-            type;
+        template<typename X>
+        struct apply
+        {
+            typedef
+            bmpl::pair<X,
+            StaticArray< typename X::type, bmpl::integral_c<uint32_t,T_size> >
+            > type;
+        };
     };
-    
-    template<typename Key>
-    struct OperatorCreatePairStaticArrayOneElement
-    {
-        typedef
-        bmpl::pair<Key,
-            StaticArray<typename Key::type,1u> >
-            type;
-    };
-
 
     typedef ExchangeMemoryIndex<vint_t, DIM - 1 > PopPushType;
 
@@ -90,20 +87,29 @@ public:
 
     typedef
     typename MakeSeq<
-        T_DataVector,
-        localCellIdx, 
-        multiMask
+    typename T_ParticleDescription::ValueTypeSeq,
+    localCellIdx,
+    multiMask
     >::type full_particleList;
-    
+
     typedef
     typename MakeSeq<
-        T_DataVector,
-        localCellIdx
+    typename T_ParticleDescription::ValueTypeSeq,
+    localCellIdx
     >::type border_particleList;
 
-    typedef Frame<OperatorCreatePairStaticArrayWithSuperCellSize,full_particleList,T_MethodsVector> ParticleType;
+    typedef
+    typename ReplaceValueTypeSeq<T_ParticleDescription, full_particleList>::type
+    ParticleDescriptionDefault;
 
-    typedef Frame<OperatorCreatePairStaticArrayOneElement,border_particleList,T_MethodsVector> ParticleTypeBorder;
+    typedef Frame<
+    OperatorCreatePairStaticArray<PMacc::math::CT::volume<SuperCellSize>::type::value >, ParticleDescriptionDefault> ParticleType;
+
+    typedef
+    typename ReplaceValueTypeSeq<T_ParticleDescription, border_particleList>::type
+    ParticleDescriptionBorder;
+
+    typedef Frame<OperatorCreatePairStaticArray<1u >, ParticleDescriptionBorder> ParticleTypeBorder;
 
 
 private:
@@ -121,7 +127,7 @@ public:
     /**
      * Constructor.
      *
-     * @param layout number of cell per dimension         
+     * @param layout number of cell per dimension
      * @param superCellSize size of one super cell
      * @param gpuMemory how many memory on device is used for this instance (in byte)
      */

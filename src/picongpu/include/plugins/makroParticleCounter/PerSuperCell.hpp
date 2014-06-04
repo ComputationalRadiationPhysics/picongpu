@@ -31,8 +31,7 @@
 #include <iomanip>
 #include <fstream>
 
-#include "moduleSystem/Module.hpp"
-#include "plugins/IPluginModule.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 
 #include "memory/buffers/GridBuffer.hpp"
 
@@ -98,17 +97,17 @@ __global__ void CountMakroParticle(ParBox parBox, CounterBox counterBox, Mapping
 }
 
 /** Count makro particle of a species and write down the result to a global HDF5 file.
- * 
+ *
  * - count the total number of makro particle per supercell
  * - store one number (size_t) per supercell in a mesh
  * - Output: - create a folder with the name of the plugin
  *           - per time step one file with the name "result_[currentStep].h5" is created
  * - HDF5 Format: - default lib splash output for meshes
  *                - the attribute name in the HDF5 file is "makroParticleCount"
- *      
+ *
  */
 template<class ParticlesType>
-class PerSuperCell : public ISimulationIO, public IPluginModule
+class PerSuperCell : public ILightweightPlugin
 {
 private:
 
@@ -144,7 +143,7 @@ public:
     localResult(NULL),
     dataCollector(NULL)
     {
-        ModuleConnector::getInstance().registerModule(this);
+        Environment<>::get().PluginConnector().registerPlugin(this);
     }
 
     virtual ~PerSuperCell()
@@ -154,21 +153,21 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::get().DataConnector();
 
         particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
 
         countMakroParticles < CORE + BORDER > (currentStep);
     }
 
-    void moduleRegisterHelp(po::options_description& desc)
+    void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
             ((analyzerPrefix + ".period").c_str(),
              po::value<uint32_t > (&notifyFrequency), "enable analyser [for each n-th step]");
     }
 
-    std::string moduleGetName() const
+    std::string pluginGetName() const
     {
         return analyzerName;
     }
@@ -180,14 +179,14 @@ public:
 
 private:
 
-    void moduleLoad()
+    void pluginLoad()
     {
         if (notifyFrequency > 0)
         {
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
-            PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
+            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
+            PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
             /* local count of supercells without any guards*/
-            DataSpace<simDim> localSuperCells(simBox.getLocalSize() / SuperCellSize::getDataSpace());
+            DataSpace<simDim> localSuperCells(simBox.getLocalSize() / SuperCellSize::toRT());
             localResult = new GridBufferType(localSuperCells);
 
             /* create folder for hdf5 files*/
@@ -195,9 +194,13 @@ private:
         }
     }
 
-    void moduleUnload()
+    void pluginUnload()
     {
         __delete(localResult);
+        
+        if (dataCollector)
+            dataCollector->finalize();
+        
         __delete(dataCollector);
     }
 
@@ -211,7 +214,7 @@ private:
         AreaMapping<AREA, MappingDesc> mapper(*cellDescription);
 
         __cudaKernel(CountMakroParticle)
-            (mapper.getGridDim(), SuperCellSize::getDataSpace())
+            (mapper.getGridDim(), SuperCellSize::toRT().toDim3())
             (particles->getDeviceParticlesBox(),
              localResult->getDeviceBuffer().getDataBox(), mapper);
 
@@ -220,11 +223,11 @@ private:
 
 
         /*############ dump data #############################################*/
-        PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
+        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
 
-        DataSpace<simDim> localSize(simBox.getLocalSize() / SuperCellSize::getDataSpace());
-        DataSpace<simDim> globalOffset(simBox.getGlobalOffset() / SuperCellSize::getDataSpace());
-        DataSpace<simDim> globalSize(simBox.getGlobalSize() / SuperCellSize::getDataSpace());
+        DataSpace<simDim> localSize(simBox.getLocalSize() / SuperCellSize::toRT());
+        DataSpace<simDim> globalOffset(simBox.getGlobalOffset() / SuperCellSize::toRT());
+        DataSpace<simDim> globalSize(simBox.getGlobalSize() / SuperCellSize::toRT());
 
 
 
@@ -244,15 +247,17 @@ private:
 
         size_t* ptr = localResult->getHostBuffer().getPointer();
 
-        dataCollector->writeDomain(currentStep, /* id == time step */
-                                   splashGlobalSize,
-                                   splashGlobalOffset,
-                                   ColTypeUInt64(), /* data type */
-                                   simDim, /* NDims of the field data (scalar, vector, ...) */
-                                   localBufferSize,
-                                   "makroParticlePerSupercell", /* data set name */
-                                   splashGlobalDomainOffset, /* \todo offset of the global domain */
-                                   splashGlobalDomainSize, /* size of the global domain */
+        dataCollector->writeDomain(currentStep,                     /* id == time step */
+                                   splashGlobalSize,                /* total size of dataset over all processes */
+                                   splashGlobalOffset,              /* write offset for this process */
+                                   ColTypeUInt64(),                 /* data type */
+                                   simDim,                          /* NDims of the field data (scalar, vector, ...) */
+                                   splash::Selection(localBufferSize),
+                                   "makroParticlePerSupercell",     /* data set name */
+                                   splash::Domain(
+                                          splashGlobalDomainOffset, /* offset of the global domain */
+                                          splashGlobalDomainSize    /* size of the global domain */
+                                   ),
                                    DomainCollector::GridType,
                                    ptr);
 
@@ -280,7 +285,7 @@ private:
             Dimensions splashMpiPos;
             Dimensions splashMpiSize;
 
-            GridController<simDim> &gc = GridController<simDim>::getInstance();
+            GridController<simDim> &gc = Environment<simDim>::get().GridController();
 
             mpi_pos = gc.getPosition();
             mpi_size = gc.getGpuNodes();

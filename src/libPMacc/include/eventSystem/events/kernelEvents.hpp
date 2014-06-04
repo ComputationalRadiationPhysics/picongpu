@@ -78,7 +78,7 @@ namespace PMacc
  */
 #define __cudaKernel(kernelname) {                                                      \
     CUDA_CHECK_KERNEL_MSG(cudaThreadSynchronize(),"Crash before kernel call");          \
-    TaskKernel *taskKernel =  Factory::getInstance().createTaskKernel(#kernelname);     \
+    TaskKernel *taskKernel =  Environment<>::get().Factory().createTaskKernel(#kernelname);     \
     kernelname PMACC_CUDAKERNELCONFIG
 
 }

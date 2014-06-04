@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2013 Axel Huebl, Rene Widera
+# Copyright 2013-2014 Axel Huebl, Rene Widera
 # 
 # This file is part of PIConGPU. 
 # 
@@ -16,8 +16,8 @@
 # You should have received a copy of the GNU General Public License 
 # along with PIConGPU.  
 # If not, see <http://www.gnu.org/licenses/>. 
-# 
- 
+#
+
 
 
 ## calculations will be performed by tbg ##
@@ -25,7 +25,7 @@ TBG_queue="batch"
 TBG_mailSettings="bea"
 TBG_mailAdress="someone@example.com"
 TBG_nameProject=APH005
-        
+
 # use ceil to caculate nodes
 TBG_nodes=!TBG_tasks
 ## end calculations ##
@@ -42,11 +42,10 @@ TBG_nodes=!TBG_tasks
 #PBS -d !TBG_dstPath
 #PBS -A !TBG_nameProject
 
-
 #PBS -o stdout
 #PBS -e stderr
 
-#PBS -l gres=widow2
+#PBS -l gres=atlas2
 
 echo 'Running program...'
 echo !TBG_jobName
@@ -56,7 +55,7 @@ echo -n "present working directory:"
 pwd
 
 
-source $WORKDIR/picongpu.profile 2>/dev/null
+source $MEMBERWORK/aph005/picongpu.profile 2>/dev/null
 
 
 mkdir simOutput 2> /dev/null
@@ -66,5 +65,4 @@ cd simOutput
 
 #if [ $? -eq 0 ] ; then
 aprun  -N 1 -n !TBG_nodes  !TBG_dstPath/picongpu/bin/picongpu !TBG_programParams
-#fi           
-
+#fi

@@ -1,23 +1,23 @@
 /**
  * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 
 #ifndef POSITIONSPARTICLES_HPP
@@ -35,7 +35,7 @@
 #include "mappings/kernel/AreaMapping.hpp"
 
 #include "algorithms/Gamma.hpp"
-#include "plugins/IPluginModule.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 
 namespace picongpu
 {
@@ -60,14 +60,14 @@ struct SglParticle
 
     DataSpace<simDim> globalCellOffset;
 
-    //! todo 
+    //! todo
 
     floatD_64 getGlobalCell() const
     {
         floatD_64 doubleGlobalCellOffset;
         for(uint32_t i=0;i<simDim;++i)
             doubleGlobalCellOffset[i]=float_64(globalCellOffset[i]);
-        
+
         return floatD_64( doubleGlobalCellOffset+ precisionCast<float_64>(position));
     }
 
@@ -77,11 +77,11 @@ struct SglParticle
         floatD_64 pos;
         for(uint32_t i=0;i<simDim;++i)
             pos[i]=( v.getGlobalCell()[i] * cellSize[i]*UNIT_LENGTH);
-     
+
         const float3_64 mom( precisionCast<float_64>(v.momentum.x()) * UNIT_MASS * UNIT_SPEED,
                              precisionCast<float_64>(v.momentum.y()) * UNIT_MASS * UNIT_SPEED,
                              precisionCast<float_64>(v.momentum.z()) * UNIT_MASS * UNIT_SPEED );
-        
+
         const float_64 mass = precisionCast<float_64>(v.mass) * UNIT_MASS;
         const float_64 charge = precisionCast<float_64>(v.charge) * UNIT_CHARGE;
 
@@ -146,7 +146,7 @@ __global__ void kernelPositionsParticles(ParticlesBox<FRAME, simDim> pb,
 
 
             gParticle->globalCellOffset = (superCellIdx - mapper.getGuardingSuperCells())
-                * MappingDesc::SuperCellSize::getDataSpace()
+                * MappingDesc::SuperCellSize::toRT()
                 + frameCellOffset;
         }
         __syncthreads();
@@ -161,7 +161,7 @@ __global__ void kernelPositionsParticles(ParticlesBox<FRAME, simDim> pb,
 }
 
 template<class ParticlesType>
-class PositionsParticles : public ISimulationIO, public IPluginModule
+class PositionsParticles : public ILightweightPlugin
 {
 private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -188,7 +188,7 @@ public:
     notifyFrequency(0)
     {
 
-        ModuleConnector::getInstance().registerModule(this);
+        Environment<>::get().PluginConnector().registerPlugin(this);
     }
 
     virtual ~PositionsParticles()
@@ -197,12 +197,12 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = DataConnector::getInstance();
+        DataConnector &dc = Environment<>::get().DataConnector();
 
         particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
 
 
-        const int rank = GridController<simDim>::getInstance().getGlobalRank();
+        const int rank = Environment<simDim>::get().GridController().getGlobalRank();
         const SglParticle<FloatPos> positionParticle = getPositionsParticles < CORE + BORDER > (currentStep);
 
         /*FORMAT OUTPUT*/
@@ -212,14 +212,14 @@ public:
             << positionParticle << "\n"; // no flush
     }
 
-    void moduleRegisterHelp(po::options_description& desc)
+    void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
             ((analyzerPrefix + ".period").c_str(),
              po::value<uint32_t > (&notifyFrequency), "enable analyser [for each n-th step]");
     }
 
-    std::string moduleGetName() const
+    std::string pluginGetName() const
     {
         return analyzerName;
     }
@@ -231,18 +231,18 @@ public:
 
 private:
 
-    void moduleLoad()
+    void pluginLoad()
     {
         if (notifyFrequency > 0)
         {
             //create one float3_X on gpu und host
             gParticle = new GridBuffer<SglParticle<FloatPos>, DIM1 > (DataSpace<DIM1 > (1));
 
-            DataConnector::getInstance().registerObserver(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
         }
     }
 
-    void moduleUnload()
+    void pluginUnload()
     {
         __delete(gParticle);
     }
@@ -255,7 +255,7 @@ private:
         SglParticle<FloatPos> positionParticleTmp;
 
         gParticle->getDeviceBuffer().setValue(positionParticleTmp);
-        dim3 block(SuperCellSize::getDataSpace());
+        dim3 block(SuperCellSize::toRT().toDim3());
 
         __picKernelArea(kernelPositionsParticles, *cellDescription, AREA)
             (block)
@@ -264,10 +264,10 @@ private:
         gParticle->deviceToHost();
 
         DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
-        VirtualWindow window(MovingWindow::getInstance().getVirtualWindow(currentStep));
+        const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
 
-        DataSpace<simDim> gpuPhyCellOffset(SubGrid<simDim>::getInstance().getSimulationBox().getGlobalOffset());
-        gpuPhyCellOffset.y() += (localSize.y() * window.slides);
+        DataSpace<simDim> gpuPhyCellOffset(Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset());
+        gpuPhyCellOffset.y() += (localSize.y() * numSlides);
 
         gParticle->getHostBuffer().getDataBox()[0].globalCellOffset += gpuPhyCellOffset;
 

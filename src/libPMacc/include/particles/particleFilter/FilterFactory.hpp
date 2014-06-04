@@ -38,7 +38,7 @@
 namespace PMacc
 {
 
-namespace bmpl = boost::mpl;
+
 
 template<typename UserTypeList = bmpl::vector<NullFrame> >
     class FilterFactory

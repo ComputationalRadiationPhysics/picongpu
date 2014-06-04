@@ -101,7 +101,7 @@ if [ -d "$dst_path" ] && [ "$force_param" -eq 0 ] ; then
     fi
     input=`echo "$input" | tr '[:upper:]' '[:lower:]'`
     if [ $input != "yes" ] ; then
-        echo "Abortion!" >&2
+        echo "Abort!" >&2
         exit
     fi
 else

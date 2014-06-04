@@ -1,30 +1,33 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Heiko Burau, Rene Widera, Axel Huebl
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #pragma once
 
-#include <types.h>
-#include <math/vector/Int.hpp>
-#include <math/vector/compile-time/Int.hpp>
-#include <forward.hpp>
+#include "types.h"
+#include "algorithms/TypeCast.hpp"
+#include "math/vector/Int.hpp"
+#include "math/vector/compile-time/Int.hpp"
+#include "math/VectorOperations.hpp"
+#include "forward.hpp"
 
 namespace PMacc
 {
@@ -32,30 +35,35 @@ namespace algorithm
 {
 namespace cudaBlock
 {
-    
+
 #ifndef FOREACH_KERNEL_MAX_PARAMS
 #define FOREACH_KERNEL_MAX_PARAMS 4
 #endif
-    
+
 #define SHIFTACCESS_CURSOR(Z, N, _) forward(c ## N [pos])
-    
-#define FOREACH_OPERATOR(Z, N, _) \
+
+#define FOREACH_OPERATOR(Z, N, _)                                                  \
+    /*      <             , typename C0, ..., typename C(N-1)  ,              > */ \
     template<typename Zone, BOOST_PP_ENUM_PARAMS(N, typename C), typename Functor> \
+    /*                     (      C0 c0, ..., C(N-1) c(N-1)           ,       ) */ \
     DINLINE void operator()(Zone, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), const Functor& functor) \
-    { \
-        BOOST_AUTO(functor_, lambda::make_Functor(functor)); \
+    {                                                                              \
+        BOOST_AUTO(functor_, lambda::make_Functor(functor));                       \
         const int dataVolume = math::CT::volume<typename Zone::Size>::type::value; \
-        const int blockVolume = math::CT::volume<BlockDim>::type::value; \
-        for(int i = this->linearThreadIdx; i < dataVolume; i += blockVolume) \
-        { \
-            math::Int<3> pos( \
-                Zone::Offset::x::value + (i % Zone::Size::x::value), \
-                Zone::Offset::y::value + ((i % (Zone::Size::x::value * Zone::Size::y::value)) / Zone::Size::x::value), \
-                Zone::Offset::z::value + (i / (Zone::Size::x::value * Zone::Size::y::value))); \
-            functor_(BOOST_PP_ENUM(N, SHIFTACCESS_CURSOR, _)); \
-        } \
+        const int blockVolume = math::CT::volume<BlockDim>::type::value;           \
+                                                                                   \
+        typedef typename math::Int<Zone::dim> PosType;                             \
+        using namespace PMacc::algorithms::precisionCast;                          \
+                                                                                   \
+        for(int i = this->linearThreadIdx; i < dataVolume; i += blockVolume)       \
+        {                                                                          \
+            PosType pos = Zone::Offset().toRT() +                                  \
+                          precisionCast<typename PosType::type>(                   \
+                            math::MapToPos<Zone::dim>()( Zone::Size(), i ) );      \
+            functor_(BOOST_PP_ENUM(N, SHIFTACCESS_CURSOR, _));                     \
+        }                                                                          \
     }
-    
+
 /** Foreach algorithm that is executed by one cuda thread block
  * 
  * \tparam BlockDim 3D compile-time vector (PMacc::math::CT::Int) of the size of the cuda blockDim.
@@ -75,7 +83,7 @@ public:
         threadIdx.y * BlockDim::x::value +
         threadIdx.x) {}
     DINLINE Foreach(int linearThreadIdx) : linearThreadIdx(linearThreadIdx) {}
-    
+
     /* operator()(zone, cursor0, cursor1, ..., cursorN-1, functor or lambdaFun)
      * 
      * \param zone compile-time zone object, see zone::CT::SphericZone. (e.g. ContainerType::Zone())

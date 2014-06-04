@@ -27,7 +27,7 @@
 
 namespace PMacc
 {
-namespace bmpl = boost::mpl;
+
 
 
 /** create boost mpl pair 

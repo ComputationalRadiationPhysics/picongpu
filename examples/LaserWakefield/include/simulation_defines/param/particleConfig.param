@@ -60,7 +60,6 @@ const double PARTICLE_INIT_DRIFT_DIRECTION_MIDDLE = -1.0;
 /*change density of middle area in proportion to default density*/
 const double PARTICLE_INIT_DENSITY_FACTOR_MIDDLE = 1.0;
 
-
 /** Normal vector of the initial drift
  *  length: gets normalized afterwards
  *  unit: none */

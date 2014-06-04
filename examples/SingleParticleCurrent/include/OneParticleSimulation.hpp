@@ -24,6 +24,7 @@
 #define	ONEPARTICLESIMULATION_HPP
 
 #include "simulation_defines.hpp"
+#include "Environment.hpp"
 
 #include "simulationControl/MySimulation.hpp"
 
@@ -75,7 +76,7 @@ public:
 
         MySimulation::init();
 
-        if (GridController<DIM3>::getInstance().getGlobalRank() == 0)
+        if (Environment<simDim>::get().GridController().getGlobalRank() == 0)
         {
             std::cout << "max weighting " << NUM_EL_PER_PARTICLE << std::endl;
             std::cout << "courant=min(deltaCellSize)/dt/c > 1.77 ? " << std::min(CELL_WIDTH, std::min(CELL_DEPTH, CELL_HEIGHT)) / SPEED_OF_LIGHT / DELTA_T << std::endl;
@@ -91,12 +92,12 @@ public:
         //diabled because we have a transaction bug 
         //StreamController::getInstance().addStreams(6);
 
-        PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
+        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
 
         const DataSpace<simDim> halfSimSize(simBox.getGlobalSize() / 2);
 
 
-        GridLayout<DIM3> layout(simBox.getLocalSize(), MappingDesc::SuperCellSize::getDataSpace());
+        GridLayout<DIM3> layout(simBox.getLocalSize(), MappingDesc::SuperCellSize::toRT());
         MappingDesc cellDescription = MappingDesc(layout.getDataSpace(), GUARD_SIZE, GUARD_SIZE);
 
         ParticlesInitOneParticle<PIC_Electrons>::addOneParticle(*(this->electrons),
@@ -141,11 +142,11 @@ public:
 
     virtual void movingWindowCheck(uint32_t currentStep)
     {
-        PMACC_AUTO(simBox, SubGrid<simDim>::getInstance().getSimulationBox());
-        GridLayout<DIM3> gridLayout(simBox.getLocalSize(), MappingDesc::SuperCellSize::getDataSpace());
-        if (MovingWindow::getInstance().getVirtualWindow(currentStep).doSlide)
+        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
+        GridLayout<DIM3> gridLayout(simBox.getLocalSize(), MappingDesc::SuperCellSize::toRT());
+        if (MovingWindow::getInstance().slideInCurrentStep(currentStep))
         {
-            GridController<simDim>& gc = GridController<simDim>::getInstance();
+            GridController<simDim>& gc = Environment<simDim>::get().GridController();
             if (gc.slide())
             {
                 electrons->reset(currentStep);

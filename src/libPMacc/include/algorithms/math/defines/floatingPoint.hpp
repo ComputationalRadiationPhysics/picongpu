@@ -43,7 +43,7 @@ HDINLINE static typename Floor< T1>::result floor(T1 value)
 }
 
 template<typename T1>
-DINLINE static typename Float2int_rd< T1>::result float2int_rd(T1 value)
+HDINLINE static typename Float2int_rd< T1>::result float2int_rd(T1 value)
 {
     return Float2int_rd< T1 > ()(value);
 }

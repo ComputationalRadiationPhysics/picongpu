@@ -58,24 +58,39 @@ const float_X posB_z_z = 0.0;
 
 struct YeeCell
 {
-    typedef ::PMacc::math::Vector<float3_X,DIM3> VectorVector;
+    /** \tparam floatD_X position of the component in the cell
+     *  \tparam DIM3     Fields (E/B) have 3 components, even in 1 or 2D ! */
+    typedef ::PMacc::math::Vector<floatD_X,DIM3> VectorVector;
 
-       static HDINLINE VectorVector getEFieldPosition() 
+    static HDINLINE VectorVector getEFieldPosition()
     {
+#if( SIMDIM == DIM3 )
         const float3_X posE_x(posE_x_x, posE_x_y, posE_x_z);
         const float3_X posE_y(posE_y_x, posE_y_y, posE_y_z);
         const float3_X posE_z(posE_z_x, posE_z_y, posE_z_z);
+#elif( SIMDIM == DIM2 )
+        const float2_X posE_x(posE_x_x, posE_x_y);
+        const float2_X posE_y(posE_y_x, posE_y_y);
+        const float2_X posE_z(posE_z_x, posE_z_y);
+#endif
 
+        /** position (floatD_x) in cell for E_x, E_y, E_z */
         return VectorVector(posE_x, posE_y, posE_z);
     }
 
-
-       static  HDINLINE VectorVector getBFieldPosition() 
+    static  HDINLINE VectorVector getBFieldPosition()
     {
+#if( SIMDIM == DIM3 )
         const float3_X posB_x(posB_x_x, posB_x_y, posB_x_z);
         const float3_X posB_y(posB_y_x, posB_y_y, posB_y_z);
         const float3_X posB_z(posB_z_x, posB_z_y, posB_z_z);
+#elif( SIMDIM == DIM2 )
+        const float2_X posB_x(posB_x_x, posB_x_y);
+        const float2_X posB_y(posB_y_x, posB_y_y);
+        const float2_X posB_z(posB_z_x, posB_z_y);
+#endif
 
+        /** position (floatD_x) in cell for B_x, B_y, B_z */
         return VectorVector(posB_x, posB_y, posB_z);
     }
 

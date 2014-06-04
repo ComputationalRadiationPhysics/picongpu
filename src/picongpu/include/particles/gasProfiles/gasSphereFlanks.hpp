@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU. 
  * 
@@ -24,18 +24,27 @@
 
 #include "types.h"
 #include "simulation_defines.hpp"
+#include "memory/buffers/GridBuffer.hpp"
+#include "simulationControl/Window.hpp"
 
 namespace picongpu
 {
 namespace gasSphereFlanks
 {
-
+    
+template<class Type>
+bool gasSetup( GridBuffer<Type, simDim>&, Window& )
+{
+    return true;
+}
+        
 /** Calculate the gas density, divided by the maximum density GAS_DENSITY
  * 
  * @param pos as 3D length vector offset to global left top front cell
  * @return float_X between 0.0 and 1.0
  */
-DINLINE float_X calcNormedDensitiy(floatD_X pos)
+template<unsigned DIM, typename FieldBox>
+DINLINE float_X calcNormedDensity( floatD_X pos, const DataSpace<DIM>&, FieldBox )
 {
     if (pos.y() < VACUUM_Y) return float_X(0.0);
 

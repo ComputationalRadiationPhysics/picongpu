@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -17,11 +17,8 @@
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
 
-
-#ifndef SIMHEADER_HPP
-#define	SIMHEADER_HPP
+#pragma once
 
 #include "types.h"
 #include "dimensions/DataSpace.hpp"
@@ -40,10 +37,12 @@ struct SimHeader
     float cellSizeArr[2];
     
 
-    SimHeader()
+    SimHeader() : step(0)
     {
         scale[0] = 1.f;
         scale[1] = 1.f;
+        cellSizeArr[0] = 0.f;
+        cellSizeArr[1] = 0.f;
     }
 
     void setScale(float x, float y)
@@ -62,7 +61,3 @@ struct SimHeader
     }
 
 };
-
-
-#endif	/* SIMHEADER_HPP */
-
