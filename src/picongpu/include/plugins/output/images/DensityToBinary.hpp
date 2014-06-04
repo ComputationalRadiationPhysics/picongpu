@@ -64,7 +64,7 @@ struct DensityToBinary
 
         if (createFolder)
         {
-            mkdir((folder).c_str(), 0755);
+            Environment<simDim>::get().Filesystem().createDirectoryWithPermissions(folder);
             createFolder = false;
         }
 

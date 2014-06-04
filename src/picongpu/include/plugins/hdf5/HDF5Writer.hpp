@@ -60,7 +60,6 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/begin_end.hpp>
 #include <boost/mpl/find.hpp>
-#include <boost/filesystem.hpp>
 
 #include <boost/type_traits.hpp>
 

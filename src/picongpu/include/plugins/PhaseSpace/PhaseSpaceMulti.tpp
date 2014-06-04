@@ -123,12 +123,7 @@ namespace picongpu
         }
 
         /** create dir */
-        PMacc::GridController<simDim>& gc = PMacc::Environment<simDim>::get().GridController();
-        if( gc.getGlobalRank() == 0 )
-        {
-            /** \todo make this a boost filesystem call */
-            mkdir("phaseSpace", 0755);
-        }
+        Environment<simDim>::get().Filesystem().createDirectoryWithPermissions("phaseSpace");
     }
 
     template<class AssignmentFunction, class Species>

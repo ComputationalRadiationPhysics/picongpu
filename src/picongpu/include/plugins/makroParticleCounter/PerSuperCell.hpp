@@ -190,7 +190,7 @@ private:
             localResult = new GridBufferType(localSuperCells);
 
             /* create folder for hdf5 files*/
-            mkdir((foldername).c_str(), 0755);
+            Environment<simDim>::get().Filesystem().createDirectoryWithPermissions(foldername);
         }
     }
 

@@ -31,7 +31,7 @@
 #include "dataManagement/DataConnector.hpp"
 #include "pluginSystem/PluginConnector.hpp"
 #include "nvidia/memory/MemoryInfo.hpp"
-
+#include "mappings/simulation/Filesystem.hpp"
 
 
 namespace PMacc
@@ -101,6 +101,10 @@ namespace PMacc
             return nvidia::memory::MemoryInfo::getInstance();
         }
         
+        PMacc::Filesystem<DIM>& Filesystem()
+        {
+            return PMacc::Filesystem<DIM>::getInstance();
+        }
         
         static Environment<DIM>& get()
         {
@@ -111,6 +115,8 @@ namespace PMacc
         void initDevices(DataSpace<DIM> devices, DataSpace<DIM> periodic)
         {
             PMacc::GridController<DIM>::getInstance().init(devices, periodic);
+            
+            PMacc::Filesystem<DIM>::getInstance();
 
             setDevice((int) (PMacc::GridController<DIM>::getInstance().getHostRank()));
             
