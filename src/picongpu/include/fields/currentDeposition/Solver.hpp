@@ -24,6 +24,7 @@
 
 #if(SIMDIM==DIM3)
 #include "fields/currentDeposition/VillaBune/CurrentVillaBune.hpp"
+#include "fields/currentDeposition/ZigZag/ZigZag.hpp"
 #endif
 
 #include "fields/numericalCellTypes/YeeCell.hpp"

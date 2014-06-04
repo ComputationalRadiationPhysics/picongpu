@@ -35,7 +35,7 @@ struct PCS
 {
     static const int support = 4;
 
-protected:
+
 
     HDINLINE static float_X ff_1st_radius(const float_X x)
     {
@@ -61,6 +61,7 @@ protected:
 } //namespace shared_PCS
 struct PCS : public shared_PCS::PCS
 {
+    typedef  picongpu::particleShape::TSC CloudShape;
 
     struct ChargeAssignment : public shared_PCS::PCS
     {

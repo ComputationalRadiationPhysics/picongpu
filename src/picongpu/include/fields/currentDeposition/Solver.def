@@ -23,4 +23,5 @@
 
 #if(SIMDIM==DIM3)
 #include "fields/currentDeposition/VillaBune/CurrentVillaBune.def"
+#include "fields/currentDeposition/ZigZag/ZigZag.def"
 #endif
