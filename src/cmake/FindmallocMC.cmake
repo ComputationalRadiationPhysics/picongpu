@@ -4,7 +4,7 @@
 #
 # Use this module by invoking find_package with the form:
 #   find_package(mallocMC
-#     [version] [EXACT]     # Minimum or EXACT version, e.g. 1.1.1
+#     [version] [EXACT]     # Minimum or EXACT version, e.g. 2.0.0
 #     [REQUIRED]            # Fail with an error if mallocMC or a required
 #                           #   component is not found
 #     [QUIET]               # Do not warn if this module was not found
@@ -13,9 +13,8 @@
 # To provide a hint to this module where to find the mallocMC installation,
 # set the MALLOCMC_ROOT environment variable.
 #
-# This module requires CUDA. Make sure to provide a valid install of it
-# under the environment variable CUDA_ROOT.
-# mallocMC  will also require Boost (set the environment BOOST_ROOT).
+# This module requires CUDA and Boost. When calling it, make sure to call
+# find_package(CUDA) and find_package(Boost) first.
 #
 # This module will define the following variables:
 #   mallocMC_INCLUDE_DIRS    - Include directories for the mallocMC headers.
@@ -59,6 +58,28 @@ cmake_minimum_required(VERSION 2.8.5)
 # we start by assuming we found mallocMC and falsify it if some
 # dependencies are missing (or if we did not find mallocMC at all)
 set(mallocMC_FOUND TRUE)
+
+
+###############################################################################
+# preconditions
+###############################################################################
+
+if(NOT CUDA_FOUND)
+    set(mallocMC_FOUND FALSE)
+    message(STATUS "could not find CUDA, try something like find_package(CUDA REQUIRED)")
+elseif(CUDA_VERSION VERSION_LESS "5.0")
+    set(mallocMC_FOUND FALSE)
+    message(STATUS "CUDA found, but version too low (needs 5.0 or higher)")
+endif(NOT CUDA_FOUND)
+
+if(NOT Boost_FOUND)
+    set(mallocMC_FOUND FALSE)
+    message(STATUS "could not find Boost, try something like find_package(Boost REQUIRED)")
+elseif(Boost_VERSION LESS 104800)
+    set(mallocMC_FOUND FALSE)
+    message(STATUS "Boost found, but version too low (needs 1.48 or higher)")
+endif(NOT Boost_FOUND)
+
 
 # find mallocMC installation #################################################
 #
