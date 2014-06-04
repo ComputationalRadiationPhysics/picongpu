@@ -3,7 +3,7 @@ Change Log / Release Log for PIConGPU
 
 Open Beta RC5
 -------------
-**Date:** 2014-05-28
+**Date:** 2014-06-04
 
 This is the 5th release candidate, a *pre-beta* version.
 
@@ -65,7 +65,7 @@ any more. These information are just necessary for checkpoints
    - former name: "modules" #283
    - completely refactored #287 #336 #342 #344
    - restart capabilites added (partially) #315 #326 #425
-   - new 2D phase space analysis added #347 #364 #391 #407
+   - new 2D phase space analysis added (for 3D sims and one species at a time) #347 #364 #391 #407
    - libSplash 1.2+ upgrade (incompatible output to previous versions) #388 #402
  - libPMacc
    - new Environment class provides all singletons #254 #276 #404 #405
