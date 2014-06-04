@@ -42,12 +42,12 @@ namespace currentSolverZigZag
 using namespace PMacc;
 
 template<typename T_MathVec, typename T_Shape, typename T_Vec>
-struct ShapeIt_all
+struct AssignChargeToCell
 {
 
     template<typename T_Cursor>
     HDINLINE void
-    operator()(T_Cursor& cursor, const float_X F, const float3_X& pos)
+    operator()(T_Cursor& cursor, const float3_X& pos, const float_X F)
     {
         typedef T_MathVec MathVec;
 
@@ -68,10 +68,8 @@ struct ShapeIt_all
         jIdx[T_Vec::y::value] = y;
         jIdx[T_Vec::z::value] = z;
         const float_X j = F * shape_x * shape_y*shape_z;
-        PMACC_AUTO(cursorToValue,cursor(jIdx));
+        PMACC_AUTO(cursorToValue, cursor(jIdx));
         atomicAddWrapper(&((*cursorToValue)[T_Vec::x::value]), j);
-
-
     }
 };
 
@@ -85,7 +83,7 @@ struct ShapeIt_all
  *                 by Jinqing Yu, Xiaolin Jin, Weimin Zhou, Bin Li, Yuqiu Gu
  */
 template<typename T_ParticleShape>
-struct ZigZag<T_ParticleShape,DIM3>
+struct ZigZag<T_ParticleShape, DIM3>
 {
     typedef T_ParticleShape ParticleShape;
     typedef typename ParticleShape::ChargeAssignmentOnSupport ParticleAssign;
@@ -103,6 +101,45 @@ struct ZigZag<T_ParticleShape,DIM3>
     static const int supp_dir = supp - 1;
     static const int dir_begin = -supp_dir / 2 + (supp_dir + 1) % 2;
     static const int dir_end = dir_begin + supp_dir;
+
+    template<typename T_Swivel>
+    struct AssignOneDirection
+    {
+
+        template<typename T_Cursor>
+        HDINLINE void
+        operator()(T_Cursor cursor, float3_X pos, const float3_X& F)
+        {
+            const uint32_t dir = T_Swivel::x::value;
+
+            typedef PMacc::math::CT::Int<supp, supp, supp> Supports_full;
+            typedef typename PMacc::math::CT::Assign<
+                typename Supports_full::This,
+                bmpl::integral_c<uint32_t, dir>,
+                bmpl::integral_c<int, supp_dir> >::type Supports_direction;
+
+            /* shift coordinate system to
+             *   - support different numerical cell types
+             *   - run calculations in a shape optimized coordinate system
+             *     with fixed interpolation points
+             */
+            ShiftCoordinateSystem<Supports_direction>()(cursor, pos, fieldSolver::NumericalCellType::getEFieldPosition()[dir]);
+
+            const float3_X pos_dir(pos[T_Swivel::x::value],
+                                   pos[T_Swivel::y::value],
+                                   pos[T_Swivel::z::value]);
+
+            typedef boost::mpl::vector3<
+                boost::mpl::range_c<int, dir_begin, dir_end >,
+                boost::mpl::range_c<int, begin, end >,
+                boost::mpl::range_c<int, begin, end > > Size;
+            typedef typename AllCombinations<Size>::type CombiTypes;
+
+            ForEach<CombiTypes, AssignChargeToCell<bmpl::_1, ParticleShape, T_Swivel> > callAssignChargeToCell;
+            callAssignChargeToCell(forward(cursor), pos_dir, F[dir]);
+        }
+
+    };
 
     /* begin and end border is calculated for a particle with a support which travels
      * to the negative direction.
@@ -170,42 +207,14 @@ struct ZigZag<T_ParticleShape,DIM3>
 
             PMACC_AUTO(cursorJ, dataBoxJ.shift(precisionCast<int>(I[parId])).toCursor());
 
+            typedef bmpl::vector3<
+                PMacc::math::CT::Int < 0, 1, 2 >,
+                PMacc::math::CT::Int < 1, 2, 0 >,
+                PMacc::math::CT::Int < 2, 0, 1 > > Directions;
 
-            PMACC_AUTO( cursorJ_x,cursorJ);
-            float3_X pos_x(IcP);
-            typedef PMacc::math::CT::Int<supp_dir,supp,supp> Supports_x;
-            ShiftCoordinateSystem<Supports_x>()(cursorJ_x, pos_x, fieldSolver::NumericalCellType::getEFieldPosition().x());
-            helper<PMacc::math::CT::Int < 0, 1, 2 > >(cursorJ_x, float3_X(pos_x[0], pos_x[1], pos_x[2]), F[0]);
-
-            float3_X pos_y = IcP;
-            PMACC_AUTO( cursorJ_y,cursorJ);
-            typedef PMacc::math::CT::Int<supp,supp_dir,supp> Supports_y;
-            ShiftCoordinateSystem<Supports_y>()(cursorJ_y, pos_y, fieldSolver::NumericalCellType::getEFieldPosition().y());
-            helper<PMacc::math::CT::Int < 1, 2, 0 > >(cursorJ_y, float3_X(pos_y[1], pos_y[2], pos_y[0]), F[1]);
-
-            float3_X pos_z = IcP;
-            PMACC_AUTO( cursorJ_z,cursorJ);
-            typedef PMacc::math::CT::Int<supp,supp,supp_dir> Supports_z;
-            ShiftCoordinateSystem<Supports_z>()(cursorJ_z, pos_z, fieldSolver::NumericalCellType::getEFieldPosition().z());
-            helper<PMacc::math::CT::Int < 2, 0, 1 > >(cursorJ_z, float3_X(pos_z[2], pos_z[0], pos_z[1]), F[2]);
+            ForEach<Directions, AssignOneDirection<bmpl::_1> > callAssignOneDirection;
+            callAssignOneDirection(forward(cursorJ), IcP, F);
         }
-    }
-
-    template<typename T_Vec, typename CursorType>
-    DINLINE void helper(CursorType& cursorJ,
-                        const float3_X& pos,
-                        const float_X F)
-    {
-        typedef boost::mpl::vector3<
-            boost::mpl::range_c<int, dir_begin, dir_end >,
-            boost::mpl::range_c<int, begin, end >,
-            boost::mpl::range_c<int, begin, end > > Size;
-        typedef typename AllCombinations<Size>::type CombiTypes;
-
-
-        ForEach<CombiTypes, ShapeIt_all<bmpl::_1, ParticleShape, T_Vec> > shapeIt;
-        shapeIt(forward(cursorJ), F, pos);
-
     }
 
 private:
