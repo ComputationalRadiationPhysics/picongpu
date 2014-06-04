@@ -63,6 +63,7 @@ namespace picongpu
                          const std::pair<float_X, float_X> axis_p_range,
                          const float_64 pRange_unit,
                          const float_64 unit,
+                         std::string strSpecies,
                          const uint32_t currentStep,
                          MPI_Comm mpiComm ) const
         {
@@ -75,6 +76,7 @@ namespace picongpu
             std::string fCoords("xyz");
             std::ostringstream filename;
             filename << "phaseSpace/PhaseSpace_"
+                     << strSpecies << "_"
                      << fCoords.at(axis_element.space)
                      << "p" << fCoords.at(axis_element.momentum);
 
