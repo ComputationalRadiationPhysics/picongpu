@@ -89,7 +89,7 @@ public:
     initialiserController(NULL),
     slidingWindow(false)
     {
-        ForEach<VectorAllSpecies, particles::AssignNull<bmpl::_1>, Cover<bmpl::_1>  > setPtrToNull;
+        ForEach<VectorAllSpecies, particles::AssignNull<bmpl::_1>, MakeIdentifier<bmpl::_1>  > setPtrToNull;
         setPtrToNull(forward(particleStorage));
     }
 
@@ -237,7 +237,7 @@ public:
 
         __delete(myFieldSolver);
 
-        ForEach<VectorAllSpecies, particles::CallDelete<bmpl::_1> , Cover<bmpl::_1> > deleteParticleMemory;
+        ForEach<VectorAllSpecies, particles::CallDelete<bmpl::_1> , MakeIdentifier<bmpl::_1> > deleteParticleMemory;
         deleteParticleMemory(forward(particleStorage));
 
         __delete(laser);
@@ -266,14 +266,14 @@ public:
 
         laser = new LaserPhysics(cellDescription->getGridLayout());
 
-        ForEach<VectorAllSpecies, particles::CreateSpecies<bmpl::_1>, Cover<bmpl::_1> > createSpeciesMemory;
+        ForEach<VectorAllSpecies, particles::CreateSpecies<bmpl::_1>, MakeIdentifier<bmpl::_1> > createSpeciesMemory;
         createSpeciesMemory(forward(particleStorage), cellDescription);
 
         size_t freeGpuMem(0);
         Environment<>::get().EnvMemoryInfo().getMemoryInfo(&freeGpuMem);
         freeGpuMem -= totalFreeGpuMemory;
 
-        ForEach<VectorAllSpecies, particles::CallCreateParticleBuffer<bmpl::_1>, Cover<bmpl::_1> > createParticleBuffer;
+        ForEach<VectorAllSpecies, particles::CallCreateParticleBuffer<bmpl::_1>, MakeIdentifier<bmpl::_1> > createParticleBuffer;
         createParticleBuffer(forward(particleStorage), freeGpuMem);
 
         Environment<>::get().EnvMemoryInfo().getMemoryInfo(&freeGpuMem);
@@ -288,7 +288,7 @@ public:
         this->myFieldSolver = new fieldSolver::FieldSolver(*cellDescription);
 
 
-        ForEach<VectorAllSpecies, particles::CallInit<bmpl::_1>, Cover<bmpl::_1> > particleInit;
+        ForEach<VectorAllSpecies, particles::CallInit<bmpl::_1>, MakeIdentifier<bmpl::_1> > particleInit;
         particleInit(forward(particleStorage), fieldE, fieldB, fieldJ, fieldTmp);
 
 
@@ -306,7 +306,7 @@ public:
                 if (this->restartStep < 0)
                 {
                     this->restartStep = readCheckpointMasterFile();
-                    
+
                     if (this->restartStep < 0)
                     {
                         throw std::runtime_error(
@@ -360,7 +360,7 @@ public:
         EventTask updateEvent;
         EventTask commEvent;
 
-        ForEach<VectorAllSpecies, particles::CallUpdate<bmpl::_1>, Cover<bmpl::_1> > particleUpdate;
+        ForEach<VectorAllSpecies, particles::CallUpdate<bmpl::_1>, MakeIdentifier<bmpl::_1> > particleUpdate;
         particleUpdate(forward(particleStorage), currentStep, initEvent, forward(updateEvent), forward(commEvent));
 
         /** remove background field for particle pusher */
@@ -377,7 +377,7 @@ public:
         (*currentBGField)(fieldJ, nvfct::Add(), fieldBackgroundJ(fieldJ->getUnit()),
                           currentStep, fieldBackgroundJ::activated);
 #if (ENABLE_CURRENT == 1)
-        ForEach<VectorAllSpecies, ComputeCurrent<bmpl::_1,bmpl::int_<CORE + BORDER> >, Cover<bmpl::_1> > computeCurrent;
+        ForEach<VectorAllSpecies, ComputeCurrent<bmpl::_1,bmpl::int_<CORE + BORDER> >, MakeIdentifier<bmpl::_1> > computeCurrent;
         computeCurrent(forward(fieldJ),forward(particleStorage), currentStep);
 #endif
 
@@ -408,7 +408,7 @@ public:
 
         fieldB->reset(currentStep);
         fieldE->reset(currentStep);
-        ForEach<VectorAllSpecies, particles::CallReset<bmpl::_1>, Cover<bmpl::_1> > callReset;
+        ForEach<VectorAllSpecies, particles::CallReset<bmpl::_1>, MakeIdentifier<bmpl::_1> > callReset;
         callReset(forward(particleStorage), currentStep);
     }
 
@@ -460,43 +460,43 @@ private:
 
     /**
      * Return the last line of the checkpoint master file if any
-     * 
+     *
      * @return last checkpoint timestep or -1
      */
     int32_t readCheckpointMasterFile(void)
     {
         int32_t lastCheckpointStep = -1;
-        
-        const std::string checkpointMasterFile = 
+
+        const std::string checkpointMasterFile =
             this->restartDirectory + std::string("/") + this->CHECKPOINT_MASTER_FILE;
-        
+
         if (boost::filesystem::exists(checkpointMasterFile))
         {
             std::ifstream file;
             file.open(checkpointMasterFile.c_str());
-            
+
             /* read each line, last line will become the returned checkpoint step */
             std::string line;
             while (file)
             {
                 std::getline(file, line);
-                
+
                 if (line.size() > 0)
                 {
                     try {
                         lastCheckpointStep = boost::lexical_cast<int32_t>(line);
                     } catch( boost::bad_lexical_cast const& )
                     {
-                        std::cerr << "Warning: checkpoint master file contains invalid data (" 
+                        std::cerr << "Warning: checkpoint master file contains invalid data ("
                                 << line << ")" << std::endl;
                         lastCheckpointStep = -1;
                     }
                 }
             }
-            
+
             file.close();
         }
-        
+
         return lastCheckpointStep;
     }
 

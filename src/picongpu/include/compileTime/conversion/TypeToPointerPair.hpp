@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2014 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -44,7 +44,7 @@ struct TypeAsIdentifier
  * @tparam T_Type to to wrap
  */
 template<typename T_Type>
-struct Cover
+struct MakeIdentifier
 {
     typedef TypeAsIdentifier<T_Type> type;
 };
@@ -58,7 +58,7 @@ template<typename T_Type>
 struct TypeToPointerPair
 {
     typedef T_Type* TypePtr;
-    typedef bmpl::pair< typename Cover<T_Type>::type , TypePtr > type;
+    typedef bmpl::pair< typename MakeIdentifier<T_Type>::type , TypePtr > type;
 };
 
 }//namespace picongpu
