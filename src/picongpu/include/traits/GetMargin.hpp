@@ -30,12 +30,18 @@ namespace traits
 /**Get margin of a solver
  * class must define a LowerMargin and UpperMargin for any valid solver
  *
- * \tparam Solver solver which need goast cells for solving a problem
- * \tparam SubSetName a optinal name (id) if solver needs defferent goast cells
+ * \tparam Solver solver which needs ghost cells for solving a problem
+ *         if solver not define `LowerMargin` and `UpperMargin` this trait (GetMargin)
+ *         must be specialized
+ * \tparam SubSetName a optional name (id) if solver needs different ghost cells
  * for different objects
  */
 template<class Solver,unsigned int SubSetName=0>
-struct GetMargin;
+struct GetMargin
+{
+    typedef typename Solver::LowerMargin LowerMargin;
+    typedef typename Solver::UpperMargin UpperMargin;
+};
 
 template<typename T_Type>
 struct GetLowerMargin

@@ -24,18 +24,21 @@ namespace picongpu
 {
 
     /** Define which operation is used to fill up FieldTmp
-     * 
+     *
      * This is better than use of boost::mtl::pair because
-     * we can use this special struct to define functors 
-     * only for FieldTmp. If we create a second FieldTmp, for example 
+     * we can use this special struct to define functors
+     * only for FieldTmp. If we create a second FieldTmp, for example
      * with three components, we can create a new struct (like this)
      * and build a special functor to handle the type.
      */
-    template<typename TSolver, typename TSpecies>
+    template<typename T_Solver, typename T_Species>
     struct FieldTmpOperation
     {
-        typedef TSolver Solver;
-        typedef TSpecies Species;
+        typedef T_Solver Solver;
+        typedef T_Species Species;
+
+        typedef typename Solver::LowerMargin LowerMargin;
+        typedef typename Solver::UpperMargin UpperMargin;
     };
 
     /** Tmp (at the moment: scalar) field for analysers and tmp data like
@@ -51,5 +54,5 @@ namespace picongpu
 
     /** Current Density j, \see FieldJ.hpp */
     class FieldJ;
-    
+
 } // namespace picongpu
