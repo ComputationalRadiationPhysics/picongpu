@@ -49,10 +49,10 @@ struct Cover
     typedef TypeAsIdentifier<T_Type> type;
 };
 
-/** create boost mpl pair
+/** create boost mpl pair <TypeAsIdentifier<Type>,PointerOfType>
  *
  * @tparam T_Type any type
- * @resturn ::type boost mpl pair where first s set to T_Type
+ * @return ::type boos::mpl::pair<TypeAsIdentifier<Type>,PointerOfType>
  */
 template<typename T_Type>
 struct TypeToPointerPair

@@ -147,19 +147,19 @@ template<typename T_ParticleDescription>
 void Particles<T_ParticleDescription>::update(uint32_t )
 {
     typedef typename HasFlag<FrameType,particlePusher<> >::type hasPusher;
-    typedef typename GetFlagType<FrameType,particlePusher<> >::type SearchedPusher;
+    typedef typename GetFlagType<FrameType,particlePusher<> >::type FoundPusher;
 
     /* if no pusher was defined we use PusherNone as fallback */
-    typedef typename bmpl::if_<hasPusher,SearchedPusher,particles::pusher::None >::type SelectPusher;
+    typedef typename bmpl::if_<hasPusher,FoundPusher,particles::pusher::None >::type SelectPusher;
     typedef typename SelectPusher::type ParticlePush;
 
-    typedef typename GetFlagType<FrameType,interpolation<> >::type::ThisType InterpolationSchema;
+    typedef typename GetFlagType<FrameType,interpolation<> >::type::ThisType InterpolationScheme;
 
-    typedef typename GetMargin<InterpolationSchema>::LowerMargin LowerMargin;
-    typedef typename GetMargin<InterpolationSchema>::UpperMargin UpperMargin;
+    typedef typename GetMargin<InterpolationScheme>::LowerMargin LowerMargin;
+    typedef typename GetMargin<InterpolationScheme>::UpperMargin UpperMargin;
 
     typedef PushParticlePerFrame<ParticlePush, MappingDesc::SuperCellSize,
-        InterpolationSchema,
+        InterpolationScheme,
         fieldSolver::NumericalCellType > FrameSolver;
 
     typedef SuperCellDescription<
