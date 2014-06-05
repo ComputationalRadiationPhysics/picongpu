@@ -47,6 +47,10 @@
 
 #include <list>
 
+#include <boost/mpl/accumulate.hpp>
+#include "particles/traits/GetInterpolation.hpp"
+#include "traits/GetMargin.hpp"
+
 namespace picongpu
 {
 
@@ -59,13 +63,25 @@ fieldE( NULL )
     /*#####create FieldB###############*/
     fieldB = new GridBuffer<ValueType, simDim > ( cellDescription.getGridLayout( ) );
 
+    typedef typename bmpl::accumulate<
+        VectorAllSpecies,
+        typename PMacc::math::CT::make_Int<simDim, 0>::type,
+        PMacc::math::CT::max<bmpl::_1, GetLowerMargin< GetInterpolation<bmpl::_2> > >
+        >::type LowerMarginInterpolation;
+
+    typedef typename bmpl::accumulate<
+        VectorAllSpecies,
+        typename PMacc::math::CT::make_Int<simDim, 0>::type,
+        PMacc::math::CT::max<bmpl::_1, GetUpperMargin< GetInterpolation<bmpl::_2> > >
+        >::type UpperMarginInterpolation;
+
     /* Calculate the maximum Neighbors we need from MAX(ParticleShape, FieldSolver) */
     typedef typename PMacc::math::CT::max<
-        GetMargin<fieldSolver::FieldToParticleInterpolation>::LowerMargin,
+        LowerMarginInterpolation,
         GetMargin<fieldSolver::FieldSolver, FIELD_B>::LowerMargin
         >::type LowerMargin;
     typedef typename PMacc::math::CT::max<
-        GetMargin<fieldSolver::FieldToParticleInterpolation>::UpperMargin,
+        UpperMarginInterpolation,
         GetMargin<fieldSolver::FieldSolver, FIELD_B>::UpperMargin
         >::type UpperMargin;
 
@@ -77,8 +93,8 @@ fieldE( NULL )
     {
         DataSpace<simDim> relativMask = Mask::getRelativeDirections<simDim > ( i );
         /* guarding cells depend on direction
-         * for negativ direction use originGuard else endGuard (relativ direction ZERO is ignored)
-         * * don't switch end and origin because this is a readbuffer and no sendbuffer
+         * for negative direction use originGuard else endGuard (relative direction ZERO is ignored)
+         * don't switch end and origin because this is a read buffer and no send buffer
          */
         DataSpace<simDim> guardingCells;
         for ( uint32_t d = 0; d < simDim; ++d )
@@ -90,7 +106,6 @@ fieldE( NULL )
 
 FieldB::~FieldB( )
 {
-
     __delete(fieldB);
 }
 
@@ -174,4 +189,4 @@ FieldB::getCommTag( )
     return FIELD_B;
 }
 
-}
+} //namespace picongpu

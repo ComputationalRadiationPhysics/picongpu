@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2014 Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -16,22 +16,24 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */
+ */ 
 
 #pragma once
 
+#include "simulation_defines.hpp"
+#include "traits/GetFlagType.hpp"
+
 namespace picongpu
 {
+namespace traits
+{
 
-#if (ENABLE_IONS == 1 && ENABLE_ELECTRONS == 1)
-const double memFractionIons = ions_memory_factor / (ions_memory_factor + electrons_memory_factor);
+template<typename T_Species>
+struct GetShape
+{
+    typedef typename GetFlagType<typename T_Species::FrameType, shape<> >::type::ThisType type;
+};
 
-const double memFractionElectrons = electrons_memory_factor / (ions_memory_factor + electrons_memory_factor);
+} //namespace traits
 
-#elif (ENABLE_ELECTRONS == 1)
-const double memFractionElectrons = 1.0;
-#elif(ENABLE_IONS == 1)
-const double memFractionIons = 1.0;
-#endif
-
-}
+}// namespace picongpu

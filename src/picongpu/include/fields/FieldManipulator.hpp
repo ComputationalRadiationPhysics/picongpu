@@ -24,7 +24,6 @@
 #define	FIELDMANIPULATOR_HPP
 
 #include "types.h"
-#include "fields/LaserPhysics.hpp"
 #include "simulation_defines.hpp"
 #include "simulation_classTypes.hpp"
 #include "mappings/simulation/GridController.hpp"

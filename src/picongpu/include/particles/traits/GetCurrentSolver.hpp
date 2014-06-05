@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2014 Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -17,34 +17,21 @@
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
  */ 
- 
-
 
 #pragma once
 
-/**! discripe current solver method
- * Define a solver for current with the name "CurrentSolver"
- * 
- * etc.: typedef MyOwnCurrentSolverClass CurrentSolver;
- */
+#include "simulation_defines.hpp"
+#include "traits/GetFlagType.hpp"
+
 namespace picongpu
 {
-    
-    namespace currentSolverVillaBune
-    {
-        
-    }
-    
-    namespace currentSolverEsirkepov
-    {
-        
-    }
-    
-    namespace currentSolverEsirkepovNative
-    {
-    
-    }
-}
+namespace traits
+{
+template<typename T_Species>
+struct GetCurrentSolver
+{
+    typedef typename GetFlagType<typename T_Species::FrameType, current<> >::type::ThisType type;
+};
+} //namespace traits
 
-
-
+}// namespace picongpu

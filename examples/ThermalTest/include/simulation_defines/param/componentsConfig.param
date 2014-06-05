@@ -1,23 +1,23 @@
 /**
  * Copyright 2013 Axel Huebl, Heiko Burau, Anton Helm, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 #pragma once
 
@@ -32,7 +32,7 @@ namespace simulation_starter = thermalTestStarter;
 /*! Laser Configuration --------------------------------------------------
  *  - laserNone             : no laser init
  *  - laserGaussianBeam     : Gaussian beam (focusing)
- *  - laserPulseFrontTilt   : Gaussian beam with a tilted pulse envelope 
+ *  - laserPulseFrontTilt   : Gaussian beam with a tilted pulse envelope
  *                            in 'x' direction
  *  - laserWavepacket       : wavepacket (gaussian in time and space, not focusing)
  *  - laserPlaneWave        : a plane wave
@@ -44,9 +44,9 @@ namespace laserProfile = laserNone;
  *  - fieldSolverLehe: Num. Cherenkov free field solver in a choosen direction
  *  - fieldSolverDirSplitting: Sentoku's Directional Splitting Method
  *  - fieldSolverNone: disable the vacuum update of E and B
- * 
+ *
  * * For development purposes: ---------------------------------------------
- *  - fieldSolverYeeNative : generic version of fieldSolverYee 
+ *  - fieldSolverYeeNative : generic version of fieldSolverYee
  *    (need more shared memory per gpu and is slow)
  */
 namespace fieldSolver = fieldSolverYee;
@@ -70,35 +70,6 @@ namespace gasProfile = gasHomogenous;
  */
 namespace particleInit = particleInitRandomPos;
 
-/*! particle pusher Configuration ----------------------------------------
- *  - particlePusherVay   : better suited relativistic boris pusher
- *  - particlePusherBoris : standard boris pusher
- * 
- * For development purposes: ---------------------------------------------
- *  - particlePusherNone  : no particle is pushed
- *  - particlePusherAxl   : a pusher developed at HZDR during 2011 (testing)
- *  - particlePusherFree  : free propagation, ignore fields
- *                            (= free stream model)
- *  - particlePusherPhot  : propagate with c in direction of normalized mom.
- */
-namespace particlePusher = particlePusherBoris;
-/*enable (1) or disable (0) ions*/
-#define ENABLE_IONS 1
-/*enable (1) or disable (0) electrons*/
-#define ENABLE_ELECTRONS 1
-
-/** select current solver method -----------------------------------------
- *  - currentSolverEsirkepov: particle shapes - CIC, TSC, PCS (1st to 3rd order)
- *  - currentSolverVillaBune: particle shapes - CIC (1st order) only
- *   
- *  For development purposes: ---------------------------------------------
- *  - currentSolverEsirkepovNative: generic version of currentSolverEsirkepov
- *    without optimisation (~4x slower and need more shared memory)
- */
-namespace currentSolver = currentSolverEsirkepov;
-
 #define ENABLE_CURRENT 1
 
 }
-
-

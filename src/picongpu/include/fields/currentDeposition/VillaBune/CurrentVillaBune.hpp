@@ -32,16 +32,13 @@
 
 namespace picongpu
 {
-namespace currentSolverVillaBune
+namespace currentSolver
 {
 using namespace PMacc;
 
 template<typename T_ParticleShape>
 struct VillaBune
 {
-    /* this solver only supports the CIC shape */
-    BOOST_STATIC_ASSERT(T_ParticleShape::support==2 );
-
     template<class BoxJ, typename PosType, typename VelType, typename ChargeType >
     DINLINE void operator()(BoxJ& boxJ_par, /*box which is shifted to particles cell*/
                             const PosType pos,
@@ -50,8 +47,8 @@ struct VillaBune
     {
         /* VillaBune: field to particle interpolation _requires_ the CIC shape */
         PMACC_CASSERT_MSG_TYPE(currentSolverVillaBune_requires_shapeCIC_in_particleConfig,
-                    speciesParticleShape::ParticleShape,
-                    speciesParticleShape::ParticleShape::support == 2);
+                    T_ParticleShape,
+                    T_ParticleShape::support == 2);
 
         // normalize deltaPos to innerCell units [0.; 1.)
         //   that means: dx_real   = v.x() * dt
@@ -222,13 +219,13 @@ private:
 
 };
 
-} //namespace currentSolverVillaBune
+} //namespace currentSolver
 
 namespace traits
 {
 
 template<typename T_ParticleShape>
-struct GetMargin<picongpu::currentSolverVillaBune::VillaBune<T_ParticleShape> >
+struct GetMargin<picongpu::currentSolver::VillaBune<T_ParticleShape> >
 {
     typedef ::PMacc::math::CT::Int < 1, 1, 1 > LowerMargin;
     typedef ::PMacc::math::CT::Int < 2, 2, 2 > UpperMargin;

@@ -1,90 +1,23 @@
 /**
  * Copyright 2013-2014 Axel Huebl, Rene Widera, Felix Schmitt
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
- 
-
 
 #pragma once
 
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/pair.hpp>
-
-#include "compileTime/conversion/MakeSeq.hpp"
-
-/** some forward declarations we need */
-#include "fields/Fields.def"
-#include "particles/Species.hpp"
 #include "particles/particleToGrid/ComputeGridValuePerFrame.hpp"
-
-namespace picongpu
-{
-    /** 
-     *  Possible fields: FieldE, FieldB, FieldJ
-     */
-    typedef typename MakeSeq<FieldE, FieldB>::type NativeFileOutputFields;
-    
-    typedef VectorAllSpecies FileOutputParticles;
-    
-    /** TimeAvg Fields
-     * \todo Reduce/Avg on host-side RAM with a plugin
-     */
-    
-    /** FieldTmp output (calculated at runtime)
-     */
-    using namespace particleToGrid;
-    
-    typedef ComputeGridValuePerFrame<
-            speciesParticleShape::ParticleShape::ChargeAssignment,
-            ComputeGridValueOptions::calcDensity
-        > TmpParticleDensity;
-    
-    typedef ComputeGridValuePerFrame<
-            speciesParticleShape::ParticleShape::ChargeAssignment,
-            ComputeGridValueOptions::calcEnergyDensity
-        > TmpParticleEnergyDensity;
-    
-    typedef ComputeGridValuePerFrame<
-            particleShape::Counter::ChargeAssignment,
-            ComputeGridValueOptions::calcCounter
-        > TmpParticleCounter;
-
-    /** List of solvers that use FieldTmp and electrons */
-    typedef typename MakeSeq<
-#if (ENABLE_ELECTRONS == 1)
-        FieldTmpOperation< TmpParticleDensity, PIC_Electrons > ,
-        FieldTmpOperation< TmpParticleEnergyDensity, PIC_Electrons >
-#endif
-    >::type PluginsFileOutputFieldsElectrons;
-
-    /** List of solvers that use FieldTmp and ions */
-    typedef typename MakeSeq<
-#if (ENABLE_IONS == 1)
-        FieldTmpOperation< TmpParticleDensity, PIC_Ions >,
-        FieldTmpOperation< TmpParticleEnergyDensity, PIC_Ions >
-#endif
-    >::type PluginsFileOutputFieldsIons;
-    
-    
-    /** This list is use to dump fields to a file. */
-    typedef typename MakeSeq<
-            NativeFileOutputFields,
-            PluginsFileOutputFieldsElectrons,
-            PluginsFileOutputFieldsIons
-    >::type FileOutputFields;
-}

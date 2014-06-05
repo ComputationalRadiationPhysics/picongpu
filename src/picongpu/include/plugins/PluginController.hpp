@@ -1,21 +1,21 @@
 /**
  * Copyright 2013-2014 Axel Huebl, Benjamin Schneider, Felix Schmitt, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 
@@ -26,8 +26,6 @@
 #include "simulation_defines.hpp"
 #include "simulation_types.hpp"
 
-
-#include "particles/Species.hpp"
 #include "plugins/CountParticles.hpp"
 #include "plugins/EnergyParticles.hpp"
 #include "plugins/EnergyFields.hpp"
@@ -47,7 +45,7 @@
 #include "plugins/radiation/parameters.hpp"
 #include "plugins/radiation/Radiation.hpp"
 #endif
-#include "particles/Species.hpp"
+
 #include "simulation_classTypes.hpp"
 
 #include "mappings/kernel/MappingDescription.hpp"
@@ -120,11 +118,11 @@ private:
 
 #if(ENABLE_HDF5 == 1)
     /* speciesParticleShape::ParticleShape::ChargeAssignment */
-    typedef PhaseSpaceMulti<particleShape::Counter::ChargeAssignment, PIC_Electrons> PhaseSpaceElectrons;
+    typedef PhaseSpaceMulti<particles::shapes::Counter::ChargeAssignment, PIC_Electrons> PhaseSpaceElectrons;
 #endif
 #if(SIMDIM==DIM3)
 #if(PIC_ENABLE_PNG==1)
-    typedef heiko::ParticleDensity<PIC_Electrons> HeikoParticleDensity;   
+    typedef heiko::ParticleDensity<PIC_Electrons> HeikoParticleDensity;
 #endif
 
     typedef ParticleSpectrum<PIC_Electrons> ElectronSpectrum;
@@ -150,7 +148,7 @@ private:
 #endif
 #if(ENABLE_HDF5 == 1)
     /* speciesParticleShape::ParticleShape::ChargeAssignment */
-    typedef PhaseSpaceMulti<particleShape::Counter::ChargeAssignment, PIC_Ions> PhaseSpaceIons;
+    typedef PhaseSpaceMulti<particles::shapes::Counter::ChargeAssignment, PIC_Ions> PhaseSpaceIons;
 #endif
     typedef ParticleDensity<PIC_Ions, DensityToBinary, float_X> IonsBinaryDensityBuilder;
     typedef PngPlugin<IonsBinaryDensityBuilder > BinDensityIons;
@@ -197,10 +195,10 @@ private:
         plugins.push_back(new TotalDivJ("change of total charge per timestep (single gpu)", "totalDivJ"));
         plugins.push_back(new SliceFieldEPrinter("FieldE: prints a slice of the E-field", "FieldE"));
         plugins.push_back(new SliceFieldBPrinter("FieldB: prints a slice of the B-field", "FieldB"));
-        
+
         plugins.push_back(new IntensityPlugin("Intensity", "intensity"));
 #endif
-        
+
 #if (ENABLE_ELECTRONS == 1)
 #if(ENABLE_HDF5 == 1)
         plugins.push_back(new PhaseSpaceElectrons("PhaseSpace Electrons", "ps_e"));
@@ -245,7 +243,7 @@ private:
         plugins.push_back(new IonMakroParticleCounterPerSuperCell("IonsMakroParticleCounterPerSuperCell","countPerSuperCell_i"));
 #endif
 #endif
-        
+
         /**
          * Add your plugin here, guard with pragmas if it depends on compile-time switches.
          * Plugins must be heap-allocated (use 'new').

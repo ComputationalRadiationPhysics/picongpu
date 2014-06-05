@@ -1,32 +1,32 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
-#ifndef PARTICLE_SHAPE_PCS_HPP
-#define PARTICLE_SHAPE_PCS_HPP
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
 
 #include "simulation_defines.hpp"
 
 namespace picongpu
 {
-
-namespace particleShape
+namespace particles
+{
+namespace shapes
 {
 
 namespace shared_PCS
@@ -40,7 +40,7 @@ protected:
     HDINLINE static float_X ff_1st_radius(const float_X x)
     {
         /*
-         * W(x)=1/6*(4 - 6*x^2 + 3*|x|^3) 
+         * W(x)=1/6*(4 - 6*x^2 + 3*|x|^3)
          */
         const float_X square_x = x*x;
         const float_X triple_x = square_x*x;
@@ -50,7 +50,7 @@ protected:
     HDINLINE static float_X ff_2nd_radius(const float_X x)
     {
         /*
-         * W(x)=1/6*(2 - |x|)^3 
+         * W(x)=1/6*(2 - |x|)^3
          */
         const float_X tmp = (float_X(2.0) - x);
         const float_X triple_tmp = tmp * tmp * tmp;
@@ -59,18 +59,18 @@ protected:
 };
 
 } //namespace shared_PCS
-struct PCS : public picongpu::particleShape::shared_PCS::PCS
+struct PCS : public shared_PCS::PCS
 {
 
-    struct ChargeAssignment : public picongpu::particleShape::shared_PCS::PCS
+    struct ChargeAssignment : public shared_PCS::PCS
     {
 
         HDINLINE float_X operator()(const float_X x)
         {
             /*       -
              *       |  1/6*(4 - 6*x^2 + 3*|x|^3)   if 0<=|x|<1
-             * W(x)=<|  1/6*(2 - |x|)^3             if 1<=|x|<2 
-             *       |  0                           otherwise 
+             * W(x)=<|  1/6*(2 - |x|)^3             if 1<=|x|<2
+             *       |  0                           otherwise
              *       -
              */
             float_X abs_x = algorithms::math::abs(x);
@@ -83,15 +83,15 @@ struct PCS : public picongpu::particleShape::shared_PCS::PCS
         }
     };
 
-    struct ChargeAssignmentOnSupport : public picongpu::particleShape::shared_PCS::PCS
+    struct ChargeAssignmentOnSupport : public shared_PCS::PCS
     {
 
         HDINLINE float_X operator()(const float_X x)
         {
             /*       -
              *       |  1/6*(4 - 6*x^2 + 3*|x|^3)   if 0<=|x|<1
-             * W(x)=<|  
-             *       |  1/6*(2 - |x|)^3             if 1<=|x|<2 
+             * W(x)=<|
+             *       |  1/6*(2 - |x|)^3             if 1<=|x|<2
              *       -
              */
             float_X abs_x = algorithms::math::abs(x);
@@ -112,8 +112,6 @@ struct PCS : public picongpu::particleShape::shared_PCS::PCS
 
 };
 
-}
-
+} // namespace shapes
+} //namespace particles
 } //namespace picongpu
-
-#endif // PARTICLE_SHAPE_PCS_HPP

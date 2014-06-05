@@ -1,23 +1,23 @@
 /**
  * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 
 #ifndef PARTICLESINITONEPARTICLE_HPP
@@ -55,7 +55,7 @@ __global__ void kernelAddOneParticle(ParBox pb,
 
 
 
-    // many particle loop:                                                                                                                                                                
+    // many particle loop:
     for (unsigned i = 0; i < 1; ++i)
     {
 
@@ -64,9 +64,9 @@ __global__ void kernelAddOneParticle(ParBox pb,
 
         const float_X GAMMA0 = (float_X) (1.0 / sqrt(1.0 - (BETA0_X * BETA0_X + BETA0_Y * BETA0_Y + BETA0_Z * BETA0_Z)));
         float3_X mom = float3_X(
-                                GAMMA0 * par.getMass(parWeighting) * float_X(BETA0_X) * SPEED_OF_LIGHT,
-                                GAMMA0 * par.getMass(parWeighting) * float_X(BETA0_Y) * SPEED_OF_LIGHT,
-                                GAMMA0 * par.getMass(parWeighting) * float_X(BETA0_Z) * SPEED_OF_LIGHT
+                                GAMMA0 * getMass<FRAME>(parWeighting) * float_X(BETA0_X) * SPEED_OF_LIGHT,
+                                GAMMA0 * getMass<FRAME>(parWeighting) * float_X(BETA0_Y) * SPEED_OF_LIGHT,
+                                GAMMA0 * getMass<FRAME>(parWeighting) * float_X(BETA0_Z) * SPEED_OF_LIGHT
                                 );
 
         par[position_] = pos;
@@ -93,7 +93,7 @@ public:
         PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
         const DataSpace<DIM3> globalTopLeft = simBox.getGlobalOffset();
         const DataSpace<DIM3> localSimulationArea = simBox.getLocalSize();
-        
+
         DataSpace<DIM3> localParCell = globalCell - globalTopLeft;
 
 
@@ -104,10 +104,10 @@ public:
                 return;
         }
 
-        //calculate supercell 
+        //calculate supercell
         DataSpace<DIM3> localSuperCell = (localParCell / MappingDesc::SuperCellSize::toRT());
         DataSpace<DIM3> cellInSuperCell = localParCell - (localSuperCell * MappingDesc::SuperCellSize::toRT());
-        //add garding blocks to supercell 
+        //add garding blocks to supercell
         localSuperCell = localSuperCell + cellDescription.getGuardingSuperCells();
 
         std::cout << "localParCell: " << localParCell << std::endl;

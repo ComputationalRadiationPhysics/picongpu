@@ -26,15 +26,6 @@
 
 namespace picongpu
 {
-
-    /*! Particle Shape definitions --------------------------------------------------
-     *  - shapeNGP : 0th order (not implemented)
-     *  - shapeCIC : 1st order
-     *  - shapeTSC : 2nd order (requires CUDA_ARCH>=sm_20)
-     *  - shapePCS : 3rd order (requires CUDA_ARCH>=sm_20)
-     */
-    namespace speciesParticleShape = shapeCIC;
-
     /** Initial Temperature of the electron plasma in keV
      *  unit: keV */
     const double ELECTRON_TEMPERATURE_keV = 0.0;

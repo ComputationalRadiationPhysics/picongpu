@@ -34,15 +34,6 @@ namespace picongpu
  */
 const size_t totalFreeGpuMemory = 400 *1024*1024;
 
-/* Factor of the species / sum of all species = relative memory usage
- *   Example:
- *     ions_memory_factor = 1;
- *     electrons_memory_factor = 4;
- *   Result: electrons (80%) get 4 times more memory than ions (20%).
- */
-const double ions_memory_factor = 2;
-const double electrons_memory_factor = 2;
-
 /* short namespace*/
 namespace mCT=PMacc::math::CT;
 /** size of a superCell

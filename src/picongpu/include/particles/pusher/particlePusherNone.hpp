@@ -27,8 +27,6 @@ namespace picongpu
 {
     namespace particlePusherNone
     {
-
-        template<class Velocity, class Gamma>
         struct Push
         {
 

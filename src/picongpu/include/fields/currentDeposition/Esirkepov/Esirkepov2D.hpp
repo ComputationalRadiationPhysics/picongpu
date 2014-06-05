@@ -34,7 +34,7 @@
 
 namespace picongpu
 {
-namespace currentSolverEsirkepov
+namespace currentSolver
 {
 using namespace PMacc;
 
@@ -224,6 +224,6 @@ struct Esirkepov<T_ParticleShape,DIM2>
     }
 };
 
-} //namespace currentSolverEsirkepov
+} //namespace currentSolver
 
 } //namespace picongpu

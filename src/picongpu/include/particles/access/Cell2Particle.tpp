@@ -23,8 +23,6 @@
 #include "math/MapTuple.hpp"
 #include <boost/mpl/void.hpp>
 
-namespace mpl = boost::mpl;
-
 namespace particleAccess
 {
 

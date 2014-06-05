@@ -1,0 +1,137 @@
+/**
+ * Copyright 2013-2014 Rene Widera
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+
+#pragma once
+
+#include "simulation_defines.hpp"
+#include "particles/Identifier.hpp"
+#include "compileTime/conversion/MakeSeq.hpp"
+#include "dimensions/DataSpace.hpp"
+#include "identifier/identifier.hpp"
+#include "identifier/alias.hpp"
+#include "identifier/value_identifier.hpp"
+
+#include "particles/Particles.hpp"
+#include "particles/ParticleDescription.hpp"
+#include <boost/mpl/string.hpp>
+
+namespace picongpu
+{
+
+/*########################### define particle attributes #####################*/
+
+/** describe attributes of a particle*/
+typedef typename MakeSeq<position<position_pic>, momentum, weighting>::type DefaultParticleAttributes;
+
+
+/** \todo: not nice, we change this later with nice interfaces
+ * Plugins should add required attributes
+ */
+
+/*add old momentum for radiation plugin*/
+typedef typename MakeSeq<
+#if(ENABLE_RADIATION == 1)
+momentumPrev1
+#endif
+>::type AttributMomentum_mt1;
+
+/*add old radiation flag for radiation plugin*/
+typedef typename MakeSeq<
+#if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
+radiationFlag
+#endif
+>::type AttributRadiationFlag;
+
+typedef
+typename MakeSeq<
+DefaultParticleAttributes,
+AttributMomentum_mt1,
+AttributRadiationFlag
+>::type DefaultAttributesSeq;
+
+/*########################### end particle attributes ########################*/
+
+/*########################### define species #################################*/
+
+
+/*--------------------------- electrons --------------------------------------*/
+
+typedef bmpl::vector<
+    particlePusher<UsedParticlePusher>,
+    shape<UsedParticleShape>,
+    interpolation<UsedField2Particle>,
+    current<UsedParticleCurrentSolver>
+> ParticleFlagsElectrons;
+
+/*define specie electrons*/
+typedef Particles<ParticleDescription<
+    bmpl::string<'e'>,
+    SuperCellSize,
+    DefaultAttributesSeq,
+    ParticleFlagsElectrons,
+    typename MakeSeq<CommunicationId<PAR_ELECTRONS>,MemoryFactor<2> >::type  >
+> PIC_Electrons;
+
+/*--------------------------- ions -------------------------------------------*/
+
+typedef particles::shapes::CIC IonShape;
+typedef bmpl::vector<
+    particlePusher<UsedParticlePusher>,
+    shape<UsedParticleShape>,
+    interpolation<UsedField2Particle>,
+    current<UsedParticleCurrentSolver>
+> ParticleFlagsIons;
+
+/*define specie ions*/
+typedef Particles<ParticleDescription<
+    bmpl::string<'i'>,
+    SuperCellSize,
+    DefaultAttributesSeq,
+    ParticleFlagsIons,
+    typename MakeSeq<CommunicationId<PAR_IONS>,MemoryFactor<2> >::type >
+> PIC_Ions;
+
+/*########################### end species ####################################*/
+
+
+/*! we delete this ugly definition of VectorAllSpecies after all picongpu components
+ * support multi species */
+/** \todo: not nice, but this should be changed in the future*/
+typedef typename MakeSeq<
+#if (ENABLE_ELECTRONS == 1)
+PIC_Electrons
+#endif
+>::type Species1;
+
+typedef typename MakeSeq<
+#if (ENABLE_IONS == 1)
+PIC_Ions
+#endif
+>::type Species2;
+
+typedef typename MakeSeq<
+Species1,
+Species2
+>::type VectorAllSpecies;
+
+
+} //namespace picongpu

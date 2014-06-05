@@ -29,28 +29,3 @@
 #include "particles/shapes/CIC.hpp"
 #include "particles/shapes/TSC.hpp"
 #include "particles/shapes/PCS.hpp"
-
-
-
-namespace picongpu
-{
-
-namespace shapeCIC
-{
-typedef particleShape::CIC ParticleShape;
-}
-
-namespace shapeTSC
-{
-typedef particleShape::TSC ParticleShape;
-}
-
-namespace shapePCS
-{
-typedef particleShape::PCS ParticleShape;
-}
-
-
-}
-
-

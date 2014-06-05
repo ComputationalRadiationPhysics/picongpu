@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2014 Rene Widera
  *
  * This file is part of PIConGPU. 
  * 
@@ -16,48 +16,23 @@
  * You should have received a copy of the GNU General Public License 
  * along with PIConGPU.  
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
-
+ */
 
 #pragma once
 
-#include <string>
-
-#include "types.h"
 #include "simulation_defines.hpp"
-
 
 namespace picongpu
 {
-    using namespace PMacc;
-    
-    struct ElectronMethods
-    {
 
-        typedef float_X MassType;
-        typedef float_X ChargeType;
-        
+template<typename T_Frame>
+HDINLINE static float_X getCharge(float_X weighting);
 
-        HDINLINE static float_X getM0_2(const float_X weighting)
-        {
-            return (M_EL * M_EL * weighting * weighting);
-        }
 
-        HDINLINE static MassType getMass(const float_X weighting)
-        {
-            return (M_EL * weighting);
-        }
+template<typename T_Frame>
+HDINLINE static float_X getCharge(float_X weighting,const T_Frame&)
+{
+    return getCharge<T_Frame>(weighting);
+}
 
-        HDINLINE static ChargeType getCharge(const float_X weighting)
-        {
-            return (Q_EL * weighting);
-        }
-
-        enum
-        {
-            CommunicationTag = PAR_ELECTRONS
-        };
-    };
-
-}//namespace picongpu
+}// namespace picongpu
