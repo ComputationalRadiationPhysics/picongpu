@@ -32,6 +32,9 @@
 #include <boost/mpl/copy.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/back_inserter.hpp>
+#include <boost/mpl/insert.hpp>
+#include <boost/mpl/equal_to.hpp>
+#include <boost/mpl/if.hpp>
 #include "compileTime/AllCombinations.hpp"
 #include "fields/currentDeposition/ZigZag/EvalAssignmentFunction.hpp"
 
@@ -41,35 +44,60 @@ namespace currentSolverZigZag
 {
 using namespace PMacc;
 
-template<typename T_MathVec, typename T_Shape, typename T_Vec>
+template<typename T_ShapeComponent, typename T_CurrentDirection, typename T_GridPointVec, typename T_Shape>
+struct EvalAssignmentFunctionOfDirection
+{
+
+    HDINLINE void
+    operator()(float_X& result, const floatD_X& pos)
+    {
+        typedef T_GridPointVec GridPointVec;
+        typedef T_ShapeComponent ShapeComponent;
+        typedef T_CurrentDirection CurrentDirection;
+
+        const int component = ShapeComponent::value;
+
+        typedef typename bmpl::if_ <
+            bmpl::equal_to<ShapeComponent, CurrentDirection>,
+            typename T_Shape::CloudShape,
+            T_Shape
+            >::type Shape;
+
+        typedef typename GridPointVec::template at<component>::type GridPoint;
+        EvalAssignmentFunction< Shape, GridPoint > AssignmentFunction;
+
+        const float_X gridPoint = GridPoint::value;
+        const float_X shape_value = AssignmentFunction(gridPoint - pos[component]);
+        result *= shape_value;
+    }
+};
+
+template<typename T_GridPointVec, typename T_Shape, typename T_CurrentComponent>
 struct AssignChargeToCell
 {
 
     template<typename T_Cursor>
     HDINLINE void
-    operator()(T_Cursor& cursor, const float3_X& pos, const float_X F)
+    operator()(T_Cursor& cursor, const floatD_X& pos, const float_X F)
     {
-        typedef T_MathVec MathVec;
+        typedef T_GridPointVec GridPointVec;
+        typedef T_Shape Shape;
+        typedef T_CurrentComponent CurrentComponent;
 
-        const int x = MathVec::x::value;
-        const int y = MathVec::y::value;
-        const int z = MathVec::z::value;
+        typedef boost::mpl::range_c<int, 0, simDim > ShapeComponentsRange;
+        /* this transformation is needed to use boost::ml::accumulate on ComponentsRange*/
+        typedef typename MakeSeq< ShapeComponentsRange>::type ShapeComponents;
 
-        EvalAssignmentFunction<typename T_Shape::CloudShape, typename MathVec::x> AssignmentFunctionX;
-        EvalAssignmentFunction< T_Shape, typename MathVec::y> AssignmentFunctionY;
-        EvalAssignmentFunction< T_Shape, typename MathVec::z> AssignmentFunctionZ;
+        ForEach<ShapeComponents,
+            EvalAssignmentFunctionOfDirection<bmpl::_1, CurrentComponent, GridPointVec, Shape>
+            > evalShape;
+        float_X j = F;
+        evalShape(forward(j), pos);
 
-        const float_X shape_x = AssignmentFunctionX(float_X(x) - pos.x());
-        const float_X shape_y = AssignmentFunctionY(float_X(y) - pos.y());
-        const float_X shape_z = AssignmentFunctionZ(float_X(z) - pos.z());
+        const uint32_t currentComponent = CurrentComponent::value;
 
-        DataSpace<DIM3> jIdx;
-        jIdx[T_Vec::x::value] = x;
-        jIdx[T_Vec::y::value] = y;
-        jIdx[T_Vec::z::value] = z;
-        const float_X j = F * shape_x * shape_y*shape_z;
-        PMACC_AUTO(cursorToValue, cursor(jIdx));
-        atomicAddWrapper(&((*cursorToValue)[T_Vec::x::value]), j);
+        PMACC_AUTO(cursorToValue, cursor(GridPointVec::toRT()));
+        atomicAddWrapper(&((*cursorToValue)[currentComponent]), j);
     }
 };
 
@@ -102,18 +130,19 @@ struct ZigZag<T_ParticleShape, DIM3>
     static const int dir_begin = -supp_dir / 2 + (supp_dir + 1) % 2;
     static const int dir_end = dir_begin + supp_dir;
 
-    template<typename T_Swivel>
+    template<typename T_CurrentComponent>
     struct AssignOneDirection
     {
 
         template<typename T_Cursor>
         HDINLINE void
-        operator()(T_Cursor cursor, float3_X pos, const float3_X& F)
+        operator()(T_Cursor cursor, floatD_X pos, const float3_X& F)
         {
-            const uint32_t dir = T_Swivel::x::value;
+            typedef T_CurrentComponent CurrentComponent;
+            const uint32_t dir = CurrentComponent::value;
 
-            typedef PMacc::math::CT::Int<supp, supp, supp> Supports_full;
-            typedef typename PMacc::math::CT::Assign<
+            typedef typename PMacc::math::CT::make_Int<simDim, supp>::type Supports_full;
+            typedef typename PMacc::math::CT::AssignIfInRange<
                 typename Supports_full::This,
                 bmpl::integral_c<uint32_t, dir>,
                 bmpl::integral_c<int, supp_dir> >::type Supports_direction;
@@ -125,18 +154,19 @@ struct ZigZag<T_ParticleShape, DIM3>
              */
             ShiftCoordinateSystem<Supports_direction>()(cursor, pos, fieldSolver::NumericalCellType::getEFieldPosition()[dir]);
 
-            const float3_X pos_dir(pos[T_Swivel::x::value],
-                                   pos[T_Swivel::y::value],
-                                   pos[T_Swivel::z::value]);
+            typedef typename PMacc::math::CT::make_Vector<
+                simDim,
+                boost::mpl::range_c<int, begin, end > >::type Size_full;
 
-            typedef boost::mpl::vector3<
-                boost::mpl::range_c<int, dir_begin, dir_end >,
-                boost::mpl::range_c<int, begin, end >,
-                boost::mpl::range_c<int, begin, end > > Size;
+            typedef typename PMacc::math::CT::AssignIfInRange<
+                typename Size_full::This,
+                bmpl::integral_c<uint32_t, dir>,
+                boost::mpl::range_c<int, dir_begin, dir_end > >::type::mplVector Size;
+
+
             typedef typename AllCombinations<Size>::type CombiTypes;
-
-            ForEach<CombiTypes, AssignChargeToCell<bmpl::_1, ParticleShape, T_Swivel> > callAssignChargeToCell;
-            callAssignChargeToCell(forward(cursor), pos_dir, F[dir]);
+            ForEach<CombiTypes, AssignChargeToCell<bmpl::_1, ParticleShape, CurrentComponent > > callAssignChargeToCell;
+            callAssignChargeToCell(forward(cursor), pos, F[dir]);
         }
 
     };
@@ -204,15 +234,13 @@ struct ZigZag<T_ParticleShape, DIM3>
 
             }
 
-
             PMACC_AUTO(cursorJ, dataBoxJ.shift(precisionCast<int>(I[parId])).toCursor());
 
-            typedef bmpl::vector3<
-                PMacc::math::CT::Int < 0, 1, 2 >,
-                PMacc::math::CT::Int < 1, 2, 0 >,
-                PMacc::math::CT::Int < 2, 0, 1 > > Directions;
+            typedef boost::mpl::range_c<int, 0, 3 > ComponentsRange;
+            /* this transformation is needed to use boost::ml::accumulate on ComponentsRange*/
+            typedef typename MakeSeq<ComponentsRange>::type Components;
 
-            ForEach<Directions, AssignOneDirection<bmpl::_1> > callAssignOneDirection;
+            ForEach<Components, AssignOneDirection<bmpl::_1> > callAssignOneDirection;
             callAssignOneDirection(forward(cursorJ), IcP, F);
         }
     }
