@@ -250,7 +250,8 @@ namespace picongpu
         if( this->commFileWriter != MPI_COMM_NULL )
             dumpHBuffer( hReducedBuffer, this->axis_element,
                          this->axis_p_range, pRange_unit,
-                         unit, currentStep, this->commFileWriter );
+                         unit, Species::FrameType::getName(),
+                         currentStep, this->commFileWriter );
     }
 
     template<class AssignmentFunction, class Species>

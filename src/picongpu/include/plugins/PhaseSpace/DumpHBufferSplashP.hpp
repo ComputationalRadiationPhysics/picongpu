@@ -54,6 +54,7 @@ namespace picongpu
          * \param hBuffer const reference to the hBuffer, including guard cells in spatial dimension
          * \param axis_element plot to create: e.g. py, x from momentum/spatial-coordinate
          * \param unit sim unit of the buffer
+         * \param strSpecies unique short hand name of the species
          * \param currentStep current time step
          * \param mpiComm communicator of the participating ranks
          */
@@ -63,6 +64,7 @@ namespace picongpu
                          const std::pair<float_X, float_X> axis_p_range,
                          const float_64 pRange_unit,
                          const float_64 unit,
+                         const std::string strSpecies,
                          const uint32_t currentStep,
                          MPI_Comm mpiComm ) const
         {
@@ -75,6 +77,7 @@ namespace picongpu
             std::string fCoords("xyz");
             std::ostringstream filename;
             filename << "phaseSpace/PhaseSpace_"
+                     << strSpecies << "_"
                      << fCoords.at(axis_element.space)
                      << "p" << fCoords.at(axis_element.momentum);
 
