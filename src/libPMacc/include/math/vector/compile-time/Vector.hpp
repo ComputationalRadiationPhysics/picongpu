@@ -35,6 +35,7 @@
 #include <boost/mpl/int.hpp>
 #include <boost/mpl/apply.hpp>
 #include <boost/mpl/accumulate.hpp>
+#include <boost/mpl/less.hpp>
 #include "math/Vector.hpp"
 
 namespace PMacc
@@ -310,29 +311,107 @@ struct shrinkTo<T_Vec, DIM1>
 /** Assign a type to a given component in the CT::Vector
  *
  * @tparam T_Vec math::CT::Vector which should be changed
- * @tparam T_ComponentPos number of component to changed (type must be bmpl::integral_c<uint32_t,X>)
+ * @tparam T_ComponentPos number of component to changed (type must be bmpl::integral_c<anyType,X>)
  * @tparam T_Value new value
  * @tparam[out] ::type
  */
 template<typename T_Vec, typename T_ComponentPos, typename T_Value>
 struct Assign;
 
-template<typename T_Value, typename T_0, typename T_1, typename T_2>
-struct Assign<PMacc::math::CT::Vector<T_0, T_1, T_2>, bmpl::integral_c<uint32_t,0> , T_Value>
+template<typename T_Value, typename T_0, typename T_1, typename T_2, typename T_IntegralType>
+struct Assign<PMacc::math::CT::Vector<T_0, T_1, T_2>, bmpl::integral_c<T_IntegralType,0> , T_Value>
 {
     typedef PMacc::math::CT::Vector<T_Value, T_1, T_2> type;
 };
 
-template<typename T_Value, typename T_0, typename T_1, typename T_2>
-struct Assign<PMacc::math::CT::Vector<T_0, T_1, T_2>, bmpl::integral_c<uint32_t,1>, T_Value>
+template<typename T_Value, typename T_0, typename T_1, typename T_2, typename T_IntegralType>
+struct Assign<PMacc::math::CT::Vector<T_0, T_1, T_2>, bmpl::integral_c<T_IntegralType,1>, T_Value>
 {
     typedef PMacc::math::CT::Vector<T_0, T_Value, T_2> type;
 };
 
-template<typename T_Value, typename T_0, typename T_1, typename T_2>
-struct Assign<PMacc::math::CT::Vector<T_0, T_1, T_2>, bmpl::integral_c<uint32_t,2>, T_Value>
+template<typename T_Value, typename T_0, typename T_1, typename T_2, typename T_IntegralType>
+struct Assign<PMacc::math::CT::Vector<T_0, T_1, T_2>, bmpl::integral_c<T_IntegralType,2>, T_Value>
 {
     typedef PMacc::math::CT::Vector<T_0, T_1, T_Value> type;
+};
+
+/** Assign a type to a given component in the CT::Vector if position is not out of range
+ *
+ * if T_ComponentPos < T_Vec::dim ? T_Value is assigned to component T_ComponentPos
+ * else nothing is done
+ *
+ * @tparam T_Vec math::CT::Vector which should be changed
+ * @tparam T_ComponentPos number of component to changed (type must be bmpl::integral_c<anyType,X>)
+ * @tparam T_Value new value
+ * @tparam[out] ::type
+ */
+template<typename T_Vec, typename T_ComponentPos, typename T_Value>
+struct AssignIfInRange
+{
+    typedef bmpl::integral_c<size_t,T_Vec::dim> VectorDim;
+    typedef typename bmpl::if_<
+    bmpl::less<T_ComponentPos, VectorDim>,
+        typename PMacc::math::CT::Assign<T_Vec,T_ComponentPos,T_Value>::type,
+        T_Vec
+        >::type type;
+};
+
+//________________________At_c____________________________
+
+/** get element from a CT::Vector
+ *
+ * @tparam T_Vec input CT::Vector
+ * @tparam T_idx integral index of the component
+ * @tparam[out] ::type result type
+ */
+template<typename T_Vec,size_t T_idx>
+struct At_c
+{
+    typedef typename mpl::at_c<typename T_Vec::mplVector,T_idx>::type type;
+};
+
+//________________________At____________________________
+
+/** get element from a CT::Vector
+ *
+ * @tparam T_Vec input CT::Vector
+ * @tparam T_Idx integral type index of the component (e.g. boost::mpl::int_<2>)
+ * @tparam[out] ::type result type
+ */
+template<typename T_Vec, typename T_Idx>
+struct At
+{
+    typedef typename mpl::at<typename T_Vec::mplVector,T_Idx>::type type;
+};
+
+//________________________make_Vector___________________
+
+/** create CT::Vector with equal elements
+ *
+ * @tparam T_dim count of components
+ * @tparam T_Type type which is assigned to all components
+ * @tparam[out] ::type result type
+ */
+template<int T_dim, typename T_Type>
+struct make_Vector;
+
+template<typename T_Type>
+struct make_Vector<1, T_Type>
+{
+    typedef PMacc::math::CT::Vector<T_Type> type;
+};
+
+template<typename T_Type>
+struct make_Vector<2, T_Type>
+{
+    typedef PMacc::math::CT::Vector<T_Type, T_Type> type;
+};
+
+template<typename T_Type>
+struct make_Vector<3, T_Type>
+{
+    typedef PMacc::math::CT::Vector<T_Type, T_Type, T_Type> type;
 };
 
 } // CT
