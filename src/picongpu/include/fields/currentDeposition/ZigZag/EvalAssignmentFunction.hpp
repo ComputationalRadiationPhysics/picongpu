@@ -56,9 +56,9 @@ struct EvalAssignmentFunction
 };
 
 template<>
-struct EvalAssignmentFunction<picongpu::particleShape::TSC, bmpl::integral_c<int, 0> >
+struct EvalAssignmentFunction<picongpu::particles::shapes::TSC, bmpl::integral_c<int, 0> >
 {
-    typedef typename picongpu::particleShape::TSC ParticleAssign;
+    typedef typename picongpu::particles::shapes::TSC ParticleAssign;
 
     HDINLINE float_X
     operator()(const float_X delta)
@@ -68,9 +68,9 @@ struct EvalAssignmentFunction<picongpu::particleShape::TSC, bmpl::integral_c<int
 };
 
 template<>
-struct EvalAssignmentFunction<picongpu::particleShape::TSC, bmpl::integral_c<int, 1> >
+struct EvalAssignmentFunction<picongpu::particles::shapes::TSC, bmpl::integral_c<int, 1> >
 {
-    typedef typename picongpu::particleShape::TSC ParticleAssign;
+    typedef typename picongpu::particles::shapes::TSC ParticleAssign;
 
     HDINLINE float_X
     operator()(const float_X delta)
@@ -80,9 +80,9 @@ struct EvalAssignmentFunction<picongpu::particleShape::TSC, bmpl::integral_c<int
 };
 
 template<>
-struct EvalAssignmentFunction<picongpu::particleShape::TSC, bmpl::integral_c<int, -1 > >
+struct EvalAssignmentFunction<picongpu::particles::shapes::TSC, bmpl::integral_c<int, -1 > >
 {
-    typedef typename picongpu::particleShape::TSC ParticleAssign;
+    typedef typename picongpu::particles::shapes::TSC ParticleAssign;
 
     HDINLINE float_X
     operator()(const float_X delta)
@@ -92,9 +92,9 @@ struct EvalAssignmentFunction<picongpu::particleShape::TSC, bmpl::integral_c<int
 };
 
 template<>
-struct EvalAssignmentFunction<picongpu::particleShape::PCS, bmpl::integral_c<int, 0> >
+struct EvalAssignmentFunction<picongpu::particles::shapes::PCS, bmpl::integral_c<int, 0> >
 {
-    typedef typename picongpu::particleShape::PCS ParticleAssign;
+    typedef typename picongpu::particles::shapes::PCS ParticleAssign;
 
     HDINLINE float_X
     operator()(const float_X delta)
@@ -104,9 +104,9 @@ struct EvalAssignmentFunction<picongpu::particleShape::PCS, bmpl::integral_c<int
 };
 
 template<>
-struct EvalAssignmentFunction<picongpu::particleShape::PCS, bmpl::integral_c<int, 1> >
+struct EvalAssignmentFunction<picongpu::particles::shapes::PCS, bmpl::integral_c<int, 1> >
 {
-    typedef typename picongpu::particleShape::PCS ParticleAssign;
+    typedef typename picongpu::particles::shapes::PCS ParticleAssign;
 
     HDINLINE float_X
     operator()(const float_X delta)
@@ -116,9 +116,9 @@ struct EvalAssignmentFunction<picongpu::particleShape::PCS, bmpl::integral_c<int
 };
 
 template<>
-struct EvalAssignmentFunction<picongpu::particleShape::PCS, bmpl::integral_c<int, 2> >
+struct EvalAssignmentFunction<picongpu::particles::shapes::PCS, bmpl::integral_c<int, 2> >
 {
-    typedef typename picongpu::particleShape::PCS ParticleAssign;
+    typedef typename picongpu::particles::shapes::PCS ParticleAssign;
 
     HDINLINE float_X
     operator()(const float_X delta)
@@ -128,9 +128,9 @@ struct EvalAssignmentFunction<picongpu::particleShape::PCS, bmpl::integral_c<int
 };
 
 template<>
-struct EvalAssignmentFunction<picongpu::particleShape::PCS, bmpl::integral_c<int, -1 > >
+struct EvalAssignmentFunction<picongpu::particles::shapes::PCS, bmpl::integral_c<int, -1 > >
 {
-    typedef typename picongpu::particleShape::PCS ParticleAssign;
+    typedef typename picongpu::particles::shapes::PCS ParticleAssign;
 
     HDINLINE float_X
     operator()(const float_X delta)

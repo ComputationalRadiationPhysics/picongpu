@@ -40,7 +40,7 @@
 
 namespace picongpu
 {
-namespace currentSolverZigZag
+namespace currentSolver
 {
 using namespace PMacc;
 
@@ -64,7 +64,7 @@ struct EvalAssignmentFunctionOfDirection
             >::type Shape;
 
         typedef typename GridPointVec::template at<component>::type GridPoint;
-        EvalAssignmentFunction< Shape, GridPoint > AssignmentFunction;
+        currentSolverZigZag::EvalAssignmentFunction< Shape, GridPoint > AssignmentFunction;
 
         const float_X gridPoint = GridPoint::value;
         const float_X shape_value = AssignmentFunction(gridPoint - pos[component]);
@@ -110,7 +110,7 @@ struct AssignChargeToCell
  * 3. order paper: "High-Order Interpolation Algorithms for Charge Conservation in Particle-in-Cell Simulation"
  *                 by Jinqing Yu, Xiaolin Jin, Weimin Zhou, Bin Li, Yuqiu Gu
  */
-template<typename T_ParticleShape, uint32_t T_Dim>
+template<typename T_ParticleShape>
 struct ZigZag
 {
     typedef T_ParticleShape ParticleShape;
@@ -170,17 +170,6 @@ struct ZigZag
         }
 
     };
-
-    /* begin and end border is calculated for a particle with a support which travels
-     * to the negative direction.
-     * Later on all coordinates shifted thus we can solve the charge calculation
-     * independend from the position of the particle. That means we must not look
-     * if a particle position is >0.5 oder not (this is done by coordinate shifting to this defined range)
-     *
-     * (supp + 1) % 2 is 1 for even supports else 0
-     */
-
-    float_X charge;
 
     template<typename DataBoxJ, typename PosType, typename VelType, typename ChargeType >
     DINLINE void operator()(DataBoxJ dataBoxJ,
@@ -276,6 +265,6 @@ private:
     }
 };
 
-} //namespace currentSolverZigZag
+} //namespace currentSolver
 
 } //namespace picongpu
