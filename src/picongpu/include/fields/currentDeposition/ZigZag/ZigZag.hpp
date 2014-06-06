@@ -110,8 +110,8 @@ struct AssignChargeToCell
  * 3. order paper: "High-Order Interpolation Algorithms for Charge Conservation in Particle-in-Cell Simulation"
  *                 by Jinqing Yu, Xiaolin Jin, Weimin Zhou, Bin Li, Yuqiu Gu
  */
-template<typename T_ParticleShape>
-struct ZigZag<T_ParticleShape, DIM3>
+template<typename T_ParticleShape, uint32_t T_Dim>
+struct ZigZag
 {
     typedef T_ParticleShape ParticleShape;
     typedef typename ParticleShape::ChargeAssignmentOnSupport ParticleAssign;
@@ -119,8 +119,8 @@ struct ZigZag<T_ParticleShape, DIM3>
 
     static const int currentLowerMargin = supp / 2 + 1;
     static const int currentUpperMargin = (supp + 1) / 2 + 1;
-    typedef PMacc::math::CT::Int<currentLowerMargin, currentLowerMargin, currentLowerMargin> LowerMargin;
-    typedef PMacc::math::CT::Int<currentUpperMargin, currentUpperMargin, currentUpperMargin> UpperMargin;
+    typedef typename PMacc::math::CT::make_Int<simDim, currentLowerMargin>::type LowerMargin;
+    typedef typename PMacc::math::CT::make_Int<simDim, currentUpperMargin>::type UpperMargin;
 
     static const int begin = -supp / 2 + (supp + 1) % 2;
     static const int end = begin + supp;
@@ -136,7 +136,7 @@ struct ZigZag<T_ParticleShape, DIM3>
 
         template<typename T_Cursor>
         HDINLINE void
-        operator()(T_Cursor cursor, floatD_X pos, const float3_X& F)
+        operator()(T_Cursor cursor, floatD_X pos, const float3_X& flux)
         {
             typedef T_CurrentComponent CurrentComponent;
             const uint32_t dir = CurrentComponent::value;
@@ -166,7 +166,7 @@ struct ZigZag<T_ParticleShape, DIM3>
 
             typedef typename AllCombinations<Size>::type CombiTypes;
             ForEach<CombiTypes, AssignChargeToCell<bmpl::_1, ParticleShape, CurrentComponent > > callAssignChargeToCell;
-            callAssignChargeToCell(forward(cursor), pos, F[dir]);
+            callAssignChargeToCell(forward(cursor), pos, flux[dir]);
         }
 
     };
@@ -189,24 +189,26 @@ struct ZigZag<T_ParticleShape, DIM3>
                             const ChargeType charge, const float_X deltaTime)
     {
 
-        const float3_X deltaPos = (velocity * deltaTime) / cellSize;
+        floatD_X deltaPos;
+        for (uint32_t d = 0; d < simDim; ++d)
+            deltaPos[d] = (velocity[d] * deltaTime) / cellSize[d];
 
-        float3_X pos[2];
+        floatD_X pos[2];
         pos[0] = (pos1 - deltaPos);
         pos[1] = (pos1);
 
-        DataSpace<DIM3> I[2];
-        float3_X r;
+        DataSpace<simDim> I[2];
+        floatD_X r;
 
 
         for (int l = 0; l < 2; ++l)
         {
-            for (uint32_t d = 0; d < DIM3; ++d)
+            for (uint32_t d = 0; d < simDim; ++d)
             {
                 I[l][d] = math::floor(pos[l][d]);
             }
         }
-        for (uint32_t d = 0; d < DIM3; ++d)
+        for (uint32_t d = 0; d < simDim; ++d)
         {
             r[d] = calc_r(I[0][d], I[1][d], pos[0][d], pos[1][d]);
         }
@@ -215,23 +217,25 @@ struct ZigZag<T_ParticleShape, DIM3>
 
         for (float l = 0; l < 2; ++l)
         {
-            float3_X IcP;
-            float3_X F;
+            floatD_X inCellPos;
+            float3_X flux;
             const int parId = l;
 
             /* sign= 1 if l=0
              * sign=-1 if l=1
              */
             float_X sign = float_X(1.) - float_X(2.) * l;
-
-            for (uint32_t d = 0; d < DIM3; ++d)
+            for (uint32_t d = 0; d < simDim; ++d)
             {
-                IcP[d] = calc_InCellPos(pos[parId][d], r[d], I[parId][d]);
                 const float_X pos_tmp = pos[parId][d];
                 const float_X r_tmp = r[d];
+                inCellPos[d] = calc_InCellPos(pos_tmp, r_tmp, I[parId][d]);
+                flux[d] = sign * calc_F(pos_tmp, r_tmp, deltaTime, charge) * volume_reci * cellSize[d];
 
-                F[d] = sign * calc_F(pos_tmp, r_tmp, deltaTime, charge) * volume_reci * cellSize[d];
-
+            }
+            for (uint32_t d = simDim; d < 3; ++d)
+            {
+                flux[d] = charge * velocity[d] * volume_reci;
             }
 
             PMACC_AUTO(cursorJ, dataBoxJ.shift(precisionCast<int>(I[parId])).toCursor());
@@ -241,7 +245,7 @@ struct ZigZag<T_ParticleShape, DIM3>
             typedef typename MakeSeq<ComponentsRange>::type Components;
 
             ForEach<Components, AssignOneDirection<bmpl::_1> > callAssignOneDirection;
-            callAssignOneDirection(forward(cursorJ), IcP, F);
+            callAssignOneDirection(forward(cursorJ), inCellPos, flux);
         }
     }
 

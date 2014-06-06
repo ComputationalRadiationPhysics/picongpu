@@ -20,8 +20,9 @@
 
 
 #include "fields/currentDeposition/Esirkepov/Esirkepov.def"
+#include "fields/currentDeposition/ZigZag/ZigZag.def"
 
 #if(SIMDIM==DIM3)
 #include "fields/currentDeposition/VillaBune/CurrentVillaBune.def"
-#include "fields/currentDeposition/ZigZag/ZigZag.def"
+
 #endif
