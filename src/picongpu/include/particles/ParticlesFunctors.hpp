@@ -92,7 +92,7 @@ struct CallCreateParticleBuffer
         typedef typename bmpl::accumulate<
             VectorAllSpecies,
             bmpl::integral_c<size_t, 0>,
-            bmpl::plus<bmpl::_1, GetMemoryFactor<bmpl::_2> >,
+            bmpl::plus<bmpl::_1, GetMemoryFactor<bmpl::_2> >
             >::type AccumulatedMemFactors;
 
         const size_t accumulatedMemFactors = AccumulatedMemFactors::value;
