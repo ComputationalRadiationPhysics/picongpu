@@ -1,23 +1,23 @@
 /**
  * Copyright 2013 Axel Huebl, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 
 #pragma once
@@ -42,10 +42,10 @@ namespace picongpu
         const float_64 ELECTRON_MASS_SI = 9.109382e-31;
         /** unit: C */
         const float_64 ELECTRON_CHARGE_SI = -1.602176e-19;
-        
+
         // Ion / Proton / Positron properties
         /** unit: kg */
-        const double ION_MASS_SI = ELECTRON_MASS_SI;
+        const float_64 ION_MASS_SI = 1.6726217e-27;
         /** unit: C */
         const float_64 ION_CHARGE_SI = -1.0 * ELECTRON_CHARGE_SI;
     }
@@ -59,7 +59,7 @@ namespace picongpu
     //                                  -> cast to float
     // WE DO NOT define "UNIT_ENERGY_keV" or something similar! Never!
     // Stay SI, stay free ;-)
-    // 
+    //
     // example:
     //   // some particle physicist beloved input:
     //   const float_64 An_Arbitrary_Energy_Input_keV = 30.0; // unit: keV
