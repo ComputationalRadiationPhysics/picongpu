@@ -41,7 +41,14 @@ namespace currentSolverZigZag
 using namespace PMacc;
 
 
-
+/** calculate the assignment factor
+ *
+ * Calculate assignment factor out of a shape depending of the distance
+ * between particle middle point and a grid point.
+ *
+ * @tparam T_Shape assignment shape of a particle
+ * @tparam T_pos grid position
+ */
 template<typename T_Shape, typename T_pos>
 struct EvalAssignmentFunction
 {

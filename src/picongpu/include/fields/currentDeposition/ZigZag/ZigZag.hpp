@@ -57,6 +57,11 @@ struct EvalAssignmentFunctionOfDirection
 
         const int component = ShapeComponent::value;
 
+        /* select assignment shape
+         * if component is equal to direction we use particle cloud shape
+         * else
+         * particle assignment shape
+         */
         typedef typename bmpl::if_ <
             bmpl::equal_to<ShapeComponent, CurrentDirection>,
             typename T_Shape::CloudShape,
@@ -67,11 +72,18 @@ struct EvalAssignmentFunctionOfDirection
         currentSolverZigZag::EvalAssignmentFunction< Shape, GridPoint > AssignmentFunction;
 
         const float_X gridPoint = GridPoint::value;
+        /* calculate assign factor*/
         const float_X shape_value = AssignmentFunction(gridPoint - pos[component]);
         result *= shape_value;
     }
 };
 
+/** functor to calculate current for one cell (grid point)
+ *
+ * @tparam T_GridPointVec integral type which define grid point
+ * @tparam T_Shape assignment shape of the particle
+ * @tparam T_CurrentComponent integral type with component information
+ */
 template<typename T_GridPointVec, typename T_Shape, typename T_CurrentComponent>
 struct AssignChargeToCell
 {
@@ -84,6 +96,7 @@ struct AssignChargeToCell
         typedef T_Shape Shape;
         typedef T_CurrentComponent CurrentComponent;
 
+        /* evaluate shape in direction [0;simDim)*/
         typedef boost::mpl::range_c<int, 0, simDim > ShapeComponentsRange;
         /* this transformation is needed to use boost::ml::accumulate on ComponentsRange*/
         typedef typename MakeSeq< ShapeComponentsRange>::type ShapeComponents;
@@ -92,11 +105,15 @@ struct AssignChargeToCell
             EvalAssignmentFunctionOfDirection<bmpl::_1, CurrentComponent, GridPointVec, Shape>
             > evalShape;
         float_X j = F;
+        /* N=simDim-1
+         * calculate j=flux*Shape_0(pos)*...*SHAPE_N(pos) */
         evalShape(forward(j), pos);
 
         const uint32_t currentComponent = CurrentComponent::value;
 
+        /* shift memory cursor to cell (grid point)*/
         PMACC_AUTO(cursorToValue, cursor(GridPointVec::toRT()));
+        /* add current to component of the cell*/
         atomicAddWrapper(&((*cursorToValue)[currentComponent]), j);
     }
 };
@@ -122,14 +139,26 @@ struct ZigZag
     typedef typename PMacc::math::CT::make_Int<simDim, currentLowerMargin>::type LowerMargin;
     typedef typename PMacc::math::CT::make_Int<simDim, currentUpperMargin>::type UpperMargin;
 
+    /* calculate grid point were we must calculate the assigned values
+     * grid points are independent of particle position if we use
+     * @see ShiftCoordinateSystem
+     * grid points were we must calculate the current [begin;end)
+     */
     static const int begin = -supp / 2 + (supp + 1) % 2;
     static const int end = begin + supp;
 
-
+    /* same as begin and end but for the direction were we calculate j
+     * supp_dir = support of the cloud shape
+     */
     static const int supp_dir = supp - 1;
     static const int dir_begin = -supp_dir / 2 + (supp_dir + 1) % 2;
     static const int dir_end = dir_begin + supp_dir;
 
+    /** functor to calculate current for one direction
+     *
+     * @tparam T_CurrentComponent integral type with component information
+     * (x=0; y=1; z=2)
+     */
     template<typename T_CurrentComponent>
     struct AssignOneDirection
     {
@@ -141,7 +170,11 @@ struct ZigZag
             typedef T_CurrentComponent CurrentComponent;
             const uint32_t dir = CurrentComponent::value;
 
+            /* create support information to shift our coordinate system
+             * use support of the particle assignment function
+             */
             typedef typename PMacc::math::CT::make_Int<simDim, supp>::type Supports_full;
+            /* set evaluation direction to the support of the cloud particle shape function*/
             typedef typename PMacc::math::CT::AssignIfInRange<
                 typename Supports_full::This,
                 bmpl::integral_c<uint32_t, dir>,
@@ -154,16 +187,18 @@ struct ZigZag
              */
             ShiftCoordinateSystem<Supports_direction>()(cursor, pos, fieldSolver::NumericalCellType::getEFieldPosition()[dir]);
 
+            /* define grid points were we must evaluate the shape function*/
             typedef typename PMacc::math::CT::make_Vector<
                 simDim,
                 boost::mpl::range_c<int, begin, end > >::type Size_full;
 
+            /* set grid points for the evaluation direction*/
             typedef typename PMacc::math::CT::AssignIfInRange<
                 typename Size_full::This,
                 bmpl::integral_c<uint32_t, dir>,
                 boost::mpl::range_c<int, dir_begin, dir_end > >::type::mplVector Size;
 
-
+            /* calculate the current for every cell (grid point)*/
             typedef typename AllCombinations<Size>::type CombiTypes;
             ForEach<CombiTypes, AssignChargeToCell<bmpl::_1, ParticleShape, CurrentComponent > > callAssignChargeToCell;
             callAssignChargeToCell(forward(cursor), pos, flux[dir]);
@@ -182,6 +217,7 @@ struct ZigZag
         for (uint32_t d = 0; d < simDim; ++d)
             deltaPos[d] = (velocity[d] * deltaTime) / cellSize[d];
 
+        /*not: all positions are normalized to the grid*/
         floatD_X pos[2];
         pos[0] = (pos1 - deltaPos);
         pos[1] = (pos1);
@@ -204,6 +240,12 @@ struct ZigZag
         const float_X volume_reci = float_X(1.0) / float_X(CELL_VOLUME);
 
 
+        /* We must use float for the loop variable because of a nvcc bug
+         * If we use int than `float_X sign = float_X(1.) - float_X(2.) * l;`
+         * creates wrong results
+         * it can be the same bug as
+         * @see https://devtalk.nvidia.com/default/topic/752200/cuda-programming-and-performance/nvcc-loop-bug-since-cuda-5-5/
+         */
         for (float l = 0; l < 2; ++l)
         {
             floatD_X inCellPos;
@@ -222,6 +264,7 @@ struct ZigZag
                 flux[d] = sign * calc_F(pos_tmp, r_tmp, deltaTime, charge) * volume_reci * cellSize[d];
 
             }
+            /* this loop is only needed for 2D, we need a flux in z direction */
             for (uint32_t d = simDim; d < 3; ++d)
             {
                 flux[d] = charge * velocity[d] * volume_reci;
@@ -229,10 +272,12 @@ struct ZigZag
 
             PMACC_AUTO(cursorJ, dataBoxJ.shift(precisionCast<int>(I[parId])).toCursor());
 
+            /*the current has three components*/
             typedef boost::mpl::range_c<int, 0, 3 > ComponentsRange;
             /* this transformation is needed to use boost::ml::accumulate on ComponentsRange*/
             typedef typename MakeSeq<ComponentsRange>::type Components;
 
+            /* calculate x,y,z component of the current*/
             ForEach<Components, AssignOneDirection<bmpl::_1> > callAssignOneDirection;
             callAssignOneDirection(forward(cursorJ), inCellPos, flux);
         }
@@ -240,6 +285,14 @@ struct ZigZag
 
 private:
 
+    /** calculate virtual point were we split our particle trajectory
+     *
+     * @param i_1 grid point which is less than x_1 (`i_1=floor(x_1)`)
+     * @param i_2 grid point which is less than x_2 (`i_2=floor(x_2)`)
+     * @param x_1 begin position of the particle trajectory
+     * @param x_2 end position of the particle trajectory
+     * @return new point for particle trajectory
+     */
     DINLINE float_X
     calc_r(const float_X i_1, const float_X i_2, const float_X x_1, const float_X x_2) const
     {
@@ -251,13 +304,31 @@ private:
         return x_r;
     }
 
+    /** get normalized average in cell particle position
+     *
+     * @param x position of the particle begin of the trajectory
+     * @param x_r position of the particle end of the trajectory
+     * @param i grid point which is less than x (`i=floor(x)`)
+     * @return average in cell position
+     */
     DINLINE float_X
     calc_InCellPos(const float_X x, const float_X x_r, const float_X i) const
     {
         return (x + x_r) / (float_X(2.0)) - i;
     }
 
-    /* for F_2 call with -x and -x_r*/
+    /** get charge flux
+     *
+     * for F_2 call with -x and -x_r
+     * or
+     * negate the result of this method (e.g. `-calc_F(...)`)
+     *
+     * @param x position of the particle begin of the trajectory
+     * @param x_r position of the particle end of the trajectory
+     * @param delta_t time difference of one simulation time step
+     * @param q charge of the particle
+     * @return flux of the moving particle
+     */
     DINLINE float_X
     calc_F(const float_X x, const float_X x_r, const float_X& delta_t, const float_X& q) const
     {

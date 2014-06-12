@@ -33,6 +33,9 @@ using namespace PMacc;
 
 /**
  * \class ZigZag charge conservation method
+ *
+ * @tparam T_ParticleShape assignment shape of a particle
+ * 
  * 1. order paper: "A new charge conservation method in electromagnetic particle-in-cell simulations"
  *                 by T. Umeda, Y. Omura, T. Tominaga, H. Matsumoto
  * 2. order paper: "Charge conservation methods for computing current densities in electromagnetic particle-in-cell simulations"
