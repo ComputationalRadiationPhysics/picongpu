@@ -46,7 +46,7 @@ using namespace PMacc;
  *  with an arbitrary form-factor"
  */
 template<typename T_ParticleShape>
-struct Esirkepov<T_ParticleShape,DIM2>
+struct Esirkepov<T_ParticleShape, DIM2>
 {
     typedef typename T_ParticleShape::ChargeAssignment ParticleAssign;
     static const int supp = ParticleAssign::support;
@@ -144,8 +144,11 @@ struct Esirkepov<T_ParticleShape,DIM2>
          * If previous position was greater than current position we change our interval
          * from [begin,end) to [begin+1,end+1).
          */
-        const int offset_i = int(line.pos0.x() > line.pos1.x());
-        const int offset_j = int(line.pos0.y() > line.pos1.y());
+        /** \todo -(-int(bool)) is a workaround for a nvcc bug
+         * @see https://devtalk.nvidia.com/default/topic/752200/cuda-programming-and-performance/nvcc-loop-bug-since-cuda-5-5/
+         */
+        const int offset_i = -(-int(line.pos0.x() > line.pos1.x()));
+        const int offset_j = -(-int(line.pos0.y() > line.pos1.y()));
 
 
         for (int j = begin + offset_j; j < end + offset_j; ++j)
@@ -180,8 +183,11 @@ struct Esirkepov<T_ParticleShape,DIM2>
          * If previous position was greater than current position we change our interval
          * from [begin,end) to [begin+1,end+1).
          */
-        const int offset_i = int(line.pos0.x() > line.pos1.x());
-        const int offset_j = int(line.pos0.y() > line.pos1.y());
+        /** \todo -(-int(bool)) is a workaround for a nvcc bug
+         * @see https://devtalk.nvidia.com/default/topic/752200/cuda-programming-and-performance/nvcc-loop-bug-since-cuda-5-5/
+         */
+        const int offset_i = -(-int(line.pos0.x() > line.pos1.x()));
+        const int offset_j = -(-int(line.pos0.y() > line.pos1.y()));
 
 
         for (int j = begin + offset_j; j < end + offset_j; ++j)
