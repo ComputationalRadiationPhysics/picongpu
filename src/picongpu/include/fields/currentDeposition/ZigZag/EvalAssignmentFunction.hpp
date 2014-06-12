@@ -55,12 +55,20 @@ struct EvalAssignmentFunction
     typedef typename T_Shape::ChargeAssignmentOnSupport ParticleAssign;
 
     HDINLINE float_X
-    operator()(const float_X delta)
+    operator()(const float_X parPos)
     {
         ParticleAssign shape;
-        return shape(delta);
+        const float_X girdPos=T_pos::value;
+        return shape(girdPos-parPos);
     }
 };
+
+/* all optimizations only allowed because we know that zigzag use ShiftCoordinateSystem
+ *
+ * for a given support the definition area of position is:
+ * - Even Support: parPos [0.0;1.0)
+ * - Odd Support:  parPos [-0.5;0.5)
+ */
 
 template<>
 struct EvalAssignmentFunction<picongpu::particles::shapes::TSC, bmpl::integral_c<int, 0> >
@@ -68,9 +76,11 @@ struct EvalAssignmentFunction<picongpu::particles::shapes::TSC, bmpl::integral_c
     typedef typename picongpu::particles::shapes::TSC ParticleAssign;
 
     HDINLINE float_X
-    operator()(const float_X delta)
+    operator()(const float_X parPos)
     {
-        return ParticleAssign::ff_1st_radius(delta);
+        /* delta = (0 - parPos)
+         * delta < 1/2 -> means delta^2 == (-parPos)^2 = parPos^2*/
+        return ParticleAssign::ff_1st_radius(parPos);
     }
 };
 
@@ -80,9 +90,11 @@ struct EvalAssignmentFunction<picongpu::particles::shapes::TSC, bmpl::integral_c
     typedef typename picongpu::particles::shapes::TSC ParticleAssign;
 
     HDINLINE float_X
-    operator()(const float_X delta)
+    operator()(const float_X parPos)
     {
-        return ParticleAssign::ff_2nd_radius(delta);
+        /* delta = (1 - parPos) -> is always positive and <3/2
+         * |delta| < 3/2 -> means |delta| == delta */
+        return ParticleAssign::ff_2nd_radius(float_X(1.0)-parPos);
     }
 };
 
@@ -92,9 +104,11 @@ struct EvalAssignmentFunction<picongpu::particles::shapes::TSC, bmpl::integral_c
     typedef typename picongpu::particles::shapes::TSC ParticleAssign;
 
     HDINLINE float_X
-    operator()(const float_X delta)
+    operator()(const float_X parPos)
     {
-        return ParticleAssign::ff_2nd_radius(algorithms::math::abs(delta));
+        /* delta = (-1 - parPos) -> can be negative but |delta|<3/2
+         * |delta| < 3/2 */
+        return ParticleAssign::ff_2nd_radius(algorithms::math::abs(float_X(-1.0)-parPos));
     }
 };
 
@@ -104,9 +118,11 @@ struct EvalAssignmentFunction<picongpu::particles::shapes::PCS, bmpl::integral_c
     typedef typename picongpu::particles::shapes::PCS ParticleAssign;
 
     HDINLINE float_X
-    operator()(const float_X delta)
+    operator()(const float_X parPos)
     {
-        return ParticleAssign::ff_1st_radius(algorithms::math::abs(delta));
+        /* delta = (0 - parPos) -> always negative and |delta|<1
+         * |delta| < 1 -> means |delta| == |-parPos| == |parPos|*/
+        return ParticleAssign::ff_1st_radius(algorithms::math::abs(parPos));
     }
 };
 
@@ -116,9 +132,11 @@ struct EvalAssignmentFunction<picongpu::particles::shapes::PCS, bmpl::integral_c
     typedef typename picongpu::particles::shapes::PCS ParticleAssign;
 
     HDINLINE float_X
-    operator()(const float_X delta)
+    operator()(const float_X parPos)
     {
-        return ParticleAssign::ff_1st_radius(delta);
+        /* delta = (1 - parPos) -> always positive and |delta|<1
+         * |delta| < 1 -> means |delta| == |1-parPos| == 1-parPos*/
+        return ParticleAssign::ff_1st_radius(float_X(1.0)-parPos);
     }
 };
 
@@ -128,9 +146,11 @@ struct EvalAssignmentFunction<picongpu::particles::shapes::PCS, bmpl::integral_c
     typedef typename picongpu::particles::shapes::PCS ParticleAssign;
 
     HDINLINE float_X
-    operator()(const float_X delta)
+    operator()(const float_X parPos)
     {
-        return ParticleAssign::ff_2nd_radius(delta);
+        /* delta = (2 - parPos) -> always positive and 1<=|delta|<2
+         * |delta| == |2-parPos| == 2-parPos*/
+        return ParticleAssign::ff_2nd_radius(float_X(2.0)-parPos);
     }
 };
 
@@ -140,9 +160,11 @@ struct EvalAssignmentFunction<picongpu::particles::shapes::PCS, bmpl::integral_c
     typedef typename picongpu::particles::shapes::PCS ParticleAssign;
 
     HDINLINE float_X
-    operator()(const float_X delta)
+    operator()(const float_X parPos)
     {
-        return ParticleAssign::ff_2nd_radius(algorithms::math::abs(delta));
+        /* delta = (-1 - parPos) -> always negative and 1<=|delta|<2
+         * |delta| == |-1-parPos|*/
+        return ParticleAssign::ff_2nd_radius(algorithms::math::abs(float_X(-1.0)-parPos));
     }
 };
 

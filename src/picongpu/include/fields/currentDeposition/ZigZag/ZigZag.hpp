@@ -71,9 +71,8 @@ struct EvalAssignmentFunctionOfDirection
         typedef typename GridPointVec::template at<component>::type GridPoint;
         currentSolverZigZag::EvalAssignmentFunction< Shape, GridPoint > AssignmentFunction;
 
-        const float_X gridPoint = GridPoint::value;
         /* calculate assign factor*/
-        const float_X shape_value = AssignmentFunction(gridPoint - pos[component]);
+        const float_X shape_value = AssignmentFunction(pos[component]);
         result *= shape_value;
     }
 };
