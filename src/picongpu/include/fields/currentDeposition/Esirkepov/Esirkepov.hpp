@@ -37,9 +37,8 @@ namespace currentSolver
 {
 using namespace PMacc;
 
-
 template<typename T_ParticleShape>
-struct Esirkepov<T_ParticleShape,DIM3>
+struct Esirkepov<T_ParticleShape, DIM3>
 {
     typedef typename T_ParticleShape::ChargeAssignment ParticleAssign;
     static const int supp = ParticleAssign::support;
@@ -139,9 +138,12 @@ struct Esirkepov<T_ParticleShape,DIM3>
          * If previous position was greater than current position we change our interval
          * from [begin,end) to [begin+1,end+1).
          */
-        const int offset_i = int(line.pos0.x() > line.pos1.x());
-        const int offset_j = int(line.pos0.y() > line.pos1.y());
-        const int offset_k = int(line.pos0.z() > line.pos1.z());
+        /** \todo -(-int(bool)) is a workaround for a nvcc bug
+         * @see https://devtalk.nvidia.com/default/topic/752200/cuda-programming-and-performance/nvcc-loop-bug-since-cuda-5-5/
+         */
+        const int offset_i = -(-int(line.pos0.x() > line.pos1.x()));
+        const int offset_j = -(-int(line.pos0.y() > line.pos1.y()));
+        const int offset_k = -(-int(line.pos0.z() > line.pos1.z()));
 
         /* pick every cell in the xy-plane that is overlapped by particle's
          * form factor and deposit the current for the cells above and beneath
