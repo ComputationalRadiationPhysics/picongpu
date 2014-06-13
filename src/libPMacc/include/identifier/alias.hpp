@@ -64,7 +64,7 @@ identifier(pmacc_isAlias);
  *
  * to specialize an alias do: aliasName<valueIdentifierName>
  * to create an instance of this alias you can use:
- *      aliasName();   or aliasName
+ *      aliasName();   or aliasName_
  *
  * get type which is represented by the alias
  *      typedef typename name::ThisType type;
