@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Rene Widera
+ * Copyright 2013-2014 Rene Widera, Felix Schmitt
  *
  * This file is part of libPMacc.
  *
@@ -55,17 +55,17 @@ identifier(pmacc_isAlias);
 
 
 /** create an alias
- * 
+ *
  * an alias is a unspecialized type of a identifier or a value_identifier
- * 
+ *
  * @param name name of alias
- * 
- * example: alias(aliesName); //create type varname
- * 
- * to specialized an alies do: aliesName<valueIdentifierName>
- * to create a instance of this alies you can use:
- *      aliesName();   or aliesName
- * 
+ *
+ * example: alias(aliasName); //create type varname
+ *
+ * to specialize an alias do: aliasName<valueIdentifierName>
+ * to create an instance of this alias you can use:
+ *      aliasName();   or aliasName_
+ *
  * get type which is represented by the alias
  *      typedef typename name::ThisType type;
  */
