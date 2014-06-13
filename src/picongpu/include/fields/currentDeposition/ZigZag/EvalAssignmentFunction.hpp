@@ -58,8 +58,8 @@ struct EvalAssignmentFunction
     operator()(const float_X parPos)
     {
         ParticleAssign shape;
-        const float_X girdPos=T_pos::value;
-        return shape(girdPos-parPos);
+        const float_X gridPos=T_pos::value;
+        return shape(gridPos-parPos);
     }
 };
 
