@@ -35,6 +35,10 @@
 #include <string>
 #include <utility>
 
+#include <boost/mpl/min_max.hpp>
+#include <boost/mpl/int.hpp>
+#include <boost/mpl/accumulate.hpp>
+
 namespace picongpu
 {
     using namespace PMacc;
@@ -60,8 +64,18 @@ namespace picongpu
         std::pair<float_X, float_X> axis_p_range;
         uint32_t r_bins;
 
-        static const uint32_t num_pbins = 1024;
         typedef float_32 float_PS;
+        /** depending on the super cells edge size and the PS float type
+         *  we use not more than 32KB shared memory
+         *  Note: checking the longest edge for all phase space configurations
+         *        is a conservative work around until #469 is implemented */
+        typedef typename bmpl::accumulate<
+            typename SuperCellSize::mplVector,
+            bmpl::int_<0>,
+            bmpl::max<bmpl::_1, bmpl::_2>
+            >::type SuperCellsLongestEdge;
+        static const uint32_t maxShared = 32*1024; /* 32 KB */
+        static const uint32_t num_pbins = maxShared/(sizeof(float_PS)*SuperCellsLongestEdge::value);
 
         container::DeviceBuffer<float_PS, 2>* dBuffer;
 
