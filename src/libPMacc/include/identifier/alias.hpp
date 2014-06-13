@@ -62,8 +62,8 @@ identifier(pmacc_isAlias);
  *
  * example: alias(aliasName); //create type varname
  *
- * to specialized an alias do: aliasName<valueIdentifierName>
- * to create a instance of this alias you can use:
+ * to specialize an alias do: aliasName<valueIdentifierName>
+ * to create an instance of this alias you can use:
  *      aliasName();   or aliasName
  *
  * get type which is represented by the alias
