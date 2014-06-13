@@ -43,8 +43,8 @@ using namespace PMacc;
 
 /** calculate the assignment factor
  *
- * Calculate assignment factor out of a shape depending of the distance
- * between particle middle point and a grid point.
+ * Calculate assignment factor of the particle shape depending on the distance
+ * between the middle point of the particle and a grid point.
  *
  * @tparam T_Shape assignment shape of a particle
  * @tparam T_pos grid position
@@ -79,7 +79,7 @@ struct EvalAssignmentFunction<picongpu::particles::shapes::TSC, bmpl::integral_c
     operator()(const float_X parPos)
     {
         /* delta = (0 - parPos)
-         * delta < 1/2 -> means delta^2 == (-parPos)^2 = parPos^2*/
+         * |delta| < 1/2 -> means delta^2 == (-parPos)^2 is always equal to parPos^2*/
         return ParticleAssign::ff_1st_radius(parPos);
     }
 };
@@ -92,8 +92,8 @@ struct EvalAssignmentFunction<picongpu::particles::shapes::TSC, bmpl::integral_c
     HDINLINE float_X
     operator()(const float_X parPos)
     {
-        /* delta = (1 - parPos) -> is always positive and <3/2
-         * |delta| < 3/2 -> means |delta| == delta */
+        /* delta = (1 - parPos) -> is always positive and 0 <= delta < 3/2
+         * we need no abs() @see TSC shape definition */
         return ParticleAssign::ff_2nd_radius(float_X(1.0)-parPos);
     }
 };
@@ -106,8 +106,7 @@ struct EvalAssignmentFunction<picongpu::particles::shapes::TSC, bmpl::integral_c
     HDINLINE float_X
     operator()(const float_X parPos)
     {
-        /* delta = (-1 - parPos) -> can be negative but |delta|<3/2
-         * |delta| < 3/2 */
+        /* delta = (-1 - parPos) -> can be negative but |delta|<3/2 */
         return ParticleAssign::ff_2nd_radius(algorithms::math::abs(float_X(-1.0)-parPos));
     }
 };
@@ -121,7 +120,7 @@ struct EvalAssignmentFunction<picongpu::particles::shapes::PCS, bmpl::integral_c
     operator()(const float_X parPos)
     {
         /* delta = (0 - parPos) -> always negative and |delta|<1
-         * |delta| < 1 -> means |delta| == |-parPos| == |parPos|*/
+         * |delta| == |-parPos| == |parPos|*/
         return ParticleAssign::ff_1st_radius(algorithms::math::abs(parPos));
     }
 };
@@ -135,7 +134,7 @@ struct EvalAssignmentFunction<picongpu::particles::shapes::PCS, bmpl::integral_c
     operator()(const float_X parPos)
     {
         /* delta = (1 - parPos) -> always positive and |delta|<1
-         * |delta| < 1 -> means |delta| == |1-parPos| == 1-parPos*/
+         * |delta| == |1-parPos| == 1-parPos*/
         return ParticleAssign::ff_1st_radius(float_X(1.0)-parPos);
     }
 };

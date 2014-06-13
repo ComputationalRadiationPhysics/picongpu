@@ -24,5 +24,4 @@
 
 #if(SIMDIM==DIM3)
 #include "fields/currentDeposition/VillaBune/CurrentVillaBune.def"
-
 #endif

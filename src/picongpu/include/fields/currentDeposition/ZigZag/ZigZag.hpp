@@ -44,6 +44,18 @@ namespace currentSolver
 {
 using namespace PMacc;
 
+/** functor to get shape factor
+ *
+ * Calculate: AssignmentShape(grid point - particle point)
+ *
+ * AssignmentShape depends on the calculation direction and the current component
+ * If current component is X and calculation direction is also X than particle cloud shape is used.
+ *
+ * @tparam T_ShapeComponent integral type in which direction the shape should be evaluated
+ * @tparam T_CurrentComponent integral type with component information
+ * @tparam T_GridPointVec integral type which define grid point
+ * @tparam T_Shape assignment shape of the particle
+ */
 template<typename T_ShapeComponent, typename T_CurrentDirection, typename T_GridPointVec, typename T_Shape>
 struct EvalAssignmentFunctionOfDirection
 {
@@ -71,7 +83,7 @@ struct EvalAssignmentFunctionOfDirection
         typedef typename GridPointVec::template at<component>::type GridPoint;
         currentSolverZigZag::EvalAssignmentFunction< Shape, GridPoint > AssignmentFunction;
 
-        /* calculate assign factor*/
+        /* calculate assignment factor*/
         const float_X shape_value = AssignmentFunction(pos[component]);
         result *= shape_value;
     }
@@ -117,14 +129,9 @@ struct AssignChargeToCell
     }
 };
 
-/**
- * \class ZigZag charge conservation method
- * 1. order paper: "A new charge conservation method in electromagnetic particle-in-cell simulations"
- *                 by T. Umeda, Y. Omura, T. Tominaga, H. Matsumoto
- * 2. order paper: "Charge conservation methods for computing current densities in electromagnetic particle-in-cell simulations"
- *                 by T. Umeda, Y. Omura, H. Matsumoto
- * 3. order paper: "High-Order Interpolation Algorithms for Charge Conservation in Particle-in-Cell Simulation"
- *                 by Jinqing Yu, Xiaolin Jin, Weimin Zhou, Bin Li, Yuqiu Gu
+/**\class ZigZag charge conservation method
+ *
+ * @see ZigZag.def for paper references
  */
 template<typename T_ParticleShape>
 struct ZigZag
@@ -138,15 +145,15 @@ struct ZigZag
     typedef typename PMacc::math::CT::make_Int<simDim, currentLowerMargin>::type LowerMargin;
     typedef typename PMacc::math::CT::make_Int<simDim, currentUpperMargin>::type UpperMargin;
 
-    /* calculate grid point were we must calculate the assigned values
+    /* calculate grid point where we calculate the assigned values
      * grid points are independent of particle position if we use
      * @see ShiftCoordinateSystem
-     * grid points were we must calculate the current [begin;end)
+     * grid points were we calculate the current [begin;end)
      */
     static const int begin = -supp / 2 + (supp + 1) % 2;
     static const int end = begin + supp;
 
-    /* same as begin and end but for the direction were we calculate j
+    /* same as begin and end but for the direction where we calculate j
      * supp_dir = support of the cloud shape
      */
     static const int supp_dir = supp - 1;
@@ -186,7 +193,7 @@ struct ZigZag
              */
             ShiftCoordinateSystem<Supports_direction>()(cursor, pos, fieldSolver::NumericalCellType::getEFieldPosition()[dir]);
 
-            /* define grid points were we must evaluate the shape function*/
+            /* define grid points where we evaluate the shape function*/
             typedef typename PMacc::math::CT::make_Vector<
                 simDim,
                 boost::mpl::range_c<int, begin, end > >::type Size_full;
@@ -205,6 +212,14 @@ struct ZigZag
 
     };
 
+    /** add current of a moving particle to the global current
+     *
+     * @param dataBoxJ DataBox with current field
+     * @param pos1 current position of the particle
+     * @param velocity velocity of the macro particle
+     * @param charge charge of the macro particle
+     * @param deltaTime dime difference of one simulation time step
+     */
     template<typename DataBoxJ, typename PosType, typename VelType, typename ChargeType >
     DINLINE void operator()(DataBoxJ dataBoxJ,
                             const PosType pos1,
@@ -216,7 +231,7 @@ struct ZigZag
         for (uint32_t d = 0; d < simDim; ++d)
             deltaPos[d] = (velocity[d] * deltaTime) / cellSize[d];
 
-        /*not: all positions are normalized to the grid*/
+        /*note: all positions are normalized to the grid*/
         floatD_X pos[2];
         pos[0] = (pos1 - deltaPos);
         pos[1] = (pos1);
@@ -239,7 +254,7 @@ struct ZigZag
         const float_X volume_reci = float_X(1.0) / float_X(CELL_VOLUME);
 
 
-        /* We must use float for the loop variable because of a nvcc bug
+        /* We have to use float as loop variable due to an nvcc bug
          * If we use int than `float_X sign = float_X(1.) - float_X(2.) * l;`
          * creates wrong results
          * it can be the same bug as
