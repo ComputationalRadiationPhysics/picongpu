@@ -348,7 +348,7 @@ private:
      * @return flux of the moving particle
      */
     DINLINE float_X
-    calc_chargeFlux(const float_X x, const float_X x_r, const float_X& delta_t, const float_X& q) const
+    calc_chargeFlux(const float_X x, const float_X x_r, const float_X delta_t, const float_X q) const
     {
         return q * (x_r - x) / delta_t;
     }
