@@ -101,7 +101,7 @@ struct AssignChargeToCell
 
     template<typename T_Cursor>
     HDINLINE void
-    operator()(T_Cursor& cursor, const floatD_X& pos, const float_X F)
+    operator()(T_Cursor& cursor, const floatD_X& pos, const float_X flux)
     {
         typedef T_GridPointVec GridPointVec;
         typedef T_Shape Shape;
@@ -115,7 +115,7 @@ struct AssignChargeToCell
         ForEach<ShapeComponents,
             EvalAssignmentFunctionOfDirection<bmpl::_1, CurrentComponent, GridPointVec, Shape>
             > evalShape;
-        float_X j = F;
+        float_X j = flux;
         /* N=simDim-1
          * calculate j=flux*Shape_0(pos)*...*SHAPE_N(pos) */
         evalShape(forward(j), pos);
@@ -136,6 +136,10 @@ struct AssignChargeToCell
 template<typename T_ParticleShape>
 struct ZigZag
 {
+    /* cloud shape: describe the form factor of a particle
+     * assignment shape: integral over the cloud shape (this shape is defined by the user in
+     * species.param for a species)
+     */
     typedef T_ParticleShape ParticleShape;
     typedef typename ParticleShape::ChargeAssignmentOnSupport ParticleAssign;
     static const int supp = ParticleAssign::support;
@@ -237,7 +241,7 @@ struct ZigZag
         pos[1] = (pos1);
 
         DataSpace<simDim> I[2];
-        floatD_X r;
+        floatD_X relayPoint;
 
 
         for (int l = 0; l < 2; ++l)
@@ -249,7 +253,7 @@ struct ZigZag
         }
         for (uint32_t d = 0; d < simDim; ++d)
         {
-            r[d] = calc_r(I[0][d], I[1][d], pos[0][d], pos[1][d]);
+            relayPoint[d] = calc_relayPoint(I[0][d], I[1][d], pos[0][d], pos[1][d]);
         }
         const float_X volume_reci = float_X(1.0) / float_X(CELL_VOLUME);
 
@@ -273,11 +277,11 @@ struct ZigZag
             for (uint32_t d = 0; d < simDim; ++d)
             {
                 const float_X pos_tmp = pos[parId][d];
-                const float_X r_tmp = r[d];
-                inCellPos[d] = calc_InCellPos(pos_tmp, r_tmp, I[parId][d]);
-                flux[d] = sign * calc_F(pos_tmp, r_tmp, deltaTime, charge) * volume_reci * cellSize[d];
-
+                const float_X tmpRelayPoint = relayPoint[d];
+                inCellPos[d] = calc_InCellPos(pos_tmp, tmpRelayPoint, I[parId][d]);
+                flux[d] = sign * calc_chargeFlux(pos_tmp, tmpRelayPoint, deltaTime, charge) * volume_reci * cellSize[d];
             }
+            
             /* this loop is only needed for 2D, we need a flux in z direction */
             for (uint32_t d = simDim; d < 3; ++d)
             {
@@ -305,17 +309,17 @@ private:
      * @param i_2 grid point which is less than x_2 (`i_2=floor(x_2)`)
      * @param x_1 begin position of the particle trajectory
      * @param x_2 end position of the particle trajectory
-     * @return new point for particle trajectory
+     * @return relay point for particle trajectory
      */
     DINLINE float_X
-    calc_r(const float_X i_1, const float_X i_2, const float_X x_1, const float_X x_2) const
+    calc_relayPoint(const float_X i_1, const float_X i_2, const float_X x_1, const float_X x_2) const
     {
 
         const float_X min_1 = ::min(i_1, i_2) + float_X(1.0);
         const float_X max_1 = ::max(i_1, i_2);
         const float_X max_2 = ::max(max_1, (x_1 + x_2) / float_X(2.));
-        const float_X x_r = ::min(min_1, max_2);
-        return x_r;
+        const float_X x_relayPoint = ::min(min_1, max_2);
+        return x_relayPoint;
     }
 
     /** get normalized average in cell particle position
@@ -344,7 +348,7 @@ private:
      * @return flux of the moving particle
      */
     DINLINE float_X
-    calc_F(const float_X x, const float_X x_r, const float_X& delta_t, const float_X& q) const
+    calc_chargeFlux(const float_X x, const float_X x_r, const float_X& delta_t, const float_X& q) const
     {
         return q * (x_r - x) / delta_t;
     }
