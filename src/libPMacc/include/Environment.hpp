@@ -1,25 +1,26 @@
 /**
  * Copyright 2014 Felix Schmitt, Conrad Schumann
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once 
+#pragma once
 
 #include "eventSystem/EventSystem.hpp"
 #include "particles/tasks/ParticleFactory.hpp"
@@ -40,7 +41,7 @@ namespace PMacc
     /**
      * Global Environment singleton for Picongpu
      */
-    
+
     template <unsigned DIM = DIM1>
     class Environment
     {
@@ -80,50 +81,50 @@ namespace PMacc
         {
             return Factory::getInstance();
         }
-        
+
         ParticleFactory& ParticleFactory()
         {
             return ParticleFactory::getInstance();
         }
-        
+
         DataConnector& DataConnector()
         {
             return DataConnector::getInstance();
         }
-        
+
         PluginConnector& PluginConnector()
         {
             return PluginConnector::getInstance();
         }
-        
+
         nvidia::memory::MemoryInfo& EnvMemoryInfo()
         {
             return nvidia::memory::MemoryInfo::getInstance();
         }
-        
+
         PMacc::Filesystem<DIM>& Filesystem()
         {
             return PMacc::Filesystem<DIM>::getInstance();
         }
-        
+
         static Environment<DIM>& get()
         {
             static Environment<DIM> instance;
             return instance;
         }
-        
+
         void initDevices(DataSpace<DIM> devices, DataSpace<DIM> periodic)
         {
             PMacc::GridController<DIM>::getInstance().init(devices, periodic);
-            
+
             PMacc::Filesystem<DIM>::getInstance();
 
             setDevice((int) (PMacc::GridController<DIM>::getInstance().getHostRank()));
-            
+
             StreamController::getInstance().activate();
 
             TransactionManager::getInstance();
-            
+
         }
 
         void initGrids(DataSpace<DIM> gridSizeGlobal, DataSpace<DIM> gridSizeLocal, DataSpace<DIM> gridOffset)
@@ -131,13 +132,13 @@ namespace PMacc
             PMacc::SubGrid<DIM>::getInstance().init(gridSizeLocal, gridSizeGlobal, gridOffset);
 
             EnvironmentController::getInstance();
-            
+
             DataConnector::getInstance();
-            
-            PluginConnector::getInstance(); 
-            
-            nvidia::memory::MemoryInfo::getInstance();  
-            
+
+            PluginConnector::getInstance();
+
+            nvidia::memory::MemoryInfo::getInstance();
+
         }
 
         void finalize()
@@ -153,17 +154,17 @@ namespace PMacc
         Environment(const Environment&);
 
         Environment& operator=(const Environment&);
-        
+
         void setDevice(int deviceNumber)
         {
-            int num_gpus = 0; //count of gpus
+            int num_gpus = 0; //number of gpus
             cudaGetDeviceCount(&num_gpus);
             //##ERROR handling
-            if (num_gpus < 1) //check if cuda device ist found
+            if (num_gpus < 1) //check if cuda device is found
             {
                 throw std::runtime_error("no CUDA capable devices detected");
             }
-            else if (num_gpus < deviceNumber) //check if i can select device with diviceNumber
+            else if (num_gpus < deviceNumber) //check if device can be selected by deviceNumber
             {
                 std::cerr << "no CUDA device " << deviceNumber << ", only " << num_gpus << " devices found" << std::endl;
                 throw std::runtime_error("CUDA capable devices can't be selected");
@@ -179,16 +180,15 @@ namespace PMacc
                 {
                     cudaDeviceProp dprop;
                     cudaGetDeviceProperties(&dprop, deviceNumber);
-                    //!\todo: write this only on debug
                     log<ggLog::CUDA_RT > ("Set device to %1%: %2%") % deviceNumber % dprop.name;
                 }
             }
             else
             {
-                //gpu mode is cudaComputeModeExclusiveProcess and a free device is automaticly selected.
-                log<ggLog::CUDA_RT > ("Device is selected by CUDA automaticly. (because cudaComputeModeDefault is not set)");
+                //gpu mode is cudaComputeModeExclusiveProcess and a free device is automatically selected
+                log<ggLog::CUDA_RT > ("Device is selected by CUDA automatically (since cudaComputeModeDefault is not set).");
             }
-            CUDA_CHECK(cudaSetDeviceFlags(cudaDeviceScheduleYield));
+            CUDA_CHECK(cudaSetDeviceFlags(cudaDeviceScheduleSpin));
         }
 
     };
