@@ -276,8 +276,8 @@ public:
             PMacc::lcellId_t localCellId(DataSpaceOperations<simDim>::map(superCellSize, cellPosInSuperCell));
 
             // write to frame
-            assert(localId < (uint32_t)PMacc::math::CT::volume<SuperCellSize>::type::value);
-            assert((uint32_t) (localCellId) < PMacc::math::CT::volume<SuperCellSize>::type::value);
+            assert(localId < uint32_t(PMacc::math::CT::volume<SuperCellSize>::type::value));
+            assert(uint32_t(localCellId) < uint32_t(PMacc::math::CT::volume<SuperCellSize>::type::value));
 
             PMACC_AUTO(particle, ((*frame)[localId]));
 
