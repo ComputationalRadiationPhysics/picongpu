@@ -26,10 +26,10 @@ namespace picongpu
 {
 
 template<typename T_Frame>
-HDINLINE static float_X getMass(float_X weighting);
+HDINLINE float_X getMass(float_X weighting);
 
 template<typename T_Frame>
-HDINLINE static float_X getMass(float_X weighting,const T_Frame&)
+HDINLINE float_X getMass(float_X weighting,const T_Frame&)
 {
     return getMass<T_Frame>(weighting);
 }

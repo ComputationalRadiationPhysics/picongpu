@@ -1,23 +1,23 @@
 /**
  * Copyright 2013 Heiko Burau, Rene Widera, Richard Pausch
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #pragma once
 
 #include "complex.hpp"
@@ -50,7 +50,7 @@ public:
     HDINLINE Amplitude(const numtype2 x_re, const numtype2 x_im, const numtype2 y_re, const numtype2 y_im, const numtype2 z_re, const numtype2 z_im)
       : amp_x(x_re, x_im), amp_y(y_re, y_im), amp_z(z_re, z_im)
     {
-      
+
     }
 
     HDINLINE static Amplitude zero(void)
@@ -118,7 +118,7 @@ namespace mpi
 {
 
 template<>
-static MPI_StructAsArray getMPI_StructAsArray< ::Amplitude >()
+MPI_StructAsArray getMPI_StructAsArray< ::Amplitude >()
 {
     MPI_StructAsArray result = getMPI_StructAsArray< ::Complex::Type > ();
     result.sizeMultiplier *= 6;
