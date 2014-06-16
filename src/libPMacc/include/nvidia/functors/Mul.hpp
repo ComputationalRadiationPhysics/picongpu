@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #pragma once
 
 #include "types.h"
@@ -49,7 +49,7 @@ namespace PMacc
     namespace mpi
     {
         template<>
-        static MPI_Op getMPI_Op<PMacc::nvidia::functors::Mul>()
+        MPI_Op getMPI_Op<PMacc::nvidia::functors::Mul>()
         {
             return MPI_PROD;
         }

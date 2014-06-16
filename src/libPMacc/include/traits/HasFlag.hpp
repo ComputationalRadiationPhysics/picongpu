@@ -29,18 +29,18 @@ namespace traits
 {
 
 /** Checks if a Objects has an flag
- * 
+ *
  * @tparam T_Object any object (class or typename)
  * @tparam T_Key a class which is used as identifier
- * 
- * This struct must define 
+ *
+ * This struct must define
  * ::type (boost::bool_<>)
  */
 template<typename T_Object, typename T_Key>
 struct HasFlag;
 
 template<typename T_Object, typename T_Key>
-static bool hasFlag(const T_Object& obj,const T_Key& key)
+bool hasFlag(const T_Object& obj,const T_Key& key)
 {
     return HasFlag<T_Object,T_Key>::type::value;
 }

@@ -47,7 +47,7 @@ struct Sinc;
 
 
 template<typename T1>
-HDINLINE static
+HDINLINE
 typename Sin< T1 >::result
 sin(const T1& value)
 {
@@ -55,7 +55,7 @@ sin(const T1& value)
 }
 
 template<typename T1>
-HDINLINE static
+HDINLINE
 typename Cos<T1>::result
 cos(const T1& value)
 {
@@ -63,7 +63,7 @@ cos(const T1& value)
 }
 
 template<typename T1>
-HDINLINE static
+HDINLINE
 typename Tan<T1>::result
 tan(const T1& value)
 {
@@ -71,7 +71,7 @@ tan(const T1& value)
 }
 
 template<typename ArgType, typename SinType, typename CosType>
-HDINLINE static
+HDINLINE
 typename SinCos< ArgType, SinType, CosType >::result
 sincos(ArgType arg, SinType& sinValue, CosType& cosValue)
 {
@@ -79,7 +79,7 @@ sincos(ArgType arg, SinType& sinValue, CosType& cosValue)
 }
 
 template<typename T1>
-HDINLINE static
+HDINLINE
 typename Sinc<T1>::result
 sinc(const T1& value)
 {
