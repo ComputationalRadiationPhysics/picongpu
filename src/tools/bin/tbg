@@ -48,7 +48,7 @@ function tooltpl_replace
         #echo $tooltpl_src_esc
         if [ -n  "$tooltpl_dst" ] && [ -n "$tooltpl_src" ] ; then
            #echo "$tooltpl_dst $tooltpl_src_esc $tooltpl_src " > /dev/stderr
-           #replace templates but only if variable name followed by a non Alphanumeric character [a-zA-Z0-9]   
+           #replace templates but only if variable name followed by a non Alphanumeric character [a-zA-Z0-9]
            #replace templates which has variable tooltpl_dst at end of line
            tooltpl_replace_data=`echo "$tooltpl_replace_data" | sed "s/\!$tooltpl_dst\([^[:alnum:]_]\{1,\}\)/$tooltpl_src_esc\1/g ; s/\!$tooltpl_dst$/$tooltpl_src_esc/g"`
         fi
@@ -57,7 +57,7 @@ function tooltpl_replace
         fi
     done < <(echo -e "$tooltpl_replace_input" | grep -v tooltpl | grep "^[[:alpha:]][[:alnum:]_]*=.*" )
 
-    echo -e "$tooltpl_replace_data"
+    echo "$tooltpl_replace_data"
 }
 
 function run_cfg_and_get_solved_variables
@@ -70,7 +70,7 @@ function run_cfg_and_get_solved_variables
     while read data_set
     do
         eval "$data_set"
-    done < <(echo -e "$tooltpl_file_data" | grep "^[[:blank:]]*[[:alpha:]][[:alnum:]_]*=.*")
+    done < <(echo "$tooltpl_file_data" | grep "^[[:blank:]]*[[:alpha:]][[:alnum:]_]*=.*")
 
     #read and evaluate extra options from parameter -o
     for i in $extra_op
@@ -105,7 +105,7 @@ function run_cfg_and_get_solved_variables
         echo "  - use of undeclared variables" >&2
         echo "  - dependency loop with two or more variables" >&2
     fi
-    echo -e "$data" 
+    echo -e "$data"
  }
 
 #######################
@@ -142,7 +142,7 @@ function check_final
 
 
 #######################
-# $1 name of variable with template descriptions 
+# $1 name of variable with template descriptions
 ########################
 function get_tooltpl_value
 {
@@ -311,11 +311,12 @@ solved_variables=`run_cfg_and_get_solved_variables "$TBG_cfgFile" tooltpl_file_d
 
 
 #delete alle variable definitions with TBG at begin
-tooltpl_file_data_cleaned=`echo -e "$tooltpl_file_data" |  grep -v "^[[:alpha:]][[:alnum:]_]*=.*"`
+tooltpl_file_data_cleaned=`echo "$tooltpl_file_data" |  grep -v "^[[:alpha:]][[:alnum:]_]*=.*"`
 batch_file=`tooltpl_replace tooltpl_file_data_cleaned solved_variables`
 
-echo -e "$batch_file\n\n#this script was created with call $initCall" > tbg/submit.start
-echo -e "$tooltpl_file_data" > tbg/submit.tpl
+echo "$batch_file" > tbg/submit.start
+echo -e "\n#this script was created with call $initCall" >> tbg/submit.start
+echo "$tooltpl_file_data" > tbg/submit.tpl
 cp -a "$TBG_cfgFile" tbg/submit.cfg
 
 #warn, if there are still unresolved !TBG_ variables left
