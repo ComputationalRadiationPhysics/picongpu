@@ -40,11 +40,11 @@ function tooltpl_replace
 
     while read data_set
     do
-        tooltpl_dst=`echo -e "$data_set" | cut -d"=" -f1  `
+        tooltpl_dst=`echo "$data_set" | cut -d"=" -f1  `
        # echo " $data_set" > /dev/stderr
-        tooltpl_src=`echo -e "$data_set" | cut -d"=" -f2- `
+        tooltpl_src=`echo "$data_set" | cut -d"=" -f2- `
         #s/\$'//g delete $' ' before a multi line argument
-        tooltpl_src_esc=`echo -e "$tooltpl_src" | sed 's/\//\\\\\//g' | sed '/^[[:blank:]]*$/d'| sed "s/^\$'//g ; s/^'//g ;s/'$// "`
+        tooltpl_src_esc=`echo "$tooltpl_src" | sed 's/\//\\\\\//g' | sed '/^[[:blank:]]*$/d'| sed "s/^\$'//g ; s/^'//g ;s/'$// "`
         #echo $tooltpl_src_esc
         if [ -n  "$tooltpl_dst" ] && [ -n "$tooltpl_src" ] ; then
            #echo "$tooltpl_dst $tooltpl_src_esc $tooltpl_src " > /dev/stderr
@@ -53,9 +53,9 @@ function tooltpl_replace
            tooltpl_replace_data=`echo "$tooltpl_replace_data" | sed "s/\!$tooltpl_dst\([^[:alnum:]_]\{1,\}\)/$tooltpl_src_esc\1/g ; s/\!$tooltpl_dst$/$tooltpl_src_esc/g"`
         fi
         if [ $? -ne 0 ] ; then
-            echo -e "$tooltpl_src_esc"
+            echo "$tooltpl_src_esc"
         fi
-    done < <(echo -e "$tooltpl_replace_input" | grep -v tooltpl | grep "^[[:alpha:]][[:alnum:]_]*=.*" )
+    done < <(echo "$tooltpl_replace_input" | grep -v tooltpl | grep "^[[:alpha:]][[:alnum:]_]*=.*" )
 
     echo "$tooltpl_replace_data"
 }
@@ -83,20 +83,20 @@ function run_cfg_and_get_solved_variables
 
     data="$tooltbl_env"
 
-    unresolved_vars=`echo -e "$data" | grep "\![[:alpha:]][[:alnum:]_]*" | wc -l`
+    unresolved_vars=`echo "$data" | grep "\![[:alpha:]][[:alnum:]_]*" | wc -l`
     unresolved_vars_old=$(( unresolved_vars + 1))
 
     while [ $unresolved_vars -ne 0 ] && [ $unresolved_vars -ne $unresolved_vars_old ]
     do
         #search all resolved variables (variables without !varname)
-        resolved_variables=`echo -e "$data" | grep -v "\![[:alpha:]][[:alnum:]_]*"`
+        resolved_variables=`echo "$data" | grep -v "\![[:alpha:]][[:alnum:]_]*"`
 
         #use resolved variables to substitute !VARIABLES
         new_data=`tooltpl_replace data resolved_variables | grep "^[[:alpha:]][[:alnum:]_]*=.*"`
         data="$new_data"
 
         unresolved_vars_old=$unresolved_vars
-        unresolved_vars=`echo -e "$data" | grep "\![[:alpha:]][[:alnum:]_]*" | wc -l`
+        unresolved_vars=`echo "$data" | grep "\![[:alpha:]][[:alnum:]_]*" | wc -l`
     done
     #check if we have unresolved variables or detect a dependency loop
     if [ $unresolved_vars -ne 0 ] ; then
@@ -105,7 +105,7 @@ function run_cfg_and_get_solved_variables
         echo "  - use of undeclared variables" >&2
         echo "  - dependency loop with two or more variables" >&2
     fi
-    echo -e "$data"
+    echo "$data"
  }
 
 #######################
@@ -133,7 +133,7 @@ function check_final
         do
             n=$(( n+1 ))
             echo $org_line | awk -v line=$n '{ if ($0 ~ /'$nrv_or'/) print "line "line }'
-        done < <(echo -e "$org_file")
+        done < <(echo "$org_file")
 
         # abort script (will not be submitted)
         exit 1
