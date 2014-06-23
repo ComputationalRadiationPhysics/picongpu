@@ -43,6 +43,9 @@ export HDF5_ROOT=$HDF5_DIR
 export SPLASH_ROOT=$MEMBERWORK/$proj/lib/splash
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$SPLASH_ROOT/lib
 
+#export T3PIO_ROOT=$MEMBERWORK/$proj/lib/t3pio
+#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$T3PIO_ROOT/lib
+
 # download libpng.h and compile yourself with
 #   http://www.libpng.org/pub/png/libpng.html
 #   tar -xvf libpng-1.6.9.tar.gz
