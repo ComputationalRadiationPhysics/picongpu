@@ -45,7 +45,7 @@ TBG_nodes=!TBG_tasks
 #PBS -o stdout
 #PBS -e stderr
 
-#PBS -l gres=atlas2
+#PBS -l gres=atlas1%atlas2
 
 echo 'Running program...'
 echo !TBG_jobName
