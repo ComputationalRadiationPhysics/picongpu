@@ -136,25 +136,17 @@ public:
             const size_t localTableSize = 5;
             traits::PICToAdios<uint64_t> adiosIndexType;
 
-            std::stringstream indexVarSizeStr;
-            indexVarSizeStr << localTableSize;
-
-            std::stringstream indexVarGlobalSizeStr;
-            indexVarGlobalSizeStr << localTableSize * gc.getGlobalSize();
-
-            std::stringstream indexVarOffsetStr;
-            indexVarOffsetStr << localTableSize * gc.getGlobalRank();
-
-            int64_t adiosSpeciesIndexVar = adios_define_var(
+            int64_t adiosSpeciesIndexVar = defineAdiosVar(
                 params->adiosGroupHandle,
                 (params->adiosBasePath + std::string(ADIOS_PATH_PARTICLES) +
                     FrameType::getName() + std::string("/") + subGroup +
                     std::string("particles_info")).c_str(),
                 NULL,
                 adiosIndexType.type,
-                indexVarSizeStr.str().c_str(),
-                indexVarGlobalSizeStr.str().c_str(),
-                indexVarOffsetStr.str().c_str());
+                DataSpace<DIM1>(localTableSize),
+                DataSpace<DIM1>(localTableSize * gc.getGlobalSize()),
+                DataSpace<DIM1>(localTableSize * gc.getGlobalRank()),
+                false);
 
             params->adiosSpeciesIndexVarIds.push_back(adiosSpeciesIndexVar);
 

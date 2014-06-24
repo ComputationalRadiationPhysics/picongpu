@@ -1,21 +1,21 @@
 /**
  * Copyright 2014 Felix Schmitt
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 
@@ -80,22 +80,22 @@ struct ThreadParams
     int64_t adiosGroupHandle;               /* ADIOS group handle */
     uint64_t adiosGroupSize;                /* size of ADIOS group in bytes */
     std::string adiosBasePath;              /* base path for the current step */
-    
-    int64_t adiosSizeVarIds[simDim];        /* var IDs for ADIOS_SIZE_LOCAL_x/y/z */
-    int64_t adiosTotalSizeVarIds[simDim];   /* var IDs for ADIOS_SIZE_GLOBAL_x/y/z */
-    int64_t adiosOffsetVarIds[simDim];      /* var IDs for ADIOS_OFFSET_GLOBAL_x/y/z */
-    
+
+    DataSpace<simDim> fieldsSizeDims;
+    DataSpace<simDim> fieldsGlobalSizeDims;
+    DataSpace<simDim> fieldsOffsetDims;
+
     std::list<int64_t> adiosFieldVarIds;        /* var IDs for fields in order of appearance */
     std::list<int64_t> adiosParticleAttrVarIds; /* var IDs for particle attributes in order of appearance */
     std::list<int64_t> adiosSpeciesIndexVarIds; /* var IDs for species index tables in order of appearance */
-    
+
     GridLayout<simDim> gridLayout;
     MappingDesc *cellDescription;
-    
+
     float *fieldBfr;                        /* temp. buffer for fields */
 
     Window window;                          /** window describing the volume to be dumped */
-    
+
     DataSpace<simDim> localWindowToDomainOffset;    /** offset from local moving window to local domain */
 };
 
@@ -105,6 +105,16 @@ struct ThreadParams
  */
 
 class ADIOSWriter;
+
+template <unsigned DIM>
+int64_t defineAdiosVar(int64_t group_id,
+                       const char * name,
+                       const char * path,
+                       enum ADIOS_DATATYPES type,
+                       DataSpace<DIM> dimensions,
+                       DataSpace<DIM> globalDimensions,
+                       DataSpace<DIM> offset,
+                       bool compression);
 
 } //namespace adios
 } //namespace picongpu
