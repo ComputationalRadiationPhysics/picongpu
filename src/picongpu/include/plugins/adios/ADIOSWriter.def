@@ -80,6 +80,7 @@ struct ThreadParams
     int64_t adiosGroupHandle;               /* ADIOS group handle */
     uint64_t adiosGroupSize;                /* size of ADIOS group in bytes */
     std::string adiosBasePath;              /* base path for the current step */
+    std::string adiosCompression;
 
     DataSpace<simDim> fieldsSizeDims;
     DataSpace<simDim> fieldsGlobalSizeDims;
@@ -106,6 +107,20 @@ struct ThreadParams
 
 class ADIOSWriter;
 
+/**
+ * Wrapper for adios_define_var that sets data transform method.
+ *
+ * @param group_id pointer to the internal group structure
+ * @param name string containing the name part of a variable
+ * @param path string containing the path of an variable
+ * @param type variable type
+ * @param dimensions variable local dimension
+ * @param globalDimensions variable global dimension
+ * @param offset variable local offset
+ * @param compression enable compression data transform
+ * @param compressionMethod string denoting the data transform to use
+ * @return
+ */
 template <unsigned DIM>
 int64_t defineAdiosVar(int64_t group_id,
                        const char * name,
@@ -114,7 +129,8 @@ int64_t defineAdiosVar(int64_t group_id,
                        DataSpace<DIM> dimensions,
                        DataSpace<DIM> globalDimensions,
                        DataSpace<DIM> offset,
-                       bool compression);
+                       bool compression,
+                       std::string compressionMethod);
 
 } //namespace adios
 } //namespace picongpu

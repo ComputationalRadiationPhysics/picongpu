@@ -85,8 +85,10 @@ int64_t defineAdiosVar(int64_t group_id,
                        DataSpace<DIM> dimensions,
                        DataSpace<DIM> globalDimensions,
                        DataSpace<DIM> offset,
-                       bool compression)
+                       bool compression,
+                       std::string compressionMethod)
 {
+    /* disable compression if this rank writes no data */
     bool canCompress = true;
     for (size_t i = 0; i < DIM; ++i)
     {
@@ -96,16 +98,24 @@ int64_t defineAdiosVar(int64_t group_id,
         }
     }
 
-    int64_t var_id = adios_define_var(
+    int64_t var_id = 0;
+    if ((DIM == 1) && (globalDimensions.productOfComponents() == 1)) {
+        /* scalars need empty size strings */
+        var_id = adios_define_var(
+            group_id, name, path, type, 0, 0, 0);
+    } else {
+        var_id = adios_define_var(
             group_id, name, path, type,
             dimensions.toString(",", "").c_str(),
             globalDimensions.toString(",", "").c_str(),
             offset.toString(",", "").c_str());
+    }
 
     if (compression && canCompress)
     {
+        /* enable zlib compression for variable, default compression level */
 #ifdef ADIOS_TRANSFORMS
-        adios_set_transform(var_id, "zlib");
+        adios_set_transform(var_id, compressionMethod.c_str());
 #endif
     }
 
@@ -289,7 +299,8 @@ private:
                     params->fieldsSizeDims,
                     params->fieldsGlobalSizeDims,
                     params->fieldsOffsetDims,
-                    true);
+                    true,
+                    params->adiosCompression);
 
             params->adiosFieldVarIds.push_back(adiosFieldVarId);
         }
@@ -376,6 +387,9 @@ public:
 
     ADIOSWriter() :
     filename("simDataAdios"),
+#ifdef ADIOS_TRANSFORMS
+    compressionMethod("zlib"),
+#endif
     notifyPeriod(0)
     {
         Environment<>::get().PluginConnector().registerPlugin(this);
@@ -391,6 +405,10 @@ public:
         desc.add_options()
             ("adios.period", po::value<uint32_t > (&notifyPeriod)->default_value(0),
              "enable ADIOS IO [for each n-th step]")
+#ifdef ADIOS_TRANSFORMS
+            ("adios.compression", po::value<std::string > (&compressionMethod)->default_value(compressionMethod),
+             "ADIOS compression method, depends on ADIOS library configuration")
+#endif
             ("adios.file", po::value<std::string > (&filename)->default_value(filename),
              "ADIOS output file");
     }
@@ -492,6 +510,7 @@ private:
             mThreadParams.adiosComm = MPI_COMM_NULL;
             MPI_CHECK(MPI_Comm_dup(gc.getCommunicator().getMPIComm(), &(mThreadParams.adiosComm)));
             mThreadParams.adiosBufferInitialized = false;
+            mThreadParams.adiosCompression = compressionMethod;
         }
 
         loaded = true;
@@ -589,13 +608,13 @@ private:
 
         ADIOS_CMD_EXPECT_NONZERO(defineAdiosVar(threadParams->adiosGroupHandle,
                 (threadParams->adiosBasePath + std::string("iteration")).c_str(),
-                NULL, adios_unsigned_integer, DataSpace<DIM1>(0),
-                DataSpace<DIM1>(0), DataSpace<DIM1>(0), false));
+                NULL, adios_unsigned_integer, DataSpace<DIM1>(1),
+                DataSpace<DIM1>(1), DataSpace<DIM1>(0), false, ""));
 
         ADIOS_CMD_EXPECT_NONZERO(defineAdiosVar(threadParams->adiosGroupHandle,
                 (threadParams->adiosBasePath + std::string("sim_slides")).c_str(),
-                NULL, adios_unsigned_integer, DataSpace<DIM1>(0),
-                DataSpace<DIM1>(0), DataSpace<DIM1>(0), false));
+                NULL, adios_unsigned_integer, DataSpace<DIM1>(1),
+                DataSpace<DIM1>(1), DataSpace<DIM1>(0), false, ""));
 
         /* collect size information for each field to be written and define
          * field variables
@@ -682,6 +701,9 @@ private:
 
     uint32_t notifyPeriod;
     std::string filename;
+#ifdef ADIOS_TRANSFORMS
+    std::string compressionMethod;
+#endif
 
     DataSpace<simDim> mpi_pos;
     DataSpace<simDim> mpi_size;

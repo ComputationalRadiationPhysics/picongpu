@@ -146,7 +146,8 @@ public:
                 DataSpace<DIM1>(localTableSize),
                 DataSpace<DIM1>(localTableSize * gc.getGlobalSize()),
                 DataSpace<DIM1>(localTableSize * gc.getGlobalRank()),
-                false);
+                true,
+                params->adiosCompression);
 
             params->adiosSpeciesIndexVarIds.push_back(adiosSpeciesIndexVar);
 

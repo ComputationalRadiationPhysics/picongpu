@@ -85,7 +85,8 @@ struct ParticleAttributeSize
                 DataSpace<DIM1>(elements),
                 DataSpace<DIM1>(globalElements),
                 DataSpace<DIM1>(globalOffset),
-                true);
+                true,
+                params->adiosCompression);
 
             params->adiosParticleAttrVarIds.push_back(adiosParticleAttrId);
         }
