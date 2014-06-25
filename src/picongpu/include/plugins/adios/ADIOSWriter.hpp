@@ -387,9 +387,6 @@ public:
 
     ADIOSWriter() :
     filename("simDataAdios"),
-#ifdef ADIOS_TRANSFORMS
-    compressionMethod("zlib"),
-#endif
     notifyPeriod(0)
     {
         Environment<>::get().PluginConnector().registerPlugin(this);
@@ -405,9 +402,14 @@ public:
         desc.add_options()
             ("adios.period", po::value<uint32_t > (&notifyPeriod)->default_value(0),
              "enable ADIOS IO [for each n-th step]")
+            ("adios.aggregators", po::value<uint32_t >
+             (&mThreadParams.adiosAggregators)->default_value(1), "Number of aggregators")
+            ("adios.ost", po::value<uint32_t > (&mThreadParams.adiosOST)->default_value(1),
+             "Number of OST")
 #ifdef ADIOS_TRANSFORMS
-            ("adios.compression", po::value<std::string > (&compressionMethod)->default_value(compressionMethod),
-             "ADIOS compression method, depends on ADIOS library configuration")
+            ("adios.compression", po::value<std::string >
+             (&mThreadParams.adiosCompression)->default_value("none"),
+             "ADIOS compression method (see 'adios_config -m for help')")
 #endif
             ("adios.file", po::value<std::string > (&filename)->default_value(filename),
              "ADIOS output file");
@@ -510,7 +512,6 @@ private:
             mThreadParams.adiosComm = MPI_COMM_NULL;
             MPI_CHECK(MPI_Comm_dup(gc.getCommunicator().getMPIComm(), &(mThreadParams.adiosComm)));
             mThreadParams.adiosBufferInitialized = false;
-            mThreadParams.adiosCompression = compressionMethod;
         }
 
         loaded = true;
@@ -601,7 +602,13 @@ private:
                 ADIOS_GROUP_NAME,
                 (threadParams->adiosBasePath + std::string("iteration")).c_str(),
                 adios_flag_no));
-        ADIOS_CMD(adios_select_method(threadParams->adiosGroupHandle, "MPI_AGGREGATE", "", ""));
+
+        /* select MPI method, #OSTs and #aggregators */
+        std::stringstream mpiTransportParams;
+        mpiTransportParams << "num_aggregators=" << threadParams->adiosAggregators <<
+                ";num_ost=" << threadParams->adiosOST;
+        ADIOS_CMD(adios_select_method(threadParams->adiosGroupHandle, "MPI_AGGREGATE",
+                mpiTransportParams.str().c_str(), ""));
 
         /* define global variables */
         threadParams->adiosGroupSize = 2 * sizeof(unsigned int);
@@ -701,9 +708,6 @@ private:
 
     uint32_t notifyPeriod;
     std::string filename;
-#ifdef ADIOS_TRANSFORMS
-    std::string compressionMethod;
-#endif
 
     DataSpace<simDim> mpi_pos;
     DataSpace<simDim> mpi_size;

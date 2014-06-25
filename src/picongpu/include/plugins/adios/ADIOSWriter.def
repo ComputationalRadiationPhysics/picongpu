@@ -79,8 +79,12 @@ struct ThreadParams
     int64_t adiosFileHandle;                /* ADIOS file handle */
     int64_t adiosGroupHandle;               /* ADIOS group handle */
     uint64_t adiosGroupSize;                /* size of ADIOS group in bytes */
+    uint32_t adiosAggregators;              /* number of ADIOS aggregators for MPI_AGGREGATE */
+    uint32_t adiosOST;                      /* number of ADIOS OST for MPI_AGGREGATE */
     std::string adiosBasePath;              /* base path for the current step */
-    std::string adiosCompression;
+#ifdef ADIOS_TRANSFORMS
+    std::string adiosCompression;           /* ADIOS data transform compression method */
+#endif
 
     DataSpace<simDim> fieldsSizeDims;
     DataSpace<simDim> fieldsGlobalSizeDims;
@@ -93,9 +97,9 @@ struct ThreadParams
     GridLayout<simDim> gridLayout;
     MappingDesc *cellDescription;
 
-    float *fieldBfr;                        /* temp. buffer for fields */
+    float *fieldBfr;                                /* temp. buffer for fields */
 
-    Window window;                          /** window describing the volume to be dumped */
+    Window window;                                  /* window describing the volume to be dumped */
 
     DataSpace<simDim> localWindowToDomainOffset;    /** offset from local moving window to local domain */
 };
@@ -108,7 +112,9 @@ struct ThreadParams
 class ADIOSWriter;
 
 /**
- * Wrapper for adios_define_var that sets data transform method.
+ * Wrapper for adios_define_var that sets data transform method
+ *
+ * @tparam DIM number of variable dimensions
  *
  * @param group_id pointer to the internal group structure
  * @param name string containing the name part of a variable
@@ -119,7 +125,7 @@ class ADIOSWriter;
  * @param offset variable local offset
  * @param compression enable compression data transform
  * @param compressionMethod string denoting the data transform to use
- * @return
+ * @return ADIOS variable ID
  */
 template <unsigned DIM>
 int64_t defineAdiosVar(int64_t group_id,
