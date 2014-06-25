@@ -82,9 +82,7 @@ struct ThreadParams
     uint32_t adiosAggregators;              /* number of ADIOS aggregators for MPI_AGGREGATE */
     uint32_t adiosOST;                      /* number of ADIOS OST for MPI_AGGREGATE */
     std::string adiosBasePath;              /* base path for the current step */
-#ifdef ADIOS_TRANSFORMS
     std::string adiosCompression;           /* ADIOS data transform compression method */
-#endif
 
     DataSpace<simDim> fieldsSizeDims;
     DataSpace<simDim> fieldsGlobalSizeDims;
