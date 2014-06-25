@@ -338,7 +338,7 @@ if(ADIOS_FOUND)
     add_definitions(-DENABLE_ADIOS=1)
     if(NOT (ADIOS_VERSION VERSION_LESS 1.7.0))
         message(STATUS "Enable ADIOS data transforms")
-        add_definitions(-DADIOS_TRANSFORMS)
+        add_definitions(-DADIOS_TRANSFORMS=1)
     endif(NOT (ADIOS_VERSION VERSION_LESS 1.7.0))
 
     include_directories(SYSTEM ${ADIOS_INCLUDE_DIRS})

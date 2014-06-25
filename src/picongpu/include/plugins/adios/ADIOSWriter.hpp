@@ -114,7 +114,7 @@ int64_t defineAdiosVar(int64_t group_id,
     if (compression && canCompress)
     {
         /* enable zlib compression for variable, default compression level */
-#ifdef ADIOS_TRANSFORMS
+#if(ADIOS_TRANSFORMS==1)
         adios_set_transform(var_id, compressionMethod.c_str());
 #endif
     }
@@ -399,14 +399,16 @@ public:
 
     void pluginRegisterHelp(po::options_description& desc)
     {
+        uint32_t numAggr = Environment<simDim>::get().GridController().getGpuNodes().productOfComponents();
+
         desc.add_options()
             ("adios.period", po::value<uint32_t > (&notifyPeriod)->default_value(0),
              "enable ADIOS IO [for each n-th step]")
             ("adios.aggregators", po::value<uint32_t >
-             (&mThreadParams.adiosAggregators)->default_value(1), "Number of aggregators")
+             (&mThreadParams.adiosAggregators)->default_value(numAggr), "Number of aggregators")
             ("adios.ost", po::value<uint32_t > (&mThreadParams.adiosOST)->default_value(1),
              "Number of OST")
-#ifdef ADIOS_TRANSFORMS
+#if(ADIOS_TRANSFORMS==1)
             ("adios.compression", po::value<std::string >
              (&mThreadParams.adiosCompression)->default_value("none"),
              "ADIOS compression method (see 'adios_config -m for help')")
@@ -605,8 +607,8 @@ private:
 
         /* select MPI method, #OSTs and #aggregators */
         std::stringstream mpiTransportParams;
-        mpiTransportParams << "num_aggregators=" << threadParams->adiosAggregators <<
-                ";num_ost=" << threadParams->adiosOST;
+        mpiTransportParams << "num_aggregators=" << threadParams->adiosAggregators
+            << ";num_ost=" << threadParams->adiosOST;
         ADIOS_CMD(adios_select_method(threadParams->adiosGroupHandle, "MPI_AGGREGATE",
                 mpiTransportParams.str().c_str(), ""));
 
