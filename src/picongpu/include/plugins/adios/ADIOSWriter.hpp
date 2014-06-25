@@ -77,6 +77,51 @@ using namespace PMacc;
 
 namespace po = boost::program_options;
 
+template <unsigned DIM>
+int64_t defineAdiosVar(int64_t group_id,
+                       const char * name,
+                       const char * path,
+                       enum ADIOS_DATATYPES type,
+                       DataSpace<DIM> dimensions,
+                       DataSpace<DIM> globalDimensions,
+                       DataSpace<DIM> offset,
+                       bool compression,
+                       std::string compressionMethod)
+{
+    /* disable compression if this rank writes no data */
+    bool canCompress = true;
+    for (size_t i = 0; i < DIM; ++i)
+    {
+        if (dimensions[i] == 0 || globalDimensions[i] == 0)
+        {
+            canCompress = false;
+        }
+    }
+
+    int64_t var_id = 0;
+    if ((DIM == 1) && (globalDimensions.productOfComponents() == 1)) {
+        /* scalars need empty size strings */
+        var_id = adios_define_var(
+            group_id, name, path, type, 0, 0, 0);
+    } else {
+        var_id = adios_define_var(
+            group_id, name, path, type,
+            dimensions.toString(",", "").c_str(),
+            globalDimensions.toString(",", "").c_str(),
+            offset.toString(",", "").c_str());
+    }
+
+    if (compression && canCompress)
+    {
+        /* enable zlib compression for variable, default compression level */
+#if(ADIOS_TRANSFORMS==1)
+        adios_set_transform(var_id, compressionMethod.c_str());
+#endif
+    }
+
+    return var_id;
+}
+
 /**
  * Writes simulation data to adios files.
  * Implements the ILightweightPlugin interface.
@@ -238,27 +283,6 @@ private:
     {
         const std::string name_lookup_tpl[] = {"x", "y", "z", "w"};
 
-        std::stringstream fieldLocalSizeStr;
-        std::stringstream fieldGlobalSizeStr;
-        std::stringstream fieldGlobalOffsetStr;
-
-        for (uint32_t d = 0; d < simDim; ++d)
-        {
-            fieldLocalSizeStr << params->adiosBasePath << ADIOS_PATH_FIELDS <<
-                    ADIOS_SIZE_LOCAL << name_lookup_tpl[d];
-            fieldGlobalSizeStr << params->adiosBasePath << ADIOS_PATH_FIELDS <<
-                    ADIOS_SIZE_GLOBAL << name_lookup_tpl[d];
-            fieldGlobalOffsetStr << params->adiosBasePath << ADIOS_PATH_FIELDS <<
-                    ADIOS_OFFSET_GLOBAL << name_lookup_tpl[d];
-
-            if (d < simDim - 1)
-            {
-                fieldLocalSizeStr << ",";
-                fieldGlobalSizeStr << ",";
-                fieldGlobalOffsetStr << ",";
-            }
-        }
-
         for (uint32_t c = 0; c < nComponents; c++)
         {
             std::stringstream datasetName;
@@ -267,14 +291,16 @@ private:
                 datasetName << "/" << name_lookup_tpl[c];
 
             /* define adios var for field, e.g. field_FieldE_y */
-            int64_t adiosFieldVarId = adios_define_var(
+            int64_t adiosFieldVarId = defineAdiosVar(
                     params->adiosGroupHandle,
                     datasetName.str().c_str(),
                     NULL,
                     adiosType,
-                    fieldLocalSizeStr.str().c_str(),
-                    fieldGlobalSizeStr.str().c_str(),
-                    fieldGlobalOffsetStr.str().c_str());
+                    params->fieldsSizeDims,
+                    params->fieldsGlobalSizeDims,
+                    params->fieldsOffsetDims,
+                    true,
+                    params->adiosCompression);
 
             params->adiosFieldVarIds.push_back(adiosFieldVarId);
         }
@@ -373,9 +399,20 @@ public:
 
     void pluginRegisterHelp(po::options_description& desc)
     {
+        uint32_t numAggr = Environment<simDim>::get().GridController().getGpuNodes().productOfComponents();
+
         desc.add_options()
             ("adios.period", po::value<uint32_t > (&notifyPeriod)->default_value(0),
              "enable ADIOS IO [for each n-th step]")
+            ("adios.aggregators", po::value<uint32_t >
+             (&mThreadParams.adiosAggregators)->default_value(numAggr), "Number of aggregators")
+            ("adios.ost", po::value<uint32_t > (&mThreadParams.adiosOST)->default_value(1),
+             "Number of OST")
+#if(ADIOS_TRANSFORMS==1)
+            ("adios.compression", po::value<std::string >
+             (&mThreadParams.adiosCompression)->default_value("none"),
+             "ADIOS compression method (see 'adios_config -m for help')")
+#endif
             ("adios.file", po::value<std::string > (&filename)->default_value(filename),
              "ADIOS output file");
     }
@@ -546,32 +583,6 @@ private:
         }
     }
 
-    static void defineAdiosFieldVars(ThreadParams *params)
-    {
-        /* create adios size/offset variables required for writing the actual field data */
-        const std::string name_lookup_tpl[] = {"x", "y", "z"};
-
-        for (uint32_t d = 0; d < simDim; ++d)
-        {
-            params->adiosSizeVarIds[d] = adios_define_var(params->adiosGroupHandle,
-                    (params->adiosBasePath + std::string(ADIOS_PATH_FIELDS) +
-                    std::string(ADIOS_SIZE_LOCAL) + name_lookup_tpl[d]).c_str(),
-                    NULL, adios_integer, 0, 0, 0);
-
-            params->adiosTotalSizeVarIds[d] = adios_define_var(params->adiosGroupHandle,
-                    (params->adiosBasePath + std::string(ADIOS_PATH_FIELDS) +
-                    std::string(ADIOS_SIZE_GLOBAL) + name_lookup_tpl[d]).c_str(),
-                    NULL, adios_integer, 0, 0, 0);
-
-            params->adiosOffsetVarIds[d] = adios_define_var(params->adiosGroupHandle,
-                    (params->adiosBasePath + std::string(ADIOS_PATH_FIELDS) +
-                    std::string(ADIOS_OFFSET_GLOBAL) + name_lookup_tpl[d]).c_str(),
-                    NULL, adios_integer, 0, 0, 0);
-
-            params->adiosGroupSize += sizeof(int) * 3;
-        }
-    }
-
     static void *writeAdios(void *p_args)
     {
 
@@ -593,20 +604,26 @@ private:
                 ADIOS_GROUP_NAME,
                 (threadParams->adiosBasePath + std::string("iteration")).c_str(),
                 adios_flag_no));
-        ADIOS_CMD(adios_select_method(threadParams->adiosGroupHandle, "MPI", "", ""));
+
+        /* select MPI method, #OSTs and #aggregators */
+        std::stringstream mpiTransportParams;
+        mpiTransportParams << "num_aggregators=" << threadParams->adiosAggregators
+            << ";num_ost=" << threadParams->adiosOST;
+        ADIOS_CMD(adios_select_method(threadParams->adiosGroupHandle, "MPI_AGGREGATE",
+                mpiTransportParams.str().c_str(), ""));
 
         /* define global variables */
         threadParams->adiosGroupSize = 2 * sizeof(unsigned int);
 
-        ADIOS_CMD_EXPECT_NONZERO(adios_define_var(threadParams->adiosGroupHandle,
+        ADIOS_CMD_EXPECT_NONZERO(defineAdiosVar(threadParams->adiosGroupHandle,
                 (threadParams->adiosBasePath + std::string("iteration")).c_str(),
-                NULL, adios_unsigned_integer, 0, 0, 0));
+                NULL, adios_unsigned_integer, DataSpace<DIM1>(1),
+                DataSpace<DIM1>(1), DataSpace<DIM1>(0), false, ""));
 
-        ADIOS_CMD_EXPECT_NONZERO(adios_define_var(threadParams->adiosGroupHandle,
+        ADIOS_CMD_EXPECT_NONZERO(defineAdiosVar(threadParams->adiosGroupHandle,
                 (threadParams->adiosBasePath + std::string("sim_slides")).c_str(),
-                NULL, adios_unsigned_integer, 0, 0, 0));
-
-        defineAdiosFieldVars(threadParams);
+                NULL, adios_unsigned_integer, DataSpace<DIM1>(1),
+                DataSpace<DIM1>(1), DataSpace<DIM1>(0), false, ""));
 
         /* collect size information for each field to be written and define
          * field variables
@@ -662,14 +679,9 @@ private:
                 offset = std::max(0, threadParams->window.localDimensions.offset[1] -
                                      threadParams->window.globalDimensions.offset[1]);
 
-            ADIOS_CMD(adios_write_byid(threadParams->adiosFileHandle,
-                    threadParams->adiosSizeVarIds[d],
-                    &(threadParams->window.localDimensions.size[d])));
-            ADIOS_CMD(adios_write_byid(threadParams->adiosFileHandle,
-                    threadParams->adiosTotalSizeVarIds[d],
-                    &(threadParams->window.globalDimensions.size[d])));
-            ADIOS_CMD(adios_write_byid(threadParams->adiosFileHandle,
-                    threadParams->adiosOffsetVarIds[d], &offset));
+            threadParams->fieldsSizeDims[d] = threadParams->window.localDimensions.size[d];
+            threadParams->fieldsGlobalSizeDims[d] = threadParams->window.globalDimensions.size[d];
+            threadParams->fieldsOffsetDims[d] = offset;
         }
 
         /* write fields */
