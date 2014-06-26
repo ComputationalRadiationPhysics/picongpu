@@ -34,21 +34,11 @@
 
 namespace picongpu
 {
-    /** Note: you will need at least FieldE and FieldB for restart
-     *        capabilities!
-     *  Possible fields: FieldE, FieldB, FieldJ
-     */
-    typedef typename MakeSeq<FieldE, FieldB>::type NativeFileOutputFields;
-
-    /** TimeAvg Fields
-     * \todo Reduce/Avg on host-side RAM with a plugin
-     */
-
-    /** FieldTmp output (calculated at runtime)
+    /** FieldTmp output (calculated at runtime) *******************************
      */
     using namespace particleToGrid;
 
-    /* ############## ParticleDensity section ################################*/
+    /* ParticleDensity section */
 
     template<typename T_Species>
     struct CreateDensityOperation
@@ -67,7 +57,7 @@ namespace picongpu
             CreateDensityOperation<bmpl::_1>
             >::type Density_Seq;
 
-    /* ############## ParticleCounter section ################################*/
+    /* ParticleCounter section */
 
     template<typename T_Species>
     struct CreateCounterOperation
@@ -86,7 +76,7 @@ namespace picongpu
             CreateCounterOperation<bmpl::_1>
             >::type Counter_Seq;
 
-    /* ############## ParticleCounter section ################################*/
+    /* ParticleCounter section */
 
     template<typename T_Species>
     struct CreateEnergyDensityOperation
@@ -106,7 +96,8 @@ namespace picongpu
             CreateEnergyDensityOperation<bmpl::_1>
             >::type EnergyDensity_Seq;
 
-    /** FieldTmpSolvers groups all solver those needed FieldTmp
+
+    /** FieldTmpSolvers groups all solvers that create data for FieldTmp ******
      *
      * FieldTmpSolvers is used in @see FieldTmp to calculate the exchange size
      */
@@ -116,12 +107,24 @@ namespace picongpu
         EnergyDensity_Seq
     >::type FieldTmpSolvers;
 
-    /** This list is use to dump fields to a file. */
+
+    /** FileOutputFields: Groups all Fields that shall be dumped **************
+
+    /** Possible native fields: FieldE, FieldB, FieldJ
+     */
+    typedef typename MakeSeq<FieldE, FieldB>::type NativeFileOutputFields;
+
     typedef typename MakeSeq<
         NativeFileOutputFields,
         FieldTmpSolvers
     >::type FileOutputFields;
 
+
+    /** FileOutputParticles: Groups all Species that shall be dumped **********
+     *
+     * hint: to disable particle output set to
+     *   typedef bmpl::vector0< > FileOutputParticles;
+     */
     typedef VectorAllSpecies FileOutputParticles;
 
 }
