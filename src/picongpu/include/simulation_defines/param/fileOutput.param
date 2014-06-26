@@ -70,7 +70,6 @@ namespace picongpu
         typedef FieldTmpOperation< ParticleCounter, T_Species > type;
     };
 
-    typedef bmpl::inserter< bmpl::vector<>, bmpl::insert<bmpl::_1, bmpl::_2> > vector_inserter;
     typedef typename bmpl::transform<
             VectorAllSpecies,
             CreateCounterOperation<bmpl::_1>
@@ -90,7 +89,6 @@ namespace picongpu
         typedef FieldTmpOperation< ParticleEnergyDensity, T_Species > type;
     };
 
-    typedef bmpl::inserter< bmpl::vector<>, bmpl::insert<bmpl::_1, bmpl::_2> > vector_inserter;
     typedef typename bmpl::transform<
             VectorAllSpecies,
             CreateEnergyDensityOperation<bmpl::_1>
