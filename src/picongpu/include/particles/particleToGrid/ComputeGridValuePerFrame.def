@@ -23,6 +23,8 @@
 #pragma once
 
 #include "simulation_defines.hpp"
+#include "fields/Fields.def"
+#include "particles/traits/GetShape.hpp"
 
 namespace picongpu
 {
@@ -73,6 +75,75 @@ public:
                             const TVecSuperCell superCell,
                             BoxTmp& tmpBox);
 };
+
+/** Predefined Calculations for \see fieldOutput.param
+ */
+
+/* Density */
+template<typename T_Species>
+struct CreateDensityOperation
+{
+    typedef typename GetShape<T_Species>::type shapeType;
+    typedef ComputeGridValuePerFrame<
+        shapeType,
+        ComputeGridValueOptions::calcDensity
+    > ParticleDensity;
+
+    typedef FieldTmpOperation< ParticleDensity, T_Species > type;
+};
+
+/* ParticleCounter */
+template<typename T_Species>
+struct CreateCounterOperation
+{
+    typedef ComputeGridValuePerFrame<
+        particles::shapes::Counter,
+        ComputeGridValueOptions::calcCounter
+    > ParticleCounter;
+
+    typedef FieldTmpOperation< ParticleCounter, T_Species > type;
+};
+
+/* EnergyDensity */
+template<typename T_Species>
+struct CreateEnergyDensityOperation
+{
+    typedef typename GetShape<T_Species>::type shapeType;
+    typedef ComputeGridValuePerFrame<
+        shapeType,
+        ComputeGridValueOptions::calcEnergyDensity
+    > ParticleEnergyDensity;
+
+    typedef FieldTmpOperation< ParticleEnergyDensity, T_Species > type;
+};
+
+/* Energy */
+template<typename T_Species>
+struct CreateEnergyOperation
+{
+    typedef typename GetShape<T_Species>::type shapeType;
+    typedef ComputeGridValuePerFrame<
+        shapeType,
+        ComputeGridValueOptions::calcEnergy
+    > ParticleEnergy;
+
+    typedef FieldTmpOperation< ParticleEnergy, T_Species > type;
+};
+
+#if(ENABLE_RADIATION == 1)
+template<typename T_Species>
+struct CreateLarmorEnergyOperation
+{
+    typedef typename GetShape<T_Species>::type shapeType;
+    typedef ComputeGridValuePerFrame<
+        shapeType,
+        ComputeGridValueOptions::calcLarmorEnergy
+    > ParticleLarmorEnergy;
+
+    typedef FieldTmpOperation< ParticleLarmorEnergy, T_Species > type;
+};
+#endif
+
 
 } // namespace particleToGrid
 } // namespace picongpu

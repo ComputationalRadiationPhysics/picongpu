@@ -30,65 +30,33 @@
 /** some forward declarations we need */
 #include "fields/Fields.def"
 #include "particles/particleToGrid/ComputeGridValuePerFrame.def"
-#include "particles/traits/GetShape.hpp"
 
 namespace picongpu
 {
     /** FieldTmp output (calculated at runtime) *******************************
+     *
+     * you can choose any of these particle to grid projections:
+     *   - CreateDensityOperation: particle position + shape on the grid
+     *   - CreateCounterOperation: counts point like particles per cell
+     *   - CreateEnergyDensityOperation: particle energy density with respect to shape
+     *   - CreateEnergyOperation: particle energy with respect to shape
+     *   - CreateLarmorEnergyOperation: radiated larmor energy (needs ENABLE_RADIATION)
      */
     using namespace particleToGrid;
 
-    /* ParticleDensity section */
-
-    template<typename T_Species>
-    struct CreateDensityOperation
-    {
-        typedef typename GetShape<T_Species>::type shapeType;
-        typedef ComputeGridValuePerFrame<
-            shapeType,
-            ComputeGridValueOptions::calcDensity
-        > ParticleDensity;
-
-        typedef FieldTmpOperation< ParticleDensity, T_Species > type;
-    };
-
+    /* Density section */
     typedef typename bmpl::transform<
             VectorAllSpecies,
             CreateDensityOperation<bmpl::_1>
             >::type Density_Seq;
 
     /* ParticleCounter section */
-
-    template<typename T_Species>
-    struct CreateCounterOperation
-    {
-        typedef ComputeGridValuePerFrame<
-            particles::shapes::Counter,
-            ComputeGridValueOptions::calcCounter
-        > ParticleCounter;
-
-        typedef FieldTmpOperation< ParticleCounter, T_Species > type;
-    };
-
     typedef typename bmpl::transform<
             VectorAllSpecies,
             CreateCounterOperation<bmpl::_1>
             >::type Counter_Seq;
 
-    /* ParticleCounter section */
-
-    template<typename T_Species>
-    struct CreateEnergyDensityOperation
-    {
-        typedef typename GetShape<T_Species>::type shapeType;
-        typedef ComputeGridValuePerFrame<
-            shapeType,
-            ComputeGridValueOptions::calcEnergyDensity
-        > ParticleEnergyDensity;
-
-        typedef FieldTmpOperation< ParticleEnergyDensity, T_Species > type;
-    };
-
+    /* EnergyDensity section */
     typedef typename bmpl::transform<
             VectorAllSpecies,
             CreateEnergyDensityOperation<bmpl::_1>
@@ -106,7 +74,7 @@ namespace picongpu
     >::type FieldTmpSolvers;
 
 
-    /** FileOutputFields: Groups all Fields that shall be dumped **************
+    /** FileOutputFields: Groups all Fields that shall be dumped *************/
 
     /** Possible native fields: FieldE, FieldB, FieldJ
      */
