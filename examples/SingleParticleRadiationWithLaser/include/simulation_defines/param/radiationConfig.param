@@ -115,9 +115,6 @@ namespace picongpu
 
 namespace parameters
 {
-/*!enable radiation calculation*/
-#define ENABLE_RADIATION 1
-
 // Nyquist low pass allows only amplitudes for frequencies below Nyquist frequency
 // 1 = on  (slower and more memory, no fourier reflections)
 // 0 = off (faster but with fourier reflections)
