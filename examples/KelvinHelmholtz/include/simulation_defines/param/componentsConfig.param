@@ -71,6 +71,11 @@ namespace picongpu
     namespace particleInit = particleInitQuietStart;
 
     /*enable (1) or disable (0) current calculation*/
-#define ENABLE_CURRENT 1
+    #define ENABLE_CURRENT 1
 
+    /*!enable radiation calculation*/
+    #ifndef PARAM_RADIATION
+    #define PARAM_RADIATION 0
+    #endif
+    #define ENABLE_RADIATION PARAM_RADIATION
 }
