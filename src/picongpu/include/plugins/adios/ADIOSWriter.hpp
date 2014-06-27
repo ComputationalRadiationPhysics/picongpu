@@ -583,17 +583,137 @@ private:
         }
     }
 
+    typedef PICToAdios<uint32_t> AdiosUInt32Type;
+    typedef PICToAdios<float_X> AdiosFloatXType;
+    typedef PICToAdios<double> AdiosDoubleType;
+
+    /**
+     * Define a single scalar meta attribute
+     */
+    static void defineMetaAttr(ThreadParams *threadParams, const char *name,
+        enum ADIOS_DATATYPES adiosType)
+    {
+        threadParams->adiosMetaAttrVarIds.push_back(
+            adios_define_var(threadParams->adiosGroupHandle,
+                (threadParams->adiosBasePath + std::string(name)).c_str(), "",
+                adiosType, 0, 0, 0));
+    }
+
+    /**
+     * Define meta attributes
+     */
+    static void defineMetaAttributes(ThreadParams *threadParams)
+    {
+        AdiosUInt32Type adiosUInt32Type;
+        AdiosFloatXType adiosFloatXType;
+        AdiosDoubleType adiosDoubleType;
+
+        /* iteration, sim_slides */
+        defineMetaAttr(threadParams, "iteration", adiosUInt32Type.type);
+        defineMetaAttr(threadParams, "sim_slides", adiosUInt32Type.type);
+        threadParams->adiosGroupSize += 2 * sizeof(uint32_t);
+
+        /* normed grid parameters */
+        defineMetaAttr(threadParams, "delta_t", adiosFloatXType.type);
+        defineMetaAttr(threadParams, "cell_width", adiosFloatXType.type);
+        defineMetaAttr(threadParams, "cell_height", adiosFloatXType.type);
+        if (simDim == DIM3)
+            defineMetaAttr(threadParams, "cell_depth", adiosFloatXType.type);
+        threadParams->adiosGroupSize += (1 + simDim) * sizeof(float_X);
+
+        /* base units*/
+        defineMetaAttr(threadParams, "unit_energy", adiosDoubleType.type);
+        defineMetaAttr(threadParams, "unit_length", adiosDoubleType.type);
+        defineMetaAttr(threadParams, "unit_speed", adiosDoubleType.type);
+        defineMetaAttr(threadParams, "unit_time", adiosDoubleType.type);
+        defineMetaAttr(threadParams, "unit_mass", adiosDoubleType.type);
+        defineMetaAttr(threadParams, "unit_charge", adiosDoubleType.type);
+        defineMetaAttr(threadParams, "unit_efield", adiosDoubleType.type);
+        defineMetaAttr(threadParams, "unit_bfield", adiosDoubleType.type);
+        threadParams->adiosGroupSize += 8 * sizeof(double);
+
+        /* physical constants */
+        defineMetaAttr(threadParams, "mue0", adiosFloatXType.type);
+        defineMetaAttr(threadParams, "eps0", adiosFloatXType.type);
+        threadParams->adiosGroupSize += 2 * sizeof(float_X);
+    }
+
+    /**
+     * Write a single scalar meta attribute
+     */
+    static void writeMetaAttr(ThreadParams *threadParams, void *var)
+    {
+        int64_t var_id = threadParams->adiosMetaAttrVarIds.back();
+        threadParams->adiosMetaAttrVarIds.pop_back();
+
+        ADIOS_CMD(adios_write_byid(threadParams->adiosFileHandle, var_id, var));
+    }
+
+    /**
+     * Write meta attributes
+     * Attributes must be written in same order as defined using \see defineMetaAttributes
+     *
+     * @param threadParams parameters
+     */
+    static void writeMetaAttributes(ThreadParams *threadParams)
+    {
+        /* write number of slides to timestep in adios file */
+        uint32_t slides = MovingWindow::getInstance().getSlideCounter(threadParams->currentStep);
+
+        float_X varFloatX;
+        double varDouble;
+
+        /* write current iteration */
+        writeMetaAttr(threadParams, &(threadParams->currentStep));
+
+        /* write number of slides */
+        writeMetaAttr(threadParams, &slides);
+
+        /* write normed grid parameters */
+        varFloatX = DELTA_T;
+        writeMetaAttr(threadParams, &varFloatX);
+        varFloatX = CELL_WIDTH;
+        writeMetaAttr(threadParams, &varFloatX);
+        varFloatX = CELL_HEIGHT;
+        writeMetaAttr(threadParams, &varFloatX);
+        if (simDim == DIM3)
+        {
+            varFloatX = CELL_DEPTH;
+            writeMetaAttr(threadParams, &varFloatX);
+        }
+
+        /* write base units */
+        varDouble = UNIT_ENERGY;
+        writeMetaAttr(threadParams, &varDouble);
+        varDouble = UNIT_LENGTH;
+        writeMetaAttr(threadParams, &varDouble);
+        varDouble = UNIT_SPEED;
+        writeMetaAttr(threadParams, &varDouble);
+        varDouble = UNIT_TIME;
+        writeMetaAttr(threadParams, &varDouble);
+        varDouble = UNIT_MASS;
+        writeMetaAttr(threadParams, &varDouble);
+        varDouble = UNIT_CHARGE;
+        writeMetaAttr(threadParams, &varDouble);
+        varDouble = UNIT_EFIELD;
+        writeMetaAttr(threadParams, &varDouble);
+        varDouble = UNIT_BFIELD;
+        writeMetaAttr(threadParams, &varDouble);
+
+        /* write physical constants */
+        varFloatX = MUE0;
+        writeMetaAttr(threadParams, &varFloatX);
+        varFloatX = EPS0;
+        writeMetaAttr(threadParams, &varFloatX);
+    }
+
     static void *writeAdios(void *p_args)
     {
 
         // synchronize, because following operations will be blocking anyway
         ThreadParams *threadParams = (ThreadParams*) (p_args);
-
+        threadParams->adiosGroupSize = 0;
         const DomainInformation domInfo;
-        MovingWindow &movingWindow = MovingWindow::getInstance();
-
-        /* write number of slides to timestep in adios file */
-        uint32_t slides = movingWindow.getSlideCounter(threadParams->currentStep);
 
         /* y direction can be negative for first gpu */
         DataSpace<simDim> particleOffset(domInfo.localDomain.offset);
@@ -612,18 +732,8 @@ private:
         ADIOS_CMD(adios_select_method(threadParams->adiosGroupHandle, "MPI_AGGREGATE",
                 mpiTransportParams.str().c_str(), ""));
 
-        /* define global variables */
-        threadParams->adiosGroupSize = 2 * sizeof(unsigned int);
-
-        ADIOS_CMD_EXPECT_NONZERO(defineAdiosVar(threadParams->adiosGroupHandle,
-                (threadParams->adiosBasePath + std::string("iteration")).c_str(),
-                NULL, adios_unsigned_integer, DataSpace<DIM1>(1),
-                DataSpace<DIM1>(1), DataSpace<DIM1>(0), false, ""));
-
-        ADIOS_CMD_EXPECT_NONZERO(defineAdiosVar(threadParams->adiosGroupHandle,
-                (threadParams->adiosBasePath + std::string("sim_slides")).c_str(),
-                NULL, adios_unsigned_integer, DataSpace<DIM1>(1),
-                DataSpace<DIM1>(1), DataSpace<DIM1>(0), false, ""));
+        /* define (sizes for) meta attributes */
+        defineMetaAttributes(threadParams);
 
         /* collect size information for each field to be written and define
          * field variables
@@ -661,13 +771,7 @@ private:
         ADIOS_CMD(adios_group_size(threadParams->adiosFileHandle,
                 threadParams->adiosGroupSize, &adiosTotalSize));
 
-        /* write global variables */
-        ADIOS_CMD(adios_write(threadParams->adiosFileHandle,
-                (threadParams->adiosBasePath + std::string("iteration")).c_str(),
-                &(threadParams->currentStep)));
-        ADIOS_CMD(adios_write(threadParams->adiosFileHandle,
-                (threadParams->adiosBasePath + std::string("sim_slides")).c_str(),
-                &slides));
+        writeMetaAttributes(threadParams);
 
         /* write created variable values */
         for (uint32_t d = 0; d < simDim; ++d)
