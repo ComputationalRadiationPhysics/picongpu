@@ -162,7 +162,7 @@ private:
                     writeToFile = false;
                 }
                 //create header of the file
-                outFile << "#step total[Joule] Bx By Bz Ex Ey Ez" << " \n";
+                outFile << "#step total[Joule] Bx[Joule] By[Joule] Bz[Joule] Ex[Joule] Ey[Joule] Ez[Joule]" << " \n";
             }
             Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
         }
@@ -205,13 +205,20 @@ private:
 
         float_64 energyFieldBReduced=0.0;
         float_64 energyFieldEReduced=0.0;
+
         for(int d=0; d<float3_64::dim; ++d)
         {
+	    /* B field convert */
+            globalFieldEnergy[0][d] *= (float_X(1.0) / MUE0) * (CELL_VOLUME * float_X(0.5));
+	    /* E field convert */
+            globalFieldEnergy[1][d] *= EPS0 * (CELL_VOLUME * float_X(0.5));
+
+	    /* add all to one */
             energyFieldBReduced+= globalFieldEnergy[0][d];
             energyFieldEReduced+= globalFieldEnergy[1][d];
         }
 
-        float_64 globalEnergy = ((EPS0 * energyFieldEReduced) + (energyFieldBReduced * (float_X(1.0) / MUE0))) * (CELL_VOLUME * float_X(0.5));
+        float_64 globalEnergy = energyFieldEReduced + energyFieldBReduced;
 
         globalFieldEnergy[0]*=UNIT_BFIELD;
         globalFieldEnergy[1]*=UNIT_EFIELD;
