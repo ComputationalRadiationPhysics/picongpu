@@ -206,7 +206,7 @@ private:
         float_64 energyFieldBReduced=0.0;
         float_64 energyFieldEReduced=0.0;
 
-        for(int d=0; d<float3_64::dim; ++d)
+        for(int d=0; d<FieldB::numComponents; ++d)
         {
 	    /* B field convert */
             globalFieldEnergy[0][d] *= (float_X(1.0) / MUE0) * (CELL_VOLUME * float_X(0.5)) * UNIT_ENERGY;
