@@ -97,6 +97,8 @@ private:
 
     nvidia::reduce::Reduce* localReduce;
 
+    typedef typename promoteType<float_64, FieldB::ValueType>::type EneVectorType;
+
 public:
 
     EnergyFields(std::string name, std::string prefix) :
@@ -189,11 +191,11 @@ private:
         /* idx == 0 -> fieldB
          * idx == 1 -> fieldE
          */
-        float3_64 globalFieldEnergy[2];
-        globalFieldEnergy[0]=float3_64(0.0);
-        globalFieldEnergy[1]=float3_64(0.0);
+        EneVectorType globalFieldEnergy[2];
+        globalFieldEnergy[0]=EneVectorType(0.0);
+        globalFieldEnergy[1]=EneVectorType(0.0);
 
-        float3_64 localReducedFieldEnergy[2];
+        EneVectorType localReducedFieldEnergy[2];
         localReducedFieldEnergy[0] = reduceField(fieldB);
         localReducedFieldEnergy[1] = reduceField(fieldE);
 
@@ -235,7 +237,7 @@ private:
 private:
 
     template<typename T_Field>
-    float3_64 reduceField(T_Field* field)
+    EneVectorType reduceField(T_Field* field)
     {
         /*define stacked DataBox's for reduce algorithm*/
         typedef DataBoxUnaryTransform<typename T_Field::DataBoxType, energyFields::squareComponentWise > TransformedBox;
@@ -250,7 +252,7 @@ private:
         Box64bit field64bit(fieldTransform);
         D1Box d1Access(field64bit, fieldSize);
 
-        float3_64 fieldEnergyReduced = (*localReduce)(nvidia::functors::Add(),
+        EneVectorType fieldEnergyReduced = (*localReduce)(nvidia::functors::Add(),
                                                d1Access,
                                                fieldSize.productOfComponents());
 
