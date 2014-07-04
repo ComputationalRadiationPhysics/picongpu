@@ -71,7 +71,7 @@ value_identifier(uint32_t,chargeState,0);
  */
 
 /** describe attributes of a particle*/
-typedef typename MakeSeq<position<position_pic>,momentum,weighting>::type DefaultParticleAttributes;
+typedef typename MakeSeq<position<position_pic>,momentum,weighting,chargeState>::type DefaultParticleAttributes;
 
 typedef DefaultParticleAttributes ElectronsDataList;
 typedef DefaultParticleAttributes IonsDataList;

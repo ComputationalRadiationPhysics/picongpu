@@ -105,20 +105,26 @@ struct IonizeParticlePerFrame
 
         float3_X mom = particle[momentum_];
         const float_X mass = frame.getMass(weighting);
-
+        
+        /*define charge state variable*/
+        uint32_t chState = particle[chargeState_];
+        //uint32_t macroChState = frame.getChargeState(weighting, chState)
+        
         IonizeAlgo ionizer;
         ionizer(
              bField, eField,
              pos,
              mom,
              mass,
-             frame.getCharge(weighting)
+             frame.getCharge(weighting),
+             chState
              );
         
         particle[momentum_] = mom;
 
-
         particle[position_] = pos;
+        /*retrieve new charge state*/
+        particle[chargeState_] = chState;
 
         /*calculate one dimensional cell index*/
         particle[localCellIdx_] = DataSpaceOperations<TVec::dim>::template map<TVec > (localCell);
@@ -236,19 +242,20 @@ namespace particleIonizerNone
         struct Ionize
         {
 
-            template<typename EType, typename BType, typename PosType, typename MomType, typename MassType, typename ChargeType >
+            template<typename EType, typename BType, typename PosType, typename MomType, typename MassType, typename ChargeType, typename ChargeStateType >
                     __host__ DINLINE void operator()(
                                                         const BType bField,
                                                         const EType eField,
                                                         PosType& pos,
                                                         MomType& mom,
                                                         const MassType mass,
-                                                        const ChargeType charge)
+                                                        const ChargeType charge,
+                                                        ChargeStateType chState)
             {
                 int firstIndex = blockIdx.x * blockIdx.y * blockIdx.z * threadIdx.x * threadIdx.y * threadIdx.z;
                 if (firstIndex == 0)
                 {
-                    printf("Hello I am the Kernel!");
+                    printf("Charge State: %u", chState);
                 }
             }
         };
