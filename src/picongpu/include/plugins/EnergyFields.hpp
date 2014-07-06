@@ -211,9 +211,9 @@ private:
         for(int d=0; d<FieldB::numComponents; ++d)
         {
 	    /* B field convert */
-            globalFieldEnergy[0][d] *= (float_64(1.0) / MUE0) * (CELL_VOLUME * float_64(0.5)) * UNIT_ENERGY;
+	    globalFieldEnergy[0][d] *= (float_64(1.0) / MUE0) * (CELL_VOLUME * float_64(0.5));
 	    /* E field convert */
-            globalFieldEnergy[1][d] *= EPS0 * (CELL_VOLUME * float_64(0.5)) * UNIT_ENERGY;
+            globalFieldEnergy[1][d] *= EPS0 * (CELL_VOLUME * float_64(0.5));
 
 	    /* add all to one */
             energyFieldBReduced+= globalFieldEnergy[0][d];
@@ -228,9 +228,9 @@ private:
             typedef std::numeric_limits< float_64 > dbl;
 
             outFile.precision(dbl::digits10);
-            outFile << currentStep << " " << std::scientific << globalEnergy << " " <<
-                globalFieldEnergy[0].toString(" ","") << " " <<
-                globalFieldEnergy[1].toString(" ","") << std::endl;
+            outFile << currentStep << " " << std::scientific << globalEnergy * UNIT_ENERGY << " " <<
+	        (globalFieldEnergy[0] * UNIT_ENERGY).toString(" ","") << " " <<
+                (globalFieldEnergy[1] * UNIT_ENERGY).toString(" ","") << std::endl;
         }
     }
 
