@@ -97,6 +97,8 @@ private:
 
     nvidia::reduce::Reduce* localReduce;
 
+    typedef typename promoteType<float_64, FieldB::ValueType>::type EneVectorType;
+
 public:
 
     EnergyFields(std::string name, std::string prefix) :
@@ -162,7 +164,7 @@ private:
                     writeToFile = false;
                 }
                 //create header of the file
-                outFile << "#step total[Joule] Bx By Bz Ex Ey Ez" << " \n";
+                outFile << "#step total[Joule] Bx[Joule] By[Joule] Bz[Joule] Ex[Joule] Ey[Joule] Ez[Joule]" << " \n";
             }
             Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
         }
@@ -189,11 +191,11 @@ private:
         /* idx == 0 -> fieldB
          * idx == 1 -> fieldE
          */
-        float3_64 globalFieldEnergy[2];
-        globalFieldEnergy[0]=float3_64(0.0);
-        globalFieldEnergy[1]=float3_64(0.0);
+        EneVectorType globalFieldEnergy[2];
+        globalFieldEnergy[0]=EneVectorType(0.0);
+        globalFieldEnergy[1]=EneVectorType(0.0);
 
-        float3_64 localReducedFieldEnergy[2];
+        EneVectorType localReducedFieldEnergy[2];
         localReducedFieldEnergy[0] = reduceField(fieldB);
         localReducedFieldEnergy[1] = reduceField(fieldE);
 
@@ -205,32 +207,37 @@ private:
 
         float_64 energyFieldBReduced=0.0;
         float_64 energyFieldEReduced=0.0;
-        for(int d=0; d<float3_64::dim; ++d)
+
+        for(int d=0; d<FieldB::numComponents; ++d)
         {
+            /* B field convert */
+            globalFieldEnergy[0][d] *= float_64(0.5 / MUE0 * CELL_VOLUME);
+            /* E field convert */
+            globalFieldEnergy[1][d] *= float_64(EPS0 * CELL_VOLUME * 0.5);
+
+            /* add all to one */
             energyFieldBReduced+= globalFieldEnergy[0][d];
             energyFieldEReduced+= globalFieldEnergy[1][d];
         }
 
-        float_64 globalEnergy = ((EPS0 * energyFieldEReduced) + (energyFieldBReduced * (float_X(1.0) / MUE0))) * (CELL_VOLUME * float_X(0.5));
+        float_64 globalEnergy = energyFieldEReduced + energyFieldBReduced;
 
-        globalFieldEnergy[0]*=UNIT_BFIELD;
-        globalFieldEnergy[1]*=UNIT_EFIELD;
 
         if (writeToFile)
         {
             typedef std::numeric_limits< float_64 > dbl;
 
             outFile.precision(dbl::digits10);
-            outFile << currentStep << " " << std::scientific << globalEnergy * UNIT_ENERGY << " " <<
-                globalFieldEnergy[0].toString(" ","") << " " <<
-                globalFieldEnergy[1].toString(" ","") << std::endl;
+            outFile << currentStep << " " << std::scientific << globalEnergy * UNIT_ENERGY << " " 
+                    << (globalFieldEnergy[0] * UNIT_ENERGY).toString(" ","") << " " 
+                    << (globalFieldEnergy[1] * UNIT_ENERGY).toString(" ","") << std::endl;
         }
     }
 
 private:
 
     template<typename T_Field>
-    float3_64 reduceField(T_Field* field)
+    EneVectorType reduceField(T_Field* field)
     {
         /*define stacked DataBox's for reduce algorithm*/
         typedef DataBoxUnaryTransform<typename T_Field::DataBoxType, energyFields::squareComponentWise > TransformedBox;
@@ -245,7 +252,7 @@ private:
         Box64bit field64bit(fieldTransform);
         D1Box d1Access(field64bit, fieldSize);
 
-        float3_64 fieldEnergyReduced = (*localReduce)(nvidia::functors::Add(),
+        EneVectorType fieldEnergyReduced = (*localReduce)(nvidia::functors::Add(),
                                                d1Access,
                                                fieldSize.productOfComponents());
 
