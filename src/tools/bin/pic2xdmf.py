@@ -129,26 +129,25 @@ def create_vector_attribute(new_name, node_list):
     data_item_list = list()
 
     for node in node_list:
-	children = node.childNodes
-	tmp_data_node = None
-	tmp_info_nodes = list();
+        children = node.childNodes
+        tmp_data_node = None
+        tmp_info_nodes = list();
 
-	for child in children:
-	    if child.nodeName == "Information":
-	 	tmp_info_nodes.append(child)
+	  for child in children:
+	      if child.nodeName == "Information":
+            tmp_info_nodes.append(child)
 		
- 	    if child.nodeName == "DataItem":
-		tmp_data_node = child;
+ 	      if child.nodeName == "DataItem":
+            tmp_data_node = child;
 
-	if tmp_data_node == None:
-            print "Error: no DataItem found"
+	  if tmp_data_node == None:
+        print "Error: no DataItem found"
 
-	for tmp_info_node in tmp_info_nodes:
-            tmp_data_node.appendChild(tmp_info_node)
+	  for tmp_info_node in tmp_info_nodes:
+        tmp_data_node.appendChild(tmp_info_node)
 
-	data_item_list.append(tmp_data_node)
-
-    
+	  data_item_list.append(tmp_data_node)
+ 
     dims = data_item_list[0].getAttribute("Dimensions")
 		    
     vector_data = join_from_components(data_item_list, "JOIN(", ")", ",", dims)
