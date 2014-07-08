@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2014 Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU.
  *
@@ -61,8 +61,10 @@ struct Unit<momentum >
 {
   static std::vector<double> get()
   {
-      std::vector<double> unit(simDim);
-      for(uint32_t i=0;i<simDim;++i)
+      const uint32_t components = GetNComponents<typename momentum::type>::value;
+
+      std::vector<double> unit(components);
+      for(uint32_t i=0;i<components;++i)
         unit[i]=UNIT_MASS*UNIT_SPEED;
 
       return unit;
@@ -74,8 +76,10 @@ struct Unit<momentumPrev1>
 {
   static std::vector<double> get()
   {
-      std::vector<double> unit(simDim);
-      for(uint32_t i=0;i<simDim;++i)
+      const uint32_t components = GetNComponents<typename momentumPrev1::type>::value;
+
+      std::vector<double> unit(components);
+      for(uint32_t i=0;i<components;++i)
         unit[i]=UNIT_MASS*UNIT_SPEED;
 
       return unit;
