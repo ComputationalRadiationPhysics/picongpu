@@ -44,14 +44,14 @@ def get_vector_basename(vector_name):
     """
 
     str_len = len(vector_name)
-    
+
     if str_len < 3:
         return None
 
     for ident in VECTOR_IDENTS:
         if vector_name[str_len - 1] == ident and vector_name[str_len - 2] == NAME_DELIM:
             return vector_name[0:(str_len - 2)]
-        
+
     return None
 
 
@@ -63,7 +63,7 @@ def get_basegroup(name):
     index = name.rfind(NAME_DELIM)
     if index == -1:
         return None
-            
+
     return name[0:index]
 
 
@@ -125,32 +125,31 @@ def create_vector_attribute(new_name, node_list):
     vector_node = doc.createElement("Attribute")
     vector_node.setAttribute("Name", new_name)
     vector_node.setAttribute("AttributeType", "Vector")
-	    
+
     data_item_list = list()
 
     for node in node_list:
-	children = node.childNodes
-	tmp_data_node = None
-	tmp_info_nodes = list();
+        children = node.childNodes
+        tmp_data_node = None
+        tmp_info_nodes = list();
 
-	for child in children:
-	    if child.nodeName == "Information":
-	 	tmp_info_nodes.append(child)
-		
- 	    if child.nodeName == "DataItem":
-		tmp_data_node = child;
+        for child in children:
+            if child.nodeName == "Information":
+                tmp_info_nodes.append(child)
 
-	if tmp_data_node == None:
+            if child.nodeName == "DataItem":
+                tmp_data_node = child;
+
+        if tmp_data_node == None:
             print "Error: no DataItem found"
 
-	for tmp_info_node in tmp_info_nodes:
+        for tmp_info_node in tmp_info_nodes:
             tmp_data_node.appendChild(tmp_info_node)
 
-	data_item_list.append(tmp_data_node)
+        data_item_list.append(tmp_data_node)
 
-    
     dims = data_item_list[0].getAttribute("Dimensions")
-		    
+
     vector_data = join_from_components(data_item_list, "JOIN(", ")", ",", dims)
     vector_node.appendChild(vector_data)
     return vector_node
@@ -159,7 +158,7 @@ def create_vector_attribute(new_name, node_list):
 def combine_positions(node_list, dims):
     """
     Combine position node using '+' operator
-    
+
     Parameters:
     ----------------
     node_list: list of Elements
@@ -179,7 +178,7 @@ def combine_positions(node_list, dims):
 def create_position_geometry(node_list, dims):
     """
     Create a 2/3D Geometry XDMF node
-    
+
     Parameters:
     ----------------
     node_list: list of Elements
@@ -191,14 +190,14 @@ def create_position_geometry(node_list, dims):
     """
 
     geom_node = doc.createElement("Geometry")
-    
+
     if len(node_list) == 2:
         geom_node.setAttribute("Type", "XY")
     else:
         geom_node.setAttribute("Type", "XYZ")
-    
+
     combined_positions = join_from_components(node_list, "JOIN(", ")", ",", dims)
-    
+
     geom_node.appendChild(combined_positions)
     return geom_node
 
@@ -207,7 +206,7 @@ def merge_grid_attributes(base_node):
     """
     Merge child attribute nodes of grid-type base_node as
     new vector attribute nodes if possible
-    
+
     Parameters:
     ----------------
     base_node: Element
@@ -221,36 +220,36 @@ def merge_grid_attributes(base_node):
         basename = get_vector_basename(attr.getAttribute("Name"))
         if basename == None:
             continue
-            
+
         if not vectors_map.has_key(basename):
             vectors_map[basename] = [attr]
         else:
             vector_list = vectors_map.get(basename)
             vector_list.append(attr)
-            
+
     # iterate over all map entries (basename, list of components/nodes)
     for (key, value_list) in vectors_map.items():
         #print "replacing nodes for basename {} with a {}-element vector".format(key, len(value_list))
         vector_node = create_vector_attribute(key, value_list)
-        
+
         # old component nodes are removed from the xml tree
         for old_attr in value_list:
             base_node.removeChild(old_attr)
-        
+
         base_node.appendChild(vector_node)
-           
-            
+
+
 def merge_poly_attributes(base_node):
     """
     Merge child attribute nodes of poly-type base_node as
     new vector attribute nodes if possible, combine geometry attributes
-    
+
     Parameters:
     ----------------
     base_node: Element
                base node (parent) for which children attributes shall be merged
     """
-    
+
     vectors_map = dict()
     # sort all child attribute nodes of base_node into a map
     # according to their base group part and further to their base name part
@@ -260,11 +259,11 @@ def merge_poly_attributes(base_node):
         non_vector_name = get_vector_basename(attr_name)
         if non_vector_name == None:
             non_vector_name = attr_name
-        
+
         basegroup = get_basegroup(non_vector_name)
         if basegroup == None:
             continue
-            
+
         if not vectors_map.has_key(basegroup):
             group_map = dict()
             group_map[non_vector_name] = [attr]
@@ -275,20 +274,20 @@ def merge_poly_attributes(base_node):
                 group_map[non_vector_name].append(attr)
             else:
                 group_map[non_vector_name] = [attr]
-                
-    # iterate over base group  
+
+    # iterate over base group
     for (groupName, groupMap) in vectors_map.items():
         pos_vector_list = None
         gcellidx_vector_list = None
         number_of_elements = 0
-        
+
         for (vectorName, vectorAttrs) in groupMap.items():
             if vectorName.endswith("/{}".format(NAME_POSITION)):
                 pos_vector_list = vectorAttrs
-		for i in pos_vector_list:
-		    for child in i.childNodes:
-		        if child.nodeName == "DataItem":
-			    number_of_elements = child.getAttribute("Dimensions")
+                for i in pos_vector_list:
+                    for child in i.childNodes:
+                        if child.nodeName == "DataItem":
+                            number_of_elements = child.getAttribute("Dimensions")
             else:
                 if vectorName.endswith("/{}".format(NAME_GLOBALCELLIDX)):
                     gcellidx_vector_list = vectorAttrs
@@ -302,7 +301,7 @@ def merge_poly_attributes(base_node):
                             base_node.removeChild(attr)
 
                         base_node.appendChild(vector_node)
-                        
+
         # now check that we have NAME_GLOBALCELLIDX and NAME_POSITION and they match
         if gcellidx_vector_list == None:
             print "Error: Did not find attributes '{}' in group '{}'".format(NAME_GLOBALCELLIDX, groupName)
@@ -311,47 +310,47 @@ def merge_poly_attributes(base_node):
         if pos_vector_list == None:
             print "Error: Did not find attributes '{}' in group '{}'".format(NAME_POSITION, groupName)
             return
-        
+
         if len(gcellidx_vector_list) < 2 or len(gcellidx_vector_list) > 3:
             print "Error: Attributes for '{}' in group '{}' are not a 2/3 component vector".format(NAME_GLOBALCELLIDX, groupName)
             return
-        
+
         if len(gcellidx_vector_list) != len(pos_vector_list):
             print "Error: Vectors for '{}' and '{}' in group '{}' do not match".format(NAME_GLOBALCELLIDX, NAME_POSITION, groupName)
             return
-        
+
         combined_pos_nodes = list()
         for i in range(len(pos_vector_list)):
-	    pos_data_item = None;
-	    gcell_data_item = None;
+            pos_data_item = None;
+            gcell_data_item = None;
 
             for v_data in gcellidx_vector_list[i].childNodes:
-	        if v_data.nodeName == "DataItem":
-		    gcell_data_item = v_data
-		    break
-		   
-	    for p_data in pos_vector_list[i].childNodes:
-	        if p_data.nodeName == "DataItem":
-	 	    pos_data_item = p_data
-		    break
-	    
+                if v_data.nodeName == "DataItem":
+                    gcell_data_item = v_data
+                    break
+
+            for p_data in pos_vector_list[i].childNodes:
+                if p_data.nodeName == "DataItem":
+                    pos_data_item = p_data
+                    break
+
             combined_node = combine_positions([gcell_data_item, pos_data_item], number_of_elements)
             combined_pos_nodes.append(combined_node)
-            
+
         geom_node = create_position_geometry(combined_pos_nodes, number_of_elements)
         base_node.appendChild(geom_node)
-        
+
         # remove old nodes
         for (vectorName, vectorAttrs) in groupMap.items():
             if vectorName.endswith("/{}".format(NAME_GLOBALCELLIDX)) or vectorName.endswith("/{}".format(NAME_POSITION)):
                 for node in vectorAttrs:
                     base_node.removeChild(node)
-    
+
 
 def transform_xdmf_xml(root):
     """
     Transform XDMF XML tree starting at node root
-    
+
     Parameters:
     ----------------
     root: Element
@@ -362,17 +361,17 @@ def transform_xdmf_xml(root):
         if grid_node.getAttribute("GridType") == "Uniform":
             if grid_node.getAttribute("Name").startswith("Grid_"):
                 merge_grid_attributes(grid_node)
-            
+
             if grid_node.getAttribute("Name").startswith("Poly_"):
                 merge_poly_attributes(grid_node)
-    
+
 
 # program functions
 
 def get_args_parser():
     """
     Return the argument parser for this script
-    
+
     Returns:
     ----------------
     return: ArgumentParser
@@ -384,17 +383,17 @@ def get_args_parser():
 
     parser.add_argument("splashfile", metavar="<filename>",
         help="libSplash HDF5 file with domain information")
-        
+
     parser.add_argument("-o", metavar="<filename>", help="Name of output XDMF "
         "file (default: append '.xmf')")
-    
+
     parser.add_argument("-t", "--time", help="Aggregate information over a "
         "time-series of libSplash data", action="store_true")
 
     parser.add_argument("--fullpath", help="Use absolute paths for HDF5 files", action="store_true")
 
     parser.add_argument("--no_splitgrid", help="Avoid the XML-tree to be split in grid and poly grids for seperate output files", action="store_true")
-    
+
     return parser
 
 
@@ -420,9 +419,9 @@ def main():
         splash_files.append(splashFilename)
         tmp = splashFilename.rfind(".h5")
         splashFilename = splashFilename[:tmp]
-        
+
     output_filename = "{}.xmf".format(splashFilename)
-    
+
     if args.o:
         if args.o.endswith(".xmf"):
             output_filename = args.o
@@ -449,13 +448,13 @@ def main():
         grid_doc.appendChild(grid_xdmf_root)
         poly_doc.appendChild(poly_xdmf_root)
         # create list of two output filenames with _grid and _poly extension
-	output_filename_list = splash2xdmf.handle_user_filename(output_filename)
+        output_filename_list = splash2xdmf.handle_user_filename(output_filename)
         # use output filename list to write data to the relating output file
-	for output_file in output_filename_list:
-	    if output_file.endswith("_grid.xmf"):
+        for output_file in output_filename_list:
+            if output_file.endswith("_grid.xmf"):
                 splash2xdmf.write_xml_to_file(output_file, grid_doc)
-	    if output_file.endswith("_poly.xmf"):
-		splash2xdmf.write_xml_to_file(output_file, poly_doc)
+            if output_file.endswith("_poly.xmf"):
+                splash2xdmf.write_xml_to_file(output_file, poly_doc)
 
 
 if __name__ == "__main__":
