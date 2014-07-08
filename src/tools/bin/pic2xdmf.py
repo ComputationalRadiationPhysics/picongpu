@@ -107,6 +107,102 @@ def join_from_components(node_list, prefix, suffix, operation, dims):
     return join_base
 
 
+def join_references_from_components(node_list, original_nodes_map, prefix, suffix, operation, dims):
+    """
+    Parameters:
+    ----------------
+    node_list: list of Elements
+               nodes to join references of
+    prefix:    string
+               prefix of join operation, e.g. 'JOIN('
+    suffix:    string
+               suffix of join operation, e.g. ')'
+    operation: string
+               operator for join, e.g. '+'
+    dims:      string
+               dimensions of nodes in node_list
+    Returns:
+    ----------------
+    return: Element
+            new DataItem node with references to original nodes
+    """
+
+    join_base = doc.createElement("DataItem")
+    join_base.setAttribute("ItemType", "Function")
+    join_base.setAttribute("Dimensions", "{} {}".format(dims, len(node_list)))
+
+    # join components
+    function_str = prefix
+
+    index = 0
+    for attr in node_list:
+        # create reference to attr node and append
+        reference = doc.createElement("DataItem")
+        reference.setAttribute("Reference", "XML")
+
+        orig_name = original_nodes_map[attr].getAttribute("Name")
+        reference_text = doc.createTextNode("/Xdmf/Domain/Grid/Attribute[@Name='{}']/DataItem[1]".format(orig_name))
+        reference.appendChild(reference_text)
+        join_base.appendChild(reference)
+
+        function_str += "${}".format(index)
+        if index < len(node_list) - 1:
+            function_str += operation
+        index += 1
+
+    function_str += suffix
+    join_base.setAttribute("Function", "{}".format(function_str))
+    return join_base
+
+
+def create_vector_attribute_common(new_name, node_list):
+    """
+    Parameters:
+    ----------------
+    new_name:  string
+               name of the new vector Attribute node
+    node_list: list of Elements
+               XDMF DataItem elements to combine in a new vector Attribute node
+
+    Returns:
+    ----------------
+    return: tuple
+            vector_node, data_item_list, original_nodes_map, dims
+    """
+
+    vector_node = doc.createElement("Attribute")
+    vector_node.setAttribute("Name", new_name)
+    vector_node.setAttribute("AttributeType", "Vector")
+
+    data_item_list = list()
+    original_nodes_map = dict()
+
+    for node in node_list:
+        children = node.childNodes
+        tmp_data_node = None
+        tmp_info_nodes = list();
+
+        for child in children:
+            if child.nodeName == "Information":
+                tmp_info_nodes.append(child.cloneNode(True))
+
+            if child.nodeName == "DataItem":
+                tmp_data_node = child.cloneNode(True);
+
+        if tmp_data_node == None:
+            print "Error: no DataItem found"
+
+        for tmp_info_node in tmp_info_nodes:
+            tmp_data_node.appendChild(tmp_info_node)
+
+        data_item_list.append(tmp_data_node)
+        original_nodes_map[tmp_data_node] = node;
+
+    dims = data_item_list[0].getAttribute("Dimensions")
+
+    return (vector_node, data_item_list, original_nodes_map, dims)
+
+
 def create_vector_attribute(new_name, node_list):
     """
     Parameters:
@@ -122,40 +218,36 @@ def create_vector_attribute(new_name, node_list):
             new vector Attribute node
     """
 
-    vector_node = doc.createElement("Attribute")
-    vector_node.setAttribute("Name", new_name)
-    vector_node.setAttribute("AttributeType", "Vector")
-
-    data_item_list = list()
-
-    for node in node_list:
-        children = node.childNodes
-        tmp_data_node = None
-        tmp_info_nodes = list();
-
-        for child in children:
-            if child.nodeName == "Information":
-                tmp_info_nodes.append(child)
-
-            if child.nodeName == "DataItem":
-                tmp_data_node = child;
-
-        if tmp_data_node == None:
-            print "Error: no DataItem found"
-
-        for tmp_info_node in tmp_info_nodes:
-            tmp_data_node.appendChild(tmp_info_node)
-
-        data_item_list.append(tmp_data_node)
-
-    dims = data_item_list[0].getAttribute("Dimensions")
+    (vector_node, data_item_list, original_nodes_map, dims) = create_vector_attribute_common(new_name, node_list)
 
     vector_data = join_from_components(data_item_list, "JOIN(", ")", ",", dims)
     vector_node.appendChild(vector_data)
     return vector_node
 
 
-def combine_positions(node_list, dims):
+def create_vector_reference_attribute(new_name, node_list):
+    """
+    Parameters:
+    ----------------
+    new_name:  string
+               name of the new vector Attribute node with DataItem references
+    node_list: list of Elements
+               XDMF DataItem elements to combine in a new vector Attribute node
+
+    Returns:
+    ----------------
+    return: Element
+            new vector Attribute node
+    """
+
+    (vector_node, data_item_list, original_nodes_map, dims) = create_vector_attribute_common(new_name, node_list)
+
+    vector_data = join_references_from_components(data_item_list, original_nodes_map, "JOIN(", ")", ",", dims)
+    vector_node.appendChild(vector_data)
+    return vector_node
+
+
+def combine_positions(node_list, original_nodes_map, dims):
     """
     Combine position node using '+' operator
 
@@ -172,7 +264,7 @@ def combine_positions(node_list, dims):
             combined positions node
     """
 
-    return join_from_components(node_list, "", "", "+", dims)
+    return join_references_from_components(node_list, original_nodes_map, "", "", "+", dims)
 
 
 def create_position_geometry(node_list, dims):
@@ -230,11 +322,11 @@ def merge_grid_attributes(base_node):
     # iterate over all map entries (basename, list of components/nodes)
     for (key, value_list) in vectors_map.items():
         #print "replacing nodes for basename {} with a {}-element vector".format(key, len(value_list))
-        vector_node = create_vector_attribute(key, value_list)
+        vector_node = create_vector_reference_attribute(key, value_list)
 
-        # old component nodes are removed from the xml tree
-        for old_attr in value_list:
-            base_node.removeChild(old_attr)
+        # uncomment to remove old component nodes from the xml tree
+        #for old_attr in value_list:
+        #    base_node.removeChild(old_attr)
 
         base_node.appendChild(vector_node)
 
@@ -288,17 +380,22 @@ def merge_poly_attributes(base_node):
                     for child in i.childNodes:
                         if child.nodeName == "DataItem":
                             number_of_elements = child.getAttribute("Dimensions")
+                            child.setAttribute("Name", i.getAttribute("Name"))
             else:
                 if vectorName.endswith("/{}".format(NAME_GLOBALCELLIDX)):
                     gcellidx_vector_list = vectorAttrs
+                    for i in gcellidx_vector_list:
+                        for child in i.childNodes:
+                            if child.nodeName == "DataItem":
+                                child.setAttribute("Name", i.getAttribute("Name"))
                 else:
                     if len(vectorAttrs) > 1:
                         #print "replacing nodes for basename {} with a {}-element vector".format(vectorName, len(vectorAttrs))
-                        vector_node = create_vector_attribute(vectorName, vectorAttrs)
+                        vector_node = create_vector_reference_attribute(vectorName, vectorAttrs)
 
-                        # old component nodes are removed from the xml tree
-                        for attr in vectorAttrs:
-                            base_node.removeChild(attr)
+                        # uncomment to remove old component nodes from the xml tree
+                        #for attr in vectorAttrs:
+                        #    base_node.removeChild(attr)
 
                         base_node.appendChild(vector_node)
 
@@ -323,28 +420,31 @@ def merge_poly_attributes(base_node):
         for i in range(len(pos_vector_list)):
             pos_data_item = None;
             gcell_data_item = None;
+            original_nodes_map = dict()
 
             for v_data in gcellidx_vector_list[i].childNodes:
                 if v_data.nodeName == "DataItem":
-                    gcell_data_item = v_data
+                    gcell_data_item = v_data.cloneNode(True)
+                    original_nodes_map[gcell_data_item] = v_data
                     break
 
             for p_data in pos_vector_list[i].childNodes:
                 if p_data.nodeName == "DataItem":
-                    pos_data_item = p_data
+                    pos_data_item = p_data.cloneNode(True)
+                    original_nodes_map[pos_data_item] = p_data
                     break
 
-            combined_node = combine_positions([gcell_data_item, pos_data_item], number_of_elements)
+            combined_node = combine_positions([gcell_data_item, pos_data_item], original_nodes_map, number_of_elements)
             combined_pos_nodes.append(combined_node)
 
         geom_node = create_position_geometry(combined_pos_nodes, number_of_elements)
         base_node.appendChild(geom_node)
 
-        # remove old nodes
-        for (vectorName, vectorAttrs) in groupMap.items():
-            if vectorName.endswith("/{}".format(NAME_GLOBALCELLIDX)) or vectorName.endswith("/{}".format(NAME_POSITION)):
-                for node in vectorAttrs:
-                    base_node.removeChild(node)
+        # uncomment to remove old nodes
+        #for (vectorName, vectorAttrs) in groupMap.items():
+        #    if vectorName.endswith("/{}".format(NAME_GLOBALCELLIDX)) or vectorName.endswith("/{}".format(NAME_POSITION)):
+        #        for node in vectorAttrs:
+        #            base_node.removeChild(node)
 
 
 def transform_xdmf_xml(root):
