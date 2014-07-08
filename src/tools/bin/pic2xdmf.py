@@ -293,7 +293,7 @@ def merge_poly_attributes(base_node):
                     gcellidx_vector_list = vectorAttrs
                 else:
                     if len(vectorAttrs) > 1:
-                        print "replacing nodes for basename {} with a {}-element vector".format(vectorName, len(vectorAttrs))
+                        #print "replacing nodes for basename {} with a {}-element vector".format(vectorName, len(vectorAttrs))
                         vector_node = create_vector_attribute(vectorName, vectorAttrs)
 
                         # old component nodes are removed from the xml tree
