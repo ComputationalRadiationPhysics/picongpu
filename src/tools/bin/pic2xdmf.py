@@ -29,6 +29,7 @@ import splash2xdmf
 doc = Document()
 grid_doc = Document()
 poly_doc = Document()
+time_series = False
 
 # identifiers for vector components
 VECTOR_IDENTS = ["x", "y", "z", "w"]
@@ -141,7 +142,10 @@ def join_references_from_components(node_list, original_nodes_map, prefix, suffi
         reference.setAttribute("Reference", "XML")
 
         orig_name = original_nodes_map[attr].getAttribute("Name")
-        reference_text = doc.createTextNode("/Xdmf/Domain/Grid/Attribute[@Name='{}']/DataItem[1]".format(orig_name))
+        extra_grid = ""
+        if time_series:
+            extra_grid = "Grid/"
+        reference_text = doc.createTextNode("/Xdmf/Domain/Grid/{}Attribute[@Name='{}']/DataItem[1]".format(extra_grid, orig_name))
         reference.appendChild(reference_text)
         join_base.appendChild(reference)
 
@@ -501,6 +505,8 @@ def main():
     """
     Main
     """
+    global time_series
+
     # get arguments from command line
     args_parser = get_args_parser()
     args = args_parser.parse_args()
