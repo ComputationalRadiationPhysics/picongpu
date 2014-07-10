@@ -144,8 +144,11 @@ def join_references_from_components(node_list, original_nodes_map, prefix, suffi
         orig_name = original_nodes_map[attr].getAttribute("Name")
         extra_grid = ""
         if time_series:
-            extra_grid = "Grid/"
-        reference_text = doc.createTextNode("/Xdmf/Domain/Grid/{}Attribute[@Name='{}']/DataItem[1]".format(extra_grid, orig_name))
+            parent_node = original_nodes_map[attr].parentNode
+            extra_grid = "Grid[@Name='{}']/".format(parent_node.getAttribute("Name"))
+
+        node_text = "/Xdmf/Domain/Grid/{}Attribute[@Name='{}']/DataItem[1]".format(extra_grid, orig_name)
+        reference_text = doc.createTextNode(node_text)
         reference.appendChild(reference_text)
         join_base.appendChild(reference)
 
@@ -384,14 +387,9 @@ def merge_poly_attributes(base_node):
                     for child in i.childNodes:
                         if child.nodeName == "DataItem":
                             number_of_elements = child.getAttribute("Dimensions")
-                            child.setAttribute("Name", i.getAttribute("Name"))
             else:
                 if vectorName.endswith("/{}".format(NAME_GLOBALCELLIDX)):
                     gcellidx_vector_list = vectorAttrs
-                    for i in gcellidx_vector_list:
-                        for child in i.childNodes:
-                            if child.nodeName == "DataItem":
-                                child.setAttribute("Name", i.getAttribute("Name"))
                 else:
                     if len(vectorAttrs) > 1:
                         #print "replacing nodes for basename {} with a {}-element vector".format(vectorName, len(vectorAttrs))
@@ -429,13 +427,13 @@ def merge_poly_attributes(base_node):
             for v_data in gcellidx_vector_list[i].childNodes:
                 if v_data.nodeName == "DataItem":
                     gcell_data_item = v_data.cloneNode(True)
-                    original_nodes_map[gcell_data_item] = v_data
+                    original_nodes_map[gcell_data_item] = v_data.parentNode
                     break
 
             for p_data in pos_vector_list[i].childNodes:
                 if p_data.nodeName == "DataItem":
                     pos_data_item = p_data.cloneNode(True)
-                    original_nodes_map[pos_data_item] = p_data
+                    original_nodes_map[pos_data_item] = p_data.parentNode
                     break
 
             combined_node = combine_positions([gcell_data_item, pos_data_item], original_nodes_map, number_of_elements)
