@@ -49,16 +49,16 @@ namespace picongpu
             return (M_ION * weighting);
         }
 
-        HDINLINE static ChargeType getCharge(const float_X weighting)
+        HDINLINE static ChargeType getCharge(const float_X weighting, uint32_t chargeState)
         {
-            return (Q_ION * weighting);
+            return (Q_ION * weighting * chargeState);
         }
         /* return charge state of the ion*/
-        HDINLINE static ChargeStateType getChargeState(const float_X weighting, uint32_t chargeState)
-        {
-            return (chargeState * weighting);
-        }
-        
+        /* HDINLINE static ChargeStateType getChargeState(const float_X weighting, uint32_t chargeState)
+         * {
+         *    return (chargeState * weighting);
+         * }
+         */
         enum
         {
             CommunicationTag = PAR_IONS

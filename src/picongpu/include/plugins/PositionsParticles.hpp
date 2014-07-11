@@ -52,9 +52,10 @@ struct SglParticle
     float_X weighting;
     float_X charge;
     float_X gamma;
+    uint32_t chState; /*garten70 Ionization*/
 
     SglParticle() : position(0.0), momentum(0.0), mass(0.0),
-        weighting(0.0), charge(0.0), gamma(0.0)
+        weighting(0.0), charge(0.0), gamma(0.0), chState(0) /*garten70 Ionization*/
     {
     }
 
@@ -134,8 +135,9 @@ __global__ void kernelPositionsParticles(ParticlesBox<FRAME, simDim> pb,
             gParticle->position = particle[position_];
             gParticle->momentum = particle[momentum_];
             gParticle->weighting = particle[weighting_];
+            gParticle->chState = particle[chargeState_];
             gParticle->mass = frame->getMass(gParticle->weighting);
-            gParticle->charge = frame->getCharge(gParticle->weighting);
+            gParticle->charge = frame->getCharge(gParticle->weighting,gParticle->chState);
             gParticle->gamma = Gamma<>()(gParticle->momentum, gParticle->mass);
 
             // storage number in the actual frame

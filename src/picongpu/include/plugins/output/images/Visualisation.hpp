@@ -387,8 +387,11 @@ kernelPaintParticles3D(ParBox pb,
             if (globalParticleCell == slice)
 #endif
             {
+                /*const DataSpace<DIM2> reducedCell(particleCellId[transpose.x()], particleCellId[transpose.y()]);
+                 *atomicAddWrapper(&(counter(reducedCell)), particle[weighting_] / NUM_EL_PER_PARTICLE);
+                 */
                 const DataSpace<DIM2> reducedCell(particleCellId[transpose.x()], particleCellId[transpose.y()]);
-                atomicAddWrapper(&(counter(reducedCell)), particle[weighting_] / NUM_EL_PER_PARTICLE);
+                atomicAddWrapper(&(counter(reducedCell)), particle[chargeState_]);
             }
         }
         __syncthreads();

@@ -409,6 +409,7 @@ struct PushParticlePerFrame
 
         PMACC_AUTO(particle,frame[localIdx]);
         const float_X weighting = particle[weighting_];
+        uint32_t chState = particle[chargeState_];
 
         floatD_X pos = particle[position_];
         const int particleCellIdx = particle[localCellIdx_];
@@ -439,7 +440,7 @@ struct PushParticlePerFrame
              pos,
              mom,
              mass,
-             frame.getCharge(weighting)
+             frame.getCharge(weighting, chState)
              );
         particle[momentum_] = mom;
 

@@ -278,6 +278,7 @@ void kernelRadiationParticles(ParBox pb,
                              * by a macro-particle 
                              */
                             const float_X weighting = par[weighting_];
+                            uint32_t chState = par[chargeState_];
 
 
                             /* only of coherent and incoherent radiation of a single macro-particle is
@@ -314,8 +315,8 @@ void kernelRadiationParticles(ParBox pb,
 
                             // if coherent and incoherent of single macro-particle is considered
 #if (__COHERENTINCOHERENTWEIGHTING__==1)
-                            // get charge of single electron ! (weighting=1.0f)
-                            const picongpu::float_X particle_charge = par.getCharge(1.0f);
+                            // get charge of single electron ! (weighting=1.0f), chargeState=1
+                            const picongpu::float_X particle_charge = par.getCharge(1.0f,1);
 
                             // compute real amplitude of macro-particle with a charge of 
                             // a single electron 
@@ -326,7 +327,7 @@ void kernelRadiationParticles(ParBox pb,
                             // if coherent and incoherent of single macro-particle is NOT considered
 
                             // get charge of entire macro-particle
-                            const picongpu::float_X particle_charge = par.getCharge(weighting);
+                            const picongpu::float_X particle_charge = par.getCharge(weighting, chState);
 
                             // compute real amplitude of macro-particle
                             real_amplitude_s[saveParticleAt] = amplitude3.get_vector(look) *

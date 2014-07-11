@@ -116,7 +116,7 @@ struct IonizeParticlePerFrame
              pos,
              mom,
              mass,
-             frame.getCharge(weighting),
+             frame.getCharge(weighting, chState),
              chState
              );
         
@@ -250,13 +250,26 @@ namespace particleIonizerNone
                                                         MomType& mom,
                                                         const MassType mass,
                                                         const ChargeType charge,
-                                                        ChargeStateType chState)
+                                                        ChargeStateType& chState)
             {
-                int firstIndex = blockIdx.x * blockIdx.y * blockIdx.z * threadIdx.x * threadIdx.y * threadIdx.z;
-                if (firstIndex == 0)
+                
+                /*Barrier Suppression Ionization for hydrogenlike helium 
+                 *charge >= 0 is needed because electrons and ions cannot be 
+                 *distinguished, yet.
+                 */
+                if (math::abs(eField)*UNIT_EFIELD >= 5.14e7 && chState < 2 && charge >= 0)
                 {
-                    printf("Charge State: %u", chState);
+                    chState = 1 + chState;
                 }
+                
+                /*
+                 *int firstIndex = blockIdx.x * blockIdx.y * blockIdx.z * threadIdx.x * threadIdx.y * threadIdx.z;
+                 *if (firstIndex == 0)
+                 *{
+                 *    printf("Charge State: %u", chState);
+                 *}
+                 */
+                
             }
         };
     
@@ -295,7 +308,7 @@ void Particles<T_ParticleDescription>::ionize( uint32_t )
     /* kernel call : instead of name<<<blocks, threads>>> (args, ...) 
        "blocks" will be calculated from "this->cellDescription" and "CORE + BORDER" 
        "threads" is calculated from the previously defined vector "block" */
-    printf("Call the Colonel!\n");
+    //printf("Call the Colonel!\n");
     __picKernelArea( kernelIonizeParticles<BlockArea>, this->cellDescription, CORE + BORDER )
         (block)
         ( this->getDeviceParticlesBox( ),

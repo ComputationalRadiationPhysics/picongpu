@@ -225,7 +225,9 @@ private:
         
         const std::string groupName = std::string("particles/") + FrameType::getName();
         
-        const float_64 charge = (float_64)FrameType::getCharge(1.0);
+        /*check if everything still works as intended with the charge state 
+         *attribute in getCharge set to 1*/
+        const float_64 charge = (float_64)FrameType::getCharge(1.0, 1);
         params->dataCollector->writeAttribute(params->currentStep,
                 splashType, groupName.c_str(), "charge", &charge);
         

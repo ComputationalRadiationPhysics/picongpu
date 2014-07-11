@@ -37,6 +37,7 @@ namespace picongpu
 
         typedef float_X MassType;
         typedef float_X ChargeType;
+        typedef uint32_t ChargeStateType;
         
 
         HDINLINE static float_X getM0_2(const float_X weighting)
@@ -49,9 +50,9 @@ namespace picongpu
             return (M_EL * weighting);
         }
 
-        HDINLINE static ChargeType getCharge(const float_X weighting)
+        HDINLINE static ChargeType getCharge(const float_X weighting, uint32_t chargeState)
         {
-            return (Q_EL * weighting);
+            return (Q_EL * weighting * chargeState);
         }
 
         enum
