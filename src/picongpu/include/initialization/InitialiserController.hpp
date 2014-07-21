@@ -96,8 +96,8 @@ public:
         {
             log<picLog::PHYSICS >("max weighting %1%") % NUM_EL_PER_PARTICLE;
 
-            log<picLog::PHYSICS >("Courant dt <= %1% ? %2% ") %
-                                 (SPEED_OF_LIGHT/math::sqrt(INV_CELL2_SUM)) %
+            log<picLog::PHYSICS >("Courant c*dt <= %1% ? %2%") %
+                                 (1./math::sqrt(INV_CELL2_SUM)) %
                                  (SPEED_OF_LIGHT * DELTA_T);
 
             if (gasProfile::GAS_ENABLED)
