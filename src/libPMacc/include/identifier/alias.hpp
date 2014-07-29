@@ -24,6 +24,7 @@
 
 #include "types.h"
 #include "identifier/identifier.hpp"
+#include <string>
 
 namespace PMacc
 {
@@ -35,12 +36,12 @@ identifier(pmacc_isAlias);
 #define PMACC_alias(name,id)                                                   \
     namespace PMACC_JOIN(placeholder_definition,id) {                          \
         template<typename T_Type=PMacc::pmacc_void,typename T_IsAlias=PMacc::pmacc_isAlias> \
-        struct name:public T_Type                                                   \
+        struct name:public T_Type                                              \
         {                                                                      \
-            typedef T_Type ThisType;                                                \
-            static HDINLINE char* getName()                                    \
+            typedef T_Type ThisType;                                           \
+            static std::string getName()                                       \
             {                                                                  \
-                     return #name;                                             \
+                return std::string(#name);                                     \
             }                                                                  \
         };                                                                     \
     }                                                                          \
