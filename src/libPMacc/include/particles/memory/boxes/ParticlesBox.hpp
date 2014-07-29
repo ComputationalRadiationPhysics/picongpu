@@ -88,19 +88,14 @@ public:
     {
         vint_t myId = getFrameIdx(frame);
         vint_t nextId = next[myId];
-        /*!\todo: BUG: prev[nextId]!=myId fix fermi bug on shiftparticles
-         * on fermi isValid sometimes never became the state false
-         */
+
         if (nextId == INV_IDX)
         {
-
             isValid = false;
             return frame;
         }
         else
         {
-            //    if (prev[nextId] != myId)
-            //        printf("prevBug next %d->%d\n", prev[nextId], myId);
             isValid = true;
             return data[nextId];
         }
@@ -118,19 +113,14 @@ public:
     {
         vint_t myId = getFrameIdx(frame);
         vint_t prevId = prev[myId];
-        /*!\todo: BUG: prev[nextId]!=myId fix fermi bug on shiftparticles
-         * on fermi isValid sometimes never became the state false
-         */
+
         if (prevId == INV_IDX)
         {
-
             ret = false;
             return frame;
         }
         else
         {
-            //  if (next[prevId] != myId)
-            //      printf("nextBug prev %d->%d\n", next[prevId], myId);
             ret = true;
             return data[prevId];
         }
