@@ -1,24 +1,25 @@
 /**
  * Copyright 2013 Felix Schmitt, Heiko Burau, Rene Widera
  *
- * This file is part of libPMacc. 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 #ifndef PARTICLESBOX_HPP
 #define	PARTICLESBOX_HPP
@@ -33,8 +34,6 @@
 namespace PMacc
 {
 
-
-
 /**
  * A DIM-dimensional Box holding frames with particle data.
  *
@@ -47,12 +46,12 @@ class ParticlesBox
 public:
 
     typedef FRAME FrameType;
-    static const uint32_t Dim=DIM;
+    static const uint32_t Dim = DIM;
 
     HDINLINE ParticlesBox(const DataBox<PitchedBox<SuperCell<vint_t>, DIM> > &superCells,
-                         const HeapDataBox<vint_t, FRAME>& data,
-                         const VectorDataBox<vint_t>& nextFrames,
-                         const VectorDataBox<vint_t>& prevFrames) :
+                          const HeapDataBox<vint_t, FRAME>& data,
+                          const VectorDataBox<vint_t>& nextFrames,
+                          const VectorDataBox<vint_t>& prevFrames) :
     superCells(superCells), data(data), next(nextFrames), prev(prevFrames)
     {
 
@@ -90,19 +89,14 @@ public:
     {
         vint_t myId = getFrameIdx(frame);
         vint_t nextId = next[myId];
-        /*!\todo: BUG: prev[nextId]!=myId fix fermi bug on shiftparticles
-         * on fermi isValid sometimes never became the state false
-         */
+
         if (nextId == INV_IDX)
         {
-
             isValid = false;
             return frame;
         }
         else
         {
-        //    if (prev[nextId] != myId)
-        //        printf("prevBug next %d->%d\n", prev[nextId], myId);
             isValid = true;
             return data[nextId];
         }
@@ -120,19 +114,14 @@ public:
     {
         vint_t myId = getFrameIdx(frame);
         vint_t prevId = prev[myId];
-        /*!\todo: BUG: prev[nextId]!=myId fix fermi bug on shiftparticles
-         * on fermi isValid sometimes never became the state false
-         */
+
         if (prevId == INV_IDX)
         {
-
             ret = false;
             return frame;
         }
         else
         {
-          //  if (next[prevId] != myId)
-          //      printf("nextBug prev %d->%d\n", next[prevId], myId);
             ret = true;
             return data[prevId];
         }
@@ -181,6 +170,13 @@ public:
         vint_t* firstFrameIdx = &(superCells(idx).FirstFrameIdx());
         vint_t index = getFrameIdx(frame);
         prev[index] = INV_IDX;
+#if defined(__CUDA_ARCH__)
+        /* - takes care that `prev[index]` is visible to all threads on the gpu
+         * - this is needed because later on in this method we change `prev`
+         *   of an other frame, this must be done in order!
+         */
+        __threadfence();
+#endif
         next[index] = *firstFrameIdx;
 
         vint_t oldIndex;
@@ -215,6 +211,13 @@ public:
         vint_t* lastFrameIdx = &(superCells(idx).LastFrameIdx());
         vint_t index = getFrameIdx(frame);
         next[index] = INV_IDX;
+#if defined(__CUDA_ARCH__)
+        /* - takes care that `next[index]` is visible to all threads on the gpu
+         * - this is needed because later on in this method we change `next`
+         *   of an other frame, this must be done in order!
+         */
+        __threadfence();
+#endif
         prev[index] = *lastFrameIdx;
 
         vint_t oldIndex;
@@ -281,7 +284,7 @@ private:
         //const double x = (double) (sizeof (FRAME));
         //return (vint_t) floor(((double) ((size_t) (&frame) - (size_t)&(data[0])) / x + 0.00001));
 
-        return ((size_t) (&frame) - (size_t)(&(data[0]))) / sizeof (FRAME);
+        return ((size_t) (&frame) - (size_t) (&(data[0]))) / sizeof (FRAME);
     }
 
     PMACC_ALIGN8(superCells, DataBox<PitchedBox<SuperCell<vint_t>, DIM> >);
