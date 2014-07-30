@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #pragma once
 
 #include <stdint.h>
@@ -43,7 +43,7 @@ struct Float
     typedef X x;
     typedef Y y;
     typedef Z z;
-    
+
     static const int dim = 3;
 };
 
@@ -54,7 +54,7 @@ template<typename X>
 struct Float<X>
 {
     typedef X x;
-    
+
     static const int dim = 1;
 };
 
@@ -63,7 +63,7 @@ struct Float<X, Y>
 {
     typedef X x;
     typedef Y y;
-    
+
     static const int dim = 2u;
 };
 

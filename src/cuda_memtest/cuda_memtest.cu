@@ -127,7 +127,7 @@ unsigned int
 atomic_read(unsigned int* value)
 {
     unsigned int ret;
-    
+
     pthread_mutex_lock(&atomic_mutex);
     ret = *value;
     pthread_mutex_unlock(&atomic_mutex);
@@ -138,22 +138,22 @@ atomic_read(unsigned int* value)
 void*
 thread_func(void* _arg)
 {
-    
+
     arg_t* arg = (arg_t*)_arg;
     unsigned int device = arg->device;
     gpu_idx = device;
 
 
-    
+
     struct cudaDeviceProp prop;
     cudaGetDeviceProperties(&prop, device); CUERR;
 
     display_device_info(&prop);
 
     unsigned long totmem = prop.totalGlobalMem;
- 
+
     PRINTF("major=%d, minor=%d\n", prop.major, prop.minor);
-   
+
     //need to leave a little headroom or later calls will fail
     unsigned int tot_num_blocks = totmem/BLOCKSIZE -16;
     if (max_num_blocks != 0){
@@ -164,14 +164,14 @@ thread_func(void* _arg)
     cudaSetDevice(device);
     cudaThreadSynchronize();
     CUERR;
- 
+
     PRINTF("Attached to device %d successfully.\n", device);
 
     size_t free, total;
     cudaMemGetInfo(&free, &total);
 
     allocate_small_mem();
-    
+
     char* ptr = NULL;
 
     tot_num_blocks = MIN(tot_num_blocks, free/BLOCKSIZE - 16);
@@ -193,14 +193,14 @@ thread_func(void* _arg)
             cudaMalloc((void**)&ptr, tot_num_blocks* BLOCKSIZE);
         }
     }while(cudaGetLastError() != cudaSuccess);
-    
+
     PRINTF("Allocated %d MB\n", tot_num_blocks);
 
     atomic_inc(&healthy_threads);
     run_tests(ptr, tot_num_blocks);
-    
+
     return NULL;
-      
+
 }
 
 
@@ -211,7 +211,7 @@ temp_monitor_thread_func(void* arg)
 	update_temperature();
 	sleep(monitor_interval);
     }while(1);
-    
+
 }
 
 
@@ -232,7 +232,7 @@ usage(char** argv)
     char example_usage[] =
 	"run on default setting:       ./cuda_memtest\n"
 	"run on stress test only:      ./cuda_memtest --stress\n";
-	    
+
     printf("Usage:%s [options]\n", argv[0]);
     printf("options:\n");
     printf("--mappedMem                 run all checks with cuda mapped memory instead of native device memory\n");
@@ -262,7 +262,7 @@ usage(char** argv)
     printf("--help                      Print this message\n");
     printf("\nExample usage:\n\n");
     printf("%s\n", example_usage);
-    
+
     exit(ERR_GENERAL);
 }
 
@@ -273,7 +273,7 @@ main(int argc, char** argv)
     int i;
     useMappedMemory=false;
     mappedHostPtr=NULL;
-    
+
     if (argc >=2 ){
 	if( strcmp(argv[1], "--help")== 0){
 	    usage(argv);
@@ -284,36 +284,36 @@ main(int argc, char** argv)
 	fprintf(stderr, "ERROR: gethostname() returns error\n");
 	exit(ERR_GENERAL);
     }
-    
+
     for(i=0;i < 64; i++){
 	if (hostname[i] == '.'){
 	    hostname[i] = 0;
 	    break;
 	}
     }
-    
+
     PRINTF("Running cuda memtest, version %s\n", VERSION);
     int device = -1;
     int num_gpus;
     cudaGetDeviceCount(&num_gpus);CUERR;
-    
+
     if (num_gpus == 0){
 	fprintf(stderr,"ERROR: no GPUs found\n");
 	exit(ERR_GENERAL);
     }
-    
-    
+
+
     for (i =1;i < argc; i++){
-	
+
 	if( strcmp(argv[i], "--help")== 0){
 	    usage(argv);
 	}
-    
+
     if( strcmp(argv[i], "--mappedMem")== 0){
 	    useMappedMemory=true;
         continue;
 	}
-	
+
 	if( strcmp(argv[i], "--verbose") == 0){
 	    if (i+1 >= argc){
 		usage(argv);
@@ -321,7 +321,7 @@ main(int argc, char** argv)
 	    verbose = atoi(argv[i+1]);
 	    i++;
 	    continue;
-	    
+
 	}
 	if (strcmp(argv[i], "--silent") == 0){
 	    verbose = 0;
@@ -344,7 +344,7 @@ main(int argc, char** argv)
 		fprintf(stderr, "Error: invalid test id\n");
 		usage(argv);
 	    }
-	    
+
 	    cuda_memtests[idx].enabled = 1;
 
 	    i++;
@@ -359,7 +359,7 @@ main(int argc, char** argv)
 		fprintf(stderr, "Error: invalid test id\n");
 		usage(argv);
 	    }
-	    
+
 	    cuda_memtests[idx].enabled = 0;
 	    i++;
 	    continue;
@@ -390,12 +390,12 @@ main(int argc, char** argv)
 	    i++;
 	    continue;
 	}
-	
+
 	if (strcmp(argv[i], "--exit_on_error") == 0){
 	    exit_on_error = 1;
 	    continue;
 	}
-	
+
 	if (strcmp(argv[i], "--monitor_temp") == 0){
 	    monitor_temp =1;
 	    if (i+1 >= argc){
@@ -421,18 +421,18 @@ main(int argc, char** argv)
 	}
 	if (strcmp(argv[i], "--emails") == 0){
 	    email_notification =1;
-	    
+
 	    struct stat statbuf;
 	    if (stat(MAILFILE, &statbuf)!=0){
 		fprintf(stderr, "ERROR: stating mail unitility(%s) failed\n", MAILFILE);
 		usage(argv);
 	    }
-	    
+
 	    if( !(S_IXOTH & statbuf.st_mode)){
 		fprintf(stderr, "ERROR: no permission on exeution on the mail utility\n");
 		usage(argv);
 	    }
-	    
+
 
 	    if (i+1 >= argc){
 		usage(argv);
@@ -454,7 +454,7 @@ main(int argc, char** argv)
 	    i++;
 	    continue;
 	}
-	
+
 	if (strcmp(argv[i], "--num_iterations") == 0){
 
 	    if (i+1 >= argc){
@@ -468,7 +468,7 @@ main(int argc, char** argv)
 	    i++;
 	    continue;
 	}
-	
+
 	if (strcmp(argv[i], "--num_passes") == 0){
 
 	    if (i+1 >= argc){
@@ -487,7 +487,7 @@ main(int argc, char** argv)
 	    disable_serial_number= 1;
 	    continue;
 	}
-	
+
 	if (strcmp(argv[i], "--stress") == 0){
 	    //equal to "--disable_all --enable_test 10 --exit_on_error"
 	    int k;
@@ -498,7 +498,7 @@ main(int argc, char** argv)
 	    exit_on_error = 1;
 	    continue;
 	}
-	
+
 	if (strcmp(argv[i], "--list_tests") == 0){
 	    list_tests_info();
 	    return 0;
@@ -510,9 +510,9 @@ main(int argc, char** argv)
     if (!disable_serial_number){
 	serial_number  = get_serial_number();
     }
- 
+
     get_driver_info(driver_info, MAX_STR_LEN);
-    
+
     PRINTF("num_gpus=%d\n", num_gpus);
     if(num_gpus > MAX_NUM_GPUS){
 	fprintf(stderr, "Error: max number of GPUs (%d) exceeded: %d\n", MAX_NUM_GPUS, num_gpus);
@@ -524,10 +524,10 @@ main(int argc, char** argv)
 	    exit(ERR_GENERAL);
 	}
     }
-    
+
     arg_t args[MAX_NUM_GPUS];
     pthread_t pid[MAX_NUM_GPUS];
-    
+
     if (device != -1){ //device set, only 1 GPU
 	args[0].device = device;
 	pthread_create(&pid[0], NULL, thread_func, (void*)&args[0]);
@@ -536,20 +536,20 @@ main(int argc, char** argv)
 	    args[i].device = i;
 	    pthread_create(&pid[i], NULL, thread_func, (void*)&args[i]);
 	}
-	
+
     }
 
     struct timeval t0, t1;
     int ht=0;
     double wait_time = 500;
     gettimeofday(&t0, NULL);
-    
+
     while(1){
 	ht = atomic_read(&healthy_threads);
 	if (ht == num_gpus){
 	    break;
 	}
-	
+
 	gettimeofday(&t1, NULL);
 	double passed_time = TDIFF(t1, t0);
 	if (passed_time >= wait_time){
@@ -557,7 +557,7 @@ main(int argc, char** argv)
 	}
 	sleep(1);
     }
-    
+
     if (ht < num_gpus){
 	printf("ERROR: Some GPU threads are not progressing (healthy_threads=%d, num_gpus=%d)\n", ht, num_gpus);
 	fflush(stdout); fflush(stderr);
@@ -566,14 +566,14 @@ main(int argc, char** argv)
 	}
 	exit(ERR_BAD_STATE);
     }
-    
-    
+
+
     for(i=0;i < num_gpus;i++){
 	pthread_join(pid[i], NULL);
     }
-    
+
     printf("main thread: Program exits\n");
-    
+
     return 0;
 }
 

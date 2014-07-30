@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef ALGORITHM_KERNEL_DETAIL_SPHERICMAPPER_HPP
 #define ALGORITHM_KERNEL_DETAIL_SPHERICMAPPER_HPP
 
@@ -35,7 +35,7 @@ namespace kernel
 {
 namespace detail
 {
-    
+
 namespace mpl = boost::mpl;
 
 /** The SphericMapper maps from cuda blockIdx and/or threadIdx to the cell index
@@ -54,7 +54,7 @@ template<typename BlockSize>
 struct SphericMapper<1, BlockSize>
 {
     static const int dim = 1;
-    
+
     dim3 cudaGridDim(const math::Size_t<1>& size) const
     {
         return dim3(size.x() / BlockSize::x::value, 1, 1);
@@ -135,7 +135,7 @@ template<>
 struct SphericMapper<1, mpl::void_>
 {
     static const int dim = 1;
-    
+
     dim3 cudaGridDim(const math::Size_t<1>& size, const math::Size_t<3>& blockDim) const
     {
         return dim3(size.x() / blockDim.x(), 1, 1);
@@ -211,7 +211,7 @@ struct SphericMapper<3, mpl::void_>
                           math::Int<3>(_threadIdx.x, _threadIdx.y, _threadIdx.z));
     }
 };
-    
+
 } // detail
 } // kernel
 } // algorithm

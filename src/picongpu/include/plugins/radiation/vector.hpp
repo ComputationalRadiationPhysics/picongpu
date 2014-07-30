@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 #pragma once
 
@@ -133,7 +133,7 @@ struct cuda_vec : public V
 
     HDINLINE T magnitude(void) const
     {
- 
+
         return picongpu::math::sqrt(this->x() * this->x() + this->y() * this->y() + this->z() * this->z());
 
     }

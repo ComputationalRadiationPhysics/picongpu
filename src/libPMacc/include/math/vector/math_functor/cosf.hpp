@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef MATH_FUNCTOR_COSF_HPP
 #define MATH_FUNCTOR_COSF_HPP
 
@@ -32,11 +32,11 @@ namespace math
 {
 namespace math_functor
 {
-    
+
 struct Cosf
 {
     typedef float result_type;
-    
+
     DINLINE float operator()(const float& value) const
     {
         return __cosf(value);
@@ -44,7 +44,7 @@ struct Cosf
 };
 
 lambda::Expression<lambda::exprTypes::terminal, mpl::vector<Cosf> > _cosf;
-    
+
 } // math_functor
 } // math
 } // PMacc

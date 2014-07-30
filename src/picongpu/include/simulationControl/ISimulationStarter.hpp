@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #ifndef ISIMULATIONSTARTER_HPP
@@ -33,7 +33,7 @@ namespace picongpu
 {
     using namespace PMacc;
 
-    
+
     class ISimulationStarter : public IPlugin
     {
     public:
@@ -54,12 +54,12 @@ namespace picongpu
          * is called after parsConfig and pluginLoad
          */
         virtual void start() = 0;
-        
+
         virtual void restart(uint32_t, const std::string)
         {
             // nothing to do here
         }
-        
+
         virtual void checkpoint(uint32_t, const std::string)
         {
             // nothing to do here

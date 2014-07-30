@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef CURSOR_NESTEDCURSOR_HPP
 #define CURSOR_NESTEDCURSOR_HPP
 
@@ -43,7 +43,7 @@ Cursor<MarkerAccessor<TCursor>, CursorNavigator, TCursor> make_NestedCursor(cons
 {
     return Cursor<MarkerAccessor<TCursor>, CursorNavigator, TCursor>(MarkerAccessor<TCursor>(), CursorNavigator(), cursor);
 }
-    
+
 } // cursor
 } // PMacc
 

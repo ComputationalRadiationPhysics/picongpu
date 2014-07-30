@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #include "math/vector/Int.hpp"
 #include "math/vector/Float.hpp"
 #include "math/vector/Size_t.hpp"
@@ -44,7 +44,7 @@ namespace picongpu
 {
 namespace heiko
 {
-    
+
 template<typename BlockDim>
 struct ParticleDensityKernel
 {
@@ -111,7 +111,7 @@ void ParticleDensity<ParticlesType>::notify(uint32_t currentStep)
 {
     DataConnector &dc = Environment<>::get().DataConnector();
     this->particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
-    
+
 
     namespace vec = ::PMacc::math;
     typedef SuperCellSize BlockDim;
@@ -122,11 +122,11 @@ void ParticleDensity<ParticlesType>::notify(uint32_t currentStep)
 
     container::DeviceBuffer<int, 2> density(coreBorderZone.size.shrink<2>((plane+1)%3));
     density.assign(0);
-    
+
     PMacc::GridController<3>& con = PMacc::Environment<3>::get().GridController();
     vec::Size_t<3> gpuDim = (vec::Size_t<3>)con.getGpuNodes();
     vec::Size_t<3> globalGridSize = gpuDim * coreBorderZone.size;
-    
+
     int globalPlanePos = globalGridSize[plane] * this->slicePoint;
     int localPlanePos = globalPlanePos % coreBorderZone.size[plane];
     int gpuPos = globalPlanePos / coreBorderZone.size[plane];
@@ -134,28 +134,28 @@ void ParticleDensity<ParticlesType>::notify(uint32_t currentStep)
     int cellWithinSuperCell = localPlanePos % BlockDim().toRT()[plane];
     vec::Size_t<3> planeVec(0); planeVec[plane] = 1;
     vec::Size_t<3> orthoPlaneVec(1); orthoPlaneVec[plane] = 0;
-    
+
     zone::SphericZone<3> gpuGatheringZone(orthoPlaneVec * gpuDim + planeVec * vec::Size_t<3>(1,1,1),
                                           (vec::Int<3>)planeVec * gpuPos);
     algorithm::mpi::Gather<3> gather(gpuGatheringZone);
     if(!gather.participate()) return;
-    
+
     zone::SphericZone<3> superCellSliceZone(orthoPlaneVec * coreBorderZone.size + planeVec * (vec::Size_t<3>)BlockDim().toRT(),
                                             coreBorderZone.offset + (vec::Int<3>)planeVec * superCell * (int)BlockDim().toRT()[plane]);
-    
+
     using namespace lambda;
     algorithm::kernel::ForeachBlock<BlockDim>()
         (superCellSliceZone, cursor::make_MultiIndexCursor<3>(),
         expr(particleAccess::Cell2Particle<BlockDim>())
             (this->particles->getDeviceParticlesBox(),
             _1, ParticleDensityKernel<BlockDim>(plane, cellWithinSuperCell), density.origin(), _1));
-            
+
     container::HostBuffer<int, 2> density_host(density.size());
     density_host = density;
     container::HostBuffer<int, 2> globalDensity(density.size() * gpuDim.shrink<2>((plane+1)%3));
     gather(globalDensity, density_host, plane);
     if(!gather.root()) return;
-        
+
     std::stringstream filename;
     filename << "density_" << currentStep << ".dat";
     std::ofstream file(filename.str().c_str());

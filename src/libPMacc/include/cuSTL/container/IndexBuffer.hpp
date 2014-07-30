@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef CONTAINER_INDEXBUFFER_HPP
 #define CONTAINER_INDEXBUFFER_HPP
 
@@ -36,7 +36,7 @@ namespace PMacc
 {
 namespace container
 {
-    
+
 template<int dim>
 class IndexBuffer
 {
@@ -47,7 +47,7 @@ public:
     IndexBuffer(uint32_t x) : _size(x) {}
     IndexBuffer(uint32_t x, uint32_t y) : _size(x,y) {}
     IndexBuffer(uint32_t x, uint32_t y, uint32_t z) : _size(x,y,z) {}
-    
+
     inline
     cursor::Cursor<cursor::MarkerAccessor<math::Int<dim> >,
                    cursor::CartNavigator<dim>,
@@ -57,7 +57,7 @@ public:
         math::Int<dim> factor;
         factor[0] = 1; factor[1] = this->_size.x();
         if(dim == 3) factor[2] = this->_size.x() * this->_size.y();
-        
+
         return cursor::Cursor<cursor::MarkerAccessor<math::Int<dim> >,
                               cursor::CartNavigator<dim>,
                               math::Int<dim> >
@@ -77,7 +77,7 @@ public:
         math::Int<dim> customFactor;
         for(uint32_t i = 0; i < dim; i++)
             customFactor[i] = factor[axes[i]];
-        
+
         return cursor::Cursor<cursor::MarkerAccessor<math::Int<dim> >,
                               cursor::CartNavigator<dim>,
                               math::Int<dim> >
@@ -90,7 +90,7 @@ public:
         return zone::SphericZone<dim>((math::Size_t<dim>)this->_size);
     }
 };
-    
+
 } // container
 } // PMacc
 

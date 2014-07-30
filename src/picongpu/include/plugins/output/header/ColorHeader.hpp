@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #ifndef COLORHEADER_HPP
@@ -48,18 +48,18 @@ struct ColorHeader
     channel channel1;
     channel channel2;
     channel channel3;
-    
+
     ColorHeader()
     {
         particles.range[0] = 0.f;
         particles.range[1] = 0.f;
-        
+
         channel1.range[0] = 0.f;
         channel1.range[1] = 0.f;
-        
+
         channel2.range[0] = 0.f;
         channel2.range[1] = 0.f;
-        
+
         channel3.range[0] = 0.f;
         channel3.range[1] = 0.f;
     }
@@ -73,7 +73,7 @@ struct ColorHeader
     void writeToConsole(std::ostream& ocons) const
     {
         //ocons << "ColorHeader.XYZ " << "..." << std::endl;
-        
+
     }
 
 };

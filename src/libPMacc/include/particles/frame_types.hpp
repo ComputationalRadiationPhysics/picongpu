@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 #ifndef FRAME_TYPES_HPP
 #define	FRAME_TYPES_HPP
@@ -35,15 +35,15 @@
 namespace PMacc
 {
 
-    
+
 
     /**
      * Is used for indirect pointer layer.
      * This type is limited by atomicSub on device (in CUDA 3.2 we can use 32 Bit int only).
      */
     typedef  unsigned  int vint_t;
-    
-   
+
+
 
     /**
      * Defines the local cell id type in a supercell

@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #ifndef PARTICLEPUSHERAXL_HPP
@@ -116,7 +116,7 @@ namespace picongpu
                 }
 
                 float3_X dr = float3_X( float_X(0.0), float_X(0.0), float_X(0.0) );
-                
+
                 // old spacial change calculation: linear step
                 if( TrajectoryInterpolation == LINEAR )
                 {
@@ -173,7 +173,7 @@ namespace picongpu
                         r += eField * QoM * deltaT * deltaT + vel_old * deltaT;
                     }
                     dr = r - pos;
-                    
+
                     dr *= float3_X(1.0) / cellSize;
 
                 }

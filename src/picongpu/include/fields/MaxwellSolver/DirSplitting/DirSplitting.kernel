@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #pragma once
 
 #include <types.h>
@@ -35,7 +35,7 @@ template<typename BlockDim>
 struct DirSplittingKernel
 {
     typedef void result_type;
-    
+
     int totalLength;
     DirSplittingKernel(int totalLength) : totalLength(totalLength) {}
 
@@ -76,7 +76,7 @@ struct DirSplittingKernel
         float3_X fieldE_old;
         float3_X fieldB_old;
         int threadPos_x = threadIdx.x;
-        
+
         algorithm::cudaBlock::Foreach<BlockDim> foreach;
         for (int x_offset = 0; x_offset < this->totalLength; x_offset += BlockDim::x::value)
         {
@@ -97,15 +97,15 @@ struct DirSplittingKernel
                 *cursorE(-1,0,0) = fieldE_old;
                 *cursorB(-1,0,0) = fieldB_old;
             }
-            
+
             propagate(cursorE, cursorB);
 
             typedef zone::CT::SphericZone<BlockDim> BlockZone;
             foreach(BlockZone(), cacheE.origin()(1, 0, 0), globalE(x_offset, 0, 0), _2 = _1);
             foreach(BlockZone(), cacheB.origin()(1, 0, 0), globalB(x_offset, 0, 0), _2 = _1);
-            
+
             __syncthreads();
-            
+
             threadPos_x = BlockDim::x::value - 1 - threadPos_x;
         }
     }

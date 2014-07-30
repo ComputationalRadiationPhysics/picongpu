@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #pragma once
 
 #include "types.h"
@@ -52,12 +52,12 @@ private:
     detail::raw_data<sizeofType> data;
 public:
     typedef Type type;
-    
+
     HDINLINE operator Type&()
     {
         return *(reinterpret_cast<Type*>(&data));
     }
-    
+
     HDINLINE operator const Type&() const
     {
         return *(reinterpret_cast<const Type*>(&data));

@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 #pragma once
 
@@ -80,7 +80,7 @@ struct Push
         mom = momentum_atPlusHalf;
 
         const float3_X vel = velocity(momentum_atPlusHalf, mass);
-        
+
         for(uint32_t d=0;d<simDim;++d)
         {
             pos[d] += (vel[d] * DELTA_T) / cellSize[d];

@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #include "mappings/simulation/GridController.hpp"
 #include <iostream>
 #include "cuSTL/container/copier/Memcopy.hpp"
@@ -36,26 +36,26 @@ template<int dim>
 Gather<dim>::Gather(const zone::SphericZone<dim>& _zone) : comm(MPI_COMM_NULL)
 {
     using namespace PMacc::math;
-    
+
     PMacc::GridController<dim>& con = PMacc::Environment<dim>::get().GridController();
     Int<dim> pos = con.getPosition();
-    
+
     int numWorldRanks; MPI_Comm_size(MPI_COMM_WORLD, &numWorldRanks);
     std::vector<Int<dim> > allPositions(numWorldRanks);
-    
+
     MPI_CHECK(MPI_Allgather((void*)&pos, sizeof(Int<dim>), MPI_CHAR,
                   (void*)allPositions.data(), sizeof(Int<dim>), MPI_CHAR,
                   MPI_COMM_WORLD));
-                  
+
     std::vector<int> new_ranks;
     int myWorldId; MPI_Comm_rank(MPI_COMM_WORLD, &myWorldId);
-    
+
     this->m_participate = false;
     for(int i = 0; i < (int)allPositions.size(); i++)
     {
         Int<dim> pos = allPositions[i];
         if(!_zone.within(pos)) continue;
-        
+
         new_ranks.push_back(i);
         this->positions.push_back(allPositions[i]);
         if(i == myWorldId) this->m_participate = true;
@@ -110,12 +110,12 @@ void Gather<dim>::CopyToDest<Type, 3, 2>::operator()(
                     container::HostBuffer<Type, 2>& source, int dir) const
 {
     using namespace math;
-    
+
     for(int i = 0; i < (int)gather.positions.size(); i++)
     {
         Int<3> pos = gather.positions[i];
         Int<2> pos2D(pos[(dir+1)%3], pos[(dir+2)%3]);
-        
+
         cudaWrapper::Memcopy<2>()(&(*dest.origin()(pos2D * (Int<2>)source.size())), dest.getPitch(),
                                   tmpDest.data() + i * source.size().productOfComponents(), source.getPitch(),
                                   source.size(), cudaWrapper::flags::Memcopy::hostToHost);
@@ -128,10 +128,10 @@ void Gather<3>::operator()(container::HostBuffer<Type, memDim>& dest,
                              container::HostBuffer<Type, memDim>& source, int dir) const
 {
     if(!this->m_participate) return;
-    
+
     int numRanks; MPI_Comm_size(this->comm, &numRanks);
     std::vector<Type> tmpDest(numRanks * source.size().productOfComponents());
-    
+
     MPI_CHECK(MPI_Gather((void*)source.getDataPointer(), source.size().productOfComponents() * sizeof(Type), MPI_CHAR,
                (void*)tmpDest.data(), source.size().productOfComponents() * sizeof(Type), MPI_CHAR,
                0, this->comm));

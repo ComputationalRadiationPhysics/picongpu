@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef KERNELEVENTS_H
 #define KERNELEVENTS_H
 
@@ -41,7 +41,7 @@ namespace PMacc
     /*no synchronize and check of kernel calls*/
     #define CUDA_CHECK_KERNEL_MSG(...)  ;
 #endif
- 
+
 /** Call activate kernel from taskKernel.
  *  If PMACC_SYNC_KERNEL is 1 cudaThreadSynchronize() is called before
  *  and after activation.
@@ -50,7 +50,7 @@ namespace PMacc
         CUDA_CHECK_KERNEL_MSG(cudaThreadSynchronize(),"Crash after kernel call");       \
         taskKernel->activateChecks();                                                   \
         CUDA_CHECK_KERNEL_MSG(cudaThreadSynchronize(),"Crash after kernel activation"); \
-    
+
 /**
  * Appends kernel arguments to generated code and activates kernel task.
  *

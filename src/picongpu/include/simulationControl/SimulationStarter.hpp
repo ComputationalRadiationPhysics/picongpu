@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #ifndef SIMULATIONSTARTER_HPP
@@ -89,7 +89,7 @@ namespace picongpu
         virtual void pluginRegisterHelp(po::options_description&)
         {
         }
-        
+
         void notify(uint32_t)
         {
         }

@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef LAMBDA_CT_EXPRESSION_HPP
 #define LAMBDA_CT_EXPRESSION_HPP
 
@@ -31,7 +31,7 @@ namespace lambda
 {
 namespace CT
 {
-    
+
 template<typename Expr, int _terminalTypeIdx>
 struct Expression;
 

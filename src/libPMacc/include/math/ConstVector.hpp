@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #pragma once
 
 #include "types.h"
@@ -87,7 +87,7 @@ namespace PMACC_JOIN(pmacc_static_const_storage,id)                            \
     } /* namespace pmacc_static_const_vector_host + id  */                     \
 } /* namespace pmacc_static_const_storage + id */                              \
 using namespace PMACC_JOIN(pmacc_static_const_storage,id)
-                                                                         
+
 
 /** Create global constant math::Vector with compile time values which can be
  *  used on device and host
@@ -107,4 +107,4 @@ using namespace PMACC_JOIN(pmacc_static_const_storage,id)
  */
 #define PMACC_CONST_VECTOR(type,dim,name,...)                                   \
     PMACC_STATIC_CONST_VECTOR_DIM(__COUNTER__,name,type,dim,PMACC_COUNT_ARGS(__VA_ARGS__),__VA_ARGS__)
-    
+

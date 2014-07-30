@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef CONTAINER_TAG_H
 #define CONTAINER_TAG_H
 
@@ -27,7 +27,7 @@ namespace PMacc
 {
 namespace container
 {
-    
+
 namespace tag
 {
 struct HostBuffer;

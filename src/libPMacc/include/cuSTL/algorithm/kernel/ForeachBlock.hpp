@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef ALGORITHM_KERNEL_FOREACHBLOCK_HPP
 #define ALGORITHM_KERNEL_FOREACHBLOCK_HPP
 
@@ -46,14 +46,14 @@ namespace algorithm
 {
 namespace kernel
 {
-    
+
 #ifndef FOREACH_KERNEL_MAX_PARAMS
 #define FOREACH_KERNEL_MAX_PARAMS 4
 #endif
-    
+
 namespace detail
 {
-    
+
 #define SHIFTACCESS_CURSOR(Z, N, _) forward(c ## N [cellIndex])
 
 #define KERNEL_FOREACH(Z, N, _)                                                                             \
@@ -95,7 +95,7 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(FOREACH_KERNEL_MAX_PARAMS), KERNEL_FOREA
                     /* c0_shifted, c1_shifted, ... */                                                       \
             (mapper, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _), lambda::make_Functor(functor));                   \
     }
-    
+
 /** Special foreach algorithm that calls a cuda kernel
  *
  * Behaves like kernel::Foreach, except that is doesn't shift the cursors cell by cell, but
@@ -123,7 +123,7 @@ struct ForeachBlock
 #undef FOREACH_OPERATOR
 #undef SHIFT_CURSOR_ZONE
 #undef SHIFTED_CURSOR
-    
+
 } // kernel
 } // algorithm
 } // PMacc

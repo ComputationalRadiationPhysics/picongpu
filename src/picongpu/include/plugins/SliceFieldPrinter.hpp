@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #pragma once
 
 #include "cuSTL/container/DeviceBuffer.hpp"
@@ -26,7 +26,7 @@
 
 namespace picongpu
 {
-    
+
 using namespace PMacc;
 
 namespace po = boost::program_options;
@@ -46,13 +46,13 @@ private:
     float_X slicePoint;
     MappingDesc *cellDescription;
     container::DeviceBuffer<float3_X, 2>* dBuffer;
-        
+
     void pluginLoad();
     void pluginUnload();
-    
+
     template<typename TField>
     void printSlice(const TField& field, int nAxis, float slicePoint, std::string filename);
-    
+
     friend class SliceFieldPrinterMulti<Field>;
 public:
     void notify(uint32_t currentStep);

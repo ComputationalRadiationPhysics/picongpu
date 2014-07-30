@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef ABSTRACTINITIALISER_HPP
 #define	ABSTRACTINITIALISER_HPP
 
@@ -43,13 +43,13 @@ namespace PMacc
          * @return the next timestep
          */
         virtual uint32_t setup() { return 0;};
-        
+
         /**
          * Tears down this initialiser.
          * Called after any init.
          */
         virtual void teardown() {};
-        
+
         /**
          * Initialises simulation data (concrete type of data is described by id).
          *
@@ -58,7 +58,7 @@ namespace PMacc
          */
         virtual void init(ISimulationData& data, uint32_t currentStep) = 0;
     };
-    
+
 }
 
 #endif	/* ABSTRACTINITIALISER_HPP */

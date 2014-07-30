@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef COPIER_D2DCOPIER_HPP
 #define COPIER_D2DCOPIER_HPP
 

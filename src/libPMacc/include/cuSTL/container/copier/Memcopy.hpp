@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef CUDAWRAPPERMEMCOPY_HPP
 #define CUDAWRAPPERMEMCOPY_HPP
 
@@ -30,7 +30,7 @@ namespace PMacc
 {
 namespace cudaWrapper
 {
-    
+
 namespace flags
 {
 struct Memcopy
@@ -38,7 +38,7 @@ struct Memcopy
     enum Direction {hostToDevice = 0, deviceToHost, hostToHost, deviceToDevice};
 };
 }
-    
+
 template<int dim>
 struct Memcopy;
 
@@ -66,7 +66,7 @@ struct Memcopy<2u>
     {
             const cudaMemcpyKind kind[] = {cudaMemcpyHostToDevice, cudaMemcpyDeviceToHost,
                                      cudaMemcpyHostToHost, cudaMemcpyDeviceToDevice};
-                                     
+
             CUDA_CHECK_NO_EXCEP(cudaMemcpy2D(dest, pitchDest.x(), source, pitchSource.x(), sizeof(Type) * size.x(), size.y(),
                          kind[direction]));
     }
@@ -82,14 +82,14 @@ struct Memcopy<3>
     {
             const cudaMemcpyKind kind[] = {cudaMemcpyHostToDevice, cudaMemcpyDeviceToHost,
                                      cudaMemcpyHostToHost, cudaMemcpyDeviceToDevice};
-                                     
+
             cudaPitchedPtr pitchedPtrDest;
             pitchedPtrDest.pitch = pitchDest.x(); pitchedPtrDest.ptr = dest;
             pitchedPtrDest.xsize = size.x(); pitchedPtrDest.ysize = size.y();
             cudaPitchedPtr pitchedPtrSource;
             pitchedPtrSource.pitch = pitchSource.x(); pitchedPtrSource.ptr = source;
             pitchedPtrSource.xsize = size.x(); pitchedPtrSource.ysize = size.y();
-            
+
             cudaMemcpy3DParms params;
             params.srcArray = NULL;
             params.srcPos = make_cudaPos(0,0,0);
@@ -102,7 +102,7 @@ struct Memcopy<3>
             CUDA_CHECK_NO_EXCEP(cudaMemcpy3D(&params));
     }
 };
-    
+
 } // cudaWrapper
 } // PMacc
 

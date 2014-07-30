@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #pragma once
@@ -48,16 +48,16 @@ namespace picongpu
             if (pos.y() < VACUUM_Y) return float_X(0.0);
 
             float_X density = float_X(0.0);
-            
+
             if (pos.y() <= GAS_Y_MAX) // linear slope
                 density = GAS_A * pos.y() + GAS_B;
             else // exponential slope
                 density = math::exp( (pos.y() - GAS_Y_MAX) * GAS_D );
-            
+
             // avoid < 0 densities for the linear slope
             if (density < float_X(0.0))
                 density = float_X(0.0);
-            
+
             return density;
         }
     } // namespace gasLinExp

@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #pragma once
 
 #include <stack>
@@ -31,7 +31,7 @@ namespace PMacc
 // forward declaration
 template<unsigned DIM>
 class Environment;
-    
+
 class Transaction;
 
 class EventStream;
@@ -95,15 +95,15 @@ public:
     EventStream* getEventStream(ITask::TaskType op);
 
 private:
-    
+
     friend Environment<DIM1>;
     friend Environment<DIM2>;
     friend Environment<DIM3>;
-    
+
     TransactionManager();
 
     TransactionManager(const TransactionManager& cc);
-    
+
     static TransactionManager& getInstance();
 
     std::stack<Transaction> transactions;

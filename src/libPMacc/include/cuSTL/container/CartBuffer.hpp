@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef CONTAINER_CARTBUFFER_HPP
 #define CONTAINER_CARTBUFFER_HPP
 
@@ -85,14 +85,14 @@ public:
     /* the move constructor has currently the same behavior as the copy constructor */
     HDINLINE CartBuffer(BOOST_RV_REF(This) other);
     HDINLINE ~CartBuffer();
-    
+
     /* copy another container into this one (hard data copy) */
     HDINLINE This&
     operator=(const This& rhs);
     /* use the memory from another container and increment the reference counter */
     HDINLINE This&
     operator=(BOOST_RV_REF(This) rhs);
-    
+
     /* get a view. Views represent a clipped area of the container.
      * \param a Top left corner of the view, inside the view.
      * Negative values are remapped, e.g. Int<2>(-1,-2) == Int<2>(width-1, height-2)
@@ -102,7 +102,7 @@ public:
     HDINLINE View<This>
         view(math::Int<dim> a = math::Int<dim>(0),
              math::Int<dim> b = math::Int<dim>(0)) const;
-    
+
     /* assign value to each datum */
     PMACC_NO_NVCC_HDWARNING
     HDINLINE void assign(const Type& value);
@@ -116,15 +116,15 @@ public:
      * */
     HDINLINE cursor::Cursor<cursor::PointerAccessor<Type>, cursor::CartNavigator<dim>, char*>
     originCustomAxes(const math::UInt<dim>& axes) const;
-    
+
     /* get a zone spanning the whole container */
     HDINLINE zone::SphericZone<dim> zone() const;
-    
+
     HDINLINE Type* getDataPointer() const {return dataPointer;}
     HDINLINE math::Size_t<dim> size() const {return this->_size;}
     HDINLINE math::Size_t<dim-1> getPitch() const {return this->pitch;}
 };
- 
+
 } // container
 } // PMacc
 

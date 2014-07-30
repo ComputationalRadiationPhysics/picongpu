@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 #ifndef _TASKSEND_HPP
 #define	_TASKSEND_HPP
@@ -72,7 +72,7 @@ namespace PMacc
                                                                                          this);
             }
             __endTransaction(); //we need no blocking because we get a singnal if transaction is finished
-            
+
         }
 
         bool executeIntern()

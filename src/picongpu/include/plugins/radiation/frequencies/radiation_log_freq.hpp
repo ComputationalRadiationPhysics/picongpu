@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 
@@ -67,7 +67,7 @@ namespace picongpu
       HINLINE void Init(const std::string path )
       { }
 
-      
+
       HINLINE FreqFunctor getFunctor(void)
       {
 	return FreqFunctor();
@@ -76,7 +76,7 @@ namespace picongpu
 
 
   }
-  
+
 }
 
 

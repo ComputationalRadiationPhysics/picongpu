@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #ifndef LASERNONE_HPP
@@ -45,7 +45,7 @@ namespace picongpu
 
             return elong;
         }
-        
+
         /**
          *
          * @param elong

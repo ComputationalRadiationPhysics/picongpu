@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #include "math/vector/Size_t.hpp"
 #include "cuSTL/algorithm/kernel/Foreach.hpp"
 #include "lambda/Expression.hpp"
@@ -36,23 +36,23 @@ namespace algorithm
 {
 namespace kernel
 {
-    
+
 namespace detail
 {
-    
+
 template<typename BlockDim, int dim>
 struct ReduceKernel
 {
     typedef void result_type;
     int width;
-    
+
     HDINLINE
     ReduceKernel() {};
-    
+
     HDINLINE
     ReduceKernel(int width)
      : width(width) {}
-    
+
     template<typename TCursor, typename Data, typename Functor>
     DINLINE void operator()(const TCursor& resultPerBlock, const Data& data, const Functor& functor) const
     {
@@ -64,7 +64,7 @@ struct ReduceKernel
         BOOST_AUTO(sh, shBuffer.origin());
         int linearThreadIdx = threadIdx.z * BlockDim::x::value * BlockDim::y::value +
                               threadIdx.y * BlockDim::x::value + threadIdx.x;
-        
+
         sh[linearThreadIdx] = data;
         int numThreads;
         __shared__ bool odd;
@@ -76,7 +76,7 @@ struct ReduceKernel
         }
         else
             numThreads = CT::volume<BlockDim>::type::value;
-            
+
         numThreads /= 2;
         while(numThreads > 0)
         {
@@ -88,7 +88,7 @@ struct ReduceKernel
 
             __syncthreads();
             sh[linearThreadIdx] = tmp;
-            
+
             if(dim == 1 && blockIdx.x == (gridDim.x-1) && threadIdx.x == (numThreads-1))
                 odd = numThreads % 2;
             numThreads /= 2;
@@ -105,7 +105,7 @@ template<typename DestCursor, typename Zone, typename SrcCursor, typename Functo
 void Reduce<BlockDim>::operator()(const DestCursor& destCursor, const Zone& _zone, const SrcCursor& srcCursor, const Functor& functor)
 {
     typedef typename boost::remove_reference<typename DestCursor::type>::type type;
-    
+
     BOOST_AUTO(_destCursor, cursor::make_Cursor(destCursor.getAccessor(),
                                                 cursor::EmptyNavigator(),
                                                 destCursor.getMarker()));
@@ -115,7 +115,7 @@ void Reduce<BlockDim>::operator()(const DestCursor& destCursor, const Zone& _zon
     partialSum[1] = new container::DeviceBuffer<type, 1>(partialSum[0]->size());
     int curDestBuffer = 0;
     int partialSumSize = partialSum[curDestBuffer]->size().x();
-    
+
     using namespace lambda;
 
     if(partialSumSize == 1)
@@ -123,7 +123,7 @@ void Reduce<BlockDim>::operator()(const DestCursor& destCursor, const Zone& _zon
         Foreach<BlockDim>()(_zone, srcCursor,
             expr(detail::ReduceKernel<BlockDim, Zone::dim>(_zone.size.x()))
                 (_destCursor, _1, make_Functor(functor)));
-                
+
     }
     else
     {
@@ -151,7 +151,7 @@ void Reduce<BlockDim>::operator()(const DestCursor& destCursor, const Zone& _zon
         }
         partialSumSize = numBlocks;
     }
-    
+
     delete partialSum[0];
     delete partialSum[1];
 }

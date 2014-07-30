@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef CONTAINER_CT_CTCARTBUFFER_HPP
 #define CONTAINER_CT_CTCARTBUFFER_HPP
 
@@ -56,23 +56,23 @@ private:
 public:
     DINLINE CartBuffer();
     DINLINE CartBuffer(const CT::CartBuffer<Type, Size, Allocator, Copier, Assigner>& other);
-    
+
     DINLINE CT::CartBuffer<Type, Size, Allocator, Copier, Assigner>&
     operator=(const CT::CartBuffer<Type, Size, Allocator, Copier, Assigner>& rhs);
-    
+
     DINLINE void assign(const Type& value);
     DINLINE Type* getDataPointer() const {return dataPointer;}
-    
+
     DINLINE cursor::CT::BufferCursor<Type, Pitch> origin() const;
     /*
     HDINLINE Cursor<PointerAccessor<Type>, CartNavigator<dim>, char*>
     originCustomAxes(const math::UInt<dim>& axes) const;
     */
     DINLINE math::Size_t<dim> size() const {return math::Size_t<dim>(Size());}
-    
+
     DINLINE Zone zone() const { return Zone(); }
 };
- 
+
 } // CT
 } // container
 } // PMacc

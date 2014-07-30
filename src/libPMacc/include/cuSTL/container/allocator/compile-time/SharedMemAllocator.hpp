@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef ALLOCATOR_SHAREDMEMALLOCATOR_HPP
 #define ALLOCATOR_SHAREDMEMALLOCATOR_HPP
 
@@ -34,7 +34,7 @@ namespace CT
 {
 template<typename Type, typename Size, int dim = Size::dim, int uid = 0>
 struct SharedMemAllocator;
-    
+
 template<typename Type, typename Size, int uid>
 struct SharedMemAllocator<Type, Size, 1, uid>
 {

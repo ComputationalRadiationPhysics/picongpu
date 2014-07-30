@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 #pragma once
 
@@ -91,7 +91,7 @@ namespace PMacc
          * @param checkpointDirectory common directory for checkpoints
          */
         virtual void checkpoint(uint32_t currentStep, const std::string checkpointDirectory) = 0;
-        
+
         /**
          * Restart notification callback.
          *

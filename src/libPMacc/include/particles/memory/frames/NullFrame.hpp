@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 #ifndef NULLFRAME_HPP
 #define	NULLFRAME_HPP
@@ -31,7 +31,7 @@
 
 namespace PMacc
 {
-    
+
 
     class NullFrame
     {

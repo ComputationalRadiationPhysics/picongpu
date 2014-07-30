@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 #ifndef _ITASK_HPP
 #define	_ITASK_HPP
@@ -58,7 +58,7 @@ namespace PMacc
             myId = globalId++;
             assert(myId > 0);
         }
-        
+
 
         virtual ~ITask()
         {

@@ -17,14 +17,14 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #pragma once
 
 struct DataHeader
 {
 
     uint32_t byte;
-    
+
     DataHeader() : byte(0)
     {
     }

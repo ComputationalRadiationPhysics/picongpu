@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef LISTSORTER_HPP
 #define	LISTSORTER_HPP
 
@@ -43,39 +43,39 @@ namespace PMacc
         {
             iter = ids.end();
         }
-        
+
         ~ListSorter() {}
-        
+
         void add(ID_TYPE id)
         {
             ids.push_back(id);
             if (iter == ids.end())
                 iter = ids.begin();
         }
-        
+
         ID_TYPE begin()
         {
             iter = ids.begin();
             return *iter;
         }
-        
+
         bool isValid()
         {
             return iter != ids.end();
         }
-        
+
         bool hasNext()
         {
             typename std::list<ID_TYPE>::iterator tmp_iter = iter;
             return (++tmp_iter) != ids.end();
         }
-        
+
         ID_TYPE getNext()
         {
             iter++;
             return *iter;
         }
-        
+
     private:
         std::list<ID_TYPE> ids;
         typename std::list<ID_TYPE>::iterator iter;

@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef CURSOR_MULTIINDEXNAVIGATOR_HPP
 #define CURSOR_MULTIINDEXNAVIGATOR_HPP
 
@@ -31,13 +31,13 @@ namespace PMacc
 {
 namespace cursor
 {
-    
+
 template<int _dim>
 struct MultiIndexNavigator
 {
     typedef tag::MultiIndexNavigator tag;
     static const int dim = _dim;
-    
+
     template<typename MultiIndex>
     HDINLINE
     MultiIndex operator()(const MultiIndex& index, const math::Int<dim>& jump) const
@@ -48,13 +48,13 @@ struct MultiIndexNavigator
 
 namespace traits
 {
-    
+
 template<int _dim>
 struct dim<MultiIndexNavigator<_dim> >
 {
     static const int value = _dim;
 };
-    
+
 }
 
 } // cursor

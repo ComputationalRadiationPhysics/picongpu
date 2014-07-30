@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #pragma once
 
 #include <stdint.h>
@@ -64,7 +64,7 @@ template<size_t x, size_t y>
 struct Size_t<x, y> : public CT::Vector<mpl::integral_c<size_t, x>,
                                     mpl::integral_c<size_t, y> >
 {};
-    
+
 } // CT
 } // math
 } // PMacc

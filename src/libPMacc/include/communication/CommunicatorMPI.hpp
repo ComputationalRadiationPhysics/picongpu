@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef _COMMUNICATORMPI_HPP
 #define	_COMMUNICATORMPI_HPP
 
@@ -211,7 +211,7 @@ public:
 
         return false;
     }
-    
+
     bool setNumSlides(size_t numSlides)
     {
         bool result = false;
@@ -219,7 +219,7 @@ public:
         // only need to apply (numSlides % num-gpus-y) slides
         for (size_t i = 0; i < (numSlides % dims[1]); ++i)
             result = slide();
-        
+
         return result;
     }
 

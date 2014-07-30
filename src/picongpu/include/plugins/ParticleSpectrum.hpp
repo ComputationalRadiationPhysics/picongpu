@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef ANALYSIS_PARTICLESPECTRUM_HPP
 #define ANALYSIS_PARTICLESPECTRUM_HPP
 
@@ -41,7 +41,7 @@ private:
     static const int numBins = 64;
     static const int numBinsEx = numBins+2;
     ParticlesType *particles;
-        
+
     void pluginLoad();
     void pluginUnload();
 public:

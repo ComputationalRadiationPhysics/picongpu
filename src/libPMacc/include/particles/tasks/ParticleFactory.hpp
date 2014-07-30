@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 #pragma once
 
@@ -65,14 +65,14 @@ namespace PMacc
         template<class ParBase>
         EventTask createTaskSendParticlesExchange(ParBase &parBase, uint32_t exchange,
         ITask *registeringTask = NULL);
-        
-        
+
+
     private:
-        
+
         friend Environment<DIM1>;
         friend Environment<DIM2>;
         friend Environment<DIM3>;
-        
+
         /**
          * returns the instance of this factory
          * @return the instance

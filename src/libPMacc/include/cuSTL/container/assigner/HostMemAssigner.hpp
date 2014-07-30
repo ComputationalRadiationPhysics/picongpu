@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef ASSIGNER_HOSTMEMASSIGNER_HPP
 #define ASSIGNER_HOSTMEMASSIGNER_HPP
 
@@ -81,7 +81,7 @@ struct HostMemAssigner<3>
         }
     }
 };
-    
+
 } // assigner
 } // PMacc
 

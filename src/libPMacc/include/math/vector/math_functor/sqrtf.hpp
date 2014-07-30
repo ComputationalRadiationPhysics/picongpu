@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef MATH_FUNCTOR_SQRTF_HPP
 #define MATH_FUNCTOR_SQRTF_HPP
 
@@ -32,11 +32,11 @@ namespace math
 {
 namespace math_functor
 {
-    
+
 struct Sqrtf
 {
     typedef float result_type;
-    
+
     HDINLINE float operator()(const float& value) const
     {
         return __sqrtf(value);
@@ -44,7 +44,7 @@ struct Sqrtf
 };
 
 lambda::Expression<lambda::exprTypes::terminal, mpl::vector<Sqrtf> > _sqrtf;
-    
+
 } // math_functor
 } // math
 } // PMacc

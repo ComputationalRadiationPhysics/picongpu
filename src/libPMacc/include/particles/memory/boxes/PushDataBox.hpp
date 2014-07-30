@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 #ifndef PUSHDATABOX_HPP
 #define	PUSHDATABOX_HPP
@@ -33,7 +33,7 @@
 
 namespace PMacc
 {
-    
+
 
     /**
      * Implements a Box to which elements can only be added, using atomic operations.

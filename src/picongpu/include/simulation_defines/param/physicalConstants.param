@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #pragma once
@@ -42,7 +42,7 @@ namespace picongpu
         const float_64 ELECTRON_MASS_SI = 9.109382e-31;
         /** unit: C */
         const float_64 ELECTRON_CHARGE_SI = -1.602176e-19;
-        
+
         // Ion / Proton / Positron properties
         /** unit: kg */
         const float_64 ION_MASS_SI = 1.6726217e-27;

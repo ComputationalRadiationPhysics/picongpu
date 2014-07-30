@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef CURSOR_FUNCTORCURSOR_HPP
 #define CURSOR_FUNCTORCURSOR_HPP
 
@@ -53,7 +53,7 @@ Cursor<FunctorAccessor<typename lambda::result_of::make_Functor<Functor>::type,
         typename boost::remove_reference<typename TCursor::type>::type>(lambda::make_Functor(functor)),
         CursorNavigator(), cursor);
 }
-    
+
 } // cursor
 } // PMacc
 

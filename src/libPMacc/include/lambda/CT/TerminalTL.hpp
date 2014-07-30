@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef LAMBDA_CT_TERMINALTL_HPP
 #define LAMBDA_CT_TERMINALTL_HPP
 
@@ -39,9 +39,9 @@ namespace lambda
 {
 namespace CT
 {
-    
+
 struct Type_is_not_defined {};
-    
+
 template<typename Expr>
 struct TerminalTL {typedef Type_is_not_defined type;};
 

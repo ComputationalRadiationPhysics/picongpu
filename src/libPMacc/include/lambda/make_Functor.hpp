@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef LAMBDA_MAKE_FUNCTOR_HPP
 #define LAMBDA_MAKE_FUNCTOR_HPP
 

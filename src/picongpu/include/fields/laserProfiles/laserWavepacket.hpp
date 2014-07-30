@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #ifndef LASERWAVEPACKET_HPP
@@ -47,7 +47,7 @@ HINLINE float3_X laserLongitudinal(uint32_t currentStep, float_X& phase)
     // we shift the complete pulse for the half of this time to start with
     // the front of the laser pulse.
     const double mue = 0.5 * INIT_TIME;
-    
+
     const double runTime = DELTA_T*currentStep - mue;
     const double f = SPEED_OF_LIGHT / WAVE_LENGTH;
 

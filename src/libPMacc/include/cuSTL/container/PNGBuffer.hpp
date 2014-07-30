@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef CONTAINER_PNGBUFFER_HPP
 #define CONTAINER_PNGBUFFER_HPP
 
@@ -36,7 +36,7 @@ namespace PMacc
 {
 namespace container
 {
-    
+
 /** Think of a container being a PNG-image
  * offers only write-only access
  */
@@ -93,11 +93,11 @@ public:
     {
         return Cursor(Accessor(this->png), cursor::MultiIndexNavigator<2>(), math::Int<2>(0));
     }
-    
+
     /* get a zone spanning the whole container */
     inline zone::SphericZone<2> zone() const {return zone::SphericZone<2>(this->size);}
 };
-    
+
 } // container
 } // PMacc
 

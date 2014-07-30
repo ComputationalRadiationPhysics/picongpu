@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef CURSOR_MARKERACCESSOR_HPP
 #define CURSOR_MARKERACCESSOR_HPP
 
@@ -27,7 +27,7 @@ namespace PMacc
 {
 namespace cursor
 {
-    
+
 template<typename Marker>
 struct MarkerAccessor
 {
@@ -45,7 +45,7 @@ struct MarkerAccessor
         return marker;
     }
 };
-    
+
 } // cursor
 } // PMacc
 

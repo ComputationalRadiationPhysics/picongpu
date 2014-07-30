@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #ifndef LASERPHYSICS_HPP
@@ -49,7 +49,7 @@ public:
     HDINLINE float3_X getManipulation(DataSpace<simDim> iOffset)
     {
         const float_X posX = float_X(globalCentered.x() + iOffset.x()) * CELL_WIDTH;
-        
+
         /*! \todo this is very dirty, please fix laserTransversal interface and use floatD_X
             and not posX,posY */
         const float_X posZ =
@@ -87,10 +87,10 @@ public:
 
         SubGrid<simDim>& sg = Environment<simDim>::get().SubGrid();
         PMACC_AUTO(simBox,sg.getSimulationBox());
-        
+
         const DataSpace<simDim> globalCellOffset(simBox.getGlobalOffset());
         const DataSpace<simDim> halfSimSize(simBox.getGlobalSize() / 2);
-        
+
         DataSpace<simDim> centeredOrigin(globalCellOffset - halfSimSize);
         return LaserManipulator(elong,
                                 centeredOrigin,

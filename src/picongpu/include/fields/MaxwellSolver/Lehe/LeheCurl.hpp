@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #pragma once
@@ -259,7 +259,7 @@ namespace picongpu
                 // Typedef an accessor to access mem[z][y][x]
                 // in (x,y,z) order :)
                 typedef DataSpace<DIM3> Space;
-                
+
                 const float_X curl_x
                     = (
                         alpha_y * ( mem(Space(0,0,0)*(-1)).z( ) - mem(Space(0,-1,0)*(-1)).z( ) )

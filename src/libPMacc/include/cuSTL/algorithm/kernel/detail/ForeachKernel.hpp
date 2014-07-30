@@ -19,23 +19,23 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #pragma once
- 
+
 namespace PMacc
 {
 namespace algorithm
 {
 namespace kernel
 {
-    
+
 #ifndef FOREACH_KERNEL_MAX_PARAMS
 #define FOREACH_KERNEL_MAX_PARAMS 4
 #endif
-    
+
 namespace detail
 {
-    
+
 #define SHIFTACCESS_CURSOR(Z, N, _) forward(c ## N [cellIndex])
 
 #define KERNEL_FOREACH(Z, N, _) \

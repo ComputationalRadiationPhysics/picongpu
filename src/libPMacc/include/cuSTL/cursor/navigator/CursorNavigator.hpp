@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef CURSOR_CURSORNAVIGATOR_HPP
 #define CURSOR_CURSORNAVIGATOR_HPP
 
@@ -29,7 +29,7 @@ namespace PMacc
 {
 namespace cursor
 {
-    
+
 struct CursorNavigator
 {
     template<typename Cursor, typename Jump>
@@ -39,7 +39,7 @@ struct CursorNavigator
         return cursor(jump);
     }
 };
-    
+
 } // cursor
 } // PMacc
 

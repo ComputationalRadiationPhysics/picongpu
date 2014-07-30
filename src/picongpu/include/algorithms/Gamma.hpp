@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #ifndef GAMMA_HPP
@@ -32,15 +32,15 @@ template<typename precisionType = float_X>
 struct Gamma
 {
     typedef precisionType valueType;
-    
+
     template<typename MomType, typename MassType >
         HDINLINE valueType operator()(const MomType mom, const MassType mass)
     {
         const valueType fMom2 = math::abs2( precisionCast<valueType >( mom ) );
         const valueType c2 = SPEED_OF_LIGHT*SPEED_OF_LIGHT;
-        
+
         const valueType m2_c2_reci = valueType(1.0) / precisionCast<valueType >( mass * mass * c2 );
-        
+
         return math::sqrt( precisionCast<valueType >( valueType(1.0) + fMom2 * m2_c2_reci ) );
     }
 

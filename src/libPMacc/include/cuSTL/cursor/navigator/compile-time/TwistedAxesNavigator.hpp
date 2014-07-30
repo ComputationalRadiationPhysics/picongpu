@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef CURSOR_CT_TWISTEDAXESNAVIGATOR_HPP
 #define CURSOR_CT_TWISTEDAXESNAVIGATOR_HPP
 
@@ -31,7 +31,7 @@ namespace cursor
 {
 namespace CT
 {
-    
+
 template<typename Axes, int dim = Axes::dim>
 struct TwistedAxesNavigator;
 
@@ -67,7 +67,7 @@ struct TwistedAxesNavigator<Axes, 3>
         return cursor(twistedJump);
     }
 };
-    
+
 } // CT
 } // cursor
 } // PMacc

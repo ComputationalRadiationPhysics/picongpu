@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef ALLOCATOR_EMPTYALLOCATOR_HPP
 #define ALLOCATOR_EMPTYALLOCATOR_HPP
 
@@ -30,16 +30,16 @@ namespace PMacc
 {
 namespace allocator
 {
-    
+
 struct EmptyAllocator
 {
     typedef allocator::tag::unspecified tag;
-    
+
     template<typename TCursor>
     HDINLINE
     static void deallocate(const TCursor&) {}
 };
-    
+
 } // allocator
 } // PMacc
 

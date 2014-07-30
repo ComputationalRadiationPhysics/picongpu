@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #include "math/vector/Int.hpp"
 #include "math/vector/Float.hpp"
 #include "math/vector/Size_t.hpp"
@@ -66,7 +66,7 @@ void FieldEnergy::notify(uint32_t currentStep)
     namespace math = PMacc::math;
     using namespace math;
     typedef SuperCellSize BlockDim;
-    
+
     DataConnector &dc = Environment<>::get().DataConnector();
     FieldE& fieldE = dc.getData<FieldE > (FieldE::getName(), true);
     FieldB& fieldB = dc.getData<FieldB > (FieldB::getName(), true);
@@ -75,34 +75,34 @@ void FieldEnergy::notify(uint32_t currentStep)
             fieldE.getGridBuffer().getDeviceBuffer().cartBuffer().view(BlockDim().toRT(), -BlockDim().toRT()));
     BOOST_AUTO(fieldB_coreBorder,
             fieldB.getGridBuffer().getDeviceBuffer().cartBuffer().view(BlockDim().toRT(), -BlockDim().toRT()));
-            
+
     PMacc::GridController<3>& con = PMacc::Environment<3>::get().GridController();
     PMacc::math::Size_t<3> gpuDim = (math::Size_t<3>)con.getGpuNodes();
     PMacc::math::Size_t<3> globalGridSize = gpuDim * fieldE_coreBorder.size();
     int globalCellZPos = globalGridSize.z() / 2;
     int localCellZPos = globalCellZPos % fieldE_coreBorder.size().z();
     int gpuZPos = globalCellZPos / fieldE_coreBorder.size().z();
-    
+
     zone::SphericZone<3> gpuGatheringZone(math::Size_t<3>(gpuDim.x(), gpuDim.y(), 1),
                                           PMacc::math::Int<3>(0,0,gpuZPos));
     algorithm::mpi::Gather<3> gather(gpuGatheringZone);
     if(!gather.participate()) return;
     container::DeviceBuffer<float, 2> energyDBuffer(fieldE_coreBorder.size().shrink<2>());
-        
+
     using namespace lambda;
     BOOST_AUTO(_abs2, expr(math::Abs2()));
-    
+
     algorithm::kernel::Foreach<math::CT::Int<BlockDim::x::value,BlockDim::y::value,1> >()(
         energyDBuffer.zone(), energyDBuffer.origin(),
                               cursor::tools::slice(fieldE_coreBorder.origin()(0,0,localCellZPos)),
                               cursor::tools::slice(fieldB_coreBorder.origin()(0,0,localCellZPos)),
         _1 = (_abs2(_2) + _abs2(_3) * MUE0_EPS0) *
             (float_X(0.5) * EPS0 * UNIT_ENERGY * UNITCONV_Joule_to_keV / (UNIT_LENGTH*UNIT_LENGTH*UNIT_LENGTH)));
-            
-            
+
+
     container::HostBuffer<float, 2> energyHBuffer(energyDBuffer.size());
     energyHBuffer = energyDBuffer;
-    
+
     /*\todo: domain size is now different for any gpu [fixme] */
     container::HostBuffer<float, 2> globalEnergyBuffer(energyHBuffer.size() * gpuDim.shrink<2>());
     gather(globalEnergyBuffer, energyHBuffer, 2);

@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 #ifndef DEFAULTFILTER_HPP
 #define	DEFAULTFILTER_HPP
@@ -30,21 +30,21 @@
 
 namespace PMacc
 {
-    
-    
+
+
 template<class Base = NullFrame>
 class DefaultFilter : public Base
 {
     private:
         bool filterActive;
     public:
-        
+
         HDINLINE DefaultFilter() : filterActive(false)
         {}
-        
+
         HDINLINE virtual ~DefaultFilter()
         {}
-        
+
         template<class FRAME>
         HDINLINE bool operator()(FRAME & frame,lcellId_t id)
         {
@@ -59,7 +59,7 @@ class DefaultFilter : public Base
         {
             filterActive=active;
         }
-        
+
         HDINLINE bool getStatus()
         {
             return filterActive;
@@ -72,13 +72,13 @@ class DefaultFilter<NullFrame>
     private:
         bool alwaysTrue;
     public:
-        
+
         HDINLINE DefaultFilter() : alwaysTrue(true)
         {}
-        
+
         HDINLINE virtual ~DefaultFilter()
         {}
-        
+
         template<class FRAME>
         HDINLINE bool operator()(FRAME & frame,lcellId_t id)
         {
@@ -89,7 +89,7 @@ class DefaultFilter<NullFrame>
         {
             alwaysTrue=value;
         }
-        
+
         HDINLINE bool getDefault()
         {
             return alwaysTrue;

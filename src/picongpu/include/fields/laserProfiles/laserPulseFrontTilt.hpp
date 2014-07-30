@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #ifndef LASERPULSEFRONTTILT
@@ -97,7 +97,7 @@ namespace picongpu
 
             // pure gaussian
             //const float_X r2 = posX * posX + posZ * posZ;
-            
+
             //rayleigh length (in y-direction)
             const float_X y_R = float_X( PI ) * W0 * W0 / WAVE_LENGTH;
 
@@ -110,7 +110,7 @@ namespace picongpu
             const float_X w_y = W0 * sqrt( float_X(1.0) + ( FOCUS_POS / y_R )*( FOCUS_POS / y_R ) );
             //! the Gouy phase shift
             const float_X xi_y = atan( -FOCUS_POS / y_R );
-            
+
             if( Polarisation == LINEAR_X || Polarisation == LINEAR_Z )
             {
                 elong *= math::exp( -r2 / w_y / w_y ) * cos( 2.0f * float_X( PI ) / WAVE_LENGTH * FOCUS_POS - 2.0f * float_X( PI ) / WAVE_LENGTH * r2 / 2.0f / R_y + xi_y + phase )
@@ -131,14 +131,14 @@ namespace picongpu
                        / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( 2.0f * PULSE_LENGTH ) / ( 2.0f * PULSE_LENGTH ) );
                 phase -= float_X( PI / 2.0 );
             }
-            
+
             return elong;
 #else
             //beam waist in the near field: w_y(y=0) == W0
             const float_X w_y = W0 * sqrtf( float_X(1.0) + ( FOCUS_POS / y_R )*( FOCUS_POS / y_R ) );
             //! the Gouy phase shift
             const float_X xi_y = atanf( -FOCUS_POS / y_R );
-            
+
             if( Polarisation == LINEAR_X || Polarisation == LINEAR_Z )
             {
                 elong *= math::exp( -r2 / w_y / w_y ) * __cosf( 2.0f * float_X( PI ) / WAVE_LENGTH * FOCUS_POS - 2.0f * float_X( PI ) / WAVE_LENGTH * r2 / 2.0f / R_y + xi_y + phase )
@@ -159,7 +159,7 @@ namespace picongpu
                           / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( 2.0f * PULSE_LENGTH ) / ( 2.0f * PULSE_LENGTH ) );
                 phase -= float_X( PI / 2.0 );
             }
-            
+
             return elong;
 #endif
         }

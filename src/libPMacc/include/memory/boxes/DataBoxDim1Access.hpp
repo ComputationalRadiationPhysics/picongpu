@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 #pragma once
 
@@ -37,12 +37,12 @@ public:
 
     typedef T_Base Base;
     static const uint32_t Dim= Base::Dim;
-    
-    
+
+
     typedef typename Base::ValueType ValueType;
     typedef typename Base::RefValueType RefValueType;
 
-    
+
     HDINLINE RefValueType operator()(const PMacc::DataSpace<DIM1> &idx = PMacc::DataSpace<DIM1>()) const
     {
         const PMacc::DataSpace<Dim> real_idx(DataSpaceOperations<Dim>::map(originalSize, idx.x()));

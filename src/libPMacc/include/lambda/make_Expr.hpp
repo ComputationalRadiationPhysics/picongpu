@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef LAMBDA_KERNEL_MAKE_EXPR_HPP
 #define LAMBDA_KERNEL_MAKE_EXPR_HPP
 
@@ -34,13 +34,13 @@ namespace PMacc
 {
 namespace lambda
 {
-    
+
 template<typename _ExprType, typename _Childs>
 struct Expression;
-    
+
 namespace result_of
 {
-    
+
 template<typename T>
 struct make_Expr
 {
@@ -52,7 +52,7 @@ struct make_Expr<Expression<ExprType, Childs> >
 {
     typedef Expression<ExprType, Childs> type;
 };
-    
+
 } // result_of
 
 /** \return: returns a terminal expression made of argument t,
