@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -48,13 +48,13 @@ template< typename T_Identifier>
 struct LoadParticleAttributesFromHDF5
 {
 
-    /** write attribute to hdf5 file
+    /** read attributes from hdf5 file
      *
-     * @param params wrapped params with domainwriter, ...
+     * @param params thread params with domainwriter, ...
      * @param frame frame with all particles
-     * @param prefix a name prefix for hdf5 attribute (is combined to: prefix_nameOfAttribute)
-     * @param simOffset offset from window origin of thedomain
-     * @param localSize local domain size
+     * @param subGroup path to the group in the hdf5 file
+     * @param particlesOffset read offset in the attribute array
+     * @param elements number of elements which should be read the attribute array
      */
     template<typename FrameType>
     HINLINE void operator()(

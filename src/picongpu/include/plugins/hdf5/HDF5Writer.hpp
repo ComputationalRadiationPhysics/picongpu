@@ -94,8 +94,7 @@ public:
     filename("h5_data"),
     checkpointFilename("h5_checkpoint"),
     restartFilename(""), /* set to checkpointFilename by default */
-    notifyPeriod(0),
-    restartChunkSize(1000000)
+    notifyPeriod(0)
     {
         Environment<>::get().PluginConnector().registerPlugin(this);
     }
@@ -116,8 +115,13 @@ public:
              "Optional HDF5 checkpoint filename (prefix)")
             ("hdf5.restart-file", po::value<std::string > (&restartFilename),
              "HDF5 restart filename (prefix)")
+            /* 1,000,000 particles are around 3900 frames at 256 particles per frame
+             * and match ~30MiB with typical picongpu particles.
+             * The only reason why we use 1M particles per chunk is that we can get a
+             * frame overflow in our memory manager if we process all particles in one kernel.
+             **/
             ("hdf5.restart-chunkSize", po::value<uint32_t > (&restartChunkSize)->default_value(1000000),
-             "set how many particles are processed by GPU in one kernel call to prevent frame count blowup on restart");
+             "Number of particles processed in one kernel call during restart to prevent frame count blowup");
     }
 
     std::string pluginGetName() const
@@ -204,7 +208,7 @@ public:
 
         /* load all particles */
         ForEach<FileCheckpointParticles, LoadSpecies<bmpl::_1> > forEachLoadSpecies;
-        forEachLoadSpecies(params,restartChunkSize);
+        forEachLoadSpecies(params, restartChunkSize);
 
         /* close datacollector */
         log<picLog::INPUT_OUTPUT > ("HDF5 close DataCollector with file: %1%") % restartFilename;
@@ -448,8 +452,9 @@ private:
     std::string filename;
     std::string checkpointFilename;
     std::string restartFilename;
-    uint32_t restartChunkSize;
     std::string checkpointDirectory;
+
+    uint32_t restartChunkSize;
 
     DataSpace<simDim> mpi_pos;
     DataSpace<simDim> mpi_size;
