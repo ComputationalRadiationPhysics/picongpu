@@ -1,24 +1,24 @@
 /**
  * Copyright 2013 Heiko Burau, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
  
 #pragma once
 
@@ -82,7 +82,7 @@ private:
 public:
     HDINLINE Tuple() {}
     
-    HDINLINE Tuple(Value arg0) : value(arg0) 
+    HDINLINE Tuple(Value arg0) : value(arg0)
     {
         BOOST_STATIC_ASSERT(dim == 1);
     }
@@ -90,14 +90,14 @@ public:
     BOOST_PP_REPEAT_FROM_TO(2, BOOST_PP_INC(TUPLE_MAX_DIM), CONSTRUCTOR, _)
     
     template<int i>
-    HDINLINE 
+    HDINLINE
     typename mpl::at_c<TypeList, i>::type&
     at_c()
     {
         return this->at(mpl::int_<i>());
     }
     template<int i>
-    HDINLINE 
+    HDINLINE
     const typename mpl::at_c<TypeList, i>::type&
     at_c() const
     {
@@ -105,25 +105,25 @@ public:
     }
     
     HDINLINE Value& at(mpl::int_<0>)
-    {    
+    {
         return value;
     }
     HDINLINE Value& at(mpl_::integral_c<int, 0>)
-    {    
+    {
         return value;
     }
     
     HDINLINE const Value& at(mpl::int_<0>) const
-    {    
+    {
         return value;
     }
     HDINLINE const Value& at(mpl_::integral_c<int, 0>) const
-    {    
+    {
         return value;
     }
     
     template<typename Idx>
-    HDINLINE 
+    HDINLINE
     typename mpl::at<TypeList, Idx>::type&
     at(Idx)
     {
@@ -131,7 +131,7 @@ public:
     }
     
     template<typename Idx>
-    HDINLINE 
+    HDINLINE
     const typename mpl::at<TypeList, Idx>::type&
     at(Idx) const
     {

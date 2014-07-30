@@ -51,7 +51,7 @@ public:
 };
 
 
-/** 
+/**
  * Write calculated fields to HDF5 file.
  *
  * @tparam T field class
@@ -95,7 +95,7 @@ public:
  * and write them to hdf5.
  *
  * FieldTmp is calculated on device and than dumped to HDF5.
- * 
+ *
  * @tparam Solver solver class for species
  * @tparam Species species/particles class
  */

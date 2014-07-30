@@ -228,8 +228,8 @@ private:
             typedef std::numeric_limits< float_64 > dbl;
 
             outFile.precision(dbl::digits10);
-            outFile << currentStep << " " << std::scientific << globalEnergy * UNIT_ENERGY << " " 
-                    << (globalFieldEnergy[0] * UNIT_ENERGY).toString(" ","") << " " 
+            outFile << currentStep << " " << std::scientific << globalEnergy * UNIT_ENERGY << " "
+                    << (globalFieldEnergy[0] * UNIT_ENERGY).toString(" ","") << " "
                     << (globalFieldEnergy[1] * UNIT_ENERGY).toString(" ","") << std::endl;
         }
     }

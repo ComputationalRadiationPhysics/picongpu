@@ -1,22 +1,22 @@
 /**
  * Copyright 2013-2014 Heiko Burau, Rene Widera, Richard Pausch
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
  
 
 #pragma once
@@ -25,9 +25,9 @@ namespace picongpu
 {
   namespace radiation_observer
   {
-    /** Compute observation angles 
+    /** Compute observation angles
      *
-     * This function is used in the Radiation plug-in kernel to compute 
+     * This function is used in the Radiation plug-in kernel to compute
      * the observation directions given as a unit vector pointing
      * towards a 'virtual' detector
      *
@@ -37,16 +37,16 @@ namespace picongpu
      *
      * @return   unit vector pointing in observation direction
      *           type: vec2
-     * 
+     *
      */
     DINLINE vec2 observation_direction(const int observation_id_extern)
     {
-      /** compute observation directions for 2D virtual detector field 
+      /** compute observation directions for 2D virtual detector field
        *  pointing toward the +x direction
        *  with observation angles ranging from
        *  theta = [angle_theta_start : angle_theta_end]
        *  phi   = [angle_phi_start   : angle_phi_end  ]
-       *  every block index moves the phi angle from its start value toward 
+       *  every block index moves the phi angle from its start value toward
        *  its end value until the observation_id_extern reaches N_split.
        *  After that the theta angle moves further from its start
        *  value towards its end value while phi is reset to its start
@@ -59,8 +59,8 @@ namespace picongpu
        *  z_value = cos(theta)
        *  These are the standard spherical coordinates.
        *
-       *  The default setup describes an detector array of 
-       *  16x16 detectors ranging from -pi/8= -22.5 degrees 
+       *  The default setup describes an detector array of
+       *  16x16 detectors ranging from -pi/8= -22.5 degrees
        *  to +pi/8= +22.5 degrees for both angles with the center
        *  pointing toward the x-axis (laser propagation direction).
        */
@@ -86,14 +86,14 @@ namespace picongpu
 
       /* compute step with between two angles for range [angle_??_start : angle_??_end] */
       const int N_theta           = parameters::N_observer / N_angle_split;
-      const numtype2 delta_angle_theta =  (angle_theta_start - 
+      const numtype2 delta_angle_theta =  (angle_theta_start -
 					   angle_theta_end) / (N_theta-1.0);
-      const numtype2 delta_angle_phi   =  (angle_phi_start - 
+      const numtype2 delta_angle_phi   =  (angle_phi_start -
 					   angle_phi_end)   / (N_angle_split-1.0);
 
       /* compute observation angles */
       const numtype2 theta(  my_index_theta * delta_angle_theta + angle_theta_start );
-      const numtype2 phi(    my_index_phi   * delta_angle_phi   - angle_phi_start   ); 
+      const numtype2 phi(    my_index_phi   * delta_angle_phi   - angle_phi_start   );
 
       /* compute observation unit vector */
       return vec2( sinf(theta)*cosf(phi) , sinf(theta)*sinf(phi) , cosf(theta) ) ;

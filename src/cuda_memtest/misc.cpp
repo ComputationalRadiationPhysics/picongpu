@@ -13,7 +13,7 @@ void update_temperature(void)
 	printf("ERROR: opening pipe failed\n");
 	exit(ERR_GENERAL);
     }
-    unsigned int i = 0;    
+    unsigned int i = 0;
     while(1){
 	char buf[256];
 	char* s;
@@ -36,11 +36,11 @@ void update_temperature(void)
 	
 	intake_temp[i] = t;
 	gpu_temp[2*i]  = gpu_0;
-	gpu_temp[2*i + 1]  = gpu_1;	
+	gpu_temp[2*i + 1]  = gpu_1;
 	i++;
     }
     
-    DEBUG_PRINTF("temperature updated: %d %d %d %d \n", 
+    DEBUG_PRINTF("temperature updated: %d %d %d %d \n",
 		 gpu_temp[0], gpu_temp[1], gpu_temp[2], gpu_temp[3]);
 	
    pclose(file);
@@ -50,7 +50,7 @@ void update_temperature(void)
 
 unsigned long long
 get_serial_number(void)
-{   
+{
     FILE* file= popen("nvidia-smi|/bin/grep \"Serial Number\"|gawk '{print $4}'", "r");
     if (file == NULL){
 	PRINTF("Warning: opening pipe failed for getting serial nubmer\n");

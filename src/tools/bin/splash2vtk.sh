@@ -1,6 +1,6 @@
 #!/bin/sh
-# 
-# Copyright 2013 Axel Huebl             
+#
+# Copyright 2013 Axel Huebl
 #
 # This file is part of PIConGPU.
 #

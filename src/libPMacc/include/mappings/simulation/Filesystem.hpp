@@ -31,7 +31,7 @@ namespace PMacc
 
         /**
          * Singleton class providing common filesystem operations.
-         * 
+         *
          * @tparam DIM number of dimensions of the simulation
          */
         template<unsigned DIM>

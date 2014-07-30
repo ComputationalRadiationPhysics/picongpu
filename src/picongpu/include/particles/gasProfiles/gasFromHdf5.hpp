@@ -92,7 +92,7 @@ namespace picongpu
                 Dimensions fileAccessOffset(0, 0, 0);
 
                 /* For each dimension, compute how file domain and local simulation domain overlap
-                 * and which sizes and offsets are required for loading data from the file. 
+                 * and which sizes and offsets are required for loading data from the file.
                  **/
                 for (uint32_t d = 0; d < simDim; ++d)
                 {
@@ -194,7 +194,7 @@ namespace picongpu
         }
 
         /** Load the gas density from fieldTmp
-         * 
+         *
          * @param pos as DIM-D length vector offset to global left top front cell
          * @param cellIdx local cell id
          * @param fieldTmp DataBox accessing for fieldTmp

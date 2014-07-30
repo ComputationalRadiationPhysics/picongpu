@@ -35,7 +35,7 @@ namespace PMacc
 {
 
 /** Implementation of the DeviceBuffer interface for cuda mapped memory
- * 
+ *
  * For all pmacc tasks and functions this buffer looks like native device buffer
  * but in real it is stored in host memory.
  */
@@ -78,10 +78,10 @@ public:
     }
 
     /*! Get device pointer of memory
-     * 
+     *
      * This pointer is shifted by the offset, if this buffer points to other
      * existing buffer
-     * 
+     *
      * @return device pointer to memory
      */
     TYPE* getPointer()

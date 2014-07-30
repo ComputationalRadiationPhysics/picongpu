@@ -13,17 +13,17 @@
     err_expect[idx] = (unsigned long)expect;		\
     err_current[idx] = (unsigned long)current;		\
     err_second_read[idx] = (unsigned long)(*p);		\
-  }while(0) 
+  }while(0)
 
 __kernel void
-kernel_modtest_write(__global char* ptr, unsigned long memsize, 
+kernel_modtest_write(__global char* ptr, unsigned long memsize,
 		     unsigned int offset, TYPE p1, TYPE p2)
 {
-  int i;  
+  int i;
   __global TYPE* buf = (__global TYPE*)ptr;
   int idx = get_global_id(0);
   unsigned long n = memsize/sizeof(TYPE);
-  int total_num_threads = get_global_size(0);  
+  int total_num_threads = get_global_size(0);
   
   for(i=idx;i < n; i+= total_num_threads){
     if ( (i+MOD_SZ-offset)%MOD_SZ == 0){
@@ -38,30 +38,30 @@ kernel_modtest_write(__global char* ptr, unsigned long memsize,
 }
 
 __kernel void
-kernel_modtest_read(__global char* ptr, unsigned long memsize, 
-		    unsigned int offset,  TYPE p1, TYPE p2, 
+kernel_modtest_read(__global char* ptr, unsigned long memsize,
+		    unsigned int offset,  TYPE p1, TYPE p2,
 		    volatile __global unsigned int* err_count,
-		    __global unsigned long* err_addr, 
+		    __global unsigned long* err_addr,
 		    __global unsigned long* err_expect,
-		    __global unsigned long* err_current, 
+		    __global unsigned long* err_current,
 		    __global unsigned long* err_second_read)
 {
-  int i;  
+  int i;
   __global TYPE* buf = (__global TYPE*)ptr;
   int idx = get_global_id(0);
   unsigned long n = memsize/sizeof(TYPE);
-  int total_num_threads = get_global_size(0);  
+  int total_num_threads = get_global_size(0);
   
   TYPE localp;
   for(i=idx;i < n; i+= total_num_threads){
     localp = buf[i];
     if ( (i+MOD_SZ-offset)%MOD_SZ == 0){
       if(localp != p1){
-	RECORD_ERR(err_count, &buf[i], p1, localp);     
+	RECORD_ERR(err_count, &buf[i], p1, localp);
       }
     }else{
       if (localp != p2){
-	RECORD_ERR(err_count, &buf[i], p2, localp);     	
+	RECORD_ERR(err_count, &buf[i], p2, localp);
       }
     }
   }
@@ -74,11 +74,11 @@ kernel_modtest_read(__global char* ptr, unsigned long memsize,
 __kernel void
 kernel_write(__global char* ptr, unsigned long memsize, TYPE p1)
 {
-  int i;  
+  int i;
   __global TYPE* buf = (__global TYPE*)ptr;
   int idx = get_global_id(0);
   unsigned long n = memsize/sizeof(TYPE);
-  int total_num_threads = get_global_size(0);  
+  int total_num_threads = get_global_size(0);
   
   for(i=idx;i < n; i+= total_num_threads){
     buf[i] = p1;
@@ -90,11 +90,11 @@ kernel_write(__global char* ptr, unsigned long memsize, TYPE p1)
 
 
 __kernel void
-kernel_readwrite(__global char* ptr, unsigned long memsize, TYPE p1, TYPE p2, 
+kernel_readwrite(__global char* ptr, unsigned long memsize, TYPE p1, TYPE p2,
 		 volatile __global unsigned int* err_count,
-		 __global unsigned long* err_addr, 
+		 __global unsigned long* err_addr,
 		 __global unsigned long* err_expect,
-		 __global unsigned long* err_current, 
+		 __global unsigned long* err_current,
 		 __global unsigned long* err_second_read)
 {
   
@@ -102,7 +102,7 @@ kernel_readwrite(__global char* ptr, unsigned long memsize, TYPE p1, TYPE p2,
   __global TYPE* buf = (__global TYPE*) ptr;
   int idx = get_global_id(0);
   unsigned long n =  memsize/sizeof(TYPE);
-  int total_num_threads = get_global_size(0);  
+  int total_num_threads = get_global_size(0);
   TYPE localp;
   
   for(i=idx;i < n;i += total_num_threads){
@@ -110,22 +110,22 @@ kernel_readwrite(__global char* ptr, unsigned long memsize, TYPE p1, TYPE p2,
     localp = buf[i];
     
     if (localp != p1){
-      RECORD_ERR(err_count, &buf[i], p1, localp);      
+      RECORD_ERR(err_count, &buf[i], p1, localp);
     }
     
     buf[i] = p2;
-  }  
+  }
   
 
-}  
+}
 
 
 __kernel void
 kernel_read(__global char* ptr, unsigned long memsize, TYPE p1,
 	    volatile __global unsigned int* err_count,
-	    __global unsigned long* err_addr, 
+	    __global unsigned long* err_addr,
 	    __global unsigned long* err_expect,
-	    __global unsigned long* err_current, 
+	    __global unsigned long* err_current,
 	    __global unsigned long* err_second_read)
 {
   
@@ -133,27 +133,27 @@ kernel_read(__global char* ptr, unsigned long memsize, TYPE p1,
   __global TYPE* buf = (__global TYPE*) ptr;
   int idx = get_global_id(0);
   unsigned long n =  memsize/sizeof(TYPE);
-  int total_num_threads = get_global_size(0);  
+  int total_num_threads = get_global_size(0);
   TYPE localp;
   
-  for(i=idx;i < n;i += total_num_threads){    
-    localp = buf[i];    
+  for(i=idx;i < n;i += total_num_threads){
+    localp = buf[i];
     if (localp != p1){
-      RECORD_ERR(err_count, &buf[i], p1, localp);      
-    }    
-  }  
+      RECORD_ERR(err_count, &buf[i], p1, localp);
+    }
+  }
   
 
-}  
+}
 
 __kernel void
 kernel7_write(__global char* ptr, unsigned long memsize)
 {
-  int i;  
+  int i;
   __global TYPE* buf = (__global TYPE*)ptr;
   int idx = get_global_id(0);
   unsigned long n = memsize/sizeof(TYPE);
-  int total_num_threads = get_global_size(0);  
+  int total_num_threads = get_global_size(0);
   int rand_data_num =BLOCKSIZE/sizeof(TYPE);
   
   for(i=idx;i < n; i+= total_num_threads){
@@ -168,11 +168,11 @@ kernel7_write(__global char* ptr, unsigned long memsize)
 }
 
 __kernel void
-kernel7_readwrite(__global char* ptr, unsigned long memsize, 
+kernel7_readwrite(__global char* ptr, unsigned long memsize,
 		 volatile __global unsigned int* err_count,
-		 __global unsigned long* err_addr, 
+		 __global unsigned long* err_addr,
 		 __global unsigned long* err_expect,
-		 __global unsigned long* err_current, 
+		 __global unsigned long* err_current,
 		 __global unsigned long* err_second_read)
 {
   
@@ -180,7 +180,7 @@ kernel7_readwrite(__global char* ptr, unsigned long memsize,
   __global TYPE* buf = (__global TYPE*) ptr;
   int idx = get_global_id(0);
   unsigned long n =  memsize/sizeof(TYPE);
-  int total_num_threads = get_global_size(0);  
+  int total_num_threads = get_global_size(0);
   TYPE localp, expected;
   int rand_data_num =BLOCKSIZE/sizeof(TYPE);
   
@@ -191,22 +191,22 @@ kernel7_readwrite(__global char* ptr, unsigned long memsize,
     localp = buf[i];
     expected = buf[i%rand_data_num];
     if (localp != expected){
-      RECORD_ERR(err_count, &buf[i], expected, localp);      
+      RECORD_ERR(err_count, &buf[i], expected, localp);
     }
     
     buf[i] = ~expected;
-  }  
+  }
   
 }
 
 
 
 __kernel void
-kernel7_read(__global char* ptr, unsigned long memsize, 
+kernel7_read(__global char* ptr, unsigned long memsize,
 	     volatile __global unsigned int* err_count,
-	     __global unsigned long* err_addr, 
+	     __global unsigned long* err_addr,
 	     __global unsigned long* err_expect,
-	     __global unsigned long* err_current, 
+	     __global unsigned long* err_current,
 	     __global unsigned long* err_second_read)
 {
   
@@ -214,7 +214,7 @@ kernel7_read(__global char* ptr, unsigned long memsize,
   __global TYPE* buf = (__global TYPE*) ptr;
   int idx = get_global_id(0);
   unsigned long n =  memsize/sizeof(TYPE);
-  int total_num_threads = get_global_size(0);  
+  int total_num_threads = get_global_size(0);
   TYPE localp, expected;
   int rand_data_num =BLOCKSIZE/sizeof(TYPE);
   
@@ -225,10 +225,10 @@ kernel7_read(__global char* ptr, unsigned long memsize,
     localp = buf[i];
     expected = ~(buf[i%rand_data_num]);
     if (localp != expected){
-      RECORD_ERR(err_count, &buf[i], expected, localp);      
+      RECORD_ERR(err_count, &buf[i], expected, localp);
     }
     
-  }  
+  }
   
 }
 
@@ -238,12 +238,12 @@ __kernel void
 kernel_movinv32_write(__global char* ptr, unsigned long memsize, unsigned int pattern,
 		      unsigned int lb, unsigned int sval, unsigned int offset)
 {
-  int i;  
+  int i;
   __global unsigned int* buf = (__global unsigned int*)ptr;
   int idx = get_global_id(0);
   unsigned long n = memsize/sizeof(unsigned int);
-  int total_num_threads = get_global_size(0);  
-  //assume total_num_threads can be devided by 32, which is true for our purpose 
+  int total_num_threads = get_global_size(0);
+  //assume total_num_threads can be devided by 32, which is true for our purpose
   //then all memories written by this thread will have the same data
   unsigned int pat = pattern;
   unsigned int k=offset;
@@ -272,17 +272,17 @@ __kernel void
 kernel_movinv32_readwrite(__global char* ptr, unsigned long memsize, unsigned int pattern,
 			  unsigned int lb, unsigned int sval, unsigned int offset,
 			  volatile __global unsigned int* err_count,
-			  __global unsigned long* err_addr, 
+			  __global unsigned long* err_addr,
 			  __global unsigned long* err_expect,
-			  __global unsigned long* err_current, 
+			  __global unsigned long* err_current,
 			  __global unsigned long* err_second_read)
 {
-  int i;  
+  int i;
   __global unsigned int* buf = (__global unsigned int*)ptr;
   int idx = get_global_id(0);
   unsigned long n = memsize/sizeof(unsigned int);
-  int total_num_threads = get_global_size(0);  
-  //assume total_num_threads can be devided by 32, which is true for our purpose 
+  int total_num_threads = get_global_size(0);
+  //assume total_num_threads can be devided by 32, which is true for our purpose
   //then all memories written by this thread will have the same data
   unsigned int pat = pattern;
   unsigned int k=offset;
@@ -299,7 +299,7 @@ kernel_movinv32_readwrite(__global char* ptr, unsigned long memsize, unsigned in
   for(i=idx;i < n; i+= total_num_threads){
     unsigned int localp = buf[i];
     if (localp != pat){
-      RECORD_ERR(err_count, &buf[i], pat, localp);      
+      RECORD_ERR(err_count, &buf[i], pat, localp);
     }
     buf[i] = ~pat;
   }
@@ -315,17 +315,17 @@ __kernel void
 kernel_movinv32_read(__global char* ptr, unsigned long memsize, unsigned int pattern,
 		     unsigned int lb, unsigned int sval, unsigned int offset,
 		     volatile __global unsigned int* err_count,
-		     __global unsigned long* err_addr, 
+		     __global unsigned long* err_addr,
 		     __global unsigned long* err_expect,
-		     __global unsigned long* err_current, 
+		     __global unsigned long* err_current,
 		     __global unsigned long* err_second_read)
 {
-  int i;  
+  int i;
   __global unsigned int* buf = (__global unsigned int*)ptr;
   int idx = get_global_id(0);
   unsigned long n = memsize/sizeof(unsigned int);
-  int total_num_threads = get_global_size(0);  
-  //assume total_num_threads can be devided by 32, which is true for our purpose 
+  int total_num_threads = get_global_size(0);
+  //assume total_num_threads can be devided by 32, which is true for our purpose
   //then all memories written by this thread will have the same data
   unsigned int pat = pattern;
   unsigned int k=offset;
@@ -342,7 +342,7 @@ kernel_movinv32_read(__global char* ptr, unsigned long memsize, unsigned int pat
   for(i=idx;i < n; i+= total_num_threads){
     unsigned int localp = buf[i];
     if (localp != ~pat){
-      RECORD_ERR(err_count, &buf[i], ~pat, localp);      
+      RECORD_ERR(err_count, &buf[i], ~pat, localp);
     }
   }
   
@@ -356,11 +356,11 @@ kernel_movinv32_read(__global char* ptr, unsigned long memsize, unsigned int pat
 __kernel void
 kernel5_init(__global char* ptr, unsigned long memsize)
 {
-  int i;  
+  int i;
   __global unsigned int * buf = (__global unsigned int*)ptr;
   int idx = get_global_id(0);
   unsigned long n = memsize/64;
-  int total_num_threads = get_global_size(0);  
+  int total_num_threads = get_global_size(0);
 
   unsigned int p1 =1;
   unsigned int p2;
@@ -393,10 +393,10 @@ kernel5_init(__global char* ptr, unsigned long memsize)
 __kernel void
 kernel5_move(__global char* ptr, unsigned long memsize)
 {
-  int i, j;  
+  int i, j;
   int idx = get_global_id(0);
   unsigned long n = memsize/BLOCKSIZE;
-  int total_num_threads = get_global_size(0);  
+  int total_num_threads = get_global_size(0);
   //each thread is responsible for moving within 1 BLOCKSIZE
   unsigned int half_count = BLOCKSIZE/sizeof(unsigned int)/2;
   for(i=idx;i < n; i+= total_num_threads){
@@ -424,16 +424,16 @@ kernel5_move(__global char* ptr, unsigned long memsize)
 __kernel void
 kernel5_check(__global char* ptr, unsigned long memsize,
 	      volatile __global unsigned int* err_count,
-	      __global unsigned long* err_addr, 
+	      __global unsigned long* err_addr,
 	      __global unsigned long* err_expect,
-	      __global unsigned long* err_current, 
+	      __global unsigned long* err_current,
 	      __global unsigned long* err_second_read)
 {
-  int i;  
+  int i;
   __global unsigned int * buf = (__global unsigned int*)ptr;
   int idx = get_global_id(0);
   unsigned long n = memsize/(2*sizeof(unsigned int));
-  int total_num_threads = get_global_size(0);  
+  int total_num_threads = get_global_size(0);
   
   for(i=idx;i < n; i+= total_num_threads){
     if (buf[2*i] != buf[2*i+1]){
@@ -447,13 +447,13 @@ kernel5_check(__global char* ptr, unsigned long memsize,
 
 
 __kernel void
-kernel1_write(__global char* ptr, unsigned long memsize) 
+kernel1_write(__global char* ptr, unsigned long memsize)
 {
-  int i;  
+  int i;
   __global unsigned long* buf = (__global unsigned long*)ptr;
   int idx = get_global_id(0);
   unsigned long n = memsize/sizeof(unsigned long);
-  int total_num_threads = get_global_size(0);  
+  int total_num_threads = get_global_size(0);
   
   for(i=idx;i < n; i+= total_num_threads){
     buf[i] = (unsigned long)(buf+i);
@@ -466,16 +466,16 @@ kernel1_write(__global char* ptr, unsigned long memsize)
 __kernel void
 kernel1_read(__global char* ptr, unsigned long memsize,
 	     volatile __global unsigned int* err_count,
-	     __global unsigned long* err_addr, 
+	     __global unsigned long* err_addr,
 	     __global unsigned long* err_expect,
-	     __global unsigned long* err_current, 
-	     __global unsigned long* err_second_read)	     
+	     __global unsigned long* err_current,
+	     __global unsigned long* err_second_read)
 {
-  int i;  
+  int i;
   __global unsigned long* buf = (__global unsigned long*)ptr;
   int idx = get_global_id(0);
   unsigned long n = memsize/sizeof(unsigned long);
-  int total_num_threads = get_global_size(0);  
+  int total_num_threads = get_global_size(0);
   
   for(i=idx;i < n; i+= total_num_threads){
     if( buf[i] != (unsigned long)(buf+i)){
@@ -487,14 +487,14 @@ kernel1_read(__global char* ptr, unsigned long memsize,
     
 }
 
-/*FIXME: 
+/*FIXME:
   when the @myp is replace by p, the write does not go through
   need more investigation on this when you have time
 */
 
 
 __kernel void
-kernel0_global_write(__global char* ptr, unsigned long memsize) 
+kernel0_global_write(__global char* ptr, unsigned long memsize)
 {
   __global unsigned int* p = (__global unsigned int*)ptr;
   __global unsigned int* end_p = (__global unsigned int*)(ptr + memsize);
@@ -521,7 +521,7 @@ kernel0_global_write(__global char* ptr, unsigned long memsize)
     }
     
     *myp = pattern;
-    pattern = pattern <<1;    
+    pattern = pattern <<1;
     mask = (mask << 1);
     if (mask == 0){
       break;
@@ -536,10 +536,10 @@ kernel0_global_write(__global char* ptr, unsigned long memsize)
 __kernel void
 kernel0_global_read(__global char* ptr, unsigned long memsize,
 		    volatile __global unsigned int* err_count,
-		    __global unsigned long* err_addr, 
+		    __global unsigned long* err_addr,
 		    __global unsigned long* err_expect,
-		    __global unsigned long* err_current, 
-		    __global unsigned long* err_second_read)			    
+		    __global unsigned long* err_current,
+		    __global unsigned long* err_second_read)
 {
 
    __global unsigned int* p = (__global unsigned int*)ptr;
@@ -571,7 +571,7 @@ kernel0_global_read(__global char* ptr, unsigned long memsize,
       RECORD_ERR(err_count, p, pattern, *p);
     }
 
-    pattern = pattern <<1;    
+    pattern = pattern <<1;
     mask = (mask << 1);
     if (mask == 0){
       break;
@@ -585,9 +585,9 @@ kernel0_global_read(__global char* ptr, unsigned long memsize,
 
 //each thread is responsible for 1 BLOCKSIZE each time
 __kernel void
-kernel0_local_write(__global char* ptr, unsigned long memsize) 
+kernel0_local_write(__global char* ptr, unsigned long memsize)
 {
-  int i;  
+  int i;
   __global unsigned long* buf = (__global unsigned long*)ptr;
   int idx = get_global_id(0);
   unsigned long n = memsize/BLOCKSIZE;
@@ -619,7 +619,7 @@ kernel0_local_write(__global char* ptr, unsigned long memsize)
       }
       
       *p = pattern;
-      pattern = pattern <<1;    
+      pattern = pattern <<1;
       mask = (mask << 1);
       if (mask == 0){
 	break;
@@ -632,12 +632,12 @@ kernel0_local_write(__global char* ptr, unsigned long memsize)
 __kernel void
 kernel0_local_read(__global char* ptr, unsigned long memsize,
 		   volatile __global unsigned int* err_count,
-		   __global unsigned long* err_addr, 
+		   __global unsigned long* err_addr,
 		   __global unsigned long* err_expect,
-		   __global unsigned long* err_current, 
-		   __global unsigned long* err_second_read)		   
+		   __global unsigned long* err_current,
+		   __global unsigned long* err_second_read)
 {
-  int i;  
+  int i;
   __global unsigned long* buf = (__global unsigned long*)ptr;
   int idx = get_global_id(0);
   unsigned long n = memsize/BLOCKSIZE;
@@ -675,7 +675,7 @@ kernel0_local_read(__global char* ptr, unsigned long memsize,
 	RECORD_ERR(err_count, p, pattern, *p);
       }
 
-      pattern = pattern <<1;    
+      pattern = pattern <<1;
       mask = (mask << 1);
       if (mask == 0){
 	break;

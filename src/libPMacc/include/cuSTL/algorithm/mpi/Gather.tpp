@@ -1,24 +1,24 @@
 /**
  * Copyright 2013 Heiko Burau
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
  
 #include "mappings/simulation/GridController.hpp"
 #include <iostream>
@@ -43,7 +43,7 @@ Gather<dim>::Gather(const zone::SphericZone<dim>& _zone) : comm(MPI_COMM_NULL)
     int numWorldRanks; MPI_Comm_size(MPI_COMM_WORLD, &numWorldRanks);
     std::vector<Int<dim> > allPositions(numWorldRanks);
     
-    MPI_CHECK(MPI_Allgather((void*)&pos, sizeof(Int<dim>), MPI_CHAR, 
+    MPI_CHECK(MPI_Allgather((void*)&pos, sizeof(Int<dim>), MPI_CHAR,
                   (void*)allPositions.data(), sizeof(Int<dim>), MPI_CHAR,
                   MPI_COMM_WORLD));
                   
@@ -80,7 +80,7 @@ Gather<dim>::~Gather()
 template<int dim>
 bool Gather<dim>::root() const
 {
-    if(!this->m_participate) 
+    if(!this->m_participate)
     {
         std::cerr << "error[mpi::Gather::root()]: this process does not participate in gathering.\n";
         return false;
@@ -92,7 +92,7 @@ bool Gather<dim>::root() const
 template<int dim>
 int Gather<dim>::rank() const
 {
-    if(!this->m_participate) 
+    if(!this->m_participate)
     {
         std::cerr << "error[mpi::Gather::rank()]: this process does not participate in gathering.\n";
         return -1;

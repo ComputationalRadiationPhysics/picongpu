@@ -1,5 +1,5 @@
 #!/bin/bash
-# 
+#
 # Copyright 2013 Axel Huebl
 #
 # This file is part of PIConGPU.

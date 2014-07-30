@@ -21,12 +21,12 @@
 #pragma once
 
 /** Load external background fields
- * 
+ *
  */
 namespace picongpu
 {
     class fieldBackgroundE
-    { 
+    {
     public:
         /* Add this additional field for pushing particles */
         static const bool InfluenceParticlePusher = false;
@@ -58,7 +58,7 @@ namespace picongpu
     };
 
     class fieldBackgroundB
-    { 
+    {
     public:
         /* Add this additional field for pushing particles */
         static const bool InfluenceParticlePusher = false;

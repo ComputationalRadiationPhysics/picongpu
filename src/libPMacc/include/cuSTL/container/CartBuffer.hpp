@@ -1,24 +1,24 @@
 /**
  * Copyright 2013 Heiko Burau, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
  
 #ifndef CONTAINER_CARTBUFFER_HPP
 #define CONTAINER_CARTBUFFER_HPP
@@ -53,8 +53,8 @@ namespace container
  * \tparam Copier copies one memory buffer to another
  * \tparam Assigner assigns a value to every datum of a memory buffer
  */
-template<typename Type, int _dim, typename Allocator = allocator::EmptyAllocator, 
-                                  typename Copier = mpl::void_, 
+template<typename Type, int _dim, typename Allocator = allocator::EmptyAllocator,
+                                  typename Copier = mpl::void_,
                                   typename Assigner = mpl::void_>
 class CartBuffer
 {
@@ -87,16 +87,16 @@ public:
     HDINLINE ~CartBuffer();
     
     /* copy another container into this one (hard data copy) */
-    HDINLINE This& 
+    HDINLINE This&
     operator=(const This& rhs);
     /* use the memory from another container and increment the reference counter */
-    HDINLINE This& 
+    HDINLINE This&
     operator=(BOOST_RV_REF(This) rhs);
     
     /* get a view. Views represent a clipped area of the container.
-     * \param a Top left corner of the view, inside the view. 
+     * \param a Top left corner of the view, inside the view.
      * Negative values are remapped, e.g. Int<2>(-1,-2) == Int<2>(width-1, height-2)
-     * \param b Bottom right corner of the view, outside the view. 
+     * \param b Bottom right corner of the view, outside the view.
      * Values are remapped, so that Int<2>(0,0) == Int<2>(width, height)
      */
     HDINLINE View<This>
@@ -111,7 +111,7 @@ public:
     HDINLINE cursor::BufferCursor<Type, dim> origin() const;
     /* get a safe cursor at the container's origin cell */
     HDINLINE cursor::SafeCursor<cursor::BufferCursor<Type, dim> > originSafe() const;
-    /* get a component-twisted cursor at the container's origin cell 
+    /* get a component-twisted cursor at the container's origin cell
      * \param axes x-axis -> axes[0], y-axis -> axes[1], ...
      * */
     HDINLINE cursor::Cursor<cursor::PointerAccessor<Type>, cursor::CartNavigator<dim>, char*>

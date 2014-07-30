@@ -1,24 +1,24 @@
 /**
  * Copyright 2013 Heiko Burau, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
  
 #ifndef CURSOR_SAVECURSOR_HPP
 #define CURSOR_SAVECURSOR_HPP
@@ -51,11 +51,11 @@ public:
      * \param lowerExtent Top left corner of valid range, inside the range.
      * \param upperExtent Bottom right corner of valid range, inside the range.
      */
-    HDINLINE SafeCursor(const Cursor& cursor, 
+    HDINLINE SafeCursor(const Cursor& cursor,
                         const math::Int<dim>& lowerExtent,
                         const math::Int<dim>& upperExtent)
-        : Cursor(cursor), 
-          lowerExtent(lowerExtent), 
+        : Cursor(cursor),
+          lowerExtent(lowerExtent),
           upperExtent(upperExtent),
           offset(math::Int<dim>(0)),
           enabled(true)
@@ -82,7 +82,7 @@ public:
     HDINLINE
     SafeCursor<Cursor> operator()(const Jump& jump) const
     {
-        SafeCursor<Cursor> result(Cursor::operator()(jump), 
+        SafeCursor<Cursor> result(Cursor::operator()(jump),
                                   this->lowerExtent,
                                   this->upperExtent);
         result.offset = this->offset + jump;
@@ -133,7 +133,7 @@ private:
         {
             if(this->offset[i] < this->lowerExtent[i] ||
                this->offset[i] > this->upperExtent[i])
-                printf("error[cursor]: index %d out of range: %d is not within [%d, %d]\n", 
+                printf("error[cursor]: index %d out of range: %d is not within [%d, %d]\n",
                     i, this->offset[i], this->lowerExtent[i], this->upperExtent[i]);
         }
     }

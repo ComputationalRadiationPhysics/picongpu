@@ -60,7 +60,7 @@ public:
     }
 
     /** return unit for this solver
-     * 
+     *
      * @return solver unit
      */
     HDINLINE float1_64 getUnit() const;

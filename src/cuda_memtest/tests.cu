@@ -8,18 +8,18 @@
  *
  * Developed by:
  *
- * Innovative Systems Lab  
- * National Center for Supercomputing Applications  
+ * Innovative Systems Lab
+ * National Center for Supercomputing Applications
  * http://www.ncsa.uiuc.edu/AboutUs/Directorates/ISL.html
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy of 
- * this software and associated documentation files (the "Software"), to deal with 
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal with
  * the Software without restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the 
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
  * Software, and to permit persons to whom the Software is furnished to do so, subject
  * to the following conditions:
  *
- * * Redistributions of source code must retain the above copyright notice, this list 
+ * * Redistributions of source code must retain the above copyright notice, this list
  * of conditions and the following disclaimers.
  *
  * * Redistributions in binary form must reproduce the above copyright notice, this list
@@ -30,11 +30,11 @@
  * Applications, nor the names of its contributors may be used to endorse or promote products
  * derived from this Software without specific prior written permission.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
  * PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE CONTRIBUTORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT 
- * OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT
+ * OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS WITH THE SOFTWARE.
  */
 
@@ -81,7 +81,7 @@ extern char driver_info[MAX_STR_LEN];
 	err_expect[idx] = (unsigned long)expect;	\
 	err_current[idx] = (unsigned long)current;	\
 	err_second_read[idx] = (unsigned long)(*p);	\
-}while(0) 
+}while(0)
 
 
 #endif
@@ -98,14 +98,14 @@ time_string(void)
 	fprintf(stderr, "ERROR: in getting time\n");
 	exit(ERR_GENERAL);
     }
-    sprintf(time_buf, "%02d/%02d/%04d %02d:%02d:%02d", 
-	     tm.tm_mon + 1, tm.tm_mday, tm.tm_year + 1900,tm.tm_hour, tm.tm_min, tm.tm_sec);        
+    sprintf(time_buf, "%02d/%02d/%04d %02d:%02d:%02d",
+	     tm.tm_mon + 1, tm.tm_mday, tm.tm_year + 1900,tm.tm_hour, tm.tm_min, tm.tm_sec);
 
     return time_buf;
 }
 
 
-unsigned int 
+unsigned int
 error_checking(const char* msg, unsigned int blockidx)
 {
     unsigned int err = 0;
@@ -137,22 +137,22 @@ error_checking(const char* msg, unsigned int blockidx)
 	emsg += sprintf(emsg, "ERROR: (%s) %d errors found in block %d\n", msg, err, blockidx);
 	
 	FPRINTF("ERROR: the last %d error addresses are:\t", MIN(MAX_ERR_RECORD_COUNT, err));
-	emsg += sprintf(emsg, "ERROR: the last %d error addresses are:\t", MIN(MAX_ERR_RECORD_COUNT, err));	
+	emsg += sprintf(emsg, "ERROR: the last %d error addresses are:\t", MIN(MAX_ERR_RECORD_COUNT, err));
 	
 	for (i =0;i < MIN(MAX_ERR_RECORD_COUNT, err); i++){
 	    fprintf(stderr, "%p\t", (void*)host_err_addr[i]);
-	    emsg += sprintf(emsg, "%p\t", (void*)host_err_addr[i]);	    
+	    emsg += sprintf(emsg, "%p\t", (void*)host_err_addr[i]);
 	}
 	fprintf(stderr, "\n");
 	emsg += sprintf(emsg, "\n");
 	
 	for (i =0; i < MIN(MAX_ERR_RECORD_COUNT, err); i++){
-	    FPRINTF("ERROR: %dth error, expected value=0x%lx, current value=0x%lx, diff=0x%lx (second_read=0x%lx, expect=0x%lx, diff with expected value=0x%lx)\n", 
-		    i, host_err_expect[i], host_err_current[i], host_err_expect[i] ^ host_err_current[i], 
-		    host_err_second_read[i], host_err_expect[i]  , host_err_expect[i] ^ host_err_second_read[i]); 
-	    emsg += sprintf(emsg, "ERROR: %dth error, expected value=0x%lx, current value=0x%lx, diff=0x%lx (second_read=0x%lx, expect=0x%lx, diff with expected value=0x%lx)\n", 
+	    FPRINTF("ERROR: %dth error, expected value=0x%lx, current value=0x%lx, diff=0x%lx (second_read=0x%lx, expect=0x%lx, diff with expected value=0x%lx)\n",
+		    i, host_err_expect[i], host_err_current[i], host_err_expect[i] ^ host_err_current[i],
+		    host_err_second_read[i], host_err_expect[i]  , host_err_expect[i] ^ host_err_second_read[i]);
+	    emsg += sprintf(emsg, "ERROR: %dth error, expected value=0x%lx, current value=0x%lx, diff=0x%lx (second_read=0x%lx, expect=0x%lx, diff with expected value=0x%lx)\n",
 			    i, host_err_expect[i], host_err_current[i], host_err_expect[i] ^ host_err_current[i],
-			    host_err_second_read[i], host_err_expect[i], host_err_expect[i] ^ host_err_second_read[i]); 			    
+			    host_err_second_read[i], host_err_expect[i], host_err_expect[i] ^ host_err_second_read[i]);
 
 	    
 	}
@@ -165,11 +165,11 @@ error_checking(const char* msg, unsigned int blockidx)
 		
 		FPRINTF("ERROR: reporting this error to %s\n", emails);
 		
-#define CMD_LENGTH (ERR_MSG_LENGTH + 256)	    
+#define CMD_LENGTH (ERR_MSG_LENGTH + 256)
 		char cmd[CMD_LENGTH];
 		error_msg[ERR_MSG_LENGTH -1] = 0;
 		snprintf(cmd, CMD_LENGTH, "echo \"%s cuda_memtest errors found in %s[%d]\n%s\" |%s -s \" cuda_memtest errors found in %s[%d]\" %s",
-			 time_string(), hostname,gpu_idx, error_msg, MAILFILE, hostname,gpu_idx, emails );		
+			 time_string(), hostname,gpu_idx, error_msg, MAILFILE, hostname,gpu_idx, emails );
 		system(cmd);
 		
 		firsttime = 0;
@@ -194,7 +194,7 @@ error_checking(const char* msg, unsigned int blockidx)
     return err;
 }
 
-unsigned int 
+unsigned int
 get_random_num(void)
 {
     struct timeval t0;
@@ -219,7 +219,7 @@ get_random_num_long(void)
     }
     
     unsigned int seed= (unsigned int)t0.tv_sec;
-    srand(seed);    
+    srand(seed);
  
     unsigned int a = rand_r(&seed);
     unsigned int b = rand_r(&seed);
@@ -234,7 +234,7 @@ get_random_num_long(void)
 
 
 
-__global__ void 
+__global__ void
 kernel_move_inv_write(char* _ptr, char* end_ptr, unsigned int pattern)
 {
     unsigned int i;
@@ -247,11 +247,11 @@ kernel_move_inv_write(char* _ptr, char* end_ptr, unsigned int pattern)
 	ptr[i] = pattern;
     }
     
-    return;    
+    return;
 }
 
 
-__global__ void 
+__global__ void
 kernel_move_inv_readwrite(char* _ptr, char* end_ptr, unsigned int p1, unsigned int p2, unsigned int* err,
 			  unsigned long* err_addr, unsigned long* err_expect, unsigned long* err_current, unsigned long* err_second_read)
 {
@@ -269,12 +269,12 @@ kernel_move_inv_readwrite(char* _ptr, char* end_ptr, unsigned int p1, unsigned i
 	
     }
     
-    return;    
+    return;
 }
 
 
-__global__ void 
-kernel_move_inv_read(char* _ptr, char* end_ptr,  unsigned int pattern, unsigned int* err, 
+__global__ void
+kernel_move_inv_read(char* _ptr, char* end_ptr,  unsigned int pattern, unsigned int* err,
 		     unsigned long* err_addr, unsigned long* err_expect, unsigned long* err_current, unsigned long* err_second_read )
 {
     unsigned int i;
@@ -289,7 +289,7 @@ kernel_move_inv_read(char* _ptr, char* end_ptr,  unsigned int pattern, unsigned 
 	}
     }
     
-    return;    
+    return;
 }
 
 
@@ -305,7 +305,7 @@ move_inv_test(char* ptr, unsigned int tot_num_blocks, unsigned int p1, unsigned 
 	dim3 grid;
 	grid.x= GRIDSIZE;
 	kernel_move_inv_write<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, p1); SYNC_CUERR;
-	SHOW_PROGRESS("move_inv_write", i, tot_num_blocks);	
+	SHOW_PROGRESS("move_inv_write", i, tot_num_blocks);
     }
     
     
@@ -313,16 +313,16 @@ move_inv_test(char* ptr, unsigned int tot_num_blocks, unsigned int p1, unsigned 
 	dim3 grid;
 	grid.x= GRIDSIZE;
 	kernel_move_inv_readwrite<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, p1, p2, err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
-	err += error_checking("move_inv_readwrite",  i);	
-	SHOW_PROGRESS("move_inv_readwrite", i, tot_num_blocks);	
+	err += error_checking("move_inv_readwrite",  i);
+	SHOW_PROGRESS("move_inv_readwrite", i, tot_num_blocks);
     }
     
     for (i=0;i < tot_num_blocks; i+= GRIDSIZE){
 	dim3 grid;
 	grid.x= GRIDSIZE;
 	kernel_move_inv_read<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, p2, err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
-	err += error_checking("move_inv_read",  i);	
-	SHOW_PROGRESS("move_inv_read", i, tot_num_blocks);	
+	err += error_checking("move_inv_read",  i);
+	SHOW_PROGRESS("move_inv_read", i, tot_num_blocks);
     }
         
     return err;
@@ -340,9 +340,9 @@ move_inv_test(char* ptr, unsigned int tot_num_blocks, unsigned int p1, unsigned 
 
 
 /*
-__global__ void 
+__global__ void
 kernel_test0_write(char* _ptr, char* end_ptr, unsigned int pattern,
-		   unsigned int* err, unsigned long* err_addr, 
+		   unsigned int* err, unsigned long* err_addr,
 		   unsigned long* err_expect, unsigned long* err_current, unsigned long* err_second_read)
 {
     unsigned int i;
@@ -357,13 +357,13 @@ kernel_test0_write(char* _ptr, char* end_ptr, unsigned int pattern,
 	ptr[i] = pattern;
     }
     
-    return;    
+    return;
 }
 
 
-__global__ void 
+__global__ void
 kernel_test0_readwrite(char* _ptr, char* end_ptr, unsigned int pattern, unsigned int prev_pattern,
-	     unsigned int* err, unsigned long* err_addr, 
+	     unsigned int* err, unsigned long* err_addr,
 	     unsigned long* err_expect, unsigned long* err_current, unsigned long* err_second_read)
 {
     unsigned int i;
@@ -381,7 +381,7 @@ kernel_test0_readwrite(char* _ptr, char* end_ptr, unsigned int pattern, unsigned
 	ptr[i] = pattern;
     }
     
-    return;    
+    return;
 }
 
 
@@ -408,8 +408,8 @@ test0(char* ptr, unsigned int tot_num_blocks)
 	    prev_pattern = pattern;
 	}
 
-	error_checking(__FUNCTION__,  i);	
-	SHOW_PROGRESS(__FUNCTION__, i, tot_num_blocks);	
+	error_checking(__FUNCTION__,  i);
+	SHOW_PROGRESS(__FUNCTION__, i, tot_num_blocks);
     }
     
     
@@ -418,7 +418,7 @@ test0(char* ptr, unsigned int tot_num_blocks)
 }
 */
 
-__global__ void 
+__global__ void
 kernel_test0_global_write(char* _ptr, char* _end_ptr)
 {
     
@@ -448,13 +448,13 @@ kernel_test0_global_write(char* _ptr, char* _end_ptr)
 	pattern = pattern << 1;
 	mask = mask << 1;
     }
-    return;    
+    return;
 }
 
-__global__ void 
+__global__ void
 kernel_test0_global_read(char* _ptr, char* _end_ptr, unsigned int* err, unsigned long* err_addr,
 			 unsigned long* err_expect, unsigned long* err_current, unsigned long* err_second_read)
-{    
+{
     unsigned int* ptr = (unsigned int*)_ptr;
     unsigned int* end_ptr = (unsigned int*)_end_ptr;
     unsigned int* orig_ptr = ptr;
@@ -485,12 +485,12 @@ kernel_test0_global_read(char* _ptr, char* _end_ptr, unsigned int* err, unsigned
 	pattern = pattern << 1;
 	mask = mask << 1;
     }
-    return;    
+    return;
 }
 
 
 
-__global__ void 
+__global__ void
 kernel_test0_write(char* _ptr, char* end_ptr)
 {
     
@@ -498,7 +498,7 @@ kernel_test0_write(char* _ptr, char* end_ptr)
     unsigned int* ptr = orig_ptr;
     if (ptr >= (unsigned int*) end_ptr) {
 	return;
-    }   
+    }
   
     unsigned int* block_end = orig_ptr + BLOCKSIZE/sizeof(unsigned int);
     
@@ -524,11 +524,11 @@ kernel_test0_write(char* _ptr, char* end_ptr)
 	pattern = pattern << 1;
 	mask = mask << 1;
     }
-    return;    
+    return;
 }
 
 
-__global__ void 
+__global__ void
 kernel_test0_read(char* _ptr, char* end_ptr, unsigned int* err, unsigned long* err_addr,
 		  unsigned long* err_expect, unsigned long* err_current, unsigned long* err_second_read)
 {
@@ -537,7 +537,7 @@ kernel_test0_read(char* _ptr, char* end_ptr, unsigned int* err, unsigned long* e
     unsigned int* ptr = orig_ptr;
     if (ptr >= (unsigned int*) end_ptr) {
 	return;
-    }   
+    }
     
     unsigned int* block_end = orig_ptr + BLOCKSIZE/sizeof(unsigned int);
     
@@ -566,7 +566,7 @@ kernel_test0_read(char* _ptr, char* end_ptr, unsigned int* err, unsigned long* e
 	pattern = pattern << 1;
 	mask = mask << 1;
     }
-    return;    
+    return;
 }
 
 
@@ -581,23 +581,23 @@ test0(char* ptr, unsigned int tot_num_blocks)
     //test global address
     kernel_test0_global_write<<<1, 1>>>(ptr, end_ptr); SYNC_CUERR;
     kernel_test0_global_read<<<1, 1>>>(ptr, end_ptr, err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
-    error_checking("test0 on global address",  0);	
+    error_checking("test0 on global address",  0);
 
     for(int ite = 0;ite < num_iterations; ite++){
 	for (i=0;i < tot_num_blocks; i+= GRIDSIZE){
 	    dim3 grid;
 	    grid.x= GRIDSIZE;
 	    kernel_test0_write<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr); SYNC_CUERR;
-	    SHOW_PROGRESS("test0 on writing", i, tot_num_blocks);	
+	    SHOW_PROGRESS("test0 on writing", i, tot_num_blocks);
 	}
 
 	for (i=0;i < tot_num_blocks; i+= GRIDSIZE){
 	    dim3 grid;
 	    grid.x= GRIDSIZE;
 	    kernel_test0_read<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
-	    error_checking(__FUNCTION__,  i);	
-	    SHOW_PROGRESS("test0 on reading", i, tot_num_blocks);	
-	} 
+	    error_checking(__FUNCTION__,  i);
+	    SHOW_PROGRESS("test0 on reading", i, tot_num_blocks);
+	}
     }
     return;
     
@@ -612,7 +612,7 @@ test0(char* ptr, unsigned int tot_num_blocks)
  *
  ********************************************************************************/
 
-__global__ void 
+__global__ void
 kernel_test1_write(char* _ptr, char* end_ptr, unsigned int* err)
 {
     unsigned int i;
@@ -624,13 +624,13 @@ kernel_test1_write(char* _ptr, char* end_ptr, unsigned int* err)
     
     
     for (i = 0;i < BLOCKSIZE/sizeof(unsigned long); i++){
-	ptr[i] =(unsigned long) & ptr[i];			   	
+	ptr[i] =(unsigned long) & ptr[i];
     }
         
-    return;    
+    return;
 }
 
-__global__ void 
+__global__ void
 kernel_test1_read(char* _ptr, char* end_ptr, unsigned int* err, unsigned long* err_addr,
 		  unsigned long* err_expect, unsigned long* err_current, unsigned long* err_second_read)
 {
@@ -648,12 +648,12 @@ kernel_test1_read(char* _ptr, char* end_ptr, unsigned int* err, unsigned long* e
 	}
     }
     
-    return;    
+    return;
 }
 
 
 
-void 
+void
 test1(char* ptr, unsigned int tot_num_blocks)
 {
 
@@ -665,7 +665,7 @@ test1(char* ptr, unsigned int tot_num_blocks)
 	dim3 grid;
 	grid.x= GRIDSIZE;
 	kernel_test1_write<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, err_count); SYNC_CUERR;
-	SHOW_PROGRESS("test1 on writing", i, tot_num_blocks);	
+	SHOW_PROGRESS("test1 on writing", i, tot_num_blocks);
 	
     }
     
@@ -673,8 +673,8 @@ test1(char* ptr, unsigned int tot_num_blocks)
 	dim3 grid;
 	grid.x= GRIDSIZE;
 	kernel_test1_read<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
-	error_checking("test1 on reading",  i);	
-	SHOW_PROGRESS("test1 on reading", i, tot_num_blocks);	
+	error_checking("test1 on reading",  i);
+	SHOW_PROGRESS("test1 on reading", i, tot_num_blocks);
 	
     }
 
@@ -691,7 +691,7 @@ test1(char* ptr, unsigned int tot_num_blocks)
  *
  ****************************************************************************/
 
-void 
+void
 test2(char* ptr, unsigned int tot_num_blocks)
 {
     unsigned int p1 = 0;
@@ -700,7 +700,7 @@ test2(char* ptr, unsigned int tot_num_blocks)
     
     DEBUG_PRINTF("Test2: Moving inversions test, with pattern 0x%x and 0x%x\n", p1, p2);
     move_inv_test(ptr, tot_num_blocks, p1, p2);
-    DEBUG_PRINTF("Test2: Moving inversions test, with pattern 0x%x and 0x%x\n", p2, p1);    
+    DEBUG_PRINTF("Test2: Moving inversions test, with pattern 0x%x and 0x%x\n", p2, p1);
     move_inv_test(ptr, tot_num_blocks, p2, p1);
 
 }
@@ -711,12 +711,12 @@ test2(char* ptr, unsigned int tot_num_blocks)
  * Test 3 [Moving inversions, 8 bit pat]
  * This is the same as test 1 but uses a 8 bit wide pattern of
  * "walking" ones and zeros.  This test will better detect subtle errors
- * in "wide" memory chips. 
+ * in "wide" memory chips.
  *
  **************************************************************************/
 
 
-void 
+void
 test3(char* ptr, unsigned int tot_num_blocks)
 {
     unsigned int p0=0x80;
@@ -725,7 +725,7 @@ test3(char* ptr, unsigned int tot_num_blocks)
     
     DEBUG_PRINTF("Test3: Moving inversions test, with pattern 0x%x and 0x%x\n", p1, p2);
     move_inv_test(ptr, tot_num_blocks, p1, p2);
-    DEBUG_PRINTF("Test3: Moving inversions test, with pattern 0x%x and 0x%x\n", p2, p1);    
+    DEBUG_PRINTF("Test3: Moving inversions test, with pattern 0x%x and 0x%x\n", p2, p1);
     move_inv_test(ptr, tot_num_blocks, p2, p1);
 
 }
@@ -743,7 +743,7 @@ test3(char* ptr, unsigned int tot_num_blocks)
  *
  *************************************************************************************/
 
-void 
+void
 test4(char* ptr, unsigned int tot_num_blocks)
 {
     unsigned int p1;
@@ -765,8 +765,8 @@ test4(char* ptr, unsigned int tot_num_blocks)
     if (err == 0 && iteration == 0){
 	return;
     }
-    if (iteration < MAX_ITERATION){	
-	PRINTF("%dth repeating test4 because there are %d errors found in last run\n", iteration, err);	
+    if (iteration < MAX_ITERATION){
+	PRINTF("%dth repeating test4 because there are %d errors found in last run\n", iteration, err);
 	iteration++;
 	err = 0;
 	goto repeat;
@@ -785,12 +785,12 @@ test4(char* ptr, unsigned int tot_num_blocks)
  * only after the memory moves are completed it is not possible to know
  * where the error occurred.  The addresses reported are only for where the
  * bad pattern was found.
- * 
+ *
  *
  *************************************************************************************/
 
 
-__global__ void 
+__global__ void
 kernel_test5_init(char* _ptr, char* end_ptr)
 {
     unsigned int i;
@@ -798,7 +798,7 @@ kernel_test5_init(char* _ptr, char* end_ptr)
     
     if (ptr >= (unsigned int*) end_ptr) {
 	return;
-    }    
+    }
     
     unsigned int p1 = 1;
     for (i = 0;i < BLOCKSIZE/sizeof(unsigned int); i+=16){
@@ -819,7 +819,7 @@ kernel_test5_init(char* _ptr, char* end_ptr)
 	ptr[i+12] = p1;
 	ptr[i+13] = p1;
 	ptr[i+14] = p2;
-	ptr[i+15] = p2;	
+	ptr[i+15] = p2;
 	
 	p1 = p1<<1;
 	if (p1 == 0){
@@ -827,11 +827,11 @@ kernel_test5_init(char* _ptr, char* end_ptr)
 	}
     }
     
-    return;    
+    return;
 }
 
 
-__global__ void 
+__global__ void
 kernel_test5_move(char* _ptr, char* end_ptr)
 {
     unsigned int i;
@@ -839,7 +839,7 @@ kernel_test5_move(char* _ptr, char* end_ptr)
     
     if (ptr >= (unsigned int*) end_ptr) {
 	return;
-    }    
+    }
     
     unsigned int half_count = BLOCKSIZE/sizeof(unsigned int)/2;
     unsigned int* ptr_mid = ptr + half_count;
@@ -849,18 +849,18 @@ kernel_test5_move(char* _ptr, char* end_ptr)
     }
     
     for (i=0;i < half_count - 8; i++){
-	ptr[i + 8] = ptr_mid[i];	
+	ptr[i + 8] = ptr_mid[i];
     }
     
     for (i=0;i < 8; i++){
 	ptr[i] = ptr_mid[half_count - 8 + i];
     }
     
-    return;    
+    return;
 }
 
 
-__global__ void 
+__global__ void
 kernel_test5_check(char* _ptr, char* end_ptr, unsigned int* err, unsigned long* err_addr,
 		   unsigned long* err_expect, unsigned long* err_current, unsigned long* err_second_read)
 {
@@ -869,7 +869,7 @@ kernel_test5_check(char* _ptr, char* end_ptr, unsigned int* err, unsigned long* 
     
     if (ptr >= (unsigned int*) end_ptr) {
 	return;
-    }    
+    }
     
     for (i=0;i < BLOCKSIZE/sizeof(unsigned int); i+=2){
 	if (ptr[i] != ptr[i+1]){
@@ -877,7 +877,7 @@ kernel_test5_check(char* _ptr, char* end_ptr, unsigned int* err, unsigned long* 
 	}
     }
     
-    return;    
+    return;
 }
 
 
@@ -893,7 +893,7 @@ test5(char* ptr, unsigned int tot_num_blocks)
 	dim3 grid;
 	grid.x= GRIDSIZE;
 	kernel_test5_init<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr); SYNC_CUERR;
-	SHOW_PROGRESS("test5[init]", i, tot_num_blocks);	
+	SHOW_PROGRESS("test5[init]", i, tot_num_blocks);
     }
     
     
@@ -901,7 +901,7 @@ test5(char* ptr, unsigned int tot_num_blocks)
 	dim3 grid;
 	grid.x= GRIDSIZE;
 	kernel_test5_move<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr); SYNC_CUERR;
-	SHOW_PROGRESS("test5[move]", i, tot_num_blocks);	
+	SHOW_PROGRESS("test5[move]", i, tot_num_blocks);
     }
     
     
@@ -909,9 +909,9 @@ test5(char* ptr, unsigned int tot_num_blocks)
 	dim3 grid;
 	grid.x= GRIDSIZE;
 	kernel_test5_check<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
-	error_checking("test5[check]",  i);	
-	SHOW_PROGRESS("test5[check]", i, tot_num_blocks);	
-    }    
+	error_checking("test5[check]",  i);
+	SHOW_PROGRESS("test5[check]", i, tot_num_blocks);
+    }
     
     return;
     
@@ -931,8 +931,8 @@ test5(char* ptr, unsigned int tot_num_blocks)
 
 
 
-__global__ void 
-kernel_movinv32_write(char* _ptr, char* end_ptr, unsigned int pattern, 
+__global__ void
+kernel_movinv32_write(char* _ptr, char* end_ptr, unsigned int pattern,
 		unsigned int lb, unsigned int sval, unsigned int offset)
 {
     unsigned int i;
@@ -956,12 +956,12 @@ kernel_movinv32_write(char* _ptr, char* end_ptr, unsigned int pattern,
 	}
     }
     
-    return;    
+    return;
 }
 
 
-__global__ void 
-kernel_movinv32_readwrite(char* _ptr, char* end_ptr, unsigned int pattern, 
+__global__ void
+kernel_movinv32_readwrite(char* _ptr, char* end_ptr, unsigned int pattern,
 			  unsigned int lb, unsigned int sval, unsigned int offset, unsigned int * err,
 			  unsigned long* err_addr, unsigned long* err_expect, unsigned long* err_current, unsigned long* err_second_read)
 {
@@ -991,14 +991,14 @@ kernel_movinv32_readwrite(char* _ptr, char* end_ptr, unsigned int pattern,
 	}
     }
     
-    return;    
+    return;
 }
 
 
 
-__global__ void 
-kernel_movinv32_read(char* _ptr, char* end_ptr, unsigned int pattern, 
-		     unsigned int lb, unsigned int sval, unsigned int offset, unsigned int * err, 
+__global__ void
+kernel_movinv32_read(char* _ptr, char* end_ptr, unsigned int pattern,
+		     unsigned int lb, unsigned int sval, unsigned int offset, unsigned int * err,
 		     unsigned long* err_addr, unsigned long* err_expect, unsigned long* err_current, unsigned long* err_second_read)
 {
     unsigned int i;
@@ -1025,15 +1025,15 @@ kernel_movinv32_read(char* _ptr, char* end_ptr, unsigned int pattern,
 	}
     }
     
-    return;    
+    return;
 }
 
 
 
 void
-movinv32(char* ptr, unsigned int tot_num_blocks, unsigned int pattern, 
+movinv32(char* ptr, unsigned int tot_num_blocks, unsigned int pattern,
 	 unsigned int lb, unsigned int sval, unsigned int offset)
-{    
+{
 
     unsigned int i;
 
@@ -1043,23 +1043,23 @@ movinv32(char* ptr, unsigned int tot_num_blocks, unsigned int pattern,
 	dim3 grid;
 	grid.x= GRIDSIZE;
 	kernel_movinv32_write<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, pattern, lb,sval, offset); SYNC_CUERR;
-	SHOW_PROGRESS("test6[moving inversion 32 write]", i, tot_num_blocks);	
+	SHOW_PROGRESS("test6[moving inversion 32 write]", i, tot_num_blocks);
     }
     
     for (i=0;i < tot_num_blocks; i+= GRIDSIZE){
 	dim3 grid;
 	grid.x= GRIDSIZE;
 	kernel_movinv32_readwrite<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, pattern, lb,sval, offset, err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
-	error_checking("test6[moving inversion 32 readwrite]",  i);	
-	SHOW_PROGRESS("test6[moving inversion 32 readwrite]", i, tot_num_blocks);	
+	error_checking("test6[moving inversion 32 readwrite]",  i);
+	SHOW_PROGRESS("test6[moving inversion 32 readwrite]", i, tot_num_blocks);
     }
     
    for (i=0;i < tot_num_blocks; i+= GRIDSIZE){
        dim3 grid;
        grid.x= GRIDSIZE;
        kernel_movinv32_read<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, pattern, lb,sval, offset, err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
-       error_checking("test6[moving inversion 32 read]",  i);	
-       SHOW_PROGRESS("test6[moving inversion 32 read]", i, tot_num_blocks);	
+       error_checking("test6[moving inversion 32 read]",  i);
+       SHOW_PROGRESS("test6[moving inversion 32 read]", i, tot_num_blocks);
    }
    
     return;
@@ -1067,7 +1067,7 @@ movinv32(char* ptr, unsigned int tot_num_blocks, unsigned int pattern,
 }
 
 
-void 
+void
 test6(char* ptr, unsigned int tot_num_blocks)
 {
     unsigned int i;
@@ -1079,7 +1079,7 @@ test6(char* ptr, unsigned int tot_num_blocks)
 	DEBUG_PRINTF("Test6[move inversion 32 bits test]: pattern =0x%x, offset=%d\n", pattern, i);
 	movinv32(ptr, tot_num_blocks, pattern, 1, 0, i);
 	DEBUG_PRINTF("Test6[move inversion 32 bits test]: pattern =0x%x, offset=%d\n", ~pattern, i);
-	movinv32(ptr, tot_num_blocks, ~pattern, 0xfffffffe, 1, i);	
+	movinv32(ptr, tot_num_blocks, ~pattern, 0xfffffffe, 1, i);
 	
     }
     
@@ -1102,7 +1102,7 @@ test6(char* ptr, unsigned int tot_num_blocks)
 
 
 
-__global__ void 
+__global__ void
 kernel_test7_write(char* _ptr, char* end_ptr, char* _start_ptr, unsigned int* err)
 {
     unsigned int i;
@@ -1118,13 +1118,13 @@ kernel_test7_write(char* _ptr, char* end_ptr, char* _start_ptr, unsigned int* er
 	ptr[i] = start_ptr[i];
     }
     
-    return;    
+    return;
 }
 
 
 
-__global__ void 
-kernel_test7_readwrite(char* _ptr, char* end_ptr, char* _start_ptr, unsigned int* err, 
+__global__ void
+kernel_test7_readwrite(char* _ptr, char* end_ptr, char* _start_ptr, unsigned int* err,
 		       unsigned long* err_addr, unsigned long* err_expect, unsigned long* err_current, unsigned long* err_second_read)
 {
     unsigned int i;
@@ -1143,11 +1143,11 @@ kernel_test7_readwrite(char* _ptr, char* end_ptr, char* _start_ptr, unsigned int
 	ptr[i] = ~(start_ptr[i]);
     }
     
-    return;    
+    return;
 }
 
-__global__ void 
-kernel_test7_read(char* _ptr, char* end_ptr, char* _start_ptr, unsigned int* err, unsigned long* err_addr, 
+__global__ void
+kernel_test7_read(char* _ptr, char* end_ptr, char* _start_ptr, unsigned int* err, unsigned long* err_addr,
 		  unsigned long* err_expect, unsigned long* err_current, unsigned long* err_second_read)
 {
     unsigned int i;
@@ -1165,11 +1165,11 @@ kernel_test7_read(char* _ptr, char* end_ptr, char* _start_ptr, unsigned int* err
 	}
     }
     
-    return;    
+    return;
 }
 
 
-void 
+void
 test7(char* ptr, unsigned int tot_num_blocks)
 {
 
@@ -1194,7 +1194,7 @@ test7(char* ptr, unsigned int tot_num_blocks)
 	dim3 grid;
 	grid.x= GRIDSIZE;
 	kernel_test7_write<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, ptr, err_count); SYNC_CUERR;
-	SHOW_PROGRESS("test7_write", i, tot_num_blocks);	
+	SHOW_PROGRESS("test7_write", i, tot_num_blocks);
     }
     
     
@@ -1202,8 +1202,8 @@ test7(char* ptr, unsigned int tot_num_blocks)
 	dim3 grid;
 	grid.x= GRIDSIZE;
 	kernel_test7_readwrite<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, ptr, err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
-	err += error_checking("test7_readwrite",  i);	
-	SHOW_PROGRESS("test7_readwrite", i, tot_num_blocks);	
+	err += error_checking("test7_readwrite",  i);
+	SHOW_PROGRESS("test7_readwrite", i, tot_num_blocks);
     }
     
     
@@ -1211,16 +1211,16 @@ test7(char* ptr, unsigned int tot_num_blocks)
 	dim3 grid;
 	grid.x= GRIDSIZE;
 	kernel_test7_read<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, ptr, err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
-	err += error_checking("test7_read",  i);	
-	SHOW_PROGRESS("test7_read", i, tot_num_blocks);	
+	err += error_checking("test7_read",  i);
+	SHOW_PROGRESS("test7_read", i, tot_num_blocks);
     }
     
 
     if (err == 0 && iteration == 0){
 	return;
     }
-    if (iteration < MAX_ITERATION){	
-	PRINTF("%dth repeating test7 because there are %d errors found in last run\n", iteration, err);	
+    if (iteration < MAX_ITERATION){
+	PRINTF("%dth repeating test7 because there are %d errors found in last run\n", iteration, err);
 	iteration++;
 	err = 0;
 	goto repeat;
@@ -1241,7 +1241,7 @@ test7(char* ptr, unsigned int tot_num_blocks)
 
 
 
-__global__ void 
+__global__ void
 kernel_modtest_write(char* _ptr, char* end_ptr, unsigned int offset, unsigned int p1, unsigned int p2)
 {
     unsigned int i;
@@ -1251,7 +1251,7 @@ kernel_modtest_write(char* _ptr, char* end_ptr, unsigned int offset, unsigned in
 	return;
     }
     
-    for (i = offset;i < BLOCKSIZE/sizeof(unsigned int); i+=MOD_SZ){	
+    for (i = offset;i < BLOCKSIZE/sizeof(unsigned int); i+=MOD_SZ){
 	ptr[i] =p1;
     }
     
@@ -1261,12 +1261,12 @@ kernel_modtest_write(char* _ptr, char* end_ptr, unsigned int offset, unsigned in
 	}
     }
     
-    return;    
+    return;
 }
 
 
-__global__ void 
-kernel_modtest_read(char* _ptr, char* end_ptr, unsigned int offset, unsigned int p1, unsigned int* err, 
+__global__ void
+kernel_modtest_read(char* _ptr, char* end_ptr, unsigned int offset, unsigned int p1, unsigned int* err,
 		    unsigned long* err_addr, unsigned long* err_expect, unsigned long* err_current, unsigned long* err_second_read)
 {
     unsigned int i;
@@ -1282,10 +1282,10 @@ kernel_modtest_read(char* _ptr, char* end_ptr, unsigned int offset, unsigned int
 	}
     }
     
-    return;    
+    return;
 }
 
-unsigned int 
+unsigned int
 modtest(char* ptr, unsigned int tot_num_blocks, unsigned int offset, unsigned int p1, unsigned int p2)
 {
     
@@ -1297,7 +1297,7 @@ modtest(char* ptr, unsigned int tot_num_blocks, unsigned int offset, unsigned in
 	dim3 grid;
 	grid.x= GRIDSIZE;
 	kernel_modtest_write<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, offset, p1, p2); SYNC_CUERR;
-	SHOW_PROGRESS("test8[mod test, write]", i, tot_num_blocks);	
+	SHOW_PROGRESS("test8[mod test, write]", i, tot_num_blocks);
     }
     
     for (i= 0;i < tot_num_blocks; i+= GRIDSIZE){
@@ -1305,14 +1305,14 @@ modtest(char* ptr, unsigned int tot_num_blocks, unsigned int offset, unsigned in
 	grid.x= GRIDSIZE;
 	kernel_modtest_read<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, offset, p1, err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
 	err += error_checking("test8[mod test, read", i);
-	SHOW_PROGRESS("test8[mod test, read]", i, tot_num_blocks);	
+	SHOW_PROGRESS("test8[mod test, read]", i, tot_num_blocks);
     }
     
     return err;
     
 }
 
-void 
+void
 test8(char* ptr, unsigned int tot_num_blocks)
 {
     unsigned int i;
@@ -1325,7 +1325,7 @@ test8(char* ptr, unsigned int tot_num_blocks)
     }else{
 	p1= get_random_num();
     }
-    unsigned int p2 = ~p1;    
+    unsigned int p2 = ~p1;
     
  repeat:
     
@@ -1338,7 +1338,7 @@ test8(char* ptr, unsigned int tot_num_blocks)
 	return;
     }
     
-    if (iteration < MAX_ITERATION){	
+    if (iteration < MAX_ITERATION){
 	PRINTF("%dth repeating test8 because there are %d errors found in last run, p1=%x, p2=%x\n", iteration, err, p1, p2);
 	iteration++;
 	err = 0;
@@ -1372,7 +1372,7 @@ test9(char* ptr, unsigned int tot_num_blocks)
 	dim3 grid;
 	grid.x= GRIDSIZE;
 	kernel_move_inv_write<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, p1); SYNC_CUERR;
-	SHOW_PROGRESS("test9[bit fade test, write]", i, tot_num_blocks);	
+	SHOW_PROGRESS("test9[bit fade test, write]", i, tot_num_blocks);
     }
     
     DEBUG_PRINTF("sleeping for 90 minutes\n");
@@ -1382,8 +1382,8 @@ test9(char* ptr, unsigned int tot_num_blocks)
 	dim3 grid;
 	grid.x= GRIDSIZE;
 	kernel_move_inv_readwrite<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, p1, p2, err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
-	error_checking("test9[bit fade test, readwrite]",  i);	
-	SHOW_PROGRESS("test9[bit fade test, readwrite]", i, tot_num_blocks);	
+	error_checking("test9[bit fade test, readwrite]",  i);
+	SHOW_PROGRESS("test9[bit fade test, readwrite]", i, tot_num_blocks);
     }
     
     DEBUG_PRINTF("sleeping for 90 minutes\n");
@@ -1392,8 +1392,8 @@ test9(char* ptr, unsigned int tot_num_blocks)
 	dim3 grid;
 	grid.x= GRIDSIZE;
 	kernel_move_inv_read<<<grid, 1>>>(ptr + i*BLOCKSIZE, end_ptr, p2, err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
-	error_checking("test9[bit fade test, read]",  i);	
-	SHOW_PROGRESS("test9[bit fade test, read]", i, tot_num_blocks);	
+	error_checking("test9[bit fade test, read]",  i);
+	SHOW_PROGRESS("test9[bit fade test, read]", i, tot_num_blocks);
     }
     
     return;
@@ -1409,7 +1409,7 @@ test9(char* ptr, unsigned int tot_num_blocks)
  * written as to achieve the maximum bandwidth between the global memory and GPU.
  * This will increase the chance of catching software error. In practice, we found this test quite useful
  * to flush hardware errors as well.
- * 
+ *
  */
 
 #define TYPE unsigned long
@@ -1498,26 +1498,26 @@ void test10(char* ptr, unsigned int tot_num_blocks)
     int n = num_iterations;
     float elapsedtime;
     dim3 gridDim(STRESS_GRIDSIZE);
-    dim3 blockDim(STRESS_BLOCKSIZE);       
+    dim3 blockDim(STRESS_BLOCKSIZE);
     checkCudaErrors(cudaEventRecord(start, stream));
 
     PRINTF("Test10 with pattern=0x%lx\n", p1);
-    test10_kernel_write<<<gridDim, blockDim, 0, stream>>>(ptr, tot_num_blocks*BLOCKSIZE, p1); SYNC_CUERR;	
+    test10_kernel_write<<<gridDim, blockDim, 0, stream>>>(ptr, tot_num_blocks*BLOCKSIZE, p1); SYNC_CUERR;
     for(int i =0;i < n ;i ++){
 	test10_kernel_readwrite<<<gridDim, blockDim, 0, stream>>>(ptr, tot_num_blocks*BLOCKSIZE, p1, p2,
 								  err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
 	p1 = ~p1;
 	p2 = ~p2;
 	
-    }    
+    }
     cudaEventRecord(stop, stream);
     cudaEventSynchronize(stop);
-    error_checking("test10[Memory stress test]",  0);	
+    error_checking("test10[Memory stress test]",  0);
     cudaEventElapsedTime(&elapsedtime, start, stop);
     DEBUG_PRINTF("test10: elapsedtime=%f, bandwidth=%f GB/s\n", elapsedtime, (2*n+1)*tot_num_blocks/elapsedtime);
     
-   cudaEventDestroy(start);    
-   cudaEventDestroy(stop);    
+   cudaEventDestroy(start);
+   cudaEventDestroy(stop);
    
    cudaStreamDestroy(stream);
 
@@ -1526,7 +1526,7 @@ void test10(char* ptr, unsigned int tot_num_blocks)
     if (host_buf == NULL){
 	printf("ERROR: malloc failed for host_buf\n");
 	exit(ERR_GENERAL);
-    }    
+    }
     memset(host_buf, 0, tot_num_blocks* BLOCKSIZE);
     cudaMemcpy(host_buf, ptr, tot_num_blocks*BLOCKSIZE, cudaMemcpyDeviceToHost);
     for(unsigned long i=0;i < (tot_num_blocks*BLOCKSIZE)/sizeof(TYPE) ;i ++){
@@ -1535,7 +1535,7 @@ void test10(char* ptr, unsigned int tot_num_blocks)
 	    free(host_buf);
 	    exit(ERR_GENERAL);
 	}
-    }    
+    }
     printf("all data match\n");
     free(host_buf);
 #endif
@@ -1546,16 +1546,16 @@ void test10(char* ptr, unsigned int tot_num_blocks)
 
 cuda_memtest_t cuda_memtests[]={
     {test0, "Test0 [Walking 1 bit]",			1},
-    {test1, "Test1 [Own address test]",			1},    
-    {test2, "Test2 [Moving inversions, ones&zeros]",	1},    
-    {test3, "Test3 [Moving inversions, 8 bit pat]",	1},    
-    {test4, "Test4 [Moving inversions, random pattern]",1},    
-    {test5, "Test5 [Block move, 64 moves]",		1},    
-    {test6, "Test6 [Moving inversions, 32 bit pat]",	1},    
-    {test7, "Test7 [Random number sequence]",		1},        
-    {test8, "Test8 [Modulo 20, random pattern]",	1},            
-    {test9, "Test9 [Bit fade test]",			0},            
-    {test10, "Test10 [Memory stress test]",		1}, 
+    {test1, "Test1 [Own address test]",			1},
+    {test2, "Test2 [Moving inversions, ones&zeros]",	1},
+    {test3, "Test3 [Moving inversions, 8 bit pat]",	1},
+    {test4, "Test4 [Moving inversions, random pattern]",1},
+    {test5, "Test5 [Block move, 64 moves]",		1},
+    {test6, "Test6 [Moving inversions, 32 bit pat]",	1},
+    {test7, "Test7 [Random number sequence]",		1},
+    {test8, "Test8 [Modulo 20, random pattern]",	1},
+    {test9, "Test9 [Bit fade test]",			0},
+    {test10, "Test10 [Memory stress test]",		1},
     
 };
 
@@ -1584,7 +1584,7 @@ void
 run_tests(char* ptr, unsigned int tot_num_blocks)
 {
 
-    struct timeval  t0, t1; 
+    struct timeval  t0, t1;
     unsigned int i;
 
     unsigned int pass = 0;
@@ -1596,7 +1596,7 @@ run_tests(char* ptr, unsigned int tot_num_blocks)
 		PRINTF("%s\n", cuda_memtests[i].desc);
 		gettimeofday(&t0, NULL);
 		cuda_memtests[i].func(ptr, tot_num_blocks);
-		gettimeofday(&t1, NULL);	
+		gettimeofday(&t1, NULL);
 		PRINTF("Test%d finished in %.1f seconds\n", i, TDIFF(t1, t0));
 	    }//if
 	}//for
@@ -1608,7 +1608,7 @@ run_tests(char* ptr, unsigned int tot_num_blocks)
 	pass ++;
 	if (pass >= num_passes){
 	    break;
-	}	
+	}
     }//while
     
 }

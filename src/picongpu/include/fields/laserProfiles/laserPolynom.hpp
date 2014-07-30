@@ -1,22 +1,22 @@
 /**
  * Copyright 2013 Heiko Burau, Rene Widera, Richard Pausch
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
  
 
 
@@ -28,7 +28,7 @@
 namespace picongpu
 {
 /** not focusing polynomial laser pulse
- * 
+ *
  *  no phase shifts, just spacial envelope
  */
 namespace laserPolynom
@@ -37,7 +37,7 @@ namespace laserPolynom
 HDINLINE float_64 Tpolynomial(const float_64 tau);
 
 /** Compute the longitudinal enevelope of the laser
- * 
+ *
  */
 HINLINE float3_X laserLongitudinal(uint32_t currentStep, float_X& phase)
 {
@@ -46,7 +46,7 @@ HINLINE float3_X laserLongitudinal(uint32_t currentStep, float_X& phase)
 
     float3_X elong(0.0f, 0.0f, 0.0f);
 
-    // a symmetric pulse will be initialized at position z=0 
+    // a symmetric pulse will be initialized at position z=0
     // the laser amplitude rises  for T_rise
     // and falls for T_rise
     // making the laser pulse 2*T_rise long
@@ -68,8 +68,8 @@ HINLINE float3_X laserLongitudinal(uint32_t currentStep, float_X& phase)
 }
 
 /**
- * 
- * @param elong E-field without transversal envelope 
+ *
+ * @param elong E-field without transversal envelope
  * @param phase phase of the laser field
  * @param posX location in x (transversal)
  * @param posZ location in y (transversal)

@@ -1,24 +1,24 @@
 /**
  * Copyright 2013 Axel Huebl, Felix Schmitt, Rene Widera, Wolfgang Hoenig
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
  
 
 #ifndef _GRIDCONTROLLER_HPP
@@ -119,8 +119,8 @@ namespace PMacc
     
             /**
              * Returns the scalar position (rank) of this GPU,
-             * depending on its current grid position 
-             * 
+             * depending on its current grid position
+             *
              * @return current grid position as scalar value
              */
             uint32_t getScalarPosition() const
@@ -169,7 +169,7 @@ namespace PMacc
              * @return true if the position of the calling GPU is switched to the end, false otherwise
              */
             bool slide()
-            {              
+            {
                /* wait that all tasks are finished */
                Environment<DIM>::get().Manager().waitForAllTasks();//
 
@@ -183,7 +183,7 @@ namespace PMacc
     
             /**
              * Slides multiple times.
-             * 
+             *
              * @param[in] numSlides number of slides
              * @return true if the position of gpu is switched to the end, else false
              */
@@ -206,7 +206,7 @@ namespace PMacc
 
             /**
              * Returns the MPI communicator class
-             * 
+             *
              * @return current CommunicatorMPI
              */
             CommunicatorMPI<DIM>& getCommunicator()
@@ -235,7 +235,7 @@ namespace PMacc
     
             /**
              * Sets globalOffset using the current position.
-             * 
+             *
              * (This function is idempotent)
              */
             void updateGlobalOffset()
