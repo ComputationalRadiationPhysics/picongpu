@@ -1,24 +1,24 @@
 /**
  * Copyright 2013 Heiko Burau, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
  
 #ifndef CURSOR_CURSOR_HPP
 #define CURSOR_CURSOR_HPP
@@ -37,7 +37,7 @@ namespace PMacc
 namespace cursor
 {
     
-/** A cursor is used to access a single datum and to jump to another one. 
+/** A cursor is used to access a single datum and to jump to another one.
  * It is always located at a certain datum. Think of a generalized iterator.
  * \tparam _Accessor Policy functor class that is called inside operator*().
  * It typically returns a reference to the current selected datum.
@@ -66,8 +66,8 @@ public:
              const Marker& marker)
                 : Accessor(accessor), Navigator(navigator), marker(marker) {}
 
-    /** access 
-     * \return Accessor's return type. 
+    /** access
+     * \return Accessor's return type.
      * Typically a reference to the current selected single datum.
      */
     HDINLINE
@@ -169,7 +169,7 @@ struct dim< PMacc::cursor::Cursor<_Accessor, _Navigator, _Marker> >
     static const int value = PMacc::cursor::traits::dim<typename Cursor<_Accessor, _Navigator, _Marker>::Navigator >::value;
 };
     
-} // traits           
+} // traits
     
 } // cursor
 } // PMacc

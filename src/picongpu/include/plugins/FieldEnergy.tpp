@@ -1,22 +1,22 @@
 /**
  * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
  
 #include "math/vector/Int.hpp"
 #include "math/vector/Float.hpp"
@@ -83,7 +83,7 @@ void FieldEnergy::notify(uint32_t currentStep)
     int localCellZPos = globalCellZPos % fieldE_coreBorder.size().z();
     int gpuZPos = globalCellZPos / fieldE_coreBorder.size().z();
     
-    zone::SphericZone<3> gpuGatheringZone(math::Size_t<3>(gpuDim.x(), gpuDim.y(), 1), 
+    zone::SphericZone<3> gpuGatheringZone(math::Size_t<3>(gpuDim.x(), gpuDim.y(), 1),
                                           PMacc::math::Int<3>(0,0,gpuZPos));
     algorithm::mpi::Gather<3> gather(gpuGatheringZone);
     if(!gather.participate()) return;
@@ -96,7 +96,7 @@ void FieldEnergy::notify(uint32_t currentStep)
         energyDBuffer.zone(), energyDBuffer.origin(),
                               cursor::tools::slice(fieldE_coreBorder.origin()(0,0,localCellZPos)),
                               cursor::tools::slice(fieldB_coreBorder.origin()(0,0,localCellZPos)),
-        _1 = (_abs2(_2) + _abs2(_3) * MUE0_EPS0) * 
+        _1 = (_abs2(_2) + _abs2(_3) * MUE0_EPS0) *
             (float_X(0.5) * EPS0 * UNIT_ENERGY * UNITCONV_Joule_to_keV / (UNIT_LENGTH*UNIT_LENGTH*UNIT_LENGTH)));
             
             

@@ -34,7 +34,7 @@
 #endif
 
 /** @see PMACC_CONST_VECTOR documentation, only unique "id" is added
- * 
+ *
  * @param id unique precompiler id to create unique namespaces
  */
 #define PMACC_STATIC_CONST_VECTOR_DIM(id,Name,Type,Dim,count,...)               \
@@ -90,21 +90,21 @@ using namespace PMACC_JOIN(pmacc_static_const_storage,id)
                                                                          
 
 /** Create global constant math::Vector with compile time values which can be
- *  used on device and host 
- * 
+ *  used on device and host
+ *
  * Support all native C/C++ types (e.g. int, float, double,...) and structs with
  * default constructor
- * 
+ *
  * @param type type of vector
  * @param dim count of components of the vector
  * @param name name of created vector instance
  * @param ... values for component x,y,z
- *            If dim is 2 the parameter z is optional 
- * 
+ *            If dim is 2 the parameter z is optional
+ *
  * e.g. PMACC_CONST_VECTOR(float,2,myVector,2.1,4.2);
  *      create math:Vector<float,2> myVector(2.1,4.2); //as global const vector
  *      The type of the created vector is "name_t" -> in this case "myVector_t"
- */                                                          
+ */
 #define PMACC_CONST_VECTOR(type,dim,name,...)                                   \
     PMACC_STATIC_CONST_VECTOR_DIM(__COUNTER__,name,type,dim,PMACC_COUNT_ARGS(__VA_ARGS__),__VA_ARGS__)
     

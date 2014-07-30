@@ -1,24 +1,24 @@
 /**
  * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
  
 
 #pragma once
@@ -45,10 +45,10 @@ namespace PMacc
 
 /**
  * Abstract base class for simulations.
- * 
+ *
  * Use this helper class to write your own concrete simulations
  * by binding pure virtual methods.
- * 
+ *
  * @tparam DIM base dimension for the simulation (2-3)
  */
 template<unsigned DIM>
@@ -58,7 +58,7 @@ public:
 
     /**
      * Constructor
-     * 
+     *
      */
     SimulationHelper() :
     runSteps(0),
@@ -89,14 +89,14 @@ public:
 
     /**
      * Must describe one iteration (step).
-     * 
+     *
      * This function is called automatically.
      */
     virtual void runOneStep(uint32_t currentStep) = 0;
 
     /**
      * Initializes simulation state.
-     * 
+     *
      * @return returns the first step of the simulation
      */
     virtual uint32_t init() = 0;
@@ -104,18 +104,18 @@ public:
 
     /**
      * Check if moving window work must do
-     * 
+     *
      * If no moving window is needed the implementation of this function can be empty
-     * 
+     *
      * @param currentStep simulation step
      */
     virtual void movingWindowCheck(uint32_t currentStep) = 0;
 
     /**
      * Notifies registered output classes.
-     * 
+     *
      * This function is called automatically.
-     * 
+     *
      *  @param currentStep simulation step
      */
     virtual void dumpOneStep(uint32_t currentStep)
@@ -183,7 +183,7 @@ public:
         TimeIntervall tRound;
         double roundAvg = 0.0;
 
-        /* dump initial step if simulation starts without restart */            
+        /* dump initial step if simulation starts without restart */
         if (currentStep == 0)
             dumpOneStep(currentStep);
         else
@@ -207,7 +207,7 @@ public:
             movingWindowCheck(currentStep);
             /*dump after simulated step*/
             dumpOneStep(currentStep);
-        }       
+        }
 
         //simulatation end
         Environment<>::get().Manager().waitForAllTasks();
@@ -291,7 +291,7 @@ private:
 
     /**
      * Set how often the elapsed time is printed.
-     * 
+     *
      * @param percent percentage difference for printing
      */
     void calcProgress()
@@ -306,7 +306,7 @@ private:
     
     /**
      * Append \p checkpointStep to the master checkpoint file
-     * 
+     *
      * @param checkpointStep current checkpoint step
      */
     void writeCheckpointStep(const uint32_t checkpointStep)

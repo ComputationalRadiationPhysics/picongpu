@@ -21,10 +21,10 @@ __thread char time_buf[128];
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 extern unsigned int exit_on_error;
 
-extern char hostname[];  
+extern char hostname[];
 extern char* time_string(void);
 
-unsigned int 
+unsigned int
 error_checking(memtest_control_t* mc)
 {
   int i;
@@ -42,7 +42,7 @@ error_checking(memtest_control_t* mc)
   rc = clEnqueueReadBuffer(queue, mc->err_current, CL_TRUE, 0, sizeof(cl_ulong)*MAX_ERR_RECORD_COUNT, host_err_current, 0, NULL, NULL); CLERR;
   rc = clEnqueueReadBuffer(queue, mc->err_second_read, CL_TRUE, 0, sizeof(cl_ulong)*MAX_ERR_RECORD_COUNT, host_err_second_read, 0, NULL, NULL); CLERR;
   
-  if (host_err_count >0){    
+  if (host_err_count >0){
     PRINTF("ERROR: error_count=%d\n", host_err_count);
     PRINTF("ERROR: the last %d error addresses are:\t", MIN(MAX_ERR_RECORD_COUNT, host_err_count));
     
@@ -58,7 +58,7 @@ error_checking(memtest_control_t* mc)
     }
     
     host_err_count = 0;
-    rc = clEnqueueWriteBuffer(queue, mc->err_count, CL_TRUE, 0, sizeof(cl_uint), &host_err_count, 0, NULL, NULL); CLERR;    
+    rc = clEnqueueWriteBuffer(queue, mc->err_count, CL_TRUE, 0, sizeof(cl_uint), &host_err_count, 0, NULL, NULL); CLERR;
     if (exit_on_error){
       PRINTF("Error Found in Memtest, exiting\n");
       exit(1);
@@ -137,7 +137,7 @@ move_inv_test(memtest_control_t* mc, TYPE p1)
   rc = clSetKernelArg(read_write_kernel, 5, sizeof(cl_mem), &mc->err_addr); CLERR;
   rc = clSetKernelArg(read_write_kernel, 6, sizeof(cl_mem), &mc->err_expect); CLERR;
   rc = clSetKernelArg(read_write_kernel, 7, sizeof(cl_mem), &mc->err_current); CLERR;
-  rc = clSetKernelArg(read_write_kernel, 8, sizeof(cl_mem), &mc->err_second_read); CLERR;    
+  rc = clSetKernelArg(read_write_kernel, 8, sizeof(cl_mem), &mc->err_second_read); CLERR;
   rc = clEnqueueNDRangeKernel(queue, read_write_kernel, 1, NULL, global_work_size, local_work_size, 0, NULL, NULL);CLERR;
   p1 = p2;
   
@@ -191,13 +191,13 @@ test0(memtest_control_t* mc)
   rc = clSetKernelArg(global_read_kernel, 3, sizeof(cl_mem), &mc->err_addr); CLERR;
   rc = clSetKernelArg(global_read_kernel, 4, sizeof(cl_mem), &mc->err_expect); CLERR;
   rc = clSetKernelArg(global_read_kernel, 5, sizeof(cl_mem), &mc->err_current); CLERR;
-  rc = clSetKernelArg(global_read_kernel, 6, sizeof(cl_mem), &mc->err_second_read); CLERR;  
+  rc = clSetKernelArg(global_read_kernel, 6, sizeof(cl_mem), &mc->err_second_read); CLERR;
   rc = clEnqueueNDRangeKernel(queue, global_read_kernel, 1, NULL, global_work_size, local_work_size, 0, NULL, NULL);CLERR;
   clFinish(queue);
   err_count = error_checking(mc);
   
 
-  PRINTF("Test0: local walk test\n");  
+  PRINTF("Test0: local walk test\n");
   cl_kernel local_write_kernel = clCreateKernel(program, "kernel0_local_write", &rc); CLERR;
   cl_kernel local_read_kernel = clCreateKernel(program, "kernel0_local_read", &rc); CLERR;
   global_work_size[0] = 64*1024;
@@ -213,7 +213,7 @@ test0(memtest_control_t* mc)
   rc = clSetKernelArg(local_read_kernel, 3, sizeof(cl_mem), &mc->err_addr); CLERR;
   rc = clSetKernelArg(local_read_kernel, 4, sizeof(cl_mem), &mc->err_expect); CLERR;
   rc = clSetKernelArg(local_read_kernel, 5, sizeof(cl_mem), &mc->err_current); CLERR;
-  rc = clSetKernelArg(local_read_kernel, 6, sizeof(cl_mem), &mc->err_second_read); CLERR;  
+  rc = clSetKernelArg(local_read_kernel, 6, sizeof(cl_mem), &mc->err_second_read); CLERR;
   rc = clEnqueueNDRangeKernel(queue, local_read_kernel, 1, NULL, global_work_size, local_work_size, 0, NULL, NULL);CLERR;
   clFinish(queue);
   err_count = error_checking(mc);
@@ -236,7 +236,7 @@ test0(memtest_control_t* mc)
  ********************************************************************************/
 void
 test1(memtest_control_t* mc)
-{  
+{
   cl_int rc;
   int err_count = 0;
   cl_program program=mc->program;
@@ -257,7 +257,7 @@ test1(memtest_control_t* mc)
   rc = clSetKernelArg(read_kernel, 3, sizeof(cl_mem), &mc->err_addr); CLERR;
   rc = clSetKernelArg(read_kernel, 4, sizeof(cl_mem), &mc->err_expect); CLERR;
   rc = clSetKernelArg(read_kernel, 5, sizeof(cl_mem), &mc->err_current); CLERR;
-  rc = clSetKernelArg(read_kernel, 6, sizeof(cl_mem), &mc->err_second_read); CLERR;  
+  rc = clSetKernelArg(read_kernel, 6, sizeof(cl_mem), &mc->err_second_read); CLERR;
   rc = clEnqueueNDRangeKernel(queue, read_kernel, 1, NULL, global_work_size, local_work_size, 0, NULL, NULL);CLERR;
   clFinish(queue);
   err_count = error_checking(mc);
@@ -272,7 +272,7 @@ test1(memtest_control_t* mc)
  * ones and zeros.
  *
  ****************************************************************************/
-void 
+void
 test2(memtest_control_t* mc)
 {
   unsigned long p1 = 0;
@@ -287,10 +287,10 @@ test2(memtest_control_t* mc)
  * Test 3 [Moving inversions, 8 bit pat]
  * This is the same as test 1 but uses a 8 bit wide pattern of
  * "walking" ones and zeros.  This test will better detect subtle errors
- * in "wide" memory chips. 
+ * in "wide" memory chips.
  *
  **************************************************************************/
-void 
+void
 test3(memtest_control_t* mc)
 {
   unsigned long p0 = 0x80;
@@ -312,7 +312,7 @@ test3(memtest_control_t* mc)
  *************************************************************************************/
 
 //pretty much the same with test10
-void 
+void
 test4(memtest_control_t* mc)
 {
     int i;
@@ -336,12 +336,12 @@ test4(memtest_control_t* mc)
  * only after the memory moves are completed it is not possible to know
  * where the error occurred.  The addresses reported are only for where the
  * bad pattern was found.
- * 
+ *
  *
  *************************************************************************************/
 
 
-void 
+void
 test5(memtest_control_t* mc)
 {
   cl_int rc;
@@ -369,7 +369,7 @@ test5(memtest_control_t* mc)
   rc = clSetKernelArg(check_kernel, 3, sizeof(cl_mem), &mc->err_addr); CLERR;
   rc = clSetKernelArg(check_kernel, 4, sizeof(cl_mem), &mc->err_expect); CLERR;
   rc = clSetKernelArg(check_kernel, 5, sizeof(cl_mem), &mc->err_current); CLERR;
-  rc = clSetKernelArg(check_kernel, 6, sizeof(cl_mem), &mc->err_second_read); CLERR;  
+  rc = clSetKernelArg(check_kernel, 6, sizeof(cl_mem), &mc->err_second_read); CLERR;
   rc = clEnqueueNDRangeKernel(queue, check_kernel, 1, NULL, global_work_size, local_work_size, 0, NULL, NULL);CLERR;
   clFinish(queue);
   err_count = error_checking(mc);
@@ -429,7 +429,7 @@ movinv32(memtest_control_t* mc, unsigned int pattern,
   rc = clSetKernelArg(readwrite_kernel, 7, sizeof(cl_mem), &mc->err_addr); CLERR;
   rc = clSetKernelArg(readwrite_kernel, 8, sizeof(cl_mem), &mc->err_expect); CLERR;
   rc = clSetKernelArg(readwrite_kernel, 9, sizeof(cl_mem), &mc->err_current); CLERR;
-  rc = clSetKernelArg(readwrite_kernel, 10, sizeof(cl_mem), &mc->err_second_read); CLERR;  
+  rc = clSetKernelArg(readwrite_kernel, 10, sizeof(cl_mem), &mc->err_second_read); CLERR;
   rc = clEnqueueNDRangeKernel(queue, readwrite_kernel, 1, NULL, global_work_size, local_work_size, 0, NULL, NULL);CLERR;
   
   rc = clSetKernelArg(read_kernel, 0, sizeof(cl_mem), &mc->device_mem); CLERR;
@@ -442,7 +442,7 @@ movinv32(memtest_control_t* mc, unsigned int pattern,
   rc = clSetKernelArg(read_kernel, 7, sizeof(cl_mem), &mc->err_addr); CLERR;
   rc = clSetKernelArg(read_kernel, 8, sizeof(cl_mem), &mc->err_expect); CLERR;
   rc = clSetKernelArg(read_kernel, 9, sizeof(cl_mem), &mc->err_current); CLERR;
-  rc = clSetKernelArg(read_kernel, 10, sizeof(cl_mem), &mc->err_second_read); CLERR;  
+  rc = clSetKernelArg(read_kernel, 10, sizeof(cl_mem), &mc->err_second_read); CLERR;
   rc = clEnqueueNDRangeKernel(queue, read_kernel, 1, NULL, global_work_size, local_work_size, 0, NULL, NULL);CLERR;
   clFinish(queue);
   err_count = error_checking(mc);
@@ -456,7 +456,7 @@ movinv32(memtest_control_t* mc, unsigned int pattern,
 }
 
 
-void 
+void
 test6(memtest_control_t* mc)
 {
   unsigned int i;
@@ -487,7 +487,7 @@ test6(memtest_control_t* mc)
  *******************************************************************************/
 
 
-void 
+void
 test7(memtest_control_t* mc)
 {
   int i;
@@ -523,7 +523,7 @@ test7(memtest_control_t* mc)
   rc = clSetKernelArg(readwrite_kernel, 3, sizeof(cl_mem), &mc->err_addr); CLERR;
   rc = clSetKernelArg(readwrite_kernel, 4, sizeof(cl_mem), &mc->err_expect); CLERR;
   rc = clSetKernelArg(readwrite_kernel, 5, sizeof(cl_mem), &mc->err_current); CLERR;
-  rc = clSetKernelArg(readwrite_kernel, 6, sizeof(cl_mem), &mc->err_second_read); CLERR;  
+  rc = clSetKernelArg(readwrite_kernel, 6, sizeof(cl_mem), &mc->err_second_read); CLERR;
   rc = clEnqueueNDRangeKernel(queue, readwrite_kernel, 1, NULL, global_work_size, local_work_size, 0, NULL, NULL);CLERR;
   
   rc = clSetKernelArg(read_kernel, 0, sizeof(cl_mem), &mc->device_mem); CLERR;
@@ -532,7 +532,7 @@ test7(memtest_control_t* mc)
   rc = clSetKernelArg(read_kernel, 3, sizeof(cl_mem), &mc->err_addr); CLERR;
   rc = clSetKernelArg(read_kernel, 4, sizeof(cl_mem), &mc->err_expect); CLERR;
   rc = clSetKernelArg(read_kernel, 5, sizeof(cl_mem), &mc->err_current); CLERR;
-  rc = clSetKernelArg(read_kernel, 6, sizeof(cl_mem), &mc->err_second_read); CLERR;  
+  rc = clSetKernelArg(read_kernel, 6, sizeof(cl_mem), &mc->err_second_read); CLERR;
   rc = clEnqueueNDRangeKernel(queue, read_kernel, 1, NULL, global_work_size, local_work_size, 0, NULL, NULL);CLERR;
   clFinish(queue);
   err_count = error_checking(mc);
@@ -573,14 +573,14 @@ modtest(memtest_control_t* mc, unsigned int offset,  TYPE p1, TYPE p2)
   
   rc = clSetKernelArg(write_kernel, 0, sizeof(cl_mem), &mc->device_mem); CLERR;
   rc = clSetKernelArg(write_kernel, 1, sizeof(cl_ulong), &mc->mem_size); CLERR;
-  rc = clSetKernelArg(write_kernel, 2, sizeof(unsigned int), &offset); CLERR;  
+  rc = clSetKernelArg(write_kernel, 2, sizeof(unsigned int), &offset); CLERR;
   rc = clSetKernelArg(write_kernel, 3, sizeof(TYPE), &p1); CLERR;
   rc = clSetKernelArg(write_kernel, 4, sizeof(TYPE), &p2); CLERR;
   rc = clEnqueueNDRangeKernel(queue, write_kernel, 1, NULL, global_work_size, local_work_size, 0, NULL, NULL); CLERR;
   
   rc = clSetKernelArg(read_kernel, 0, sizeof(cl_mem), &mc->device_mem); CLERR;
   rc = clSetKernelArg(read_kernel, 1, sizeof(cl_ulong), &mc->mem_size); CLERR;
-  rc = clSetKernelArg(read_kernel, 2, sizeof(unsigned int), &offset); CLERR;  
+  rc = clSetKernelArg(read_kernel, 2, sizeof(unsigned int), &offset); CLERR;
   rc = clSetKernelArg(read_kernel, 3, sizeof(TYPE), &p1); CLERR;
   rc = clSetKernelArg(read_kernel, 4, sizeof(TYPE), &p2); CLERR;
   rc = clSetKernelArg(read_kernel, 5, sizeof(cl_mem), &mc->err_count); CLERR;
@@ -720,7 +720,7 @@ test9(memtest_control_t* mc)
  * written as to achieve the maximum bandwidth between the global memory and GPU.
  * This will increase the chance of catching software error. In practice, we found this test quite useful
  * to flush hardware errors as well.
- * 
+ *
  */
   
 void test10(memtest_control_t* mc)
@@ -742,7 +742,7 @@ void test10(memtest_control_t* mc)
   size_t global_work_size[1] = {64*1024};
   size_t local_work_size[1] = {64};
   
-  cl_program program = mc->program;  
+  cl_program program = mc->program;
   cl_kernel write_kernel = clCreateKernel(program, "kernel_write", &rc); CLERR;
   cl_kernel read_write_kernel = clCreateKernel(program, "kernel_readwrite", &rc); CLERR;
   cl_kernel read_kernel = clCreateKernel(program, "kernel_read", &rc); CLERR;
@@ -764,7 +764,7 @@ void test10(memtest_control_t* mc)
     rc = clSetKernelArg(read_write_kernel, 5, sizeof(cl_mem), &mc->err_addr); CLERR;
     rc = clSetKernelArg(read_write_kernel, 6, sizeof(cl_mem), &mc->err_expect); CLERR;
     rc = clSetKernelArg(read_write_kernel, 7, sizeof(cl_mem), &mc->err_current); CLERR;
-    rc = clSetKernelArg(read_write_kernel, 8, sizeof(cl_mem), &mc->err_second_read); CLERR;    
+    rc = clSetKernelArg(read_write_kernel, 8, sizeof(cl_mem), &mc->err_second_read); CLERR;
     rc = clEnqueueNDRangeKernel(queue, read_write_kernel, 1, NULL, global_work_size, local_work_size, 0, NULL, NULL);CLERR;
     p1 = p2;
     p2 = ~p1;
@@ -814,7 +814,7 @@ void* run_tests(void* arg)
   struct timeval t0, t1;
   unsigned int pass = 0;
   int i;
-  while(1){   
+  while(1){
     for (i = 0;i < DIM(cuda_memtests); i++){
       if (cuda_memtests[i].enabled){
 	PRINTF("%s\n", cuda_memtests[i].desc);
@@ -834,6 +834,6 @@ void* run_tests(void* arg)
     if (pass >= num_passes){
       break;
     }
-  }  
+  }
   return NULL;
   }

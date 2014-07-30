@@ -1,21 +1,21 @@
 /**
  * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 
@@ -31,10 +31,10 @@ namespace picongpu
 {
 
 /** interpolate field which are defined on a grid to a point inside of a grid
- * 
- * interpolate around of a point from -AssignmentFunction::support/2 to 
+ *
+ * interpolate around of a point from -AssignmentFunction::support/2 to
  * (AssignmentFunction::support+1)/2
- * 
+ *
  * \tparam GridShiftMethod functor which shift coordinate system that al value are
  * located on corner
  * \tparam AssignmentFunction AssignmentFunction which is used for interpolation
@@ -64,7 +64,7 @@ struct FieldToParticleInterpolationNative
          * is turned so that E_scalar does the interpolation for the z-component.
          */
 
-        /** _1[mpl::int_<0>()] means: 
+        /** _1[mpl::int_<0>()] means:
          * Create a functor which returns [0] applied on the first paramter.
          * Here it is: return the x-component of the field-vector.
          * _1[mpl::int_<0>()] is equivalent to _1[0] but has no runtime cost.
@@ -94,7 +94,7 @@ namespace traits
 {
 
 /*Get margin of a solver
- * class must define a LowerMargin and UpperMargin 
+ * class must define a LowerMargin and UpperMargin
  */
 template<class AssignMethod, class InterpolationMethod>
 struct GetMargin<picongpu::FieldToParticleInterpolationNative<AssignMethod, InterpolationMethod> >

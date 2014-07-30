@@ -1,22 +1,22 @@
 /**
  * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
  
 #pragma once
 
@@ -93,7 +93,7 @@ public:
                   twistVectorAxes<Orientation_Y>(gridSize));
            
         __setTransactionEvent(fieldE.asyncCommunication(__getTransactionEvent()));
-        __setTransactionEvent(fieldB.asyncCommunication(__getTransactionEvent()));       
+        __setTransactionEvent(fieldB.asyncCommunication(__getTransactionEvent()));
         
         typedef PMacc::math::CT::Int<2,0,1> Orientation_Z;
         propagate(twistVectorFieldAxes<Orientation_Z>(fieldE_coreBorder.origin()),
@@ -107,7 +107,7 @@ public:
         __setTransactionEvent(fieldB.asyncCommunication(__getTransactionEvent()));
     }
     
-    void update_afterCurrent(uint32_t) const 
+    void update_afterCurrent(uint32_t) const
     {    }
 };
     

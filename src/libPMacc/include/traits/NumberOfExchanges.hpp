@@ -27,7 +27,7 @@
 namespace PMacc
 {
 
-namespace traits 
+namespace traits
 {
 /** Get number of possible exchanges
  *

@@ -1,24 +1,24 @@
 /**
  * Copyright 2013 Heiko Burau, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
  
 #include "math/vector/Size_t.hpp"
 #include "cuSTL/algorithm/kernel/Foreach.hpp"
@@ -102,7 +102,7 @@ struct ReduceKernel
 
 template<typename BlockDim>
 template<typename DestCursor, typename Zone, typename SrcCursor, typename Functor>
-void Reduce<BlockDim>::operator()(const DestCursor& destCursor, const Zone& _zone, const SrcCursor& srcCursor, const Functor& functor) 
+void Reduce<BlockDim>::operator()(const DestCursor& destCursor, const Zone& _zone, const SrcCursor& srcCursor, const Functor& functor)
 {
     typedef typename boost::remove_reference<typename DestCursor::type>::type type;
     
@@ -120,7 +120,7 @@ void Reduce<BlockDim>::operator()(const DestCursor& destCursor, const Zone& _zon
 
     if(partialSumSize == 1)
     {
-        Foreach<BlockDim>()(_zone, srcCursor, 
+        Foreach<BlockDim>()(_zone, srcCursor,
             expr(detail::ReduceKernel<BlockDim, Zone::dim>(_zone.size.x()))
                 (_destCursor, _1, make_Functor(functor)));
                 

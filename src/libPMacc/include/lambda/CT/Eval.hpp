@@ -1,24 +1,24 @@
 /**
  * Copyright 2013 Heiko Burau, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
  
 #ifndef LAMBDA_CT_EVAL_HPP
 #define LAMBDA_CT_EVAL_HPP
@@ -196,7 +196,7 @@ struct Eval<CT::Expression<lambda::Expression<exprTypes::terminal, mpl::vector<p
     typedef lambda::Expression<exprTypes::terminal, mpl::vector<placeholder<I> > > Expr;
     
     template<typename TerminalTuple, typename ArgsTuple>
-    HDINLINE 
+    HDINLINE
     typename CT::result_of::Eval<Expr, ArgsTuple>::type
     operator()(TerminalTuple, const ArgsTuple& argsTuple) const
     {
@@ -251,7 +251,7 @@ struct Eval<CT::Expression<lambda::Expression<exprTypes::assign, mpl::vector<Chi
     HDINLINE typename result_of::Eval<Expr, ArgsTuple>::type
     operator()(const TerminalTuple& terminalTuple, const ArgsTuple& argsTuple) const
     {
-        CT::Eval<typename CTExpr::Child0>()(terminalTuple, argsTuple) 
+        CT::Eval<typename CTExpr::Child0>()(terminalTuple, argsTuple)
          = CT::Eval<typename CTExpr::Child1>()(terminalTuple, argsTuple);
          
         return CT::Eval<typename CTExpr::Child0>()(terminalTuple, argsTuple);
@@ -269,7 +269,7 @@ struct Eval<CT::Expression<lambda::Expression<exprTypes::plus, mpl::vector<Child
     HDINLINE typename result_of::Eval<Expr, ArgsTuple>::type
     operator()(const TerminalTuple& terminalTuple, const ArgsTuple& argsTuple) const
     {
-        return CT::Eval<typename CTExpr::Child0>()(terminalTuple, argsTuple) 
+        return CT::Eval<typename CTExpr::Child0>()(terminalTuple, argsTuple)
          + CT::Eval<typename CTExpr::Child1>()(terminalTuple, argsTuple);
     }
 };
@@ -285,7 +285,7 @@ struct Eval<CT::Expression<lambda::Expression<exprTypes::minus, mpl::vector<Chil
     HDINLINE typename result_of::Eval<Expr, ArgsTuple>::type
     operator()(const TerminalTuple& terminalTuple, const ArgsTuple& argsTuple) const
     {
-        return CT::Eval<typename CTExpr::Child0>()(terminalTuple, argsTuple) 
+        return CT::Eval<typename CTExpr::Child0>()(terminalTuple, argsTuple)
          - CT::Eval<typename CTExpr::Child1>()(terminalTuple, argsTuple);
     }
 };
@@ -301,7 +301,7 @@ struct Eval<CT::Expression<lambda::Expression<exprTypes::multiply, mpl::vector<C
     HDINLINE typename result_of::Eval<Expr, ArgsTuple>::type
     operator()(const TerminalTuple& terminalTuple, const ArgsTuple& argsTuple) const
     {
-        return CT::Eval<typename CTExpr::Child0>()(terminalTuple, argsTuple) 
+        return CT::Eval<typename CTExpr::Child0>()(terminalTuple, argsTuple)
          * CT::Eval<typename CTExpr::Child1>()(terminalTuple, argsTuple);
     }
 };
@@ -317,7 +317,7 @@ struct Eval<CT::Expression<lambda::Expression<exprTypes::divide, mpl::vector<Chi
     HDINLINE typename result_of::Eval<Expr, ArgsTuple>::type
     operator()(const TerminalTuple& terminalTuple, const ArgsTuple& argsTuple) const
     {
-        return CT::Eval<typename CTExpr::Child0>()(terminalTuple, argsTuple) 
+        return CT::Eval<typename CTExpr::Child0>()(terminalTuple, argsTuple)
          / CT::Eval<typename CTExpr::Child1>()(terminalTuple, argsTuple);
     }
 };

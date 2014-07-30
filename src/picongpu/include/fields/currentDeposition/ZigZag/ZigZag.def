@@ -47,7 +47,7 @@ using namespace PMacc;
  * 3. order paper: "High-Order Interpolation Algorithms for Charge Conservation
  *                  in Particle-in-Cell Simulation", Commun. Comput. Phys 13 (2013)
  *                  Jinqing Yu, Xiaolin Jin, Weimin Zhou, Bin Li, Yuqiu Gu
- *                  DOI:10.1109/ICCIS.2012.159 
+ *                  DOI:10.1109/ICCIS.2012.159
  */
 template<typename T_ParticleShape>
 struct ZigZag;

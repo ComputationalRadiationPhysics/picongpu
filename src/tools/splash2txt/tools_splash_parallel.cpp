@@ -28,7 +28,7 @@ ToolsSplashParallel::ToolsSplashParallel(ProgramOptions &options, Dims &mpiTopol
 ITools(options, mpiTopology, outStream),
 dc(MPI_COMM_WORLD, MPI_INFO_NULL, Dimensions(mpiTopology[0], mpiTopology[1], mpiTopology[2]), 100),
 errorStream(std::cerr)
-{    
+{
     DataCollector::FileCreationAttr fattr;
     fattr.enableCompression = false;
     fattr.fileAccType = DataCollector::FAT_READ_MERGED;

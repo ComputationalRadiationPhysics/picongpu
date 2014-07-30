@@ -46,11 +46,11 @@ namespace picongpu
        **/
       HDINLINE float_X operator()(const float_X position_x, const float_X L_x) const
       {
-        /* an optimized formula is implemented 
-         * 
+        /* an optimized formula is implemented
+         *
          * transform position to make box symetric:
          * x_prime = position_x - 1/2 * L_x
-         * 
+         *
          * then: f(x_position) = f(x_prime)
          * f(x_prime) = { 1.0     : -L_x/2 <= x_prime <= +L_x/2
          *              { 0.0     : in any other case
@@ -84,7 +84,7 @@ namespace picongpu
       HDINLINE float_X operator()(const float_X position_x, const float_X L_x) const
       {
         float_X x = position_x - float_X(0.5)*L_x;
-        return float_X(math::abs(x) <= float_X(0.5)*L_x) 
+        return float_X(math::abs(x) <= float_X(0.5)*L_x)
           * (float_X(1.0) - float_X(2.0)/L_x * math::abs(x) );
       }
     };
@@ -115,7 +115,7 @@ namespace picongpu
         const float_X x = position_x - L_x*float_X(0.5);
         const float_X a = 0.08; /* ideal parameter: -43dB reduction */
         const float_X cosinusValue = math::cos(M_PI*x/L_x);
-        return float_X(math::abs(x) <= float_X(0.5)*L_x) 
+        return float_X(math::abs(x) <= float_X(0.5)*L_x)
           * (a + (float_X(1.0)-a)*cosinusValue*cosinusValue);
       }
     };
@@ -130,7 +130,7 @@ namespace picongpu
       /** 1D Window function according to the Triplett window:
        *
        * x      = position_x - L_x/2
-       * lambda = decay parameter of the Triplett window 
+       * lambda = decay parameter of the Triplett window
        * f(x) = {exp(-lambda*|x|)*cos^2(pi*x/L_x) : (-L_x/2 <= x <= +L_x/2 )
        *        {0.0                              : in any other case
        *
@@ -146,7 +146,7 @@ namespace picongpu
         const float_X x = position_x - L_x*float_X(0.5);
         const float_X lambda = float_X(5.0)/L_x; /* larger is better, but too large means no data */
         const float_X cosinusValue = math::cos(M_PI*x/L_x);
-        return float_X(math::abs(x) <= float_X(0.5)*L_x) 
+        return float_X(math::abs(x) <= float_X(0.5)*L_x)
           * (math::exp(float_X(-1.0)*lambda*math::abs(x))*cosinusValue*cosinusValue);
       }
     };
@@ -177,7 +177,7 @@ namespace picongpu
         const float_X x = position_x - L_x*float_X(0.5);
         const float_X sigma = float_X(0.4)*L_x; /* smaller is better, but too small means no data */
         const float_X relativePosition = x/sigma; /* optimization */
-        return float_X(math::abs(x) <= float_X(0.5)*L_x) 
+        return float_X(math::abs(x) <= float_X(0.5)*L_x)
           * (math::exp(float_X(-0.5)*relativePosition*relativePosition));
       }
     };

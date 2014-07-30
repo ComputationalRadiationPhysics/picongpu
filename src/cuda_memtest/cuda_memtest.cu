@@ -8,18 +8,18 @@
  *
  * Developed by:
  *
- * Innovative Systems Lab  
- * National Center for Supercomputing Applications  
+ * Innovative Systems Lab
+ * National Center for Supercomputing Applications
  * http://www.ncsa.uiuc.edu/AboutUs/Directorates/ISL.html
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy of 
- * this software and associated documentation files (the "Software"), to deal with 
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal with
  * the Software without restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the 
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
  * Software, and to permit persons to whom the Software is furnished to do so, subject
  * to the following conditions:
  *
- * * Redistributions of source code must retain the above copyright notice, this list 
+ * * Redistributions of source code must retain the above copyright notice, this list
  * of conditions and the following disclaimers.
  *
  * * Redistributions in binary form must reproduce the above copyright notice, this list
@@ -30,11 +30,11 @@
  * Applications, nor the names of its contributors may be used to endorse or promote products
  * derived from this Software without specific prior written permission.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
  * PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE CONTRIBUTORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT 
- * OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT
+ * OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS WITH THE SOFTWARE.
  */
 
@@ -161,7 +161,7 @@ thread_func(void* _arg)
     }
 
 
-    cudaSetDevice(device); 
+    cudaSetDevice(device);
     cudaThreadSynchronize();
     CUERR;
  
@@ -190,14 +190,14 @@ thread_func(void* _arg)
         }
         else
         {
-            cudaMalloc((void**)&ptr, tot_num_blocks* BLOCKSIZE); 
+            cudaMalloc((void**)&ptr, tot_num_blocks* BLOCKSIZE);
         }
     }while(cudaGetLastError() != cudaSuccess);
     
     PRINTF("Allocated %d MB\n", tot_num_blocks);
 
     atomic_inc(&healthy_threads);
-    run_tests(ptr, tot_num_blocks);	
+    run_tests(ptr, tot_num_blocks);
     
     return NULL;
       
@@ -229,11 +229,11 @@ void
 usage(char** argv)
 {
 
-    char example_usage[] = 
+    char example_usage[] =
 	"run on default setting:       ./cuda_memtest\n"
 	"run on stress test only:      ./cuda_memtest --stress\n";
 	    
-    printf("Usage:%s [options]\n", argv[0]);    
+    printf("Usage:%s [options]\n", argv[0]);
     printf("options:\n");
     printf("--mappedMem                 run all checks with cuda mapped memory instead of native device memory\n");
     printf("--silent                    Do not print out progress message (default)\n");
@@ -255,7 +255,7 @@ usage(char** argv)
     printf("--num_passes <n>            Set the number of test passes (this affects all tests)\n");
     printf("--disable_serial_number     Disable reporting serial number\n");
     printf("--verbose <n>               Setting verbose level\n");
-    printf("                              0 -- Print out test start and end message only (default)\n"); 
+    printf("                              0 -- Print out test start and end message only (default)\n");
     printf("                              1 -- Print out pattern messages in test\n");
     printf("                              2 -- Print out progress messages\n");
     printf("--stress                    Stress test. Equivalent to --disable_all --enable_test 10 --exit_on_error\n");
@@ -292,14 +292,14 @@ main(int argc, char** argv)
 	}
     }
     
-    PRINTF("Running cuda memtest, version %s\n", VERSION);   
+    PRINTF("Running cuda memtest, version %s\n", VERSION);
     int device = -1;
     int num_gpus;
     cudaGetDeviceCount(&num_gpus);CUERR;
     
     if (num_gpus == 0){
 	fprintf(stderr,"ERROR: no GPUs found\n");
-	exit(ERR_GENERAL);	
+	exit(ERR_GENERAL);
     }
     
     
@@ -318,7 +318,7 @@ main(int argc, char** argv)
 	    if (i+1 >= argc){
 		usage(argv);
 	    }
-	    verbose = atoi(argv[i+1]);	
+	    verbose = atoi(argv[i+1]);
 	    i++;
 	    continue;
 	    
@@ -339,7 +339,7 @@ main(int argc, char** argv)
 	    if (i+1 >= argc){
 		usage(argv);
 	    }
-	    int idx = atoi(argv[i+1]);	
+	    int idx = atoi(argv[i+1]);
 	    if (idx >= DIM(cuda_memtests)){
 		fprintf(stderr, "Error: invalid test id\n");
 		usage(argv);
@@ -354,7 +354,7 @@ main(int argc, char** argv)
 	    if (i+1 >= argc){
 		usage(argv);
 	    }
-	    int idx = atoi(argv[i+1]);	
+	    int idx = atoi(argv[i+1]);
 	    if (idx >= DIM(cuda_memtests)){
 		fprintf(stderr, "Error: invalid test id\n");
 		usage(argv);
@@ -376,7 +376,7 @@ main(int argc, char** argv)
 	    if (i+1 >= argc){
 		usage(argv);
 	    }
-	    device = atoi(argv[i+1]);	    
+	    device = atoi(argv[i+1]);
 	    i++;
 	    num_gpus = 1;
 	    continue;
@@ -386,7 +386,7 @@ main(int argc, char** argv)
 	    if (i+1 >= argc){
 		usage(argv);
 	    }
-	    max_num_blocks = atoi(argv[i+1]);	    
+	    max_num_blocks = atoi(argv[i+1]);
 	    i++;
 	    continue;
 	}
@@ -401,7 +401,7 @@ main(int argc, char** argv)
 	    if (i+1 >= argc){
 		usage(argv);
 	    }
-	    monitor_interval = atoi(argv[i+1]);	    
+	    monitor_interval = atoi(argv[i+1]);
 	    i++;
 	    continue;
 	}
@@ -441,7 +441,7 @@ main(int argc, char** argv)
 		fprintf(stderr, "ERROR: email string too long\n");
 		usage(argv);
 	    }
-	    strcpy(emails, argv[i+1]);	    
+	    strcpy(emails, argv[i+1]);
 	    i++;
 	    continue;
 	}
@@ -453,7 +453,7 @@ main(int argc, char** argv)
 	    report_interval = atoi(argv[i+1]);
 	    i++;
 	    continue;
-	}	
+	}
 	
 	if (strcmp(argv[i], "--num_iterations") == 0){
 
@@ -467,7 +467,7 @@ main(int argc, char** argv)
 	    }
 	    i++;
 	    continue;
-	}	
+	}
 	
 	if (strcmp(argv[i], "--num_passes") == 0){
 
@@ -481,12 +481,12 @@ main(int argc, char** argv)
 	    }
 	    i++;
 	    continue;
-	}	
+	}
 
 	if (strcmp(argv[i], "--disable_serial_number") == 0){
 	    disable_serial_number= 1;
 	    continue;
-	}	
+	}
 	
 	if (strcmp(argv[i], "--stress") == 0){
 	    //equal to "--disable_all --enable_test 10 --exit_on_error"
@@ -497,7 +497,7 @@ main(int argc, char** argv)
 	    cuda_memtests[10].enabled = 1;
 	    exit_on_error = 1;
 	    continue;
-	}	
+	}
 	
 	if (strcmp(argv[i], "--list_tests") == 0){
 	    list_tests_info();
@@ -528,7 +528,7 @@ main(int argc, char** argv)
     arg_t args[MAX_NUM_GPUS];
     pthread_t pid[MAX_NUM_GPUS];
     
-    if (device != -1){ //device set, only 1 GPU 
+    if (device != -1){ //device set, only 1 GPU
 	args[0].device = device;
 	pthread_create(&pid[0], NULL, thread_func, (void*)&args[0]);
     }else{//multiple GPUs
@@ -563,7 +563,7 @@ main(int argc, char** argv)
 	fflush(stdout); fflush(stderr);
 	for(i=0;i < num_gpus;i++){
 		pthread_kill(pid[i], SIGTERM);
-	}	    
+	}
 	exit(ERR_BAD_STATE);
     }
     

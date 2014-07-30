@@ -1,22 +1,22 @@
 /**
  * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
  
 
 #pragma once
@@ -27,13 +27,13 @@ namespace picongpu
     {
         /** The maximum density in particles per m^3 in the gas distribution
          *  unit: ELEMENTS/m^3
-         * 
+         *
          * He (2e- / Atom ) with 1.e15 He / m^3
          *                      = 2.e15 e- / m^3 */
         const double GAS_DENSITY_SI = 1.e25;
 
         /** height of vacuum area on bottom border
-         *      this vacuum is really important because of the laser initialization, 
+         *      this vacuum is really important because of the laser initialization,
          *      which is done in the first cell of the simulation
          *  unit: meter */
         const double VACUUM_Y_SI = 50.0 * SI::CELL_HEIGHT_SI;
@@ -128,11 +128,11 @@ namespace picongpu
          *                   exponential decreasing flank
          *           ___
          *  1D:  _,./   \.,_   rho(r)
-         * 
+         *
          *  2D:  ..,x,..   density: . low
          *       .,xxx,.            , middle
          *       ..,x,..            x high (constant)
-         * 
+         *
          *  Imagine a ball with a "hard core" and "soft flanks".
          *                 (+1 for using antithetics in a description)
          */

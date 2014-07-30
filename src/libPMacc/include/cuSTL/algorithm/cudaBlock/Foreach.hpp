@@ -65,7 +65,7 @@ namespace cudaBlock
     }
 
 /** Foreach algorithm that is executed by one cuda thread block
- * 
+ *
  * \tparam BlockDim 3D compile-time vector (PMacc::math::CT::Int) of the size of the cuda blockDim.
  *
  * BlockDim could also be obtained from cuda itself at runtime but
@@ -77,7 +77,7 @@ struct Foreach
 private:
     const int linearThreadIdx;
 public:
-    DINLINE Foreach() 
+    DINLINE Foreach()
      : linearThreadIdx(
         threadIdx.z * BlockDim::x::value * BlockDim::y::value +
         threadIdx.y * BlockDim::x::value +
@@ -85,14 +85,14 @@ public:
     DINLINE Foreach(int linearThreadIdx) : linearThreadIdx(linearThreadIdx) {}
 
     /* operator()(zone, cursor0, cursor1, ..., cursorN-1, functor or lambdaFun)
-     * 
+     *
      * \param zone compile-time zone object, see zone::CT::SphericZone. (e.g. ContainerType::Zone())
      * \param cursorN cursor for the N-th data source (e.g. containerObj.origin())
      * \param functor or lambdaFun either a functor with N arguments or a N-ary lambda function (e.g. _1 = _2)
-     * 
+     *
      * The functor or lambdaFun is called for each cell within the zone.
      * It is called like functor(*cursor0(cellId), ..., *cursorN(cellId))
-     * 
+     *
      */
     BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(FOREACH_KERNEL_MAX_PARAMS), FOREACH_OPERATOR, _)
 };

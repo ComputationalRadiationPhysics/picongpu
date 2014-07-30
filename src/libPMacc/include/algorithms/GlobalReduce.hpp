@@ -1,24 +1,24 @@
 /**
  * Copyright 2013 Axel Huebl, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
  
 #pragma once
 
@@ -43,7 +43,7 @@ public:
     {
     }
 
-    /* Activate participation for reduce algorithm. 
+    /* Activate participation for reduce algorithm.
      * Must called from any mpi process. This function use global blocking mpi calls.
      * Don't create a instance befor you have set you cuda device!
      * @param isActive true if mpi rank should be part of reduce operation, else false
@@ -54,12 +54,12 @@ public:
     }
 
     /* Reduce elements in global gpu memeory
-     * 
+     *
      * @param func functor for reduce which takes two arguments, first argument is the source and get the new reduced value.
      * Functor must specialize the function getMPI_Op.
      * @param src a class or a pointer where the reduce algorithm can access the value by operator [] (one dimension access)
      * @param n number of elements to reduce
-     * 
+     *
      * @return reduced value (same on every mpi instance)
      */
     template<class Functor, typename Src>

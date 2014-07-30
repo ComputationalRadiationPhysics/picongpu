@@ -92,7 +92,7 @@ Reduce<dim>::~Reduce()
 template<int dim>
 bool Reduce<dim>::root() const
 {
-    if(!this->m_participate) 
+    if(!this->m_participate)
     {
         std::cerr << "error[mpi::Reduce::root()]: this process does not participate in reducing.\n";
         return false;
@@ -104,7 +104,7 @@ bool Reduce<dim>::root() const
 template<int dim>
 int Reduce<dim>::rank() const
 {
-    if(!this->m_participate) 
+    if(!this->m_participate)
     {
         std::cerr << "error[mpi::Reduce::rank()]: this process does not participate in reducing.\n";
         return -1;
@@ -138,7 +138,7 @@ struct MPI_User_Op
 template<int dim>
 template<typename Type, int conDim, typename ExprOrFunctor>
 void Reduce<dim>::operator()
-                   (container::HostBuffer<Type, conDim>& dest, 
+                   (container::HostBuffer<Type, conDim>& dest,
                     const container::HostBuffer<Type, conDim>& src,
                     ExprOrFunctor) const
 {
@@ -146,7 +146,7 @@ void Reduce<dim>::operator()
     
     typedef typename lambda::result_of::make_Functor<ExprOrFunctor>::type Functor;
     
-    MPI_Op user_op;  
+    MPI_Op user_op;
     MPI_CHECK(MPI_Op_create(&detail::MPI_User_Op<Functor, Type>::callback, 1, &user_op));
     
     MPI_CHECK(MPI_Reduce(&(*src.origin()), &(*dest.origin()), sizeof(Type) * dest.size().productOfComponents(),
