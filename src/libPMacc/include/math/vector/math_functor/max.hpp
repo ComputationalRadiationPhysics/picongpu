@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef MATH_FUNCTOR_MAX_HPP
 #define MATH_FUNCTOR_MAX_HPP
 
@@ -33,7 +33,7 @@ namespace math
 {
 namespace math_functor
 {
-    
+
 struct Max
 {
     template<typename Type>
@@ -45,7 +45,7 @@ struct Max
 };
 
 lambda::Expression<lambda::exprTypes::terminal, mpl::vector<Max> > _max;
-    
+
 } // math_vector
 } // math
 
@@ -57,7 +57,7 @@ struct Functor<math::math_functor::Max, Type, Type>
 {
     typedef Type type;
 };
-    
+
 } // result_of
 
 } // PMacc

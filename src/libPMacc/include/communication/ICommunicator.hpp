@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 #ifndef _ICOMMUNICATOR_HPP
 #define	_ICOMMUNICATOR_HPP
@@ -47,7 +47,7 @@ public:
      * @return true if the position of gpu is switched to the end, else false
      */
     virtual bool slide() = 0;
-    
+
     /*! slides multiple times
      * @param[in] numSlides number of slides
      * @return true if the position of gpu is switched to the end, else false

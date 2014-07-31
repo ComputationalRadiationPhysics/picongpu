@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef SIMULATIONFIELDHELPER_HPP
 #define	SIMULATIONFIELDHELPER_HPP
 
@@ -34,7 +34,7 @@ template<class CellDescription>
 class SimulationFieldHelper
 {
 public:
-    
+
     typedef CellDescription MappingDesc;
 
     SimulationFieldHelper(CellDescription description) :
@@ -45,12 +45,12 @@ public:
      * Reset is as well used for init.
      */
     virtual void reset(uint32_t currentStep) = 0;
-    
+
     /**
      * Synchronize data from host to device.
      */
     virtual void syncToDevice() = 0;
-    
+
     /**
      * Start an asynchronous communication.
      *

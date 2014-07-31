@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 namespace PMacc
 {
 namespace allocator
@@ -33,12 +33,12 @@ DeviceMemAllocator<Type, _dim>::allocate(const math::Size_t<_dim>& size)
     Type* dataPointer;
     math::Size_t<_dim-1> pitch;
     cudaPitchedPtr cudaData;
-    
+
     cudaData.ptr = NULL;
     cudaData.pitch = 1;
     cudaData.xsize = size.x();
     cudaData.ysize = 1;
-    
+
     if (dim == 2u)
     {
         cudaData.xsize = size[0];
@@ -57,10 +57,10 @@ DeviceMemAllocator<Type, _dim>::allocate(const math::Size_t<_dim>& size)
         pitch[1] = cudaData.pitch * size[1];
     }
     dataPointer = (Type*)cudaData.ptr;
-    
+
     return cursor::BufferCursor<Type, _dim>(dataPointer, pitch);
 #endif
-    
+
 #ifdef __CUDA_ARCH__
     Type* dataPointer = 0;
     math::Size_t<_dim-1> pitch;
@@ -76,7 +76,7 @@ DeviceMemAllocator<Type, 1>::allocate(const math::Size_t<1>& size)
     Type* dataPointer;
 
     CUDA_CHECK_NO_EXCEP(cudaMalloc((void**)&dataPointer, size[0] * sizeof(Type)));
-    
+
     return cursor::BufferCursor<Type, 1>(dataPointer, math::Size_t<0>());
 #endif
 

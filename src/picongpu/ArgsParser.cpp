@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #include <iostream>
 #include <sstream>
 #include <fstream>

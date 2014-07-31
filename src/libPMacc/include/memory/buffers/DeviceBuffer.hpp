@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 #ifndef _DEVICEBUFFER_HPP
 #define	_DEVICEBUFFER_HPP
@@ -64,7 +64,7 @@ namespace PMacc
         }
 
     public:
-        
+
         using Buffer<TYPE, DIM>::setCurrentSize; //!\todo :this function was hidden, I don't know why.
 
         /**
@@ -73,10 +73,10 @@ namespace PMacc
         virtual ~DeviceBuffer()
         {
         };
-        
+
 
 #define COMMA ,
-    
+
         __forceinline__
         container::CartBuffer<TYPE, DIM, allocator::DeviceMemAllocator<TYPE, DIM>,
                                 copier::D2DCopier<DIM>,
@@ -122,7 +122,7 @@ namespace PMacc
          * @return pointer which point to device memory of current size
          */
         virtual size_t* getCurrentSizeOnDevicePointer() = 0;
-        
+
         /** Returns host pointer of current size storage
          *
          * @return pointer to stored value on host side
@@ -146,7 +146,7 @@ namespace PMacc
          * @return internal pitched cuda pointer
          */
         virtual const cudaPitchedPtr getCudaPitched() const = 0;
-        
+
         /** get line pitch of memory in byte
          *
          * @return size of one line in memory
@@ -166,7 +166,7 @@ namespace PMacc
          * @param other the DeviceBuffer to copy from
          */
         virtual void copyFrom(DeviceBuffer<TYPE, DIM>& other) = 0;
-        
+
     };
 
 } //namespace PMacc

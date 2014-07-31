@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef MATH_FUNCTOR_MIN_HPP
 #define MATH_FUNCTOR_MIN_HPP
 
@@ -33,7 +33,7 @@ namespace math
 {
 namespace math_functor
 {
-    
+
 struct Min
 {
     template<typename Type>
@@ -45,7 +45,7 @@ struct Min
 };
 
 lambda::Expression<lambda::exprTypes::terminal, mpl::vector<Min> > _min;
-    
+
 } // math_functor
 } // math
 
@@ -57,7 +57,7 @@ struct Functor<math::math_functor::Min, Type, Type>
 {
     typedef Type type;
 };
-    
+
 }
 
 } // PMacc

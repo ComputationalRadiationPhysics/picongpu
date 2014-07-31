@@ -41,8 +41,8 @@ struct CopyIdentifier
     {
         dest[T_Key()]=src[T_Key()];
     }
-    
- 
+
+
 };
 
 }//namespace PMacc

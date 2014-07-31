@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef ALGORITHM_KERNEL_REDUCE_HPP
 #define ALGORITHM_KERNEL_REDUCE_HPP
 
@@ -51,7 +51,7 @@ namespace kernel
 template<typename BlockDim>
 struct Reduce
 {
-    
+
 /* \param destCursor Cursor where the result is stored
  * \param _zone Zone of cells spanning the area of reduce
  * \param srcCursor Cursor located at the origin of the area of reduce
@@ -61,7 +61,7 @@ struct Reduce
 template<typename DestCursor, typename Zone, typename SrcCursor, typename Functor>
 void operator()(const DestCursor& destCursor, const Zone& _zone, const SrcCursor& srcCursor, const Functor& functor);
 };
-    
+
 } // kernel
 } // algorithm
 } // PMacc

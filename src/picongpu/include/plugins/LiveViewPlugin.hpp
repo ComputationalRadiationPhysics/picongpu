@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #pragma once
@@ -139,7 +139,7 @@ namespace picongpu
             }
             visIO.clear();
         }
-        
+
         void notify(uint32_t currentStep)
         {
             // nothing to do here

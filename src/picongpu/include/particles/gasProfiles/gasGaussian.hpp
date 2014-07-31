@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #ifndef GASGAUSSIAN_HPP
@@ -37,7 +37,7 @@ namespace picongpu
         {
             return true;
         }
-        
+
         /** Calculate the gas density, divided by the maximum density GAS_DENSITY
          *
          * @param pos as 3D length vector offset to global left top front cell

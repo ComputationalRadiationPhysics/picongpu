@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef CURSOR_TOOLS_SLICE_HPP
 #define CURSOR_TOOLS_SLICE_HPP
 
@@ -87,7 +87,7 @@ struct Slice_helper<Navi, tag::CartNavigator>
 };
 
 } // detail
-    
+
 /** makes a 2D cursor of a 3D vector by dropping the z-component
  */
 template<typename TCursor>
@@ -101,7 +101,7 @@ slice(const TCursor& cur)
              slice_helper(cur.getNavigator()),
              cur.getMarker());
 }
-    
+
 } // tools
 } // cursor
 } // PMacc

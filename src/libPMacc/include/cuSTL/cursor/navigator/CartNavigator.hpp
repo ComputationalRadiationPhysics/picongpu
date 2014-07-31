@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef CURSOR_CARTNAVIGATOR_HPP
 #define CURSOR_CARTNAVIGATOR_HPP
 
@@ -31,7 +31,7 @@ namespace PMacc
 {
 namespace cursor
 {
-    
+
 template<int _dim>
 class CartNavigator
 {
@@ -43,7 +43,7 @@ private:
 public:
     HDINLINE
     CartNavigator(math::Int<dim> factor) : factor(factor) {}
-    
+
     template<typename Data>
     HDINLINE
     Data operator()(const Data& data, const math::Int<dim>& jump) const
@@ -52,20 +52,20 @@ public:
         result += dot(jump, this->factor);
         return (Data)result;
     }
-    
+
     HDINLINE
     const math::Int<dim>& getFactor() const {return factor;}
 };
 
 namespace traits
 {
-    
+
 template<int _dim>
 struct dim<CartNavigator<_dim> >
 {
     static const int value = _dim;
 };
-    
+
 } // traits
 
 } // cursor

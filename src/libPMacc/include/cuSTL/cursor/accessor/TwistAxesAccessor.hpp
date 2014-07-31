@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #pragma once
 
 #include "types.h"
@@ -29,13 +29,13 @@ namespace PMacc
 {
 namespace cursor
 {
-    
+
 template<typename TCursor, typename Axes>
 struct TwistAxesAccessor
 {
     typedef typename math::tools::result_of::TwistVectorAxes<
         Axes, typename TCursor::pureType>::type type;
-    
+
     /** Returns a reference to the result of '*cursor' (with twisted axes).
      *
      * Be aware that the underlying cursor must not be a temporary object if '*cursor'
@@ -45,9 +45,9 @@ struct TwistAxesAccessor
     {
         return math::tools::twistVectorAxes<Axes>(*cursor);
     }
-    
+
     ///\todo: implement const method here with a const TCursor& argument and 'type' as return type.
 };
-    
+
 } // cursor
 } // PMacc

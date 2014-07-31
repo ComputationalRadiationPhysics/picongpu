@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef TIMEINTERVAL_HPP
 #define	TIMEINTERVAL_HPP
 
@@ -42,7 +42,7 @@ namespace PMacc
         {
             start=end=getTime();
         }
-        
+
         /*! Get the timestamp in msec
          * @return time of the moment
          */
@@ -79,7 +79,7 @@ namespace PMacc
 
 
             int p_time;
-            
+
             bool write_all=false;
             if(time/(3600.*1000.)>1.)
             {
@@ -112,13 +112,13 @@ namespace PMacc
             {
                 outstr<<std::setw(3)<<(int)time<<"msec";
             }
-            
+
             if(outstr.str().empty())
                 outstr<<"  0msec";
 
             return outstr.str();
         }
-        
+
     private:
         double start;
         double end;

@@ -19,32 +19,32 @@ void update_temperature(void)
 	char* s;
 	int t;
 	int gpu_0,  gpu_1;
-	
+
 	s = fgets(buf, 256, file);
 	if (s == NULL){
 	    break;
 	}
 	sscanf(buf, ":%d", &t);
-	
+
 	s = fgets(buf, 256, file);
 	assert(s);
 	sscanf(buf, "%dC", &gpu_0);
-	
+
 	s = fgets(buf, 256, file);
 	assert(s);
 	sscanf(buf, "%dC", &gpu_1);
-	
+
 	intake_temp[i] = t;
 	gpu_temp[2*i]  = gpu_0;
 	gpu_temp[2*i + 1]  = gpu_1;
 	i++;
     }
-    
+
     DEBUG_PRINTF("temperature updated: %d %d %d %d \n",
 		 gpu_temp[0], gpu_temp[1], gpu_temp[2], gpu_temp[3]);
-	
+
    pclose(file);
-    
+
 }
 
 
@@ -56,12 +56,12 @@ get_serial_number(void)
 	PRINTF("Warning: opening pipe failed for getting serial nubmer\n");
 	return 0;
     }
-    
+
     char buf[256];
     char* s;
     int t;
     unsigned long long sn;
-    
+
     s = fgets(buf, 256, file);
     if (s == NULL){
 	PRINTF("Warning: Getting serial number failed\n");
@@ -69,11 +69,11 @@ get_serial_number(void)
 	return 0;
     }
     sscanf(buf, "%llu", &sn);
-    
+
     PRINTF("Unit serial number: %llu\n", sn);
-    
+
     pclose(file);
-    
+
     return sn;
 }
 
@@ -82,7 +82,7 @@ get_serial_number(void)
 void
 get_driver_info(char* info, unsigned int len)
 {
-    
+
     FILE* file = fopen(NV_DRIVER_VER_FILE, "r");
     if (file == NULL){
 	PRINTF("Warning: Opening %s failed\n", NV_DRIVER_VER_FILE);
@@ -95,8 +95,8 @@ get_driver_info(char* info, unsigned int len)
 	info[0] = 0;
 	return;
     }
-    
+
     PRINTF("%s", info);
-    
+
     return;
 }

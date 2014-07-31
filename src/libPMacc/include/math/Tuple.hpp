@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #pragma once
 
 #include <types.h>
@@ -42,7 +42,7 @@ namespace PMacc
 {
 namespace math
 {
-    
+
 #ifndef TUPLE_MAX_DIM
 #define TUPLE_MAX_DIM 8
 #endif
@@ -56,7 +56,7 @@ namespace math
     {                                                       \
         BOOST_STATIC_ASSERT(dim == N);                      \
     }
-    
+
 namespace mpl = boost::mpl;
 
 template<typename TypeList, bool ListEmpty = mpl::empty<TypeList>::type::value>
@@ -74,21 +74,21 @@ public:
     typedef TypeList TypeList_;
 private:
     typedef Tuple<typename mpl::pop_front<TypeList>::type> base;
-    
+
     typedef typename mpl::front<TypeList>::type Value;
     typedef typename boost::remove_reference<Value>::type pureValue;
-    
+
     Value value;
 public:
     HDINLINE Tuple() {}
-    
+
     HDINLINE Tuple(Value arg0) : value(arg0)
     {
         BOOST_STATIC_ASSERT(dim == 1);
     }
-    
+
     BOOST_PP_REPEAT_FROM_TO(2, BOOST_PP_INC(TUPLE_MAX_DIM), CONSTRUCTOR, _)
-    
+
     template<int i>
     HDINLINE
     typename mpl::at_c<TypeList, i>::type&
@@ -103,7 +103,7 @@ public:
     {
         return this->at(mpl::int_<i>());
     }
-    
+
     HDINLINE Value& at(mpl::int_<0>)
     {
         return value;
@@ -112,7 +112,7 @@ public:
     {
         return value;
     }
-    
+
     HDINLINE const Value& at(mpl::int_<0>) const
     {
         return value;
@@ -121,7 +121,7 @@ public:
     {
         return value;
     }
-    
+
     template<typename Idx>
     HDINLINE
     typename mpl::at<TypeList, Idx>::type&
@@ -129,7 +129,7 @@ public:
     {
         return base::at(typename mpl::minus<Idx, mpl::int_<1> >::type());
     }
-    
+
     template<typename Idx>
     HDINLINE
     const typename mpl::at<TypeList, Idx>::type&
@@ -150,7 +150,7 @@ public:
         return Tuple<mpl::vector<BOOST_PP_ENUM_PARAMS(N, Value)> > \
             (BOOST_PP_ENUM_PARAMS(N, value)); \
     }
-    
+
 BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(TUPLE_MAX_DIM), MAKE_TUPLE, _)
 
 #undef MAKE_TUPLE
@@ -163,6 +163,6 @@ struct at_c
     typedef typename mpl::at_c<typename TTuple::TypeList_, i>::type type;
 };
 } // result_of
-    
+
 } // math
 } // PMacc

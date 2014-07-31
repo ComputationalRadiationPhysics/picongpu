@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #pragma once
@@ -56,7 +56,7 @@ namespace picongpu
 
         typedef MappingDesc::SuperCellSize SuperCellSize;
         typedef DataBox<PitchedBox<ValueType, simDim> > DataBoxType;
-        
+
         MappingDesc getCellDescription()
         {
             return this->cellDescription;
@@ -67,12 +67,12 @@ namespace picongpu
         virtual ~FieldTmp( );
 
         virtual void reset( uint32_t currentStep );
-        
+
         template<class FrameSolver >
         static UnitValueType getUnit();
-        
+
         static std::string getName();
-        
+
         static uint32_t getCommTag();
 
         virtual EventTask asyncCommunication( EventTask serialEvent );
@@ -86,12 +86,12 @@ namespace picongpu
         GridBuffer<ValueType, simDim>& getGridBuffer( );
 
         GridLayout<simDim> getGridLayout( );
-        
+
         template<uint32_t AREA, class FrameSolver, class ParticlesClass>
         void computeValue(ParticlesClass& parClass, uint32_t currentStep);
 
         SimulationDataId getUniqueId();
-        
+
         void synchronize( );
 
         void syncToDevice( );

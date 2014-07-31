@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef ALGORITHM_KERNEL_FFT_HPP
 #define ALGORITHM_KERNEL_FFT_HPP
 
@@ -29,14 +29,14 @@ namespace algorithm
 {
 namespace kernel
 {
- 
+
 template<int dim>
 struct FFT
 {
     template<typename Zone, typename DestCursor, typename SrcCursor>
     void operator()(const Zone& _zone, const DestCursor& destCursor, const SrcCursor& srcCursor);
 };
-    
+
 } // kernel
 } // algorithm
 } // PMacc

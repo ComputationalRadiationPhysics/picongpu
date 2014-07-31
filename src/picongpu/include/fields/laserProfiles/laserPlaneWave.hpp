@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #ifndef LASERPLANEWAVE_HPP
@@ -92,7 +92,7 @@ namespace picongpu
 
             return elong;
         }
-        
+
         /**
          *
          * @param elong

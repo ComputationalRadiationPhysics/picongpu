@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef ALGORITHM_MPI_GATHER_HPP
 #define ALGORITHM_MPI_GATHER_HPP
 
@@ -36,7 +36,7 @@ namespace algorithm
 {
 namespace mpi
 {
-    
+
 /**
  */
 template<int dim>
@@ -46,10 +46,10 @@ private:
     MPI_Comm comm;
     std::vector<math::Int<dim> > positions;
     bool m_participate;
-    
+
     template<typename Type, int _dim, int memDim>
     struct CopyToDest;
-    
+
     template<typename Type>
     struct CopyToDest<Type, 3, 2>
     {
@@ -58,18 +58,18 @@ private:
                         std::vector<Type>& tmpDest,
                         container::HostBuffer<Type, 2>& source, int dir) const;
     };
-    
+
     template<typename Type, int _dim, int memDim>
     friend class CopyToDest;
 public:
     Gather(const zone::SphericZone<dim>& _zone);
     ~Gather();
-    
+
     template<typename Type, int memDim>
     void operator()(container::HostBuffer<Type, memDim>& dest,
                     container::HostBuffer<Type, memDim>& source,
                     int dir = -1) const;
-                    
+
     inline bool participate() const {return m_participate;}
     inline bool root() const;
     inline int rank() const;

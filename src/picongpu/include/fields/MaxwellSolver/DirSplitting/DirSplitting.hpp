@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #pragma once
 
 #include "DirSplitting.def"
@@ -47,7 +47,7 @@ private:
     void propagate(CursorE cursorE, CursorB cursorB, GridSize gridSize) const
     {
         typedef SuperCellSize BlockDim;
-        
+
         algorithm::kernel::ForeachBlock<BlockDim> foreach;
         foreach(zone::SphericZone<3>(PMacc::math::Size_t<3>(BlockDim::x::value, gridSize.y(), gridSize.z())),
                 cursor::make_NestedCursor(cursorE),
@@ -56,11 +56,11 @@ private:
     }
 public:
     DirSplitting(MappingDesc) {}
-        
+
     void update_beforeCurrent(uint32_t currentStep) const
     {
         typedef SuperCellSize GuardDim;
-    
+
         DataConnector &dc = Environment<>::get().DataConnector();
 
         FieldE& fieldE = dc.getData<FieldE > (FieldE::getName(), true);
@@ -74,43 +74,43 @@ public:
             fieldB.getGridBuffer().getDeviceBuffer().
             cartBuffer().view(GuardDim().toRT(),
                               -GuardDim().toRT()));
-        
+
         using namespace cursor::tools;
         using namespace PMacc::math::tools;
-        
+
         PMacc::math::Size_t<3> gridSize = fieldE_coreBorder.size();
-        
+
         propagate(fieldE_coreBorder.origin(),
                   fieldB_coreBorder.origin(),
                   fieldE_coreBorder.size());
-        
+
         __setTransactionEvent(fieldE.asyncCommunication(__getTransactionEvent()));
         __setTransactionEvent(fieldB.asyncCommunication(__getTransactionEvent()));
-        
+
         typedef PMacc::math::CT::Int<1,2,0> Orientation_Y;
         propagate(twistVectorFieldAxes<Orientation_Y>(fieldE_coreBorder.origin()),
                   twistVectorFieldAxes<Orientation_Y>(fieldB_coreBorder.origin()),
                   twistVectorAxes<Orientation_Y>(gridSize));
-           
+
         __setTransactionEvent(fieldE.asyncCommunication(__getTransactionEvent()));
         __setTransactionEvent(fieldB.asyncCommunication(__getTransactionEvent()));
-        
+
         typedef PMacc::math::CT::Int<2,0,1> Orientation_Z;
         propagate(twistVectorFieldAxes<Orientation_Z>(fieldE_coreBorder.origin()),
                   twistVectorFieldAxes<Orientation_Z>(fieldB_coreBorder.origin()),
                   twistVectorAxes<Orientation_Z>(gridSize));
-        
+
         if (laserProfile::INIT_TIME > float_X(0.0))
             dc.getData<FieldE > (FieldE::getName(), true).laserManipulation(currentStep);
-        
+
         __setTransactionEvent(fieldE.asyncCommunication(__getTransactionEvent()));
         __setTransactionEvent(fieldB.asyncCommunication(__getTransactionEvent()));
     }
-    
+
     void update_afterCurrent(uint32_t) const
     {    }
 };
-    
+
 } // dirSplitting
 
 } // picongpu

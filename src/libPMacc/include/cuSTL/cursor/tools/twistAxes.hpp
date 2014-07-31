@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef CURSOR_TOOLS_TWISTAXIS_HPP
 #define CURSOR_TOOLS_TWISTAXIS_HPP
 
@@ -51,7 +51,7 @@ twistAxes(const TCursor& cursor)
     return Cursor<CursorAccessor<TCursor>, CT::TwistAxesNavigator<Axes>, TCursor>
         (CursorAccessor<TCursor>(), CT::TwistAxesNavigator<Axes>(), cursor);
 }
-    
+
 } // tools
 } // cursor
 } // PMacc

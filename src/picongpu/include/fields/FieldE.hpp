@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 #pragma once
 
@@ -52,9 +52,9 @@ namespace picongpu
         typedef float3_X ValueType;
         typedef typename promoteType<float_64, ValueType>::type UnitValueType;
         static const int numComponents = ValueType::dim;
-        
+
         typedef MappingDesc::SuperCellSize SuperCellSize;
-        
+
         typedef DataBox<PitchedBox<ValueType, simDim> > DataBoxType;
 
 
@@ -63,11 +63,11 @@ namespace picongpu
         virtual ~FieldE();
 
         virtual void reset(uint32_t currentStep);
-        
+
         static UnitValueType getUnit();
-        
+
         static std::string getName();
-        
+
         static uint32_t getCommTag();
 
         virtual EventTask asyncCommunication(EventTask serialEvent);
@@ -77,23 +77,23 @@ namespace picongpu
         DataBoxType getDeviceDataBox();
 
         DataBoxType getHostDataBox();
-        
+
         GridBuffer<ValueType,simDim>& getGridBuffer();
 
         GridLayout<simDim> getGridLayout();
 
         SimulationDataId getUniqueId();
-        
+
         void synchronize();
-        
+
         void syncToDevice();
-        
+
         void laserManipulation(uint32_t currentStep);
 
     private:
 
         void absorbeBorder();
-        
+
 
         GridBuffer<ValueType,simDim> *fieldE;
 

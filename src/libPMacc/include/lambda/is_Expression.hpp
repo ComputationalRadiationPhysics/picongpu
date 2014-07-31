@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef LAMBDA_KERNEL_IS_EXPRESSION_HPP
 #define LAMBDA_KERNEL_IS_EXPRESSION_HPP
 
@@ -36,7 +36,7 @@ struct is_Expression
 {
     typedef mpl::bool_<false> type;
 };
-    
+
 } // lambda
 } // PMacc
 

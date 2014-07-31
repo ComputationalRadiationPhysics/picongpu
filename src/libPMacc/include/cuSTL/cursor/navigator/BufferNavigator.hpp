@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef CURSOR_BUFFERNAVIGATOR_HPP
 #define CURSOR_BUFFERNAVIGATOR_HPP
 
@@ -34,7 +34,7 @@ namespace PMacc
 {
 namespace cursor
 {
-    
+
 template<int _dim>
 class BufferNavigator
 {
@@ -46,7 +46,7 @@ private:
 public:
     HDINLINE
     BufferNavigator(math::Size_t<dim-1> pitch) : pitch(pitch) {}
-    
+
     template<typename Data>
     HDINLINE Data
     operator()(const Data& data, const math::Int<dim>& jump) const
@@ -72,7 +72,7 @@ public:
 public:
     HDINLINE
     BufferNavigator(math::Size_t<dim-1>) {}
-    
+
     template<typename Data>
     HDINLINE Data
     operator()(const Data& data, const math::Int<dim>& jump) const
@@ -85,13 +85,13 @@ public:
 
 namespace traits
 {
-    
+
 template<int _dim>
 struct dim<BufferNavigator<_dim> >
 {
     static const int value = _dim;
 };
-    
+
 } // traits
 
 } //cursor

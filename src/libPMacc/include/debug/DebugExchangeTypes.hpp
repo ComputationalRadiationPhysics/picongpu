@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef DEBUGEXCHANGETYPES_HPP
 #define	DEBUGEXCHANGETYPES_HPP
 
@@ -39,7 +39,7 @@ namespace PMacc
     class DebugExchangeTypes
     {
     public:
-        
+
         /**
          * Converts an exchange type to a string for debugging.
          *
@@ -49,30 +49,30 @@ namespace PMacc
         static std::string exchangeTypeToString(uint32_t exchangeType)
         {
             Mask mask(exchangeType);
-            
+
             std::stringstream stream;
             stream << "[";
 
             if (mask.containsExchangeType(LEFT))
                 stream << "LEFT ";
-            
+
             if (mask.containsExchangeType(RIGHT))
                 stream << "RIGHT ";
-            
+
             if (mask.containsExchangeType(TOP))
                 stream << "TOP ";
-            
+
             if (mask.containsExchangeType(BOTTOM))
                 stream << "BOTTOM ";
-            
+
             if (mask.containsExchangeType(FRONT))
                 stream << "FRONT ";
-            
+
             if (mask.containsExchangeType(BACK))
                 stream << "BACK ";
-            
+
             stream << "]";
-            
+
             return stream.str();
         }
     };

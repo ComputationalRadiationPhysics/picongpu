@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 #include <stdint.h>
 
@@ -62,11 +62,11 @@ public:
 public:
     //////////////////////////////////////////////////////////////////
     // constructors:
-  
+
   HDINLINE Particle(const vec1& locationNow_set, const vec1& momentumOld_set, const vec1& momentumNow_set, const picongpu::float_X mass_set)
     : location_now(locationNow_set), momentum_old(momentumOld_set), momentum_now(momentumNow_set), mass(mass_set)
     {
-    
+
     }
 
 

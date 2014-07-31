@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef ZONE_TORICZONE_HPP
 #define ZONE_TORICZONE_HPP
 
@@ -34,7 +34,7 @@ namespace tag
 {
 struct ToricZone {};
 }
-    
+
 template<int _dim>
 struct ToricZone
 {
@@ -44,7 +44,7 @@ struct ToricZone
     math::Size_t<dim> size;
     uint32_t thickness;
 };
-    
+
 } // zone
 } // PMacc
 

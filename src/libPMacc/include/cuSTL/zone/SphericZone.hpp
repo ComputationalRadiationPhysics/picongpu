@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef ZONE_SPHERICZONE_HPP
 #define ZONE_SPHERICZONE_HPP
 
@@ -31,7 +31,7 @@ namespace PMacc
 {
 namespace zone
 {
-    
+
 namespace tag
 {
 struct SphericZone {};
@@ -51,12 +51,12 @@ struct SphericZone
     static const int dim = _dim;
     math::Size_t<dim> size;
     math::Int<dim> offset;
-    
+
     HDINLINE SphericZone() {}
     HDINLINE SphericZone(const math::Size_t<dim>& size) : size(size), offset(math::Int<dim>(0)) {}
     HDINLINE SphericZone(const math::Size_t<dim>& size,
                          const math::Int<dim>& offset) : size(size), offset(offset) {}
-                         
+
     /* Returns whether pos is within the zone */
     HDINLINE bool within(const PMacc::math::Int<_dim>& pos) const
     {
@@ -66,7 +66,7 @@ struct SphericZone
         return result;
     }
 };
-    
+
 } // zone
 } // PMacc
 

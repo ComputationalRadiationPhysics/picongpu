@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #include "math/vector/Int.hpp"
 #include "math/vector/Float.hpp"
 #include "math/vector/Size_t.hpp"
@@ -61,7 +61,7 @@ void TotalDivJ::pluginLoad()
 struct Div
 {
     typedef float_X result_type;
-    
+
     template<typename Field>
     HDINLINE float_X operator()(Field field) const
     {
@@ -76,12 +76,12 @@ void TotalDivJ::notify(uint32_t currentStep)
     namespace vec = PMacc::math;
     using namespace vec;
     typedef SuperCellSize BlockDim;
-    
+
     DataConnector &dc = Environment<>::get().DataConnector();
-    
+
     container::PseudoBuffer<float3_X, 3> fieldJ
         (dc.getData<FieldJ > (FieldJ::getName(), true).getGridBuffer().getDeviceBuffer());
-        
+
     container::DeviceBuffer<float, 3> fieldDivJ(fieldJ.size());
     zone::SphericZone<3> coreBorderZone(fieldJ.zone().size - precisionCast<size_t>(2*BlockDim::toRT()),
                                         fieldJ.zone().offset + BlockDim::toRT());
@@ -90,15 +90,15 @@ void TotalDivJ::notify(uint32_t currentStep)
     algorithm::kernel::Foreach<BlockDim>()
         (coreBorderZone, fieldDivJ.origin(), cursor::make_NestedCursor(fieldJ.origin()),
             _1 = expr(Div())(_2));
-        
+
     container::DeviceBuffer<float, 1> totalDivJ(1);
     algorithm::kernel::Reduce<BlockDim>()
         (totalDivJ.origin(), coreBorderZone, fieldDivJ.origin(), _1 + _2);
     container::HostBuffer<float, 1> totalDivJ_host(1);
     totalDivJ_host = totalDivJ;
-    
+
     static std::ofstream file("totalDivJ.dat");
-    
+
     file << "step: " << currentStep << ", totalDivJ: "
         << *totalDivJ_host.origin() * CELL_VOLUME * UNIT_CHARGE
         << " Coulomb" << std::endl;

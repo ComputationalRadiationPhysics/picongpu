@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #pragma once
 
 namespace PMacc
@@ -39,13 +39,13 @@ template<typename Buffer>
 struct View : public Buffer
 {
     HDINLINE View() {}
-    
+
     template<typename TBuffer>
     HDINLINE View(const View<TBuffer>& other)
     {
         *this = other;
     }
-    
+
     HDINLINE ~View()
     {
         /* increment the reference counter because the container's destructor decrements it.
@@ -53,7 +53,7 @@ struct View : public Buffer
          */
         (*this->refCount)++;
     }
-    
+
     template<typename TBuffer>
     HDINLINE View& operator=(const View<TBuffer>& other)
     {
@@ -61,7 +61,7 @@ struct View : public Buffer
         this->_size = other._size;
         this->pitch = other.pitch;
         this->refCount = other.refCount;
-        
+
         return *this;
     }
 
@@ -70,7 +70,7 @@ private:
     HDINLINE Buffer&
     operator=(const Buffer& rhs);
 };
-    
-    
+
+
 } // container
 } // PMacc

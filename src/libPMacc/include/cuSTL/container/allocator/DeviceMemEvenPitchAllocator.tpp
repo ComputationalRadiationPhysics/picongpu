@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 namespace PMacc
 {
 namespace allocator
@@ -33,7 +33,7 @@ DeviceMemEvenPitch<Type, _dim>::allocate(const math::Size_t<_dim>& size)
     math::Size_t<_dim-1> pitch;
 
     CUDA_CHECK(cudaMalloc((void**)&dataPointer, sizeof(Type) * size.productOfComponents()));
-    
+
     if (dim == 2u)
     {
         pitch[0] = sizeof(Type) * size[0];
@@ -43,7 +43,7 @@ DeviceMemEvenPitch<Type, _dim>::allocate(const math::Size_t<_dim>& size)
         pitch[0] = sizeof(Type) * size[0];
         pitch[1] = pitch[0] * size[1];
     }
-    
+
     return cursor::BufferCursor<Type, _dim>(dataPointer, pitch);
 }
 
@@ -54,7 +54,7 @@ DeviceMemEvenPitch<Type, 1>::allocate(const math::Size_t<1>& size)
     Type* dataPointer;
 
     CUDA_CHECK(cudaMalloc((void**)&dataPointer, size[0] * sizeof(Type)));
-    
+
     return cursor::BufferCursor<Type, 1>(dataPointer, math::Size_t<0>());
 }
 

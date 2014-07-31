@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 #pragma once
 
@@ -49,7 +49,7 @@ namespace picongpu
         /** Gas Formular:
                     const float_X exponent = fabs((y - GAS_CENTER) / GAS_SIGMA);
                     const float_X density = __expf(GAS_FACTOR*__powf(exponent, GAS_POWER));
-    
+
             takes GAS_CENTER_LEFT for y < GAS_CENTER_LEFT,
                   GAS_CENTER_RIGHT for y > GAS_CENTER_RIGHT,
             and exponent = float_X(0.0) for GAS_CENTER_LEFT < y < GAS_CENTER_RIGHT */
@@ -69,7 +69,7 @@ namespace picongpu
         }
 
     }
-    
+
     namespace gasLinExp
     {
         /** Gas Profile:    /\
@@ -96,7 +96,7 @@ namespace picongpu
             const double GAS_A_SI = 1.0e-3;
         }
             const float_X GAS_B = 0.0;
-            
+
         namespace SI
         {
             /** Parameters for the exponential slope
@@ -120,7 +120,7 @@ namespace picongpu
             const double GAS_LENGTH_SI = 8.0e3;
         }
     }
-    
+
     namespace gasSphereFlanks
     {
         /** The profile consists out of the composition of 3 1D profiles
@@ -144,13 +144,13 @@ namespace picongpu
             /** Inner radius if you want to build a shell/ring
              *  unit: meter */
             const double GAS_RI_SI = 0.0;
-            
+
             /** Middle of the constant sphere
              *  unit: meter */
             const double GAS_X_SI = 8.0e3;
             const double GAS_Y_SI = 8.0e3;
             const double GAS_Z_SI = 8.0e3;
-            
+
             /** Parameters for the exponential slope
              *  For r > GAS_R_SI:
              *    let r' = r - GAS_R_SI
@@ -166,7 +166,7 @@ namespace picongpu
         /** Gas Formular:
                     const float_X exponent = fabs((y - GAS_CENTER) / GAS_SIGMA);
                     const float_X density = __expf(GAS_FACTOR*__powf(exponent, GAS_POWER));
-    
+
             takes GAS_CENTER_LEFT for y < GAS_CENTER_LEFT,
                   GAS_CENTER_RIGHT for y > GAS_CENTER_RIGHT,
             and exponent = float_X(0.0) for GAS_CENTER_LEFT < y < GAS_CENTER_RIGHT */
@@ -180,7 +180,7 @@ namespace picongpu
             const double GAS_CENTER_X_SI = 1.134e-5;
             const double GAS_CENTER_Y_SI = 1.134e-5;
             const double GAS_CENTER_Z_SI = 1.134e-5;
-            
+
             /** the distance from GAS_CENTER until the gas density decreases to its 1/e-th part
              *  unit: meter */
             const double GAS_SIGMA_X_SI = 7.0e-6;
@@ -220,7 +220,7 @@ namespace picongpu
             };
         }
     }
-  
+
 #if (ENABLE_HDF5 == 1)
     namespace gasFromHdf5
     {

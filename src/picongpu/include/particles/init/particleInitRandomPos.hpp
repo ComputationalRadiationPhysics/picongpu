@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #ifndef PARTICLEINITRANDOMPOS_HPP
@@ -68,7 +68,7 @@ namespace picongpu
                 float_X macroWeighting = float_X(0.0);
                 if( numParsPerCell > 0 )
                     macroWeighting = realElPerCell / float_X(numParsPerCell);
-                
+
                 while( macroWeighting < MIN_WEIGHTING &&
                        numParsPerCell > 0 )
                 {

@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 #ifndef _BUFFER_HPP
 #define	_BUFFER_HPP
@@ -48,7 +48,7 @@ namespace PMacc
     public:
 
         typedef DataBox<PitchedBox<TYPE, DIM> > DataBoxType;
-        
+
         /**
          * constructor
          * @param dataSpace description of spread of any dimension
@@ -151,7 +151,7 @@ namespace PMacc
             __startOperation(ITask::TASK_HOST);
             return *current_size;
         }
-        
+
         /*! sets the current size (count of elements)
          * @param newsize new current size
          */
@@ -167,7 +167,7 @@ namespace PMacc
         virtual void setValue(const TYPE& value)=0;
 
         virtual DataBox<PitchedBox<TYPE,DIM> > getDataBox()=0;
-        
+
         inline bool is1D()
         {
             return data1D;
@@ -187,7 +187,7 @@ namespace PMacc
         DataSpace<DIM> data_space;
 
         size_t *current_size;
-        
+
         bool data1D;
 
     };

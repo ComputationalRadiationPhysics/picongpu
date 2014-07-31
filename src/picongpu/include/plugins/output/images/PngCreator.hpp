@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #ifndef PNGCREATOR_HPP
@@ -46,7 +46,7 @@
 namespace picongpu
 {
     using namespace PMacc;
-    
+
 
     struct PngCreator
     {
@@ -120,17 +120,17 @@ namespace picongpu
 
         // global rescales to save disk space
         resizeAndScaleImage(&png, scale_image);
-        
+
         // add some meta information
         //header.writeToConsole( std::cout );
-        
+
         std::ostringstream description( std::ostringstream::out );
         header.writeToConsole( description );
-        
+
         char title[] = "PIConGPU preview image";
         char author[] = "The awesome PIConGPU-Team";
         char software[] = "PIConGPU with PNGwriter";
-        
+
         png.settext( title, author, description.str().c_str(), software);
 
         // write to disk and close object

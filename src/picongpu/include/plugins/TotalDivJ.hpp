@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef ANALYSIS_TOTALDIVJ_HPP
 #define ANALYSIS_TOTALDIVJ_HPP
 
@@ -35,7 +35,7 @@ private:
     std::string name;
     std::string prefix;
     uint32_t notifyFrequency;
-        
+
     void pluginLoad();
 public:
     TotalDivJ(std::string name, std::string prefix);

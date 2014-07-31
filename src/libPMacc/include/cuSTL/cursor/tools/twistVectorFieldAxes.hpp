@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #pragma once
 
 #include <cuSTL/cursor/Cursor.hpp>
@@ -35,7 +35,7 @@ namespace tools
 
 namespace result_of
 {
-    
+
 template<typename Axes, typename TCursor>
 struct TwistVectorFieldAxes
 {
@@ -43,9 +43,9 @@ struct TwistVectorFieldAxes
                    PMacc::cursor::CT::TwistAxesNavigator<Axes>,
                    TCursor> type;
 };
-    
+
 } // result_of
-  
+
 /** Returns a new cursor which looks like a vector field rotated version of the one passed
  *
  * When rotating a vector field in physics the coordinate system and the vectors themselves
@@ -69,7 +69,7 @@ twistVectorFieldAxes(const TCursor& cursor)
         PMacc::cursor::CT::TwistAxesNavigator<Axes>(),
         cursor);
 }
-    
+
 } // tools
 } // cursor
 } // PMacc

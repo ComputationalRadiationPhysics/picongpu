@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #pragma once
 
 
@@ -51,7 +51,7 @@ public:
     void setMappingDescription(MappingDesc*) {}
     void pluginRegisterHelp(po::options_description& desc);
     std::string pluginGetName() const;
-    
+
 private:
     void pluginLoad();
 };

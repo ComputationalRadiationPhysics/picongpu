@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef CURSOR_CURSOR_HPP
 #define CURSOR_CURSOR_HPP
 
@@ -36,7 +36,7 @@ namespace PMacc
 {
 namespace cursor
 {
-    
+
 /** A cursor is used to access a single datum and to jump to another one.
  * It is always located at a certain datum. Think of a generalized iterator.
  * \tparam _Accessor Policy functor class that is called inside operator*().
@@ -75,7 +75,7 @@ public:
     {
         return Accessor::operator()(this->marker);
     }
-    
+
     /* This is a const method which is called for a const cursor object.
      * A const cursor object does *not* mean that the data it points to
      * is neccessarily constant too. This is why here the return type is
@@ -86,7 +86,7 @@ public:
     {
         return Accessor::operator()(this->marker);
     }
-    
+
     /** jumping
      * \param jump Specifies a jump relative to the current selected datum.
      * This is usually a int vector but may be any type that navigator accepts.
@@ -98,30 +98,30 @@ public:
         return This(getAccessor(), getNavigator(),
                     Navigator::operator()(this->marker, jump));
     }
-    
+
     /* convenient method which is available if the navigator accepts a Int<1> */
     HDINLINE This operator()(int x) const
     {
         return (*this)(math::Int<1>(x));
     }
-    
+
     /* convenient method which is available if the navigator accepts a Int<2> */
     HDINLINE This operator()(int x, int y) const
     {
         return (*this)(math::Int<2u>(x, y));
     }
-    
+
     /* convenient method which is available if the navigator accepts a Int<3> */
     HDINLINE This operator()(int x, int y, int z) const
     {
         return (*this)(math::Int<3>(x, y, z));
     }
-    
+
     /* convenient method which is available if the navigator implements operator++ */
     HDINLINE void operator++() {Navigator::operator++;}
     /* convenient method which is available if the navigator implements operator-- */
     HDINLINE void operator--() {Navigator::operator--;}
-    
+
     /* jump and access in one call */
     template<typename Jump>
     HDINLINE
@@ -129,7 +129,7 @@ public:
     {
         return *((*this)(jump));
     }
-    
+
     template<typename Jump>
     HDINLINE
     type operator[](const Jump& jump) const
@@ -141,7 +141,7 @@ public:
     /** \todo: Can be substituted by ordinary functions instead of methods.*/
     HDINLINE void enableChecking() {this->marker.enableChecking();}
     HDINLINE void disableChecking() {this->marker.disableChecking();}
-    
+
     /* getters */
     HDINLINE
     const _Accessor& getAccessor() const {return *this;}
@@ -158,19 +158,19 @@ HDINLINE Cursor<Accessor, Navigator, Marker> make_Cursor
 {
     return Cursor<Accessor, Navigator, Marker>(accessor, navigator, marker);
 }
-           
+
 namespace traits
 {
-    
+
 /* type trait to get the cursor's dimension if it has one */
 template<typename _Accessor, typename _Navigator, typename _Marker>
 struct dim< PMacc::cursor::Cursor<_Accessor, _Navigator, _Marker> >
 {
     static const int value = PMacc::cursor::traits::dim<typename Cursor<_Accessor, _Navigator, _Marker>::Navigator >::value;
 };
-    
+
 } // traits
-    
+
 } // cursor
 } // PMacc
 

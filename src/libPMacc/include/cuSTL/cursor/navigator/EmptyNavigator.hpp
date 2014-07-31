@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef CURSOR_EMPTYNAVIGATOR_HPP
 #define CURSOR_EMPTYNAVIGATOR_HPP
 
@@ -27,7 +27,7 @@ namespace PMacc
 {
 namespace cursor
 {
-    
+
 struct EmptyNavigator
 {
     template<typename Marker, typename Jump>
@@ -37,7 +37,7 @@ struct EmptyNavigator
         return marker;
     }
 };
-    
+
 } // cursor
 } // PMacc
 

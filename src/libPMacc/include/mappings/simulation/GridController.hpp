@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 #ifndef _GRIDCONTROLLER_HPP
 #define	_GRIDCONTROLLER_HPP
@@ -33,7 +33,7 @@
 
 namespace PMacc
 {
-    
+
         /**
          * GridController manages grid information.
          *
@@ -116,7 +116,7 @@ namespace PMacc
             {
                 return comm.getCoordinates();
             }
-    
+
             /**
              * Returns the scalar position (rank) of this GPU,
              * depending on its current grid position
@@ -180,7 +180,7 @@ namespace PMacc
 
                return result;
             }
-    
+
             /**
              * Slides multiple times.
              *
@@ -232,7 +232,7 @@ namespace PMacc
             {
 
             }
-    
+
             /**
              * Sets globalOffset using the current position.
              *
@@ -265,7 +265,7 @@ namespace PMacc
                 static GridController<DIM> instance;
                 return instance;
             }
-            
+
             /**
              * Communicator for MPI
              */

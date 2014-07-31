@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 #ifndef DEBUGDATASPACE_HPP
 #define	DEBUGDATASPACE_HPP
@@ -43,7 +43,7 @@ namespace PMacc
     public:
         static std::string dspToStr(DataSpace<DIM>& dsp);
     };
-    
+
     template <>
     class DebugDataSpace<DIM2>
     {
@@ -51,13 +51,13 @@ namespace PMacc
         static std::string dspToStr(DataSpace<DIM2>& dsp)
         {
             std::stringstream stream;
-            
+
             stream << "(" << dsp.x() << ", " << dsp.y() << ")";
-            
+
             return stream.str();
         }
     };
-    
+
     template <>
     class DebugDataSpace<DIM3>
     {
@@ -65,13 +65,13 @@ namespace PMacc
         static std::string dspToStr(DataSpace<DIM3>& dsp)
         {
             std::stringstream stream;
-            
+
             stream << "(" << dsp.x() << ", " << dsp.y() << ", " << dsp.z() << ")";
-            
+
             return stream.str();
         }
     };
-    
+
 }
 
 #endif	/* DEBUGDATASPACE_HPP */

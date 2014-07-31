@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #include <iostream>
 
 #pragma once
@@ -51,7 +51,7 @@ struct One_minus_beta_times_n
     HDINLINE numtype1 operator()(const vec2& n, const Particle & particle) const
     {
         // 1/gamma^2:
-        
+
         const numtype2 gamma_inv_square(particle.get_gamma_inv_square<When::now > ());
 
         //numtype2 value; // storage for 1-\beta \times \vec n
@@ -62,7 +62,7 @@ struct One_minus_beta_times_n
         // 1-\beta \times \vec n directly
         if (gamma_inv_square < 0.18) // with 0.18 the relativ error will be below 0.001% for Taylor series of order 5
         {
-            
+
             const numtype2 cos_theta(particle.get_cos_theta<When::now > (n)); // cosinus between looking vector and momentum of particle
             const numtype2 taylor_approx(cos_theta * Taylor()(gamma_inv_square) + (1.0 - cos_theta));
             return  (taylor_approx);
@@ -72,7 +72,7 @@ struct One_minus_beta_times_n
             const vec2 beta(particle.get_beta<When::now > ()); // calc v/c=beta
             return  (1.0 - beta * n);
         }
-  
+
     }
 };
 

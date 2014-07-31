@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #pragma once
 
 #include <string>
@@ -43,10 +43,10 @@ public:
 
         strm.avail_in = sizeIn;
         strm.next_in = (Bytef*) in;
-        
+
         strm.avail_out = sizeIn;
         strm.next_out = (Bytef*) out;
-        
+
         ret = deflate(&strm, Z_FINISH);
         assert(ret != Z_STREAM_ERROR);
 

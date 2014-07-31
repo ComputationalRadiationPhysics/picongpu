@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef LAMBDA_KERNEL_EXPRTYPES_H
 #define LAMBDA_KERNEL_EXPRTYPES_H
 
@@ -29,7 +29,7 @@ namespace lambda
 {
 namespace exprTypes
 {
-        
+
 struct terminal;
 struct plus;
 struct minus;
@@ -39,7 +39,7 @@ struct assign;
 struct comma;
 struct call;
 struct subscript;
-    
+
 } // exprTypes
 } // lambda
 } // PMacc

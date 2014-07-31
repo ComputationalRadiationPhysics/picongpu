@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef CURSOR_MULTIINDEXCURSOR
 #define CURSOR_MULTIINDEXCURSOR
 
@@ -32,7 +32,7 @@ namespace PMacc
 {
 namespace cursor
 {
-    
+
 /** construct a cursor where accessing means getting the current position
  * in terms of an 2D, 3D, ... index. Usefull to obtain for example the current cell index.
  * \tparam dim Dimension of the index (say: int-vector)
@@ -49,7 +49,7 @@ cursor::Cursor<cursor::MarkerAccessor<math::Int<dim> >, MultiIndexNavigator<dim>
                        MultiIndexNavigator<dim>(),
                        idx);
 }
-    
+
 } // cursor
 } // PMacc
 

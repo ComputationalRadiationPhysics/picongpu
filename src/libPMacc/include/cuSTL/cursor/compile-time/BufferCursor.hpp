@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef CURSOR_CTBUFFERCURSOR_HPP
 #define CURSOR_CTBUFFERCURSOR_HPP
 
@@ -34,7 +34,7 @@ namespace cursor
 {
 namespace CT
 {
-    
+
 /** Compile-time version of cursor::BufferCursor where pitch is a compile-time vector
  */
 template<typename Type, typename Pitch>
@@ -44,23 +44,23 @@ struct BufferCursor : public Cursor<PointerAccessor<Type>,
     HDINLINE BufferCursor(Type* pointer)
         : Cursor<PointerAccessor<Type>, CT::BufferNavigator<Pitch>, Type*>
             (PointerAccessor<Type>(), CT::BufferNavigator<Pitch>(), pointer) {}
-    
+
     HDINLINE BufferCursor(const Cursor<PointerAccessor<Type>,
                                    CT::BufferNavigator<Pitch>, Type*>& cur)
         : Cursor<PointerAccessor<Type>, CT::BufferNavigator<Pitch>, Type*>(cur) {}
 };
-    
+
 } // CT
 
 namespace traits
 {
-    
+
 template<typename Type, typename Pitch>
 struct dim<CT::BufferCursor<Type, Pitch> >
 {
     const static int value = Pitch::dim + 1;
 };
-    
+
 } // traits
 
 } // cursor

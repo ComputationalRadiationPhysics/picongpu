@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef ALLOCATOR_HOSTMEMALLOCATOR_HPP
 #define ALLOCATOR_HOSTMEMALLOCATOR_HPP
 
@@ -32,7 +32,7 @@ namespace PMacc
 {
 namespace allocator
 {
-    
+
 template<typename Type, int _dim>
 struct HostMemAllocator
 {

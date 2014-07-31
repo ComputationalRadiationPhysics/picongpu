@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #include <set>
 
 #include "types.h"
@@ -29,7 +29,7 @@
 
 namespace PMacc
 {
-    
+
         inline void EventNotify::notify( id_t eventId, EventType type, IEventData *data )
         {
             std::set<IEvent*>::iterator iter = observers.begin( );

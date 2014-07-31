@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef _TASKCOPYDEVICETOHOST_HPP
 #define	_TASKCOPYDEVICETOHOST_HPP
 

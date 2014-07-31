@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #pragma once
 
 #include <math/vector/navigator/PermutedNavigator.hpp>
@@ -31,10 +31,10 @@ namespace math
 {
 namespace tools
 {
-    
+
 namespace result_of
 {
-    
+
 template<typename T_Axes,
 typename T_Vector>
 struct TwistVectorAxes
@@ -52,9 +52,9 @@ struct TwistVectorAxes<T_Axes,math::Vector<T_Type,T_Dim,T_Accessor,T_Navigator,T
     typedef math::Vector<T_Type, T_Dim, T_Accessor,
             math::StackedNavigator<T_Navigator, math::PermutedNavigator<T_Axes> >,T_Storage >& type;
 };
-    
+
 } // result_of
-    
+
 /** Returns a reference of vector with twisted axes.
  *
  * The axes twist operation is done in place. This means that the result refers to the
@@ -77,7 +77,7 @@ twistVectorAxes(T_Vector& vector)
      */
     return reinterpret_cast<typename result_of::TwistVectorAxes<T_Axes, T_Vector>::type>(vector);
 }
-    
+
 } // tools
 } // math
 } // PMacc

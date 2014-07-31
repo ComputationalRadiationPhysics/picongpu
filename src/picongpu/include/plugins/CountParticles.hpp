@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #ifndef COUNTPARTICLES_HPP
@@ -184,7 +184,7 @@ private:
                &size,
                1,
                mpi::reduceMethods::Reduce());
-        
+
         if (writeToFile)
         {
             if (picLog::log_level & picLog::CRITICAL::lvl)

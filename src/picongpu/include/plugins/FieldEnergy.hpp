@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef ANALYSIS_FIELDENERGY_HPP
 #define ANALYSIS_FIELDENERGY_HPP
 
@@ -35,7 +35,7 @@ private:
     std::string name;
     std::string prefix;
     uint32_t notifyFrequency;
-        
+
     void pluginLoad();
 public:
     FieldEnergy(std::string name, std::string prefix);

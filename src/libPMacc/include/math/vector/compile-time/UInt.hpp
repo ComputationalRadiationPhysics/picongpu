@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #pragma once
 
 #include <stdint.h>
@@ -66,7 +66,7 @@ struct UInt<x, y> : public CT::Vector<mpl::integral_c<uint32_t, x>,
 {};
 
 
-    
+
 } // CT
 } // math
 } // PMacc

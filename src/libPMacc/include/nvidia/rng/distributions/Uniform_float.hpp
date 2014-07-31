@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 #ifndef UNIFORM_FLOAT_HPP
 #define	UNIFORM_FLOAT_HPP
@@ -52,7 +52,7 @@ namespace PMacc
                     {
                         // (0.f, 1.0f]
                         const Type raw = curand_uniform(state);
-                        
+
                         /// \warn hack, are is that really ok? I say, yes, since
                         /// it shifts just exactly one number. Axel
                         ///

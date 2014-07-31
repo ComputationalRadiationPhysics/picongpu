@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 #ifndef _FACTORY_HPP
 #define	_FACTORY_HPP
@@ -40,7 +40,7 @@ namespace PMacc
     class Exchange;
 
     class TaskKernel;
-        
+
     /**
      * Singleton Factory-pattern class for creation of several types of EventTasks.
      * Tasks are not actually 'returned' but immediately initialised and
@@ -165,15 +165,15 @@ namespace PMacc
         EventTask startTask(ITask& task, ITask *registeringTask);
 
     private:
-        
+
         friend Environment<DIM1>;
         friend Environment<DIM2>;
         friend Environment<DIM3>;
-        
+
         Factory() {};
 
         Factory(const Factory&) { };
-        
+
         static Factory& getInstance()
         {
             static Factory instance;

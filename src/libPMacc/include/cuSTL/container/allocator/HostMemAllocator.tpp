@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 namespace PMacc
 {
 namespace allocator
@@ -43,7 +43,7 @@ HostMemAllocator<Type, _dim>::allocate(const math::Size_t<_dim>& size)
         pitch[0] = size[0] * sizeof(Type);
         pitch[1] = pitch[0] * size[1];
     }
-    
+
     return cursor::BufferCursor<Type, _dim>(dataPointer, pitch);
 #endif
 
@@ -63,7 +63,7 @@ HostMemAllocator<Type, 1>::allocate(const math::Size_t<1>& size)
     math::Size_t<0> pitch;
 
     CUDA_CHECK_NO_EXCEP(cudaMallocHost((void**)&dataPointer, sizeof(Type) * size.productOfComponents()));
-    
+
     return cursor::BufferCursor<Type, 1>(dataPointer, pitch);
 #endif
 

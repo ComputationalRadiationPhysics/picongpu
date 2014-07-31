@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #include "math/vector/Size_t.hpp"
 #include "math/Vector.hpp"
 #include "cuSTL/zone/SphericZone.hpp"
@@ -31,20 +31,20 @@ namespace algorithm
 {
 namespace kernel
 {
-    
+
 template<>
 template<typename Zone, typename DestCursor, typename SrcCursor>
 void FFT<2>::operator()(const Zone& _zone, const DestCursor& destCursor, const SrcCursor& srcCursor)
 {
     cufftHandle plan;
     CUFFT_CHECK(cufftPlan2d(&plan, _zone.size.x(), _zone.size.y(), CUFFT_R2C));
-    
+
     CUFFT_CHECK(cufftExecR2C(plan, (cufftReal*)&(*(srcCursor(_zone.offset))),
                         (cufftComplex*)&(*destCursor(_zone.offset))));
-    
+
     CUFFT_CHECK(cufftDestroy(plan));
 }
-    
+
 } // kernel
 } // algorithm
 } // PMacc

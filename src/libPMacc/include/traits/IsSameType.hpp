@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #pragma once
 
 namespace PMacc
@@ -37,11 +37,11 @@ namespace PMacc
     {
         static const bool result = false;
     };
-    
+
     template< typename T1 >
     struct IsSameType< T1, T1 >
     {
         static const bool result = true;
     };
-    
+
 } // namespace PMacc

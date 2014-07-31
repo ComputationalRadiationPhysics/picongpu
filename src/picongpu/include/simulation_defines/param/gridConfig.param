@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #pragma once
@@ -47,16 +47,16 @@ namespace picongpu
         {32, 32},  /*y direction [negative,positive]*/
         {32, 32}   /*z direction [negative,positive]*/
     }; //unit: number of cells
-    
+
     //! Define the strange of the absober for any direction
     const float_X ABSORBER_STRENGTH[3][2] = {
         {1.0e-3, 1.0e-3}, /*x direction [negative,positive]*/
         {1.0e-3, 1.0e-3}, /*y direction [negative,positive]*/
         {1.0e-3, 1.0e-3}  /*z direction [negative,positive]*/
     }; //unit: none
-    
+
     const uint32_t ABSORBER_FADE_IN_STEPS = 16;
-    
+
     /** When to move the co-moving window.
      *  An initial pseudo particle, flying with the speed of light,
      *  is fired at the begin of the simulation.

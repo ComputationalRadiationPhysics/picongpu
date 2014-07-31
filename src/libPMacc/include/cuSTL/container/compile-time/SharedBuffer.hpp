@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef CONTAINER_CT_SHAREDBUFFER_HPP
 #define CONTAINER_CT_SHAREDBUFFER_HPP
 
@@ -32,7 +32,7 @@ namespace container
 {
 namespace CT
 {
-    
+
 /* typedef version of container::CT::CartBuffer for shared mem on a GPU inside a cuda kernel.
  * \param uid If two containers in one kernel have the same Type and Size,
  * uid has to be different. This is due to a nvcc bug.
@@ -42,7 +42,7 @@ struct SharedBuffer
  : public CT::CartBuffer<Type, Size,
                          allocator::CT::SharedMemAllocator<Type, Size, Size::dim, uid>, void, void>
 {};
-    
+
 } // CT
 } // container
 } // PMacc

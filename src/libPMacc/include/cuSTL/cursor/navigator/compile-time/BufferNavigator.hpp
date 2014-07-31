@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef CURSOR_CTBUFFERNAVIGATOR_HPP
 #define CURSOR_CTBUFFERNAVIGATOR_HPP
 
@@ -32,10 +32,10 @@ namespace cursor
 {
 namespace CT
 {
-    
+
 template<typename Pitch, int dim = Pitch::dim + 1>
 struct BufferNavigator;
-    
+
 template<typename Pitch>
 struct BufferNavigator<Pitch, 1>
 {
@@ -83,7 +83,7 @@ struct BufferNavigator<Pitch, 3>
         return (Data)result;
     }
 };
-    
+
 } // CT
 } // cursor
 } // PMacc

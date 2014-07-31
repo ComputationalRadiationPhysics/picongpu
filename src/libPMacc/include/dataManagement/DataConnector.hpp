@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #pragma once
 
 #include <map>
@@ -109,12 +109,12 @@ namespace PMacc
                     ISimulationData& data = datasets.mapping[id]->getData();
 
                     initialiser.init(data, currentStep);
-                    
+
                     if (!datasets.sorter->hasNext())
                         break;
                 }
             }
-            
+
             initialiser.teardown();
         }
 
@@ -161,13 +161,13 @@ namespace PMacc
 
             if (iter == datasets.mapping.end())
                 throw std::runtime_error(getExceptionStringForID("Invalid DataConnector dataset ID", id));
-            
+
             Dataset * dataset = iter->second;
             if (!noSync)
             {
                 dataset->synchronize();
             }
-            
+
             return (TYPE&) (dataset->getData());
         }
 
@@ -181,11 +181,11 @@ namespace PMacc
         }
 
     private:
-        
+
         friend Environment<DIM1>;
         friend Environment<DIM2>;
         friend Environment<DIM3>;
-        
+
         static DataConnector& getInstance()
         {
             static DataConnector instance;
@@ -211,7 +211,7 @@ namespace PMacc
                 datasets.sorter = NULL;
             }
         }
-        
+
         std::string getExceptionStringForID(const char *msg, SimulationDataId id)
         {
             std::stringstream stream;

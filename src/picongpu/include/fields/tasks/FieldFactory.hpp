@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #ifndef _FIELDFACTORY_HPP
@@ -77,7 +77,7 @@ namespace PMacc
             static FieldFactory instance;
             return instance;
         }
-        
+
     private:
 
         FieldFactory() { };

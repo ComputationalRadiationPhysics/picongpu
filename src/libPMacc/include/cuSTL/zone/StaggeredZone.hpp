@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef ZONE_STAGGEREDZONE_HPP
 #define ZONE_STAGGEREDZONE_HPP
 
@@ -35,7 +35,7 @@ namespace tag
 {
 struct StaggeredZone {};
 }
-    
+
 template<int _dim>
 struct StaggeredZone : public SphericZone<_dim>
 {
@@ -43,7 +43,7 @@ struct StaggeredZone : public SphericZone<_dim>
     math::UInt<dim> staggered;
     math::UInt<dim> staggeredOffset;
 };
-    
+
 } // zone
 } // PMacc
 

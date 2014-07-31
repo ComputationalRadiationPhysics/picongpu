@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 #ifndef TRUEFILTER_HPP
 #define	TRUEFILTER_HPP
@@ -30,7 +30,7 @@
 
 namespace PMacc
 {
-    
+
 
     class TrueFilter
     {

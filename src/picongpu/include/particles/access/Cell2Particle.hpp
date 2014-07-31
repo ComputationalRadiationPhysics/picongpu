@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef particleAccess_PARTICLE2CELL_HPP
 #define particleAccess_PARTICLE2CELL_HPP
 
@@ -29,28 +29,28 @@
 
 namespace particleAccess
 {
-    
+
 #define TEMPLATE_ARGS(Z, N, _) typename Arg ## N
 #define NORMAL_ARGS(Z, N, _) Arg ## N arg ## N
-    
+
 #define CELL2PARTICLE_OPERATOR(Z, N, _) \
     template<typename TParticlesBox, typename CellIndex, typename Functor BOOST_PP_ENUM_TRAILING(N, TEMPLATE_ARGS, _)> \
     DINLINE void operator()(TParticlesBox pb, const CellIndex& cellIndex, Functor functor BOOST_PP_ENUM_TRAILING(N, NORMAL_ARGS, _)); \
 
-    
+
 //template<typename ParticleAttributes>
 template<typename SuperCellSize>
 struct Cell2Particle
 {
     typedef void result_type;
-    
+
     BOOST_PP_REPEAT(5, CELL2PARTICLE_OPERATOR, _)
 };
 
 #undef CELL2PARTICLE_OPERATOR
 #undef TEMPLATE_ARGS
 #undef NORMAL_ARGS
-    
+
 }
 
 #include "Cell2Particle.tpp"

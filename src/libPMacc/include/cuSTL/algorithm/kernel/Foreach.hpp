@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef ALGORITHM_KERNEL_FOREACH_HPP
 #define ALGORITHM_KERNEL_FOREACH_HPP
 
@@ -46,7 +46,7 @@ namespace algorithm
 {
 namespace kernel
 {
-    
+
 #ifndef FOREACH_KERNEL_MAX_PARAMS
 #define FOREACH_KERNEL_MAX_PARAMS 4
 #endif
@@ -71,7 +71,7 @@ namespace kernel
                   /* c0_shifted, c1_shifted, ... */                                                         \
             (mapper, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _), lambda::make_Functor(functor));                   \
     }
-    
+
 /** Foreach algorithm that calls a cuda kernel
  *
  * \tparam BlockDim 3D compile-time vector (PMacc::math::CT::Int) of the size of the cuda blockDim.
@@ -94,11 +94,11 @@ struct Foreach
      */
     BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(FOREACH_KERNEL_MAX_PARAMS), FOREACH_OPERATOR, _)
 };
-       
+
 #undef FOREACH_OPERATOR
 #undef SHIFT_CURSOR_ZONE
 #undef SHIFTED_CURSOR
-    
+
 } // kernel
 } // algorithm
 } // PMacc

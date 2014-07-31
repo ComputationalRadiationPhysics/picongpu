@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef CURSOR_BUFFERCURSOR_HPP
 #define CURSOR_BUFFERCURSOR_HPP
 
@@ -33,7 +33,7 @@ namespace PMacc
 {
 namespace cursor
 {
-    
+
 /** The most common cursor typedef
  *
  * BufferCursor does access and jumping on a cartesian memory buffer.
@@ -55,7 +55,7 @@ struct BufferCursor
     BufferCursor(Type* pointer, math::Size_t<dim-1> pitch)
      : Cursor<PointerAccessor<Type>, BufferNavigator<dim>, Type*>
             (PointerAccessor<Type>(), BufferNavigator<dim>(pitch), pointer) {}
-            
+
     HDINLINE
     BufferCursor(const Cursor<PointerAccessor<Type>, BufferNavigator<dim>, Type*>& other)
      : Cursor<PointerAccessor<Type>, BufferNavigator<dim>, Type*>(other) {}
@@ -71,7 +71,7 @@ struct dim<BufferCursor<Type, _dim> >
     static const int value = PMacc::cursor::traits::dim<
         Cursor<PointerAccessor<Type>, BufferNavigator<_dim>, Type*> >::value;
 };
-    
+
 } // traits
 
 } // cursor

@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef CURSOR_POINTERACCESSOR_HPP
 #define CURSOR_POINTERACCESSOR_HPP
 
@@ -27,12 +27,12 @@ namespace PMacc
 {
 namespace cursor
 {
-    
+
 template<typename Type>
 struct PointerAccessor
 {
     typedef Type& type;
-    
+
     /** Returns the dereferenced pointer of type 'Type'
      *
      * Here a reference is returned because one expects a reference
@@ -46,7 +46,7 @@ struct PointerAccessor
         return *((Type*)data);
     }
 };
-    
+
 } // cursor
 } // PMacc
 

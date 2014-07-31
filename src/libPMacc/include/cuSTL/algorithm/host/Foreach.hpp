@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef ALGORITHM_HOST_FOREACH_HPP
 #define ALGORITHM_HOST_FOREACH_HPP
 
@@ -41,7 +41,7 @@ namespace algorithm
 {
 namespace host
 {
-    
+
 #ifndef FOREACH_HOST_MAX_PARAMS
 #define FOREACH_HOST_MAX_PARAMS 4
 #endif
@@ -106,7 +106,7 @@ namespace detail
             }                                                                  \
         }                                                                      \
     }
-    
+
 /** Foreach algorithm (restricted to 3D)
  */
 struct Foreach
@@ -127,7 +127,7 @@ struct Foreach
 #undef FOREACH_OPERATOR
 #undef SHIFT_CURSOR_ZONE
 #undef SHIFTACCESS_SHIFTEDCURSOR
-    
+
 } // host
 } // algorithm
 } // PMacc

@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #pragma once
@@ -53,7 +53,7 @@ namespace picongpu
         typedef float3_X ValueType;
         typedef typename promoteType<float_64, ValueType>::type UnitValueType;
         static const int numComponents = ValueType::dim;
-        
+
         typedef DataBox<PitchedBox<ValueType, simDim> > DataBoxType;
 
         typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -63,11 +63,11 @@ namespace picongpu
         virtual ~FieldB();
 
         virtual void reset(uint32_t currentStep);
-        
+
         static UnitValueType getUnit();
-        
+
         static std::string getName();
-        
+
         static uint32_t getCommTag();
 
         virtual EventTask asyncCommunication(EventTask serialEvent);

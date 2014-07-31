@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 #ifndef NORMAL_FLOAT_HPP
 #define	NORMAL_FLOAT_HPP

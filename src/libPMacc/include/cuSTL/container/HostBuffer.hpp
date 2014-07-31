@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef CONTAINER_HOSTBUFFER_HPP
 #define CONTAINER_HOSTBUFFER_HPP
 
@@ -66,22 +66,22 @@ public:
     HostBuffer(size_t x, size_t y) : Base(x, y) {}
     HostBuffer(size_t x, size_t y, size_t z) : Base(x, y, z) {}
     HostBuffer(const Base& base) : Base(base) {}
-    
+
     template<typename DBuffer>
     HostBuffer<Type, dim>& operator=(const DBuffer& rhs)
     {
         BOOST_STATIC_ASSERT((boost::is_same<typename DBuffer::memoryTag, allocator::tag::device>::value));
         BOOST_STATIC_ASSERT((boost::is_same<typename DBuffer::type, Type>::value));
         BOOST_STATIC_ASSERT(DBuffer::dim == dim);
-    
+
         cudaWrapper::Memcopy<dim>()(this->dataPointer, this->pitch, rhs.getDataPointer(), rhs.getPitch(),
                                 this->_size, cudaWrapper::flags::Memcopy::deviceToHost);
 
         return *this;
     }
-    
+
 };
-    
+
 } // container
 } // PMacc
 

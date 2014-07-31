@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #pragma once
@@ -41,11 +41,11 @@ namespace picongpu
         virtual void init()
         {
         }
-        
+
         virtual void printInformation()
         {
         }
-        
+
         void notify(uint32_t)
         {
         }

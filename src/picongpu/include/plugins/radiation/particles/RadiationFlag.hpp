@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #pragma once
@@ -29,7 +29,7 @@
 namespace picongpu
 {
     using namespace PMacc;
-    
+
 
     template<class Base = NullFrame>
     class RadiationFlag : public Base

@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #ifndef ARGSPARSER_HPP
@@ -34,7 +34,7 @@
 namespace picongpu
 {
     namespace po = boost::program_options;
-    
+
     /**
      * Parses configuration arguments from command line and/or a configuration file.
      * Call init() before usage.
@@ -43,14 +43,14 @@ namespace picongpu
     class ArgsParser
     {
     public:
-        
+
         /**
          * Returns an instance of ArgsParser
          *
          * @return an instance
          */
         static ArgsParser& getInstance();
-        
+
         void addOptions(po::options_description desc)
         {
             options.push_back(desc);
@@ -74,7 +74,7 @@ namespace picongpu
         ArgsParser();
 
         ArgsParser(ArgsParser& cc);
-        
+
         std::list<po::options_description> options;
     };
 

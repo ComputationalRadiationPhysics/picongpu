@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef CONTAINER_DEVICEBUFFER_HPP
 #define CONTAINER_DEVICEBUFFER_HPP
 
@@ -53,11 +53,11 @@ private:
                                   copier::D2DCopier<dim>,
                                   assigner::DeviceMemAssigner<dim> > Base;
     typedef DeviceBuffer<Type, dim> This;
-    
+
 ///\todo: make protected
 public:
     HDINLINE DeviceBuffer() {}
-    
+
     BOOST_COPYABLE_AND_MOVABLE(This)
 public:
     /* constructors
@@ -72,7 +72,7 @@ public:
     HDINLINE DeviceBuffer(size_t x, size_t y) : Base(x, y) {}
     HDINLINE DeviceBuffer(size_t x, size_t y, size_t z) : Base(x, y, z) {}
     HDINLINE DeviceBuffer(const Base& base) : Base(base) {}
-    
+
     template<typename HBuffer>
     HDINLINE
     DeviceBuffer<Type, dim>& operator=(const HBuffer& rhs)
@@ -80,17 +80,17 @@ public:
         BOOST_STATIC_ASSERT((boost::is_same<typename HBuffer::memoryTag, allocator::tag::host>::value));
         BOOST_STATIC_ASSERT((boost::is_same<typename HBuffer::type, Type>::value));
         BOOST_STATIC_ASSERT(dim == HBuffer::dim);
-    
+
         cudaWrapper::Memcopy<dim>()(this->dataPointer, this->pitch, rhs.getDataPointer(), rhs.getPitch(),
                                 this->_size, cudaWrapper::flags::Memcopy::hostToDevice);
 
         return *this;
     }
-    
+
     //friend class ::PMacc::DeviceBuffer<Type, dim>;
     //friend class ::PMacc::HostBuffer<Type, dim>;
 };
-    
+
 } // container
 } // PMacc
 

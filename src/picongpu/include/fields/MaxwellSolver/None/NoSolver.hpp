@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #pragma once
@@ -33,39 +33,39 @@ namespace picongpu
     namespace noSolver
     {
         using namespace PMacc;
-        
+
 
         class NoSolver
         {
         private:
             typedef MappingDesc::SuperCellSize SuperCellSize;
-    
+
             MappingDesc cellDescription;
-    
+
             template<uint32_t AREA>
             void updateE()
             {
                 return;
             }
-    
+
             template<uint32_t AREA>
             void updateBHalf()
             {
                 return;
             }
-    
+
         public:
-        
+
             NoSolver(MappingDesc cellDescription) : cellDescription(cellDescription)
             {
 
             }
-    
+
             void update_beforeCurrent(uint32_t)
             {
 
             }
-    
+
             void update_afterCurrent(uint32_t)
             {
 

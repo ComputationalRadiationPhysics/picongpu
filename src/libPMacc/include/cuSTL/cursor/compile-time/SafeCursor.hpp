@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef CURSOR_CT_SAVECURSOR_HPP
 #define CURSOR_CT_SAVECURSOR_HPP
 
@@ -47,21 +47,21 @@ public:
     HDINLINE SafeCursor(const Cursor& cursor)
         : Cursor(cursor), offset(math::Int<dim>(0))
     {}
-    
+
     HDINLINE
     typename Cursor::type operator*()
     {
         checkValidity();
         return Cursor::operator*();
     }
-    
+
     HDINLINE
     typename boost::add_const<typename Cursor::type>::type operator*() const
     {
         checkValidity();
         return Cursor::operator*();
     }
-    
+
     template<typename Jump>
     HDINLINE
     This operator()(const Jump& jump) const
@@ -70,35 +70,35 @@ public:
         result.offset = this->offset + jump;
         return result;
     }
-    
+
     HDINLINE
     This operator()(int x) const
     {
         return (*this)(math::Int<1>(x));
     }
-    
+
     HDINLINE
     This operator()(int x, int y) const
     {
         return (*this)(math::Int<2>(x, y));
     }
-    
+
     HDINLINE
     This operator()(int x, int y, int z) const
     {
         return (*this)(math::Int<3>(x, y, z));
     }
-    
+
     HDINLINE void operator++() {this->jump[0]++; Cursor::operator++;}
     HDINLINE void operator--() {this->jump[0]--; Cursor::operator--;}
-    
+
     template<typename Jump>
     HDINLINE
     typename Cursor::type operator[](const Jump& jump)
     {
         return *((*this)(jump));
     }
-    
+
     template<typename Jump>
     HDINLINE
     typename Cursor::type operator[](const Jump& jump) const

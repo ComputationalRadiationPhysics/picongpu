@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #include "cuSTL/container/allocator/tag.h"
 #include <iostream>
 #include <eventSystem/EventSystem.hpp>
@@ -57,10 +57,10 @@ namespace detail
                                      (char*)cursor(0, 0, 1).getMarker() - (char*)cursor.getMarker());
         }
     };
-    
+
     template<typename MemoryTag>
     HDINLINE void notifyEventSystem() {}
-    
+
     template<>
     HDINLINE void notifyEventSystem<allocator::tag::device>()
     {
@@ -69,7 +69,7 @@ namespace detail
         __startOperation(ITask::TASK_CUDA);
 #endif
     }
-    
+
     template<>
     HDINLINE void notifyEventSystem<allocator::tag::host>()
     {
@@ -180,7 +180,7 @@ CartBuffer<Type, _dim, Allocator, Copier, Assigner>::operator=
 (BOOST_RV_REF(CartBuffer<Type COMMA _dim COMMA Allocator COMMA Copier COMMA Assigner>) rhs)
 {
     if(this->dataPointer == rhs.dataPointer) return *this;
-    
+
     exit();
     this->dataPointer = rhs.dataPointer;
     this->refCount = rhs.refCount;
@@ -200,9 +200,9 @@ CartBuffer<Type, _dim, Allocator, Copier, Assigner>::view
     a = (a + (math::Int<_dim>)this->size()) % (math::Int<_dim>)this->size();
     b = (b + (math::Int<_dim>)this->size())
             % ((math::Int<_dim>)this->size() + math::Int<_dim>(1));
-            
+
     View<CartBuffer<Type, _dim, Allocator, Copier, Assigner> > result;
-    
+
     result.dataPointer = &(*origin()(a));
     result._size = (math::Size_t<_dim>)(b - a);
     result.pitch = this->pitch;
@@ -245,9 +245,9 @@ CartBuffer<Type, _dim, Allocator, Copier, Assigner>::originCustomAxes(const math
     for(int i = 0; i < dim; i++)
         customFactor[i] = (int)factor[axes[i]];
     cursor::CartNavigator<dim> navi(customFactor);
-    
+
     detail::notifyEventSystem<typename Allocator::tag>();
-    
+
     return cursor::Cursor<cursor::PointerAccessor<Type>, cursor::CartNavigator<dim>, char*>
             (cursor::PointerAccessor<Type>(), navi, (char*)this->dataPointer);
 }

@@ -19,7 +19,7 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef CURSOR_FUNCTORACCESSOR_HPP
 #define CURSOR_FUNCTORACCESSOR_HPP
 
@@ -31,16 +31,16 @@ namespace PMacc
 {
 namespace cursor
 {
-    
+
 template<typename _Functor, typename ArgType>
 struct FunctorAccessor
 {
     _Functor functor;
-    
+
     typedef typename ::PMacc::result_of::Functor<_Functor, ArgType>::type type;
-    
+
     HDINLINE FunctorAccessor(const _Functor& functor) : functor(functor) {}
-    
+
     template<typename TCursor>
     HDINLINE type operator()(TCursor& cursor)
     {
@@ -49,10 +49,10 @@ struct FunctorAccessor
          */
         return this->functor(forward(*cursor));
     }
-    
+
     ///\todo: implement const method here with a const TCursor& argument and 'type' as return type.
 };
-    
+
 } // cursor
 } // PMacc
 

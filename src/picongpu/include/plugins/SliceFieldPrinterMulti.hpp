@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #pragma once
@@ -28,7 +28,7 @@
 
 namespace picongpu
 {
-    
+
 using namespace PMacc;
 
 namespace po = boost::program_options;
@@ -47,10 +47,10 @@ private:
     std::vector<float_X> slicePoint;
     MappingDesc *cellDescription;
     std::vector<SliceFieldPrinter<Field> > childs;
-        
+
     void pluginLoad();
     void pluginUnload();
-    
+
 public:
     SliceFieldPrinterMulti(std::string name, std::string prefix);
     virtual ~SliceFieldPrinterMulti() {}
