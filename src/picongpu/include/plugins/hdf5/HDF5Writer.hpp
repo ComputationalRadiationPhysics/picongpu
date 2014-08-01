@@ -65,8 +65,8 @@
 
 #include "plugins/hdf5/WriteFields.hpp"
 #include "plugins/hdf5/WriteSpecies.hpp"
+#include "plugins/hdf5/restart/LoadSpecies.hpp"
 #include "plugins/hdf5/restart/RestartFieldLoader.hpp"
-#include "plugins/hdf5/restart/RestartParticleLoader.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
 
 namespace picongpu
@@ -114,7 +114,14 @@ public:
             ("hdf5.checkpoint-file", po::value<std::string > (&checkpointFilename),
              "Optional HDF5 checkpoint filename (prefix)")
             ("hdf5.restart-file", po::value<std::string > (&restartFilename),
-             "HDF5 restart filename (prefix)");
+             "HDF5 restart filename (prefix)")
+            /* 1,000,000 particles are around 3900 frames at 256 particles per frame
+             * and match ~30MiB with typical picongpu particles.
+             * The only reason why we use 1M particles per chunk is that we can get a
+             * frame overflow in our memory manager if we process all particles in one kernel.
+             **/
+            ("hdf5.restart-chunkSize", po::value<uint32_t > (&restartChunkSize)->default_value(1000000),
+             "Number of particles processed in one kernel call during restart to prevent frame count blowup");
     }
 
     std::string pluginGetName() const
@@ -126,6 +133,7 @@ public:
     {
 
         this->cellDescription = cellDescription;
+        mThreadParams.cellDescription = this->cellDescription;
     }
 
     __host__ void notify(uint32_t currentStep)
@@ -145,10 +153,10 @@ public:
         const uint32_t maxOpenFilesPerNode = 4;
         GridController<simDim> &gc = Environment<simDim>::get().GridController();
         mThreadParams.dataCollector = new ParallelDomainCollector(
-                        gc.getCommunicator().getMPIComm(),
-                        gc.getCommunicator().getMPIInfo(),
-                        splashMpiSize,
-                        maxOpenFilesPerNode);
+                                                                  gc.getCommunicator().getMPIComm(),
+                                                                  gc.getCommunicator().getMPIInfo(),
+                                                                  splashMpiSize,
+                                                                  maxOpenFilesPerNode);
 
         mThreadParams.currentStep = restartStep;
 
@@ -182,7 +190,7 @@ public:
 
         /* apply slides to set gpus to last/written configuration */
         log<picLog::INPUT_OUTPUT > ("Setting slide count for moving window to %1%") % slides;
-        MovingWindow::getInstance().setSlideCounter(slides,restartStep);
+        MovingWindow::getInstance().setSlideCounter(slides, restartStep);
         gc.setNumSlides(slides);
 
         /* set window for restart, complete global domain */
@@ -199,8 +207,8 @@ public:
         forEachLoadFields(params);
 
         /* load all particles */
-        ForEach<FileCheckpointParticles, LoadParticles<bmpl::_1> > forEachLoadSpecies;
-        forEachLoadSpecies(params);
+        ForEach<FileCheckpointParticles, LoadSpecies<bmpl::_1> > forEachLoadSpecies;
+        forEachLoadSpecies(params, restartChunkSize);
 
         /* close datacollector */
         log<picLog::INPUT_OUTPUT > ("HDF5 close DataCollector with file: %1%") % restartFilename;
@@ -278,13 +286,15 @@ private:
             if (!boost::filesystem::path(checkpointFilename).has_root_path())
             {
                 fname = checkpointDirectory + std::string("/") + checkpointFilename;
-            } else
+            }
+            else
             {
                 fname = checkpointFilename;
             }
 
             mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(currentStep);
-        } else
+        }
+        else
         {
             mThreadParams.window = MovingWindow::getInstance().getWindow(currentStep);
         }
@@ -295,8 +305,8 @@ private:
             if (mThreadParams.window.globalDimensions.offset[i] > domInfo.localDomain.offset[i])
             {
                 mThreadParams.localWindowToDomainOffset[i] =
-                        mThreadParams.window.globalDimensions.offset[i] -
-                        domInfo.localDomain.offset[i];
+                    mThreadParams.window.globalDimensions.offset[i] -
+                    domInfo.localDomain.offset[i];
             }
         }
 
@@ -408,7 +418,8 @@ private:
         {
             ForEach<FileCheckpointFields, WriteFields<bmpl::_1> > forEachWriteFields;
             forEachWriteFields(threadParams);
-        } else
+        }
+        else
         {
             ForEach<FileOutputFields, WriteFields<bmpl::_1> > forEachWriteFields;
             forEachWriteFields(threadParams);
@@ -421,7 +432,8 @@ private:
         {
             ForEach<FileCheckpointParticles, WriteSpecies<bmpl::_1> > writeSpecies;
             writeSpecies(threadParams, std::string(), particleOffset);
-        } else
+        }
+        else
         {
             ForEach<FileOutputParticles, WriteSpecies<bmpl::_1> > writeSpecies;
             writeSpecies(threadParams, std::string(), particleOffset);
@@ -441,6 +453,8 @@ private:
     std::string checkpointFilename;
     std::string restartFilename;
     std::string checkpointDirectory;
+
+    uint32_t restartChunkSize;
 
     DataSpace<simDim> mpi_pos;
     DataSpace<simDim> mpi_size;

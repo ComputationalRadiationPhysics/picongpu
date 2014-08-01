@@ -154,7 +154,7 @@ public:
 
     void dumpTimes(TimeIntervall &tSimCalculation, TimeIntervall&, double& roundAvg, uint32_t currentStep)
     {
-         /*dump 100% after simulation*/
+        /*dump 100% after simulation*/
         if (output && progress && (currentStep % showProgressAnyStep) == 0)
         {
             tSimCalculation.toggleEnd();
@@ -178,6 +178,12 @@ public:
     {
         uint32_t currentStep = init();
         tInit.toggleEnd();
+        if (output)
+        {
+            std::cout << "initialization time: " << tInit.printInterval() <<
+                " = " <<
+                (int) (tInit.getInterval() / 1000.) << " sec" << std::endl;
+        }
 
         TimeIntervall tSimCalculation;
         TimeIntervall tRound;
@@ -192,7 +198,7 @@ public:
         movingWindowCheck(currentStep); //if we restart at any step check if we must slide
 
         /* dump 0% output */
-        dumpTimes(tSimCalculation,tRound,roundAvg,currentStep);
+        dumpTimes(tSimCalculation, tRound, roundAvg, currentStep);
         while (currentStep < runSteps)
         {
             tRound.toggleStart();
@@ -202,7 +208,7 @@ public:
 
             currentStep++;
             /*output after a round*/
-            dumpTimes(tSimCalculation,tRound,roundAvg,currentStep);
+            dumpTimes(tSimCalculation, tRound, roundAvg, currentStep);
 
             movingWindowCheck(currentStep);
             /*dump after simulated step*/
@@ -231,11 +237,11 @@ public:
              "Print time statistics after p percent to stdout")
             ("restart", po::value<bool>(&restartRequested)->zero_tokens(), "Restart simulation")
             ("restart-directory", po::value<std::string>(&restartDirectory)->default_value(restartDirectory),
-                "Directory containing checkpoints for a restart")
+             "Directory containing checkpoints for a restart")
             ("restart-step", po::value<int32_t>(&restartStep), "Checkpoint step to restart from")
             ("checkpoints", po::value<uint32_t>(&checkpointPeriod), "Period for checkpoint creation")
             ("checkpoint-directory", po::value<std::string>(&checkpointDirectory)->default_value(checkpointDirectory),
-                "Directory for checkpoints");
+             "Directory for checkpoints");
     }
 
     std::string pluginGetName() const
