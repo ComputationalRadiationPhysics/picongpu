@@ -40,9 +40,9 @@ using namespace PMacc;
 
 using namespace splash;
 
-/** write attribute of a particle to hdf5 file
+/** Load attribute of a species from HDF5 checkpoint file
  *
- * @tparam T_Identifier identifier of a particle attribute
+ * @tparam T_Identifier identifier of species attribute
  */
 template< typename T_Identifier>
 struct LoadParticleAttributesFromHDF5

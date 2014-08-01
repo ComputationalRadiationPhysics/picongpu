@@ -92,7 +92,7 @@ public:
      * @param params thread params with domainwriter, ...
      * @param restartChunkSize number of particles processed in one kernel call
      */
-    HINLINE void operator()(ThreadParams* params, const uint32_t &restartChunkSize)
+    HINLINE void operator()(ThreadParams* params, const uint32_t restartChunkSize)
     {
 
         log<picLog::INPUT_OUTPUT > ("HDF5: (begin) load species: %1%") % Hdf5FrameType::getName();
