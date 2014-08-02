@@ -237,6 +237,14 @@ switch to your *pushed feature branch*. Select the green **compare & review**
 button. Now compare the changes between **your feature branch** and **our dev**.
 
 Everything looks good? Submit it as a **pull request** (link in the header).
+Please take the time to write an **extensive description** of it.
+
+- What did you implement, why?
+- Is there an open issue that you try to adress (please link it)?
+- Do not be afraid to add images!
+
+The description of the pull request is essential and will be referred to in the
+change log of the next release.
 
 Afterwards, a fruitful ( *wuhu, we love you - don't be scared* ) *discussion*
 about your **submitted change set** will start. If we find some things you
@@ -244,9 +252,9 @@ could *improve* ( *That looks awesome, all right!* ), simply change your
 *local feature branch* and *push the changes back* to your GitHub repository,
 to **update the pull request**.
 
-As a **best practive agreement**, we wait for at least **two** of our
-[maintainers](README.md#maintainers-and-core-developers) to review the pull
-request until it is merged.
+One of our [maintainers](README.md#maintainers-and-core-developers)
+will pick up the pull request to coordinate the review.
+Other regular developers that are competent in the topic might assist.
 
 Sharing is caring! Thank you for participating, **you are great**!
 
