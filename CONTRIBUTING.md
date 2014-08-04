@@ -237,10 +237,10 @@ switch to your *pushed feature branch*. Select the green **compare & review**
 button. Now compare the changes between **your feature branch** and **our dev**.
 
 Everything looks good? Submit it as a **pull request** (link in the header).
-Please take the time to write an **extensive description** of it.
+Please take the time to write an **extensive description**.
 
-- What did you implement, why?
-- Is there an open issue that you try to adress (please link it)?
+- What did you implement and why?
+- Is there an open issue that you try to address (please link it)?
 - Do not be afraid to add images!
 
 The description of the pull request is essential and will be referred to in the
