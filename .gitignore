@@ -8,5 +8,6 @@
 /*.cbp
 /*.layout
 
-# python object code
+# python byte code
 *.pyc
+
