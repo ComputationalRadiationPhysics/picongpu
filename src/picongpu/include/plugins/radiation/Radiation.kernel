@@ -258,18 +258,21 @@ void kernelRadiationParticles(ParBox pb,
                     lcellId_t cellIdx = par[localCellIdx_];
                     
                     // position inside of the cell
-                    float3_X pos = par[position_];
+                    floatD_X pos = par[position_];
 
                     // calculate global position of cell
-                    const DataSpace<DIM3> globalPos(superCellOffset
-                                                    + DataSpaceOperations<DIM3>::template map<Block >
-                                                    (cellIdx));
+                    const DataSpace<simDim> globalPos(superCellOffset
+                                                      + DataSpaceOperations<simDim>::template map<Block >
+                                                      (cellIdx));
 
                     // add global position of cell with local position of particle in cell
-                    const vec1 particle_locationNow = vec1(
-                                                           ((float_X) globalPos.x() + (float_X) pos.x()) * CELL_WIDTH,
-                                                           ((float_X) globalPos.y() + (float_X) pos.y()) * CELL_HEIGHT,
-                                                           ((float_X) globalPos.z() + (float_X) pos.z()) * CELL_DEPTH);
+                    vec1 particle_locationNow;
+                    // set z component to zero in case of simDim==DIM2
+                    particle_locationNow[2] = 0.0;
+                    // run over all components and compute gobal position
+                    for(int i=0; i<simDim; ++i)
+                      particle_locationNow[i] = ((float_X) globalPos[i] + (float_X) pos[i]) * cellSize[i];
+                      
                     
                     // get old and new particle momenta
                     const vec1 particle_momentumNow = vec1(par[momentum_]);
