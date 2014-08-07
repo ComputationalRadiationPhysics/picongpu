@@ -188,7 +188,8 @@ void kernelRadiationParticles(ParBox pb,
         __syncthreads();
 
         // select SuperCell and add one sided guard again
-        const DataSpace<simDim> superCell = DataSpaceOperations<simDim>::map(superCellsCount + 1*guardingSuperCells, super_cell_index);
+        DataSpace<simDim> superCell = DataSpaceOperations<simDim>::map(superCellsCount, super_cell_index);
+        superCell += guardingSuperCells;
 
         const DataSpace<simDim> superCellOffset(globalOffset
                                                 + ((superCell - guardingSuperCells)
