@@ -336,7 +336,7 @@ private:
                 current_time_step_str << currentStep;
                 GPUposX << currentGPUpos.x();
                 GPUposY << currentGPUpos.y();
-                // if simDim==DIM2 no z-component is definded -> set it to zero
+                // if simDim==DIM2 no z-component is defined -> set it to zero
                 #if(SIMDIM == DIM3)
                   GPUposZ << currentGPUpos.z();
                 #else

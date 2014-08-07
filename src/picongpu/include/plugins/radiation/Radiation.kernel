@@ -181,9 +181,9 @@ void kernelRadiationParticles(ParBox pb,
     for (int super_cell_index = 0; super_cell_index <= numSuperCells; ++super_cell_index)
       {
         /* warpId != 1 synchronization is needed,
-           since a racecondition can occure if "continue loop" is called,
+           since a race condition can occure if "continue loop" is called,
            all threads must wait for the selection of a new frame
-           untill all threads have evaluated "isValid"
+           until all threads have evaluated "isValid"
         */
         __syncthreads();
 
@@ -198,7 +198,7 @@ void kernelRadiationParticles(ParBox pb,
 
         /*
          * The Master process (thread 0) in every thread block is in
-         * charge of loading a Frame from
+         * charge of loading a frame from
          * the current super cell and evaluate the total number of
          * particles in this frame.
          */
