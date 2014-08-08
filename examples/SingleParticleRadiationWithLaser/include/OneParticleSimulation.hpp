@@ -91,10 +91,10 @@ public:
 
         const DataSpace<simDim> halfSimSize(simBox.getGlobalSize() / 2);
 
-        GridLayout<DIM3> layout(simBox.getLocalSize(), MappingDesc::SuperCellSize::toRT());
+        GridLayout<simDim> layout(simBox.getLocalSize(), MappingDesc::SuperCellSize::toRT());
         MappingDesc cellDescription = MappingDesc(layout.getDataSpace(), GUARD_SIZE, GUARD_SIZE);
 
-        DataSpace<DIM3> centerXZPlan(halfSimSize);
+        DataSpace<simDim> centerXZPlan(halfSimSize);
         centerXZPlan.y() = OneParticleOffset;
 
         ParticlesInitOneParticle<PIC_Electrons>::addOneParticle(*particleStorage[TypeAsIdentifier<PIC_Electrons>()],
@@ -161,7 +161,7 @@ public:
     {
 
         PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
-        GridLayout<DIM3> gridLayout(simBox.getLocalSize(), MappingDesc::SuperCellSize::toRT());
+        GridLayout<simDim> gridLayout(simBox.getLocalSize(), MappingDesc::SuperCellSize::toRT());
         if (MovingWindow::getInstance().slideInCurrentStep(currentStep))
         {
             GridController<simDim>& gc = Environment<simDim>::get().GridController();
