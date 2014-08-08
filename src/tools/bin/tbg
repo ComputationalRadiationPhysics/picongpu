@@ -38,7 +38,7 @@ function tooltpl_replace
     eval tooltpl_replace_data="\$$1"
     eval tooltpl_replace_input="\$$2"
 
-    while read data_set
+    while read -r data_set
     do
         tooltpl_dst=`echo "$data_set" | cut -d"=" -f1  `
         # echo " $data_set" > /dev/stderr
@@ -67,7 +67,7 @@ function run_cfg_and_get_solved_variables
     eval extra_op="\$$3"    #overwrite templates with extra options parameter -x
 
     #append template file variable definitions and solve them
-    while read data_set
+    while read -r data_set
     do
         eval "$data_set"
     done < <(echo "$tooltpl_file_data" | grep "^[[:blank:]]*[[:alpha:]][[:alnum:]_]*=.*")
@@ -129,7 +129,7 @@ function check_final
 
         #search in orginal file, to provide a better line number hint to the user
         n=0
-        while read org_line
+        while read -r org_line
         do
             n=$(( n+1 ))
             echo $org_line | awk -v line=$n '{ if ($0 ~ /'$nrv_or'/) print "line "line }'
