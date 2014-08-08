@@ -41,7 +41,7 @@
 #include "plugins/InSituVolumeRenderer.hpp"
 #endif
 
-#if(ENABLE_RADIATION == 1 && SIMDIM==DIM3)
+#if(ENABLE_RADIATION == 1)
 #include "plugins/radiation/parameters.hpp"
 #include "plugins/radiation/Radiation.hpp"
 #endif
@@ -136,7 +136,7 @@ private:
     typedef EnergyParticles<PIC_Electrons> EnergyElectrons;
     typedef PositionsParticles<PIC_Electrons> PositionElectrons;
     typedef BinEnergyParticles<PIC_Electrons> BinEnergyElectrons;
-#if(ENABLE_RADIATION == 1 && SIMDIM==DIM3)
+#if(ENABLE_RADIATION == 1)
     typedef Radiation<PIC_Electrons> RadiationElectrons;
 #endif
 #endif
@@ -228,7 +228,7 @@ private:
         plugins.push_back(new EnergyIons("EnergyIons", "energy_i"));
 #endif
 
-#if(ENABLE_RADIATION == 1 && SIMDIM==DIM3)
+#if(ENABLE_RADIATION == 1)
         plugins.push_back(new RadiationElectrons("RadiationElectrons", "radiation_e"));
 #endif
 

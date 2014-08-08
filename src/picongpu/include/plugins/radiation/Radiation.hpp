@@ -336,7 +336,12 @@ private:
                 current_time_step_str << currentStep;
                 GPUposX << currentGPUpos.x();
                 GPUposY << currentGPUpos.y();
-                GPUposZ << currentGPUpos.z();
+                // if simDim==DIM2 no z-component is defined -> set it to zero
+                #if(SIMDIM == DIM3)
+                  GPUposZ << currentGPUpos.z();
+                #else
+                  GPUposZ << 0;
+                #endif
 
                 writeFile(radiation->getHostBuffer().getBasePointer(), folderRadPerGPU + "/" + filename_prefix
                           + "_radPerGPU_pos_" + GPUposX.str() + "_" + GPUposY.str() + "_" + GPUposZ.str()
