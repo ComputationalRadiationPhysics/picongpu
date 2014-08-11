@@ -52,7 +52,7 @@ throw (std::runtime_error )
 #if (ENABLE_ADIOS==1)
         const std::string filemodeOptions = "[splash,adios]";
 #else
-	const ... filemodeOptions = "[splash]";
+	const std::string filemodeOptions = "[splash]";
 #endif
 
         // add possible options
@@ -94,11 +94,12 @@ throw (std::runtime_error )
         {
             options.fileMode = FM_SPLASH;
         }
+#if (ENABLE_ADIOS==1)
         else if(filemode == "adios")
         {
             options.fileMode = FM_ADIOS;
         }
-
+#endif
         // re-parse wrong typed input files to valid format, if possible
         //   find _X.h5 with syntax at the end and delete it
         boost::regex filePattern( "_.*\\.h5",
@@ -238,16 +239,16 @@ int main( int argc, char** argv )
                 throw std::runtime_error( "Failed to open output file for writing." );
 
             outStream = &file;
-            }
+        }
 
-            // apply requested command to file
-            if ( options.listDatasets )
-                tools->listAvailableDatasets( );
-            else
-                tools->convertToText(  );
+        // apply requested command to file
+        if ( options.listDatasets )
+            tools->listAvailableDatasets( );
+        else
+            tools->convertToText(  );
 
-            if ( options.toFile )
-            {
+        if ( options.toFile )
+        {
             file.close( );
         }
     }

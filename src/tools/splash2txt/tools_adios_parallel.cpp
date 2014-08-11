@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 Felix Schmitt, Conrad Schumann
+ * Copyright 2014 Felix Schmitt, Conrad Schumann
  *
  * This file is part of splash2txt.
  *
@@ -31,11 +31,9 @@ ITools(options, mpiTopology, outStream), errorStream(std::cerr)
     if (options.verbose)
         errorStream << options.inputFile << std::endl;
 
-    const char *inpFile = options.inputFile.c_str();
-
     MPI_Comm comm = MPI_COMM_WORLD;
     ADIOS_FILE *pFile;
-    pFile = adios_read_open_file(inpFile, ADIOS_READ_METHOD_BP, comm);
+    pFile = adios_read_open_file(options.inputFile.c_str(), ADIOS_READ_METHOD_BP, comm);
 }
 
 ToolsAdiosParallel::~ToolsAdiosParallel()
@@ -75,8 +73,6 @@ void ToolsAdiosParallel::convertToText()
 
         adios_perform_reads(pFile, 1);
 
-        std::stringstream stream;
-
         int inputSize = sizeof(nodeName);
 
         for(int k = 0; k < inputSize; k++)
@@ -85,25 +81,25 @@ void ToolsAdiosParallel::convertToText()
             switch (pVarInfo->type)
             {
                 case adios_real:
-                    stream << std::setprecision(16) << *((float*)P) << std::endl;
+                    outStream << std::setprecision(16) << *((float*)P) << std::endl;
                     break;
                 case adios_double:
-                    stream << std::setprecision(16) << *((double*)P) << std::endl;
+                    outStream << std::setprecision(16) << *((double*)P) << std::endl;
                     break;
                 case adios_long_double:
-                    stream << std::setprecision(16) << *((long double*)P) << std::endl;
+                    outStream << std::setprecision(16) << *((long double*)P) << std::endl;
                     break;
                 case adios_integer:
-                    stream << *((int32_t*)P) << std::endl;
+                    outStream << *((int32_t*)P) << std::endl;
                     break;
                 case adios_unsigned_integer:
-                    stream << *((uint32_t*)P) << std::endl;
+                    outStream << *((uint32_t*)P) << std::endl;
                     break;
                 case adios_long:
-                    stream << *((int64_t*)P) << std::endl;
+                    outStream << *((int64_t*)P) << std::endl;
                     break;
                 case adios_unsigned_long:
-                    stream << *((uint64_t*)P) << std::endl;
+                    outStream << *((uint64_t*)P) << std::endl;
                     break;
                 default:
                     if (options.verbose)
@@ -111,8 +107,6 @@ void ToolsAdiosParallel::convertToText()
                     break;
             }
         }
-        outStream << stream.str();
-
         adios_free_varinfo(pVarInfo);
     }
 }
@@ -127,7 +121,6 @@ void ToolsAdiosParallel::listAvailableDatasets()
     //available data sets in this file
     outStream << "Number of available data sets: ";
     outStream << pFile->nvars << std::endl;
-    outStream << "Path of available data sets: " << std::endl;
 
     for(int i = 0; i < pFile->nvars; i++)
     {
@@ -174,6 +167,6 @@ void ToolsAdiosParallel::listAvailableDatasets()
                     break;
             }
         }
+        adios_free_varinfo(pVarInfo);
     }
-    adios_free_varinfo(pVarInfo);
 }
