@@ -117,7 +117,7 @@ void ToolsAdiosParallel::convertToText()
     }
 }
 
-void ToolsAdiosParallel::listAvailableDatasets(/*const char *inpFile, MPI_Comm comm*/)
+void ToolsAdiosParallel::listAvailableDatasets()
 {
     if (options.data.size() == 0)
         throw std::runtime_error("No datasets requested");
