@@ -1,1 +1,0 @@
-/home/schuma/Git/picongpu/src/tools/splash2txt/build/CMakeFiles/splash2txt.dir
