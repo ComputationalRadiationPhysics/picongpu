@@ -46,7 +46,7 @@ public:
     {
         set(1, 1, 1);
     }
-    
+
     Dims(size_t x, size_t y, size_t z)
     {
         set(x, y, z);
@@ -76,7 +76,8 @@ private:
     size_t s[3];
 };
 
-enum FileMode { FM_SPLASH = 0 };
+enum FileMode { FM_SPLASH = 0 ,
+                FM_ADIOS = 1  };
 
 typedef struct
 {

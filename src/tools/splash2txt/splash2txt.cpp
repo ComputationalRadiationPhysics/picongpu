@@ -23,6 +23,10 @@
 
 #include "tools_splash_parallel.hpp"
 
+#if (ENABLE_ADIOS==1)
+#include "tools_adios_parallel.hpp"
+#endif
+
 namespace po = boost::program_options;
 
 const size_t numAllowedSlices = 3;
@@ -44,8 +48,12 @@ throw (std::runtime_error )
 
         std::string slice_string = "";
         std::string filemode = "splash";
-        
-        const std::string filemodeOptions = "[splash]";
+
+#if (ENABLE_ADIOS==1)
+        const std::string filemodeOptions = "[splash,adios]";
+#else
+	const ... filemodeOptions = "[splash]";
+#endif
 
         // add possible options
         desc.add_options( )
@@ -81,8 +89,15 @@ throw (std::runtime_error )
             errorStream << desc << "\n";
             return false;
         }
-        
-        options.fileMode = FM_SPLASH;
+
+        if (filemode == "splash" )
+        {
+            options.fileMode = FM_SPLASH;
+        }
+        else if(filemode == "adios")
+        {
+            options.fileMode = FM_ADIOS;
+        }
 
         // re-parse wrong typed input files to valid format, if possible
         //   find _X.h5 with syntax at the end and delete it
@@ -165,11 +180,11 @@ int main( int argc, char** argv )
     int rank, size;
     // we read with one MPI process
     Dims mpi_topology(1, 1, 1);
-    
+
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
-    
+
     if (size > 1)
     {
         std::cerr << "Only 1 MPI process supported" << std::endl;
@@ -203,7 +218,15 @@ int main( int argc, char** argv )
     }
 
     ITools *tools = NULL;
-    tools = new ToolsSplashParallel( options, mpi_topology, *outStream );
+    switch ( options.fileMode)
+    {
+        case FM_SPLASH: tools = new ToolsSplashParallel( options, mpi_topology, *outStream );
+                        break;
+#if (ENABLE_ADIOS==1)
+        case FM_ADIOS: tools = new ToolsAdiosParallel( options, mpi_topology, *outStream );
+                        break;
+#endif
+    }
 
     try
     {
@@ -215,16 +238,16 @@ int main( int argc, char** argv )
                 throw std::runtime_error( "Failed to open output file for writing." );
 
             outStream = &file;
-        }
+            }
 
-        // apply requested command to file
-        if ( options.listDatasets )
-            tools->listAvailableDatasets( );
-        else
-            tools->convertToText(  );
+            // apply requested command to file
+            if ( options.listDatasets )
+                tools->listAvailableDatasets( );
+            else
+                tools->convertToText(  );
 
-        if ( options.toFile )
-        {
+            if ( options.toFile )
+            {
             file.close( );
         }
     }
@@ -239,7 +262,7 @@ int main( int argc, char** argv )
 
     // cleanup
     delete tools;
-    
+
     mpi_finalize();
     return 0;
 }
