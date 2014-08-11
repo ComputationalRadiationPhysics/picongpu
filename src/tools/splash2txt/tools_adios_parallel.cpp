@@ -1,6 +1,5 @@
-
 /*
- * Copyright 2013-2014 Felix Schmitt, Axel Huebl, Rene Widera, Conrad Schumann
+ * Copyright 2013-2014 Felix Schmitt, Conrad Schumann
  *
  * This file is part of splash2txt.
  *
@@ -26,7 +25,6 @@
 #include "tools_adios_parallel.hpp"
 
 
-
 ToolsAdiosParallel::ToolsAdiosParallel(ProgramOptions &options, Dims &mpiTopology, std::ostream &outStream) :
 ITools(options, mpiTopology, outStream), errorStream(std::cerr)
 {
@@ -48,10 +46,8 @@ ToolsAdiosParallel::~ToolsAdiosParallel()
 
 void ToolsAdiosParallel::convertToText()
 {
-
     for (int i = 0; i < options.data.size(); ++i)
     {
-
         ADIOS_VARINFO *pVarInfo;
 
         //get name of dataset to print
