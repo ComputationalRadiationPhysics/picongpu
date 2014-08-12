@@ -76,34 +76,61 @@ void ToolsAdiosParallel::convertToText()
 
         for(int k = 0; k < inputSize; k++)
         {
-            // cast dataset element to the associated data type and write it to the stream
-            switch (pVarInfo->type)
+            if(pVarInfo->ndim > 0)
             {
-                case adios_real:
-                    outStream << std::setprecision(16) << *((float*)P) << std::endl;
-                    break;
-                case adios_double:
-                    outStream << std::setprecision(16) << *((double*)P) << std::endl;
-                    break;
-                case adios_long_double:
-                    outStream << std::setprecision(16) << *((long double*)P) << std::endl;
-                    break;
-                case adios_integer:
-                    outStream << *((int32_t*)P) << std::endl;
-                    break;
-                case adios_unsigned_integer:
-                    outStream << *((uint32_t*)P) << std::endl;
-                    break;
-                case adios_long:
-                    outStream << *((int64_t*)P) << std::endl;
-                    break;
-                case adios_unsigned_long:
-                    outStream << *((uint64_t*)P) << std::endl;
-                    break;
-                default:
-                    if (options.verbose)
-                       errorStream << "unknown data type" << std::endl;
-                    break;
+            // cast dataset element to the associated data type and write it to the stream
+                switch (pVarInfo->type)
+                {
+                    case adios_real:
+                        outStream << std::setprecision(16) << *((float*)P) << std::endl;
+                        break;
+                    case adios_double:
+                        outStream << std::setprecision(16) << *((double*)P) << std::endl;
+                        break;
+                    case adios_long_double:
+                        outStream << std::setprecision(16) << *((long double*)P) << std::endl;
+                        break;
+                    case adios_integer:
+                        outStream << *((int32_t*)P) << std::endl;
+                        break;
+                    case adios_unsigned_integer:
+                        outStream << *((uint32_t*)P) << std::endl;
+                        break;
+                    case adios_long:
+                        outStream << *((int64_t*)P) << std::endl;
+                        break;
+                    case adios_unsigned_long:
+                        outStream << *((uint64_t*)P) << std::endl;
+                        break;
+                    default:
+                       if (options.verbose)
+                           errorStream << "unknown data type" << std::endl;
+                       break;
+                }
+            }
+            else
+            {
+                switch(pVarInfo->type)
+                {
+                    case adios_integer: outStream << *((int32_t*)pVarInfo->value) << std::endl;
+                        break;
+                    case adios_unsigned_integer: outStream << *((uint32_t*)pVarInfo->value) << std::endl;
+                        break;
+                    case adios_double: outStream << std::setprecision(16) << *((double*)pVarInfo->value) << std::endl;
+                        break;
+                    case adios_long_double: outStream << std::setprecision(16) << *((long double*)pVarInfo->value) << std::endl;
+                        break;
+                    case adios_long: outStream << *((int64_t*)pVarInfo->value) << std::endl;
+                        break;
+                    case adios_unsigned_long: outStream << *((uint64_t*)pVarInfo->value) << std::endl;
+                        break;
+                    case adios_real: outStream << std::setprecision(16) << *((float*)pVarInfo->value) << std::endl;
+                        break;
+                    default:
+                        if (options.verbose)
+                            errorStream << "unknown data type" << std::endl;
+                        break;
+                }
             }
         }
         adios_free_varinfo(pVarInfo);
@@ -143,28 +170,7 @@ void ToolsAdiosParallel::listAvailableDatasets()
         }
         else
         {
-            // print scalar values to the outstream
-            switch(pVarInfo->type)
-            {
-                case adios_integer: outStream << *((int*)pVarInfo->value) << std::endl;
-                    break;
-                case adios_unsigned_integer: outStream << *((unsigned int*)pVarInfo->value) << std::endl;
-                    break;
-                case adios_double: outStream << *((double*)pVarInfo->value) << std::endl;
-                    break;
-                case adios_long_double: outStream << *((long double*)pVarInfo->value) << std::endl;
-                    break;
-                case adios_long: outStream << *((long*)pVarInfo->value) << std::endl;
-                    break;
-                case adios_unsigned_long: outStream << *((unsigned long*)pVarInfo->value) << std::endl;
-                    break;
-                case adios_real: outStream << *((float*)pVarInfo->value) << std::endl;
-                    break;
-                default:
-                    if (options.verbose)
-                        errorStream << "unknown data type" << std::endl;
-                    break;
-            }
+            outStream << "[scalar]" << std::endl;
         }
         adios_free_varinfo(pVarInfo);
     }
