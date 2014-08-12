@@ -112,19 +112,26 @@ void ToolsAdiosParallel::convertToText()
             {
                 switch(pVarInfo->type)
                 {
-                    case adios_integer: outStream << *((int32_t*)pVarInfo->value) << std::endl;
+                    case adios_real:
+                        outStream << std::setprecision(16) << *((float*)pVarInfo->value) << std::endl;
                         break;
-                    case adios_unsigned_integer: outStream << *((uint32_t*)pVarInfo->value) << std::endl;
+                    case adios_double:
+                        outStream << std::setprecision(16) << *((double*)pVarInfo->value) << std::endl;
                         break;
-                    case adios_double: outStream << std::setprecision(16) << *((double*)pVarInfo->value) << std::endl;
+                    case adios_long_double:
+                        outStream << std::setprecision(16) << *((long double*)pVarInfo->value) << std::endl;
                         break;
-                    case adios_long_double: outStream << std::setprecision(16) << *((long double*)pVarInfo->value) << std::endl;
+                    case adios_integer:
+                        outStream << *((int32_t*)pVarInfo->value) << std::endl;
                         break;
-                    case adios_long: outStream << *((int64_t*)pVarInfo->value) << std::endl;
+                    case adios_unsigned_integer:
+                        outStream << *((uint32_t*)pVarInfo->value) << std::endl;
                         break;
-                    case adios_unsigned_long: outStream << *((uint64_t*)pVarInfo->value) << std::endl;
+                    case adios_long:
+                        outStream << *((int64_t*)pVarInfo->value) << std::endl;
                         break;
-                    case adios_real: outStream << std::setprecision(16) << *((float*)pVarInfo->value) << std::endl;
+                    case adios_unsigned_long:
+                        outStream << *((uint64_t*)pVarInfo->value) << std::endl;
                         break;
                     default:
                         if (options.verbose)
