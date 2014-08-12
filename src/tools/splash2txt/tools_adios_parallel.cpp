@@ -31,8 +31,7 @@ ITools(options, mpiTopology, outStream), errorStream(std::cerr)
     if (options.verbose)
         errorStream << options.inputFile << std::endl;
 
-    MPI_Comm comm = MPI_COMM_WORLD;
-    ADIOS_FILE *pFile;
+    comm = MPI_COMM_WORLD;
     pFile = adios_read_open_file(options.inputFile.c_str(), ADIOS_READ_METHOD_BP, comm);
 }
 

@@ -31,12 +31,9 @@
 class ToolsAdiosParallel : public ITools
 {
 private:
-    const char *inpFile;
-    const char *inpVarNode;
+
     MPI_Comm comm;
     ADIOS_FILE *pFile;
-
-    std::ostream &errorStream;
 
 public:
 
@@ -47,6 +44,10 @@ public:
     void convertToText();
 
     void listAvailableDatasets();
+
+protected:
+
+    std::ostream &errorStream;
 
 };
 #endif
