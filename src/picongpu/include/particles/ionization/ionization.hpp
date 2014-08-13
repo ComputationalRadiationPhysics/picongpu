@@ -224,11 +224,12 @@ __global__ void kernelIonizeParticles(ParBox pb,
         // isParticle = true;
         __syncthreads();
     }
-    /* set the mustShift flag in SuperCell which is an optimization for shift particles and fillGaps*/
-    if (linearThreadIdx == 0 && mustShift == 1)
-    {
-        pb.getSuperCell(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx))).setMustShift(true);
-    }
+//  FOLLOWING LINES ARE NOT NECESSARY FOR IONIZATION!
+//    /* set the mustShift flag in SuperCell which is an optimization for shift particles and fillGaps*/
+//    if (linearThreadIdx == 0 && mustShift == 1)
+//    {
+//        pb.getSuperCell(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx))).setMustShift(true);
+//    }
 
 }
     
