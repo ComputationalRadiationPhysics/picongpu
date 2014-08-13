@@ -44,6 +44,8 @@ public:
 
     void convertToText();
 
+    void printValue(ADIOS_DATATYPES ptype, void* pValue);
+
     void listAvailableDatasets();
 
 protected:

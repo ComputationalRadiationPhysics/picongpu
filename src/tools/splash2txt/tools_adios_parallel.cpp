@@ -44,6 +44,9 @@ ToolsAdiosParallel::~ToolsAdiosParallel()
 
 void ToolsAdiosParallel::convertToText()
 {
+    if(options.data.size() == 0)
+        throw std::runtime_error("No datasets requested");
+
     for (int i = 0; i < options.data.size(); ++i)
     {
         ADIOS_VARINFO *pVarInfo;
@@ -73,83 +76,55 @@ void ToolsAdiosParallel::convertToText()
 
         adios_perform_reads(pFile, 1);
 
-        int inputSize = sizeof(nodeName);
-
-        for(int k = 0; k < inputSize; k++)
+        if(pVarInfo->ndim > 0)
+        {        
+            for(int k = 0; k < varElement; k++)
+            {
+                printValue(pVarInfo->type, &P[k*varTypeSize]);
+            }
+        }
+        else
         {
-            if(pVarInfo->ndim > 0)
-            {
-            // cast dataset element to the associated data type and write it to the stream
-                switch (pVarInfo->type)
-                {
-                    case adios_real:
-                        outStream << std::setprecision(16) << *((float*)P) << std::endl;
-                        break;
-                    case adios_double:
-                        outStream << std::setprecision(16) << *((double*)P) << std::endl;
-                        break;
-                    case adios_long_double:
-                        outStream << std::setprecision(16) << *((long double*)P) << std::endl;
-                        break;
-                    case adios_integer:
-                        outStream << *((int32_t*)P) << std::endl;
-                        break;
-                    case adios_unsigned_integer:
-                        outStream << *((uint32_t*)P) << std::endl;
-                        break;
-                    case adios_long:
-                        outStream << *((int64_t*)P) << std::endl;
-                        break;
-                    case adios_unsigned_long:
-                        outStream << *((uint64_t*)P) << std::endl;
-                        break;
-                    default:
-                       if (options.verbose)
-                           errorStream << "unknown data type" << std::endl;
-                       break;
-                }
-            }
-            else
-            {
-                switch(pVarInfo->type)
-                {
-                    case adios_real:
-                        outStream << std::setprecision(16) << *((float*)pVarInfo->value) << std::endl;
-                        break;
-                    case adios_double:
-                        outStream << std::setprecision(16) << *((double*)pVarInfo->value) << std::endl;
-                        break;
-                    case adios_long_double:
-                        outStream << std::setprecision(16) << *((long double*)pVarInfo->value) << std::endl;
-                        break;
-                    case adios_integer:
-                        outStream << *((int32_t*)pVarInfo->value) << std::endl;
-                        break;
-                    case adios_unsigned_integer:
-                        outStream << *((uint32_t*)pVarInfo->value) << std::endl;
-                        break;
-                    case adios_long:
-                        outStream << *((int64_t*)pVarInfo->value) << std::endl;
-                        break;
-                    case adios_unsigned_long:
-                        outStream << *((uint64_t*)pVarInfo->value) << std::endl;
-                        break;
-                    default:
-                        if (options.verbose)
-                            errorStream << "unknown data type" << std::endl;
-                        break;
-                }
-            }
+            printValue(pVarInfo->type, pVarInfo->value);
         }
         adios_free_varinfo(pVarInfo);
     }
 }
 
+void ToolsAdiosParallel::printValue(ADIOS_DATATYPES pType, void* pValue)
+{
+     switch(pType)
+     {
+         case adios_real:
+             outStream << std::setprecision(16) << *((float*)pValue) << std::endl;
+             break;
+         case adios_double:
+             outStream << std::setprecision(16) << *((double*)pValue) << std::endl;
+             break;
+         case adios_long_double:
+             outStream << std::setprecision(16) << *((long double*)pValue) << std::endl;
+             break;
+         case adios_integer:
+             outStream << *((int32_t*)pValue) << std::endl;
+             break;
+         case adios_unsigned_integer:
+             outStream << *((uint32_t*)pValue) << std::endl;
+             break;
+         case adios_long:
+             outStream << *((int64_t*)pValue) << std::endl;
+             break;
+         case adios_unsigned_long:
+             outStream << *((uint64_t*)pValue) << std::endl;
+             break;
+         default:
+             if (options.verbose)
+                 errorStream << "unknown data type" << std::endl;
+             break;
+     }
+}
+
 void ToolsAdiosParallel::listAvailableDatasets()
 {
-    if (options.data.size() == 0)
-        throw std::runtime_error("No datasets requested");
-
     ADIOS_VARINFO *pVarInfo;
 
     //available data sets in this file

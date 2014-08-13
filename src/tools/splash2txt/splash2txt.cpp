@@ -49,11 +49,11 @@ throw (std::runtime_error )
         std::string slice_string = "";
         std::string filemode = "splash";
 
-        #if (ENABLE_ADIOS==1)
+#if (ENABLE_ADIOS==1)
         const std::string filemodeOptions = "[splash,adios]";
-        #else
-	const std::string filemodeOptions = "[splash]";
-        #endif
+#else
+        const std::string filemodeOptions = "[splash]";
+#endif
 
         // add possible options
         desc.add_options( )
@@ -94,12 +94,12 @@ throw (std::runtime_error )
         {
             options.fileMode = FM_SPLASH;
         }
-        #if (ENABLE_ADIOS==1)
+#if (ENABLE_ADIOS==1)
         else if(filemode == "adios")
         {
             options.fileMode = FM_ADIOS;
         }
-        #endif
+#endif
         // re-parse wrong typed input files to valid format, if possible
         //   find _X.h5 with syntax at the end and delete it
         boost::regex filePattern( "_.*\\.h5",
@@ -223,10 +223,10 @@ int main( int argc, char** argv )
     {
         case FM_SPLASH: tools = new ToolsSplashParallel( options, mpi_topology, *outStream );
                         break;
-        #if (ENABLE_ADIOS==1)
+#if (ENABLE_ADIOS==1)
         case FM_ADIOS: tools = new ToolsAdiosParallel( options, mpi_topology, *outStream );
                         break;
-        #endif
+#endif
     }
 
     try
