@@ -213,7 +213,7 @@ struct Esirkepov<T_ParticleShape, DIM2>
      * @param d dimension range {0,1} means {x,y}
      *          different to Esirkepov paper, here we use C style
      */
-    DINLINE float_X S0(const Line<float2_X>& line, const float_X gridPoint, const float_X d)
+    DINLINE float_X S0(const Line<float2_X>& line, const float_X gridPoint, const uint32_t d)
     {
         return ParticleAssign()(gridPoint - line.pos0[d]);
     }
@@ -224,7 +224,7 @@ struct Esirkepov<T_ParticleShape, DIM2>
      * @param d dimension range {0,1} means {x,y}
      *          different to Esirkepov paper, here we use C style
      */
-    DINLINE float_X DS(const Line<float2_X>& line, const float_X gridPoint, const float_X d)
+    DINLINE float_X DS(const Line<float2_X>& line, const float_X gridPoint, const uint32_t d)
     {
         return ParticleAssign()(gridPoint - line.pos1[d]) - ParticleAssign()(gridPoint - line.pos0[d]);
     }
