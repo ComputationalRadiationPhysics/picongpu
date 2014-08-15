@@ -43,7 +43,7 @@ namespace picongpu
             const double runTime = DELTA_T*currentStep;
             const double f = SPEED_OF_LIGHT / WAVE_LENGTH;
 
-            double  envelope = double(AMPLITUDE );
+            double envelope = double(AMPLITUDE );
             float3_X elong = float3_X(float_X(0.0), float_X(0.0), float_X(0.0));
 
             // a NON-symmetric (starting with phase=0) pulse will be initialized at position z=0 for
@@ -77,16 +77,16 @@ namespace picongpu
 
             if( Polarisation == LINEAR_X )
             {
-              elong.x() = float_X( envelope * math::sin( w * runTime ));
+                elong.x() = float_X( envelope * math::sin( w * runTime ));
             }
             else if( Polarisation == LINEAR_Z)
             {
-              elong.z() = float_X( envelope * math::sin( w * runTime ));
+                elong.z() = float_X( envelope * math::sin( w * runTime ));
             }
             else if( Polarisation == CIRCULAR )
             {
-              elong.x() = float_X( envelope / sqrt(2.0)  * math::sin( w * runTime ));
-              elong.z() = float_X( envelope / sqrt(2.0)  * math::cos( w * runTime ));
+                elong.x() = float_X( envelope / sqrt(2.0)  * math::sin( w * runTime ));
+                elong.z() = float_X( envelope / sqrt(2.0)  * math::cos( w * runTime ));
             }
 
 
