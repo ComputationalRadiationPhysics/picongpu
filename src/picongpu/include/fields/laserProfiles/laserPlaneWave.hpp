@@ -43,7 +43,7 @@ namespace picongpu
             const double runTime = DELTA_T*currentStep;
             const double f = SPEED_OF_LIGHT / WAVE_LENGTH;
 
-            float_X  envelope = 0.0;
+            double  envelope = double(AMPLITUDE );
             float3_X elong = float3_X(float_X(0.0), float_X(0.0), float_X(0.0));
 
             // a NON-symmetric (starting with phase=0) pulse will be initialized at position z=0 for
@@ -59,46 +59,34 @@ namespace picongpu
 
 
             
-            if( runTime >= endUpramp && runTime <= startDownramp )
-            {
-                // plateau
-                envelope = float_X(
-                                       double(AMPLITUDE )
-                                       );
-            }
-            else if( runTime > startDownramp )
+            if( runTime > startDownramp )
             {
                 // downramp = end
                 const double exponent =
                     ( ( runTime - startDownramp )
                       / PULSE_LENGTH / sqrt( 2.0 ) );
-                envelope = float_X(
-                                       double(AMPLITUDE )
-                                       * exp( -0.5 * exponent * exponent )
-                                       );
+                envelope *= exp( -0.5 * exponent * exponent );
             }
-            else
+            else if ( runTime < endUpramp )
             {
                 // upramp = start
                 const double exponent = ( ( runTime - endUpramp ) / PULSE_LENGTH / sqrt( 2.0 ) );
-                envelope = float_X(
-                                       double(AMPLITUDE )
-                                       * exp( -0.5 * exponent * exponent )
-                                       );
+                envelope *= exp( -0.5 * exponent * exponent );
+
             }
 
             if( Polarisation == LINEAR_X )
             {
-                elong.x() = float_X( envelope * sin( w * runTime ));
+              elong.x() = float_X( envelope * math::sin( w * runTime ));
             }
             else if( Polarisation == LINEAR_Z)
             {
-                elong.z() = float_X( envelope * sin( w * runTime ));
+              elong.z() = float_X( envelope * math::sin( w * runTime ));
             }
             else if( Polarisation == CIRCULAR )
             {
-                elong.x() = float_X( envelope / sqrt(2.0)  * sin( w * runTime ));
-                elong.z() = float_X( envelope / sqrt(2.0)  * cos( w * runTime ));
+              elong.x() = float_X( envelope / sqrt(2.0)  * math::sin( w * runTime ));
+              elong.z() = float_X( envelope / sqrt(2.0)  * math::cos( w * runTime ));
             }
 
 
