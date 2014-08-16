@@ -177,7 +177,13 @@ const double PULSE_LENGTH_SI = 10.615e-15 / 4.0; //5.0e-15; //25.0e-15 / 1.17741
  *  unit: none */
 const double RAMP_INIT = 20.6146; //25.6415;//SI::aux_calulation::PULSE_TIME_SI/SI::PULSE_LENGTH_SI;
 
-
+enum PolarisationType
+  {
+    LINEAR_X = 1u,
+    LINEAR_Z = 2u,
+    CIRCULAR = 4u,
+  };
+const PolarisationType Polarisation = LINEAR_X;
 }
 
 namespace laserWavepacket
