@@ -20,8 +20,7 @@
 
 
 
-#ifndef LASERWAVEPACKET_HPP
-#define	LASERWAVEPACKET_HPP
+#pragma once
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -107,19 +106,13 @@ HDINLINE float3_X laserTransversal(float3_X elong, const float_X, const float_X 
     const float_X exp_x = posX * posX / (W0_X * W0_X);
     const float_X exp_z = posZ * posZ / (W0_Z * W0_Z);
 
-
-#if !defined(__CUDA_ARCH__) // Host code path
-
-    return elong * precisionCast<float3_X > (exp(-0.5 * (exp_x + exp_z) ));
-#else
     return elong * precisionCast<float3_X > (math::exp(-0.5 * (exp_x + exp_z) ));
-#endif
+
 }
 
 }
 }
 
-#endif	/* LASERWAVEPACKET_HPP */
 
 
 
