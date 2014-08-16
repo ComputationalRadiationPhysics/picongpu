@@ -250,6 +250,13 @@ const double W0_Z_SI = W0_X_SI;
  *  unit: none */
 const double RAMP_INIT = 20.0;
 
+enum PolarisationType
+{
+    LINEAR_X = 1u,
+    LINEAR_Z = 2u,
+    CIRCULAR = 4u,
+};
+const PolarisationType Polarisation = LINEAR_X;
 }
 
 
