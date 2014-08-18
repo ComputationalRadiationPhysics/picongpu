@@ -20,8 +20,7 @@
 
 
 
-#ifndef LASERWAVEPACKET_HPP
-#define	LASERWAVEPACKET_HPP
+#pragma once
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -40,6 +39,7 @@ namespace laserWavepacket
  */
 HINLINE float3_X laserLongitudinal(uint32_t currentStep, float_X& phase)
 {
+    float_X envelope = float_X(AMPLITUDE);
     float3_X elong = float3_X(float_X(0.0), float_X(0.0), float_X(0.0));
 
     // a symmetric pulse will be initialized at position z=0 for
@@ -57,36 +57,35 @@ HINLINE float3_X laserLongitudinal(uint32_t currentStep, float_X& phase)
     const double startDownramp = 0.5 * LASER_NOFOCUS_CONSTANT;
 
 
-    if (runTime >= endUpramp && runTime <= startDownramp)
-    {
-        // plateau
-        elong.x() = float_X(
-                          double(AMPLITUDE)
-                          * math::sin(w * runTime)
-                          );
-    }
-    else if (runTime > startDownramp)
+    if (runTime > startDownramp)
     {
         // downramp = end
         const double exponent =
             ((runTime - startDownramp)
              / PULSE_LENGTH / sqrt(2.0));
-        elong.x() = float_X(
-                          double(AMPLITUDE)
-                          * math::exp(-0.5 * exponent * exponent)
-                          * math::sin(w * runTime)
-                          );
+        envelope *= math::exp(-0.5 * exponent * exponent);
     }
-    else
+    else if(runTime < endUpramp)
     {
         // upramp = start
         const double exponent = ((runTime - endUpramp) / PULSE_LENGTH / sqrt(2.0));
-        elong.x() = float_X(
-                          double(AMPLITUDE)
-                          * math::exp(-0.5 * exponent * exponent)
-                          * math::sin(w * runTime)
-                          );
+        envelope *= math::exp(-0.5 * exponent * exponent);
     }
+
+    if( Polarisation == LINEAR_X )
+    {
+        elong.x() = envelope * math::sin(w * runTime);
+    }
+    else if( Polarisation == LINEAR_Z )
+    {
+        elong.z() = envelope * math::sin(w * runTime);
+    }
+    else if( Polarisation == CIRCULAR )
+    {
+        elong.x() = envelope / sqrt(2.0) * math::sin(w * runTime);
+        elong.z() = envelope / sqrt(2.0) * math::cos(w * runTime);
+    }
+
 
     phase = float_X(0.0);
 
@@ -107,19 +106,13 @@ HDINLINE float3_X laserTransversal(float3_X elong, const float_X, const float_X 
     const float_X exp_x = posX * posX / (W0_X * W0_X);
     const float_X exp_z = posZ * posZ / (W0_Z * W0_Z);
 
+    return elong * math::exp(float_X(-0.5) * (exp_x + exp_z));
 
-#if !defined(__CUDA_ARCH__) // Host code path
-
-    return elong * precisionCast<float3_X > (exp(-0.5 * (exp_x + exp_z) ));
-#else
-    return elong * precisionCast<float3_X > (math::exp(-0.5 * (exp_x + exp_z) ));
-#endif
 }
 
 }
 }
 
-#endif	/* LASERWAVEPACKET_HPP */
 
 
 
