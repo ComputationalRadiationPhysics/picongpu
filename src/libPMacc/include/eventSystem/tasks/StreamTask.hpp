@@ -20,12 +20,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef STREAMTASK_HPP
-#define	STREAMTASK_HPP
+#pragma once
 
 #include <cuda_runtime.h>
 
 #include "eventSystem/tasks/ITask.hpp"
+#include "eventSystem/events/CudaEvent.hpp"
 
 
 namespace PMacc
@@ -59,14 +59,14 @@ namespace PMacc
          *
          * @return the task's cuda event
          */
-        cudaEvent_t getCudaEvent() const;
+        CudaEvent getCudaEvent() const;
 
         /**
          * Sets the
          *
          * @param cudaEvent
          */
-        void setCudaEvent(cudaEvent_t cudaEvent);
+        void setCudaEvent(CudaEvent cudaEvent);
 
         /**
          * Returns if this task is finished.
@@ -107,14 +107,9 @@ namespace PMacc
 
     private:
         EventStream *stream;
-        cudaEvent_t cudaEvent;
+        CudaEvent cudaEvent;
         bool hasCudaEvent;
         bool alwaysFinished;
     };
 
 } //namespace PMacc
-
-
-
-#endif	/* STREAMTASK_HPP */
-

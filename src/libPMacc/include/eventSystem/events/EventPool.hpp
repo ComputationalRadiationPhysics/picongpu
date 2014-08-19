@@ -21,10 +21,10 @@
  */
 
 
-#ifndef EVENTPOOL_HPP
-#define	EVENTPOOL_HPP
+#pragma once
 
 #include "types.h"
+#include "eventSystem/events/CudaEvent.hpp"
 #include <vector>
 #include <cuda_runtime.h>
 
@@ -57,8 +57,7 @@ namespace PMacc
             for (size_t i = 0; i < events.size(); i++)
             {
                 log(ggLog::CUDA_RT()+ggLog::MEMORY(),"Sync and Delete Event: %1%") % i;
-                CUDA_CHECK(cudaEventSynchronize(events[i]));
-                CUDA_CHECK(cudaEventDestroy(events[i]));
+                CudaEvent::destroy(events[i]);
             }
         }
 
@@ -66,9 +65,9 @@ namespace PMacc
          * Returns the next cuda event in the event pool.
          * @return the next cuda event
          */
-        cudaEvent_t getNextEvent()
+        CudaEvent getNextEvent()
         {
-            cudaEvent_t result = events[currentEventIndex];
+            CudaEvent result = events[currentEventIndex];
             currentEventIndex = (currentEventIndex + 1) % events.size();
 
             return result;
@@ -82,9 +81,7 @@ namespace PMacc
         {
             for (size_t i = 0; i < count; i++)
             {
-                cudaEvent_t event;
-                CUDA_CHECK(cudaEventCreateWithFlags(&event,cudaEventDisableTiming));
-                events.push_back(event);
+                events.push_back(CudaEvent::create());
             }
         }
 
@@ -98,10 +95,7 @@ namespace PMacc
         }
 
     private:
-        std::vector<cudaEvent_t> events;
+        std::vector<CudaEvent> events;
         size_t currentEventIndex;
     };
 }
-
-#endif	/* EVENTPOOL_HPP */
-

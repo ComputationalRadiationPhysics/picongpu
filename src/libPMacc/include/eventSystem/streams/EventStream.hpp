@@ -21,65 +21,61 @@
  */
 
 
-#ifndef EVENTSTREAM_HPP
-#define	EVENTSTREAM_HPP
+#pragma once
 
 #include <cuda_runtime.h>
+#include "eventSystem/events/CudaEvent.hpp"
 
 namespace PMacc
 {
 
+/**
+ * Wrapper for a single cuda stream.
+ * Allows recording cuda events on the stream.
+ */
+class EventStream
+{
+public:
+
     /**
-     * Wrapper for a single cuda stream.
-     * Allows recording cuda events on the stream.
+     * Constructor.
+     * Creates the cudaStream_t object.
      */
-    class EventStream
+    EventStream() : stream(NULL)
     {
-    public:
-        /**
-         * Constructor.
-         * Creates the cudaStream_t object.
-         */
-        EventStream(): stream(NULL)
-        {
-            CUDA_CHECK(cudaStreamCreate(&stream));
-        }
+        CUDA_CHECK(cudaStreamCreate(&stream));
+    }
 
-        /**
-         * Destructor.
-         * Waits for the stream to finish and destroys it.
-         */
-        virtual ~EventStream()
-        {
-            //wait for all kernels in stream to finish
-            CUDA_CHECK(cudaStreamSynchronize(stream));
-            CUDA_CHECK(cudaStreamDestroy(stream));
-        }
+    /**
+     * Destructor.
+     * Waits for the stream to finish and destroys it.
+     */
+    virtual ~EventStream()
+    {
+        //wait for all kernels in stream to finish
+        CUDA_CHECK(cudaStreamSynchronize(stream));
+        CUDA_CHECK(cudaStreamDestroy(stream));
+    }
 
-        /**
-         * Records a cudaEvent_t at the end of this stream.
-         * @param event the cuda event to record
-         */
-        void recordEvent(cudaEvent_t event)
-        {
-            assert(stream!=NULL);
-            CUDA_CHECK(cudaEventRecord(event, stream));
-        }
+    /**
+     * Returns the cudaStream_t object associated with this EventStream.
+     * @return the internal cuda stream object
+     */
+    cudaStream_t getCudaStream() const
+    {
+        return stream;
+    }
 
-        /**
-         * Returns the cudaStream_t object associated with this EventStream.
-         * @return the internal cuda stream object
-         */
-        cudaStream_t getCudaStream() const
+    void waitOn(CudaEvent ev)
+    {
+        if (this->stream != ev.getStream())
         {
-            return stream;
+            CUDA_CHECK(cudaStreamWaitEvent(this->getCudaStream(), *ev, 0));
         }
+    }
 
-    private:
-        cudaStream_t stream;
-    };
+private:
+    cudaStream_t stream;
+};
 
 }
-
-#endif	/* EVENTSTREAM_HPP */
-
