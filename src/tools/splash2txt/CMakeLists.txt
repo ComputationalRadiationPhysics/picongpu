@@ -86,6 +86,22 @@ endif(Splash_FOUND)
 
 
 ################################################################################
+# ADIOS
+################################################################################
+
+# find adios installation
+#   set(ADIOS_USE_STATIC_LIBS ON) # force static linking
+find_package(ADIOS 1.6.0)
+
+if(ADIOS_FOUND)
+    add_definitions(-DENABLE_ADIOS=1)
+
+    include_directories(SYSTEM ${ADIOS_INCLUDE_DIRS})
+    set(LIBS ${LIBS} ${ADIOS_LIBRARIES})
+endif(ADIOS_FOUND)
+
+
+################################################################################
 # Find Boost
 ################################################################################
 
