@@ -1,31 +1,34 @@
 /**
  * Copyright 2014 Felix Schmitt
  *
- * This file is part of PIConGPU.
+ * This file is part of libPMacc.
  *
- * PIConGPU is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * PIConGPU is distributed in the hope that it will be useful,
+ * libPMacc is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with PIConGPU.
+ * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
 #pragma once
 
-#include "types.h"
 #include <sstream>
 
-namespace picongpu
+#include "types.h"
+#include "dimensions/DataSpace.hpp"
+
+namespace PMacc
 {
-using namespace PMacc;
 
 /**
  * Any DIM-dimensional selection of a simulation volume with a size and offset.
@@ -36,7 +39,7 @@ template <unsigned DIM>
 class Selection
 {
 public:
-    
+
     /**
      * Constructor
      * Size and offset initialized to 0 (empty selection)
@@ -49,7 +52,7 @@ public:
             offset[i] = 0;
         }
     }
-   
+
     /**
      * Copy constructor
      *
@@ -59,9 +62,9 @@ public:
     size(other.size),
     offset(other.offset)
     {
-        
+
     }
-    
+
     /**
      * Constructor
      * Offset is initialized to 0.
@@ -76,7 +79,7 @@ public:
             offset[i] = 0;
         }
     }
-    
+
     /**
      * Constructor
      *
@@ -87,9 +90,9 @@ public:
     size(size),
     offset(offset)
     {
-        
+
     }
-    
+
     /**
      * Return a string representation
      *
@@ -102,7 +105,7 @@ public:
                " offset = " << offset.toString() << " }";
         return str.str();
     }
-    
+
     DataSpace<DIM> size;
 
     DataSpace<DIM> offset;

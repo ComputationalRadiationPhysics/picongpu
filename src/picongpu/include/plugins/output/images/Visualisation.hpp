@@ -547,7 +547,7 @@ public:
 
         uint32_t globalOffset = 0;
 #if(SIMDIM==DIM3)
-        globalOffset = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset()[sliceDim];
+        globalOffset = Environment<simDim>::get().SubGrid().getLocalDomain().offset[sliceDim];
 #endif
 
         typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -680,9 +680,9 @@ private:
     bool doDrawing()
     {
         assert(cellDescription != NULL);
-        const DataSpace<simDim> globalRootCellPos(Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset());
+        const DataSpace<simDim> globalRootCellPos(Environment<simDim>::get().SubGrid().getLocalDomain().offset);
 #if(SIMDIM==DIM3)
-        const bool tmp = globalRootCellPos[sliceDim] + Environment<simDim>::get().SubGrid().getSimulationBox().getLocalSize()[sliceDim] > sliceOffset &&
+        const bool tmp = globalRootCellPos[sliceDim] + Environment<simDim>::get().SubGrid().getLocalDomain().size[sliceDim] > sliceOffset &&
             globalRootCellPos[sliceDim] <= sliceOffset;
         return tmp;
 #else

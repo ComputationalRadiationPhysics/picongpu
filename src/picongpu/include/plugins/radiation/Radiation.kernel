@@ -104,7 +104,7 @@ void kernelRadiationParticles(ParBox pb,
                               uint32_t currentStep,
                               Mapping mapper,
                               radiation_frequencies::FreqFunctor freqFkt,
-			      DataSpace<simDim> simBoxSize)
+                              DataSpace<simDim> simBoxSize)
 {
 
     typedef typename MappingDesc::SuperCellSize Block;

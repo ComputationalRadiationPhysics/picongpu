@@ -100,7 +100,7 @@ public:
         GridController<simDim> &gc = Environment<simDim>::get().GridController();
 
         std::string subGroup = std::string("particles/") + FrameType::getName();
-        const DomainInformation domInfo;
+        const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
 
         /* load particle without copying particle data to host */
         ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(ThisSpecies::FrameType::getName(), true));
@@ -187,7 +187,7 @@ public:
                     (counterBuffer.getDeviceBuffer().getDataBox(),
                      speciesTmp->getDeviceParticlesBox(), deviceFrame,
                      (int) totalNumParticles,
-                     domInfo.localDomain.offset, /*relative to data domain (not to physical domain)*/
+                     localDomain.offset, /*relative to data domain (not to physical domain)*/
                      *(params->cellDescription)
                      );
                 speciesTmp->fillAllGaps();

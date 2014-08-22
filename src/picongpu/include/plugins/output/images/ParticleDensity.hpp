@@ -253,7 +253,7 @@ public:
 
         uint32_t globalOffset = 0;
 #if(SIMDIM==DIM3)
-        globalOffset = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset()[sliceDim];
+        globalOffset = Environment<simDim>::get().SubGrid().getLocalDomain().offset[sliceDim];
 #endif
 
 
@@ -324,9 +324,9 @@ private:
 
     bool doDrawing()
     {
-        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
-        const DataSpace<simDim> globalRootCellPos(simBox.getGlobalOffset());
-        const DataSpace<simDim> localSize(simBox.getLocalSize());
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+        const DataSpace<simDim> globalRootCellPos(subGrid.getLocalDomain().offset);
+        const DataSpace<simDim> localSize(subGrid.getLocalDomain().size);
 #if(SIMDIM==DIM3)
         const bool tmp = globalRootCellPos[sliceDim] + localSize[sliceDim] > sliceOffset &&
             globalRootCellPos[sliceDim] <= sliceOffset;

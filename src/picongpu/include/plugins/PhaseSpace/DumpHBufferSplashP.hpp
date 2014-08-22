@@ -28,7 +28,6 @@
 #include "communication/manager_common.h"
 #include "mappings/simulation/GridController.hpp"
 #include "mappings/simulation/SubGrid.hpp"
-#include "simulationControl/DomainInformation.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
 #include "math/vector/Int.hpp"
@@ -105,11 +104,11 @@ namespace picongpu
 
             /** calculate local and global size of the phase space ***********/
             const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
-            const DomainInformation domInfo;
-            const int rLocalOffset = domInfo.localDomain.offset[axis_element.space];
+            const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+            const int rLocalOffset = subGrid.getLocalDomain().offset[axis_element.space];
             const int rLocalSize = int(hBuffer.size().y() - 2*rGuardCells);
-            const int rGlobalSize = domInfo.globalDomain.size[axis_element.space];
-            assert( rLocalSize == domInfo.localDomain.size[axis_element.space] );
+            const int rGlobalSize = subGrid.getGlobalDomain().size[axis_element.space];
+            assert( rLocalSize == subGrid.getLocalDomain().size[axis_element.space] );
 
             /* globalDomain of the phase space */
             splash::Dimensions globalPhaseSpace_size( hBuffer.size().x(),

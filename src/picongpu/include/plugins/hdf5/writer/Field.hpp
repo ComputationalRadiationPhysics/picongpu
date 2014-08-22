@@ -73,9 +73,9 @@ struct Field
          * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
          */
         DataSpace<simDim> globalSlideOffset;
-        const DomainInformation domInfo;
+        const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
         const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(params->currentStep);
-        globalSlideOffset.y() += numSlides * domInfo.localDomain.size.y();
+        globalSlideOffset.y() += numSlides * localDomain.size.y();
 
         Dimensions splashGlobalDomainOffset(0, 0, 0);
         Dimensions splashGlobalOffsetFile(0, 0, 0);
@@ -83,12 +83,12 @@ struct Field
 
         for (uint32_t d = 0; d < simDim; ++d)
         {
-            splashGlobalOffsetFile[d] = domInfo.localDomain.offset[d];
+            splashGlobalOffsetFile[d] = localDomain.offset[d];
             splashGlobalDomainOffset[d] = params->window.globalDimensions.offset[d] + globalSlideOffset[d];
             splashGlobalDomainSize[d] = params->window.globalDimensions.size[d];
         }
 
-        splashGlobalOffsetFile[1] = std::max(0, domInfo.localDomain.offset[1] -
+        splashGlobalOffsetFile[1] = std::max(0, localDomain.offset[1] -
                                              params->window.globalDimensions.offset[1]);
 
         SplashType splashType;

@@ -224,16 +224,16 @@ private:
         const DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
         Window window(MovingWindow::getInstance().getWindow( currentStep));
 
-        PMACC_AUTO(simBox,Environment<simDim>::get().SubGrid().getSimulationBox());
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
 
-        const int yGlobalSize = simBox.getGlobalSize().y();
+        const int yGlobalSize = subGrid.getGlobalDomain().size.y();
         const int yLocalSize = localSize.y();
 
         const int gpus = Environment<simDim>::get().GridController().getGpuNodes().productOfComponents();
 
 
         /**\todo: fixme I cant work with not regular domains (use mpi_gatherv)*/
-        DataSpace<simDim> globalRootCell(simBox.getGlobalOffset());
+        DataSpace<simDim> globalRootCell(subGrid.getLocalDomain().offset);
         int yOffset = globalRootCell.y();
         int* yOffsetsAll = new int[gpus];
         float* maxAll = new float[yGlobalSize];

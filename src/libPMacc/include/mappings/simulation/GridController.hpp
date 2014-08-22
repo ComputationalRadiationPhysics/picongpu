@@ -176,7 +176,6 @@ namespace PMacc
                bool result = comm.slide();
 
                updateGlobalOffset();
-               //SubGrid<DIM>::getInstance().setGlobalOffset(globalOffset);
 
                return result;
             }
@@ -240,17 +239,18 @@ namespace PMacc
              */
             void updateGlobalOffset()
             {
-                /* if we slide we must change our globalOffset of the simulation
+                /* if we slide we must change our localDomain.offset of the simulation
                  * (only change slide direction Y)
                  */
                 int gpuOffset_y = this->getPosition().y();
-                PMACC_AUTO(simBox, Environment<DIM>::get().SubGrid().getSimulationBox());
-                DataSpace<DIM> globalOffset(simBox.getGlobalOffset());
+                const SubGrid<DIM>& subGrid = Environment<DIM>::get().SubGrid();
+                DataSpace<DIM> globalOffset(subGrid.getLocalDomain().offset);
                 /* this is allowed in the case that we use sliding window
                  * because size in Y direction is the same for all gpus domains
                  */
-                globalOffset.y() = gpuOffset_y * simBox.getLocalSize().y();
-                Environment<DIM>::get().SubGrid().setGlobalOffset(globalOffset);
+                globalOffset.y() = gpuOffset_y * subGrid.getLocalDomain().size.y();
+
+                Environment<DIM>::get().SubGrid().setLocalDomainOffset(globalOffset);
             }
 
             /**

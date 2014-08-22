@@ -429,7 +429,7 @@ public:
 
     __host__ void notify(uint32_t currentStep)
     {
-        const DomainInformation domInfo;
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
         mThreadParams.currentStep = (int32_t) currentStep;
         mThreadParams.cellDescription = this->cellDescription;
         this->filter.setStatus(false);
@@ -449,11 +449,11 @@ public:
         for (uint32_t i = 0; i < simDim; ++i)
         {
             mThreadParams.localWindowToDomainOffset[i] = 0;
-            if (mThreadParams.window.globalDimensions.offset[i] > domInfo.localDomain.offset[i])
+            if (mThreadParams.window.globalDimensions.offset[i] > subGrid.getLocalDomain().offset[i])
             {
                 mThreadParams.localWindowToDomainOffset[i] =
                         mThreadParams.window.globalDimensions.offset[i] -
-                        domInfo.localDomain.offset[i];
+                        subGrid.getLocalDomain().offset[i];
             }
         }
 
@@ -713,10 +713,9 @@ private:
         // synchronize, because following operations will be blocking anyway
         ThreadParams *threadParams = (ThreadParams*) (p_args);
         threadParams->adiosGroupSize = 0;
-        const DomainInformation domInfo;
 
         /* y direction can be negative for first gpu */
-        DataSpace<simDim> particleOffset(domInfo.localDomain.offset);
+        DataSpace<simDim> particleOffset(Environment<simDim>::get().SubGrid().getLocalDomain().offset);
         particleOffset.y() -= threadParams->window.globalDimensions.offset.y();
 
         /* create adios group for fields without statistics */

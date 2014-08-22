@@ -159,8 +159,8 @@ private:
     {
         uint64_cu size;
 
-        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
-        const DataSpace<simDim> localSize(simBox.getLocalSize());
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+        const DataSpace<simDim> localSize(subGrid.getLocalDomain().size);
 
         /*count local particles*/
         size = PMacc::CountParticles::countOnDevice<AREA>(*particles,

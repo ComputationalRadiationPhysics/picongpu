@@ -53,7 +53,7 @@ public:
         const DataSpace<simDim> field_guard = field.getGridLayout().getGuard();
 
         const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(params->currentStep);
-        const DomainInformation domInfo;
+        const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
 
         field.getHostBuffer().setValue(float3_X(0.));
 
@@ -64,15 +64,15 @@ public:
          * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
          */
         DataSpace<simDim> globalSlideOffset;
-        globalSlideOffset.y() = numSlides * domInfo.localDomain.size.y();
+        globalSlideOffset.y() = numSlides * localDomain.size.y();
 
         Dimensions domain_offset(0, 0, 0);
         for (uint32_t d = 0; d < simDim; ++d)
-            domain_offset[d] = domInfo.localDomain.offset[d] + globalSlideOffset[d];
+            domain_offset[d] = localDomain.offset[d] + globalSlideOffset[d];
 
         if (Environment<simDim>::get().GridController().getPosition().y() == 0)
             domain_offset[1] += params->window.globalDimensions.offset.y();
-        
+
         Dimensions local_domain_size;
         for (uint32_t d = 0; d < simDim; ++d)
             local_domain_size[d] = params->window.localDimensions.size[d];

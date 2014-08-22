@@ -27,112 +27,64 @@
 #include "dimensions/DataSpace.hpp"
 #include "mappings/simulation/GridController.hpp"
 #include "dimensions/GridLayout.hpp"
+#include "Selection.hpp"
 
 namespace PMacc
 {
-    
-
-    template <unsigned DIM>
-    class SimulationBox
-    {
-        typedef DataSpace<DIM> Size;
-        static const uint32_t Dim = DIM;
-        public:
-
-        SimulationBox(const Size& localSize,
-                      const Size& globalSize,
-                      const Size& globalOffset) :
-                      localSize(localSize),
-                      globalSize(globalSize),
-                      globalOffset(globalOffset)
-        {
-                        /*prevent a mismatch of localSize and globalSize */
-                        for (uint32_t i = 0; i < Dim; ++i)
-                        assert(localSize[i] <= globalSize[i]);
-        }
-
-        SimulationBox()
-        {
-
-        }
-
-        /** get size of global simulation box (in cells)
-        *
-        */
-        HDINLINE Size getGlobalSize() const
-        {
-            return globalSize;
-        }
-
-        /**
-         * Get size of local simulation area.
-         *
-         * @return size of local simulation area
-         */
-        HDINLINE Size getLocalSize() const
-        {
-            return localSize;
-        }
-
-        /**
-         * Get distance from global origin to local origin (in cells)
-         *
-         * local null point=Top/Left in 2D, Top/Left/Front in 3D
-         *
-         * @return offset to local origin of ordinates
-         */
-        HDINLINE Size getGlobalOffset() const
-        {
-            return globalOffset;
-        }
-
-        HDINLINE void setGlobalOffset(const Size& offset)
-        {
-            globalOffset = offset;
-        }
-
-    private:
-        Size globalSize;
-        Size localSize;
-        Size globalOffset;
-
-    };
-
+    /**
+      * Groups local, global and total domain information.
+      *
+      * For a detailed description of domains, see the PIConGPU wiki page:
+      * https://github.com/ComputationalRadiationPhysics/picongpu/wiki/PIConGPU-domain-definitions
+      */
     template <unsigned DIM>
     class SubGrid
     {
     public:
 
-    //    typedef SubGrid<DIM> MyType; TODO: delete getInstance()
         typedef DataSpace<DIM> Size;
 
-    //    static MyType& getInstance()
-    //    {
-    //        static MyType instance;
-    //        return instance;
-    //    }
-
-        void init(const Size localSize,
-                  const Size globalSize,
-                  const Size globalOffset)
+        void init(const Size& localSize,
+                  const Size& globalSize,
+                  const Size& globalOffset)
         {
-            SimulationBox<DIM> box(localSize, globalSize, globalOffset);
-            simBox = box;
+            totalDomain = Selection<DIM>(globalSize);
+            globalDomain = Selection<DIM>(globalSize);
+            localDomain = Selection<DIM>(localSize, globalOffset);
         }
 
-        void setGlobalOffset(const Size& offset)
+        void setLocalDomainOffset(const Size& offset)
         {
-            simBox.setGlobalOffset(offset);
+            localDomain = Selection<DIM>(localDomain.size, offset);
         }
 
-        const SimulationBox<DIM> getSimulationBox() const
+        const Selection<DIM>& getTotalDomain() const
         {
-            return simBox;
+            return totalDomain;
+        }
+
+        const Selection<DIM>& getGlobalDomain() const
+        {
+            return globalDomain;
+        }
+
+        const Selection<DIM>& getLocalDomain() const
+        {
+            return localDomain;
         }
 
     private:
 
         friend Environment<DIM>;
+
+        /** total simulation volume, including active and inactive subvolumes */
+        Selection<DIM> totalDomain;
+
+        /** currently simulated volume over all GPUs, offset relative to totalDomain */
+        Selection<DIM> globalDomain;
+
+        /** currently simulated volume on this GPU, offset relative to globalDomain */
+        Selection<DIM> localDomain;
 
         /**
          * Constructor
@@ -159,9 +111,6 @@ namespace PMacc
         {
 
         }
-
-
-        SimulationBox<DIM> simBox;
     };
 
 

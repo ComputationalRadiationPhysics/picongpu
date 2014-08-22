@@ -191,12 +191,12 @@ template< typename T_ParticleDescription>
 void Particles<T_ParticleDescription>::initFill( uint32_t currentStep )
 {
     Window window = MovingWindow::getInstance( ).getWindow( currentStep );
-    const uint32_t numSlides = MovingWindow::getInstance( ).getSlideCounter( currentStep );
-    PMACC_AUTO( simBox, Environment<simDim>::get().SubGrid().getSimulationBox( ) );
+    const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter( currentStep );
+    const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
 
     /*calculate real simulation area offset from the beginning of the simulation*/
     DataSpace<simDim> localCells = gridLayout.getDataSpaceWithoutGuarding( );
-    DataSpace<simDim> gpuCellOffset = simBox.getGlobalOffset( );
+    DataSpace<simDim> gpuCellOffset = subGrid.getLocalDomain().offset;
     gpuCellOffset.y( ) += numSlides * localCells.y( );
 
     GlobalSeed globalSeed;
@@ -207,7 +207,7 @@ void Particles<T_ParticleDescription>::initFill( uint32_t currentStep )
 
     if ( gasProfile::GAS_ENABLED )
     {
-        const DataSpace<simDim> globalNrOfCells = simBox.getGlobalSize( );
+        const DataSpace<simDim> globalNrOfCells = subGrid.getGlobalDomain().size;
 
         PMACC_AUTO( &fieldTmpGridBuffer, this->fieldTmp->getGridBuffer() );
         FieldTmp::DataBoxType dataBox = fieldTmpGridBuffer.getDeviceBuffer().getDataBox();
@@ -272,13 +272,13 @@ void Particles<T_ParticleDescription>::deviceSetDrift( uint32_t currentStep )
 
     dim3 block( MappingDesc::SuperCellSize::toRT( ).toDim3() );
 
-    PMACC_AUTO( simBox, Environment<simDim>::get().SubGrid().getSimulationBox( ) );
-    const DataSpace<simDim> localNrOfCells( simBox.getLocalSize( ) );
-    const DataSpace<simDim> globalNrOfCells( simBox.getGlobalSize( ) );
+    const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+    const DataSpace<simDim> localNrOfCells( subGrid.getLocalDomain( ).size );
+    const DataSpace<simDim> globalNrOfCells( subGrid.getGlobalDomain( ).size );
 
     /* calculate real simulation area offset from the beginning of the simulation
      */
-    uint32_t simulationYCell = simBox.getGlobalOffset( ).y( ) +
+    uint32_t simulationYCell = subGrid.getLocalDomain( ).offset.y( ) +
         ( numSlides * localNrOfCells.y( ) );
 
     __picKernelArea( kernelSetDrift, this->cellDescription, CORE + BORDER + GUARD )

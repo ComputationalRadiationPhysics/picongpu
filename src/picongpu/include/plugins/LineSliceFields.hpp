@@ -137,7 +137,7 @@ namespace picongpu
             const int rank = Environment<simDim>::get().GridController().getGlobalRank();
             getLineSliceFields < CORE + BORDER > ();
 
-            PMACC_AUTO(simBox,Environment<simDim>::get().SubGrid().getSimulationBox());
+            const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
 
 
             // number of cells on the current CPU for each direction
@@ -146,13 +146,13 @@ namespace picongpu
 
             // global cell id offset (without guardings!)
             // returns the global id offset of the "first" border cell on a GPU
-            const DataSpace<simDim> globalCellIdOffset(simBox.getGlobalOffset());
+            const DataSpace<simDim> globalCellIdOffset(subGrid.getLocalDomain().offset);
 
             // global number of cells for whole simulation: local cells on GPU * GPUs
             // (assumed same size on each gpu :-/  -> todo: provide interface!)
             //! \todo create a function for: global number of cells for whole simulation
             //!
-            const DataSpace<simDim> globalNrOfCells = simBox.getGlobalSize();
+            const DataSpace<simDim> globalNrOfCells = subGrid.getGlobalDomain().size;
 
             /*FORMAT OUTPUT*/
             /** \todo add float3_X with position of the cell to output*/
@@ -206,7 +206,7 @@ namespace picongpu
             if (notifyFrequency > 0)
             {
                 // number of cells on the current CPU for each direction
-                const DataSpace<simDim> nrOfGpuCells = Environment<simDim>::get().SubGrid().getSimulationBox().getLocalSize();
+                const DataSpace<simDim> nrOfGpuCells = Environment<simDim>::get().SubGrid().getLocalDomain().size;
 
                 // create as much storage as cells in the direction we are interested in:
                 // on gpu und host
@@ -247,17 +247,17 @@ namespace picongpu
             sliceDataField->getDeviceBuffer().setValue(tmpFloat3);
             dim3 block(SuperCellSize::toRT().toDim3());
 
-            PMACC_AUTO(simBox,Environment<simDim>::get().SubGrid().getSimulationBox());
+            const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
             // global cell id offset (without guardings!)
             // returns the global id offset of the "first" border cell on a GPU
-            const DataSpace<simDim> globalCellIdOffset(simBox.getGlobalOffset());
+            const DataSpace<simDim> globalCellIdOffset(subGrid.getLocalDomain().offset);
 
             // global number of cells for whole simulation: local cells on GPU * GPUs
             // (assumed same size on each gpu :-/  -> todo: provide interface!)
             //! \todo create a function for: global number of cells for whole simulation
             //!
-            const DataSpace<simDim> localNrOfCells(simBox.getLocalSize());
-            const DataSpace<simDim> globalNrOfCells (simBox.getGlobalSize());
+            const DataSpace<simDim> localNrOfCells(subGrid.getLocalDomain().size);
+            const DataSpace<simDim> globalNrOfCells (subGrid.getGlobalDomain().size);
 
 
             __picKernelArea(kernelLineSliceFields, *cellDescription, AREA)
