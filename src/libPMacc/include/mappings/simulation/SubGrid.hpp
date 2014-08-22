@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, Heiko Burau, Rene Widera, Wolfgang Hoenig
+ * Copyright 2013-2014 Felix Schmitt, Heiko Burau, Rene Widera, Wolfgang Hoenig
  *
  * This file is part of libPMacc.
  *
@@ -44,30 +44,64 @@ namespace PMacc
 
         typedef DataSpace<DIM> Size;
 
+        /**
+         * Initialize SubGrid instance
+         *
+         * @param localSize local domain size
+         * @param globalSize global domain size
+         * @param localOffset local domain offset (formerly 'globalOffset')
+         */
         void init(const Size& localSize,
                   const Size& globalSize,
-                  const Size& globalOffset)
+                  const Size& localOffset)
         {
             totalDomain = Selection<DIM>(globalSize);
             globalDomain = Selection<DIM>(globalSize);
-            localDomain = Selection<DIM>(localSize, globalOffset);
+            localDomain = Selection<DIM>(localSize, localOffset);
         }
 
+        /**
+         * Set offset of the local domain.
+         * (Note: this used to be called 'global offset')
+         *
+         * @param offset offset of local domain
+         */
         void setLocalDomainOffset(const Size& offset)
         {
             localDomain = Selection<DIM>(localDomain.size, offset);
         }
 
+        /**
+         * Get the total domain
+         *
+         * total simulation volume, including active and inactive subvolumes
+         *
+         * @return selection for total domain
+         */
         const Selection<DIM>& getTotalDomain() const
         {
             return totalDomain;
         }
 
+        /**
+         * Get the global domain
+         *
+         * currently simulated volume over all GPUs, offset relative to totalDomain
+         *
+         * @return selection for global domain
+         */
         const Selection<DIM>& getGlobalDomain() const
         {
             return globalDomain;
         }
 
+        /**
+         * Get the local domain
+         *
+         * currently simulated volume on this GPU, offset relative to globalDomain
+         *
+         * @return selection for local domain
+         */
         const Selection<DIM>& getLocalDomain() const
         {
             return localDomain;
