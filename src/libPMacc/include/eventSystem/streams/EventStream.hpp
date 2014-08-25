@@ -66,7 +66,7 @@ public:
         return stream;
     }
 
-    void waitOn(CudaEvent ev)
+    void waitOn(const CudaEvent& ev)
     {
         if (this->stream != ev.getStream())
         {

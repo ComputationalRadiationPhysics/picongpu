@@ -47,7 +47,7 @@ inline CudaEvent StreamTask::getCudaEvent( ) const
     return cudaEvent;
 }
 
-inline void StreamTask::setCudaEvent( CudaEvent cudaEvent )
+inline void StreamTask::setCudaEvent(const CudaEvent& cudaEvent )
 {
     this->hasCudaEvent = true;
     this->cudaEvent = cudaEvent;
@@ -78,7 +78,7 @@ inline EventStream* StreamTask::getEventStream( )
 inline void StreamTask::setEventStream( EventStream* newStream )
 {
     assert( newStream != NULL );
-    assert( stream == NULL ); //it is only aalowed to set a stream if no stream is set before
+    assert( stream == NULL ); //it is only allowed to set a stream if no stream is set before
     this->stream = newStream;
 }
 

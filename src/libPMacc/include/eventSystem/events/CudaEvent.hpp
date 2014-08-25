@@ -69,7 +69,7 @@ public:
      *  create valid object
      *
      * - internal memory is allocated
-     * - event must destroyed with @see destroy
+     * - event must be destroyed with @see destroy
      */
     static CudaEvent create()
     {
@@ -82,7 +82,7 @@ public:
     /**
      * free allocated memory
      */
-    static void destroy(CudaEvent ev)
+    static void destroy(const CudaEvent& ev)
     {
         CUDA_CHECK(cudaEventSynchronize(ev.event));
         CUDA_CHECK(cudaEventDestroy(ev.event));
@@ -93,7 +93,7 @@ public:
      *
      * @return native cuda event
      */
-    cudaEvent_t operator*()
+    cudaEvent_t operator*() const
     {
         assert(isValid);
         return event;
@@ -104,7 +104,7 @@ public:
      *
      * @return true if event is finished else false
      */
-    bool isFinished()
+    bool isFinished() const
     {
         assert(isValid);
         return cudaEventQuery(event) == cudaSuccess;
@@ -116,7 +116,7 @@ public:
      *
      * @return native cuda stream
      */
-    cudaStream_t getStream()
+    cudaStream_t getStream() const
     {
         assert(isRecorded);
         return stream;
@@ -129,6 +129,8 @@ public:
      */
     void recordEvent(cudaStream_t stream)
     {
+        /* disallow double recording */
+        assert(isRecorded==false);
         isRecorded = true;
         this->stream = stream;
         CUDA_CHECK(cudaEventRecord(event, stream));

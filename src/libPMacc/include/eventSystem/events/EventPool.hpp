@@ -69,7 +69,6 @@ namespace PMacc
         {
             CudaEvent result = events[currentEventIndex];
             currentEventIndex = (currentEventIndex + 1) % events.size();
-
             return result;
         }
 

@@ -66,7 +66,7 @@ namespace PMacc
          *
          * @param cudaEvent
          */
-        void setCudaEvent(CudaEvent cudaEvent);
+        void setCudaEvent(const CudaEvent& cudaEvent);
 
         /**
          * Returns if this task is finished.
