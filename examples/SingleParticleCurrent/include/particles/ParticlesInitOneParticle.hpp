@@ -90,9 +90,9 @@ public:
     static void addOneParticle(ParticlesClass& parClass, MappingDesc cellDescription, DataSpace<DIM3> globalCell)
     {
 
-        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
-        const DataSpace<DIM3> globalTopLeft = simBox.getGlobalOffset();
-        const DataSpace<DIM3> localSimulationArea = simBox.getLocalSize();
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+        const DataSpace<DIM3> globalTopLeft = subGrid.getLocalDomain().offset;
+        const DataSpace<DIM3> localSimulationArea = subGrid.getLocalDomain().size;
 
         DataSpace<DIM3> localParCell = globalCell - globalTopLeft;
 

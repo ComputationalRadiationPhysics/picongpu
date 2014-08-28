@@ -87,9 +87,9 @@ public:
 
         //add one particle in simulation
         //
-        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
 
-        const DataSpace<simDim> halfSimSize(simBox.getGlobalSize() / 2);
+        const DataSpace<simDim> halfSimSize(subGrid.getGlobalDomain().size / 2);
 
         GridLayout<simDim> layout(simBox.getLocalSize(), MappingDesc::SuperCellSize::toRT());
         MappingDesc cellDescription = MappingDesc(layout.getDataSpace(), GUARD_SIZE, GUARD_SIZE);

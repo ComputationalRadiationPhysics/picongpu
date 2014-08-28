@@ -78,7 +78,7 @@ namespace PMacc
          *
          * @return selection for total domain
          */
-        const Selection<DIM>& getTotalDomain() const
+        Selection<DIM> getTotalDomain() const
         {
             return totalDomain;
         }
@@ -90,7 +90,7 @@ namespace PMacc
          *
          * @return selection for global domain
          */
-        const Selection<DIM>& getGlobalDomain() const
+        Selection<DIM> getGlobalDomain() const
         {
             return globalDomain;
         }
@@ -102,7 +102,7 @@ namespace PMacc
          *
          * @return selection for local domain
          */
-        const Selection<DIM>& getLocalDomain() const
+        Selection<DIM> getLocalDomain() const
         {
             return localDomain;
         }

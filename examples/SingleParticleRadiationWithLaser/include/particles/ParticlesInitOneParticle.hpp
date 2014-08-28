@@ -59,10 +59,10 @@ __global__ void kernelAddOneParticle(ParBox pb,
     for (unsigned i = 0; i < 1; ++i)
     {
         PMACC_AUTO(par,(*frame)[i]);
-        floatD_X pos; 
-        for(int i=0; i<simDim; ++i) 
+        floatD_X pos;
+        for(int i=0; i<simDim; ++i)
           pos[i] = 0.5;
-        
+
         const float_X GAMMA0_X = 1.0f / sqrtf(1.0f - float_X(BETA0_X * BETA0_X));
         const float_X GAMMA0_Y = 1.0f / sqrtf(1.0f - float_X(BETA0_Y * BETA0_Y));
         const float_X GAMMA0_Z = 1.0f / sqrtf(1.0f - float_X(BETA0_Z * BETA0_Z));
@@ -96,9 +96,9 @@ public:
     static void addOneParticle(ParticlesClass& parClass, MappingDesc cellDescription, DataSpace<simDim> globalCell)
     {
 
-        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
-        const DataSpace<simDim> globalTopLeft = simBox.getGlobalOffset();
-        const DataSpace<simDim> localSimulationArea = simBox.getLocalSize();
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+        const DataSpace<simDim> globalTopLeft = subGrid.getLocalDomain().offset;
+        const DataSpace<simDim> localSimulationArea = subGrid.getLocalDomain().size;
         DataSpace<simDim> localParCell = globalCell - globalTopLeft;
 
 
