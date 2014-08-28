@@ -71,7 +71,7 @@ inline void TransactionManager::startOperation( ITask::TaskType op )
     transactions.top( ).operation( op );
 }
 
-inline EventStream *TransactionManager::getEventStream( ITask::TaskType op )
+inline EventStream* TransactionManager::getEventStream( ITask::TaskType op )
 {
     if ( transactions.size( ) == 0 )
         throw std::runtime_error( "Calling startOperation on empty transaction stack is not allowed" );

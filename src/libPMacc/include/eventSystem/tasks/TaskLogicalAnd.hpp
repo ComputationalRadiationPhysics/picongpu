@@ -131,8 +131,7 @@ namespace PMacc
             {
                 this->setTaskType(ITask::TASK_CUDA);
                 this->setEventStream(static_cast<StreamTask*> (s2)->getEventStream());
-                CUDA_CHECK(cudaStreamWaitEvent(this->getCudaStream(),
-                        static_cast<StreamTask*> (s1)->getCudaEvent(), 0));
+                this->getEventStream()->waitOn(static_cast<StreamTask*> (s1)->getCudaEvent());
                 this->activate();
             } else if (s1->getTaskType() == ITask::TASK_MPI && s2->getTaskType() == ITask::TASK_CUDA)
             {

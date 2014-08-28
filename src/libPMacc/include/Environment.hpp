@@ -62,7 +62,7 @@ namespace PMacc
             return Manager::getInstance();
         }
 
-        TransactionManager& TransactionManager()
+        TransactionManager& TransactionManager() const
         {
             return TransactionManager::getInstance();
         }
