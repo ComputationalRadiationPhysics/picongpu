@@ -86,7 +86,9 @@ __global__ void kernelEnergyParticles(ParticlesBox<FRAME, simDim> pb,
 
     /* this checks if the data loaded by a thread is filled with a particle
      * or not. Only applies to the first loaded frame (=last frame) */
-    bool isParticle = (*frame)[linearThreadIdx][multiMask_];
+    /* BUGFIX to issue #538
+     * volatile prohibit that the compiler creates wrong code*/
+    volatile bool isParticle = (*frame)[linearThreadIdx][multiMask_];
 
     while (isValid)
     {

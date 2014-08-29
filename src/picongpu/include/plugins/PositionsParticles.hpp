@@ -121,7 +121,9 @@ __global__ void kernelPositionsParticles(ParticlesBox<FRAME, simDim> pb,
     if (!isValid)
         return; //end kernel if we have no frames
 
-    bool isParticle = (*frame)[linearThreadIdx][multiMask_];
+    /* BUGFIX to issue #538
+     * volatile prohibit that the compiler creates wrong code*/
+    volatile bool isParticle = (*frame)[linearThreadIdx][multiMask_];
 
     while (isValid)
     {
