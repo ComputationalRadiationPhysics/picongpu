@@ -88,11 +88,11 @@ public:
 
         //add one particle in simulation
         //
-        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
 
-        const DataSpace<simDim> halfSimSize(simBox.getGlobalSize() / 2);
+        const DataSpace<simDim> halfSimSize(subGrid.getGlobalDomain().size / 2);
 
-        GridLayout<DIM3> layout(simBox.getLocalSize(), MappingDesc::SuperCellSize::toRT());
+        GridLayout<DIM3> layout(subGrid.getLocalDomain().size, MappingDesc::SuperCellSize::toRT());
         MappingDesc cellDescription = MappingDesc(layout.getDataSpace(), GUARD_SIZE, GUARD_SIZE);
 
         DataSpace<DIM3> centerXZPlan(halfSimSize);
@@ -149,8 +149,8 @@ public:
 
     virtual void movingWindowCheck(uint32_t currentStep)
     {
-        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
-        GridLayout<DIM3> gridLayout(simBox.getLocalSize(), MappingDesc::SuperCellSize::toRT());
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+        GridLayout<DIM3> gridLayout(subGrid.getLocalDomain().size, MappingDesc::SuperCellSize::toRT());
         if (MovingWindow::getInstance().slideInCurrentStep(currentStep))
         {
             GridController<simDim>& gc = Environment<simDim>::get().GridController();
