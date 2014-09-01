@@ -26,6 +26,8 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <sstream>
+#include <algorithm>
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -35,7 +37,7 @@
 
 #include "simulation_classTypes.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
-#include "plugins/ILightweightPlugin.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 
 #include "mpi/reduceMethods/Reduce.hpp"
 #include "mpi/MPIReduce.hpp"
@@ -194,8 +196,37 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
     __syncthreads();
 }
 
+/* Functor for std::remove_if
+ *
+ * Filter out old lines during restart */
+class removeOld
+{
+private:
+    uint32_t restartStep;
+
+public:
+    removeOld( uint32_t restartStep ) : restartStep(restartStep) {}
+
+    bool operator()( std::string &line )
+    {
+        /* remove comments */
+        if( line.compare( 0, 1, "#" ) == 0 )
+            return true;
+
+        /* remove lines >= restartStep */
+        std::stringstream strs( line );
+        int step;
+        if( strs >> step )
+            if( step >= restartStep )
+                return true;
+
+        /* keep the line */
+        return false;
+    }
+};
+
 template<class ParticlesType>
-class BinEnergyParticles : public ILightweightPlugin
+class BinEnergyParticles : public ISimulationPlugin
 {
 private:
 
@@ -212,7 +243,7 @@ private:
 
     double * binReduced;
 
-    uint32_t notifyFrequency;
+    uint32_t notifyPeriod;
     int numBins;
     int realNumBins;
     /* variables for energy limits of the histogram in keV */
@@ -240,7 +271,7 @@ public:
     particles(NULL),
     gBins(NULL),
     cellDescription(NULL),
-    notifyFrequency(0),
+    notifyPeriod(0),
     writeToFile(false),
     enableDetector(false)
     {
@@ -254,16 +285,19 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = Environment<>::get().DataConnector();
+        if(! outFile.is_open() )
+            openNewFile();
 
+        DataConnector &dc = Environment<>::get().DataConnector();
         particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
+
         calBinEnergyParticles < CORE + BORDER > (currentStep);
     }
 
     void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
-            ((analyzerPrefix + ".period").c_str(), po::value<uint32_t > (&notifyFrequency)->default_value(0), "enable analyser [for each n-th step]")
+            ((analyzerPrefix + ".period").c_str(), po::value<uint32_t > (&notifyPeriod)->default_value(0), "enable plugin [for each n-th step]")
             ((analyzerPrefix + ".binCount").c_str(), po::value<int > (&numBins)->default_value(1024), "binCount")
             ((analyzerPrefix + ".minEnergy").c_str(), po::value<float_X > (&minEnergy_keV)->default_value(0.0), "minEnergy[in keV]")
             ((analyzerPrefix + ".maxEnergy").c_str(), po::value<float_X > (&maxEnergy_keV), "maxEnergy[in keV]")
@@ -282,15 +316,40 @@ public:
         this->cellDescription = cellDescription;
     }
 
+    bool openNewFile()
+    {
+        writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce());
+
+        if (writeToFile)
+        {
+            outFile.open(filename.c_str(), std::ofstream::out | std::ostream::trunc);
+            if (!outFile)
+            {
+                std::cerr << "[Plugin] [" << analyzerPrefix
+                          << "] Can't open file '" << filename
+                          << "', output disabled" << std::endl;
+                writeToFile = false;
+            }
+            /* create header of the file */
+            outFile << "#step <" << minEnergy_keV << " ";
+            float_X binEnergy = (maxEnergy_keV - minEnergy_keV) / (float) numBins;
+            for (int i = 1; i < realNumBins - 1; ++i)
+            {
+
+                outFile << minEnergy_keV + ((float) i * binEnergy) << " ";
+            }
+            outFile << ">" << maxEnergy_keV << " count" << std::endl;
+        }
+
+        return writeToFile;
+    }
+
 private:
 
     void pluginLoad()
     {
-        if (notifyFrequency > 0)
+        if (notifyPeriod > 0)
         {
-            writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce());
-
-
             if (distanceToDetector != float_X(0.0) && slitDetectorX != float_X(0.0) && slitDetectorZ != float_X(0.0))
                 enableDetector = true;
 
@@ -304,32 +363,13 @@ private:
                 binReduced[i] = 0.0;
             }
 
-            if (writeToFile)
-            {
-                outFile.open(filename.c_str(), std::ofstream::out | std::ostream::trunc);
-                if (!outFile)
-                {
-                    std::cerr << "Can't open file [" << filename << "] for output, diasble analyser output. " << std::endl;
-                    writeToFile = false;
-                }
-                /* create header of the file */
-                outFile << "#step <" << minEnergy_keV << " ";
-                float_X binEnergy = (maxEnergy_keV - minEnergy_keV) / (float) numBins;
-                for (int i = 1; i < realNumBins - 1; ++i)
-                {
-
-                    outFile << minEnergy_keV + ((float) i * binEnergy) << " ";
-                }
-                outFile << ">" << maxEnergy_keV << " count" << std::endl;
-            }
-
-            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
         }
     }
 
     void pluginUnload()
     {
-        if (notifyFrequency > 0)
+        if (notifyPeriod > 0)
         {
             if (writeToFile)
             {
@@ -343,6 +383,44 @@ private:
             __delete(gBins);
             __deleteArray(binReduced);
         }
+    }
+
+    void restart(uint32_t restartStep, const std::string restartDirectory)
+    {
+        writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce());
+
+        if(! writeToFile)
+            return;
+
+        /* open and read in old file */
+        std::string oldFilename = restartDirectory + std::string("/") + filename;
+        std::ifstream inFile;
+        std::vector< std::string > lines;
+
+        inFile.open( oldFilename.c_str(), std::ofstream::in );
+        if( inFile.is_open() )
+        {
+            std::string line;
+            while( getline(inFile, line) ) {
+                lines.push_back( line );
+            }
+            inFile.close();
+        }
+
+        /* remove comments and lines > | >= ? restartStep */
+        std::remove_if( lines.begin(), lines.end(), removeOld(restartStep) );
+
+        /* open new file and prepend old output */
+        openNewFile();
+        for( std::vector< std::string >::iterator it = lines.begin();
+             it != lines.end(); ++it )
+            outFile << *it << std::endl;
+    }
+
+    void checkpoint(uint32_t, const std::string)
+    {
+        /* nothing to do */
+        return;
     }
 
     template< uint32_t AREA>
