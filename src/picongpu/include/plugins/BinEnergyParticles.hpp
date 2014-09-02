@@ -213,12 +213,14 @@ public:
         if( line.compare( 0, 1, "#" ) == 0 )
             return true;
 
-        /* remove lines >= restartStep */
+        /* remove lines > restartStep */
         std::stringstream strs( line );
-        int step;
+        uint32_t step;
         if( strs >> step )
-            if( step >= restartStep )
+        {
+            if( step > restartStep )
                 return true;
+        }
 
         /* keep the line */
         return false;
@@ -285,7 +287,7 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        if(! outFile.is_open() )
+        if( !outFile.is_open() )
             openNewFile();
 
         DataConnector &dc = Environment<>::get().DataConnector();
@@ -298,7 +300,7 @@ public:
     {
         desc.add_options()
             ((analyzerPrefix + ".period").c_str(), po::value<uint32_t > (&notifyPeriod)->default_value(0), "enable plugin [for each n-th step]")
-            ((analyzerPrefix + ".binCount").c_str(), po::value<int > (&numBins)->default_value(1024), "binCount")
+            ((analyzerPrefix + ".binCount").c_str(), po::value<int > (&numBins)->default_value(1024), "number of bins for the energy range")
             ((analyzerPrefix + ".minEnergy").c_str(), po::value<float_X > (&minEnergy_keV)->default_value(0.0), "minEnergy[in keV]")
             ((analyzerPrefix + ".maxEnergy").c_str(), po::value<float_X > (&maxEnergy_keV), "maxEnergy[in keV]")
             ((analyzerPrefix + ".distanceToDetector").c_str(), po::value<float_X > (&distanceToDetector)->default_value(0.0), "distance between gas and detector, assumptions: simulated area in y direction << distance to detector AND simulated area in X,Z << slit [in meters]  (if not set, all particles are counted)")
@@ -316,7 +318,7 @@ public:
         this->cellDescription = cellDescription;
     }
 
-    bool openNewFile()
+    void openNewFile()
     {
         writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce());
 
@@ -334,14 +336,10 @@ public:
             outFile << "#step <" << minEnergy_keV << " ";
             float_X binEnergy = (maxEnergy_keV - minEnergy_keV) / (float) numBins;
             for (int i = 1; i < realNumBins - 1; ++i)
-            {
-
                 outFile << minEnergy_keV + ((float) i * binEnergy) << " ";
-            }
+
             outFile << ">" << maxEnergy_keV << " count" << std::endl;
         }
-
-        return writeToFile;
     }
 
 private:
@@ -350,6 +348,18 @@ private:
     {
         if (notifyPeriod > 0)
         {
+            if( numBins <= 0 )
+            {
+                std::cerr << "[Plugin] [" << analyzerPrefix
+                          << "] disabled since " << analyzerPrefix
+                          << ".binCount must be > 0 (input "
+                          << numBins << " bins)"
+                          << std::endl;
+
+                /* do not register the plugin and return */
+                return;
+            }
+
             if (distanceToDetector != float_X(0.0) && slitDetectorX != float_X(0.0) && slitDetectorZ != float_X(0.0))
                 enableDetector = true;
 
@@ -407,14 +417,16 @@ private:
             inFile.close();
         }
 
-        /* remove comments and lines > | >= ? restartStep */
+        /* remove comments and lines > restartStep */
         std::remove_if( lines.begin(), lines.end(), removeOld(restartStep) );
 
         /* open new file and prepend old output */
         openNewFile();
         for( std::vector< std::string >::iterator it = lines.begin();
              it != lines.end(); ++it )
+        {
             outFile << *it << std::endl;
+        }
     }
 
     void checkpoint(uint32_t, const std::string)
