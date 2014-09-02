@@ -27,7 +27,6 @@
 #include <iomanip>
 #include <fstream>
 #include <sstream>
-#include <algorithm>
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -44,6 +43,8 @@
 #include "nvidia/functors/Add.hpp"
 
 #include "algorithms/Gamma.hpp"
+
+#include <boost/filesystem.hpp>
 
 namespace picongpu
 {
@@ -196,37 +197,6 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
     __syncthreads();
 }
 
-/* Functor for std::remove_if
- *
- * Filter out old lines during restart */
-class removeOld
-{
-private:
-    uint32_t restartStep;
-
-public:
-    removeOld( uint32_t restartStep ) : restartStep(restartStep) {}
-
-    bool operator()( std::string &line )
-    {
-        /* remove comments */
-        if( line.compare( 0, 1, "#" ) == 0 )
-            return true;
-
-        /* remove lines > restartStep */
-        std::stringstream strs( line );
-        uint32_t step;
-        if( strs >> step )
-        {
-            if( step > restartStep )
-                return true;
-        }
-
-        /* keep the line */
-        return false;
-    }
-};
-
 template<class ParticlesType>
 class BinEnergyParticles : public ISimulationPlugin
 {
@@ -287,9 +257,6 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        if( !outFile.is_open() )
-            openNewFile();
-
         DataConnector &dc = Environment<>::get().DataConnector();
         particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
 
@@ -318,28 +285,27 @@ public:
         this->cellDescription = cellDescription;
     }
 
+    /* Open a New Output File
+     *
+     * Must only be called by the rank with writeToFile == true
+     */
     void openNewFile()
     {
-        writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce());
-
-        if (writeToFile)
+        outFile.open(filename.c_str(), std::ofstream::out | std::ostream::trunc);
+        if (!outFile)
         {
-            outFile.open(filename.c_str(), std::ofstream::out | std::ostream::trunc);
-            if (!outFile)
-            {
-                std::cerr << "[Plugin] [" << analyzerPrefix
-                          << "] Can't open file '" << filename
-                          << "', output disabled" << std::endl;
-                writeToFile = false;
-            }
-            /* create header of the file */
-            outFile << "#step <" << minEnergy_keV << " ";
-            float_X binEnergy = (maxEnergy_keV - minEnergy_keV) / (float) numBins;
-            for (int i = 1; i < realNumBins - 1; ++i)
-                outFile << minEnergy_keV + ((float) i * binEnergy) << " ";
-
-            outFile << ">" << maxEnergy_keV << " count" << std::endl;
+            std::cerr << "[Plugin] [" << analyzerPrefix
+                      << "] Can't open file '" << filename
+                      << "', output disabled" << std::endl;
+            writeToFile = false;
         }
+        /* create header of the file */
+        outFile << "#step <" << minEnergy_keV << " ";
+        float_X binEnergy = (maxEnergy_keV - minEnergy_keV) / (float) numBins;
+        for (int i = 1; i < realNumBins - 1; ++i)
+            outFile << minEnergy_keV + ((float) i * binEnergy) << " ";
+
+        outFile << ">" << maxEnergy_keV << " count" << std::endl;
     }
 
 private:
@@ -373,6 +339,10 @@ private:
                 binReduced[i] = 0.0;
             }
 
+            writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce());
+            if( writeToFile )
+                openNewFile();
+
             Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
         }
     }
@@ -397,42 +367,49 @@ private:
 
     void restart(uint32_t restartStep, const std::string restartDirectory)
     {
-        writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce());
-
-        if(! writeToFile)
+        if( !writeToFile )
             return;
 
-        /* open and read in old file */
-        std::string oldFilename = restartDirectory + std::string("/") + filename;
-        std::ifstream inFile;
-        std::vector< std::string > lines;
+        if( outFile.is_open() )
+            outFile.close();
 
-        inFile.open( oldFilename.c_str(), std::ofstream::in );
-        if( inFile.is_open() )
+        std::stringstream sStep;
+        sStep << restartStep;
+
+        using namespace boost::filesystem;
+        path src( restartDirectory + std::string("/") + filename +
+                  std::string(".") + sStep.str() );
+        path des( filename );
+
+        copy_file( src,
+                   des,
+                   copy_option::overwrite_if_exists );
+
+        outFile.open( filename.c_str(), std::ofstream::out | std::ostream::app );
+        if( !outFile )
         {
-            std::string line;
-            while( getline(inFile, line) ) {
-                lines.push_back( line );
-            }
-            inFile.close();
-        }
-
-        /* remove comments and lines > restartStep */
-        std::remove_if( lines.begin(), lines.end(), removeOld(restartStep) );
-
-        /* open new file and prepend old output */
-        openNewFile();
-        for( std::vector< std::string >::iterator it = lines.begin();
-             it != lines.end(); ++it )
-        {
-            outFile << *it << std::endl;
+            std::cerr << "[Plugin] [" << analyzerPrefix
+                      << "] Can't open file '" << filename
+                      << "', output disabled" << std::endl;
+            writeToFile = false;
         }
     }
 
-    void checkpoint(uint32_t, const std::string)
+    void checkpoint(uint32_t currentStep, const std::string checkpointDirectory)
     {
-        /* nothing to do */
-        return;
+        outFile.flush();
+
+        std::stringstream sStep;
+        sStep << currentStep;
+
+        using namespace boost::filesystem;
+        path src( filename );
+        path des( checkpointDirectory + std::string("/") + filename +
+                  std::string(".") + sStep.str() );
+
+        copy_file( src,
+                   des,
+                   copy_option::overwrite_if_exists );
     }
 
     template< uint32_t AREA>
