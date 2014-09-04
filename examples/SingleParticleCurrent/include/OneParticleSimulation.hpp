@@ -89,7 +89,7 @@ public:
         const DataSpace<simDim> halfSimSize(subGrid.getGlobalDomain().size / 2);
 
 
-        GridLayout<DIM3> layout(subGrid.getLocalDomain().size, MappingDesc::SuperCellSize::toRT());
+        GridLayout<simDim> layout(subGrid.getLocalDomain().size, MappingDesc::SuperCellSize::toRT());
         MappingDesc cellDescription = MappingDesc(layout.getDataSpace(), GUARD_SIZE, GUARD_SIZE);
 
         ParticlesInitOneParticle<PIC_Electrons>::addOneParticle(*particleStorage[TypeAsIdentifier<PIC_Electrons>()],
@@ -135,7 +135,7 @@ public:
     virtual void movingWindowCheck(uint32_t currentStep)
     {
         const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
-        GridLayout<DIM3> gridLayout(subGrid.getLocalDomain().size, MappingDesc::SuperCellSize::toRT());
+        GridLayout<simDim> gridLayout(subGrid.getLocalDomain().size, MappingDesc::SuperCellSize::toRT());
         if (MovingWindow::getInstance().slideInCurrentStep(currentStep))
         {
             GridController<simDim>& gc = Environment<simDim>::get().GridController();
