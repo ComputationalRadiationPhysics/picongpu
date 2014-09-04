@@ -39,7 +39,7 @@ namespace picongpu
 
     template< class ParBox>
     __global__ void kernelAddOneParticle(ParBox pb,
-                                         DataSpace<DIM3> superCell, DataSpace<DIM3> parLocalCell)
+                                         DataSpace<simDim> superCell, DataSpace<simDim> parLocalCell)
     {
         typedef typename ParBox::FrameType FRAME;
 
@@ -87,16 +87,16 @@ namespace picongpu
     {
     public:
 
-        static void addOneParticle(ParticlesClass& parClass, MappingDesc cellDescription, DataSpace<DIM3> globalCell)
+        static void addOneParticle(ParticlesClass& parClass, MappingDesc cellDescription, DataSpace<simDim> globalCell)
         {
 
             const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
-            const DataSpace<DIM3> globalTopLeft = subGrid.getLocalDomain().offset;
-            const DataSpace<DIM3> localSimulationArea = subGrid.getLocalDomain().size;
-            DataSpace<DIM3> localParCell = globalCell - globalTopLeft;
+            const DataSpace<simDim> globalTopLeft = subGrid.getLocalDomain().offset;
+            const DataSpace<simDim> localSimulationArea = subGrid.getLocalDomain().size;
+            DataSpace<simDim> localParCell = globalCell - globalTopLeft;
 
 
-            for (int i = 0; i < (int) DIM3; ++i)
+            for (int i = 0; i < (int) simDim; ++i)
             {
                 //chek if particle is in the simulation area
                 if (localParCell[i] < 0 || localParCell[i] >= localSimulationArea[i])
@@ -104,8 +104,8 @@ namespace picongpu
             }
 
             //calculate supercell
-            DataSpace<DIM3> localSuperCell = (localParCell / MappingDesc::SuperCellSize::toRT());
-            DataSpace<DIM3> cellInSuperCell = localParCell - (localSuperCell * MappingDesc::SuperCellSize::toRT());
+            DataSpace<simDim> localSuperCell = (localParCell / MappingDesc::SuperCellSize::toRT());
+            DataSpace<simDim> cellInSuperCell = localParCell - (localSuperCell * MappingDesc::SuperCellSize::toRT());
             //add garding blocks to supercell
             localSuperCell = localSuperCell + cellDescription.getGuardingSuperCells();
 
