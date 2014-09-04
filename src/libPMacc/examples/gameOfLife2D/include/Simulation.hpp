@@ -88,7 +88,7 @@ public:
         GridController<DIM2> & gc = Environment<DIM2>::get().GridController();
         Space localGridSize(gridSize / devices);
 
-        /* - First this forwards its arguments to SubGrid.init()              *
+        /* - This forwards arguments to SubGrid.init()                        *
          * - Create Singletons: EnvironmentController, DataConnector,         *
          *                      PluginConnector, nvidia::memory::MemoryInfo   */
         Environment<DIM2>::get().initGrids( gridSize, localGridSize,
