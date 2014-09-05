@@ -58,7 +58,7 @@ namespace PMacc
     public:
 
         IPlugin() :
-        loaded(false)
+        loaded(false), lastCheckpoint(0)
         {
 
         }
@@ -116,6 +116,24 @@ namespace PMacc
          */
         virtual std::string pluginGetName() const = 0;
 
+        /** When was the plugin checkpointed last?
+         *
+         * @return last checkpoint's time step
+         */
+        uint32_t getLastCheckpoint()
+        {
+            return lastCheckpoint;
+        }
+
+        /** Remember last checkpoint call
+         *
+         * @param currentStep current simulation iteration step
+         */
+        uint32_t setLastCheckpoint( uint32_t currentStep )
+        {
+            lastCheckpoint = currentStep;
+        }
+
     protected:
         virtual void pluginLoad()
         {
@@ -128,5 +146,6 @@ namespace PMacc
         }
 
         bool loaded;
+        uint32_t lastCheckpoint;
     };
 }

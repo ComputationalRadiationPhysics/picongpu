@@ -144,7 +144,10 @@ namespace PMacc
                 INotify* notifiedObj = iter->first;
                 uint32_t period = iter->second;
                 if (currentStep % period == 0)
+                {
                     notifiedObj->notify(currentStep);
+                    notifiedObj->setLastNotify(currentStep);
+                }
             }
         }
 
@@ -160,6 +163,7 @@ namespace PMacc
                     iter != plugins.end(); ++iter)
             {
                 (*iter)->checkpoint(currentStep, checkpointDirectory);
+                (*iter)->setLastCheckpoint(currentStep);
             }
         }
 

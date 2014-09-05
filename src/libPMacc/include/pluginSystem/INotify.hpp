@@ -30,9 +30,12 @@ namespace PMacc
      */
     class INotify
     {
+    protected:
+        uint32_t lastNotify;
+
     public:
 
-        INotify()
+        INotify() : lastNotify(0)
         {
         }
 
@@ -48,6 +51,24 @@ namespace PMacc
          * @param currentStep current simulation iteration step
          */
         virtual void notify( uint32_t currentStep ) = 0;
+
+        /** When was the plugin notified last?
+         *
+         * @return last notify time step
+         */
+        uint32_t getLastNotify()
+        {
+            return lastNotify;
+        }
+
+        /** Remember last notification call
+         *
+         * @param currentStep current simulation iteration step
+         */
+        uint32_t setLastNotify( uint32_t currentStep )
+        {
+            lastNotify = currentStep;
+        }
 
     };
 }
