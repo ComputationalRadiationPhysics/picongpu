@@ -120,7 +120,7 @@ namespace PMacc
          *
          * @return last checkpoint's time step
          */
-        uint32_t getLastCheckpoint()
+        uint32_t getLastCheckpoint() const
         {
             return lastCheckpoint;
         }

@@ -56,7 +56,7 @@ namespace PMacc
          *
          * @return last notify time step
          */
-        uint32_t getLastNotify()
+        uint32_t getLastNotify() const
         {
             return lastNotify;
         }
