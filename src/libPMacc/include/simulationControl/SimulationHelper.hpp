@@ -122,9 +122,10 @@ public:
     {
         Environment<DIM>::get().DataConnector().invalidate();
 
+        /* trigger notification */
         Environment<DIM>::get().PluginConnector().notifyPlugins(currentStep);
 
-        /* trigger checkpoint notification first to allow plugins to skip standard notify */
+        /* trigger checkpoint notification */
         if (checkpointPeriod && (currentStep % checkpointPeriod == 0))
         {
             /* create directory containing checkpoints  */
