@@ -24,14 +24,21 @@
 # set default label
 LABEL="electrons"
 
+# set default output
+OUTPUT2FILE=0
+OUTPUT_FILE="BinEnergyElectrons"
+
+
 function usage()
-{ 
+{
+ programName=`basename $0`
  echo "Usage:"
- echo "  $0 [-h] [-l labelForLegend] pathToSpectraFile timeStep "
+ echo "  $programName [-h] [-l labelForLegend] pathToSpectraFile timeStep "
  echo 
- echo "  -h                  - show usage of $0"
+ echo "  -h                  - show usage of $programName"
  echo "  -l labelForLegend   - set name of label"
  echo "                        default \"$LABEL\""
+ echo "  -o outputfile       - output to \"outputfile.eps\""
  echo "  pathToSpectraFile   - file containg Energy Histogram"
  echo "  timeStep            - time step to be shown"
 }
@@ -44,7 +51,7 @@ OPTIND=1
 # by seting OPTERR=1, error of the underlying optget are  reported
 OPTERR=1
 
-while getopts "hl:" FLAG "$@"
+while getopts "hl:o:" FLAG "$@"
 do
     # check for help flag
     if [ "$FLAG" = "h" ]
@@ -59,7 +66,17 @@ do
         LABEL=$OPTARG
     fi
 
-    # If the label after the -l argument is missing, the getopt 
+    #  check for output2file flag
+    if [ "$FLAG" = "o" ]
+    then
+        OUTPUT2FILE=1
+        if [ "$OPTARG" != "" ]
+        then
+            OUTPUT_FILE=$OPTARG
+        fi
+    fi
+
+    # If the label after the -l or -o argument is missing, the getopt 
     # routine returns ":" 
     if [ "$VALUE" = ":" ]
     then
@@ -112,6 +129,8 @@ script=$( echo "$script" | sed -e "s/FILENAME/$tmp1/g" )
 script=$( echo "$script" | sed -e "s/TIMESTEP/$tmp2/g" )
 script=$( echo "$script" | sed -e "s/BINDIR/$bindirEsc/g" )
 script=$( echo "$script" | sed -e "s/PARTICLES/$tmp3/g" )
+script=$( echo "$script" | sed -e "s/OUTPUT2FILE/$OUTPUT2FILE/g" )
+script=$( echo "$script" | sed -e "s/OUTPUT_FILE/$OUTPUT_FILE/g" )
 
 
 # run gnuplot script

@@ -1,6 +1,6 @@
 #!/usr/bin/gnuplot -persist
 # 
-# Copyright 2013 Axel Huebl
+# Copyright 2013-2014 Axel Huebl, Richard Pausch
 #
 # This file is part of PIConGPU.
 #
@@ -19,21 +19,21 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
-#set terminal postscript eps color "Helvetica" 20
-#set grid
-#set out 'BinEnergyElectrons.eps'
+if(OUTPUT2FILE == 1){
+  set terminal postscript eps color "Helvetica" 20
+  set grid
+  set out 'OUTPUT_FILE.eps'
+  } 
+else {
+
+}
+
 
 set xlabel "E_n in MeV"
 set ylabel "Number of PARTICLES"
 
-#MyYRange=3.0e-3
-
-#set yrange [-MyYRange:MyYRange]
-#set format y "%11.1e"
-
-#set ytics MyYRange/5.0
 set logscale y
 
-# with lines
+
 plot "< cat \"FILENAME\" | awk '{if($1 == \"#step\" || $1 == \"TIMESTEP\") print}' | awk -f BINDIR/../share/awk/BinEnergyPlot.awk | egrep -v \"(>|<|step|count)\"" \
-     u ($1/1000.0):2 t "PARTICLES" w l lw 2
+     u ($1/1000.0):2 t "PARTICLES at time step TIMESTEP" w l lw 2
