@@ -85,11 +85,10 @@ public:
         elong = laserProfile::laserLongitudinal(currentStep,
                                                 phase);
 
-        SubGrid<simDim>& sg = Environment<simDim>::get().SubGrid();
-        PMACC_AUTO(simBox,sg.getSimulationBox());
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
 
-        const DataSpace<simDim> globalCellOffset(simBox.getGlobalOffset());
-        const DataSpace<simDim> halfSimSize(simBox.getGlobalSize() / 2);
+        const DataSpace<simDim> globalCellOffset(subGrid.getLocalDomain().offset);
+        const DataSpace<simDim> halfSimSize(subGrid.getGlobalDomain().size / 2);
 
         DataSpace<simDim> centeredOrigin(globalCellOffset - halfSimSize);
         return LaserManipulator(elong,

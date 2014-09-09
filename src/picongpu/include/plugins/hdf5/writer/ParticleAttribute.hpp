@@ -70,7 +70,7 @@ struct ParticleAttribute
         const uint32_t components = GetNComponents<ValueType>::value;
         typedef typename GetComponentsType<ValueType>::type ComponentType;
         typedef typename PICToSplash<ComponentType>::type SplashType;
-        
+
         const ThreadParams *threadParams = params;
 
         log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) write species attribute: %1%") % Identifier::getName();
@@ -85,9 +85,9 @@ struct ParticleAttribute
          * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
          */
         DataSpace<simDim> globalSlideOffset;
-        const DomainInformation domInfo;
+        const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
         const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(threadParams->currentStep);
-        globalSlideOffset.y() += numSlides * domInfo.localDomain.size.y();
+        globalSlideOffset.y() += numSlides * localDomain.size.y();
 
         Dimensions splashDomainOffset(0, 0, 0);
         Dimensions splashGlobalDomainOffset(0, 0, 0);
@@ -104,9 +104,9 @@ struct ParticleAttribute
         }
 
         typedef typename GetComponentsType<ValueType>::type ComponentValueType;
-        
+
         ComponentValueType* tmpArray = new ComponentValueType[elements];
-        
+
         for (uint32_t d = 0; d < components; d++)
         {
             std::stringstream datasetName;
@@ -119,7 +119,7 @@ struct ParticleAttribute
             {
                 tmpArray[i] = ((ComponentValueType*)dataPtr)[i * components + d];
             }
-  
+
             threadParams->dataCollector->writeDomain(threadParams->currentStep,
                                                      splashType,
                                                      1u,
@@ -145,7 +145,7 @@ struct ParticleAttribute
 
         }
         __deleteArray(tmpArray);
-        
+
         log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) write species attribute: %1%") %
             Identifier::getName();
     }

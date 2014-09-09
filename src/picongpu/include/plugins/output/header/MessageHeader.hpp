@@ -72,9 +72,9 @@ struct MessageHeader
         if (gpus.productOfComponents() != 0)
             sim.nodes = DataSpace<DIM2 > (gpus[transpose.x()], gpus[transpose.y()]);
 
-        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
 
-        const DataSpace<Dim> globalSize(simBox.getGlobalSize());
+        const DataSpace<Dim> globalSize(subGrid.getGlobalDomain().size);
         sim.size.x() = globalSize[transpose.x()];
         sim.size.y() = globalSize[transpose.y()];
 
@@ -107,7 +107,7 @@ struct MessageHeader
             }
         }
 
-        const DataSpace<Dim> offsetToSimNull(simBox.getGlobalOffset());
+        const DataSpace<Dim> offsetToSimNull(subGrid.getLocalDomain().offset);
         const DataSpace<Dim> windowOffsetToSimNull(vWindow.globalDimensions.offset);
         const DataSpace<Dim> localOffset(vWindow.localDimensions.offset);
 

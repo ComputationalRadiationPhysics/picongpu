@@ -240,7 +240,7 @@ private:
 
             Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
             PMacc::Filesystem<simDim>& fs = Environment<simDim>::get().Filesystem();
-            
+
             if (isMaster && totalRad)
             {
                 fs.createDirectory("radRestart");
@@ -280,10 +280,10 @@ private:
 
             // Some funny things that make it possible for the kernel to calculate
             // the absolut position of the particles
-            PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
-            DataSpace<simDim> localSize(simBox.getLocalSize());
+            const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+            DataSpace<simDim> localSize(subGrid.getLocalDomain().size);
             const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
-            DataSpace<simDim> globalOffset(simBox.getGlobalOffset());
+            DataSpace<simDim> globalOffset(subGrid.getLocalDomain().offset);
             globalOffset.y() += (localSize.y() * numSlides);
 
             //only print data at end of simulation
@@ -545,8 +545,8 @@ private:
         // the absolut position of the particles
         DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
         const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
-        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
-        DataSpace<simDim> globalOffset(simBox.getGlobalOffset());
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+        DataSpace<simDim> globalOffset(subGrid.getLocalDomain().offset);
         globalOffset.y() += (localSize.y() * numSlides);
 
 
@@ -562,7 +562,7 @@ private:
              globalOffset,
              currentStep, *cellDescription,
 	     freqFkt,
-	     simBox.getGlobalSize()
+	     subGrid.getGlobalDomain().size
              );
 
         if (dumpPeriod != 0 && currentStep % dumpPeriod == 0)

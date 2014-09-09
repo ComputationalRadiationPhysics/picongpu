@@ -272,7 +272,7 @@ private:
      */
     void notificationReceived(uint32_t currentStep, bool isCheckpoint)
     {
-        DomainInformation domInfo;
+        const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
         mThreadParams.isCheckpoint = isCheckpoint;
         mThreadParams.currentStep = currentStep;
         mThreadParams.cellDescription = this->cellDescription;
@@ -302,11 +302,11 @@ private:
         for (uint32_t i = 0; i < simDim; ++i)
         {
             mThreadParams.localWindowToDomainOffset[i] = 0;
-            if (mThreadParams.window.globalDimensions.offset[i] > domInfo.localDomain.offset[i])
+            if (mThreadParams.window.globalDimensions.offset[i] > localDomain.offset[i])
             {
                 mThreadParams.localWindowToDomainOffset[i] =
                     mThreadParams.window.globalDimensions.offset[i] -
-                    domInfo.localDomain.offset[i];
+                    localDomain.offset[i];
             }
         }
 
@@ -404,12 +404,12 @@ private:
     static void *writeHDF5(void *p_args)
     {
         ThreadParams *threadParams = (ThreadParams*) (p_args);
-        DomainInformation domInfo;
+        const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
 
         writeMetaAttributes(threadParams);
 
         /* y direction can be negative for first gpu*/
-        DataSpace<simDim> particleOffset(domInfo.localDomain.offset);
+        DataSpace<simDim> particleOffset(localDomain.offset);
         particleOffset.y() -= threadParams->window.globalDimensions.offset.y();
 
         /* write all fields */

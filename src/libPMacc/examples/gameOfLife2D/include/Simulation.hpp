@@ -88,8 +88,7 @@ public:
         GridController<DIM2> & gc = Environment<DIM2>::get().GridController();
         Space localGridSize(gridSize / devices);
 
-        /* - First this forwards its arguments to SubGrid.init(), which saves *
-         *   these inside a private SimulationBox Object                      *
+        /* - This forwards arguments to SubGrid.init()                        *
          * - Create Singletons: EnvironmentController, DataConnector,         *
          *                      PluginConnector, nvidia::memory::MemoryInfo   */
         Environment<DIM2>::get().initGrids( gridSize, localGridSize,
@@ -109,10 +108,10 @@ public:
 
     void init()
     {
-        /* copy singleton simulationBox data to simbox simBox holds global and*
+        /* subGrid holds global and*
          * local SimulationSize and where the local SimArea is in the greater *
          * scheme using Offsets from global LEFT, TOP, FRONT                  */
-        PMACC_AUTO(simBox, Environment<DIM2>::get().SubGrid().getSimulationBox());
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
 
         /* Recall that in types.hpp the following is defined:                 *
          *     typedef MappingDescription<DIM2, math::CT::Int<16,16> > MappingDesc;    *
@@ -121,8 +120,8 @@ public:
          * Expression of 2nd argument translates to DataSpace<DIM3>(16,16,0). *
          * This is the guard size (here set to be one Supercell wide in all   *
          * directions). Meaning we have 16*16*(2*grid.x+2*grid.y+4) more      *
-         * cells in GridLayout than in SimulationBox.                         */
-        GridLayout<DIM2> layout( simBox.getLocalSize(),
+         * cells in GridLayout than in the SubGrid.                         */
+        GridLayout<DIM2> layout( subGrid.getLocalDomain().size,
                                  MappingDesc::SuperCellSize::toRT());
 
         /* getDataSpace will return DataSpace( grid.x +16+16, grid.y +16+16)  *
@@ -157,7 +156,7 @@ public:
           *  -inactive processes (second/boolean ,argument in gather.init) and*
           *   save new MPI_COMMUNICATOR created from these into private var.  *
           *  -return if rank == 0                                             */
-        MessageHeader header(gridSize, layout, simBox.getGlobalOffset());
+        MessageHeader header(gridSize, layout, subGrid.getLocalDomain().offset);
         isMaster = gather.init(header, true);
 
         /* Calls kernel to initialize random generator. Game of Life is then  *

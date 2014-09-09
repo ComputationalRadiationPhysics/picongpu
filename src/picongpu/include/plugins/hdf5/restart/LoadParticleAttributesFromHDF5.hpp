@@ -73,11 +73,7 @@ struct LoadParticleAttributesFromHDF5
 
         log<picLog::INPUT_OUTPUT > ("HDF5:  ( begin ) load species attribute: %1%") % Identifier::getName();
 
-        SplashType splashType;
         const std::string name_lookup[] = {"x", "y", "z"};
-
-
-        const DomainInformation domInfo;
 
         ComponentType* tmpArray = new ComponentType[elements];
 
