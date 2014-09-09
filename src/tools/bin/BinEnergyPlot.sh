@@ -33,7 +33,7 @@ function usage()
 {
  programName=`basename $0`
  echo "Usage:"
- echo "  $programName [-h] [-l labelForLegend] pathToSpectraFile timeStep "
+ echo "  $programName [-h] [-l labelForLegend] [-o outputfile] pathToSpectraFile timeStep "
  echo 
  echo "  -h                  - show usage of $programName"
  echo "  -l labelForLegend   - set name of label"
@@ -136,5 +136,3 @@ script=$( echo "$script" | sed -e "s/OUTPUT_FILE/$OUTPUT_FILEEsc/g" )
 
 # run gnuplot script
 echo   "$script" | gnuplot -persist
-
-

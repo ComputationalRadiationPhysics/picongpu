@@ -24,9 +24,6 @@ if(OUTPUT2FILE == 1){
   set grid
   set out 'OUTPUT_FILE.eps'
   } 
-else {
-
-}
 
 
 set xlabel "E_n in MeV"
