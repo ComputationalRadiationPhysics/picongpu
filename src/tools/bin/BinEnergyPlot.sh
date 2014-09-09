@@ -39,16 +39,16 @@ function usage()
  echo "  -l labelForLegend   - set name of label"
  echo "                        default \"$LABEL\""
  echo "  -o outputfile       - output to \"outputfile.eps\""
- echo "  pathToSpectraFile   - file containg Energy Histogram"
+ echo "  pathToSpectraFile   - file containing Energy Histogram"
  echo "  timeStep            - time step to be shown"
 }
 
 
-# set up optgets
+# set up getopts
 
 # Start processing of option flags at index 1 of all arguments.
 OPTIND=1
-# by seting OPTERR=1, error of the underlying optget are  reported
+# by setting OPTERR=1, error of the underlying getopt are reported
 OPTERR=1
 
 while getopts "hl:o:" FLAG "$@"
@@ -60,13 +60,13 @@ do
         exit 0
     fi
 
-    #  check for label flag
+    # check for label flag
     if [ "$FLAG" = "l" ]
     then
         LABEL=$OPTARG
     fi
 
-    #  check for output2file flag
+    # check for output2file flag
     if [ "$FLAG" = "o" ]
     then
         OUTPUT2FILE=1
@@ -96,10 +96,10 @@ done
 
 
 # The first argument after the flags is at index $OPTIND
-# shift the argumentlist 
+# shift the argument list 
 shift `expr $OPTIND - 1`
 
-# check whether the first  argument is a file
+# check whether the first argument is a file
 if test ! -f $1; then
  echo "$1 is not a file"
  exit 1
@@ -112,25 +112,26 @@ bindir=`dirname $0`/
 # read out gnuplot script
 script=`cat $bindir/../share/gnuplot/BinEnergyPlot.gnuplot`
 
-# helper function to  correctly escape paths in script replacement
+# helper function to correctly escape paths in script replacement
 escapeForLater()
 {
     sed 's/\//\\\//g'
 }
 
-#  prepare arguments for later sed replacements in gnuplot script
-tmp1=`echo $1 | escapeForLater`
-tmp2=`echo $2 | bc | escapeForLater`
-tmp3=`echo $LABEL | escapeForLater`
+# prepare arguments for later sed replacements in gnuplot script
+Esc1=`echo $1 | escapeForLater`
+Esc2=`echo $2 | bc | escapeForLater`
+LABELESC=`echo $LABEL | escapeForLater`
 bindirEsc=`echo "$bindir" | escapeForLater`
+OUTPUT_FILEEsc=`echo "$OUTPUT_FILE" | escapeForLater`
 
 # adjust default gnuplot script 
-script=$( echo "$script" | sed -e "s/FILENAME/$tmp1/g" )
-script=$( echo "$script" | sed -e "s/TIMESTEP/$tmp2/g" )
+script=$( echo "$script" | sed -e "s/FILENAME/$Esc1/g" )
+script=$( echo "$script" | sed -e "s/TIMESTEP/$Esc2/g" )
 script=$( echo "$script" | sed -e "s/BINDIR/$bindirEsc/g" )
-script=$( echo "$script" | sed -e "s/PARTICLES/$tmp3/g" )
+script=$( echo "$script" | sed -e "s/PARTICLES/$LABELESC/g" )
 script=$( echo "$script" | sed -e "s/OUTPUT2FILE/$OUTPUT2FILE/g" )
-script=$( echo "$script" | sed -e "s/OUTPUT_FILE/$OUTPUT_FILE/g" )
+script=$( echo "$script" | sed -e "s/OUTPUT_FILE/$OUTPUT_FILEEsc/g" )
 
 
 # run gnuplot script
