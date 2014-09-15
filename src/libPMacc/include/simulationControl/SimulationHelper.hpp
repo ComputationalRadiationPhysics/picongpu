@@ -122,7 +122,10 @@ public:
     {
         Environment<DIM>::get().DataConnector().invalidate();
 
-        /* trigger checkpoint notification first to allow plugins to skip standard notify */
+        /* trigger notification */
+        Environment<DIM>::get().PluginConnector().notifyPlugins(currentStep);
+
+        /* trigger checkpoint notification */
         if (checkpointPeriod && (currentStep % checkpointPeriod == 0))
         {
             /* create directory containing checkpoints  */
@@ -143,8 +146,6 @@ public:
             }
             numCheckpoints++;
         }
-
-        Environment<DIM>::get().PluginConnector().notifyPlugins(currentStep);
     }
 
     GridController<DIM> & getGridController()
