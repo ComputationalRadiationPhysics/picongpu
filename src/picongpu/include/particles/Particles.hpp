@@ -76,7 +76,8 @@ public:
     void syncToDevice();
     
     //Ionization
-    void ionize(uint32_t currentStep);
+    template<typename T_Elec>
+    void ionize(uint32_t currentStep, T_Elec electrons);
 
 private:
     SimulationDataId datasetID;

@@ -361,7 +361,7 @@ public:
 //#if (ENABLE_IONS == 1) && (ENABLE_ELECTRONS == 1) && (ENABLE_IONIZATION == 1)  
 #if (ENABLE_IONS == 1)        
         //std::cout << "Begin Ionization of Ions" << std::endl;
-        ions->ionize(currentStep);
+        ions->ionize(currentStep,electrons);
         //std::cout << "End Ionization of Ions" << std::endl;
 #endif  
 #if (ENABLE_IONS == 1)
