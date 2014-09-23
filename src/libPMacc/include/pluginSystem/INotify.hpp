@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Rene Widera, Felix Schmitt, Axel Huebl
+ * Copyright 2013-2014 Rene Widera, Felix Schmitt, Axel Huebl,
+ *                     Richard Pausch
  *
  * This file is part of libPMacc.
  *
@@ -65,7 +66,7 @@ namespace PMacc
          *
          * @param currentStep current simulation iteration step
          */
-        uint32_t setLastNotify( uint32_t currentStep )
+        void setLastNotify( uint32_t currentStep )
         {
             lastNotify = currentStep;
         }
