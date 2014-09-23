@@ -78,7 +78,20 @@ void SliceFieldPrinterMulti<Field>::pluginLoad()
         this->childs[i].notifyFrequency = this->notifyFrequency[i];
         this->childs[i].fieldName = this->fieldName[i];
         this->childs[i].plane = this->plane[i];
-        this->childs[i].slicePoint = this->slicePoint[i];
+        if( float_X(0.0) <= this->slicePoint[i] && this->slicePoint[i] <= float_X(1.0))
+          {
+            /* in case the slice point is inside of [0.0,1.0] */
+            this->childs[i].slicePoint = this->slicePoint[i];
+          }
+        else
+          {  
+            /* in case the slice point is outside of [0.0,1.0] */
+            this->childs[i].slicePoint = float_X(0.0);
+            std::cerr << "In Plugin " << name << " the slice point number " << i 
+                      << " (slice_point=" << this->slicePoint[i] 
+                      << ") is outside of [0.0, 1.0]. " << std::endl
+                      << "The entry will be ignored. " << std::endl;
+          }
         this->childs[i].pluginLoad();
     }
 }
