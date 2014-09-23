@@ -125,14 +125,10 @@ void SliceFieldPrinter<Field>::printSlice(const TField& field, int nAxis, float 
     using namespace lambda;
     vec::UInt<3> twistedVector((nAxis+1)%3, (nAxis+2)%3, nAxis);
 
-    float_X SI = UNIT_EFIELD;
-    if(Field::getName() == FieldB::getName())
-        SI = UNIT_BFIELD;
-
     algorithm::kernel::Foreach<vec::CT::UInt<4,4,1> >()(
         dBuffer->zone(), dBuffer->origin(),
         cursor::tools::slice(field.originCustomAxes(twistedVector)(0,0,localPlane)),
-        _1 = _2 * SI);
+        _1 = _2 * convertToSI());
 
     container::HostBuffer<float3_X, 2> hBuffer(dBuffer->size());
     hBuffer = *dBuffer;
@@ -144,4 +140,18 @@ void SliceFieldPrinter<Field>::printSlice(const TField& field, int nAxis, float 
     file << globalBuffer;
 }
 
+/* specify conversion for E field */
+template< >
+inline float_X SliceFieldPrinter<FieldE>::convertToSI(void) const
+{
+  return float_X(UNIT_EFIELD);
 }
+
+/* specify conversion for B field */
+template< >
+inline float_X SliceFieldPrinter<FieldB>::convertToSI(void) const
+{
+  return float_X(UNIT_BFIELD);
+}
+
+} /* end namespace picongpu */
