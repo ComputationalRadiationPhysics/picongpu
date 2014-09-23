@@ -116,7 +116,14 @@ set(LIBS ${LIBS} ${Boost_LIBRARIES})
 # Compile & Link splash2txt
 ################################################################################
 
-file(GLOB SRCFILES "*.cpp")
+set(SRCFILES "splash2txt.cpp")
+
+if(Splash_FOUND)
+    list(APPEND SRCFILES "tools_splash_parallel.cpp")
+endif(Splash_FOUND)
+if(ADIOS_FOUND)
+    list(APPEND SRCFILES "tools_adios_parallel.cpp")
+endif(ADIOS_FOUND)
 
 add_executable(splash2txt
      ${SRCFILES}
