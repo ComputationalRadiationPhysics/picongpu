@@ -52,16 +52,16 @@ template<typename Field>
 void SliceFieldPrinterMulti<Field>::pluginRegisterHelp(po::options_description& desc)
 {
     desc.add_options()
-        ((this->prefix + "_frequency").c_str(),
+        ((this->prefix + ".frequency").c_str(),
         po::value<std::vector<uint32_t> > (&this->notifyFrequency)->multitoken(), "notify frequency");
     desc.add_options()
-        ((this->prefix + "_fieldName").c_str(),
+        ((this->prefix + ".fieldName").c_str(),
         po::value<std::vector<std::string> > (&this->fieldName)->multitoken(), "field Name");
     desc.add_options()
-        ((this->prefix + "_plane").c_str(),
+        ((this->prefix + ".plane").c_str(),
         po::value<std::vector<int> > (&this->plane)->multitoken(), "specifies the axis which stands on the cutting plane (0,1,2)");
     desc.add_options()
-        ((this->prefix + "_slicePoint").c_str(),
+        ((this->prefix + ".slicePoint").c_str(),
         po::value<std::vector<float_X> > (&this->slicePoint)->multitoken(), "slice point 0.0 <= x <= 1.0");
 }
 
