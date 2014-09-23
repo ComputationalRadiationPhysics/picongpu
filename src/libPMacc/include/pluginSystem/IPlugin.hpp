@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Rene Widera, Felix Schmitt
+ * Copyright 2013-2014 Rene Widera, Felix Schmitt, Richard Pausch
  *
  * This file is part of libPMacc.
  *
@@ -129,7 +129,7 @@ namespace PMacc
          *
          * @param currentStep current simulation iteration step
          */
-        uint32_t setLastCheckpoint( uint32_t currentStep )
+        void setLastCheckpoint( uint32_t currentStep )
         {
             lastCheckpoint = currentStep;
         }
