@@ -154,4 +154,13 @@ inline float_X SliceFieldPrinter<FieldB>::convertToSI(void) const
   return float_X(UNIT_BFIELD);
 }
 
+/* specify conversion for J field */
+template< >
+inline float_X SliceFieldPrinter<FieldJ>::convertToSI(void) const
+{
+  /* get unit of current, math::abs needed to convert unitaryVector( 1.0)
+   * to 1.0. Using abs might cause different sign of unit. */
+  return float_X(math::abs(FieldJ::getUnit()));
+}
+
 } /* end namespace picongpu */
