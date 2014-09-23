@@ -42,14 +42,26 @@ namespace picongpu
 template<typename Field>
 void SliceFieldPrinter<Field>::pluginLoad()
 {
-    Environment<>::get().PluginConnector().setNotificationPeriod(this, this->notifyFrequency);
-    namespace vec = ::PMacc::math;
-    typedef SuperCellSize BlockDim;
+    if( float_X(0.0) <= slicePoint && slicePoint <= float_X(1.0))
+      {
+        /* in case the slice point is inside of [0.0,1.0] */
+        Environment<>::get().PluginConnector().setNotificationPeriod(this, this->notifyFrequency);
+        namespace vec = ::PMacc::math;
+        typedef SuperCellSize BlockDim;
 
-    vec::Size_t<3> size = vec::Size_t<3>(this->cellDescription->getGridSuperCells()) * precisionCast<size_t>(BlockDim::toRT())
-        - precisionCast<size_t>(2 * BlockDim::toRT());
-    this->dBuffer = new container::DeviceBuffer<float3_X, 2>(
-        size.shrink<2>((this->plane+1)%3));
+        vec::Size_t<3> size = vec::Size_t<3>(this->cellDescription->getGridSuperCells()) * precisionCast<size_t>(BlockDim::toRT())
+          - precisionCast<size_t>(2 * BlockDim::toRT());
+        this->dBuffer = new container::DeviceBuffer<float3_X, 2>(
+                        size.shrink<2>((this->plane+1)%3));
+      }
+    else
+      {
+        /* in case the slice point is outside of [0.0,1.0] */
+        std::cerr << "In the SliceFieldPrinter plugin a slice point"
+                  << " (slice_point=" << slicePoint
+                  << ") is outside of [0.0, 1.0]. " << std::endl
+                  << "The request will be ignored. " << std::endl;
+      }
 }
 
 template<typename Field>
@@ -76,11 +88,10 @@ void SliceFieldPrinter<Field>::notify(uint32_t currentStep)
     namespace vec = ::PMacc::math;
     typedef SuperCellSize BlockDim;
     DataConnector &dc = Environment<>::get().DataConnector();
-
     BOOST_AUTO(field_coreBorder,
-        dc.getData<Field > (Field::getName(), true).getGridBuffer().
-            getDeviceBuffer().cartBuffer().
-            view(BlockDim::toRT(), -BlockDim::toRT()));
+               dc.getData<Field > (Field::getName(), true).getGridBuffer().
+               getDeviceBuffer().cartBuffer().
+               view(BlockDim::toRT(), -BlockDim::toRT()));
 
     std::ostringstream filename;
     filename << this->fieldName << "_" << currentStep << ".dat";
@@ -105,7 +116,7 @@ void SliceFieldPrinter<Field>::printSlice(const TField& field, int nAxis, float 
     nVector[nAxis] = 1;
 
     zone::SphericZone<3> gpuGatheringZone(vec::Size_t<3>(gpuDim.x(), gpuDim.y(), gpuDim.z()),
-                                              nVector * gpuPlane);
+                                          nVector * gpuPlane);
     gpuGatheringZone.size[nAxis] = 1;
 
     algorithm::mpi::Gather<3> gather(gpuGatheringZone);
