@@ -55,8 +55,8 @@ void SliceFieldPrinterMulti<Field>::pluginRegisterHelp(po::options_description& 
         ((this->prefix + ".frequency").c_str(),
         po::value<std::vector<uint32_t> > (&this->notifyFrequency)->multitoken(), "notify frequency");
     desc.add_options()
-        ((this->prefix + ".fieldName").c_str(),
-        po::value<std::vector<std::string> > (&this->fieldName)->multitoken(), "field Name");
+        ((this->prefix + ".fileName").c_str(),
+        po::value<std::vector<std::string> > (&this->fileName)->multitoken(), "file name to store slices in");
     desc.add_options()
         ((this->prefix + ".plane").c_str(),
         po::value<std::vector<int> > (&this->plane)->multitoken(), "specifies the axis which stands on the cutting plane (0,1,2)");
@@ -76,7 +76,7 @@ void SliceFieldPrinterMulti<Field>::pluginLoad()
     {
         this->childs[i].setMappingDescription(this->cellDescription);
         this->childs[i].notifyFrequency = this->notifyFrequency[i];
-        this->childs[i].fieldName = this->fieldName[i];
+        this->childs[i].fileName = this->fileName[i];
         this->childs[i].plane = this->plane[i];
         this->childs[i].slicePoint = this->slicePoint[i];
         this->childs[i].pluginLoad();

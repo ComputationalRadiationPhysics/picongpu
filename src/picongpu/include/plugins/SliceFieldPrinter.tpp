@@ -94,7 +94,7 @@ void SliceFieldPrinter<Field>::notify(uint32_t currentStep)
                view(BlockDim::toRT(), -BlockDim::toRT()));
 
     std::ostringstream filename;
-    filename << this->fieldName << "_" << currentStep << ".dat";
+    filename << this->fileName << "_" << currentStep << ".dat";
     printSlice(field_coreBorder, this->plane, this->slicePoint, filename.str());
 }
 

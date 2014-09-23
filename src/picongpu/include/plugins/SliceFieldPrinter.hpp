@@ -41,7 +41,7 @@ class SliceFieldPrinter : public ILightweightPlugin
 {
 private:
     uint32_t notifyFrequency;
-    std::string fieldName;
+    std::string fileName;
     int plane;
     float_X slicePoint;
     MappingDesc *cellDescription;

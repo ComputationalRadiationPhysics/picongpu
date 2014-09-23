@@ -42,7 +42,7 @@ private:
     std::string name;
     std::string prefix;
     std::vector<uint32_t> notifyFrequency;
-    std::vector<std::string> fieldName;
+    std::vector<std::string> fileName;
     std::vector<int> plane;
     std::vector<float_X> slicePoint;
     MappingDesc *cellDescription;
