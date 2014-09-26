@@ -299,7 +299,24 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
             if (0 <= electronId < particlesInSuperCell)
             {
                 /* < TASK > yet to be defined */
-                writeElectronIntoFrame(*electronFrame,electronId);
+                /*writeElectronIntoFrame(*electronFrame,electronId);*/
+                
+                /* each thread makes the attributes of its ion accessible */
+                PMACC_AUTO(parentIon,((*frame)[linearThreadIdx]));
+                /* each thread initializes an electron if one should be produced */
+                PMACC_AUTO(targetElectronFull,((*electronFrame)[electronId]));
+                targetElectronFull[multiMask_] = 1;
+                targetElectronFull[chargeState_] = 1;
+                targetElectronFull[momentum_] = parentIon[momentum_]/parentIon.getMass(weighting)*targetElectronFull.getMass(weighting);
+
+                /* each thread initializes a clone of the parent ion but leaving out
+                 * some attributes:
+                 * - multiMask: because it takes reportedly long to clone
+                 * - chargeState: because electrons cannot have a charge state other than 1
+                 * - momentum: because the electron would get a higher energy because of the ion mass */
+                PMACC_AUTO(targetElectronClone, deselect<multiMask, chargeState, momentum>(targetElectronFull));
+                assign(targetElectronClone, parentIon);
+                
                 newElectrons -= 1;
             }
             __syncthreads();
@@ -326,7 +343,24 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
             if (electronId >= particlesInSuperCell)
             {
                 electronId -= particlesInSuperCell;
-                writeElectronIntoFrame(*electronFrame,electronId);
+                /*writeElectronIntoFrame(*electronFrame,electronId);*/
+                
+                /* each thread makes the attributes of its ion accessible */
+                PMACC_AUTO(parentIon,((*frame)[linearThreadIdx]));
+                /* each thread initializes an electron if one should be produced */
+                PMACC_AUTO(targetElectronFull,((*electronFrame)[electronId]));
+                targetElectronFull[multiMask_] = 1;
+                targetElectronFull[chargeState_] = 1;
+                targetElectronFull[momentum_] = parentIon[momentum_]/parentIon.getMass(weighting)*targetElectronFull.getMass(weighting);
+
+                /* each thread initializes a clone of the parent ion but leaving out
+                 * some attributes:
+                 * - multiMask: because it takes reportedly long to clone
+                 * - chargeState: because electrons cannot have a charge state other than 1
+                 * - momentum: because the electron would get a higher energy because of the ion mass */
+                PMACC_AUTO(targetElectronClone, deselect<multiMask, chargeState, momentum>(targetElectronFull));
+                assign(targetElectronClone, parentIon);
+                
                 newElectrons -= 1;
             }
         }
@@ -338,6 +372,7 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
         }
         // isParticle = true;
         __syncthreads();
+        /* TODO <FillAllGaps> in electron frames */
     }
 
 }

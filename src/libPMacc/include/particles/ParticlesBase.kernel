@@ -192,8 +192,8 @@ __global__ void kernelShiftParticles(ParticlesBox<FRAME, Mapping::Dim> pb, Mappi
                 PMACC_AUTO(parDestFull, (*(destFrames[direction]))[destParticleIdx]);
                 /*enable particle*/
                 parDestFull[multiMask_] = 1;
-                /* we not update multiMask because copy from mem to mem is to slow
-                 * we have enabled particle explicit */
+                /* we not update multiMask because copy from mem to mem is too slow
+                 * we have enabled particle explicitly */
                 PMACC_AUTO(parDest, deselect<multiMask>(parDestFull));
                 PMACC_AUTO(parSrc, (*frame)[threadIdx.x]);
                 assign(parDest, parSrc);
