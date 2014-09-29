@@ -47,7 +47,7 @@ void ToolsAdiosParallel::convertToText()
     if(options.data.size() == 0)
         throw std::runtime_error("No datasets requested");
 
-    for (int i = 0; i < options.data.size(); ++i)
+    for (size_t i = 0; i < options.data.size(); ++i)
     {
         ADIOS_VARINFO *pVarInfo;
 

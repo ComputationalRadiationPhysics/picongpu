@@ -124,7 +124,7 @@ throw (std::runtime_error )
         {
             bool sliceFound = false;
             options.fieldDims.set( 0, 0, 0 );
-            for ( int i = 0; i < numAllowedSlices; ++i )
+            for ( size_t i = 0; i < numAllowedSlices; ++i )
             {
                 if ( slice_string.compare( allowedSlices[i] ) == 0 )
                 {
