@@ -111,7 +111,7 @@ public:
         /* subGrid holds global and*
          * local SimulationSize and where the local SimArea is in the greater *
          * scheme using Offsets from global LEFT, TOP, FRONT                  */
-        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+        const SubGrid<DIM2>& subGrid = Environment<DIM2>::get().SubGrid();
 
         /* Recall that in types.hpp the following is defined:                 *
          *     typedef MappingDescription<DIM2, math::CT::Int<16,16> > MappingDesc;    *

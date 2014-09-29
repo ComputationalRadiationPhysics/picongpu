@@ -30,6 +30,7 @@
 #include "mpi/GetMPI_StructAsArray.hpp"
 #include "traits/GetComponentsType.hpp"
 #include "traits/GetNComponents.hpp"
+#include "algorithms/PromoteType.hpp"
 
 namespace PMacc
 {
