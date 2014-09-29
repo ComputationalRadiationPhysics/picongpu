@@ -353,17 +353,18 @@ void ToolsSplashParallel::printAvailableDatasets(std::vector< DataCollector::DCE
     std::sort(dataTypeNames.begin(), dataTypeNames.end(), DCEntryCompare);
 
     std::string lastdataName = "";
-    size_t matchingLength, lastMatchingUnderscore;
+    size_t matchingLength, lastMatchingDelimiter;
 
     BOOST_FOREACH(DataCollector::DCEntry dataName, dataTypeNames)
     {
         matchingLength = 0;
-        lastMatchingUnderscore = 0;
+        lastMatchingDelimiter = 0;
 
-        while (dataName.name.compare(matchingLength, 1, lastdataName, matchingLength, 1) == 0)
+        while ( ( dataName.name.size() >= matchingLength ) &&
+                ( dataName.name.compare(matchingLength, 1, lastdataName, matchingLength, 1) == 0 ) )
         {
-            if (dataName.name[matchingLength] == '_')
-                lastMatchingUnderscore = matchingLength;
+            if (dataName.name[matchingLength] == '/')
+                lastMatchingDelimiter = matchingLength;
             matchingLength++;
         }
 
@@ -376,8 +377,8 @@ void ToolsSplashParallel::printAvailableDatasets(std::vector< DataCollector::DCE
         {
             outStream << std::string(matchingLength == 0, '\n') << '\n'
                     << intentation
-                    << std::string(lastMatchingUnderscore, ' ')
-                    << dataName.name.substr(lastMatchingUnderscore);
+                    << std::string(lastMatchingDelimiter, ' ')
+                    << dataName.name.substr(lastMatchingDelimiter);
         }
 
         lastdataName = dataName.name;
