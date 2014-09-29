@@ -409,7 +409,7 @@ void ToolsSplashParallel::listAvailableDatasets()
             << std::endl;
 
     outStream << "available time steps:";
-    for (int i = 0; i < num_entries; ++i)
+    for (size_t i = 0; i < num_entries; ++i)
         outStream << " " << entries[i];
     outStream << std::endl;
 
