@@ -49,6 +49,7 @@
 namespace picongpu
 {
 using namespace PMacc;
+using namespace boost::filesystem;
 
 namespace po = boost::program_options;
 
@@ -285,6 +286,8 @@ public:
         this->cellDescription = cellDescription;
     }
 
+private:
+
     /* Open a New Output File
      *
      * Must only be called by the rank with writeToFile == true
@@ -299,16 +302,17 @@ public:
                       << "', output disabled" << std::endl;
             writeToFile = false;
         }
-        /* create header of the file */
-        outFile << "#step <" << minEnergy_keV << " ";
-        float_X binEnergy = (maxEnergy_keV - minEnergy_keV) / (float) numBins;
-        for (int i = 1; i < realNumBins - 1; ++i)
-            outFile << minEnergy_keV + ((float) i * binEnergy) << " ";
+        else
+        {
+            /* create header of the file */
+            outFile << "#step <" << minEnergy_keV << " ";
+            float_X binEnergy = (maxEnergy_keV - minEnergy_keV) / (float) numBins;
+            for (int i = 1; i < realNumBins - 1; ++i)
+                outFile << minEnergy_keV + ((float) i * binEnergy) << " ";
 
-        outFile << ">" << maxEnergy_keV << " count" << std::endl;
+            outFile << ">" << maxEnergy_keV << " count" << std::endl;
+        }
     }
-
-private:
 
     void pluginLoad()
     {
@@ -376,13 +380,12 @@ private:
         std::stringstream sStep;
         sStep << restartStep;
 
-        using namespace boost::filesystem;
         path src( restartDirectory + std::string("/") + filename +
                   std::string(".") + sStep.str() );
-        path des( filename );
+        path dst( filename );
 
         copy_file( src,
-                   des,
+                   dst,
                    copy_option::overwrite_if_exists );
 
         outFile.open( filename.c_str(), std::ofstream::out | std::ostream::app );
@@ -402,13 +405,12 @@ private:
         std::stringstream sStep;
         sStep << currentStep;
 
-        using namespace boost::filesystem;
         path src( filename );
-        path des( checkpointDirectory + std::string("/") + filename +
+        path dst( checkpointDirectory + std::string("/") + filename +
                   std::string(".") + sStep.str() );
 
         copy_file( src,
-                   des,
+                   dst,
                    copy_option::overwrite_if_exists );
     }
 
