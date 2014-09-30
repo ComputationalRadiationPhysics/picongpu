@@ -126,12 +126,6 @@ void SliceFieldPrinter<Field>::printSlice(const TField& field, int nAxis, float 
     using namespace lambda;
     vec::UInt<3> twistedVector((nAxis+1)%3, (nAxis+2)%3, nAxis);
 
-    /* a copy would be better */
-    algorithm::kernel::Foreach<vec::CT::UInt<4,4,1> >()(
-        dBuffer->zone(), dBuffer->origin(),
-        cursor::tools::slice(field.originCustomAxes(twistedVector)(0,0,localPlane)),
-        _1 = _2);
-
     container::HostBuffer<float3_X, 2> hBuffer(dBuffer->size());
     hBuffer = *dBuffer;
 
