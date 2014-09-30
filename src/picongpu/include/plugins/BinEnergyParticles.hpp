@@ -400,18 +400,21 @@ private:
 
     void checkpoint(uint32_t currentStep, const std::string checkpointDirectory)
     {
-        outFile.flush();
+        if( writeToFile )
+        {
+            outFile.flush();
 
-        std::stringstream sStep;
-        sStep << currentStep;
+            std::stringstream sStep;
+            sStep << currentStep;
 
-        path src( filename );
-        path dst( checkpointDirectory + std::string("/") + filename +
-                  std::string(".") + sStep.str() );
+            path src( filename );
+            path dst( checkpointDirectory + std::string("/") + filename +
+                      std::string(".") + sStep.str() );
 
-        copy_file( src,
-                   dst,
-                   copy_option::overwrite_if_exists );
+            copy_file( src,
+                       dst,
+                       copy_option::overwrite_if_exists );
+        }
     }
 
     template< uint32_t AREA>
