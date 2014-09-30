@@ -129,7 +129,8 @@ void SliceFieldPrinter<Field>::printSlice(const TField& field, int nAxis, float 
     algorithm::kernel::Foreach<vec::CT::UInt<4,4,1> >()(
         dBuffer->zone(), dBuffer->origin(),
         cursor::tools::slice(field.originCustomAxes(twistedVector)(0,0,localPlane)),
-        _1 = _2 * convertToSI());
+        _1 = _2);
+        // * convertToSI());
 
     container::HostBuffer<float3_X, 2> hBuffer(dBuffer->size());
     hBuffer = *dBuffer;
@@ -143,25 +144,25 @@ void SliceFieldPrinter<Field>::printSlice(const TField& field, int nAxis, float 
 
 /* specify conversion for E field */
 template< >
-inline float_X SliceFieldPrinter<FieldE>::convertToSI(void) const
+inline float_64 SliceFieldPrinter<FieldE>::convertToSI() const
 {
-  return float_X(UNIT_EFIELD);
+  return float_64((FieldE::getUnit())[0]);
 }
 
 /* specify conversion for B field */
 template< >
-inline float_X SliceFieldPrinter<FieldB>::convertToSI(void) const
+inline float_64 SliceFieldPrinter<FieldB>::convertToSI() const
 {
-  return float_X(UNIT_BFIELD);
+  return float_64((FieldB::getUnit())[0]);
 }
 
 /* specify conversion for J field */
 template< >
-inline float_X SliceFieldPrinter<FieldJ>::convertToSI(void) const
+inline float_64 SliceFieldPrinter<FieldJ>::convertToSI() const
 {
   /* get unit of current, math::abs needed to convert unitaryVector( 1.0)
    * to 1.0. Using abs might cause different sign of unit. */
-  return float_X(math::abs(FieldJ::getUnit()));
+  return float_64((FieldJ::getUnit())[0]);
 }
 
 } /* end namespace picongpu */
