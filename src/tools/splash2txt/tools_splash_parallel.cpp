@@ -231,8 +231,16 @@ void ToolsSplashParallel::convertToText()
     //
 
     DomainCollector::DomDataClass ref_data_class = DomainCollector::UndefinedType;
-    dc.readAttribute(options.step, options.data[0].c_str(), DOMCOL_ATTR_CLASS,
-            &ref_data_class, NULL);
+    try
+    {
+        dc.readAttribute(options.step, options.data[0].c_str(), DOMCOL_ATTR_CLASS,
+                &ref_data_class, NULL);
+    } catch (DCException)
+    {
+        errorStream << "Error: No domain information for dataset '" << options.data[0] << "' available." << std::endl;
+        errorStream << "This might not be a valid PIConGPU libSplash file." << std::endl;
+        return;
+    }
 
     switch (ref_data_class)
     {
@@ -426,10 +434,16 @@ void ToolsSplashParallel::listAvailableDatasets()
     printAvailableDatasets(dataTypeNames, "  ");
 
     // global cell size and start
-    Domain totalDomain = dc.getGlobalDomain(entries[0], (dataTypeNames.front().name.c_str()));
-    outStream << std::endl
-            << "Global domain: "
-            << totalDomain.toString() << std::endl;
+    try
+    {
+        Domain totalDomain = dc.getGlobalDomain(entries[0], (dataTypeNames.front().name.c_str()));
+        outStream << std::endl
+                << "Global domain: "
+                << totalDomain.toString() << std::endl;
+    } catch (DCException)
+    {
+        outStream << std::endl << "(No domain information)" << std::endl;
+    }
 
     delete[] entries;
 }
