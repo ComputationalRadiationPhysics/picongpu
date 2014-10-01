@@ -238,7 +238,7 @@ void ToolsSplashParallel::convertToText()
     } catch (DCException)
     {
         errorStream << "Error: No domain information for dataset '" << options.data[0] << "' available." << std::endl;
-        errorStream << "This might not be a valid PIConGPU libSplash file." << std::endl;
+        errorStream << "This might not be a valid libSplash domain." << std::endl;
         return;
     }
 
