@@ -26,6 +26,7 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <sstream>
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -35,7 +36,7 @@
 
 #include "simulation_classTypes.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
-#include "plugins/ILightweightPlugin.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 
 #include "mpi/reduceMethods/Reduce.hpp"
 #include "mpi/MPIReduce.hpp"
@@ -43,9 +44,12 @@
 
 #include "algorithms/Gamma.hpp"
 
+#include <boost/filesystem.hpp>
+
 namespace picongpu
 {
 using namespace PMacc;
+using namespace boost::filesystem;
 
 namespace po = boost::program_options;
 
@@ -195,7 +199,7 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
 }
 
 template<class ParticlesType>
-class BinEnergyParticles : public ILightweightPlugin
+class BinEnergyParticles : public ISimulationPlugin
 {
 private:
 
@@ -212,7 +216,7 @@ private:
 
     double * binReduced;
 
-    uint32_t notifyFrequency;
+    uint32_t notifyPeriod;
     int numBins;
     int realNumBins;
     /* variables for energy limits of the histogram in keV */
@@ -240,7 +244,7 @@ public:
     particles(NULL),
     gBins(NULL),
     cellDescription(NULL),
-    notifyFrequency(0),
+    notifyPeriod(0),
     writeToFile(false),
     enableDetector(false)
     {
@@ -255,16 +259,16 @@ public:
     void notify(uint32_t currentStep)
     {
         DataConnector &dc = Environment<>::get().DataConnector();
-
         particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
+
         calBinEnergyParticles < CORE + BORDER > (currentStep);
     }
 
     void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
-            ((analyzerPrefix + ".period").c_str(), po::value<uint32_t > (&notifyFrequency)->default_value(0), "enable analyser [for each n-th step]")
-            ((analyzerPrefix + ".binCount").c_str(), po::value<int > (&numBins)->default_value(1024), "binCount")
+            ((analyzerPrefix + ".period").c_str(), po::value<uint32_t > (&notifyPeriod)->default_value(0), "enable plugin [for each n-th step]")
+            ((analyzerPrefix + ".binCount").c_str(), po::value<int > (&numBins)->default_value(1024), "number of bins for the energy range")
             ((analyzerPrefix + ".minEnergy").c_str(), po::value<float_X > (&minEnergy_keV)->default_value(0.0), "minEnergy[in keV]")
             ((analyzerPrefix + ".maxEnergy").c_str(), po::value<float_X > (&maxEnergy_keV), "maxEnergy[in keV]")
             ((analyzerPrefix + ".distanceToDetector").c_str(), po::value<float_X > (&distanceToDetector)->default_value(0.0), "distance between gas and detector, assumptions: simulated area in y direction << distance to detector AND simulated area in X,Z << slit [in meters]  (if not set, all particles are counted)")
@@ -284,12 +288,47 @@ public:
 
 private:
 
+    /* Open a New Output File
+     *
+     * Must only be called by the rank with writeToFile == true
+     */
+    void openNewFile()
+    {
+        outFile.open(filename.c_str(), std::ofstream::out | std::ostream::trunc);
+        if (!outFile)
+        {
+            std::cerr << "[Plugin] [" << analyzerPrefix
+                      << "] Can't open file '" << filename
+                      << "', output disabled" << std::endl;
+            writeToFile = false;
+        }
+        else
+        {
+            /* create header of the file */
+            outFile << "#step <" << minEnergy_keV << " ";
+            float_X binEnergy = (maxEnergy_keV - minEnergy_keV) / (float) numBins;
+            for (int i = 1; i < realNumBins - 1; ++i)
+                outFile << minEnergy_keV + ((float) i * binEnergy) << " ";
+
+            outFile << ">" << maxEnergy_keV << " count" << std::endl;
+        }
+    }
+
     void pluginLoad()
     {
-        if (notifyFrequency > 0)
+        if (notifyPeriod > 0)
         {
-            writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce());
+            if( numBins <= 0 )
+            {
+                std::cerr << "[Plugin] [" << analyzerPrefix
+                          << "] disabled since " << analyzerPrefix
+                          << ".binCount must be > 0 (input "
+                          << numBins << " bins)"
+                          << std::endl;
 
+                /* do not register the plugin and return */
+                return;
+            }
 
             if (distanceToDetector != float_X(0.0) && slitDetectorX != float_X(0.0) && slitDetectorZ != float_X(0.0))
                 enableDetector = true;
@@ -304,32 +343,17 @@ private:
                 binReduced[i] = 0.0;
             }
 
-            if (writeToFile)
-            {
-                outFile.open(filename.c_str(), std::ofstream::out | std::ostream::trunc);
-                if (!outFile)
-                {
-                    std::cerr << "Can't open file [" << filename << "] for output, diasble analyser output. " << std::endl;
-                    writeToFile = false;
-                }
-                /* create header of the file */
-                outFile << "#step <" << minEnergy_keV << " ";
-                float_X binEnergy = (maxEnergy_keV - minEnergy_keV) / (float) numBins;
-                for (int i = 1; i < realNumBins - 1; ++i)
-                {
+            writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce());
+            if( writeToFile )
+                openNewFile();
 
-                    outFile << minEnergy_keV + ((float) i * binEnergy) << " ";
-                }
-                outFile << ">" << maxEnergy_keV << " count" << std::endl;
-            }
-
-            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
         }
     }
 
     void pluginUnload()
     {
-        if (notifyFrequency > 0)
+        if (notifyPeriod > 0)
         {
             if (writeToFile)
             {
@@ -342,6 +366,54 @@ private:
 
             __delete(gBins);
             __deleteArray(binReduced);
+        }
+    }
+
+    void restart(uint32_t restartStep, const std::string restartDirectory)
+    {
+        if( !writeToFile )
+            return;
+
+        if( outFile.is_open() )
+            outFile.close();
+
+        std::stringstream sStep;
+        sStep << restartStep;
+
+        path src( restartDirectory + std::string("/") + filename +
+                  std::string(".") + sStep.str() );
+        path dst( filename );
+
+        copy_file( src,
+                   dst,
+                   copy_option::overwrite_if_exists );
+
+        outFile.open( filename.c_str(), std::ofstream::out | std::ostream::app );
+        if( !outFile )
+        {
+            std::cerr << "[Plugin] [" << analyzerPrefix
+                      << "] Can't open file '" << filename
+                      << "', output disabled" << std::endl;
+            writeToFile = false;
+        }
+    }
+
+    void checkpoint(uint32_t currentStep, const std::string checkpointDirectory)
+    {
+        if( writeToFile )
+        {
+            outFile.flush();
+
+            std::stringstream sStep;
+            sStep << currentStep;
+
+            path src( filename );
+            path dst( checkpointDirectory + std::string("/") + filename +
+                      std::string(".") + sStep.str() );
+
+            copy_file( src,
+                       dst,
+                       copy_option::overwrite_if_exists );
         }
     }
 
