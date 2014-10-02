@@ -39,7 +39,7 @@ namespace shapes
              * width of the support of this form_factor. This is the area where the function
              * is non-zero.
              */
-            static const int support = 1;
+            static const int support = 0;
         };
 
     } // namespace shared_Counter
@@ -53,14 +53,14 @@ namespace shapes
             HDINLINE float_X operator()(const float_X x)
             {
                 /*       -
-                 *       |  1               if 0<=x<1
+                 *       | -1               if -1<x<=0
                  * W(x)=<|
                  *       |  0               otherwise
                  *       -
                  */
 
-                const bool in_cell = ( float_X(0.0) <= x &&
-                                                       x < float_X(1.0) );
+                const bool in_cell = ( float_X(-1.0) < x &&
+                                                       x <= float_X(0.0) );
 
                 return float_X(in_cell);
             }
