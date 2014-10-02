@@ -244,13 +244,14 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) 
 
 # work-arounds
-if(Boost_VERSION EQUAL 105500)
-    # see https://svn.boost.org/trac/boost/ticket/9392
+if( (Boost_VERSION EQUAL 105500) AND
+    (CUDA_VERSION VERSION_LESS 6.5) )
+    # Boost Bug https://svn.boost.org/trac/boost/ticket/9392
+    # nvbug #1422182 submission ID #391854
     message(STATUS "Boost: Applying noinline work around")
-    # avoid warning for CMake >= 2.8.12
     set(CUDA_NVCC_FLAGS
       "${CUDA_NVCC_FLAGS} \"-DBOOST_NOINLINE=__attribute__((noinline))\" ")
-endif(Boost_VERSION EQUAL 105500)
+endif()
 
 
 ################################################################################
