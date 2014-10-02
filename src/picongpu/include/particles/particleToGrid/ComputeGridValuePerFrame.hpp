@@ -136,11 +136,11 @@ ComputeGridValuePerFrame<T_ParticleShape, calcType>::operator()
     const DataSpace<simDim> lowMargin(LowerMargin().toRT());
     const DataSpace<simDim> upMargin(UpperMargin().toRT());
 
-    const DataSpace<simDim> marginSpace(upMargin + lowMargin);
+    const DataSpace<simDim> marginSpace(upMargin + lowMargin + 1);
 
     const int numWriteCells = marginSpace.productOfComponents();
 
-    for (int i = 0; i <= numWriteCells; ++i)
+    for (int i = 0; i < numWriteCells; ++i)
     {
         /* multidimensionalIndex is only positive: defined range = [0,LowerMargin+UpperMargin]*/
         const DataSpace<simDim> multidimensionalIndex = DataSpaceOperations<simDim>::map(marginSpace, i);
