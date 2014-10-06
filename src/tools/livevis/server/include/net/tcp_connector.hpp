@@ -1,0 +1,39 @@
+#ifndef INSITU_NET_TCP_CONNECTOR_HPP
+#define INSITU_NET_TCP_CONNECTOR_HPP
+
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <netinet/in.h>
+
+#include "tcp_stream.hpp"
+
+namespace picongpu {
+namespace insituvolvis {
+namespace net
+{
+
+/**
+ * Actively establishes a connection to a server via connect().
+ */
+class TCPConnector
+{
+public:
+
+    /**
+     * Try to connect to server.
+     *
+     * @param ip IP address of the server we want to connect to.
+     * @param port Port on which we try to connect.
+     */
+    TCPStream * connect(std::string ip, int port);
+
+private:
+
+    int resolve_hostname(const char * hostname, struct in_addr * addr);
+};
+
+} /* end of net */
+} /* end of insituvolvis*/
+} /* end of picongpu */
+
+#endif /* INSITU_NET_TCP_CONNECTOR_HPP */
