@@ -148,6 +148,9 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
                                       FrameSolver frameSolver,
                                       Mapping mapper)
 {
+    /* trying to make it work: used for assign */
+    namespace partOp = particles::operations;
+    
     /* definitions for domain variables, like indices of blocks and threads
      *  
      * conversion from block to linear frames */
@@ -164,15 +167,12 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
     const DataSpace<simDim> blockCell = block * SuperCellSize::getDataSpace();
 
     __syncthreads();
-
-    typedef typename PIC_Ions::FrameType IONFRAME;
-    typedef typename PIC_Electrons::FrameType ELECTRONFRAME;
     
     /* "particle box" : container/iterator where the particles live in 
      * and where one can get the frame in a super cell from */
     /*__shared__ typename ParBox::FrameType *frame;*/
-    __shared__ IONFRAME *frame
-    __shared__ ELECTRONFRAME *electronFrame
+    __shared__ IONFRAME *frame;
+    __shared__ ELECTRONFRAME *electronFrame;
     __shared__ bool isValid;
     __shared__ int mustShift;
     __shared__ lcellId_t particlesInSuperCell;
@@ -187,6 +187,10 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
         frame = &(ionBox.getLastFrame(block, isValid));
         particlesInSuperCell = ionBox.getSuperCell(block).getSizeLastFrame();
     }
+    
+    /*TEST: define weighting outside of while loop*/
+    PMACC_AUTO(par,(*frame)[linearThreadIdx]);
+    const uint32_t weighting = par[weighting_];
 
     __syncthreads();
     if (!isValid)
@@ -233,6 +237,8 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
     {
         newFrameFillLvl = 0;
     }
+    
+    bool isParticle = (*frame)[linearThreadIdx][multiMask_];
     
     /* move over frames and call frame solver 
      * frames are worked on in backwards order to avoid asking about if their is another frame
@@ -307,15 +313,18 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
                 PMACC_AUTO(targetElectronFull,((*electronFrame)[electronId]));
                 targetElectronFull[multiMask_] = 1;
                 targetElectronFull[chargeState_] = 1;
-                targetElectronFull[momentum_] = parentIon[momentum_]/parentIon.getMass(weighting)*targetElectronFull.getMass(weighting);
+                /*uint32_t weighting = parentIon[weighting_];*/
+                const float_X massIon = parentIon.getMass(weighting);
+                const float_X massElectron = targetElectronFull.getMass(weighting);
+                targetElectronFull[momentum_] = parentIon[momentum_]*(massElectron/massIon);
 
                 /* each thread initializes a clone of the parent ion but leaving out
                  * some attributes:
                  * - multiMask: because it takes reportedly long to clone
                  * - chargeState: because electrons cannot have a charge state other than 1
                  * - momentum: because the electron would get a higher energy because of the ion mass */
-                PMACC_AUTO(targetElectronClone, deselect<multiMask, chargeState, momentum>(targetElectronFull));
-                assign(targetElectronClone, parentIon);
+                PMACC_AUTO(targetElectronClone, partOp::deselect<bmpl::vector3<multiMask, chargeState, momentum> >(targetElectronFull));
+                partOp::assign(targetElectronClone, parentIon);
                 
                 newElectrons -= 1;
             }
@@ -351,15 +360,18 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
                 PMACC_AUTO(targetElectronFull,((*electronFrame)[electronId]));
                 targetElectronFull[multiMask_] = 1;
                 targetElectronFull[chargeState_] = 1;
-                targetElectronFull[momentum_] = parentIon[momentum_]/parentIon.getMass(weighting)*targetElectronFull.getMass(weighting);
+                /*uint32_t weighting = parentIon[weighting_];*/
+                float_X massIon = parentIon.getMass(weighting);
+                float_X massElectron = targetElectronFull.getMass(weighting);
+                targetElectronFull[momentum_] = parentIon[momentum_]*(massElectron/massIon);
 
                 /* each thread initializes a clone of the parent ion but leaving out
                  * some attributes:
                  * - multiMask: because it takes reportedly long to clone
                  * - chargeState: because electrons cannot have a charge state other than 1
                  * - momentum: because the electron would get a higher energy because of the ion mass */
-                PMACC_AUTO(targetElectronClone, deselect<multiMask, chargeState, momentum>(targetElectronFull));
-                assign(targetElectronClone, parentIon);
+                PMACC_AUTO(targetElectronClone, partOp::deselect<bmpl::vector3<multiMask, chargeState, momentum> >(targetElectronFull));
+                partOp::assign(targetElectronClone, parentIon);
                 
                 newElectrons -= 1;
             }
@@ -402,7 +414,7 @@ namespace particleIonizerNone
                  *charge >= 0 is needed because electrons and ions cannot be 
                  *distinguished, yet.
                  */
-                if (math::abs(eField)*UNIT_EFIELD >= 5.14e7 && chState < 2 && charge >= 0)
+                if (math::abs(eField)*UNIT_EFIELD >= 5.14e1 && chState < 2 && charge >= 0)
                 {
                     chState = 1 + chState;
                 }
@@ -419,14 +431,14 @@ namespace particleIonizerNone
         };
     
         typedef Ionize<Velocity, Gamma<> > ParticleIonizer;
-    }
+    } //namespace particleIonizerNone
 
 namespace particleIonizer = particleIonizerNone;
 
 //end hard code
-
-template< typename T_ParticleDescription ,typename T_Elec>
-void Particles<T_ParticleDescription>::ionize( uint32_t, T_Elec electrons )
+template< typename T_ParticleDescription>
+template< typename T_Elec>
+void Particles<T_ParticleDescription>::ionize( uint32_t, T_Elec electrons)
 {
     /* particle ionization routine */
     
@@ -461,7 +473,7 @@ void Particles<T_ParticleDescription>::ionize( uint32_t, T_Elec electrons )
           this->fieldE->getDeviceDataBox( ),
           this->fieldB->getDeviceDataBox( ),
           FrameSolver( )
-          );*/
+          );
     
 
     /* shift particles - WHERE TO? HOW?
