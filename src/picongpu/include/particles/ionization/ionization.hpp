@@ -253,128 +253,142 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
             /* < IONIZATION and change of charge states > 
              * if the threads contain particles, the frameSolver can ionize them 
              * if they are non-particles their inner ionization counter remains at 0 */
-            if (isParticle)
+            if (linearThreadIdx < particlesInSuperCell)
             {
-                /* actual operation on the particles */
                 frameSolver(*frame, linearThreadIdx, cachedB, cachedE, mustShift, newElectrons);
             }
+//            if (isParticle)
+//            {
+//                /* actual operation on the particles */
+//                printf("Call the Frame Solver!\n");
+//                frameSolver(*frame, linearThreadIdx, cachedB, cachedE, mustShift, newElectrons);
+//            }
             __syncthreads();
-            /* < INIT >
-             * - electronId is initialized as -1
-             * - (local) oldFrameFillLvl set equal to (shared) newFrameFillLvl for each thread 
-             * - then sync */
-            electronId = -1;
-            oldFrameFillLvl = newFrameFillLvl;
-            __syncthreads();
-            /* < ASK >
-             * - if a thread wants to create electrons in each cycle it can do that only once 
-             * and before that it atomically adds to the shared counter and uses the current
-             * value as electronId in the new frame 
-             * - then sync */
-            if (newElectrons > 0) 
-            {
-                electronId = atomicAdd(&newFrameFillLvl, 1);
-            }
-            __syncthreads();
-            /* < EXIT? > 
-            * - if the counter hasn't changed all threads break out of the loop */
-            if (oldFrameFillLvl == newFrameFillLvl)
-            {
-                break;
-            }
-            /* < FIRST NEW FRAME >
-             * - if there is no frame, yet, the master will create a new target electron frame
-             * and attach it to the back of the frame list 
-             * - sync all again for them to know which frame to use */
-            if (linearThreadIdx == 0)
-            {
-                if (oldFrameFillLvl != newFrameFillLvl)
-                {
-                    if (electronFrame == NULL)
-                    {
-                        electronFrame = &(electronBox.getEmptyFrame());
-                        electronBox.setAsLastFrame(*electronFrame, block);
-                    }
-                }
-            }
-            __syncthreads();
-            /* < CREATE 1 >
-             * - all electrons fitting into the current frame are created there 
-             * - internal ionization counter N is decremented by 1 
-             * - sync */
-            if (0 <= electronId < particlesInSuperCell)
-            {
-                /* < TASK > yet to be defined */
-                /*writeElectronIntoFrame(*electronFrame,electronId);*/
-                
-                /* each thread makes the attributes of its ion accessible */
-                PMACC_AUTO(parentIon,((*frame)[linearThreadIdx]));
-                /* each thread initializes an electron if one should be produced */
-                PMACC_AUTO(targetElectronFull,((*electronFrame)[electronId]));
-                targetElectronFull[multiMask_] = 1;
-                targetElectronFull[chargeState_] = 1;
-                /*uint32_t weighting = parentIon[weighting_];*/
-                const float_X massIon = parentIon.getMass(weighting);
-                const float_X massElectron = targetElectronFull.getMass(weighting);
-                targetElectronFull[momentum_] = parentIon[momentum_]*(massElectron/massIon);
-
-                /* each thread initializes a clone of the parent ion but leaving out
-                 * some attributes:
-                 * - multiMask: because it takes reportedly long to clone
-                 * - chargeState: because electrons cannot have a charge state other than 1
-                 * - momentum: because the electron would get a higher energy because of the ion mass */
-                PMACC_AUTO(targetElectronClone, partOp::deselect<bmpl::vector3<multiMask, chargeState, momentum> >(targetElectronFull));
-                partOp::assign(targetElectronClone, parentIon);
-                
-                newElectrons -= 1;
-            }
-            __syncthreads();
-            /* < SECOND NEW FRAME > 
-             * - if the shared counter is larger than the frame size a new electron frame is reserved
-             * and attached to the back of the frame list
-             * - then the shared counter is set back by one frame size
-             * - sync so that every thread knows about the new frame */
-            if (linearThreadIdx == 0)
-            {
-                if (newFrameFillLvl > particlesInSuperCell)
-                {
-                    electronFrame = &(electronBox.getEmptyFrame());
-                    electronBox.setAsLastFrame(*electronFrame, block);
-                    newFrameFillLvl -= particlesInSuperCell;
-                }
-            }
-            __syncthreads();
-            /* < CREATE 2 >
-             * - if the EID is larger than the frame size 
-             *      - the EID is set back by one frame size
-             *      - the thread writes an electron to the new frame
-             *      - the internal counter N is decremented by 1 */
-            if (electronId >= particlesInSuperCell)
-            {
-                electronId -= particlesInSuperCell;
-                /*writeElectronIntoFrame(*electronFrame,electronId);*/
-                
-                /* each thread makes the attributes of its ion accessible */
-                PMACC_AUTO(parentIon,((*frame)[linearThreadIdx]));
-                /* each thread initializes an electron if one should be produced */
-                PMACC_AUTO(targetElectronFull,((*electronFrame)[electronId]));
-                targetElectronFull[multiMask_] = 1;
-                targetElectronFull[chargeState_] = 1;
-                /*uint32_t weighting = parentIon[weighting_];*/
-                float_X massIon = parentIon.getMass(weighting);
-                float_X massElectron = targetElectronFull.getMass(weighting);
-                targetElectronFull[momentum_] = parentIon[momentum_]*(massElectron/massIon);
-
-                /* each thread initializes a clone of the parent ion but leaving out
-                 * some attributes:
-                 * - multiMask: because it takes reportedly long to clone
-                 * - chargeState: because electrons cannot have a charge state other than 1
-                 * - momentum: because the electron would get a higher energy because of the ion mass */
-                PMACC_AUTO(targetElectronClone, partOp::deselect<bmpl::vector3<multiMask, chargeState, momentum> >(targetElectronFull));
-                partOp::assign(targetElectronClone, parentIon);
-                
-                newElectrons -= 1;
-            }
+            break;
+//            printf("INIT! ");
+//            /* < INIT >
+//             * - electronId is initialized as -1
+//             * - (local) oldFrameFillLvl set equal to (shared) newFrameFillLvl for each thread 
+//             * - then sync */
+//            electronId = -1;
+//            oldFrameFillLvl = newFrameFillLvl;
+//            __syncthreads();
+//            printf("ASK! ");
+//            /* < ASK >
+//             * - if a thread wants to create electrons in each cycle it can do that only once 
+//             * and before that it atomically adds to the shared counter and uses the current
+//             * value as electronId in the new frame 
+//             * - then sync */
+//            if (newElectrons > 0) 
+//            {
+//                electronId = atomicAdd(&newFrameFillLvl, 1);
+//            }
+//            __syncthreads();
+//            printf("EXIT? ");
+//            /* < EXIT? > 
+//            * - if the counter hasn't changed all threads break out of the loop */
+//            if (oldFrameFillLvl == newFrameFillLvl)
+//            {
+//                printf("Break \n");
+//                break;
+//            }
+//            printf("1st NEW FRAME! ");
+//            /* < FIRST NEW FRAME >
+//             * - if there is no frame, yet, the master will create a new target electron frame
+//             * and attach it to the back of the frame list 
+//             * - sync all again for them to know which frame to use */
+//            if (linearThreadIdx == 0)
+//            {
+//                if (oldFrameFillLvl != newFrameFillLvl)
+//                {
+//                    if (electronFrame == NULL)
+//                    {
+//                        electronFrame = &(electronBox.getEmptyFrame());
+//                        electronBox.setAsLastFrame(*electronFrame, block);
+//                    }
+//                }
+//            }
+//            __syncthreads();
+//            printf("CREATE 1 ");
+//            /* < CREATE 1 >
+//             * - all electrons fitting into the current frame are created there 
+//             * - internal ionization counter N is decremented by 1 
+//             * - sync */
+//            if (0 <= electronId < particlesInSuperCell)
+//            {
+//                /* < TASK > yet to be defined */
+//                /*writeElectronIntoFrame(*electronFrame,electronId);*/
+//                
+//                /* each thread makes the attributes of its ion accessible */
+//                PMACC_AUTO(parentIon,((*frame)[linearThreadIdx]));
+//                /* each thread initializes an electron if one should be produced */
+//                PMACC_AUTO(targetElectronFull,((*electronFrame)[electronId]));
+//                targetElectronFull[multiMask_] = 1;
+//                targetElectronFull[chargeState_] = 1;
+//                /*uint32_t weighting = parentIon[weighting_];*/
+//                const float_X massIon = parentIon.getMass(weighting);
+//                const float_X massElectron = targetElectronFull.getMass(weighting);
+//                targetElectronFull[momentum_] = parentIon[momentum_]*(massElectron/massIon);
+//
+//                /* each thread initializes a clone of the parent ion but leaving out
+//                 * some attributes:
+//                 * - multiMask: because it takes reportedly long to clone
+//                 * - chargeState: because electrons cannot have a charge state other than 1
+//                 * - momentum: because the electron would get a higher energy because of the ion mass */
+//                PMACC_AUTO(targetElectronClone, partOp::deselect<bmpl::vector3<multiMask, chargeState, momentum> >(targetElectronFull));
+//                partOp::assign(targetElectronClone, parentIon);
+//                
+//                newElectrons -= 1;
+//            }
+//            __syncthreads();
+//            printf("2nd NEW FRAME ");
+//            /* < SECOND NEW FRAME > 
+//             * - if the shared counter is larger than the frame size a new electron frame is reserved
+//             * and attached to the back of the frame list
+//             * - then the shared counter is set back by one frame size
+//             * - sync so that every thread knows about the new frame */
+//            if (linearThreadIdx == 0)
+//            {
+//                if (newFrameFillLvl > particlesInSuperCell)
+//                {
+//                    electronFrame = &(electronBox.getEmptyFrame());
+//                    electronBox.setAsLastFrame(*electronFrame, block);
+//                    newFrameFillLvl -= particlesInSuperCell;
+//                }
+//            }
+//            __syncthreads();
+//            printf("CREATE 2 ");
+//            /* < CREATE 2 >
+//             * - if the EID is larger than the frame size 
+//             *      - the EID is set back by one frame size
+//             *      - the thread writes an electron to the new frame
+//             *      - the internal counter N is decremented by 1 */
+//            if (electronId >= particlesInSuperCell)
+//            {
+//                electronId -= particlesInSuperCell;
+//                /*writeElectronIntoFrame(*electronFrame,electronId);*/
+//                
+//                /* each thread makes the attributes of its ion accessible */
+//                PMACC_AUTO(parentIon,((*frame)[linearThreadIdx]));
+//                /* each thread initializes an electron if one should be produced */
+//                PMACC_AUTO(targetElectronFull,((*electronFrame)[electronId]));
+//                targetElectronFull[multiMask_] = 1;
+//                targetElectronFull[chargeState_] = 1;
+//                /*uint32_t weighting = parentIon[weighting_];*/
+//                float_X massIon = parentIon.getMass(weighting);
+//                float_X massElectron = targetElectronFull.getMass(weighting);
+//                targetElectronFull[momentum_] = parentIon[momentum_]*(massElectron/massIon);
+//
+//                /* each thread initializes a clone of the parent ion but leaving out
+//                 * some attributes:
+//                 * - multiMask: because it takes reportedly long to clone
+//                 * - chargeState: because electrons cannot have a charge state other than 1
+//                 * - momentum: because the electron would get a higher energy because of the ion mass */
+//                PMACC_AUTO(targetElectronClone, partOp::deselect<bmpl::vector3<multiMask, chargeState, momentum> >(targetElectronFull));
+//                partOp::assign(targetElectronClone, parentIon);
+//                
+//                newElectrons -= 1;
+//            }
         }
 
         if (linearThreadIdx == 0)
@@ -384,7 +398,6 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
         }
         // isParticle = true;
         __syncthreads();
-        /* TODO <FillAllGaps> in electron frames */
     }
 
 }
@@ -417,6 +430,7 @@ namespace particleIonizerNone
                 if (math::abs(eField)*UNIT_EFIELD >= 5.14e1 && chState < 2 && charge >= 0)
                 {
                     chState = 1 + chState;
+                    printf("Charge State: %u ", chState);
                 }
                 
                 /*
@@ -465,7 +479,7 @@ void Particles<T_ParticleDescription>::ionize( uint32_t, T_Elec electrons)
     /* kernel call : instead of name<<<blocks, threads>>> (args, ...) 
        "blocks" will be calculated from "this->cellDescription" and "CORE + BORDER" 
        "threads" is calculated from the previously defined vector "block" */
-    //printf("Call the Colonel!\n");
+    printf("Call the Colonel!\n");
     __picKernelArea( kernelIonizeParticles<BlockArea>, this->cellDescription, CORE + BORDER )
         (block)
         ( this->getDeviceParticlesBox( ),
@@ -478,7 +492,7 @@ void Particles<T_ParticleDescription>::ionize( uint32_t, T_Elec electrons)
 
     /* shift particles - WHERE TO? HOW?
      * fill the gaps in the simulation - WITH WHAT? */
-    ParticlesBaseType::template shiftParticles < CORE + BORDER > ( );
+    /* ParticlesBaseType::template shiftParticles < CORE + BORDER > ( ); */
     this->fillAllGaps( );
     
 }
