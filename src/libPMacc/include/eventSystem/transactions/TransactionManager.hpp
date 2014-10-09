@@ -24,15 +24,13 @@
 
 #include <stack>
 #include "eventSystem/EventSystem.hpp"
-
+#include "eventSystem/transactions/Transaction.hpp"
 
 namespace PMacc
 {
 // forward declaration
 template<unsigned DIM>
 class Environment;
-
-class Transaction;
 
 class EventStream;
 
@@ -46,7 +44,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~TransactionManager();
+	virtual ~TransactionManager() noexcept(false);
 
     /**
      * Adds a new transaction to the stack.
