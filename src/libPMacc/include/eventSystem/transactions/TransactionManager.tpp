@@ -26,12 +26,12 @@
 namespace PMacc
 {
 
-inline TransactionManager::~TransactionManager() noexcept(false)
+inline TransactionManager::~TransactionManager() throw(std::runtime_error)
 {
-	if(transactions.size() == 0)
-		throw std::runtime_error("Missing transaction on the stack!");
-	else if(transactions.size() > 1)
-		throw std::runtime_error("Unfinished transactions on the stack");
+    if(transactions.size() == 0)
+        throw std::runtime_error("Missing transaction on the stack!");
+    else if(transactions.size() > 1)
+        throw std::runtime_error("Unfinished transactions on the stack");
     transactions.pop( );
 }
 

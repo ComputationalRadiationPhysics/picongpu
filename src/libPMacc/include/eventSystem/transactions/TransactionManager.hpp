@@ -44,7 +44,7 @@ public:
     /**
      * Destructor.
      */
-	virtual ~TransactionManager() noexcept(false);
+    virtual ~TransactionManager() throw(std::runtime_error);
 
     /**
      * Adds a new transaction to the stack.
