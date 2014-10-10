@@ -104,11 +104,11 @@ namespace PMacc
          * @param exchange the exchange mask
          * @return DIM1 DataSpace of size 3 where 1 means exchange, 0 means no exchange
          */
-        DataSpace<DIM> exchangeTypeToDim(uint32_t _exchange) const
+        DataSpace<DIM> exchangeTypeToDim(uint32_t exchange_) const
         {
             DataSpace<DIM> result;
 
-            Mask exchangeMask(_exchange);
+			Mask exchangeMask(exchange_);
 
             if (exchangeMask.containsExchangeType(LEFT) || exchangeMask.containsExchangeType(RIGHT))
                 result[0] = 1;
@@ -129,12 +129,12 @@ namespace PMacc
             __delete(deviceDoubleBuffer);
         }
 
-        DataSpace<DIM> exchangeTypeToOffset(uint32_t _exchange, GridLayout<DIM> &memoryLayout,
+		DataSpace<DIM> exchangeTypeToOffset(uint32_t exchange_, GridLayout<DIM> &memoryLayout,
                                             DataSpace<DIM> guardingCells, uint32_t area) const
         {
             DataSpace<DIM> size = memoryLayout.getDataSpace();
             DataSpace<DIM> border = memoryLayout.getGuard();
-            Mask mask(_exchange);
+			Mask mask(exchange_);
             DataSpace<DIM> tmp_offset;
             if (DIM >= DIM1)
             {
