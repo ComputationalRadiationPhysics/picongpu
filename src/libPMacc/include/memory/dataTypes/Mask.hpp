@@ -165,7 +165,7 @@ namespace PMacc
          */
         HDINLINE bool isSet(uint32_t ex) const
         {
-            return ((bitMask & (1u << ex)) != 0);
+            return (bitMask & (1u << ex)) != 0;
         }
 
         /**
