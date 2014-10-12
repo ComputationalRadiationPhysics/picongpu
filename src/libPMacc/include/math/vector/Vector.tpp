@@ -236,7 +236,6 @@ struct promoteType<PromoteToType, ::PMacc::math::Vector<OldType, dim> >
 } //namespace algorithms
 } //namespace PMacc
 
-
 namespace PMacc
 {
 namespace mpi
