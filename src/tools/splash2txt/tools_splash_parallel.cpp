@@ -376,18 +376,12 @@ void ToolsSplashParallel::printAvailableDatasets(std::vector< DataCollector::DCE
             matchingLength++;
         }
 
-        // coordinates at the end
-        if (matchingLength == dataName.name.size() - 1)
-            outStream << '/'
-                << dataName.name.substr(matchingLength);
-            // new parameters which differ in more than the coordinate at the end
-        else
-        {
-            outStream << std::string(matchingLength == 0, '\n') << '\n'
-                    << intentation
-                    << std::string(lastMatchingDelimiter, ' ')
-                    << dataName.name.substr(lastMatchingDelimiter);
-        }
+        // additional linebreak for new top-level group
+        outStream << std::string(matchingLength == 0, '\n');
+        // align new entry with last matching group
+        outStream << intentation << std::string(lastMatchingDelimiter, ' ')
+                  << dataName.name.substr(lastMatchingDelimiter)
+                  << std::endl;
 
         lastdataName = dataName.name;
     }
