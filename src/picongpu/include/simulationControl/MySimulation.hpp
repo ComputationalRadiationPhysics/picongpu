@@ -275,6 +275,10 @@ public:
 #if (ENABLE_IONS == 1)
         ions = new PIC_Ions(cellDescription->getGridLayout(), *cellDescription,
                 PIC_Ions::FrameType::getName());
+        /* set the size of the printf buffer to 10MB to get more output
+         * - should actually be wrapped with ENABLE_IONIZATION */
+        size_t printfBuffer = 1048576 * 100;
+        cudaDeviceSetLimit(cudaLimitPrintfFifoSize, printfBuffer);
 #endif
 #if (ENABLE_ELECTRONS == 1)
         electrons = new PIC_Electrons(cellDescription->getGridLayout(), *cellDescription,
