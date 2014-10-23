@@ -13,7 +13,7 @@ namespace picongpu {
 namespace insituvolvis {
 namespace net {
 
-const int MESSAGE_QUEUE_SIZE = 16;
+const int MESSAGE_QUEUE_SIZE = 128;
 
 /**
  * Encapsulates a TCP/IP connection which can be used to exchange messages

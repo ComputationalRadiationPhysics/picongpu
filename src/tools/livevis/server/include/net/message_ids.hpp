@@ -37,7 +37,9 @@ enum MessageID : uint32_t
     VisibleSimulationArea,      // six floats describing the XYZ min and XYZ max coordinates of the visible simulation area in world space
     IsoSurfaceValue,            // the normalized value defining the iso surface for the Isosurface compositing mode, one float in range ]0;1[
     PngWriterOn,                // message token (zero byte message) to start writing the simulation images to disk
-    PngWriterOff                // stop writing PNG images
+    PngWriterOff,                // stop writing PNG images
+    FPS,
+    RenderFPS
 };
 
 #endif /* MESSAGE_IDS_HPP */

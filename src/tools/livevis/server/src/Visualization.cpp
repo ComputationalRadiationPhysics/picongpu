@@ -110,10 +110,26 @@ void * Visualization::runVisThread(void * vis)
         v->getStream()->receive(&id, buffer, &len);
 
         uint32_t timestep;
+	float fps;
+	float renderFps;
 
         /// depending on what kind of header was sent treat data
         switch(id)
         {
+            case RenderFPS: {
+                renderFps = reinterpret_cast<float*>(buffer)[0];
+#if VERBOSITY_LEVEL >= 2
+                std::cout << "[SERVER](" << v->getName() << ") Received RenderFPS " << renderFps << "." << std::endl;
+#endif
+                v->m_prov->broadcast_message(RIVLIB_USERMSG + RenderFPS, sizeof(float), (const char*)&renderFps);
+                } break;
+	    case FPS: {
+                fps = reinterpret_cast<float*>(buffer)[0];
+#if VERBOSITY_LEVEL >= 2
+                std::cout << "[SERVER](" << v->getName() << ") Received FPS " << fps << "." << std::endl;
+#endif
+                v->m_prov->broadcast_message(RIVLIB_USERMSG + FPS, sizeof(float), (const char*)&fps);
+                } break;
             case TimeStep: {
                 timestep = reinterpret_cast<uint32_t*>(buffer)[0];
 #if VERBOSITY_LEVEL >= 2
