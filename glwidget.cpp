@@ -1,7 +1,7 @@
 #include <iostream>
 #include <GL/glu.h>
 
-#include "/home/hettma06/visserver/vis_server/include/net/message_ids.hpp"
+#include "message_ids.hpp"
 #include "glwidget.h"
 
 GLWidget::GLWidget(QWidget *parent)
@@ -272,12 +272,15 @@ void GLWidget::wheelEvent(QWheelEvent * we)
     m_camera->dolly(dolly);
 
     float pos[3];
-    pos[0] = m_camera->getPosition().x;
-    pos[1] = m_camera->getPosition().y;
-    pos[2] = m_camera->getPosition().z;
+  //  pos[0] = m_camera->getPosition().x;
+   // pos[1] = m_camera->getPosition().y;
+   // pos[2] = m_camera->getPosition().z;
 
-    emit send_message(CameraPosition, 3 * sizeof(float), pos);
-
+    pos[0] = 0.0f; //m_camera->getPosition().x;
+    pos[1] = 0.0f;// m_camera->getPosition().y;
+    pos[2] = dolly; //m_camera->getPosition().z;
+    //emit send_message(CameraPosition, 3 * sizeof(float), pos);
+    emit send_message(CameraOrbit, 3 * sizeof(float), pos);
 }
 
 void GLWidget::mousePressEvent(QMouseEvent * me)
@@ -303,33 +306,35 @@ void GLWidget::mouseMoveEvent(QMouseEvent * me)
         float pitch = static_cast<float>(dy) * factor;
         float roll = 0.0f;
 
-        m_camera->orbitYawPitchRoll(yaw, pitch, roll);
+        //  m_camera->orbitYawPitchRoll(yaw, pitch, roll);
         float pos[3];
-        pos[0] = m_camera->getPosition().x;
-        pos[1] = m_camera->getPosition().y;
-        pos[2] = m_camera->getPosition().z;
+        pos[0] = yaw; //m_camera->getPosition().x;
+        pos[1] = pitch; // m_camera->getPosition().y;
+        pos[2] = roll; //m_camera->getPosition().z;
 
-        emit send_message(CameraPosition, 3 * sizeof(float), pos);
-    }
-
-    if (me->buttons() & Qt::RightButton)
-    {
-        float yaw = static_cast<float>(dx) * factor * 0.25f;
-        float pitch = static_cast<float>(dy) * factor * 0.25f;
-
-        m_camera->panYawPitch(yaw, pitch);
-
-        float foc[3];
-        foc[0] = m_camera->getFocalPoint().x;
-        foc[1] = m_camera->getFocalPoint().y;
-        foc[2] = m_camera->getFocalPoint().z;
-
-        emit send_message(CameraFocalPoint, 3* sizeof(float), foc);
+        //emit send_message(CameraPosition, 3 * sizeof(float), pos);
+        emit send_message(CameraOrbit, 3 * sizeof(float), pos);
     }
 
     if (me->buttons() & Qt::MidButton)
     {
-        float mx = static_cast<float>(dx);
+        float yaw = static_cast<float>(dx) * factor; // * 0.25f;
+        float pitch = static_cast<float>(dy) * factor; // * 0.25f;
+
+        // m_camera->panYawPitch(yaw, pitch);
+
+        float foc[2];
+        foc[0] = yaw; //m_camera->getFocalPoint().x;
+        foc[1] = pitch; //m_camera->getFocalPoint().y;
+        //foc[2] = 0.0f; //m_camera->getFocalPoint().z;
+
+        emit send_message(CameraPan, 2* sizeof(float), foc);
+        //emit send_message(CameraFocalPoint, 3* sizeof(float), foc);
+    }
+
+    if (me->buttons() & Qt::RightButton)
+    {
+        float mx = -static_cast<float>(dx);
         float my = static_cast<float>(dy);
 
         m_camera->slide(float3(mx,my, 0.0f));

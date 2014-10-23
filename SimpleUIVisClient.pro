@@ -27,7 +27,7 @@ SOURCES += main.cpp\
 
 HEADERS  += mainwindow.h \
     glwidget.h \
-    /home/hettma06/visserver/vis_server/include/net/message_ids.hpp \
+    message_ids.hpp \
     simulationgallery.h \
     pictureflow.h \
     clickablelabel.h \

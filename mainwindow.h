@@ -70,6 +70,8 @@ public slots:
 
     void received_datasource(QString source);
     void received_timestep(int step);
+    void received_fps(float fps);
+    void received_rfps(float fps);
 
     void sendMessage(unsigned int id, unsigned int size, const void * data);
 
@@ -85,6 +87,8 @@ public slots:
 signals:
 
     void on_received_timestep(int step);
+    void on_received_fps(float fps);
+    void on_received_rfps(float fps);
     void on_received_datasource(QString source);
 
     void on_transferFunctionA_changed();

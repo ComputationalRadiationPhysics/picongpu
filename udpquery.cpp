@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <QDebug>
 
-#include "/home/hettma06/visserver/vis_server/include/net/message_ids.hpp"
+#include "message_ids.hpp"
 
 UDPQuery::UDPQuery(std::string ip, int port)
     : QObject(),

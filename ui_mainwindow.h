@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'mainwindow.ui'
 **
-** Created: Fri Oct 10 13:47:17 2014
+** Created: Thu Oct 23 14:17:04 2014
 **      by: Qt User Interface Compiler version 4.8.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -94,8 +94,15 @@ public:
     QPushButton *btnPlayPause;
     QPushButton *pushButton;
     QPushButton *btnWritePng;
+    QHBoxLayout *horizontalLayout_8;
     QLabel *label_3;
     QLabel *lblTimestep;
+    QHBoxLayout *horizontalLayout_9;
+    QLabel *label_fps;
+    QLabel *lblFPS;
+    QHBoxLayout *horizontalLayout_10;
+    QLabel *label_rfps;
+    QLabel *lblRFPS;
     QWidget *clipSidebar;
     QGridLayout *gridLayout;
     QLabel *label_6;
@@ -114,7 +121,7 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
-        MainWindow->resize(1680, 1050);
+        MainWindow->resize(968, 695);
         MainWindow->setStyleSheet(QString::fromUtf8("/* QSlider Style Sheet */\n"
 "\n"
 "QSlider::handle:vertical {\n"
@@ -171,9 +178,8 @@ public:
         centralWidget->setObjectName(QString::fromUtf8("centralWidget"));
         horizontalLayout_3 = new QHBoxLayout(centralWidget);
         horizontalLayout_3->setSpacing(0);
-        horizontalLayout_3->setContentsMargins(11, 11, 11, 11);
-        horizontalLayout_3->setObjectName(QString::fromUtf8("horizontalLayout_3"));
         horizontalLayout_3->setContentsMargins(0, 0, 0, 0);
+        horizontalLayout_3->setObjectName(QString::fromUtf8("horizontalLayout_3"));
         verticalLayout = new QVBoxLayout();
         verticalLayout->setSpacing(4);
         verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
@@ -528,7 +534,7 @@ public:
         sizePolicy1.setHeightForWidth(infoBar->sizePolicy().hasHeightForWidth());
         infoBar->setSizePolicy(sizePolicy1);
         infoBar->setMinimumSize(QSize(0, 40));
-        infoBar->setMaximumSize(QSize(16777215, 40));
+        infoBar->setMaximumSize(QSize(16777215, 160));
         infoBar->setStyleSheet(QString::fromUtf8("QWidget {\n"
 "        background-color: #333333;\n"
 "        color: #FFFFFF;\n"
@@ -539,10 +545,9 @@ public:
 "        border-right: 0px;\n"
 "}"));
         verticalLayout_12 = new QVBoxLayout(infoBar);
-        verticalLayout_12->setSpacing(0);
+        verticalLayout_12->setSpacing(6);
         verticalLayout_12->setContentsMargins(11, 11, 11, 11);
         verticalLayout_12->setObjectName(QString::fromUtf8("verticalLayout_12"));
-        verticalLayout_12->setContentsMargins(1, 1, 0, 1);
         horizontalLayout_7 = new QHBoxLayout();
         horizontalLayout_7->setSpacing(6);
         horizontalLayout_7->setObjectName(QString::fromUtf8("horizontalLayout_7"));
@@ -575,20 +580,62 @@ public:
 
         horizontalLayout_7->addWidget(btnWritePng);
 
+
+        verticalLayout_12->addLayout(horizontalLayout_7);
+
+        horizontalLayout_8 = new QHBoxLayout();
+        horizontalLayout_8->setSpacing(6);
+        horizontalLayout_8->setObjectName(QString::fromUtf8("horizontalLayout_8"));
         label_3 = new QLabel(infoBar);
         label_3->setObjectName(QString::fromUtf8("label_3"));
 
-        horizontalLayout_7->addWidget(label_3);
+        horizontalLayout_8->addWidget(label_3);
 
         lblTimestep = new QLabel(infoBar);
         lblTimestep->setObjectName(QString::fromUtf8("lblTimestep"));
         lblTimestep->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
         lblTimestep->setMargin(8);
 
-        horizontalLayout_7->addWidget(lblTimestep);
+        horizontalLayout_8->addWidget(lblTimestep);
 
 
-        verticalLayout_12->addLayout(horizontalLayout_7);
+        verticalLayout_12->addLayout(horizontalLayout_8);
+
+        horizontalLayout_9 = new QHBoxLayout();
+        horizontalLayout_9->setSpacing(6);
+        horizontalLayout_9->setObjectName(QString::fromUtf8("horizontalLayout_9"));
+        label_fps = new QLabel(infoBar);
+        label_fps->setObjectName(QString::fromUtf8("label_fps"));
+
+        horizontalLayout_9->addWidget(label_fps);
+
+        lblFPS = new QLabel(infoBar);
+        lblFPS->setObjectName(QString::fromUtf8("lblFPS"));
+        lblFPS->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+        lblFPS->setMargin(8);
+
+        horizontalLayout_9->addWidget(lblFPS);
+
+
+        verticalLayout_12->addLayout(horizontalLayout_9);
+
+        horizontalLayout_10 = new QHBoxLayout();
+        horizontalLayout_10->setSpacing(6);
+        horizontalLayout_10->setObjectName(QString::fromUtf8("horizontalLayout_10"));
+        label_rfps = new QLabel(infoBar);
+        label_rfps->setObjectName(QString::fromUtf8("label_rfps"));
+
+        horizontalLayout_10->addWidget(label_rfps);
+
+        lblRFPS = new QLabel(infoBar);
+        lblRFPS->setObjectName(QString::fromUtf8("lblRFPS"));
+        lblRFPS->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+        lblRFPS->setMargin(8);
+
+        horizontalLayout_10->addWidget(lblRFPS);
+
+
+        verticalLayout_12->addLayout(horizontalLayout_10);
 
 
         verticalLayout_11->addWidget(infoBar);
@@ -737,6 +784,10 @@ public:
         btnWritePng->setText(QApplication::translate("MainWindow", "Off", 0, QApplication::UnicodeUTF8));
         label_3->setText(QApplication::translate("MainWindow", "Timestep:", 0, QApplication::UnicodeUTF8));
         lblTimestep->setText(QString());
+        label_fps->setText(QApplication::translate("MainWindow", "Simulation FPS:", 0, QApplication::UnicodeUTF8));
+        lblFPS->setText(QString());
+        label_rfps->setText(QApplication::translate("MainWindow", "Render FPS:", 0, QApplication::UnicodeUTF8));
+        lblRFPS->setText(QString());
         label_6->setText(QApplication::translate("MainWindow", "Z", 0, QApplication::UnicodeUTF8));
         label_4->setText(QApplication::translate("MainWindow", "Y", 0, QApplication::UnicodeUTF8));
         label_7->setText(QApplication::translate("MainWindow", "X", 0, QApplication::UnicodeUTF8));

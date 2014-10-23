@@ -6,7 +6,7 @@
 #include <the/exception.h>
 #include <the/text/string_builder.h>
 
-#include "/home/hettma06/visserver/vis_server/include/net/message_ids.hpp"
+#include "message_ids.hpp"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -97,6 +97,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     /// enable display of current timestep
     connect(this, SIGNAL(on_received_timestep(int)), this, SLOT(received_timestep(int)));
+
+    /// fps display
+    connect(this, SIGNAL(on_received_fps(float)), this, SLOT(received_fps(float)));
+    connect(this, SIGNAL(on_received_rfps(float)), this, SLOT(received_rfps(float)));
 
     /// enable play/pause of simulation
     connect(ui->centralWidget, SIGNAL(play_pause_sim()), this, SLOT(playPauseSim()));
@@ -261,6 +265,14 @@ void MainWindow::on_msg(rivlib::control_connection::ptr comm, unsigned int id, u
             unsigned int timestep = reinterpret_cast<const uint32_t*>(data)[0];
             emit on_received_timestep(timestep);
         } break;
+        case RIVLIB_USERMSG + FPS: {
+            float fps = reinterpret_cast<const  float*>(data)[0];
+            emit on_received_fps(fps);
+        } break;
+        case RIVLIB_USERMSG + RenderFPS: {
+            float fps = reinterpret_cast<const  float*>(data)[0];
+            emit on_received_rfps(fps);
+        } break;
 
         case RIVLIB_USERMSG + AvailableDataSource: {
             char * c = new char[size + 1];
@@ -405,6 +417,20 @@ void MainWindow::received_timestep(int step)
     ui->centralWidget->layout()->setEnabled(false);
 
     ui->lblTimestep->setText(QString::number(step));
+}
+
+void MainWindow::received_fps(float fps)
+{
+    this->layout()->setEnabled(false);
+    ui->centralWidget->layout()->setEnabled(false);
+    ui->lblFPS->setText(QString::number(fps,'f',2));
+}
+
+void MainWindow::received_rfps(float fps)
+{
+    this->layout()->setEnabled(false);
+    ui->centralWidget->layout()->setEnabled(false);
+    ui->lblRFPS->setText(QString::number(fps,'f',2));
 }
 
 void MainWindow::changeBackgroundcolor()
@@ -918,8 +944,9 @@ void MainWindow::on_pushButton_clicked()
     //std::cout << "CameraPosition: " << pos[0] << " " << pos[1] << " " << pos[2] << std::endl;
     //std::cout << "CameraFocalPoint: " << focal[0] << " " << focal[1] << " " << focal[2] << std::endl;
 
-    this->sendMessage(CameraPosition, 3 * sizeof(float), pos);
-    this->sendMessage(CameraFocalPoint, 3 * sizeof(float), focal);
+        this->sendMessage(CameraDefault, 3 * sizeof(float), pos);
+   // this->sendMessage(CameraPosition, 3 * sizeof(float), pos);
+   // this->sendMessage(CameraFocalPoint, 3 * sizeof(float), focal);
 }
 
 void MainWindow::on_rdoAlphaBlending_clicked()
