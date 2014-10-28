@@ -35,7 +35,7 @@ namespace picongpu
     public:
         typedef float_X MassType;
         typedef float_X ChargeType;
-        typedef uint32_t ChargeStateType;
+        typedef int chargeStateType;
         
         typedef typename MappingDesc::SuperCellSize SuperCellSize;
 
@@ -49,12 +49,12 @@ namespace picongpu
             return (M_ION * weighting);
         }
 
-        HDINLINE static ChargeType getCharge(const float_X weighting, uint32_t chargeState)
+        HDINLINE static ChargeType getCharge(const float_X weighting, int chargeState)
         {
             return (Q_ION * weighting * chargeState);
         }
         /* return charge state of the ion*/
-        /* HDINLINE static ChargeStateType getChargeState(const float_X weighting, uint32_t chargeState)
+        /* HDINLINE static ChargeStateType getChargeState(const float_X weighting, int chargeState)
          * {
          *    return (chargeState * weighting);
          * }

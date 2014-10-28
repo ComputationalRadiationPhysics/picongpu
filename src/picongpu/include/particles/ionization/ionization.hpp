@@ -81,7 +81,7 @@ struct IonizeParticlePerFrame
 {
 
     template<class FrameType, class BoxB, class BoxE >
-    DINLINE void operator()(FrameType& frame, int localIdx, BoxB& bBox, BoxE& eBox, int& mustShift, int& newElectrons)
+    DINLINE void operator()(FrameType& frame, int localIdx, BoxB& bBox, BoxE& eBox, int& newElectrons)
     {
 
         typedef TVec Block;
@@ -107,7 +107,7 @@ struct IonizeParticlePerFrame
         const float_X mass = frame.getMass(weighting);
         
         /*define charge state variable*/
-        uint32_t chState = particle[chargeState_];
+        int chState = particle[chargeState_];
         
         IonizeAlgo ionizer;
         ionizer(
@@ -174,7 +174,6 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
     __shared__ IONFRAME *frame;
     __shared__ ELECTRONFRAME *electronFrame;
     __shared__ bool isValid;
-    __shared__ int mustShift;
     __shared__ lcellId_t maxParticlesInFrame;
 
     __syncthreads(); /*wait that all shared memory is initialized*/
@@ -183,9 +182,7 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
      * define maxParticlesInFrame as the maximum frame size */
     if (linearThreadIdx == 0)
     {
-        mustShift = 0;
         frame = &(ionBox.getLastFrame(block, isValid));
-        /*maxParticlesInFrame = ionBox.getSuperCell(block).getSizeLastFrame();*/
         maxParticlesInFrame = SuperCellSize::elements;
 //        printf("mP1: %d ",maxParticlesInFrame);
     }
@@ -250,10 +247,9 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
         /* many threads access this flag 
          * casting uint8_t multiMask to boolean */
 //        printf("mM: %d ",(*frame)[linearThreadIdx][multiMask_]);
-        volatile bool isParticle = (*frame)[linearThreadIdx][multiMask_];
+        bool isParticle = (*frame)[linearThreadIdx][multiMask_];
         __syncthreads();
 //        printf("iP: %d ",isParticle);
-        /* always true while-loop over all source frames */
 
         /* < IONIZATION and change of charge states > 
          * if the threads contain particles, the frameSolver can ionize them 
@@ -262,10 +258,11 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
         {
         /* actual operation on the particles */
 //        printf("CALL! ");
-        frameSolver(*frame, linearThreadIdx, cachedB, cachedE, mustShift, newElectrons);
+        frameSolver(*frame, linearThreadIdx, cachedB, cachedE, newElectrons);
 //        printf("nE: %d ", newElectrons);
         }
         __syncthreads();
+        /* always true while-loop over all source frames */
         while (true)
         {
 //            printf("INIT! ");
@@ -297,11 +294,6 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
                 break;
             }
             __syncthreads();
-//          TEST:
-            if (linearThreadIdx == 0)
-            {
-//                printf("Counter: %d ",newFrameFillLvl);
-            }
 //            printf("1st NEW FRAME! ");
             /* < FIRST NEW FRAME >
              * - if there is no frame, yet, the master will create a new target electron frame
@@ -470,7 +462,8 @@ namespace particleIonizerNone
                  *charge >= 0 is needed because electrons and ions cannot be 
                  *distinguished, yet.
                  */
-                if (math::abs(eField)*UNIT_EFIELD >= 5.14e7 && chState < 2 && charge >= 0)
+//                printf("cs: %d ",chState);
+                if (math::abs(eField)*UNIT_EFIELD >= 5.14e7 && chState < 2 && charge >= 0 && chState > 0)
                 {
                     chState = 1 + chState;
 //                    printf("CS: %u ", chState);
@@ -522,7 +515,7 @@ void Particles<T_ParticleDescription>::ionize( uint32_t, T_Elec electrons)
     /* kernel call : instead of name<<<blocks, threads>>> (args, ...) 
        "blocks" will be calculated from "this->cellDescription" and "CORE + BORDER" 
        "threads" is calculated from the previously defined vector "block" */
-    printf("Call the Colonel!\n");
+//    printf("Call the Colonel!\n");
     __picKernelArea( kernelIonizeParticles<BlockArea>, this->cellDescription, CORE + BORDER )
         (block)
         ( this->getDeviceParticlesBox( ),
