@@ -77,11 +77,11 @@ using namespace PMacc;
 /* IONIZE PER FRAME (formerly PUSH PER FRAME from Particles.kernel) */
 
 template<class IonizeAlgo, class TVec, class NumericalCellType>
-struct IonizeParticlePerFrame
+struct IonizeParticlesPerFrame
 {
 
     template<class FrameType, class BoxB, class BoxE >
-    DINLINE void operator()(FrameType& frame, int localIdx, BoxB& bBox, BoxE& eBox, int& newElectrons)
+    DINLINE void operator()(FrameType& ionFrame, int localIdx, BoxB& bBox, BoxE& eBox, int& newElectrons)
     {
 
         typedef TVec Block;
@@ -89,7 +89,7 @@ struct IonizeParticlePerFrame
         typedef typename BoxB::ValueType BType;
         typedef typename BoxE::ValueType EType;
 
-        PMACC_AUTO(particle,frame[localIdx]);
+        PMACC_AUTO(particle,ionFrame[localIdx]);
         const float_X weighting = particle[weighting_];
 
         float3_X pos = particle[position_];
@@ -101,10 +101,10 @@ struct IonizeParticlePerFrame
         EType eField = fieldSolver::FieldToParticleInterpolation()
             (eBox.shift(localCell).toCursor(), pos, NumericalCellType::getEFieldPosition());
         BType bField = fieldSolver::FieldToParticleInterpolation()
-            (bBox.shift(localCell).toCursor(), pos,NumericalCellType::getBFieldPosition());
+            (bBox.shift(localCell).toCursor(), pos, NumericalCellType::getBFieldPosition());
 
         float3_X mom = particle[momentum_];
-        const float_X mass = frame.getMass(weighting);
+        const float_X mass = ionFrame.getMass(weighting);
         
         /*define charge state variable*/
         int chState = particle[chargeState_];
@@ -115,7 +115,7 @@ struct IonizeParticlePerFrame
              pos,
              mom,
              mass,
-             frame.getCharge(weighting, chState),
+             ionFrame.getCharge(weighting, chState),
              chState
              );
         
@@ -139,16 +139,16 @@ struct IonizeParticlePerFrame
 
 /* MARK PARTICLE (formerly MOVE AND MARK from Particles.kernel) */
 
-/*template<class BlockDescription_, class ParBox, class BBox, class EBox, class Mapping, class FrameSolver>*/
-template<class BlockDescription_, class IONFRAME, class ELECTRONFRAME, class BBox, class EBox, class Mapping, class FrameSolver>
+/*template<class BlockDescription_, class ParBox, class BBox, class EBox, class Mapping, class FrameIonizer>*/
+template<class BlockDescription_, class IONFRAME, class ELECTRONFRAME, class BBox, class EBox, class Mapping, class FrameIonizer>
 __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
                                       ParticlesBox<ELECTRONFRAME, simDim> electronBox,
                                       EBox fieldE,
                                       BBox fieldB,
-                                      FrameSolver frameSolver,
+                                      FrameIonizer frameIonizer,
                                       Mapping mapper)
 {
-    /* trying to make it work: used for assign */
+    /* for not mixing assign up with the nVidia functor assign */
     namespace partOp = particles::operations;
     
     /* definitions for domain variables, like indices of blocks and threads
@@ -170,8 +170,8 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
     
     /* "particle box" : container/iterator where the particles live in 
      * and where one can get the frame in a super cell from */
-    /*__shared__ typename ParBox::FrameType *frame;*/
-    __shared__ IONFRAME *frame;
+
+    __shared__ IONFRAME *ionFrame;
     __shared__ ELECTRONFRAME *electronFrame;
     __shared__ bool isValid;
     __shared__ lcellId_t maxParticlesInFrame;
@@ -182,7 +182,7 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
      * define maxParticlesInFrame as the maximum frame size */
     if (linearThreadIdx == 0)
     {
-        frame = &(ionBox.getLastFrame(block, isValid));
+        ionFrame = &(ionBox.getLastFrame(block, isValid));
         maxParticlesInFrame = SuperCellSize::elements;
 //        printf("mP1: %d ",maxParticlesInFrame);
     }
@@ -217,7 +217,7 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
     
     __syncthreads(); /*wait that all shared memory is initialized*/
     
-    /* Declare local variable oldFrameFillLvl for each thread*/
+    /* Declare local variable oldFrameFillLvl for each thread */
     int oldFrameFillLvl;
     
     /* Initialize local (register) counter for each thread 
@@ -231,34 +231,32 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
     /* Master initializes the frame fill level with 0 */
     if (linearThreadIdx == 0)
     {
-        newFrameFillLvl = 0;
-//      Test!        
+        newFrameFillLvl = 0;        
         electronFrame = NULL;
     }
     __syncthreads();
     
-    /* move over frames and call frame solver 
-     * frames are worked on in backwards order to avoid asking about if their is another frame
+    /* move over particle frames and call frameIonizer 
+     * frames are worked on in backwards order to avoid asking if there is another frame
      * --> performance 
-     * because all frames are completely filled except the last and apart from that last frame 
-     * one wants to make sure that all threads are working and every frame is worked on */
+     * Because all frames are completely filled except the last and apart from that last frame 
+     * one wants to make sure that all threads are working and every frame is worked on. */
     while (isValid)
     {
-        /* many threads access this flag 
-         * casting uint8_t multiMask to boolean */
-//        printf("mM: %d ",(*frame)[linearThreadIdx][multiMask_]);
-        bool isParticle = (*frame)[linearThreadIdx][multiMask_];
+        /* casting uint8_t multiMask to boolean */
+//        printf("mM: %d ",(*ionFrame)[linearThreadIdx][multiMask_]);
+        bool isParticle = (*ionFrame)[linearThreadIdx][multiMask_];
         __syncthreads();
 //        printf("iP: %d ",isParticle);
 
         /* < IONIZATION and change of charge states > 
-         * if the threads contain particles, the frameSolver can ionize them 
+         * if the threads contain particles, the frameIonizer can ionize them 
          * if they are non-particles their inner ionization counter remains at 0 */
         if (isParticle)
         {
         /* actual operation on the particles */
 //        printf("CALL! ");
-        frameSolver(*frame, linearThreadIdx, cachedB, cachedE, newElectrons);
+        frameIonizer(*ionFrame, linearThreadIdx, cachedB, cachedE, newElectrons);
 //        printf("nE: %d ", newElectrons);
         }
         __syncthreads();
@@ -267,8 +265,9 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
         {
 //            printf("INIT! ");
             /* < INIT >
-             * - electronId is initialized as -1
+             * - electronId is initialized as -1 (meaning: invalid)
              * - (local) oldFrameFillLvl set equal to (shared) newFrameFillLvl for each thread 
+             * --> each thread remembers the old "counter"
              * - then sync */
             electronId = -1;
             oldFrameFillLvl = newFrameFillLvl;
@@ -298,7 +297,7 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
             /* < FIRST NEW FRAME >
              * - if there is no frame, yet, the master will create a new target electron frame
              * and attach it to the back of the frame list 
-             * - sync all again for them to know which frame to use */
+             * - sync all threads again for them to know which frame to use */
             if (linearThreadIdx == 0)
             {
 //                printf("%p ", electronFrame);
@@ -313,7 +312,7 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
 //            printf("CREATE 1 ");
             /* < CREATE 1 >
              * - all electrons fitting into the current frame are created there 
-             * - internal ionization counter N is decremented by 1 
+             * - internal ionization counter is decremented by 1 
              * - sync */
             if ((0 <= electronId) && (electronId < maxParticlesInFrame))
             {
@@ -321,8 +320,8 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
                 /*writeElectronIntoFrame(*electronFrame,electronId);*/
                 
                 /* each thread makes the attributes of its ion accessible */
-                PMACC_AUTO(parentIon,((*frame)[linearThreadIdx]));
-                /* each thread initializes an electron if one should be produced */
+                PMACC_AUTO(parentIon,((*ionFrame)[linearThreadIdx]));
+                /* each thread initializes an electron if one should be created */
                 PMACC_AUTO(targetElectronFull,((*electronFrame)[electronId]));
                 /* each thread sets the multiMask hard on "particle" (=1) and the charge to 1 */
                 targetElectronFull[multiMask_] = 1;
@@ -377,14 +376,14 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
              * - if the EID is larger than the frame size 
              *      - the EID is set back by one frame size
              *      - the thread writes an electron to the new frame
-             *      - the internal counter N is decremented by 1 */
+             *      - the internal counter is decremented by 1 */
             if (electronId >= maxParticlesInFrame)
             {
                 electronId -= maxParticlesInFrame;
                 /*writeElectronIntoFrame(*electronFrame,electronId);*/
                 
                 /* each thread makes the attributes of its ion accessible */
-                PMACC_AUTO(parentIon,((*frame)[linearThreadIdx]));
+                PMACC_AUTO(parentIon,((*ionFrame)[linearThreadIdx]));
                 /* each thread initializes an electron if one should be produced */
                 PMACC_AUTO(targetElectronFull,((*electronFrame)[electronId]));
                 /* each thread sets the multiMask hard on "particle" (=1) and the charge to 1 */
@@ -425,9 +424,7 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
 
         if (linearThreadIdx == 0)
         {
-            frame = &(ionBox.getPreviousFrame(*frame, isValid));
-            /*maxParticlesInFrame = ionBox.getSuperCell(block).getSizeLastFrame();*/
-            /*previous version but seems wrong: */
+            ionFrame = &(ionBox.getPreviousFrame(*ionFrame, isValid));
             maxParticlesInFrame = SuperCellSize::elements;
 //            printf("mP2: %d ",maxParticlesInFrame);
         }
@@ -463,7 +460,7 @@ namespace particleIonizerNone
                  *distinguished, yet.
                  */
 //                printf("cs: %d ",chState);
-                if (math::abs(eField)*UNIT_EFIELD >= 5.14e7 && chState < 2 && charge >= 0 && chState > 0)
+                if (math::abs(eField)*UNIT_EFIELD >= 5.14e7 && chState < 2 && charge >= 0)
                 {
                     chState = 1 + chState;
 //                    printf("CS: %u ", chState);
@@ -498,9 +495,9 @@ void Particles<T_ParticleDescription>::ionize( uint32_t, T_Elec electrons)
     typedef typename GetMargin<fieldSolver::FieldToParticleInterpolation>::LowerMargin LowerMargin;
     typedef typename GetMargin<fieldSolver::FieldToParticleInterpolation>::UpperMargin UpperMargin;
     
-    /* frame solver that moves over the frames with the particles and executes an operation on them */
-    typedef IonizeParticlePerFrame<ParticleIonize, MappingDesc::SuperCellSize,
-        fieldSolver::NumericalCellType > FrameSolver;
+    /* frame ionizer that moves over the frames with the particles and executes an operation on them */
+    typedef IonizeParticlesPerFrame<ParticleIonize, MappingDesc::SuperCellSize,
+        fieldSolver::NumericalCellType > FrameIonizer;
     
     /* relevant area of a block */
     typedef SuperCellDescription<
@@ -522,15 +519,14 @@ void Particles<T_ParticleDescription>::ionize( uint32_t, T_Elec electrons)
           electrons->getDeviceParticlesBox(),
           this->fieldE->getDeviceDataBox( ),
           this->fieldB->getDeviceDataBox( ),
-          FrameSolver( )
+          FrameIonizer( )
           );
-    /* for testing purposes: */
+    /* for testing purposes: enables more frequent output*/
     cudaDeviceSynchronize();
 
-    /* shift particles - WHERE TO? HOW?
-     * fill the gaps in the simulation - WITH WHAT? */
-    /* ParticlesBaseType::template shiftParticles < CORE + BORDER > ( ); */
-    this->fillAllGaps( );
+    /* fill the gaps in both species' particle frames to ensure that only 
+     * the last frame is not completely filled but every other before is full */
+    this->fillAllGaps( ); //"this" refers to ions here 
     electrons->fillAllGaps();
     
 }
