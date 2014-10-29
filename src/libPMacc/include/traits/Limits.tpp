@@ -34,12 +34,6 @@ namespace limits
 {
 
 template<>
-struct Max<size_t>
-{
-    static const size_t value=static_cast<size_t>(-1);
-};
-
-template<>
 struct Max<int>
 {
     static const int value=INT_MAX;
@@ -49,6 +43,12 @@ template<>
 struct Max<uint32_t>
 {
     static const uint32_t value=static_cast<uint32_t>(-1);
+};
+
+template<>
+struct Max<uint64_t>
+{
+    static const uint64_t value=static_cast<uint64_t>(-1);
 };
 
 } //namespace limits
