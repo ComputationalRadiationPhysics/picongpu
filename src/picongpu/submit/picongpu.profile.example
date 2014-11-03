@@ -1,4 +1,4 @@
-# Copyright 2013 Rene Widera
+# Copyright 2013-2014 Rene Widera, Axel Huebl
 # 
 # This file is part of PIConGPU. 
 # 
@@ -22,27 +22,15 @@
 #
 . /etc/profile.modules
 module purge
-module load compiler/gnu/64/opt/4.6.2
-module load devel/cmake/2.8.2 devel/valgrind/3.8.1
-module load tools/infiniband/2.0.0
+module load gcc/4.6.2
+module load devel/cmake/2.8.10
 module load mpi/openmpi/1.6.3
-module load devel/boost/1.48.0
+module load devel/boost/1.54.0
 module load devel/cuda/5.0
-module load filelib/hdf5/1.8.8
+module load pngwriter/0.5.4
+module load filelib/hdf5/1.8.11 libsplash/1.2.2
 
-module load devel/vampirtrace/5.14.3
+#module load libmxml/2.8 filelib/adios/1.6.0
 
-# PIConGPU needs this environment variables to find its libraries.
-# Again, your paths may vary! (see doc/INSTALL.md)
-#
-export SPLASH_ROOT=$HOME/lib/splash
-export PNGWRITER_ROOT=$HOME/lib/pngwriter
-export BOOST_ROOT=/opt/pkg/devel/boost/1.48.0/
-export MPI_ROOT=$MPIROOT
-
-# Not all modules set the LD_LIBRARY_PATH right, thus we may have to do it.
-#
-export PATH=$PATH:$CUDA_ROOT/bin
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CUDA_ROOT/lib64:$SPLASH_ROOT/lib:$CUDA_ROOT/extras/CUPTI/lib64:$CUDA_ROOT/extras/CUPTI/lib
-	
-
+#module load valgrind/3.8.1
+#module load devel/vampirtrace/5.14.3
