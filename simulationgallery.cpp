@@ -101,10 +101,11 @@ void SimulationGallery::keyPressEvent(QKeyEvent * event)
         qDebug() << "Enter pressed, connecting to " << uri;
 
         emit connect_to(uri);
+        emit on_hide_me();
     }
 
-    if (event->key() == Qt::Key_A)
-        this->add_vis_name_uri_thumb("PIConGPU 2", "riv://149.220.4.50:52000/PIConGPU");
+    //if (event->key() == Qt::Key_A)
+    //    this->add_vis_name_uri_thumb("PIConGPU 2", "riv://149.220.4.50:52000/PIConGPU");
 
     PictureFlow::keyPressEvent(event);
 }
