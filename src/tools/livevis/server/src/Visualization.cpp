@@ -114,6 +114,10 @@ void * Visualization::runVisThread(void * vis)
 	float fps;
 	float renderFps;
 
+    int64_t numGPUs;
+    int64_t numCells;
+    int64_t numParticles;
+
         /// depending on what kind of header was sent treat data
         switch(id)
         {
@@ -131,6 +135,29 @@ void * Visualization::runVisThread(void * vis)
 #endif
                 v->m_prov->broadcast_message(RIVLIB_USERMSG + FPS, sizeof(float), (const char*)&fps);
                 } break;
+
+            case NumGPUs: {
+                 numGPUs = reinterpret_cast<int64_t*>(buffer)[0];
+#if VERBOSITY_LEVEL >= 2
+                std::cout << "[SERVER](" << v->getName() << ") Received NumGPUs " << numGPUs << "." << std::endl;
+#endif
+                v->m_prov->broadcast_message(RIVLIB_USERMSG + NumGPUs, sizeof(int64_t), (const char*)&numGPUs);
+                } break;
+            case NumCells: {
+                 numCells = reinterpret_cast<int64_t*>(buffer)[0];
+#if VERBOSITY_LEVEL >= 2
+                std::cout << "[SERVER](" << v->getName() << ") Received NumCells " << numCells << "." << std::endl;
+#endif
+                v->m_prov->broadcast_message(RIVLIB_USERMSG + NumCells, sizeof(int64_t), (const char*)&numCells);
+                } break;
+            case NumParticles: {
+                 numParticles = reinterpret_cast<int64_t*>(buffer)[0];
+#if VERBOSITY_LEVEL >= 2
+                std::cout << "[SERVER](" << v->getName() << ") Received NumParticles " << numParticles << "." << std::endl;
+#endif
+                v->m_prov->broadcast_message(RIVLIB_USERMSG + NumParticles, sizeof(int64_t), (const char*)&numParticles);
+                } break;
+
             case TimeStep: {
                 timestep = reinterpret_cast<uint32_t*>(buffer)[0];
 #if VERBOSITY_LEVEL >= 2
