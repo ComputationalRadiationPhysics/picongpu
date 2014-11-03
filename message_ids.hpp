@@ -39,7 +39,10 @@ enum MessageID : uint32_t
     PngWriterOn,                // message token (zero byte message) to start writing the simulation images to disk
     PngWriterOff,               // stop writing PNG images
     FPS,                         // simulation fps
-    RenderFPS
+    RenderFPS,
+    NumGPUs,                    // number of simulating GPUs
+    NumCells,                   // number of simulated cells (global)
+    NumParticles                // number of simulated particles (global)
 };
 
 #endif /* MESSAGE_IDS_HPP */

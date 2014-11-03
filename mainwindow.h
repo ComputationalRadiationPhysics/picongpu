@@ -73,6 +73,10 @@ public slots:
     void received_fps(float fps);
     void received_rfps(float fps);
 
+    void received_numGPUs(int64_t numGPUs);
+    void received_numCells(int64_t numCells);
+    void received_numParticles(int64_t numParticles);
+
     void sendMessage(unsigned int id, unsigned int size, const void * data);
 
     void transferFunctionA_changed();
@@ -90,6 +94,10 @@ signals:
     void on_received_fps(float fps);
     void on_received_rfps(float fps);
     void on_received_datasource(QString source);
+
+    void on_received_numGPUs(int64_t numGPUs);
+    void on_received_numCells(int64_t numCells);
+    void on_received_numParticles(int64_t numParticles);
 
     void on_transferFunctionA_changed();
     void on_transferFunctionB_changed();
