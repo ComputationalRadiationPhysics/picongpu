@@ -8,7 +8,7 @@ OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=server
 
 all: $(SOURCES) $(EXECUTABLE)
-	rm *.o src/*.o *~
+	rm -rf *.o src/*.o *~
 	
 $(EXECUTABLE): $(OBJECTS) 
 	$(CC) $(OBJECTS) -o $@ $(LDFLAGS)
@@ -17,4 +17,4 @@ $(EXECUTABLE): $(OBJECTS)
 	$(CC) $(CFLAGS) $< -o $@
 
 clean:
-	rm *.o $(EXECUTABLE) src/*.o *~
+	rm -rf *.o $(EXECUTABLE) src/*.o *~
