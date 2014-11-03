@@ -1,7 +1,8 @@
 
 #include <sys/socket.h>
-#include <pngwriter.h>
+// include <pngwriter.h> not implemented yet
 #include <sstream>
+#include <cstring>
 #include <iomanip>
 
 #include "../include/Visualization.h"
@@ -141,7 +142,7 @@ void * Visualization::runVisThread(void * vis)
             case AvailableDataSource: {
 
                 char * c = new char[len + 1];
-                memcpy(c, buffer, len);
+                std::memcpy(c, buffer, len);
                 c[len] = 0;
                 std::cout << "[SERVER](" << v->getName() << ") Received Available DataSource: " << c << std::endl;
                 delete [] c;
@@ -181,7 +182,7 @@ void * Visualization::runVisThread(void * vis)
                 break;
         }
 
-        memset(buffer, 0, buffer_size);
+        std::memset(buffer, 0, buffer_size);
         id = 0;
         len = 0;
     }
@@ -220,7 +221,7 @@ void Visualization::processImage(uint32_t len, void * data)
     }
 
     /// copy recived data to image buffer
-    ::memcpy(m_imageBuffer, data, len);
+    std::memcpy(m_imageBuffer, data, len);
 
     /// publish new image data
     if (m_imgBinding)
