@@ -455,6 +455,27 @@ void MainWindow::changeBackgroundcolor()
     ui->lblBGColor->setPixmap(QPixmap::fromImage(image));
     ui->centralWidget->set_background_color(m_backgroundColor[0], m_backgroundColor[1], m_backgroundColor[2]);
 
+    QWidget* titleWidget = new QWidget(this); /* where this a QMainWindow object */
+    ui->dockWidget->setTitleBarWidget( titleWidget );
+    ui->dockWidgetContents->setStyleSheet("background-color: rgb(" + QString::number(m_backgroundColor[0])
+                                                                   + QString::number(m_backgroundColor[1])
+                                                                   + QString::number(m_backgroundColor[2])
+                                                                   + ");");
+
+
+    // status bar labels
+    QPalette lblTxtPalGPUs = QPalette(ui->lblStatusGPUs->palette());
+    lblTxtPalGPUs.setColor(ui->lblStatusGPUs->foregroundRole(), QColor(255-m_backgroundColor[0]* 255.0f, 255-m_backgroundColor[1]* 255.0f, 255-m_backgroundColor[2]* 255.0f));
+    ui->lblStatusGPUs->setPalette(lblTxtPalGPUs);
+
+    QPalette lblTxtPalCells = QPalette(ui->lblStatusCells->palette());
+    lblTxtPalCells.setColor(ui->lblStatusCells->foregroundRole(), QColor(255-m_backgroundColor[0]* 255.0f, 255-m_backgroundColor[1]* 255.0f, 255-m_backgroundColor[2]* 255.0f));
+    ui->lblStatusCells->setPalette(lblTxtPalCells);
+
+    QPalette lblTxtPalParticles = QPalette(ui->lblStatusParticles->palette());
+    lblTxtPalParticles.setColor(ui->lblStatusParticles->foregroundRole(), QColor(255-m_backgroundColor[0]* 255.0f, 255-m_backgroundColor[1]* 255.0f, 255-m_backgroundColor[2]* 255.0f));
+    ui->lblStatusParticles->setPalette(lblTxtPalParticles);
+
     //emit backgroundColor_updated(colorUint);
     this->sendMessage(BackgroundColor, 3 * sizeof(float), m_backgroundColor);
 }

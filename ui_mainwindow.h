@@ -1,8 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'mainwindow.ui'
 **
-** Created: Thu Oct 23 14:17:04 2014
-**      by: Qt User Interface Compiler version 4.8.2
+** Created by: Qt User Interface Compiler version 4.8.6
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -15,6 +14,7 @@
 #include <QtGui/QApplication>
 #include <QtGui/QButtonGroup>
 #include <QtGui/QComboBox>
+#include <QtGui/QDockWidget>
 #include <QtGui/QGridLayout>
 #include <QtGui/QGroupBox>
 #include <QtGui/QHBoxLayout>
@@ -116,6 +116,13 @@ public:
     QSlider *sldXMax;
     QLabel *label_8;
     QSpacerItem *verticalSpacer_2;
+    QDockWidget *dockWidget;
+    QWidget *dockWidgetContents;
+    QGridLayout *gridLayout_2;
+    QHBoxLayout *horizontalLayout_11;
+    QLabel *lblStatusGPUs;
+    QLabel *lblStatusCells;
+    QLabel *lblStatusParticles;
 
     void setupUi(QMainWindow *MainWindow)
     {
@@ -752,6 +759,76 @@ public:
         horizontalLayout_3->addLayout(verticalLayout_11);
 
         MainWindow->setCentralWidget(centralWidget);
+        dockWidget = new QDockWidget(MainWindow);
+        dockWidget->setObjectName(QString::fromUtf8("dockWidget"));
+        dockWidget->setEnabled(true);
+        dockWidget->setSizeIncrement(QSize(0, 0));
+        QFont font;
+        font.setKerning(true);
+        dockWidget->setFont(font);
+        dockWidget->setContextMenuPolicy(Qt::PreventContextMenu);
+        dockWidget->setAutoFillBackground(false);
+        dockWidget->setInputMethodHints(Qt::ImhNone);
+        dockWidget->setFeatures(QDockWidget::DockWidgetVerticalTitleBar);
+        dockWidgetContents = new QWidget();
+        dockWidgetContents->setObjectName(QString::fromUtf8("dockWidgetContents"));
+        dockWidgetContents->setEnabled(true);
+        dockWidgetContents->setSizeIncrement(QSize(0, 0));
+        dockWidgetContents->setContextMenuPolicy(Qt::PreventContextMenu);
+        dockWidgetContents->setAutoFillBackground(true);
+        gridLayout_2 = new QGridLayout(dockWidgetContents);
+        gridLayout_2->setSpacing(6);
+        gridLayout_2->setContentsMargins(11, 11, 11, 11);
+        gridLayout_2->setObjectName(QString::fromUtf8("gridLayout_2"));
+        horizontalLayout_11 = new QHBoxLayout();
+        horizontalLayout_11->setSpacing(200);
+        horizontalLayout_11->setObjectName(QString::fromUtf8("horizontalLayout_11"));
+        horizontalLayout_11->setSizeConstraint(QLayout::SetMaximumSize);
+        lblStatusGPUs = new QLabel(dockWidgetContents);
+        lblStatusGPUs->setObjectName(QString::fromUtf8("lblStatusGPUs"));
+        QSizePolicy sizePolicy3(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        sizePolicy3.setHorizontalStretch(0);
+        sizePolicy3.setVerticalStretch(0);
+        sizePolicy3.setHeightForWidth(lblStatusGPUs->sizePolicy().hasHeightForWidth());
+        lblStatusGPUs->setSizePolicy(sizePolicy3);
+        QFont font1;
+        font1.setBold(true);
+        font1.setWeight(75);
+        lblStatusGPUs->setFont(font1);
+        lblStatusGPUs->setScaledContents(true);
+        lblStatusGPUs->setTextInteractionFlags(Qt::NoTextInteraction);
+
+        horizontalLayout_11->addWidget(lblStatusGPUs);
+
+        lblStatusCells = new QLabel(dockWidgetContents);
+        lblStatusCells->setObjectName(QString::fromUtf8("lblStatusCells"));
+        sizePolicy3.setHeightForWidth(lblStatusCells->sizePolicy().hasHeightForWidth());
+        lblStatusCells->setSizePolicy(sizePolicy3);
+        lblStatusCells->setFont(font1);
+        lblStatusCells->setScaledContents(true);
+        lblStatusCells->setTextInteractionFlags(Qt::NoTextInteraction);
+
+        horizontalLayout_11->addWidget(lblStatusCells);
+
+        lblStatusParticles = new QLabel(dockWidgetContents);
+        lblStatusParticles->setObjectName(QString::fromUtf8("lblStatusParticles"));
+        sizePolicy3.setHeightForWidth(lblStatusParticles->sizePolicy().hasHeightForWidth());
+        lblStatusParticles->setSizePolicy(sizePolicy3);
+        lblStatusParticles->setFont(font1);
+        lblStatusParticles->setScaledContents(true);
+        lblStatusParticles->setTextInteractionFlags(Qt::NoTextInteraction);
+
+        horizontalLayout_11->addWidget(lblStatusParticles);
+
+
+        gridLayout_2->addLayout(horizontalLayout_11, 0, 0, 1, 1);
+
+        dockWidget->setWidget(dockWidgetContents);
+        lblStatusCells->raise();
+        lblStatusParticles->raise();
+        lblStatusCells->raise();
+        lblStatusGPUs->raise();
+        MainWindow->addDockWidget(static_cast<Qt::DockWidgetArea>(8), dockWidget);
 
         retranslateUi(MainWindow);
 
@@ -792,6 +869,9 @@ public:
         label_4->setText(QApplication::translate("MainWindow", "Y", 0, QApplication::UnicodeUTF8));
         label_7->setText(QApplication::translate("MainWindow", "X", 0, QApplication::UnicodeUTF8));
         label_8->setText(QApplication::translate("MainWindow", "Clipping", 0, QApplication::UnicodeUTF8));
+        lblStatusGPUs->setText(QApplication::translate("MainWindow", "0 GPUs", 0, QApplication::UnicodeUTF8));
+        lblStatusCells->setText(QApplication::translate("MainWindow", "100 Cells", 0, QApplication::UnicodeUTF8));
+        lblStatusParticles->setText(QApplication::translate("MainWindow", "123 Particles", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 
 };
