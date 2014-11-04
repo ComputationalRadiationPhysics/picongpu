@@ -1,5 +1,6 @@
 /**
  * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
+ *                     Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -19,9 +20,7 @@
  */
 
 
-
-#ifndef GASHOMOGENOUS_HPP
-#define	GASHOMOGENOUS_HPP
+#pragma once
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -30,7 +29,7 @@
 
 namespace picongpu
 {
-    namespace gasHomogenous
+    namespace gasHomogeneous
     {
         template<class Type>
         bool gasSetup( GridBuffer<Type, simDim>&, Window& )
@@ -54,4 +53,4 @@ namespace picongpu
     }
 }
 
-#endif	/* GASHOMOGENOUS_HPP */
+
