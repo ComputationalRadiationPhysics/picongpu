@@ -25,6 +25,15 @@ qmake-qt4 SimpleUIVisClient.pro
 make
 ```
 
+On *Hypnos*:
+```bash
+module load qt/4.8.2
+which qmake # version 4 ok? path ok?
+qmake SimpleUIVisClient.pro
+make
+```
+
+
 ### Run
 
 ```bash
