@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Rene Widera, Felix Schmitt
+ * Copyright 2013-2014 Axel Huebl, Rene Widera, Felix Schmitt,
+ *                     Richard Pausch
  *
  * This file is part of PIConGPU. 
  * 
@@ -47,7 +48,7 @@ namespace picongpu
 
     namespace gasGaussian
     {
-        /** Gas Formular:
+        /** Gas Formula:
                     const float_X exponent = fabs((y - GAS_CENTER) / GAS_SIGMA);
                     const float_X density = __expf(GAS_FACTOR*__powf(exponent, GAS_POWER));
     
@@ -112,7 +113,7 @@ namespace picongpu
 
     }
 
-    namespace gasHomogenous
+    namespace gasHomogeneous
     {
         namespace SI
         {
@@ -135,7 +136,7 @@ namespace picongpu
          *       ..,x,..            x high (constant)
          * 
          *  Imagine a ball with a "hard core" and "soft flanks".
-         *                 (+1 for using antithetics in a description)
+         *                 (+1 for using an antithesis in a description)
          */
         namespace SI
         {
@@ -164,7 +165,7 @@ namespace picongpu
 
     namespace gasGaussianCloud
     {
-        /** Gas Formular:
+        /** Gas Formula:
                     const float_X exponent = fabs((y - GAS_CENTER) / GAS_SIGMA);
                     const float_X density = __expf(GAS_FACTOR*__powf(exponent, GAS_POWER));
     
