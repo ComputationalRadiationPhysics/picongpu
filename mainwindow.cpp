@@ -433,6 +433,7 @@ void MainWindow::received_timestep(int step)
 {
     this->layout()->setEnabled(false);
     ui->centralWidget->layout()->setEnabled(false);
+    ui->dockWidget->layout()->setEnabled(false);
 
     ui->lblTimestep->setText(QString::number(step));
 }
@@ -441,6 +442,8 @@ void MainWindow::received_fps(float fps)
 {
     this->layout()->setEnabled(false);
     ui->centralWidget->layout()->setEnabled(false);
+    ui->dockWidget->layout()->setEnabled(false);
+
     ui->lblFPS->setText(QString::number(fps,'f',2));
 }
 
@@ -448,6 +451,8 @@ void MainWindow::received_rfps(float fps)
 {
     this->layout()->setEnabled(false);
     ui->centralWidget->layout()->setEnabled(false);
+    ui->dockWidget->layout()->setEnabled(false);
+
     ui->lblRFPS->setText(QString::number(fps,'f',2));
 }
 
@@ -455,21 +460,27 @@ void MainWindow::received_numGPUs(int64_t numGPUs)
 {
     this->layout()->setEnabled(false);
     ui->centralWidget->layout()->setEnabled(false);
-    ui->lblStatusGPUs->setText(QString::number(numGPUs,'f',2) + " GPUs");
+    ui->dockWidget->layout()->setEnabled(false);
+
+    ui->lblStatusGPUs->setText(QString("%1 GPUs").arg(numGPUs));
 }
 
 void MainWindow::received_numCells(int64_t numCells)
 {
     this->layout()->setEnabled(false);
     ui->centralWidget->layout()->setEnabled(false);
-    ui->lblStatusCells->setText(QString::number(numCells,'f',2) + " Cells");
+    ui->dockWidget->layout()->setEnabled(false);
+
+    ui->lblStatusCells->setText(QString::number(numCells,'e',1) + " Cells");
 }
 
 void MainWindow::received_numParticles(int64_t numParticles)
 {
     this->layout()->setEnabled(false);
     ui->centralWidget->layout()->setEnabled(false);
-    ui->lblStatusParticles->setText(QString::number(numParticles,'f',2) + " Particles");
+    ui->dockWidget->layout()->setEnabled(false);
+
+    ui->lblStatusParticles->setText(QString::number(numParticles,'e',1) + " Particles");
 }
 
 void MainWindow::changeBackgroundcolor()
