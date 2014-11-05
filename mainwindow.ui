@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>968</width>
-    <height>695</height>
+    <height>667</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -721,6 +721,14 @@ QWidget#infoBar {
           <layout class="QHBoxLayout" name="horizontalLayout_8">
            <item>
             <widget class="QLabel" name="label_3">
+             <property name="font">
+              <font>
+               <family>DejaVu Sans</family>
+               <pointsize>14</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
              <property name="text">
               <string>Timestep:</string>
              </property>
@@ -728,6 +736,14 @@ QWidget#infoBar {
            </item>
            <item>
             <widget class="QLabel" name="lblTimestep">
+             <property name="font">
+              <font>
+               <family>DejaVu Sans</family>
+               <pointsize>14</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
              <property name="text">
               <string/>
              </property>
@@ -745,6 +761,14 @@ QWidget#infoBar {
           <layout class="QHBoxLayout" name="horizontalLayout_9">
            <item>
             <widget class="QLabel" name="label_fps">
+             <property name="font">
+              <font>
+               <family>DejaVu Sans</family>
+               <pointsize>14</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
              <property name="text">
               <string>Simulation FPS:</string>
              </property>
@@ -752,6 +776,14 @@ QWidget#infoBar {
            </item>
            <item>
             <widget class="QLabel" name="lblFPS">
+             <property name="font">
+              <font>
+               <family>DejaVu Sans</family>
+               <pointsize>14</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
              <property name="text">
               <string/>
              </property>
@@ -769,6 +801,14 @@ QWidget#infoBar {
           <layout class="QHBoxLayout" name="horizontalLayout_10">
            <item>
             <widget class="QLabel" name="label_rfps">
+             <property name="font">
+              <font>
+               <family>DejaVu Sans</family>
+               <pointsize>14</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
              <property name="text">
               <string>Render FPS:</string>
              </property>
@@ -776,6 +816,14 @@ QWidget#infoBar {
            </item>
            <item>
             <widget class="QLabel" name="lblRFPS">
+             <property name="font">
+              <font>
+               <family>DejaVu Sans</family>
+               <pointsize>14</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
              <property name="text">
               <string/>
              </property>
@@ -984,6 +1032,12 @@ QWidget#infoBar {
    <property name="enabled">
     <bool>true</bool>
    </property>
+   <property name="minimumSize">
+    <size>
+     <width>657</width>
+     <height>63</height>
+    </size>
+   </property>
    <property name="sizeIncrement">
     <size>
      <width>0</width>
@@ -1030,7 +1084,7 @@ QWidget#infoBar {
      <item row="0" column="0">
       <layout class="QHBoxLayout" name="horizontalLayout_11" stretch="0,0,0">
        <property name="spacing">
-        <number>200</number>
+        <number>0</number>
        </property>
        <property name="sizeConstraint">
         <enum>QLayout::SetMaximumSize</enum>
@@ -1045,6 +1099,8 @@ QWidget#infoBar {
          </property>
          <property name="font">
           <font>
+           <family>DejaVu Sans</family>
+           <pointsize>28</pointsize>
            <weight>75</weight>
            <bold>true</bold>
           </font>
@@ -1054,6 +1110,9 @@ QWidget#infoBar {
          </property>
          <property name="scaledContents">
           <bool>true</bool>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
          </property>
          <property name="textInteractionFlags">
           <set>Qt::NoTextInteraction</set>
@@ -1070,6 +1129,8 @@ QWidget#infoBar {
          </property>
          <property name="font">
           <font>
+           <family>DejaVu Sans</family>
+           <pointsize>28</pointsize>
            <weight>75</weight>
            <bold>true</bold>
           </font>
@@ -1079,6 +1140,9 @@ QWidget#infoBar {
          </property>
          <property name="scaledContents">
           <bool>true</bool>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
          </property>
          <property name="textInteractionFlags">
           <set>Qt::NoTextInteraction</set>
@@ -1095,6 +1159,8 @@ QWidget#infoBar {
          </property>
          <property name="font">
           <font>
+           <family>DejaVu Sans</family>
+           <pointsize>28</pointsize>
            <weight>75</weight>
            <bold>true</bold>
           </font>
@@ -1105,6 +1171,9 @@ QWidget#infoBar {
          <property name="scaledContents">
           <bool>true</bool>
          </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
          <property name="textInteractionFlags">
           <set>Qt::NoTextInteraction</set>
          </property>
@@ -1113,11 +1182,6 @@ QWidget#infoBar {
       </layout>
      </item>
     </layout>
-    <zorder>layoutWidget</zorder>
-    <zorder>lblStatusCells</zorder>
-    <zorder>lblStatusParticles</zorder>
-    <zorder>lblStatusCells</zorder>
-    <zorder>lblStatusGPUs</zorder>
    </widget>
   </widget>
  </widget>
