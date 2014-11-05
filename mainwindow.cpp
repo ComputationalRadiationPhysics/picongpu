@@ -103,9 +103,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL(on_received_rfps(float)), this, SLOT(received_rfps(float)));
 
     /// num GPU/cells/particles display
-    connect(this, SIGNAL(on_received_numGPUs(int64_t)), this, SLOT(received_numGPUs(int64_t)));
-    connect(this, SIGNAL(on_received_numCells(int64_t)), this, SLOT(received_numCells(int64_t)));
-    connect(this, SIGNAL(on_received_numParticles(int64_t)), this, SLOT(received_numParticles(int64_t)));
+    connect(this, SIGNAL(on_received_numGPUs(int)), this, SLOT(received_numGPUs(int)));
+    connect(this, SIGNAL(on_received_numCells(int)), this, SLOT(received_numCells(int)));
+    connect(this, SIGNAL(on_received_numParticles(int)), this, SLOT(received_numParticles(int)));
 
     /// enable play/pause of simulation
     connect(ui->centralWidget, SIGNAL(play_pause_sim()), this, SLOT(playPauseSim()));
@@ -280,15 +280,15 @@ void MainWindow::on_msg(rivlib::control_connection::ptr comm, unsigned int id, u
         } break;
 
         case RIVLIB_USERMSG + NumGPUs: {
-            int64_t numGPUs = reinterpret_cast<const int64_t*>(data)[0];
+            int numGPUs = reinterpret_cast<const int64_t*>(data)[0];
             emit on_received_numGPUs(numGPUs);
         } break;
         case RIVLIB_USERMSG + NumCells: {
-            int64_t numCells = reinterpret_cast<const int64_t*>(data)[0];
+            int numCells = reinterpret_cast<const int64_t*>(data)[0];
             emit on_received_numCells(numCells);
         } break;
         case RIVLIB_USERMSG + NumParticles: {
-            int64_t numParticles = reinterpret_cast<const int64_t*>(data)[0];
+            int numParticles = reinterpret_cast<const int64_t*>(data)[0];
             emit on_received_numParticles(numParticles);
         } break;
 
@@ -457,7 +457,7 @@ void MainWindow::received_rfps(float fps)
     ui->lblRFPS->setText(QString::number(fps,'f',2));
 }
 
-void MainWindow::received_numGPUs(int64_t numGPUs)
+void MainWindow::received_numGPUs(int numGPUs)
 {
     this->layout()->setEnabled(false);
     ui->centralWidget->layout()->setEnabled(false);
@@ -466,7 +466,7 @@ void MainWindow::received_numGPUs(int64_t numGPUs)
     ui->lblStatusGPUs->setText(QString("%1 GPUs").arg(numGPUs));
 }
 
-void MainWindow::received_numCells(int64_t numCells)
+void MainWindow::received_numCells(int numCells)
 {
     this->layout()->setEnabled(false);
     ui->centralWidget->layout()->setEnabled(false);
@@ -475,7 +475,7 @@ void MainWindow::received_numCells(int64_t numCells)
     ui->lblStatusCells->setText(QString::number(numCells,'e',1) + " Cells");
 }
 
-void MainWindow::received_numParticles(int64_t numParticles)
+void MainWindow::received_numParticles(int numParticles)
 {
     this->layout()->setEnabled(false);
     ui->centralWidget->layout()->setEnabled(false);
