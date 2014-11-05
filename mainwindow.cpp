@@ -354,6 +354,7 @@ void MainWindow::resizeEvent(QResizeEvent * re)
 {
     this->layout()->setEnabled(true);
     ui->centralWidget->layout()->setEnabled(true);
+    ui->dockWidget->layout()->setEnabled(true);
 
     m_simulationGallery->setGeometry(0, 0, this->width(), this->height());
 
