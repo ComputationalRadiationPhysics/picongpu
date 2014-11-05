@@ -1034,7 +1034,7 @@ QWidget#infoBar {
    </property>
    <property name="minimumSize">
     <size>
-     <width>657</width>
+     <width>669</width>
      <height>63</height>
     </size>
    </property>
