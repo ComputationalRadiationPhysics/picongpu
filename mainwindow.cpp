@@ -445,7 +445,7 @@ void MainWindow::received_fps(float fps)
     ui->centralWidget->layout()->setEnabled(false);
     ui->dockWidget->layout()->setEnabled(false);
 
-    ui->lblFPS->setText(QString::number(fps,'f',2));
+    ui->lblFPS->setText(QString::number(fps,'f',1));
 }
 
 void MainWindow::received_rfps(float fps)
@@ -454,7 +454,7 @@ void MainWindow::received_rfps(float fps)
     ui->centralWidget->layout()->setEnabled(false);
     ui->dockWidget->layout()->setEnabled(false);
 
-    ui->lblRFPS->setText(QString::number(fps,'f',2));
+    ui->lblRFPS->setText(QString::number(fps,'f',1));
 }
 
 void MainWindow::received_numGPUs(int numGPUs)
