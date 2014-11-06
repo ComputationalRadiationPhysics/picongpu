@@ -23,7 +23,7 @@
 
 
 #ifndef _EXCHANGEINTERN_HPP
-#define	_EXCHANGEINTERN_HPP
+#define    _EXCHANGEINTERN_HPP
 
 #include <assert.h>
 
@@ -104,11 +104,11 @@ namespace PMacc
          * @param exchange the exchange mask
          * @return DIM1 DataSpace of size 3 where 1 means exchange, 0 means no exchange
          */
-        DataSpace<DIM> exchangeTypeToDim(uint32_t exchange) const
+        DataSpace<DIM> exchangeTypeToDim(uint32_t exchange_) const
         {
             DataSpace<DIM> result;
 
-            Mask exchangeMask(exchange);
+            Mask exchangeMask(exchange_);
 
             if (exchangeMask.containsExchangeType(LEFT) || exchangeMask.containsExchangeType(RIGHT))
                 result[0] = 1;
@@ -129,12 +129,12 @@ namespace PMacc
             __delete(deviceDoubleBuffer);
         }
 
-        DataSpace<DIM> exchangeTypeToOffset(uint32_t exchange, GridLayout<DIM> &memoryLayout,
+        DataSpace<DIM> exchangeTypeToOffset(uint32_t exchange_, GridLayout<DIM> &memoryLayout,
                                             DataSpace<DIM> guardingCells, uint32_t area) const
         {
             DataSpace<DIM> size = memoryLayout.getDataSpace();
             DataSpace<DIM> border = memoryLayout.getGuard();
-            Mask mask(exchange);
+            Mask mask(exchange_);
             DataSpace<DIM> tmp_offset;
             if (DIM >= DIM1)
             {
@@ -242,5 +242,5 @@ namespace PMacc
 
 }
 
-#endif	/* _EXCHANGEINTERN_HPP */
+#endif    /* _EXCHANGEINTERN_HPP */
 
