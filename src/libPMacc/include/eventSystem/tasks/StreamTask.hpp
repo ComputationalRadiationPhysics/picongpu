@@ -1,30 +1,31 @@
 /**
  * Copyright 2013 Felix Schmitt, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
-#ifndef STREAMTASK_HPP
-#define	STREAMTASK_HPP
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
 
 #include <cuda_runtime.h>
 
 #include "eventSystem/tasks/ITask.hpp"
+#include "eventSystem/events/CudaEvent.hpp"
 
 
 namespace PMacc
@@ -58,14 +59,14 @@ namespace PMacc
          *
          * @return the task's cuda event
          */
-        cudaEvent_t getCudaEvent() const;
+        CudaEvent getCudaEvent() const;
 
         /**
          * Sets the
          *
          * @param cudaEvent
          */
-        void setCudaEvent(cudaEvent_t cudaEvent);
+        void setCudaEvent(const CudaEvent& cudaEvent);
 
         /**
          * Returns if this task is finished.
@@ -76,7 +77,7 @@ namespace PMacc
 
         /**
          * Returns the EventStream this StreamTask is using.
-         * 
+         *
          * @return pointer to the EventStream
          */
         EventStream* getEventStream();
@@ -106,14 +107,9 @@ namespace PMacc
 
     private:
         EventStream *stream;
-        cudaEvent_t cudaEvent;
+        CudaEvent cudaEvent;
         bool hasCudaEvent;
         bool alwaysFinished;
     };
 
 } //namespace PMacc
-
-
-
-#endif	/* STREAMTASK_HPP */
-

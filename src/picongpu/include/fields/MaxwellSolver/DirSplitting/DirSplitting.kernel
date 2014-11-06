@@ -1,28 +1,28 @@
 /**
  * Copyright 2013 Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #pragma once
 
 #include <types.h>
 #include <math/vector/Float.hpp>
-#include <math/vector/compile-time/Int.hpp>
+#include "math/Vector.hpp"
 #include <cuSTL/container/compile-time/SharedBuffer.hpp>
 #include <cuSTL/algorithm/cudaBlock/Foreach.hpp>
 #include <lambda/Expression.hpp>
@@ -35,7 +35,7 @@ template<typename BlockDim>
 struct DirSplittingKernel
 {
     typedef void result_type;
-    
+
     int totalLength;
     DirSplittingKernel(int totalLength) : totalLength(totalLength) {}
 
@@ -76,7 +76,7 @@ struct DirSplittingKernel
         float3_X fieldE_old;
         float3_X fieldB_old;
         int threadPos_x = threadIdx.x;
-        
+
         algorithm::cudaBlock::Foreach<BlockDim> foreach;
         for (int x_offset = 0; x_offset < this->totalLength; x_offset += BlockDim::x::value)
         {
@@ -97,15 +97,15 @@ struct DirSplittingKernel
                 *cursorE(-1,0,0) = fieldE_old;
                 *cursorB(-1,0,0) = fieldB_old;
             }
-            
+
             propagate(cursorE, cursorB);
 
             typedef zone::CT::SphericZone<BlockDim> BlockZone;
             foreach(BlockZone(), cacheE.origin()(1, 0, 0), globalE(x_offset, 0, 0), _2 = _1);
             foreach(BlockZone(), cacheB.origin()(1, 0, 0), globalB(x_offset, 0, 0), _2 = _1);
-            
+
             __syncthreads();
-            
+
             threadPos_x = BlockDim::x::value - 1 - threadPos_x;
         }
     }

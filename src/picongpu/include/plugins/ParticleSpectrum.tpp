@@ -1,23 +1,23 @@
 /**
  * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "math/vector/Int.hpp"
 #include "math/vector/Float.hpp"
 #include "math/vector/Size_t.hpp"
@@ -25,8 +25,7 @@
 #include "dataManagement/DataConnector.hpp"
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
-#include "math/vector/compile-time/Int.hpp"
-#include "math/vector/compile-time/Size_t.hpp"
+#include "math/Vector.hpp"
 #include "cuSTL/algorithm/mpi/Gather.hpp"
 #include "cuSTL/algorithm/mpi/Reduce.hpp"
 #include "cuSTL/algorithm/kernel/Reduce.hpp"
@@ -44,14 +43,14 @@
 
 namespace picongpu
 {
-    
+
 struct Particle2Histrogram
 {
     typedef void result_type;
     float_X minEnergy, maxEnergy;
     DINLINE Particle2Histrogram(float_X minEnergy, float_X maxEnergy)
         : minEnergy(minEnergy), maxEnergy(maxEnergy) {}
-    
+
     template<typename FramePtr, typename Histogram>
     DINLINE void operator()(FramePtr particle, uint16_t particleID, Histogram histogram) const
     {
@@ -61,7 +60,7 @@ struct Particle2Histrogram
         const float_X mass = M_EL;
         const float_X mass_reci = float_X(1.0) / mass;
         const float_X mass2 = mass * mass;
-        
+
         mom /= weighting;
         float_X mom2 = abs2(mom);
         float_X energy;
@@ -83,24 +82,24 @@ struct ParticleSpectrumKernel
     ParticleSpectrumKernel() {}
     ParticleSpectrumKernel(float_X minEnergy, float_X maxEnergy)
         : minEnergy(minEnergy), maxEnergy(maxEnergy) {}
-    
+
     template<typename ParticlesBox, typename Result>
-    DINLINE void operator()(ParticlesBox pb, 
+    DINLINE void operator()(ParticlesBox pb,
                              const ::PMacc::math::Int<3>& blockCellIdx,
                              Result result) const
     {
         uint16_t linearThreadIdx = threadIdx.z * BlockDim::x::value * BlockDim::y::value +
                                threadIdx.y * BlockDim::x::value + threadIdx.x;
-        
+
         __shared__ detail::Histrogram<numBins> shHistogram;
         __syncthreads(); /*wait that all shared memory is initialised*/
         if(linearThreadIdx < numBins+2) shHistogram.bin[linearThreadIdx] = 0; //\todo: durch assign bzw. foreach ersetzen
         __syncthreads();
-        
+
         particleAccess::Cell2Particle<BlockDim>()
-            (pb, blockCellIdx, Particle2Histrogram(minEnergy, maxEnergy), ref(shHistogram));
-            
-        ::PMacc::math::Int<3> _blockIdx = blockCellIdx / (PMacc::math::Int<3>)(BlockDim().vec());
+            (pb, blockCellIdx, Particle2Histrogram(minEnergy, maxEnergy), forward(shHistogram));
+
+        ::PMacc::math::Int<3> _blockIdx = blockCellIdx / (PMacc::math::Int<3>)(BlockDim().toRT());
         __syncthreads();
         result[_blockIdx] = shHistogram;
     }
@@ -136,8 +135,8 @@ std::string ParticleSpectrum<ParticlesType>::pluginGetName() const {return this-
 template<typename ParticlesType>
 void ParticleSpectrum<ParticlesType>::pluginLoad()
 {
-    Environment<>::get().PluginConnector().setNotificationFrequency(this, this->notifyFrequency);
-    
+    Environment<>::get().PluginConnector().setNotificationPeriod(this, this->notifyFrequency);
+
     this->minEnergy = this->minEnergy * UNITCONV_keV_to_Joule / UNIT_ENERGY;
     this->maxEnergy = this->maxEnergy * UNITCONV_keV_to_Joule / UNIT_ENERGY;
 }
@@ -151,7 +150,7 @@ struct GetBin
     int idx;
     HDINLINE GetBin() {} //\todo: due to lambda lib
     HDINLINE GetBin(int idx) : idx(idx) {}
-    
+
     template<typename Histogram>
     DINLINE float& operator()(Histogram& histogram)
     {
@@ -164,24 +163,24 @@ void ParticleSpectrum<ParticlesType>::notify(uint32_t)
 {/*
     DataConnector &dc = Environment<>::get().DataConnector();
     this->particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
-    
+
     namespace vec = ::vector;
     using namespace vec;
     typedef vec::CT::Size_t<8,8,4> BlockDim;
     container::PseudoBuffer<float3_X, 3> fieldE
         (dc.getData<FieldE > (FieldE::getName(), true).getGridBuffer().getDeviceBuffer());
-    zone::SphericZone<3> coreBorderZone(fieldE.zone().size - (size_t)2*BlockDim().vec(),
-                                        fieldE.zone().offset + (vec::Int<3>)BlockDim().vec());
-    
-    container::DeviceBuffer<detail::Histrogram<numBins>, 3> spectrumBlocks(coreBorderZone.size / BlockDim().vec());
-    
+    zone::SphericZone<3> coreBorderZone(fieldE.zone().size - (size_t)2*BlockDim().toRT(),
+                                        fieldE.zone().offset + (vec::Int<3>)BlockDim().toRT());
+
+    container::DeviceBuffer<detail::Histrogram<numBins>, 3> spectrumBlocks(coreBorderZone.size / BlockDim().toRT());
+
     using namespace lambda;
     algorithm::kernel::ForeachBlock<BlockDim>()
         (coreBorderZone, cursor::make_MultiIndexCursor<3>(),
         expr(ParticleSpectrumKernel<BlockDim, numBins>(minEnergy, maxEnergy))
             (this->particles->getDeviceParticlesBox(),
-            _1, spectrumBlocks.origin()(-coreBorderZone.offset / (vec::Int<3>)BlockDim().vec())));
-        
+            _1, spectrumBlocks.origin()(-coreBorderZone.offset / (vec::Int<3>)BlockDim().toRT())));
+
     container::DeviceBuffer<detail::Histrogram<numBins>, 1> spectrum(1);
     for(int i = 0; i < numBinsEx; i++)
     {
@@ -191,19 +190,19 @@ void ParticleSpectrum<ParticlesType>::notify(uint32_t)
              cursor::make_FunctorCursor(spectrumBlocks.origin(), GetBin(i)),
              _1 + _2);
     }
-    
+
     container::HostBuffer<detail::Histrogram<numBins>, 1> spectrumHost(1);
     spectrumHost = spectrum;
     container::HostBuffer<float, 1> spectrumMPI(numBinsEx), globalSpectrum(numBinsEx);
     for(size_t i = 0; i < numBinsEx; i++) spectrumMPI.origin()[(int)i] = (*spectrumHost.origin()).bin[i];
-    
+
     PMacc::GridController<3>& con = PMacc::Environment<3>::get().GridController();
     vec::Size_t<3> gpuDim = (vec::Size_t<3>)con.getGpuNodes();
     zone::SphericZone<3> gpuReducingZone(gpuDim);
     algorithm::mpi::Reduce<3> reduce(gpuReducingZone);
     reduce(globalSpectrum, spectrumMPI, MPI_FLOAT, MPI_SUM);
     if(!reduce.root()) return;
-    
+
     std::stringstream filename;
     filename << "spectrum_" << currentStep << ".dat";
     std::ofstream file(filename.str().c_str());

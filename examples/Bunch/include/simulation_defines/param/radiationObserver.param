@@ -49,7 +49,6 @@ namespace picongpu
        *  energy of the electrons.
        */
 
-
       /* in this case only one id is needed: an index for theta */
       const int my_theta_id = observation_id_extern;
 
@@ -62,7 +61,7 @@ namespace picongpu
       const numtype2 delta_theta =  2.0 * thetaMax / (parameters::N_observer); 
 
       /* compute angle theta for index */
-      const numtype2 theta(my_theta_id * delta_theta - gamma_times_thetaMax + picongpu::PI); 
+      const numtype2 theta(my_theta_id * delta_theta - thetaMax + picongpu::PI); 
       /* + picongpu::PI -> turn observation direction 180 degrees towards -y */
 
       /* compute observation unit vector */

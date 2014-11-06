@@ -1,26 +1,27 @@
 /**
  * Copyright 2013-2014 Axel Huebl, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
 
 
 #pragma once
+#include "math/Vector.hpp"
+#include "mappings/kernel/MappingDescription.hpp"
 
 namespace picongpu
 {
@@ -32,19 +33,16 @@ namespace picongpu
  */
 const size_t totalFreeGpuMemory = 400 *1024*1024;
 
-/* Factor of the species / sum of all species = relative memory usage
- *   Example:
- *     ions_memory_factor = 1;
- *     electrons_memory_factor = 4;
- *   Result: electrons (80%) get 4 times more memory than ions (20%).
+/* short namespace*/
+namespace mCT=PMacc::math::CT;
+/** size of a superCell
+ *
+ * volume of a superCell must be <= 1024
  */
-const double ions_memory_factor = 2;
-const double electrons_memory_factor = 2;
+typedef typename mCT::shrinkTo<mCT::Int<8, 8, 4>, simDim>::type SuperCellSize;
 
-
-const uint32_t TILE_WIDTH = 8;
-const uint32_t TILE_HEIGHT = 8;
-const uint32_t TILE_DEPTH = 4;
+/** define the object for mapping superCells to cells*/
+typedef MappingDescription<simDim, SuperCellSize> MappingDesc;
 
 const uint32_t GUARD_SIZE = 1;
 
@@ -54,8 +52,4 @@ const uint32_t BYTES_EXCHANGE_Y = 12 * 512 * 1024; //12 MiB
 const uint32_t BYTES_EXCHANGE_Z = 8 * 256 * 1024; //8 MiB
 const uint32_t BYTES_CORNER = 16 * 1024; //16 kiB;
 const uint32_t BYTES_EDGES = 64 * 1024; //64 kiB;
-}
-//namespace picongpu
-
-
-
+}//namespace picongpu

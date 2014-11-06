@@ -1,27 +1,24 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2014 Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef _TASKFIELDRECEIVEANDINSERT_HPP
-#define	_TASKFIELDRECEIVEANDINSERT_HPP
+#pragma once
 
 #include "simulation_defines.hpp"
 #include "eventSystem/EventSystem.hpp"
@@ -31,7 +28,7 @@
 #include "eventSystem/events/EventDataReceive.hpp"
 #include "eventSystem/EventSystem.hpp"
 #include <iostream>
-
+#include "traits/NumberOfExchanges.hpp"
 
 namespace PMacc
 {
@@ -43,7 +40,7 @@ public:
 
 
     static const uint32_t Dim = picongpu::simDim;
- 
+
     TaskFieldReceiveAndInsert(Field &buffer) :
     buffer(buffer),
     state(Constructor)
@@ -55,7 +52,7 @@ public:
         state = Init;
         EventTask serialEvent = __getTransactionEvent();
 
-        for (uint32_t i = 1; i < numberOfNeighbors[Dim]; ++i)
+        for (uint32_t i = 1; i < traits::NumberOfExchanges<Dim>::value; ++i)
         {
             if (buffer.getGridBuffer().hasReceiveExchange(i))
             {
@@ -82,7 +79,7 @@ public:
         case Insert:
             state = Wait;
             __startAtomicTransaction();
-            for (uint32_t i = 1; i < numberOfNeighbors[Dim]; ++i)
+            for (uint32_t i = 1; i < traits::NumberOfExchanges<Dim>::value; ++i)
             {
                 if (buffer.getGridBuffer().hasReceiveExchange(i))
                 {
@@ -146,7 +143,3 @@ private:
 };
 
 } //namespace PMacc
-
-
-#endif	/* _TASKFIELDRECEIVEANDINSERT_HPP */
-

@@ -132,7 +132,7 @@ endif(PNGwriter_FOUND)
 # Boost from system
 ###############################################################################
 
-FIND_PACKAGE(Boost REQUIRED COMPONENTS program_options regex)
+FIND_PACKAGE(Boost REQUIRED COMPONENTS program_options regex system)
 INCLUDE_DIRECTORIES(AFTER ${Boost_INCLUDE_DIRS})
 LINK_DIRECTORIES(${Boost_LIBRARY_DIR})
 SET(LIBS ${LIBS} ${Boost_LIBRARIES})

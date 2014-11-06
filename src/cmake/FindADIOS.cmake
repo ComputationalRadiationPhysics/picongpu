@@ -92,20 +92,17 @@ endif(ADIOS_CONFIG)
 if(ADIOS_FOUND)
     execute_process(COMMAND ${ADIOS_CONFIG} -l
                     OUTPUT_VARIABLE ADIOS_LINKFLAGS
-                    RESULT_VARIABLE ADIOS_CONFIG_RETURN)
+                    RESULT_VARIABLE ADIOS_CONFIG_RETURN
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
     if(NOT ADIOS_CONFIG_RETURN EQUAL 0)
         set(ADIOS_FOUND FALSE)
         message(STATUS "Can NOT execute 'adios_config' - check file permissions")
-    else()
-        # trim trailing newlines
-        string(REGEX REPLACE "(\r?\n)+$" "" ADIOS_LINKFLAGS "${ADIOS_LINKFLAGS}")
     endif()
 
     # find ADIOS_ROOT_DIR
     execute_process(COMMAND ${ADIOS_CONFIG} -d
-                    OUTPUT_VARIABLE ADIOS_ROOT_DIR)
-    # trim trailing newlines
-    string(REGEX REPLACE "(\r?\n)+$" "" ADIOS_ROOT_DIR "${ADIOS_ROOT_DIR}")
+                    OUTPUT_VARIABLE ADIOS_ROOT_DIR
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
     if(NOT IS_DIRECTORY "${ADIOS_ROOT_DIR}")
         set(ADIOS_FOUND FALSE)
         message(STATUS "The directory provided by 'adios_config -d' does not exist: ${ADIOS_ROOT_DIR}")
@@ -176,9 +173,8 @@ if(ADIOS_FOUND)
 
     # add the version string
     execute_process(COMMAND ${ADIOS_CONFIG} -v
-                    OUTPUT_VARIABLE ADIOS_VERSION)
-    # trim trailing newlines
-    string(REGEX REPLACE "(\r?\n)+$" "" ADIOS_VERSION "${ADIOS_VERSION}")
+                    OUTPUT_VARIABLE ADIOS_VERSION
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 endif(ADIOS_FOUND)
 

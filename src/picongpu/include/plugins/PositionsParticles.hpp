@@ -1,27 +1,24 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
 
-
-#ifndef POSITIONSPARTICLES_HPP
-#define	POSITIONSPARTICLES_HPP
+#pragma once
 
 #include <string>
 #include <iostream>
@@ -35,7 +32,7 @@
 #include "mappings/kernel/AreaMapping.hpp"
 
 #include "algorithms/Gamma.hpp"
-#include "plugins/ISimulationPlugin.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 
 namespace picongpu
 {
@@ -52,7 +49,7 @@ struct SglParticle
     float_X weighting;
     float_X charge;
     float_X gamma;
-    uint32_t chState; /*garten70 Ionization*/
+    int chState; /*garten70 Ionization*/
 
     SglParticle() : position(0.0), momentum(0.0), mass(0.0),
         weighting(0.0), charge(0.0), gamma(0.0), chState(0) /*garten70 Ionization*/
@@ -61,14 +58,14 @@ struct SglParticle
 
     DataSpace<simDim> globalCellOffset;
 
-    //! todo 
+    //! todo
 
     floatD_64 getGlobalCell() const
     {
         floatD_64 doubleGlobalCellOffset;
         for(uint32_t i=0;i<simDim;++i)
             doubleGlobalCellOffset[i]=float_64(globalCellOffset[i]);
-        
+
         return floatD_64( doubleGlobalCellOffset+ precisionCast<float_64>(position));
     }
 
@@ -78,11 +75,11 @@ struct SglParticle
         floatD_64 pos;
         for(uint32_t i=0;i<simDim;++i)
             pos[i]=( v.getGlobalCell()[i] * cellSize[i]*UNIT_LENGTH);
-     
+
         const float3_64 mom( precisionCast<float_64>(v.momentum.x()) * UNIT_MASS * UNIT_SPEED,
                              precisionCast<float_64>(v.momentum.y()) * UNIT_MASS * UNIT_SPEED,
                              precisionCast<float_64>(v.momentum.z()) * UNIT_MASS * UNIT_SPEED );
-        
+
         const float_64 mass = precisionCast<float_64>(v.mass) * UNIT_MASS;
         const float_64 charge = precisionCast<float_64>(v.charge) * UNIT_CHARGE;
 
@@ -125,7 +122,9 @@ __global__ void kernelPositionsParticles(ParticlesBox<FRAME, simDim> pb,
     if (!isValid)
         return; //end kernel if we have no frames
 
-    bool isParticle = (*frame)[linearThreadIdx][multiMask_];
+    /* BUGFIX to issue #538
+     * volatile prohibits that the compiler creates wrong code*/
+    volatile bool isParticle = (*frame)[linearThreadIdx][multiMask_];
 
     while (isValid)
     {
@@ -135,9 +134,9 @@ __global__ void kernelPositionsParticles(ParticlesBox<FRAME, simDim> pb,
             gParticle->position = particle[position_];
             gParticle->momentum = particle[momentum_];
             gParticle->weighting = particle[weighting_];
+            gParticle->mass = getMass(gParticle->weighting,*frame);
             gParticle->chState = particle[chargeState_];
-            gParticle->mass = frame->getMass(gParticle->weighting);
-            gParticle->charge = frame->getCharge(gParticle->weighting,gParticle->chState);
+            gParticle->charge = getCharge(gParticle->weighting,*frame,gParticle->chState);
             gParticle->gamma = Gamma<>()(gParticle->momentum, gParticle->mass);
 
             // storage number in the actual frame
@@ -148,7 +147,7 @@ __global__ void kernelPositionsParticles(ParticlesBox<FRAME, simDim> pb,
 
 
             gParticle->globalCellOffset = (superCellIdx - mapper.getGuardingSuperCells())
-                * MappingDesc::SuperCellSize::getDataSpace()
+                * MappingDesc::SuperCellSize::toRT()
                 + frameCellOffset;
         }
         __syncthreads();
@@ -163,7 +162,7 @@ __global__ void kernelPositionsParticles(ParticlesBox<FRAME, simDim> pb,
 }
 
 template<class ParticlesType>
-class PositionsParticles : public ISimulationPlugin
+class PositionsParticles : public ILightweightPlugin
 {
 private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -240,7 +239,7 @@ private:
             //create one float3_X on gpu und host
             gParticle = new GridBuffer<SglParticle<FloatPos>, DIM1 > (DataSpace<DIM1 > (1));
 
-            Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
         }
     }
 
@@ -257,7 +256,7 @@ private:
         SglParticle<FloatPos> positionParticleTmp;
 
         gParticle->getDeviceBuffer().setValue(positionParticleTmp);
-        dim3 block(SuperCellSize::getDataSpace());
+        dim3 block(SuperCellSize::toRT().toDim3());
 
         __picKernelArea(kernelPositionsParticles, *cellDescription, AREA)
             (block)
@@ -266,10 +265,10 @@ private:
         gParticle->deviceToHost();
 
         DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
-        VirtualWindow window(MovingWindow::getInstance().getVirtualWindow(currentStep));
+        const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
 
-        DataSpace<simDim> gpuPhyCellOffset(Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset());
-        gpuPhyCellOffset.y() += (localSize.y() * window.slides);
+        DataSpace<simDim> gpuPhyCellOffset(Environment<simDim>::get().SubGrid().getLocalDomain().offset);
+        gpuPhyCellOffset.y() += (localSize.y() * numSlides);
 
         gParticle->getHostBuffer().getDataBox()[0].globalCellOffset += gpuPhyCellOffset;
 
@@ -280,7 +279,3 @@ private:
 };
 
 }
-
-
-#endif	/* POSITIONSPARTICLES_HPP */
-

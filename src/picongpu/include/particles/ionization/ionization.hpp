@@ -1,8 +1,21 @@
-/* 
- * File:   ionization.hpp
- * Author: garten70
+/**
+ * Copyright 2014 Marco Garten
  *
- * Created on March 20, 2014, 9:21 AM
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 #pragma once
@@ -388,7 +401,6 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
 
 }
     
-/* IONIZE (former UPDATE from Particles.tpp) */
 #include "algorithms/Gamma.hpp"
 #include "algorithms/Velocity.hpp"
 //hard code
@@ -436,32 +448,42 @@ namespace particleIonizerNone
 
 namespace particleIonizer = particleIonizerNone;
 
-//end hard code
+/* IONIZE (former UPDATE from Particles.tpp) */
 template< typename T_ParticleDescription>
 template< typename T_Elec>
 void Particles<T_ParticleDescription>::ionize( uint32_t, T_Elec electrons)
 {
-    /* particle ionization routine */
     
-    typedef particleIonizer::ParticleIonizer ParticleIonize;
-    
+    typedef typename HasFlag<FrameType,particleIonizer<> >::type hasIonizer;
+    typedef typename GetFlagType<FrameType,particleIonizer<> >::type FoundIonizer;
+
+    /* if no ionizer was defined we use IonizerNone as fallback */
+    typedef typename bmpl::if_<hasIonizer,FoundIonizer,particles::ionizer::None >::type SelectIonizer;
+    typedef typename SelectIonizer::type ParticleIonize;
+
+    typedef typename GetFlagType<FrameType,interpolation<> >::type::ThisType InterpolationScheme;
+
     /* margins around the supercell for the interpolation of the field on the cells */
-    typedef typename GetMargin<fieldSolver::FieldToParticleInterpolation>::LowerMargin LowerMargin;
-    typedef typename GetMargin<fieldSolver::FieldToParticleInterpolation>::UpperMargin UpperMargin;
+    typedef typename GetMargin<InterpolationScheme>::LowerMargin LowerMargin;
+    typedef typename GetMargin<InterpolationScheme>::UpperMargin UpperMargin;
+    
+    /* particle ionization routine */
+//    typedef particleIonizer::ParticleIonizer ParticleIonize;
     
     /* frame ionizer that moves over the frames with the particles and executes an operation on them */
     typedef IonizeParticlesPerFrame<ParticleIonize, MappingDesc::SuperCellSize,
+        InterpolationScheme,
         fieldSolver::NumericalCellType > FrameIonizer;
     
     /* relevant area of a block */
     typedef SuperCellDescription<
         typename MappingDesc::SuperCellSize,
-        typename toTVec<LowerMargin>::type,
-        typename toTVec<UpperMargin>::type
+        LowerMargin,
+        UpperMargin
         > BlockArea;
 
     /* 3-dim vector : number of threads to be started in every dimension */
-    dim3 block( MappingDesc::SuperCellSize::getDataSpace( ) );
+    dim3 block( MappingDesc::SuperCellSize::toRT().toDim3() );
     
     /* kernel call : instead of name<<<blocks, threads>>> (args, ...) 
        "blocks" will be calculated from "this->cellDescription" and "CORE + BORDER" 

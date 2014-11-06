@@ -1,27 +1,26 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
 
 
-#ifndef LASERWAVEPACKET_HPP
-#define	LASERWAVEPACKET_HPP
+
+#pragma once
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -29,17 +28,18 @@
 namespace picongpu
 {
 /** not focusing wavepaket with spacial gaussian envelope
- * 
+ *
  *  no phase shifts, just spacial envelope
  */
 namespace laserWavepacket
 {
 
-/** Compute the 
- * 
+/** Compute the
+ *
  */
 HINLINE float3_X laserLongitudinal(uint32_t currentStep, float_X& phase)
 {
+    float_X envelope = float_X(AMPLITUDE);
     float3_X elong = float3_X(float_X(0.0), float_X(0.0), float_X(0.0));
 
     // a symmetric pulse will be initialized at position z=0 for
@@ -47,7 +47,7 @@ HINLINE float3_X laserLongitudinal(uint32_t currentStep, float_X& phase)
     // we shift the complete pulse for the half of this time to start with
     // the front of the laser pulse.
     const double mue = 0.5 * INIT_TIME;
-    
+
     const double runTime = DELTA_T*currentStep - mue;
     const double f = SPEED_OF_LIGHT / WAVE_LENGTH;
 
@@ -57,36 +57,35 @@ HINLINE float3_X laserLongitudinal(uint32_t currentStep, float_X& phase)
     const double startDownramp = 0.5 * LASER_NOFOCUS_CONSTANT;
 
 
-    if (runTime >= endUpramp && runTime <= startDownramp)
-    {
-        // plateau
-        elong.x() = float_X(
-                          double(AMPLITUDE)
-                          * math::sin(w * runTime)
-                          );
-    }
-    else if (runTime > startDownramp)
+    if (runTime > startDownramp)
     {
         // downramp = end
         const double exponent =
             ((runTime - startDownramp)
              / PULSE_LENGTH / sqrt(2.0));
-        elong.x() = float_X(
-                          double(AMPLITUDE)
-                          * math::exp(-0.5 * exponent * exponent)
-                          * math::sin(w * runTime)
-                          );
+        envelope *= math::exp(-0.5 * exponent * exponent);
     }
-    else
+    else if(runTime < endUpramp)
     {
         // upramp = start
         const double exponent = ((runTime - endUpramp) / PULSE_LENGTH / sqrt(2.0));
-        elong.x() = float_X(
-                          double(AMPLITUDE)
-                          * math::exp(-0.5 * exponent * exponent)
-                          * math::sin(w * runTime)
-                          );
+        envelope *= math::exp(-0.5 * exponent * exponent);
     }
+
+    if( Polarisation == LINEAR_X )
+    {
+        elong.x() = envelope * math::sin(w * runTime);
+    }
+    else if( Polarisation == LINEAR_Z )
+    {
+        elong.z() = envelope * math::sin(w * runTime);
+    }
+    else if( Polarisation == CIRCULAR )
+    {
+        elong.x() = envelope / sqrt(2.0) * math::sin(w * runTime);
+        elong.z() = envelope / sqrt(2.0) * math::cos(w * runTime);
+    }
+
 
     phase = float_X(0.0);
 
@@ -94,31 +93,26 @@ HINLINE float3_X laserLongitudinal(uint32_t currentStep, float_X& phase)
 }
 
 /**
- * 
+ *
  * @param elong
  * @param phase
  * @param posX
  * @param posZ
- * @return 
+ * @return
  */
 HDINLINE float3_X laserTransversal(float3_X elong, const float_X, const float_X posX, const float_X posZ)
 {
 
-    const float_X r2 = posX * posX + posZ * posZ;
+    const float_X exp_x = posX * posX / (W0_X * W0_X);
+    const float_X exp_z = posZ * posZ / (W0_Z * W0_Z);
 
-    const double exponent = r2 / (W0 * W0);
-#if !defined(__CUDA_ARCH__) // Host code path
+    return elong * math::exp(float_X(-0.5) * (exp_x + exp_z));
 
-    return elong * precisionCast<float3_X > (exp(-0.5 * exponent));
-#else
-    return elong * precisionCast<float3_X > (math::exp(-0.5 * exponent));
-#endif
 }
 
 }
 }
 
-#endif	/* LASERWAVEPACKET_HPP */
 
 
 

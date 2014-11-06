@@ -1,22 +1,24 @@
 /**
  * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
 
 #include <iostream>
 #include "simulation_defines.hpp"
@@ -35,29 +37,43 @@
 
 #include "fields/numericalCellTypes/NumericalCellTypes.hpp"
 
-#include "math/vector/compile-time/Vector.hpp"
+#include "math/Vector.hpp"
+
+#include <boost/mpl/accumulate.hpp>
+#include "traits/GetMargin.hpp"
+#include "particles/traits/GetCurrentSolver.hpp"
+
 
 namespace picongpu
 {
 
 using namespace PMacc;
 
+
 FieldJ::FieldJ( MappingDesc cellDescription ) :
 SimulationFieldHelper<MappingDesc>( cellDescription ),
 fieldJ( cellDescription.getGridLayout( ) ), fieldE( NULL )
 {
-    typedef currentSolver::CurrentSolver ParticleCurrentSolver;
-
     const DataSpace<simDim> coreBorderSize = cellDescription.getGridLayout( ).getDataSpaceWithoutGuarding( );
 
-    typedef typename GetMargin<ParticleCurrentSolver>::LowerMargin LowerMargin;
-    typedef typename GetMargin<ParticleCurrentSolver>::UpperMargin UpperMargin;
 
-    const DataSpace<simDim> originGuard( LowerMargin( ).vec( ) );
-    const DataSpace<simDim> endGuard( UpperMargin( ).vec( ) );
+    typedef typename bmpl::accumulate<
+        VectorAllSpecies,
+        typename PMacc::math::CT::make_Int<simDim, 0>::type,
+        PMacc::math::CT::max<bmpl::_1, GetLowerMargin< GetCurrentSolver<bmpl::_2> > >
+        >::type LowerMargin;
+
+    typedef typename bmpl::accumulate<
+        VectorAllSpecies,
+        typename PMacc::math::CT::make_Int<simDim, 0>::type,
+        PMacc::math::CT::max<bmpl::_1, GetUpperMargin< GetCurrentSolver<bmpl::_2> > >
+        >::type UpperMargin;
+
+    const DataSpace<simDim> originGuard( LowerMargin( ).toRT( ) );
+    const DataSpace<simDim> endGuard( UpperMargin( ).toRT( ) );
 
     /*go over all directions*/
-    for ( uint32_t i = 1; i < numberOfNeighbors[simDim]; ++i )
+    for ( uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i )
     {
         DataSpace<simDim> relativMask = Mask::getRelativeDirections<simDim > ( i );
         /*guarding cells depend on direction
@@ -65,7 +81,7 @@ fieldJ( cellDescription.getGridLayout( ) ), fieldE( NULL )
         DataSpace<simDim> guardingCells;
         for ( uint32_t d = 0; d < simDim; ++d )
         {
-            /*originGuard and endGuard are switch because we send data 
+            /*originGuard and endGuard are switch because we send data
              * e.g. from left I get endGuardingCells and from right I originGuardingCells
              */
             switch ( relativMask[d] )
@@ -167,7 +183,7 @@ void FieldJ::reset( uint32_t )
 
 void FieldJ::clear( )
 {
-    ValueType tmp = float3_X( 0., 0., 0. );
+    ValueType tmp = float3_X( 0.);
     fieldJ.getDeviceBuffer( ).setValue( tmp );
     //fieldJ.reset(false);
 }
@@ -175,8 +191,8 @@ void FieldJ::clear( )
 typename FieldJ::UnitValueType
 FieldJ::getUnit( )
 {
-    const UnitValueType unitaryVector( 1.0, 1.0, 1.0 );
-    return unitaryVector * UNIT_CHARGE / UNIT_TIME / (UNIT_LENGTH * UNIT_LENGTH);
+    const UnitValueType unitaryVector( 1.0);
+    return unitaryVector * UNIT_CHARGE / UNIT_TIME / ( UNIT_LENGTH * UNIT_LENGTH );
 }
 
 std::string
@@ -197,29 +213,31 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t ) throw (std::in
     /** tune paramter to use more threads than cells in a supercell
      *  valid domain: 1 <= workerMultiplier
      */
-    const int workerMultiplier =2;
-    
-    typedef currentSolver::CurrentSolver ParticleCurrentSolver;
+    const int workerMultiplier = 2;
+
+    typedef typename ParticlesClass::FrameType FrameType;
+    typedef typename GetFlagType<FrameType, current<> >::type::ThisType ParticleCurrentSolver;
+
     typedef ComputeCurrentPerFrame<ParticleCurrentSolver, Velocity, MappingDesc::SuperCellSize> FrameSolver;
 
     typedef SuperCellDescription<
         typename MappingDesc::SuperCellSize,
-        typename toTVec<GetMargin<currentSolver::CurrentSolver>::LowerMargin>::type,
-        typename toTVec<GetMargin<currentSolver::CurrentSolver>::UpperMargin>::type
+        typename GetMargin<ParticleCurrentSolver>::LowerMargin,
+        typename GetMargin<ParticleCurrentSolver>::UpperMargin
         > BlockArea;
 
     StrideMapping<AREA, simDim, MappingDesc> mapper( cellDescription );
     typename ParticlesClass::ParticlesBoxType pBox = parClass.getDeviceParticlesBox( );
     FieldJ::DataBoxType jBox = this->fieldJ.getDeviceBuffer( ).getDataBox( );
     FrameSolver solver( DELTA_T );
-    
-    DataSpace<simDim> blockSize(mapper.getSuperCellSize( ));
+
+    DataSpace<simDim> blockSize( mapper.getSuperCellSize( ) );
     blockSize[simDim-1]*=workerMultiplier;
 
     __startAtomicTransaction( __getTransactionEvent( ) );
     do
     {
-        __cudaKernel( ( kernelComputeCurrent<workerMultiplier,BlockArea, AREA> ) )
+        __cudaKernel( ( kernelComputeCurrent<workerMultiplier, BlockArea, AREA> ) )
             ( mapper.getGridDim( ), blockSize )
             ( jBox,
               pBox, solver, mapper );
@@ -234,7 +252,7 @@ void FieldJ::addCurrentToE( )
     __picKernelArea( ( kernelAddCurrentToE ),
                      cellDescription,
                      AREA )
-        ( MappingDesc::SuperCellSize::getDataSpace( ) )
+        ( MappingDesc::SuperCellSize::toRT( ).toDim3() )
         ( this->fieldE->getDeviceDataBox( ),
           this->fieldJ.getDeviceBuffer( ).getDataBox( ) );
 }

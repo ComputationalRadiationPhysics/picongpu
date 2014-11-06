@@ -1,44 +1,60 @@
 /**
- * Copyright 2013 Axel Huebl, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
 
 
 #pragma once
 
 namespace picongpu
 {
-    /** Number of electrons per particle (= macro particle weighting)
-     *  unit: none */
-    const float_X NUM_EL_PER_PARTICLE = 1;
-    //float_X(SI::GAS_DENSITY_SI*SI::CELL_WIDTH_SI*SI::CELL_HEIGHT_SI*SI::CELL_DEPTH_SI)
-    //                                / float_X(particleInit::NUM_PARTICLES_PER_CELL);
-    /** Number of ions per particle
-     *  unit: none */
-    const float_X NUM_ION_PER_PARTICLE = NUM_EL_PER_PARTICLE;
-    
+
     /** Unit of Speed */
     const double UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
     /** Unit of time */
     const double UNIT_TIME = SI::DELTA_T_SI;
     /** Unit of length */
     const double UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
+
+#if(SIMDIM==DIM3)
+    namespace SI
+    {
+        /** density normed to dimension of the simulation*/
+        const float_64  GAS_DENSITY_NORMED= SI::GAS_DENSITY_SI;
+    } //namespace SI
+#elif(SIMDIM==DIM2)
+    namespace SI
+    {
+        /** density normed to dimension of the simulation
+         *
+         * http://www.tf.uni-kiel.de/matwis/amat/mw1_ge/kap_6/basics/m6_2_1.html
+         */
+        const float_64  GAS_DENSITY_NORMED= SI::GAS_DENSITY_SI*UNIT_LENGTH;
+     } //namespace SI
+#endif
+    /** Number of electrons per particle (= macro particle weighting)
+     *  unit: none */
+    const float_X NUM_EL_PER_PARTICLE = 1;
+
+    /** Number of ions per particle
+     *  unit: none */
+    const float_X NUM_ION_PER_PARTICLE = NUM_EL_PER_PARTICLE;
+
     /** Unit of mass */
     const double UNIT_MASS = SI::ELECTRON_MASS_SI * double(NUM_EL_PER_PARTICLE);
     /** Unit of charge */
@@ -72,5 +88,5 @@ namespace picongpu
 
     // = 1/c^2
     const float_X MUE0_EPS0 = float_X(1. / SPEED_OF_LIGHT / SPEED_OF_LIGHT);
-}
 
+} //namespace picongpu

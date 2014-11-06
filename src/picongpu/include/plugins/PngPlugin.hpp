@@ -1,23 +1,23 @@
 /**
- * Copyright 2013 Axel Huebl, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 
 #pragma once
@@ -28,7 +28,8 @@
 #include "dimensions/DataSpace.hpp"
 
 #include "simulation_classTypes.hpp"
-#include "plugins/ISimulationPlugin.hpp"
+#include "plugins/ILightweightPlugin.hpp"
+#include "simulationControl/MovingWindow.hpp"
 #include <vector>
 #include <list>
 
@@ -46,7 +47,7 @@ namespace picongpu
     namespace po = boost::program_options;
 
     template<class VisClass>
-    class PngPlugin : public ISimulationPlugin
+    class PngPlugin : public ILightweightPlugin
     {
     public:
 
@@ -113,13 +114,26 @@ namespace picongpu
                                 }
                                 std::string filename(analyzerName + "_" + getValue(axis, i) + "_" + o_slicePoint.str());
                                 typename VisType::CreatorType pngCreator(filename, getValue(folders, i));
+                                /** \todo rename me: transpose is the wrong name `swivel` is better
+                                 *
+                                 * `transpose` is used to map components from one vector to an other, in any order
+                                 *
+                                 * example: transpose[2,1] means: use x and z from an other vector
+                                 */
                                 DataSpace<DIM2 > transpose(
                                                            charToAxisNumber(getValue(axis, i)[0]),
                                                            charToAxisNumber(getValue(axis, i)[1])
                                                            );
                                 /* if simulation run in 2D ignore all xz, yz slices (we had no z direction)*/
-                                if( simDim==DIM3 || (transpose.x()!=2 ||transpose.y()!=2  ))
-                                {                                    
+                                const bool isAllowed2DSlice= (simDim==DIM3) || (transpose.x()!=2 && transpose.y()!=2);
+                                const bool isSlidingWindowActive=MovingWindow::getInstance().isSlidingWindowActive();
+                                /* if sliding window is active we are not allowed to create pngs from xz slice
+                                 * This means one dimension in transpose must contain 1 (y direction)
+                                 */
+                                const bool isAllowedMovingWindowSlice=!isSlidingWindowActive ||
+                                                                      (transpose.x()==1 || transpose.y()==1);
+                                if( isAllowed2DSlice && isAllowedMovingWindowSlice )
+                                {
                                     VisType* tmp = new VisType(analyzerName, pngCreator, frequ, transpose, getValue(slicePoints, i));
                                     visIO.push_back(tmp);
                                     tmp->setMappingDescription(cellDescription);
@@ -127,7 +141,11 @@ namespace picongpu
                                 }
                                 else
                                 {
-                                    std::cerr << "[WARNING] You are running a 2D simulation: png output along the axis "<<
+                                    if(!isAllowedMovingWindowSlice)
+                                        std::cerr << "[WARNING] You are running a simulation with moving window: png output along the axis "<<
+                                                 getValue(axis, i) << " will be ignored" << std::endl;
+                                    if(!isAllowed2DSlice)
+                                        std::cerr << "[WARNING] You are running a 2D simulation: png output along the axis "<<
                                                  getValue(axis, i) << " will be ignored" << std::endl;
                                 }
                             }
@@ -153,7 +171,7 @@ namespace picongpu
             }
             visIO.clear();
         }
-        
+
         void notify(uint32_t currentStep)
         {
             // nothing to do here

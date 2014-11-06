@@ -1,24 +1,25 @@
 /**
  * Copyright 2013 Heiko Burau, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 #ifndef _DEVICEBUFFER_HPP
 #define	_DEVICEBUFFER_HPP
@@ -63,7 +64,7 @@ namespace PMacc
         }
 
     public:
-        
+
         using Buffer<TYPE, DIM>::setCurrentSize; //!\todo :this function was hidden, I don't know why.
 
         /**
@@ -72,10 +73,10 @@ namespace PMacc
         virtual ~DeviceBuffer()
         {
         };
-        
+
 
 #define COMMA ,
-    
+
         __forceinline__
         container::CartBuffer<TYPE, DIM, allocator::DeviceMemAllocator<TYPE, DIM>,
                                 copier::D2DCopier<DIM>,
@@ -92,7 +93,7 @@ namespace PMacc
                 result.pitch[0] = cudaData.pitch;
                 result.pitch[1] = cudaData.pitch * result._size.y();
             }
-#ifndef __CUDA_ARCH__ 
+#ifndef __CUDA_ARCH__
             result.refCount = new int;
 #endif
             *result.refCount = 2;
@@ -121,9 +122,9 @@ namespace PMacc
          * @return pointer which point to device memory of current size
          */
         virtual size_t* getCurrentSizeOnDevicePointer() = 0;
-        
+
         /** Returns host pointer of current size storage
-         * 
+         *
          * @return pointer to stored value on host side
          */
         virtual size_t* getCurrentSizeHostSidePointer()=0;
@@ -145,9 +146,9 @@ namespace PMacc
          * @return internal pitched cuda pointer
          */
         virtual const cudaPitchedPtr getCudaPitched() const = 0;
-        
+
         /** get line pitch of memory in byte
-         * 
+         *
          * @return size of one line in memory
          */
         virtual size_t getPitch() const = 0;
@@ -161,11 +162,11 @@ namespace PMacc
 
         /**
          * Copies data from the given DeviceBuffer to this DeviceBuffer.
-         * 
+         *
          * @param other the DeviceBuffer to copy from
          */
         virtual void copyFrom(DeviceBuffer<TYPE, DIM>& other) = 0;
-        
+
     };
 
 } //namespace PMacc

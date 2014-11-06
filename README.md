@@ -65,11 +65,11 @@ member of the [Dresden CUDA Center of Excellence](http://ccoe-dresden.de/) that
 cooperates on a broad range of scientific CUDA applications, workshops and
 teaching efforts.
 
-Referencing
+Attribution
 -----------
 
 PIConGPU is a *scientific project*. If you **present and/or publish** scientific
-results that used PIConGPU, you should set this as a **reference**.
+results that used PIConGPU, you should set a **reference** to show your support.
 
 Our according **up-to-date publication** at **the time of your publication**
 should be inquired from:
@@ -108,9 +108,8 @@ power user only release**! We hereby emphasize that you should wait for our
 release.
 
 Visit [picongpu.hzdr.de](http://picongpu.hzdr.de) to learn more about PIC
-codes. See the
-[getting started guide](http://www.youtube.com/watch?v=7ybsD8G4Rsk)
-(more documents coming soon) and
+codes. See the [user guide](https://github.com/ComputationalRadiationPhysics/picongpu/wiki), 
+our [getting started video](http://www.youtube.com/watch?v=7ybsD8G4Rsk) and
 [contact](http://www.hzdr.de/db/Cms?pNid=132&pOid=30354) us!
 
 **Upgrades:** Every time we update the *master* branch, we publish a new release
@@ -136,8 +135,9 @@ Active Team
 ### Maintainers* and core developers
 
 - Heiko Burau*
-- Anton Helm
+- Carlchristian Eckert
 - Axel Huebl*
+- Maximilian Knespel
 - Richard Pausch*
 - Felix Schmitt*
 - Conrad Schumann
@@ -150,6 +150,7 @@ The PIConGPU Team expresses its thanks to:
 - Florian Berninger
 - Robert Dietrich
 - Wen Fu
+- Anton Helm
 - Wolfgang Hoehnig
 - Remi Lehe
 - Benjamin Schneider

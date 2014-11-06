@@ -1,23 +1,23 @@
 /**
  * Copyright 2013 Axel Huebl, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 
 #pragma once
@@ -28,7 +28,7 @@
 #include "dimensions/DataSpace.hpp"
 
 #include "simulation_classTypes.hpp"
-#include "plugins/ISimulationPlugin.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 #include <vector>
 #include <list>
 #include "plugins/output/images/Visualisation.hpp"
@@ -46,7 +46,7 @@ namespace picongpu
     namespace po = boost::program_options;
 
     template<class ParticlesType>
-    class LiveViewPlugin : public ISimulationPlugin
+    class LiveViewPlugin : public ILightweightPlugin
     {
     public:
 
@@ -139,7 +139,7 @@ namespace picongpu
             }
             visIO.clear();
         }
-        
+
         void notify(uint32_t currentStep)
         {
             // nothing to do here

@@ -1,21 +1,21 @@
 /**
  * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 
@@ -35,7 +35,7 @@
 
 #include "basicOperations.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
-#include "plugins/ISimulationPlugin.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 
 #include "mpi/reduceMethods/Reduce.hpp"
 #include "mpi/MPIReduce.hpp"
@@ -56,16 +56,28 @@ namespace energyFields
 template<typename T_Type>
 struct cast64Bit
 {
-    typedef float_64 result;
+    typedef typename TypeCast<float_64, T_Type>::result result;
 
-    HDINLINE typename TypeCast<result, T_Type>::result operator()(const T_Type& value) const
+    HDINLINE result operator()(const T_Type& value) const
     {
-        return precisionCast<result>(value);
+        return precisionCast<float_64>(value);
     }
 };
+
+template<typename T_Type>
+struct squareComponentWise
+{
+    typedef T_Type result;
+
+    HDINLINE result operator()(const T_Type& value) const
+    {
+        return value*value;
+    }
+};
+
 }
 
-class EnergyFields : public ISimulationPlugin
+class EnergyFields : public ILightweightPlugin
 {
 private:
     FieldE* fieldE;
@@ -84,6 +96,8 @@ private:
     mpi::MPIReduce mpiReduce;
 
     nvidia::reduce::Reduce* localReduce;
+
+    typedef typename promoteType<float_64, FieldB::ValueType>::type EneVectorType;
 
 public:
 
@@ -146,13 +160,13 @@ private:
                 outFile.open(filename.c_str(), std::ofstream::out | std::ostream::trunc);
                 if (!outFile)
                 {
-                    std::cerr << "Can't open file [" << filename << "] for output, diasble analyser output. " << std::endl;
+                    std::cerr << "Can't open file [" << filename << "] for output, disable plugin output. " << std::endl;
                     writeToFile = false;
                 }
                 //create header of the file
-                outFile << "#step Joule" << " \n";
+                outFile << "#step total[Joule] Bx[Joule] By[Joule] Bz[Joule] Ex[Joule] Ey[Joule] Ez[Joule]" << " \n";
             }
-            Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
         }
     }
 
@@ -174,34 +188,59 @@ private:
 
     void getEnergyFields(uint32_t currentStep)
     {
-        float_64 fieldEReduced = reduceField(fieldE);
-        float_64 fieldBReduced = reduceField(fieldB);
+        /* idx == 0 -> fieldB
+         * idx == 1 -> fieldE
+         */
+        EneVectorType globalFieldEnergy[2];
+        globalFieldEnergy[0]=EneVectorType(0.0);
+        globalFieldEnergy[1]=EneVectorType(0.0);
 
-        float_64 localFieldEnergy = ((EPS0 * fieldEReduced) + (fieldBReduced * (float_X(1.0) / MUE0))) * (CELL_VOLUME * float_X(0.5));
-        float_64 globalEnergy = 0.0;
+        EneVectorType localReducedFieldEnergy[2];
+        localReducedFieldEnergy[0] = reduceField(fieldB);
+        localReducedFieldEnergy[1] = reduceField(fieldE);
 
         mpiReduce(nvidia::functors::Add(),
-                  &globalEnergy,
-                  &localFieldEnergy,
-                  1,
+                  &globalFieldEnergy,
+                  &localReducedFieldEnergy,
+                  2,
                   mpi::reduceMethods::Reduce());
+
+        float_64 energyFieldBReduced=0.0;
+        float_64 energyFieldEReduced=0.0;
+
+        for(int d=0; d<FieldB::numComponents; ++d)
+        {
+            /* B field convert */
+            globalFieldEnergy[0][d] *= float_64(0.5 / MUE0 * CELL_VOLUME);
+            /* E field convert */
+            globalFieldEnergy[1][d] *= float_64(EPS0 * CELL_VOLUME * 0.5);
+
+            /* add all to one */
+            energyFieldBReduced+= globalFieldEnergy[0][d];
+            energyFieldEReduced+= globalFieldEnergy[1][d];
+        }
+
+        float_64 globalEnergy = energyFieldEReduced + energyFieldBReduced;
+
 
         if (writeToFile)
         {
             typedef std::numeric_limits< float_64 > dbl;
 
             outFile.precision(dbl::digits10);
-            outFile << currentStep << " " << std::scientific << globalEnergy * UNIT_ENERGY << std::endl;
+            outFile << currentStep << " " << std::scientific << globalEnergy * UNIT_ENERGY << " "
+                    << (globalFieldEnergy[0] * UNIT_ENERGY).toString(" ","") << " "
+                    << (globalFieldEnergy[1] * UNIT_ENERGY).toString(" ","") << std::endl;
         }
     }
 
 private:
 
     template<typename T_Field>
-    float_64 reduceField(T_Field* field)
+    EneVectorType reduceField(T_Field* field)
     {
         /*define stacked DataBox's for reduce algorithm*/
-        typedef DataBoxUnaryTransform<typename T_Field::DataBoxType, math::Abs2 > TransformedBox;
+        typedef DataBoxUnaryTransform<typename T_Field::DataBoxType, energyFields::squareComponentWise > TransformedBox;
         typedef DataBoxUnaryTransform<TransformedBox, energyFields::cast64Bit > Box64bit;
         typedef DataBoxDim1Access<Box64bit > D1Box;
 
@@ -213,11 +252,11 @@ private:
         Box64bit field64bit(fieldTransform);
         D1Box d1Access(field64bit, fieldSize);
 
-        float_64 fieldReduced = (*localReduce)(nvidia::functors::Add(),
+        EneVectorType fieldEnergyReduced = (*localReduce)(nvidia::functors::Add(),
                                                d1Access,
                                                fieldSize.productOfComponents());
 
-        return fieldReduced;
+        return fieldEnergyReduced;
     }
 
 };

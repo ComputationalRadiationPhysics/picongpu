@@ -24,34 +24,14 @@
 cnf_scheduler_secret="..."
 cnf_scheduler="https://example.com?client="$cnf_scheduler_secret
 
-cnf_gitdir="$HOME/pic_git/"
-cnf_exportdir="$HOME/pic_export/"
-cnf_extfile="$HOME/machines/exchange.ext2"
-
-cnf_imgSrc="$HOME/.aqemu/Debian7_Cuda4_2_HDA"
-cnf_imgClone="$HOME/machines/Debian7_Cuda4_2_HDA"
-
-cnf_statsfile="stats.cnf"
+cnf_gitdir="$HOME/picongpu-src/"
+cnf_builddir="$HOME/build/"
 
 # number of tests to compile in parallel
-# = cpu's of the virtual machine
-cnf_numParallel=2
-
-# send a congrats mail if N commits in a row where successful
-# (kind of a heart beat for this script)
-cnf_congrats=10
-
-# mail settings
-cnf_smtp="smtp.example.com:25"
-cnf_smtp_auth_user=""
-cnf_smtp_auth_password=""
-#cnf_sendcharsets=
-cnf_from="someone@example.com"
-
-cnf_rctp_to="someoneelse@example.com"
+cnf_numParallel=16
 
 # preview N lines of the compile output for failing examples
-cnf_mail_preview=60
+cnf_mail_preview=120
 
 # global functions ############################################################
 #

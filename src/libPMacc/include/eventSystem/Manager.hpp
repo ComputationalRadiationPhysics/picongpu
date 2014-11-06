@@ -1,26 +1,26 @@
 /**
- * Copyright 2013 Felix Schmitt, Rene Widera, Wolfgang Hoenig
+ * Copyright 2013-2014 Felix Schmitt, Rene Widera, Wolfgang Hoenig
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
-#ifndef _MANAGER_HPP
-#define	_MANAGER_HPP
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
 
 #include <map>
 #include <cassert>
@@ -31,9 +31,9 @@
 
 namespace PMacc
 {
-    // forward declaration    
-    class EventTask;    
-    
+    // forward declaration
+    class EventTask;
+
     /**
      * Manages the event system by executing and waiting for tasks.
      */
@@ -75,15 +75,15 @@ namespace PMacc
         EventPool& getEventPool();
 
         int getCount();
-        
+
 
 
     private:
-        
+
         friend Environment<DIM1>;
         friend Environment<DIM2>;
         friend Environment<DIM3>;
-        
+
         inline ITask* getPassiveITaskIfNotFinished(id_t taskId) const;
 
         inline ITask* getActiveITaskIfNotFinished(id_t taskId) const;
@@ -93,7 +93,7 @@ namespace PMacc
         Manager(const Manager& cc);
 
         virtual ~Manager();
-        
+
         static Manager& getInstance()
         {
             static Manager instance;
@@ -106,6 +106,3 @@ namespace PMacc
     };
 
 } //namespace PMacc
-
-
-#endif	/* _MANAGER_HPP */

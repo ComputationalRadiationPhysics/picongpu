@@ -76,6 +76,6 @@ cd simOutput
 $MPI_ROOT/bin/mpirun !TBG_dstPath/picongpu/bin/cuda_memtest.sh
 
 if [ $? -eq 0 ] ; then
-   $MPI_ROOT/bin/mpirun  --display-map -am !TBG_dstPath/tbg/openib.conf   !TBG_dstPath/picongpu/bin/picongpu !TBG_programParams
-fi           
+   $MPI_ROOT/bin/mpirun  --display-map -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 !TBG_dstPath/picongpu/bin/picongpu !TBG_programParams
+fi
 

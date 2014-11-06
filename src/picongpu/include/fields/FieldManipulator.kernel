@@ -1,30 +1,29 @@
 /**
  * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 
 #ifndef FIELDMANIPULATOR_KERNEL
 #define	FIELDMANIPULATOR_KERNEL
 
 #include "types.h"
-#include "fields/LaserPhysics.hpp"
 #include "simulation_defines.hpp"
 #include "simulation_classTypes.hpp"
 
@@ -43,9 +42,9 @@ DINLINE void absorb(BoxedMemory field, uint32_t thickness, float_X absorber_stre
     const DataSpace<simDim > threadIndex(threadIdx);
     const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
 
-    DataSpace<simDim> cell(superCellIdx * SuperCellSize() + threadIndex);
+    DataSpace<simDim> cell(superCellIdx * SuperCellSize::toRT() + threadIndex);
     //cells in simulation
-    const DataSpace<simDim> gCells = mapper.getGridSuperCells() * SuperCellSize::getDataSpace();
+    const DataSpace<simDim> gCells = mapper.getGridSuperCells() * SuperCellSize::toRT();
 
     __shared__ int finish;
 
@@ -55,7 +54,7 @@ DINLINE void absorb(BoxedMemory field, uint32_t thickness, float_X absorber_stre
 
     do
     {
-        cell[pos] = cell[pos] + (MappingDesc::SuperCellSize::getDataSpace()[pos]*(direction[pos]*-1));
+        cell[pos] = cell[pos] + (MappingDesc::SuperCellSize::toRT()[pos]*(direction[pos]*-1));
         if (linearThreadIdx == 0)
             finish = 0;
         __syncthreads();
@@ -64,11 +63,11 @@ DINLINE void absorb(BoxedMemory field, uint32_t thickness, float_X absorber_stre
         {
             if (direction[pos] < 0)
             {
-                factor = (float) (MappingDesc::SuperCellSize::getDataSpace()[pos] + thickness - cell[pos] - 1);
+                factor = (float) (MappingDesc::SuperCellSize::toRT()[pos] + thickness - cell[pos] - 1);
             }
             else
             {
-                factor = (float) ((MappingDesc::SuperCellSize::getDataSpace()[pos] + cell[pos]) - gCells[pos] + thickness);
+                factor = (float) ((MappingDesc::SuperCellSize::toRT()[pos] + cell[pos]) - gCells[pos] + thickness);
             }
 
         }
@@ -88,7 +87,7 @@ DINLINE void absorb(BoxedMemory field, uint32_t thickness, float_X absorber_stre
             tmp.z() *= a;
             field(cell) = tmp;
         }
-        //  cell =cell+ MappingDesc::SuperCellSize::getDataSpace()*(pos*-1);
+        //  cell =cell+ MappingDesc::SuperCellSize::toRT()*(pos*-1);
         __syncthreads();
     }
     while (finish == 0);

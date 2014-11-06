@@ -1,24 +1,25 @@
 /**
  * Copyright 2013 Axel Huebl, Felix Schmitt, Rene Widera, Wolfgang Hoenig
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 #ifndef _GRIDCONTROLLER_HPP
 #define	_GRIDCONTROLLER_HPP
@@ -32,7 +33,7 @@
 
 namespace PMacc
 {
-    
+
         /**
          * GridController manages grid information.
          *
@@ -115,11 +116,11 @@ namespace PMacc
             {
                 return comm.getCoordinates();
             }
-    
+
             /**
              * Returns the scalar position (rank) of this GPU,
-             * depending on its current grid position 
-             * 
+             * depending on its current grid position
+             *
              * @return current grid position as scalar value
              */
             uint32_t getScalarPosition() const
@@ -168,28 +169,27 @@ namespace PMacc
              * @return true if the position of the calling GPU is switched to the end, false otherwise
              */
             bool slide()
-            {              
+            {
                /* wait that all tasks are finished */
                Environment<DIM>::get().Manager().waitForAllTasks();//
 
                bool result = comm.slide();
 
-               updateGlobalOffset();
-               //SubGrid<DIM>::getInstance().setGlobalOffset(globalOffset);
+               updateLocalDomainOffset();
 
                return result;
             }
-    
+
             /**
              * Slides multiple times.
-             * 
+             *
              * @param[in] numSlides number of slides
              * @return true if the position of gpu is switched to the end, else false
              */
             bool setNumSlides(size_t numSlides)
             {
                 bool result = comm.setNumSlides(numSlides);
-                updateGlobalOffset();
+                updateLocalDomainOffset();
                 return result;
             }
 
@@ -205,7 +205,7 @@ namespace PMacc
 
             /**
              * Returns the MPI communicator class
-             * 
+             *
              * @return current CommunicatorMPI
              */
             CommunicatorMPI<DIM>& getCommunicator()
@@ -231,25 +231,26 @@ namespace PMacc
             {
 
             }
-    
+
             /**
-             * Sets globalOffset using the current position.
-             * 
+             * Sets localDomain.offset (formerly named globalOffset) using the current position.
+             *
              * (This function is idempotent)
              */
-            void updateGlobalOffset()
+            void updateLocalDomainOffset()
             {
-                /* if we slide we must change our globalOffset of the simulation
+                /* if we slide we must change our localDomain.offset of the simulation
                  * (only change slide direction Y)
                  */
                 int gpuOffset_y = this->getPosition().y();
-                PMACC_AUTO(simBox, Environment<DIM>::get().SubGrid().getSimulationBox());
-                DataSpace<DIM> globalOffset(simBox.getGlobalOffset());
+                const SubGrid<DIM>& subGrid = Environment<DIM>::get().SubGrid();
+                DataSpace<DIM> localDomainOffset(subGrid.getLocalDomain().offset);
                 /* this is allowed in the case that we use sliding window
                  * because size in Y direction is the same for all gpus domains
                  */
-                globalOffset.y() = gpuOffset_y * simBox.getLocalSize().y();
-                Environment<DIM>::get().SubGrid().setGlobalOffset(globalOffset);
+                localDomainOffset.y() = gpuOffset_y * subGrid.getLocalDomain().size.y();
+
+                Environment<DIM>::get().SubGrid().setLocalDomainOffset(localDomainOffset);
             }
 
             /**
@@ -264,7 +265,7 @@ namespace PMacc
                 static GridController<DIM> instance;
                 return instance;
             }
-            
+
             /**
              * Communicator for MPI
              */

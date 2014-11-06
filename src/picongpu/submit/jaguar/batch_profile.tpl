@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2013 Axel Huebl, Rene Widera
+# Copyright 2013-2014 Axel Huebl, Rene Widera
 # 
 # This file is part of PIConGPU. 
 # 
@@ -45,7 +45,7 @@ TBG_nodes=!TBG_tasks
 #PBS -o stdout
 #PBS -e stderr
 
-#PBS -l gres=atlas2
+#PBS -l gres=atlas1%atlas2
 
 echo 'Running program...'
 echo !TBG_jobName

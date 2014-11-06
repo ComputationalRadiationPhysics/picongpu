@@ -1,28 +1,27 @@
 /**
  * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef FIELDE_KERNEL
 #define	FIELDE_KERNEL
 
-#include "dimensions/TVec.h"
-#include "fields/LaserPhysics.hpp"
+#include "math/Vector.hpp"
 
 #include "simulation_classTypes.hpp"
 
@@ -44,24 +43,24 @@ __global__ void kernelLaserE(EBox fieldE, LaserManipulator lMan)
     
     cellOffset.x() = (blockIdx.x * blockDim.x) + threadIdx.x;
     DataSpace<simDim> EFieldOffset;
-    EFieldOffset.x() = cellOffset.x() + (MappingDesc::SuperCellSize::x * GUARD_SIZE);
-    EFieldOffset.y() = MappingDesc::SuperCellSize::y*GUARD_SIZE;
+    EFieldOffset.x() = cellOffset.x() + (MappingDesc::SuperCellSize::x::value * GUARD_SIZE);
+    EFieldOffset.y() = MappingDesc::SuperCellSize::y::value*GUARD_SIZE;
 
 #if (SIMDIM==DIM3)
     cellOffset.z() = (blockIdx.y * blockDim.y) + threadIdx.y;
-    EFieldOffset.z() = cellOffset.z() + (MappingDesc::SuperCellSize::z * GUARD_SIZE);
+    EFieldOffset.z() = cellOffset.z() + (MappingDesc::SuperCellSize::z::value * GUARD_SIZE);
 #endif
 
-    //uint32_t zOffset 
+    //uint32_t zOffset
 
     /** Calculate how many neighbors to the left we have
      * to initialize the laser in the E-Field
-     * 
+     *
      * Example: Yee needs one neighbor to perform dB = curlE
      *            -> initialize in y=0 plane
      *          A second order solver could need 2 neighbors left:
      *            -> initialize in y=0 and y=1 plane
-     * 
+     *
      * Question: Why do other codes initialize the B-Field instead?
      * Answer:   Because our fields are defined on the lower cell side
      *           (C-Style ftw). Therefore, our curls (for example Yee)
@@ -69,7 +68,7 @@ __global__ void kernelLaserE(EBox fieldE, LaserManipulator lMan)
      *           (in other words: curlLeft <-> curlRight)
      *           for E and B.
      *           For this reason, we have to initialize E instead of B.
-     * 
+     *
      * Problem: that's still not our case. For example our Yee does a
      *          dE = curlLeft(B) - therefor, we should init B, too.
      */
@@ -80,7 +79,7 @@ __global__ void kernelLaserE(EBox fieldE, LaserManipulator lMan)
     {
         /** \todo Right now, the phase could be wrong ( == is cloned)
          *        \See LaserPhysics.hpp
-         * 
+         *
          *  \todo What about the B-Field in the second plane?
          */
         cellOffset.y()=totalOffsetY;

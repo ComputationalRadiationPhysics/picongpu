@@ -55,10 +55,10 @@ namespace cellwiseOperation
         const uint32_t currentStep, Mapping mapper )
     {
         const DataSpace<simDim> block( mapper.getSuperCellIndex( DataSpace<simDim>( blockIdx ) ) );
-        const DataSpace<simDim> blockCell = block * MappingDesc::SuperCellSize::getDataSpace();
+        const DataSpace<simDim> blockCell = block * MappingDesc::SuperCellSize::toRT();
 
         const DataSpace<simDim> threadIndex( threadIdx );
-        
+
         opFunctor( field( blockCell + threadIndex ),
                    valFunctor( blockCell + threadIndex + totalCellOffset,
                                currentStep )
@@ -74,16 +74,16 @@ namespace cellwiseOperation
     {
     private:
         typedef MappingDesc::SuperCellSize SuperCellSize;
-        
+
         MappingDesc cellDescription;
-        
+
     public:
         CellwiseOperation(MappingDesc cellDescription) : cellDescription(cellDescription)
         {
         }
 
         /* Functor call to execute the op/valFunctor on a given field
-         * 
+         *
          * \tparam ValFunctor A Value-Producing functor for a given cell
          *                    in time and space
          * \tparam OpFunctor A manipulating functor like PMacc::nvidia::functors::add
@@ -95,13 +95,14 @@ namespace cellwiseOperation
             if( !enabled )
                 return;
 
+            const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
             /** offset due to being the n-th GPU */
-            DataSpace<simDim> totalCellOffset(Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset());
-            VirtualWindow window = MovingWindow::getInstance().getVirtualWindow( currentStep );
+            DataSpace<simDim> totalCellOffset(subGrid.getLocalDomain().offset);
+            const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter( currentStep );
 
             /** Assumption: all GPUs have the same number of cells in
              *              y direction for sliding window */
-            totalCellOffset.y() += window.slides * window.localFullSize.y();
+            totalCellOffset.y() += numSlides * subGrid.getLocalDomain().size.y();
             /* the first block will start with less offset if started in the GUARD */
             if( T_Area & GUARD)
                 totalCellOffset -= cellDescription.getSuperCellSize() * cellDescription.getGuardingSuperCells();
@@ -111,7 +112,7 @@ namespace cellwiseOperation
 
             /* start kernel */
             __picKernelArea((kernelCellwiseOperation<T_OpFunctor>), cellDescription, T_Area)
-                    (SuperCellSize::getDataSpace())
+                    (SuperCellSize::toRT().toDim3())
                     (field->getDeviceDataBox(), opFunctor, valFunctor, totalCellOffset, currentStep);
         }
     };

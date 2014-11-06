@@ -1,21 +1,21 @@
 /**
  * Copyright 2014 Felix Schmitt
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 
@@ -37,7 +37,7 @@ namespace adios
 {
 using namespace PMacc;
 
-namespace bmpl = boost::mpl;
+
 
 namespace po = boost::program_options;
 
@@ -71,7 +71,7 @@ namespace po = boost::program_options;
 
 struct ThreadParams
 {
-    uint32_t currentStep;
+    uint32_t currentStep;                   /** current simulation step */
     std::string fullFilename;
 
     MPI_Comm adiosComm;                     /* MPI communicator for adios lib */
@@ -79,53 +79,63 @@ struct ThreadParams
     int64_t adiosFileHandle;                /* ADIOS file handle */
     int64_t adiosGroupHandle;               /* ADIOS group handle */
     uint64_t adiosGroupSize;                /* size of ADIOS group in bytes */
+    uint32_t adiosAggregators;              /* number of ADIOS aggregators for MPI_AGGREGATE */
+    uint32_t adiosOST;                      /* number of ADIOS OST for MPI_AGGREGATE */
     std::string adiosBasePath;              /* base path for the current step */
-    
-    int64_t adiosSizeVarIds[simDim];        /* var IDs for ADIOS_SIZE_LOCAL_x/y/z */
-    int64_t adiosTotalSizeVarIds[simDim];   /* var IDs for ADIOS_SIZE_GLOBAL_x/y/z */
-    int64_t adiosOffsetVarIds[simDim];      /* var IDs for ADIOS_OFFSET_GLOBAL_x/y/z */
-    
+    std::string adiosCompression;           /* ADIOS data transform compression method */
+
+    DataSpace<simDim> fieldsSizeDims;
+    DataSpace<simDim> fieldsGlobalSizeDims;
+    DataSpace<simDim> fieldsOffsetDims;
+
     std::list<int64_t> adiosFieldVarIds;        /* var IDs for fields in order of appearance */
     std::list<int64_t> adiosParticleAttrVarIds; /* var IDs for particle attributes in order of appearance */
     std::list<int64_t> adiosSpeciesIndexVarIds; /* var IDs for species index tables in order of appearance */
-    
+    std::list<int64_t> adiosMetaAttrVarIds;     /* var IDs for scalar meta attributes */
+
     GridLayout<simDim> gridLayout;
-    DataSpace<simDim> gridPosition;
     MappingDesc *cellDescription;
-    
-    float *fieldBfr;                        /* temp. buffer for fields */
 
-    VirtualWindow window;
-};
+    float *fieldBfr;                                /* temp. buffer for fields */
 
-struct DomainInformation
-{
-    /* Offset from simulation origin to moving window */
-    DataSpace<simDim> globalDomainOffset;
-    /* Total size of current simulation area (i.e. moving window size) */
-    DataSpace<simDim> globalDomainSize;
+    Window window;                                  /* window describing the volume to be dumped */
 
-    /* Offset from simulation origin to this GPU */
-    DataSpace<simDim> domainOffset;
-    /* Size of this GPU */
-    DataSpace<simDim> domainSize;
-    
-    /* Offset of simulation area (i.e. moving window) from start of this GPU.
-     * >= 0 for top GPUs, 0 otherwise */
-    DataSpace<simDim> localDomainOffset;
-
+    DataSpace<simDim> localWindowToDomainOffset;    /** offset from local moving window to local domain */
 };
 
 /**
  * Writes simulation data to adios files.
- * Implements the ISimulationPlugin interface.
- *
- * @param ElectronsBuffer class description for electrons
- * @param IonsBuffer class description for ions
- * @param simDim dimension of the simulation (2-3)
+ * Implements the ILightweightPlugin interface.
  */
 
 class ADIOSWriter;
+
+/**
+ * Wrapper for adios_define_var that sets data transform method
+ *
+ * @tparam DIM number of variable dimensions
+ *
+ * @param group_id pointer to the internal group structure
+ * @param name string containing the name part of a variable
+ * @param path string containing the path of an variable
+ * @param type variable type
+ * @param dimensions variable local dimension
+ * @param globalDimensions variable global dimension
+ * @param offset variable local offset
+ * @param compression enable compression data transform
+ * @param compressionMethod string denoting the data transform to use
+ * @return ADIOS variable ID
+ */
+template <unsigned DIM>
+int64_t defineAdiosVar(int64_t group_id,
+                       const char * name,
+                       const char * path,
+                       enum ADIOS_DATATYPES type,
+                       DataSpace<DIM> dimensions,
+                       DataSpace<DIM> globalDimensions,
+                       DataSpace<DIM> offset,
+                       bool compression,
+                       std::string compressionMethod);
 
 } //namespace adios
 } //namespace picongpu

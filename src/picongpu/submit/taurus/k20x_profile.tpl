@@ -48,6 +48,7 @@ TBG_nodes="$(( ( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
 #SBATCH --nodes=!TBG_nodes
 #SBATCH --ntasks-per-node=!TBG_mpiTasksPerNode
 #SBATCH --cpus-per-task=!TBG_coresPerGPU
+#SBATCH --mem-per-cpu=3000
 #SBATCH --gres=gpu:!TBG_gpusPerNode
 # send me a mail on (b)egin, (e)nd, (a)bortion
 #SBATCH --mail-type=!TBG_mailSettings
@@ -70,6 +71,11 @@ umask 0027
 
 mkdir simOutput 2> /dev/null
 cd simOutput
+
+# we are not sure if the current bullxmpi/1.2.4.3 catches pinned memory correctly
+#   support ticket [Ticket:2014052241001186] srun: mpi mca flags
+#   see bug https://github.com/ComputationalRadiationPhysics/picongpu/pull/438
+export OMPI_MCA_mpi_leave_pinned=0
 
 # Run CUDA memtest to check GPU's health
 srun -K1 !TBG_dstPath/picongpu/bin/cuda_memtest.sh

@@ -1,21 +1,21 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 
@@ -37,51 +37,43 @@ namespace hdf5
 using namespace PMacc;
 
 using namespace splash;
-namespace bmpl = boost::mpl;
+
 
 namespace po = boost::program_options;
 
 struct ThreadParams
 {
     /* set at least the pointers to NULL by default */
-    ThreadParams() : dataCollector(NULL),
+    ThreadParams() :
+        dataCollector(NULL),
         cellDescription(NULL)
     {}
 
+    /** current simulation step */
     uint32_t currentStep;
+
+    /** current dump is a checkpoint */
+    bool isCheckpoint;
+
+    /** libSplash class */
     ParallelDomainCollector *dataCollector;
+
+    /** description of the grid/field layout, including guards etc. */
     GridLayout<simDim> gridLayout;
-    DataSpace<simDim> gridPosition;
+
+    /** cell description */
     MappingDesc *cellDescription;
 
-    VirtualWindow window;
-};
+    /** window describing the volume to be dumped */
+    Window window;
 
-struct DomainInformation
-{
-    /* Offset from simulation origin to moving window */
-    DataSpace<simDim> globalDomainOffset;
-    /* Total size of current simulation area (i.e. moving window size) */
-    DataSpace<simDim> globalDomainSize;
-
-    /* Offset from simulation origin to this GPU */
-    DataSpace<simDim> domainOffset;
-    /* Size of this GPU */
-    DataSpace<simDim> domainSize;
-    
-    /* Offset of simulation area (i.e. moving window) from start of this GPU.
-     * >= 0 for top GPUs, 0 otherwise */
-    DataSpace<simDim> localDomainOffset;
-
+    /** offset from local moving window to local domain */
+    DataSpace<simDim> localWindowToDomainOffset;
 };
 
 /**
  * Writes simulation data to hdf5 files.
  * Implements the ISimulationPlugin interface.
- *
- * @param ElectronsBuffer class description for electrons
- * @param IonsBuffer class description for ions
- * @param simDim dimension of the simulation (2-3)
  */
 
 class HDF5Writer;

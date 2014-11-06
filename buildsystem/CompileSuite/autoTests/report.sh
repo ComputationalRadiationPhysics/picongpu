@@ -38,11 +38,11 @@ function conclusion {
     state="$1"
     echo "State: $state"
     lastUser="$2"
-    #echo "lastUser: $lastUser"
+    echo "lastUser: $lastUser"
     lastUserMail="$3"
     #echo "email: $lastUserMail"
     sha="$4"
-    #echo "sha: $sha"
+    echo "sha: $sha"
     eventid="$5"
     echo "eventid: $eventid"
     logEntry="$6"
@@ -57,32 +57,15 @@ function conclusion {
     # Positive
     if [ "$state" -gt "0" ] ; then
         stateName="success"
-        # "award" mail?
-        award=$(( state % cnf_congrats ))
-        if [ "$award" -eq "0" ] ; then
-            subject="[Award] $lastUser @ $sha"
-            text="You won a *team award*! $cnf_congrats in a row! *congrats*! :)"
-        fi
-
-        # problem "fixed" mail?
-        if [ "$state" -eq "1" ] ; then
-            subject="[Fixed] $lastUser @ $sha"
-            text="$lastUser *fixed* PIConGPU! We love you!"
-        fi
+        subject="[Build OK] $lastUser @ $sha"
+        text="Tested commit from $lastUser was clean! Well done yo!"
     fi
 
     # Test Failed - inform users
     if [ "$state" -lt "0" ] ; then
         stateName="failure"
-        # first fail
-        if [ "$state" -eq "-1" ] ; then
-            subject="[Failed] $lastUser @ $sha"
-            text="_Errors_ occured! Dare you *$lastUser*! Pls fix them ... Allez garcon!"
-        # still failing
-        else
-            subject="[Still Failing] $lastUser @ $sha"
-            text="_Errors_ occured! Compile *still* failing ($lastUser did _not_ fix all errors...)"
-        fi
+        subject="[Failed] $lastUser @ $sha"
+        text="_Errors_ occured! Dare you *$lastUser*! Pls fix them ... Allez garcon!"
         # parse errors
         text="$text
 
@@ -115,58 +98,17 @@ $fT
 *LogEntry*:
 $logEntry"
 
-    # send mail
-    echo "Mail Subject: $subject"
-    #echo "Mail Text: $text"
-    #echo "Mail attachement: $compileOutputFile"
-
-    #if [ ! -z "$subject" ] ; then
-    #    send_mail "$subject" "$text" "$compileOutputFile"
-    #fi
+    echo "Summary: $subject"
 
     # report to scheduler
     #
-    # escape / \ and " (to do: control codes < U+0020 )
-    #textJSON=$(echo "$text" | sed 's|\\|\\\\|g' | sed 's|\"|\\\"|g' | sed 's|\/|\\\/|g')
-    textJSON=${text//\\/\\\\} # \
-    textJSON=${textJSON//\//\\\/} # /
-#    textJSON=${textJSON//\'/\\\'} # ' should not be escaped in JSON
-    textJSON=${textJSON//\"/\\\"} # "
-    textJSON=${textJSON//	/\\t} # \t
-    textJSON=${textJSON//
-/\\n} # \n
-    textJSON=${textJSON//^M/\\r} # \r
-    textJSON=${textJSON//^L/\\f} # \f
-    textJSON=${textJSON//^H/\\b} # \b
-    postParams='payload={"action":"report","eventid":'$eventid',"result":"'$stateName'","output":"'"$textJSON"'"}'
-    curl --raw -d"$postParams" $cnf_scheduler
+    # escape special characters
+    textJSON=`echo -n "$text" | python -c 'import json,sys; print json.dumps(sys.stdin.read())'`
+    postParams='{"action":"report","eventid":'$eventid',"result":"'$stateName'","output":'$textJSON'}'
+    echo -n "$postParams" > "$thisDir"lastPostParams.log
+    curl -s -X POST --data-urlencode payload@"$thisDir"lastPostParams.log $cnf_scheduler
     if [ $? -ne 0 ]; then
         echo "Error contacting scheduler at $cnf_scheduler"
         exit 1
     fi
-}
-
-# send mail via mailx
-#   debian: apt-get install heirloom-mailx
-# $1: subject
-# $2: body
-# $3: attachement
-#
-function send_mail()
-{
-    subject="[CompileSuite] $1"
-    export smtp="$cnf_smtp"
-    #export smtp-auth-user="$smtp-auth-user"
-    #export smtp-auth-password="$cnf_smtp-auth-password"
-    #sendcharsets=...
-    export from="$cnf_from"
-    export rctp_to="$cnf_rctp_to"
-
-    if [ ! -z "$3" ] && [ -f "$3" ] ; then
-      echo "$2" | mailx -a "$3" -s "$subject" "$rctp_to"
-    else
-      echo "$2" | mailx -s "$subject" "$rctp_to"
-    fi
-
-    echo "Mail send!"
 }

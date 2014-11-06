@@ -1,0 +1,98 @@
+<Servers>
+  <Server name="hypnos2 laser" configuration="" resource="csrc://localhost:11111">
+    <CommandStartup>
+      <Options>
+        <Option name="SSH_USER" label="SSH Username" save="true">
+          <String default="huebl" />
+        </Option>
+        <Option name="LOGIN_SERVER" label="Login Server" save="true">
+          <String default="uts.fz-rossendorf.de" />
+        </Option>
+        <Option name="HEAD_NODE" label="Head Node" save="true">
+          <String default="hypnos2" />
+        </Option>
+        <Option name="NUM_NODES" label="# of laser nodes" save="true">
+          <Range type="int" min="1" max="88" step="1" default="8" />
+        </Option>
+        <Option name="NUM_PPN" label="# of procs per node" save="true">
+          <Range type="int" min="1" max="64" step="1" default="8" />
+        </Option>
+        <Option name="NUM_PORT" label="port on head node" save="true">
+          <Range type="int" min="10000" max="20000" step="1" default="11111" />
+        </Option>
+        <Option name="T_WALLTIME" label="Wall time" save="true">
+          <String default="01:00:00" />
+        </Option>
+      </Options>
+      <Command exec="bash" timeout="0" delay="0">
+        <Arguments>
+          <Argument value="-c"/>
+          <Argument value="eval echo -e '\#PBS -q laser\\n
+\#PBS -l walltime=T_WALLTIME\\n
+\#PBS -N pvserver\\n
+\#PBS -l nodes=NUM_NODES:ppn=NUM_PPN\\n
+\#PBS -W x=NACCESSPOLICY:SINGLETASK\\n
+\#PBS -d .\\n
+\#PBS -o stdout\\n
+\#PBS -e stderr\\n
+cd .\\n
+. /etc/profile.modules\\n
+module load devel/python/2.7.5\\n
+module load numlib/icet/2.1.1\\n
+module load compiler/gnu/64/opt/4.8.2\\n
+module load mpi/openmpi/1.7.4\\n
+module load tools/infiniband/1.0.0\\n
+module load tools/mesa/7.8\\n
+module load analysis/paraview/3.98.laser\\n
+which pvserver\\n
+echo starting\\n
+mpiexec -npernode NUM_PPN -n \`expr NUM_NODES \\* NUM_PPN\`
+    \`which pvserver\` --use-offscreen-rendering -sp=NUM_PORT -rc -ch=HEAD_NODE\\n
+\# some interesting flags one can use:\\n
+\#   --mca mpi_yield_when_idle 1\\n
+\#       reduces load while idle - no busy loop\\n
+\#       http://www.open-mpi.org/faq/?category=running#force-aggressive-degraded\\n
+\#   -am \~/openib.conf\\n
+\#       in case you send HUGE data chunks over infiniband
+' > ~/.startParaView;
+echo 'Replacing space holders in job script';
+sed -i 's/NUM_NODES/$NUM_NODES$/g' ~/.startParaView;
+sed -i 's/NUM_PPN/$NUM_PPN$/g' ~/.startParaView;
+sed -i 's/T_WALLTIME/$T_WALLTIME$/g' ~/.startParaView;
+sed -i 's/HEAD_NODE/$HEAD_NODE$/g' ~/.startParaView;
+sed -i 's/NUM_PORT/$NUM_PORT$/g' ~/.startParaView;
+echo 'Checking tunnel to SSH port of $HEAD_NODE$';
+ssh -p 44334 $SSH_USER$@localhost 'exit 0' 2>/dev/null 1>/dev/null;
+if [ $? -ne 0 ] ; then
+  echo 'opening ssh tunnel to $HEAD_NODE$';
+  ssh -f -L 44334:hypnos2:22 $SSH_USER$@uts.fz-rossendorf.de -N;
+  sleep 1;
+  echo 'Permanent proxy to ssh port of $HEAD_NODE$ established';
+fi;
+echo 'Copy job script to $HEAD_NODE$';
+cat ~/.startParaView | ssh -p 44334 $SSH_USER$@localhost 'cat > ~/startParaView; /opt/torque/bin/qsub ~/startParaView';
+echo 'Check if old reverse connection tunnels still persist';
+if [ -s ~/.paraviewLastTunnel ] ; then
+  COMMENT='Check if the last recorded tunnel corresponds to a still active ssh process';
+  pidof ssh | grep -oE `cat ~/.paraviewLastTunnel | sed s/\ /\|/g` > ~/.paraviewLastTunnel;
+  if [ -s ~/.paraviewLastTunnel ] ; then
+    COMMENT='If the last recorded tunnel is still active kill it';
+    kill `cat ~/.paraviewLastTunnel`;
+  fi;
+fi;
+echo 'Open new reverse connection tunnel for the current session';
+COMMENT='Already running SSH connections are CLEAN and should not be killed';
+COMMENT='We store them in a temp file as an exclude list';
+pidof ssh | sed 's/ /,/g' > ~/.paraviewOtherSSH;
+ssh -f -p 44334 -R 10.0.2.253:$NUM_PORT$:localhost:11111 $SSH_USER$@localhost -N;
+sleep 1;
+echo -n 'Started session tunnel with process id ';
+COMMENT='Record new ssh process PID and remove temp file with PID excludes';
+pidof -o `cat ~/.paraviewOtherSSH` ssh | tee ~/.paraviewLastTunnel;
+rm ~/.paraviewOtherSSH;
+"/>
+        </Arguments>
+      </Command>
+    </CommandStartup>
+  </Server>
+</Servers>

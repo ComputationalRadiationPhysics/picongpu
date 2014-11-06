@@ -1,23 +1,23 @@
 /**
  * Copyright 2013-2014 Axel Huebl, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 
 #pragma once
@@ -26,13 +26,6 @@
 
 namespace picongpu
 {
-
-/*! Particle Shape definitions --------------------------------------------------
- *  - shapeCIC : ...
- *  - shapeTSC : ...
- *  - shapePCS : ...
- */
-namespace speciesParticleShape = shapeTSC;
 
 /** Initial Temperature of the electron plasma in keV
  *  unit: keV */
@@ -59,11 +52,11 @@ const double PARTICLE_INIT_DENSITY_FACTOR_MIDDLE = 1.0;
 /** Normal vector of the initial drift
  *  length: gets normalized afterwards
  *  unit: none */
-const float_X PARTICLE_INIT_DRIFT_DIRECTION_X = 0.0f;
-const float_X PARTICLE_INIT_DRIFT_DIRECTION_Y = 0.0f;
-const float_X PARTICLE_INIT_DRIFT_DIRECTION_Z = 1.0f;
+const float_X PARTICLE_INIT_DRIFT_DIRECTION_X = 0.0;
+const float_X PARTICLE_INIT_DRIFT_DIRECTION_Y = 0.0;
+const float_X PARTICLE_INIT_DRIFT_DIRECTION_Z = 1.0;
 
-/** You can manipulate the flow vector of ions by this factor
+/** You can manipulate the drift vector of ions by this factor
  *  unit: none */
 const float_X PARTICLE_INIT_DRIFT_IONS = -1.0f;
 
@@ -105,9 +98,8 @@ const uint32_t NUM_PARTICLES_PER_CELL_Z = 1;
         const uint32_t NUM_PARTICLES_PER_CELL = NUM_PARTICLES_PER_CELL_X
                                               * NUM_PARTICLES_PER_CELL_Y;
 #endif
-
-}
 }
 
+}
 
 

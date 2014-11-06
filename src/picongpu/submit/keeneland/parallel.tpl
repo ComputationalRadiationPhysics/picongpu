@@ -74,9 +74,9 @@ unset MODULES_NO_OUTPUT
 mkdir simOutput 2> /dev/null
 cd simOutput
 
-mpiexec  --mca btl openib,self,sm !TBG_dstPath/picongpu/bin/cuda_memtest.sh
+mpiexec  --mca btl openib,self,sm --mca mpi_leave_pinned 0 !TBG_dstPath/picongpu/bin/cuda_memtest.sh
 
 if [ $? -eq 0 ] ; then
-   mpiexec  --display-map --mca btl openib,self,sm --display-map -am !TBG_dstPath/tbg/openib.conf   !TBG_dstPath/picongpu/bin/picongpu !TBG_programParams
+   mpiexec  --display-map --mca btl openib,self,sm --display-map -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 !TBG_dstPath/picongpu/bin/picongpu !TBG_programParams
 fi           
 

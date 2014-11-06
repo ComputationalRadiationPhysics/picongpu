@@ -28,7 +28,7 @@ namespace picongpu
 namespace traits
 {
     /** Convert a PIConGPU Type to a Splash CollectionType
-     * 
+     *
      * \tparam T_Type Typename in PIConGPU
      * \return \p ::type as public typedef of a Splash CollectionType
      */

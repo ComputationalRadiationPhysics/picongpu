@@ -1,21 +1,21 @@
 /**
  * Copyright 2014 Felix Schmitt
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <iostream>
@@ -75,7 +75,7 @@ bool parseCmdLine(int argc, char **argv, Options &options)
         po::store(po::command_line_parser(argc, argv).options(desc).positional(pos_options_descr).run(), vm);
         po::notify(vm);
 
-        // print help message and return 
+        // print help message and return
         if (vm.count("help"))
         {
             std::cout << desc << std::endl;
@@ -183,16 +183,21 @@ int main(int argc, char **argv)
             options.iteration,
             ctFloat,
             data_size.getDims(),
-            data_size,
+            Selection(data_size),
             options.densityDataset.c_str(),
-            options.dataOffset,
-            data_size,
-            options.dataOffset,
-            data_size,
+            Domain(
+                   options.dataOffset,
+                   data_size
+            ),
+            Domain(
+                   options.dataOffset,
+                   data_size
+            ),
             DomainCollector::GridType,
             data);
 
     pdc->close();
+    pdc->finalize();
     delete pdc;
 
     delete[] data;

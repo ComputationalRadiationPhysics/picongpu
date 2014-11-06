@@ -1,24 +1,25 @@
 /**
  * Copyright 2013 Felix Schmitt, Rene Widera, Wolfgang Hoenig
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 #ifndef _TASKSEND_HPP
 #define	_TASKSEND_HPP
@@ -57,21 +58,21 @@ namespace PMacc
             state = InitDone;
             if (exchange->hasDeviceDoubleBuffer())
             {
-                Environment<DIM>::get().Factory().createTaskCopyDeviceToDevice(exchange->getDeviceBuffer(),
+                Environment<>::get().Factory().createTaskCopyDeviceToDevice(exchange->getDeviceBuffer(),
                                                                                exchange->getDeviceDoubleBuffer()
                                                                                );
-                copyEvent = Environment<DIM>::get().Factory().createTaskCopyDeviceToHost(exchange->getDeviceDoubleBuffer(),
+                copyEvent = Environment<>::get().Factory().createTaskCopyDeviceToHost(exchange->getDeviceDoubleBuffer(),
                                                                                          exchange->getHostBuffer(),
                                                                                          this);
             }
             else
             {
-                copyEvent = Environment<DIM>::get().Factory().createTaskCopyDeviceToHost(exchange->getDeviceBuffer(),
+                copyEvent = Environment<>::get().Factory().createTaskCopyDeviceToHost(exchange->getDeviceBuffer(),
                                                                                          exchange->getHostBuffer(),
                                                                                          this);
             }
             __endTransaction(); //we need no blocking because we get a singnal if transaction is finished
-            
+
         }
 
         bool executeIntern()
@@ -83,7 +84,7 @@ namespace PMacc
                 case DeviceToHostFinished:
                     state = SendDone;
                     __startTransaction();
-                    Environment<DIM>::get().Factory().createTaskSendMPI(exchange, this);
+                    Environment<>::get().Factory().createTaskSendMPI(exchange, this);
                     __endTransaction(); //we need no blocking because we get a singnal if transaction is finished
                     break;
                 case SendDone:

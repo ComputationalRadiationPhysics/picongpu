@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU. 
  * 
@@ -32,14 +32,14 @@ namespace picongpu
         const double DELTA_T_SI = 1.5e-16;
         /** equals X
          *  unit: meter */
-        const double CELL_WIDTH_SI = 8.75e-8;//8.4e-8;
+        const double CELL_WIDTH_SI = 9.34635e-8;
         /** equals Y - the propagation direction
          *  unit: meter */
-        const double CELL_HEIGHT_SI = 8.75e-8;//8.4e-8;
+        const double CELL_HEIGHT_SI = 9.34635e-8;
         /** equals Z
          *  unit: meter */
-        const double CELL_DEPTH_SI = 8.75e-8;//8.4e-8;
-    }
+        const double CELL_DEPTH_SI = 9.34635e-8;
+    } //namespace SI
 
     //! Defines the size of the absorbing zone (in cells)
     const uint32_t ABSORBER_CELLS[3][2] = {
@@ -55,6 +55,8 @@ namespace picongpu
         {1.0e-3, 1.0e-3}  /*z direction [negative,positive]*/
     }; //unit: none 
 
+    const uint32_t ABSORBER_FADE_IN_STEPS = 16;
+    
     /** When to move the co-moving window.
      *  An initial pseudo particle, flying with the speed of light,
      *  is fired at the begin of the simulation.

@@ -1,34 +1,36 @@
 /**
  * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 
 #pragma once
 
 
-#include "math/vector/Vector.hpp"
+#include "math/Vector.hpp"
 #include "algorithms/math.hpp"
 #include "algorithms/TypeCast.hpp"
 #include "mpi/GetMPI_StructAsArray.hpp"
 #include "traits/GetComponentsType.hpp"
 #include "traits/GetNComponents.hpp"
+#include "algorithms/PromoteType.hpp"
 
 namespace PMacc
 {
@@ -157,9 +159,9 @@ struct Dot< ::PMacc::math::Vector<Type, dim>, ::PMacc::math::Vector<Type, dim> >
 /*#### pow ###################################################################*/
 
 /*! Specialisation of pow where base is a vector and exponent is a scalar
- * 
+ *
  * Create pow separatley for every component of the vector.
- * 
+ *
  * @prama base vector with base values
  * @param exponent scalar with exponent value
  */
@@ -234,8 +236,6 @@ struct promoteType<PromoteToType, ::PMacc::math::Vector<OldType, dim> >
 } //namespace algorithms
 } //namespace PMacc
 
-#include "mpi/GetMPI_StructAsArray.hpp"
-
 namespace PMacc
 {
 namespace mpi
@@ -243,23 +243,43 @@ namespace mpi
 namespace def
 {
 
-template<int dim>
-struct GetMPI_StructAsArray< ::PMacc::math::Vector<float, dim> >
+template<int T_dim>
+struct GetMPI_StructAsArray< ::PMacc::math::Vector<float, T_dim> >
 {
 
     MPI_StructAsArray operator( )( ) const
     {
-        return MPI_StructAsArray( MPI_FLOAT, dim );
+        return MPI_StructAsArray( MPI_FLOAT, T_dim );
     }
 };
 
-template<int dim>
-struct GetMPI_StructAsArray< ::PMacc::math::Vector<double, dim> >
+template<int T_dim, int T_N>
+struct GetMPI_StructAsArray< ::PMacc::math::Vector<float, T_dim>[T_N] >
 {
 
     MPI_StructAsArray operator( )( ) const
     {
-        return MPI_StructAsArray( MPI_DOUBLE, dim );
+        return MPI_StructAsArray( MPI_FLOAT, T_dim * T_N );
+    }
+};
+
+template<int T_dim>
+struct GetMPI_StructAsArray< ::PMacc::math::Vector<double, T_dim> >
+{
+
+    MPI_StructAsArray operator( )( ) const
+    {
+        return MPI_StructAsArray( MPI_DOUBLE, T_dim );
+    }
+};
+
+template<int T_dim, int T_N>
+struct GetMPI_StructAsArray< ::PMacc::math::Vector<double, T_dim>[T_N] >
+{
+
+    MPI_StructAsArray operator( )( ) const
+    {
+        return MPI_StructAsArray( MPI_DOUBLE, T_dim * T_N  );
     }
 };
 

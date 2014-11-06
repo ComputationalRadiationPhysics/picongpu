@@ -1,22 +1,23 @@
 /**
- * Copyright 2013 Felix Schmitt, Rene Widera
+ * Copyright 2013-2014 Felix Schmitt, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 #pragma once
@@ -29,6 +30,7 @@
 #include "particles/memory/buffers/ParticlesBuffer.hpp"
 
 #include "mappings/kernel/StrideMapping.hpp"
+#include "traits/NumberOfExchanges.hpp"
 
 
 namespace PMacc
@@ -54,16 +56,14 @@ public:
      */
     typedef ParticlesBox< FrameType, MappingDesc::Dim> ParticlesBoxType;
 
-protected:
-
     enum
     {
         Dim = MappingDesc::Dim,
-        /* Exchanges in 2D=9 and in 3D=27
-         */
-        Exchanges = MappingDesc::Neighbors + 1,
-        TileSize = MappingDesc::SuperCellSize::elements
+        Exchanges = traits::NumberOfExchanges<Dim>::value,
+        TileSize = math::CT::volume<typename MappingDesc::SuperCellSize>::type::value
     };
+
+protected:
 
     BufferType *particlesBuffer;
 
@@ -84,6 +84,12 @@ protected:
         do
         {
             __cudaKernel(kernelShiftParticles)
+                (mapper.getGridDim(), TileSize)
+                (pBox, mapper);
+            __cudaKernel(kernelFillGaps)
+                (mapper.getGridDim(), TileSize)
+                (pBox, mapper);
+            __cudaKernel(kernelFillGapsLastFrame)
                 (mapper.getGridDim(), TileSize)
                 (pBox, mapper);
         }
@@ -126,6 +132,10 @@ public:
     {
         this->fillGaps < BORDER > ();
     }
+
+    /* Delete all particles in GUARD for one direction.
+     */
+    void deleteGuardParticles(uint32_t exchangeType);
 
     /* Bash particles in a direction.
      * Copy all particles from the guard of a direction to the device exchange buffer

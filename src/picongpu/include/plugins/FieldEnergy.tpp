@@ -1,23 +1,23 @@
 /**
  * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "math/vector/Int.hpp"
 #include "math/vector/Float.hpp"
 #include "math/vector/Size_t.hpp"
@@ -25,8 +25,7 @@
 #include "dataManagement/DataConnector.hpp"
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
-#include "math/vector/compile-time/Int.hpp"
-#include "math/vector/compile-time/Size_t.hpp"
+#include "math/Vector.hpp"
 #include "cuSTL/algorithm/mpi/Gather.hpp"
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
@@ -58,7 +57,7 @@ std::string FieldEnergy::pluginGetName() const {return this->name;}
 
 void FieldEnergy::pluginLoad()
 {
-    Environment<>::get().PluginConnector().setNotificationFrequency(this, this->notifyFrequency);
+    Environment<>::get().PluginConnector().setNotificationPeriod(this, this->notifyFrequency);
 }
 
 void FieldEnergy::notify(uint32_t currentStep)
@@ -66,44 +65,44 @@ void FieldEnergy::notify(uint32_t currentStep)
 
     namespace math = PMacc::math;
     using namespace math;
-    typedef math::CT::Size_t<TILE_WIDTH,TILE_HEIGHT,TILE_DEPTH> BlockDim;
-    
+    typedef SuperCellSize BlockDim;
+
     DataConnector &dc = Environment<>::get().DataConnector();
     FieldE& fieldE = dc.getData<FieldE > (FieldE::getName(), true);
     FieldB& fieldB = dc.getData<FieldB > (FieldB::getName(), true);
 
     BOOST_AUTO(fieldE_coreBorder,
-            fieldE.getGridBuffer().getDeviceBuffer().cartBuffer().view(precisionCast<int>(BlockDim().vec()), -precisionCast<int>(BlockDim().vec())));
+            fieldE.getGridBuffer().getDeviceBuffer().cartBuffer().view(BlockDim().toRT(), -BlockDim().toRT()));
     BOOST_AUTO(fieldB_coreBorder,
-            fieldB.getGridBuffer().getDeviceBuffer().cartBuffer().view(precisionCast<int>(BlockDim().vec()), -precisionCast<int>(BlockDim().vec())));
-            
+            fieldB.getGridBuffer().getDeviceBuffer().cartBuffer().view(BlockDim().toRT(), -BlockDim().toRT()));
+
     PMacc::GridController<3>& con = PMacc::Environment<3>::get().GridController();
     PMacc::math::Size_t<3> gpuDim = (math::Size_t<3>)con.getGpuNodes();
     PMacc::math::Size_t<3> globalGridSize = gpuDim * fieldE_coreBorder.size();
     int globalCellZPos = globalGridSize.z() / 2;
     int localCellZPos = globalCellZPos % fieldE_coreBorder.size().z();
     int gpuZPos = globalCellZPos / fieldE_coreBorder.size().z();
-    
-    zone::SphericZone<3> gpuGatheringZone(math::Size_t<3>(gpuDim.x(), gpuDim.y(), 1), 
+
+    zone::SphericZone<3> gpuGatheringZone(math::Size_t<3>(gpuDim.x(), gpuDim.y(), 1),
                                           PMacc::math::Int<3>(0,0,gpuZPos));
     algorithm::mpi::Gather<3> gather(gpuGatheringZone);
     if(!gather.participate()) return;
     container::DeviceBuffer<float, 2> energyDBuffer(fieldE_coreBorder.size().shrink<2>());
-        
+
     using namespace lambda;
     BOOST_AUTO(_abs2, expr(math::Abs2()));
-    
-    algorithm::kernel::Foreach<math::CT::Int<TILE_WIDTH,TILE_HEIGHT,1> >()(
+
+    algorithm::kernel::Foreach<math::CT::Int<BlockDim::x::value,BlockDim::y::value,1> >()(
         energyDBuffer.zone(), energyDBuffer.origin(),
                               cursor::tools::slice(fieldE_coreBorder.origin()(0,0,localCellZPos)),
                               cursor::tools::slice(fieldB_coreBorder.origin()(0,0,localCellZPos)),
-        _1 = (_abs2(_2) + _abs2(_3) * MUE0_EPS0) * 
+        _1 = (_abs2(_2) + _abs2(_3) * MUE0_EPS0) *
             (float_X(0.5) * EPS0 * UNIT_ENERGY * UNITCONV_Joule_to_keV / (UNIT_LENGTH*UNIT_LENGTH*UNIT_LENGTH)));
-            
-            
+
+
     container::HostBuffer<float, 2> energyHBuffer(energyDBuffer.size());
     energyHBuffer = energyDBuffer;
-    
+
     /*\todo: domain size is now different for any gpu [fixme] */
     container::HostBuffer<float, 2> globalEnergyBuffer(energyHBuffer.size() * gpuDim.shrink<2>());
     gather(globalEnergyBuffer, energyHBuffer, 2);

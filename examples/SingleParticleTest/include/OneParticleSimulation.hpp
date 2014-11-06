@@ -1,23 +1,23 @@
 /**
  * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 
 #ifndef ONEPARTICLESIMULATION_HPP
@@ -47,13 +47,8 @@
 
 #include <assert.h>
 
-#include "particles/Species.hpp"
-
 #include "plugins/PluginController.hpp"
-
 #include "particles/ParticlesInitOneParticle.hpp"
-
-#include "particles/Species.hpp"
 
 
 namespace picongpu
@@ -88,22 +83,22 @@ public:
         }
 
 
-        //diabled because we have a transaction bug 
+        //diabled because we have a transaction bug
         //StreamController::getInstance().addStreams(6);
 
         //add one particle in simulation
         //
-        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
 
-        const DataSpace<simDim> halfSimSize(simBox.getGlobalSize() / 2);
+        const DataSpace<simDim> halfSimSize(subGrid.getGlobalDomain().size / 2);
 
-        GridLayout<DIM3> layout(simBox.getLocalSize(), MappingDesc::SuperCellSize::getDataSpace());
+        GridLayout<simDim> layout(subGrid.getLocalDomain().size, MappingDesc::SuperCellSize::toRT());
         MappingDesc cellDescription = MappingDesc(layout.getDataSpace(), GUARD_SIZE, GUARD_SIZE);
 
-        DataSpace<DIM3> centerXZPlan(halfSimSize);
-        centerXZPlan.y() = OneParticleOffset; //VACUUM_Y / CELL_HEIGHT + 32; //MappingDesc::SuperCellSize::y + 32;
+        DataSpace<simDim> centerXZPlan(halfSimSize);
+        centerXZPlan.y() = OneParticleOffset;
 
-        ParticlesInitOneParticle<PIC_Electrons>::addOneParticle(*(this->electrons),
+        ParticlesInitOneParticle<PIC_Electrons>::addOneParticle(*particleStorage[TypeAsIdentifier<PIC_Electrons>()],
                                                                 cellDescription,
                                                                 centerXZPlan);
 
@@ -138,30 +133,30 @@ public:
     {
         fieldJ->clear();
         __startTransaction(__getTransactionEvent());
-        //std::cout << "Begin update Electrons" << std::endl;
-        electrons->update(currentStep);
-        //std::cout << "End update Electrons" << std::endl;
-        EventTask eRecvElectrons = electrons->asyncCommunication(__getTransactionEvent());
+
+        particleStorage[TypeAsIdentifier<PIC_Electrons>()]->update(currentStep);
+
+        EventTask eRecvElectrons = particleStorage[TypeAsIdentifier<PIC_Electrons>()]->asyncCommunication(__getTransactionEvent());
         EventTask eElectrons = __endTransaction();
 
         __setTransactionEvent(eRecvElectrons + eElectrons);
 
 #if (ENABLE_CURRENT == 1)
-        fieldJ->computeCurrent < CORE + BORDER, PIC_Electrons > (*electrons, currentStep);
+        fieldJ->computeCurrent < CORE + BORDER, PIC_Electrons > (*particleStorage[TypeAsIdentifier<PIC_Electrons>()], currentStep);
 #endif
 
     }
 
     virtual void movingWindowCheck(uint32_t currentStep)
     {
-        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
-        GridLayout<DIM3> gridLayout(simBox.getLocalSize(), MappingDesc::SuperCellSize::getDataSpace());
-        if (MovingWindow::getInstance().getVirtualWindow(currentStep).doSlide)
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+        GridLayout<simDim> gridLayout(subGrid.getLocalDomain().size, MappingDesc::SuperCellSize::toRT());
+        if (MovingWindow::getInstance().slideInCurrentStep(currentStep))
         {
             GridController<simDim>& gc = Environment<simDim>::get().GridController();
             if (gc.slide())
             {
-                electrons->reset(currentStep);
+                particleStorage[TypeAsIdentifier<PIC_Electrons>()]->reset(currentStep);
                 //set E field
                 //
                 float3_X tmpE;
@@ -188,4 +183,3 @@ public:
 } // namespace picongpu
 
 #endif	/* ONEPARTICLESIMULATION_HPP */
-

@@ -108,17 +108,15 @@ if(VAMPIR_ENABLE)
     # compile flags
     execute_process(COMMAND $ENV{VT_ROOT}/bin/vtc++ -vt:hyb -vt:showme-compile
                     OUTPUT_VARIABLE VT_COMPILEFLAGS
-                    RESULT_VARIABLE VT_CONFIG_RETURN)
+                    RESULT_VARIABLE VT_CONFIG_RETURN
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
     if(NOT VT_CONFIG_RETURN EQUAL 0)
         message(FATAL_ERROR "Can NOT execute 'vtc++' at $ENV{VT_ROOT}/bin/vtc++ - check file permissions")
-    else()
-        # trim trailing newlines
-        string(REGEX REPLACE "(\r?\n)+$" "" VT_COMPILEFLAGS "${VT_COMPILEFLAGS}")
     endif()
     # link flags
     execute_process(COMMAND $ENV{VT_ROOT}/bin/vtc++ -vt:hyb -vt:showme-link
-                    OUTPUT_VARIABLE VT_LINKFLAGS)
-    string(REGEX REPLACE "(\r?\n)+$" "" VT_LINKFLAGS "${VT_LINKFLAGS}")
+                    OUTPUT_VARIABLE VT_LINKFLAGS
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
 
     # bugfix showme
     string(REPLACE "--as-needed" "--no-as-needed" VT_LINKFLAGS "${VT_LINKFLAGS}")
@@ -142,6 +140,54 @@ if(VAMPIR_ENABLE)
     # titan work around: currently (5.14.4) the -D defines are not provided by -vt:showme-compile
     add_definitions(-DMPICH_IGNORE_CXX_SEEK)
 endif(VAMPIR_ENABLE)
+
+
+################################################################################
+# Score-P
+################################################################################
+
+option(SCOREP_ENABLE "Create PIConGPU with Score-P support" OFF)
+
+if(SCOREP_ENABLE)
+    message(STATUS "Building with Score-P support")
+    set(SCOREP_ROOT "$ENV{SCOREP_ROOT}")
+    if(NOT SCOREP_ROOT)
+        message(FATAL_ERROR "Environment variable SCOREP_ROOT not set!")
+    endif(NOT SCOREP_ROOT)
+
+    # compile flags
+    execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --nocompiler --cflags
+                    OUTPUT_VARIABLE SCOREP_COMPILEFLAGS
+                    RESULT_VARIABLE SCOREP_CONFIG_RETURN
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
+    if(NOT SCOREP_CONFIG_RETURN EQUAL 0)
+        message(FATAL_ERROR "Can NOT execute 'scorep-config' at $ENV{SCOREP_ROOT}/bin/scorep-config - check file permissions")
+    endif()
+
+    # link flags
+    execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --cuda --mpp=mpi --ldflags
+                    OUTPUT_VARIABLE SCOREP_LINKFLAGS
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
+    # libraries
+    execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --cuda --mpp=mpi --libs
+                    OUTPUT_VARIABLE SCOREP_LIBFLAGS
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
+    string(STRIP "${SCOREP_LIBFLAGS}" SCOREP_LIBFLAGS)
+
+    # subsystem iniialization file
+    execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --cuda --mpp=mpi --adapter-init
+                    OUTPUT_VARIABLE SCOREP_INIT_FILE
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
+    file(WRITE ${CMAKE_BINARY_DIR}/scorep_init.c "${SCOREP_INIT_FILE}")
+
+    if(SCOREP_ENABLE)
+        set(SCOREP_SRCFILES "${CMAKE_BINARY_DIR}/scorep_init.c")
+    endif(SCOREP_ENABLE)
+
+    # modify our flags
+    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} ${SCOREP_LINKFLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SCOREP_COMPILEFLAGS}")
+endif(SCOREP_ENABLE)
 
 
 ################################################################################
@@ -189,7 +235,7 @@ set(LIBS ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
 # Find Boost
 ################################################################################
 
-find_package(Boost 1.49.0 REQUIRED COMPONENTS program_options regex)
+find_package(Boost 1.49.0 REQUIRED COMPONENTS program_options regex filesystem system)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${Boost_LIBRARIES})
 
@@ -198,12 +244,14 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) 
 
 # work-arounds
-if(Boost_VERSION EQUAL 105500)
-    # see https://svn.boost.org/trac/boost/ticket/9392
+if( (Boost_VERSION EQUAL 105500) AND
+    (CUDA_VERSION VERSION_LESS 6.5) )
+    # Boost Bug https://svn.boost.org/trac/boost/ticket/9392
+    # nvbug #1422182 submission ID #391854
     message(STATUS "Boost: Applying noinline work around")
-    set(CMAKE_CXX_FLAGS
-        "${CMAKE_CXX_FLAGS} -DBOOST_NOINLINE='__attribute__ ((noinline))'")
-endif(Boost_VERSION EQUAL 105500)
+    set(CUDA_NVCC_FLAGS
+      "${CUDA_NVCC_FLAGS} \"-DBOOST_NOINLINE=__attribute__((noinline))\" ")
+endif()
 
 
 ################################################################################
@@ -242,7 +290,8 @@ find_path(CUDA_MEMTEST_DIR
         DOC "path to cuda_memtest"
         )
 
-add_subdirectory(${CUDA_MEMTEST_DIR} "${CMAKE_CURRENT_BINARY_DIR}/build_cuda_memtest")
+add_subdirectory(${CUDA_MEMTEST_DIR}
+                 "${CMAKE_CURRENT_BINARY_DIR}/build_cuda_memtest")
 
 
 ################################################################################
@@ -255,7 +304,8 @@ find_path(MPI_INFO_DIR
         DOC "path to mpiInfo"
         )
 
-add_subdirectory(${MPI_INFO_DIR} "${CMAKE_CURRENT_BINARY_DIR}/build_mpiInfo")
+add_subdirectory(${MPI_INFO_DIR}
+                 "${CMAKE_CURRENT_BINARY_DIR}/build_mpiInfo")
 
 
 ################################################################################
@@ -287,6 +337,10 @@ find_package(ADIOS 1.6.0)
 
 if(ADIOS_FOUND)
     add_definitions(-DENABLE_ADIOS=1)
+    if(NOT (ADIOS_VERSION VERSION_LESS 1.7.0))
+        message(STATUS "Enable ADIOS data transforms")
+        add_definitions(-DADIOS_TRANSFORMS=1)
+    endif(NOT (ADIOS_VERSION VERSION_LESS 1.7.0))
 
     include_directories(SYSTEM ${ADIOS_INCLUDE_DIRS})
     set(LIBS ${LIBS} ${ADIOS_LIBRARIES})
@@ -338,7 +392,7 @@ include_directories(${PMACC_ROOT_DIR}/include)
 # find libSplash installation
 # prefer static libraries over shared ones (but do not force them)
 set(Splash_USE_STATIC_LIBS ON)
-find_package(Splash 1.1.1 COMPONENTS PARALLEL)
+find_package(Splash 1.2.0 COMPONENTS PARALLEL)
 
 if(Splash_FOUND)
     include_directories(SYSTEM ${Splash_INCLUDE_DIRS})
@@ -390,13 +444,21 @@ include_directories(BEFORE ${PIC_EXTENSION_PATH}/include)
 file(GLOB CUDASRCFILES "*.cu")
 file(GLOB SRCFILES "*.cpp")
 
+
+
 cuda_add_executable(picongpu
     ${CUDASRCFILES}
     ${SRCFILES}
+    ${SCOREP_SRCFILES}
 )
 
 target_link_libraries(picongpu  ${LIBS} ${CUDA_CUDART_LIBRARY} z m)
 
+if(SCOREP_ENABLE)
+    # Score-P libraries must be linked after the object to prevent symbols
+    # from being stripped on Titan
+    target_link_libraries(picongpu ${SCOREP_LIBFLAGS})
+endif(SCOREP_ENABLE)
 
 ################################################################################
 # Install PIConGPU

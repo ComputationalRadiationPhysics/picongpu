@@ -1,23 +1,23 @@
 /**
  * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 
 #ifndef MESSAGEHEADER_HPP
@@ -35,7 +35,7 @@
 //#include "plugins/output/header/ColorHeader.hpp"
 #include "plugins/output/header/WindowHeader.hpp"
 
-#include "simulationControl/VirtualWindow.hpp"
+#include "simulationControl/Window.hpp"
 
 
 typedef PMacc::DataSpace<DIM2> Size2D;
@@ -49,13 +49,9 @@ struct MessageHeader
         bytes = realBytes < 120 ? 128 : 256
     };
 
-    MessageHeader()
-    {
-    }
-
     template<class CellDesc >
     void update(CellDesc & cellDesc,
-                picongpu::VirtualWindow vWindow,
+                picongpu::Window vWindow,
                 Size2D transpose,
                 uint32_t currentStep,
                 float* cellSizeArr = NULL,
@@ -75,16 +71,16 @@ struct MessageHeader
         /*update only if nuber of gpus are set, else use old value*/
         if (gpus.productOfComponents() != 0)
             sim.nodes = DataSpace<DIM2 > (gpus[transpose.x()], gpus[transpose.y()]);
-        
-        PMACC_AUTO(simBox,Environment<simDim>::get().SubGrid().getSimulationBox());
-        
-        const DataSpace<Dim> globalSize(simBox.getGlobalSize());
+
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+
+        const DataSpace<Dim> globalSize(subGrid.getGlobalDomain().size);
         sim.size.x() = globalSize[transpose.x()];
         sim.size.y() = globalSize[transpose.y()];
-        
+
         node.maxSize = DataSpace<DIM2 > (localSize[transpose.x()], localSize[transpose.y()]);
 
-        const DataSpace<Dim> windowSize = vWindow.globalWindowSize;
+        const DataSpace<Dim> windowSize = vWindow.globalDimensions.size;
         window.size = DataSpace<DIM2 > (windowSize[transpose.x()], windowSize[transpose.y()]);
 
         if (cellSizeArr != NULL)
@@ -96,7 +92,7 @@ struct MessageHeader
             sim.cellSizeArr[1] = cellSizeArr[transpose.y()];
 
             const float scale0to1 = scale[0] / scale[1];
-            
+
             if (scale0to1 > 1.0f)
             {
                 sim.setScale(scale0to1, 1.f);
@@ -111,9 +107,9 @@ struct MessageHeader
             }
         }
 
-        const DataSpace<Dim> offsetToSimNull(simBox.getGlobalOffset());
-        const DataSpace<Dim> windowOffsetToSimNull(vWindow.globalSimulationOffset);
-        const DataSpace<Dim> localOffset(vWindow.localOffset);
+        const DataSpace<Dim> offsetToSimNull(subGrid.getLocalDomain().offset);
+        const DataSpace<Dim> windowOffsetToSimNull(vWindow.globalDimensions.offset);
+        const DataSpace<Dim> localOffset(vWindow.localDimensions.offset);
 
         const DataSpace<DIM2> localOffset2D(localOffset[transpose.x()], localOffset[transpose.y()]);
         node.localOffset = localOffset2D;
@@ -129,29 +125,30 @@ struct MessageHeader
         const DataSpace<DIM2> windowOffsetToSimNull2D(windowOffsetToSimNull[transpose.x()], windowOffsetToSimNull[transpose.y()]);
         window.offset = windowOffsetToSimNull2D;
 
-        const DataSpace<Dim> currentLocalSize(vWindow.localSize);
+        const DataSpace<Dim> currentLocalSize(vWindow.localDimensions.size);
         const DataSpace<DIM2> currentLocalSize2D(currentLocalSize[transpose.x()], currentLocalSize[transpose.y()]);
         node.size = currentLocalSize2D;
 
         sim.step = currentStep;
 
         /*add sliding windo informations to header*/
+        const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
         sim.simOffsetToNull = DataSpace<DIM2 > ();
         if (transpose.x() == 1)
-            sim.simOffsetToNull.x() = node.maxSize.x() * vWindow.slides;
+            sim.simOffsetToNull.x() = node.maxSize.x() * numSlides;
         else if (transpose.y() == 1)
-            sim.simOffsetToNull.y() = node.maxSize.y() * vWindow.slides;
+            sim.simOffsetToNull.y() = node.maxSize.y() * numSlides;
 
     }
 
     static MessageHeader * create()
     {
-        return (MessageHeader*) malloc(bytes);
+        return (MessageHeader*) new uint8_t[bytes];
     }
 
     static void destroy(MessageHeader * obj)
     {
-        free(obj);
+        __delete(obj);
     }
 
     DataHeader data;
@@ -160,16 +157,21 @@ struct MessageHeader
     NodeHeader node;
     //ColorHeader color; will be used later on to save channel ranges
 
-    void writeToConsole( std::ostream& ocons ) const
+    void writeToConsole(std::ostream& ocons) const
     {
-        //ocons << "-------" << std::endl;
-        data.writeToConsole(   ocons );
-        sim.writeToConsole(    ocons );
-        window.writeToConsole( ocons );
-        node.writeToConsole(   ocons );
-        //color.writeToConsole(  ocons );
-        //ocons << "-------\n" << std::endl;
+        data.writeToConsole(ocons);
+        sim.writeToConsole(ocons);
+        window.writeToConsole(ocons);
+        node.writeToConsole(ocons);
     }
+
+private:
+    /** constructor
+     *
+     * it is only allowed to create Message header with @see create()
+     */
+    MessageHeader();
+
 };
 
 #endif	/* MESSAGEHEADER_HPP */

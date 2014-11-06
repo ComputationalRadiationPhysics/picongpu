@@ -42,7 +42,6 @@
 #include "fields/FieldTmp.hpp"
 #include "particles/particleFilter/FilterFactory.hpp"
 #include "particles/particleFilter/PositionFilter.hpp"
-#include "particles/particleToGrid/energyDensity.kernel"
 #include "particles/operations/CountParticles.hpp"
 
 #include "dataManagement/DataConnector.hpp"
@@ -51,7 +50,7 @@
 #include "dimensions/GridLayout.hpp"
 #include "pluginSystem/PluginConnector.hpp"
 #include "simulationControl/MovingWindow.hpp"
-#include "dimensions/TVec.h"
+#include "math/Vector.hpp"
 
 #include "plugins/ISimulationPlugin.hpp"
 #include <boost/mpl/vector.hpp>
@@ -62,13 +61,13 @@
 #include <boost/mpl/begin_end.hpp>
 #include <boost/mpl/find.hpp>
 
-#include "RefWrapper.hpp"
 #include <boost/type_traits.hpp>
 
-
+#include "plugins/hdf5/WriteFields.hpp"
 #include "plugins/hdf5/WriteSpecies.hpp"
+#include "plugins/hdf5/restart/LoadSpecies.hpp"
+#include "plugins/hdf5/restart/RestartFieldLoader.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
-
 
 namespace picongpu
 {
@@ -79,169 +78,23 @@ namespace hdf5
 using namespace PMacc;
 
 using namespace splash;
-namespace bmpl = boost::mpl;
+
 
 namespace po = boost::program_options;
 
 /**
  * Writes simulation data to hdf5 files using libSplash.
  * Implements the ISimulationPlugin interface.
- *
- * @param ElectronsBuffer class description for electrons
- * @param IonsBuffer class description for ions
- * @param simDim dimension of the simulation (2-3)
  */
 class HDF5Writer : public ISimulationPlugin
 {
 public:
 
-    /* filter particles by global position*/
-    typedef bmpl::vector< typename GetPositionFilter<simDim>::type > usedFilters;
-    typedef typename FilterFactory<usedFilters>::FilterType MyParticleFilter;
-
-private:
-
-    /* filter is a rule which describe which particles should copy to host*/
-    MyParticleFilter filter;
-
-    template<typename UnitType>
-    static std::vector<double> createUnit(UnitType unit, uint32_t numComponents)
-    {
-        std::vector<double> tmp(numComponents);
-        for (uint i = 0; i < numComponents; ++i)
-            tmp[i] = unit[i];
-        return tmp;
-    }
-
-    /** Write calculated fields to HDF5 file.
-     *
-     */
-    template< typename T >
-    struct GetDCFields
-    {
-    private:
-        typedef typename T::ValueType ValueType;
-
-        static std::vector<double> getUnit()
-        {
-            typedef typename T::UnitValueType UnitType;
-            UnitType unit = T::getUnit();
-            return createUnit(unit, T::numComponents);
-        }
-
-    public:
-
-        HDINLINE void operator()(RefWrapper<ThreadParams*> params, const DomainInformation domInfo)
-        {
-#ifndef __CUDA_ARCH__
-            DataConnector &dc = Environment<>::get().DataConnector();
-
-            T* field = &(dc.getData<T > (T::getName()));
-            params.get()->gridLayout = field->getGridLayout();
-
-            writeField(params.get(),
-                       domInfo,
-                       T::getName(),
-                       getUnit(),
-                       field->getHostDataBox(),
-                       ValueType());
-
-            dc.releaseData(T::getName());
-#endif
-        }
-
-    };
-
-    /** Calculate FieldTmp with given solver and particle species
-     * and write them to hdf5.
-     *
-     * FieldTmp is calculated on device and than dumped to HDF5.
-     */
-    template< typename Solver, typename Species >
-    struct GetDCFields<FieldTmpOperation<Solver, Species> >
-    {
-
-        /*
-         * This is only a wrapper function to allow disable nvcc warnings.
-         * Warning: calling a __host__ function from __host__ __device__
-         * function.
-         * Use of PMACC_NO_NVCC_HDWARNING is not possible if we call a virtual
-         * method inside of the method were we disable the warnings.
-         * Therefore we create this method and call a new method were we can
-         * call virtual functions.
-         */
-        PMACC_NO_NVCC_HDWARNING
-        HDINLINE void operator()(RefWrapper<ThreadParams*> tparam, const DomainInformation domInfo)
-        {
-            this->operator_impl(tparam, domInfo);
-        }
-    private:
-        typedef typename FieldTmp::ValueType ValueType;
-
-        /** Create a name for the hdf5 identifier.
-         */
-        static std::string getName()
-        {
-            std::stringstream str;
-            str << Solver().getName();
-            str << "_";
-            str << Species::FrameType::getName();
-            return str.str();
-        }
-
-        /** Get the unit for the result from the solver*/
-        static std::vector<double> getUnit()
-        {
-            typedef typename FieldTmp::UnitValueType UnitType;
-            UnitType unit = FieldTmp::getUnit<Solver>();
-            const uint32_t components = GetNComponents<ValueType>::value;
-            return createUnit(unit, components);
-        }
-
-        HINLINE void operator_impl(RefWrapper<ThreadParams*> params, const DomainInformation domInfo)
-        {
-            DataConnector &dc = Environment<>::get().DataConnector();
-
-            /*## update field ##*/
-
-            /*load FieldTmp without copy data to host*/
-            FieldTmp* fieldTmp = &(dc.getData<FieldTmp > (FieldTmp::getName(), true));
-            /*load particle without copy particle data to host*/
-            Species* speciesTmp = &(dc.getData<Species >(Species::FrameType::getName(), true));
-
-            fieldTmp->getGridBuffer().getDeviceBuffer().setValue(ValueType(0.0));
-            /*run algorithm*/
-            fieldTmp->computeValue < CORE + BORDER, Solver > (*speciesTmp, params.get()->currentStep);
-
-            EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
-            __setTransactionEvent(fieldTmpEvent);
-            /* copy data to host that we can write same to disk*/
-            fieldTmp->getGridBuffer().deviceToHost();
-            dc.releaseData(Species::FrameType::getName());
-            /*## finish update field ##*/
-
-
-            params.get()->gridLayout = fieldTmp->getGridLayout();
-            /*write data to HDF5 file*/
-            writeField(params.get(),
-                       domInfo,
-                       getName(),
-                       getUnit(),
-                       fieldTmp->getHostDataBox(),
-                       ValueType()
-                       );
-
-            dc.releaseData(FieldTmp::getName());
-
-        }
-
-    };
-
-public:
-
     HDF5Writer() :
-    filename("h5"),
-    notifyFrequency(0)
+    filename("h5_data"),
+    checkpointFilename("h5_checkpoint"),
+    restartFilename(""), /* set to checkpointFilename by default */
+    notifyPeriod(0)
     {
         Environment<>::get().PluginConnector().registerPlugin(this);
     }
@@ -254,10 +107,21 @@ public:
     void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
-            ("hdf5.period", po::value<uint32_t > (&notifyFrequency)->default_value(0),
+            ("hdf5.period", po::value<uint32_t > (&notifyPeriod)->default_value(0),
              "enable HDF5 IO [for each n-th step]")
             ("hdf5.file", po::value<std::string > (&filename)->default_value(filename),
-             "HDF5 output file");
+             "HDF5 output filename (prefix)")
+            ("hdf5.checkpoint-file", po::value<std::string > (&checkpointFilename),
+             "Optional HDF5 checkpoint filename (prefix)")
+            ("hdf5.restart-file", po::value<std::string > (&restartFilename),
+             "HDF5 restart filename (prefix)")
+            /* 1,000,000 particles are around 3900 frames at 256 particles per frame
+             * and match ~30MiB with typical picongpu particles.
+             * The only reason why we use 1M particles per chunk is that we can get a
+             * frame overflow in our memory manager if we process all particles in one kernel.
+             **/
+            ("hdf5.restart-chunkSize", po::value<uint32_t > (&restartChunkSize)->default_value(1000000),
+             "Number of particles processed in one kernel call during restart to prevent frame count blowup");
     }
 
     std::string pluginGetName() const
@@ -269,33 +133,91 @@ public:
     {
 
         this->cellDescription = cellDescription;
+        mThreadParams.cellDescription = this->cellDescription;
     }
 
     __host__ void notify(uint32_t currentStep)
     {
-        mThreadParams.currentStep = (int32_t) currentStep;
-        mThreadParams.gridPosition = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
-        mThreadParams.cellDescription = this->cellDescription;
-        this->filter.setStatus(false);
+        notificationReceived(currentStep, false);
+    }
 
-        mThreadParams.window = MovingWindow::getInstance().getVirtualWindow(currentStep);
+    void checkpoint(uint32_t currentStep, const std::string checkpointDirectory)
+    {
+        this->checkpointDirectory = checkpointDirectory;
 
-        if (MovingWindow::getInstance().isSlidingWindowActive())
+        notificationReceived(currentStep, true);
+    }
+
+    void restart(uint32_t restartStep, const std::string restartDirectory)
+    {
+        const uint32_t maxOpenFilesPerNode = 4;
+        GridController<simDim> &gc = Environment<simDim>::get().GridController();
+        mThreadParams.dataCollector = new ParallelDomainCollector(
+                                                                  gc.getCommunicator().getMPIComm(),
+                                                                  gc.getCommunicator().getMPIInfo(),
+                                                                  splashMpiSize,
+                                                                  maxOpenFilesPerNode);
+
+        mThreadParams.currentStep = restartStep;
+
+        /* set attributes for datacollector files */
+        DataCollector::FileCreationAttr attr;
+        attr.fileAccType = DataCollector::FAT_READ;
+        attr.mpiPosition.set(splashMpiPos);
+        attr.mpiSize.set(splashMpiSize);
+
+        /* if restartFilename is relative, prepend with restartDirectory */
+        if (!boost::filesystem::path(restartFilename).has_root_path())
         {
-            //enable filters for sliding window and configurate position filter
-            this->filter.setStatus(true);
-
-            this->filter.setWindowPosition(mThreadParams.window.localOffset, mThreadParams.window.localSize);
+            restartFilename = restartDirectory + std::string("/") + restartFilename;
         }
 
-        __getTransactionEvent().waitForFinished();
+        /* open datacollector */
+        try
+        {
+            log<picLog::INPUT_OUTPUT > ("HDF5 open DataCollector with file: %1%") % restartFilename;
+            mThreadParams.dataCollector->open(restartFilename.c_str(), attr);
+        }
+        catch (DCException e)
+        {
+            std::cerr << e.what() << std::endl;
+            throw std::runtime_error("Failed to open datacollector");
+        }
 
-        openH5File();
+        /* load number of slides to initialize MovingWindow */
+        uint32_t slides = 0;
+        mThreadParams.dataCollector->readAttribute(restartStep, NULL, "sim_slides", &slides);
 
-        writeHDF5((void*) &mThreadParams);
+        /* apply slides to set gpus to last/written configuration */
+        log<picLog::INPUT_OUTPUT > ("Setting slide count for moving window to %1%") % slides;
+        MovingWindow::getInstance().setSlideCounter(slides, restartStep);
+        gc.setNumSlides(slides);
 
-        closeH5File();
+        /* set window for restart, complete global domain */
+        mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(restartStep);
+        for (uint32_t i = 0; i < simDim; ++i)
+        {
+            mThreadParams.localWindowToDomainOffset[i] = 0;
+        }
 
+        ThreadParams *params = &mThreadParams;
+
+        /* load all fields */
+        ForEach<FileCheckpointFields, LoadFields<bmpl::_1> > forEachLoadFields;
+        forEachLoadFields(params);
+
+        /* load all particles */
+        ForEach<FileCheckpointParticles, LoadSpecies<bmpl::_1> > forEachLoadSpecies;
+        forEachLoadSpecies(params, restartChunkSize);
+
+        /* close datacollector */
+        log<picLog::INPUT_OUTPUT > ("HDF5 close DataCollector with file: %1%") % restartFilename;
+        mThreadParams.dataCollector->close();
+
+        if (mThreadParams.dataCollector)
+            mThreadParams.dataCollector->finalize();
+
+        __delete(mThreadParams.dataCollector);
     }
 
 private:
@@ -304,12 +226,12 @@ private:
     {
         if (mThreadParams.dataCollector != NULL)
         {
-            log<picLog::INPUT_OUTPUT > ("HDF5 close DataCollector with file: %1%") % filename;
+            log<picLog::INPUT_OUTPUT > ("HDF5 close DataCollector");
             mThreadParams.dataCollector->close();
         }
     }
 
-    void openH5File()
+    void openH5File(const std::string h5Filename)
     {
         const uint32_t maxOpenFilesPerNode = 4;
         if (mThreadParams.dataCollector == NULL)
@@ -331,8 +253,8 @@ private:
         // open datacollector
         try
         {
-            log<picLog::INPUT_OUTPUT > ("HDF5 open DataCollector with file: %1%") % filename;
-            mThreadParams.dataCollector->open(filename.c_str(), attr);
+            log<picLog::INPUT_OUTPUT > ("HDF5 open DataCollector with file: %1%") % h5Filename;
+            mThreadParams.dataCollector->open(h5Filename.c_str(), attr);
         }
         catch (DCException e)
         {
@@ -342,32 +264,89 @@ private:
 
     }
 
-    void pluginLoad()
+    /**
+     * Notification for dump or checkpoint received
+     *
+     * @param currentStep current simulation step
+     * @param isCheckpoint checkpoint notification
+     */
+    void notificationReceived(uint32_t currentStep, bool isCheckpoint)
     {
-        if (notifyFrequency > 0)
+        const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+        mThreadParams.isCheckpoint = isCheckpoint;
+        mThreadParams.currentStep = currentStep;
+        mThreadParams.cellDescription = this->cellDescription;
+
+        __getTransactionEvent().waitForFinished();
+
+        std::string fname = filename;
+        if (isCheckpoint)
         {
-            mThreadParams.gridPosition =
-                Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset();
-
-            GridController<simDim> &gc = Environment<simDim>::get().GridController();
-            /* It is important that we never change the mpi_pos after this point 
-             * because we get problems with the restart.
-             * Otherwise we do not know which gpu must load the ghost parts around
-             * the sliding window.
-             */
-            mpi_pos = gc.getPosition();
-            mpi_size = gc.getGpuNodes();
-
-            splashMpiPos.set(0, 0, 0);
-            splashMpiSize.set(1, 1, 1);
-
-            for (uint32_t i = 0; i < simDim; ++i)
+            /* if checkpointFilename is relative, prepend with checkpointDirectory */
+            if (!boost::filesystem::path(checkpointFilename).has_root_path())
             {
-                splashMpiPos[i] = mpi_pos[i];
-                splashMpiSize[i] = mpi_size[i];
+                fname = checkpointDirectory + std::string("/") + checkpointFilename;
+            }
+            else
+            {
+                fname = checkpointFilename;
             }
 
-            Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
+            mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(currentStep);
+        }
+        else
+        {
+            mThreadParams.window = MovingWindow::getInstance().getWindow(currentStep);
+        }
+
+        for (uint32_t i = 0; i < simDim; ++i)
+        {
+            mThreadParams.localWindowToDomainOffset[i] = 0;
+            if (mThreadParams.window.globalDimensions.offset[i] > localDomain.offset[i])
+            {
+                mThreadParams.localWindowToDomainOffset[i] =
+                    mThreadParams.window.globalDimensions.offset[i] -
+                    localDomain.offset[i];
+            }
+        }
+
+        openH5File(fname);
+
+        writeHDF5((void*) &mThreadParams);
+
+        closeH5File();
+    }
+
+    void pluginLoad()
+    {
+        GridController<simDim> &gc = Environment<simDim>::get().GridController();
+        /* It is important that we never change the mpi_pos after this point
+         * because we get problems with the restart.
+         * Otherwise we do not know which gpu must load the ghost parts around
+         * the sliding window.
+         */
+        mpi_pos = gc.getPosition();
+        mpi_size = gc.getGpuNodes();
+
+        splashMpiPos.set(0, 0, 0);
+        splashMpiSize.set(1, 1, 1);
+
+        for (uint32_t i = 0; i < simDim; ++i)
+        {
+            splashMpiPos[i] = mpi_pos[i];
+            splashMpiSize[i] = mpi_size[i];
+        }
+
+
+        /* only register for notify callback when .period is set on command line */
+        if (notifyPeriod > 0)
+        {
+            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
+        }
+
+        if (restartFilename == "")
+        {
+            restartFilename = checkpointFilename;
         }
 
         loaded = true;
@@ -375,112 +354,10 @@ private:
 
     void pluginUnload()
     {
-        if (notifyFrequency > 0)
-            __delete(mThreadParams.dataCollector);
-    }
+        if (mThreadParams.dataCollector)
+            mThreadParams.dataCollector->finalize();
 
-    template<typename T_ValueType, typename T_DataBoxType>
-    static void writeField(ThreadParams *params,
-                           const DomainInformation domInfo,
-                           const std::string name,
-                           std::vector<double> unit,
-                           T_DataBoxType dataBox,
-                           const T_ValueType&
-                           )
-    {
-        typedef T_DataBoxType NativeDataBoxType;
-        typedef T_ValueType ValueType;
-        typedef typename GetComponentsType<ValueType>::type ComponentType;
-        typedef typename PICToSplash<ComponentType>::type SplashType;
-
-        const uint32_t nComponents = GetNComponents<ValueType>::value;
-
-        log<picLog::INPUT_OUTPUT > ("HDF5 write field: %1% %2%") %
-            name % nComponents;
-
-        std::vector<std::string> name_lookup;
-        {
-            const std::string name_lookup_tpl[] = {"x", "y", "z", "w"};
-            for (uint32_t d = 0; d < nComponents; d++)
-                name_lookup.push_back(name_lookup_tpl[d]);
-        }
-
-        /*data to describe source buffer*/
-        GridLayout<simDim> field_layout = params->gridLayout;
-        DataSpace<simDim> field_no_guard = domInfo.domainSize;
-        DataSpace<simDim> field_guard = field_layout.getGuard() + domInfo.localDomainOffset;
-        /* globalSlideOffset due to gpu slides between origin at time step 0
-         * and origin at current time step
-         * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
-         */
-        DataSpace<simDim> globalSlideOffset;
-        globalSlideOffset.y() += params->window.slides * params->window.localFullSize.y();
-
-        Dimensions splashGlobalDomainOffset(0, 0, 0);
-        Dimensions splashGlobalOffsetFile(0, 0, 0);
-        Dimensions splashGlobalDomainSize(1, 1, 1);
-
-        for (uint32_t d = 0; d < simDim; ++d)
-        {
-            splashGlobalOffsetFile[d] = domInfo.domainOffset[d];
-            splashGlobalDomainOffset[d] = domInfo.globalDomainOffset[d] + globalSlideOffset[d];
-            splashGlobalDomainSize[d] = domInfo.globalDomainSize[d];
-        }
-
-        splashGlobalOffsetFile[1] = std::max(0, domInfo.domainOffset[1] -
-                                             domInfo.globalDomainOffset[1]);
-
-        SplashType splashType;
-
-        size_t tmpArraySize = field_no_guard.productOfComponents();
-        ComponentType* tmpArray = new ComponentType[tmpArraySize];
-
-        typedef DataBoxDim1Access<NativeDataBoxType > D1Box;
-        D1Box d1Access(dataBox.shift(field_guard), field_no_guard);
-
-        for (uint32_t d = 0; d < nComponents; d++)
-        {
-            /* copy data to temp array
-             * tmpArray has the size of the data without any offsets
-             */
-            for (size_t i = 0; i < tmpArraySize; ++i)
-            {
-                tmpArray[i] = d1Access[i][d];
-            }
-
-            std::stringstream datasetName;
-            datasetName << "fields/" << name;
-            if (nComponents > 1)
-                datasetName << "/" << name_lookup.at(d);
-
-            Dimensions sizeSrcData(1, 1, 1);
-
-            for (uint32_t i = 0; i < simDim; ++i)
-            {
-                sizeSrcData[i] = field_no_guard[i];
-            }
-
-            params->dataCollector->writeDomain(params->currentStep, /* id == time step */
-                                               splashGlobalDomainSize,
-                                               splashGlobalOffsetFile,
-                                               splashType, /* data type */
-                                               simDim, /* NDims of the field data (scalar, vector, ...) */
-                                               sizeSrcData,
-                                               datasetName.str().c_str(), /* data set name */
-                                               splashGlobalDomainOffset, /* \todo offset of the global domain */
-                                               splashGlobalDomainSize, /* size of the global domain */
-                                               DomainCollector::GridType,
-                                               tmpArray);
-
-            /*simulation attributes for data*/
-            ColTypeDouble ctDouble;
-
-            params->dataCollector->writeAttribute(params->currentStep,
-                                                  ctDouble, datasetName.str().c_str(),
-                                                  "sim_unit", &(unit.at(d)));
-        }
-        __deleteArray(tmpArray);
-
+        __delete(mThreadParams.dataCollector);
     }
 
     typedef PICToSplash<float_X>::type SplashFloatXType;
@@ -495,7 +372,7 @@ private:
         uint32_t currentStep = threadParams->currentStep;
 
         /* write number of slides */
-        uint32_t slides = threadParams->window.slides;
+        const uint32_t slides = MovingWindow::getInstance().getSlideCounter(threadParams->currentStep);
 
         dc->writeAttribute(threadParams->currentStep,
                            ctUInt32, NULL, "sim_slides", &slides);
@@ -514,6 +391,10 @@ private:
         dc->writeAttribute(currentStep, ctDouble, NULL, "unit_length", &UNIT_LENGTH);
         dc->writeAttribute(currentStep, ctDouble, NULL, "unit_speed", &UNIT_SPEED);
         dc->writeAttribute(currentStep, ctDouble, NULL, "unit_time", &UNIT_TIME);
+        dc->writeAttribute(currentStep, ctDouble, NULL, "unit_mass", &UNIT_MASS);
+        dc->writeAttribute(currentStep, ctDouble, NULL, "unit_charge", &UNIT_CHARGE);
+        dc->writeAttribute(currentStep, ctDouble, NULL, "unit_efield", &UNIT_EFIELD);
+        dc->writeAttribute(currentStep, ctDouble, NULL, "unit_bfield", &UNIT_BFIELD);
 
         /* write physical constants */
         dc->writeAttribute(currentStep, splashFloatXType, NULL, "mue0", &MUE0);
@@ -522,70 +403,43 @@ private:
 
     static void *writeHDF5(void *p_args)
     {
-
-        // synchronize, because following operations will be blocking anyway
         ThreadParams *threadParams = (ThreadParams*) (p_args);
+        const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
 
         writeMetaAttributes(threadParams);
 
-        /* build clean domain info (picongpu view) */
-        DomainInformation domInfo;
-        /* set global offset (from physical origin) to our first gpu data area*/
-        domInfo.localDomainOffset = threadParams->window.localOffset;
-        domInfo.globalDomainOffset = threadParams->window.globalSimulationOffset;
-        domInfo.globalDomainSize = threadParams->window.globalWindowSize;
-        domInfo.domainOffset = threadParams->gridPosition;
-        /* change only the offset of the first gpu
-         * localDomainOffset is only non zero for the gpus on top
-         */
-        domInfo.domainOffset += domInfo.localDomainOffset;
-        domInfo.domainSize = threadParams->window.localSize;
-
         /* y direction can be negative for first gpu*/
-        DataSpace<simDim> particleOffset(threadParams->gridPosition);
-        particleOffset.y() -= threadParams->window.globalSimulationOffset.y();
+        DataSpace<simDim> particleOffset(localDomain.offset);
+        particleOffset.y() -= threadParams->window.globalDimensions.offset.y();
 
-        /*print all fields*/
-        ForEach<FileOutputFields, GetDCFields<void> > forEachGetFields;
-        forEachGetFields(ref(threadParams), domInfo);
+        /* write all fields */
+        log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing fields.");
+        if (threadParams->isCheckpoint)
+        {
+            ForEach<FileCheckpointFields, WriteFields<bmpl::_1> > forEachWriteFields;
+            forEachWriteFields(threadParams);
+        }
+        else
+        {
+            ForEach<FileOutputFields, WriteFields<bmpl::_1> > forEachWriteFields;
+            forEachWriteFields(threadParams);
+        }
+        log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing fields.");
 
-        /*print all particle species*/
+        /* write all particle species */
         log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing particle species.");
-        ForEach<FileOutputParticles, WriteSpecies<void> > writeSpecies;
-        writeSpecies(ref(threadParams), std::string(), domInfo, particleOffset);
+        if (threadParams->isCheckpoint)
+        {
+            ForEach<FileCheckpointParticles, WriteSpecies<bmpl::_1> > writeSpecies;
+            writeSpecies(threadParams, std::string(), particleOffset);
+        }
+        else
+        {
+            ForEach<FileOutputParticles, WriteSpecies<bmpl::_1> > writeSpecies;
+            writeSpecies(threadParams, std::string(), particleOffset);
+        }
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species.");
 
-
-        if (MovingWindow::getInstance().isSlidingWindowActive())
-        {
-            /* data domain = domain inside the sliding window
-             * ghost domain = domain under the data domain (is laying only on bottom gpus)
-             * end of data domain is the beginning of the ghost domain
-             */
-            domInfo.globalDomainOffset.y() += domInfo.globalDomainSize.y();
-            domInfo.domainOffset.y() = domInfo.globalDomainOffset.y();
-            domInfo.domainSize = threadParams->window.localFullSize;
-            domInfo.domainSize.y() -= threadParams->window.localSize.y();
-            domInfo.globalDomainSize = threadParams->window.globalSimulationSize;
-            domInfo.globalDomainSize.y() -= domInfo.globalDomainOffset.y();
-            domInfo.localDomainOffset = DataSpace<simDim > ();
-            /* only important for bottom gpus*/
-            domInfo.localDomainOffset.y() = threadParams->window.localSize.y();
-
-            particleOffset = threadParams->gridPosition;
-            particleOffset.y() = -threadParams->window.localSize.y();
-
-            if (threadParams->window.isBottom == false)
-            {
-                /* set size for all gpu to zero which are not bottom gpus*/
-                domInfo.domainSize.y() = 0;
-            }
-            /* for restart we only need bottom ghosts for particles */
-            log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing particle species bottom.");
-            /* print all particle species */
-            writeSpecies(ref(threadParams), std::string("_ghosts"), domInfo, particleOffset);
-            log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species bottom.");
-        }
         return NULL;
     }
 
@@ -593,8 +447,14 @@ private:
 
     MappingDesc *cellDescription;
 
-    uint32_t notifyFrequency;
+    uint32_t notifyPeriod;
+    int64_t lastCheckpoint;
     std::string filename;
+    std::string checkpointFilename;
+    std::string restartFilename;
+    std::string checkpointDirectory;
+
+    uint32_t restartChunkSize;
 
     DataSpace<simDim> mpi_pos;
     DataSpace<simDim> mpi_size;
@@ -605,4 +465,3 @@ private:
 
 } //namespace hdf5
 } //namespace picongpu
-

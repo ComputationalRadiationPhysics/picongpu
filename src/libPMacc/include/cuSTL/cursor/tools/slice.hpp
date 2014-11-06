@@ -1,24 +1,25 @@
 /**
  * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #ifndef CURSOR_TOOLS_SLICE_HPP
 #define CURSOR_TOOLS_SLICE_HPP
 
@@ -42,7 +43,7 @@ template<typename TCursor>
 struct SliceResult<TCursor, tag::BufferNavigator>
 {
     typedef Cursor<
-        typename TCursor::Accessor, 
+        typename TCursor::Accessor,
         BufferNavigator<TCursor::Navigator::dim-1>,
         typename TCursor::Marker> type;
 };
@@ -51,7 +52,7 @@ template<typename TCursor>
 struct SliceResult<TCursor, tag::CartNavigator>
 {
     typedef Cursor<
-        typename TCursor::Accessor, 
+        typename TCursor::Accessor,
         CartNavigator<TCursor::Navigator::dim-1>,
         typename TCursor::Marker> type;
 };
@@ -86,7 +87,7 @@ struct Slice_helper<Navi, tag::CartNavigator>
 };
 
 } // detail
-    
+
 /** makes a 2D cursor of a 3D vector by dropping the z-component
  */
 template<typename TCursor>
@@ -96,11 +97,11 @@ slice(const TCursor& cur)
 {
     detail::Slice_helper<typename TCursor::Navigator, typename TCursor::Navigator::tag> slice_helper;
     return typename detail::SliceResult<TCursor, typename TCursor::Navigator::tag>::type
-            (cur.getAccessor(), 
-             slice_helper(cur.getNavigator()), 
+            (cur.getAccessor(),
+             slice_helper(cur.getNavigator()),
              cur.getMarker());
 }
-    
+
 } // tools
 } // cursor
 } // PMacc

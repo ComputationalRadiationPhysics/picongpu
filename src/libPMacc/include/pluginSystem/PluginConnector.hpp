@@ -1,28 +1,30 @@
 /**
- * Copyright 2013-2014 Rene Widera, Felix Schmitt
+ * Copyright 2013-2014 Rene Widera, Felix Schmitt, Axel Huebl
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #pragma once
 
 #include <list>
 
+#include "pluginSystem/INotify.hpp"
 #include "pluginSystem/IPlugin.hpp"
 
 namespace PMacc
@@ -34,19 +36,23 @@ namespace PMacc
      */
     class PluginConnector
     {
+    private:
+        typedef std::list<std::pair<INotify*, uint32_t> > NotificationList;
+
     public:
 
-        /**
-         * Register a plugin for loading/unloading and notifications.
-         * To allow plugin notifications, call setNotificationFrequency after registration.
-         * 
+        /** Register a plugin for loading/unloading and notifications
+         *
+         * To trigger plugin notifications, call \see setNotificationPeriod after
+         * registration.
+         *
          * @param plugin plugin to register
          */
         void registerPlugin(IPlugin *plugin)
         throw (PluginException)
         {
             if (plugin != NULL)
-            { 
+            {
                 plugins.push_back(plugin);
             }
             else
@@ -89,7 +95,7 @@ namespace PMacc
 
         /**
          * Publishes command line parameters for registered plugins.
-         *  
+         *
          * @return list of boost program_options command line parameters
          */
         std::list<po::options_description> registerHelp()
@@ -108,44 +114,80 @@ namespace PMacc
 
             return help_options;
         }
-        
-        /**
-         * Set the notification frequency for a registered plugin.
-         * 
-         * @param plugin plugin to set frequency for
-         * @param frequency notification frequency
+
+        /** Set the notification period
+         *
+         * @param notifiedObj the object to notify, e.g. an IPlugin instance
+         * @param period notification period
          */
-        void setNotificationFrequency(IPlugin* plugin, uint32_t frequency)
+        void setNotificationPeriod(INotify* notifiedObj, uint32_t period)
         {
-            notificationMap[plugin] = frequency;
+            if (notifiedObj != NULL)
+            {
+                if (period > 0)
+                    notificationList.push_back( std::make_pair(notifiedObj, period) );
+            }
+            else
+                throw PluginException("Notifications for a NULL object are not allowed.");
         }
-        
+
         /**
-         * Notifies observers that data should be dumped.
+         * Notifies plugins that data should be dumped.
          *
          * @param currentStep current simulation iteration step
          */
         void notifyPlugins(uint32_t currentStep)
         {
-            for (std::list<IPlugin*>::iterator iter = plugins.begin();
-                    iter != plugins.end(); ++iter)
+            for (NotificationList::iterator iter = notificationList.begin();
+                    iter != notificationList.end(); ++iter)
             {
-                IPlugin* plugin = *iter;
-                if (notificationMap.find(plugin) != notificationMap.end())
+                INotify* notifiedObj = iter->first;
+                uint32_t period = iter->second;
+                if (currentStep % period == 0)
                 {
-                    uint32_t frequency = notificationMap[plugin];
-                    if (frequency > 0 && (currentStep % frequency == 0))
-                        plugin->notify(currentStep);
+                    notifiedObj->notify(currentStep);
+                    notifiedObj->setLastNotify(currentStep);
                 }
             }
         }
 
+        /**
+         * Notifies plugins that a restartable checkpoint should be dumped.
+         *
+         * @param currentStep current simulation iteration step
+         * @param checkpointDirectory common directory for checkpoints
+         */
+        void checkpointPlugins(uint32_t currentStep, const std::string checkpointDirectory)
+        {
+            for (std::list<IPlugin*>::iterator iter = plugins.begin();
+                    iter != plugins.end(); ++iter)
+            {
+                (*iter)->checkpoint(currentStep, checkpointDirectory);
+                (*iter)->setLastCheckpoint(currentStep);
+            }
+        }
+
+        /**
+         * Notifies plugins that a restart is required.
+         *
+         * @param restartStep simulation iteration to restart from
+         * @param restartDirectory common restart directory (contains checkpoints)
+         */
+        void restartPlugins(uint32_t restartStep, const std::string restartDirectory)
+        {
+            for (std::list<IPlugin*>::iterator iter = plugins.begin();
+                    iter != plugins.end(); ++iter)
+            {
+                (*iter)->restart(restartStep, restartDirectory);
+            }
+        }
+
     private:
-        
+
         friend Environment<DIM1>;
         friend Environment<DIM2>;
         friend Environment<DIM3>;
-        
+
         static PluginConnector& getInstance()
         {
             static PluginConnector instance;
@@ -163,6 +205,6 @@ namespace PMacc
         }
 
         std::list<IPlugin*> plugins;
-        std::map<IPlugin*, uint32_t> notificationMap;
+        NotificationList notificationList;
     };
 }

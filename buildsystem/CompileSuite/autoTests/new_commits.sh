@@ -87,39 +87,46 @@ cd $cnf_gitdir
 
             echo "Testing new commit"
 
-            cp $cnf_imgSrc $cnf_imgClone
-            echo "Base System Image cloned..."
+            # create clean build dir
+            rm -rf $cnf_builddir
+            mkdir -p $cnf_builddir
+            cd $cnf_builddir
 
-            echo "Starting Virtual Machine..."
-            # -monitor stdio | -nographic
-            # file="$cnf_imgClone"
-            /usr/bin/kvm -nographic -smp $cnf_numParallel -cpu kvm64 \
-                -enable-kvm -m 2048 \
-                -drive file="$cnf_imgClone",media=disk \
-                -drive file="$cnf_extfile",media=disk \
-                -boot once=c,menu=off -net none -name "Debian7_Cuda4_2"
-            echo "Virtual Machine finished..."
-            rm $cnf_imgClone
+            # modify compile environment (forwarded to CMake)
+            #export PIC_COMPILE_SUITE_CMAKE="-DPIC_ENABLE_PNG=OFF -DCUDA_ARCH=sm_35"
+            . /etc/profile
+            module load gcc/4.6.4 boost/1.55.0 cmake/2.8.12.2 cuda/6.0 openmpi/1.6.5 mallocmc/2.0.0 libSplash/1.2.3 adios/1.7.0 pngwriter/0.5.4
+
+            # compile all examples, fetch output and return code
+            $cnf_gitdir/compile -l -q -j $cnf_numParallel \
+                                $cnf_gitdir/examples $cnf_builddir \
+                                &> $cnf_builddir/outputColored
+
+            echo $? > $cnf_builddir"/returnCode"
+
+            # add information to the head of the output
+            cp $cnf_builddir"/outputColored" $cnf_builddir"/outputColored_short"
+            echo "" > $cnf_builddir"/outputColored"
+            if [ $cnf_numParallel -gt 1 ] ; then
+                for i in `ls $cnf_builddir"/build/"`
+                do
+                    returnCode=`cat $cnf_builddir"/build/"$i"/returnCode"`
+                    if [ "$returnCode" != "0" ] ; then
+                        cat $cnf_builddir"/build/"$i"/compile.log" >> $cnf_builddir"/outputColored"
+                    fi
+                done
+            fi
+            cat $cnf_builddir"/outputColored_short" >> $cnf_builddir"/outputColored"
+
+            # format output
+            cat $cnf_builddir"/outputColored" | \
+              sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g" \
+              > $cnf_builddir"/output"
 
             echo "Error Analysis:"
-            mntdir=$thisDir"tmp_mountResult"
-            rm -rf $mntdir && mkdir -p $mntdir
-            fuseext2 -o rw+ $cnf_extfile $mntdir
-
-            # lastRun history
-            if [ -f "$thisDir"lastRun.log ] ; then
-                lastRun=`cat "$thisDir"lastRun.log`
-            else
-                touch "$thisDir"lastRun.log
-                lastRun=0
-            fi
-            # is +/- integer?
-            if ! [[ "$lastRun" =~ ^[\-0-9]+$ ]] ; then
-                lastRun=0
-            fi
 
             # analyse output
-            returnCode=`cat $mntdir"/returnCode"`
+            returnCode=`cat $cnf_builddir"/returnCode"`
             echo "Compile Suite return code: $returnCode"
 
             # is +/- integer?
@@ -130,37 +137,16 @@ cd $cnf_gitdir
             else
                 if [ "$returnCode" -eq "0" ] ; then
                     echo "All right :)"
-                    # last failed
-                    if [ "$lastRun" -lt "0" ] ; then
-                        state=1
-                    # last was ok or suite errored
-                    else
-                        state=$(( lastRun + 1 ))
-                    fi
+                    state=1
                 else
                     echo "Non-Zero return code!"
                     state=-1
-                    # last failed
-                    if [ "$lastRun" -lt "0" ] ; then
-                        state=$(( lastRun - 1 ))
-                    fi
                 fi
             fi
 
-            # update lastRun history
-            echo $state > "$thisDir"lastRun.log
-
             # create conclusion, update status (and send mails)
-            conclusion "$state" "$lastUser" "$lastUserMail" "$sha" "$eventid" "$logEntry" "$mntdir""/output"
+            conclusion "$state" "$lastUser" "$lastUserMail" "$sha" "$eventid" "$logEntry" "$cnf_builddir""/output"
 
-            # unmount
-            fusermount -u $mntdir
-            while [ "$?" != "0" ]
-            do
-                sleep 5
-                fusermount -u $mntdir
-            done
-            rm -rf $mntdir
         fi
     done
 

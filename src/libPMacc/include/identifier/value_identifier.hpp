@@ -24,6 +24,7 @@
 
 #include "types.h"
 #include "identifier/identifier.hpp"
+#include <string>
 
 /* No namespace is needed because we only have defines*/
 
@@ -31,20 +32,20 @@
  * @param in_type type of the value
  * @param name name of identifier
  * @param in_default default value of in_type (can be a constructor of a class)
- * 
+ *
  * The created identifier has the following options:
  *          getDefaultValue() - return the default value
  *          getName()         - return the name of the identifier
- *          ::type            - get type of the value 
- * 
+ *          ::type            - get type of the value
+ *
  * e.g. value_identifier(float,length,0.0f)
  *      typedef length::type value_type; // is float
  *      value_type x= length::getDefault();  //set x to 0.f
  *      printf("Identifier name: %s",length::getName()); //print Identifier name: length
- * 
+ *
  * to create a instance of this value_identifier you can use:
  *      length();   or length_
- * 
+ *
  */
 #define value_identifier(in_type,name,in_default)                              \
         identifier(name,                                                       \
@@ -54,8 +55,8 @@
         {                                                                      \
                 return in_default;                                             \
         }                                                                      \
-        static HDINLINE char* getName()                                        \
+        static std::string getName()                                           \
         {                                                                      \
-                return #name;                                                  \
+                return std::string(#name);                                     \
         }                                                                      \
     )

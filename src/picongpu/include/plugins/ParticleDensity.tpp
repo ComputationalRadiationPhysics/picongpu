@@ -1,23 +1,23 @@
 /**
  * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "math/vector/Int.hpp"
 #include "math/vector/Float.hpp"
 #include "math/vector/Size_t.hpp"
@@ -25,8 +25,7 @@
 #include "dataManagement/DataConnector.hpp"
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
-#include "math/vector/compile-time/Int.hpp"
-#include "math/vector/compile-time/Size_t.hpp"
+#include "math/Vector.hpp"
 #include "cuSTL/algorithm/mpi/Gather.hpp"
 #include "cuSTL/algorithm/kernel/Reduce.hpp"
 #include "cuSTL/algorithm/kernel/ForeachBlock.hpp"
@@ -45,7 +44,7 @@ namespace picongpu
 {
 namespace heiko
 {
-    
+
 template<typename BlockDim>
 struct ParticleDensityKernel
 {
@@ -66,7 +65,7 @@ struct ParticleDensityKernel
                                linearCellIdx / (BlockDim::x::value * BlockDim::y::value));
         if(cellIdx[planeDir] != localPlane) return;
 
-        ::PMacc::math::Int<3> globalCellIdx = blockCellIdx - (PMacc::math::Int<3>)BlockDim().vec() + cellIdx;
+        ::PMacc::math::Int<3> globalCellIdx = blockCellIdx - (PMacc::math::Int<3>)BlockDim().toRT() + cellIdx;
         /// \warn reduce a normalized float_X with particleAccess::Weight() / NUM_EL_PER_PARTICLE
         ///       to avoid overflows for heavy weightings
         ///
@@ -104,7 +103,7 @@ std::string ParticleDensity<ParticlesType>::pluginGetName() const {return this->
 template<typename ParticlesType>
 void ParticleDensity<ParticlesType>::pluginLoad()
 {
-    Environment<>::get().PluginConnector().setNotificationFrequency(this, this->notifyFrequency);
+    Environment<>::get().PluginConnector().setNotificationPeriod(this, this->notifyFrequency);
 }
 
 template<typename ParticlesType>
@@ -112,51 +111,51 @@ void ParticleDensity<ParticlesType>::notify(uint32_t currentStep)
 {
     DataConnector &dc = Environment<>::get().DataConnector();
     this->particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
-    
+
 
     namespace vec = ::PMacc::math;
-    typedef vec::CT::Size_t<TILE_WIDTH, TILE_HEIGHT, TILE_DEPTH> BlockDim;
+    typedef SuperCellSize BlockDim;
     container::PseudoBuffer<float3_X, 3> fieldE
         (dc.getData<FieldE > (FieldE::getName(), true).getGridBuffer().getDeviceBuffer());
-    zone::SphericZone<3> coreBorderZone(fieldE.zone().size - (size_t)2*BlockDim().vec(),
-                                        fieldE.zone().offset + (vec::Int<3>)BlockDim().vec());
+    zone::SphericZone<3> coreBorderZone(fieldE.zone().size - precisionCast<size_t>(2*BlockDim::toRT()),
+                                        fieldE.zone().offset + BlockDim::toRT());
 
     container::DeviceBuffer<int, 2> density(coreBorderZone.size.shrink<2>((plane+1)%3));
     density.assign(0);
-    
+
     PMacc::GridController<3>& con = PMacc::Environment<3>::get().GridController();
     vec::Size_t<3> gpuDim = (vec::Size_t<3>)con.getGpuNodes();
     vec::Size_t<3> globalGridSize = gpuDim * coreBorderZone.size;
-    
+
     int globalPlanePos = globalGridSize[plane] * this->slicePoint;
     int localPlanePos = globalPlanePos % coreBorderZone.size[plane];
     int gpuPos = globalPlanePos / coreBorderZone.size[plane];
-    int superCell = localPlanePos / BlockDim().vec()[plane];
-    int cellWithinSuperCell = localPlanePos % BlockDim().vec()[plane];
+    int superCell = localPlanePos / BlockDim().toRT()[plane];
+    int cellWithinSuperCell = localPlanePos % BlockDim().toRT()[plane];
     vec::Size_t<3> planeVec(0); planeVec[plane] = 1;
     vec::Size_t<3> orthoPlaneVec(1); orthoPlaneVec[plane] = 0;
-    
-    zone::SphericZone<3> gpuGatheringZone(orthoPlaneVec * gpuDim + planeVec * vec::Size_t<3>(1,1,1), 
+
+    zone::SphericZone<3> gpuGatheringZone(orthoPlaneVec * gpuDim + planeVec * vec::Size_t<3>(1,1,1),
                                           (vec::Int<3>)planeVec * gpuPos);
     algorithm::mpi::Gather<3> gather(gpuGatheringZone);
     if(!gather.participate()) return;
-    
-    zone::SphericZone<3> superCellSliceZone(orthoPlaneVec * coreBorderZone.size + planeVec * (vec::Size_t<3>)BlockDim().vec(),
-                                            coreBorderZone.offset + (vec::Int<3>)planeVec * superCell * (int)BlockDim().vec()[plane]);
-    
+
+    zone::SphericZone<3> superCellSliceZone(orthoPlaneVec * coreBorderZone.size + planeVec * (vec::Size_t<3>)BlockDim().toRT(),
+                                            coreBorderZone.offset + (vec::Int<3>)planeVec * superCell * (int)BlockDim().toRT()[plane]);
+
     using namespace lambda;
     algorithm::kernel::ForeachBlock<BlockDim>()
         (superCellSliceZone, cursor::make_MultiIndexCursor<3>(),
         expr(particleAccess::Cell2Particle<BlockDim>())
             (this->particles->getDeviceParticlesBox(),
             _1, ParticleDensityKernel<BlockDim>(plane, cellWithinSuperCell), density.origin(), _1));
-            
+
     container::HostBuffer<int, 2> density_host(density.size());
     density_host = density;
     container::HostBuffer<int, 2> globalDensity(density.size() * gpuDim.shrink<2>((plane+1)%3));
     gather(globalDensity, density_host, plane);
     if(!gather.root()) return;
-        
+
     std::stringstream filename;
     filename << "density_" << currentStep << ".dat";
     std::ofstream file(filename.str().c_str());

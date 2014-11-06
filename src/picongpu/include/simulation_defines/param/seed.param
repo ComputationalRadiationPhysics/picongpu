@@ -1,0 +1,43 @@
+/**
+ * Copyright 2014 Axel Huebl
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+#pragma once
+
+namespace picongpu
+{
+    /** global seed
+     *
+     *  global seed to derive GPU local seeds from
+     *  - vary it to shuffle pseudo random generators for exactly same simulation
+     *  - note: even when kept constant, highly parallel simulations do not ensure
+     *          100% deterministic simulations on the floating point level
+     */
+    struct GlobalSeed
+    {
+        uint32_t
+        operator()()
+        {
+            /** to vary (binary) identical simulations, use a combination of
+             *  time(NULL) from \see <time.h> (precision: seconds) */
+            return 42;
+        }
+    };
+} /* namespace picongpu */

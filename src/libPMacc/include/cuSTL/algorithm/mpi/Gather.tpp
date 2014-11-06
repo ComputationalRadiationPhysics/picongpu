@@ -1,24 +1,25 @@
 /**
  * Copyright 2013 Heiko Burau
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "mappings/simulation/GridController.hpp"
 #include <iostream>
 #include "cuSTL/container/copier/Memcopy.hpp"
@@ -35,26 +36,26 @@ template<int dim>
 Gather<dim>::Gather(const zone::SphericZone<dim>& _zone) : comm(MPI_COMM_NULL)
 {
     using namespace PMacc::math;
-    
+
     PMacc::GridController<dim>& con = PMacc::Environment<dim>::get().GridController();
     Int<dim> pos = con.getPosition();
-    
+
     int numWorldRanks; MPI_Comm_size(MPI_COMM_WORLD, &numWorldRanks);
     std::vector<Int<dim> > allPositions(numWorldRanks);
-    
-    MPI_CHECK(MPI_Allgather((void*)&pos, sizeof(Int<dim>), MPI_CHAR, 
+
+    MPI_CHECK(MPI_Allgather((void*)&pos, sizeof(Int<dim>), MPI_CHAR,
                   (void*)allPositions.data(), sizeof(Int<dim>), MPI_CHAR,
                   MPI_COMM_WORLD));
-                  
+
     std::vector<int> new_ranks;
     int myWorldId; MPI_Comm_rank(MPI_COMM_WORLD, &myWorldId);
-    
+
     this->m_participate = false;
     for(int i = 0; i < (int)allPositions.size(); i++)
     {
         Int<dim> pos = allPositions[i];
         if(!_zone.within(pos)) continue;
-        
+
         new_ranks.push_back(i);
         this->positions.push_back(allPositions[i]);
         if(i == myWorldId) this->m_participate = true;
@@ -79,7 +80,7 @@ Gather<dim>::~Gather()
 template<int dim>
 bool Gather<dim>::root() const
 {
-    if(!this->m_participate) 
+    if(!this->m_participate)
     {
         std::cerr << "error[mpi::Gather::root()]: this process does not participate in gathering.\n";
         return false;
@@ -91,7 +92,7 @@ bool Gather<dim>::root() const
 template<int dim>
 int Gather<dim>::rank() const
 {
-    if(!this->m_participate) 
+    if(!this->m_participate)
     {
         std::cerr << "error[mpi::Gather::rank()]: this process does not participate in gathering.\n";
         return -1;
@@ -109,12 +110,12 @@ void Gather<dim>::CopyToDest<Type, 3, 2>::operator()(
                     container::HostBuffer<Type, 2>& source, int dir) const
 {
     using namespace math;
-    
+
     for(int i = 0; i < (int)gather.positions.size(); i++)
     {
         Int<3> pos = gather.positions[i];
         Int<2> pos2D(pos[(dir+1)%3], pos[(dir+2)%3]);
-        
+
         cudaWrapper::Memcopy<2>()(&(*dest.origin()(pos2D * (Int<2>)source.size())), dest.getPitch(),
                                   tmpDest.data() + i * source.size().productOfComponents(), source.getPitch(),
                                   source.size(), cudaWrapper::flags::Memcopy::hostToHost);
@@ -127,10 +128,10 @@ void Gather<3>::operator()(container::HostBuffer<Type, memDim>& dest,
                              container::HostBuffer<Type, memDim>& source, int dir) const
 {
     if(!this->m_participate) return;
-    
+
     int numRanks; MPI_Comm_size(this->comm, &numRanks);
     std::vector<Type> tmpDest(numRanks * source.size().productOfComponents());
-    
+
     MPI_CHECK(MPI_Gather((void*)source.getDataPointer(), source.size().productOfComponents() * sizeof(Type), MPI_CHAR,
                (void*)tmpDest.data(), source.size().productOfComponents() * sizeof(Type), MPI_CHAR,
                0, this->comm));

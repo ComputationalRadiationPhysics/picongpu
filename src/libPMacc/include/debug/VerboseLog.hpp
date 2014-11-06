@@ -1,31 +1,32 @@
 /**
  * Copyright 2013 Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #pragma once
 
 #include <sstream>
 #include <boost/format.hpp>
 #include <iostream>
 
-#include "static_assert.hpp"
+#include "types.h"
 #include <string>
 
 #include "debug/VerboseLogMakros.hpp"
@@ -36,13 +37,16 @@ namespace PMacc
 
 
 /** get the name of a verbose lvl
- * 
+ *
  * this function is defined as friend function for every log lvl
  * @param dummy instance of LogClass to find name
  * @return name of LogClass
  */
 template<class LogClass>
-std::string getLogName(const LogClass& dummy);
+std::string getLogName(const LogClass& dummy)
+{
+    return std::string("UNDEFINED_LVL");
+}
 
 
 namespace verboseLog_detail
@@ -98,7 +102,7 @@ public:
     {
         typedef LogLvl<(logLvl & LogParent::log_level), LogParent> LogClass;
         /* check if a bit in the mask is set
-         * If you get an linker error in the next two lines you have not used 
+         * If you get an linker error in the next two lines you have not used
          * DEFINE_LOGLVL makro to define a named logLvl
          */
         if (logLvl & LogParent::log_level) /*compiletime check*/
@@ -128,7 +132,8 @@ protected:
  * output of example: 4 | printf style stream messages, number example 5
  */
 template <class LogLvl>
-static verboseLog_detail::VerboseLog<LogLvl> log(const char* msg)
+verboseLog_detail::VerboseLog<LogLvl>
+log(const char* msg)
 {
     return verboseLog_detail::VerboseLog<LogLvl > (msg);
 }
@@ -138,7 +143,8 @@ static verboseLog_detail::VerboseLog<LogLvl> log(const char* msg)
  * log(MYLOGLEVELS::CRITICAL+MYLOGLEVELS::MEMORY,"printf %2% stream %1%, number example %3%.") % "messages" % "style" % 5
  */
 template <class LogLvl>
-static verboseLog_detail::VerboseLog<LogLvl> log(const LogLvl, const char* msg)
+verboseLog_detail::VerboseLog<LogLvl>
+log(const LogLvl, const char* msg)
 {
     return verboseLog_detail::VerboseLog<LogLvl > (msg);
 }

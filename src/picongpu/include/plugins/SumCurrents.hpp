@@ -1,21 +1,21 @@
 /**
  * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera, Felix Schmitt
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 
@@ -35,7 +35,7 @@
 
 #include "basicOperations.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
-#include "plugins/ISimulationPlugin.hpp"
+#include "plugins/ILightweightPlugin.hpp"
 
 namespace picongpu
 {
@@ -65,10 +65,9 @@ __global__ void kernelSumCurrents(J_DataBox fieldJ, float3_X* gCurrent, Mapping 
 
 
     const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
-    const DataSpace<simDim> cell(superCellIdx * SuperCellSize() + threadIndex);
+    const DataSpace<simDim> cell(superCellIdx * SuperCellSize::toRT() + threadIndex);
 
-    const float3_X J = fieldJ(cell);
-    const float3_X myJ = float3_X(J.x(), J.y(), J.z());
+    const float3_X myJ = fieldJ(cell);
 
     atomicAddWrapper(&(sh_sumJ.x()), myJ.x());
     atomicAddWrapper(&(sh_sumJ.y()), myJ.y());
@@ -84,7 +83,7 @@ __global__ void kernelSumCurrents(J_DataBox fieldJ, float3_X* gCurrent, Mapping 
     }
 }
 
-class SumCurrents : public ISimulationPlugin
+class SumCurrents : public ILightweightPlugin
 {
 private:
     FieldJ* fieldJ;
@@ -119,9 +118,6 @@ public:
 
         const int rank = Environment<simDim>::get().GridController().getGlobalRank();
         const float3_X gCurrent = getSumCurrents();
-
-        //const DataSpace<simDim> nrOfGpuCells = MappingDesc::SuperCellSize::getDataSpace()
-        //                                       *(cellDescription->getGridSuperCells() - 2*cellDescription->getGuardingSuperCells() );
 
         // gCurrent is just j
         // j = I/A
@@ -175,7 +171,7 @@ private:
         {
             sumcurrents = new GridBuffer<float3_X, DIM1 > (DataSpace<DIM1 > (1)); //create one int on gpu und host
 
-            Environment<>::get().PluginConnector().setNotificationFrequency(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
         }
     }
 
@@ -183,15 +179,14 @@ private:
     {
         if (notifyFrequency > 0)
         {
-            if (sumcurrents)
-                delete sumcurrents;
+            __delete(sumcurrents);
         }
     }
 
     float3_X getSumCurrents()
     {
         sumcurrents->getDeviceBuffer().setValue(float3_X(float_X(0.0), float_X(0.0), float_X(0.0)));
-        dim3 block(MappingDesc::SuperCellSize::getDataSpace());
+        dim3 block(MappingDesc::SuperCellSize::toRT().toDim3());
 
         __picKernelArea(kernelSumCurrents, *cellDescription, CORE + BORDER)
             (block)

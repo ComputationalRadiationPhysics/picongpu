@@ -8,18 +8,18 @@
  *
  * Developed by:
  *
- * Innovative Systems Lab  
- * National Center for Supercomputing Applications  
+ * Innovative Systems Lab
+ * National Center for Supercomputing Applications
  * http://www.ncsa.uiuc.edu/AboutUs/Directorates/ISL.html
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy of 
- * this software and associated documentation files (the "Software"), to deal with 
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal with
  * the Software without restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the 
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
  * Software, and to permit persons to whom the Software is furnished to do so, subject
  * to the following conditions:
  *
- * * Redistributions of source code must retain the above copyright notice, this list 
+ * * Redistributions of source code must retain the above copyright notice, this list
  * of conditions and the following disclaimers.
  *
  * * Redistributions in binary form must reproduce the above copyright notice, this list
@@ -30,11 +30,11 @@
  * Applications, nor the names of its contributors may be used to endorse or promote products
  * derived from this Software without specific prior written permission.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
  * PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE CONTRIBUTORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT 
- * OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT
+ * OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS WITH THE SOFTWARE.
  */
 
@@ -80,7 +80,7 @@ extern void get_driver_info(char* info, unsigned int len);
 	    pthread_mutex_unlock(&mutex);					\
 	}								\
 	fflush(stdout);							\
-    } while(0) 
+    } while(0)
 
 
 #define FPRINTF(fmt,...) do{						\
@@ -91,7 +91,7 @@ extern void get_driver_info(char* info, unsigned int len);
 	    fprintf(stderr, "[%s][%s][%d]:"fmt, time_string(), hostname, gpu_idx, ##__VA_ARGS__); \
 	}								\
 	fflush(stderr);							\
-    } while(0) 
+    } while(0)
 
 
 
@@ -113,21 +113,21 @@ extern void get_driver_info(char* info, unsigned int len);
 	    PRINTF("%s: %d out of %d blocks finished\n", msg, num_checked_blocks, tot_num_blocks );  \
 	} \
    }		\
-    fflush(stdout);					
+    fflush(stdout);
 
 
 #define CUERR  do{ cudaError_t cuda_err; \
 	if ((cuda_err = cudaGetLastError()) != cudaSuccess) {		\
 	    FPRINTF("ERROR: CUDA error: %s, line %d, file %s\n", cudaGetErrorString(cuda_err),  __LINE__, __FILE__); \
 	    PRINTF("ERROR: CUDA error: %s, line %d, file %s\n", cudaGetErrorString(cuda_err),  __LINE__, __FILE__); \
-	    exit(cuda_err);}}while(0) 
+	    exit(cuda_err);}}while(0)
 
 #define SYNC_CUERR  do{ cudaError_t cuda_err; \
 	cudaThreadSynchronize(); \
         if ((cuda_err = cudaGetLastError()) != cudaSuccess) {                \
             FPRINTF("ERROR: CUDA error: %s, line %d, file %s\n", cudaGetErrorString(cuda_err),  __LINE__, __FILE__); \
             PRINTF("ERROR: CUDA error: %s, line %d, file %s\n", cudaGetErrorString(cuda_err),  __LINE__, __FILE__); \
-            exit(cuda_err);}}while(0) 
+            exit(cuda_err);}}while(0)
 
 #define TDIFF(tb, ta) (tb.tv_sec - ta.tv_sec + 0.000001*(tb.tv_usec - ta.tv_usec))
 #define DIM(x) (sizeof(x)/sizeof(x[0]))
@@ -141,7 +141,7 @@ typedef  void (*test_func_t)(char* , unsigned int );
 typedef struct cuda_memtest_s{
     test_func_t func;
     char* desc;
-    unsigned int enabled;    
+    unsigned int enabled;
 }cuda_memtest_t;
 
 

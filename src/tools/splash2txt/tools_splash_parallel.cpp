@@ -28,7 +28,7 @@ ToolsSplashParallel::ToolsSplashParallel(ProgramOptions &options, Dims &mpiTopol
 ITools(options, mpiTopology, outStream),
 dc(MPI_COMM_WORLD, MPI_INFO_NULL, Dimensions(mpiTopology[0], mpiTopology[1], mpiTopology[2]), 100),
 errorStream(std::cerr)
-{    
+{
     DataCollector::FileCreationAttr fattr;
     fattr.enableCompression = false;
     fattr.fileAccType = DataCollector::FAT_READ_MERGED;
@@ -44,6 +44,7 @@ errorStream(std::cerr)
 ToolsSplashParallel::~ToolsSplashParallel()
 {
     dc.close();
+    dc.finalize();
 }
 
 void ToolsSplashParallel::printElement(DCDataType dataType,
@@ -230,8 +231,16 @@ void ToolsSplashParallel::convertToText()
     //
 
     DomainCollector::DomDataClass ref_data_class = DomainCollector::UndefinedType;
-    dc.readAttribute(options.step, options.data[0].c_str(), DOMCOL_ATTR_CLASS,
-            &ref_data_class, NULL);
+    try
+    {
+        dc.readAttribute(options.step, options.data[0].c_str(), DOMCOL_ATTR_CLASS,
+                &ref_data_class, NULL);
+    } catch (DCException)
+    {
+        errorStream << "Error: No domain information for dataset '" << options.data[0] << "' available." << std::endl;
+        errorStream << "This might not be a valid libSplash domain." << std::endl;
+        return;
+    }
 
     switch (ref_data_class)
     {
@@ -274,8 +283,7 @@ void ToolsSplashParallel::convertToText()
             // poly type
 
             excontainer.container = dc.readDomain(options.step, iter->c_str(),
-                    total_domain.getOffset(),
-                    total_domain.getSize(), NULL, true);
+                    Domain(total_domain.getOffset(), total_domain.getSize()), NULL, true);
         } else
         {
             // grid type
@@ -295,7 +303,7 @@ void ToolsSplashParallel::convertToText()
                 }
 
             excontainer.container = dc.readDomain(options.step, iter->c_str(),
-                    offset, domain_size, NULL);
+                    Domain(offset, domain_size), NULL);
         }
 
         // read unit
@@ -353,32 +361,27 @@ void ToolsSplashParallel::printAvailableDatasets(std::vector< DataCollector::DCE
     std::sort(dataTypeNames.begin(), dataTypeNames.end(), DCEntryCompare);
 
     std::string lastdataName = "";
-    size_t matchingLength, lastMatchingUnderscore;
+    size_t matchingLength, lastMatchingDelimiter;
 
     BOOST_FOREACH(DataCollector::DCEntry dataName, dataTypeNames)
     {
         matchingLength = 0;
-        lastMatchingUnderscore = 0;
+        lastMatchingDelimiter = 0;
 
-        while (dataName.name.compare(matchingLength, 1, lastdataName, matchingLength, 1) == 0)
+        while ( ( dataName.name.size() >= matchingLength ) &&
+                ( dataName.name.compare(matchingLength, 1, lastdataName, matchingLength, 1) == 0 ) )
         {
-            if (dataName.name[matchingLength] == '_')
-                lastMatchingUnderscore = matchingLength;
+            if (dataName.name[matchingLength] == '/')
+                lastMatchingDelimiter = matchingLength;
             matchingLength++;
         }
 
-        // coordinates at the end
-        if (matchingLength == dataName.name.size() - 1)
-            outStream << '/'
-                << dataName.name.substr(matchingLength);
-            // new parameters which differ in more than the coordinate at the end
-        else
-        {
-            outStream << std::string(matchingLength == 0, '\n') << '\n'
-                    << intentation
-                    << std::string(lastMatchingUnderscore, ' ')
-                    << dataName.name.substr(lastMatchingUnderscore);
-        }
+        // additional linebreak for new top-level group
+        outStream << std::string(matchingLength == 0, '\n');
+        // align new entry with last matching group
+        outStream << intentation << std::string(lastMatchingDelimiter, ' ')
+                  << dataName.name.substr(lastMatchingDelimiter)
+                  << std::endl;
 
         lastdataName = dataName.name;
     }
@@ -409,7 +412,7 @@ void ToolsSplashParallel::listAvailableDatasets()
             << std::endl;
 
     outStream << "available time steps:";
-    for (int i = 0; i < num_entries; ++i)
+    for (size_t i = 0; i < num_entries; ++i)
         outStream << " " << entries[i];
     outStream << std::endl;
 
@@ -425,10 +428,16 @@ void ToolsSplashParallel::listAvailableDatasets()
     printAvailableDatasets(dataTypeNames, "  ");
 
     // global cell size and start
-    Domain totalDomain = dc.getGlobalDomain(entries[0], (dataTypeNames.front().name.c_str()));
-    outStream << std::endl
-            << "Global domain: "
-            << totalDomain.toString() << std::endl;
+    try
+    {
+        Domain totalDomain = dc.getGlobalDomain(entries[0], (dataTypeNames.front().name.c_str()));
+        outStream << std::endl
+                << "Global domain: "
+                << totalDomain.toString() << std::endl;
+    } catch (DCException)
+    {
+        outStream << std::endl << "(No domain information)" << std::endl;
+    }
 
     delete[] entries;
 }
