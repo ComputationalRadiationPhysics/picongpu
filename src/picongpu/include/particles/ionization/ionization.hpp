@@ -21,11 +21,11 @@
 #pragma once
 
 
-/* includes from "update" */
+/* includes from Particles.tpp */
 #include <iostream>
 
 #include "simulation_defines.hpp"
-#include "particles/Particles.hpp"
+#include "particles/Particles.hpp" //does that include work?
 #include <cassert>
 
 
@@ -37,10 +37,12 @@
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
 #include "fields/FieldJ.hpp"
+#include "fields/FieldTmp.hpp"
 
 #include "particles/memory/buffers/ParticlesBuffer.hpp"
 #include "particles/ParticlesInit.kernel"
 #include "mappings/simulation/GridController.hpp"
+#include "mpi/SeedPerRank.hpp"
 
 #include "simulationControl/MovingWindow.hpp"
 
@@ -49,7 +51,9 @@
 
 #include "fields/numericalCellTypes/YeeCell.hpp"
 
-/* includes from kernelMoveAndMarkParticles */
+#include "particles/traits/GetIonizer.hpp"
+
+/* includes from Particles.kernel */
 #include "types.h"
 #include "particles/frame_types.hpp"
 #include "particles/memory/boxes/ParticlesBox.hpp"
@@ -100,26 +104,28 @@ struct IonizeParticlesPerFrame
     {
 
         typedef TVec Block;
+        /* @new type for field to particle interpolation */
+        typedef T_Field2ParticleInterpolation Field2ParticleInterpolation;
 
         typedef typename BoxB::ValueType BType;
         typedef typename BoxE::ValueType EType;
 
         PMACC_AUTO(particle,ionFrame[localIdx]);
         const float_X weighting = particle[weighting_];
-
-        float3_X pos = particle[position_];
+        
+        floatD_X pos = particle[position_];
         const int particleCellIdx = particle[localCellIdx_];
 
         DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec > (particleCellIdx));
 
        
-        EType eField = fieldSolver::FieldToParticleInterpolation()
+        EType eField = Field2ParticleInterpolation()
             (eBox.shift(localCell).toCursor(), pos, NumericalCellType::getEFieldPosition());
-        BType bField = fieldSolver::FieldToParticleInterpolation()
+        BType bField =Field2ParticleInterpolation()
             (bBox.shift(localCell).toCursor(), pos, NumericalCellType::getBFieldPosition());
 
         float3_X mom = particle[momentum_];
-        const float_X mass = ionFrame.getMass(weighting);
+        const float_X mass = getMass<FrameType>(weighting);
         
         /*define charge state variable*/
         int chState = particle[chargeState_];
@@ -130,7 +136,7 @@ struct IonizeParticlesPerFrame
              pos,
              mom,
              mass,
-             ionFrame.getCharge(weighting, chState),
+             getCharge<FrameType>(weighting, chState),
              chState
              );
         
@@ -179,7 +185,7 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
     const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
 
     /* "offset" from origin of the grid in unit of cells */
-    const DataSpace<simDim> blockCell = block * SuperCellSize::getDataSpace();
+    const DataSpace<simDim> blockCell = block * SuperCellSize::toRT();
 
     __syncthreads();
     
@@ -199,6 +205,8 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
     {
         ionFrame = &(ionBox.getLastFrame(block, isValid));
         maxParticlesInFrame = SuperCellSize::elements;
+        /* @new - put in if other above does not work */
+//        maxParticlesInFrame = PMacc::math::CT::volume<SuperCellSize>::type::value;
 //        printf("mP1: %d ",maxParticlesInFrame);
     }
 
@@ -208,16 +216,20 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
 
     /* caching of E and B fields */
     PMACC_AUTO(cachedB, CachedBox::create < 0, typename BBox::ValueType > (BlockDescription_()));
-    PMACC_AUTO(fieldBBlock, fieldB.shift(blockCell));
+    PMACC_AUTO(cachedE, CachedBox::create < 1, typename EBox::ValueType > (BlockDescription_()));
+
+    __syncthreads();
     
     nvidia::functors::Assign assign;
+    
+    PMACC_AUTO(fieldBBlock, fieldB.shift(blockCell));
     ThreadCollective<BlockDescription_> collectiv(linearThreadIdx);
     collectiv(
               assign,
               cachedB,
               fieldBBlock
               );
-    PMACC_AUTO(cachedE, CachedBox::create < 1, typename EBox::ValueType > (BlockDescription_()));
+
     PMACC_AUTO(fieldEBlock, fieldE.shift(blockCell));
     collectiv(
               assign,
@@ -412,10 +424,10 @@ namespace particleIonizerNone
 
             template<typename EType, typename BType, typename PosType, typename MomType, typename MassType, typename ChargeType, typename ChargeStateType >
                     __host__ DINLINE void operator()(
-                                                        const BType bField,
-                                                        const EType eField,
-                                                        PosType& pos,
-                                                        MomType& mom,
+                                                        const BType bField, /* at t=0 */
+                                                        const EType eField, /* at t=0 */
+                                                        PosType& pos, /* at t=0 */
+                                                        MomType& mom, /* at t=-1/2 */
                                                         const MassType mass,
                                                         const ChargeType charge,
                                                         ChargeStateType& chState)
@@ -442,8 +454,6 @@ namespace particleIonizerNone
                 
             }
         };
-    
-        typedef Ionize<Velocity, Gamma<> > ParticleIonizer;
     } //namespace particleIonizerNone
 
 namespace particleIonizer = particleIonizerNone;
