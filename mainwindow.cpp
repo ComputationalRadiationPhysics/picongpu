@@ -8,6 +8,21 @@
 
 #include "message_ids.hpp"
 
+// helper
+QString formatNumberReadable( double x )
+{
+    if( x > 1.e12 )
+      return QString::number(x/1e12,'f',0) + " Trillion";
+    if( x > 1.e9 )
+      return QString::number(x/1e9,'f',0)  + " Billion";
+    if( x > 1.e6 )
+      return QString::number(x/1e6,'f',0)  + " Million";
+    if( x > 1.e3 )
+      return QString::number(x/1e3,'f',0)  + " Thousand";
+
+    return QString::number(x,'f',0);
+}
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
@@ -104,8 +119,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     /// num GPU/cells/particles display
     connect(this, SIGNAL(on_received_numGPUs(int)), this, SLOT(received_numGPUs(int)));
-    connect(this, SIGNAL(on_received_numCells(int)), this, SLOT(received_numCells(int)));
-    connect(this, SIGNAL(on_received_numParticles(int)), this, SLOT(received_numParticles(int)));
+    connect(this, SIGNAL(on_received_numCells(double)), this, SLOT(received_numCells(double)));
+    connect(this, SIGNAL(on_received_numParticles(double)), this, SLOT(received_numParticles(double)));
 
     /// enable play/pause of simulation
     connect(ui->centralWidget, SIGNAL(play_pause_sim()), this, SLOT(playPauseSim()));
@@ -236,7 +251,7 @@ void MainWindow::on_msg(rivlib::control_connection::ptr comm, unsigned int id, u
                     // skip unsupported streams
                     if (!this->m_imgStream->is_supported(subtype)) continue;
 
-                    if (subtype == rivlib::data_channel_image_stream_subtype::rgb_zip) {
+                    if (subtype == rivlib::data_channel_image_stream_subtype::rgb_mjpeg) {
                         // subtype is supported by this client o_O
                         if (sel_chan_qual < chan_quality) {
                             sel_chan_name = name;
@@ -284,11 +299,11 @@ void MainWindow::on_msg(rivlib::control_connection::ptr comm, unsigned int id, u
             emit on_received_numGPUs(numGPUs);
         } break;
         case RIVLIB_USERMSG + NumCells: {
-            int numCells = reinterpret_cast<const int64_t*>(data)[0];
+            double numCells = reinterpret_cast<const int64_t*>(data)[0];
             emit on_received_numCells(numCells);
         } break;
         case RIVLIB_USERMSG + NumParticles: {
-            int numParticles = reinterpret_cast<const int64_t*>(data)[0];
+            double numParticles = reinterpret_cast<const int64_t*>(data)[0];
             emit on_received_numParticles(numParticles);
         } break;
 
@@ -466,22 +481,22 @@ void MainWindow::received_numGPUs(int numGPUs)
     ui->lblStatusGPUs->setText(QString("%1 GPUs").arg(numGPUs));
 }
 
-void MainWindow::received_numCells(int numCells)
+void MainWindow::received_numCells(double numCells)
 {
     this->layout()->setEnabled(false);
     ui->centralWidget->layout()->setEnabled(false);
     ui->dockWidget->layout()->setEnabled(false);
 
-    ui->lblStatusCells->setText(QString::number(numCells,'e',1) + " Cells");
+    ui->lblStatusCells->setText(formatNumberReadable(numCells) + " Cells");
 }
 
-void MainWindow::received_numParticles(int numParticles)
+void MainWindow::received_numParticles(double numParticles)
 {
     this->layout()->setEnabled(false);
     ui->centralWidget->layout()->setEnabled(false);
     ui->dockWidget->layout()->setEnabled(false);
 
-    ui->lblStatusParticles->setText(QString::number(numParticles,'e',1) + " Particles");
+    ui->lblStatusParticles->setText(formatNumberReadable(numParticles) + " Particles");
 }
 
 void MainWindow::changeBackgroundcolor()
