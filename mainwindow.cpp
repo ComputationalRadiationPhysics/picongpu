@@ -236,7 +236,7 @@ void MainWindow::on_msg(rivlib::control_connection::ptr comm, unsigned int id, u
                     // skip unsupported streams
                     if (!this->m_imgStream->is_supported(subtype)) continue;
 
-                    if (subtype == rivlib::data_channel_image_stream_subtype::rgb_raw) {
+                    if (subtype == rivlib::data_channel_image_stream_subtype::rgb_zip) {
                         // subtype is supported by this client o_O
                         if (sel_chan_qual < chan_quality) {
                             sel_chan_name = name;
@@ -252,7 +252,7 @@ void MainWindow::on_msg(rivlib::control_connection::ptr comm, unsigned int id, u
                 printf("No suitable image_stream data channel available\n");
 
             } else {
-                printf("Selected \"%s\" image_stream data channel\n", sel_chan_name.c_str());
+                printf("Selected \"%s\" image_stream data channel of type %u\n", sel_chan_name.c_str(), sel_chan_subtype);
                 this->m_imgStream->disconnect(true);
 
                 size_t uri_len = this->m_controlConn->make_data_channel_uri(sel_chan_name.c_str(), sel_chan_type, sel_chan_subtype, nullptr, 0);
