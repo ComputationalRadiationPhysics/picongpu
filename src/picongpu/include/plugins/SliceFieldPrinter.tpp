@@ -46,6 +46,7 @@ void SliceFieldPrinter<Field>::pluginLoad()
     if( float_X(0.0) <= slicePoint && slicePoint <= float_X(1.0))
       {
         /* in case the slice point is inside of [0.0,1.0] */
+        sliceIsOK = true;
         Environment<>::get().PluginConnector().setNotificationPeriod(this, this->notifyFrequency);
         namespace vec = ::PMacc::math;
         typedef SuperCellSize BlockDim;
@@ -58,6 +59,7 @@ void SliceFieldPrinter<Field>::pluginLoad()
     else
       {
         /* in case the slice point is outside of [0.0,1.0] */
+        sliceIsOK = false;
         std::cerr << "In the SliceFieldPrinter plugin a slice point"
                   << " (slice_point=" << slicePoint
                   << ") is outside of [0.0, 1.0]. " << std::endl
@@ -86,17 +88,20 @@ std::string SliceFieldPrinter<Field>::pluginGetName() const
 template<typename Field>
 void SliceFieldPrinter<Field>::notify(uint32_t currentStep)
 {
-    namespace vec = ::PMacc::math;
-    typedef SuperCellSize BlockDim;
-    DataConnector &dc = Environment<>::get().DataConnector();
-    BOOST_AUTO(field_coreBorder,
-               dc.getData<Field > (Field::getName(), true).getGridBuffer().
-               getDeviceBuffer().cartBuffer().
-               view(BlockDim::toRT(), -BlockDim::toRT()));
+    if(sliceIsOK)
+    {
+      namespace vec = ::PMacc::math;
+      typedef SuperCellSize BlockDim;
+      DataConnector &dc = Environment<>::get().DataConnector();
+      BOOST_AUTO(field_coreBorder,
+                 dc.getData<Field > (Field::getName(), true).getGridBuffer().
+                 getDeviceBuffer().cartBuffer().
+                 view(BlockDim::toRT(), -BlockDim::toRT()));
 
-    std::ostringstream filename;
-    filename << this->fileName << "_" << currentStep << ".dat";
-    printSlice(field_coreBorder, this->plane, this->slicePoint, filename.str());
+      std::ostringstream filename;
+      filename << this->fileName << "_" << currentStep << ".dat";
+      printSlice(field_coreBorder, this->plane, this->slicePoint, filename.str());
+    }
 }
 
 template<typename Field>

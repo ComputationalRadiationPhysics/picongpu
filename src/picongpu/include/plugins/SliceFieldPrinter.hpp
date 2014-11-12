@@ -42,6 +42,7 @@ class SliceFieldPrinter : public ILightweightPlugin
 {
 private:
     uint32_t notifyFrequency;
+    bool sliceIsOK;
     std::string fileName;
     int plane;
     float_X slicePoint;
