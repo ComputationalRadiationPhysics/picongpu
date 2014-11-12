@@ -54,8 +54,6 @@ private:
     template<typename TField>
     void printSlice(const TField& field, int nAxis, float slicePoint, std::string filename);
 
-    float_64 convertToSI() const;
-
     friend class SliceFieldPrinterMulti<Field>;
 public:
     void notify(uint32_t currentStep);
