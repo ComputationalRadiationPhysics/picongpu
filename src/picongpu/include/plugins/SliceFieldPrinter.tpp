@@ -48,7 +48,7 @@ class ConversionFunctor
 public:
   DINLINE void operator()(float3_64& target, const typename Field::ValueType data) const
   {
-    target = precisionCast<float_64>(data);// *  float_64((Field::getUnit())[0]) ;
+    target = precisionCast<float_64>(data) *  float_64((Field::getUnit())[0]) ;
   }
 };
 } // end namespace SliceFieldPrinterHelper
