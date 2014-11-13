@@ -78,7 +78,7 @@ public:
 
     void clear();
 
-    static UnitValueType getUnit();
+    HDINLINE static UnitValueType getUnit();
 
     static std::string getName();
 

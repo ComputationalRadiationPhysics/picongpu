@@ -183,6 +183,8 @@ void FieldE::reset( uint32_t )
     fieldE->getDeviceBuffer( ).reset( false );
 }
 
+
+HDINLINE 
 typename FieldE::UnitValueType
 FieldE::getUnit( )
 {

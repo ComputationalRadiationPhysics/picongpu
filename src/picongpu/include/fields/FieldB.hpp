@@ -64,7 +64,7 @@ namespace picongpu
 
         virtual void reset(uint32_t currentStep);
 
-        static UnitValueType getUnit();
+        HDINLINE static UnitValueType getUnit();
 
         static std::string getName();
 

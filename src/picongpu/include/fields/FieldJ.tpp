@@ -188,11 +188,12 @@ void FieldJ::clear( )
     //fieldJ.reset(false);
 }
 
+HDINLINE
 typename FieldJ::UnitValueType
 FieldJ::getUnit( )
 {
-    const UnitValueType unitaryVector( 1.0);
-    return unitaryVector * UNIT_CHARGE / UNIT_TIME / ( UNIT_LENGTH * UNIT_LENGTH );
+    const double UNIT_CURRENT = UNIT_CHARGE / UNIT_TIME / ( UNIT_LENGTH * UNIT_LENGTH );
+    return UnitValueType(UNIT_CURRENT, UNIT_CURRENT, UNIT_CURRENT);
 }
 
 std::string

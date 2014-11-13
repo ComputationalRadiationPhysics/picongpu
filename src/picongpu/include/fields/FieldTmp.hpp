@@ -69,7 +69,7 @@ namespace picongpu
         virtual void reset( uint32_t currentStep );
 
         template<class FrameSolver >
-        static UnitValueType getUnit();
+        HDINLINE static UnitValueType getUnit();
 
         static std::string getName();
 

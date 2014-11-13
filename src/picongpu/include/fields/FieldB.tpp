@@ -171,6 +171,7 @@ void FieldB::reset( uint32_t )
     fieldB->getDeviceBuffer( ).reset( false );
 }
 
+HDINLINE
 typename FieldB::UnitValueType
 FieldB::getUnit( )
 {
