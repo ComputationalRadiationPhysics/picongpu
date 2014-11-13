@@ -46,9 +46,10 @@ template<class Field>
 class ConversionFunctor
 {
 public:
-  DINLINE void operator()(float3_64& target, const typename Field::ValueType data) const
+  /* convert field data to higher precision and convert to SI units on GPUs */
+  DINLINE void operator()(float3_64& target, const typename Field::ValueType fieldData) const
   {
-    target = precisionCast<float_64>(data) *  float_64((Field::getUnit())[0]) ;
+    target = precisionCast<float_64>(fieldData) *  float_64((Field::getUnit())[0]) ;
   }
 };
 } // end namespace SliceFieldPrinterHelper
@@ -152,15 +153,15 @@ void SliceFieldPrinter<Field>::printSlice(const TField& field, int nAxis, float 
       cursor::tools::slice(field.originCustomAxes(twistedVector)(0,0,localPlane)),
       cf );
 
-    /* copy selected plane from field to dBuffer_SI */
+    /* copy selected plane from device to host */
     container::HostBuffer<float3_64, 2> hBuffer(dBuffer_SI->size());
     hBuffer = *dBuffer_SI;
 
+    /* collect data from all nodes/GPUs */
     container::HostBuffer<float3_64, 2> globalBuffer(hBuffer.size() * gpuDim.shrink<2>((nAxis+1)%3));
     gather(globalBuffer, hBuffer, nAxis);
     if(!gather.root()) return;
     std::ofstream file(filename.c_str());
-    file << "# conversion factor to SI units: " << float_64((Field::getUnit())[0]) << std::endl;
     file << globalBuffer;
 }
 
