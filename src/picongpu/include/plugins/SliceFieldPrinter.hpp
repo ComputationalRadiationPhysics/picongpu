@@ -47,7 +47,7 @@ private:
     int plane;
     float_X slicePoint;
     MappingDesc *cellDescription;
-    container::DeviceBuffer<float3_X, 2>* dBuffer;
+    container::DeviceBuffer<float3_64, 2>* dBuffer_SI;
 
     void pluginLoad();
     void pluginUnload();

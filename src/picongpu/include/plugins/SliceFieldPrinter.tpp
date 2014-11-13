@@ -40,6 +40,20 @@
 namespace picongpu
 {
 
+namespace SliceFieldPrinterHelper
+{
+template<class Field>
+class ConversionFunctor
+{
+public:
+  DINLINE void operator()(float3_64& target, const typename Field::ValueType data) const
+  {
+    target = precisionCast<float_64>(data);// *  float_64((Field::getUnit())[0]) ;
+  }
+};
+} // end namespace SliceFieldPrinterHelper
+
+
 template<typename Field>
 void SliceFieldPrinter<Field>::pluginLoad()
 {
@@ -53,7 +67,7 @@ void SliceFieldPrinter<Field>::pluginLoad()
 
         vec::Size_t<3> size = vec::Size_t<3>(this->cellDescription->getGridSuperCells()) * precisionCast<size_t>(BlockDim::toRT())
           - precisionCast<size_t>(2 * BlockDim::toRT());
-        this->dBuffer = new container::DeviceBuffer<float3_X, 2>(
+        this->dBuffer_SI = new container::DeviceBuffer<float3_64, 2>(
                         size.shrink<2>((this->plane+1)%3));
       }
     else
@@ -70,7 +84,7 @@ void SliceFieldPrinter<Field>::pluginLoad()
 template<typename Field>
 void SliceFieldPrinter<Field>::pluginUnload()
 {
-    __delete(this->dBuffer);
+    __delete(this->dBuffer_SI);
 }
 
 template<typename Field>
@@ -131,18 +145,18 @@ void SliceFieldPrinter<Field>::printSlice(const TField& field, int nAxis, float 
     using namespace lambda;
     vec::UInt<3> twistedVector((nAxis+1)%3, (nAxis+2)%3, nAxis);
 
+    /* convert data to higher precision and to SI units */
+    SliceFieldPrinterHelper::ConversionFunctor<Field> cf;
     algorithm::kernel::Foreach<vec::CT::UInt<4,4,1> >()(
-      dBuffer->zone(), dBuffer->origin(),
+      dBuffer_SI->zone(), dBuffer_SI->origin(),
       cursor::tools::slice(field.originCustomAxes(twistedVector)(0,0,localPlane)),
-      _1 = _2 );
+      cf );
 
+    /* copy selected plane from field to dBuffer_SI */
+    container::HostBuffer<float3_64, 2> hBuffer(dBuffer_SI->size());
+    hBuffer = *dBuffer_SI;
 
-
-    /* copy selected plane from field to dBuffer */
-    container::HostBuffer<float3_X, 2> hBuffer(dBuffer->size());
-    hBuffer = *dBuffer;
-
-    container::HostBuffer<float3_X, 2> globalBuffer(hBuffer.size() * gpuDim.shrink<2>((nAxis+1)%3));
+    container::HostBuffer<float3_64, 2> globalBuffer(hBuffer.size() * gpuDim.shrink<2>((nAxis+1)%3));
     gather(globalBuffer, hBuffer, nAxis);
     if(!gather.root()) return;
     std::ofstream file(filename.c_str());
