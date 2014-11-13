@@ -80,11 +80,23 @@ typedef currentSolver::Esirkepov<UsedParticleShape> UsedParticleCurrentSolver;
  */
 typedef particles::pusher::Boris UsedParticlePusher;
 
-///* Ionization Model Configuration ----------------------------------------
-// * 
-// * For development purposes: ---------------------------------------------
-// * - particles::ionizer:None : no particle is ionized
-// */
+/* Ionization Model Configuration ----------------------------------------
+ * 
+ * For development purposes: ---------------------------------------------
+ * - particles::ionizer:None : no particle is ionized
+ * - particles::ionizer:simpleBSI : simple barrier suppression ionization
+ */
 //typedef particles::ionizer::None UsedParticleIonizer;
+
+template<typename T_DestSpecies>
+struct IonizerSimpleBSI 
+{
+
+    template<typename T_SrcSpecies,typename T_ParticleStorage>
+    void operator()(T_SrcSpecies& src, T_ParticleStorage& pst)
+    {
+        src.ionize(pst[typename MakeIdentifier<T_DestSpecies>::type()], uint32_t currentStep);
+    }
+};
 
 }//namespace picongpu

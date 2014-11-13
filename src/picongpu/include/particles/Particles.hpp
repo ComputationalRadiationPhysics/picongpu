@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt, 
+ *                     Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -77,7 +78,7 @@ public:
     
     //Ionization
     template<typename T_Elec>
-    void ionize(uint32_t currentStep, T_Elec electrons);
+    void ionize(T_Elec electrons, uint32_t currentStep);
 
 private:
     SimulationDataId datasetID;

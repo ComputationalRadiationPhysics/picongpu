@@ -266,18 +266,10 @@ public:
 
         laser = new LaserPhysics(cellDescription->getGridLayout());
 
-#if (ENABLE_IONS == 1)
-        ions = new PIC_Ions(cellDescription->getGridLayout(), *cellDescription,
-                PIC_Ions::FrameType::getName());
         /* set the size of the printf buffer to 10MB to get more output
          * - should actually be wrapped with ENABLE_IONIZATION */
         size_t printfBuffer = 1048576 * 100;
         cudaDeviceSetLimit(cudaLimitPrintfFifoSize, printfBuffer);
-#endif
-#if (ENABLE_ELECTRONS == 1)
-        electrons = new PIC_Electrons(cellDescription->getGridLayout(), *cellDescription,
-                PIC_Electrons::FrameType::getName());
-#endif
 
         size_t freeGpuMem(0);
         Environment<>::get().EnvMemoryInfo().getMemoryInfo(&freeGpuMem);
@@ -365,19 +357,10 @@ public:
         (*pushBGField)(fieldB, nvfct::Add(), fieldBackgroundB(fieldB->getUnit()),
                        currentStep, fieldBackgroundB::InfluenceParticlePusher);
 /* Ionization */
-//#if (ENABLE_IONS == 1) && (ENABLE_ELECTRONS == 1) && (ENABLE_IONIZATION == 1)
-/* still old design, @todo should later be removed */
-#if (ENABLE_ELECTRONS == 1)
-        electrons = new PIC_Electrons(cellDescription->getGridLayout(), *cellDescription,
-                PIC_Electrons::FrameType::getName());
-#endif
-
-#if (ENABLE_IONS == 1)        
 //        std::cout << "Begin Ionization of Ions" << std::endl;
-        ForEach<VectorAllSpecies, particles::CallIonize<bmpl::_1>, MakeIdentifier<bmpl::_1> > particleIonize;
-        particleIonize(forward(particleStorage), currentStep, electrons);
-//        std::cout << "End Ionization of Ions" << std::endl;
-#endif  
+        ForEach<VectorAllSpecies, particles::CallIonization<bmpl::_1>, MakeIdentifier<bmpl::_1> > particleIonization;
+        particleIonization(forward(particleStorage), currentStep);
+//        std::cout << "End Ionization of Ions" << std::endl; 
 
 
         EventTask initEvent = __getTransactionEvent();

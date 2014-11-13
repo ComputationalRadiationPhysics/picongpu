@@ -68,8 +68,8 @@ alias(shape);
 /*! alias for particle pusher @see species.param */
 alias(particlePusher);
 
-///*! alias for particle ionizer @see species.param */
-//alias(particleIonizer);
+/*! alias for particle ionizer @see species.param */
+alias(particleIonizer);
 
 /*! alias for particle to field interpolation @see species.param */
 alias(interpolation);

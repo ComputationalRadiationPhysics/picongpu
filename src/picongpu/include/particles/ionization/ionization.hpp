@@ -456,12 +456,12 @@ namespace particleIonizerNone
         };
     } //namespace particleIonizerNone
 
-namespace particleIonizer = particleIonizerNone;
+//namespace particleIonizer = particleIonizerNone;
 
 /* IONIZE (former UPDATE from Particles.tpp) */
 template< typename T_ParticleDescription>
 template< typename T_Elec>
-void Particles<T_ParticleDescription>::ionize( uint32_t, T_Elec electrons)
+void Particles<T_ParticleDescription>::ionize( T_Elec electrons, uint32_t )
 {
     
     typedef typename HasFlag<FrameType,particleIonizer<> >::type hasIonizer;
@@ -476,9 +476,6 @@ void Particles<T_ParticleDescription>::ionize( uint32_t, T_Elec electrons)
     /* margins around the supercell for the interpolation of the field on the cells */
     typedef typename GetMargin<InterpolationScheme>::LowerMargin LowerMargin;
     typedef typename GetMargin<InterpolationScheme>::UpperMargin UpperMargin;
-    
-    /* particle ionization routine */
-//    typedef particleIonizer::ParticleIonizer ParticleIonize;
     
     /* frame ionizer that moves over the frames with the particles and executes an operation on them */
     typedef IonizeParticlesPerFrame<ParticleIonize, MappingDesc::SuperCellSize,

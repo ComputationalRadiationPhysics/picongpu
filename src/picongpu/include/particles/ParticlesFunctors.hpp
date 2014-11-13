@@ -29,6 +29,9 @@
 #include <boost/mpl/plus.hpp>
 #include <boost/mpl/accumulate.hpp>
 
+#include "traits/GetFlagType.hpp"
+#include "identifier/alias.hpp"
+
 namespace picongpu
 {
 
@@ -173,18 +176,20 @@ struct CallIonization
     typedef typename SpeciesName::type SpeciesType;
     typedef typename SpeciesType::FrameType FrameType;
 
-    template<typename T_StorageTuple, typename T_Event>
+    template<typename T_StorageTuple>
     HINLINE void operator()(
                             T_StorageTuple& tuple,
                             const uint32_t currentStep
                             ) const
     {
-        typedef typename HasFlag<FrameType, particleIonizer<> >::type hasPusher;
-        if (hasPusher::value)
+        typedef typename HasFlag<FrameType, particleIonizer<> >::type hasIonizer;
+        if (hasIonizer::value)
         {
             PMACC_AUTO(speciesPtr, tuple[SpeciesName()]);
-
-            speciesPtr->ionize(currentStep, electrons);
+//            speciesPtr->ionize(electrons, currentStep)
+            typedef typename GetFlagType<FrameType,particleIonizer<> >::type::ThisType MyIonizer;
+//            typedef typename GetFlagType<FrameType,particleIonizer<> >::type MyIonizer;
+            MyIonizer()(*speciesPtr);
         }
     }
 };

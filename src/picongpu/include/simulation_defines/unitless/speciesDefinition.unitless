@@ -50,7 +50,7 @@ HDINLINE float_X getMass<typename PIC_Electrons::FrameType>(float_X weighting)
 
 /* Processes that only work on electrons do not need to include chargeState in their call */
 template<>
-HDINLINE float_X getCharge<typename PIC_Electrons::FrameType>(float_X weighting, int chargeState=1)
+HDINLINE float_X getCharge<typename PIC_Electrons::FrameType>(float_X weighting, int chargeState) //default int chargeState=1?
 {
     return Q_EL*weighting*chargeState;
 };
