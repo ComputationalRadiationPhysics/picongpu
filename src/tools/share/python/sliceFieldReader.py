@@ -64,3 +64,27 @@ def readFieldSlices(File):
 
 
 
+if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+    import argparse
+
+    # set up command line argument parser
+    parser = argparse.ArgumentParser(
+        description='''This is just the test case for the python module to load 
+                       data from PIConGPUs SliceFieldPrinter plug-in into python''',
+        epilog="For further questions, ask Richard Pausch.")
+
+    parser.add_argument('file',
+                        type=file,
+                        help="File with data of the SliceFieldPrinter plug-in.")
+
+    args = parser.parse_args()
+
+    # load data from file using this module
+    data = readFieldSlices(args.file)
+    
+    # show data (field_x only)
+    plt.imshow(data[:,:,0])
+    plt.colorbar()
+    plt.show()
+
