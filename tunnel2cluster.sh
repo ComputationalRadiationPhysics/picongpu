@@ -41,4 +41,4 @@ rm -rf testfifo && mkfifo testfifo
 netcat -v -l -u -p 8200 < testfifo | nc localhost 8203 > testfifo &
 
 # start tcp (rivlib data) tunnel
-ssh -L 52000:149.220.4.50:52000 huebl@uts.fz-rossendorf.de -N
+ssh -L 52000:$n_head:52000 $n_login -N
