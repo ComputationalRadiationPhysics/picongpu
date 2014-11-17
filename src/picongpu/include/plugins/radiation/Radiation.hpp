@@ -377,6 +377,7 @@ private:
                     o_bu_step << currentStep - dumpPeriod;
 
                     loadBackup(timeSumArray, std::string("radRestart") + "/" + std::string("radRestart") + "_" + o_bu_step.str() + ".dat");
+                    //readHDF5file(timeSumArray, std::string("radiationHDF5/radAmplitudes_"), currentStep);
                     radRestart = false; // reset restart flag
                 }
 
@@ -471,7 +472,7 @@ private:
         const double six = sizeof(Amplitude)/sizeof(double);
 
         std::ostringstream filename;
-        filename << name << currentStep << ".h5";
+        filename << name << currentStep;
 
         HDF5dataFile.open(filename.str().c_str(), fAttr);
 
@@ -519,6 +520,61 @@ private:
         HDF5dataFile.close();
         std::cout << "rad_output to HDF5" << std::endl;
     }
+
+
+
+
+  void readHDF5file(Amplitude* values, std::string name, const int timeStep)
+    {
+        std::cout << "start reading data" << std::endl;
+        splash::SerialDataCollector HDF5dataFile(1);
+        splash::DataCollector::FileCreationAttr fAttr;
+
+        splash::DataCollector::initFileCreationAttr(fAttr);
+        // why set it to read merged??
+        fAttr.fileAccType = DataCollector::FAT_READ;
+
+        std::ostringstream filename;
+        filename << name << timeStep << "_0_0_0.h5";
+
+        HDF5dataFile.open(filename.str().c_str(), fAttr);
+
+        typename PICToSplash<double>::type radSplashType;
+
+        const std::string dataLabels[] = {"Amplitude/x/Re",
+                                          "Amplitude/x/Im",
+                                          "Amplitude/y/Re",
+                                          "Amplitude/y/Im",
+                                          "Amplitude/z/Re",
+                                          "Amplitude/z/Im"};
+
+        splash::Dimensions componentSize(1,
+                                         radiation_frequencies::N_omega,
+                                         parameters::N_observer);
+
+        const int N_tmpBuffer = radiation_frequencies::N_omega * parameters::N_observer;
+        double* tmpBuffer = new double[N_tmpBuffer];
+
+        for(int ampIndex=0; ampIndex<6; ++ampIndex)
+          {
+            HDF5dataFile.read(timeStep,
+                              dataLabels[ampIndex].c_str(),
+                              componentSize,
+                              tmpBuffer);
+
+            for(int copyIndex = 0; copyIndex < N_tmpBuffer; ++copyIndex)
+              {
+                ((double*)values)[ampIndex + 6*copyIndex] = tmpBuffer[copyIndex];
+              }
+
+          }
+
+        delete[] tmpBuffer;
+        HDF5dataFile.close();
+
+        std::cout << "read rad_output from HDF5" << std::endl;
+    }
+
 
     void writeBackup(Amplitude* values, std::string name)
     {
