@@ -46,6 +46,8 @@
 
 #include "plugins/radiation/Radiation.kernel"
 
+/* libSpash data output */
+#include <splash/splash.h>
 
 namespace picongpu
 {
@@ -381,6 +383,8 @@ private:
                     timeSumArray[i] += result[i];
                 writeFile(timeSumArray, folderTotalRad + "/" + filename_prefix + "_" + o_step.str() + ".dat");
                 writeBackup(timeSumArray, std::string("radRestart") + "/" + std::string("radRestart") + "_" + o_step.str() + ".dat");
+
+                writeHDF5file(timeSumArray, std::string("dummy"));
             }
 
             if (lastRad)
@@ -450,10 +454,53 @@ public:
       t_step << timeStep;
 
       writeBackup(timeSumArray, restartDirectory + "/" + std::string("radRestart") + "_" + t_step.str() + ".dat");
+
     }
 
 
 private:
+
+    void writeHDF5file(Amplitude* values, std::string name)
+    {
+        splash::SerialDataCollector HDF5dataFile(1);
+        splash::DataCollector::FileCreationAttr fAttr;
+
+        splash::DataCollector::initFileCreationAttr(fAttr);
+
+        //        double a = 9.876;
+        //        double vec[5];
+        //        vec[1] = 123.45;
+
+
+        const double six = sizeof(Amplitude)/sizeof(double);
+
+        std::ostringstream filename;
+        filename << "radHDF5_" << currentStep << ".h5";
+        
+        HDF5dataFile.open(filename.str().c_str(), fAttr);
+
+        typename PICToSplash<double>::type radSplashType;
+
+        HDF5dataFile.write(currentStep,
+                           radSplashType,
+                           3,
+                           splash::Selection(splash::Dimensions(six,
+                                                                radiation_frequencies::N_omega,
+                                                                parameters::N_observer)),
+                           "amplitudes",
+                           values);
+
+        //HDF5dataFile.writeAttribute(currentStep,
+        //                            radSplashType,
+        //                            "dataName",
+        //                            "attrName",
+        //                            &a);
+
+        HDF5dataFile.close();
+        std::cout << "rad_output to HDF5" << std::endl;
+
+    }
+
     void writeBackup(Amplitude* values, std::string name)
     {
 
