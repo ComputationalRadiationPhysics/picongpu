@@ -468,38 +468,56 @@ private:
 
         splash::DataCollector::initFileCreationAttr(fAttr);
 
-        //        double a = 9.876;
-        //        double vec[5];
-        //        vec[1] = 123.45;
-
-
         const double six = sizeof(Amplitude)/sizeof(double);
 
         std::ostringstream filename;
         filename << name << currentStep << ".h5";
-        
+
         HDF5dataFile.open(filename.str().c_str(), fAttr);
 
         typename PICToSplash<double>::type radSplashType;
 
-        HDF5dataFile.write(currentStep,
-                           radSplashType,
-                           3,
-                           splash::Selection(splash::Dimensions(six,
-                                                                radiation_frequencies::N_omega,
-                                                                parameters::N_observer)),
-                           "amplitudes",
-                           values);
+        const std::string dataLabels[] = {"Amplitude/x/Re",
+                                          "Amplitude/x/Im",
+                                          "Amplitude/y/Re",
+                                          "Amplitude/y/Im",
+                                          "Amplitude/z/Re",
+                                          "Amplitude/z/Im"};
 
-        //HDF5dataFile.writeAttribute(currentStep,
-        //                            radSplashType,
-        //                            "dataName",
-        //                            "attrName",
-        //                            &a);
+        splash::Dimensions bufferSize(six,
+                                      radiation_frequencies::N_omega,
+                                      parameters::N_observer);
+
+        splash::Dimensions componentSize(1,
+                                         radiation_frequencies::N_omega,
+                                         parameters::N_observer);
+
+        splash::Dimensions stride(6,1,1);
+
+        for(unsigned int ampIndex=0; ampIndex<6; ++ampIndex)
+          {
+            splash::Dimensions offset(ampIndex,0,0);
+            splash::Selection dataSelection(bufferSize,
+                                            componentSize,
+                                            offset,
+                                            stride);
+
+            HDF5dataFile.write(currentStep,
+                               radSplashType,
+                               3,
+                               dataSelection,
+                               dataLabels[ampIndex].c_str(),
+                               values);
+
+            //HDF5dataFile.writeAttribute(currentStep,
+            //                            radSplashType,
+            //                            "dataName",
+            //                            "attrName",
+            //                            &a);
+          }
 
         HDF5dataFile.close();
         std::cout << "rad_output to HDF5" << std::endl;
-
     }
 
     void writeBackup(Amplitude* values, std::string name)
