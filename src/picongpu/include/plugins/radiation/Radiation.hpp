@@ -246,7 +246,9 @@ private:
             if (isMaster && totalRad)
             {
                 fs.createDirectory("radRestart");
+                fs.createDirectory("radiationHDF5");
                 fs.setDirectoryPermissions("radRestart");
+                fs.setDirectoryPermissions("radiationHDF5");
             }
 
 
@@ -384,7 +386,7 @@ private:
                 writeFile(timeSumArray, folderTotalRad + "/" + filename_prefix + "_" + o_step.str() + ".dat");
                 writeBackup(timeSumArray, std::string("radRestart") + "/" + std::string("radRestart") + "_" + o_step.str() + ".dat");
 
-                writeHDF5file(timeSumArray, std::string("dummy"));
+                writeHDF5file(timeSumArray, std::string("radiationHDF5/radAmplitudes_"));
             }
 
             if (lastRad)
@@ -454,7 +456,6 @@ public:
       t_step << timeStep;
 
       writeBackup(timeSumArray, restartDirectory + "/" + std::string("radRestart") + "_" + t_step.str() + ".dat");
-
     }
 
 
@@ -475,7 +476,7 @@ private:
         const double six = sizeof(Amplitude)/sizeof(double);
 
         std::ostringstream filename;
-        filename << "radHDF5_" << currentStep << ".h5";
+        filename << name << currentStep << ".h5";
         
         HDF5dataFile.open(filename.str().c_str(), fAttr);
 
