@@ -143,7 +143,6 @@ public:
     lastStep(0),
     radRestart(false)
     {
-
         Environment<>::get().PluginConnector().registerPlugin(this);
     }
 
@@ -245,7 +244,6 @@ private:
 
             if (isMaster && totalRad)
             {
-                fs.createDirectory("radRestart");
                 fs.createDirectory("radiationHDF5");
                 fs.setDirectoryPermissions("radiationHDF5");
             }
@@ -458,6 +456,19 @@ public:
 
 private:
 
+    static const std::string dataLabels(int index) 
+    {
+      const std::string dataLabelsList[] = {"Amplitude/x/Re",
+                                            "Amplitude/x/Im",
+                                            "Amplitude/y/Re",
+                                            "Amplitude/y/Im",
+                                            "Amplitude/z/Re",
+                                            "Amplitude/z/Im"};
+
+      return dataLabelsList[index];
+    }
+
+
     void writeHDF5file(Amplitude* values, std::string name)
     {
         splash::SerialDataCollector HDF5dataFile(1);
@@ -474,12 +485,6 @@ private:
 
         typename PICToSplash<double>::type radSplashType;
 
-        const std::string dataLabels[] = {"Amplitude/x/Re",
-                                          "Amplitude/x/Im",
-                                          "Amplitude/y/Re",
-                                          "Amplitude/y/Im",
-                                          "Amplitude/z/Re",
-                                          "Amplitude/z/Im"};
 
         splash::Dimensions bufferSize(six,
                                       radiation_frequencies::N_omega,
@@ -503,7 +508,7 @@ private:
                                radSplashType,
                                3,
                                dataSelection,
-                               dataLabels[ampIndex].c_str(),
+                               dataLabels(ampIndex).c_str(),
                                values);
 
             //HDF5dataFile.writeAttribute(currentStep,
@@ -540,13 +545,6 @@ private:
 
         typename PICToSplash<double>::type radSplashType;
 
-        const std::string dataLabels[] = {"Amplitude/x/Re",
-                                          "Amplitude/x/Im",
-                                          "Amplitude/y/Re",
-                                          "Amplitude/y/Im",
-                                          "Amplitude/z/Re",
-                                          "Amplitude/z/Im"};
-
         splash::Dimensions componentSize(1,
                                          radiation_frequencies::N_omega,
                                          parameters::N_observer);
@@ -557,7 +555,7 @@ private:
         for(int ampIndex=0; ampIndex<6; ++ampIndex)
           {
             HDF5dataFile.read(timeStep,
-                              dataLabels[ampIndex].c_str(),
+                              dataLabels(ampIndex).c_str(),
                               componentSize,
                               tmpBuffer);
 
