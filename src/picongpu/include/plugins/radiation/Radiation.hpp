@@ -519,6 +519,9 @@ private:
 
         HDF5dataFile.close();
         std::cout << "rad_output to HDF5" << std::endl;
+        Amplitude UnityAmplitude(1., 0., 0., 0., 0., 0.);
+        const numtype2 factor = UnityAmplitude.calc_radiation() * UNIT_ENERGY * UNIT_TIME ;
+        std::cout << "Factor to radiation intensities: " << factor << std::endl;
     }
 
 
