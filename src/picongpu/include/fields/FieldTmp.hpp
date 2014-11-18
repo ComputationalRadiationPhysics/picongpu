@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -69,7 +69,7 @@ namespace picongpu
         virtual void reset( uint32_t currentStep );
 
         template<class FrameSolver >
-        static UnitValueType getUnit();
+        HDINLINE static UnitValueType getUnit();
 
         static std::string getName();
 

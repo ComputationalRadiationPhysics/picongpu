@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+ *                     Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -271,7 +272,7 @@ namespace picongpu
     }
 
     template<class FrameSolver >
-    typename FieldTmp::UnitValueType
+    HDINLINE typename FieldTmp::UnitValueType
     FieldTmp::getUnit( )
     {
         return FrameSolver().getUnit();

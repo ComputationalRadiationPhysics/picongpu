@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Heiko Burau, Rene Widera, Felix Schmitt
+ * Copyright 2013-2014 Heiko Burau, Rene Widera, Felix Schmitt,
+ *                     Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -42,7 +43,7 @@ private:
     std::string name;
     std::string prefix;
     std::vector<uint32_t> notifyFrequency;
-    std::vector<std::string> fieldName;
+    std::vector<std::string> fileName;
     std::vector<int> plane;
     std::vector<float_X> slicePoint;
     MappingDesc *cellDescription;

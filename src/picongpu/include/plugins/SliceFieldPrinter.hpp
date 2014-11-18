@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Heiko Burau, Rene Widera, Felix Schmitt
+ * Copyright 2013-2014 Heiko Burau, Rene Widera, Felix Schmitt,
+ *                     Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -41,11 +42,12 @@ class SliceFieldPrinter : public ILightweightPlugin
 {
 private:
     uint32_t notifyFrequency;
-    std::string fieldName;
+    bool sliceIsOK;
+    std::string fileName;
     int plane;
     float_X slicePoint;
     MappingDesc *cellDescription;
-    container::DeviceBuffer<float3_X, 2>* dBuffer;
+    container::DeviceBuffer<float3_64, 2>* dBuffer_SI;
 
     void pluginLoad();
     void pluginUnload();

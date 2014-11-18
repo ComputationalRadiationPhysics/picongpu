@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Benjamin Schneider, Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Benjamin Schneider, Felix Schmitt, 
+ *                     Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -128,6 +129,7 @@ private:
     typedef ParticleSpectrum<PIC_Electrons> ElectronSpectrum;
     typedef SliceFieldPrinterMulti<FieldE> SliceFieldEPrinter;
     typedef SliceFieldPrinterMulti<FieldB> SliceFieldBPrinter;
+    typedef SliceFieldPrinterMulti<FieldJ> SliceFieldJPrinter;
 #endif
 
     typedef LiveViewPlugin<PIC_Electrons > LiveImageElectrons;
@@ -195,6 +197,7 @@ private:
         plugins.push_back(new TotalDivJ("change of total charge per timestep (single gpu)", "totalDivJ"));
         plugins.push_back(new SliceFieldEPrinter("FieldE: prints a slice of the E-field", "FieldE"));
         plugins.push_back(new SliceFieldBPrinter("FieldB: prints a slice of the B-field", "FieldB"));
+        plugins.push_back(new SliceFieldJPrinter("FieldJ: prints a slice of the current-field", "FieldJ"));
 
         plugins.push_back(new IntensityPlugin("Intensity", "intensity"));
 #endif
