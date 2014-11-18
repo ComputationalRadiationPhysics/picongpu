@@ -523,10 +523,10 @@ void MainWindow::changeBackgroundcolor()
 
     QWidget* titleWidget = new QWidget(this); /* where this a QMainWindow object */
     ui->dockWidget->setTitleBarWidget( titleWidget );
-    ui->dockWidgetContents->setStyleSheet("background-color: rgb(" + QString::number(m_backgroundColor[0])
-                                                                   + QString::number(m_backgroundColor[1])
-                                                                   + QString::number(m_backgroundColor[2])
-                                                                   + ");");
+    ui->dockWidgetContents->setStyleSheet("background-color: rgb(" + QString::number(m_backgroundColor[0]*255) +
+                                                               "," + QString::number(m_backgroundColor[1]*255) +
+                                                               "," + QString::number(m_backgroundColor[2]*255) +
+                                                               "," + ");");
 
 
     // status bar labels
