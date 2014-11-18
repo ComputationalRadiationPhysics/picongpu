@@ -247,7 +247,6 @@ private:
             {
                 fs.createDirectory("radRestart");
                 fs.createDirectory("radiationHDF5");
-                fs.setDirectoryPermissions("radRestart");
                 fs.setDirectoryPermissions("radiationHDF5");
             }
 
@@ -376,8 +375,7 @@ private:
                     std::stringstream o_bu_step;
                     o_bu_step << currentStep - dumpPeriod;
 
-                    loadBackup(timeSumArray, std::string("radRestart") + "/" + std::string("radRestart") + "_" + o_bu_step.str() + ".dat");
-                    //readHDF5file(timeSumArray, std::string("radiationHDF5/radAmplitudes_"), currentStep);
+                    readHDF5file(timeSumArray, std::string("radiationHDF5/radAmplitudes_"), currentStep);
                     radRestart = false; // reset restart flag
                 }
 
@@ -385,8 +383,6 @@ private:
                 for (unsigned int i = 0; i < elements_amplitude; ++i)
                     timeSumArray[i] += result[i];
                 writeFile(timeSumArray, folderTotalRad + "/" + filename_prefix + "_" + o_step.str() + ".dat");
-                writeBackup(timeSumArray, std::string("radRestart") + "/" + std::string("radRestart") + "_" + o_step.str() + ".dat");
-
                 writeHDF5file(timeSumArray, std::string("radiationHDF5/radAmplitudes_"));
             }
 
@@ -456,7 +452,7 @@ public:
       std::stringstream t_step;
       t_step << timeStep;
 
-      writeBackup(timeSumArray, restartDirectory + "/" + std::string("radRestart") + "_" + t_step.str() + ".dat");
+      writeHDF5file(timeSumArray, restartDirectory + "/" + std::string("radRestart_"));
     }
 
 
@@ -578,42 +574,6 @@ private:
         std::cout << "read rad_output from HDF5" << std::endl;
     }
 
-
-    void writeBackup(Amplitude* values, std::string name)
-    {
-
-        std::ofstream outFile;
-        outFile.open(name.c_str(), std::ofstream::out | std::ofstream::binary);
-        if (!outFile)
-        {
-            std::cerr << "Can't open file [" << name << "] for backup, diasble analyser output. " << std::endl;
-            isMaster = false; // no Master anymore -> no process is able to write
-        }
-        else
-        {
-            outFile.write((char*) values, sizeof (Amplitude) * parameters::N_observer * radiation_frequencies::N_omega);
-        }
-
-        outFile.close();
-    }
-
-    void loadBackup(Amplitude* values, std::string name)
-    {
-
-        std::ifstream inFile;
-        inFile.open(name.c_str(), std::ifstream::in | std::ifstream::binary);
-        if (!inFile)
-        {
-            std::cerr << "Can't open file [" << name << "] for loading backup. " << std::endl;
-        }
-        else
-        {
-            inFile.read((char*) values, sizeof (Amplitude) * parameters::N_observer * radiation_frequencies::N_omega);
-            std::cout << "Radiation: backup files have been loaded." << std::endl;
-        }
-
-        inFile.close();
-    }
 
     /**
      * This functions calls the radiation kernel. It specifies how the
