@@ -458,6 +458,16 @@ private:
 
     static const std::string dataLabels(int index) 
     {
+      /** This method returns hdf5 data structre names
+       *
+       *  Arguments:
+       *  int index - index of Amplitude
+       *
+       *  Return:
+       *  std::string - name
+       *
+       * This method avoids initializing static const string arrays.
+       */
       const std::string dataLabelsList[] = {"Amplitude/x/Re",
                                             "Amplitude/x/Im",
                                             "Amplitude/y/Re",
@@ -471,6 +481,12 @@ private:
 
     void writeHDF5file(Amplitude* values, std::string name)
     {
+      /** Write Amplitude data to HDF5 file
+       *
+       * Arguments:
+       * Amplitude* values - array of complex amplitude values
+       * std::string name - path and beginning of file name to store data to
+       */
         splash::SerialDataCollector HDF5dataFile(1);
         splash::DataCollector::FileCreationAttr fAttr;
 
@@ -530,15 +546,22 @@ private:
 
   void readHDF5file(Amplitude* values, std::string name, const int timeStep)
     {
-        std::cout << "start reading data" << std::endl;
+      /** Read Amplitude data from HDF5 file
+       *
+       * Arguments:
+       * Amplitude* values - array of complex amplitudes to store data in
+       * std::string name - path and beginning of file name with data stored in
+       * const int timeStep - time step to read
+       */
         splash::SerialDataCollector HDF5dataFile(1);
         splash::DataCollector::FileCreationAttr fAttr;
 
         splash::DataCollector::initFileCreationAttr(fAttr);
-        // why set it to read merged??
+
         fAttr.fileAccType = DataCollector::FAT_READ;
 
         std::ostringstream filename;
+        /* add to standard ending added by libSpash for SerialDataCollector */
         filename << name << timeStep << "_0_0_0.h5";
 
         HDF5dataFile.open(filename.str().c_str(), fAttr);
@@ -550,7 +573,7 @@ private:
                                          parameters::N_observer);
 
         const int N_tmpBuffer = radiation_frequencies::N_omega * parameters::N_observer;
-        double* tmpBuffer = new double[N_tmpBuffer];
+        numtype2* tmpBuffer = new numtype2[N_tmpBuffer];
 
         for(int ampIndex=0; ampIndex<6; ++ampIndex)
           {
@@ -561,7 +584,8 @@ private:
 
             for(int copyIndex = 0; copyIndex < N_tmpBuffer; ++copyIndex)
               {
-                ((double*)values)[ampIndex + 6*copyIndex] = tmpBuffer[copyIndex];
+                /* convert data directly because Amplutude is just 6 double */
+                ((numtype2*)values)[ampIndex + 6*copyIndex] = tmpBuffer[copyIndex];
               }
 
           }
@@ -569,7 +593,7 @@ private:
         delete[] tmpBuffer;
         HDF5dataFile.close();
 
-        std::cout << "read rad_output from HDF5" << std::endl;
+        std::cout << "read radiation data from HDF5" << std::endl;
     }
 
 
