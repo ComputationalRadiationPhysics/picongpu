@@ -21,8 +21,6 @@
 
 #pragma once
 
-#pragma once
-
 #include <iostream>
 
 #include "simulation_defines.hpp"
@@ -183,6 +181,11 @@ void Particles<T_ParticleDescription>::update(uint32_t )
           FrameSolver( )
           );
 
+<<<<<<< HEAD
+=======
+    /* shift particles - WHERE TO? HOW?
+     * fill the gaps in the simulation - WITH WHAT? */
+>>>>>>> Delete plugin approach, modify Particles.*
     ParticlesBaseType::template shiftParticles < CORE + BORDER > ( );
 }
 

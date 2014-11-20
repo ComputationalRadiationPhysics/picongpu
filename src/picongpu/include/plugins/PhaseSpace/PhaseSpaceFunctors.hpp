@@ -95,7 +95,8 @@ namespace picongpu
 
             const uint32_t r_bin    = cellIdx[r_dir];
             const float_X weighting = particle[weighting_];
-            const float_X charge    = getCharge( weighting,*frame );
+            int chargeState = particle[chargeState_];
+            const float_X charge    = getCharge( weighting,*frame,chargeState );
             const float_PS particleChargeDensity =
               precisionCast<float_PS>( charge / CELL_VOLUME );
 

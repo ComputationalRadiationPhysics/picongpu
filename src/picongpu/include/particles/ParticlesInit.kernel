@@ -187,6 +187,8 @@ __global__ void kernelFillGridWithParticles(ParBox pb,
             particle[localCellIdx_]= linearThreadIdx;
             particle[weighting_] = macroWeighting;
             particle[momentum_] = float3_X(0.0);
+            // seems to be necessary - won't be initialized in MySimulation.hpp
+            particle[chargeState_] = 1;
 
 #if(ENABLE_RADIATION == 1)
             particle[momentumPrev1_] = momentumPrev1::getDefaultValue();

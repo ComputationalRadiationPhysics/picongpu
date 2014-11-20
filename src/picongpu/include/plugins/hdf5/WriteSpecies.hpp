@@ -220,8 +220,8 @@ private:
         SplashFloat64Type splashType;
 
         const std::string groupName = std::string("particles/") + FrameType::getName();
-
-        const float_64 charge = (float_64)getCharge<FrameType>(1.0);
+        /* << TODO >> What about charge states here? */
+        const float_64 charge = (float_64)getCharge<FrameType>(1.0, 1);
         params->dataCollector->writeAttribute(params->currentStep,
                 splashType, groupName.c_str(), "charge", &charge);
 

@@ -318,6 +318,9 @@ __global__ void kernelMoveAndMarkParticles(ParBox pb,
                                            FrameSolver frameSolver,
                                            Mapping mapper)
 {
+    /* definitions for domain variables, like indices of blocks and threads
+     *  
+     * conversion from block to linear frames */
     typedef typename BlockDescription_::SuperCellSize SuperCellSize;
     const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
 
@@ -370,7 +373,7 @@ __global__ void kernelMoveAndMarkParticles(ParBox pb,
               );
     __syncthreads();
 
-    /*move oder frames and call frame solver*/
+    /*move other frames and call frame solver*/
     while (isValid)
     {
         if (linearThreadIdx < particlesInSuperCell)
@@ -405,6 +408,7 @@ struct PushParticlePerFrame
 
         PMACC_AUTO(particle, frame[localIdx]);
         const float_X weighting = particle[weighting_];
+        int chState = particle[chargeState_];
 
         floatD_X pos = particle[position_];
         const int particleCellIdx = particle[localCellIdx_];
@@ -435,7 +439,7 @@ struct PushParticlePerFrame
              pos,
              mom,
              mass,
-             getCharge<FrameType>(weighting)
+             getCharge<FrameType>(weighting, chState)
              );
         particle[momentum_] = mom;
 

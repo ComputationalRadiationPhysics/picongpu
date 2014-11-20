@@ -291,6 +291,7 @@ public:
         // Note: multiply NUM_EL_PER_PARTICLE again
         //       because of normalization during atomicAdd above
         //       to avoid float overflow for weightings
+        // Edit: is not compatible with charge states from ionization @MarcoGarten
         const float_64 unit = precisionCast<float_64>(NUM_EL_PER_PARTICLE)
             / (cellVolume * unitVolume);
         if (isMaster)

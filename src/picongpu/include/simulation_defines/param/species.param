@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Rene Widera
+ * Copyright 2014 Rene Widera, Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -79,5 +79,24 @@ typedef currentSolver::Esirkepov<UsedParticleShape> UsedParticleCurrentSolver;
  * - particles::pusher::Phot : propagate with c in direction of normalized mom.
  */
 typedef particles::pusher::Boris UsedParticlePusher;
+
+/* Ionization Model Configuration ----------------------------------------
+ * 
+ * For development purposes: ---------------------------------------------
+ * - particles::ionizer:None : no particle is ionized
+ * - particles::ionizer:simpleBSI : simple barrier suppression ionization
+ */
+//typedef particles::ionizer::None UsedParticleIonizer;
+
+//template<typename T_DestSpecies>
+//struct IonizerSimpleBSI 
+//{
+//
+//    template<typename T_SrcSpecies,typename T_ParticleStorage>
+//    void operator()(T_SrcSpecies& src, T_ParticleStorage& pst)
+//    {
+//        src.ionize(pst[typename MakeIdentifier<T_DestSpecies>::type()], uint32_t currentStep);
+//    }
+//};
 
 }//namespace picongpu

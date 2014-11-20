@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Rene Widera
+ * Copyright 2014 Rene Widera, Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -59,12 +59,17 @@ value_identifier(bool, radiationFlag, false);
  * moving window) and is loaded after all other param files)
  */
 value_identifier(DataSpace<simDim>,globalCellIdx_pic,DataSpace<simDim>());
+/** charge state of the particle - only reasonable for ions */
+value_identifier(int,chargeState,1);
 
 /*! alias for particle shape @see species.param */
 alias(shape);
 
 /*! alias for particle pusher @see species.param */
 alias(particlePusher);
+
+/*! alias for particle ionizer @see species.param */
+alias(particleIonizer);
 
 /*! alias for particle to field interpolation @see species.param */
 alias(interpolation);

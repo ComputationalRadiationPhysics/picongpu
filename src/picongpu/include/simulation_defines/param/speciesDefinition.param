@@ -34,13 +34,15 @@
 #include "particles/ParticleDescription.hpp"
 #include <boost/mpl/string.hpp>
 
+#include "compileTime/conversion/TypeToPointerPair.hpp"
+
 namespace picongpu
 {
 
 /*########################### define particle attributes #####################*/
 
 /** describe attributes of a particle*/
-typedef typename MakeSeq<position<position_pic>, momentum, weighting>::type DefaultParticleAttributes;
+typedef typename MakeSeq<position<position_pic>, momentum, weighting, chargeState>::type DefaultParticleAttributes;
 
 
 /** \todo: not nice, we change this later with nice interfaces
@@ -93,12 +95,26 @@ typedef Particles<ParticleDescription<
 
 /*--------------------------- ions -------------------------------------------*/
 
+template<typename T_DestSpecies>
+struct IonizerSimpleBSI 
+{
+
+    template<typename T_SrcSpecies,typename T_ParticleStorage>
+    void operator()(T_SrcSpecies& src, T_ParticleStorage& pst, const uint32_t currentStep)
+    {
+        PMACC_AUTO(electrons,pst[typename MakeIdentifier<T_DestSpecies>::type()]);
+        src.ionize(electrons, currentStep);
+//        src.ionize(pst[typename MakeIdentifier<T_DestSpecies>::type()], uint32_t currentStep);
+    }
+};
+
 typedef particles::shapes::CIC IonShape;
 typedef bmpl::vector<
     particlePusher<UsedParticlePusher>,
     shape<UsedParticleShape>,
     interpolation<UsedField2Particle>,
-    current<UsedParticleCurrentSolver>
+    current<UsedParticleCurrentSolver>,
+    particleIonizer<IonizerSimpleBSI<PIC_Electrons> > 
 > ParticleFlagsIons;
 
 /*define specie ions*/

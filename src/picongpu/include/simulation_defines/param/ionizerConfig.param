@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Rene Widera, Marco Garten
+ * Copyright 2014 Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -20,23 +20,22 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+/**! describe particle ionizer method
+ * Define a solver for ionization with the name "Ionizer"
+ * 
+ * etc.: typedef MyOwnIonizerClass ParticleIonizer;
+ */
 
 namespace picongpu
 {
+    namespace particleIonizerNone
+    {
 
-template<typename T_Frame>
-HDINLINE float_X getCharge(float_X weighting);
+    }
+    
+    namespace particleIonizerSimpleBSI
+    {
+        
+    }
 
-template<typename T_Frame>
-HDINLINE float_X getCharge(float_X weighting, int chargeState);
-
-/* For electrons it would be okay to do that framewise but not for ions
- * because they can differ in their respective charge state. */
-template<typename T_Frame>
-HDINLINE float_X getCharge(float_X weighting,const T_Frame&, int chargeState)
-{
-    return getCharge<T_Frame>(weighting, chargeState);
 }
-
-}// namespace picongpu

@@ -29,6 +29,8 @@
 #include <boost/mpl/plus.hpp>
 #include <boost/mpl/accumulate.hpp>
 
+#include "simulation_defines/param/speciesDefinition.param"
+
 namespace picongpu
 {
 
@@ -162,6 +164,33 @@ struct CallUpdate
             speciesPtr->update(currentStep);
             commEvent += speciesPtr->asyncCommunication(__getTransactionEvent());
             updateEvent += __endTransaction();
+        }
+    }
+};
+
+template<typename T_SpeciesName>
+struct CallIonization
+{
+    typedef T_SpeciesName SpeciesName;
+    typedef typename SpeciesName::type SpeciesType;
+    typedef typename SpeciesType::FrameType FrameType;
+
+    template<typename T_StorageTuple>
+    HINLINE void operator()(
+                            T_StorageTuple& tuple,
+                            const uint32_t currentStep
+                            ) const
+    {
+        typedef typename HasFlag<FrameType, particleIonizer<> >::type hasIonizer;
+        if (hasIonizer::value)
+        {
+            PMACC_AUTO(speciesPtr, tuple[SpeciesName()]);
+//            speciesPtr->ionize(electrons, currentStep)
+//            typedef typename GetFlagType<FrameType,particleIonizer<> >::type::ThisType MyIonizer;
+            IonizerSimpleBSI<PIC_Electrons>()(*speciesPtr, tuple, currentStep);
+            /* equivalent */
+//            IonizerSimpleBSI<PIC_Electrons> MyIonizer;
+//            MyIonizer.operator()(*speciesPtr, tuple);
         }
     }
 };

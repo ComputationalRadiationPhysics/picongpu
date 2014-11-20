@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Rene Widera
+ * Copyright 2014 Rene Widera, Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -32,13 +32,14 @@ namespace picongpu
 template<>
 HDINLINE float_X getMass<typename PIC_Ions::FrameType>(float_X weighting)
 {
+    /* << TODO >> take account for mass loss of ions when electrons leave them during ionization */
     return M_ION*weighting;
 };
 
 template<>
-HDINLINE float_X getCharge<typename PIC_Ions::FrameType>(float_X weighting)
+HDINLINE float_X getCharge<typename PIC_Ions::FrameType>(float_X weighting, int chargeState)
 {
-    return Q_ION*weighting;
+    return Q_ION*weighting*chargeState;
 };
 
 template<>
@@ -47,10 +48,11 @@ HDINLINE float_X getMass<typename PIC_Electrons::FrameType>(float_X weighting)
     return M_EL*weighting;
 };
 
+/* Processes that only work on electrons do not need to include chargeState in their call */
 template<>
-HDINLINE float_X getCharge<typename PIC_Electrons::FrameType>(float_X weighting)
+HDINLINE float_X getCharge<typename PIC_Electrons::FrameType>(float_X weighting, int chargeState) //default int chargeState=1?
 {
-    return Q_EL*weighting;
+    return Q_EL*weighting*chargeState;
 };
 
 } //namespace picongpu

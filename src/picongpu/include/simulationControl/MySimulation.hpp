@@ -266,8 +266,10 @@ public:
 
         laser = new LaserPhysics(cellDescription->getGridLayout());
 
-        ForEach<VectorAllSpecies, particles::CreateSpecies<bmpl::_1>, MakeIdentifier<bmpl::_1> > createSpeciesMemory;
-        createSpeciesMemory(forward(particleStorage), cellDescription);
+        /* set the size of the printf buffer to 10MB to get more output
+         * - should actually be wrapped with ENABLE_IONIZATION */
+        size_t printfBuffer = 1048576 * 100;
+        cudaDeviceSetLimit(cudaLimitPrintfFifoSize, printfBuffer);
 
         size_t freeGpuMem(0);
         Environment<>::get().EnvMemoryInfo().getMemoryInfo(&freeGpuMem);
@@ -354,6 +356,11 @@ public:
                        currentStep, fieldBackgroundE::InfluenceParticlePusher);
         (*pushBGField)(fieldB, nvfct::Add(), fieldBackgroundB(fieldB->getUnit()),
                        currentStep, fieldBackgroundB::InfluenceParticlePusher);
+/* Ionization */
+//        std::cout << "Begin Ionization of Ions" << std::endl;
+        ForEach<VectorAllSpecies, particles::CallIonization<bmpl::_1>, MakeIdentifier<bmpl::_1> > particleIonization;
+        particleIonization(forward(particleStorage), currentStep);
+//        std::cout << "End Ionization of Ions" << std::endl; 
 
 
         EventTask initEvent = __getTransactionEvent();

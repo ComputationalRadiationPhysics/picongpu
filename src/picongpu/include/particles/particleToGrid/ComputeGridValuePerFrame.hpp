@@ -102,12 +102,13 @@ ComputeGridValuePerFrame<T_ParticleShape, calcType>::operator()
     const float_X weighting = particle[weighting_];
     const floatD_X pos = particle[position_];
     const float3_X mom = particle[momentum_];
+    int chState = particle[chargeState_];
 #if(ENABLE_RADIATION == 1)
     const float3_X mom_mt1 = particle[momentumPrev1_];
     const float3_X mom_dt = mom - mom_mt1;
 #endif
     const float_X mass = getMass<FrameType>(weighting);
-    const float_X charge = getCharge<FrameType>(weighting);
+    const float_X charge = getCharge<FrameType>(weighting, chState);
 
     const int particleCellIdx = particle[localCellIdx_];
     const DataSpace<TVecSuperCell::dim> localCell(DataSpaceOperations<TVecSuperCell::dim>::map(superCell,particleCellIdx));

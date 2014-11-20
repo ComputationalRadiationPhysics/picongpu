@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Rene Widera, Marco Garten
+ * Copyright 2014 Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -21,22 +21,18 @@
 #pragma once
 
 #include "simulation_defines.hpp"
+#include "traits/GetFlagType.hpp"
+
+#include "identifier/alias.hpp"
 
 namespace picongpu
 {
 
-template<typename T_Frame>
-HDINLINE float_X getCharge(float_X weighting);
-
-template<typename T_Frame>
-HDINLINE float_X getCharge(float_X weighting, int chargeState);
-
-/* For electrons it would be okay to do that framewise but not for ions
- * because they can differ in their respective charge state. */
-template<typename T_Frame>
-HDINLINE float_X getCharge(float_X weighting,const T_Frame&, int chargeState)
+template<typename T_Species>
+struct GetIonizer
 {
-    return getCharge<T_Frame>(weighting, chargeState);
-}
+    typedef typename GetFlagType<typename T_Species::FrameType, particleIonizer<> >::type::ThisType type;
+};
 
 }// namespace picongpu
+

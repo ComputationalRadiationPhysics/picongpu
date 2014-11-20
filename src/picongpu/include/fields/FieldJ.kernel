@@ -137,9 +137,10 @@ struct ComputeCurrentPerFrame
 
         PMACC_AUTO(particle, frame[localIdx]);
         const float_X weighting = particle[weighting_];
+        int chState = particle[chargeState_];
         const floatD_X pos = particle[position_];
         const int particleCellIdx = particle[localCellIdx_];
-        const float_X charge = getCharge<FrameType>(weighting);
+        const float_X charge = getCharge<FrameType>(weighting, chState);
         const DataSpace<simDim> localCell(DataSpaceOperations<simDim>::template map<TVec > (particleCellIdx));
 
         Velocity velocity;
