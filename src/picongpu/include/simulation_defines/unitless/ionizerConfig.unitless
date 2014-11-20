@@ -40,10 +40,10 @@ namespace picongpu
                 typedef particleIonizerNone::Ionize type;
             };
             
-            struct simpleBSI
-            {
-                typedef particleIonizerSimpleBSI::Ionize<Velocity, Gamma<> > type;
-            };
+//            struct simpleBSI
+//            {
+//                typedef particleIonizerSimpleBSI::Ionize<Velocity, Gamma<> > type;
+//            };
             
         } // namespace ionizer
         

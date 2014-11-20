@@ -27,8 +27,8 @@ namespace picongpu
     /* operations on particles */
     namespace partOp = PMacc::particles::operations;
     
-    template<typename T_parentIon, typename T_childElectron>
-    __device__ void writeElectronIntoFrame(T_parentIon& parentIon,T_childElectron& childElectron)
+    template<typename T_parentIon, typename T_childElectron, class T_parentFrame, class T_childFrame>
+    __device__ void writeElectronIntoFrame(T_parentIon& parentIon,T_childElectron& childElectron,T_parentFrame& parentFrame, T_childFrame& childFrame)
     {
                 
         /* each thread sets the multiMask hard on "particle" (=1) and the charge to 1 */
@@ -46,9 +46,9 @@ namespace picongpu
         PMACC_AUTO(targetElectronClone, partOp::deselect<bmpl::vector3<multiMask, chargeState, momentum> >(childElectron));
         partOp::assign(targetElectronClone, parentIon);
                 
-        const float_X massIon = parentIon.getMass(weighting);
+        const float_X massIon = getMass<T_parentFrame>(weighting);
 //        printf("mI: %e ",massIon);
-        const float_X massElectron = childElectron.getMass(weighting);
+        const float_X massElectron = getMass<T_childFrame>(weighting);
 //        printf("mE: %e ",massElectron);
 //        printf("mR: %f",massIon/massElectron); //1836.152588 nice, awesome
 //        printf("mom: %e ",parentIon[momentum_].y()); 

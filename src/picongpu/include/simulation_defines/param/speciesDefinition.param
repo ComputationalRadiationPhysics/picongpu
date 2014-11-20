@@ -34,6 +34,8 @@
 #include "particles/ParticleDescription.hpp"
 #include <boost/mpl/string.hpp>
 
+#include "compileTime/conversion/TypeToPointerPair.hpp"
+
 namespace picongpu
 {
 
@@ -98,9 +100,11 @@ struct IonizerSimpleBSI
 {
 
     template<typename T_SrcSpecies,typename T_ParticleStorage>
-    void operator()(T_SrcSpecies& src, T_ParticleStorage& pst)
+    void operator()(T_SrcSpecies& src, T_ParticleStorage& pst, const uint32_t currentStep)
     {
-        src.ionize(pst[typename MakeIdentifier<T_DestSpecies>::type()], uint32_t currentStep);
+        PMACC_AUTO(electrons,pst[typename MakeIdentifier<T_DestSpecies>::type()]);
+        src.ionize(electrons, currentStep);
+//        src.ionize(pst[typename MakeIdentifier<T_DestSpecies>::type()], uint32_t currentStep);
     }
 };
 

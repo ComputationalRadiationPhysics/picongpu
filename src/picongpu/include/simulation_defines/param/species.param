@@ -88,15 +88,15 @@ typedef particles::pusher::Boris UsedParticlePusher;
  */
 //typedef particles::ionizer::None UsedParticleIonizer;
 
-template<typename T_DestSpecies>
-struct IonizerSimpleBSI 
-{
-
-    template<typename T_SrcSpecies,typename T_ParticleStorage>
-    void operator()(T_SrcSpecies& src, T_ParticleStorage& pst)
-    {
-        src.ionize(pst[typename MakeIdentifier<T_DestSpecies>::type()], uint32_t currentStep);
-    }
-};
+//template<typename T_DestSpecies>
+//struct IonizerSimpleBSI 
+//{
+//
+//    template<typename T_SrcSpecies,typename T_ParticleStorage>
+//    void operator()(T_SrcSpecies& src, T_ParticleStorage& pst)
+//    {
+//        src.ionize(pst[typename MakeIdentifier<T_DestSpecies>::type()], uint32_t currentStep);
+//    }
+//};
 
 }//namespace picongpu

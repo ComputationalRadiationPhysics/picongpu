@@ -25,7 +25,7 @@
 #include <iostream>
 
 #include "simulation_defines.hpp"
-#include "particles/Particles.hpp" //does that include work?
+#include "particles/Particles.hpp" 
 #include <cassert>
 
 
@@ -51,7 +51,7 @@
 
 #include "fields/numericalCellTypes/YeeCell.hpp"
 
-#include "particles/traits/GetIonizer.hpp"
+//#include "particles/traits/GetIonizer.hpp"
 
 /* includes from Particles.kernel */
 #include "types.h"
@@ -95,7 +95,7 @@ using namespace PMacc;
 
 /* IONIZE PER FRAME (formerly PUSH PER FRAME from Particles.kernel) */
 
-template<class IonizeAlgo, class TVec, class NumericalCellType>
+template<class IonizeAlgo, class TVec, class T_Field2ParticleInterpolation, class NumericalCellType>
 struct IonizeParticlesPerFrame
 {
 
@@ -170,7 +170,7 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
                                       Mapping mapper)
 {
     /* for not mixing assign up with the nVidia functor assign */
-    namespace partOp = particles::operations;
+    namespace partOp = PMacc::particles::operations;
     
     /* definitions for domain variables, like indices of blocks and threads
      *  
@@ -204,7 +204,7 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
     if (linearThreadIdx == 0)
     {
         ionFrame = &(ionBox.getLastFrame(block, isValid));
-        maxParticlesInFrame = SuperCellSize::elements;
+        maxParticlesInFrame = PMacc::math::CT::volume<SuperCellSize>::type::value;
         /* @new - put in if other above does not work */
 //        maxParticlesInFrame = PMacc::math::CT::volume<SuperCellSize>::type::value;
 //        printf("mP1: %d ",maxParticlesInFrame);
@@ -343,9 +343,6 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
              * - sync */
             if ((0 <= electronId) && (electronId < maxParticlesInFrame))
             {
-                /* < TASK > yet to be defined */
-                /*writeElectronIntoFrame(*electronFrame,electronId);*/
-                
                 /* each thread makes the attributes of its ion accessible */
                 PMACC_AUTO(parentIon,((*ionFrame)[linearThreadIdx]));
                 /* each thread initializes an electron if one should be created */
@@ -353,7 +350,7 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
                 
                 /* create an electron in the new electron frame:
                  * - see particles/ionization/ionizationMethods.hpp */
-                writeElectronIntoFrame(parentIon,targetElectronFull);
+                writeElectronIntoFrame(parentIon,targetElectronFull,*ionFrame,*electronFrame);
                 
                 newElectrons -= 1;
             }
@@ -383,8 +380,7 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
             if (electronId >= maxParticlesInFrame)
             {
                 electronId -= maxParticlesInFrame;
-                /*writeElectronIntoFrame(*electronFrame,electronId);*/
-                
+
                 /* each thread makes the attributes of its ion accessible */
                 PMACC_AUTO(parentIon,((*ionFrame)[linearThreadIdx]));
                 /* each thread initializes an electron if one should be produced */
@@ -392,7 +388,7 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
                 
                 /* create an electron in the new electron frame:
                  * - see particles/ionization/ionizationMethods.hpp */
-                writeElectronIntoFrame(parentIon,targetElectronFull);
+                writeElectronIntoFrame(parentIon,targetElectronFull,*ionFrame,*electronFrame);
          
                 newElectrons -= 1;
                 
@@ -404,7 +400,7 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
         if (linearThreadIdx == 0)
         {
             ionFrame = &(ionBox.getPreviousFrame(*ionFrame, isValid));
-            maxParticlesInFrame = SuperCellSize::elements;
+            maxParticlesInFrame = PMacc::math::CT::volume<SuperCellSize>::type::value;
 //            printf("mP2: %d ",maxParticlesInFrame);
         }
         // isParticle = true;
@@ -416,47 +412,49 @@ __global__ void kernelIonizeParticles(ParticlesBox<IONFRAME, simDim> ionBox,
 #include "algorithms/Gamma.hpp"
 #include "algorithms/Velocity.hpp"
 //hard code
-namespace particleIonizerNone
-    {
-        template<class Velocity, class Gamma>
-        struct Ionize
-        {
-
-            template<typename EType, typename BType, typename PosType, typename MomType, typename MassType, typename ChargeType, typename ChargeStateType >
-                    __host__ DINLINE void operator()(
-                                                        const BType bField, /* at t=0 */
-                                                        const EType eField, /* at t=0 */
-                                                        PosType& pos, /* at t=0 */
-                                                        MomType& mom, /* at t=-1/2 */
-                                                        const MassType mass,
-                                                        const ChargeType charge,
-                                                        ChargeStateType& chState)
-            {
-                
-                /*Barrier Suppression Ionization for hydrogenlike helium 
-                 *charge >= 0 is needed because electrons and ions cannot be 
-                 *distinguished, yet.
-                 */
-//                printf("cs: %d ",chState);
-                if (math::abs(eField)*UNIT_EFIELD >= 5.14e7 && chState < 2 && charge >= 0)
-                {
-                    chState = 1 + chState;
-//                    printf("CS: %u ", chState);
-                }
-                
-                /*
-                 *int firstIndex = blockIdx.x * blockIdx.y * blockIdx.z * threadIdx.x * threadIdx.y * threadIdx.z;
-                 *if (firstIndex == 0)
-                 *{
-                 *    printf("Charge State: %u", chState);
-                 *}
-                 */
-                
-            }
-        };
-    } //namespace particleIonizerNone
+//namespace particleIonizerNone
+//    {
+//        template<class Velocity, class Gamma>
+//        struct Ionize
+//        {
+//
+//            template<typename EType, typename BType, typename PosType, typename MomType, typename MassType, typename ChargeType, typename ChargeStateType >
+//                    __host__ DINLINE void operator()(
+//                                                        const BType bField, /* at t=0 */
+//                                                        const EType eField, /* at t=0 */
+//                                                        PosType& pos, /* at t=0 */
+//                                                        MomType& mom, /* at t=-1/2 */
+//                                                        const MassType mass,
+//                                                        const ChargeType charge,
+//                                                        ChargeStateType& chState)
+//            {
+//                
+//                /*Barrier Suppression Ionization for hydrogenlike helium 
+//                 *charge >= 0 is needed because electrons and ions cannot be 
+//                 *distinguished, yet.
+//                 */
+////                printf("cs: %d ",chState);
+//                if (math::abs(eField)*UNIT_EFIELD >= 5.14e7 && chState < 2 && charge >= 0)
+//                {
+//                    chState = 1 + chState;
+////                    printf("CS: %u ", chState);
+//                }
+//                
+//                /*
+//                 *int firstIndex = blockIdx.x * blockIdx.y * blockIdx.z * threadIdx.x * threadIdx.y * threadIdx.z;
+//                 *if (firstIndex == 0)
+//                 *{
+//                 *    printf("Charge State: %u", chState);
+//                 *}
+//                 */
+//                
+//            }
+//        };
+//    } //namespace particleIonizerNone
 
 //namespace particleIonizer = particleIonizerNone;
+
+//#include "simulation_defines/unitless/ionizerConfig.unitless"
 
 /* IONIZE (former UPDATE from Particles.tpp) */
 template< typename T_ParticleDescription>
@@ -468,8 +466,11 @@ void Particles<T_ParticleDescription>::ionize( T_Elec electrons, uint32_t )
     typedef typename GetFlagType<FrameType,particleIonizer<> >::type FoundIonizer;
 
     /* if no ionizer was defined we use IonizerNone as fallback */
-    typedef typename bmpl::if_<hasIonizer,FoundIonizer,particles::ionizer::None >::type SelectIonizer;
-    typedef typename SelectIonizer::type ParticleIonize;
+//    typedef typename bmpl::if_<hasIonizer,FoundIonizer,particles::ionizer::None >::type SelectIonizer;
+    typedef typename particles::ionizer::None::type SelectIonizer;
+    /* that doesn't seem to work for the fallback particleIonizerNone */
+//    typedef typename SelectIonizer::type ParticleIonize;
+    typedef SelectIonizer ParticleIonize;
 
     typedef typename GetFlagType<FrameType,interpolation<> >::type::ThisType InterpolationScheme;
 
