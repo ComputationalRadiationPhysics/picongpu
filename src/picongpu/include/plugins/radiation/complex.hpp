@@ -80,17 +80,17 @@ public:
         return Complex_T(real + other.real, imaginary + other.imaginary);
     }
 	
-	HDINLINE Complex_T operator+(const Complex_T& lhs, const Complex_T& rhs)
+	HDINLINE friend Complex_T operator+(const Complex_T& lhs, const Complex_T& rhs)
     {
         return Complex_T(lhs.real + rhs.real, lhs.imaginary + rhs.imaginary);
     }
 
-	HDINLINE Complex_T operator+(const Complex_T& lhs, const T& rhs)
+	HDINLINE friend Complex_T operator+(const Complex_T& lhs, const T& rhs)
     {
         return Complex_T(lhs.real + rhs, lhs.imaginary);
     }
 	
-	HDINLINE Complex_T operator+(const T& lhs, const Complex_T& rhs)
+	HDINLINE friend Complex_T operator+(const T& lhs, const Complex_T& rhs)
     {
         return Complex_T(lhs + rhs.real, rhs.imaginary);
     }
@@ -102,17 +102,17 @@ public:
         return Complex_T(real - other.real, imaginary - other.imaginary);
     }
 	
-	HDINLINE Complex_T operator-(const Complex_T& lhs, const Complex_T& rhs)
+	HDINLINE friend Complex_T operator-(const Complex_T& lhs, const Complex_T& rhs)
     {
         return Complex_T(lhs.real - rhs.real, lhs.imaginary - rhs.imaginary);
     }
 
-	HDINLINE Complex_T operator-(const Complex_T& lhs, const T& rhs)
+	HDINLINE friend Complex_T operator-(const Complex_T& lhs, const T& rhs)
     {
         return Complex_T(lhs.real - rhs, lhs.imaginary);
     }
 	
-	HDINLINE Complex_T operator-(const T& lhs, const Complex_T& rhs)
+	HDINLINE friend Complex_T operator-(const T& lhs, const Complex_T& rhs)
     {
         return Complex_T(lhs - rhs.real, -rhs.imaginary);
     }
@@ -125,39 +125,70 @@ public:
                          imaginary * other.real + real * other.imaginary);
     }
 
-	HDINLINE Complex_T operator*(const Complex_T& lhs, const Complex_T& rhs)
+	HDINLINE friend Complex_T operator*(const Complex_T& lhs, const Complex_T& rhs)
     {
         return Complex_T(lhs.real * rhs.real - lhs.imaginary * rhs.imaginary,
                          lhs.imaginary * rhs.real + lhs.real * rhs.imaginary);
     }
 	
-	HDINLINE Complex_T operator*(const Complex_T& lhs, const T& rhs)
+	HDINLINE friend Complex_T operator*(const Complex_T& lhs, const T& rhs)
     {
         return Complex_T(lhs.real * rhs, lhs.imaginary * rhs);
     }
 	
-	HDINLINE Complex_T operator*(const T& lhs, const Complex_T& rhs)
+	HDINLINE friend Complex_T operator*(const T& lhs, const Complex_T& rhs)
     {
         return Complex_T(lhs * rhs.real, lhs * rhs.imaginary);
     }
 	
 	// Division
 	
-	HDINLINE Complex_T operator/(const Complex_T& lhs, const T& rhs)
+	HDINLINE friend Complex_T operator/(const Complex_T& lhs, const T& rhs)
     {
         return Complex_T(lhs.real / rhs, lhs.imaginary / rhs);
     }
 	
-	HDINLINE Complex_T operator/(const T& lhs, const Complex_T& rhs)
+	HDINLINE friend Complex_T operator/(const T& lhs, const Complex_T& rhs)
     {
         return Complex_T(lhs * rhs.real/(rhs.real*rhs.real+rhs.imaginary*rhs.imaginary),
                          -lhs * rhs.imaginary/( util::square(rhs.real)+util::square(rhs.imaginary) ));
     }
 
-	HDINLINE Complex_T operator/(const Complex_T& lhs, const Complex_T& rhs)
+	HDINLINE friend Complex_T operator/(const Complex_T& lhs, const Complex_T& rhs)
     {
         return lhs*Complex_T(rhs.real/(rhs.real*rhs.real+rhs.imaginary*rhs.imaginary),
                             -rhs.imaginary/( util::square(rhs.real)+util::square(rhs.imaginary) ));
+    }
+	
+	// Sqare root
+	
+	HDINLINE Complex_T csqrt(const Complex_T& other)
+    {
+		//For some reason calling other.abs() and other.arg() does not work. See next line.
+		//error: the object has type qualifiers that are not compatible with the member function object type is: const Complex_T<T>
+		//Workaround: Reimplementation here.
+		
+		if (other.real==0.0 && other.imaginary==0.0) other.real=0.0;
+		else if (other.real==0.0 && other.imaginary>0.0) real=picongpu::PI/2;
+		else if (other.real==0.0 && other.imaginary<0.0) real=-picongpu::PI/2;
+		else if (other.real<0.0 && other.imaginary==0.0) real=picongpu::PI;
+		else real=atan2(imaginary,real);
+		imaginary=real;
+		
+		real=picongpu::math::cos(picongpu::precisionCast<picongpu::float_X>(real));
+		imaginary=picongpu::math::cos(picongpu::precisionCast<picongpu::float_X>(imaginary));
+		
+		real *= sqrtf(sqrtf(util::square(other.real) + util::square(other.imaginary)));
+        imaginary *= sqrtf(sqrtf(util::square(other.real) + util::square(other.imaginary)));
+		
+		return *this;
+    }
+
+	// Complex exponential function
+	
+	HDINLINE Complex_T cexp(const Complex_T& other)
+    {
+		return Complex_T<T > ().euler(1.0,other.imaginary)*expf(other.real);
     }
 	
 	// Conversion from scalar (assignment)
@@ -209,6 +240,17 @@ public:
         return sqrtf(util::square(real) + util::square(imaginary));
     }
 
+	// Phase of complex number (Note: Branchcut running from -infinity to 0)
+	
+	HDINLINE T arg(void)
+    {
+		if (real==0.0 && imaginary==0.0) return 0.0;
+		else if (real==0.0 && imaginary>0.0) return picongpu::PI/2;
+		else if (real==0.0 && imaginary<0.0) return -picongpu::PI/2;
+		else if (real<0.0 && imaginary==0.0) return picongpu::PI;
+		else return atan2(imaginary,real);
+    }
+	
     // square of absolute value
 
     HDINLINE T abs_square(void)
