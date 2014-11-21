@@ -79,14 +79,44 @@ public:
     {
         return Complex_T(real + other.real, imaginary + other.imaginary);
     }
+	
+	HDINLINE Complex_T operator+(const Complex_T& lhs, const Complex_T& rhs)
+    {
+        return Complex_T(lhs.real + rhs.real, lhs.imaginary + rhs.imaginary);
+    }
 
+	HDINLINE Complex_T operator+(const Complex_T& lhs, const T& rhs)
+    {
+        return Complex_T(lhs.real + rhs, lhs.imaginary);
+    }
+	
+	HDINLINE Complex_T operator+(const T& lhs, const Complex_T& rhs)
+    {
+        return Complex_T(lhs + rhs.real, rhs.imaginary);
+    }
+	
     // difference
 
     HDINLINE Complex_T operator-(const Complex_T& other)
     {
         return Complex_T(real - other.real, imaginary - other.imaginary);
     }
+	
+	HDINLINE Complex_T operator-(const Complex_T& lhs, const Complex_T& rhs)
+    {
+        return Complex_T(lhs.real - rhs.real, lhs.imaginary - rhs.imaginary);
+    }
 
+	HDINLINE Complex_T operator-(const Complex_T& lhs, const T& rhs)
+    {
+        return Complex_T(lhs.real - rhs, lhs.imaginary);
+    }
+	
+	HDINLINE Complex_T operator-(const T& lhs, const Complex_T& rhs)
+    {
+        return Complex_T(lhs - rhs.real, -rhs.imaginary);
+    }
+	
     // multiplication
 
     HDINLINE Complex_T operator*(const Complex_T& other)
@@ -95,6 +125,57 @@ public:
                          imaginary * other.real + real * other.imaginary);
     }
 
+	HDINLINE Complex_T operator*(const Complex_T& lhs, const Complex_T& rhs)
+    {
+        return Complex_T(lhs.real * rhs.real - lhs.imaginary * rhs.imaginary,
+                         lhs.imaginary * rhs.real + lhs.real * rhs.imaginary);
+    }
+	
+	HDINLINE Complex_T operator*(const Complex_T& lhs, const T& rhs)
+    {
+        return Complex_T(lhs.real * rhs, lhs.imaginary * rhs);
+    }
+	
+	HDINLINE Complex_T operator*(const T& lhs, const Complex_T& rhs)
+    {
+        return Complex_T(lhs * rhs.real, lhs * rhs.imaginary);
+    }
+	
+	// Division
+	
+	HDINLINE Complex_T operator/(const Complex_T& lhs, const T& rhs)
+    {
+        return Complex_T(lhs.real / rhs, lhs.imaginary / rhs);
+    }
+	
+	HDINLINE Complex_T operator/(const T& lhs, const Complex_T& rhs)
+    {
+        return Complex_T(lhs * rhs.real/(rhs.real*rhs.real+rhs.imaginary*rhs.imaginary),
+                         -lhs * rhs.imaginary/( util::square(rhs.real)+util::square(rhs.imaginary) ));
+    }
+
+	HDINLINE Complex_T operator/(const Complex_T& lhs, const Complex_T& rhs)
+    {
+        return lhs*Complex_T(rhs.real/(rhs.real*rhs.real+rhs.imaginary*rhs.imaginary),
+                            -rhs.imaginary/( util::square(rhs.real)+util::square(rhs.imaginary) ));
+    }
+	
+	// Conversion from scalar (assignment)
+	
+	HDINLINE Complex_T& operator=(const T& other)
+    {
+		real = other;
+        return *this;
+	}
+
+	// Assignment operator
+	HDINLINE Complex_T& operator=(const Complex_T& other)
+    {
+		real = other.real;
+		imaginary = other.imaginary;
+        return *this;
+	}
+	
     // assign addition
 
     HDINLINE Complex_T& operator+=(const Complex_T& other)
