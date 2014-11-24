@@ -1,6 +1,136 @@
 Change Log / Release Log for PIConGPU
 ================================================================
 
+Open Beta RC6
+-------------
+**Date:** 2014-11-25
+
+This is the 6th release candidate, a *pre-beta* version.
+
+Initial "multiple species" support was added for flexible particles,
+but is yet still limited to two species.
+The checkpoint system was refactored and unified, also incooperating
+extreme high file I/O bandwidth with ADIOS 1.7+ support.
+The JetsonTK1 development kit (32bit ARM host side) is now experimentally
+supported by libPMacc/PIConGPU.
+The *ZigZag* current deposition scheme was implemented providing
+40% to 50% speedup over our optimized Esirkepov implementation.
+
+### Changes to "Open Beta RC5"
+
+**.param file changes:**
+ - Restructured file output control (HDF5/ADIOS), new `fileOutput.param`
+   [#495](https://github.com/ComputationalRadiationPhysics/picongpu/pull/495/files#diff-1)
+ - `componentsConfig.param`: particle pushers and current solvers moved to new files:
+   - `species.param`: general definitions to change all species at once (pusher, current solver)
+   - `pusherConfig.param`: special tweaks for individual particle pushers,
+                           forward declarations restructured
+   - `particleConfig.param`: shapes moved to `species.param`,
+                             still defines initial momentum/temperature
+   - `speciesAttributes.param`: defines *unique* attributes that can
+                                be used across all particle species
+   - `speciesDefinition.param`: finally, assign common attributes from `speciesAttributes.param`
+                                and methos from `species.param` to define individual species,
+                                also defines a general compile time "list" of all available
+                                species
+ - `currentConfig.param`: removed (contained only forward declarations)
+ - `particleDefinition.param`: removed, now in `speciesAttributes.param`
+ - `laserConfig.param`: new polarization/focus sections for plane wave and wave-packet:
+     `git diff --ignore-space-change  beta-rc5..beta-rc6 src/picongpu/include/simulation_defines/param/laserConfig.param`
+ - `memory.param`: remove `TILE_` globals and define general `SuperCellSize` and `MappingDesc` instead #435
+
+**.unitless file changes:**
+ - `fileOutput.unitless`: restructed and moved to `fileOutput.param`
+ - `checkpoint.unitless`: removed some includes
+ - `currentConfig.unitless`: removed
+ - `gasConfig.unitless`: calculate 3D gas density (per volume) and 2D surface charge density (per area) #445
+ - `gridConfig.unitless`: include changed
+ - `laserConfig.unitless`: added ellipsoid for wave packet
+ - `physicalConstatns.unitless`: `GAS_DENSITY_NORMED` fixed for 2D #445
+ - `pusherConfig.unitless`: restructured, according to `pusherConfig.param`
+ - `memory.unitless`: removed #435
+ - `particleDefinition.unitless`: removed
+ - `speciesAttributes.unitless`: added, contains traits to access species attributes (e.g., position)
+ - `speciesDefinition.unitless`: added, contains traits to access quasi-fixed attributes (e.g., charge/mass)
+
+**New Features:**
+ - ZigZag current deposition scheme #436 #476
+ - initial multi/generic particle species support #457 #474 #516
+ - plugins
+   - BinEnergy supports clean restarts without loosing old files #540
+   - phase space now works in 2D3V, with arbitrary super cells and
+     with multiple species #463 #470 #480
+   - radiation: 2D support #527 #530
+ - tools
+   - splash2txt now supports ADIOS files #531 #545
+ - plane wave & wave packet lasers support a variadic polarization now #534 #535
+ - wave packet lasers can be ellipses #434 #446
+ - central restart file to store available checkpoints #455
+ - libPMacc
+   - added `math::erf` #525
+   - experimental 32bit host-side support (JetsonTK1 dev kits) #571
+   - `CT::Vector` refactored and new methods added #473
+   - cuSTL: better 2D container support #461
+
+**Bug Fixes:**
+ - esirkepov + CIC current deposition could cause a deadlock in some situations #475
+ - initialization for `kernelSetDrift` was broken (traversal of frame lists, CUDA 5.5+) #538 #539
+ - the particleToField deposition (e.g. in FieldTmp solvers for analysis)
+   forgot a small fraction of the particle #559
+ - libPMacc
+   - no `static` keyword for non-storage class functions/members (CUDA 6.5+) #483 #484
+   - fix a game-of-life compile error #550
+   - ParticleBox `setAsLastFrame`/`setAsFirstFrame` race condition (PIConGPU was not affected) #514
+ - tools
+   - tbg caused errors on empty variables, tabs, ampersands, comments #485 #488 #528 #529
+ - dt/CFL ratio in stdout corrected #512
+ - 2D live view: fix out-of-mem access #439 #452
+
+**Misc:**
+ - updated module examples and cfg files for:
+   - hypnos (HZDR) #573 #575
+   - taurus (ZIH/TUDD) #558
+   - titan (ORNL) #489 #490 #492
+ - Esirkepov register usage (stack frames) reduced #533
+ - plugins
+   - EnergyFields output refactored and clearified #447 #502
+   - warnings fixed #479
+   - ADIOS
+     - upgraded to 1.7+ support #450 #494
+     - meta attributes synchronized with HDF5 output #499
+ - tools
+   - splash2txt updates
+     - requires libSplash 1.2.3+ #565
+     - handle exceptions more transparently #556
+     - fix listing of data sets #549 #555
+     - fix warnings #553
+   - BinEnergyPlot: refactored #542
+   - memtest: warnings fixed #521
+   - pic2xdmf: refactor XDMF output format #503 #504 #505 #506 #507 #508 #509
+   - paraview config updated for hypnos #493
+ - compile suite
+   - reduce verbosity #467
+   - remove virtual machine and add access-control list #456 #465
+ - upgraded to ADIOS 1.7+ support #450 #494
+ - boost 1.55.0 / nvcc <6.5 work around only applied for affected versions #560
+ - `boost::mkdir` is now used where necessary to increase portability #460
+ - libPMacc
+   - `ForEach` refactored #427
+   - plugins: `notify()` is now called *before* `checkpoint()` and a getter
+              method was added to retrieve the last call's time step #541
+   - `DomainInfo` and `SubGrid` refactored and redefined #416 #537
+   - event system overhead reduced by 3-5% #536
+   - warnings fixed #487 #515
+   - cudaSetDeviceFlags: uses `cudaDeviceScheduleSpin` now #481 #482
+   - `__delete` makro used more consequent #443
+   - static asserts refactored and messages added #437
+ - coding style / white space cleanups #520 #522 #519
+ - git / GitHub / documentation
+   - pyc (compiled python files) are now ignored #526
+   - pull requests: description is mandatory #524
+ - mallocMC cmake `find_package` module added #468
+
+
 Open Beta RC5
 -------------
 **Date:** 2014-06-04
