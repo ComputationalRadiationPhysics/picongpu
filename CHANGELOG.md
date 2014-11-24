@@ -30,7 +30,7 @@ The *ZigZag* current deposition scheme was implemented providing
    - `speciesAttributes.param`: defines *unique* attributes that can
                                 be used across all particle species
    - `speciesDefinition.param`: finally, assign common attributes from `speciesAttributes.param`
-                                and methos from `species.param` to define individual species,
+                                and methods from `species.param` to define individual species,
                                 also defines a general compile time "list" of all available
                                 species
  - `currentConfig.param`: removed (contained only forward declarations)
@@ -40,7 +40,7 @@ The *ZigZag* current deposition scheme was implemented providing
  - `memory.param`: remove `TILE_` globals and define general `SuperCellSize` and `MappingDesc` instead #435
 
 **.unitless file changes:**
- - `fileOutput.unitless`: restructed and moved to `fileOutput.param`
+ - `fileOutput.unitless`: restructured and moved to `fileOutput.param`
  - `checkpoint.unitless`: removed some includes
  - `currentConfig.unitless`: removed
  - `gasConfig.unitless`: calculate 3D gas density (per volume) and 2D surface charge density (per area) #445
@@ -63,7 +63,7 @@ The *ZigZag* current deposition scheme was implemented providing
    - radiation: 2D support #527 #530
  - tools
    - splash2txt now supports ADIOS files #531 #545
- - plane wave & wave packet lasers support a variadic polarization now #534 #535
+ - plane wave & wave packet lasers support user-defined polarization #534 #535
  - wave packet lasers can be ellipses #434 #446
  - central restart file to store available checkpoints #455
  - libPMacc
@@ -93,7 +93,7 @@ The *ZigZag* current deposition scheme was implemented providing
    - titan (ORNL) #489 #490 #492
  - Esirkepov register usage (stack frames) reduced #533
  - plugins
-   - EnergyFields output refactored and clearified #447 #502
+   - EnergyFields output refactored and clarified #447 #502
    - warnings fixed #479
    - ADIOS
      - upgraded to 1.7+ support #450 #494
