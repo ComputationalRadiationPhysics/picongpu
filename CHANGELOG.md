@@ -122,7 +122,7 @@ The *ZigZag* current deposition scheme was implemented providing
    - event system overhead reduced by 3-5% #536
    - warnings fixed #487 #515
    - cudaSetDeviceFlags: uses `cudaDeviceScheduleSpin` now #481 #482
-   - `__delete` makro used more consequent #443
+   - `__delete` makro used more consequently #443
    - static asserts refactored and messages added #437
  - coding style / white space cleanups #520 #522 #519
  - git / GitHub / documentation
