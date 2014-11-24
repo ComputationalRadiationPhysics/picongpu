@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013 Heiko Burau, Rene Widera, Richard Pausch, Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -75,10 +75,10 @@ public:
 
     // addition
 
-    HDINLINE Complex_T operator+(const Complex_T& other)
-    {
-        return Complex_T(real + other.real, imaginary + other.imaginary);
-    }
+    // HDINLINE Complex_T operator+(const Complex_T& other)
+    // {
+        // return Complex_T(real + other.real, imaginary + other.imaginary);
+    // }
 	
 	HDINLINE friend Complex_T operator+(const Complex_T& lhs, const Complex_T& rhs)
     {
@@ -97,10 +97,10 @@ public:
 	
     // difference
 
-    HDINLINE Complex_T operator-(const Complex_T& other)
-    {
-        return Complex_T(real - other.real, imaginary - other.imaginary);
-    }
+    // HDINLINE Complex_T operator-(const Complex_T& other)
+    // {
+        // return Complex_T(real - other.real, imaginary - other.imaginary);
+    // }
 	
 	HDINLINE friend Complex_T operator-(const Complex_T& lhs, const Complex_T& rhs)
     {
@@ -119,11 +119,11 @@ public:
 	
     // multiplication
 
-    HDINLINE Complex_T operator*(const Complex_T& other)
-    {
-        return Complex_T(real * other.real - imaginary * other.imaginary,
-                         imaginary * other.real + real * other.imaginary);
-    }
+    // HDINLINE Complex_T operator*(const Complex_T& other)
+    // {
+        // return Complex_T(real * other.real - imaginary * other.imaginary,
+                         // imaginary * other.real + real * other.imaginary);
+    // }
 
 	HDINLINE friend Complex_T operator*(const Complex_T& lhs, const Complex_T& rhs)
     {
@@ -160,33 +160,20 @@ public:
                             -rhs.imaginary/( util::square(rhs.real)+util::square(rhs.imaginary) ));
     }
 	
-	// Sqare root
-	
-	HDINLINE Complex_T csqrt(const Complex_T& other)
+	HDINLINE static Complex_T<T > csqrt(const Complex_T<T >& other)
     {
-		//For some reason calling other.abs() and other.arg() does not work. See next line.
-		//error: the object has type qualifiers that are not compatible with the member function object type is: const Complex_T<T>
-		//Workaround: Reimplementation here.
-		
-		if (other.real==0.0 && other.imaginary==0.0) other.real=0.0;
-		else if (other.real==0.0 && other.imaginary>0.0) real=picongpu::PI/2;
-		else if (other.real==0.0 && other.imaginary<0.0) real=-picongpu::PI/2;
-		else if (other.real<0.0 && other.imaginary==0.0) real=picongpu::PI;
-		else real=atan2(imaginary,real);
-		imaginary=real;
-		
-		real=picongpu::math::cos(picongpu::precisionCast<picongpu::float_X>(real));
-		imaginary=picongpu::math::cos(picongpu::precisionCast<picongpu::float_X>(imaginary));
-		
-		real *= sqrtf(sqrtf(util::square(other.real) + util::square(other.imaginary)));
-        imaginary *= sqrtf(sqrtf(util::square(other.real) + util::square(other.imaginary)));
-		
-		return *this;
+		Complex_T<T > helper = other;
+		if (other.real<0.0 && other.imaginary==0.0) {
+			return Complex_T<T > (0.0,sqrtf(-helper.real));
+		}
+		else {
+			return sqrtf(helper.abs())*(other+other.abs())/(other+other.abs()).abs();
+		}
     }
-
+	
 	// Complex exponential function
 	
-	HDINLINE Complex_T cexp(const Complex_T& other)
+	HDINLINE static Complex_T<T > cexp(const Complex_T<T >& other)
     {
 		return Complex_T<T > ().euler(1.0,other.imaginary)*expf(other.real);
     }
@@ -235,14 +222,14 @@ public:
 
     // absolute value
 
-    HDINLINE T abs(void)
+    HDINLINE T abs(void) const
     {
         return sqrtf(util::square(real) + util::square(imaginary));
     }
 
 	// Phase of complex number (Note: Branchcut running from -infinity to 0)
 	
-	HDINLINE T arg(void)
+	HDINLINE T arg(void) const
     {
 		if (real==0.0 && imaginary==0.0) return 0.0;
 		else if (real==0.0 && imaginary>0.0) return picongpu::PI/2;
@@ -253,21 +240,21 @@ public:
 	
     // square of absolute value
 
-    HDINLINE T abs_square(void)
+    HDINLINE T abs_square(void) const
     {
         return util::square(real) + util::square(imaginary);
     }
 
     // real part
 
-    HDINLINE T get_real(void)
+    HDINLINE T get_real(void) const
     {
         return real;
     }
 
     // imaginary part
 
-    HDINLINE T get_imag(void)
+    HDINLINE T get_imag(void) const
     {
         return imaginary;
     }
