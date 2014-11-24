@@ -262,7 +262,7 @@ private:
                 fs.setDirectoryPermissions(folderTotalRad);
                 timeSumArray = new Amplitude[elements_amplitude];
                 for (int i = 0; i < elements_amplitude; ++i)
-                    timeSumArray[i] = Amplitude();
+                    timeSumArray[i] = Amplitude::zero();
             }
             if (isMaster && lastRad)
             {

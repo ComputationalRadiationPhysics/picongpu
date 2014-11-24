@@ -40,7 +40,7 @@ public:
         amp_z.euler(vec.z(), sinValue, cosValue);
     }
 
-    // default constructor (initializes all values to zero)
+    // default constructor (does not initialize values!!!)
 
     HDINLINE Amplitude(void)
     {
