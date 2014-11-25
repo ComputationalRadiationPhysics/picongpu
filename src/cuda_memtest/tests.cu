@@ -225,7 +225,7 @@ get_random_num_long(void)
     unsigned int b = rand_r(&seed);
 
     uint64_t ret =  ((uint64_t)a) << 32;
-    ret |= ((unsigned long)b);
+    ret |= ((uint64_t)b);
 
     return ret;
 }
