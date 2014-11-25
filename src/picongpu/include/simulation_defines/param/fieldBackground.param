@@ -45,12 +45,11 @@ namespace picongpu
          * \param currentStep The current time step */
         HDINLINE float3_X
         operator()( const DataSpace<simDim>& cellIdx,
-                    const uint32_t currentStep ) const
+                    const uint32_t currentStep,
+					const DataSpace<simDim> halfSimSize	) const
         {
 			/* For the Yee-Cell shifted fields, obtain the fractional cell index components and add that to the total cell indices. The physical field coordinate origin is in the center of the simulation */
 			::PMacc::math::Vector<floatD_X,simDim> eFieldPositions = picongpu::yeeCell::YeeCell::getEFieldPosition();
-		    const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
-			const DataSpace<simDim> halfSimSize(subGrid.getGlobalDomain().size / 2);
 			eFieldPositions[0] = ((float3_X)cellIdx+eFieldPositions[0]-(float3_X)halfSimSize) * float3_X(SI::CELL_WIDTH_SI,SI::CELL_HEIGHT_SI,SI::CELL_DEPTH_SI); // cellIdx(Ex)
 			eFieldPositions[1] = ((float3_X)cellIdx+eFieldPositions[1]-(float3_X)halfSimSize) * float3_X(SI::CELL_WIDTH_SI,SI::CELL_HEIGHT_SI,SI::CELL_DEPTH_SI); // cellIdx(Ey)
 			eFieldPositions[2] = ((float3_X)cellIdx+eFieldPositions[2]-(float3_X)halfSimSize) * float3_X(SI::CELL_WIDTH_SI,SI::CELL_HEIGHT_SI,SI::CELL_DEPTH_SI); // cellIdx(Ez)
@@ -151,13 +150,11 @@ namespace picongpu
          * \param currentStep The current time step */
         HDINLINE float3_X
         operator()( const DataSpace<simDim>& cellIdx,
-                    const uint32_t currentStep ) const
+                    const uint32_t currentStep,
+					const DataSpace<simDim> halfSimSize	) const
         {
 			/* For the Yee-Cell shifted fields, obtain the fractional cell index components and add that to the total cell indices. The physical field coordinate origin is in the center of the simulation */
 			::PMacc::math::Vector<floatD_X,simDim> bFieldPositions = picongpu::yeeCell::YeeCell::getBFieldPosition();
-		    const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
-			const DataSpace<simDim> globalCellOffset(subGrid.getLocalDomain().offset);
-			const DataSpace<simDim> halfSimSize(subGrid.getGlobalDomain().size / 2);
 			bFieldPositions[0] = ((float3_X)cellIdx+bFieldPositions[0]-(float3_X)halfSimSize) * float3_X(SI::CELL_WIDTH_SI,SI::CELL_HEIGHT_SI,SI::CELL_DEPTH_SI); // cellIdx(Ex)
 			bFieldPositions[1] = ((float3_X)cellIdx+bFieldPositions[1]-(float3_X)halfSimSize) * float3_X(SI::CELL_WIDTH_SI,SI::CELL_HEIGHT_SI,SI::CELL_DEPTH_SI); // cellIdx(Ey)
 			bFieldPositions[2] = ((float3_X)cellIdx+bFieldPositions[2]-(float3_X)halfSimSize) * float3_X(SI::CELL_WIDTH_SI,SI::CELL_HEIGHT_SI,SI::CELL_DEPTH_SI); // cellIdx(Ez)
@@ -307,7 +304,8 @@ namespace picongpu
          * \param currentStep The current time step */
         HDINLINE float3_X
         operator()( const DataSpace<simDim>& cellIdx,
-                    const uint32_t currentStep ) const
+                    const uint32_t currentStep,
+					const DataSpace<simDim> halfSimSize	) const
         {
             /* example: periodicity of 20 microns (=2.0e-5 m) */
             const float_64 period_SI(20.0e-6);

@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Axel Huebl
+ * Copyright 2014 Axel Huebl, Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -43,6 +43,7 @@ namespace cellwiseOperation
      * \tparam T_OpFunctor like assign, add, subtract, ...
      * \tparam T_ValFunctor like "f(x,t)", "0.0", "readFromOtherField", ...
      * \tparam FieldBox field type
+	 * \tparam halfSimSize specifies the vector to the middle of the global simulation volume
      * \tparam Mapping auto attached argument from __picKernelArea call
      */
     template<
@@ -52,16 +53,16 @@ namespace cellwiseOperation
         class Mapping>
     __global__ void
     kernelCellwiseOperation( FieldBox field, T_OpFunctor opFunctor, T_ValFunctor valFunctor, const DataSpace<simDim> totalCellOffset,
-        const uint32_t currentStep, Mapping mapper )
+        const DataSpace<simDim> halfSimSize, const uint32_t currentStep, Mapping mapper )
     {
         const DataSpace<simDim> block( mapper.getSuperCellIndex( DataSpace<simDim>( blockIdx ) ) );
         const DataSpace<simDim> blockCell = block * MappingDesc::SuperCellSize::toRT();
 
         const DataSpace<simDim> threadIndex( threadIdx );
-
+		
         opFunctor( field( blockCell + threadIndex ),
                    valFunctor( blockCell + threadIndex + totalCellOffset,
-                               currentStep )
+                               currentStep, halfSimSize )
                  );
     }
 
@@ -110,10 +111,13 @@ namespace cellwiseOperation
             else if( T_Area == CORE )
                 totalCellOffset += cellDescription.getSuperCellSize() * cellDescription.getBorderSuperCells();
 
+			/** Half the size of the global Simulation volume for centering the coordinate origin  */
+			const DataSpace<simDim> halfSimSize(subGrid.getGlobalDomain().size / 2); //To DO: In the future, should we also include the globalDomain.offset?
+				
             /* start kernel */
             __picKernelArea((kernelCellwiseOperation<T_OpFunctor>), cellDescription, T_Area)
                     (SuperCellSize::toRT().toDim3())
-                    (field->getDeviceDataBox(), opFunctor, valFunctor, totalCellOffset, currentStep);
+                    (field->getDeviceDataBox(), opFunctor, valFunctor, totalCellOffset, halfSimSize, currentStep);
         }
     };
 
