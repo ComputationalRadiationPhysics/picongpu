@@ -185,8 +185,8 @@ if(SCOREP_ENABLE)
     endif(SCOREP_ENABLE)
 
     # modify our flags
-    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} ${SCOREP_LINKFLAGS} -target=compute_node")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SCOREP_COMPILEFLAGS} -target=compute_node")
+    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} ${SCOREP_LINKFLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SCOREP_COMPILEFLAGS}")
 endif(SCOREP_ENABLE)
 
 
@@ -244,13 +244,14 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) 
 
 # work-arounds
-if(Boost_VERSION EQUAL 105500)
-    # see https://svn.boost.org/trac/boost/ticket/9392
+if( (Boost_VERSION EQUAL 105500) AND
+    (CUDA_VERSION VERSION_LESS 6.5) )
+    # Boost Bug https://svn.boost.org/trac/boost/ticket/9392
+    # nvbug #1422182 submission ID #391854
     message(STATUS "Boost: Applying noinline work around")
-    # avoid warning for CMake >= 2.8.12
     set(CUDA_NVCC_FLAGS
       "${CUDA_NVCC_FLAGS} \"-DBOOST_NOINLINE=__attribute__((noinline))\" ")
-endif(Boost_VERSION EQUAL 105500)
+endif()
 
 
 ################################################################################
@@ -336,6 +337,10 @@ find_package(ADIOS 1.6.0)
 
 if(ADIOS_FOUND)
     add_definitions(-DENABLE_ADIOS=1)
+    if(NOT (ADIOS_VERSION VERSION_LESS 1.7.0))
+        message(STATUS "Enable ADIOS data transforms")
+        add_definitions(-DADIOS_TRANSFORMS=1)
+    endif(NOT (ADIOS_VERSION VERSION_LESS 1.7.0))
 
     include_directories(SYSTEM ${ADIOS_INCLUDE_DIRS})
     set(LIBS ${LIBS} ${ADIOS_LIBRARIES})
@@ -387,7 +392,7 @@ include_directories(${PMACC_ROOT_DIR}/include)
 # find libSplash installation
 # prefer static libraries over shared ones (but do not force them)
 set(Splash_USE_STATIC_LIBS ON)
-find_package(Splash 1.2.0 COMPONENTS PARALLEL)
+find_package(Splash 1.2.3 COMPONENTS PARALLEL)
 
 if(Splash_FOUND)
     include_directories(SYSTEM ${Splash_INCLUDE_DIRS})

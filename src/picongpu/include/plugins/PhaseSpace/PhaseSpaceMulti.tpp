@@ -72,7 +72,7 @@ namespace picongpu
              * we correct that during the output of the pAxis range
              * (linearly shrinking the single particle scale again)
              */
-            float_X pRangeMakro_unit = float_X( Species::FrameType::getMass(NUM_EL_PER_PARTICLE) *
+            float_X pRangeMakro_unit = float_X( getMass<typename Species::FrameType>(NUM_EL_PER_PARTICLE) *
                                                 SPEED_OF_LIGHT );
             std::pair<float_X, float_X> new_p_range(
                     this->momentum_range_min.at(i) * pRangeMakro_unit,
@@ -102,25 +102,28 @@ namespace picongpu
             new_elements.momentum = el_momentum;
             new_elements.space = el_space;
 
-            PhaseSpace<AssignmentFunction, Species>* newPS =
-              new PhaseSpace<AssignmentFunction, Species>( this->name,
-                                                           this->prefix,
-                                                           this->notifyPeriod.at(i),
-                                                           new_p_range,
-                                                           new_elements );
+            if( simDim == DIM2 && el_space == AxisDescription::z )
+                std::cerr << "[Plugin] [" + this->name + "] Skip requested output for "
+                          << this->element_space.at(i)
+                          << this->element_momentum.at(i)
+                          << std::endl;
+            else
+            {
+                PhaseSpace<AssignmentFunction, Species>* newPS =
+                  new PhaseSpace<AssignmentFunction, Species>( this->name,
+                                                               this->prefix,
+                                                               this->notifyPeriod.at(i),
+                                                               new_p_range,
+                                                               new_elements );
 
-            this->children.push_back( newPS );
-            this->children.at(i)->setMappingDescription( this->cellDescription );
-            this->children.at(i)->pluginLoad();
+                this->children.push_back( newPS );
+                this->children.at(i)->setMappingDescription( this->cellDescription );
+                this->children.at(i)->pluginLoad();
+            }
         }
 
         /** create dir */
-        PMacc::GridController<simDim>& gc = PMacc::Environment<simDim>::get().GridController();
-        if( gc.getGlobalRank() == 0 )
-        {
-            /** \todo make this a boost filesystem call */
-            mkdir("phaseSpace", 0755);
-        }
+        Environment<simDim>::get().Filesystem().createDirectoryWithPermissions("phaseSpace");
     }
 
     template<class AssignmentFunction, class Species>

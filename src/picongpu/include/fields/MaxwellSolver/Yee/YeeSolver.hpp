@@ -42,9 +42,7 @@
 #include <fields/FieldB.hpp>
 
 #include "fields/FieldManipulator.hpp"
-#include "fields/LaserPhysics.hpp"
-
-#include <fields/MaxwellSolver/Yee/YeeSolver.kernel>
+#include "fields/MaxwellSolver/Yee/YeeSolver.kernel"
 
 namespace picongpu
 {

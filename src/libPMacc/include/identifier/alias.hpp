@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Rene Widera
+ * Copyright 2013-2014 Rene Widera, Felix Schmitt
  *
  * This file is part of libPMacc.
  *
@@ -24,6 +24,7 @@
 
 #include "types.h"
 #include "identifier/identifier.hpp"
+#include <string>
 
 namespace PMacc
 {
@@ -35,12 +36,12 @@ identifier(pmacc_isAlias);
 #define PMACC_alias(name,id)                                                   \
     namespace PMACC_JOIN(placeholder_definition,id) {                          \
         template<typename T_Type=PMacc::pmacc_void,typename T_IsAlias=PMacc::pmacc_isAlias> \
-        struct name:public T_Type                                                   \
+        struct name:public T_Type                                              \
         {                                                                      \
-            typedef T_Type ThisType;                                                \
-            static HDINLINE char* getName()                                    \
+            typedef T_Type ThisType;                                           \
+            static std::string getName()                                       \
             {                                                                  \
-                     return #name;                                             \
+                return std::string(#name);                                     \
             }                                                                  \
         };                                                                     \
     }                                                                          \
@@ -55,17 +56,17 @@ identifier(pmacc_isAlias);
 
 
 /** create an alias
- * 
+ *
  * an alias is a unspecialized type of a identifier or a value_identifier
- * 
+ *
  * @param name name of alias
- * 
- * example: alias(aliesName); //create type varname
- * 
- * to specialized an alies do: aliesName<valueIdentifierName>
- * to create a instance of this alies you can use:
- *      aliesName();   or aliesName
- * 
+ *
+ * example: alias(aliasName); //create type varname
+ *
+ * to specialize an alias do: aliasName<valueIdentifierName>
+ * to create an instance of this alias you can use:
+ *      aliasName();   or aliasName_
+ *
  * get type which is represented by the alias
  *      typedef typename name::ThisType type;
  */

@@ -39,9 +39,14 @@
 #include "MaxwellSolver/Solvers.hpp"
 #include "fields/numericalCellTypes/NumericalCellTypes.hpp"
 
-#include "math/vector/compile-time/Vector.hpp"
+#include "math/Vector.hpp"
 
 #include <list>
+
+#include "particles/traits/GetInterpolation.hpp"
+#include "traits/GetMargin.hpp"
+#include <boost/mpl/accumulate.hpp>
+#include "fields/LaserPhysics.hpp"
 
 namespace picongpu
 {
@@ -53,13 +58,25 @@ fieldB( NULL )
 {
     fieldE = new GridBuffer<ValueType, simDim > ( cellDescription.getGridLayout( ) );
 
+    typedef typename bmpl::accumulate<
+        VectorAllSpecies,
+        typename PMacc::math::CT::make_Int<simDim, 0>::type,
+        PMacc::math::CT::max<bmpl::_1, GetLowerMargin< GetInterpolation<bmpl::_2> > >
+        >::type LowerMarginInterpolation;
+
+    typedef typename bmpl::accumulate<
+        VectorAllSpecies,
+        typename PMacc::math::CT::make_Int<simDim, 0>::type,
+        PMacc::math::CT::max<bmpl::_1, GetUpperMargin< GetInterpolation<bmpl::_2> > >
+        >::type UpperMarginInterpolation;
+    
     /* Calculate the maximum Neighbors we need from MAX(ParticleShape, FieldSolver) */
     typedef typename PMacc::math::CT::max<
-        GetMargin<fieldSolver::FieldToParticleInterpolation>::LowerMargin,
+        LowerMarginInterpolation,
         GetMargin<fieldSolver::FieldSolver, FIELD_E>::LowerMargin
         >::type LowerMargin;
     typedef typename PMacc::math::CT::max<
-        GetMargin<fieldSolver::FieldToParticleInterpolation>::UpperMargin,
+        UpperMarginInterpolation,
         GetMargin<fieldSolver::FieldSolver, FIELD_E>::UpperMargin
         >::type UpperMargin;
 
@@ -83,7 +100,7 @@ fieldB( NULL )
 
 FieldE::~FieldE( )
 {
-    delete fieldE;
+    __delete(fieldE);
 }
 
 SimulationDataId FieldE::getUniqueId()

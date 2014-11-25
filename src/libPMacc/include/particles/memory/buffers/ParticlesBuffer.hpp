@@ -8,6 +8,7 @@
  * the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ *
  * libPMacc is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -33,7 +34,7 @@
 #include "eventSystem/EventSystem.hpp"
 #include "particles/memory/dataTypes/SuperCell.hpp"
 
-#include "math/vector/compile-time/Int.hpp"
+#include "math/Vector.hpp"
 
 #include "particles/boostExtension/InheritGenerators.hpp"
 #include "compileTime/conversion/MakeSeq.hpp"
@@ -170,12 +171,12 @@ public:
      */
     virtual ~ParticlesBuffer()
     {
-        delete superCells;
-        delete frames;
-        delete framesExchanges;
-        delete nextFrames;
-        delete prevFrames;
-        delete exchangeMemoryIndexer;
+        __delete(superCells);
+        __delete(frames);
+        __delete(framesExchanges);
+        __delete(nextFrames);
+        __delete(prevFrames);
+        __delete(exchangeMemoryIndexer);
     }
 
     /**

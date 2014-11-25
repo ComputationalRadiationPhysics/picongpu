@@ -8,6 +8,7 @@
  * the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ *
  * libPMacc is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -28,7 +29,7 @@
 #include "mappings/simulation/GridController.hpp"
 #include "dimensions/GridLayout.hpp"
 #include "mappings/kernel/CudaGridDimRestrictions.hpp"
-#include "math/vector/compile-time/Int.hpp"
+#include "math/Vector.hpp"
 
 namespace PMacc
 {

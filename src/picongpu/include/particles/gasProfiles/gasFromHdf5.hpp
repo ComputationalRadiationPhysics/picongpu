@@ -40,7 +40,7 @@ namespace picongpu
         bool gasSetup(GridBuffer<Type, simDim> &fieldBuffer, Window &window)
         {
             GridController<simDim> &gc = Environment<simDim>::get().GridController();
-            DomainInformation domInfo;
+            const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
             const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(0);
             const uint32_t maxOpenFilesPerNode = 1;
 
@@ -62,19 +62,16 @@ namespace picongpu
 
                 /* set which part of the hdf5 file our MPI rank reads */
                 DataSpace<simDim> globalSlideOffset;
-                globalSlideOffset.y() = numSlides * domInfo.localDomain.size.y();
-
-                DataSpace<simDim> globalOffset(Environment<simDim>::get().SubGrid().
-                        getSimulationBox().getGlobalOffset());
+                globalSlideOffset.y() = numSlides * localDomain.size.y();
 
                 Dimensions domainOffset(0, 0, 0);
                 for (uint32_t d = 0; d < simDim; ++d)
-                    domainOffset[d] = globalOffset[d] + globalSlideOffset[d];
+                    domainOffset[d] = localDomain.offset[d] + globalSlideOffset[d];
 
                 if (gc.getPosition().y() == 0)
                     domainOffset[1] += window.globalDimensions.offset.y();
 
-                DataSpace<simDim> localDomainSize = domInfo.localDomain.size;
+                DataSpace<simDim> localDomainSize = localDomain.size;
                 Dimensions domainSize(1, 1, 1);
                 for (uint32_t d = 0; d < simDim; ++d)
                     domainSize[d] = localDomainSize[d];
@@ -92,7 +89,7 @@ namespace picongpu
                 Dimensions fileAccessOffset(0, 0, 0);
 
                 /* For each dimension, compute how file domain and local simulation domain overlap
-                 * and which sizes and offsets are required for loading data from the file. 
+                 * and which sizes and offsets are required for loading data from the file.
                  **/
                 for (uint32_t d = 0; d < simDim; ++d)
                 {
@@ -177,7 +174,7 @@ namespace picongpu
 
                     __delete(tmpBfr);
                 }
-                
+
                 pdc.close();
 
                 /* copy host data to the device */
@@ -194,7 +191,7 @@ namespace picongpu
         }
 
         /** Load the gas density from fieldTmp
-         * 
+         *
          * @param pos as DIM-D length vector offset to global left top front cell
          * @param cellIdx local cell id
          * @param fieldTmp DataBox accessing for fieldTmp

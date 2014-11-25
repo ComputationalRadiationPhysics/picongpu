@@ -21,8 +21,7 @@
 #pragma once
 
 #include "types.h"
-#include "mappings/simulation/SubGrid.hpp"
-#include "simulationControl/Selection.hpp"
+#include "mappings/simulation/Selection.hpp"
 
 namespace picongpu
 {

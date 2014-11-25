@@ -39,6 +39,6 @@ namespace picongpu
     const double B_Z_SI = 0.0; //unit: Tesla = Vs/m^2
 
     // Offset of particle in cells 
-    const unsigned int OneParticleOffset = 2500;
+    const unsigned int OneParticleOffset = 1000;
 }
 

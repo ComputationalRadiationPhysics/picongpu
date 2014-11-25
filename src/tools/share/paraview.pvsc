@@ -31,6 +31,7 @@
 \#PBS -l walltime=T_WALLTIME\\n
 \#PBS -N pvserver\\n
 \#PBS -l nodes=NUM_NODES:ppn=NUM_PPN\\n
+\#PBS -W x=NACCESSPOLICY:SINGLETASK\\n
 \#PBS -d .\\n
 \#PBS -o stdout\\n
 \#PBS -e stderr\\n

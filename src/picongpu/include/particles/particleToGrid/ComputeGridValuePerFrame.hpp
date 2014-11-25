@@ -25,7 +25,7 @@
 #include "simulation_defines.hpp"
 #include "types.h"
 
-#include "math/vector/compile-time/Vector.hpp"
+#include "math/Vector.hpp"
 #include "particles/particleToGrid/ComputeGridValuePerFrame.def"
 
 #include "algorithms/Gamma.hpp"
@@ -106,8 +106,8 @@ ComputeGridValuePerFrame<T_ParticleShape, calcType>::operator()
     const float3_X mom_mt1 = particle[momentumPrev1_];
     const float3_X mom_dt = mom - mom_mt1;
 #endif
-    const float_X mass = frame.getMass(weighting);
-    const float_X charge = frame.getCharge(weighting);
+    const float_X mass = getMass<FrameType>(weighting);
+    const float_X charge = getCharge<FrameType>(weighting);
 
     const int particleCellIdx = particle[localCellIdx_];
     const DataSpace<TVecSuperCell::dim> localCell(DataSpaceOperations<TVecSuperCell::dim>::map(superCell,particleCellIdx));
@@ -136,11 +136,11 @@ ComputeGridValuePerFrame<T_ParticleShape, calcType>::operator()
     const DataSpace<simDim> lowMargin(LowerMargin().toRT());
     const DataSpace<simDim> upMargin(UpperMargin().toRT());
 
-    const DataSpace<simDim> marginSpace(upMargin + lowMargin);
+    const DataSpace<simDim> marginSpace(upMargin + lowMargin + 1);
 
     const int numWriteCells = marginSpace.productOfComponents();
 
-    for (int i = 0; i <= numWriteCells; ++i)
+    for (int i = 0; i < numWriteCells; ++i)
     {
         /* multidimensionalIndex is only positive: defined range = [0,LowerMargin+UpperMargin]*/
         const DataSpace<simDim> multidimensionalIndex = DataSpaceOperations<simDim>::map(marginSpace, i);

@@ -39,7 +39,11 @@
 #include "MaxwellSolver/Solvers.hpp"
 #include "fields/numericalCellTypes/NumericalCellTypes.hpp"
 
-#include "math/vector/compile-time/Vector.hpp"
+#include "math/Vector.hpp"
+
+#include <boost/mpl/accumulate.hpp>
+#include "particles/traits/GetInterpolation.hpp"
+#include "traits/GetMargin.hpp"
 
 namespace picongpu
 {
@@ -57,16 +61,61 @@ namespace picongpu
          *  Problem: buffers don't allow "bigger" exchange during run time.
          *           so let's stay with the maximum guards.
          */
-
         const DataSpace<simDim> coreBorderSize = cellDescription.getGridLayout( ).getDataSpaceWithoutGuarding( );
 
-        typedef picongpu::FieldToParticleInterpolationNative<
-            speciesParticleShape::ParticleShape,
-            AssignedTrilinearInterpolation> maxMarginsFrameSolver;
+        /* ------------------ lower margin  ----------------------------------*/
+        typedef typename bmpl::accumulate<
+            VectorAllSpecies,
+            typename PMacc::math::CT::make_Int<simDim, 0>::type,
+            PMacc::math::CT::max<bmpl::_1, GetLowerMargin< GetInterpolation<bmpl::_2> > >
+        >::type SpeciesLowerMargin;
 
-        /* The maximum Neighbors we need will be given by the ParticleShape */
-        typedef typename GetMargin<maxMarginsFrameSolver>::LowerMargin LowerMargin;
-        typedef typename GetMargin<maxMarginsFrameSolver>::UpperMargin UpperMargin;
+        typedef typename bmpl::accumulate<
+            FieldTmpSolvers,
+            typename PMacc::math::CT::make_Int<simDim, 0>::type,
+            PMacc::math::CT::max<bmpl::_1, GetLowerMargin< bmpl::_2 > >
+        >::type FieldTmpLowerMargin;
+
+        typedef typename PMacc::math::CT::max<
+            SpeciesLowerMargin,
+            FieldTmpLowerMargin>::type SpeciesFieldTmpLowerMargin;
+
+        typedef typename PMacc::math::CT::max<
+            GetMargin<fieldSolver::FieldSolver, FIELD_B>::LowerMargin,
+            GetMargin<fieldSolver::FieldSolver, FIELD_E>::LowerMargin>::type
+            FieldSolverLowerMargin;
+
+        typedef typename PMacc::math::CT::max<
+            SpeciesFieldTmpLowerMargin,
+            FieldSolverLowerMargin>::type LowerMargin;
+
+
+        /* ------------------ upper margin  -----------------------------------*/
+
+        typedef typename bmpl::accumulate<
+            VectorAllSpecies,
+            typename PMacc::math::CT::make_Int<simDim, 0>::type,
+            PMacc::math::CT::max<bmpl::_1, GetUpperMargin< GetInterpolation<bmpl::_2> > >
+        >::type SpeciesUpperMargin;
+
+        typedef typename bmpl::accumulate<
+            FieldTmpSolvers,
+            typename PMacc::math::CT::make_Int<simDim, 0>::type,
+            PMacc::math::CT::max<bmpl::_1, GetUpperMargin< bmpl::_2 > >
+        >::type FieldTmpUpperMargin;
+
+        typedef typename PMacc::math::CT::max<
+            SpeciesUpperMargin,
+            FieldTmpUpperMargin>::type SpeciesFieldTmpUpperMargin;
+
+        typedef typename PMacc::math::CT::max<
+            GetMargin<fieldSolver::FieldSolver, FIELD_B>::UpperMargin,
+            GetMargin<fieldSolver::FieldSolver, FIELD_E>::UpperMargin>::type
+            FieldSolverUpperMargin;
+
+        typedef typename PMacc::math::CT::max<
+            SpeciesFieldTmpUpperMargin,
+            FieldSolverUpperMargin>::type UpperMargin;
 
         const DataSpace<simDim> originGuard( LowerMargin( ).toRT( ) );
         const DataSpace<simDim> endGuard( UpperMargin( ).toRT( ) );

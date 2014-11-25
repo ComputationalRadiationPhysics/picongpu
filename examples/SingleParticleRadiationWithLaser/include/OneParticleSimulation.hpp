@@ -48,13 +48,8 @@
 
 #include <assert.h>
 
-#include "particles/Species.hpp"
-
 #include "plugins/PluginController.hpp"
-
 #include "particles/ParticlesInitOneParticle.hpp"
-
-#include "particles/Species.hpp"
 
 
 namespace picongpu
@@ -92,17 +87,17 @@ public:
 
         //add one particle in simulation
         //
-        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
 
-        const DataSpace<simDim> halfSimSize(simBox.getGlobalSize() / 2);
+        const DataSpace<simDim> halfSimSize(subGrid.getGlobalDomain().size / 2);
 
-        GridLayout<DIM3> layout(simBox.getLocalSize(), MappingDesc::SuperCellSize::toRT());
+        GridLayout<simDim> layout(subGrid.getLocalDomain().size, MappingDesc::SuperCellSize::toRT());
         MappingDesc cellDescription = MappingDesc(layout.getDataSpace(), GUARD_SIZE, GUARD_SIZE);
 
-        DataSpace<DIM3> centerXZPlan(halfSimSize);
+        DataSpace<simDim> centerXZPlan(halfSimSize);
         centerXZPlan.y() = OneParticleOffset;
 
-        ParticlesInitOneParticle<PIC_Electrons>::addOneParticle(*(this->electrons),
+        ParticlesInitOneParticle<PIC_Electrons>::addOneParticle(*particleStorage[TypeAsIdentifier<PIC_Electrons>()],
                                                                 cellDescription,
                                                                 centerXZPlan);
 
@@ -142,26 +137,15 @@ public:
     {
         fieldJ->clear();
 
-#if (ENABLE_IONS == 1)
-        __startTransaction(__getTransactionEvent());
-        //std::cout << "Begin update Ions" << std::endl;
-        ions->update(currentStep);
-        //std::cout << "End update Ions" << std::endl;
-        EventTask eRecvIons = ions->asyncCommunication(__getTransactionEvent());
-        EventTask eIons = __endTransaction();
-#endif
 #if (ENABLE_ELECTRONS == 1)
         __startTransaction(__getTransactionEvent());
         //std::cout << "Begin update Electrons" << std::endl;
-        electrons->update(currentStep);
+        particleStorage[TypeAsIdentifier<PIC_Electrons>()]->update(currentStep);
         //std::cout << "End update Electrons" << std::endl;
-        EventTask eRecvElectrons = electrons->asyncCommunication(__getTransactionEvent());
+        EventTask eRecvElectrons = particleStorage[TypeAsIdentifier<PIC_Electrons>()]->asyncCommunication(__getTransactionEvent());
         EventTask eElectrons = __endTransaction();
 #endif
 
-#if (ENABLE_IONS == 1)
-        __setTransactionEvent(eRecvIons + eIons);
-#endif
 #if (ENABLE_ELECTRONS == 1)
         __setTransactionEvent(eRecvElectrons + eElectrons);
 
@@ -175,15 +159,14 @@ public:
 
     virtual void movingWindowCheck(uint32_t currentStep)
     {
-
-        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
-        GridLayout<DIM3> gridLayout(simBox.getLocalSize(), MappingDesc::SuperCellSize::toRT());
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+        GridLayout<simDim> gridLayout(subGrid.getLocalDomain().size, MappingDesc::SuperCellSize::toRT());
         if (MovingWindow::getInstance().slideInCurrentStep(currentStep))
         {
             GridController<simDim>& gc = Environment<simDim>::get().GridController();
             if (gc.slide())
             {
-                electrons->reset(currentStep);
+                particleStorage[TypeAsIdentifier<PIC_Electrons>()]->reset(currentStep);
                 //set E field
                 //
                 float3_X tmpE;

@@ -1,24 +1,25 @@
 /**
  * Copyright 2013 Heiko Burau, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #ifndef CURSOR_CT_SAVECURSOR_HPP
 #define CURSOR_CT_SAVECURSOR_HPP
 
@@ -46,21 +47,21 @@ public:
     HDINLINE SafeCursor(const Cursor& cursor)
         : Cursor(cursor), offset(math::Int<dim>(0))
     {}
-    
+
     HDINLINE
     typename Cursor::type operator*()
     {
         checkValidity();
         return Cursor::operator*();
     }
-    
+
     HDINLINE
     typename boost::add_const<typename Cursor::type>::type operator*() const
     {
         checkValidity();
         return Cursor::operator*();
     }
-    
+
     template<typename Jump>
     HDINLINE
     This operator()(const Jump& jump) const
@@ -69,35 +70,35 @@ public:
         result.offset = this->offset + jump;
         return result;
     }
-    
+
     HDINLINE
     This operator()(int x) const
     {
         return (*this)(math::Int<1>(x));
     }
-    
+
     HDINLINE
     This operator()(int x, int y) const
     {
         return (*this)(math::Int<2>(x, y));
     }
-    
+
     HDINLINE
     This operator()(int x, int y, int z) const
     {
         return (*this)(math::Int<3>(x, y, z));
     }
-    
+
     HDINLINE void operator++() {this->jump[0]++; Cursor::operator++;}
     HDINLINE void operator--() {this->jump[0]--; Cursor::operator--;}
-    
+
     template<typename Jump>
     HDINLINE
     typename Cursor::type operator[](const Jump& jump)
     {
         return *((*this)(jump));
     }
-    
+
     template<typename Jump>
     HDINLINE
     typename Cursor::type operator[](const Jump& jump) const
@@ -112,14 +113,14 @@ private:
         {
             if(this->offset[i] < LowerExtent().toRT()[i] ||
                this->offset[i] > UpperExtent().toRT()[i])
-                printf("error[cursor]: index %d out of range: %d is not within [%d, %d]\n", 
+                printf("error[cursor]: index %d out of range: %d is not within [%d, %d]\n",
                     i, this->offset[i], LowerExtent().toRT()[i], UpperExtent().toRT()[i]);
         }
     }
 };
 
 template<typename Cursor, typename LowerExtent, typename UpperExtent>
-HDINLINE SafeCursor<Cursor, LowerExtent, UpperExtent> 
+HDINLINE SafeCursor<Cursor, LowerExtent, UpperExtent>
 make_SafeCursor(const Cursor& cursor, LowerExtent, UpperExtent)
 {
     return SafeCursor<Cursor, LowerExtent, UpperExtent>(cursor);

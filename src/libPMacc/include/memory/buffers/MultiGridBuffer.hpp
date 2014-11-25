@@ -1,24 +1,25 @@
 /**
  * Copyright 2013 Heiko Burau, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 #pragma once
 
@@ -59,7 +60,7 @@ template<typename Type_, uint32_t communicationTag_ = 0, bool sizeOnDevice_ = fa
  * @tparam Type_ datatype for internal Host- and DeviceBuffer
  * @tparam DIM dimension of the buffers
  * @tparam BufferNames a class with a enum with the name "Names" and member with the name "Count" with number of elements in Names
- * etc.:    
+ * etc.:
  *  struct Mem
  *  {
  *    enum Names{VALUE1,VALUE2};
@@ -88,7 +89,7 @@ public:
      * @param firstCommunicationTag optional value which can be used to tag ('name') this buffer in communications
      * @param sizeOnDevice if true, size information exists on device, too.
      */
-    MultiGridBuffer(const GridLayout<DIM>& gridLayout, bool sizeOnDevice = false)
+    MultiGridBuffer(const GridLayout<DIM>& gridLayout, bool sizeOnDevice = false) : blobDeviceBuffer(NULL),blobHostBuffer(NULL)
     {
         init(gridLayout, sizeOnDevice);
     }
@@ -100,7 +101,7 @@ public:
      * @param firstCommunicationTag optional value which can be used to tag ('name') this buffer in communications
      * @param sizeOnDevice if true, size information exists on device, too.
      */
-    MultiGridBuffer(DataSpace<DIM>& dataSpace, bool sizeOnDevice = false)
+    MultiGridBuffer(DataSpace<DIM>& dataSpace, bool sizeOnDevice = false) : blobDeviceBuffer(NULL),blobHostBuffer(NULL)
     {
         init(GridLayout<DIM > (dataSpace), sizeOnDevice);
     }
@@ -137,6 +138,8 @@ public:
         {
             __delete(gridBuffers[i]);
         }
+        __delete(blobDeviceBuffer);
+        __delete(blobHostBuffer);
     }
 
     /**

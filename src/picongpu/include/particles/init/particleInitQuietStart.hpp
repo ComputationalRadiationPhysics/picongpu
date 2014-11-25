@@ -1,21 +1,21 @@
 /**
  * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 
@@ -43,7 +43,7 @@ public:
     }
 
     /** Distributes the initial particles lattice-like within the cell.
-     * 
+     *
      * @param rng a reference to an initialized, UNIFORM random number generator
      * @param totalNumParsPerCell the total number of particles to init for this cell
      * @param curParticle the number of this particle: [0, totalNumParsPerCell-1]
@@ -70,10 +70,10 @@ public:
         return floatD_X(precisionCast<float_X>(inCellCoordinate) * spacing + spacing * float_X(0.5));
     }
 
-    /** If the particles to initialize (numParsPerCell) end up with a 
+    /** If the particles to initialize (numParsPerCell) end up with a
      *  related particle weighting (macroWeighting) below MIN_WEIGHTING,
      *  reduce the number of particles if possible to satisfy this condition.
-     * 
+     *
      * @param numParsPerCell the intendet number of particles for this cell
      * @param realElPerCell  the number of real electrons in this cell
      * @return macroWeighting the intended weighting per macro particle

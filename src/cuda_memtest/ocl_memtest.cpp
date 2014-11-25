@@ -22,11 +22,11 @@ unsigned int exit_on_error = 0;
 
 #define MAX_KERNEL_FILE_SIZE (1024*1024)
 
-char hostname[64];     
+char hostname[64];
 char* kernel_source;
 
 char*
-print_cl_errstring(cl_int err) 
+print_cl_errstring(cl_int err)
 {
   switch (err) {
   case CL_SUCCESS:                          return strdup("Success!");
@@ -77,7 +77,7 @@ print_cl_errstring(cl_int err)
   case CL_INVALID_MIP_LEVEL:                return strdup("Invalid mip-map level");
   default:                                  return strdup("Unknown");
   }
-} 
+}
 
 const char* device_type_str(cl_device_type type)
 {
@@ -163,7 +163,7 @@ allocate_device_mem(memtest_control_t* mc)
   cl_command_queue queue = mc->queue;
   cl_int rc;
   
-  mc->err_count = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(cl_uint), NULL, &rc);CLERR;  
+  mc->err_count = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(cl_uint), NULL, &rc);CLERR;
   mc->err_addr = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(cl_ulong)*MAX_ERR_RECORD_COUNT, NULL, &rc); CLERR;
   mc->err_expect = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(cl_ulong)*MAX_ERR_RECORD_COUNT, NULL, &rc); CLERR;
   mc->err_current = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(cl_ulong)*MAX_ERR_RECORD_COUNT, NULL, &rc); CLERR;
@@ -173,7 +173,7 @@ allocate_device_mem(memtest_control_t* mc)
   cl_ulong err_count= 0;
   rc = clEnqueueWriteBuffer(queue, mc->err_count, CL_TRUE, 0, sizeof(cl_uint), &err_count, 0, NULL, NULL); CLERR;
   
-  cl_ulong msize;  
+  cl_ulong msize;
   rc = clGetDeviceInfo(device, CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(msize), &msize, NULL);
   CLERR;
   
@@ -305,7 +305,7 @@ main(const int argc, const char **argv)
   }
 
 
-  cl_platform_id clSelectedPlatformID = NULL; 
+  cl_platform_id clSelectedPlatformID = NULL;
   cl_int rc = oclGetPlatformID (&clSelectedPlatformID);CLERR;
   
   char strbuf[128];
@@ -354,7 +354,7 @@ main(const int argc, const char **argv)
   cl_context contexts[MAX_NUM_DEVICES];
   for(i=starti;i < endi;i++){
     contexts[i]= clCreateContext(0, 1, &devices[i], NULL, NULL, NULL);
-    if (contexts[i] == (cl_context)0){ 
+    if (contexts[i] == (cl_context)0){
       printf("ERROR: creating context from GPU failed\n");
       exit(1);
     }
@@ -363,7 +363,7 @@ main(const int argc, const char **argv)
   
   cl_command_queue queues[MAX_NUM_DEVICES];
   for(i=starti;i < endi;i++){
-    queues[i] = clCreateCommandQueue(contexts[i], devices[i], CL_QUEUE_PROFILING_ENABLE,NULL); 
+    queues[i] = clCreateCommandQueue(contexts[i], devices[i], CL_QUEUE_PROFILING_ENABLE,NULL);
     if (queues[i] == (cl_command_queue)0){
       printf("creating command queue failed\n");
       exit(1);
@@ -389,9 +389,9 @@ main(const int argc, const char **argv)
   for(i=starti;i < endi;i++){
     memtest_ctl[i].context = contexts[i];
     memtest_ctl[i].device_idx = i;
-    memtest_ctl[i].device = devices[i];    
+    memtest_ctl[i].device = devices[i];
     memtest_ctl[i].queue = queues[i];
-    allocate_device_mem(&memtest_ctl[i]);    
+    allocate_device_mem(&memtest_ctl[i]);
     memtest_ctl[i].program= programs[i];
   }
   
@@ -403,9 +403,9 @@ main(const int argc, const char **argv)
   while(loop_count < 2){
     for(i=0;i < device_count; i++){
       memtest_control_t * mc = &memtest_ctl[i];
-      printf("Running tests  in device %d\n", i); 
+      printf("Running tests  in device %d\n", i);
       test10(mc);
-    }//i   
+    }//i
     
     for(i=0;i < device_count; i ++){
       memtest_control_t * mc = &memtest_ctl[i];
@@ -420,7 +420,7 @@ main(const int argc, const char **argv)
   pthread_t pid[MAX_NUM_DEVICES];
   for(i=starti;i < endi;i++){
     int rc;
-    rc = pthread_create(&pid[i], NULL, run_tests, (void*)&memtest_ctl[i]);    
+    rc = pthread_create(&pid[i], NULL, run_tests, (void*)&memtest_ctl[i]);
     if (rc != 0){
       printf("ERROR: create pthread in host failed \n");
       exit(1);
@@ -433,14 +433,14 @@ main(const int argc, const char **argv)
 
   gettimeofday(&t1, NULL);
 
-  for(i=starti;i < endi;i++){    
+  for(i=starti;i < endi;i++){
     memtest_control_t* mc = &memtest_ctl[i];
     clReleaseMemObject(mc->device_mem);
     clReleaseMemObject(mc->err_count);
     clReleaseMemObject(mc->err_addr);
     clReleaseMemObject(mc->err_expect);
     clReleaseMemObject(mc->err_current);
-    clReleaseMemObject(mc->err_second_read);    
+    clReleaseMemObject(mc->err_second_read);
     clFinish(queues[i]);
     clReleaseCommandQueue(queues[i]);
     clReleaseContext(contexts[i]);

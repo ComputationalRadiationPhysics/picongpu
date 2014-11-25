@@ -162,15 +162,15 @@ namespace picongpu
     template<uint32_t r_dir>
     void PhaseSpace<AssignmentFunction, Species>::calcPhaseSpace( )
     {
-        const PMacc::math::Int<DIM3> guardCells = precisionCast<int>(SuperCellSize().toRT()) * int(GUARD_SIZE);
-        const PMacc::math::Size_t<DIM3> coreBorderSuperCells( this->cellDescription->getGridSuperCells() - 2*int(GUARD_SIZE) );
-        const PMacc::math::Size_t<DIM3> coreBorderCells = coreBorderSuperCells *
+        const PMacc::math::Int<simDim> guardCells = SuperCellSize().toRT() * int(GUARD_SIZE);
+        const PMacc::math::Size_t<simDim> coreBorderSuperCells( this->cellDescription->getGridSuperCells() - 2*int(GUARD_SIZE) );
+        const PMacc::math::Size_t<simDim> coreBorderCells = coreBorderSuperCells *
             precisionCast<size_t>( SuperCellSize().toRT() );
 
         /* select CORE + BORDER for all cells
          * CORE + BORDER is contiguous, in cuSTL we call this a "topological spheric zone"
          */
-        zone::SphericZone<DIM3> zoneCoreBorder( coreBorderCells, guardCells );
+        zone::SphericZone<simDim> zoneCoreBorder( coreBorderCells, guardCells );
 
         algorithm::kernel::ForeachBlock<SuperCellSize> forEachSuperCell;
 
@@ -181,7 +181,7 @@ namespace picongpu
         forEachSuperCell( /* area to work on */
                           zoneCoreBorder,
                           /* data below - passed to functor operator() */
-                          cursor::make_MultiIndexCursor<3>(),
+                          cursor::make_MultiIndexCursor<simDim>(),
                           functorBlock
                         );
     }
@@ -201,8 +201,10 @@ namespace picongpu
             calcPhaseSpace<AxisDescription::x>();
         else if( this->axis_element.space == AxisDescription::y )
             calcPhaseSpace<AxisDescription::y>();
+#if(SIMDIM==DIM3)
         else
             calcPhaseSpace<AxisDescription::z>();
+#endif
 
         /* transfer to host */
         container::HostBuffer<float_PS, 2> hBuffer( this->dBuffer->size() );
@@ -239,7 +241,7 @@ namespace picongpu
          *   to avoid over- / underflows. Now for the dump the meta information
          *   on the p-axis should be scaled to represent single/real particles.
          *   \see PhaseSpaceMulti::pluginLoad( ) */
-        float_64 pRange_unit = float_64( Species::FrameType::getMass(1.0) ) *
+        float_64 pRange_unit = float_64( getMass<typename Species::FrameType>(1.0) ) *
                                float_64( SPEED_OF_LIGHT ) *
                                UNIT_MASS * UNIT_SPEED;
 
@@ -248,7 +250,8 @@ namespace picongpu
         if( this->commFileWriter != MPI_COMM_NULL )
             dumpHBuffer( hReducedBuffer, this->axis_element,
                          this->axis_p_range, pRange_unit,
-                         unit, currentStep, this->commFileWriter );
+                         unit, Species::FrameType::getName(),
+                         currentStep, this->commFileWriter );
     }
 
     template<class AssignmentFunction, class Species>

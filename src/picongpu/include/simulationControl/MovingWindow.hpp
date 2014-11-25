@@ -23,9 +23,7 @@
 #include "types.h"
 #include "simulation_defines.hpp"
 
-#include "simulationControl/DomainInformation.hpp"
 #include "simulationControl/Window.hpp"
-#include "Window.hpp"
 
 namespace picongpu
 {
@@ -53,9 +51,9 @@ private:
         if (offsetFirstGPU)
             *offsetFirstGPU = 0.0;
 
-        const DomainInformation domInfo;
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
         const uint32_t windowGlobalDimY =
-            domInfo.globalDomain.size.y() - domInfo.localDomain.size.y() * slidingWindowActive;
+            subGrid.getGlobalDomain().size.y() - subGrid.getLocalDomain().size.y() * slidingWindowActive;
 
         const uint32_t devices_y = Environment<simDim>::get().GridController().getGpuNodes().y();
         const double cell_height = (double) CELL_HEIGHT;
@@ -70,7 +68,7 @@ private:
          * the same size for all gpus
          */
         const uint32_t stepsPerGPU = (uint32_t) math::floor(
-                                                            (double) (domInfo.localDomain.size.y() * cell_height) / light_way_per_step + 0.5);
+                                                            (double) (subGrid.getLocalDomain().size.y() * cell_height) / light_way_per_step + 0.5);
         const uint32_t firstSlideStep = stepsPerGPU * devices_y - stepsInFuture;
         const uint32_t firstMoveStep = stepsPerGPU * (devices_y - 1) - stepsInFuture;
 
@@ -219,14 +217,14 @@ public:
      */
     Window getWindow(uint32_t currentStep)
     {
-        DomainInformation domInfo;
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
         Window window;
 
-        window.localDimensions = Selection<simDim>(domInfo.localDomain.size);
-        window.globalDimensions = Selection<simDim>(domInfo.globalDomain.size);
+        window.localDimensions = Selection<simDim>(subGrid.getLocalDomain().size);
+        window.globalDimensions = Selection<simDim>(subGrid.getGlobalDomain().size);
 
         /* If sliding is inactive, moving window is the same as global domain (substract 0)*/
-        window.globalDimensions.size.y() -= domInfo.localDomain.size.y() * slidingWindowActive;
+        window.globalDimensions.size.y() -= subGrid.getLocalDomain().size.y() * slidingWindowActive;
 
         if (slidingWindowActive)
         {
@@ -250,7 +248,7 @@ public:
             }
             else
             {
-                window.localDimensions.offset.y() = domInfo.localDomain.offset.y() - offsetFirstGPU;
+                window.localDimensions.offset.y() = subGrid.getLocalDomain().offset.y() - offsetFirstGPU;
                 if (isBottomGpu)
                 {
                     window.localDimensions.size.y() = offsetFirstGPU;
@@ -269,11 +267,11 @@ public:
      */
     Window getDomainAsWindow(uint32_t currentStep) const
     {
-        DomainInformation domInfo;
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
         Window window;
 
-        window.localDimensions = domInfo.localDomain;
-        window.globalDimensions = domInfo.globalDomain;
+        window.localDimensions = subGrid.getLocalDomain();
+        window.globalDimensions = subGrid.getGlobalDomain();
 
         return window;
     }

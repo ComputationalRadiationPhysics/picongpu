@@ -239,22 +239,26 @@ private:
 
 
             Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
+            PMacc::Filesystem<simDim>& fs = Environment<simDim>::get().Filesystem();
 
             if (isMaster && totalRad)
             {
-                mkdir("radRestart", 0755);
+                fs.createDirectory("radRestart");
+                fs.setDirectoryPermissions("radRestart");
             }
 
 
             if (isMaster && radPerGPU)
             {
-                mkdir((folderRadPerGPU).c_str(), 0755);
+                fs.createDirectory(folderRadPerGPU);
+                fs.setDirectoryPermissions(folderRadPerGPU);
             }
 
             if (isMaster && totalRad)
             {
                 //create folder for total output
-                mkdir((folderTotalRad).c_str(), 0755);
+                fs.createDirectory(folderTotalRad);
+                fs.setDirectoryPermissions(folderTotalRad);
                 timeSumArray = new Amplitude[elements_amplitude];
                 for (int i = 0; i < elements_amplitude; ++i)
                     timeSumArray[i] = Amplitude();
@@ -262,8 +266,8 @@ private:
             if (isMaster && lastRad)
             {
                 //create folder for total output
-
-                mkdir((folderLastRad).c_str(), 0755);
+                fs.createDirectory(folderLastRad);
+                fs.setDirectoryPermissions(folderLastRad);
             }
 
         }
@@ -276,10 +280,10 @@ private:
 
             // Some funny things that make it possible for the kernel to calculate
             // the absolut position of the particles
-            PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
-            DataSpace<simDim> localSize(simBox.getLocalSize());
+            const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+            DataSpace<simDim> localSize(subGrid.getLocalDomain().size);
             const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
-            DataSpace<simDim> globalOffset(simBox.getGlobalOffset());
+            DataSpace<simDim> globalOffset(subGrid.getLocalDomain().offset);
             globalOffset.y() += (localSize.y() * numSlides);
 
             //only print data at end of simulation
@@ -287,11 +291,10 @@ private:
                 combineData(globalOffset);
             if (isMaster && totalRad)
             {
-                delete[] timeSumArray;
+                __deleteArray(timeSumArray);
             }
 
-            if (radiation)
-                delete radiation;
+            __delete(radiation);
             CUDA_CHECK(cudaGetLastError());
         }
     }
@@ -333,7 +336,12 @@ private:
                 current_time_step_str << currentStep;
                 GPUposX << currentGPUpos.x();
                 GPUposY << currentGPUpos.y();
-                GPUposZ << currentGPUpos.z();
+                // if simDim==DIM2 no z-component is defined -> set it to zero
+                #if(SIMDIM == DIM3)
+                  GPUposZ << currentGPUpos.z();
+                #else
+                  GPUposZ << 0;
+                #endif
 
                 writeFile(radiation->getHostBuffer().getBasePointer(), folderRadPerGPU + "/" + filename_prefix
                           + "_radPerGPU_pos_" + GPUposX.str() + "_" + GPUposY.str() + "_" + GPUposZ.str()
@@ -384,7 +392,7 @@ private:
                 writeFile(result, folderLastRad + "/" + filename_prefix + "_" + o_step.str() + ".dat");
         }
 
-        delete[] result;
+        __deleteArray(result);
 
         lastStep = currentStep;
         lastGPUpos = currentGPUpos;
@@ -433,9 +441,9 @@ private:
 public:
     void restart(uint32_t timeStep, const std::string restartDirectory)
     {
-    
+
     }
-        
+
     void checkpoint(uint32_t timeStep, const std::string restartDirectory)
     {
       std::stringstream t_step;
@@ -537,8 +545,8 @@ private:
         // the absolut position of the particles
         DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
         const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
-        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
-        DataSpace<simDim> globalOffset(simBox.getGlobalOffset());
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+        DataSpace<simDim> globalOffset(subGrid.getLocalDomain().offset);
         globalOffset.y() += (localSize.y() * numSlides);
 
 
@@ -554,7 +562,7 @@ private:
              globalOffset,
              currentStep, *cellDescription,
 	     freqFkt,
-	     simBox.getGlobalSize()
+	     subGrid.getGlobalDomain().size
              );
 
         if (dumpPeriod != 0 && currentStep % dumpPeriod == 0)

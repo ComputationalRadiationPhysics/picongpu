@@ -74,7 +74,7 @@ endif(MPI_CXX_FOUND)
 # find libSplash installation
 # prefer static libraries over shared ones (but do not force them)
 set(Splash_USE_STATIC_LIBS ON)
-find_package(Splash 1.2.0 REQUIRED COMPONENTS PARALLEL)
+find_package(Splash 1.2.3 REQUIRED COMPONENTS PARALLEL)
 
 if(Splash_FOUND)
     include_directories(SYSTEM ${Splash_INCLUDE_DIRS})
@@ -83,6 +83,22 @@ if(Splash_FOUND)
     message(STATUS "libSplash compiler definitions: ${Splash_DEFINITIONS}")
     set(LIBS ${LIBS} ${Splash_LIBRARIES})
 endif(Splash_FOUND)
+
+
+################################################################################
+# ADIOS
+################################################################################
+
+# find adios installation
+#   set(ADIOS_USE_STATIC_LIBS ON) # force static linking
+find_package(ADIOS 1.6.0)
+
+if(ADIOS_FOUND)
+    add_definitions(-DENABLE_ADIOS=1)
+
+    include_directories(SYSTEM ${ADIOS_INCLUDE_DIRS})
+    set(LIBS ${LIBS} ${ADIOS_LIBRARIES})
+endif(ADIOS_FOUND)
 
 
 ################################################################################
@@ -100,7 +116,14 @@ set(LIBS ${LIBS} ${Boost_LIBRARIES})
 # Compile & Link splash2txt
 ################################################################################
 
-file(GLOB SRCFILES "*.cpp")
+set(SRCFILES "splash2txt.cpp")
+
+if(Splash_FOUND)
+    list(APPEND SRCFILES "tools_splash_parallel.cpp")
+endif(Splash_FOUND)
+if(ADIOS_FOUND)
+    list(APPEND SRCFILES "tools_adios_parallel.cpp")
+endif(ADIOS_FOUND)
 
 add_executable(splash2txt
      ${SRCFILES}

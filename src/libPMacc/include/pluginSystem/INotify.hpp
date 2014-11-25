@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Rene Widera, Felix Schmitt, Axel Huebl
+ * Copyright 2013-2014 Rene Widera, Felix Schmitt, Axel Huebl,
+ *                     Richard Pausch
  *
  * This file is part of libPMacc.
  *
@@ -30,9 +31,12 @@ namespace PMacc
      */
     class INotify
     {
+    protected:
+        uint32_t lastNotify;
+
     public:
 
-        INotify()
+        INotify() : lastNotify(0)
         {
         }
 
@@ -48,6 +52,24 @@ namespace PMacc
          * @param currentStep current simulation iteration step
          */
         virtual void notify( uint32_t currentStep ) = 0;
+
+        /** When was the plugin notified last?
+         *
+         * @return last notify time step
+         */
+        uint32_t getLastNotify() const
+        {
+            return lastNotify;
+        }
+
+        /** Remember last notification call
+         *
+         * @param currentStep current simulation iteration step
+         */
+        void setLastNotify( uint32_t currentStep )
+        {
+            lastNotify = currentStep;
+        }
 
     };
 }

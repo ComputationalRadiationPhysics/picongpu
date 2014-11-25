@@ -8,6 +8,7 @@
  * the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ *
  * libPMacc is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -25,7 +26,7 @@
 #include <boost/format.hpp>
 #include <iostream>
 
-#include "static_assert.hpp"
+#include "types.h"
 #include <string>
 
 #include "debug/VerboseLogMakros.hpp"
@@ -131,7 +132,8 @@ protected:
  * output of example: 4 | printf style stream messages, number example 5
  */
 template <class LogLvl>
-static verboseLog_detail::VerboseLog<LogLvl> log(const char* msg)
+verboseLog_detail::VerboseLog<LogLvl>
+log(const char* msg)
 {
     return verboseLog_detail::VerboseLog<LogLvl > (msg);
 }
@@ -141,7 +143,8 @@ static verboseLog_detail::VerboseLog<LogLvl> log(const char* msg)
  * log(MYLOGLEVELS::CRITICAL+MYLOGLEVELS::MEMORY,"printf %2% stream %1%, number example %3%.") % "messages" % "style" % 5
  */
 template <class LogLvl>
-static verboseLog_detail::VerboseLog<LogLvl> log(const LogLvl, const char* msg)
+verboseLog_detail::VerboseLog<LogLvl>
+log(const LogLvl, const char* msg)
 {
     return verboseLog_detail::VerboseLog<LogLvl > (msg);
 }

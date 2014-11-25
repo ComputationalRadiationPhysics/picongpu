@@ -34,8 +34,6 @@ security_check $thisDir
 rm -rf $cnf_gitdir/* $cnf_gitdir/.git*
 mkdir -p $cnf_gitdir
 cd $cnf_gitdir
-rm -rf $cnf_exportdir
-mkdir -p $cnf_exportdir
 
 # check for work
 #
@@ -90,38 +88,8 @@ then
     git merge -q $sha
     if [ $? -ne 0 ] ; then
         # merge failed
-        cd -
         exit 2
     fi
 else
-    cd -
     exit 1
 fi
-
-rsync -a --exclude=.git . $cnf_exportdir
-
-# iso
-#genisoimage -D -iso-level 4 -quiet \
-#  -input-charset=iso8859-1 \
-#  -o $cnf_isofile $cnf_exportdir
-
-# raw (loop dev)
-rm -rf $cnf_extfile
-qemu-img create -f raw $cnf_extfile 1G
-/sbin/mke2fs -q -F $cnf_extfile
-
-mntdir=$thisDir"tmp_mount"
-mkdir $mntdir
-fuseext2 -o rw+ $cnf_extfile $mntdir
-
-mkdir $mntdir/pic_export
-cp $thisDir"compileRun.sh" $mntdir/
-cp -R $cnf_exportdir/* $mntdir/pic_export
-
-# unmount
-sync
-fusermount -u $mntdir
-rm -rf $mntdir
-
-# go back
-cd -

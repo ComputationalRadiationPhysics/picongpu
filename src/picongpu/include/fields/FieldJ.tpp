@@ -37,23 +37,37 @@
 
 #include "fields/numericalCellTypes/NumericalCellTypes.hpp"
 
-#include "math/vector/compile-time/Vector.hpp"
+#include "math/Vector.hpp"
+
+#include <boost/mpl/accumulate.hpp>
+#include "traits/GetMargin.hpp"
+#include "particles/traits/GetCurrentSolver.hpp"
+
 
 namespace picongpu
 {
 
 using namespace PMacc;
 
+
 FieldJ::FieldJ( MappingDesc cellDescription ) :
 SimulationFieldHelper<MappingDesc>( cellDescription ),
 fieldJ( cellDescription.getGridLayout( ) ), fieldE( NULL )
 {
-    typedef currentSolver::CurrentSolver ParticleCurrentSolver;
-
     const DataSpace<simDim> coreBorderSize = cellDescription.getGridLayout( ).getDataSpaceWithoutGuarding( );
 
-    typedef typename GetMargin<ParticleCurrentSolver>::LowerMargin LowerMargin;
-    typedef typename GetMargin<ParticleCurrentSolver>::UpperMargin UpperMargin;
+
+    typedef typename bmpl::accumulate<
+        VectorAllSpecies,
+        typename PMacc::math::CT::make_Int<simDim, 0>::type,
+        PMacc::math::CT::max<bmpl::_1, GetLowerMargin< GetCurrentSolver<bmpl::_2> > >
+        >::type LowerMargin;
+
+    typedef typename bmpl::accumulate<
+        VectorAllSpecies,
+        typename PMacc::math::CT::make_Int<simDim, 0>::type,
+        PMacc::math::CT::max<bmpl::_1, GetUpperMargin< GetCurrentSolver<bmpl::_2> > >
+        >::type UpperMargin;
 
     const DataSpace<simDim> originGuard( LowerMargin( ).toRT( ) );
     const DataSpace<simDim> endGuard( UpperMargin( ).toRT( ) );
@@ -169,7 +183,7 @@ void FieldJ::reset( uint32_t )
 
 void FieldJ::clear( )
 {
-    ValueType tmp = float3_X( 0., 0., 0. );
+    ValueType tmp = float3_X( 0.);
     fieldJ.getDeviceBuffer( ).setValue( tmp );
     //fieldJ.reset(false);
 }
@@ -177,8 +191,8 @@ void FieldJ::clear( )
 typename FieldJ::UnitValueType
 FieldJ::getUnit( )
 {
-    const UnitValueType unitaryVector( 1.0, 1.0, 1.0 );
-    return unitaryVector * UNIT_CHARGE / UNIT_TIME / (UNIT_LENGTH * UNIT_LENGTH);
+    const UnitValueType unitaryVector( 1.0);
+    return unitaryVector * UNIT_CHARGE / UNIT_TIME / ( UNIT_LENGTH * UNIT_LENGTH );
 }
 
 std::string
@@ -199,15 +213,17 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t ) throw (std::in
     /** tune paramter to use more threads than cells in a supercell
      *  valid domain: 1 <= workerMultiplier
      */
-    const int workerMultiplier =2;
+    const int workerMultiplier = 2;
 
-    typedef currentSolver::CurrentSolver ParticleCurrentSolver;
+    typedef typename ParticlesClass::FrameType FrameType;
+    typedef typename GetFlagType<FrameType, current<> >::type::ThisType ParticleCurrentSolver;
+
     typedef ComputeCurrentPerFrame<ParticleCurrentSolver, Velocity, MappingDesc::SuperCellSize> FrameSolver;
 
     typedef SuperCellDescription<
         typename MappingDesc::SuperCellSize,
-        GetMargin<currentSolver::CurrentSolver>::LowerMargin,
-        GetMargin<currentSolver::CurrentSolver>::UpperMargin
+        typename GetMargin<ParticleCurrentSolver>::LowerMargin,
+        typename GetMargin<ParticleCurrentSolver>::UpperMargin
         > BlockArea;
 
     StrideMapping<AREA, simDim, MappingDesc> mapper( cellDescription );
@@ -215,13 +231,13 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t ) throw (std::in
     FieldJ::DataBoxType jBox = this->fieldJ.getDeviceBuffer( ).getDataBox( );
     FrameSolver solver( DELTA_T );
 
-    DataSpace<simDim> blockSize(mapper.getSuperCellSize( ));
+    DataSpace<simDim> blockSize( mapper.getSuperCellSize( ) );
     blockSize[simDim-1]*=workerMultiplier;
 
     __startAtomicTransaction( __getTransactionEvent( ) );
     do
     {
-        __cudaKernel( ( kernelComputeCurrent<workerMultiplier,BlockArea, AREA> ) )
+        __cudaKernel( ( kernelComputeCurrent<workerMultiplier, BlockArea, AREA> ) )
             ( mapper.getGridDim( ), blockSize )
             ( jBox,
               pBox, solver, mapper );

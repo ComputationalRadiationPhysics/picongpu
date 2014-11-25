@@ -1,24 +1,25 @@
 /**
  * Copyright 2013 Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <cuda_runtime.h>
 
 #include "Environment.hpp"
@@ -40,13 +41,13 @@ alwaysFinished( false )
     this->setTaskType( TASK_CUDA );
 }
 
-inline cudaEvent_t StreamTask::getCudaEvent( ) const
+inline CudaEvent StreamTask::getCudaEvent( ) const
 {
     assert( hasCudaEvent );
     return cudaEvent;
 }
 
-inline void StreamTask::setCudaEvent( cudaEvent_t cudaEvent )
+inline void StreamTask::setCudaEvent(const CudaEvent& cudaEvent )
 {
     this->hasCudaEvent = true;
     this->cudaEvent = cudaEvent;
@@ -58,7 +59,7 @@ inline bool StreamTask::isFinished( )
         return true;
     if ( hasCudaEvent )
     {
-        if ( cudaEventQuery( cudaEvent ) == cudaSuccess )
+        if ( cudaEvent.isFinished( ) )
         {
             alwaysFinished = true;
             return true;
@@ -77,25 +78,22 @@ inline EventStream* StreamTask::getEventStream( )
 inline void StreamTask::setEventStream( EventStream* newStream )
 {
     assert( newStream != NULL );
-    assert( stream == NULL ); //it is only aalowed to set a stream if no stream is set before
+    assert( stream == NULL ); //it is only allowed to set a stream if no stream is set before
     this->stream = newStream;
 }
 
 inline cudaStream_t StreamTask::getCudaStream( )
 {
     if ( stream == NULL )
-        stream = Environment<>::get().TransactionManager().getEventStream( TASK_CUDA );
+        stream = Environment<>::get( ).TransactionManager( ).getEventStream( TASK_CUDA );
     return stream->getCudaStream( );
 }
 
 inline void StreamTask::activate( )
 {
     cudaEvent = Environment<>::get().Manager().getEventPool( ).getNextEvent( );
-    this->getEventStream( )->recordEvent( cudaEvent );
+    cudaEvent.recordEvent(this->stream->getCudaStream());
     hasCudaEvent = true;
 }
 
-
-
 } //namespace PMacc
-

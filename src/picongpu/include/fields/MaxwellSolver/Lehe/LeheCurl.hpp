@@ -1,29 +1,29 @@
 /**
  * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera, Remi Lehe
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 
 #pragma once
 
 #include "types.h"
-#include "math/vector/compile-time/Int.hpp"
+#include "math/Vector.hpp"
 
 namespace picongpu
 {
@@ -226,7 +226,7 @@ namespace picongpu
 
                 /** \todo all constants, calculate once at CPU and use as parameter
                  *  \todo cast to double to force high-precision sinus
-                 */  
+                 */
                 const float_X mySin = math::sin( float_X( 0.5 ) * float_X( M_PI ) *
                                                  SPEED_OF_LIGHT * DELTA_T / d_dir );
 
@@ -259,7 +259,7 @@ namespace picongpu
                 // Typedef an accessor to access mem[z][y][x]
                 // in (x,y,z) order :)
                 typedef DataSpace<DIM3> Space;
-                
+
                 const float_X curl_x
                     = (
                         alpha_y * ( mem(Space(0,0,0)*(-1)).z( ) - mem(Space(0,-1,0)*(-1)).z( ) )

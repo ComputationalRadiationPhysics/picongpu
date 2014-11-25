@@ -1,23 +1,23 @@
 /**
  * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 
 #ifndef LASERPHYSICS_HPP
@@ -49,7 +49,7 @@ public:
     HDINLINE float3_X getManipulation(DataSpace<simDim> iOffset)
     {
         const float_X posX = float_X(globalCentered.x() + iOffset.x()) * CELL_WIDTH;
-        
+
         /*! \todo this is very dirty, please fix laserTransversal interface and use floatD_X
             and not posX,posY */
         const float_X posZ =
@@ -85,12 +85,11 @@ public:
         elong = laserProfile::laserLongitudinal(currentStep,
                                                 phase);
 
-        SubGrid<simDim>& sg = Environment<simDim>::get().SubGrid();
-        PMACC_AUTO(simBox,sg.getSimulationBox());
-        
-        const DataSpace<simDim> globalCellOffset(simBox.getGlobalOffset());
-        const DataSpace<simDim> halfSimSize(simBox.getGlobalSize() / 2);
-        
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+
+        const DataSpace<simDim> globalCellOffset(subGrid.getLocalDomain().offset);
+        const DataSpace<simDim> halfSimSize(subGrid.getGlobalDomain().size / 2);
+
         DataSpace<simDim> centeredOrigin(globalCellOffset - halfSimSize);
         return LaserManipulator(elong,
                                 centeredOrigin,

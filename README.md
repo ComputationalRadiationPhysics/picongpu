@@ -142,6 +142,7 @@ Active Team
 - Felix Schmitt*
 - Conrad Schumann
 - Rene Widera*
+- Benjamin Worpitz
 
 ### Participants, Former Members and Thanks
 

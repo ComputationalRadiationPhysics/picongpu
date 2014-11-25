@@ -1,24 +1,25 @@
 /**
  * Copyright 2013 Heiko Burau, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "cuSTL/container/allocator/tag.h"
 #include <iostream>
 #include <eventSystem/EventSystem.hpp>
@@ -56,23 +57,23 @@ namespace detail
                                      (char*)cursor(0, 0, 1).getMarker() - (char*)cursor.getMarker());
         }
     };
-    
+
     template<typename MemoryTag>
     HDINLINE void notifyEventSystem() {}
-    
+
     template<>
     HDINLINE void notifyEventSystem<allocator::tag::device>()
     {
-#ifndef __CUDA_ARCH__   
+#ifndef __CUDA_ARCH__
         using namespace PMacc;
         __startOperation(ITask::TASK_CUDA);
 #endif
     }
-    
+
     template<>
     HDINLINE void notifyEventSystem<allocator::tag::host>()
     {
-#ifndef __CUDA_ARCH__   
+#ifndef __CUDA_ARCH__
         using namespace PMacc;
         __startOperation(ITask::TASK_HOST);
 #endif
@@ -135,7 +136,7 @@ void CartBuffer<Type, _dim, Allocator, Copier, Assigner>::init()
 {
     typename Allocator::Cursor cursor = Allocator::allocate(this->_size);
     this->dataPointer = cursor.getMarker();
-#ifndef __CUDA_ARCH__   
+#ifndef __CUDA_ARCH__
     this->refCount = new int;
 #endif
     *this->refCount = 1;
@@ -157,14 +158,14 @@ void CartBuffer<Type, _dim, Allocator, Copier, Assigner>::exit()
         return;
     Allocator::deallocate(origin());
     this->dataPointer = 0;
-#ifndef __CUDA_ARCH__    
+#ifndef __CUDA_ARCH__
     delete this->refCount;
     this->refCount = 0;
 #endif
 }
 
 template<typename Type, int _dim, typename Allocator, typename Copier, typename Assigner>
-CartBuffer<Type, _dim, Allocator, Copier, Assigner>& 
+CartBuffer<Type, _dim, Allocator, Copier, Assigner>&
 CartBuffer<Type, _dim, Allocator, Copier, Assigner>::operator=
 (const CartBuffer<Type, _dim, Allocator, Copier, Assigner>& rhs)
 {
@@ -174,12 +175,12 @@ CartBuffer<Type, _dim, Allocator, Copier, Assigner>::operator=
 }
 
 template<typename Type, int _dim, typename Allocator, typename Copier, typename Assigner>
-CartBuffer<Type, _dim, Allocator, Copier, Assigner>& 
+CartBuffer<Type, _dim, Allocator, Copier, Assigner>&
 CartBuffer<Type, _dim, Allocator, Copier, Assigner>::operator=
 (BOOST_RV_REF(CartBuffer<Type COMMA _dim COMMA Allocator COMMA Copier COMMA Assigner>) rhs)
 {
     if(this->dataPointer == rhs.dataPointer) return *this;
-    
+
     exit();
     this->dataPointer = rhs.dataPointer;
     this->refCount = rhs.refCount;
@@ -199,9 +200,9 @@ CartBuffer<Type, _dim, Allocator, Copier, Assigner>::view
     a = (a + (math::Int<_dim>)this->size()) % (math::Int<_dim>)this->size();
     b = (b + (math::Int<_dim>)this->size())
             % ((math::Int<_dim>)this->size() + math::Int<_dim>(1));
-            
+
     View<CartBuffer<Type, _dim, Allocator, Copier, Assigner> > result;
-    
+
     result.dataPointer = &(*origin()(a));
     result._size = (math::Size_t<_dim>)(b - a);
     result.pitch = this->pitch;
@@ -244,15 +245,15 @@ CartBuffer<Type, _dim, Allocator, Copier, Assigner>::originCustomAxes(const math
     for(int i = 0; i < dim; i++)
         customFactor[i] = (int)factor[axes[i]];
     cursor::CartNavigator<dim> navi(customFactor);
-    
+
     detail::notifyEventSystem<typename Allocator::tag>();
-    
+
     return cursor::Cursor<cursor::PointerAccessor<Type>, cursor::CartNavigator<dim>, char*>
             (cursor::PointerAccessor<Type>(), navi, (char*)this->dataPointer);
 }
 
 template<typename Type, int _dim, typename Allocator, typename Copier, typename Assigner>
-zone::SphericZone<_dim> 
+zone::SphericZone<_dim>
 CartBuffer<Type, _dim, Allocator, Copier, Assigner>::zone() const
 {
     zone::SphericZone<_dim> myZone;

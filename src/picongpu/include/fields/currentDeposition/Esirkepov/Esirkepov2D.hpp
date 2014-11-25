@@ -1,21 +1,21 @@
 /**
  * Copyright 2014 Axel Huebl, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 #pragma once
@@ -34,7 +34,7 @@
 
 namespace picongpu
 {
-namespace currentSolverEsirkepov
+namespace currentSolver
 {
 using namespace PMacc;
 
@@ -46,7 +46,7 @@ using namespace PMacc;
  *  with an arbitrary form-factor"
  */
 template<typename T_ParticleShape>
-struct Esirkepov<DIM2, T_ParticleShape>
+struct Esirkepov<T_ParticleShape, DIM2>
 {
     typedef typename T_ParticleShape::ChargeAssignment ParticleAssign;
     static const int supp = ParticleAssign::support;
@@ -56,11 +56,11 @@ struct Esirkepov<DIM2, T_ParticleShape>
     typedef typename PMacc::math::CT::make_Int<DIM2, currentLowerMargin>::type LowerMargin;
     typedef typename PMacc::math::CT::make_Int<DIM2, currentUpperMargin>::type UpperMargin;
 
-    /* begin and end border is calculated for the current time step were the old 
+    /* begin and end border is calculated for the current time step were the old
      * position of the particle in the previous time step is smaller than the current position
      * Later on all coordinates are shifted thus we can solve the charge calculation
      * in support + 1 steps.
-     * 
+     *
      * For the case were previous position is greater than current position we correct
      * begin and end on runtime and add +1 to begin and end.
      */
@@ -82,7 +82,7 @@ struct Esirkepov<DIM2, T_ParticleShape>
         Line<float2_X> line(oldPos, pos);
         BOOST_AUTO(cursorJ, dataBoxJ.toCursor());
 
-        if (speciesParticleShape::ParticleShape::support % 2 == 1)
+        if (supp % 2 == 1)
         {
             /* odd support
              * we need only for odd supports a shift because for even supports
@@ -95,9 +95,9 @@ struct Esirkepov<DIM2, T_ParticleShape>
              */
 
             /* for any direction
-             * if pos> 0.5 
+             * if pos> 0.5
              * shift curser+1 and new_pos=old_pos-1
-             * 
+             *
              * floor(pos*2.0) is equal (pos > 0.5)
              */
             float2_X coordinate_shift(
@@ -140,18 +140,21 @@ struct Esirkepov<DIM2, T_ParticleShape>
     {
         /* Check if particle position in previous step was greater or
          * smaller than current position.
-         * 
+         *
          * If previous position was greater than current position we change our interval
          * from [begin,end) to [begin+1,end+1).
          */
-        const int offset_i = int(line.pos0.x() > line.pos1.x());
-        const int offset_j = int(line.pos0.y() > line.pos1.y());
+        /** \todo -(-int(bool)) is a workaround for a nvcc bug
+         * @see https://devtalk.nvidia.com/default/topic/752200/cuda-programming-and-performance/nvcc-loop-bug-since-cuda-5-5/
+         */
+        const int offset_i = -(-int(line.pos0.x() > line.pos1.x()));
+        const int offset_j = -(-int(line.pos0.y() > line.pos1.y()));
 
 
         for (int j = begin + offset_j; j < end + offset_j; ++j)
         {
             /* This is the implementation of the FORTRAN W(i,j,k,1)/ C style W(i,j,k,0) version from
-             * Esirkepov paper. All coordinates are rotated before thus we can 
+             * Esirkepov paper. All coordinates are rotated before thus we can
              * always use C style W(i,j,k,0).
              */
             float_X tmp = S0(line, j, 1) + float_X(0.5) * DS(line, j, 1);
@@ -176,12 +179,15 @@ struct Esirkepov<DIM2, T_ParticleShape>
     {
         /* Check if particle position in previous step was greater or
          * smaller than current position.
-         * 
+         *
          * If previous position was greater than current position we change our interval
          * from [begin,end) to [begin+1,end+1).
          */
-        const int offset_i = int(line.pos0.x() > line.pos1.x());
-        const int offset_j = int(line.pos0.y() > line.pos1.y());
+        /** \todo -(-int(bool)) is a workaround for a nvcc bug
+         * @see https://devtalk.nvidia.com/default/topic/752200/cuda-programming-and-performance/nvcc-loop-bug-since-cuda-5-5/
+         */
+        const int offset_i = -(-int(line.pos0.x() > line.pos1.x()));
+        const int offset_j = -(-int(line.pos0.y() > line.pos1.y()));
 
 
         for (int j = begin + offset_j; j < end + offset_j; ++j)
@@ -207,7 +213,7 @@ struct Esirkepov<DIM2, T_ParticleShape>
      * @param d dimension range {0,1} means {x,y}
      *          different to Esirkepov paper, here we use C style
      */
-    DINLINE float_X S0(const Line<float2_X>& line, const float_X gridPoint, const float_X d)
+    DINLINE float_X S0(const Line<float2_X>& line, const float_X gridPoint, const uint32_t d)
     {
         return ParticleAssign()(gridPoint - line.pos0[d]);
     }
@@ -218,12 +224,12 @@ struct Esirkepov<DIM2, T_ParticleShape>
      * @param d dimension range {0,1} means {x,y}
      *          different to Esirkepov paper, here we use C style
      */
-    DINLINE float_X DS(const Line<float2_X>& line, const float_X gridPoint, const float_X d)
+    DINLINE float_X DS(const Line<float2_X>& line, const float_X gridPoint, const uint32_t d)
     {
         return ParticleAssign()(gridPoint - line.pos1[d]) - ParticleAssign()(gridPoint - line.pos0[d]);
     }
 };
 
-} //namespace currentSolverEsirkepov
+} //namespace currentSolver
 
 } //namespace picongpu

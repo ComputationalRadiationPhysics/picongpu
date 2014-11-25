@@ -1,22 +1,23 @@
 /**
  * Copyright 2013 Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 
@@ -101,7 +102,7 @@ public:
     /**
      * Constructor.
      *
-     * @param gridLayout layout of the buffers, including border-cells    
+     * @param gridLayout layout of the buffers, including border-cells
      * @param sizeOnDevice if true, size information exists on device, too.
      */
     GridBuffer(const GridLayout<DIM>& gridLayout, bool sizeOnDevice = false) :
@@ -115,7 +116,7 @@ public:
     /**
      * Constructor.
      *
-     * @param dataSpace DataSpace representing buffer size without border-cells   
+     * @param dataSpace DataSpace representing buffer size without border-cells
      * @param sizeOnDevice if true, size information exists on device, too.
      */
     GridBuffer(DataSpace<DIM>& dataSpace, bool sizeOnDevice = false) :
@@ -130,7 +131,7 @@ public:
      * Constructor.
      *
      * @param otherDeviceBuffer DeviceBuffer which should be used instead of creating own DeviceBuffer
-     * @param gridLayout layout of the buffers, including border-cells     
+     * @param gridLayout layout of the buffers, including border-cells
      * @param sizeOnDevice if true, size information exists on device, too.
      */
     GridBuffer(DeviceBuffer<TYPE, DIM>& otherDeviceBuffer, GridLayout<DIM> gridLayout, bool sizeOnDevice = false) :

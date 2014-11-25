@@ -8,6 +8,7 @@
  * the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ *
  * libPMacc is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -67,7 +68,7 @@ struct GetKeyFromAlias_assert
 {
     typedef typename GetKeyFromAlias<T_MPLSeq,T_Key>::type type;
     /*this assert fails if T_Key was not found*/
-    BOOST_STATIC_ASSERT( (!boost::is_same<type,bmpl::void_>::value));
+    PMACC_CASSERT_MSG_TYPE(key_not_found,T_Key,(!boost::is_same<type,bmpl::void_>::value));
 };
 
 }//namespace PMacc

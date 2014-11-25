@@ -1,21 +1,21 @@
 /**
  * Copyright 2014 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 #pragma once
@@ -53,7 +53,7 @@ public:
         const DataSpace<simDim> field_guard = field.getGridLayout().getGuard();
 
         const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(params->currentStep);
-        const DomainInformation domInfo;
+        const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
 
         field.getHostBuffer().setValue(float3_X(0.));
 
@@ -64,15 +64,15 @@ public:
          * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
          */
         DataSpace<simDim> globalSlideOffset;
-        globalSlideOffset.y() = numSlides * domInfo.localDomain.size.y();
+        globalSlideOffset.y() = numSlides * localDomain.size.y();
 
         Dimensions domain_offset(0, 0, 0);
         for (uint32_t d = 0; d < simDim; ++d)
-            domain_offset[d] = domInfo.localDomain.offset[d] + globalSlideOffset[d];
+            domain_offset[d] = localDomain.offset[d] + globalSlideOffset[d];
 
         if (Environment<simDim>::get().GridController().getPosition().y() == 0)
             domain_offset[1] += params->window.globalDimensions.offset.y();
-        
+
         Dimensions local_domain_size;
         for (uint32_t d = 0; d < simDim; ++d)
             local_domain_size[d] = params->window.localDimensions.size[d];
@@ -141,7 +141,7 @@ public:
 
 /**
  * Hepler class for HDF5Writer (forEach operator) to load a field from HDF5
- * 
+ *
  * @tparam FieldType field class to load
  */
 template< typename FieldType >
@@ -149,11 +149,11 @@ struct LoadFields
 {
 public:
 
-    HDINLINE void operator()(RefWrapper<ThreadParams*> params)
+    HDINLINE void operator()(ThreadParams* params)
     {
 #ifndef __CUDA_ARCH__
         DataConnector &dc = Environment<>::get().DataConnector();
-        ThreadParams *tp = params.get();
+        ThreadParams *tp = params;
 
         /* load field without copying data to host */
         FieldType* field = &(dc.getData<FieldType > (FieldType::getName(), true));

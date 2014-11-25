@@ -1,23 +1,23 @@
 /**
  * Copyright 2013 Axel Huebl, Rene Widera, Richard Pausch
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 
 #pragma once
@@ -39,7 +39,7 @@ namespace picongpu
 
 template< class ParBox>
 __global__ void kernelAddOneParticle(ParBox pb,
-                                     DataSpace<DIM3> superCell, DataSpace<DIM3> parLocalCell)
+                                     DataSpace<simDim> superCell, DataSpace<simDim> parLocalCell)
 {
     typedef typename ParBox::FrameType FRAME;
 
@@ -55,19 +55,21 @@ __global__ void kernelAddOneParticle(ParBox pb,
 
 
 
-    // many particle loop:                                                                                                                                                                
+    // many particle loop:
     for (unsigned i = 0; i < 1; ++i)
     {
         PMACC_AUTO(par,(*frame)[i]);
-        float3_X pos = float3_X(0.5, 0.5, 0.50);
+        floatD_X pos;
+        for(int i=0; i<simDim; ++i)
+          pos[i] = 0.5;
 
         const float_X GAMMA0_X = 1.0f / sqrtf(1.0f - float_X(BETA0_X * BETA0_X));
         const float_X GAMMA0_Y = 1.0f / sqrtf(1.0f - float_X(BETA0_Y * BETA0_Y));
         const float_X GAMMA0_Z = 1.0f / sqrtf(1.0f - float_X(BETA0_Z * BETA0_Z));
         float3_X mom = float3_X(
-                                GAMMA0_X * par.getMass(parWeighting) * float_X(BETA0_X) * SPEED_OF_LIGHT,
-                                GAMMA0_Y * par.getMass(parWeighting) * float_X(BETA0_Y) * SPEED_OF_LIGHT,
-                                GAMMA0_Z * par.getMass(parWeighting) * float_X(BETA0_Z) * SPEED_OF_LIGHT
+                                GAMMA0_X * getMass<FRAME>(parWeighting) * float_X(BETA0_X) * SPEED_OF_LIGHT,
+                                GAMMA0_Y * getMass<FRAME>(parWeighting) * float_X(BETA0_Y) * SPEED_OF_LIGHT,
+                                GAMMA0_Z * getMass<FRAME>(parWeighting) * float_X(BETA0_Z) * SPEED_OF_LIGHT
                                 );
 
         par[position_] = pos;
@@ -91,26 +93,26 @@ class ParticlesInitOneParticle
 {
 public:
 
-    static void addOneParticle(ParticlesClass& parClass, MappingDesc cellDescription, DataSpace<DIM3> globalCell)
+    static void addOneParticle(ParticlesClass& parClass, MappingDesc cellDescription, DataSpace<simDim> globalCell)
     {
 
-        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
-        const DataSpace<DIM3> globalTopLeft = simBox.getGlobalOffset();
-        const DataSpace<DIM3> localSimulationArea = simBox.getLocalSize();
-        DataSpace<DIM3> localParCell = globalCell - globalTopLeft;
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+        const DataSpace<simDim> globalTopLeft = subGrid.getLocalDomain().offset;
+        const DataSpace<simDim> localSimulationArea = subGrid.getLocalDomain().size;
+        DataSpace<simDim> localParCell = globalCell - globalTopLeft;
 
 
-        for (int i = 0; i < (int) DIM3; ++i)
+        for (int i = 0; i < (int) simDim; ++i)
         {
             //chek if particle is in the simulation area
             if (localParCell[i] < 0 || localParCell[i] >= localSimulationArea[i])
                 return;
         }
 
-        //calculate supercell 
-        DataSpace<DIM3> localSuperCell = (localParCell / MappingDesc::SuperCellSize::toRT());
-        DataSpace<DIM3> cellInSuperCell = localParCell - (localSuperCell * MappingDesc::SuperCellSize::toRT());
-        //add garding blocks to supercell 
+        //calculate supercell
+        DataSpace<simDim> localSuperCell = (localParCell / MappingDesc::SuperCellSize::toRT());
+        DataSpace<simDim> cellInSuperCell = localParCell - (localSuperCell * MappingDesc::SuperCellSize::toRT());
+        //add garding blocks to supercell
         localSuperCell = localSuperCell + cellDescription.getGuardingSuperCells();
 
 

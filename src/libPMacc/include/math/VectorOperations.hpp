@@ -23,8 +23,7 @@
 #pragma once
 
 #include <types.h>
-#include <math/vector/Vector.hpp>
-#include <math/vector/compile-time/Vector.hpp>
+#include "math/Vector.hpp"
 
 namespace PMacc
 {

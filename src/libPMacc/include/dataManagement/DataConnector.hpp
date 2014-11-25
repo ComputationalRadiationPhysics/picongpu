@@ -1,24 +1,25 @@
 /**
  * Copyright 2013-2014 Rene Widera, Felix Schmitt
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #pragma once
 
 #include <map>
@@ -38,7 +39,7 @@ namespace PMacc
      * Helper class for DataConnector.
      * Uses std::map<KeyType, ValType> for storing values and has a
      * IDataSorter for iterating over these values according to their keys.
-     * 
+     *
      * \tparam KeyType type of map keys
      * \tparam ValType type of map values
      */
@@ -49,7 +50,7 @@ namespace PMacc
 
         /**
          * Destructor.
-         * 
+         *
          * Deletes the IDataSorter and clears the mapping.
          */
         ~Mapping()
@@ -92,7 +93,7 @@ namespace PMacc
         /**
          * Initialises all Datasets using initialiser.
          * After initialising, the Datasets will be invalid.
-         * 
+         *
          * @param initialiser class used for initialising Datasets
          * @param currentStep current simulation step
          */
@@ -108,12 +109,12 @@ namespace PMacc
                     ISimulationData& data = datasets.mapping[id]->getData();
 
                     initialiser.init(data, currentStep);
-                    
+
                     if (!datasets.sorter->hasNext())
                         break;
                 }
             }
-            
+
             initialiser.teardown();
         }
 
@@ -145,7 +146,7 @@ namespace PMacc
          * Reference to data in Dataset with identifier id and type TYPE is returned.
          * If the Dataset status in invalid, it is automatically synchronized.
          * Increments the reference counter to the dataset specified by id.
-         * This reference has to be released after all read/write operations 
+         * This reference has to be released after all read/write operations
          * before the next synchronize()/getData() on this data are done using releaseData().
          *
          * @tparam TYPE if of the data to load
@@ -160,19 +161,19 @@ namespace PMacc
 
             if (iter == datasets.mapping.end())
                 throw std::runtime_error(getExceptionStringForID("Invalid DataConnector dataset ID", id));
-            
+
             Dataset * dataset = iter->second;
             if (!noSync)
             {
                 dataset->synchronize();
             }
-            
+
             return (TYPE&) (dataset->getData());
         }
 
         /**
          * Decrements the reference counter to the data specified by id.
-         * 
+         *
          * @param id id for the dataset previously acquired using getData()
          */
         void releaseData(SimulationDataId)
@@ -180,11 +181,11 @@ namespace PMacc
         }
 
     private:
-        
+
         friend Environment<DIM1>;
         friend Environment<DIM2>;
         friend Environment<DIM3>;
-        
+
         static DataConnector& getInstance()
         {
             static DataConnector instance;
@@ -210,7 +211,7 @@ namespace PMacc
                 datasets.sorter = NULL;
             }
         }
-        
+
         std::string getExceptionStringForID(const char *msg, SimulationDataId id)
         {
             std::stringstream stream;

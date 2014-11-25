@@ -184,23 +184,23 @@ private:
         if (notifyFrequency > 0)
         {
             Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
-            PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
+            const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
             /* local count of supercells without any guards*/
-            DataSpace<simDim> localSuperCells(simBox.getLocalSize() / SuperCellSize::toRT());
+            DataSpace<simDim> localSuperCells(subGrid.getLocalDomain().size / SuperCellSize::toRT());
             localResult = new GridBufferType(localSuperCells);
 
             /* create folder for hdf5 files*/
-            mkdir((foldername).c_str(), 0755);
+            Environment<simDim>::get().Filesystem().createDirectoryWithPermissions(foldername);
         }
     }
 
     void pluginUnload()
     {
         __delete(localResult);
-        
+
         if (dataCollector)
             dataCollector->finalize();
-        
+
         __delete(dataCollector);
     }
 
@@ -223,11 +223,11 @@ private:
 
 
         /*############ dump data #############################################*/
-        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
 
-        DataSpace<simDim> localSize(simBox.getLocalSize() / SuperCellSize::toRT());
-        DataSpace<simDim> globalOffset(simBox.getGlobalOffset() / SuperCellSize::toRT());
-        DataSpace<simDim> globalSize(simBox.getGlobalSize() / SuperCellSize::toRT());
+        DataSpace<simDim> localSize(subGrid.getLocalDomain().size / SuperCellSize::toRT());
+        DataSpace<simDim> globalOffset(subGrid.getLocalDomain().offset / SuperCellSize::toRT());
+        DataSpace<simDim> globalSize(subGrid.getGlobalDomain().size / SuperCellSize::toRT());
 
 
 

@@ -28,14 +28,14 @@ extern "C" {
     err_expect[idx] = (unsigned long)expect;		\
     err_current[idx] = (unsigned long)current;		\
     err_second_read[idx] = (unsigned long)(*p);		\
-  }while(0) 
+  }while(0)
   
 #define PRINTF(fmt,...) do{                                             \
     pthread_mutex_lock(&mutex);						\
     printf("[%s][%s][%d]:"fmt, time_string(), hostname, mc->device_idx, ##__VA_ARGS__); \
     fflush(stdout);							\
     pthread_mutex_unlock(&mutex);                                       \
-  } while(0) 
+  } while(0)
 
 
   
@@ -46,7 +46,7 @@ extern "C" {
     printf("ERROR: opencl call failed with rc(%d), line %d, file %s\n", rc, __LINE__, __FILE__); \
     printf("Error: %s\n", print_cl_errstring(rc));			\
     exit(1);                                                            \
-  }  
+  }
 
 #define DIM(x) (sizeof(x)/sizeof(x[0]))
   
@@ -63,7 +63,7 @@ extern "C" {
     cl_mem err_second_read;
     cl_ulong mem_size;
     cl_program program;
-    cl_event events[MAX_NUM_KERNELS];    
+    cl_event events[MAX_NUM_KERNELS];
   }memtest_control_t;
   
   void test10(memtest_control_t*);

@@ -1,24 +1,25 @@
 /**
  * Copyright 2013 Heiko Burau, Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #ifndef CONTAINER_DEVICEBUFFER_HPP
 #define CONTAINER_DEVICEBUFFER_HPP
 
@@ -43,53 +44,53 @@ namespace container
  */
 template<typename Type, int dim>
 class DeviceBuffer
- : public CartBuffer<Type, dim, allocator::DeviceMemAllocator<Type, dim>, 
-                                copier::D2DCopier<dim>, 
+ : public CartBuffer<Type, dim, allocator::DeviceMemAllocator<Type, dim>,
+                                copier::D2DCopier<dim>,
                                 assigner::DeviceMemAssigner<dim> >
 {
 private:
-    typedef CartBuffer<Type, dim, allocator::DeviceMemAllocator<Type, dim>, 
-                                  copier::D2DCopier<dim>, 
+    typedef CartBuffer<Type, dim, allocator::DeviceMemAllocator<Type, dim>,
+                                  copier::D2DCopier<dim>,
                                   assigner::DeviceMemAssigner<dim> > Base;
     typedef DeviceBuffer<Type, dim> This;
-    
+
 ///\todo: make protected
-public:                                  
+public:
     HDINLINE DeviceBuffer() {}
-    
+
     BOOST_COPYABLE_AND_MOVABLE(This)
 public:
     /* constructors
-     * 
+     *
      * \param _size size of the container
-     * 
+     *
      * \param x,y,z convenient wrapper
-     * 
+     *
      */
     HDINLINE DeviceBuffer(const math::Size_t<dim>& _size) : Base(_size) {}
     HDINLINE DeviceBuffer(size_t x) : Base(x) {}
     HDINLINE DeviceBuffer(size_t x, size_t y) : Base(x, y) {}
     HDINLINE DeviceBuffer(size_t x, size_t y, size_t z) : Base(x, y, z) {}
     HDINLINE DeviceBuffer(const Base& base) : Base(base) {}
-    
+
     template<typename HBuffer>
-    HDINLINE 
+    HDINLINE
     DeviceBuffer<Type, dim>& operator=(const HBuffer& rhs)
     {
         BOOST_STATIC_ASSERT((boost::is_same<typename HBuffer::memoryTag, allocator::tag::host>::value));
         BOOST_STATIC_ASSERT((boost::is_same<typename HBuffer::type, Type>::value));
         BOOST_STATIC_ASSERT(dim == HBuffer::dim);
-    
+
         cudaWrapper::Memcopy<dim>()(this->dataPointer, this->pitch, rhs.getDataPointer(), rhs.getPitch(),
                                 this->_size, cudaWrapper::flags::Memcopy::hostToDevice);
 
         return *this;
     }
-    
+
     //friend class ::PMacc::DeviceBuffer<Type, dim>;
     //friend class ::PMacc::HostBuffer<Type, dim>;
 };
-    
+
 } // container
 } // PMacc
 

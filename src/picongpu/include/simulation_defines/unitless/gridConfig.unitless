@@ -1,29 +1,29 @@
 /**
  * Copyright 2013 Felix Schmitt, Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 
 #pragma once
 
 #include "static_assert.hpp"
-#include "math/ConstVector.hpp"
+#include "math/Vector.hpp"
 
 namespace picongpu
 {
@@ -33,7 +33,7 @@ namespace picongpu
     const float_X CELL_HEIGHT = float_X (SI::CELL_HEIGHT_SI / UNIT_LENGTH); //normalized to UNIT_LENGTH
     const float_X CELL_DEPTH = float_X(SI::CELL_DEPTH_SI / UNIT_LENGTH); // normalized to UNIT_LENGTH
     CONST_VECTOR(float_X,simDim,cellSize,CELL_WIDTH,CELL_HEIGHT,CELL_DEPTH);
-    
+
 #if (SIMDIM==DIM3)
     const float_X CELL_VOLUME = CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH;
     const float_X INV_CELL2_SUM = 1.0 / ( CELL_WIDTH  * CELL_WIDTH  )
@@ -50,5 +50,5 @@ namespace picongpu
     /* Courant-Friedrichs-Levy-Condition for Yee Field Solver: */
     PMACC_CASSERT_MSG(Courant_Friedrichs_Levy_condition_failure____check_your_gridConfig_param_file,
                      (SPEED_OF_LIGHT*SPEED_OF_LIGHT*DELTA_T*DELTA_T*INV_CELL2_SUM)<=1.0);
-        
+
 }

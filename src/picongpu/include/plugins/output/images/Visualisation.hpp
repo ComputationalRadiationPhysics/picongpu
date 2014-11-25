@@ -30,7 +30,6 @@
 #include "fields/FieldE.hpp"
 #include "fields/FieldJ.hpp"
 
-#include "math/vector/compile-time/Int.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
 
@@ -40,7 +39,7 @@
 
 #include "dataManagement/DataConnector.hpp"
 #include "plugins/ILightweightPlugin.hpp"
-#include "math/vector/compile-time/Int.hpp"
+#include "math/Vector.hpp"
 
 #include "memory/boxes/DataBox.hpp"
 #include "memory/boxes/SharedBox.hpp"
@@ -376,7 +375,7 @@ kernelPaintParticles3D(ParBox pb,
 
     while (isValid) //move over all Frames
     {
-        PMACC_AUTO(particle,(*frame)[localId]);
+        PMACC_AUTO(particle, (*frame)[localId]);
         if (particle[multiMask_] == 1)
         {
             int cellIdx = particle[localCellIdx_];
@@ -487,6 +486,7 @@ public:
     transpose(transpose),
     slicePoint(slicePoint),
     isMaster(false),
+    header(NULL),
     reduce(1024)
     {
         sliceDim = 0;
@@ -504,6 +504,7 @@ public:
         if (notifyFrequency > 0)
         {
             __delete(img);
+            MessageHeader::destroy(header);
         }
     }
 
@@ -546,7 +547,7 @@ public:
 
         uint32_t globalOffset = 0;
 #if(SIMDIM==DIM3)
-        globalOffset = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset()[sliceDim];
+        globalOffset = Environment<simDim>::get().SubGrid().getLocalDomain().offset[sliceDim];
 #endif
 
         typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -616,7 +617,7 @@ public:
         img->deviceToHost();
 
 
-        header.update(*cellDescription, window, transpose, currentStep);
+        header->update(*cellDescription, window, transpose, currentStep);
 
 
         __getTransactionEvent().waitForFinished(); //wait for copy picture
@@ -632,10 +633,10 @@ public:
             hostBox[0 ][size.x() - 1] = float3_X(1.0, 1.0, 1.0);
             hostBox[size.y() - 1 ][size.x() - 1] = float3_X(1.0, 1.0, 1.0);
         }
-        PMACC_AUTO(resultBox, gather(hostBox, header));
+        PMACC_AUTO(resultBox, gather(hostBox, *header));
         if (isMaster)
         {
-            output(resultBox.shift(header.window.offset), header.window.size, header);
+            output(resultBox.shift(header->window.offset), header->window.size, *header);
         }
 
     }
@@ -653,13 +654,14 @@ public:
 
             const DataSpace<simDim> gpus = Environment<simDim>::get().GridController().getGpuNodes();
 
-            float_32 cellSizeArr[3]={0,0,0};
-            for(uint32_t i=0;i<simDim;++i)
-                cellSizeArr[i]= cellSize[i];
+            float_32 cellSizeArr[3] = {0, 0, 0};
+            for (uint32_t i = 0; i < simDim; ++i)
+                cellSizeArr[i] = cellSize[i];
 
-            header.update(*cellDescription, window, transpose, 0, cellSizeArr, gpus);
+            header = MessageHeader::create();
+            header->update(*cellDescription, window, transpose, 0, cellSizeArr, gpus);
 
-            img = new GridBuffer<float3_X, DIM2 > (header.node.maxSize);
+            img = new GridBuffer<float3_X, DIM2 > (header->node.maxSize);
 
             bool isDrawing = doDrawing();
             isMaster = gather.init(isDrawing);
@@ -678,10 +680,10 @@ private:
     bool doDrawing()
     {
         assert(cellDescription != NULL);
-        const DataSpace<simDim> globalRootCellPos(Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset());
+        const DataSpace<simDim> globalRootCellPos(Environment<simDim>::get().SubGrid().getLocalDomain().offset);
 #if(SIMDIM==DIM3)
-        const bool tmp = globalRootCellPos[sliceDim] + Environment<simDim>::get().SubGrid().getSimulationBox().getLocalSize()[sliceDim] > sliceOffset &&
-              globalRootCellPos[sliceDim] <= sliceOffset;
+        const bool tmp = globalRootCellPos[sliceDim] + Environment<simDim>::get().SubGrid().getLocalDomain().size[sliceDim] > sliceOffset &&
+            globalRootCellPos[sliceDim] <= sliceOffset;
         return tmp;
 #else
         return true;
@@ -704,7 +706,7 @@ private:
     DataSpace<DIM2> transpose;
     uint32_t sliceDim;
 
-    MessageHeader header;
+    MessageHeader* header;
 
     Output output;
     GatherSlice gather;

@@ -29,7 +29,7 @@ namespace PMacc
 {
 
 /** ParticleDescription defines attributes, methods and flags of a particle
- * 
+ *
  * This class holds no runtime data.
  * The class holds information about the name, attributes, flags and methods of a
  * particle.
@@ -39,16 +39,16 @@ namespace PMacc
  * @tparam T_SuperCellSize compile time size of a super cell
  * @tparam T_ValueTypeSeq sequence or single type with value_identifier
  * @tparam T_Flags sequence or single type with identifier to add fags on a frame
- * @tparam T_MethodsList sequence or single class with particle methods 
- *                       (e.g. calculate mass, gamma, ...) 
- *                       (e.g. useSolverXY, calcRadiation, ...) 
+ * @tparam T_MethodsList sequence or single class with particle methods
+ *                       (e.g. calculate mass, gamma, ...)
+ *                       (e.g. useSolverXY, calcRadiation, ...)
  */
 template<
 typename T_Name,
 typename T_SuperCellSize,
 typename T_ValueTypeSeq,
 typename T_Flags = bmpl::vector0<>,
-typename T_MethodsList = bmpl::vector0<> 
+typename T_MethodsList = bmpl::vector0<>
 >
 struct ParticleDescription
 {
@@ -63,7 +63,7 @@ struct ParticleDescription
 
 
 /** Get ParticleDescription with a new ValueTypeSeq
- * 
+ *
  * @tparam T_OldParticleDescription base description
  * @tparam T_NewValueTypeSeq new boost mpl sequence with value types
  * @treturn ::type new ParticleDescription
@@ -73,9 +73,9 @@ struct ReplaceValueTypeSeq
 {
     typedef T_OldParticleDescription OldParticleDescription;
     typedef ParticleDescription<
-        typename OldParticleDescription::Name, 
-        typename OldParticleDescription::SuperCellSize, 
-        typename ToSeq<T_NewValueTypeSeq>::type, 
+        typename OldParticleDescription::Name,
+        typename OldParticleDescription::SuperCellSize,
+        typename ToSeq<T_NewValueTypeSeq>::type,
         typename OldParticleDescription::FlagsList,
         typename OldParticleDescription::MethodsList
     > type;

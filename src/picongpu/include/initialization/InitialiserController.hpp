@@ -1,21 +1,21 @@
 /**
  * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 #pragma once
@@ -31,7 +31,6 @@
 #include "fields/FieldB.hpp"
 
 #include "initialization/SimStartInitialiser.hpp"
-#include "particles/Species.hpp"
 
 #include "initialization/IInitPlugin.hpp"
 
@@ -79,7 +78,7 @@ public:
     {
         // restart simulation by loading from persistent data
         // the simulation will start after restartStep
-        log<picLog::SIMULATION_STATE > ("Restarting simulation from timestep %1% in directory '%2%'") % 
+        log<picLog::SIMULATION_STATE > ("Restarting simulation from timestep %1% in directory '%2%'") %
             restartStep % restartDirectory;
 
         Environment<>::get().PluginConnector().restartPlugins(restartStep, restartDirectory);
@@ -97,8 +96,8 @@ public:
         {
             log<picLog::PHYSICS >("max weighting %1%") % NUM_EL_PER_PARTICLE;
 
-            log<picLog::PHYSICS >("Courant dt <= %1% ? %2% ") %
-                                 (SPEED_OF_LIGHT/math::sqrt(INV_CELL2_SUM)) %
+            log<picLog::PHYSICS >("Courant c*dt <= %1% ? %2%") %
+                                 (1./math::sqrt(INV_CELL2_SUM)) %
                                  (SPEED_OF_LIGHT * DELTA_T);
 
             if (gasProfile::GAS_ENABLED)

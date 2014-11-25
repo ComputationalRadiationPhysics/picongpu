@@ -58,7 +58,7 @@ Requirements
 If you do not install the optional libraries, you will not have the full amount of PIConGPU online analysers.
 We recomment to install at least **pngwriter**.
 
-- **pngwriter**
+- **pngwriter** >= 0.5.5
     - download our modified version from
       [github.com/ax3l/pngwriter](https://github.com/ax3l/pngwriter)
     - Requires [libpng](http://www.libpng.org/),
@@ -74,7 +74,7 @@ We recomment to install at least **pngwriter**.
       [PNGWRITER\_ROOT](#additional-required-environment-variables-for-optional-libraries)
       to `$HOME/lib/pngwriter`
 
-- **libSplash** (requires *hdf5*, *boost program-options*)
+- **libSplash** >= 1.2.3 (requires *hdf5*, *boost program-options*)
     - *Debian/Ubuntu dependencies:* `sudo apt-get install libhdf5-openmpi-dev libboost-program-options-dev`
     - *Arch Linux dependencies:* `sudo pacman --sync hdf5-openmpi boost`
     - example:

@@ -28,7 +28,7 @@ namespace picongpu
 namespace traits
 {
     /** Convert an Adios type to a PIConGPU Type
-     * 
+     *
      * \tparam T_AdiosType Adios data type
      * \return \p ::type as public typedef
      */

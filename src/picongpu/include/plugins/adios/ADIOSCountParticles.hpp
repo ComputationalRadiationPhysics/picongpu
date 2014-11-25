@@ -36,7 +36,6 @@
 #include <boost/mpl/find.hpp>
 #include "compileTime/conversion/MakeSeq.hpp"
 
-#include "RefWrapper.hpp"
 #include <boost/type_traits.hpp>
 
 #include "plugins/output/WriteSpeciesCommon.hpp"
@@ -87,7 +86,7 @@ public:
 
     typedef Frame<OperatorCreateVectorBox, NewParticleDescription> AdiosFrameType;
 
-    HINLINE void operator()(RefWrapper<ThreadParams*> params,
+    HINLINE void operator()(ThreadParams* params,
                             const std::string subGroup)
     {
         DataConnector &dc = Environment<>::get().DataConnector();
@@ -102,9 +101,9 @@ public:
         uint64_cu totalNumParticles = 0;
         totalNumParticles = PMacc::CountParticles::countOnDevice < CORE + BORDER > (
                                                                                     *speciesTmp,
-                                                                                    *(params.get()->cellDescription),
-                                                                                    params.get()->localWindowToDomainOffset,
-                                                                                    params.get()->window.localDimensions.size);
+                                                                                    *(params->cellDescription),
+                                                                                    params->localWindowToDomainOffset,
+                                                                                    params->window.localDimensions.size);
 
         /* MPI_Allgather to compute global size and my offset */
         uint64_t myNumParticles = totalNumParticles;
@@ -137,29 +136,22 @@ public:
             const size_t localTableSize = 5;
             traits::PICToAdios<uint64_t> adiosIndexType;
 
-            std::stringstream indexVarSizeStr;
-            indexVarSizeStr << localTableSize;
-
-            std::stringstream indexVarGlobalSizeStr;
-            indexVarGlobalSizeStr << localTableSize * gc.getGlobalSize();
-
-            std::stringstream indexVarOffsetStr;
-            indexVarOffsetStr << localTableSize * gc.getGlobalRank();
-
-            int64_t adiosSpeciesIndexVar = adios_define_var(
-                params.get()->adiosGroupHandle,
-                (params.get()->adiosBasePath + std::string(ADIOS_PATH_PARTICLES) +
+            int64_t adiosSpeciesIndexVar = defineAdiosVar(
+                params->adiosGroupHandle,
+                (params->adiosBasePath + std::string(ADIOS_PATH_PARTICLES) +
                     FrameType::getName() + std::string("/") + subGroup +
                     std::string("particles_info")).c_str(),
                 NULL,
                 adiosIndexType.type,
-                indexVarSizeStr.str().c_str(),
-                indexVarGlobalSizeStr.str().c_str(),
-                indexVarOffsetStr.str().c_str());
+                DataSpace<DIM1>(localTableSize),
+                DataSpace<DIM1>(localTableSize * gc.getGlobalSize()),
+                DataSpace<DIM1>(localTableSize * gc.getGlobalRank()),
+                true,
+                params->adiosCompression);
 
-            params.get()->adiosSpeciesIndexVarIds.push_back(adiosSpeciesIndexVar);
+            params->adiosSpeciesIndexVarIds.push_back(adiosSpeciesIndexVar);
 
-            params.get()->adiosGroupSize += sizeof(uint64_t) * localTableSize * gc.getGlobalSize();
+            params->adiosGroupSize += sizeof(uint64_t) * localTableSize * gc.getGlobalSize();
         }
     }
 };

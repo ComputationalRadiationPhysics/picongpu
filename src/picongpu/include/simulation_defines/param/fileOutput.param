@@ -1,0 +1,96 @@
+/**
+ * Copyright 2013-2014 Axel Huebl, Rene Widera, Felix Schmitt
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+
+#pragma once
+
+#include <boost/mpl/vector.hpp>
+#include <boost/mpl/pair.hpp>
+
+#include "compileTime/conversion/MakeSeq.hpp"
+
+/** some forward declarations we need */
+#include "fields/Fields.def"
+#include "particles/particleToGrid/ComputeGridValuePerFrame.def"
+
+namespace picongpu
+{
+    /** FieldTmp output (calculated at runtime) *******************************
+     *
+     * you can choose any of these particle to grid projections:
+     *   - CreateDensityOperation: particle position + shape on the grid
+     *   - CreateCounterOperation: counts point like particles per cell
+     *   - CreateEnergyDensityOperation: particle energy density with respect to shape
+     *   - CreateEnergyOperation: particle energy with respect to shape
+     *   - CreateLarmorEnergyOperation: radiated larmor energy (needs ENABLE_RADIATION)
+     */
+    using namespace particleToGrid;
+
+    /* Density section */
+    typedef typename bmpl::transform<
+            VectorAllSpecies,
+            CreateDensityOperation<bmpl::_1>
+            >::type Density_Seq;
+
+    /* ParticleCounter section */
+    typedef typename bmpl::transform<
+            VectorAllSpecies,
+            CreateCounterOperation<bmpl::_1>
+            >::type Counter_Seq;
+
+    /* EnergyDensity section */
+    typedef typename bmpl::transform<
+            VectorAllSpecies,
+            CreateEnergyDensityOperation<bmpl::_1>
+            >::type EnergyDensity_Seq;
+
+
+    /** FieldTmpSolvers groups all solvers that create data for FieldTmp ******
+     *
+     * FieldTmpSolvers is used in @see FieldTmp to calculate the exchange size
+     */
+    typedef typename MakeSeq<
+        Density_Seq,
+        Counter_Seq,
+        EnergyDensity_Seq
+    >::type FieldTmpSolvers;
+
+
+    /** FileOutputFields: Groups all Fields that shall be dumped *************/
+
+    /** Possible native fields: FieldE, FieldB, FieldJ
+     */
+    typedef typename MakeSeq<FieldE, FieldB>::type NativeFileOutputFields;
+
+    typedef typename MakeSeq<
+        NativeFileOutputFields,
+        FieldTmpSolvers
+    >::type FileOutputFields;
+
+
+    /** FileOutputParticles: Groups all Species that shall be dumped **********
+     *
+     * hint: to disable particle output set to
+     *   typedef bmpl::vector0< > FileOutputParticles;
+     */
+    typedef VectorAllSpecies FileOutputParticles;
+
+}

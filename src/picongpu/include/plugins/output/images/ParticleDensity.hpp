@@ -25,7 +25,6 @@
 #include "simulation_defines.hpp"
 #include "types.h"
 
-#include "math/vector/compile-time/Int.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
 
@@ -34,7 +33,7 @@
 #include "particles/memory/boxes/ParticlesBox.hpp"
 
 #include "dataManagement/DataConnector.hpp"
-#include "math/vector/compile-time/Int.hpp"
+#include "math/Vector.hpp"
 
 #include "memory/boxes/DataBox.hpp"
 #include "memory/boxes/SharedBox.hpp"
@@ -189,6 +188,7 @@ public:
     notifyFrequency(notifyFrequency),
     transpose(transpose),
     slicePoint(slicePoint),
+    header(NULL),
     isMaster(false)
     {
         sliceDim = 0;
@@ -206,6 +206,7 @@ public:
         if (notifyFrequency > 0)
         {
             __delete(img);
+            MessageHeader::destroy(header);
         }
     }
 
@@ -215,8 +216,8 @@ public:
         Window window(MovingWindow::getInstance().getWindow(currentStep));
 
         /*sliceOffset is only used in 3D*/
-        sliceOffset = (int) ((float) (window.globalDimensions.size[sliceDim]) * slicePoint) + 
-                window.globalDimensions.offset[sliceDim];
+        sliceOffset = (int) ((float) (window.globalDimensions.size[sliceDim]) * slicePoint) +
+            window.globalDimensions.offset[sliceDim];
 
         if (!doDrawing())
         {
@@ -252,7 +253,7 @@ public:
 
         uint32_t globalOffset = 0;
 #if(SIMDIM==DIM3)
-        globalOffset = Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset()[sliceDim];
+        globalOffset = Environment<simDim>::get().SubGrid().getLocalDomain().offset[sliceDim];
 #endif
 
 
@@ -269,19 +270,19 @@ public:
 
         img->deviceToHost();
 
-        header.update(*cellDescription, window, transpose, currentStep);
+        header->update(*cellDescription, window, transpose, currentStep);
 
         __getTransactionEvent().waitForFinished(); //wait for copy picture
 
         PMACC_AUTO(hostBox, img->getHostBuffer().getDataBox());
 
-        PMACC_AUTO(resultBox, gather(hostBox, header));
+        PMACC_AUTO(resultBox, gather(hostBox, *header));
 
         // units
         const float_64 cellVolume = CELL_VOLUME;
         float_64 unitVolume = 1.;
-        for(uint32_t i=0;i<simDim;i++)
-            unitVolume*=UNIT_LENGTH;
+        for (uint32_t i = 0; i < simDim; i++)
+            unitVolume *= UNIT_LENGTH;
         // that's a hack, but works for all species
         //const float_64 charge = precisionCast<float_64>(
         //    ParticlesType::FrameType().getCharge(NUM_EL_PER_PARTICLE)) /
@@ -293,7 +294,7 @@ public:
         const float_64 unit = precisionCast<float_64>(NUM_EL_PER_PARTICLE)
             / (cellVolume * unitVolume);
         if (isMaster)
-            output(resultBox.shift(header.window.offset), unit, header.window.size, header);
+            output(resultBox.shift(header->window.offset), unit, header->window.size, *header);
     }
 
     void init()
@@ -303,16 +304,17 @@ public:
             const DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
 
             Window window(MovingWindow::getInstance().getWindow(0));
-            sliceOffset = (int) ((float) (window.globalDimensions.size[sliceDim]) * slicePoint) + 
-                    window.globalDimensions.offset[sliceDim];
+            sliceOffset = (int) ((float) (window.globalDimensions.size[sliceDim]) * slicePoint) +
+                window.globalDimensions.offset[sliceDim];
             const DataSpace<simDim> gpus = Environment<simDim>::get().GridController().getGpuNodes();
 
-            float_32 cellSizeArr[3]={0,0,0};
-            for(uint32_t i=0;i<simDim;++i)
-                cellSizeArr[i]= cellSize[i];
-            header.update(*cellDescription, window, transpose, 0, cellSizeArr, gpus);
+            float_32 cellSizeArr[3] = {0, 0, 0};
+            for (uint32_t i = 0; i < simDim; ++i)
+                cellSizeArr[i] = cellSize[i];
+            this->header = MessageHeader::create();
+            header->update(*cellDescription, window, transpose, 0, cellSizeArr, gpus);
 
-            img = new GridBuffer<Type_, DIM2 > (header.node.maxSize);
+            img = new GridBuffer<Type_, DIM2 > (header->node.maxSize);
 
             isMaster = gather.init(doDrawing());
         }
@@ -322,18 +324,17 @@ private:
 
     bool doDrawing()
     {
-        PMACC_AUTO(simBox, Environment<simDim>::get().SubGrid().getSimulationBox());
-        const DataSpace<simDim> globalRootCellPos(simBox.getGlobalOffset());
-        const DataSpace<simDim> localSize(simBox.getLocalSize());
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+        const DataSpace<simDim> globalRootCellPos(subGrid.getLocalDomain().offset);
+        const DataSpace<simDim> localSize(subGrid.getLocalDomain().size);
 #if(SIMDIM==DIM3)
         const bool tmp = globalRootCellPos[sliceDim] + localSize[sliceDim] > sliceOffset &&
-             globalRootCellPos[sliceDim] <= sliceOffset;
+            globalRootCellPos[sliceDim] <= sliceOffset;
         return tmp;
 #else
         return true;
 #endif
     }
-
 
     MappingDesc *cellDescription;
     SimulationDataId particleTag;
@@ -343,21 +344,13 @@ private:
     int sliceOffset;
     uint32_t notifyFrequency;
     float_X slicePoint;
-
     std::string analyzerName;
-
-
     DataSpace<DIM2> transpose;
     uint32_t sliceDim;
-
-    MessageHeader header;
-
+    MessageHeader *header;
     Output output;
     GatherSlice gather;
     bool isMaster;
 };
 
-
-
-}
-
+} //namespace picongpu

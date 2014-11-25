@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -18,10 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef POSITIONSPARTICLES_HPP
-#define	POSITIONSPARTICLES_HPP
+#pragma once
 
 #include <string>
 #include <iostream>
@@ -124,7 +121,9 @@ __global__ void kernelPositionsParticles(ParticlesBox<FRAME, simDim> pb,
     if (!isValid)
         return; //end kernel if we have no frames
 
-    bool isParticle = (*frame)[linearThreadIdx][multiMask_];
+    /* BUGFIX to issue #538
+     * volatile prohibits that the compiler creates wrong code*/
+    volatile bool isParticle = (*frame)[linearThreadIdx][multiMask_];
 
     while (isValid)
     {
@@ -134,8 +133,8 @@ __global__ void kernelPositionsParticles(ParticlesBox<FRAME, simDim> pb,
             gParticle->position = particle[position_];
             gParticle->momentum = particle[momentum_];
             gParticle->weighting = particle[weighting_];
-            gParticle->mass = frame->getMass(gParticle->weighting);
-            gParticle->charge = frame->getCharge(gParticle->weighting);
+            gParticle->mass = getMass(gParticle->weighting,*frame);
+            gParticle->charge = getCharge(gParticle->weighting,*frame);
             gParticle->gamma = Gamma<>()(gParticle->momentum, gParticle->mass);
 
             // storage number in the actual frame
@@ -266,7 +265,7 @@ private:
         DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
         const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
 
-        DataSpace<simDim> gpuPhyCellOffset(Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset());
+        DataSpace<simDim> gpuPhyCellOffset(Environment<simDim>::get().SubGrid().getLocalDomain().offset);
         gpuPhyCellOffset.y() += (localSize.y() * numSlides);
 
         gParticle->getHostBuffer().getDataBox()[0].globalCellOffset += gpuPhyCellOffset;
@@ -278,7 +277,3 @@ private:
 };
 
 }
-
-
-#endif	/* POSITIONSPARTICLES_HPP */
-

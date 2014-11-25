@@ -18,6 +18,9 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+
+#pragma once
+
 #include <iostream>
 
 #include "simulation_defines.hpp"
@@ -46,6 +49,8 @@
 #include <limits>
 
 #include "fields/numericalCellTypes/YeeCell.hpp"
+
+#include "particles/traits/GetPusher.hpp"
 
 namespace picongpu
 {
@@ -138,21 +143,23 @@ void Particles<T_ParticleDescription>::init( FieldE &fieldE, FieldB &fieldB, Fie
     Environment<>::get( ).DataConnector().registerData( *this );
 }
 
-template<typename T>
-struct GetType
-{
-    typedef typename T::type type;
-};
-
 template<typename T_ParticleDescription>
 void Particles<T_ParticleDescription>::update(uint32_t )
 {
-    typedef particlePusher::ParticlePusher ParticlePush;
+    typedef typename HasFlag<FrameType,particlePusher<> >::type hasPusher;
+    typedef typename GetFlagType<FrameType,particlePusher<> >::type FoundPusher;
 
-    typedef typename GetMargin<fieldSolver::FieldToParticleInterpolation>::LowerMargin LowerMargin;
-    typedef typename GetMargin<fieldSolver::FieldToParticleInterpolation>::UpperMargin UpperMargin;
+    /* if no pusher was defined we use PusherNone as fallback */
+    typedef typename bmpl::if_<hasPusher,FoundPusher,particles::pusher::None >::type SelectPusher;
+    typedef typename SelectPusher::type ParticlePush;
+
+    typedef typename GetFlagType<FrameType,interpolation<> >::type::ThisType InterpolationScheme;
+
+    typedef typename GetMargin<InterpolationScheme>::LowerMargin LowerMargin;
+    typedef typename GetMargin<InterpolationScheme>::UpperMargin UpperMargin;
 
     typedef PushParticlePerFrame<ParticlePush, MappingDesc::SuperCellSize,
+        InterpolationScheme,
         fieldSolver::NumericalCellType > FrameSolver;
 
     typedef SuperCellDescription<
@@ -184,12 +191,12 @@ template< typename T_ParticleDescription>
 void Particles<T_ParticleDescription>::initFill( uint32_t currentStep )
 {
     Window window = MovingWindow::getInstance( ).getWindow( currentStep );
-    const uint32_t numSlides = MovingWindow::getInstance( ).getSlideCounter( currentStep );
-    PMACC_AUTO( simBox, Environment<simDim>::get().SubGrid().getSimulationBox( ) );
+    const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter( currentStep );
+    const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
 
     /*calculate real simulation area offset from the beginning of the simulation*/
     DataSpace<simDim> localCells = gridLayout.getDataSpaceWithoutGuarding( );
-    DataSpace<simDim> gpuCellOffset = simBox.getGlobalOffset( );
+    DataSpace<simDim> gpuCellOffset = subGrid.getLocalDomain().offset;
     gpuCellOffset.y( ) += numSlides * localCells.y( );
 
     GlobalSeed globalSeed;
@@ -200,7 +207,7 @@ void Particles<T_ParticleDescription>::initFill( uint32_t currentStep )
 
     if ( gasProfile::GAS_ENABLED )
     {
-        const DataSpace<simDim> globalNrOfCells = simBox.getGlobalSize( );
+        const DataSpace<simDim> globalNrOfCells = subGrid.getGlobalDomain().size;
 
         PMACC_AUTO( &fieldTmpGridBuffer, this->fieldTmp->getGridBuffer() );
         FieldTmp::DataBoxType dataBox = fieldTmpGridBuffer.getDeviceBuffer().getDataBox();
@@ -230,7 +237,7 @@ template< typename T_ParticleDescription>
 template< typename t_ParticleDescription>
 void Particles<T_ParticleDescription>::deviceCloneFrom( Particles< t_ParticleDescription> &src )
 {
-    dim3 block( TILE_SIZE );
+    dim3 block( PMacc::math::CT::volume<SuperCellSize>::type::value );
 
     __picKernelArea( kernelCloneParticles, this->cellDescription, CORE + BORDER + GUARD )
         (block) ( this->getDeviceParticlesBox( ), src.getDeviceParticlesBox( ) );
@@ -265,13 +272,13 @@ void Particles<T_ParticleDescription>::deviceSetDrift( uint32_t currentStep )
 
     dim3 block( MappingDesc::SuperCellSize::toRT( ).toDim3() );
 
-    PMACC_AUTO( simBox, Environment<simDim>::get().SubGrid().getSimulationBox( ) );
-    const DataSpace<simDim> localNrOfCells( simBox.getLocalSize( ) );
-    const DataSpace<simDim> globalNrOfCells( simBox.getGlobalSize( ) );
+    const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+    const DataSpace<simDim> localNrOfCells( subGrid.getLocalDomain( ).size );
+    const DataSpace<simDim> globalNrOfCells( subGrid.getGlobalDomain( ).size );
 
     /* calculate real simulation area offset from the beginning of the simulation
      */
-    uint32_t simulationYCell = simBox.getGlobalOffset( ).y( ) +
+    uint32_t simulationYCell = subGrid.getLocalDomain( ).offset.y( ) +
         ( numSlides * localNrOfCells.y( ) );
 
     __picKernelArea( kernelSetDrift, this->cellDescription, CORE + BORDER + GUARD )

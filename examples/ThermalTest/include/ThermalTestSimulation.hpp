@@ -1,22 +1,22 @@
 /**
  * Copyright 2013 Heiko Burau
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #ifndef TERMALTESTSIMULATION_HPP
 #define	TERMALTESTSIMULATION_HPP
@@ -41,8 +41,6 @@
 
 #include <assert.h>
 
-#include "particles/Species.hpp"
-
 #include "plugins/PluginController.hpp"
 
 #include "cuSTL/container/DeviceBuffer.hpp"
@@ -52,8 +50,7 @@
 #include "cuSTL/algorithm/mpi/Gather.hpp"
 #include "cuSTL/algorithm/mpi/Reduce.hpp"
 #include "lambda/Expression.hpp"
-#include "math/vector/compile-time/Int.hpp"
-#include "math/vector/compile-time/Size_t.hpp"
+#include "math/Vector.hpp"
 #include "cuSTL/cursor/tools/slice.hpp"
 #include "cuSTL/cursor/FunctorCursor.hpp"
 
@@ -88,7 +85,7 @@ public:
         BOOST_AUTO(fieldE_coreBorder,
              this->fieldE->getGridBuffer().getDeviceBuffer().cartBuffer().view(
                    precisionCast<int>(GuardDim().toRT()), -precisionCast<int>(GuardDim().toRT())));
-                   
+
         this->eField_zt[0] = new container::DeviceBuffer<float, 2 > (Size_t < 2 > (fieldE_coreBorder.size().z(), this->collectTimesteps));
         this->eField_zt[1] = new container::DeviceBuffer<float, 2 >(this->eField_zt[0]->size());
 
@@ -123,28 +120,28 @@ public:
 
         container::HostBuffer<float, 2 > eField_zt_host(eField_zt[0]->size());
         container::HostBuffer<float, 2 > eField_zt_reduced(eField_zt[0]->size());
-        
+
         for (int i = 0; i < 2; i++)
         {
             eField_zt_host = *(eField_zt[i]);
-            
+
             bool reduceRoot = (gpuPos.x() == 0) && (gpuPos.y() == 0);
             for(int gpuPos_z = 0; gpuPos_z < gpuDim.z(); gpuPos_z++)
             {
                 zone::SphericZone<3> gpuReducingZone(
                     Size_t<3>(gpuDim.x(), gpuDim.y(), 1),
                     Int<3>(0, 0, gpuPos_z));
-                    
+
                 algorithm::mpi::Reduce<3> reduce(gpuReducingZone, reduceRoot);
-                
+
                 using namespace lambda;
                 reduce(eField_zt_reduced, eField_zt_host, _1 + _2);
             }
             if(!reduceRoot) continue;
-            
+
             container::HostBuffer<float, 2 > global_eField_zt(
                 gpuDim.z() * eField_zt_reduced.size().x(), eField_zt_reduced.size().y());
-                
+
             gather(global_eField_zt, eField_zt_reduced, 1);
             if (gather.root())
             {
@@ -195,7 +192,7 @@ public:
                         _1 + _2);
             }
         }
-        
+
         if (currentStep == this->collectTimesteps + firstTimestep)
             writeOutput();
     }
@@ -210,7 +207,7 @@ private:
     container::DeviceBuffer<float, 2 >* eField_zt[2];
 
     typedef PMacc::math::CT::Size_t < 16, 16, 1 > BlockDim;
-    typedef PMacc::math::CT::Size_t<TILE_WIDTH, TILE_HEIGHT, TILE_DEPTH> GuardDim;
+    typedef SuperCellSize GuardDim;
 };
 
 } // namespace picongpu

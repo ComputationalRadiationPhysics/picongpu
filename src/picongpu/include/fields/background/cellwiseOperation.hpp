@@ -28,7 +28,6 @@
 #include "mappings/simulation/SubGrid.hpp"
 #include "mappings/kernel/MappingDescription.hpp"
 #include "simulationControl/MovingWindow.hpp"
-#include "simulationControl/DomainInformation.hpp"
 
 
 namespace picongpu
@@ -96,14 +95,14 @@ namespace cellwiseOperation
             if( !enabled )
                 return;
 
+            const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
             /** offset due to being the n-th GPU */
-            DataSpace<simDim> totalCellOffset(Environment<simDim>::get().SubGrid().getSimulationBox().getGlobalOffset());
+            DataSpace<simDim> totalCellOffset(subGrid.getLocalDomain().offset);
             const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter( currentStep );
-            const DomainInformation domInfo;
 
             /** Assumption: all GPUs have the same number of cells in
              *              y direction for sliding window */
-            totalCellOffset.y() += numSlides * domInfo.localDomain.size.y();
+            totalCellOffset.y() += numSlides * subGrid.getLocalDomain().size.y();
             /* the first block will start with less offset if started in the GUARD */
             if( T_Area & GUARD)
                 totalCellOffset -= cellDescription.getSuperCellSize() * cellDescription.getGuardingSuperCells();

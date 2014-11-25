@@ -1,23 +1,23 @@
 /**
  * Copyright 2013 Heiko Burau, Anton Helm, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 
 #ifndef LASERPULSEFRONTTILT
@@ -32,11 +32,11 @@ namespace picongpu
     {
 
         /**
-         * 
+         *
          * @param currentStep
          * @param subGrid
          * @param phase
-         * @return 
+         * @return
          */
         HINLINE float3_X laserLongitudinal( uint32_t currentStep, float_X& phase )
         {
@@ -80,12 +80,12 @@ namespace picongpu
         }
 
         /**
-         * 
+         *
          * @param elong
          * @param phase
          * @param posX
          * @param posZ
-         * @return 
+         * @return
          */
         HDINLINE float3_X laserTransversal( float3_X elong, float_X phase, const float_X posX, const float_X posZ )
         {
@@ -97,7 +97,7 @@ namespace picongpu
 
             // pure gaussian
             //const float_X r2 = posX * posX + posZ * posZ;
-            
+
             //rayleigh length (in y-direction)
             const float_X y_R = float_X( PI ) * W0 * W0 / WAVE_LENGTH;
 
@@ -110,7 +110,7 @@ namespace picongpu
             const float_X w_y = W0 * sqrt( float_X(1.0) + ( FOCUS_POS / y_R )*( FOCUS_POS / y_R ) );
             //! the Gouy phase shift
             const float_X xi_y = atan( -FOCUS_POS / y_R );
-            
+
             if( Polarisation == LINEAR_X || Polarisation == LINEAR_Z )
             {
                 elong *= math::exp( -r2 / w_y / w_y ) * cos( 2.0f * float_X( PI ) / WAVE_LENGTH * FOCUS_POS - 2.0f * float_X( PI ) / WAVE_LENGTH * r2 / 2.0f / R_y + xi_y + phase )
@@ -131,14 +131,14 @@ namespace picongpu
                        / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( 2.0f * PULSE_LENGTH ) / ( 2.0f * PULSE_LENGTH ) );
                 phase -= float_X( PI / 2.0 );
             }
-            
+
             return elong;
 #else
             //beam waist in the near field: w_y(y=0) == W0
             const float_X w_y = W0 * sqrtf( float_X(1.0) + ( FOCUS_POS / y_R )*( FOCUS_POS / y_R ) );
             //! the Gouy phase shift
             const float_X xi_y = atanf( -FOCUS_POS / y_R );
-            
+
             if( Polarisation == LINEAR_X || Polarisation == LINEAR_Z )
             {
                 elong *= math::exp( -r2 / w_y / w_y ) * __cosf( 2.0f * float_X( PI ) / WAVE_LENGTH * FOCUS_POS - 2.0f * float_X( PI ) / WAVE_LENGTH * r2 / 2.0f / R_y + xi_y + phase )
@@ -159,7 +159,7 @@ namespace picongpu
                           / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( 2.0f * PULSE_LENGTH ) / ( 2.0f * PULSE_LENGTH ) );
                 phase -= float_X( PI / 2.0 );
             }
-            
+
             return elong;
 #endif
         }

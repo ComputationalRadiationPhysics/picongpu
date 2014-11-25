@@ -1,24 +1,24 @@
 /**
  * Copyright 2013 Rene Widera
  *
- * This file is part of libPMacc. 
- * 
- * libPMacc is free software: you can redistribute it and/or modify 
- * it under the terms of of either the GNU General Public License or 
- * the GNU Lesser General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * libPMacc is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License and the GNU Lesser General Public License 
- * for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * and the GNU Lesser General Public License along with libPMacc. 
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "types.hpp"
 #include <iostream>
 
@@ -57,7 +57,7 @@ int main( int argc, char **argv )
             ( "help,h", "produce help message" )
             ( "steps,s", po::value<uint32_t > ( &steps ), "simulation steps" )
             ( "rule,r", po::value<std::string > ( &rule ), "simulation rule etc. 23/3" )
-            ( "devices,d", po::value<std::vector<uint32_t> > ( &devices )->multitoken( ), 
+            ( "devices,d", po::value<std::vector<uint32_t> > ( &devices )->multitoken( ),
               "number of devices in each dimension (only 1D or 2D). If you use more than "
               "one device in total, you will need to run mpirun with \"mpirun -n "
               "<DeviceCount.x*DeviceCount.y> ./gameOfLife\"" )

@@ -60,7 +60,7 @@ const float_X preChannel3_opacity = 1.0;
 // specify color scales for each channel
 namespace preParticleDensCol = colorScales::red;
 namespace preChannel1Col = colorScales::none;
-namespace preChannel2Col = colorScales::none;
+namespace preChannel2Col = colorScales::green;
 namespace preChannel3Col = colorScales::none;
 
 /* png preview and liveview settings for each channel */

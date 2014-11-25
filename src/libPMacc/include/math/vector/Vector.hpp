@@ -8,6 +8,7 @@
  * the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ *
  * libPMacc is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -83,7 +84,7 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
     typedef Vector<type, dim, Accessor, Navigator, T_Storage> This;
 
     /*Vectors without elements are not allowed*/
-    BOOST_STATIC_ASSERT(dim > 0);
+    PMACC_CASSERT_MSG(math_Vector__with_DIM_0_is_not_allowed,dim > 0);
 
     template<class> struct result;
 
@@ -106,7 +107,7 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
     HDINLINE
     Vector(const type x, const type y)
     {
-        BOOST_STATIC_ASSERT(dim == 2);
+        PMACC_CASSERT_MSG(math_Vector__constructor_is_only_allowed_for_DIM2,dim == 2);
         (*this)[0] = x;
         (*this)[1] = y;
     }
@@ -114,7 +115,7 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
     HDINLINE
     Vector(const type x, const type y, const type z)
     {
-        BOOST_STATIC_ASSERT(dim == 3);
+        PMACC_CASSERT_MSG(math_Vector__constructor_is_only_allowed_for_DIM3,dim == 3);
         (*this)[0] = x;
         (*this)[1] = y;
         (*this)[2] = z;
@@ -192,13 +193,13 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
 
     HDINLINE type & y()
     {
-        BOOST_STATIC_ASSERT(dim >= 2);
+        PMACC_CASSERT_MSG(math_Vector__access_to_y_is_not_allowed_for_DIM_lesser_than_2,dim >= 2);
         return (*this)[1];
     }
 
     HDINLINE type & z()
     {
-        BOOST_STATIC_ASSERT(dim >= 3);
+        PMACC_CASSERT_MSG(math_Vector__access_to_z_is_not_allowed_for_DIM_lesser_than_3,dim >= 3);
         return (*this)[2];
     }
 
@@ -209,20 +210,20 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
 
     HDINLINE const type & y() const
     {
-        BOOST_STATIC_ASSERT(dim >= 2);
+        PMACC_CASSERT_MSG(math_Vector__access_to_y_is_not_allowed_for_DIM_lesser_than_2,dim >= 2);
         return (*this)[1];
     }
 
     HDINLINE const type & z() const
     {
-        BOOST_STATIC_ASSERT(dim >= 3);
+        PMACC_CASSERT_MSG(math_Vector__access_to_z_is_not_allowed_for_DIM_lesser_than_3,dim >= 3);
         return (*this)[2];
     }
 
     template<int shrinkedDim >
     HDINLINE Vector<type, shrinkedDim, Accessor, Navigator, T_Storage> shrink(const int startIdx = 0) const
     {
-        BOOST_STATIC_ASSERT(shrinkedDim <= dim);
+        PMACC_CASSERT_MSG(math_Vector__shrinkedDim_DIM_must_be_lesser_or_equal_to_Vector_DIM,shrinkedDim <= dim);
         Vector<type, shrinkedDim, Accessor, Navigator> result;
         for (int i = 0; i < shrinkedDim; i++)
             result[i] = (*this)[(startIdx + i) % dim];
@@ -382,14 +383,38 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
         return !((*this) == rhs);
     }
 
-    std::string toString() const
+    /** create string out of the vector
+     *
+     * @param separator string to separate components of the vector
+     * @param enclosings string with size 2 to enclose vector
+     *                   size == 0 ? no enclose symbols
+     *                   size == 1 ? means enclose symbol begin and end are equal
+     *                   size >= 2 ? letter[0] = begin enclose symbol
+     *                               letter[1] = end enclose symbol
+     *
+     * example:
+     * .toString(";","|")     -> |x;...;z|
+     * .toString(",","[]")    -> [x,...,z]
+     */
+    std::string toString(const std::string separator = ",", const std::string enclosings = "{}") const
     {
+        std::string locale_enclosing_begin;
+        std::string locale_enclosing_end;
+        size_t enclosing_size=enclosings.size();
+
+        if(enclosing_size > 0)
+        {
+            /* % avoid out of memory access */
+            locale_enclosing_begin=enclosings[0%enclosing_size];
+            locale_enclosing_end=enclosings[1%enclosing_size];
+        }
+
         std::stringstream stream;
-        stream << "{" << (*this)[0];
+        stream << locale_enclosing_begin << (*this)[0];
 
         for (int i = 1; i < dim; ++i)
-            stream << "," << (*this)[i];
-        stream << "}";
+            stream << separator << (*this)[i];
+        stream << locale_enclosing_end;
         return stream.str();
     }
 
