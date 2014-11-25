@@ -7,7 +7,7 @@ then
 #       export MODULES_NO_OUTPUT=1
 
         # Core Dependencies
-        module load gcc/4.6.2
+        module load gcc/4.8.2
         module load cmake/2.8.10
         module load openmpi/1.6.3
         module load boost/1.54.0
