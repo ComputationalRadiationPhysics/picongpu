@@ -42,6 +42,7 @@
 #define __MEMTEST_H_
 
 #include <stdio.h>
+#include <stdint.h>
 #include <pthread.h>
 
 #define VERSION "1.2.3"
