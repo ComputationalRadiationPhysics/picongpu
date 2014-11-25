@@ -110,7 +110,7 @@ struct cudaDeviceProp {
 void
 display_device_info(struct cudaDeviceProp* prop)
 {
-    PRINTF("Device name=%s, global memory size=%llu\n", prop->name, prop->totalGlobalMem);
+    PRINTF("Device name=%s, global memory size=%zu\n", prop->name, prop->totalGlobalMem);
     return;
 }
 
