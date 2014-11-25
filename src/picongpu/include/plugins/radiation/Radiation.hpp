@@ -112,6 +112,7 @@ private:
      * frequency.
      */
     Amplitude* timeSumArray;
+    Amplitude *tmp_result;
 
     bool isMaster;
 
@@ -144,11 +145,13 @@ public:
     radRestart(false)
     {
         Environment<>::get().PluginConnector().registerPlugin(this);
+        // allocate memory for all amplitudes for temporal data collection
+        tmp_result = new Amplitude[elements_amplitude()];
     }
 
     virtual ~Radiation()
     {
-
+        __deleteArray(tmp_result);
     }
 
     /**
@@ -231,9 +234,8 @@ private:
         {
             /*only rank 0 create a file*/
             isMaster = reduce.hasResult(mpi::reduceMethods::Reduce());
-            const int elements_amplitude = radiation_frequencies::N_omega * parameters::N_observer; // storage for amplitude results on GPU
 
-            radiation = new GridBuffer<Amplitude, DIM1 > (DataSpace<DIM1 > (elements_amplitude)); //create one int on gpu und host
+            radiation = new GridBuffer<Amplitude, DIM1 > (DataSpace<DIM1 > (elements_amplitude())); //create one int on gpu und host
 
             freqInit.Init(pathOmegaList);
             freqFkt = freqInit.getFunctor();
@@ -241,6 +243,12 @@ private:
 
             Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
             PMacc::Filesystem<simDim>& fs = Environment<simDim>::get().Filesystem();
+
+            if (isMaster)
+            {
+              timeSumArray = new Amplitude[elements_amplitude()];
+            }
+
 
             if (isMaster && totalRad)
             {
@@ -260,8 +268,7 @@ private:
                 //create folder for total output
                 fs.createDirectory(folderTotalRad);
                 fs.setDirectoryPermissions(folderTotalRad);
-                timeSumArray = new Amplitude[elements_amplitude];
-                for (int i = 0; i < elements_amplitude; ++i)
+                for (unsigned int i = 0; i < elements_amplitude(); ++i)
                     timeSumArray[i] = Amplitude::zero();
             }
             if (isMaster && lastRad)
@@ -290,7 +297,8 @@ private:
             //only print data at end of simulation
             if (dumpPeriod == 0)
                 combineData(globalOffset);
-            if (isMaster && totalRad)
+            
+            if (isMaster)
             {
                 __deleteArray(timeSumArray);
             }
@@ -299,6 +307,141 @@ private:
             CUDA_CHECK(cudaGetLastError());
         }
     }
+
+
+  void copyRadiationDeviceToHost()
+  {
+    radiation->deviceToHost();
+    __getTransactionEvent().waitForFinished();
+  }
+
+
+  void saveRadPerGPU(const DataSpace<simDim> currentGPUpos)
+  {
+    if (radPerGPU)
+      {
+        if (lastGPUpos == currentGPUpos)
+          {
+            std::stringstream last_time_step_str;
+            std::stringstream current_time_step_str;
+            std::stringstream GPUposX;
+            std::stringstream GPUposY;
+            std::stringstream GPUposZ;
+
+            last_time_step_str << lastStep;
+            current_time_step_str << currentStep;
+            GPUposX << currentGPUpos.x();
+            GPUposY << currentGPUpos.y();
+            // if simDim==DIM2 no z-component is defined -> set it to zero
+#if(SIMDIM == DIM3)
+            GPUposZ << currentGPUpos.z();
+#else
+            GPUposZ << 0;
+#endif
+            
+            writeFile(radiation->getHostBuffer().getBasePointer(), folderRadPerGPU + "/" + filename_prefix
+                      + "_radPerGPU_pos_" + GPUposX.str() + "_" + GPUposY.str() + "_" + GPUposZ.str()
+                      + "_time_" + last_time_step_str.str() + "-" + current_time_step_str.str() + ".dat");
+          }
+      }
+
+  } 
+
+  static unsigned int elements_amplitude()
+  {
+    return radiation_frequencies::N_omega * parameters::N_observer; // storage for amplitude results on GPU
+  } 
+
+
+  void collectRadiationOnMaster()
+  {
+      reduce(nvidia::functors::Add(),
+             tmp_result,
+             radiation->getHostBuffer().getBasePointer(),
+             elements_amplitude(),
+             mpi::reduceMethods::Reduce()
+             );
+  }
+
+
+  void sumAmplitudesOverTime()
+  {
+    if (isMaster)
+      {
+
+        // TODO: old restart method
+        if (radRestart)
+          {
+            std::stringstream o_bu_step;
+            o_bu_step << currentStep - dumpPeriod;
+            
+            readHDF5file(timeSumArray, std::string("radiationHDF5/radAmplitudes_"), currentStep);
+            radRestart = false; // reset restart flag
+          }
+
+        // add last amplitudes to previous amplitudes
+        for (unsigned int i = 0; i < elements_amplitude(); ++i)
+          timeSumArray[i] += tmp_result[i];
+      }      
+  }
+
+
+
+  /*
+   * lastRad writes to file the emitted radiation only from
+   * the current time step. That is, radiation from previous
+   * time steps is neglected.
+   */
+  void writeLastRadToText()
+  {
+      // only the master rank writes data
+      if (isMaster)
+      {
+          // write file only if lastRad flag was selected
+          if (lastRad)
+          {
+              // get time step as string
+              std::stringstream o_step;
+              o_step << currentStep;
+        
+              // write lastRad data to txt
+              writeFile(tmp_result, folderLastRad + "/" + filename_prefix + "_" + o_step.str() + ".dat");
+          }
+      }       
+  }
+
+
+
+  void writeTotalRadToText()
+  {
+      // only the master rank writes data
+      if (isMaster)
+      {
+          // write file only if totalRad flag was selected
+          if (totalRad)
+          {
+              // get time step as string
+              std::stringstream o_step;
+              o_step << currentStep;
+        
+              // write totalRad data to txt
+              writeFile(timeSumArray, folderTotalRad + "/" + filename_prefix + "_" + o_step.str() + ".dat");
+          }
+      }       
+  }
+
+
+
+  void writeAmplitudesToHDF5()
+  {
+      if (isMaster)
+      {
+          writeHDF5file(timeSumArray, std::string("radiationHDF5/radAmplitudes_"));
+      }
+  }
+
+
+
 
     /**
      * This function is called by the calculateRadiationParticles() function
@@ -315,85 +458,14 @@ private:
     void combineData(const DataSpace<simDim> currentGPUpos)
     {
 
-        const unsigned int elements_amplitude = radiation_frequencies::N_omega * parameters::N_observer; // storage for amplitude results on GPU
-        Amplitude *result = new Amplitude[elements_amplitude];
+        copyRadiationDeviceToHost();
+        collectRadiationOnMaster();
+        sumAmplitudesOverTime();
 
-
-        radiation->deviceToHost();
-        __getTransactionEvent().waitForFinished();
-
-        if (radPerGPU)
-        {
-            if (lastGPUpos == currentGPUpos)
-            {
-                std::stringstream last_time_step_str;
-                std::stringstream current_time_step_str;
-                std::stringstream GPUposX;
-                std::stringstream GPUposY;
-                std::stringstream GPUposZ;
-
-
-                last_time_step_str << lastStep;
-                current_time_step_str << currentStep;
-                GPUposX << currentGPUpos.x();
-                GPUposY << currentGPUpos.y();
-                // if simDim==DIM2 no z-component is defined -> set it to zero
-                #if(SIMDIM == DIM3)
-                  GPUposZ << currentGPUpos.z();
-                #else
-                  GPUposZ << 0;
-                #endif
-
-                writeFile(radiation->getHostBuffer().getBasePointer(), folderRadPerGPU + "/" + filename_prefix
-                          + "_radPerGPU_pos_" + GPUposX.str() + "_" + GPUposY.str() + "_" + GPUposZ.str()
-                          + "_time_" + last_time_step_str.str() + "-" + current_time_step_str.str() + ".dat");
-            }
-        }
-
-        reduce(nvidia::functors::Add(),
-               result,
-               radiation->getHostBuffer().getBasePointer(),
-               elements_amplitude,
-               mpi::reduceMethods::Reduce()
-               );
-
-        if (isMaster)
-        {
-            std::stringstream o_step;
-            o_step << currentStep;
-            if (totalRad)
-            {
-                /*
-                 * totalRad writes to file the total emitted radiation up
-                 * to the current time step.
-                 */
-
-                if (radRestart)
-                {
-                    std::stringstream o_bu_step;
-                    o_bu_step << currentStep - dumpPeriod;
-
-                    readHDF5file(timeSumArray, std::string("radiationHDF5/radAmplitudes_"), currentStep);
-                    radRestart = false; // reset restart flag
-                }
-
-
-                for (unsigned int i = 0; i < elements_amplitude; ++i)
-                    timeSumArray[i] += result[i];
-                writeFile(timeSumArray, folderTotalRad + "/" + filename_prefix + "_" + o_step.str() + ".dat");
-                writeHDF5file(timeSumArray, std::string("radiationHDF5/radAmplitudes_"));
-            }
-
-            if (lastRad)
-                /*
-                 * lastRad writes to file the emitted radiation only from
-                 * the current time step. That is, radiation from previous
-                 * time steps is neglected.
-                 */
-                writeFile(result, folderLastRad + "/" + filename_prefix + "_" + o_step.str() + ".dat");
-        }
-
-        __deleteArray(result);
+        saveRadPerGPU(currentGPUpos);
+        writeLastRadToText();
+        writeTotalRadToText();
+        writeAmplitudesToHDF5();
 
         lastStep = currentStep;
         lastGPUpos = currentGPUpos;
