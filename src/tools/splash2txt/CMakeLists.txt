@@ -43,15 +43,24 @@ include_directories(include)
 
 
 ################################################################################
-# Build type (debug, release)
+# Build type (debug, release, relwithdebinfo)
 ################################################################################
 
-option(S2T_RELEASE "disable all debug asserts" ON)
-if(NOT S2T_RELEASE)
-    set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall")
-    set(CMAKE_BUILD_TYPE Debug)
-endif(NOT S2T_RELEASE)
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  message(STATUS "Setting build type to 'Debug' as none was specified.")
+  set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build." FORCE)
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "RelWithDebInfo")
+endif()
 
+if(CMAKE_BUILD_TYPE MATCHES Debug)
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
+elseif(CMAKE_BUILD_TYPE MATCHES Release)
+elseif(CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
+else()
+  message(FATAL_ERROR "Unrecognized build type")
+endif()
+
+message(STATUS "Building ${CMAKE_BUILD_TYPE}")
 
 ################################################################################
 # Find MPI
