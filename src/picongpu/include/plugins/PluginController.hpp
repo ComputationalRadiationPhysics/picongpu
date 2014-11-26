@@ -33,7 +33,6 @@
 #include "plugins/SumCurrents.hpp"
 #include "plugins/PositionsParticles.hpp"
 #include "plugins/BinEnergyParticles.hpp"
-#include "plugins/LineSliceFields.hpp"
 #if(ENABLE_HDF5 == 1)
 #include "plugins/PhaseSpace/PhaseSpaceMulti.hpp"
 #endif
@@ -186,7 +185,6 @@ private:
 
         plugins.push_back(new EnergyFields("EnergyFields", "energy_fields"));
         plugins.push_back(new SumCurrents());
-        plugins.push_back(new LineSliceFields());
 
 #if(SIMDIM==DIM3)
         plugins.push_back(new FieldEnergy("FieldEnergy [keV/m^3]", "field_energy"));
