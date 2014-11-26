@@ -112,8 +112,8 @@ namespace cellwiseOperation
                 totalCellOffset += cellDescription.getSuperCellSize() * cellDescription.getBorderSuperCells();
 
 			/** Half the size of the global Simulation volume for centering the coordinate origin  */
-			const DataSpace<simDim> halfSimSize(subGrid.getGlobalDomain().size / 2); //To DO: In the future, should we also include the globalDomain.offset?
-				
+			const DataSpace<simDim> halfSimSize(subGrid.getGlobalDomain().size / 2); //To DO: In the future, should we also include the globalDomain.offset? For comparison: LaserPhysics.hpp does not do this.			
+			
             /* start kernel */
             __picKernelArea((kernelCellwiseOperation<T_OpFunctor>), cellDescription, T_Area)
                     (SuperCellSize::toRT().toDim3())
