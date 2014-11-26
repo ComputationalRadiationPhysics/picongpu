@@ -296,7 +296,7 @@ private:
 
             //only print data at end of simulation
             if (dumpPeriod == 0)
-                combineData(globalOffset);
+                collectAndStoreRadData(globalOffset);
             
             if (isMaster)
             {
@@ -455,18 +455,20 @@ private:
      * particles for every direction and step is available on the master
      * host.
      */
-    void combineData(const DataSpace<simDim> currentGPUpos)
+    void collectAndStoreRadData(const DataSpace<simDim> currentGPUpos)
     {
-
+        // collect data GPU -> CPU -> Master
         copyRadiationDeviceToHost();
         collectRadiationOnMaster();
         sumAmplitudesOverTime();
 
+        // write data to files
         saveRadPerGPU(currentGPUpos);
         writeLastRadToText();
         writeTotalRadToText();
         writeAmplitudesToHDF5();
 
+        // update time steps
         lastStep = currentStep;
         lastGPUpos = currentGPUpos;
     }
@@ -746,7 +748,7 @@ private:
 
         if (dumpPeriod != 0 && currentStep % dumpPeriod == 0)
         {
-            combineData(globalOffset);
+            collectAndStoreRadData(globalOffset);
             radiation->getDeviceBuffer().reset(false);
         }
 
