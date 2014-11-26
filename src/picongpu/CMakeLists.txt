@@ -243,6 +243,11 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}" CACHE PATH "install prefix" FORCE)
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) 
 
+# boost >= 1.56.0 is currently broken
+if(Boost_VERSION GREATER 105599)
+    message(FATAL_ERROR "Boost 1.56.0+ is currently not supported.")
+endif()
+
 # work-arounds
 if( (Boost_VERSION EQUAL 105500) AND
     (CUDA_VERSION VERSION_LESS 6.5) )
