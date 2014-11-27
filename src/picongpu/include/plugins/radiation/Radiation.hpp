@@ -145,13 +145,10 @@ public:
     radRestart(false)
     {
         Environment<>::get().PluginConnector().registerPlugin(this);
-        // allocate memory for all amplitudes for temporal data collection
-        tmp_result = new Amplitude[elements_amplitude()];
     }
 
     virtual ~Radiation()
     {
-        __deleteArray(tmp_result);
     }
 
     /**
@@ -230,6 +227,9 @@ private:
      * is created.       */
     void pluginLoad()
     {
+        // allocate memory for all amplitudes for temporal data collection
+        tmp_result = new Amplitude[elements_amplitude()];
+
         if (notifyFrequency > 0)
         {
             /*only rank 0 create a file*/
@@ -294,9 +294,12 @@ private:
             DataSpace<simDim> globalOffset(subGrid.getLocalDomain().offset);
             globalOffset.y() += (localSize.y() * numSlides);
 
-            //only print data at end of simulation
+            // only print data at end of simulation if no dump period was set
             if (dumpPeriod == 0)
-                collectAndStoreRadData(globalOffset);
+              {
+                collectDataGPUToMaster();
+                writeAllFiles(globalOffset);            
+              }
             
             if (isMaster)
             {
@@ -306,6 +309,8 @@ private:
             __delete(radiation);
             CUDA_CHECK(cudaGetLastError());
         }
+
+        __deleteArray(tmp_result);
     }
 
 
@@ -320,6 +325,7 @@ private:
   {
     if (radPerGPU)
       {
+        // only print lastGPUrad if full time periode was covered
         if (lastGPUpos == currentGPUpos)
           {
             std::stringstream last_time_step_str;
@@ -343,6 +349,7 @@ private:
                       + "_radPerGPU_pos_" + GPUposX.str() + "_" + GPUposY.str() + "_" + GPUposZ.str()
                       + "_time_" + last_time_step_str.str() + "-" + current_time_step_str.str() + ".dat");
           }
+        lastGPUpos = currentGPUpos;
       }
 
   } 
@@ -364,7 +371,7 @@ private:
   }
 
 
-  void sumAmplitudesOverTime()
+  void sumAmplitudesOverTime(Amplitude* targetArray, Amplitude* summandArray)
   {
     if (isMaster)
       {
@@ -375,13 +382,13 @@ private:
             std::stringstream o_bu_step;
             o_bu_step << currentStep - dumpPeriod;
             
-            readHDF5file(timeSumArray, std::string("radiationHDF5/radAmplitudes_"), currentStep);
+            readHDF5file(targetArray, std::string("radiationHDF5/radAmplitudes_"), currentStep);
             radRestart = false; // reset restart flag
           }
 
         // add last amplitudes to previous amplitudes
         for (unsigned int i = 0; i < elements_amplitude(); ++i)
-          timeSumArray[i] += tmp_result[i];
+          targetArray[i] += summandArray[i];
       }      
   }
 
@@ -441,37 +448,25 @@ private:
   }
 
 
+  void collectDataGPUToMaster()
+  {
+      // collect data GPU -> CPU -> Master
+      copyRadiationDeviceToHost();
+      collectRadiationOnMaster();
+      sumAmplitudesOverTime(timeSumArray, tmp_result);
+
+  }
 
 
-    /**
-     * This function is called by the calculateRadiationParticles() function
-     * if storing of intermediate results is activated (dumpPeriod != 0)
-     * otherwise it is invoked by pluginUnload().
-     *
-     * On every host the calculated radiation (radiation from the particles
-     * on that device for all directions and frequencies) is transferred
-     * from the gpu to the host, and then the data from all hosts is
-     * combined on the master host. Hence, the emitted radiation of all
-     * particles for every direction and step is available on the master
-     * host.
-     */
-    void collectAndStoreRadData(const DataSpace<simDim> currentGPUpos)
-    {
-        // collect data GPU -> CPU -> Master
-        copyRadiationDeviceToHost();
-        collectRadiationOnMaster();
-        sumAmplitudesOverTime();
+  void writeAllFiles(const DataSpace<simDim> currentGPUpos)
+  {
+      // write data to files
+      saveRadPerGPU(currentGPUpos);
+      writeLastRadToText();
+      writeTotalRadToText();
+      writeAmplitudesToHDF5();
+  }
 
-        // write data to files
-        saveRadPerGPU(currentGPUpos);
-        writeLastRadToText();
-        writeTotalRadToText();
-        writeAmplitudesToHDF5();
-
-        // update time steps
-        lastStep = currentStep;
-        lastGPUpos = currentGPUpos;
-    }
 
     /**
      * From the collected data from all hosts the radiated intensity is
@@ -521,10 +516,20 @@ public:
 
     void checkpoint(uint32_t timeStep, const std::string restartDirectory)
     {
-      std::stringstream t_step;
-      t_step << timeStep;
+      // only the master rank writes data
+      if (isMaster)
+      {      
+          std::stringstream t_step;
+          t_step << timeStep;
 
-      writeHDF5file(timeSumArray, restartDirectory + "/" + std::string("radRestart_"));
+          // collect data GPU -> CPU -> Master
+          copyRadiationDeviceToHost();
+          collectRadiationOnMaster();
+          sumAmplitudesOverTime(tmp_result, timeSumArray);
+
+          // write backup file
+          writeHDF5file(tmp_result, restartDirectory + "/" + std::string("radRestart_"));
+      }
     }
 
 
@@ -748,7 +753,13 @@ private:
 
         if (dumpPeriod != 0 && currentStep % dumpPeriod == 0)
         {
-            collectAndStoreRadData(globalOffset);
+            collectDataGPUToMaster();
+            writeAllFiles(globalOffset);
+            
+            // update time steps
+            lastStep = currentStep;
+
+            // reset amplitudes on GPU back to zero
             radiation->getDeviceBuffer().reset(false);
         }
 
