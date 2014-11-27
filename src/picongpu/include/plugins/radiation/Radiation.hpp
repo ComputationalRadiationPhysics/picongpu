@@ -119,7 +119,6 @@ private:
     uint32_t currentStep;
     uint32_t lastStep;
 
-    bool radRestart;
     std::string pathRestart;
 
     mpi::MPIReduce reduce;
@@ -141,8 +140,7 @@ public:
     isMaster(false),
     currentStep(0),
     radPerGPU(false),
-    lastStep(0),
-    radRestart(false)
+    lastStep(0)
     {
         Environment<>::get().PluginConnector().registerPlugin(this);
     }
@@ -197,8 +195,7 @@ public:
             ((analyzerPrefix + ".end").c_str(), po::value<uint32_t > (&radEnd)->default_value(0), "time index when radiation should end with calculation")
             ((analyzerPrefix + ".omegaList").c_str(), po::value<std::string > (&pathOmegaList)->default_value("_noPath_"), "path to file containing all frequencies to calculate")
             ((analyzerPrefix + ".radPerGPU").c_str(), po::value<bool > (&radPerGPU)->default_value(false), "enable(1)/disable(0) radiation output from each GPU individually")
-            ((analyzerPrefix + ".folderRadPerGPU").c_str(), po::value<std::string > (&folderRadPerGPU)->default_value("radPerGPU"), "folder in which the radiation of each GPU is written")
-            ((analyzerPrefix + ".restart").c_str(), po::value<bool > (&radRestart)->default_value(false), "enable(1)/disable(0) restart flag");
+          ((analyzerPrefix + ".folderRadPerGPU").c_str(), po::value<std::string > (&folderRadPerGPU)->default_value("radPerGPU"), "folder in which the radiation of each GPU is written");
     }
 
     std::string pluginGetName() const
@@ -375,17 +372,6 @@ private:
   {
     if (isMaster)
       {
-
-        // TODO: old restart method
-        if (radRestart)
-          {
-            std::stringstream o_bu_step;
-            o_bu_step << currentStep - dumpPeriod;
-            
-            readHDF5file(targetArray, std::string("radiationHDF5/radAmplitudes_"), currentStep);
-            radRestart = false; // reset restart flag
-          }
-
         // add last amplitudes to previous amplitudes
         for (unsigned int i = 0; i < elements_amplitude(); ++i)
           targetArray[i] += summandArray[i];
@@ -511,7 +497,14 @@ private:
 public:
     void restart(uint32_t timeStep, const std::string restartDirectory)
     {
-
+      if(isMaster)
+      {
+          // this will lead to wrong lastRad output right after the checkpoint if the restart point is
+          // not a dump point. The correct lastRad data can be reconstructed from hdf5 data
+          // since text based lastRad output will be obsolete soon, this is not a problem
+          readHDF5file(timeSumArray, restartDirectory + "/" + std::string("radRestart_"), timeStep);
+          std::cout << "loaded radiation restart data" << std::endl;
+      }
     }
 
     void checkpoint(uint32_t timeStep, const std::string restartDirectory)
@@ -519,16 +512,20 @@ public:
       // only the master rank writes data
       if (isMaster)
       {      
-          std::stringstream t_step;
-          t_step << timeStep;
-
-          // collect data GPU -> CPU -> Master
-          copyRadiationDeviceToHost();
-          collectRadiationOnMaster();
-          sumAmplitudesOverTime(tmp_result, timeSumArray);
-
-          // write backup file
-          writeHDF5file(tmp_result, restartDirectory + "/" + std::string("radRestart_"));
+          if(timeStep == currentStep)
+          {
+              // collect data GPU -> CPU -> Master
+              copyRadiationDeviceToHost();
+              collectRadiationOnMaster();
+              sumAmplitudesOverTime(tmp_result, timeSumArray);
+        
+              // write backup file
+              writeHDF5file(tmp_result, restartDirectory + "/" + std::string("radRestart_"));
+          }
+          else
+          {
+            std::cerr << "currentSTep and timeStep differ in RadiationPligin::checkpoint" << std::endl;
+          }
       }
     }
 
