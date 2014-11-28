@@ -164,10 +164,10 @@ public:
     {
 		Complex_T<T > helper = other;
 		if (other.real<=0.0 && other.imaginary==0.0) {
-			return Complex_T<T > (0.0,sqrtf(-helper.real));
+			return Complex_T<T > (0.0,sqrt(-helper.real));
 		}
 		else {
-			return sqrtf(helper.abs())*(other+other.abs())/(other+other.abs()).abs();
+			return sqrt(helper.abs())*(other+other.abs())/(other+other.abs()).abs();
 		}
     }
 	
@@ -224,7 +224,7 @@ public:
 
     HDINLINE T abs(void) const
     {
-        return sqrtf(util::square(real) + util::square(imaginary));
+        return sqrt(util::square(real) + util::square(imaginary)); // For the complex square root cexp(), the slower sqrt() is required to avoid infinities.
     }
 
 	// Phase of complex number (Note: Branchcut running from -infinity to 0)

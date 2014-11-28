@@ -290,6 +290,7 @@ public:
                        0, fieldBackgroundE::InfluenceParticlePusher);
         (*pushBGField)(fieldB, nvfct::Add(), fieldBackgroundB(fieldB->getUnit()),
                        0, fieldBackgroundB::InfluenceParticlePusher);
+		//fieldBackgroundE(fieldE->getUnit()).calcTWTSExTest( float3_X(0.0,0.0,0.0) , 0.33e-15, DataSpace<simDim> (0,0,0), 80. * (PI /180) );
 		
         // create field solver
         this->myFieldSolver = new fieldSolver::FieldSolver(*cellDescription);
