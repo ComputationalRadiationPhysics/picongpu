@@ -209,7 +209,7 @@ get_random_num(void)
     return rand_r(&seed);
 }
 
-unsigned long
+uint64_t
 get_random_num_long(void)
 {
     struct timeval t0;
@@ -224,8 +224,8 @@ get_random_num_long(void)
     unsigned int a = rand_r(&seed);
     unsigned int b = rand_r(&seed);
 
-    unsigned long ret =  ((unsigned long)a) << 32;
-    ret |= ((unsigned long)b);
+    uint64_t ret =  ((uint64_t)a) << 32;
+    ret |= ((uint64_t)b);
 
     return ret;
 }
