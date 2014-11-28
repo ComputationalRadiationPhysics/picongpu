@@ -284,6 +284,13 @@ public:
         fieldJ->init(*fieldE);
         fieldTmp->init();
 
+		/** add background field for particle pusher */
+		namespace nvfct = PMacc::nvidia::functors;
+        (*pushBGField)(fieldE, nvfct::Add(), fieldBackgroundE(fieldE->getUnit()),
+                       0, fieldBackgroundE::InfluenceParticlePusher);
+        (*pushBGField)(fieldB, nvfct::Add(), fieldBackgroundB(fieldB->getUnit()),
+                       0, fieldBackgroundB::InfluenceParticlePusher);
+		
         // create field solver
         this->myFieldSolver = new fieldSolver::FieldSolver(*cellDescription);
 
@@ -348,14 +355,7 @@ public:
     virtual void runOneStep(uint32_t currentStep)
     {
         namespace nvfct = PMacc::nvidia::functors;
-
-        /** add background field for particle pusher */
-        (*pushBGField)(fieldE, nvfct::Add(), fieldBackgroundE(fieldE->getUnit()),
-                       currentStep, fieldBackgroundE::InfluenceParticlePusher);
-        (*pushBGField)(fieldB, nvfct::Add(), fieldBackgroundB(fieldB->getUnit()),
-                       currentStep, fieldBackgroundB::InfluenceParticlePusher);
-
-
+		
         EventTask initEvent = __getTransactionEvent();
         EventTask updateEvent;
         EventTask commEvent;
@@ -393,6 +393,12 @@ public:
 #endif
 
         this->myFieldSolver->update_afterCurrent(currentStep);
+		
+		/** add background field for particle pusher */
+        (*pushBGField)(fieldE, nvfct::Add(), fieldBackgroundE(fieldE->getUnit()),
+                       currentStep, fieldBackgroundE::InfluenceParticlePusher);
+        (*pushBGField)(fieldB, nvfct::Add(), fieldBackgroundB(fieldB->getUnit()),
+                       currentStep, fieldBackgroundB::InfluenceParticlePusher);
     }
 
     virtual void movingWindowCheck(uint32_t currentStep)

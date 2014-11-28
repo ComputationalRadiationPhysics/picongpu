@@ -35,7 +35,7 @@ namespace picongpu
         const double CELL_WIDTH_SI = 0.1772e-6;
         /** equals Y - the propagation direction
          *  unit: meter */
-        const double CELL_HEIGHT_SI = 0.4430e-7;
+        const double CELL_HEIGHT_SI = CELL_WIDTH_SI; //0.4430e-7;
         /** equals Z
          *  unit: meter */
         const double CELL_DEPTH_SI = CELL_WIDTH_SI;

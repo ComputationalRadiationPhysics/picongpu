@@ -72,6 +72,6 @@ namespace gasProfile = gasNone;
 namespace particleInit = particleInitRandomPos;
 
 /*enable (1) or disable (0) current calculation*/
-#define ENABLE_CURRENT 1
+#define ENABLE_CURRENT 0
 
 }

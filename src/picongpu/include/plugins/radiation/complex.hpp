@@ -163,7 +163,7 @@ public:
 	HDINLINE static Complex_T<T > csqrt(const Complex_T<T >& other)
     {
 		Complex_T<T > helper = other;
-		if (other.real<0.0 && other.imaginary==0.0) {
+		if (other.real<=0.0 && other.imaginary==0.0) {
 			return Complex_T<T > (0.0,sqrtf(-helper.real));
 		}
 		else {

@@ -19,8 +19,8 @@
  */
 
 #pragma once
-#include "../../plugins/radiation/complex.hpp"
-#include "../../fields/numericalCellTypes/YeeCell.hpp"
+#include "plugins/radiation/complex.hpp"
+#include "fields/numericalCellTypes/YeeCell.hpp"
 #include "math/Vector.hpp"
 
 namespace picongpu
@@ -28,7 +28,7 @@ namespace picongpu
     namespace fieldBackground
     {
 		/* Add this additional field for pushing particles */
-		const bool includeTWTSlaser = false;
+		const bool includeTWTSlaser = true;
 		const bool includeCollidingTWTS = false;
 		
         namespace SI
