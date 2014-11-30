@@ -52,10 +52,13 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "RelWithDebInfo")
 endif()
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+
 if(CMAKE_BUILD_TYPE MATCHES Debug)
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
 elseif(CMAKE_BUILD_TYPE MATCHES Release)
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Werror")
 elseif(CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -Werror")
 else()
   message(FATAL_ERROR "Unrecognized build type")
 endif()
@@ -116,7 +119,7 @@ endif(ADIOS_FOUND)
 
 find_package(Boost REQUIRED COMPONENTS program_options regex)
 
-include_directories(${Boost_INCLUDE_DIRS})
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIR})
 set(LIBS ${LIBS} ${Boost_LIBRARIES})
 
