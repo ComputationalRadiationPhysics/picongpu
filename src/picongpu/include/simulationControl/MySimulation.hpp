@@ -1,6 +1,6 @@
 /**
  * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
- *                     Richard Pausch
+ *                     Richard Pausch, Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -286,24 +286,10 @@ public:
 
 		/** add background field for particle pusher */
 		namespace nvfct = PMacc::nvidia::functors;
-        (*pushBGField)(fieldE, nvfct::Add(), fieldBackgroundE(fieldE->getUnit()),
-                       0, fieldBackgroundE::InfluenceParticlePusher);
-        (*pushBGField)(fieldB, nvfct::Add(), fieldBackgroundB(fieldB->getUnit()),
-                       0, fieldBackgroundB::InfluenceParticlePusher);
-		//fieldBackgroundE(fieldE->getUnit()).calcTWTSExTest( float3_X(0.0,0.0,0.0) , 0.33e-15, DataSpace<simDim> (0,0,0), 80. * (PI /180) );
-
-		// Just informational output for debugging. This can be commented out afterwards.
-		::PMacc::math::Vector<floatD_X,simDim> eFieldPositions = picongpu::yeeCell::YeeCell::getEFieldPosition();
-		const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
-		/** Half the size of the global Simulation volume for centering the coordinate origin  */
-		const DataSpace<simDim> halfSimSize(subGrid.getGlobalDomain().size / 2);
-		std::cout << "halfSimSize(x) = " << halfSimSize.x() << std::endl;
-		std::cout << "halfSimSize(y) = " << halfSimSize.y() << std::endl;
-		std::cout << "halfSimSize(z) = " << halfSimSize.z() << std::endl;
-		std::cout << "eFieldPositions[0](x) = " << eFieldPositions[0][0] << std::endl;
-		std::cout << "eFieldPositions[0](y) = " << eFieldPositions[0][1] << std::endl;
-		std::cout << "eFieldPositions[0](z) = " << eFieldPositions[0][2] << std::endl;
-		
+        (*pushBGField)(fieldE, nvfct::Add(), fieldBackground::fieldBackgroundE(fieldE->getUnit()),
+                       0, fieldBackground::fieldBackgroundE::InfluenceParticlePusher);
+        (*pushBGField)(fieldB, nvfct::Add(), fieldBackground::fieldBackgroundB(fieldB->getUnit()),
+                       0, fieldBackground::fieldBackgroundB::InfluenceParticlePusher);
 		
         // create field solver
         this->myFieldSolver = new fieldSolver::FieldSolver(*cellDescription);
@@ -378,18 +364,18 @@ public:
         particleUpdate(forward(particleStorage), currentStep, initEvent, forward(updateEvent), forward(commEvent));
 
         /** remove background field for particle pusher */
-        (*pushBGField)(fieldE, nvfct::Sub(), fieldBackgroundE(fieldE->getUnit()),
-                       currentStep, fieldBackgroundE::InfluenceParticlePusher);
-        (*pushBGField)(fieldB, nvfct::Sub(), fieldBackgroundB(fieldB->getUnit()),
-                       currentStep, fieldBackgroundB::InfluenceParticlePusher);
+        (*pushBGField)(fieldE, nvfct::Sub(), fieldBackground::fieldBackgroundE(fieldE->getUnit()),
+                       currentStep, fieldBackground::fieldBackgroundE::InfluenceParticlePusher);
+        (*pushBGField)(fieldB, nvfct::Sub(), fieldBackground::fieldBackgroundB(fieldB->getUnit()),
+                       currentStep, fieldBackground::fieldBackgroundB::InfluenceParticlePusher);
 
         this->myFieldSolver->update_beforeCurrent(currentStep);
 
         fieldJ->clear();
 
         __setTransactionEvent(updateEvent + commEvent);
-        (*currentBGField)(fieldJ, nvfct::Add(), fieldBackgroundJ(fieldJ->getUnit()),
-                          currentStep, fieldBackgroundJ::activated);
+        (*currentBGField)(fieldJ, nvfct::Add(), fieldBackground::fieldBackgroundJ(fieldJ->getUnit()),
+                          currentStep, fieldBackground::fieldBackgroundJ::activated);
 #if (ENABLE_CURRENT == 1)
         ForEach<VectorAllSpecies, ComputeCurrent<bmpl::_1,bmpl::int_<CORE + BORDER> >, MakeIdentifier<bmpl::_1> > computeCurrent;
         computeCurrent(forward(fieldJ),forward(particleStorage), currentStep);
@@ -408,11 +394,14 @@ public:
 
         this->myFieldSolver->update_afterCurrent(currentStep);
 		
-		/** add background field for particle pusher */
-        (*pushBGField)(fieldE, nvfct::Add(), fieldBackgroundE(fieldE->getUnit()),
-                       currentStep + 1, fieldBackgroundE::InfluenceParticlePusher);
-        (*pushBGField)(fieldB, nvfct::Add(), fieldBackgroundB(fieldB->getUnit()),
-                       currentStep + 1, fieldBackgroundB::InfluenceParticlePusher);
+		/** add background field for particle pusher of next step.
+		 *  Hence the background field is visible for all plugins
+		 *  in between the time steps.
+		 */
+        (*pushBGField)(fieldE, nvfct::Add(), fieldBackground::fieldBackgroundE(fieldE->getUnit()),
+                       currentStep + 1, fieldBackground::fieldBackgroundE::InfluenceParticlePusher);
+        (*pushBGField)(fieldB, nvfct::Add(), fieldBackground::fieldBackgroundB(fieldB->getUnit()),
+                       currentStep + 1, fieldBackground::fieldBackgroundB::InfluenceParticlePusher);
     }
 
     virtual void movingWindowCheck(uint32_t currentStep)

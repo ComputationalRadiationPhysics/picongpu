@@ -65,6 +65,16 @@ namespace fieldSolver = fieldSolverYee;
  */
 namespace gasProfile = gasNone;
 
+/*! Backgroud Field Configuration-----------------------------------------------------
+ *  - bgrNone : do not include any additional backgroundfield
+ *	- bgrFreeFormula : minimal example that can be adapted according to custom formula
+ *  - bgrTWTS : Gaussian TWTS laser pulse with focal geometry and correct dispersion properties.
+ *				This laser can enter and exit the simulation box from arbitrary directions.
+ *				Apart from the implementation as a background, this spatially and
+ *				temporally varying field behaves in practical use just like a "laserProfile".
+ */
+namespace fieldBackground = bgrTWTS;
+
 /*! Particle Initialization ----------------------------------------------
  *  - particleInitRandomPos  : distribute your particles uniformly random
  *  - particleInitQuietStart : distribute your particles lattice-like

@@ -1,6 +1,6 @@
 /**
  * Copyright 2013-2014 Axel Huebl, Heiko Burau, Anton Helm, 
- *                     Rene Widera, Richard Pausch
+ *                     Rene Widera, Richard Pausch, Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -65,6 +65,16 @@ namespace fieldSolver = fieldSolverYee;
  */
 namespace gasProfile = gasNone;
 
+/*! Backgroud Field Configuration-----------------------------------------------------
+ *  - bgrNone : do not include any additional backgroundfield
+ *  - bgrFreeFormula : minimal example that can be adapted according to custom formula
+ *  - bgrTWTS : Gaussian TWTS laser pulse with focal geometry and correct dispersion properties.
+ *				This laser can enter and exit the simulation box from arbitrary directions.
+ *				Apart from the implementation as a background, this spatially and
+ *				temporally varying field behaves in practical use just like a "laserProfile".
+ */
+namespace fieldBackground = bgrNone;
+
 /*! Particle Initialization ----------------------------------------------
  *  - particleInitRandomPos  : distribute your particles uniformly random
  *  - particleInitQuietStart : distribute your particles lattice-like
@@ -72,6 +82,6 @@ namespace gasProfile = gasNone;
 namespace particleInit = particleInitRandomPos;
 
 /*enable (1) or disable (0) current calculation*/
-#define ENABLE_CURRENT 1
+#define ENABLE_CURRENT 0
 
 }
