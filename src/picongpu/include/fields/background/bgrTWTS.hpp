@@ -19,8 +19,8 @@
  */
  
 #pragma once
-#include "plugins/radiation/complex.hpp"
 #include "fields/numericalCellTypes/YeeCell.hpp"
+#include "plugins/radiation/complex.hpp"
 #include "math/Vector.hpp"
 #include <iostream>
 
@@ -89,73 +89,73 @@ namespace picongpu
 			HDINLINE float_X
 			calcTWTSEx( const float3_X& pos, const float_X& time, const DataSpace<simDim> halfSimSize, const float_X& phiReal ) const
 			{
-				const numtype2 beta0=::picongpu::bgrTWTS::SI::BETA0_SI; // propagation speed of overlap normalized to the speed of light. [Default: beta0=1.0]
-				const numtype2 alphaTilt=atan2(1-beta0*cos(phiReal),beta0*sin(phiReal));
-				const numtype2 phi=2*alphaTilt; // Definition of the laser pulse front tilt angle for the laser field below. For beta0=1.0, this is equivalent to our standard definition.
-				const numtype2 eta = PI - phiReal + alphaTilt; // angle between the laser pulse front and the y-axis
+				const float_X beta0=::picongpu::bgrTWTS::SI::BETA0_SI; // propagation speed of overlap normalized to the speed of light. [Default: beta0=1.0]
+				const float_X alphaTilt=atan2(1-beta0*cos(phiReal),beta0*sin(phiReal));
+				const float_X phi=2*alphaTilt; // Definition of the laser pulse front tilt angle for the laser field below. For beta0=1.0, this is equivalent to our standard definition.
+				const float_X eta = PI - phiReal + alphaTilt; // angle between the laser pulse front and the y-axis
 				
-				const numtype2 cspeed=::picongpu::SI::SPEED_OF_LIGHT_SI;
-				const numtype2 lambda0=::picongpu::bgrTWTS::SI::WAVE_LENGTH_SI;
-				const numtype2 om0=2*PI*cspeed/lambda0;
-				const numtype2 tauG=(::picongpu::bgrTWTS::SI::PULSE_LENGTH_SI)*2.0; // factor 2 arises from definition convention in laser formula
-				const numtype2 w0=::picongpu::bgrTWTS::SI::WX_SI; // w0 is wx here --> w0 could be replaced by wx
-				const numtype2 rho0=PI*w0*w0/lambda0;
-				const numtype2 wy=::picongpu::bgrTWTS::SI::WY_SI; // Width of TWTS pulse
-				const numtype2 k=2*PI/lambda0;
-				const numtype2 x=pos.x();
-				const numtype2 y=-sin(phiReal)*pos.y()-cos(phiReal)*pos.z();	// RotationMatrix[PI-phiReal].(y,z)
-				const numtype2 z=+cos(phiReal)*pos.y()-sin(phiReal)*pos.z();	// TO DO: For 2 counter-propagation TWTS pulses take +phiReal and -phiReal. Where do we implement this?
-				const numtype2 y1=(float_X)(halfSimSize[2]*::picongpu::SI::CELL_DEPTH_SI)/tan(eta); // halfSimSize[2] --> Half-depth of simulation volume (in z); By geometric projection we calculate the y-distance walkoff of the TWTS-pulse.
-				const numtype2 m=3.; // Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume at low intensity values.
-				const numtype2 y2=(tauG/2*cspeed)/sin(eta)*m; // pulse length projected on y-axis, scaled with "fudge factor" m.
-				const numtype2 y3=::picongpu::bgrTWTS::SI::FOCUS_POS_SI; // Position of maximum intensity in simulation volume along y
-				const numtype2 tdelay= (y1+y2+y3)/(cspeed*beta0);
-				const numtype2 t=time;//-tdelay;
+				const float_X cspeed=::picongpu::SI::SPEED_OF_LIGHT_SI;
+				const float_X lambda0=::picongpu::bgrTWTS::SI::WAVE_LENGTH_SI;
+				const float_X om0=2*PI*cspeed/lambda0;
+				const float_X tauG=(::picongpu::bgrTWTS::SI::PULSE_LENGTH_SI)*2.0; // factor 2 arises from definition convention in laser formula
+				const float_X w0=::picongpu::bgrTWTS::SI::WX_SI; // w0 is wx here --> w0 could be replaced by wx
+				const float_X rho0=PI*w0*w0/lambda0;
+				const float_X wy=::picongpu::bgrTWTS::SI::WY_SI; // Width of TWTS pulse
+				const float_X k=2*PI/lambda0;
+				const float_X x=pos.x();
+				const float_X y=-sin(phiReal)*pos.y()-cos(phiReal)*pos.z();	// RotationMatrix[PI-phiReal].(y,z)
+				const float_X z=+cos(phiReal)*pos.y()-sin(phiReal)*pos.z();	// TO DO: For 2 counter-propagation TWTS pulses take +phiReal and -phiReal. Where do we implement this?
+				const float_X y1=(float_X)(halfSimSize[2]*::picongpu::SI::CELL_DEPTH_SI)/tan(eta); // halfSimSize[2] --> Half-depth of simulation volume (in z); By geometric projection we calculate the y-distance walkoff of the TWTS-pulse.
+				const float_X m=3.; // Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume at low intensity values.
+				const float_X y2=(tauG/2*cspeed)/sin(eta)*m; // pulse length projected on y-axis, scaled with "fudge factor" m.
+				const float_X y3=::picongpu::bgrTWTS::SI::FOCUS_POS_SI; // Position of maximum intensity in simulation volume along y
+				const float_X tdelay= (y1+y2+y3)/(cspeed*beta0);
+				const float_X t=time;//-tdelay;
 				
-				const numtype2 exprDivInt_3_1=cspeed;
-				const numtype2 exprDivInt_3_2=wy;
-				const Complex exprDivInt_3_3=Complex(0,1)*rho0 - y*cos(phi) - z*sin(phi);
-				const Complex exprDivInt_3_4=Complex(0,-1)*cspeed*om0*tauG*tauG - y*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.) - 2*z*tan(phi/2.)*tan(phi/2.);
-				const Complex exprDivInt_3_5=Complex(0,1)*rho0 - y*cos(phi) - z*sin(phi);
+				const float_X exprDivInt_3_1=cspeed;
+				const float_X exprDivInt_3_2=wy;
+				const Complex_float_X exprDivInt_3_3=Complex_float_X(0,1)*rho0 - y*cos(phi) - z*sin(phi);
+				const Complex_float_X exprDivInt_3_4=Complex_float_X(0,-1)*cspeed*om0*tauG*tauG - y*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.) - 2*z*tan(phi/2.)*tan(phi/2.);
+				const Complex_float_X exprDivInt_3_5=Complex_float_X(0,1)*rho0 - y*cos(phi) - z*sin(phi);
 
-				const Complex exprE_1_1=(
+				const Complex_float_X exprE_1_1=(
 				-(cspeed*cspeed*k*om0*tauG*tauG*wy*wy*x*x)
 				- 2*cspeed*cspeed*om0*t*t*wy*wy*rho0 
-				+ Complex(0,2)*cspeed*cspeed*om0*om0*t*tauG*tauG*wy*wy*rho0
+				+ Complex_float_X(0,2)*cspeed*cspeed*om0*om0*t*tauG*tauG*wy*wy*rho0
 				- 2*cspeed*cspeed*om0*tauG*tauG*y*y*rho0
 				+ 4*cspeed*om0*t*wy*wy*z*rho0
-				- Complex(0,2)*cspeed*om0*om0*tauG*tauG*wy*wy*z*rho0
+				- Complex_float_X(0,2)*cspeed*om0*om0*tauG*tauG*wy*wy*z*rho0
 				- 2*om0*wy*wy*z*z*rho0
-				- Complex(0,8)*om0*wy*wy*y*(cspeed*t - z)*z*sin(phi/2.)*sin(phi/2.)
-				+ Complex(0,8)/sin(phi)*(
-						+2*z*z*(cspeed*om0*t*wy*wy + Complex(0,1)*cspeed*y*y - om0*wy*wy*z)
+				- Complex_float_X(0,8)*om0*wy*wy*y*(cspeed*t - z)*z*sin(phi/2.)*sin(phi/2.)
+				+ Complex_float_X(0,8)/sin(phi)*(
+						+2*z*z*(cspeed*om0*t*wy*wy + Complex_float_X(0,1)*cspeed*y*y - om0*wy*wy*z)
 						+ y*(
 							+ cspeed*k*wy*wy*x*x
-							- Complex(0,2)*cspeed*om0*t*wy*wy*rho0
+							- Complex_float_X(0,2)*cspeed*om0*t*wy*wy*rho0
 							+ 2*cspeed*y*y*rho0
-							+ Complex(0,2)*om0*wy*wy*z*rho0
+							+ Complex_float_X(0,2)*om0*wy*wy*z*rho0
 						)*tan(PI/2-phi)/sin(phi)
 					)*sin(phi/2.)*sin(phi/2.)*sin(phi/2.)*sin(phi/2.)
-				- Complex(0,2)*cspeed*cspeed*om0*t*t*wy*wy*z*sin(phi)
+				- Complex_float_X(0,2)*cspeed*cspeed*om0*t*t*wy*wy*z*sin(phi)
 				- 2*cspeed*cspeed*om0*om0*t*tauG*tauG*wy*wy*z*sin(phi)
-				- Complex(0,2)*cspeed*cspeed*om0*tauG*tauG*y*y*z*sin(phi)
-				+ Complex(0,4)*cspeed*om0*t*wy*wy*z*z*sin(phi)
+				- Complex_float_X(0,2)*cspeed*cspeed*om0*tauG*tauG*y*y*z*sin(phi)
+				+ Complex_float_X(0,4)*cspeed*om0*t*wy*wy*z*z*sin(phi)
 				+ 2*cspeed*om0*om0*tauG*tauG*wy*wy*z*z*sin(phi)
-				- Complex(0,2)*om0*wy*wy*z*z*z*sin(phi)
+				- Complex_float_X(0,2)*om0*wy*wy*z*z*z*sin(phi)
 				- 4*cspeed*om0*t*wy*wy*y*rho0*tan(phi/2.)
 				+ 4*om0*wy*wy*y*z*rho0*tan(phi/2.)
-				+ Complex(0,2)*y*y*(cspeed*om0*t*wy*wy + Complex(0,1)*cspeed*y*y - om0*wy*wy*z)*cos(phi)*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.)
-				+ Complex(0,2)*cspeed*k*wy*wy*x*x*z*tan(phi/2.)*tan(phi/2.)
+				+ Complex_float_X(0,2)*y*y*(cspeed*om0*t*wy*wy + Complex_float_X(0,1)*cspeed*y*y - om0*wy*wy*z)*cos(phi)*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.)
+				+ Complex_float_X(0,2)*cspeed*k*wy*wy*x*x*z*tan(phi/2.)*tan(phi/2.)
 				- 2*om0*wy*wy*y*y*rho0*tan(phi/2.)*tan(phi/2.)
 				+ 4*cspeed*om0*t*wy*wy*z*rho0*tan(phi/2.)*tan(phi/2.)
-				+ Complex(0,4)*cspeed*y*y*z*rho0*tan(phi/2.)*tan(phi/2.)
+				+ Complex_float_X(0,4)*cspeed*y*y*z*rho0*tan(phi/2.)*tan(phi/2.)
 				- 4*om0*wy*wy*z*z*rho0*tan(phi/2.)*tan(phi/2.)
-				- Complex(0,2)*om0*wy*wy*y*y*z*sin(phi)*tan(phi/2.)*tan(phi/2.)
-				- 2*y*cos(phi)*(om0*(cspeed*cspeed*(Complex(0,1)*t*t*wy*wy + om0*t*tauG*tauG*wy*wy + Complex(0,1)*tauG*tauG*y*y) - cspeed*(Complex(0,2)*t + om0*tauG*tauG)*wy*wy*z + Complex(0,1)*wy*wy*z*z) + Complex(0,2)*om0*wy*wy*y*(cspeed*t - z)*tan(phi/2.) + Complex(0,1)*(Complex(0,-4)*cspeed*y*y*z + om0*wy*wy*(y*y - 4*(cspeed*t - z)*z))*tan(phi/2.)*tan(phi/2.))
+				- Complex_float_X(0,2)*om0*wy*wy*y*y*z*sin(phi)*tan(phi/2.)*tan(phi/2.)
+				- 2*y*cos(phi)*(om0*(cspeed*cspeed*(Complex_float_X(0,1)*t*t*wy*wy + om0*t*tauG*tauG*wy*wy + Complex_float_X(0,1)*tauG*tauG*y*y) - cspeed*(Complex_float_X(0,2)*t + om0*tauG*tauG)*wy*wy*z + Complex_float_X(0,1)*wy*wy*z*z) + Complex_float_X(0,2)*om0*wy*wy*y*(cspeed*t - z)*tan(phi/2.) + Complex_float_X(0,1)*(Complex_float_X(0,-4)*cspeed*y*y*z + om0*wy*wy*(y*y - 4*(cspeed*t - z)*z))*tan(phi/2.)*tan(phi/2.))
 				)/(2.*exprDivInt_3_1*exprDivInt_3_2*exprDivInt_3_2*exprDivInt_3_3*exprDivInt_3_4);
 
-				const Complex exprDivRat_1_1=cspeed*om0*tauG*tauG - Complex(0,8)*y*tan(PI/2-phi)/sin(phi)/sin(phi)*sin(phi/2.)*sin(phi/2.)*sin(phi/2.)*sin(phi/2.) - Complex(0,2)*z*tan(phi/2.)*tan(phi/2.);
-				const Complex result=(Complex::cexp(exprE_1_1)*tauG*Complex::csqrt((cspeed*om0*rho0)/exprDivInt_3_5))/Complex::csqrt(exprDivRat_1_1);			
+				const Complex_float_X exprDivRat_1_1=cspeed*om0*tauG*tauG - Complex_float_X(0,8)*y*tan(PI/2-phi)/sin(phi)/sin(phi)*sin(phi/2.)*sin(phi/2.)*sin(phi/2.)*sin(phi/2.) - Complex_float_X(0,2)*z*tan(phi/2.)*tan(phi/2.);
+				const Complex_float_X result=(Complex_float_X::cexp(exprE_1_1)*tauG*Complex_float_X::csqrt((cspeed*om0*rho0)/exprDivInt_3_5))/Complex_float_X::csqrt(exprDivRat_1_1);			
 				return result.get_real();
 			}
 			
@@ -171,73 +171,73 @@ namespace picongpu
 				// std::cout << "============================================================" << std::endl;
 				// std::cout << "Test TWTSEx" << std::endl << std::endl;
 				
-				// const numtype2 beta0=::picongpu::bgrTWTS::SI::BETA0_SI; // propagation speed of overlap normalized to the speed of light. [Default: beta0=1.0]
-				// const numtype2 alphaTilt=atan2(1-beta0*cos(phiReal),beta0*sin(phiReal));
-				// const numtype2 phi=2*alphaTilt; // Definition of the laser pulse front tilt angle for the laser field below. For beta0=1.0, this is equivalent to our standard definition.
-				// const numtype2 eta = PI - phiReal + alphaTilt; // angle between the laser pulse front and the y-axis
+				// const float_X beta0=::picongpu::bgrTWTS::SI::BETA0_SI; // propagation speed of overlap normalized to the speed of light. [Default: beta0=1.0]
+				// const float_X alphaTilt=atan2(1-beta0*cos(phiReal),beta0*sin(phiReal));
+				// const float_X phi=2*alphaTilt; // Definition of the laser pulse front tilt angle for the laser field below. For beta0=1.0, this is equivalent to our standard definition.
+				// const float_X eta = PI - phiReal + alphaTilt; // angle between the laser pulse front and the y-axis
 				
-				// const numtype2 cspeed=::picongpu::SI::SPEED_OF_LIGHT_SI;
-				// const numtype2 lambda0=::picongpu::bgrTWTS::SI::WAVE_LENGTH_SI;
-				// const numtype2 om0=2*PI*cspeed/lambda0;
-				// const numtype2 tauG=(::picongpu::bgrTWTS::SI::PULSE_LENGTH_SI)*2.0; // factor 2 arises from definition convention in laser formula
-				// const numtype2 w0=::picongpu::bgrTWTS::SI::WX_SI; // w0 is wx here --> w0 could be replaced by wx
-				// const numtype2 rho0=PI*w0*w0/lambda0;
-				// const numtype2 wy=::picongpu::bgrTWTS::SI::WY_SI; // Width of TWTS pulse
-				// const numtype2 k=2*PI/lambda0;
-				// const numtype2 x=pos.x();
-				// const numtype2 y=pos.y();//-sin(phiReal)*pos.y()-cos(phiReal)*pos.z();	// RotationMatrix[PI-phiReal].(y,z)
-				// const numtype2 z=pos.z();//+cos(phiReal)*pos.y()-sin(phiReal)*pos.z();	// TO DO: For 2 counter-propagation TWTS pulses take +phiReal and -phiReal. Where do we implement this?
-				// const numtype2 y1=(float_X)(halfSimSize[2])/tan(eta); // halfSimSize[2] --> Half-depth of simulation volume (in z); By geometric projection we calculate the y-distance walkoff of the TWTS-pulse.
-				// const numtype2 m=3.; // Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume at low intensity values.
-				// const numtype2 y2=(tauG/2*cspeed)/sin(eta)*m; // pulse length projected on y-axis, scaled with "fudge factor" m.
-				// const numtype2 y3=::picongpu::bgrTWTS::SI::FOCUS_POS_SI; // Position of maximum intensity in simulation volume along y
-				// const numtype2 tdelay= (y1+y2+y3)/(cspeed*beta0);
-				// const numtype2 t=time;//-tdelay;
+				// const float_X cspeed=::picongpu::SI::SPEED_OF_LIGHT_SI;
+				// const float_X lambda0=::picongpu::bgrTWTS::SI::WAVE_LENGTH_SI;
+				// const float_X om0=2*PI*cspeed/lambda0;
+				// const float_X tauG=(::picongpu::bgrTWTS::SI::PULSE_LENGTH_SI)*2.0; // factor 2 arises from definition convention in laser formula
+				// const float_X w0=::picongpu::bgrTWTS::SI::WX_SI; // w0 is wx here --> w0 could be replaced by wx
+				// const float_X rho0=PI*w0*w0/lambda0;
+				// const float_X wy=::picongpu::bgrTWTS::SI::WY_SI; // Width of TWTS pulse
+				// const float_X k=2*PI/lambda0;
+				// const float_X x=pos.x();
+				// const float_X y=pos.y();//-sin(phiReal)*pos.y()-cos(phiReal)*pos.z();	// RotationMatrix[PI-phiReal].(y,z)
+				// const float_X z=pos.z();//+cos(phiReal)*pos.y()-sin(phiReal)*pos.z();	// TO DO: For 2 counter-propagation TWTS pulses take +phiReal and -phiReal. Where do we implement this?
+				// const float_X y1=(float_X)(halfSimSize[2])/tan(eta); // halfSimSize[2] --> Half-depth of simulation volume (in z); By geometric projection we calculate the y-distance walkoff of the TWTS-pulse.
+				// const float_X m=3.; // Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume at low intensity values.
+				// const float_X y2=(tauG/2*cspeed)/sin(eta)*m; // pulse length projected on y-axis, scaled with "fudge factor" m.
+				// const float_X y3=::picongpu::bgrTWTS::SI::FOCUS_POS_SI; // Position of maximum intensity in simulation volume along y
+				// const float_X tdelay= (y1+y2+y3)/(cspeed*beta0);
+				// const float_X t=time;//-tdelay;
 				
-				// const numtype2 exprDivInt_3_1=cspeed;
-				// const numtype2 exprDivInt_3_2=wy;
-				// const Complex exprDivInt_3_3=Complex(0,1)*rho0 - y*cos(phi) - z*sin(phi);
-				// const Complex exprDivInt_3_4=Complex(0,-1)*cspeed*om0*tauG*tauG - y*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.) - 2*z*tan(phi/2.)*tan(phi/2.);
-				// const Complex exprDivInt_3_5=Complex(0,1)*rho0 - y*cos(phi) - z*sin(phi);
+				// const float_X exprDivInt_3_1=cspeed;
+				// const float_X exprDivInt_3_2=wy;
+				// const Complex_float_X exprDivInt_3_3=Complex_float_X(0,1)*rho0 - y*cos(phi) - z*sin(phi);
+				// const Complex_float_X exprDivInt_3_4=Complex_float_X(0,-1)*cspeed*om0*tauG*tauG - y*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.) - 2*z*tan(phi/2.)*tan(phi/2.);
+				// const Complex_float_X exprDivInt_3_5=Complex_float_X(0,1)*rho0 - y*cos(phi) - z*sin(phi);
 
-				// const Complex exprE_1_1=(
+				// const Complex_float_X exprE_1_1=(
 				// -(cspeed*cspeed*k*om0*tauG*tauG*wy*wy*x*x)
 				// - 2*cspeed*cspeed*om0*t*t*wy*wy*rho0 
-				// + Complex(0,2)*cspeed*cspeed*om0*om0*t*tauG*tauG*wy*wy*rho0
+				// + Complex_float_X(0,2)*cspeed*cspeed*om0*om0*t*tauG*tauG*wy*wy*rho0
 				// - 2*cspeed*cspeed*om0*tauG*tauG*y*y*rho0
 				// + 4*cspeed*om0*t*wy*wy*z*rho0
-				// - Complex(0,2)*cspeed*om0*om0*tauG*tauG*wy*wy*z*rho0
+				// - Complex_float_X(0,2)*cspeed*om0*om0*tauG*tauG*wy*wy*z*rho0
 				// - 2*om0*wy*wy*z*z*rho0
-				// - Complex(0,8)*om0*wy*wy*y*(cspeed*t - z)*z*sin(phi/2.)*sin(phi/2.)
-				// + Complex(0,8)/sin(phi)*(
-						// +2*z*z*(cspeed*om0*t*wy*wy + Complex(0,1)*cspeed*y*y - om0*wy*wy*z)
+				// - Complex_float_X(0,8)*om0*wy*wy*y*(cspeed*t - z)*z*sin(phi/2.)*sin(phi/2.)
+				// + Complex_float_X(0,8)/sin(phi)*(
+						// +2*z*z*(cspeed*om0*t*wy*wy + Complex_float_X(0,1)*cspeed*y*y - om0*wy*wy*z)
 						// + y*(
 							// + cspeed*k*wy*wy*x*x
-							// - Complex(0,2)*cspeed*om0*t*wy*wy*rho0
+							// - Complex_float_X(0,2)*cspeed*om0*t*wy*wy*rho0
 							// + 2*cspeed*y*y*rho0
-							// + Complex(0,2)*om0*wy*wy*z*rho0
+							// + Complex_float_X(0,2)*om0*wy*wy*z*rho0
 						// )*tan(PI/2-phi)/sin(phi)
 					// )*sin(phi/2.)*sin(phi/2.)*sin(phi/2.)*sin(phi/2.)
-				// - Complex(0,2)*cspeed*cspeed*om0*t*t*wy*wy*z*sin(phi)
+				// - Complex_float_X(0,2)*cspeed*cspeed*om0*t*t*wy*wy*z*sin(phi)
 				// - 2*cspeed*cspeed*om0*om0*t*tauG*tauG*wy*wy*z*sin(phi)
-				// - Complex(0,2)*cspeed*cspeed*om0*tauG*tauG*y*y*z*sin(phi)
-				// + Complex(0,4)*cspeed*om0*t*wy*wy*z*z*sin(phi)
+				// - Complex_float_X(0,2)*cspeed*cspeed*om0*tauG*tauG*y*y*z*sin(phi)
+				// + Complex_float_X(0,4)*cspeed*om0*t*wy*wy*z*z*sin(phi)
 				// + 2*cspeed*om0*om0*tauG*tauG*wy*wy*z*z*sin(phi)
-				// - Complex(0,2)*om0*wy*wy*z*z*z*sin(phi)
+				// - Complex_float_X(0,2)*om0*wy*wy*z*z*z*sin(phi)
 				// - 4*cspeed*om0*t*wy*wy*y*rho0*tan(phi/2.)
 				// + 4*om0*wy*wy*y*z*rho0*tan(phi/2.)
-				// + Complex(0,2)*y*y*(cspeed*om0*t*wy*wy + Complex(0,1)*cspeed*y*y - om0*wy*wy*z)*cos(phi)*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.)
-				// + Complex(0,2)*cspeed*k*wy*wy*x*x*z*tan(phi/2.)*tan(phi/2.)
+				// + Complex_float_X(0,2)*y*y*(cspeed*om0*t*wy*wy + Complex_float_X(0,1)*cspeed*y*y - om0*wy*wy*z)*cos(phi)*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.)
+				// + Complex_float_X(0,2)*cspeed*k*wy*wy*x*x*z*tan(phi/2.)*tan(phi/2.)
 				// - 2*om0*wy*wy*y*y*rho0*tan(phi/2.)*tan(phi/2.)
 				// + 4*cspeed*om0*t*wy*wy*z*rho0*tan(phi/2.)*tan(phi/2.)
-				// + Complex(0,4)*cspeed*y*y*z*rho0*tan(phi/2.)*tan(phi/2.)
+				// + Complex_float_X(0,4)*cspeed*y*y*z*rho0*tan(phi/2.)*tan(phi/2.)
 				// - 4*om0*wy*wy*z*z*rho0*tan(phi/2.)*tan(phi/2.)
-				// - Complex(0,2)*om0*wy*wy*y*y*z*sin(phi)*tan(phi/2.)*tan(phi/2.)
-				// - 2*y*cos(phi)*(om0*(cspeed*cspeed*(Complex(0,1)*t*t*wy*wy + om0*t*tauG*tauG*wy*wy + Complex(0,1)*tauG*tauG*y*y) - cspeed*(Complex(0,2)*t + om0*tauG*tauG)*wy*wy*z + Complex(0,1)*wy*wy*z*z) + Complex(0,2)*om0*wy*wy*y*(cspeed*t - z)*tan(phi/2.) + Complex(0,1)*(Complex(0,-4)*cspeed*y*y*z + om0*wy*wy*(y*y - 4*(cspeed*t - z)*z))*tan(phi/2.)*tan(phi/2.))
+				// - Complex_float_X(0,2)*om0*wy*wy*y*y*z*sin(phi)*tan(phi/2.)*tan(phi/2.)
+				// - 2*y*cos(phi)*(om0*(cspeed*cspeed*(Complex_float_X(0,1)*t*t*wy*wy + om0*t*tauG*tauG*wy*wy + Complex_float_X(0,1)*tauG*tauG*y*y) - cspeed*(Complex_float_X(0,2)*t + om0*tauG*tauG)*wy*wy*z + Complex_float_X(0,1)*wy*wy*z*z) + Complex_float_X(0,2)*om0*wy*wy*y*(cspeed*t - z)*tan(phi/2.) + Complex_float_X(0,1)*(Complex_float_X(0,-4)*cspeed*y*y*z + om0*wy*wy*(y*y - 4*(cspeed*t - z)*z))*tan(phi/2.)*tan(phi/2.))
 				// )/(2.*exprDivInt_3_1*exprDivInt_3_2*exprDivInt_3_2*exprDivInt_3_3*exprDivInt_3_4);
 
-				// const Complex exprDivRat_1_1=cspeed*om0*tauG*tauG - Complex(0,8)*y*tan(PI/2-phi)/sin(phi)/sin(phi)*sin(phi/2.)*sin(phi/2.)*sin(phi/2.)*sin(phi/2.) - Complex(0,2)*z*tan(phi/2.)*tan(phi/2.);
-				// const Complex result=(Complex::cexp(exprE_1_1)*tauG*fieldBackgroundE::csqrt((cspeed*om0*rho0)/exprDivInt_3_5))/fieldBackgroundE::csqrt(exprDivRat_1_1);
+				// const Complex_float_X exprDivRat_1_1=cspeed*om0*tauG*tauG - Complex_float_X(0,8)*y*tan(PI/2-phi)/sin(phi)/sin(phi)*sin(phi/2.)*sin(phi/2.)*sin(phi/2.)*sin(phi/2.) - Complex_float_X(0,2)*z*tan(phi/2.)*tan(phi/2.);
+				// const Complex_float_X result=(Complex_float_X::cexp(exprE_1_1)*tauG*fieldBackgroundE::csqrt((cspeed*om0*rho0)/exprDivInt_3_5))/fieldBackgroundE::csqrt(exprDivRat_1_1);
 				
 				// std::cout << "beta0: " << beta0 << std::endl;
 				// std::cout << "alphaTilt: " << alphaTilt << std::endl;
@@ -273,9 +273,9 @@ namespace picongpu
 				// return result.get_real();
 			// }
 					
-			// HINLINE static Complex csqrt(const Complex& other)
+			// HINLINE static Complex_float_X csqrt(const Complex_float_X& other)
 			// {
-				// Complex helper = other;
+				// Complex_float_X helper = other;
 				// std::cout << "csqrt(): helper.real() = "<< helper.get_real() << std::endl;
 				// std::cout << "csqrt(): helper.imag() = "<< helper.get_imag() << std::endl;
 				// std::cout << "csqrt(): helper.abs() = "<< helper.abs() << std::endl;
@@ -284,7 +284,7 @@ namespace picongpu
 				// std::cout << "csqrt(): other.abs() = "<< other.abs() << std::endl;
 				// if (other.get_real()<=0.0 && other.get_imag()==0.0) {
 					// std::cout << "csqrt[re<=0;im=0.0] = I * " << sqrt(-helper.get_real()) << std::endl;
-					// return Complex(0.0,sqrt(-helper.get_real()));
+					// return Complex_float_X(0.0,sqrt(-helper.get_real()));
 				// }
 				// else {
 					// std::cout << "csqrt[else].real() = " << (sqrt(fieldBackgroundE::abs(helper))*(other+fieldBackgroundE::abs(other))/fieldBackgroundE::abs(other+fieldBackgroundE::abs(other))).get_real() << std::endl;
@@ -293,7 +293,7 @@ namespace picongpu
 				// }
 			// }
 				
-			// HINLINE static numtype2 abs(const Complex& other)
+			// HINLINE static float_X abs(const Complex_float_X& other)
 			// {
 				// std::cout << "abs.real() = " << other.get_real() << std::endl;
 				// std::cout << "abs.imag() = " << other.get_imag() << std::endl;
@@ -364,69 +364,69 @@ namespace picongpu
 			HDINLINE float_X
 			calcTWTSBy( const float3_X& pos, const float_X& time, const DataSpace<simDim> halfSimSize, const float_X& phiReal ) const
 			{
-				const numtype2 beta0=::picongpu::bgrTWTS::SI::BETA0_SI; // propagation speed of overlap normalized to the speed of light. [Default: beta0=1.0]
-				const numtype2 alphaTilt=atan2(1-beta0*cos(phiReal),beta0*sin(phiReal));
-				const numtype2 phi=2*alphaTilt; // Definition of the laser pulse front tilt angle for the laser field below. For beta0=1.0, this is equivalent to our standard definition.
-				const numtype2 eta = PI - phiReal + alphaTilt; // angle between the laser pulse front and the y-axis
+				const float_X beta0=::picongpu::bgrTWTS::SI::BETA0_SI; // propagation speed of overlap normalized to the speed of light. [Default: beta0=1.0]
+				const float_X alphaTilt=atan2(1-beta0*cos(phiReal),beta0*sin(phiReal));
+				const float_X phi=2*alphaTilt; // Definition of the laser pulse front tilt angle for the laser field below. For beta0=1.0, this is equivalent to our standard definition.
+				const float_X eta = PI - phiReal + alphaTilt; // angle between the laser pulse front and the y-axis
 				
-				const numtype2 cspeed=::picongpu::SI::SPEED_OF_LIGHT_SI;
-				const numtype2 lambda0=::picongpu::bgrTWTS::SI::WAVE_LENGTH_SI;
-				const numtype2 om0=2*PI*cspeed/lambda0;
-				const numtype2 tauG=(::picongpu::bgrTWTS::SI::PULSE_LENGTH_SI)*2.0; // factor 2 arises from definition convention in laser formula
-				const numtype2 w0=::picongpu::bgrTWTS::SI::WX_SI; // w0 is wx here --> w0 could be replaced by wx
-				const numtype2 rho0=PI*w0*w0/lambda0;
-				const numtype2 wy=::picongpu::bgrTWTS::SI::WY_SI; // Width of TWTS pulse
-				const numtype2 k=2*PI/lambda0;
-				const numtype2 x=pos.x();
-				const numtype2 y=-sin(phiReal)*pos.y()-cos(phiReal)*pos.z();	// RotationMatrix[PI-phiReal].(y,z)
-				const numtype2 z=+cos(phiReal)*pos.y()-sin(phiReal)*pos.z();	// TO DO: For 2 counter-propagation TWTS pulses take +phiReal and -phiReal. Where do we implement this?
-				const numtype2 y1=(float_X)(halfSimSize[2]*::picongpu::SI::CELL_DEPTH_SI)/tan(eta); // halfSimSize[2] --> Half-depth of simulation volume (in z); By geometric projection we calculate the y-distance walkoff of the TWTS-pulse.
-				const numtype2 m=3.; // Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume at low intensity values.
-				const numtype2 y2=(tauG/2*cspeed)/sin(eta)*m; // pulse length projected on y-axis, scaled with "fudge factor" m.
-				const numtype2 y3=::picongpu::bgrTWTS::SI::FOCUS_POS_SI; // Position of maximum intensity in simulation volume along y
-				const numtype2 tdelay= (y1+y2+y3)/(cspeed*beta0);
-				const numtype2 t=time;//-tdelay;
+				const float_X cspeed=::picongpu::SI::SPEED_OF_LIGHT_SI;
+				const float_X lambda0=::picongpu::bgrTWTS::SI::WAVE_LENGTH_SI;
+				const float_X om0=2*PI*cspeed/lambda0;
+				const float_X tauG=(::picongpu::bgrTWTS::SI::PULSE_LENGTH_SI)*2.0; // factor 2 arises from definition convention in laser formula
+				const float_X w0=::picongpu::bgrTWTS::SI::WX_SI; // w0 is wx here --> w0 could be replaced by wx
+				const float_X rho0=PI*w0*w0/lambda0;
+				const float_X wy=::picongpu::bgrTWTS::SI::WY_SI; // Width of TWTS pulse
+				const float_X k=2*PI/lambda0;
+				const float_X x=pos.x();
+				const float_X y=-sin(phiReal)*pos.y()-cos(phiReal)*pos.z();	// RotationMatrix[PI-phiReal].(y,z)
+				const float_X z=+cos(phiReal)*pos.y()-sin(phiReal)*pos.z();	// TO DO: For 2 counter-propagation TWTS pulses take +phiReal and -phiReal. Where do we implement this?
+				const float_X y1=(float_X)(halfSimSize[2]*::picongpu::SI::CELL_DEPTH_SI)/tan(eta); // halfSimSize[2] --> Half-depth of simulation volume (in z); By geometric projection we calculate the y-distance walkoff of the TWTS-pulse.
+				const float_X m=3.; // Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume at low intensity values.
+				const float_X y2=(tauG/2*cspeed)/sin(eta)*m; // pulse length projected on y-axis, scaled with "fudge factor" m.
+				const float_X y3=::picongpu::bgrTWTS::SI::FOCUS_POS_SI; // Position of maximum intensity in simulation volume along y
+				const float_X tdelay= (y1+y2+y3)/(cspeed*beta0);
+				const float_X t=time;//-tdelay;
 				
-				const numtype2 exprDivInt_3_1=cspeed;
-				const numtype2 exprDivInt_3_2=wy;
-				const Complex exprDivInt_3_3=rho0 + Complex(0,1)*y*cos(phi) + Complex(0,1)*z*sin(phi);
-				const Complex exprDivInt_3_4=cspeed*om0*tauG*tauG + Complex(0,2)*(-z - y*tan(PI/2-phi))*tan(phi/2.)*tan(phi/2.);
-				const numtype2 exprDivInt_3_5=2;
-				const numtype2 exprDivInt_3_6=rho0;
-				const Complex exprDivInt_2_1=Complex(0,1)*rho0 - y*cos(phi) - z*sin(phi);
-				const Complex exprE_1_1=-1.0*(
+				const float_X exprDivInt_3_1=cspeed;
+				const float_X exprDivInt_3_2=wy;
+				const Complex_float_X exprDivInt_3_3=rho0 + Complex_float_X(0,1)*y*cos(phi) + Complex_float_X(0,1)*z*sin(phi);
+				const Complex_float_X exprDivInt_3_4=cspeed*om0*tauG*tauG + Complex_float_X(0,2)*(-z - y*tan(PI/2-phi))*tan(phi/2.)*tan(phi/2.);
+				const float_X exprDivInt_3_5=2;
+				const float_X exprDivInt_3_6=rho0;
+				const Complex_float_X exprDivInt_2_1=Complex_float_X(0,1)*rho0 - y*cos(phi) - z*sin(phi);
+				const Complex_float_X exprE_1_1=-1.0*(
 				cspeed*cspeed*k*om0*tauG*tauG*wy*wy*x*x
 				+ 2*cspeed*cspeed*om0*t*t*wy*wy*rho0
-				- Complex(0,2)*cspeed*cspeed*om0*om0*t*tauG*tauG*wy*wy*rho0
+				- Complex_float_X(0,2)*cspeed*cspeed*om0*om0*t*tauG*tauG*wy*wy*rho0
 				+ 2*cspeed*cspeed*om0*tauG*tauG*y*y*rho0
 				- 4*cspeed*om0*t*wy*wy*z*rho0
-				+ Complex(0,2)*cspeed*om0*om0*tauG*tauG*wy*wy*z*rho0
+				+ Complex_float_X(0,2)*cspeed*om0*om0*tauG*tauG*wy*wy*z*rho0
 				+ 2*om0*wy*wy*z*z*rho0
 				+ 4*cspeed*om0*t*wy*wy*y*rho0*tan(phi/2.)
 				- 4*om0*wy*wy*y*z*rho0*tan(phi/2.)
-				- Complex(0,2)*cspeed*k*wy*wy*x*x*z*tan(phi/2.)*tan(phi/2.)
+				- Complex_float_X(0,2)*cspeed*k*wy*wy*x*x*z*tan(phi/2.)*tan(phi/2.)
 				+ 2*om0*wy*wy*y*y*rho0*tan(phi/2.)*tan(phi/2.)
 				- 4*cspeed*om0*t*wy*wy*z*rho0*tan(phi/2.)*tan(phi/2.)
-				- Complex(0,4)*cspeed*y*y*z*rho0*tan(phi/2.)*tan(phi/2.)
+				- Complex_float_X(0,4)*cspeed*y*y*z*rho0*tan(phi/2.)*tan(phi/2.)
 				+ 4*om0*wy*wy*z*z*rho0*tan(phi/2.)*tan(phi/2.)
-				- Complex(0,2)*cspeed*k*wy*wy*x*x*y*tan(PI/2-phi)*tan(phi/2.)*tan(phi/2.)
+				- Complex_float_X(0,2)*cspeed*k*wy*wy*x*x*y*tan(PI/2-phi)*tan(phi/2.)*tan(phi/2.)
 				- 4*cspeed*om0*t*wy*wy*y*rho0*tan(PI/2-phi)*tan(phi/2.)*tan(phi/2.)
-				- Complex(0,4)*cspeed*y*y*y*rho0*tan(PI/2-phi)*tan(phi/2.)*tan(phi/2.)
+				- Complex_float_X(0,4)*cspeed*y*y*y*rho0*tan(PI/2-phi)*tan(phi/2.)*tan(phi/2.)
 				+ 4*om0*wy*wy*y*z*rho0*tan(PI/2-phi)*tan(phi/2.)*tan(phi/2.)
 				+ 2*z*sin(phi)*(
-					om0*(cspeed*cspeed*(Complex(0,1)*t*t*wy*wy + om0*t*tauG*tauG*wy*wy + Complex(0,1)*tauG*tauG*y*y) - cspeed*(Complex(0,2)*t + om0*tauG*tauG)*wy*wy*z + Complex(0,1)*wy*wy*z*z)
-					+ Complex(0,2)*om0*wy*wy*y*(cspeed*t - z)*tan(phi/2.) + Complex(0,1)*(Complex(0,-2)*cspeed*y*y*z + om0*wy*wy*(y*y - 2*(cspeed*t - z)*z))*tan(phi/2.)*tan(phi/2.)
+					om0*(cspeed*cspeed*(Complex_float_X(0,1)*t*t*wy*wy + om0*t*tauG*tauG*wy*wy + Complex_float_X(0,1)*tauG*tauG*y*y) - cspeed*(Complex_float_X(0,2)*t + om0*tauG*tauG)*wy*wy*z + Complex_float_X(0,1)*wy*wy*z*z)
+					+ Complex_float_X(0,2)*om0*wy*wy*y*(cspeed*t - z)*tan(phi/2.) + Complex_float_X(0,1)*(Complex_float_X(0,-2)*cspeed*y*y*z + om0*wy*wy*(y*y - 2*(cspeed*t - z)*z))*tan(phi/2.)*tan(phi/2.)
 					)
 				+ 2*y*cos(phi)*(
-					om0*(cspeed*cspeed*(Complex(0,1)*t*t*wy*wy + om0*t*tauG*tauG*wy*wy + Complex(0,1)*tauG*tauG*y*y) - cspeed*(Complex(0,2)*t + om0*tauG*tauG)*wy*wy*z + Complex(0,1)*wy*wy*z*z)
-					+ Complex(0,2)*om0*wy*wy*y*(cspeed*t - z)*tan(phi/2.)
-					+ Complex(0,1)*(Complex(0,-4)*cspeed*y*y*z + om0*wy*wy*(y*y - 4*(cspeed*t - z)*z) - 2*y*(cspeed*om0*t*wy*wy + Complex(0,1)*cspeed*y*y - om0*wy*wy*z)*tan(PI/2-phi))*tan(phi/2.)*tan(phi/2.)
+					om0*(cspeed*cspeed*(Complex_float_X(0,1)*t*t*wy*wy + om0*t*tauG*tauG*wy*wy + Complex_float_X(0,1)*tauG*tauG*y*y) - cspeed*(Complex_float_X(0,2)*t + om0*tauG*tauG)*wy*wy*z + Complex_float_X(0,1)*wy*wy*z*z)
+					+ Complex_float_X(0,2)*om0*wy*wy*y*(cspeed*t - z)*tan(phi/2.)
+					+ Complex_float_X(0,1)*(Complex_float_X(0,-4)*cspeed*y*y*z + om0*wy*wy*(y*y - 4*(cspeed*t - z)*z) - 2*y*(cspeed*om0*t*wy*wy + Complex_float_X(0,1)*cspeed*y*y - om0*wy*wy*z)*tan(PI/2-phi))*tan(phi/2.)*tan(phi/2.)
 					)
 				)/(2.*exprDivInt_3_1*exprDivInt_3_2*exprDivInt_3_2*exprDivInt_3_3*exprDivInt_3_4);
 
-				const Complex exprDivInt_1_1=Complex(0,-1)*cspeed*om0*tauG*tauG + (-z - y*tan(PI/2-phi))*tan(phi/2.)*tan(phi/2.)*exprDivInt_3_5;
-				const Complex exprDivRat_1_1=(cspeed*(cspeed*om0*tauG*tauG + Complex(0,2)*(-z - y*tan(PI/2-phi))*tan(phi/2.)*tan(phi/2.)))/(om0*exprDivInt_3_6);
-				const Complex result=(Complex::cexp(exprE_1_1)*tauG/cos(phi/2.)/cos(phi/2.)*(rho0 + Complex(0,1)*y*cos(phi) + Complex(0,1)*z*sin(phi))*(Complex(0,2)*cspeed*t + cspeed*om0*tauG*tauG - Complex(0,4)*z + cspeed*(Complex(0,2)*t + om0*tauG*tauG)*cos(phi) + Complex(0,2)*y*tan(phi/2.))*Complex::cpow(exprDivInt_2_1,-1.5))/(2.*exprDivInt_1_1*Complex::csqrt(exprDivRat_1_1));
+				const Complex_float_X exprDivInt_1_1=Complex_float_X(0,-1)*cspeed*om0*tauG*tauG + (-z - y*tan(PI/2-phi))*tan(phi/2.)*tan(phi/2.)*exprDivInt_3_5;
+				const Complex_float_X exprDivRat_1_1=(cspeed*(cspeed*om0*tauG*tauG + Complex_float_X(0,2)*(-z - y*tan(PI/2-phi))*tan(phi/2.)*tan(phi/2.)))/(om0*exprDivInt_3_6);
+				const Complex_float_X result=(Complex_float_X::cexp(exprE_1_1)*tauG/cos(phi/2.)/cos(phi/2.)*(rho0 + Complex_float_X(0,1)*y*cos(phi) + Complex_float_X(0,1)*z*sin(phi))*(Complex_float_X(0,2)*cspeed*t + cspeed*om0*tauG*tauG - Complex_float_X(0,4)*z + cspeed*(Complex_float_X(0,2)*t + om0*tauG*tauG)*cos(phi) + Complex_float_X(0,2)*y*tan(phi/2.))*Complex_float_X::cpow(exprDivInt_2_1,-1.5))/(2.*exprDivInt_1_1*Complex_float_X::csqrt(exprDivRat_1_1));
 
 				return result.get_real();
 			}
@@ -441,57 +441,57 @@ namespace picongpu
 			HDINLINE float_X
 			calcTWTSBz( const float3_X& pos, const float_X& time, const DataSpace<simDim> halfSimSize, const float_X& phiReal ) const
 			{
-				const numtype2 beta0=::picongpu::bgrTWTS::SI::BETA0_SI; // propagation speed of overlap normalized to the speed of light. [Default: beta0=1.0]
-				const numtype2 alphaTilt=atan2(1-beta0*cos(phiReal),beta0*sin(phiReal));
-				const numtype2 phi=2*alphaTilt; // Definition of the laser pulse front tilt angle for the laser field below. For beta0=1.0, this is equivalent to our standard definition.
-				const numtype2 eta = PI - phiReal + alphaTilt; // angle between the laser pulse front and the y-axis
+				const float_X beta0=::picongpu::bgrTWTS::SI::BETA0_SI; // propagation speed of overlap normalized to the speed of light. [Default: beta0=1.0]
+				const float_X alphaTilt=atan2(1-beta0*cos(phiReal),beta0*sin(phiReal));
+				const float_X phi=2*alphaTilt; // Definition of the laser pulse front tilt angle for the laser field below. For beta0=1.0, this is equivalent to our standard definition.
+				const float_X eta = PI - phiReal + alphaTilt; // angle between the laser pulse front and the y-axis
 				
-				const numtype2 cspeed=::picongpu::SI::SPEED_OF_LIGHT_SI;
-				const numtype2 lambda0=::picongpu::bgrTWTS::SI::WAVE_LENGTH_SI;
-				const numtype2 om0=2*PI*cspeed/lambda0;
-				const numtype2 tauG=(::picongpu::bgrTWTS::SI::PULSE_LENGTH_SI)*2.0; // factor 2 arises from definition convention in laser formula
-				const numtype2 w0=::picongpu::bgrTWTS::SI::WX_SI; // w0 is wx here --> w0 could be replaced by wx
-				const numtype2 rho0=PI*w0*w0/lambda0;
-				const numtype2 wy=::picongpu::bgrTWTS::SI::WY_SI; // Width of TWTS pulse
-				const numtype2 k=2*PI/lambda0;
-				const numtype2 x=pos.x();
-				const numtype2 y=-sin(phiReal)*pos.y()-cos(phiReal)*pos.z();	// RotationMatrix[PI-phiReal].(y,z)
-				const numtype2 z=+cos(phiReal)*pos.y()-sin(phiReal)*pos.z();	// TO DO: For 2 counter-propagation TWTS pulses take +phiReal and -phiReal. Where do we implement this?
-				const numtype2 y1=(float_X)(halfSimSize[2]*::picongpu::SI::CELL_DEPTH_SI)/tan(eta); // halfSimSize[2] --> Half-depth of simulation volume (in z); By geometric projection we calculate the y-distance walkoff of the TWTS-pulse.
-				const numtype2 m=3.; // Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume at low intensity values.
-				const numtype2 y2=(tauG/2*cspeed)/sin(eta)*m; // pulse length projected on y-axis, scaled with "fudge factor" m.
-				const numtype2 y3=::picongpu::bgrTWTS::SI::FOCUS_POS_SI; // Position of maximum intensity in simulation volume along y
-				const numtype2 tdelay= (y1+y2+y3)/(cspeed*beta0);
-				const numtype2 t=time;//-tdelay;
+				const float_X cspeed=::picongpu::SI::SPEED_OF_LIGHT_SI;
+				const float_X lambda0=::picongpu::bgrTWTS::SI::WAVE_LENGTH_SI;
+				const float_X om0=2*PI*cspeed/lambda0;
+				const float_X tauG=(::picongpu::bgrTWTS::SI::PULSE_LENGTH_SI)*2.0; // factor 2 arises from definition convention in laser formula
+				const float_X w0=::picongpu::bgrTWTS::SI::WX_SI; // w0 is wx here --> w0 could be replaced by wx
+				const float_X rho0=PI*w0*w0/lambda0;
+				const float_X wy=::picongpu::bgrTWTS::SI::WY_SI; // Width of TWTS pulse
+				const float_X k=2*PI/lambda0;
+				const float_X x=pos.x();
+				const float_X y=-sin(phiReal)*pos.y()-cos(phiReal)*pos.z();	// RotationMatrix[PI-phiReal].(y,z)
+				const float_X z=+cos(phiReal)*pos.y()-sin(phiReal)*pos.z();	// TO DO: For 2 counter-propagation TWTS pulses take +phiReal and -phiReal. Where do we implement this?
+				const float_X y1=(float_X)(halfSimSize[2]*::picongpu::SI::CELL_DEPTH_SI)/tan(eta); // halfSimSize[2] --> Half-depth of simulation volume (in z); By geometric projection we calculate the y-distance walkoff of the TWTS-pulse.
+				const float_X m=3.; // Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume at low intensity values.
+				const float_X y2=(tauG/2*cspeed)/sin(eta)*m; // pulse length projected on y-axis, scaled with "fudge factor" m.
+				const float_X y3=::picongpu::bgrTWTS::SI::FOCUS_POS_SI; // Position of maximum intensity in simulation volume along y
+				const float_X tdelay= (y1+y2+y3)/(cspeed*beta0);
+				const float_X t=time;//-tdelay;
 				
-				const Complex exprDivInt_5_1=-(cspeed*z) - cspeed*y*tan(PI/2-phi) + Complex(0,1)*cspeed*rho0/sin(phi);
-				const Complex exprDivInt_5_2=Complex(0,1)*rho0 - y*cos(phi) - z*sin(phi);
-				const numtype2 exprDivInt_5_4=wy;
-				const Complex exprDivInt_5_12=exprDivInt_5_2*cspeed;
-				const numtype2 exprDivInt_5_18=cspeed;
-				const Complex exprDivInt_5_19=cspeed*om0*tauG*tauG - Complex(0,1)*y*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.) - Complex(0,2)*z*tan(phi/2.)*tan(phi/2.);
-				const Complex exprPower=2*cspeed*t - Complex(0,1)*cspeed*om0*tauG*tauG - 2*z + 8*y/sin(phi)/sin(phi)/sin(phi)*sin(phi/2.)*sin(phi/2.)*sin(phi/2.)*sin(phi/2.) - 2*z*tan(phi/2.)*tan(phi/2.);
+				const Complex_float_X exprDivInt_5_1=-(cspeed*z) - cspeed*y*tan(PI/2-phi) + Complex_float_X(0,1)*cspeed*rho0/sin(phi);
+				const Complex_float_X exprDivInt_5_2=Complex_float_X(0,1)*rho0 - y*cos(phi) - z*sin(phi);
+				const float_X exprDivInt_5_4=wy;
+				const Complex_float_X exprDivInt_5_12=exprDivInt_5_2*cspeed;
+				const float_X exprDivInt_5_18=cspeed;
+				const Complex_float_X exprDivInt_5_19=cspeed*om0*tauG*tauG - Complex_float_X(0,1)*y*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.) - Complex_float_X(0,2)*z*tan(phi/2.)*tan(phi/2.);
+				const Complex_float_X exprPower=2*cspeed*t - Complex_float_X(0,1)*cspeed*om0*tauG*tauG - 2*z + 8*y/sin(phi)/sin(phi)/sin(phi)*sin(phi/2.)*sin(phi/2.)*sin(phi/2.)*sin(phi/2.) - 2*z*tan(phi/2.)*tan(phi/2.);
 
-				const Complex exprE_1_1=(
+				const Complex_float_X exprE_1_1=(
 				(om0*y*rho0/cos(phi/2.)/cos(phi/2.)/cos(phi/2.)/cos(phi/2.))/exprDivInt_5_1 
-				- (Complex(0,2)*k*x*x)/exprDivInt_5_2 
-				- (Complex(0,1)*om0*om0*tauG*tauG*rho0)/exprDivInt_5_2
-				- (Complex(0,4)*y*y*rho0)/(exprDivInt_5_4*exprDivInt_5_4*exprDivInt_5_2)
+				- (Complex_float_X(0,2)*k*x*x)/exprDivInt_5_2 
+				- (Complex_float_X(0,1)*om0*om0*tauG*tauG*rho0)/exprDivInt_5_2
+				- (Complex_float_X(0,4)*y*y*rho0)/(exprDivInt_5_4*exprDivInt_5_4*exprDivInt_5_2)
 				+ (om0*om0*tauG*tauG*y*cos(phi))/exprDivInt_5_2
 				+ (4*y*y*y*cos(phi))/(exprDivInt_5_4*exprDivInt_5_4*exprDivInt_5_2)
 				+ (om0*om0*tauG*tauG*z*sin(phi))/exprDivInt_5_2
 				+ (4*y*y*z*sin(phi))/(exprDivInt_5_4*exprDivInt_5_4*exprDivInt_5_2)
-				+ (Complex(0,2)*om0*y*y*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.))/exprDivInt_5_12
+				+ (Complex_float_X(0,2)*om0*y*y*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.))/exprDivInt_5_12
 				+ (om0*y*rho0*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.))/exprDivInt_5_12
-				+ (Complex(0,1)*om0*y*y*cos(phi)*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.))/exprDivInt_5_12
-				+ (Complex(0,4)*om0*y*z*tan(phi/2.)*tan(phi/2.))/exprDivInt_5_12
+				+ (Complex_float_X(0,1)*om0*y*y*cos(phi)*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.))/exprDivInt_5_12
+				+ (Complex_float_X(0,4)*om0*y*z*tan(phi/2.)*tan(phi/2.))/exprDivInt_5_12
 				- (2*om0*z*rho0*tan(phi/2.)*tan(phi/2.))/exprDivInt_5_12
-				- (Complex(0,2)*om0*z*z*sin(phi)*tan(phi/2.)*tan(phi/2.))/exprDivInt_5_12
+				- (Complex_float_X(0,2)*om0*z*z*sin(phi)*tan(phi/2.)*tan(phi/2.))/exprDivInt_5_12
 				- (om0*exprPower*exprPower)/(exprDivInt_5_18*exprDivInt_5_19)
 				)/4.;
 						
-				const Complex exprDivRat_1_1=cspeed*om0*tauG*tauG - Complex(0,1)*y*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.) - Complex(0,2)*z*tan(phi/2.)*tan(phi/2.);
-				const Complex result=(Complex(0,2)*Complex::cexp(exprE_1_1)*tauG*tan(phi/2.)*(cspeed*t - z + y*tan(phi/2.))*Complex::csqrt((om0*rho0)/exprDivInt_5_12))/Complex::cpow(exprDivRat_1_1,1.5);
+				const Complex_float_X exprDivRat_1_1=cspeed*om0*tauG*tauG - Complex_float_X(0,1)*y*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.) - Complex_float_X(0,2)*z*tan(phi/2.)*tan(phi/2.);
+				const Complex_float_X result=(Complex_float_X(0,2)*Complex_float_X::cexp(exprE_1_1)*tauG*tan(phi/2.)*(cspeed*t - z + y*tan(phi/2.))*Complex_float_X::csqrt((om0*rho0)/exprDivInt_5_12))/Complex_float_X::cpow(exprDivRat_1_1,1.5);
 
 				return result.get_real();
 			}

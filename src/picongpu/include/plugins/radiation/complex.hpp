@@ -276,4 +276,7 @@ private:
 
 typedef Complex_T<numtype2> Complex; // a complex number class using numtype as data-type
 
-
+namespace picongpu
+{
+	typedef Complex_T<float_X> Complex_float_X; // a complex number class using float_X as data-type
+}
