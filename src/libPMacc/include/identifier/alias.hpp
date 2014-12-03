@@ -25,6 +25,9 @@
 #include "types.h"
 #include "identifier/identifier.hpp"
 #include <string>
+#include "traits/Resolve.hpp"
+#include <boost/mpl/if.hpp>
+#include <boost/type_traits/is_same.hpp>
 
 namespace PMacc
 {
@@ -36,7 +39,7 @@ identifier(pmacc_isAlias);
 #define PMACC_alias(name,id)                                                   \
     namespace PMACC_JOIN(placeholder_definition,id) {                          \
         template<typename T_Type=PMacc::pmacc_void,typename T_IsAlias=PMacc::pmacc_isAlias> \
-        struct name:public T_Type                                              \
+        struct name                                                            \
         {                                                                      \
             typedef T_Type ThisType;                                           \
             static std::string getName()                                       \
@@ -71,3 +74,22 @@ identifier(pmacc_isAlias);
  *      typedef typename name::ThisType type;
  */
 #define alias(name) PMACC_alias(name,__COUNTER__)
+
+namespace PMacc
+{
+namespace traits
+{
+
+template<template<typename,typename> class T_Object, typename T_AnyType>
+struct Resolve<T_Object<T_AnyType,PMacc::pmacc_isAlias> >
+{
+    /*solve recursive if alias is nested*/
+    typedef typename  bmpl::if_<
+        boost::is_same<T_AnyType,typename Resolve<T_AnyType>::type >,
+        T_AnyType,
+        typename Resolve<T_AnyType>::type
+    >::type type;
+};
+
+} //namespace traits
+} //namespace PMacc

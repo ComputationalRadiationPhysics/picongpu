@@ -38,6 +38,7 @@
 #include "mappings/kernel/AreaMapping.hpp"
 
 #include "compileTime/conversion/RemoveFromSeq.hpp"
+#include "traits/Resolve.hpp"
 
 namespace picongpu
 {
@@ -52,7 +53,7 @@ struct MallocMemory
     template<typename ValueType >
     HINLINE void operator()(ValueType& v1, const size_t size) const
     {
-        typedef typename T_Type::type type;
+        typedef typename PMacc::traits::Resolve<T_Type>::type::type type;
 
         type* ptr = NULL;
         if (size != 0)
@@ -70,7 +71,7 @@ struct GetDevicePtr
     template<typename ValueType >
     HINLINE void operator()(ValueType& dest, ValueType& src)
     {
-        typedef typename T_Type::type type;
+        typedef typename PMacc::traits::Resolve<T_Type>::type::type type;
 
         type* ptr = NULL;
         type* srcPtr = src.getIdentifier(T_Type()).getPointer();
@@ -88,7 +89,7 @@ struct FreeMemory
     template<typename ValueType >
     HINLINE void operator()(ValueType& value) const
     {
-        typedef typename T_Type::type type;
+        typedef typename PMacc::traits::Resolve<T_Type>::type::type type;
 
         type* ptr = value.getIdentifier(T_Type()).getPointer();
         if (ptr != NULL)
@@ -104,7 +105,7 @@ struct OperatorCreateVectorBox
     {
         typedef
         bmpl::pair< InType,
-        PMacc::VectorDataBox< typename InType::type > >
+        PMacc::VectorDataBox< typename PMacc::traits::Resolve<InType>::type::type > >
         type;
     };
 };
