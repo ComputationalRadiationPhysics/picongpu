@@ -291,6 +291,19 @@ public:
         (*pushBGField)(fieldB, nvfct::Add(), fieldBackgroundB(fieldB->getUnit()),
                        0, fieldBackgroundB::InfluenceParticlePusher);
 		//fieldBackgroundE(fieldE->getUnit()).calcTWTSExTest( float3_X(0.0,0.0,0.0) , 0.33e-15, DataSpace<simDim> (0,0,0), 80. * (PI /180) );
+
+		// Just informational output for debugging. This can be commented out afterwards.
+		::PMacc::math::Vector<floatD_X,simDim> eFieldPositions = picongpu::yeeCell::YeeCell::getEFieldPosition();
+		const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+		/** Half the size of the global Simulation volume for centering the coordinate origin  */
+		const DataSpace<simDim> halfSimSize(subGrid.getGlobalDomain().size / 2);
+		std::cout << "halfSimSize(x) = " << halfSimSize.x() << std::endl;
+		std::cout << "halfSimSize(y) = " << halfSimSize.y() << std::endl;
+		std::cout << "halfSimSize(z) = " << halfSimSize.z() << std::endl;
+		std::cout << "eFieldPositions[0](x) = " << eFieldPositions[0][0] << std::endl;
+		std::cout << "eFieldPositions[0](y) = " << eFieldPositions[0][1] << std::endl;
+		std::cout << "eFieldPositions[0](z) = " << eFieldPositions[0][2] << std::endl;
+		
 		
         // create field solver
         this->myFieldSolver = new fieldSolver::FieldSolver(*cellDescription);
@@ -397,9 +410,9 @@ public:
 		
 		/** add background field for particle pusher */
         (*pushBGField)(fieldE, nvfct::Add(), fieldBackgroundE(fieldE->getUnit()),
-                       currentStep, fieldBackgroundE::InfluenceParticlePusher);
+                       currentStep + 1, fieldBackgroundE::InfluenceParticlePusher);
         (*pushBGField)(fieldB, nvfct::Add(), fieldBackgroundB(fieldB->getUnit()),
-                       currentStep, fieldBackgroundB::InfluenceParticlePusher);
+                       currentStep + 1, fieldBackgroundB::InfluenceParticlePusher);
     }
 
     virtual void movingWindowCheck(uint32_t currentStep)

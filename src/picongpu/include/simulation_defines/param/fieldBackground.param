@@ -50,7 +50,7 @@ namespace picongpu
             const double _A0  = 0.1;
 
             /** unit: Volt /meter */
-            const double AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
+            const double AMPLITUDE_SI = 1.0;//_A0 * UNITCONV_A0_to_Amplitude_SI;
 
             /** unit: Volt /meter */
             //const double AMPLITUDE_SI = 1.738e13;
@@ -71,7 +71,7 @@ namespace picongpu
 			const double WY_SI = 0.01;	// TWTS pulse width (this is usually mm or longer)
             /** the distance to the laser focus in y-direction
              *  unit: meter */
-            const double FOCUS_POS_SI = 50.0e-6;
+            const double FOCUS_POS_SI = 25.0e-6;
 			/** interaction angle between TWTS laser propagation vector and the y-axis
              *  unit: rad */
 			const double PHI_SI = 90. *(PI/180.);
@@ -111,20 +111,20 @@ namespace picongpu
         {
 			const float_X focus_y = ::picongpu::fieldBackground::SI::FOCUS_POS_SI/SI::CELL_HEIGHT_SI;
 			const float3_X helper = float3_X( halfSimSize.x(), focus_y, halfSimSize.z() );
-		
+			
 			/* For the Yee-Cell shifted fields, obtain the fractional cell index components and add that to the total cell indices. The physical field coordinate origin is transversally centered with respect to the global simulation volume. */
 			::PMacc::math::Vector<floatD_X,simDim> eFieldPositions = picongpu::yeeCell::YeeCell::getEFieldPosition();
 			eFieldPositions[0] = ((float3_X)cellIdx+eFieldPositions[0]-helper) * float3_X(SI::CELL_WIDTH_SI,SI::CELL_HEIGHT_SI,SI::CELL_DEPTH_SI); // cellIdx(Ex)
 			eFieldPositions[1] = ((float3_X)cellIdx+eFieldPositions[1]-helper) * float3_X(SI::CELL_WIDTH_SI,SI::CELL_HEIGHT_SI,SI::CELL_DEPTH_SI); // cellIdx(Ey)
 			eFieldPositions[2] = ((float3_X)cellIdx+eFieldPositions[2]-helper) * float3_X(SI::CELL_WIDTH_SI,SI::CELL_HEIGHT_SI,SI::CELL_DEPTH_SI); // cellIdx(Ez)
 			
-			const float_X time=currentStep*SI::DELTA_T_SI+1;
+			const float_X time=currentStep*SI::DELTA_T_SI;
 		
             /* specify your E-Field in V/m and convert to PIConGPU units */
 			if ( ! ::picongpu::fieldBackground::includeCollidingTWTS ) {
 			// Single TWTS-Pulse
 				return float3_X((::picongpu::fieldBackground::SI::AMPLITUDE_SI)*calcTWTSEx(eFieldPositions[0],time,halfSimSize,::picongpu::fieldBackground::SI::PHI_SI) / unitField[1],0.0, 0.0);
-				//return float3_X((eFieldPositions[0]).x()/ unitField[1],(eFieldPositions[0]).y()/ unitField[1], time / unitField[1]);
+				//return float3_X((eFieldPositions[0]).x()/ unitField[1],(eFieldPositions[0]).y()/ unitField[1], (eFieldPositions[0]).z() / unitField[1]);
 			}
 			else {
 			// Colliding TWTS-Pulse
@@ -160,12 +160,12 @@ namespace picongpu
 			const numtype2 x=pos.x();
 			const numtype2 y=-sin(phiReal)*pos.y()-cos(phiReal)*pos.z();	// RotationMatrix[PI-phiReal].(y,z)
 			const numtype2 z=+cos(phiReal)*pos.y()-sin(phiReal)*pos.z();	// TO DO: For 2 counter-propagation TWTS pulses take +phiReal and -phiReal. Where do we implement this?
-			const numtype2 y1=(float_X)(halfSimSize[2])/tan(eta); // halfSimSize[2] --> Half-depth of simulation volume (in z); By geometric projection we calculate the y-distance walkoff of the TWTS-pulse.
+			const numtype2 y1=(float_X)(halfSimSize[2]*SI::CELL_DEPTH_SI)/tan(eta); // halfSimSize[2] --> Half-depth of simulation volume (in z); By geometric projection we calculate the y-distance walkoff of the TWTS-pulse.
 			const numtype2 m=3.; // Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume at low intensity values.
 			const numtype2 y2=(tauG/2*cspeed)/sin(eta)*m; // pulse length projected on y-axis, scaled with "fudge factor" m.
 			const numtype2 y3=::picongpu::fieldBackground::SI::FOCUS_POS_SI; // Position of maximum intensity in simulation volume along y
 			const numtype2 tdelay= (y1+y2+y3)/(cspeed*beta0);
-			const numtype2 t=time-tdelay;
+			const numtype2 t=time;//-tdelay;
 			
 			const numtype2 exprDivInt_3_1=cspeed;
 			const numtype2 exprDivInt_3_2=wy;
@@ -380,14 +380,14 @@ namespace picongpu
                     const uint32_t currentStep,
 					const DataSpace<simDim> halfSimSize	) const
         {
-			const float_X focus_y = 50.0e-6/SI::CELL_HEIGHT_SI;
+			const float_X focus_y = ::picongpu::fieldBackground::SI::FOCUS_POS_SI/SI::CELL_HEIGHT_SI;
 			const float3_X helper = float3_X( halfSimSize.x(), focus_y, halfSimSize.z() );
 			
 			/* For the Yee-Cell shifted fields, obtain the fractional cell index components and add that to the total cell indices. The physical field coordinate origin is in the center of the simulation */
 			::PMacc::math::Vector<floatD_X,simDim> bFieldPositions = picongpu::yeeCell::YeeCell::getBFieldPosition();
-			bFieldPositions[0] = ((float3_X)cellIdx+bFieldPositions[0]-helper) * float3_X(SI::CELL_WIDTH_SI,SI::CELL_HEIGHT_SI,SI::CELL_DEPTH_SI); // cellIdx(Ex)
-			bFieldPositions[1] = ((float3_X)cellIdx+bFieldPositions[1]-helper) * float3_X(SI::CELL_WIDTH_SI,SI::CELL_HEIGHT_SI,SI::CELL_DEPTH_SI); // cellIdx(Ey)
-			bFieldPositions[2] = ((float3_X)cellIdx+bFieldPositions[2]-helper) * float3_X(SI::CELL_WIDTH_SI,SI::CELL_HEIGHT_SI,SI::CELL_DEPTH_SI); // cellIdx(Ez)
+			bFieldPositions[0] = ((float3_X)cellIdx+bFieldPositions[0]-helper) * float3_X(SI::CELL_WIDTH_SI,SI::CELL_HEIGHT_SI,SI::CELL_DEPTH_SI); // cellIdx(Bx)
+			bFieldPositions[1] = ((float3_X)cellIdx+bFieldPositions[1]-helper) * float3_X(SI::CELL_WIDTH_SI,SI::CELL_HEIGHT_SI,SI::CELL_DEPTH_SI); // cellIdx(By)
+			bFieldPositions[2] = ((float3_X)cellIdx+bFieldPositions[2]-helper) * float3_X(SI::CELL_WIDTH_SI,SI::CELL_HEIGHT_SI,SI::CELL_DEPTH_SI); // cellIdx(Bz)
 			
 			const float_X time=currentStep*SI::DELTA_T_SI;
 			
@@ -395,6 +395,7 @@ namespace picongpu
 			if ( ! ::picongpu::fieldBackground::includeCollidingTWTS ) {
 				// Single TWTS-Pulse
 				return float3_X(0.0, (::picongpu::fieldBackground::SI::AMPLITUDE_SI)*calcTWTSBy(bFieldPositions[1], time, halfSimSize, ::picongpu::fieldBackground::SI::PHI_SI) / unitField[1], (::picongpu::fieldBackground::SI::AMPLITUDE_SI)*calcTWTSBz(bFieldPositions[2], time, halfSimSize, ::picongpu::fieldBackground::SI::PHI_SI) / unitField[1]);
+				//return float3_X ( ((float3_X)cellIdx)[0] / unitField[1], ((float3_X)cellIdx)[1] / unitField[1], ((float3_X)cellIdx)[2] / unitField[1] );
 			}
 			else {
 				// Colliding TWTS-Pulse
@@ -434,12 +435,12 @@ namespace picongpu
 			const numtype2 x=pos.x();
 			const numtype2 y=-sin(phiReal)*pos.y()-cos(phiReal)*pos.z();	// RotationMatrix[PI-phiReal].(y,z)
 			const numtype2 z=+cos(phiReal)*pos.y()-sin(phiReal)*pos.z();	// TO DO: For 2 counter-propagation TWTS pulses take +phiReal and -phiReal. Where do we implement this?
-			const numtype2 y1=(float_X)(halfSimSize[2])/tan(eta); // halfSimSize[2] --> Half-depth of simulation volume (in z); By geometric projection we calculate the y-distance walkoff of the TWTS-pulse.
+			const numtype2 y1=(float_X)(halfSimSize[2]*SI::CELL_DEPTH_SI)/tan(eta); // halfSimSize[2] --> Half-depth of simulation volume (in z); By geometric projection we calculate the y-distance walkoff of the TWTS-pulse.
 			const numtype2 m=3.; // Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume at low intensity values.
 			const numtype2 y2=(tauG/2*cspeed)/sin(eta)*m; // pulse length projected on y-axis, scaled with "fudge factor" m.
 			const numtype2 y3=::picongpu::fieldBackground::SI::FOCUS_POS_SI; // Position of maximum intensity in simulation volume along y
 			const numtype2 tdelay= (y1+y2+y3)/(cspeed*beta0);
-			const numtype2 t=time-tdelay;
+			const numtype2 t=time;//-tdelay;
 			
 			const numtype2 exprDivInt_3_1=cspeed;
 			const numtype2 exprDivInt_3_2=wy;
@@ -480,7 +481,7 @@ namespace picongpu
 
 			const Complex exprDivInt_1_1=Complex(0,-1)*cspeed*om0*tauG*tauG + (-z - y*tan(PI/2-phi))*tan(phi/2.)*tan(phi/2.)*exprDivInt_3_5;
 			const Complex exprDivRat_1_1=(cspeed*(cspeed*om0*tauG*tauG + Complex(0,2)*(-z - y*tan(PI/2-phi))*tan(phi/2.)*tan(phi/2.)))/(om0*exprDivInt_3_6);
-			const Complex result=(Complex::cexp(exprE_1_1)*tauG/cos(phi/2.)/cos(phi/2.)*(rho0 + Complex(0,1)*y*cos(phi) + Complex(0,1)*z*sin(phi))*(Complex(0,2)*cspeed*t + cspeed*om0*tauG*tauG - Complex(0,4)*z + cspeed*(Complex(0,2)*t + om0*tauG*tauG)*cos(phi) + Complex(0,2)*y*tan(phi/2.))*Complex::csqrt(1.0/exprDivInt_2_1*exprDivInt_2_1*exprDivInt_2_1))/(2.*exprDivInt_1_1*Complex::csqrt(exprDivRat_1_1));
+			const Complex result=(Complex::cexp(exprE_1_1)*tauG/cos(phi/2.)/cos(phi/2.)*(rho0 + Complex(0,1)*y*cos(phi) + Complex(0,1)*z*sin(phi))*(Complex(0,2)*cspeed*t + cspeed*om0*tauG*tauG - Complex(0,4)*z + cspeed*(Complex(0,2)*t + om0*tauG*tauG)*cos(phi) + Complex(0,2)*y*tan(phi/2.))*Complex::cpow(exprDivInt_2_1,-1.5))/(2.*exprDivInt_1_1*Complex::csqrt(exprDivRat_1_1));
 
             return result.get_real();
         }
@@ -511,12 +512,12 @@ namespace picongpu
 			const numtype2 x=pos.x();
 			const numtype2 y=-sin(phiReal)*pos.y()-cos(phiReal)*pos.z();	// RotationMatrix[PI-phiReal].(y,z)
 			const numtype2 z=+cos(phiReal)*pos.y()-sin(phiReal)*pos.z();	// TO DO: For 2 counter-propagation TWTS pulses take +phiReal and -phiReal. Where do we implement this?
-			const numtype2 y1=(float_X)(halfSimSize[2])/tan(eta); // halfSimSize[2] --> Half-depth of simulation volume (in z); By geometric projection we calculate the y-distance walkoff of the TWTS-pulse.
+			const numtype2 y1=(float_X)(halfSimSize[2]*SI::CELL_DEPTH_SI)/tan(eta); // halfSimSize[2] --> Half-depth of simulation volume (in z); By geometric projection we calculate the y-distance walkoff of the TWTS-pulse.
 			const numtype2 m=3.; // Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume at low intensity values.
 			const numtype2 y2=(tauG/2*cspeed)/sin(eta)*m; // pulse length projected on y-axis, scaled with "fudge factor" m.
 			const numtype2 y3=::picongpu::fieldBackground::SI::FOCUS_POS_SI; // Position of maximum intensity in simulation volume along y
 			const numtype2 tdelay= (y1+y2+y3)/(cspeed*beta0);
-			const numtype2 t=time-tdelay;
+			const numtype2 t=time;//-tdelay;
 			
 			const Complex exprDivInt_5_1=-(cspeed*z) - cspeed*y*tan(PI/2-phi) + Complex(0,1)*cspeed*rho0/sin(phi);
 			const Complex exprDivInt_5_2=Complex(0,1)*rho0 - y*cos(phi) - z*sin(phi);
@@ -545,7 +546,7 @@ namespace picongpu
 			)/4.;
 					
 			const Complex exprDivRat_1_1=cspeed*om0*tauG*tauG - Complex(0,1)*y*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.) - Complex(0,2)*z*tan(phi/2.)*tan(phi/2.);
-			const Complex result=(Complex(0,2)*Complex::cexp(exprE_1_1)*tauG*tan(phi/2.)*(cspeed*t - z + y*tan(phi/2.))*Complex::csqrt((om0*rho0)/exprDivInt_5_12))/Complex::csqrt(exprDivRat_1_1*exprDivRat_1_1*exprDivRat_1_1);
+			const Complex result=(Complex(0,2)*Complex::cexp(exprE_1_1)*tauG*tan(phi/2.)*(cspeed*t - z + y*tan(phi/2.))*Complex::csqrt((om0*rho0)/exprDivInt_5_12))/Complex::cpow(exprDivRat_1_1,1.5);
 
             return result.get_real();
         }

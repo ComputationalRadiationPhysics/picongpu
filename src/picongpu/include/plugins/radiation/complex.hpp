@@ -170,6 +170,12 @@ public:
 			return sqrt(helper.abs())*(other+other.abs())/(other+other.abs()).abs();
 		}
     }
+
+	HDINLINE static Complex_T<T > cpow(const Complex_T<T >& other, const T& exponent)
+    {
+		Complex_T<T > helper = other;
+		return pow(helper.abs(),exponent)*cexp(Complex_T<T >(0.,1.)*helper.arg()*exponent);
+    }
 	
 	// Complex exponential function
 	
