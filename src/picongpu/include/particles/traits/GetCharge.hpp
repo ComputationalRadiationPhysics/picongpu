@@ -21,18 +21,50 @@
 #pragma once
 
 #include "simulation_defines.hpp"
+#include "traits/HasIdentifier.hpp"
+#include <boost/mpl/bool.hpp>
 
 namespace picongpu
 {
 
-template<typename T_Frame>
-HDINLINE float_X getCharge(float_X weighting);
-
-
-template<typename T_Frame>
-HDINLINE float_X getCharge(float_X weighting,const T_Frame&)
+namespace detail
 {
-    return getCharge<T_Frame>(weighting);
+
+template<bool T_HasChargeState>
+struct LoadChargeState
+{
+
+    template<typename T_Particle>
+    HDINLINE float_X operator()(const float_X partialResult, const T_Particle& particle)
+    {
+        return partialResult * particle[chargeState_];
+    }
+};
+
+template<>
+struct LoadChargeState<false>
+{
+
+    template<typename T_Particle>
+    HDINLINE float_X operator()(const float_X partialResult, const T_Particle& particle)
+    {
+        return partialResult;
+    }
+};
+}
+
+
+template<typename T_Frame>
+HDINLINE float_X getCharge();
+
+template<typename T_Particle>
+HDINLINE float_X getCharge(float_X weighting, const T_Particle& particle)
+{
+    typedef T_Particle ParticleType;
+    typedef typename PMacc::traits::HasIdentifier<ParticleType, chargeState>::type hasChargeState;
+    return detail::LoadChargeState<hasChargeState::value >()(
+                                                      getCharge<typename ParticleType::FrameType > () * weighting,
+                                                      particle);
 }
 
 }// namespace picongpu
