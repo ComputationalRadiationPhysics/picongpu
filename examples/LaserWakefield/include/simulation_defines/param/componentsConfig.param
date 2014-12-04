@@ -1,6 +1,6 @@
 /**
  * Copyright 2013-2014 Axel Huebl, Anton Helm, Rene Widera, Felix Schmitt,
- *                     Richard Pausch
+ *                     Richard Pausch, Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -70,6 +70,16 @@ namespace fieldSolver = PARAM_FIELDSOLVER;
 #define PARAM_GASPROFILE gasGaussian
 #endif
 namespace gasProfile = PARAM_GASPROFILE;
+
+/*! Backgroud Field Configuration-----------------------------------------------------
+ *  - bgrNone : do not include any additional backgroundfield
+ *	- bgrFreeFormula : minimal example that can be adapted according to custom formula
+ *  - bgrTWTS : Gaussian 3D-TWTS laser pulse with focal geometry and correct dispersion properties.
+ *				This laser can enter and exit the simulation box from arbitrary directions.
+ *				Apart from the implementation as a background, this spatially and
+ *				temporally varying field behaves in practical use just like a "laserProfile".
+ */
+namespace fieldBackground = bgrNone;
 
 /*! Particle Initialization ----------------------------------------------
  *  - particleInitRandomPos  : distribute your particles uniformly random

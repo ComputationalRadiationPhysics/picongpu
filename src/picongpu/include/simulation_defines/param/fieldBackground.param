@@ -106,4 +106,10 @@ namespace picongpu
 #pragma once
 #include "fields/background/bgrNone.hpp"
 #include "fields/background/bgrFreeFormula.hpp"
+
+/** TO DO: The TWTS-pulse is not yet compatible with 2D-sims. Since calculations will become easier in 2D,
+ *  a separate 2D implementation is preferrable.
+ */
+#if( SIMDIM == DIM3 )
 #include "fields/background/bgrTWTS.hpp"
+#endif
