@@ -22,22 +22,28 @@ namespace picongpu
 {
 
 	namespace bgrNone
-    {
+	{
 		namespace SI
 		{
 		}
-    }
+	}
 
 	namespace bgrFreeFormula
-    {
+	{
 		namespace SI
 		{
 		}
-    }
+	}
 	
     namespace bgrTWTS
     {
+		/** Add second TWTS pulse in colliding geometry
+		 */
 		const bool includeCollidingTWTS = false;
+		
+		/** Calculate the time delay such that the TWTS pulse is not inside the simulation volume at simulation start timestep=0
+		 */
+		const bool auto_tdelay = true;
 		
         namespace SI
         {
@@ -85,6 +91,12 @@ namespace picongpu
 			/** propagation speed of overlap normalized to the speed of light. [Default: beta0=1.0]
              *  unit: speed of light */
 			const double BETA0_SI = 1.0;
+			
+			/** Manual time delay if auto_tdelay is false
+			 */
+			const double tdelay= ( 10.0e-6 )/(::picongpu::SI::SPEED_OF_LIGHT_SI*BETA0_SI);
+			
+			
 			
         }
     }
