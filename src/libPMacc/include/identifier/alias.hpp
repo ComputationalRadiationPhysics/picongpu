@@ -41,7 +41,6 @@ identifier(pmacc_isAlias);
         template<typename T_Type=PMacc::pmacc_void,typename T_IsAlias=PMacc::pmacc_isAlias> \
         struct name                                                            \
         {                                                                      \
-            typedef T_Type ThisType;                                           \
             static std::string getName()                                       \
             {                                                                  \
                 return std::string(#name);                                     \
@@ -71,7 +70,7 @@ identifier(pmacc_isAlias);
  *      aliasName();   or aliasName_
  *
  * get type which is represented by the alias
- *      typedef typename name::ThisType type;
+ *      typedef typename traits::Resolve<name>::type resolved_type;
  */
 #define alias(name) PMACC_alias(name,__COUNTER__)
 
