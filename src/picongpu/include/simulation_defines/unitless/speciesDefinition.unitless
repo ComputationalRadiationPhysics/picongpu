@@ -36,9 +36,9 @@ HDINLINE float_X getMass<typename PIC_Ions::FrameType>(float_X weighting)
 };
 
 template<>
-HDINLINE float_X getCharge<typename PIC_Ions::FrameType>(float_X weighting)
+HDINLINE float_X getCharge<typename PIC_Ions::FrameType>()
 {
-    return Q_ION*weighting;
+    return Q_ION;
 };
 
 template<>
@@ -48,9 +48,9 @@ HDINLINE float_X getMass<typename PIC_Electrons::FrameType>(float_X weighting)
 };
 
 template<>
-HDINLINE float_X getCharge<typename PIC_Electrons::FrameType>(float_X weighting)
+HDINLINE float_X getCharge<typename PIC_Electrons::FrameType>()
 {
-    return Q_EL*weighting;
+    return Q_EL;
 };
 
 } //namespace picongpu
