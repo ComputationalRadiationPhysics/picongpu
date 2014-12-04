@@ -30,6 +30,10 @@ namespace picongpu
 namespace detail
 {
 
+/** Calculate the real charge of a particle
+ *
+ * use attribute `chargeState` to calculate the charge
+ */
 template<bool T_HasChargeState>
 struct LoadChargeState
 {
@@ -41,6 +45,10 @@ struct LoadChargeState
     }
 };
 
+/**  Calculate the real charge of a particle
+ *
+ * This is the fallback implementation if no `chargeState` is available for a particle
+ */
 template<>
 struct LoadChargeState<false>
 {
@@ -53,10 +61,19 @@ struct LoadChargeState<false>
 };
 }
 
-
+/** get the charge value for a species frame
+ */
 template<typename T_Frame>
 HDINLINE float_X getCharge();
 
+/** get the charge of a makro particle
+ *
+ * This function trait take care to the `chargeState` attribute if it is set
+ *
+ * @param weighting weighting of the particle
+ * @param particle a reference to a particle
+ * @return charge of the makro particle
+ */
 template<typename T_Particle>
 HDINLINE float_X getCharge(float_X weighting, const T_Particle& particle)
 {
