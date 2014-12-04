@@ -168,7 +168,7 @@ void kernelRadiationParticles(ParBox pb,
     const int guardingSuperCells = mapper.getGuardingSuperCells();
 
 
-    // number of super cells on GPU per dimension (still including guard cells) 
+    // number of super cells on GPU per dimension (still including guard cells)
     // remove both guards from count [later one sided guard needs to be added again]
     const DataSpace<simDim> superCellsCount(mapper.getGridSuperCells() -2 * guardingSuperCells);
 
@@ -206,7 +206,7 @@ void kernelRadiationParticles(ParBox pb,
           {
             // set frame pointer
             frame = &(pb.getLastFrame(superCell, isValid));
-            
+
             // number of particles in this frame
             particlesInFrame = pb.getSuperCell(superCell).getSizeLastFrame();
 
@@ -235,7 +235,7 @@ void kernelRadiationParticles(ParBox pb,
                  */
                 int saveParticleAt = -1;
                 PMACC_AUTO(par,(*frame)[linearThreadIdx]);
-                
+
                 /* if radiation is not calculated for all particles
                  * but not via the gamma filter, check which particles
                  * have to be used for radiation calculation
@@ -257,7 +257,7 @@ void kernelRadiationParticles(ParBox pb,
 
                     // calculate global position
                     lcellId_t cellIdx = par[localCellIdx_];
-                    
+
                     // position inside of the cell
                     floatD_X pos = par[position_];
 
@@ -273,13 +273,13 @@ void kernelRadiationParticles(ParBox pb,
                     // run over all components and compute gobal position
                     for(int i=0; i<simDim; ++i)
                       particle_locationNow[i] = ((float_X) globalPos[i] + (float_X) pos[i]) * cellSize[i];
-                      
-                    
+
+
                     // get old and new particle momenta
                     const vec1 particle_momentumNow = vec1(par[momentum_]);
                     const vec1 particle_momentumOld = vec1(par[momentumPrev1_]);
-                    
-                    
+
+
                     /* get macro-particle weighting
                      *
                      * Info:
@@ -287,8 +287,8 @@ void kernelRadiationParticles(ParBox pb,
                      * by a macro-particle
                      */
                     const float_X weighting = par[weighting_];
-                    
-                    
+
+
                     /* only of coherent and incoherent radiation of a single macro-particle is
                      * considered, the weighting of each macro-particle needs to be stored
                      * in order to be considered when the actual frequency calulation is done
@@ -300,18 +300,18 @@ void kernelRadiationParticles(ParBox pb,
                     // mass of macro-particle
                     const float_X particle_mass = getMass(weighting,*frame);
 
-                    
+
                     /****************************************************
                      **** Here happens the true physical calculation ****
                      ****************************************************/
-                    
+
                     // set up particle using the radiation onw's particle class
                     /*!\todo please add a namespace for Particle class*/
                     const ::Particle particle(particle_locationNow,
                                               particle_momentumOld,
                                               particle_momentumNow,
                                               particle_mass);
-                    
+
                     // set up amplitude calculator
                     typedef Calc_Amplitude< Retarded_time_1, Old_DFT > Calc_Amplitude_n_sim_1;
 
@@ -324,8 +324,8 @@ void kernelRadiationParticles(ParBox pb,
                     // if coherent and incoherent of single macro-particle is considered
 #if (__COHERENTINCOHERENTWEIGHTING__==1)
                     // get charge of single electron ! (weighting=1.0f)
-                    const picongpu::float_X particle_charge = getCharge(1.0f,*frame);
-                    
+                    const picongpu::float_X particle_charge = getCharge<FRAME>();
+
                     // compute real amplitude of macro-particle with a charge of
                     // a single electron
                     real_amplitude_s[saveParticleAt] = amplitude3.get_vector(look) *
@@ -333,9 +333,9 @@ void kernelRadiationParticles(ParBox pb,
                       (numtype2) DELTA_T;
 #else
                     // if coherent and incoherent of single macro-particle is NOT considered
-                    
+
                     // get charge of entire macro-particle
-                    const picongpu::float_X particle_charge = getCharge(weighting,*frame);
+                    const picongpu::float_X particle_charge = getCharge(weighting,par);
 
                     // compute real amplitude of macro-particle
                     real_amplitude_s[saveParticleAt] = amplitude3.get_vector(look) *
@@ -345,7 +345,7 @@ void kernelRadiationParticles(ParBox pb,
 
                     // retarded time stored in shared memory
                     t_ret_s[saveParticleAt] = amplitude3.get_t_ret(look);
-                    
+
                     // if Nyquist-limter is used, then the NyquistLowPlass object
                     // is setup and stored in shared memory
 #if (__NYQUISTCHECK__==1)
@@ -358,10 +358,10 @@ void kernelRadiationParticles(ParBox pb,
 #if (PIC_RADWINDOWFUNCTION==1)
 
                     const radWindowFunction::radWindowFunction winFkt;
-                    
+
                     /* start with a factor of one */
                     float_X windowFactor = 1.0;
-                    
+
                     /* TODO: How to do this for 2D automatically? */
                     /* window in each  dimension */
                     /* not supported yet */
@@ -399,22 +399,22 @@ void kernelRadiationParticles(ParBox pb,
             // run over all ony valid omegas for this thread
             for (int o = linearThreadIdx; o < radiation_frequencies::N_omega; o += blockSize)
               {
-                
+
                 /* storage for amplitude (complex 3D vector)
                  * it  is inizialized with zeros (  0 +  i 0 )
                  */
                 Amplitude amplitude = Amplitude::zero();
-                
+
                 // compute frequency "omega" using for-loop-index "o"
                 const numtype2 omega = freqFkt(o);
-                
-                
+
+
                 // if coherent and incoherent radiation of a single macro-particle
                 // is considered, creare a form factor object
 #if (__COHERENTINCOHERENTWEIGHTING__==1)
                 const radFormFactor::radFormFactor myRadFormFactor;
 #endif
-                
+
                 /* Particle loop: thread runs through loaded particle data
                  *
                  * Summation of Jackson radiation formula integrand
@@ -423,19 +423,19 @@ void kernelRadiationParticles(ParBox pb,
                  */
                 for (int j = 0; j < counter_s; ++j)
                   {
-                    
+
                     // if Nyquist-limiter is on
 #if (__NYQUISTCHECK__==1)
                     // check Nyquist-limit for each particle "j" and each frequeny "omega"
                     if (lowpass_s[j].check(omega))
                       {
 #endif
-                        
+
                         /****************************************************
                          **** Here happens the true physical calculation ****
                          ****************************************************/
-                        
-                        
+
+
                         // if coherent/incoherent radiation of single macro-particle
                         // is considered
                         // the form factor influences the real amplitude
@@ -448,7 +448,7 @@ void kernelRadiationParticles(ParBox pb,
                         // no change on real amplitude is performed
                         const vec2 weighted_real_amp = real_amplitude_s[j];
 #endif
-                        
+
                         // complex amplitude for j-th particle
                         Amplitude amplitude_add(weighted_real_amp,
                                                 t_ret_s[j] * omega);
@@ -470,8 +470,8 @@ void kernelRadiationParticles(ParBox pb,
                  *     - omega_id = theta_idx * radiation_frequencies::N_omega + o
                  */
                 radiation[theta_idx * radiation_frequencies::N_omega + o] += amplitude;
-                
-                
+
+
               } // end frequency loop
 
 
@@ -479,7 +479,7 @@ void kernelRadiationParticles(ParBox pb,
             __syncthreads();
 
 
-            
+
             if (linearThreadIdx == 0)
               {
                 /* First threads starts loading next frame of the super-cell:
