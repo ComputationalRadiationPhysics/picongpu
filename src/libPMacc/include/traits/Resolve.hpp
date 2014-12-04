@@ -30,7 +30,9 @@ namespace traits
 
 /** Get resolved type
  *
- * resolve the type of an alias
+ * Explicitly resolve the type of a synonym type, e.g., resolve the type of an PMacc alias.
+ * A synonym type is wrapper type (class) around an other type.
+ * If this trait is not defined for the given type the result is the identity of the given type.
  *
  * @tparam T_Object any object (class or typename)
  *
