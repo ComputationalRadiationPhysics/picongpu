@@ -26,6 +26,7 @@
 #include "traits/PICToAdios.hpp"
 #include "traits/GetComponentsType.hpp"
 #include "traits/GetNComponents.hpp"
+#include "traits/Resolve.hpp"
 
 namespace picongpu
 {
@@ -57,18 +58,18 @@ struct ParticleAttribute
     {
 
         typedef T_Identifier Identifier;
-        typedef typename Identifier::type ValueType;
+        typedef typename PMacc::traits::Resolve<Identifier>::type::type ValueType;
         const uint32_t components = GetNComponents<ValueType>::value;
         typedef typename GetComponentsType<ValueType>::type ComponentType;
 
         log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) write species attribute: %1%") % Identifier::getName();
 
         ComponentType* tmpBfr = new ComponentType[elements];
-        
+
         for (uint32_t d = 0; d < components; d++)
         {
             ValueType* dataPtr = frame.getIdentifier(Identifier()).getPointer();
-            
+
             /* copy strided data from source to temporary buffer */
             for (size_t i = 0; i < elements; ++i)
             {
@@ -79,7 +80,7 @@ struct ParticleAttribute
             params->adiosParticleAttrVarIds.pop_front();
             ADIOS_CMD(adios_write_byid(params->adiosFileHandle, adiosAttributeVarId, tmpBfr));
         }
-        
+
         __deleteArray(tmpBfr);
 
         log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) write species attribute: %1%") %

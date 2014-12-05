@@ -29,6 +29,7 @@
 #include "traits/PICToSplash.hpp"
 #include "traits/GetComponentsType.hpp"
 #include "traits/GetNComponents.hpp"
+#include "traits/Resolve.hpp"
 
 
 namespace picongpu
@@ -66,7 +67,7 @@ struct LoadParticleAttributesFromHDF5
     {
 
         typedef T_Identifier Identifier;
-        typedef typename Identifier::type ValueType;
+        typedef typename PMacc::traits::Resolve<Identifier>::type::type ValueType;
         const uint32_t components = GetNComponents<ValueType>::value;
         typedef typename GetComponentsType<ValueType>::type ComponentType;
         typedef typename PICToSplash<ComponentType>::type SplashType;
