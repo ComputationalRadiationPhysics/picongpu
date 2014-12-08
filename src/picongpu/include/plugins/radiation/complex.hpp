@@ -167,14 +167,14 @@ public:
 			return Complex_T<T > (0.0,sqrt(-helper.real));
 		}
 		else {
-			return sqrt(helper.abs())*(other+other.abs())/(other+other.abs()).abs();
+			return sqrt(helper.abs_64())*(other+other.abs_64())/(other+other.abs_64()).abs_64();
 		}
     }
 
 	HDINLINE static Complex_T<T > cpow(const Complex_T<T >& other, const T& exponent)
     {
 		Complex_T<T > helper = other;
-		return pow(helper.abs(),exponent)*cexp(Complex_T<T >(0.,1.)*helper.arg()*exponent);
+		return pow(helper.abs_64(),exponent)*cexp(Complex_T<T >(0.,1.)*helper.arg()*exponent);
     }
 	
 	// Complex exponential function
@@ -226,13 +226,20 @@ public:
         return *this;
     }
 
-    // absolute value
+    // Absolute value
 
-    HDINLINE T abs(void) const
+    HDINLINE T abs_64(void) const
     {
         return sqrt(util::square(real) + util::square(imaginary)); // For the complex square root cexp(), the slower sqrt() is required to avoid infinities.
     }
 
+	// Absolute value: Faster float version for Richards radiation plugin.
+
+    HDINLINE T abs(void) const
+    {
+        return sqrtf(util::square(real) + util::square(imaginary)); // For the complex square root cexp(), the slower sqrt() is required to avoid infinities.
+    }
+	
 	// Phase of complex number (Note: Branchcut running from -infinity to 0)
 	
 	HDINLINE T arg(void) const
