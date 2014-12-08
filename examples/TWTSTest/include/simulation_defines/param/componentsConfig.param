@@ -1,6 +1,6 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Anton Helm, Rene Widera, Felix Schmitt,
- *                     Richard Pausch, Alexander Debus
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Anton Helm, 
+ *                     Rene Widera, Richard Pausch, Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -38,7 +38,7 @@ namespace simulation_starter = defaultPIConGPU;
  *  - laserWavepacket       : wavepacket (Gaussian in time and space, not focusing)
  *  - laserPlaneWave        : a plane wave
  */
-namespace laserProfile = laserGaussianBeam;
+namespace laserProfile = laserNone;
 
 /*! Field Configuration --------------------------------------------------
  *  - fieldSolverYee : standard Yee solver
@@ -50,12 +50,9 @@ namespace laserProfile = laserGaussianBeam;
  *  - fieldSolverYeeNative : generic version of fieldSolverYee
  *    (need more shared memory per GPU and is slow)
  */
-#ifndef PARAM_FIELDSOLVER
-#define PARAM_FIELDSOLVER fieldSolverYee
-#endif
-namespace fieldSolver = PARAM_FIELDSOLVER;
+namespace fieldSolver = fieldSolverYee;
 
-/*! Gas Configuration------------------------------------------------------
+/*! Gas Configuration-----------------------------------------------------
  * Select a normed gas density profile
  *  - gasGaussian : super - Gaussian density profile
  *  - gasGaussianCloud : super - Gaussian density profile with a center position
@@ -66,10 +63,7 @@ namespace fieldSolver = PARAM_FIELDSOLVER;
  *  - gasFromHdf5: load gas density from HDF5 file
  *  - gasNone : just stay with a vacuum
  */
-#ifndef PARAM_GASPROFILE
-#define PARAM_GASPROFILE gasGaussian
-#endif
-namespace gasProfile = PARAM_GASPROFILE;
+namespace gasProfile = gasNone;
 
 /*! Backgroud Field Configuration-----------------------------------------------------
  *  - bgrNone : do not include any additional backgroundfield
@@ -79,7 +73,7 @@ namespace gasProfile = PARAM_GASPROFILE;
  *				Apart from the implementation as a background, this spatially and
  *				temporally varying field behaves in practical use just like a "laserProfile".
  */
-namespace fieldBackground = bgrNone;
+namespace fieldBackground = bgrTWTS;
 
 /*! Particle Initialization ----------------------------------------------
  *  - particleInitRandomPos  : distribute your particles uniformly random
@@ -87,10 +81,7 @@ namespace fieldBackground = bgrNone;
  */
 namespace particleInit = particleInitRandomPos;
 
-
 /*enable (1) or disable (0) current calculation*/
-#ifndef ENABLE_CURRENT
-#define ENABLE_CURRENT 1
-#endif
+#define ENABLE_CURRENT 0
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt, Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -38,3 +38,4 @@
 #include "simulation_defines/unitless/speciesDefinition.unitless"
 #include "simulation_defines/unitless/fileOutput.unitless"
 #include "simulation_defines/unitless/checkpoints.unitless"
+#include "simulation_defines/unitless/fieldBackground.unitless"
