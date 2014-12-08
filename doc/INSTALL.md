@@ -63,13 +63,13 @@ We recomment to install at least **pngwriter**.
 
 - **pngwriter** >= 0.5.5
     - download our modified version from
-      [github.com/ax3l/pngwriter](https://github.com/ax3l/pngwriter)
+      [github.com/pngwriter/pngwriter](https://github.com/pngwriter/pngwriter)
     - Requires [libpng](http://www.libpng.org/),
       - *Debian/Ubuntu:* `sudo apt-get install libpng-dev`
       - *Arch Linux:* `sudo pacman --sync libpng`
     - example:
       - `mkdir -p ~/src ~/build ~/lib`
-      - `git clone https://github.com/ax3l/pngwriter.git ~/src/pngwriter/`
+      - `git clone https://github.com/pngwriter/pngwriter.git ~/src/pngwriter/`
       - `cd ~/build`
       - `cmake -DCMAKE_INSTALL_PREFIX=~/lib/pngwriter ~/src/pngwriter`
       - `make install`
