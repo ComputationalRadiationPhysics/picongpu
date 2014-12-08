@@ -284,13 +284,6 @@ public:
         fieldJ->init(*fieldE);
         fieldTmp->init();
 
-		/** add background field for particle pusher */
-		namespace nvfct = PMacc::nvidia::functors;
-        (*pushBGField)(fieldE, nvfct::Add(), fieldBackground::fieldBackgroundE(fieldE->getUnit()),
-                       0, fieldBackground::fieldBackgroundE::InfluenceParticlePusher);
-        (*pushBGField)(fieldB, nvfct::Add(), fieldBackground::fieldBackgroundB(fieldB->getUnit()),
-                       0, fieldBackground::fieldBackgroundB::InfluenceParticlePusher);
-		
         // create field solver
         this->myFieldSolver = new fieldSolver::FieldSolver(*cellDescription);
 
@@ -334,6 +327,15 @@ public:
         Environment<>::get().EnvMemoryInfo().getMemoryInfo(&freeGpuMem);
         log<picLog::MEMORY > ("free mem after all particles are initialized %1% MiB") % (freeGpuMem / 1024 / 1024);
 
+		/** add background field for particle pusher at the beginning of each simulation, but not at restarts. At restarts the external fields already exists. */
+		if (step == 0) {
+			namespace nvfct = PMacc::nvidia::functors;
+			(*pushBGField)(fieldE, nvfct::Add(), fieldBackground::fieldBackgroundE(fieldE->getUnit()),
+						   0, fieldBackground::fieldBackgroundE::InfluenceParticlePusher);
+			(*pushBGField)(fieldB, nvfct::Add(), fieldBackground::fieldBackgroundB(fieldB->getUnit()),
+						   0, fieldBackground::fieldBackgroundB::InfluenceParticlePusher);
+		}
+		
         // communicate all fields
         EventTask eRfieldE = fieldE->asyncCommunication(__getTransactionEvent());
         __setTransactionEvent(eRfieldE);

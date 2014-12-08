@@ -65,28 +65,61 @@ namespace picongpu
 						const DataSpace<simDim> halfSimSize	) const
 			{
 				const float_X focus_y = ::picongpu::bgrTWTS::SI::FOCUS_POS_SI/::picongpu::SI::CELL_HEIGHT_SI;
+#if( SIMDIM == DIM3 )
 				const float3_X helper = float3_X( halfSimSize.x(), focus_y, halfSimSize.z() );
 				
 				/* For the Yee-Cell shifted fields, obtain the fractional cell index components and add that to the total cell indices. The physical field coordinate origin is transversally centered with respect to the global simulation volume. */
-				::PMacc::math::Vector<floatD_X,simDim> eFieldPositions = picongpu::yeeCell::YeeCell::getEFieldPosition();
-				eFieldPositions[0] = ((float3_X)cellIdx+eFieldPositions[0]-helper) * float3_X(::picongpu::SI::CELL_WIDTH_SI,::picongpu::SI::CELL_HEIGHT_SI,::picongpu::SI::CELL_DEPTH_SI); // cellIdx(Ex)
-				eFieldPositions[1] = ((float3_X)cellIdx+eFieldPositions[1]-helper) * float3_X(::picongpu::SI::CELL_WIDTH_SI,::picongpu::SI::CELL_HEIGHT_SI,::picongpu::SI::CELL_DEPTH_SI); // cellIdx(Ey)
-				eFieldPositions[2] = ((float3_X)cellIdx+eFieldPositions[2]-helper) * float3_X(::picongpu::SI::CELL_WIDTH_SI,::picongpu::SI::CELL_HEIGHT_SI,::picongpu::SI::CELL_DEPTH_SI); // cellIdx(Ez)
+				::PMacc::math::Vector<float3_X,DIM3> eFieldPositions = picongpu::yeeCell::YeeCell::getEFieldPosition();
+				const float3_X cellDimensions = precisionCast<float3_X>(::picongpu::cellSize) * (float_X)::picongpu::UNIT_LENGTH;
+				eFieldPositions[0] = ((float3_X)cellIdx+eFieldPositions[0]-helper) * cellDimensions; // cellIdx(Ex)
+				eFieldPositions[1] = ((float3_X)cellIdx+eFieldPositions[1]-helper) * cellDimensions; // cellIdx(Ey)
+				eFieldPositions[2] = ((float3_X)cellIdx+eFieldPositions[2]-helper) * cellDimensions; // cellIdx(Ez)
+#elif( SIMDIM == DIM2 )
+				const float2_X helper = float2_X( halfSimSize.x(), focus_y );
+				
+				/* For the Yee-Cell shifted fields, obtain the fractional cell index components and add that to the total cell indices. The physical field coordinate origin is transversally centered with respect to the global simulation volume. */
+				::PMacc::math::Vector<float2_X,DIM3> eFieldPositions = picongpu::yeeCell::YeeCell::getEFieldPosition();
+				const float2_X cellDimensions = precisionCast<float2_X>(::picongpu::cellSize) * (float_X)::picongpu::UNIT_LENGTH;
+				eFieldPositions[0] = ((float2_X)cellIdx+eFieldPositions[0]-helper) * cellDimensions;; // cellIdx(Ex)
+				eFieldPositions[1] = ((float2_X)cellIdx+eFieldPositions[1]-helper) * cellDimensions;; // cellIdx(Ey)
+				eFieldPositions[2] = ((float2_X)cellIdx+eFieldPositions[2]-helper) * cellDimensions;; // cellIdx(Ez)
+#endif
 				
 				const float_X time=currentStep*::picongpu::SI::DELTA_T_SI;
 			
 				/* specify your E-Field in V/m and convert to PIConGPU units */
 				if ( ! ::picongpu::bgrTWTS::includeCollidingTWTS ) {
 				// Single TWTS-Pulse
+#if( SIMDIM == DIM3 )
 					return float3_X((::picongpu::bgrTWTS::SI::AMPLITUDE_SI)*calcTWTSEx(eFieldPositions[0],time,halfSimSize,::picongpu::bgrTWTS::SI::PHI_SI) / unitField[1],0.0, 0.0);
-					//return float3_X((eFieldPositions[0]).x()/ unitField[1],(eFieldPositions[0]).y()/ unitField[1], (eFieldPositions[0]).z() / unitField[1]);
+#elif( SIMDIM == DIM2 )
+					/** Corresponding position vector for the Ez-components in 2D simulations.
+					 *  3D     2D
+					 *  x -->  z
+					 *  y -->  y
+					 *  z --> -x (Since z=0 for 2D, we use the existing TWTS-field-function and set -x=0)
+					 *  Ex --> Ez (--> Same function values can be used in 2D, but with Yee-Cell-Positions for Ez.)
+					 *  By --> By
+					 *  Bz --> -Bx
+					 */
+					const float3_X dim2PosEz = float3_X( 0.0, (eFieldPositions[2]).y(), (eFieldPositions[2]).x() );
+					return float3_X( 0.0, 0.0, (::picongpu::bgrTWTS::SI::AMPLITUDE_SI)*calcTWTSEx(dim2PosEz,time,halfSimSize,::picongpu::bgrTWTS::SI::PHI_SI) / unitField[1] );
+#endif
 				}
 				else {
 				// Colliding TWTS-Pulse
+#if( SIMDIM == DIM3 )
 					return float3_X( (::picongpu::bgrTWTS::SI::AMPLITUDE_SI)
 									   *( calcTWTSEx(eFieldPositions[0],time,halfSimSize,+(::picongpu::bgrTWTS::SI::PHI_SI))
 										 +calcTWTSEx(eFieldPositions[0],time,halfSimSize,-(::picongpu::bgrTWTS::SI::PHI_SI)) )
 										/ unitField[1],0.0, 0.0);
+#elif( SIMDIM == DIM2 )
+					const float3_X dim2PosEz = float3_X( 0.0, (eFieldPositions[2]).y(), (eFieldPositions[2]).x() );
+					return float3_X( 0.0, 0.0, (::picongpu::bgrTWTS::SI::AMPLITUDE_SI)
+									   *( calcTWTSEx(dim2PosEz,time,halfSimSize,+(::picongpu::bgrTWTS::SI::PHI_SI))
+										 +calcTWTSEx(dim2PosEz,time,halfSimSize,-(::picongpu::bgrTWTS::SI::PHI_SI)) )
+										/ unitField[1] );
+#endif
 				}
 			}
 			
@@ -122,13 +155,11 @@ namespace picongpu
 				const float_64 tdelay= (y1+y2+y3)/(cspeed*beta0);
 				const float_64 t=::picongpu::bgrTWTS::getTime(time,tdelay);
 				
-				const float_64 exprDivInt_3_1=cspeed;
-				const float_64 exprDivInt_3_2=wy;
-				const Complex_64 exprDivInt_3_3=Complex_64(0,1)*rho0 - y*cos(phi) - z*sin(phi);
-				const Complex_64 exprDivInt_3_4=Complex_64(0,-1)*cspeed*om0*tauG*tauG - y*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.) - 2*z*tan(phi/2.)*tan(phi/2.);
-				const Complex_64 exprDivInt_3_5=Complex_64(0,1)*rho0 - y*cos(phi) - z*sin(phi);
+				const Complex_64 helpVar1=Complex_64(0,1)*rho0 - y*cos(phi) - z*sin(phi);
+				const Complex_64 helpVar2=Complex_64(0,-1)*cspeed*om0*tauG*tauG - y*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.) - 2*z*tan(phi/2.)*tan(phi/2.);
+				const Complex_64 helpVar3=Complex_64(0,1)*rho0 - y*cos(phi) - z*sin(phi);
 
-				const Complex_64 exprE_1_1=(
+				const Complex_64 helpVar4=(
 				-(cspeed*cspeed*k*om0*tauG*tauG*wy*wy*x*x)
 				- 2*cspeed*cspeed*om0*t*t*wy*wy*rho0 
 				+ Complex_64(0,2)*cspeed*cspeed*om0*om0*t*tauG*tauG*wy*wy*rho0
@@ -162,10 +193,10 @@ namespace picongpu
 				- 4*om0*wy*wy*z*z*rho0*tan(phi/2.)*tan(phi/2.)
 				- Complex_64(0,2)*om0*wy*wy*y*y*z*sin(phi)*tan(phi/2.)*tan(phi/2.)
 				- 2*y*cos(phi)*(om0*(cspeed*cspeed*(Complex_64(0,1)*t*t*wy*wy + om0*t*tauG*tauG*wy*wy + Complex_64(0,1)*tauG*tauG*y*y) - cspeed*(Complex_64(0,2)*t + om0*tauG*tauG)*wy*wy*z + Complex_64(0,1)*wy*wy*z*z) + Complex_64(0,2)*om0*wy*wy*y*(cspeed*t - z)*tan(phi/2.) + Complex_64(0,1)*(Complex_64(0,-4)*cspeed*y*y*z + om0*wy*wy*(y*y - 4*(cspeed*t - z)*z))*tan(phi/2.)*tan(phi/2.))
-				)/(2.*exprDivInt_3_1*exprDivInt_3_2*exprDivInt_3_2*exprDivInt_3_3*exprDivInt_3_4);
+				)/(2.*cspeed*wy*wy*helpVar1*helpVar2);
 
-				const Complex_64 exprDivRat_1_1=cspeed*om0*tauG*tauG - Complex_64(0,8)*y*tan(PI/2-phi)/sin(phi)/sin(phi)*sin(phi/2.)*sin(phi/2.)*sin(phi/2.)*sin(phi/2.) - Complex_64(0,2)*z*tan(phi/2.)*tan(phi/2.);
-				const Complex_64 result=(Complex_64::cexp(exprE_1_1)*tauG*Complex_64::csqrt((cspeed*om0*rho0)/exprDivInt_3_5))/Complex_64::csqrt(exprDivRat_1_1);			
+				const Complex_64 helpVar5=cspeed*om0*tauG*tauG - Complex_64(0,8)*y*tan(PI/2-phi)/sin(phi)/sin(phi)*sin(phi/2.)*sin(phi/2.)*sin(phi/2.)*sin(phi/2.) - Complex_64(0,2)*z*tan(phi/2.)*tan(phi/2.);
+				const Complex_64 result=(Complex_64::cexp(helpVar4)*tauG*Complex_64::csqrt((cspeed*om0*rho0)/helpVar3))/Complex_64::csqrt(helpVar5);			
 				return result.get_real();
 			}
 
@@ -193,23 +224,50 @@ namespace picongpu
 						const DataSpace<simDim> halfSimSize	) const
 			{
 				const float_X focus_y = ::picongpu::bgrTWTS::SI::FOCUS_POS_SI/::picongpu::SI::CELL_HEIGHT_SI;
+#if( SIMDIM == DIM3 )
 				const float3_X helper = float3_X( halfSimSize.x(), focus_y, halfSimSize.z() );
 				
 				/* For the Yee-Cell shifted fields, obtain the fractional cell index components and add that to the total cell indices. The physical field coordinate origin is in the center of the simulation */
-				::PMacc::math::Vector<floatD_X,simDim> bFieldPositions = picongpu::yeeCell::YeeCell::getBFieldPosition();
-				bFieldPositions[0] = ((float3_X)cellIdx+bFieldPositions[0]-helper) * float3_X(::picongpu::SI::CELL_WIDTH_SI,::picongpu::SI::CELL_HEIGHT_SI,::picongpu::SI::CELL_DEPTH_SI); // cellIdx(Bx)
-				bFieldPositions[1] = ((float3_X)cellIdx+bFieldPositions[1]-helper) * float3_X(::picongpu::SI::CELL_WIDTH_SI,::picongpu::SI::CELL_HEIGHT_SI,::picongpu::SI::CELL_DEPTH_SI); // cellIdx(By)
-				bFieldPositions[2] = ((float3_X)cellIdx+bFieldPositions[2]-helper) * float3_X(::picongpu::SI::CELL_WIDTH_SI,::picongpu::SI::CELL_HEIGHT_SI,::picongpu::SI::CELL_DEPTH_SI); // cellIdx(Bz)
+				::PMacc::math::Vector<float3_X,DIM3> bFieldPositions = picongpu::yeeCell::YeeCell::getBFieldPosition();
+				const float3_X cellDimensions = precisionCast<float3_X>(::picongpu::cellSize) * (float_X)::picongpu::UNIT_LENGTH;
+				bFieldPositions[0] = ((float3_X)cellIdx+bFieldPositions[0]-helper) * cellDimensions; // cellIdx(Bx)
+				bFieldPositions[1] = ((float3_X)cellIdx+bFieldPositions[1]-helper) * cellDimensions; // cellIdx(By)
+				bFieldPositions[2] = ((float3_X)cellIdx+bFieldPositions[2]-helper) * cellDimensions; // cellIdx(Bz)
+#elif( SIMDIM == DIM2 )
+				const float2_X helper = float2_X( halfSimSize.x(), focus_y );
 				
+				/* For the Yee-Cell shifted fields, obtain the fractional cell index components and add that to the total cell indices. The physical field coordinate origin is in the center of the simulation */
+				::PMacc::math::Vector<float2_X,DIM3> bFieldPositions = picongpu::yeeCell::YeeCell::getBFieldPosition();
+				const float2_X cellDimensions = precisionCast<float2_X>(::picongpu::cellSize) * (float_X)::picongpu::UNIT_LENGTH;
+				bFieldPositions[0] = ((float2_X)cellIdx+bFieldPositions[0]-helper) * float2_X(::picongpu::SI::CELL_WIDTH_SI,::picongpu::SI::CELL_HEIGHT_SI); // cellIdx(Bx)
+				bFieldPositions[1] = ((float2_X)cellIdx+bFieldPositions[1]-helper) * float2_X(::picongpu::SI::CELL_WIDTH_SI,::picongpu::SI::CELL_HEIGHT_SI); // cellIdx(By)
+				bFieldPositions[2] = ((float2_X)cellIdx+bFieldPositions[2]-helper) * float2_X(::picongpu::SI::CELL_WIDTH_SI,::picongpu::SI::CELL_HEIGHT_SI); // cellIdx(Bz)
+#endif
 				const float_X time=currentStep*::picongpu::SI::DELTA_T_SI;
 				
 				/* specify your E-Field in V/m and convert to PIConGPU units */
 				if ( ! ::picongpu::bgrTWTS::includeCollidingTWTS ) {
 					// Single TWTS-Pulse
+#if( SIMDIM == DIM3 )
 					return float3_X(0.0, (::picongpu::bgrTWTS::SI::AMPLITUDE_SI)*calcTWTSBy(bFieldPositions[1], time, halfSimSize, ::picongpu::bgrTWTS::SI::PHI_SI) / unitField[1], (::picongpu::bgrTWTS::SI::AMPLITUDE_SI)*calcTWTSBz(bFieldPositions[2], time, halfSimSize, ::picongpu::bgrTWTS::SI::PHI_SI) / unitField[1]);
+#elif( SIMDIM == DIM2 )
+					/** Corresponding position vector for the Ez-components in 2D simulations.
+					 *  3D     2D
+					 *  x -->  z
+					 *  y -->  y
+					 *  z --> -x (Since z=0 for 2D, we use the existing TWTS-field-function and set -x=0)
+					 *  Ex --> Ez (--> Same function values can be used in 2D, but with Yee-Cell-Positions for Ez.)
+					 *  By --> By
+					 *  Bz --> -Bx
+					 */
+					const float3_X dim2PosBx = float3_X( 0.0, (bFieldPositions[0]).y(), (bFieldPositions[0]).x() );
+					const float3_X dim2PosBy = float3_X( 0.0, (bFieldPositions[1]).y(), (bFieldPositions[1]).x() );
+					return float3_X( -1.0*(::picongpu::bgrTWTS::SI::AMPLITUDE_SI)*calcTWTSBz(dim2PosBx, time, halfSimSize, ::picongpu::bgrTWTS::SI::PHI_SI) / unitField[1], (::picongpu::bgrTWTS::SI::AMPLITUDE_SI)*calcTWTSBy(dim2PosBy, time, halfSimSize, ::picongpu::bgrTWTS::SI::PHI_SI) / unitField[1], 0.0 );
+#endif
 				}
 				else {
 					// Colliding TWTS-Pulse
+#if( SIMDIM == DIM3 )
 					return float3_X(0.0, (::picongpu::bgrTWTS::SI::AMPLITUDE_SI)
 									*( calcTWTSBy(bFieldPositions[1], time, halfSimSize, +(::picongpu::bgrTWTS::SI::PHI_SI))
 									  +calcTWTSBy(bFieldPositions[1], time, halfSimSize, -(::picongpu::bgrTWTS::SI::PHI_SI))
@@ -218,6 +276,18 @@ namespace picongpu
 									*( calcTWTSBz(bFieldPositions[2], time, halfSimSize, +(::picongpu::bgrTWTS::SI::PHI_SI))
 									  +calcTWTSBz(bFieldPositions[2], time, halfSimSize, -(::picongpu::bgrTWTS::SI::PHI_SI))
 									)/ unitField[1]);
+#elif( SIMDIM == DIM2 )
+					const float3_X dim2PosBx = float3_X( 0.0, (bFieldPositions[0]).y(), (bFieldPositions[0]).x() );
+					const float3_X dim2PosBy = float3_X( 0.0, (bFieldPositions[1]).y(), (bFieldPositions[1]).x() );
+					return float3_X( -1.0*(::picongpu::bgrTWTS::SI::AMPLITUDE_SI)
+									*( calcTWTSBz(dim2PosBx, time, halfSimSize, +(::picongpu::bgrTWTS::SI::PHI_SI))
+									  +calcTWTSBz(dim2PosBx, time, halfSimSize, -(::picongpu::bgrTWTS::SI::PHI_SI))
+									)/ unitField[1]
+							, (::picongpu::bgrTWTS::SI::AMPLITUDE_SI)
+									*( calcTWTSBz(dim2PosBy, time, halfSimSize, +(::picongpu::bgrTWTS::SI::PHI_SI))
+									  +calcTWTSBz(dim2PosBy, time, halfSimSize, -(::picongpu::bgrTWTS::SI::PHI_SI))
+									)/ unitField[1], 0.0 );
+#endif
 				}
 			}
 			
@@ -253,14 +323,10 @@ namespace picongpu
 				const float_64 tdelay= (y1+y2+y3)/(cspeed*beta0);
 				const float_64 t=::picongpu::bgrTWTS::getTime(time,tdelay);
 				
-				const float_64 exprDivInt_3_1=cspeed;
-				const float_64 exprDivInt_3_2=wy;
-				const Complex_64 exprDivInt_3_3=rho0 + Complex_64(0,1)*y*cos(phi) + Complex_64(0,1)*z*sin(phi);
-				const Complex_64 exprDivInt_3_4=cspeed*om0*tauG*tauG + Complex_64(0,2)*(-z - y*tan(PI/2-phi))*tan(phi/2.)*tan(phi/2.);
-				const float_64 exprDivInt_3_5=2;
-				const float_64 exprDivInt_3_6=rho0;
-				const Complex_64 exprDivInt_2_1=Complex_64(0,1)*rho0 - y*cos(phi) - z*sin(phi);
-				const Complex_64 exprE_1_1=-1.0*(
+				const Complex_64 helpVar1=rho0 + Complex_64(0,1)*y*cos(phi) + Complex_64(0,1)*z*sin(phi);
+				const Complex_64 helpVar2=cspeed*om0*tauG*tauG + Complex_64(0,2)*(-z - y*tan(PI/2-phi))*tan(phi/2.)*tan(phi/2.);
+				const Complex_64 helpVar3=Complex_64(0,1)*rho0 - y*cos(phi) - z*sin(phi);
+				const Complex_64 helpVar4=-1.0*(
 				cspeed*cspeed*k*om0*tauG*tauG*wy*wy*x*x
 				+ 2*cspeed*cspeed*om0*t*t*wy*wy*rho0
 				- Complex_64(0,2)*cspeed*cspeed*om0*om0*t*tauG*tauG*wy*wy*rho0
@@ -288,11 +354,11 @@ namespace picongpu
 					+ Complex_64(0,2)*om0*wy*wy*y*(cspeed*t - z)*tan(phi/2.)
 					+ Complex_64(0,1)*(Complex_64(0,-4)*cspeed*y*y*z + om0*wy*wy*(y*y - 4*(cspeed*t - z)*z) - 2*y*(cspeed*om0*t*wy*wy + Complex_64(0,1)*cspeed*y*y - om0*wy*wy*z)*tan(PI/2-phi))*tan(phi/2.)*tan(phi/2.)
 					)
-				)/(2.*exprDivInt_3_1*exprDivInt_3_2*exprDivInt_3_2*exprDivInt_3_3*exprDivInt_3_4);
+				)/(2.*cspeed*wy*wy*helpVar1*helpVar2);
 
-				const Complex_64 exprDivInt_1_1=Complex_64(0,-1)*cspeed*om0*tauG*tauG + (-z - y*tan(PI/2-phi))*tan(phi/2.)*tan(phi/2.)*exprDivInt_3_5;
-				const Complex_64 exprDivRat_1_1=(cspeed*(cspeed*om0*tauG*tauG + Complex_64(0,2)*(-z - y*tan(PI/2-phi))*tan(phi/2.)*tan(phi/2.)))/(om0*exprDivInt_3_6);
-				const Complex_64 result=(Complex_64::cexp(exprE_1_1)*tauG/cos(phi/2.)/cos(phi/2.)*(rho0 + Complex_64(0,1)*y*cos(phi) + Complex_64(0,1)*z*sin(phi))*(Complex_64(0,2)*cspeed*t + cspeed*om0*tauG*tauG - Complex_64(0,4)*z + cspeed*(Complex_64(0,2)*t + om0*tauG*tauG)*cos(phi) + Complex_64(0,2)*y*tan(phi/2.))*Complex_64::cpow(exprDivInt_2_1,-1.5))/(2.*exprDivInt_1_1*Complex_64::csqrt(exprDivRat_1_1));
+				const Complex_64 helpVar5=Complex_64(0,-1)*cspeed*om0*tauG*tauG + (-z - y*tan(PI/2-phi))*tan(phi/2.)*tan(phi/2.)*2;
+				const Complex_64 helpVar6=(cspeed*(cspeed*om0*tauG*tauG + Complex_64(0,2)*(-z - y*tan(PI/2-phi))*tan(phi/2.)*tan(phi/2.)))/(om0*rho0);
+				const Complex_64 result=(Complex_64::cexp(helpVar4)*tauG/cos(phi/2.)/cos(phi/2.)*(rho0 + Complex_64(0,1)*y*cos(phi) + Complex_64(0,1)*z*sin(phi))*(Complex_64(0,2)*cspeed*t + cspeed*om0*tauG*tauG - Complex_64(0,4)*z + cspeed*(Complex_64(0,2)*t + om0*tauG*tauG)*cos(phi) + Complex_64(0,2)*y*tan(phi/2.))*Complex_64::cpow(helpVar3,-1.5))/(2.*helpVar5*Complex_64::csqrt(helpVar6));
 
 				return result.get_real();
 			}
@@ -330,34 +396,32 @@ namespace picongpu
 				const float_64 tdelay= (y1+y2+y3)/(cspeed*beta0);
 				const float_64 t=::picongpu::bgrTWTS::getTime(time,tdelay);
 				
-				const Complex_64 exprDivInt_5_1=-(cspeed*z) - cspeed*y*tan(PI/2-phi) + Complex_64(0,1)*cspeed*rho0/sin(phi);
-				const Complex_64 exprDivInt_5_2=Complex_64(0,1)*rho0 - y*cos(phi) - z*sin(phi);
-				const float_64 exprDivInt_5_4=wy;
-				const Complex_64 exprDivInt_5_12=exprDivInt_5_2*cspeed;
-				const float_64 exprDivInt_5_18=cspeed;
-				const Complex_64 exprDivInt_5_19=cspeed*om0*tauG*tauG - Complex_64(0,1)*y*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.) - Complex_64(0,2)*z*tan(phi/2.)*tan(phi/2.);
-				const Complex_64 exprPower=2*cspeed*t - Complex_64(0,1)*cspeed*om0*tauG*tauG - 2*z + 8*y/sin(phi)/sin(phi)/sin(phi)*sin(phi/2.)*sin(phi/2.)*sin(phi/2.)*sin(phi/2.) - 2*z*tan(phi/2.)*tan(phi/2.);
+				const Complex_64 helpVar1=-(cspeed*z) - cspeed*y*tan(PI/2-phi) + Complex_64(0,1)*cspeed*rho0/sin(phi);
+				const Complex_64 helpVar2=Complex_64(0,1)*rho0 - y*cos(phi) - z*sin(phi);
+				const Complex_64 helpVar3=helpVar2*cspeed;
+				const Complex_64 helpVar4=cspeed*om0*tauG*tauG - Complex_64(0,1)*y*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.) - Complex_64(0,2)*z*tan(phi/2.)*tan(phi/2.);
+				const Complex_64 helpVar5=2*cspeed*t - Complex_64(0,1)*cspeed*om0*tauG*tauG - 2*z + 8*y/sin(phi)/sin(phi)/sin(phi)*sin(phi/2.)*sin(phi/2.)*sin(phi/2.)*sin(phi/2.) - 2*z*tan(phi/2.)*tan(phi/2.);
 
-				const Complex_64 exprE_1_1=(
-				(om0*y*rho0/cos(phi/2.)/cos(phi/2.)/cos(phi/2.)/cos(phi/2.))/exprDivInt_5_1 
-				- (Complex_64(0,2)*k*x*x)/exprDivInt_5_2 
-				- (Complex_64(0,1)*om0*om0*tauG*tauG*rho0)/exprDivInt_5_2
-				- (Complex_64(0,4)*y*y*rho0)/(exprDivInt_5_4*exprDivInt_5_4*exprDivInt_5_2)
-				+ (om0*om0*tauG*tauG*y*cos(phi))/exprDivInt_5_2
-				+ (4*y*y*y*cos(phi))/(exprDivInt_5_4*exprDivInt_5_4*exprDivInt_5_2)
-				+ (om0*om0*tauG*tauG*z*sin(phi))/exprDivInt_5_2
-				+ (4*y*y*z*sin(phi))/(exprDivInt_5_4*exprDivInt_5_4*exprDivInt_5_2)
-				+ (Complex_64(0,2)*om0*y*y*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.))/exprDivInt_5_12
-				+ (om0*y*rho0*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.))/exprDivInt_5_12
-				+ (Complex_64(0,1)*om0*y*y*cos(phi)*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.))/exprDivInt_5_12
-				+ (Complex_64(0,4)*om0*y*z*tan(phi/2.)*tan(phi/2.))/exprDivInt_5_12
-				- (2*om0*z*rho0*tan(phi/2.)*tan(phi/2.))/exprDivInt_5_12
-				- (Complex_64(0,2)*om0*z*z*sin(phi)*tan(phi/2.)*tan(phi/2.))/exprDivInt_5_12
-				- (om0*exprPower*exprPower)/(exprDivInt_5_18*exprDivInt_5_19)
+				const Complex_64 helpVar6=(
+				(om0*y*rho0/cos(phi/2.)/cos(phi/2.)/cos(phi/2.)/cos(phi/2.))/helpVar1 
+				- (Complex_64(0,2)*k*x*x)/helpVar2 
+				- (Complex_64(0,1)*om0*om0*tauG*tauG*rho0)/helpVar2
+				- (Complex_64(0,4)*y*y*rho0)/(wy*wy*helpVar2)
+				+ (om0*om0*tauG*tauG*y*cos(phi))/helpVar2
+				+ (4*y*y*y*cos(phi))/(wy*wy*helpVar2)
+				+ (om0*om0*tauG*tauG*z*sin(phi))/helpVar2
+				+ (4*y*y*z*sin(phi))/(wy*wy*helpVar2)
+				+ (Complex_64(0,2)*om0*y*y*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.))/helpVar3
+				+ (om0*y*rho0*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.))/helpVar3
+				+ (Complex_64(0,1)*om0*y*y*cos(phi)*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.))/helpVar3
+				+ (Complex_64(0,4)*om0*y*z*tan(phi/2.)*tan(phi/2.))/helpVar3
+				- (2*om0*z*rho0*tan(phi/2.)*tan(phi/2.))/helpVar3
+				- (Complex_64(0,2)*om0*z*z*sin(phi)*tan(phi/2.)*tan(phi/2.))/helpVar3
+				- (om0*helpVar5*helpVar5)/(cspeed*helpVar4)
 				)/4.;
 						
-				const Complex_64 exprDivRat_1_1=cspeed*om0*tauG*tauG - Complex_64(0,1)*y*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.) - Complex_64(0,2)*z*tan(phi/2.)*tan(phi/2.);
-				const Complex_64 result=(Complex_64(0,2)*Complex_64::cexp(exprE_1_1)*tauG*tan(phi/2.)*(cspeed*t - z + y*tan(phi/2.))*Complex_64::csqrt((om0*rho0)/exprDivInt_5_12))/Complex_64::cpow(exprDivRat_1_1,1.5);
+				const Complex_64 helpVar7=cspeed*om0*tauG*tauG - Complex_64(0,1)*y*cos(phi)/cos(phi/2.)/cos(phi/2.)*tan(phi/2.) - Complex_64(0,2)*z*tan(phi/2.)*tan(phi/2.);
+				const Complex_64 result=(Complex_64(0,2)*Complex_64::cexp(helpVar6)*tauG*tan(phi/2.)*(cspeed*t - z + y*tan(phi/2.))*Complex_64::csqrt((om0*rho0)/helpVar3))/Complex_64::cpow(helpVar7,1.5);
 
 				return result.get_real();
 			}

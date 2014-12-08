@@ -102,8 +102,3 @@ namespace picongpu
     }
 
 }
-
-#pragma once
-#include "fields/background/bgrNone.hpp"
-#include "fields/background/bgrFreeFormula.hpp"
-#include "fields/background/bgrTWTS.hpp"
