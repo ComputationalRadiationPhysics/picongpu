@@ -30,7 +30,8 @@ Requirements
   - *Debian/Ubuntu:* `sudo apt-get install cmake file cmake-curses-gui`
   - *Arch Linux:* `sudo pacman --sync cmake`
 
-- **OpenMPI** 1.4 or higher
+- **OpenMPI** 1.5.1+ / **MVAPICH2** 1.8+ or similar
+  ([GPU aware](https://devblogs.nvidia.com/parallelforall/introduction-cuda-aware-mpi/) install recommented)
   - *Debian/Ubuntu:* `sudo apt-get install libopenmpi-dev`
   - *Arch Linux:* `sudo pacman --sync openmpi`
 
