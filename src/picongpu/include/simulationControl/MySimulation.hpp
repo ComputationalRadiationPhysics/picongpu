@@ -374,9 +374,10 @@ public:
         fieldJ->clear();
 
         __setTransactionEvent(updateEvent + commEvent);
+
+#if (ENABLE_CURRENT == 1)
         (*currentBGField)(fieldJ, nvfct::Add(), fieldBackgroundJ(fieldJ->getUnit()),
                           currentStep, fieldBackgroundJ::activated);
-#if (ENABLE_CURRENT == 1)
         ForEach<VectorAllSpecies, ComputeCurrent<bmpl::_1,bmpl::int_<CORE + BORDER> >, MakeIdentifier<bmpl::_1> > computeCurrent;
         computeCurrent(forward(fieldJ),forward(particleStorage), currentStep);
 #endif
@@ -390,6 +391,8 @@ public:
             __setTransactionEvent(eRecvCurrent);
             fieldJ->addCurrentToE<BORDER > ();
         }
+        (*currentBGField)(fieldJ, nvfct::Sub(), fieldBackgroundJ(fieldJ->getUnit()),
+                          currentStep, fieldBackgroundJ::activated);
 #endif
 
         this->myFieldSolver->update_afterCurrent(currentStep);
