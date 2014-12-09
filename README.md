@@ -135,6 +135,7 @@ Active Team
 ### Maintainers* and core developers
 
 - Heiko Burau*
+- Dr. Alexander Debus
 - Carlchristian Eckert
 - Axel Huebl*
 - Maximilian Knespel
@@ -150,10 +151,10 @@ The PIConGPU Team expresses its thanks to:
 
 - Florian Berninger
 - Robert Dietrich
-- Wen Fu
+- Wen Fu, PhD
 - Anton Helm
 - Wolfgang Hoehnig
-- Remi Lehe
+- Dr. Remi Lehe
 - Benjamin Schneider
 - Joseph Schuchart
 - Klaus Steiniger
