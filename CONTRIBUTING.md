@@ -248,7 +248,7 @@ change log of the next release.
 
 Please consider to change only **one aspect per pull request** (do not be afraid
 of follow-up pull requests!). For example, submit a pull request with a bug fix,
-an other one with new math implementations and the last one with a new awesome
+another one with new math implementations and the last one with a new awesome
 implementation that needs both of them. You will see, that speeds up *review time*
 a lot!
 
