@@ -435,7 +435,7 @@ struct PushParticlePerFrame
              pos,
              mom,
              mass,
-             getCharge(weighting,particle)
+             getAttrCharge(weighting,particle)
              );
         particle[momentum_] = mom;
 

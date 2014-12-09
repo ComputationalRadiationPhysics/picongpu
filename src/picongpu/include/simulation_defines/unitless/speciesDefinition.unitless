@@ -23,6 +23,7 @@
 
 #include "particles/traits/GetMass.hpp"
 #include "particles/traits/GetCharge.hpp"
+#include "particles/traits/GetAttrCharge.hpp"
 #include "fields/currentDeposition/Solver.hpp"
 #include "particles/Particles.tpp"
 

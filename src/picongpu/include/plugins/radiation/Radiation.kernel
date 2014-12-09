@@ -335,7 +335,7 @@ void kernelRadiationParticles(ParBox pb,
                     // if coherent and incoherent of single macro-particle is NOT considered
 
                     // get charge of entire macro-particle
-                    const picongpu::float_X particle_charge = getCharge(weighting,par);
+                    const picongpu::float_X particle_charge = getAttrCharge(weighting,par);
 
                     // compute real amplitude of macro-particle
                     real_amplitude_s[saveParticleAt] = amplitude3.get_vector(look) *

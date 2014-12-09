@@ -139,7 +139,7 @@ struct ComputeCurrentPerFrame
         const float_X weighting = particle[weighting_];
         const floatD_X pos = particle[position_];
         const int particleCellIdx = particle[localCellIdx_];
-        const float_X charge = getCharge(weighting,particle);
+        const float_X charge = getAttrCharge(weighting,particle);
         const DataSpace<simDim> localCell(DataSpaceOperations<simDim>::template map<TVec > (particleCellIdx));
 
         Velocity velocity;

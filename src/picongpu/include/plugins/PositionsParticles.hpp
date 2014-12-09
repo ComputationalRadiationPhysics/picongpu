@@ -134,7 +134,7 @@ __global__ void kernelPositionsParticles(ParticlesBox<FRAME, simDim> pb,
             gParticle->momentum = particle[momentum_];
             gParticle->weighting = particle[weighting_];
             gParticle->mass = getMass(gParticle->weighting,*frame);
-            gParticle->charge = getCharge(gParticle->weighting,particle);
+            gParticle->charge = getAttrCharge(gParticle->weighting,particle);
             gParticle->gamma = Gamma<>()(gParticle->momentum, gParticle->mass);
 
             // storage number in the actual frame
