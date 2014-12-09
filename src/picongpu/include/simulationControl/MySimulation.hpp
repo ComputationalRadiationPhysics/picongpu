@@ -363,6 +363,8 @@ public:
         ForEach<VectorAllSpecies, particles::CallUpdate<bmpl::_1>, MakeIdentifier<bmpl::_1> > particleUpdate;
         particleUpdate(forward(particleStorage), currentStep, initEvent, forward(updateEvent), forward(commEvent));
 
+        __setTransactionEvent(updateEvent);
+
         /** remove background field for particle pusher */
         (*pushBGField)(fieldE, nvfct::Sub(), fieldBackgroundE(fieldE->getUnit()),
                        currentStep, fieldBackgroundE::InfluenceParticlePusher);
@@ -373,7 +375,7 @@ public:
 
         fieldJ->clear();
 
-        __setTransactionEvent(updateEvent + commEvent);
+        __setTransactionEvent(commEvent);
         (*currentBGField)(fieldJ, nvfct::Add(), fieldBackgroundJ(fieldJ->getUnit()),
                           currentStep, fieldBackgroundJ::activated);
 #if (ENABLE_CURRENT == 1)
