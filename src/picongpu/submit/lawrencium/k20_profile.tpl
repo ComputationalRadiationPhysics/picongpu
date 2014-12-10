@@ -21,7 +21,7 @@
 ## calculations will be performed by tbg ##
 
 TBG_queue="lr_manycore"
-TBG_account=""
+TBG_account="ac_blast"
 TBG_qos="lr_normal"
 TBG_feature="lr_kepler"
 

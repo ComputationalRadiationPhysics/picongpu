@@ -21,7 +21,7 @@
 ## calculations will be performed by tbg ##
 
 TBG_queue="mako_manycore"
-TBG_account=""
+TBG_account="ac_blast"
 TBG_qos="mako_normal"
 TBG_feature="mako_fermi"
 
