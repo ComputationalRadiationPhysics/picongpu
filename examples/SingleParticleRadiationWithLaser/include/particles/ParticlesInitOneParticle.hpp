@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Rene Widera, Richard Pausch
+ * Copyright 2013-2014 Axel Huebl, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -32,6 +32,7 @@
 #include "dimensions/DataSpaceOperations.hpp"
 
 #include "plugins/radiation/parameters.hpp"
+#include "particles/ParticlesInit.kernel"
 
 namespace picongpu
 {
@@ -59,6 +60,16 @@ __global__ void kernelAddOneParticle(ParBox pb,
     for (unsigned i = 0; i < 1; ++i)
     {
         PMACC_AUTO(par,(*frame)[i]);
+
+        typedef typename ParBox::FrameType FrameType;
+        typedef typename FrameType::ValueTypeSeq ParticleAttrList;
+        typedef bmpl::vector4<position<>, multiMask, localCellIdx, weighting> AttrToDelete;
+        typedef typename ResolveAndRemoveFromSeq<ParticleAttrList, AttrToDelete>::type ParticleCleanedAttrList;
+
+        algorithms::forEach::ForEach<ParticleCleanedAttrList,
+            SetToDefault<bmpl::_1> > setToDefault;
+        setToDefault(forward(par));
+
         floatD_X pos;
         for(int i=0; i<simDim; ++i)
           pos[i] = 0.5;
@@ -79,9 +90,7 @@ __global__ void kernelAddOneParticle(ParBox pb,
         par[weighting_] = parWeighting;
 
 #if(ENABLE_RADIATION == 1)
-        par[momentumPrev1_] = float3_X(0.f, 0.f, 0.f);
 #if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
-        /*this code tree is only passed if we not select any particle*/
         par[radiationFlag_] = true;
 #endif
 #endif

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Rene Widera, Richard Pausch
+ * Copyright 2013-2014 Axel Huebl, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -32,96 +32,106 @@
 #include "dimensions/DataSpaceOperations.hpp"
 
 #include "plugins/radiation/parameters.hpp"
+#include "particles/ParticlesInit.kernel"
 
 namespace picongpu
 {
 
+template< class ParBox>
+__global__ void kernelAddOneParticle(ParBox pb,
+                                     DataSpace<simDim> superCell, DataSpace<simDim> parLocalCell)
+{
+    typedef typename ParBox::FrameType FRAME;
 
-    template< class ParBox>
-    __global__ void kernelAddOneParticle(ParBox pb,
-                                         DataSpace<simDim> superCell, DataSpace<simDim> parLocalCell)
+    FRAME *frame;
+
+    int linearIdx = DataSpaceOperations<simDim>::template map<MappingDesc::SuperCellSize > (parLocalCell);
+
+    float_X parWeighting = NUM_EL_PER_PARTICLE;
+
+    frame = &(pb.getEmptyFrame());
+    pb.setAsLastFrame(*frame, superCell);
+
+
+
+
+    // many particle loop:
+    for (unsigned i = 0; i < 1; ++i)
     {
-        typedef typename ParBox::FrameType FRAME;
+        PMACC_AUTO(par, (*frame)[i]);
 
-        FRAME *frame;
+        typedef typename ParBox::FrameType FrameType;
+        typedef typename FrameType::ValueTypeSeq ParticleAttrList;
+        typedef bmpl::vector4<position<>, multiMask, localCellIdx, weighting> AttrToDelete;
+        typedef typename ResolveAndRemoveFromSeq<ParticleAttrList, AttrToDelete>::type ParticleCleanedAttrList;
 
-        int linearIdx = DataSpaceOperations<simDim>::template map<MappingDesc::SuperCellSize > (parLocalCell);
+        algorithms::forEach::ForEach<ParticleCleanedAttrList,
+            SetToDefault<bmpl::_1> > setToDefault;
+        setToDefault(forward(par));
 
-        float_X parWeighting = NUM_EL_PER_PARTICLE;
+        float3_X pos = float3_X(0.5, 0.5, 0.5);
 
-        frame = &(pb.getEmptyFrame());
-        pb.setAsLastFrame(*frame, superCell);
-
-
-
-
-        // many particle loop:
-        for (unsigned i = 0; i < 1; ++i)
-        {
-            PMACC_AUTO(par,(*frame)[i]);
-            float3_X pos = float3_X(0.5, 0.5, 0.50);
-
-            const float_X GAMMA0 = (float_X) (1.0 / sqrt(1.0 - (BETA0_X * BETA0_X + BETA0_Y * BETA0_Y + BETA0_Z * BETA0_Z)));
-            float3_X mom = float3_X(
+        const float_X GAMMA0 = (float_X) (1.0 / sqrt(1.0 - (BETA0_X * BETA0_X + BETA0_Y * BETA0_Y + BETA0_Z * BETA0_Z)));
+        float3_X mom = float3_X(
                                      GAMMA0 * attribute::getMass(parWeighting,par) * float_X(BETA0_X) * SPEED_OF_LIGHT,
                                      GAMMA0 * attribute::getMass(parWeighting,par) * float_X(BETA0_Y) * SPEED_OF_LIGHT,
                                      GAMMA0 * attribute::getMass(parWeighting,par) * float_X(BETA0_Z) * SPEED_OF_LIGHT
-                                     );
+                                );
 
 
-            par[position_] = pos;
-            par[momentum_] = mom;
-            par[multiMask_] = 1;
-            par[localCellIdx_] = linearIdx;
-            par[weighting_] = parWeighting;
+        par[position_] = pos;
+        par[momentum_] = mom;
+        par[multiMask_] = 1;
+        par[localCellIdx_] = linearIdx;
+        par[weighting_] = parWeighting;
 
 #if(ENABLE_RADIATION == 1)
-            par[momentumPrev1_] = float3_X(0.f, 0.f, 0.f);
-            par[radiationFlag_] = true;
+#if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
+        par[radiationFlag_] = true;
 #endif
-        }
+#endif
     }
+}
 
-    template<class ParticlesClass>
-    class ParticlesInitOneParticle
+template<class ParticlesClass>
+class ParticlesInitOneParticle
+{
+public:
+
+    static void addOneParticle(ParticlesClass& parClass, MappingDesc cellDescription, DataSpace<simDim> globalCell)
     {
-    public:
 
-        static void addOneParticle(ParticlesClass& parClass, MappingDesc cellDescription, DataSpace<simDim> globalCell)
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+        const DataSpace<simDim> globalTopLeft = subGrid.getLocalDomain().offset;
+        const DataSpace<simDim> localSimulationArea = subGrid.getLocalDomain().size;
+        DataSpace<simDim> localParCell = globalCell - globalTopLeft;
+
+
+        for (int i = 0; i < (int) simDim; ++i)
         {
-
-            const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
-            const DataSpace<simDim> globalTopLeft = subGrid.getLocalDomain().offset;
-            const DataSpace<simDim> localSimulationArea = subGrid.getLocalDomain().size;
-            DataSpace<simDim> localParCell = globalCell - globalTopLeft;
-
-
-            for (int i = 0; i < (int) simDim; ++i)
-            {
-                //chek if particle is in the simulation area
-                if (localParCell[i] < 0 || localParCell[i] >= localSimulationArea[i])
-                    return;
-            }
-
-            //calculate supercell
-            DataSpace<simDim> localSuperCell = (localParCell / MappingDesc::SuperCellSize::toRT());
-            DataSpace<simDim> cellInSuperCell = localParCell - (localSuperCell * MappingDesc::SuperCellSize::toRT());
-            //add garding blocks to supercell
-            localSuperCell = localSuperCell + cellDescription.getGuardingSuperCells();
-
-
-            __cudaKernel(kernelAddOneParticle)
-                    (1, 1)
-                    (parClass.getDeviceParticlesBox(),
-                     localSuperCell, cellInSuperCell);
-
-            parClass.fillAllGaps();
-
-            std::cout << "Wait for add particle" << std::endl;
-            __getTransactionEvent().waitForFinished();
+            //chek if particle is in the simulation area
+            if (localParCell[i] < 0 || localParCell[i] >= localSimulationArea[i])
+                return;
         }
-    };
+
+        //calculate supercell
+        DataSpace<simDim> localSuperCell = (localParCell / MappingDesc::SuperCellSize::toRT());
+        DataSpace<simDim> cellInSuperCell = localParCell - (localSuperCell * MappingDesc::SuperCellSize::toRT());
+        //add garding blocks to supercell
+        localSuperCell = localSuperCell + cellDescription.getGuardingSuperCells();
+
+
+        __cudaKernel(kernelAddOneParticle)
+            (1, 1)
+            (parClass.getDeviceParticlesBox(),
+             localSuperCell, cellInSuperCell);
+
+        parClass.fillAllGaps();
+
+        std::cout << "Wait for add particle" << std::endl;
+        __getTransactionEvent().waitForFinished();
+    }
+};
 }
 
 #endif	/* PARTICLESINITONEPARTICLE_HPP */
-
