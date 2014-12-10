@@ -221,11 +221,11 @@ private:
 
         const std::string groupName = std::string("particles/") + FrameType::getName();
 
-        const float_64 charge = (float_64)getCharge<FrameType>();
+        const float_64 charge = (float_64)traits::frame::getCharge<FrameType>();
         params->dataCollector->writeAttribute(params->currentStep,
                 splashType, groupName.c_str(), "charge", &charge);
 
-        const float_64 mass = (float_64)getMass<FrameType>(1.0);
+        const float_64 mass = (float_64)traits::frame::getMass<FrameType>();
         params->dataCollector->writeAttribute(params->currentStep,
                 splashType, groupName.c_str(), "mass", &mass);
     }

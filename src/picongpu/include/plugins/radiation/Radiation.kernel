@@ -298,7 +298,7 @@ void kernelRadiationParticles(ParBox pb,
 #endif
 
                     // mass of macro-particle
-                    const float_X particle_mass = getMass(weighting,*frame);
+                    const float_X particle_mass = traits::attribute::getMass(weighting,par);
 
 
                     /****************************************************
@@ -324,7 +324,7 @@ void kernelRadiationParticles(ParBox pb,
                     // if coherent and incoherent of single macro-particle is considered
 #if (__COHERENTINCOHERENTWEIGHTING__==1)
                     // get charge of single electron ! (weighting=1.0f)
-                    const picongpu::float_X particle_charge = getCharge<FRAME>();
+                    const picongpu::float_X particle_charge = traits::frame::getCharge<FRAME>();
 
                     // compute real amplitude of macro-particle with a charge of
                     // a single electron
@@ -335,7 +335,7 @@ void kernelRadiationParticles(ParBox pb,
                     // if coherent and incoherent of single macro-particle is NOT considered
 
                     // get charge of entire macro-particle
-                    const picongpu::float_X particle_charge = getAttrCharge(weighting,par);
+                    const picongpu::float_X particle_charge = traits::attribute::getCharge(weighting,par);
 
                     // compute real amplitude of macro-particle
                     real_amplitude_s[saveParticleAt] = amplitude3.get_vector(look) *

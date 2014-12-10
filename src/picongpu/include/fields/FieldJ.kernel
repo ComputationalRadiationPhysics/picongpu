@@ -139,13 +139,13 @@ struct ComputeCurrentPerFrame
         const float_X weighting = particle[weighting_];
         const floatD_X pos = particle[position_];
         const int particleCellIdx = particle[localCellIdx_];
-        const float_X charge = getAttrCharge(weighting,particle);
+        const float_X charge = traits::attribute::getCharge(weighting,particle);
         const DataSpace<simDim> localCell(DataSpaceOperations<simDim>::template map<TVec > (particleCellIdx));
 
         Velocity velocity;
         const float3_X vel = velocity(
                                       particle[momentum_],
-                                      getMass<FrameType>(weighting));
+                                      traits::attribute::getMass(weighting,particle));
         PMACC_AUTO(fieldJShiftToParticle, jBox.shift(localCell));
         ParticleAlgo perParticle;
         perParticle(fieldJShiftToParticle,

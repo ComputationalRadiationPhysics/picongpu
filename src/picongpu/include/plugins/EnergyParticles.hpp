@@ -101,7 +101,7 @@ __global__ void kernelEnergyParticles(ParticlesBox<FRAME, simDim> pb,
             const float_X mom2 = mom.x() * mom.x() + mom.y() * mom.y() + mom.z() * mom.z();
 
             const float_X weighting = particle[weighting_]; /* get macro particle weighting */
-            const float_X mass = getMass(weighting,*frame); /* compute mass using weighting */
+            const float_X mass = traits::attribute::getMass(weighting,particle); /* compute mass using weighting */
             const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
 
             Gamma<> calcGamma; /* functor for computing relativistic gamma factor */
