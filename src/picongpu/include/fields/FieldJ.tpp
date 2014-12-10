@@ -41,15 +41,15 @@
 #include "math/Vector.hpp"
 
 #include <boost/mpl/accumulate.hpp>
-#include "traits/GetMargin.hpp"
 #include "particles/traits/GetCurrentSolver.hpp"
+#include "traits/GetMargin.hpp"
+#include "traits/Resolve.hpp"
 
 
 namespace picongpu
 {
 
 using namespace PMacc;
-
 
 FieldJ::FieldJ( MappingDesc cellDescription ) :
 SimulationFieldHelper<MappingDesc>( cellDescription ),
@@ -107,9 +107,9 @@ FieldJ::~FieldJ( )
 {
 }
 
-SimulationDataId FieldJ::getUniqueId()
+SimulationDataId FieldJ::getUniqueId( )
 {
-    return getName();
+    return getName( );
 }
 
 void FieldJ::synchronize( )
@@ -170,7 +170,7 @@ void FieldJ::init( FieldE &fieldE )
 {
     this->fieldE = &fieldE;
 
-    Environment<>::get().DataConnector().registerData( *this );
+    Environment<>::get( ).DataConnector( ).registerData( *this );
 }
 
 GridLayout<simDim> FieldJ::getGridLayout( )
@@ -184,7 +184,7 @@ void FieldJ::reset( uint32_t )
 
 void FieldJ::clear( )
 {
-    ValueType tmp = float3_X( 0.);
+    ValueType tmp = float3_X( 0. );
     fieldJ.getDeviceBuffer( ).setValue( tmp );
     //fieldJ.reset(false);
 }
@@ -194,7 +194,7 @@ typename FieldJ::UnitValueType
 FieldJ::getUnit( )
 {
     const double UNIT_CURRENT = UNIT_CHARGE / UNIT_TIME / ( UNIT_LENGTH * UNIT_LENGTH );
-    return UnitValueType(UNIT_CURRENT, UNIT_CURRENT, UNIT_CURRENT);
+    return UnitValueType( UNIT_CURRENT, UNIT_CURRENT, UNIT_CURRENT );
 }
 
 std::string
@@ -218,7 +218,9 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t ) throw (std::in
     const int workerMultiplier = 2;
 
     typedef typename ParticlesClass::FrameType FrameType;
-    typedef typename GetFlagType<FrameType, current<> >::type::ThisType ParticleCurrentSolver;
+    typedef typename PMacc::traits::Resolve<
+        typename GetFlagType<FrameType, current<> >::type
+    >::type ParticleCurrentSolver;
 
     typedef ComputeCurrentPerFrame<ParticleCurrentSolver, Velocity, MappingDesc::SuperCellSize> FrameSolver;
 
@@ -234,7 +236,7 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t ) throw (std::in
     FrameSolver solver( DELTA_T );
 
     DataSpace<simDim> blockSize( mapper.getSuperCellSize( ) );
-    blockSize[simDim-1]*=workerMultiplier;
+    blockSize[simDim - 1] *= workerMultiplier;
 
     __startAtomicTransaction( __getTransactionEvent( ) );
     do
@@ -254,7 +256,7 @@ void FieldJ::addCurrentToE( )
     __picKernelArea( ( kernelAddCurrentToE ),
                      cellDescription,
                      AREA )
-        ( MappingDesc::SuperCellSize::toRT( ).toDim3() )
+        ( MappingDesc::SuperCellSize::toRT( ).toDim3( ) )
         ( this->fieldE->getDeviceDataBox( ),
           this->fieldJ.getDeviceBuffer( ).getDataBox( ) );
 }
