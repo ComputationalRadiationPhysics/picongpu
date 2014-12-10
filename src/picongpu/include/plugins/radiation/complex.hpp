@@ -25,13 +25,13 @@
 #include <cmath>
 #include <iostream>
 
-template<typename T_>
+template<typename T_Type>
 class Complex_T
 {
     /// a complex number class
 public:
 
-    typedef T_ Type;
+    typedef T_Type Type;
     // constructor (real, imaginary)
     HDINLINE Complex_T(Type real, Type imaginary = 0.0)
     : real(real), imaginary(imaginary)
