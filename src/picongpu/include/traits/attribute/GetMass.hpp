@@ -41,7 +41,7 @@ template<typename T_Particle>
 HDINLINE float_X getMass(const float_X weighting, const T_Particle& particle)
 {
     typedef T_Particle ParticleType;
-    return traits::frame::getMass<typename ParticleType::FrameType > () * weighting;
+    return frame::getMass<typename ParticleType::FrameType > () * weighting;
 }
 
 }// namespace attribute

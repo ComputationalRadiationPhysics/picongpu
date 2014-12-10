@@ -78,7 +78,7 @@ HDINLINE float_X getCharge(const float_X weighting, const T_Particle& particle)
     typedef T_Particle ParticleType;
     typedef typename PMacc::traits::HasIdentifier<ParticleType, chargeState>::type hasChargeState;
     return detail::LoadChargeState<hasChargeState::value >()(
-                                                      traits::frame::getCharge<typename ParticleType::FrameType > () * weighting,
+                                                      frame::getCharge<typename ParticleType::FrameType > () * weighting,
                                                       particle);
 }
 

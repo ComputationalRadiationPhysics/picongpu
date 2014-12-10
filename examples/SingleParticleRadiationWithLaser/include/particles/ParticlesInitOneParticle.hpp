@@ -67,9 +67,9 @@ __global__ void kernelAddOneParticle(ParBox pb,
         const float_X GAMMA0_Y = 1.0f / sqrtf(1.0f - float_X(BETA0_Y * BETA0_Y));
         const float_X GAMMA0_Z = 1.0f / sqrtf(1.0f - float_X(BETA0_Z * BETA0_Z));
         float3_X mom = float3_X(
-                                GAMMA0_X * traits::attribute::getMass(parWeighting,par) * float_X(BETA0_X) * SPEED_OF_LIGHT,
-                                GAMMA0_Y * traits::attribute::getMass(parWeighting,par) * float_X(BETA0_Y) * SPEED_OF_LIGHT,
-                                GAMMA0_Z * traits::attribute::getMass(parWeighting,par) * float_X(BETA0_Z) * SPEED_OF_LIGHT
+                                GAMMA0_X * attribute::getMass(parWeighting,par) * float_X(BETA0_X) * SPEED_OF_LIGHT,
+                                GAMMA0_Y * attribute::getMass(parWeighting,par) * float_X(BETA0_Y) * SPEED_OF_LIGHT,
+                                GAMMA0_Z * attribute::getMass(parWeighting,par) * float_X(BETA0_Z) * SPEED_OF_LIGHT
                                 );
 
         par[position_] = pos;

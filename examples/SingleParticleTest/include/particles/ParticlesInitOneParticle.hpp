@@ -63,9 +63,9 @@ namespace picongpu
 
             const float_X GAMMA0 = (float_X) (1.0 / sqrt(1.0 - (BETA0_X * BETA0_X + BETA0_Y * BETA0_Y + BETA0_Z * BETA0_Z)));
             float3_X mom = float3_X(
-                                     GAMMA0 * traits::attribute::getMass(parWeighting,par) * float_X(BETA0_X) * SPEED_OF_LIGHT,
-                                     GAMMA0 * traits::attribute::getMass(parWeighting,par) * float_X(BETA0_Y) * SPEED_OF_LIGHT,
-                                     GAMMA0 * traits::attribute::getMass(parWeighting,par) * float_X(BETA0_Z) * SPEED_OF_LIGHT
+                                     GAMMA0 * attribute::getMass(parWeighting,par) * float_X(BETA0_X) * SPEED_OF_LIGHT,
+                                     GAMMA0 * attribute::getMass(parWeighting,par) * float_X(BETA0_Y) * SPEED_OF_LIGHT,
+                                     GAMMA0 * attribute::getMass(parWeighting,par) * float_X(BETA0_Z) * SPEED_OF_LIGHT
                                      );
 
 

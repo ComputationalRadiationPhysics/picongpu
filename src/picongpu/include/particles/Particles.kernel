@@ -181,7 +181,7 @@ __global__ void kernelAddTemperature(ParticlesBox<FRAME, simDim> pb, float_X ene
             // and a macroEnergy now.
             const float3_X mom = tmpRand * (float_X) math::sqrt(
                                                                 precisionCast<sqrt_X > (
-                                                                                   macroEnergy * traits::attribute::getMass(macroWeighting,particle)
+                                                                                   macroEnergy * attribute::getMass(macroWeighting,particle)
                                                                                         )
                                                                 );
             particle[momentum_] += mom;
@@ -272,7 +272,7 @@ __global__ void kernelSetDrift(ParBox pb,
 
                 PMACC_AUTO(particle, ((*frame)[linearThreadIdx]));
                 const float_X macroWeighting = particle[weighting_];
-                const float_X macroMass = traits::attribute::getMass(macroWeighting,particle);
+                const float_X macroMass = attribute::getMass(macroWeighting,particle);
 
 
                 const float_64 PARTICLE_INIT_DRIFT_BETA =
@@ -418,7 +418,7 @@ struct PushParticlePerFrame
             (bBox.shift(localCell).toCursor(), pos, NumericalCellType::getBFieldPosition());
 
         float3_X mom = particle[momentum_];
-        const float_X mass = traits::attribute::getMass(weighting,particle);
+        const float_X mass = attribute::getMass(weighting,particle);
 #if(ENABLE_RADIATION == 1)
         radiation::PushExtension < (RAD_MARK_PARTICLE > 1) || (RAD_ACTIVATE_GAMMA_FILTER != 0) > extensionRadiation;
         float3_X& mom_mt1 = particle[momentumPrev1_];
@@ -435,7 +435,7 @@ struct PushParticlePerFrame
              pos,
              mom,
              mass,
-             traits::attribute::getCharge(weighting,particle)
+             attribute::getCharge(weighting,particle)
              );
         particle[momentum_] = mom;
 
