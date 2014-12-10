@@ -53,7 +53,7 @@ TBG_nodes="$(( ( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
 #SBATCH --nodes=!TBG_nodes
 #SBATCH --ntasks-per-node=!TBG_mpiTasksPerNode
 #SBATCH --cpus-per-task=!TBG_coresPerGPU
-#SBATCH --mem-per-cpu=11500
+#SBATCH --mem-per-cpu=4000M
 #SBATCH --constraint=!TBG_feature
 #SBATCH --qos=!TBG_qos
 # send me a mail on (b)egin, (e)nd, (a)bortion
