@@ -21,14 +21,29 @@
 #pragma once
 
 #include "simulation_defines.hpp"
+#include "traits/frame/GetMass.hpp"
 #include "traits/HasIdentifier.hpp"
 
 namespace picongpu
 {
+namespace traits
+{
+namespace attribute
+{
 
-/** get the charge value for a species frame
+/** get the mass of a makro particle
+ *
+ * @param weighting weighting of the particle
+ * @param particle a reference to a particle
+ * @return mass of the makro particle
  */
-template<typename T_Frame>
-HDINLINE float_X getCharge();
+template<typename T_Particle>
+HDINLINE float_X getMass(const float_X weighting, const T_Particle& particle)
+{
+    typedef T_Particle ParticleType;
+    return traits::frame::getMass<typename ParticleType::FrameType > () * weighting;
+}
 
+}// namespace attribute
+}// namespace traits
 }// namespace picongpu

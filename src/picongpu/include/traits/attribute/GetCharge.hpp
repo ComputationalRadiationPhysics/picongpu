@@ -21,12 +21,15 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "particles/traits/GetCharge.hpp"
+#include "traits/frame/GetCharge.hpp"
 #include "traits/HasIdentifier.hpp"
 
 namespace picongpu
 {
-
+namespace traits
+{
+namespace attribute
+{
 namespace detail
 {
 
@@ -70,13 +73,15 @@ struct LoadChargeState<false>
  * @return charge of the makro particle
  */
 template<typename T_Particle>
-HDINLINE float_X getAttrCharge(const float_X weighting, const T_Particle& particle)
+HDINLINE float_X getCharge(const float_X weighting, const T_Particle& particle)
 {
     typedef T_Particle ParticleType;
     typedef typename PMacc::traits::HasIdentifier<ParticleType, chargeState>::type hasChargeState;
     return detail::LoadChargeState<hasChargeState::value >()(
-                                                      getCharge<typename ParticleType::FrameType > () * weighting,
+                                                      traits::frame::getCharge<typename ParticleType::FrameType > () * weighting,
                                                       particle);
 }
 
+}// namespace attribute
+}// namespace traits
 }// namespace picongpu
