@@ -1,0 +1,139 @@
+/**
+ * Copyright 2014 Alexander Debus, Axel Huebl
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "types.h"
+
+#include "math/Vector.hpp"
+#include "dimensions/DataSpace.hpp"
+
+
+namespace picongpu
+{
+    /** Load external TWTS field
+     *
+     */
+    namespace templates
+    {
+        class TWTSFieldE
+        {
+        public:
+            const DataSpace<simDim> halfSimSize;
+
+            const float_64 focus_y_SI;
+            const float_64 wavelength_SI;
+            const float_64 pulselength_SI;
+            const float_64 w_x_SI;
+            const float_64 w_y_SI;
+            const float_X phi;
+            const float_X beta_0;
+
+            const float_64 tdelay_user;
+            const bool auto_tdelay;
+            const bool includeCollidingTWTS;
+
+            /** Electric field of the electric field in the TW
+             *
+             * \param focus_y_SI the distance to the laser focus in y-direction [m]
+             * \param wavelength_SI central wavelength [m]
+             * \param pulselength_SI sigma of std. gauss for intensity (E^2), pulselength_SI = FWHM_of_Intensity / 2.35482 [seconds (sigma)]
+             * \param w_x beam waist: distance from the axis where the pulse intensity (E^2) decreases to its 1/e^2-th part at the focus position of the laser [m]
+             * \param w_y \see w_x
+             * \param phi interaction angle between TWTS laser propagation vector and the y-axis [rad, default = 90.*(PI/180.)]
+             * \param beta_0 propagation speed of overlap normalized to the speed of light [c, default = 1.0]
+             * \param tdelay_user manual time delay if auto_tdelay is false
+             * \param auto_tdelay calculate the time delay such that the TWTS pulse is not inside the simulation volume at simulation start timestep = 0 [default = true]
+             * \param includeCollidingTWTS add second TWTS pulse in colliding geometry [default = false]
+             */
+            HDINLINE
+            TWTSFieldE( const float_64 focus_y_SI,
+                        const float_64 wavelength_SI,
+                        const float_64 pulselength_SI,
+                        const float_64 w_x_SI,
+                        const float_64 w_y_SI,
+                        const float_X phi               = 90.*(PI/180.),
+                        const float_X beta_0            = 1.0,
+                        const float_64 tdelay_user      = 0.0,
+                        const bool auto_tdelay          = true,
+                        const bool includeCollidingTWTS = false );
+
+            /** Specify your background field E(r,t) here
+             *
+             * \param cellIdx The total cell id counted from the start at t=0
+             * \param currentStep The current time step
+             * \param halfSimSize Center of simulation volume in number of cells
+             * \return float3_X with field normalized to amplitude in range [-1.:1.]
+             */
+            HDINLINE float3_X
+            operator()( const DataSpace<simDim>& cellIdx,
+                        const uint32_t currentStep ) const;
+
+            /** Calculate the Ex(r,t) field here
+             *
+             * \param pos Spatial position of the target field.
+             * \param time Absolute time (SI, including all offsets and transformations) for calculating the field
+             * \param halfSimSize Center of simulation volume in number of cells
+             * \param phiReal interaction angle between TWTS laser propagation vector and the y-axis */
+            HDINLINE float_64
+            calcTWTSEx( const floatD_64& pos, const float_X time, const DataSpace<simDim> halfSimSize, const float_X phiReal ) const;
+
+        };
+
+        class TWTSFieldB
+        {
+        public:
+            /* We use this to calculate your SI input back to our unit system */
+            const DataSpace<simDim> halfSimSize;
+
+            HDINLINE
+            TWTSFieldB();
+
+            /** Specify your background field B(r,t) here
+             *
+             * \param cellIdx The total cell id counted from the start at t=0
+             * \param currentStep The current time step
+             * \param halfSimSize Center of simulation volume in number of cells */
+            HDINLINE float3_X
+            operator()( const DataSpace<simDim>& cellIdx,
+                        const uint32_t currentStep ) const;
+
+            /** Calculate the By(r,t) field here
+             *
+             * \param pos Spatial position of the target field.
+             * \param time Absolute time (SI, including all offsets and transformations) for calculating the field
+             * \param halfSimSize Center of simulation volume in number of cells
+             * \param phiReal interaction angle between TWTS laser propagation vector and the y-axis */
+            HDINLINE float_X
+            calcTWTSBy( const float3_X& pos, const float_X time, const DataSpace<simDim> halfSimSize, const float_X phiReal ) const;
+
+            /** Calculate the Bz(r,t) field here
+             *
+             * \param pos Spatial position of the target field.
+             * \param time Absolute time (SI, including all offsets and transformations) for calculating the field
+             * \param halfSimSize Center of simulation volume in number of cells
+             * \param phiReal interaction angle between TWTS laser propagation vector and the y-axis */
+            HDINLINE float_X
+            calcTWTSBz( const float3_X& pos, const float_X time, const DataSpace<simDim> halfSimSize, const float_X phiReal ) const;
+
+        };
+
+    } /* namespace templates */
+} /* namespace picongpu */

@@ -20,6 +20,10 @@
 
 #pragma once
 
+/** Load pre-defined templates */
+#include "fields/background/templates/bgrTWTS.def"
+
+
 /** Load external background fields
  *
  */
@@ -44,16 +48,32 @@ namespace picongpu
         operator()( const DataSpace<simDim>& cellIdx,
                     const uint32_t currentStep ) const
         {
-            /* example: periodicity of 20 microns (=2.0e-5 m) */
-            const float_64 period_SI(20.0e-6);
-            /* calculate cells -> SI -> m to microns*/
-            const float_64 y_SI = cellIdx.y() * SI::CELL_HEIGHT_SI * 1.0e6;
-            /* note: you can also transform the time step to seconds by
-             *       multiplying with DELTA_T_SI */
+            /* example 1: TWTS background pulse */
+            const float_X amplitude( 1.0e9 / unitField[0] ); // 1 GV / m
 
-            /* specify your E-Field in V/m and convert to PIConGPU units */
-            const float_X sinArg = precisionCast<float_X>( y_SI / period_SI * 2.0 * PI );
-            return float3_X(0.0, math::sin( sinArg ) / unitField[1], 0.0);
+            /** \see constructor of `TWTSFieldE` in
+             *       src/picongpu/include/fields/background/templates/bgrTWTS.def
+             *
+             *  optional, omitted parameters with default values:
+             *       phi (90.*(PI/180.) rad), beta_0 (c), tdelay_user(0 s),
+             *       auto_tdelay(true), includeCollidingTWTS(false)
+             */
+            templates::TWTSFieldE twtsFieldE( 25.0e-6,            /* focus_y [m] */
+                                              0.8e-6,             /* wavelength [m] */
+                                              30.0e-15 / 2.35482, /* pulselength [s] */
+                                              20.0e-6,            /* w_x [m] */
+                                              0.01 );             /* w_y [m] */
+
+            return amplitude * twtsFieldE( cellIdx, currentStep );
+
+            /* example 2: own formula */
+            // const float_64 period_SI( 20.0e-6 );               /*     20 microns */
+            // const float_X amplitude( 100.0e9 / unitField[0] ); /* +/- 100 GV/m   */
+
+            // const float_64 y_SI = cellIdx.y() * SI::CELL_HEIGHT_SI;
+            // const float_X sinArg = precisionCast<float_X>( y_SI / period_SI * 2.0 * PI );
+
+            // return float3_X( 0.0, amplitude * math::cos( sinArg ), 0.0);
         }
     };
 
@@ -76,16 +96,25 @@ namespace picongpu
         operator()( const DataSpace<simDim>& cellIdx,
                     const uint32_t currentStep ) const
         {
-            /* example: periodicity of 20 microns (=2.0e-5 m) */
-            const float_64 period_SI(20.0e-6);
-            /* calculate cells -> SI -> m to microns*/
-            const float_64 y_SI = cellIdx.y() * SI::CELL_HEIGHT_SI * 1.0e6;
-            /* note: you can also transform the time step to seconds by
-             *       multiplying with DELTA_T_SI */
+            /* example: TWTS background pulse */
+            const float_X amplitude( 1.0e9 * SI::SPEED_OF_LIGHT_SI / unitField[0] ); // 1 GV / m * c = [T]
 
-            /* specify your B-Field in T and convert to PIConGPU units */
-            const float_X sinArg = precisionCast<float_X>( y_SI / period_SI * 2.0 * PI );
-            return float3_X(0.0, math::cos( sinArg ) / unitField[1], 0.0);
+            /** \see constructor of `TWTSFieldB` in
+             *       src/picongpu/include/fields/background/templates/bgrTWTS.def
+             *
+             *  optional, omitted parameters with default values:
+             *       phi (90.*(PI/180.) rad), beta_0 (c), tdelay_user(0 s),
+             *       auto_tdelay(true), includeCollidingTWTS(false)
+             */
+            //templates::TWTSFieldB twtsFieldB( 25.0e-6,            /* focus_y [m] */
+            //                                  0.8e-6,             /* wavelength [m] */
+            //                                  30.0e-15 / 2.35482, /* pulselength [s] */
+            //                                  20.0e-6,            /* w_x [m] */
+            //                                  0.01 );             /* w_y [m] */
+
+            //return amplitude * twtsFieldB( cellIdx, currentStep );
+            // zero dummy - no B field
+            return amplitude * float3_X(0.);
         }
     };
 
@@ -108,17 +137,8 @@ namespace picongpu
         operator()( const DataSpace<simDim>& cellIdx,
                     const uint32_t currentStep ) const
         {
-            /* example: periodicity of 20 microns (=2.0e-5 m) */
-            const float_64 period_SI(20.0e-6);
-            /* calculate cells -> SI -> m to microns*/
-            const float_64 y_SI = cellIdx.y() * SI::CELL_HEIGHT_SI * 1.0e6;
-            /* note: you can also transform the time step to seconds by
-             *       multiplying with DELTA_T_SI */
-
-            /* specify your J-Field in A/m^2 and convert to PIConGPU units */
-            const float_X sinArg = precisionCast<float_X>( y_SI / period_SI * 2.0 * PI );
-            return float3_X(0.0, math::cos( sinArg ) / unitField[1], 0.0);
+            return float3_X(0.0, 0.0, 0.0);
         }
     };
 
-} // namespace picongpu
+} /* namespace picongpu */

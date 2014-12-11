@@ -39,5 +39,6 @@
 #include "simulation_defines/unitless/speciesAttributes.unitless"
 #include "simulation_defines/unitless/speciesDefinition.unitless"
 #include "simulation_defines/unitless/speciesInitialization.unitless"
+#include "simulation_defines/unitless/fieldBackground.unitless"
 #include "simulation_defines/unitless/fileOutput.unitless"
 #include "simulation_defines/unitless/checkpoints.unitless"
