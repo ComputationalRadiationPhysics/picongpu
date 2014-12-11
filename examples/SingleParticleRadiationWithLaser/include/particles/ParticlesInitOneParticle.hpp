@@ -37,7 +37,6 @@
 namespace picongpu
 {
 
-
 template< class ParBox>
 __global__ void kernelAddOneParticle(ParBox pb,
                                      DataSpace<simDim> superCell, DataSpace<simDim> parLocalCell)
@@ -59,20 +58,27 @@ __global__ void kernelAddOneParticle(ParBox pb,
     // many particle loop:
     for (unsigned i = 0; i < 1; ++i)
     {
-        PMACC_AUTO(par,(*frame)[i]);
+        PMACC_AUTO(par, (*frame)[i]);
 
-        typedef typename ParBox::FrameType FrameType;
-        typedef typename FrameType::ValueTypeSeq ParticleAttrList;
-        typedef bmpl::vector4<position<>, multiMask, localCellIdx, weighting> AttrToDelete;
-        typedef typename ResolveAndRemoveFromSeq<ParticleAttrList, AttrToDelete>::type ParticleCleanedAttrList;
+        /** we now initialize all attributes of the new particle to their default values
+         *   some attributes, such as the position, localCellIdx, weighting or the
+         *   multiMask (\see AttrToIgnore) of the particle will be set individually
+         *   in the following lines since they are already known at this point.
+         */
+        {
+            typedef typename ParBox::FrameType FrameType;
+            typedef typename FrameType::ValueTypeSeq ParticleAttrList;
+            typedef bmpl::vector4<position<>, multiMask, localCellIdx, weighting> AttrToIgnore;
+            typedef typename ResolveAndRemoveFromSeq<ParticleAttrList, AttrToIgnore>::type ParticleCleanedAttrList;
 
-        algorithms::forEach::ForEach<ParticleCleanedAttrList,
-            SetToDefault<bmpl::_1> > setToDefault;
-        setToDefault(forward(par));
+            algorithms::forEach::ForEach<ParticleCleanedAttrList,
+                SetToDefault<bmpl::_1> > setToDefault;
+            setToDefault(forward(par));
+        }
 
         floatD_X pos;
-        for(int i=0; i<simDim; ++i)
-          pos[i] = 0.5;
+        for (int i = 0; i < simDim; ++i)
+            pos[i] = 0.5;
 
         const float_X GAMMA0_X = 1.0f / sqrtf(1.0f - float_X(BETA0_X * BETA0_X));
         const float_X GAMMA0_Y = 1.0f / sqrtf(1.0f - float_X(BETA0_Y * BETA0_Y));

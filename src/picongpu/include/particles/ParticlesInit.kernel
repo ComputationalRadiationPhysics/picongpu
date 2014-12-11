@@ -207,15 +207,21 @@ __global__ void kernelFillGridWithParticles(ParBox pb,
         {
             PMACC_AUTO(particle, ((*frame)[linearThreadIdx]));
 
-            typedef typename ParBox::FrameType FrameType;
-            typedef typename FrameType::ValueTypeSeq ParticleAttrList;
-            typedef bmpl::vector4<position<>, multiMask, localCellIdx, weighting> AttrToDelete;
-            typedef typename ResolveAndRemoveFromSeq<ParticleAttrList, AttrToDelete>::type ParticleCleanedAttrList;
+            /** we now initialize all attributes of the new particle to their default values
+             *   some attributes, such as the position, localCellIdx, weighting or the
+             *   multiMask (\see AttrToIgnore) of the particle will be set individually
+             *   in the following lines since they are already known at this point.
+             */
+            {
+                typedef typename ParBox::FrameType FrameType;
+                typedef typename FrameType::ValueTypeSeq ParticleAttrList;
+                typedef bmpl::vector4<position<>, multiMask, localCellIdx, weighting> AttrToIgnore;
+                typedef typename ResolveAndRemoveFromSeq<ParticleAttrList, AttrToIgnore>::type ParticleCleanedAttrList;
 
-            algorithms::forEach::ForEach<ParticleCleanedAttrList,
-                SetToDefault<bmpl::_1> > setToDefault;
-            setToDefault(forward(particle));
-
+                algorithms::forEach::ForEach<ParticleCleanedAttrList,
+                    SetToDefault<bmpl::_1> > setToDefault;
+                setToDefault(forward(particle));
+            }
             particle[position_] = pos;
             particle[multiMask_] = 1;
             particle[localCellIdx_] = linearThreadIdx;

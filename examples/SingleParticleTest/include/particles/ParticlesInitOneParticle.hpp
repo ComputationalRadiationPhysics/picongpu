@@ -60,14 +60,21 @@ __global__ void kernelAddOneParticle(ParBox pb,
     {
         PMACC_AUTO(par, (*frame)[i]);
 
-        typedef typename ParBox::FrameType FrameType;
-        typedef typename FrameType::ValueTypeSeq ParticleAttrList;
-        typedef bmpl::vector4<position<>, multiMask, localCellIdx, weighting> AttrToDelete;
-        typedef typename ResolveAndRemoveFromSeq<ParticleAttrList, AttrToDelete>::type ParticleCleanedAttrList;
+        /** we now initialize all attributes of the new particle to their default values
+         *   some attributes, such as the position, localCellIdx, weighting or the
+         *   multiMask (\see AttrToIgnore) of the particle will be set individually
+         *   in the following lines since they are already known at this point.
+         */
+        {
+            typedef typename ParBox::FrameType FrameType;
+            typedef typename FrameType::ValueTypeSeq ParticleAttrList;
+            typedef bmpl::vector4<position<>, multiMask, localCellIdx, weighting> AttrToIgnore;
+            typedef typename ResolveAndRemoveFromSeq<ParticleAttrList, AttrToIgnore>::type ParticleCleanedAttrList;
 
-        algorithms::forEach::ForEach<ParticleCleanedAttrList,
-            SetToDefault<bmpl::_1> > setToDefault;
-        setToDefault(forward(par));
+            algorithms::forEach::ForEach<ParticleCleanedAttrList,
+                SetToDefault<bmpl::_1> > setToDefault;
+            setToDefault(forward(par));
+        }
 
         float3_X pos = float3_X(0.5, 0.5, 0.5);
 
