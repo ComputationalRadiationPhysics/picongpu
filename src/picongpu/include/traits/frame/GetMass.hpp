@@ -24,16 +24,14 @@
 
 namespace picongpu
 {
-
-template<typename T_Frame>
-HDINLINE float_X getMass(float_X weighting);
-
-template<typename T_Frame>
-HDINLINE float_X getMass(float_X weighting,const T_Frame&)
+namespace traits
 {
-    return getMass<T_Frame>(weighting);
-}
+namespace frame
+{
 
+template<typename T_Frame>
+HDINLINE float_X getMass();
 
-
+}// namespace frame
+}// namespace traits
 }// namespace picongpu

@@ -241,7 +241,7 @@ namespace picongpu
          *   to avoid over- / underflows. Now for the dump the meta information
          *   on the p-axis should be scaled to represent single/real particles.
          *   \see PhaseSpaceMulti::pluginLoad( ) */
-        float_64 pRange_unit = float_64( getMass<typename Species::FrameType>(1.0) ) *
+        float_64 pRange_unit = float_64( frame::getMass<typename Species::FrameType>() ) *
                                float_64( SPEED_OF_LIGHT ) *
                                UNIT_MASS * UNIT_SPEED;
 

@@ -18,47 +18,32 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include "traits/frame/GetCharge.hpp"
+#include "simulation_defines.hpp"
 #include "traits/frame/GetMass.hpp"
-#include "traits/attribute/GetCharge.hpp"
-#include "traits/attribute/GetMass.hpp"
-#include "fields/currentDeposition/Solver.hpp"
-#include "particles/Particles.tpp"
+#include "traits/HasIdentifier.hpp"
 
 namespace picongpu
 {
 namespace traits
 {
-namespace frame
+namespace attribute
 {
 
-template<>
-HDINLINE float_X getMass<typename PIC_Ions::FrameType>()
+/** get the mass of a makro particle
+ *
+ * @param weighting weighting of the particle
+ * @param particle a reference to a particle
+ * @return mass of the makro particle
+ */
+template<typename T_Particle>
+HDINLINE float_X getMass(const float_X weighting, const T_Particle& particle)
 {
-    return M_ION;
-};
+    typedef T_Particle ParticleType;
+    return frame::getMass<typename ParticleType::FrameType > () * weighting;
+}
 
-template<>
-HDINLINE float_X getCharge<typename PIC_Ions::FrameType>()
-{
-    return Q_ION;
-};
-
-template<>
-HDINLINE float_X getMass<typename PIC_Electrons::FrameType>()
-{
-    return M_EL;
-};
-
-template<>
-HDINLINE float_X getCharge<typename PIC_Electrons::FrameType>()
-{
-    return Q_EL;
-};
-
-} //namespace frame
-} //namespace traits
-} //namespace picongpu
+}// namespace attribute
+}// namespace traits
+}// namespace picongpu

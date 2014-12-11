@@ -21,18 +21,20 @@
 #pragma once
 
 #include "simulation_defines.hpp"
+#include "traits/HasIdentifier.hpp"
 
 namespace picongpu
 {
-
-template<typename T_Frame>
-HDINLINE float_X getCharge(float_X weighting);
-
-
-template<typename T_Frame>
-HDINLINE float_X getCharge(float_X weighting,const T_Frame&)
+namespace traits
 {
-    return getCharge<T_Frame>(weighting);
-}
+namespace frame
+{
 
+/** get the charge value for a species frame
+ */
+template<typename T_Frame>
+HDINLINE float_X getCharge();
+
+}// namespace frame
+}// namespace traits
 }// namespace picongpu
