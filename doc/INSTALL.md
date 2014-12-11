@@ -30,7 +30,8 @@ Requirements
   - *Debian/Ubuntu:* `sudo apt-get install cmake file cmake-curses-gui`
   - *Arch Linux:* `sudo pacman --sync cmake`
 
-- **OpenMPI** 1.4 or higher
+- **OpenMPI** 1.5.1+ / **MVAPICH2** 1.8+ or similar
+  ([GPU aware](https://devblogs.nvidia.com/parallelforall/introduction-cuda-aware-mpi/) install recommented)
   - *Debian/Ubuntu:* `sudo apt-get install libopenmpi-dev`
   - *Arch Linux:* `sudo pacman --sync openmpi`
 
@@ -38,7 +39,7 @@ Requirements
   - *Debian/Ubuntu:* `sudo apt-get install zlib1g-dev`
   - *Arch Linux:* `sudo pacman --sync zlib`
 
-- **boost** 1.49.0-1.55.0 ("program options", "regex" , "filesystem", "system" and nearly all compile time libs)
+- **boost** 1.49.0+ ("program options", "regex" , "filesystem", "system" and nearly all header-only libs)
   - download from [http://www.boost.org/](http://sourceforge.net/projects/boost/files/boost/1.49.0/boost_1_49_0.tar.gz/download),
       e.g. version 1.49.0
   - *Debian/Ubuntu:* `sudo apt-get install libboost-program-options-dev libboost-regex-dev libboost-filesystem-dev libboost-system-dev`
@@ -63,13 +64,13 @@ We recomment to install at least **pngwriter**.
 
 - **pngwriter** >= 0.5.5
     - download our modified version from
-      [github.com/ax3l/pngwriter](https://github.com/ax3l/pngwriter)
+      [github.com/pngwriter/pngwriter](https://github.com/pngwriter/pngwriter)
     - Requires [libpng](http://www.libpng.org/),
       - *Debian/Ubuntu:* `sudo apt-get install libpng-dev`
       - *Arch Linux:* `sudo pacman --sync libpng`
     - example:
       - `mkdir -p ~/src ~/build ~/lib`
-      - `git clone https://github.com/ax3l/pngwriter.git ~/src/pngwriter/`
+      - `git clone https://github.com/pngwriter/pngwriter.git ~/src/pngwriter/`
       - `cd ~/build`
       - `cmake -DCMAKE_INSTALL_PREFIX=~/lib/pngwriter ~/src/pngwriter`
       - `make install`
