@@ -35,6 +35,8 @@
 #include "nvidia/rng/distributions/Uniform_float.hpp"
 #include "particles/init/particleInitRandomPos.hpp"
 
+#include "compileTime/conversion/ResolveAndRemoveFromSeq.hpp"
+
 
 namespace picongpu
 {
@@ -53,7 +55,7 @@ using namespace PMacc;
  */
 template<unsigned int Dim, typename FieldBox>
 DINLINE float_X calcRealDensity(const DataSpace<Dim>& offset,
-        const DataSpace<Dim>& localCellIdx, FieldBox fieldTmp)
+                                const DataSpace<Dim>& localCellIdx, FieldBox fieldTmp)
 {
     floatD_X physicalCellPosition;
     for (uint32_t i = 0; i < simDim; ++i)
@@ -62,6 +64,28 @@ DINLINE float_X calcRealDensity(const DataSpace<Dim>& offset,
     const float_X value = gasProfile::calcNormedDensity(physicalCellPosition, localCellIdx, fieldTmp) * GAS_DENSITY;
     return value;
 }
+
+/** Set a particle attribute to the default value
+ *
+ * @tparam T_Attribute attribute type (pmacc alias is allowed)
+ */
+template<typename T_Attribute>
+struct SetToDefault
+{
+    typedef T_Attribute Attribute;
+
+    /** set attribute to the default value
+     *
+     * @tparam T_Partcile particle type
+     */
+    template<typename T_Particle>
+    HDINLINE
+    void operator()(T_Particle& particle)
+    {
+        typedef typename PMacc::traits::Resolve<Attribute>::type ResolvedAttr;
+        particle[Attribute()] = ResolvedAttr::getDefaultValue();
+    }
+};
 
 template< typename ParBox, typename FieldBox, class Mapping>
 __global__ void kernelFillGridWithParticles(ParBox pb,
@@ -95,16 +119,16 @@ __global__ void kernelFillGridWithParticles(ParBox pb,
 
 
     /* do not add particle to guarding super cells */
-    for(uint32_t d=0;d<simDim;++d)
+    for (uint32_t d = 0; d < simDim; ++d)
         if (block[d] == 0 || block[d] == superCells[d] - 1) return;
 
     /*get local cell idx*/
     const DataSpace<simDim> idx(superCellIdx * SuperCellSize::toRT() + threadIndex);
 
     /*delete garding cells \todo: what is if we have more than one block guarding cells*/
-    const DataSpace<simDim> localCellIdx = idx - SuperCellSize::toRT();
+    const DataSpace<simDim> localCellIndex = idx - SuperCellSize::toRT();
     /*global position in simulation units (meter)*/
-    const float_X yPos = (localCellIdx.y() + gpuCelloffset.y()) * CELL_HEIGHT;
+    const float_X yPos = (localCellIndex.y() + gpuCelloffset.y()) * CELL_HEIGHT;
 
     // inverse flow area
     /* calculate global size of simulation (in y direction)
@@ -133,7 +157,7 @@ __global__ void kernelFillGridWithParticles(ParBox pb,
 
     /*multiply density factor to calculated manipulated middle density*/
     const float_X realDensity = densityFactor * calcRealDensity(gpuCelloffset,
-            localCellIdx, fieldTmp);
+                                                                localCellIndex, fieldTmp);
     const float_X realElPerCell = realDensity * CELL_VOLUME;
 
     __shared__ int finished;
@@ -181,22 +205,31 @@ __global__ void kernelFillGridWithParticles(ParBox pb,
 
         if (numParsPerCell > 0)
         {
-            PMACC_AUTO(particle,((*frame)[linearThreadIdx]));
+            PMACC_AUTO(particle, ((*frame)[linearThreadIdx]));
+
+            /** we now initialize all attributes of the new particle to their default values
+             *   some attributes, such as the position, localCellIdx, weighting or the
+             *   multiMask (\see AttrToIgnore) of the particle will be set individually
+             *   in the following lines since they are already known at this point.
+             */
+            {
+                typedef typename ParBox::FrameType FrameType;
+                typedef typename FrameType::ValueTypeSeq ParticleAttrList;
+                typedef bmpl::vector4<position<>, multiMask, localCellIdx, weighting> AttrToIgnore;
+                typedef typename ResolveAndRemoveFromSeq<ParticleAttrList, AttrToIgnore>::type ParticleCleanedAttrList;
+
+                algorithms::forEach::ForEach<ParticleCleanedAttrList,
+                    SetToDefault<bmpl::_1> > setToDefault;
+                setToDefault(forward(particle));
+            }
             particle[position_] = pos;
             particle[multiMask_] = 1;
-            particle[localCellIdx_]= linearThreadIdx;
+            particle[localCellIdx_] = linearThreadIdx;
             particle[weighting_] = macroWeighting;
-            particle[momentum_] = float3_X(0.0);
 
 #if(ENABLE_RADIATION == 1)
-            particle[momentumPrev1_] = momentumPrev1::getDefaultValue();
 #if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
-#if(RAD_MARK_PARTICLE==0)
-            //if we need gamma filter but no mark particles at begin of simulation we set all to false
-            particle[radiationFlag_] = radiationFlag::getDefaultValue();
-#else
             particle[radiationFlag_] = (bool)(rng() < (1.0 / (float) RAD_MARK_PARTICLE));
-#endif
 #endif
 #endif
             numParsPerCell--;
