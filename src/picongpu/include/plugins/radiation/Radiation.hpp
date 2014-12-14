@@ -503,30 +503,22 @@ public:
           // not a dump point. The correct lastRad data can be reconstructed from hdf5 data
           // since text based lastRad output will be obsolete soon, this is not a problem
           readHDF5file(timeSumArray, restartDirectory + "/" + std::string("radRestart_"), timeStep);
-          std::cout << "loaded radiation restart data" << std::endl;
+          std::cout << "Radiation: loaded radiation restart data" << std::endl;
       }
     }
 
     void checkpoint(uint32_t timeStep, const std::string restartDirectory)
     {
-      // only the master rank writes data
-      if (isMaster)
-      {      
-          if(timeStep == currentStep)
-          {
-              // collect data GPU -> CPU -> Master
-              copyRadiationDeviceToHost();
-              collectRadiationOnMaster();
-              sumAmplitudesOverTime(tmp_result, timeSumArray);
+        // collect data GPU -> CPU -> Master
+        copyRadiationDeviceToHost();
+        collectRadiationOnMaster();
+        sumAmplitudesOverTime(tmp_result, timeSumArray);
         
-              // write backup file
-              writeHDF5file(tmp_result, restartDirectory + "/" + std::string("radRestart_"));
-          }
-          else
-          {
-            std::cerr << "currentSTep and timeStep differ in RadiationPligin::checkpoint" << std::endl;
-          }
-      }
+        // write backup file
+        if (isMaster)
+        {
+            writeHDF5file(tmp_result, restartDirectory + "/" + std::string("radRestart_"));
+        }
     }
 
 
