@@ -198,17 +198,46 @@ public:
           ((analyzerPrefix + ".folderRadPerGPU").c_str(), po::value<std::string > (&folderRadPerGPU)->default_value("radPerGPU"), "folder in which the radiation of each GPU is written");
     }
 
+
     std::string pluginGetName() const
     {
-
         return analyzerName;
     }
 
+
     void setMappingDescription(MappingDesc *cellDescription)
     {
-
         this->cellDescription = cellDescription;
     }
+
+
+    void restart(uint32_t timeStep, const std::string restartDirectory)
+    {
+      if(isMaster)
+      {
+          // this will lead to wrong lastRad output right after the checkpoint if the restart point is
+          // not a dump point. The correct lastRad data can be reconstructed from hdf5 data
+          // since text based lastRad output will be obsolete soon, this is not a problem
+          readHDF5file(timeSumArray, restartDirectory + "/" + std::string("radRestart_"), timeStep);
+          std::cout << "Radiation: loaded radiation restart data" << std::endl;
+      }
+    }
+
+
+    void checkpoint(uint32_t timeStep, const std::string restartDirectory)
+    {
+        // collect data GPU -> CPU -> Master
+        copyRadiationDeviceToHost();
+        collectRadiationOnMaster();
+        sumAmplitudesOverTime(tmp_result, timeSumArray);
+
+        // write backup file
+        if (isMaster)
+        {
+            writeHDF5file(tmp_result, restartDirectory + "/" + std::string("radRestart_"));
+        }
+    }
+
 
 private:
 
@@ -278,6 +307,7 @@ private:
         }
     }
 
+
     void pluginUnload()
     {
         if (notifyFrequency > 0)
@@ -295,9 +325,9 @@ private:
             if (dumpPeriod == 0)
               {
                 collectDataGPUToMaster();
-                writeAllFiles(globalOffset);            
+                writeAllFiles(globalOffset);
               }
-            
+
             if (isMaster)
             {
                 __deleteArray(timeSumArray);
@@ -311,6 +341,7 @@ private:
     }
 
 
+  /** Method to copy data from GPU to CPU */
   void copyRadiationDeviceToHost()
   {
     radiation->deviceToHost();
@@ -318,6 +349,8 @@ private:
   }
 
 
+  /** write radiation from each GPU to file individually
+   *  requires call of copyRadiationDeviceToHost() before */
   void saveRadPerGPU(const DataSpace<simDim> currentGPUpos)
   {
     if (radPerGPU)
@@ -341,7 +374,7 @@ private:
 #else
             GPUposZ << 0;
 #endif
-            
+
             writeFile(radiation->getHostBuffer().getBasePointer(), folderRadPerGPU + "/" + filename_prefix
                       + "_radPerGPU_pos_" + GPUposX.str() + "_" + GPUposY.str() + "_" + GPUposZ.str()
                       + "_time_" + last_time_step_str.str() + "-" + current_time_step_str.str() + ".dat");
@@ -349,14 +382,18 @@ private:
         lastGPUpos = currentGPUpos;
       }
 
-  } 
+  }
 
+
+  /** returns number of observers (radiation detectors) */
   static unsigned int elements_amplitude()
   {
     return radiation_frequencies::N_omega * parameters::N_observer; // storage for amplitude results on GPU
-  } 
+  }
 
 
+  /** combine radiation data from each CPU and store result on master
+   *  copyRadiationDeviceToHost() should be called before */
   void collectRadiationOnMaster()
   {
       reduce(nvidia::functors::Add(),
@@ -368,6 +405,8 @@ private:
   }
 
 
+  /** add collected radiation data to previously stored data
+   *  should be called after collectRadiationOnMaster() */
   void sumAmplitudesOverTime(Amplitude* targetArray, Amplitude* summandArray)
   {
     if (isMaster)
@@ -375,16 +414,13 @@ private:
         // add last amplitudes to previous amplitudes
         for (unsigned int i = 0; i < elements_amplitude(); ++i)
           targetArray[i] += summandArray[i];
-      }      
+      }
   }
 
 
 
-  /*
-   * lastRad writes to file the emitted radiation only from
-   * the current time step. That is, radiation from previous
-   * time steps is neglected.
-   */
+  /** writes to file the emitted radiation only from the current
+   *  time step. Radiation from previous time steps is neglected. */
   void writeLastRadToText()
   {
       // only the master rank writes data
@@ -396,15 +432,15 @@ private:
               // get time step as string
               std::stringstream o_step;
               o_step << currentStep;
-        
+
               // write lastRad data to txt
               writeFile(tmp_result, folderLastRad + "/" + filename_prefix + "_" + o_step.str() + ".dat");
           }
-      }       
+      }
   }
 
 
-
+  /** writes the total radaiation (over entire simulation time) to file */
   void writeTotalRadToText()
   {
       // only the master rank writes data
@@ -416,15 +452,15 @@ private:
               // get time step as string
               std::stringstream o_step;
               o_step << currentStep;
-        
+
               // write totalRad data to txt
               writeFile(timeSumArray, folderTotalRad + "/" + filename_prefix + "_" + o_step.str() + ".dat");
           }
-      }       
+      }
   }
 
 
-
+  /** write total radiation data as HDF5 file */
   void writeAmplitudesToHDF5()
   {
       if (isMaster)
@@ -434,16 +470,17 @@ private:
   }
 
 
+  /** perform all operations to get data from GPU to master */
   void collectDataGPUToMaster()
   {
       // collect data GPU -> CPU -> Master
       copyRadiationDeviceToHost();
       collectRadiationOnMaster();
       sumAmplitudesOverTime(timeSumArray, tmp_result);
-
   }
 
 
+  /** write all possible/selected output */
   void writeAllFiles(const DataSpace<simDim> currentGPUpos)
   {
       // write data to files
@@ -454,88 +491,18 @@ private:
   }
 
 
-    /**
-     * From the collected data from all hosts the radiated intensity is
-     * calculated by calculating the absolute value squared and multiplying
-     * this with with the appropriate physics constants.
-     * @param values
-     * @param name
-     */
-    void writeFile(Amplitude* values, std::string name)
-    {
-        std::ofstream outFile;
-        outFile.open(name.c_str(), std::ofstream::out | std::ostream::trunc);
-        if (!outFile)
-        {
-            std::cerr << "Can't open file [" << name << "] for output, diasble analyser output. " << std::endl;
-            isMaster = false; // no Master anymore -> no process is able to write
-        }
-        else
-        {
-            for (unsigned int index_direction = 0; index_direction < parameters::N_observer; ++index_direction) // over all directions
-            {
-                for (unsigned index_omega = 0; index_omega < radiation_frequencies::N_omega; ++index_omega) // over all frequencies
-                {
-                    // Take Amplitude for one direction and frequency,
-                    // calculate the square of the absolute value
-                    // and write to file.
-                    outFile <<
-                        values[index_omega + index_direction * radiation_frequencies::N_omega].calc_radiation() * UNIT_ENERGY * UNIT_TIME << "\t";
-
-                }
-                outFile << std::endl;
-            }
-            outFile.flush();
-            outFile << std::endl; //now all data are written to file
-
-            if (outFile.fail())
-                std::cerr << "Error on flushing file [" << name << "]. " << std::endl;
-            outFile.close();
-        }
-    }
-
-public:
-    void restart(uint32_t timeStep, const std::string restartDirectory)
-    {
-      if(isMaster)
-      {
-          // this will lead to wrong lastRad output right after the checkpoint if the restart point is
-          // not a dump point. The correct lastRad data can be reconstructed from hdf5 data
-          // since text based lastRad output will be obsolete soon, this is not a problem
-          readHDF5file(timeSumArray, restartDirectory + "/" + std::string("radRestart_"), timeStep);
-          std::cout << "Radiation: loaded radiation restart data" << std::endl;
-      }
-    }
-
-    void checkpoint(uint32_t timeStep, const std::string restartDirectory)
-    {
-        // collect data GPU -> CPU -> Master
-        copyRadiationDeviceToHost();
-        collectRadiationOnMaster();
-        sumAmplitudesOverTime(tmp_result, timeSumArray);
-        
-        // write backup file
-        if (isMaster)
-        {
-            writeHDF5file(tmp_result, restartDirectory + "/" + std::string("radRestart_"));
-        }
-    }
-
-
-private:
-
-    static const std::string dataLabels(int index) 
-    {
-      /** This method returns hdf5 data structre names
-       *
-       *  Arguments:
-       *  int index - index of Amplitude
-       *
-       *  Return:
-       *  std::string - name
-       *
-       * This method avoids initializing static const string arrays.
-       */
+  /** This method returns hdf5 data structre names
+   *
+   *  Arguments:
+   *  int index - index of Amplitude
+   *
+   *  Return:
+   *  std::string - name
+   *
+   * This method avoids initializing static const string arrays.
+   */
+  static const std::string dataLabels(int index)
+  {
       const std::string dataLabelsList[] = {"Amplitude/x/Re",
                                             "Amplitude/x/Im",
                                             "Amplitude/y/Re",
@@ -544,215 +511,245 @@ private:
                                             "Amplitude/z/Im"};
 
       return dataLabelsList[index];
-    }
+  }
 
 
-    void writeHDF5file(Amplitude* values, std::string name)
-    {
-      /** Write Amplitude data to HDF5 file
-       *
-       * Arguments:
-       * Amplitude* values - array of complex amplitude values
-       * std::string name - path and beginning of file name to store data to
-       */
-        splash::SerialDataCollector HDF5dataFile(1);
-        splash::DataCollector::FileCreationAttr fAttr;
+  /** Write Amplitude data to HDF5 file
+   *
+   * Arguments:
+   * Amplitude* values - array of complex amplitude values
+   * std::string name - path and beginning of file name to store data to
+   */
+  void writeHDF5file(Amplitude* values, std::string name)
+  {
+      splash::SerialDataCollector HDF5dataFile(1);
+      splash::DataCollector::FileCreationAttr fAttr;
 
-        splash::DataCollector::initFileCreationAttr(fAttr);
+      splash::DataCollector::initFileCreationAttr(fAttr);
 
-        const double six = sizeof(Amplitude)/sizeof(double);
+      const double six = sizeof(Amplitude)/sizeof(double);
 
-        std::ostringstream filename;
-        filename << name << currentStep;
+      std::ostringstream filename;
+      filename << name << currentStep;
 
-        HDF5dataFile.open(filename.str().c_str(), fAttr);
+      HDF5dataFile.open(filename.str().c_str(), fAttr);
 
-        typename PICToSplash<double>::type radSplashType;
+      typename PICToSplash<double>::type radSplashType;
 
 
-        splash::Dimensions bufferSize(six,
-                                      radiation_frequencies::N_omega,
-                                      parameters::N_observer);
+      splash::Dimensions bufferSize(six,
+                                    radiation_frequencies::N_omega,
+                                    parameters::N_observer);
 
-        splash::Dimensions componentSize(1,
-                                         radiation_frequencies::N_omega,
-                                         parameters::N_observer);
+      splash::Dimensions componentSize(1,
+                                       radiation_frequencies::N_omega,
+                                       parameters::N_observer);
 
-        splash::Dimensions stride(6,1,1);
+      splash::Dimensions stride(6,1,1);
 
-        for(unsigned int ampIndex=0; ampIndex<6; ++ampIndex)
-          {
-            splash::Dimensions offset(ampIndex,0,0);
-            splash::Selection dataSelection(bufferSize,
-                                            componentSize,
-                                            offset,
-                                            stride);
+      for(unsigned int ampIndex=0; ampIndex<6; ++ampIndex)
+      {
+          splash::Dimensions offset(ampIndex,0,0);
+          splash::Selection dataSelection(bufferSize,
+                                          componentSize,
+                                          offset,
+                                          stride);
 
-            HDF5dataFile.write(currentStep,
-                               radSplashType,
-                               3,
-                               dataSelection,
-                               dataLabels(ampIndex).c_str(),
-                               values);
+          HDF5dataFile.write(currentStep,
+                             radSplashType,
+                             3,
+                             dataSelection,
+                             dataLabels(ampIndex).c_str(),
+                             values);
+      }
 
-            //HDF5dataFile.writeAttribute(currentStep,
-            //                            radSplashType,
-            //                            "dataName",
-            //                            "attrName",
-            //                            &a);
-          }
+      HDF5dataFile.close();
 
-        HDF5dataFile.close();
-        std::cout << "rad_output to HDF5" << std::endl;
-        Amplitude UnityAmplitude(1., 0., 0., 0., 0., 0.);
-        const numtype2 factor = UnityAmplitude.calc_radiation() * UNIT_ENERGY * UNIT_TIME ;
-        std::cout << "Factor to radiation intensities: " << factor << std::endl;
+      /* TODO: will become atribute in HDF5 file later */
+      Amplitude UnityAmplitude(1., 0., 0., 0., 0., 0.);
+      const numtype2 factor = UnityAmplitude.calc_radiation() * UNIT_ENERGY * UNIT_TIME ;
+      std::cout << "Factor to radiation intensities: " << factor << std::endl;
     }
 
 
 
-
+  /** Read Amplitude data from HDF5 file
+   *
+   * Arguments:
+   * Amplitude* values - array of complex amplitudes to store data in
+   * std::string name - path and beginning of file name with data stored in
+   * const int timeStep - time step to read
+   */
   void readHDF5file(Amplitude* values, std::string name, const int timeStep)
-    {
-      /** Read Amplitude data from HDF5 file
-       *
-       * Arguments:
-       * Amplitude* values - array of complex amplitudes to store data in
-       * std::string name - path and beginning of file name with data stored in
-       * const int timeStep - time step to read
-       */
-        splash::SerialDataCollector HDF5dataFile(1);
-        splash::DataCollector::FileCreationAttr fAttr;
+  {
+      splash::SerialDataCollector HDF5dataFile(1);
+      splash::DataCollector::FileCreationAttr fAttr;
 
-        splash::DataCollector::initFileCreationAttr(fAttr);
+      splash::DataCollector::initFileCreationAttr(fAttr);
 
-        fAttr.fileAccType = DataCollector::FAT_READ;
+      fAttr.fileAccType = DataCollector::FAT_READ;
 
-        std::ostringstream filename;
-        /* add to standard ending added by libSpash for SerialDataCollector */
-        filename << name << timeStep << "_0_0_0.h5";
+      std::ostringstream filename;
+      /* add to standard ending added by libSpash for SerialDataCollector */
+      filename << name << timeStep << "_0_0_0.h5";
 
-        HDF5dataFile.open(filename.str().c_str(), fAttr);
+      HDF5dataFile.open(filename.str().c_str(), fAttr);
 
-        typename PICToSplash<double>::type radSplashType;
+      typename PICToSplash<double>::type radSplashType;
 
-        splash::Dimensions componentSize(1,
-                                         radiation_frequencies::N_omega,
-                                         parameters::N_observer);
+      splash::Dimensions componentSize(1,
+                                       radiation_frequencies::N_omega,
+                                       parameters::N_observer);
 
-        const int N_tmpBuffer = radiation_frequencies::N_omega * parameters::N_observer;
-        numtype2* tmpBuffer = new numtype2[N_tmpBuffer];
+      const int N_tmpBuffer = radiation_frequencies::N_omega * parameters::N_observer;
+      numtype2* tmpBuffer = new numtype2[N_tmpBuffer];
 
-        for(int ampIndex=0; ampIndex<6; ++ampIndex)
+      for(int ampIndex=0; ampIndex<6; ++ampIndex)
+      {
+          HDF5dataFile.read(timeStep,
+                            dataLabels(ampIndex).c_str(),
+                            componentSize,
+                            tmpBuffer);
+
+          for(int copyIndex = 0; copyIndex < N_tmpBuffer; ++copyIndex)
           {
-            HDF5dataFile.read(timeStep,
-                              dataLabels(ampIndex).c_str(),
-                              componentSize,
-                              tmpBuffer);
-
-            for(int copyIndex = 0; copyIndex < N_tmpBuffer; ++copyIndex)
-              {
-                /* convert data directly because Amplutude is just 6 double */
-                ((numtype2*)values)[ampIndex + 6*copyIndex] = tmpBuffer[copyIndex];
-              }
-
+              /* convert data directly because Amplutude is just 6 double */
+              ((numtype2*)values)[ampIndex + 6*copyIndex] = tmpBuffer[copyIndex];
           }
 
-        delete[] tmpBuffer;
-        HDF5dataFile.close();
+      }
 
-        std::cout << "read radiation data from HDF5" << std::endl;
-    }
+      delete[] tmpBuffer;
+      HDF5dataFile.close();
 
-
-    /**
-     * This functions calls the radiation kernel. It specifies how the
-     * calculation is parallelized.
-     *      gridDim_rad is the number of Thread-Blocks in a grid
-     *      blockDim_rad is the number of threads per block
-     *
-     * -----------------------------------------------------------
-     * | Grid                                                    |
-     * |   --------------   --------------                       |
-     * |   |   Block 0  |   |   Block 1  |                       |
-     * |   |o      o    |   |o      o    |                       |
-     * |   |o      o    |   |o      o    |                       |
-     * |   |th1    th2  |   |th1    th2  |                       |
-     * |   --------------   --------------                       |
-     * -----------------------------------------------------------
-     *
-     * !!! The TEMPLATE parameter is not used anymore.
-     * !!! But the calculations it is supposed to do is hard coded in the
-     *     kernel.
-     * !!! THIS NEEDS TO BE CHANGED !!!
-     *
-     * @param currentStep
-     */
-    template< uint32_t AREA> /*This Template Parameter is not used anymore*/
-    void calculateRadiationParticles(uint32_t currentStep)
-    {
-        this->currentStep = currentStep;
-
-        /* the parallelization is ONLY over directions:
-         * (a combinded parallelization over direction AND frequencies
-         *  turned out to be slower on fermis (couple percent) and
-         *  definitly slower on kepler k20)
-         */
-        const int N_observer = parameters::N_observer;
-        const dim3 gridDim_rad(N_observer);
-
-        /* number of threads per block = number of cells in a super cell
-         *          = number of particles in a Frame
-         *          (THIS IS PIConGPU SPECIFIC)
-         * A Frame is the entity that stores particles.
-         * A super cell can have many Frames.
-         * Particles in a Frame can be accessed in parallel.
-         */
-
-        const dim3 blockDim_rad(PMacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value);
+      std::cout << "read radiation data from HDF5" << std::endl;
+  }
 
 
-        // std::cout<<"Grid: "<<gridDim_rad.x()<<" "<<gridDim_rad.y()<<" "<<gridDim_rad.z()<<std::endl;
-        // std::cout<<"Block: "<<blockDim_rad.x()<<" "<<blockDim_rad.y()<<" "<<blockDim_rad.z()<<std::endl;
+  /**
+   * From the collected data from all hosts the radiated intensity is
+   * calculated by calculating the absolute value squared and multiplying
+   * this with with the appropriate physics constants.
+   * @param values
+   * @param name
+   */
+  void writeFile(Amplitude* values, std::string name)
+  {
+      std::ofstream outFile;
+      outFile.open(name.c_str(), std::ofstream::out | std::ostream::trunc);
+      if (!outFile)
+      {
+          std::cerr << "Can't open file [" << name << "] for output, diasble analyser output. " << std::endl;
+          isMaster = false; // no Master anymore -> no process is able to write
+      }
+      else
+      {
+          for (unsigned int index_direction = 0; index_direction < parameters::N_observer; ++index_direction) // over all directions
+          {
+              for (unsigned index_omega = 0; index_omega < radiation_frequencies::N_omega; ++index_omega) // over all frequencies
+              {
+                  // Take Amplitude for one direction and frequency,
+                  // calculate the square of the absolute value
+                  // and write to file.
+                  outFile <<
+                    values[index_omega + index_direction * radiation_frequencies::N_omega].calc_radiation() * UNIT_ENERGY * UNIT_TIME << "\t";
+
+              }
+              outFile << std::endl;
+          }
+          outFile.flush();
+          outFile << std::endl; //now all data are written to file
+
+          if (outFile.fail())
+              std::cerr << "Error on flushing file [" << name << "]. " << std::endl;
+
+          outFile.close();
+      }
+  }
+
+  /**
+   * This functions calls the radiation kernel. It specifies how the
+   * calculation is parallelized.
+   *      gridDim_rad is the number of Thread-Blocks in a grid
+   *      blockDim_rad is the number of threads per block
+   *
+   * -----------------------------------------------------------
+   * | Grid                                                    |
+   * |   --------------   --------------                       |
+   * |   |   Block 0  |   |   Block 1  |                       |
+   * |   |o      o    |   |o      o    |                       |
+   * |   |o      o    |   |o      o    |                       |
+   * |   |th1    th2  |   |th1    th2  |                       |
+   * |   --------------   --------------                       |
+   * -----------------------------------------------------------
+   *
+   * !!! The TEMPLATE parameter is not used anymore.
+   * !!! But the calculations it is supposed to do is hard coded in the
+   *     kernel.
+   * !!! THIS NEEDS TO BE CHANGED !!!
+   *
+   * @param currentStep
+   */
+  template< uint32_t AREA> /*This Template Parameter is not used anymore*/
+  void calculateRadiationParticles(uint32_t currentStep)
+  {
+      this->currentStep = currentStep;
+
+      /* the parallelization is ONLY over directions:
+       * (a combinded parallelization over direction AND frequencies
+       *  turned out to be slower on fermis (couple percent) and
+       *  definitly slower on kepler k20)
+       */
+      const int N_observer = parameters::N_observer;
+      const dim3 gridDim_rad(N_observer);
+
+      /* number of threads per block = number of cells in a super cell
+       *          = number of particles in a Frame
+       *          (THIS IS PIConGPU SPECIFIC)
+       * A Frame is the entity that stores particles.
+       * A super cell can have many Frames.
+       * Particles in a Frame can be accessed in parallel.
+       */
+
+      const dim3 blockDim_rad(PMacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value);
+
+      // Some funny things that make it possible for the kernel to calculate
+      // the absolut position of the particles
+      DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
+      const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
+      const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+      DataSpace<simDim> globalOffset(subGrid.getLocalDomain().offset);
+      globalOffset.y() += (localSize.y() * numSlides);
 
 
-        // Some funny things that make it possible for the kernel to calculate
-        // the absolut position of the particles
-        DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
-        const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
-        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
-        DataSpace<simDim> globalOffset(subGrid.getLocalDomain().offset);
-        globalOffset.y() += (localSize.y() * numSlides);
+      // PIC-like kernel call of the radiation kernel
+      __cudaKernel(kernelRadiationParticles)
+        (gridDim_rad, blockDim_rad)
+        (
+         /*Pointer to particles memory on the device*/
+         particles->getDeviceParticlesBox(),
 
-
-        // PIC-like kernel call of the radiation kernel
-        __cudaKernel(kernelRadiationParticles)
-            (gridDim_rad, blockDim_rad)
-            (
-             /*Pointer to particles memory on the device*/
-             particles->getDeviceParticlesBox(),
-
-             /*Pointer to memory of radiated amplitude on the device*/
-             radiation->getDeviceBuffer().getDataBox(),
-             globalOffset,
-             currentStep, *cellDescription,
+         /*Pointer to memory of radiated amplitude on the device*/
+         radiation->getDeviceBuffer().getDataBox(),
+         globalOffset,
+         currentStep, *cellDescription,
 	     freqFkt,
 	     subGrid.getGlobalDomain().size
-             );
+         );
 
-        if (dumpPeriod != 0 && currentStep % dumpPeriod == 0)
-        {
-            collectDataGPUToMaster();
-            writeAllFiles(globalOffset);
-            
-            // update time steps
-            lastStep = currentStep;
+      if (dumpPeriod != 0 && currentStep % dumpPeriod == 0)
+      {
+          collectDataGPUToMaster();
+          writeAllFiles(globalOffset);
 
-            // reset amplitudes on GPU back to zero
-            radiation->getDeviceBuffer().reset(false);
-        }
+          // update time steps
+          lastStep = currentStep;
 
-    }
+          // reset amplitudes on GPU back to zero
+          radiation->getDeviceBuffer().reset(false);
+      }
+
+  }
 
 };
 
