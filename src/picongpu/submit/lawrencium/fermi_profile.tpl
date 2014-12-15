@@ -31,15 +31,17 @@ TBG_mailAdress="someone@example.com"
 # 2 gpus per node
 TBG_gpusPerNode=`if [ $TBG_tasks -gt 2 ] ; then echo 2; else echo $TBG_tasks; fi`
 
-# number of cores to block per GPU - we got 6 cpus per gpu
-#   and we will be accounted 6 CPUs per GPU anyway
-TBG_coresPerGPU=6
+# number of cores to block per GPU - we use one right now
+TBG_coresPerGPU=1
 
 # We only start 1 MPI task per GPU
 TBG_mpiTasksPerNode="$(( TBG_gpusPerNode * 1 ))"
 
 # use ceil to calculate the number of nodes
 TBG_nodes="$(( ( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
+
+# in MB; 24 GB per node on 12 CPUs
+TBG_memPerCPU="$(( 24000 / TBG_gpusPerNode ))M"
 
 ## end calculations ##
 
@@ -53,7 +55,7 @@ TBG_nodes="$(( ( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
 #SBATCH --nodes=!TBG_nodes
 #SBATCH --ntasks-per-node=!TBG_mpiTasksPerNode
 #SBATCH --cpus-per-task=!TBG_coresPerGPU
-# --mem-per-cpu=4000M
+#SBATCH --mem-per-cpu=!TBG_memPerCPU
 #SBATCH --constraint=!TBG_feature
 #SBATCH --qos=!TBG_qos
 # send me a mail on (b)egin, (e)nd, (a)bortion
