@@ -53,7 +53,7 @@ TBG_nodes="$(( ( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
 #SBATCH --nodes=!TBG_nodes
 #SBATCH --ntasks-per-node=!TBG_mpiTasksPerNode
 #SBATCH --cpus-per-task=!TBG_coresPerGPU
-#SBATCH --mem-per-cpu=4000M
+# --mem-per-cpu=4000M
 #SBATCH --constraint=!TBG_feature
 #SBATCH --qos=!TBG_qos
 # send me a mail on (b)egin, (e)nd, (a)bortion
@@ -84,9 +84,9 @@ cd simOutput
 export OMPI_MCA_mpi_leave_pinned=0
 
 # Run CUDA memtest to check GPU's health
-srun -K1 !TBG_dstPath/picongpu/bin/cuda_memtest.sh
+mpirun !TBG_dstPath/picongpu/bin/cuda_memtest.sh
 
 # Run PIConGPU
 if [ $? -eq 0 ] ; then
-  srun -K1 !TBG_dstPath/picongpu/bin/picongpu !TBG_programParams
+  mpirun !TBG_dstPath/picongpu/bin/picongpu !TBG_programParams
 fi

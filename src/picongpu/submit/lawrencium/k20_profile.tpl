@@ -84,9 +84,9 @@ cd simOutput
 export OMPI_MCA_mpi_leave_pinned=0
 
 # Run CUDA memtest to check GPU's health
-srun -K1 !TBG_dstPath/picongpu/bin/cuda_memtest.sh
+mpirun !TBG_dstPath/picongpu/bin/cuda_memtest.sh
 
 # Run PIConGPU
 if [ $? -eq 0 ] ; then
-  srun -K1 !TBG_dstPath/picongpu/bin/picongpu !TBG_programParams
+  mpirun !TBG_dstPath/picongpu/bin/picongpu !TBG_programParams
 fi
