@@ -139,24 +139,23 @@ public:
         log<picLog::INPUT_OUTPUT > ("Loading %1% particles from offset %2%") %
             (long long unsigned) totalNumParticles % (long long unsigned) particleOffset;
 
+        Hdf5FrameType hostFrame;
+        log<picLog::INPUT_OUTPUT > ("HDF5:  malloc mapped memory: %1%") % Hdf5FrameType::getName();
+        /*malloc mapped memory*/
+        ForEach<typename Hdf5FrameType::ValueTypeSeq, MallocMemory<bmpl::_1> > mallocMem;
+        mallocMem(forward(hostFrame), totalNumParticles);
+
+        log<picLog::INPUT_OUTPUT > ("HDF5:  get mapped memory device pointer: %1%") % Hdf5FrameType::getName();
+        /*load device pointer of mapped memory*/
+        Hdf5FrameType deviceFrame;
+        ForEach<typename Hdf5FrameType::ValueTypeSeq, GetDevicePtr<bmpl::_1> > getDevicePtr;
+        getDevicePtr(forward(deviceFrame), forward(hostFrame));
+
+        ForEach<typename Hdf5FrameType::ValueTypeSeq, LoadParticleAttributesFromHDF5<bmpl::_1> > loadAttributes;
+        loadAttributes(forward(params), forward(hostFrame), subGroup, particleOffset, totalNumParticles);
+
         if (totalNumParticles != 0)
         {
-
-            Hdf5FrameType hostFrame;
-            log<picLog::INPUT_OUTPUT > ("HDF5:  malloc mapped memory: %1%") % Hdf5FrameType::getName();
-            /*malloc mapped memory*/
-            ForEach<typename Hdf5FrameType::ValueTypeSeq, MallocMemory<bmpl::_1> > mallocMem;
-            mallocMem(forward(hostFrame), totalNumParticles);
-
-            log<picLog::INPUT_OUTPUT > ("HDF5:  get mapped memory device pointer: %1%") % Hdf5FrameType::getName();
-            /*load device pointer of mapped memory*/
-            Hdf5FrameType deviceFrame;
-            ForEach<typename Hdf5FrameType::ValueTypeSeq, GetDevicePtr<bmpl::_1> > getDevicePtr;
-            getDevicePtr(forward(deviceFrame), forward(hostFrame));
-
-            ForEach<typename Hdf5FrameType::ValueTypeSeq, LoadParticleAttributesFromHDF5<bmpl::_1> > loadAttributes;
-            loadAttributes(forward(params), forward(hostFrame), subGroup, particleOffset, totalNumParticles);
-
             dim3 block(PMacc::math::CT::volume<SuperCellSize>::type::value);
 
             /* counter is used to apply for work, count used frames and count loaded particles
