@@ -271,9 +271,7 @@ private:
             PMacc::Filesystem<simDim>& fs = Environment<simDim>::get().Filesystem();
 
             if (isMaster)
-            {
-              timeSumArray = new Amplitude[elements_amplitude()];
-            }
+                timeSumArray = new Amplitude[elements_amplitude()];
 
 
             if (isMaster && totalRad)
@@ -323,10 +321,10 @@ private:
 
             // only print data at end of simulation if no dump period was set
             if (dumpPeriod == 0)
-              {
+            {
                 collectDataGPUToMaster();
                 writeAllFiles(globalOffset);
-              }
+            }
 
             if (isMaster)
             {
