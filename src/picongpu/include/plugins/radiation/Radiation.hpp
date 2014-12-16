@@ -358,24 +358,18 @@ private:
           {
             std::stringstream last_time_step_str;
             std::stringstream current_time_step_str;
-            std::stringstream GPUposX;
-            std::stringstream GPUposY;
-            std::stringstream GPUposZ;
+            std::stringstream GPUpos_str;
 
             last_time_step_str << lastStep;
             current_time_step_str << currentStep;
-            GPUposX << currentGPUpos.x();
-            GPUposY << currentGPUpos.y();
-            // if simDim==DIM2 no z-component is defined -> set it to zero
-#if(SIMDIM == DIM3)
-            GPUposZ << currentGPUpos.z();
-#else
-            GPUposZ << 0;
-#endif
+
+            for(uint dimIndex=0; dimIndex<simDim; ++dimIndex)
+                GPUpos_str << "_" <<currentGPUpos[dimIndex];
 
             writeFile(radiation->getHostBuffer().getBasePointer(), folderRadPerGPU + "/" + filename_prefix
-                      + "_radPerGPU_pos_" + GPUposX.str() + "_" + GPUposY.str() + "_" + GPUposZ.str()
-                      + "_time_" + last_time_step_str.str() + "-" + current_time_step_str.str() + ".dat");
+                      + "_radPerGPU_pos" + GPUpos_str.str()
+                      + "_time_" + last_time_step_str.str() 
+                      + "-" + current_time_step_str.str() + ".dat");
           }
         lastGPUpos = currentGPUpos;
       }
