@@ -238,7 +238,9 @@ while true ; do
     shift
 done
 
-if [ ! -f $tooltpl_file ] ; then
+# tpl file was set - does it also exist?
+#   if a tpl file was not set, try stdin later on
+if [ -n "$tooltpl_file" ] && [ ! -f "$tooltpl_file" ] ; then
     echo "The given tpl file \"$tooltpl_file\" does not exist." >&2
     exit 1;
 fi
