@@ -41,3 +41,9 @@ export PATH=$HOME/bin:$PATH
 
 export PATH=$PATH:$PICSRC/src/splash2txt/build
 export PATH=$PATH:$PICSRC/src/tools/bin
+
+# "tbg" default options:
+#   - SLURM (sbatch)
+#   - fermi queue (also available: 2 K20 via k20_profile.tpl)
+export TBG_SUBMIT="sbatch"
+export TBG_TPLFILE="submit/lawrencium/fermi_profile.tpl"
