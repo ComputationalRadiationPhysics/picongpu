@@ -519,8 +519,6 @@ private:
 
       splash::DataCollector::initFileCreationAttr(fAttr);
 
-      const double six = sizeof(Amplitude)/sizeof(double);
-
       std::ostringstream filename;
       filename << name << currentStep;
 
@@ -529,7 +527,7 @@ private:
       typename PICToSplash<double>::type radSplashType;
 
 
-      splash::Dimensions bufferSize(six,
+      splash::Dimensions bufferSize(Amplitude::numComponents,
                                     radiation_frequencies::N_omega,
                                     parameters::N_observer);
 
@@ -537,9 +535,9 @@ private:
                                        radiation_frequencies::N_omega,
                                        parameters::N_observer);
 
-      splash::Dimensions stride(6,1,1);
+      splash::Dimensions stride(Amplitude::numComponents,1,1);
 
-      for(unsigned int ampIndex=0; ampIndex<6; ++ampIndex)
+      for(uint ampIndex=0; ampIndex < Amplitude::numComponents; ++ampIndex)
       {
           splash::Dimensions offset(ampIndex,0,0);
           splash::Selection dataSelection(bufferSize,
@@ -596,7 +594,7 @@ private:
       const int N_tmpBuffer = radiation_frequencies::N_omega * parameters::N_observer;
       numtype2* tmpBuffer = new numtype2[N_tmpBuffer];
 
-      for(int ampIndex=0; ampIndex<6; ++ampIndex)
+      for(uint ampIndex=0; ampIndex < Amplitude::numComponents; ++ampIndex)
       {
           HDF5dataFile.read(timeStep,
                             dataLabels(ampIndex).c_str(),
@@ -606,7 +604,7 @@ private:
           for(int copyIndex = 0; copyIndex < N_tmpBuffer; ++copyIndex)
           {
               /* convert data directly because Amplutude is just 6 double */
-              ((numtype2*)values)[ampIndex + 6*copyIndex] = tmpBuffer[copyIndex];
+              ((numtype2*)values)[ampIndex + Amplitude::numComponents*copyIndex] = tmpBuffer[copyIndex];
           }
 
       }

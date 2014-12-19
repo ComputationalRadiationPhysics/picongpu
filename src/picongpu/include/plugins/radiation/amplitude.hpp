@@ -29,6 +29,9 @@
 class Amplitude
 {
 public:
+  // number of scalars of type numtype2 in Amplitude = 3 (3D) * 2 (complex) = 6
+  static const uint numComponents = 3 * sizeof(Complex) / sizeof(numtype2);
+
   /** constructor 
    * 
    * Arguments:
@@ -139,7 +142,7 @@ namespace mpi
   MPI_StructAsArray getMPI_StructAsArray< ::Amplitude >()
   {
       MPI_StructAsArray result = getMPI_StructAsArray< ::Complex::Type > ();
-      result.sizeMultiplier *= 6;
+      result.sizeMultiplier *= Amplitude::numComponents;
       return result;
   };
 
