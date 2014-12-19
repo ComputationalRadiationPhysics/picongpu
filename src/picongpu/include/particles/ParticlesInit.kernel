@@ -35,6 +35,7 @@
 #include "nvidia/rng/distributions/Uniform_float.hpp"
 #include "particles/init/particleInitRandomPos.hpp"
 
+#include "particles/operations/SetAttributeToDefault.hpp"
 #include "compileTime/conversion/ResolveAndRemoveFromSeq.hpp"
 
 
@@ -64,28 +65,6 @@ DINLINE float_X calcRealDensity(const DataSpace<Dim>& offset,
     const float_X value = gasProfile::calcNormedDensity(physicalCellPosition, localCellIdx, fieldTmp) * GAS_DENSITY;
     return value;
 }
-
-/** Set a particle attribute to the default value
- *
- * @tparam T_Attribute attribute type (pmacc alias is allowed)
- */
-template<typename T_Attribute>
-struct SetToDefault
-{
-    typedef T_Attribute Attribute;
-
-    /** set attribute to the default value
-     *
-     * @tparam T_Partcile particle type
-     */
-    template<typename T_Particle>
-    HDINLINE
-    void operator()(T_Particle& particle)
-    {
-        typedef typename PMacc::traits::Resolve<Attribute>::type ResolvedAttr;
-        particle[Attribute()] = ResolvedAttr::getDefaultValue();
-    }
-};
 
 template< typename ParBox, typename FieldBox, class Mapping>
 __global__ void kernelFillGridWithParticles(ParBox pb,
@@ -219,7 +198,7 @@ __global__ void kernelFillGridWithParticles(ParBox pb,
                 typedef typename ResolveAndRemoveFromSeq<ParticleAttrList, AttrToIgnore>::type ParticleCleanedAttrList;
 
                 algorithms::forEach::ForEach<ParticleCleanedAttrList,
-                    SetToDefault<bmpl::_1> > setToDefault;
+                    SetAttributeToDefault<bmpl::_1> > setToDefault;
                 setToDefault(forward(particle));
             }
             particle[position_] = pos;
