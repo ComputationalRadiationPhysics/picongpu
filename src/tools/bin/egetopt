@@ -42,7 +42,6 @@ help()
     echo "           BOB --foo ALICE  is the same as BOB --foo=ALICE"
     echo ""
     echo "NOT SUPPORTED:"
-    echo "    - space between optional argument and option"
     echo '    - begin an option with `+`'
     echo "    - abbreviation of long options"
     echo ""
