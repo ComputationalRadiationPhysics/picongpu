@@ -161,8 +161,10 @@ namespace operations
 namespace detail
 {
 
-/** Assign all attributes from a particle out of another one
+/** Assign common attributes of two particle species
  *
+ * Assigns all attributes in ValueTypeSeq1 that also exist in T_ValueTypeSeq2
+ * from T_FrameType1 to T_FrameType2.
  */
 template<
 typename T_FrameType1, typename T_ValueTypeSeq1,
@@ -180,7 +182,7 @@ PMacc::Particle<T_FrameType2, T_ValueTypeSeq2>
     typedef typename Dest::ValueTypeSeq DestTypeSeq;
     typedef typename Src::ValueTypeSeq SrcTypeSeq;
 
-    /* create attribute list with subset of both attribute sequences
+    /* create attribute list with a subset of common attributes in two sequences
      * bmpl::contains has lower complexity than traits::HasIdentifier
      * and was used for this reason
      */
@@ -188,35 +190,35 @@ PMacc::Particle<T_FrameType2, T_ValueTypeSeq2>
             DestTypeSeq,
             bmpl::contains<SrcTypeSeq, bmpl::_1>,
             bmpl::back_inserter< bmpl::vector0<> >
-            >::type SubSetTypeSeq;
+            >::type CommonTypeSeq;
 
-    /* create complementary set of both attribute sequences*/
+    /* create sequences with disjunct attributes from `DestTypeSeq` */
     typedef typename bmpl::copy_if<
             DestTypeSeq,
             bmpl::not_<bmpl::contains<SrcTypeSeq, bmpl::_1> >,
             bmpl::back_inserter< bmpl::vector0<> >
-            >::type ComplementarySetTypeSeq;
+            >::type UniqueInDestTypeSeq;
 
     /** Assign particle attributes
      *
-     * The subset of the attribute lists from both particles is
-     * used to assign the attributes in dest out of src.
-     * The complementary set of dest and src is used to set
-     * attributes of dest to their default value.
+     * The common subset of the attribute lists from both particles is
+     * used to set the attributes in dest with the corresponding ones from src.
+     * The remaining attributes that only exist in dest (UniqueInDestTypeSeq)
+     * are simply set to their default values.
      *
-     * @param dest destination particles witch is assigned
+     * @param dest destination particle that shall be initialized/assigned with values from src
      * @param src source particle were attributes are loaded from
      */
     HDINLINE
     void operator()(Dest& dest, const Src& src)
     {
         /* assign attributes from src to dest*/
-        algorithms::forEach::ForEach<SubSetTypeSeq,
+        algorithms::forEach::ForEach<CommonTypeSeq,
             CopyIdentifier<bmpl::_1> > copy;
         copy(forward(dest), src);
 
         /* set all attributes which are not in src to their default value*/
-        algorithms::forEach::ForEach<ComplementarySetTypeSeq,
+        algorithms::forEach::ForEach<UniqueInDestTypeSeq,
             SetAttributeToDefault<bmpl::_1> > setAttributeToDefault;
         setAttributeToDefault(forward(dest));
 

@@ -28,7 +28,7 @@
 namespace PMacc
 {
 
-/** set an attribute of a particle to their default value
+/** set an attribute of a particle to its default value
  *
  * @tparam  T_Attribute value_identifier or alias which is a value_identifier
  */
