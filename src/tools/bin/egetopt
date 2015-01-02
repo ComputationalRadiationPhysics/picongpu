@@ -1,0 +1,152 @@
+#!/bin/bash
+#
+# Copyright 2014 Rene Widera
+#
+# This file is part of PIConGPU.
+#
+# PIConGPU is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# PIConGPU is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with PIConGPU.
+# If not, see <http://www.gnu.org/licenses/>.
+#
+
+
+help()
+{
+    echo "egetopt (extended getopt)"
+    echo ""
+    echo "extent the program getopt to support more syntax"
+    echo "allow argument assignment with space between option and argument"
+    echo ""
+    echo "usage: egetopt [-h] [getopt_ARGUMENTS] ++ parameters"
+    echo ""
+    echo "-h | --help                    - Shows help (this output)."
+    echo " "
+    echo "ATTENTION:" 
+    echo "    - If you use optional arguments the result is only valid" 
+    echo "      when you allow minimum one non option argument"
+    echo "    - If more than one non option argument is given and the last"
+    echo "      option has an optional argument the argument is assigned to"
+    echo "      the option" 
+    echo "      e.g. --foo has an optional argument"
+    echo "           --foo ALICE BOB  is the same as --foo=ALICE BOB"
+    echo "           BOB --foo ALICE  is the same as BOB --foo=ALICE"
+    echo ""
+    echo "NOT SUPPORTED:"
+    echo "    - space between optional argument and option"
+    echo '    - begin an option with `+`'
+    echo "    - abbreviation of long options"
+    echo ""
+    echo ""
+    echo 'output of `getopt` help:'
+    getopt -h 2>&1
+}
+
+# arguments for getopt
+egetOptArgs=`echo $* | sed 's/++.*$//g'`
+# user arguments
+userArgs=`echo $* | sed 's/^.*++//g'`
+ 
+# evaluate options for getopt 
+OPTS=`getopt -o o:l:n:qhV -l help,options:,longoptions:version -- $egetOptArgs`
+eval set -- "$OPTS"
+
+shortDef=""
+longDef=""
+getOptArgs=""
+while true ; do
+    case "$1" in
+        -o)
+            shortDef="$2"
+            getOptArgs+=" $1 $2"
+            shift
+            ;;
+        -l)
+            longDef="$2"
+            getOptArgs+=" $1 $2"
+            shift
+            ;;
+        -h|--help)
+            # overwrite `getopt` help
+            echo -e "$(help)"
+            shift
+            exit 1
+            ;;
+        --) 
+            shift
+            break
+            ;;
+        *)
+            getOptArgs+=" $1"
+            ;;
+    esac
+    shift
+done
+
+# begin the transform the user arguments
+# -- is appended to define the end of the arguments
+eval set -- "$userArgs --"
+
+# nonOptionCheck is only important if the last options were scanned
+# e.g. -s has optional argument
+# 
+# transform: `-s foo NONOPTION --`, `-s foo -f foo [...] --`
+# not transform: `-s NONOPTION --`
+#
+# if nenOptionCheck is set to 3 it is possible to transform
+# `NONOPTION -s foo`
+#   
+nonOptionCheck=4
+transformedArgs="" 
+
+disableCecks=""
+while true ; do
+    case "$1" in
+        --) 
+            shift 
+            break
+            ;;
+        *)
+            transformedArgs+=" $1"
+            if [ -z $disableCecks ] ; then
+                # transform short option if no argument is directly appended
+                if [[ $1 =~ ^-.?$ ]] && [[ ! $2 =~ ^- ]] ; then
+                    theShortOpt=`echo $1 | tr -d "-"`
+                    if [ $# -ge $nonOptionCheck ] && [[ $shortDef =~ $theShortOpt: ]] ; then
+                        # append argument to option
+                        transformedArgs+="$2"
+                        shift
+                    fi
+                # transform long option if no argument with `=` is set
+                elif [[ $1 =~ ^-- ]] && [[ ! $1 =~ .*=.* ]] && [[ ! $2 =~ ^- ]] ; then
+                    theLongOpt=`echo $1 | sed 's/--//g'`
+                    if [ $# -ge $nonOptionCheck ] && [[ $longDef =~ $theLongOpt: ]] ; then
+                        # append argument to option
+                        transformedArgs+="=$2"
+                        shift
+                    fi
+                elif [[ ! $1 =~ ^-- ]] && [[ ! $1 =~ ^-.*$ ]] ; then 
+                    if [ -z "$POSIXLY_CORRECT" ] ; then
+                        if [ $nonOptionCheck -eq 4 ] ; then
+                            nonOptionCheck=3
+                        fi
+                    else
+                        disableCecks="true"
+                    fi
+                fi
+            fi 
+            ;;
+    esac
+    shift
+done    
+
+getopt $getOptArgs -- $transformedArgs
