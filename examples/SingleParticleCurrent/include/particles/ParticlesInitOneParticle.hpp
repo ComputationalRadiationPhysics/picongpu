@@ -32,7 +32,7 @@
 #include "dimensions/DataSpaceOperations.hpp"
 
 #include "plugins/radiation/parameters.hpp"
-#include "particles/ParticlesInit.kernel"
+#include "particles/operations/SetAttributeToDefault.hpp"
 
 namespace picongpu
 {
@@ -73,7 +73,7 @@ __global__ void kernelAddOneParticle(ParBox pb,
             typedef typename ResolveAndRemoveFromSeq<ParticleAttrList, AttrToIgnore>::type ParticleCleanedAttrList;
 
             algorithms::forEach::ForEach<ParticleCleanedAttrList,
-                SetToDefault<bmpl::_1> > setToDefault;
+                SetAttributeToDefault<bmpl::_1> > setToDefault;
             setToDefault(forward(par));
         }
         float3_X pos = float3_X(LOCAL_POS_X, LOCAL_POS_Y, LOCAL_POS_Z);
