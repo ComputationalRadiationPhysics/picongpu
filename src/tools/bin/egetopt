@@ -24,7 +24,7 @@ help()
 {
     echo "egetopt (extended getopt)"
     echo ""
-    echo "extent the program getopt to support more syntax"
+    echo "extend the program getopt to support a different syntax for optional arguments"
     echo "allow argument assignment with space between option and argument"
     echo ""
     echo "usage: egetopt [-h] [getopt_ARGUMENTS] ++ parameters"
@@ -32,8 +32,9 @@ help()
     echo "-h | --help                    - Shows help (this output)."
     echo " "
     echo "ATTENTION:" 
-    echo "    - If you use optional arguments the result is only valid" 
-    echo "      when you allow minimum one non option argument"
+    echo "    - if you require at least one non-option argument (an argument not" 
+    echo "      starting with - or --) the result is only valid when you allow"
+    echo "      minimum one non-option argument"
     echo "    - If more than one non option argument is given and the last"
     echo "      option has an optional argument the argument is assigned to"
     echo "      the option" 
@@ -43,7 +44,7 @@ help()
     echo ""
     echo "NOT SUPPORTED:"
     echo '    - begin an option with `+`'
-    echo "    - abbreviation of long options"
+    echo '    - abbreviations of getopt `longoptions`'
     echo ""
     echo ""
     echo 'output of `getopt` help:'
