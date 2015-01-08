@@ -24,7 +24,7 @@
 TBG_queue="batch"
 TBG_mailSettings="bea"
 TBG_mailAdress="someone@example.com"
-TBG_nameProject=APH005
+TBG_nameProject=${proj:-""}
 
 # use ceil to caculate nodes
 TBG_nodes=!TBG_tasks
@@ -55,7 +55,11 @@ echo -n "present working directory:"
 pwd
 
 
-source $MEMBERWORK/aph005/picongpu.profile 2>/dev/null
+source $MEMBERWORK/!TBG_nameProject/picongpu.profile 2>/dev/null
+if [ $? -ne 0 ] ; then
+  echo "Error: picongpu.profile not found in MEMBERWORK"
+  exit 1
+fi
 
 export SCOREP_ENABLE_PROFILING=no
 export SCOREP_ENABLE_TRACING=yes
