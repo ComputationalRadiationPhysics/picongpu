@@ -1,6 +1,19 @@
 PIConGPU Install Guide
 ======================
 
+Overview
+--------
+
+![Overview of PIConGPU Library Dependencies](libraryDependencies.png)
+
+*Figure:* Overview of inter-library dependencies for parallel execution of
+PIConGPU on a typical HPC system. Due to common binary incompatibilities
+between compilers, MPI and boost versions, we recommend to deploy a
+hierarchical module system such as [lmod](https://github.com/TACC/Lmod).
+An example setup can be found
+[here](https://github.com/ComputationalRadiationPhysics/compileNode).
+
+
 Requirements
 ------------
 
