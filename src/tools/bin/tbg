@@ -160,14 +160,14 @@ help()
     echo "TBG (template batch generator)"
     echo "create a new folder for a batch job and copy in all important files"
     echo ""
-    echo "usage: tbg -c cfgFile [-s submitsystem] [-t templateFile] [-p project] [-o \"VARNAME1=10 VARNAME2=5\"] [-h] destinationPath"
+    echo "usage: tbg -c cfgFile [-s [submitsystem]] [-t [templateFile]] [-p project] [-o \"VARNAME1=10 VARNAME2=5\"] [-h] destinationPath"
     echo ""
     echo "-c | --cfg      file           - Configuration file to set up batch file."
-    echo "-s | --submit   command        - Submit command (qsub, \"qsub -h\", sbatch, ...)"
-    echo "                                 Default: via export TBG_SUBMIT"
-    echo "-t | --tpl      file           - Template to create a batch file from."
+    echo "-s | --submit   [command]      - Submit command (qsub, \"qsub -h\", sbatch, ...)"
+    echo "                                 Default: [submitsystem] via export TBG_SUBMIT"
+    echo "-t | --tpl      [file]         - Template to create a batch file from."
     echo "                                 tbg will use stdin, if no file is specified."
-    echo "                                 Default: via export TBG_TPLFILE"
+    echo "                                 Default: [templateFile] via export TBG_TPLFILE"
     echo "-p | --project  folder         - Project folder containing sourcecode and binaries"
     echo "                                 Default: current directory"
     echo "-o                             - Overwrite any template variable:"
@@ -190,26 +190,39 @@ help()
 initCall="$0 $*"
 projectPath="."
 
-# options may be followed by one colon to indicate they have a required argument
-OPTS=`getopt -o p:t:c:s:o:h -l project:,tpl:,cfg:,submit:,help -- "$@"`
+pathToegetopt=`which egetopt`
+if [ $? -eq 0 ] ; then
+    pathToegetopt=`dirname $pathToegetopt`
+else
+    pathToegetopt=`dirname $0`
+fi
+
+egetoptTool=`which $pathToegetopt/egetopt`
+if [ $? -ne 0 ] ; then
+    echo "Can't find program egetopt" >&2
+    exit 1
+fi
+
+# options may be followed by 
+# - one colon to indicate they has a required argument
+# - two colons to indicate they has a optional argument
+OPTS=`$egetoptTool -o p:t::c:s::o:h -l project:,tpl::,cfg:,submit::,help -n tbg ++ "$@"`
 if [ $? != 0 ] ; then
-    # something went wrong, getopt will put out an error message for us
+    # something went wrong, egetopt will put out an error message for us
     exit 1
 fi
 
 eval set -- "$OPTS"
 
-# default parameters from environment variables (e.g. in a .profile file)
-#   -s | --submit
-submit_command=${TBG_SUBMIT:-""}
-#   -t | --tpl
-tooltpl_file=${TBG_TPLFILE:-""}
-
 # parser
 while true ; do
     case "$1" in
         -s|--submit)
-            submit_command="$2"
+            submit_command=${2:-$TBG_SUBMIT}
+            if [ -z "$submit_command" ] ; then
+                echo "missing submit command for -s|--submit" >&2
+                exit 1
+            fi
             shift
             ;;
        -p|--project)
@@ -225,7 +238,7 @@ while true ; do
             shift
             ;;
        -t|--tpl)
-            tooltpl_file="$2"
+            tooltpl_file=${2:-$TBG_TPLFILE}
             shift
             ;;
         -h|--help)
