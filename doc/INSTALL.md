@@ -19,15 +19,14 @@ Requirements
 
 ### Mandatory
 
-- **gcc** 4.4 to 4.8 (depends on current CUDA version)
+- **gcc** 4.6 to 4.8 (depends on your current [CUDA version](https://gist.github.com/ax3l/9489132))
   - *Debian/Ubuntu:*
-    - `sudo apt-get install gcc-4.4 g++-4.4 build-essential`
-    - `sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.4 60 \`
-      `--slave /usr/bin/g++ g++ /usr/bin/g++-4.4`
+    - `sudo apt-get install gcc-4.6 g++-4.6 build-essential`
+    - `sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.6 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.6`
   - *Arch Linux:*
     - `sudo pacman --sync base-devel`
     - the installed version of **gcc** might be too new. [Compile an older gcc](https://gist.github.com/slizzered/a9dc4e13cb1c7fffec53)
-  - *experimental alternatives:* **icc 12.1** with **cuda 5.5**
+  - *experimental alternatives:* **icc** since **cuda 5.5**
 
 - [CUDA 5.0](https://developer.nvidia.com/cuda-downloads) or higher
   - **Attention:** You must use at least the 5.5+ [drivers](http://www.nvidia.com/Drivers)
