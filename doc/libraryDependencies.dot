@@ -1,0 +1,44 @@
+/* Generate the output
+ *
+ * Debian: apt-get install libgraph-easy-perl
+ * Command:
+ *   graph-easy --input=libraryDependencies.dot --boxart > libraryDependencies.md
+ *   graph-easy --input=libraryDependencies.dot --as_ascii > libraryDependencies.txt
+ *   graph-easy --input=libraryDependencies.dot --svg > libraryDependencies.svg
+ *   graph-easy --input=libraryDependencies.dot --png
+ */
+
+digraph PIConGPU {
+    compiler -> cuda;
+    compiler -> mpi;
+    compiler -> boost;
+    compiler -> python;
+    compiler -> zlib;
+    compiler -> libmxml;
+    compiler -> libpng;
+
+    cuda -> mpi [style=dashed label="cuda-awareness"];
+    batchSystem -> mpi;
+    fileSystem -> mpi [style=dashed label="extra hints"];
+
+    python [label="python-dev"];
+    python -> boost [style=dashed label="Boost::Python"];
+
+    hdf5 [label="hdf5-parallel"];
+    mpi -> hdf5;
+    zlib -> hdf5;
+    hdf5 -> libSplash;
+    boost -> libSplash [style=dashed label="tools"];
+
+    adios [label="adios-parallel"];
+    mpi -> adios;
+    libmxml -> adios;
+    hdf5 -> adios [style=dashed label="optional"];
+    fileSystem -> adios [style=dashed label="extra hints"];
+
+    libpng -> PNGwriter;
+
+    trace [label="VampirTrace / Score-P"];
+    mpi -> trace;
+    cuda -> trace;
+}
