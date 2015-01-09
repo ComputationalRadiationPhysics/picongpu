@@ -605,7 +605,7 @@ public:
 
         //create image particles
         __picKernelArea((kernelPaintParticles3D), *cellDescription, CORE + BORDER)
-            (SuperCellSize::toRT().toDim3(), blockSize2D.productOfComponents() * sizeof (int))
+            (SuperCellSize::toRT().toDim3(), blockSize2D.productOfComponents() * sizeof (float_X))
             (particles->getDeviceParticlesBox(),
              img->getDeviceBuffer().getDataBox(),
              transpose,
