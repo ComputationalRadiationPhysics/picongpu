@@ -1,4 +1,5 @@
-export PICSRC=/home/`whoami`/src/picongpu
+# Modules #####################################################################
+#
 
 if [ -f /etc/profile.modules ]
 then
@@ -8,17 +9,17 @@ then
 
         # Core Dependencies
         module load gcc/4.6.2
-        module load cmake/2.8.10
+        module load cmake/3.0.1
         module load openmpi/1.6.3
         module load boost/1.54.0
         module load cuda/6.5
 
         # Plugins (optional)
         module load pngwriter/0.5.4
-        module load hdf5-parallel/1.8.11 libsplash/1.2.2
+        module load hdf5-parallel/1.8.14 libsplash/1.2.3
 
         # either use libSplash or ADIOS for file I/O
-        #module load libmxml/2.8 filelib/adios/1.6.0
+        #module load libmxml/2.8 filelib/adios/1.7.0
 
         # Debug Tools
         #module load valgrind/3.8.1
@@ -27,8 +28,18 @@ then
 #       unset MODULES_NO_OUTPUT
 fi
 
+# Environment #################################################################
+#
 alias getk20='qsub -I -q k20 -lwalltime=00:30:00 -lnodes=1:ppn=8'
 alias getlaser='qsub -I -q laser -lwalltime=00:30:00 -lnodes=1:ppn=16'
 
+export PICSRC=/home/`whoami`/src/picongpu
+
 export PATH=$PATH:$PICSRC/src/splash2txt/build
 export PATH=$PATH:$PICSRC/src/tools/bin
+
+# "tbg" default options #######################################################
+#   - PBS/Torque (qsub)
+#   - "k20" queue
+export TBG_SUBMIT="qsub"
+export TBG_TPLFILE="submit/hypnos/k20_profile.tpl"

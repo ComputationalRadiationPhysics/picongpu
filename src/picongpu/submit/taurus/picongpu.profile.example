@@ -35,3 +35,9 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/lib/splash/lib/
 
 export PICSRC=$HOME/src/picongpu
 export PATH=$PATH:$PICSRC/src/tools/bin
+
+# "tbg" default options #######################################################
+#   - SLURM (sbatch)
+#   - "gpu" queue
+export TBG_SUBMIT="sbatch"
+export TBG_TPLFILE="submit/taurus/k20x_profile.tpl"
