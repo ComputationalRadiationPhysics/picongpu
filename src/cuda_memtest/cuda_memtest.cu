@@ -38,8 +38,7 @@
  * DEALINGS WITH THE SOFTWARE.
  */
 
-#include "cuda_memtest.h"
-#include <cublas.h>
+#include "misc.h"
 #include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -47,7 +46,6 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <signal.h>
-#include <cuda.h>
 
 #define MAX_NUM_GPUS 8
 bool useMappedMemory;
@@ -65,7 +63,6 @@ unsigned int global_pattern = 0;
 unsigned long global_pattern_long = 0;
 char emails[128];
 unsigned int report_interval = 1800;  //senconds
-unsigned long long serial_number = 0;
 unsigned int num_iterations = 1000;
 unsigned int num_passes = 0;
 unsigned int healthy_threads = 0;
@@ -78,39 +75,23 @@ pthread_mutex_t atomic_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void run_tests(char*, unsigned int);
 extern void update_temperature(void);
-extern unsigned long long get_serial_number(void);
 extern void allocate_small_mem(void);
 
 typedef struct arg_s{
     unsigned int device;
 }arg_t;
 
-/*
-
-struct cudaDeviceProp {
-    char name[256];
-    size_t totalGlobalMem;
-    size_t sharedMemPerBlock;
-    int regsPerBlock;
-    int warpSize;
-    size_t memPitch;
-    int maxThreadsPerBlock;
-    int maxThreadsDim[3];
-    int maxGridSize[3];
-    size_t totalConstMem;
-    int major;
-    int minor;
-    int clockRate;
-    size_t textureAlignment;
-    int deviceOverlap;
-    int multiProcessorCount;
-    int kernelExecTimeoutEnabled;
-}
-*/
 void
 display_device_info(struct cudaDeviceProp* prop)
 {
-    PRINTF("Device name=%s, global memory size=%zu\n", prop->name, prop->totalGlobalMem);
+#if !defined(NVML_DEVICE_SERIAL_BUFFER_SIZE)
+    char devSerialNum[] = "unknown (no NVML found)";
+#else
+    char devSerialNum[NVML_DEVICE_SERIAL_BUFFER_SIZE];
+    get_serial_number( gpu_idx, devSerialNum );
+#endif
+
+    PRINTF("Device name=%s, global memory size=%zu, serial=%s\n", prop->name, prop->totalGlobalMem, devSerialNum);
     return;
 }
 
@@ -145,7 +126,7 @@ thread_func(void* _arg)
 
 
 
-    struct cudaDeviceProp prop;
+    cudaDeviceProp prop;
     cudaGetDeviceProperties(&prop, device); CUERR;
 
     display_device_info(&prop);
@@ -253,7 +234,6 @@ usage(char** argv)
     printf("--list_tests                List all test descriptions\n");
     printf("--num_iterations <n>        Set the number of iterations (only effective on test0 and test10)\n");
     printf("--num_passes <n>            Set the number of test passes (this affects all tests)\n");
-    printf("--disable_serial_number     Disable reporting serial number\n");
     printf("--verbose <n>               Setting verbose level\n");
     printf("                              0 -- Print out test start and end message only (default)\n");
     printf("                              1 -- Print out pattern messages in test\n");
@@ -397,6 +377,11 @@ main(int argc, char** argv)
 	}
 
 	if (strcmp(argv[i], "--monitor_temp") == 0){
+	    if( ENABLE_NVML != 1 )
+	    {
+		printf("ERROR: --monitor_temp <interval> requires NVML (not found)\n\n");
+		usage(argv);
+	    }
 	    monitor_temp =1;
 	    if (i+1 >= argc){
 		usage(argv);
@@ -484,7 +469,7 @@ main(int argc, char** argv)
 	}
 
 	if (strcmp(argv[i], "--disable_serial_number") == 0){
-	    disable_serial_number= 1;
+	    printf("DEPRECATED: --disable_serial_number is ignored\n");
 	    continue;
 	}
 
@@ -507,10 +492,6 @@ main(int argc, char** argv)
 	usage(argv);
     }
 
-    if (!disable_serial_number){
-	serial_number  = get_serial_number();
-    }
-
     get_driver_info(driver_info, MAX_STR_LEN);
 
     PRINTF("num_gpus=%d\n", num_gpus);
@@ -524,6 +505,10 @@ main(int argc, char** argv)
 	    exit(ERR_GENERAL);
 	}
     }
+
+#if (ENABLE_NVML==1)
+    NVML_CHECK(nvmlInit());
+#endif
 
     arg_t args[MAX_NUM_GPUS];
     pthread_t pid[MAX_NUM_GPUS];

@@ -39,7 +39,7 @@
  */
 
 #include <stdio.h>
-#include "cuda_memtest.h"
+#include "misc.h"
 #include <cuda.h>
 #include <sys/time.h>
 #include <unistd.h>
@@ -60,7 +60,6 @@ extern unsigned int email_notification;
 extern char emails[];
 extern unsigned int global_pattern;
 extern unsigned long global_pattern_long;
-extern unsigned long long serial_number;
 extern unsigned int num_iterations;
 extern unsigned int num_passes;
 extern char driver_info[MAX_STR_LEN];
@@ -130,8 +129,14 @@ error_checking(const char* msg, unsigned int blockidx)
 	FPRINTF("ERROR: %s",  driver_info);
 	emsg += sprintf(emsg, "ERROR: %s", driver_info);
 
-	FPRINTF("ERROR: The unit serial number is %llu\n",  serial_number);
-	emsg += sprintf(emsg, "ERROR: The unit serial number is %llu\n",  serial_number);
+#if !defined(NVML_DEVICE_SERIAL_BUFFER_SIZE)
+    char devSerialNum[] = "unknown (no NVML found)";
+#else
+    char devSerialNum[NVML_DEVICE_SERIAL_BUFFER_SIZE];
+    get_serial_number( gpu_idx, devSerialNum );
+#endif
+	FPRINTF("ERROR: The unit serial number is %s\n", devSerialNum);
+	emsg += sprintf(emsg, "ERROR: The unit serial number is %s\n", devSerialNum);
 
 	FPRINTF("ERROR: (%s) %d errors found in block %d\n", msg, err, blockidx);
 	emsg += sprintf(emsg, "ERROR: (%s) %d errors found in block %d\n", msg, err, blockidx);
