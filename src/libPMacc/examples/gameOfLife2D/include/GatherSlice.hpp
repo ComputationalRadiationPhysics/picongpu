@@ -101,8 +101,8 @@ struct GatherSlice
         header = mHeader;
 
         int countRanks = Environment<DIM2>::get().GridController().getGpuNodes().productOfComponents();
-        int gatherRanks[countRanks];
-        int groupRanks[countRanks];
+        std::vector<int> gatherRanks(countRanks);
+        std::vector<int> groupRanks(countRanks);
         mpiRank = Environment<DIM2>::get().GridController().getGlobalRank();
         if (!isActive)
             mpiRank = -1;
