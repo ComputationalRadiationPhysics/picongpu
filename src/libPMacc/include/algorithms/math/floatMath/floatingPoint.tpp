@@ -25,7 +25,6 @@
 
 #include "types.h"
 
-#include <boost/predef.h>
 
 namespace PMacc
 {
