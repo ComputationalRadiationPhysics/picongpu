@@ -14,6 +14,9 @@ module load gcc/4.8.0 boost/1.55.0-gnu4.8
 ### ICC
 #module load intel/2013-sp1 boost/1.57.0-intel2013-sp1
 ### PGI
+#export BOOST_ROOT=$HOME/lib/boost_1_54_pgi_13_6
+#export BOOST_INC=$BOOST_ROOT/include
+#export BOOST_LIB=$BOOST_ROOT/lib
 # must be set in `which <pgiDir>/bin/localrc`:
 #   set NOSWITCHERROR=YES;
 #module load pgi/14.1 boost/1.55.0-pgi14.1
