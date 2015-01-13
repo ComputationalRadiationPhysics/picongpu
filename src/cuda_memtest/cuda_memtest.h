@@ -148,7 +148,7 @@ extern void get_driver_info(char* info, unsigned int len);
 
 #define NVML_CHECK_MSG(cmd,msg) {nvmlReturn_t returnVal = cmd; if(returnVal!=NVML_SUCCESS){std::cerr<<"<"<<__FILE__<<">:"<<__LINE__<<msg<<std::endl; throw std::runtime_error(std::string("[NVML] Error: ") + std::string(nvmlErrorString(returnVal)));}}
 
-#define NVML_CHECK_NO_EXCEP(cmd) {nvmlReturn_t returnVal = cmd; if(returnVal!=NVML_SUCCESS){printf("[NVML] Error: <%s>:%i ",__FILE__,__LINE__);}}
+#define NVML_CHECK_NO_EXCEP(cmd) {nvmlReturn_t returnVal = cmd; if(returnVal!=NVML_SUCCESS){std::cerr<<"[NVML] Error: <"<<__FILE__<<">:"<<__LINE__<<std::endl;}}
 #endif
 
 #define TDIFF(tb, ta) (tb.tv_sec - ta.tv_sec + 0.000001*(tb.tv_usec - ta.tv_usec))

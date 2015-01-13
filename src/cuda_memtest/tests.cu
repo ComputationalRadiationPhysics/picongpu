@@ -130,10 +130,10 @@ error_checking(const char* msg, unsigned int blockidx)
 	emsg += sprintf(emsg, "ERROR: %s", driver_info);
 
 #if !defined(NVML_DEVICE_SERIAL_BUFFER_SIZE)
-    char devSerialNum[] = "unknown (no NVML found)";
+	char devSerialNum[] = "unknown (no NVML found)";
 #else
-    char devSerialNum[NVML_DEVICE_SERIAL_BUFFER_SIZE];
-    get_serial_number( gpu_idx, devSerialNum );
+	char devSerialNum[NVML_DEVICE_SERIAL_BUFFER_SIZE];
+	get_serial_number( gpu_idx, devSerialNum );
 #endif
 	FPRINTF("ERROR: The unit serial number is %s\n", devSerialNum);
 	emsg += sprintf(emsg, "ERROR: The unit serial number is %s\n", devSerialNum);
