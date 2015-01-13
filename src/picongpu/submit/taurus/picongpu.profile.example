@@ -4,18 +4,15 @@ module purge
 #
 module load oscar-modules llview
 module load cmake/2.8.11 git
-module load cuda/5.0.35
+module load cuda/6.5.14  # gcc 4.8, intel 14.0 == 2013-sp1
 module load bullxmpi
 module load gnuplot/4.6.1
 
 # Compilers ###################################################################
 ### GCC
-#module load gcc/4.6.2 boost/1.54.0-gnu4.6
+module load gcc/4.8.0 boost/1.55.0-gnu4.8
 ### ICC
-module load intel/12.1 boost/1.54.0-intel12.1
-#export BOOST_ROOT=$HOME/lib/boost_1_54_intel_12_1
-#export BOOST_INC=$BOOST_ROOT/include
-#export BOOST_LIB=$BOOST_ROOT/lib
+#module load intel/2013-sp1 boost/1.57.0-intel2013-sp1
 ### PGI
 # must be set in `which <pgiDir>/bin/localrc`:
 #   set NOSWITCHERROR=YES;
