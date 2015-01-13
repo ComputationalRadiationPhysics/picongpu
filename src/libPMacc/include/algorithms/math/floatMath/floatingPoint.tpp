@@ -47,9 +47,9 @@ struct Floor<float>
 template<>
 struct Float2int_rd<float>
 {
-    typedef float result;
+    typedef int result;
 
-    HDINLINE result operator( )(result value)
+    HDINLINE result operator( )(float value)
     {
 #if __CUDA_ARCH__
         return ::__float2int_rd( value );
