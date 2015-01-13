@@ -18,6 +18,9 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 # set helper pathes to find libraries and packages
 set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{CUDA_ROOT}")
 
+# own modules for find_packages
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
+
 
 ################################################################################
 # Find CUDA 
@@ -42,6 +45,22 @@ if(SAME_NVCC_FLAGS_IN_SUBPROJECTS)
     make_directory("${PROJECT_BINARY_DIR}/nvcc_tmp")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" --keep --keep-dir "${PROJECT_BINARY_DIR}/nvcc_tmp")
   endif()
+endif()
+
+
+################################################################################
+# Find NVML
+################################################################################
+
+set(GPU_DEPLOYMENT_KIT_ROOT_DIR "$ENV{GDK_ROOT}")
+find_package(NVML)
+
+if(NVML_FOUND)
+    include_directories(${NVML_INCLUDE_DIR})
+    list(APPEND LIBS ${NVML_LIBRARY})
+    add_definitions(-DENABLE_NVML=1)
+else()
+    add_definitions(-DENABLE_NVML=0)
 endif()
 
 
