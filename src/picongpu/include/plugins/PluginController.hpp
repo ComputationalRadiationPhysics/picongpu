@@ -42,10 +42,8 @@
 #endif
 
 #if(ENABLE_RADIATION == 1)
-#if(ENABLE_HDF5 == 1)
 #include "plugins/radiation/parameters.hpp"
 #include "plugins/radiation/Radiation.hpp"
-#endif
 #endif
 
 #include "simulation_classTypes.hpp"
@@ -140,9 +138,7 @@ private:
     typedef PositionsParticles<PIC_Electrons> PositionElectrons;
     typedef BinEnergyParticles<PIC_Electrons> BinEnergyElectrons;
 #if(ENABLE_RADIATION == 1)
-#if(ENABLE_HDF5 == 1)
     typedef Radiation<PIC_Electrons> RadiationElectrons;
-#endif
 #endif
 #endif
 
@@ -234,9 +230,7 @@ private:
 #endif
 
 #if(ENABLE_RADIATION == 1)
-#if(ENABLE_HDF5 == 1)
         plugins.push_back(new RadiationElectrons("RadiationElectrons", "radiation_e"));
-#endif
 #endif
 
 #if (ENABLE_INSITU_VOLVIS == 1)
