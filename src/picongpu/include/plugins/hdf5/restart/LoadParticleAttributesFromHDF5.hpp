@@ -76,7 +76,20 @@ struct LoadParticleAttributesFromHDF5
 
         const std::string name_lookup[] = {"x", "y", "z"};
 
-        ComponentType* tmpArray = new ComponentType[elements];
+        ComponentType* tmpArray = NULL;
+        if( elements > 0 )
+            tmpArray = new ComponentType[elements];
+        else
+        {
+            /** This is a workaround to avoid the bug that processes hangs
+             *  if some call `DataCollector::read()` where elements to read is
+             *  zero and the destination pointer for the read data is set to `NULL`.
+             *  see: - `PIconGPU`  issu: https://github.com/ComputationalRadiationPhysics/picongpu/pull/611
+             *       - `libSplash` issu: https://github.com/ComputationalRadiationPhysics/libSplash/issues/148
+             * \todo: please remove this workaround after the libsplash bug is fixed
+             */
+            tmpArray = new ComponentType[1];
+        }
 
         ParallelDomainCollector* dataCollector = params->dataCollector;
         for (uint32_t d = 0; d < components; d++)
