@@ -42,10 +42,8 @@
 #endif
 
 #if(ENABLE_RADIATION == 1)
-#if(ENABLE_HDF5 == 1)
 #include "plugins/radiation/parameters.hpp"
 #include "plugins/radiation/Radiation.hpp"
-#endif
 #endif
 
 #include "simulation_classTypes.hpp"

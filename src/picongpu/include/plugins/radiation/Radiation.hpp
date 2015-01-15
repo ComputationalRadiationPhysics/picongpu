@@ -22,6 +22,10 @@
 
 #pragma once
 
+#if(ENABLE_HDF5 != 1)
+#error The activated radiation plugin (radiationConfig.param) requires HDF5
+#endif
+
 #include <string>
 #include <iostream>
 #include <fstream>

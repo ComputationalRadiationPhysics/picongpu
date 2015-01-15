@@ -71,8 +71,9 @@ Requirements
 
 ### Optional Libraries
 
-If you do not install the optional libraries, you will not have the full amount of PIConGPU online analysers.
+If you do not install the optional libraries, you will not have the full amount of PIConGPU plugins.
 We recomment to install at least **pngwriter**.
+Some of our examples will also need **libSplash**.
 
 - **pngwriter** >= 0.5.5
     - download our modified version from
