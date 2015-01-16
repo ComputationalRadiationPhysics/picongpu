@@ -23,7 +23,7 @@
 
 # 4 gpus per node if we need more than 4 gpus else same count as TBG_tasks
 TBG_gpusPerNode=`if [ $TBG_tasks -gt 4 ] ; then echo 4; else echo $TBG_tasks; fi`
-    
+
 #number of cores per parallel node / default is 2 cores per gpu on k20 queue
 TBG_coresPerNode="$(( TBG_gpusPerNode * 2 ))"
 
@@ -39,17 +39,17 @@ cd !TBG_dstPath
 export MODULES_NO_OUTPUT=1
 . ~/picongpu.profile
 unset MODULES_NO_OUTPUT
-    
+
 #set user rights to u=rwx;g=r-x;o=---
-umask 0027 
-    
+umask 0027
+
 mkdir simOutput 2> /dev/null
 cd simOutput
 
-mpirun --display-map -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/picongpu/bin/cuda_memtest.sh
+mpirun --display-map -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -x LD_LIBRARY_PATH -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/picongpu/bin/cuda_memtest.sh
 
 if [ $? -eq 0 ] ; then
-  mpirun  -tag-output --display-map -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/picongpu/bin/picongpu !TBG_programParams
+  mpirun  -tag-output --display-map -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -x LD_LIBRARY_PATH -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/picongpu/bin/picongpu !TBG_programParams
 fi
 
 mpirun  -npernode !TBG_gpusPerNode -n !TBG_tasks killall -9 picongpu
