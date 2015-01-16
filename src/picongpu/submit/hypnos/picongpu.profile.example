@@ -38,6 +38,14 @@ export PICSRC=/home/`whoami`/src/picongpu
 export PATH=$PATH:$PICSRC/src/splash2txt/build
 export PATH=$PATH:$PICSRC/src/tools/bin
 
+# Development #################################################################
+#
+#function make
+#{
+#  real_make=`which make`
+#  $real_make $* 2>&1 | $HOME/grcat/usr/bin/grcat conf.gcc
+#}
+
 # "tbg" default options #######################################################
 #   - PBS/Torque (qsub)
 #   - "k20" queue
