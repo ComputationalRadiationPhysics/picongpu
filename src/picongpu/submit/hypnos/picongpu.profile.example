@@ -35,6 +35,10 @@ alias getlaser='qsub -I -q laser -lwalltime=00:30:00 -lnodes=1:ppn=16'
 
 export PICSRC=/home/`whoami`/src/picongpu
 
+# send me a mails on job (b)egin, (e)nd, (a)bortion or (n)o mails
+export MY_MAIL="someone@example.com"
+export MY_MAILNOTIFY="n"
+
 export PATH=$PATH:$PICSRC/src/splash2txt/build
 export PATH=$PATH:$PICSRC/src/tools/bin
 
