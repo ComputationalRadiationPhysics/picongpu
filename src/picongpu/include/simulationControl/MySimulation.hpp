@@ -272,6 +272,8 @@ public:
         size_t freeGpuMem(0);
         Environment<>::get().EnvMemoryInfo().getMemoryInfo(&freeGpuMem);
         freeGpuMem -= totalFreeGpuMemory;
+        if( Environment<>::get().EnvMemoryInfo().isSharedMemoryPool() )
+            freeGpuMem /= 2;
 
         ForEach<VectorAllSpecies, particles::CallCreateParticleBuffer<bmpl::_1>, MakeIdentifier<bmpl::_1> > createParticleBuffer;
         createParticleBuffer(forward(particleStorage), freeGpuMem);

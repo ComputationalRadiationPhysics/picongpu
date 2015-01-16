@@ -25,6 +25,8 @@
 #include <cuda.h>
 #include "types.h"
 
+#include <cstring> // memset
+
 namespace PMacc
 {
 
@@ -40,8 +42,6 @@ namespace memory
 class MemoryInfo
 {
 public:
-
-    
     /**
      * Returns information about device memory.
      *
@@ -75,6 +75,29 @@ public:
         }
     }
 
+    /** Returns true if the memory pool is shared by host and device */
+    bool isSharedMemoryPool()
+    {
+        size_t freeInternal = 0;
+        size_t freeAtStart = 0;
+
+        getMemoryInfo(&freeAtStart);
+
+        // allocating 100% is a bit risky on a SoC-like device
+        size_t allocSth = size_t( 0.9 * double(freeAtStart) );
+        char* c = new char[allocSth];
+        memset(c,'-',allocSth);
+        // cudaDeviceSynchronize();
+
+        getMemoryInfo(&freeInternal);
+        delete [] c;
+
+        if( double(freeInternal)/double(freeAtStart) < 0.5 )
+            return true;
+
+        return false;
+    }
+
     void setReservedMemory(size_t reservedMem)
     {
         this->reservedMem = reservedMem;
@@ -84,18 +107,16 @@ protected:
     size_t reservedMem;
 
 private:
-    
     friend Environment<DIM1>;
     friend Environment<DIM2>;
     friend Environment<DIM3>;
-    
+
     static MemoryInfo& getInstance()
     {
         static MemoryInfo instance;
         return instance;
     }
 
-    
     MemoryInfo() :
     reservedMem(0)
     {
