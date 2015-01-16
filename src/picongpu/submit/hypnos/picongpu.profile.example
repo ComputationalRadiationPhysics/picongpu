@@ -13,6 +13,7 @@ then
         module load openmpi/1.6.3
         module load boost/1.54.0
         module load cuda/6.5
+        module load mallocmc/2.0.1
 
         # Plugins (optional)
         module load pngwriter/0.5.4
