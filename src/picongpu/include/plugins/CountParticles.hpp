@@ -31,7 +31,6 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-#include <sstream>
 
 #include "plugins/ISimulationPlugin.hpp"
 
@@ -44,12 +43,11 @@
 
 #include "particles/operations/CountParticles.hpp"
 
-#include <boost/filesystem.hpp>
+#include "common/txtFileHandling.hpp"
 
 namespace picongpu
 {
 using namespace PMacc;
-using namespace boost::filesystem;
 
 template<class ParticlesType>
 class CountParticles : public ISimulationPlugin
@@ -160,28 +158,10 @@ private:
         if( !writeToFile )
             return;
 
-        if( outFile.is_open() )
-            outFile.close();
-
-        std::stringstream sStep;
-        sStep << restartStep;
-
-        path src( restartDirectory + std::string("/") + filename +
-                  std::string(".") + sStep.str() );
-        path dst( filename );
-
-        copy_file( src,
-                   dst,
-                   copy_option::overwrite_if_exists );
-
-        outFile.open( filename.c_str(), std::ofstream::out | std::ostream::app );
-        if( !outFile )
-        {
-            std::cerr << "[Plugin] [" << analyzerPrefix
-                      << "] Can't open file '" << filename
-                      << "', output disabled" << std::endl;
-            writeToFile = false;
-        }
+        writeToFile = restoreTxtFile( outFile,
+                                      filename,
+                                      restartStep,
+                                      restartDirectory );
     }
 
     void checkpoint(uint32_t currentStep, const std::string checkpointDirectory)
@@ -189,18 +169,10 @@ private:
         if( !writeToFile )
             return;
 
-        outFile.flush();
-
-        std::stringstream sStep;
-        sStep << currentStep;
-
-        path src( filename );
-        path dst( checkpointDirectory + std::string("/") + filename +
-        std::string(".") + sStep.str() );
-
-        copy_file( src,
-                   dst,
-                   copy_option::overwrite_if_exists );
+        checkpointTxtFile( outFile,
+                           filename,
+                           currentStep,
+                           checkpointDirectory );
     }
 
     template< uint32_t AREA>
