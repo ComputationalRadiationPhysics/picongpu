@@ -34,13 +34,15 @@
 
 #include "simulation_classTypes.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
-#include "plugins/ILightweightPlugin.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 
 #include "mpi/reduceMethods/Reduce.hpp"
 #include "mpi/MPIReduce.hpp"
 #include "nvidia/functors/Add.hpp"
 
 #include "algorithms/Gamma.hpp"
+
+#include "common/txtFileHandling.hpp"
 
 namespace picongpu
 {
@@ -154,7 +156,7 @@ __global__ void kernelEnergyParticles(ParticlesBox<FRAME, simDim> pb,
 }
 
 template<class ParticlesType>
-class EnergyParticles : public ILightweightPlugin
+class EnergyParticles : public ISimulationPlugin
 {
 private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -282,6 +284,28 @@ private:
 
             __delete(gEnergy); /* free global memory on GPU */
         }
+    }
+
+    void restart(uint32_t restartStep, const std::string restartDirectory)
+    {
+        if( !writeToFile )
+            return;
+
+        writeToFile = restoreTxtFile( outFile,
+                                      filename,
+                                      restartStep,
+                                      restartDirectory );
+    }
+
+    void checkpoint(uint32_t currentStep, const std::string checkpointDirectory)
+    {
+        if( !writeToFile )
+            return;
+
+        checkpointTxtFile( outFile,
+                           filename,
+                           currentStep,
+                           checkpointDirectory );
     }
 
     /** method to call analysis and plugin-kernel calls **/
