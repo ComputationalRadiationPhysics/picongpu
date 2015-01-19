@@ -13,6 +13,7 @@ then
         module load openmpi/1.6.3
         module load boost/1.54.0
         module load cuda/6.5
+        module load mallocmc/2.0.1
 
         # Plugins (optional)
         module load pngwriter/0.5.4
@@ -35,8 +36,20 @@ alias getlaser='qsub -I -q laser -lwalltime=00:30:00 -lnodes=1:ppn=16'
 
 export PICSRC=/home/`whoami`/src/picongpu
 
+# send me a mails on job (b)egin, (e)nd, (a)bortion or (n)o mails
+export MY_MAIL="someone@example.com"
+export MY_MAILNOTIFY="n"
+
 export PATH=$PATH:$PICSRC/src/splash2txt/build
 export PATH=$PATH:$PICSRC/src/tools/bin
+
+# Development #################################################################
+#
+#function make
+#{
+#  real_make=`which make`
+#  $real_make $* 2>&1 | $HOME/grcat/usr/bin/grcat conf.gcc
+#}
 
 # "tbg" default options #######################################################
 #   - PBS/Torque (qsub)
