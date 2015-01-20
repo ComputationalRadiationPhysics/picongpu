@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, Rene Widera, Richard Pausch
+ * Copyright 2013-2015 Axel Huebl, Felix Schmitt, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -18,10 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef COUNTPARTICLES_HPP
-#define	COUNTPARTICLES_HPP
+#pragma once
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -35,7 +32,7 @@
 #include <iomanip>
 #include <fstream>
 
-#include "plugins/ILightweightPlugin.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 
 #include "mpi/reduceMethods/Reduce.hpp"
 #include "mpi/MPIReduce.hpp"
@@ -46,12 +43,14 @@
 
 #include "particles/operations/CountParticles.hpp"
 
+#include "common/txtFileHandling.hpp"
+
 namespace picongpu
 {
 using namespace PMacc;
 
 template<class ParticlesType>
-class CountParticles : public ILightweightPlugin
+class CountParticles : public ISimulationPlugin
 {
 private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -59,7 +58,7 @@ private:
     ParticlesType *particles;
 
     MappingDesc *cellDescription;
-    uint32_t notifyFrequency;
+    uint32_t notifyPeriod;
 
     std::string analyzerName;
     std::string analyzerPrefix;
@@ -78,7 +77,7 @@ public:
     filename(name + ".dat"),
     particles(NULL),
     cellDescription(NULL),
-    notifyFrequency(0),
+    notifyPeriod(0),
     writeToFile(false)
     {
         Environment<>::get().PluginConnector().registerPlugin(this);
@@ -102,7 +101,7 @@ public:
     {
         desc.add_options()
             ((analyzerPrefix + ".period").c_str(),
-             po::value<uint32_t > (&notifyFrequency), "enable plugin [for each n-th step]");
+             po::value<uint32_t > (&notifyPeriod), "enable plugin [for each n-th step]");
     }
 
     std::string pluginGetName() const
@@ -119,7 +118,7 @@ private:
 
     void pluginLoad()
     {
-        if (notifyFrequency > 0)
+        if (notifyPeriod > 0)
         {
             writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce());
 
@@ -135,13 +134,13 @@ private:
                 outFile << "#step count" << " \n";
             }
 
-            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
         }
     }
 
     void pluginUnload()
     {
-        if (notifyFrequency > 0)
+        if (notifyPeriod > 0)
         {
             if (writeToFile)
             {
@@ -152,6 +151,28 @@ private:
                 outFile.close();
             }
         }
+    }
+
+    void restart(uint32_t restartStep, const std::string restartDirectory)
+    {
+        if( !writeToFile )
+            return;
+
+        writeToFile = restoreTxtFile( outFile,
+                                      filename,
+                                      restartStep,
+                                      restartDirectory );
+    }
+
+    void checkpoint(uint32_t currentStep, const std::string checkpointDirectory)
+    {
+        if( !writeToFile )
+            return;
+
+        checkpointTxtFile( outFile,
+                           filename,
+                           currentStep,
+                           checkpointDirectory );
     }
 
     template< uint32_t AREA>
@@ -198,7 +219,4 @@ private:
 
 };
 
-}
-
-#endif	/* COUNTPARTICLES_HPP */
-
+} /* namespace picongpu */
