@@ -83,15 +83,16 @@ public:
 
         getMemoryInfo(&freeAtStart);
 
-        // allocating 100% is a bit risky on a SoC-like device
+        /* alloc 90%, since allocating 100% is a bit risky on a SoC-like device */
         size_t allocSth = size_t( 0.9 * double(freeAtStart) );
-        char* c = new char[allocSth];
-        memset(c,'-',allocSth);
-        // cudaDeviceSynchronize();
+        uint8_t* c = new uint8_t[allocSth];
+        memset(c, 0, allocSth);
 
         getMemoryInfo(&freeInternal);
         delete [] c;
 
+        /* if we allocated 90% of available mem, we should have "lost" more
+         * than 50% of memory, even with fluctuations from the OS */
         if( double(freeInternal)/double(freeAtStart) < 0.5 )
             return true;
 
