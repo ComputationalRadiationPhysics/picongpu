@@ -273,6 +273,14 @@ public:
         Environment<>::get().EnvMemoryInfo().getMemoryInfo(&freeGpuMem);
         freeGpuMem -= totalFreeGpuMemory;
 
+        if( Environment<>::get().EnvMemoryInfo().isSharedMemoryPool() )
+        {
+            freeGpuMem /= 2;
+            log<picLog::MEMORY > ("Shared RAM between GPU and host detected - using only half of the 'device' memory.");
+        }
+        else
+            log<picLog::MEMORY > ("RAM is NOT shared between GPU and host.");
+
         ForEach<VectorAllSpecies, particles::CallCreateParticleBuffer<bmpl::_1>, MakeIdentifier<bmpl::_1> > createParticleBuffer;
         createParticleBuffer(forward(particleStorage), freeGpuMem);
 
