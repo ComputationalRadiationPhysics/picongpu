@@ -191,7 +191,10 @@ public:
         /* apply slides to set gpus to last/written configuration */
         log<picLog::INPUT_OUTPUT > ("Setting slide count for moving window to %1%") % slides;
         MovingWindow::getInstance().setSlideCounter(slides, restartStep);
-        gc.setNumSlides(slides);
+
+        /* re-distribute the local offsets in y-direction */
+        if( MovingWindow::getInstance().isSlidingWindowActive() )
+            gc.setNumSlides(slides);
 
         /* set window for restart, complete global domain */
         mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(restartStep);

@@ -183,6 +183,10 @@ namespace PMacc
             /**
              * Slides multiple times.
              *
+             * \warning you are not allowed to call this method if moving
+             *          the simulation does not use a moving window,
+             *          else static load balancing will break in y-direction
+             *
              * @param[in] numSlides number of slides
              * @return true if the position of gpu is switched to the end, else false
              */
@@ -236,6 +240,9 @@ namespace PMacc
              * Sets localDomain.offset (formerly named globalOffset) using the current position.
              *
              * (This function is idempotent)
+             *
+             * \warning the implementation of this method is not compatible with
+             *          static load balancing in y-direction
              */
             void updateLocalDomainOffset()
             {
