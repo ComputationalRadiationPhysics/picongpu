@@ -183,12 +183,19 @@ namespace PMacc
             /**
              * Slides multiple times.
              *
+             * Restores the state of the communicator and the domain offsets as
+             * if the simulation has been slided for numSlides times.
+             *
+             * \warning you are not allowed to call this method if moving
+             *          the simulation does not use a moving window,
+             *          else static load balancing will break in y-direction
+             *
              * @param[in] numSlides number of slides
              * @return true if the position of gpu is switched to the end, else false
              */
-            bool setNumSlides(size_t numSlides)
+            bool setStateAfterSlides(size_t numSlides)
             {
-                bool result = comm.setNumSlides(numSlides);
+                bool result = comm.setStateAfterSlides(numSlides);
                 updateLocalDomainOffset();
                 return result;
             }
@@ -236,6 +243,9 @@ namespace PMacc
              * Sets localDomain.offset (formerly named globalOffset) using the current position.
              *
              * (This function is idempotent)
+             *
+             * \warning the implementation of this method is not compatible with
+             *          static load balancing in y-direction
              */
             void updateLocalDomainOffset()
             {
