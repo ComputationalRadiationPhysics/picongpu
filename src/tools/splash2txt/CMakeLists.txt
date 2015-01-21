@@ -86,7 +86,7 @@ endif(MPI_CXX_FOUND)
 # find libSplash installation
 # prefer static libraries over shared ones (but do not force them)
 set(Splash_USE_STATIC_LIBS ON)
-find_package(Splash 1.2.3 REQUIRED COMPONENTS PARALLEL)
+find_package(Splash 1.2.4 REQUIRED COMPONENTS PARALLEL)
 
 if(Splash_FOUND)
     include_directories(SYSTEM ${Splash_INCLUDE_DIRS})
