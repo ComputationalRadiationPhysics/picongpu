@@ -194,7 +194,7 @@ public:
 
         /* re-distribute the local offsets in y-direction */
         if( MovingWindow::getInstance().isSlidingWindowActive() )
-            gc.setNumSlides(slides);
+            gc.setStateAfterSlides(slides);
 
         /* set window for restart, complete global domain */
         mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(restartStep);
