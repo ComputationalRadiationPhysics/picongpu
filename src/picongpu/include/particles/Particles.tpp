@@ -64,7 +64,7 @@ using namespace PMacc;
 template<typename T_ParticleDescription>
 Particles<T_ParticleDescription>::Particles( GridLayout<simDim> gridLayout,
                                              MappingDesc cellDescription,
-                                             SimulationDataId datasetID) :
+                                             SimulationDataId datasetID ) :
 ParticlesBase<T_ParticleDescription, MappingDesc>( cellDescription ),
 fieldB( NULL ), fieldE( NULL ), fieldJurrent( NULL ), fieldTmp( NULL ), gridLayout( gridLayout ),
 datasetID( datasetID )
@@ -100,15 +100,9 @@ datasetID( datasetID )
 }
 
 template< typename T_ParticleDescription>
-void Particles<T_ParticleDescription>::createParticleBuffer( size_t gpuMemory )
+void Particles<T_ParticleDescription>::createParticleBuffer( )
 {
-
-    /*!\todo: this is the 4GB fix for GPUs with more than 4GB memory*/
-    if ( gpuMemory >= UINT_MAX )
-        gpuMemory = (size_t) ( UINT_MAX - 2 );
-
-    this->particlesBuffer->createParticleBuffer( gpuMemory );
-
+    this->particlesBuffer->createParticleBuffer( );
 }
 
 template< typename T_ParticleDescription>
@@ -126,13 +120,13 @@ SimulationDataId Particles<T_ParticleDescription>::getUniqueId( )
 template< typename T_ParticleDescription>
 void Particles<T_ParticleDescription>::synchronize( )
 {
-    this->particlesBuffer->deviceToHost( );
+
 }
 
 template< typename T_ParticleDescription>
 void Particles<T_ParticleDescription>::syncToDevice( )
 {
-    this->particlesBuffer->hostToDevice( );
+
 }
 
 template<typename T_ParticleDescription>
@@ -143,7 +137,7 @@ void Particles<T_ParticleDescription>::init( FieldE &fieldE, FieldB &fieldB, Fie
     this->fieldJurrent = &fieldJ;
     this->fieldTmp = &fieldTmp;
 
-    Environment<>::get( ).DataConnector().registerData( *this );
+    Environment<>::get( ).DataConnector( ).registerData( *this );
 }
 
 template<typename T_ParticleDescription>
@@ -158,7 +152,7 @@ void Particles<T_ParticleDescription>::update(uint32_t )
 
     typedef typename PMacc::traits::Resolve<
         typename GetFlagType<FrameType,interpolation<> >::type
-    >::type InterpolationScheme;
+        >::type InterpolationScheme;
 
     typedef typename GetMargin<InterpolationScheme>::LowerMargin LowerMargin;
     typedef typename GetMargin<InterpolationScheme>::UpperMargin UpperMargin;
@@ -223,7 +217,7 @@ void Particles<T_ParticleDescription>::initFill( uint32_t currentStep )
         }
 
         __picKernelArea( kernelFillGridWithParticles, this->cellDescription, CORE + BORDER + GUARD )
-            (block)
+        (block)
             ( this->particlesBuffer->getDeviceParticleBox( ),
               this->particlesBuffer->hasSendExchange( TOP ),
               gpuCellOffset,

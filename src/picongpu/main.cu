@@ -29,6 +29,49 @@
  */
 
 
+//include the Heap with the arguments given in the config
+#include "mallocMC/mallocMC_utils.hpp"
+
+// basic files for mallocMC
+#include "mallocMC/mallocMC_overwrites.hpp"
+#include "mallocMC/mallocMC_hostclass.hpp"
+
+// Load all available policies for mallocMC
+#include "mallocMC/CreationPolicies.hpp"
+#include "mallocMC/DistributionPolicies.hpp"
+#include "mallocMC/OOMPolicies.hpp"
+#include "mallocMC/ReservePoolPolicies.hpp"
+#include "mallocMC/AlignmentPolicies.hpp"
+
+// configurate the CreationPolicy "Scatter"
+struct ScatterConfig
+{
+    /* 256k page size satisfy 32 PIconGPU particle frames */
+    typedef boost::mpl::int_<256*1024> pagesize;
+    typedef boost::mpl::int_<4> accessblocks;
+    typedef boost::mpl::int_<8> regionsize;
+    typedef boost::mpl::int_<2> wastefactor;
+    /* currently we assume that all species are of the same size
+     * - mallocMC is faster if `resetfreedpages` is disabled
+     * - if species are of different size than mallocMC is slower
+     */
+    typedef boost::mpl::bool_<false> resetfreedpages;
+};
+
+// Define a new allocator and call it ScatterAllocator
+// which resembles the behaviour of ScatterAlloc
+typedef mallocMC::Allocator<
+mallocMC::CreationPolicies::Scatter<ScatterConfig>,
+mallocMC::DistributionPolicies::Noop,
+mallocMC::OOMPolicies::ReturnNull,
+mallocMC::ReservePoolPolicies::SimpleCudaMalloc,
+mallocMC::AlignmentPolicies::Shrink<>
+> ScatterAllocator;
+
+//use ScatterAllocator to replace malloc/free
+MALLOCMC_SET_ALLOCATOR_TYPE( ScatterAllocator );
+MALLOCMC_OVERWRITE_MALLOC( );
+
 #include <simulation_defines.hpp>
 #include <mpi.h>
 #include "communication/manager_common.h"

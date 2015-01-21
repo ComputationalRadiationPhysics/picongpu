@@ -26,8 +26,6 @@
 #include "particles/frame_types.hpp"
 #include "memory/buffers/GridBuffer.hpp"
 #include "particles/memory/boxes/ParticlesBox.hpp"
-#include "particles/memory/buffers/HeapBuffer.hpp"
-#include "particles/memory/boxes/HeapDataBox.hpp"
 #include "dimensions/GridLayout.hpp"
 #include "memory/dataTypes/Mask.hpp"
 #include "particles/memory/buffers/StackExchangeBuffer.hpp"
@@ -50,7 +48,7 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
 #include "particles/ParticleDescription.hpp"
-#include "traits/Resolve.hpp"
+
 
 namespace PMacc
 {
@@ -72,12 +70,13 @@ public:
     template<uint32_t T_size>
     struct OperatorCreatePairStaticArray
     {
+
         template<typename X>
         struct apply
         {
             typedef
             bmpl::pair<X,
-            StaticArray< typename traits::Resolve<X>::type::type, bmpl::integral_c<uint32_t,T_size> >
+            StaticArray< typename traits::Resolve<X>::type::type, bmpl::integral_c<uint32_t, T_size> >
             > type;
         };
     };
@@ -113,14 +112,15 @@ public:
     typedef Frame<OperatorCreatePairStaticArray<1u >, ParticleDescriptionBorder> ParticleTypeBorder;
 
 
+    typedef ParticleType FrameType;
+    typedef SuperCell<FrameType> SuperCellType;
+
 private:
 
     /*this is only for internel calculations*/
     enum
     {
-        SizeOfOneBorderElement = (sizeof (ParticleTypeBorder) + sizeof (PopPushType)),
-        /*size=HeapBuffer overhead+prevFrameIndex+nextFrameIndex*/
-        SizeOfOneFrame = HeapBuffer<vint_t, ParticleType, ParticleTypeBorder >::SizeOfOneFrame + 2 * sizeof (vint_t)
+        SizeOfOneBorderElement = (sizeof (ParticleTypeBorder) + sizeof (PopPushType))
     };
 
 public:
@@ -133,7 +133,7 @@ public:
      * @param gpuMemory how many memory on device is used for this instance (in byte)
      */
     ParticlesBuffer(DataSpace<DIM> layout, DataSpace<DIM> superCellSize) :
-    superCellSize(superCellSize), gridSize(layout), frames(NULL), framesExchanges(NULL), nextFrames(NULL), prevFrames(NULL)
+    superCellSize(superCellSize), gridSize(layout), framesExchanges(NULL)
     {
 
         exchangeMemoryIndexer = new GridBuffer<PopPushType, DIM1 > (DataSpace<DIM1 > (0));
@@ -142,27 +142,12 @@ public:
         //std::cout << "size: " << sizeof (ParticleType) << " " << sizeof (ParticleTypeBorder) << std::endl;
         DataSpace<DIM> superCellsCount = gridSize / superCellSize;
 
-        superCells = new GridBuffer<SuperCell<vint_t>, DIM > (superCellsCount);
+        superCells = new GridBuffer<SuperCellType, DIM > (superCellsCount);
 
     }
 
-    void createParticleBuffer(size_t gpuMemory)
+    void createParticleBuffer()
     {
-
-        numFrames = gpuMemory / SizeOfOneFrame;
-
-        frames = new HeapBuffer<vint_t, ParticleType, ParticleTypeBorder > (DataSpace<DIM1 > (numFrames));
-
-        nextFrames = new GridBuffer<vint_t, DIM1 > (DataSpace<DIM1 > (numFrames));
-        prevFrames = new GridBuffer<vint_t, DIM1 > (DataSpace<DIM1 > (numFrames));
-
-        /** \fixme use own log level, like log<ggLog::MEMORY >
-         */
-        std::cout << "mem for particles=" << gpuMemory / 1024 / 1024 << " MiB = " <<
-            numFrames << " Frames = " <<
-            numFrames * superCellSize.productOfComponents() <<
-            " Particles" << std::endl;
-
         reset();
     }
 
@@ -172,10 +157,7 @@ public:
     virtual ~ParticlesBuffer()
     {
         __delete(superCells);
-        __delete(frames);
         __delete(framesExchanges);
-        __delete(nextFrames);
-        __delete(prevFrames);
         __delete(exchangeMemoryIndexer);
     }
 
@@ -184,20 +166,9 @@ public:
      */
     void reset()
     {
-        __startTransaction(__getTransactionEvent());
-        frames->reset(false);
-        frames->initialFillBuffer();
-        EventTask ev1 = __endTransaction();
-        __startTransaction(__getTransactionEvent());
-        superCells->getDeviceBuffer().setValue(SuperCell<vint_t > ());
-        superCells->getHostBuffer().setValue(SuperCell<vint_t > ());
 
-        /*nextFrames->getDeviceBuffer().setValue(INV_IDX);//!\todo: is this needed? On device we set any new frame values to INVALID_INDEX
-        prevFrames->getDeviceBuffer().setValue(INV_IDX);//!\todo: is this needed? On device we set any new frame values to INVALID_INDEX
-        nextFrames->getHostBuffer().setValue(INV_IDX);//!\todo: is this needed? On device we set any new frame values to INVALID_INDEX
-        prevFrames->getHostBuffer().setValue(INV_IDX);//!\todo: is this needed? On device we set any new frame values to INVALID_INDEX
-         */
-        __setTransactionEvent(__endTransaction() + ev1);
+        superCells->getDeviceBuffer().setValue(SuperCellType ());
+        superCells->getHostBuffer().setValue(SuperCellType ());
     }
 
     /**
@@ -217,21 +188,6 @@ public:
     }
 
     /**
-     * Returns a ParticlesBox for host frame data.
-     *
-     * @return host frames ParticlesBox
-     */
-    ParticlesBox<ParticleType, DIM> getHostParticleBox()
-    {
-
-        return ParticlesBox<ParticleType, DIM > (
-                                                 superCells->getHostBuffer().getDataBox(),
-                                                 frames->getHostHeapDataBox(),
-                                                 VectorDataBox<vint_t > (nextFrames->getHostBuffer().getBasePointer()),
-                                                 VectorDataBox<vint_t > (prevFrames->getHostBuffer().getBasePointer()));
-    }
-
-    /**
      * Returns a ParticlesBox for device frame data.
      *
      * @return device frames ParticlesBox
@@ -240,10 +196,7 @@ public:
     {
 
         return ParticlesBox<ParticleType, DIM > (
-                                                 superCells->getDeviceBuffer().getDataBox(),
-                                                 frames->getDeviceHeapDataBox(),
-                                                 VectorDataBox<vint_t > (nextFrames->getDeviceBuffer().getBasePointer()),
-                                                 VectorDataBox<vint_t > (prevFrames->getDeviceBuffer().getBasePointer()));
+                                                 superCells->getDeviceBuffer().getDataBox());
     }
 
     /**
@@ -316,56 +269,6 @@ public:
     }
 
     /**
-     * Starts copying data from host to device.
-     */
-    void hostToDevice()
-    {
-
-        __startTransaction(__getTransactionEvent());
-        frames->hostToDevice();
-        EventTask ev1 = __endTransaction();
-
-        __startTransaction(__getTransactionEvent());
-        superCells->hostToDevice();
-        EventTask ev2 = __endTransaction();
-
-        __startTransaction(__getTransactionEvent());
-        nextFrames->hostToDevice();
-        EventTask ev3 = __endTransaction();
-
-        __startTransaction(__getTransactionEvent());
-        prevFrames->hostToDevice();
-        EventTask ev4 = __endTransaction();
-
-        __setTransactionEvent(ev1 + ev2 + ev3 + ev4);
-    }
-
-    /**
-     * Starts copying data from device to host.
-     */
-    void deviceToHost()
-    {
-
-        __startTransaction(__getTransactionEvent());
-        frames->deviceToHost();
-        EventTask ev1 = __endTransaction();
-
-        __startTransaction(__getTransactionEvent());
-        superCells->deviceToHost();
-        EventTask ev2 = __endTransaction();
-
-        __startTransaction(__getTransactionEvent());
-        nextFrames->deviceToHost();
-        EventTask ev3 = __endTransaction();
-
-        __startTransaction(__getTransactionEvent());
-        prevFrames->deviceToHost();
-        EventTask ev4 = __endTransaction();
-
-        __setTransactionEvent(ev1 + ev2 + ev3 + ev4);
-    }
-
-    /**
      * Returns number of supercells in each dimension.
      *
      * @return number of supercells
@@ -400,30 +303,17 @@ public:
         return superCellSize;
     }
 
-    /**
-     * Returns number of frames.
-     *
-     * @return number of frames
-     */
-    size_t getFrameCount()
-    {
-        return numFrames;
-    }
+
 
 private:
     GridBuffer<PopPushType, DIM1> *exchangeMemoryIndexer;
 
-    GridBuffer<SuperCell<vint_t>, DIM> *superCells;
-    GridBuffer<vint_t, DIM1> *nextFrames;
-    GridBuffer<vint_t, DIM1> *prevFrames;
+    GridBuffer<SuperCellType, DIM> *superCells;
     /*gridbuffer for hold borderFrames, we need a own buffer to create first exchanges without core momory*/
     GridBuffer< ParticleType, DIM1, ParticleTypeBorder> *framesExchanges;
-    HeapBuffer<vint_t, ParticleType, ParticleTypeBorder> *frames;
 
     DataSpace<DIM> superCellSize;
     DataSpace<DIM> gridSize;
-
-    size_t numFrames;
 
 };
 }

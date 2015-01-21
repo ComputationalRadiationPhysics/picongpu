@@ -74,12 +74,6 @@ struct CreateSpecies
     }
 };
 
-template<typename T_Species>
-struct GetMemoryFactor
-{
-    typedef bmpl::integral_c<size_t, T_Species::FrameType::memFactor> type;
-};
-
 template<typename T_Type>
 struct CallCreateParticleBuffer
 {
@@ -87,24 +81,17 @@ struct CallCreateParticleBuffer
     typedef typename SpeciesName::type SpeciesType;
 
     template<typename T_StorageTuple>
-    HINLINE void operator()(T_StorageTuple& tuple, const size_t freeGpuMem) const
+    HINLINE void operator()(T_StorageTuple& tuple) const
     {
 
-        const size_t myMemFactor = SpeciesType::FrameType::memFactor;
-        typedef typename bmpl::accumulate<
-            VectorAllSpecies,
-            bmpl::integral_c<size_t, 0>,
-            bmpl::plus<bmpl::_1, GetMemoryFactor<bmpl::_2> >
-            >::type AccumulatedMemFactors;
+        typedef typename SpeciesType::FrameType FrameType;
 
-        const size_t accumulatedMemFactors = AccumulatedMemFactors::value;
-        size_t byte = freeGpuMem * myMemFactor / accumulatedMemFactors;
-
-        log<picLog::MEMORY > ("create %1% MiB for species %2%") %
-            (byte / 1024 / 1024) %
-            SpeciesType::FrameType::getName();
-
-        tuple[SpeciesName()]->createParticleBuffer(byte);
+        log<picLog::MEMORY >("mallocMC: free slots for species %3%: %1% a %2%") %
+            mallocMC::getAvailableSlots(sizeof (FrameType)) %
+            sizeof (typename PIC_Electrons::FrameType) %
+            FrameType::getName();
+        
+        tuple[SpeciesName()]->createParticleBuffer();
     }
 };
 

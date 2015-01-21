@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2014  Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -8,7 +8,6 @@
  * the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
  * libPMacc is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -23,70 +22,57 @@
 #pragma once
 
 #include "types.h"
-#include "particles/memory/dataTypes/Pointer.hpp"
 
 
 namespace PMacc
 {
 
 template <class TYPE>
-class SuperCell
+class Pointer
 {
 public:
 
-    HDINLINE SuperCell() :
-    firstFramePtr(NULL),
-    lastFramePtr(NULL),
-    mustShiftVal(false),
-    sizeLastFrame(0)
+    typedef TYPE type;
+    typedef type* PtrType;
+
+    HDINLINE Pointer() : ptr(NULL)
     {
     }
 
-    HDINLINE TYPE* FirstFramePtr()
+    HDINLINE Pointer(PtrType const ptrIn) : ptr(ptrIn)
     {
-        return firstFramePtr;
     }
 
-    HDINLINE TYPE* LastFramePtr()
+    HDINLINE Pointer(const Pointer<type>& other) : ptr(other.ptr)
     {
-        return lastFramePtr;
     }
 
-    HDINLINE const TYPE* FirstFramePtr() const
+    HDINLINE type& operator*()
     {
-        return firstFramePtr;
+        return *ptr;
     }
 
-    HDINLINE const TYPE* LastFramePtr() const
+    HDINLINE PtrType operator->()
     {
-        return lastFramePtr;
+        return ptr;
     }
 
-    HDINLINE bool mustShift()
+    HDINLINE bool operator==(const Pointer<type>& other) const
     {
-        return mustShiftVal;
+        return ptr == other.ptr;
     }
 
-    HDINLINE void setMustShift(bool value)
+    HDINLINE bool operator!=(const Pointer<type>& other) const
     {
-        mustShiftVal = value;
+        return ptr != other.ptr;
     }
 
-    HDINLINE lcellId_t getSizeLastFrame()
+    HDINLINE bool isValid() const
     {
-        return sizeLastFrame;
+        return ptr != NULL;
     }
 
-    HDINLINE void setSizeLastFrame(lcellId_t size)
-    {
-        sizeLastFrame = size;
-    }
-
-    PMACC_ALIGN(firstFramePtr, TYPE*);
-    PMACC_ALIGN(lastFramePtr, TYPE*);
-private:
-    PMACC_ALIGN(mustShiftVal, bool);
-    PMACC_ALIGN(sizeLastFrame, lcellId_t);
+    PMACC_ALIGN(ptr,PtrType);
 };
 
-} //end namespace
+} //namespace PMacc

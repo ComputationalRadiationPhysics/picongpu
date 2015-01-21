@@ -45,6 +45,7 @@
 #include "traits/HasFlag.hpp"
 #include "traits/GetFlagType.hpp"
 #include <boost/mpl/contains.hpp>
+#include "particles/memory/dataTypes/Pointer.hpp"
 
 #include "particles/ParticleDescription.hpp"
 #include <boost/mpl/string.hpp>
@@ -68,9 +69,13 @@ namespace pmacc = PMacc;
  */
 template<typename T_CreatePairOperator,
 typename T_ParticleDescription >
+struct Frame;
+
+template<typename T_CreatePairOperator,
+typename T_ParticleDescription >
 struct Frame :
 public InheritLinearly<typename T_ParticleDescription::MethodsList>,
-    protected pmath::MapTuple<typename SeqToMap<typename T_ParticleDescription::ValueTypeSeq, T_CreatePairOperator>::type, pmath::AlignedData>
+protected pmath::MapTuple<typename SeqToMap<typename T_ParticleDescription::ValueTypeSeq, T_CreatePairOperator>::type, pmath::AlignedData>
 {
     typedef T_ParticleDescription ParticleDescription;
     typedef typename ParticleDescription::Name Name;
@@ -119,7 +124,7 @@ public InheritLinearly<typename T_ParticleDescription::MethodsList>,
         return ParticleType(*this, idx);
     }
 
-     /** access attribute with a identifier
+    /** access attribute with a identifier
      *
      * @param T_Key instance of identifier type
      *              (can be an alias, value_identifier or any other class)
@@ -148,6 +153,12 @@ public InheritLinearly<typename T_ParticleDescription::MethodsList>,
     {
         return std::string(boost::mpl::c_str<Name>::value);
     }
+
+    /* \todo find a generic solution to add `previousFrame` and `nextFrame`
+     * only if we use this frame in a double linked list
+     */
+    PMACC_ALIGN(previousFrame, Pointer<ThisType>);
+    PMACC_ALIGN(nextFrame, Pointer<ThisType>);
 
 };
 
@@ -180,11 +191,11 @@ typename T_CreatePairOperator,
 typename T_ParticleDescription
 >
 struct HasFlag<
-PMacc::Frame<T_CreatePairOperator, T_ParticleDescription>,T_IdentifierName>
+PMacc::Frame<T_CreatePairOperator, T_ParticleDescription>, T_IdentifierName>
 {
 private:
-    typedef PMacc::Frame<T_CreatePairOperator,T_ParticleDescription> FrameType;
-    typedef typename GetFlagType<FrameType,T_IdentifierName>::type SolvedAliasName;
+    typedef PMacc::Frame<T_CreatePairOperator, T_ParticleDescription> FrameType;
+    typedef typename GetFlagType<FrameType, T_IdentifierName>::type SolvedAliasName;
     typedef typename FrameType::FlagList FlagList;
 public:
 
@@ -196,7 +207,7 @@ typename T_CreatePairOperator,
 typename T_ParticleDescription
 >
 struct GetFlagType<
-PMacc::Frame<T_CreatePairOperator, T_ParticleDescription>,T_IdentifierName>
+PMacc::Frame<T_CreatePairOperator, T_ParticleDescription>, T_IdentifierName>
 {
 private:
     typedef PMacc::Frame<T_CreatePairOperator, T_ParticleDescription> FrameType;
