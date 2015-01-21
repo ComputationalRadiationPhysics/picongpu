@@ -167,7 +167,7 @@ public:
 
         // calculate the number of local grid cells and
         // the local cell offset to the global box
-        for (uint32_t dim = 0; dim < gridDistribution.size(); ++dim)
+        for (uint32_t dim = 0; dim < gridDistribution.size() && dim < simDim; ++dim)
         {
             // parse string
             ParserGridDistribution parserGD(gridDistribution.at(dim));
