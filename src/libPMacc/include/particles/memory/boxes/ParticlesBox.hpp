@@ -79,6 +79,10 @@ public:
             /* delete all particles we can not assume that new memory is zeroed */
             for (int i = 0; i < (int) math::CT::volume<typename FrameType::SuperCellSize>::type::value; ++i)
                 (*tmp)[i][multiMask_] = 0;
+#if defined(__CUDA_ARCH__)
+            /* takes care that changed values are visible to all threads inside this block*/
+            __threadfence_block();
+#endif
         }
 
         return *(FramePtr(tmp));
@@ -162,7 +166,7 @@ public:
         frame->nextFrame = FramePtr(*firstFrameNativPtr);
 #if defined(__CUDA_ARCH__)
         /* - takes care that `next[index]` is visible to all threads on the gpu
-         * - this is needed because later on in this method we change `next`
+         * - this is needed because later on in this method we change `previous`
          *   of an other frame, this must be done in order!
          */
         __threadfence();
