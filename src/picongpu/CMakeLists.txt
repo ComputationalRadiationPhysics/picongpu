@@ -271,7 +271,7 @@ endif()
 # Find mallocMC
 ###############################################################################
 
-find_package(mallocMC 2.0.1 REQUIRED)
+find_package(mallocMC 2.0.1 EXACT REQUIRED)
 include_directories(SYSTEM ${mallocMC_INCLUDE_DIRS})
 
 ################################################################################

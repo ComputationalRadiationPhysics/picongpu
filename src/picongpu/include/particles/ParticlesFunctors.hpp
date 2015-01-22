@@ -88,9 +88,9 @@ struct CallCreateParticleBuffer
 
         log<picLog::MEMORY >("mallocMC: free slots for species %3%: %1% a %2%") %
             mallocMC::getAvailableSlots(sizeof (FrameType)) %
-            sizeof (typename PIC_Electrons::FrameType) %
+            sizeof (FrameType) %
             FrameType::getName();
-        
+
         tuple[SpeciesName()]->createParticleBuffer();
     }
 };

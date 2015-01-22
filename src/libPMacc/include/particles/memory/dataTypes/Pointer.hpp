@@ -27,14 +27,22 @@
 namespace PMacc
 {
 
-template <class TYPE>
+/** wrapper for native C pointer
+ *
+ * @tparam T_Type type of the pointed object
+ */
+template <class T_Type>
 class Pointer
 {
 public:
 
-    typedef TYPE type;
+    typedef T_Type type;
     typedef type* PtrType;
 
+    /** default constructor
+     *
+     * the default Pointer points to invalid memory
+     */
     HDINLINE Pointer() : ptr(NULL)
     {
     }
@@ -47,32 +55,39 @@ public:
     {
     }
 
+    /** dereference the pointer*/
     HDINLINE type& operator*()
     {
         return *ptr;
     }
 
+    /** access member*/
     HDINLINE PtrType operator->()
     {
         return ptr;
     }
 
+    /** compare if two pointer points to the same memory address*/
     HDINLINE bool operator==(const Pointer<type>& other) const
     {
         return ptr == other.ptr;
     }
 
+    /** check if the memory address of two pointer is different*/
     HDINLINE bool operator!=(const Pointer<type>& other) const
     {
         return ptr != other.ptr;
     }
 
+    /** check if the pointed memory is has valid address
+     * @return false if memory adress is NULL else true
+     */
     HDINLINE bool isValid() const
     {
         return ptr != NULL;
     }
 
-    PMACC_ALIGN(ptr,PtrType);
+    PMACC_ALIGN(ptr, PtrType);
 };
 
 } //namespace PMacc
