@@ -48,20 +48,20 @@ namespace container
  * The way memory gets allocated, copied and assigned is
  * fully controlled by three policy classes.
  * \tparam Type type of a single value
- * \tparam _dim dimension of the container
+ * \tparam T_dim dimension of the container
  * \tparam Allocator allocates and releases memory
  * \tparam Copier copies one memory buffer to another
  * \tparam Assigner assigns a value to every datum of a memory buffer
  */
-template<typename Type, int _dim, typename Allocator = allocator::EmptyAllocator,
+template<typename Type, int T_dim, typename Allocator = allocator::EmptyAllocator,
                                   typename Copier = mpl::void_,
                                   typename Assigner = mpl::void_>
 class CartBuffer
 {
 public:
     typedef Type type;
-    typedef CartBuffer<Type, _dim, Allocator, Copier, Assigner> This;
-    static const int dim = _dim;
+    typedef CartBuffer<Type, T_dim, Allocator, Copier, Assigner> This;
+    static const int dim = T_dim;
     typedef cursor::BufferCursor<Type, dim> Cursor;
     typedef typename Allocator::tag memoryTag;
 public:

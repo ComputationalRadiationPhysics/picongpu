@@ -36,8 +36,8 @@ namespace tag
 struct StaggeredZone {};
 }
 
-template<int _dim>
-struct StaggeredZone : public SphericZone<_dim>
+template<int T_dim>
+struct StaggeredZone : public SphericZone<T_dim>
 {
     typedef tag::StaggeredZone tag;
     math::UInt32<dim> staggered;

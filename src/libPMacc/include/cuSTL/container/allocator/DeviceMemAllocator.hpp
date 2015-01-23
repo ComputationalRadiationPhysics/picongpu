@@ -32,16 +32,16 @@ namespace PMacc
 namespace allocator
 {
 
-template<typename Type, int _dim>
+template<typename Type, int T_dim>
 struct DeviceMemAllocator
 {
     typedef Type type;
-    static const int dim = _dim;
+    static const int dim = T_dim;
     typedef cursor::BufferCursor<type, dim> Cursor;
     typedef allocator::tag::device tag;
 
     HDINLINE
-    static cursor::BufferCursor<type, _dim> allocate(const math::Size_t<_dim>& size);
+    static cursor::BufferCursor<type, T_dim> allocate(const math::Size_t<T_dim>& size);
     template<typename TCursor>
     HDINLINE
     static void deallocate(const TCursor& cursor);
