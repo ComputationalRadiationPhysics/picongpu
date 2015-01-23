@@ -37,6 +37,17 @@
 namespace PMacc
 {
 
+template<typename T_ParticleBox, typename T_SuperCellIdxType>
+DINLINE bool getPreviousFrameAndRemoveLastFrame(typename T_ParticleBox::FrameType*& frame,
+                                                T_ParticleBox& pb,
+                                                const T_SuperCellIdxType& superCellIdx)
+{
+    bool isFrameValid = false;
+    frame = &(pb.getPreviousFrame(*frame, isFrameValid));
+    const bool hasMoreFrames = pb.removeLastFrame(superCellIdx);
+    return isFrameValid && hasMoreFrames;
+}
+
 /*! This kernel move particles to the next supercell
  * This kernel can only run with a double checker board
  */
@@ -392,26 +403,27 @@ __global__ void kernelFillGaps(ParticlesBox<FRAME, Mapping::Dim> pb, Mapping map
         __syncthreads();
         if (threadIdx.x == 0)
         {
+            bool isFrameValid = false;
             if (counterGaps < counterParticles)
             {
                 //any gap in the first frame is filled
-                firstFrame = &(pb.getNextFrame(*firstFrame, isValid));
+                firstFrame = &(pb.getNextFrame(*firstFrame, isFrameValid));
             }
             else if (counterGaps > counterParticles)
             {
                 //we need more particles
-                lastFrame = &(pb.getPreviousFrame(*lastFrame, isValid));
-                isValid = isValid && pb.removeLastFrame(superCellIdx);
+                isFrameValid = getPreviousFrameAndRemoveLastFrame(lastFrame, pb, superCellIdx);
             }
             else if (counterGaps == counterParticles)
             {
-                lastFrame = &(pb.getPreviousFrame(*lastFrame, isValid));
-                isValid = isValid && pb.removeLastFrame(superCellIdx);
-                if (isValid && lastFrame != firstFrame)
+                isFrameValid = getPreviousFrameAndRemoveLastFrame(lastFrame, pb, superCellIdx);
+                if (isFrameValid && lastFrame != firstFrame)
                 {
-                    firstFrame = &(pb.getNextFrame(*firstFrame, isValid));
+                    firstFrame = &(pb.getNextFrame(*firstFrame, isFrameValid));
                 }
+
             }
+            isValid = isFrameValid;
         }
         __syncthreads();
     }
@@ -456,8 +468,8 @@ __global__ void kernelDeleteParticles(T_ParticleBox pb,
 
         if (linearThreadIdx == 0)
         {
-            frame = &(pb.getPreviousFrame(*frame, isValid));
-            isValid = isValid && pb.removeLastFrame(superCellIdx); //always remove the last frame
+            //always remove the last frame
+            isValid = getPreviousFrameAndRemoveLastFrame(frame, pb, superCellIdx);
         }
         __syncthreads();
     }
@@ -482,11 +494,6 @@ __global__ void kernelBashParticles(ParticlesBox<FRAME, Mapping::Dim> pb,
 
     DataSpace<Dim> superCellIdx = mapper.getSuperCellIndex(DataSpace<Dim > (blockIdx));
 
-    // asymmetric, because corners are exchanged only in y-directions
-    /*   const DataSpace<Dim> directions = Mask::getRelativeDirections<Dim > (mapper.getExchangeType());
-
-       if (directions.y() != 0 && directions.x() == 0)
-           superCellIdx.x() -= mapper.getGuardingSuperCells();*/
     __shared__ uint32_t numBashedParticles;
     __shared__ FRAME *frame;
     __shared__ bool isValid;
@@ -541,8 +548,8 @@ __global__ void kernelBashParticles(ParticlesBox<FRAME, Mapping::Dim> pb,
 
             if (threadIdx.x == 0 && hasMemory)
             {
-                frame = &(pb.getPreviousFrame(*frame, isValid));
-                isValid = isValid && pb.removeLastFrame(superCellIdx); //always remove the last frame
+                //always remove the last frame
+                isValid=getPreviousFrameAndRemoveLastFrame(frame,pb,superCellIdx);
             }
         }
         else
@@ -550,8 +557,7 @@ __global__ void kernelBashParticles(ParticlesBox<FRAME, Mapping::Dim> pb,
             //if we had no particles to copy than we are the last and only frame
             if (threadIdx.x == 0)
             {
-                frame = &(pb.getPreviousFrame(*frame, isValid));
-                isValid = isValid && pb.removeLastFrame(superCellIdx);
+                isValid=getPreviousFrameAndRemoveLastFrame(frame,pb,superCellIdx);
             }
         }
         __syncthreads();
