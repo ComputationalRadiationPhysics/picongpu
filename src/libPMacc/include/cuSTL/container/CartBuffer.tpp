@@ -111,7 +111,7 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
-(const CartBuffer<Type, dim, Allocator, Copier, Assigner>& other)
+(const CartBuffer<Type, T_dim, Allocator, Copier, Assigner>& other)
 {
     this->dataPointer = other.dataPointer;
     this->refCount = other.refCount;
@@ -124,7 +124,7 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
-(BOOST_RV_REF(CartBuffer<Type COMMA dim COMMA Allocator COMMA Copier COMMA Assigner>) other)
+(BOOST_RV_REF(CartBuffer<Type COMMA T_dim COMMA Allocator COMMA Copier COMMA Assigner>) other)
 {
     this->dataPointer = 0;
     this->refCount = 0;
