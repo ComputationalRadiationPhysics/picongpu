@@ -38,11 +38,11 @@ struct HostMemAllocator
 {
     typedef Type type;
     static const int dim = T_dim;
-    typedef cursor::BufferCursor<type, dim> Cursor;
+    typedef cursor::BufferCursor<type, T_dim> Cursor;
     typedef allocator::tag::host tag;
 
     HDINLINE
-    static cursor::BufferCursor<type, dim> allocate(const math::Size_t<dim>& size);
+    static cursor::BufferCursor<type, T_dim> allocate(const math::Size_t<T_dim>& size);
     template<typename TCursor>
     HDINLINE
     static void deallocate(const TCursor& cursor);
