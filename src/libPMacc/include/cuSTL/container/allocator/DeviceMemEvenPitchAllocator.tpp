@@ -25,12 +25,12 @@ namespace PMacc
 namespace allocator
 {
 
-template<typename Type, int _dim>
-cursor::BufferCursor<Type, _dim>
-DeviceMemEvenPitch<Type, _dim>::allocate(const math::Size_t<_dim>& size)
+template<typename Type, int T_dim>
+cursor::BufferCursor<Type, T_dim>
+DeviceMemEvenPitch<Type, T_dim>::allocate(const math::Size_t<T_dim>& size)
 {
     Type* dataPointer;
-    math::Size_t<_dim-1> pitch;
+    math::Size_t<T_dim-1> pitch;
 
     CUDA_CHECK(cudaMalloc((void**)&dataPointer, sizeof(Type) * size.productOfComponents()));
 
@@ -44,7 +44,7 @@ DeviceMemEvenPitch<Type, _dim>::allocate(const math::Size_t<_dim>& size)
         pitch[1] = pitch[0] * size[1];
     }
 
-    return cursor::BufferCursor<Type, _dim>(dataPointer, pitch);
+    return cursor::BufferCursor<Type, T_dim>(dataPointer, pitch);
 }
 
 template<typename Type>
@@ -58,9 +58,9 @@ DeviceMemEvenPitch<Type, 1>::allocate(const math::Size_t<1>& size)
     return cursor::BufferCursor<Type, 1>(dataPointer, math::Size_t<0>());
 }
 
-template<typename Type, int _dim>
+template<typename Type, int T_dim>
 template<typename TCursor>
-void DeviceMemEvenPitch<Type, _dim>::deallocate(const TCursor& cursor)
+void DeviceMemEvenPitch<Type, T_dim>::deallocate(const TCursor& cursor)
 {
     CUDA_CHECK(cudaFree(cursor.getMarker()));
 }

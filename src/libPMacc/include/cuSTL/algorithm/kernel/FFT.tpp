@@ -34,13 +34,13 @@ namespace kernel
 
 template<>
 template<typename Zone, typename DestCursor, typename SrcCursor>
-void FFT<2>::operator()(const Zone& _zone, const DestCursor& destCursor, const SrcCursor& srcCursor)
+void FFT<2>::operator()(const Zone& p_zone, const DestCursor& destCursor, const SrcCursor& srcCursor)
 {
     cufftHandle plan;
-    CUFFT_CHECK(cufftPlan2d(&plan, _zone.size.x(), _zone.size.y(), CUFFT_R2C));
+    CUFFT_CHECK(cufftPlan2d(&plan, p_zone.size.x(), p_zone.size.y(), CUFFT_R2C));
 
-    CUFFT_CHECK(cufftExecR2C(plan, (cufftReal*)&(*(srcCursor(_zone.offset))),
-                        (cufftComplex*)&(*destCursor(_zone.offset))));
+    CUFFT_CHECK(cufftExecR2C(plan, (cufftReal*)&(*(srcCursor(p_zone.offset))),
+                        (cufftComplex*)&(*destCursor(p_zone.offset))));
 
     CUFFT_CHECK(cufftDestroy(plan));
 }

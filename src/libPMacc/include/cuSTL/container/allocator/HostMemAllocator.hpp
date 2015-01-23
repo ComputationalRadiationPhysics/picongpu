@@ -33,11 +33,11 @@ namespace PMacc
 namespace allocator
 {
 
-template<typename Type, int _dim>
+template<typename Type, int T_dim>
 struct HostMemAllocator
 {
     typedef Type type;
-    static const int dim = _dim;
+    static const int dim = T_dim;
     typedef cursor::BufferCursor<type, dim> Cursor;
     typedef allocator::tag::host tag;
 

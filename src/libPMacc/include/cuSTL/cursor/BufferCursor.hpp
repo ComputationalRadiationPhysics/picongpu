@@ -65,11 +65,11 @@ namespace traits
 {
 
 /* type trait to get the BufferCursor's dimension if it has one */
-template<typename Type, int _dim>
-struct dim<BufferCursor<Type, _dim> >
+template<typename Type, int T_dim>
+struct dim<BufferCursor<Type, T_dim> >
 {
     static const int value = PMacc::cursor::traits::dim<
-        Cursor<PointerAccessor<Type>, BufferNavigator<_dim>, Type*> >::value;
+        Cursor<PointerAccessor<Type>, BufferNavigator<T_dim>, Type*> >::value;
 };
 
 } // traits
