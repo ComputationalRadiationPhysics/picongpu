@@ -512,7 +512,7 @@ public:
 
 private:
     
-    friend Environment<DIM>;
+    friend class Environment<DIM>;
 
     void init(bool sizeOnDevice, bool buildDeviceBuffer = true, bool buildHostBuffer = true)
     {
