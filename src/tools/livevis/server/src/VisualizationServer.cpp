@@ -262,58 +262,6 @@ void * VisualizationServer::runInfoChannel(void * server)
         }
     }
 
-    /*while(1)
-    {
-        TCPStream * in_stream = srv->m_info_acceptor->accept();
-
-        std::cout << "\n[SERVER] Info Request from " << in_stream->get_peer_ip() << std::endl;
-
-        /// receive a message ID
-        uint32_t id, length;
-        void * buffer = nullptr;
-
-        in_stream->receive(&id, buffer, &length);
-
-        if (id == ListVisualizations)
-        {
-            count = srv->m_visualizations.size();
-
-            /// send the number of available visualizations
-            in_stream->send(VisListLength, (void*)&count, sizeof(uint32_t));
-            //in_stream->wait_async_completed();
-
-            std::cout << "Count is " << count << std::endl;
-
-            /// send a list of the available visualizations
-            for (std::vector<Visualization*>::iterator it = srv->m_visualizations.begin(); it != srv->m_visualizations.end(); it++)
-            {
-                /// get vis name
-                name = (*it)->getName();
-
-                in_stream->send(VisName, name.c_str(), name.size());
-
-                /// get uri
-                size_t urilen = srv->m_ip_comm->public_uri( (*it)->getProvider(), 0, nullptr, 0 );
-                char * c = new char[urilen + 1];
-                c[urilen] = 0;
-                size_t len2 = srv->m_ip_comm->public_uri( (*it)->getProvider(), 0, c, urilen );
-                c[len2] = 0;
-                uri = std::string(c);
-                delete [] c;
-
-                in_stream->send(VisRivURI, uri.c_str(), uri.size());
-                in_stream->wait_async_completed();
-
-                std::cout << "Vis: " << name << " " << uri << std::endl;
-            }
-        }
-
-        if (in_stream) delete in_stream;
-        if (buffer) delete [] (char*) buffer;
-        id = 0;
-        length = 0;
-    }*/
-
     return nullptr;
 }
 
