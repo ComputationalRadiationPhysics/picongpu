@@ -46,7 +46,7 @@ public:
         return *comm;
     }
 
-    
+
 
     /*! Get Mask with all GPU neighbar
      * @return Mask with neighbar
@@ -66,15 +66,15 @@ public:
     }
 
 private:
-    
-    friend Environment<DIM1>;
-    friend Environment<DIM2>;
-    friend Environment<DIM3>;
-    
+
+    friend class Environment<DIM1>;
+    friend class Environment<DIM2>;
+    friend class Environment<DIM3>;
+
     /*! Default constructor.
      */
     EnvironmentController() {}
-    
+
     static EnvironmentController& getInstance()
     {
         static EnvironmentController instance;
@@ -86,7 +86,7 @@ private:
     /*! Pointer to MPI communicator.
      */
     ICommunicator* comm;
-    
+
 };
 
 } //namespace PMacc
