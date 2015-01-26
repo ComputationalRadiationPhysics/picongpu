@@ -429,12 +429,19 @@ void MainWindow::sendMessage(unsigned int id, unsigned int size, const void * da
 
 void MainWindow::connectToURI(QString uri)
 {
-    reset_connection();
+    std::cout << "Connecting..." << std::endl;
 
-    this->m_controlConn->connect(uri.toStdString().c_str());
-    this->m_imgStream->disconnect(false);
-
-    std::cout << "Connecting.." << std::endl;
+    try {
+        reset_connection();
+        this->m_controlConn->connect(uri.toStdString().c_str());
+        this->m_imgStream->disconnect(false);
+    } catch(the::exception ex) {
+        fprintf(stderr, "Connect-Message error: %s (%s, %d)\n", ex.get_msg_astr(), ex.get_file(), ex.get_line());
+        //this->m_imgStream->disconnect(true);
+    } catch(...) {
+        fprintf(stderr, "Connect-Message error: unexpected exception\n");
+        //this->m_imgStream->disconnect(true);
+    }
 }
 
 void MainWindow::received_datasource(QString source)
