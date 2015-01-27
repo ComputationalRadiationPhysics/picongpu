@@ -59,7 +59,7 @@ identifier(pmacc_isAlias);
 
 /** create an alias
  *
- * an alias is a unspecialized type of a identifier or a value_identifier
+ * an alias is a unspecialized type of an identifier or a value_identifier
  *
  * @param name name of alias
  *
