@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Klaus Steiniger,
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Klaus Steiniger,
  * Felix Schmitt
  *
  * This file is part of PIConGPU.
@@ -217,19 +217,27 @@ public:
 
     void restart(uint32_t timeStep, const std::string restartDirectory)
     {
-      if(isMaster)
-      {
-          // this will lead to wrong lastRad output right after the checkpoint if the restart point is
-          // not a dump point. The correct lastRad data can be reconstructed from hdf5 data
-          // since text based lastRad output will be obsolete soon, this is not a problem
-          readHDF5file(timeSumArray, restartDirectory + "/" + std::string("radRestart_"), timeStep);
-          std::cout << "Radiation: loaded radiation restart data" << std::endl;
-      }
+        // only load backup if radiation is calculated:
+        if(notifyFrequency == 0)
+            return;
+
+        if(isMaster)
+        {
+            // this will lead to wrong lastRad output right after the checkpoint if the restart point is
+            // not a dump point. The correct lastRad data can be reconstructed from hdf5 data
+            // since text based lastRad output will be obsolete soon, this is not a problem
+            readHDF5file(timeSumArray, restartDirectory + "/" + std::string("radRestart_"), timeStep);
+            std::cout << "Radiation: loaded radiation restart data" << std::endl;
+        }
     }
 
 
     void checkpoint(uint32_t timeStep, const std::string restartDirectory)
     {
+        // only write backup if radiation is calculated:
+        if(notifyFrequency == 0)
+            return;
+
         // collect data GPU -> CPU -> Master
         copyRadiationDeviceToHost();
         collectRadiationOnMaster();
