@@ -34,7 +34,9 @@
 /*enable (1) or disable (0) electrons*/
 #define ENABLE_ELECTRONS 1
 /*enable (1) or disable (0) ions*/
+#ifndef ENABLE_IONS
 #define ENABLE_IONS 0
+#endif
 
 
 namespace picongpu

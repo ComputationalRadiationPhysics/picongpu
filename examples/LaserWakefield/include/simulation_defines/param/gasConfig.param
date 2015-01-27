@@ -1,6 +1,6 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Rene Widera, Felix Schmitt,
- *                     Richard Pausch
+ * Copyright 2013-2015 Axel Huebl, Rene Widera, Felix Schmitt,
+ *                     Richard Pausch, Marco Garten
  *
  * This file is part of PIConGPU. 
  * 
@@ -142,16 +142,16 @@ namespace picongpu
         {
             /** Radius of the constant sphere
              *  unit: meter */
-            const double GAS_R_SI = 1.0e3;
+            const double GAS_R_SI = 1.0e-6;
             /** Inner radius if you want to build a shell/ring
              *  unit: meter */
             const double GAS_RI_SI = 0.0;
             
             /** Middle of the constant sphere
              *  unit: meter */
-            const double GAS_X_SI = 8.0e3;
-            const double GAS_Y_SI = 8.0e3;
-            const double GAS_Z_SI = 8.0e3;
+            const double GAS_X_SI = 1.13408e-5;
+            const double GAS_Y_SI = 6.0e-6;
+            const double GAS_Z_SI = 1.13408e-5;
             
             /** Parameters for the exponential slope
              *  For r > GAS_R_SI:
@@ -159,7 +159,7 @@ namespace picongpu
              *    \rho = exp[ - r' * GAS_EXP_SI ]
              *  unit: 1/m
              */
-            const double GAS_EXP_SI = 1.0e-3;
+            const double GAS_EXP_SI = 1.0e13;
         }
     }
 
