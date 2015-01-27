@@ -27,6 +27,7 @@
 #include "traits/attribute/GetMass.hpp"
 #include "fields/currentDeposition/Solver.hpp"
 #include "particles/Particles.tpp"
+#include "particles/ionization/byField/ionizers.hpp"
 
 namespace picongpu
 {
@@ -39,6 +40,7 @@ template<>
 HDINLINE float_X getMass<typename PIC_Ions::FrameType>()
 {
     return M_ION;
+    /** \todo take account for mass loss of ions when electrons leave them during ionization */
 };
 
 template<>
