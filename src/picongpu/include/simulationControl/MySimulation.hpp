@@ -1,6 +1,6 @@
 /**
  * Copyright 2013-2015 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
- *                     Richard Pausch
+ *                     Richard Pausch, Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -410,7 +410,7 @@ public:
             slide(currentStep);
         }
 
-        /** add background field: the movingWindowCheck ist just at the start
+        /** add background field: the movingWindowCheck is just at the start
          * of a time step before all the plugins are called (and the step
          * itself is performed for this time step).
          * Hence the background field is visible for all plugins
