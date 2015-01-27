@@ -30,6 +30,9 @@
 
 #include "particles/Particles.kernel"
 
+// Ionization
+#include "particles/ionization/ionization.hpp"
+
 #include "dataManagement/DataConnector.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
 
