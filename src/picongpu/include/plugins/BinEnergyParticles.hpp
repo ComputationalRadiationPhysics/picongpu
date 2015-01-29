@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Heiko Burau,
+ * Copyright 2013-2015 Axel Huebl, Felix Schmitt, Heiko Burau,
  *                     Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -158,15 +158,12 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
                                       (maxEnergy - minEnergy) * (float) numBins) + 1;
 
                 const int maxBin = numBins + 1;
-                /* same as
-                 * binNumber<numBins?binNumber:numBins+1
-                 * but without if*/
-                binNumber = binNumber * (int) (binNumber < maxBin) +
-                    maxBin * (int) (binNumber >= maxBin);
-                /* same as
-                 * binNumber>0?binNumber:0
-                 * but without if*/
-                binNumber = (int) (binNumber > 0) * binNumber;
+                
+                /* all entries larger than maxEnergy go into bin maxBin */
+                binNumber = binNumber < maxBin ? binNumber : maxBin;
+
+                /* all entries smaller than minEnergy go into bin zero */
+                binNumber = binNumber > 0 ? binNumber : 0;
 
                 /*!\todo: we can't use 64bit type on this place (NVIDIA BUG?)
                  * COMPILER ERROR: ptxas /tmp/tmpxft_00005da6_00000000-2_main.ptx, line 4246; error   : Global state space expected for instruction 'atom'
