@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Heiko Burau, Rene Widera, Richard Pausch, Axel Huebl
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Richard Pausch,
+ *                     Axel Huebl, Alexander Debus
  *
  * This file is part of libPMacc.
  *
@@ -83,12 +84,23 @@ struct Sinc<float>
 {
     typedef float result;
 
-    HDINLINE double operator( )(const float& value )
+    HDINLINE float operator( )(const float& value )
     {
       if(::fabsf(value) < FLT_EPSILON)
 	return 1.0;
       else
 	return ::sinf( value )/value;
+    }
+};
+
+template<>
+struct Atan2<float>
+{
+    typedef float result;
+
+    HDINLINE float operator( )(const float& val1, const float& val2 )
+    {
+        return ::atan2f( val1, val2 );
     }
 };
 

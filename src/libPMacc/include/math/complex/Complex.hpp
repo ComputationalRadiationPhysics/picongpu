@@ -36,19 +36,22 @@ namespace math
 
 /** A complex number class */
 template<typename Type>
-struct Complex : private __align__(sizeof(Type)) Type real, __align__(sizeof(Type)) Type imaginary
+struct Complex
 {
-    typedef Type T_Type;
+
+public:
+
+    typedef Type type;
 
     // constructor (real, imaginary)
-    HDINLINE Complex(Type real, Type imaginary = 0.0) : real(real), imaginary(imaginary);
+    HDINLINE Complex(Type real, Type imaginary = 0.0) : real(real), imaginary(imaginary) { }
     
     // constructor (Complex<T_OtherType>)
     template<typename OtherType>
-    HDINLINE explicit Complex(const Complex<OtherType >& other) : real( static_cast<Type> (other.get_real()) ), imaginary( static_cast<Type> (other.get_imag()) );
+    HDINLINE explicit Complex(const Complex<OtherType >& other) : real( static_cast<Type> (other.get_real()) ), imaginary( static_cast<Type> (other.get_imag()) ) { }
 
     // default constructor ( ! no initialization of data ! )
-    HDINLINE Complex(void) { };
+    HDINLINE Complex(void) { }
 
     // Conversion from scalar (assignment)
     HDINLINE Complex& operator=(const Type& other)
@@ -99,7 +102,16 @@ struct Complex : private __align__(sizeof(Type)) Type real, __align__(sizeof(Typ
     {
         return imaginary;
     }
-
+    
+    HDINLINE static Complex<Type> zero(void)
+    {
+        return Complex<Type>(0.0, 0.0);
+    }
+    
+private:
+    __align__(sizeof(Type)) Type real; // real part
+    __align__(sizeof(Type)) Type imaginary; // imaginary part
+    
 };
 
 /** Addition operators */

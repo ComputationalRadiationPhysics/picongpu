@@ -37,10 +37,25 @@ namespace math
 /* specialize setting complex number by using Euler's formula */
 
 template<typename Type>
-struct Euler< ::PMacc::math::Complex<Type>, Type >
+struct Euler;
+
+template<typename Type>
+HDINLINE typename Euler< Type >::result euler(const Type& magnitude, const Type& phase)
+{
+    return Euler< Type > ()(magnitude, phase);
+}
+
+template<typename Type>
+HDINLINE typename Euler< Type >::result euler(const Type& magnitude, const Type& sinValue, const Type& cosValue)
+{
+    return Euler< Type > ()(magnitude, sinValue, cosValue);
+}
+
+template<typename Type>
+struct Euler
 {
     typedef typename ::PMacc::math::Complex<Type> result;
-        
+    
     HDINLINE result operator( )(const Type &magnitude, const Type &phase)
     {
         return result(magnitude * picongpu::math::cos(phase),magnitude * picongpu::math::sin(phase));
@@ -53,15 +68,14 @@ struct Euler< ::PMacc::math::Complex<Type>, Type >
 };
 
 template<typename Type>
-struct Sqrt< ::PMacc::math::Complex<Type>, Type >
+struct Sqrt< ::PMacc::math::Complex<Type> >
 {
     typedef typename ::PMacc::math::Complex<Type> result;
     
-    HDINLINE result operator( )(const Complex<Type>& other)
+    HDINLINE result operator( )(const ::PMacc::math::Complex<Type>& other)
     {
-        Complex<Type> helper = other;
-        if (other.real<=0.0 && other.imaginary==0.0) {
-            return Complex<Type>(0.0, PMacc::algorithms::math::sqrt( -helper.real ) );
+        if (other.get_real()<=0.0 && other.get_imag()==0.0) {
+            return ::PMacc::math::Complex<Type>(0.0, PMacc::algorithms::math::sqrt( -other.get_real() ) );
         }
         else {
             return PMacc::algorithms::math::sqrt( PMacc::algorithms::math::abs(other) )*(other+PMacc::algorithms::math::abs(other))
@@ -71,13 +85,39 @@ struct Sqrt< ::PMacc::math::Complex<Type>, Type >
 };
 
 template<typename Type>
-struct exp< ::PMacc::math::Complex<Type>, Type >
+struct Exp< ::PMacc::math::Complex<Type> >
 {
     typedef typename ::PMacc::math::Complex<Type> result;
     
-    HDINLINE result operator( )(const Complex<Type>& other)
+    HDINLINE result operator( )(const ::PMacc::math::Complex<Type>& other)
     {
-        return PMacc::algorithms::math::Euler(1.0,other.imaginary)*PMacc::algorithms::math::exp(other.real);
+        return PMacc::algorithms::math::euler(1.0,other.get_imag())*PMacc::algorithms::math::exp(other.get_real());
+    }
+};
+
+// Phase of complex number (Note: Branchcut running from -infinity to 0)
+
+template<typename Type>
+struct Arg;
+
+template<typename Type>
+HDINLINE typename Arg< Type >::result arg(const Type& val)
+{
+    return Arg< Type > ()(val);
+}
+
+template<typename Type>
+struct Arg< ::PMacc::math::Complex<Type> >
+{
+    typedef typename ::PMacc::math::Complex<Type>::type result;
+    
+    HDINLINE result operator( )(const ::PMacc::math::Complex<Type>& other)
+    {
+        if (other.get_real()==0.0 && other.get_imag()==0.0) return 0.0;
+        else if (other.get_real()==0.0 && other.get_imag()>0.0) return M_PI/2;
+        else if (other.get_real()==0.0 && other.get_imag()<0.0) return -M_PI/2;
+        else if (other.get_real()<0.0 && other.get_imag()==0.0) return M_PI;
+        else return PMacc::algorithms::math::atan2(other.get_imag(),other.get_real());
     }
 };
 
@@ -86,53 +126,32 @@ struct Pow< ::PMacc::math::Complex<Type>, Type >
 {
     typedef typename ::PMacc::math::Complex<Type> result;
     
-    HDINLINE result operator( )(const Complex<Type>& other, const Type& exponent)
+    HDINLINE result operator( )(const ::PMacc::math::Complex<Type>& other, const Type& exponent)
     {
         return PMacc::algorithms::math::pow( PMacc::algorithms::math::abs(other),exponent )
-                *PMacc::algorithms::math::exp( Complex<Type>(0.,1.)*PMacc::algorithms::math::Arg(other)*exponent );
+                *PMacc::algorithms::math::exp( ::PMacc::math::Complex<Type>(0.,1.)*PMacc::algorithms::math::arg(other)*exponent );
     }
 };
 
 template<typename Type>
-struct Abs< ::PMacc::math::Complex<Type>, Type >
+struct Abs< ::PMacc::math::Complex<Type> >
 {
-    HDINLINE typename Type operator( )(const Complex<Type>& other)
+    typedef typename ::PMacc::math::Complex<Type>::type result;
+
+    HDINLINE result operator( )(const ::PMacc::math::Complex<Type>& other)
     {
-        return PMacc::algorithms::math::sqrt( PMacc::algorithms::math::abs2(other.real) + PMacc::algorithms::math::abs2(other.imaginary) );
+        return PMacc::algorithms::math::sqrt( PMacc::algorithms::math::abs2(other.get_real()) + PMacc::algorithms::math::abs2(other.get_imag()) );
     }
 };
 
 template<typename Type>
-struct Abs2< ::PMacc::math::Complex<Type>, Type >
+struct Abs2< ::PMacc::math::Complex<Type> >
 {
-    HDINLINE typename Type operator( )(const Complex<Type>& other)
-    {
-        return PMacc::algorithms::math::abs2(other.real) + PMacc::algorithms::math::abs2(other.imaginary);
-    }
-};
-
-// Phase of complex number (Note: Branchcut running from -infinity to 0)
-template<typename Type>
-struct Arg< ::PMacc::math::Complex<Type>, Type >
-{
-    HDINLINE typename Type operator( )(const Complex<Type>& other)
-    {
-        if (other.real==0.0 && other.imaginary==0.0) return 0.0;
-        else if (other.real==0.0 && other.imaginary>0.0) return M_PI/2;
-        else if (other.real==0.0 && other.imaginary<0.0) return -M_PI/2;
-        else if (other.real<0.0 && other.imaginary==0.0) return M_PI;
-        else return PMacc::algorithms::math::atan2(imaginary,real);
-    }
-};
-
-template<typename Type>
-struct Zero< ::PMacc::math::Complex<Type>, Type >
-{
-    typedef typename ::PMacc::math::Complex<Type> result;
+    typedef typename ::PMacc::math::Complex<Type>::type result;
     
-    HDINLINE result operator( )()
+    HDINLINE result operator( )(const ::PMacc::math::Complex<Type>& other)
     {
-        return result(0.0, 0.0);
+        return PMacc::algorithms::math::abs2(other.get_real()) + PMacc::algorithms::math::abs2(other.get_imag());
     }
 };
 

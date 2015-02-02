@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Richard Pausch, Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -44,9 +44,9 @@ public:
       picongpu::float_X cosValue;
       picongpu::float_X sinValue;
       picongpu::math::sincos(phase, sinValue, cosValue);
-      amp_x=PMacc::algorithms::math::Euler(vec.x(), sinValue, cosValue);
-      amp_y=PMacc::algorithms::math::Euler(vec.y(), sinValue, cosValue);
-      amp_z=PMacc::algorithms::math::Euler(vec.z(), sinValue, cosValue);
+      amp_x=PMacc::algorithms::math::euler(vec.x(), picongpu::precisionCast<numtype2>(sinValue), picongpu::precisionCast<numtype2>(cosValue) );
+      amp_y=PMacc::algorithms::math::euler(vec.y(), picongpu::precisionCast<numtype2>(sinValue), picongpu::precisionCast<numtype2>(cosValue) );
+      amp_z=PMacc::algorithms::math::euler(vec.z(), picongpu::precisionCast<numtype2>(sinValue), picongpu::precisionCast<numtype2>(cosValue) );
   }
 
 
@@ -78,9 +78,9 @@ public:
   HDINLINE static Amplitude zero(void)
   {
       Amplitude result;
-      result.amp_x = PMacc::algorithms::math::Zero;
-      result.amp_y = PMacc::algorithms::math::Zero;
-      result.amp_z = PMacc::algorithms::math::Zero;
+      result.amp_x = cmplx::zero();
+      result.amp_y = cmplx::zero();
+      result.amp_z = cmplx::zero();
       return result;
   }
 
@@ -143,13 +143,10 @@ namespace mpi
   template<>
   MPI_StructAsArray getMPI_StructAsArray< ::Amplitude >()
   {
-      MPI_StructAsArray result = getMPI_StructAsArray< cmplx::T_Type > ();
+      MPI_StructAsArray result = getMPI_StructAsArray< cmplx::type > ();
       result.sizeMultiplier *= Amplitude::numComponents;
       return result;
   };
 
 }//namespace mpi
-}//namespace PMacc
-
-
-
+}//na

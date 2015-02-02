@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Heiko Burau, Rene Widera, Richard Pausch, Axel Huebl
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Richard Pausch,
+ *                     Axel Huebl, Alexander Debus
  *
  * This file is part of libPMacc.
  *
@@ -88,6 +89,17 @@ struct Sinc<double>
 	return 1.0;
       else
 	return ::sin( value )/value;
+    }
+};
+
+template<>
+struct Atan2<double>
+{
+    typedef double result;
+
+    HDINLINE double operator( )(const double& val1, const double& val2 )
+    {
+        return ::atan2( val1, val2 );
     }
 };
 

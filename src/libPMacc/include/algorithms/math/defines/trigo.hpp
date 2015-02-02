@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Heiko Burau, Rene Widera, Richard Pausch, Axel Huebl
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Richard Pausch, Axel Huebl, Alexander Debus
  *
  * This file is part of libPMacc.
  *
@@ -38,6 +38,9 @@ struct Cos;
 
 template<typename Type>
 struct Tan;
+
+template<typename Type>
+struct Atan2;
 
 template<typename ArgType, typename SinType, typename CosType>
 struct SinCos;
@@ -84,6 +87,14 @@ typename Sinc<T1>::result
 sinc(const T1& value)
 {
     return Sinc< T1 > ()(value);
+}
+
+template<typename T1>
+HDINLINE
+typename Atan2<T1>::result
+atan2(const T1& val1, const T1& val2)
+{
+    return Atan2< T1 > ()(val1, val2);
 }
 
 } /* namespace math */
