@@ -20,9 +20,11 @@
 
 #pragma once
 
-#include "complex.hpp"
+#include "math/Complex.hpp"
 #include "parameters.hpp"
 #include "mpi/GetMPI_StructAsArray.hpp"
+
+typedef PMacc::math::Complex<numtype2> cmplx;
 
 /** class to store 3 complex numbers for the radiated amplitude
  */
@@ -30,7 +32,7 @@ class Amplitude
 {
 public:
   // number of scalars of type numtype2 in Amplitude = 3 (3D) * 2 (complex) = 6
-  static const uint numComponents = 3 * sizeof(Complex) / sizeof(numtype2);
+  static const uint numComponents = 3 * sizeof(cmplx) / sizeof(numtype2);
 
   /** constructor 
    * 
@@ -42,9 +44,9 @@ public:
       picongpu::float_X cosValue;
       picongpu::float_X sinValue;
       picongpu::math::sincos(phase, sinValue, cosValue);
-      amp_x.euler(vec.x(), sinValue, cosValue);
-      amp_y.euler(vec.y(), sinValue, cosValue);
-      amp_z.euler(vec.z(), sinValue, cosValue);
+      amp_x=PMacc::algorithms::math::Euler(vec.x(), sinValue, cosValue);
+      amp_y=PMacc::algorithms::math::Euler(vec.y(), sinValue, cosValue);
+      amp_z=PMacc::algorithms::math::Euler(vec.z(), sinValue, cosValue);
   }
 
 
@@ -76,9 +78,9 @@ public:
   HDINLINE static Amplitude zero(void)
   {
       Amplitude result;
-      result.amp_x = Complex::zero();
-      result.amp_y = Complex::zero();
-      result.amp_z = Complex::zero();
+      result.amp_x = PMacc::algorithms::math::Zero;
+      result.amp_y = PMacc::algorithms::math::Zero;
+      result.amp_z = PMacc::algorithms::math::Zero;
       return result;
   }
 
@@ -111,7 +113,7 @@ public:
       const numtype2 factor = 1.0 /
         (16. * util::cube(M_PI) * picongpu::EPS0 * picongpu::SPEED_OF_LIGHT); 
 
-      return factor * (amp_x.abs_square() + amp_y.abs_square() + amp_z.abs_square());
+      return factor * (PMacc::algorithms::math::abs2(amp_x) + PMacc::algorithms::math::abs2(amp_y) + PMacc::algorithms::math::abs2(amp_z));
   }
 
 
@@ -125,9 +127,9 @@ public:
 
 
 private:
-  Complex amp_x; // complex amplitude x-component
-  Complex amp_y; // complex amplitude y-component
-  Complex amp_z; // complex amplitude z-component
+  cmplx amp_x; // complex amplitude x-component
+  cmplx amp_y; // complex amplitude y-component
+  cmplx amp_z; // complex amplitude z-component
 
 };
 
@@ -141,7 +143,7 @@ namespace mpi
   template<>
   MPI_StructAsArray getMPI_StructAsArray< ::Amplitude >()
   {
-      MPI_StructAsArray result = getMPI_StructAsArray< ::Complex::Type > ();
+      MPI_StructAsArray result = getMPI_StructAsArray< cmplx::T_Type > ();
       result.sizeMultiplier *= Amplitude::numComponents;
       return result;
   };
