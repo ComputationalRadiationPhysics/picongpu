@@ -20,35 +20,45 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
+ /*
+#include <builtin_types.h>
+#include <cuda_runtime.h>
+#include <boost/static_assert.hpp>
+#include <boost/mpl/size.hpp>
+#include <types.h>
+*/
+
 namespace PMacc
 {
 namespace math
 {
 
 /** A complex number class */
-template<typename T>
-struct Complex_T : private __align__(sizeof (T)) T real, __align__(sizeof (T)) T imaginary
+template<typename Type>
+struct Complex : private __align__(sizeof(Type)) Type real, __align__(sizeof(Type)) Type imaginary
 {
+    typedef Type T_Type;
 
     // constructor (real, imaginary)
-    HDINLINE Complex_T(T real, T imaginary = 0.0) : real(real), imaginary(imaginary);
+    HDINLINE Complex(Type real, Type imaginary = 0.0) : real(real), imaginary(imaginary);
     
-    // constructor (Complex_T<T_OtherType>)
-    template<typename T_OtherType>
-    HDINLINE explicit Complex_T(const Complex_T<T_OtherType >& other) : real( static_cast<T> (other.get_real()) ), imaginary( static_cast<T> (other.get_imag()) );
+    // constructor (Complex<T_OtherType>)
+    template<typename OtherType>
+    HDINLINE explicit Complex(const Complex<OtherType >& other) : real( static_cast<Type> (other.get_real()) ), imaginary( static_cast<Type> (other.get_imag()) );
 
     // default constructor ( ! no initialization of data ! )
-    HDINLINE Complex_T(void) { };
+    HDINLINE Complex(void) { };
 
     // Conversion from scalar (assignment)
-    HDINLINE Complex_T& operator=(const T& other)
+    HDINLINE Complex& operator=(const Type& other)
     {
         real = other;
         return *this;
     }
 
     // Assignment operator
-    HDINLINE Complex_T& operator=(const Complex_T& other)
+    HDINLINE Complex& operator=(const Complex& other)
     {
         real = other.real;
         imaginary = other.imaginary;
@@ -56,7 +66,7 @@ struct Complex_T : private __align__(sizeof (T)) T real, __align__(sizeof (T)) T
     }
 
     // assign addition
-    HDINLINE Complex_T& operator+=(const Complex_T& other)
+    HDINLINE Complex& operator+=(const Complex& other)
     {
         real += other.real;
         imaginary += other.imaginary;
@@ -64,7 +74,7 @@ struct Complex_T : private __align__(sizeof (T)) T real, __align__(sizeof (T)) T
     }
 
     // assign difference
-    HDINLINE Complex_T& operator-=(const Complex_T& other)
+    HDINLINE Complex& operator-=(const Complex& other)
     {
         real -= other.real;
         imaginary -= other.imaginary;
@@ -72,25 +82,120 @@ struct Complex_T : private __align__(sizeof (T)) T real, __align__(sizeof (T)) T
     }
 
     // assign multiplication
-    HDINLINE Complex_T& operator *=(const Complex_T& other)
+    HDINLINE Complex& operator *=(const Complex& other)
     {
         *this = *this * other;
         return *this;
     }
 
     // real part
-    HDINLINE T get_real(void) const
+    HDINLINE Type get_real(void) const
     {
         return real;
     }
 
     // imaginary part
-    HDINLINE T get_imag(void) const
+    HDINLINE Type get_imag(void) const
     {
         return imaginary;
     }
 
 };
+
+/** Addition operators */
+
+template<typename Type>
+HDINLINE Complex<Type>
+operator+(const Complex<Type>& lhs, const Complex<Type>& rhs)
+{
+    return Complex<Type>(lhs.real + rhs.real, lhs.imaginary + rhs.imaginary);
+}
+
+template<typename Type>
+HDINLINE Complex<Type>
+operator+(const Complex<Type>& lhs, const Type& rhs)
+{
+    return Complex<Type>(lhs.real + rhs, lhs.imaginary);
+}
+
+template<typename Type>
+HDINLINE Complex<Type>
+operator+(const Type& lhs, const Complex<Type>& rhs)
+{
+    return Complex<Type>(lhs + rhs.real, rhs.imaginary);
+}
+
+/** Substraction operators */
+
+template<typename Type>
+HDINLINE Complex<Type>
+operator-(const Complex<Type>& lhs, const Complex<Type>& rhs)
+{
+    return Complex<Type>(lhs.real - rhs.real, lhs.imaginary - rhs.imaginary);
+}
+
+template<typename Type>
+HDINLINE Complex<Type>
+operator-(const Complex<Type>& lhs, const Type& rhs)
+{
+    return Complex<Type>(lhs.real - rhs, lhs.imaginary);
+}
+
+template<typename Type>
+HDINLINE Complex<Type>
+operator-(const Type& lhs, const Complex<Type>& rhs)
+{
+    return Complex<Type>(lhs - rhs.real, -rhs.imaginary);
+}
+
+/** Multiplication operators */
+
+template<typename Type>
+HDINLINE Complex<Type>
+operator*(const Complex<Type>& lhs, const Complex<Type>& rhs)
+{
+    return Complex<Type>(lhs.real * rhs.real - lhs.imaginary * rhs.imaginary,
+                     lhs.imaginary * rhs.real + lhs.real * rhs.imaginary);
+}
+
+template<typename Type>
+HDINLINE Complex<Type>
+operator*(const Complex<Type>& lhs, const Type& rhs)
+{
+    return Complex<Type>(lhs.real * rhs, lhs.imaginary * rhs);
+}
+
+template<typename Type>
+HDINLINE Complex<Type>
+operator*(const Type& lhs, const Complex<Type>& rhs)
+{
+    return Complex<Type>(lhs * rhs.real, lhs * rhs.imaginary);
+}
+
+/** Division operators */
+
+template<typename Type>
+HDINLINE Complex<Type>
+operator/(const Complex<Type>& lhs, const Type& rhs)
+{
+    return Complex<Type>(lhs.real / rhs, lhs.imaginary / rhs);
+}
+
+template<typename Type>
+HDINLINE Complex<Type>
+operator/(const Type& lhs, const Complex<Type>& rhs)
+{
+    return Complex<Type>(lhs * rhs.real/(rhs.real*rhs.real+rhs.imaginary*rhs.imaginary),
+                     -lhs * rhs.imaginary/( rhs.real*rhs.real+rhs.imaginary*rhs.imaginary ));
+}
+
+template<typename Type>
+HDINLINE Complex<Type>
+operator/(const Complex<Type>& lhs, const Complex<Type>& rhs)
+{
+    return lhs*Complex<Type>(rhs.real/(rhs.real*rhs.real+rhs.imaginary*rhs.imaginary),
+                        -rhs.imaginary/( rhs.real*rhs.real+rhs.imaginary*rhs.imaginary ));
+}
 
 } //namespace math
 } //namespace PMacc

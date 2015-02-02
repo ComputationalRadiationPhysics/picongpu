@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <cmath>
+#include "math/Complex.hpp"
 #include "algorithms/math.hpp"
 #include "algorithms/TypeCast.hpp"
  
@@ -32,136 +34,105 @@ namespace algorithms
 namespace math
 {
 
-/*#### comparison ############################################################*/
-
 /* specialize setting complex number by using Euler's formula */
 
 template<typename Type>
-struct euler< ::PMacc::math::Complex<Type>, Type >
+struct Euler< ::PMacc::math::Complex<Type>, Type >
 {
-    typedef ::PMacc::math::Complex<Type> result;
+    typedef typename ::PMacc::math::Complex<Type> result;
         
-    HDINLINE result operator( )(const Type &magnitude, const Type &phase )
+    HDINLINE result operator( )(const Type &magnitude, const Type &phase)
     {
-        result tmp;
-        
-        real = magnitude * picongpu::math::cos(phase);
-        imaginary = magnitude * picongpu::math::sin(phase);
-        
-        return tmp;
+        return result(magnitude * picongpu::math::cos(phase),magnitude * picongpu::math::sin(phase));
     }
-};
     
-HDINLINE Complex_T euler(T magnitude, const T& sinValue, const T& cosValue)
-{
-    real = magnitude * cosValue;
-    imaginary = magnitude * sinValue;
-    return *this;
-}
-
-/*#### comparison ############################################################*/
-
-/*specialize max algorithm*/
-template<typename Type, int dim>
-struct Max< ::PMacc::math::Vector<Type, dim>, ::PMacc::math::Vector<Type, dim> >
-{
-    typedef ::PMacc::math::Vector<Type, dim> result;
-
-    HDINLINE result operator( )(const ::PMacc::math::Vector<Type, dim> &vector1, const ::PMacc::math::Vector<Type, dim> &vector2 )
+    HDINLINE result operator( )(const Type &magnitude, const Type &sinValue, const Type &cosValue)
     {
-        result tmp;
-        for ( int i = 0; i < dim; ++i )
-            tmp[i] = ::max( vector1[i], vector2[i] );
-        return tmp;
+        return result(magnitude * cosValue, magnitude * sinValue);
     }
 };
-
-/*#### abs ###################################################################*/
-
-/*specialize abs2 algorithm*/
-template<typename Type, int dim>
-struct Abs2< ::PMacc::math::Vector<Type, dim> >
-{
-    typedef typename ::PMacc::math::Vector<Type, dim>::type result;
-
-    HDINLINE result operator( )(const ::PMacc::math::Vector<Type, dim> &vector )
-    {
-        result tmp = PMacc::algorithms::math::abs2( vector.x( ) );
-        for ( int i = 1; i < dim; ++i )
-            tmp += PMacc::algorithms::math::abs2( vector[i] );
-        return tmp;
-    }
-};
-
-/*specialize abs algorithm*/
-template<typename Type, int dim>
-struct Abs< ::PMacc::math::Vector<Type, dim> >
-{
-    typedef typename ::PMacc::math::Vector<Type, dim>::type result;
-
-    HDINLINE result operator( )( ::PMacc::math::Vector<Type, dim> vector )
-    {
-        const result tmp = PMacc::algorithms::math::abs2( vector );
-        return PMacc::algorithms::math::sqrt( tmp );
-    }
-};
-
-/*#### cross #################################################################*/
 
 template<typename Type>
-struct Cross< ::PMacc::math::Vector<Type, DIM3>, ::PMacc::math::Vector<Type, DIM3> >
+struct Sqrt< ::PMacc::math::Complex<Type>, Type >
 {
-    typedef ::PMacc::math::Vector<Type, DIM3> myType;
-    typedef myType result;
-
-    HDINLINE myType operator( )(const myType& lhs, const myType & rhs )
+    typedef typename ::PMacc::math::Complex<Type> result;
+    
+    HDINLINE result operator( )(const Complex<Type>& other)
     {
-        return myType( lhs.y( ) * rhs.z( ) - lhs.z( ) * rhs.y( ),
-                       lhs.z( ) * rhs.x( ) - lhs.x( ) * rhs.z( ),
-                       lhs.x( ) * rhs.y( ) - lhs.y( ) * rhs.x( ) );
+        Complex<Type> helper = other;
+        if (other.real<=0.0 && other.imaginary==0.0) {
+            return Complex<Type>(0.0, PMacc::algorithms::math::sqrt( -helper.real ) );
+        }
+        else {
+            return PMacc::algorithms::math::sqrt( PMacc::algorithms::math::abs(other) )*(other+PMacc::algorithms::math::abs(other))
+                /PMacc::algorithms::math::abs(other+PMacc::algorithms::math::abs(other));
+        }
     }
 };
 
-/*#### dot ###################################################################*/
-
-template<typename Type, int dim>
-struct Dot< ::PMacc::math::Vector<Type, dim>, ::PMacc::math::Vector<Type, dim> >
+template<typename Type>
+struct exp< ::PMacc::math::Complex<Type>, Type >
 {
-    typedef ::PMacc::math::Vector<Type, dim> myType;
-    typedef Type result;
-
-    HDINLINE result operator( )(const myType& a, const myType & b )
+    typedef typename ::PMacc::math::Complex<Type> result;
+    
+    HDINLINE result operator( )(const Complex<Type>& other)
     {
-        BOOST_STATIC_ASSERT( dim > 0 );
-        result tmp = a.x( ) * b.x( );
-        for ( int i = 1; i < dim; i++ )
-            tmp += a[i] * b[i];
-        return tmp;
+        return PMacc::algorithms::math::Euler(1.0,other.imaginary)*PMacc::algorithms::math::exp(other.real);
     }
 };
 
-/*#### pow ###################################################################*/
-
-/*! Specialisation of pow where base is a vector and exponent is a scalar
- *
- * Create pow separatley for every component of the vector.
- *
- * @prama base vector with base values
- * @param exponent scalar with exponent value
- */
-template<typename T1, typename T2, int dim>
-struct Pow< ::PMacc::math::Vector<T1, dim>, T2 >
+template<typename Type>
+struct Pow< ::PMacc::math::Complex<Type>, Type >
 {
-    typedef ::PMacc::math::Vector<T1, dim> Vector1;
-    typedef Vector1 result;
-
-    HDINLINE result operator( )(const Vector1& base, const T2 & exponent )
+    typedef typename ::PMacc::math::Complex<Type> result;
+    
+    HDINLINE result operator( )(const Complex<Type>& other, const Type& exponent)
     {
-        BOOST_STATIC_ASSERT( dim > 0 );
-        result tmp;
-        for ( int i = 0; i < dim; ++i )
-            tmp[i] = PMacc::algorithms::math::pow( base[i], exponent );
-        return tmp;
+        return PMacc::algorithms::math::pow( PMacc::algorithms::math::abs(other),exponent )
+                *PMacc::algorithms::math::exp( Complex<Type>(0.,1.)*PMacc::algorithms::math::Arg(other)*exponent );
+    }
+};
+
+template<typename Type>
+struct Abs< ::PMacc::math::Complex<Type>, Type >
+{
+    HDINLINE typename Type operator( )(const Complex<Type>& other)
+    {
+        return PMacc::algorithms::math::sqrt( PMacc::algorithms::math::abs2(other.real) + PMacc::algorithms::math::abs2(other.imaginary) );
+    }
+};
+
+template<typename Type>
+struct Abs2< ::PMacc::math::Complex<Type>, Type >
+{
+    HDINLINE typename Type operator( )(const Complex<Type>& other)
+    {
+        return PMacc::algorithms::math::abs2(other.real) + PMacc::algorithms::math::abs2(other.imaginary);
+    }
+};
+
+// Phase of complex number (Note: Branchcut running from -infinity to 0)
+template<typename Type>
+struct Arg< ::PMacc::math::Complex<Type>, Type >
+{
+    HDINLINE typename Type operator( )(const Complex<Type>& other)
+    {
+        if (other.real==0.0 && other.imaginary==0.0) return 0.0;
+        else if (other.real==0.0 && other.imaginary>0.0) return M_PI/2;
+        else if (other.real==0.0 && other.imaginary<0.0) return -M_PI/2;
+        else if (other.real<0.0 && other.imaginary==0.0) return M_PI;
+        else return PMacc::algorithms::math::atan2(imaginary,real);
+    }
+};
+
+template<typename Type>
+struct Zero< ::PMacc::math::Complex<Type>, Type >
+{
+    typedef typename ::PMacc::math::Complex<Type> result;
+    
+    HDINLINE result operator( )()
+    {
+        return result(0.0, 0.0);
     }
 };
 
