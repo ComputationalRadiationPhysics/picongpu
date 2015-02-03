@@ -23,8 +23,7 @@
 #ifndef CURSOR_BUFFERNAVIGATOR_HPP
 #define CURSOR_BUFFERNAVIGATOR_HPP
 
-#include <math/vector/Int.hpp>
-#include <math/vector/Size_t.hpp>
+#include "math/Vector.hpp"
 #include "tag.h"
 #include <boost/type_traits/remove_pointer.hpp>
 #include "CartNavigator.hpp"
