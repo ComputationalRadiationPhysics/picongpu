@@ -24,7 +24,7 @@
 #include "parameters.hpp"
 #include "mpi/GetMPI_StructAsArray.hpp"
 
-typedef PMacc::math::Complex<numtype2> cmplx;
+typedef PMacc::math::Complex<numtype2> complex_64;
 
 /** class to store 3 complex numbers for the radiated amplitude
  */
@@ -32,7 +32,7 @@ class Amplitude
 {
 public:
   // number of scalars of type numtype2 in Amplitude = 3 (3D) * 2 (complex) = 6
-  static const uint numComponents = 3 * sizeof(cmplx) / sizeof(numtype2);
+  static const uint numComponents = 3 * sizeof(complex_64) / sizeof(numtype2);
 
   /** constructor 
    * 
@@ -78,9 +78,9 @@ public:
   HDINLINE static Amplitude zero(void)
   {
       Amplitude result;
-      result.amp_x = cmplx::zero();
-      result.amp_y = cmplx::zero();
-      result.amp_z = cmplx::zero();
+      result.amp_x = complex_64::zero();
+      result.amp_y = complex_64::zero();
+      result.amp_z = complex_64::zero();
       return result;
   }
 
@@ -127,9 +127,9 @@ public:
 
 
 private:
-  cmplx amp_x; // complex amplitude x-component
-  cmplx amp_y; // complex amplitude y-component
-  cmplx amp_z; // complex amplitude z-component
+  complex_64 amp_x; // complex amplitude x-component
+  complex_64 amp_y; // complex amplitude y-component
+  complex_64 amp_z; // complex amplitude z-component
 
 };
 
@@ -143,7 +143,7 @@ namespace mpi
   template<>
   MPI_StructAsArray getMPI_StructAsArray< ::Amplitude >()
   {
-      MPI_StructAsArray result = getMPI_StructAsArray< cmplx::type > ();
+      MPI_StructAsArray result = getMPI_StructAsArray< complex_64::type > ();
       result.sizeMultiplier *= Amplitude::numComponents;
       return result;
   };

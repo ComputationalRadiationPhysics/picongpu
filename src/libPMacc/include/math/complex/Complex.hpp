@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Alexander Debus
+ * 2013-2015 Heiko Burau, Rene Widera, Richard Pausch, Alexander Debus
  *
  * This file is part of libPMacc.
  *
@@ -19,15 +19,6 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
-
-#pragma once
- /*
-#include <builtin_types.h>
-#include <cuda_runtime.h>
-#include <boost/static_assert.hpp>
-#include <boost/mpl/size.hpp>
-#include <types.h>
-*/
 
 namespace PMacc
 {
@@ -103,6 +94,7 @@ public:
         return imaginary;
     }
     
+    // complex zero
     HDINLINE static Complex<Type> zero(void)
     {
         return Complex<Type>(0.0, 0.0);

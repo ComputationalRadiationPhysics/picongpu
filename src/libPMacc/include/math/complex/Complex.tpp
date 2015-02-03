@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Alexander Debus
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Richard Pausch, Alexander Debus
  *
  * This file is part of libPMacc.
  *
@@ -34,7 +34,7 @@ namespace algorithms
 namespace math
 {
 
-/* specialize setting complex number by using Euler's formula */
+/*  Set primary template and subsequent specialization for returning a complex number by using Euler's formula. */
 
 template<typename Type>
 struct Euler;
@@ -67,6 +67,8 @@ struct Euler
     }
 };
 
+/* Specialize sqrt() for complex numbers. */
+
 template<typename Type>
 struct Sqrt< ::PMacc::math::Complex<Type> >
 {
@@ -84,6 +86,8 @@ struct Sqrt< ::PMacc::math::Complex<Type> >
     }
 };
 
+/* Specialize exp() for complex numbers. */
+
 template<typename Type>
 struct Exp< ::PMacc::math::Complex<Type> >
 {
@@ -95,8 +99,9 @@ struct Exp< ::PMacc::math::Complex<Type> >
     }
 };
 
-// Phase of complex number (Note: Branchcut running from -infinity to 0)
-
+/*  Set primary template and subsequent specialization of arg() for retrieving
+ *  the phase of a complex number (Note: Branchcut running from -infinity to 0).
+ */
 template<typename Type>
 struct Arg;
 
@@ -121,6 +126,7 @@ struct Arg< ::PMacc::math::Complex<Type> >
     }
 };
 
+/*  Specialize pow() for complex numbers. */
 template<typename Type>
 struct Pow< ::PMacc::math::Complex<Type>, Type >
 {
@@ -133,6 +139,7 @@ struct Pow< ::PMacc::math::Complex<Type>, Type >
     }
 };
 
+/*  Specialize abs() for complex numbers. */
 template<typename Type>
 struct Abs< ::PMacc::math::Complex<Type> >
 {
@@ -144,6 +151,7 @@ struct Abs< ::PMacc::math::Complex<Type> >
     }
 };
 
+/*  Specialize abs2() for complex numbers. */
 template<typename Type>
 struct Abs2< ::PMacc::math::Complex<Type> >
 {
@@ -165,6 +173,8 @@ namespace algorithms
 {
 namespace precisionCast
 {
+
+/*  Specialize precisionCast-operators for complex numbers. */
 
 template<typename CastToType>
 struct TypeCast<CastToType, ::PMacc::math::Complex<CastToType> >
