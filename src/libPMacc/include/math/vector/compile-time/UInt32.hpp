@@ -47,21 +47,21 @@ namespace CT
 template<uint32_t x = traits::limits::Max<uint32_t>::value,
          uint32_t y = traits::limits::Max<uint32_t>::value,
          uint32_t z = traits::limits::Max<uint32_t>::value>
-struct UInt : public CT::Vector<mpl::integral_c<uint32_t, x>,
+struct UInt32 : public CT::Vector<mpl::integral_c<uint32_t, x>,
                                                    mpl::integral_c<uint32_t, y>,
                                                    mpl::integral_c<uint32_t, z> >
 {};
 
 template<>
-struct UInt<> : public CT::Vector<>
+struct UInt32<> : public CT::Vector<>
 {};
 
 template<uint32_t x>
-struct UInt<x> : public CT::Vector< mpl::integral_c<uint32_t, x> >
+struct UInt32<x> : public CT::Vector< mpl::integral_c<uint32_t, x> >
 {};
 
 template<uint32_t x, uint32_t y>
-struct UInt<x, y> : public CT::Vector<mpl::integral_c<uint32_t, x>,
+struct UInt32<x, y> : public CT::Vector<mpl::integral_c<uint32_t, x>,
                                                 mpl::integral_c<uint32_t, y> >
 {};
 

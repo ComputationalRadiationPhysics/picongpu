@@ -22,8 +22,6 @@
 
 #include "simulation_defines.hpp"
 #include "types.h"
-#include "math/vector/UInt.hpp"
-#include "types.h"
 #include "dimensions/DataSpace.hpp"
 #include "math/Vector.hpp"
 #include "cuSTL/cursor/Cursor.hpp"

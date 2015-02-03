@@ -66,7 +66,7 @@ public:
     DINLINE cursor::CT::BufferCursor<Type, Pitch> origin() const;
     /*
     HDINLINE Cursor<PointerAccessor<Type>, CartNavigator<dim>, char*>
-    originCustomAxes(const math::UInt<dim>& axes) const;
+    originCustomAxes(const math::UInt32<dim>& axes) const;
     */
     DINLINE math::Size_t<dim> size() const {return math::Size_t<dim>(Size());}
 

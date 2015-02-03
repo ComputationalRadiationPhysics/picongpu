@@ -144,11 +144,11 @@ void SliceFieldPrinter<Field>::printSlice(const TField& field, int nAxis, float 
     if(!gather.participate()) return;
 
     using namespace lambda;
-    vec::UInt<3> twistedVector((nAxis+1)%3, (nAxis+2)%3, nAxis);
+    vec::UInt32<3> twistedVector((nAxis+1)%3, (nAxis+2)%3, nAxis);
 
     /* convert data to higher precision and to SI units */
     SliceFieldPrinterHelper::ConversionFunctor<Field> cf;
-    algorithm::kernel::Foreach<vec::CT::UInt<4,4,1> >()(
+    algorithm::kernel::Foreach<vec::CT::UInt32<4,4,1> >()(
       dBuffer_SI->zone(), dBuffer_SI->origin(),
       cursor::tools::slice(field.originCustomAxes(twistedVector)(0,0,localPlane)),
       cf );

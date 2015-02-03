@@ -24,7 +24,6 @@
 
 #include "mpi.h"
 #include "math/vector/Int.hpp"
-#include "math/vector/UInt.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
 #include "cuSTL/zone/SphericZone.hpp"
 #include <vector>

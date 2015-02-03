@@ -39,9 +39,9 @@ template<typename Type, typename Size, int uid>
 struct SharedMemAllocator<Type, Size, 1, uid>
 {
     typedef Type type;
-    typedef math::CT::UInt<> Pitch;
+    typedef math::CT::UInt32<> Pitch;
     static const int dim = 1;
-    typedef cursor::CT::BufferCursor<type, math::CT::UInt<> > Cursor;
+    typedef cursor::CT::BufferCursor<type, math::CT::UInt32<> > Cursor;
 
     __device__ static Cursor allocate()
     {
@@ -55,7 +55,7 @@ template<typename Type, typename Size, int uid>
 struct SharedMemAllocator<Type, Size, 2, uid>
 {
     typedef Type type;
-    typedef math::CT::UInt<sizeof(Type) * Size::x::value> Pitch;
+    typedef math::CT::UInt32<sizeof(Type) * Size::x::value> Pitch;
     static const int dim = 2;
     typedef cursor::CT::BufferCursor<type, Pitch> Cursor;
 
@@ -71,7 +71,7 @@ template<typename Type, typename Size, int uid>
 struct SharedMemAllocator<Type, Size, 3, uid>
 {
     typedef Type type;
-    typedef math::CT::UInt<sizeof(Type) * Size::x::value,
+    typedef math::CT::UInt32<sizeof(Type) * Size::x::value,
                              sizeof(Type) * Size::x::value * Size::y::value> Pitch;
     static const int dim = 3;
     typedef cursor::CT::BufferCursor<type, Pitch> Cursor;

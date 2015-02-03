@@ -30,23 +30,23 @@ namespace math
 {
 
 template<int dim>
-struct UInt : public Vector<uint32_t, dim>
+struct UInt32 : public Vector<uint32_t, dim>
 {
     typedef Vector<uint32_t, dim> BaseType;
 
-    HDINLINE UInt()
+    HDINLINE UInt32()
     {
     }
 
-    HDINLINE UInt(uint32_t x) : BaseType(x)
+    HDINLINE UInt32(uint32_t x) : BaseType(x)
     {
     }
 
-    HDINLINE UInt(uint32_t x, uint32_t y) : BaseType(x, y)
+    HDINLINE UInt32(uint32_t x, uint32_t y) : BaseType(x, y)
     {
     }
 
-    HDINLINE UInt(uint32_t x, uint32_t y, uint32_t z) : BaseType(x, y, z)
+    HDINLINE UInt32(uint32_t x, uint32_t y, uint32_t z) : BaseType(x, y, z)
     {
     }
 
@@ -56,12 +56,12 @@ struct UInt : public Vector<uint32_t, dim>
     typename T_OtherAccessor,
     typename T_OtherNavigator,
     template <typename, int> class T_OtherStorage>
-    HDINLINE explicit UInt(const Vector<T_OtherType, dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& vec) :
+    HDINLINE explicit UInt32(const Vector<T_OtherType, dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& vec) :
     BaseType(vec)
     {
     }
 
-    HDINLINE UInt(const BaseType& vec) :
+    HDINLINE UInt32(const BaseType& vec) :
     BaseType(vec)
     {
     }

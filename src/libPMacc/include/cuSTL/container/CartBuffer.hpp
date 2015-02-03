@@ -26,7 +26,7 @@
 #include <stdint.h>
 #include "types.h"
 #include "math/vector/Size_t.hpp"
-#include "math/vector/UInt.hpp"
+#include "math/vector/UInt32.hpp"
 #include "cuSTL/cursor/BufferCursor.hpp"
 #include "cuSTL/cursor/navigator/CartNavigator.hpp"
 #include "cuSTL/cursor/accessor/PointerAccessor.hpp"
@@ -115,7 +115,7 @@ public:
      * \param axes x-axis -> axes[0], y-axis -> axes[1], ...
      * */
     HDINLINE cursor::Cursor<cursor::PointerAccessor<Type>, cursor::CartNavigator<dim>, char*>
-    originCustomAxes(const math::UInt<dim>& axes) const;
+    originCustomAxes(const math::UInt32<dim>& axes) const;
 
     /* get a zone spanning the whole container */
     HDINLINE zone::SphericZone<dim> zone() const;

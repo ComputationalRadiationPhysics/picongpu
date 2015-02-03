@@ -24,7 +24,7 @@
 #define ZONE_STAGGEREDZONE_HPP
 
 #include <stdint.h>
-#include "../vector/Size_t.hpp"
+#include "vector/Vector.hpp"
 #include "SphericZone.hpp"
 
 namespace PMacc
@@ -40,8 +40,8 @@ template<int _dim>
 struct StaggeredZone : public SphericZone<_dim>
 {
     typedef tag::StaggeredZone tag;
-    math::UInt<dim> staggered;
-    math::UInt<dim> staggeredOffset;
+    math::UInt32<dim> staggered;
+    math::UInt32<dim> staggeredOffset;
 };
 
 } // zone

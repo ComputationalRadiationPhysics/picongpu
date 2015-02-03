@@ -24,7 +24,6 @@
 #define ALGORITHM_KERNEL_REDUCE_HPP
 
 #include "math/vector/Int.hpp"
-#include "math/vector/UInt.hpp"
 #include "cuSTL/container/CartBuffer.hpp"
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "cuSTL/zone/SphericZone.hpp"
