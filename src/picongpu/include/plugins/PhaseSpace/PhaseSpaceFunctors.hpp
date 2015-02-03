@@ -90,7 +90,7 @@ namespace picongpu
 
             /* cell id in this block */
             const int linearCellIdx = particle[localCellIdx_];
-            const PMacc::math::UInt<simDim> cellIdx(
+            const PMacc::math::UInt32<simDim> cellIdx(
                 PMacc::math::MapToPos<simDim>()( SuperCellSize(), linearCellIdx ) );
 
             const uint32_t r_bin    = cellIdx[r_dir];

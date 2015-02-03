@@ -234,7 +234,7 @@ CartBuffer<Type, _dim, Allocator, Copier, Assigner>::originSafe() const
 
 template<typename Type, int _dim, typename Allocator, typename Copier, typename Assigner>
 cursor::Cursor<cursor::PointerAccessor<Type>, cursor::CartNavigator<_dim>, char*>
-CartBuffer<Type, _dim, Allocator, Copier, Assigner>::originCustomAxes(const math::UInt<_dim>& axes) const
+CartBuffer<Type, _dim, Allocator, Copier, Assigner>::originCustomAxes(const math::UInt32<_dim>& axes) const
 {
     math::Size_t<dim> factor;
     factor[0] = sizeof(Type);
