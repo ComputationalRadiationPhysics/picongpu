@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Felix Schmitt
+ * Copyright 2014-2015 Felix Schmitt, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -18,14 +18,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 #include <adios.h>
 #include <list>
 
 #include "types.h"
+#include "math/Vector.hpp"
 #include "simulation_types.hpp"
 #include "particles/frame_types.hpp"
 #include "simulationControl/MovingWindow.hpp"
@@ -36,7 +35,6 @@ namespace picongpu
 namespace adios
 {
 using namespace PMacc;
-
 
 
 namespace po = boost::program_options;
@@ -84,9 +82,9 @@ struct ThreadParams
     std::string adiosBasePath;              /* base path for the current step */
     std::string adiosCompression;           /* ADIOS data transform compression method */
 
-    DataSpace<simDim> fieldsSizeDims;
-    DataSpace<simDim> fieldsGlobalSizeDims;
-    DataSpace<simDim> fieldsOffsetDims;
+    PMacc::math::UInt64<simDim> fieldsSizeDims;
+    PMacc::math::UInt64<simDim> fieldsGlobalSizeDims;
+    PMacc::math::UInt64<simDim> fieldsOffsetDims;
 
     std::list<int64_t> adiosFieldVarIds;        /* var IDs for fields in order of appearance */
     std::list<int64_t> adiosParticleAttrVarIds; /* var IDs for particle attributes in order of appearance */
@@ -131,9 +129,9 @@ int64_t defineAdiosVar(int64_t group_id,
                        const char * name,
                        const char * path,
                        enum ADIOS_DATATYPES type,
-                       DataSpace<DIM> dimensions,
-                       DataSpace<DIM> globalDimensions,
-                       DataSpace<DIM> offset,
+                       PMacc::math::UInt64<DIM> dimensions,
+                       PMacc::math::UInt64<DIM> globalDimensions,
+                       PMacc::math::UInt64<DIM> offset,
                        bool compression,
                        std::string compressionMethod);
 

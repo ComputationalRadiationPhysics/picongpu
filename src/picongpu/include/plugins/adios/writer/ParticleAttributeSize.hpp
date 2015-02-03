@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Felix Schmitt
+ * Copyright 2014-2015 Felix Schmitt, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -52,9 +52,9 @@ struct ParticleAttributeSize
     HINLINE void operator()(
                             ThreadParams* params,
                             const std::string subGroup,
-                            const size_t elements,
-                            const size_t globalElements,
-                            const size_t globalOffset)
+                            const uint64_t elements,
+                            const uint64_t globalElements,
+                            const uint64_t globalOffset)
     {
 
         typedef T_Identifier Identifier;
@@ -78,14 +78,15 @@ struct ParticleAttributeSize
             if (components > 1)
                 datasetName << "/" << name_lookup[d];
 
-            int64_t adiosParticleAttrId = defineAdiosVar(
+            const char* path = NULL;
+            int64_t adiosParticleAttrId = defineAdiosVar<DIM1>(
                 params->adiosGroupHandle,
                 datasetName.str().c_str(),
-                NULL,
+                path,
                 adiosType.type,
-                DataSpace<DIM1>(elements),
-                DataSpace<DIM1>(globalElements),
-                DataSpace<DIM1>(globalOffset),
+                PMacc::math::UInt64<DIM1>(elements),
+                PMacc::math::UInt64<DIM1>(globalElements),
+                PMacc::math::UInt64<DIM1>(globalOffset),
                 true,
                 params->adiosCompression);
 
