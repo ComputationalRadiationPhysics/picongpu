@@ -85,9 +85,9 @@ struct Sinc<double>
     HDINLINE double operator( )(const double& value )
     {
       if(::fabs(value) < DBL_EPSILON)
-	return 1.0;
+    return 1.0;
       else
-	return ::sin( value )/value;
+    return ::sin( value )/value;
     }
 };
 
