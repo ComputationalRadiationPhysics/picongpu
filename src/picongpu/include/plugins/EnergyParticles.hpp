@@ -109,7 +109,7 @@ __global__ void kernelEnergyParticles(ParticlesBox<FRAME, simDim> pb,
             Gamma<> calcGamma; /* functor for computing relativistic gamma factor */
             const float_X gamma = calcGamma(mom, mass); /* compute relativistic gamma */
 
-            if (gamma < 1.005f) /* if particle energy is low enough: */
+            if (gamma < GAMMA_THRESH) /* if particle energy is low enough: */
             {
                 /* not relativistic: use equation with more precision */
                 _local_energyKin += mom2 / (2.0f * mass);

@@ -26,6 +26,11 @@ namespace picongpu
 {
     const float_64 PI = 3.141592653589793238462643383279502884197169399;
 
+    /** Threshold used for calculations that want to separate between
+     *  high-precision formulas for relativistic and non-relativistic
+     *  use-cases, e.g. energy-binning algorithms. */
+    const float_X GAMMA_THRESH = float_X(1.005);
+
     namespace SI
     {
         /** unit: m / s */

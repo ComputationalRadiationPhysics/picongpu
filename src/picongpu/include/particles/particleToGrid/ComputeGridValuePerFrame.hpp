@@ -116,7 +116,9 @@ ComputeGridValuePerFrame<T_ParticleShape, calcType>::operator()
     const typename Gamma<float_X>::valueType gamma = calcGamma(mom, mass);
     const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
 
-    const float_X energy = (gamma - float_X(1.0)) * mass * c2;
+    const float_X energy = ( gamma <= float_X(GAMMA_THRESH) ) ?
+        math::abs2(mom) / ( float_X(2.0) * mass ) :   /* non-relativistic */
+        (gamma - float_X(1.0)) * mass * c2;           /* relativistic     */
 #if(ENABLE_RADIATION == 1)
     const float_X el_factor = charge * charge
         / (6.0 * PI * EPS0 *
