@@ -24,6 +24,9 @@ TBG_queue="k20"
 TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
 TBG_mailSettings=${MY_MAILNOTIFY:-"n"}
 
+# get the ID of the last job of the submitting user waiting in the k20 queue
+TBG_waitJob=`qstat -u $(whoami) | grep $TBG_queue | tail -n 1 | awk '{print $1}'`
+
 # 4 gpus per node if we need more than 4 gpus else same count as TBG_tasks
 TBG_gpusPerNode=`if [ $TBG_tasks -gt 4 ] ; then echo 4; else echo $TBG_tasks; fi`
 
