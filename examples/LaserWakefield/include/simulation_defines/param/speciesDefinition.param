@@ -120,7 +120,7 @@ typedef bmpl::vector<
     shape<UsedParticleShape>,
     interpolation<UsedField2Particle>,
     current<UsedParticleCurrentSolver>
-    #if(ENABLE_IONIZATION==1)
+    #if(PARAM_IONIZATION==1)
     ,ionizer<particles::ionization::BSI<PIC_Electrons> >
     #endif
 > ParticleFlagsIons;

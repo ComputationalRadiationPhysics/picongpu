@@ -83,9 +83,4 @@ namespace particleInit = particleInitRandomPos;
 #define ENABLE_CURRENT 1
 #endif
 
-/* enable (1) or disable (0) ionization */
-#ifndef ENABLE_IONIZATION
-#define ENABLE_IONIZATION 0
-#endif
-
 }
