@@ -36,32 +36,32 @@ namespace math
 
 /*  Set primary template and subsequent specialization for returning a complex number by using Euler's formula. */
 
-template<typename Type>
+template<typename T_Type>
 struct Euler;
 
-template<typename Type>
-HDINLINE typename Euler< Type >::result euler(const Type& magnitude, const Type& phase)
+template<typename T_Type>
+HDINLINE typename Euler< T_Type >::result euler(const T_Type& magnitude, const T_Type& phase)
 {
-    return Euler< Type > ()(magnitude, phase);
+    return Euler< T_Type > ()(magnitude, phase);
 }
 
-template<typename Type>
-HDINLINE typename Euler< Type >::result euler(const Type& magnitude, const Type& sinValue, const Type& cosValue)
+template<typename T_Type>
+HDINLINE typename Euler< T_Type >::result euler(const T_Type& magnitude, const T_Type& sinValue, const T_Type& cosValue)
 {
-    return Euler< Type > ()(magnitude, sinValue, cosValue);
+    return Euler< T_Type > ()(magnitude, sinValue, cosValue);
 }
 
-template<typename Type>
+template<typename T_Type>
 struct Euler
 {
-    typedef typename ::PMacc::math::Complex<Type> result;
+    typedef typename ::PMacc::math::Complex<T_Type> result;
     
-    HDINLINE result operator( )(const Type &magnitude, const Type &phase)
+    HDINLINE result operator( )(const T_Type &magnitude, const T_Type &phase)
     {
-        return result(magnitude * picongpu::math::cos(phase),magnitude * picongpu::math::sin(phase));
+        return result(magnitude * PMacc::algorithms::math::cos(phase),magnitude * PMacc::algorithms::math::sin(phase));
     }
     
-    HDINLINE result operator( )(const Type &magnitude, const Type &sinValue, const Type &cosValue)
+    HDINLINE result operator( )(const T_Type &magnitude, const T_Type &sinValue, const T_Type &cosValue)
     {
         return result(magnitude * cosValue, magnitude * sinValue);
     }
@@ -69,15 +69,15 @@ struct Euler
 
 /* Specialize sqrt() for complex numbers. */
 
-template<typename Type>
-struct Sqrt< ::PMacc::math::Complex<Type> >
+template<typename T_Type>
+struct Sqrt< ::PMacc::math::Complex<T_Type> >
 {
-    typedef typename ::PMacc::math::Complex<Type> result;
+    typedef typename ::PMacc::math::Complex<T_Type> result;
     
-    HDINLINE result operator( )(const ::PMacc::math::Complex<Type>& other)
+    HDINLINE result operator( )(const ::PMacc::math::Complex<T_Type>& other)
     {
         if (other.get_real()<=0.0 && other.get_imag()==0.0) {
-            return ::PMacc::math::Complex<Type>(0.0, PMacc::algorithms::math::sqrt( -other.get_real() ) );
+            return ::PMacc::math::Complex<T_Type>(0.0, PMacc::algorithms::math::sqrt( -other.get_real() ) );
         }
         else {
             return PMacc::algorithms::math::sqrt( PMacc::algorithms::math::abs(other) )*(other+PMacc::algorithms::math::abs(other))
@@ -88,12 +88,12 @@ struct Sqrt< ::PMacc::math::Complex<Type> >
 
 /* Specialize exp() for complex numbers. */
 
-template<typename Type>
-struct Exp< ::PMacc::math::Complex<Type> >
+template<typename T_Type>
+struct Exp< ::PMacc::math::Complex<T_Type> >
 {
-    typedef typename ::PMacc::math::Complex<Type> result;
+    typedef typename ::PMacc::math::Complex<T_Type> result;
     
-    HDINLINE result operator( )(const ::PMacc::math::Complex<Type>& other)
+    HDINLINE result operator( )(const ::PMacc::math::Complex<T_Type>& other)
     {
         return PMacc::algorithms::math::euler(1.0,other.get_imag())*PMacc::algorithms::math::exp(other.get_real());
     }
@@ -102,62 +102,62 @@ struct Exp< ::PMacc::math::Complex<Type> >
 /*  Set primary template and subsequent specialization of arg() for retrieving
  *  the phase of a complex number (Note: Branchcut running from -infinity to 0).
  */
-template<typename Type>
+template<typename T_Type>
 struct Arg;
 
-template<typename Type>
-HDINLINE typename Arg< Type >::result arg(const Type& val)
+template<typename T_Type>
+HDINLINE typename Arg< T_Type >::result arg(const T_Type& val)
 {
-    return Arg< Type > ()(val);
+    return Arg< T_Type > ()(val);
 }
 
-template<typename Type>
-struct Arg< ::PMacc::math::Complex<Type> >
+template<typename T_Type>
+struct Arg< ::PMacc::math::Complex<T_Type> >
 {
-    typedef typename ::PMacc::math::Complex<Type>::type result;
+    typedef typename ::PMacc::math::Complex<T_Type>::type result;
     
-    HDINLINE result operator( )(const ::PMacc::math::Complex<Type>& other)
+    HDINLINE result operator( )(const ::PMacc::math::Complex<T_Type>& other)
     {
         if (other.get_real()==0.0 && other.get_imag()==0.0) return 0.0;
-        else if (other.get_real()==0.0 && other.get_imag()>0.0) return M_PI/2;
-        else if (other.get_real()==0.0 && other.get_imag()<0.0) return -M_PI/2;
-        else if (other.get_real()<0.0 && other.get_imag()==0.0) return M_PI;
+        else if (other.get_real()==0.0 && other.get_imag()>0.0) return T_Type(M_PI)/T_Type(2.0);
+        else if (other.get_real()==0.0 && other.get_imag()<0.0) return T_Type(-M_PI)/T_Type(2.0);
+        else if (other.get_real()<0.0 && other.get_imag()==0.0) return T_Type(M_PI);
         else return PMacc::algorithms::math::atan2(other.get_imag(),other.get_real());
     }
 };
 
 /*  Specialize pow() for complex numbers. */
-template<typename Type>
-struct Pow< ::PMacc::math::Complex<Type>, Type >
+template<typename T_Type>
+struct Pow< ::PMacc::math::Complex<T_Type>, T_Type >
 {
-    typedef typename ::PMacc::math::Complex<Type> result;
+    typedef typename ::PMacc::math::Complex<T_Type> result;
     
-    HDINLINE result operator( )(const ::PMacc::math::Complex<Type>& other, const Type& exponent)
+    HDINLINE result operator( )(const ::PMacc::math::Complex<T_Type>& other, const T_Type& exponent)
     {
         return PMacc::algorithms::math::pow( PMacc::algorithms::math::abs(other),exponent )
-                *PMacc::algorithms::math::exp( ::PMacc::math::Complex<Type>(0.,1.)*PMacc::algorithms::math::arg(other)*exponent );
+                *PMacc::algorithms::math::exp( ::PMacc::math::Complex<T_Type>(0.,1.)*PMacc::algorithms::math::arg(other)*exponent );
     }
 };
 
 /*  Specialize abs() for complex numbers. */
-template<typename Type>
-struct Abs< ::PMacc::math::Complex<Type> >
+template<typename T_Type>
+struct Abs< ::PMacc::math::Complex<T_Type> >
 {
-    typedef typename ::PMacc::math::Complex<Type>::type result;
+    typedef typename ::PMacc::math::Complex<T_Type>::type result;
 
-    HDINLINE result operator( )(const ::PMacc::math::Complex<Type>& other)
+    HDINLINE result operator( )(const ::PMacc::math::Complex<T_Type>& other)
     {
         return PMacc::algorithms::math::sqrt( PMacc::algorithms::math::abs2(other.get_real()) + PMacc::algorithms::math::abs2(other.get_imag()) );
     }
 };
 
 /*  Specialize abs2() for complex numbers. */
-template<typename Type>
-struct Abs2< ::PMacc::math::Complex<Type> >
+template<typename T_Type>
+struct Abs2< ::PMacc::math::Complex<T_Type> >
 {
-    typedef typename ::PMacc::math::Complex<Type>::type result;
+    typedef typename ::PMacc::math::Complex<T_Type>::type result;
     
-    HDINLINE result operator( )(const ::PMacc::math::Complex<Type>& other)
+    HDINLINE result operator( )(const ::PMacc::math::Complex<T_Type>& other)
     {
         return PMacc::algorithms::math::abs2(other.get_real()) + PMacc::algorithms::math::abs2(other.get_imag());
     }
@@ -176,23 +176,23 @@ namespace precisionCast
 
 /*  Specialize precisionCast-operators for complex numbers. */
 
-template<typename CastToType>
-struct TypeCast<CastToType, ::PMacc::math::Complex<CastToType> >
+template<typename T_CastToType>
+struct TypeCast<T_CastToType, ::PMacc::math::Complex<T_CastToType> >
 {
-    typedef const ::PMacc::math::Complex<CastToType>& result;
+    typedef const ::PMacc::math::Complex<T_CastToType>& result;
 
-    HDINLINE result operator( )(const ::PMacc::math::Complex<CastToType>& complexNumber ) const
+    HDINLINE result operator( )(const ::PMacc::math::Complex<T_CastToType>& complexNumber ) const
     {
         return complexNumber;
     }
 };
 
-template<typename CastToType, typename OldType>
-struct TypeCast<CastToType, ::PMacc::math::Complex<OldType> >
+template<typename T_CastToType, typename T_OldType>
+struct TypeCast<T_CastToType, ::PMacc::math::Complex<T_OldType> >
 {
-    typedef ::PMacc::math::Complex<CastToType> result;
+    typedef ::PMacc::math::Complex<T_CastToType> result;
 
-    HDINLINE result operator( )(const ::PMacc::math::Complex<OldType>& complexNumber ) const
+    HDINLINE result operator( )(const ::PMacc::math::Complex<T_OldType>& complexNumber ) const
     {
         return result( complexNumber );
     }

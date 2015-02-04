@@ -86,10 +86,10 @@ struct Sinc<float>
 
     HDINLINE float operator( )(const float& value )
     {
-      if(::fabsf(value) < FLT_EPSILON)
-    return 1.0;
-      else
-    return ::sinf( value )/value;
+        if(::fabsf(value) < FLT_EPSILON)
+            return 1.0;
+        else
+            return ::sinf( value )/value;
     }
 };
 

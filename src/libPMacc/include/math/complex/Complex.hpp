@@ -26,26 +26,26 @@ namespace math
 {
 
 /** A complex number class */
-template<typename Type>
+template<typename T_Type>
 struct Complex
 {
 
 public:
 
-    typedef Type type;
+    typedef T_Type type;
 
     // constructor (real, imaginary)
-    HDINLINE Complex(Type real, Type imaginary = 0.0) : real(real), imaginary(imaginary) { }
+    HDINLINE Complex(T_Type real, T_Type imaginary = 0.0) : real(real), imaginary(imaginary) { }
     
     // constructor (Complex<T_OtherType>)
-    template<typename OtherType>
-    HDINLINE explicit Complex(const Complex<OtherType >& other) : real( static_cast<Type> (other.get_real()) ), imaginary( static_cast<Type> (other.get_imag()) ) { }
+    template<typename T_OtherType>
+    HDINLINE explicit Complex(const Complex<T_OtherType >& other) : real( static_cast<T_Type> (other.get_real()) ), imaginary( static_cast<T_Type> (other.get_imag()) ) { }
 
     // default constructor ( ! no initialization of data ! )
     HDINLINE Complex(void) { }
 
     // Conversion from scalar (assignment)
-    HDINLINE Complex& operator=(const Type& other)
+    HDINLINE Complex& operator=(const T_Type& other)
     {
         real = other;
         return *this;
@@ -83,121 +83,121 @@ public:
     }
 
     // real part
-    HDINLINE Type get_real(void) const
+    HDINLINE T_Type get_real(void) const
     {
         return real;
     }
 
     // imaginary part
-    HDINLINE Type get_imag(void) const
+    HDINLINE T_Type get_imag(void) const
     {
         return imaginary;
     }
     
     // complex zero
-    HDINLINE static Complex<Type> zero(void)
+    HDINLINE static Complex<T_Type> zero(void)
     {
-        return Complex<Type>(0.0, 0.0);
+        return Complex<T_Type>(0.0, 0.0);
     }
     
 private:
-    __align__(sizeof(Type)) Type real; // real part
-    __align__(sizeof(Type)) Type imaginary; // imaginary part
+    PMACC_ALIGN(real,T_Type); // real part
+    PMACC_ALIGN(imaginary,T_Type); // imaginary part
     
 };
 
 /** Addition operators */
 
-template<typename Type>
-HDINLINE Complex<Type>
-operator+(const Complex<Type>& lhs, const Complex<Type>& rhs)
+template<typename T_Type>
+HDINLINE Complex<T_Type>
+operator+(const Complex<T_Type>& lhs, const Complex<T_Type>& rhs)
 {
-    return Complex<Type>(lhs.real + rhs.real, lhs.imaginary + rhs.imaginary);
+    return Complex<T_Type>(lhs.real + rhs.real, lhs.imaginary + rhs.imaginary);
 }
 
-template<typename Type>
-HDINLINE Complex<Type>
-operator+(const Complex<Type>& lhs, const Type& rhs)
+template<typename T_Type>
+HDINLINE Complex<T_Type>
+operator+(const Complex<T_Type>& lhs, const T_Type& rhs)
 {
-    return Complex<Type>(lhs.real + rhs, lhs.imaginary);
+    return Complex<T_Type>(lhs.real + rhs, lhs.imaginary);
 }
 
-template<typename Type>
-HDINLINE Complex<Type>
-operator+(const Type& lhs, const Complex<Type>& rhs)
+template<typename T_Type>
+HDINLINE Complex<T_Type>
+operator+(const T_Type& lhs, const Complex<T_Type>& rhs)
 {
-    return Complex<Type>(lhs + rhs.real, rhs.imaginary);
+    return Complex<T_Type>(lhs + rhs.real, rhs.imaginary);
 }
 
 /** Substraction operators */
 
-template<typename Type>
-HDINLINE Complex<Type>
-operator-(const Complex<Type>& lhs, const Complex<Type>& rhs)
+template<typename T_Type>
+HDINLINE Complex<T_Type>
+operator-(const Complex<T_Type>& lhs, const Complex<T_Type>& rhs)
 {
-    return Complex<Type>(lhs.real - rhs.real, lhs.imaginary - rhs.imaginary);
+    return Complex<T_Type>(lhs.real - rhs.real, lhs.imaginary - rhs.imaginary);
 }
 
-template<typename Type>
-HDINLINE Complex<Type>
-operator-(const Complex<Type>& lhs, const Type& rhs)
+template<typename T_Type>
+HDINLINE Complex<T_Type>
+operator-(const Complex<T_Type>& lhs, const T_Type& rhs)
 {
-    return Complex<Type>(lhs.real - rhs, lhs.imaginary);
+    return Complex<T_Type>(lhs.real - rhs, lhs.imaginary);
 }
 
-template<typename Type>
-HDINLINE Complex<Type>
-operator-(const Type& lhs, const Complex<Type>& rhs)
+template<typename T_Type>
+HDINLINE Complex<T_Type>
+operator-(const T_Type& lhs, const Complex<T_Type>& rhs)
 {
-    return Complex<Type>(lhs - rhs.real, -rhs.imaginary);
+    return Complex<T_Type>(lhs - rhs.real, -rhs.imaginary);
 }
 
 /** Multiplication operators */
 
-template<typename Type>
-HDINLINE Complex<Type>
-operator*(const Complex<Type>& lhs, const Complex<Type>& rhs)
+template<typename T_Type>
+HDINLINE Complex<T_Type>
+operator*(const Complex<T_Type>& lhs, const Complex<T_Type>& rhs)
 {
-    return Complex<Type>(lhs.real * rhs.real - lhs.imaginary * rhs.imaginary,
+    return Complex<T_Type>(lhs.real * rhs.real - lhs.imaginary * rhs.imaginary,
                      lhs.imaginary * rhs.real + lhs.real * rhs.imaginary);
 }
 
-template<typename Type>
-HDINLINE Complex<Type>
-operator*(const Complex<Type>& lhs, const Type& rhs)
+template<typename T_Type>
+HDINLINE Complex<T_Type>
+operator*(const Complex<T_Type>& lhs, const T_Type& rhs)
 {
-    return Complex<Type>(lhs.real * rhs, lhs.imaginary * rhs);
+    return Complex<T_Type>(lhs.real * rhs, lhs.imaginary * rhs);
 }
 
-template<typename Type>
-HDINLINE Complex<Type>
-operator*(const Type& lhs, const Complex<Type>& rhs)
+template<typename T_Type>
+HDINLINE Complex<T_Type>
+operator*(const T_Type& lhs, const Complex<T_Type>& rhs)
 {
-    return Complex<Type>(lhs * rhs.real, lhs * rhs.imaginary);
+    return Complex<T_Type>(lhs * rhs.real, lhs * rhs.imaginary);
 }
 
 /** Division operators */
 
-template<typename Type>
-HDINLINE Complex<Type>
-operator/(const Complex<Type>& lhs, const Type& rhs)
+template<typename T_Type>
+HDINLINE Complex<T_Type>
+operator/(const Complex<T_Type>& lhs, const T_Type& rhs)
 {
-    return Complex<Type>(lhs.real / rhs, lhs.imaginary / rhs);
+    return Complex<T_Type>(lhs.real / rhs, lhs.imaginary / rhs);
 }
 
-template<typename Type>
-HDINLINE Complex<Type>
-operator/(const Type& lhs, const Complex<Type>& rhs)
+template<typename T_Type>
+HDINLINE Complex<T_Type>
+operator/(const T_Type& lhs, const Complex<T_Type>& rhs)
 {
-    return Complex<Type>(lhs * rhs.real/(rhs.real*rhs.real+rhs.imaginary*rhs.imaginary),
+    return Complex<T_Type>(lhs * rhs.real/(rhs.real*rhs.real+rhs.imaginary*rhs.imaginary),
                      -lhs * rhs.imaginary/( rhs.real*rhs.real+rhs.imaginary*rhs.imaginary ));
 }
 
-template<typename Type>
-HDINLINE Complex<Type>
-operator/(const Complex<Type>& lhs, const Complex<Type>& rhs)
+template<typename T_Type>
+HDINLINE Complex<T_Type>
+operator/(const Complex<T_Type>& lhs, const Complex<T_Type>& rhs)
 {
-    return lhs*Complex<Type>(rhs.real/(rhs.real*rhs.real+rhs.imaginary*rhs.imaginary),
+    return lhs*Complex<T_Type>(rhs.real/(rhs.real*rhs.real+rhs.imaginary*rhs.imaginary),
                         -rhs.imaginary/( rhs.real*rhs.real+rhs.imaginary*rhs.imaginary ));
 }
 
