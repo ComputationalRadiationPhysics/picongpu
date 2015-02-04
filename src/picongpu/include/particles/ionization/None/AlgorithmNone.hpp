@@ -48,10 +48,8 @@ namespace ionization
          * \param parentIon particle instance to be ionized with position at t=0 and momentum at t=-1/2
          */
         template<typename EType, typename BType, typename ParticleType >
-                HDINLINE void operator()(
-                                                    const BType bField, /* at t=0 */
-                                                    const EType eField, /* at t=0 */
-                                                    ParticleType& parentIon) /* with position at t=0 and momentum at t=-1/2 */
+        HDINLINE void 
+        operator()( const BType bField, const EType eField, ParticleType& parentIon ) 
         {
 
         }

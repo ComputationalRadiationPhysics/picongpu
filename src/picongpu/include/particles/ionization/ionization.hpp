@@ -26,20 +26,12 @@
 
 #include "simulation_defines.hpp"
 #include "particles/Particles.hpp" 
-#include <cassert>
-
 #include "mappings/kernel/AreaMapping.hpp"
-
 #include "particles/ParticlesInit.kernel"
 #include "mappings/simulation/GridController.hpp"
-
 #include "simulationControl/MovingWindow.hpp"
-
-#include <limits>
-
 #include "traits/Resolve.hpp"
 
-//#include "particles/traits/GetIonizer.hpp"
 #include "types.h"
 
 #include "particles/ionization/ionizationMethods.hpp"
@@ -282,14 +274,12 @@ __global__ void kernelIonizeParticles(ParBoxIons ionBox,
              * value as electronId in the new frame 
              * - then sync */
             if (newMacroElectrons > 0) 
-            
                 electronId = atomicAdd(&newFrameFillLvl, 1);
             
             __syncthreads();
             /* < EXIT? > 
              * - if the counter hasn't changed all threads break out of the loop */
-            if (oldFrameFillLvl == newFrameFillLvl)
-            
+            if (oldFrameFillLvl == newFrameFillLvl) 
                 break;
             
             __syncthreads();
