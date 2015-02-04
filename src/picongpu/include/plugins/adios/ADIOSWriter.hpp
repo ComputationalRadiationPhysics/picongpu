@@ -400,13 +400,11 @@ public:
 
     void pluginRegisterHelp(po::options_description& desc)
     {
-        uint32_t numAggr = Environment<simDim>::get().GridController().getGpuNodes().productOfComponents();
-
         desc.add_options()
             ("adios.period", po::value<uint32_t > (&notifyPeriod)->default_value(0),
              "enable ADIOS IO [for each n-th step]")
             ("adios.aggregators", po::value<uint32_t >
-             (&mThreadParams.adiosAggregators)->default_value(numAggr), "Number of aggregators")
+             (&mThreadParams.adiosAggregators)->default_value(0), "Number of aggregators [0 == number of MPI processes]")
             ("adios.ost", po::value<uint32_t > (&mThreadParams.adiosOST)->default_value(1),
              "Number of OST")
 #if(ADIOS_TRANSFORMS==1)
@@ -508,6 +506,10 @@ private:
              */
             mpi_pos = gc.getPosition();
             mpi_size = gc.getGpuNodes();
+
+            /* if number of aggregators is not set we use all mpi process as aggregator*/
+            if( mThreadParams.adiosAggregators == 0 )
+               mThreadParams.adiosAggregators=mpi_size.productOfComponents();
 
             Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
 
