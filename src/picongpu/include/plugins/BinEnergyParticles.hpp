@@ -140,7 +140,7 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
 
                 float_X _local_energy;
 
-                if (gamma < 1.005f)
+                if (gamma < GAMMA_THRESH)
                 {
                     _local_energy = mom2 / (2.0f * mass); /* not relativistic use equation with more precision */
                 }
