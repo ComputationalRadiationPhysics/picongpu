@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2014-2015 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -82,9 +82,9 @@ int64_t defineAdiosVar(int64_t group_id,
                        const char * name,
                        const char * path,
                        enum ADIOS_DATATYPES type,
-                       DataSpace<DIM> dimensions,
-                       DataSpace<DIM> globalDimensions,
-                       DataSpace<DIM> offset,
+                       PMacc::math::UInt64<DIM> dimensions,
+                       PMacc::math::UInt64<DIM> globalDimensions,
+                       PMacc::math::UInt64<DIM> offset,
                        bool compression,
                        std::string compressionMethod)
 {
@@ -291,10 +291,11 @@ private:
                 datasetName << "/" << name_lookup_tpl[c];
 
             /* define adios var for field, e.g. field_FieldE_y */
-            int64_t adiosFieldVarId = defineAdiosVar(
+            const char* path = NULL;
+            int64_t adiosFieldVarId = defineAdiosVar<simDim>(
                     params->adiosGroupHandle,
                     datasetName.str().c_str(),
-                    NULL,
+                    path,
                     adiosType,
                     params->fieldsSizeDims,
                     params->fieldsGlobalSizeDims,
@@ -775,7 +776,7 @@ private:
         /* write created variable values */
         for (uint32_t d = 0; d < simDim; ++d)
         {
-            int offset = threadParams->window.localDimensions.offset[d];
+            uint64_t offset = threadParams->window.localDimensions.offset[d];
 
             /* dimension 1 is y and is the direction of the moving window (if any) */
             if (1 == d)
