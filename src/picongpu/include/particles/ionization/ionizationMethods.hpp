@@ -60,7 +60,7 @@ namespace ionization
 
             /* each thread initializes a clone of the parent ion but leaving out
              * some attributes:
-             * - multiMask: because it takes reportedly long to clone
+             * - multiMask: reading from global memory takes longer than just setting it again explicitly
              * - momentum: because the electron would get a higher energy because of the ion mass 
              * - chargeState: because electrons cannot have a charge state other than 1 
              * (gets AUTOMATICALLY deselected because electrons do not have this attribute) */

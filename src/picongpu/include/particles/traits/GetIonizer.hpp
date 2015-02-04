@@ -21,8 +21,11 @@
 #pragma once
 
 #include "simulation_defines.hpp"
+#include "particles/memory/frames/Frame.hpp"
 #include "traits/GetFlagType.hpp"
 #include "traits/Resolve.hpp"
+#include "simulation_defines/param/speciesDefinition.param"
+#include "simulation_defines/unitless/speciesDefinition.unitless"
 
 namespace picongpu
 {
@@ -30,7 +33,18 @@ namespace picongpu
 template<typename T_Species>
 struct GetIonizer
 {
-    typedef typename GetFlagType<typename T_Species::FrameType, ionizer<> >::type::ThisType type;
+    
+    typedef typename T_Species::FrameType FrameType;
+
+    typedef typename HasFlag<FrameType, ionizer<> >::type hasIonizer;
+    
+    /* The following line only fetches the alias */
+    typedef typename GetFlagType<FrameType,ionizer<> >::type FoundIonizerAlias;
+    /* This now resolves the alias into the actual object type */
+    typedef typename PMacc::traits::Resolve<FoundIonizerAlias>::type FoundIonizer;
+    /* if no ionizer was defined we use IonizerNone as fallback */
+    typedef typename bmpl::if_<hasIonizer,FoundIonizer,particles::ionization::None >::type type;
+    
 };
 
 }// namespace picongpu

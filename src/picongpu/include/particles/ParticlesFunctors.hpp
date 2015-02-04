@@ -29,9 +29,7 @@
 #include <boost/mpl/plus.hpp>
 #include <boost/mpl/accumulate.hpp>
 
-#include "simulation_defines/param/speciesDefinition.param"
-#include "simulation_defines/unitless/speciesDefinition.unitless"
-//#include "particles/traits/GetIonizer.hpp"
+#include "particles/traits/GetIonizer.hpp"
 
 namespace picongpu
 {
@@ -176,17 +174,8 @@ struct CallIonization
 {
     typedef T_SpeciesName SpeciesName;
     typedef typename SpeciesName::type SpeciesType;
-    typedef typename SpeciesType::FrameType FrameType;
-
-    typedef typename HasFlag<FrameType, ionizer<> >::type hasIonizer;
     
-    /* The following line resolves the alias of ionizer but does NOT 
-     * resolve its type, yet */
-    /* \todo I would like to do that via the particles/traits/GetIonizer */
-    typedef typename GetFlagType<FrameType,ionizer<> >::type FoundIonizerAlias;
-    typedef typename PMacc::traits::Resolve<FoundIonizerAlias>::type FoundIonizer;
-    /* if no ionizer was defined we use IonizerNone as fallback */
-    typedef typename bmpl::if_<hasIonizer,FoundIonizer,particles::ionization::None >::type SelectIonizer;
+    typedef typename GetIonizer<SpeciesType>::type SelectIonizer;
 
     /* describes the instance of CallIonization */
     template<typename T_StorageTuple>
