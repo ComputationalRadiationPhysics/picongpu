@@ -410,7 +410,7 @@ public:
 #if(ADIOS_TRANSFORMS==1)
             ("adios.compression", po::value<std::string >
              (&mThreadParams.adiosCompression)->default_value("none"),
-             "ADIOS compression method (see 'adios_config -m for help')")
+             "ADIOS compression method (see 'adios_config -m' for help)")
 #endif
             ("adios.file", po::value<std::string > (&filename)->default_value(filename),
              "ADIOS output file");
