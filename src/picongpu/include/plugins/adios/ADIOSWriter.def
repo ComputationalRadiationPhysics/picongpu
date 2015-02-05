@@ -72,6 +72,9 @@ struct ThreadParams
     uint32_t currentStep;                   /** current simulation step */
     std::string fullFilename;
 
+    /** current dump is a checkpoint */
+    bool isCheckpoint;
+
     MPI_Comm adiosComm;                     /* MPI communicator for adios lib */
     bool adiosBufferInitialized;            /* set if ADIOS buffer has been allocated */
     int64_t adiosFileHandle;                /* ADIOS file handle */

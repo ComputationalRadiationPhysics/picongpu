@@ -119,6 +119,8 @@ int64_t defineAdiosVar(int64_t group_id,
 #endif
     }
 
+    log<picLog::INPUT_OUTPUT > ("ADIOS: Defined varID=%1% for '%2%'") %
+                var_id % std::string(name);
     return var_id;
 }
 
@@ -388,6 +390,10 @@ public:
 
     ADIOSWriter() :
     filename("simDataAdios"),
+    checkpointFilename("adios_checkpoint"),
+    restartFilename(""), /* set to checkpointFilename by default */
+    /* select MPI method, #OSTs and #aggregators */
+    mpiTransportParams(""),
     notifyPeriod(0)
     {
         Environment<>::get().PluginConnector().registerPlugin(this);
@@ -413,7 +419,18 @@ public:
              "ADIOS compression method (see 'adios_config -m' for help)")
 #endif
             ("adios.file", po::value<std::string > (&filename)->default_value(filename),
-             "ADIOS output file");
+             "ADIOS output file")
+            ("adios.checkpoint-file", po::value<std::string > (&checkpointFilename),
+             "Optional ADIOS checkpoint filename (prefix)")
+            ("adios.restart-file", po::value<std::string > (&restartFilename),
+             "adios restart filename (prefix)")
+            /* 1,000,000 particles are around 3900 frames at 256 particles per frame
+             * and match ~30MiB with typical picongpu particles.
+             * The only reason why we use 1M particles per chunk is that we can get a
+             * frame overflow in our memory manager if we process all particles in one kernel.
+             **/
+            ("adios.restart-chunkSize", po::value<uint32_t > (&restartChunkSize)->default_value(1000000),
+             "Number of particles processed in one kernel call during restart to prevent frame count blowup");
     }
 
     std::string pluginGetName() const
@@ -428,41 +445,19 @@ public:
 
     __host__ void notify(uint32_t currentStep)
     {
-        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
-        mThreadParams.currentStep = (int32_t) currentStep;
-        mThreadParams.cellDescription = this->cellDescription;
-        this->filter.setStatus(false);
+        notificationReceived(currentStep, false);
+    }
 
-        mThreadParams.window = MovingWindow::getInstance().getWindow(currentStep);
+    void checkpoint(uint32_t currentStep, const std::string checkpointDirectory)
+    {
+        this->checkpointDirectory = checkpointDirectory;
 
-        if (MovingWindow::getInstance().isSlidingWindowActive())
-        {
-            //enable filters for sliding window and configurate position filter
-            this->filter.setStatus(true);
+        notificationReceived(currentStep, true);
+    }
 
-            this->filter.setWindowPosition(
-                    mThreadParams.window.localDimensions.offset,
-                    mThreadParams.window.localDimensions.size);
-        }
-
-        for (uint32_t i = 0; i < simDim; ++i)
-        {
-            mThreadParams.localWindowToDomainOffset[i] = 0;
-            if (mThreadParams.window.globalDimensions.offset[i] > subGrid.getLocalDomain().offset[i])
-            {
-                mThreadParams.localWindowToDomainOffset[i] =
-                        mThreadParams.window.globalDimensions.offset[i] -
-                        subGrid.getLocalDomain().offset[i];
-            }
-        }
-
-        __getTransactionEvent().waitForFinished();
-
-        beginAdios();
-
-        writeAdios((void*) &mThreadParams);
-
-        endAdios();
+    void restart(uint32_t restartStep, const std::string restartDirectory)
+    {
+        assert(1==2); // not yet implemented
     }
 
 private:
@@ -476,10 +471,10 @@ private:
         __deleteArray(mThreadParams.fieldBfr);
     }
 
-    void beginAdios()
+    void beginAdios(const std::string adiosFilename)
     {
         std::stringstream full_filename;
-        full_filename << filename << "_" << mThreadParams.currentStep << ".bp";
+        full_filename << adiosFilename << "_" << mThreadParams.currentStep << ".bp";
 
         mThreadParams.fullFilename = full_filename.str();
         mThreadParams.adiosFileHandle = ADIOS_INVALID_HANDLE;
@@ -494,30 +489,96 @@ private:
         ADIOS_CMD(adios_init_noxml(mThreadParams.adiosComm));
     }
 
+    /**
+     * Notification for dump or checkpoint received
+     *
+     * @param currentStep current simulation step
+     * @param isCheckpoint checkpoint notification
+     */
+    void notificationReceived(uint32_t currentStep, bool isCheckpoint)
+    {
+        const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+        mThreadParams.isCheckpoint = isCheckpoint;
+        mThreadParams.currentStep = currentStep;
+        mThreadParams.cellDescription = this->cellDescription;
+        this->filter.setStatus(false);
+
+        __getTransactionEvent().waitForFinished();
+
+        std::string fname = filename;
+        if (isCheckpoint)
+        {
+            /* if checkpointFilename is relative, prepend with checkpointDirectory */
+            if (!boost::filesystem::path(checkpointFilename).has_root_path())
+                fname = checkpointDirectory + std::string("/") + checkpointFilename;
+            else
+                fname = checkpointFilename;
+
+            mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(currentStep);
+        }
+        else
+        {
+            mThreadParams.window = MovingWindow::getInstance().getWindow(currentStep);
+        }
+
+        for (uint32_t i = 0; i < simDim; ++i)
+        {
+            mThreadParams.localWindowToDomainOffset[i] = 0;
+            if (mThreadParams.window.globalDimensions.offset[i] > localDomain.offset[i])
+            {
+                mThreadParams.localWindowToDomainOffset[i] =
+                    mThreadParams.window.globalDimensions.offset[i] -
+                    localDomain.offset[i];
+            }
+        }
+
+        if (MovingWindow::getInstance().isSlidingWindowActive())
+        {
+            //enable filters for sliding window and configurate position filter
+            this->filter.setStatus(true);
+
+            this->filter.setWindowPosition(
+                    mThreadParams.window.localDimensions.offset,
+                    mThreadParams.window.localDimensions.size);
+        }
+
+        beginAdios(fname);
+
+        writeAdios((void*) &mThreadParams, mpiTransportParams);
+
+        endAdios();
+    }
+
     void pluginLoad()
     {
+        GridController<simDim> &gc = Environment<simDim>::get().GridController();
+        /* It is important that we never change the mpi_pos after this point
+         * because we get problems with the restart.
+         * Otherwise we do not know which gpu must load the ghost parts around
+         * the sliding window.
+         */
+        mpi_pos = gc.getPosition();
+        mpi_size = gc.getGpuNodes();
+
+        /* if number of aggregators is not set we use all mpi process as aggregator*/
+        if( mThreadParams.adiosAggregators == 0 )
+           mThreadParams.adiosAggregators=mpi_size.productOfComponents();
+
         if (notifyPeriod > 0)
         {
-            GridController<simDim> &gc = Environment<simDim>::get().GridController();
-            /* It is important that we never change the mpi_pos after this point
-             * because we get problems with the restart.
-             * Otherwise we do not know which gpu must load the ghost parts around
-             * the sliding window.
-             */
-            mpi_pos = gc.getPosition();
-            mpi_size = gc.getGpuNodes();
-
-            /* if number of aggregators is not set we use all mpi process as aggregator*/
-            if( mThreadParams.adiosAggregators == 0 )
-               mThreadParams.adiosAggregators=mpi_size.productOfComponents();
-
             Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
-
-            /* Initialize adios library */
-            mThreadParams.adiosComm = MPI_COMM_NULL;
-            MPI_CHECK(MPI_Comm_dup(gc.getCommunicator().getMPIComm(), &(mThreadParams.adiosComm)));
-            mThreadParams.adiosBufferInitialized = false;
         }
+
+        /* Initialize adios library */
+        mThreadParams.adiosComm = MPI_COMM_NULL;
+        MPI_CHECK(MPI_Comm_dup(gc.getCommunicator().getMPIComm(), &(mThreadParams.adiosComm)));
+        mThreadParams.adiosBufferInitialized = false;
+
+        /* select MPI method, #OSTs and #aggregators */
+        std::stringstream strMPITransportParams;
+        strMPITransportParams << "num_aggregators=" << mThreadParams.adiosAggregators
+                              << ";num_ost=" << mThreadParams.adiosOST;
+        mpiTransportParams = strMPITransportParams.str();
 
         loaded = true;
     }
@@ -710,7 +771,7 @@ private:
         writeMetaAttr(threadParams, &varFloatX);
     }
 
-    static void *writeAdios(void *p_args)
+    static void *writeAdios(void *p_args, std::string mpiTransportParams)
     {
 
         // synchronize, because following operations will be blocking anyway
@@ -728,14 +789,8 @@ private:
                 adios_flag_no));
 
         /* select MPI method, #OSTs and #aggregators */
-        std::stringstream mpiTransportParams;
-        mpiTransportParams << "num_aggregators=" << threadParams->adiosAggregators
-            << ";num_ost=" << threadParams->adiosOST;
-        ADIOS_CMD(adios_select_method(threadParams->adiosGroupHandle, "MPI_AGGREGATE",
-                mpiTransportParams.str().c_str(), ""));
-
-        /* define (sizes for) meta attributes */
-        defineMetaAttributes(threadParams);
+        ADIOS_CMD(adios_select_method(threadParams->adiosGroupHandle,
+                  "MPI_AGGREGATE", mpiTransportParams.c_str(), ""));
 
         /* write created variable values */
         for (uint32_t d = 0; d < simDim; ++d)
@@ -755,17 +810,37 @@ private:
         /* collect size information for each field to be written and define
          * field variables
          */
+        log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) collecting fields.");
         threadParams->adiosFieldVarIds.clear();
-        ForEach<FileOutputFields, CollectFieldsSizes<bmpl::_1> > forEachCollectFieldsSizes;
-        forEachCollectFieldsSizes(threadParams);
+        if (threadParams->isCheckpoint)
+        {
+            ForEach<FileCheckpointFields, CollectFieldsSizes<bmpl::_1> > forEachCollectFieldsSizes;
+            forEachCollectFieldsSizes(threadParams);
+        }
+        else
+        {
+            ForEach<FileOutputFields, CollectFieldsSizes<bmpl::_1> > forEachCollectFieldsSizes;
+            forEachCollectFieldsSizes(threadParams);
+        }
+        log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) collecting fields.");
 
         /* collect size information for all attributes of all species and define
          * particle variables
          */
         threadParams->adiosParticleAttrVarIds.clear();
         threadParams->adiosSpeciesIndexVarIds.clear();
-        ForEach<FileOutputParticles, ADIOSCountParticles<bmpl::_1> > adiosCountParticles;
-        adiosCountParticles(threadParams, std::string());
+        log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) counting particles.");
+        if (threadParams->isCheckpoint)
+        {
+            ForEach<FileCheckpointParticles, ADIOSCountParticles<bmpl::_1> > adiosCountParticles;
+            adiosCountParticles(threadParams, std::string());
+        }
+        else
+        {
+            ForEach<FileOutputParticles, ADIOSCountParticles<bmpl::_1> > adiosCountParticles;
+            adiosCountParticles(threadParams, std::string());
+        }
+        log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) counting particles.");
 
         /* allocate buffer in MB according to our current group size */
         /* `1 + mem` minimum 1 MiB that we can write attributes on empty GPUs */
@@ -781,7 +856,7 @@ private:
                 threadParams->fullFilename.c_str(), "w", threadParams->adiosComm));
 
         if (threadParams->adiosFileHandle == ADIOS_INVALID_HANDLE)
-            throw std::runtime_error("Failed to open ADIOS file");
+            throw std::runtime_error("ADIOS: Failed to open file.");
 
         /* set adios group size (total size of all data to be written) */
         uint64_t adiosTotalSize;
@@ -793,13 +868,31 @@ private:
 
 
         /* write fields */
-        ForEach<FileOutputFields, GetFields<bmpl::_1> > forEachGetFields;
-        forEachGetFields(threadParams);
+        log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) writing fields.");
+        if (threadParams->isCheckpoint)
+        {
+            ForEach<FileCheckpointFields, GetFields<bmpl::_1> > forEachGetFields;
+            forEachGetFields(threadParams);
+        }
+        else
+        {
+            ForEach<FileOutputFields, GetFields<bmpl::_1> > forEachGetFields;
+            forEachGetFields(threadParams);
+        }
+        log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing fields.");
 
         /* print all particle species */
         log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) writing particle species.");
-        ForEach<FileOutputParticles, WriteSpecies<bmpl::_1> > writeSpecies;
-        writeSpecies(threadParams, particleOffset);
+        if (threadParams->isCheckpoint)
+        {
+            ForEach<FileCheckpointParticles, WriteSpecies<bmpl::_1> > writeSpecies;
+            writeSpecies(threadParams, particleOffset);
+        }
+        else
+        {
+            ForEach<FileOutputParticles, WriteSpecies<bmpl::_1> > writeSpecies;
+            writeSpecies(threadParams, particleOffset);
+        }
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing particle species.");
 
         /* close adios file, most liekly the actual write point */
@@ -817,7 +910,16 @@ private:
     MappingDesc *cellDescription;
 
     uint32_t notifyPeriod;
+    int64_t lastCheckpoint;
     std::string filename;
+    std::string checkpointFilename;
+    std::string restartFilename;
+    std::string checkpointDirectory;
+
+    /* select MPI method, #OSTs and #aggregators */
+    std::string mpiTransportParams;
+
+    uint32_t restartChunkSize;
 
     DataSpace<simDim> mpi_pos;
     DataSpace<simDim> mpi_size;
