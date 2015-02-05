@@ -35,8 +35,6 @@ namespace adios
 {
 using namespace PMacc;
 
-
-
 /** write attribute of a particle to adios file
  *
  * @tparam T_Identifier identifier of a particle attribute
@@ -64,7 +62,10 @@ struct ParticleAttribute
 
         log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) write species attribute: %1%") % Identifier::getName();
 
-        ComponentType* tmpBfr = new ComponentType[elements];
+        ComponentType* tmpBfr = NULL;
+
+        if (elements > 0)
+            tmpBfr = new ComponentType[elements];
 
         for (uint32_t d = 0; d < components; d++)
         {
@@ -73,7 +74,7 @@ struct ParticleAttribute
             /* copy strided data from source to temporary buffer */
             for (size_t i = 0; i < elements; ++i)
             {
-                tmpBfr[i] = ((ComponentType*)dataPtr)[d + i * components];
+                tmpBfr[i] = ((ComponentType*) dataPtr)[d + i * components];
             }
 
             int64_t adiosAttributeVarId = *(params->adiosParticleAttrVarIds.begin());

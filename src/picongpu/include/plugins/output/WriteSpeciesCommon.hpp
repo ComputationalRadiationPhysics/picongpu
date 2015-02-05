@@ -93,7 +93,10 @@ struct FreeMemory
 
         type* ptr = value.getIdentifier(T_Type()).getPointer();
         if (ptr != NULL)
+        {
             CUDA_CHECK(cudaFreeHost(ptr));
+            ptr=NULL;
+        }
     }
 };
 
