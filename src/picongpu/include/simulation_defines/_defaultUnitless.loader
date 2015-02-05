@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+ *                      Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -33,6 +34,7 @@
 #include "simulation_defines/unitless/fieldSolver.unitless"
 #include "simulation_defines/unitless/visualization.unitless"
 #include "simulation_defines/unitless/pusherConfig.unitless"
+#include "simulation_defines/unitless/ionizerConfig.unitless"
 #include "simulation_defines/unitless/radiationConfig.unitless"
 #include "simulation_defines/unitless/speciesAttributes.unitless"
 #include "simulation_defines/unitless/speciesDefinition.unitless"

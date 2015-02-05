@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -31,6 +31,7 @@
 #include "simulation_defines/param/physicalConstants.param"
 #include "simulation_defines/param/radiationConfig.param"
 #include "simulation_defines/param/pusherConfig.param"
+#include "simulation_defines/param/ionizerConfig.param"
 #include "simulation_defines/param/speciesAttributes.param"
 #include "simulation_defines/param/species.param"
 #include "simulation_defines/param/speciesDefinition.param"

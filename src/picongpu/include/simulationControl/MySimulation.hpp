@@ -1,6 +1,6 @@
 /**
  * Copyright 2013-2015 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
- *                     Richard Pausch, Alexander Debus
+ *                     Richard Pausch, Alexander Debus, Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -369,6 +369,10 @@ public:
     virtual void runOneStep(uint32_t currentStep)
     {
         namespace nvfct = PMacc::nvidia::functors;
+
+        /* Ionization */
+        ForEach<VectorAllSpecies, particles::CallIonization<bmpl::_1>, MakeIdentifier<bmpl::_1> > particleIonization;
+        particleIonization(forward(particleStorage), currentStep);
 
         EventTask initEvent = __getTransactionEvent();
         EventTask updateEvent;

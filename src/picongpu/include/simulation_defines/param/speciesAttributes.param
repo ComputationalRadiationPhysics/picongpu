@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Rene Widera
+ * Copyright 2014 Rene Widera, Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -72,6 +72,9 @@ alias(shape);
 
 /*! alias for particle pusher @see species.param */
 alias(particlePusher);
+
+/*! alias for particle ionizer @see speciesDefinition.param */
+alias(ionizer);
 
 /*! alias for particle to field interpolation @see species.param */
 alias(interpolation);

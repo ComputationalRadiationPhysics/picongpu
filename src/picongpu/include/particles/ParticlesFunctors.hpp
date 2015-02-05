@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Rene Widera
+ * Copyright 2014 Rene Widera, Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -28,6 +28,8 @@
 #include "math/MapTuple.hpp"
 #include <boost/mpl/plus.hpp>
 #include <boost/mpl/accumulate.hpp>
+
+#include "particles/traits/GetIonizer.hpp"
 
 namespace picongpu
 {
@@ -165,6 +167,33 @@ struct CallUpdate
         }
     }
 };
+
+/* Tests if species can be ionized and calls the function to do that */
+template<typename T_SpeciesName>
+struct CallIonization
+{
+    typedef T_SpeciesName SpeciesName;
+    typedef typename SpeciesName::type SpeciesType;
+    
+    typedef typename GetIonizer<SpeciesType>::type SelectIonizer;
+
+    /* describes the instance of CallIonization */
+    template<typename T_StorageTuple>
+    HINLINE void operator()(
+                        T_StorageTuple& tuple,
+                        const uint32_t currentStep
+                        ) const
+    {
+        
+        /* alias for pointer on source species */
+        PMACC_AUTO(speciesPtr, tuple[SpeciesName()]);
+        /* instance of particle ionizer that was flagged in speciesDefinition.param */
+        SelectIonizer myIonizer;
+        myIonizer(*speciesPtr, tuple, currentStep);
+        
+    }
+
+}; // struct CallIonization
 
 } //namespace particles
 
