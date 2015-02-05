@@ -489,7 +489,8 @@ struct PushParticlePerFrame
          * if particle is inside of the supercell the **unsigned** representation
          * of dir is always >= size of the supercell
          */
-        dir = precisionCast<int>(precisionCast<uint32_t >(localCell) >= precisionCast<uint32_t >(TVec::toRT())) * dir;
+        for (uint32_t i = 0; i < simDim; ++i)
+            dir[i] *= precisionCast<uint32_t>(localCell[i]) >= precisionCast<uint32_t>(TVec::toRT()[i]) ? 1 : 0;
 
         /* if partice is outside of the supercell we use mod to
          * set particle at cell supercellSize to 1
@@ -517,13 +518,13 @@ struct PushParticlePerFrame
          * y=1 for dir = 1
          * y=2 for dir = -1
          */
-        const int direction = 1 +
-            (dir.x() + int(dir.x() < 0)*3) +
-            (dir.y() + int(dir.y() < 0)*3) * BOTTOM
-#if (SIMDIM==DIM3)
-            + (dir.z() + int(dir.z() < 0)*3) * BACK
-#endif
-            ;
+        int direction = 1;
+        uint32_t exchangeType = 1; // see libPMacc/include/types.h for RIGHT, BOTTOM and BACK
+        for (uint32_t i = 0; i < simDim; ++i)
+        {
+            direction += (dir[i] + (dir[i] < 0 ? 3 : 0)) * exchangeType; 
+            exchangeType *= 3; // =3^i
+        }
 
         particle[multiMask_] = direction;
 
