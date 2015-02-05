@@ -56,14 +56,15 @@ namespace picongpu
              *
              *  optional, omitted parameters with default values:
              *       phi (90.*(PI/180.) rad), beta_0 (c), tdelay_user(0 s),
-             *       auto_tdelay(true), includeCollidingTWTS(false)
+             *       auto_tdelay(true)
              */
             templates::TWTSFieldE twtsFieldE( 25.0e-6,            /* focus_y [m] */
                                               0.8e-6,             /* wavelength [m] */
                                               30.0e-15 / 2.35482, /* pulselength [s] */
                                               20.0e-6,            /* w_x [m] */
-                                              0.01 );             /* w_y [m] */
-
+                                              0.01,               /* w_y [m] */
+                                              unitField );        /* pass unitField */
+            
             return amplitude * twtsFieldE( cellIdx, currentStep );
 
             /* example 2: own formula */
@@ -104,17 +105,18 @@ namespace picongpu
              *
              *  optional, omitted parameters with default values:
              *       phi (90.*(PI/180.) rad), beta_0 (c), tdelay_user(0 s),
-             *       auto_tdelay(true), includeCollidingTWTS(false)
+             *       auto_tdelay(true)
              */
-            //templates::TWTSFieldB twtsFieldB( 25.0e-6,            /* focus_y [m] */
-            //                                  0.8e-6,             /* wavelength [m] */
-            //                                  30.0e-15 / 2.35482, /* pulselength [s] */
-            //                                  20.0e-6,            /* w_x [m] */
-            //                                  0.01 );             /* w_y [m] */
+            templates::TWTSFieldB twtsFieldB( 25.0e-6,            /* focus_y [m] */
+                                              0.8e-6,             /* wavelength [m] */
+                                              30.0e-15 / 2.35482, /* pulselength [s] */
+                                              20.0e-6,            /* w_x [m] */
+                                              0.01,               /* w_y [m] */
+                                              unitField );        /* pass unitField */
 
-            //return amplitude * twtsFieldB( cellIdx, currentStep );
+            return amplitude * twtsFieldB( cellIdx, currentStep );
             // zero dummy - no B field
-            return amplitude * float3_X(0.);
+            // return amplitude * float3_X(0.);
         }
     };
 
