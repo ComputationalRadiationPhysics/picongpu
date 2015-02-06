@@ -73,6 +73,11 @@ parser.add_argument("--diff",
                     action='store_true',
                     help='show difference between both simulations')
 
+parser.add_argument("--noRelative",
+                    dest="boolRelative",
+                    action="store_false",
+                    help="do not plot evolution relative to initial value")
+
 args = parser.parse_args()
 
 
@@ -162,15 +167,27 @@ startEnergy = E_total_1[0]
 
 ## plot numerical heating ##
 
+# choose normalization
+if args.boolRelative:
+    norm = 100. / startEnergy # relative to startEnergy in percent
+else:
+    norm = 1.0 # absolute values
+
 if not args.boolDiff:
     # plot energy evolution side by side
-    plt.plot(timestep, (1-E_total_1/startEnergy)*100., color="green", lw=3, label=args.label1)
-    plt.plot(timestep, (1-E_total_2/startEnergy)*100., "--", color="blue",  lw=5, label=args.label2)
-    plt.ylabel(r"$1-\frac{E}{E_0}\,[\%]$", fontsize=24)
+    plt.plot(timestep, (startEnergy-E_total_1)*norm, color="green", lw=3, label=args.label1)
+    plt.plot(timestep, (startEnergy-E_total_2)*norm, "--", color="blue",  lw=5, label=args.label2)
+    if args.boolRelative:
+        plt.ylabel(r"$1-\frac{E}{E_0}\,[\%]$", fontsize=24)
+    else:
+        plt.ylabel(r"$E_0-E(t)$", fontsize=24)
 else:
     # plot difference in energy evolution
-    plt.plot(timestep, ((E_total_1-E_total_2)/startEnergy)*100., color="green", lw=3, label=args.label1)
-    plt.ylabel(r"$\frac{E_1 - E_2}{E_1(t=0)}\,[\%]$", fontsize=24)
+    plt.plot(timestep, (E_total_1-E_total_2)*norm, color="green", lw=3, label=args.label1)
+    if args.boolRelative:
+        plt.ylabel(r"$\frac{E_1 - E_2}{E_1(t=0)}\,[\%]$", fontsize=24)
+    else:
+        plt.ylabel(r"$E_1 - E_2$", fontsize=24)
 
 plt.legend(loc=0)
 
