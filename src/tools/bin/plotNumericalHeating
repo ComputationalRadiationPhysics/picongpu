@@ -175,21 +175,22 @@ else:
 
 if not args.boolDiff:
     # plot energy evolution side by side
-    plt.plot(timestep, (startEnergy-E_total_1)*norm, color="green", lw=3, label=args.label1)
-    plt.plot(timestep, (startEnergy-E_total_2)*norm, "--", color="blue",  lw=5, label=args.label2)
+    plt.plot(timestep, (E_total_1-startEnergy)*norm, color="green", lw=3, label=args.label1)
+    plt.plot(timestep, (E_total_2-startEnergy)*norm, "--", color="blue",  lw=5, label=args.label2)
     if args.boolRelative:
-        plt.ylabel(r"$1-\frac{E}{E_0}\,[\%]$", fontsize=24)
+        plt.ylabel(r"$\frac{E}{E_0}-1\,[\%]$", fontsize=24)
     else:
-        plt.ylabel(r"$E_0-E(t)$", fontsize=24)
+        plt.ylabel(r"$E(t)-E_0$", fontsize=24)
+    plt.legend(loc=0)
 else:
     # plot difference in energy evolution
-    plt.plot(timestep, (E_total_1-E_total_2)*norm, color="green", lw=3, label=args.label1)
+    plt.plot(timestep, (E_total_1-E_total_2)*norm, color="red", lw=3)
     if args.boolRelative:
         plt.ylabel(r"$\frac{E_1 - E_2}{E_1(t=0)}\,[\%]$", fontsize=24)
     else:
         plt.ylabel(r"$E_1 - E_2$", fontsize=24)
 
-plt.legend(loc=0)
+
 
 plt.xlabel("time step", fontsize=20)
 
