@@ -68,6 +68,11 @@ parser.add_argument("--label2",
                     default="branch",
                     help='label second simulation (default: branch)')
 
+parser.add_argument("--diff",
+                    dest="boolDiff",
+                    action='store_true',
+                    help='show difference between both simulations')
+
 args = parser.parse_args()
 
 
@@ -156,13 +161,20 @@ E_total_2 = E_fields_2[:,1] + E_electrons_2[:,1] + E_ions_2[:,1]
 startEnergy = E_total_1[0]
 
 ## plot numerical heating ##
-plt.plot(timestep, (1-E_total_1/startEnergy)*100., color="green", lw=3, label=args.label1)
-plt.plot(timestep, (1-E_total_2/startEnergy)*100., "--", color="blue",  lw=5, label=args.label2)
 
-plt.legend(loc=2)
+if not args.boolDiff:
+    # plot energy evolution side by side
+    plt.plot(timestep, (1-E_total_1/startEnergy)*100., color="green", lw=3, label=args.label1)
+    plt.plot(timestep, (1-E_total_2/startEnergy)*100., "--", color="blue",  lw=5, label=args.label2)
+    plt.ylabel(r"$1-\frac{E}{E_0}\,[\%]$", fontsize=24)
+else:
+    # plot difference in energy evolution
+    plt.plot(timestep, ((E_total_1-E_total_2)/startEnergy)*100., color="green", lw=3, label=args.label1)
+    plt.ylabel(r"$\frac{E_1 - E_2}{E_1(t=0)}\,[\%]$", fontsize=24)
+
+plt.legend(loc=0)
 
 plt.xlabel("time step", fontsize=20)
-plt.ylabel(r"$1-\frac{E}{E_0}\,[\%]$", fontsize=24)
 
 plt.xticks(fontsize=16)
 plt.yticks(fontsize=16)
