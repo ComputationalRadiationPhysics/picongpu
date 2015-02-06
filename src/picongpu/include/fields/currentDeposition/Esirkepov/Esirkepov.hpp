@@ -136,12 +136,9 @@ struct Esirkepov<T_ParticleShape, DIM3>
          * If previous position was greater than current position we change our interval
          * from [begin,end) to [begin+1,end+1).
          */
-        /** \todo -(-int(bool)) is a workaround for a nvcc bug
-         * @see https://devtalk.nvidia.com/default/topic/752200/cuda-programming-and-performance/nvcc-loop-bug-since-cuda-5-5/
-         */
-        const int offset_i = -(-int(line.pos0.x() > line.pos1.x()));
-        const int offset_j = -(-int(line.pos0.y() > line.pos1.y()));
-        const int offset_k = -(-int(line.pos0.z() > line.pos1.z()));
+        const int offset_i = line.pos0.x() > line.pos1.x() ? 1 : 0;
+        const int offset_j = line.pos0.y() > line.pos1.y() ? 1 : 0;
+        const int offset_k = line.pos0.z() > line.pos1.z() ? 1 : 0;
 
         /* pick every cell in the xy-plane that is overlapped by particle's
          * form factor and deposit the current for the cells above and beneath
