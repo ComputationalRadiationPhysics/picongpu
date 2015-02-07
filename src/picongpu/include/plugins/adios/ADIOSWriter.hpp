@@ -737,6 +737,21 @@ private:
         /* define (sizes for) meta attributes */
         defineMetaAttributes(threadParams);
 
+        /* write created variable values */
+        for (uint32_t d = 0; d < simDim; ++d)
+        {
+            uint64_t offset = threadParams->window.localDimensions.offset[d];
+
+            /* dimension 1 is y and is the direction of the moving window (if any) */
+            if (1 == d)
+                offset = std::max(0, threadParams->window.localDimensions.offset[1] -
+                                     threadParams->window.globalDimensions.offset[1]);
+
+            threadParams->fieldsSizeDims[d] = threadParams->window.localDimensions.size[d];
+            threadParams->fieldsGlobalSizeDims[d] = threadParams->window.globalDimensions.size[d];
+            threadParams->fieldsOffsetDims[d] = offset;
+        }
+
         /* collect size information for each field to be written and define
          * field variables
          */
@@ -753,12 +768,12 @@ private:
         adiosCountParticles(threadParams, std::string());
 
         /* allocate buffer in MB according to our current group size */
-        if (!threadParams->adiosBufferInitialized)
-        {
-            ADIOS_CMD(adios_allocate_buffer(ADIOS_BUFFER_ALLOC_NOW,
-                    1.5 * ceil((double)(threadParams->adiosGroupSize) / (1024.0 * 1024.0))));
-            threadParams->adiosBufferInitialized = true;
-        }
+        /* `1 + mem` minimum 1 MiB that we can write attributes on empty GPUs */
+        size_t writeBuffer_in_MiB=1+threadParams->adiosGroupSize / 1024 / 1024;
+        /* value `1.1` is the secure factor if we miss to count some small buffers*/
+        size_t buffer_mem=static_cast<size_t>(1.1 * static_cast<double>(writeBuffer_in_MiB));
+        ADIOS_CMD(adios_allocate_buffer(ADIOS_BUFFER_ALLOC_NOW,buffer_mem));
+        threadParams->adiosBufferInitialized = true;
 
         /* open adios file. all variables need to be defined at this point */
         log<picLog::INPUT_OUTPUT > ("ADIOS: open file: %1%") % threadParams->fullFilename;
@@ -775,20 +790,7 @@ private:
 
         writeMetaAttributes(threadParams);
 
-        /* write created variable values */
-        for (uint32_t d = 0; d < simDim; ++d)
-        {
-            uint64_t offset = threadParams->window.localDimensions.offset[d];
 
-            /* dimension 1 is y and is the direction of the moving window (if any) */
-            if (1 == d)
-                offset = std::max(0, threadParams->window.localDimensions.offset[1] -
-                                     threadParams->window.globalDimensions.offset[1]);
-
-            threadParams->fieldsSizeDims[d] = threadParams->window.localDimensions.size[d];
-            threadParams->fieldsGlobalSizeDims[d] = threadParams->window.globalDimensions.size[d];
-            threadParams->fieldsOffsetDims[d] = offset;
-        }
 
         /* write fields */
         ForEach<FileOutputFields, GetFields<bmpl::_1> > forEachGetFields;

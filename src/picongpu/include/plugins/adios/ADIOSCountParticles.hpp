@@ -124,13 +124,10 @@ public:
                 myParticleOffset += allNumParticles[i];
         }
 
-        if (myNumParticles > 0)
-        {
-            /* iterate over all attributes of this species */
-            ForEach<typename AdiosFrameType::ValueTypeSeq, adios::ParticleAttributeSize<bmpl::_1> > attributeSize;
-            attributeSize(params, (FrameType::getName() + std::string("/") + subGroup).c_str(),
-                    myNumParticles, globalNumParticles, myParticleOffset);
-        }
+        /* iterate over all attributes of this species */
+        ForEach<typename AdiosFrameType::ValueTypeSeq, adios::ParticleAttributeSize<bmpl::_1> > attributeSize;
+        attributeSize(params, (FrameType::getName() + std::string("/") + subGroup).c_str(),
+                myNumParticles, globalNumParticles, myParticleOffset);
 
         /* define adios var for species index/info table */
         {
