@@ -148,7 +148,7 @@ struct MessageHeader
 
     static void destroy(MessageHeader * obj)
     {
-        __delete(obj);
+        __deleteArray(obj);
     }
 
     DataHeader data;
