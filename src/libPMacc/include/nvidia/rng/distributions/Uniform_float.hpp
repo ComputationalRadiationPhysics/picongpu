@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -21,8 +21,7 @@
  */
 
 
-#ifndef UNIFORM_FLOAT_HPP
-#define	UNIFORM_FLOAT_HPP
+#pragma once
 
 #include <curand_kernel.h>
 #include "types.h"
@@ -43,7 +42,7 @@ namespace PMacc
                 public:
                     typedef float Type;
 
-                    DINLINE Uniform_float()
+                    HDINLINE Uniform_float()
                     {
                     }
 
@@ -70,6 +69,3 @@ namespace PMacc
         }
     }
 }
-
-#endif	/* UNIFORM_FLOAT_HPP */
-
