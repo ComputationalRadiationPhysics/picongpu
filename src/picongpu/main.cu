@@ -29,7 +29,7 @@
  */
 
 
-//include the Heap with the arguments given in the config
+//include the heap with the arguments given in the config
 #include "mallocMC/mallocMC_utils.hpp"
 
 // basic files for mallocMC
@@ -46,16 +46,12 @@
 // configurate the CreationPolicy "Scatter"
 struct ScatterConfig
 {
-    /* 256k page size satisfy 32 PIconGPU particle frames */
-    typedef boost::mpl::int_<256*1024> pagesize;
+    /* 2MiB page can hold around 256 particle frames */
+    typedef boost::mpl::int_<2*1024*1024> pagesize;
     typedef boost::mpl::int_<4> accessblocks;
     typedef boost::mpl::int_<8> regionsize;
     typedef boost::mpl::int_<2> wastefactor;
-    /* currently we assume that all species are of the same size
-     * - mallocMC is faster if `resetfreedpages` is disabled
-     * - if species are of different size than mallocMC is slower
-     */
-    typedef boost::mpl::bool_<false> resetfreedpages;
+    typedef boost::mpl::bool_<true> resetfreedpages;
 };
 
 // Define a new allocator and call it ScatterAllocator

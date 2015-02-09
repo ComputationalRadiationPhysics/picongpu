@@ -480,16 +480,15 @@ private:
 
         for(uint32_t i=0;i<simDim;++i)
         {
-            // global size must a devisor of supercell size
+            // global size must be a devisor of supercell size
             // note: this is redundant, while using the local condition below
-
             assert(globalGridSize[i] % MappingDesc::SuperCellSize::toRT()[i] == 0);
-            // local size must a devisor of supercell size
+            // local size must be a devisor of supercell size
             assert(gridSizeLocal[i] % MappingDesc::SuperCellSize::toRT()[i] == 0);
             // local size must be at least 3 supercells (1x core + 2x border)
             // note: size of border = guard_size (in supercells)
             // \todo we have to add the guard_x/y/z for modified supercells here
-        assert( (uint32_t) gridSizeLocal[i] / MappingDesc::SuperCellSize::toRT()[i] >= 3 * GUARD_SIZE);
+            assert( (uint32_t) gridSizeLocal[i] / MappingDesc::SuperCellSize::toRT()[i] >= 3 * GUARD_SIZE);
         }
     }
 

@@ -76,7 +76,7 @@ public:
 
         if (tmp != NULL)
         {
-            /* delete all particles we can not assume that new memory is zeroed */
+            /* disable all particles since we can not assume that newly allocated memory contains zeros */
             for (int i = 0; i < (int) math::CT::volume<typename FrameType::SuperCellSize>::type::value; ++i)
                 (*tmp)[i][multiMask_] = 0;
 #if defined(__CUDA_ARCH__)
@@ -235,7 +235,6 @@ public:
      * @param idx position of supercell
      * @return true if more frames in list, else false
      */
-
     HDINLINE bool removeLastFrame(const DataSpace<DIM> &idx)
     {
         //!\todo this is not thread save
@@ -244,14 +243,12 @@ public:
         FramePtr last(*lastFrameNativPtr);
         if (last.isValid())
         {
-
             FramePtr prev(last->previousFrame);
-            //            last->previousFrame = FramePtr(); //delete previous frame of the frame which we remove
 
             if (prev.isValid())
             {
-                prev->nextFrame = FramePtr(); //clear next of previous frame
-                *lastFrameNativPtr = prev.ptr; //set new last particle
+                prev->nextFrame = FramePtr(); //set to invalid frame
+                *lastFrameNativPtr = prev.ptr; //set new last frame
                 removeFrame(*last);
                 return true;
             }
