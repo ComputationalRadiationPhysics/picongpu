@@ -522,8 +522,8 @@ struct PushParticlePerFrame
         uint32_t exchangeType = 1; // see libPMacc/include/types.h for RIGHT, BOTTOM and BACK
         for (uint32_t i = 0; i < simDim; ++i)
         {
-            direction += (dir[i] + (dir[i] < 0 ? 3 : 0)) * exchangeType; 
-            exchangeType *= 3; // =3^i
+            direction += (dir[i] == -1 ? 2 : dir[i]) * exchangeType; 
+            exchangeType *= 3; // =3^i (1=RIGHT, 3=BOTTOM; 9=BACK)
         }
 
         particle[multiMask_] = direction;
