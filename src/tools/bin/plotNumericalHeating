@@ -25,8 +25,10 @@ __doc__ = '''
 This program compares the energy evolution of two PIConGPU runs.
 Just give the directory of two PIConGPU runs and this program will
 get all values needed if they are available.
-You need to activate `--energy_fields`, `--energy_e` and `--energy_i`
+You should activate `--energy_fields` and any `--energy_X` (X any species)
 for both simulation runs with the same dumping period. 
+A different number of particle species between both simulations
+is possible.
 Plotted are:
 x-axis: time steps,
 y-axis: change in total energy.
@@ -36,6 +38,7 @@ Developer: Richard Pausch
 import argparse
 import os
 import sys
+import re
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -82,88 +85,69 @@ args = parser.parse_args()
 
 
 ## get directories from parser ##
-directory1 = args.dir_run1
-directory2 = args.dir_run2
+directories = [args.dir_run1, args.dir_run2]
 
 
 ## check if directories exit ###
 simDir = "/simOutput/"
 
-warningText1 = "The {} directory ({}) does not exist." 
-if not os.path.isdir(directory1):
-    sys.exit(warningText1.format("first", directory1))
+warningText1 = "The directory number {} does not exist ({})." 
+warningText2 = "The directory number {} does not (yet) contain {}."
+for i in range(2):
+    if not os.path.isdir(directories[i]):
+        sys.exit(warningText1.format(i+1, directories[i]))
 
-if not os.path.isdir(directory2):
-    sys.exit(warningText1.format("second", directory2))
+    if not os.path.isdir(directories[i]+simDir):
+        sys.exit(warningText2.format(i+1, simDir))
 
-warningText2 = "The {} directory does not contain {} yet."
-if not os.path.isdir(directory1+simDir):
-    sys.exit(warningText2.format("first", simDir))
-
-if not os.path.isdir(directory2+simDir):
-    sys.exit(warningText2.format("second", simDir))
-
-if directory1 == directory2:
+if directories[0] == directories[1]:
     sys.exit("We do not allow cheating! Compare two different runs.")
 
 
-## load files ##
-fileNameFields = "EnergyFields.dat"
-fileNameElectrons = "EnergyElectrons.dat"
-fileNameIons = "EnergyIons.dat"
+## lists for data from simulations ##
+Energies = []
+Times = []
 
-warningText3 = "The file {} does not exist."
 
-# first run
-path = directory1+simDir+fileNameFields
-if os.path.exists(path):
-    E_fields_1 = np.loadtxt(path)
-else:
-    sys.exit(warningText3.format(path))
-    
-path = directory1+simDir+fileNameElectrons
-if os.path.exists(path):
-    E_electrons_1 = np.loadtxt(path)
-else:
-    sys.exit(warningText3.format(path))
+## load data from both directories ##
+for sim in directories:
+    mydir = sim+simDir
+    # get relevant files with energy
+    files = [f for f in os.listdir(mydir)
+             if os.path.isfile(os.path.join(mydir, f)) and re.search('^Energy.*.dat', f)]
+    # verbose output
+    print "\nFor directory: \n\t{}".format(sim)
+    print "the following files are considered for calculating the total energy:"
+    for f in files:
+        print "\t \t - {}".format(f)
 
-path = directory1+simDir+fileNameIons
-if os.path.exists(path):
-    E_ions_1 = np.loadtxt(path)
-else:
-    sys.exit(warningText3.format(path))
+    # read time steps from first file in list
+    Time = np.loadtxt(os.path.join(mydir,files[0]))[:,0]
+    # allocate memory for total energy
+    Energy = np.zeros(len(Time))
 
-# second run
-path = directory2+simDir+fileNameFields
-if os.path.exists(path):
-    E_fields_2 = np.loadtxt(path)
-else:
-    sys.exit(warningText3.format(path))
-    
-path = directory2+simDir+fileNameElectrons
-if os.path.exists(path):
-    E_electrons_2 = np.loadtxt(path)
-else:
-    sys.exit(warningText3.format(path))
+    # go through all files
+    for f in files:
+        if not np.array_equal(Time, np.loadtxt(os.path.join(mydir,f))[:,0]):
+            sys.exit("Time steps differ.")
+        Energy += np.loadtxt(os.path.join(mydir,f))[:,1]
 
-path = directory2+simDir+fileNameIons
-if os.path.exists(path):
-    E_ions_2 = np.loadtxt(path)
-else:
-    sys.exit(warningText3.format(path))
+    # add data to lists
+    Energies.append(Energy)
+    Times.append(Time)
+
+# end verbose output with newline:
+print " "
 
 
 ## check time steps ##
-for other in [E_electrons_1, E_ions_1, E_fields_2, E_electrons_2, E_ions_2]:
-    if not np.array_equal(E_fields_1[:,0], other[:,0]):
-        sys.exit("Time steps differ.")
+if not np.array_equal(Times[0], Times[1]):
+    sys.exit("Time steps differ between sim1 and sim2.")
 
 
 ## get values ##
-timestep = E_fields_1[:,0]
-E_total_1 = E_fields_1[:,1] + E_electrons_1[:,1] + E_ions_1[:,1]
-E_total_2 = E_fields_2[:,1] + E_electrons_2[:,1] + E_ions_2[:,1]
-startEnergy = E_total_1[0]
+startEnergy = Energies[0][0]
+
 
 ## plot numerical heating ##
 
@@ -175,8 +159,8 @@ else:
 
 if not args.boolDiff:
     # plot energy evolution side by side
-    plt.plot(timestep, (E_total_1-startEnergy)*norm, color="green", lw=3, label=args.label1)
-    plt.plot(timestep, (E_total_2-startEnergy)*norm, "--", color="blue",  lw=5, label=args.label2)
+    plt.plot(Times[0], (Energies[0]-startEnergy)*norm, color="green", lw=3, label=args.label1)
+    plt.plot(Times[1], (Energies[1]-startEnergy)*norm, "--", color="blue",  lw=5, label=args.label2)
     if args.boolRelative:
         plt.ylabel(r"$\frac{E}{E_0}-1\,[\%]$", fontsize=24)
     else:
@@ -184,7 +168,7 @@ if not args.boolDiff:
     plt.legend(loc=0)
 else:
     # plot difference in energy evolution
-    plt.plot(timestep, (E_total_1-E_total_2)*norm, color="red", lw=3)
+    plt.plot(Times[0], (Energies[0]-Energies[1])*norm, color="red", lw=3)
     if args.boolRelative:
         plt.ylabel(r"$\frac{E_1 - E_2}{E_1(t=0)}\,[\%]$", fontsize=24)
     else:
