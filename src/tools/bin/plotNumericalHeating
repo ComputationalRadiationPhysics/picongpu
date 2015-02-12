@@ -92,7 +92,7 @@ directories = [args.dir_run1, args.dir_run2]
 simDir = "/simOutput/"
 
 warningText1 = "The directory number {} does not exist ({})." 
-warningText2 = "The directory number {} does not contain {} yet."
+warningText2 = "The directory number {} does not (yet) contain {}."
 for i in range(2):
     if not os.path.isdir(directories[i]):
         sys.exit(warningText1.format(i+1, directories[i]))
