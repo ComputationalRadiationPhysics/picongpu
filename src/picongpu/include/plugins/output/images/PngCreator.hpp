@@ -99,8 +99,13 @@ namespace picongpu
         std::string filename(name + "_" + step.str() + ".png");
 
         pngwriter png(size.x(), size.y(), 0, filename.c_str());
-        //PngWriter coordinate system begin with 1,1
 
+        /* default compression: 6
+         * zlib level 1 is ~12% bigger but ~2.3x faster in write_png()
+         */
+        png.setcompressionlevel(1);
+
+        //PngWriter coordinate system begin with 1,1
         for (int y = 0; y < size.y(); ++y)
         {
             for (int x = 0; x < size.x(); ++x)
