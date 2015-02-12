@@ -35,11 +35,13 @@ public:
     typedef T_Type type;
 
     // constructor (real, imaginary)
-    HDINLINE Complex(T_Type real, T_Type imaginary = 0.0) : real(real), imaginary(imaginary) { }
+    HDINLINE Complex(T_Type real, T_Type imaginary = type(0.0) ) : real(real), imaginary(imaginary) { }
     
     // constructor (Complex<T_OtherType>)
     template<typename T_OtherType>
-    HDINLINE explicit Complex(const Complex<T_OtherType >& other) : real( static_cast<T_Type> (other.get_real()) ), imaginary( static_cast<T_Type> (other.get_imag()) ) { }
+    HDINLINE explicit Complex(const Complex<T_OtherType >& other) : 
+                        real( static_cast<T_Type> (other.get_real()) ),
+                        imaginary( static_cast<T_Type> (other.get_imag()) ) { }
 
     // default constructor ( ! no initialization of data ! )
     HDINLINE Complex(void) { }
@@ -48,6 +50,7 @@ public:
     HDINLINE Complex& operator=(const T_Type& other)
     {
         real = other;
+        imaginary = type(0.0);
         return *this;
     }
 
@@ -97,7 +100,7 @@ public:
     // complex zero
     HDINLINE static Complex<T_Type> zero(void)
     {
-        return Complex<T_Type>(0.0, 0.0);
+        return Complex<T_Type>( type(0.0) , type(0.0) );
     }
     
 private:

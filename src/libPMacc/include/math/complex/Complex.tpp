@@ -26,7 +26,7 @@
 #include "math/Complex.hpp"
 #include "algorithms/math.hpp"
 #include "algorithms/TypeCast.hpp"
- 
+
 namespace PMacc
 {
 namespace algorithms
@@ -34,7 +34,10 @@ namespace algorithms
 namespace math
 {
 
-/*  Set primary template and subsequent specialization for returning a complex number by using Euler's formula. */
+namespace pmMath = PMacc::algorithms::math;
+
+/*  Set primary template and subsequent specialization for returning a complex number
+    by using Euler's formula. */
 
 template<typename T_Type>
 struct Euler;
@@ -46,7 +49,8 @@ HDINLINE typename Euler< T_Type >::result euler(const T_Type& magnitude, const T
 }
 
 template<typename T_Type>
-HDINLINE typename Euler< T_Type >::result euler(const T_Type& magnitude, const T_Type& sinValue, const T_Type& cosValue)
+HDINLINE typename Euler< T_Type >::result euler(const T_Type& magnitude, const T_Type& sinValue,
+                                                const T_Type& cosValue)
 {
     return Euler< T_Type > ()(magnitude, sinValue, cosValue);
 }
@@ -58,10 +62,11 @@ struct Euler
     
     HDINLINE result operator( )(const T_Type &magnitude, const T_Type &phase)
     {
-        return result(magnitude * PMacc::algorithms::math::cos(phase),magnitude * PMacc::algorithms::math::sin(phase));
+        return result(magnitude * pmMath::cos(phase),magnitude * pmMath::sin(phase));
     }
     
-    HDINLINE result operator( )(const T_Type &magnitude, const T_Type &sinValue, const T_Type &cosValue)
+    HDINLINE result operator( )(const T_Type &magnitude,
+                                const T_Type &sinValue, const T_Type &cosValue)
     {
         return result(magnitude * cosValue, magnitude * sinValue);
     }
@@ -73,15 +78,16 @@ template<typename T_Type>
 struct Sqrt< ::PMacc::math::Complex<T_Type> >
 {
     typedef typename ::PMacc::math::Complex<T_Type> result;
-    
+    typedef T_Type type;    
+
     HDINLINE result operator( )(const ::PMacc::math::Complex<T_Type>& other)
     {
-        if (other.get_real()<=0.0 && other.get_imag()==0.0) {
-            return ::PMacc::math::Complex<T_Type>(0.0, PMacc::algorithms::math::sqrt( -other.get_real() ) );
+        if (other.get_real()<=type(0.0) && other.get_imag()==type(0.0) ) {
+            return ::PMacc::math::Complex<T_Type>(type(0.0), pmMath::sqrt( -other.get_real() ) );
         }
         else {
-            return PMacc::algorithms::math::sqrt( PMacc::algorithms::math::abs(other) )*(other+PMacc::algorithms::math::abs(other))
-                /PMacc::algorithms::math::abs(other+PMacc::algorithms::math::abs(other));
+            return pmMath::sqrt( pmMath::abs(other) )*(other+pmMath::abs(other))
+                /pmMath::abs(other+pmMath::abs(other));
         }
     }
 };
@@ -92,10 +98,11 @@ template<typename T_Type>
 struct Exp< ::PMacc::math::Complex<T_Type> >
 {
     typedef typename ::PMacc::math::Complex<T_Type> result;
+    typedef T_Type type;
     
     HDINLINE result operator( )(const ::PMacc::math::Complex<T_Type>& other)
     {
-        return PMacc::algorithms::math::euler(1.0,other.get_imag())*PMacc::algorithms::math::exp(other.get_real());
+        return pmMath::euler(type(1.0),other.get_imag())*pmMath::exp(other.get_real());
     }
 };
 
@@ -115,14 +122,20 @@ template<typename T_Type>
 struct Arg< ::PMacc::math::Complex<T_Type> >
 {
     typedef typename ::PMacc::math::Complex<T_Type>::type result;
+    typedef T_Type type;
     
     HDINLINE result operator( )(const ::PMacc::math::Complex<T_Type>& other)
     {
-        if (other.get_real()==0.0 && other.get_imag()==0.0) return 0.0;
-        else if (other.get_real()==0.0 && other.get_imag()>0.0) return T_Type(M_PI)/T_Type(2.0);
-        else if (other.get_real()==0.0 && other.get_imag()<0.0) return T_Type(-M_PI)/T_Type(2.0);
-        else if (other.get_real()<0.0 && other.get_imag()==0.0) return T_Type(M_PI);
-        else return PMacc::algorithms::math::atan2(other.get_imag(),other.get_real());
+        if ( other.get_real()==type(0.0) && other.get_imag()==type(0.0) )
+            return type(0.0);
+        else if ( other.get_real()==type(0.0) && other.get_imag()>type(0.0) )
+            return type(M_PI)/type(2.0);
+        else if ( other.get_real()==type(0.0) && other.get_imag()<type(0.0) )
+            return type(-M_PI)/type(2.0);
+        else if ( other.get_real()<type(0.0) && other.get_imag()==type(0.0) )
+            return type(M_PI);
+        else
+            return pmMath::atan2(other.get_imag(),other.get_real());
     }
 };
 
@@ -131,11 +144,14 @@ template<typename T_Type>
 struct Pow< ::PMacc::math::Complex<T_Type>, T_Type >
 {
     typedef typename ::PMacc::math::Complex<T_Type> result;
+    typedef T_Type type;
     
-    HDINLINE result operator( )(const ::PMacc::math::Complex<T_Type>& other, const T_Type& exponent)
+    HDINLINE result operator( )(const ::PMacc::math::Complex<T_Type>& other,
+                                const T_Type& exponent)
     {
-        return PMacc::algorithms::math::pow( PMacc::algorithms::math::abs(other),exponent )
-                *PMacc::algorithms::math::exp( ::PMacc::math::Complex<T_Type>(0.,1.)*PMacc::algorithms::math::arg(other)*exponent );
+        return pmMath::pow( pmMath::abs(other),exponent )
+                *pmMath::exp( ::PMacc::math::Complex<T_Type>(type(0.),type(1.) )
+                *pmMath::arg(other)*exponent );
     }
 };
 
@@ -147,7 +163,7 @@ struct Abs< ::PMacc::math::Complex<T_Type> >
 
     HDINLINE result operator( )(const ::PMacc::math::Complex<T_Type>& other)
     {
-        return PMacc::algorithms::math::sqrt( PMacc::algorithms::math::abs2(other.get_real()) + PMacc::algorithms::math::abs2(other.get_imag()) );
+        return pmMath::sqrt( pmMath::abs2(other.get_real()) + pmMath::abs2(other.get_imag()) );
     }
 };
 
@@ -159,7 +175,7 @@ struct Abs2< ::PMacc::math::Complex<T_Type> >
     
     HDINLINE result operator( )(const ::PMacc::math::Complex<T_Type>& other)
     {
-        return PMacc::algorithms::math::abs2(other.get_real()) + PMacc::algorithms::math::abs2(other.get_imag());
+        return pmMath::abs2(other.get_real()) + pmMath::abs2(other.get_imag());
     }
 };
 
