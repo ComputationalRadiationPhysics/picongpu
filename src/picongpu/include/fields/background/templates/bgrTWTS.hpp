@@ -36,7 +36,6 @@ namespace picongpu
      */
     namespace templates
     {
-        using namespace PMacc;
         namespace pmMath = PMacc::algorithms::math;
         
         HINLINE
