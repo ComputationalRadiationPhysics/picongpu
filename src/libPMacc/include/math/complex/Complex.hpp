@@ -57,24 +57,24 @@ public:
     // Assignment operator
     HDINLINE Complex& operator=(const Complex& other)
     {
-        real = other.real;
-        imaginary = other.imaginary;
+        real = other.get_real();
+        imaginary = other.get_imag();
         return *this;
     }
 
     // assign addition
     HDINLINE Complex& operator+=(const Complex& other)
     {
-        real += other.real;
-        imaginary += other.imaginary;
+        real += other.get_real();
+        imaginary += other.get_imag();
         return *this;
     }
 
     // assign difference
     HDINLINE Complex& operator-=(const Complex& other)
     {
-        real -= other.real;
-        imaginary -= other.imaginary;
+        real -= other.get_real();
+        imaginary -= other.get_imag();
         return *this;
     }
 
@@ -115,21 +115,21 @@ template<typename T_Type>
 HDINLINE Complex<T_Type>
 operator+(const Complex<T_Type>& lhs, const Complex<T_Type>& rhs)
 {
-    return Complex<T_Type>(lhs.real + rhs.real, lhs.imaginary + rhs.imaginary);
+    return Complex<T_Type>(lhs.get_real() + rhs.get_real(), lhs.get_imag() + rhs.get_imag());
 }
 
 template<typename T_Type>
 HDINLINE Complex<T_Type>
 operator+(const Complex<T_Type>& lhs, const T_Type& rhs)
 {
-    return Complex<T_Type>(lhs.real + rhs, lhs.imaginary);
+    return Complex<T_Type>(lhs.get_real() + rhs, lhs.get_imag());
 }
 
 template<typename T_Type>
 HDINLINE Complex<T_Type>
 operator+(const T_Type& lhs, const Complex<T_Type>& rhs)
 {
-    return Complex<T_Type>(lhs + rhs.real, rhs.imaginary);
+    return Complex<T_Type>(lhs + rhs.get_real(), rhs.get_imag());
 }
 
 /** Substraction operators */
@@ -138,21 +138,21 @@ template<typename T_Type>
 HDINLINE Complex<T_Type>
 operator-(const Complex<T_Type>& lhs, const Complex<T_Type>& rhs)
 {
-    return Complex<T_Type>(lhs.real - rhs.real, lhs.imaginary - rhs.imaginary);
+    return Complex<T_Type>(lhs.get_real() - rhs.get_real(), lhs.get_imag() - rhs.get_imag());
 }
 
 template<typename T_Type>
 HDINLINE Complex<T_Type>
 operator-(const Complex<T_Type>& lhs, const T_Type& rhs)
 {
-    return Complex<T_Type>(lhs.real - rhs, lhs.imaginary);
+    return Complex<T_Type>(lhs.get_real() - rhs, lhs.get_imag());
 }
 
 template<typename T_Type>
 HDINLINE Complex<T_Type>
 operator-(const T_Type& lhs, const Complex<T_Type>& rhs)
 {
-    return Complex<T_Type>(lhs - rhs.real, -rhs.imaginary);
+    return Complex<T_Type>(lhs - rhs.get_real(), -rhs.get_imag());
 }
 
 /** Multiplication operators */
@@ -161,22 +161,22 @@ template<typename T_Type>
 HDINLINE Complex<T_Type>
 operator*(const Complex<T_Type>& lhs, const Complex<T_Type>& rhs)
 {
-    return Complex<T_Type>(lhs.real * rhs.real - lhs.imaginary * rhs.imaginary,
-                     lhs.imaginary * rhs.real + lhs.real * rhs.imaginary);
+    return Complex<T_Type>(lhs.get_real() * rhs.get_real() - lhs.get_imag() * rhs.get_imag(),
+                     lhs.get_imag() * rhs.get_real() + lhs.get_real() * rhs.get_imag());
 }
 
 template<typename T_Type>
 HDINLINE Complex<T_Type>
 operator*(const Complex<T_Type>& lhs, const T_Type& rhs)
 {
-    return Complex<T_Type>(lhs.real * rhs, lhs.imaginary * rhs);
+    return Complex<T_Type>(lhs.get_real() * rhs, lhs.get_imag() * rhs);
 }
 
 template<typename T_Type>
 HDINLINE Complex<T_Type>
 operator*(const T_Type& lhs, const Complex<T_Type>& rhs)
 {
-    return Complex<T_Type>(lhs * rhs.real, lhs * rhs.imaginary);
+    return Complex<T_Type>(lhs * rhs.get_real(), lhs * rhs.get_imag());
 }
 
 /** Division operators */
@@ -185,23 +185,23 @@ template<typename T_Type>
 HDINLINE Complex<T_Type>
 operator/(const Complex<T_Type>& lhs, const T_Type& rhs)
 {
-    return Complex<T_Type>(lhs.real / rhs, lhs.imaginary / rhs);
+    return Complex<T_Type>(lhs.get_real() / rhs, lhs.get_imag() / rhs);
 }
 
 template<typename T_Type>
 HDINLINE Complex<T_Type>
 operator/(const T_Type& lhs, const Complex<T_Type>& rhs)
 {
-    return Complex<T_Type>(lhs * rhs.real/(rhs.real*rhs.real+rhs.imaginary*rhs.imaginary),
-                     -lhs * rhs.imaginary/( rhs.real*rhs.real+rhs.imaginary*rhs.imaginary ));
+    return Complex<T_Type>(lhs * rhs.get_real()/(rhs.get_real()*rhs.get_real()+rhs.get_imag()*rhs.get_imag()),
+                     -lhs * rhs.get_imag()/( rhs.get_real()*rhs.get_real()+rhs.get_imag()*rhs.get_imag() ));
 }
 
 template<typename T_Type>
 HDINLINE Complex<T_Type>
 operator/(const Complex<T_Type>& lhs, const Complex<T_Type>& rhs)
 {
-    return lhs*Complex<T_Type>(rhs.real/(rhs.real*rhs.real+rhs.imaginary*rhs.imaginary),
-                        -rhs.imaginary/( rhs.real*rhs.real+rhs.imaginary*rhs.imaginary ));
+    return lhs*Complex<T_Type>(rhs.get_real()/(rhs.get_real()*rhs.get_real()+rhs.get_imag()*rhs.get_imag()),
+                        -rhs.get_imag()/( rhs.get_real()*rhs.get_real()+rhs.get_imag()*rhs.get_imag() ));
 }
 
 } //namespace math
