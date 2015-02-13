@@ -44,7 +44,7 @@ namespace picongpu
                                 const float_64 pulselength_SI,
                                 const float_64 w_x_SI,
                                 const float_64 w_y_SI,
-                                const floatD_64& unitField,
+                                const float3_64& unitField,
                                 const float_X phi,
                                 const float_X beta_0,
                                 const float_64 tdelay_user_SI,
@@ -59,26 +59,43 @@ namespace picongpu
             const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
             halfSimSize=subGrid.getGlobalDomain().size / 2;
         }
+        
+        HDINLINE PMacc::math::Vector<float3_X, FieldE::numComponents>
+	TWTSFieldE::dummyCast(const PMacc::math::Vector<float3_X, FieldE::numComponents>& x) const { return x; }
 
+        HDINLINE PMacc::math::Vector<float3_X, FieldE::numComponents>
+	TWTSFieldE::dummyCast(const PMacc::math::Vector<float2_X, FieldE::numComponents>& x) const
+        {
+            PMacc::math::Vector<float3_X, FieldE::numComponents> result;
+
+            for( uint32_t i = 0; i < numComponents; ++i ) // cellIdx Ex, Ey and Ez
+            {
+                result[i]=float3_X( (x[i]).x(),(x[i]).y(),float_X(0.0) );
+            }
+            return result;
+        }
+        
         template<>
         HDINLINE PMacc::math::Vector<float3_64,FieldE::numComponents>
         TWTSFieldE::getEfieldPositions_SI<DIM3>(const DataSpace<simDim>& cellIdx) const
         {
             // Direct precisionCast on picongpu::cellSize does not work.
-            const float3_64 cellDimensions = ( precisionCast<float_64>( picongpu::cellSize.x() ),
-                                               precisionCast<float_64>( picongpu::cellSize.y() ),
-                                               precisionCast<float_64>( picongpu::cellSize.z() ) ) * unit_length;
+	    floatD_X cellDim;
+	    for (uint32_t i = 0; i<simDim;++i) cellDim[i]=picongpu::cellSize[i];
+ 	    //const floatD_X cellDim = picongpu::cellSize;
+            const float3_64 cellDimensions = precisionCast<float_64>( dummyCast(cellDim) ) * unit_length;
             
             //TWTS laser coordinate origin is centered transversally and defined longitudinally by the laser center (usually maximum of intensity) in y.
-            float3_X laserOrigin = float3_X( halfSimSize.x(), float_X ( focus_y_SI/cellDimensions.y() ), halfSimSize.z() );
+            float3_X laserOrigin = dummyCast( floatD_X(halfSimSize) );
+	    laserOrigin[1]=float_X( focus_y_SI/cellDimensions.y() );
             
             /* For the Yee-Cell shifted fields, obtain the fractional cell index components and add that to the total cell indices. The physical field coordinate origin is transversally centered with respect to the global simulation volume. */
-            PMacc::math::Vector<float3_X, FieldE::numComponents> eFieldPositions = fieldSolver::NumericalCellType::getEFieldPosition();
+            PMacc::math::Vector<float3_X, FieldE::numComponents> eFieldPositions = dummyCast(fieldSolver::NumericalCellType::getEFieldPosition());
             PMacc::math::Vector<float3_64,FieldE::numComponents> eFieldPositions_SI;
             
             for( uint32_t i = 0; i < FieldE::numComponents; ++i ) // cellIdx Ex, Ey and Ez
             {
-                eFieldPositions[i]   += (float3_X(cellIdx) - laserOrigin);
+                eFieldPositions[i]   += ( dummyCast( floatD_X(cellIdx) ) - laserOrigin );
                 eFieldPositions_SI[i] = precisionCast<float_64>(eFieldPositions[i]) * cellDimensions;
                 
                 /*  Since, the laser propagation direction encloses an angle of phi with the simulation y-axis (i.e. direction of sliding window),
@@ -89,10 +106,10 @@ namespace picongpu
                                                    -sin(phi)*(eFieldPositions_SI[i]).y()-cos(phi)*(eFieldPositions_SI[i]).z(),
                                                    +cos(phi)*(eFieldPositions_SI[i]).y()-sin(phi)*(eFieldPositions_SI[i]).z()  );
             }
-
+             
             return eFieldPositions_SI;
         }
-        
+         
         template<>
         HDINLINE PMacc::math::Vector<float3_64,FieldE::numComponents>
         TWTSFieldE::getEfieldPositions_SI<DIM2>(const DataSpace<simDim>& cellIdx) const
@@ -104,7 +121,7 @@ namespace picongpu
             float2_X laserOrigin = float2_X( halfSimSize.x(), focus_y_SI/cellDimensions.y() );
             
             /* For the Yee-Cell shifted fields, obtain the fractional cell index components and add that to the total cell indices. The physical field coordinate origin is transversally centered with respect to the global simulation volume. */
-            PMacc::math::Vector<float3_X, FieldE::numComponents> eFieldPositions = fieldSolver::NumericalCellType::getEFieldPosition();
+            PMacc::math::Vector<float3_X, FieldE::numComponents> eFieldPositions = dummyCast(fieldSolver::NumericalCellType::getEFieldPosition());
             PMacc::math::Vector<float3_64,FieldE::numComponents> eFieldPositions_SI;
             
             for( uint32_t i = 0; i < FieldE::numComponents; ++i ) // cellIdx Ex, Ey and Ez
@@ -303,25 +320,43 @@ namespace picongpu
             const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
             halfSimSize=subGrid.getGlobalDomain().size / 2;
         }
+        	
+        HDINLINE PMacc::math::Vector<float3_X, FieldE::numComponents>
+	TWTSFieldB::dummyCast(const PMacc::math::Vector<float3_X, FieldE::numComponents>& x) const { return x; }
+
+        HDINLINE PMacc::math::Vector<float3_X, FieldE::numComponents>
+	TWTSFieldB::dummyCast(const PMacc::math::Vector<float2_X, FieldE::numComponents>& x) const
+        {
+	    PMacc::math::Vector<float3_X, FieldE::numComponents> result;
+
+	    for( uint32_t i = 0; i < numComponents; ++i ) // cellIdx Ex, Ey and Ez
+            {
+                result[i]=float3_X( (x[i]).x(),(x[i]).y(),float_X(0.0) );
+            }
+            return result;
+        }
         
         template<>
         HDINLINE PMacc::math::Vector<float3_64,FieldB::numComponents>
         TWTSFieldB::getBfieldPositions_SI<DIM3>(const DataSpace<simDim>& cellIdx) const
         {
-            const float3_64 cellDimensions = ( precisionCast<float_64>( picongpu::cellSize.x() ),
-                                               precisionCast<float_64>( picongpu::cellSize.y() ),
-                                               precisionCast<float_64>( picongpu::cellSize.z() ) ) * unit_length;
+            // Direct precisionCast on picongpu::cellSize does not work.
+	    floatD_X cellDim;
+	    for (uint32_t i = 0; i<simDim;++i) cellDim[i]=picongpu::cellSize[i];
+ 	    //const floatD_X cellDim = picongpu::cellSize;
+            const float3_64 cellDimensions = precisionCast<float_64>( dummyCast(cellDim) ) * unit_length;
             
-            //TWTS laser coordinate origin is centered transversally and defined longitudinally by the laser center in y (usually maximum of intensity).
-            float3_X laserOrigin = float3_X( halfSimSize.x(), focus_y_SI/cellDimensions.y(), halfSimSize.z() );
+            //TWTS laser coordinate origin is centered transversally and defined longitudinally by the laser center (usually maximum of intensity) in y.
+            float3_X laserOrigin = dummyCast( floatD_X(halfSimSize) );
+	    laserOrigin[1]=float_X( focus_y_SI/cellDimensions.y() );
             
             /* For the Yee-Cell shifted fields, obtain the fractional cell index components and add that to the total cell indices. The physical field coordinate origin is transversally centered with respect to the global simulation volume. */
-            PMacc::math::Vector<float3_X, FieldB::numComponents> bFieldPositions = fieldSolver::NumericalCellType::getBFieldPosition();
+            PMacc::math::Vector<float3_X, FieldB::numComponents> bFieldPositions = dummyCast(fieldSolver::NumericalCellType::getBFieldPosition());
             PMacc::math::Vector<float3_64,FieldB::numComponents> bFieldPositions_SI;
             
             for( uint32_t i = 0; i < FieldB::numComponents; ++i ) // cellIdx Ex, Ey and Ez
             {
-                bFieldPositions[i]   += precisionCast<float_X>(cellIdx) - laserOrigin;
+                bFieldPositions[i]   += (dummyCast( floatD_X(cellIdx) ) - laserOrigin);
                 bFieldPositions_SI[i] = precisionCast<float_64>(bFieldPositions[i]) * cellDimensions;
                 
                 /*  Since, the laser propagation direction encloses an angle of phi with the simulation y-axis (i.e. direction of sliding window),
@@ -347,7 +382,7 @@ namespace picongpu
             float2_X laserOrigin = float2_X( halfSimSize.x(), focus_y_SI/cellDimensions.y() );
             
             /* For the Yee-Cell shifted fields, obtain the fractional cell index components and add that to the total cell indices. The physical field coordinate origin is transversally centered with respect to the global simulation volume. */
-            PMacc::math::Vector<float3_X, FieldB::numComponents> bFieldPositions = fieldSolver::NumericalCellType::getBFieldPosition();
+            PMacc::math::Vector<float3_X, FieldB::numComponents> bFieldPositions = dummyCast(fieldSolver::NumericalCellType::getBFieldPosition());
             PMacc::math::Vector<float3_64,FieldB::numComponents> bFieldPositions_SI;
             
             for( uint32_t i = 0; i < FieldB::numComponents; ++i ) // cellIdx Ex, Ey and Ez

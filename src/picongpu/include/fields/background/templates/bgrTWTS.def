@@ -117,6 +117,15 @@ namespace picongpu
              *  \return time in SI units */
             HDINLINE float_64 getTime_SI(const uint32_t currentStep) const;
 
+            HDINLINE PMacc::math::Vector<float3_X,numComponents>
+	    dummyCast(const PMacc::math::Vector<float3_X,numComponents>& x) const;
+            HDINLINE PMacc::math::Vector<float3_X,numComponents>
+            dummyCast(const PMacc::math::Vector<float2_X,numComponents>& x) const;
+            HDINLINE float3_X
+            dummyCast(const float3_X& x) const { return x; }
+            HDINLINE float3_X
+            dummyCast(const float2_X& x) const { return float3_X( x.x(),x.y(),float_X(0.0) ); }
+
         };
 
         class TWTSFieldB
@@ -152,7 +161,8 @@ namespace picongpu
                         const float_X beta_0            = 1.0,
                         const float_64 tdelay_user_SI   = 0.0,
                         const bool auto_tdelay          = true );
-            
+           
+ 
             /** Specify your background field B(r,t) here
              *
              * \param cellIdx The total cell id counted from the start at t=0
@@ -194,7 +204,16 @@ namespace picongpu
              *  \param CurrentStep current time step number of simulation
              *  \return time in SI units */
             HDINLINE float_64 getTime_SI(const uint32_t currentStep) const;
-            
+
+            HDINLINE PMacc::math::Vector<float3_X,numComponents>
+	    dummyCast(const PMacc::math::Vector<float3_X,numComponents>& x) const;
+            HDINLINE PMacc::math::Vector<float3_X,numComponents>
+            dummyCast(const PMacc::math::Vector<float2_X,numComponents>& x) const;
+            HDINLINE float3_X
+            dummyCast(const float3_X& x) const { return x; }
+            HDINLINE float3_X
+            dummyCast(const float2_X& x) const { return float3_X( x.x(),x.y(),float_X(0.0) ); }
+           
         };
 
     } /* namespace templates */
