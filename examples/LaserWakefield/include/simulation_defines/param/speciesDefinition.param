@@ -102,12 +102,30 @@ typedef Particles<ParticleDescription<
 
 /*--------------------------- ions -------------------------------------------*/
 
+/*! Specify (chemical) element
+ * 
+ * Proton and neutron numbers define the chemical element that the ion species
+ * is based on. This value can be non-integer for physical models taking  
+ * charge shielding effects into account. 
+ * @see http://en.wikipedia.org/wiki/Effective_nuclear_charge
+ * 
+ * It is wrapped into a struct because of C++ restricting floats from being 
+ * template arguments. 
+ * 
+ * Do not forget to set the correct mass of the atom in 
+ * @see physicalConstants.param !
+ */
+struct Helium
+{
+    static const float_X numberOfProtons  = 2.0;
+    static const float_X numberOfNeutrons = 2.0;
+};
+
 /*! Ionization Model Configuration ----------------------------------------
  * 
  * For development purposes: ---------------------------------------------
  * - None : no particle is ionized
  * - BSI : simple barrier suppression ionization
- *      (particles can only be ionized once from charge state 1 to 2)
  * 
  * Usage: Add a flag to the list of particle flags that has the following structure
  * 
@@ -119,10 +137,11 @@ typedef bmpl::vector<
     particlePusher<UsedParticlePusher>,
     shape<UsedParticleShape>,
     interpolation<UsedField2Particle>,
-    current<UsedParticleCurrentSolver>
-    #if(PARAM_IONIZATION==1)
-    ,ionizer<particles::ionization::BSI<PIC_Electrons> >
+    current<UsedParticleCurrentSolver>, 
+    #if(PARAM_IONIZATION == 1)
+    ionizer<particles::ionization::BSI<PIC_Electrons> >,
     #endif
+    atomicNumbers<Helium>
 > ParticleFlagsIons;
 
 /* define species: ions */
