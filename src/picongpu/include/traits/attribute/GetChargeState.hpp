@@ -21,8 +21,8 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "traits/frame/GetCharge.hpp"
 #include "traits/HasIdentifier.hpp"
+#include "algorithms/TypeCast.hpp"
 #include "particles/traits/GetAtomicNumbers.hpp"
 
 namespace picongpu
@@ -34,56 +34,53 @@ namespace attribute
 namespace detail
 {
 
-/** Calculate the real charge of a particle
+/** Calculate the charge state of an atom / ion
  *
- * use attribute `boundElectrons` and the proton number from 
- * flag `atomicNumbers` to calculate the charge
+ * use attribute `boundElectrons` to calculate the charge state
  */
 template<bool T_HasBoundElectrons>
-struct LoadBoundElectrons
+struct LoadChargeState
 {
 
     template<typename T_Particle>
-    HDINLINE float_X operator()(const float_X partialResult, const T_Particle& particle)
+    HDINLINE float_X operator()(const T_Particle& particle)
     {
         const float_X protonNumber = GetAtomicNumbers<T_Particle>::type::numberOfProtons;
-        
-        return partialResult * (protonNumber - particle[boundElectrons_]);
+        return protonNumber - particle[boundElectrons_];
     }
 };
 
-/**  Calculate the real charge of a particle
+/**  Calculate charge state of an atom / ion
  *
  * This is the fallback implementation if no `boundElectrons` are available for a particle
  */
 template<>
-struct LoadBoundElectrons<false>
+struct LoadChargeState<false>
 {
 
     template<typename T_Particle>
-    HDINLINE float_X operator()(const float_X partialResult, const T_Particle& particle)
+    HDINLINE void operator()(const T_Particle& particle)
     {
-        return partialResult;
+        PMACC_CASSERT_MSG(This_species_has_no_different_charge_states,1==2);
     }
 };
 } // namespace detail
 
-/** get the charge of a macro particle
+/** get the charge state of a macro particle
  *
- * This function trait considers the `boundElectrons` attribute if it is set
+ * This function trait considers the `boundElectrons` attribute if it is set. 
+ * Charge states do not add up and also the different particles in a macro particle 
+ * do NOT have different charge states where one would average over them.
  *
- * @param weighting weighting of the particle
  * @param particle a reference to a particle
  * @return charge of the macro particle
  */
 template<typename T_Particle>
-HDINLINE float_X getCharge(const float_X weighting, const T_Particle& particle)
+HDINLINE float_X getChargeState(const T_Particle& particle)
 {
     typedef T_Particle ParticleType;
     typedef typename PMacc::traits::HasIdentifier<ParticleType, boundElectrons>::type hasBoundElectrons;
-    return detail::LoadBoundElectrons<hasBoundElectrons::value >()(
-                                                      frame::getCharge<typename ParticleType::FrameType > () * weighting,
-                                                      particle);
+    return detail::LoadChargeState<hasBoundElectrons::value >()(particle);
 }
 
 }// namespace attribute

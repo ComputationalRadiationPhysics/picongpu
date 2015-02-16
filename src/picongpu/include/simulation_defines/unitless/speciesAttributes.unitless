@@ -109,7 +109,7 @@ struct Unit<globalCellIdx<T_Type> >
 };
 
 template<>
-struct Unit<chargeState >
+struct Unit<boundElectrons>
 {
   static std::vector<double> get()
   {

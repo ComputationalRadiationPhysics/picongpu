@@ -62,7 +62,7 @@ namespace ionization
              * some attributes:
              * - multiMask: reading from global memory takes longer than just setting it again explicitly
              * - momentum: because the electron would get a higher energy because of the ion mass 
-             * - chargeState: because electrons cannot have a charge state other than 1 
+             * - boundElectrons: because species other than ions or atoms do not have them
              * (gets AUTOMATICALLY deselected because electrons do not have this attribute) */
             PMACC_AUTO(targetElectronClone, partOp::deselect<bmpl::vector2<multiMask, momentum> >(childElectron));
 

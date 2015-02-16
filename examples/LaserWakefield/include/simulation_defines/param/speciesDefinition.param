@@ -74,7 +74,7 @@ AttributRadiationFlag
 typedef
 typename MakeSeq<
 DefaultParticleAttributes,
-chargeState
+boundElectrons
 >::type AttributeSeqIons;
 
 /*########################### end particle attributes ########################*/
