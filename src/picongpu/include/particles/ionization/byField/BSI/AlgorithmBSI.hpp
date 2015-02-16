@@ -22,6 +22,7 @@
 
 #include "types.h"
 #include "particles/ionization/ionizationEnergies.param"
+#include "particles/traits/GetAtomicNumbers.hpp"
 
 /** IONIZATION ALGORITHM 
  * - implements the calculation of ionization probability and changes charge states
@@ -53,11 +54,13 @@ namespace ionization
         operator()( const BType bField, const EType eField, ParticleType& parentIon )
         {
 
+            const float_X protonNumber = GetAtomicNumbers<ParticleType>::type::numberOfProtons;
+            
             /* ionization condition */
-            if (math::abs(eField)*UNIT_EFIELD >= SI::IONIZATION_EFIELD && parentIon[chargeState_] < SI::PROTON_NUMBER)
+            if (math::abs(eField)*UNIT_EFIELD >= SI::IONIZATION_EFIELD && parentIon[chargeState_] < protonNumber)
             {
                 /* set new particle charge state */
-                parentIon[chargeState_] = 1 + parentIon[chargeState_];
+                parentIon[chargeState_] += float_X(1.0);
             }
 
         }

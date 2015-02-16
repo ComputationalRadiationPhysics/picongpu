@@ -40,7 +40,5 @@ namespace SI
     /* ionization field strength (E-field) for -""-: in Volt / meter */
     const double IONIZATION_EFIELD = 5.14e11;
 
-    /* \todo add a new attribute protonNumber and introduce it wherever needed */
-    const int PROTON_NUMBER = 2;
 } // namespace SI
 } // namespace picongpu

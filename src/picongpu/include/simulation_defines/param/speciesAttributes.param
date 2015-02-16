@@ -59,7 +59,8 @@ value_identifier(bool, radiationFlag, false);
  *
  * value type is float_X to avoid casts during the runtime
  *
- * - only reasonable for ion species if ionization is enabled*/
+ * - only reasonable for ion species if ionization is enabled 
+ * - \todo calculate from new attribute boundElectrons */
 value_identifier(float_X,chargeState,float_X(1.0));
 
 /** specialization global position inside a domain (relative to origin of the
@@ -81,6 +82,10 @@ alias(interpolation);
 
 /*! alias for particle current solver @see species.param */
 alias(current);
+
+/*! alias for particle flag: atomic numbers @see speciesDefinition.param
+ * - only reasonable for atoms / ions / nuclei */
+alias(atomicNumbers);
 
 template<uint32_t T_commTag>
 struct CommunicationId

@@ -40,6 +40,11 @@
 
 #define ENABLE_IONS PARAM_IONS
 
+/*enable (1) or disable (0) ionization*/
+#ifndef PARAM_IONIZATION
+#define PARAM_IONIZATION 0
+#endif
+
 
 namespace picongpu
 {
