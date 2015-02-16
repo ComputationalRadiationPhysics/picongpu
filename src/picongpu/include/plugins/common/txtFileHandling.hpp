@@ -60,10 +60,8 @@ using namespace boost::filesystem;
         if( !boost::filesystem::exists( src ) )
         {
             /* restart file does not exists */
-            log<picLog::INPUT_OUTPUT> ("Plugin restart file:");
-            log<picLog::INPUT_OUTPUT> ("\t %1%") % src ;
-            log<picLog::INPUT_OUTPUT> ("was not found.");
-            log<picLog::INPUT_OUTPUT> ("--> Starting plugin from current time step.");
+            log<picLog::INPUT_OUTPUT> ("Plugin restart file: %1% was not found. \
+                                       --> Starting plugin from current time step.") % src;
             return true;
         }
         else
