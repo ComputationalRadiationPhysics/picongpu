@@ -57,20 +57,18 @@ using namespace boost::filesystem;
         path dst( filename );
 
         /* check whether restart file exists */
-        std::ifstream restartFile(src.c_str());
-        if(! restartFile.good())
+        if( !boost::filesystem::exists( src ) )
         {
             /* restart file does not exists */
-            restartFile.close();
-            std::cerr << "Plugin restart file: \n \t" << src << "\n was not found." << std::endl;
-            std::cerr << "Starting plugin from current time step." << std::endl;
+            log<picLog::INPUT_OUTPUT> ("Plugin restart file:");
+            log<picLog::INPUT_OUTPUT> ("\t %1%") % src ;
+            log<picLog::INPUT_OUTPUT> ("was not found.");
+            log<picLog::INPUT_OUTPUT> ("--> Starting plugin from current time step.");
             return true;
         }
         else
         {
             /* restart file found - fix output file created at restart */
-            restartFile.close();
-
             if( outFile.is_open() )
                 outFile.close();
 
