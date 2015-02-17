@@ -380,7 +380,7 @@ private:
 
             writeFile(radiation->getHostBuffer().getBasePointer(), folderRadPerGPU + "/" + filename_prefix
                       + "_radPerGPU_pos" + GPUpos_str.str()
-                      + "_time_" + last_time_step_str.str() 
+                      + "_time_" + last_time_step_str.str()
                       + "-" + current_time_step_str.str() + ".dat");
           }
         lastGPUpos = currentGPUpos;
@@ -589,7 +589,7 @@ private:
 
       splash::DataCollector::initFileCreationAttr(fAttr);
 
-      fAttr.fileAccType = DataCollector::FAT_READ;
+      fAttr.fileAccType = splash::DataCollector::FAT_READ;
 
       std::ostringstream filename;
       /* add to standard ending added by libSpash for SerialDataCollector */
