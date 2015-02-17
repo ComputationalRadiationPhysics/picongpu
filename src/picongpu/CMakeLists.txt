@@ -287,7 +287,7 @@ endif(PARAM_OVERWRITES)
 set(SAME_NVCC_FLAGS_IN_SUBPROJECTS OFF)
 find_path(CUDA_MEMTEST_DIR
         NAMES CMakeLists.txt
-        PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../cuda_memtest"
+        PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../../thirdParty/cuda_memtest"
         DOC "path to cuda_memtest"
         )
 
