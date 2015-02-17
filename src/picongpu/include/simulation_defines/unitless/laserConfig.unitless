@@ -57,7 +57,6 @@ namespace picongpu
         const float_X LASER_NOFOCUS_CONSTANT = float_X (SI::LASER_NOFOCUS_CONSTANT_SI / UNIT_TIME); //unit: seconds
         const float_X AMPLITUDE = float_X (SI::AMPLITUDE_SI / UNIT_EFIELD); //unit: Volt /meter
         const float_X INIT_TIME = float_X ((RAMP_INIT*SI::PULSE_LENGTH_SI + SI::LASER_NOFOCUS_CONSTANT_SI) / UNIT_TIME); // unit: seconds (full inizialisation length)
-        const float_X LASER_PHASE = float_X(laser_phase); // unit: None
     }
 
     namespace laserWavepacket
