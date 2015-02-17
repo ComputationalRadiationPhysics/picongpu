@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Rene Widera
+ * Copyright 2014-2015 Marco Garten, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -41,7 +41,10 @@ namespace detail
 template<bool T_HasBoundElectrons>
 struct LoadChargeState
 {
-
+    /** Functor implementation
+     * 
+     * \return chargeState = number of electrons in neutral atom - number of currently bound electrons
+     */
     template<typename T_Particle>
     HDINLINE float_X operator()(const T_Particle& particle)
     {
@@ -52,7 +55,8 @@ struct LoadChargeState
 
 /**  Calculate charge state of an atom / ion
  *
- * This is the fallback implementation if no `boundElectrons` are available for a particle
+ * This is the fallback implementation to throw an error if no `boundElectrons` 
+ * are available for a species.
  */
 template<>
 struct LoadChargeState<false>
@@ -61,7 +65,7 @@ struct LoadChargeState<false>
     template<typename T_Particle>
     HDINLINE void operator()(const T_Particle& particle)
     {
-        PMACC_CASSERT_MSG(This_species_has_no_different_charge_states,1==2);
+        PMACC_CASSERT_MSG(This_species_has_only_one_charge_state,1==2);
     }
 };
 } // namespace detail
@@ -69,7 +73,7 @@ struct LoadChargeState<false>
 /** get the charge state of a macro particle
  *
  * This function trait considers the `boundElectrons` attribute if it is set. 
- * Charge states do not add up and also the different particles in a macro particle 
+ * Charge states do not add up and also the various particles in a macro particle 
  * do NOT have different charge states where one would average over them.
  *
  * @param particle a reference to a particle

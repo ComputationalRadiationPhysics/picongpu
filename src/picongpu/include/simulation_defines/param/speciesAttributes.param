@@ -63,7 +63,7 @@ value_identifier(bool, radiationFlag, false);
  * 
  * \todo connect default to proton number
  */
-value_identifier(float_X,boundElectrons,float_X(2.0));
+value_identifier(float_X,boundElectrons,float_X(0.0));
 
 /** specialization global position inside a domain (relative to origin of the
  * moving window) and is loaded after all other param files)

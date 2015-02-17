@@ -38,32 +38,50 @@ namespace detail
  *
  * use attribute `boundElectrons` and the proton number from 
  * flag `atomicNumbers` to calculate the charge
+ * 
+ * \tparam T_HasBoundElectrons boolean that describes if species allows multiple charge states
+ * due to bound electrons
  */
 template<bool T_HasBoundElectrons>
 struct LoadBoundElectrons
 {
-
+    /** Functor implementation 
+     * 
+     * \tparam T_Particle particle type
+     * \param singlyChargedResult charge resulting from multiplying a single 
+     * electron charge (positive OR negative) by the macro particle weighting
+     * \param particle particle reference
+     */
     template<typename T_Particle>
-    HDINLINE float_X operator()(const float_X partialResult, const T_Particle& particle)
+    HDINLINE float_X operator()(const float_X singlyChargedResult, const T_Particle& particle)
     {
         const float_X protonNumber = GetAtomicNumbers<T_Particle>::type::numberOfProtons;
         
-        return partialResult * (protonNumber - particle[boundElectrons_]);
+        return singlyChargedResult * (protonNumber - particle[boundElectrons_]);
     }
 };
 
 /**  Calculate the real charge of a particle
  *
  * This is the fallback implementation if no `boundElectrons` are available for a particle
+ * 
+ * \tparam T_HasBoundElectrons boolean that describes if species allows multiple charge states
+ * due to bound electrons
  */
 template<>
 struct LoadBoundElectrons<false>
 {
-
+    /** Functor implementation 
+     * 
+     * \tparam T_Particle particle type
+     * \param singlyChargedResult charge resulting from multiplying a single 
+     * electron charge (positive OR negative) by the macro particle weighting
+     * \param particle particle reference
+     */
     template<typename T_Particle>
-    HDINLINE float_X operator()(const float_X partialResult, const T_Particle& particle)
+    HDINLINE float_X operator()(const float_X singlyChargedResult, const T_Particle& particle)
     {
-        return partialResult;
+        return singlyChargedResult;
     }
 };
 } // namespace detail
