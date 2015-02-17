@@ -52,6 +52,7 @@
 
 /* libSpash data output */
 #include <splash/splash.h>
+#include <boost/filesystem.hpp>
 
 namespace picongpu
 {
@@ -141,6 +142,7 @@ public:
     totalRad(false),
     lastRad(false),
     timeSumArray(NULL),
+    tmp_result(NULL),
     isMaster(false),
     currentStep(0),
     radPerGPU(false),
@@ -173,14 +175,14 @@ public:
             // end
             if (currentStep <= radEnd || radEnd == 0)
             {
-                log<radLog::SIMULATION_STATE > ("radiation gets calculated: timestep %1% ") % currentStep;
+                log<radLog::SIMULATION_STATE > ("Radiation: calculate timestep %1% ") % currentStep;
 
                 /* CORE + BORDER is PIC black magic, currently not needed
                  *
                  */
                 calculateRadiationParticles < CORE + BORDER > (currentStep);
 
-                log<radLog::SIMULATION_STATE > ("radiation got calculated: timestep %1% ") % currentStep;
+                log<radLog::SIMULATION_STATE > ("Radiation: finished timestep %1% ") % currentStep;
             }
         }
     }
@@ -227,7 +229,7 @@ public:
             // not a dump point. The correct lastRad data can be reconstructed from hdf5 data
             // since text based lastRad output will be obsolete soon, this is not a problem
             readHDF5file(timeSumArray, restartDirectory + "/" + std::string("radRestart_"), timeStep);
-            std::cout << "Radiation: loaded radiation restart data" << std::endl;
+            log<radLog::SIMULATION_STATE > ("Radiation: restart finished");
         }
     }
 
@@ -595,36 +597,44 @@ private:
       /* add to standard ending added by libSpash for SerialDataCollector */
       filename << name << timeStep << "_0_0_0.h5";
 
-      HDF5dataFile.open(filename.str().c_str(), fAttr);
-
-      typename PICToSplash<double>::type radSplashType;
-
-      splash::Dimensions componentSize(1,
-                                       radiation_frequencies::N_omega,
-                                       parameters::N_observer);
-
-      const int N_tmpBuffer = radiation_frequencies::N_omega * parameters::N_observer;
-      numtype2* tmpBuffer = new numtype2[N_tmpBuffer];
-
-      for(uint ampIndex=0; ampIndex < Amplitude::numComponents; ++ampIndex)
+      /* check if restart file exists */
+      if( !boost::filesystem::exists(filename.str()) )
       {
-          HDF5dataFile.read(timeStep,
-                            dataLabels(ampIndex).c_str(),
-                            componentSize,
-                            tmpBuffer);
+          log<picLog::INPUT_OUTPUT > ("Radiation: restart file not found (%1%) - start with zero values") % filename.str();
+      }
+      else
+      {
+          HDF5dataFile.open(filename.str().c_str(), fAttr);
 
-          for(int copyIndex = 0; copyIndex < N_tmpBuffer; ++copyIndex)
+          typename PICToSplash<double>::type radSplashType;
+
+          splash::Dimensions componentSize(1,
+                                           radiation_frequencies::N_omega,
+                                           parameters::N_observer);
+
+          const int N_tmpBuffer = radiation_frequencies::N_omega * parameters::N_observer;
+          numtype2* tmpBuffer = new numtype2[N_tmpBuffer];
+
+          for(uint ampIndex=0; ampIndex < Amplitude::numComponents; ++ampIndex)
           {
-              /* convert data directly because Amplutude is just 6 double */
-              ((numtype2*)values)[ampIndex + Amplitude::numComponents*copyIndex] = tmpBuffer[copyIndex];
+              HDF5dataFile.read(timeStep,
+                                dataLabels(ampIndex).c_str(),
+                                componentSize,
+                                tmpBuffer);
+
+              for(int copyIndex = 0; copyIndex < N_tmpBuffer; ++copyIndex)
+              {
+                  /* convert data directly because Amplutude is just 6 double */
+                  ((numtype2*)values)[ampIndex + Amplitude::numComponents*copyIndex] = tmpBuffer[copyIndex];
+              }
+
           }
 
+          delete[] tmpBuffer;
+          HDF5dataFile.close();
+
+          log<picLog::INPUT_OUTPUT > ("Radiation: read radiation data from HDF5");
       }
-
-      delete[] tmpBuffer;
-      HDF5dataFile.close();
-
-      std::cout << "read radiation data from HDF5" << std::endl;
   }
 
 
