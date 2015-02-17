@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -21,8 +21,7 @@
  */
 
 
-#ifndef NORMAL_FLOAT_HPP
-#define	NORMAL_FLOAT_HPP
+#pragma once
 
 #include <curand_kernel.h>
 #include "types.h"
@@ -43,7 +42,7 @@ namespace PMacc
                 public:
                     typedef float Type;
 
-                    DINLINE Normal_float()
+                    HDINLINE Normal_float()
                     {
                     }
 
@@ -58,7 +57,3 @@ namespace PMacc
         }
     }
 }
-
-
-#endif	/* NORMAL_FLOAT_HPP */
-

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -42,12 +42,23 @@ class RNG : public RNGMethod
 {
 public:
 
+    typedef RNG<RNGMethod, Distribution> This;
+
+    HDINLINE RNG()
+    {
+    }
+
     /*
      * \param rngMethod instance of generator
      * \param distribution instance of distribution functor
      */
     DINLINE RNG(const RNGMethod& rng_method, const Distribution& rng_operation) :
     RNGMethod(rng_method), op(rng_operation)
+    {
+    }
+
+    HDINLINE RNG(const This& other) :
+    RNGMethod(static_cast<RNGMethod>(other)), op(other.op)
     {
     }
 
@@ -60,7 +71,7 @@ public:
     }
 
 private:
-    const PMACC_ALIGN(op, Distribution);
+    PMACC_ALIGN(op, Distribution);
 };
 
 /* create a random number generator on gpu
@@ -73,7 +84,7 @@ private:
  */
 template<class RngMethod, class Distribution>
 DINLINE typename PMacc::nvidia::rng::RNG<RngMethod, Distribution> create(const RngMethod & rngMethod,
-                                                                                     const Distribution & distribution)
+                                                                         const Distribution & distribution)
 {
     return PMacc::nvidia::rng::RNG<RngMethod, Distribution > (rngMethod, distribution);
 }
@@ -81,5 +92,3 @@ DINLINE typename PMacc::nvidia::rng::RNG<RngMethod, Distribution> create(const R
 }
 }
 }
-
-

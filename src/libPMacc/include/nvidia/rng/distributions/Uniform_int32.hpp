@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -43,7 +43,7 @@ namespace PMacc
                 public:
                     typedef int32_t Type;
 
-                    DINLINE Uniform_int()
+                    HDINLINE Uniform_int()
                     {
                     }
 
@@ -59,6 +59,3 @@ namespace PMacc
     }
 
 }
-
-
-
