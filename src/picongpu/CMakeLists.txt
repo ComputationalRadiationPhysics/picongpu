@@ -86,6 +86,20 @@ endif(CUDA_KEEP_FILES)
 
 
 ################################################################################
+# Find mallocMC
+################################################################################
+
+find_package(mallocMC 2.1.0)
+
+if(mallocMC_FOUND)
+  include_directories(SYSTEM ${mallocMC_INCLUDE_DIRS})
+else(mallocMC_FOUND)
+  message(STATUS "Using mallocMC from thirdParty/ directory")
+  include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdParty/mallocMC/src/include)
+endif(mallocMC_FOUND)
+
+
+################################################################################
 # VampirTrace
 ################################################################################
 
