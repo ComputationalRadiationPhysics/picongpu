@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Heiko Burau, Rene Widera, Richard Pausch, Axel Huebl
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Richard Pausch,
+ *                     Axel Huebl, Alexander Debus
  *
  * This file is part of libPMacc.
  *
@@ -19,7 +20,6 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
-
 #pragma once
 
 #include "types.h"
@@ -84,10 +84,21 @@ struct Sinc<double>
 
     HDINLINE double operator( )(const double& value )
     {
-      if(::fabs(value) < DBL_EPSILON)
-	return 1.0;
-      else
-	return ::sin( value )/value;
+        if(PMacc::algorithms::math::abs(value) < DBL_EPSILON)
+            return 1.0;
+        else
+            return PMacc::algorithms::math::sin( value )/value;
+    }
+};
+
+template<>
+struct Atan2<double>
+{
+    typedef double result;
+
+    HDINLINE double operator( )(const double& val1, const double& val2 )
+    {
+        return ::atan2( val1, val2 );
     }
 };
 
