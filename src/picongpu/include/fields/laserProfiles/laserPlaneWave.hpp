@@ -75,18 +75,19 @@ namespace picongpu
 
             }
 
+            const double timeOszi = runTime - endUpramp;
             if( Polarisation == LINEAR_X )
             {
-                elong.x() = float_X( envelope * math::sin( w * runTime + LASER_PHASE));
+                elong.x() = float_X( envelope * math::sin( w * timeOszi + LASER_PHASE));
             }
             else if( Polarisation == LINEAR_Z)
             {
-                elong.z() = float_X( envelope * math::sin( w * runTime + LASER_PHASE));
+                elong.z() = float_X( envelope * math::sin( w * timeOszi + LASER_PHASE));
             }
             else if( Polarisation == CIRCULAR )
             {
-                elong.x() = float_X( envelope / sqrt(2.0)  * math::sin( w * runTime + LASER_PHASE));
-                elong.z() = float_X( envelope / sqrt(2.0)  * math::cos( w * runTime + LASER_PHASE));
+                elong.x() = float_X( envelope / sqrt(2.0)  * math::sin( w * timeOszi + LASER_PHASE));
+                elong.z() = float_X( envelope / sqrt(2.0)  * math::cos( w * timeOszi + LASER_PHASE));
             }
 
 
