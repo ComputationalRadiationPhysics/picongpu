@@ -96,8 +96,8 @@ struct IonizeParticlesPerFrame
         float3_X mom = particle[momentum_];
         const float_X mass = attribute::getMass(weighting,particle);
         
-        /* define charge state before ionization */
-        float_X prevChState = particle[chargeState_];
+        /* define number of bound macro electrons before ionization */
+        float_X prevBoundElectrons = particle[boundElectrons_];
  
         /* this is the point where actual ionization takes place */
         IonizeAlgo ionizeAlgo;
@@ -109,7 +109,7 @@ struct IonizeParticlesPerFrame
         particle[momentum_] = mom;
         particle[position_] = pos;
         /* determine number of new macro electrons to be created */
-        newMacroElectrons = particle[chargeState_] - prevChState;
+        newMacroElectrons = prevBoundElectrons - particle[boundElectrons_];
         /*calculate one dimensional cell index*/
         particle[localCellIdx_] = DataSpaceOperations<TVec::dim>::template map<TVec > (localCell);
     }

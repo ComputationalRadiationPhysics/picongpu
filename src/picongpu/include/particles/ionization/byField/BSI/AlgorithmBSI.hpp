@@ -23,9 +23,11 @@
 #include "types.h"
 #include "particles/ionization/ionizationEnergies.param"
 #include "particles/traits/GetAtomicNumbers.hpp"
+#include "traits/attribute/GetChargeState.hpp"
 
 /** IONIZATION ALGORITHM 
  * - implements the calculation of ionization probability and changes charge states
+ *   by decreasing the number of bound electrons
  * - is called with the IONIZATION MODEL, specifically by setting the flag in @see speciesDefinition.param */
 
 namespace picongpu
@@ -55,12 +57,13 @@ namespace ionization
         {
 
             const float_X protonNumber = GetAtomicNumbers<ParticleType>::type::numberOfProtons;
+            float_X chargeState = attribute::getChargeState(parentIon);
             
             /* ionization condition */
-            if (math::abs(eField)*UNIT_EFIELD >= SI::IONIZATION_EFIELD && parentIon[chargeState_] < protonNumber)
+            if (math::abs(eField)*UNIT_EFIELD >= SI::IONIZATION_EFIELD && chargeState < protonNumber)
             {
                 /* set new particle charge state */
-                parentIon[chargeState_] += float_X(1.0);
+                parentIon[boundElectrons_] -= float_X(1.0);
             }
 
         }

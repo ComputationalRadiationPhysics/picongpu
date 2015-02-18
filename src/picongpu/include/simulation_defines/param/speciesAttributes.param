@@ -55,13 +55,15 @@ value_identifier(float_X, weighting, 0.0);
 /** use this particle for radiation diagnostics */
 value_identifier(bool, radiationFlag, false);
 
-/** charge state of the particle
+/** number of electrons bound to the atom / ion
  *
  * value type is float_X to avoid casts during the runtime
- *
+ * - float is also reasonable because effective charge numbers are possible
  * - only reasonable for ion species if ionization is enabled 
- * - \todo calculate from new attribute boundElectrons */
-value_identifier(float_X,chargeState,float_X(1.0));
+ * 
+ * \todo connect default to proton number
+ */
+value_identifier(float_X,boundElectrons,float_X(0.0));
 
 /** specialization global position inside a domain (relative to origin of the
  * moving window) and is loaded after all other param files)

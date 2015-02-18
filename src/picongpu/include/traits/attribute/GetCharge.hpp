@@ -23,6 +23,7 @@
 #include "simulation_defines.hpp"
 #include "traits/frame/GetCharge.hpp"
 #include "traits/HasIdentifier.hpp"
+#include "particles/traits/GetAtomicNumbers.hpp"
 
 namespace picongpu
 {
@@ -35,49 +36,70 @@ namespace detail
 
 /** Calculate the real charge of a particle
  *
- * use attribute `chargeState` to calculate the charge
+ * use attribute `boundElectrons` and the proton number from 
+ * flag `atomicNumbers` to calculate the charge
+ * 
+ * \tparam T_HasBoundElectrons boolean that describes if species allows multiple charge states
+ * due to bound electrons
  */
-template<bool T_HasChargeState>
-struct LoadChargeState
+template<bool T_HasBoundElectrons>
+struct LoadBoundElectrons
 {
-
+    /** Functor implementation 
+     * 
+     * \tparam T_Particle particle type
+     * \param singlyChargedResult charge resulting from multiplying a single 
+     * electron charge (positive OR negative) by the macro particle weighting
+     * \param particle particle reference
+     */
     template<typename T_Particle>
-    HDINLINE float_X operator()(const float_X partialResult, const T_Particle& particle)
+    HDINLINE float_X operator()(const float_X singlyChargedResult, const T_Particle& particle)
     {
-        return partialResult * particle[chargeState_];
+        const float_X protonNumber = GetAtomicNumbers<T_Particle>::type::numberOfProtons;
+        
+        return singlyChargedResult * (protonNumber - particle[boundElectrons_]);
     }
 };
 
 /**  Calculate the real charge of a particle
  *
- * This is the fallback implementation if no `chargeState` is available for a particle
+ * This is the fallback implementation if no `boundElectrons` are available for a particle
+ * 
+ * \tparam T_HasBoundElectrons boolean that describes if species allows multiple charge states
+ * due to bound electrons
  */
 template<>
-struct LoadChargeState<false>
+struct LoadBoundElectrons<false>
 {
-
+    /** Functor implementation 
+     * 
+     * \tparam T_Particle particle type
+     * \param singlyChargedResult charge resulting from multiplying a single 
+     * electron charge (positive OR negative) by the macro particle weighting
+     * \param particle particle reference
+     */
     template<typename T_Particle>
-    HDINLINE float_X operator()(const float_X partialResult, const T_Particle& particle)
+    HDINLINE float_X operator()(const float_X singlyChargedResult, const T_Particle& particle)
     {
-        return partialResult;
+        return singlyChargedResult;
     }
 };
 } // namespace detail
 
-/** get the charge of a makro particle
+/** get the charge of a macro particle
  *
- * This function trait take care to the `chargeState` attribute if it is set
+ * This function trait considers the `boundElectrons` attribute if it is set
  *
  * @param weighting weighting of the particle
  * @param particle a reference to a particle
- * @return charge of the makro particle
+ * @return charge of the macro particle
  */
 template<typename T_Particle>
 HDINLINE float_X getCharge(const float_X weighting, const T_Particle& particle)
 {
     typedef T_Particle ParticleType;
-    typedef typename PMacc::traits::HasIdentifier<ParticleType, chargeState>::type hasChargeState;
-    return detail::LoadChargeState<hasChargeState::value >()(
+    typedef typename PMacc::traits::HasIdentifier<ParticleType, boundElectrons>::type hasBoundElectrons;
+    return detail::LoadBoundElectrons<hasBoundElectrons::value >()(
                                                       frame::getCharge<typename ParticleType::FrameType > () * weighting,
                                                       particle);
 }

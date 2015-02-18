@@ -24,6 +24,7 @@
 #include "traits/frame/GetCharge.hpp"
 #include "traits/frame/GetMass.hpp"
 #include "traits/attribute/GetCharge.hpp"
+#include "traits/attribute/GetChargeState.hpp"
 #include "traits/attribute/GetMass.hpp"
 #include "fields/currentDeposition/Solver.hpp"
 #include "particles/Particles.tpp"
