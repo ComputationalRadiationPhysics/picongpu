@@ -572,3 +572,5 @@ protected:
     bool slidingWindow;
 };
 } /* namespace picongpu */
+
+#include "fields/Fields.tpp"
