@@ -47,9 +47,10 @@ namespace PMacc
  *  and after activation.
  */
 #define PMACC_ACTIVATE_KERNEL                                                           \
-        CUDA_CHECK_KERNEL_MSG(cudaThreadSynchronize(),"Crash after kernel call");       \
+        CUDA_CHECK_KERNEL_MSG(cudaGetLastError( ),"Last error after kernel launch");    \
+        CUDA_CHECK_KERNEL_MSG(cudaThreadSynchronize(),"Crash after kernel launch");     \
         taskKernel->activateChecks();                                                   \
-        CUDA_CHECK_KERNEL_MSG(cudaThreadSynchronize(),"Crash after kernel activation"); \
+        CUDA_CHECK_KERNEL_MSG(cudaThreadSynchronize(),"Crash after kernel activation");
 
 /**
  * Appends kernel arguments to generated code and activates kernel task.
