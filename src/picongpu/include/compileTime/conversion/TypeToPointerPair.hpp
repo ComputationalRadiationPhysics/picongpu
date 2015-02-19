@@ -49,6 +49,16 @@ struct MakeIdentifier
     typedef TypeAsIdentifier<T_Type> type;
 };
 
+/** Pass through of an already existing Identifier
+ *
+ * Avoids double-wrapping of an Identifier
+ */
+template<typename T_Type>
+struct MakeIdentifier<TypeAsIdentifier<T_Type> >
+{
+    typedef TypeAsIdentifier<T_Type> type;
+};
+
 /** create boost mpl pair <TypeAsIdentifier<Type>,PointerOfType>
  *
  * @tparam T_Type any type
