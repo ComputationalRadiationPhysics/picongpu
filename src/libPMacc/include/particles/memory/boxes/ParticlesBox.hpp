@@ -48,6 +48,15 @@ public:
     typedef FRAME FrameType;
     static const uint32_t Dim = DIM;
 
+    /** default constructor
+     *
+     * \warning after this call the object is in a invalid state and must be
+     * initialized with an assignment of a valid ParticleBox
+     */
+    HINLINE ParticlesBox()
+    {
+    }
+
     HDINLINE ParticlesBox(const DataBox<PitchedBox<SuperCell<vint_t>, DIM> > &superCells,
                           const HeapDataBox<vint_t, FRAME>& data,
                           const VectorDataBox<vint_t>& nextFrames,

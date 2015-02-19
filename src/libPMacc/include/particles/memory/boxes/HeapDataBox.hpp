@@ -45,6 +45,15 @@ public:
 
     typedef VALUE Type;
 
+    /** default constructor
+     *
+     * \warning after this call the object is in a invalid state and must be
+     * initialized with an assignment of a valid HeapDataBox
+     */
+    HINLINE HeapDataBox()
+    {
+    }
+
     /**
      * Constructor.
      *
