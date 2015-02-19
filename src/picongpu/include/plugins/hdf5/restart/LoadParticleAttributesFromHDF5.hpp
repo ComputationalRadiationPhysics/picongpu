@@ -62,8 +62,8 @@ struct LoadParticleAttributesFromHDF5
                             ThreadParams* params,
                             FrameType& frame,
                             const std::string subGroup,
-                            const size_t particlesOffset,
-                            const size_t elements)
+                            const uint64_t particlesOffset,
+                            const uint64_t elements)
     {
 
         typedef T_Identifier Identifier;
