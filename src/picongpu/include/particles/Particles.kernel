@@ -49,7 +49,9 @@
 
 #include "particles/operations/Assign.hpp"
 #include "particles/operations/Deselect.hpp"
-
+#include "nvidia/rng/RNG.hpp"
+#include "nvidia/rng/methods/Xor.hpp"
+#include "nvidia/rng/distributions/Normal_float.hpp"
 namespace picongpu
 {
 
@@ -99,27 +101,29 @@ __global__ void kernelCloneParticles(ParticlesBox<MYFRAME, simDim> myBox, Partic
         __syncthreads();
     }
 }
+namespace nvrng = nvidia::rng;
+namespace rngMethods = nvidia::rng::methods;
+namespace rngDistributions = nvidia::rng::distributions;
 
 /* kernel must called with one dimension for blockSize */
-template<class FRAME, class Mapping>
-__global__ void kernelAddTemperature(ParticlesBox<FRAME, simDim> pb, float_X energy, uint32_t seed, Mapping mapper)
+template<typename T_ParicleFunctor,typename T_ParBox,  class Mapping>
+__global__ void kernelManipulateAllParticles(T_ParBox pb,
+                                             T_ParicleFunctor particleFunctor,
+                                             Mapping mapper)
 {
-    __shared__ FRAME *frame;
+    __shared__ typename T_ParBox::FrameType* frame;
     __shared__ bool isValid;
     typedef typename Mapping::SuperCellSize SuperCellSize;
 
     __syncthreads(); /*wait that all shared memory is initialised*/
 
-    namespace nvrng = nvidia::rng;
-    namespace rngMethods = nvidia::rng::methods;
-    namespace rngDistributions = nvidia::rng::distributions;
-
     const DataSpace<simDim > threadIndex(threadIdx);
     const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
 
+    const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+
     if (linearThreadIdx == 0)
     {
-        const DataSpace<Mapping::Dim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
         frame = &(pb.getLastFrame(superCellIdx, isValid));
     }
 
@@ -131,176 +135,17 @@ __global__ void kernelAddTemperature(ParticlesBox<FRAME, simDim> pb, float_X ene
      * volatile prohibits that the compiler creates wrong code*/
     volatile bool isParticle = (*frame)[linearThreadIdx][multiMask_];
 
-
-    const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
-
-    const uint32_t linearSuperCellIdx = DataSpaceOperations<simDim>::map(
-                                                                         mapper.getGridSuperCells(),
-                                                                         superCellIdx);
-
     const DataSpace<simDim> idx(superCellIdx * SuperCellSize::toRT() + threadIndex);
-    const uint32_t cellIdx = DataSpaceOperations<simDim>::map(
-                                                              mapper.getGridSuperCells() * SuperCellSize::toRT(),
-                                                              idx);
-    PMACC_AUTO(rng, nvrng::create(rngMethods::Xor(seed, cellIdx), rngDistributions::Normal_float()));
+    const DataSpace<simDim> localCellIdx = idx - mapper.getGuardingSuperCells() * SuperCellSize::toRT();
 
 
     __syncthreads();
 
     while (isValid)
     {
-        if (isParticle)
-        {
-            PMACC_AUTO(particle, ((*frame)[linearThreadIdx]));
-            const float3_X tmpRand = float3_X(rng(),
-                                              rng(),
-                                              rng());
+        PMACC_AUTO(particle, ((*frame)[linearThreadIdx]));
+        particleFunctor(localCellIdx, particle, isParticle);
 
-            const float_X macroWeighting = particle[weighting_];
-            // since energy is related to one particle,
-            // and our units are normalized for macro particle quanities
-            // energy is quite small
-            const float_X macroEnergy = macroWeighting * energy;
-            // non-rel, MW:
-            //    p = m * v
-            //            v ~ sqrt(k*T/m), k*T = E
-            // => p = sqrt(m)
-            //
-            // Note on macro particle energies, with weighting w:
-            //    p_1 = m_1 * v
-            //                v = v_1 = v_w
-            //    p_w = p_1 * w
-            //    E_w = E_1 * w
-            // Since masses, energies and momentas add up linear, we can
-            // just take w times the p_1. Take care, E means E_1 !
-            // This goes to:
-            //    p_w = w * p_1 = w * m_1 * sqrt( E / m_1 )
-            //        = sqrt( E * w^2 * m_1 )
-            //        = sqrt( E * w * m_w )
-            // Which makes sense, since it means that we use a macroMass
-            // and a macroEnergy now.
-            const float3_X mom = tmpRand * (float_X) math::sqrt(
-                                                                precisionCast<sqrt_X > (
-                                                                                   macroEnergy * attribute::getMass(macroWeighting,particle)
-                                                                                        )
-                                                                );
-            particle[momentum_] += mom;
-        }
-        __syncthreads();
-        if (linearThreadIdx == 0)
-        {
-            frame = &(pb.getPreviousFrame(*frame, isValid));
-        }
-        isParticle = true;
-        __syncthreads();
-    }
-}
-
-template< typename ParBox, class Mapping>
-__global__ void kernelSetDrift(ParBox pb,
-                               uint32_t offsetY,
-                               const int gNrCellsY,
-                               Mapping mapper)
-{
-    typedef typename ParBox::FrameType FRAME;
-    const DataSpace<simDim> superCells(mapper.getGridSuperCells());
-
-    const DataSpace<simDim> block = mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx));
-
-    __shared__ FRAME *frame;
-    __shared__ bool isValid;
-
-    __syncthreads(); /*wait that all shared memory is initialised*/
-
-    typedef typename Mapping::SuperCellSize SuperCellSize;
-
-    const DataSpace<simDim > threadIndex(threadIdx);
-    const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
-    const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
-
-    const uint32_t linearSuperCellIdx = DataSpaceOperations<simDim>::map(
-                                                                         mapper.getGridSuperCells(),
-                                                                         superCellIdx);
-
-    const DataSpace<simDim> idx(superCellIdx * SuperCellSize::toRT() + threadIndex);
-
-    __syncthreads();
-
-    if (linearThreadIdx == 0)
-    {
-        const DataSpace<Mapping::Dim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
-        frame = &(pb.getLastFrame(superCellIdx, isValid));
-    }
-
-    __syncthreads();
-    if (!isValid)
-        return; //end kernel if we have no frames
-
-    /* BUGFIX to issue #538
-     * volatile prohibits that the compiler creates wrong code*/
-    volatile bool isParticle = (*frame)[linearThreadIdx][multiMask_];
-
-    while (isValid)
-    {
-        if (isParticle)
-        {
-            if (PARTICLE_INIT_DRIFT_GAMMA == 1.0)
-            {
-                (*frame)[linearThreadIdx][momentum_] = momentum::getDefaultValue();
-            }
-            else
-            {
-                // get cells global y position
-                const DataSpace<simDim> cellIdx = idx - SuperCellSize::toRT();
-                const float_X yPos = (cellIdx.y() + offsetY) * CELL_HEIGHT;
-
-                // inverse flow area
-                const float_X sizeY = CELL_HEIGHT * float_X(gNrCellsY);
-                const float_X sizeMiddleY = sizeY * MIDDLE_DRIFT_INV_SIZE_REL;
-                const float_X minMiddleY = (sizeY - sizeMiddleY) * float_X(0.5);
-                const float_X maxMiddleY = sizeMiddleY + minMiddleY;
-
-                // compare global dataspace with current position
-                float_X isMiddleArea = 1.0;
-                float_64 myGamma = PARTICLE_INIT_DRIFT_GAMMA;
-                if (yPos > minMiddleY &&
-                    yPos < maxMiddleY)
-                {
-                    isMiddleArea = PARTICLE_INIT_DRIFT_DIRECTION_MIDDLE;
-                    myGamma = PARTICLE_INIT_DRIFT_GAMMA_MIDDLE;
-                }
-
-                PMACC_AUTO(particle, ((*frame)[linearThreadIdx]));
-                const float_X macroWeighting = particle[weighting_];
-                const float_X macroMass = attribute::getMass(macroWeighting,particle);
-
-
-                const float_64 PARTICLE_INIT_DRIFT_BETA =
-                    math::sqrt(1.0 -
-                               1.0 / (myGamma *
-                                      myGamma));
-
-                const float3_X PARTICLE_INIT_DRIFT_DIRECTION(PARTICLE_INIT_DRIFT_DIRECTION_X,
-                                                             PARTICLE_INIT_DRIFT_DIRECTION_Y,
-                                                             PARTICLE_INIT_DRIFT_DIRECTION_Z);
-
-                const float3_X normDir = PARTICLE_INIT_DRIFT_DIRECTION /
-                    math::abs(PARTICLE_INIT_DRIFT_DIRECTION);
-
-                float_X particleDir = 1.0;
-                if (FRAME::CommunicationTag == PAR_IONS)
-                    particleDir = PARTICLE_INIT_DRIFT_IONS;
-
-                particle[momentum_]
-                    = normDir * particleDir *
-                    float_X(myGamma *
-                            PARTICLE_INIT_DRIFT_BETA *
-                            float_64(macroMass) *
-                            float_64(SPEED_OF_LIGHT)
-                            ) *
-                    isMiddleArea;
-            }
-        }
         __syncthreads();
         if (linearThreadIdx == 0)
         {
@@ -417,7 +262,7 @@ struct PushParticlePerFrame
 
         EType eField = Field2ParticleInterpolation()
             (eBox.shift(localCell).toCursor(), pos, NumericalCellType::getEFieldPosition());
-        BType bField =Field2ParticleInterpolation()
+        BType bField = Field2ParticleInterpolation()
             (bBox.shift(localCell).toCursor(), pos, NumericalCellType::getBFieldPosition());
 
         float3_X mom = particle[momentum_];

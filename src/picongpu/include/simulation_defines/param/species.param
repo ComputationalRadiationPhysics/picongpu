@@ -26,9 +26,11 @@
 #include "algorithms/FieldToParticleInterpolationNative.hpp"
 #include "algorithms/FieldToParticleInterpolation.hpp"
 #include "algorithms/AssignedTrilinearInterpolation.hpp"
-#include "particles/shapes.hpp"
 
 #include "fields/currentDeposition/Solver.def"
+
+#include "particles/InitFunctors.hpp"
+#include "particles/manipulators/manipulators.def"
 
 
 /*enable (1) or disable (0) electrons*/

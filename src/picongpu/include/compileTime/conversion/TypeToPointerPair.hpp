@@ -49,6 +49,12 @@ struct MakeIdentifier
     typedef TypeAsIdentifier<T_Type> type;
 };
 
+template<typename T_Type>
+struct MakeIdentifier<TypeAsIdentifier<T_Type> >
+{
+    typedef TypeAsIdentifier<T_Type> type;
+};
+
 /** create boost mpl pair <TypeAsIdentifier<Type>,PointerOfType>
  *
  * @tparam T_Type any type

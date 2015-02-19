@@ -93,7 +93,6 @@ typedef Particles<ParticleDescription<
 
 /*--------------------------- ions -------------------------------------------*/
 
-typedef particles::shapes::CIC IonShape;
 typedef bmpl::vector<
     particlePusher<UsedParticlePusher>,
     shape<UsedParticleShape>,

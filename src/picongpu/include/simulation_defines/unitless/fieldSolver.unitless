@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "fields/Fields.hpp"
 #include "fields/MaxwellSolver/None/NoSolver.def"
 #include "fields/MaxwellSolver/Yee/YeeSolver.def"
 #if(SIMDIM==DIM3)
@@ -67,3 +68,4 @@ namespace fieldSolverLehe
 }
 #endif
 } //namespace picongpu
+

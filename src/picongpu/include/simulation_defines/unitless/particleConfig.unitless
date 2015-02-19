@@ -22,39 +22,6 @@
 
 #pragma once
 
-#include "static_assert.hpp"
 
-namespace picongpu
-{
-    // electron temperature
-    const double ELECTRON_TEMPERATURE_SI_JOULE = ELECTRON_TEMPERATURE_keV * UNITCONV_keV_to_Joule; //unit: Joule
-    const float_X ELECTRON_TEMPERATURE = float_X(ELECTRON_TEMPERATURE_SI_JOULE / UNIT_ENERGY);
-
-    // ion temperature
-    const double ION_TEMPERATURE_SI_JOULE = ION_TEMPERATURE_keV * UNITCONV_keV_to_Joule; //unit Joule
-    const float_X ION_TEMPERATURE = float_X(ION_TEMPERATURE_SI_JOULE / UNIT_ENERGY);
-
-    /* Avoid non-physical drift velocities: */
-    PMACC_CASSERT_MSG(Drift_velocity_wrong___no_drift_means_gamma_eq_1,
-                        (PARTICLE_INIT_DRIFT_GAMMA)>=1.0);
-    PMACC_CASSERT_MSG(Drift_velocity_wrong___no_drift_means_gamma_eq_1,
-                        (PARTICLE_INIT_DRIFT_GAMMA_MIDDLE)>=1.0);
-
-    namespace particleInitQuietStart
-    {
-
-#if(SIMDIM==DIM3)
-
-        CONST_VECTOR(int,DIM3,num_particle_per_cell,NUM_PARTICLES_PER_CELL_X,NUM_PARTICLES_PER_CELL_Y,NUM_PARTICLES_PER_CELL_Z);
-#elif(SIMDIM==DIM2)
-
-        CONST_VECTOR(int,DIM2,num_particle_per_cell,NUM_PARTICLES_PER_CELL_X,NUM_PARTICLES_PER_CELL_Y);
-#endif
-
-    }
-}
-
-// include implemented particle initializations
-//
-#include "particles/init/particleInitRandomPos.hpp"
-#include "particles/init/particleInitQuietStart.hpp"
+/* include implemented particle initializations */
+#include "particles/startPosition/functors.hpp"

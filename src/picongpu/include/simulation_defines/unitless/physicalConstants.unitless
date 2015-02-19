@@ -24,11 +24,11 @@
 namespace picongpu
 {
     /** Unit of Speed */
-    const double UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
+    const float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
     /** Unit of time */
-    const double UNIT_TIME = SI::DELTA_T_SI;
+    const float_64 UNIT_TIME = SI::DELTA_T_SI;
     /** Unit of length */
-    const double UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
+    const float_64 UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
 
 #if(SIMDIM==DIM3)
     namespace SI
@@ -36,10 +36,15 @@ namespace picongpu
         /** density normed to dimension of the simulation*/
         const float_64  GAS_DENSITY_NORMED= SI::GAS_DENSITY_SI;
     } //namespace SI
-    /** Number of electrons per particle (= macro particle weighting)
-     *  unit: none */
-    const float_X NUM_EL_PER_PARTICLE = float_64(SI::GAS_DENSITY_NORMED*SI::CELL_WIDTH_SI*SI::CELL_HEIGHT_SI *SI::CELL_DEPTH_SI )
-                                / float_64(particleInit::NUM_PARTICLES_PER_CELL);
+
+    namespace particles
+    {
+        /** Number of electrons per particle (= macro particle weighting)
+         *  unit: none */
+        const float_X TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE = float_64(SI::GAS_DENSITY_NORMED*SI::CELL_WIDTH_SI*SI::CELL_HEIGHT_SI *SI::CELL_DEPTH_SI )
+                                    / float_64(particles::TYPICAL_PARTICLES_PER_CELL);
+    }
+
 #elif(SIMDIM==DIM2)
     namespace SI
     {
@@ -48,21 +53,21 @@ namespace picongpu
          * http://www.tf.uni-kiel.de/matwis/amat/mw1_ge/kap_6/basics/m6_2_1.html
          */
         const float_64  GAS_DENSITY_NORMED= SI::GAS_DENSITY_SI*UNIT_LENGTH;
-     } //namespace SI
-    /** Number of electrons per particle (= macro particle weighting)
-     *  unit: none */
-    const float_X NUM_EL_PER_PARTICLE = float_64(SI::GAS_DENSITY_NORMED*SI::CELL_WIDTH_SI*SI::CELL_HEIGHT_SI )
-                                / float_64(particleInit::NUM_PARTICLES_PER_CELL);
+    } //namespace SI
+    namespace particles
+    {
+        /** Number of electrons per particle (= macro particle weighting)
+         *  unit: none */
+        const float_X TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE = float_64(SI::GAS_DENSITY_NORMED*SI::CELL_WIDTH_SI*SI::CELL_HEIGHT_SI )
+                                    / float_64(particles::TYPICAL_PARTICLES_PER_CELL);
+    }
 #endif
 
-    /** Number of ions per particle
-     *  unit: none */
-    const float_X NUM_ION_PER_PARTICLE = NUM_EL_PER_PARTICLE;
 
     /** Unit of mass */
-    const double UNIT_MASS = SI::ELECTRON_MASS_SI * double(NUM_EL_PER_PARTICLE);
+    const double UNIT_MASS = SI::ELECTRON_MASS_SI * double(particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE);
     /** Unit of charge */
-    const double UNIT_CHARGE = -1.0 * SI::ELECTRON_CHARGE_SI * double(NUM_EL_PER_PARTICLE);
+    const double UNIT_CHARGE = -1.0 * SI::ELECTRON_CHARGE_SI * double(particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE);
     /** Unit of energy */
     const double UNIT_ENERGY = (UNIT_MASS * UNIT_LENGTH * UNIT_LENGTH / (UNIT_TIME * UNIT_TIME));
     /** Unit of EField: V/m */

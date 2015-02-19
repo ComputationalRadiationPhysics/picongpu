@@ -1,23 +1,23 @@
 /**
  * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 #pragma once
 
@@ -32,15 +32,15 @@ namespace picongpu
 
     /*if true image is scaled if cellsize is not quadratic, else no scale*/
     const bool scale_to_cellsize = false;
-   
+
     const bool white_box_per_GPU = false;
- 
+
     namespace visPreview
     {
         // normalize EM fields to typical laser or plasma quantities
         //-1: Auto:    enable adaptive scaling for each output
         // 1: Laser:   typical fields calculated out of the laser amplitude
-        // 2: Drift:   typical fields caused by a drifting plasma
+        // 2: Drift:   [outdated]
         // 3: PlWave:  typical fields calculated out of the plasma freq.,
         //             assuming the wave moves approx. with c
         // 4: Thermal: typical fields calculated out of the electron temperature
@@ -49,36 +49,36 @@ namespace picongpu
         //             beam waist (use for bubble fields)
 #define EM_FIELD_SCALE_CHANNEL1 -1
 #define EM_FIELD_SCALE_CHANNEL2 -1
-#define EM_FIELD_SCALE_CHANNEL3 2
-        
+#define EM_FIELD_SCALE_CHANNEL3 -1
+
         // multiply highest undisturbed particle density with factor
         const float_X preParticleDens_opacity = 0.25;
         const float_X preChannel1_opacity     = 1.0;
         const float_X preChannel2_opacity     = 1.0;
         const float_X preChannel3_opacity     = 1.0;
-        
+
         // specify color scales for each channel
         namespace preParticleDensCol = colorScales::red;
         namespace preChannel1Col     = colorScales::blue;
         namespace preChannel2Col     = colorScales::green;
         namespace preChannel3Col     = colorScales::none;
-        
+
         /* png preview and liveview settings for each channel */
         DINLINE float_X preChannel1 ( const float3_X& field_B, const float3_X& field_E, const float3_X& field_J )
         {
             return field_B.z();
         }
-       
+
         DINLINE float_X preChannel2 ( const float3_X& field_B, const float3_X& field_E, const float3_X& field_J )
         {
             return -float_X(1.0) * field_B.z();
         }
-        
+
         DINLINE float_X preChannel3 ( const float3_X& field_B, const float3_X& field_E, const float3_X& field_J )
         {
             return float_X(1.0);
         }
     }
-    
+
 }
 

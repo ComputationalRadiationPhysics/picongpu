@@ -28,8 +28,8 @@
 
 #include "simulation_defines/unitless/physicalConstants.unitless"
 #include "simulation_defines/unitless/gridConfig.unitless"
-#include "simulation_defines/unitless/gasConfig.unitless"
 #include "simulation_defines/unitless/laserConfig.unitless"
+#include "simulation_defines/unitless/gasConfig.unitless"
 #include "simulation_defines/unitless/particleConfig.unitless"
 #include "simulation_defines/unitless/fieldSolver.unitless"
 #include "simulation_defines/unitless/visualization.unitless"

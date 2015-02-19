@@ -25,107 +25,15 @@
 
 
 namespace picongpu
+
 {
-    // normed gas parameter
-    const float_X VACUUM_Y = float_X(SI::VACUUM_Y_SI / UNIT_LENGTH); // unit: meter
 #if(SIMDIM==DIM3)
     const float_X GAS_DENSITY = float_X(SI::GAS_DENSITY_NORMED*UNIT_LENGTH*UNIT_LENGTH*UNIT_LENGTH);
 #elif(SIMDIM==DIM2)
     const float_X GAS_DENSITY = float_X(SI::GAS_DENSITY_NORMED*UNIT_LENGTH*UNIT_LENGTH);
 #endif
 
-    PMACC_CASSERT_MSG( Please_select_gasNone_for_vacuum__leave_GAS_DENSITY_greater_than_0, ((GAS_DENSITY)>0.0f) );
 
-    namespace gasGaussian
-    {
-        // normed parameters of the gaussian gas profile
-        const float_X GAS_CENTER_LEFT = float_X( SI::GAS_CENTER_LEFT_SI / UNIT_LENGTH); //unit: meter
-        const float_X GAS_CENTER_RIGHT = float_X( SI::GAS_CENTER_RIGHT_SI / UNIT_LENGTH); //unit: meter
-        const float_X GAS_SIGMA_LEFT = float_X( SI::GAS_SIGMA_LEFT_SI / UNIT_LENGTH); //unit: meter
-        const float_X GAS_SIGMA_RIGHT = float_X( SI::GAS_SIGMA_RIGHT_SI / UNIT_LENGTH); //unit: meter
-        const bool GAS_ENABLED = true;
-    }
+} //namespace picongpu
 
-    namespace gasLinExp
-    {
-        const float_X GAS_Y_MAX = float_X( SI::GAS_Y_MAX_SI / UNIT_LENGTH ); //unit: meter
-        const float_X GAS_A = float_X( SI::GAS_A_SI * UNIT_LENGTH );  //unit: 1/meter
-        const float_X GAS_D = float_X( SI::GAS_D_SI * UNIT_LENGTH ); //unit: 1/meter
-
-        const bool GAS_ENABLED = true;
-    }
-
-    namespace gasHomogeneous
-    {
-        /** Length of the constant gas in y direction
-         *  unit: meter */
-        const float_X GAS_LENGTH = float_X( SI::GAS_LENGTH_SI / UNIT_LENGTH);
-        const bool GAS_ENABLED = true;
-    }
-
-    namespace gasSphereFlanks
-    {
-        const float_X GAS_R = float_X( SI::GAS_R_SI / UNIT_LENGTH );
-        const float_X GAS_RI = float_X( SI::GAS_RI_SI / UNIT_LENGTH );
-        const float_X GAS_X = float_X( SI::GAS_X_SI / UNIT_LENGTH );
-        const float_X GAS_Y = float_X( SI::GAS_Y_SI / UNIT_LENGTH );
-        const float_X GAS_Z = float_X( SI::GAS_Z_SI / UNIT_LENGTH );
-
-        CONST_VECTOR(float_X,simDim,GAS_SIZE,GAS_X,GAS_Y,GAS_Z);
-
-        const float_X GAS_EXP = float_X( SI::GAS_EXP_SI * UNIT_LENGTH );
-
-        const bool GAS_ENABLED = true;
-    }
-
-    namespace gasGaussianCloud
-    {
-        // normed parameters of the Gaussian gas profile
-        const float_X GAS_CENTER_X = float_X( SI::GAS_CENTER_X_SI / UNIT_LENGTH); //unit: meter
-        const float_X GAS_CENTER_Y = float_X( SI::GAS_CENTER_Y_SI / UNIT_LENGTH); //unit: meter
-        const float_X GAS_CENTER_Z = float_X( SI::GAS_CENTER_Z_SI / UNIT_LENGTH); //unit: meter
-
-        CONST_VECTOR(float_X,simDim,GAS_CENTER,GAS_CENTER_X,GAS_CENTER_Y,GAS_CENTER_Z);
-
-        const float_X GAS_SIGMA_X = float_X( SI::GAS_SIGMA_X_SI / UNIT_LENGTH); //unit: meter
-        const float_X GAS_SIGMA_Y = float_X( SI::GAS_SIGMA_Y_SI / UNIT_LENGTH); //unit: meter
-        const float_X GAS_SIGMA_Z = float_X( SI::GAS_SIGMA_Z_SI / UNIT_LENGTH); //unit: meter
-
-        CONST_VECTOR(float_X,simDim,GAS_SIGMA,GAS_SIGMA_X,GAS_SIGMA_Y,GAS_SIGMA_Z);
-        const bool GAS_ENABLED = true;
-    }
-
-    namespace gasFreeFormula
-    {
-        /** Initialize a gas profile */
-        const bool GAS_ENABLED = true;
-    }
-
-#if (ENABLE_HDF5 == 1)
-    namespace gasFromHdf5
-    {
-        /** Initialize a gas profile */
-        const bool GAS_ENABLED = true;
-    }
-#endif
-
-    namespace gasNone
-    {
-        /** Do not initialize a gas, stay with vacuum */
-        const bool GAS_ENABLED = false;
-    }
-
-}
-
-// include implemented gas profiles
-//
-#include "particles/gasProfiles/gasGaussian.hpp"
-#include "particles/gasProfiles/gasGaussianCloud.hpp"
-#include "particles/gasProfiles/gasLinExp.hpp"
-#include "particles/gasProfiles/gasHomogeneous.hpp"
-#include "particles/gasProfiles/gasSphereFlanks.hpp"
-#include "particles/gasProfiles/gasFreeFormula.hpp"
-#if (ENABLE_HDF5 == 1)
-#include "particles/gasProfiles/gasFromHdf5.hpp"
-#endif
-#include "particles/gasProfiles/gasNone.hpp"
+#include "particles/gasProfiles/profiles.hpp"

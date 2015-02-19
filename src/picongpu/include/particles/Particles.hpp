@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt, 
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Marco Garten
  *
  * This file is part of PIConGPU.
@@ -25,6 +25,7 @@
 #include "simulation_classTypes.hpp"
 
 #include "fields/Fields.def"
+#include "fields/Fields.hpp"
 #include "particles/ParticlesBase.hpp"
 #include "particles/memory/buffers/ParticlesBuffer.hpp"
 
@@ -61,21 +62,21 @@ public:
 
     void update(uint32_t currentStep);
 
-    void initFill(uint32_t currentStep);
+    template<typename T_GasFunctor, typename T_PositionFunctor>
+    void initGas(T_GasFunctor& gasFunctor, T_PositionFunctor& positionFunctor, const uint32_t currentStep);
 
     template< typename t_ParticleDescription>
     void deviceCloneFrom(Particles<t_ParticleDescription> &src);
 
-    void deviceAddTemperature(float_X temperature);
-
-    void deviceSetDrift(uint32_t currentStep);
+    template<typename T_Functor>
+    void manipulateAllParticles(uint32_t currentStep, T_Functor& functor);
 
     SimulationDataId getUniqueId();
 
     void synchronize();
 
     void syncToDevice();
-    
+
     //Ionization
     template<typename T_Elec>
     void ionize(T_Elec electrons, uint32_t currentStep);
@@ -92,6 +93,17 @@ private:
 
     curandState* randState;
 };
+
+namespace traits
+{
+
+template<typename T_ParticleDescription>
+struct GetDataBoxType<picongpu::Particles<T_ParticleDescription> >
+{
+    typedef typename picongpu::Particles<T_ParticleDescription>::ParticlesBoxType type;
+};
+
+} //namespace traits
 
 
 } //namespace picongpu

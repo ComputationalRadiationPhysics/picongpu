@@ -44,7 +44,6 @@
 #include "particles/memory/buffers/ParticlesBuffer.hpp"
 #include "ParticlesInit.kernel"
 #include "mappings/simulation/GridController.hpp"
-#include "mpi/SeedPerRank.hpp"
 
 #include "simulationControl/MovingWindow.hpp"
 
@@ -64,7 +63,7 @@ using namespace PMacc;
 template<typename T_ParticleDescription>
 Particles<T_ParticleDescription>::Particles( GridLayout<simDim> gridLayout,
                                              MappingDesc cellDescription,
-                                             SimulationDataId datasetID) :
+                                             SimulationDataId datasetID ) :
 ParticlesBase<T_ParticleDescription, MappingDesc>( cellDescription ),
 fieldB( NULL ), fieldE( NULL ), fieldJurrent( NULL ), fieldTmp( NULL ), gridLayout( gridLayout ),
 datasetID( datasetID )
@@ -126,13 +125,13 @@ SimulationDataId Particles<T_ParticleDescription>::getUniqueId( )
 template< typename T_ParticleDescription>
 void Particles<T_ParticleDescription>::synchronize( )
 {
-    this->particlesBuffer->deviceToHost( );
+
 }
 
 template< typename T_ParticleDescription>
 void Particles<T_ParticleDescription>::syncToDevice( )
 {
-    this->particlesBuffer->hostToDevice( );
+
 }
 
 template<typename T_ParticleDescription>
@@ -143,22 +142,22 @@ void Particles<T_ParticleDescription>::init( FieldE &fieldE, FieldB &fieldB, Fie
     this->fieldJurrent = &fieldJ;
     this->fieldTmp = &fieldTmp;
 
-    Environment<>::get( ).DataConnector().registerData( *this );
+    Environment<>::get( ).DataConnector( ).registerData( *this );
 }
 
 template<typename T_ParticleDescription>
-void Particles<T_ParticleDescription>::update(uint32_t )
+void Particles<T_ParticleDescription>::update( uint32_t )
 {
-    typedef typename HasFlag<FrameType,particlePusher<> >::type hasPusher;
-    typedef typename GetFlagType<FrameType,particlePusher<> >::type FoundPusher;
+    typedef typename HasFlag<FrameType, particlePusher<> >::type hasPusher;
+    typedef typename GetFlagType<FrameType, particlePusher<> >::type FoundPusher;
 
     /* if no pusher was defined we use PusherNone as fallback */
-    typedef typename bmpl::if_<hasPusher,FoundPusher,particles::pusher::None >::type SelectPusher;
+    typedef typename bmpl::if_<hasPusher, FoundPusher, particles::pusher::None >::type SelectPusher;
     typedef typename PMacc::traits::Resolve<SelectPusher>::type::type ParticlePush;
 
     typedef typename PMacc::traits::Resolve<
-        typename GetFlagType<FrameType,interpolation<> >::type
-    >::type InterpolationScheme;
+        typename GetFlagType<FrameType, interpolation<> >::type
+        >::type InterpolationScheme;
 
     typedef typename GetMargin<InterpolationScheme>::LowerMargin LowerMargin;
     typedef typename GetMargin<InterpolationScheme>::UpperMargin UpperMargin;
@@ -173,7 +172,7 @@ void Particles<T_ParticleDescription>::update(uint32_t )
         UpperMargin
         > BlockArea;
 
-    dim3 block( MappingDesc::SuperCellSize::toRT().toDim3() );
+    dim3 block( MappingDesc::SuperCellSize::toRT( ).toDim3( ) );
 
     __picKernelArea( kernelMoveAndMarkParticles<BlockArea>, this->cellDescription, CORE + BORDER )
         (block)
@@ -193,49 +192,26 @@ void Particles<T_ParticleDescription>::reset( uint32_t )
 }
 
 template< typename T_ParticleDescription>
-void Particles<T_ParticleDescription>::initFill( uint32_t currentStep )
+template<typename T_GasFunctor, typename T_PositionFunctor>
+void Particles<T_ParticleDescription>::initGas( T_GasFunctor& gasFunctor,
+                                                T_PositionFunctor& positionFunctor,
+                                                const uint32_t currentStep )
 {
-    Window window = MovingWindow::getInstance( ).getWindow( currentStep );
-    const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter( currentStep );
-    const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+    log<picLog::SIMULATION_STATE > ( "start create gas for species %1%" ) % FrameType::getName( );
 
-    /*calculate real simulation area offset from the beginning of the simulation*/
-    DataSpace<simDim> localCells = gridLayout.getDataSpaceWithoutGuarding( );
-    DataSpace<simDim> gpuCellOffset = subGrid.getLocalDomain().offset;
-    gpuCellOffset.y( ) += numSlides * localCells.y( );
+    const uint32_t numSlides = MovingWindow::getInstance( ).getSlideCounter( currentStep );
+    const SubGrid<simDim>& subGrid = Environment<simDim>::get( ).SubGrid( );
+    DataSpace<simDim> localCells = subGrid.getLocalDomain( ).size;
+    DataSpace<simDim> totalGpuCellOffset = subGrid.getLocalDomain( ).offset;
+    totalGpuCellOffset.y( ) += numSlides * localCells.y( );
 
-    GlobalSeed globalSeed;
-    mpi::SeedPerRank<simDim> seedPerRank;
-    uint32_t seed = seedPerRank( globalSeed(), FrameType::CommunicationTag );
-    seed ^= POSITION_SEED;
-    dim3 block( MappingDesc::SuperCellSize::toRT( ).toDim3() );
+    dim3 block( MappingDesc::SuperCellSize::toRT( ).toDim3( ) );
+    __picKernelArea( kernelFillGridWithParticles, this->cellDescription, CORE + BORDER )
+        (block)
+        ( gasFunctor, positionFunctor, totalGpuCellOffset, this->particlesBuffer->getDeviceParticleBox( ) );
 
-    if ( gasProfile::GAS_ENABLED )
-    {
-        const DataSpace<simDim> globalNrOfCells = subGrid.getGlobalDomain().size;
-
-        PMACC_AUTO( &fieldTmpGridBuffer, this->fieldTmp->getGridBuffer() );
-        FieldTmp::DataBoxType dataBox = fieldTmpGridBuffer.getDeviceBuffer().getDataBox();
-
-        if (!gasProfile::gasSetup(fieldTmpGridBuffer, window))
-        {
-            log<picLog::SIMULATION_STATE > ("Failed to setup gas profile");
-        }
-
-        __picKernelArea( kernelFillGridWithParticles, this->cellDescription, CORE + BORDER + GUARD )
-            (block)
-            ( this->particlesBuffer->getDeviceParticleBox( ),
-              this->particlesBuffer->hasSendExchange( TOP ),
-              gpuCellOffset,
-              seed,
-              globalNrOfCells.y( ),
-              dataBox.shift(this->fieldTmp->getGridLayout().getGuard()));
-    }
 
     this->fillAllGaps( );
-
-    log<picLog::SIMULATION_STATE > ( "Wait for init particles finished (y offset = %1%)" ) % gpuCellOffset.y( );
-    __getTransactionEvent( ).waitForFinished( );
 }
 
 template< typename T_ParticleDescription>
@@ -244,56 +220,23 @@ void Particles<T_ParticleDescription>::deviceCloneFrom( Particles< t_ParticleDes
 {
     dim3 block( PMacc::math::CT::volume<SuperCellSize>::type::value );
 
-    __picKernelArea( kernelCloneParticles, this->cellDescription, CORE + BORDER + GUARD )
+    __picKernelArea( kernelCloneParticles, this->cellDescription, CORE + BORDER )
         (block) ( this->getDeviceParticlesBox( ), src.getDeviceParticlesBox( ) );
-    log<picLog::SIMULATION_STATE > ( "start clone particles" );
+    log<picLog::SIMULATION_STATE > ( "start clone species %1%" ) % FrameType::getName( );
     this->fillAllGaps( );
-
-    log<picLog::SIMULATION_STATE > ( "Wait for clone particles finished" );
-    __getTransactionEvent( ).waitForFinished( );
 }
 
 template< typename T_ParticleDescription>
-void Particles<T_ParticleDescription>::deviceAddTemperature( float_X energy )
+template< typename T_Functor>
+void Particles<T_ParticleDescription>::manipulateAllParticles( uint32_t currentStep, T_Functor& functor )
 {
-    dim3 block( MappingDesc::SuperCellSize::toRT( ).toDim3() );
 
-    GlobalSeed globalSeed;
-    mpi::SeedPerRank<simDim> seedPerRank;
-    uint32_t seed = seedPerRank( globalSeed(), FrameType::CommunicationTag );
-    seed ^= TEMPERATURE_SEED;
+    dim3 block( MappingDesc::SuperCellSize::toRT( ).toDim3( ) );
 
-    __picKernelArea( kernelAddTemperature, this->cellDescription, CORE + BORDER + GUARD )
-        (block) ( this->getDeviceParticlesBox( ), energy, seed );
-
-    log<picLog::SIMULATION_STATE > ( "Wait for addTemperature finished" );
-    __getTransactionEvent( ).waitForFinished( );
-}
-
-template< typename T_ParticleDescription>
-void Particles<T_ParticleDescription>::deviceSetDrift( uint32_t currentStep )
-{
-    const uint32_t numSlides = MovingWindow::getInstance( ).getSlideCounter( currentStep );
-
-    dim3 block( MappingDesc::SuperCellSize::toRT( ).toDim3() );
-
-    const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
-    const DataSpace<simDim> localNrOfCells( subGrid.getLocalDomain( ).size );
-    const DataSpace<simDim> globalNrOfCells( subGrid.getGlobalDomain( ).size );
-
-    /* calculate real simulation area offset from the beginning of the simulation
-     */
-    uint32_t simulationYCell = subGrid.getLocalDomain( ).offset.y( ) +
-        ( numSlides * localNrOfCells.y( ) );
-
-    __picKernelArea( kernelSetDrift, this->cellDescription, CORE + BORDER + GUARD )
+    __picKernelArea( kernelManipulateAllParticles, this->cellDescription, CORE + BORDER )
         (block)
         ( this->particlesBuffer->getDeviceParticleBox( ),
-          simulationYCell,
-          globalNrOfCells.y( ) );
-
-    log<picLog::SIMULATION_STATE > ( "Wait for set drift finished" );
-    __getTransactionEvent( ).waitForFinished( );
+          functor );
 }
 
 } // end namespace

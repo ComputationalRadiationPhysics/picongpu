@@ -72,7 +72,8 @@ namespace picongpu
              * we correct that during the output of the pAxis range
              * (linearly shrinking the single particle scale again)
              */
-            float_X pRangeMakro_unit = float_X( frame::getMass<typename Species::FrameType>()*NUM_EL_PER_PARTICLE *
+            float_X pRangeMakro_unit = float_X( frame::getMass<typename Species::FrameType>()*
+                                                particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE *
                                                 SPEED_OF_LIGHT );
             std::pair<float_X, float_X> new_p_range(
                     this->momentum_range_min.at(i) * pRangeMakro_unit,

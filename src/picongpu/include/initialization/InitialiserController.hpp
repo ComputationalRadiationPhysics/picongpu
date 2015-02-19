@@ -64,7 +64,7 @@ public:
         // start simulation using default values
         log<picLog::SIMULATION_STATE > ("Starting simulation from timestep 0");
 
-        SimStartInitialiser<PIC_Electrons, PIC_Ions> simStartInitialiser;
+        SimStartInitialiser simStartInitialiser;
         Environment<>::get().DataConnector().initialise(simStartInitialiser, 0);
         __getTransactionEvent().waitForFinished();
 
@@ -94,22 +94,20 @@ public:
     {
         if (Environment<simDim>::get().GridController().getGlobalRank() == 0)
         {
-            log<picLog::PHYSICS >("max weighting %1%") % NUM_EL_PER_PARTICLE;
-
             log<picLog::PHYSICS >("Courant c*dt <= %1% ? %2%") %
                                  (1./math::sqrt(INV_CELL2_SUM)) %
                                  (SPEED_OF_LIGHT * DELTA_T);
 
-            if (gasProfile::GAS_ENABLED)
-                log<picLog::PHYSICS >("omega_pe * dt <= 0.1 ? %1%") %
-                                     (sqrt(GAS_DENSITY * Q_EL / M_EL * Q_EL / EPS0) * DELTA_T);
+//            if (gasProfile::GAS_ENABLED)
+//                log<picLog::PHYSICS >("omega_pe * dt <= 0.1 ? %1%") %
+//                                     (sqrt(GAS_DENSITY * Q_EL / M_EL * Q_EL / EPS0) * DELTA_T);
             if (laserProfile::INIT_TIME > float_X(0.0))
                 log<picLog::PHYSICS >("y-cells per wavelength: %1%") %
                                      (laserProfile::WAVE_LENGTH / CELL_HEIGHT);
             const int localNrOfCells = cellDescription->getGridLayout().getDataSpaceWithoutGuarding().productOfComponents();
             log<picLog::PHYSICS >("macro particles per gpu: %1%") %
-                                 (localNrOfCells * particleInit::NUM_PARTICLES_PER_CELL * (1 + 1 * ENABLE_IONS));
-            log<picLog::PHYSICS >("typical macro particle weighting: %1%") % (NUM_EL_PER_PARTICLE);
+                                 (localNrOfCells * particles::TYPICAL_PARTICLES_PER_CELL * (1 + 1 * ENABLE_IONS));
+            log<picLog::PHYSICS >("typical macro particle weighting: %1%") % (particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE);
 
             //const float_X y_R = M_PI * laserProfile::W0 * laserProfile::W0 / laserProfile::WAVE_LENGTH; //rayleigh length (in y-direction)
             //std::cout << "focus/y_Rayleigh: " << laserProfile::FOCUS_POS / y_R << std::endl;
@@ -148,7 +146,7 @@ public:
 
     virtual void slide(uint32_t currentStep)
     {
-        SimStartInitialiser<PIC_Electrons, PIC_Ions> simStartInitialiser;
+        SimStartInitialiser simStartInitialiser;
         Environment<>::get().DataConnector().initialise(simStartInitialiser, currentStep);
         __getTransactionEvent().waitForFinished();
     }

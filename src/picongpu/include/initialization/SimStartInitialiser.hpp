@@ -38,63 +38,19 @@ namespace picongpu
  * Initialises a new simulation from default values.
  * DataConnector has to be used with a FIFO compliant IDataSorter.
  *
- * @tparam EBuffer type for Electrons (see MySimulation)
- * @tparam IBuffer type for Ions (see MySimulation)
  */
-template <class EBuffer, class IBuffer>
 class SimStartInitialiser : public AbstractInitialiser
 {
 public:
 
     void init(ISimulationData& data, uint32_t currentStep)
     {
-        SimulationDataId id = data.getUniqueId();
-        
-        // add ids for other types if necessary
-        // fields are initialised by their constructor
-        if (id == EBuffer::FrameType::getName())
-        {
-            initElectrons(static_cast<EBuffer&> (data), currentStep);
-            return;
-        }
 
-        if (id == IBuffer::FrameType::getName())
-        {
-            initIons(static_cast<IBuffer&> (data), currentStep);
-            return;
-        }
     }
 
     virtual ~SimStartInitialiser()
     {
 
-    }
-
-private:
-
-    void initElectrons(EBuffer& electrons, uint32_t currentStep)
-    {
-
-        electrons.initFill(currentStep);
-
-        electrons.deviceSetDrift(currentStep);
-        if (ELECTRON_TEMPERATURE > float_X(0.0))
-            electrons.deviceAddTemperature(ELECTRON_TEMPERATURE);
-    }
-
-    void initIons(IBuffer& ions, uint32_t currentStep)
-    {
-
-        //copy electrons' values to ions
-        EBuffer &e_buffer = Environment<>::get().DataConnector().getData<EBuffer>(EBuffer::FrameType::getName());
-
-        ions.deviceCloneFrom(e_buffer);
-
-        // must be called to overwrite cloned electron momenta,
-        // so even for gamma=1.0
-        ions.deviceSetDrift(currentStep);
-        if (ION_TEMPERATURE > float_X(0.0))
-            ions.deviceAddTemperature(ION_TEMPERATURE);
     }
 };
 }

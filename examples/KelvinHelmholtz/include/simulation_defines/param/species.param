@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include "particles/shapes.hpp"
 #include "algorithms/FieldToParticleInterpolationNative.hpp"
 #include "algorithms/FieldToParticleInterpolation.hpp"
 #include "algorithms/AssignedTrilinearInterpolation.hpp"

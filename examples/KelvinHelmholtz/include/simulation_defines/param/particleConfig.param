@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Rene Widera
+ * Copyright 2013 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -22,84 +22,123 @@
 
 #pragma once
 
-#include "particles/shapes.hpp"
+#include "particles/startPosition/functors.def"
+#include "particles/manipulators/manipulators.def"
+#include "nvidia/functors/Add.hpp"
+#include "nvidia/functors/Assign.hpp"
 
 namespace picongpu
 {
 
-/** Initial Temperature of the electron plasma in keV
- *  unit: keV */
-const double ELECTRON_TEMPERATURE_keV = 0.0005;
-/** Initial Temperature of the ion plasma in keV
- *  unit keV */
-const double ION_TEMPERATURE_keV = 0.0;
-
-/** Initial particle drift velocity for electrons and ions
- *  Examples:
- *    - No drift is equal to 1.0
- *  unit: none */
-const double PARTICLE_INIT_DRIFT_GAMMA = 1.021;
-const double PARTICLE_INIT_DRIFT_GAMMA_MIDDLE = PARTICLE_INIT_DRIFT_GAMMA;
-
-/* add negativ value to to have two streams with different direction
- * add positiv direction to have two streams in the same direction
- */
-const double PARTICLE_INIT_DRIFT_DIRECTION_MIDDLE = -1.0;
-
-/*change density of middle area in proportion to default density*/
-const double PARTICLE_INIT_DENSITY_FACTOR_MIDDLE = 1.0;
-
-/** Normal vector of the initial drift
- *  length: gets normalized afterwards
- *  unit: none */
-const float_X PARTICLE_INIT_DRIFT_DIRECTION_X = 1.0;
-const float_X PARTICLE_INIT_DRIFT_DIRECTION_Y = 0.0;
-const float_X PARTICLE_INIT_DRIFT_DIRECTION_Z = 0.0;
-
-/** You can manipulate the flow vector of ions by this factor
- *  unit: none */
-const float_X PARTICLE_INIT_DRIFT_IONS = 1.0f;
-
-/** Relative size in the middle which gets the inverse drift
- *  Examples:
- *    - All particles in the simulation drift in one direction: 0.0 or 1.0
- *    - Spacial 1/4 "up", 1/2 "down", 1/4 "up: 0.5
- *  unit: none */
-const double MIDDLE_DRIFT_INV_SIZE_REL = 0.5;
-
-// Macro Particle Configuration -------------------------------------------
-
-/** a particle with a weighting below MIN_WEIGHTING will not
- *      be created / will be deleted
- *  unit: none */
-const float_X MIN_WEIGHTING = 10.0;
-
-namespace particleInitRandomPos
+namespace particles
 {
-    /** Count of particles per cell at initial state
-     *  unit: none */
-    const uint32_t NUM_PARTICLES_PER_CELL = 25;
-}
 
-namespace particleInitQuietStart
+    /** a particle with a weighting below MIN_WEIGHTING will not
+     *      be created / will be deleted
+     *  unit: none */
+    const float_X MIN_WEIGHTING = 10.0;
+
+    const uint32_t TYPICAL_PARTICLES_PER_CELL = 25;
+
+namespace manipulators
 {
-    /** Count of particles per cell per direction at initial state
-     *  unit: none */
-    const uint32_t NUM_PARTICLES_PER_CELL_X = 5;
-    const uint32_t NUM_PARTICLES_PER_CELL_Y = 5;
-    const uint32_t NUM_PARTICLES_PER_CELL_Z = 1;
 
-/* Do not change this */
-#if(SIMDIM==DIM3)
-    const uint32_t NUM_PARTICLES_PER_CELL = NUM_PARTICLES_PER_CELL_X
-        * NUM_PARTICLES_PER_CELL_Y
-        * NUM_PARTICLES_PER_CELL_Z;
-#elif(SIMDIM==DIM2)
-    const uint32_t NUM_PARTICLES_PER_CELL = NUM_PARTICLES_PER_CELL_X
-        * NUM_PARTICLES_PER_CELL_Y;
-#endif
-}
-}
+    CONST_VECTOR(float_X,3,DriftParamPositive_direction,1.0,0.0,0.0);
+    struct DriftParamPositive
+    {
+        /** Initial particle drift velocity for electrons and ions
+         *  Examples:
+         *    - No drift is equal to 1.0
+         *  unit: none */
+        static const float_64 gamma = 1.021;
+        const DriftParamPositive_direction_t direction;
+    };
+    /* definition of SetDrift start*/
+    typedef DriftImpl<DriftParamPositive,nvidia::functors::Assign> AssignXDriftPositive;
+
+    CONST_VECTOR(float_X,3,DriftParamNegative_direction,-1.0,0.0,0.0);
+    struct DriftParamNegative
+    {
+        /** Initial particle drift velocity for electrons and ions
+         *  Examples:
+         *    - No drift is equal to 1.0
+         *  unit: none */
+        static const float_64 gamma = 1.021;
+        const DriftParamNegative_direction_t direction;
+    };
+    /* definition of SetDrift start*/
+    typedef DriftImpl<DriftParamNegative,nvidia::functors::Assign> AssignXDriftNegative;
+
+    struct TemperatureParam
+    {
+        /*Initial temperature
+         *  unit: keV
+         */
+        static const float_64 temperature = 0.0005;
+    };
+    /* definition of SetDrift start*/
+    typedef TemperatureImpl<TemperatureParam,nvidia::functors::Add> AddTemperature;
 
 
+    struct IfRelativeGlobalPositionParamLowQuarter
+    {
+        /* lowerBound is included in the range*/
+        static const float_X lowerBound = 0.0;
+        /* upperBound is excluded in the range*/
+        static const float_X upperBound = 0.25;
+        /* dimension for the filter
+         * x = 0; y= 1; z = 2
+         */
+        static const uint32_t dimension = 1;
+    };
+    /* definition of SetDrift start*/
+    typedef IfRelativeGlobalPositionImpl<IfRelativeGlobalPositionParamLowQuarter,AssignXDriftPositive> AssignXDriftPrositiveToLowerQuarterYPosition;
 
+    struct IfRelativeGlobalPositionParamMiddleHalf
+    {
+        /* lowerBound is included in the range*/
+        static const float_X lowerBound = 0.25;
+        /* upperBound is excluded in the range*/
+        static const float_X upperBound = 0.75;
+        /* dimension for the filter
+         * x = 0; y= 1; z = 2
+         */
+        static const uint32_t dimension = 1;
+    };
+    /* definition of SetDrift start*/
+    typedef IfRelativeGlobalPositionImpl<IfRelativeGlobalPositionParamMiddleHalf,AssignXDriftNegative> AssignXDriftNegativeToMiddleHalfYPosition;
+
+    struct IfRelativeGlobalPositionParamUpperQuarter
+    {
+        /* lowerBound is included in the range*/
+        static const float_X lowerBound = 0.75;
+        /* upperBound is excluded in the range*/
+        static const float_X upperBound = 1.0;
+        /* dimension for the filter
+         * x = 0; y= 1; z = 2
+         */
+        static const uint32_t dimension = 1;
+    };
+    /* definition of SetDrift start*/
+    typedef IfRelativeGlobalPositionImpl<IfRelativeGlobalPositionParamUpperQuarter,AssignXDriftPositive> AssignXDriftPrositiveToUpperQuarterYPosition;
+
+} //namespace manipulators
+
+
+namespace startPosition
+{
+
+    struct QuietParam
+    {
+        /** Count of particles per cell per direction at initial state
+         *  unit: none */
+       typedef typename mCT::shrinkTo<mCT::Int<TYPICAL_PARTICLES_PER_CELL/5, TYPICAL_PARTICLES_PER_CELL/5, 1>, simDim>::type numParticlesPerDimension;
+    };
+
+    /* definition of random particle start*/
+    typedef QuietImpl<QuietParam> Quiet;
+
+} //namespace startPosition
+} //namespace particles
+
+} //namespac picongpu

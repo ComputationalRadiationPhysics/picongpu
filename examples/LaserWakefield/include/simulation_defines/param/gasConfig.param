@@ -2,240 +2,82 @@
  * Copyright 2013-2015 Axel Huebl, Rene Widera, Felix Schmitt,
  *                     Richard Pausch, Marco Garten
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 
 #pragma once
 
+#include "traits/GetUnitValue.hpp"
+#include "particles/gasProfiles/profiles.def"
+
 namespace picongpu
 {
-    namespace SI
-    {
-        /** The maximum density in particles per m^3 in the gas distribution
-         *  unit: ELEMENTS/m^3
-         * 
-         * He (2e- / Atom ) with 1.e15 He / m^3
-         *                      = 2.e15 e- / m^3 */
-        const double GAS_DENSITY_SI = 1.e25;
+namespace SI
+{
+/** The maximum density in particles per m^3 in the gas distribution
+ *  unit: ELEMENTS/m^3
+ *
+ * He (2e- / Atom ) with 1.e15 He / m^3
+ *                      = 2.e15 e- / m^3 */
+const double GAS_DENSITY_SI = 1.e25;
 
-        /** height of vacuum area on bottom border
-         *      this vacuum is really important because of the laser initialization, 
-         *      which is done in the first cell of the simulation
-         *  unit: meter */
-        const double VACUUM_Y_SI = 50.0 * SI::CELL_HEIGHT_SI;
-
-    }
-
-    //##########################################################################
-    //############## special gas profiles ######################################
-    //##########################################################################
-
-    namespace gasGaussian
-    {
-        /** Gas Formula:
-                    const float_X exponent = fabs((y - GAS_CENTER) / GAS_SIGMA);
-                    const float_X density = __expf(GAS_FACTOR*__powf(exponent, GAS_POWER));
-    
-            takes GAS_CENTER_LEFT for y < GAS_CENTER_LEFT,
-                  GAS_CENTER_RIGHT for y > GAS_CENTER_RIGHT,
-            and exponent = float_X(0.0) for GAS_CENTER_LEFT < y < GAS_CENTER_RIGHT */
-        const float_X GAS_FACTOR = -1.0;
-        const float_X GAS_POWER = 4.0;
-
-        namespace SI
-        {
-            /** The central position of the gas distribution
-             *  unit: meter */
-            const double GAS_CENTER_LEFT_SI = 8.0e-5;
-            const double GAS_CENTER_RIGHT_SI = 10.0e-5;
-            /** the distance from GAS_CENTER until the gas density decreases to its 1/e-th part
-             *  unit: meter */
-            const double GAS_SIGMA_LEFT_SI = 8.0e-5;
-            const double GAS_SIGMA_RIGHT_SI = 8.0e-5;
-        }
-
-    }
-    
-    namespace gasLinExp
-    {
-        /** Gas Profile:    /\
-         *                 /  -,_
-         *   linear       /      -,_    exponential
-         *   slope       /  |       -,_ slope
-         *                 MAX
-         */
-        namespace SI
-        {
-            /** Y-Position where the linear slope ends and the exponential slope
-             *  begins
-             *  unit: meter
-             */
-            const double GAS_Y_MAX_SI = 1.0e-3;
-            
-            /** Parameters for the linear slope:
-             *  For Y <= GAS_Y_MAX_SI:
-            *    \rho / GAS_DENSITY = A * Y + B
-            *                       = element [0.0; 1.0]
-            *  unit for A: 1/m
-            *  unit for B: none
-            */
-            const double GAS_A_SI = 1.0e-3;
-        }
-            const float_X GAS_B = 0.0;
-            
-        namespace SI
-        {
-            /** Parameters for the exponential slope
-             *  For Y > GAS_Y_MAX_SI:
-             *    let Y' = Y - GAS_Y_MAX_SI
-             *    \rho = exp[ - Y' * D ]
-             *         = element [0.0; 1.0]
-             *  unit: 1/m
-             */
-            const double GAS_D_SI = 1.0/1.0e-3;
-        }
-
-    }
-
-    namespace gasHomogeneous
-    {
-        namespace SI
-        {
-            /** Length of the constant gas in y direction
-             *  unit: meter */
-            const double GAS_LENGTH_SI = 8.0e3;
-        }
-    }
-    
-    namespace gasSphereFlanks
-    {
-        /** The profile consists out of the composition of 3 1D profiles
-         *  with the scheme: exponential increasing flank, constant sphere,
-         *                   exponential decreasing flank
-         *           ___
-         *  1D:  _,./   \.,_   rho(r)
-         * 
-         *  2D:  ..,x,..   density: . low
-         *       .,xxx,.            , middle
-         *       ..,x,..            x high (constant)
-         * 
-         *  Imagine a ball with a "hard core" and "soft flanks".
-         *                 (+1 for using an antithesis in a description)
-         */
-        namespace SI
-        {
-            /** Radius of the constant sphere
-             *  unit: meter */
-            const double GAS_R_SI = 1.0e-6;
-            /** Inner radius if you want to build a shell/ring
-             *  unit: meter */
-            const double GAS_RI_SI = 0.0;
-            
-            /** Middle of the constant sphere
-             *  unit: meter */
-            const double GAS_X_SI = 1.13408e-5;
-            const double GAS_Y_SI = 6.0e-6;
-            const double GAS_Z_SI = 1.13408e-5;
-            
-            /** Parameters for the exponential slope
-             *  For r > GAS_R_SI:
-             *    let r' = r - GAS_R_SI
-             *    \rho = exp[ - r' * GAS_EXP_SI ]
-             *  unit: 1/m
-             */
-            const double GAS_EXP_SI = 1.0e13;
-        }
-    }
-
-    namespace gasGaussianCloud
-    {
-        /** Gas Formula:
-                    const float_X exponent = fabs((y - GAS_CENTER) / GAS_SIGMA);
-                    const float_X density = __expf(GAS_FACTOR*__powf(exponent, GAS_POWER));
-    
-            takes GAS_CENTER_LEFT for y < GAS_CENTER_LEFT,
-                  GAS_CENTER_RIGHT for y > GAS_CENTER_RIGHT,
-            and exponent = float_X(0.0) for GAS_CENTER_LEFT < y < GAS_CENTER_RIGHT */
-        const float_X GAS_FACTOR = -float_X(1.0);
-        const float_X GAS_POWER = 4.0f;
-
-        namespace SI
-        {
-            /** The central position of the gas distribution
-             *  unit: meter */
-            const double GAS_CENTER_X_SI = 1.134e-5;
-            const double GAS_CENTER_Y_SI = 1.134e-5;
-            const double GAS_CENTER_Z_SI = 1.134e-5;
-            
-            /** the distance from GAS_CENTER until the gas density decreases to its 1/e-th part
-             *  unit: meter */
-            const double GAS_SIGMA_X_SI = 7.0e-6;
-            const double GAS_SIGMA_Y_SI = 7.0e-6;
-            const double GAS_SIGMA_Z_SI = 7.0e-6;
-        }
-
-    }
-
-    namespace gasFreeFormula
-    {
-        namespace SI
-        {
-            struct GasProfile
-            {
-                /** Normalized Gas Profile [0.0:1.0]
-                 *
-                 * This formula should use SI quantities only!
-                 * The normalized profile will be multiplied by GAS_DENSITY.
-                 *
-                 * @param pos vector with offset to the global (left top front) cell
-                 * @return float_X between 0.0 and 1.0
-                 */
-                DINLINE float_64 operator()( floatD_64 pos )
-                {
-                    const float_64 y = pos.y() * 1000.0; // m -> mm
-
-                    /* triangle function example
-                     * for a density profile from 0 to 400 microns */
-                    float_64 s = 1.0 - 5.0 * math::abs( y - 0.2 );
-
-                    /* all parts of the function MUST be > 0 */
-                    s *= float_64( s >= 0.0 );
-
-                    return s;
-                }
-            };
-        }
-    }
-    
-#if (ENABLE_HDF5 == 1)
-    namespace gasFromHdf5
-    {
-        const char *gasHdf5Filename = "gas";
-        const char *gasHdf5Dataset = "fields/Density_e";
-        const int32_t gasHdf5Iteration = 0;
-        const float_X gasDefaultValue = 0.0;
-    }
-#endif
-
-    namespace gasNone
-    {
-        /** Do not initialize a gas, stay with vacuum */
-    }
 }
 
+//##########################################################################
+//############## special gas profiles ######################################
+//##########################################################################
+namespace gasProfiles
+{
+struct GaussianParameter
+{
+    /** Gas Formular:
+                const float_X exponent = fabs((y - GAS_CENTER) / GAS_SIGMA);
+                const float_X density = __expf(GAS_FACTOR*__powf(exponent, GAS_POWER));
+
+        takes GAS_CENTER_LEFT for y < GAS_CENTER_LEFT,
+              GAS_CENTER_RIGHT for y > GAS_CENTER_RIGHT,
+        and exponent = float_X(0.0) for GAS_CENTER_LEFT < y < GAS_CENTER_RIGHT */
+    static const float_X GAS_FACTOR = -1.0;
+    static const float_X GAS_POWER = 4.0;
+
+    /** height of vacuum area on top border
+     *      this vacuum is really important because of the laser initialization,
+     *      which is done in the first cell of the simulation
+     *  unit: cells */
+    static const uint32_t VACUUM_CELLS_Y = 50;
+
+    struct SI
+    {
+        /** The central position of the gas distribution
+         *  unit: meter */
+        static const float_64 GAS_CENTER_LEFT = 8.0e-5;
+        static const float_64 GAS_CENTER_RIGHT = 10.0e-5;
+        /** the distance from GAS_CENTER until the gas density decreases to its 1/e-th part
+         *  unit: meter */
+        static const float_64 GAS_SIGMA_LEFT = 8.0e-5;
+        static const float_64 GAS_SIGMA_RIGHT = 8.0e-5;
+    };
+};
+
+/* definition of GasGaussian*/
+typedef GaussianImpl<GaussianParameter> Gaussian;
+
+}//namespace gasProfiles
+
+} //namepsace picongpu
