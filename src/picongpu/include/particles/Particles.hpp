@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt, 
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Marco Garten
  *
  * This file is part of PIConGPU.
@@ -29,8 +29,6 @@
 #include "particles/memory/buffers/ParticlesBuffer.hpp"
 
 #include "dataManagement/ISimulationData.hpp"
-
-#include <curand_kernel.h>
 
 namespace picongpu
 {
@@ -75,7 +73,7 @@ public:
     void synchronize();
 
     void syncToDevice();
-    
+
     //Ionization
     template<typename T_Elec>
     void ionize(T_Elec electrons, uint32_t currentStep);
@@ -89,9 +87,6 @@ private:
     FieldB *fieldB;
     FieldJ *fieldJurrent;
     FieldTmp *fieldTmp;
-
-    curandState* randState;
 };
-
 
 } //namespace picongpu
