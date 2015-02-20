@@ -112,5 +112,3 @@ namespace picongpu
 
 
 }
-
-#include "fields/FieldTmp.tpp"

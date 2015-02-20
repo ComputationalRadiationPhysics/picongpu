@@ -146,5 +146,3 @@ struct ComputeCurrent
 };
 
 } // namespace picongpu
-
-#include "fields/FieldJ.tpp"

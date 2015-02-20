@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt, 
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Marco Garten
  *
  * This file is part of PIConGPU.
@@ -25,6 +25,7 @@
 #include "simulation_classTypes.hpp"
 
 #include "fields/Fields.def"
+#include "fields/Fields.hpp"
 #include "particles/ParticlesBase.hpp"
 #include "particles/memory/buffers/ParticlesBuffer.hpp"
 
@@ -75,7 +76,7 @@ public:
     void synchronize();
 
     void syncToDevice();
-    
+
     //Ionization
     template<typename T_Elec>
     void ionize(T_Elec electrons, uint32_t currentStep);

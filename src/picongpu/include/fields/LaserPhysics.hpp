@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -19,13 +19,10 @@
  */
 
 
+#pragma once
 
-#ifndef LASERPHYSICS_HPP
-#define LASERPHYSICS_HPP
-
-#include "types.h"
 #include "simulation_defines.hpp"
-
+#include "fields/LaserPhysics.def"
 #include "dimensions/GridLayout.hpp"
 #include "mappings/simulation/SubGrid.hpp"
 #include <math.h>
@@ -101,6 +98,3 @@ private:
     GridLayout<simDim> layout;
 };
 }
-
-#endif  /* LASERPHYSICS_HPP */
-
