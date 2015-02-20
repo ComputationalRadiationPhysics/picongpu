@@ -20,16 +20,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SUPERCELL_HPP
-#define	SUPERCELL_HPP
+#pragma once
 
 #include "types.h"
+#include "particles/memory/dataTypes/Pointer.hpp"
 
 
 namespace PMacc
 {
-
-
 
 template <class TYPE>
 class SuperCell
@@ -37,31 +35,31 @@ class SuperCell
 public:
 
     HDINLINE SuperCell() :
-    firstFrameIdx(INV_IDX),
-    lastFrameIdx(INV_IDX),
+    firstFramePtr(NULL),
+    lastFramePtr(NULL),
     mustShiftVal(false),
     sizeLastFrame(0)
     {
     }
 
-    HDINLINE TYPE& FirstFrameIdx()
+    HDINLINE TYPE* FirstFramePtr()
     {
-        return firstFrameIdx;
+        return firstFramePtr;
     }
 
-    HDINLINE TYPE& LastFrameIdx()
+    HDINLINE TYPE* LastFramePtr()
     {
-        return lastFrameIdx;
+        return lastFramePtr;
     }
 
-    HDINLINE TYPE FirstFrameIdx() const
+    HDINLINE const TYPE* FirstFramePtr() const
     {
-        return firstFrameIdx;
+        return firstFramePtr;
     }
 
-    HDINLINE TYPE LastFrameIdx() const
+    HDINLINE const TYPE* LastFramePtr() const
     {
-        return lastFrameIdx;
+        return lastFramePtr;
     }
 
     HDINLINE bool mustShift()
@@ -84,16 +82,11 @@ public:
         sizeLastFrame = size;
     }
 
+    PMACC_ALIGN(firstFramePtr, TYPE*);
+    PMACC_ALIGN(lastFramePtr, TYPE*);
 private:
-
-
-    PMACC_ALIGN(firstFrameIdx, TYPE);
-    PMACC_ALIGN(lastFrameIdx, TYPE);
     PMACC_ALIGN(mustShiftVal, bool);
     PMACC_ALIGN(sizeLastFrame, lcellId_t);
 };
 
 } //end namespace
-
-#endif	/* SUPERCELL_HPP */
-

@@ -95,16 +95,4 @@ struct CommunicationId
     static const uint32_t CommunicationTag=T_commTag;
 };
 
-/* Factor of the species / sum of all species = relative memory usage
- *   Example:
- *     factor for ions = 1;
- *     factor for electrons = 4;
- *   Result: electrons (80%) get 4 times more memory than ions (20%).
- */
-template<size_t T_memFactor>
-struct MemoryFactor
-{
-    static const size_t memFactor=T_memFactor;
-};
-
 } //namespace picongpu

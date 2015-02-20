@@ -88,7 +88,7 @@ typedef Particles<ParticleDescription<
     SuperCellSize,
     DefaultAttributesSeq,
     ParticleFlagsElectrons,
-    typename MakeSeq<CommunicationId<PAR_ELECTRONS>,MemoryFactor<2> >::type  >
+    typename MakeSeq<CommunicationId<PAR_ELECTRONS> >::type  >
 > PIC_Electrons;
 
 /*--------------------------- ions -------------------------------------------*/
@@ -107,7 +107,7 @@ typedef Particles<ParticleDescription<
     SuperCellSize,
     DefaultAttributesSeq,
     ParticleFlagsIons,
-    typename MakeSeq<CommunicationId<PAR_IONS>,MemoryFactor<2> >::type >
+    typename MakeSeq<CommunicationId<PAR_IONS> >::type >
 > PIC_Ions;
 
 /*########################### end species ####################################*/

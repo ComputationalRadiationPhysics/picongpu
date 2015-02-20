@@ -51,7 +51,7 @@ public:
 
     virtual ~Particles();
 
-    void createParticleBuffer(size_t gpuMemory);
+    void createParticleBuffer();
 
 
     virtual void reset(uint32_t currentStep);
