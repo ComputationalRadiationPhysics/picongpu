@@ -34,6 +34,8 @@
 #include "particles/frame_types.hpp"
 
 #include <adios.h>
+#include <adios_read.h>
+#include <adios_error.h>
 
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
@@ -59,11 +61,14 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/begin_end.hpp>
 #include <boost/mpl/find.hpp>
+#include <boost/filesystem.hpp>
 
 #include <boost/type_traits.hpp>
 
 #include "plugins/adios/WriteSpecies.hpp"
 #include "plugins/adios/ADIOSCountParticles.hpp"
+#include "plugins/adios/restart/LoadSpecies.hpp"
+#include "plugins/adios/restart/RestartFieldLoader.hpp"
 
 
 namespace picongpu
@@ -458,7 +463,139 @@ public:
 
     void restart(uint32_t restartStep, const std::string restartDirectory)
     {
-        assert(1==2); // not yet implemented
+        std::stringstream adiosPathBase;
+        adiosPathBase << ADIOS_PATH_ROOT << restartStep << "/";
+        mThreadParams.adiosBasePath = adiosPathBase.str();
+        //mThreadParams.isCheckpoint = isCheckpoint;
+        mThreadParams.currentStep = restartStep;
+        mThreadParams.cellDescription = this->cellDescription;
+        //this->filter.setStatus(false);
+
+        /** one could try ADIOS_READ_METHOD_BP_AGGREGATE too which might
+         *  be beneficial for re-distribution on a different number of GPUs
+         *    would need: - export chunk_size=<size> in MB
+         *                - mpiTransportParams.c_str() in adios_read_init_method
+         */
+        ADIOS_CMD(adios_read_init_method(ADIOS_READ_METHOD_BP,
+                                         mThreadParams.adiosComm,
+                                         "verbose=3;")); //mpiTransportParams.c_str())); // rly ?
+
+        /* if restartFilename is relative, prepend with restartDirectory */
+        if (!boost::filesystem::path(restartFilename).has_root_path())
+        {
+            restartFilename = restartDirectory + std::string("/") + restartFilename;
+        }
+
+        std::stringstream strFname;
+        strFname << restartFilename << "_" << mThreadParams.currentStep << ".bp";
+
+        // adios_read_open( fname, method, comm, lock_mode, timeout_sec )
+        log<picLog::INPUT_OUTPUT > ("ADIOS: open file: %1%") % strFname.str();
+
+        // when reading in BG_AGGREGATE mode, adios can not distinguish between
+        // "file does not exist" and "stream is not (yet) available, so we
+        // test it our selves
+        if (!boost::filesystem::exists(strFname.str()))
+            throw std::runtime_error("ADIOS: File does not exist.");
+
+        float timeout = 0.0f; // 0 sec: wait forever
+        mThreadParams.fp = adios_read_open(strFname.str().c_str(),
+                        ADIOS_READ_METHOD_BP, mThreadParams.adiosComm,
+                        ADIOS_LOCKMODE_CURRENT, timeout);
+
+        /* stream reading is tricky, see ADIOS manual section 8.11.1 */
+        while (adios_errno == err_file_not_found)
+        {
+            /** \todo add c++11 platform independent sleep */
+            mThreadParams.fp = adios_read_open(strFname.str().c_str(),
+                        ADIOS_READ_METHOD_BP, mThreadParams.adiosComm,
+                        ADIOS_LOCKMODE_CURRENT, timeout);
+        }
+        if (adios_errno == err_end_of_stream )
+            /* could not read full stream */
+            throw std::runtime_error("ADIOS: Stream terminated too early: " +
+                                     std::string(adios_errmsg()) );
+        if (mThreadParams.fp == NULL)
+            throw std::runtime_error("ADIOS: Error opening stream: " +
+                                     std::string(adios_errmsg()) );
+
+        /* create adios group: not rly necessary but required to restore our IDs */
+        ADIOS_CMD(adios_declare_group(&(mThreadParams.adiosGroupHandle),
+                ADIOS_GROUP_NAME,
+                (mThreadParams.adiosBasePath + std::string("iteration")).c_str(),
+                adios_flag_no));
+
+        /* ADIOS types */
+        AdiosUInt32Type adiosUInt32Type;
+        //AdiosFloatXType adiosFloatXType;
+        //AdiosDoubleType adiosDoubleType;
+
+        /* load number of slides to initialize MovingWindow */
+        log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) read attr (%1% available)") %
+            mThreadParams.fp->nattrs;
+        void* slidesPtr = NULL;
+        int slideSize;
+        enum ADIOS_DATATYPES slidesType;
+        ADIOS_CMD(adios_get_attr( mThreadParams.fp,
+                                  (mThreadParams.adiosBasePath + std::string("sim_slides")).c_str(),
+                                  &slidesType,
+                                  &slideSize,
+                                  &slidesPtr ));
+
+        uint32_t slides = *( (uint32_t*)slidesPtr );
+        log<picLog::INPUT_OUTPUT > ("ADIOS: value of sim_slides = %1%") %
+            slides;
+
+        assert(slidesType == adiosUInt32Type.type);
+        assert(slideSize == 4); // uint32_t in bytes
+
+        void* lastStepPtr = NULL;
+        int lastStepSize;
+        enum ADIOS_DATATYPES lastStepType;
+        ADIOS_CMD(adios_get_attr( mThreadParams.fp,
+                                  (mThreadParams.adiosBasePath + std::string("iteration")).c_str(),
+                                  &lastStepType,
+                                  &lastStepSize,
+                                  &lastStepPtr ));
+        uint32_t lastStep = *( (uint32_t*)lastStepPtr );
+        log<picLog::INPUT_OUTPUT > ("ADIOS: value of iteration = %1%") %
+            lastStep;
+
+        assert(lastStepType == adiosUInt32Type.type);
+        assert(lastStep == restartStep);
+
+        /* apply slides to set gpus to last/written configuration */
+        log<picLog::INPUT_OUTPUT > ("ADIOS: Setting slide count for moving window to %1%") % slides;
+        MovingWindow::getInstance().setSlideCounter(slides, restartStep);
+
+        /* set window for restart, complete global domain */
+        mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(restartStep);
+        for (uint32_t d = 0; d < simDim; ++d)
+        {
+            mThreadParams.localWindowToDomainOffset[d] = 0;
+        }
+
+        /* re-distribute the local offsets in y-direction */
+        GridController<simDim> &gc = Environment<simDim>::get().GridController();
+        if( MovingWindow::getInstance().isSlidingWindowActive() )
+            gc.setStateAfterSlides(slides);
+
+        /* load all fields */
+        ForEach<FileCheckpointFields, LoadFields<bmpl::_1> > forEachLoadFields;
+        forEachLoadFields(&mThreadParams);
+
+        /* load all particles */
+        ForEach<FileCheckpointParticles, LoadSpecies<bmpl::_1> > forEachLoadSpecies;
+        forEachLoadSpecies(&mThreadParams, restartChunkSize);
+
+        /* free memory allocated in ADIOS calls */
+        free(slidesPtr);
+        free(lastStepPtr);
+
+        /* clean shut down: close file and finalize */
+        adios_release_step( mThreadParams.fp );
+        ADIOS_CMD(adios_read_close( mThreadParams.fp ));
+        ADIOS_CMD(adios_read_finalize_method(ADIOS_READ_METHOD_BP));
     }
 
 private:
@@ -580,6 +717,11 @@ private:
         strMPITransportParams << "num_aggregators=" << mThreadParams.adiosAggregators
                               << ";num_ost=" << mThreadParams.adiosOST;
         mpiTransportParams = strMPITransportParams.str();
+
+        if (restartFilename == "")
+        {
+            restartFilename = checkpointFilename;
+        }
 
         loaded = true;
     }

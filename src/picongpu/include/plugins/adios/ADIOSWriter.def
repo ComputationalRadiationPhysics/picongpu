@@ -21,6 +21,8 @@
 #pragma once
 
 #include <adios.h>
+#include <adios_read.h>
+
 #include <list>
 
 #include "types.h"
@@ -74,6 +76,7 @@ struct ThreadParams
 
     /** current dump is a checkpoint */
     bool isCheckpoint;
+    ADIOS_FILE* fp;                          /* file pointer for checkpoint file */
 
     MPI_Comm adiosComm;                     /* MPI communicator for adios lib */
     bool adiosBufferInitialized;            /* set if ADIOS buffer has been allocated */
