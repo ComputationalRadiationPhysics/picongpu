@@ -19,88 +19,59 @@
  */
 
 
-
 #pragma once
 
-#include "simulation_defines/param/gasConfig.param"
-#include "particles/shapes.hpp"
+#include "particles/startPosition/functors.def"
+#include "particles/manipulators/manipulators.def"
+#include "nvidia/functors/Add.hpp"
+#include "nvidia/functors/Assign.hpp"
 
 namespace picongpu
 {
 
-    /** Initial Temperature of the electron plasma in keV
-     *  unit: keV */
-    const double ELECTRON_TEMPERATURE_keV = 0.0;
-        /** Initial Temperature of the ion plasma in keV
-     *  unit keV */
-    const double ION_TEMPERATURE_keV = 0.0;
-
-    /** Initial particle drift velocity for electrons and ions
-     *  Examples:
-     *    - No drift is equal to 1.0
-     *  unit: none */
-    const double PARTICLE_INIT_DRIFT_GAMMA = 5.0;
-    const double PARTICLE_INIT_DRIFT_GAMMA_MIDDLE = 1.0;
-
-    /* add negativ value to to have two streams with different direction
-     * add positiv direction to have two streams in the same direction
-     */
-    const double PARTICLE_INIT_DRIFT_DIRECTION_MIDDLE = 1.0;
-
-        /*change density of middle area in proportion to default density*/
-    const double PARTICLE_INIT_DENSITY_FACTOR_MIDDLE = 1.0;
-
-    /** Normal vector of the initial drift
-     *  length: gets normalized afterwards
-     *  unit: none */
-    const float_X PARTICLE_INIT_DRIFT_DIRECTION_X = 0.0;
-    const float_X PARTICLE_INIT_DRIFT_DIRECTION_Y = -1.0;
-    const float_X PARTICLE_INIT_DRIFT_DIRECTION_Z = 0.0;
-
-    /** You can manipulate the drift vector of ions by this factor
-     *  unit: none */
-    const float_X PARTICLE_INIT_DRIFT_IONS = 1.0f;
-
-    /** Relative size in the middle which gets the inverse drift
-     *  Examples:
-     *    - All particles in the simulation drift in one direction: 0.0 or 1.0
-     *    - Spacial 1/4 "up", 1/2 "down", 1/4 "up: 0.5
-     *  unit: none */
-    const double MIDDLE_DRIFT_INV_SIZE_REL = 0.0;
-
-    // Macro Particle Configuration -------------------------------------------
+namespace particles
+{
 
     /** a particle with a weighting below MIN_WEIGHTING will not
      *      be created / will be deleted
      *  unit: none */
     const float_X MIN_WEIGHTING = 10.0;
 
-    namespace particleInitRandomPos
+    const uint32_t TYPICAL_PARTICLES_PER_CELL = 6;
+
+namespace manipulators
+{
+
+    CONST_VECTOR(float_X,3,DriftParamNegative_direction,0.0,-1.0,0.0);
+    struct DriftParamNegative
+    {
+        /** Initial particle drift velocity for electrons and ions
+         *  Examples:
+         *    - No drift is equal to 1.0
+         *  unit: none */
+        static const float_64 gamma = 5.0;
+        const DriftParamNegative_direction_t direction;
+    };
+    /* definition of SetDrift start*/
+    typedef DriftImpl<DriftParamNegative,nvidia::functors::Assign> AssignYDriftNegative;
+
+} //namespace manipulators
+
+
+namespace startPosition
+{
+
+    struct RandomParamater
     {
         /** Count of particles per cell at initial state
          *  unit: none */
-        const uint32_t NUM_PARTICLES_PER_CELL = 6;
-    }
+        static const uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
+    };
+    /* definition of random particle start*/
+    typedef RandomImpl<RandomParamater> Random;
 
-    namespace particleInitQuietStart
-    {
-        /** Count of particles per cell per direction at initial state
-         *  unit: none */
-        const uint32_t NUM_PARTICLES_PER_CELL_X = 1;
-        const uint32_t NUM_PARTICLES_PER_CELL_Y = 2;
-        const uint32_t NUM_PARTICLES_PER_CELL_Z = 1;
+} //namespace startPosition
 
-        /* Do not change this */
-#if(SIMDIM==DIM3)
-        const uint32_t NUM_PARTICLES_PER_CELL = NUM_PARTICLES_PER_CELL_X
-                                              * NUM_PARTICLES_PER_CELL_Y
-                                              * NUM_PARTICLES_PER_CELL_Z;
-#elif(SIMDIM==DIM2)
-        const uint32_t NUM_PARTICLES_PER_CELL = NUM_PARTICLES_PER_CELL_X
-                                              * NUM_PARTICLES_PER_CELL_Y;
-#endif
-    }
+} //namespace particles
 
-}
-
-
+} //namespac picongpu

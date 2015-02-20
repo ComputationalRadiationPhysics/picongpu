@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Rene Widera
+ * Copyright 2015 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -22,24 +22,20 @@
 
 #pragma once
 
-#include "particles/startPosition/functors.def"
-#include "particles/manipulators/manipulators.def"
-#include "nvidia/functors/Add.hpp"
-#include "nvidia/functors/Assign.hpp"
+#include "particles/InitFunctors.hpp"
 
 namespace picongpu
 {
 
-namespace particles
-{
+/** InitPipeline define in which order species are initialized
+ *
+ * the functors called in order (from first to last functor)
+ */
+typedef mpl::vector<
+    particles::CreateGas<gasProfiles::Gaussian,particles::startPosition::Random,PIC_Electrons>
+#if (ENABLE_IONS == 1)
+    ,particles::CloneSpecies<PIC_Electrons,PIC_Ions>
+#endif
+> InitPipeline;
 
-    /** a particle with a weighting below MIN_WEIGHTING will not
-     *      be created / will be deleted
-     *  unit: none */
-    const float_X MIN_WEIGHTING = 1.0;
-
-    const uint32_t TYPICAL_PARTICLES_PER_CELL = 1;
-
-} //namespace particles
-
-} //namespac picongpu
+} //namespace picongpu

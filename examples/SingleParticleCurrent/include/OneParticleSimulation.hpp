@@ -74,7 +74,7 @@ public:
 
         if (Environment<simDim>::get().GridController().getGlobalRank() == 0)
         {
-            std::cout << "max weighting " << NUM_EL_PER_PARTICLE << std::endl;
+            std::cout << "max weighting " << particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE << std::endl;
             std::cout << "courant=min(deltaCellSize)/dt/c > 1.77 ? " << std::min(CELL_WIDTH, std::min(CELL_DEPTH, CELL_HEIGHT)) / SPEED_OF_LIGHT / DELTA_T << std::endl;
 
 #if (LASER_TYPE==1)
