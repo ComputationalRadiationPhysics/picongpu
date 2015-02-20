@@ -302,6 +302,11 @@ Please **add the according license header** snippet to your *new files*:
 - the default project name ist `PIConGPU` (case sensitive!) and adds the GPLv3+
   only.
 
+Files in the directory `thirdParty/` are only imported from remote repositories
+as written in our [LICENSE](LICENSE.md). If you want to improve them, submit
+your pull requests there and open an issue for our **maintainers** to update
+to a new version of the according software.
+
 *******************************************************************************
 
 Commit Rules

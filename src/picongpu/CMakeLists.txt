@@ -36,7 +36,8 @@ set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{MPI_ROOT}"
     "$ENV{CUDA_ROOT}" "$ENV{BOOST_ROOT}" "$ENV{HDF5_ROOT}" "$ENV{VT_ROOT}")
 
 # own modules for find_packages
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdParty/cmake-modules/)
 
 
 ################################################################################
@@ -82,6 +83,20 @@ if(CUDA_KEEP_FILES)
     make_directory("${PROJECT_BINARY_DIR}/nvcc_tmp")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" --keep --keep-dir "${PROJECT_BINARY_DIR}/nvcc_tmp")
 endif(CUDA_KEEP_FILES)
+
+
+################################################################################
+# Find mallocMC
+################################################################################
+
+find_package(mallocMC 2.1.0)
+
+if(mallocMC_FOUND)
+  include_directories(SYSTEM ${mallocMC_INCLUDE_DIRS})
+else(mallocMC_FOUND)
+  message(STATUS "Using mallocMC from thirdParty/ directory")
+  include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdParty/mallocMC/src/include)
+endif(mallocMC_FOUND)
 
 
 ################################################################################
@@ -286,7 +301,7 @@ endif(PARAM_OVERWRITES)
 set(SAME_NVCC_FLAGS_IN_SUBPROJECTS OFF)
 find_path(CUDA_MEMTEST_DIR
         NAMES CMakeLists.txt
-        PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../cuda_memtest"
+        PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../../thirdParty/cuda_memtest"
         DOC "path to cuda_memtest"
         )
 

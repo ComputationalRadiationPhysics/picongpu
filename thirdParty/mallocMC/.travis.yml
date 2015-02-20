@@ -1,0 +1,31 @@
+language: cpp
+
+compiler:
+  - gcc
+
+env:
+  global:
+    - INSTALL_DIR=~/mylibs
+
+script:
+  - mkdir build_tmp && cd build_tmp
+  - cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR $TRAVIS_BUILD_DIR
+  - make
+  - make install
+  - make examples
+
+before_script:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq build-essential
+  - sudo apt-get install -qq gcc-4.4 g++-4.4
+  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.4 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.4
+  - gcc --version && g++ --version
+  - sudo apt-get install -qq nvidia-common
+  - sudo apt-get install -qq nvidia-current
+  - sudo apt-get install -qq nvidia-cuda-toolkit nvidia-cuda-dev
+  - sudo apt-get install -qq libboost1.48-dev
+  - sudo find /usr/ -name libcuda*.so
+
+after_script:
+  - ls -halR $INSTALL_DIR
+
