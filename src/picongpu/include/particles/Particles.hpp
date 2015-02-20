@@ -31,8 +31,6 @@
 
 #include "dataManagement/ISimulationData.hpp"
 
-#include <curand_kernel.h>
-
 namespace picongpu
 {
 using namespace PMacc;
@@ -90,9 +88,6 @@ private:
     FieldB *fieldB;
     FieldJ *fieldJurrent;
     FieldTmp *fieldTmp;
-
-    curandState* randState;
 };
-
 
 } //namespace picongpu
