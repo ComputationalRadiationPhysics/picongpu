@@ -39,6 +39,7 @@ set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{MPI_ROOT}"
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
     ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdParty/cmake-modules/)
 
+
 ################################################################################
 # Find CUDA 
 ################################################################################
@@ -267,12 +268,6 @@ if( (Boost_VERSION EQUAL 105500) AND
       "${CUDA_NVCC_FLAGS} \"-DBOOST_NOINLINE=__attribute__((noinline))\" ")
 endif()
 
-################################################################################
-# Find mallocMC
-###############################################################################
-
-find_package(mallocMC 2.0.1 EXACT REQUIRED)
-include_directories(SYSTEM ${mallocMC_INCLUDE_DIRS})
 
 ################################################################################
 # PMacc options

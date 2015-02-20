@@ -97,22 +97,22 @@ typedef Particles<ParticleDescription<
     SuperCellSize,
     AttributeSeqElectrons,
     ParticleFlagsElectrons,
-    typename MakeSeq<CommunicationId<PAR_ELECTRONS>,MemoryFactor<2> >::type  >
+    typename MakeSeq<CommunicationId<PAR_ELECTRONS> >::type  >
 > PIC_Electrons;
 
 /*--------------------------- ions -------------------------------------------*/
 
 /*! Specify (chemical) element
- * 
+ *
  * Proton and neutron numbers define the chemical element that the ion species
- * is based on. This value can be non-integer for physical models taking  
- * charge shielding effects into account. 
+ * is based on. This value can be non-integer for physical models taking
+ * charge shielding effects into account.
  * @see http://en.wikipedia.org/wiki/Effective_nuclear_charge
- * 
- * It is wrapped into a struct because of C++ restricting floats from being 
- * template arguments. 
- * 
- * Do not forget to set the correct mass of the atom in 
+ *
+ * It is wrapped into a struct because of C++ restricting floats from being
+ * template arguments.
+ *
+ * Do not forget to set the correct mass of the atom in
  * @see physicalConstants.param !
  */
 struct Helium
@@ -122,13 +122,13 @@ struct Helium
 };
 
 /*! Ionization Model Configuration ----------------------------------------
- * 
+ *
  * For development purposes: ---------------------------------------------
  * - None : no particle is ionized
  * - BSI : simple barrier suppression ionization
- * 
+ *
  * Usage: Add a flag to the list of particle flags that has the following structure
- * 
+ *
  *        ionizer<IonizationModel<Species2BCreated> >
  */
 
@@ -137,7 +137,7 @@ typedef bmpl::vector<
     particlePusher<UsedParticlePusher>,
     shape<UsedParticleShape>,
     interpolation<UsedField2Particle>,
-    current<UsedParticleCurrentSolver>, 
+    current<UsedParticleCurrentSolver>,
     #if(PARAM_IONIZATION == 1)
     ionizer<particles::ionization::BSI<PIC_Electrons> >,
     #endif
@@ -150,7 +150,7 @@ typedef Particles<ParticleDescription<
     SuperCellSize,
     AttributeSeqIons,
     ParticleFlagsIons,
-    typename MakeSeq<CommunicationId<PAR_IONS>,MemoryFactor<2> >::type >
+    typename MakeSeq<CommunicationId<PAR_IONS> >::type >
 > PIC_Ions;
 
 /*########################### end species ####################################*/

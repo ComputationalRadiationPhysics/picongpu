@@ -29,7 +29,7 @@
  */
 
 
-//include the heap with the arguments given in the config
+// include the heap with the arguments given in the config
 #include "mallocMC/mallocMC_utils.hpp"
 
 // basic files for mallocMC
@@ -48,9 +48,13 @@ struct ScatterConfig
 {
     /* 2MiB page can hold around 256 particle frames */
     typedef boost::mpl::int_<2*1024*1024> pagesize;
+    /* accessblocks, regionsize and wastefactor are not finale selected
+       and might be performance sensitive*/
     typedef boost::mpl::int_<4> accessblocks;
     typedef boost::mpl::int_<8> regionsize;
     typedef boost::mpl::int_<2> wastefactor;
+    /* resetfreedpages is used to minimize memory fracmentation while different
+       frame sizes were used*/
     typedef boost::mpl::bool_<true> resetfreedpages;
 };
 
@@ -66,7 +70,6 @@ mallocMC::AlignmentPolicies::Shrink<>
 
 //use ScatterAllocator to replace malloc/free
 MALLOCMC_SET_ALLOCATOR_TYPE( ScatterAllocator );
-MALLOCMC_OVERWRITE_MALLOC( );
 
 #include <simulation_defines.hpp>
 #include <mpi.h>
