@@ -92,7 +92,6 @@ struct ThreadParams
     std::list<int64_t> adiosFieldVarIds;        /* var IDs for fields in order of appearance */
     std::list<int64_t> adiosParticleAttrVarIds; /* var IDs for particle attributes in order of appearance */
     std::list<int64_t> adiosSpeciesIndexVarIds; /* var IDs for species index tables in order of appearance */
-    std::list<int64_t> adiosMetaAttrVarIds;     /* var IDs for scalar meta attributes */
 
     GridLayout<simDim> gridLayout;
     MappingDesc *cellDescription;
