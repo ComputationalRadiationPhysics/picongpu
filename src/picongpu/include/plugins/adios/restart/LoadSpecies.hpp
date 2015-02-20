@@ -109,15 +109,22 @@ public:
         typedef uint64_t uint64Quint[5];
         uint64Quint particlesInfo[gc.getGlobalSize()];
 
+        /* read full data set: putting NULL (== full data set) for `piSel` crashed ADIOS 1.8.0
+         * with transforms enabled -> reported and confirmed as a bug in ADIOS 1.8.0 */
+        uint64_t start = 0;
+        uint64_t count = 5 * gc.getGlobalSize(); // ADIOSCountParticles: uint64_t
+        ADIOS_SELECTION* piSel = adios_selection_boundingbox( 1, &start, &count );
+
         ADIOS_CMD(adios_schedule_read( params->fp,
-                                       NULL,       /* read full data set */
+                                       piSel,
                                        (particlePath + std::string("particles_info")).c_str(),
                                        0,
                                        1,
-                                       particlesInfo ));
+                                       (void*)particlesInfo ));
 
         /* start a blocking read of all scheduled variables */
         ADIOS_CMD(adios_perform_reads( params->fp, 1 ));
+        adios_selection_delete(piSel);
 
         /* search my entry (using my scalar position) in particlesInfo */
         uint64_t particleOffset = 0;
