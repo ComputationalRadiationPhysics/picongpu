@@ -66,7 +66,7 @@ struct ParticleDensityKernel
         if(cellIdx[planeDir] != localPlane) return;
 
         ::PMacc::math::Int<3> globalCellIdx = blockCellIdx - (PMacc::math::Int<3>)BlockDim().toRT() + cellIdx;
-        /// \warn reduce a normalized float_X with particleAccess::Weight() / NUM_EL_PER_PARTICLE
+        /// \warn reduce a normalized float_X with particleAccess::Weight() / particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE
         ///       to avoid overflows for heavy weightings
         ///
         atomicAdd(&(*field(globalCellIdx.shrink<2>((planeDir+1)%3))), (int)(*frame)[particleID][weighting_]);
@@ -159,10 +159,10 @@ void ParticleDensity<ParticlesType>::notify(uint32_t currentStep)
     std::stringstream filename;
     filename << "density_" << currentStep << ".dat";
     std::ofstream file(filename.str().c_str());
-    /// \warn reduce a normalized float_X with particleAccess::Weight() / NUM_EL_PER_PARTICLE
+    /// \warn reduce a normalized float_X with particleAccess::Weight() / particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE
     ///       to avoid overflows for heavy weightings
     ///
-    /// \warn multiply normalized float_X "count" with NUM_EL_PER_PARTICLE here (as double!)
+    /// \warn multiply normalized float_X "count" with particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE here (as double!)
     ///
     file << globalDensity;
 }

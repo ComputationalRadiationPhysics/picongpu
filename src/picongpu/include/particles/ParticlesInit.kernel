@@ -20,7 +20,6 @@
 
 #pragma once
 
-#include "types.h"
 #include "simulation_defines.hpp"
 #include "particles/Particles.hpp"
 #include "memory/boxes/DataBox.hpp"
@@ -29,15 +28,9 @@
 
 #include "simulation_defines.hpp"
 #include "plugins/radiation/parameters.hpp"
-
-#include "nvidia/rng/RNG.hpp"
-#include "nvidia/rng/methods/Xor.hpp"
-#include "nvidia/rng/distributions/Uniform_float.hpp"
-#include "particles/init/particleInitRandomPos.hpp"
-
 #include "particles/operations/SetAttributeToDefault.hpp"
 #include "compileTime/conversion/ResolveAndRemoveFromSeq.hpp"
-
+#include "particles/startPosition/MakroParticleCfg.hpp"
 
 namespace picongpu
 {
@@ -54,29 +47,23 @@ using namespace PMacc;
  * @param cellIdx the current cell on this gpu
  * @return a float_X which stands for the real number of electrons per volume
  */
-template<unsigned int Dim, typename FieldBox>
-DINLINE float_X calcRealDensity(const DataSpace<Dim>& offset,
-                                const DataSpace<Dim>& localCellIdx, FieldBox fieldTmp)
+template<typename T_GasProfile>
+DINLINE float_X calcRealDensity(T_GasProfile& gasFunctor,
+                                const DataSpace<simDim>& totalGpuCellIdx)
 {
-    floatD_X physicalCellPosition;
-    for (uint32_t i = 0; i < simDim; ++i)
-        physicalCellPosition[i] = (localCellIdx[i] + offset[i]) * cellSize[i];
+    PMACC_CASSERT_MSG(Please_deselect_gasInitMethod_for_your_species_or_set_GAS_DENSITY_to_a_value_greater_than_0, ((GAS_DENSITY) > 0.0f));
 
-    const float_X value = gasProfile::calcNormedDensity(physicalCellPosition, localCellIdx, fieldTmp) * GAS_DENSITY;
+    const float_X value = gasFunctor(totalGpuCellIdx) * GAS_DENSITY;
     return value;
 }
 
-template< typename ParBox, typename FieldBox, class Mapping>
-__global__ void kernelFillGridWithParticles(ParBox pb,
-                                            bool isNotTop, DataSpace<simDim> gpuCelloffset,
-                                            uint32_t seed, uint32_t gNrCellsY,
-                                            FieldBox fieldTmp,
+template< typename T_GasProfile, typename T_PositionFunctor, typename ParBox, class Mapping>
+__global__ void kernelFillGridWithParticles(T_GasProfile gasFunctor,
+                                            T_PositionFunctor positionFunctor,
+                                            DataSpace<simDim> totalGpuCellOffset,
+                                            ParBox pb,
                                             Mapping mapper)
 {
-    namespace nvrng = nvidia::rng;
-    namespace rngMethods = nvidia::rng::methods;
-    namespace rngDistributions = nvidia::rng::distributions;
-
     typedef typename ParBox::FrameType FRAME;
     const DataSpace<simDim> superCells(mapper.getGridSuperCells());
 
@@ -92,10 +79,6 @@ __global__ void kernelFillGridWithParticles(ParBox pb,
     const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
     const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
 
-    const uint32_t linearSuperCellIdx = DataSpaceOperations<simDim>::map(
-                                                                         mapper.getGridSuperCells(),
-                                                                         superCellIdx);
-
 
     /* do not add particle to guarding super cells */
     for (uint32_t d = 0; d < simDim; ++d)
@@ -104,53 +87,25 @@ __global__ void kernelFillGridWithParticles(ParBox pb,
     /*get local cell idx*/
     const DataSpace<simDim> idx(superCellIdx * SuperCellSize::toRT() + threadIndex);
 
-    /*delete garding cells \todo: what is if we have more than one block guarding cells*/
-    const DataSpace<simDim> localCellIndex = idx - SuperCellSize::toRT();
-    /*global position in simulation units (meter)*/
-    const float_X yPos = (localCellIndex.y() + gpuCelloffset.y()) * CELL_HEIGHT;
+    /*delete garding cells */
+    const DataSpace<simDim> localCellIndex = idx - mapper.getGuardingSuperCells() * SuperCellSize::toRT();
 
-    // inverse flow area
-    /* calculate global size of simulation (in y direction)
-     * WARNING: no sliding wndow support
-     */
-    const float_X sizeY = CELL_HEIGHT * float_X(gNrCellsY);
-    const float_X sizeMiddleY = sizeY * MIDDLE_DRIFT_INV_SIZE_REL;
-    const float_X minMiddleY = (sizeY - sizeMiddleY) * float_X(0.5);
-    const float_X maxMiddleY = sizeMiddleY + minMiddleY;
+    const DataSpace<simDim> totalGpuCellIdx = totalGpuCellOffset + localCellIndex;
+    const float_X realDensity = calcRealDensity(gasFunctor, totalGpuCellIdx);
 
-    // compare global dataspace with current position
-    float_X densityFactor(1.0);
-    if (yPos > minMiddleY &&
-        yPos < maxMiddleY)
-    {
-        densityFactor = float_X(PARTICLE_INIT_DENSITY_FACTOR_MIDDLE);
-    }
-
-    const uint32_t cellIdx = DataSpaceOperations<simDim>::map(
-                                                              mapper.getGridSuperCells() * SuperCellSize::toRT(),
-                                                              idx);
-    PMACC_AUTO(rng, nvrng::create(rngMethods::Xor(seed, cellIdx), rngDistributions::Uniform_float()));
-
-    uint32_t numParsPerCell = particleInit::NUM_PARTICLES_PER_CELL;
-
-
-    /*multiply density factor to calculated manipulated middle density*/
-    const float_X realDensity = densityFactor * calcRealDensity(gpuCelloffset,
-                                                                localCellIndex, fieldTmp);
-    const float_X realElPerCell = realDensity * CELL_VOLUME;
+    const float_X realParticlesPerCell = realDensity * CELL_VOLUME;
 
     __shared__ int finished;
     if (linearThreadIdx == 0)
         finished = 1;
     __syncthreads();
 
-    // get specific particle init rules
-    particleInit::particleInitMethods initMethods;
-
+    positionFunctor.init(totalGpuCellIdx);
     // decrease number of macro particles, if weighting would be too small
-    float_X macroWeighting =
-        initMethods.reduceParticlesToSatisfyMinWeighting(numParsPerCell,
-                                                         realElPerCell);
+    particles::startPosition::MakroParticleCfg makroCfg =
+        positionFunctor.mapRealToMakroParticle(realParticlesPerCell);
+    float_X macroWeighting = makroCfg.weighting;
+    uint32_t numParsPerCell = makroCfg.numParticlesPerCell;
 
     const uint32_t totalNumParsPerCell = numParsPerCell;
 
@@ -178,9 +133,7 @@ __global__ void kernelFillGridWithParticles(ParBox pb,
             finished = 1; //clear flag
         __syncthreads();
 
-        floatD_X pos = initMethods.getPosition(rng,
-                                               totalNumParsPerCell,
-                                               totalNumParsPerCell - numParsPerCell);
+        floatD_X pos = positionFunctor(totalNumParsPerCell - numParsPerCell);
 
         if (numParsPerCell > 0)
         {

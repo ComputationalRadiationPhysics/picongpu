@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2014 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -19,41 +19,31 @@
  */
 
 
+#pragma once
 
-#ifndef SIMSTARTINITIALISER_HPP
-#define	SIMSTARTINITIALISER_HPP
-
-#include "simulation_types.hpp"
-#include "dataManagement/AbstractInitialiser.hpp"
-//#include "dataManagement/DataConnector.hpp"
-
-#include "Environment.hpp"
+#include "particles/operations/Assign.hpp"
 
 namespace picongpu
 {
-
-/**
- * Simulation startup initialiser.
- *
- * Initialises a new simulation from default values.
- * DataConnector has to be used with a FIFO compliant IDataSorter.
- *
- */
-class SimStartInitialiser : public AbstractInitialiser
+namespace particles
 {
-public:
+namespace manipulators
+{
 
-    void init(ISimulationData& data, uint32_t currentStep)
-    {
+struct Assign;
 
-    }
+/** create particle out of other particles
+ *
+ * \todo: Note: do not use this functor in productive simulations
+ *              cuda-memcheck --tool racecheck creates errors
+ *
+ * @tparam T_Functor binary functor with cloning rules
+ */
+template<typename T_Functor, typename T_DestSpeciesType, typename T_Count, typename T_SrcSpeciesType = bmpl::_1>
+struct CreateParticlesFromParticleImpl;
 
-    virtual ~SimStartInitialiser()
-    {
 
-    }
-};
-}
 
-#endif	/* SIMSTARTINITIALISER_HPP */
-
+} //namespace manipulators
+} //namespace particles
+} //namespace picongpu

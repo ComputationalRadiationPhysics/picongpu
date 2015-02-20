@@ -79,10 +79,10 @@ using namespace PMacc;
 // normalize EM fields to typical laser or plasma quantities
 //-1: Auto:    enable adaptive scaling for each output
 // 1: Laser:   typical fields calculated out of the laser amplitude
-// 2: Drift:   typical fields caused by a drifting plasma
+// 2: Drift:   outdated
 // 3: PlWave:  typical fields calculated out of the plasma freq.,
 //             assuming the wave moves approx. with c
-// 4: Thermal: typical fields calculated out of the electron temperature
+// 4: Thermal: outdated
 // 5: BlowOut: typical fields, assuming that a LWFA in the blowout
 //             regime causes a bubble with radius of approx. the laser's
 //             beam waist (use for bubble fields)
@@ -117,7 +117,7 @@ struct typicalFields < 1 >
 #if !(EM_FIELD_SCALE_CHANNEL1 == 1 || EM_FIELD_SCALE_CHANNEL2 == 1 || EM_FIELD_SCALE_CHANNEL3 == 1)
         return float3_X(float_X(1.0), float_X(1.0), float_X(1.0));
 #else
-        const float_X tyCurrent = particleInit::NUM_PARTICLES_PER_CELL * NUM_EL_PER_PARTICLE
+        const float_X tyCurrent = particles::TYPICAL_PARTICLES_PER_CELL * particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE
             * abs(Q_EL) / DELTA_T;
         const float_X tyEField = laserProfile::AMPLITUDE + FLT_MIN;
         const float_X tyBField = tyEField * MUE0_EPS0;
@@ -127,31 +127,10 @@ struct typicalFields < 1 >
     }
 };
 
+
+/* outdated drift normalization */
 template< >
-struct typicalFields < 2 >
-{
-
-    HDINLINE static float3_X get()
-    {
-#if !(EM_FIELD_SCALE_CHANNEL1 == 2 || EM_FIELD_SCALE_CHANNEL2 == 2 || EM_FIELD_SCALE_CHANNEL3 == 2)
-        return float3_X(float_X(1.0), float_X(1.0), float_X(1.0));
-#else
-        float_X tyCurrent = particleInit::NUM_PARTICLES_PER_CELL * NUM_EL_PER_PARTICLE
-            * abs(Q_EL) / DELTA_T;
-        // re-normalize currents for non-relativistic drifts
-        const double PARTICLE_INIT_DRIFT_BETA =
-            sqrt(1.0 - 1.0 / (PARTICLE_INIT_DRIFT_GAMMA *
-                              PARTICLE_INIT_DRIFT_GAMMA));
-        if (PARTICLE_INIT_DRIFT_GAMMA > 1.0)
-            tyCurrent *= float_X(PARTICLE_INIT_DRIFT_BETA);
-
-        const float_X tyBField = MUE0 * tyCurrent;
-        const float_X tyEField = tyBField * SPEED_OF_LIGHT;
-
-        return float3_X(tyBField, tyEField, tyCurrent);
-#endif
-    }
-};
+struct typicalFields < 2 >;
 
 template< >
 struct typicalFields < 3 >
@@ -173,25 +152,9 @@ struct typicalFields < 3 >
     }
 };
 
+/* outdated ELECTRON_TEMPERATURE normalization */
 template< >
-struct typicalFields < 4 >
-{
-
-    HDINLINE static float3_X get()
-    {
-#if !(EM_FIELD_SCALE_CHANNEL1 == 4 || EM_FIELD_SCALE_CHANNEL2 == 4 || EM_FIELD_SCALE_CHANNEL3 == 4)
-        return float3_X(float_X(1.0), float_X(1.0), float_X(1.0));
-#else
-        const float_X lambda_deb = sqrt(EPS0 * ELECTRON_TEMPERATURE / GAS_DENSITY
-                                        / Q_EL / Q_EL);
-        const float_X tyEField = lambda_deb * GAS_DENSITY / 3.0f / EPS0;
-        const float_X tyBField = tyEField * MUE0_EPS0;
-        const float_X tyCurrent = tyBField / MUE0;
-
-        return float3_X(tyBField, tyEField, tyCurrent);
-#endif
-    }
-};
+struct typicalFields < 4 >;
 
 template< >
 struct typicalFields < 5 >
@@ -204,7 +167,7 @@ struct typicalFields < 5 >
 #else
         const float_X tyEField = laserProfile::W0 * GAS_DENSITY / 3.0f / EPS0;
         const float_X tyBField = tyEField * MUE0_EPS0;
-        const float_X tyCurrent = particleInit::NUM_PARTICLES_PER_CELL * NUM_EL_PER_PARTICLE
+        const float_X tyCurrent = particles::TYPICAL_PARTICLES_PER_CELL * particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE
             * abs(Q_EL) / DELTA_T;
 
         return float3_X(tyBField, tyEField, tyCurrent);
@@ -387,7 +350,7 @@ kernelPaintParticles3D(ParBox pb,
 #endif
             {
                 const DataSpace<DIM2> reducedCell(particleCellId[transpose.x()], particleCellId[transpose.y()]);
-                atomicAddWrapper(&(counter(reducedCell)), particle[weighting_] / NUM_EL_PER_PARTICLE);
+                atomicAddWrapper(&(counter(reducedCell)), particle[weighting_] / particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE);
             }
         }
         __syncthreads();
@@ -402,14 +365,14 @@ kernelPaintParticles3D(ParBox pb,
 
     if (isImageThread)
     {
-        /** Note: normally, we would multiply by NUM_EL_PER_PARTICLE again.
+        /** Note: normally, we would multiply by particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE again.
          *  BUT: since we are interested in a simple value between 0 and 1,
          *       we stay with this number (normalized to the order of macro
          *       particles) and devide by the number of typical macro particles
          *       per cell
          */
         float_X value = counter(localCell)
-            / float_X(particleInit::NUM_PARTICLES_PER_CELL); // * NUM_EL_PER_PARTICLE;
+            / float_X(particles::TYPICAL_PARTICLES_PER_CELL); // * particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE;
         if (value > 1.0) value = 1.0;
 
         //image(imageCell).x() = value;

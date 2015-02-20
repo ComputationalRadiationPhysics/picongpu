@@ -58,6 +58,7 @@
 
 #include "algorithms/ForEach.hpp"
 #include "particles/ParticlesFunctors.hpp"
+#include "particles/InitFunctors.hpp"
 #include <boost/mpl/int.hpp>
 
 namespace picongpu
@@ -332,6 +333,8 @@ public:
             }
         }
 
+        ForEach<InitPipeline, particles::CallFunctor<bmpl::_1> > initSpecies;
+        initSpecies(forward(particleStorage), step);
 
         Environment<>::get().EnvMemoryInfo().getMemoryInfo(&freeGpuMem);
         log<picLog::MEMORY > ("free mem after all particles are initialized %1% MiB") % (freeGpuMem / 1024 / 1024);
@@ -384,7 +387,6 @@ public:
         particleUpdate(forward(particleStorage), currentStep, initEvent, forward(updateEvent), forward(commEvent));
 
         __setTransactionEvent(updateEvent);
-
         /** remove background field for particle pusher */
         (*pushBGField)(fieldE, nvfct::Sub(), fieldBackgroundE(fieldE->getUnit()),
                        currentStep, fieldBackgroundE::InfluenceParticlePusher);
@@ -456,6 +458,8 @@ public:
             log<picLog::SIMULATION_STATE > ("slide in step %1%") % currentStep;
             resetAll(currentStep);
             initialiserController->slide(currentStep);
+            ForEach<InitPipeline, particles::CallFunctor<bmpl::_1> > initSpecies;
+            initSpecies(forward(particleStorage), currentStep);
         }
     }
 

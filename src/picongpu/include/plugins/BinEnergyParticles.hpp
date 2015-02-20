@@ -172,7 +172,7 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
                  */
                 /* overflow for big weighting reduces in shared mem */
                 /* atomicAdd(&(shBin[binNumber]), (uint32_t) weighting); */
-                const float_X normedWeighting = float_X(weighting) / float_X(NUM_EL_PER_PARTICLE);
+                const float_X normedWeighting = float_X(weighting) / float_X(particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE);
                 atomicAddWrapper(&(shBin[binNumber]), normedWeighting);
             }
         }
@@ -435,9 +435,9 @@ private:
             for (int i = 0; i < realNumBins; ++i)
             {
                 count_particles += double( binReduced[i]);
-                outFile << std::scientific << (binReduced[i]) * double(NUM_EL_PER_PARTICLE) << " ";
+                outFile << std::scientific << (binReduced[i]) * double(particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE) << " ";
             }
-            outFile << std::scientific << count_particles * double(NUM_EL_PER_PARTICLE)
+            outFile << std::scientific << count_particles * double(particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE)
                 << std::endl;
             /* endl: Flush any step to the file.
              * Thus, we will have data if the program should crash. */

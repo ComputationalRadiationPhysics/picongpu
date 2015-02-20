@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2014 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -19,41 +19,26 @@
  */
 
 
+#pragma once
 
-#ifndef SIMSTARTINITIALISER_HPP
-#define	SIMSTARTINITIALISER_HPP
 
-#include "simulation_types.hpp"
-#include "dataManagement/AbstractInitialiser.hpp"
-//#include "dataManagement/DataConnector.hpp"
+#include "simulation_defines.hpp"
 
-#include "Environment.hpp"
 
 namespace picongpu
 {
 
-/**
- * Simulation startup initialiser.
- *
- * Initialises a new simulation from default values.
- * DataConnector has to be used with a FIFO compliant IDataSorter.
- *
- */
-class SimStartInitialiser : public AbstractInitialiser
+namespace particles
 {
-public:
+namespace startPosition
+{
 
-    void init(ISimulationData& data, uint32_t currentStep)
-    {
-
-    }
-
-    virtual ~SimStartInitialiser()
-    {
-
-    }
+struct MakroParticleCfg
+{
+    float_X weighting;
+    uint32_t numParticlesPerCell;
 };
-}
 
-#endif	/* SIMSTARTINITIALISER_HPP */
-
+} //namespace startPosition
+} //namespace particles
+} //namespace picongpu

@@ -147,7 +147,7 @@ kernelParticleDensity(ParBox pb,
 #endif
             {
                 const DataSpace<DIM2> reducedCell(particleCellId[transpose.x()], particleCellId[transpose.y()]);
-                atomicAddWrapper(&(counter(reducedCell)), particle[weighting_] / NUM_EL_PER_PARTICLE);
+                atomicAddWrapper(&(counter(reducedCell)), particle[weighting_] / particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE);
             }
         }
         __syncthreads();
@@ -285,13 +285,13 @@ public:
             unitVolume *= UNIT_LENGTH;
         // that's a hack, but works for all species
         //const float_64 charge = precisionCast<float_64>(
-        //    ParticlesType::FrameType().getCharge(NUM_EL_PER_PARTICLE)) /
-        //    precisionCast<float_64>(NUM_EL_PER_PARTICLE) * UNIT_CHARGE;
+        //    ParticlesType::FrameType().getCharge(particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE)) /
+        //    precisionCast<float_64>(particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE) * UNIT_CHARGE;
 
-        // Note: multiply NUM_EL_PER_PARTICLE again
+        // Note: multiply particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE again
         //       because of normalization during atomicAdd above
         //       to avoid float overflow for weightings
-        const float_64 unit = precisionCast<float_64>(NUM_EL_PER_PARTICLE)
+        const float_64 unit = precisionCast<float_64>(particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE)
             / (cellVolume * unitVolume);
         if (isMaster)
             output(resultBox.shift(header->window.offset), unit, header->window.size, *header);

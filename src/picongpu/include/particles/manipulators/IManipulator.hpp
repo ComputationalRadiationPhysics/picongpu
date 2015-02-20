@@ -1,6 +1,5 @@
 /**
  * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
- *                     Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -22,35 +21,33 @@
 
 #pragma once
 
-#include "types.h"
 #include "simulation_defines.hpp"
-#include "memory/buffers/GridBuffer.hpp"
-#include "simulationControl/Window.hpp"
+#include "particles/manipulators/IManipulator.def"
 
 namespace picongpu
 {
-    namespace gasHomogeneous
+
+namespace particles
+{
+namespace manipulators
+{
+
+template<typename T_Base>
+struct IManipulator : private T_Base
+{
+    typedef T_Base Base;
+
+    HINLINE IManipulator(uint32_t currentStep) : Base(currentStep)
     {
-        template<class Type>
-        bool gasSetup( GridBuffer<Type, simDim>&, Window& )
-        {
-            return true;
-        }
-
-        /** Calculate the gas density, divided by the maximum density GAS_DENSITY
-         *
-         * @param pos as 3D length vector offset to global left top front cell
-         * @return float_X between 0.0 and 1.0
-         */
-        template<unsigned DIM, typename FieldBox>
-        DINLINE float_X calcNormedDensity( floatD_X pos, const DataSpace<DIM>&, FieldBox )
-        {
-            if (pos.y() < VACUUM_Y
-                || pos.y() >= (GAS_LENGTH + VACUUM_Y)) return float_X(0.0);
-
-            return float_X(1.0);
-        }
     }
-}
 
+    template<typename T_Particle>
+    HDINLINE void operator()(const DataSpace<simDim>& localCellIdx, T_Particle& particle, const bool isParticle)
+    {
+        return Base::operator()(localCellIdx, particle, isParticle);
+    }
+};
 
+} //namespace manipulators
+} //namespace particles
+} //namespace picongpu

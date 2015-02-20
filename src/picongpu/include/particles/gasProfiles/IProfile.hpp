@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU.
  *
@@ -19,41 +19,32 @@
  */
 
 
+#pragma once
 
-#ifndef SIMSTARTINITIALISER_HPP
-#define	SIMSTARTINITIALISER_HPP
-
-#include "simulation_types.hpp"
-#include "dataManagement/AbstractInitialiser.hpp"
-//#include "dataManagement/DataConnector.hpp"
-
-#include "Environment.hpp"
+#include "simulation_defines.hpp"
+#include "particles/gasProfiles/IProfile.def"
 
 namespace picongpu
 {
 
-/**
- * Simulation startup initialiser.
- *
- * Initialises a new simulation from default values.
- * DataConnector has to be used with a FIFO compliant IDataSorter.
- *
- */
-class SimStartInitialiser : public AbstractInitialiser
+namespace gasProfiles
 {
-public:
 
-    void init(ISimulationData& data, uint32_t currentStep)
+template<typename T_Base>
+struct IProfile : private T_Base
+{
+
+    typedef T_Base Base;
+
+    HINLINE IProfile(uint32_t currentStep) : Base(currentStep)
     {
-
     }
 
-    virtual ~SimStartInitialiser()
+    HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
     {
-
+        return Base::operator()(totalCellOffset);
     }
 };
-}
 
-#endif	/* SIMSTARTINITIALISER_HPP */
-
+} //namespace gasProfiles
+} //namespace picongpu

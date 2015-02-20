@@ -19,40 +19,39 @@
  */
 
 
+#pragma once
 
-#ifndef GASNONE_HPP
-#define	GASNONE_HPP
-
-#include "types.h"
 #include "simulation_defines.hpp"
-#include "memory/buffers/GridBuffer.hpp"
-#include "simulationControl/Window.hpp"
 
 namespace picongpu
 {
-    namespace gasNone
+
+namespace gasProfiles
+{
+
+struct HomogenousImpl
+{
+    template<typename T_SpeciesType>
+    struct apply
     {
-        template<class Type>
-        bool gasSetup( GridBuffer<Type, simDim>&, Window& )
-        {
-            return true;
-        }
+        typedef HomogenousImpl type;
+    };
 
-        /** Calculate the gas density, divided by the maximum density GAS_DENSITY
-         *
-         * @return float_X between 0.0 and 1.0
-         */
-        template<unsigned DIM, typename FieldBox>
-        DINLINE float_X calcNormedDensity( floatD_X pos, const DataSpace<DIM>&, FieldBox )
-        {
-
-            return float_X(0.0);
-
-        }
+    HINLINE HomogenousImpl(uint32_t currentStep)
+    {
     }
-}
 
-#endif	/* GASNONE_HPP */
+    /** Calculate the gas density
+     *
+     * @param totalCellOffset total offset including all slides [in cells]
+     * @return float_X always 1.0
+     */
+    HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
+    {
 
+        return float_X(1.0);
+    }
 
-
+};
+} //namespace gasProfiles
+} //namespace picongpu
