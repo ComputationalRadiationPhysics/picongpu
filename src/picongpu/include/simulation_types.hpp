@@ -31,6 +31,7 @@
 #include "traits/PICToSplash.hpp"
 #include "traits/GetComponentsType.hpp"
 #include "traits/NumberOfExchanges.hpp"
+#include "traits/GetDataBoxType.hpp"
 
 namespace picongpu
 {
