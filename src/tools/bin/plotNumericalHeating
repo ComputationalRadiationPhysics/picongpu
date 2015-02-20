@@ -141,8 +141,23 @@ print " "
 
 
 ## check time steps ##
-if not np.array_equal(Times[0], Times[1]):
-    sys.exit("Time steps differ between sim1 and sim2.")
+if(np.array_equal(Times[0], Times[1])):
+    # if equal - no special treatment
+    time_limit = len(x1)
+else:
+    # determine range of equal time steps
+    print "WARNING: time steps between both directories differ"
+    print "         choosing agreeing range"
+    min_index = np.amin((len(Times[0]), len(Times[1])))
+    time_limit=0
+    for i in range(min_index):
+        if Times[0][i] == Times[1][i]:
+            time_limit = i+1
+        else:
+            break
+    if time_limit == 0:
+        # if no time step is equal stop program
+        sys.exit("Time steps between sim1 and sim2 differ from start.")
 
 
 ## get values ##
@@ -159,8 +174,12 @@ else:
 
 if not args.boolDiff:
     # plot energy evolution side by side
-    plt.plot(Times[0], (Energies[0]-startEnergy)*norm, color="green", lw=3, label=args.label1)
-    plt.plot(Times[1], (Energies[1]-startEnergy)*norm, "--", color="blue",  lw=5, label=args.label2)
+    plt.plot(Times[0][:time_limit], 
+             (Energies[0][:time_limit]-startEnergy)*norm, 
+             color="green", lw=3, label=args.label1)
+    plt.plot(Times[1][:time_limit], 
+             (Energies[1][:time_limit]-startEnergy)*norm, 
+             "--", color="blue",  lw=5, label=args.label2)
     if args.boolRelative:
         plt.ylabel(r"$\frac{E}{E_0}-1\,[\%]$", fontsize=24)
     else:
@@ -168,7 +187,9 @@ if not args.boolDiff:
     plt.legend(loc=0)
 else:
     # plot difference in energy evolution
-    plt.plot(Times[0], (Energies[0]-Energies[1])*norm, color="red", lw=3)
+    plt.plot(Times[0][:time_limit], 
+             (Energies[0][:time_limit]-Energies[1][:time_limit])*norm, 
+             color="red", lw=3)
     if args.boolRelative:
         plt.ylabel(r"$\frac{E_1 - E_2}{E_1(t=0)}\,[\%]$", fontsize=24)
     else:
