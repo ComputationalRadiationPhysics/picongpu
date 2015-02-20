@@ -115,10 +115,10 @@ typedef Particles<ParticleDescription<
  * Do not forget to set the correct mass of the atom in 
  * @see physicalConstants.param !
  */
-struct Helium
+struct Hydrogen
 {
-    static const float_X numberOfProtons  = 2.0;
-    static const float_X numberOfNeutrons = 2.0;
+    static const float_X numberOfProtons  = 1.0;
+    static const float_X numberOfNeutrons = 0.0;
 };
 
 /*! Ionization Model Configuration ----------------------------------------
@@ -141,7 +141,7 @@ typedef bmpl::vector<
     #if(PARAM_IONIZATION == 1)
     ionizer<particles::ionization::BSI<PIC_Electrons> >,
     #endif
-    atomicNumbers<Helium>
+    atomicNumbers<Hydrogen>
 > ParticleFlagsIons;
 
 /* define species: ions */
