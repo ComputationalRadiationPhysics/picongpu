@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Rene Widera
+ * Copyright 2015 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -22,6 +22,15 @@
 
 #pragma once
 
+#include "particles/InitFunctors.hpp"
 
-/* include implemented particle initializations */
-#include "particles/startPosition/functors.hpp"
+namespace picongpu
+{
+
+/** InitPipeline define in which order species are initialized
+ *
+ * the functors called in order (from first to last functor)
+ */
+typedef mpl::vector<> InitPipeline;
+
+} //namespace picongpu

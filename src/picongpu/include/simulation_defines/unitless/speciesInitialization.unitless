@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Rene Widera
+ * Copyright 2014 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -19,9 +19,6 @@
  */
 
 
-
 #pragma once
 
-
-/* include implemented particle initializations */
-#include "particles/startPosition/functors.hpp"
+#include "particles/manipulators/manipulators.hpp"

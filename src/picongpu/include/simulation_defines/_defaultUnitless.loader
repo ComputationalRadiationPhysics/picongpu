@@ -28,8 +28,8 @@
 
 #include "simulation_defines/unitless/physicalConstants.unitless"
 #include "simulation_defines/unitless/gridConfig.unitless"
-#include "simulation_defines/unitless/gasConfig.unitless"
 #include "simulation_defines/unitless/laserConfig.unitless"
+#include "simulation_defines/unitless/gasConfig.unitless"
 #include "simulation_defines/unitless/particleConfig.unitless"
 #include "simulation_defines/unitless/fieldSolver.unitless"
 #include "simulation_defines/unitless/visualization.unitless"
@@ -38,5 +38,6 @@
 #include "simulation_defines/unitless/radiationConfig.unitless"
 #include "simulation_defines/unitless/speciesAttributes.unitless"
 #include "simulation_defines/unitless/speciesDefinition.unitless"
+#include "simulation_defines/unitless/speciesInitialization.unitless"
 #include "simulation_defines/unitless/fileOutput.unitless"
 #include "simulation_defines/unitless/checkpoints.unitless"
