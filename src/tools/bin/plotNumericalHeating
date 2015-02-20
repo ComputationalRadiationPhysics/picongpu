@@ -49,14 +49,10 @@ parser = argparse.ArgumentParser(
     epilog='For further questions please contact Richard Pausch.'
     )
 
-parser.add_argument(metavar="[directory]",
-                    dest="dir_run1",
-                    help='directory with reference PIConGPU run',
-                    action='store')
-
-parser.add_argument(metavar='[directory]',
-                    dest="dir_run2",
-                    help='directory with PIConGPU run to compare with',
+parser.add_argument(metavar="[directory] [[directory]]",
+                    dest="dir_run_all",
+                    nargs='+',
+                    help='directory with reference PIConGPU run [directory with PIConGPU run for comparison]',
                     action='store')
 
 parser.add_argument("--label1",
@@ -85,7 +81,10 @@ args = parser.parse_args()
 
 
 ## get directories from parser ##
-directories = [args.dir_run1, args.dir_run2]
+numDir = np.min((len(args.dir_run_all), 2))
+directories = []
+for i in range(numDir):
+    directories.append(args.dir_run_all[i])
 
 
 ## check if directories exit ###
@@ -93,15 +92,16 @@ simDir = "/simOutput/"
 
 warningText1 = "The directory number {} does not exist ({})." 
 warningText2 = "The directory number {} does not (yet) contain {}."
-for i in range(2):
+for i in range(numDir):
     if not os.path.isdir(directories[i]):
         sys.exit(warningText1.format(i+1, directories[i]))
 
     if not os.path.isdir(directories[i]+simDir):
         sys.exit(warningText2.format(i+1, simDir))
 
-if directories[0] == directories[1]:
-    sys.exit("We do not allow cheating! Compare two different runs.")
+if(numDir == 2):
+    if directories[0] == directories[1]:
+        sys.exit("We do not allow cheating! Compare two different runs.")
 
 
 ## lists for data from simulations ##
@@ -115,6 +115,9 @@ for sim in directories:
     # get relevant files with energy
     files = [f for f in os.listdir(mydir)
              if os.path.isfile(os.path.join(mydir, f)) and re.search('^Energy.*.dat', f)]
+    # check if file list is empty
+    if len(files) == 0:
+        sys.exit("There were no energy files in \"{}\".".format(mydir))
     # verbose output
     print "\nFor directory: \n\t{}".format(sim)
     print "the following files are considered for calculating the total energy:"
@@ -141,8 +144,28 @@ print " "
 
 
 ## check time steps ##
-if not np.array_equal(Times[0], Times[1]):
-    sys.exit("Time steps differ between sim1 and sim2.")
+if numDir == 2:
+    if(np.array_equal(Times[0], Times[1])):
+        # if equal - no special treatment
+        time_limit = len(Times[0])
+    else:
+        # determine range of equal time steps
+        print "WARNING: time steps between both directories differ"
+        print "         choosing agreeing range"
+        min_index = np.amin((len(Times[0]), len(Times[1])))
+        time_limit=0
+        for i in range(min_index):
+            if Times[0][i] == Times[1][i]:
+                time_limit = i+1
+            else:
+                break
+            if time_limit == 0:
+                # if no time step is equal stop program
+                sys.exit("Time steps between sim1 and sim2 differ from start.")
+elif numDir == 1:
+    time_limit = len(Times[0])
+else:
+    sys.exit("Fatal error - number of directories is neither 1 or 2.")
 
 
 ## get values ##
@@ -159,8 +182,13 @@ else:
 
 if not args.boolDiff:
     # plot energy evolution side by side
-    plt.plot(Times[0], (Energies[0]-startEnergy)*norm, color="green", lw=3, label=args.label1)
-    plt.plot(Times[1], (Energies[1]-startEnergy)*norm, "--", color="blue",  lw=5, label=args.label2)
+    plt.plot(Times[0][:time_limit], 
+             (Energies[0][:time_limit]-startEnergy)*norm, 
+             color="green", lw=3, label=args.label1)
+    if numDir == 2:
+        plt.plot(Times[1][:time_limit], 
+                 (Energies[1][:time_limit]-startEnergy)*norm, 
+                 "--", color="blue",  lw=5, label=args.label2)
     if args.boolRelative:
         plt.ylabel(r"$\frac{E}{E_0}-1\,[\%]$", fontsize=24)
     else:
@@ -168,7 +196,12 @@ if not args.boolDiff:
     plt.legend(loc=0)
 else:
     # plot difference in energy evolution
-    plt.plot(Times[0], (Energies[0]-Energies[1])*norm, color="red", lw=3)
+    if numDir == 2:
+        plt.plot(Times[0][:time_limit], 
+                 (Energies[0][:time_limit]-Energies[1][:time_limit])*norm, 
+                 color="red", lw=3)
+    else:
+        sys.exit("A difference plot requires two directories.")
     if args.boolRelative:
         plt.ylabel(r"$\frac{E_1 - E_2}{E_1(t=0)}\,[\%]$", fontsize=24)
     else:
