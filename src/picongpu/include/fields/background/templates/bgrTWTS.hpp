@@ -190,8 +190,9 @@ namespace picongpu
             return eFieldPositions_SI;
         }
         
+        template<>
         HDINLINE float_64
-        TWTSFieldE::getTime_SI(const uint32_t currentStep) const
+        TWTSFieldE::getTime_SI<DIM3>(const uint32_t currentStep) const
         {
             const float_64 time_SI = precisionCast<float_64>(currentStep) * dt;
                        
@@ -205,6 +206,39 @@ namespace picongpu
                  * The abs()-function is for correct offset for -phi<-90Deg and +phi>+90Deg. */
                 const float_64 y1=precisionCast<float_64>(halfSimSize[2]
                                     *picongpu::SI::CELL_DEPTH_SI)*abs(cos(eta));
+                /* Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume
+                 * at low intensity values. */
+                const float_64 m=3.;
+                /* Approximate cross section of laser pulse through y-axis,
+                 * scaled with "fudge factor" m. */
+                const float_64 y2=m*(pulselength_SI*picongpu::SI::SPEED_OF_LIGHT_SI)/cos(eta);
+                /* y-position of laser coordinate system origin within simulation. */
+                const float_64 y3=focus_y_SI;
+                /* Programmatically obtained time-delay */
+                const float_64 tdelay= (y1+y2+y3)/(picongpu::SI::SPEED_OF_LIGHT_SI*beta_0);
+                
+                return time_SI-tdelay;
+            }
+            else
+                return time_SI-tdelay_user_SI;
+        }
+        
+        template <>
+        HDINLINE float_64
+        TWTSFieldE::getTime_SI<DIM2>(const uint32_t currentStep) const
+        {
+            const float_64 time_SI = precisionCast<float_64>(currentStep) * dt;
+                       
+            if ( auto_tdelay ) {
+                
+                /* angle between the laser pulse front and the y-axis. Good approximation for
+                 * beta0\simeq 1. For exact relation look in TWTS core routines for Ex, By or Bz. */
+                const float_64 eta = PI/2 - (phi/2);
+                /* halfSimSize[0] --> Half-depth of simulation volume (in x); By geometric
+                 * projection we calculate the y-distance walkoff of the TWTS-pulse.
+                 * The abs()-function is for correct offset for -phi<-90Deg and +phi>+90Deg. */
+                const float_64 y1=precisionCast<float_64>(halfSimSize[0]
+                                    *picongpu::SI::CELL_WIDTH_SI)*abs(cos(eta));
                 /* Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume
                  * at low intensity values. */
                 const float_64 m=3.;
@@ -247,7 +281,7 @@ namespace picongpu
         TWTSFieldE::operator()( const DataSpace<simDim>& cellIdx,
                                 const uint32_t currentStep ) const
         {
-            const float_64 time_SI=getTime_SI(currentStep);
+            const float_64 time_SI=getTime_SI<simDim>(currentStep);
             const PMacc::math::Vector<float3_64,FieldE::numComponents> eFieldPositions_SI=
                                                             getEfieldPositions_SI<simDim>(cellIdx);
             /* Single TWTS-Pulse */
@@ -529,8 +563,9 @@ namespace picongpu
             return bFieldPositions_SI;
         }
         
+        template <>
         HDINLINE float_64
-        TWTSFieldB::getTime_SI(const uint32_t currentStep) const
+        TWTSFieldB::getTime_SI<DIM3>(const uint32_t currentStep) const
         {
             const float_64 time_SI=currentStep*SI::DELTA_T_SI;
                        
@@ -544,6 +579,39 @@ namespace picongpu
                  * The abs()-function is for correct offset for -phi<-90Deg and +phi>+90Deg. */
                 const float_64 y1=precisionCast<float_64>(halfSimSize[2]
                                     *picongpu::SI::CELL_DEPTH_SI)*abs(cos(eta));
+                /* Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume
+                 * at low intensity values. */
+                const float_64 m=3.;
+                /* Approximate cross section of laser pulse through y-axis,
+                 * scaled with "fudge factor" m. */
+                const float_64 y2=m*(pulselength_SI*picongpu::SI::SPEED_OF_LIGHT_SI)/cos(eta);
+                /* y-position of laser coordinate system origin within simulation. */
+                const float_64 y3=focus_y_SI;
+                /* Programmatically obtained time-delay */
+                const float_64 tdelay= (y1+y2+y3)/(picongpu::SI::SPEED_OF_LIGHT_SI*beta_0);
+                
+                return time_SI-tdelay;
+            }
+            else
+                return time_SI-tdelay_user_SI;
+        }
+        
+        template <>
+        HDINLINE float_64
+        TWTSFieldB::getTime_SI<DIM2>(const uint32_t currentStep) const
+        {
+            const float_64 time_SI = precisionCast<float_64>(currentStep) * dt;
+                       
+            if ( auto_tdelay ) {
+                
+                /* angle between the laser pulse front and the y-axis. Good approximation for
+                 * beta0\simeq 1. For exact relation look in TWTS core routines for Ex, By or Bz. */
+                const float_64 eta = PI/2 - (phi/2);
+                /* halfSimSize[0] --> Half-depth of simulation volume (in x); By geometric
+                 * projection we calculate the y-distance walkoff of the TWTS-pulse.
+                 * The abs()-function is for correct offset for -phi<-90Deg and +phi>+90Deg. */
+                const float_64 y1=precisionCast<float_64>(halfSimSize[0]
+                                    *picongpu::SI::CELL_WIDTH_SI)*abs(cos(eta));
                 /* Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume
                  * at low intensity values. */
                 const float_64 m=3.;
@@ -631,7 +699,7 @@ namespace picongpu
         TWTSFieldB::operator()( const DataSpace<simDim>& cellIdx,
                                 const uint32_t currentStep ) const
         {
-            const float_64 time_SI=getTime_SI(currentStep);
+            const float_64 time_SI=getTime_SI<simDim>(currentStep);
             const PMacc::math::Vector<float3_64,FieldB::numComponents> bFieldPositions_SI=
                                                             getBfieldPositions_SI<simDim>(cellIdx);
             /* Single TWTS-Pulse */

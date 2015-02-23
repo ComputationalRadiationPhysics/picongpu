@@ -134,8 +134,10 @@ namespace picongpu
                              const float_64 time) const;
             
             /** Obtain the SI time that later enters the Ex(r, t) calculations as r.
+             * \tparam T_dim Specializes for the simulation dimension
              *  \param CurrentStep current time step number of simulation
              *  \return time in SI units */
+            template <unsigned T_dim>
             HDINLINE float_64 getTime_SI(const uint32_t currentStep) const;
             
             HDINLINE PMacc::math::Vector<float3_X,numComponents>
@@ -196,8 +198,8 @@ namespace picongpu
                         const float_X beta_0            = 1.0,
                         const float_64 tdelay_user_SI   = 0.0,
                         const bool auto_tdelay          = true );
-           
- 
+            
+            
             /** Specify your background field B(r,t) here
              *
              * \param cellIdx The total cell id counted from the start at t=0
@@ -240,8 +242,10 @@ namespace picongpu
                              const float_64 time) const;
             
             /** Obtain the SI time that later enters the By(r, t) and Bz(r, t) calculations as r.
+             * \tparam T_dim Specializes for the simulation dimension
              *  \param CurrentStep current time step number of simulation
              *  \return time in SI units */
+            template<unsigned T_dim>
             HDINLINE float_64 getTime_SI(const uint32_t currentStep) const;
 
             HDINLINE PMacc::math::Vector<float3_X,numComponents>
