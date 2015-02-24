@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "version.hpp"
 #include "algorithms/TypeCast.hpp"
 #include "algorithms/PromoteType.hpp"
 #include "algorithms/ForEach.hpp"
