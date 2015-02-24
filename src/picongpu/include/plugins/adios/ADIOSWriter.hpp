@@ -519,12 +519,6 @@ public:
             throw std::runtime_error("ADIOS: Error opening stream: " +
                                      std::string(adios_errmsg()) );
 
-        /* create adios group: not rly necessary but required to restore our IDs */
-        ADIOS_CMD(adios_declare_group(&(mThreadParams.adiosGroupHandle),
-                ADIOS_GROUP_NAME,
-                (mThreadParams.adiosBasePath + std::string("iteration")).c_str(),
-                adios_flag_no));
-
         /* ADIOS types */
         AdiosUInt32Type adiosUInt32Type;
         //AdiosFloatXType adiosFloatXType;
@@ -995,14 +989,16 @@ private:
         if (threadParams->adiosFileHandle == ADIOS_INVALID_HANDLE)
             throw std::runtime_error("ADIOS: Failed to open file.");
 
-        /* set adios group size (total size of all data to be written) */
+        /* attributes written here are pure meta data */
+        writeMetaAttributes(threadParams);
+
+        /* set adios group size (total size of all data to be written)
+         * besides the number of bytes for variables, this call also
+         * calculates the overhead of meta data
+         */
         uint64_t adiosTotalSize;
         ADIOS_CMD(adios_group_size(threadParams->adiosFileHandle,
                 threadParams->adiosGroupSize, &adiosTotalSize));
-
-        writeMetaAttributes(threadParams);
-
-
 
         /* write fields */
         log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) writing fields.");
