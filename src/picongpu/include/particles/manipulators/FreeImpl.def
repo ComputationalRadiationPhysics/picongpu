@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Rene Widera
+ * Copyright 2015 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -21,9 +21,21 @@
 
 #pragma once
 
-#include "particles/manipulators/IManipulator.hpp"
-#include "particles/manipulators/TemperatureImpl.hpp"
-#include "particles/manipulators/DriftImpl.hpp"
-#include "particles/manipulators/IfRelativeGlobalPositionImpl.hpp"
-#include "particles/manipulators/CreateParticlesFromParticleImpl.hpp"
-#include "particles/manipulators/FreeImpl.hpp"
+namespace picongpu
+{
+namespace particles
+{
+namespace manipulators
+{
+
+/* call simple free user defined functor
+ *
+ * call only the user functor with valid particles
+ * the user functor is only instantiated on the device
+ */
+template<typename T_Functor>
+struct FreeImpl;
+
+} //namespace manipulators
+} //namespace particles
+} //namespace picongpu

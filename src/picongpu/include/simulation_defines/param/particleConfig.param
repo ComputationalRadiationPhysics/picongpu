@@ -77,6 +77,19 @@ namespace manipulators
     /* definition of SetDrift start*/
     typedef IfRelativeGlobalPositionImpl<IfRelativeGlobalPositionParam,AssignXDrift> AssignXDriftToLowerHalfXPosition;
 
+    struct DoubleWeightingFunctor
+    {
+        template<typename T_Particle>
+        DINLINE void operator()(T_Particle& particle)
+        {
+            particle[weighting_]*=float_X(2.0);
+        }
+    };
+
+    /* definition of SetDrift start*/
+    typedef FreeImpl<DoubleWeightingFunctor> DoubleWeighting;
+
+
 } //namespace manipulators
 
 

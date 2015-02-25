@@ -27,3 +27,4 @@
 #include "particles/manipulators/DriftImpl.def"
 #include "particles/manipulators/IfRelativeGlobalPositionImpl.def"
 #include "particles/manipulators/CreateParticlesFromParticleImpl.def"
+#include "particles/manipulators/FreeImpl.def"
