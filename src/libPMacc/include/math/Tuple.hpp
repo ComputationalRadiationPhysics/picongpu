@@ -31,6 +31,7 @@
 #include <boost/mpl/front.hpp>
 #include <boost/mpl/int.hpp>
 #include <boost/mpl/minus.hpp>
+#include <boost/mpl/integral_c.hpp>
 #include <boost/preprocessor/repetition/enum.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>
 #include <boost/preprocessor/repetition/enum_binary_params.hpp>
@@ -108,7 +109,7 @@ public:
     {
         return value;
     }
-    HDINLINE Value& at(mpl_::integral_c<int, 0>)
+    HDINLINE Value& at(mpl::integral_c<int, 0>)
     {
         return value;
     }
@@ -117,7 +118,7 @@ public:
     {
         return value;
     }
-    HDINLINE const Value& at(mpl_::integral_c<int, 0>) const
+    HDINLINE const Value& at(mpl::integral_c<int, 0>) const
     {
         return value;
     }
