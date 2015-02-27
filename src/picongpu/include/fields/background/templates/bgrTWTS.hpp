@@ -28,6 +28,7 @@
 #include "dimensions/DataSpace.hpp"
 #include "mappings/simulation/SubGrid.hpp"
 #include "math/Complex.hpp"
+#include "fields/background/templates/bgrTWTS.def"
 
 namespace picongpu
 {

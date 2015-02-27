@@ -20,10 +20,6 @@
 
 #pragma once
 
-/** Load pre-defined templates */
-#include "fields/background/templates/bgrTWTS.def"
-
-
 /** Load external background fields
  *
  */
@@ -37,23 +33,7 @@ namespace picongpu
 
         /* We use this to calculate your SI input back to our unit system */
         const float3_64 unitField;
-
-        /* TWTS E-fields need to be initialized on host, so they can look up global grid dimensions. */
-        const templates::TWTSFieldE twtsFieldE;
-        
-        // Constructor is host-only, because of subGrid and halfSimSize initialization
-        HINLINE FieldBackgroundE( const float3_64 unitField ) : unitField(unitField),
-        
-            twtsFieldE( 30.0e-6,  /* focus_y [m], the distance to the laser focus in y-direction */
-               0.8e-6,             /* wavelength [m] */
-               10.0e-15 / 2.3548200450309493820231386529194,    /* pulselength [s], sigma of std. gauss for intensity (E^2) */
-               5.0e-6,             /* w_x [m], cylindrically focused spot size */
-               0.01,               /* w_y [m] */
-               unitField,          /* pass unitField */
-               60. *(PI/180.),     /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
-               1.0,                /* propagation speed of overlap [speed of light]. */
-               ( 39.3e-6 )/(::picongpu::SI::SPEED_OF_LIGHT_SI), /* manual time delay [s] if auto_tdelay is false */
-               false)              /* Should PIConGPU automatically choose a suitable time delay? [true/false] */
+        HDINLINE FieldBackgroundE( const float3_64 unitField ) : unitField(unitField)
         {}
 
         /** Specify your background field E(r,t) here
@@ -64,38 +44,16 @@ namespace picongpu
         operator()( const DataSpace<simDim>& cellIdx,
                     const uint32_t currentStep ) const
         {
-            /* example 1: TWTS background pulse */
-            /** unit: meter */
-            const double WAVE_LENGTH_SI = 0.8e-6;
-            
-            /** UNITCONV */
-            //const double UNITCONV_Intens_to_A0 = ::picongpu::SI::ELECTRON_CHARGE_SI * ::picongpu::SI::ELECTRON_CHARGE_SI * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI / (4.0 * PI * PI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::EPS0_SI);
-            const double UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
+            /* example: periodicity of 20 microns (=2.0e-5 m) */
+            const float_64 period_SI(20.0e-6);
+            /* calculate cells -> SI -> m to microns*/
+            const float_64 y_SI = cellIdx.y() * SI::CELL_HEIGHT_SI * 1.0e6;
+            /* note: you can also transform the time step to seconds by
+             *       multiplying with DELTA_T_SI */
 
-            /** unit: W / m^2 */
-            //const double _PEAK_INTENSITY_SI = 3.4e19 * 1.0e4;
-            /** unit: none */
-            //const double _A0  = _PEAK_INTENSITY_SI * UNITCONV_Intens_to_A0;
-
-            /** unit: none */
-            const double _A0  = 1.0;
-
-            /** unit: Volt /meter */
-            const float_X AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
-
-            /** unit: Volt /meter */
-            //const double AMPLITUDE_SI = 1.738e13;
-            
-            return AMPLITUDE_SI * twtsFieldE( cellIdx, currentStep );
-
-            /* example 2: own formula */
-            // const float_64 period_SI( 20.0e-6 );               /*     20 microns */
-            // const float_X amplitude( 100.0e9 / unitField[0] ); /* +/- 100 GV/m   */
-
-            // const float_64 y_SI = cellIdx.y() * SI::CELL_HEIGHT_SI;
-            // const float_X sinArg = precisionCast<float_X>( y_SI / period_SI * 2.0 * PI );
-
-            // return float3_X( 0.0, amplitude * math::cos( sinArg ), 0.0);
+            /* specify your E-Field in V/m and convert to PIConGPU units */
+            const float_X sinArg = precisionCast<float_X>( y_SI / period_SI * 2.0 * PI );
+            return float3_X(0.0, math::sin( sinArg ) / unitField[1], 0.0);
         }
     };
 
@@ -105,23 +63,9 @@ namespace picongpu
         /* Add this additional field for pushing particles */
         static const bool InfluenceParticlePusher = false;
 
-        /* TWTS B-fields need to be initialized on host, so they can look up global grid dimensions. */
-        templates::TWTSFieldB twtsFieldB;
-        
         /* We use this to calculate your SI input back to our unit system */
         const float3_64 unitField;
-        HINLINE FieldBackgroundB( const float3_64 unitField ) : unitField(unitField),
-        
-            twtsFieldB( 30.0e-6,  /* focus_y [m], the distance to the laser focus in y-direction */
-               0.8e-6,             /* wavelength [m] */
-               10.0e-15 / 2.3548200450309493820231386529194,    /* pulselength [s], sigma of std. gauss for intensity (E^2) */
-               5.0e-6,             /* w_x [m], cylindrically focused spot size */
-               0.01,               /* w_y [m] */
-               unitField,          /* pass unitField */
-               60. *(PI/180.),     /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
-               1.0,                /* propagation speed of overlap [speed of light]. */
-               ( 39.3e-6 )/(::picongpu::SI::SPEED_OF_LIGHT_SI), /* manual time delay [s] if auto_tdelay is false */
-               false)              /* Should PIConGPU automatically choose a suitable time delay? [true/false] */
+        HDINLINE FieldBackgroundB( const float3_64 unitField ) : unitField(unitField)
         {}
 
         /** Specify your background field B(r,t) here
@@ -132,28 +76,16 @@ namespace picongpu
         operator()( const DataSpace<simDim>& cellIdx,
                     const uint32_t currentStep ) const
         {
-            /** unit: meter */
-            const double WAVE_LENGTH_SI = 0.8e-6;
-            
-            /** UNITCONV */
-            //const double UNITCONV_Intens_to_A0 = ::picongpu::SI::ELECTRON_CHARGE_SI * ::picongpu::SI::ELECTRON_CHARGE_SI * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI / (4.0 * PI * PI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::EPS0_SI);
-            const double UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
+            /* example: periodicity of 20 microns (=2.0e-5 m) */
+            const float_64 period_SI(20.0e-6);
+            /* calculate cells -> SI -> m to microns*/
+            const float_64 y_SI = cellIdx.y() * SI::CELL_HEIGHT_SI * 1.0e6;
+            /* note: you can also transform the time step to seconds by
+             *       multiplying with DELTA_T_SI */
 
-            /** unit: W / m^2 */
-            //const double _PEAK_INTENSITY_SI = 3.4e19 * 1.0e4;
-            /** unit: none */
-            //const double _A0  = _PEAK_INTENSITY_SI * UNITCONV_Intens_to_A0;
-
-            /** unit: none */
-            const double _A0  = 1.0;
-
-            /** unit: Volt /meter */
-            const float_X AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
-
-            /** unit: Volt /meter */
-            //const double AMPLITUDE_SI = 1.738e13;
-        
-            return AMPLITUDE_SI * twtsFieldB( cellIdx, currentStep );
+            /* specify your B-Field in T and convert to PIConGPU units */
+            const float_X sinArg = precisionCast<float_X>( y_SI / period_SI * 2.0 * PI );
+            return float3_X(0.0, math::cos( sinArg ) / unitField[1], 0.0);
         }
     };
 
@@ -176,8 +108,17 @@ namespace picongpu
         operator()( const DataSpace<simDim>& cellIdx,
                     const uint32_t currentStep ) const
         {
-            return float3_X(0.0, 0.0, 0.0);
+            /* example: periodicity of 20 microns (=2.0e-5 m) */
+            const float_64 period_SI(20.0e-6);
+            /* calculate cells -> SI -> m to microns*/
+            const float_64 y_SI = cellIdx.y() * SI::CELL_HEIGHT_SI * 1.0e6;
+            /* note: you can also transform the time step to seconds by
+             *       multiplying with DELTA_T_SI */
+
+            /* specify your J-Field in A/m^2 and convert to PIConGPU units */
+            const float_X sinArg = precisionCast<float_X>( y_SI / period_SI * 2.0 * PI );
+            return float3_X(0.0, math::cos( sinArg ) / unitField[1], 0.0);
         }
     };
 
-} /* namespace picongpu */
+} // namespace picongpu
