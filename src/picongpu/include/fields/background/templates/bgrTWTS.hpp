@@ -297,6 +297,12 @@ namespace picongpu
         TWTSFieldE::calcTWTSEx( const float3_64& pos, const float_64 time) const
         {
             typedef PMacc::math::Complex<float_T> complex_T;
+            /** Unit of Speed */
+            const double UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
+            /** Unit of time */
+            const double UNIT_TIME = SI::DELTA_T_SI;
+            /** Unit of length */
+            const double UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
         
             /* propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
             const float_T beta0=float_T(beta_0);
@@ -316,21 +322,21 @@ namespace picongpu
              * documentation purposes. */
             /* const float_T eta = PI/2 - (phiReal - alphaTilt); */
             
-            const float_T cspeed=float_T(picongpu::SI::SPEED_OF_LIGHT_SI);
-            const float_T lambda0=float_T(wavelength_SI);
-            const float_T om0=float_T(2.0*PI*cspeed/lambda0);
+            const float_T cspeed=float_T(1.0);
+            const float_T lambda0=float_T(wavelength_SI/UNIT_LENGTH);
+            const float_T om0=float_T(2.0*PI*cspeed/lambda0*UNIT_TIME);
             /* factor 2  in tauG arises from definition convention in laser formula */
-            const float_T tauG=float_T(pulselength_SI*2.0);
+            const float_T tauG=float_T(pulselength_SI*2.0/UNIT_TIME);
             /* w0 is wx here --> w0 could be replaced by wx */
-            const float_T w0=float_T(w_x_SI);
-            const float_T rho0=float_T(PI*w0*w0/lambda0);
+            const float_T w0=float_T(w_x_SI/UNIT_LENGTH);
+            const float_T rho0=float_T(PI*w0*w0/lambda0/UNIT_LENGTH);
             /* wy is width of TWTS pulse */
-            const float_T wy=float_T(w_y_SI);
-            const float_T k=float_T(2.0*PI/lambda0);
-            const float_T x=float_T(pos.x());
-            const float_T y=float_T(pos.y());
-            const float_T z=float_T(pos.z());
-            const float_T t=float_T(time);
+            const float_T wy=float_T(w_y_SI/UNIT_LENGTH);
+            const float_T k=float_T(2.0*PI/lambda0*UNIT_LENGTH);
+            const float_T x=float_T(pos.x()/UNIT_LENGTH);
+            const float_T y=float_T(pos.y()/UNIT_LENGTH);
+            const float_T z=float_T(pos.z()/UNIT_LENGTH);
+            const float_T t=float_T(time/UNIT_TIME);
             
             /* Calculating shortcuts for speeding up field calculation */
             const float_T sinPhi = sin(phiT);
@@ -647,7 +653,7 @@ namespace picongpu
             const float_64 By_rot=-sin(+phi)*By_By+cos(+phi)*Bz_By;
             const float_64 Bz_rot=-cos(+phi)*By_Bz-sin(+phi)*Bz_Bz;
             
-            /* Finally, the B-field in PIConGPU units. */
+            /* Finally, the B-field normalized to the peak amplitude. */
             return float3_X( float_X(0.0),
                              float_X(By_rot),
                              float_X(Bz_rot) );
@@ -689,7 +695,7 @@ namespace picongpu
             /* for rotating back the Field-Vektors.*/
             const float_64 Bx_rot=-cos(phi)*By_Bx-sin(phi)*Bx_Bx;
             
-            /* Finally, the B-field in PIConGPU units. */
+            /* Finally, the B-field normalized to the peak amplitude. */
             return float3_X( float_X(0.0),
                              float_X(By_rot),
                              float_X(Bx_rot) );
@@ -715,7 +721,13 @@ namespace picongpu
         TWTSFieldB::calcTWTSBy( const float3_64& pos, const float_64 time ) const
         {
             typedef PMacc::math::Complex<float_T> complex_T;
-        
+            /** Unit of Speed */
+            const double UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
+            /** Unit of time */
+            const double UNIT_TIME = SI::DELTA_T_SI;
+            /** Unit of length */
+            const double UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
+            
             /* propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
             const float_T beta0=float_T(beta_0);
             const float_T phiReal=float_T(phi);
@@ -734,21 +746,21 @@ namespace picongpu
              * documentation purposes. */
             /* const float_T eta = float_T(PI/2) - (phiReal - alphaTilt); */
             
-            const float_T cspeed=float_T(picongpu::SI::SPEED_OF_LIGHT_SI);
-            const float_T lambda0=float_T(wavelength_SI);
-            const float_T om0=float_T(2.0*PI*cspeed/lambda0);
+            const float_T cspeed=float_T(1.0);
+            const float_T lambda0=float_T(wavelength_SI/UNIT_LENGTH);
+            const float_T om0=float_T(2.0*PI*cspeed/lambda0*UNIT_TIME);
             /* factor 2  in tauG arises from definition convention in laser formula */
-            const float_T tauG=float_T(pulselength_SI*2.0);
+            const float_T tauG=float_T(pulselength_SI*2.0/UNIT_TIME);
             /* w0 is wx here --> w0 could be replaced by wx */
-            const float_T w0=float_T(w_x_SI);
-            const float_T rho0=float_T(PI*w0*w0/lambda0);
+            const float_T w0=float_T(w_x_SI/UNIT_LENGTH);
+            const float_T rho0=float_T(PI*w0*w0/lambda0/UNIT_LENGTH);
             /* wy is width of TWTS pulse */
-            const float_T wy=float_T(w_y_SI);
-            const float_T k=float_T(2.0*PI/lambda0);
-            const float_T x=float_T(pos.x());
-            const float_T y=float_T(pos.y());
-            const float_T z=float_T(pos.z());
-            const float_T t=float_T(time);
+            const float_T wy=float_T(w_y_SI/UNIT_LENGTH);
+            const float_T k=float_T(2.0*PI/lambda0*UNIT_LENGTH);
+            const float_T x=float_T(pos.x()/UNIT_LENGTH);
+            const float_T y=float_T(pos.y()/UNIT_LENGTH);
+            const float_T z=float_T(pos.z()/UNIT_LENGTH);
+            const float_T t=float_T(time/UNIT_TIME);
                             
             /* Shortcuts for speeding up the field calculation. */
             const float_T sinPhi = sin(phiT);
@@ -846,7 +858,13 @@ namespace picongpu
         TWTSFieldB::calcTWTSBz( const float3_64& pos, const float_64 time ) const
         {
             typedef PMacc::math::Complex<float_T> complex_T;
-        
+            /** Unit of Speed */
+            const double UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
+            /** Unit of time */
+            const double UNIT_TIME = SI::DELTA_T_SI;
+            /** Unit of length */
+            const double UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
+            
             /* propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
             const float_T beta0=float_T(beta_0);
             const float_T phiReal=float_T(phi);
@@ -865,21 +883,21 @@ namespace picongpu
              * documentation purposes. */
             /* const float_T eta = float_T(float_T(PI/2)) - (phiReal - alphaTilt); */
             
-            const float_T cspeed=float_T(picongpu::SI::SPEED_OF_LIGHT_SI);
-            const float_T lambda0=float_T(wavelength_SI);
-            const float_T om0=float_T(2.0*PI*cspeed/lambda0);
+            const float_T cspeed=float_T(1.0);
+            const float_T lambda0=float_T(wavelength_SI/UNIT_LENGTH);
+            const float_T om0=float_T(2.0*PI*cspeed/lambda0*UNIT_TIME);
             /* factor 2  in tauG arises from definition convention in laser formula */
-            const float_T tauG=float_T(pulselength_SI*2.0);
+            const float_T tauG=float_T(pulselength_SI*2.0/UNIT_TIME);
             /* w0 is wx here --> w0 could be replaced by wx */
-            const float_T w0=float_T(w_x_SI);
-            const float_T rho0=float_T(PI*w0*w0/lambda0);
+            const float_T w0=float_T(w_x_SI/UNIT_LENGTH);
+            const float_T rho0=float_T(PI*w0*w0/lambda0/UNIT_LENGTH);
             /* wy is width of TWTS pulse */
-            const float_T wy=float_T(w_y_SI);
-            const float_T k=float_T(2.0*PI/lambda0);
-            const float_T x=float_T(pos.x());
-            const float_T y=float_T(pos.y());
-            const float_T z=float_T(pos.z());
-            const float_T t=float_T(time);
+            const float_T wy=float_T(w_y_SI/UNIT_LENGTH);
+            const float_T k=float_T(2.0*PI/lambda0*UNIT_LENGTH);
+            const float_T x=float_T(pos.x()/UNIT_LENGTH);
+            const float_T y=float_T(pos.y()/UNIT_LENGTH);
+            const float_T z=float_T(pos.z()/UNIT_LENGTH);
+            const float_T t=float_T(time/UNIT_TIME);
                             
             /* Shortcuts for speeding up the field calculation. */
             const float_T sinPhi = sin(phiT);
