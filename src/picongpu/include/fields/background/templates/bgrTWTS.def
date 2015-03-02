@@ -36,6 +36,8 @@ namespace picongpu
         class TWTSFieldE
         {
         public:
+            typedef float_64 float_T;
+            
             /* Center of simulation volume in number of cells */
             PMACC_ALIGN(halfSimSize,DataSpace<simDim>);
             /* y-position of TWTS coordinate origin inside the simulation coordinates [meter]
@@ -111,7 +113,7 @@ namespace picongpu
              * \param time Absolute time (SI, including all offsets and transformations)
              *  for calculating the field
              * \return Ex-field component of the non-rotated TWTS field in SI units */
-            HDINLINE float_64
+            HDINLINE float_T
             calcTWTSEx( const float3_64& pos, const float_64 time ) const;
             
             /** Calculate the SI position vectors that later enter the Ex(r, t) calculations as r.
@@ -152,6 +154,8 @@ namespace picongpu
         class TWTSFieldB
         {
         public:
+            typedef float_64 float_T;
+            
             /* Center of simulation volume in number of cells */
             PMACC_ALIGN(halfSimSize,DataSpace<simDim>);
             /* y-position of TWTS coordinate origin inside the simulation coordinates [meter]
@@ -208,7 +212,7 @@ namespace picongpu
              * \param pos Spatial position of the target field.
              * \param time Absolute time (SI, including all offsets and transformations)
              *  for calculating the field */
-            HDINLINE float_64
+            HDINLINE float_T
             calcTWTSBy( const float3_64& pos, const float_64 time ) const;
 
             /** Calculate the Bz(r,t) field here
@@ -216,7 +220,7 @@ namespace picongpu
              * \param pos Spatial position of the target field.
              * \param time Absolute time (SI, including all offsets and transformations)
              *  for calculating the field */
-            HDINLINE float_64
+            HDINLINE float_T
             calcTWTSBz( const float3_64& pos, const float_64 time ) const;
 
             /** Calculate the SI position vectors that later enter

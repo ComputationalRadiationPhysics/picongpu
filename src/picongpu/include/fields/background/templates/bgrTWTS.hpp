@@ -293,20 +293,19 @@ namespace picongpu
          * \param pos Spatial position of the target field.
          * \param time Absolute time (SI, including all offsets and transformations) for calculating
          *             the field */
-        HDINLINE float_64
+        HDINLINE TWTSFieldE::float_T
         TWTSFieldE::calcTWTSEx( const float3_64& pos, const float_64 time) const
         {
-            typedef PMacc::math::Complex<float_64> complex_64;
+            typedef PMacc::math::Complex<float_T> complex_T;
         
             /* propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
-            const float_64 beta0=precisionCast<float_64>(beta_0);
-            const float_64 phiReal=precisionCast<float_64>(phi);
-            //const float_64 phi64=precisionCast<float_64>(phi);
-            const float_64 alphaTilt=atan2(1-beta0*cos(phiReal),beta0*sin(phiReal));
-            const float_64 phi64=2*alphaTilt;
+            const float_T beta0=float_T(beta_0);
+            const float_T phiReal=float_T(phi);
+            const float_T alphaTilt=atan2(float_T(1.0)-beta0*cos(phiReal),beta0*sin(phiReal));
+            const float_T phiT=float_T(2.0)*alphaTilt;
             /* Definition of the laser pulse front tilt angle for the laser field below.
              * For beta0=1.0, this is equivalent to our standard definition. Question: Why is the
-             * local "phi" not equal in value to the object member "phiReal" or "this->phi"?
+             * local "phi_T" not equal in value to the object member "phiReal" or "phi"?
              * Because the standard TWTS pulse is defined for beta0=1.0 and in the coordinate-system
              * of the TWTS model phi is responsible for pulse front tilt and dispersion only. Hence
              * the dispersion will (although physically correct) be slightly off the ideal TWTS
@@ -315,96 +314,98 @@ namespace picongpu
             
             /* Angle between the laser pulse front and the y-axis. Not used, but remains in code for
              * documentation purposes. */
-            /* const float_64 eta = PI/2 - (phiReal - alphaTilt); */
+            /* const float_T eta = PI/2 - (phiReal - alphaTilt); */
             
-            const float_64 cspeed=picongpu::SI::SPEED_OF_LIGHT_SI;
-            const float_64 lambda0=precisionCast<float_64>(wavelength_SI);
-            const float_64 om0=2*PI*cspeed/lambda0;
+            const float_T cspeed=float_T(picongpu::SI::SPEED_OF_LIGHT_SI);
+            const float_T lambda0=float_T(wavelength_SI);
+            const float_T om0=float_T(2.0*PI*cspeed/lambda0);
             /* factor 2  in tauG arises from definition convention in laser formula */
-            const float_64 tauG=precisionCast<float_64>(pulselength_SI)*2.0;
+            const float_T tauG=float_T(pulselength_SI*2.0);
             /* w0 is wx here --> w0 could be replaced by wx */
-            const float_64 w0=precisionCast<float_64>(w_x_SI);
-            const float_64 rho0=PI*w0*w0/lambda0;
+            const float_T w0=float_T(w_x_SI);
+            const float_T rho0=float_T(PI*w0*w0/lambda0);
             /* wy is width of TWTS pulse */
-            const float_64 wy=precisionCast<float_64>(w_y_SI);
-            const float_64 k=2*PI/lambda0;
-            const float_64 x=pos.x();
-            const float_64 y=pos.y();
-            const float_64 z=pos.z();
-            const float_64 t=time;
+            const float_T wy=float_T(w_y_SI);
+            const float_T k=float_T(2.0*PI/lambda0);
+            const float_T x=float_T(pos.x());
+            const float_T y=float_T(pos.y());
+            const float_T z=float_T(pos.z());
+            const float_T t=float_T(time);
             
             /* Calculating shortcuts for speeding up field calculation */
-            const float_64 sinPhi = sin(phi64);
-            const float_64 cosPhi = cos(phi64);
-            const float_64 sinPhi2 = sin(phi64/2.);
-            const float_64 cosPhi2 = cos(phi64/2.);
-            const float_64 tanPhi2 = tan(phi64/2.);
+            const float_T sinPhi = sin(phiT);
+            const float_T cosPhi = cos(phiT);
+            const float_T sinPhi2 = sin(phiT/float_T(2.0));
+            const float_T cosPhi2 = cos(phiT/float_T(2.0));
+            const float_T tanPhi2 = tan(phiT/float_T(2.0));
             
             /* The "helpVar" variables decrease the nesting level of the evaluated expressions and
              * thus help with formal code verification through manual code inspection. */
-            const complex_64 helpVar1=complex_64(0,1)*rho0 - y*cosPhi - z*sinPhi;
-            const complex_64 helpVar2=complex_64(0,-1)*cspeed*om0*tauG*tauG
-                                        - y*cosPhi/cosPhi2/cosPhi2*tanPhi2 - 2*z*tanPhi2*tanPhi2;
-            const complex_64 helpVar3=complex_64(0,1)*rho0 - y*cosPhi - z*sinPhi;
+            const complex_T helpVar1=complex_T(0,1)*rho0 - y*cosPhi - z*sinPhi;
+            const complex_T helpVar2=complex_T(0,-1)*cspeed*om0*tauG*tauG
+                                        - y*cosPhi/cosPhi2/cosPhi2*tanPhi2
+                                        - float_T(2.0)*z*tanPhi2*tanPhi2;
+            const complex_T helpVar3=complex_T(0,1)*rho0 - y*cosPhi - z*sinPhi;
 
-            const complex_64 helpVar4=(
+            const complex_T helpVar4=(
                 -(cspeed*cspeed*k*om0*tauG*tauG*wy*wy*x*x)
-                - 2*cspeed*cspeed*om0*t*t*wy*wy*rho0 
-                + complex_64(0,2)*cspeed*cspeed*om0*om0*t*tauG*tauG*wy*wy*rho0
-                - 2*cspeed*cspeed*om0*tauG*tauG*y*y*rho0
-                + 4*cspeed*om0*t*wy*wy*z*rho0
-                - complex_64(0,2)*cspeed*om0*om0*tauG*tauG*wy*wy*z*rho0
-                - 2*om0*wy*wy*z*z*rho0
-                - complex_64(0,8)*om0*wy*wy*y*(cspeed*t - z)*z*sinPhi2*sinPhi2
-                + complex_64(0,8)/sinPhi*(
-                        +2*z*z*(cspeed*om0*t*wy*wy + complex_64(0,1)*cspeed*y*y - om0*wy*wy*z)
+                - float_T(2.0)*cspeed*cspeed*om0*t*t*wy*wy*rho0 
+                + complex_T(0,2)*cspeed*cspeed*om0*om0*t*tauG*tauG*wy*wy*rho0
+                - float_T(2.0)*cspeed*cspeed*om0*tauG*tauG*y*y*rho0
+                + float_T(4.0)*cspeed*om0*t*wy*wy*z*rho0
+                - complex_T(0,2)*cspeed*om0*om0*tauG*tauG*wy*wy*z*rho0
+                - float_T(2.0)*om0*wy*wy*z*z*rho0
+                - complex_T(0,8)*om0*wy*wy*y*(cspeed*t - z)*z*sinPhi2*sinPhi2
+                + complex_T(0,8)/sinPhi*(
+                        +float_T(2.0)*z*z*(cspeed*om0*t*wy*wy+complex_T(0,1)*cspeed*y*y-om0*wy*wy*z)
                         + y*(
                             + cspeed*k*wy*wy*x*x
-                            - complex_64(0,2)*cspeed*om0*t*wy*wy*rho0
-                            + 2*cspeed*y*y*rho0
-                            + complex_64(0,2)*om0*wy*wy*z*rho0
-                        )*tan(PI/2-phi64)/sinPhi
+                            - complex_T(0,2)*cspeed*om0*t*wy*wy*rho0
+                            + float_T(2.0)*cspeed*y*y*rho0
+                            + complex_T(0,2)*om0*wy*wy*z*rho0
+                        )*tan(float_T(PI/2.0)-phiT)/sinPhi
                     )*sinPhi2*sinPhi2*sinPhi2*sinPhi2
-                - complex_64(0,2)*cspeed*cspeed*om0*t*t*wy*wy*z*sinPhi
-                - 2*cspeed*cspeed*om0*om0*t*tauG*tauG*wy*wy*z*sinPhi
-                - complex_64(0,2)*cspeed*cspeed*om0*tauG*tauG*y*y*z*sinPhi
-                + complex_64(0,4)*cspeed*om0*t*wy*wy*z*z*sinPhi
-                + 2*cspeed*om0*om0*tauG*tauG*wy*wy*z*z*sinPhi
-                - complex_64(0,2)*om0*wy*wy*z*z*z*sinPhi
-                - 4*cspeed*om0*t*wy*wy*y*rho0*tanPhi2
-                + 4*om0*wy*wy*y*z*rho0*tanPhi2
-                + complex_64(0,2)*y*y*(
-                     + cspeed*om0*t*wy*wy + complex_64(0,1)*cspeed*y*y - om0*wy*wy*z
+                - complex_T(0,2)*cspeed*cspeed*om0*t*t*wy*wy*z*sinPhi
+                - float_T(2.0)*cspeed*cspeed*om0*om0*t*tauG*tauG*wy*wy*z*sinPhi
+                - complex_T(0,2)*cspeed*cspeed*om0*tauG*tauG*y*y*z*sinPhi
+                + complex_T(0,4)*cspeed*om0*t*wy*wy*z*z*sinPhi
+                + float_T(2.0)*cspeed*om0*om0*tauG*tauG*wy*wy*z*z*sinPhi
+                - complex_T(0,2)*om0*wy*wy*z*z*z*sinPhi
+                - float_T(4.0)*cspeed*om0*t*wy*wy*y*rho0*tanPhi2
+                + float_T(4.0)*om0*wy*wy*y*z*rho0*tanPhi2
+                + complex_T(0,2)*y*y*(
+                     + cspeed*om0*t*wy*wy + complex_T(0,1)*cspeed*y*y - om0*wy*wy*z
                      )*cosPhi*cosPhi/cosPhi2/cosPhi2*tanPhi2
-                + complex_64(0,2)*cspeed*k*wy*wy*x*x*z*tanPhi2*tanPhi2
-                - 2*om0*wy*wy*y*y*rho0*tanPhi2*tanPhi2
-                + 4*cspeed*om0*t*wy*wy*z*rho0*tanPhi2*tanPhi2
-                + complex_64(0,4)*cspeed*y*y*z*rho0*tanPhi2*tanPhi2
-                - 4*om0*wy*wy*z*z*rho0*tanPhi2*tanPhi2
-                - complex_64(0,2)*om0*wy*wy*y*y*z*sinPhi*tanPhi2*tanPhi2
-                - 2*y*cosPhi*(
+                + complex_T(0,2)*cspeed*k*wy*wy*x*x*z*tanPhi2*tanPhi2
+                - float_T(2.0)*om0*wy*wy*y*y*rho0*tanPhi2*tanPhi2
+                + float_T(4.0)*cspeed*om0*t*wy*wy*z*rho0*tanPhi2*tanPhi2
+                + complex_T(0,4)*cspeed*y*y*z*rho0*tanPhi2*tanPhi2
+                - float_T(4.0)*om0*wy*wy*z*z*rho0*tanPhi2*tanPhi2
+                - complex_T(0,2)*om0*wy*wy*y*y*z*sinPhi*tanPhi2*tanPhi2
+                - float_T(2.0)*y*cosPhi*(
                     + om0*(
                         + cspeed*cspeed*(
-                              complex_64(0,1)*t*t*wy*wy
+                              complex_T(0,1)*t*t*wy*wy
                             + om0*t*tauG*tauG*wy*wy
-                            + complex_64(0,1)*tauG*tauG*y*y
+                            + complex_T(0,1)*tauG*tauG*y*y
                             )
-                        - cspeed*(complex_64(0,2)*t
+                        - cspeed*(complex_T(0,2)*t
                         + om0*tauG*tauG)*wy*wy*z
-                        + complex_64(0,1)*wy*wy*z*z
+                        + complex_T(0,1)*wy*wy*z*z
                         )
-                    + complex_64(0,2)*om0*wy*wy*y*(cspeed*t - z)*tanPhi2
-                    + complex_64(0,1)*tanPhi2*tanPhi2*(
-                          complex_64(0,-4)*cspeed*y*y*z
-                        + om0*wy*wy*(y*y - 4*(cspeed*t - z)*z)
+                    + complex_T(0,2)*om0*wy*wy*y*(cspeed*t - z)*tanPhi2
+                    + complex_T(0,1)*tanPhi2*tanPhi2*(
+                          complex_T(0,-4)*cspeed*y*y*z
+                        + om0*wy*wy*(y*y - float_T(4.0)*(cspeed*t - z)*z)
                     )
                 )
-            )/(2.*cspeed*wy*wy*helpVar1*helpVar2);
+            )/(float_T(2.0)*cspeed*wy*wy*helpVar1*helpVar2);
 
-            const complex_64 helpVar5=cspeed*om0*tauG*tauG 
-                - complex_64(0,8)*y*tan(PI/2-phi64)/sinPhi/sinPhi*sinPhi2*sinPhi2*sinPhi2*sinPhi2
-                - complex_64(0,2)*z*tanPhi2*tanPhi2;
-            const complex_64 result=(pmMath::exp(helpVar4)*tauG
+            const complex_T helpVar5=cspeed*om0*tauG*tauG 
+                - complex_T(0,8)*y*tan( float_T(PI/2)-phiT )
+                                    /sinPhi/sinPhi*sinPhi2*sinPhi2*sinPhi2*sinPhi2
+                - complex_T(0,2)*z*tanPhi2*tanPhi2;
+            const complex_T result=(pmMath::exp(helpVar4)*tauG
                 *pmMath::sqrt((cspeed*om0*rho0)/helpVar3))/pmMath::sqrt(helpVar5);
             return result.get_real();
         }
@@ -710,19 +711,19 @@ namespace picongpu
          * \param pos Spatial position of the target field.
          * \param time Absolute time (SI, including all offsets and transformations)
          *             for calculating the field */
-        HDINLINE float_64
+        HDINLINE TWTSFieldB::float_T
         TWTSFieldB::calcTWTSBy( const float3_64& pos, const float_64 time ) const
         {
-            typedef PMacc::math::Complex<float_64> complex_64;
+            typedef PMacc::math::Complex<float_T> complex_T;
         
             /* propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
-            const float_64 beta0=precisionCast<float_64>(beta_0);
-            const float_64 phiReal=precisionCast<float_64>(phi);
-            const float_64 alphaTilt=atan2(1-beta0*cos(phiReal),beta0*sin(phiReal));
-            const float_64 phi64=2*alphaTilt;
+            const float_T beta0=precisionCast<float_T>(beta_0);
+            const float_T phiReal=precisionCast<float_T>(phi);
+            const float_T alphaTilt=atan2(float_T(1.0)-beta0*cos(phiReal),beta0*sin(phiReal));
+            const float_T phiT=float_T(2.0)*alphaTilt;
             /* Definition of the laser pulse front tilt angle for the laser field below.
              * For beta0=1.0, this is equivalent to our standard definition. Question: Why is the
-             * local "phi" not equal in value to the object member "phiReal" or "this->phi"?
+             * local "phi_T" not equal in value to the object member "phiReal" or "phi"?
              * Because the standard TWTS pulse is defined for beta0=1.0 and in the coordinate-system
              * of the TWTS model phi is responsible for pulse front tilt and dispersion only. Hence
              * the dispersion will (although physically correct) be slightly off the ideal TWTS
@@ -731,107 +732,107 @@ namespace picongpu
             
             /* Angle between the laser pulse front and the y-axis. Not used, but remains in code for
              * documentation purposes. */
-            /* const float_64 eta = PI/2 - (phiReal - alphaTilt); */
+            /* const float_T eta = float_T(PI/2) - (phiReal - alphaTilt); */
             
-            const float_64 cspeed=picongpu::SI::SPEED_OF_LIGHT_SI;
-            const float_64 lambda0=precisionCast<float_64>(wavelength_SI);
-            const float_64 om0=2*PI*cspeed/lambda0;
-            /* factor 2 in tauG arises from definition convention in laser formula */
-            const float_64 tauG=precisionCast<float_64>(pulselength_SI)*2.0;
+            const float_T cspeed=float_T(picongpu::SI::SPEED_OF_LIGHT_SI);
+            const float_T lambda0=precisionCast<float_T>(wavelength_SI);
+            const float_T om0=precisionCast<float_T>(2.0*PI*cspeed/lambda0);
+            /* factor 2  in tauG arises from definition convention in laser formula */
+            const float_T tauG=precisionCast<float_T>(pulselength_SI*2.0);
             /* w0 is wx here --> w0 could be replaced by wx */
-            const float_64 w0=precisionCast<float_64>(w_x_SI);
-            const float_64 rho0=PI*w0*w0/lambda0;
+            const float_T w0=precisionCast<float_T>(w_x_SI);
+            const float_T rho0=precisionCast<float_T>(PI*w0*w0/lambda0);
             /* wy is width of TWTS pulse */
-            const float_64 wy=precisionCast<float_64>(w_y_SI);
-            const float_64 k=2*PI/lambda0;
-            const float_64 x=pos.x();
-            const float_64 y=pos.y();
-            const float_64 z=pos.z();
-            const float_64 t=time;
+            const float_T wy=precisionCast<float_T>(w_y_SI);
+            const float_T k=precisionCast<float_T>(2.0*PI/lambda0);
+            const float_T x=precisionCast<float_T>(pos.x());
+            const float_T y=precisionCast<float_T>(pos.y());
+            const float_T z=precisionCast<float_T>(pos.z());
+            const float_T t=precisionCast<float_T>(time);
                             
             /* Shortcuts for speeding up the field calculation. */
-            const float_64 sinPhi = sin(phi64);
-            const float_64 cosPhi = cos(phi64);
-            const float_64 cosPhi2 = cos(phi64/2.);
-            const float_64 tanPhi2 = tan(phi64/2.);
+            const float_T sinPhi = sin(phiT);
+            const float_T cosPhi = cos(phiT);
+            const float_T cosPhi2 = cos(phiT/2.0);
+            const float_T tanPhi2 = tan(phiT/2.0);
             
             /* The "helpVar" variables decrease the nesting level of the evaluated expressions and
              * thus help with formal code verification through manual code inspection. */
-            const complex_64 helpVar1=rho0 + complex_64(0,1)*y*cosPhi + complex_64(0,1)*z*sinPhi;
-            const complex_64 helpVar2=cspeed*om0*tauG*tauG + complex_64(0,2)
-                                        *(-z - y*tan(PI/2-phi64))*tanPhi2*tanPhi2;
-            const complex_64 helpVar3=complex_64(0,1)*rho0 - y*cosPhi - z*sinPhi;
+            const complex_T helpVar1=rho0 + complex_T(0,1)*y*cosPhi + complex_T(0,1)*z*sinPhi;
+            const complex_T helpVar2=cspeed*om0*tauG*tauG + complex_T(0,2)
+                                        *(-z - y*tan(float_T(PI/2)-phiT))*tanPhi2*tanPhi2;
+            const complex_T helpVar3=complex_T(0,1)*rho0 - y*cosPhi - z*sinPhi;
             
-            const complex_64 helpVar4= -1.0*(
+            const complex_T helpVar4= float_T(-1.0)*(
                 cspeed*cspeed*k*om0*tauG*tauG*wy*wy*x*x
-                + 2*cspeed*cspeed*om0*t*t*wy*wy*rho0
-                - complex_64(0,2)*cspeed*cspeed*om0*om0*t*tauG*tauG*wy*wy*rho0
-                + 2*cspeed*cspeed*om0*tauG*tauG*y*y*rho0
-                - 4*cspeed*om0*t*wy*wy*z*rho0
-                + complex_64(0,2)*cspeed*om0*om0*tauG*tauG*wy*wy*z*rho0
-                + 2*om0*wy*wy*z*z*rho0
-                + 4*cspeed*om0*t*wy*wy*y*rho0*tanPhi2
-                - 4*om0*wy*wy*y*z*rho0*tanPhi2
-                - complex_64(0,2)*cspeed*k*wy*wy*x*x*z*tanPhi2*tanPhi2
-                + 2*om0*wy*wy*y*y*rho0*tanPhi2*tanPhi2
-                - 4*cspeed*om0*t*wy*wy*z*rho0*tanPhi2*tanPhi2
-                - complex_64(0,4)*cspeed*y*y*z*rho0*tanPhi2*tanPhi2
-                + 4*om0*wy*wy*z*z*rho0*tanPhi2*tanPhi2
-                - complex_64(0,2)*cspeed*k*wy*wy*x*x*y*tan(PI/2-phi64)*tanPhi2*tanPhi2
-                - 4*cspeed*om0*t*wy*wy*y*rho0*tan(PI/2-phi64)*tanPhi2*tanPhi2
-                - complex_64(0,4)*cspeed*y*y*y*rho0*tan(PI/2-phi64)*tanPhi2*tanPhi2
-                + 4*om0*wy*wy*y*z*rho0*tan(PI/2-phi64)*tanPhi2*tanPhi2
-                + 2*z*sinPhi*(
+                + float_T(2.0)*cspeed*cspeed*om0*t*t*wy*wy*rho0
+                - complex_T(0,2)*cspeed*cspeed*om0*om0*t*tauG*tauG*wy*wy*rho0
+                + float_T(2.0)*cspeed*cspeed*om0*tauG*tauG*y*y*rho0
+                - float_T(4.0)*cspeed*om0*t*wy*wy*z*rho0
+                + complex_T(0,2)*cspeed*om0*om0*tauG*tauG*wy*wy*z*rho0
+                + float_T(2.0)*om0*wy*wy*z*z*rho0
+                + float_T(4.0)*cspeed*om0*t*wy*wy*y*rho0*tanPhi2
+                - float_T(4.0)*om0*wy*wy*y*z*rho0*tanPhi2
+                - complex_T(0,2)*cspeed*k*wy*wy*x*x*z*tanPhi2*tanPhi2
+                + float_T(2.0)*om0*wy*wy*y*y*rho0*tanPhi2*tanPhi2
+                - float_T(4.0)*cspeed*om0*t*wy*wy*z*rho0*tanPhi2*tanPhi2
+                - complex_T(0,4)*cspeed*y*y*z*rho0*tanPhi2*tanPhi2
+                + float_T(4.0)*om0*wy*wy*z*z*rho0*tanPhi2*tanPhi2
+                - complex_T(0,2)*cspeed*k*wy*wy*x*x*y*tan(float_T(PI/2)-phiT)*tanPhi2*tanPhi2
+                - float_T(4.0)*cspeed*om0*t*wy*wy*y*rho0*tan(float_T(PI/2)-phiT)*tanPhi2*tanPhi2
+                - complex_T(0,4)*cspeed*y*y*y*rho0*tan(float_T(PI/2)-phiT)*tanPhi2*tanPhi2
+                + float_T(4.0)*om0*wy*wy*y*z*rho0*tan(float_T(PI/2)-phiT)*tanPhi2*tanPhi2
+                + float_T(2.0)*z*sinPhi*(
                     + om0*(
                         + cspeed*cspeed*(
-                              complex_64(0,1)*t*t*wy*wy
+                              complex_T(0,1)*t*t*wy*wy
                             + om0*t*tauG*tauG*wy*wy
-                            + complex_64(0,1)*tauG*tauG*y*y
+                            + complex_T(0,1)*tauG*tauG*y*y
                         )
-                        - cspeed*(complex_64(0,2)*t + om0*tauG*tauG)*wy*wy*z
-                        + complex_64(0,1)*wy*wy*z*z
+                        - cspeed*(complex_T(0,2)*t + om0*tauG*tauG)*wy*wy*z
+                        + complex_T(0,1)*wy*wy*z*z
                         )
-                    + complex_64(0,2)*om0*wy*wy*y*(cspeed*t - z)*tanPhi2
-                    + complex_64(0,1)*tanPhi2*tanPhi2*(
-                          complex_64(0,-2)*cspeed*y*y*z
-                        + om0*wy*wy*( y*y - 2*(cspeed*t - z)*z )
+                    + complex_T(0,2)*om0*wy*wy*y*(cspeed*t - z)*tanPhi2
+                    + complex_T(0,1)*tanPhi2*tanPhi2*(
+                          complex_T(0,-2)*cspeed*y*y*z
+                        + om0*wy*wy*( y*y - float_T(2.0)*(cspeed*t - z)*z )
                     )
                 )
-                + 2*y*cosPhi*(
+                + float_T(2.0)*y*cosPhi*(
                     + om0*(
                         + cspeed*cspeed*(
-                              complex_64(0,1)*t*t*wy*wy
+                              complex_T(0,1)*t*t*wy*wy
                             + om0*t*tauG*tauG*wy*wy
-                            + complex_64(0,1)*tauG*tauG*y*y
+                            + complex_T(0,1)*tauG*tauG*y*y
                         )
-                    - cspeed*(complex_64(0,2)*t + om0*tauG*tauG)*wy*wy*z
-                    + complex_64(0,1)*wy*wy*z*z
+                    - cspeed*(complex_T(0,2)*t + om0*tauG*tauG)*wy*wy*z
+                    + complex_T(0,1)*wy*wy*z*z
                     )
-                + complex_64(0,2)*om0*wy*wy*y*(cspeed*t - z)*tanPhi2
-                + complex_64(0,1)*(
-                      complex_64(0,-4)*cspeed*y*y*z
-                    + om0*wy*wy*(y*y - 4*(cspeed*t - z)*z)
-                    - 2*y*(
+                + complex_T(0,2)*om0*wy*wy*y*(cspeed*t - z)*tanPhi2
+                + complex_T(0,1)*(
+                      complex_T(0,-4)*cspeed*y*y*z
+                    + om0*wy*wy*(y*y - float_T(4.0)*(cspeed*t - z)*z)
+                    - float_T(2.0)*y*(
                         + cspeed*om0*t*wy*wy
-                        + complex_64(0,1)*cspeed*y*y
+                        + complex_T(0,1)*cspeed*y*y
                         - om0*wy*wy*z
-                        )*tan(PI/2-phi64)
+                        )*tan(float_T(PI/2)-phiT)
                     )*tanPhi2*tanPhi2
                 )
-            )/(2.*cspeed*wy*wy*helpVar1*helpVar2);
+            )/(float_T(2.0)*cspeed*wy*wy*helpVar1*helpVar2);
 
-            const complex_64 helpVar5=complex_64(0,-1)*cspeed*om0*tauG*tauG
-                                        + (-z - y*tan(PI/2-phi64))*tanPhi2*tanPhi2*2;
-            const complex_64 helpVar6=(cspeed*(cspeed*om0*tauG*tauG + complex_64(0,2)
-                                        *(-z - y*tan(PI/2-phi64))*tanPhi2*tanPhi2))/(om0*rho0);
-            const complex_64 result=(pmMath::exp(helpVar4)*tauG/cosPhi2/cosPhi2
-                *(rho0 + complex_64(0,1)*y*cosPhi + complex_64(0,1)*z*sinPhi)
+            const complex_T helpVar5=complex_T(0,-1)*cspeed*om0*tauG*tauG
+                                    + (-z - y*tan(float_T(PI/2)-phiT))*tanPhi2*tanPhi2*float_T(2.0);
+            const complex_T helpVar6=(cspeed*(cspeed*om0*tauG*tauG + complex_T(0,2)
+                                    *(-z - y*tan(float_T(PI/2)-phiT))*tanPhi2*tanPhi2))/(om0*rho0);
+            const complex_T result=(pmMath::exp(helpVar4)*tauG/cosPhi2/cosPhi2
+                *(rho0 + complex_T(0,1)*y*cosPhi + complex_T(0,1)*z*sinPhi)
                 *(
-                      complex_64(0,2)*cspeed*t + cspeed*om0*tauG*tauG - complex_64(0,4)*z
-                    + cspeed*(complex_64(0,2)*t + om0*tauG*tauG)*cosPhi
-                    + complex_64(0,2)*y*tanPhi2
-                )*pmMath::pow(helpVar3,-1.5)
-            )/(2.*helpVar5*pmMath::sqrt(helpVar6));
+                      complex_T(0,2)*cspeed*t + cspeed*om0*tauG*tauG - complex_T(0,4)*z
+                    + cspeed*(complex_T(0,2)*t + om0*tauG*tauG)*cosPhi
+                    + complex_T(0,2)*y*tanPhi2
+                )*pmMath::pow(helpVar3,float_T(-1.5))
+            )/(float_T(2.0)*helpVar5*pmMath::sqrt(helpVar6));
 
             return result.get_real();
         }
@@ -841,19 +842,19 @@ namespace picongpu
          * \param pos Spatial position of the target field.
          * \param time Absolute time (SI, including all offsets and transformations)
          *             for calculating the field */
-        HDINLINE float_64
+        HDINLINE TWTSFieldB::float_T
         TWTSFieldB::calcTWTSBz( const float3_64& pos, const float_64 time ) const
         {
-            typedef PMacc::math::Complex<float_64> complex_64;
-            
+            typedef PMacc::math::Complex<float_T> complex_T;
+        
             /* propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
-            const float_64 beta0=precisionCast<float_64>(beta_0);
-            const float_64 phiReal=precisionCast<float_64>(phi);
-            const float_64 alphaTilt=atan2(1-beta0*cos(phiReal),beta0*sin(phiReal));
-            const float_64 phi64=2*alphaTilt;
+            const float_T beta0=precisionCast<float_T>(beta_0);
+            const float_T phiReal=precisionCast<float_T>(phi);
+            const float_T alphaTilt=atan2(float_T(1.0)-beta0*cos(phiReal),beta0*sin(phiReal));
+            const float_T phiT=float_T(2.0)*alphaTilt;
             /* Definition of the laser pulse front tilt angle for the laser field below.
              * For beta0=1.0, this is equivalent to our standard definition. Question: Why is the
-             * local "phi" not equal in value to the object member "phiReal" or "this->phi"?
+             * local "phi_T" not equal in value to the object member "phiReal" or "phi"?
              * Because the standard TWTS pulse is defined for beta0=1.0 and in the coordinate-system
              * of the TWTS model phi is responsible for pulse front tilt and dispersion only. Hence
              * the dispersion will (although physically correct) be slightly off the ideal TWTS
@@ -862,70 +863,70 @@ namespace picongpu
             
             /* Angle between the laser pulse front and the y-axis. Not used, but remains in code for
              * documentation purposes. */
-            /* const float_64 eta = PI/2 - (phiReal - alphaTilt); */
+            /* const float_T eta = float_T(float_T(PI/2)) - (phiReal - alphaTilt); */
             
-            const float_64 cspeed=picongpu::SI::SPEED_OF_LIGHT_SI;
-            const float_64 lambda0=precisionCast<float_64>(wavelength_SI);
-            const float_64 om0=2*PI*cspeed/lambda0;
-            /* factor 2 in tauG arises from definition convention in laser formula */
-            const float_64 tauG=precisionCast<float_64>(pulselength_SI)*2.0;
+            const float_T cspeed=float_T(picongpu::SI::SPEED_OF_LIGHT_SI);
+            const float_T lambda0=precisionCast<float_T>(wavelength_SI);
+            const float_T om0=precisionCast<float_T>(2.0*PI*cspeed/lambda0);
+            /* factor 2  in tauG arises from definition convention in laser formula */
+            const float_T tauG=precisionCast<float_T>(pulselength_SI*2.0);
             /* w0 is wx here --> w0 could be replaced by wx */
-            const float_64 w0=precisionCast<float_64>(w_x_SI);
-            const float_64 rho0=PI*w0*w0/lambda0;
+            const float_T w0=precisionCast<float_T>(w_x_SI);
+            const float_T rho0=precisionCast<float_T>(PI*w0*w0/lambda0);
             /* wy is width of TWTS pulse */
-            const float_64 wy=precisionCast<float_64>(w_y_SI);
-            const float_64 k=2*PI/lambda0;
-            const float_64 x=pos.x();
-            const float_64 y=pos.y();
-            const float_64 z=pos.z();
-            const float_64 t=time;
+            const float_T wy=precisionCast<float_T>(w_y_SI);
+            const float_T k=precisionCast<float_T>(2.0*PI/lambda0);
+            const float_T x=precisionCast<float_T>(pos.x());
+            const float_T y=precisionCast<float_T>(pos.y());
+            const float_T z=precisionCast<float_T>(pos.z());
+            const float_T t=precisionCast<float_T>(time);
                             
             /* Shortcuts for speeding up the field calculation. */
-            const float_64 sinPhi = sin(phi64);
-            const float_64 cosPhi = cos(phi64);
-            //const float_64 tanPhi = tan(phi64);
-            const float_64 sinPhi2 = sin(phi64/2.);
-            const float_64 cosPhi2 = cos(phi64/2.);
-            const float_64 tanPhi2 = tan(phi64/2.);
+            const float_T sinPhi = sin(phiT);
+            const float_T cosPhi = cos(phiT);
+            const float_T sinPhi2 = sin(phiT/float_T(2.0));
+            const float_T cosPhi2 = cos(phiT/float_T(2.0));
+            const float_T tanPhi2 = tan(phiT/float_T(2.0));
             
             /* The "helpVar" variables decrease the nesting level of the evaluated expressions and
              * thus help with formal code verification through manual code inspection. */
-            const complex_64 helpVar1=-(cspeed*z) - cspeed*y*tan(PI/2-phi64)
-                                        + complex_64(0,1)*cspeed*rho0/sinPhi;
-            const complex_64 helpVar2=complex_64(0,1)*rho0 - y*cosPhi - z*sinPhi;
-            const complex_64 helpVar3=helpVar2*cspeed;
-            const complex_64 helpVar4=cspeed*om0*tauG*tauG
-                                        - complex_64(0,1)*y*cosPhi/cosPhi2/cosPhi2*tanPhi2
-                                        - complex_64(0,2)*z*tanPhi2*tanPhi2;
-            const complex_64 helpVar5=2*cspeed*t - complex_64(0,1)*cspeed*om0*tauG*tauG
-                                - 2*z + 8*y/sinPhi/sinPhi/sinPhi*sinPhi2*sinPhi2*sinPhi2*sinPhi2
-                                - 2*z*tanPhi2*tanPhi2;
+            const complex_T helpVar1=-(cspeed*z) - cspeed*y*tan(float_T(PI/2)-phiT)
+                                        + complex_T(0,1)*cspeed*rho0/sinPhi;
+            const complex_T helpVar2=complex_T(0,1)*rho0 - y*cosPhi - z*sinPhi;
+            const complex_T helpVar3=helpVar2*cspeed;
+            const complex_T helpVar4=cspeed*om0*tauG*tauG
+                                        - complex_T(0,1)*y*cosPhi/cosPhi2/cosPhi2*tanPhi2
+                                        - complex_T(0,2)*z*tanPhi2*tanPhi2;
+            const complex_T helpVar5=float_T(2.0)*cspeed*t - complex_T(0,1)*cspeed*om0*tauG*tauG
+                                - float_T(2.0)*z + float_T(8.0)*y/sinPhi/sinPhi/sinPhi
+                                    *sinPhi2*sinPhi2*sinPhi2*sinPhi2
+                                - float_T(2.0)*z*tanPhi2*tanPhi2;
 
-            const complex_64 helpVar6=(
+            const complex_T helpVar6=(
             (om0*y*rho0/cosPhi2/cosPhi2/cosPhi2/cosPhi2)/helpVar1 
-            - (complex_64(0,2)*k*x*x)/helpVar2 
-            - (complex_64(0,1)*om0*om0*tauG*tauG*rho0)/helpVar2
-            - (complex_64(0,4)*y*y*rho0)/(wy*wy*helpVar2)
+            - (complex_T(0,2)*k*x*x)/helpVar2 
+            - (complex_T(0,1)*om0*om0*tauG*tauG*rho0)/helpVar2
+            - (complex_T(0,4)*y*y*rho0)/(wy*wy*helpVar2)
             + (om0*om0*tauG*tauG*y*cosPhi)/helpVar2
-            + (4*y*y*y*cosPhi)/(wy*wy*helpVar2)
+            + (float_T(4.0)*y*y*y*cosPhi)/(wy*wy*helpVar2)
             + (om0*om0*tauG*tauG*z*sinPhi)/helpVar2
-            + (4*y*y*z*sinPhi)/(wy*wy*helpVar2)
-            + (complex_64(0,2)*om0*y*y*cosPhi/cosPhi2/cosPhi2*tanPhi2)/helpVar3
+            + (float_T(4.0)*y*y*z*sinPhi)/(wy*wy*helpVar2)
+            + (complex_T(0,2)*om0*y*y*cosPhi/cosPhi2/cosPhi2*tanPhi2)/helpVar3
             + (om0*y*rho0*cosPhi/cosPhi2/cosPhi2*tanPhi2)/helpVar3
-            + (complex_64(0,1)*om0*y*y*cosPhi*cosPhi/cosPhi2/cosPhi2*tanPhi2)/helpVar3
-            + (complex_64(0,4)*om0*y*z*tanPhi2*tanPhi2)/helpVar3
-            - (2*om0*z*rho0*tanPhi2*tanPhi2)/helpVar3
-            - (complex_64(0,2)*om0*z*z*sinPhi*tanPhi2*tanPhi2)/helpVar3
+            + (complex_T(0,1)*om0*y*y*cosPhi*cosPhi/cosPhi2/cosPhi2*tanPhi2)/helpVar3
+            + (complex_T(0,4)*om0*y*z*tanPhi2*tanPhi2)/helpVar3
+            - (float_T(2.0)*om0*z*rho0*tanPhi2*tanPhi2)/helpVar3
+            - (complex_T(0,2)*om0*z*z*sinPhi*tanPhi2*tanPhi2)/helpVar3
             - (om0*helpVar5*helpVar5)/(cspeed*helpVar4)
-            )/4.;
+            )/float_T(4.0);
                     
-            const complex_64 helpVar7=cspeed*om0*tauG*tauG
-                                        - complex_64(0,1)*y*cosPhi/cosPhi2/cosPhi2*tanPhi2
-                                        - complex_64(0,2)*z*tanPhi2*tanPhi2;
-            const complex_64 result=( complex_64(0,2)*pmMath::exp(helpVar6)*tauG*tanPhi2
+            const complex_T helpVar7=cspeed*om0*tauG*tauG
+                                        - complex_T(0,1)*y*cosPhi/cosPhi2/cosPhi2*tanPhi2
+                                        - complex_T(0,2)*z*tanPhi2*tanPhi2;
+            const complex_T result=( complex_T(0,2)*pmMath::exp(helpVar6)*tauG*tanPhi2
                                         *(cspeed*t - z + y*tanPhi2)
                                         *pmMath::sqrt( (om0*rho0)/helpVar3 )
-                                    )/pmMath::pow(helpVar7,1.5);
+                                    )/pmMath::pow(helpVar7,float_T(1.5));
 
             return result.get_real();
         }
