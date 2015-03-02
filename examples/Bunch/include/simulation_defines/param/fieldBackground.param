@@ -58,8 +58,6 @@ namespace picongpu
                 5.0e-6,
                 /* w_y [m] */
                 0.01,
-                /* pass unitField */
-                unitField,
                 /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
                 60. *(PI/180.),
                 /* propagation speed of overlap [speed of light]. */
@@ -103,11 +101,17 @@ namespace picongpu
             const double _A0  = 1.0;
 
             /** unit: Volt /meter */
-            const float_X AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
+            const float3_64 invUnitField = float3_64(1.0/unitField[0],
+                             1.0/unitField[1],
+                             1.0/unitField[2]);
+            
+            const float3_X AMPLITUDE_SI = precisionCast<float_X>(
+                                float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField );
 
             /** unit: Volt /meter */
             /* const double AMPLITUDE_SI = 1.738e13; */
             
+            /* Note: twtsFieldE(...) is normalized, such that peak amplitude equals unity. */
             return AMPLITUDE_SI * twtsFieldE( cellIdx, currentStep );
         }
     };
@@ -135,8 +139,6 @@ namespace picongpu
                 5.0e-6,
                 /* w_y [m] */
                 0.01,
-                /* pass unitField */
-                unitField,
                 /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
                 60. *(PI/180.),
                 /* propagation speed of overlap [speed of light]. */
@@ -179,11 +181,17 @@ namespace picongpu
             const double _A0  = 1.0;
 
             /** unit: Volt /meter */
-            const float_X AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
+            const float3_64 invUnitField = float3_64(1.0/unitField[0],
+                                         1.0/unitField[1],
+                                         1.0/unitField[2]);
+
+            const float3_X AMPLITUDE_SI = precisionCast<float_X>(
+                    float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField );
 
             /** unit: Volt /meter */
             /* const double AMPLITUDE_SI = 1.738e13; */
-        
+            
+            /* Note: twtsFieldB(...) is normalized, such that peak amplitude equals unity. */
             return AMPLITUDE_SI * twtsFieldB( cellIdx, currentStep );
         }
     };

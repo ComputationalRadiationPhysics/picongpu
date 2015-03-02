@@ -45,14 +45,13 @@ namespace picongpu
                                 const float_64 pulselength_SI,
                                 const float_64 w_x_SI,
                                 const float_64 w_y_SI,
-                                const float3_64& unitField,
                                 const float_X phi,
                                 const float_X beta_0,
                                 const float_64 tdelay_user_SI,
                                 const bool auto_tdelay ) :
             focus_y_SI(focus_y_SI), wavelength_SI(wavelength_SI),
             pulselength_SI(pulselength_SI), w_x_SI(w_x_SI),
-            w_y_SI(w_y_SI), unitField(unitField), phi(phi), beta_0(beta_0),
+            w_y_SI(w_y_SI), phi(phi), beta_0(beta_0),
             tdelay_user_SI(tdelay_user_SI), dt(SI::DELTA_T_SI),
             unit_length(UNIT_LENGTH), auto_tdelay(auto_tdelay)
         {
@@ -259,23 +258,23 @@ namespace picongpu
         
         template<>
         HDINLINE float3_X
-        TWTSFieldE::getTWTSEfield_SI<DIM3>(
+        TWTSFieldE::getTWTSEfield_Normalized<DIM3>(
                     const PMacc::math::Vector<float3_64,FieldE::numComponents>& eFieldPositions_SI,
                     const float_64 time) const
         {
-            return float3_X( float_X( calcTWTSEx(eFieldPositions_SI[0],time)/unitField[0] ),
+            return float3_X( float_X( calcTWTSEx(eFieldPositions_SI[0],time) ),
                              float_X(0.), float_X(0.) );
         }
         
         template<>
         HDINLINE float3_X
-        TWTSFieldE::getTWTSEfield_SI<DIM2>(
+        TWTSFieldE::getTWTSEfield_Normalized<DIM2>(
             const PMacc::math::Vector<float3_64,FieldE::numComponents>& eFieldPositions_SI,
             const float_64 time) const
         {
             /* Ex->Ez, so also the grid cell offset for Ez has to be used. */
             return float3_X( float_X(0.), float_X(0.),
-                   precisionCast<float_X>( calcTWTSEx(eFieldPositions_SI[2],time)/unitField[2] ) );
+                             float_X( calcTWTSEx(eFieldPositions_SI[2],time) ) );
         }
         
         HDINLINE float3_X
@@ -286,7 +285,7 @@ namespace picongpu
             const PMacc::math::Vector<float3_64,FieldE::numComponents> eFieldPositions_SI=
                                                             getEfieldPositions_SI<simDim>(cellIdx);
             /* Single TWTS-Pulse */
-            return getTWTSEfield_SI<simDim>(eFieldPositions_SI, time_SI);
+            return getTWTSEfield_Normalized<simDim>(eFieldPositions_SI, time_SI);
         }
 
         /** Calculate the Ex(r,t) field here
@@ -418,14 +417,13 @@ namespace picongpu
                                 const float_64 pulselength_SI,
                                 const float_64 w_x_SI,
                                 const float_64 w_y_SI,
-                                const float3_64& unitField,
                                 const float_X phi,
                                 const float_X beta_0,
                                 const float_64 tdelay_user_SI,
                                 const bool auto_tdelay ) :
             focus_y_SI(focus_y_SI), wavelength_SI(wavelength_SI),
             pulselength_SI(pulselength_SI), w_x_SI(w_x_SI),
-            w_y_SI(w_y_SI), unitField(unitField), phi(phi), beta_0(beta_0),
+            w_y_SI(w_y_SI), phi(phi), beta_0(beta_0),
             tdelay_user_SI(tdelay_user_SI), dt(SI::DELTA_T_SI),
             unit_length(UNIT_LENGTH), auto_tdelay(auto_tdelay)
         {
@@ -632,7 +630,7 @@ namespace picongpu
         
         template<>
         HDINLINE float3_X
-        TWTSFieldB::getTWTSBfield_SI<DIM3>(
+        TWTSFieldB::getTWTSBfield_Normalized<DIM3>(
                 const PMacc::math::Vector<float3_64,FieldB::numComponents>& bFieldPositions_SI,
                 const float_64 time) const
         {
@@ -650,13 +648,13 @@ namespace picongpu
             
             /* Finally, the B-field in PIConGPU units. */
             return float3_X( float_X(0.0),
-                             float_X(By_rot/unitField[1]),
-                             float_X(Bz_rot/unitField[2]) );
+                             float_X(By_rot),
+                             float_X(Bz_rot) );
         }
         
         template<>
         HDINLINE float3_X
-        TWTSFieldB::getTWTSBfield_SI<DIM2>(
+        TWTSFieldB::getTWTSBfield_Normalized<DIM2>(
                 const PMacc::math::Vector<float3_64,FieldB::numComponents>& bFieldPositions_SI,
                 const float_64 time) const
         {
@@ -692,8 +690,8 @@ namespace picongpu
             
             /* Finally, the B-field in PIConGPU units. */
             return float3_X( float_X(0.0),
-                             float_X(By_rot/unitField[1]),
-                             float_X(Bx_rot/unitField[2]) );
+                             float_X(By_rot),
+                             float_X(Bx_rot) );
         }
         
         HDINLINE float3_X
@@ -704,7 +702,7 @@ namespace picongpu
             const PMacc::math::Vector<float3_64,FieldB::numComponents> bFieldPositions_SI=
                                                             getBfieldPositions_SI<simDim>(cellIdx);
             /* Single TWTS-Pulse */
-            return getTWTSBfield_SI<simDim>(bFieldPositions_SI, time_SI);
+            return getTWTSBfield_Normalized<simDim>(bFieldPositions_SI, time_SI);
         }
 
         /** Calculate the By(r,t) field here
