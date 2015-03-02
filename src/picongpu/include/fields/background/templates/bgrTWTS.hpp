@@ -127,8 +127,8 @@ namespace picongpu
         HDINLINE PMacc::math::Vector<float3_64,FieldE::numComponents>
         TWTSFieldE::getEfieldPositions_SI<DIM2>(const DataSpace<simDim>& cellIdx) const
         {
-            const float2_64 cellDimensions = ( precisionCast<float_64>( picongpu::cellSize.x() ),
-                                               precisionCast<float_64>( picongpu::cellSize.y() ) )
+            const float2_64 cellDimensions = ( float_64( picongpu::cellSize.x() ),
+                                               float_64( picongpu::cellSize.y() ) )
                                              * unit_length;
             
             /* TWTS laser coordinate origin is centered transversally and defined longitudinally by
@@ -145,13 +145,13 @@ namespace picongpu
             
             for( uint32_t i = 0; i < FieldE::numComponents; ++i ) /* cellIdx Ex, Ey and Ez */
             {
-                eFieldPositions[i]+=float3_X( precisionCast<float_X>(cellIdx.x() - laserOrigin.x()),
-                                              precisionCast<float_X>(cellIdx.y() - laserOrigin.y()),
+                eFieldPositions[i]+=float3_X( float_X(cellIdx.x() - laserOrigin.x()),
+                                              float_X(cellIdx.y() - laserOrigin.y()),
                                               float_X(0.0) );
                 
-                eFieldPositions_SI[i]=float3_64( precisionCast<float_64>( (eFieldPositions[i]).x() )
+                eFieldPositions_SI[i]=float3_64( float_64( (eFieldPositions[i]).x() )
                                                                                * cellDimensions.x(),
-                                                 precisionCast<float_64>( (eFieldPositions[i]).y() )
+                                                 float_64( (eFieldPositions[i]).y() )
                                                                                * cellDimensions.y(),
                                                  float_64(0.0) );
                 
@@ -194,7 +194,7 @@ namespace picongpu
         HDINLINE float_64
         TWTSFieldE::getTime_SI<DIM3>(const uint32_t currentStep) const
         {
-            const float_64 time_SI = precisionCast<float_64>(currentStep) * dt;
+            const float_64 time_SI = float_64(currentStep) * dt;
                        
             if ( auto_tdelay ) {
                 
@@ -204,7 +204,7 @@ namespace picongpu
                 /* halfSimSize[2] --> Half-depth of simulation volume (in z); By geometric
                  * projection we calculate the y-distance walkoff of the TWTS-pulse.
                  * The abs()-function is for correct offset for -phi<-90Deg and +phi>+90Deg. */
-                const float_64 y1=precisionCast<float_64>(halfSimSize[2]
+                const float_64 y1=float_64(halfSimSize[2]
                                     *picongpu::SI::CELL_DEPTH_SI)*abs(cos(eta));
                 /* Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume
                  * at low intensity values. */
@@ -227,7 +227,7 @@ namespace picongpu
         HDINLINE float_64
         TWTSFieldE::getTime_SI<DIM2>(const uint32_t currentStep) const
         {
-            const float_64 time_SI = precisionCast<float_64>(currentStep) * dt;
+            const float_64 time_SI = float_64(currentStep) * dt;
                        
             if ( auto_tdelay ) {
                 
@@ -237,7 +237,7 @@ namespace picongpu
                 /* halfSimSize[0] --> Half-depth of simulation volume (in x); By geometric
                  * projection we calculate the y-distance walkoff of the TWTS-pulse.
                  * The abs()-function is for correct offset for -phi<-90Deg and +phi>+90Deg. */
-                const float_64 y1=precisionCast<float_64>(halfSimSize[0]
+                const float_64 y1=float_64(halfSimSize[0]
                                     *picongpu::SI::CELL_WIDTH_SI)*abs(cos(eta));
                 /* Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume
                  * at low intensity values. */
@@ -497,8 +497,8 @@ namespace picongpu
         HDINLINE PMacc::math::Vector<float3_64,FieldB::numComponents>
         TWTSFieldB::getBfieldPositions_SI<DIM2>(const DataSpace<simDim>& cellIdx) const
         {
-            const float2_64 cellDimensions = ( precisionCast<float_64>( picongpu::cellSize.x() ),
-                                               precisionCast<float_64>( picongpu::cellSize.y() ) )
+            const float2_64 cellDimensions = ( float_64( picongpu::cellSize.x() ),
+                                               float_64( picongpu::cellSize.y() ) )
                                              * unit_length;
                                                
             /* TWTS laser coordinate origin is centered transversally and defined longitudinally by
@@ -514,13 +514,13 @@ namespace picongpu
             
             for( uint32_t i = 0; i < FieldB::numComponents; ++i ) /* cellIdx Ex, Ey and Ez */
             {
-                bFieldPositions[i]+=float3_X(precisionCast<float_X>(cellIdx.x() - laserOrigin.x()),
-                                             precisionCast<float_X>(cellIdx.y() - laserOrigin.y()),
+                bFieldPositions[i]+=float3_X(float_X(cellIdx.x() - laserOrigin.x()),
+                                             float_X(cellIdx.y() - laserOrigin.y()),
                                              float_X(0.0) );
                 
-                bFieldPositions_SI[i]=float3_64( precisionCast<float_64>( (bFieldPositions[i]).x() )
+                bFieldPositions_SI[i]=float3_64( float_64( (bFieldPositions[i]).x() )
                                                     * cellDimensions.x(),
-                                                 precisionCast<float_64>( (bFieldPositions[i]).y() )
+                                                 float_64( (bFieldPositions[i]).y() )
                                                     * cellDimensions.y(),
                                                  float_64(0.0) );
                 
@@ -577,7 +577,7 @@ namespace picongpu
                 /* halfSimSize[2] --> Half-depth of simulation volume (in z); By geometric
                  * projection we calculate the y-distance walkoff of the TWTS-pulse.
                  * The abs()-function is for correct offset for -phi<-90Deg and +phi>+90Deg. */
-                const float_64 y1=precisionCast<float_64>(halfSimSize[2]
+                const float_64 y1=float_64(halfSimSize[2]
                                     *picongpu::SI::CELL_DEPTH_SI)*abs(cos(eta));
                 /* Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume
                  * at low intensity values. */
@@ -600,7 +600,7 @@ namespace picongpu
         HDINLINE float_64
         TWTSFieldB::getTime_SI<DIM2>(const uint32_t currentStep) const
         {
-            const float_64 time_SI = precisionCast<float_64>(currentStep) * dt;
+            const float_64 time_SI = float_64(currentStep) * dt;
                        
             if ( auto_tdelay ) {
                 
@@ -610,7 +610,7 @@ namespace picongpu
                 /* halfSimSize[0] --> Half-depth of simulation volume (in x); By geometric
                  * projection we calculate the y-distance walkoff of the TWTS-pulse.
                  * The abs()-function is for correct offset for -phi<-90Deg and +phi>+90Deg. */
-                const float_64 y1=precisionCast<float_64>(halfSimSize[0]
+                const float_64 y1=float_64(halfSimSize[0]
                                     *picongpu::SI::CELL_WIDTH_SI)*abs(cos(eta));
                 /* Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume
                  * at low intensity values. */
@@ -717,8 +717,8 @@ namespace picongpu
             typedef PMacc::math::Complex<float_T> complex_T;
         
             /* propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
-            const float_T beta0=precisionCast<float_T>(beta_0);
-            const float_T phiReal=precisionCast<float_T>(phi);
+            const float_T beta0=float_T(beta_0);
+            const float_T phiReal=float_T(phi);
             const float_T alphaTilt=atan2(float_T(1.0)-beta0*cos(phiReal),beta0*sin(phiReal));
             const float_T phiT=float_T(2.0)*alphaTilt;
             /* Definition of the laser pulse front tilt angle for the laser field below.
@@ -735,20 +735,20 @@ namespace picongpu
             /* const float_T eta = float_T(PI/2) - (phiReal - alphaTilt); */
             
             const float_T cspeed=float_T(picongpu::SI::SPEED_OF_LIGHT_SI);
-            const float_T lambda0=precisionCast<float_T>(wavelength_SI);
-            const float_T om0=precisionCast<float_T>(2.0*PI*cspeed/lambda0);
+            const float_T lambda0=float_T(wavelength_SI);
+            const float_T om0=float_T(2.0*PI*cspeed/lambda0);
             /* factor 2  in tauG arises from definition convention in laser formula */
-            const float_T tauG=precisionCast<float_T>(pulselength_SI*2.0);
+            const float_T tauG=float_T(pulselength_SI*2.0);
             /* w0 is wx here --> w0 could be replaced by wx */
-            const float_T w0=precisionCast<float_T>(w_x_SI);
-            const float_T rho0=precisionCast<float_T>(PI*w0*w0/lambda0);
+            const float_T w0=float_T(w_x_SI);
+            const float_T rho0=float_T(PI*w0*w0/lambda0);
             /* wy is width of TWTS pulse */
-            const float_T wy=precisionCast<float_T>(w_y_SI);
-            const float_T k=precisionCast<float_T>(2.0*PI/lambda0);
-            const float_T x=precisionCast<float_T>(pos.x());
-            const float_T y=precisionCast<float_T>(pos.y());
-            const float_T z=precisionCast<float_T>(pos.z());
-            const float_T t=precisionCast<float_T>(time);
+            const float_T wy=float_T(w_y_SI);
+            const float_T k=float_T(2.0*PI/lambda0);
+            const float_T x=float_T(pos.x());
+            const float_T y=float_T(pos.y());
+            const float_T z=float_T(pos.z());
+            const float_T t=float_T(time);
                             
             /* Shortcuts for speeding up the field calculation. */
             const float_T sinPhi = sin(phiT);
@@ -848,8 +848,8 @@ namespace picongpu
             typedef PMacc::math::Complex<float_T> complex_T;
         
             /* propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
-            const float_T beta0=precisionCast<float_T>(beta_0);
-            const float_T phiReal=precisionCast<float_T>(phi);
+            const float_T beta0=float_T(beta_0);
+            const float_T phiReal=float_T(phi);
             const float_T alphaTilt=atan2(float_T(1.0)-beta0*cos(phiReal),beta0*sin(phiReal));
             const float_T phiT=float_T(2.0)*alphaTilt;
             /* Definition of the laser pulse front tilt angle for the laser field below.
@@ -866,20 +866,20 @@ namespace picongpu
             /* const float_T eta = float_T(float_T(PI/2)) - (phiReal - alphaTilt); */
             
             const float_T cspeed=float_T(picongpu::SI::SPEED_OF_LIGHT_SI);
-            const float_T lambda0=precisionCast<float_T>(wavelength_SI);
-            const float_T om0=precisionCast<float_T>(2.0*PI*cspeed/lambda0);
+            const float_T lambda0=float_T(wavelength_SI);
+            const float_T om0=float_T(2.0*PI*cspeed/lambda0);
             /* factor 2  in tauG arises from definition convention in laser formula */
-            const float_T tauG=precisionCast<float_T>(pulselength_SI*2.0);
+            const float_T tauG=float_T(pulselength_SI*2.0);
             /* w0 is wx here --> w0 could be replaced by wx */
-            const float_T w0=precisionCast<float_T>(w_x_SI);
-            const float_T rho0=precisionCast<float_T>(PI*w0*w0/lambda0);
+            const float_T w0=float_T(w_x_SI);
+            const float_T rho0=float_T(PI*w0*w0/lambda0);
             /* wy is width of TWTS pulse */
-            const float_T wy=precisionCast<float_T>(w_y_SI);
-            const float_T k=precisionCast<float_T>(2.0*PI/lambda0);
-            const float_T x=precisionCast<float_T>(pos.x());
-            const float_T y=precisionCast<float_T>(pos.y());
-            const float_T z=precisionCast<float_T>(pos.z());
-            const float_T t=precisionCast<float_T>(time);
+            const float_T wy=float_T(w_y_SI);
+            const float_T k=float_T(2.0*PI/lambda0);
+            const float_T x=float_T(pos.x());
+            const float_T y=float_T(pos.y());
+            const float_T z=float_T(pos.z());
+            const float_T t=float_T(time);
                             
             /* Shortcuts for speeding up the field calculation. */
             const float_T sinPhi = sin(phiT);
