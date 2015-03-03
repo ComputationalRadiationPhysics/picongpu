@@ -81,19 +81,19 @@ namespace picongpu
     const float_X SPEED_OF_LIGHT = float_X(SI::SPEED_OF_LIGHT_SI / UNIT_SPEED);
 
     //! Charge of electron
-    const float_X Q_EL  = (float) (SI::ELECTRON_CHARGE_SI / UNIT_CHARGE);
+    const float_X Q_EL  = (float_X) (SI::ELECTRON_CHARGE_SI / UNIT_CHARGE);
     //! Mass of electron
-    const float_X M_EL  = (float) (SI::ELECTRON_MASS_SI / UNIT_MASS);
+    const float_X M_EL  = (float_X) (SI::ELECTRON_MASS_SI / UNIT_MASS);
     //! Charge of ion
-    const float_X Q_ION = (float) (SI::ION_CHARGE_SI / UNIT_CHARGE);
+    const float_X Q_ION = (float_X) (SI::ION_CHARGE_SI / UNIT_CHARGE);
     //! Mass of ion
-    const float_X M_ION = (float) (SI::ION_MASS_SI / UNIT_MASS);
+    const float_X M_ION = (float_X) (SI::ION_MASS_SI / UNIT_MASS);
 
     //! magnetic constant must be double 3.92907e-39
-    const float_X MUE0 = (float) (SI::MUE0_SI / UNIT_LENGTH / UNIT_MASS * UNIT_CHARGE * UNIT_CHARGE);
+    const float_X MUE0 = (float_X) (SI::MUE0_SI / UNIT_LENGTH / UNIT_MASS * UNIT_CHARGE * UNIT_CHARGE);
 
     //! electric constant must be double 2.54513e+38
-    const float_X EPS0 = (float) (1. / MUE0 / SPEED_OF_LIGHT / SPEED_OF_LIGHT);
+    const float_X EPS0 = (float_X) (1. / MUE0 / SPEED_OF_LIGHT / SPEED_OF_LIGHT);
 
     // = 1/c^2
     const float_X MUE0_EPS0 = float_X(1. / SPEED_OF_LIGHT / SPEED_OF_LIGHT);
