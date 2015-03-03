@@ -1,6 +1,6 @@
 /**
  * Copyright 2013-2015 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
- *                     Richard Pausch, Alexander Debus, Marco Garten
+ *                     Richard Pausch, Alexander Debus, Marco Garten, Anshuman Goswami
  *
  * This file is part of PIConGPU.
  *
@@ -59,7 +59,7 @@
 #include "algorithms/ForEach.hpp"
 #include "particles/ParticlesFunctors.hpp"
 #include <boost/mpl/int.hpp>
-
+#include "plugins/InsituBinEnergyParticles.hpp"
 namespace picongpu
 {
 using namespace PMacc;
@@ -220,6 +220,10 @@ public:
                 assert((int) ABSORBER_CELLS[i][1] <= (int) cellDescription->getGridLayout().getDataSpaceWithoutGuarding()[i]);
             }
         }
+        //Insitu analysis
+	insituPlugin = new InsituBinEnergyElectrons();
+	insituPlugin->setMappingDescription(cellDescription);
+	insituPlugin->load();
 
     }
 
@@ -244,6 +248,10 @@ public:
         __delete(pushBGField);
         __delete(currentBGField);
         __delete(cellDescription);
+        
+        //Insitu analysis
+        insituPlugin->unload();
+	__delete(insituPlugin);
     }
 
     void notify(uint32_t)
@@ -415,6 +423,8 @@ public:
 #endif
 
         this->myFieldSolver->update_afterCurrent(currentStep);
+	//Insitu analysis
+	insituPlugin->notify(currentStep);
     }
 
     virtual void movingWindowCheck(uint32_t currentStep)
@@ -573,6 +583,9 @@ protected:
     std::vector<std::string> gridDistribution;
 
     bool slidingWindow;
+    //Insitu analysis
+    ISimulationPlugin* insituPlugin;
+    typedef InsituBinEnergyParticles<PIC_Electrons> InsituBinEnergyElectrons;
 };
 } /* namespace picongpu */
 
