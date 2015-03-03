@@ -567,12 +567,15 @@ private:
                              values);
       }
 
-      HDF5dataFile.close();
-
-      /* TODO: will become atribute in HDF5 file later */
+      /* get the radiation amplitude unit */ 
       Amplitude UnityAmplitude(1., 0., 0., 0., 0., 0.);
       const numtype2 factor = UnityAmplitude.calc_radiation() * UNIT_ENERGY * UNIT_TIME ;
-      std::cout << "Factor to radiation intensities: " << factor << std::endl;
+
+      /* save unit in /custom as attribute */
+      const std::string unit = "unit_radiation";
+      HDF5dataFile.writeGlobalAttribute(radSplashType, unit.c_str(), &factor);
+
+      HDF5dataFile.close();
     }
 
 
