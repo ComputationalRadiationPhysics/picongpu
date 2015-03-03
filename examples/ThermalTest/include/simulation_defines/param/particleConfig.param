@@ -59,14 +59,14 @@ typedef TemperatureImpl<TemperatureParam,nvidia::functors::Add> AddTemperature;
 namespace startPosition
 {
 
-struct RandomParamater
+struct RandomParameter
 {
     /** Count of particles per cell at initial state
      *  unit: none */
     static const uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
 };
 /* definition of random particle start*/
-typedef RandomImpl<RandomParamater> Random;
+typedef RandomImpl<RandomParameter> Random;
 
 }//namespace startPosition
 }//namespace particles
