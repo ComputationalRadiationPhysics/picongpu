@@ -57,26 +57,15 @@ class InsituBinEnergyParticles : public ISimulationPlugin
 {
 private:
 
-    typedef MappingDesc::SuperCellSize SuperCellSize;
-
     ParticlesType *particles;
-
-    double *gBins; //This is now on host memory, so not a GridBuffer
-    MappingDesc *cellDescription;
-
-    double * binReduced;
 
     int numBins;
     int realNumBins;
-
-    mpi::MPIReduce reduce;
 
 public:
 
     InsituBinEnergyParticles() :
     particles(NULL),
-    gBins(NULL),
-    cellDescription(NULL)
     {
     }
 
@@ -85,24 +74,12 @@ public:
 
     }
 
-    void load()
-    {
-       pluginLoad();
-    }
-
-    void unload()
-    {
-       pluginUnload();
-    }
-
     void notify(uint32_t currentStep)
     {
         DataConnector &dc = Environment<>::get().DataConnector();
         particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
 
-	//Serialize superCells
-
-	//frames
+	//Serialize particles::superCells
 
         //Submit serialized particle data to the transport library
     }
@@ -117,28 +94,13 @@ public:
         return NULL;
     }
 
-    void setMappingDescription(MappingDesc *cellDescription)
-    {
-        this->cellDescription = cellDescription;
-    }
-
     void pluginLoad()
     {
-            realNumBins = numBins + 2;
-
-	    gBins = new double[realNumBins];
-	    binReduced = new double[realNumBins];
-	    for (int i = 0; i < realNumBins; ++i)
-	    {
-		    binReduced[i] = 0.0;
-	    }
 	    //Also setup transport library
     }
 
     void pluginUnload()
     {
-	    __delete(gBins);
-	    __deleteArray(binReduced);
 	    //Also teardown transport library
     }
 
