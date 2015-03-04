@@ -68,8 +68,8 @@ struct TemperatureImpl : private T_ValueFunctor
         if (!isInitialized)
         {
             const uint32_t cellIdx = DataSpaceOperations<simDim>::map(
-                                                                      localCells + 2 * SuperCellSize::toRT(),
-                                                                      localCellIdx + SuperCellSize::toRT());
+                                                                      localCells,
+                                                                      localCellIdx );
             rng = nvrng::create(rngMethods::Xor(seed, cellIdx), rngDistributions::Normal_float());
             isInitialized = true;
         }
