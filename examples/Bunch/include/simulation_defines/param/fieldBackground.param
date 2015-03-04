@@ -49,7 +49,9 @@ namespace picongpu
         /* Constructor is host-only, because of subGrid and halfSimSize initialization */
         HINLINE FieldBackgroundE( const float3_64 unitField ) : unitField(unitField),
         
-            twtsFieldE( 30.0e-6,  /* focus_y [m], the distance to the laser focus in y-direction */
+            twtsFieldE(
+                /* focus_y [m], the distance to the laser focus in y-direction */
+                30.0e-6,
                 /* wavelength [m] */
                 0.8e-6,
                 /* pulselength [s], sigma of std. gauss for intensity (E^2) */
@@ -59,13 +61,13 @@ namespace picongpu
                 /* w_y [m] */
                 0.01,
                 /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
-                60. *(PI/180.),
+                60. * (PI/180.),
                 /* propagation speed of overlap [speed of light]. */
                 1.0,
                 /* manual time delay [s] if auto_tdelay is false */
-                ( 39.3e-6 )/(::picongpu::SI::SPEED_OF_LIGHT_SI),
+                39.3e-6 / SI::SPEED_OF_LIGHT_SI,
                 /* Should PIConGPU automatically choose a suitable time delay? [true/false] */
-                false)
+                false )
         {}
 
         /** Specify your background field E(r,t) here
@@ -81,16 +83,14 @@ namespace picongpu
             const double WAVE_LENGTH_SI = 0.8e-6;
             
             /** UNITCONV */
-            /* const double UNITCONV_Intens_to_A0 = ::picongpu::SI::ELECTRON_CHARGE_SI
-                * ::picongpu::SI::ELECTRON_CHARGE_SI * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI
-                / (4.0 * PI * PI * ::picongpu::SI::ELECTRON_MASS_SI
-                * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI
-                * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI
-                * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI
-                * ::picongpu::SI::EPS0_SI); */
+            /* const double UNITCONV_Intens_to_A0 = SI::ELECTRON_CHARGE_SI
+                * SI::ELECTRON_CHARGE_SI * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI / (4.0 * PI * PI
+                * SI::ELECTRON_MASS_SI * SI::ELECTRON_MASS_SI * SI::SPEED_OF_LIGHT_SI
+                * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI
+                * SI::SPEED_OF_LIGHT_SI * SI::EPS0_SI); */
             const double UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
-                * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI
-                * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
+                * SI::ELECTRON_MASS_SI * SI::SPEED_OF_LIGHT_SI
+                * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
 
             /** unit: W / m^2 */
             /* const double _PEAK_INTENSITY_SI = 3.4e19 * 1.0e4; */
@@ -101,18 +101,20 @@ namespace picongpu
             const double _A0  = 1.0;
 
             /** unit: Volt /meter */
+            /*\todo #738 implement math::vector, native type operations */
             const float3_64 invUnitField = float3_64(1.0/unitField[0],
-                             1.0/unitField[1],
-                             1.0/unitField[2]);
+                                                     1.0/unitField[1],
+                                                     1.0/unitField[2] );
             
-            const float3_X AMPLITUDE_SI = precisionCast<float_X>(
+            /* laser amplitude in picongpu units [ unit: (Volt /meter) / unitField-factor ]
+             * Note: the laser amplitude is included in all field components 
+             * polarization and other properties are established by the peak amplitude
+             * normalized twtsFieldE(...) */
+            const float3_X amplitude = precisionCast<float_X>(
                                 float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField );
 
-            /** unit: Volt /meter */
-            /* const double AMPLITUDE_SI = 1.738e13; */
-            
             /* Note: twtsFieldE(...) is normalized, such that peak amplitude equals unity. */
-            return AMPLITUDE_SI * twtsFieldE( cellIdx, currentStep );
+            return amplitude * twtsFieldE( cellIdx, currentStep );
         }
     };
 
@@ -130,7 +132,9 @@ namespace picongpu
         const float3_64 unitField;
         HINLINE FieldBackgroundB( const float3_64 unitField ) : unitField(unitField),
         
-            twtsFieldB( 30.0e-6,  /* focus_y [m], the distance to the laser focus in y-direction */
+            twtsFieldB(
+                /* focus_y [m], the distance to the laser focus in y-direction */
+                30.0e-6,
                 /* wavelength [m] */
                 0.8e-6,
                 /* pulselength [s], sigma of std. gauss for intensity (E^2) */
@@ -140,13 +144,13 @@ namespace picongpu
                 /* w_y [m] */
                 0.01,
                 /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
-                60. *(PI/180.),
+                60. * (PI/180.),
                 /* propagation speed of overlap [speed of light]. */
                 1.0,
                 /* manual time delay [s] if auto_tdelay is false */
-                ( 39.3e-6 )/(::picongpu::SI::SPEED_OF_LIGHT_SI),
+                39.3e-6 / SI::SPEED_OF_LIGHT_SI,
                 /* Should PIConGPU automatically choose a suitable time delay? [true/false] */
-                false)
+                false )
         {}
 
         /** Specify your background field B(r,t) here
@@ -161,16 +165,14 @@ namespace picongpu
             const double WAVE_LENGTH_SI = 0.8e-6;
             
             /** UNITCONV */
-            /* const double UNITCONV_Intens_to_A0 = ::picongpu::SI::ELECTRON_CHARGE_SI
-                * ::picongpu::SI::ELECTRON_CHARGE_SI * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI
-                / (4.0 * PI * PI * ::picongpu::SI::ELECTRON_MASS_SI
-                * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI
-                * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI
-                * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI
-                * ::picongpu::SI::EPS0_SI); */
+            /* const double UNITCONV_Intens_to_A0 = SI::ELECTRON_CHARGE_SI
+                * SI::ELECTRON_CHARGE_SI * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI / (4.0 * PI * PI
+                * SI::ELECTRON_MASS_SI * SI::ELECTRON_MASS_SI * SI::SPEED_OF_LIGHT_SI
+                * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI
+                * SI::SPEED_OF_LIGHT_SI * SI::EPS0_SI); */
             const double UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
-                * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI
-                * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
+                * SI::ELECTRON_MASS_SI * SI::SPEED_OF_LIGHT_SI
+                * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
 
             /** unit: W / m^2 */
             /* const double _PEAK_INTENSITY_SI = 3.4e19 * 1.0e4; */
@@ -182,17 +184,18 @@ namespace picongpu
 
             /** unit: Volt /meter */
             const float3_64 invUnitField = float3_64(1.0/unitField[0],
-                                         1.0/unitField[1],
-                                         1.0/unitField[2]);
-
-            const float3_X AMPLITUDE_SI = precisionCast<float_X>(
+                                                     1.0/unitField[1],
+                                                     1.0/unitField[2]);
+            
+            /* laser amplitude in picongpu units [ unit: (Volt /meter) / unitField-factor ]
+             * Note: the laser amplitude is included in all field components 
+             * polarization and other properties are established by the peak amplitude
+             * normalized twtsFieldB(...) */
+            const float3_X amplitude = precisionCast<float_X>(
                     float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField );
-
-            /** unit: Volt /meter */
-            /* const double AMPLITUDE_SI = 1.738e13; */
             
             /* Note: twtsFieldB(...) is normalized, such that peak amplitude equals unity. */
-            return AMPLITUDE_SI * twtsFieldB( cellIdx, currentStep );
+            return amplitude * twtsFieldB( cellIdx, currentStep );
         }
     };
 

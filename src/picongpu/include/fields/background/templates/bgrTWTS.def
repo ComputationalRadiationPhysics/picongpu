@@ -33,6 +33,35 @@ namespace picongpu
      */
     namespace templates
     {
+        namespace detail
+        {
+            /* Number of field components used in the simulation. [Default: 3 for both 2D and 3D] */
+            const uint32_t numComponents=DIM3;
+            
+            /* Casting from both float2_X and float3_X to float3_X objects */
+            HDINLINE PMacc::math::Vector<float3_X, numComponents>
+            dummyCast(const PMacc::math::Vector<float3_X, numComponents>& x)
+            { return x; }
+            
+            HDINLINE PMacc::math::Vector<float3_X, numComponents>
+            dummyCast(const PMacc::math::Vector<float2_X, numComponents>& x)
+            {
+                PMacc::math::Vector<float3_X, numComponents> result;
+
+                for( uint32_t i = 0; i < numComponents; ++i )
+                {
+                    result[i]=float3_X( x[i].x(),x[i].y(),float_X(0.0) );
+                }
+                return result;
+            }
+            
+            HDINLINE float3_X
+            dummyCast(const float3_X& x) { return x; }
+            HDINLINE float3_X
+            dummyCast(const float2_X& x) { return float3_X( x.x(),x.y(),float_X(0.0) ); }
+            
+        } /* namespace detail */
+        
         class TWTSFieldE
         {
         public:
@@ -66,8 +95,6 @@ namespace picongpu
             /* Should the TWTS laser delay be chosen automatically, such that
                the laser gradually enters the simulation volume? [Default: TRUE] */
             const PMACC_ALIGN(auto_tdelay,bool);
-            /* Number of field components used in the simulation. [Default: 3 for both 2D and 3D] */
-            const static int numComponents=DIM3;
             
             /** Electric field of the electric field in the TW
              *
@@ -120,7 +147,7 @@ namespace picongpu
              * \tparam T_dim Specializes for the simulation dimension
              * \param cellIdx The total cell id counted from the start at timestep 0. */
             template <unsigned T_dim>
-            HDINLINE PMacc::math::Vector<float3_64,numComponents>
+            HDINLINE PMacc::math::Vector<float3_64,detail::numComponents>
             getEfieldPositions_SI(const DataSpace<simDim>& cellIdx) const;
             
             /** Calculate the E-field vector of the TWTS laser in SI units.
@@ -130,8 +157,8 @@ namespace picongpu
             template <unsigned T_dim>
             HDINLINE float3_X
             getTWTSEfield_Normalized(
-                            const PMacc::math::Vector<float3_64,numComponents>& eFieldPositions_SI,
-                            const float_64 time) const;
+                    const PMacc::math::Vector<float3_64,detail::numComponents>& eFieldPositions_SI,
+                    const float_64 time) const;
             
             /** Obtain the SI time that later enters the Ex(r, t) calculations as r.
              * \tparam T_dim Specializes for the simulation dimension
@@ -140,15 +167,6 @@ namespace picongpu
             template <unsigned T_dim>
             HDINLINE float_64 getTime_SI(const uint32_t currentStep) const;
             
-            HDINLINE PMacc::math::Vector<float3_X,numComponents>
-            dummyCast(const PMacc::math::Vector<float3_X,numComponents>& x) const;
-            HDINLINE PMacc::math::Vector<float3_X,numComponents>
-            dummyCast(const PMacc::math::Vector<float2_X,numComponents>& x) const;
-            HDINLINE float3_X
-            dummyCast(const float3_X& x) const { return x; }
-            HDINLINE float3_X
-            dummyCast(const float2_X& x) const { return float3_X( x.x(),x.y(),float_X(0.0) ); }
-        
         };
 
         class TWTSFieldB
@@ -184,8 +202,6 @@ namespace picongpu
             /* Should the TWTS laser delay be chosen automatically, such that
             the laser gradually enters the simulation volume? [Default: TRUE] */
             const PMACC_ALIGN(auto_tdelay,bool);
-            /* Number of field components used in the simulation. [Default: 3 for both 2D and 3D] */
-            const static int numComponents=DIM3;
             
             HDINLINE
             TWTSFieldB( const float_64 focus_y_SI,
@@ -228,7 +244,7 @@ namespace picongpu
              * \tparam T_dim Specializes for the simulation dimension
              * \param cellIdx The total cell id counted from the start at timestep 0. */
             template<unsigned T_dim>
-            HDINLINE PMacc::math::Vector<float3_64,numComponents>
+            HDINLINE PMacc::math::Vector<float3_64,detail::numComponents>
             getBfieldPositions_SI(const DataSpace<simDim>& cellIdx) const;
             
             /** Calculate the B-field vector of the TWTS laser in SI units.
@@ -238,8 +254,8 @@ namespace picongpu
             template<unsigned T_dim>
             HDINLINE float3_X
             getTWTSBfield_Normalized(
-                            const PMacc::math::Vector<float3_64,numComponents>& eFieldPositions_SI,
-                            const float_64 time) const;
+                    const PMacc::math::Vector<float3_64,detail::numComponents>& eFieldPositions_SI,
+                    const float_64 time) const;
             
             /** Obtain the SI time that later enters the By(r, t) and Bz(r, t) calculations as r.
              * \tparam T_dim Specializes for the simulation dimension
@@ -247,16 +263,7 @@ namespace picongpu
              *  \return time in SI units */
             template<unsigned T_dim>
             HDINLINE float_64 getTime_SI(const uint32_t currentStep) const;
-
-            HDINLINE PMacc::math::Vector<float3_X,numComponents>
-            dummyCast(const PMacc::math::Vector<float3_X,numComponents>& x) const;
-            HDINLINE PMacc::math::Vector<float3_X,numComponents>
-            dummyCast(const PMacc::math::Vector<float2_X,numComponents>& x) const;
-            HDINLINE float3_X
-            dummyCast(const float3_X& x) const { return x; }
-            HDINLINE float3_X
-            dummyCast(const float2_X& x) const { return float3_X( x.x(),x.y(),float_X(0.0) ); }
-           
+            
         };
 
     } /* namespace templates */

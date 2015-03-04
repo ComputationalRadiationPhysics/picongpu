@@ -58,53 +58,37 @@ namespace picongpu
             /* Note: These objects cannot be instantiated on CUDA GPU device. Since this is done
                      on host (see fieldBackground.param), this is no problem. */
             const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
-            halfSimSize=subGrid.getGlobalDomain().size / 2;
+            halfSimSize = subGrid.getGlobalDomain().size / 2;
         }
         
-        HDINLINE PMacc::math::Vector<float3_X, FieldE::numComponents>
-        TWTSFieldE::dummyCast(const PMacc::math::Vector<float3_X, FieldE::numComponents>& x) const
-        { return x; }
-
-        HDINLINE PMacc::math::Vector<float3_X, FieldE::numComponents>
-        TWTSFieldE::dummyCast(const PMacc::math::Vector<float2_X, FieldE::numComponents>& x) const
-            {
-                PMacc::math::Vector<float3_X, FieldE::numComponents> result;
-
-                for( uint32_t i = 0; i < numComponents; ++i ) // cellIdx Ex, Ey and Ez
-                {
-                    result[i]=float3_X( (x[i]).x(),(x[i]).y(),float_X(0.0) );
-                }
-                return result;
-            }
-        
         template<>
-        HDINLINE PMacc::math::Vector<float3_64,FieldE::numComponents>
+        HDINLINE PMacc::math::Vector<float3_64,detail::numComponents>
         TWTSFieldE::getEfieldPositions_SI<DIM3>(const DataSpace<simDim>& cellIdx) const
         {
             /* Note: Neither direct precisionCast on picongpu::cellSize
                      or casting on floatD_ does work. */
             floatD_X cellDim;
-            for (uint32_t i = 0; i<simDim;++i) cellDim[i]=picongpu::cellSize[i];
+            for (uint32_t i = 0; i<simDim;++i) cellDim[i] = picongpu::cellSize[i];
                 //const floatD_X cellDim = picongpu::cellSize;
-                const float3_64 cellDimensions = precisionCast<float_64>( dummyCast(cellDim) )
-                                                 * unit_length;
+                const float3_64 cellDimensions = 
+                    precisionCast<float_64>( detail::dummyCast(cellDim) ) * unit_length;
                 
                 /* TWTS laser coordinate origin is centered transversally and defined longitudinally
                  * by the laser center (usually maximum of intensity) in y. */
-                float3_X laserOrigin = dummyCast( floatD_X(halfSimSize) );
-                laserOrigin[1]=float_X( focus_y_SI/cellDimensions.y() );
+                float3_X laserOrigin = detail::dummyCast( floatD_X(halfSimSize) );
+                laserOrigin[1] = float_X( focus_y_SI/cellDimensions.y() );
                 
                 /* For the Yee-Cell shifted fields, obtain the fractional cell index components and
                  * add that to the total cell indices. The physical field coordinate origin is
                  * transversally centered with respect to the global simulation volume. */
-                PMacc::math::Vector<float3_X, FieldE::numComponents> eFieldPositions = 
-                                    dummyCast(fieldSolver::NumericalCellType::getEFieldPosition());
+                PMacc::math::Vector<float3_X, detail::numComponents> eFieldPositions = 
+                                    detail::dummyCast(fieldSolver::NumericalCellType::getEFieldPosition());
                 
-                PMacc::math::Vector<float3_64,FieldE::numComponents> eFieldPositions_SI;
+                PMacc::math::Vector<float3_64,detail::numComponents> eFieldPositions_SI;
                 
-                for( uint32_t i = 0; i < FieldE::numComponents; ++i ) // cellIdx Ex, Ey and Ez
+                for( uint32_t i = 0; i < detail::numComponents; ++i ) // cellIdx Ex, Ey and Ez
                 {
-                    eFieldPositions[i]   += ( dummyCast( floatD_X(cellIdx) ) - laserOrigin );
+                    eFieldPositions[i]   += ( detail::dummyCast( floatD_X(cellIdx) ) - laserOrigin );
                     eFieldPositions_SI[i] = precisionCast<float_64>(eFieldPositions[i])
                                             * cellDimensions;
                     
@@ -115,16 +99,16 @@ namespace picongpu
                      *  use the angle phi to determine the required amount of pulse front tilt.
                      *  RotationMatrix[PI/2+phi].(y,z) (180Deg-flip at phi=90Deg since coordinate
                      *  system in paper is oriented the other way round.) */
-                    eFieldPositions_SI[i] = float3_64( (eFieldPositions_SI[i]).x(),
-                       -sin(phi)*(eFieldPositions_SI[i]).y()-cos(phi)*(eFieldPositions_SI[i]).z(),
-                       +cos(phi)*(eFieldPositions_SI[i]).y()-sin(phi)*(eFieldPositions_SI[i]).z() );
+                    eFieldPositions_SI[i] = float3_64( eFieldPositions_SI[i].x(),
+                       -sin(phi)*eFieldPositions_SI[i].y()-cos(phi)*eFieldPositions_SI[i].z(),
+                       +cos(phi)*eFieldPositions_SI[i].y()-sin(phi)*eFieldPositions_SI[i].z() );
                 }
              
             return eFieldPositions_SI;
         }
          
         template<>
-        HDINLINE PMacc::math::Vector<float3_64,FieldE::numComponents>
+        HDINLINE PMacc::math::Vector<float3_64,detail::numComponents>
         TWTSFieldE::getEfieldPositions_SI<DIM2>(const DataSpace<simDim>& cellIdx) const
         {
             const float2_64 cellDimensions = ( float_64( picongpu::cellSize.x() ),
@@ -138,22 +122,22 @@ namespace picongpu
             /* For the Yee-Cell shifted fields, obtain the fractional cell index components and add
              * that to the total cell indices. The physical field coordinate origin is transversally
              * centered with respect to the global simulation volume. */
-            PMacc::math::Vector<float3_X, FieldE::numComponents> eFieldPositions =
-                                    dummyCast(fieldSolver::NumericalCellType::getEFieldPosition());
+            PMacc::math::Vector<float3_X, detail::numComponents> eFieldPositions =
+                            detail::dummyCast(fieldSolver::NumericalCellType::getEFieldPosition());
             
-            PMacc::math::Vector<float3_64,FieldE::numComponents> eFieldPositions_SI;
+            PMacc::math::Vector<float3_64,detail::numComponents> eFieldPositions_SI;
             
-            for( uint32_t i = 0; i < FieldE::numComponents; ++i ) /* cellIdx Ex, Ey and Ez */
+            for( uint32_t i = 0; i < detail::numComponents; ++i ) /* cellIdx Ex, Ey and Ez */
             {
-                eFieldPositions[i]+=float3_X( float_X(cellIdx.x() - laserOrigin.x()),
-                                              float_X(cellIdx.y() - laserOrigin.y()),
-                                              float_X(0.0) );
+                eFieldPositions[i] += float3_X( float_X(cellIdx.x() - laserOrigin.x()),
+                                                float_X(cellIdx.y() - laserOrigin.y()),
+                                                float_X(0.0) );
                 
-                eFieldPositions_SI[i]=float3_64( float_64( (eFieldPositions[i]).x() )
+                eFieldPositions_SI[i] = float3_64( float_64( eFieldPositions[i].x() )
                                                                                * cellDimensions.x(),
-                                                 float_64( (eFieldPositions[i]).y() )
+                                                   float_64( eFieldPositions[i].y() )
                                                                                * cellDimensions.y(),
-                                                 float_64(0.0) );
+                                                   float_64(0.0) );
                 
                 /*  Rotate 90 degree around y-axis, so that TWTS laser propagates within
                  *  the 2D (x,y)-plane. Corresponding position vector for the Ez-components
@@ -168,9 +152,9 @@ namespace picongpu
                  *  By --> By
                  *  Bz --> -Bx
                  */
-                eFieldPositions_SI[i] = float3_64( -(eFieldPositions_SI[i]).z(),
-                                                    (eFieldPositions_SI[i]).y(),
-                                                    (eFieldPositions_SI[i]).x() );
+                eFieldPositions_SI[i] = float3_64( -eFieldPositions_SI[i].z(),
+                                                    eFieldPositions_SI[i].y(),
+                                                    eFieldPositions_SI[i].x() );
                 
                 /*  Since, the laser propagation direction encloses an angle of phi with the
                  *  simulation y-axis (i.e. direction of sliding window), the positions vectors are
@@ -182,9 +166,9 @@ namespace picongpu
                 
                 /* Note: The x-axis of rotation is fine in 2D, because that component now contains
                  *       the (non-existing) simulation z-coordinate. */
-                eFieldPositions_SI[i] = float3_64( (eFieldPositions_SI[i]).x(),
-                   -sin(phi)*(eFieldPositions_SI[i]).y()-cos(phi)*(eFieldPositions_SI[i]).z(),
-                   +cos(phi)*(eFieldPositions_SI[i]).y()-sin(phi)*(eFieldPositions_SI[i]).z()  );
+                eFieldPositions_SI[i] = float3_64( eFieldPositions_SI[i].x(),
+                   -sin(phi)*eFieldPositions_SI[i].y()-cos(phi)*eFieldPositions_SI[i].z(),
+                   +cos(phi)*eFieldPositions_SI[i].y()-sin(phi)*eFieldPositions_SI[i].z()  );
             }
             
             return eFieldPositions_SI;
@@ -204,18 +188,18 @@ namespace picongpu
                 /* halfSimSize[2] --> Half-depth of simulation volume (in z); By geometric
                  * projection we calculate the y-distance walkoff of the TWTS-pulse.
                  * The abs()-function is for correct offset for -phi<-90Deg and +phi>+90Deg. */
-                const float_64 y1=float_64(halfSimSize[2]
+                const float_64 y1 = float_64(halfSimSize[2]
                                     *picongpu::SI::CELL_DEPTH_SI)*abs(cos(eta));
                 /* Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume
                  * at low intensity values. */
-                const float_64 m=3.;
+                const float_64 m = 3.;
                 /* Approximate cross section of laser pulse through y-axis,
                  * scaled with "fudge factor" m. */
-                const float_64 y2=m*(pulselength_SI*picongpu::SI::SPEED_OF_LIGHT_SI)/cos(eta);
+                const float_64 y2 = m*(pulselength_SI*picongpu::SI::SPEED_OF_LIGHT_SI)/cos(eta);
                 /* y-position of laser coordinate system origin within simulation. */
-                const float_64 y3=focus_y_SI;
+                const float_64 y3 = focus_y_SI;
                 /* Programmatically obtained time-delay */
-                const float_64 tdelay= (y1+y2+y3)/(picongpu::SI::SPEED_OF_LIGHT_SI*beta_0);
+                const float_64 tdelay = (y1+y2+y3)/(picongpu::SI::SPEED_OF_LIGHT_SI*beta_0);
                 
                 return time_SI-tdelay;
             }
@@ -237,18 +221,18 @@ namespace picongpu
                 /* halfSimSize[0] --> Half-depth of simulation volume (in x); By geometric
                  * projection we calculate the y-distance walkoff of the TWTS-pulse.
                  * The abs()-function is for correct offset for -phi<-90Deg and +phi>+90Deg. */
-                const float_64 y1=float_64(halfSimSize[0]
+                const float_64 y1 = float_64(halfSimSize[0]
                                     *picongpu::SI::CELL_WIDTH_SI)*abs(cos(eta));
                 /* Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume
                  * at low intensity values. */
-                const float_64 m=3.;
+                const float_64 m = 3.;
                 /* Approximate cross section of laser pulse through y-axis,
                  * scaled with "fudge factor" m. */
-                const float_64 y2=m*(pulselength_SI*picongpu::SI::SPEED_OF_LIGHT_SI)/cos(eta);
+                const float_64 y2 = m*(pulselength_SI*picongpu::SI::SPEED_OF_LIGHT_SI)/cos(eta);
                 /* y-position of laser coordinate system origin within simulation. */
-                const float_64 y3=focus_y_SI;
+                const float_64 y3 = focus_y_SI;
                 /* Programmatically obtained time-delay */
-                const float_64 tdelay= (y1+y2+y3)/(picongpu::SI::SPEED_OF_LIGHT_SI*beta_0);
+                const float_64 tdelay = (y1+y2+y3)/(picongpu::SI::SPEED_OF_LIGHT_SI*beta_0);
                 
                 return time_SI-tdelay;
             }
@@ -259,7 +243,7 @@ namespace picongpu
         template<>
         HDINLINE float3_X
         TWTSFieldE::getTWTSEfield_Normalized<DIM3>(
-                    const PMacc::math::Vector<float3_64,FieldE::numComponents>& eFieldPositions_SI,
+                    const PMacc::math::Vector<float3_64,detail::numComponents>& eFieldPositions_SI,
                     const float_64 time) const
         {
             return float3_X( float_X( calcTWTSEx(eFieldPositions_SI[0],time) ),
@@ -269,7 +253,7 @@ namespace picongpu
         template<>
         HDINLINE float3_X
         TWTSFieldE::getTWTSEfield_Normalized<DIM2>(
-            const PMacc::math::Vector<float3_64,FieldE::numComponents>& eFieldPositions_SI,
+            const PMacc::math::Vector<float3_64,detail::numComponents>& eFieldPositions_SI,
             const float_64 time) const
         {
             /* Ex->Ez, so also the grid cell offset for Ez has to be used. */
@@ -281,8 +265,8 @@ namespace picongpu
         TWTSFieldE::operator()( const DataSpace<simDim>& cellIdx,
                                 const uint32_t currentStep ) const
         {
-            const float_64 time_SI=getTime_SI<simDim>(currentStep);
-            const PMacc::math::Vector<float3_64,FieldE::numComponents> eFieldPositions_SI=
+            const float_64 time_SI = getTime_SI<simDim>(currentStep);
+            const PMacc::math::Vector<float3_64,detail::numComponents> eFieldPositions_SI =
                                                             getEfieldPositions_SI<simDim>(cellIdx);
             /* Single TWTS-Pulse */
             return getTWTSEfield_Normalized<simDim>(eFieldPositions_SI, time_SI);
@@ -305,10 +289,10 @@ namespace picongpu
             const double UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
         
             /* propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
-            const float_T beta0=float_T(beta_0);
-            const float_T phiReal=float_T(phi);
-            const float_T alphaTilt=atan2(float_T(1.0)-beta0*cos(phiReal),beta0*sin(phiReal));
-            const float_T phiT=float_T(2.0)*alphaTilt;
+            const float_T beta0 = float_T(beta_0);
+            const float_T phiReal = float_T(phi);
+            const float_T alphaTilt = atan2(float_T(1.0)-beta0*cos(phiReal),beta0*sin(phiReal));
+            const float_T phiT = float_T(2.0)*alphaTilt;
             /* Definition of the laser pulse front tilt angle for the laser field below.
              * For beta0=1.0, this is equivalent to our standard definition. Question: Why is the
              * local "phi_T" not equal in value to the object member "phiReal" or "phi"?
@@ -322,21 +306,21 @@ namespace picongpu
              * documentation purposes. */
             /* const float_T eta = PI/2 - (phiReal - alphaTilt); */
             
-            const float_T cspeed=float_T(1.0);
-            const float_T lambda0=float_T(wavelength_SI/UNIT_LENGTH);
-            const float_T om0=float_T(2.0*PI*cspeed/lambda0*UNIT_TIME);
+            const float_T cspeed = float_T(1.0);
+            const float_T lambda0 = float_T(wavelength_SI/UNIT_LENGTH);
+            const float_T om0 = float_T(2.0*PI*cspeed/lambda0*UNIT_TIME);
             /* factor 2  in tauG arises from definition convention in laser formula */
-            const float_T tauG=float_T(pulselength_SI*2.0/UNIT_TIME);
+            const float_T tauG = float_T(pulselength_SI*2.0/UNIT_TIME);
             /* w0 is wx here --> w0 could be replaced by wx */
-            const float_T w0=float_T(w_x_SI/UNIT_LENGTH);
-            const float_T rho0=float_T(PI*w0*w0/lambda0/UNIT_LENGTH);
+            const float_T w0 = float_T(w_x_SI/UNIT_LENGTH);
+            const float_T rho0 = float_T(PI*w0*w0/lambda0/UNIT_LENGTH);
             /* wy is width of TWTS pulse */
-            const float_T wy=float_T(w_y_SI/UNIT_LENGTH);
-            const float_T k=float_T(2.0*PI/lambda0*UNIT_LENGTH);
-            const float_T x=float_T(pos.x()/UNIT_LENGTH);
-            const float_T y=float_T(pos.y()/UNIT_LENGTH);
-            const float_T z=float_T(pos.z()/UNIT_LENGTH);
-            const float_T t=float_T(time/UNIT_TIME);
+            const float_T wy = float_T(w_y_SI/UNIT_LENGTH);
+            const float_T k = float_T(2.0*PI/lambda0*UNIT_LENGTH);
+            const float_T x = float_T(pos.x()/UNIT_LENGTH);
+            const float_T y = float_T(pos.y()/UNIT_LENGTH);
+            const float_T z = float_T(pos.z()/UNIT_LENGTH);
+            const float_T t = float_T(time/UNIT_TIME);
             
             /* Calculating shortcuts for speeding up field calculation */
             const float_T sinPhi = sin(phiT);
@@ -347,13 +331,13 @@ namespace picongpu
             
             /* The "helpVar" variables decrease the nesting level of the evaluated expressions and
              * thus help with formal code verification through manual code inspection. */
-            const complex_T helpVar1=complex_T(0,1)*rho0 - y*cosPhi - z*sinPhi;
-            const complex_T helpVar2=complex_T(0,-1)*cspeed*om0*tauG*tauG
+            const complex_T helpVar1 = complex_T(0,1)*rho0 - y*cosPhi - z*sinPhi;
+            const complex_T helpVar2 = complex_T(0,-1)*cspeed*om0*tauG*tauG
                                         - y*cosPhi/cosPhi2/cosPhi2*tanPhi2
                                         - float_T(2.0)*z*tanPhi2*tanPhi2;
-            const complex_T helpVar3=complex_T(0,1)*rho0 - y*cosPhi - z*sinPhi;
+            const complex_T helpVar3 = complex_T(0,1)*rho0 - y*cosPhi - z*sinPhi;
 
-            const complex_T helpVar4=(
+            const complex_T helpVar4 = (
                 -(cspeed*cspeed*k*om0*tauG*tauG*wy*wy*x*x)
                 - float_T(2.0)*cspeed*cspeed*om0*t*t*wy*wy*rho0 
                 + complex_T(0,2)*cspeed*cspeed*om0*om0*t*tauG*tauG*wy*wy*rho0
@@ -407,11 +391,11 @@ namespace picongpu
                 )
             )/(float_T(2.0)*cspeed*wy*wy*helpVar1*helpVar2);
 
-            const complex_T helpVar5=cspeed*om0*tauG*tauG 
+            const complex_T helpVar5 = cspeed*om0*tauG*tauG 
                 - complex_T(0,8)*y*tan( float_T(PI/2)-phiT )
                                     /sinPhi/sinPhi*sinPhi2*sinPhi2*sinPhi2*sinPhi2
                 - complex_T(0,2)*z*tanPhi2*tanPhi2;
-            const complex_T result=(pmMath::exp(helpVar4)*tauG
+            const complex_T result = (pmMath::exp(helpVar4)*tauG
                 *pmMath::sqrt((cspeed*om0*rho0)/helpVar3))/pmMath::sqrt(helpVar5);
             return result.get_real();
         }
@@ -437,51 +421,36 @@ namespace picongpu
             /* These objects cannot be instantiated on CUDA GPU device. Since this is done on host
              * (see fieldBackground.param), this is no problem. */
             const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
-            halfSimSize=subGrid.getGlobalDomain().size / 2;
+            halfSimSize = subGrid.getGlobalDomain().size / 2;
         }
         	
-        HDINLINE PMacc::math::Vector<float3_X, FieldE::numComponents>
-        TWTSFieldB::dummyCast(const PMacc::math::Vector<float3_X, FieldE::numComponents>& x) const
-        { return x; }
-
-        HDINLINE PMacc::math::Vector<float3_X, FieldE::numComponents>
-        TWTSFieldB::dummyCast(const PMacc::math::Vector<float2_X, FieldE::numComponents>& x) const
-        {
-            PMacc::math::Vector<float3_X, FieldE::numComponents> result;
-            for( uint32_t i = 0; i < numComponents; ++i ) // cellIdx Ex, Ey and Ez
-            {
-                result[i]=float3_X( (x[i]).x(),(x[i]).y(),float_X(0.0) );
-            }
-            return result;
-        }
-        
         template<>
-        HDINLINE PMacc::math::Vector<float3_64,FieldB::numComponents>
+        HDINLINE PMacc::math::Vector<float3_64,detail::numComponents>
         TWTSFieldB::getBfieldPositions_SI<DIM3>(const DataSpace<simDim>& cellIdx) const
         {
             /* Note: Neither direct precisionCast on picongpu::cellSize
                      or casting on floatD_ does work. */
             floatD_X cellDim;
-            for (uint32_t i = 0; i<simDim;++i) cellDim[i]=picongpu::cellSize[i];
+            for (uint32_t i = 0; i<simDim;++i) cellDim[i] = picongpu::cellSize[i];
             //const floatD_X cellDim = picongpu::cellSize;
-            const float3_64 cellDimensions = precisionCast<float_64>( dummyCast(cellDim) )
+            const float3_64 cellDimensions = precisionCast<float_64>( detail::dummyCast(cellDim) )
                                              * unit_length;
             
             /* TWTS laser coordinate origin is centered transversally and defined longitudinally
              * by the laser center (usually maximum of intensity) in y. */
-            float3_X laserOrigin = dummyCast( floatD_X(halfSimSize) );
-            laserOrigin[1]=float_X( focus_y_SI/cellDimensions.y() );
+            float3_X laserOrigin = detail::dummyCast( floatD_X(halfSimSize) );
+            laserOrigin[1] = float_X( focus_y_SI/cellDimensions.y() );
             
             /* For the Yee-Cell shifted fields, obtain the fractional cell index components and
              * add that to the total cell indices. The physical field coordinate origin is
              * transversally centered with respect to the global simulation volume. */
-            PMacc::math::Vector<float3_X, FieldB::numComponents> bFieldPositions =
-                                    dummyCast(fieldSolver::NumericalCellType::getBFieldPosition());
-            PMacc::math::Vector<float3_64,FieldB::numComponents> bFieldPositions_SI;
+            PMacc::math::Vector<float3_X, detail::numComponents> bFieldPositions =
+                            detail::dummyCast(fieldSolver::NumericalCellType::getBFieldPosition());
+            PMacc::math::Vector<float3_64,detail::numComponents> bFieldPositions_SI;
             
-            for( uint32_t i = 0; i < FieldB::numComponents; ++i ) // cellIdx Ex, Ey and Ez
+            for( uint32_t i = 0; i < detail::numComponents; ++i ) // cellIdx Ex, Ey and Ez
             {
-                bFieldPositions[i]   += (dummyCast( floatD_X(cellIdx) ) - laserOrigin);
+                bFieldPositions[i]   += (detail::dummyCast( floatD_X(cellIdx) ) - laserOrigin);
                 bFieldPositions_SI[i] = precisionCast<float_64>(bFieldPositions[i]) *cellDimensions;
                 
                 /*  Since, the laser propagation direction encloses an angle of phi with the
@@ -491,16 +460,16 @@ namespace picongpu
                  *  use the angle phi to determine the required amount of pulse front tilt.
                  *  RotationMatrix[PI/2+phi].(y,z) (180Deg-flip at phi=90Deg since coordinate
                  *  system in paper is oriented the other way round.) */
-                bFieldPositions_SI[i] = float3_64( (bFieldPositions_SI[i]).x(),
-                       -sin(phi)*(bFieldPositions_SI[i]).y()-cos(phi)*(bFieldPositions_SI[i]).z(),
-                       +cos(phi)*(bFieldPositions_SI[i]).y()-sin(phi)*(bFieldPositions_SI[i]).z() );
+                bFieldPositions_SI[i] = float3_64( bFieldPositions_SI[i].x(),
+                       -sin(phi)*bFieldPositions_SI[i].y()-cos(phi)*bFieldPositions_SI[i].z(),
+                       +cos(phi)*bFieldPositions_SI[i].y()-sin(phi)*bFieldPositions_SI[i].z() );
             }
 
             return bFieldPositions_SI;
         }
         
         template<>
-        HDINLINE PMacc::math::Vector<float3_64,FieldB::numComponents>
+        HDINLINE PMacc::math::Vector<float3_64,detail::numComponents>
         TWTSFieldB::getBfieldPositions_SI<DIM2>(const DataSpace<simDim>& cellIdx) const
         {
             const float2_64 cellDimensions = ( float_64( picongpu::cellSize.x() ),
@@ -514,21 +483,21 @@ namespace picongpu
             /* For the Yee-Cell shifted fields, obtain the fractional cell index components and add
              * that to the total cell indices. The physical field coordinate origin is transversally
              * centered with respect to the global simulation volume. */
-            PMacc::math::Vector<float3_X, FieldB::numComponents> bFieldPositions =
-                                    dummyCast(fieldSolver::NumericalCellType::getBFieldPosition());
-            PMacc::math::Vector<float3_64,FieldB::numComponents> bFieldPositions_SI;
+            PMacc::math::Vector<float3_X, detail::numComponents> bFieldPositions =
+                            detail::dummyCast(fieldSolver::NumericalCellType::getBFieldPosition());
+            PMacc::math::Vector<float3_64,detail::numComponents> bFieldPositions_SI;
             
-            for( uint32_t i = 0; i < FieldB::numComponents; ++i ) /* cellIdx Ex, Ey and Ez */
+            for( uint32_t i = 0; i < detail::numComponents; ++i ) /* cellIdx Ex, Ey and Ez */
             {
-                bFieldPositions[i]+=float3_X(float_X(cellIdx.x() - laserOrigin.x()),
-                                             float_X(cellIdx.y() - laserOrigin.y()),
-                                             float_X(0.0) );
+                bFieldPositions[i] += float3_X(float_X(cellIdx.x() - laserOrigin.x()),
+                                               float_X(cellIdx.y() - laserOrigin.y()),
+                                               float_X(0.0) );
                 
-                bFieldPositions_SI[i]=float3_64( float_64( (bFieldPositions[i]).x() )
+                bFieldPositions_SI[i] = float3_64( float_64( bFieldPositions[i].x() )
                                                     * cellDimensions.x(),
-                                                 float_64( (bFieldPositions[i]).y() )
+                                                   float_64( bFieldPositions[i].y() )
                                                     * cellDimensions.y(),
-                                                 float_64(0.0) );
+                                                   float_64(0.0) );
                 
                 /*  Rotate 90 degree around y-axis, so that TWTS laser propagates within
                  *  the 2D (x,y)-plane. Corresponding position vector for the Ez-components
@@ -543,9 +512,9 @@ namespace picongpu
                  *  By --> By
                  *  Bz --> -Bx
                  */
-                bFieldPositions_SI[i] = float3_64( -(bFieldPositions_SI[i]).z(),
-                                                    (bFieldPositions_SI[i]).y(),
-                                                    (bFieldPositions_SI[i]).x() );
+                bFieldPositions_SI[i] = float3_64( -bFieldPositions_SI[i].z(),
+                                                    bFieldPositions_SI[i].y(),
+                                                    bFieldPositions_SI[i].x() );
                 
                 /*  Since, the laser propagation direction encloses an angle of phi with the
                  *  simulation y-axis (i.e. direction of sliding window), the positions vectors are
@@ -559,11 +528,11 @@ namespace picongpu
                  *       the (non-existing) simulation z-coordinate. */
                 bFieldPositions_SI[i] = float3_64(
                    /* leave 2D z-component unchanged */
-                    (bFieldPositions_SI[i]).x(),
+                    bFieldPositions_SI[i].x(),
                    /* rotates  2D y-component */
-                   -sin(phi)*(bFieldPositions_SI[i]).y()-cos(phi)*(bFieldPositions_SI[i]).z(),
+                   -sin(phi)*bFieldPositions_SI[i].y()-cos(phi)*bFieldPositions_SI[i].z(),
                    /* and      2D x-component */
-                   +cos(phi)*(bFieldPositions_SI[i]).y()-sin(phi)*(bFieldPositions_SI[i]).z()  );
+                   +cos(phi)*bFieldPositions_SI[i].y()-sin(phi)*bFieldPositions_SI[i].z()  );
             }
             
             return bFieldPositions_SI;
@@ -573,7 +542,7 @@ namespace picongpu
         HDINLINE float_64
         TWTSFieldB::getTime_SI<DIM3>(const uint32_t currentStep) const
         {
-            const float_64 time_SI=currentStep*SI::DELTA_T_SI;
+            const float_64 time_SI = currentStep*SI::DELTA_T_SI;
                        
             if ( auto_tdelay ) {
                 
@@ -583,18 +552,18 @@ namespace picongpu
                 /* halfSimSize[2] --> Half-depth of simulation volume (in z); By geometric
                  * projection we calculate the y-distance walkoff of the TWTS-pulse.
                  * The abs()-function is for correct offset for -phi<-90Deg and +phi>+90Deg. */
-                const float_64 y1=float_64(halfSimSize[2]
+                const float_64 y1 = float_64(halfSimSize[2]
                                     *picongpu::SI::CELL_DEPTH_SI)*abs(cos(eta));
                 /* Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume
                  * at low intensity values. */
-                const float_64 m=3.;
+                const float_64 m = 3.;
                 /* Approximate cross section of laser pulse through y-axis,
                  * scaled with "fudge factor" m. */
-                const float_64 y2=m*(pulselength_SI*picongpu::SI::SPEED_OF_LIGHT_SI)/cos(eta);
+                const float_64 y2 = m*(pulselength_SI*picongpu::SI::SPEED_OF_LIGHT_SI)/cos(eta);
                 /* y-position of laser coordinate system origin within simulation. */
-                const float_64 y3=focus_y_SI;
+                const float_64 y3 = focus_y_SI;
                 /* Programmatically obtained time-delay */
-                const float_64 tdelay= (y1+y2+y3)/(picongpu::SI::SPEED_OF_LIGHT_SI*beta_0);
+                const float_64 tdelay = (y1+y2+y3)/(picongpu::SI::SPEED_OF_LIGHT_SI*beta_0);
                 
                 return time_SI-tdelay;
             }
@@ -616,18 +585,18 @@ namespace picongpu
                 /* halfSimSize[0] --> Half-depth of simulation volume (in x); By geometric
                  * projection we calculate the y-distance walkoff of the TWTS-pulse.
                  * The abs()-function is for correct offset for -phi<-90Deg and +phi>+90Deg. */
-                const float_64 y1=float_64(halfSimSize[0]
+                const float_64 y1 = float_64(halfSimSize[0]
                                     *picongpu::SI::CELL_WIDTH_SI)*abs(cos(eta));
                 /* Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume
                  * at low intensity values. */
-                const float_64 m=3.;
+                const float_64 m = 3.;
                 /* Approximate cross section of laser pulse through y-axis,
                  * scaled with "fudge factor" m. */
-                const float_64 y2=m*(pulselength_SI*picongpu::SI::SPEED_OF_LIGHT_SI)/cos(eta);
+                const float_64 y2 = m*(pulselength_SI*picongpu::SI::SPEED_OF_LIGHT_SI)/cos(eta);
                 /* y-position of laser coordinate system origin within simulation. */
-                const float_64 y3=focus_y_SI;
+                const float_64 y3 = focus_y_SI;
                 /* Programmatically obtained time-delay */
-                const float_64 tdelay= (y1+y2+y3)/(picongpu::SI::SPEED_OF_LIGHT_SI*beta_0);
+                const float_64 tdelay = (y1+y2+y3)/(picongpu::SI::SPEED_OF_LIGHT_SI*beta_0);
                 
                 return time_SI-tdelay;
             }
@@ -638,20 +607,20 @@ namespace picongpu
         template<>
         HDINLINE float3_X
         TWTSFieldB::getTWTSBfield_Normalized<DIM3>(
-                const PMacc::math::Vector<float3_64,FieldB::numComponents>& bFieldPositions_SI,
+                const PMacc::math::Vector<float3_64,detail::numComponents>& bFieldPositions_SI,
                 const float_64 time) const
         {
             /* Calculate By-component with the Yee-Cell offset of a By-field */
-            const float_64 By_By=calcTWTSBy(bFieldPositions_SI[1], time);
+            const float_64 By_By = calcTWTSBy(bFieldPositions_SI[1], time);
             /* Calculate Bz-component the Yee-Cell offset of a Bz-field */
-            const float_64 Bz_By=calcTWTSBz(bFieldPositions_SI[1], time);
-            const float_64 By_Bz=calcTWTSBy(bFieldPositions_SI[2], time);
-            const float_64 Bz_Bz=calcTWTSBz(bFieldPositions_SI[2], time);
+            const float_64 Bz_By = calcTWTSBz(bFieldPositions_SI[1], time);
+            const float_64 By_Bz = calcTWTSBy(bFieldPositions_SI[2], time);
+            const float_64 Bz_Bz = calcTWTSBz(bFieldPositions_SI[2], time);
             /* Since we rotated all position vectors before calling calcTWTSBy and calcTWTSBz,
              * we need to back-rotate the resulting B-field vector. */
             /* RotationMatrix[-(PI/2+phi)].(By,Bz) for rotating back the Field-Vektors. */
-            const float_64 By_rot=-sin(+phi)*By_By+cos(+phi)*Bz_By;
-            const float_64 Bz_rot=-cos(+phi)*By_Bz-sin(+phi)*Bz_Bz;
+            const float_64 By_rot = -sin(+phi)*By_By+cos(+phi)*Bz_By;
+            const float_64 Bz_rot = -cos(+phi)*By_Bz-sin(+phi)*Bz_Bz;
             
             /* Finally, the B-field normalized to the peak amplitude. */
             return float3_X( float_X(0.0),
@@ -662,7 +631,7 @@ namespace picongpu
         template<>
         HDINLINE float3_X
         TWTSFieldB::getTWTSBfield_Normalized<DIM2>(
-                const PMacc::math::Vector<float3_64,FieldB::numComponents>& bFieldPositions_SI,
+                const PMacc::math::Vector<float3_64,detail::numComponents>& bFieldPositions_SI,
                 const float_64 time) const
         {
             /*  Corresponding position vector for the Field-components in 2D simulations.
@@ -682,18 +651,18 @@ namespace picongpu
              * for Bx has to be used instead of Bz. Mind the -sign. */
              
             /* Calculate By-component with the Yee-Cell offset of a By-field */
-            const float_64 By_By= calcTWTSBy(bFieldPositions_SI[1], time);
+            const float_64 By_By =  calcTWTSBy(bFieldPositions_SI[1], time);
             /* Calculate Bx-component with the Yee-Cell offset of a By-field */
-            const float_64 Bx_By=-calcTWTSBz(bFieldPositions_SI[1], time);
-            const float_64 By_Bx= calcTWTSBy(bFieldPositions_SI[0], time);
-            const float_64 Bx_Bx=-calcTWTSBz(bFieldPositions_SI[0], time);
+            const float_64 Bx_By = -calcTWTSBz(bFieldPositions_SI[1], time);
+            const float_64 By_Bx =  calcTWTSBy(bFieldPositions_SI[0], time);
+            const float_64 Bx_Bx = -calcTWTSBz(bFieldPositions_SI[0], time);
             /* Since we rotated all position vectors before calling calcTWTSBy and calcTWTSBz, we
              * need to back-rotate the resulting B-field vector. Now the rotation is done
              * analogously in the (y,x)-plane. (Reverse of the position vector transformation.) */
             /* RotationMatrix[-(PI/2+phi)].(By,Bx) */
-            const float_64 By_rot=-sin(phi)*By_By+cos(phi)*Bx_By;
+            const float_64 By_rot = -sin(phi)*By_By+cos(phi)*Bx_By;
             /* for rotating back the Field-Vektors.*/
-            const float_64 Bx_rot=-cos(phi)*By_Bx-sin(phi)*Bx_Bx;
+            const float_64 Bx_rot = -cos(phi)*By_Bx-sin(phi)*Bx_Bx;
             
             /* Finally, the B-field normalized to the peak amplitude. */
             return float3_X( float_X(0.0),
@@ -705,8 +674,8 @@ namespace picongpu
         TWTSFieldB::operator()( const DataSpace<simDim>& cellIdx,
                                 const uint32_t currentStep ) const
         {
-            const float_64 time_SI=getTime_SI<simDim>(currentStep);
-            const PMacc::math::Vector<float3_64,FieldB::numComponents> bFieldPositions_SI=
+            const float_64 time_SI = getTime_SI<simDim>(currentStep);
+            const PMacc::math::Vector<float3_64,detail::numComponents> bFieldPositions_SI =
                                                             getBfieldPositions_SI<simDim>(cellIdx);
             /* Single TWTS-Pulse */
             return getTWTSBfield_Normalized<simDim>(bFieldPositions_SI, time_SI);
@@ -729,10 +698,10 @@ namespace picongpu
             const double UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
             
             /* propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
-            const float_T beta0=float_T(beta_0);
-            const float_T phiReal=float_T(phi);
-            const float_T alphaTilt=atan2(float_T(1.0)-beta0*cos(phiReal),beta0*sin(phiReal));
-            const float_T phiT=float_T(2.0)*alphaTilt;
+            const float_T beta0 = float_T(beta_0);
+            const float_T phiReal = float_T(phi);
+            const float_T alphaTilt = atan2(float_T(1.0)-beta0*cos(phiReal),beta0*sin(phiReal));
+            const float_T phiT = float_T(2.0)*alphaTilt;
             /* Definition of the laser pulse front tilt angle for the laser field below.
              * For beta0=1.0, this is equivalent to our standard definition. Question: Why is the
              * local "phi_T" not equal in value to the object member "phiReal" or "phi"?
@@ -746,21 +715,21 @@ namespace picongpu
              * documentation purposes. */
             /* const float_T eta = float_T(PI/2) - (phiReal - alphaTilt); */
             
-            const float_T cspeed=float_T(1.0);
-            const float_T lambda0=float_T(wavelength_SI/UNIT_LENGTH);
-            const float_T om0=float_T(2.0*PI*cspeed/lambda0*UNIT_TIME);
+            const float_T cspeed = float_T(1.0);
+            const float_T lambda0 = float_T(wavelength_SI/UNIT_LENGTH);
+            const float_T om0 = float_T(2.0*PI*cspeed/lambda0*UNIT_TIME);
             /* factor 2  in tauG arises from definition convention in laser formula */
-            const float_T tauG=float_T(pulselength_SI*2.0/UNIT_TIME);
+            const float_T tauG = float_T(pulselength_SI*2.0/UNIT_TIME);
             /* w0 is wx here --> w0 could be replaced by wx */
-            const float_T w0=float_T(w_x_SI/UNIT_LENGTH);
-            const float_T rho0=float_T(PI*w0*w0/lambda0/UNIT_LENGTH);
+            const float_T w0 = float_T(w_x_SI/UNIT_LENGTH);
+            const float_T rho0 = float_T(PI*w0*w0/lambda0/UNIT_LENGTH);
             /* wy is width of TWTS pulse */
-            const float_T wy=float_T(w_y_SI/UNIT_LENGTH);
-            const float_T k=float_T(2.0*PI/lambda0*UNIT_LENGTH);
-            const float_T x=float_T(pos.x()/UNIT_LENGTH);
-            const float_T y=float_T(pos.y()/UNIT_LENGTH);
-            const float_T z=float_T(pos.z()/UNIT_LENGTH);
-            const float_T t=float_T(time/UNIT_TIME);
+            const float_T wy = float_T(w_y_SI/UNIT_LENGTH);
+            const float_T k = float_T(2.0*PI/lambda0*UNIT_LENGTH);
+            const float_T x = float_T(pos.x()/UNIT_LENGTH);
+            const float_T y = float_T(pos.y()/UNIT_LENGTH);
+            const float_T z = float_T(pos.z()/UNIT_LENGTH);
+            const float_T t = float_T(time/UNIT_TIME);
                             
             /* Shortcuts for speeding up the field calculation. */
             const float_T sinPhi = sin(phiT);
@@ -770,12 +739,12 @@ namespace picongpu
             
             /* The "helpVar" variables decrease the nesting level of the evaluated expressions and
              * thus help with formal code verification through manual code inspection. */
-            const complex_T helpVar1=rho0 + complex_T(0,1)*y*cosPhi + complex_T(0,1)*z*sinPhi;
-            const complex_T helpVar2=cspeed*om0*tauG*tauG + complex_T(0,2)
+            const complex_T helpVar1 = rho0 + complex_T(0,1)*y*cosPhi + complex_T(0,1)*z*sinPhi;
+            const complex_T helpVar2 = cspeed*om0*tauG*tauG + complex_T(0,2)
                                         *(-z - y*tan(float_T(PI/2)-phiT))*tanPhi2*tanPhi2;
-            const complex_T helpVar3=complex_T(0,1)*rho0 - y*cosPhi - z*sinPhi;
+            const complex_T helpVar3 = complex_T(0,1)*rho0 - y*cosPhi - z*sinPhi;
             
-            const complex_T helpVar4= float_T(-1.0)*(
+            const complex_T helpVar4 = float_T(-1.0)*(
                 cspeed*cspeed*k*om0*tauG*tauG*wy*wy*x*x
                 + float_T(2.0)*cspeed*cspeed*om0*t*t*wy*wy*rho0
                 - complex_T(0,2)*cspeed*cspeed*om0*om0*t*tauG*tauG*wy*wy*rho0
@@ -833,11 +802,11 @@ namespace picongpu
                 )
             )/(float_T(2.0)*cspeed*wy*wy*helpVar1*helpVar2);
 
-            const complex_T helpVar5=complex_T(0,-1)*cspeed*om0*tauG*tauG
+            const complex_T helpVar5 = complex_T(0,-1)*cspeed*om0*tauG*tauG
                                     + (-z - y*tan(float_T(PI/2)-phiT))*tanPhi2*tanPhi2*float_T(2.0);
-            const complex_T helpVar6=(cspeed*(cspeed*om0*tauG*tauG + complex_T(0,2)
+            const complex_T helpVar6 = (cspeed*(cspeed*om0*tauG*tauG + complex_T(0,2)
                                     *(-z - y*tan(float_T(PI/2)-phiT))*tanPhi2*tanPhi2))/(om0*rho0);
-            const complex_T result=(pmMath::exp(helpVar4)*tauG/cosPhi2/cosPhi2
+            const complex_T result = (pmMath::exp(helpVar4)*tauG/cosPhi2/cosPhi2
                 *(rho0 + complex_T(0,1)*y*cosPhi + complex_T(0,1)*z*sinPhi)
                 *(
                       complex_T(0,2)*cspeed*t + cspeed*om0*tauG*tauG - complex_T(0,4)*z
@@ -866,10 +835,10 @@ namespace picongpu
             const double UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
             
             /* propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
-            const float_T beta0=float_T(beta_0);
-            const float_T phiReal=float_T(phi);
-            const float_T alphaTilt=atan2(float_T(1.0)-beta0*cos(phiReal),beta0*sin(phiReal));
-            const float_T phiT=float_T(2.0)*alphaTilt;
+            const float_T beta0 = float_T(beta_0);
+            const float_T phiReal = float_T(phi);
+            const float_T alphaTilt = atan2(float_T(1.0)-beta0*cos(phiReal),beta0*sin(phiReal));
+            const float_T phiT = float_T(2.0)*alphaTilt;
             /* Definition of the laser pulse front tilt angle for the laser field below.
              * For beta0=1.0, this is equivalent to our standard definition. Question: Why is the
              * local "phi_T" not equal in value to the object member "phiReal" or "phi"?
@@ -883,21 +852,21 @@ namespace picongpu
              * documentation purposes. */
             /* const float_T eta = float_T(float_T(PI/2)) - (phiReal - alphaTilt); */
             
-            const float_T cspeed=float_T(1.0);
-            const float_T lambda0=float_T(wavelength_SI/UNIT_LENGTH);
-            const float_T om0=float_T(2.0*PI*cspeed/lambda0*UNIT_TIME);
+            const float_T cspeed = float_T(1.0);
+            const float_T lambda0 = float_T(wavelength_SI/UNIT_LENGTH);
+            const float_T om0 = float_T(2.0*PI*cspeed/lambda0*UNIT_TIME);
             /* factor 2  in tauG arises from definition convention in laser formula */
-            const float_T tauG=float_T(pulselength_SI*2.0/UNIT_TIME);
+            const float_T tauG = float_T(pulselength_SI*2.0/UNIT_TIME);
             /* w0 is wx here --> w0 could be replaced by wx */
-            const float_T w0=float_T(w_x_SI/UNIT_LENGTH);
-            const float_T rho0=float_T(PI*w0*w0/lambda0/UNIT_LENGTH);
+            const float_T w0 = float_T(w_x_SI/UNIT_LENGTH);
+            const float_T rho0 = float_T(PI*w0*w0/lambda0/UNIT_LENGTH);
             /* wy is width of TWTS pulse */
-            const float_T wy=float_T(w_y_SI/UNIT_LENGTH);
-            const float_T k=float_T(2.0*PI/lambda0*UNIT_LENGTH);
-            const float_T x=float_T(pos.x()/UNIT_LENGTH);
-            const float_T y=float_T(pos.y()/UNIT_LENGTH);
-            const float_T z=float_T(pos.z()/UNIT_LENGTH);
-            const float_T t=float_T(time/UNIT_TIME);
+            const float_T wy = float_T(w_y_SI/UNIT_LENGTH);
+            const float_T k = float_T(2.0*PI/lambda0*UNIT_LENGTH);
+            const float_T x = float_T(pos.x()/UNIT_LENGTH);
+            const float_T y = float_T(pos.y()/UNIT_LENGTH);
+            const float_T z = float_T(pos.z()/UNIT_LENGTH);
+            const float_T t = float_T(time/UNIT_TIME);
                             
             /* Shortcuts for speeding up the field calculation. */
             const float_T sinPhi = sin(phiT);
@@ -908,19 +877,19 @@ namespace picongpu
             
             /* The "helpVar" variables decrease the nesting level of the evaluated expressions and
              * thus help with formal code verification through manual code inspection. */
-            const complex_T helpVar1=-(cspeed*z) - cspeed*y*tan(float_T(PI/2)-phiT)
+            const complex_T helpVar1 = -(cspeed*z) - cspeed*y*tan(float_T(PI/2)-phiT)
                                         + complex_T(0,1)*cspeed*rho0/sinPhi;
-            const complex_T helpVar2=complex_T(0,1)*rho0 - y*cosPhi - z*sinPhi;
-            const complex_T helpVar3=helpVar2*cspeed;
-            const complex_T helpVar4=cspeed*om0*tauG*tauG
+            const complex_T helpVar2 = complex_T(0,1)*rho0 - y*cosPhi - z*sinPhi;
+            const complex_T helpVar3 = helpVar2*cspeed;
+            const complex_T helpVar4 = cspeed*om0*tauG*tauG
                                         - complex_T(0,1)*y*cosPhi/cosPhi2/cosPhi2*tanPhi2
                                         - complex_T(0,2)*z*tanPhi2*tanPhi2;
-            const complex_T helpVar5=float_T(2.0)*cspeed*t - complex_T(0,1)*cspeed*om0*tauG*tauG
+            const complex_T helpVar5 = float_T(2.0)*cspeed*t - complex_T(0,1)*cspeed*om0*tauG*tauG
                                 - float_T(2.0)*z + float_T(8.0)*y/sinPhi/sinPhi/sinPhi
                                     *sinPhi2*sinPhi2*sinPhi2*sinPhi2
                                 - float_T(2.0)*z*tanPhi2*tanPhi2;
 
-            const complex_T helpVar6=(
+            const complex_T helpVar6 = (
             (om0*y*rho0/cosPhi2/cosPhi2/cosPhi2/cosPhi2)/helpVar1 
             - (complex_T(0,2)*k*x*x)/helpVar2 
             - (complex_T(0,1)*om0*om0*tauG*tauG*rho0)/helpVar2
@@ -938,13 +907,13 @@ namespace picongpu
             - (om0*helpVar5*helpVar5)/(cspeed*helpVar4)
             )/float_T(4.0);
                     
-            const complex_T helpVar7=cspeed*om0*tauG*tauG
+            const complex_T helpVar7 = cspeed*om0*tauG*tauG
                                         - complex_T(0,1)*y*cosPhi/cosPhi2/cosPhi2*tanPhi2
                                         - complex_T(0,2)*z*tanPhi2*tanPhi2;
-            const complex_T result=( complex_T(0,2)*pmMath::exp(helpVar6)*tauG*tanPhi2
+            const complex_T result = ( complex_T(0,2)*pmMath::exp(helpVar6)*tauG*tanPhi2
                                         *(cspeed*t - z + y*tanPhi2)
                                         *pmMath::sqrt( (om0*rho0)/helpVar3 )
-                                    )/pmMath::pow(helpVar7,float_T(1.5));
+                                      )/pmMath::pow(helpVar7,float_T(1.5));
 
             return result.get_real();
         }
