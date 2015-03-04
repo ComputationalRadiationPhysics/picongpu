@@ -186,9 +186,13 @@ if not args.boolDiff:
              (Energies[0][:time_limit]-startEnergy)*norm, 
              color="green", lw=3, label=args.label1)
     if numDir == 2:
+        plt.fill_between(Times[1][:time_limit], 
+                         (Energies[0][:time_limit]-startEnergy)*norm, 
+                         (Energies[1][:time_limit]-startEnergy)*norm, 
+                         color="red", alpha=0.5)
         plt.plot(Times[1][:time_limit], 
                  (Energies[1][:time_limit]-startEnergy)*norm, 
-                 "--", color="blue",  lw=5, label=args.label2)
+                 color="blue",  lw=2, label=args.label2)
     if args.boolRelative:
         plt.ylabel(r"$\frac{E}{E_0}-1\,[\%]$", fontsize=24)
     else:
