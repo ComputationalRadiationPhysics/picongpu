@@ -23,7 +23,6 @@
 #include "types.h"
 #include "simulation_types.hpp"
 #include "plugins/adios/ADIOSWriter.def"
-#include "traits/PICToAdios.hpp"
 #include "traits/GetComponentsType.hpp"
 #include "traits/GetNComponents.hpp"
 #include "traits/Resolve.hpp"

@@ -70,6 +70,8 @@ struct ParticleAttributeSize
         AdiosType adiosType;
         const std::string name_lookup[] = {"x", "y", "z"};
 
+        std::vector<double> unit = Unit<Identifier>::get();
+
         for (uint32_t d = 0; d < components; d++)
         {
             std::stringstream datasetName;
@@ -91,6 +93,16 @@ struct ParticleAttributeSize
                 params->adiosCompression);
 
             params->adiosParticleAttrVarIds.push_back(adiosParticleAttrId);
+
+            /* already add the sim_unit attribute so `adios_group_size` calculates
+             * the reservation for the buffer correctly */
+            AdiosDoubleType adiosDoubleType;
+
+            /* check if this attribute actually has a unit (unit.size() == 0 is no unit) */
+            if (unit.size() >= (d + 1))
+                ADIOS_CMD(adios_define_attribute(params->adiosGroupHandle,
+                          "sim_unit", datasetName.str().c_str(), adiosDoubleType.type,
+                          flt2str(unit.at(d)).c_str(), ""));
         }
 
 

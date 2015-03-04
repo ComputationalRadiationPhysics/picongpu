@@ -24,12 +24,16 @@
 #include <adios_read.h>
 
 #include <list>
+#include <limits>
+#include <sstream>
+#include <string>
 
 #include "types.h"
 #include "math/Vector.hpp"
 #include "simulation_types.hpp"
 #include "particles/frame_types.hpp"
 #include "simulationControl/MovingWindow.hpp"
+#include "traits/PICToAdios.hpp"
 
 namespace picongpu
 {
@@ -112,6 +116,31 @@ struct ThreadParams
  */
 
 class ADIOSWriter;
+
+/** Default ADIOS types we will use */
+typedef PICToAdios<uint32_t> AdiosUInt32Type;
+typedef PICToAdios<float_X> AdiosFloatXType;
+typedef PICToAdios<double> AdiosDoubleType;
+
+/** Attribute conversation: values to c-strings in ADIOS C-API <= 1.8.0 */
+template<typename T>
+static std::string flt2str( T val )
+{
+    typedef std::numeric_limits< T > fltLimit;
+
+    std::stringstream s;
+    s.precision(fltLimit::digits10);
+    s << std::scientific << val;
+    return s.str();
+}
+
+template<typename T>
+static std::string int2str( T val )
+{
+    std::stringstream s;
+    s << val;
+    return s.str();
+}
 
 /**
  * Wrapper for adios_define_var that sets data transform method

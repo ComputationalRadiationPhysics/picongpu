@@ -25,7 +25,6 @@
 #include <sstream>
 #include <list>
 #include <vector>
-#include <limits>
 
 #include "types.h"
 #include "simulation_types.hpp"
@@ -166,13 +165,6 @@ private:
         typedef typename T::ValueType ValueType;
         typedef typename GetComponentsType<ValueType>::type ComponentType;
 
-        static std::vector<double> getUnit()
-        {
-            typedef typename T::UnitValueType UnitType;
-            UnitType unit = T::getUnit();
-            return createUnit(unit, T::numComponents);
-        }
-
     public:
 
         HDINLINE void operator()(ThreadParams* params)
@@ -189,7 +181,6 @@ private:
                        adiosType.type,
                        GetNComponents<ValueType>::value,
                        T::getName(),
-                       getUnit(),
                        field->getHostDataBox().getPointer());
 
             dc.releaseData(T::getName());
@@ -236,15 +227,6 @@ private:
             return str.str();
         }
 
-        /** Get the unit for the result from the solver*/
-        static std::vector<double> getUnit()
-        {
-            typedef typename FieldTmp::UnitValueType UnitType;
-            UnitType unit = FieldTmp::getUnit<Solver>();
-            const uint32_t components = GetNComponents<ValueType>::value;
-            return createUnit(unit, components);
-        }
-
         HINLINE void operator_impl(ThreadParams* params)
         {
             DataConnector &dc = Environment<>::get().DataConnector();
@@ -277,7 +259,6 @@ private:
                        adiosType.type,
                        components,
                        getName(),
-                       getUnit(),
                        fieldTmp->getHostDataBox().getPointer());
 
             dc.releaseData(FieldTmp::getName());
@@ -287,7 +268,8 @@ private:
     };
 
     static void defineFieldVar(ThreadParams* params,
-        uint32_t nComponents, ADIOS_DATATYPES adiosType, const std::string name)
+        uint32_t nComponents, ADIOS_DATATYPES adiosType, const std::string name,
+        std::vector<double> unit)
     {
         const std::string name_lookup_tpl[] = {"x", "y", "z", "w"};
 
@@ -312,6 +294,14 @@ private:
                     params->adiosCompression);
 
             params->adiosFieldVarIds.push_back(adiosFieldVarId);
+
+            /* already add the sim_unit attribute so `adios_group_size` calculates
+             * the reservation for the buffer correctly */
+            AdiosDoubleType adiosDoubleType;
+
+            ADIOS_CMD(adios_define_attribute(params->adiosGroupHandle,
+                      "sim_unit", datasetName.str().c_str(), adiosDoubleType.type,
+                      flt2str(unit.at(c)).c_str(), ""));
         }
     }
 
@@ -323,7 +313,14 @@ private:
     {
     public:
         typedef typename T::ValueType ValueType;
+        typedef typename T::UnitValueType UnitType;
         typedef typename GetComponentsType<ValueType>::type ComponentType;
+
+        static std::vector<double> getUnit()
+        {
+            UnitType unit = T::getUnit();
+            return createUnit(unit, T::numComponents);
+        }
 
         HDINLINE void operator()(ThreadParams* params)
         {
@@ -339,7 +336,7 @@ private:
             params->adiosGroupSize += localGroupSize;
 
             PICToAdios<ComponentType> adiosType;
-            defineFieldVar(params, components, adiosType.type, T::getName());
+            defineFieldVar(params, components, adiosType.type, T::getName(), getUnit());
 #endif
         }
     };
@@ -361,6 +358,7 @@ private:
 
    private:
         typedef typename FieldTmp::ValueType ValueType;
+        typedef typename FieldTmp::UnitValueType UnitType;
         typedef typename GetComponentsType<ValueType>::type ComponentType;
 
         /** Create a name for the adios identifier.
@@ -372,6 +370,14 @@ private:
             str << "_";
             str << Species::FrameType::getName();
             return str.str();
+        }
+
+        /** Get the unit for the result from the solver*/
+        static std::vector<double> getUnit()
+        {
+            UnitType unit = FieldTmp::getUnit<Solver>();
+            const uint32_t components = GetNComponents<ValueType>::value;
+            return createUnit(unit, components);
         }
 
         HINLINE void operator_impl(ThreadParams* params)
@@ -387,7 +393,7 @@ private:
             params->adiosGroupSize += localGroupSize;
 
             PICToAdios<ComponentType> adiosType;
-            defineFieldVar(params, components, adiosType.type, getName());
+            defineFieldVar(params, components, adiosType.type, getName(), getUnit());
         }
 
     };
@@ -521,8 +527,6 @@ public:
 
         /* ADIOS types */
         AdiosUInt32Type adiosUInt32Type;
-        //AdiosFloatXType adiosFloatXType;
-        //AdiosDoubleType adiosDoubleType;
 
         /* load number of slides to initialize MovingWindow */
         log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) read attr (%1% available)") %
@@ -734,7 +738,7 @@ private:
     static void writeField(ThreadParams *params, const uint32_t sizePtrType,
                            ADIOS_DATATYPES adiosType,
                            const uint32_t nComponents, const std::string name,
-                           std::vector<double> unit, void *ptr)
+                           void *ptr)
     {
         log<picLog::INPUT_OUTPUT > ("ADIOS: write field: %1% %2% %3%") %
             name % nComponents % ptr;
@@ -782,29 +786,6 @@ private:
             params->adiosFieldVarIds.pop_front();
             ADIOS_CMD(adios_write_byid(params->adiosFileHandle, adiosFieldVarId, params->fieldBfr));
         }
-    }
-
-    typedef PICToAdios<uint32_t> AdiosUInt32Type;
-    typedef PICToAdios<float_X> AdiosFloatXType;
-    typedef PICToAdios<double> AdiosDoubleType;
-
-    template<typename T>
-    static std::string flt2str( T val )
-    {
-        typedef std::numeric_limits< T > fltLimit;
-
-        std::stringstream s;
-        s.precision(fltLimit::digits10);
-        s << std::scientific << val;
-        return s.str();
-    }
-
-    template<typename T>
-    static std::string int2str( T val )
-    {
-        std::stringstream s;
-        s << val;
-        return s.str();
     }
 
     /**
