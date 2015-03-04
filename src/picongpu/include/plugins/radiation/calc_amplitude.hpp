@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013, 2015 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -60,9 +60,9 @@ struct One_minus_beta_times_n
         // chose a Taylor approximation to to better calculate 1-\beta \times \vec n (which is close to 1-1)
         // is energy is low, then the Appriximation will acuse a larger error, therfor calculate
         // 1-\beta \times \vec n directly
-        if (gamma_inv_square < 0.18) // with 0.18 the relativ error will be below 0.001% for Taylor series of order 5
+        // with 0.18 the relativ error will be below 0.001% for a Taylor series of 1-sqrt(1-x) of 5th order
+        if (gamma_inv_square < picongpu::GAMMA_INV_SQUARE_RAD_THRESH) 
         {
-
             const numtype2 cos_theta(particle.get_cos_theta<When::now > (n)); // cosinus between looking vector and momentum of particle
             const numtype2 taylor_approx(cos_theta * Taylor()(gamma_inv_square) + (1.0 - cos_theta));
             return  (taylor_approx);
