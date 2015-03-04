@@ -87,6 +87,25 @@ public:
         log<picLog::SIMULATION_STATE > ("Loading from persistent data finished");
     }
 
+    /** log omega_pe for any species
+     *
+     * calculate omega_pe for any given species and create a `picLog::PHYSICS`
+     * log message
+     */
+    template<typename T_Species=bmpl::_1>
+    struct LogOmegaPe
+    {
+        void operator()()
+        {
+            typedef typename T_Species::FrameType FrameType;
+            const float charge=frame::getCharge<FrameType>();
+            const float mass=frame::getMass<FrameType>();
+            log<picLog::PHYSICS >("species %2%: omega_pe * dt <= 0.1 ? %1%") %
+                                 (sqrt(GAS_DENSITY *  charge / mass * charge / EPS0) * DELTA_T) %
+                                  FrameType::getName();
+        }
+    };
+
     /**
      * Print interesting initialization information
      */
@@ -97,6 +116,9 @@ public:
             log<picLog::PHYSICS >("Courant c*dt <= %1% ? %2%") %
                                  (1./math::sqrt(INV_CELL2_SUM)) %
                                  (SPEED_OF_LIGHT * DELTA_T);
+
+            ForEach<VectorAllSpecies, LogOmegaPe<> > logOmegaPe;
+            logOmegaPe();
 
             if (laserProfile::INIT_TIME > float_X(0.0))
                 log<picLog::PHYSICS >("y-cells per wavelength: %1%") %
