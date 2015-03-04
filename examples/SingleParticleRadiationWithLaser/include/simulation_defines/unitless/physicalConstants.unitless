@@ -80,9 +80,9 @@ namespace picongpu
     const float_X SPEED_OF_LIGHT = float_X(SI::SPEED_OF_LIGHT_SI / UNIT_SPEED);
 
     //! Charge of electron
-    const float_X Q_EL  = (float_X) (SI::ELECTRON_CHARGE_SI / UNIT_CHARGE);
+    const float_X Q_EL = (float_X) (SI::ELECTRON_CHARGE_SI / UNIT_CHARGE);
     //! Mass of electron
-    const float_X M_EL  = (float_X) (SI::ELECTRON_MASS_SI / UNIT_MASS);
+    const float_X M_EL = (float_X) (SI::ELECTRON_MASS_SI / UNIT_MASS);
     //! Charge of ion
     const float_X Q_ION = (float_X) (SI::ION_CHARGE_SI / UNIT_CHARGE);
     //! Mass of ion
