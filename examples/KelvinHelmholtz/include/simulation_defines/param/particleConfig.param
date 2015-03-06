@@ -33,12 +33,29 @@ namespace picongpu
 namespace particles
 {
 
+    namespace startPosition
+    {
+
+        struct QuietParam
+        {
+            /** Count of particles per cell per direction at initial state
+             *  unit: none */
+           typedef typename mCT::shrinkTo<mCT::Int<5, 5, 1>, simDim>::type numParticlesPerDimension;
+        };
+
+        /* definition of random particle start*/
+        typedef QuietImpl<QuietParam> Quiet;
+
+    } //namespace startPosition
+
     /** a particle with a weighting below MIN_WEIGHTING will not
      *      be created / will be deleted
      *  unit: none */
     const float_X MIN_WEIGHTING = 10.0;
 
-    const uint32_t TYPICAL_PARTICLES_PER_CELL = 25;
+    const uint32_t TYPICAL_PARTICLES_PER_CELL = mCT::volume<
+        typename startPosition::QuietParam::numParticlesPerDimension
+    >::type::value;
 
 namespace manipulators
 {
@@ -124,21 +141,6 @@ namespace manipulators
 
 } //namespace manipulators
 
-
-namespace startPosition
-{
-
-    struct QuietParam
-    {
-        /** Count of particles per cell per direction at initial state
-         *  unit: none */
-       typedef typename mCT::shrinkTo<mCT::Int<TYPICAL_PARTICLES_PER_CELL/5, TYPICAL_PARTICLES_PER_CELL/5, 1>, simDim>::type numParticlesPerDimension;
-    };
-
-    /* definition of random particle start*/
-    typedef QuietImpl<QuietParam> Quiet;
-
-} //namespace startPosition
 } //namespace particles
 
 } //namespac picongpu
