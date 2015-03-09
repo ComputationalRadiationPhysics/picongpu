@@ -755,13 +755,18 @@ private:
             const size_t plane_full_size = field_full[1] * field_full[0] * nComponents;
             const size_t plane_no_guard_size = field_no_guard[1] * field_no_guard[0];
 
-            /* copy strided data from source to temporary buffer */
-            for (int z = 0; z < field_no_guard[2]; ++z)
+            /* copy strided data from source to temporary buffer
+             *
+             * \todo use d1Access as in `include/plugins/hdf5/writer/Field.hpp`
+             */
+            const int maxZ = simDim == DIM3 ? field_no_guard[2] : 1;
+            const int guardZ = simDim == DIM3 ? field_guard[2] : 0;
+            for (int z = 0; z < maxZ; ++z)
             {
                 for (int y = 0; y < field_no_guard[1]; ++y)
                 {
                     const size_t base_index_src =
-                                (z + field_guard[2]) * plane_full_size +
+                                (z + guardZ) * plane_full_size +
                                 (y + field_guard[1]) * field_full[0] * nComponents;
 
                     const size_t base_index_dst =
