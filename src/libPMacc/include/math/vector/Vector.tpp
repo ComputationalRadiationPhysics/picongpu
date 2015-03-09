@@ -192,23 +192,44 @@ namespace algorithms
 namespace precisionCast
 {
 
-template<typename CastToType, int dim>
-struct TypeCast<CastToType, ::PMacc::math::Vector<CastToType, dim> >
+template<typename CastToType,
+int dim,
+typename T_Accessor,
+typename T_Navigator,
+template <typename, int> class T_Storage>
+struct TypeCast<
+    CastToType,
+    ::PMacc::math::Vector<CastToType, dim, T_Accessor, T_Navigator, T_Storage>
+>
 {
-    typedef const ::PMacc::math::Vector<CastToType, dim>& result;
+    typedef const ::PMacc::math::Vector<
+        CastToType,
+        dim,
+        T_Accessor,
+        T_Navigator,
+        T_Storage>& result;
 
-    HDINLINE result operator( )(const ::PMacc::math::Vector<CastToType, dim>& vector ) const
+    HDINLINE result operator( )( result vector ) const
     {
         return vector;
     }
 };
 
-template<typename CastToType, typename OldType, int dim>
-struct TypeCast<CastToType, ::PMacc::math::Vector<OldType, dim> >
+template<typename CastToType,
+typename OldType,
+int dim,
+typename T_Accessor,
+typename T_Navigator,
+template <typename, int> class T_Storage>
+struct TypeCast<
+    CastToType,
+    ::PMacc::math::Vector<OldType, dim, T_Accessor, T_Navigator, T_Storage>
+>
 {
     typedef ::PMacc::math::Vector<CastToType, dim> result;
+    typedef ::PMacc::math::Vector<OldType, dim, T_Accessor, T_Navigator, T_Storage> ParamType;
 
-    HDINLINE result operator( )(const ::PMacc::math::Vector<OldType, dim>& vector ) const
+    HDINLINE result operator( )(const ParamType& vector ) const
     {
         return result( vector );
     }
