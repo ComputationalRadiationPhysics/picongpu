@@ -181,12 +181,6 @@ void Particles<T_ParticleDescription>::update(uint32_t )
 }
 
 template< typename T_ParticleDescription>
-void Particles<T_ParticleDescription>::reset( uint32_t )
-{
-    this->particlesBuffer->reset( );
-}
-
-template< typename T_ParticleDescription>
 void Particles<T_ParticleDescription>::initFill( uint32_t currentStep )
 {
     Window window = MovingWindow::getInstance( ).getWindow( currentStep );

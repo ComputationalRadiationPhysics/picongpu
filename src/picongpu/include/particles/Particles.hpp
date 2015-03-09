@@ -53,9 +53,6 @@ public:
 
     void createParticleBuffer();
 
-
-    virtual void reset(uint32_t currentStep);
-
     void init(FieldE &fieldE, FieldB &fieldB, FieldJ &fieldJ, FieldTmp &fieldTmp);
 
     void update(uint32_t currentStep);

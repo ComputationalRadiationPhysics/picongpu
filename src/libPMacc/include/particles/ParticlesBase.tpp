@@ -46,6 +46,26 @@ namespace PMacc
     }
 
     template<typename T_ParticleDescription, class MappingDesc>
+    template<uint32_t T_area>
+    void ParticlesBase<T_ParticleDescription, MappingDesc>::deleteParticlesInArea()
+    {
+
+        AreaMapping<T_area, MappingDesc> mapper(this->cellDescription);
+        dim3 grid(mapper.getGridDim());
+
+        __cudaKernel(kernelDeleteParticles)
+                (grid, TileSize)
+                (particlesBuffer->getDeviceParticleBox(), mapper);
+    }
+
+    template<typename T_ParticleDescription, class MappingDesc>
+    void ParticlesBase<T_ParticleDescription, MappingDesc>::reset(uint32_t )
+    {
+        deleteParticlesInArea<CORE+BORDER+GUARD>();
+        particlesBuffer->reset( );
+    }
+
+    template<typename T_ParticleDescription, class MappingDesc>
     void ParticlesBase<T_ParticleDescription, MappingDesc>::bashParticles(uint32_t exchangeType)
     {
         if (particlesBuffer->hasSendExchange(exchangeType))
@@ -97,5 +117,3 @@ namespace PMacc
     }
 
 } //namespace PMacc
-
-
