@@ -137,6 +137,10 @@ public:
      */
     void deleteGuardParticles(uint32_t exchangeType);
 
+    /* Delete all particle in an area*/
+    template<uint32_t T_area>
+    void deleteParticlesInArea();
+
     /* Bash particles in a direction.
      * Copy all particles from the guard of a direction to the device exchange buffer
      */
