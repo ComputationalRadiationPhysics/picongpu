@@ -33,6 +33,7 @@
 #include "plugins/SumCurrents.hpp"
 #include "plugins/PositionsParticles.hpp"
 #include "plugins/BinEnergyParticles.hpp"
+#include "plugins/InsituBinEnergyParticles.hpp"
 #if(ENABLE_HDF5 == 1)
 #include "plugins/PhaseSpace/PhaseSpaceMulti.hpp"
 #endif
@@ -137,6 +138,7 @@ private:
     typedef EnergyParticles<PIC_Electrons> EnergyElectrons;
     typedef PositionsParticles<PIC_Electrons> PositionElectrons;
     typedef BinEnergyParticles<PIC_Electrons> BinEnergyElectrons;
+    typedef InsituBinEnergyParticles<PIC_Electrons> InsituBinEnergyElectrons;
 #if(ENABLE_RADIATION == 1)
     typedef Radiation<PIC_Electrons> RadiationElectrons;
 #endif
@@ -157,6 +159,7 @@ private:
     typedef CountParticles<PIC_Ions> IonCounter;
     typedef EnergyParticles<PIC_Ions> EnergyIons;
     typedef BinEnergyParticles<PIC_Ions> BinEnergyIons;
+    typedef InsituBinEnergyParticles<PIC_Ions> InsituBinEnergyIons;
 #endif
 
 #if (ENABLE_HDF5 == 1)
@@ -210,6 +213,7 @@ private:
 #endif
         plugins.push_back(new BinDensityElectrons("BinDensityElectrons", "binDensity_e"));
         plugins.push_back(new BinEnergyElectrons("BinEnergyElectrons", "bin_e"));
+        plugins.push_back(new InsituBinEnergyElectrons("InsituBinEnergyElectrons", "insitu_bin_e"));
         plugins.push_back(new ElectronCounter("ElectronsCount", "elec_cnt"));
         plugins.push_back(new EnergyElectrons("EnergyElectrons", "energy_e"));
         plugins.push_back(new PositionElectrons("PositionsElectrons", "pos_e"));
@@ -225,6 +229,7 @@ private:
 #endif
         plugins.push_back(new BinDensityIons("BinDensityIons", "binDensity_i"));
         plugins.push_back(new BinEnergyIons("BinEnergyIons", "bin_i"));
+        plugins.push_back(new InsituBinEnergyIons("InsituBinEnergyIons", "insitu_bin_i"));
         plugins.push_back(new IonCounter("IonsCount", "ions_cnt"));
         plugins.push_back(new EnergyIons("EnergyIons", "energy_i"));
 #endif

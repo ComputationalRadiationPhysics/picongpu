@@ -1,6 +1,6 @@
 /**
  * Copyright 2013-2015 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
- *                     Richard Pausch, Alexander Debus, Marco Garten
+ *                     Richard Pausch, Alexander Debus, Marco Garten, Anshuman Goswami
  *
  * This file is part of PIConGPU.
  *
@@ -244,6 +244,7 @@ public:
         __delete(pushBGField);
         __delete(currentBGField);
         __delete(cellDescription);
+        
     }
 
     void notify(uint32_t)
