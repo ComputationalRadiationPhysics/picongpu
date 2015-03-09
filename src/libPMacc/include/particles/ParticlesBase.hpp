@@ -164,6 +164,10 @@ public:
      * asynchron.
      */
     EventTask asyncCommunication(EventTask event);
+
+    /* set all internal objects to initial state*/
+    virtual void reset(uint32_t currentStep);
+
 };
 
 } //namespace PMacc

@@ -46,6 +46,12 @@ namespace PMacc
     }
 
     template<typename T_ParticleDescription, class MappingDesc>
+    void ParticlesBase<T_ParticleDescription, MappingDesc>::reset(uint32_t )
+    {
+        particlesBuffer->reset( );
+    }
+
+    template<typename T_ParticleDescription, class MappingDesc>
     void ParticlesBase<T_ParticleDescription, MappingDesc>::bashParticles(uint32_t exchangeType)
     {
         if (particlesBuffer->hasSendExchange(exchangeType))
@@ -97,5 +103,3 @@ namespace PMacc
     }
 
 } //namespace PMacc
-
-
