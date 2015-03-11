@@ -92,6 +92,8 @@ namespace picongpu
             const PMACC_ALIGN(dt,float_64);
             /* Make length normalization constant accessible to device. */
             const PMACC_ALIGN(unit_length,float_64);
+            /* TWTS laser time delay */
+            PMACC_ALIGN(tdelay,float_64);
             /* Should the TWTS laser delay be chosen automatically, such that
                the laser gradually enters the simulation volume? [Default: TRUE] */
             const PMACC_ALIGN(auto_tdelay,bool);
@@ -113,7 +115,7 @@ namespace picongpu
              * \param auto_tdelay calculate the time delay such that the TWTS pulse is not
              *  inside the simulation volume at simulation start timestep = 0 [default = true]
              */
-            HDINLINE
+            HINLINE
             TWTSFieldE( const float_64 focus_y_SI,
                         const float_64 wavelength_SI,
                         const float_64 pulselength_SI,
@@ -144,10 +146,8 @@ namespace picongpu
             calcTWTSEx( const float3_64& pos, const float_64 time ) const;
             
             /** Calculate the SI position vectors that later enter the Ex(r, t) calculations as r.
-             * \tparam T_dim Specializes for the simulation dimension
              * \param cellIdx The total cell id counted from the start at timestep 0. */
-            template <unsigned T_dim>
-            HDINLINE PMacc::math::Vector<float3_64,detail::numComponents>
+            HDINLINE PMacc::math::Vector<floatD_64,detail::numComponents>
             getEfieldPositions_SI(const DataSpace<simDim>& cellIdx) const;
             
             /** Calculate the E-field vector of the TWTS laser in SI units.
@@ -157,15 +157,8 @@ namespace picongpu
             template <unsigned T_dim>
             HDINLINE float3_X
             getTWTSEfield_Normalized(
-                    const PMacc::math::Vector<float3_64,detail::numComponents>& eFieldPositions_SI,
+                    const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
                     const float_64 time) const;
-            
-            /** Obtain the SI time that later enters the Ex(r, t) calculations as r.
-             * \tparam T_dim Specializes for the simulation dimension
-             *  \param CurrentStep current time step number of simulation
-             *  \return time in SI units */
-            template <unsigned T_dim>
-            HDINLINE float_64 getTime_SI(const uint32_t currentStep) const;
             
         };
 
@@ -199,11 +192,13 @@ namespace picongpu
             const PMACC_ALIGN(dt,float_64);
             /* Make length normalization constant accessible to device. */
             const PMACC_ALIGN(unit_length,float_64);
-            /* Should the TWTS laser delay be chosen automatically, such that
+            /* TWTS laser time delay */
+            PMACC_ALIGN(tdelay,float_64);
+            /* Should the TWTS laser time delay be chosen automatically, such that
             the laser gradually enters the simulation volume? [Default: TRUE] */
             const PMACC_ALIGN(auto_tdelay,bool);
             
-            HDINLINE
+            HINLINE
             TWTSFieldB( const float_64 focus_y_SI,
                         const float_64 wavelength_SI,
                         const float_64 pulselength_SI,
@@ -243,8 +238,8 @@ namespace picongpu
              *  the By(r, t) and Bz(r, t) calculations as r.
              * \tparam T_dim Specializes for the simulation dimension
              * \param cellIdx The total cell id counted from the start at timestep 0. */
-            template<unsigned T_dim>
-            HDINLINE PMacc::math::Vector<float3_64,detail::numComponents>
+            template <unsigned T_dim>
+            HDINLINE PMacc::math::Vector<floatD_64,detail::numComponents>
             getBfieldPositions_SI(const DataSpace<simDim>& cellIdx) const;
             
             /** Calculate the B-field vector of the TWTS laser in SI units.
@@ -254,15 +249,8 @@ namespace picongpu
             template<unsigned T_dim>
             HDINLINE float3_X
             getTWTSBfield_Normalized(
-                    const PMacc::math::Vector<float3_64,detail::numComponents>& eFieldPositions_SI,
+                    const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
                     const float_64 time) const;
-            
-            /** Obtain the SI time that later enters the By(r, t) and Bz(r, t) calculations as r.
-             * \tparam T_dim Specializes for the simulation dimension
-             *  \param CurrentStep current time step number of simulation
-             *  \return time in SI units */
-            template<unsigned T_dim>
-            HDINLINE float_64 getTime_SI(const uint32_t currentStep) const;
             
         };
 
