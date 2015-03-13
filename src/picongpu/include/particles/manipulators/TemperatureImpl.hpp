@@ -96,7 +96,7 @@ struct TemperatureImpl : private T_ValueFunctor
             //                v = v_1 = v_w
             //    p_w = p_1 * w
             //    E_w = E_1 * w
-            // Since masses, energies and momentas add up linear, we can
+            // Since masses, energies and momenta add up linear, we can
             // just take w times the p_1. Take care, E means E_1 !
             // This goes to:
             //    p_w = w * p_1 = w * m_1 * sqrt( E / m_1 )

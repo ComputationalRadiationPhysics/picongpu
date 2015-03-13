@@ -185,7 +185,7 @@ void Particles<T_ParticleDescription>::initGas( T_GasFunctor& gasFunctor,
                                                 T_PositionFunctor& positionFunctor,
                                                 const uint32_t currentStep )
 {
-    log<picLog::SIMULATION_STATE > ( "start create gas for species %1%" ) % FrameType::getName( );
+    log<picLog::SIMULATION_STATE > ( "initialize gas profile for species %1%" ) % FrameType::getName( );
 
     const uint32_t numSlides = MovingWindow::getInstance( ).getSlideCounter( currentStep );
     const SubGrid<simDim>& subGrid = Environment<simDim>::get( ).SubGrid( );
@@ -208,9 +208,9 @@ void Particles<T_ParticleDescription>::deviceCloneFrom( Particles< t_ParticleDes
 {
     dim3 block( PMacc::math::CT::volume<SuperCellSize>::type::value );
 
+    log<picLog::SIMULATION_STATE > ( "clone species %1%" ) % FrameType::getName( );
     __picKernelArea( kernelCloneParticles, this->cellDescription, CORE + BORDER )
         (block) ( this->getDeviceParticlesBox( ), src.getDeviceParticlesBox( ) );
-    log<picLog::SIMULATION_STATE > ( "start clone species %1%" ) % FrameType::getName( );
     this->fillAllGaps( );
 }
 

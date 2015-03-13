@@ -46,7 +46,7 @@ namespace particles
 /** call a functor
  *
  * @tparam T_Functor unary lambda functor
- *                   operator() must taken two params
+ *                   operator() must take two params
  *                      - first: storage tuple
  *                      - second: current time step
  */
@@ -137,7 +137,7 @@ struct CloneSpecies
 /** run a user defined functor for every particle
  *
  * - constructor with current time step is called for the functor on the host side
- * - \warning `fillAllGaps()` is not called 
+ * - \warning `fillAllGaps()` is not called
  *
  * @tparam T_Functor unary lambda functor
  * @tparam T_SpeciesType type of the used species

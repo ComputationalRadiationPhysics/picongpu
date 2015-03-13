@@ -29,7 +29,7 @@ namespace picongpu
 
 /** InitPipeline define in which order species are initialized
  *
- * the functors called in order (from first to last functor)
+ * the functors are called in order (from first to last functor)
  */
 typedef mpl::vector<
     particles::CreateGas<gasProfiles::Homogenous,particles::startPosition::Quiet,PIC_Electrons>,

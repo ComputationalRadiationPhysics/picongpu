@@ -90,8 +90,7 @@ struct RandomImpl
      *  related particle weighting (macroWeighting) below MIN_WEIGHTING,
      *  reduce the number of particles if possible to satisfy this condition.
      *
-     * @param numParsPerCell the intendet number of particles for this cell
-     * @param realElPerCell  the number of real electrons in this cell
+     * @param realParticlesPerCell  the number of real particles in this cell
      * @return macroWeighting the intended weighting per macro particle
      */
     DINLINE MakroParticleCfg mapRealToMakroParticle(const float_X realParticlesPerCell)

@@ -81,8 +81,18 @@ typedef GaussianImpl<GaussianParam> Gaussian;
 /* definition of homogenous gas*/
 typedef HomogenousImpl Homogenous;
 
+
+/** parameter for `LinearExponential` gas profile
+ *
+ * Gas Profile:    /\
+ *                /  -,_
+ *   linear      /      -,_    exponential
+ *   slope      /  |       -,_ slope
+ *                 MAX
+ */
 struct LinearExponentialParam
 {
+
     /** height of vacuum area on top border
      *      this vacuum is really important because of the laser initialization,
      *      which is done in the first cell of the simulation
@@ -162,7 +172,17 @@ typedef GaussianCloudImpl<GaussianCloudParam> GaussianCloud;
 /** Middle of the constant sphere
  *  unit: meter */
 CONST_VECTOR(float_64, simDim, SphereFlanksParam_center, 8.0e3, 8.0e3, 8.0e3);
-
+/** The profile consists out of the composition of 3 1D profiles
+ *  with the scheme: exponential increasing flank, constant sphere,
+ *                   exponential decreasing flank
+ *           ___
+ *  1D:  _,./   \.,_   rho(r)
+ *
+ *  2D:  ..,x,..   density: . low
+ *       .,xxx,.            , middle
+ *       ..,x,..            x high (constant)
+ *
+ */
 struct SphereFlanksParam
 {
     /** height of vacuum area on top border
