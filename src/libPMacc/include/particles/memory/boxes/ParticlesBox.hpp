@@ -73,15 +73,27 @@ public:
      */
     DINLINE FRAME &getEmptyFrame()
     {
-        FrameType* tmp = (FrameType*) mallocMC::malloc(sizeof (FrameType));
-
-        if (tmp != NULL)
+        FrameType* tmp = NULL;
+        const int maxTries = 13; //magic number is not performance critical
+        for (int numTries = 0; numTries < maxTries; ++numTries)
         {
-            /* disable all particles since we can not assume that newly allocated memory contains zeros */
-            for (int i = 0; i < (int) math::CT::volume<typename FrameType::SuperCellSize>::type::value; ++i)
-                (*tmp)[i][multiMask_] = 0;
-            /* takes care that changed values are visible to all threads inside this block*/
-            __threadfence_block();
+            tmp = (FrameType*) mallocMC::malloc(sizeof (FrameType));
+            if (tmp != NULL)
+            {
+                /* disable all particles since we can not assume that newly allocated memory contains zeros */
+                for (int i = 0; i < (int) math::CT::volume<typename FrameType::SuperCellSize>::type::value; ++i)
+                    (*tmp)[i][multiMask_] = 0;
+                /* takes care that changed values are visible to all threads inside this block*/
+                __threadfence_block();
+                break;
+            }
+            else
+            {
+                printf("%s: mallocMC out of memory (try %i of %i)\n",
+                       (numTries+1)==maxTries?"WARNING":"ERROR",
+                       numTries+1,
+                       maxTries);
+            }
         }
 
         return *(FramePtr(tmp));
@@ -94,7 +106,7 @@ public:
      */
     DINLINE void removeFrame(FRAME &frame)
     {
-        mallocMC::free((void*)&frame);
+        mallocMC::free((void*) &frame);
     }
 
     /**
