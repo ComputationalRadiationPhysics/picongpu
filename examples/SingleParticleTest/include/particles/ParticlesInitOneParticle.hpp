@@ -47,7 +47,7 @@ __global__ void kernelAddOneParticle(ParBox pb,
 
     int linearIdx = DataSpaceOperations<simDim>::template map<MappingDesc::SuperCellSize > (parLocalCell);
 
-    float_X parWeighting = particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE;
+    float_X parWeighting = particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE;
 
     frame = &(pb.getEmptyFrame());
     pb.setAsLastFrame(*frame, superCell);

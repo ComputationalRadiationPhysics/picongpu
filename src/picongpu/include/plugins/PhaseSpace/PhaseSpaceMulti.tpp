@@ -73,7 +73,7 @@ namespace picongpu
              * (linearly shrinking the single particle scale again)
              */
             float_X pRangeMakro_unit = float_X( frame::getMass<typename Species::FrameType>()*
-                                                particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE *
+                                                particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE *
                                                 SPEED_OF_LIGHT );
             std::pair<float_X, float_X> new_p_range(
                     this->momentum_range_min.at(i) * pRangeMakro_unit,

@@ -41,7 +41,7 @@ namespace picongpu
     {
         /** Number of particles per makro particle (= macro particle weighting)
          *  unit: none */
-        const float_X TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE = float_64(SI::GAS_DENSITY_NORMED*SI::CELL_WIDTH_SI*SI::CELL_HEIGHT_SI *SI::CELL_DEPTH_SI )
+        const float_X TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE = float_64(SI::GAS_DENSITY_NORMED*SI::CELL_WIDTH_SI*SI::CELL_HEIGHT_SI *SI::CELL_DEPTH_SI )
                                     / float_64(particles::TYPICAL_PARTICLES_PER_CELL);
     }
 
@@ -58,16 +58,16 @@ namespace picongpu
     {
         /** Number of particles per makro particle (= macro particle weighting)
          *  unit: none */
-        const float_X TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE = float_64(SI::GAS_DENSITY_NORMED*SI::CELL_WIDTH_SI*SI::CELL_HEIGHT_SI )
+        const float_X TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE = float_64(SI::GAS_DENSITY_NORMED*SI::CELL_WIDTH_SI*SI::CELL_HEIGHT_SI )
                                     / float_64(particles::TYPICAL_PARTICLES_PER_CELL);
     }
 #endif
 
 
     /** Unit of mass */
-    const double UNIT_MASS = SI::ELECTRON_MASS_SI * double(particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE);
+    const double UNIT_MASS = SI::ELECTRON_MASS_SI * double(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
     /** Unit of charge */
-    const double UNIT_CHARGE = -1.0 * SI::ELECTRON_CHARGE_SI * double(particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE);
+    const double UNIT_CHARGE = -1.0 * SI::ELECTRON_CHARGE_SI * double(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
     /** Unit of energy */
     const double UNIT_ENERGY = (UNIT_MASS * UNIT_LENGTH * UNIT_LENGTH / (UNIT_TIME * UNIT_TIME));
     /** Unit of EField: V/m */

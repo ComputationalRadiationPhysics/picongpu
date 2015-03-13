@@ -51,7 +51,7 @@ ComputeGridValuePerFrame<T_ParticleShape, calcType>::getUnit() const
         return UNIT_CHARGE / UNIT_VOLUME * UNIT_ENERGY;
     else
         if (calcType == ComputeGridValueOptions::calcCounter)
-        return particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE;
+        return particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE;
 
 #if(ENABLE_RADIATION == 1)
     else
@@ -174,7 +174,7 @@ ComputeGridValuePerFrame<T_ParticleShape, calcType>::operator()
 
         if (calcType == ComputeGridValueOptions::calcCounter)
             atomicAddWrapper(&(fieldTmpShiftToParticle(offsetToBaseCell).x()),
-                             assignComb * weighting / particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE);
+                             assignComb * weighting / particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
 
 #if(ENABLE_RADIATION == 1)
         if (calcType == ComputeGridValueOptions::calcLarmorEnergy)

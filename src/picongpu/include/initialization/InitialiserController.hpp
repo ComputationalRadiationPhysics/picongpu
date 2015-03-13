@@ -126,7 +126,7 @@ public:
             const int localNrOfCells = cellDescription->getGridLayout().getDataSpaceWithoutGuarding().productOfComponents();
             log<picLog::PHYSICS >("macro particles per gpu: %1%") %
                                  (localNrOfCells * particles::TYPICAL_PARTICLES_PER_CELL * (1 + 1 * ENABLE_IONS));
-            log<picLog::PHYSICS >("typical macro particle weighting: %1%") % (particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE);
+            log<picLog::PHYSICS >("typical macro particle weighting: %1%") % (particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
 
 
             log<picLog::PHYSICS >("UNIT_SPEED %1%") % UNIT_SPEED;

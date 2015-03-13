@@ -41,7 +41,7 @@ namespace picongpu
     {
         /** Number of electrons per particle (= macro particle weighting)
          *  unit: none */
-        const float_X TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE = 1;
+        const float_X TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE = 1;
 
     }
 
@@ -58,15 +58,15 @@ namespace picongpu
     {
         /** Number of electrons per particle (= macro particle weighting)
          *  unit: none */
-        const float_X TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE = 1;
+        const float_X TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE = 1;
     }
 #endif
 
 
     /** Unit of mass */
-    const double UNIT_MASS = SI::ELECTRON_MASS_SI * double(particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE);
+    const double UNIT_MASS = SI::ELECTRON_MASS_SI * double(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
     /** Unit of charge */
-    const double UNIT_CHARGE = -1.0 * SI::ELECTRON_CHARGE_SI * double(particles::TYPICAL_NUM_PARTICLE_PER_MAKROPARTICLE);
+    const double UNIT_CHARGE = -1.0 * SI::ELECTRON_CHARGE_SI * double(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
     /** Unit of energy */
     const double UNIT_ENERGY = (UNIT_MASS * UNIT_LENGTH * UNIT_LENGTH / (UNIT_TIME * UNIT_TIME));
     /** Unit of EField: V/m */
