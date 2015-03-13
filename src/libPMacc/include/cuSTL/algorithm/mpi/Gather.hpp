@@ -46,7 +46,7 @@ private:
     std::vector<math::Int<dim> > positions;
     bool m_participate;
 
-    template<typename Type, int _dim, int memDim>
+    template<typename Type, int T_dim, int memDim>
     struct CopyToDest;
 
     template<typename Type>
@@ -58,10 +58,10 @@ private:
                         container::HostBuffer<Type, 2>& source, int dir) const;
     };
 
-    template<typename Type, int _dim, int memDim>
+    template<typename Type, int T_dim, int memDim>
     friend class CopyToDest;
 public:
-    Gather(const zone::SphericZone<dim>& _zone);
+    Gather(const zone::SphericZone<dim>& p_zone);
     ~Gather();
 
     template<typename Type, int memDim>

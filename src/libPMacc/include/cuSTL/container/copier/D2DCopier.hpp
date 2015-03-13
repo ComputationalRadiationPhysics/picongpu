@@ -31,10 +31,10 @@ namespace PMacc
 namespace copier
 {
 
-template<int _dim>
+template<int T_dim>
 struct D2DCopier
 {
-    static const int dim = _dim;
+    static const int dim = T_dim;
     template<typename Type>
     static void copy(Type* dest, const math::Size_t<dim-1>& pitchDest,
          Type* source, const math::Size_t<dim-1>& pitchSource,

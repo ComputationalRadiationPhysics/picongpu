@@ -80,7 +80,7 @@ namespace picongpu
         container::DeviceBuffer<float_PS, 2>* dBuffer;
 
         /** reduce functor to a single host per plane */
-        algorithm::mpi::Reduce<simDim>* planeReduce;
+        PMacc::algorithm::mpi::Reduce<simDim>* planeReduce;
         bool isPlaneReduceRoot;
         /** MPI communicator that contains the root ranks of the \p planeReduce
          */
