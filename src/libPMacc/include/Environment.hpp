@@ -185,16 +185,42 @@ private:
         {
             const int tryDeviceId = (deviceOffset + deviceNumber) % num_gpus;
             rc = cudaSetDevice(tryDeviceId);
+
+            if(rc == cudaSuccess)
+            {
+               cudaStream_t stream;
+               /* \todo: Check if this workaround is needed
+                *
+                * - since NVIDIA change something in driver cudaSetDevice never
+                * return an error if another process already use the selected
+                * device if gpu compute mode is set "process exclusive"
+                * - create a dummy stream to check if the device is already used by
+                * an other process.
+                * - cudaStreamCreate fail if gpu is already in use
+                */
+               rc = cudaStreamCreate(&stream);
+            }
+
             if (rc == cudaSuccess)
             {
                 cudaDeviceProp dprop;
-                cudaGetDeviceProperties(&dprop, deviceNumber);
+                CUDA_CHECK(cudaGetDeviceProperties(&dprop, deviceNumber));
                 log<ggLog::CUDA_RT > ("Set device to %1%: %2%") % tryDeviceId % dprop.name;
-                CUDA_CHECK(cudaSetDeviceFlags(cudaDeviceScheduleSpin));
+                if(cudaErrorSetOnActiveProcess == cudaSetDeviceFlags(cudaDeviceScheduleSpin))
+                {
+                    cudaGetLastError(); //reset all errors
+                    /* - because of cudaStreamCreate was called cudaSetDeviceFlags crashed
+                     * - to set the flags reset the device and set flags again
+                     */
+                    CUDA_CHECK(cudaDeviceReset());
+                    CUDA_CHECK(cudaSetDeviceFlags(cudaDeviceScheduleSpin));
+                }
+                CUDA_CHECK(cudaGetLastError());
                 break;
             }
-            else if (rc == cudaErrorDeviceAlreadyInUse)
+            else if (rc == cudaErrorDeviceAlreadyInUse || rc==cudaErrorDevicesUnavailable)
             {
+                cudaGetLastError(); //reset all errors
                 log<ggLog::CUDA_RT > ("Device %1% already in use, try next.") % tryDeviceId;
                 continue;
             }
