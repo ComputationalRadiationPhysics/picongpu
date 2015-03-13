@@ -33,7 +33,7 @@ namespace particles
 namespace startPosition
 {
 
-struct MakroParticleCfg
+struct MacroParticleCfg
 {
     float_X weighting;
     uint32_t numParticlesPerCell;

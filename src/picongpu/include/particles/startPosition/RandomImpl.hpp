@@ -22,7 +22,7 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "particles/startPosition/MakroParticleCfg.hpp"
+#include "particles/startPosition/MacroParticleCfg.hpp"
 #include "nvidia/rng/RNG.hpp"
 #include "nvidia/rng/methods/Xor.hpp"
 #include "nvidia/rng/distributions/Uniform_float.hpp"
@@ -93,7 +93,7 @@ struct RandomImpl
      * @param realParticlesPerCell  the number of real particles in this cell
      * @return macroWeighting the intended weighting per macro particle
      */
-    DINLINE MakroParticleCfg mapRealToMakroParticle(const float_X realParticlesPerCell)
+    DINLINE MacroParticleCfg mapRealToMacroParticle(const float_X realParticlesPerCell)
     {
         uint32_t numParsPerCell = ParamClass::numParticlesPerCell;
         float_X macroWeighting = float_X(0.0);
@@ -109,11 +109,11 @@ struct RandomImpl
             else
                 macroWeighting = float_X(0.0);
         }
-        MakroParticleCfg makroParCfg;
-        makroParCfg.weighting = macroWeighting;
-        makroParCfg.numParticlesPerCell = numParsPerCell;
+        MacroParticleCfg macroParCfg;
+        macroParCfg.weighting = macroWeighting;
+        macroParCfg.numParticlesPerCell = numParsPerCell;
 
-        return makroParCfg;
+        return macroParCfg;
     }
 
 protected:

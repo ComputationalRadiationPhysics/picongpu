@@ -30,7 +30,7 @@
 #include "plugins/radiation/parameters.hpp"
 #include "particles/operations/SetAttributeToDefault.hpp"
 #include "compileTime/conversion/ResolveAndRemoveFromSeq.hpp"
-#include "particles/startPosition/MakroParticleCfg.hpp"
+#include "particles/startPosition/MacroParticleCfg.hpp"
 
 namespace picongpu
 {
@@ -102,8 +102,8 @@ __global__ void kernelFillGridWithParticles(T_GasProfile gasFunctor,
 
     positionFunctor.init(totalGpuCellIdx);
     // decrease number of macro particles, if weighting would be too small
-    particles::startPosition::MakroParticleCfg makroCfg =
-        positionFunctor.mapRealToMakroParticle(realParticlesPerCell);
+    particles::startPosition::MacroParticleCfg makroCfg =
+        positionFunctor.mapRealToMacroParticle(realParticlesPerCell);
     float_X macroWeighting = makroCfg.weighting;
     uint32_t numParsPerCell = makroCfg.numParticlesPerCell;
 

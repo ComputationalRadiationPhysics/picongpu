@@ -22,7 +22,7 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "particles/startPosition/MakroParticleCfg.hpp"
+#include "particles/startPosition/MacroParticleCfg.hpp"
 
 namespace picongpu
 {
@@ -51,9 +51,9 @@ struct IFunctor : private T_Base
         return Base::operator()(currentParticleIdx);
     }
 
-    DINLINE MakroParticleCfg mapRealToMakroParticle(const float_X realElPerCell)
+    DINLINE MacroParticleCfg mapRealToMacroParticle(const float_X realElPerCell)
     {
-        return Base::mapRealToMakroParticle(realElPerCell);
+        return Base::mapRealToMacroParticle(realElPerCell);
     }
 };
 

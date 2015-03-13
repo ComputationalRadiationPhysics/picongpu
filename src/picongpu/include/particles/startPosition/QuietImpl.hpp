@@ -23,7 +23,7 @@
 
 
 #include "simulation_defines.hpp"
-#include "particles/startPosition/MakroParticleCfg.hpp"
+#include "particles/startPosition/MacroParticleCfg.hpp"
 #include "particles/startPosition/IFunctor.def"
 
 namespace picongpu
@@ -86,7 +86,7 @@ struct QuietImpl
      * @param realElPerCell  the number of real electrons in this cell
      * @return macroWeighting the intended weighting per macro particle
      */
-    DINLINE MakroParticleCfg mapRealToMakroParticle(const float_X realElPerCell)
+    DINLINE MacroParticleCfg mapRealToMacroParticle(const float_X realElPerCell)
     {
         float_X macroWeighting = float_X(0.0);
         uint32_t numParsPerCell=numParInCell.productOfComponents();
@@ -114,11 +114,11 @@ struct QuietImpl
                 macroWeighting = float_X(0.0);
         }
 
-        MakroParticleCfg makroParCfg;
-        makroParCfg.weighting = macroWeighting;
-        makroParCfg.numParticlesPerCell = numParsPerCell;
+        MacroParticleCfg macroParCfg;
+        macroParCfg.weighting = macroWeighting;
+        macroParCfg.numParticlesPerCell = numParsPerCell;
 
-        return makroParCfg;
+        return macroParCfg;
     }
 
 protected:
