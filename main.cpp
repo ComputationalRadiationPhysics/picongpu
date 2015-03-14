@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include <QApplication>
 
-const std::string DEFAULT_SERVER_IP = "149.220.4.50";
+const std::string DEFAULT_SERVER_IP = "127.0.0.1";//"149.220.4.37";
 const int DEFAULT_SERVER_INFOPORT = 8200;
 
 int main(int argc, char *argv[])

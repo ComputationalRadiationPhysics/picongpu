@@ -8,7 +8,7 @@
 
 # config
 n_login=huebl@uts.fz-rossendorf.de
-n_head=149.220.4.50
+n_head=149.220.4.37
 
 # functions
 function getNewSSH {
