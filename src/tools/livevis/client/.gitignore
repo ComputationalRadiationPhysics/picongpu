@@ -1,0 +1,17 @@
+# tmp files
+*~
+moc_*
+ui_*.h
+qrc_*.cpp
+*.o
+
+# netbeans project files
+/nbproject/
+
+# Code::Blocks project files
+/*.cbp
+/*.layout
+
+# python byte code
+*.pyc
+
