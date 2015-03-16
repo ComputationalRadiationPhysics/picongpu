@@ -43,14 +43,14 @@ namespace PMacc
 #endif
 
 /** Call activate kernel from taskKernel.
- *  If PMACC_SYNC_KERNEL is 1 cudaThreadSynchronize() is called before
+ *  If PMACC_SYNC_KERNEL is 1 cudaDeviceSynchronize() is called before
  *  and after activation.
  */
 #define PMACC_ACTIVATE_KERNEL                                                           \
         CUDA_CHECK_KERNEL_MSG(cudaGetLastError( ),"Last error after kernel launch");    \
-        CUDA_CHECK_KERNEL_MSG(cudaThreadSynchronize(),"Crash after kernel launch");     \
+        CUDA_CHECK_KERNEL_MSG(cudaDeviceSynchronize(),"Crash after kernel launch");     \
         taskKernel->activateChecks();                                                   \
-        CUDA_CHECK_KERNEL_MSG(cudaThreadSynchronize(),"Crash after kernel activation");
+        CUDA_CHECK_KERNEL_MSG(cudaDeviceSynchronize(),"Crash after kernel activation");
 
 /**
  * Appends kernel arguments to generated code and activates kernel task.
@@ -79,7 +79,7 @@ namespace PMacc
  * @param kernelname name of the CUDA kernel (can also used with templates etc. myKernel<1>)
  */
 #define __cudaKernel(kernelname) {                                                      \
-    CUDA_CHECK_KERNEL_MSG(cudaThreadSynchronize(),"Crash before kernel call");          \
+    CUDA_CHECK_KERNEL_MSG(cudaDeviceSynchronize(),"Crash before kernel call");          \
     TaskKernel *taskKernel =  Environment<>::get().Factory().createTaskKernel(#kernelname);     \
     kernelname PMACC_CUDAKERNELCONFIG
 
