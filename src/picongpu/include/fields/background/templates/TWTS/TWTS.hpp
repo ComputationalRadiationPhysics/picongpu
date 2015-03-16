@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Axel Huebl
+ * Copyright 2014-2015 Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -20,5 +20,5 @@
 
 #pragma once
 
-/** Load pre-defined templates (implementation) */
-#include "fields/background/templates/TWTS/TWTS.tpp"
+#include "fields/background/templates/TWTS/TWTSFieldE.hpp"
+#include "fields/background/templates/TWTS/TWTSFieldB.hpp"

@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Axel Huebl
+ * Copyright 2014-2015 Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -20,5 +20,18 @@
 
 #pragma once
 
-/** Load pre-defined templates (implementation) */
-#include "fields/background/templates/TWTS/TWTS.tpp"
+#include "types.h"
+#include "simulation_defines.hpp"
+#include "simulation_classTypes.hpp"
+
+#include "math/Vector.hpp"
+#include "dimensions/DataSpace.hpp"
+#include "mappings/simulation/SubGrid.hpp"
+#include "math/Complex.hpp"
+#include "fields/background/templates/TWTS/TWTS.hpp"
+
+#include "fields/background/templates/TWTS/RotateField.tpp"
+#include "fields/background/templates/TWTS/Get_tdelay_SI.tpp"
+#include "fields/background/templates/TWTS/GetFieldPositions_SI.tpp"
+#include "fields/background/templates/TWTS/TWTSFieldE.tpp"
+#include "fields/background/templates/TWTS/TWTSFieldB.tpp"

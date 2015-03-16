@@ -21,7 +21,7 @@
 #pragma once
 
 /** Load pre-defined templates */
-#include "fields/background/templates/bgrTWTS.def"
+#include "fields/background/templates/TWTS/TWTS.hpp"
 
 #ifndef PARAM_INCLUDE_FIELDBACKGROUND
 #define PARAM_INCLUDE_FIELDBACKGROUND false
