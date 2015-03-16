@@ -24,11 +24,11 @@
 namespace picongpu
 {
     /** Unit of Speed */
-    const double UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
+    const float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
     /** Unit of time */
-    const double UNIT_TIME = SI::DELTA_T_SI;
+    const float_64 UNIT_TIME = SI::DELTA_T_SI;
     /** Unit of length */
-    const double UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
+    const float_64 UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
 
 #if(SIMDIM==DIM3)
     namespace SI
@@ -36,6 +36,15 @@ namespace picongpu
         /** density normed to dimension of the simulation*/
         const float_64  GAS_DENSITY_NORMED= SI::GAS_DENSITY_SI;
     } //namespace SI
+
+    namespace particles
+    {
+        /** Number of electrons per particle (= macro particle weighting)
+         *  unit: none */
+        const float_X TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE = 1;
+
+    }
+
 #elif(SIMDIM==DIM2)
     namespace SI
     {
@@ -44,21 +53,20 @@ namespace picongpu
          * http://www.tf.uni-kiel.de/matwis/amat/mw1_ge/kap_6/basics/m6_2_1.html
          */
         const float_64  GAS_DENSITY_NORMED= SI::GAS_DENSITY_SI*UNIT_LENGTH;
-     } //namespace SI
+    } //namespace SI
+    namespace particles
+    {
+        /** Number of electrons per particle (= macro particle weighting)
+         *  unit: none */
+        const float_X TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE = 1;
+    }
 #endif
 
-    /** Number of electrons per particle (= macro particle weighting)
-     *  unit: none */
-    const float_X NUM_EL_PER_PARTICLE = 1;
-
-    /** Number of ions per particle
-     *  unit: none */
-    const float_X NUM_ION_PER_PARTICLE = NUM_EL_PER_PARTICLE;
 
     /** Unit of mass */
-    const double UNIT_MASS = SI::ELECTRON_MASS_SI * double(NUM_EL_PER_PARTICLE);
+    const double UNIT_MASS = SI::ELECTRON_MASS_SI * double(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
     /** Unit of charge */
-    const double UNIT_CHARGE = -1.0 * SI::ELECTRON_CHARGE_SI * double(NUM_EL_PER_PARTICLE);
+    const double UNIT_CHARGE = -1.0 * SI::ELECTRON_CHARGE_SI * double(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
     /** Unit of energy */
     const double UNIT_ENERGY = (UNIT_MASS * UNIT_LENGTH * UNIT_LENGTH / (UNIT_TIME * UNIT_TIME));
     /** Unit of EField: V/m */
@@ -76,9 +84,9 @@ namespace picongpu
     //! Mass of electron
     const float_X M_EL = (float_X) (SI::ELECTRON_MASS_SI / UNIT_MASS);
     //! Charge of ion
-    const float_X Q_ION = (float_X) (-1.0 * SI::ELECTRON_CHARGE_SI / UNIT_CHARGE);
+    const float_X Q_ION = (float_X) (SI::ION_CHARGE_SI / UNIT_CHARGE);
     //! Mass of ion
-    const float_X M_ION = (float_X) (1.6726217e-27 / UNIT_MASS);
+    const float_X M_ION = (float_X) (SI::ION_MASS_SI / UNIT_MASS);
 
     //! magnetic constant must be double 3.92907e-39
     const float_X MUE0 = (float_X) (SI::MUE0_SI / UNIT_LENGTH / UNIT_MASS * UNIT_CHARGE * UNIT_CHARGE);

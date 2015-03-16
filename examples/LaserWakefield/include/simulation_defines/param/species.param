@@ -58,9 +58,9 @@ namespace picongpu
  *  example:             typedef particles::shapes::CIC CICShape;
  */
 #ifndef PARAM_PARTICLESHAPE
-#define PARAM_PARTICLESHAPE particles::shapes::TSC
+#define PARAM_PARTICLESHAPE TSC
 #endif
-typedef PARAM_PARTICLESHAPE UsedParticleShape;
+typedef particles::shapes::PARAM_PARTICLESHAPE UsedParticleShape;
 
 /* define which interpolation method is used to interpolate fields to particle*/
 typedef FieldToParticleInterpolation<UsedParticleShape, AssignedTrilinearInterpolation> UsedField2Particle;
@@ -75,9 +75,9 @@ typedef FieldToParticleInterpolation<UsedParticleShape, AssignedTrilinearInterpo
  *   without optimization (~4x slower and needs more shared memory)
  */
 #ifndef PARAM_CURRENTSOLVER
-#define PARAM_CURRENTSOLVER currentSolver::Esirkepov<UsedParticleShape>
+#define PARAM_CURRENTSOLVER Esirkepov
 #endif
-typedef PARAM_CURRENTSOLVER UsedParticleCurrentSolver;
+typedef currentSolver::PARAM_CURRENTSOLVER<UsedParticleShape> UsedParticleCurrentSolver;
 
 /*! particle pusher configuration ----------------------------------------------
  *
@@ -94,8 +94,8 @@ typedef PARAM_CURRENTSOLVER UsedParticleCurrentSolver;
  * - particles::pusher::Phot : propagate with c in direction of normalized mom.
  */
 #ifndef PARAM_PARTICLEPUSHER
-#define PARAM_PARTICLEPUSHER particles::pusher::Boris
+#define PARAM_PARTICLEPUSHER Boris
 #endif
-typedef PARAM_PARTICLEPUSHER UsedParticlePusher;
+typedef particles::pusher::PARAM_PARTICLEPUSHER UsedParticlePusher;
 
 }//namespace picongpu

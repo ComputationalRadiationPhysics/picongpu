@@ -1,6 +1,5 @@
 /**
  * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
- *                     Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -22,35 +21,42 @@
 
 #pragma once
 
-#include "types.h"
 #include "simulation_defines.hpp"
-#include "memory/buffers/GridBuffer.hpp"
-#include "simulationControl/Window.hpp"
+#include "particles/startPosition/MacroParticleCfg.hpp"
 
 namespace picongpu
 {
-    namespace gasHomogeneous
+
+namespace particles
+{
+namespace startPosition
+{
+
+template<typename T_Base>
+struct IFunctor : private T_Base
+{
+    typedef T_Base Base;
+
+    HINLINE IFunctor(uint32_t currentStep) : Base(currentStep)
     {
-        template<class Type>
-        bool gasSetup( GridBuffer<Type, simDim>&, Window& )
-        {
-            return true;
-        }
-
-        /** Calculate the gas density, divided by the maximum density GAS_DENSITY
-         *
-         * @param pos as 3D length vector offset to global left top front cell
-         * @return float_X between 0.0 and 1.0
-         */
-        template<unsigned DIM, typename FieldBox>
-        DINLINE float_X calcNormedDensity( floatD_X pos, const DataSpace<DIM>&, FieldBox )
-        {
-            if (pos.y() < VACUUM_Y
-                || pos.y() >= (GAS_LENGTH + VACUUM_Y)) return float_X(0.0);
-
-            return float_X(1.0);
-        }
     }
-}
 
+    DINLINE void init(const DataSpace<simDim>& totalCellOffset)
+    {
+        Base::init(totalCellOffset);
+    }
 
+    DINLINE floatD_X operator()(const uint32_t currentParticleIdx)
+    {
+        return Base::operator()(currentParticleIdx);
+    }
+
+    DINLINE MacroParticleCfg mapRealToMacroParticle(const float_X realElPerCell)
+    {
+        return Base::mapRealToMacroParticle(realElPerCell);
+    }
+};
+
+} //namespace startPosition
+} //namespace particles
+} //namespace picongpu

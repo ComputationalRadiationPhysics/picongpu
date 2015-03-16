@@ -19,40 +19,35 @@
  */
 
 
+#pragma once
 
-#ifndef GASNONE_HPP
-#define	GASNONE_HPP
-
-#include "types.h"
 #include "simulation_defines.hpp"
-#include "memory/buffers/GridBuffer.hpp"
-#include "simulationControl/Window.hpp"
+#include "particles/manipulators/IManipulator.def"
 
 namespace picongpu
 {
-    namespace gasNone
+
+namespace particles
+{
+namespace manipulators
+{
+
+template<typename T_Base>
+struct IManipulator : private T_Base
+{
+    typedef T_Base Base;
+
+    HINLINE IManipulator(uint32_t currentStep) : Base(currentStep)
     {
-        template<class Type>
-        bool gasSetup( GridBuffer<Type, simDim>&, Window& )
-        {
-            return true;
-        }
-
-        /** Calculate the gas density, divided by the maximum density GAS_DENSITY
-         *
-         * @return float_X between 0.0 and 1.0
-         */
-        template<unsigned DIM, typename FieldBox>
-        DINLINE float_X calcNormedDensity( floatD_X pos, const DataSpace<DIM>&, FieldBox )
-        {
-
-            return float_X(0.0);
-
-        }
     }
-}
 
-#endif	/* GASNONE_HPP */
+    template<typename T_Particle>
+    HDINLINE void operator()(const DataSpace<simDim>& localCellIdx, T_Particle& particle, const bool isParticle)
+    {
+        return Base::operator()(localCellIdx, particle, isParticle);
+    }
+};
 
-
-
+} //namespace manipulators
+} //namespace particles
+} //namespace picongpu

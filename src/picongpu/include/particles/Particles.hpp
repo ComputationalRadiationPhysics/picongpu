@@ -57,14 +57,14 @@ public:
 
     void update(uint32_t currentStep);
 
-    void initFill(uint32_t currentStep);
+    template<typename T_GasFunctor, typename T_PositionFunctor>
+    void initGas(T_GasFunctor& gasFunctor, T_PositionFunctor& positionFunctor, const uint32_t currentStep);
 
     template< typename t_ParticleDescription>
     void deviceCloneFrom(Particles<t_ParticleDescription> &src);
 
-    void deviceAddTemperature(float_X temperature);
-
-    void deviceSetDrift(uint32_t currentStep);
+    template<typename T_Functor>
+    void manipulateAllParticles(uint32_t currentStep, T_Functor& functor);
 
     SimulationDataId getUniqueId();
 

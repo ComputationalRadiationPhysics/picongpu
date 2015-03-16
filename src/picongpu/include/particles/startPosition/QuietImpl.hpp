@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -19,40 +19,48 @@
  */
 
 
+#pragma once
 
-#ifndef PARTICLEINITQUIETSTART_HPP
-#define	PARTICLEINITQUIETSTART_HPP
 
-#include "types.h"
 #include "simulation_defines.hpp"
-#include "ppFunctions.hpp"
+#include "particles/startPosition/MacroParticleCfg.hpp"
+#include "particles/startPosition/IFunctor.def"
 
 namespace picongpu
 {
-namespace particleInitQuietStart
+namespace particles
+{
+namespace startPosition
 {
 
-class particleInitMethods
+template<typename T_ParamClass>
+struct QuietImpl
 {
-public:
 
-    DINLINE particleInitMethods()
+    typedef T_ParamClass ParamClass;
+
+    template<typename T_SpeciesType>
+    struct apply
     {
-        for (uint32_t i = 0; i < simDim; ++i)
-            numParInCell[i] = num_particle_per_cell[i];
+        typedef QuietImpl<ParamClass> type;
+    };
+
+    HINLINE QuietImpl(uint32_t): numParInCell(ParamClass::numParticlesPerDimension::toRT())
+    {
+    }
+
+    DINLINE void init(const DataSpace<simDim>& totalCellOffset)
+    {
+
     }
 
     /** Distributes the initial particles lattice-like within the cell.
      *
      * @param rng a reference to an initialized, UNIFORM random number generator
-     * @param totalNumParsPerCell the total number of particles to init for this cell
      * @param curParticle the number of this particle: [0, totalNumParsPerCell-1]
      * @return float3_X with components between [0.0, 1.0)
      */
-    template <class UNIRNG>
-    DINLINE floatD_X getPosition(UNIRNG& rng,
-                                 const uint32_t totalNumParsPerCell,
-                                 const uint32_t curParticle)
+    DINLINE floatD_X operator()(const uint32_t curParticle)
     {
         // spacing between particles in each direction in the cell
         DataSpace<simDim> numParDirection(numParInCell);
@@ -78,10 +86,11 @@ public:
      * @param realElPerCell  the number of real electrons in this cell
      * @return macroWeighting the intended weighting per macro particle
      */
-    DINLINE float_X reduceParticlesToSatisfyMinWeighting(uint32_t& numParsPerCell,
-                                                         const float_X realElPerCell)
+    DINLINE MacroParticleCfg mapRealToMacroParticle(const float_X realElPerCell)
     {
         float_X macroWeighting = float_X(0.0);
+        uint32_t numParsPerCell=numParInCell.productOfComponents();
+
         if (numParsPerCell > 0)
             macroWeighting = realElPerCell / float_X(numParsPerCell);
 
@@ -104,17 +113,18 @@ public:
             else
                 macroWeighting = float_X(0.0);
         }
-        return macroWeighting;
+
+        MacroParticleCfg macroParCfg;
+        macroParCfg.weighting = macroWeighting;
+        macroParCfg.numParticlesPerCell = numParsPerCell;
+
+        return macroParCfg;
     }
 
 protected:
 
     DataSpace<simDim> numParInCell;
 };
-}
-}
-
-#endif	/* PARTICLEINITQUIETSTART_HPP */
-
-
-
+} //namespace particlesStartPosition
+} //namespace particles
+} //namespace picongpu
