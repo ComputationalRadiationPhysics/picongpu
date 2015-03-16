@@ -70,7 +70,7 @@ namespace picongpu
  * @param area area type for which the kernel is called
  */
 #define __picKernelArea(kernelname,description,area) {                               \
-    CUDA_CHECK_KERNEL_MSG(cudaThreadSynchronize(),"picKernelArea crash before kernel call");       \
+    CUDA_CHECK_KERNEL_MSG(cudaDeviceSynchronize(),"picKernelArea crash before kernel call");       \
     AreaMapping<area,MappingDesc> mapper(description);                               \
     TaskKernel *taskKernel =  Environment<>::get().Factory().createTaskKernel(#kernelname);  \
     kernelname PIC_PMACC_CUDAKERNELCONFIG
