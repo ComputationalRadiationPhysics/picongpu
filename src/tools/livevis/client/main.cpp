@@ -32,11 +32,11 @@ int main(int argc, char *argv[])
     /// get server IP and Info Portnumber from command line arguments
     for (int i = 0; i < argc; ++i)
     {
-        if (strcmp("--serverip", argv[i]) == 0)
+        if (strcmp("--serverip", argv[i]) == 0 && i < argc-1)
         {
             serverip = argv[i+1];
         }
-        if (strcmp("--serverinfoport", argv[i]) == 0)
+        if (strcmp("--serverinfoport", argv[i]) == 0 && i < argc-1)
         {
             server_info_port = atoi(argv[i+1]);
         }
