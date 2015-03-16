@@ -44,7 +44,7 @@ namespace picongpu
 
         /* TWTS E-fields need to be initialized on host,
          *  so they can look up global grid dimensions. */
-        const templates::TWTSFieldE twtsFieldE;
+        const templates::twts::EField twtsFieldE;
         
         /* Constructor is host-only, because of subGrid and halfSimSize initialization */
         HINLINE FieldBackgroundE( const float3_64 unitField ) : unitField(unitField),
@@ -126,7 +126,7 @@ namespace picongpu
 
         /* TWTS B-fields need to be initialized on host,
          * so they can look up global grid dimensions. */
-        templates::TWTSFieldB twtsFieldB;
+        templates::twts::BField twtsFieldB;
         
         /* We use this to calculate your SI input back to our unit system */
         const float3_64 unitField;

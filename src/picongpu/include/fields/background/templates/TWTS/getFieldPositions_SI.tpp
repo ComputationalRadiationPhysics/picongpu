@@ -18,16 +18,19 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 #pragma once
 
 #include "types.h"
 #include "math/Vector.hpp"
 #include "dimensions/DataSpace.hpp"
+#include "fields/background/templates/TWTS/numComponents.hpp"
 
 namespace picongpu
 {
-/** Load pre-defined background field */
 namespace templates
+{
+namespace twts
 {
 /** Auxiliary functions for calculating the TWTS field */
 namespace detail
@@ -55,9 +58,9 @@ namespace detail
         
         /* For the Yee-Cell shifted fields, obtain the fractional cell index components and add
          * that to the total cell indices. The physical field coordinate origin is transversally
-         * centered with respect to the global simulation volume. */
-        //PMacc::math::Vector<floatD_X, numComponents> fieldPositions = 
-        //                fieldSolver::NumericalCellType::getEFieldPosition();
+         * centered with respect to the global simulation volume.
+         * PMacc::math::Vector<floatD_X, numComponents> fieldPositions = 
+         *                fieldSolver::NumericalCellType::getEFieldPosition(); */
         PMacc::math::Vector<floatD_X, numComponents> fieldPositions = fieldOnGridPositions;
         
         PMacc::math::Vector<floatD_64,numComponents> fieldPositions_SI;
@@ -74,5 +77,6 @@ namespace detail
     }
     
 } /* namespace detail */
+} /* namespace twts */
 } /* namespace templates */
 } /* namespace picongpu */

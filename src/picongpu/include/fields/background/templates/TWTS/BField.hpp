@@ -18,6 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 #pragma once
 
 #include "types.h"
@@ -31,8 +32,11 @@ namespace picongpu
 /** Load pre-defined background field */
 namespace templates
 {
+/** Traveling-wave Thomson scattering laser pulse */
+namespace twts
+{
 
-class TWTSFieldB
+class BField
 {
 public:
     typedef float_X float_T;
@@ -69,7 +73,7 @@ public:
     const PMACC_ALIGN(auto_tdelay,bool);
     
     HINLINE
-    TWTSFieldB( const float_64 focus_y_SI,
+    BField( const float_64 focus_y_SI,
                 const float_64 wavelength_SI,
                 const float_64 pulselength_SI,
                 const float_64 w_x_SI,
@@ -116,5 +120,6 @@ public:
     
 };
 
+} /* namespace twts */
 } /* namespace templates */
 } /* namespace picongpu */

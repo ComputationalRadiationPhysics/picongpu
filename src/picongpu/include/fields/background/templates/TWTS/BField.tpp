@@ -18,6 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 #pragma once
 
 #include "types.h"
@@ -30,21 +31,22 @@
 #include "math/Complex.hpp"
 
 #include "fields/background/templates/TWTS/RotateField.tpp"
-#include "fields/background/templates/TWTS/Get_tdelay_SI.tpp"
+#include "fields/background/templates/TWTS/GetInitialTimeDelay_SI.tpp"
 #include "fields/background/templates/TWTS/getFieldPositions_SI.tpp"
-#include "fields/background/templates/TWTS/TWTSFieldE.hpp"
+#include "fields/background/templates/TWTS/BField.hpp"
 
 namespace picongpu
 {
 /** Load pre-defined background field */
 namespace templates
 {
-namespace pmMath = PMacc::algorithms::math;
-
-    /* Here comes the B-field part of the TWTS laser pulse. */
+/** Traveling-wave Thomson scattering laser pulse */
+namespace twts
+{
+    namespace pmMath = PMacc::algorithms::math;
     
     HINLINE
-    TWTSFieldB::TWTSFieldB( const float_64 focus_y_SI,
+    BField::BField( const float_64 focus_y_SI,
                             const float_64 wavelength_SI,
                             const float_64 pulselength_SI,
                             const float_64 w_x_SI,
@@ -63,14 +65,14 @@ namespace pmMath = PMacc::algorithms::math;
          * on host (see fieldBackground.param), this is no problem. */
         const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
         halfSimSize = subGrid.getGlobalDomain().size / 2;
-        tdelay = detail::get_tdelay_SI(auto_tdelay, tdelay_user_SI, 
-                                       halfSimSize, pulselength_SI,
-                                       focus_y_SI, phi, beta_0);
+        tdelay = detail::getInitialTimeDelay_SI(auto_tdelay, tdelay_user_SI, 
+                                                halfSimSize, pulselength_SI,
+                                                focus_y_SI, phi, beta_0);
     }
     
     template<>
     HDINLINE float3_X
-    TWTSFieldB::getTWTSBfield_Normalized<DIM3>(
+    BField::getTWTSBfield_Normalized<DIM3>(
             const PMacc::math::Vector<floatD_64,detail::numComponents>& bFieldPositions_SI,
             const float_64 time) const
     {
@@ -101,7 +103,7 @@ namespace pmMath = PMacc::algorithms::math;
     
     template<>
     HDINLINE float3_X
-    TWTSFieldB::getTWTSBfield_Normalized<DIM2>(
+    BField::getTWTSBfield_Normalized<DIM2>(
             const PMacc::math::Vector<floatD_64,detail::numComponents>& bFieldPositions_SI,
             const float_64 time) const
     {
@@ -148,7 +150,7 @@ namespace pmMath = PMacc::algorithms::math;
     }
     
     HDINLINE float3_X
-    TWTSFieldB::operator()( const DataSpace<simDim>& cellIdx,
+    BField::operator()( const DataSpace<simDim>& cellIdx,
                             const uint32_t currentStep ) const
     {
         const float_64 time_SI = float_64(currentStep) * dt - tdelay;
@@ -165,8 +167,8 @@ namespace pmMath = PMacc::algorithms::math;
      * \param pos Spatial position of the target field.
      * \param time Absolute time (SI, including all offsets and transformations)
      *             for calculating the field */
-    HDINLINE TWTSFieldB::float_T
-    TWTSFieldB::calcTWTSBy( const float3_64& pos, const float_64 time ) const
+    HDINLINE BField::float_T
+    BField::calcTWTSBy( const float3_64& pos, const float_64 time ) const
     {
         typedef PMacc::math::Complex<float_T> complex_T;
         /** Unit of Speed */
@@ -302,8 +304,8 @@ namespace pmMath = PMacc::algorithms::math;
      * \param pos Spatial position of the target field.
      * \param time Absolute time (SI, including all offsets and transformations)
      *             for calculating the field */
-    HDINLINE TWTSFieldB::float_T
-    TWTSFieldB::calcTWTSBz( const float3_64& pos, const float_64 time ) const
+    HDINLINE BField::float_T
+    BField::calcTWTSBz( const float3_64& pos, const float_64 time ) const
     {
         typedef PMacc::math::Complex<float_T> complex_T;
         /** Unit of Speed */
@@ -396,6 +398,7 @@ namespace pmMath = PMacc::algorithms::math;
 
         return result.get_real();
     }
-    
+
+} /* namespace twts */
 } /* namespace templates */
 } /* namespace picongpu */

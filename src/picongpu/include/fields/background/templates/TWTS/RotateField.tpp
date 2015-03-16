@@ -18,6 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 #pragma once
 
 #include "types.h"
@@ -26,14 +27,15 @@
 
 namespace picongpu
 {
-/** Load pre-defined background field */
 namespace templates
 {
-namespace pmMath = PMacc::algorithms::math;
-
+namespace twts
+{
 /** Auxiliary functions for calculating the TWTS field */
 namespace detail
 {
+    namespace pmMath = PMacc::algorithms::math;
+    
     template <typename T_Type, typename T_AngleType>
     struct RotateField;
     
@@ -120,5 +122,6 @@ namespace detail
     }
     
 } /* namespace detail */
+} /* namespace twts */
 } /* namespace templates */
 } /* namespace picongpu */

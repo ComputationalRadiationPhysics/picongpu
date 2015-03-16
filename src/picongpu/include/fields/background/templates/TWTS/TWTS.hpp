@@ -18,7 +18,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 #pragma once
 
-#include "fields/background/templates/TWTS/TWTSFieldE.hpp"
-#include "fields/background/templates/TWTS/TWTSFieldB.hpp"
+#include "fields/background/templates/TWTS/EField.hpp"
+#include "fields/background/templates/TWTS/BField.hpp"
