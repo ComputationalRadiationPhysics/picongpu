@@ -156,8 +156,8 @@ public:
 
 protected:
 
-    PMACC_ALIGN(fixedPointer, TYPE*);
     PMACC_ALIGN(pitch, size_t);
+    PMACC_ALIGN(fixedPointer, TYPE*);
 
 };
 
@@ -213,7 +213,7 @@ public:
     {
         return fixedPointer;
     }
-    
+
     HDINLINE PMacc::cursor::BufferCursor<TYPE, DIM3>
     toCursor() const
     {
@@ -232,9 +232,9 @@ protected:
     }
 
 
-    PMACC_ALIGN(fixedPointer, TYPE*);
     PMACC_ALIGN(pitch, size_t);
     PMACC_ALIGN(pitch2D, size_t);
+    PMACC_ALIGN(fixedPointer, TYPE*);
 
 };
 

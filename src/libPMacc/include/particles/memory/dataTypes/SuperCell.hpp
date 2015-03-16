@@ -82,11 +82,13 @@ public:
         sizeLastFrame = size;
     }
 
-    PMACC_ALIGN(firstFramePtr, TYPE*);
-    PMACC_ALIGN(lastFramePtr, TYPE*);
+
 private:
     PMACC_ALIGN(mustShiftVal, bool);
     PMACC_ALIGN(sizeLastFrame, lcellId_t);
+public:
+    PMACC_ALIGN(firstFramePtr, TYPE*);
+    PMACC_ALIGN(lastFramePtr, TYPE*);
 };
 
 } //end namespace

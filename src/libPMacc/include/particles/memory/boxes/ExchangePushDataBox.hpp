@@ -86,8 +86,8 @@ public:
 
 protected:
     PMACC_ALIGN8(virtualMemory, PushDataBox<TYPE, PushType >);
-    PMACC_ALIGN(currentSizePointer, TYPE*);
     PMACC_ALIGN(maxSize, TYPE);
+    PMACC_ALIGN(currentSizePointer, TYPE*);
 };
 
 }
