@@ -24,21 +24,13 @@
 
 #include "math/Vector.hpp"
 #include "dimensions/DataSpace.hpp"
-
+#include "fields/background/templates/TWTS/numComponents.hpp"
 
 namespace picongpu
 {
-/** Load external TWTS field
- *
- */
+/** Load pre-defined background field */
 namespace templates
 {
-namespace detail
-{
-    /* Number of field components used in the simulation. [Default: 3 for both 2D and 3D] */
-    const uint32_t numComponents=DIM3;
-    
-} /* namespace detail */
         
 class TWTSFieldE
 {
@@ -122,11 +114,6 @@ public:
      * \return Ex-field component of the non-rotated TWTS field in SI units */
     HDINLINE float_T
     calcTWTSEx( const float3_64& pos, const float_64 time ) const;
-    
-    /** Calculate the SI position vectors that later enter the Ex(r, t) calculations as r.
-     * \param cellIdx The total cell id counted from the start at timestep 0. */
-    HDINLINE PMacc::math::Vector<floatD_64,detail::numComponents>
-    getEfieldPositions_SI(const DataSpace<simDim>& cellIdx) const;
     
     /** Calculate the E-field vector of the TWTS laser in SI units.
      * \tparam T_dim Specializes for the simulation dimension

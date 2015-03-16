@@ -18,18 +18,23 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
+#include "types.h"
+#include "math/Vector.hpp"
+#include "dimensions/DataSpace.hpp"
+
 namespace picongpu
 {
-/** Load external TWTS field
- *
- */
+/** Load pre-defined background field */
 namespace templates
 {
-
 /** Auxiliary functions for calculating the TWTS field */
 namespace detail
 {
-
+    /** Calculate the SI position vectors that later enter the Ex(r, t), By(r, t)
+     *  and Bz(r ,t) calculations as r.
+     *  \param cellIdx The total cell id counted from the start at timestep 0. */
     HDINLINE PMacc::math::Vector<floatD_64,numComponents>
     getFieldPositions_SI(const DataSpace<simDim>& cellIdx,
                          const DataSpace<simDim>& halfSimSize,

@@ -18,11 +18,15 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
+#include "types.h"
+#include "math/Vector.hpp"
+#include "dimensions/DataSpace.hpp"
+
 namespace picongpu
 {
-/** Load external TWTS field
- *
- */
+/** Load pre-defined background field */
 namespace templates
 {
 namespace pmMath = PMacc::algorithms::math;
@@ -77,13 +81,13 @@ namespace detail
              * projection we calculate the y-distance walkoff of the TWTS-pulse.
              * The abs()-function is for correct offset for -phi<-90Deg and +phi>+90Deg. */
             const float_64 y1 = float_64(halfSimSize[2]
-                                *picongpu::SI::CELL_DEPTH_SI)*abs(cos(eta));
+                                *picongpu::SI::CELL_DEPTH_SI)*pmMath::abs(pmMath::cos(eta));
             /* Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume
              * at low intensity values. */
             const float_64 m = 3.;
             /* Approximate cross section of laser pulse through y-axis,
              * scaled with "fudge factor" m. */
-            const float_64 y2 = m*(pulselength_SI*picongpu::SI::SPEED_OF_LIGHT_SI)/cos(eta);
+            const float_64 y2 = m*(pulselength_SI*picongpu::SI::SPEED_OF_LIGHT_SI)/pmMath::cos(eta);
             /* y-position of laser coordinate system origin within simulation. */
             const float_64 y3 = focus_y_SI;
             /* Programmatically obtained time-delay */
@@ -120,7 +124,7 @@ namespace detail
             const float_64 m = 3.;
             /* Approximate cross section of laser pulse through y-axis,
              * scaled with "fudge factor" m. */
-            const float_64 y2 = m*(pulselength_SI*picongpu::SI::SPEED_OF_LIGHT_SI)/cos(eta);
+            const float_64 y2 = m*(pulselength_SI*picongpu::SI::SPEED_OF_LIGHT_SI)/pmMath::cos(eta);
             /* y-position of laser coordinate system origin within simulation. */
             const float_64 y3 = focus_y_SI;
             /* Programmatically obtained time-delay */
@@ -132,6 +136,21 @@ namespace detail
             return tdelay_user_SI;
     }
 
+    template <unsigned T_Dim>
+    HDINLINE float_64
+    get_tdelay_SI( const bool auto_tdelay,
+                   const float_64 tdelay_user_SI,
+                   const DataSpace<T_Dim>& halfSimSize,
+                   const float_64 pulselength_SI,
+                   const float_64 focus_y_SI,
+                   const float_X phi,
+                   const float_X beta_0 )
+    {
+        return Get_tdelay_SI<T_Dim>()(auto_tdelay, tdelay_user_SI, 
+                                      halfSimSize, pulselength_SI,
+                                      focus_y_SI, phi, beta_0);
+    }
+    
 } /* namespace detail */
 } /* namespace templates */
 } /* namespace picongpu */

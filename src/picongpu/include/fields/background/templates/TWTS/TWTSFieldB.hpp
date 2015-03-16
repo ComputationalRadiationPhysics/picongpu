@@ -24,44 +24,14 @@
 
 #include "math/Vector.hpp"
 #include "dimensions/DataSpace.hpp"
-
+#include "fields/background/templates/TWTS/numComponents.hpp"
 
 namespace picongpu
 {
-/** Load external TWTS field
- *
- */
+/** Load pre-defined background field */
 namespace templates
 {
-namespace detail
-{
-    /* Number of field components used in the simulation. [Default: 3 for both 2D and 3D] */
-    //const uint32_t numComponents=DIM3;
-    
-    /* Casting from both float2_X and float3_X to float3_X objects */
-    HDINLINE PMacc::math::Vector<float3_X, numComponents>
-    dummyCast(const PMacc::math::Vector<float3_X, numComponents>& x)
-    { return x; }
-    
-    HDINLINE PMacc::math::Vector<float3_X, numComponents>
-    dummyCast(const PMacc::math::Vector<float2_X, numComponents>& x)
-    {
-        PMacc::math::Vector<float3_X, numComponents> result;
 
-        for( uint32_t i = 0; i < numComponents; ++i )
-        {
-            result[i]=float3_X( x[i].x(),x[i].y(),float_X(0.0) );
-        }
-        return result;
-    }
-    
-    HDINLINE float3_X
-    dummyCast(const float3_X& x) { return x; }
-    HDINLINE float3_X
-    dummyCast(const float2_X& x) { return float3_X( x.x(),x.y(),float_X(0.0) ); }
-            
-} /* namespace detail */
-        
 class TWTSFieldB
 {
 public:
@@ -134,14 +104,6 @@ public:
     HDINLINE float_T
     calcTWTSBz( const float3_64& pos, const float_64 time ) const;
 
-    /** Calculate the SI position vectors that later enter
-     *  the By(r, t) and Bz(r, t) calculations as r.
-     * \tparam T_dim Specializes for the simulation dimension
-     * \param cellIdx The total cell id counted from the start at timestep 0. */
-    template <unsigned T_dim>
-    HDINLINE PMacc::math::Vector<floatD_64,detail::numComponents>
-    getBfieldPositions_SI(const DataSpace<simDim>& cellIdx) const;
-    
     /** Calculate the B-field vector of the TWTS laser in SI units.
      * \tparam T_dim Specializes for the simulation dimension
      * \param cellIdx The total cell id counted from the start at timestep 0
