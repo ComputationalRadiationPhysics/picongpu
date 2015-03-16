@@ -113,7 +113,7 @@ extern void get_driver_info(char* info, unsigned int len);
 
 
 #define SHOW_PROGRESS(msg, i, tot_num_blocks)				\
-    cudaThreadSynchronize();						\
+    cudaDeviceSynchronize();						\
     unsigned int num_checked_blocks =  i+GRIDSIZE <= tot_num_blocks? i+GRIDSIZE: tot_num_blocks; \
     if (verbose >=2){							\
 	if(interactive){ \
@@ -132,7 +132,7 @@ extern void get_driver_info(char* info, unsigned int len);
 	    exit(cuda_err);}}while(0)
 
 #define SYNC_CUERR  do{ cudaError_t cuda_err; \
-	cudaThreadSynchronize(); \
+	cudaDeviceSynchronize(); \
         if ((cuda_err = cudaGetLastError()) != cudaSuccess) {                \
             FPRINTF("ERROR: CUDA error: %s, line %d, file %s\n", cudaGetErrorString(cuda_err),  __LINE__, __FILE__); \
             PRINTF("ERROR: CUDA error: %s, line %d, file %s\n", cudaGetErrorString(cuda_err),  __LINE__, __FILE__); \
