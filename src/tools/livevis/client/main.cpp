@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2015 Benjamin Schneider, Axel Huebl
+ * Copyright 2013-2015 Benjamin Schneider, Axel Huebl, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -29,16 +29,24 @@ int main(int argc, char *argv[])
     std::string serverip = DEFAULT_SERVER_IP;
     int server_info_port = DEFAULT_SERVER_INFOPORT;
 
-    /// get server IP and Info Portnumber from commandline arguments
+    /// get server IP and Info Portnumber from command line arguments
     for (int i = 0; i < argc; ++i)
     {
         if (strcmp("--serverip", argv[i]) == 0)
         {
-        serverip = argv[i];
+            serverip = argv[i+1];
         }
         if (strcmp("--serverinfoport", argv[i]) == 0)
         {
-        serverip = argv[i];
+            server_info_port = atoi(argv[i+1]);
+        }
+        if ((strcmp("--help", argv[i]) == 0) or (strcmp("-h", argv[i]) == 0))
+        {
+            printf("This is the client for the live visualization tool of PIConGPU.\n\n");
+            printf("--serverip       : Sets the IP address of the visualization server. [Default: %s]\n", serverip.c_str());
+            printf("--serverinfoport : Sets the port on which to connect to the visualization server. [Default: %d]\n", server_info_port);
+            printf("--help , -h      : Show usage information.\n");
+            return 0;
         }
     }
 
