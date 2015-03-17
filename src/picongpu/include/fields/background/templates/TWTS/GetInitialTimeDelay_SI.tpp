@@ -120,7 +120,7 @@ namespace detail
              * projection we calculate the y-distance walkoff of the TWTS-pulse.
              * The abs()-function is for correct offset for -phi<-90Deg and +phi>+90Deg. */
             const float_64 y1 = float_64(halfSimSize[0]
-                                *picongpu::SI::CELL_WIDTH_SI)*abs(cos(eta));
+                                *picongpu::SI::CELL_WIDTH_SI)*pmMath::abs(pmMath::cos(eta));
             /* Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume
              * at low intensity values. */
             const float_64 m = 3.;
@@ -149,8 +149,8 @@ namespace detail
                    const float_X beta_0 )
     {
         return GetInitialTimeDelay<T_Dim>()(auto_tdelay, tdelay_user_SI, 
-                                      halfSimSize, pulselength_SI,
-                                      focus_y_SI, phi, beta_0);
+                                            halfSimSize, pulselength_SI,
+                                            focus_y_SI, phi, beta_0);
     }
     
 } /* namespace detail */

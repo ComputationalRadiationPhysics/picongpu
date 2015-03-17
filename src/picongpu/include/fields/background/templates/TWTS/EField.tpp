@@ -128,7 +128,8 @@ namespace twts
         /* propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
         const float_T beta0 = float_T(beta_0);
         const float_T phiReal = float_T(phi);
-        const float_T alphaTilt = atan2(float_T(1.0)-beta0*cos(phiReal),beta0*sin(phiReal));
+        const float_T alphaTilt = pmMath::atan2(float_T(1.0)-beta0*pmMath::cos(phiReal),
+                                                beta0*pmMath::sin(phiReal));
         const float_T phiT = float_T(2.0)*alphaTilt;
         /* Definition of the laser pulse front tilt angle for the laser field below.
          * For beta0=1.0, this is equivalent to our standard definition. Question: Why is the
@@ -160,11 +161,11 @@ namespace twts
         const float_T t = float_T(time/UNIT_TIME);
         
         /* Calculating shortcuts for speeding up field calculation */
-        const float_T sinPhi = sin(phiT);
-        const float_T cosPhi = cos(phiT);
-        const float_T sinPhi2 = sin(phiT/float_T(2.0));
-        const float_T cosPhi2 = cos(phiT/float_T(2.0));
-        const float_T tanPhi2 = tan(phiT/float_T(2.0));
+        const float_T sinPhi = pmMath::sin(phiT);
+        const float_T cosPhi = pmMath::cos(phiT);
+        const float_T sinPhi2 = pmMath::sin(phiT/float_T(2.0));
+        const float_T cosPhi2 = pmMath::cos(phiT/float_T(2.0));
+        const float_T tanPhi2 = pmMath::tan(phiT/float_T(2.0));
         
         /* The "helpVar" variables decrease the nesting level of the evaluated expressions and
          * thus help with formal code verification through manual code inspection. */
@@ -190,7 +191,7 @@ namespace twts
                         - complex_T(0,2)*cspeed*om0*t*wy*wy*rho0
                         + float_T(2.0)*cspeed*y*y*rho0
                         + complex_T(0,2)*om0*wy*wy*z*rho0
-                    )*tan(float_T(PI/2.0)-phiT)/sinPhi
+                    )*pmMath::tan(float_T(PI/2.0)-phiT)/sinPhi
                 )*sinPhi2*sinPhi2*sinPhi2*sinPhi2
             - complex_T(0,2)*cspeed*cspeed*om0*t*t*wy*wy*z*sinPhi
             - float_T(2.0)*cspeed*cspeed*om0*om0*t*tauG*tauG*wy*wy*z*sinPhi
@@ -229,7 +230,7 @@ namespace twts
         )/(float_T(2.0)*cspeed*wy*wy*helpVar1*helpVar2);
 
         const complex_T helpVar5 = cspeed*om0*tauG*tauG 
-            - complex_T(0,8)*y*tan( float_T(PI/2)-phiT )
+            - complex_T(0,8)*y*pmMath::tan( float_T(PI/2)-phiT )
                                 /sinPhi/sinPhi*sinPhi2*sinPhi2*sinPhi2*sinPhi2
             - complex_T(0,2)*z*tanPhi2*tanPhi2;
         const complex_T result = (pmMath::exp(helpVar4)*tauG

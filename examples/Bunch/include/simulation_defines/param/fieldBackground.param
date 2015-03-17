@@ -40,11 +40,11 @@ namespace picongpu
         static const bool InfluenceParticlePusher = PARAM_INCLUDE_FIELDBACKGROUND;
 
         /* We use this to calculate your SI input back to our unit system */
-        const float3_64 unitField;
+        PMACC_ALIGN(unitField, const float3_64);
 
         /* TWTS E-fields need to be initialized on host,
          *  so they can look up global grid dimensions. */
-        const templates::twts::EField twtsFieldE;
+        PMACC_ALIGN(twtsFieldE, const templates::twts::EField);
         
         /* Constructor is host-only, because of subGrid and halfSimSize initialization */
         HINLINE FieldBackgroundE( const float3_64 unitField ) : unitField(unitField),
@@ -126,10 +126,11 @@ namespace picongpu
 
         /* TWTS B-fields need to be initialized on host,
          * so they can look up global grid dimensions. */
-        templates::twts::BField twtsFieldB;
+        PMACC_ALIGN(twtsFieldB, const templates::twts::BField);
         
         /* We use this to calculate your SI input back to our unit system */
-        const float3_64 unitField;
+        PMACC_ALIGN(unitField, const float3_64);
+        
         HINLINE FieldBackgroundB( const float3_64 unitField ) : unitField(unitField),
         
             twtsFieldB(
@@ -206,7 +207,8 @@ namespace picongpu
         static const bool activated = false;
 
         /* We use this to calculate your SI input back to our unit system */
-        const float3_64 unitField;
+        PMACC_ALIGN(unitField, const float3_64);
+        
         HDINLINE FieldBackgroundJ( const float3_64 unitField ) : unitField(unitField)
         {}
 
