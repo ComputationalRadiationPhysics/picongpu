@@ -190,23 +190,23 @@ if not args.boolDiff:
                          (Energies[0][:time_limit]-startEnergy)*norm, 
                          (Energies[1][:time_limit]-startEnergy)*norm, 
                          where=np.logical_and(Energies[0][:time_limit] < Energies[1][:time_limit], Energies[0][:time_limit] < startEnergy),
-                         color="red", alpha=0.4) # dev is less than start value and branch is closer to initial energy 
+                         color="red", alpha=0.4, hatch="--", edgecolor="white") # dev is less than start value and branch is closer to initial energy 
         plt.fill_between(Times[1][:time_limit], 
                          (Energies[0][:time_limit]-startEnergy)*norm, 
                          (Energies[1][:time_limit]-startEnergy)*norm, 
                          where=np.logical_and(Energies[0][:time_limit] > Energies[1][:time_limit], Energies[0][:time_limit] < startEnergy),
-                         color="red", alpha=0.6)# dev is less than start value and branch is worse than initial energy 
+                         color="red", alpha=0.7, hatch="++", edgecolor="black")# dev is less than start value and branch is worse than initial energy 
 
         plt.fill_between(Times[1][:time_limit], 
                          (Energies[0][:time_limit]-startEnergy)*norm, 
                          (Energies[1][:time_limit]-startEnergy)*norm, 
                          where=np.logical_and(Energies[0][:time_limit] > Energies[1][:time_limit], Energies[0][:time_limit] > startEnergy),
-                         color="red", alpha=0.4) # dev is greater than start value and branch is closer to initial energy 
+                         color="red", alpha=0.4, hatch="--", edgecolor="white") # dev is greater than start value and branch is closer to initial energy 
         plt.fill_between(Times[1][:time_limit], 
                          (Energies[0][:time_limit]-startEnergy)*norm, 
                          (Energies[1][:time_limit]-startEnergy)*norm, 
                          where=np.logical_and(Energies[0][:time_limit] < Energies[1][:time_limit], Energies[0][:time_limit] > startEnergy),
-                         color="red", alpha=0.6)# dev is greater than start value and branch is worse than initial energy 
+                         color="red", alpha=0.7, hatch="++", edgecolor="black")# dev is greater than start value and branch is worse than initial energy 
 
         plt.plot(Times[1][:time_limit], 
                  (Energies[1][:time_limit]-startEnergy)*norm, 
