@@ -95,8 +95,8 @@ namespace PMacc
         }
 
     protected:
-        PMACC_ALIGN(currentSize,TYPE*);
         PMACC_ALIGN(maxSize,TYPE);
+        PMACC_ALIGN(currentSize,TYPE*);
     };
 }
 

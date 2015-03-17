@@ -111,9 +111,10 @@ public:
 
 
 protected:
+
+    PMACC_ALIGN(maxSize, TYPE);
     // ptr must be in device-memory
     PMACC_ALIGN(currentSize, TYPE*);
-    PMACC_ALIGN(maxSize, TYPE);
 };
 
 }

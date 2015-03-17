@@ -57,8 +57,8 @@ public:
     }
 
 private:
-    const PMACC_ALIGN(ptr, char*);
     const PMACC_ALIGN(offset, size_t);
+    const PMACC_ALIGN(ptr, char*);
 };
 
 }//namespace MutiBoxAccass
@@ -127,8 +127,8 @@ public:
 
 protected:
 
-    PMACC_ALIGN(fixedPointer, Type*);
     PMACC_ALIGN(attributePitch, size_t);
+    PMACC_ALIGN(fixedPointer, Type*);
 };
 
 template<typename Type>
@@ -195,9 +195,9 @@ public:
 
 protected:
 
-    PMACC_ALIGN(fixedPointer, Type*);
     PMACC_ALIGN(pitch, size_t);
     PMACC_ALIGN(attributePitch, size_t);
+    PMACC_ALIGN(fixedPointer, Type*);
 };
 
 template<typename Type>
@@ -255,10 +255,10 @@ public:
     }
 
 
-    PMACC_ALIGN(fixedPointer, Type*);
     PMACC_ALIGN(pitch, size_t);
     PMACC_ALIGN(pitch2D, size_t);
     PMACC_ALIGN(attributePitch, size_t);
+    PMACC_ALIGN(fixedPointer, Type*);
 
 };
 
