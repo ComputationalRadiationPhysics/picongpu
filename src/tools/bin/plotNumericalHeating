@@ -181,33 +181,44 @@ else:
     norm = 1.0 # absolute values
 
 if not args.boolDiff:
-    # plot energy evolution side by side
+    # plot energy evolution
     plt.plot(Times[0][:time_limit], 
              (Energies[0][:time_limit]-startEnergy)*norm, 
              color="green", lw=3, label=args.label1)
     if numDir == 2:
+        # dev is less than start value and branch is closer to initial energy
         plt.fill_between(Times[1][:time_limit], 
                          (Energies[0][:time_limit]-startEnergy)*norm, 
                          (Energies[1][:time_limit]-startEnergy)*norm, 
-                         where=np.logical_and(Energies[0][:time_limit] < Energies[1][:time_limit], Energies[0][:time_limit] < startEnergy),
-                         color="red", alpha=0.4, hatch="--", edgecolor="white") # dev is less than start value and branch is closer to initial energy 
-        plt.fill_between(Times[1][:time_limit], 
-                         (Energies[0][:time_limit]-startEnergy)*norm, 
-                         (Energies[1][:time_limit]-startEnergy)*norm, 
-                         where=np.logical_and(Energies[0][:time_limit] > Energies[1][:time_limit], Energies[0][:time_limit] < startEnergy),
-                         color="red", alpha=0.7, hatch="++", edgecolor="black")# dev is less than start value and branch is worse than initial energy 
+                         where=np.logical_and(Energies[0][:time_limit] < Energies[1][:time_limit], 
+                                              Energies[0][:time_limit] < startEnergy),
+                         color="orange", alpha=0.8) 
 
+        # dev is less than start value and branch is worse than initial energy
         plt.fill_between(Times[1][:time_limit], 
                          (Energies[0][:time_limit]-startEnergy)*norm, 
                          (Energies[1][:time_limit]-startEnergy)*norm, 
-                         where=np.logical_and(Energies[0][:time_limit] > Energies[1][:time_limit], Energies[0][:time_limit] > startEnergy),
-                         color="red", alpha=0.4, hatch="--", edgecolor="white") # dev is greater than start value and branch is closer to initial energy 
-        plt.fill_between(Times[1][:time_limit], 
-                         (Energies[0][:time_limit]-startEnergy)*norm, 
-                         (Energies[1][:time_limit]-startEnergy)*norm, 
-                         where=np.logical_and(Energies[0][:time_limit] < Energies[1][:time_limit], Energies[0][:time_limit] > startEnergy),
-                         color="red", alpha=0.7, hatch="++", edgecolor="black")# dev is greater than start value and branch is worse than initial energy 
+                         where=np.logical_and(Energies[0][:time_limit] > Energies[1][:time_limit], 
+                                              Energies[0][:time_limit] < startEnergy),
+                         color="red", alpha=0.7)
 
+        # dev is greater than start value and branch is closer to initial energy
+        plt.fill_between(Times[1][:time_limit], 
+                         (Energies[0][:time_limit]-startEnergy)*norm, 
+                         (Energies[1][:time_limit]-startEnergy)*norm, 
+                         where=np.logical_and(Energies[0][:time_limit] > Energies[1][:time_limit], 
+                                              Energies[0][:time_limit] > startEnergy),
+                         color="orange", alpha=0.8)
+
+        # dev is greater than start value and branch is worse than initial energy
+        plt.fill_between(Times[1][:time_limit], 
+                         (Energies[0][:time_limit]-startEnergy)*norm, 
+                         (Energies[1][:time_limit]-startEnergy)*norm, 
+                         where=np.logical_and(Energies[0][:time_limit] < Energies[1][:time_limit], 
+                                              Energies[0][:time_limit] > startEnergy),
+                         color="red", alpha=0.7)
+
+        # plot second energy evolution
         plt.plot(Times[1][:time_limit], 
                  (Energies[1][:time_limit]-startEnergy)*norm, 
                  color="blue",  lw=2, label=args.label2)
