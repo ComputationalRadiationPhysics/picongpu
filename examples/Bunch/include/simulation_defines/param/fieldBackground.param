@@ -102,9 +102,9 @@ namespace picongpu
 
             /** unit: Volt /meter */
             /*\todo #738 implement math::vector, native type operations */
-            const float3_64 invUnitField = float3_64(1.0/unitField[0],
-                                                     1.0/unitField[1],
-                                                     1.0/unitField[2] );
+            const float3_64 invUnitField = float3_64(1.0 / unitField[0],
+                                                     1.0 / unitField[1],
+                                                     1.0 / unitField[2] );
             
             /* laser amplitude in picongpu units [ unit: (Volt /meter) / unitField-factor ]
              * Note: the laser amplitude is included in all field components 
@@ -145,12 +145,12 @@ namespace picongpu
                 /* w_y [m] */
                 0.01,
                 /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
-                60. * (PI/180.),
+                60. * (PI / 180.),
                 /* propagation speed of overlap [speed of light]. */
                 1.0,
                 /* manual time delay [s] if auto_tdelay is false */
                 39.3e-6 / SI::SPEED_OF_LIGHT_SI,
-                /* Should PIConGPU automatically choose a suitable time delay? [true/false] */
+                /* Should PIConGPU automatically choose a suitable time delay? [true / false] */
                 false )
         {}
 
@@ -184,11 +184,11 @@ namespace picongpu
             const double _A0  = 1.0;
 
             /** unit: Volt /meter */
-            const float3_64 invUnitField = float3_64(1.0/unitField[0],
-                                                     1.0/unitField[1],
-                                                     1.0/unitField[2]);
+            const float3_64 invUnitField = float3_64( 1.0 / unitField[0],
+                                                      1.0 / unitField[1],
+                                                      1.0 / unitField[2] );
             
-            /* laser amplitude in picongpu units [ unit: (Volt /meter) / unitField-factor ]
+            /* laser amplitude in picongpu units [ unit: (Volt/meter) / unitField-factor ]
              * Note: the laser amplitude is included in all field components 
              * polarization and other properties are established by the peak amplitude
              * normalized twtsFieldB(...) */

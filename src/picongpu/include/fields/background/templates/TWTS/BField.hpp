@@ -58,7 +58,7 @@ public:
     /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
     const PMACC_ALIGN(phi,float_X);
     /* propagation speed of TWTS laser overlap
-       normalized to the speed of light. [Default: beta0=1.0] */
+       normalized to the speed of light. [Default: beta0 = 1.0] */
     const PMACC_ALIGN(beta_0,float_X);
     /* If auto_tdelay=FALSE, then a user defined delay is used. [second] */
     const PMACC_ALIGN(tdelay_user_SI,float_64);
@@ -74,14 +74,14 @@ public:
     
     HINLINE
     BField( const float_64 focus_y_SI,
-                const float_64 wavelength_SI,
-                const float_64 pulselength_SI,
-                const float_64 w_x_SI,
-                const float_64 w_y_SI,
-                const float_X phi               = 90.*(PI/180.),
-                const float_X beta_0            = 1.0,
-                const float_64 tdelay_user_SI   = 0.0,
-                const bool auto_tdelay          = true );
+            const float_64 wavelength_SI,
+            const float_64 pulselength_SI,
+            const float_64 w_x_SI,
+            const float_64 w_y_SI,
+            const float_X phi               = 90.*(PI / 180.),
+            const float_X beta_0            = 1.0,
+            const float_64 tdelay_user_SI   = 0.0,
+            const bool auto_tdelay          = true );
     
     
     /** Specify your background field B(r,t) here

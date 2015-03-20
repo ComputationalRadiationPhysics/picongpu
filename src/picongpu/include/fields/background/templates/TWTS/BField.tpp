@@ -47,14 +47,14 @@ namespace twts
     
     HINLINE
     BField::BField( const float_64 focus_y_SI,
-                            const float_64 wavelength_SI,
-                            const float_64 pulselength_SI,
-                            const float_64 w_x_SI,
-                            const float_64 w_y_SI,
-                            const float_X phi,
-                            const float_X beta_0,
-                            const float_64 tdelay_user_SI,
-                            const bool auto_tdelay ) :
+                    const float_64 wavelength_SI,
+                    const float_64 pulselength_SI,
+                    const float_64 w_x_SI,
+                    const float_64 w_y_SI,
+                    const float_X phi,
+                    const float_X beta_0,
+                    const float_64 tdelay_user_SI,
+                    const bool auto_tdelay ) :
         focus_y_SI(focus_y_SI), wavelength_SI(wavelength_SI),
         pulselength_SI(pulselength_SI), w_x_SI(w_x_SI),
         w_y_SI(w_y_SI), phi(phi), beta_0(beta_0),
@@ -117,14 +117,14 @@ namespace twts
          *            into TWTS field function coordinate z.)
          *  y -->  y
          *  z --> -x (Since z=0 for 2D, we use the existing
-         *            3D TWTS-field-function and set x=-0)
+         *            3D TWTS-field-function and set x = -0)
          *  Ex --> Ez (Meaning: Calculate Ex-component of existing 3D TWTS-field to obtain
          *             corresponding Ez-component in 2D.
          *             Note: the position offset due to the Yee-Cell for Ez.)
          *  By --> By
          *  Bz --> -Bx (Yes, the sign is necessary.)
          */ 
-        /* Analogous to 3D case, but replace By->By and Bz->-Bx. Hence the grid cell offset
+        /* Analogous to 3D case, but replace By --> By and Bz --> -Bx. Hence the grid cell offset
          * for Bx has to be used instead of Bz. Mind the -sign. */
          
         /* Calculate By-component with the Yee-Cell offset of a By-field */
@@ -138,7 +138,7 @@ namespace twts
         /* Since we rotated all position vectors before calling calcTWTSBy and calcTWTSBz, we
          * need to back-rotate the resulting B-field vector. Now the rotation is done
          * analogously in the (y,x)-plane. (Reverse of the position vector transformation.) */
-        /* RotationMatrix[-(PI/2+phi)].(By,Bx) */
+        /* RotationMatrix[-(PI / 2+phi)].(By,Bx) */
         const float_64 By_rot = -pmMath::sin(phi)*By_By+pmMath::cos(phi)*Bx_By;
         /* for rotating back the Field-Vektors.*/
         const float_64 Bx_rot = -pmMath::cos(phi)*By_Bx-pmMath::sin(phi)*Bx_Bx;
@@ -187,43 +187,43 @@ namespace twts
         /* Definition of the laser pulse front tilt angle for the laser field below.
          * For beta0=1.0, this is equivalent to our standard definition. Question: Why is the
          * local "phi_T" not equal in value to the object member "phiReal" or "phi"?
-         * Because the standard TWTS pulse is defined for beta0=1.0 and in the coordinate-system
+         * Because the standard TWTS pulse is defined for beta0 = 1.0 and in the coordinate-system
          * of the TWTS model phi is responsible for pulse front tilt and dispersion only. Hence
          * the dispersion will (although physically correct) be slightly off the ideal TWTS
-         * pulse for beta0!=1.0. This only shows that this TWTS pulse is primarily designed for
-         * scenarios close to beta0=1. */
+         * pulse for beta0 != 1.0. This only shows that this TWTS pulse is primarily designed for
+         * scenarios close to beta0 = 1. */
         
         /* Angle between the laser pulse front and the y-axis. Not used, but remains in code for
          * documentation purposes. */
         /* const float_T eta = float_T(PI/2) - (phiReal - alphaTilt); */
         
         const float_T cspeed = float_T(1.0);
-        const float_T lambda0 = float_T(wavelength_SI/UNIT_LENGTH);
-        const float_T om0 = float_T(2.0*PI*cspeed/lambda0*UNIT_TIME);
+        const float_T lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
+        const float_T om0 = float_T(2.0*PI*cspeed / lambda0*UNIT_TIME);
         /* factor 2  in tauG arises from definition convention in laser formula */
-        const float_T tauG = float_T(pulselength_SI*2.0/UNIT_TIME);
+        const float_T tauG = float_T(pulselength_SI*2.0 / UNIT_TIME);
         /* w0 is wx here --> w0 could be replaced by wx */
-        const float_T w0 = float_T(w_x_SI/UNIT_LENGTH);
-        const float_T rho0 = float_T(PI*w0*w0/lambda0/UNIT_LENGTH);
+        const float_T w0 = float_T(w_x_SI / UNIT_LENGTH);
+        const float_T rho0 = float_T(PI*w0*w0 / lambda0 / UNIT_LENGTH);
         /* wy is width of TWTS pulse */
-        const float_T wy = float_T(w_y_SI/UNIT_LENGTH);
-        const float_T k = float_T(2.0*PI/lambda0*UNIT_LENGTH);
-        const float_T x = float_T(pos.x()/UNIT_LENGTH);
-        const float_T y = float_T(pos.y()/UNIT_LENGTH);
-        const float_T z = float_T(pos.z()/UNIT_LENGTH);
-        const float_T t = float_T(time/UNIT_TIME);
+        const float_T wy = float_T(w_y_SI / UNIT_LENGTH);
+        const float_T k = float_T(2.0*PI / lambda0*UNIT_LENGTH);
+        const float_T x = float_T(pos.x() / UNIT_LENGTH);
+        const float_T y = float_T(pos.y() / UNIT_LENGTH);
+        const float_T z = float_T(pos.z() / UNIT_LENGTH);
+        const float_T t = float_T(time / UNIT_TIME);
                         
         /* Shortcuts for speeding up the field calculation. */
         const float_T sinPhi = pmMath::sin(phiT);
         const float_T cosPhi = pmMath::cos(phiT);
-        const float_T cosPhi2 = pmMath::cos(phiT/2.0);
-        const float_T tanPhi2 = pmMath::tan(phiT/2.0);
+        const float_T cosPhi2 = pmMath::cos(phiT / 2.0);
+        const float_T tanPhi2 = pmMath::tan(phiT / 2.0);
         
         /* The "helpVar" variables decrease the nesting level of the evaluated expressions and
          * thus help with formal code verification through manual code inspection. */
         const complex_T helpVar1 = rho0 + complex_T(0,1)*y*cosPhi + complex_T(0,1)*z*sinPhi;
         const complex_T helpVar2 = cspeed*om0*tauG*tauG + complex_T(0,2)
-                                    *(-z - y*pmMath::tan(float_T(PI/2)-phiT))*tanPhi2*tanPhi2;
+                                    *(-z - y*pmMath::tan(float_T(PI / 2)-phiT))*tanPhi2*tanPhi2;
         const complex_T helpVar3 = complex_T(0,1)*rho0 - y*cosPhi - z*sinPhi;
         
         const complex_T helpVar4 = float_T(-1.0)*(
@@ -241,10 +241,11 @@ namespace twts
             - float_T(4.0)*cspeed*om0*t*wy*wy*z*rho0*tanPhi2*tanPhi2
             - complex_T(0,4)*cspeed*y*y*z*rho0*tanPhi2*tanPhi2
             + float_T(4.0)*om0*wy*wy*z*z*rho0*tanPhi2*tanPhi2
-            - complex_T(0,2)*cspeed*k*wy*wy*x*x*y*pmMath::tan(float_T(PI/2)-phiT)*tanPhi2*tanPhi2
-            - float_T(4.0)*cspeed*om0*t*wy*wy*y*rho0*pmMath::tan(float_T(PI/2)-phiT)*tanPhi2*tanPhi2
-            - complex_T(0,4)*cspeed*y*y*y*rho0*pmMath::tan(float_T(PI/2)-phiT)*tanPhi2*tanPhi2
-            + float_T(4.0)*om0*wy*wy*y*z*rho0*pmMath::tan(float_T(PI/2)-phiT)*tanPhi2*tanPhi2
+            - complex_T(0,2)*cspeed*k*wy*wy*x*x*y*pmMath::tan(float_T(PI / 2)-phiT)*tanPhi2*tanPhi2
+            - float_T(4.0)*cspeed*om0*t*wy*wy*y*rho0*pmMath::tan(float_T(PI / 2)-phiT)
+                *tanPhi2*tanPhi2
+            - complex_T(0,4)*cspeed*y*y*y*rho0*pmMath::tan(float_T(PI / 2)-phiT)*tanPhi2*tanPhi2
+            + float_T(4.0)*om0*wy*wy*y*z*rho0*pmMath::tan(float_T(PI / 2)-phiT)*tanPhi2*tanPhi2
             + float_T(2.0)*z*sinPhi*(
                 + om0*(
                     + cspeed*cspeed*(
@@ -279,25 +280,25 @@ namespace twts
                     + cspeed*om0*t*wy*wy
                     + complex_T(0,1)*cspeed*y*y
                     - om0*wy*wy*z
-                    )*pmMath::tan(float_T(PI/2)-phiT)
+                    )*pmMath::tan(float_T(PI / 2)-phiT)
                 )*tanPhi2*tanPhi2
             )
         )/(float_T(2.0)*cspeed*wy*wy*helpVar1*helpVar2);
 
         const complex_T helpVar5 = complex_T(0,-1)*cspeed*om0*tauG*tauG
-                                + (-z - y*pmMath::tan(float_T(PI/2)-phiT))
+                                + (-z - y*pmMath::tan(float_T(PI / 2)-phiT))
                                     *tanPhi2*tanPhi2*float_T(2.0);
         const complex_T helpVar6 = (cspeed*(cspeed*om0*tauG*tauG + complex_T(0,2)
-                                *(-z - y*pmMath::tan(float_T(PI/2)-phiT))*tanPhi2*tanPhi2))
-                                    /(om0*rho0);
-        const complex_T result = (pmMath::exp(helpVar4)*tauG/cosPhi2/cosPhi2
+                                *(-z - y*pmMath::tan(float_T(PI / 2)-phiT))*tanPhi2*tanPhi2))
+                                    / (om0*rho0);
+        const complex_T result = (pmMath::exp(helpVar4)*tauG / cosPhi2 / cosPhi2
             *(rho0 + complex_T(0,1)*y*cosPhi + complex_T(0,1)*z*sinPhi)
             *(
                   complex_T(0,2)*cspeed*t + cspeed*om0*tauG*tauG - complex_T(0,4)*z
                 + cspeed*(complex_T(0,2)*t + om0*tauG*tauG)*cosPhi
                 + complex_T(0,2)*y*tanPhi2
             )*pmMath::pow(helpVar3,float_T(-1.5))
-        )/(float_T(2.0)*helpVar5*pmMath::sqrt(helpVar6));
+        ) / (float_T(2.0)*helpVar5*pmMath::sqrt(helpVar6));
 
         return result.get_real();
     }
@@ -327,78 +328,78 @@ namespace twts
         /* Definition of the laser pulse front tilt angle for the laser field below.
          * For beta0=1.0, this is equivalent to our standard definition. Question: Why is the
          * local "phi_T" not equal in value to the object member "phiReal" or "phi"?
-         * Because the standard TWTS pulse is defined for beta0=1.0 and in the coordinate-system
+         * Because the standard TWTS pulse is defined for beta0 = 1.0 and in the coordinate-system
          * of the TWTS model phi is responsible for pulse front tilt and dispersion only. Hence
          * the dispersion will (although physically correct) be slightly off the ideal TWTS
-         * pulse for beta0!=1.0. This only shows that this TWTS pulse is primarily designed for
-         * scenarios close to beta0=1. */
+         * pulse for beta0 != 1.0. This only shows that this TWTS pulse is primarily designed for
+         * scenarios close to beta0 = 1. */
         
         /* Angle between the laser pulse front and the y-axis. Not used, but remains in code for
          * documentation purposes. */
-        /* const float_T eta = float_T(float_T(PI/2)) - (phiReal - alphaTilt); */
+        /* const float_T eta = float_T(float_T(PI / 2)) - (phiReal - alphaTilt); */
         
         const float_T cspeed = float_T(1.0);
-        const float_T lambda0 = float_T(wavelength_SI/UNIT_LENGTH);
-        const float_T om0 = float_T(2.0*PI*cspeed/lambda0*UNIT_TIME);
+        const float_T lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
+        const float_T om0 = float_T(2.0*PI*cspeed / lambda0*UNIT_TIME);
         /* factor 2  in tauG arises from definition convention in laser formula */
-        const float_T tauG = float_T(pulselength_SI*2.0/UNIT_TIME);
+        const float_T tauG = float_T(pulselength_SI*2.0 / UNIT_TIME);
         /* w0 is wx here --> w0 could be replaced by wx */
-        const float_T w0 = float_T(w_x_SI/UNIT_LENGTH);
-        const float_T rho0 = float_T(PI*w0*w0/lambda0/UNIT_LENGTH);
+        const float_T w0 = float_T(w_x_SI / UNIT_LENGTH);
+        const float_T rho0 = float_T(PI*w0*w0 / lambda0 / UNIT_LENGTH);
         /* wy is width of TWTS pulse */
-        const float_T wy = float_T(w_y_SI/UNIT_LENGTH);
-        const float_T k = float_T(2.0*PI/lambda0*UNIT_LENGTH);
-        const float_T x = float_T(pos.x()/UNIT_LENGTH);
-        const float_T y = float_T(pos.y()/UNIT_LENGTH);
-        const float_T z = float_T(pos.z()/UNIT_LENGTH);
-        const float_T t = float_T(time/UNIT_TIME);
+        const float_T wy = float_T(w_y_SI / UNIT_LENGTH);
+        const float_T k = float_T(2.0*PI / lambda0*UNIT_LENGTH);
+        const float_T x = float_T(pos.x() / UNIT_LENGTH);
+        const float_T y = float_T(pos.y() / UNIT_LENGTH);
+        const float_T z = float_T(pos.z() / UNIT_LENGTH);
+        const float_T t = float_T(time / UNIT_TIME);
                         
         /* Shortcuts for speeding up the field calculation. */
         const float_T sinPhi = pmMath::sin(phiT);
         const float_T cosPhi = pmMath::cos(phiT);
-        const float_T sinPhi2 = pmMath::sin(phiT/float_T(2.0));
-        const float_T cosPhi2 = pmMath::cos(phiT/float_T(2.0));
-        const float_T tanPhi2 = pmMath::tan(phiT/float_T(2.0));
+        const float_T sinPhi2 = pmMath::sin(phiT / float_T(2.0));
+        const float_T cosPhi2 = pmMath::cos(phiT / float_T(2.0));
+        const float_T tanPhi2 = pmMath::tan(phiT / float_T(2.0));
         
         /* The "helpVar" variables decrease the nesting level of the evaluated expressions and
          * thus help with formal code verification through manual code inspection. */
-        const complex_T helpVar1 = -(cspeed*z) - cspeed*y*pmMath::tan(float_T(PI/2)-phiT)
-                                    + complex_T(0,1)*cspeed*rho0/sinPhi;
+        const complex_T helpVar1 = -(cspeed*z) - cspeed*y*pmMath::tan(float_T(PI / 2)-phiT)
+                                    + complex_T(0,1)*cspeed*rho0 / sinPhi;
         const complex_T helpVar2 = complex_T(0,1)*rho0 - y*cosPhi - z*sinPhi;
         const complex_T helpVar3 = helpVar2*cspeed;
         const complex_T helpVar4 = cspeed*om0*tauG*tauG
-                                    - complex_T(0,1)*y*cosPhi/cosPhi2/cosPhi2*tanPhi2
+                                    - complex_T(0,1)*y*cosPhi / cosPhi2 / cosPhi2*tanPhi2
                                     - complex_T(0,2)*z*tanPhi2*tanPhi2;
         const complex_T helpVar5 = float_T(2.0)*cspeed*t - complex_T(0,1)*cspeed*om0*tauG*tauG
-                            - float_T(2.0)*z + float_T(8.0)*y/sinPhi/sinPhi/sinPhi
+                            - float_T(2.0)*z + float_T(8.0)*y / sinPhi / sinPhi / sinPhi
                                 *sinPhi2*sinPhi2*sinPhi2*sinPhi2
                             - float_T(2.0)*z*tanPhi2*tanPhi2;
 
         const complex_T helpVar6 = (
-        (om0*y*rho0/cosPhi2/cosPhi2/cosPhi2/cosPhi2)/helpVar1 
-        - (complex_T(0,2)*k*x*x)/helpVar2 
-        - (complex_T(0,1)*om0*om0*tauG*tauG*rho0)/helpVar2
-        - (complex_T(0,4)*y*y*rho0)/(wy*wy*helpVar2)
-        + (om0*om0*tauG*tauG*y*cosPhi)/helpVar2
-        + (float_T(4.0)*y*y*y*cosPhi)/(wy*wy*helpVar2)
-        + (om0*om0*tauG*tauG*z*sinPhi)/helpVar2
-        + (float_T(4.0)*y*y*z*sinPhi)/(wy*wy*helpVar2)
-        + (complex_T(0,2)*om0*y*y*cosPhi/cosPhi2/cosPhi2*tanPhi2)/helpVar3
-        + (om0*y*rho0*cosPhi/cosPhi2/cosPhi2*tanPhi2)/helpVar3
+        (om0*y*rho0 / cosPhi2 / cosPhi2 / cosPhi2 / cosPhi2) / helpVar1 
+        - (complex_T(0,2)*k*x*x) / helpVar2 
+        - (complex_T(0,1)*om0*om0*tauG*tauG*rho0) / helpVar2
+        - (complex_T(0,4)*y*y*rho0) / (wy*wy*helpVar2)
+        + (om0*om0*tauG*tauG*y*cosPhi) / helpVar2
+        + (float_T(4.0)*y*y*y*cosPhi) / (wy*wy*helpVar2)
+        + (om0*om0*tauG*tauG*z*sinPhi) / helpVar2
+        + (float_T(4.0)*y*y*z*sinPhi) / (wy*wy*helpVar2)
+        + (complex_T(0,2)*om0*y*y*cosPhi / cosPhi2 / cosPhi2*tanPhi2) / helpVar3
+        + (om0*y*rho0*cosPhi / cosPhi2 / cosPhi2*tanPhi2) / helpVar3
         + (complex_T(0,1)*om0*y*y*cosPhi*cosPhi/cosPhi2/cosPhi2*tanPhi2)/helpVar3
-        + (complex_T(0,4)*om0*y*z*tanPhi2*tanPhi2)/helpVar3
-        - (float_T(2.0)*om0*z*rho0*tanPhi2*tanPhi2)/helpVar3
-        - (complex_T(0,2)*om0*z*z*sinPhi*tanPhi2*tanPhi2)/helpVar3
-        - (om0*helpVar5*helpVar5)/(cspeed*helpVar4)
-        )/float_T(4.0);
+        + (complex_T(0,4)*om0*y*z*tanPhi2*tanPhi2) / helpVar3
+        - (float_T(2.0)*om0*z*rho0*tanPhi2*tanPhi2) / helpVar3
+        - (complex_T(0,2)*om0*z*z*sinPhi*tanPhi2*tanPhi2) / helpVar3
+        - (om0*helpVar5*helpVar5) / (cspeed*helpVar4)
+        ) / float_T(4.0);
                 
         const complex_T helpVar7 = cspeed*om0*tauG*tauG
-                                    - complex_T(0,1)*y*cosPhi/cosPhi2/cosPhi2*tanPhi2
+                                    - complex_T(0,1)*y*cosPhi / cosPhi2 / cosPhi2*tanPhi2
                                     - complex_T(0,2)*z*tanPhi2*tanPhi2;
         const complex_T result = ( complex_T(0,2)*pmMath::exp(helpVar6)*tauG*tanPhi2
                                     *(cspeed*t - z + y*tanPhi2)
-                                    *pmMath::sqrt( (om0*rho0)/helpVar3 )
-                                  )/pmMath::pow(helpVar7,float_T(1.5));
+                                    *pmMath::sqrt( (om0*rho0) / helpVar3 )
+                                  ) / pmMath::pow(helpVar7,float_T(1.5));
 
         return result.get_real();
     }

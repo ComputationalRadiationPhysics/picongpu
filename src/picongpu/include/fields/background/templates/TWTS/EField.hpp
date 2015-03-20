@@ -95,7 +95,7 @@ public:
                 const float_64 pulselength_SI,
                 const float_64 w_x_SI,
                 const float_64 w_y_SI,
-                const float_X phi               = 90.*(PI/180.),
+                const float_X phi               = 90.*(PI / 180.),
                 const float_X beta_0            = 1.0,
                 const float_64 tdelay_user_SI   = 0.0,
                 const bool auto_tdelay          = true );
