@@ -72,6 +72,9 @@ const double FOCUS_POS_SI = 4.62e-5;
  *  unit: none */
 const double PULSE_INIT = 20.0;
 
+/* laser phase shift (no shift: 0.0) */
+const float_X LASER_PHASE = 0.0; /* unit: rad, periodic in 2*pi */
+
 enum PolarisationType
 {
     LINEAR_X = 1u,

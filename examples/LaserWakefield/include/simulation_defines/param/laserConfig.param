@@ -71,7 +71,10 @@ namespace picongpu
         /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
          *  unit: none */
         const double PULSE_INIT = 15.0;
-        
+
+        /* laser phase shift (no shift: 0.0) */
+        const float_X LASER_PHASE = 0.0; /* unit: rad, periodic in 2*pi */
+
         enum PolarisationType
         {
             LINEAR_X = 1u,

@@ -74,7 +74,7 @@ namespace picongpu
                 elong.z() = float_X( envelope / sqrt(2.0) );
             }
 
-            phase = 2.0f * float_X(PI ) * float_X(f ) * ( runTime - float_X(mue ) - FOCUS_POS / SPEED_OF_LIGHT );
+            phase = 2.0f * float_X(PI ) * float_X(f ) * ( runTime - float_X(mue ) - FOCUS_POS / SPEED_OF_LIGHT) + LASER_PHASE;
 
             return elong;
         }
