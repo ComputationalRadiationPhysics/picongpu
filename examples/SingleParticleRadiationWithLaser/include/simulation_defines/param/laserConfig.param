@@ -308,6 +308,9 @@ const double PULSE_LENGTH_SI = 4.0e-15;
 const double W0x_SI = 4.246e-6; // waist in x-direction 
 const double W0z_SI = W0x_SI; // waist in z-direction
 }
+
+/* we use a sin(omega*(time-riseTime) + laser_phase) function to set up the laser - define phase: */
+const float_X LASER_PHASE = 0.0; /* unit: rad, periodic in 2*pi */
 }
 
 namespace laserNone

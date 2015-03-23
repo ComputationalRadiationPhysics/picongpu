@@ -59,7 +59,7 @@ HINLINE float3_X laserLongitudinal(uint32_t currentStep, float_X& phase)
     elong.x() = float_X(
                        float_64(AMPLITUDE) *
                        Tpolynomial(tau)
-                       * math::sin(omegaLaser * (runTime - T_rise))
+                       * math::sin(omegaLaser * (runTime - T_rise) + LASER_PHASE)
                        );
 
     phase = 0.0f;
