@@ -32,9 +32,18 @@ namespace picongpu
  * the functors are called in order (from first to last functor)
  */
 typedef mpl::vector<
+#if (PARAM_IONIZATION == 0)
+
     particles::CreateGas<gasProfiles::Gaussian,particles::startPosition::Random,PIC_Electrons>
-#if (ENABLE_IONS == 1)
-    ,particles::CloneSpecies<PIC_Electrons,PIC_Ions>
+    #if (ENABLE_IONS == 1)
+        ,particles::CloneSpecies<PIC_Electrons,PIC_Ions>
+    #endif
+
+#else
+
+    particles::CreateGas<gasProfiles::Gaussian,particles::startPosition::Random,PIC_Ions>,
+    particles::Manipulate<particles::manipulators::SetBoundElectrons,PIC_Ions>
+
 #endif
 > InitPipeline;
 
