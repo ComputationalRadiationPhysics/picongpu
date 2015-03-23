@@ -179,6 +179,7 @@ namespace picongpu
         /** The laser pulse will be initialized half of PULSE_INIT times of the PULSE_LENGTH before and after the plateau
          *  unit: none */
         const double RAMP_INIT = 20.6146; //25.6415;//SI::aux_calulation::PULSE_TIME_SI/SI::PULSE_LENGTH_SI;
+
         /* we use a sin(omega*time + laser_phase) function to set up the laser - define phase: */
         const float_X LASER_PHASE = 0.0; /* unit: rad, periodic in 2*pi */
 
