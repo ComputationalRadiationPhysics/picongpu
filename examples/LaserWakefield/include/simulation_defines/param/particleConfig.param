@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Rene Widera, Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -23,6 +23,8 @@
 #pragma once
 
 #include "particles/startPosition/functors.def"
+#include "particles/manipulators/manipulators.def"
+#include "nvidia/functors/Assign.hpp"
 
 namespace picongpu
 {
@@ -65,6 +67,17 @@ typedef QuietImpl<QuietParameter> Quiet;
 
 
 } //namespace startPosition
+
+namespace manipulators
+{
+    
+    struct BoundElectronsWhenNeutral
+    {
+        /* space for attribute initial parameters */
+    };
+    typedef SetAttributeImpl<BoundElectronsWhenNeutral,nvidia::functors::Assign> SetBoundElectrons;
+} //namespace manipulators
+
 } //namespace particles
 
 } //namespac picongpu

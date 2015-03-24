@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Rene Widera
+ * Copyright 2015 Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -18,14 +18,18 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
+namespace picongpu
+{
+namespace particles
+{
+namespace manipulators
+{
 
-#include "particles/manipulators/IManipulator.def"
-#include "particles/manipulators/TemperatureImpl.def"
-#include "particles/manipulators/DriftImpl.def"
-#include "particles/manipulators/IfRelativeGlobalPositionImpl.def"
-#include "particles/manipulators/CreateParticlesFromParticleImpl.def"
-#include "particles/manipulators/FreeImpl.def"
-#include "particles/manipulators/SetAttributeImpl.def"
+template<typename T_ParamClass, typename T_ValueFunctor, typename T_SpeciesType = bmpl::_1>
+struct SetAttributeImpl;
+
+} //namespace manipulators
+} //namespace particles
+} //namespace picongpu

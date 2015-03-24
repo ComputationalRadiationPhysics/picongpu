@@ -36,9 +36,23 @@ namespace SI
 
     /* ionization energy for ground state hydrogen: 13.6 eV --> converted to Joule */
     /* Joule = kg * m^2 / s^2 */
-    const double IONIZATION_ENERGY = 2.179e-18; 
-    /* ionization field strength (E-field) for -""-: in Volt / meter */
-    const double IONIZATION_EFIELD = 5.14e11;
+    PMACC_CONST_VECTOR(float_X,1,IONIZATION_ENERGY,
+        2.179e-18
+    );
+    /* ionization field strength (E-field) for hydrogen: in Volt / meter 
+     * 
+     * usage: 
+     * PMACC_CONST_VECTOR(float_X,<NUMBER_OF_PROTONS>,IONIZATION_EFIELD,
+     *     <value_1>,
+     *     ...
+     *     <value_Z>
+     * );
+     * 
+     * Do not forget to change the weight of the ion and the atomic numbers in 
+     * their respective `.param` file */
+    PMACC_CONST_VECTOR(float_X,1,IONIZATION_EFIELD,
+        5.14e11
+    );
 
 } // namespace SI
 } // namespace picongpu
