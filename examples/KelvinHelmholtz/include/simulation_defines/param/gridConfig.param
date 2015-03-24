@@ -27,6 +27,9 @@ namespace picongpu
 
     namespace SI
     {
+        /** Duration of one timestep
+         *  unit: seconds */
+        const double DELTA_T_SI = 1.79e-16;
         /** equals X
          *  unit: meter */
         const double CELL_WIDTH_SI = 9.34635e-8;
@@ -36,14 +39,6 @@ namespace picongpu
         /** equals Z
          *  unit: meter */
         const double CELL_DEPTH_SI = CELL_WIDTH_SI;
-
-        /** Duration of one timestep
-         *  unit: seconds */
-#if (SIMDIM==DIM3)
-        const double DELTA_T_SI = 1.79e-16;
-#elif (SIMDIM==DIM2)
-        const double DELTA_T_SI = 2.20e-16;
-#endif
     } //namespace SI
 
     //! Defines the size of the absorbing zone (in cells)
