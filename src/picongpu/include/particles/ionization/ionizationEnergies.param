@@ -39,7 +39,7 @@ namespace SI
     PMACC_CONST_VECTOR(float_X,1,IONIZATION_ENERGY,
         2.179e-18
     );
-    /* ionization field strength (E-field) for -""-: in Volt / meter 
+    /* ionization field strength (E-field) for hydrogen: in Volt / meter 
      * 
      * usage: 
      * PMACC_CONST_VECTOR(float_X,<NUMBER_OF_PROTONS>,IONIZATION_EFIELD,
