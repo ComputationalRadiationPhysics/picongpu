@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Anton Helm, Rene Widera,
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Anton Helm, Rene Widera,
  *                     Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -37,6 +37,7 @@ namespace simulation_starter = singleParticleTest;
  *                            in 'x' direction
  *  - laserWavepacket       : wavepacket (Gaussian in time and space, not focusing)
  *  - laserPlaneWave        : a plane wave
+ *  - laserPolynom          : a polynomial laser envelope
  */
 namespace laserProfile = laserNone;
 
