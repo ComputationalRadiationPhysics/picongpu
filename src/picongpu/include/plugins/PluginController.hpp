@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Benjamin Schneider, Felix Schmitt, 
+ * Copyright 2013-2014 Axel Huebl, Benjamin Schneider, Felix Schmitt,
  *                     Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -66,7 +66,6 @@
 #if(SIMDIM==DIM3)
 #include "plugins/IntensityPlugin.hpp"
 
-#include "plugins/FieldEnergy.hpp"
 #if(PIC_ENABLE_PNG==1)
 #include "plugins/ParticleDensity.hpp"
 #endif
@@ -187,7 +186,6 @@ private:
         plugins.push_back(new SumCurrents());
 
 #if(SIMDIM==DIM3)
-        plugins.push_back(new FieldEnergy("FieldEnergy [keV/m^3]", "field_energy"));
 #if(PIC_ENABLE_PNG==1)
         plugins.push_back(new HeikoParticleDensity("HeikoParticleDensity", "heiko_pd"));
 #endif
