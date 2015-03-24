@@ -109,7 +109,8 @@ public:
     operator()( const DataSpace<simDim>& cellIdx,
                 const uint32_t currentStep ) const;
 
-    /** Calculate the By(r,t) field here
+    /** Calculate the By(r,t) field, when electric field vector (Ex,0,0)
+     *  is normal to the pulse-front-tilt plane (y,z)
      *
      * \param pos Spatial position of the target field.
      * \param time Absolute time (SI, including all offsets and transformations)
@@ -117,14 +118,33 @@ public:
     HDINLINE float_T
     calcTWTSBy( const float3_64& pos, const float_64 time ) const;
 
-    /** Calculate the Bz(r,t) field here
+    /** Calculate the Bz(r,t) field, when electric field vector (Ex,0,0)
+     *  is normal to the pulse-front-tilt plane (y,z)
      *
      * \param pos Spatial position of the target field.
      * \param time Absolute time (SI, including all offsets and transformations)
      *  for calculating the field */
     HDINLINE float_T
-    calcTWTSBz( const float3_64& pos, const float_64 time ) const;
+    calcTWTSBz_Ex( const float3_64& pos, const float_64 time ) const;
 
+    /** Calculate the By(r,t) field, when electric field vector (0,Ey,0)
+     *  lies within the pulse-front-tilt plane (y,z)
+     *
+     * \param pos Spatial position of the target field.
+     * \param time Absolute time (SI, including all offsets and transformations)
+     *  for calculating the field */
+    HDINLINE float_T
+    calcTWTSBx( const float3_64& pos, const float_64 time ) const;
+
+    /** Calculate the Bz(r,t) field here (electric field vector (0,Ey,0)
+     *  lies within the pulse-front-tilt plane (y,z)
+     *
+     * \param pos Spatial position of the target field.
+     * \param time Absolute time (SI, including all offsets and transformations)
+     *  for calculating the field */
+    HDINLINE float_T
+    calcTWTSBz_Ey( const float3_64& pos, const float_64 time ) const;
+    
     /** Calculate the B-field vector of the TWTS laser in SI units.
      * \tparam T_dim Specializes for the simulation dimension
      * \param cellIdx The total cell id counted from the start at timestep 0

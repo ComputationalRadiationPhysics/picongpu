@@ -244,6 +244,19 @@ namespace twts
         return result.get_real();
     }
 
+    /** Calculate the Ey(r,t) field here
+     *
+     * \param pos Spatial position of the target field.
+     * \param time Absolute time (SI, including all offsets and transformations) for calculating
+     *             the field */
+    HDINLINE EField::float_T
+    EField::calcTWTSEy( const float3_64& pos, const float_64 time) const
+    {
+        /* The field function of Ey (polarization in pulse-front-tilt plane)
+         * is by definition identical to Ex (polarization normal to pulse-front-tilt plane) */
+        return calcTWTSEx( pos, time );
+    }
+    
 } /* namespace twts */
 } /* namespace templates */
 } /* namespace picongpu */

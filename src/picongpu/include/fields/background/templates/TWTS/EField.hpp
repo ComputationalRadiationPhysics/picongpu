@@ -110,7 +110,7 @@ public:
     operator()( const DataSpace<simDim>& cellIdx,
                 const uint32_t currentStep ) const;
 
-    /** Calculate the Ex(r,t) field here
+    /** Calculate the Ex(r,t) field here (electric field vector normal to pulse-front-tilt plane)
      *
      * \param pos Spatial position of the target field
      * \param time Absolute time (SI, including all offsets and transformations)
@@ -118,6 +118,15 @@ public:
      * \return Ex-field component of the non-rotated TWTS field in SI units */
     HDINLINE float_T
     calcTWTSEx( const float3_64& pos, const float_64 time ) const;
+    
+    /** Calculate the Ey(r,t) field here (electric field vector in pulse-front-tilt plane)
+     *
+     * \param pos Spatial position of the target field
+     * \param time Absolute time (SI, including all offsets and transformations)
+     *  for calculating the field
+     * \return Ex-field component of the non-rotated TWTS field in SI units */
+    HDINLINE float_T
+    calcTWTSEy( const float3_64& pos, const float_64 time ) const;
     
     /** Calculate the E-field vector of the TWTS laser in SI units.
      * \tparam T_dim Specializes for the simulation dimension
