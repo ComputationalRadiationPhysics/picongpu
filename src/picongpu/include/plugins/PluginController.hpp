@@ -75,9 +75,6 @@
 
 #include "plugins/output/images/Visualisation.hpp"
 
-#include "plugins/output/images/DensityToBinary.hpp"
-#include "plugins/output/images/ParticleDensity.hpp"
-
 #include <list>
 
 #include "plugins/ISimulationPlugin.hpp"
@@ -112,7 +109,6 @@ private:
     typedef Visualisation<PIC_Electrons, PngCreator> ElectronsPngBuilder;
     typedef PngPlugin<ElectronsPngBuilder > PngImageElectrons;
 #endif
-    typedef ParticleDensity<PIC_Electrons, DensityToBinary, float_X> ElectronsBinaryDensityBuilder;
 
 #if(ENABLE_HDF5 == 1)
     /* speciesParticleShape::ParticleShape::ChargeAssignment */
@@ -129,7 +125,6 @@ private:
 #endif
 
     typedef LiveViewPlugin<PIC_Electrons > LiveImageElectrons;
-    typedef PngPlugin<ElectronsBinaryDensityBuilder > BinDensityElectrons;
     typedef CountParticles<PIC_Electrons> ElectronCounter;
     typedef EnergyParticles<PIC_Electrons> EnergyElectrons;
     typedef PositionsParticles<PIC_Electrons> PositionElectrons;
@@ -148,8 +143,7 @@ private:
     /* speciesParticleShape::ParticleShape::ChargeAssignment */
     typedef PhaseSpaceMulti<particles::shapes::Counter::ChargeAssignment, PIC_Ions> PhaseSpaceIons;
 #endif
-    typedef ParticleDensity<PIC_Ions, DensityToBinary, float_X> IonsBinaryDensityBuilder;
-    typedef PngPlugin<IonsBinaryDensityBuilder > BinDensityIons;
+
     typedef LiveViewPlugin<PIC_Ions > LiveImageIons;
     typedef CountParticles<PIC_Ions> IonCounter;
     typedef EnergyParticles<PIC_Ions> EnergyIons;
@@ -203,7 +197,6 @@ private:
 #if(PIC_ENABLE_PNG==1)
         plugins.push_back(new PngImageElectrons("PngImageElectrons", "png_e"));
 #endif
-        plugins.push_back(new BinDensityElectrons("BinDensityElectrons", "binDensity_e"));
         plugins.push_back(new BinEnergyElectrons("BinEnergyElectrons", "bin_e"));
         plugins.push_back(new ElectronCounter("ElectronsCount", "elec_cnt"));
         plugins.push_back(new EnergyElectrons("EnergyElectrons", "energy_e"));
@@ -218,7 +211,6 @@ private:
 #if(PIC_ENABLE_PNG==1)
         plugins.push_back(new PngImageIons("PngImageIons", "png_i"));
 #endif
-        plugins.push_back(new BinDensityIons("BinDensityIons", "binDensity_i"));
         plugins.push_back(new BinEnergyIons("BinEnergyIons", "bin_i"));
         plugins.push_back(new IonCounter("IonsCount", "ions_cnt"));
         plugins.push_back(new EnergyIons("EnergyIons", "energy_i"));

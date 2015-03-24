@@ -39,6 +39,7 @@
 
 #include "memory/boxes/PitchedBox.hpp"
 #include "memory/boxes/DataBox.hpp"
+#include "plugins/output/header/MessageHeader.hpp"
 
 //c includes
 #include "sys/stat.h"
