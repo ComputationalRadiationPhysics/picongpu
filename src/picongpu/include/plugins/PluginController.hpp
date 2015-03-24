@@ -65,10 +65,6 @@
 
 #if(SIMDIM==DIM3)
 #include "plugins/IntensityPlugin.hpp"
-
-#if(PIC_ENABLE_PNG==1)
-#include "plugins/ParticleDensity.hpp"
-#endif
 #include "plugins/TotalDivJ.hpp"
 #include "plugins/SliceFieldPrinterMulti.hpp"
 #endif
@@ -115,9 +111,6 @@ private:
     typedef PhaseSpaceMulti<particles::shapes::Counter::ChargeAssignment, PIC_Electrons> PhaseSpaceElectrons;
 #endif
 #if(SIMDIM==DIM3)
-#if(PIC_ENABLE_PNG==1)
-    typedef heiko::ParticleDensity<PIC_Electrons> HeikoParticleDensity;
-#endif
 
     typedef SliceFieldPrinterMulti<FieldE> SliceFieldEPrinter;
     typedef SliceFieldPrinterMulti<FieldB> SliceFieldBPrinter;
@@ -178,9 +171,7 @@ private:
         plugins.push_back(new SumCurrents());
 
 #if(SIMDIM==DIM3)
-#if(PIC_ENABLE_PNG==1)
-        plugins.push_back(new HeikoParticleDensity("HeikoParticleDensity", "heiko_pd"));
-#endif
+
         plugins.push_back(new TotalDivJ("change of total charge per timestep (single gpu)", "totalDivJ"));
         plugins.push_back(new SliceFieldEPrinter("FieldE: prints a slice of the E-field", "FieldE"));
         plugins.push_back(new SliceFieldBPrinter("FieldB: prints a slice of the B-field", "FieldB"));
