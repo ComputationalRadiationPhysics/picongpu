@@ -72,7 +72,7 @@ HINLINE float3_X laserLongitudinal(uint32_t currentStep, float_X& phase)
         envelope *= math::exp(-0.5 * exponent * exponent);
     }
 
-    phase = float_X(w * runTime + LASER_PHASE);
+    phase += float_X(w * runTime) + LASER_PHASE;
 
     if( Polarisation == LINEAR_X )
     {
