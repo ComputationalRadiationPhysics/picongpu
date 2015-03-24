@@ -191,7 +191,7 @@ error_checking(const char* msg, unsigned int blockidx)
 	cudaMemset((void*)&err_expect[0], 0, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT);CUERR;
 	cudaMemset((void*)&err_current[0], 0, sizeof(unsigned long)*MAX_ERR_RECORD_COUNT);CUERR;
 	if (exit_on_error){
-	    cudaThreadExit();
+	    cudaDeviceReset();
 	    exit(ERR_BAD_STATE);
 	}
     }
