@@ -95,12 +95,19 @@ struct LoadParticleAttributesFromADIOS
             //ADIOS_CMD(adios_inq_var_blockinfo( params->fp, varInfo ));
 
             ADIOS_SELECTION* sel = adios_selection_boundingbox( 1, &particlesOffset, &elements );
-            ADIOS_CMD(adios_schedule_read( params->fp,
-                                           sel,
-                                           datasetName.str().c_str(),
-                                           0,
-                                           1,
-                                           (void*)tmpArray ));
+
+            /** work-around for ADIOS 1.8.0 bug: zero-reads fail for compressed (zlib) data sets,
+             *  so we skip the schedule read for this rank.
+             *  Note: adios_schedule_read is not a collective call */
+            if( elements > 0 )
+            {
+                ADIOS_CMD(adios_schedule_read( params->fp,
+                                               sel,
+                                               datasetName.str().c_str(),
+                                               0,
+                                               1,
+                                               (void*)tmpArray ));
+            }
 
             /* start a blocking read of all scheduled variables */
             ADIOS_CMD(adios_perform_reads( params->fp, 1 ));
