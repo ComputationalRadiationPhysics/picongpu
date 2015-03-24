@@ -551,6 +551,10 @@ private:
 
       splash::Dimensions stride(Amplitude::numComponents,1,1);
 
+      /* get the radiation amplitude unit */
+      Amplitude UnityAmplitude(1., 0., 0., 0., 0., 0.);
+      const numtype2 factor = UnityAmplitude.calc_radiation() * UNIT_ENERGY * UNIT_TIME ;
+
       for(uint ampIndex=0; ampIndex < Amplitude::numComponents; ++ampIndex)
       {
           splash::Dimensions offset(ampIndex,0,0);
@@ -559,20 +563,30 @@ private:
                                           offset,
                                           stride);
 
+          /* save data for each x/y/z * Re/Im amplitude */
           HDF5dataFile.write(currentStep,
                              radSplashType,
                              3,
                              dataSelection,
                              dataLabels(ampIndex).c_str(),
                              values);
+
+          /* save SI unit as attribute together with data set */
+          HDF5dataFile.writeAttribute(currentStep,
+                                      radSplashType,
+                                      dataLabels(ampIndex).c_str(),
+                                      "unitSI",
+                                      &factor);
       }
 
-      HDF5dataFile.close();
+      /* save SI unit as attribute in the Amplitude group (for convenience) */
+      HDF5dataFile.writeAttribute(currentStep,
+                                  radSplashType,
+                                  "Amplitude",
+                                  "unitSI",
+                                  &factor);
 
-      /* TODO: will become atribute in HDF5 file later */
-      Amplitude UnityAmplitude(1., 0., 0., 0., 0., 0.);
-      const numtype2 factor = UnityAmplitude.calc_radiation() * UNIT_ENERGY * UNIT_TIME ;
-      std::cout << "Factor to radiation intensities: " << factor << std::endl;
+      HDF5dataFile.close();
     }
 
 
