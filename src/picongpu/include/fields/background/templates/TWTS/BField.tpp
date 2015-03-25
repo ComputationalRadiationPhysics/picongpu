@@ -149,9 +149,9 @@ namespace twts
         const float_64 Bx_rot = -pmMath::cos(phi)*By_Bx-pmMath::sin(phi)*Bx_Bx;
         
         /* Finally, the B-field normalized to the peak amplitude. */
-        return float3_X( float_X(0.0),
+        return float3_X( float_X(Bx_rot),
                          float_X(By_rot),
-                         float_X(Bx_rot) );
+                         float_X(0.0) );
     }
     
     HDINLINE float3_X
