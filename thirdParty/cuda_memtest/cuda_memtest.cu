@@ -143,7 +143,7 @@ thread_func(void* _arg)
 
 
     cudaSetDevice(device);
-    cudaThreadSynchronize();
+    cudaDeviceSynchronize();
     CUERR;
 
     PRINTF("Attached to device %d successfully.\n", device);
