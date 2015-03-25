@@ -54,12 +54,13 @@ namespace twts
                     const float_X phi,
                     const float_X beta_0,
                     const float_64 tdelay_user_SI,
-                    const bool auto_tdelay ) :
+                    const bool auto_tdelay
+                    const PolarizationType pol ) :
         focus_y_SI(focus_y_SI), wavelength_SI(wavelength_SI),
         pulselength_SI(pulselength_SI), w_x_SI(w_x_SI),
         w_y_SI(w_y_SI), phi(phi), beta_0(beta_0),
         tdelay_user_SI(tdelay_user_SI), dt(SI::DELTA_T_SI),
-        unit_length(UNIT_LENGTH), auto_tdelay(auto_tdelay)
+        unit_length(UNIT_LENGTH), auto_tdelay(auto_tdelay), pol(pol)
     {
         /* Note: Enviroment-objects cannot be instantiated on CUDA GPU device. Since this is done
                  on host (see fieldBackground.param), this is no problem. */
