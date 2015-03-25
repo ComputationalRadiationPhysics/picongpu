@@ -72,13 +72,13 @@ public:
        the laser gradually enters the simulation volume? [Default: TRUE] */
     const PMACC_ALIGN(auto_tdelay,bool);
     
-    /** Electric field of the electric field in the TW
+    /** Electric field of the TWTS laser
      *
      * \param focus_y_SI the distance to the laser focus in y-direction [m]
      * \param wavelength_SI central wavelength [m]
      * \param pulselength_SI sigma of std. gauss for intensity (E^2), 
      *  pulselength_SI = FWHM_of_Intensity / 2.35482 [seconds (sigma)]
-     * \param w_x beam waist: distance from the axis where the pulse intensity (E^2)
+     * \param w_x beam waist: distance from the axis where the pulse electric field
      *  decreases to its 1/e^2-th part at the focus position of the laser [m]
      * \param w_y \see w_x
      * \param phi interaction angle between TWTS laser propagation vector and

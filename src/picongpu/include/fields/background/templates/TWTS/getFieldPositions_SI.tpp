@@ -56,7 +56,7 @@ namespace detail
         floatD_X laserOrigin = precisionCast<float_X>(halfSimSize);
         laserOrigin.y() = float_X( focus_y_SI/cellDimensions.y() );
         
-        /* For the Yee-Cell shifted fields, obtain the fractional cell index components and add
+        /* For staggered fields (e.g. Yee-grid), obtain the fractional cell index components and add
          * that to the total cell indices. The physical field coordinate origin is transversally
          * centered with respect to the global simulation volume.
          * PMacc::math::Vector<floatD_X, numComponents> fieldPositions = 

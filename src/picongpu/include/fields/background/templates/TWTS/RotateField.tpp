@@ -90,10 +90,6 @@ namespace detail
              *  y -->  y
              *  z --> -x (Since z=0 for 2D, we use the existing
              *            TWTS-field-function and set -x=0)
-             *  Ex --> Ez (--> Same function values can be used in 2D,
-             *             but with Yee-Cell-Positions for Ez.)
-             *  By --> By
-             *  Bz --> -Bx
              *
              * Explicit implementation in 3D coordinates:
              * fieldPosVector = float3_64( -fieldPosVector.z(),       //(Here: ==0)

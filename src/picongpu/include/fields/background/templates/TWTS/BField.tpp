@@ -81,13 +81,14 @@ namespace twts
             for (uint32_t i = 0; i<simDim;++i) pos[k][i] = bFieldPositions_SI[k][i];
         }
         
-        /* Calculate By-component with the Yee-Cell offset of a By-field */
+        /* An example of intra-cell position offsets is the staggered Yee-grid. */
+        /* Calculate By-component with the intra-cell offset of a By-field */
         const float_64 By_By = calcTWTSBy(pos[1], time);
-        /* Calculate Bz-component the Yee-Cell offset of a By-field */
+        /* Calculate Bz-component the the intra-cell offset of a By-field */
         const float_64 Bz_By = calcTWTSBz(pos[1], time);
-        /* Calculate By-component the Yee-Cell offset of a Bz-field */
+        /* Calculate By-component the the intra-cell offset of a Bz-field */
         const float_64 By_Bz = calcTWTSBy(pos[2], time);
-        /* Calculate Bz-component the Yee-Cell offset of a Bz-field */
+        /* Calculate Bz-component the the intra-cell offset of a Bz-field */
         const float_64 Bz_Bz = calcTWTSBz(pos[2], time);
         /* Since we rotated all position vectors before calling calcTWTSBy and calcTWTSBz,
          * we need to back-rotate the resulting B-field vector. */
@@ -119,22 +120,25 @@ namespace twts
          *  y -->  y
          *  z --> -x (Since z=0 for 2D, we use the existing
          *            3D TWTS-field-function and set x = -0)
-         *  Ex --> Ez (Meaning: Calculate Ex-component of existing 3D TWTS-field to obtain
-         *             corresponding Ez-component in 2D.
-         *             Note: the position offset due to the Yee-Cell for Ez.)
+         *  The transformed 3D coordinates are used to calculate the field components.
+         *  Ex --> Ez (Meaning: Calculate Ex-component of existing 3D TWTS-field (calcTWTSEx) using
+         *             transformed position vectors to obtain the corresponding Ez-component in 2D.
+         *             Note: Swapping field component coordinates also alters the 
+         *                   intra-cell position offset.)
          *  By --> By
          *  Bz --> -Bx (Yes, the sign is necessary.)
          */ 
+        /* An example of intra-cell position offsets is the staggered Yee-grid. */
         /* Analogous to 3D case, but replace By --> By and Bz --> -Bx. Hence the grid cell offset
-         * for Bx has to be used instead of Bz. Mind the -sign. */
+         * for Bx has to be used instead of Bz. Mind the "-"-sign. */
          
-        /* Calculate By-component with the Yee-Cell offset of a By-field */
+        /* Calculate By-component with the intra-cell offset of a By-field */
         const float_64 By_By =  calcTWTSBy(pos[1], time);
-        /* Calculate Bx-component with the Yee-Cell offset of a By-field */
+        /* Calculate Bx-component with the intra-cell offset of a By-field */
         const float_64 Bx_By = -calcTWTSBz(pos[1], time);
-        /* Calculate By-component with the Yee-Cell offset of a Bx-field */
+        /* Calculate By-component with the intra-cell offset of a Bx-field */
         const float_64 By_Bx =  calcTWTSBy(pos[0], time);
-        /* Calculate Bx-component with the Yee-Cell offset of a Bx-field */
+        /* Calculate Bx-component with the intra-cell offset of a Bx-field */
         const float_64 Bx_Bx = -calcTWTSBz(pos[0], time);
         /* Since we rotated all position vectors before calling calcTWTSBy and calcTWTSBz, we
          * need to back-rotate the resulting B-field vector. Now the rotation is done

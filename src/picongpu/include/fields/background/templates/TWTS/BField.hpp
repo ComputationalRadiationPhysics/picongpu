@@ -72,6 +72,23 @@ public:
     the laser gradually enters the simulation volume? [Default: TRUE] */
     const PMACC_ALIGN(auto_tdelay,bool);
     
+    /** Magnetic field of the TWTS laser
+     *
+     * \param focus_y_SI the distance to the laser focus in y-direction [m]
+     * \param wavelength_SI central wavelength [m]
+     * \param pulselength_SI sigma of std. gauss for intensity (E^2), 
+     *  pulselength_SI = FWHM_of_Intensity / 2.35482 [seconds (sigma)]
+     * \param w_x beam waist: distance from the axis where the pulse electric field
+     *  decreases to its 1/e^2-th part at the focus position of the laser [m]
+     * \param w_y \see w_x
+     * \param phi interaction angle between TWTS laser propagation vector and
+     *  the y-axis [rad, default = 90.*(PI/180.)]
+     * \param beta_0 propagation speed of overlap normalized to
+     *  the speed of light [c, default = 1.0]
+     * \param tdelay_user manual time delay if auto_tdelay is false
+     * \param auto_tdelay calculate the time delay such that the TWTS pulse is not
+     *  inside the simulation volume at simulation start timestep = 0 [default = true]
+     */
     HINLINE
     BField( const float_64 focus_y_SI,
             const float_64 wavelength_SI,
