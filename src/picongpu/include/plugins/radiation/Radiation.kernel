@@ -131,7 +131,7 @@ void kernelRadiationParticles(ParBox pb,
     __shared__ vec2 real_amplitude_s[blockSize];
 
     // retarded time
-    __shared__ numtype2 t_ret_s[blockSize];
+    __shared__ picongpu::float_64 t_ret_s[blockSize];
 
     // storage for macro particle weighting needed if
     // the coherent and incoherent radiation of a single
@@ -159,7 +159,7 @@ void kernelRadiationParticles(ParBox pb,
 
 
     // simulation time (needed for retarded time)
-    const numtype2 t((numtype2) currentStep * (numtype2) DELTA_T);
+    const picongpu::float_64 t((picongpu::float_64) currentStep * (picongpu::float_64) DELTA_T);
 
     // looking direction (needed for observer) used in the thread
     const vec2 look = radiation_observer::observation_direction(theta_idx);
@@ -330,7 +330,7 @@ void kernelRadiationParticles(ParBox pb,
                     // a single electron
                     real_amplitude_s[saveParticleAt] = amplitude3.get_vector(look) *
                       particle_charge *
-                      (numtype2) DELTA_T;
+                      (picongpu::float_64) DELTA_T;
 #else
                     // if coherent and incoherent of single macro-particle is NOT considered
 
@@ -340,7 +340,7 @@ void kernelRadiationParticles(ParBox pb,
                     // compute real amplitude of macro-particle
                     real_amplitude_s[saveParticleAt] = amplitude3.get_vector(look) *
                       particle_charge *
-                      (numtype2) DELTA_T;
+                      (picongpu::float_64) DELTA_T;
 #endif
 
                     // retarded time stored in shared memory
@@ -406,7 +406,7 @@ void kernelRadiationParticles(ParBox pb,
                 Amplitude amplitude = Amplitude::zero();
 
                 // compute frequency "omega" using for-loop-index "o"
-                const numtype2 omega = freqFkt(o);
+                const picongpu::float_64 omega = freqFkt(o);
 
 
                 // if coherent and incoherent radiation of a single macro-particle

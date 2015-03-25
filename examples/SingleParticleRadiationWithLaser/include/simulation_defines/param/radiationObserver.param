@@ -54,15 +54,15 @@ namespace picongpu
       const int my_theta_id = observation_id_extern;
 
       /* set up: */
-      const numtype2 gamma_times_thetaMax = 1.5; /* max normalized angle */
-      const numtype2 gamma = 5.0;                /* relativistic gamma */
-      const numtype2 thetaMax = gamma_times_thetaMax / gamma; /* max angle */
+      const picongpu::float_64 gamma_times_thetaMax = 1.5; /* max normalized angle */
+      const picongpu::float_64 gamma = 5.0;                /* relativistic gamma */
+      const picongpu::float_64 thetaMax = gamma_times_thetaMax / gamma; /* max angle */
 
       /* stepwith of theta for from [-thetaMax : +thetaMax] */
-      const numtype2 delta_theta =  2.0 * thetaMax / (parameters::N_observer); 
+      const picongpu::float_64 delta_theta =  2.0 * thetaMax / (parameters::N_observer); 
 
       /* compute angle theta for index */
-      const numtype2 theta(my_theta_id * delta_theta - thetaMax + picongpu::PI); 
+      const picongpu::float_64 theta(my_theta_id * delta_theta - thetaMax + picongpu::PI); 
       /* + picongpu::PI -> turn observation direction 180 degrees towards -y */
 
       /* compute observation unit vector */

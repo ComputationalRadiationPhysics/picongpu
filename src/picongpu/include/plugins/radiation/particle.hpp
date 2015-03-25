@@ -89,19 +89,19 @@ public:
     // first --> is specialized below
 
     template<unsigned int when>
-    HDINLINE numtype2 get_gamma(void) const
+    HDINLINE picongpu::float_64 get_gamma(void) const
     {
         return calc_gamma(get_momentum<when > ());
     } // get gamma at time when
 
     template<unsigned int when>
-    HDINLINE numtype2 get_gamma_inv_square(void) const
+    HDINLINE picongpu::float_64 get_gamma_inv_square(void) const
     {
         return calc_gamma_inv_square(get_momentum<when > ());
     } // get 1/gamma^2
 
     template< unsigned int when>
-    HDINLINE numtype2 get_cos_theta(const vec2& n) const
+    HDINLINE picongpu::float_64 get_cos_theta(const vec2& n) const
     {
         // get cos(theta) at time when
         const vec2 beta = get_beta<when > ();
@@ -120,7 +120,7 @@ private:
         return momentum * (1.0 / (mass * picongpu::SPEED_OF_LIGHT * gamma1));
     }
 
-    HDINLINE numtype2 calc_gamma(const vec1& momentum) const
+    HDINLINE picongpu::float_64 calc_gamma(const vec1& momentum) const
     {
         // return gamma = E/(mc^2)
         const numtype1 x = util::square<vec1, numtype1 > (momentum * (1.0 / (mass * picongpu::SPEED_OF_LIGHT)));
@@ -128,14 +128,14 @@ private:
 
     }
 
-    HDINLINE numtype2 calc_gamma_inv_square(const vec1& momentum) const
+    HDINLINE picongpu::float_64 calc_gamma_inv_square(const vec1& momentum) const
     {
         // returns 1/gamma^2 = m^2*c^2/(m^2*c^2 + p^2)
         const numtype1 Emass = mass * picongpu::SPEED_OF_LIGHT;
         return Emass / (Emass + (util::square<vec1, numtype1 > (momentum)) / Emass);
     }
 
-    HDINLINE numtype2 calc_cos_theta(const vec2& n, const vec2& beta) const
+    HDINLINE picongpu::float_64 calc_cos_theta(const vec2& n, const vec2& beta) const
     {
         // return cos of angle between looking and flight direction
         return (n * beta) / (std::sqrt(beta * beta));
@@ -144,10 +144,10 @@ private:
 
     // setters:
 
-    HDINLINE numtype2 summand(void) const
+    HDINLINE picongpu::float_64 summand(void) const
     {
         // return \vec n independend summand (next value to add to \vec n independend sum)
-        const numtype2 x = get_gamma_inv_square<When::now > ();
+        const picongpu::float_64 x = get_gamma_inv_square<When::now > ();
         return Taylor()(x);
     }
 

@@ -75,25 +75,25 @@ namespace picongpu
 
       /* set up observation angle range */
       /* angles range for theta */
-      const numtype2 angle_theta_start = - picongpu::PI/8.0
+      const picongpu::float_64 angle_theta_start = - picongpu::PI/8.0
 	                                         + 0.5*picongpu::PI; /* [rad] */
-      const numtype2 angle_theta_end   = + picongpu::PI/8.0
+      const picongpu::float_64 angle_theta_end   = + picongpu::PI/8.0
 	                                         + 0.5*picongpu::PI; /* [rad] */
       /* angles range for phi */
-      const numtype2 angle_phi_start = - picongpu::PI/8.0; /* [rad] */
-      const numtype2 angle_phi_end   = + picongpu::PI/8.0; /* [rad] */
+      const picongpu::float_64 angle_phi_start = - picongpu::PI/8.0; /* [rad] */
+      const picongpu::float_64 angle_phi_end   = + picongpu::PI/8.0; /* [rad] */
 
 
       /* compute step with between two angles for range [angle_??_start : angle_??_end] */
       const int N_theta           = parameters::N_observer / N_angle_split;
-      const numtype2 delta_angle_theta =  (angle_theta_start -
+      const picongpu::float_64 delta_angle_theta =  (angle_theta_start -
 					   angle_theta_end) / (N_theta-1.0);
-      const numtype2 delta_angle_phi   =  (angle_phi_start -
+      const picongpu::float_64 delta_angle_phi   =  (angle_phi_start -
 					   angle_phi_end)   / (N_angle_split-1.0);
 
       /* compute observation angles */
-      const numtype2 theta(  my_index_theta * delta_angle_theta + angle_theta_start );
-      const numtype2 phi(    my_index_phi   * delta_angle_phi   - angle_phi_start   );
+      const picongpu::float_64 theta(  my_index_theta * delta_angle_theta + angle_theta_start );
+      const picongpu::float_64 phi(    my_index_phi   * delta_angle_phi   - angle_phi_start   );
 
       /* compute observation unit vector */
       return vec2( sinf(theta)*cosf(phi) , sinf(theta)*sinf(phi) , cosf(theta) ) ;

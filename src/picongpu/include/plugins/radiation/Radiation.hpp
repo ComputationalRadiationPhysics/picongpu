@@ -553,7 +553,7 @@ private:
 
       /* get the radiation amplitude unit */
       Amplitude UnityAmplitude(1., 0., 0., 0., 0., 0.);
-      const numtype2 factor = UnityAmplitude.calc_radiation() * UNIT_ENERGY * UNIT_TIME ;
+      const picongpu::float_64 factor = UnityAmplitude.calc_radiation() * UNIT_ENERGY * UNIT_TIME ;
 
       for(uint ampIndex=0; ampIndex < Amplitude::numComponents; ++ampIndex)
       {
@@ -627,7 +627,7 @@ private:
                                            parameters::N_observer);
 
           const int N_tmpBuffer = radiation_frequencies::N_omega * parameters::N_observer;
-          numtype2* tmpBuffer = new numtype2[N_tmpBuffer];
+          picongpu::float_64* tmpBuffer = new picongpu::float_64[N_tmpBuffer];
 
           for(uint ampIndex=0; ampIndex < Amplitude::numComponents; ++ampIndex)
           {
@@ -639,7 +639,7 @@ private:
               for(int copyIndex = 0; copyIndex < N_tmpBuffer; ++copyIndex)
               {
                   /* convert data directly because Amplutude is just 6 double */
-                  ((numtype2*)values)[ampIndex + Amplitude::numComponents*copyIndex] = tmpBuffer[copyIndex];
+                  ((picongpu::float_64*)values)[ampIndex + Amplitude::numComponents*copyIndex] = tmpBuffer[copyIndex];
               }
 
           }

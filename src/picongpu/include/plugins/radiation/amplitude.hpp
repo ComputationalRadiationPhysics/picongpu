@@ -24,15 +24,15 @@
 #include "parameters.hpp"
 #include "mpi/GetMPI_StructAsArray.hpp"
 
-typedef PMacc::math::Complex<numtype2> complex_64;
+typedef PMacc::math::Complex<picongpu::float_64> complex_64;
 
 /** class to store 3 complex numbers for the radiated amplitude
  */
 class Amplitude
 {
 public:
-  // number of scalars of type numtype2 in Amplitude = 3 (3D) * 2 (complex) = 6
-  static const uint numComponents = 3 * sizeof(complex_64) / sizeof(numtype2);
+  // number of scalars of type picongpu::float_64 in Amplitude = 3 (3D) * 2 (complex) = 6
+  static const uint numComponents = 3 * sizeof(complex_64) / sizeof(picongpu::float_64);
 
   /** constructor 
    * 
@@ -44,9 +44,9 @@ public:
       picongpu::float_X cosValue;
       picongpu::float_X sinValue;
       picongpu::math::sincos(phase, sinValue, cosValue);
-      amp_x=PMacc::algorithms::math::euler(vec.x(), picongpu::precisionCast<numtype2>(sinValue), picongpu::precisionCast<numtype2>(cosValue) );
-      amp_y=PMacc::algorithms::math::euler(vec.y(), picongpu::precisionCast<numtype2>(sinValue), picongpu::precisionCast<numtype2>(cosValue) );
-      amp_z=PMacc::algorithms::math::euler(vec.z(), picongpu::precisionCast<numtype2>(sinValue), picongpu::precisionCast<numtype2>(cosValue) );
+      amp_x=PMacc::algorithms::math::euler(vec.x(), picongpu::precisionCast<picongpu::float_64>(sinValue), picongpu::precisionCast<picongpu::float_64>(cosValue) );
+      amp_y=PMacc::algorithms::math::euler(vec.y(), picongpu::precisionCast<picongpu::float_64>(sinValue), picongpu::precisionCast<picongpu::float_64>(cosValue) );
+      amp_z=PMacc::algorithms::math::euler(vec.z(), picongpu::precisionCast<picongpu::float_64>(sinValue), picongpu::precisionCast<picongpu::float_64>(cosValue) );
   }
 
 
@@ -63,9 +63,9 @@ public:
    * 
    * Arguments:
    * - 6x float: Re(x), Im(x), Re(y), Im(y), Re(z), Im(z) */
-  HDINLINE Amplitude(const numtype2 x_re, const numtype2 x_im, 
-                     const numtype2 y_re, const numtype2 y_im, 
-                     const numtype2 z_re, const numtype2 z_im)
+  HDINLINE Amplitude(const picongpu::float_64 x_re, const picongpu::float_64 x_im, 
+                     const picongpu::float_64 y_re, const picongpu::float_64 y_im, 
+                     const picongpu::float_64 z_re, const picongpu::float_64 z_im)
       : amp_x(x_re, x_im), amp_y(y_re, y_im), amp_z(z_re, z_im)
   {
 
@@ -107,10 +107,10 @@ public:
   /** calculate radiation from *this amplitude
    *
    * Returns: \frac{d^2 I}{d \Omega d \omega} = const*Amplitude^2 */
-  HDINLINE numtype2 calc_radiation(void)
+  HDINLINE picongpu::float_64 calc_radiation(void)
   {
       // const SI factor radiation
-      const numtype2 factor = 1.0 /
+      const picongpu::float_64 factor = 1.0 /
         (16. * util::cube(M_PI) * picongpu::EPS0 * picongpu::SPEED_OF_LIGHT); 
 
       return factor * (PMacc::algorithms::math::abs2(amp_x) + PMacc::algorithms::math::abs2(amp_y) + PMacc::algorithms::math::abs2(amp_z));
@@ -120,7 +120,7 @@ public:
   /** debugging method
    * 
    * Returns: real-x-value */
-  HDINLINE numtype2 debug(void)
+  HDINLINE picongpu::float_64 debug(void)
   {
       return amp_x.get_real();
   }

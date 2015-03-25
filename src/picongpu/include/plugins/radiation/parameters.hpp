@@ -26,7 +26,6 @@
 
 
 typedef picongpu::float_32 numtype1;
-typedef __align__(8) picongpu::float_64 numtype2;
 
 typedef /*__align__(16)*/ cuda_vec<picongpu::float3_X, picongpu::float_X> vec1;
 typedef /*__align__(32)*/ cuda_vec<picongpu::float3_64, picongpu::float_64> vec2;

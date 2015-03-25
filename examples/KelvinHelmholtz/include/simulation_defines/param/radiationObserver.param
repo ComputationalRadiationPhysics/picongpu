@@ -55,14 +55,14 @@ namespace picongpu
       const int my_index_phi = observation_id_extern % N_angle_split;
 
       /*  range for BOTH angles */
-      const numtype2 angle_range= picongpu::PI/2.0;
+      const picongpu::float_64 angle_range= picongpu::PI/2.0;
 
       /* angle stepwidth for BOTH angles */
-      const numtype2 delta_angle =  1.0 * angle_range / (N_angle_split-1);
+      const picongpu::float_64 delta_angle =  1.0 * angle_range / (N_angle_split-1);
 
       /* compute both angles */
-      const numtype2 theta(  my_index_theta * delta_angle  + 0.5*picongpu::PI ); 
-      const numtype2 phi(    my_index_phi   * delta_angle  ); 
+      const picongpu::float_64 theta(  my_index_theta * delta_angle  + 0.5*picongpu::PI ); 
+      const picongpu::float_64 phi(    my_index_phi   * delta_angle  ); 
       
       /* compute unit vector */
       return vec2( sinf(theta)*cosf(phi) , sinf(theta)*sinf(phi) , cosf(theta) ) ;
