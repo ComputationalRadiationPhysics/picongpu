@@ -36,10 +36,10 @@ namespace picongpu
      *           to compute the observation direction
      *
      * @return   unit vector pointing in observation direction
-     *           type: vec2
+     *           type: vector_64
      * 
      */
-    DINLINE vec2 observation_direction(const int observation_id_extern)
+    DINLINE vector_64 observation_direction(const int observation_id_extern)
     {
       /** This computes observation directions for one octant 
        *  of a sphere around the simulation area.
@@ -65,7 +65,7 @@ namespace picongpu
       const picongpu::float_64 phi(    my_index_phi   * delta_angle  ); 
       
       /* compute unit vector */
-      return vec2( sinf(theta)*cosf(phi) , sinf(theta)*sinf(phi) , cosf(theta) ) ;
+      return vector_64( sinf(theta)*cosf(phi) , sinf(theta)*sinf(phi) , cosf(theta) ) ;
 
     }
     

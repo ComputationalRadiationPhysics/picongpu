@@ -36,10 +36,10 @@ namespace picongpu
      *           to compute the observation direction
      *
      * @return   unit vector pointing in observation direction
-     *           type: vec2
+     *           type: vector_64
      * 
      */
-    DINLINE vec2 observation_direction(const int observation_id_extern)
+    DINLINE vector_64 observation_direction(const int observation_id_extern)
     {
       /** Computes observation angles along the x-y plane.
        *  Assuming electron(s) fly in -x direction and the laser
@@ -66,7 +66,7 @@ namespace picongpu
       /* + picongpu::PI -> turn observation direction 180 degrees towards -y */
 
       /* compute observation unit vector */
-      return vec2(sinf(theta), cosf(theta), 0.0);
+      return vector_64(sinf(theta), cosf(theta), 0.0);
       
     }
     

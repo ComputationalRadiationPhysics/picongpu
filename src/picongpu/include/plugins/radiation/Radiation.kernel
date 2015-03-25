@@ -128,7 +128,7 @@ void kernelRadiationParticles(ParBox pb,
 
     const int blockSize=PMacc::math::CT::volume<Block>::type::value;
     // vectorial part of the integrand in the Jackson formula
-    __shared__ vec2 real_amplitude_s[blockSize];
+    __shared__ vector_64 real_amplitude_s[blockSize];
 
     // retarded time
     __shared__ picongpu::float_64 t_ret_s[blockSize];
@@ -162,7 +162,7 @@ void kernelRadiationParticles(ParBox pb,
     const picongpu::float_64 t((picongpu::float_64) currentStep * (picongpu::float_64) DELTA_T);
 
     // looking direction (needed for observer) used in the thread
-    const vec2 look = radiation_observer::observation_direction(theta_idx);
+    const vector_64 look = radiation_observer::observation_direction(theta_idx);
 
     // get extent of guarding super cells (needed to ignore them)
     const int guardingSuperCells = mapper.getGuardingSuperCells();
@@ -440,13 +440,13 @@ void kernelRadiationParticles(ParBox pb,
                         // is considered
                         // the form factor influences the real amplitude
 #if (__COHERENTINCOHERENTWEIGHTING__==1)
-                        const vec2 weighted_real_amp = real_amplitude_s[j] * precisionCast<float_64 >
+                        const vector_64 weighted_real_amp = real_amplitude_s[j] * precisionCast<float_64 >
                           (myRadFormFactor(radWeighting_s[j], omega, look));
 #else
                         // if coherent/incoherent radiation of single macro-particle
                         // is NOT considered
                         // no change on real amplitude is performed
-                        const vec2 weighted_real_amp = real_amplitude_s[j];
+                        const vector_64 weighted_real_amp = real_amplitude_s[j];
 #endif
 
                         // complex amplitude for j-th particle

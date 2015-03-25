@@ -37,9 +37,9 @@ public:
   /** constructor 
    * 
    * Arguments:
-   * - vec2: real 3D vector 
+   * - vector_64: real 3D vector 
    * - float: complex phase */
-  DINLINE Amplitude(vec2 vec, picongpu::float_X phase)
+  DINLINE Amplitude(vector_64 vec, picongpu::float_X phase)
   {
       picongpu::float_X cosValue;
       picongpu::float_X sinValue;

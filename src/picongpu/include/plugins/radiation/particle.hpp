@@ -74,15 +74,15 @@ public:
     // getters:
 
     template<unsigned int when>
-    HDINLINE vec2 get_location(void) const;
+    HDINLINE vector_64 get_location(void) const;
     // get location at time when
 
     template<unsigned int when>
-    HDINLINE vec2 get_momentum(void) const;
+    HDINLINE vector_64 get_momentum(void) const;
     // get momentum at time when
 
     template<unsigned int when>
-    HDINLINE vec2 get_beta(void) const
+    HDINLINE vector_64 get_beta(void) const
     {
         return calc_beta(get_momentum<when > ());
     } // get beta at time when except:
@@ -101,10 +101,10 @@ public:
     } // get 1/gamma^2
 
     template< unsigned int when>
-    HDINLINE picongpu::float_64 get_cos_theta(const vec2& n) const
+    HDINLINE picongpu::float_64 get_cos_theta(const vector_64& n) const
     {
         // get cos(theta) at time when
-        const vec2 beta = get_beta<when > ();
+        const vector_64 beta = get_beta<when > ();
         return calc_cos_theta(n, beta);
     }
 
@@ -113,7 +113,7 @@ private:
     //////////////////////////////////////////////////////////////////
     // private methods:
 
-    HDINLINE vec2 calc_beta(const vec1& momentum) const
+    HDINLINE vector_64 calc_beta(const vec1& momentum) const
     {
         // returns beta=v/c
         const picongpu::float_32 gamma1 = calc_gamma(momentum);
@@ -135,7 +135,7 @@ private:
         return Emass / (Emass + (util::square<vec1, picongpu::float_32 > (momentum)) / Emass);
     }
 
-    HDINLINE picongpu::float_64 calc_cos_theta(const vec2& n, const vec2& beta) const
+    HDINLINE picongpu::float_64 calc_cos_theta(const vector_64& n, const vector_64& beta) const
     {
         // return cos of angle between looking and flight direction
         return (n * beta) / (std::sqrt(beta * beta));
@@ -156,19 +156,19 @@ private:
 
 
 template<>
-HDINLINE vec2 Particle::get_location<When::now>(void) const
+HDINLINE vector_64 Particle::get_location<When::now>(void) const
 {
     return location_now;
 } // get location at time when
 
 template<>
-HDINLINE vec2 Particle::get_momentum<When::now>(void) const
+HDINLINE vector_64 Particle::get_momentum<When::now>(void) const
 {
     return momentum_now;
 } // get momentum at time when
 
 template<>
-HDINLINE vec2 Particle::get_momentum<When::old>(void) const
+HDINLINE vector_64 Particle::get_momentum<When::old>(void) const
 {
     return momentum_old;
 } // get momentum at time when

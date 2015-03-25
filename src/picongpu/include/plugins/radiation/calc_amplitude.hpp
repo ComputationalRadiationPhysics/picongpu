@@ -48,7 +48,7 @@ struct One_minus_beta_times_n
 
     //  Taylor just includes a method, When includes just enum
 
-    HDINLINE picongpu::float_32 operator()(const vec2& n, const Particle & particle) const
+    HDINLINE picongpu::float_32 operator()(const vector_64& n, const Particle & particle) const
     {
         // 1/gamma^2:
 
@@ -69,7 +69,7 @@ struct One_minus_beta_times_n
         }
         else
         {
-            const vec2 beta(particle.get_beta<When::now > ()); // calc v/c=beta
+            const vector_64 beta(particle.get_beta<When::now > ()); // calc v/c=beta
             return  (1.0 - beta * n);
         }
 
@@ -83,9 +83,9 @@ struct Retarded_time_1
     // same interface as 'Retarded_time_2'
 
     HDINLINE picongpu::float_64 operator()(const picongpu::float_64 t,
-                                const vec2& n, const Particle & particle) const
+                                const vector_64& n, const Particle & particle) const
     {
-        const vec2 r(particle.get_location<When::now > ()); // location
+        const vector_64 r(particle.get_location<When::now > ()); // location
         return (picongpu::float_64) (t - (n * r) / (picongpu::SPEED_OF_LIGHT));
     }
 
@@ -99,10 +99,10 @@ struct Old_Method
     /// with Exponent=Cube the integration over t_ret will be assumed (old FFT)
     /// with Exponent=Square the integration over t_sim will be assumed (old DFT)
 
-    HDINLINE vec2 operator()(const vec2& n, const Particle& particle, const picongpu::float_64 delta_t) const
+    HDINLINE vector_64 operator()(const vector_64& n, const Particle& particle, const picongpu::float_64 delta_t) const
     {
-        const vec2 beta(particle.get_beta<When::now > ()); // beta = v/c
-        const vec2 beta_dot((beta - particle.get_beta < When::now + 1 > ()) / delta_t); // numeric differentiation (backward difference)
+        const vector_64 beta(particle.get_beta<When::now > ()); // beta = v/c
+        const vector_64 beta_dot((beta - particle.get_beta < When::now + 1 > ()) / delta_t); // numeric differentiation (backward difference)
         const Exponent exponent; // instance of the Exponent class // ???is a static class and no instance possible???
          //const One_minus_beta_times_n one_minus_beta_times_n;
         const picongpu::float_64 factor(exponent(1.0 / (One_minus_beta_times_n()(n, particle))));
@@ -143,21 +143,21 @@ public:
 
     // get real vector part of amplitude
 
-    HDINLINE vec2 get_vector(const vec2& n) const
+    HDINLINE vector_64 get_vector(const vector_64& n) const
     {
-        const vec2 look_direction(n.unit_vec()); // make sure look_direction is a unit vector
+        const vector_64 look_direction(n.unit_vec()); // make sure look_direction is a unit vector
         VecCalc vecC;
         return vecC(look_direction, particle, delta_t);
     }
 
     // get retarded time
 
-    HDINLINE picongpu::float_64 get_t_ret(const vec2 look_direction) const
+    HDINLINE picongpu::float_64 get_t_ret(const vector_64 look_direction) const
     {
         TimeCalc timeC;
         return timeC(t_sim, look_direction, particle);
 
-        //  const vec2 r = particle.get_location<When::now > (); // location
+        //  const vector_64 r = particle.get_location<When::now > (); // location
         //  return (picongpu::float_64) (t - (n * r) / (picongpu::SPEED_OF_LIGHT));
     }
 
