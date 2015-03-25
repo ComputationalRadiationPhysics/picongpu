@@ -48,7 +48,7 @@ struct One_minus_beta_times_n
 
     //  Taylor just includes a method, When includes just enum
 
-    HDINLINE numtype1 operator()(const vec2& n, const Particle & particle) const
+    HDINLINE picongpu::float_32 operator()(const vec2& n, const Particle & particle) const
     {
         // 1/gamma^2:
 

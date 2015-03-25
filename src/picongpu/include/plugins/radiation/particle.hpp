@@ -116,14 +116,14 @@ private:
     HDINLINE vec2 calc_beta(const vec1& momentum) const
     {
         // returns beta=v/c
-        const numtype1 gamma1 = calc_gamma(momentum);
+        const picongpu::float_32 gamma1 = calc_gamma(momentum);
         return momentum * (1.0 / (mass * picongpu::SPEED_OF_LIGHT * gamma1));
     }
 
     HDINLINE picongpu::float_64 calc_gamma(const vec1& momentum) const
     {
         // return gamma = E/(mc^2)
-        const numtype1 x = util::square<vec1, numtype1 > (momentum * (1.0 / (mass * picongpu::SPEED_OF_LIGHT)));
+        const picongpu::float_32 x = util::square<vec1, picongpu::float_32 > (momentum * (1.0 / (mass * picongpu::SPEED_OF_LIGHT)));
         return picongpu::math::sqrt(1.0 + x);
 
     }
@@ -131,8 +131,8 @@ private:
     HDINLINE picongpu::float_64 calc_gamma_inv_square(const vec1& momentum) const
     {
         // returns 1/gamma^2 = m^2*c^2/(m^2*c^2 + p^2)
-        const numtype1 Emass = mass * picongpu::SPEED_OF_LIGHT;
-        return Emass / (Emass + (util::square<vec1, numtype1 > (momentum)) / Emass);
+        const picongpu::float_32 Emass = mass * picongpu::SPEED_OF_LIGHT;
+        return Emass / (Emass + (util::square<vec1, picongpu::float_32 > (momentum)) / Emass);
     }
 
     HDINLINE picongpu::float_64 calc_cos_theta(const vec2& n, const vec2& beta) const

@@ -50,12 +50,12 @@ public:
     /**
      * checks if frequency omega is below Nyquist frequency
     **/
-    __device__ __host__ __forceinline__ bool check(const numtype1 omega)
+    __device__ __host__ __forceinline__ bool check(const picongpu::float_32 omega)
     {
         return omega < omegaNyquist * picongpu::radiationNyquist::NyquistFactor;
     }
 
 private:
-    numtype1 omegaNyquist; // Nyquist frequency for a particle (at a certain timestep) for one direction
+    picongpu::float_32 omegaNyquist; // Nyquist frequency for a particle (at a certain timestep) for one direction
 };
 
