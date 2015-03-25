@@ -108,6 +108,33 @@ namespace twts
 
     template<>
     HDINLINE float3_X
+    BField::getTWTSBfield_Normalized_Ey<DIM3>(
+            const PMacc::math::Vector<floatD_64,detail::numComponents>& bFieldPositions_SI,
+            const float_64 time) const
+    {
+        PMacc::math::Vector<float3_64,detail::numComponents> pos(0.0);
+        for (uint32_t k = 0; k<detail::numComponents;++k) {
+            for (uint32_t i = 0; i<simDim;++i) pos[k][i] = bFieldPositions_SI[k][i];
+        }
+        
+        /* Calculate Bz-component with the Yee-Cell offset of a By-field */
+        const float_64 Bz_By = calcTWTSBz_Ey(pos[1], time);
+        /* Calculate Bz-component with the Yee-Cell offset of a Bz-field */
+        const float_64 Bz_Bz = calcTWTSBz_Ey(pos[2], time);
+        /* Since we rotated all position vectors before calling calcTWTSBy and calcTWTSBz_Ex,
+         * we need to back-rotate the resulting B-field vector. */
+        /* RotationMatrix[-(PI/2+phi)].(By,Bz) for rotating back the Field-Vektors. */
+        const float_64 By_rot = +pmMath::cos(+phi)*Bz_By;
+        const float_64 Bz_rot = -pmMath::sin(+phi)*Bz_Bz;
+        
+        /* Finally, the B-field normalized to the peak amplitude. */
+        return float3_X( float_X( calcTWTSBx(pos[0], time) ),
+                         float_X( By_rot ),
+                         float_X( Bz_rot ) );
+    }
+    
+    template<>
+    HDINLINE float3_X
     BField::getTWTSBfield_Normalized<DIM2>(
             const PMacc::math::Vector<floatD_64,detail::numComponents>& bFieldPositions_SI,
             const float_64 time) const
@@ -161,6 +188,52 @@ namespace twts
         return float3_X( float_X(Bx_rot),
                          float_X(By_rot),
                          float_X(0.0) );
+    }
+    
+    template<>
+    HDINLINE float3_X
+    BField::getTWTSBfield_Normalized_Ey<DIM2>(
+            const PMacc::math::Vector<floatD_64,detail::numComponents>& bFieldPositions_SI,
+            const float_64 time) const
+    {
+        PMacc::math::Vector<float3_64,detail::numComponents> pos(0.0);
+        for (uint32_t k = 0; k<detail::numComponents;++k) {
+            /* The 2D output of getFieldPositions_SI only returns
+             * the y- and z-component of a 3D vector. */
+            for (uint32_t i = 0; i<simDim;++i) pos[k][i+1] = bFieldPositions_SI[k][i];
+        }
+        /*  Corresponding position vector for the Field-components in 2D simulations.
+         *  3D     3D vectors in 2D space (x, y)
+         *  x -->  z (Meaning: In 2D-sim, insert cell-coordinate x
+         *            into TWTS field function coordinate z.)
+         *  y -->  y
+         *  z --> -x (Since z=0 for 2D, we use the existing
+         *            3D TWTS-field-function and set x = -0)
+         *  Ex --> Ez (Meaning: Calculate Ex-component of existing 3D TWTS-field to obtain
+         *             corresponding Ez-component in 2D.
+         *             Note: the position offset due to the Yee-Cell for Ez.)
+         *  By --> By
+         *  Bz --> -Bx (Yes, the sign is necessary.)
+         */ 
+        /* Analogous to 3D case, but replace By --> By and Bz --> -Bx. Hence the grid cell offset
+         * for Bx has to be used instead of Bz. Mind the -sign. */
+         
+        /* Calculate Bx-component with the Yee-Cell offset of a By-field */
+        const float_64 Bx_By = -calcTWTSBz_Ex(pos[1], time);
+        /* Calculate Bx-component with the Yee-Cell offset of a Bx-field */
+        const float_64 Bx_Bx = -calcTWTSBz_Ex(pos[0], time);
+        /* Since we rotated all position vectors before calling calcTWTSBy and calcTWTSBz_Ex, we
+         * need to back-rotate the resulting B-field vector. Now the rotation is done
+         * analogously in the (y,x)-plane. (Reverse of the position vector transformation.) */
+        /* RotationMatrix[-(PI / 2+phi)].(By,Bx) */
+        const float_64 By_rot = +pmMath::cos(phi)*Bx_By;
+        /* for rotating back the Field-Vektors.*/
+        const float_64 Bx_rot = -pmMath::sin(phi)*Bx_Bx;
+        
+        /* Finally, the B-field normalized to the peak amplitude. */
+        return float3_X( float_X( Bx_rot ),
+                         float_X( By_rot ),
+                         float_X( calcTWTSBx(pos[2], time) ) );
     }
 
     HDINLINE float3_X

@@ -86,6 +86,34 @@ namespace twts
 
     template<>
     HDINLINE float3_X
+    EField::getTWTSEfield_Normalized_Ey<DIM3>(
+                const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
+                const float_64 time) const
+    {
+        PMacc::math::Vector<float3_64,detail::numComponents> pos(0.0);
+        for (uint32_t k = 0; k<detail::numComponents;++k) {
+            for (uint32_t i = 0; i<simDim;++i) pos[k][i] = eFieldPositions_SI[k][i];
+        }
+        
+        /* Calculate Ey-component with the Yee-Cell offset of a Ey-field */
+        const float_64 Ey_Ey = calcTWTSEy(pos[1], time);
+        /* Calculate Ey-component with the Yee-Cell offset of a Ez-field */
+        const float_64 Ey_Ez = calcTWTSEy(pos[2], time);
+
+        /* Since we rotated all position vectors before calling calcTWTSEy,
+         * we need to back-rotate the resulting E-field vector. */
+        /* RotationMatrix[-(PI/2+phi)].(Ey,Ez) for rotating back the field-vectors. */
+        const float_64 Ey_rot = -pmMath::sin(+phi)*Ey_Ey;
+        const float_64 Ez_rot = -pmMath::cos(+phi)*Ey_Ez;
+        
+        /* Finally, the E-field normalized to the peak amplitude. */
+        return float3_X( float_X(0.0),
+                         float_X(Ey_rot),
+                         float_X(Ez_rot) );
+    }
+    
+    template<>
+    HDINLINE float3_X
     EField::getTWTSEfield_Normalized<DIM2>(
         const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
         const float_64 time) const
@@ -97,7 +125,38 @@ namespace twts
         return float3_X( float_X(0.), float_X(0.),
                          float_X( calcTWTSEx(pos,time) ) );
     }
+    
+    template<>
+    HDINLINE float3_X
+    EField::getTWTSEfield_Normalized_Ey<DIM2>(
+        const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
+        const float_64 time) const
+    {
+        PMacc::math::Vector<float3_64,detail::numComponents> pos(0.0);
+        /* The 2D output of getFieldPositions_SI only returns
+         * the y- and z-component of a 3D vector. */
+        for (uint32_t k = 0; k<detail::numComponents;++k) {
+            for (uint32_t i = 0; i<simDim;++i) pos[k][i+1] = eFieldPositions_SI[k][i];
+        }
+        
+        /* Ey->Ey, but grid cell offsets for Ex and Ey have to be used. */
+        /* Calculate Ey-component with the Yee-Cell offset of a Ey-field */
+        const float_64 Ey_Ey = calcTWTSEy(pos[1], time);
+        /* Calculate Ey-component with the Yee-Cell offset of a Ex-field */
+        const float_64 Ey_Ex = calcTWTSEy(pos[0], time);
 
+        /* Since we rotated all position vectors before calling calcTWTSEy,
+         * we need to back-rotate the resulting E-field vector. */
+        /* RotationMatrix[-(PI / 2+phi)].(Ey,Ex) for rotating back the field-vectors. */
+        const float_64 Ey_rot = -pmMath::sin(+phi)*Ey_Ey;
+        const float_64 Ex_rot = -pmMath::cos(+phi)*Ey_Ex;
+        
+        /* Finally, the E-field normalized to the peak amplitude. */
+        return float3_X( float_X(Ex_rot),
+                         float_X(Ey_rot),
+                         float_X(0.0) );
+    }
+    
     HDINLINE float3_X
     EField::operator()( const DataSpace<simDim>& cellIdx,
                             const uint32_t currentStep ) const
