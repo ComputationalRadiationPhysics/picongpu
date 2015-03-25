@@ -91,7 +91,7 @@ namespace twts
         const float_64 Bz_Bz = calcTWTSBz(pos[2], time);
         /* Since we rotated all position vectors before calling calcTWTSBy and calcTWTSBz,
          * we need to back-rotate the resulting B-field vector. */
-        /* RotationMatrix[-(PI/2+phi)].(By,Bz) for rotating back the Field-Vektors. */
+        /* RotationMatrix[-(PI/2+phi)].(By,Bz) for rotating back the field vectors. */
         const float_64 By_rot = -pmMath::sin(+phi)*By_By+pmMath::cos(+phi)*Bz_By;
         const float_64 Bz_rot = -pmMath::cos(+phi)*By_Bz-pmMath::sin(+phi)*Bz_Bz;
         
@@ -109,7 +109,8 @@ namespace twts
     {
         PMacc::math::Vector<float3_64,detail::numComponents> pos(0.0);
         for (uint32_t k = 0; k<detail::numComponents;++k) {
-            for (uint32_t i = 1; i<simDim;++i) pos[k][i] = bFieldPositions_SI[k][i];
+            /* 2D (y,z) vectors are mapped on 3D (x,y,z) vectors. */
+            for (uint32_t i = 0; i<simDim;++i) pos[k][i+1] = bFieldPositions_SI[k][i];
         }
         /*  Corresponding position vector for the Field-components in 2D simulations.
          *  3D     3D vectors in 2D space (x, y)
@@ -140,7 +141,7 @@ namespace twts
          * analogously in the (y,x)-plane. (Reverse of the position vector transformation.) */
         /* RotationMatrix[-(PI / 2+phi)].(By,Bx) */
         const float_64 By_rot = -pmMath::sin(phi)*By_By+pmMath::cos(phi)*Bx_By;
-        /* for rotating back the Field-Vektors.*/
+        /* for rotating back the field vectors.*/
         const float_64 Bx_rot = -pmMath::cos(phi)*By_Bx-pmMath::sin(phi)*Bx_Bx;
         
         /* Finally, the B-field normalized to the peak amplitude. */

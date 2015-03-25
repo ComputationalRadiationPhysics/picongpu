@@ -90,7 +90,8 @@ namespace twts
     {
         /* Ex->Ez, so also the grid cell offset for Ez has to be used. */
         float3_64 pos(0.0);
-        for (uint32_t i = 1; i<simDim;++i) pos[i] = eFieldPositions_SI[2][i];
+        /* 2D (y,z) vectors are mapped on 3D (x,y,z) vectors. */
+        for (uint32_t i = 0; i<simDim;++i) pos[i+1] = eFieldPositions_SI[2][i];
         return float3_X( float_X(0.), float_X(0.),
                          float_X( calcTWTSEx(pos,time) ) );
     }
