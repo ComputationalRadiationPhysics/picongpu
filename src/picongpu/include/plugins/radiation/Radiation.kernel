@@ -267,7 +267,7 @@ void kernelRadiationParticles(ParBox pb,
                                                       (cellIdx));
 
                     // add global position of cell with local position of particle in cell
-                    vec1 particle_locationNow;
+                    vector_32 particle_locationNow;
                     // set z component to zero in case of simDim==DIM2
                     particle_locationNow[2] = 0.0;
                     // run over all components and compute gobal position
@@ -276,8 +276,8 @@ void kernelRadiationParticles(ParBox pb,
 
 
                     // get old and new particle momenta
-                    const vec1 particle_momentumNow = vec1(par[momentum_]);
-                    const vec1 particle_momentumOld = vec1(par[momentumPrev1_]);
+                    const vector_32 particle_momentumNow = vector_32(par[momentum_]);
+                    const vector_32 particle_momentumOld = vector_32(par[momentumPrev1_]);
 
 
                     /* get macro-particle weighting
