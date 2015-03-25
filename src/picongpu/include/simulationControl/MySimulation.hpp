@@ -330,11 +330,10 @@ public:
             else
             {
                 initialiserController->init();
+                ForEach<InitPipeline, particles::CallFunctor<bmpl::_1> > initSpecies;
+                initSpecies(forward(particleStorage), step);
             }
         }
-
-        ForEach<InitPipeline, particles::CallFunctor<bmpl::_1> > initSpecies;
-        initSpecies(forward(particleStorage), step);
 
         Environment<>::get().EnvMemoryInfo().getMemoryInfo(&freeGpuMem);
         log<picLog::MEMORY > ("free mem after all particles are initialized %1% MiB") % (freeGpuMem / 1024 / 1024);
