@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -69,6 +69,66 @@ struct EvalAssignmentFunction
  * - Even Support: parPos [0.0;1.0)
  * - Odd Support:  parPos [-0.5;0.5)
  */
+template<>
+struct EvalAssignmentFunction<picongpu::particles::shapes::P4S, bmpl::integral_c<int, 0> >
+{
+    typedef typename picongpu::particles::shapes::P4S ParticleAssign;
+
+    HDINLINE float_X
+    operator()(const float_X parPos)
+    {
+
+        return ParticleAssign::ff_1st_radius(parPos);
+    }
+};
+
+template<>
+struct EvalAssignmentFunction<picongpu::particles::shapes::P4S, bmpl::integral_c<int, 1> >
+{
+    typedef typename picongpu::particles::shapes::P4S ParticleAssign;
+
+    HDINLINE float_X
+    operator()(const float_X parPos)
+    {
+        return ParticleAssign::ff_2nd_radius(float_X(1.0)-parPos);
+    }
+};
+
+template<>
+struct EvalAssignmentFunction<picongpu::particles::shapes::P4S, bmpl::integral_c<int, -1 > >
+{
+    typedef typename picongpu::particles::shapes::P4S ParticleAssign;
+
+    HDINLINE float_X
+    operator()(const float_X parPos)
+    {
+        return ParticleAssign::ff_2nd_radius(algorithms::math::abs(float_X(-1.0)-parPos));
+    }
+};
+
+template<>
+struct EvalAssignmentFunction<picongpu::particles::shapes::P4S, bmpl::integral_c<int, 2> >
+{
+    typedef typename picongpu::particles::shapes::P4S ParticleAssign;
+
+    HDINLINE float_X
+    operator()(const float_X parPos)
+    {
+        return ParticleAssign::ff_3rd_radius(float_X(2.0)-parPos);
+    }
+};
+
+template<>
+struct EvalAssignmentFunction<picongpu::particles::shapes::P4S, bmpl::integral_c<int, -2 > >
+{
+    typedef typename picongpu::particles::shapes::P4S ParticleAssign;
+
+    HDINLINE float_X
+    operator()(const float_X parPos)
+    {
+        return ParticleAssign::ff_3rd_radius(algorithms::math::abs(float_X(-2.0)-parPos));
+    }
+};
 
 template<>
 struct EvalAssignmentFunction<picongpu::particles::shapes::TSC, bmpl::integral_c<int, 0> >
