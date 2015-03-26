@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera, Richard Pausch
+ * Copyright 2013, 2015 Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -51,7 +51,6 @@ namespace picongpu
   {
     const float_X omega_min = (SI::omega_min*UNIT_TIME);
     const float_X omega_max = (SI::omega_max*UNIT_TIME);
-    //const numtype2 delta_omega_log = (numtype2) ((omega_log_max - omega_log_min) / (double) (N_omega - 1)); // difference beween two omega
 
     const unsigned int blocksize_omega = PMacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
     const unsigned int gridsize_omega = N_omega / blocksize_omega; // size of grid (dim: x); radiation

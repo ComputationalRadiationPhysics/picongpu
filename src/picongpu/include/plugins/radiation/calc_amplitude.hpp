@@ -48,13 +48,13 @@ struct One_minus_beta_times_n
 
     //  Taylor just includes a method, When includes just enum
 
-    HDINLINE numtype1 operator()(const vec2& n, const Particle & particle) const
+    HDINLINE picongpu::float_32 operator()(const vector_64& n, const Particle & particle) const
     {
         // 1/gamma^2:
 
-        const numtype2 gamma_inv_square(particle.get_gamma_inv_square<When::now > ());
+        const picongpu::float_64 gamma_inv_square(particle.get_gamma_inv_square<When::now > ());
 
-        //numtype2 value; // storage for 1-\beta \times \vec n
+        //picongpu::float_64 value; // storage for 1-\beta \times \vec n
 
         // if energy is high enough to cause numerical errors ( equals if 1/gamma^2 is closs enought to zero)
         // chose a Taylor approximation to to better calculate 1-\beta \times \vec n (which is close to 1-1)
@@ -63,13 +63,13 @@ struct One_minus_beta_times_n
         // with 0.18 the relativ error will be below 0.001% for a Taylor series of 1-sqrt(1-x) of 5th order
         if (gamma_inv_square < picongpu::GAMMA_INV_SQUARE_RAD_THRESH) 
         {
-            const numtype2 cos_theta(particle.get_cos_theta<When::now > (n)); // cosinus between looking vector and momentum of particle
-            const numtype2 taylor_approx(cos_theta * Taylor()(gamma_inv_square) + (1.0 - cos_theta));
+            const picongpu::float_64 cos_theta(particle.get_cos_theta<When::now > (n)); // cosinus between looking vector and momentum of particle
+            const picongpu::float_64 taylor_approx(cos_theta * Taylor()(gamma_inv_square) + (1.0 - cos_theta));
             return  (taylor_approx);
         }
         else
         {
-            const vec2 beta(particle.get_beta<When::now > ()); // calc v/c=beta
+            const vector_64 beta(particle.get_beta<When::now > ()); // calc v/c=beta
             return  (1.0 - beta * n);
         }
 
@@ -82,11 +82,11 @@ struct Retarded_time_1
     // contains more parameters than needed to have the
     // same interface as 'Retarded_time_2'
 
-    HDINLINE numtype2 operator()(const numtype2 t,
-                                const vec2& n, const Particle & particle) const
+    HDINLINE picongpu::float_64 operator()(const picongpu::float_64 t,
+                                const vector_64& n, const Particle & particle) const
     {
-        const vec2 r(particle.get_location<When::now > ()); // location
-        return (numtype2) (t - (n * r) / (picongpu::SPEED_OF_LIGHT));
+        const vector_64 r(particle.get_location<When::now > ()); // location
+        return (picongpu::float_64) (t - (n * r) / (picongpu::SPEED_OF_LIGHT));
     }
 
 };
@@ -99,21 +99,21 @@ struct Old_Method
     /// with Exponent=Cube the integration over t_ret will be assumed (old FFT)
     /// with Exponent=Square the integration over t_sim will be assumed (old DFT)
 
-    HDINLINE vec2 operator()(const vec2& n, const Particle& particle, const numtype2 delta_t) const
+    HDINLINE vector_64 operator()(const vector_64& n, const Particle& particle, const picongpu::float_64 delta_t) const
     {
-        const vec2 beta(particle.get_beta<When::now > ()); // beta = v/c
-        const vec2 beta_dot((beta - particle.get_beta < When::now + 1 > ()) / delta_t); // numeric differentiation (backward difference)
+        const vector_64 beta(particle.get_beta<When::now > ()); // beta = v/c
+        const vector_64 beta_dot((beta - particle.get_beta < When::now + 1 > ()) / delta_t); // numeric differentiation (backward difference)
         const Exponent exponent; // instance of the Exponent class // ???is a static class and no instance possible???
          //const One_minus_beta_times_n one_minus_beta_times_n;
-        const numtype2 factor(exponent(1.0 / (One_minus_beta_times_n()(n, particle))));
+        const picongpu::float_64 factor(exponent(1.0 / (One_minus_beta_times_n()(n, particle))));
         // factor=1/(1-beta*n)^g   g=2 for DFT and g=3 for FFT
         return (n % ((n - beta) % beta_dot)) * factor;
     }
 };
 
 // typedef of all possible forms of Old_Method
-//typedef Old_Method<util::Cube<numtype2> > Old_FFT;
-typedef Old_Method<util::Square<numtype2> > Old_DFT;
+//typedef Old_Method<util::Cube<picongpu::float_64> > Old_FFT;
+typedef Old_Method<util::Square<picongpu::float_64> > Old_DFT;
 
 
 
@@ -135,37 +135,37 @@ public:
     // of base classes
 
     HDINLINE Calc_Amplitude(const Particle& particle,
-                           const numtype2 delta_t,
-                           const numtype2 t_sim)
+                           const picongpu::float_64 delta_t,
+                           const picongpu::float_64 t_sim)
     : particle(particle), delta_t(delta_t), t_sim(t_sim)
     {
     }
 
     // get real vector part of amplitude
 
-    HDINLINE vec2 get_vector(const vec2& n) const
+    HDINLINE vector_64 get_vector(const vector_64& n) const
     {
-        const vec2 look_direction(n.unit_vec()); // make sure look_direction is a unit vector
+        const vector_64 look_direction(n.unit_vec()); // make sure look_direction is a unit vector
         VecCalc vecC;
         return vecC(look_direction, particle, delta_t);
     }
 
     // get retarded time
 
-    HDINLINE numtype2 get_t_ret(const vec2 look_direction) const
+    HDINLINE picongpu::float_64 get_t_ret(const vector_64 look_direction) const
     {
         TimeCalc timeC;
         return timeC(t_sim, look_direction, particle);
 
-        //  const vec2 r = particle.get_location<When::now > (); // location
-        //  return (numtype2) (t - (n * r) / (picongpu::SPEED_OF_LIGHT));
+        //  const vector_64 r = particle.get_location<When::now > (); // location
+        //  return (picongpu::float_64) (t - (n * r) / (picongpu::SPEED_OF_LIGHT));
     }
 
 private:
     // data:
     const Particle& particle; // one particle
-    const numtype2 delta_t; // length of one timestep in simulation
-    const numtype2 t_sim; // simulation time (for methods not using index*delta_t )
+    const picongpu::float_64 delta_t; // length of one timestep in simulation
+    const picongpu::float_64 t_sim; // simulation time (for methods not using index*delta_t )
 
 
 };

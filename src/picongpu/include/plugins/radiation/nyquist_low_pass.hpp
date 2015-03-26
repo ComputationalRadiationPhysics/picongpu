@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013, 2015 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -34,7 +34,7 @@ public:
      * omega_{Nyquist} = (\pi - \epsilon )/(\delta t * (1 - \vec(\beta) * \vec(n)))
      * so that all Amplitudes for higher frequencies can be ignored
     **/
-    __device__ __host__ __forceinline__ NyquistLowPass(const vec2& n, const Particle& particle)
+    __device__ __host__ __forceinline__ NyquistLowPass(const vector_64& n, const Particle& particle)
       : omegaNyquist((picongpu::PI - 0.01)/
 	       (picongpu::DELTA_T *
 	        One_minus_beta_times_n()(n, particle)))
@@ -50,12 +50,12 @@ public:
     /**
      * checks if frequency omega is below Nyquist frequency
     **/
-    __device__ __host__ __forceinline__ bool check(const numtype1 omega)
+    __device__ __host__ __forceinline__ bool check(const picongpu::float_32 omega)
     {
         return omega < omegaNyquist * picongpu::radiationNyquist::NyquistFactor;
     }
 
 private:
-    numtype1 omegaNyquist; // Nyquist frequency for a particle (at a certain timestep) for one direction
+    picongpu::float_32 omegaNyquist; // Nyquist frequency for a particle (at a certain timestep) for one direction
 };
 

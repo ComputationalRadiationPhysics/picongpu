@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Rene Widera, Richard Pausch
+ * Copyright 2013, 2015 Axel Huebl, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -25,10 +25,7 @@
 #include "simulation_defines.hpp"
 
 
-typedef picongpu::float_32 numtype1;
-typedef __align__(8) picongpu::float_64 numtype2;
-
-typedef /*__align__(16)*/ cuda_vec<picongpu::float3_X, picongpu::float_X> vec1;
-typedef /*__align__(32)*/ cuda_vec<picongpu::float3_64, picongpu::float_64> vec2;
+typedef /*__align__(16)*/ cuda_vec<picongpu::float3_X, picongpu::float_X> vector_32;
+typedef /*__align__(32)*/ cuda_vec<picongpu::float3_64, picongpu::float_64> vector_64;
 
 

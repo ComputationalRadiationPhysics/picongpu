@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Heiko Burau, Richard Pausch
+ * Copyright 2013-2015 Heiko Burau, Richard Pausch
  *
  * This file is part of PIConGPU. 
  * 
@@ -36,10 +36,10 @@ namespace picongpu
      *           to compute the observation direction
      *
      * @return   unit vector pointing in observation direction
-     *           type: vec2
+     *           type: vector_64
      * 
      */
-    DINLINE vec2 observation_direction(const int observation_id_extern)
+    DINLINE vector_64 observation_direction(const int observation_id_extern)
     {
       /** Computes observation angles along the x-y plane.
        *  Assuming electron(s) fly in -x direction and the laser
@@ -54,19 +54,19 @@ namespace picongpu
       const int my_theta_id = observation_id_extern;
 
       /* set up: */
-      const numtype2 gamma_times_thetaMax = 1.5; /* max normalized angle */
-      const numtype2 gamma = 5.0;                /* relativistic gamma */
-      const numtype2 thetaMax = gamma_times_thetaMax / gamma; /* max angle */
+      const picongpu::float_64 gamma_times_thetaMax = 1.5; /* max normalized angle */
+      const picongpu::float_64 gamma = 5.0;                /* relativistic gamma */
+      const picongpu::float_64 thetaMax = gamma_times_thetaMax / gamma; /* max angle */
 
       /* stepwith of theta for from [-thetaMax : +thetaMax] */
-      const numtype2 delta_theta =  2.0 * thetaMax / (parameters::N_observer); 
+      const picongpu::float_64 delta_theta =  2.0 * thetaMax / (parameters::N_observer); 
 
       /* compute angle theta for index */
-      const numtype2 theta(my_theta_id * delta_theta - thetaMax + picongpu::PI); 
+      const picongpu::float_64 theta(my_theta_id * delta_theta - thetaMax + picongpu::PI); 
       /* + picongpu::PI -> turn observation direction 180 degrees towards -y */
 
       /* compute observation unit vector */
-      return vec2(sinf(theta), cosf(theta), 0.0);
+      return vector_64(sinf(theta), cosf(theta), 0.0);
       
     }
     
