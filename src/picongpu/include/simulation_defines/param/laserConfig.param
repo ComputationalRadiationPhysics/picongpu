@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Anton Helm, Rene Widera, Richard Pausch
+ * Copyright 2013-2015 Axel Huebl, Anton Helm, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -68,9 +68,12 @@ namespace picongpu
              *  unit: meter */
             const double FOCUS_POS_SI = 4.62e-5;
         }
-    /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
-     *  unit: none */
+        /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
+         *  unit: none */
         const double PULSE_INIT = 20.0;
+
+        /* laser phase shift (no shift: 0.0) */
+        const float_X LASER_PHASE = 0.0; /* unit: rad, periodic in 2*pi */
 
         enum PolarisationType
         {
@@ -122,6 +125,9 @@ namespace picongpu
         /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
         *  unit: none */
         const double PULSE_INIT = 20.0;
+
+        /* laser phase shift (no shift: 0.0) */
+        const float_X LASER_PHASE = 0.0; /* unit: rad, periodic in 2*pi */
 
         enum PolarisationType
         {
@@ -176,6 +182,9 @@ namespace picongpu
         /** The laser pulse will be initialized half of PULSE_INIT times of the PULSE_LENGTH before and after the plateau
          *  unit: none */
         const double RAMP_INIT = 20.6146; //25.6415;//SI::aux_calulation::PULSE_TIME_SI/SI::PULSE_LENGTH_SI;
+
+        /* we use a sin(omega*time + laser_phase) function to set up the laser - define phase: */
+        const float_X LASER_PHASE = 0.0; /* unit: rad, periodic in 2*pi */
 
         enum PolarisationType
         {
@@ -240,6 +249,9 @@ namespace picongpu
      *  unit: none */
     const double RAMP_INIT = 20.0;
 
+    /* we use a sin(omega*time + laser_phase) function to set up the laser - define phase: */
+    const float_X LASER_PHASE = 0.0; /* unit: rad, periodic in 2*pi */
+
     enum PolarisationType
     {
         LINEAR_X = 1u,
@@ -292,6 +304,9 @@ namespace picongpu
             const double W0x_SI = 4.246e-6; // waist in x-direction
             const double W0z_SI = W0x_SI; // waist in z-direction
         }
+
+        /* we use a sin(omega*(time-riseTime) + laser_phase) function to set up the laser - define phase: */
+        const float_X LASER_PHASE = 0.0; /* unit: rad, periodic in 2*pi */
     }
 
     namespace laserNone

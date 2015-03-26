@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -75,18 +75,19 @@ namespace picongpu
 
             }
 
+            const double timeOszi = runTime - endUpramp;
             if( Polarisation == LINEAR_X )
             {
-                elong.x() = float_X( envelope * math::sin( w * runTime ));
+                elong.x() = float_X( envelope * math::sin( w * timeOszi + LASER_PHASE));
             }
             else if( Polarisation == LINEAR_Z)
             {
-                elong.z() = float_X( envelope * math::sin( w * runTime ));
+                elong.z() = float_X( envelope * math::sin( w * timeOszi + LASER_PHASE));
             }
             else if( Polarisation == CIRCULAR )
             {
-                elong.x() = float_X( envelope / sqrt(2.0)  * math::sin( w * runTime ));
-                elong.z() = float_X( envelope / sqrt(2.0)  * math::cos( w * runTime ));
+                elong.x() = float_X( envelope / sqrt(2.0)  * math::sin( w * timeOszi + LASER_PHASE));
+                elong.z() = float_X( envelope / sqrt(2.0)  * math::cos( w * timeOszi + LASER_PHASE));
             }
 
 

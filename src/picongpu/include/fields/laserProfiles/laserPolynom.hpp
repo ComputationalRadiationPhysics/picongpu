@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013, 2015 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -59,7 +59,7 @@ HINLINE float3_X laserLongitudinal(uint32_t currentStep, float_X& phase)
     elong.x() = float_X(
                        float_64(AMPLITUDE) *
                        Tpolynomial(tau)
-                       * math::sin(omegaLaser * (runTime - T_rise))
+                       * math::sin(omegaLaser * (runTime - T_rise) + float_64(LASER_PHASE))
                        );
 
     phase = 0.0f;

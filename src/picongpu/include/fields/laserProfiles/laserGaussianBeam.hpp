@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Anton Helm, Rene Widera, Richard Pausch
+ * Copyright 2013, 2015 Axel Huebl, Heiko Burau, Anton Helm, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -74,7 +74,7 @@ namespace picongpu
                 elong.z() = float_X( envelope / sqrt(2.0) );
             }
 
-            phase = 2.0f * float_X(PI ) * float_X(f ) * ( runTime - float_X(mue ) - FOCUS_POS / SPEED_OF_LIGHT );
+            phase = 2.0f * float_X(PI ) * float_X(f ) * ( runTime - float_X(mue ) - FOCUS_POS / SPEED_OF_LIGHT) + LASER_PHASE;
 
             return elong;
         }

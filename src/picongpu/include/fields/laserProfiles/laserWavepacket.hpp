@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -72,22 +72,21 @@ HINLINE float3_X laserLongitudinal(uint32_t currentStep, float_X& phase)
         envelope *= math::exp(-0.5 * exponent * exponent);
     }
 
+    phase += float_X(w * runTime) + LASER_PHASE;
+
     if( Polarisation == LINEAR_X )
     {
-        elong.x() = envelope * math::sin(w * runTime);
+        elong.x() = envelope * math::sin(phase);
     }
     else if( Polarisation == LINEAR_Z )
     {
-        elong.z() = envelope * math::sin(w * runTime);
+        elong.z() = envelope * math::sin(phase);
     }
     else if( Polarisation == CIRCULAR )
     {
-        elong.x() = envelope / sqrt(2.0) * math::sin(w * runTime);
-        elong.z() = envelope / sqrt(2.0) * math::cos(w * runTime);
+        elong.x() = envelope / sqrt(2.0) * math::sin(phase);
+        elong.z() = envelope / sqrt(2.0) * math::cos(phase);
     }
-
-
-    phase = float_X(0.0);
 
     return elong;
 }
