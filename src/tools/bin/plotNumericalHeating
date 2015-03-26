@@ -169,8 +169,7 @@ else:
 
 
 ## get values ##
-startEnergy = Energies[0][0]
-
+startEnergy = Energies[:][0]
 
 ## plot numerical heating ##
 
@@ -183,30 +182,30 @@ else:
 if not args.boolDiff:
     # plot energy evolution
     plt.plot(Times[0][:time_limit], 
-             (Energies[0][:time_limit]-startEnergy)*norm, 
+             (Energies[0][:time_limit]-startEnergy[0])*norm, 
              color="green", lw=3, label=args.label1)
     if numDir == 2:
         # True is deviation of branch to init energy is less than of dev
-        branch_better = (np.abs(Energies[0][:time_limit]-startEnergy)
-                         > np.abs(Energies[1][:time_limit]-startEnergy))
+        branch_better = (np.abs(Energies[0][:time_limit]-startEnergy[0])
+                         > np.abs(Energies[1][:time_limit]-startEnergy[1]))
 
         # branch is closer to initial energy than dev
         plt.fill_between(Times[1][:time_limit], 
-                         (Energies[0][:time_limit]-startEnergy)*norm, 
-                         (Energies[1][:time_limit]-startEnergy)*norm, 
+                         (Energies[0][:time_limit]-startEnergy[0])*norm, 
+                         (Energies[1][:time_limit]-startEnergy[0])*norm, 
                          where=branch_better,
                          color="orange", alpha=0.8)
 
         # dev is closer to initial energy than branch
         plt.fill_between(Times[1][:time_limit], 
-                         (Energies[0][:time_limit]-startEnergy)*norm, 
-                         (Energies[1][:time_limit]-startEnergy)*norm, 
+                         (Energies[0][:time_limit]-startEnergy[0])*norm, 
+                         (Energies[1][:time_limit]-startEnergy[0])*norm, 
                          where=np.logical_not(branch_better),
                          color="red", alpha=0.7)
 
         # plot second energy evolution
         plt.plot(Times[1][:time_limit], 
-                 (Energies[1][:time_limit]-startEnergy)*norm, 
+                 (Energies[1][:time_limit]-startEnergy[0])*norm, 
                  color="blue",  lw=2, label=args.label2)
     if args.boolRelative:
         plt.ylabel(r"$\frac{E}{E_0}-1\,[\%]$", fontsize=24)
