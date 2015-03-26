@@ -30,7 +30,8 @@
 #   - increase by 1, no gaps
 
 flags[0]="-DCUDA_ARCH=sm_35"
-
+flags[1]="-DCUDA_ARCH=sm_35 -DPARAM_OVERWRITES:LIST=-DPARAM_INCLUDE_FIELDBACKGROUND=true"
+flags[2]="-DCUDA_ARCH=sm_35 -DPARAM_OVERWRITES:LIST=-DPARAM_INCLUDE_FIELDBACKGROUND=true;-DPARAM_DIMENSION=DIM2"
 
 ################################################################################
 # execution

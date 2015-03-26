@@ -1,0 +1,414 @@
+/**
+ * Copyright 2014 Alexander Debus, Axel Huebl
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+#pragma once
+
+#include "types.h"
+#include "simulation_defines.hpp"
+#include "simulation_classTypes.hpp"
+
+#include "math/Vector.hpp"
+#include "dimensions/DataSpace.hpp"
+#include "mappings/simulation/SubGrid.hpp"
+#include "math/Complex.hpp"
+
+#include "fields/background/templates/TWTS/RotateField.tpp"
+#include "fields/background/templates/TWTS/GetInitialTimeDelay_SI.tpp"
+#include "fields/background/templates/TWTS/getFieldPositions_SI.tpp"
+#include "fields/background/templates/TWTS/BField.hpp"
+
+namespace picongpu
+{
+/** Load pre-defined background field */
+namespace templates
+{
+/** Traveling-wave Thomson scattering laser pulse */
+namespace twts
+{
+    namespace pmMath = PMacc::algorithms::math;
+    
+    HINLINE
+    BField::BField( const float_64 focus_y_SI,
+                    const float_64 wavelength_SI,
+                    const float_64 pulselength_SI,
+                    const float_64 w_x_SI,
+                    const float_64 w_y_SI,
+                    const float_X phi,
+                    const float_X beta_0,
+                    const float_64 tdelay_user_SI,
+                    const bool auto_tdelay ) :
+        focus_y_SI(focus_y_SI), wavelength_SI(wavelength_SI),
+        pulselength_SI(pulselength_SI), w_x_SI(w_x_SI),
+        w_y_SI(w_y_SI), phi(phi), beta_0(beta_0),
+        tdelay_user_SI(tdelay_user_SI), dt(SI::DELTA_T_SI),
+        unit_length(UNIT_LENGTH), auto_tdelay(auto_tdelay)
+    {
+        /* Note: Enviroment-objects cannot be instantiated on CUDA GPU device. Since this is done
+         * on host (see fieldBackground.param), this is no problem. */
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+        halfSimSize = subGrid.getGlobalDomain().size / 2;
+        tdelay = detail::getInitialTimeDelay_SI(auto_tdelay, tdelay_user_SI, 
+                                                halfSimSize, pulselength_SI,
+                                                focus_y_SI, phi, beta_0);
+    }
+    
+    template<>
+    HDINLINE float3_X
+    BField::getTWTSBfield_Normalized<DIM3>(
+            const PMacc::math::Vector<floatD_64,detail::numComponents>& bFieldPositions_SI,
+            const float_64 time) const
+    {
+        PMacc::math::Vector<float3_64,detail::numComponents> pos(0.0);
+        for (uint32_t k = 0; k<detail::numComponents;++k) {
+            for (uint32_t i = 0; i<simDim;++i) pos[k][i] = bFieldPositions_SI[k][i];
+        }
+        
+        /* An example of intra-cell position offsets is the staggered Yee-grid. */
+        /* Calculate By-component with the intra-cell offset of a By-field */
+        const float_64 By_By = calcTWTSBy(pos[1], time);
+        /* Calculate Bz-component the the intra-cell offset of a By-field */
+        const float_64 Bz_By = calcTWTSBz(pos[1], time);
+        /* Calculate By-component the the intra-cell offset of a Bz-field */
+        const float_64 By_Bz = calcTWTSBy(pos[2], time);
+        /* Calculate Bz-component the the intra-cell offset of a Bz-field */
+        const float_64 Bz_Bz = calcTWTSBz(pos[2], time);
+        /* Since we rotated all position vectors before calling calcTWTSBy and calcTWTSBz,
+         * we need to back-rotate the resulting B-field vector. */
+        /* RotationMatrix[-(PI/2+phi)].(By,Bz) for rotating back the field vectors. */
+        const float_64 By_rot = -pmMath::sin(+phi)*By_By+pmMath::cos(+phi)*Bz_By;
+        const float_64 Bz_rot = -pmMath::cos(+phi)*By_Bz-pmMath::sin(+phi)*Bz_Bz;
+        
+        /* Finally, the B-field normalized to the peak amplitude. */
+        return float3_X( float_X(0.0),
+                         float_X(By_rot),
+                         float_X(Bz_rot) );
+    }
+    
+    template<>
+    HDINLINE float3_X
+    BField::getTWTSBfield_Normalized<DIM2>(
+            const PMacc::math::Vector<floatD_64,detail::numComponents>& bFieldPositions_SI,
+            const float_64 time) const
+    {
+        PMacc::math::Vector<float3_64,detail::numComponents> pos(0.0);
+        for (uint32_t k = 0; k<detail::numComponents;++k) {
+            /* 2D (y,z) vectors are mapped on 3D (x,y,z) vectors. */
+            for (uint32_t i = 0; i<simDim;++i) pos[k][i+1] = bFieldPositions_SI[k][i];
+        }
+        /*  Corresponding position vector for the Field-components in 2D simulations.
+         *  3D     3D vectors in 2D space (x, y)
+         *  x -->  z (Meaning: In 2D-sim, insert cell-coordinate x
+         *            into TWTS field function coordinate z.)
+         *  y -->  y
+         *  z --> -x (Since z=0 for 2D, we use the existing
+         *            3D TWTS-field-function and set x = -0)
+         *  The transformed 3D coordinates are used to calculate the field components.
+         *  Ex --> Ez (Meaning: Calculate Ex-component of existing 3D TWTS-field (calcTWTSEx) using
+         *             transformed position vectors to obtain the corresponding Ez-component in 2D.
+         *             Note: Swapping field component coordinates also alters the 
+         *                   intra-cell position offset.)
+         *  By --> By
+         *  Bz --> -Bx (Yes, the sign is necessary.)
+         */ 
+        /* An example of intra-cell position offsets is the staggered Yee-grid. */
+        /* Analogous to 3D case, but replace By --> By and Bz --> -Bx. Hence the grid cell offset
+         * for Bx has to be used instead of Bz. Mind the "-"-sign. */
+         
+        /* Calculate By-component with the intra-cell offset of a By-field */
+        const float_64 By_By =  calcTWTSBy(pos[1], time);
+        /* Calculate Bx-component with the intra-cell offset of a By-field */
+        const float_64 Bx_By = -calcTWTSBz(pos[1], time);
+        /* Calculate By-component with the intra-cell offset of a Bx-field */
+        const float_64 By_Bx =  calcTWTSBy(pos[0], time);
+        /* Calculate Bx-component with the intra-cell offset of a Bx-field */
+        const float_64 Bx_Bx = -calcTWTSBz(pos[0], time);
+        /* Since we rotated all position vectors before calling calcTWTSBy and calcTWTSBz, we
+         * need to back-rotate the resulting B-field vector. Now the rotation is done
+         * analogously in the (y,x)-plane. (Reverse of the position vector transformation.) */
+        /* RotationMatrix[-(PI / 2+phi)].(By,Bx) */
+        const float_64 By_rot = -pmMath::sin(phi)*By_By+pmMath::cos(phi)*Bx_By;
+        /* for rotating back the field vectors.*/
+        const float_64 Bx_rot = -pmMath::cos(phi)*By_Bx-pmMath::sin(phi)*Bx_Bx;
+        
+        /* Finally, the B-field normalized to the peak amplitude. */
+        return float3_X( float_X(Bx_rot),
+                         float_X(By_rot),
+                         float_X(0.0) );
+    }
+    
+    HDINLINE float3_X
+    BField::operator()( const DataSpace<simDim>& cellIdx,
+                            const uint32_t currentStep ) const
+    {
+        const float_64 time_SI = float_64(currentStep) * dt - tdelay;
+        
+        const PMacc::math::Vector<floatD_64,detail::numComponents> bFieldPositions_SI =
+              detail::getFieldPositions_SI(cellIdx,halfSimSize,
+                fieldSolver::NumericalCellType::getBFieldPosition(),unit_length,focus_y_SI,phi);
+        /* Single TWTS-Pulse */
+        return getTWTSBfield_Normalized<simDim>(bFieldPositions_SI, time_SI);
+    }
+
+    /** Calculate the By(r,t) field here
+     *
+     * \param pos Spatial position of the target field.
+     * \param time Absolute time (SI, including all offsets and transformations)
+     *             for calculating the field */
+    HDINLINE BField::float_T
+    BField::calcTWTSBy( const float3_64& pos, const float_64 time ) const
+    {
+        typedef PMacc::math::Complex<float_T> complex_T;
+        /** Unit of Speed */
+        const double UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
+        /** Unit of time */
+        const double UNIT_TIME = SI::DELTA_T_SI;
+        /** Unit of length */
+        const double UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
+        
+        /* propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
+        const float_T beta0 = float_T(beta_0);
+        const float_T phiReal = float_T(phi);
+        const float_T alphaTilt = pmMath::atan2(float_T(1.0)-beta0*pmMath::cos(phiReal),
+                                                beta0*pmMath::sin(phiReal));
+        const float_T phiT = float_T(2.0)*alphaTilt;
+        /* Definition of the laser pulse front tilt angle for the laser field below.
+         * For beta0=1.0, this is equivalent to our standard definition. Question: Why is the
+         * local "phi_T" not equal in value to the object member "phiReal" or "phi"?
+         * Because the standard TWTS pulse is defined for beta0 = 1.0 and in the coordinate-system
+         * of the TWTS model phi is responsible for pulse front tilt and dispersion only. Hence
+         * the dispersion will (although physically correct) be slightly off the ideal TWTS
+         * pulse for beta0 != 1.0. This only shows that this TWTS pulse is primarily designed for
+         * scenarios close to beta0 = 1. */
+        
+        /* Angle between the laser pulse front and the y-axis. Not used, but remains in code for
+         * documentation purposes. */
+        /* const float_T eta = float_T(PI/2) - (phiReal - alphaTilt); */
+        
+        const float_T cspeed = float_T(1.0);
+        const float_T lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
+        const float_T om0 = float_T(2.0*PI*cspeed / lambda0*UNIT_TIME);
+        /* factor 2  in tauG arises from definition convention in laser formula */
+        const float_T tauG = float_T(pulselength_SI*2.0 / UNIT_TIME);
+        /* w0 is wx here --> w0 could be replaced by wx */
+        const float_T w0 = float_T(w_x_SI / UNIT_LENGTH);
+        const float_T rho0 = float_T(PI*w0*w0 / lambda0 / UNIT_LENGTH);
+        /* wy is width of TWTS pulse */
+        const float_T wy = float_T(w_y_SI / UNIT_LENGTH);
+        const float_T k = float_T(2.0*PI / lambda0*UNIT_LENGTH);
+        const float_T x = float_T(pos.x() / UNIT_LENGTH);
+        const float_T y = float_T(pos.y() / UNIT_LENGTH);
+        const float_T z = float_T(pos.z() / UNIT_LENGTH);
+        const float_T t = float_T(time / UNIT_TIME);
+                        
+        /* Shortcuts for speeding up the field calculation. */
+        const float_T sinPhi = pmMath::sin(phiT);
+        const float_T cosPhi = pmMath::cos(phiT);
+        const float_T cosPhi2 = pmMath::cos(phiT / 2.0);
+        const float_T tanPhi2 = pmMath::tan(phiT / 2.0);
+        
+        /* The "helpVar" variables decrease the nesting level of the evaluated expressions and
+         * thus help with formal code verification through manual code inspection. */
+        const complex_T helpVar1 = rho0 + complex_T(0,1)*y*cosPhi + complex_T(0,1)*z*sinPhi;
+        const complex_T helpVar2 = cspeed*om0*tauG*tauG + complex_T(0,2)
+                                    *(-z - y*pmMath::tan(float_T(PI / 2)-phiT))*tanPhi2*tanPhi2;
+        const complex_T helpVar3 = complex_T(0,1)*rho0 - y*cosPhi - z*sinPhi;
+        
+        const complex_T helpVar4 = float_T(-1.0)*(
+            cspeed*cspeed*k*om0*tauG*tauG*wy*wy*x*x
+            + float_T(2.0)*cspeed*cspeed*om0*t*t*wy*wy*rho0
+            - complex_T(0,2)*cspeed*cspeed*om0*om0*t*tauG*tauG*wy*wy*rho0
+            + float_T(2.0)*cspeed*cspeed*om0*tauG*tauG*y*y*rho0
+            - float_T(4.0)*cspeed*om0*t*wy*wy*z*rho0
+            + complex_T(0,2)*cspeed*om0*om0*tauG*tauG*wy*wy*z*rho0
+            + float_T(2.0)*om0*wy*wy*z*z*rho0
+            + float_T(4.0)*cspeed*om0*t*wy*wy*y*rho0*tanPhi2
+            - float_T(4.0)*om0*wy*wy*y*z*rho0*tanPhi2
+            - complex_T(0,2)*cspeed*k*wy*wy*x*x*z*tanPhi2*tanPhi2
+            + float_T(2.0)*om0*wy*wy*y*y*rho0*tanPhi2*tanPhi2
+            - float_T(4.0)*cspeed*om0*t*wy*wy*z*rho0*tanPhi2*tanPhi2
+            - complex_T(0,4)*cspeed*y*y*z*rho0*tanPhi2*tanPhi2
+            + float_T(4.0)*om0*wy*wy*z*z*rho0*tanPhi2*tanPhi2
+            - complex_T(0,2)*cspeed*k*wy*wy*x*x*y*pmMath::tan(float_T(PI / 2)-phiT)*tanPhi2*tanPhi2
+            - float_T(4.0)*cspeed*om0*t*wy*wy*y*rho0*pmMath::tan(float_T(PI / 2)-phiT)
+                *tanPhi2*tanPhi2
+            - complex_T(0,4)*cspeed*y*y*y*rho0*pmMath::tan(float_T(PI / 2)-phiT)*tanPhi2*tanPhi2
+            + float_T(4.0)*om0*wy*wy*y*z*rho0*pmMath::tan(float_T(PI / 2)-phiT)*tanPhi2*tanPhi2
+            + float_T(2.0)*z*sinPhi*(
+                + om0*(
+                    + cspeed*cspeed*(
+                          complex_T(0,1)*t*t*wy*wy
+                        + om0*t*tauG*tauG*wy*wy
+                        + complex_T(0,1)*tauG*tauG*y*y
+                    )
+                    - cspeed*(complex_T(0,2)*t + om0*tauG*tauG)*wy*wy*z
+                    + complex_T(0,1)*wy*wy*z*z
+                    )
+                + complex_T(0,2)*om0*wy*wy*y*(cspeed*t - z)*tanPhi2
+                + complex_T(0,1)*tanPhi2*tanPhi2*(
+                      complex_T(0,-2)*cspeed*y*y*z
+                    + om0*wy*wy*( y*y - float_T(2.0)*(cspeed*t - z)*z )
+                )
+            )
+            + float_T(2.0)*y*cosPhi*(
+                + om0*(
+                    + cspeed*cspeed*(
+                          complex_T(0,1)*t*t*wy*wy
+                        + om0*t*tauG*tauG*wy*wy
+                        + complex_T(0,1)*tauG*tauG*y*y
+                    )
+                - cspeed*(complex_T(0,2)*t + om0*tauG*tauG)*wy*wy*z
+                + complex_T(0,1)*wy*wy*z*z
+                )
+            + complex_T(0,2)*om0*wy*wy*y*(cspeed*t - z)*tanPhi2
+            + complex_T(0,1)*(
+                  complex_T(0,-4)*cspeed*y*y*z
+                + om0*wy*wy*(y*y - float_T(4.0)*(cspeed*t - z)*z)
+                - float_T(2.0)*y*(
+                    + cspeed*om0*t*wy*wy
+                    + complex_T(0,1)*cspeed*y*y
+                    - om0*wy*wy*z
+                    )*pmMath::tan(float_T(PI / 2)-phiT)
+                )*tanPhi2*tanPhi2
+            )
+        )/(float_T(2.0)*cspeed*wy*wy*helpVar1*helpVar2);
+
+        const complex_T helpVar5 = complex_T(0,-1)*cspeed*om0*tauG*tauG
+                                + (-z - y*pmMath::tan(float_T(PI / 2)-phiT))
+                                    *tanPhi2*tanPhi2*float_T(2.0);
+        const complex_T helpVar6 = (cspeed*(cspeed*om0*tauG*tauG + complex_T(0,2)
+                                *(-z - y*pmMath::tan(float_T(PI / 2)-phiT))*tanPhi2*tanPhi2))
+                                    / (om0*rho0);
+        const complex_T result = (pmMath::exp(helpVar4)*tauG / cosPhi2 / cosPhi2
+            *(rho0 + complex_T(0,1)*y*cosPhi + complex_T(0,1)*z*sinPhi)
+            *(
+                  complex_T(0,2)*cspeed*t + cspeed*om0*tauG*tauG - complex_T(0,4)*z
+                + cspeed*(complex_T(0,2)*t + om0*tauG*tauG)*cosPhi
+                + complex_T(0,2)*y*tanPhi2
+            )*pmMath::pow(helpVar3,float_T(-1.5))
+        ) / (float_T(2.0)*helpVar5*pmMath::sqrt(helpVar6));
+
+        return result.get_real();
+    }
+    
+    /** Calculate the Bz(r,t) field
+     *
+     * \param pos Spatial position of the target field.
+     * \param time Absolute time (SI, including all offsets and transformations)
+     *             for calculating the field */
+    HDINLINE BField::float_T
+    BField::calcTWTSBz( const float3_64& pos, const float_64 time ) const
+    {
+        typedef PMacc::math::Complex<float_T> complex_T;
+        /** Unit of Speed */
+        const double UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
+        /** Unit of time */
+        const double UNIT_TIME = SI::DELTA_T_SI;
+        /** Unit of length */
+        const double UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
+        
+        /* propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
+        const float_T beta0 = float_T(beta_0);
+        const float_T phiReal = float_T(phi);
+        const float_T alphaTilt = pmMath::atan2(float_T(1.0)-beta0*pmMath::cos(phiReal),
+                                                beta0*pmMath::sin(phiReal));
+        const float_T phiT = float_T(2.0)*alphaTilt;
+        /* Definition of the laser pulse front tilt angle for the laser field below.
+         * For beta0=1.0, this is equivalent to our standard definition. Question: Why is the
+         * local "phi_T" not equal in value to the object member "phiReal" or "phi"?
+         * Because the standard TWTS pulse is defined for beta0 = 1.0 and in the coordinate-system
+         * of the TWTS model phi is responsible for pulse front tilt and dispersion only. Hence
+         * the dispersion will (although physically correct) be slightly off the ideal TWTS
+         * pulse for beta0 != 1.0. This only shows that this TWTS pulse is primarily designed for
+         * scenarios close to beta0 = 1. */
+        
+        /* Angle between the laser pulse front and the y-axis. Not used, but remains in code for
+         * documentation purposes. */
+        /* const float_T eta = float_T(float_T(PI / 2)) - (phiReal - alphaTilt); */
+        
+        const float_T cspeed = float_T(1.0);
+        const float_T lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
+        const float_T om0 = float_T(2.0*PI*cspeed / lambda0*UNIT_TIME);
+        /* factor 2  in tauG arises from definition convention in laser formula */
+        const float_T tauG = float_T(pulselength_SI*2.0 / UNIT_TIME);
+        /* w0 is wx here --> w0 could be replaced by wx */
+        const float_T w0 = float_T(w_x_SI / UNIT_LENGTH);
+        const float_T rho0 = float_T(PI*w0*w0 / lambda0 / UNIT_LENGTH);
+        /* wy is width of TWTS pulse */
+        const float_T wy = float_T(w_y_SI / UNIT_LENGTH);
+        const float_T k = float_T(2.0*PI / lambda0*UNIT_LENGTH);
+        const float_T x = float_T(pos.x() / UNIT_LENGTH);
+        const float_T y = float_T(pos.y() / UNIT_LENGTH);
+        const float_T z = float_T(pos.z() / UNIT_LENGTH);
+        const float_T t = float_T(time / UNIT_TIME);
+                        
+        /* Shortcuts for speeding up the field calculation. */
+        const float_T sinPhi = pmMath::sin(phiT);
+        const float_T cosPhi = pmMath::cos(phiT);
+        const float_T sinPhi2 = pmMath::sin(phiT / float_T(2.0));
+        const float_T cosPhi2 = pmMath::cos(phiT / float_T(2.0));
+        const float_T tanPhi2 = pmMath::tan(phiT / float_T(2.0));
+        
+        /* The "helpVar" variables decrease the nesting level of the evaluated expressions and
+         * thus help with formal code verification through manual code inspection. */
+        const complex_T helpVar1 = -(cspeed*z) - cspeed*y*pmMath::tan(float_T(PI / 2)-phiT)
+                                    + complex_T(0,1)*cspeed*rho0 / sinPhi;
+        const complex_T helpVar2 = complex_T(0,1)*rho0 - y*cosPhi - z*sinPhi;
+        const complex_T helpVar3 = helpVar2*cspeed;
+        const complex_T helpVar4 = cspeed*om0*tauG*tauG
+                                    - complex_T(0,1)*y*cosPhi / cosPhi2 / cosPhi2*tanPhi2
+                                    - complex_T(0,2)*z*tanPhi2*tanPhi2;
+        const complex_T helpVar5 = float_T(2.0)*cspeed*t - complex_T(0,1)*cspeed*om0*tauG*tauG
+                            - float_T(2.0)*z + float_T(8.0)*y / sinPhi / sinPhi / sinPhi
+                                *sinPhi2*sinPhi2*sinPhi2*sinPhi2
+                            - float_T(2.0)*z*tanPhi2*tanPhi2;
+
+        const complex_T helpVar6 = (
+        (om0*y*rho0 / cosPhi2 / cosPhi2 / cosPhi2 / cosPhi2) / helpVar1 
+        - (complex_T(0,2)*k*x*x) / helpVar2 
+        - (complex_T(0,1)*om0*om0*tauG*tauG*rho0) / helpVar2
+        - (complex_T(0,4)*y*y*rho0) / (wy*wy*helpVar2)
+        + (om0*om0*tauG*tauG*y*cosPhi) / helpVar2
+        + (float_T(4.0)*y*y*y*cosPhi) / (wy*wy*helpVar2)
+        + (om0*om0*tauG*tauG*z*sinPhi) / helpVar2
+        + (float_T(4.0)*y*y*z*sinPhi) / (wy*wy*helpVar2)
+        + (complex_T(0,2)*om0*y*y*cosPhi / cosPhi2 / cosPhi2*tanPhi2) / helpVar3
+        + (om0*y*rho0*cosPhi / cosPhi2 / cosPhi2*tanPhi2) / helpVar3
+        + (complex_T(0,1)*om0*y*y*cosPhi*cosPhi/cosPhi2/cosPhi2*tanPhi2)/helpVar3
+        + (complex_T(0,4)*om0*y*z*tanPhi2*tanPhi2) / helpVar3
+        - (float_T(2.0)*om0*z*rho0*tanPhi2*tanPhi2) / helpVar3
+        - (complex_T(0,2)*om0*z*z*sinPhi*tanPhi2*tanPhi2) / helpVar3
+        - (om0*helpVar5*helpVar5) / (cspeed*helpVar4)
+        ) / float_T(4.0);
+                
+        const complex_T helpVar7 = cspeed*om0*tauG*tauG
+                                    - complex_T(0,1)*y*cosPhi / cosPhi2 / cosPhi2*tanPhi2
+                                    - complex_T(0,2)*z*tanPhi2*tanPhi2;
+        const complex_T result = ( complex_T(0,2)*pmMath::exp(helpVar6)*tauG*tanPhi2
+                                    *(cspeed*t - z + y*tanPhi2)
+                                    *pmMath::sqrt( (om0*rho0) / helpVar3 )
+                                  ) / pmMath::pow(helpVar7,float_T(1.5));
+
+        return result.get_real();
+    }
+
+} /* namespace twts */
+} /* namespace templates */
+} /* namespace picongpu */

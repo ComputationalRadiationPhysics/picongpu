@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Axel Huebl
+ * Copyright 2014-2015 Axel Huebl, Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -25,7 +25,7 @@
  */
 namespace picongpu
 {
-    class fieldBackgroundE
+    class FieldBackgroundE
     {
     public:
         /* Add this additional field for pushing particles */
@@ -33,18 +33,18 @@ namespace picongpu
 
         /* We use this to calculate your SI input back to our unit system */
         const float3_64 unitField;
-        HDINLINE fieldBackgroundE( const float3_64 unitField ) : unitField(unitField)
+        HDINLINE FieldBackgroundE( const float3_64 unitField ) : unitField(unitField)
         {}
 
         /** Specify your background field E(r,t) here
          *
-         * \param cellIdx The total cell id counted from the start at t=0
+         * \param cellIdx The total cell id counted from the start at t = 0
          * \param currentStep The current time step */
         HDINLINE float3_X
         operator()( const DataSpace<simDim>& cellIdx,
                     const uint32_t currentStep ) const
         {
-            /* example: periodicity of 20 microns (=2.0e-5 m) */
+            /* example: periodicity of 20 microns ( = 2.0e-5 m) */
             const float_64 period_SI(20.0e-6);
             /* calculate cells -> SI -> m to microns*/
             const float_64 y_SI = cellIdx.y() * SI::CELL_HEIGHT_SI * 1.0e6;
@@ -57,7 +57,7 @@ namespace picongpu
         }
     };
 
-    class fieldBackgroundB
+    class FieldBackgroundB
     {
     public:
         /* Add this additional field for pushing particles */
@@ -65,7 +65,7 @@ namespace picongpu
 
         /* We use this to calculate your SI input back to our unit system */
         const float3_64 unitField;
-        HDINLINE fieldBackgroundB( const float3_64 unitField ) : unitField(unitField)
+        HDINLINE FieldBackgroundB( const float3_64 unitField ) : unitField(unitField)
         {}
 
         /** Specify your background field B(r,t) here
@@ -76,7 +76,7 @@ namespace picongpu
         operator()( const DataSpace<simDim>& cellIdx,
                     const uint32_t currentStep ) const
         {
-            /* example: periodicity of 20 microns (=2.0e-5 m) */
+            /* example: periodicity of 20 microns ( = 2.0e-5 m) */
             const float_64 period_SI(20.0e-6);
             /* calculate cells -> SI -> m to microns*/
             const float_64 y_SI = cellIdx.y() * SI::CELL_HEIGHT_SI * 1.0e6;
@@ -89,7 +89,7 @@ namespace picongpu
         }
     };
 
-    class fieldBackgroundJ
+    class FieldBackgroundJ
     {
     public:
         /* Add this additional field? */
@@ -97,7 +97,7 @@ namespace picongpu
 
         /* We use this to calculate your SI input back to our unit system */
         const float3_64 unitField;
-        HDINLINE fieldBackgroundJ( const float3_64 unitField ) : unitField(unitField)
+        HDINLINE FieldBackgroundJ( const float3_64 unitField ) : unitField(unitField)
         {}
 
         /** Specify your background field J(r,t) here
@@ -108,7 +108,7 @@ namespace picongpu
         operator()( const DataSpace<simDim>& cellIdx,
                     const uint32_t currentStep ) const
         {
-            /* example: periodicity of 20 microns (=2.0e-5 m) */
+            /* example: periodicity of 20 microns ( = 2.0e-5 m) */
             const float_64 period_SI(20.0e-6);
             /* calculate cells -> SI -> m to microns*/
             const float_64 y_SI = cellIdx.y() * SI::CELL_HEIGHT_SI * 1.0e6;
