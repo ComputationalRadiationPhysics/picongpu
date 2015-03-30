@@ -566,17 +566,17 @@ public:
         log<picLog::INPUT_OUTPUT > ("ADIOS: Setting slide count for moving window to %1%") % slides;
         MovingWindow::getInstance().setSlideCounter(slides, restartStep);
 
+        /* re-distribute the local offsets in y-direction */
+        GridController<simDim> &gc = Environment<simDim>::get().GridController();
+        if( MovingWindow::getInstance().isSlidingWindowActive() )
+            gc.setStateAfterSlides(slides);
+
         /* set window for restart, complete global domain */
         mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(restartStep);
         for (uint32_t d = 0; d < simDim; ++d)
         {
             mThreadParams.localWindowToDomainOffset[d] = 0;
         }
-
-        /* re-distribute the local offsets in y-direction */
-        GridController<simDim> &gc = Environment<simDim>::get().GridController();
-        if( MovingWindow::getInstance().isSlidingWindowActive() )
-            gc.setStateAfterSlides(slides);
 
         /* load all fields */
         ForEach<FileCheckpointFields, LoadFields<bmpl::_1> > forEachLoadFields;
