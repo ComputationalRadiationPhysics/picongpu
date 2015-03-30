@@ -105,8 +105,9 @@ public:
             uint64_t count[varInfo->ndim];
             for(int d = 0; d < varInfo->ndim; ++d)
             {
-                start[d] = domain_offset[d];
-                count[d] = local_domain_size[d];
+                /* \see adios_define_var: z,y,x in C-order */
+                start[d] = domain_offset.revert()[d];
+                count[d] = local_domain_size.revert()[d];
             }
 
             ADIOS_SELECTION* fSel = adios_selection_boundingbox( varInfo->ndim, start, count );

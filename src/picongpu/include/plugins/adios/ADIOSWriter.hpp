@@ -111,9 +111,9 @@ int64_t defineAdiosVar(int64_t group_id,
     } else {
         var_id = adios_define_var(
             group_id, name, path, type,
-            dimensions.toString(",", "").c_str(),
-            globalDimensions.toString(",", "").c_str(),
-            offset.toString(",", "").c_str());
+            dimensions.revert().toString(",", "").c_str(),
+            globalDimensions.revert().toString(",", "").c_str(),
+            offset.revert().toString(",", "").c_str());
     }
 
     if (compression && canCompress)
