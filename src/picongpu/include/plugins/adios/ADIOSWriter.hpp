@@ -122,8 +122,8 @@ int64_t defineAdiosVar(int64_t group_id,
 #endif
     }
 
-    log<picLog::INPUT_OUTPUT > ("ADIOS: Defined varID=%1% for '%2%'") %
-                var_id % std::string(name);
+    log<picLog::INPUT_OUTPUT > ("ADIOS: Defined varID=%1% for '%2%' at %3% for %4%/%5% elements") %
+                var_id % std::string(name) % offset.toString() % dimensions.toString() % globalDimensions.toString();
     return var_id;
 }
 
@@ -871,7 +871,8 @@ private:
         threadParams->adiosGroupSize = 0;
 
         /* y direction can be negative for first gpu */
-        DataSpace<simDim> particleOffset(Environment<simDim>::get().SubGrid().getLocalDomain().offset);
+        const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+        DataSpace<simDim> particleOffset(localDomain.offset);
         particleOffset.y() -= threadParams->window.globalDimensions.offset.y();
 
         /* create adios group for fields without statistics */
@@ -884,19 +885,21 @@ private:
         ADIOS_CMD(adios_select_method(threadParams->adiosGroupHandle,
                   "MPI_AGGREGATE", mpiTransportParams.c_str(), ""));
 
+        threadParams->fieldsOffsetDims = precisionCast<uint64_t>(localDomain.offset);
+
         /* write created variable values */
         for (uint32_t d = 0; d < simDim; ++d)
         {
-            uint64_t offset = threadParams->window.localDimensions.offset[d];
-
             /* dimension 1 is y and is the direction of the moving window (if any) */
             if (1 == d)
-                offset = std::max(0, threadParams->window.localDimensions.offset[1] -
-                                     threadParams->window.globalDimensions.offset[1]);
+            {
+                uint64_t offset = std::max(0, localDomain.offset.y() -
+                                              threadParams->window.globalDimensions.offset.y());
+                threadParams->fieldsOffsetDims[d] = offset;
+            }
 
             threadParams->fieldsSizeDims[d] = threadParams->window.localDimensions.size[d];
             threadParams->fieldsGlobalSizeDims[d] = threadParams->window.globalDimensions.size[d];
-            threadParams->fieldsOffsetDims[d] = offset;
         }
 
         /* collect size information for each field to be written and define
