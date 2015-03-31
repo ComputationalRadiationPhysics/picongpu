@@ -57,30 +57,13 @@ public:
         const std::string name_lookup_tpl[] = {"x", "y", "z", "w"};
         const DataSpace<simDim> field_guard = field.getGridLayout().getGuard();
 
-        const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(params->currentStep);
         const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
 
         field.getHostBuffer().setValue(float3_X(0.));
 
-        //const std::string name_lookup[] = {"x", "y", "z"};
+        DataSpace<simDim> domain_offset = localDomain.offset;
 
-        /* globalSlideOffset due to gpu slides between origin at time step 0
-         * and origin at current time step
-         * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
-         */
-        DataSpace<simDim> globalSlideOffset;
-        globalSlideOffset.y() = numSlides * localDomain.size.y();
-
-        DataSpace<simDim> domain_offset;
-        for (uint32_t d = 0; d < simDim; ++d)
-            domain_offset[d] = localDomain.offset[d] + globalSlideOffset[d];
-
-        if (Environment<simDim>::get().GridController().getPosition().y() == 0)
-            domain_offset[1] += params->window.globalDimensions.offset.y();
-
-        DataSpace<simDim> local_domain_size;
-        for (uint32_t d = 0; d < simDim; ++d)
-            local_domain_size[d] = params->window.localDimensions.size[d];
+        DataSpace<simDim> local_domain_size = params->window.localDimensions.size;
 
         PMACC_AUTO(destBox, field.getHostBuffer().getDataBox());
         for (uint32_t n = 0; n < numComponents; ++n)
