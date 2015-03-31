@@ -39,30 +39,33 @@ struct P4S
     HDINLINE static float_X ff_1st_radius(const float_X x)
     {
         /*
-         * W(x)=115/192 - 5/8*x^2 + 1/4*x^4
+         * W(x)= 115/192 - 5/8 * x^2 + 1/4 * x^4
+         *     = 115/192 + x^2 * (-5/8 + 1/4 * x^2)
          */
         const float_X square_x = x * x;
-        const float_X biquadratic_x = square_x * square_x;
         return float_X(115. / 192.)
-             - float_X(5. / 8.) * square_x
-             + float_X(1.0 / 4.0) * biquadratic_x;
+            + square_x
+            * (
+               float_X(-5. / 8.)
+               + float_X(1.0 / 4.0) * square_x
+               );
     }
 
     HDINLINE static float_X ff_2nd_radius(const float_X x)
     {
         /*
-         * W(x)=1/96 * (55 + 20*x - 120*x^2 + 80*x^3 - 16*x^4)
+         * W(x)= 1/96 * (55 + 20 * x - 120 * x^2 + 80 * x^3 - 16 * x^4)
+         *     = 1/96 * (55 + 4 * x * (5 - 2 * x * (15 + 2 * x * (-5 + x))))
          */
-        const float_X square_x = x * x;
-        const float_X cubic_x = square_x * x;
-        const float_X biquadratic_x = square_x * square_x;
-
-        return float_X(1. / 96.)*(
-                                    float_X(55.)
-                                  + float_X(20.) * x
-                                  - float_X(120.) * square_x
-                                  + float_X(80.) * cubic_x
-                                  - float_X(16.) * biquadratic_x);
+        return float_X(1. / 96.)*
+            (
+             float_X(55.) + float_X(4.) * x
+             * (float_X(5.) - float_X(2.) * x
+                * (float_X(15.) + float_X(2.) * x
+                   * (float_X(-5.) + x)
+                   )
+                )
+             );
     }
 
     HDINLINE static float_X ff_3rd_radius(const float_X x)
@@ -80,7 +83,6 @@ struct P4S
 
 } //namespace shared_P4S
 
-
 /** particle assignment shape `piecewise biquadratic spline`
  */
 struct P4S : public shared_P4S::P4S
@@ -93,11 +95,11 @@ struct P4S : public shared_P4S::P4S
         HDINLINE float_X operator()(const float_X x)
         {
             /*       -
-             *       |  115/192 - 5/8*x^2 + 1/4*x^4                    if -1/2 < x < 1/2
+             *       |  115/192 + x^2 * (-5/8 + 1/4 * x^2)                          if -1/2 < x < 1/2
              * W(x)=<|
-             *       |  1/96 * (55 + 20*x - 120*x^2 + 80*x^3 - 16*x^4) if 1/2 <= |x| < 3/2
+             *       |  1/96 * (55 + 4 * x * (5 - 2 * x * (15 + 2 * x * (-5 + x)))) if 1/2 <= |x| < 3/2
              *       |
-             *       |  1/384 * (5 - 2*x)^4                            if 3/2 <= |x| < 5/2
+             *       |  1/384 * (5 - 2 * x)^4                                       if 3/2 <= |x| < 5/2
              *       -
              */
             float_X abs_x = algorithms::math::abs(x);
@@ -124,13 +126,13 @@ struct P4S : public shared_P4S::P4S
         {
 
             /*       -
-             *       |  115/192 - 5/8*x^2 + 1/4*x^4                    if -1/2 < x < 1/2
+             *       |  115/192 + x^2 * (-5/8 + 1/4 * x^2)                          if -1/2 < x < 1/2
              * W(x)=<|
-             *       |  1/96 * (55 + 20*x - 120*x^2 + 80*x^3 - 16*x^4) if 1/2 <= |x| < 3/2
+             *       |  1/96 * (55 + 4 * x * (5 - 2 * x * (15 + 2 * x * (-5 + x)))) if 1/2 <= |x| < 3/2
              *       |
-             *       |  1/384 * (5 - 2*x)^4                            if 3/2 <= |x| < 5/2
+             *       |  1/384 * (5 - 2*x)^4                                         if 3/2 <= |x| < 5/2
              *       |
-             *       |  0                                              otherwise
+             *       |  0                                                           otherwise
              *       -
              */
             float_X abs_x = algorithms::math::abs(x);
