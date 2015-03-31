@@ -44,6 +44,9 @@
 #include "compileTime/conversion/RemoveFromSeq.hpp"
 #include "particles/ParticleDescription.hpp"
 
+#include "particles/particleFilter/FilterFactory.hpp"
+#include "particles/particleFilter/PositionFilter.hpp"
+
 namespace picongpu
 {
 

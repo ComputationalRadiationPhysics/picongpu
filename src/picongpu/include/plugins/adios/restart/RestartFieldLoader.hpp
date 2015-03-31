@@ -35,8 +35,6 @@
 #include "dataManagement/DataConnector.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "dimensions/GridLayout.hpp"
-#include "fields/FieldE.hpp"
-#include "fields/FieldB.hpp"
 #include "simulationControl/MovingWindow.hpp"
 
 namespace picongpu
@@ -119,6 +117,7 @@ public:
 
             /// \todo float_X should be some kind of gridBuffer's GetComponentsType<ValueType>::type
             float_X* field_container = new float_X[local_domain_size.productOfComponents()];
+            /* magic parameters (0, 1): `from_step` (not used in streams), `nsteps` to read (must be 1 for stream) */
             ADIOS_CMD(adios_schedule_read( params->fp, fSel, datasetName.str().c_str(), 0, 1, (void*)field_container ));
 
             /* start a blocking read of all scheduled variables */

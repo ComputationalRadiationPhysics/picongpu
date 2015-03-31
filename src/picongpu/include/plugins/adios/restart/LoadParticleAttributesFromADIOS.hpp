@@ -104,8 +104,8 @@ struct LoadParticleAttributesFromADIOS
                 ADIOS_CMD(adios_schedule_read( params->fp,
                                                sel,
                                                datasetName.str().c_str(),
-                                               0,
-                                               1,
+                                               0, /* from_step (not used in streams) */
+                                               1, /* nsteps to read (must be 1 for stream) */
                                                (void*)tmpArray ));
             }
 

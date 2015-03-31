@@ -40,8 +40,6 @@
 #include "fields/FieldE.hpp"
 #include "fields/FieldJ.hpp"
 #include "fields/FieldTmp.hpp"
-#include "particles/particleFilter/FilterFactory.hpp"
-#include "particles/particleFilter/PositionFilter.hpp"
 #include "particles/operations/CountParticles.hpp"
 
 #include "dataManagement/DataConnector.hpp"
@@ -135,16 +133,7 @@ int64_t defineAdiosVar(int64_t group_id,
  */
 class ADIOSWriter : public ILightweightPlugin
 {
-public:
-
-    /* filter particles by global position*/
-    typedef bmpl::vector< typename GetPositionFilter<simDim>::type > usedFilters;
-    typedef typename FilterFactory<usedFilters>::FilterType MyParticleFilter;
-
 private:
-
-    /* filter is a rule which describes which particles should be copied to host*/
-    MyParticleFilter filter;
 
     template<typename UnitType>
     static std::vector<double> createUnit(UnitType unit, uint32_t numComponents)
@@ -475,7 +464,6 @@ public:
         //mThreadParams.isCheckpoint = isCheckpoint;
         mThreadParams.currentStep = restartStep;
         mThreadParams.cellDescription = this->cellDescription;
-        //this->filter.setStatus(false);
 
         /** one could try ADIOS_READ_METHOD_BP_AGGREGATE too which might
          *  be beneficial for re-distribution on a different number of GPUs
@@ -545,7 +533,7 @@ public:
             slides;
 
         assert(slidesType == adiosUInt32Type.type);
-        assert(slideSize == 4); // uint32_t in bytes
+        assert(slideSize == sizeof(uint32_t)); // uint32_t in bytes
 
         void* lastStepPtr = NULL;
         int lastStepSize;
@@ -637,7 +625,6 @@ private:
         mThreadParams.isCheckpoint = isCheckpoint;
         mThreadParams.currentStep = currentStep;
         mThreadParams.cellDescription = this->cellDescription;
-        this->filter.setStatus(false);
 
         __getTransactionEvent().waitForFinished();
 
@@ -666,16 +653,6 @@ private:
                     mThreadParams.window.globalDimensions.offset[i] -
                     localDomain.offset[i];
             }
-        }
-
-        if (MovingWindow::getInstance().isSlidingWindowActive())
-        {
-            //enable filters for sliding window and configurate position filter
-            this->filter.setStatus(true);
-
-            this->filter.setWindowPosition(
-                    mThreadParams.window.localDimensions.offset,
-                    mThreadParams.window.localDimensions.size);
         }
 
         beginAdios(fname);
@@ -809,12 +786,10 @@ private:
         /* write number of slides to timestep in adios file */
         uint32_t slides = MovingWindow::getInstance().getSlideCounter(threadParams->currentStep);
 
-        //float_X varFlX;
-        //double  varDbl;
-
         /* write current iteration */
         log<picLog::INPUT_OUTPUT > ("ADIOS: meta: iteration");
-        //ADIOS_CMD(adios_common_define_attribute_byvalue(threadParams->adiosGroupHandle,
+        // In upcoming (>1.8.0) ADIOS version, better use:
+        // ADIOS_CMD(adios_common_define_attribute_byvalue(threadParams->adiosGroupHandle,
         //          "iteration",
         //          threadParams->adiosBasePath.c_str(),
         //          adiosUInt32Type.type,
