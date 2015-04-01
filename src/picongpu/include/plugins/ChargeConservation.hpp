@@ -18,8 +18,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANALYSIS_TOTALDIVJ_HPP
-#define ANALYSIS_TOTALDIVJ_HPP
+#ifndef ANALYSIS_ChargeConservation_HPP
+#define ANALYSIS_ChargeConservation_HPP
 
 #include "plugins/ILightweightPlugin.hpp"
 
@@ -29,7 +29,8 @@ using namespace PMacc;
 
 namespace po = boost::program_options;
 
-class TotalDivJ : public ILightweightPlugin
+template<typename Species>
+class ChargeConservation : public ILightweightPlugin
 {
 private:
     std::string name;
@@ -38,8 +39,8 @@ private:
 
     void pluginLoad();
 public:
-    TotalDivJ(std::string name, std::string prefix);
-    virtual ~TotalDivJ() {}
+    ChargeConservation(std::string name, std::string prefix);
+    virtual ~ChargeConservation() {}
 
     void notify(uint32_t currentStep);
     void setMappingDescription(MappingDesc*) {}
@@ -49,6 +50,6 @@ public:
 
 }
 
-#include "TotalDivJ.tpp"
+#include "ChargeConservation.tpp"
 
-#endif // ANALYSIS_TOTALDIVJ_HPP
+#endif // ANALYSIS_ChargeConservation_HPP

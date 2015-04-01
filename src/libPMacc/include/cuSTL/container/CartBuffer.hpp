@@ -71,7 +71,7 @@ public:
     math::Size_t<T_dim-1> pitch;
     HDINLINE void init();
     HDINLINE void exit();
-    HDINLINE CartBuffer() {}
+    HDINLINE CartBuffer() : refCount(NULL) {}
 private:
     /* makes this class able to emulate a r-value reference */
     BOOST_COPYABLE_AND_MOVABLE(This)

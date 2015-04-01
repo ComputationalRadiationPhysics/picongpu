@@ -20,13 +20,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MATH_FUNCTOR_MAX_HPP
-#define MATH_FUNCTOR_MAX_HPP
+#ifndef MATH_FUNCTOR_ABS_HPP
+#define MATH_FUNCTOR_ABS_HPP
 
 
 #include "types.h"
 #include "lambda/Expression.hpp"
-#include "algorithms/math/defines/comparison.hpp"
 
 namespace PMacc
 {
@@ -35,17 +34,17 @@ namespace math
 namespace math_functor
 {
 
-struct Max
+struct Abs
 {
     template<typename Type>
     HDINLINE
-    Type operator()(const Type& a, const Type& b) const
+    Type operator()(const Type& x) const
     {
-        return algorithms::math::max(a,b);
+        return abs(x);
     }
 };
 
-lambda::Expression<lambda::exprTypes::terminal, mpl::vector<Max> > _max;
+lambda::Expression<lambda::exprTypes::terminal, mpl::vector<Abs> > _abs;
 
 } // math_vector
 } // math
@@ -54,7 +53,7 @@ namespace result_of
 {
 
 template<typename Type>
-struct Functor<math::math_functor::Max, Type, Type>
+struct Functor<PMacc::math::math_functor::Abs, Type>
 {
     typedef Type type;
 };
@@ -63,4 +62,4 @@ struct Functor<math::math_functor::Max, Type, Type>
 
 } // PMacc
 
-#endif // MATH_FUNCTOR_MAX_HPP
+#endif // MATH_FUNCTOR_ABS_HPP
