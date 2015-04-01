@@ -20,6 +20,7 @@
 
 #include <mpi.h>
 #include <cstdlib>
+#include <iostream> // std::cerr
 
 #include <boost/program_options.hpp>
 #include <boost/program_options/options_description.hpp>
