@@ -34,6 +34,7 @@
 #include "plugins/SumCurrents.hpp"
 #include "plugins/PositionsParticles.hpp"
 #include "plugins/BinEnergyParticles.hpp"
+#include "plugins/ChargeConservation.hpp"
 #if(ENABLE_HDF5 == 1)
 #include "plugins/PhaseSpace/PhaseSpaceMulti.hpp"
 #endif
@@ -66,6 +67,7 @@
 
 #if(SIMDIM==DIM3)
 #include "plugins/IntensityPlugin.hpp"
+#include "plugins/ChargeConservation.hpp"
 #endif
 #include "plugins/SliceFieldPrinterMulti.hpp"
 
@@ -163,7 +165,8 @@ private:
         EnergyParticles<bmpl::_1>,
         BinEnergyParticles<bmpl::_1>,
         LiveViewPlugin<bmpl::_1>,
-        PositionsParticles<bmpl::_1>
+        PositionsParticles<bmpl::_1>,
+        ChargeConservation<bmpl::_1>
 #if(ENABLE_RADIATION == 1)
       , Radiation<bmpl::_1>
 #endif
