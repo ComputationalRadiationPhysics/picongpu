@@ -21,7 +21,7 @@
 
 
 #ifndef YEE_CURL_HPP
-#define	YEE_CURL_HPP
+#define YEE_CURL_HPP
 
 #include "types.h"
 
