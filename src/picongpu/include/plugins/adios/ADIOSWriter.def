@@ -27,6 +27,7 @@
 #include <limits>
 #include <sstream>
 #include <string>
+#include <iostream> // std::cerr
 
 #include "types.h"
 #include "math/Vector.hpp"
@@ -61,16 +62,18 @@ namespace po = boost::program_options;
 {                                                                              \
     int _err_code = _cmd;                                                      \
     if (_err_code != ADIOS_SUCCESS)                                            \
-        log<picLog::INPUT_OUTPUT > ("ADIOS: error at cmd '%1%': '%2%' %3%") %  \
-            #_cmd % _err_code % adios_errmsg();                                \
+        std::cerr << "ADIOS: error at cmd '" << #_cmd                          \
+                  << "' (" << _err_code << ") in "                             \
+                  << __FILE__ << ":" << __LINE__ << adios_errmsg();            \
 }
 
 #define ADIOS_CMD_EXPECT_NONZERO(_cmd)                                         \
 {                                                                              \
     int _err_code = _cmd;                                                      \
     if (_err_code == 0)                                                        \
-        log<picLog::INPUT_OUTPUT > ("ADIOS: error at cmd '%1%': '%2%' %3%") %  \
-            #_cmd % _err_code % adios_errmsg();                                \
+        std::cerr << "ADIOS: error at cmd '" << #_cmd                          \
+                  << "' (" << _err_code << ") in "                             \
+                  << __FILE__ << ":" << __LINE__ << adios_errmsg();            \
 }
 
 struct ThreadParams
