@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Benjamin Schneider, Felix Schmitt, 
+ * Copyright 2013-2014 Axel Huebl, Benjamin Schneider, Felix Schmitt,
  *                     Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -65,20 +65,11 @@
 
 #if(SIMDIM==DIM3)
 #include "plugins/IntensityPlugin.hpp"
-
-#include "plugins/FieldEnergy.hpp"
-#if(PIC_ENABLE_PNG==1)
-#include "plugins/ParticleDensity.hpp"
-#endif
-#include "plugins/ParticleSpectrum.hpp"
 #include "plugins/TotalDivJ.hpp"
 #include "plugins/SliceFieldPrinterMulti.hpp"
 #endif
 
 #include "plugins/output/images/Visualisation.hpp"
-
-#include "plugins/output/images/DensityToBinary.hpp"
-#include "plugins/output/images/ParticleDensity.hpp"
 
 #include <list>
 
@@ -114,25 +105,19 @@ private:
     typedef Visualisation<PIC_Electrons, PngCreator> ElectronsPngBuilder;
     typedef PngPlugin<ElectronsPngBuilder > PngImageElectrons;
 #endif
-    typedef ParticleDensity<PIC_Electrons, DensityToBinary, float_X> ElectronsBinaryDensityBuilder;
 
 #if(ENABLE_HDF5 == 1)
     /* speciesParticleShape::ParticleShape::ChargeAssignment */
     typedef PhaseSpaceMulti<particles::shapes::Counter::ChargeAssignment, PIC_Electrons> PhaseSpaceElectrons;
 #endif
 #if(SIMDIM==DIM3)
-#if(PIC_ENABLE_PNG==1)
-    typedef heiko::ParticleDensity<PIC_Electrons> HeikoParticleDensity;
-#endif
 
-    typedef ParticleSpectrum<PIC_Electrons> ElectronSpectrum;
     typedef SliceFieldPrinterMulti<FieldE> SliceFieldEPrinter;
     typedef SliceFieldPrinterMulti<FieldB> SliceFieldBPrinter;
     typedef SliceFieldPrinterMulti<FieldJ> SliceFieldJPrinter;
 #endif
 
     typedef LiveViewPlugin<PIC_Electrons > LiveImageElectrons;
-    typedef PngPlugin<ElectronsBinaryDensityBuilder > BinDensityElectrons;
     typedef CountParticles<PIC_Electrons> ElectronCounter;
     typedef EnergyParticles<PIC_Electrons> EnergyElectrons;
     typedef PositionsParticles<PIC_Electrons> PositionElectrons;
@@ -151,8 +136,7 @@ private:
     /* speciesParticleShape::ParticleShape::ChargeAssignment */
     typedef PhaseSpaceMulti<particles::shapes::Counter::ChargeAssignment, PIC_Ions> PhaseSpaceIons;
 #endif
-    typedef ParticleDensity<PIC_Ions, DensityToBinary, float_X> IonsBinaryDensityBuilder;
-    typedef PngPlugin<IonsBinaryDensityBuilder > BinDensityIons;
+
     typedef LiveViewPlugin<PIC_Ions > LiveImageIons;
     typedef CountParticles<PIC_Ions> IonCounter;
     typedef EnergyParticles<PIC_Ions> EnergyIons;
@@ -187,11 +171,7 @@ private:
         plugins.push_back(new SumCurrents());
 
 #if(SIMDIM==DIM3)
-        plugins.push_back(new FieldEnergy("FieldEnergy [keV/m^3]", "field_energy"));
-#if(PIC_ENABLE_PNG==1)
-        plugins.push_back(new HeikoParticleDensity("HeikoParticleDensity", "heiko_pd"));
-#endif
-        plugins.push_back(new ElectronSpectrum("Electron Spectrum", "spectrum"));
+
         plugins.push_back(new TotalDivJ("change of total charge per timestep (single gpu)", "totalDivJ"));
         plugins.push_back(new SliceFieldEPrinter("FieldE: prints a slice of the E-field", "FieldE"));
         plugins.push_back(new SliceFieldBPrinter("FieldB: prints a slice of the B-field", "FieldB"));
@@ -208,7 +188,6 @@ private:
 #if(PIC_ENABLE_PNG==1)
         plugins.push_back(new PngImageElectrons("PngImageElectrons", "png_e"));
 #endif
-        plugins.push_back(new BinDensityElectrons("BinDensityElectrons", "binDensity_e"));
         plugins.push_back(new BinEnergyElectrons("BinEnergyElectrons", "bin_e"));
         plugins.push_back(new ElectronCounter("ElectronsCount", "elec_cnt"));
         plugins.push_back(new EnergyElectrons("EnergyElectrons", "energy_e"));
@@ -223,7 +202,6 @@ private:
 #if(PIC_ENABLE_PNG==1)
         plugins.push_back(new PngImageIons("PngImageIons", "png_i"));
 #endif
-        plugins.push_back(new BinDensityIons("BinDensityIons", "binDensity_i"));
         plugins.push_back(new BinEnergyIons("BinEnergyIons", "bin_i"));
         plugins.push_back(new IonCounter("IonsCount", "ions_cnt"));
         plugins.push_back(new EnergyIons("EnergyIons", "energy_i"));
