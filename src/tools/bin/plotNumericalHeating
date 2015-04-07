@@ -114,7 +114,7 @@ for sim in directories:
     mydir = sim+simDir
     # get relevant files with energy
     files = [f for f in os.listdir(mydir)
-             if os.path.isfile(os.path.join(mydir, f)) and re.search('^Energy.*.dat', f)]
+             if os.path.isfile(os.path.join(mydir, f)) and re.search('^.*_energy.dat', f)]
     # check if file list is empty
     if len(files) == 0:
         sys.exit("There were no energy files in \"{}\".".format(mydir))
