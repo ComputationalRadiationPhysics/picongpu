@@ -133,10 +133,10 @@ private:
 
 public:
 
-    PerSuperCell(std::string name, std::string prefix) :
-    analyzerName(name),
-    analyzerPrefix(prefix),
-    foldername(name),
+    PerSuperCell() :
+    analyzerName("PerSuperCell: create hdf5 with macro particle count per superCell"),
+    analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_macroParticlesPerSuperCell")),
+    foldername(analyzerPrefix),
     particles(NULL),
     cellDescription(NULL),
     notifyFrequency(0),

@@ -178,9 +178,9 @@ private:
 
 public:
 
-    PositionsParticles(std::string name, std::string prefix) :
-    analyzerName(name),
-    analyzerPrefix(prefix),
+    PositionsParticles() :
+    analyzerName("PositionsParticles: write position of one particle of a species to std::cout"),
+    analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_position")),
     particles(NULL),
     gParticle(NULL),
     cellDescription(NULL),
@@ -206,7 +206,7 @@ public:
 
         /*FORMAT OUTPUT*/
         if (positionParticle.mass != float_X(0.0))
-            std::cout << "[ANALYSIS] [" << rank << "] [COUNTER] [" << analyzerName << "] [" << currentStep << "] "
+            std::cout << "[ANALYSIS] [" << rank << "] [COUNTER] [" << analyzerPrefix << "] [" << currentStep << "] "
             << std::setprecision(16) << double(currentStep) * SI::DELTA_T_SI << " "
             << positionParticle << "\n"; // no flush
     }

@@ -43,8 +43,9 @@ namespace picongpu
 {
 
 template<typename Field>
-SliceFieldPrinterMulti<Field>::SliceFieldPrinterMulti(std::string name, std::string prefix)
-    : name(name), prefix(prefix)
+SliceFieldPrinterMulti<Field>::SliceFieldPrinterMulti()
+    : name("SliceFieldPrinterMulti: prints a slice of a field"),
+      prefix(Field::getName() + std::string("_slice"))
 {
     Environment<>::get().PluginConnector().registerPlugin(this);
 }

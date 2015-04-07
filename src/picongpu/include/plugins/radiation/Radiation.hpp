@@ -130,10 +130,10 @@ private:
 
 public:
 
-    Radiation(std::string name, std::string prefix) :
-    analyzerName(name),
-    analyzerPrefix(prefix),
-    filename_prefix(name),
+    Radiation() :
+    analyzerName("Radiation: calculate the radiation of a species"),
+    analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_radiation")),
+    filename_prefix(analyzerPrefix),
     particles(NULL),
     radiation(NULL),
     cellDescription(NULL),

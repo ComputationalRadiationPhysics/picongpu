@@ -38,8 +38,9 @@
 namespace picongpu
 {
 
-TotalDivJ::TotalDivJ(std::string name, std::string prefix)
-    : name(name), prefix(prefix)
+TotalDivJ::TotalDivJ()
+    : name("TotalDivJ: change of total charge per timestep (single gpu)"),
+      prefix(FieldJ::getName() + std::string("_totalDiv"))
 {
     Environment<>::get().PluginConnector().registerPlugin(this);
 }
@@ -97,7 +98,7 @@ void TotalDivJ::notify(uint32_t currentStep)
     container::HostBuffer<float, 1> totalDivJ_host(1);
     totalDivJ_host = totalDivJ;
 
-    static std::ofstream file("totalDivJ.dat");
+    static std::ofstream file( (this->prefix + ".dat").c_str() );
 
     file << "step: " << currentStep << ", totalDivJ: "
         << *totalDivJ_host.origin() * CELL_VOLUME * UNIT_CHARGE

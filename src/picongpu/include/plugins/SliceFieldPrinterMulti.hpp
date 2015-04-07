@@ -53,7 +53,7 @@ private:
     void pluginUnload();
 
 public:
-    SliceFieldPrinterMulti(std::string name, std::string prefix);
+    SliceFieldPrinterMulti();
     virtual ~SliceFieldPrinterMulti() {}
 
     void notify(uint32_t) {}
