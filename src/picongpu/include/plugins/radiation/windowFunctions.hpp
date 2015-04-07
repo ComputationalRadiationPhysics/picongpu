@@ -184,5 +184,27 @@ namespace picongpu
   } /* namespace radWindowFunctionGauss */
 
 
+  namespace radWindowFunctionNone
+  {
+    struct radWindowFunction
+    {
+      /** 1D Window function according to the no window:
+       *
+       * f(position_x) = always 1.0
+       *
+       * @param position_x = 1D position
+       * @param L_x        = length of the simulated area
+       *                     assuming that the simulation ranges
+       *                     from 0 to L_x in the choosen dimension
+       * @returns 1.0
+       **/
+      HDINLINE float_X operator()(const float_X position_x, const float_X L_x) const
+      {
+        return float_X(1.0);
+      }
+    };
+  } /* namespace radWindowFunctionRectangle */
+
+
 }  /* namespace picongpu */
 

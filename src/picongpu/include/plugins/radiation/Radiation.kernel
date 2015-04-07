@@ -355,8 +355,6 @@ void kernelRadiationParticles(ParBox pb,
 
                     /* the particle amplitude is used to include the weighting
                      * of the window function filter without needing more memory */
-#if (PIC_RADWINDOWFUNCTION==1)
-
                     const radWindowFunction::radWindowFunction winFkt;
 
                     /* start with a factor of one */
@@ -370,7 +368,6 @@ void kernelRadiationParticles(ParBox pb,
 
                     /* apply window function factor to amplitude */
                     real_amplitude_s[saveParticleAt] *= windowFactor;
-#endif
 
 
 
