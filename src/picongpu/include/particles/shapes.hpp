@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -29,3 +29,4 @@
 #include "particles/shapes/CIC.hpp"
 #include "particles/shapes/TSC.hpp"
 #include "particles/shapes/PCS.hpp"
+#include "particles/shapes/P4S.hpp"
