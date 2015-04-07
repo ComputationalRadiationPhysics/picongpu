@@ -159,14 +159,12 @@ namespace picongpu
 // default: no window function via `radWindowFunctionNone`
 
 /* Choose different window function in order to get better ringing reduction
- * radWindowFunctionRectangle
  * radWindowFunctionTriangle
  * radWindowFunctionHamming
  * radWindowFunctionTriplett
  * radWindowFunctionGauss
  * radWindowFunctionNone
  */
-namespace radWindowFunctionRectangle { }
 namespace radWindowFunctionTriangle { }
 namespace radWindowFunctionHamming { }
 namespace radWindowFunctionTriplett { }
