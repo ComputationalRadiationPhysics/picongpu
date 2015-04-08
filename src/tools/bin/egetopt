@@ -45,17 +45,31 @@ help()
     echo "NOT SUPPORTED:"
     echo '    - begin an option with `+`'
     echo '    - abbreviations of getopt `longoptions`'
+    echo '    -     `--longoption="something with spaces"`'
+    echo '      use `--longoption "something with spaces"` instead'
+    echo '    -     `-shortoption"something with spaces"`'
+    echo '      use `-shortoption "something with spaces"` instead'
     echo ""
     echo ""
     echo 'output of `getopt` help:'
     getopt -h 2>&1
 }
 
+# wrap all non option arguments with single quotes
+for i in "$@"
+do
+    if [[ "$i" == "++" ]] || [[ "$i" =~ ^- ]] ; then
+        egetoptOpts+="$i "
+    else 
+        egetoptOpts+="'$i' "
+    fi
+done
+
 # arguments for getopt
-egetOptArgs=`echo $* | sed 's/++.*$//g'`
+egetOptArgs=`echo $egetoptOpts | sed 's/++.*$//g'`
 # user arguments
-userArgs=`echo $* | sed 's/^.*++//g'`
- 
+userArgs=`echo $egetoptOpts | sed 's/^.*++//g'`
+
 # evaluate options for getopt 
 OPTS=`getopt -o o:l:n:qhV -l help,options:,longoptions:version -- $egetOptArgs`
 eval set -- "$OPTS"
@@ -123,7 +137,7 @@ while true ; do
                     theShortOpt=`echo $1 | tr -d "-"`
                     if [ $# -ge $nonOptionCheck ] && [[ $shortDef =~ $theShortOpt: ]] ; then
                         # append argument to option
-                        transformedArgs+="$2"
+                        transformedArgs+="'$2'"
                         shift
                     fi
                 # transform long option if no argument with `=` is set
@@ -131,7 +145,7 @@ while true ; do
                     theLongOpt=`echo $1 | sed 's/--//g'`
                     if [ $# -ge $nonOptionCheck ] && [[ $longDef =~ $theLongOpt: ]] ; then
                         # append argument to option
-                        transformedArgs+="=$2"
+                        transformedArgs+="='$2'"
                         shift
                     fi
                 elif [[ ! $1 =~ ^-- ]] && [[ ! $1 =~ ^-.*$ ]] ; then 
@@ -149,4 +163,4 @@ while true ; do
     shift
 done    
 
-getopt $getOptArgs -- $transformedArgs
+echo "getopt $getOptArgs -- $transformedArgs" | bash
