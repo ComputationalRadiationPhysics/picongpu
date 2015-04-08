@@ -82,7 +82,7 @@ namespace detail
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
-(const math::Size_t<T_dim>& _size)
+(const math::Size_t<T_dim>& _size) : refCount(NULL)
 {
     this->_size = _size;
     init();
@@ -90,28 +90,28 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
-(size_t x)
+(size_t x) : refCount(NULL)
 {
     this->_size = math::Size_t<1>(x); init();
 }
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
-(size_t x, size_t y)
+(size_t x, size_t y) : refCount(NULL)
 {
     this->_size = math::Size_t<2>(x, y); init();
 }
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
-(size_t x, size_t y, size_t z)
+(size_t x, size_t y, size_t z) : refCount(NULL)
 {
     this->_size = math::Size_t<3>(x, y, z); init();
 }
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
-(const CartBuffer<Type, T_dim, Allocator, Copier, Assigner>& other)
+(const CartBuffer<Type, T_dim, Allocator, Copier, Assigner>& other) : refCount(NULL)
 {
     this->dataPointer = other.dataPointer;
     this->refCount = other.refCount;
@@ -124,7 +124,7 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
-(BOOST_RV_REF(CartBuffer<Type COMMA T_dim COMMA Allocator COMMA Copier COMMA Assigner>) other)
+(BOOST_RV_REF(CartBuffer<Type COMMA T_dim COMMA Allocator COMMA Copier COMMA Assigner>) other) : refCount(NULL)
 {
     this->dataPointer = 0;
     this->refCount = 0;
