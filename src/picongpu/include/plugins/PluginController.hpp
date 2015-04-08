@@ -80,10 +80,8 @@
 #include "plugins/makroParticleCounter/PerSuperCell.hpp"
 #endif
 
-#if(SIMDIM==DIM3)
 #if (ENABLE_ADIOS == 1)
 #include "plugins/adios/ADIOSWriter.hpp"
-#endif
 #endif
 
 namespace picongpu
@@ -161,10 +159,8 @@ private:
         plugins.push_back(new hdf5::HDF5Writer());
 #endif
 
-#if(SIMDIM==DIM3)
 #if (ENABLE_ADIOS == 1)
         plugins.push_back(new adios::ADIOSWriter());
-#endif
 #endif
 
         plugins.push_back(new EnergyFields("EnergyFields", "energy_fields"));

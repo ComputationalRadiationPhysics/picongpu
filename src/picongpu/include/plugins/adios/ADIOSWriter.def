@@ -21,13 +21,20 @@
 #pragma once
 
 #include <adios.h>
+#include <adios_read.h>
+
 #include <list>
+#include <limits>
+#include <sstream>
+#include <string>
+#include <iostream> // std::cerr
 
 #include "types.h"
 #include "math/Vector.hpp"
 #include "simulation_types.hpp"
 #include "particles/frame_types.hpp"
 #include "simulationControl/MovingWindow.hpp"
+#include "traits/PICToAdios.hpp"
 
 namespace picongpu
 {
@@ -55,22 +62,28 @@ namespace po = boost::program_options;
 {                                                                              \
     int _err_code = _cmd;                                                      \
     if (_err_code != ADIOS_SUCCESS)                                            \
-        log<picLog::INPUT_OUTPUT > ("ADIOS: error at cmd '%1%': '%2%'") %      \
-            #_cmd % _err_code;                                                 \
+        std::cerr << "ADIOS: error at cmd '" << #_cmd                          \
+                  << "' (" << _err_code << ") in "                             \
+                  << __FILE__ << ":" << __LINE__ << adios_errmsg();            \
 }
 
 #define ADIOS_CMD_EXPECT_NONZERO(_cmd)                                         \
 {                                                                              \
     int _err_code = _cmd;                                                      \
     if (_err_code == 0)                                                        \
-        log<picLog::INPUT_OUTPUT > ("ADIOS: error at cmd '%1%': '%2%'") %      \
-            #_cmd % _err_code;                                                 \
+        std::cerr << "ADIOS: error at cmd '" << #_cmd                          \
+                  << "' (" << _err_code << ") in "                             \
+                  << __FILE__ << ":" << __LINE__ << adios_errmsg();            \
 }
 
 struct ThreadParams
 {
     uint32_t currentStep;                   /** current simulation step */
     std::string fullFilename;
+
+    /** current dump is a checkpoint */
+    bool isCheckpoint;
+    ADIOS_FILE* fp;                          /* file pointer for checkpoint file */
 
     MPI_Comm adiosComm;                     /* MPI communicator for adios lib */
     bool adiosBufferInitialized;            /* set if ADIOS buffer has been allocated */
@@ -89,7 +102,6 @@ struct ThreadParams
     std::list<int64_t> adiosFieldVarIds;        /* var IDs for fields in order of appearance */
     std::list<int64_t> adiosParticleAttrVarIds; /* var IDs for particle attributes in order of appearance */
     std::list<int64_t> adiosSpeciesIndexVarIds; /* var IDs for species index tables in order of appearance */
-    std::list<int64_t> adiosMetaAttrVarIds;     /* var IDs for scalar meta attributes */
 
     GridLayout<simDim> gridLayout;
     MappingDesc *cellDescription;
@@ -107,6 +119,31 @@ struct ThreadParams
  */
 
 class ADIOSWriter;
+
+/** Default ADIOS types we will use */
+typedef PICToAdios<uint32_t> AdiosUInt32Type;
+typedef PICToAdios<float_X> AdiosFloatXType;
+typedef PICToAdios<double> AdiosDoubleType;
+
+/** Attribute conversation: values to c-strings in ADIOS C-API <= 1.8.0 */
+template<typename T>
+static std::string flt2str( T val )
+{
+    typedef std::numeric_limits< T > fltLimit;
+
+    std::stringstream s;
+    s.precision(fltLimit::digits10);
+    s << std::scientific << val;
+    return s.str();
+}
+
+template<typename T>
+static std::string int2str( T val )
+{
+    std::stringstream s;
+    s << val;
+    return s.str();
+}
 
 /**
  * Wrapper for adios_define_var that sets data transform method

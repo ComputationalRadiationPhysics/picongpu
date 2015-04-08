@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -143,13 +143,20 @@ public:
 
     void checkpoint(uint32_t currentStep, const std::string checkpointDirectory)
     {
+#if(ENABLE_ADIOS == 1)
+        log<picLog::INPUT_OUTPUT > ("HDF5: Checkpoint skipped since ADIOS is enabled.");
+#else
         this->checkpointDirectory = checkpointDirectory;
 
         notificationReceived(currentStep, true);
+#endif
     }
 
     void restart(uint32_t restartStep, const std::string restartDirectory)
     {
+#if(ENABLE_ADIOS == 1)
+        log<picLog::INPUT_OUTPUT > ("HDF5: Restart skipped since ADIOS is enabled.");
+#else
         const uint32_t maxOpenFilesPerNode = 4;
         GridController<simDim> &gc = Environment<simDim>::get().GridController();
         mThreadParams.dataCollector = new ParallelDomainCollector(
@@ -221,6 +228,7 @@ public:
             mThreadParams.dataCollector->finalize();
 
         __delete(mThreadParams.dataCollector);
+#endif
     }
 
 private:

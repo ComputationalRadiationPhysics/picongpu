@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Rene Widera, Felix Schmitt
+ * Copyright 2014-2015 Rene Widera, Felix Schmitt, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -43,6 +43,9 @@
 #include "plugins/adios/writer/ParticleAttribute.hpp"
 #include "compileTime/conversion/RemoveFromSeq.hpp"
 #include "particles/ParticleDescription.hpp"
+
+#include "particles/particleFilter/FilterFactory.hpp"
+#include "particles/particleFilter/PositionFilter.hpp"
 
 namespace picongpu
 {
@@ -94,38 +97,37 @@ public:
         ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(ThisSpecies::FrameType::getName(), true));
 
         /* count total number of particles on the device */
-        log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) count particles: %1%") % AdiosFrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("ADIOS:   (begin) count particles: %1%") % AdiosFrameType::getName();
         uint64_cu totalNumParticles = 0;
         totalNumParticles = PMacc::CountParticles::countOnDevice < CORE + BORDER > (
                                                                                     *speciesTmp,
                                                                                     *(params->cellDescription),
                                                                                     params->localWindowToDomainOffset,
                                                                                     params->window.localDimensions.size);
-        log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) count particles: %1% = %2%") % AdiosFrameType::getName() % totalNumParticles;
-
+        log<picLog::INPUT_OUTPUT > ("ADIOS:   ( end ) count particles: %1% = %2%") % AdiosFrameType::getName() % totalNumParticles;
 
         AdiosFrameType hostFrame;
-        log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) malloc mapped memory: %1%") % AdiosFrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("ADIOS:   (begin) malloc mapped memory: %1%") % AdiosFrameType::getName();
 
         /* malloc mapped memory */
         ForEach<typename AdiosFrameType::ValueTypeSeq, MallocMemory<bmpl::_1> > mallocMem;
         mallocMem(forward(hostFrame), totalNumParticles);
-        log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) malloc mapped memory: %1%") % AdiosFrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("ADIOS:   ( end ) malloc mapped memory: %1%") % AdiosFrameType::getName();
 
         if (totalNumParticles > 0)
         {
-            log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) get mapped memory device pointer: %1%") % AdiosFrameType::getName();
+            log<picLog::INPUT_OUTPUT > ("ADIOS:   (begin) get mapped memory device pointer: %1%") % AdiosFrameType::getName();
             /* load device pointer of mapped memory */
             AdiosFrameType deviceFrame;
             ForEach<typename AdiosFrameType::ValueTypeSeq, GetDevicePtr<bmpl::_1> > getDevicePtr;
             getDevicePtr(forward(deviceFrame), forward(hostFrame));
-            log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) get mapped memory device pointer: %1%") % AdiosFrameType::getName();
+            log<picLog::INPUT_OUTPUT > ("ADIOS:   ( end ) get mapped memory device pointer: %1%") % AdiosFrameType::getName();
 
-            log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) copy particle to host: %1%") % AdiosFrameType::getName();
+            log<picLog::INPUT_OUTPUT > ("ADIOS:   (begin) copy particle to host: %1%") % AdiosFrameType::getName();
             typedef bmpl::vector< typename GetPositionFilter<simDim>::type > usedFilters;
             typedef typename FilterFactory<usedFilters>::FilterType MyParticleFilter;
             MyParticleFilter filter;
-            /* activeate filter pipeline if moving window is activated */
+            /* activate filter pipeline if moving window is activated */
             filter.setStatus(MovingWindow::getInstance().isSlidingWindowActive());
             filter.setWindowPosition(params->localWindowToDomainOffset,
                                      params->window.localDimensions.size);
@@ -144,9 +146,9 @@ public:
                  mapper
                  );
             counterBuffer.deviceToHost();
-            log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) copy particle to host: %1%") % AdiosFrameType::getName();
+            log<picLog::INPUT_OUTPUT > ("ADIOS:   ( end ) copy particle to host: %1%") % AdiosFrameType::getName();
             __getTransactionEvent().waitForFinished();
-            log<picLog::INPUT_OUTPUT > ("ADIOS:  all events are finished: %1%") % AdiosFrameType::getName();
+            log<picLog::INPUT_OUTPUT > ("ADIOS:   all events are finished: %1%") % AdiosFrameType::getName();
             /* this costs a little bit of time but adios writing is slower */
             assert((uint64_cu) counterBuffer.getHostBuffer().getDataBox()[0] == totalNumParticles);
         }
@@ -160,7 +162,7 @@ public:
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing species: %1%") % AdiosFrameType::getName();
 
         /* write species counter table to adios file */
-        log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) writing particle index table for %1%") % AdiosFrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) writing particle index table for %1%") % AdiosFrameType::getName();
         {
             GridController<simDim>& gc = Environment<simDim>::get().GridController();
 
@@ -182,7 +184,7 @@ public:
             params->adiosSpeciesIndexVarIds.pop_front();
             ADIOS_CMD(adios_write_byid(params->adiosFileHandle, adiosIndexVarId, particlesMetaInfo));
         }
-        log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) writing particle index table for %1%") % AdiosFrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing particle index table for %1%") % AdiosFrameType::getName();
     }
 };
 

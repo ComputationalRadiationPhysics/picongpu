@@ -23,7 +23,6 @@
 #include "types.h"
 #include "simulation_types.hpp"
 #include "plugins/adios/ADIOSWriter.def"
-#include "traits/PICToAdios.hpp"
 #include "traits/GetComponentsType.hpp"
 #include "traits/GetNComponents.hpp"
 #include "traits/Resolve.hpp"
@@ -79,7 +78,12 @@ struct ParticleAttribute
 
             int64_t adiosAttributeVarId = *(params->adiosParticleAttrVarIds.begin());
             params->adiosParticleAttrVarIds.pop_front();
-            ADIOS_CMD(adios_write_byid(params->adiosFileHandle, adiosAttributeVarId, tmpBfr));
+
+            /** We skip this part due to a bug in ADIOS 1.8.0 where
+             *  read with *compressed* data sets fail on zero-size data sets.
+             *  Note: adios_write commands are not collective (for most methods, except the PHDF5 transport) */
+            if (elements > 0)
+                ADIOS_CMD(adios_write_byid(params->adiosFileHandle, adiosAttributeVarId, tmpBfr));
         }
 
         __deleteArray(tmpBfr);

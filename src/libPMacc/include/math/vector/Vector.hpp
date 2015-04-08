@@ -162,6 +162,15 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
         return *this;
     }
 
+    HDINLINE This revert()
+    {
+        This invertedVector;
+        for (int i = 0; i < dim; i++)
+            invertedVector[dim-1-i] = (*this)[i];
+
+        return invertedVector;
+    }
+
     template<
     typename T_OtherAccessor,
     typename T_OtherNavigator,
