@@ -297,6 +297,10 @@ job_relative_dir=`dirname "$outDir"`
 
 #create relative dir that we can jump in and check absolute dir
 mkdir -p "$job_relative_dir"
+if [ $? -ne 0 ] ; then
+    echo "Could not create directory in: $job_relative_dir" >&2
+    exit 1
+fi
 job_outDir=`cd "$job_relative_dir"; pwd`"/$job_name"
 
 if [ -z "$tooltpl_file" ] ; then
@@ -326,6 +330,10 @@ export TBG_projectPath="$projectPath"
 export TBG_dstPath="$job_outDir"
 
 mkdir -p "$job_outDir"
+if [ $? -ne 0 ] ; then
+    echo "Could not create directory in: $job_outDir" >&2
+    exit 1
+fi
 mkdir -p "$job_outDir/tbg"
 cd "$job_outDir"
 
