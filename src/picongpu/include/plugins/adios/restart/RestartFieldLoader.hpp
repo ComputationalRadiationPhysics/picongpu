@@ -132,27 +132,6 @@ public:
         log<picLog::INPUT_OUTPUT > ("ADIOS: Finished loading field '%1%'") % objectName;
     }
 
-    template<class Data>
-    static void cloneField(Data& fieldDest, Data& fieldSrc, std::string objectName)
-    {
-        log<picLog::INPUT_OUTPUT > ("ADIOS: Begin cloning field '%1%'") % objectName;
-        DataSpace<simDim> field_grid = fieldDest.getGridLayout().getDataSpace();
-
-        size_t elements = field_grid.productOfComponents();
-        float3_X *ptrDest = fieldDest.getHostBuffer().getDataBox().getPointer();
-        float3_X *ptrSrc = fieldSrc.getHostBuffer().getDataBox().getPointer();
-
-        for (size_t k = 0; k < elements; ++k)
-        {
-            ptrDest[k] = ptrSrc[k];
-        }
-
-        fieldDest.hostToDevice();
-
-        __getTransactionEvent().waitForFinished();
-
-        log<picLog::INPUT_OUTPUT > ("ADIOS: Finished cloning field '%1%'") % objectName;
-    }
 };
 
 /**

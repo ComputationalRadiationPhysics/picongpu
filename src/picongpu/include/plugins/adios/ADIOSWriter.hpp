@@ -561,10 +561,7 @@ public:
 
         /* set window for restart, complete global domain */
         mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(restartStep);
-        for (uint32_t d = 0; d < simDim; ++d)
-        {
-            mThreadParams.localWindowToDomainOffset[d] = 0;
-        }
+        mThreadParams.localWindowToDomainOffset = DataSpace<simDim>::create(0);
 
         /* load all fields */
         ForEach<FileCheckpointFields, LoadFields<bmpl::_1> > forEachLoadFields;
@@ -1007,7 +1004,6 @@ private:
     MappingDesc *cellDescription;
 
     uint32_t notifyPeriod;
-    int64_t lastCheckpoint;
     std::string filename;
     std::string checkpointFilename;
     std::string restartFilename;
