@@ -355,36 +355,19 @@ void kernelRadiationParticles(ParBox pb,
 
                     /* the particle amplitude is used to include the weighting
                      * of the window function filter without needing more memory */
-#if (PIC_RADWINDOWFUNCTION==1)
-
                     const radWindowFunction::radWindowFunction winFkt;
 
                     /* start with a factor of one */
                     float_X windowFactor = 1.0;
 
-                    /* TODO: How to do this for 2D automatically? */
-                    /* window in each  dimension */
-                    /* not supported yet */
-                    /*for (uint32_t d = 0; d < simDim; ++d)
-                      {
-                      windowFactor *= winFkt(particle_locationNow[d],
-                      simBoxSize[d] * cellSize[d]);
-                      }
-                    */
-
-                    /* window in x dimension */
-                    windowFactor *= winFkt(particle_locationNow.x(),
-                                           simBoxSize.x() * CELL_WIDTH);
-                    /* window in y dimension */
-                    windowFactor *= winFkt(particle_locationNow.y(),
-                                           simBoxSize.y() * CELL_HEIGHT);
-                    /* window in z dimension */
-                    windowFactor *= winFkt(particle_locationNow.z(),
-                                           simBoxSize.z() * CELL_DEPTH);
+                    for (uint32_t d = 0; d < simDim; ++d)
+                    {
+                        windowFactor *= winFkt(particle_locationNow[d],
+                        simBoxSize[d] * cellSize[d]);
+                    }
 
                     /* apply window function factor to amplitude */
                     real_amplitude_s[saveParticleAt] *= windowFactor;
-#endif
 
 
 

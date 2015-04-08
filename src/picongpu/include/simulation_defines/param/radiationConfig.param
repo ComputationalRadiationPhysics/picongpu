@@ -150,26 +150,22 @@ namespace picongpu
 
 // add a window function weighting to the radiation in order
 // to avoid ringing effects from sharpe boundaries
-// 1 = on  (slower but with noise/ringing reduction)
-// 0 = off (faster but might contain ringing)
-#define PIC_RADWINDOWFUNCTION 0
-
-
+// default: no window function via `radWindowFunctionNone`
 
 /* Choose different window function in order to get better ringing reduction
- * radWindowFunctionRectangle
  * radWindowFunctionTriangle
  * radWindowFunctionHamming
  * radWindowFunctionTriplett
  * radWindowFunctionGauss
+ * radWindowFunctionNone
  */
-namespace radWindowFunctionRectangle { }
 namespace radWindowFunctionTriangle { }
 namespace radWindowFunctionHamming { }
 namespace radWindowFunctionTriplett { }
 namespace radWindowFunctionGauss { }
+namespace radWindowFunctionNone { }
 
-namespace radWindowFunction = radWindowFunctionTriangle;
+namespace radWindowFunction = radWindowFunctionNone;
 
 
 }//namespace picongpu
