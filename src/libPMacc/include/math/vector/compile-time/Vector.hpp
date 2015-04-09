@@ -97,7 +97,14 @@ struct VectorFromCT<3>
 template<typename Arg0>
 struct TypeSelector
 {
-    typedef typename Arg0::value_type type;
+    typedef Arg0 type;
+};
+
+/** get integral type*/
+template<typename T, T value>
+struct TypeSelector<mpl::integral_c<T, value > >
+{
+    typedef T type;
 };
 
 template<>
