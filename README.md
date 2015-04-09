@@ -141,11 +141,9 @@ Active Team
 - Axel Huebl*
 - Maximilian Knespel
 - Richard Pausch*
-- Felix Schmitt*
-- Conrad Schumann
 - Stefan Tietze
 - Rene Widera*
-- Benjamin Worpitz
+- Benjamin Worpitz*
 
 ### Participants, Former Members and Thanks
 
@@ -157,8 +155,10 @@ The PIConGPU Team expresses its thanks to:
 - Anton Helm
 - Wolfgang Hoehnig
 - Dr. Remi Lehe
+- Felix Schmitt(*)
 - Benjamin Schneider
 - Joseph Schuchart
+- Conrad Schumann
 - Klaus Steiniger
 
 Kudos to everyone who helped!
