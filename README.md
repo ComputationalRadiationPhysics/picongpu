@@ -112,6 +112,9 @@ codes. See the [user guide](https://github.com/ComputationalRadiationPhysics/pic
 our [getting started video](http://www.youtube.com/watch?v=7ybsD8G4Rsk) and
 [contact](http://www.hzdr.de/db/Cms?pNid=132&pOid=30354) us!
 
+Please sign up on our **PIConGPU-Users** mailing list:
+[Subscribe (Feed)](https://cg.hzdr.de/Lists/picongpu-users/List.html)
+
 **Upgrades:** Every time we update the *master* branch, we publish a new release
 of PIConGPU. Before you pull the changes in, please read our [ChangeLog](CHANGELOG.md)!
 You may have to update some of your simulation `.param` files by hand
