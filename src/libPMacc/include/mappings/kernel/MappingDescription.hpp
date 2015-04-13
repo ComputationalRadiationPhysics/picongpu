@@ -28,7 +28,6 @@
 #include "dimensions/DataSpaceOperations.hpp"
 #include "mappings/simulation/GridController.hpp"
 #include "dimensions/GridLayout.hpp"
-#include "mappings/kernel/CudaGridDimRestrictions.hpp"
 #include "math/Vector.hpp"
 
 namespace PMacc
@@ -42,8 +41,7 @@ namespace PMacc
  */
 
 template<unsigned DIM, class SuperCellSize_>
-class MappingDescription :
-public CudaGridDimRestrictions<DIM>
+class MappingDescription
 {
 public:
 

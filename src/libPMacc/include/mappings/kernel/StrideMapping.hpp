@@ -66,7 +66,7 @@ public:
      */
     HINLINE DataSpace<DIM> getGridDim()
     {
-        return this->reduce((StrideMappingMethods<areaType, DIM>::getGridDim(*this) - offset + (int)Stride - 1) / (int)Stride);
+        return (StrideMappingMethods<areaType, DIM>::getGridDim(*this) - offset + (int)Stride - 1) / (int)Stride;
     }
 
     /**
@@ -77,7 +77,7 @@ public:
      */
     DINLINE DataSpace<DIM> getSuperCellIndex(const DataSpace<DIM>& realSuperCellIdx)
     {
-        const DataSpace<DIM> blockId((extend(realSuperCellIdx) * (int)Stride) + offset);
+        const DataSpace<DIM> blockId((realSuperCellIdx * (int)Stride) + offset);
         return StrideMappingMethods<areaType, DIM>::shift(*this, blockId);
     }
 

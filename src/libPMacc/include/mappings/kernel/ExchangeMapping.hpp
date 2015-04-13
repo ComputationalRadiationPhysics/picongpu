@@ -88,7 +88,7 @@ namespace PMacc
          */
         HINLINE DataSpace<DIM> getGridDim()
         {
-            return this->reduce(ExchangeMappingMethods<areaType, DIM>::getGridDim(*this, exchangeType));
+            return ExchangeMappingMethods<areaType, DIM>::getGridDim(*this, exchangeType);
         }
 
         /**
@@ -101,7 +101,7 @@ namespace PMacc
         {
             return ExchangeMappingMethods<areaType, DIM>::getBlockIndex(
                                                                         *this,
-                                                                        extend(realSuperCellIdx),
+                                                                        realSuperCellIdx,
                                                                         exchangeType);
         }
 

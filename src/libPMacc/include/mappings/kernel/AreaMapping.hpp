@@ -63,8 +63,8 @@ namespace PMacc
          */
         HINLINE DataSpace<DIM> getGridDim()
         {
-            return this->reduce(AreaMappingMethods<areaType, DIM>::getGridDim(*this,
-                                                                        this->getGridSuperCells()));
+            return AreaMappingMethods<areaType, DIM>::getGridDim(*this,
+                                                                 this->getGridSuperCells());
         }
 
         /**
@@ -77,7 +77,7 @@ namespace PMacc
         {
             return AreaMappingMethods<areaType, DIM>::getBlockIndex(*this,
                                                                     this->getGridSuperCells(),
-                                                                    extend(realSuperCellIdx));
+                                                                    realSuperCellIdx);
         }
 
     };
