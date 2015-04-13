@@ -20,7 +20,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cuda_runtime.h>
 
 #include "Environment.hpp"
 //#include "eventSystem/EventSystem.hpp"
