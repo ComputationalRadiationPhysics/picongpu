@@ -22,12 +22,10 @@
 
 #pragma once
 
+#include "types.h"
 #include "result_of_Functor.hpp"
-#include <builtin_types.h>
-#include <cuda_runtime.h>
 #include <boost/static_assert.hpp>
 #include <boost/mpl/size.hpp>
-#include <types.h>
 #include <iostream>
 #include <lambda/Expression.hpp>
 #include <math/vector/accessor/StandartAccessor.hpp>
@@ -105,6 +103,13 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
     }
 
     HDINLINE
+    Vector(const type x)
+    {
+        PMACC_CASSERT_MSG(math_Vector__constructor_is_only_allowed_for_DIM1,dim == 1);
+        (*this)[0] = x;
+    }
+
+    HDINLINE
     Vector(const type x, const type y)
     {
         PMACC_CASSERT_MSG(math_Vector__constructor_is_only_allowed_for_DIM2,dim == 2);
@@ -119,13 +124,6 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
         (*this)[0] = x;
         (*this)[1] = y;
         (*this)[2] = z;
-    }
-
-    HDINLINE
-    Vector(const T_Type& value)
-    {
-        for (int i = 0; i < dim; i++)
-            (*this)[i] = value;
     }
 
     HDINLINE Vector(const This& other)
@@ -150,6 +148,22 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
     {
         for (int i = 0; i < dim; i++)
             (*this)[i] = static_cast<type> (other[i]);
+    }
+
+    /**
+     * Give a Vector<...> were all dimensions were set to the same value
+     *
+     * @param value value which is set for all dimensions
+     * @return new Vector<...>
+     */
+    HDINLINE
+    static This create(const type& value)
+    {
+        This result;
+        for (int i = 0; i < dim; i++)
+            result[i] = value;
+
+        return result;
     }
 
     HDINLINE const This& toRT() const
