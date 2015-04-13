@@ -392,11 +392,7 @@ endif()
 
 # libPMacc
 
-find_path(PMACC_ROOT_DIR
-  NAMES include/types.h
-  PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../libPMacc"
-  DOC "libPMacc root location"
-  )
+set(PMACC_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../libPMacc")
 include_directories(${PMACC_ROOT_DIR}/include)
 
 
