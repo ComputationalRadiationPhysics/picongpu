@@ -64,13 +64,13 @@ struct GaussianCloudImpl : public T_ParamClass
 
         if (globalCellPos.y() < vacuum_y) return float_X(0.0);
 
-        floatD_X exponent = float_X(math::abs((globalCellPos - center) / sigma));
-
-
-        float_X density = 1;
+        float_X density(1.0);
         const float_X power = ParamClass::power;
         for (uint32_t d = 0; d < simDim; ++d)
-            density *= math::exp(ParamClass::factor * math::pow(exponent[d], power));
+        {
+            const float_X exponent(math::abs((globalCellPos[d] - center[d]) / sigma[d]));
+            density *= math::exp(ParamClass::factor * math::pow(exponent, power));
+        }
 
         return density;
     }
