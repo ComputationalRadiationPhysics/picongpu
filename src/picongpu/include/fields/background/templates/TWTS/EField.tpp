@@ -44,7 +44,7 @@ namespace templates
 namespace twts
 {
     namespace pmMath = PMacc::algorithms::math;
-    
+
     HINLINE
     EField::EField( const float_64 focus_y_SI,
                     const float_64 wavelength_SI,
@@ -65,23 +65,23 @@ namespace twts
                  on host (see fieldBackground.param), this is no problem. */
         const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
         halfSimSize = subGrid.getGlobalDomain().size / 2;
-        tdelay = detail::getInitialTimeDelay_SI(auto_tdelay, tdelay_user_SI, 
+        tdelay = detail::getInitialTimeDelay_SI(auto_tdelay, tdelay_user_SI,
                                                 halfSimSize, pulselength_SI,
                                                 focus_y_SI, phi, beta_0);
     }
-    
+
     template<>
     HDINLINE float3_X
     EField::getTWTSEfield_Normalized<DIM3>(
                 const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
                 const float_64 time) const
     {
-        float3_64 pos(0.0);
+        float3_64 pos(float3_64::create(0.0));
         for (uint32_t i = 0; i<simDim;++i) pos[i] = eFieldPositions_SI[0][i];
         return float3_X( float_X( calcTWTSEx(pos,time) ),
                          float_X(0.), float_X(0.) );
     }
-    
+
     template<>
     HDINLINE float3_X
     EField::getTWTSEfield_Normalized<DIM2>(
@@ -89,23 +89,23 @@ namespace twts
         const float_64 time) const
     {
         /* Ex->Ez, so also the grid cell offset for Ez has to be used. */
-        float3_64 pos(0.0);
+        float3_64 pos(float3_64::create(0.0));
         /* 2D (y,z) vectors are mapped on 3D (x,y,z) vectors. */
         for (uint32_t i = 0; i<simDim;++i) pos[i+1] = eFieldPositions_SI[2][i];
         return float3_X( float_X(0.), float_X(0.),
                          float_X( calcTWTSEx(pos,time) ) );
     }
-    
+
     HDINLINE float3_X
     EField::operator()( const DataSpace<simDim>& cellIdx,
                             const uint32_t currentStep ) const
     {
         const float_64 time_SI = float_64(currentStep) * dt - tdelay;
-        
+
         const PMacc::math::Vector<floatD_64,detail::numComponents> eFieldPositions_SI =
               detail::getFieldPositions_SI(cellIdx,halfSimSize,
                 fieldSolver::NumericalCellType::getEFieldPosition(),unit_length,focus_y_SI,phi);
-        
+
         /* Single TWTS-Pulse */
         return getTWTSEfield_Normalized<simDim>(eFieldPositions_SI, time_SI);
     }
@@ -125,7 +125,7 @@ namespace twts
         const double UNIT_TIME = SI::DELTA_T_SI;
         /** Unit of length */
         const double UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
-    
+
         /* propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
         const float_T beta0 = float_T(beta_0);
         const float_T phiReal = float_T(phi);
@@ -140,11 +140,11 @@ namespace twts
          * the dispersion will (although physically correct) be slightly off the ideal TWTS
          * pulse for beta0 != 1.0. This only shows that this TWTS pulse is primarily designed for
          * scenarios close to beta0 = 1. */
-        
+
         /* Angle between the laser pulse front and the y-axis. Not used, but remains in code for
          * documentation purposes. */
         /* const float_T eta = (PI / 2) - (phiReal - alphaTilt); */
-        
+
         const float_T cspeed = float_T(1.0);
         const float_T lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
         const float_T om0 = float_T(2.0*PI*cspeed / lambda0*UNIT_TIME);
@@ -160,14 +160,14 @@ namespace twts
         const float_T y = float_T(pos.y() / UNIT_LENGTH);
         const float_T z = float_T(pos.z() / UNIT_LENGTH);
         const float_T t = float_T(time / UNIT_TIME);
-        
+
         /* Calculating shortcuts for speeding up field calculation */
         const float_T sinPhi = pmMath::sin(phiT);
         const float_T cosPhi = pmMath::cos(phiT);
         const float_T sinPhi2 = pmMath::sin(phiT / float_T(2.0));
         const float_T cosPhi2 = pmMath::cos(phiT / float_T(2.0));
         const float_T tanPhi2 = pmMath::tan(phiT / float_T(2.0));
-        
+
         /* The "helpVar" variables decrease the nesting level of the evaluated expressions and
          * thus help with formal code verification through manual code inspection. */
         const complex_T helpVar1 = complex_T(0,1)*rho0 - y*cosPhi - z*sinPhi;
@@ -178,7 +178,7 @@ namespace twts
 
         const complex_T helpVar4 = (
             -(cspeed*cspeed*k*om0*tauG*tauG*wy*wy*x*x)
-            - float_T(2.0)*cspeed*cspeed*om0*t*t*wy*wy*rho0 
+            - float_T(2.0)*cspeed*cspeed*om0*t*t*wy*wy*rho0
             + complex_T(0,2)*cspeed*cspeed*om0*om0*t*tauG*tauG*wy*wy*rho0
             - float_T(2.0)*cspeed*cspeed*om0*tauG*tauG*y*y*rho0
             + float_T(4.0)*cspeed*om0*t*wy*wy*z*rho0
@@ -230,7 +230,7 @@ namespace twts
             )
         ) / (float_T(2.0)*cspeed*wy*wy*helpVar1*helpVar2);
 
-        const complex_T helpVar5 = cspeed*om0*tauG*tauG 
+        const complex_T helpVar5 = cspeed*om0*tauG*tauG
             - complex_T(0,8)*y*pmMath::tan( float_T(PI / 2)-phiT )
                                 / sinPhi / sinPhi*sinPhi2*sinPhi2*sinPhi2*sinPhi2
             - complex_T(0,2)*z*tanPhi2*tanPhi2;

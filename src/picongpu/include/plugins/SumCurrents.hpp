@@ -58,7 +58,7 @@ __global__ void kernelSumCurrents(J_DataBox fieldJ, float3_X* gCurrent, Mapping 
 
     if (linearThreadIdx == 0)
     {
-        sh_sumJ = float3_X(float_X(0.0), float_X(0.0), float_X(0.0));
+        sh_sumJ = float3_X::create(0.0);
     }
 
     __syncthreads();
@@ -185,7 +185,7 @@ private:
 
     float3_X getSumCurrents()
     {
-        sumcurrents->getDeviceBuffer().setValue(float3_X(float_X(0.0), float_X(0.0), float_X(0.0)));
+        sumcurrents->getDeviceBuffer().setValue(float3_X::create(0.0));
         dim3 block(MappingDesc::SuperCellSize::toRT().toDim3());
 
         __picKernelArea(kernelSumCurrents, *cellDescription, CORE + BORDER)

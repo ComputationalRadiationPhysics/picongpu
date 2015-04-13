@@ -410,7 +410,7 @@ __global__ void channelsToRGB(Mem mem, uint32_t n)
     uint32_t tid = blockIdx.x * blockDim.x + threadIdx.x;
     if (tid >= n) return;
 
-    float3_X rgb = float3_X(float_X(0.0), float_X(0.0), float_X(0.0));
+    float3_X rgb(float3_X::create(0.0));
 
     visPreview::preChannel1Col::addRGB(rgb,
                                        mem[tid].x(),

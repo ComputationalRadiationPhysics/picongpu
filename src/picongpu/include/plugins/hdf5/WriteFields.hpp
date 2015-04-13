@@ -152,7 +152,7 @@ private:
         /*load particle without copy particle data to host*/
         Species* speciesTmp = &(dc.getData<Species >(Species::FrameType::getName(), true));
 
-        fieldTmp->getGridBuffer().getDeviceBuffer().setValue(ValueType(0.0));
+        fieldTmp->getGridBuffer().getDeviceBuffer().setValue(ValueType::create(0.0));
         /*run algorithm*/
         fieldTmp->computeValue < CORE + BORDER, Solver > (*speciesTmp, params->currentStep);
 

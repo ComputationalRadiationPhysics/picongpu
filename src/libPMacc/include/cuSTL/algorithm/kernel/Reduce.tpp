@@ -135,7 +135,7 @@ void Reduce<BlockDim>::operator()(const DestCursor& destCursor, const Zone& p_zo
     while(partialSumSize > 1)
     {
         int numBlocks = ceil((float)partialSumSize / 512.0f);
-        zone::SphericZone<1> p_zone1D = zone::SphericZone<1>(math::Size_t<1>(numBlocks*512));
+        zone::SphericZone<1> p_zone1D = zone::SphericZone<1>(math::Size_t<1>((size_t)(numBlocks*512)));
         curDestBuffer ^= 1;
         if(numBlocks == 1)
         {
