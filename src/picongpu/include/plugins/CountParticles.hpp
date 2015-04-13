@@ -80,7 +80,6 @@ public:
     notifyPeriod(0),
     writeToFile(false)
     {
-
         Environment<>::get().PluginConnector().registerPlugin(this);
     }
 
