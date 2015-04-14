@@ -95,7 +95,7 @@ public:
      * @param globaOffset cells
      * @return global index of the root supercell
      */
-    HINLINE DataSpace<DIM> getRootSuperCellCoordinate(const DataSpace<DIM> globalOffset)
+    HINLINE DataSpace<DIM> getRootSuperCellCoordinate(const DataSpace<DIM> globalOffset) const
     {
         return globalOffset/SuperCellSize::toRT();
     }

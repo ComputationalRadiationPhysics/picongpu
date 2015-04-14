@@ -63,7 +63,7 @@ public:
      *
      * @return size of the grid
      */
-    HINLINE DataSpace<DIM> getGridDim()
+    HINLINE DataSpace<DIM> getGridDim() const
     {
         return (StrideMappingMethods<areaType, DIM>::getGridDim(*this) - offset + (int)Stride - 1) / (int)Stride;
     }
@@ -74,13 +74,13 @@ public:
      * @param realSuperCellIdx current SuperCell index (block index)
      * @return mapped SuperCell index
      */
-    DINLINE DataSpace<DIM> getSuperCellIndex(const DataSpace<DIM>& realSuperCellIdx)
+    DINLINE DataSpace<DIM> getSuperCellIndex(const DataSpace<DIM>& realSuperCellIdx) const
     {
         const DataSpace<DIM> blockId((realSuperCellIdx * (int)Stride) + offset);
         return StrideMappingMethods<areaType, DIM>::shift(*this, blockId);
     }
 
-    HDINLINE DataSpace<DIM> getOffset()
+    HDINLINE DataSpace<DIM> getOffset() const
     {
         return offset;
     }

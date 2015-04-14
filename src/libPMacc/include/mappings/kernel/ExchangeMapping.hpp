@@ -86,7 +86,7 @@ namespace PMacc
          *
          * @return size of the grid
          */
-        HINLINE DataSpace<DIM> getGridDim()
+        HINLINE DataSpace<DIM> getGridDim() const
         {
             return ExchangeMappingMethods<areaType, DIM>::getGridDim(*this, exchangeType);
         }
@@ -97,7 +97,7 @@ namespace PMacc
          * @param realSuperCellIdx current SuperCell index (block index)
          * @return mapped SuperCell index
          */
-        DINLINE DataSpace<DIM> getSuperCellIndex(const DataSpace<DIM>& realSuperCellIdx)
+        DINLINE DataSpace<DIM> getSuperCellIndex(const DataSpace<DIM>& realSuperCellIdx) const
         {
             return ExchangeMappingMethods<areaType, DIM>::getBlockIndex(
                                                                         *this,
