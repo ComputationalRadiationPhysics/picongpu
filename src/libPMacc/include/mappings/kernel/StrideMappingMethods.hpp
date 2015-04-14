@@ -21,8 +21,7 @@
  */
 
 
-#ifndef STRIDEMAPPINGMETHODS_H
-#define	STRIDEMAPPINGMETHODS_H
+#pragma once
 
 #include "types.h"
 #include "dimensions/DataSpace.hpp"
@@ -101,11 +100,4 @@ namespace PMacc
         }
     };
 
-
-
-
-}
-
-
-#endif	/* AREAMAPPINGMETHODS_H */
-
+} //namespace PMacc

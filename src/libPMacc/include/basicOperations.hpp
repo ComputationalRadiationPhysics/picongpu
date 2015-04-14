@@ -36,14 +36,7 @@ namespace
 
 DINLINE void atomicAddWrapper(float* address, float value)
 {
-#if __CUDA_ARCH__ >= 200 // for Fermi, atomicAdd supports floats
     atomicAdd(address, value);
-#else
-    // float-atomic-add from
-    // [url="http://forums.nvidia.com/index.php?showtopic=158039&view=findpost&p=991561"]http://forums.nvidia.com/index.php?showtop...st&p=991561[/url]
-    float old = value;
-    while ((old = atomicExch(address, atomicExch(address, 0.0f) + old)) != 0.0f);
-#endif
 }
 
 DINLINE void atomicAddWrapper(double* inAddress, double value)

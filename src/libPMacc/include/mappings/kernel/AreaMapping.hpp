@@ -20,8 +20,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef AREAMAPPING_H
-#define	AREAMAPPING_H
+
+#pragma once
 
 #include "types.h"
 #include "dimensions/DataSpace.hpp"
@@ -57,35 +57,29 @@ namespace PMacc
         }
 
         /**
-         * Generates cuda gridDim information for kernel call.
+         * Generate grid dimension information for kernel calls
          *
-         * @return dim3 with gridDim information
+         * @return size of the grid
          */
-        HINLINE DataSpace<DIM> getGridDim()
+        HINLINE DataSpace<DIM> getGridDim() const
         {
-            return this->reduce(AreaMappingMethods<areaType, DIM>::getGridDim(*this,
-                                                                        this->getGridSuperCells()));
+            return AreaMappingMethods<areaType, DIM>::getGridDim(*this,
+                                                                 this->getGridSuperCells());
         }
 
         /**
-         * Returns index of current logical block, depending on current cuda block id.
+         * Returns index of current logical block
          *
-         * @param _blockIdx current cuda block id (blockIdx)
-         * @return current logical block index
+         * @param realSuperCellIdx current SuperCell index (block index)
+         * @return mapped SuperCell index
          */
-        DINLINE DataSpace<DIM> getSuperCellIndex(const DataSpace<DIM>& realSuperCellIdx)
+        DINLINE DataSpace<DIM> getSuperCellIndex(const DataSpace<DIM>& realSuperCellIdx) const
         {
             return AreaMappingMethods<areaType, DIM>::getBlockIndex(*this,
                                                                     this->getGridSuperCells(),
-                                                                    extend(realSuperCellIdx));
+                                                                    realSuperCellIdx);
         }
 
     };
 
-
 } // namespace PMacc
-
-
-
-#endif	/* AREAMAPPING_H */
-

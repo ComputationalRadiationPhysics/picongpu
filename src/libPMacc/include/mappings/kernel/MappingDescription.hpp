@@ -27,22 +27,20 @@
 #include "dimensions/DataSpaceOperations.hpp"
 #include "mappings/simulation/GridController.hpp"
 #include "dimensions/GridLayout.hpp"
-#include "mappings/kernel/CudaGridDimRestrictions.hpp"
 #include "math/Vector.hpp"
 
 namespace PMacc
 {
 
 /**
- * Abstracts logical block information from cuda block variables.
+ * Abstracts logical block information from block variables.
  *
  * @tparam DIM dimension for grid/blocks
  * @tparam SuperCellSize mapper class for logical grid information
  */
 
 template<unsigned DIM, class SuperCellSize_>
-class MappingDescription :
-public CudaGridDimRestrictions<DIM>
+class MappingDescription
 {
 public:
 
@@ -96,7 +94,7 @@ public:
      * @param globaOffset cells
      * @return global index of the root supercell
      */
-    HINLINE DataSpace<DIM> getRootSuperCellCoordinate(const DataSpace<DIM> globalOffset)
+    HINLINE DataSpace<DIM> getRootSuperCellCoordinate(const DataSpace<DIM> globalOffset) const
     {
         return globalOffset/SuperCellSize::toRT();
     }

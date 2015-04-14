@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef AREAMAPPINGMETHODS_H
-#define	AREAMAPPINGMETHODS_H
+#pragma once
 
 #include "types.h"
 #include "dimensions/DataSpace.hpp"
@@ -313,8 +312,4 @@ namespace PMacc
         }
     };
 
-}
-
-
-#endif	/* AREAMAPPINGMETHODS_H */
-
+} //namespace PMacc

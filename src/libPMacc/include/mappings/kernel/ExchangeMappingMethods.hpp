@@ -20,8 +20,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef EXCHANGEMAPPINGMETHODS_H
-#define	EXCHANGEMAPPINGMETHODS_H
+
+#pragma once
 
 #include "types.h"
 #include "dimensions/DataSpace.hpp"
@@ -315,8 +315,5 @@ namespace PMacc
             return result;
         }
     };
-}
-
-
-#endif	/* EXCHANGEMAPPINGMETHODS_H */
-
+    
+}//namespace PMacc
