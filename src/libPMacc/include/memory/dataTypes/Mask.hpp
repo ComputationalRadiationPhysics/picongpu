@@ -224,8 +224,31 @@ namespace PMacc
             return (ExchangeType) tmp;
         }
 
+        /** translate direction to relative offset
+         *
+         * direction (combination of `ExchangeType`'s) e.g. TOP, TOP+LEFT, ... @see types.h
+         * are translated to a relative offsets were any dimension is
+         * set to -1,0,1
+         *  - `-1` if contains LEFT, BOTTOM or FRONT
+         *  - `+1` if contains RIGHT, TOP or BACK
+         *  - `0`  else
+         *
+         * @param direction combination which describe a direction (only one direction)
+         * @return DataSpace with relative offsets
+         */
         template<unsigned DIM>
-        static HDINLINE DataSpace<DIM> getRelativeDirections(const uint32_t ex) ;
+        static HDINLINE DataSpace<DIM> getRelativeDirections( uint32_t direction)
+        {
+            DataSpace<DIM> tmp;
+
+            for( uint32_t d = 0; d < DIM; ++d )
+            {
+                const uint32_t dim_direction = direction % 3;
+                tmp[d] = (dim_direction == 2 ? -1 : dim_direction);
+                direction /= 3;
+            }
+            return tmp;
+        }
 
     protected:
 
@@ -236,83 +259,14 @@ namespace PMacc
 
     };
 
+    /** special implementation for `DIM1`
+     *
+     * optimization: no modulo is used
+     */
     template<>
-    HDINLINE DataSpace<DIM1> Mask::getRelativeDirections(const uint32_t ex)
+    HDINLINE DataSpace<DIM1> Mask::getRelativeDirections( uint32_t direction)
     {
-        switch (ex)
-        {
-        case RIGHT:
-            return DataSpace<DIM1 > (1);
-        case LEFT:
-            return DataSpace<DIM1 > (-1);
-        default:
-            return DataSpace<DIM1 > (0);
-        }
-    }
-
-    template<>
-    HDINLINE DataSpace<DIM2> Mask::getRelativeDirections(const uint32_t ex)
-    {
-        DataSpace<DIM2> tmp;
-
-        switch (ex % 3)
-        {
-        case RIGHT:
-            tmp.x() = 1;
-            break;
-        case LEFT:
-            tmp.x() = -1;
-            break;
-        }
-
-        switch (ex / 3)
-        {
-        case 1: /*BOTTOM*/
-            tmp.y() = 1;
-            break;
-        case 2: /*TOP*/
-            tmp.y() = -1;
-            break;
-        }
-        return tmp;
-    }
-
-    template<>
-    HDINLINE DataSpace<DIM3> Mask::getRelativeDirections(const uint32_t ex)
-    {
-        DataSpace<DIM3> tmp;
-
-        switch (ex % 3)
-        {
-        case RIGHT:
-            tmp.x() = 1;
-            break;
-        case LEFT:
-            tmp.x() = -1;
-            break;
-        }
-
-        switch (ex / 3 % 3)
-        {
-        case 1: /*BOTTOM*/
-            tmp.y() = 1;
-            break;
-        case 2: /*TOP*/
-            tmp.y() = -1;
-            break;
-        }
-
-        switch (ex / 3 / 3)
-        {
-        case 1: /*BACK*/
-            tmp.z() = 1;
-            break;
-        case 2: /*FRONT*/
-            tmp.z() = -1;
-            break;
-        }
-
-        return tmp;
+        return (direction == 2 ? DataSpace<DIM1 > (-1) : DataSpace<DIM1 > (direction));
     }
 
 }
