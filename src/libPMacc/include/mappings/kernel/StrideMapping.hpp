@@ -20,11 +20,10 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef STRIDEMAPPING_H
-#define	STRIDEMAPPING_H
+
+#pragma once
 
 #include "types.h"
-#include <stdexcept>
 #include "dimensions/DataSpace.hpp"
 #include "mappings/kernel/StrideMappingMethods.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
@@ -60,9 +59,9 @@ public:
     }
 
     /**
-     * Generates cuda gridDim information for kernel call.
+     * Generate grid dimension information for kernel calls
      *
-     * @return dim3 with gridDim information
+     * @return size of the grid
      */
     HINLINE DataSpace<DIM> getGridDim()
     {
@@ -70,10 +69,10 @@ public:
     }
 
     /**
-     * Returns index of current logical block, depending on current cuda block id.
+     * Returns index of current logical block
      *
-     * @param _blockIdx current cuda block id (blockIdx)
-     * @return current logical block index
+     * @param realSuperCellIdx current SuperCell index (block index)
+     * @return mapped SuperCell index
      */
     DINLINE DataSpace<DIM> getSuperCellIndex(const DataSpace<DIM>& realSuperCellIdx)
     {
@@ -91,6 +90,10 @@ public:
         this->offset = offset;
     }
 
+    /** set mapper to next domain
+     *
+     * @return true if domain is valid, else false
+     */
     HINLINE bool next()
     {
         int linearOffset = DataSpaceOperations<Dim>::map(DataSpace<DIM>::create(stride), offset);
@@ -105,10 +108,4 @@ private:
 
 };
 
-
 } // namespace PMacc
-
-
-
-#endif	/* STRIDEMAPPING_H */
-

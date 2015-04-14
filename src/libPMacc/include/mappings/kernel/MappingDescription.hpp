@@ -34,7 +34,7 @@ namespace PMacc
 {
 
 /**
- * Abstracts logical block information from cuda block variables.
+ * Abstracts logical block information from block variables.
  *
  * @tparam DIM dimension for grid/blocks
  * @tparam SuperCellSize mapper class for logical grid information
