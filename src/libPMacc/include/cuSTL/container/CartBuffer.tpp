@@ -21,8 +21,9 @@
  */
 
 #include "cuSTL/container/allocator/tag.h"
+#include "eventSystem/EventSystem.hpp"
+
 #include <iostream>
-#include <eventSystem/EventSystem.hpp>
 
 namespace PMacc
 {

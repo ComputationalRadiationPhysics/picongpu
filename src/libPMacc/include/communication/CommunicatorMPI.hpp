@@ -21,20 +21,19 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _COMMUNICATORMPI_HPP
-#define	_COMMUNICATORMPI_HPP
-
-#include <mpi.h>
-#include <vector>
-#include <utility>
-#include <map>
-
-#include "types.h"
-#include "memory/dataTypes/Mask.hpp"
-#include "dimensions/DataSpace.hpp"
+#pragma once
 
 #include "communication/ICommunicator.hpp"
 #include "communication/manager_common.h"
+#include "dimensions/DataSpace.hpp"
+#include "memory/dataTypes/Mask.hpp"
+#include "types.h"
+
+#include <mpi.h>
+
+#include <vector>
+#include <utility>
+#include <map>
 
 namespace PMacc
 {
@@ -71,7 +70,6 @@ public:
     {
         return mpiSize;
     }
-
 
     MPI_Comm getMPIComm() const
     {
@@ -394,8 +392,6 @@ protected:
         return ranks[type];
     }
 
-
-
 private:
     //! coordinates in GPU-Grid [0:cx-1,0:cy-1,0:cz-1]
     DataSpace<DIM> coordinates;
@@ -418,8 +414,4 @@ private:
     int mpiSize;
 };
 
-
 } //namespace PMacc
-
-#endif	/* _COMMUNICATORMPI_HPP */
-

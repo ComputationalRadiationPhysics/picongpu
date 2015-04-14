@@ -23,12 +23,6 @@
 
 #pragma once
 
-#include <cassert>
-#include <stdexcept>
-#include <stdio.h>
-#include <math.h>
-#include <iostream>
-
 #include "math/Vector.hpp"
 #include "types.h"
 
@@ -162,8 +156,6 @@ namespace PMacc
             }
             return false;
         }
-
-
 
         HDINLINE operator math::Size_t<DIM>() const
         {

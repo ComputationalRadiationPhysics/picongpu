@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Rene Widera, Axel Huebl
+ * Copyright 2014-2015 Rene Widera, Axel Huebl, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,16 +20,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include <cassert>
-
+#include "eventSystem/EventSystem.hpp"
+#include "eventSystem/tasks/Factory.hpp"
 #include "memory/buffers/Buffer.hpp"
 #include "memory/buffers/DeviceBuffer.hpp"
-#include "eventSystem/EventSystem.hpp"
 
-#include "eventSystem/tasks/Factory.hpp"
+#include <cassert>
 
 namespace PMacc
 {

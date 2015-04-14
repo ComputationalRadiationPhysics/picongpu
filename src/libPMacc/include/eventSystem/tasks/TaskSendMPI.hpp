@@ -23,13 +23,12 @@
 
 #pragma once
 
-#include "memory/buffers/Exchange.hpp"
-
-#include "eventSystem/tasks/MPITask.hpp"
-
-#include <mpi.h>
 #include "communication/manager_common.h"
 #include "communication/ICommunicator.hpp"
+#include "eventSystem/tasks/MPITask.hpp"
+#include "memory/buffers/Exchange.hpp"
+
+#include <mpi.h>
 
 namespace PMacc
 {

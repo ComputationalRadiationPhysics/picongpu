@@ -23,14 +23,13 @@
 
 #pragma once
 
-#include "memory/buffers/Exchange.hpp"
-
-#include "mappings/simulation/EnvironmentController.hpp"
 #include "eventSystem/tasks/ITask.hpp"
 #include "eventSystem/tasks/MPITask.hpp"
 #include "eventSystem/tasks/TaskCopyHostToDevice.hpp"
 #include "eventSystem/events/EventDataReceive.hpp"
 #include "eventSystem/tasks/Factory.hpp"
+#include "mappings/simulation/EnvironmentController.hpp"
+#include "memory/buffers/Exchange.hpp"
 
 namespace PMacc
 {

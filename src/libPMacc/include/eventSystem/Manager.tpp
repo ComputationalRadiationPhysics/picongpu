@@ -20,14 +20,15 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "eventSystem/streams/StreamController.hpp"
+#include "eventSystem/EventSystem.hpp"
+#include "eventSystem/Manager.hpp"
+
+#include <cstdlib>
+#include <cstdio>
 #include <set>
 #include <iostream>
 
-#include "eventSystem/EventSystem.hpp"
-#include "eventSystem/streams/StreamController.hpp"
-#include "eventSystem/Manager.hpp"
-#include <stdlib.h>
-#include <stdio.h>
 //#define DEBUG_EVENTS
 
 namespace PMacc

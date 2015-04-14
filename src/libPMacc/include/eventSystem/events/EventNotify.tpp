@@ -20,13 +20,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <set>
-
-#include "types.h"
 #include "eventSystem/events/EventNotify.hpp"
 #include "eventSystem/events/IEventData.hpp"
-
 #include "eventSystem/events/IEvent.hpp"
+#include "types.h"
+
+#include <set>
 
 namespace PMacc
 {

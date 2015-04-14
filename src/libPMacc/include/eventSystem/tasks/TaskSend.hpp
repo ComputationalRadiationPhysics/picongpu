@@ -23,16 +23,15 @@
 
 #pragma once
 
-#include <cuda_runtime_api.h>
-
-#include "memory/buffers/Exchange.hpp"
-#include "eventSystem/EventSystem.hpp"
-
+#include "eventSystem/tasks/Factory.hpp"
 #include "eventSystem/tasks/ITask.hpp"
 #include "eventSystem/tasks/TaskReceive.hpp"
 #include "eventSystem/tasks/TaskCopyDeviceToHost.hpp"
+#include "eventSystem/EventSystem.hpp"
 #include "mappings/simulation/EnvironmentController.hpp"
-#include "eventSystem/tasks/Factory.hpp"
+#include "memory/buffers/Exchange.hpp"
+
+#include <cuda_runtime_api.h>
 
 namespace PMacc
 {

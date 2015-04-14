@@ -20,16 +20,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-
-
-#include <mpi.h>
 #include "mappings/simulation/GridController.hpp"
 #include "memory/boxes/PitchedBox.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "types.h"                                  // DIM*
+
+#include <mpi.h>
 
 namespace gol
 {

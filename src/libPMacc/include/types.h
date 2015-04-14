@@ -24,20 +24,19 @@
 #pragma once
 
 #include "debug/PMaccVerbose.hpp"
+
+#define BOOST_MPL_LIMIT_VECTOR_SIZE 20
+#define BOOST_MPL_LIMIT_MAP_SIZE 20
+#include <boost/typeof/std/utility.hpp>
+#include <boost/mpl/placeholders.hpp>
+#include <boost/filesystem.hpp>
+
 #include <builtin_types.h>
 #include <cuda_runtime.h>
 #include <cuda.h>
 
-#include <boost/typeof/std/utility.hpp>
-#include <boost/mpl/placeholders.hpp>
-#include <boost/filesystem.hpp>
 #include <stdint.h>
 #include <stdexcept>
-
-#define BOOST_MPL_LIMIT_VECTOR_SIZE 20
-#define BOOST_MPL_LIMIT_MAP_SIZE 20
-
-
 
 #define PMACC_AUTO_TPL(var,...) BOOST_AUTO_TPL(var,(__VA_ARGS__))
 #define PMACC_AUTO(var,...) BOOST_AUTO(var,(__VA_ARGS__))

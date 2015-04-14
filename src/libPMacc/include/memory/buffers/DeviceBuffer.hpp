@@ -22,21 +22,17 @@
 
 #pragma once
 
+#include <cuSTL/container/view/View.hpp>
+#include <cuSTL/container/DeviceBuffer.hpp>
+#include <math/vector/Int.hpp>
+#include <math/vector/Size_t.hpp>
+#include <memory/buffers/Buffer.hpp>
+#include <types.h>
 
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
 
-
-#include "memory/buffers/Buffer.hpp"
-
-
-#include <cuSTL/container/DeviceBuffer.hpp>
-#include <math/vector/Int.hpp>
-#include <math/vector/Size_t.hpp>
-#include <types.h>
-#include "cuSTL/container/view/View.hpp"
 #include <stdexcept>
-
 
 namespace PMacc
 {

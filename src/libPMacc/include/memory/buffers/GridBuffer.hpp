@@ -20,16 +20,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
 
-#ifndef _GRIDBUFFER_HPP
-#define	_GRIDBUFFER_HPP
-
-
-#include "eventSystem/EventSystem.hpp"
 #include "dimensions/GridLayout.hpp"
-#include "memory/dataTypes/Mask.hpp"
-
+#include "eventSystem/EventSystem.hpp"
 #include "mappings/simulation/EnvironmentController.hpp"
+#include "memory/dataTypes/Mask.hpp"
 #include "memory/buffers/ExchangeIntern.hpp"
 #include "memory/buffers/HostBufferIntern.hpp"
 #include "memory/buffers/DeviceBufferIntern.hpp"
@@ -37,7 +33,6 @@
 #include <sstream>
 #include <stdexcept>
 #include <algorithm>
-
 #include <set>
 
 namespace PMacc
@@ -557,6 +552,3 @@ protected:
 };
 
 }
-
-#endif	/* _GRIDBUFFER_HPP */
-

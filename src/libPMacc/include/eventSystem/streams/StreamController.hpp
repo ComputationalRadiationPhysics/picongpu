@@ -25,9 +25,9 @@
 #pragma once
 
 #include "eventSystem/streams/EventStream.hpp"
-#include <cuda_runtime.h>
-
 #include "types.h"
+
+#include <cuda_runtime.h>
 
 #include <string>
 #include <stdexcept>

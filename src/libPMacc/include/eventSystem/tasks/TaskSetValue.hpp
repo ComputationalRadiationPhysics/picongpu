@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Felix Schmitt, Heiko Burau, Rene Widera, 
+ *                     Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -22,20 +23,18 @@
 
 #pragma once
 
-#include <cuda_runtime_api.h>
-#include <cuda.h>
-
-#include "memory/buffers/DeviceBuffer.hpp"
 #include "dimensions/DataSpace.hpp"
-#include "memory/boxes/DataBox.hpp"
-
-#include "eventSystem/EventSystem.hpp"
-#include "memory/buffers/DeviceBuffer.hpp"
-#include "eventSystem/tasks/StreamTask.hpp"
 #include "mappings/simulation/EnvironmentController.hpp"
+#include "memory/buffers/DeviceBuffer.hpp"
+#include "memory/boxes/DataBox.hpp"
+#include "eventSystem/EventSystem.hpp"
+#include "eventSystem/tasks/StreamTask.hpp"
 
 #include <boost/type_traits/remove_pointer.hpp>
 #include <boost/type_traits.hpp>
+
+#include <cuda_runtime_api.h>
+#include <cuda.h>
 
 namespace PMacc
 {

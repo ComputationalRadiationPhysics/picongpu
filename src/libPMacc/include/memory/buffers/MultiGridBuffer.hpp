@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,22 +20,20 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include <algorithm>
-
 #include "dimensions/DataSpace.hpp"
-#include "eventSystem/EventSystem.hpp"
 #include "dimensions/GridLayout.hpp"
-#include "memory/dataTypes/Mask.hpp"
-
+#include "eventSystem/EventSystem.hpp"
 #include "mappings/simulation/EnvironmentController.hpp"
+#include "memory/dataTypes/Mask.hpp"
 #include "memory/buffers/ExchangeIntern.hpp"
 #include "memory/buffers/HostBufferIntern.hpp"
 #include "memory/buffers/DeviceBufferIntern.hpp"
 #include "memory/buffers/GridBuffer.hpp"
 #include "memory/boxes/MultiBox.hpp"
+
+#include <algorithm>
 
 namespace PMacc
 {

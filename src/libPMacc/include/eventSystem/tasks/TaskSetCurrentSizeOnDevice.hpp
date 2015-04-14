@@ -22,16 +22,14 @@
 
 #pragma once
 
-
-#include <cuda_runtime_api.h>
-#include <cuda.h>
-
-#include "dimensions/DataSpace.hpp"
-
 #include "eventSystem/EventSystem.hpp"
 #include "eventSystem/streams/EventStream.hpp"
 #include "eventSystem/tasks/StreamTask.hpp"
 #include "eventSystem/events/kernelEvents.hpp"
+#include "dimensions/DataSpace.hpp"
+
+#include <cuda_runtime_api.h>
+#include <cuda.h>
 
 __global__ void kernelSetValueOnDeviceMemory(size_t* pointer, const size_t size)
 {

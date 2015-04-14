@@ -22,13 +22,12 @@
 
 #pragma once
 
-#include <cassert>
-
 #include "dimensions/DataSpace.hpp"
+#include "eventSystem/tasks/Factory.hpp"
 #include "memory/buffers/DeviceBuffer.hpp"
 #include "memory/boxes/DataBox.hpp"
 
-#include "eventSystem/tasks/Factory.hpp"
+#include <cassert>
 
 namespace PMacc
 {

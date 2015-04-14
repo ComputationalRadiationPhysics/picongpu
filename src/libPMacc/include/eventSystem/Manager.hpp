@@ -23,7 +23,6 @@
 
 #pragma once
 
-
 #include "eventSystem/tasks/ITask.hpp"
 #include "eventSystem/events/EventPool.hpp"
 

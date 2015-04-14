@@ -21,9 +21,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#ifndef _ITASK_HPP
-#define	_ITASK_HPP
+#pragma once
 
 #include "eventSystem/events/EventNotify.hpp"
 #include "eventSystem/events/IEvent.hpp"
@@ -126,6 +124,3 @@ namespace PMacc
     };
 
 } //namespace PMacc
-
-#endif	/* _ITASK_HPP */
-

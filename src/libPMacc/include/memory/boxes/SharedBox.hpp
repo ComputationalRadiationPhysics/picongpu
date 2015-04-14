@@ -22,13 +22,10 @@
 
 #pragma once
 
-#include "types.h"
-#include "math/Vector.hpp"
-
-
 #include <cuSTL/cursor/compile-time/BufferCursor.hpp>
 #include <math/vector/Float.hpp>
-
+#include "math/Vector.hpp"
+#include "types.h"
 
 namespace PMacc
 {

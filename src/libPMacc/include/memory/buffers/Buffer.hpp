@@ -22,14 +22,14 @@
 
 #pragma once
 
-#include <cassert>
-#include <limits>
-
-#include "types.h"
 #include "dimensions/DataSpace.hpp"
 #include "memory/boxes/DataBox.hpp"
 #include "memory/boxes/PitchedBox.hpp"
 #include "Environment.hpp"
+#include "types.h"
+
+#include <cassert>
+#include <limits>
 
 namespace PMacc
 {

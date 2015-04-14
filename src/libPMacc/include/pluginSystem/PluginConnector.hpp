@@ -22,10 +22,10 @@
 
 #pragma once
 
-#include <list>
-
 #include "pluginSystem/INotify.hpp"
 #include "pluginSystem/IPlugin.hpp"
+
+#include <list>
 
 namespace PMacc
 {

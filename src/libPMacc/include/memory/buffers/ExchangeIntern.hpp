@@ -22,19 +22,19 @@
 
 #pragma once
 
-#include <assert.h>
-
-#include "types.h"
-#include "memory/buffers/Exchange.hpp"
-#include "memory/dataTypes/Mask.hpp"
 #include "dimensions/GridLayout.hpp"
 #include "mappings/simulation/GridController.hpp"
+#include "memory/buffers/Exchange.hpp"
+#include "memory/dataTypes/Mask.hpp"
+#include "memory/buffers/DeviceBufferIntern.hpp"
+#include "memory/buffers/HostBufferIntern.hpp"
 
 #include "eventSystem/tasks/Factory.hpp"
 #include "eventSystem/tasks/TaskReceive.hpp"
 
-#include "memory/buffers/DeviceBufferIntern.hpp"
-#include "memory/buffers/HostBufferIntern.hpp"
+#include "types.h"
+
+#include <cassert>
 
 namespace PMacc
 {

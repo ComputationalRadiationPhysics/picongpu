@@ -22,11 +22,12 @@
 
 #pragma once
 
-#include "types.h"
-#include "ppFunctions.hpp"
-#include <boost/preprocessor/control/if.hpp>
 #include "dimensions/DataSpace.hpp"
 #include "eventSystem/EventSystem.hpp"
+#include "ppFunctions.hpp"
+#include "types.h"
+
+#include <boost/preprocessor/control/if.hpp>
 
 namespace PMacc
 {

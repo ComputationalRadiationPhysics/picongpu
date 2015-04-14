@@ -23,13 +23,12 @@
 
 #pragma once
 
-#include <cuda_runtime_api.h>
-
-#include "types.h"
-
 #include "eventSystem/EventSystem.hpp"
 #include "eventSystem/streams/EventStream.hpp"
 #include "eventSystem/tasks/StreamTask.hpp"
+#include "types.h"
+
+#include <cuda_runtime_api.h>
 
 namespace PMacc
 {

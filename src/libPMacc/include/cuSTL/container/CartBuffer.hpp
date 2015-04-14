@@ -22,21 +22,21 @@
 
 #pragma once
 
+#include "allocator/EmptyAllocator.hpp"
 #include "cuSTL/cursor/BufferCursor.hpp"
 #include "cuSTL/cursor/navigator/CartNavigator.hpp"
 #include "cuSTL/cursor/accessor/PointerAccessor.hpp"
 #include "cuSTL/cursor/SafeCursor.hpp"
 #include "cuSTL/zone/SphericZone.hpp"
 #include "cuSTL/container/view/View.hpp"
-#include "allocator/EmptyAllocator.hpp"
 #include "math/vector/Size_t.hpp"
 #include "math/vector/UInt32.hpp"
 #include "types.h"
 
-#include <stdint.h>
-
 #include <boost/mpl/void.hpp>
 #include <boost/move/move.hpp>
+
+#include <stdint.h>
 
 namespace PMacc
 {

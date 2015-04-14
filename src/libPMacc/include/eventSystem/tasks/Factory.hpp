@@ -23,11 +23,11 @@
 
 #pragma once
 
-#include <string>
-
-#include "types.h"  // DIM*
 #include "eventSystem/tasks/ITask.hpp"
 #include "eventSystem/streams/EventStream.hpp"
+#include "types.h"
+
+#include <string>
 
 namespace PMacc
 {

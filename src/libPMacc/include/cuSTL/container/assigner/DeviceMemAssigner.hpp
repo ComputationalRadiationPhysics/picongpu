@@ -25,14 +25,14 @@
 #include "cuSTL/cursor/BufferCursor.hpp"
 #include "cuSTL/zone/SphericZone.hpp"
 #include "cuSTL/algorithm/kernel/run-time/Foreach.hpp"
-#include "math/vector/Size_t.hpp"
 #include "lambda/Expression.hpp"
+#include "math/vector/Size_t.hpp"
 #include "types.h"
+
+#include <boost/math/common_factor.hpp>
 
 #include <cassert>
 #include <stdint.h>
-
-#include <boost/math/common_factor.hpp>
 
 namespace PMacc
 {

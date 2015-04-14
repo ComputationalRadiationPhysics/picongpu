@@ -22,12 +22,11 @@
 
 #pragma once
 
-#include <cassert>
-
 #include "memory/buffers/Buffer.hpp"
+#include "eventSystem/tasks/Factory.hpp"
 #include "eventSystem/EventSystem.hpp"
 
-#include "eventSystem/tasks/Factory.hpp"
+#include <cassert>
 
 namespace PMacc
 {
