@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include <builtin_types.h>
 #include <stdexcept>
 #include "dimensions/DataSpace.hpp"
 #include "dimensions/DataSpaceOperations.hpp"

@@ -23,7 +23,6 @@
 
 #pragma once
 
-#include <cuda_runtime_api.h>
 #include <iostream>
 #include <iomanip>
 
@@ -84,7 +83,6 @@ public:
                 tSimulation.printInterval() << " = " <<
                 (uint64_t) (tSimulation.getInterval() / 1000.) << " sec" << std::endl;
         }
-        //CUDA_CHECK(cudaGetLastError());
     }
 
     /**

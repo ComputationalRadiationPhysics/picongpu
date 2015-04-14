@@ -26,7 +26,6 @@
 #include "types.h"
 #include "eventSystem/events/CudaEvent.hpp"
 #include <vector>
-#include <cuda_runtime.h>
 
 namespace PMacc
 {

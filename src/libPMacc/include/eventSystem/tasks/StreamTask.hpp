@@ -22,11 +22,8 @@
 
 #pragma once
 
-#include <cuda_runtime.h>
-
 #include "eventSystem/tasks/ITask.hpp"
 #include "eventSystem/events/CudaEvent.hpp"
-
 
 namespace PMacc
 {
