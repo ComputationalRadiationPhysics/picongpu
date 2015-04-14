@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2015 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,9 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#ifndef _EXCHANGE_HPP
-#define	_EXCHANGE_HPP
+#pragma once
 
 #include "memory/buffers/DeviceBuffer.hpp"
 #include "memory/buffers/HostBuffer.hpp"
@@ -98,6 +96,3 @@ namespace PMacc
     };
 
 }
-
-#endif	/* _EXCHANGE_HPP */
-

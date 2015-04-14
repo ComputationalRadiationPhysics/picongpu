@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,9 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#ifndef _DEVICEBUFFERINTERN_HPP
-#define	_DEVICEBUFFERINTERN_HPP
+#pragma once
 
 #include <cassert>
 
@@ -327,5 +325,3 @@ private:
 };
 
 } //namespace PMacc
-
-#endif	/* _DEVICEBUFFERINTERN_HPP */

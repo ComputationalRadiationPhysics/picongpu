@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, Rene Widera
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,13 +20,11 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MPITASK_HPP
-#define	MPITASK_HPP
-
-#include <mpi.h>
+#pragma once
 
 #include "eventSystem/tasks/ITask.hpp"
-#include "eventSystem/transactions/TransactionManager.hpp"
+
+#include <mpi.h>
 
 namespace PMacc
 {
@@ -79,6 +77,3 @@ namespace PMacc
         bool finished;
     };
 }
-
-#endif	/* MPITASK_HPP */
-

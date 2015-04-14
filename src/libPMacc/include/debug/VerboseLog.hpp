@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2015 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -22,15 +22,14 @@
 
 #pragma once
 
-#include <sstream>
-#include <boost/format.hpp>
-#include <iostream>
-
-#include "types.h"
-#include <string>
-
 #include "debug/VerboseLogMakros.hpp"
+#include "types.h"
 
+#include <boost/format.hpp>
+
+#include <string>
+#include <iostream>
+#include <sstream>
 
 namespace PMacc
 {

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -56,8 +56,8 @@ public:
     typedef T_TYPE ValueType;
     typedef ValueType& RefValueType;
     typedef T_Vector Size;
-    typedef SharedBox<ValueType, math::CT::Int<Size::x::value>, T_id > ReducedType;
-    typedef SharedBox<ValueType, T_Vector, T_id,DIM1 > This;
+    typedef SharedBox<ValueType, math::CT::Int<Size::x::value>, T_id> ReducedType;
+    typedef SharedBox<ValueType, T_Vector, T_id, DIM1> This;
 
     HDINLINE RefValueType operator[](const int idx)
     {

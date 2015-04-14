@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, Rene Widera
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,9 +20,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
 
-#ifndef _TASKSETCURRENTSIZEONDEVICE_HPP
-#define _TASKSETCURRENTSIZEONDEVICE_HPP
 
 #include <cuda_runtime_api.h>
 #include <cuda.h>
@@ -97,7 +96,4 @@ private:
 };
 
 } //namespace PMacc
-
-
-#endif	/* _TASKSETCURRENTSIZEONDEVICE_HPP */
 

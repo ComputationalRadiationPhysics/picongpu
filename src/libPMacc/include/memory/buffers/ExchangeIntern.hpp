@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2015 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,10 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef _EXCHANGEINTERN_HPP
-#define	_EXCHANGEINTERN_HPP
+#pragma once
 
 #include <assert.h>
 
@@ -241,6 +238,3 @@ namespace PMacc
     };
 
 }
-
-#endif	/* _EXCHANGEINTERN_HPP */
-

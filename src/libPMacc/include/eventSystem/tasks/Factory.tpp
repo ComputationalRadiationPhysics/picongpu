@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2015 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -37,9 +37,9 @@
 #include "eventSystem/tasks/TaskSetCurrentSizeOnDevice.hpp"
 #include "eventSystem/tasks/TaskSendMPI.hpp"
 #include "eventSystem/tasks/TaskReceiveMPI.hpp"
+#include "eventSystem/tasks/TaskGetCurrentSizeFromDevice.hpp"
 #include "eventSystem/streams/EventStream.hpp"
 #include "eventSystem/streams/StreamController.hpp"
-#include "eventSystem/tasks/TaskGetCurrentSizeFromDevice.hpp"
 
 namespace PMacc
 {

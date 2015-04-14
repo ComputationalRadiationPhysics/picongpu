@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2015 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -24,7 +24,6 @@
 #ifndef _GRIDBUFFER_HPP
 #define	_GRIDBUFFER_HPP
 
-#include <algorithm>
 
 #include "eventSystem/EventSystem.hpp"
 #include "dimensions/GridLayout.hpp"
@@ -37,6 +36,7 @@
 
 #include <sstream>
 #include <stdexcept>
+#include <algorithm>
 
 #include <set>
 

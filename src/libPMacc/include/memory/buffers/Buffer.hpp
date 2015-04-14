@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,9 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#ifndef _BUFFER_HPP
-#define	_BUFFER_HPP
+#pragma once
 
 #include <cassert>
 #include <limits>
@@ -193,6 +191,3 @@ namespace PMacc
     };
 
 } //namespace PMacc
-
-#endif	/* _BUFFER_HPP */
-

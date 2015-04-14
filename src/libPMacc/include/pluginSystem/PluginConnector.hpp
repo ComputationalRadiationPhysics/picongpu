@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Rene Widera, Felix Schmitt, Axel Huebl
+ * Copyright 2013-2015 Rene Widera, Felix Schmitt, Axel Huebl, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -49,7 +49,6 @@ namespace PMacc
          * @param plugin plugin to register
          */
         void registerPlugin(IPlugin *plugin)
-        throw (PluginException)
         {
             if (plugin != NULL)
             {
@@ -63,7 +62,6 @@ namespace PMacc
          * Calls load on all registered, not loaded plugins
          */
         void loadPlugins()
-        throw (PluginException)
         {
             // load all plugins
             for (std::list<IPlugin*>::reverse_iterator iter = plugins.rbegin();
@@ -80,7 +78,6 @@ namespace PMacc
          * Unloads all registered, loaded plugins
          */
         void unloadPlugins()
-        throw (PluginException)
         {
             // unload all plugins
             for (std::list<IPlugin*>::reverse_iterator iter = plugins.rbegin();

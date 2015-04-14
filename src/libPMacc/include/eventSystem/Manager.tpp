@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Felix Schmitt, Rene Widera
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -203,7 +203,7 @@ inline EventPool& Manager::getEventPool( )
     return *eventPool;
 }
 
-inline int Manager::getCount( )
+inline std::size_t Manager::getCount( )
 {
     for ( TaskMap::iterator iter = tasks.begin( ); iter != tasks.end( ); ++iter )
     {

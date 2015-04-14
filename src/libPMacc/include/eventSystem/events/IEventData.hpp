@@ -1,5 +1,6 @@
 /**
- * Copyright 2013 Felix Schmitt, Rene Widera, Wolfgang Hoenig
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Wolfgang Hoenig, 
+ *                     Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,8 +21,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _IEVENTDATA_HPP
-#define	_IEVENTDATA_HPP
+#pragma once
 
 #include "eventSystem/events/EventNotify.hpp"
 
@@ -39,13 +39,10 @@ namespace PMacc
 
         IEventData(EventNotify *task) :
         task(task)
-        {
-
-        }
+        {}
 
         virtual ~IEventData()
-        {
-        }
+        {}
 
         EventNotify* getEventNotify()
         {
@@ -58,6 +55,3 @@ namespace PMacc
     };
 
 } //namespace PMacc
-
-#endif	/* _IEVENTDATA_HPP */
-

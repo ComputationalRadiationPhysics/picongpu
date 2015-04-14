@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2015 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,9 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#ifndef _HOSTBUFFERINTERN_HPP
-#define	_HOSTBUFFERINTERN_HPP
+#pragma once
 
 #include <cassert>
 
@@ -129,6 +127,3 @@ private:
 };
 
 }
-
-#endif	/* _HOSTBUFFERINTERN_HPP */
-

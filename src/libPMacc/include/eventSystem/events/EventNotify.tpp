@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2015 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -26,6 +26,7 @@
 #include "eventSystem/events/EventNotify.hpp"
 #include "eventSystem/events/IEventData.hpp"
 
+#include "eventSystem/events/IEvent.hpp"
 
 namespace PMacc
 {
@@ -53,6 +54,3 @@ namespace PMacc
         }
 
 } //namespace PMacc
-
-
-

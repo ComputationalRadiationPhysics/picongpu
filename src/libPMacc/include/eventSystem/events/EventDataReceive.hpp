@@ -1,5 +1,6 @@
 /**
- * Copyright 2013 Felix Schmitt, Rene Widera, Wolfgang Hoenig
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Wolfgang Hoenig, 
+ *                     Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -21,8 +22,7 @@
  */
 
 
-#ifndef _EVENTDATARECEIVE_HPP
-#define	_EVENTDATARECEIVE_HPP
+#pragma once
 
 #include "eventSystem/events/IEventData.hpp"
 
@@ -32,13 +32,10 @@ namespace PMacc
     class EventDataReceive : public IEventData
     {
     public:
-
         EventDataReceive(EventNotify *task, size_t recv_count) :
-        IEventData(task),
-        recv_count(recv_count)
-        {
-
-        }
+            IEventData(task),
+            recv_count(recv_count)
+        {}
 
         size_t getReceivedCount() const
         {
@@ -51,6 +48,3 @@ namespace PMacc
     };
 
 } //namespace PMacc
-
-#endif	/* _EVENTDATARECEIVE_HPP */
-

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, Rene Widera
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef KERNELEVENTS_H
-#define KERNELEVENTS_H
+#pragma once
 
 #include "types.h"
 #include "ppFunctions.hpp"
@@ -84,7 +83,3 @@ namespace PMacc
     kernelname PMACC_CUDAKERNELCONFIG
 
 }
-
-
-#endif //KERNELEVENTS_H
-

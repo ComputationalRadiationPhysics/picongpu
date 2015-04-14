@@ -1,5 +1,6 @@
 /**
- * Copyright 2013 Felix Schmitt, Rene Widera, Wolfgang Hoenig
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Wolfgang Hoenig, 
+ *                     Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,15 +21,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TASKSENDMPI_HPP
-#define	TASKSENDMPI_HPP
-
-#include <mpi.h>
+#pragma once
 
 #include "memory/buffers/Exchange.hpp"
 
 #include "eventSystem/tasks/MPITask.hpp"
 
+#include <mpi.h>
 #include "communication/manager_common.h"
 #include "communication/ICommunicator.hpp"
 
@@ -102,6 +101,4 @@ private:
 };
 
 } //namespace PMacc
-
-#endif	/* TASKSENDMPI_HPP */
 

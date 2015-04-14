@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Felix Schmitt, Rene Widera, Wolfgang Hoenig
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Wolfgang Hoenig, 
+ *                     Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -22,12 +23,12 @@
 
 #pragma once
 
-#include <map>
-#include <cassert>
 
 #include "eventSystem/tasks/ITask.hpp"
 #include "eventSystem/events/EventPool.hpp"
 
+#include <map>
+#include <set>
 
 namespace PMacc
 {
@@ -74,9 +75,7 @@ namespace PMacc
 
         EventPool& getEventPool();
 
-        int getCount();
-
-
+        std::size_t getCount();
 
     private:
 

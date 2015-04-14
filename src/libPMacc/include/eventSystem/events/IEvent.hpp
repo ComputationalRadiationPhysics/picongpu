@@ -1,5 +1,6 @@
 /**
- * Copyright 2013 Felix Schmitt, Rene Widera, Wolfgang Hoenig
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Wolfgang Hoenig, 
+ *                     Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,9 +21,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#ifndef _IEVENT_HPP
-#define	_IEVENT_HPP
+#pragma once
 
 #include "types.h"
 
@@ -56,6 +55,3 @@ namespace PMacc
     };
 
 } //namespace PMacc
-
-#endif	/* _IEVENT_HPP */
-

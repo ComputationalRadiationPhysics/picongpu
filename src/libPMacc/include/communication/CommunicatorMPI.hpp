@@ -1,5 +1,6 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera, Wolfgang Hoenig
+ * Copyright 2013-2015 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera, 
+ *                     Wolfgang Hoenig, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -89,7 +90,7 @@ public:
      *
      * \warning throws invalid argument if cx*cy*cz != totalnodes
      */
-    void init(DataSpace<DIM3> numberProcesses, DataSpace<DIM3> periodic) throw (std::invalid_argument)
+    void init(DataSpace<DIM3> numberProcesses, DataSpace<DIM3> periodic)
     {
         this->periodic = periodic;
 

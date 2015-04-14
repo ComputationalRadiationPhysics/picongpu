@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, Rene Widera
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -21,11 +21,7 @@
  */
 
 
-#ifndef _TASKKERNEL_HPP
-#define _TASKKERNEL_HPP
-
-#include <cuda_runtime_api.h>
-#include <cuda.h>
+#pragma once
 
 #include "eventSystem/tasks/StreamTask.hpp"
 #include "eventSystem/streams/EventStream.hpp"
@@ -87,7 +83,4 @@ namespace PMacc
     };
 
 } //namespace PMacc
-
-
-#endif	/* _TASKKERNEL_HPP */
 

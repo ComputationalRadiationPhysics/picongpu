@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -31,7 +31,9 @@ namespace container
 
 namespace detail
 {
-    template<int dim> struct PitchHelper;
+    template<int dim>
+    struct PitchHelper;
+
     template<>
     struct PitchHelper<1>
     {
