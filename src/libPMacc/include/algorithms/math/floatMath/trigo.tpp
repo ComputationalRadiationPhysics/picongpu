@@ -73,7 +73,12 @@ struct SinCos<float, float, float>
 
     HDINLINE void operator( )(float arg, float& sinValue, float& cosValue )
     {
+#ifdef _MSC_VER
+        sinValue = ::sinf(arg);
+        cosValue = ::cosf(arg);
+#else
         ::sincosf( arg, &sinValue, &cosValue );
+#endif
     }
 };
 

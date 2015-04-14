@@ -72,7 +72,12 @@ struct SinCos<double, double, double>
 
     HDINLINE void operator( )(double arg, double& sinValue, double& cosValue )
     {
-        ::sincos( arg, &sinValue, &cosValue );
+#ifdef _MSC_VER
+        sinValue = ::sin(arg);
+        cosValue = ::cos(arg);
+#else
+        ::sincos(arg, &sinValue, &cosValue);
+#endif
     }
 };
 

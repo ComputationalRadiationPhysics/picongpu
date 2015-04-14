@@ -25,7 +25,6 @@
 
 #include "types.h"
 
-
 namespace PMacc
 {
 namespace algorithms
@@ -51,7 +50,11 @@ struct RSqrt<float>
 
     HDINLINE float operator( )(const float& value )
     {
-        return ::rsqrtf( value );
+#ifdef _MSC_VER
+        return 1.0f/::sqrtf(value);
+#else
+        return ::rsqrtf(value);
+#endif
     }
 };
 
