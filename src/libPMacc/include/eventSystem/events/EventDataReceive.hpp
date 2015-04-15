@@ -32,8 +32,8 @@ namespace PMacc
     {
     public:
         EventDataReceive(EventNotify *task, size_t recv_count) :
-            IEventData(task),
-            recv_count(recv_count)
+        IEventData(task),
+        recv_count(recv_count)
         {}
 
         size_t getReceivedCount() const

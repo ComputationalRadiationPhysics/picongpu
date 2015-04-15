@@ -44,8 +44,7 @@ struct DeviceMemAssigner
 {
     static const int dim = T_dim;
 
-    template<
-        typename Type>
+    template<typename Type>
     static void assign(
         Type* data, 
         const math::Size_t<dim-1>& pitch, 

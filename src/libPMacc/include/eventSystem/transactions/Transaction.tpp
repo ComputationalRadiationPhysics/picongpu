@@ -20,7 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
  
-#include "Transaction.hpp"
+#include "eventSystem/transactions/Transaction.hpp"
 
 #include "eventSystem/streams/StreamController.hpp"
 #include "eventSystem/events/EventTask.hpp"
