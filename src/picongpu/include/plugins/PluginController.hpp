@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Benjamin Schneider, Felix Schmitt,
+ * Copyright 2013-2015 Axel Huebl, Benjamin Schneider, Felix Schmitt,
  *                     Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -109,7 +109,7 @@ private:
         }
     };
 
-    /** apply vector component one to component zero
+    /** apply the 1st vector component to the 2nd
      *
      * @tparam T_TupleVector vector of type PMacc::math::CT::vector<dataType,plugin>
      *                       with two components
@@ -146,16 +146,16 @@ private:
 #if(SIMDIM==DIM3)
      SliceFieldPrinterMulti<bmpl::_1>
 #endif
-    > AnonymousFieldPlugins;
+    > UnspecializedFieldPlugins;
 
     typedef bmpl::vector< FieldB, FieldE, FieldJ> AllFields;
 
     typedef typename AllCombinations<
-      bmpl::vector<AllFields, AnonymousFieldPlugins>
-    >::type CombinationsAnonymousFieldPlugins;
+      bmpl::vector<AllFields, UnspecializedFieldPlugins>
+    >::type CombinedUnspecializedFieldPlugins;
 
     typedef typename bmpl::transform<
-    CombinationsAnonymousFieldPlugins,
+    CombinedUnspecializedFieldPlugins,
       ApplyDataToPlugin<bmpl::_1>
     >::type FieldPlugins;
 
@@ -177,14 +177,14 @@ private:
       , PerSuperCell<bmpl::_1>
       , PhaseSpaceMulti<particles::shapes::Counter::ChargeAssignment, bmpl::_1>
 #endif
-    > AnonymousSpeciesPlugins;
+    > UnspecializedSpeciesPlugins;
 
     typedef typename AllCombinations<
-        bmpl::vector<VectorAllSpecies, AnonymousSpeciesPlugins>
-    >::type CombinationsAnonymousSpeciesPlugins;
+        bmpl::vector<VectorAllSpecies, UnspecializedSpeciesPlugins>
+    >::type CombinedUnspecializedSpeciesPlugins;
 
     typedef typename bmpl::transform<
-        CombinationsAnonymousSpeciesPlugins,
+        CombinedUnspecializedSpeciesPlugins,
         ApplyDataToPlugin<bmpl::_1>
     >::type SpeciesPlugins;
 
