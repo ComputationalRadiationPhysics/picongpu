@@ -19,9 +19,7 @@
  */
 
 
-
-#ifndef YEE_CURL_HPP
-#define	YEE_CURL_HPP
+#pragma once
 
 #include "types.h"
 
@@ -40,14 +38,10 @@ namespace yeeSolver
         template<class Memory >
         HDINLINE typename Memory::ValueType operator()(const Memory & mem) const
         {
-            Difference diff;
-            return float3_X(diff(mem, 1).z() - diff(mem, 2).y(),
-                               diff(mem, 2).x() - diff(mem, 0).z(),
-                               diff(mem, 0).y() - diff(mem, 1).x());
+            return float3_X(Difference::template GetDifference<1>()(mem).z() - Difference::template GetDifference<2>()(mem).y(),
+                            Difference::template GetDifference<2>()(mem).x() - Difference::template GetDifference<0>()(mem).z(),
+                            Difference::template GetDifference<0>()(mem).y() - Difference::template GetDifference<1>()(mem).x());
         }
     };
 } // namespace yeeSolver
 } // namespace picongpu
-
-#endif	/* YEE_CURL_HPP */
-
