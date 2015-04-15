@@ -27,59 +27,56 @@
 
 namespace picongpu
 {
-template<unsigned T_Dim>
-struct DifferenceToUpper;
 
-template<>
-struct DifferenceToUpper<DIM3>
+/** calculate difference to upper value
+ *
+ * @tparam T_Dim for how many dimensions this operator access memory
+ *
+ * If `GetDifference` is called for a direction greater equal T_Dim always
+ * a zeroed value is returned
+ */
+template<uint32_t T_Dim>
+struct DifferenceToUpper
 {
-    typedef PMacc::math::CT::Int< 1, 1, 1 > OffsetEnd;
-    typedef PMacc::math::CT::Int< 0, 0, 0 > OffsetOrigin;
+    static const uint32_t dim = T_Dim;
 
-    template<class Memory >
-    HDINLINE typename Memory::ValueType operator()(const Memory& mem, const uint32_t direction) const
+    typedef typename PMacc::math::CT::make_Int<dim, 0>::type OffsetOrigin;
+    typedef typename PMacc::math::CT::make_Int<dim, 1>::type OffsetEnd;
+
+    /** calculate the difference for a given direction
+     *
+     * @tparam T_direction direction for the difference operation
+     * @tparam T_isLesserThanDim not needed/ this is calculated by the compiler
+     */
+    template<uint32_t T_direction, bool T_isLesserThanDim = (T_direction < dim)>
+    struct GetDifference
     {
-        const float_X reciWidth = float_X(1.0) / CELL_WIDTH;
-        const float_X reciHeight = float_X(1.0) / CELL_HEIGHT;
-        const float_X reciDepth = float_X(1.0) / CELL_DEPTH;
-        switch (direction)
+
+        /** get difference to lower value
+         * @return difference divided by cell size of the given direction
+         */
+        template<class Memory >
+        HDINLINE typename Memory::ValueType operator()(const Memory& mem) const
         {
-        case 0:
-            return (mem[0][0][1] - mem[0][0][0]) * reciWidth;
-        case 1:
-            return (mem[0][1][0] - mem[0][0][0]) * reciHeight;
-        case 2:
-            return (mem[1][0][0] - mem[0][0][0]) * reciDepth;
+            const uint32_t direction = T_direction;
+            DataSpace<dim> dimension;
+            dimension[direction] = 1;
+
+            return ( mem(dimension) - mem(DataSpace<dim>())) / cellSize[direction];
         }
-        return float3_X(NAN, NAN, NAN);
-    }
-};
+    };
 
-template<>
-struct DifferenceToUpper<DIM2>
-{
-    typedef PMacc::math::CT::Int< 1, 1 > OffsetEnd;
-    typedef PMacc::math::CT::Int< 0, 0 > OffsetOrigin;
-
-    template<class Memory >
-    HDINLINE typename Memory::ValueType operator()(const Memory& mem, const uint32_t direction) const
+    template<uint32_t T_direction>
+    struct GetDifference<T_direction, false>
     {
-        const float_X reciWidth = float_X(1.0) / CELL_WIDTH;
-        const float_X reciHeight = float_X(1.0) / CELL_HEIGHT;
 
-        switch (direction)
+        template<class Memory >
+        HDINLINE typename Memory::ValueType operator()(const Memory& mem) const
         {
-        case 0:
-            return (mem[0][1] - mem[0][0]) * reciWidth;
-        case 1:
-            return (mem[1][0] - mem[0][0]) * reciHeight;
-
-        case 2:
-            return float3_X(0., 0., 0.);
-
+            return Memory::create(0.0);
         }
-        return float3_X(NAN, NAN, NAN);
-    }
+    };
+
 };
 
 } //namespace picongpu
