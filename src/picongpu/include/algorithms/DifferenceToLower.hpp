@@ -53,21 +53,26 @@ struct DifferenceToLower
     template<uint32_t T_direction, bool T_isLesserThanDim = (T_direction < dim)>
     struct GetDifference
     {
+        static const uint32_t direction = T_direction;
+
         /** get difference to lower value
          * @return difference divided by cell size of the given direction
          */
         template<class Memory >
         HDINLINE typename Memory::ValueType operator()(const Memory& mem) const
         {
-            const uint32_t direction = T_direction;
-            DataSpace<dim> dimension;
-            dimension[direction] = -1;
+            const DataSpace<dim> indexIdentity; /* defaults to (0, 0, 0) in 3D */
+            DataSpace<dim> indexLower;    /* e.g., (0, -1, 0) for d/dy in 3D */
+            indexLower[direction] = -1;
 
-            return (mem(DataSpace<dim>()) - mem(dimension)) / cellSize[direction];
+            return (mem(indexIdentity) - mem(indexLower)) / cellSize[direction];
         }
     };
 
-
+    /** special case for `direction >= simulation dimensions`
+     *
+     *  difference = d/dx = 0
+     */
     template<uint32_t T_direction>
     struct GetDifference<T_direction, false>
     {
@@ -77,7 +82,7 @@ struct DifferenceToLower
         template<class Memory >
         HDINLINE typename Memory::ValueType operator()(const Memory& mem) const
         {
-            return Memory::create(0.0);
+            return Memory::ValueType::create(0.0);;
         }
     };
 

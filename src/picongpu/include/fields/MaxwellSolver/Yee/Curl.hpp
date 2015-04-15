@@ -27,21 +27,25 @@ namespace picongpu
 {
 namespace yeeSolver
 {
-    using namespace PMacc;
+using namespace PMacc;
 
-    template<class Difference>
-    struct Curl
+template<class Difference>
+struct Curl
+{
+    typedef typename Difference::OffsetOrigin LowerMargin;
+    typedef typename Difference::OffsetEnd UpperMargin;
+
+    template<class Memory >
+    HDINLINE typename Memory::ValueType operator()(const Memory & mem) const
     {
-        typedef typename Difference::OffsetOrigin LowerMargin;
-        typedef typename Difference::OffsetEnd UpperMargin;
+        const typename Difference::template GetDifference<0> Dx;
+        const typename Difference::template GetDifference<1> Dy;
+        const typename Difference::template GetDifference<2> Dz;
 
-        template<class Memory >
-        HDINLINE typename Memory::ValueType operator()(const Memory & mem) const
-        {
-            return float3_X(Difference::template GetDifference<1>()(mem).z() - Difference::template GetDifference<2>()(mem).y(),
-                            Difference::template GetDifference<2>()(mem).x() - Difference::template GetDifference<0>()(mem).z(),
-                            Difference::template GetDifference<0>()(mem).y() - Difference::template GetDifference<1>()(mem).x());
-        }
-    };
+        return float3_X(Dy(mem).z() - Dz(mem).y(),
+                        Dz(mem).x() - Dx(mem).z(),
+                        Dx(mem).y() - Dy(mem).x());
+    }
+};
 } // namespace yeeSolver
 } // namespace picongpu
