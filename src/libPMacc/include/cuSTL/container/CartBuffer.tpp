@@ -199,7 +199,7 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::view
 {
     a = (a + (math::Int<T_dim>)this->size()) % (math::Int<T_dim>)this->size();
     b = (b + (math::Int<T_dim>)this->size())
-            % ((math::Int<T_dim>)this->size() + math::Int<T_dim>(math::Int<T_dim>::create(1)));
+            % ((math::Int<T_dim>)this->size() + math::Int<T_dim>::create(1));
 
     View<CartBuffer<Type, T_dim, Allocator, Copier, Assigner> > result;
 
@@ -228,7 +228,7 @@ cursor::SafeCursor<cursor::BufferCursor<Type, T_dim> >
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::originSafe() const
 {
     return cursor::make_SafeCursor(this->origin(),
-                                   math::Int<T_dim>(math::Int<T_dim>::create(0)),
+                                   math::Int<T_dim>::create(0),
                                    math::Int<T_dim>(size()));
 }
 
@@ -257,7 +257,7 @@ zone::SphericZone<T_dim>
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::zone() const
 {
     zone::SphericZone<T_dim> myZone;
-    myZone.offset = math::Int<T_dim>(math::Int<T_dim>::create(0));
+    myZone.offset = math::Int<T_dim>::create(0);
     myZone.size = this->_size;
     return myZone;
 }

@@ -44,7 +44,7 @@ namespace picongpu
             const double f = SPEED_OF_LIGHT / WAVE_LENGTH;
 
             double envelope = double(AMPLITUDE );
-            float3_X elong = float3_X(float3_X::create(0.0));
+            float3_X elong(float3_X::create(0.0));
 
             // a NON-symmetric (starting with phase=0) pulse will be initialized at position z=0 for
             // a time of RAMP_INIT * PULSE_LENGTH + LASER_NOFOCUS_CONSTANT = INIT_TIME.

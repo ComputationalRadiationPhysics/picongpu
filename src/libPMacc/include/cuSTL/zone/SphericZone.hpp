@@ -53,7 +53,7 @@ struct SphericZone
     math::Int<dim> offset;
 
     HDINLINE SphericZone() {}
-    HDINLINE SphericZone(const math::Size_t<dim>& size) : size(size), offset(math::Int<dim>(math::Int<dim>::create(0))) {}
+    HDINLINE SphericZone(const math::Size_t<dim>& size) : size(size), offset(math::Int<dim>::create(0)) {}
     HDINLINE SphericZone(const math::Size_t<dim>& size,
                          const math::Int<dim>& offset) : size(size), offset(offset) {}
 
