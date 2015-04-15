@@ -80,6 +80,8 @@ namespace twts
         for (uint32_t i = 0; i<simDim;++i) pos[i] = eFieldPositions_SI[0][i];
         return float3_X( float_X( calcTWTSEx(pos,time) ),
                          float_X(0.), float_X(0.) );
+        //return float3_X( float_X( pos.x() ),
+        //                 float_X( pos.y() ), float_X( pos.z() ) );
     }
 
     template<>
@@ -144,18 +146,18 @@ namespace twts
         /* Angle between the laser pulse front and the y-axis. Not used, but remains in code for
          * documentation purposes. */
         /* const float_T eta = (PI / 2) - (phiReal - alphaTilt); */
-
-        const float_T cspeed = float_T(1.0);
+        
+        const float_T cspeed = float_T( SI::SPEED_OF_LIGHT_SI / UNIT_SPEED );
         const float_T lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
-        const float_T om0 = float_T(2.0*PI*cspeed / lambda0*UNIT_TIME);
+        const float_T om0 = float_T(2.0*PI*cspeed / lambda0);
         /* factor 2  in tauG arises from definition convention in laser formula */
         const float_T tauG = float_T(pulselength_SI*2.0 / UNIT_TIME);
         /* w0 is wx here --> w0 could be replaced by wx */
         const float_T w0 = float_T(w_x_SI / UNIT_LENGTH);
-        const float_T rho0 = float_T(PI*w0*w0/lambda0/UNIT_LENGTH);
+        const float_T rho0 = float_T(PI*w0*w0/lambda0);
         /* wy is width of TWTS pulse */
         const float_T wy = float_T(w_y_SI / UNIT_LENGTH);
-        const float_T k = float_T(2.0*PI / lambda0*UNIT_LENGTH);
+        const float_T k = float_T(2.0*PI / lambda0);
         const float_T x = float_T(pos.x() / UNIT_LENGTH);
         const float_T y = float_T(pos.y() / UNIT_LENGTH);
         const float_T z = float_T(pos.z() / UNIT_LENGTH);
