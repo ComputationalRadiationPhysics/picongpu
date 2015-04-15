@@ -279,9 +279,11 @@ struct ZigZag
                 const float_X pos_tmp = pos[parId][d];
                 const float_X tmpRelayPoint = relayPoint[d];
                 inCellPos[d] = calc_InCellPos(pos_tmp, tmpRelayPoint, I[parId][d]);
+                /* We multiply with `cellSize[d]` due to the fact that the attribute for the
+                 * in-cell particle `position` (and it's change in DELTA_T) is normalize to [0,1) */
                 flux[d] = sign * calc_chargeFlux(pos_tmp, tmpRelayPoint, deltaTime, charge) * volume_reci * cellSize[d];
             }
-            
+
             /* this loop is only needed for 2D, we need a flux in z direction */
             for (uint32_t d = simDim; d < 3; ++d)
             {
