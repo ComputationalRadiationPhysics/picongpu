@@ -73,7 +73,7 @@ struct SinCos<float, float, float>
 
     HDINLINE void operator( )(float arg, float& sinValue, float& cosValue )
     {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__CUDA_ARCH__)
         sinValue = ::sinf(arg);
         cosValue = ::cosf(arg);
 #else
