@@ -50,7 +50,7 @@ struct RSqrt<double>
 
     HDINLINE double operator( )(const double& value )
     {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__CUDA_ARCH__)
         return 1.0/::sqrt(value);
 #else
         return ::rsqrt(value);
