@@ -43,7 +43,7 @@ template<int dim>
 HDINLINE
 cursor::Cursor<cursor::MarkerAccessor<math::Int<dim> >, MultiIndexNavigator<dim>,
                math::Int<dim> >
-               make_MultiIndexCursor(const math::Int<dim>& idx = math::Int<dim>(0))
+               make_MultiIndexCursor(const math::Int<dim>& idx = math::Int<dim>::create(0))
 {
     return make_Cursor(cursor::MarkerAccessor<math::Int<dim> >(),
                        MultiIndexNavigator<dim>(),

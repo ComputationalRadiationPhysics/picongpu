@@ -39,7 +39,7 @@ namespace picongpu
          */
         HINLINE float3_X laserLongitudinal( uint32_t, float_X& phase )
         {
-            float3_X elong = float3_X(float_X(0.0), float_X(0.0), float_X(0.0));
+            const float3_X elong(float3_X::create(0.0));
 
             phase = float_X(0.0);
 

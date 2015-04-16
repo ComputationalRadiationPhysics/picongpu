@@ -184,7 +184,7 @@ void FieldJ::reset( uint32_t )
 
 void FieldJ::clear( )
 {
-    ValueType tmp = float3_X( 0. );
+    ValueType tmp(ValueType::create(0.));
     fieldJ.getDeviceBuffer( ).setValue( tmp );
     //fieldJ.reset(false);
 }

@@ -44,7 +44,7 @@ HINLINE float3_X laserLongitudinal(uint32_t currentStep, float_X& phase)
     const float_X runTime = DELTA_T*currentStep;
     const float_X f = SPEED_OF_LIGHT / WAVE_LENGTH;
 
-    float3_X elong(0.0f, 0.0f, 0.0f);
+    float3_X elong(float3_X::create(0.0));
 
     // a symmetric pulse will be initialized at position z=0
     // the laser amplitude rises  for T_rise

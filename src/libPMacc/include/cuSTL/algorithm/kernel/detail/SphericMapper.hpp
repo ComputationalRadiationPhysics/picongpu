@@ -70,8 +70,8 @@ struct SphericMapper<1, BlockSize>
     HDINLINE
     math::Int<1> operator()(const dim3& _blockIdx, const dim3& _threadIdx = dim3(0,0,0)) const
     {
-        return operator()(math::Int<1>(_blockIdx.x),
-                          math::Int<1>(_threadIdx.x));
+        return operator()(math::Int<1>((int)_blockIdx.x),
+                          math::Int<1>((int)_threadIdx.x));
     }
 };
 
@@ -151,8 +151,8 @@ struct SphericMapper<1, mpl::void_>
     DINLINE
     math::Int<1> operator()(const dim3& _blockIdx, const dim3& _threadIdx = dim3(0,0,0)) const
     {
-        return operator()(math::Int<1>(_blockIdx.x),
-                          math::Int<1>(_threadIdx.x));
+        return operator()(math::Int<1>((int)_blockIdx.x),
+                          math::Int<1>((int)_threadIdx.x));
     }
 };
 

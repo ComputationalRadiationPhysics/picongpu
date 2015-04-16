@@ -60,7 +60,7 @@ struct DeviceMemAssigner
          * and a certain power of two value gives the best suitable block size
          */
         boost::math::gcd_evaluator<size_t> gcd; // greatest common divisor
-        math::Size_t<3> blockDim(1);
+        math::Size_t<3> blockDim(math::Size_t<3>::create(1));
         int maxValues[] = {16, 16, 4}; // maximum values for each dimension
         for(int i = 0; i < dim; i++)
             blockDim[i] = gcd(size[i], maxValues[dim-1]);

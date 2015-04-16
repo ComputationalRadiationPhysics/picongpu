@@ -40,7 +40,7 @@ namespace laserWavepacket
 HINLINE float3_X laserLongitudinal(uint32_t currentStep, float_X& phase)
 {
     float_X envelope = float_X(AMPLITUDE);
-    float3_X elong = float3_X(float_X(0.0), float_X(0.0), float_X(0.0));
+    float3_X elong(float3_X::create(0.0));
 
     // a symmetric pulse will be initialized at position z=0 for
     // a time of RAMP_INIT * PULSE_LENGTH + LASER_NOFOCUS_CONSTANT = INIT_TIME.

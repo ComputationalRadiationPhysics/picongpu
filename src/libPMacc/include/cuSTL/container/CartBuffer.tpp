@@ -44,7 +44,7 @@ namespace detail
         template<typename TCursor>
         HDINLINE math::Size_t<1> operator()(const TCursor& cursor)
         {
-            return math::Size_t<1>((char*)cursor(0, 1).getMarker() - (char*)cursor.getMarker());
+            return math::Size_t<1>(size_t((char*)cursor(0, 1).getMarker() - (char*)cursor.getMarker()));
         }
     };
     template<>
@@ -53,8 +53,8 @@ namespace detail
         template<typename TCursor>
         HDINLINE math::Size_t<2> operator()(const TCursor& cursor)
         {
-            return math::Size_t<2>((char*)cursor(0, 1, 0).getMarker() - (char*)cursor.getMarker(),
-                                     (char*)cursor(0, 0, 1).getMarker() - (char*)cursor.getMarker());
+            return math::Size_t<2>((size_t)((char*)cursor(0, 1, 0).getMarker() - (char*)cursor.getMarker()),
+                                   (size_t)((char*)cursor(0, 0, 1).getMarker() - (char*)cursor.getMarker()));
         }
     };
 
@@ -199,7 +199,7 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::view
 {
     a = (a + (math::Int<T_dim>)this->size()) % (math::Int<T_dim>)this->size();
     b = (b + (math::Int<T_dim>)this->size())
-            % ((math::Int<T_dim>)this->size() + math::Int<T_dim>(1));
+            % ((math::Int<T_dim>)this->size() + math::Int<T_dim>::create(1));
 
     View<CartBuffer<Type, T_dim, Allocator, Copier, Assigner> > result;
 
@@ -228,7 +228,7 @@ cursor::SafeCursor<cursor::BufferCursor<Type, T_dim> >
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::originSafe() const
 {
     return cursor::make_SafeCursor(this->origin(),
-                                   math::Int<T_dim>(0),
+                                   math::Int<T_dim>::create(0),
                                    math::Int<T_dim>(size()));
 }
 
@@ -257,7 +257,7 @@ zone::SphericZone<T_dim>
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::zone() const
 {
     zone::SphericZone<T_dim> myZone;
-    myZone.offset = math::Int<T_dim>(0);
+    myZone.offset = math::Int<T_dim>::create(0);
     myZone.size = this->_size;
     return myZone;
 }

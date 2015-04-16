@@ -87,7 +87,7 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
 
     __syncthreads();
 
-    Set<typename JBox::ValueType > set(float3_X(0.0, 0.0, 0.0));
+    Set<typename JBox::ValueType > set(float3_X::create(0.0));
     ThreadCollective<BlockDescription_, cellsPerSuperCell * workerMultiplier> collectivSet(linearThreadIdx);
     collectivSet(set, cachedJ);
 

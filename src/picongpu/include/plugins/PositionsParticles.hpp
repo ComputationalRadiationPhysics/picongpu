@@ -50,7 +50,7 @@ struct SglParticle
     float_X charge;
     float_X gamma;
 
-    SglParticle() : position(0.0), momentum(0.0), mass(0.0),
+    SglParticle() : position(FloatPos::create(0.0)), momentum(float3_X::create(0.0)), mass(0.0),
         weighting(0.0), charge(0.0), gamma(0.0)
     {
     }

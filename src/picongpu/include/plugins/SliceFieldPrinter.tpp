@@ -133,7 +133,7 @@ void SliceFieldPrinter<Field>::printSlice(const TField& field, int nAxis, float 
     int localPlane = globalPlane % field.size()[nAxis];
     int gpuPlane = globalPlane / field.size()[nAxis];
 
-    vec::Int<3> nVector(0);
+    vec::Int<3> nVector(vec::Int<3>::create(0));
     nVector[nAxis] = 1;
 
     zone::SphericZone<3> gpuGatheringZone(vec::Size_t<3>(gpuDim.x(), gpuDim.y(), gpuDim.z()),

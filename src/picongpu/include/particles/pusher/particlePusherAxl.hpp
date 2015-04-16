@@ -115,7 +115,7 @@ namespace picongpu
                     mom += eField * charge * deltaT;
                 }
 
-                float3_X dr = float3_X( float_X(0.0), float_X(0.0), float_X(0.0) );
+                float3_X dr(float3_X::create(0.0));
 
                 // old spacial change calculation: linear step
                 if( TrajectoryInterpolation == LINEAR )

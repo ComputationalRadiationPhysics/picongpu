@@ -45,11 +45,11 @@ alias(position);
 alias(globalCellIdx);
 
 /** specialization for the relative in-cell position */
-value_identifier(floatD_X,position_pic,floatD_X(0.));
+value_identifier(floatD_X,position_pic,floatD_X::create(0.));
 /** momentum at timestep t */
-value_identifier(float3_X,momentum,float3_X(0.));
+value_identifier(float3_X,momentum,float3_X::create(0.));
 /** momentum at (previous) timestep t-1 */
-value_identifier(float3_X,momentumPrev1,float3_X(0.));
+value_identifier(float3_X,momentumPrev1,float3_X::create(0.));
 /** weighting of the macro particle */
 value_identifier(float_X, weighting, 0.0);
 /** use this particle for radiation diagnostics */
@@ -60,7 +60,7 @@ value_identifier(bool, radiationFlag, false);
  * value type is float_X to avoid casts during the runtime
  * - float is also reasonable because effective charge numbers are possible
  * - only reasonable for ion species if ionization is enabled
- * 
+ *
  * \todo connect default to proton number
  */
 value_identifier(float_X,boundElectrons,float_X(0.0));

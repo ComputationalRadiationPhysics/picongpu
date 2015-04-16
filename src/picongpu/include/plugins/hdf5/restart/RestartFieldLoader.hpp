@@ -55,7 +55,7 @@ public:
         const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(params->currentStep);
         const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
 
-        field.getHostBuffer().setValue(float3_X(0.));
+        field.getHostBuffer().setValue(float3_X::create(0.0));
 
         const std::string name_lookup[] = {"x", "y", "z"};
 

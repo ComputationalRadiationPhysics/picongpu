@@ -216,8 +216,8 @@ private:
          * idx == 1 -> fieldE
          */
         EneVectorType globalFieldEnergy[2];
-        globalFieldEnergy[0]=EneVectorType(0.0);
-        globalFieldEnergy[1]=EneVectorType(0.0);
+        globalFieldEnergy[0]=EneVectorType::create(0.0);
+        globalFieldEnergy[1]=EneVectorType::create(0.0);
 
         EneVectorType localReducedFieldEnergy[2];
         localReducedFieldEnergy[0] = reduceField(fieldB);
