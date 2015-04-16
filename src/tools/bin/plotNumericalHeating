@@ -159,9 +159,9 @@ if numDir == 2:
                 time_limit = i+1
             else:
                 break
-            if time_limit == 0:
-                # if no time step is equal stop program
-                sys.exit("Time steps between sim1 and sim2 differ from start.")
+        if time_limit == 0:
+            # if no time step is equal stop program
+            sys.exit("Time steps between sim1 and sim2 differ from start.")
 elif numDir == 1:
     time_limit = len(Times[0])
 else:
