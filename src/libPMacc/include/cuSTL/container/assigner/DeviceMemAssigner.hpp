@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,61 +20,57 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ASSIGNER_DEVICEMEMASSIGNER_HPP
-#define ASSIGNER_DEVICEMEMASSIGNER_HPP
+#pragma once
 
-#include <stdint.h>
 #include "cuSTL/cursor/BufferCursor.hpp"
 #include "cuSTL/zone/SphericZone.hpp"
-#include "math/vector/Size_t.hpp"
 #include "cuSTL/algorithm/kernel/run-time/Foreach.hpp"
 #include "lambda/Expression.hpp"
-#include "math/Vector.hpp"
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/at.hpp>
+#include "math/vector/Size_t.hpp"
 #include "types.h"
+
 #include <boost/math/common_factor.hpp>
+
 #include <cassert>
+#include <stdint.h>
 
 namespace PMacc
 {
 namespace assigner
 {
 
-namespace mpl = boost::mpl;
-
 template<int T_dim>
 struct DeviceMemAssigner
 {
     static const int dim = T_dim;
-    template<typename Type>
-    static void assign(Type* data, const math::Size_t<dim-1>& pitch, const Type& value,
-                       const math::Size_t<dim>& size)
-    {
 
-        using namespace math;
-        cursor::BufferCursor<Type, dim> cursor(data, pitch);
+    template<typename Type>
+    static void assign(
+        Type* data, 
+        const math::Size_t<dim-1>& pitch, 
+        const Type& value,
+        const math::Size_t<dim>& size)
+    {
         zone::SphericZone<dim> myZone(size);
+        cursor::BufferCursor<Type, dim> cursor(data, pitch);
 
         /* The greatest common divisor of each component of the volume size
-         * and a certain power of two value gives the best suitable block size
-         */
+         * and a certain power of two value gives the best suitable block size */
         boost::math::gcd_evaluator<size_t> gcd; // greatest common divisor
         math::Size_t<3> blockDim(math::Size_t<3>::create(1));
         int maxValues[] = {16, 16, 4}; // maximum values for each dimension
         for(int i = 0; i < dim; i++)
+        {
             blockDim[i] = gcd(size[i], maxValues[dim-1]);
+        }
         /* the maximum number of threads per block for devices with
          * compute capability > 2.0 is 1024 */
-        assert(blockDim.productOfComponents()<=1024);
+        assert(blockDim.productOfComponents() <= 1024);
 
-        using namespace lambda;
         algorithm::kernel::RT::Foreach foreach(blockDim);
-        foreach(myZone, cursor, _1 = value);
+        foreach(myZone, cursor, lambda::_1 = value);
     }
 };
 
 } // assigner
 } // PMacc
-
-#endif // ASSIGNER_DEVICEMEMASSIGNER_HPP

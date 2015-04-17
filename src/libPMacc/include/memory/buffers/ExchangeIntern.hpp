@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2015 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,24 +20,21 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
 
-
-#ifndef _EXCHANGEINTERN_HPP
-#define	_EXCHANGEINTERN_HPP
-
-#include <assert.h>
-
-#include "types.h"
-#include "memory/buffers/Exchange.hpp"
-#include "memory/dataTypes/Mask.hpp"
 #include "dimensions/GridLayout.hpp"
 #include "mappings/simulation/GridController.hpp"
+#include "memory/buffers/Exchange.hpp"
+#include "memory/dataTypes/Mask.hpp"
+#include "memory/buffers/DeviceBufferIntern.hpp"
+#include "memory/buffers/HostBufferIntern.hpp"
 
 #include "eventSystem/tasks/Factory.hpp"
 #include "eventSystem/tasks/TaskReceive.hpp"
 
-#include "memory/buffers/DeviceBufferIntern.hpp"
-#include "memory/buffers/HostBufferIntern.hpp"
+#include "types.h"
+
+#include <cassert>
 
 namespace PMacc
 {
@@ -241,6 +238,3 @@ namespace PMacc
     };
 
 }
-
-#endif	/* _EXCHANGEINTERN_HPP */
-

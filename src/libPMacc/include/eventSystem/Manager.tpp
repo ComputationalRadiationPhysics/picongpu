@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Felix Schmitt, Rene Widera
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,14 +20,15 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "eventSystem/streams/StreamController.hpp"
+#include "eventSystem/EventSystem.hpp"
+#include "eventSystem/Manager.hpp"
+
+#include <cstdlib>
+#include <cstdio>
 #include <set>
 #include <iostream>
 
-#include "eventSystem/EventSystem.hpp"
-#include "eventSystem/streams/StreamController.hpp"
-#include "eventSystem/Manager.hpp"
-#include <stdlib.h>
-#include <stdio.h>
 //#define DEBUG_EVENTS
 
 namespace PMacc
@@ -203,7 +204,7 @@ inline EventPool& Manager::getEventPool( )
     return *eventPool;
 }
 
-inline int Manager::getCount( )
+inline std::size_t Manager::getCount( )
 {
     for ( TaskMap::iterator iter = tasks.begin( ); iter != tasks.end( ); ++iter )
     {

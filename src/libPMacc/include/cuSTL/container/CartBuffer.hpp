@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,22 +20,23 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CONTAINER_CARTBUFFER_HPP
-#define CONTAINER_CARTBUFFER_HPP
+#pragma once
 
-#include <stdint.h>
-#include "types.h"
-#include "math/vector/Size_t.hpp"
-#include "math/vector/UInt32.hpp"
+#include "allocator/EmptyAllocator.hpp"
 #include "cuSTL/cursor/BufferCursor.hpp"
 #include "cuSTL/cursor/navigator/CartNavigator.hpp"
 #include "cuSTL/cursor/accessor/PointerAccessor.hpp"
 #include "cuSTL/cursor/SafeCursor.hpp"
 #include "cuSTL/zone/SphericZone.hpp"
-#include "allocator/EmptyAllocator.hpp"
+#include "cuSTL/container/view/View.hpp"
+#include "math/vector/Size_t.hpp"
+#include "math/vector/UInt32.hpp"
+#include "types.h"
+
 #include <boost/mpl/void.hpp>
 #include <boost/move/move.hpp>
-#include "cuSTL/container/view/View.hpp"
+
+#include <stdint.h>
 
 namespace PMacc
 {
@@ -129,5 +130,3 @@ public:
 } // PMacc
 
 #include "CartBuffer.tpp"
-
-#endif // CONTAINER_CARTBUFFER_HPP

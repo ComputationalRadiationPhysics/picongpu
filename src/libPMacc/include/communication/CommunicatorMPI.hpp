@@ -1,5 +1,6 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera, Wolfgang Hoenig
+ * Copyright 2013-2015 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera, 
+ *                     Wolfgang Hoenig, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,20 +21,19 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _COMMUNICATORMPI_HPP
-#define	_COMMUNICATORMPI_HPP
-
-#include <mpi.h>
-#include <vector>
-#include <utility>
-#include <map>
-
-#include "types.h"
-#include "memory/dataTypes/Mask.hpp"
-#include "dimensions/DataSpace.hpp"
+#pragma once
 
 #include "communication/ICommunicator.hpp"
 #include "communication/manager_common.h"
+#include "dimensions/DataSpace.hpp"
+#include "memory/dataTypes/Mask.hpp"
+#include "types.h"
+
+#include <mpi.h>
+
+#include <vector>
+#include <utility>
+#include <map>
 
 namespace PMacc
 {
@@ -71,7 +71,6 @@ public:
         return mpiSize;
     }
 
-
     MPI_Comm getMPIComm() const
     {
         return topology;
@@ -89,7 +88,7 @@ public:
      *
      * \warning throws invalid argument if cx*cy*cz != totalnodes
      */
-    void init(DataSpace<DIM3> numberProcesses, DataSpace<DIM3> periodic) throw (std::invalid_argument)
+    void init(DataSpace<DIM3> numberProcesses, DataSpace<DIM3> periodic)
     {
         this->periodic = periodic;
 
@@ -393,8 +392,6 @@ protected:
         return ranks[type];
     }
 
-
-
 private:
     //! coordinates in GPU-Grid [0:cx-1,0:cy-1,0:cz-1]
     DataSpace<DIM> coordinates;
@@ -417,8 +414,4 @@ private:
     int mpiSize;
 };
 
-
 } //namespace PMacc
-
-#endif	/* _COMMUNICATORMPI_HPP */
-

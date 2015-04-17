@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2015 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,12 +20,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <set>
-
-#include "types.h"
 #include "eventSystem/events/EventNotify.hpp"
 #include "eventSystem/events/IEventData.hpp"
+#include "eventSystem/events/IEvent.hpp"
+#include "types.h"
 
+#include <set>
 
 namespace PMacc
 {
@@ -53,6 +53,3 @@ namespace PMacc
         }
 
 } //namespace PMacc
-
-
-

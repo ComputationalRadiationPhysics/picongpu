@@ -1,5 +1,6 @@
 /**
- * Copyright 2013 Felix Schmitt, Heiko Burau, Rene Widera, Wolfgang Hoenig
+ * Copyright 2013-2015 Felix Schmitt, Heiko Burau, Rene Widera, 
+ *                     Wolfgang Hoenig, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -22,15 +23,8 @@
 
 #pragma once
 
-#include <cassert>
-#include <stdexcept>
-#include <stdio.h>
-#include <math.h>
-#include <iostream>
-
-#include "types.h"
 #include "math/Vector.hpp"
-
+#include "types.h"
 
 namespace PMacc
 {
@@ -122,7 +116,7 @@ namespace PMacc
         }
 
         /**
-         * Give DataSpace were all dimensions set to init value
+         * Give DataSpace where all dimensions set to init value
          *
          * @param value value which is setfor all dimensions
          * @return the new DataSpace
@@ -162,8 +156,6 @@ namespace PMacc
             }
             return false;
         }
-
-
 
         HDINLINE operator math::Size_t<DIM>() const
         {

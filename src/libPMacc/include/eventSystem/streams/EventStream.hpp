@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, Rene Widera
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,11 +20,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include <cuda_runtime.h>
 #include "eventSystem/events/CudaEvent.hpp"
+#include "types.h"
+
+#include <cuda_runtime.h>
 
 namespace PMacc
 {

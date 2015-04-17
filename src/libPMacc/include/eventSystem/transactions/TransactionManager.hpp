@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, Rene Widera
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -22,9 +22,10 @@
 
 #pragma once
 
-#include <stack>
 #include "eventSystem/EventSystem.hpp"
 #include "eventSystem/transactions/Transaction.hpp"
+
+#include <stack>
 
 namespace PMacc
 {

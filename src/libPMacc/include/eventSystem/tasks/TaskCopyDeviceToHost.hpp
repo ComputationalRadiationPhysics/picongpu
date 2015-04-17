@@ -1,5 +1,6 @@
 /**
- * Copyright 2013 Felix Schmitt, Rene Widera, Wolfgang Hoenig
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Wolfgang Hoenig, 
+ *                     Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,17 +21,15 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _TASKCOPYDEVICETOHOST_HPP
-#define	_TASKCOPYDEVICETOHOST_HPP
-
-
-#include <cuda_runtime_api.h>
-#include <iomanip>
+#pragma once
 
 #include "eventSystem/EventSystem.hpp"
 #include "eventSystem/streams/EventStream.hpp"
 #include "eventSystem/tasks/StreamTask.hpp"
 
+#include <cuda_runtime_api.h>
+
+#include <iomanip>
 
 namespace PMacc
 {
@@ -205,7 +204,3 @@ namespace PMacc
     };
 
 } //namespace PMacc
-
-
-#endif	/* _TASKCOPYDEVICETOHOST_HPP */
-

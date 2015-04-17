@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, Rene Widera
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,14 +20,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef KERNELEVENTS_H
-#define KERNELEVENTS_H
+#pragma once
 
-#include "types.h"
-#include "ppFunctions.hpp"
-#include <boost/preprocessor/control/if.hpp>
 #include "dimensions/DataSpace.hpp"
 #include "eventSystem/EventSystem.hpp"
+#include "ppFunctions.hpp"
+#include "types.h"
+
+#include <boost/preprocessor/control/if.hpp>
 
 namespace PMacc
 {
@@ -84,7 +84,3 @@ namespace PMacc
     kernelname PMACC_CUDAKERNELCONFIG
 
 }
-
-
-#endif //KERNELEVENTS_H
-

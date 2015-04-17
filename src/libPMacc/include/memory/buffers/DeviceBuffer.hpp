@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,24 +20,19 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
 
-#ifndef _DEVICEBUFFER_HPP
-#define	_DEVICEBUFFER_HPP
+#include <cuSTL/container/view/View.hpp>
+#include <cuSTL/container/DeviceBuffer.hpp>
+#include <math/vector/Int.hpp>
+#include <math/vector/Size_t.hpp>
+#include <memory/buffers/Buffer.hpp>
+#include <types.h>
 
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
+
 #include <stdexcept>
-
-
-#include "memory/buffers/Buffer.hpp"
-
-
-#include <cuSTL/container/DeviceBuffer.hpp>
-#include <types.h>
-#include <math/vector/Int.hpp>
-#include <math/vector/Size_t.hpp>
-#include "cuSTL/container/view/View.hpp"
-
 
 namespace PMacc
 {
@@ -170,6 +165,3 @@ namespace PMacc
     };
 
 } //namespace PMacc
-
-
-#endif	/* _DEVICEBUFFER_HPP */

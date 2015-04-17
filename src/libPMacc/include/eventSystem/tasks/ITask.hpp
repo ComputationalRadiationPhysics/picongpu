@@ -1,5 +1,6 @@
 /**
- * Copyright 2013 Felix Schmitt, Rene Widera, Wolfgang Hoenig
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Wolfgang Hoenig, 
+ *                     Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,18 +21,15 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#ifndef _ITASK_HPP
-#define	_ITASK_HPP
-
-#include <iostream>
-#include <typeinfo>
-#include <set>
-#include <cassert>
+#pragma once
 
 #include "eventSystem/events/EventNotify.hpp"
 #include "eventSystem/events/IEvent.hpp"
 #include "types.h"
+
+#include <string>
+#include <set>
+#include <cassert>
 
 namespace PMacc
 {
@@ -76,7 +74,7 @@ namespace PMacc
         }
 
         /**
-         * Initialises the task.
+         * Initializes the task.
          * Must be called before adding the task to the Manager's queue.
          */
         virtual void init()=0;
@@ -126,6 +124,3 @@ namespace PMacc
     };
 
 } //namespace PMacc
-
-#endif	/* _ITASK_HPP */
-

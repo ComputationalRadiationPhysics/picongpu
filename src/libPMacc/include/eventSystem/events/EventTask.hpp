@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2015 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,15 +20,11 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
 
-#ifndef _EVENTTASK_HPP
-#define	_EVENTTASK_HPP
+#include "types.h"
 
-
-#include <set>
-#include "eventSystem/tasks/ITask.hpp"
-
-
+#include <string>
 
 namespace PMacc
 {
@@ -110,5 +106,3 @@ namespace PMacc
 } //namespace PMacc
 
 
-
-#endif	/* _EVENTTASK_HPP */

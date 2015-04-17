@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, Rene Widera
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,19 +20,16 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#ifndef _TASKSETCURRENTSIZEONDEVICE_HPP
-#define _TASKSETCURRENTSIZEONDEVICE_HPP
-
-#include <cuda_runtime_api.h>
-#include <cuda.h>
-
-#include "dimensions/DataSpace.hpp"
+#pragma once
 
 #include "eventSystem/EventSystem.hpp"
 #include "eventSystem/streams/EventStream.hpp"
 #include "eventSystem/tasks/StreamTask.hpp"
 #include "eventSystem/events/kernelEvents.hpp"
+#include "dimensions/DataSpace.hpp"
+
+#include <cuda_runtime_api.h>
+#include <cuda.h>
 
 __global__ void kernelSetValueOnDeviceMemory(size_t* pointer, const size_t size)
 {
@@ -97,7 +94,4 @@ private:
 };
 
 } //namespace PMacc
-
-
-#endif	/* _TASKSETCURRENTSIZEONDEVICE_HPP */
 

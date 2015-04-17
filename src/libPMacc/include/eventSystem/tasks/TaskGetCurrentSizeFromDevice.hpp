@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, Rene Widera
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,19 +20,16 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _TASKGETCURRENTSIZEFROMDEVICE_HPP
-#define _TASKGETCURRENTSIZEFROMDEVICE_HPP
-
-#include <cuda_runtime_api.h>
-#include <cuda.h>
-
-
-#include "dimensions/DataSpace.hpp"
-#include "types.h"
+#pragma once
 
 #include "eventSystem/EventSystem.hpp"
 #include "eventSystem/streams/EventStream.hpp"
 #include "eventSystem/tasks/StreamTask.hpp"
+#include "dimensions/DataSpace.hpp"
+#include "types.h"
+
+#include <cuda_runtime_api.h>
+#include <cuda.h>
 
 namespace PMacc
 {
@@ -87,7 +84,3 @@ private:
 };
 
 } //namespace PMacc
-
-
-#endif	/* _TASKGETCURRENTSIZEFROMDEVICE_HPP */
-

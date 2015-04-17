@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2015 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,16 +20,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#ifndef _HOSTBUFFERINTERN_HPP
-#define	_HOSTBUFFERINTERN_HPP
-
-#include <cassert>
+#pragma once
 
 #include "memory/buffers/Buffer.hpp"
+#include "eventSystem/tasks/Factory.hpp"
 #include "eventSystem/EventSystem.hpp"
 
-#include "eventSystem/tasks/Factory.hpp"
+#include <cassert>
 
 namespace PMacc
 {
@@ -129,6 +126,3 @@ private:
 };
 
 }
-
-#endif	/* _HOSTBUFFERINTERN_HPP */
-

@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Maximilian Knespel
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, 
+ *                     Maximilian Knespel, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -19,19 +20,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
 
-#ifndef GATHERSLICE_HPP
-#define	GATHERSLICE_HPP
-
-#include "types.h"
-
-
-#include <mpi.h>
 #include "mappings/simulation/GridController.hpp"
-
-//c includes
 #include "memory/boxes/PitchedBox.hpp"
 #include "dimensions/DataSpace.hpp"
+#include "types.h"                                  // DIM*
+
+#include <mpi.h>
 
 namespace gol
 {
@@ -227,5 +223,4 @@ private:
 
 }//namespace
 
-#endif	/* GATHERSLICE_HPP */
 

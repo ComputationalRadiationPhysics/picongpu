@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, Rene Widera
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -19,9 +19,10 @@
  * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
+ 
+#include "eventSystem/EventSystem.hpp"
 
 #include <cassert>
-#include "eventSystem/EventSystem.hpp"
 
 namespace PMacc
 {

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, Rene Widera
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -23,8 +23,10 @@
 
 #pragma once
 
-#include "types.h"
 #include "eventSystem/events/CudaEvent.hpp"
+#include "debug/VerboseLog.hpp"
+#include "types.h"
+
 #include <vector>
 
 namespace PMacc

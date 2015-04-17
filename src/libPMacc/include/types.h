@@ -1,5 +1,6 @@
 /**
- * Copyright 2013 Felix Schmitt, Heiko Burau, Rene Widera, Wolfgang Hoenig
+ * Copyright 2013-2015 Felix Schmitt, Heiko Burau, Rene Widera, 
+ *                     Wolfgang Hoenig, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -22,21 +23,20 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <builtin_types.h>
-#include <cuda_runtime.h>
-#include <cuda.h>
-#include <stdexcept>
-
-#include <boost/typeof/std/utility.hpp>
 #include "debug/PMaccVerbose.hpp"
-#include <boost/mpl/placeholders.hpp>
-#include <boost/filesystem.hpp>
 
 #define BOOST_MPL_LIMIT_VECTOR_SIZE 20
 #define BOOST_MPL_LIMIT_MAP_SIZE 20
+#include <boost/typeof/std/utility.hpp>
+#include <boost/mpl/placeholders.hpp>
+#include <boost/filesystem.hpp>
 
+#include <builtin_types.h>
+#include <cuda_runtime.h>
+#include <cuda.h>
 
+#include <stdint.h>
+#include <stdexcept>
 
 #define PMACC_AUTO_TPL(var,...) BOOST_AUTO_TPL(var,(__VA_ARGS__))
 #define PMACC_AUTO(var,...) BOOST_AUTO(var,(__VA_ARGS__))

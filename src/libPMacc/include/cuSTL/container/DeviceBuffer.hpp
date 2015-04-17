@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CONTAINER_DEVICEBUFFER_HPP
-#define CONTAINER_DEVICEBUFFER_HPP
+#pragma once
 
 #include <cuSTL/container/allocator/DeviceMemAllocator.hpp>
 #include <cuSTL/container/copier/D2DCopier.hpp>
@@ -93,5 +92,3 @@ public:
 
 } // container
 } // PMacc
-
-#endif // CONTAINER_DEVICEBUFFER_HPP

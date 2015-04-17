@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2015 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -30,15 +30,12 @@ namespace PMacc
 {
 
     inline EventTask::EventTask(id_t taskId) :
-    taskId(taskId)
-    {
-    }
+        taskId(taskId)
+    {}
 
     inline EventTask::EventTask() :
-    taskId(0)
-    {
-
-    }
+        taskId(0)
+    {}
 
     inline std::string EventTask::toString()
     {
@@ -107,8 +104,5 @@ namespace PMacc
         return *this;
     }
 
-
-
 }
-
 

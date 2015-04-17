@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, Rene Widera
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,13 +20,9 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#ifndef TRANSACTION_HPP
-#define    TRANSACTION_HPP
+#pragma once
 
 #include "eventSystem/EventSystem.hpp"
-
-
 
 namespace PMacc
 {
@@ -83,7 +79,4 @@ private:
 };
 
 }
-
-
-#endif    /* TRANSACTION_HPP */
 

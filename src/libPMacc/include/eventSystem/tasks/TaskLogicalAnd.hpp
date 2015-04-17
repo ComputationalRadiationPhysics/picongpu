@@ -1,5 +1,6 @@
 /**
- * Copyright 2013 Felix Schmitt, Rene Widera, Wolfgang Hoenig
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Wolfgang Hoenig, 
+ *                     Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -21,15 +22,11 @@
  */
 
 
-#ifndef _TASKLOGICALAND_HPP
-#define	_TASKLOGICALAND_HPP
+#pragma once
 
 #include "eventSystem/tasks/ITask.hpp"
 #include "eventSystem/tasks/StreamTask.hpp"
 #include "eventSystem/EventSystem.hpp"
-#include <exception>
-
-#include <set>
 
 namespace PMacc
 {
@@ -152,6 +149,4 @@ namespace PMacc
     };
 
 } //namespace PMacc
-
-#endif	/* _TASKLOGICALAND_HPP */
 

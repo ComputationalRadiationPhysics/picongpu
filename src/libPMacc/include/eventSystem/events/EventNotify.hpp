@@ -1,5 +1,6 @@
 /**
- * Copyright 2013 Felix Schmitt, Rene Widera, Wolfgang Hoenig
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Wolfgang Hoenig, 
+ *                     Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,20 +21,18 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#ifndef _EVENTNOTIFY_HPP
-#define	_EVENTNOTIFY_HPP
+#pragma once
 
 #include <set>
+
 #include "types.h"
-#include "eventSystem/events/IEvent.hpp"
-
-
 
 namespace PMacc
 {
 
     class IEventData;
+    class IEvent;
+
     /**
      * Implements an observable.
      */
@@ -77,7 +76,4 @@ namespace PMacc
     };
 
 } //namespace PMacc
-
-
-#endif	/* _EVENTNOTIFY_HPP */
 
