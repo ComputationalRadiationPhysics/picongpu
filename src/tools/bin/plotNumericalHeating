@@ -175,7 +175,7 @@ startEnergy = Energies[:][0]
 
 # choose normalization
 if args.boolRelative:
-    norm = 100. / startEnergy # relative to startEnergy in percent
+    norm = 100. / startEnergy[0] # relative to startEnergy in percent
 else:
     norm = 1.0 # absolute values
 
