@@ -19,9 +19,7 @@
  */
 
 
-
-#ifndef YEE_CURL_HPP
-#define	YEE_CURL_HPP
+#pragma once
 
 #include "types.h"
 
@@ -29,25 +27,25 @@ namespace picongpu
 {
 namespace yeeSolver
 {
-    using namespace PMacc;
+using namespace PMacc;
 
-    template<class Difference>
-    struct Curl
+template<class Difference>
+struct Curl
+{
+    typedef typename Difference::OffsetOrigin LowerMargin;
+    typedef typename Difference::OffsetEnd UpperMargin;
+
+    template<class Memory >
+    HDINLINE typename Memory::ValueType operator()(const Memory & mem) const
     {
-        typedef typename Difference::OffsetOrigin LowerMargin;
-        typedef typename Difference::OffsetEnd UpperMargin;
+        const typename Difference::template GetDifference<0> Dx;
+        const typename Difference::template GetDifference<1> Dy;
+        const typename Difference::template GetDifference<2> Dz;
 
-        template<class Memory >
-        HDINLINE typename Memory::ValueType operator()(const Memory & mem) const
-        {
-            Difference diff;
-            return float3_X(diff(mem, 1).z() - diff(mem, 2).y(),
-                               diff(mem, 2).x() - diff(mem, 0).z(),
-                               diff(mem, 0).y() - diff(mem, 1).x());
-        }
-    };
+        return float3_X(Dy(mem).z() - Dz(mem).y(),
+                        Dz(mem).x() - Dx(mem).z(),
+                        Dx(mem).y() - Dy(mem).x());
+    }
+};
 } // namespace yeeSolver
 } // namespace picongpu
-
-#endif	/* YEE_CURL_HPP */
-
