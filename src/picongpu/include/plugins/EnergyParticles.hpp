@@ -178,10 +178,10 @@ private:
 
 public:
 
-    EnergyParticles(std::string name, std::string prefix) :
-    analyzerName(name),
-    analyzerPrefix(prefix),
-    filename(name + ".dat"),
+    EnergyParticles() :
+    analyzerName("EnergyParticles: calculate the energy of a species"),
+    analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_energy")),
+    filename(analyzerPrefix + ".dat"),
     particles(NULL),
     gEnergy(NULL),
     cellDescription(NULL),

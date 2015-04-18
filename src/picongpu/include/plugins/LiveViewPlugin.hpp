@@ -53,9 +53,9 @@ namespace picongpu
         typedef Visualisation<ParticlesType, LiveViewClient> VisType;
         typedef std::list<VisType*> VisPointerList;
 
-        LiveViewPlugin(std::string name, std::string prefix) :
-        analyzerName(name),
-        analyzerPrefix(prefix),
+        LiveViewPlugin() :
+        analyzerName("LiveViewPlugin: 2D (plane) insitu live visualisation of a species"),
+        analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_liveView")),
         cellDescription(NULL)
         {
             Environment<>::get().PluginConnector().registerPlugin(this);

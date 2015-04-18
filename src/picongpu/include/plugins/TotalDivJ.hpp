@@ -38,7 +38,7 @@ private:
 
     void pluginLoad();
 public:
-    TotalDivJ(std::string name, std::string prefix);
+    TotalDivJ();
     virtual ~TotalDivJ() {}
 
     void notify(uint32_t currentStep);

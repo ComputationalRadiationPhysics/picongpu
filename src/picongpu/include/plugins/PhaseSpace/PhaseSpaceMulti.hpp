@@ -70,7 +70,7 @@ namespace picongpu
         void pluginUnload();
 
     public:
-        PhaseSpaceMulti( const std::string _name, const std::string _prefix );
+        PhaseSpaceMulti( );
         virtual ~PhaseSpaceMulti() {}
 
         void notify( uint32_t ) {}

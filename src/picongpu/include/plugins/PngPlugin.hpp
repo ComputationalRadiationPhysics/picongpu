@@ -54,9 +54,9 @@ namespace picongpu
         typedef VisClass VisType;
         typedef std::list<VisType*> VisPointerList;
 
-        PngPlugin(std::string name, std::string prefix) :
-        analyzerName(name),
-        analyzerPrefix(prefix),
+        PngPlugin() :
+        analyzerName("PngPlugin: create png's of a species and fields"),
+        analyzerPrefix(VisType::FrameType::getName() + "_" + VisClass::CreatorType::getName()),
         cellDescription(NULL)
         {
             Environment<>::get().PluginConnector().registerPlugin(this);
@@ -112,7 +112,7 @@ namespace picongpu
                                 {
                                     folders.push_back(std::string("."));
                                 }
-                                std::string filename(analyzerName + "_" + getValue(axis, i) + "_" + o_slicePoint.str());
+                                std::string filename(analyzerPrefix + "_" + getValue(axis, i) + "_" + o_slicePoint.str());
                                 typename VisType::CreatorType pngCreator(filename, getValue(folders, i));
                                 /** \todo rename me: transpose is the wrong name `swivel` is better
                                  *

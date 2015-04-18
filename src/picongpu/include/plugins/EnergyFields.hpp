@@ -103,13 +103,13 @@ private:
 
 public:
 
-    EnergyFields(std::string name, std::string prefix) :
+    EnergyFields() :
     fieldE(NULL),
     fieldB(NULL),
     cellDescription(NULL),
-    analyzerName(name),
-    analyzerPrefix(prefix),
-    filename(name + ".dat"),
+    analyzerName("EnergyFields: calculate the energy of the fields"),
+    analyzerPrefix(std::string("fields_energy")),
+    filename(analyzerPrefix + ".dat"),
     notifyFrequency(0),
     writeToFile(false),
     localReduce(NULL)

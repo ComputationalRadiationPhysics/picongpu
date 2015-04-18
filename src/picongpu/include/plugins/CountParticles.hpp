@@ -71,10 +71,10 @@ private:
     mpi::MPIReduce reduce;
 public:
 
-    CountParticles(std::string name, std::string prefix) :
-    analyzerName(name),
-    analyzerPrefix(prefix),
-    filename(name + ".dat"),
+    CountParticles() :
+    analyzerName("CountParticles: count macro particles of a species"),
+    analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_macroParticlesCount")),
+    filename(analyzerPrefix + ".dat"),
     particles(NULL),
     cellDescription(NULL),
     notifyPeriod(0),

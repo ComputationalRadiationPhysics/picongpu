@@ -56,6 +56,11 @@ namespace picongpu
         {
         }
 
+        static std::string getName()
+        {
+            return std::string("png");
+        }
+
         ~PngCreator()
         {
         }

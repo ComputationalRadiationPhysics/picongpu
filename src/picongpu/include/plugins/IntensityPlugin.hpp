@@ -137,9 +137,9 @@ public:
      * max is only the SI  value of the amplitude (V/m)
      * integrated is the integral of amplidude of X and Z on Y position (is V/m in cell volume)
      */
-    IntensityPlugin(std::string name, std::string prefix) :
-    analyzerName(name),
-    analyzerPrefix(prefix),
+    IntensityPlugin() :
+    analyzerName("IntensityPlugin: calculate the maximum and integrated E-Field energy\nover laser propagation direction"),
+    analyzerPrefix(FieldE::getName() + std::string("_intensity")),
     localMaxIntensity(NULL),
     localIntegratedIntensity(NULL),
     cellDescription(NULL),
@@ -191,8 +191,8 @@ private:
 
             if (writeToFile)
             {
-                createFile(analyzerName + "_max.dat", outFileMax);
-                createFile(analyzerName + "_integrated.dat", outFileIntegrated);
+                createFile(analyzerPrefix + "_max.dat", outFileMax);
+                createFile(analyzerPrefix + "_integrated.dat", outFileIntegrated);
             }
 
             Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);

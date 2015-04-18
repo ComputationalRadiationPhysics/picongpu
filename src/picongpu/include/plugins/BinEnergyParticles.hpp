@@ -158,7 +158,7 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
                                       (maxEnergy - minEnergy) * (float) numBins) + 1;
 
                 const int maxBin = numBins + 1;
-                
+
                 /* all entries larger than maxEnergy go into bin maxBin */
                 binNumber = binNumber < maxBin ? binNumber : maxBin;
 
@@ -232,10 +232,10 @@ private:
 
 public:
 
-    BinEnergyParticles(std::string name, std::string prefix) :
-    analyzerName(name),
-    analyzerPrefix(prefix),
-    filename(name + ".dat"),
+    BinEnergyParticles() :
+    analyzerName("BinEnergyParticles: calculate a energy histogram of a species"),
+    analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_energyHistogram")),
+    filename(analyzerPrefix + ".dat"),
     particles(NULL),
     gBins(NULL),
     cellDescription(NULL),
