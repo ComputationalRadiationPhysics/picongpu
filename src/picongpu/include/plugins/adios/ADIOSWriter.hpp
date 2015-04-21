@@ -61,6 +61,9 @@
 #include <boost/filesystem.hpp>
 
 #include <boost/type_traits.hpp>
+#if !defined(_WIN32)
+#include <unistd.h>
+#endif
 
 #include "plugins/adios/WriteSpecies.hpp"
 #include "plugins/adios/ADIOSCountParticles.hpp"
@@ -492,7 +495,9 @@ public:
         if (!boost::filesystem::exists(strFname.str()))
             throw std::runtime_error("ADIOS: File does not exist.");
 
-        float timeout = 0.0f; // 0 sec: wait forever
+        /* <0 sec: wait forever
+         * >=0 sec: return immediately if stream is not available */
+        float timeout = 0.0f;
         mThreadParams.fp = adios_read_open(strFname.str().c_str(),
                         ADIOS_READ_METHOD_BP, mThreadParams.adiosComm,
                         ADIOS_LOCKMODE_CURRENT, timeout);
@@ -501,6 +506,10 @@ public:
         while (adios_errno == err_file_not_found)
         {
             /** \todo add c++11 platform independent sleep */
+#if !defined(_WIN32)
+            /* give the file system 1s of peace and quiet */
+            usleep(1e6);
+#endif
             mThreadParams.fp = adios_read_open(strFname.str().c_str(),
                         ADIOS_READ_METHOD_BP, mThreadParams.adiosComm,
                         ADIOS_LOCKMODE_CURRENT, timeout);
