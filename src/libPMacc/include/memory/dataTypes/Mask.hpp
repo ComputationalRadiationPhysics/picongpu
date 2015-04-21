@@ -243,7 +243,7 @@ namespace PMacc
 
             for( uint32_t d = 0; d < DIM; ++d )
             {
-                const uint32_t dim_direction = direction % 3;
+                const int dim_direction(direction % 3);
                 tmp[d] = (dim_direction == 2 ? -1 : dim_direction);
                 direction /= 3;
             }
