@@ -79,7 +79,6 @@ struct IonizeParticlesPerFrame
         typedef typename T_EBox::ValueType EType;
 
         PMACC_AUTO(particle,ionFrame[localIdx]);
-        const float_X weighting = particle[weighting_];
         
         floatD_X pos = particle[position_];
         const int particleCellIdx = particle[localCellIdx_];
@@ -92,9 +91,6 @@ struct IonizeParticlesPerFrame
         
         BType bField =Field2ParticleInterpolation()
             (bBox.shift(localCell).toCursor(), pos, NumericalCellType::getBFieldPosition());
-
-        float3_X mom = particle[momentum_];
-        const float_X mass = attribute::getMass(weighting,particle);
         
         /* define number of bound macro electrons before ionization */
         float_X prevBoundElectrons = particle[boundElectrons_];
@@ -106,12 +102,10 @@ struct IonizeParticlesPerFrame
              particle
              );
         
-        particle[momentum_] = mom;
-        particle[position_] = pos;
         /* determine number of new macro electrons to be created */
         newMacroElectrons = prevBoundElectrons - particle[boundElectrons_];
         /*calculate one dimensional cell index*/
-        particle[localCellIdx_] = DataSpaceOperations<TVec::dim>::template map<TVec > (localCell);
+
     }
 }; // struct IonizeParticlesPerFrame
 
