@@ -122,6 +122,8 @@ struct EsirkepovNative
                 for (int k = begin; k < end; ++k)
                 {
                     float_X W = DS(line, k, 3) * tmp;
+                    /* We multiply with `cellEdgeLength` due to the fact that the attribute for the
+                     * in-cell particle `position` (and it's change in DELTA_T) is normalize to [0,1) */
                     accumulated_J += -this->charge * (float_X(1.0) / float_X(CELL_VOLUME * DELTA_T)) * W * cellEdgeLength;
                     atomicAddWrapper(&((*cursorJ(i, j, k)).z()), accumulated_J);
                 }

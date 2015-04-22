@@ -158,6 +158,8 @@ struct Esirkepov<T_ParticleShape, DIM2>
             for (int i = begin + offset_i; i < end + offset_i; ++i)
             {
                 float_X W = DS(line, i, 0) * tmp;
+                /* We multiply with `cellEdgeLength` due to the fact that the attribute for the
+                 * in-cell particle `position` (and it's change in DELTA_T) is normalize to [0,1) */
                 accumulated_J += -this->charge * (float_X(1.0) / float_X(CELL_VOLUME * DELTA_T)) * W * cellEdgeLength;
                 /* the branch divergence here still over-compensates for the fewer collisions in the (expensive) atomic adds */
                 if (accumulated_J != float_X(0.0))
