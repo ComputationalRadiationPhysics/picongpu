@@ -610,7 +610,6 @@ private:
       splash::DataCollector::initFileCreationAttr(fAttr);
 
       fAttr.fileAccType = splash::DataCollector::FAT_READ;
-      fAttr.enableCompression = compressionOn;
 
       std::ostringstream filename;
       /* add to standard ending added by libSpash for SerialDataCollector */
