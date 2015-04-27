@@ -127,6 +127,7 @@ private:
     std::string pathRestart;
 
     mpi::MPIReduce reduce;
+    bool compressionOn;
 
 public:
 
@@ -146,7 +147,8 @@ public:
     isMaster(false),
     currentStep(0),
     radPerGPU(false),
-    lastStep(0)
+    lastStep(0),
+    compressionOn(false)
     {
         Environment<>::get().PluginConnector().registerPlugin(this);
     }
@@ -201,7 +203,8 @@ public:
             ((analyzerPrefix + ".end").c_str(), po::value<uint32_t > (&radEnd)->default_value(0), "time index when radiation should end with calculation")
             ((analyzerPrefix + ".omegaList").c_str(), po::value<std::string > (&pathOmegaList)->default_value("_noPath_"), "path to file containing all frequencies to calculate")
             ((analyzerPrefix + ".radPerGPU").c_str(), po::value<bool > (&radPerGPU)->default_value(false), "enable(1)/disable(0) radiation output from each GPU individually")
-          ((analyzerPrefix + ".folderRadPerGPU").c_str(), po::value<std::string > (&folderRadPerGPU)->default_value("radPerGPU"), "folder in which the radiation of each GPU is written");
+            ((analyzerPrefix + ".folderRadPerGPU").c_str(), po::value<std::string > (&folderRadPerGPU)->default_value("radPerGPU"), "folder in which the radiation of each GPU is written")
+            ((analyzerPrefix + ".compression").c_str(), po::value<bool > (&compressionOn)->default_value(false), "enable(1)/disable(0) compression of hdf5 output");
     }
 
 
@@ -532,6 +535,7 @@ private:
       splash::DataCollector::FileCreationAttr fAttr;
 
       splash::DataCollector::initFileCreationAttr(fAttr);
+      fAttr.enableCompression = compressionOn;
 
       std::ostringstream filename;
       filename << name << currentStep;
