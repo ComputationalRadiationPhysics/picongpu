@@ -54,7 +54,7 @@ namespace twts
                     const float_X phi,
                     const float_X beta_0,
                     const float_64 tdelay_user_SI,
-                    const bool auto_tdelay
+                    const bool auto_tdelay,
                     const PolarizationType pol ) :
         focus_y_SI(focus_y_SI), wavelength_SI(wavelength_SI),
         pulselength_SI(pulselength_SI), w_x_SI(w_x_SI),

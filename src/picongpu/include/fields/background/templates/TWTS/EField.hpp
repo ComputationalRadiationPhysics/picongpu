@@ -110,7 +110,7 @@ public:
             const float_X phi               = 90.*(PI / 180.),
             const float_X beta_0            = 1.0,
             const float_64 tdelay_user_SI   = 0.0,
-            const bool auto_tdelay          = true
+            const bool auto_tdelay          = true,
             const PolarizationType pol      = NORMAL_TO_TILTPLANE );
 
     /** Specify your background field E(r,t) here
@@ -148,6 +148,16 @@ public:
     template <unsigned T_dim>
     HDINLINE float3_X
     getTWTSEfield_Normalized(
+            const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
+            const float_64 time) const;
+
+    /** Calculate the E-field vector of the "in-plane polarized" TWTS laser in SI units.
+     * \tparam T_dim Specializes for the simulation dimension
+     * \param cellIdx The total cell id counted from the start at timestep 0
+     * \return Efield vector of the rotated TWTS field in SI units */
+    template <unsigned T_dim>
+    HDINLINE float3_X
+    getTWTSEfield_Normalized_Ey(
             const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
             const float_64 time) const;
     
