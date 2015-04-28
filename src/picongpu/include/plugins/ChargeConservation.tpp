@@ -66,8 +66,11 @@ void ChargeConservation<Species>::pluginLoad()
     Environment<>::get().PluginConnector().setNotificationPeriod(this, this->notifyFrequency);
 }
 
+template<int dim, typename ValueType>
+struct Div;
+
 template<typename ValueType>
-struct Div
+struct Div<DIM3, ValueType>
 {
     typedef ValueType result_type;
 
@@ -80,6 +83,21 @@ struct Div
         return ((*field(1,0,0)).x() - (*field).x()) * reciWidth +
                ((*field(0,1,0)).y() - (*field).y()) * reciHeight +
                ((*field(0,0,1)).z() - (*field).z()) * reciDepth;
+    }
+};
+
+template<typename ValueType>
+struct Div<DIM2, ValueType>
+{
+    typedef ValueType result_type;
+
+    template<typename Field>
+    HDINLINE ValueType operator()(Field field) const
+    {
+        const ValueType reciWidth = float_X(1.0) / CELL_WIDTH;
+        const ValueType reciHeight = float_X(1.0) / CELL_HEIGHT;
+        return ((*field(1,0)).x() - (*field).x()) * reciWidth +
+               ((*field(0,1)).y() - (*field).y()) * reciHeight;
     }
 };
 
@@ -121,7 +139,7 @@ void ChargeConservation<Species>::notify(uint32_t currentStep)
     /* run calculation: fieldTmp = | div E - rho / eps_0 | */
     using namespace lambda;
     using namespace PMacc::math::math_functor;
-    typedef Div<typename FieldTmp::ValueType> myDiv;
+    typedef Div<simDim, typename FieldTmp::ValueType> myDiv;
     algorithm::kernel::Foreach<BlockDim>()
         (fieldTmp_coreBorder.zone(), fieldTmp_coreBorder.origin(), 
         cursor::make_NestedCursor(fieldE_coreBorder.origin()),
@@ -135,11 +153,11 @@ void ChargeConservation<Species>::notify(uint32_t currentStep)
     maxChargeDiff_host = maxChargeDiff;
     
     /* reduce again across mpi cluster */
-    PMacc::GridController<3>& con = PMacc::Environment<3>::get().GridController();
+    PMacc::GridController<simDim>& con = PMacc::Environment<simDim>::get().GridController();
     using namespace PMacc::math;
-    Size_t<3> gpuDim = (Size_t<3>)con.getGpuNodes();
-    zone::SphericZone<3> zone_allGPUs(Size_t<3>(gpuDim.x(), gpuDim.y(), gpuDim.z()));
-    PMacc::algorithm::mpi::Reduce<3> allGPU_reduce(zone_allGPUs);
+    Size_t<simDim> gpuDim = (Size_t<simDim>)con.getGpuNodes();
+    zone::SphericZone<simDim> zone_allGPUs(gpuDim);
+    PMacc::algorithm::mpi::Reduce<simDim> allGPU_reduce(zone_allGPUs);
     container::HostBuffer<typename FieldTmp::ValueType, 1> maxChargeDiff_cluster(1);
     allGPU_reduce(maxChargeDiff_cluster, maxChargeDiff_host, _max(_1, _2));
 
