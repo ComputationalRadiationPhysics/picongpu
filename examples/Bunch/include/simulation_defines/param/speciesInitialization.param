@@ -32,7 +32,8 @@ namespace picongpu
  * the functors are called in order (from first to last functor)
  */
 typedef mpl::vector<
-    particles::CreateGas<gasProfiles::GaussianCloud,particles::startPosition::Random,PIC_Electrons>
+    particles::CreateGas<gasProfiles::GaussianCloud,particles::startPosition::Random,PIC_Electrons>,
+    particles::Manipulate<particles::manipulators::AssignYDriftNegative,PIC_Electrons>
 > InitPipeline;
 
 } //namespace picongpu
