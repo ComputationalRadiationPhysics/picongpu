@@ -66,7 +66,6 @@
 
 #if(SIMDIM==DIM3)
 #include "plugins/IntensityPlugin.hpp"
-#include "plugins/ChargeConservation.hpp"
 #endif
 #include "plugins/SliceFieldPrinterMulti.hpp"
 
