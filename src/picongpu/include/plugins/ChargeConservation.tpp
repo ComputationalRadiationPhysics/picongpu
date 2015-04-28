@@ -28,6 +28,7 @@
 #include "fields/FieldJ.hpp"
 #include "math/Vector.hpp"
 #include "cuSTL/algorithm/mpi/Gather.hpp"
+#include "cuSTL/algorithm/mpi/Reduce.hpp"
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
 #include "cuSTL/algorithm/kernel/Foreach.hpp"
@@ -41,8 +42,9 @@ namespace picongpu
 {
 
 template<typename Species>
-ChargeConservation<Species>::ChargeConservation(std::string name, std::string prefix)
-    : name(name), prefix(prefix)
+ChargeConservation<Species>::ChargeConservation()
+    : name("print the maximum charge derivation between particles and div E"), 
+      prefix("electronChargeConservation")
 {
     Environment<>::get().PluginConnector().registerPlugin(this);
 }

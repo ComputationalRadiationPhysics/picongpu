@@ -38,7 +38,7 @@ private:
 
     void pluginLoad();
 public:
-    ChargeConservation(std::string name, std::string prefix);
+    ChargeConservation();
     virtual ~ChargeConservation() {}
 
     void notify(uint32_t currentStep);
