@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013, 2015 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -20,9 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MATH_FUNCTOR_ABS_HPP
-#define MATH_FUNCTOR_ABS_HPP
-
+#pragma once
 
 #include "types.h"
 #include "lambda/Expression.hpp"
@@ -61,5 +59,3 @@ struct Functor<PMacc::math::math_functor::Abs, Type>
 } // result_of
 
 } // PMacc
-
-#endif // MATH_FUNCTOR_ABS_HPP
