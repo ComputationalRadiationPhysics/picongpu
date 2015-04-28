@@ -39,7 +39,7 @@ namespace twts
 class BField
 {
 public:
-    typedef float_64 float_T;
+    typedef float_X float_T;
     
     /* Center of simulation volume in number of cells */
     PMACC_ALIGN(halfSimSize,DataSpace<simDim>);
