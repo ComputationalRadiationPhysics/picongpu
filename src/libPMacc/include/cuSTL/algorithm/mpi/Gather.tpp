@@ -48,20 +48,20 @@ struct posInMem<dim, dim>
 };
 
 template<>
-struct posInMem<3, 2>
+struct posInMem<DIM3, DIM2>
 {
-    math::Int<2> operator()(const math::Int<3>& pos, int dir) const
+    math::Int<DIM2> operator()(const math::Int<DIM3>& pos, int dir) const
     {
-        return math::Int<2>(pos[(dir+1)%3], pos[(dir+2)%3]);
+        return math::Int<DIM2>(pos[(dir+1)%3], pos[(dir+2)%3]);
     }
 };
 
 template<>
-struct posInMem<2, 1>
+struct posInMem<DIM2, DIM1>
 {
-    math::Int<1> operator()(const math::Int<2>& pos, int dir) const
+    math::Int<DIM1> operator()(const math::Int<DIM2>& pos, int dir) const
     {
-        return math::Int<1>(pos[(dir+1)%2]);
+        return math::Int<DIM1>(pos[(dir+1)%2]);
     }
 };
 
