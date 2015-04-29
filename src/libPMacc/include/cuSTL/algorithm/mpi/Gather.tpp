@@ -35,6 +35,12 @@ namespace mpi
 namespace GatherHelper
 {
     
+/** @tparam dim dimension of mpi cluster
+ *  @tparam memDim dimension of memory to be gathered
+ * 
+ * if memDim == dim - 1 then ``dir`` indicates the direction (orientation)
+ * of the (meta)plane.
+ */
 template<int dim, int memDim>
 struct posInMem;
 
