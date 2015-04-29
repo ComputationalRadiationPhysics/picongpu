@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau
+ * Copyright 2013, 2015 Heiko Burau
  *
  * This file is part of libPMacc.
  *
@@ -122,9 +122,30 @@ void Gather<dim>::CopyToDest<Type, 3, 2>::operator()(
     }
 }
 
-template<>
+template<int dim>
+template<typename Type>
+void Gather<dim>::CopyToDest<Type, 2, 1>::operator()(
+                    const Gather<dim>& gather,
+                    container::HostBuffer<Type, 1>& dest,
+                    std::vector<Type>& tmpDest,
+                    container::HostBuffer<Type, 1>& source, int dir) const
+{
+    using namespace math;
+
+    for(int i = 0; i < (int)gather.positions.size(); i++)
+    {
+        Int<2> pos = gather.positions[i];
+        int pos1D = pos[(dir+1)%2];
+
+        cudaWrapper::Memcopy<1>()(&(*dest.origin()(pos1D * (Int<1>)source.size())), dest.getPitch(),
+                                  tmpDest.data() + i * source.size().productOfComponents(), source.getPitch(),
+                                  source.size(), cudaWrapper::flags::Memcopy::hostToHost);
+    }
+}
+
+template<int dim>
 template<typename Type, int memDim>
-void Gather<3>::operator()(container::HostBuffer<Type, memDim>& dest,
+void Gather<dim>::operator()(container::HostBuffer<Type, memDim>& dest,
                              container::HostBuffer<Type, memDim>& source, int dir) const
 {
     if(!this->m_participate) return;
@@ -137,7 +158,7 @@ void Gather<3>::operator()(container::HostBuffer<Type, memDim>& dest,
                0, this->comm));
     if(!root()) return;
 
-    CopyToDest<Type, 3, memDim>()(*this, dest, tmpDest, source, dir);
+    CopyToDest<Type, dim, memDim>()(*this, dest, tmpDest, source, dir);
 }
 
 } // mpi
