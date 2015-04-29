@@ -247,6 +247,14 @@ namespace twts
               detail::getFieldPositions_SI(cellIdx,halfSimSize,
                 fieldSolver::NumericalCellType::getBFieldPosition(),unit_length,focus_y_SI,phi);
         /* Single TWTS-Pulse */
+        switch (pol)
+        {
+            case NORMAL_TO_TILTPLANE :
+            return getTWTSBfield_Normalized<simDim>(bFieldPositions_SI, time_SI);
+            
+            case WITHIN_TILTPLANE :
+            return getTWTSBfield_Normalized_Ey<simDim>(bFieldPositions_SI, time_SI);
+        }
         return getTWTSBfield_Normalized<simDim>(bFieldPositions_SI, time_SI);
     }
 

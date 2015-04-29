@@ -169,7 +169,15 @@ namespace twts
                 fieldSolver::NumericalCellType::getEFieldPosition(),unit_length,focus_y_SI,phi);
 
         /* Single TWTS-Pulse */
-        return getTWTSEfield_Normalized<simDim>(eFieldPositions_SI, time_SI);
+        switch (pol)
+        {
+            case NORMAL_TO_TILTPLANE :
+            return getTWTSEfield_Normalized<simDim>(eFieldPositions_SI, time_SI);
+            
+            case WITHIN_TILTPLANE :
+            return getTWTSEfield_Normalized_Ey<simDim>(eFieldPositions_SI, time_SI);
+        }
+        return getTWTSEfield_Normalized<simDim>(eFieldPositions_SI, time_SI); // defensive default
     }
 
     /** Calculate the Ex(r,t) field here
