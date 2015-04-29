@@ -65,7 +65,6 @@
 
 #if(SIMDIM==DIM3)
 #include "plugins/IntensityPlugin.hpp"
-#include "plugins/TotalDivJ.hpp"
 #include "plugins/SliceFieldPrinterMulti.hpp"
 #endif
 
@@ -126,7 +125,6 @@ private:
         EnergyFields,
         SumCurrents
 #if(SIMDIM==DIM3)
-      , TotalDivJ
       , IntensityPlugin
 #endif
 #if (ENABLE_INSITU_VOLVIS == 1)
