@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Heiko Burau, Rene Widera, Felix Schmitt,
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -47,7 +47,7 @@ private:
     int plane;
     float_X slicePoint;
     MappingDesc *cellDescription;
-    container::DeviceBuffer<float3_64, 2>* dBuffer_SI;
+    container::DeviceBuffer<float3_64, simDim-1>* dBuffer_SI;
 
     void pluginLoad();
     void pluginUnload();

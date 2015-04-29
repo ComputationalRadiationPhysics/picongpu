@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Heiko Burau, Rene Widera, Felix Schmitt,
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -44,7 +44,7 @@ namespace picongpu
 
 template<typename Field>
 SliceFieldPrinterMulti<Field>::SliceFieldPrinterMulti()
-    : name("SliceFieldPrinterMulti: prints a slice of a field"),
+    : name("SliceFieldPrinter: prints a slice of a field"),
       prefix(Field::getName() + std::string("_slice"))
 {
     Environment<>::get().PluginConnector().registerPlugin(this);
