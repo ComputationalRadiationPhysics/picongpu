@@ -31,6 +31,41 @@ namespace algorithm
 {
 namespace mpi
 {
+    
+namespace GatherHelper
+{
+    
+template<int dim, int memDim>
+struct posInMem;
+
+template<int dim>
+struct posInMem<dim, dim>
+{
+    math::Int<dim> operator()(const math::Int<dim>& pos, int) const
+    {
+        return pos;
+    }
+};
+
+template<>
+struct posInMem<3, 2>
+{
+    math::Int<2> operator()(const math::Int<3>& pos, int dir) const
+    {
+        return math::Int<2>(pos[(dir+1)%3], pos[(dir+2)%3]);
+    }
+};
+
+template<>
+struct posInMem<2, 1>
+{
+    math::Int<1> operator()(const math::Int<2>& pos, int dir) const
+    {
+        return math::Int<1>(pos[(dir+1)%2]);
+    }
+};
+
+}
 
 template<int dim>
 Gather<dim>::Gather(const zone::SphericZone<dim>& p_zone) : comm(MPI_COMM_NULL)
@@ -102,42 +137,21 @@ int Gather<dim>::rank() const
 }
 
 template<int dim>
-template<typename Type>
-void Gather<dim>::CopyToDest<Type, 3, 2>::operator()(
+template<typename Type, int memDim>
+void Gather<dim>::CopyToDest<Type, memDim>::operator()(
                     const Gather<dim>& gather,
-                    container::HostBuffer<Type, 2>& dest,
+                    container::HostBuffer<Type, memDim>& dest,
                     std::vector<Type>& tmpDest,
-                    container::HostBuffer<Type, 2>& source, int dir) const
+                    container::HostBuffer<Type, memDim>& source, int dir) const
 {
     using namespace math;
 
     for(int i = 0; i < (int)gather.positions.size(); i++)
     {
-        Int<3> pos = gather.positions[i];
-        Int<2> pos2D(pos[(dir+1)%3], pos[(dir+2)%3]);
+        Int<dim> pos = gather.positions[i];
+        Int<memDim> posInMem = GatherHelper::posInMem<dim, memDim>()(pos, dir);
 
-        cudaWrapper::Memcopy<2>()(&(*dest.origin()(pos2D * (Int<2>)source.size())), dest.getPitch(),
-                                  tmpDest.data() + i * source.size().productOfComponents(), source.getPitch(),
-                                  source.size(), cudaWrapper::flags::Memcopy::hostToHost);
-    }
-}
-
-template<int dim>
-template<typename Type>
-void Gather<dim>::CopyToDest<Type, 2, 1>::operator()(
-                    const Gather<dim>& gather,
-                    container::HostBuffer<Type, 1>& dest,
-                    std::vector<Type>& tmpDest,
-                    container::HostBuffer<Type, 1>& source, int dir) const
-{
-    using namespace math;
-
-    for(int i = 0; i < (int)gather.positions.size(); i++)
-    {
-        Int<2> pos = gather.positions[i];
-        int pos1D = pos[(dir+1)%2];
-
-        cudaWrapper::Memcopy<1>()(&(*dest.origin()(pos1D * (Int<1>)source.size())), dest.getPitch(),
+        cudaWrapper::Memcopy<memDim>()(&(*dest.origin()(posInMem * (Int<memDim>)source.size())), dest.getPitch(),
                                   tmpDest.data() + i * source.size().productOfComponents(), source.getPitch(),
                                   source.size(), cudaWrapper::flags::Memcopy::hostToHost);
     }
@@ -158,7 +172,7 @@ void Gather<dim>::operator()(container::HostBuffer<Type, memDim>& dest,
                0, this->comm));
     if(!root()) return;
 
-    CopyToDest<Type, dim, memDim>()(*this, dest, tmpDest, source, dir);
+    CopyToDest<Type, memDim>()(*this, dest, tmpDest, source, dir);
 }
 
 } // mpi

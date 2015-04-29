@@ -45,28 +45,16 @@ private:
     std::vector<math::Int<dim> > positions;
     bool m_participate;
 
-    template<typename Type, int T_dim, int memDim>
-    struct CopyToDest;
-
-    template<typename Type>
-    struct CopyToDest<Type, 3, 2>
+    template<typename Type, int memDim>
+    struct CopyToDest
     {
         void operator()(const Gather<dim>& gather,
-                        container::HostBuffer<Type, 2>& dest,
+                        container::HostBuffer<Type, memDim>& dest,
                         std::vector<Type>& tmpDest,
-                        container::HostBuffer<Type, 2>& source, int dir) const;
-    };
-    
-    template<typename Type>
-    struct CopyToDest<Type, 2, 1>
-    {
-        void operator()(const Gather<dim>& gather,
-                        container::HostBuffer<Type, 1>& dest,
-                        std::vector<Type>& tmpDest,
-                        container::HostBuffer<Type, 1>& source, int dir) const;
+                        container::HostBuffer<Type, memDim>& source, int dir) const;
     };
 
-    template<typename Type, int T_dim, int memDim>
+    template<typename Type, int memDim>
     friend class CopyToDest;
 public:
     Gather(const zone::SphericZone<dim>& p_zone);
