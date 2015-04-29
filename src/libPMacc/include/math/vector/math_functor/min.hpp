@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013, 2015 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of libPMacc.
  *
@@ -20,12 +20,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MATH_FUNCTOR_MIN_HPP
-#define MATH_FUNCTOR_MIN_HPP
 
+#pragma once
 
 #include "types.h"
 #include "lambda/Expression.hpp"
+#include "algorithms/math/defines/comparison.hpp"
 
 namespace PMacc
 {
@@ -40,7 +40,7 @@ struct Min
     HDINLINE
     Type operator()(const Type& a, const Type& b) const
     {
-        return min(a,b);
+        return algorithms::math::min(a,b);
     }
 };
 
@@ -62,4 +62,3 @@ struct Functor<math::math_functor::Min, Type, Type>
 
 } // PMacc
 
-#endif // MATH_FUNCTOR_MIN_HPP
