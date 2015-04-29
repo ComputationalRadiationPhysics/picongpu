@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013, 2015 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of libPMacc.
  *
@@ -20,11 +20,11 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MATH_FUNCTOR_COSF_HPP
-#define MATH_FUNCTOR_COSF_HPP
+#pragma once
 
 #include "types.h"
 #include "lambda/Expression.hpp"
+#include "algorithms/math/defines/trigo.hpp"
 
 namespace PMacc
 {
@@ -37,9 +37,9 @@ struct Cosf
 {
     typedef float result_type;
 
-    DINLINE float operator()(const float& value) const
+    DINLINE result_type operator()(const result_type& value) const
     {
-        return __cosf(value);
+        return algorithms::math::cos(value);
     }
 };
 
@@ -49,4 +49,3 @@ lambda::Expression<lambda::exprTypes::terminal, mpl::vector<Cosf> > _cosf;
 } // math
 } // PMacc
 
-#endif // MATH_FUNCTOR_COSF_HPP
