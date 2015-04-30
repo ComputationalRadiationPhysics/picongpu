@@ -522,6 +522,7 @@ namespace twts
     BField::calcTWTSBz_Ey( const float3_64& pos, const float_64 time ) const
     {
         typedef PMacc::math::Complex<float_T> complex_T;
+        typedef PMacc::math::Complex<float_64> complex_64;
         /** Unit of Speed */
         const double UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
         /** Unit of time */
@@ -575,12 +576,11 @@ namespace twts
          * thus help with formal code verification through manual code inspection. */
         const complex_T helpVar1 = 
             complex_T(0,-1)*cspeed*om0*tauG*tauG
-            - y*cosPhi / pmMath::cos(phiT / float_T(2.0)) / pmMath::cos(phiT / float_T(2.0))*tanPhi2
-            - 2*z*tanPhi2*tanPhi2;
+            - y*cosPhi / cosPhi2 / cosPhi2 * tanPhi2
+            - float_T(2.0)*z*tanPhi2*tanPhi2;
         const complex_T helpVar2 = complex_T(0,1)*rho0 - y*cosPhi - z*sinPhi;
-        const complex_T helpVar3 = complex_T(0,1)*rho0 - y*cosPhi - z*sinPhi;
         
-        const complex_T helpVar4 = (
+        const complex_T helpVar3 = (
             - cspeed*cspeed*k*om0*tauG*tauG*wy*wy*x*x
             - float_T(2.0)*cspeed*cspeed*om0*t*t*wy*wy*rho0
             + complex_T(0,2)*cspeed*cspeed*om0*om0*t*tauG*tauG*wy*wy*rho0
@@ -589,14 +589,14 @@ namespace twts
             - complex_T(0,2)*cspeed*om0*om0*tauG*tauG*wy*wy*z*rho0
             - float_T(2.0)*om0*wy*wy*z*z*rho0
             - complex_T(0,8)*om0*wy*wy*y*(cspeed*t - z)*z*sinPhi2*sinPhi2
-            + complex_T(0,8) / pmMath::sin(phiT)*(
+            + complex_T(0,8) / sinPhi *(
                 float_T(2.0)*z*z*(cspeed*om0*t*wy*wy + complex_T(0,1)*cspeed*y*y - om0*wy*wy*z)
                 + y*(
                     cspeed*k*wy*wy*x*x
                     - complex_T(0,2)*cspeed*om0*t*wy*wy*rho0
                     + float_T(2.0)*cspeed*y*y*rho0
                     + complex_T(0,2)*om0*wy*wy*z*rho0
-                )*tan(float_T(PI) / float_T(2.0)-phiT) / pmMath::sin(phiT)
+                )*tan(float_T(PI) / float_T(2.0)-phiT) / sinPhi
             )*sinPhi2*sinPhi2*sinPhi2*sinPhi2
             - complex_T(0,2)*cspeed*cspeed*om0*t*t*wy*wy*z*sinPhi
             - float_T(2.0)*cspeed*cspeed*om0*om0*t*tauG*tauG*wy*wy*z*sinPhi
@@ -610,15 +610,14 @@ namespace twts
                 cspeed*om0*t*wy*wy
                 + complex_T(0,1)*cspeed*y*y
                 - om0*wy*wy*z
-            )*cosPhi2*cosPhi2 / pmMath::cos(phiT / float_T(2.0)) / pmMath::cos(phiT / float_T(2.0))
-                *tanPhi2
+            )*cosPhi*cosPhi / cosPhi2 / cosPhi2 * tanPhi2
             + complex_T(0,2)*cspeed*k*wy*wy*x*x*z*tanPhi2*tanPhi2
             - float_T(2.0)*om0*wy*wy*y*y*rho0*tanPhi2*tanPhi2
             + float_T(4.0)*cspeed*om0*t*wy*wy*z*rho0*tanPhi2*tanPhi2
             + complex_T(0,4)*cspeed*y*y*z*rho0*tanPhi2*tanPhi2
             - float_T(4.0)*om0*wy*wy*z*z*rho0*tanPhi2*tanPhi2
             - complex_T(0,2)*om0*wy*wy*y*y*z*sinPhi*tanPhi2*tanPhi2
-            - float_T(2.0)*y*cos(phiT)*(
+            - float_T(2.0)*y*cosPhi*(
                 om0*(
                     cspeed*cspeed*(complex_T(0,1)*t*t*wy*wy
                     + om0*t*tauG*tauG*wy*wy
@@ -626,29 +625,30 @@ namespace twts
                     - cspeed*(complex_T(0,2)*t + om0*tauG*tauG)*wy*wy*z
                     + complex_T(0,1)*wy*wy*z*z
                 )
-                + complex_T(0,2)*om0*wy*wy*y*(cspeed*t - z)*pmMath::tan( phiT / float_T(2.0) )
+                + complex_T(0,2)*om0*wy*wy*y*(cspeed*t - z)*tanPhi2
                 + complex_T(0,1)*(
-                    complex_T(0,-4)*cspeed*y*y*z 
+                    complex_T(0,-4)*cspeed*y*y*z
                     + om0*wy*wy*(y*y - float_T(4.0)*(cspeed*t - z)*z)
                 )*tanPhi2*tanPhi2
             )
-        ) / (float_T(2.0)*cspeed*wy*wy*helpVar2*helpVar1);
+        /* The "round-trip" conversion in the line below fixes a gross accuracy bug
+         * in floating-point arithmetics, when float_T is set to float_X. */
+        ) * complex_T( float_64(1.0) / complex_64(float_T(2.0)*cspeed*wy*wy*helpVar2*helpVar1) );
         
-        const complex_T helpVar5 = (
+        const complex_T helpVar4 = (
             cspeed*om0*(
                 cspeed*om0*tauG*tauG
                 - complex_T(0,8)*y*pmMath::tan( float_T(PI) / float_T(2.0) - phiT )
-                    / pmMath::sin(phiT) / pmMath::sin(phiT)*sinPhi2*sinPhi2*sinPhi2*sinPhi2
+                    / sinPhi / sinPhi * sinPhi2*sinPhi2*sinPhi2*sinPhi2
                 - complex_T(0,2)*z*tanPhi2*tanPhi2
             )
-        )/rho0;
+        ) / rho0;
         
         const complex_T result = float_T(-1.0)*(
-            cspeed*pmMath::exp(helpVar4)*k*tauG*x*pmMath::pow( helpVar3, float_T(-1.5) )
-            /pmMath::sqrt(helpVar5)
+            cspeed*pmMath::exp(helpVar3)*k*tauG*x*pmMath::pow( helpVar2, float_T(-1.5) )
+            / pmMath::sqrt(helpVar4)
         );
-
-
+        
         return result.get_real() / UNIT_SPEED;
     }
 
