@@ -81,6 +81,7 @@ namespace twts
         PosVecVec pos(PosVecVec::create(
                                            float3_64::create(0.0)
                                        ));
+        
         for (uint32_t k = 0; k<detail::numComponents;++k) {
             for (uint32_t i = 0; i<simDim;++i)
                 pos[k][i] = bFieldPositions_SI[k][i];
@@ -113,18 +114,22 @@ namespace twts
             const PMacc::math::Vector<floatD_64,detail::numComponents>& bFieldPositions_SI,
             const float_64 time) const
     {
-        PMacc::math::Vector<float3_64,detail::numComponents> pos(0.0);
+        typedef PMacc::math::Vector<float3_64,detail::numComponents> PosVecVec;
+        PosVecVec pos(PosVecVec::create(
+                                           float3_64::create(0.0)
+                                       ));
+        
         for (uint32_t k = 0; k<detail::numComponents;++k) {
             for (uint32_t i = 0; i<simDim;++i) pos[k][i] = bFieldPositions_SI[k][i];
         }
         
-        /* Calculate Bz-component with the Yee-Cell offset of a By-field */
+        /* Calculate Bz-component with the intra-cell offset of a By-field */
         const float_64 Bz_By = calcTWTSBz_Ey(pos[1], time);
-        /* Calculate Bz-component with the Yee-Cell offset of a Bz-field */
+        /* Calculate Bz-component with the intra-cell offset of a Bz-field */
         const float_64 Bz_Bz = calcTWTSBz_Ey(pos[2], time);
-        /* Since we rotated all position vectors before calling calcTWTSBy and calcTWTSBz_Ex,
+        /* Since we rotated all position vectors before calling calcTWTSBz_Ey,
          * we need to back-rotate the resulting B-field vector. */
-        /* RotationMatrix[-(PI/2+phi)].(By,Bz) for rotating back the Field-Vektors. */
+        /* RotationMatrix[-(PI/2+phi)].(By,Bz) for rotating back the field-vectors. */
         const float_64 By_rot = +pmMath::cos(+phi)*Bz_By;
         const float_64 Bz_rot = -pmMath::sin(+phi)*Bz_Bz;
         
@@ -197,7 +202,11 @@ namespace twts
             const PMacc::math::Vector<floatD_64,detail::numComponents>& bFieldPositions_SI,
             const float_64 time) const
     {
-        PMacc::math::Vector<float3_64,detail::numComponents> pos(0.0);
+        typedef PMacc::math::Vector<float3_64,detail::numComponents> PosVecVec;
+        PosVecVec pos(PosVecVec::create(
+                                           float3_64::create(0.0)
+                                       ));
+        
         for (uint32_t k = 0; k<detail::numComponents;++k) {
             /* The 2D output of getFieldPositions_SI only returns
              * the y- and z-component of a 3D vector. */
@@ -212,23 +221,23 @@ namespace twts
          *            3D TWTS-field-function and set x = -0)
          *  Ex --> Ez (Meaning: Calculate Ex-component of existing 3D TWTS-field to obtain
          *             corresponding Ez-component in 2D.
-         *             Note: the position offset due to the Yee-Cell for Ez.)
+         *             Note: the intra-cell position offset due to the staggered grid for Ez.)
          *  By --> By
          *  Bz --> -Bx (Yes, the sign is necessary.)
          */ 
         /* Analogous to 3D case, but replace By --> By and Bz --> -Bx. Hence the grid cell offset
          * for Bx has to be used instead of Bz. Mind the -sign. */
          
-        /* Calculate Bx-component with the Yee-Cell offset of a By-field */
+        /* Calculate Bx-component with the intra-cell offset of a By-field */
         const float_64 Bx_By = -calcTWTSBz_Ex(pos[1], time);
-        /* Calculate Bx-component with the Yee-Cell offset of a Bx-field */
+        /* Calculate Bx-component with the intra-cell offset of a Bx-field */
         const float_64 Bx_Bx = -calcTWTSBz_Ex(pos[0], time);
-        /* Since we rotated all position vectors before calling calcTWTSBy and calcTWTSBz_Ex, we
+        /* Since we rotated all position vectors before calling calcTWTSBz_Ex, we
          * need to back-rotate the resulting B-field vector. Now the rotation is done
          * analogously in the (y,x)-plane. (Reverse of the position vector transformation.) */
         /* RotationMatrix[-(PI / 2+phi)].(By,Bx) */
         const float_64 By_rot = +pmMath::cos(phi)*Bx_By;
-        /* for rotating back the Field-Vektors.*/
+        /* for rotating back the field-vectors.*/
         const float_64 Bx_rot = -pmMath::sin(phi)*Bx_Bx;
         
         /* Finally, the B-field normalized to the peak amplitude. */
@@ -255,7 +264,7 @@ namespace twts
             case WITHIN_TILTPLANE :
             return getTWTSBfield_Normalized_Ey<simDim>(bFieldPositions_SI, time_SI);
         }
-        return getTWTSBfield_Normalized<simDim>(bFieldPositions_SI, time_SI);
+        return getTWTSBfield_Normalized<simDim>(bFieldPositions_SI, time_SI); // defensive default
     }
 
     /** Calculate the By(r,t) field here

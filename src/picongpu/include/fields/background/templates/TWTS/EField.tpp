@@ -81,8 +81,6 @@ namespace twts
         for (uint32_t i = 0; i<simDim;++i) pos[i] = eFieldPositions_SI[0][i];
         return float3_X( float_X( calcTWTSEx(pos,time) ),
                          float_X(0.), float_X(0.) );
-        //return float3_X( float_X( pos.x() ),
-        //                 float_X( pos.y() ), float_X( pos.z() ) );
     }
 
     template<>
@@ -91,14 +89,18 @@ namespace twts
                 const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
                 const float_64 time) const
     {
-        PMacc::math::Vector<float3_64,detail::numComponents> pos(0.0);
+        typedef PMacc::math::Vector<float3_64,detail::numComponents> PosVecVec;
+        PosVecVec pos(PosVecVec::create(
+                                           float3_64::create(0.0)
+                                       ));
+        
         for (uint32_t k = 0; k<detail::numComponents;++k) {
             for (uint32_t i = 0; i<simDim;++i) pos[k][i] = eFieldPositions_SI[k][i];
         }
         
-        /* Calculate Ey-component with the Yee-Cell offset of a Ey-field */
+        /* Calculate Ey-component with the intra-cell offset of a Ey-field */
         const float_64 Ey_Ey = calcTWTSEy(pos[1], time);
-        /* Calculate Ey-component with the Yee-Cell offset of a Ez-field */
+        /* Calculate Ey-component with the intra-cell offset of a Ez-field */
         const float_64 Ey_Ez = calcTWTSEy(pos[2], time);
 
         /* Since we rotated all position vectors before calling calcTWTSEy,
@@ -133,7 +135,11 @@ namespace twts
         const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
         const float_64 time) const
     {
-        PMacc::math::Vector<float3_64,detail::numComponents> pos(0.0);
+        typedef PMacc::math::Vector<float3_64,detail::numComponents> PosVecVec;
+        PosVecVec pos(PosVecVec::create(
+                                           float3_64::create(0.0)
+                                       ));
+        
         /* The 2D output of getFieldPositions_SI only returns
          * the y- and z-component of a 3D vector. */
         for (uint32_t k = 0; k<detail::numComponents;++k) {
@@ -141,9 +147,9 @@ namespace twts
         }
         
         /* Ey->Ey, but grid cell offsets for Ex and Ey have to be used. */
-        /* Calculate Ey-component with the Yee-Cell offset of a Ey-field */
+        /* Calculate Ey-component with the intra-cell offset of a Ey-field */
         const float_64 Ey_Ey = calcTWTSEy(pos[1], time);
-        /* Calculate Ey-component with the Yee-Cell offset of a Ex-field */
+        /* Calculate Ey-component with the intra-cell offset of a Ex-field */
         const float_64 Ey_Ex = calcTWTSEy(pos[0], time);
 
         /* Since we rotated all position vectors before calling calcTWTSEy,
