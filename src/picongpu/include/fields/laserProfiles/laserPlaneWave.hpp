@@ -57,7 +57,7 @@ namespace picongpu
             const double endUpramp = mue;
             const double startDownramp = mue + LASER_NOFOCUS_CONSTANT;
 
-
+            double integrationCorrectionFactor = 0.0;
 
             if( runTime > startDownramp )
             {
@@ -66,28 +66,34 @@ namespace picongpu
                     ( ( runTime - startDownramp )
                       / PULSE_LENGTH / sqrt( 2.0 ) );
                 envelope *= exp( -0.5 * exponent * exponent );
+                integrationCorrectionFactor = ( runTime - startDownramp )/ (2.0*PULSE_LENGTH*PULSE_LENGTH);
             }
             else if ( runTime < endUpramp )
             {
                 // upramp = start
                 const double exponent = ( ( runTime - endUpramp ) / PULSE_LENGTH / sqrt( 2.0 ) );
                 envelope *= exp( -0.5 * exponent * exponent );
-
+                integrationCorrectionFactor = ( runTime - endUpramp )/ (2.0*PULSE_LENGTH*PULSE_LENGTH);
             }
 
             const double timeOszi = runTime - endUpramp;
+            const double t_and_phase = w * timeOszi + LASER_PHASE;
             if( Polarisation == LINEAR_X )
             {
-                elong.x() = float_X( envelope * math::sin( w * timeOszi + LASER_PHASE));
+              elong.x() = float_X( envelope * (math::sin(t_and_phase)
+                          + math::cos(t_and_phase) * integrationCorrectionFactor));
             }
             else if( Polarisation == LINEAR_Z)
             {
-                elong.z() = float_X( envelope * math::sin( w * timeOszi + LASER_PHASE));
+              elong.z() = float_X( envelope * (math::sin(t_and_phase)
+                          + math::cos(t_and_phase) * integrationCorrectionFactor));
             }
             else if( Polarisation == CIRCULAR )
             {
-                elong.x() = float_X( envelope / sqrt(2.0)  * math::sin( w * timeOszi + LASER_PHASE));
-                elong.z() = float_X( envelope / sqrt(2.0)  * math::cos( w * timeOszi + LASER_PHASE));
+                elong.x() = float_X( envelope / sqrt(2.0) * (math::sin(t_and_phase)
+                            + math::cos(t_and_phase) * integrationCorrectionFactor));
+                elong.z() = float_X( envelope / sqrt(2.0) * (math::cos(t_and_phase)
+                            - math::sin(t_and_phase) * integrationCorrectionFactor));
             }
 
 
