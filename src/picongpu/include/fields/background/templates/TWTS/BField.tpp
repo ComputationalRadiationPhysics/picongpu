@@ -267,6 +267,7 @@ namespace twts
     BField::calcTWTSBy( const float3_64& pos, const float_64 time ) const
     {
         typedef PMacc::math::Complex<float_T> complex_T;
+        typedef PMacc::math::Complex<float_64> complex_64;
         /** Unit of Speed */
         const double UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
         /** Unit of time */
@@ -379,8 +380,10 @@ namespace twts
                     )*pmMath::tan(float_T(PI / 2)-phiT)
                 )*tanPhi2*tanPhi2
             )
-        )/(float_T(2.0)*cspeed*wy*wy*helpVar1*helpVar2);
-
+        /* The "round-trip" conversion in the line below fixes a gross accuracy bug
+         * in floating-point arithmetics, when float_T is set to float_X. */
+        ) * complex_T( float_64(1.0) / complex_64(float_T(2.0)*cspeed*wy*wy*helpVar1*helpVar2) );
+        
         const complex_T helpVar5 = complex_T(0,-1)*cspeed*om0*tauG*tauG
                                 + (-z - y*pmMath::tan(float_T(PI / 2)-phiT))
                                     *tanPhi2*tanPhi2*float_T(2.0);
