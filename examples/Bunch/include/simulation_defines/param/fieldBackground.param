@@ -43,11 +43,17 @@ namespace picongpu
         PMACC_ALIGN(unitField, const float3_64);
 
         /* TWTS E-fields need to be initialized on host,
-         *  so they can look up global grid dimensions. */
+         * so they can look up global grid dimensions.
+         *
+         * Note: No PMACC_ALIGN(...) used, since this *additional* memory alignment would require
+         *       roughly double the number of registers in the corresponding kernel on the device.
+         */
         const templates::twts::EField twtsFieldE;
 
         /* Constructor is host-only, because of subGrid and halfSimSize initialization */
-        HINLINE FieldBackgroundE( const float3_64 unitField ) : unitField(unitField),
+        HINLINE FieldBackgroundE( const float3_64 unitField ) :
+
+            unitField(unitField),
 
             twtsFieldE(
                 /* focus_y [m], the distance to the laser focus in y-direction */
@@ -78,8 +84,7 @@ namespace picongpu
         operator()( const DataSpace<simDim>& cellIdx,
                     const uint32_t currentStep ) const
         {
-            /* example 1: TWTS background pulse */
-            /** unit: meter */
+            /* unit: meter */
             const double WAVE_LENGTH_SI = 0.8e-6;
 
             /** UNITCONV */
@@ -92,16 +97,18 @@ namespace picongpu
                 * SI::ELECTRON_MASS_SI * SI::SPEED_OF_LIGHT_SI
                 * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
 
-            /** unit: W / m^2 */
-            /* const double _PEAK_INTENSITY_SI = 3.4e19 * 1.0e4; */
-            /** unit: none */
-            /* const double _A0  = _PEAK_INTENSITY_SI * UNITCONV_Intens_to_A0; */
+            /* unit: W / m^2
+             * const double _PEAK_INTENSITY_SI = 3.4e19 * 1.0e4;
+             * unit: none
+             * const double _A0  = _PEAK_INTENSITY_SI * UNITCONV_Intens_to_A0;
+             */
 
-            /** unit: none */
+            /* unit: none */
             const double _A0  = 1.0;
 
-            /** unit: Volt /meter */
-            /*\todo #738 implement math::vector, native type operations */
+            /* unit: Volt /meter
+             *\todo #738 implement math::vector, native type operations
+             */
             const float3_64 invUnitField = float3_64(1.0 / unitField[0],
                                                      1.0 / unitField[1],
                                                      1.0 / unitField[2] );
@@ -109,7 +116,8 @@ namespace picongpu
             /* laser amplitude in picongpu units [ unit: (Volt /meter) / unitField-factor ]
              * Note: the laser amplitude is included in all field components
              * polarization and other properties are established by the peak amplitude
-             * normalized twtsFieldE(...) */
+             * normalized twtsFieldE(...)
+             */
             const float3_X amplitude = precisionCast<float_X>(
                                 float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField );
 
@@ -125,13 +133,19 @@ namespace picongpu
         static const bool InfluenceParticlePusher = PARAM_INCLUDE_FIELDBACKGROUND;
 
         /* TWTS B-fields need to be initialized on host,
-         * so they can look up global grid dimensions. */
+         * so they can look up global grid dimensions.
+         *
+         * Note: No PMACC_ALIGN(...) used, since this *additional* memory alignment would require
+         *       roughly double the number of registers in the corresponding kernel on the device.
+         */
         const templates::twts::BField twtsFieldB;
 
         /* We use this to calculate your SI input back to our unit system */
         PMACC_ALIGN(unitField, const float3_64);
 
-        HINLINE FieldBackgroundB( const float3_64 unitField ) : unitField(unitField),
+        HINLINE FieldBackgroundB( const float3_64 unitField ) :
+
+            unitField(unitField),
 
             twtsFieldB(
                 /* focus_y [m], the distance to the laser focus in y-direction */
@@ -162,7 +176,7 @@ namespace picongpu
         operator()( const DataSpace<simDim>& cellIdx,
                     const uint32_t currentStep ) const
         {
-            /** unit: meter */
+            /* unit: meter */
             const double WAVE_LENGTH_SI = 0.8e-6;
 
             /** UNITCONV */
@@ -175,10 +189,11 @@ namespace picongpu
                 * SI::ELECTRON_MASS_SI * SI::SPEED_OF_LIGHT_SI
                 * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
 
-            /** unit: W / m^2 */
-            /* const double _PEAK_INTENSITY_SI = 3.4e19 * 1.0e4; */
-            /** unit: none */
-            /* const double _A0  = _PEAK_INTENSITY_SI * UNITCONV_Intens_to_A0; */
+            /* unit: W / m^2
+             * const double _PEAK_INTENSITY_SI = 3.4e19 * 1.0e4;
+             * unit: none
+             * const double _A0  = _PEAK_INTENSITY_SI * UNITCONV_Intens_to_A0;
+             */
 
             /** unit: none */
             const double _A0  = 1.0;
@@ -191,7 +206,8 @@ namespace picongpu
             /* laser amplitude in picongpu units [ unit: (Volt/meter) / unitField-factor ]
              * Note: the laser amplitude is included in all field components
              * polarization and other properties are established by the peak amplitude
-             * normalized twtsFieldB(...) */
+             * normalized twtsFieldB(...)
+             */
             const float3_X amplitude = precisionCast<float_X>(
                     float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField );
 

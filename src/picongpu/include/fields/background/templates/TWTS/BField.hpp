@@ -29,10 +29,10 @@
 
 namespace picongpu
 {
-/** Load pre-defined background field */
+/* Load pre-defined background field */
 namespace templates
 {
-/** Traveling-wave Thomson scattering laser pulse */
+/* Traveling-wave Thomson scattering laser pulse */
 namespace twts
 {
 
@@ -44,8 +44,9 @@ public:
     enum PolarizationType
     {
         /* The linear polarization of the TWTS laser is defined
-         * relative to the plane of the pulse front tilt (reference plane). */
-        /* Polarisation is normal to the reference plane.
+         * relative to the plane of the pulse front tilt (reference plane).
+         *
+         * Polarisation is normal to the reference plane.
          * Use Ex-fields (and corresponding B-fields) in TWTS laser internal coordinate system.
          */
         LINEAR_X = 1u,
@@ -58,8 +59,9 @@ public:
     /* Center of simulation volume in number of cells */
     PMACC_ALIGN(halfSimSize,DataSpace<simDim>);
     /* y-position of TWTS coordinate origin inside the simulation coordinates [meter]
-       The other origin coordinates (x and z) default to globally centered values
-       with respect to the simulation volume. */
+     * The other origin coordinates (x and z) default to globally centered values
+     * with respect to the simulation volume.
+     */
     const PMACC_ALIGN(focus_y_SI,float_64);
     /* Laser wavelength [meter] */
     const PMACC_ALIGN(wavelength_SI,float_64);
@@ -83,7 +85,8 @@ public:
     /* TWTS laser time delay */
     PMACC_ALIGN(tdelay,float_64);
     /* Should the TWTS laser time delay be chosen automatically, such that
-    the laser gradually enters the simulation volume? [Default: TRUE] */
+     * the laser gradually enters the simulation volume? [Default: TRUE]
+     */
     const PMACC_ALIGN(auto_tdelay,bool);
     /* Polarization of TWTS laser */
     const PMACC_ALIGN(pol,PolarizationType);

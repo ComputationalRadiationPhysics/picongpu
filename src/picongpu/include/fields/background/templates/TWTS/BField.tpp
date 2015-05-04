@@ -63,7 +63,8 @@ namespace twts
         unit_length(UNIT_LENGTH), auto_tdelay(auto_tdelay), pol(pol)
     {
         /* Note: Enviroment-objects cannot be instantiated on CUDA GPU device. Since this is done
-         * on host (see fieldBackground.param), this is no problem. */
+         * on host (see fieldBackground.param), this is no problem.
+         */
         const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
         halfSimSize = subGrid.getGlobalDomain().size / 2;
         tdelay = detail::getInitialTimeDelay_SI(auto_tdelay, tdelay_user_SI,
@@ -87,8 +88,10 @@ namespace twts
                 pos[k][i] = bFieldPositions_SI[k][i];
         }
 
-        /* An example of intra-cell position offsets is the staggered Yee-grid. */
-        /* Calculate By-component with the intra-cell offset of a By-field */
+        /* An example of intra-cell position offsets is the staggered Yee-grid.
+         *
+         * Calculate By-component with the intra-cell offset of a By-field
+         */
         const float_64 By_By = calcTWTSBy(pos[1], time);
         /* Calculate Bz-component the the intra-cell offset of a By-field */
         const float_64 Bz_By = calcTWTSBz_Ex(pos[1], time);
@@ -97,8 +100,10 @@ namespace twts
         /* Calculate Bz-component the the intra-cell offset of a Bz-field */
         const float_64 Bz_Bz = calcTWTSBz_Ex(pos[2], time);
         /* Since we rotated all position vectors before calling calcTWTSBy and calcTWTSBz_Ex,
-         * we need to back-rotate the resulting B-field vector. */
-        /* RotationMatrix[-(PI/2+phi)].(By,Bz) for rotating back the field vectors. */
+         * we need to back-rotate the resulting B-field vector.
+         *
+         * RotationMatrix[-(PI/2+phi)].(By,Bz) for rotating back the field vectors.
+         */
         const float_64 By_rot = -pmMath::sin(+phi)*By_By+pmMath::cos(+phi)*Bz_By;
         const float_64 Bz_rot = -pmMath::cos(+phi)*By_Bz-pmMath::sin(+phi)*Bz_Bz;
 
@@ -128,8 +133,10 @@ namespace twts
         /* Calculate Bz-component with the intra-cell offset of a Bz-field */
         const float_64 Bz_Bz = calcTWTSBz_Ey(pos[2], time);
         /* Since we rotated all position vectors before calling calcTWTSBz_Ey,
-         * we need to back-rotate the resulting B-field vector. */
-        /* RotationMatrix[-(PI/2+phi)].(By,Bz) for rotating back the field-vectors. */
+         * we need to back-rotate the resulting B-field vector.
+         *
+         * RotationMatrix[-(PI/2+phi)].(By,Bz) for rotating back the field-vectors.
+         */
         const float_64 By_rot = +pmMath::cos(+phi)*Bz_By;
         const float_64 Bz_rot = -pmMath::sin(+phi)*Bz_Bz;
 
@@ -155,7 +162,10 @@ namespace twts
             for (uint32_t i = 0; i<simDim;++i)
                 pos[k][i+1] = bFieldPositions_SI[k][i];
         }
-        /*  Corresponding position vector for the Field-components in 2D simulations.
+
+        /* General background comment for the rest of this function:
+         *
+         * Corresponding position vector for the field components in 2D simulations.
          *  3D     3D vectors in 2D space (x, y)
          *  x -->  z (Meaning: In 2D-sim, insert cell-coordinate x
          *            into TWTS field function coordinate z.)
@@ -169,10 +179,12 @@ namespace twts
          *                   intra-cell position offset.)
          *  By --> By
          *  Bz --> -Bx (Yes, the sign is necessary.)
+         *
+         * An example of intra-cell position offsets is the staggered Yee-grid.
+         *
+         * This procedure is analogous to 3D case, but replace By --> By and Bz --> -Bx. Hence the
+         * grid cell offset for Bx has to be used instead of Bz. Mind the "-"-sign.
          */
-        /* An example of intra-cell position offsets is the staggered Yee-grid. */
-        /* Analogous to 3D case, but replace By --> By and Bz --> -Bx. Hence the grid cell offset
-         * for Bx has to be used instead of Bz. Mind the "-"-sign. */
 
         /* Calculate By-component with the intra-cell offset of a By-field */
         const float_64 By_By =  calcTWTSBy(pos[1], time);
@@ -184,10 +196,11 @@ namespace twts
         const float_64 Bx_Bx = -calcTWTSBz_Ex(pos[0], time);
         /* Since we rotated all position vectors before calling calcTWTSBy and calcTWTSBz_Ex, we
          * need to back-rotate the resulting B-field vector. Now the rotation is done
-         * analogously in the (y,x)-plane. (Reverse of the position vector transformation.) */
-        /* RotationMatrix[-(PI / 2+phi)].(By,Bx) */
+         * analogously in the (y,x)-plane. (Reverse of the position vector transformation.)
+         *
+         * RotationMatrix[-(PI / 2+phi)].(By,Bx) for rotating back the field vectors.
+         */
         const float_64 By_rot = -pmMath::sin(phi)*By_By+pmMath::cos(phi)*Bx_By;
-        /* for rotating back the field vectors.*/
         const float_64 Bx_rot = -pmMath::cos(phi)*By_Bx-pmMath::sin(phi)*Bx_Bx;
 
         /* Finally, the B-field normalized to the peak amplitude. */
@@ -209,10 +222,14 @@ namespace twts
 
         for (uint32_t k = 0; k<detail::numComponents;++k) {
             /* The 2D output of getFieldPositions_SI only returns
-             * the y- and z-component of a 3D vector. */
+             * the y- and z-component of a 3D vector.
+             */
             for (uint32_t i = 0; i<simDim;++i) pos[k][i+1] = bFieldPositions_SI[k][i];
         }
-        /*  Corresponding position vector for the Field-components in 2D simulations.
+
+        /* General background comment for the rest of this function:
+         *
+         * Corresponding position vector for the field components in 2D simulations.
          *  3D     3D vectors in 2D space (x, y)
          *  x -->  z (Meaning: In 2D-sim, insert cell-coordinate x
          *            into TWTS field function coordinate z.)
@@ -224,20 +241,24 @@ namespace twts
          *             Note: the intra-cell position offset due to the staggered grid for Ez.)
          *  By --> By
          *  Bz --> -Bx (Yes, the sign is necessary.)
+         *
+         * This procedure is analogous to 3D case, but replace By --> By and Bz --> -Bx. Hence the
+         * grid cell offset for Bx has to be used instead of Bz. Mind the -sign.
          */
-        /* Analogous to 3D case, but replace By --> By and Bz --> -Bx. Hence the grid cell offset
-         * for Bx has to be used instead of Bz. Mind the -sign. */
 
         /* Calculate Bx-component with the intra-cell offset of a By-field */
         const float_64 Bx_By = -calcTWTSBz_Ex(pos[1], time);
         /* Calculate Bx-component with the intra-cell offset of a Bx-field */
         const float_64 Bx_Bx = -calcTWTSBz_Ex(pos[0], time);
+
         /* Since we rotated all position vectors before calling calcTWTSBz_Ex, we
          * need to back-rotate the resulting B-field vector. Now the rotation is done
-         * analogously in the (y,x)-plane. (Reverse of the position vector transformation.) */
-        /* RotationMatrix[-(PI / 2+phi)].(By,Bx) */
+         * analogously in the (y,x)-plane. (Reverse of the position vector transformation.)
+         *
+         * RotationMatrix[-(PI / 2+phi)].(By,Bx)
+         * for rotating back the field-vectors.
+         */
         const float_64 By_rot = +pmMath::cos(phi)*Bx_By;
-        /* for rotating back the field-vectors.*/
         const float_64 Bx_rot = -pmMath::sin(phi)*Bx_Bx;
 
         /* Finally, the B-field normalized to the peak amplitude. */
@@ -277,31 +298,34 @@ namespace twts
     {
         typedef PMacc::math::Complex<float_T> complex_T;
         typedef PMacc::math::Complex<float_64> complex_64;
-        /** Unit of Speed */
+        /* Unit of speed */
         const double UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
-        /** Unit of time */
+        /* Unit of time */
         const double UNIT_TIME = SI::DELTA_T_SI;
-        /** Unit of length */
+        /* Unit of length */
         const double UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
 
-        /* propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
+        /* Propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
         const float_T beta0 = float_T(beta_0);
         const float_T phiReal = float_T(phi);
         const float_T alphaTilt = pmMath::atan2(float_T(1.0)-beta0*pmMath::cos(phiReal),
                                                 beta0*pmMath::sin(phiReal));
-        const float_T phiT = float_T(2.0)*alphaTilt;
         /* Definition of the laser pulse front tilt angle for the laser field below.
+         *
          * For beta0=1.0, this is equivalent to our standard definition. Question: Why is the
          * local "phi_T" not equal in value to the object member "phiReal" or "phi"?
          * Because the standard TWTS pulse is defined for beta0 = 1.0 and in the coordinate-system
          * of the TWTS model phi is responsible for pulse front tilt and dispersion only. Hence
          * the dispersion will (although physically correct) be slightly off the ideal TWTS
          * pulse for beta0 != 1.0. This only shows that this TWTS pulse is primarily designed for
-         * scenarios close to beta0 = 1. */
+         * scenarios close to beta0 = 1.
+         */
+        const float_T phiT = float_T(2.0)*alphaTilt;
 
         /* Angle between the laser pulse front and the y-axis. Not used, but remains in code for
-         * documentation purposes. */
-        /* const float_T eta = float_T(PI/2) - (phiReal - alphaTilt); */
+         * documentation purposes.
+         * const float_T eta = float_T(PI/2) - (phiReal - alphaTilt);
+         */
 
         const float_T cspeed = float_T( SI::SPEED_OF_LIGHT_SI / UNIT_SPEED );
         const float_T lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
@@ -326,7 +350,8 @@ namespace twts
         const float_T tanPhi2 = pmMath::tan(phiT / 2.0);
 
         /* The "helpVar" variables decrease the nesting level of the evaluated expressions and
-         * thus help with formal code verification through manual code inspection. */
+         * thus help with formal code verification through manual code inspection.
+         */
         const complex_T helpVar1 = rho0 + complex_T(0,1)*y*cosPhi + complex_T(0,1)*z*sinPhi;
         const complex_T helpVar2 = cspeed*om0*tauG*tauG + complex_T(0,2)
                                     *(-z - y*pmMath::tan(float_T(PI / 2)-phiT))*tanPhi2*tanPhi2;
@@ -390,7 +415,8 @@ namespace twts
                 )*tanPhi2*tanPhi2
             )
         /* The "round-trip" conversion in the line below fixes a gross accuracy bug
-         * in floating-point arithmetics, when float_T is set to float_X. */
+         * in floating-point arithmetics, when float_T is set to float_X.
+         */
         ) * complex_T( float_64(1.0) / complex_64(float_T(2.0)*cspeed*wy*wy*helpVar1*helpVar2) );
 
         const complex_T helpVar5 = complex_T(0,-1)*cspeed*om0*tauG*tauG
@@ -432,19 +458,23 @@ namespace twts
         const float_T phiReal = float_T(phi);
         const float_T alphaTilt = pmMath::atan2(float_T(1.0)-beta0*pmMath::cos(phiReal),
                                                 beta0*pmMath::sin(phiReal));
-        const float_T phiT = float_T(2.0)*alphaTilt;
+
         /* Definition of the laser pulse front tilt angle for the laser field below.
+         *
          * For beta0=1.0, this is equivalent to our standard definition. Question: Why is the
          * local "phi_T" not equal in value to the object member "phiReal" or "phi"?
          * Because the standard TWTS pulse is defined for beta0 = 1.0 and in the coordinate-system
          * of the TWTS model phi is responsible for pulse front tilt and dispersion only. Hence
          * the dispersion will (although physically correct) be slightly off the ideal TWTS
          * pulse for beta0 != 1.0. This only shows that this TWTS pulse is primarily designed for
-         * scenarios close to beta0 = 1. */
+         * scenarios close to beta0 = 1.
+         */
+        const float_T phiT = float_T(2.0)*alphaTilt;
 
-        /* Angle between the laser pulse front and the y-axis. Not used, but remains in code for
-         * documentation purposes. */
-        /* const float_T eta = float_T(float_T(PI / 2)) - (phiReal - alphaTilt); */
+        /* Angle between the laser pulse front and the y-axis.
+         * Not used, but remains in code for documentation purposes.
+         * const float_T eta = float_T(float_T(PI / 2)) - (phiReal - alphaTilt);
+         */
 
         const float_T cspeed = float_T( SI::SPEED_OF_LIGHT_SI / UNIT_SPEED );
         const float_T lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
@@ -470,7 +500,8 @@ namespace twts
         const float_T tanPhi2 = pmMath::tan(phiT / float_T(2.0));
 
         /* The "helpVar" variables decrease the nesting level of the evaluated expressions and
-         * thus help with formal code verification through manual code inspection. */
+         * thus help with formal code verification through manual code inspection.
+         */
         const complex_T helpVar1 = -(cspeed*z) - cspeed*y*pmMath::tan(float_T(PI / 2)-phiT)
                                     + complex_T(0,1)*cspeed*rho0 / sinPhi;
         const complex_T helpVar2 = complex_T(0,1)*rho0 - y*cosPhi - z*sinPhi;
@@ -521,7 +552,8 @@ namespace twts
     BField::calcTWTSBx( const float3_64& pos, const float_64 time ) const
     {
         /* The Bx-field for the Ey-field is the same as
-         * for the By-field for the Ex-field except for the sign. */
+         * for the By-field for the Ex-field except for the sign.
+         */
         return -calcTWTSBy( pos, time );
     }
 
@@ -535,31 +567,34 @@ namespace twts
     {
         typedef PMacc::math::Complex<float_T> complex_T;
         typedef PMacc::math::Complex<float_64> complex_64;
-        /** Unit of Speed */
+        /** Unit of speed */
         const double UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
         /** Unit of time */
         const double UNIT_TIME = SI::DELTA_T_SI;
         /** Unit of length */
         const double UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
 
-        /* propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
+        /* Propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
         const float_T beta0 = float_T(beta_0);
         const float_T phiReal = float_T(phi);
         const float_T alphaTilt = pmMath::atan2(float_T(1.0)-beta0*pmMath::cos(phiReal),
                                                 beta0*pmMath::sin(phiReal));
-        const float_T phiT = float_T(2.0)*alphaTilt;
         /* Definition of the laser pulse front tilt angle for the laser field below.
+         *
          * For beta0=1.0, this is equivalent to our standard definition. Question: Why is the
          * local "phi_T" not equal in value to the object member "phiReal" or "phi"?
          * Because the standard TWTS pulse is defined for beta0 = 1.0 and in the coordinate-system
          * of the TWTS model phi is responsible for pulse front tilt and dispersion only. Hence
          * the dispersion will (although physically correct) be slightly off the ideal TWTS
          * pulse for beta0 != 1.0. This only shows that this TWTS pulse is primarily designed for
-         * scenarios close to beta0 = 1. */
+         * scenarios close to beta0 = 1.
+         */
+        const float_T phiT = float_T(2.0)*alphaTilt;
 
-        /* Angle between the laser pulse front and the y-axis. Not used, but remains in code for
-         * documentation purposes. */
-        /* const float_T eta = float_T(float_T(PI / 2)) - (phiReal - alphaTilt); */
+        /* Angle between the laser pulse front and the y-axis.
+         * Not used, but remains in code for documentation purposes.
+         * const float_T eta = float_T(float_T(PI / 2)) - (phiReal - alphaTilt);
+         */
 
         const float_T cspeed = float_T( SI::SPEED_OF_LIGHT_SI / UNIT_SPEED );
         const float_T lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
@@ -585,7 +620,8 @@ namespace twts
         const float_T tanPhi2 = pmMath::tan(phiT / float_T(2.0));
 
         /* The "helpVar" variables decrease the nesting level of the evaluated expressions and
-         * thus help with formal code verification through manual code inspection. */
+         * thus help with formal code verification through manual code inspection.
+         */
         const complex_T helpVar1 =
             complex_T(0,-1)*cspeed*om0*tauG*tauG
             - y*cosPhi / cosPhi2 / cosPhi2 * tanPhi2
@@ -644,7 +680,8 @@ namespace twts
                 )*tanPhi2*tanPhi2
             )
         /* The "round-trip" conversion in the line below fixes a gross accuracy bug
-         * in floating-point arithmetics, when float_T is set to float_X. */
+         * in floating-point arithmetics, when float_T is set to float_X.
+         */
         ) * complex_T( float_64(1.0) / complex_64(float_T(2.0)*cspeed*wy*wy*helpVar2*helpVar1) );
 
         const complex_T helpVar4 = (
