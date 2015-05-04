@@ -30,13 +30,24 @@ namespace picongpu
 {
     /** plane wave (use periodic boundaries!)
      *
-     *  no phase shifts, no spacial envelope
+     *  no transversal spacial envelope
+     *  based on the electric potential
+     *  Phi = E_0 * exp(0.5 * (t-t_0)^2 / tau^2) * cos(t - t_0 - phi)
+     *  by applying t = x/c, the spatial derivative can be interchanged by the temporal derivative
+     *  resulting in:
+     *  E = E_0 * exp(...) * [sin(...) + t/tau^2 * cos(...)]
+     *  This ensures int_{-infinty}^{+infinty} E(x) = 0 for any phase.
+     *
+     *  The plateau length needs to be set to a multiple of the wavelength,
+     *  otherwise the integral will not vanish. 
      */
     namespace laserPlaneWave
     {
-
-        /** Compute the
+        /** calculates longitudinal field distribution
          *
+         * @param currentStep
+         * @param phase
+         * @return
          */
         HINLINE float3_X laserLongitudinal( uint32_t currentStep, float_X& phase )
         {
@@ -46,10 +57,6 @@ namespace picongpu
             double envelope = double(AMPLITUDE );
             float3_X elong(float3_X::create(0.0));
 
-            // a NON-symmetric (starting with phase=0) pulse will be initialized at position z=0 for
-            // a time of RAMP_INIT * PULSE_LENGTH + LASER_NOFOCUS_CONSTANT = INIT_TIME.
-            // we shift the complete pulse for the half of this time to start with
-            // the front of the laser pulse.
             const double mue = 0.5 * RAMP_INIT * PULSE_LENGTH;
 
             const double w = 2.0 * PI * f;
@@ -78,6 +85,7 @@ namespace picongpu
 
             const double timeOszi = runTime - endUpramp;
             const double t_and_phase = w * timeOszi + LASER_PHASE;
+            // to understand both components [sin(...) + t/tau^2 * cos(...)] see description above
             if( Polarisation == LINEAR_X )
             {
               elong.x() = float_X( envelope * (math::sin(t_and_phase)
@@ -102,7 +110,7 @@ namespace picongpu
             return elong;
         }
 
-        /**
+        /** calculates transversal field distribution
          *
          * @param elong
          * @param phase
