@@ -177,10 +177,10 @@ namespace twts
         /* Single TWTS-Pulse */
         switch (pol)
         {
-            case NORMAL_TO_TILTPLANE :
+            case LINEAR_X :
             return getTWTSEfield_Normalized<simDim>(eFieldPositions_SI, time_SI);
 
-            case WITHIN_TILTPLANE :
+            case LINEAR_YZ :
             return getTWTSEfield_Normalized_Ey<simDim>(eFieldPositions_SI, time_SI);
         }
         return getTWTSEfield_Normalized<simDim>(eFieldPositions_SI, time_SI); // defensive default
