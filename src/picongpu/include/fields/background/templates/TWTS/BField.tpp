@@ -81,7 +81,7 @@ namespace twts
         PosVecVec pos(PosVecVec::create(
                                            float3_64::create(0.0)
                                        ));
-        
+
         for (uint32_t k = 0; k<detail::numComponents;++k) {
             for (uint32_t i = 0; i<simDim;++i)
                 pos[k][i] = bFieldPositions_SI[k][i];
@@ -118,11 +118,11 @@ namespace twts
         PosVecVec pos(PosVecVec::create(
                                            float3_64::create(0.0)
                                        ));
-        
+
         for (uint32_t k = 0; k<detail::numComponents;++k) {
             for (uint32_t i = 0; i<simDim;++i) pos[k][i] = bFieldPositions_SI[k][i];
         }
-        
+
         /* Calculate Bz-component with the intra-cell offset of a By-field */
         const float_64 Bz_By = calcTWTSBz_Ey(pos[1], time);
         /* Calculate Bz-component with the intra-cell offset of a Bz-field */
@@ -132,13 +132,13 @@ namespace twts
         /* RotationMatrix[-(PI/2+phi)].(By,Bz) for rotating back the field-vectors. */
         const float_64 By_rot = +pmMath::cos(+phi)*Bz_By;
         const float_64 Bz_rot = -pmMath::sin(+phi)*Bz_Bz;
-        
+
         /* Finally, the B-field normalized to the peak amplitude. */
         return float3_X( float_X( calcTWTSBx(pos[0], time) ),
                          float_X( By_rot ),
                          float_X( Bz_rot ) );
     }
-    
+
     template<>
     HDINLINE float3_X
     BField::getTWTSBfield_Normalized<DIM2>(
@@ -195,7 +195,7 @@ namespace twts
                          float_X(By_rot),
                          float_X(0.0) );
     }
-    
+
     template<>
     HDINLINE float3_X
     BField::getTWTSBfield_Normalized_Ey<DIM2>(
@@ -206,7 +206,7 @@ namespace twts
         PosVecVec pos(PosVecVec::create(
                                            float3_64::create(0.0)
                                        ));
-        
+
         for (uint32_t k = 0; k<detail::numComponents;++k) {
             /* The 2D output of getFieldPositions_SI only returns
              * the y- and z-component of a 3D vector. */
@@ -224,10 +224,10 @@ namespace twts
          *             Note: the intra-cell position offset due to the staggered grid for Ez.)
          *  By --> By
          *  Bz --> -Bx (Yes, the sign is necessary.)
-         */ 
+         */
         /* Analogous to 3D case, but replace By --> By and Bz --> -Bx. Hence the grid cell offset
          * for Bx has to be used instead of Bz. Mind the -sign. */
-         
+
         /* Calculate Bx-component with the intra-cell offset of a By-field */
         const float_64 Bx_By = -calcTWTSBz_Ex(pos[1], time);
         /* Calculate Bx-component with the intra-cell offset of a Bx-field */
@@ -239,7 +239,7 @@ namespace twts
         const float_64 By_rot = +pmMath::cos(phi)*Bx_By;
         /* for rotating back the field-vectors.*/
         const float_64 Bx_rot = -pmMath::sin(phi)*Bx_Bx;
-        
+
         /* Finally, the B-field normalized to the peak amplitude. */
         return float3_X( float_X( Bx_rot ),
                          float_X( By_rot ),
@@ -260,7 +260,7 @@ namespace twts
         {
             case NORMAL_TO_TILTPLANE :
             return getTWTSBfield_Normalized<simDim>(bFieldPositions_SI, time_SI);
-            
+
             case WITHIN_TILTPLANE :
             return getTWTSBfield_Normalized_Ey<simDim>(bFieldPositions_SI, time_SI);
         }
@@ -302,7 +302,7 @@ namespace twts
         /* Angle between the laser pulse front and the y-axis. Not used, but remains in code for
          * documentation purposes. */
         /* const float_T eta = float_T(PI/2) - (phiReal - alphaTilt); */
-        
+
         const float_T cspeed = float_T( SI::SPEED_OF_LIGHT_SI / UNIT_SPEED );
         const float_T lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
         const float_T om0 = float_T(2.0*PI*cspeed / lambda0);
@@ -392,7 +392,7 @@ namespace twts
         /* The "round-trip" conversion in the line below fixes a gross accuracy bug
          * in floating-point arithmetics, when float_T is set to float_X. */
         ) * complex_T( float_64(1.0) / complex_64(float_T(2.0)*cspeed*wy*wy*helpVar1*helpVar2) );
-        
+
         const complex_T helpVar5 = complex_T(0,-1)*cspeed*om0*tauG*tauG
                                 + (-z - y*pmMath::tan(float_T(PI / 2)-phiT))
                                     *tanPhi2*tanPhi2*float_T(2.0);
@@ -445,7 +445,7 @@ namespace twts
         /* Angle between the laser pulse front and the y-axis. Not used, but remains in code for
          * documentation purposes. */
         /* const float_T eta = float_T(float_T(PI / 2)) - (phiReal - alphaTilt); */
-        
+
         const float_T cspeed = float_T( SI::SPEED_OF_LIGHT_SI / UNIT_SPEED );
         const float_T lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
         const float_T om0 = float_T(2.0*PI*cspeed / lambda0);
@@ -511,7 +511,7 @@ namespace twts
 
         return result.get_real() / UNIT_SPEED;
     }
-    
+
     /** Calculate the Bx(r,t) field
      *
      * \param pos Spatial position of the target field.
@@ -524,7 +524,7 @@ namespace twts
          * for the By-field for the Ex-field except for the sign. */
         return -calcTWTSBy( pos, time );
     }
-    
+
     /** Calculate the Bz(r,t) field
      *
      * \param pos Spatial position of the target field.
@@ -541,7 +541,7 @@ namespace twts
         const double UNIT_TIME = SI::DELTA_T_SI;
         /** Unit of length */
         const double UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
-        
+
         /* propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
         const float_T beta0 = float_T(beta_0);
         const float_T phiReal = float_T(phi);
@@ -556,11 +556,11 @@ namespace twts
          * the dispersion will (although physically correct) be slightly off the ideal TWTS
          * pulse for beta0 != 1.0. This only shows that this TWTS pulse is primarily designed for
          * scenarios close to beta0 = 1. */
-        
+
         /* Angle between the laser pulse front and the y-axis. Not used, but remains in code for
          * documentation purposes. */
         /* const float_T eta = float_T(float_T(PI / 2)) - (phiReal - alphaTilt); */
-        
+
         const float_T cspeed = float_T( SI::SPEED_OF_LIGHT_SI / UNIT_SPEED );
         const float_T lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
         const float_T om0 = float_T(2.0*PI*cspeed / lambda0);
@@ -576,22 +576,22 @@ namespace twts
         const float_T y = float_T(pos.y() / UNIT_LENGTH);
         const float_T z = float_T(pos.z() / UNIT_LENGTH);
         const float_T t = float_T(time / UNIT_TIME);
-                        
+
         /* Shortcuts for speeding up the field calculation. */
         const float_T sinPhi = pmMath::sin(phiT);
         const float_T cosPhi = pmMath::cos(phiT);
         const float_T sinPhi2 = pmMath::sin(phiT / float_T(2.0));
         const float_T cosPhi2 = pmMath::cos(phiT / float_T(2.0));
         const float_T tanPhi2 = pmMath::tan(phiT / float_T(2.0));
-        
+
         /* The "helpVar" variables decrease the nesting level of the evaluated expressions and
          * thus help with formal code verification through manual code inspection. */
-        const complex_T helpVar1 = 
+        const complex_T helpVar1 =
             complex_T(0,-1)*cspeed*om0*tauG*tauG
             - y*cosPhi / cosPhi2 / cosPhi2 * tanPhi2
             - float_T(2.0)*z*tanPhi2*tanPhi2;
         const complex_T helpVar2 = complex_T(0,1)*rho0 - y*cosPhi - z*sinPhi;
-        
+
         const complex_T helpVar3 = (
             - cspeed*cspeed*k*om0*tauG*tauG*wy*wy*x*x
             - float_T(2.0)*cspeed*cspeed*om0*t*t*wy*wy*rho0
@@ -646,7 +646,7 @@ namespace twts
         /* The "round-trip" conversion in the line below fixes a gross accuracy bug
          * in floating-point arithmetics, when float_T is set to float_X. */
         ) * complex_T( float_64(1.0) / complex_64(float_T(2.0)*cspeed*wy*wy*helpVar2*helpVar1) );
-        
+
         const complex_T helpVar4 = (
             cspeed*om0*(
                 cspeed*om0*tauG*tauG
@@ -655,12 +655,12 @@ namespace twts
                 - complex_T(0,2)*z*tanPhi2*tanPhi2
             )
         ) / rho0;
-        
+
         const complex_T result = float_T(-1.0)*(
             cspeed*pmMath::exp(helpVar3)*k*tauG*x*pmMath::pow( helpVar2, float_T(-1.5) )
             / pmMath::sqrt(helpVar4)
         );
-        
+
         return result.get_real() / UNIT_SPEED;
     }
 

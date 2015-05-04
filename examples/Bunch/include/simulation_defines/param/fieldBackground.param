@@ -35,7 +35,7 @@ namespace picongpu
     class FieldBackgroundE
     {
     public:
-    
+
         /* Add this additional field for pushing particles */
         static const bool InfluenceParticlePusher = PARAM_INCLUDE_FIELDBACKGROUND;
 
@@ -45,10 +45,10 @@ namespace picongpu
         /* TWTS E-fields need to be initialized on host,
          *  so they can look up global grid dimensions. */
         const templates::twts::EField twtsFieldE;
-        
+
         /* Constructor is host-only, because of subGrid and halfSimSize initialization */
         HINLINE FieldBackgroundE( const float3_64 unitField ) : unitField(unitField),
-        
+
             twtsFieldE(
                 /* focus_y [m], the distance to the laser focus in y-direction */
                 30.0e-6,
@@ -81,7 +81,7 @@ namespace picongpu
             /* example 1: TWTS background pulse */
             /** unit: meter */
             const double WAVE_LENGTH_SI = 0.8e-6;
-            
+
             /** UNITCONV */
             /* const double UNITCONV_Intens_to_A0 = SI::ELECTRON_CHARGE_SI
                 * SI::ELECTRON_CHARGE_SI * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI / (4.0 * PI * PI
@@ -105,9 +105,9 @@ namespace picongpu
             const float3_64 invUnitField = float3_64(1.0 / unitField[0],
                                                      1.0 / unitField[1],
                                                      1.0 / unitField[2] );
-            
+
             /* laser amplitude in picongpu units [ unit: (Volt /meter) / unitField-factor ]
-             * Note: the laser amplitude is included in all field components 
+             * Note: the laser amplitude is included in all field components
              * polarization and other properties are established by the peak amplitude
              * normalized twtsFieldE(...) */
             const float3_X amplitude = precisionCast<float_X>(
@@ -127,12 +127,12 @@ namespace picongpu
         /* TWTS B-fields need to be initialized on host,
          * so they can look up global grid dimensions. */
         const templates::twts::BField twtsFieldB;
-        
+
         /* We use this to calculate your SI input back to our unit system */
         PMACC_ALIGN(unitField, const float3_64);
-        
+
         HINLINE FieldBackgroundB( const float3_64 unitField ) : unitField(unitField),
-        
+
             twtsFieldB(
                 /* focus_y [m], the distance to the laser focus in y-direction */
                 30.0e-6,
@@ -164,7 +164,7 @@ namespace picongpu
         {
             /** unit: meter */
             const double WAVE_LENGTH_SI = 0.8e-6;
-            
+
             /** UNITCONV */
             /* const double UNITCONV_Intens_to_A0 = SI::ELECTRON_CHARGE_SI
                 * SI::ELECTRON_CHARGE_SI * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI / (4.0 * PI * PI
@@ -187,14 +187,14 @@ namespace picongpu
             const float3_64 invUnitField = float3_64( 1.0 / unitField[0],
                                                       1.0 / unitField[1],
                                                       1.0 / unitField[2] );
-            
+
             /* laser amplitude in picongpu units [ unit: (Volt/meter) / unitField-factor ]
-             * Note: the laser amplitude is included in all field components 
+             * Note: the laser amplitude is included in all field components
              * polarization and other properties are established by the peak amplitude
              * normalized twtsFieldB(...) */
             const float3_X amplitude = precisionCast<float_X>(
                     float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField );
-            
+
             /* Note: twtsFieldB(...) is normalized, such that peak amplitude equals unity. */
             return amplitude * twtsFieldB( cellIdx, currentStep );
         }
@@ -208,7 +208,7 @@ namespace picongpu
 
         /* We use this to calculate your SI input back to our unit system */
         PMACC_ALIGN(unitField, const float3_64);
-        
+
         HDINLINE FieldBackgroundJ( const float3_64 unitField ) : unitField(unitField)
         {}
 
