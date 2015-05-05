@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau
+ * Copyright 2013, 2015 Heiko Burau
  *
  * This file is part of libPMacc.
  *
@@ -31,6 +31,47 @@ namespace algorithm
 {
 namespace mpi
 {
+    
+namespace GatherHelper
+{
+    
+/** @tparam dim dimension of mpi cluster
+ *  @tparam memDim dimension of memory to be gathered
+ * 
+ * if memDim == dim - 1 then ``dir`` indicates the direction (orientation)
+ * of the (meta)plane.
+ */
+template<int dim, int memDim>
+struct posInMem;
+
+template<int dim>
+struct posInMem<dim, dim>
+{
+    math::Int<dim> operator()(const math::Int<dim>& pos, int) const
+    {
+        return pos;
+    }
+};
+
+template<>
+struct posInMem<DIM3, DIM2>
+{
+    math::Int<DIM2> operator()(const math::Int<DIM3>& pos, int dir) const
+    {
+        return math::Int<DIM2>(pos[(dir+1)%3], pos[(dir+2)%3]);
+    }
+};
+
+template<>
+struct posInMem<DIM2, DIM1>
+{
+    math::Int<DIM1> operator()(const math::Int<DIM2>& pos, int dir) const
+    {
+        return math::Int<DIM1>(pos[(dir+1)%2]);
+    }
+};
+
+}
 
 template<int dim>
 Gather<dim>::Gather(const zone::SphericZone<dim>& p_zone) : comm(MPI_COMM_NULL)
@@ -102,29 +143,29 @@ int Gather<dim>::rank() const
 }
 
 template<int dim>
-template<typename Type>
-void Gather<dim>::CopyToDest<Type, 3, 2>::operator()(
+template<typename Type, int memDim>
+void Gather<dim>::CopyToDest<Type, memDim>::operator()(
                     const Gather<dim>& gather,
-                    container::HostBuffer<Type, 2>& dest,
+                    container::HostBuffer<Type, memDim>& dest,
                     std::vector<Type>& tmpDest,
-                    container::HostBuffer<Type, 2>& source, int dir) const
+                    container::HostBuffer<Type, memDim>& source, int dir) const
 {
     using namespace math;
 
     for(int i = 0; i < (int)gather.positions.size(); i++)
     {
-        Int<3> pos = gather.positions[i];
-        Int<2> pos2D(pos[(dir+1)%3], pos[(dir+2)%3]);
+        Int<dim> pos = gather.positions[i];
+        Int<memDim> posInMem = GatherHelper::posInMem<dim, memDim>()(pos, dir);
 
-        cudaWrapper::Memcopy<2>()(&(*dest.origin()(pos2D * (Int<2>)source.size())), dest.getPitch(),
+        cudaWrapper::Memcopy<memDim>()(&(*dest.origin()(posInMem * (Int<memDim>)source.size())), dest.getPitch(),
                                   tmpDest.data() + i * source.size().productOfComponents(), source.getPitch(),
                                   source.size(), cudaWrapper::flags::Memcopy::hostToHost);
     }
 }
 
-template<>
+template<int dim>
 template<typename Type, int memDim>
-void Gather<3>::operator()(container::HostBuffer<Type, memDim>& dest,
+void Gather<dim>::operator()(container::HostBuffer<Type, memDim>& dest,
                              container::HostBuffer<Type, memDim>& source, int dir) const
 {
     if(!this->m_participate) return;
@@ -137,7 +178,7 @@ void Gather<3>::operator()(container::HostBuffer<Type, memDim>& dest,
                0, this->comm));
     if(!root()) return;
 
-    CopyToDest<Type, 3, memDim>()(*this, dest, tmpDest, source, dir);
+    CopyToDest<Type, memDim>()(*this, dest, tmpDest, source, dir);
 }
 
 } // mpi

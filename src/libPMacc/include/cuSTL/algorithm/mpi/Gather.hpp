@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau
+ * Copyright 2013, 2015 Heiko Burau
  *
  * This file is part of libPMacc.
  *
@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ALGORITHM_MPI_GATHER_HPP
-#define ALGORITHM_MPI_GATHER_HPP
+#pragma once
 
 #include "mpi.h"
 #include "math/vector/Int.hpp"
@@ -46,19 +45,16 @@ private:
     std::vector<math::Int<dim> > positions;
     bool m_participate;
 
-    template<typename Type, int T_dim, int memDim>
-    struct CopyToDest;
-
-    template<typename Type>
-    struct CopyToDest<Type, 3, 2>
+    template<typename Type, int memDim>
+    struct CopyToDest
     {
         void operator()(const Gather<dim>& gather,
-                        container::HostBuffer<Type, 2>& dest,
+                        container::HostBuffer<Type, memDim>& dest,
                         std::vector<Type>& tmpDest,
-                        container::HostBuffer<Type, 2>& source, int dir) const;
+                        container::HostBuffer<Type, memDim>& source, int dir) const;
     };
 
-    template<typename Type, int T_dim, int memDim>
+    template<typename Type, int memDim>
     friend class CopyToDest;
 public:
     Gather(const zone::SphericZone<dim>& p_zone);
@@ -79,5 +75,3 @@ public:
 } // PMacc
 
 #include "Gather.tpp"
-
-#endif // ALGORITHM_MPI_GATHER_HPP
