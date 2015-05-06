@@ -37,10 +37,10 @@
 
 namespace picongpu
 {
-/** Load pre-defined background field */
+/* Load pre-defined background field */
 namespace templates
 {
-/** Traveling-wave Thomson scattering laser pulse */
+/* Traveling-wave Thomson scattering laser pulse */
 namespace twts
 {
     namespace pmMath = PMacc::algorithms::math;
@@ -54,15 +54,17 @@ namespace twts
                     const float_X phi,
                     const float_X beta_0,
                     const float_64 tdelay_user_SI,
-                    const bool auto_tdelay ) :
+                    const bool auto_tdelay,
+                    const PolarizationType pol ) :
         focus_y_SI(focus_y_SI), wavelength_SI(wavelength_SI),
         pulselength_SI(pulselength_SI), w_x_SI(w_x_SI),
         w_y_SI(w_y_SI), phi(phi), beta_0(beta_0),
         tdelay_user_SI(tdelay_user_SI), dt(SI::DELTA_T_SI),
-        unit_length(UNIT_LENGTH), auto_tdelay(auto_tdelay)
+        unit_length(UNIT_LENGTH), auto_tdelay(auto_tdelay), pol(pol)
     {
         /* Note: Enviroment-objects cannot be instantiated on CUDA GPU device. Since this is done
-                 on host (see fieldBackground.param), this is no problem. */
+                 on host (see fieldBackground.param), this is no problem.
+         */
         const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
         halfSimSize = subGrid.getGlobalDomain().size / 2;
         tdelay = detail::getInitialTimeDelay_SI(auto_tdelay, tdelay_user_SI,
@@ -84,6 +86,40 @@ namespace twts
 
     template<>
     HDINLINE float3_X
+    EField::getTWTSEfield_Normalized_Ey<DIM3>(
+                const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
+                const float_64 time) const
+    {
+        typedef PMacc::math::Vector<float3_64,detail::numComponents> PosVecVec;
+        PosVecVec pos(PosVecVec::create(
+                                           float3_64::create(0.0)
+                                       ));
+
+        for (uint32_t k = 0; k<detail::numComponents;++k) {
+            for (uint32_t i = 0; i<simDim;++i) pos[k][i] = eFieldPositions_SI[k][i];
+        }
+
+        /* Calculate Ey-component with the intra-cell offset of a Ey-field */
+        const float_64 Ey_Ey = calcTWTSEy(pos[1], time);
+        /* Calculate Ey-component with the intra-cell offset of a Ez-field */
+        const float_64 Ey_Ez = calcTWTSEy(pos[2], time);
+
+        /* Since we rotated all position vectors before calling calcTWTSEy,
+         * we need to back-rotate the resulting E-field vector.
+         *
+         * RotationMatrix[-(PI/2+phi)].(Ey,Ez) for rotating back the field-vectors.
+         */
+        const float_64 Ey_rot = -pmMath::sin(+phi)*Ey_Ey;
+        const float_64 Ez_rot = -pmMath::cos(+phi)*Ey_Ez;
+
+        /* Finally, the E-field normalized to the peak amplitude. */
+        return float3_X( float_X(0.0),
+                         float_X(Ey_rot),
+                         float_X(Ez_rot) );
+    }
+
+    template<>
+    HDINLINE float3_X
     EField::getTWTSEfield_Normalized<DIM2>(
         const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
         const float_64 time) const
@@ -94,6 +130,46 @@ namespace twts
         for (uint32_t i = 0; i<simDim;++i) pos[i+1] = eFieldPositions_SI[2][i];
         return float3_X( float_X(0.), float_X(0.),
                          float_X( calcTWTSEx(pos,time) ) );
+    }
+
+    template<>
+    HDINLINE float3_X
+    EField::getTWTSEfield_Normalized_Ey<DIM2>(
+        const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
+        const float_64 time) const
+    {
+        typedef PMacc::math::Vector<float3_64,detail::numComponents> PosVecVec;
+        PosVecVec pos(PosVecVec::create(
+                                           float3_64::create(0.0)
+                                       ));
+
+        /* The 2D output of getFieldPositions_SI only returns
+         * the y- and z-component of a 3D vector.
+         */
+        for (uint32_t k = 0; k<detail::numComponents;++k) {
+            for (uint32_t i = 0; i<simDim;++i) pos[k][i+1] = eFieldPositions_SI[k][i];
+        }
+
+        /* Ey->Ey, but grid cell offsets for Ex and Ey have to be used.
+         *
+         * Calculate Ey-component with the intra-cell offset of a Ey-field
+         */
+        const float_64 Ey_Ey = calcTWTSEy(pos[1], time);
+        /* Calculate Ey-component with the intra-cell offset of a Ex-field */
+        const float_64 Ey_Ex = calcTWTSEy(pos[0], time);
+
+        /* Since we rotated all position vectors before calling calcTWTSEy,
+         * we need to back-rotate the resulting E-field vector.
+         *
+         * RotationMatrix[-(PI / 2+phi)].(Ey,Ex) for rotating back the field-vectors.
+         */
+        const float_64 Ey_rot = -pmMath::sin(+phi)*Ey_Ey;
+        const float_64 Ex_rot = -pmMath::cos(+phi)*Ey_Ex;
+
+        /* Finally, the E-field normalized to the peak amplitude. */
+        return float3_X( float_X(Ex_rot),
+                         float_X(Ey_rot),
+                         float_X(0.0) );
     }
 
     HDINLINE float3_X
@@ -107,7 +183,15 @@ namespace twts
                 fieldSolver::NumericalCellType::getEFieldPosition(),unit_length,focus_y_SI,phi);
 
         /* Single TWTS-Pulse */
-        return getTWTSEfield_Normalized<simDim>(eFieldPositions_SI, time_SI);
+        switch (pol)
+        {
+            case LINEAR_X :
+            return getTWTSEfield_Normalized<simDim>(eFieldPositions_SI, time_SI);
+
+            case LINEAR_YZ :
+            return getTWTSEfield_Normalized_Ey<simDim>(eFieldPositions_SI, time_SI);
+        }
+        return getTWTSEfield_Normalized<simDim>(eFieldPositions_SI, time_SI); // defensive default
     }
 
     /** Calculate the Ex(r,t) field here
@@ -119,43 +203,47 @@ namespace twts
     EField::calcTWTSEx( const float3_64& pos, const float_64 time) const
     {
         typedef PMacc::math::Complex<float_T> complex_T;
-        /** Unit of Speed */
+        typedef PMacc::math::Complex<float_64> complex_64;
+        /* Unit of speed */
         const double UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
-        /** Unit of time */
+        /* Unit of time */
         const double UNIT_TIME = SI::DELTA_T_SI;
-        /** Unit of length */
+        /* Unit of length */
         const double UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
 
-        /* propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
+        /* Propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
         const float_T beta0 = float_T(beta_0);
         const float_T phiReal = float_T(phi);
         const float_T alphaTilt = pmMath::atan2(float_T(1.0)-beta0*pmMath::cos(phiReal),
                                                 beta0*pmMath::sin(phiReal));
-        const float_T phiT = float_T(2.0)*alphaTilt;
         /* Definition of the laser pulse front tilt angle for the laser field below.
+         *
          * For beta0 = 1.0, this is equivalent to our standard definition. Question: Why is the
          * local "phi_T" not equal in value to the object member "phiReal" or "phi"?
          * Because the standard TWTS pulse is defined for beta0 = 1.0 and in the coordinate-system
          * of the TWTS model phi is responsible for pulse front tilt and dispersion only. Hence
          * the dispersion will (although physically correct) be slightly off the ideal TWTS
          * pulse for beta0 != 1.0. This only shows that this TWTS pulse is primarily designed for
-         * scenarios close to beta0 = 1. */
+         * scenarios close to beta0 = 1.
+         */
+        const float_T phiT = float_T(2.0)*alphaTilt;
 
         /* Angle between the laser pulse front and the y-axis. Not used, but remains in code for
-         * documentation purposes. */
-        /* const float_T eta = (PI / 2) - (phiReal - alphaTilt); */
+         * documentation purposes.
+         * const float_T eta = (PI / 2) - (phiReal - alphaTilt);
+         */
 
-        const float_T cspeed = float_T(1.0);
+        const float_T cspeed = float_T( SI::SPEED_OF_LIGHT_SI / UNIT_SPEED );
         const float_T lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
-        const float_T om0 = float_T(2.0*PI*cspeed / lambda0*UNIT_TIME);
+        const float_T om0 = float_T(2.0*PI*cspeed / lambda0);
         /* factor 2  in tauG arises from definition convention in laser formula */
         const float_T tauG = float_T(pulselength_SI*2.0 / UNIT_TIME);
         /* w0 is wx here --> w0 could be replaced by wx */
         const float_T w0 = float_T(w_x_SI / UNIT_LENGTH);
-        const float_T rho0 = float_T(PI*w0*w0/lambda0/UNIT_LENGTH);
+        const float_T rho0 = float_T(PI*w0*w0/lambda0);
         /* wy is width of TWTS pulse */
         const float_T wy = float_T(w_y_SI / UNIT_LENGTH);
-        const float_T k = float_T(2.0*PI / lambda0*UNIT_LENGTH);
+        const float_T k = float_T(2.0*PI / lambda0);
         const float_T x = float_T(pos.x() / UNIT_LENGTH);
         const float_T y = float_T(pos.y() / UNIT_LENGTH);
         const float_T z = float_T(pos.z() / UNIT_LENGTH);
@@ -169,7 +257,8 @@ namespace twts
         const float_T tanPhi2 = pmMath::tan(phiT / float_T(2.0));
 
         /* The "helpVar" variables decrease the nesting level of the evaluated expressions and
-         * thus help with formal code verification through manual code inspection. */
+         * thus help with formal code verification through manual code inspection.
+         */
         const complex_T helpVar1 = complex_T(0,1)*rho0 - y*cosPhi - z*sinPhi;
         const complex_T helpVar2 = complex_T(0,-1)*cspeed*om0*tauG*tauG
                                     - y*cosPhi / cosPhi2 / cosPhi2*tanPhi2
@@ -228,7 +317,10 @@ namespace twts
                     + om0*wy*wy*(y*y - float_T(4.0)*(cspeed*t - z)*z)
                 )
             )
-        ) / (float_T(2.0)*cspeed*wy*wy*helpVar1*helpVar2);
+        /* The "round-trip" conversion in the line below fixes a gross accuracy bug
+         * in floating-point arithmetics, when float_T is set to float_X.
+         */
+        ) * complex_T( float_64(1.0) / complex_64(float_T(2.0)*cspeed*wy*wy*helpVar1*helpVar2) );
 
         const complex_T helpVar5 = cspeed*om0*tauG*tauG
             - complex_T(0,8)*y*pmMath::tan( float_T(PI / 2)-phiT )
@@ -237,6 +329,20 @@ namespace twts
         const complex_T result = (pmMath::exp(helpVar4)*tauG
             *pmMath::sqrt((cspeed*om0*rho0) / helpVar3)) / pmMath::sqrt(helpVar5);
         return result.get_real();
+    }
+
+    /** Calculate the Ey(r,t) field here
+     *
+     * \param pos Spatial position of the target field.
+     * \param time Absolute time (SI, including all offsets and transformations) for calculating
+     *             the field */
+    HDINLINE EField::float_T
+    EField::calcTWTSEy( const float3_64& pos, const float_64 time) const
+    {
+        /* The field function of Ey (polarization in pulse-front-tilt plane)
+         * is by definition identical to Ex (polarization normal to pulse-front-tilt plane)
+         */
+        return calcTWTSEx( pos, time );
     }
 
 } /* namespace twts */
