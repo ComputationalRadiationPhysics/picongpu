@@ -3,11 +3,12 @@ Change Log / Release Log for PIConGPU
 
 0.1.0
 -----
-**Date:** 2015-05-08
+**Date:** 2015-05-13
 
-This is the version 0.1.0 of PIConGPU, a *pre-beta* version.
+This is version `0.1.0` of PIConGPU, a *pre-beta* version.
+
 Initial field ionization support was added, including the first model for BSI.
-The code-base was supstantially hardeded, fixing several minor and major
+The code-base was substantially hardened, fixing several minor and major
 issues. Especially, several restart related issues and a memory issue with
 Jetson TK1 boards were fixed. A work-around for a critical CUDA 6.5 compiler
 bug was applied to all affected parts of the code.
@@ -25,7 +26,7 @@ bug was applied to all affected parts of the code.
 
 **.unitless file changes:**
  See full syntax for each file at
- https://github.com/ComputationalRadiationPhysics/picongpu/tree/beta-rc6/src/picongpu/include/simulation_defines/unitless
+ https://github.com/ComputationalRadiationPhysics/picongpu/tree/0.1.0/src/picongpu/include/simulation_defines/unitless
  - `gasConfig.unitless`: typo in `gasHomogeneous` #577
  - `speciesAttributes.unitless`: new unit for `boundElectrons` identifier
  - `speciesDefinition.unitless`: new traits `GetCharge`, `GetMass`,
