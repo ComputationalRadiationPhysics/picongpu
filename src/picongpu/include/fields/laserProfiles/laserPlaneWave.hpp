@@ -31,9 +31,9 @@ namespace picongpu
      *  no transverse spacial envelope
      *  based on the electric potential
      *  Phi = Phi_0 * exp(0.5 * (x-x_0)^2 / sigma^2) * cos(k*(x - x_0) - phi)
-     *  by applying grad Phi = d/dx Phi = E(x)
+     *  by applying -grad Phi = -d/dx Phi = E(x)
      *  we get:
-     *  E = Phi_0 * exp(0.5 * (x-x_0)^2 / sigma^2) * [k*sin(k*(x - x_0) - phi) + x/sigma^2 * cos(k*(x - x_0) - phi)]
+     *  E = -Phi_0 * exp(0.5 * (x-x_0)^2 / sigma^2) * [k*sin(k*(x - x_0) - phi) + x/sigma^2 * cos(k*(x - x_0) - phi)]
      *
      *  This approach ensures that int_{-infinity}^{+infinity} E(x) = 0 for any phase
      *  if we have no transverse profile as we have with this plane wave train
@@ -41,9 +41,9 @@ namespace picongpu
      *  Since PIConGPU requires a temporally defined electric field, we use:
      *  t = x/c and (x-x_0)/sigma = (t-t_0)/tau and k*(x-x_0) = omega*(t-t_0) with omega/k = c and tau * c = sigma
      *  and get:
-     *  E = Phi_0*omega/c * exp(0.5 * (t-t_0)^2 / tau^2) * [sin(omega*(t - t_0) - phi) + t/(omega*tau^2) * cos(omega*(t - t_0) - phi)]
+     *  E = -Phi_0*omega/c * exp(0.5 * (t-t_0)^2 / tau^2) * [sin(omega*(t - t_0) - phi) + t/(omega*tau^2) * cos(omega*(t - t_0) - phi)]
      *  and define:
-     *    E_0 = Phi_0*omega/c
+     *    E_0 = -Phi_0*omega/c
      *    integrationCorrectionFactor = t/(omega*tau^2)
      *
      *  Please consider:
