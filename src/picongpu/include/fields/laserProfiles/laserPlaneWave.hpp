@@ -47,9 +47,11 @@ namespace picongpu
      *    integrationCorrectionFactor = t/(omega*tau^2)
      *
      *  Please consider:
-     *  The above formulae does only apply to a Gaussian envelope. If the plateau length is
-     *  not zero, the integral over the volume will only vanish if the plateau length is
-     *  a multiple of the wavelength,
+     *   1) The above formulae does only apply to a Gaussian envelope. If the plateau length is
+     *      not zero, the integral over the volume will only vanish if the plateau length is
+     *      a multiple of the wavelength.
+     *   2) Since we define our envelope by a sigma of the laser intensity, 
+     *      tau = PULSE_LENGTH / sqrt(2)
      */
     namespace laserPlaneWave
     {
@@ -70,6 +72,7 @@ namespace picongpu
             const double mue = 0.5 * RAMP_INIT * PULSE_LENGTH;
 
             const double w = 2.0 * PI * f;
+            const double tau = PULSE_LENGTH / sqrt( 2.0 );
 
             const double endUpramp = mue;
             const double startDownramp = mue + LASER_NOFOCUS_CONSTANT;
@@ -79,18 +82,16 @@ namespace picongpu
             if( runTime > startDownramp )
             {
                 // downramp = end
-                const double exponent =
-                    ( ( runTime - startDownramp )
-                      / PULSE_LENGTH / sqrt( 2.0 ) );
+                const double exponent = (runTime - startDownramp) / tau;
                 envelope *= exp( -0.5 * exponent * exponent );
-                integrationCorrectionFactor = ( runTime - startDownramp )/ (w*2.0*PULSE_LENGTH*PULSE_LENGTH);
+                integrationCorrectionFactor = ( runTime - startDownramp )/ (w*tau*tau);
             }
             else if ( runTime < endUpramp )
             {
                 // upramp = start
-                const double exponent = ( ( runTime - endUpramp ) / PULSE_LENGTH / sqrt( 2.0 ) );
+                const double exponent = (runTime - endUpramp) / tau;
                 envelope *= exp( -0.5 * exponent * exponent );
-                integrationCorrectionFactor = ( runTime - endUpramp )/ (w*2.0*PULSE_LENGTH*PULSE_LENGTH);
+                integrationCorrectionFactor = ( runTime - endUpramp )/ (w*tau*tau);
             }
 
             const double timeOszi = runTime - endUpramp;
