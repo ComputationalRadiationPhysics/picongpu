@@ -42,7 +42,9 @@ namespace picongpu
      *  t = x/c and (x-x_0)/sigma = (t-t_0)/tau and k*(x-x_0) = omega*(t-t_0) with omega/k = c and tau * c = sigma
      *  and get:
      *  E = Phi_0*omega/c * exp(0.5 * (t-t_0)^2 / tau^2) * [sin(omega*(t - t_0) - phi) + t/(omega*tau^2) * cos(omega*(t - t_0) - phi)]
-     *  and define Phi_0*omega/c = E_0
+     *  and define:
+     *    E_0 = Phi_0*omega/c
+     *    integrationCorrectionFactor = t/(omega*tau^2)
      *
      *  Please consider:
      *  The above formulae does only apply to a Gaussian envelope. If the plateau length is
@@ -81,14 +83,14 @@ namespace picongpu
                     ( ( runTime - startDownramp )
                       / PULSE_LENGTH / sqrt( 2.0 ) );
                 envelope *= exp( -0.5 * exponent * exponent );
-                integrationCorrectionFactor = ( runTime - startDownramp )/ (2.0*PULSE_LENGTH*PULSE_LENGTH);
+                integrationCorrectionFactor = ( runTime - startDownramp )/ (w*2.0*PULSE_LENGTH*PULSE_LENGTH);
             }
             else if ( runTime < endUpramp )
             {
                 // upramp = start
                 const double exponent = ( ( runTime - endUpramp ) / PULSE_LENGTH / sqrt( 2.0 ) );
                 envelope *= exp( -0.5 * exponent * exponent );
-                integrationCorrectionFactor = ( runTime - endUpramp )/ (2.0*PULSE_LENGTH*PULSE_LENGTH);
+                integrationCorrectionFactor = ( runTime - endUpramp )/ (w*2.0*PULSE_LENGTH*PULSE_LENGTH);
             }
 
             const double timeOszi = runTime - endUpramp;
