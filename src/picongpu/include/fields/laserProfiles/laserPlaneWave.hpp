@@ -30,16 +30,26 @@ namespace picongpu
 {
     /** plane wave (use periodic boundaries!)
      *
-     *  no transversal spacial envelope
+     *  no transverse spacial envelope
      *  based on the electric potential
-     *  Phi = E_0 * exp(0.5 * (t-t_0)^2 / tau^2) * cos(t - t_0 - phi)
-     *  by applying t = x/c, the spatial derivative can be interchanged by the temporal derivative
-     *  resulting in:
-     *  E = E_0 * exp(...) * [sin(...) + t/tau^2 * cos(...)]
-     *  This ensures int_{-infinty}^{+infinty} E(x) = 0 for any phase.
+     *  Phi = Phi_0 * exp(0.5 * (x-x_0)^2 / sigma^2) * cos(k*(x - x_0) - phi)
+     *  by applying grad Phi = d/dx Phi = E(x)
+     *  we get:
+     *  E = Phi_0 * exp(0.5 * (x-x_0)^2 / sigma^2) * [k*sin(k*(x - x_0) - phi) + x/sigma^2 * cos(k*(x - x_0) - phi)]
      *
-     *  The plateau length needs to be set to a multiple of the wavelength,
-     *  otherwise the integral will not vanish. 
+     *  This approach ensures that int_{-infinity}^{+infinity} E(x) = 0 for any phase
+     *  if we have no transverse profile as we have with this plane wave train
+     *
+     *  Since PIConGPU requires a temporally defined electric field, we use:
+     *  t = x/c and (x-x_0)/sigma = (t-t_0)/tau and k*(x-x_0) = omega*(t-t_0) with omega/k = c and tau * c = sigma
+     *  and get:
+     *  E = Phi_0*omega/c * exp(0.5 * (t-t_0)^2 / tau^2) * [sin(omega*(t - t_0) - phi) + t/(omega*tau^2) * cos(omega*(t - t_0) - phi)]
+     *  and define Phi_0*omega/c = E_0
+     *
+     *  Please consider:
+     *  The above formulae does only apply to a Gaussian envelope. If the plateau length is
+     *  not zero, the integral over the volume will only vanish if the plateau length is
+     *  a multiple of the wavelength,
      */
     namespace laserPlaneWave
     {
@@ -110,7 +120,7 @@ namespace picongpu
             return elong;
         }
 
-        /** calculates transversal field distribution
+        /** calculates transverse field distribution
          *
          * @param elong
          * @param phase
