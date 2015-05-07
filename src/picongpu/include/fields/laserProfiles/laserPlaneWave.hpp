@@ -19,9 +19,7 @@
  */
 
 
-
-#ifndef LASERPLANEWAVE_HPP
-#define	LASERPLANEWAVE_HPP
+#pragma once
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -135,8 +133,4 @@ namespace picongpu
 
     }
 }
-
-#endif	/* LASERPLANEWAVE_HPP */
-
-
 
