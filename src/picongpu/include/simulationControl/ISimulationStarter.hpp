@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013, 2015 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -19,15 +19,12 @@
  */
 
 
-
-#ifndef ISIMULATIONSTARTER_HPP
-#define	ISIMULATIONSTARTER_HPP
-
-#include "types.h"
-#include "simulation_defines.hpp"
-
+#pragma once
 
 #include "pluginSystem/IPlugin.hpp"
+#include "ArgsParser.hpp"
+#include "simulation_defines.hpp"
+#include "types.h"
 
 namespace picongpu
 {
@@ -48,7 +45,7 @@ namespace picongpu
          *
          * @return true if no error else false
          */
-        virtual bool parseConfigs(int argc, char **argv) = 0;
+        virtual ArgsParser::ArgsErrorCode parseConfigs(int argc, char **argv) = 0;
 
         /*start simulation
          * is called after parsConfig and pluginLoad
@@ -66,6 +63,3 @@ namespace picongpu
         }
     };
 }
-
-#endif	/* ISIMULATIONSTARTER_HPP */
-

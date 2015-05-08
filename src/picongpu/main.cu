@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -71,9 +71,13 @@ mallocMC::AlignmentPolicies::Shrink<>
 //use ScatterAllocator to replace malloc/free
 MALLOCMC_SET_ALLOCATOR_TYPE( ScatterAllocator );
 
+#include "ArgsParser.hpp"
+#include "communication/manager_common.h"
+#include "ArgsParser.hpp"
+
 #include <simulation_defines.hpp>
 #include <mpi.h>
-#include "communication/manager_common.h"
+
 
 using namespace PMacc;
 using namespace picongpu;
@@ -88,17 +92,24 @@ int main(int argc, char **argv)
     MPI_CHECK(MPI_Init(&argc, &argv));
 
     picongpu::simulation_starter::SimStarter sim;
-    if (!sim.parseConfigs(argc, argv))
-    {
-        MPI_CHECK(MPI_Finalize());
-        return 1;
-    }
+    ArgsParser::ArgsErrorCode parserCode = sim.parseConfigs(argc, argv);
+    int errorCode = 1;
 
-    sim.load();
-    sim.start();
-    sim.unload();
+    switch(parserCode)
+    {
+        case ArgsParser::ERROR:
+            errorCode = 1;
+            break;
+        case ArgsParser::SUCCESS:
+            sim.load();
+            sim.start();
+            sim.unload();
+            /*set error code to valid (1) after the simulation terminates*/
+        case ArgsParser::SUCCESS_EXIT:
+            errorCode = 0;
+            break;
+    };
 
     MPI_CHECK(MPI_Finalize());
-
-    return 0;
+    return errorCode;
 }
