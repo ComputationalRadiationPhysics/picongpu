@@ -35,36 +35,35 @@
 #include "cuSTL/algorithm/host/Foreach.hpp"
 #include "lambda/Expression.hpp"
 #include <sstream>
-
+#include "algorithms/ForEach.hpp"
 #include "cuSTL/algorithm/kernel/Reduce.hpp"
 
 namespace picongpu
 {
 
-template<typename Species>
-ChargeConservation<Species>::ChargeConservation()
+ChargeConservation::ChargeConservation()
     : name("print the maximum charge derivation between particles and div E"), 
-      prefix("electronChargeConservation")
+      prefix("ChargeConservation")
 {
     Environment<>::get().PluginConnector().registerPlugin(this);
 }
 
-template<typename Species>
-void ChargeConservation<Species>::pluginRegisterHelp(po::options_description& desc)
+void ChargeConservation::pluginRegisterHelp(po::options_description& desc)
 {
     desc.add_options()
         ((this->prefix + "_frequency").c_str(),
         po::value<uint32_t > (&this->notifyFrequency)->default_value(0), "notifyFrequency");
 }
 
-template<typename Species>
-std::string ChargeConservation<Species>::pluginGetName() const {return this->name;}
+std::string ChargeConservation::pluginGetName() const {return this->name;}
 
-template<typename Species>
-void ChargeConservation<Species>::pluginLoad()
+void ChargeConservation::pluginLoad()
 {
     Environment<>::get().PluginConnector().setNotificationPeriod(this, this->notifyFrequency);
 }
+
+namespace detail
+{
 
 template<int dim, typename ValueType>
 struct Div;
@@ -101,28 +100,48 @@ struct Div<DIM2, ValueType>
     }
 };
 
-template<typename Species>
-void ChargeConservation<Species>::notify(uint32_t currentStep)
+// functor for all species to calculate density
+template<typename T_SpeciesName, typename T_Area>
+struct ComputeChargeDensity
+{
+    typedef typename T_SpeciesName::type SpeciesName;
+    static const uint32_t area = T_Area::value;
+
+    HINLINE void operator()( FieldTmp* fieldTmp,
+                             const uint32_t currentStep) const
+    {
+        DataConnector &dc = Environment<>::get().DataConnector();
+        
+        /* load species without copying the particle data to the host */
+        SpeciesName* speciesTmp = &(dc.getData<SpeciesName >(SpeciesName::FrameType::getName(), true));
+
+        /* run algorithm */
+        typedef typename CreateDensityOperation<SpeciesName>::type::Solver ChargeDensitySolver;
+        fieldTmp->computeValue < area, ChargeDensitySolver > (*speciesTmp, currentStep);
+        dc.releaseData(SpeciesName::FrameType::getName());
+    }
+};
+
+} // namespace detail
+
+void ChargeConservation::notify(uint32_t currentStep)
 {
     typedef SuperCellSize BlockDim;
 
     DataConnector &dc = Environment<>::get().DataConnector();
 
-    /*## update field tmp with charge information ##*/
-    /*load FieldTmp without copy data to host*/
+    /* load FieldTmp without copy data to host */
     FieldTmp* fieldTmp = &(dc.getData<FieldTmp > (FieldTmp::getName(), true));
-    /*load particle without copy particle data to host*/
-    Species* speciesTmp = &(dc.getData<Species >(Species::FrameType::getName(), true));
-
+    /* reset density values to zero */
     fieldTmp->getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType(0.0));
-    /*run algorithm*/
-    typedef typename CreateDensityOperation<Species>::type::Solver DensitySolver;
 
-    fieldTmp->computeValue < CORE + BORDER, DensitySolver > (*speciesTmp, currentStep);
+    /* calculate and add the charge density values from all species in FieldTmp */
+    ForEach<VectorAllSpecies, detail::ComputeChargeDensity<bmpl::_1,bmpl::int_<CORE + BORDER> >, MakeIdentifier<bmpl::_1> > computeChargeDensity;
+    computeChargeDensity(forward(fieldTmp), currentStep);
 
+    /* add results of all species that are still in GUARD to next GPUs BORDER */
     EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
     __setTransactionEvent(fieldTmpEvent);
-    dc.releaseData(Species::FrameType::getName());
     
     /* cast libPMacc Buffer to cuSTL Buffer */
     BOOST_AUTO(fieldTmp_coreBorder,
@@ -139,7 +158,7 @@ void ChargeConservation<Species>::notify(uint32_t currentStep)
     /* run calculation: fieldTmp = | div E - rho / eps_0 | */
     using namespace lambda;
     using namespace PMacc::math::math_functor;
-    typedef Div<simDim, typename FieldTmp::ValueType> myDiv;
+    typedef detail::Div<simDim, typename FieldTmp::ValueType> myDiv;
     algorithm::kernel::Foreach<BlockDim>()
         (fieldTmp_coreBorder.zone(), fieldTmp_coreBorder.origin(), 
         cursor::make_NestedCursor(fieldE_coreBorder.origin()),
