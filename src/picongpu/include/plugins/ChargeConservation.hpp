@@ -28,7 +28,6 @@ using namespace PMacc;
 
 namespace po = boost::program_options;
 
-template<typename Species>
 class ChargeConservation : public ILightweightPlugin
 {
 private:

@@ -125,7 +125,8 @@ private:
     /* define stand alone plugins*/
     typedef bmpl::vector<
         EnergyFields,
-        SumCurrents
+        SumCurrents,
+        ChargeConservation
 #if(SIMDIM==DIM3)
       , IntensityPlugin
 #endif
@@ -164,8 +165,7 @@ private:
         EnergyParticles<bmpl::_1>,
         BinEnergyParticles<bmpl::_1>,
         LiveViewPlugin<bmpl::_1>,
-        PositionsParticles<bmpl::_1>,
-        ChargeConservation<bmpl::_1>
+        PositionsParticles<bmpl::_1>
 #if(ENABLE_RADIATION == 1)
       , Radiation<bmpl::_1>
 #endif
