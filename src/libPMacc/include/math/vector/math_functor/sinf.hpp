@@ -33,9 +33,10 @@ namespace math
 namespace math_functor
 {
 
-struct Sinf
+template<typename T_Type>
+struct Sin
 {
-    typedef float result_type;
+    typedef T_Type result_type;
 
     DINLINE result_type operator()(const result_type& value) const
     {
@@ -43,7 +44,8 @@ struct Sinf
     }
 };
 
-lambda::Expression<lambda::exprTypes::terminal, mpl::vector<Sinf> > _sinf;
+lambda::Expression<lambda::exprTypes::terminal, mpl::vector<Sin<float>> > _sinf;
+lambda::Expression<lambda::exprTypes::terminal, mpl::vector<Sin<double>> > _sind;
 
 } // math_functor
 } // math
