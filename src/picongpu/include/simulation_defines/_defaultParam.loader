@@ -33,6 +33,7 @@
 #include "simulation_defines/param/radiationConfig.param"
 #include "simulation_defines/param/pusherConfig.param"
 #include "simulation_defines/param/ionizerConfig.param"
+#include "simulation_defines/param/ionizationEnergies.param"
 #include "simulation_defines/param/speciesAttributes.param"
 #include "simulation_defines/param/gasConfig.param"
 #include "simulation_defines/param/particleConfig.param"
