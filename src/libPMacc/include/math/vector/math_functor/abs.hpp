@@ -1,5 +1,5 @@
 /**
- * Copyright 2013, 2015 Heiko Burau, Rene Widera
+ * Copyright 2013, 2015 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of libPMacc.
  *
@@ -24,6 +24,7 @@
 
 #include "types.h"
 #include "lambda/Expression.hpp"
+#include "algorithms/math/defines/abs.hpp"
 
 namespace PMacc
 {
@@ -38,7 +39,7 @@ struct Abs
     HDINLINE
     Type operator()(const Type& x) const
     {
-        return abs(x);
+        return algorithms::math::abs(x);
     }
 };
 

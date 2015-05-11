@@ -33,17 +33,19 @@ namespace math
 namespace math_functor
 {
 
-struct Cosf
+template<typename T_Type>
+struct Sin
 {
-    typedef float result_type;
+    typedef T_Type result_type;
 
     DINLINE result_type operator()(const result_type& value) const
     {
-        return algorithms::math::cos(value);
+        return algorithms::math::sin(value);
     }
 };
 
-lambda::Expression<lambda::exprTypes::terminal, mpl::vector<Cosf> > _cosf;
+lambda::Expression<lambda::exprTypes::terminal, mpl::vector<Sin<float>> > _sinf;
+lambda::Expression<lambda::exprTypes::terminal, mpl::vector<Sin<double>> > _sind;
 
 } // math_functor
 } // math

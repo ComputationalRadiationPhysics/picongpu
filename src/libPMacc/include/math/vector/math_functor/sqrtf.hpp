@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013, 2015 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of libPMacc.
  *
@@ -20,11 +20,11 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MATH_FUNCTOR_SQRTF_HPP
-#define MATH_FUNCTOR_SQRTF_HPP
+#pragma once
 
 #include "types.h"
 #include "lambda/Expression.hpp"
+#include "algorithms/math/defines/sqrt.hpp"
 
 namespace PMacc
 {
@@ -37,9 +37,9 @@ struct Sqrtf
 {
     typedef float result_type;
 
-    HDINLINE float operator()(const float& value) const
+    HDINLINE result_type operator()(const result_type& value) const
     {
-        return __sqrtf(value);
+        return algorithms::math::sqrt(value);
     }
 };
 
@@ -49,4 +49,3 @@ lambda::Expression<lambda::exprTypes::terminal, mpl::vector<Sqrtf> > _sqrtf;
 } // math
 } // PMacc
 
-#endif // MATH_FUNCTOR_SQRTF_HPP
