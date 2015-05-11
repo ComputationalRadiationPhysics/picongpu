@@ -1,5 +1,5 @@
 project(mallocMC)
-cmake_minimum_required(VERSION 2.8.5)
+cmake_minimum_required(VERSION 2.8.10)
 
 # helper for libs and packages
 set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/"
