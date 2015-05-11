@@ -21,7 +21,7 @@
 #pragma once
 
 #include "types.h"
-#include "particles/ionization/ionizationEnergies.param"
+#include "simulation_defines.hpp"
 #include "particles/traits/GetAtomicNumbers.hpp"
 #include "traits/attribute/GetChargeState.hpp"
 
