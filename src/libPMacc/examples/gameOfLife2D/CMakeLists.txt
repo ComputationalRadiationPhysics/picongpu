@@ -19,7 +19,7 @@
 # If not, see <http://www.gnu.org/licenses/>. 
 #
 
-cmake_minimum_required(VERSION 2.8.5)
+cmake_minimum_required(VERSION 2.8.10)
 
 OPTION(VAMPIR_ENABLE "create gameOfLife with vampir support" OFF)
 

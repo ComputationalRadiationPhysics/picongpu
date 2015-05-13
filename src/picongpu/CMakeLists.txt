@@ -22,7 +22,7 @@
 # Required cmake version
 ################################################################################
 
-cmake_minimum_required(VERSION 2.8.5)
+cmake_minimum_required(VERSION 2.8.10)
 
 
 ################################################################################
@@ -359,7 +359,26 @@ if(ADIOS_FOUND)
 
     include_directories(SYSTEM ${ADIOS_INCLUDE_DIRS})
     set(LIBS ${LIBS} ${ADIOS_LIBRARIES})
+    add_definitions(-DADIOS_VERSION="${ADIOS_VERSION}")
 endif(ADIOS_FOUND)
+
+
+################################################################################
+# Additional defines for PIConGPU outputs
+################################################################################
+
+# CMake
+add_definitions(-DCMAKE_VERSION="${CMAKE_VERSION}")
+add_definitions(-DCMAKE_GENERATOR="${CMAKE_GENERATOR}")
+add_definitions(-DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE}")
+
+# OS & Host Processor
+add_definitions(-DCMAKE_SYSTEM="${CMAKE_SYSTEM}")
+add_definitions(-DCMAKE_SYSTEM_PROCESSOR="${CMAKE_SYSTEM_PROCESSOR}")
+
+# Compiler
+add_definitions(-DCMAKE_CXX_COMPILER_ID="${CMAKE_CXX_COMPILER_ID}")
+add_definitions(-DCMAKE_CXX_COMPILER_VERSION="${CMAKE_CXX_COMPILER_VERSION}")
 
 
 ################################################################################
