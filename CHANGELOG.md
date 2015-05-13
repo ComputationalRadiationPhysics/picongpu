@@ -9,9 +9,10 @@ This is version `0.1.0` of PIConGPU, a *pre-beta* version.
 
 Initial field ionization support was added, including the first model for BSI.
 The code-base was substantially hardened, fixing several minor and major
-issues. Especially, several restart related issues and a memory issue with
-Jetson TK1 boards were fixed. A work-around for a critical CUDA 6.5 compiler
-bug was applied to all affected parts of the code.
+issues. Especially, several restart related issues, an issue with 2D3V zigzack
+current calculation and a memory issue with Jetson TK1 boards were fixed.
+A work-around for a critical CUDA 6.5 compiler bug was applied to all affected
+parts of the code.
 
 ### Changes to "Open Beta RC6"
 
@@ -36,7 +37,7 @@ bug was applied to all affected parts of the code.
 **New Features:**
  - initial support for field ionization:
    - basic framework and BSI #595
-   - attribute (constant flag) for proton and neutron number #687
+   - attribute (constant flag) for proton and neutron number #687 #731
    - attribute `boundElectrons` #706
  - tools:
    - python scripts:
@@ -62,7 +63,7 @@ bug was applied to all affected parts of the code.
    - nvidia random number generators (RNG) refactored #711
  - plugins:
    - background fields do now affect plugins/outputs #600
-   - `Radiation` uses/requires HDF5 output #419 #610 #628 #646
+   - `Radiation` uses/requires HDF5 output #419 #610 #628 #646 #716
    - `SliceFieldPrinter` supports `FieldJ`, output in one file,
      updated command-line syntax #548
    - `CountParticles`, `EnergyFields`, `EnergyParticles` support restarts
@@ -72,6 +73,9 @@ bug was applied to all affected parts of the code.
  - CUDA 6.5: `int(bool)` cast were broken (affects plugins
    `BinEnergyParticles`, `PhaseSpace` and might had an effect methods of the
    basic PIC cycle) #570 #651 #656 #657 #678 #680
+ - the ZigZag current solver was broken for 2D3V if non-zero
+   momentum-components in z direction were used (e.g. warm plasmas or
+   purely transversal KHI) #823
  - host-device-shared memory (SoC) support was broken (Jetson TK1) #633
  - boost 1.56.0+ support via `Resolve<T>` trait #588 #593 #594
  - potential race condition in field update and pusher #604
@@ -83,6 +87,7 @@ bug was applied to all affected parts of the code.
    - parallel setups with particle-empty GPUs did hang with HDF5 #609 #611 #642
    - 2D3V field reads were broken (each field's z-component was not initialized
      with the checkpointed values again, e.g., `B_z`) #688 #689
+   - loading more than 4 billion global particles was potentially broken #721
  - plugins:
    - `Visualization` (png & 2D live sim) memory bug in double precision runs #621
    - `ADIOS`
@@ -92,6 +97,7 @@ bug was applied to all affected parts of the code.
    - `HDF5`/`ADIOS` output of grid-mapped particle energy for non-relativistic
      particles was zero #669
  - libPMacc:
+   - CMake: path detection could fail #796 #808
    - `DeviceBuffer<*,DIM3>::getPointer()` was broken (does not affect
      PIConGPU) #647
    - empty super-cell memory foot print reduced #648
