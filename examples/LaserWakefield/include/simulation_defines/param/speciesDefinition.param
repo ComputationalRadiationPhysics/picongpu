@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Rene Widera, Marco Garten
+ * Copyright 2013-2015 Rene Widera, Marco Garten, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -74,6 +74,8 @@ AttributRadiationFlag
 typedef
 typename MakeSeq<
 DefaultParticleAttributes,
+AttributMomentum_mt1,
+AttributRadiationFlag,
 boundElectrons
 >::type AttributeSeqIons;
 
