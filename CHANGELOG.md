@@ -23,7 +23,7 @@ parts of the code.
  - `physicalConstants.param`: new variable `GAMMA_THRESH` #669
  - `speciesAttributes.param`: new identifier `boundElectrons` and
    new aliases `ionizer`, `atomicNumbers`
- - `ionizerConfig.param`: added
+ - `ionizationEnergies.param`, `ionizerConfig.param`: added
 
 **.unitless file changes:**
  See full syntax for each file at
