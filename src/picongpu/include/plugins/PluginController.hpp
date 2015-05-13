@@ -65,8 +65,8 @@
 
 #if(SIMDIM==DIM3)
 #include "plugins/IntensityPlugin.hpp"
-#include "plugins/SliceFieldPrinterMulti.hpp"
 #endif
+#include "plugins/SliceFieldPrinterMulti.hpp"
 
 #include "plugins/output/images/Visualisation.hpp"
 
@@ -141,9 +141,7 @@ private:
 
     /* define field plugins */
     typedef bmpl::vector<
-#if(SIMDIM==DIM3)
      SliceFieldPrinterMulti<bmpl::_1>
-#endif
     > UnspecializedFieldPlugins;
 
     typedef bmpl::vector< FieldB, FieldE, FieldJ> AllFields;

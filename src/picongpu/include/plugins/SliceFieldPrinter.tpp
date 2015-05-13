@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Heiko Burau, Rene Widera, Felix Schmitt,
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -66,10 +66,10 @@ void SliceFieldPrinter<Field>::pluginLoad()
         namespace vec = ::PMacc::math;
         typedef SuperCellSize BlockDim;
 
-        vec::Size_t<3> size = vec::Size_t<3>(this->cellDescription->getGridSuperCells()) * precisionCast<size_t>(BlockDim::toRT())
+        vec::Size_t<simDim> size = vec::Size_t<simDim>(this->cellDescription->getGridSuperCells()) * precisionCast<size_t>(BlockDim::toRT())
           - precisionCast<size_t>(2 * BlockDim::toRT());
-        this->dBuffer_SI = new container::DeviceBuffer<float3_64, 2>(
-                        size.shrink<2>((this->plane+1)%3));
+        this->dBuffer_SI = new container::DeviceBuffer<float3_64, simDim-1>(
+                        size.shrink<simDim-1>((this->plane+1)%simDim));
       }
     else
       {
@@ -126,39 +126,50 @@ void SliceFieldPrinter<Field>::printSlice(const TField& field, int nAxis, float 
     namespace vec = PMacc::math;
     using namespace vec::tools;
 
-    PMacc::GridController<3>& con = PMacc::Environment<3>::get().GridController();
-    vec::Size_t<3> gpuDim = (vec::Size_t<3>)con.getGpuNodes();
-    vec::Size_t<3> globalGridSize = gpuDim * field.size();
+    PMacc::GridController<simDim>& con = PMacc::Environment<simDim>::get().GridController();
+    vec::Size_t<simDim> gpuDim = (vec::Size_t<simDim>)con.getGpuNodes();
+    vec::Size_t<simDim> globalGridSize = gpuDim * field.size();
     int globalPlane = globalGridSize[nAxis] * slicePoint;
     int localPlane = globalPlane % field.size()[nAxis];
     int gpuPlane = globalPlane / field.size()[nAxis];
 
-    vec::Int<3> nVector(vec::Int<3>::create(0));
+    vec::Int<simDim> nVector(vec::Int<simDim>::create(0));
     nVector[nAxis] = 1;
 
-    zone::SphericZone<3> gpuGatheringZone(vec::Size_t<3>(gpuDim.x(), gpuDim.y(), gpuDim.z()),
-                                          nVector * gpuPlane);
+    zone::SphericZone<simDim> gpuGatheringZone(gpuDim, nVector * gpuPlane);
     gpuGatheringZone.size[nAxis] = 1;
 
-    algorithm::mpi::Gather<3> gather(gpuGatheringZone);
+    algorithm::mpi::Gather<simDim> gather(gpuGatheringZone);
     if(!gather.participate()) return;
 
     using namespace lambda;
-    vec::UInt32<3> twistedVector((nAxis+1)%3, (nAxis+2)%3, nAxis);
+#if(SIMDIM==DIM3)
+    vec::UInt32<3> twistedAxesVec((nAxis+1)%3, (nAxis+2)%3, nAxis);
 
     /* convert data to higher precision and to SI units */
     SliceFieldPrinterHelper::ConversionFunctor<Field> cf;
     algorithm::kernel::Foreach<vec::CT::UInt32<4,4,1> >()(
       dBuffer_SI->zone(), dBuffer_SI->origin(),
-      cursor::tools::slice(field.originCustomAxes(twistedVector)(0,0,localPlane)),
+      cursor::tools::slice(field.originCustomAxes(twistedAxesVec)(0,0,localPlane)),
       cf );
+#endif
+#if(SIMDIM==DIM2)
+    vec::UInt32<2> twistedAxesVec((nAxis+1)%2, nAxis);
+
+    /* convert data to higher precision and to SI units */
+    SliceFieldPrinterHelper::ConversionFunctor<Field> cf;
+    algorithm::kernel::Foreach<vec::CT::UInt32<16,1,1> >()(
+      dBuffer_SI->zone(), dBuffer_SI->origin(),
+      cursor::tools::slice(field.originCustomAxes(twistedAxesVec)(0,localPlane)),
+      cf );
+#endif
 
     /* copy selected plane from device to host */
-    container::HostBuffer<float3_64, 2> hBuffer(dBuffer_SI->size());
+    container::HostBuffer<float3_64, simDim-1> hBuffer(dBuffer_SI->size());
     hBuffer = *dBuffer_SI;
 
     /* collect data from all nodes/GPUs */
-    container::HostBuffer<float3_64, 2> globalBuffer(hBuffer.size() * gpuDim.shrink<2>((nAxis+1)%3));
+    container::HostBuffer<float3_64, simDim-1> globalBuffer(hBuffer.size() * gpuDim.shrink<simDim-1>((nAxis+1)%simDim));
     gather(globalBuffer, hBuffer, nAxis);
     if(!gather.root()) return;
     std::ofstream file(filename.c_str());
