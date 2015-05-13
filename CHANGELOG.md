@@ -111,7 +111,7 @@ parts of the code.
  - HDF5 support requires libSplash 1.2.4+ #642 #715
  - various code clean-up for MSVC #563 #564 #566 #624 #625
  - plugins:
-   - removed `LinceSliceFields` #590
+   - removed `LineSliceFields` #590
    - `png` plugin write speedup ~2.3x by increasing file about 12% #698
  - updated contribution guidelines, install, cfg examples #601 #598 #617 #620
    #673 #700 #714
