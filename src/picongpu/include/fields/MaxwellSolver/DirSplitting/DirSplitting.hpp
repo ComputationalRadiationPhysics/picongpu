@@ -133,13 +133,13 @@ public:
         if (laserProfile::INIT_TIME > float_X(0.0))
             dc.getData<FieldE > (FieldE::getName(), true).laserManipulation(currentStep);
         
-        __setTransactionEvent(fieldE_withGuard.asyncCommunication(__getTransactionEvent()));
-        __setTransactionEvent(fieldB_withGuard.asyncCommunication(__getTransactionEvent()));
+        __setTransactionEvent(fieldE.asyncCommunication(__getTransactionEvent()));
+        __setTransactionEvent(fieldB.asyncCommunication(__getTransactionEvent()));
         /*
         if(currentStep % 50 == 0)
         {
-            container::HostBuffer<float3_X, 3> floatE_host(fieldE_withGuard.getGridBuffer().getDeviceBuffer().cartBuffer().size());
-            floatE_host = fieldE_withGuard.getGridBuffer().getDeviceBuffer().cartBuffer();
+            container::HostBuffer<float3_X, 3> floatE_host(fieldE.getGridBuffer().getDeviceBuffer().cartBuffer().size());
+            floatE_host = fieldE.getGridBuffer().getDeviceBuffer().cartBuffer();
             
             BOOST_AUTO(fieldE_RightGuard,
                 floatE_host.view(PMacc::math::Int<3>(0, -8, 0)));
@@ -150,8 +150,6 @@ public:
             file << fieldE_RightGuard;
         }*/
 
-        __setTransactionEvent(fieldE.asyncCommunication(__getTransactionEvent()));
-        __setTransactionEvent(fieldB.asyncCommunication(__getTransactionEvent()));
     }
 
     void update_afterCurrent(uint32_t) const
