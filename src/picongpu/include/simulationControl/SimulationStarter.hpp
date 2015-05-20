@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Rene Widera
+ * Copyright 2013, 2015 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -94,7 +94,7 @@ namespace picongpu
         {
         }
 
-        bool parseConfigs(int argc, char **argv)
+        ArgsParser::ArgsErrorCode parseConfigs(int argc, char **argv)
         {
             ArgsParser& ap = ArgsParser::getInstance();
             PluginConnector& pluginConnector = Environment<>::get().PluginConnector();

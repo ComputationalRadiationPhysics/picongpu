@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, Rene Widera
+ * Copyright 2013, 2015 Axel Huebl, Felix Schmitt, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -61,7 +61,7 @@ namespace picongpu
         return instance;
     }
 
-    bool ArgsParser::parse( int argc, char** argv )
+    ArgsParser::ArgsErrorCode ArgsParser::parse( int argc, char** argv )
     throw (std::runtime_error )
     {
         try
@@ -76,7 +76,8 @@ namespace picongpu
 
             // add possible options
             desc.add_options()
-                    ( "help,h", "print help message" )
+                    ( "help,h", "print help message and exit" )
+                    ( "validate", "validate command line parameters and exit" )
                     ( "config,c", po::value<std::vector<std::string> > ( &config_files )->multitoken( ), "Config file(s)" )
                     ;
 
@@ -109,16 +110,23 @@ namespace picongpu
             if ( vm.count( "help" ) )
             {
                 std::cerr << desc << "\n";
-                return false;
+                return SUCCESS_EXIT;
+            }
+            if ( vm.count( "validate" ) )
+            {
+                /* if we reach this part of code the parameters are valid
+                 * and the option `validate` is set.
+                 */
+                return SUCCESS_EXIT;
             }
         }
         catch ( boost::program_options::error& e )
         {
             std::cerr << e.what() << std::endl;
-            return false;
+            return ERROR;
         }
 
-        return true;
+        return SUCCESS;
     }
 
 }
