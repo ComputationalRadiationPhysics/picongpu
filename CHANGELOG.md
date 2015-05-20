@@ -102,8 +102,11 @@ parts of the code.
      PIConGPU) #647
    - empty super-cell memory foot print reduced #648
    - `float2int` return type should be int #623
-   - `EnvironmentController` caused a warning about `extendend friend syntax`
-     with CUDA 7 #644
+   - CUDA 7:
+     - cuSTL prefixed templates with `_` are not allowed; usage of static dim
+       member #630
+     - explicit call to `template`-ed `operator()` to avoid waring #750
+     - `EnvironmentController` caused a warning about `extendend friend syntax` #644
    - multi-GPU nodes might fail to start up when not using `default` compute
      mode with CUDA 7 drivers #643
 
