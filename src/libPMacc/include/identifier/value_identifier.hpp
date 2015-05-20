@@ -49,7 +49,6 @@
  */
 #define value_identifier(in_type,name,in_default)                              \
         identifier(name,                                                       \
-        typedef name ThisType;                                                 \
         typedef in_type type;                                                  \
         static HDINLINE type getDefaultValue()                                 \
         {                                                                      \

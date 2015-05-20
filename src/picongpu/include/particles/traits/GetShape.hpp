@@ -22,6 +22,7 @@
 
 #include "simulation_defines.hpp"
 #include "traits/GetFlagType.hpp"
+#include "traits/Resolve.hpp"
 
 namespace picongpu
 {
@@ -31,7 +32,9 @@ namespace traits
 template<typename T_Species>
 struct GetShape
 {
-    typedef typename GetFlagType<typename T_Species::FrameType, shape<> >::type::ThisType type;
+    typedef typename PMacc::traits::Resolve<
+        typename GetFlagType<typename T_Species::FrameType, shape<> >::type
+    >::type type;
 };
 
 } //namespace traits

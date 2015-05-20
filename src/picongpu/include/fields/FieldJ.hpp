@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -78,7 +78,7 @@ public:
 
     void clear();
 
-    static UnitValueType getUnit();
+    HDINLINE static UnitValueType getUnit();
 
     static std::string getName();
 

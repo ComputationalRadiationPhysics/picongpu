@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Heiko Burau,
+ * Copyright 2013-2015 Axel Huebl, Felix Schmitt, Heiko Burau,
  *                     Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -26,7 +26,6 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-#include <sstream>
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -44,12 +43,11 @@
 
 #include "algorithms/Gamma.hpp"
 
-#include <boost/filesystem.hpp>
+#include "common/txtFileHandling.hpp"
 
 namespace picongpu
 {
 using namespace PMacc;
-using namespace boost::filesystem;
 
 namespace po = boost::program_options;
 
@@ -134,7 +132,7 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
                 /* \todo: this is a duplication of the code in EnergyParticles - in separate file? */
                 const float_X mom2 = math::abs2(mom);
                 const float_X weighting = particle[weighting_];
-                const float_X mass = getMass(weighting,*frame);
+                const float_X mass = attribute::getMass(weighting,particle);
                 const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
 
                 Gamma<> calcGamma;
@@ -142,7 +140,7 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
 
                 float_X _local_energy;
 
-                if (gamma < 1.005f)
+                if (gamma < GAMMA_THRESH)
                 {
                     _local_energy = mom2 / (2.0f * mass); /* not relativistic use equation with more precision */
                 }
@@ -160,15 +158,12 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
                                       (maxEnergy - minEnergy) * (float) numBins) + 1;
 
                 const int maxBin = numBins + 1;
-                /* same as
-                 * binNumber<numBins?binNumber:numBins+1
-                 * but without if*/
-                binNumber = binNumber * (int) (binNumber < maxBin) +
-                    maxBin * (int) (binNumber >= maxBin);
-                /* same as
-                 * binNumber>0?binNumber:0
-                 * but without if*/
-                binNumber = (int) (binNumber > 0) * binNumber;
+                
+                /* all entries larger than maxEnergy go into bin maxBin */
+                binNumber = binNumber < maxBin ? binNumber : maxBin;
+
+                /* all entries smaller than minEnergy go into bin zero */
+                binNumber = binNumber > 0 ? binNumber : 0;
 
                 /*!\todo: we can't use 64bit type on this place (NVIDIA BUG?)
                  * COMPILER ERROR: ptxas /tmp/tmpxft_00005da6_00000000-2_main.ptx, line 4246; error   : Global state space expected for instruction 'atom'
@@ -374,47 +369,21 @@ private:
         if( !writeToFile )
             return;
 
-        if( outFile.is_open() )
-            outFile.close();
-
-        std::stringstream sStep;
-        sStep << restartStep;
-
-        path src( restartDirectory + std::string("/") + filename +
-                  std::string(".") + sStep.str() );
-        path dst( filename );
-
-        copy_file( src,
-                   dst,
-                   copy_option::overwrite_if_exists );
-
-        outFile.open( filename.c_str(), std::ofstream::out | std::ostream::app );
-        if( !outFile )
-        {
-            std::cerr << "[Plugin] [" << analyzerPrefix
-                      << "] Can't open file '" << filename
-                      << "', output disabled" << std::endl;
-            writeToFile = false;
-        }
+        writeToFile = restoreTxtFile( outFile,
+                                      filename,
+                                      restartStep,
+                                      restartDirectory );
     }
 
     void checkpoint(uint32_t currentStep, const std::string checkpointDirectory)
     {
-        if( writeToFile )
-        {
-            outFile.flush();
+        if( !writeToFile )
+            return;
 
-            std::stringstream sStep;
-            sStep << currentStep;
-
-            path src( filename );
-            path dst( checkpointDirectory + std::string("/") + filename +
-                      std::string(".") + sStep.str() );
-
-            copy_file( src,
-                       dst,
-                       copy_option::overwrite_if_exists );
-        }
+        checkpointTxtFile( outFile,
+                           filename,
+                           currentStep,
+                           checkpointDirectory );
     }
 
     template< uint32_t AREA>

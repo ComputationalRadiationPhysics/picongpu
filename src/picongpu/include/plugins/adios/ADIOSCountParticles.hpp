@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Felix Schmitt
+ * Copyright 2014-2015 Felix Schmitt, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -41,6 +41,7 @@
 #include "plugins/output/WriteSpeciesCommon.hpp"
 #include "plugins/kernel/CopySpecies.kernel"
 #include "mappings/kernel/AreaMapping.hpp"
+#include "math/Vector.hpp"
 
 #include "traits/PICToAdios.hpp"
 #include "plugins/adios/writer/ParticleAttributeSize.hpp"
@@ -123,29 +124,27 @@ public:
                 myParticleOffset += allNumParticles[i];
         }
 
-        if (myNumParticles > 0)
-        {
-            /* iterate over all attributes of this species */
-            ForEach<typename AdiosFrameType::ValueTypeSeq, adios::ParticleAttributeSize<bmpl::_1> > attributeSize;
-            attributeSize(params, (FrameType::getName() + std::string("/") + subGroup).c_str(),
-                    myNumParticles, globalNumParticles, myParticleOffset);
-        }
+        /* iterate over all attributes of this species */
+        ForEach<typename AdiosFrameType::ValueTypeSeq, adios::ParticleAttributeSize<bmpl::_1> > attributeSize;
+        attributeSize(params, (FrameType::getName() + std::string("/") + subGroup).c_str(),
+                myNumParticles, globalNumParticles, myParticleOffset);
 
         /* define adios var for species index/info table */
         {
-            const size_t localTableSize = 5;
+            const uint64_t localTableSize = 5;
             traits::PICToAdios<uint64_t> adiosIndexType;
 
-            int64_t adiosSpeciesIndexVar = defineAdiosVar(
+            const char* path = NULL;
+            int64_t adiosSpeciesIndexVar = defineAdiosVar<DIM1>(
                 params->adiosGroupHandle,
                 (params->adiosBasePath + std::string(ADIOS_PATH_PARTICLES) +
                     FrameType::getName() + std::string("/") + subGroup +
                     std::string("particles_info")).c_str(),
-                NULL,
+                path,
                 adiosIndexType.type,
-                DataSpace<DIM1>(localTableSize),
-                DataSpace<DIM1>(localTableSize * gc.getGlobalSize()),
-                DataSpace<DIM1>(localTableSize * gc.getGlobalRank()),
+                PMacc::math::UInt64<DIM1>(localTableSize),
+                PMacc::math::UInt64<DIM1>(localTableSize * uint64_t(gc.getGlobalSize()) ),
+                PMacc::math::UInt64<DIM1>(localTableSize * uint64_t(gc.getGlobalRank()) ),
                 true,
                 params->adiosCompression);
 

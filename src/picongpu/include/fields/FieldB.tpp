@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
+ * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+ *                     Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -171,6 +172,7 @@ void FieldB::reset( uint32_t )
     fieldB->getDeviceBuffer( ).reset( false );
 }
 
+HDINLINE
 typename FieldB::UnitValueType
 FieldB::getUnit( )
 {

@@ -108,6 +108,16 @@ struct Unit<globalCellIdx<T_Type> >
   }
 };
 
+template<>
+struct Unit<boundElectrons>
+{
+  static std::vector<double> get()
+  {
+      std::vector<double> unit;
+      return unit;
+  }
+};
+
 
 }//namespace traits
 } //namespace picongpu

@@ -24,15 +24,13 @@
 
 #include <stack>
 #include "eventSystem/EventSystem.hpp"
-
+#include "eventSystem/transactions/Transaction.hpp"
 
 namespace PMacc
 {
 // forward declaration
 template<unsigned DIM>
 class Environment;
-
-class Transaction;
 
 class EventStream;
 
@@ -46,7 +44,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~TransactionManager();
+    virtual ~TransactionManager() throw(std::runtime_error);
 
     /**
      * Adds a new transaction to the stack.
@@ -96,9 +94,9 @@ public:
 
 private:
 
-    friend Environment<DIM1>;
-    friend Environment<DIM2>;
-    friend Environment<DIM3>;
+    friend class Environment<DIM1>;
+    friend class Environment<DIM2>;
+    friend class Environment<DIM3>;
 
     TransactionManager();
 

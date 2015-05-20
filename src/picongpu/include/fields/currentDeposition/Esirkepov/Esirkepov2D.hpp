@@ -22,8 +22,6 @@
 
 #include "simulation_defines.hpp"
 #include "types.h"
-#include "math/vector/UInt.hpp"
-#include "types.h"
 #include "cuSTL/cursor/Cursor.hpp"
 #include "basicOperations.hpp"
 #include <cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
@@ -144,11 +142,8 @@ struct Esirkepov<T_ParticleShape, DIM2>
          * If previous position was greater than current position we change our interval
          * from [begin,end) to [begin+1,end+1).
          */
-        /** \todo -(-int(bool)) is a workaround for a nvcc bug
-         * @see https://devtalk.nvidia.com/default/topic/752200/cuda-programming-and-performance/nvcc-loop-bug-since-cuda-5-5/
-         */
-        const int offset_i = -(-int(line.pos0.x() > line.pos1.x()));
-        const int offset_j = -(-int(line.pos0.y() > line.pos1.y()));
+        const int offset_i = line.pos0.x() > line.pos1.x() ? 1 : 0;
+        const int offset_j = line.pos0.y() > line.pos1.y() ? 1 : 0;
 
 
         for (int j = begin + offset_j; j < end + offset_j; ++j)
@@ -183,11 +178,8 @@ struct Esirkepov<T_ParticleShape, DIM2>
          * If previous position was greater than current position we change our interval
          * from [begin,end) to [begin+1,end+1).
          */
-        /** \todo -(-int(bool)) is a workaround for a nvcc bug
-         * @see https://devtalk.nvidia.com/default/topic/752200/cuda-programming-and-performance/nvcc-loop-bug-since-cuda-5-5/
-         */
-        const int offset_i = -(-int(line.pos0.x() > line.pos1.x()));
-        const int offset_j = -(-int(line.pos0.y() > line.pos1.y()));
+        const int offset_i = line.pos0.x() > line.pos1.x() ? 1 : 0;
+        const int offset_j = line.pos0.y() > line.pos1.y() ? 1 : 0;
 
 
         for (int j = begin + offset_j; j < end + offset_j; ++j)

@@ -246,11 +246,17 @@ Please take the time to write an **extensive description**.
 The description of the pull request is essential and will be referred to in the
 change log of the next release.
 
-Afterwards, a fruitful ( *wuhu, we love you - don't be scared* ) *discussion*
-about your **submitted change set** will start. If we find some things you
+Please consider to change only **one aspect per pull request** (do not be afraid
+of follow-up pull requests!). For example, submit a pull request with a bug fix,
+another one with new math implementations and the last one with a new awesome
+implementation that needs both of them. You will see, that speeds up *review time*
+a lot!
+
+Speaking of those, a fruitful ( *wuhu, we love you - don't be scared* ) *discussion*
+about your **submitted change set** will start at this point. If we find some things you
 could *improve* ( *That looks awesome, all right!* ), simply change your
 *local feature branch* and *push the changes back* to your GitHub repository,
-to **update the pull request**.
+to **update the pull request**. (You can now rebase follow-up branches, too.)
 
 One of our [maintainers](README.md#maintainers-and-core-developers)
 will pick up the pull request to coordinate the review.

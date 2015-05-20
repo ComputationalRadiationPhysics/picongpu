@@ -1,20 +1,32 @@
 PIConGPU Install Guide
 ======================
 
+Overview
+--------
+
+![Overview of PIConGPU Library Dependencies](libraryDependencies.png)
+
+*Figure:* Overview of inter-library dependencies for parallel execution of
+PIConGPU on a typical HPC system. Due to common binary incompatibilities
+between compilers, MPI and boost versions, we recommend to deploy a
+hierarchical module system such as [lmod](https://github.com/TACC/Lmod).
+An example setup can be found
+[here](https://github.com/ComputationalRadiationPhysics/compileNode).
+
+
 Requirements
 ------------
 
 ### Mandatory
 
-- **gcc** 4.4 to 4.8 (depends on current CUDA version)
+- **gcc** 4.6 to 4.8 (depends on your current [CUDA version](https://gist.github.com/ax3l/9489132))
   - *Debian/Ubuntu:*
-    - `sudo apt-get install gcc-4.4 g++-4.4 build-essential`
-    - `sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.4 60 \`
-      `--slave /usr/bin/g++ g++ /usr/bin/g++-4.4`
+    - `sudo apt-get install gcc-4.6 g++-4.6 build-essential`
+    - `sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.6 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.6`
   - *Arch Linux:*
     - `sudo pacman --sync base-devel`
     - the installed version of **gcc** might be too new. [Compile an older gcc](https://gist.github.com/slizzered/a9dc4e13cb1c7fffec53)
-  - *experimental alternatives:* **icc 12.1** with **cuda 5.5**
+  - *experimental alternatives:* **icc** since **cuda 5.5**
 
 - [CUDA 5.0](https://developer.nvidia.com/cuda-downloads) or higher
   - **Attention:** You must use at least the 5.5+ [drivers](http://www.nvidia.com/Drivers)
@@ -30,7 +42,8 @@ Requirements
   - *Debian/Ubuntu:* `sudo apt-get install cmake file cmake-curses-gui`
   - *Arch Linux:* `sudo pacman --sync cmake`
 
-- **OpenMPI** 1.4 or higher
+- **OpenMPI** 1.5.1+ / **MVAPICH2** 1.8+ or similar
+  ([GPU aware](https://devblogs.nvidia.com/parallelforall/introduction-cuda-aware-mpi/) install recommented)
   - *Debian/Ubuntu:* `sudo apt-get install libopenmpi-dev`
   - *Arch Linux:* `sudo pacman --sync openmpi`
 
@@ -38,7 +51,7 @@ Requirements
   - *Debian/Ubuntu:* `sudo apt-get install zlib1g-dev`
   - *Arch Linux:* `sudo pacman --sync zlib`
 
-- **boost** 1.49.0-1.55.0 ("program options", "regex" , "filesystem", "system" and nearly all compile time libs)
+- **boost** 1.49.0+ ("program options", "regex" , "filesystem", "system" and nearly all header-only libs)
   - download from [http://www.boost.org/](http://sourceforge.net/projects/boost/files/boost/1.49.0/boost_1_49_0.tar.gz/download),
       e.g. version 1.49.0
   - *Debian/Ubuntu:* `sudo apt-get install libboost-program-options-dev libboost-regex-dev libboost-filesystem-dev libboost-system-dev`
@@ -58,18 +71,19 @@ Requirements
 
 ### Optional Libraries
 
-If you do not install the optional libraries, you will not have the full amount of PIConGPU online analysers.
+If you do not install the optional libraries, you will not have the full amount of PIConGPU plugins.
 We recomment to install at least **pngwriter**.
+Some of our examples will also need **libSplash**.
 
 - **pngwriter** >= 0.5.5
     - download our modified version from
-      [github.com/ax3l/pngwriter](https://github.com/ax3l/pngwriter)
+      [github.com/pngwriter/pngwriter](https://github.com/pngwriter/pngwriter)
     - Requires [libpng](http://www.libpng.org/),
       - *Debian/Ubuntu:* `sudo apt-get install libpng-dev`
       - *Arch Linux:* `sudo pacman --sync libpng`
     - example:
       - `mkdir -p ~/src ~/build ~/lib`
-      - `git clone https://github.com/ax3l/pngwriter.git ~/src/pngwriter/`
+      - `git clone https://github.com/pngwriter/pngwriter.git ~/src/pngwriter/`
       - `cd ~/build`
       - `cmake -DCMAKE_INSTALL_PREFIX=~/lib/pngwriter ~/src/pngwriter`
       - `make install`
@@ -77,7 +91,7 @@ We recomment to install at least **pngwriter**.
       [PNGWRITER\_ROOT](#additional-required-environment-variables-for-optional-libraries)
       to `$HOME/lib/pngwriter`
 
-- **libSplash** >= 1.2.3 (requires *hdf5*, *boost program-options*)
+- **libSplash** >= 1.2.4 (requires *hdf5*, *boost program-options*)
     - *Debian/Ubuntu dependencies:* `sudo apt-get install libhdf5-openmpi-dev libboost-program-options-dev`
     - *Arch Linux dependencies:* `sudo pacman --sync hdf5-openmpi boost`
     - example:

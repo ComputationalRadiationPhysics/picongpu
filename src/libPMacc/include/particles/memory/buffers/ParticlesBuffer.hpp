@@ -50,7 +50,7 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
 #include "particles/ParticleDescription.hpp"
-
+#include "traits/Resolve.hpp"
 
 namespace PMacc
 {
@@ -77,7 +77,7 @@ public:
         {
             typedef
             bmpl::pair<X,
-            StaticArray< typename X::type, bmpl::integral_c<uint32_t,T_size> >
+            StaticArray< typename traits::Resolve<X>::type::type, bmpl::integral_c<uint32_t,T_size> >
             > type;
         };
     };

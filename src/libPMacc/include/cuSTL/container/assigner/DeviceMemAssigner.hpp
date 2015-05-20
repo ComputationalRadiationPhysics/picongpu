@@ -43,10 +43,10 @@ namespace assigner
 
 namespace mpl = boost::mpl;
 
-template<int _dim>
+template<int T_dim>
 struct DeviceMemAssigner
 {
-    static const int dim = _dim;
+    static const int dim = T_dim;
     template<typename Type>
     static void assign(Type* data, const math::Size_t<dim-1>& pitch, const Type& value,
                        const math::Size_t<dim>& size)

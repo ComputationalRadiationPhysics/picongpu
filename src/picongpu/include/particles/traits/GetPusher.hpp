@@ -22,6 +22,7 @@
 
 #include "simulation_defines.hpp"
 #include "traits/GetFlagType.hpp"
+#include "traits/Resolve.hpp"
 
 namespace picongpu
 {
@@ -29,7 +30,9 @@ namespace picongpu
 template<typename T_Species>
 struct GetPusher
 {
-    typedef typename GetFlagType<typename T_Species::FrameType, particlePusher<> >::type::ThisType type;
+    typedef typename PMacc::traits::Resolve<
+        typename GetFlagType<typename T_Species::FrameType, particlePusher<> >::type
+    >::type type;
 };
 
 }// namespace picongpu

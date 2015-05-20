@@ -236,8 +236,6 @@ struct promoteType<PromoteToType, ::PMacc::math::Vector<OldType, dim> >
 } //namespace algorithms
 } //namespace PMacc
 
-#include "mpi/GetMPI_StructAsArray.hpp"
-
 namespace PMacc
 {
 namespace mpi

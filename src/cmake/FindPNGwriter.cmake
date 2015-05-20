@@ -135,7 +135,7 @@ if(PNGwriter_FOUND)
     set(PNGwriter_VERSION "0.5.4")
 
 else(PNGwriter_FOUND)
-    message(STATUS "Can NOT find PNGwriter - set PNGwriter_ROOT")
+    message(STATUS "Can NOT find PNGwriter - set PNGWRITER_ROOT")
 endif(PNGwriter_FOUND)
 
 

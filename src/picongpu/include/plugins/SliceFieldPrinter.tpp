@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Heiko Burau, Rene Widera, Felix Schmitt
+ * Copyright 2013-2014 Heiko Burau, Rene Widera, Felix Schmitt,
+ *                     Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -39,23 +40,52 @@
 namespace picongpu
 {
 
+namespace SliceFieldPrinterHelper
+{
+template<class Field>
+class ConversionFunctor
+{
+public:
+  /* convert field data to higher precision and convert to SI units on GPUs */
+  DINLINE void operator()(float3_64& target, const typename Field::ValueType fieldData) const
+  {
+    target = precisionCast<float_64>(fieldData) *  float_64((Field::getUnit())[0]) ;
+  }
+};
+} // end namespace SliceFieldPrinterHelper
+
+
 template<typename Field>
 void SliceFieldPrinter<Field>::pluginLoad()
 {
-    Environment<>::get().PluginConnector().setNotificationPeriod(this, this->notifyFrequency);
-    namespace vec = ::PMacc::math;
-    typedef SuperCellSize BlockDim;
+    if( float_X(0.0) <= slicePoint && slicePoint <= float_X(1.0))
+      {
+        /* in case the slice point is inside of [0.0,1.0] */
+        sliceIsOK = true;
+        Environment<>::get().PluginConnector().setNotificationPeriod(this, this->notifyFrequency);
+        namespace vec = ::PMacc::math;
+        typedef SuperCellSize BlockDim;
 
-    vec::Size_t<3> size = vec::Size_t<3>(this->cellDescription->getGridSuperCells()) * precisionCast<size_t>(BlockDim::toRT())
-        - precisionCast<size_t>(2 * BlockDim::toRT());
-    this->dBuffer = new container::DeviceBuffer<float3_X, 2>(
-        size.shrink<2>((this->plane+1)%3));
+        vec::Size_t<3> size = vec::Size_t<3>(this->cellDescription->getGridSuperCells()) * precisionCast<size_t>(BlockDim::toRT())
+          - precisionCast<size_t>(2 * BlockDim::toRT());
+        this->dBuffer_SI = new container::DeviceBuffer<float3_64, 2>(
+                        size.shrink<2>((this->plane+1)%3));
+      }
+    else
+      {
+        /* in case the slice point is outside of [0.0,1.0] */
+        sliceIsOK = false;
+        std::cerr << "In the SliceFieldPrinter plugin a slice point"
+                  << " (slice_point=" << slicePoint
+                  << ") is outside of [0.0, 1.0]. " << std::endl
+                  << "The request will be ignored. " << std::endl;
+      }
 }
 
 template<typename Field>
 void SliceFieldPrinter<Field>::pluginUnload()
 {
-    __delete(this->dBuffer);
+    __delete(this->dBuffer_SI);
 }
 
 template<typename Field>
@@ -73,18 +103,20 @@ std::string SliceFieldPrinter<Field>::pluginGetName() const
 template<typename Field>
 void SliceFieldPrinter<Field>::notify(uint32_t currentStep)
 {
-    namespace vec = ::PMacc::math;
-    typedef SuperCellSize BlockDim;
-    DataConnector &dc = Environment<>::get().DataConnector();
+    if(sliceIsOK)
+    {
+      namespace vec = ::PMacc::math;
+      typedef SuperCellSize BlockDim;
+      DataConnector &dc = Environment<>::get().DataConnector();
+      BOOST_AUTO(field_coreBorder,
+                 dc.getData<Field > (Field::getName(), true).getGridBuffer().
+                 getDeviceBuffer().cartBuffer().
+                 view(BlockDim::toRT(), -BlockDim::toRT()));
 
-    BOOST_AUTO(field_coreBorder,
-        dc.getData<Field > (Field::getName(), true).getGridBuffer().
-            getDeviceBuffer().cartBuffer().
-            view(BlockDim::toRT(), -BlockDim::toRT()));
-
-    std::ostringstream filename;
-    filename << this->fieldName << "_" << currentStep << ".dat";
-    printSlice(field_coreBorder, this->plane, this->slicePoint, filename.str());
+      std::ostringstream filename;
+      filename << this->fileName << "_" << currentStep << ".dat";
+      printSlice(field_coreBorder, this->plane, this->slicePoint, filename.str());
+    }
 }
 
 template<typename Field>
@@ -105,32 +137,32 @@ void SliceFieldPrinter<Field>::printSlice(const TField& field, int nAxis, float 
     nVector[nAxis] = 1;
 
     zone::SphericZone<3> gpuGatheringZone(vec::Size_t<3>(gpuDim.x(), gpuDim.y(), gpuDim.z()),
-                                              nVector * gpuPlane);
+                                          nVector * gpuPlane);
     gpuGatheringZone.size[nAxis] = 1;
 
     algorithm::mpi::Gather<3> gather(gpuGatheringZone);
     if(!gather.participate()) return;
 
     using namespace lambda;
-    vec::UInt<3> twistedVector((nAxis+1)%3, (nAxis+2)%3, nAxis);
+    vec::UInt32<3> twistedVector((nAxis+1)%3, (nAxis+2)%3, nAxis);
 
-    float_X SI = UNIT_EFIELD;
-    if(Field::getName() == FieldB::getName())
-        SI = UNIT_BFIELD;
+    /* convert data to higher precision and to SI units */
+    SliceFieldPrinterHelper::ConversionFunctor<Field> cf;
+    algorithm::kernel::Foreach<vec::CT::UInt32<4,4,1> >()(
+      dBuffer_SI->zone(), dBuffer_SI->origin(),
+      cursor::tools::slice(field.originCustomAxes(twistedVector)(0,0,localPlane)),
+      cf );
 
-    algorithm::kernel::Foreach<vec::CT::UInt<4,4,1> >()(
-        dBuffer->zone(), dBuffer->origin(),
-        cursor::tools::slice(field.originCustomAxes(twistedVector)(0,0,localPlane)),
-        _1 = _2 * SI);
+    /* copy selected plane from device to host */
+    container::HostBuffer<float3_64, 2> hBuffer(dBuffer_SI->size());
+    hBuffer = *dBuffer_SI;
 
-    container::HostBuffer<float3_X, 2> hBuffer(dBuffer->size());
-    hBuffer = *dBuffer;
-
-    container::HostBuffer<float3_X, 2> globalBuffer(hBuffer.size() * gpuDim.shrink<2>((nAxis+1)%3));
+    /* collect data from all nodes/GPUs */
+    container::HostBuffer<float3_64, 2> globalBuffer(hBuffer.size() * gpuDim.shrink<2>((nAxis+1)%3));
     gather(globalBuffer, hBuffer, nAxis);
     if(!gather.root()) return;
     std::ofstream file(filename.c_str());
     file << globalBuffer;
 }
 
-}
+} /* end namespace picongpu */

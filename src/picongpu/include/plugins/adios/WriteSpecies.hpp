@@ -103,16 +103,17 @@ public:
                                                                                     params->window.localDimensions.size);
         log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) count particles: %1% = %2%") % AdiosFrameType::getName() % totalNumParticles;
 
+
+        AdiosFrameType hostFrame;
+        log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) malloc mapped memory: %1%") % AdiosFrameType::getName();
+
+        /* malloc mapped memory */
+        ForEach<typename AdiosFrameType::ValueTypeSeq, MallocMemory<bmpl::_1> > mallocMem;
+        mallocMem(forward(hostFrame), totalNumParticles);
+        log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) malloc mapped memory: %1%") % AdiosFrameType::getName();
+
         if (totalNumParticles > 0)
         {
-            AdiosFrameType hostFrame;
-            log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) malloc mapped memory: %1%") % AdiosFrameType::getName();
-
-            /* malloc mapped memory */
-            ForEach<typename AdiosFrameType::ValueTypeSeq, MallocMemory<bmpl::_1> > mallocMem;
-            mallocMem(forward(hostFrame), totalNumParticles);
-            log<picLog::INPUT_OUTPUT > ("ADIOS:  ( end ) malloc mapped memory: %1%") % AdiosFrameType::getName();
-
             log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) get mapped memory device pointer: %1%") % AdiosFrameType::getName();
             /* load device pointer of mapped memory */
             AdiosFrameType deviceFrame;
@@ -148,16 +149,15 @@ public:
             log<picLog::INPUT_OUTPUT > ("ADIOS:  all events are finished: %1%") % AdiosFrameType::getName();
             /* this costs a little bit of time but adios writing is slower */
             assert((uint64_cu) counterBuffer.getHostBuffer().getDataBox()[0] == totalNumParticles);
-
-            /* dump to adios file */
-            ForEach<typename AdiosFrameType::ValueTypeSeq, adios::ParticleAttribute<bmpl::_1> > writeToAdios;
-            writeToAdios(params, forward(hostFrame), totalNumParticles);
-
-            /* free host memory */
-            ForEach<typename AdiosFrameType::ValueTypeSeq, FreeMemory<bmpl::_1> > freeMem;
-            freeMem(forward(hostFrame));
-            log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing species: %1%") % AdiosFrameType::getName();
         }
+        /* dump to adios file */
+        ForEach<typename AdiosFrameType::ValueTypeSeq, adios::ParticleAttribute<bmpl::_1> > writeToAdios;
+        writeToAdios(params, forward(hostFrame), totalNumParticles);
+
+        /* free host memory */
+        ForEach<typename AdiosFrameType::ValueTypeSeq, FreeMemory<bmpl::_1> > freeMem;
+        freeMem(forward(hostFrame));
+        log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing species: %1%") % AdiosFrameType::getName();
 
         /* write species counter table to adios file */
         log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) writing particle index table for %1%") % AdiosFrameType::getName();

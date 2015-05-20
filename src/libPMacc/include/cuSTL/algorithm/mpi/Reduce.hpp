@@ -22,9 +22,10 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
 #include "mpi.h"
 #include "math/vector/Int.hpp"
-#include "math/vector/UInt.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
 #include "cuSTL/zone/SphericZone.hpp"
 #include <vector>
@@ -66,7 +67,7 @@ public:
      */
     Reduce(const zone::SphericZone<dim>& zone, bool setThisAsRoot = false);
     ~Reduce();
-    
+
     /* execute the algorithm
      *
      * \param dest destination container
@@ -81,7 +82,7 @@ public:
     void operator()(container::HostBuffer<Type, conDim>& dest,
                     const container::HostBuffer<Type, conDim>& src,
                     ExprOrFunctor) const;
-           
+
     // Returns whether this node is within the zone.
     inline bool participate() const {return m_participate;}
     // Returns whether this node is the root node.
@@ -89,7 +90,7 @@ public:
     // Returns the mpi rank of this node.
     inline int rank() const;
 };
-    
+
 } // mpi
 } // algorithm
 } // PMacc

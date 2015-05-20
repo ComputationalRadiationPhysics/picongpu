@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Rene Widera, Felix Schmitt
+ * Copyright 2013-2014 Axel Huebl, Rene Widera, Felix Schmitt,
+ *                     Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -54,7 +55,7 @@ namespace picongpu
         const bool GAS_ENABLED = true;
     }
 
-    namespace gasHomogenous
+    namespace gasHomogeneous
     {
         /** Length of the constant gas in y direction
          *  unit: meter */
@@ -79,7 +80,7 @@ namespace picongpu
 
     namespace gasGaussianCloud
     {
-        // normed parameters of the gaussian gas profile
+        // normed parameters of the Gaussian gas profile
         const float_X GAS_CENTER_X = float_X( SI::GAS_CENTER_X_SI / UNIT_LENGTH); //unit: meter
         const float_X GAS_CENTER_Y = float_X( SI::GAS_CENTER_Y_SI / UNIT_LENGTH); //unit: meter
         const float_X GAS_CENTER_Z = float_X( SI::GAS_CENTER_Z_SI / UNIT_LENGTH); //unit: meter
@@ -121,7 +122,7 @@ namespace picongpu
 #include "particles/gasProfiles/gasGaussian.hpp"
 #include "particles/gasProfiles/gasGaussianCloud.hpp"
 #include "particles/gasProfiles/gasLinExp.hpp"
-#include "particles/gasProfiles/gasHomogenous.hpp"
+#include "particles/gasProfiles/gasHomogeneous.hpp"
 #include "particles/gasProfiles/gasSphereFlanks.hpp"
 #include "particles/gasProfiles/gasFreeFormula.hpp"
 #if (ENABLE_HDF5 == 1)

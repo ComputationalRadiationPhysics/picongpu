@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -140,7 +140,7 @@ struct GetOffsetToStaticShapeSystem<false>
     template<typename T_Type>
     HDINLINE int operator()(const T_Type& pos)
     {
-        return int(pos >= T_Type(0.5));
+        return pos >= T_Type(0.5) ? 1 : 0;
     }
 };
 

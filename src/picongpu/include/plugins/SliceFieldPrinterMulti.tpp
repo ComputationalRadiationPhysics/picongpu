@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Heiko Burau, Rene Widera, Felix Schmitt
+ * Copyright 2013-2014 Heiko Burau, Rene Widera, Felix Schmitt,
+ *                     Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -52,16 +53,16 @@ template<typename Field>
 void SliceFieldPrinterMulti<Field>::pluginRegisterHelp(po::options_description& desc)
 {
     desc.add_options()
-        ((this->prefix + "_frequency").c_str(),
+        ((this->prefix + ".frequency").c_str(),
         po::value<std::vector<uint32_t> > (&this->notifyFrequency)->multitoken(), "notify frequency");
     desc.add_options()
-        ((this->prefix + "_fieldName").c_str(),
-        po::value<std::vector<std::string> > (&this->fieldName)->multitoken(), "field Name");
+        ((this->prefix + ".fileName").c_str(),
+        po::value<std::vector<std::string> > (&this->fileName)->multitoken(), "file name to store slices in");
     desc.add_options()
-        ((this->prefix + "_plane").c_str(),
+        ((this->prefix + ".plane").c_str(),
         po::value<std::vector<int> > (&this->plane)->multitoken(), "specifies the axis which stands on the cutting plane (0,1,2)");
     desc.add_options()
-        ((this->prefix + "_slicePoint").c_str(),
+        ((this->prefix + ".slicePoint").c_str(),
         po::value<std::vector<float_X> > (&this->slicePoint)->multitoken(), "slice point 0.0 <= x <= 1.0");
 }
 
@@ -76,7 +77,7 @@ void SliceFieldPrinterMulti<Field>::pluginLoad()
     {
         this->childs[i].setMappingDescription(this->cellDescription);
         this->childs[i].notifyFrequency = this->notifyFrequency[i];
-        this->childs[i].fieldName = this->fieldName[i];
+        this->childs[i].fileName = this->fileName[i];
         this->childs[i].plane = this->plane[i];
         this->childs[i].slicePoint = this->slicePoint[i];
         this->childs[i].pluginLoad();

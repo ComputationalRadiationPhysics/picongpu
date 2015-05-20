@@ -9,7 +9,7 @@ Please note that this is an Open
 release for **developers** and **power users** [only](#users).
 
 **Users** *should wait* for our 
-[Open Beta](https://github.com/ComputationalRadiationPhysics/picongpu/issues/milestones)
+[Open Beta](https://github.com/ComputationalRadiationPhysics/picongpu/milestones)
 release!
 
 ********************************************************************************
@@ -104,7 +104,7 @@ Users
 
 Dear User, please [beware](#open-alpha) that this is a **developer and
 power user only release**! We hereby emphasize that you should wait for our
-[Beta](https://github.com/ComputationalRadiationPhysics/picongpu/issues/milestones)
+[Beta](https://github.com/ComputationalRadiationPhysics/picongpu/milestones)
 release.
 
 Visit [picongpu.hzdr.de](http://picongpu.hzdr.de) to learn more about PIC
@@ -135,7 +135,9 @@ Active Team
 ### Maintainers* and core developers
 
 - Heiko Burau*
+- Dr. Alexander Debus
 - Carlchristian Eckert
+- Marco Garten
 - Axel Huebl*
 - Maximilian Knespel
 - Richard Pausch*
@@ -150,10 +152,10 @@ The PIConGPU Team expresses its thanks to:
 
 - Florian Berninger
 - Robert Dietrich
-- Wen Fu
+- Wen Fu, PhD
 - Anton Helm
 - Wolfgang Hoehnig
-- Remi Lehe
+- Dr. Remi Lehe
 - Benjamin Schneider
 - Joseph Schuchart
 - Klaus Steiniger
