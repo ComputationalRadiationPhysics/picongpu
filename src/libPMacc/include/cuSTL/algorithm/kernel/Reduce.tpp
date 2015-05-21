@@ -102,7 +102,7 @@ struct ReduceKernel
 
 template<typename BlockDim>
 template<typename DestCursor, typename Zone, typename SrcCursor, typename Functor>
-void Reduce<BlockDim>::operator()(const DestCursor& destCursor, const Zone& _zone, const SrcCursor& srcCursor, const Functor& functor)
+void Reduce<BlockDim>::operator()(const DestCursor& destCursor, const Zone& p_zone, const SrcCursor& srcCursor, const Functor& functor)
 {
     typedef typename boost::remove_reference<typename DestCursor::type>::type type;
 
@@ -111,7 +111,7 @@ void Reduce<BlockDim>::operator()(const DestCursor& destCursor, const Zone& _zon
                                                 destCursor.getMarker()));
     container::DeviceBuffer<type, 1>* partialSum[2];
     partialSum[0] = new container::DeviceBuffer<type, 1>
-        (_zone.size.productOfComponents() / BlockDim().toRT().productOfComponents());
+        (p_zone.size.productOfComponents() / BlockDim().toRT().productOfComponents());
     partialSum[1] = new container::DeviceBuffer<type, 1>(partialSum[0]->size());
     int curDestBuffer = 0;
     int partialSumSize = partialSum[curDestBuffer]->size().x();
@@ -120,32 +120,32 @@ void Reduce<BlockDim>::operator()(const DestCursor& destCursor, const Zone& _zon
 
     if(partialSumSize == 1)
     {
-        Foreach<BlockDim>()(_zone, srcCursor,
-            expr(detail::ReduceKernel<BlockDim, Zone::dim>(_zone.size.x()))
+        Foreach<BlockDim>()(p_zone, srcCursor,
+            expr(detail::ReduceKernel<BlockDim, Zone::dim>(p_zone.size.x()))
                 (_destCursor, _1, make_Functor(functor)));
 
     }
     else
     {
-        Foreach<BlockDim>()(_zone, srcCursor,
-            expr(detail::ReduceKernel<BlockDim, Zone::dim>(_zone.size.x()))
+        Foreach<BlockDim>()(p_zone, srcCursor,
+            expr(detail::ReduceKernel<BlockDim, Zone::dim>(p_zone.size.x()))
                 (partialSum[curDestBuffer]->origin(), _1, make_Functor(functor)));
     }
 
     while(partialSumSize > 1)
     {
         int numBlocks = ceil((float)partialSumSize / 512.0f);
-        zone::SphericZone<1> _zone1D = zone::SphericZone<1>(math::Size_t<1>(numBlocks*512));
+        zone::SphericZone<1> p_zone1D = zone::SphericZone<1>(math::Size_t<1>(numBlocks*512));
         curDestBuffer ^= 1;
         if(numBlocks == 1)
         {
-            Foreach<math::CT::Int<512,1,1> >()(_zone1D, partialSum[(curDestBuffer+1)%2]->origin(),
+            Foreach<math::CT::Int<512,1,1> >()(p_zone1D, partialSum[(curDestBuffer+1)%2]->origin(),
                             expr(detail::ReduceKernel<math::CT::Int<512,1,1>, 1>(partialSumSize))
                             (_destCursor, _1, make_Functor(functor)));
         }
         else
         {
-            Foreach<math::CT::Int<512,1,1> >()(_zone1D, partialSum[(curDestBuffer+1)%2]->origin(),
+            Foreach<math::CT::Int<512,1,1> >()(p_zone1D, partialSum[(curDestBuffer+1)%2]->origin(),
                             expr(detail::ReduceKernel<math::CT::Int<512,1,1>, 1>(partialSumSize))
                             (partialSum[curDestBuffer]->origin(), _1, make_Functor(functor)));
         }

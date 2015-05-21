@@ -25,13 +25,13 @@ namespace PMacc
 namespace allocator
 {
 
-template<typename Type, int _dim>
-cursor::BufferCursor<Type, _dim>
-DeviceMemAllocator<Type, _dim>::allocate(const math::Size_t<_dim>& size)
+template<typename Type, int T_dim>
+cursor::BufferCursor<Type, T_dim>
+DeviceMemAllocator<Type, T_dim>::allocate(const math::Size_t<T_dim>& size)
 {
 #ifndef __CUDA_ARCH__
     Type* dataPointer;
-    math::Size_t<_dim-1> pitch;
+    math::Size_t<T_dim-1> pitch;
     cudaPitchedPtr cudaData;
 
     cudaData.ptr = NULL;
@@ -58,13 +58,13 @@ DeviceMemAllocator<Type, _dim>::allocate(const math::Size_t<_dim>& size)
     }
     dataPointer = (Type*)cudaData.ptr;
 
-    return cursor::BufferCursor<Type, _dim>(dataPointer, pitch);
+    return cursor::BufferCursor<Type, T_dim>(dataPointer, pitch);
 #endif
 
 #ifdef __CUDA_ARCH__
     Type* dataPointer = 0;
-    math::Size_t<_dim-1> pitch;
-    return cursor::BufferCursor<Type, _dim>(dataPointer, pitch);
+    math::Size_t<T_dim-1> pitch;
+    return cursor::BufferCursor<Type, T_dim>(dataPointer, pitch);
 #endif
 }
 
@@ -86,9 +86,9 @@ DeviceMemAllocator<Type, 1>::allocate(const math::Size_t<1>& size)
 #endif
 }
 
-template<typename Type, int _dim>
+template<typename Type, int T_dim>
 template<typename TCursor>
-void DeviceMemAllocator<Type, _dim>::deallocate(const TCursor& cursor)
+void DeviceMemAllocator<Type, T_dim>::deallocate(const TCursor& cursor)
 {
 #ifndef __CUDA_ARCH__
     CUDA_CHECK_NO_EXCEP(cudaFree(cursor.getMarker()));

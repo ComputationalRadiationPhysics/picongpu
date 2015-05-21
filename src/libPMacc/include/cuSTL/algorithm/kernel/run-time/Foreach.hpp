@@ -55,16 +55,16 @@ namespace RT
 #define FOREACH_KERNEL_MAX_PARAMS 4
 #endif
 
-#define SHIFT_CURSOR_ZONE(Z, N, _) C ## N c ## N ## _shifted = c ## N (_zone.offset);
+#define SHIFT_CURSOR_ZONE(Z, N, _) C ## N c ## N ## _shifted = c ## N (p_zone.offset);
 #define SHIFTED_CURSOR(Z, N, _) c ## N ## _shifted
 
 #define FOREACH_OPERATOR(Z, N, _)                                                                                   \
     /*                      typename C0, ..., typename CN            */                                             \
     template<typename Zone, BOOST_PP_ENUM_PARAMS(N, typename C), typename Functor>                                  \
                                 /*     C0 c0, ..., CN cN  */                                                        \
-    void operator()(const Zone& _zone, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), const Functor& functor)                \
+    void operator()(const Zone& p_zone, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), const Functor& functor)                \
     {                                                                                                               \
-        /* C0 c0_shifted = c0(_zone.offset); ...; CN cN_shifted = cN(_zone.offset); */                              \
+        /* C0 c0_shifted = c0(p_zone.offset); ...; CN cN_shifted = cN(p_zone.offset); */                              \
         BOOST_PP_REPEAT(N, SHIFT_CURSOR_ZONE, _)                                                                    \
                                                                                                                     \
         /* the maximum number of threads per block for devices with                                                 \
@@ -75,7 +75,7 @@ namespace RT
         dim3 blockDim(this->_blockDim.x(), this->_blockDim.y(), this->_blockDim.z());                               \
         kernel::detail::SphericMapper<Zone::dim> mapper;                                                            \
         using namespace PMacc;                                                                                      \
-        __cudaKernel(kernel::detail::kernelForeach)(mapper.cudaGridDim(_zone.size, this->_blockDim), blockDim)      \
+        __cudaKernel(kernel::detail::kernelForeach)(mapper.cudaGridDim(p_zone.size, this->_blockDim), blockDim)      \
                 /*   c0_shifted, ..., cN_shifted    */                                                              \
             (mapper, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _), lambda::make_Functor(functor));                           \
     }

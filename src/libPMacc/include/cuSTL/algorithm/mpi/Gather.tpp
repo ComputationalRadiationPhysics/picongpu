@@ -33,7 +33,7 @@ namespace mpi
 {
 
 template<int dim>
-Gather<dim>::Gather(const zone::SphericZone<dim>& _zone) : comm(MPI_COMM_NULL)
+Gather<dim>::Gather(const zone::SphericZone<dim>& p_zone) : comm(MPI_COMM_NULL)
 {
     using namespace PMacc::math;
 
@@ -54,7 +54,7 @@ Gather<dim>::Gather(const zone::SphericZone<dim>& _zone) : comm(MPI_COMM_NULL)
     for(int i = 0; i < (int)allPositions.size(); i++)
     {
         Int<dim> pos = allPositions[i];
-        if(!_zone.within(pos)) continue;
+        if(!p_zone.within(pos)) continue;
 
         new_ranks.push_back(i);
         this->positions.push_back(allPositions[i]);

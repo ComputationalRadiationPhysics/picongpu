@@ -220,7 +220,7 @@ namespace picongpu
         container::HostBuffer<float_PS, 2> hReducedBuffer( hBuffer.size() );
         hReducedBuffer.assign( float_PS(0.0) );
 
-        (*this->planeReduce)( /* parameters: dest, source */
+        planeReduce->template operator()( /* parameters: dest, source */
                              hReducedBuffer,
                              hBuffer,
                              /* the functors return value will be written to dst */

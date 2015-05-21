@@ -36,40 +36,40 @@ namespace mpi
 {
 
 template<int dim>
-Reduce<dim>::Reduce(const zone::SphericZone<dim>& _zone, bool setThisAsRoot) : comm(MPI_COMM_NULL)
+Reduce<dim>::Reduce(const zone::SphericZone<dim>& p_zone, bool setThisAsRoot) : comm(MPI_COMM_NULL)
 {
     using namespace math;
-      
+
     PMACC_AUTO(&con,Environment<dim>::get().GridController());
-    
+
     typedef std::pair<Int<dim>, bool> PosFlag;
     PosFlag posFlag;
     posFlag.first = (Int<dim>)con.getPosition();
     posFlag.second = setThisAsRoot;
-    
+
     int numWorldRanks; MPI_Comm_size(MPI_COMM_WORLD, &numWorldRanks);
     std::vector<PosFlag> allPositionsFlags(numWorldRanks);
-    
+
     MPI_CHECK(MPI_Allgather((void*)&posFlag, sizeof(PosFlag), MPI_CHAR,
                   (void*)allPositionsFlags.data(), sizeof(PosFlag), MPI_CHAR,
                   MPI_COMM_WORLD));
-                  
+
     std::vector<int> new_ranks;
     int myWorldId; MPI_Comm_rank(MPI_COMM_WORLD, &myWorldId);
-    
+
     this->m_participate = false;
     for(int i = 0; i < (int)allPositionsFlags.size(); i++)
     {
         Int<dim> pos = allPositionsFlags[i].first;
         bool flag = allPositionsFlags[i].second;
-        if(!_zone.within(pos)) continue;
-        
+        if(!p_zone.within(pos)) continue;
+
         new_ranks.push_back(i);
         //if rank i is supposed to be the new root put him at the front
         if(flag) std::swap(new_ranks.front(), new_ranks.back());
         if(i == myWorldId) this->m_participate = true;
     }
-    
+
     MPI_Group world_group = MPI_GROUP_NULL;
     MPI_Group new_group = MPI_GROUP_NULL;
 
@@ -115,7 +115,7 @@ int Reduce<dim>::rank() const
 
 namespace detail
 {
-    
+
 template<typename Functor, typename type>
 struct MPI_User_Op
 {
@@ -124,7 +124,7 @@ struct MPI_User_Op
         Functor functor;
         type* inoutvec_t = (type*)inoutvec;
         type* invec_t = (type*)invec;
-        
+
         int size = (*len)/sizeof(type);
         for(int i = 0; i < size; i++)
         {
@@ -143,15 +143,15 @@ void Reduce<dim>::operator()
                     ExprOrFunctor) const
 {
     if(!this->m_participate) return;
-    
+
     typedef typename lambda::result_of::make_Functor<ExprOrFunctor>::type Functor;
-    
+
     MPI_Op user_op;
     MPI_CHECK(MPI_Op_create(&detail::MPI_User_Op<Functor, Type>::callback, 1, &user_op));
-    
+
     MPI_CHECK(MPI_Reduce(&(*src.origin()), &(*dest.origin()), sizeof(Type) * dest.size().productOfComponents(),
         MPI_CHAR, user_op, 0, this->comm));
-    
+
     MPI_CHECK(MPI_Op_free(&user_op));
 }
 
