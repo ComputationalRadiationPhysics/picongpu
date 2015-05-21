@@ -3,7 +3,7 @@ Change Log / Release Log for PIConGPU
 
 0.1.0
 -----
-**Date:** 2015-05-13
+**Date:** 2015-05-21
 
 This is version `0.1.0` of PIConGPU, a *pre-beta* version.
 
@@ -58,7 +58,7 @@ parts of the code.
    - attributes are now automatically initialized to their generic
      defaults #607 #615
  - libPMacc:
-   - machine-dependent `UInt` vector class is now splitted in explicit
+   - machine-dependent `UInt` vector class is now split in explicit
      `UInt32` and `UInt64` classes #665
    - nvidia random number generators (RNG) refactored #711
  - plugins:
@@ -70,8 +70,8 @@ parts of the code.
      without overwriting their previous output #636 #703
 
 **Bug Fixes:**
- - CUDA 6.5: `int(bool)` cast were broken (affects plugins
-   `BinEnergyParticles`, `PhaseSpace` and might had an effect methods of the
+ - CUDA 6.5: `int(bool)` casts were broken (affects plugins
+   `BinEnergyParticles`, `PhaseSpace` and might had an effect on methods of the
    basic PIC cycle) #570 #651 #656 #657 #678 #680
  - the ZigZag current solver was broken for 2D3V if non-zero
    momentum-components in z direction were used (e.g. warm plasmas or
@@ -84,7 +84,7 @@ parts of the code.
  - `MessageHeader` (used in `png` and 2D live visualization) leaked memory #683
  - restarts with HDF5:
    - static load-balancing via `--gridDist` in y-direction was broken #639
-   - parallel setups with particle-empty GPUs did hang with HDF5 #609 #611 #642
+   - parallel setups with particle-empty GPUs hung with HDF5 #609 #611 #642
    - 2D3V field reads were broken (each field's z-component was not initialized
      with the checkpointed values again, e.g., `B_z`) #688 #689
    - loading more than 4 billion global particles was potentially broken #721
@@ -115,7 +115,7 @@ parts of the code.
  - various code clean-up for MSVC #563 #564 #566 #624 #625
  - plugins:
    - removed `LineSliceFields` #590
-   - `png` plugin write speedup ~2.3x by increasing file about 12% #698
+   - `png` plugin write speedup ~2.3x by increasing file size about 12% #698
  - updated contribution guidelines, install, cfg examples #601 #598 #617 #620
    #673 #700 #714
  - updated module examples and cfg files for:
