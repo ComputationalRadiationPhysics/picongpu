@@ -51,7 +51,7 @@ namespace picongpu
      *      not zero, the integral over the volume will only vanish if the plateau length is
      *      a multiple of the wavelength.
      *   2) Since we define our envelope by a sigma of the laser intensity, 
-     *      tau = PULSE_LENGTH / sqrt(2)
+     *      tau = PULSE_LENGTH * sqrt(2)
      */
     namespace laserPlaneWave
     {
@@ -72,7 +72,7 @@ namespace picongpu
             const double mue = 0.5 * RAMP_INIT * PULSE_LENGTH;
 
             const double w = 2.0 * PI * f;
-            const double tau = PULSE_LENGTH / sqrt( 2.0 );
+            const double tau = PULSE_LENGTH * sqrt( 2.0 );
 
             const double endUpramp = mue;
             const double startDownramp = mue + LASER_NOFOCUS_CONSTANT;
