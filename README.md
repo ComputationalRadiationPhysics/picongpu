@@ -143,6 +143,7 @@ Active Team
 - Richard Pausch*
 - Felix Schmitt*
 - Conrad Schumann
+- Stefan Tietze
 - Rene Widera*
 - Benjamin Worpitz
 
