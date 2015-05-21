@@ -59,7 +59,7 @@ HINLINE float3_X laserLongitudinal(uint32_t currentStep, float_X& phase)
     const double endUpramp = -0.5 * LASER_NOFOCUS_CONSTANT;
     const double startDownramp = 0.5 * LASER_NOFOCUS_CONSTANT;
 
-    const double tau = PULSE_LENGTH / sqrt(2.0);
+    const double tau = PULSE_LENGTH * sqrt(2.0);
 
     double correctionFactor = 0.0;
 
