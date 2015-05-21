@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -90,12 +90,12 @@ namespace picongpu
 
             /* cell id in this block */
             const int linearCellIdx = particle[localCellIdx_];
-            const PMacc::math::UInt<simDim> cellIdx(
+            const PMacc::math::UInt32<simDim> cellIdx(
                 PMacc::math::MapToPos<simDim>()( SuperCellSize(), linearCellIdx ) );
 
             const uint32_t r_bin    = cellIdx[r_dir];
             const float_X weighting = particle[weighting_];
-            const float_X charge    = getCharge( weighting,*frame );
+            const float_X charge    = attribute::getCharge( weighting,particle );
             const float_PS particleChargeDensity =
               precisionCast<float_PS>( charge / CELL_VOLUME );
 
@@ -103,12 +103,9 @@ namespace picongpu
                                   / (axis_p_range.second - axis_p_range.first);
             int p_bin = int( rel_bin * float_X(num_pbins) );
 
-            /* out-of-range bins back to min/max
-             * p_bin < 0 ? p_bin = 0;
-             * p_bin > (num_pbins-1) ? p_bin = num_pbins-1;
-             */
-            p_bin *= int(p_bin >= 0);
-            p_bin += int(p_bin >= num_pbins) * (num_pbins - 1 - p_bin);
+            /* out-of-range bins back to min/max */
+            p_bin >= 0 ? /* do not change p_bin */ : p_bin=0;
+            p_bin < num_pbins ? /* do not change p_bin */ : p_bin=num_pbins-1;
 
             /** \todo take particle shape into account */
             atomicAddWrapper( &(*curDBufferOriginInBlock( p_bin, r_bin )),

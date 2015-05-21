@@ -11,3 +11,5 @@
 # python byte code
 *.pyc
 
+# original backup files
+*.orig

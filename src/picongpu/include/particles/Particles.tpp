@@ -30,6 +30,9 @@
 
 #include "particles/Particles.kernel"
 
+// Ionization
+#include "particles/ionization/ionization.hpp"
+
 #include "dataManagement/DataConnector.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
 
@@ -50,7 +53,7 @@
 
 #include "fields/numericalCellTypes/YeeCell.hpp"
 
-#include "particles/traits/GetPusher.hpp"
+#include "traits/Resolve.hpp"
 
 namespace picongpu
 {
@@ -151,9 +154,11 @@ void Particles<T_ParticleDescription>::update(uint32_t )
 
     /* if no pusher was defined we use PusherNone as fallback */
     typedef typename bmpl::if_<hasPusher,FoundPusher,particles::pusher::None >::type SelectPusher;
-    typedef typename SelectPusher::type ParticlePush;
+    typedef typename PMacc::traits::Resolve<SelectPusher>::type::type ParticlePush;
 
-    typedef typename GetFlagType<FrameType,interpolation<> >::type::ThisType InterpolationScheme;
+    typedef typename PMacc::traits::Resolve<
+        typename GetFlagType<FrameType,interpolation<> >::type
+    >::type InterpolationScheme;
 
     typedef typename GetMargin<InterpolationScheme>::LowerMargin LowerMargin;
     typedef typename GetMargin<InterpolationScheme>::UpperMargin UpperMargin;

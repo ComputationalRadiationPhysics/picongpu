@@ -57,11 +57,6 @@ namespace lambda
 {
 using mpl::at_c;
 
-#define EXPRESSION_CTOR(Z, N, _)                                         \
-    template<BOOST_PP_ENUM_PARAMS(N, typename Arg)>                      \
-    HDINLINE Expression(BOOST_PP_ENUM_BINARY_PARAMS(N, const Arg, &arg)) \
-     : Base(BOOST_PP_ENUM_PARAMS(N, arg)) {}
-
 /** Expression is a node in an expression tree
  * \tparam _ExprType see available expression types in ExprTypes.h
  * \tparam _Childs childs notes. This is a mpl typelist
@@ -77,11 +72,19 @@ struct Expression : public math::Tuple<_Childs>
     typedef math::Tuple<_Childs> Base;
     typedef _Childs Childs;
     typedef _ExprType ExprType;
+    typedef typename mpl::at_c<_Childs,0>::type FirstChild;
 
-    HDINLINE Expression(const typename at_c<_Childs,0>::type& child0 = typename at_c<_Childs,0>::type())
+    HDINLINE Expression(FirstChild const & child0 = FirstChild())
      : Base(child0) {}
 
+    #define EXPRESSION_CTOR(Z, N, _)                                         \
+        template<BOOST_PP_ENUM_PARAMS(N, typename Arg)>                      \
+        HDINLINE Expression(BOOST_PP_ENUM_BINARY_PARAMS(N, const Arg, &arg)) \
+         : Base(BOOST_PP_ENUM_PARAMS(N, arg)) {}
+
     BOOST_PP_REPEAT_FROM_TO(2, LAMBDA_MAX_PARAMS, EXPRESSION_CTOR, _)
+
+    #undef EXPRESSION_CTOR
 
     template<typename Idx>
     HDINLINE
@@ -162,7 +165,7 @@ struct Expression : public math::Tuple<_Childs>
 
     BOOST_PP_REPEAT_FROM_TO(1, LAMBDA_MAX_PARAMS, OPERATOR_CALL, _)
 
-    #undef RESULT_OF_FUNCTOR_HPP
+    #undef RESULT_OF_MAKE_EXPR
     #undef MAKE_EXPR
     #undef OPERATOR_CALL
 
@@ -183,13 +186,13 @@ struct is_Expression<Expression<_ExprType, _Childs> >
 };
 
 #define DECLARE_PLACEHOLDERS() \
-const Expression<exprTypes::terminal, mpl::vector<placeholder<0> > > _1; \
-const Expression<exprTypes::terminal, mpl::vector<placeholder<1> > > _2; \
-const Expression<exprTypes::terminal, mpl::vector<placeholder<2> > > _3; \
-const Expression<exprTypes::terminal, mpl::vector<placeholder<3> > > _4; \
-const Expression<exprTypes::terminal, mpl::vector<placeholder<4> > > _5; \
-const Expression<exprTypes::terminal, mpl::vector<placeholder<5> > > _6; \
-const Expression<exprTypes::terminal, mpl::vector<placeholder<6> > > _7;
+    const Expression<exprTypes::terminal, mpl::vector<placeholder<0> > > _1; \
+    const Expression<exprTypes::terminal, mpl::vector<placeholder<1> > > _2; \
+    const Expression<exprTypes::terminal, mpl::vector<placeholder<2> > > _3; \
+    const Expression<exprTypes::terminal, mpl::vector<placeholder<3> > > _4; \
+    const Expression<exprTypes::terminal, mpl::vector<placeholder<4> > > _5; \
+    const Expression<exprTypes::terminal, mpl::vector<placeholder<5> > > _6; \
+    const Expression<exprTypes::terminal, mpl::vector<placeholder<6> > > _7;
 
 DECLARE_PLACEHOLDERS()
 

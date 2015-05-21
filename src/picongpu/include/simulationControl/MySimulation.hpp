@@ -1,6 +1,6 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
- *                     Richard Pausch
+ * Copyright 2013-2015 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+ *                     Richard Pausch, Alexander Debus, Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -167,7 +167,7 @@ public:
 
         // calculate the number of local grid cells and
         // the local cell offset to the global box
-        for (uint32_t dim = 0; dim < gridDistribution.size(); ++dim)
+        for (uint32_t dim = 0; dim < gridDistribution.size() && dim < simDim; ++dim)
         {
             // parse string
             ParserGridDistribution parserGD(gridDistribution.at(dim));
@@ -273,6 +273,14 @@ public:
         Environment<>::get().EnvMemoryInfo().getMemoryInfo(&freeGpuMem);
         freeGpuMem -= totalFreeGpuMemory;
 
+        if( Environment<>::get().EnvMemoryInfo().isSharedMemoryPool() )
+        {
+            freeGpuMem /= 2;
+            log<picLog::MEMORY > ("Shared RAM between GPU and host detected - using only half of the 'device' memory.");
+        }
+        else
+            log<picLog::MEMORY > ("RAM is NOT shared between GPU and host.");
+
         ForEach<VectorAllSpecies, particles::CallCreateParticleBuffer<bmpl::_1>, MakeIdentifier<bmpl::_1> > createParticleBuffer;
         createParticleBuffer(forward(particleStorage), freeGpuMem);
 
@@ -327,6 +335,19 @@ public:
         Environment<>::get().EnvMemoryInfo().getMemoryInfo(&freeGpuMem);
         log<picLog::MEMORY > ("free mem after all particles are initialized %1% MiB") % (freeGpuMem / 1024 / 1024);
 
+        /** a background field for the particle pusher might be added at the
+            beginning of a simulation in movingWindowCheck()
+            At restarts the external fields are already added and will be
+            double-counted, so we remove it in advance. */
+        if( step != 0 )
+        {
+            namespace nvfct = PMacc::nvidia::functors;
+            (*pushBGField)( fieldE, nvfct::Sub(), fieldBackgroundE(fieldE->getUnit()),
+                            step, fieldBackgroundE::InfluenceParticlePusher);
+            (*pushBGField)( fieldB, nvfct::Sub(), fieldBackgroundB(fieldB->getUnit()),
+                            step, fieldBackgroundB::InfluenceParticlePusher);
+        }
+
         // communicate all fields
         EventTask eRfieldE = fieldE->asyncCommunication(__getTransactionEvent());
         __setTransactionEvent(eRfieldE);
@@ -349,12 +370,9 @@ public:
     {
         namespace nvfct = PMacc::nvidia::functors;
 
-        /** add background field for particle pusher */
-        (*pushBGField)(fieldE, nvfct::Add(), fieldBackgroundE(fieldE->getUnit()),
-                       currentStep, fieldBackgroundE::InfluenceParticlePusher);
-        (*pushBGField)(fieldB, nvfct::Add(), fieldBackgroundB(fieldB->getUnit()),
-                       currentStep, fieldBackgroundB::InfluenceParticlePusher);
-
+        /* Ionization */
+        ForEach<VectorAllSpecies, particles::CallIonization<bmpl::_1>, MakeIdentifier<bmpl::_1> > particleIonization;
+        particleIonization(forward(particleStorage), currentStep);
 
         EventTask initEvent = __getTransactionEvent();
         EventTask updateEvent;
@@ -403,6 +421,19 @@ public:
         {
             slide(currentStep);
         }
+
+        /** add background field: the movingWindowCheck is just at the start
+         * of a time step before all the plugins are called (and the step
+         * itself is performed for this time step).
+         * Hence the background field is visible for all plugins
+         * in between the time steps.
+         */
+        namespace nvfct = PMacc::nvidia::functors;
+
+        (*pushBGField)( fieldE, nvfct::Add(), fieldBackgroundE(fieldE->getUnit()),
+                        currentStep, fieldBackgroundE::InfluenceParticlePusher );
+        (*pushBGField)( fieldB, nvfct::Add(), fieldBackgroundB(fieldB->getUnit()),
+                        currentStep, fieldBackgroundB::InfluenceParticlePusher );
     }
 
     void resetAll(uint32_t currentStep)

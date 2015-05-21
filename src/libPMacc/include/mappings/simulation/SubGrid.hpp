@@ -109,7 +109,7 @@ namespace PMacc
 
     private:
 
-        friend Environment<DIM>;
+        friend class Environment<DIM>;
 
         /** total simulation volume, including active and inactive subvolumes */
         Selection<DIM> totalDomain;

@@ -24,7 +24,6 @@
 #define ALGORITHM_KERNEL_REDUCE_HPP
 
 #include "math/vector/Int.hpp"
-#include "math/vector/UInt.hpp"
 #include "cuSTL/container/CartBuffer.hpp"
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "cuSTL/zone/SphericZone.hpp"
@@ -53,13 +52,13 @@ struct Reduce
 {
 
 /* \param destCursor Cursor where the result is stored
- * \param _zone Zone of cells spanning the area of reduce
+ * \param p_zone Zone of cells spanning the area of reduce
  * \param srcCursor Cursor located at the origin of the area of reduce
  * \param functor Functor with two arguments which returns the result of the reduce operation.
  *        Can also be a lambda expression.
  */
 template<typename DestCursor, typename Zone, typename SrcCursor, typename Functor>
-void operator()(const DestCursor& destCursor, const Zone& _zone, const SrcCursor& srcCursor, const Functor& functor);
+void operator()(const DestCursor& destCursor, const Zone& p_zone, const SrcCursor& srcCursor, const Functor& functor);
 };
 
 } // kernel

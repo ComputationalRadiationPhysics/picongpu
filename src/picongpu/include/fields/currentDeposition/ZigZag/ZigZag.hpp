@@ -281,11 +281,11 @@ struct ZigZag
                 inCellPos[d] = calc_InCellPos(pos_tmp, tmpRelayPoint, I[parId][d]);
                 flux[d] = sign * calc_chargeFlux(pos_tmp, tmpRelayPoint, deltaTime, charge) * volume_reci * cellSize[d];
             }
-            
+
             /* this loop is only needed for 2D, we need a flux in z direction */
             for (uint32_t d = simDim; d < 3; ++d)
             {
-                flux[d] = charge * velocity[d] * volume_reci;
+                flux[d] = float_X(0.5) *  charge * velocity[d] * volume_reci;
             }
 
             PMACC_AUTO(cursorJ, dataBoxJ.shift(precisionCast<int>(I[parId])).toCursor());

@@ -80,38 +80,38 @@ namespace detail
     }
 }
 
-template<typename Type, int _dim, typename Allocator, typename Copier, typename Assigner>
-CartBuffer<Type, _dim, Allocator, Copier, Assigner>::CartBuffer
-(const math::Size_t<_dim>& _size)
+template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
+(const math::Size_t<T_dim>& _size)
 {
     this->_size = _size;
     init();
 }
 
-template<typename Type, int _dim, typename Allocator, typename Copier, typename Assigner>
-CartBuffer<Type, _dim, Allocator, Copier, Assigner>::CartBuffer
+template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
 (size_t x)
 {
     this->_size = math::Size_t<1>(x); init();
 }
 
-template<typename Type, int _dim, typename Allocator, typename Copier, typename Assigner>
-CartBuffer<Type, _dim, Allocator, Copier, Assigner>::CartBuffer
+template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
 (size_t x, size_t y)
 {
     this->_size = math::Size_t<2>(x, y); init();
 }
 
-template<typename Type, int _dim, typename Allocator, typename Copier, typename Assigner>
-CartBuffer<Type, _dim, Allocator, Copier, Assigner>::CartBuffer
+template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
 (size_t x, size_t y, size_t z)
 {
     this->_size = math::Size_t<3>(x, y, z); init();
 }
 
-template<typename Type, int _dim, typename Allocator, typename Copier, typename Assigner>
-CartBuffer<Type, _dim, Allocator, Copier, Assigner>::CartBuffer
-(const CartBuffer<Type, dim, Allocator, Copier, Assigner>& other)
+template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
+(const CartBuffer<Type, T_dim, Allocator, Copier, Assigner>& other)
 {
     this->dataPointer = other.dataPointer;
     this->refCount = other.refCount;
@@ -122,17 +122,17 @@ CartBuffer<Type, _dim, Allocator, Copier, Assigner>::CartBuffer
 
 #define COMMA ,
 
-template<typename Type, int _dim, typename Allocator, typename Copier, typename Assigner>
-CartBuffer<Type, _dim, Allocator, Copier, Assigner>::CartBuffer
-(BOOST_RV_REF(CartBuffer<Type COMMA dim COMMA Allocator COMMA Copier COMMA Assigner>) other)
+template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
+(BOOST_RV_REF(CartBuffer<Type COMMA T_dim COMMA Allocator COMMA Copier COMMA Assigner>) other)
 {
     this->dataPointer = 0;
     this->refCount = 0;
     *this = other;
 }
 
-template<typename Type, int _dim, typename Allocator, typename Copier, typename Assigner>
-void CartBuffer<Type, _dim, Allocator, Copier, Assigner>::init()
+template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+void CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::init()
 {
     typename Allocator::Cursor cursor = Allocator::allocate(this->_size);
     this->dataPointer = cursor.getMarker();
@@ -140,17 +140,17 @@ void CartBuffer<Type, _dim, Allocator, Copier, Assigner>::init()
     this->refCount = new int;
 #endif
     *this->refCount = 1;
-    this->pitch = detail::PitchHelper<_dim>()(cursor);
+    this->pitch = detail::PitchHelper<T_dim>()(cursor);
 }
 
-template<typename Type, int _dim, typename Allocator, typename Copier, typename Assigner>
-CartBuffer<Type, _dim, Allocator, Copier, Assigner>::~CartBuffer()
+template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::~CartBuffer()
 {
     exit();
 }
 
-template<typename Type, int _dim, typename Allocator, typename Copier, typename Assigner>
-void CartBuffer<Type, _dim, Allocator, Copier, Assigner>::exit()
+template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+void CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::exit()
 {
     if(!this->refCount) return;
     (*(this->refCount))--;
@@ -164,20 +164,20 @@ void CartBuffer<Type, _dim, Allocator, Copier, Assigner>::exit()
 #endif
 }
 
-template<typename Type, int _dim, typename Allocator, typename Copier, typename Assigner>
-CartBuffer<Type, _dim, Allocator, Copier, Assigner>&
-CartBuffer<Type, _dim, Allocator, Copier, Assigner>::operator=
-(const CartBuffer<Type, _dim, Allocator, Copier, Assigner>& rhs)
+template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+CartBuffer<Type, T_dim, Allocator, Copier, Assigner>&
+CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::operator=
+(const CartBuffer<Type, T_dim, Allocator, Copier, Assigner>& rhs)
 {
     if(this->dataPointer == rhs.dataPointer) return *this;
     Copier::copy(this->dataPointer, this->pitch, rhs.dataPointer, rhs.pitch, rhs._size);
     return *this;
 }
 
-template<typename Type, int _dim, typename Allocator, typename Copier, typename Assigner>
-CartBuffer<Type, _dim, Allocator, Copier, Assigner>&
-CartBuffer<Type, _dim, Allocator, Copier, Assigner>::operator=
-(BOOST_RV_REF(CartBuffer<Type COMMA _dim COMMA Allocator COMMA Copier COMMA Assigner>) rhs)
+template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+CartBuffer<Type, T_dim, Allocator, Copier, Assigner>&
+CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::operator=
+(BOOST_RV_REF(CartBuffer<Type COMMA T_dim COMMA Allocator COMMA Copier COMMA Assigner>) rhs)
 {
     if(this->dataPointer == rhs.dataPointer) return *this;
 
@@ -192,49 +192,49 @@ CartBuffer<Type, _dim, Allocator, Copier, Assigner>::operator=
 
 #undef COMMA
 
-template<typename Type, int _dim, typename Allocator, typename Copier, typename Assigner>
-View<CartBuffer<Type, _dim, Allocator, Copier, Assigner> >
-CartBuffer<Type, _dim, Allocator, Copier, Assigner>::view
-(math::Int<_dim> a, math::Int<_dim> b) const
+template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+View<CartBuffer<Type, T_dim, Allocator, Copier, Assigner> >
+CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::view
+(math::Int<T_dim> a, math::Int<T_dim> b) const
 {
-    a = (a + (math::Int<_dim>)this->size()) % (math::Int<_dim>)this->size();
-    b = (b + (math::Int<_dim>)this->size())
-            % ((math::Int<_dim>)this->size() + math::Int<_dim>(1));
+    a = (a + (math::Int<T_dim>)this->size()) % (math::Int<T_dim>)this->size();
+    b = (b + (math::Int<T_dim>)this->size())
+            % ((math::Int<T_dim>)this->size() + math::Int<T_dim>(1));
 
-    View<CartBuffer<Type, _dim, Allocator, Copier, Assigner> > result;
+    View<CartBuffer<Type, T_dim, Allocator, Copier, Assigner> > result;
 
     result.dataPointer = &(*origin()(a));
-    result._size = (math::Size_t<_dim>)(b - a);
+    result._size = (math::Size_t<T_dim>)(b - a);
     result.pitch = this->pitch;
     result.refCount = this->refCount;
     return result;
 }
 
-template<typename Type, int _dim, typename Allocator, typename Copier, typename Assigner>
-void CartBuffer<Type, _dim, Allocator, Copier, Assigner>::assign(const Type& value)
+template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+void CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::assign(const Type& value)
 {
     Assigner::assign(this->dataPointer, this->pitch, value, this->_size);
 }
 
-template<typename Type, int _dim, typename Allocator, typename Copier, typename Assigner>
-cursor::BufferCursor<Type, _dim> CartBuffer<Type, _dim, Allocator, Copier, Assigner>::origin() const
+template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+cursor::BufferCursor<Type, T_dim> CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::origin() const
 {
     detail::notifyEventSystem<typename Allocator::tag>();
-    return cursor::BufferCursor<Type, _dim>(this->dataPointer, this->pitch);
+    return cursor::BufferCursor<Type, T_dim>(this->dataPointer, this->pitch);
 }
 
-template<typename Type, int _dim, typename Allocator, typename Copier, typename Assigner>
-cursor::SafeCursor<cursor::BufferCursor<Type, _dim> >
-CartBuffer<Type, _dim, Allocator, Copier, Assigner>::originSafe() const
+template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+cursor::SafeCursor<cursor::BufferCursor<Type, T_dim> >
+CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::originSafe() const
 {
     return cursor::make_SafeCursor(this->origin(),
-                                   math::Int<_dim>(0),
-                                   math::Int<_dim>(size()));
+                                   math::Int<T_dim>(0),
+                                   math::Int<T_dim>(size()));
 }
 
-template<typename Type, int _dim, typename Allocator, typename Copier, typename Assigner>
-cursor::Cursor<cursor::PointerAccessor<Type>, cursor::CartNavigator<_dim>, char*>
-CartBuffer<Type, _dim, Allocator, Copier, Assigner>::originCustomAxes(const math::UInt<_dim>& axes) const
+template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+cursor::Cursor<cursor::PointerAccessor<Type>, cursor::CartNavigator<T_dim>, char*>
+CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::originCustomAxes(const math::UInt32<T_dim>& axes) const
 {
     math::Size_t<dim> factor;
     factor[0] = sizeof(Type);
@@ -252,12 +252,12 @@ CartBuffer<Type, _dim, Allocator, Copier, Assigner>::originCustomAxes(const math
             (cursor::PointerAccessor<Type>(), navi, (char*)this->dataPointer);
 }
 
-template<typename Type, int _dim, typename Allocator, typename Copier, typename Assigner>
-zone::SphericZone<_dim>
-CartBuffer<Type, _dim, Allocator, Copier, Assigner>::zone() const
+template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+zone::SphericZone<T_dim>
+CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::zone() const
 {
-    zone::SphericZone<_dim> myZone;
-    myZone.offset = math::Int<_dim>(0);
+    zone::SphericZone<T_dim> myZone;
+    myZone.offset = math::Int<T_dim>(0);
     myZone.size = this->_size;
     return myZone;
 }

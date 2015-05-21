@@ -1,6 +1,133 @@
 Change Log / Release Log for PIConGPU
 ================================================================
 
+0.1.0
+-----
+**Date:** 2015-05-21
+
+This is version `0.1.0` of PIConGPU, a *pre-beta* version.
+
+Initial field ionization support was added, including the first model for BSI.
+The code-base was substantially hardened, fixing several minor and major
+issues. Especially, several restart related issues, an issue with 2D3V zigzack
+current calculation and a memory issue with Jetson TK1 boards were fixed.
+A work-around for a critical CUDA 6.5 compiler bug was applied to all affected
+parts of the code.
+
+### Changes to "Open Beta RC6"
+
+**.param file changes:**
+ See full syntax for each file at
+ https://github.com/ComputationalRadiationPhysics/picongpu/tree/0.1.0/src/picongpu/include/simulation_defines/param
+ - `componentsConfig.param` & `gasConfig.param` fix typo `gasHomogeneous` #577
+ - `physicalConstants.param`: new variable `GAMMA_THRESH` #669
+ - `speciesAttributes.param`: new identifier `boundElectrons` and
+   new aliases `ionizer`, `atomicNumbers`
+ - `ionizationEnergies.param`, `ionizerConfig.param`: added
+
+**.unitless file changes:**
+ See full syntax for each file at
+ https://github.com/ComputationalRadiationPhysics/picongpu/tree/0.1.0/src/picongpu/include/simulation_defines/unitless
+ - `gasConfig.unitless`: typo in `gasHomogeneous` #577
+ - `speciesAttributes.unitless`: new unit for `boundElectrons` identifier
+ - `speciesDefinition.unitless`: new traits `GetCharge`, `GetMass`,
+   `GetChargeState` and added `ionizers`
+ - `ionizerConfig.unitless`: added
+
+**New Features:**
+ - initial support for field ionization:
+   - basic framework and BSI #595
+   - attribute (constant flag) for proton and neutron number #687 #731
+   - attribute `boundElectrons` #706
+ - tools:
+   - python scripts:
+     - new reader for `SliceFieldPrinter` plugin #578
+     - new analyzer tool for numerical heating #672 #692
+   - `cuda_memtest`:
+     - 32bit host system support (Jetson TK1) #583
+     - works without `nvidia-smi`, `grep` or `gawk` - optional with NVML for
+       GPU serial number detection (Jetson TK1) #626
+   - `splash2txt`:
+     - removed build option `S2T_RELEASE` and uses `CMAKE_BUILD_TYPE` #591
+   - `tbg`:
+     - allows for defaults for `-s`, `-t`, `-c` via env vars #613 #622
+   - 3D live visualization: `server` tool that collects `clients` and
+     simulations was published #641
+ - new/updated particle traits and attributes:
+   - `getCharge`, `getMass` #596
+   - attributes are now automatically initialized to their generic
+     defaults #607 #615
+ - libPMacc:
+   - machine-dependent `UInt` vector class is now split in explicit
+     `UInt32` and `UInt64` classes #665
+   - nvidia random number generators (RNG) refactored #711
+ - plugins:
+   - background fields do now affect plugins/outputs #600
+   - `Radiation` uses/requires HDF5 output #419 #610 #628 #646 #716
+   - `SliceFieldPrinter` supports `FieldJ`, output in one file,
+     updated command-line syntax #548
+   - `CountParticles`, `EnergyFields`, `EnergyParticles` support restarts
+     without overwriting their previous output #636 #703
+
+**Bug Fixes:**
+ - CUDA 6.5: `int(bool)` casts were broken (affects plugins
+   `BinEnergyParticles`, `PhaseSpace` and might had an effect on methods of the
+   basic PIC cycle) #570 #651 #656 #657 #678 #680
+ - the ZigZag current solver was broken for 2D3V if non-zero
+   momentum-components in z direction were used (e.g. warm plasmas or
+   purely transversal KHI) #823
+ - host-device-shared memory (SoC) support was broken (Jetson TK1) #633
+ - boost 1.56.0+ support via `Resolve<T>` trait #588 #593 #594
+ - potential race condition in field update and pusher #604
+ - using `--gridDist` could cause a segfault when adding additional arguments,
+   e.g., in 2D3V setups #638
+ - `MessageHeader` (used in `png` and 2D live visualization) leaked memory #683
+ - restarts with HDF5:
+   - static load-balancing via `--gridDist` in y-direction was broken #639
+   - parallel setups with particle-empty GPUs hung with HDF5 #609 #611 #642
+   - 2D3V field reads were broken (each field's z-component was not initialized
+     with the checkpointed values again, e.g., `B_z`) #688 #689
+   - loading more than 4 billion global particles was potentially broken #721
+ - plugins:
+   - `Visualization` (png & 2D live sim) memory bug in double precision runs #621
+   - `ADIOS`
+     - storing more than 4 billion particles was broken #666
+     - default of `adios.aggregators` was broken (now = MPI_Size) #662
+     - parallel setups with particle-empty GPUs did hang #661
+   - `HDF5`/`ADIOS` output of grid-mapped particle energy for non-relativistic
+     particles was zero #669
+ - libPMacc:
+   - CMake: path detection could fail #796 #808
+   - `DeviceBuffer<*,DIM3>::getPointer()` was broken (does not affect
+     PIConGPU) #647
+   - empty super-cell memory foot print reduced #648
+   - `float2int` return type should be int #623
+   - CUDA 7:
+     - cuSTL prefixed templates with `_` are not allowed; usage of static dim
+       member #630
+     - explicit call to `template`-ed `operator()` to avoid waring #750
+     - `EnvironmentController` caused a warning about `extendend friend syntax` #644
+   - multi-GPU nodes might fail to start up when not using `default` compute
+     mode with CUDA 7 drivers #643
+
+**Misc:**
+ - HDF5 support requires libSplash 1.2.4+ #642 #715
+ - various code clean-up for MSVC #563 #564 #566 #624 #625
+ - plugins:
+   - removed `LineSliceFields` #590
+   - `png` plugin write speedup ~2.3x by increasing file size about 12% #698
+ - updated contribution guidelines, install, cfg examples #601 #598 #617 #620
+   #673 #700 #714
+ - updated module examples and cfg files for:
+   - lawrencium (LBL) #612
+   - titan (ORNL) #618
+   - hypnos (HZDR) #670
+ - an `Empty` example was added, which defaults to the setup given by
+   all `.param` files in default mode (a standard PIC cycle without lasers nor
+   particles), see `src/picongpu/include/simulation_defines/` #634
+ - some source files had wrong file permissions #668
+
+
 Open Beta RC6
 -------------
 **Date:** 2014-11-25

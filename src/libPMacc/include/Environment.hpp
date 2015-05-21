@@ -38,160 +38,173 @@
 namespace PMacc
 {
 
-    /**
-     * Global Environment singleton for Picongpu
-     */
+/**
+ * Global Environment singleton for Picongpu
+ */
 
-    template <unsigned DIM = DIM1>
-    class Environment
+template <unsigned DIM = DIM1>
+class Environment
+{
+public:
+
+    PMacc::GridController<DIM>& GridController()
     {
-    public:
+        return PMacc::GridController<DIM>::getInstance();
+    }
 
-        PMacc::GridController<DIM>& GridController()
+    StreamController& StreamController()
+    {
+        return StreamController::getInstance();
+    }
+
+    Manager& Manager()
+    {
+        return Manager::getInstance();
+    }
+
+    TransactionManager& TransactionManager() const
+    {
+        return TransactionManager::getInstance();
+    }
+
+    PMacc::SubGrid<DIM>& SubGrid()
+    {
+        return PMacc::SubGrid<DIM>::getInstance();
+    }
+
+    EnvironmentController& EnvironmentController()
+    {
+        return EnvironmentController::getInstance();
+    }
+
+    Factory& Factory()
+    {
+        return Factory::getInstance();
+    }
+
+    ParticleFactory& ParticleFactory()
+    {
+        return ParticleFactory::getInstance();
+    }
+
+    DataConnector& DataConnector()
+    {
+        return DataConnector::getInstance();
+    }
+
+    PluginConnector& PluginConnector()
+    {
+        return PluginConnector::getInstance();
+    }
+
+    nvidia::memory::MemoryInfo& EnvMemoryInfo()
+    {
+        return nvidia::memory::MemoryInfo::getInstance();
+    }
+
+    PMacc::Filesystem<DIM>& Filesystem()
+    {
+        return PMacc::Filesystem<DIM>::getInstance();
+    }
+
+    static Environment<DIM>& get()
+    {
+        static Environment<DIM> instance;
+        return instance;
+    }
+
+    void initDevices(DataSpace<DIM> devices, DataSpace<DIM> periodic)
+    {
+        PMacc::GridController<DIM>::getInstance().init(devices, periodic);
+
+        PMacc::Filesystem<DIM>::getInstance();
+
+        setDevice((int) (PMacc::GridController<DIM>::getInstance().getHostRank()));
+
+        StreamController::getInstance().activate();
+
+        TransactionManager::getInstance();
+
+    }
+
+    void initGrids(DataSpace<DIM> gridSizeGlobal, DataSpace<DIM> gridSizeLocal, DataSpace<DIM> gridOffset)
+    {
+        PMacc::SubGrid<DIM>::getInstance().init(gridSizeLocal, gridSizeGlobal, gridOffset);
+
+        EnvironmentController::getInstance();
+
+        DataConnector::getInstance();
+
+        PluginConnector::getInstance();
+
+        nvidia::memory::MemoryInfo::getInstance();
+
+    }
+
+    void finalize()
+    {
+    }
+
+private:
+
+    Environment()
+    {
+    }
+
+    Environment(const Environment&);
+
+    Environment& operator=(const Environment&);
+
+    void setDevice(int deviceNumber)
+    {
+        int num_gpus = 0; //number of gpus
+        cudaGetDeviceCount(&num_gpus);
+        //##ERROR handling
+        if (num_gpus < 1) //check if cuda device is found
         {
-            return PMacc::GridController<DIM>::getInstance();
+            throw std::runtime_error("no CUDA capable devices detected");
+        }
+        else if (num_gpus < deviceNumber) //check if device can be selected by deviceNumber
+        {
+            std::cerr << "no CUDA device " << deviceNumber << ", only " << num_gpus << " devices found" << std::endl;
+            throw std::runtime_error("CUDA capable devices can't be selected");
         }
 
-        StreamController& StreamController()
+
+        int maxTries = num_gpus;
+
+        cudaDeviceProp devProp;
+        cudaError rc;
+        CUDA_CHECK(cudaGetDeviceProperties(&devProp, deviceNumber));
+
+        /* if the gpu compute mode is set to default we use the given `deviceNumber` */
+        if (devProp.computeMode == cudaComputeModeDefault)
+            maxTries = 1;
+
+        for (int deviceOffset = 0; deviceOffset < maxTries; ++deviceOffset)
         {
-            return StreamController::getInstance();
-        }
-
-        Manager& Manager()
-        {
-            return Manager::getInstance();
-        }
-
-        TransactionManager& TransactionManager() const
-        {
-            return TransactionManager::getInstance();
-        }
-
-        PMacc::SubGrid<DIM>& SubGrid()
-        {
-            return PMacc::SubGrid<DIM>::getInstance();
-        }
-
-        EnvironmentController& EnvironmentController()
-        {
-            return EnvironmentController::getInstance();
-        }
-
-        Factory& Factory()
-        {
-            return Factory::getInstance();
-        }
-
-        ParticleFactory& ParticleFactory()
-        {
-            return ParticleFactory::getInstance();
-        }
-
-        DataConnector& DataConnector()
-        {
-            return DataConnector::getInstance();
-        }
-
-        PluginConnector& PluginConnector()
-        {
-            return PluginConnector::getInstance();
-        }
-
-        nvidia::memory::MemoryInfo& EnvMemoryInfo()
-        {
-            return nvidia::memory::MemoryInfo::getInstance();
-        }
-
-        PMacc::Filesystem<DIM>& Filesystem()
-        {
-            return PMacc::Filesystem<DIM>::getInstance();
-        }
-
-        static Environment<DIM>& get()
-        {
-            static Environment<DIM> instance;
-            return instance;
-        }
-
-        void initDevices(DataSpace<DIM> devices, DataSpace<DIM> periodic)
-        {
-            PMacc::GridController<DIM>::getInstance().init(devices, periodic);
-
-            PMacc::Filesystem<DIM>::getInstance();
-
-            setDevice((int) (PMacc::GridController<DIM>::getInstance().getHostRank()));
-
-            StreamController::getInstance().activate();
-
-            TransactionManager::getInstance();
-
-        }
-
-        void initGrids(DataSpace<DIM> gridSizeGlobal, DataSpace<DIM> gridSizeLocal, DataSpace<DIM> gridOffset)
-        {
-            PMacc::SubGrid<DIM>::getInstance().init(gridSizeLocal, gridSizeGlobal, gridOffset);
-
-            EnvironmentController::getInstance();
-
-            DataConnector::getInstance();
-
-            PluginConnector::getInstance();
-
-            nvidia::memory::MemoryInfo::getInstance();
-
-        }
-
-        void finalize()
-        {
-        }
-
-    private:
-
-        Environment()
-        {
-        }
-
-        Environment(const Environment&);
-
-        Environment& operator=(const Environment&);
-
-        void setDevice(int deviceNumber)
-        {
-            int num_gpus = 0; //number of gpus
-            cudaGetDeviceCount(&num_gpus);
-            //##ERROR handling
-            if (num_gpus < 1) //check if cuda device is found
+            const int tryDeviceId = (deviceOffset + deviceNumber) % num_gpus;
+            rc = cudaSetDevice(tryDeviceId);
+            if (rc == cudaSuccess)
             {
-                throw std::runtime_error("no CUDA capable devices detected");
+                cudaDeviceProp dprop;
+                cudaGetDeviceProperties(&dprop, deviceNumber);
+                log<ggLog::CUDA_RT > ("Set device to %1%: %2%") % tryDeviceId % dprop.name;
+                CUDA_CHECK(cudaSetDeviceFlags(cudaDeviceScheduleSpin));
+                break;
             }
-            else if (num_gpus < deviceNumber) //check if device can be selected by deviceNumber
+            else if (rc == cudaErrorDeviceAlreadyInUse)
             {
-                std::cerr << "no CUDA device " << deviceNumber << ", only " << num_gpus << " devices found" << std::endl;
-                throw std::runtime_error("CUDA capable devices can't be selected");
-            }
-
-            cudaDeviceProp devProp;
-            cudaError rc;
-            CUDA_CHECK(cudaGetDeviceProperties(&devProp, deviceNumber));
-            if (devProp.computeMode == cudaComputeModeDefault)
-            {
-                CUDA_CHECK(rc = cudaSetDevice(deviceNumber));
-                if (cudaSuccess == rc)
-                {
-                    cudaDeviceProp dprop;
-                    cudaGetDeviceProperties(&dprop, deviceNumber);
-                    log<ggLog::CUDA_RT > ("Set device to %1%: %2%") % deviceNumber % dprop.name;
-                }
+                log<ggLog::CUDA_RT > ("Device %1% already in use, try next.") % tryDeviceId;
+                continue;
             }
             else
             {
-                //gpu mode is cudaComputeModeExclusiveProcess and a free device is automatically selected
-                log<ggLog::CUDA_RT > ("Device is selected by CUDA automatically (since cudaComputeModeDefault is not set).");
+                CUDA_CHECK(rc); /*error message*/
             }
-            CUDA_CHECK(cudaSetDeviceFlags(cudaDeviceScheduleSpin));
         }
-
-    };
+    }
+};
 
 #define __startTransaction(...) (Environment<>::get().TransactionManager().startTransaction(__VA_ARGS__))
 #define __startAtomicTransaction(...) (Environment<>::get().TransactionManager().startAtomicTransaction(__VA_ARGS__))

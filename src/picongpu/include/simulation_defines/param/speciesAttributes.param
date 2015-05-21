@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Rene Widera
+ * Copyright 2014 Rene Widera, Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -55,6 +55,16 @@ value_identifier(float_X, weighting, 0.0);
 /** use this particle for radiation diagnostics */
 value_identifier(bool, radiationFlag, false);
 
+/** number of electrons bound to the atom / ion
+ *
+ * value type is float_X to avoid casts during the runtime
+ * - float is also reasonable because effective charge numbers are possible
+ * - only reasonable for ion species if ionization is enabled 
+ * 
+ * \todo connect default to proton number
+ */
+value_identifier(float_X,boundElectrons,float_X(0.0));
+
 /** specialization global position inside a domain (relative to origin of the
  * moving window) and is loaded after all other param files)
  */
@@ -66,11 +76,18 @@ alias(shape);
 /*! alias for particle pusher @see species.param */
 alias(particlePusher);
 
+/*! alias for particle ionizer @see speciesDefinition.param */
+alias(ionizer);
+
 /*! alias for particle to field interpolation @see species.param */
 alias(interpolation);
 
 /*! alias for particle current solver @see species.param */
 alias(current);
+
+/*! alias for particle flag: atomic numbers @see speciesDefinition.param
+ * - only reasonable for atoms / ions / nuclei */
+alias(atomicNumbers);
 
 template<uint32_t T_commTag>
 struct CommunicationId

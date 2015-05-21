@@ -42,7 +42,16 @@
 #define __MEMTEST_H_
 
 #include <stdio.h>
+#include <stdint.h>
 #include <pthread.h>
+#include <iostream>
+#include <stdexcept>
+
+#include <cuda.h>
+#include <cublas.h>
+#if (ENABLE_NVML==1)
+#include <nvml.h>
+#endif
 
 #define VERSION "1.2.3"
 
@@ -129,6 +138,19 @@ extern void get_driver_info(char* info, unsigned int len);
             PRINTF("ERROR: CUDA error: %s, line %d, file %s\n", cudaGetErrorString(cuda_err),  __LINE__, __FILE__); \
             exit(cuda_err);}}while(0)
 
+#if (ENABLE_NVML==1)
+/**
+ * Captures NVML errors and prints messages to stdout, including line number and file.
+ *
+ * @param cmd command with nvmlReturn_t return value to check
+ */
+#define NVML_CHECK(cmd) {nvmlReturn_t returnVal = cmd; if(returnVal!=NVML_SUCCESS){std::cerr<<"<"<<__FILE__<<">:"<<__LINE__<<std::endl; throw std::runtime_error(std::string("[NVML] Error: ") + std::string(nvmlErrorString(returnVal)));}}
+
+#define NVML_CHECK_MSG(cmd,msg) {nvmlReturn_t returnVal = cmd; if(returnVal!=NVML_SUCCESS){std::cerr<<"<"<<__FILE__<<">:"<<__LINE__<<msg<<std::endl; throw std::runtime_error(std::string("[NVML] Error: ") + std::string(nvmlErrorString(returnVal)));}}
+
+#define NVML_CHECK_NO_EXCEP(cmd) {nvmlReturn_t returnVal = cmd; if(returnVal!=NVML_SUCCESS){std::cerr<<"[NVML] Error: <"<<__FILE__<<">:"<<__LINE__<<std::endl;}}
+#endif
+
 #define TDIFF(tb, ta) (tb.tv_sec - ta.tv_sec + 0.000001*(tb.tv_usec - ta.tv_usec))
 #define DIM(x) (sizeof(x)/sizeof(x[0]))
 #define MIN(x,y) (x < y? x: y)
@@ -143,7 +165,5 @@ typedef struct cuda_memtest_s{
     char* desc;
     unsigned int enabled;
 }cuda_memtest_t;
-
-
 
 #endif

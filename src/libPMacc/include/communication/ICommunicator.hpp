@@ -52,7 +52,7 @@ public:
      * @param[in] numSlides number of slides
      * @return true if the position of gpu is switched to the end, else false
      */
-    virtual bool setNumSlides(size_t numSlides) = 0;
+    virtual bool setStateAfterSlides(size_t numSlides) = 0;
 
     //!\todo Interface should not depend on MPI!
 

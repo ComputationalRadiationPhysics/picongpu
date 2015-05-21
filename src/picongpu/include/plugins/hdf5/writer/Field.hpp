@@ -60,8 +60,8 @@ struct Field
         std::vector<std::string> name_lookup;
         {
             const std::string name_lookup_tpl[] = {"x", "y", "z", "w"};
-            for (uint32_t d = 0; d < nComponents; d++)
-                name_lookup.push_back(name_lookup_tpl[d]);
+            for (uint32_t n = 0; n < nComponents; n++)
+                name_lookup.push_back(name_lookup_tpl[n]);
         }
 
         /*data to describe source buffer*/
@@ -99,33 +99,33 @@ struct Field
         typedef DataBoxDim1Access<NativeDataBoxType > D1Box;
         D1Box d1Access(dataBox.shift(field_guard), field_no_guard);
 
-        for (uint32_t d = 0; d < nComponents; d++)
+        for (uint32_t n = 0; n < nComponents; n++)
         {
             /* copy data to temp array
              * tmpArray has the size of the data without any offsets
              */
             for (size_t i = 0; i < tmpArraySize; ++i)
             {
-                tmpArray[i] = d1Access[i][d];
+                tmpArray[i] = d1Access[i][n];
             }
 
             std::stringstream datasetName;
             datasetName << "fields/" << name;
             if (nComponents > 1)
-                datasetName << "/" << name_lookup.at(d);
+                datasetName << "/" << name_lookup.at(n);
 
             Dimensions sizeSrcData(1, 1, 1);
 
-            for (uint32_t i = 0; i < simDim; ++i)
+            for (uint32_t d = 0; d < simDim; ++d)
             {
-                sizeSrcData[i] = field_no_guard[i];
+                sizeSrcData[d] = field_no_guard[d];
             }
 
             params->dataCollector->writeDomain(params->currentStep,             /* id == time step */
                                                splashGlobalDomainSize,          /* total size of dataset over all processes */
                                                splashGlobalOffsetFile,          /* write offset for this process */
                                                splashType,                      /* data type */
-                                               simDim,                          /* NDims of the field data (scalar, vector, ...) */
+                                               simDim,                          /* NDims spatial dimensionality of the field */
                                                splash::Selection(sizeSrcData),  /* data size of this process */
                                                datasetName.str().c_str(),       /* data set name */
                                                splash::Domain(
@@ -140,7 +140,7 @@ struct Field
 
             params->dataCollector->writeAttribute(params->currentStep,
                                                   ctDouble, datasetName.str().c_str(),
-                                                  "sim_unit", &(unit.at(d)));
+                                                  "sim_unit", &(unit.at(n)));
         }
         __deleteArray(tmpArray);
     }

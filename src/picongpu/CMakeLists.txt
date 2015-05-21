@@ -243,11 +243,6 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}" CACHE PATH "install prefix" FORCE)
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) 
 
-# boost >= 1.56.0 is currently broken
-if(Boost_VERSION GREATER 105599)
-    message(FATAL_ERROR "Boost 1.56.0+ is currently not supported.")
-endif()
-
 # work-arounds
 if( (Boost_VERSION EQUAL 105500) AND
     (CUDA_VERSION VERSION_LESS 6.5) )
@@ -382,11 +377,7 @@ endif()
 
 # libPMacc
 
-find_path(PMACC_ROOT_DIR
-  NAMES include/types.h
-  PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../libPMacc"
-  DOC "libPMacc root location"
-  )
+set(PMACC_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../libPMacc")
 include_directories(${PMACC_ROOT_DIR}/include)
 
 
@@ -397,7 +388,7 @@ include_directories(${PMACC_ROOT_DIR}/include)
 # find libSplash installation
 # prefer static libraries over shared ones (but do not force them)
 set(Splash_USE_STATIC_LIBS ON)
-find_package(Splash 1.2.3 COMPONENTS PARALLEL)
+find_package(Splash 1.2.4 COMPONENTS PARALLEL)
 
 if(Splash_FOUND)
     include_directories(SYSTEM ${Splash_INCLUDE_DIRS})

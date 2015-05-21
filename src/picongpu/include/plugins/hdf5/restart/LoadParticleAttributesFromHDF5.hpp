@@ -29,6 +29,7 @@
 #include "traits/PICToSplash.hpp"
 #include "traits/GetComponentsType.hpp"
 #include "traits/GetNComponents.hpp"
+#include "traits/Resolve.hpp"
 
 
 namespace picongpu
@@ -61,12 +62,12 @@ struct LoadParticleAttributesFromHDF5
                             ThreadParams* params,
                             FrameType& frame,
                             const std::string subGroup,
-                            const size_t particlesOffset,
-                            const size_t elements)
+                            const uint64_t particlesOffset,
+                            const uint64_t elements)
     {
 
         typedef T_Identifier Identifier;
-        typedef typename Identifier::type ValueType;
+        typedef typename PMacc::traits::Resolve<Identifier>::type::type ValueType;
         const uint32_t components = GetNComponents<ValueType>::value;
         typedef typename GetComponentsType<ValueType>::type ComponentType;
         typedef typename PICToSplash<ComponentType>::type SplashType;
@@ -75,7 +76,9 @@ struct LoadParticleAttributesFromHDF5
 
         const std::string name_lookup[] = {"x", "y", "z"};
 
-        ComponentType* tmpArray = new ComponentType[elements];
+        ComponentType* tmpArray = NULL;
+        if( elements > 0 )
+            tmpArray = new ComponentType[elements];
 
         ParallelDomainCollector* dataCollector = params->dataCollector;
         for (uint32_t d = 0; d < components; d++)

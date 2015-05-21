@@ -22,7 +22,7 @@
 
 
 #ifndef TRANSACTION_HPP
-#define	TRANSACTION_HPP
+#define    TRANSACTION_HPP
 
 #include "eventSystem/EventSystem.hpp"
 
@@ -85,5 +85,5 @@ private:
 }
 
 
-#endif	/* TRANSACTION_HPP */
+#endif    /* TRANSACTION_HPP */
 

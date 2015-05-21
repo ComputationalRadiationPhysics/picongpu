@@ -46,7 +46,7 @@ namespace host
 #define FOREACH_HOST_MAX_PARAMS 4
 #endif
 
-#define SHIFT_CURSOR_ZONE(Z, N, _) C ## N c ## N ## _shifted = c ## N (_zone.offset);
+#define SHIFT_CURSOR_ZONE(Z, N, _) C ## N c ## N ## _shifted = c ## N (p_zone.offset);
 #define SHIFTACCESS_SHIFTEDCURSOR(Z, N, _) forward(c ## N ## _shifted [cellIndex])
 
 namespace detail
@@ -59,45 +59,45 @@ namespace detail
     struct GetRange<3u>
     {
         template<typename Zone>
-        const math::Int<3u> operator()(const Zone _zone) const
+        const math::Int<3u> operator()(const Zone p_zone) const
         {
-            return math::Int<3u>(_zone.size.x(), _zone.size.y(), _zone.size.z());
+            return math::Int<3u>(p_zone.size.x(), p_zone.size.y(), p_zone.size.z());
         }
     };
     template<>
     struct GetRange<2u>
     {
         template<typename Zone>
-        const math::Int<3u> operator()(const Zone _zone) const
+        const math::Int<3u> operator()(const Zone p_zone) const
         {
-            return math::Int<3u>(_zone.size.x(), _zone.size.y(), 1);
+            return math::Int<3u>(p_zone.size.x(), p_zone.size.y(), 1);
         }
     };
     template<>
     struct GetRange<1u>
     {
         template<typename Zone>
-        const math::Int<3u> operator()(const Zone _zone) const
+        const math::Int<3u> operator()(const Zone p_zone) const
         {
-            return math::Int<3u>(_zone.size.x(), 1, 1);
+            return math::Int<3u>(p_zone.size.x(), 1, 1);
         }
     };
 } // namespace detail
 
 #define FOREACH_OPERATOR(Z, N, _)                                              \
     template<typename Zone, BOOST_PP_ENUM_PARAMS(N, typename C), typename Functor> \
-    void operator()(const Zone& _zone, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), const Functor& functor) \
+    void operator()(const Zone& p_zone, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), const Functor& functor) \
     {                                                                          \
         BOOST_PP_REPEAT(N, SHIFT_CURSOR_ZONE, _)                               \
                                                                                \
         typename lambda::result_of::make_Functor<Functor>::type fun            \
             = lambda::make_Functor(functor);                                   \
         detail::GetRange<Zone::dim> getRange;                                  \
-        for(int z = 0; z < getRange(_zone).z(); z++)                           \
+        for(int z = 0; z < getRange(p_zone).z(); z++)                           \
         {                                                                      \
-            for(int y = 0; y < getRange(_zone).y(); y++)                       \
+            for(int y = 0; y < getRange(p_zone).y(); y++)                       \
             {                                                                  \
-                for(int x = 0; x < getRange(_zone).x(); x++)                   \
+                for(int x = 0; x < getRange(p_zone).x(); x++)                   \
                 {                                                              \
                     math::Int<Zone::dim> cellIndex =                           \
                         math::Int<3u>(x, y, z).shrink<Zone::dim>();            \

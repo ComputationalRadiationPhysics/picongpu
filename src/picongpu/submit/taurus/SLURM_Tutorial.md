@@ -4,8 +4,9 @@ SLURM examples
 - `tbg -s sbatch -c submit/0008gpus.cfg -t submit/taurus/k20x_profile.tpl $SCRATCH/runs/test123`
 
 - interactive job:
-  - `salloc --time=1:00:00 --gres=gpu:2 --nodes=1 --ntasks-per-node=2 --cpus-per-task=8 --partition gpu-interactive`
+  - `salloc --time=1:00:00 --nodes=1 --ntasks-per-node=2 --cpus-per-task=8 --partition gpu-interactive`
   - e.g. `srun "hostname"`
+  - e.g. some clusters need additional flags, e.g. taurus `--gres=gpu:2`
 
 - details for my jobs:
   - `scontrol -d show job 12345`
@@ -15,6 +16,7 @@ SLURM examples
   - `squeue -p queueName -l` (list full queue)
   - `squeue -p queueName --start` (show start times for pending jobs)
   - `squeue -p queueName -l -t R` (only show running jobs in queue)
+  - `sinfo -p queueName` (show online/offline nodes in queue)
   - `sview` (alternative on taurus: `module load llview` and `llview`)
   - `scontrol show partition queueName`
 

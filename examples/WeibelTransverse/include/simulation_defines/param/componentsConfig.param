@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Anton Helm, Rene Widera
+ * Copyright 2013-2014 Axel Huebl, Anton Helm, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -34,35 +34,35 @@ namespace picongpu
      *  - laserGaussianBeam     : Gaussian beam (focusing)
      *  - laserPulseFrontTilt   : Gaussian beam with a tilted pulse envelope
      *                            in 'x' direction
-     *  - laserWavepacket       : wavepacket (gaussian in time and space, not focusing)
+     *  - laserWavepacket       : wavepacket (Gaussian in time and space, not focusing)
      *  - laserPlaneWave        : a plane wave
      */
     namespace laserProfile = laserNone;
 
     /*! Field Configuration --------------------------------------------------
      *  - fieldSolverYee : standard Yee solver
-     *  - fieldSolverLehe: Num. Cherenkov free field solver in a choosen direction
+     *  - fieldSolverLehe: Num. Cherenkov free field solver in a chosen direction
      *  - fieldSolverDirSplitting: Sentoku's Directional Splitting Method
      *  - fieldSolverNone: disable the vacuum update of E and B
      *
      * * For development purposes: ---------------------------------------------
      *  - fieldSolverYeeNative : generic version of fieldSolverYee
-     *    (need more shared memory per gpu and is slow)
+     *    (need more shared memory per GPU and is slow)
      */
     namespace fieldSolver = fieldSolverYee;
 
     /*! Gas Configuration-----------------------------------------------------
      * Select a normed gas density profile
-     *  - gasGaussian : super - gaussian density profile
-     *  - gasGaussianCloud : super - gaussian density profile with a center position
+     *  - gasGaussian : super - Gaussian density profile
+     *  - gasGaussianCloud : super - Gaussian density profile with a center position
      *  - gasLinExp : piecewise linear-exponential profile (linear first)
-     *  - gasHomogenous : constant gas density with a certain length
-     *  - gasSphereFlanks : constant sphere droplet with exponential decr envelope
+     *  - gasHomogeneous : constant gas density with a certain length
+     *  - gasSphereFlanks : constant sphere droplet with exponentially decreasing envelope
      *  - gasFreeFormula: use a custom formula (slower)
      *  - gasFromHdf5: load gas density from HDF5 file
      *  - gasNone : just stay with a vacuum
      */
-    namespace gasProfile = gasHomogenous;
+    namespace gasProfile = gasHomogeneous;
 
     /*! Particle Initialization ----------------------------------------------
      *  - particleInitRandomPos  : distribute your particles uniformly random

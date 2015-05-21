@@ -35,11 +35,11 @@ namespace tag
 struct ToricZone {};
 }
 
-template<int _dim>
+template<int T_dim>
 struct ToricZone
 {
     typedef tag::ToricZone tag;
-    static const int dim = _dim;
+    static const int dim = T_dim;
     math::Size_t<dim> offset;
     math::Size_t<dim> size;
     uint32_t thickness;

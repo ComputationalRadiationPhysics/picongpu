@@ -23,8 +23,7 @@
 #ifndef CURSOR_BUFFERNAVIGATOR_HPP
 #define CURSOR_BUFFERNAVIGATOR_HPP
 
-#include <math/vector/Int.hpp>
-#include <math/vector/Size_t.hpp>
+#include "math/Vector.hpp"
 #include "tag.h"
 #include <boost/type_traits/remove_pointer.hpp>
 #include "CartNavigator.hpp"
@@ -35,12 +34,12 @@ namespace PMacc
 namespace cursor
 {
 
-template<int _dim>
+template<int T_dim>
 class BufferNavigator
 {
 public:
     typedef tag::BufferNavigator tag;
-    static const int dim = _dim;
+    static const int dim = T_dim;
 private:
     math::Size_t<dim-1> pitch;
 public:
@@ -86,10 +85,10 @@ public:
 namespace traits
 {
 
-template<int _dim>
-struct dim<BufferNavigator<_dim> >
+template<int T_dim>
+struct dim<BufferNavigator<T_dim> >
 {
-    static const int value = _dim;
+    static const int value = T_dim;
 };
 
 } // traits

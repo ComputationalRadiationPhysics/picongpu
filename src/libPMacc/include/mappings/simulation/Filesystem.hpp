@@ -86,7 +86,7 @@ namespace PMacc
 
         private:
 
-            friend Environment<DIM>;
+            friend class Environment<DIM>;
 
             /**
              * Constructor

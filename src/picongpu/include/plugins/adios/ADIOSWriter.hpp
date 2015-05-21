@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2014-2015 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -82,9 +82,9 @@ int64_t defineAdiosVar(int64_t group_id,
                        const char * name,
                        const char * path,
                        enum ADIOS_DATATYPES type,
-                       DataSpace<DIM> dimensions,
-                       DataSpace<DIM> globalDimensions,
-                       DataSpace<DIM> offset,
+                       PMacc::math::UInt64<DIM> dimensions,
+                       PMacc::math::UInt64<DIM> globalDimensions,
+                       PMacc::math::UInt64<DIM> offset,
                        bool compression,
                        std::string compressionMethod)
 {
@@ -291,10 +291,11 @@ private:
                 datasetName << "/" << name_lookup_tpl[c];
 
             /* define adios var for field, e.g. field_FieldE_y */
-            int64_t adiosFieldVarId = defineAdiosVar(
+            const char* path = NULL;
+            int64_t adiosFieldVarId = defineAdiosVar<simDim>(
                     params->adiosGroupHandle,
                     datasetName.str().c_str(),
-                    NULL,
+                    path,
                     adiosType,
                     params->fieldsSizeDims,
                     params->fieldsGlobalSizeDims,
@@ -399,19 +400,17 @@ public:
 
     void pluginRegisterHelp(po::options_description& desc)
     {
-        uint32_t numAggr = Environment<simDim>::get().GridController().getGpuNodes().productOfComponents();
-
         desc.add_options()
             ("adios.period", po::value<uint32_t > (&notifyPeriod)->default_value(0),
              "enable ADIOS IO [for each n-th step]")
             ("adios.aggregators", po::value<uint32_t >
-             (&mThreadParams.adiosAggregators)->default_value(numAggr), "Number of aggregators")
+             (&mThreadParams.adiosAggregators)->default_value(0), "Number of aggregators [0 == number of MPI processes]")
             ("adios.ost", po::value<uint32_t > (&mThreadParams.adiosOST)->default_value(1),
              "Number of OST")
 #if(ADIOS_TRANSFORMS==1)
             ("adios.compression", po::value<std::string >
              (&mThreadParams.adiosCompression)->default_value("none"),
-             "ADIOS compression method (see 'adios_config -m for help')")
+             "ADIOS compression method (see 'adios_config -m' for help)")
 #endif
             ("adios.file", po::value<std::string > (&filename)->default_value(filename),
              "ADIOS output file");
@@ -507,6 +506,10 @@ private:
              */
             mpi_pos = gc.getPosition();
             mpi_size = gc.getGpuNodes();
+
+            /* if number of aggregators is not set we use all mpi process as aggregator*/
+            if( mThreadParams.adiosAggregators == 0 )
+               mThreadParams.adiosAggregators=mpi_size.productOfComponents();
 
             Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
 
@@ -734,6 +737,21 @@ private:
         /* define (sizes for) meta attributes */
         defineMetaAttributes(threadParams);
 
+        /* write created variable values */
+        for (uint32_t d = 0; d < simDim; ++d)
+        {
+            uint64_t offset = threadParams->window.localDimensions.offset[d];
+
+            /* dimension 1 is y and is the direction of the moving window (if any) */
+            if (1 == d)
+                offset = std::max(0, threadParams->window.localDimensions.offset[1] -
+                                     threadParams->window.globalDimensions.offset[1]);
+
+            threadParams->fieldsSizeDims[d] = threadParams->window.localDimensions.size[d];
+            threadParams->fieldsGlobalSizeDims[d] = threadParams->window.globalDimensions.size[d];
+            threadParams->fieldsOffsetDims[d] = offset;
+        }
+
         /* collect size information for each field to be written and define
          * field variables
          */
@@ -750,12 +768,12 @@ private:
         adiosCountParticles(threadParams, std::string());
 
         /* allocate buffer in MB according to our current group size */
-        if (!threadParams->adiosBufferInitialized)
-        {
-            ADIOS_CMD(adios_allocate_buffer(ADIOS_BUFFER_ALLOC_NOW,
-                    1.5 * ceil((double)(threadParams->adiosGroupSize) / (1024.0 * 1024.0))));
-            threadParams->adiosBufferInitialized = true;
-        }
+        /* `1 + mem` minimum 1 MiB that we can write attributes on empty GPUs */
+        size_t writeBuffer_in_MiB=1+threadParams->adiosGroupSize / 1024 / 1024;
+        /* value `1.1` is the secure factor if we miss to count some small buffers*/
+        size_t buffer_mem=static_cast<size_t>(1.1 * static_cast<double>(writeBuffer_in_MiB));
+        ADIOS_CMD(adios_allocate_buffer(ADIOS_BUFFER_ALLOC_NOW,buffer_mem));
+        threadParams->adiosBufferInitialized = true;
 
         /* open adios file. all variables need to be defined at this point */
         log<picLog::INPUT_OUTPUT > ("ADIOS: open file: %1%") % threadParams->fullFilename;
@@ -772,20 +790,7 @@ private:
 
         writeMetaAttributes(threadParams);
 
-        /* write created variable values */
-        for (uint32_t d = 0; d < simDim; ++d)
-        {
-            int offset = threadParams->window.localDimensions.offset[d];
 
-            /* dimension 1 is y and is the direction of the moving window (if any) */
-            if (1 == d)
-                offset = std::max(0, threadParams->window.localDimensions.offset[1] -
-                                     threadParams->window.globalDimensions.offset[1]);
-
-            threadParams->fieldsSizeDims[d] = threadParams->window.localDimensions.size[d];
-            threadParams->fieldsGlobalSizeDims[d] = threadParams->window.globalDimensions.size[d];
-            threadParams->fieldsOffsetDims[d] = offset;
-        }
 
         /* write fields */
         ForEach<FileOutputFields, GetFields<bmpl::_1> > forEachGetFields;

@@ -17,20 +17,19 @@
 # along with PIConGPU.  
 # If not, see <http://www.gnu.org/licenses/>. 
 # 
- 
 
 
 ## calculation are done by tbg ##
 TBG_queue="k20"
-TBG_mailSettings="bea"
-TBG_mailAdress="someone@example.com"
+TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
+TBG_mailSettings=${MY_MAILNOTIFY:-"n"}
 
+# get the ID of the last job of the submitting user waiting in the k20 queue
 TBG_waitJob=`qstat -u $(whoami) | grep $TBG_queue | tail -n 1 | awk '{print $1}'`
-
 
 # 4 gpus per node if we need more than 4 gpus else same count as TBG_tasks
 TBG_gpusPerNode=`if [ $TBG_tasks -gt 4 ] ; then echo 4; else echo $TBG_tasks; fi`
-    
+
 #number of cores per parallel node / default is 2 cores per gpu on k20 queue
 TBG_coresPerNode="$(( TBG_gpusPerNode * 2 ))"
 
@@ -46,7 +45,7 @@ TBG_nodes="$(( ( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
 #PBS -N !TBG_jobName
 #PBS -l nodes=!TBG_nodes:ppn=!TBG_coresPerNode
 # send me a mail on (b)egin, (e)nd, (a)bortion
-##PBS -m !TBG_mailSettings -M !TBG_mailAdress
+#PBS -m !TBG_mailSettings -M !TBG_mailAddress
 #PBS -d !TBG_dstPath
 
 #PBS -W depend=afterany:!TBG_waitJob
@@ -60,12 +59,15 @@ cd !TBG_dstPath
 
 export MODULES_NO_OUTPUT=1
 source ~/picongpu.profile
+if [ $? -ne 0 ] ; then
+  echo "Error: ~/picongpu.profile not found!"
+  exit 1
+fi
 unset MODULES_NO_OUTPUT
-                   
-                    
+
 #set user rights to u=rwx;g=r-x;o=---
-umask 0027 
-    
+umask 0027
+
 mkdir simOutput 2> /dev/null
 cd simOutput
 

@@ -35,11 +35,9 @@
  * The created identifier has the following options:
  *          getName()         - return the name of the identifier
  *          ::type            - get contained type
- *          ::ThisType        - get type of the created class by it self
  *
  * e.g. named_type(float,length)
  *      typedef length::type value_type; // is float
- *      typedef length::ThisType X;  // is class length
  *      printf("Identifier name: %s",length::getName()); //print Identifier name: length
  *
  * to create a instance of this value_identifier you can use:
@@ -48,7 +46,6 @@
  */
 #define named_type(in_type,name,...)                                           \
         identifier(name,                                                       \
-        typedef name ThisType;                                                 \
         typedef in_type type;                                                  \
         static std::string getName()                                           \
         {                                                                      \

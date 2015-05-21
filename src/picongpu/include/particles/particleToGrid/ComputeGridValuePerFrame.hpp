@@ -106,8 +106,8 @@ ComputeGridValuePerFrame<T_ParticleShape, calcType>::operator()
     const float3_X mom_mt1 = particle[momentumPrev1_];
     const float3_X mom_dt = mom - mom_mt1;
 #endif
-    const float_X mass = getMass<FrameType>(weighting);
-    const float_X charge = getCharge<FrameType>(weighting);
+    const float_X mass = attribute::getMass(weighting,particle);
+    const float_X charge = attribute::getCharge(weighting,particle);
 
     const int particleCellIdx = particle[localCellIdx_];
     const DataSpace<TVecSuperCell::dim> localCell(DataSpaceOperations<TVecSuperCell::dim>::map(superCell,particleCellIdx));
@@ -116,7 +116,9 @@ ComputeGridValuePerFrame<T_ParticleShape, calcType>::operator()
     const typename Gamma<float_X>::valueType gamma = calcGamma(mom, mass);
     const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
 
-    const float_X energy = (gamma - float_X(1.0)) * mass * c2;
+    const float_X energy = ( gamma <= float_X(GAMMA_THRESH) ) ?
+        math::abs2(mom) / ( float_X(2.0) * mass ) :   /* non-relativistic */
+        (gamma - float_X(1.0)) * mass * c2;           /* relativistic     */
 #if(ENABLE_RADIATION == 1)
     const float_X el_factor = charge * charge
         / (6.0 * PI * EPS0 *

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -21,8 +21,7 @@
  */
 
 
-#ifndef XOR_HPP
-#define	XOR_HPP
+#pragma once
 
 #include <curand_kernel.h>
 #include "types.h"
@@ -42,10 +41,20 @@ public:
     typedef curandStateXORWOW_t StateType;
     typedef StateType* StatePtr;
 
-    DINLINE Xor(uint32_t seed = 0, uint32_t subsequence = 0, uint32_t offset = 0)
+    HDINLINE Xor()
+    {
+    }
+
+    DINLINE Xor(uint32_t seed, uint32_t subsequence = 0, uint32_t offset = 0)
     {
         curand_init(seed, subsequence, offset, &state);
     }
+
+    HDINLINE Xor(const Xor& other): state(other.state)
+    {
+
+    }
+
 protected:
 
     DINLINE curandStateXORWOW_t* getStatePtr()
@@ -65,6 +74,3 @@ private:
 }
 }
 }
-
-#endif	/* XOR_HPP */
-

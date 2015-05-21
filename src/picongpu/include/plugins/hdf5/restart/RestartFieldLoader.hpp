@@ -47,7 +47,7 @@ class RestartFieldLoader
 {
 public:
     template<class Data>
-    static void loadField(Data& field, std::string objectName, ThreadParams *params)
+    static void loadField(Data& field, const uint32_t numComponents, std::string objectName, ThreadParams *params)
     {
         log<picLog::INPUT_OUTPUT > ("Begin loading field '%1%'") % objectName;
         const DataSpace<simDim> field_guard = field.getGridLayout().getGuard();
@@ -78,7 +78,7 @@ public:
             local_domain_size[d] = params->window.localDimensions.size[d];
 
         PMACC_AUTO(destBox, field.getHostBuffer().getDataBox());
-        for (uint32_t i = 0; i < simDim; ++i)
+        for (uint32_t i = 0; i < numComponents; ++i)
         {
             // Read the subdomain which belongs to our mpi position.
             // The total grid size must match the grid size of the stored data.
@@ -161,6 +161,7 @@ public:
         /* load from HDF5 */
         RestartFieldLoader::loadField(
                 field->getGridBuffer(),
+                (uint32_t)FieldType::numComponents,
                 FieldType::getName(),
                 tp);
 

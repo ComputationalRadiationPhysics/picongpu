@@ -101,13 +101,13 @@ struct GatherSlice
         header = mHeader;
 
         int countRanks = Environment<DIM2>::get().GridController().getGpuNodes().productOfComponents();
-        int gatherRanks[countRanks];
-        int groupRanks[countRanks];
+        std::vector<int> gatherRanks(countRanks);
+        std::vector<int> groupRanks(countRanks);
         mpiRank = Environment<DIM2>::get().GridController().getGlobalRank();
         if (!isActive)
             mpiRank = -1;
 
-        MPI_CHECK(MPI_Allgather(&mpiRank, 1, MPI_INT, gatherRanks, 1, MPI_INT, MPI_COMM_WORLD));
+        MPI_CHECK(MPI_Allgather(&mpiRank, 1, MPI_INT, &gatherRanks[0], 1, MPI_INT, MPI_COMM_WORLD));
 
         for (int i = 0; i < countRanks; ++i)
         {
@@ -121,7 +121,7 @@ struct GatherSlice
         MPI_Group group;
         MPI_Group newgroup;
         MPI_CHECK(MPI_Comm_group(MPI_COMM_WORLD, &group));
-        MPI_CHECK(MPI_Group_incl(group, numRanks, groupRanks, &newgroup));
+        MPI_CHECK(MPI_Group_incl(group, numRanks, &groupRanks[0], &newgroup));
 
         MPI_CHECK(MPI_Comm_create(MPI_COMM_WORLD, newgroup, &comm));
 

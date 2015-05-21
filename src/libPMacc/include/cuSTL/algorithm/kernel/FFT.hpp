@@ -34,7 +34,7 @@ template<int dim>
 struct FFT
 {
     template<typename Zone, typename DestCursor, typename SrcCursor>
-    void operator()(const Zone& _zone, const DestCursor& destCursor, const SrcCursor& srcCursor);
+    void operator()(const Zone& p_zone, const DestCursor& destCursor, const SrcCursor& srcCursor);
 };
 
 } // kernel

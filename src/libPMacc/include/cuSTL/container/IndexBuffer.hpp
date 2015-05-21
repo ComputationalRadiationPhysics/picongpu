@@ -24,7 +24,7 @@
 #define CONTAINER_INDEXBUFFER_HPP
 
 #include <stdint.h>
-#include "../vector/UInt.hpp"
+#include "../vector/UInt32.hpp"
 #include "../vector/Int.hpp"
 #include "../vector/Size_t.hpp"
 #include "../cursor/Cursor.hpp"
@@ -41,9 +41,9 @@ template<int dim>
 class IndexBuffer
 {
 private:
-    math::UInt<dim> _size;
+    math::UInt32<dim> _size;
 public:
-    IndexBuffer(const math::UInt<dim>& _size) : _size(_size) {}
+    IndexBuffer(const math::UInt32<dim>& _size) : _size(_size) {}
     IndexBuffer(uint32_t x) : _size(x) {}
     IndexBuffer(uint32_t x, uint32_t y) : _size(x,y) {}
     IndexBuffer(uint32_t x, uint32_t y, uint32_t z) : _size(x,y,z) {}
@@ -69,7 +69,7 @@ public:
     cursor::Cursor<cursor::MarkerAccessor<math::Int<dim> >,
                    cursor::CartNavigator<dim>,
                    math::Int<dim> >
-    originCustomAxes(const math::UInt<dim>& axes) const
+    originCustomAxes(const math::UInt32<dim>& axes) const
     {
         math::Int<dim> factor;
         factor[0] = 1; factor[1] = this->_size.x();

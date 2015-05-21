@@ -32,12 +32,12 @@ namespace PMacc
 namespace cursor
 {
 
-template<int _dim>
+template<int T_dim>
 class CartNavigator
 {
 public:
     typedef tag::CartNavigator tag;
-    static const int dim = _dim;
+    static const int dim = T_dim;
 private:
     math::Int<dim> factor;
 public:
@@ -60,10 +60,10 @@ public:
 namespace traits
 {
 
-template<int _dim>
-struct dim<CartNavigator<_dim> >
+template<int T_dim>
+struct dim<CartNavigator<T_dim> >
 {
-    static const int value = _dim;
+    static const int value = T_dim;
 };
 
 } // traits

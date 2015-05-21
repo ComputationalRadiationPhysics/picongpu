@@ -34,10 +34,6 @@ if [ -f "$thisDir"runGuard ] ; then
 fi
 touch "$thisDir"runGuard
 
-# loop through each branch for new commits
-#
-cd $cnf_gitdir
-
 # loop branches
 #for b in "${cnf_branches[@]}"
 #do
@@ -45,8 +41,10 @@ cd $cnf_gitdir
 
     # loop work
     finished=0
-    while [ "$finished" -eq "0" ]
-    do
+    #while [ "$finished" -eq "0" ]
+    #do
+        cd $cnf_gitdir
+
         "$thisDir"get_work.sh
         finished=$?
 
@@ -95,7 +93,7 @@ cd $cnf_gitdir
             # modify compile environment (forwarded to CMake)
             #export PIC_COMPILE_SUITE_CMAKE="-DPIC_ENABLE_PNG=OFF -DCUDA_ARCH=sm_35"
             . /etc/profile
-            module load gcc/4.6.4 boost/1.55.0 cmake/2.8.12.2 cuda/6.0 openmpi/1.6.5 libSplash/1.2.0 adios/1.6.0 pngwriter/0.5.4
+            module load gcc/4.6.4 boost/1.55.0 cmake/2.8.12.2 cuda/6.0 openmpi/1.6.5 mallocmc/2.0.1 libSplash/1.2.3 adios/1.7.0 pngwriter/0.5.4
 
             # compile all examples, fetch output and return code
             $cnf_gitdir/compile -l -q -j $cnf_numParallel \
@@ -148,9 +146,8 @@ cd $cnf_gitdir
             conclusion "$state" "$lastUser" "$lastUserMail" "$sha" "$eventid" "$logEntry" "$cnf_builddir""/output"
 
         fi
-    done
+    #done
 
-    cd $cnf_gitdir
 #done
 
 # del guard

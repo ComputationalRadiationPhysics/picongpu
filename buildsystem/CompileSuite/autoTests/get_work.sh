@@ -70,6 +70,10 @@ echo $eventid > "$thisDir"runGuard
 if [ "$workType" == "commit" ]
 then
     git clone -q $git .
+    if [ $? -ne 0 ] ; then
+        echo "git clone failed"
+        exit 2
+    fi
     git checkout -q $sha
 elif [ "$workType" == "pull" ]
 then
@@ -82,12 +86,16 @@ then
     branch=`echo -e "$sched" | grep '"branch"' | head -n1 | awk -F'":' '{print $2}' | awk -F'"' '{print $2}'`
 
     git clone -q $git_b .
+    if [ $? -ne 0 ] ; then
+        echo "git clone failed"
+        exit 2
+    fi
     # simulate a merge of the commit on the base branch
     git checkout -q -b mergeTest $sha_b
     git remote add -f pull_repo $git > /dev/null 2>&1
     git merge -q $sha
     if [ $? -ne 0 ] ; then
-        # merge failed
+        echo "git merge failed"
         exit 2
     fi
 else

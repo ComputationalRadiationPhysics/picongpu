@@ -35,7 +35,7 @@
 
 #include "basicOperations.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
-#include "plugins/ILightweightPlugin.hpp"
+#include "plugins/ISimulationPlugin.hpp"
 
 #include "mpi/reduceMethods/Reduce.hpp"
 #include "mpi/MPIReduce.hpp"
@@ -43,6 +43,8 @@
 #include "nvidia/reduce/Reduce.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
 #include "memory/boxes/DataBoxUnaryTransform.hpp"
+
+#include "common/txtFileHandling.hpp"
 
 namespace picongpu
 {
@@ -77,7 +79,7 @@ struct squareComponentWise
 
 }
 
-class EnergyFields : public ILightweightPlugin
+class EnergyFields : public ISimulationPlugin
 {
 private:
     FieldE* fieldE;
@@ -184,6 +186,28 @@ private:
             }
             __delete(localReduce);
         }
+    }
+
+    void restart(uint32_t restartStep, const std::string restartDirectory)
+    {
+        if( !writeToFile )
+            return;
+
+        writeToFile = restoreTxtFile( outFile,
+                                      filename,
+                                      restartStep,
+                                      restartDirectory );
+    }
+
+    void checkpoint(uint32_t currentStep, const std::string checkpointDirectory)
+    {
+        if( !writeToFile )
+            return;
+
+        checkpointTxtFile( outFile,
+                           filename,
+                           currentStep,
+                           checkpointDirectory );
     }
 
     void getEnergyFields(uint32_t currentStep)

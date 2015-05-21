@@ -21,36 +21,47 @@
 
 #pragma once
 
-#include "particles/traits/GetMass.hpp"
-#include "particles/traits/GetCharge.hpp"
+#include "traits/frame/GetCharge.hpp"
+#include "traits/frame/GetMass.hpp"
+#include "traits/attribute/GetCharge.hpp"
+#include "traits/attribute/GetChargeState.hpp"
+#include "traits/attribute/GetMass.hpp"
 #include "fields/currentDeposition/Solver.hpp"
 #include "particles/Particles.tpp"
+#include "particles/ionization/byField/ionizers.hpp"
 
 namespace picongpu
 {
+namespace traits
+{
+namespace frame
+{
 
 template<>
-HDINLINE float_X getMass<typename PIC_Ions::FrameType>(float_X weighting)
+HDINLINE float_X getMass<typename PIC_Ions::FrameType>()
 {
-    return M_ION*weighting;
+    return M_ION;
+    /** \todo take account for mass loss of ions when electrons leave them during ionization */
 };
 
 template<>
-HDINLINE float_X getCharge<typename PIC_Ions::FrameType>(float_X weighting)
+HDINLINE float_X getCharge<typename PIC_Ions::FrameType>()
 {
-    return Q_ION*weighting;
+    return Q_ION;
 };
 
 template<>
-HDINLINE float_X getMass<typename PIC_Electrons::FrameType>(float_X weighting)
+HDINLINE float_X getMass<typename PIC_Electrons::FrameType>()
 {
-    return M_EL*weighting;
+    return M_EL;
 };
 
 template<>
-HDINLINE float_X getCharge<typename PIC_Electrons::FrameType>(float_X weighting)
+HDINLINE float_X getCharge<typename PIC_Electrons::FrameType>()
 {
-    return Q_EL*weighting;
+    return Q_EL;
 };
 
+} //namespace frame
+} //namespace traits
 } //namespace picongpu

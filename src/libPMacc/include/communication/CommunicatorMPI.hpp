@@ -212,7 +212,7 @@ public:
         return false;
     }
 
-    bool setNumSlides(size_t numSlides)
+    bool setStateAfterSlides(size_t numSlides)
     {
         bool result = false;
 

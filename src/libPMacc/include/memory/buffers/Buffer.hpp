@@ -155,7 +155,7 @@ namespace PMacc
         /*! sets the current size (count of elements)
          * @param newsize new current size
          */
-        virtual void setCurrentSize(size_t newsize)
+        virtual void setCurrentSize(const size_t newsize)
         {
             __startOperation(ITask::TASK_HOST);
             assert(static_cast<size_t>(newsize) <= static_cast<size_t>(data_space.productOfComponents()));
