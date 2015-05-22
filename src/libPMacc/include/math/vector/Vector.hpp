@@ -41,6 +41,7 @@ namespace detail
 template<typename T_Type, int T_Dim>
 struct Vector_components
 {
+    static const bool isConst = false;
     static const int dim = T_Dim;
     typedef T_Type type;
 
@@ -57,6 +58,42 @@ struct Vector_components
     const type& operator[](const int idx) const
     {
         return v[idx];
+    }
+};
+
+
+/** functor to copy a object element wise
+ *
+ * @tparam isDestConst define if destination is const (not copyable) object
+ */
+template<bool isDestConst>
+struct CopyElementWise
+{
+    /** copy object element wise
+     *
+     * @tparam T_Dest destination object type
+     * @tparam T_Src source object type
+     */
+    template<typename T_Dest,typename T_Src>
+    HDINLINE void operator()(T_Dest& dest,const T_Src& src) const
+    {
+        PMACC_CASSERT_MSG(CopyElementWise_destination_and_source_had_different_dimension,
+                          T_Dest::dim == T_Src::dim);
+        for (int d = 0; d < T_Dest::dim; d++)
+            dest[d] = src[d];
+    }
+};
+
+/** specialization for constant destination
+ *
+ * the constant storage is already available and set in the destination
+ */
+template<>
+struct CopyElementWise<true>
+{
+    template<typename T_Dest,typename T_Src>
+    HDINLINE void operator()(T_Dest& dest,const T_Src& src) const
+    {
     }
 };
 
@@ -128,8 +165,7 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
 
     HDINLINE Vector(const This& other)
     {
-        for (int i = 0; i < dim; i++)
-            (*this)[i] = other[i];
+        detail::CopyElementWise<Storage::isConst>()(*this,other);
     }
 
     template<
