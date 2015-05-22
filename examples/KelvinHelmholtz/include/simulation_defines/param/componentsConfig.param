@@ -50,7 +50,13 @@ namespace picongpu
      *  - fieldSolverYeeNative : generic version of fieldSolverYee
      *    (need more shared memory per GPU and is slow)
      */
-    namespace fieldSolver = fieldSolverYee;
+#ifndef PARAM_FIELDSOLVER
+/* WARNING: if you change field solver by hand please update your CELL_WIDTH_SI
+ * in `gridConfig.param` to fulfill the convergence condition (CFL)
+ */
+#define PARAM_FIELDSOLVER fieldSolverYee
+#endif
+namespace fieldSolver = PARAM_FIELDSOLVER;
 
     /*enable (1) or disable (0) current calculation*/
 #define ENABLE_CURRENT 1
