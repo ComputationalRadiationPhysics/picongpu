@@ -40,7 +40,34 @@ namespace dirSplitting
 {
 using namespace PMacc;
 
-class DirSplitting
+/** Check Directional Splitting grid and time conditions
+ *
+ * This is a workaround that the condition check is only
+ * triggered if the current used solver is `DirSplitting`
+ */
+template<typename T_UsedSolver, typename T_Dummy=void>
+struct ConditionCheck
+{
+};
+
+template<typename T_Dummy>
+struct ConditionCheck<DirSplitting, T_Dummy>
+{
+    /* Directional Splitting conditions:
+     *
+     * using SI units to avoid round off errors
+     */
+    PMACC_CASSERT_MSG(DirectionSplitting_Set_dX_equal_dt_times_c____check_your_gridConfig_param_file,
+                      (SI::SPEED_OF_LIGHT_SI * SI::DELTA_T_SI) == SI::CELL_WIDTH_SI);
+    PMACC_CASSERT_MSG(DirectionSplitting_use_cubic_cells____check_your_gridConfig_param_file,
+                      SI::CELL_HEIGHT_SI == SI::CELL_WIDTH_SI);
+#if (SIMDIM == DIM3)
+    PMACC_CASSERT_MSG(DirectionSplitting_use_cubic_cells____check_your_gridConfig_param_file,
+                      SI::CELL_DEPTH_SI == SI::CELL_WIDTH_SI);
+#endif
+};
+
+class DirSplitting : private ConditionCheck<fieldSolver::FieldSolver>
 {
 private:
     template<typename CursorE, typename CursorB, typename GridSize>
