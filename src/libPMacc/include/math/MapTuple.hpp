@@ -130,11 +130,11 @@ public:
         typedef typename mpl::at<Map, TKey>::type& type;
        // typedef typename mpl::at<F, TKey>::type& type2;
     };
-    
+
     template<class F, class TKey>
     struct result<const F(TKey)>
     {
-                 
+
         typedef const typename mpl::at<Map, TKey>::type& type;
     };
 /*

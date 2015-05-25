@@ -1,22 +1,22 @@
 /**
  * Copyright 2013, 2015 Axel Huebl, Rene Widera, Richard Pausch
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
  
 
 
@@ -31,7 +31,7 @@ namespace picongpu
      *  use-cases, e.g. energy-binning algorithms. */
     const float_X GAMMA_THRESH = float_X(1.005);
 
-    /** This limit is used to decide between a pure 1-sqrt(1-x) calculation 
+    /** This limit is used to decide between a pure 1-sqrt(1-x) calculation
      *  and a 5th order Taylor approximation of 1-sqrt(1-x) to avoid halving
      *  of significant digits due to the sqrt() evaluation at x = 1/gamma^2 near 0.0.
      *  With 0.18 the relative error between Taylor approximation and real value
@@ -71,7 +71,7 @@ namespace picongpu
     //                                  -> cast to float
     // WE DO NOT define "UNIT_ENERGY_keV" or something similar! Never!
     // Stay SI, stay free ;-)
-    // 
+    //
     // example:
     //   // some particle physicist beloved input:
     //   const float_64 An_Arbitrary_Energy_Input_keV = 30.0; // unit: keV

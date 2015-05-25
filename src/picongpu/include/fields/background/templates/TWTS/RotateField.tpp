@@ -106,7 +106,7 @@ namespace detail
                     -pmMath::cos(AngleType(phi))*fieldPosVector.x() ,
                 +pmMath::cos(AngleType(phi))*fieldPosVector.y()
                     -pmMath::sin(AngleType(phi))*fieldPosVector.x() );
-        }           
+        }
     };
     
     template <typename T_Type, typename T_AngleType>

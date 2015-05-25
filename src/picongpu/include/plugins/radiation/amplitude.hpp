@@ -34,10 +34,10 @@ public:
   // number of scalars of type picongpu::float_64 in Amplitude = 3 (3D) * 2 (complex) = 6
   static const uint numComponents = 3 * sizeof(complex_64) / sizeof(picongpu::float_64);
 
-  /** constructor 
-   * 
+  /** constructor
+   *
    * Arguments:
-   * - vector_64: real 3D vector 
+   * - vector_64: real 3D vector
    * - float: complex phase */
   DINLINE Amplitude(vector_64 vec, picongpu::float_X phase)
   {
@@ -50,8 +50,8 @@ public:
   }
 
 
-  /** default constructor 
-   * 
+  /** default constructor
+   *
    * \warning does not initialize values! */
   HDINLINE Amplitude(void)
   {
@@ -59,12 +59,12 @@ public:
   }
 
 
-  /** constructor 
-   * 
+  /** constructor
+   *
    * Arguments:
    * - 6x float: Re(x), Im(x), Re(y), Im(y), Re(z), Im(z) */
-  HDINLINE Amplitude(const picongpu::float_64 x_re, const picongpu::float_64 x_im, 
-                     const picongpu::float_64 y_re, const picongpu::float_64 y_im, 
+  HDINLINE Amplitude(const picongpu::float_64 x_re, const picongpu::float_64 x_im,
+                     const picongpu::float_64 y_re, const picongpu::float_64 y_im,
                      const picongpu::float_64 z_re, const picongpu::float_64 z_im)
       : amp_x(x_re, x_im), amp_y(y_re, y_im), amp_z(z_re, z_im)
   {
@@ -111,14 +111,14 @@ public:
   {
       // const SI factor radiation
       const picongpu::float_64 factor = 1.0 /
-        (16. * util::cube(M_PI) * picongpu::EPS0 * picongpu::SPEED_OF_LIGHT); 
+        (16. * util::cube(M_PI) * picongpu::EPS0 * picongpu::SPEED_OF_LIGHT);
 
       return factor * (PMacc::algorithms::math::abs2(amp_x) + PMacc::algorithms::math::abs2(amp_y) + PMacc::algorithms::math::abs2(amp_z));
   }
 
 
   /** debugging method
-   * 
+   *
    * Returns: real-x-value */
   HDINLINE picongpu::float_64 debug(void)
   {

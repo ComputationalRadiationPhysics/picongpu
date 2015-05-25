@@ -42,7 +42,7 @@ template<bool T_HasBoundElectrons>
 struct LoadChargeState
 {
     /** Functor implementation
-     * 
+     *
      * \return chargeState = number of electrons in neutral atom - number of currently bound electrons
      */
     template<typename T_Particle>
@@ -55,7 +55,7 @@ struct LoadChargeState
 
 /**  Calculate charge state of an atom / ion
  *
- * This is the fallback implementation to throw an error if no `boundElectrons` 
+ * This is the fallback implementation to throw an error if no `boundElectrons`
  * are available for a species.
  */
 template<>
@@ -72,8 +72,8 @@ struct LoadChargeState<false>
 
 /** get the charge state of a macro particle
  *
- * This function trait considers the `boundElectrons` attribute if it is set. 
- * Charge states do not add up and also the various particles in a macro particle 
+ * This function trait considers the `boundElectrons` attribute if it is set.
+ * Charge states do not add up and also the various particles in a macro particle
  * do NOT have different charge states where one would average over them.
  *
  * @param particle a reference to a particle

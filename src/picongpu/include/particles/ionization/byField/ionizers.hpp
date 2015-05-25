@@ -20,7 +20,7 @@
 
 #pragma once
 
-/* Includes containing definition of < Ionization Models > 
+/* Includes containing definition of < Ionization Models >
  * which itself each include their own < Ionization Algorithm >
  * that implements what the model actually DOES */
 

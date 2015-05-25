@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Marco Garten, Axel Huebl, Heiko Burau, Rene Widera, 
+ * Copyright 2014 Marco Garten, Axel Huebl, Heiko Burau, Rene Widera,
  *                  Richard Pausch, Felix Schmitt
  *
  * This file is part of PIConGPU.
@@ -25,7 +25,7 @@
 #include <iostream>
 
 #include "simulation_defines.hpp"
-#include "particles/Particles.hpp" 
+#include "particles/Particles.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
 #include "particles/ParticlesInit.kernel"
 #include "mappings/simulation/GridController.hpp"
@@ -43,29 +43,29 @@ using namespace PMacc;
 
 /** \struct IonizeParticlesPerFrame
  * \brief gathers fields for particle interpolation and gives them to the ionization model
- * 
+ *
  * \tparam IonizeAlgo ionization algorithm
- * \tparam TVec dimensions of the target: 
+ * \tparam TVec dimensions of the target:
  *         e.g. size of the super cell
  * \tparam T_Field2ParticleInterpolation type of field to particle interpolation
- * \tparam NumericalCellType type of cell with respect to field discretization: 
-           e.g. Yee cell 
+ * \tparam NumericalCellType type of cell with respect to field discretization:
+           e.g. Yee cell
  */
 template<class IonizeAlgo, class TVec, class T_Field2ParticleInterpolation, class NumericalCellType>
 struct IonizeParticlesPerFrame
 {
     /** Functor implementation
-     * 
+     *
      * \tparam FrameType frame type of particles that get ionized
      * \tparam T_BBox type of B-field box
      * \tparam T_EBox type of E-field box
-     * 
+     *
      * \param ionFrame (here address of: ) frame of the to-be-ionized particles
      * \param localIdx local (linear) index in super cell / frame
      * \param bBox B-field box instance
      * \param ebox E-field box instance
      * \param newMacroElectrons (here address of: ) variable for each thread that stores the number
-     *        of macro electrons to be created during the current time step 
+     *        of macro electrons to be created during the current time step
      */
     template<class FrameType, class T_BBox, class T_EBox >
     DINLINE void operator()(FrameType& ionFrame, int localIdx, T_BBox& bBox, T_EBox& eBox, unsigned int& newMacroElectrons)
@@ -112,19 +112,19 @@ struct IonizeParticlesPerFrame
 
 /** kernelIonizeParticles
  * \brief main kernel for ionization
- * 
+ *
  * - maps the frame dimensions and gathers the particle boxes
  * - caches the E- and B-fields
  * - contains / calls the ionization algorithm
  * - calls the electron creation functors
- * 
+ *
  * \tparam BlockDescription_ container for information about block / super cell dimensions
  * \tparam ParBoxIons container of the ions
  * \tparam ParBoxElectrons container of the electrons
  * \tparam BBox b-field box class
  * \tparam EBox e-field box class
  * \tparam Mapping class containing methods for acquiring info from the block
- * \tparam FrameIonizer \see IonizeParticlesPerFrame 
+ * \tparam FrameIonizer \see IonizeParticlesPerFrame
  */
 template<class BlockDescription_, class ParBoxIons, class ParBoxElectrons, class BBox, class EBox, class Mapping, class FrameIonizer>
 __global__ void kernelIonizeParticles(ParBoxIons ionBox,
@@ -135,7 +135,7 @@ __global__ void kernelIonizeParticles(ParBoxIons ionBox,
                                       Mapping mapper)
 {
     
-    /* "particle box" : container/iterator where the particles live in 
+    /* "particle box" : container/iterator where the particles live in
      * and where one can get the frame in a super cell from */
     typedef typename ParBoxElectrons::FrameType ELECTRONFRAME;
     typedef typename ParBoxIons::FrameType IONFRAME;
@@ -166,7 +166,7 @@ __global__ void kernelIonizeParticles(ParBoxIons ionBox,
 
     __syncthreads(); /*wait that all shared memory is initialized*/
 
-    /* find last frame in super cell 
+    /* find last frame in super cell
      * define maxParticlesInFrame as the maximum frame size */
     if (linearThreadIdx == 0)
     {
@@ -201,7 +201,7 @@ __global__ void kernelIonizeParticles(ParBoxIons ionBox,
               fieldEBlock
               );
     
-    /* Declare counter in shared memory that will later tell the current fill level or 
+    /* Declare counter in shared memory that will later tell the current fill level or
      * occupation of the newly created target electron frames. */
     __shared__ int newFrameFillLvl;
     
@@ -210,7 +210,7 @@ __global__ void kernelIonizeParticles(ParBoxIons ionBox,
     /* Declare local variable oldFrameFillLvl for each thread */
     int oldFrameFillLvl;
     
-    /* Initialize local (register) counter for each thread 
+    /* Initialize local (register) counter for each thread
      * - describes how many new macro electrons should be created */
     unsigned int newMacroElectrons = 0;
     
@@ -221,15 +221,15 @@ __global__ void kernelIonizeParticles(ParBoxIons ionBox,
     /* Master initializes the frame fill level with 0 */
     if (linearThreadIdx == 0)
     {
-        newFrameFillLvl = 0;        
+        newFrameFillLvl = 0;
         electronFrame = NULL;
     }
     __syncthreads();
     
-    /* move over source species frames and call frameIonizer 
+    /* move over source species frames and call frameIonizer
      * frames are worked on in backwards order to avoid asking if there is another frame
-     * --> performance 
-     * Because all frames are completely filled except the last and apart from that last frame 
+     * --> performance
+     * Because all frames are completely filled except the last and apart from that last frame
      * one wants to make sure that all threads are working and every frame is worked on. */
     while (isValid)
     {
@@ -237,8 +237,8 @@ __global__ void kernelIonizeParticles(ParBoxIons ionBox,
         const bool isParticle = (*ionFrame)[linearThreadIdx][multiMask_];
         __syncthreads();
 
-        /* < IONIZATION and change of charge states > 
-         * if the threads contain particles, the frameIonizer can ionize them 
+        /* < IONIZATION and change of charge states >
+         * if the threads contain particles, the frameIonizer can ionize them
          * if they are non-particles their inner ionization counter remains at 0 */
         if (isParticle)
             /* ionization based on ionization model - this actually increases charge states*/
@@ -246,40 +246,40 @@ __global__ void kernelIonizeParticles(ParBoxIons ionBox,
        
         __syncthreads();
         /* always true while-loop over all particles inside source frame until each thread breaks out individually
-         * 
+         *
          * **Attention**: Speaking of 1st and 2nd frame only may seem odd.
          * The question might arise what happens if more electrons are created than would fit into two frames.
          * Well, multi-ionization during a time step is accounted for. The number of new electrons is
-         * determined inside the outer loop over the valid frames while in the inner loop each thread can create only ONE 
+         * determined inside the outer loop over the valid frames while in the inner loop each thread can create only ONE
          * new macro electron. But the loop repeats until each thread has created all the electrons needed in the time step. */
         while (true)
         {
             /* < INIT >
              * - electronId is initialized as -1 (meaning: invalid)
-             * - (local) oldFrameFillLvl set equal to (shared) newFrameFillLvl for each thread 
+             * - (local) oldFrameFillLvl set equal to (shared) newFrameFillLvl for each thread
              * --> each thread remembers the old "counter"
              * - then sync */
             electronId = -1;
             oldFrameFillLvl = newFrameFillLvl;
             __syncthreads();
             /* < CHECK & ADD >
-             * - if a thread wants to create electrons in each cycle it can do that only once 
+             * - if a thread wants to create electrons in each cycle it can do that only once
              * and before that it atomically adds to the shared counter and uses the current
-             * value as electronId in the new frame 
+             * value as electronId in the new frame
              * - then sync */
-            if (newMacroElectrons > 0) 
+            if (newMacroElectrons > 0)
                 electronId = atomicAdd(&newFrameFillLvl, 1);
             
             __syncthreads();
-            /* < EXIT? > 
+            /* < EXIT? >
              * - if the counter hasn't changed all threads break out of the loop */
-            if (oldFrameFillLvl == newFrameFillLvl) 
+            if (oldFrameFillLvl == newFrameFillLvl)
                 break;
             
             __syncthreads();
             /* < FIRST NEW FRAME >
              * - if there is no frame, yet, the master will create a new target electron frame
-             * and attach it to the back of the frame list 
+             * and attach it to the back of the frame list
              * - sync all threads again for them to know which frame to use */
             if (linearThreadIdx == 0)
             {
@@ -291,8 +291,8 @@ __global__ void kernelIonizeParticles(ParBoxIons ionBox,
             }
             __syncthreads();
             /* < CREATE 1 >
-             * - all electrons fitting into the current frame are created there 
-             * - internal ionization counter is decremented by 1 
+             * - all electrons fitting into the current frame are created there
+             * - internal ionization counter is decremented by 1
              * - sync */
             if ((0 <= electronId) && (electronId < maxParticlesInFrame))
             {
@@ -309,7 +309,7 @@ __global__ void kernelIonizeParticles(ParBoxIons ionBox,
                 newMacroElectrons -= 1;
             }
             __syncthreads();
-            /* < SECOND NEW FRAME > 
+            /* < SECOND NEW FRAME >
              * - if the shared counter is larger than the frame size a new electron frame is reserved
              * and attached to the back of the frame list
              * - then the shared counter is set back by one frame size
@@ -325,7 +325,7 @@ __global__ void kernelIonizeParticles(ParBoxIons ionBox,
             }
             __syncthreads();
             /* < CREATE 2 >
-             * - if the EID is larger than the frame size 
+             * - if the EID is larger than the frame size
              *      - the EID is set back by one frame size
              *      - the thread writes an electron to the new frame
              *      - the internal counter is decremented by 1 */
@@ -360,7 +360,7 @@ __global__ void kernelIonizeParticles(ParBoxIons ionBox,
 
 /** ionize
  * \brief ionization function currently being a member function of the source species
- * 
+ *
  * \tparam T_ParticleDescription container of particle source species information
  * \tparam T_Elec type of species to be created during ionization
  */
@@ -396,8 +396,8 @@ void Particles<T_ParticleDescription>::ionize( T_Elec electrons, uint32_t )
     /* 3-dim vector : number of threads to be started in every dimension */
     dim3 block( MappingDesc::SuperCellSize::toRT().toDim3() );
     
-    /* kernel call : instead of name<<<blocks, threads>>> (args, ...) 
-       "blocks" will be calculated from "this->cellDescription" and "CORE + BORDER" 
+    /* kernel call : instead of name<<<blocks, threads>>> (args, ...)
+       "blocks" will be calculated from "this->cellDescription" and "CORE + BORDER"
        "threads" is calculated from the previously defined vector "block" */
     __picKernelArea( kernelIonizeParticles<BlockArea>, this->cellDescription, CORE + BORDER )
         (block)
@@ -408,7 +408,7 @@ void Particles<T_ParticleDescription>::ionize( T_Elec electrons, uint32_t )
           FrameIonizer( )
           );
 
-    /* fill the gaps in the created species' particle frames to ensure that only 
+    /* fill the gaps in the created species' particle frames to ensure that only
      * the last frame is not completely filled but every other before is full */
     electrons->fillAllGaps();
     

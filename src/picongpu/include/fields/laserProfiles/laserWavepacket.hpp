@@ -30,7 +30,7 @@ namespace picongpu
 /** not focusing wavepaket with spacial gaussian envelope
  *
  *  no phase shifts, just spacial envelope
- *  including correction to laser formular derived from vector potential, so the integration 
+ *  including correction to laser formular derived from vector potential, so the integration
  *  along propagation direction gives 0
  *  this is important for few-cycle laser pulses
  */

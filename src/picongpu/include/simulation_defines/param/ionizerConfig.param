@@ -21,7 +21,7 @@
 #pragma once
 
 /** forward declarations for ionization algorithms
- * 
+ *
  * ionization model has a < Name >
  * so the algorithm is called "Algorithm< Name >"
  */

@@ -61,7 +61,7 @@ struct One_minus_beta_times_n
         // is energy is low, then the Appriximation will acuse a larger error, therfor calculate
         // 1-\beta \times \vec n directly
         // with 0.18 the relativ error will be below 0.001% for a Taylor series of 1-sqrt(1-x) of 5th order
-        if (gamma_inv_square < picongpu::GAMMA_INV_SQUARE_RAD_THRESH) 
+        if (gamma_inv_square < picongpu::GAMMA_INV_SQUARE_RAD_THRESH)
         {
             const picongpu::float_64 cos_theta(particle.get_cos_theta<When::now > (n)); // cosinus between looking vector and momentum of particle
             const picongpu::float_64 taylor_approx(cos_theta * Taylor()(gamma_inv_square) + (1.0 - cos_theta));
