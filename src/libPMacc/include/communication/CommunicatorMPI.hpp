@@ -57,9 +57,7 @@ public:
      * calls MPI_Finalize
      */
     virtual ~CommunicatorMPI()
-    {
-        exit();
-    }
+    {}
 
     virtual int getRank()
     {
@@ -120,12 +118,10 @@ public:
         MPI_CHECK(MPI_Cart_create(computing_comm, DIM, dims, periods, 0, &topology));
 
         // 3. update Host rank
-        hostRank = UpdateHostRank();
+        updateHostRank();
 
         //4. update Coordinates
         updateCoordinates();
-
-
     }
 
     /*! returns a rank number (0-n) for each host
@@ -163,7 +159,7 @@ public:
 
         MPI_CHECK(MPI_Isend(
                             (void*) send_data,
-                            send_data_count,
+                            static_cast<int>(send_data_count),
                             MPI_CHAR,
                             ExchangeTypeToRank(ex),
                             gridExchangeTag + tag,
@@ -182,7 +178,7 @@ public:
 
         MPI_CHECK(MPI_Irecv(
                             recv_data,
-                            recv_data_max,
+                            static_cast<int>(recv_data_max),
                             MPI_CHAR,
                             ExchangeTypeToRank(ex),
                             gridExchangeTag + tag,
@@ -224,19 +220,9 @@ public:
 
 
 protected:
-
-    /*! calls MPI_Finalize
-     *
-     */
-    void exit()
-    {
-        // MPI_CHECK(MPI_Barrier(MPI_COMM_WORLD));
-     //   MPI_Finalize();
-    }
-
     /* Set the first found non charactor or number to 0 (NULL)
      * name like p1223(Pid=1233) is than p1223
-     * in some MPI implementation /mpich) the hostname is uniqu
+     * in some MPI implementation /mpich) the hostname is unique
      */
     void cleanHostname(char* name)
     {
@@ -262,11 +248,10 @@ protected:
      * from the master.
      *
      */
-    int UpdateHostRank()
+    void updateHostRank()
     {
         char hostname[MPI_MAX_PROCESSOR_NAME];
         int length;
-        int hostRank;
 
         MPI_CHECK(MPI_Get_processor_name(hostname, &length));
         cleanHostname(hostname);
@@ -302,8 +287,6 @@ protected:
 
             // if(hostRank!=0) hostRank--; //!\todo fix mpi hostrank start with 1
         }
-
-        return hostRank;
 
     }
 
