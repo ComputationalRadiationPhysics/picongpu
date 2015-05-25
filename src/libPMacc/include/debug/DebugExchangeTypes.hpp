@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, Rene Widera
+ * Copyright 2013, 2015 Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,14 +20,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DEBUGEXCHANGETYPES_HPP
-#define	DEBUGEXCHANGETYPES_HPP
+#pragma once
+
+#include "memory/dataTypes/Mask.hpp"
+#include "types.h"
 
 #include <string>
 #include <sstream>
-
-#include "types.h"
-#include "memory/dataTypes/Mask.hpp"
 
 namespace PMacc
 {
@@ -78,6 +77,3 @@ namespace PMacc
     };
 
 }
-
-#endif	/* DEBUGEXCHANGETYPES_HPP */
-

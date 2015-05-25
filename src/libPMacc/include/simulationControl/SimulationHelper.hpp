@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2015 Axel Huebl, Felix Schmitt, Rene Widera, Alexander Debus
+ * Copyright 2013-2015 Axel Huebl, Felix Schmitt, Rene Widera, Alexander Debus,
+ *                     Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -35,7 +36,6 @@
 #include "dataManagement/DataConnector.hpp"
 
 
-#include "eventSystem/EventSystem.hpp"
 #include "pluginSystem/IPlugin.hpp"
 
 

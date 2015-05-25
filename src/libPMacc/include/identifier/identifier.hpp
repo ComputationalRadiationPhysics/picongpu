@@ -22,7 +22,6 @@
 
 #pragma once
 
-
 #include "types.h"
 
 /* No namespace is needed because we only have defines*/
@@ -33,7 +32,7 @@
 #define PMACC_PLACEHOLDER(id) using namespace PMACC_JOIN(host_placeholder,id)
 #endif
 
-/*define special makros for creating classes which are ony used as identifer*/
+/*define special macros for creating classes which are only used as identifier*/
 #define PMACC_identifier(name,id,...)                                          \
     namespace PMACC_JOIN(placeholder_definition,id) {                          \
         struct name{                                                           \
@@ -51,7 +50,7 @@
 
 
 /** create an identifier (identifier with arbitrary code as second parameter
- * !! second parameter is optinal and can be any C++ code one can add inside a class
+ * !! second parameter is optional and can be any C++ code one can add inside a class
  *
  * example: identifier(varname); //create type varname
  * example: identifier(varname,typedef int type;); //create type varname,

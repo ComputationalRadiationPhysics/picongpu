@@ -1,5 +1,5 @@
 /**
- * Copyright 2013, 2015 Heiko Burau
+ * Copyright 2013, 2015 Heiko Burau, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -21,9 +21,10 @@
  */
 
 #include "mappings/simulation/GridController.hpp"
-#include <iostream>
 #include "cuSTL/container/copier/Memcopy.hpp"
 #include "communication/manager_common.h"
+
+#include <iostream>
 
 namespace PMacc
 {
@@ -31,13 +32,13 @@ namespace algorithm
 {
 namespace mpi
 {
-    
+
 namespace GatherHelper
 {
-    
+
 /** @tparam dim dimension of mpi cluster
  *  @tparam memDim dimension of memory to be gathered
- * 
+ *
  * if memDim == dim - 1 then ``dir`` indicates the direction (orientation)
  * of the (meta)plane.
  */

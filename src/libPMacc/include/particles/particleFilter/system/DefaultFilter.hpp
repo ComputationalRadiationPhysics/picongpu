@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013, 2015 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,13 +20,11 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
 
-#ifndef DEFAULTFILTER_HPP
-#define	DEFAULTFILTER_HPP
-
-#include "types.h"
-#include "particles/frame_types.hpp"
 #include "particles/memory/frames/NullFrame.hpp"
+#include "particles/frame_types.hpp"
+#include "types.h"
 
 namespace PMacc
 {
@@ -98,6 +96,3 @@ class DefaultFilter<NullFrame>
 
 
 } //namespace Frame
-
-#endif	/* DEFAULTFILTER_HPP */
-

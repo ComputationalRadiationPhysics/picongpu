@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Rene Widera
+ * Copyright 2014, 2015 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include "types.h"
-#include "math/vector/Vector.tpp"
+#include "math/vector/Vector.hpp"
 #include "ppFunctions.hpp"
+#include "types.h"
 
 /* select namespace depending on __CUDA_ARCH__ compiler flag*/
 #ifdef __CUDA_ARCH__ //we are on gpu

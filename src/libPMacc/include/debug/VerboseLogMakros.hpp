@@ -20,17 +20,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include <sstream>
 #include <boost/format.hpp>
 #include <iostream>
-
-#include "static_assert.hpp"
 #include <string>
-
-
 
 /** create a log lvl
  * @param code integer which represent a bit in a 64bit bitmask
@@ -70,6 +65,3 @@
         typedef structName thisClass;           \
     public:                                     \
     __DEFINE_VERBOSE_CLASS_LVLS
-
-
-

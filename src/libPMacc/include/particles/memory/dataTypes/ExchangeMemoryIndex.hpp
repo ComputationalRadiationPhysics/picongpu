@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013, 2015 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,15 +20,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef EXCHANGEMEMORYINDEX_HPP
-#define	EXCHANGEMEMORYINDEX_HPP
+#pragma once
 
-#include "types.h"
 #include "dimensions/DataSpace.hpp"
+#include "types.h"
 
 namespace PMacc
 {
-
 
 template<class TYPE, unsigned DIM>
 class ExchangeMemoryIndex
@@ -75,6 +73,3 @@ private:
     PMACC_ALIGN(count, TYPE);
 };
 }
-
-#endif	/* EXCHANGEMEMORYINDEX_HPP */
-

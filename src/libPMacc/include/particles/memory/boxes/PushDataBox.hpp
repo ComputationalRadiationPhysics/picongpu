@@ -1,5 +1,6 @@
 /**
- * Copyright 2013 Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Felix Schmitt, Heiko Burau, Rene Widera,
+ *                     Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -21,9 +22,8 @@
  */
 
 
-#ifndef PUSHDATABOX_HPP
-#define	PUSHDATABOX_HPP
 
+#pragma once
 #include <cuda.h>
 
 #include "particles/memory/boxes/TileDataBox.hpp"
@@ -99,5 +99,3 @@ namespace PMacc
         PMACC_ALIGN(currentSize,TYPE*);
     };
 }
-
-#endif	/* PUSHDATABOX_HPP */

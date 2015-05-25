@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Felix Schmitt, Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,15 +20,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
 
-#ifndef DEBUGBUFFERS_HPP
-#define	DEBUGBUFFERS_HPP
+#include "memory/buffers/IHostBuffer.hpp"
+#include "types.h"
 
 #include <string>
 #include <sstream>
-
-#include "types.h"
-#include "memory/buffers/HostBuffer.hpp"
 
 namespace PMacc
 {
@@ -107,6 +105,3 @@ namespace PMacc
         }
     };
 }
-
-#endif	/* DEBUGBUFFERS_HPP */
-

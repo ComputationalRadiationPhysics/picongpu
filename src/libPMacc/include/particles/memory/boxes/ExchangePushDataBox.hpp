@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013, 2015 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef EXCHANGEPUSHDATABOX_HPP
-#define	EXCHANGEPUSHDATABOX_HPP
+#pragma once
 
 #include "particles/memory/dataTypes/ExchangeMemoryIndex.hpp"
 #include "memory/boxes/DataBox.hpp"
@@ -91,6 +90,3 @@ protected:
 };
 
 }
-
-#endif	/* EXCHANGEPUSHDATABOX_HPP */
-

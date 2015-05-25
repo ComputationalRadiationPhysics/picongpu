@@ -1,5 +1,6 @@
 /**
- * Copyright 2013 Felix Schmitt, Heiko Burau, Rene Widera, Wolfgang Hoenig
+ * Copyright 2013, 2015 Felix Schmitt, Heiko Burau, Rene Widera, Wolfgang Hoenig,
+ *                      Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,8 +21,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _GRIDLAYOUT_HPP
-#define	_GRIDLAYOUT_HPP
+#pragma once
 
 #include "dimensions/DataSpace.hpp"
 
@@ -87,6 +87,3 @@ namespace PMacc
     };
 
 } //namespace PMacc
-
-#endif	/* _GRIDLAYOUT_HPP */
-

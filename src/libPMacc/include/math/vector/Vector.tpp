@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -27,10 +27,10 @@
 #include "math/Vector.hpp"
 #include "algorithms/math.hpp"
 #include "algorithms/TypeCast.hpp"
+#include "algorithms/PromoteType.hpp"
 #include "mpi/GetMPI_StructAsArray.hpp"
 #include "traits/GetComponentsType.hpp"
 #include "traits/GetNComponents.hpp"
-#include "algorithms/PromoteType.hpp"
 
 namespace PMacc
 {

@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2015 Heiko Burau, Rene Widera, Richard Pausch, Alexander Debus
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Richard Pausch,
+ *                     Alexander Debus, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -22,10 +23,11 @@
 
 #pragma once
 
-#include <cmath>
-#include "math/Complex.hpp"
 #include "algorithms/math.hpp"
 #include "algorithms/TypeCast.hpp"
+#include "math/Complex.hpp"
+
+#include <cmath>
 
 namespace PMacc
 {

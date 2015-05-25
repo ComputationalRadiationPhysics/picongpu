@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013, 2015 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,11 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef BITDATA_HPP
-#define	BITDATA_HPP
-
+#pragma once
 
 #include "types.h"
 
@@ -205,6 +201,3 @@ namespace PMacc
 
 
 }
-
-#endif	/* BITDATA_HPP */
-
