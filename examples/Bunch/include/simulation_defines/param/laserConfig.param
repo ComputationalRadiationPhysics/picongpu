@@ -1,22 +1,22 @@
 /**
  * Copyright 2013-2015 Anton Helm, Richard Pausch
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
  
 
 
@@ -288,11 +288,11 @@ const double UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picong
 const double AMPLITUDE_SI = 1.738e13;
 
 
-/** Pulse length: 
+/** Pulse length:
  *  PULSE_LENGTH_SI = total length of polynamial laser pulse
  *  Rise time = 0.5 * PULSE_LENGTH_SI
  *  Fall time = 0.5 * PULSE_LENGTH_SI
- *  in order to compare to a gaussian pulse: rise  time = sqrt{2} * T_{FWHM} 
+ *  in order to compare to a gaussian pulse: rise  time = sqrt{2} * T_{FWHM}
  *  unit: seconds  */
 const double PULSE_LENGTH_SI = 4.0e-15;
 
@@ -300,7 +300,7 @@ const double PULSE_LENGTH_SI = 4.0e-15;
  *              decreases to its 1/e^2-th part,
  *              at the focus position of the laser
  *  unit: meter */
-const double W0x_SI = 4.246e-6; // waist in x-direction 
+const double W0x_SI = 4.246e-6; // waist in x-direction
 const double W0z_SI = W0x_SI; // waist in z-direction
 }
 

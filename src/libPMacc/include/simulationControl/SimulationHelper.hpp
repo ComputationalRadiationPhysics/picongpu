@@ -188,20 +188,20 @@ public:
         TimeIntervall tRound;
         double roundAvg = 0.0;
 
-	/* dump initial step if simulation starts without restart */
-	if (currentStep == 0)
-	{
-	    /* Since in the main loop movingWindow is called always before the dump, we also call it here for consistency.
-	    This becomes only important, if movingWindowCheck does more than merely checking for a slide.
-	    TO DO in a new feature: Turn this into a general hook for pre-checks (window slides are just one possible action). */
-	    movingWindowCheck(currentStep);
-	    dumpOneStep(currentStep);
-	}
-	else
-	{
-	    currentStep--; //We dump before calculation, thus we must go one step back when doing a restart.
-	    movingWindowCheck(currentStep); //If we restart at any step check if we must slide.
-	}
+    /* dump initial step if simulation starts without restart */
+    if (currentStep == 0)
+    {
+        /* Since in the main loop movingWindow is called always before the dump, we also call it here for consistency.
+        This becomes only important, if movingWindowCheck does more than merely checking for a slide.
+        TO DO in a new feature: Turn this into a general hook for pre-checks (window slides are just one possible action). */
+        movingWindowCheck(currentStep);
+        dumpOneStep(currentStep);
+    }
+    else
+    {
+        currentStep--; //We dump before calculation, thus we must go one step back when doing a restart.
+        movingWindowCheck(currentStep); //If we restart at any step check if we must slide.
+    }
 
         /* dump 0% output */
         dumpTimes(tSimCalculation, tRound, roundAvg, currentStep);

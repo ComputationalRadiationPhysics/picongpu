@@ -185,7 +185,7 @@ void FieldE::reset( uint32_t )
 }
 
 
-HDINLINE 
+HDINLINE
 typename FieldE::UnitValueType
 FieldE::getUnit( )
 {

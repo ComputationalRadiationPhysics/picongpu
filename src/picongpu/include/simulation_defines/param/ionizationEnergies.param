@@ -19,7 +19,7 @@
  */
 
 /** \file
- * This file contains the ionization energies and conversion to corresponding 
+ * This file contains the ionization energies and conversion to corresponding
  * electric field strengths for different species. */
 
 #pragma once
@@ -39,16 +39,16 @@ namespace SI
     PMACC_CONST_VECTOR(float_X,1,IONIZATION_ENERGY,
         2.179e-18
     );
-    /* ionization field strength (E-field) for hydrogen: in Volt / meter 
-     * 
-     * usage: 
+    /* ionization field strength (E-field) for hydrogen: in Volt / meter
+     *
+     * usage:
      * PMACC_CONST_VECTOR(float_X,<NUMBER_OF_PROTONS>,IONIZATION_EFIELD,
      *     <value_1>,
      *     ...
      *     <value_Z>
      * );
-     * 
-     * Do not forget to change the weight of the ion and the atomic numbers in 
+     *
+     * Do not forget to change the weight of the ion and the atomic numbers in
      * their respective `.param` file */
     PMACC_CONST_VECTOR(float_X,1,IONIZATION_EFIELD,
         5.14e11

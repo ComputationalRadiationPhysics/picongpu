@@ -150,7 +150,7 @@ namespace detail
                             const float_X phi,
                             const float_X beta_0 )
     {
-        return GetInitialTimeDelay<T_Dim>()(auto_tdelay, tdelay_user_SI, 
+        return GetInitialTimeDelay<T_Dim>()(auto_tdelay, tdelay_user_SI,
                                             halfSimSize, pulselength_SI,
                                             focus_y_SI, phi, beta_0);
     }

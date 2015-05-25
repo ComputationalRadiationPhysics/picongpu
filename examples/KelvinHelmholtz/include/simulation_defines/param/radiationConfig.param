@@ -1,22 +1,22 @@
 /**
  * Copyright 2013 Rene Widera, Richard Pausch
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
  
 
 
@@ -52,7 +52,7 @@ namespace SI
 //const double omega_min = 1.0e14;
 //const double omega_max = 1.0e17;
   // plasma omega = sqrt( (Teilchendichte * (1.6e-19)^2) / (8.854e-12 * 9.11e-31) )
-  //              = 2.52e14 Hz 
+  //              = 2.52e14 Hz
 const double omega_min = 0.1*2.52e14;
 const double omega_max = 200*2.52e14;
 }
@@ -83,22 +83,22 @@ namespace radiationNyquist
 
 
 
-///////////////////////////////////////////////////                                            
+///////////////////////////////////////////////////
 
 
 
 namespace picongpu
 {
 
-  // corect treatment of coherent and incoherent  radiation from macroparticles                  
-  // 1 = on  (slower and more memory, but correct quantitativ treatment)                         
-  // 0 = off (faster but macroparticles are treated as highly charged, point-like particle)      
+  // corect treatment of coherent and incoherent  radiation from macroparticles
+  // 1 = on  (slower and more memory, but correct quantitativ treatment)
+  // 0 = off (faster but macroparticles are treated as highly charged, point-like particle)
 #define __COHERENTINCOHERENTWEIGHTING__ 0
 
 
 
   /* Choose different form factors in order to consider different  particle shapes for radiation
-   * radFormFactor_CIC_3D 
+   * radFormFactor_CIC_3D
    * radFormFactor_CIC_1Dy
    */
   namespace radFormFactor_CIC_3D { }
@@ -108,11 +108,11 @@ namespace picongpu
   namespace radFormFactor = radFormFactor_CIC_3D;
 
 
-}//namespace picongpu                                                                          
+}//namespace picongpu
 
 
 
-///////////////////////////////////////////////////////////                                    
+///////////////////////////////////////////////////////////
 
 
 

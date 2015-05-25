@@ -59,7 +59,7 @@ namespace detail
         /* For staggered fields (e.g. Yee-grid), obtain the fractional cell index components and add
          * that to the total cell indices. The physical field coordinate origin is transversally
          * centered with respect to the global simulation volume.
-         * PMacc::math::Vector<floatD_X, numComponents> fieldPositions = 
+         * PMacc::math::Vector<floatD_X, numComponents> fieldPositions =
          *                fieldSolver::NumericalCellType::getEFieldPosition(); */
         PMacc::math::Vector<floatD_X, numComponents> fieldPositions = fieldOnGridPositions;
         

@@ -45,7 +45,7 @@ namespace ionization
         /** Functor implementation
          * \tparam T_SrcSpecies particle species to be ionized
          * \tparam T_ParticleStorage \see picongpu/src/libPMacc/include/math/MapTuple.hpp
-         * 
+         *
          * \param currentStep current time step */
         template<typename T_SrcSpecies,typename T_ParticleStorage>
         void operator()(T_SrcSpecies& src, T_ParticleStorage& pst, const uint32_t currentStep)

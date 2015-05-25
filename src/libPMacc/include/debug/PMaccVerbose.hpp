@@ -22,8 +22,9 @@
 
 #pragma once
 
-#include <stdint.h>
 #include "debug/VerboseLog.hpp"
+
+#include <stdint.h>
 
 #ifndef PMACC_VERBOSE_LVL
 #define PMACC_VERBOSE_LVL 0

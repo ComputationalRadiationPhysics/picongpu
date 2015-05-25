@@ -50,7 +50,7 @@ namespace picongpu
      *   1) The above formulae does only apply to a Gaussian envelope. If the plateau length is
      *      not zero, the integral over the volume will only vanish if the plateau length is
      *      a multiple of the wavelength.
-     *   2) Since we define our envelope by a sigma of the laser intensity, 
+     *   2) Since we define our envelope by a sigma of the laser intensity,
      *      tau = PULSE_LENGTH * sqrt(2)
      */
     namespace laserPlaneWave

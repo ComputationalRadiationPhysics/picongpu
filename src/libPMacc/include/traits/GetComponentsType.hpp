@@ -39,7 +39,7 @@ namespace traits
      */
     template<typename T_Type,bool T_IsFundamental=boost::is_fundamental<T_Type>::value >
     struct GetComponentsType;
-    
+
     template<typename T_Type>
     struct GetComponentsType<T_Type,true>
     {

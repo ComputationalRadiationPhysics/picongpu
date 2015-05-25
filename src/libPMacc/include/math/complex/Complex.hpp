@@ -36,10 +36,10 @@ public:
 
     // constructor (real, imaginary)
     HDINLINE Complex(T_Type real, T_Type imaginary = type(0.0) ) : real(real), imaginary(imaginary) { }
-    
+
     // constructor (Complex<T_OtherType>)
     template<typename T_OtherType>
-    HDINLINE explicit Complex(const Complex<T_OtherType >& other) : 
+    HDINLINE explicit Complex(const Complex<T_OtherType >& other) :
                         real( static_cast<T_Type> (other.get_real()) ),
                         imaginary( static_cast<T_Type> (other.get_imag()) ) { }
 
@@ -96,17 +96,17 @@ public:
     {
         return imaginary;
     }
-    
+
     // complex zero
     HDINLINE static Complex<T_Type> zero(void)
     {
         return Complex<T_Type>( type(0.0) , type(0.0) );
     }
-    
+
 private:
     PMACC_ALIGN(real,T_Type); // real part
     PMACC_ALIGN(imaginary,T_Type); // imaginary part
-    
+
 };
 
 /** Addition operators */

@@ -1,22 +1,22 @@
 /**
  * Copyright 2013 Heiko Burau, Rene Widera
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
  
 
 
@@ -53,7 +53,7 @@ namespace picongpu
         {1.0e-3, 1.0e-3}, /*x direction [negative,positive]*/
         {1.0e-3, 1.0e-3}, /*y direction [negative,positive]*/
         {1.0e-3, 1.0e-3}  /*z direction [negative,positive]*/
-    }; //unit: none 
+    }; //unit: none
 
     const uint32_t ABSORBER_FADE_IN_STEPS = 16;
     
@@ -62,7 +62,7 @@ namespace picongpu
      *  is fired at the begin of the simulation.
      *  When it reaches slide_point % of the absolute(*) simulation area,
      *  the co-moving window starts to move with the speed of light.
-     * 
+     *
      *  (*) Note: beware, that there is one "hidden" row of gpus at the y-front,
      *            when you use the co-moving window
      *  0.75 means only 75% of simulation area is used for real simulation

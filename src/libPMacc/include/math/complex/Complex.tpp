@@ -59,12 +59,12 @@ template<typename T_Type>
 struct Euler
 {
     typedef typename ::PMacc::math::Complex<T_Type> result;
-    
+
     HDINLINE result operator( )(const T_Type &magnitude, const T_Type &phase)
     {
         return result(magnitude * pmMath::cos(phase),magnitude * pmMath::sin(phase));
     }
-    
+
     HDINLINE result operator( )(const T_Type &magnitude,
                                 const T_Type &sinValue, const T_Type &cosValue)
     {
@@ -78,7 +78,7 @@ template<typename T_Type>
 struct Sqrt< ::PMacc::math::Complex<T_Type> >
 {
     typedef typename ::PMacc::math::Complex<T_Type> result;
-    typedef T_Type type;    
+    typedef T_Type type;
 
     HDINLINE result operator( )(const ::PMacc::math::Complex<T_Type>& other)
     {
@@ -99,7 +99,7 @@ struct Exp< ::PMacc::math::Complex<T_Type> >
 {
     typedef typename ::PMacc::math::Complex<T_Type> result;
     typedef T_Type type;
-    
+
     HDINLINE result operator( )(const ::PMacc::math::Complex<T_Type>& other)
     {
         return pmMath::euler(type(1.0),other.get_imag())*pmMath::exp(other.get_real());
@@ -123,7 +123,7 @@ struct Arg< ::PMacc::math::Complex<T_Type> >
 {
     typedef typename ::PMacc::math::Complex<T_Type>::type result;
     typedef T_Type type;
-    
+
     HDINLINE result operator( )(const ::PMacc::math::Complex<T_Type>& other)
     {
         if ( other.get_real()==type(0.0) && other.get_imag()==type(0.0) )
@@ -145,7 +145,7 @@ struct Pow< ::PMacc::math::Complex<T_Type>, T_Type >
 {
     typedef typename ::PMacc::math::Complex<T_Type> result;
     typedef T_Type type;
-    
+
     HDINLINE result operator( )(const ::PMacc::math::Complex<T_Type>& other,
                                 const T_Type& exponent)
     {
@@ -172,7 +172,7 @@ template<typename T_Type>
 struct Abs2< ::PMacc::math::Complex<T_Type> >
 {
     typedef typename ::PMacc::math::Complex<T_Type>::type result;
-    
+
     HDINLINE result operator( )(const ::PMacc::math::Complex<T_Type>& other)
     {
         return pmMath::abs2(other.get_real()) + pmMath::abs2(other.get_imag());

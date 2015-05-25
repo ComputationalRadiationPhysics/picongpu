@@ -1,22 +1,22 @@
 /**
  * Copyright 2013 Rene Widera, Richard Pausch
  *
- * This file is part of PIConGPU. 
- * 
- * PIConGPU is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version. 
- * 
- * PIConGPU is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public License 
- * along with PIConGPU.  
- * If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
  
 
 
@@ -24,7 +24,7 @@
 
   /*
     radiation verbose level:
-    0=nothing, 1=physics, 2=simulation_state, 4=memory, 8=critical 
+    0=nothing, 1=physics, 2=simulation_state, 4=memory, 8=critical
   */
 
 #define PIC_VERBOSE_RADIATION 3
@@ -79,22 +79,22 @@ namespace radiationNyquist
 
 
 
-///////////////////////////////////////////////////                                            
+///////////////////////////////////////////////////
 
 
 
 namespace picongpu
 {
 
-  // corect treatment of coherent and incoherent  radiation from macroparticles                  
-  // 1 = on  (slower and more memory, but correct quantitativ treatment)                         
-  // 0 = off (faster but macroparticles are treated as highly charged, point-like particle)      
+  // corect treatment of coherent and incoherent  radiation from macroparticles
+  // 1 = on  (slower and more memory, but correct quantitativ treatment)
+  // 0 = off (faster but macroparticles are treated as highly charged, point-like particle)
 #define __COHERENTINCOHERENTWEIGHTING__ 1
 
 
 
   /* Choose different form factors in order to consider different  particle shapes for radiation
-   * radFormFactor_CIC_3D 
+   * radFormFactor_CIC_3D
    * radFormFactor_CIC_1Dy
    */
   namespace radFormFactor_CIC_3D { }
@@ -104,11 +104,11 @@ namespace picongpu
   namespace radFormFactor = radFormFactor_CIC_3D;
 
 
-}//namespace picongpu                                                                          
+}//namespace picongpu
 
 
 
-///////////////////////////////////////////////////////////                                    
+///////////////////////////////////////////////////////////
 
 
 
@@ -118,19 +118,19 @@ namespace parameters
 /*!enable radiation calculation*/
 #define ENABLE_RADIATION 1
 
-// Nyquist low pass allows only amplitudes for frequencies below Nyquist frequency                                                                                                        
-// 1 = on  (slower and more memory, no fourier reflections)                                                                                                                               
-// 0 = off (faster but with fourier reflections)                                                                                                                                          
+// Nyquist low pass allows only amplitudes for frequencies below Nyquist frequency
+// 1 = on  (slower and more memory, no fourier reflections)
+// 0 = off (faster but with fourier reflections)
 #define __NYQUISTCHECK__ 1
 
 
 
-//marked every N particle for calculate radiation                                                                                                                                         
-//mark no particle at beginning                                                                                                                                                           
+//marked every N particle for calculate radiation
+//mark no particle at beginning
 #define RAD_MARK_PARTICLE 1
 
-//disable or enable gamme filter                                                                                                                                                          
-//diable (0) / enable (1)                                                                                                                                                                 
+//disable or enable gamme filter
+//diable (0) / enable (1)
 #define RAD_ACTIVATE_GAMMA_FILTER 0
 
 const float RadiationGamma = 5.;

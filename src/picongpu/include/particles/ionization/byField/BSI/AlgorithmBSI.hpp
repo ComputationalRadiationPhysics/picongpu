@@ -26,7 +26,7 @@
 #include "traits/attribute/GetChargeState.hpp"
 #include "algorithms/math/floatMath/floatingPoint.tpp"
 
-/** IONIZATION ALGORITHM 
+/** IONIZATION ALGORITHM
  * - implements the calculation of ionization probability and changes charge states
  *   by decreasing the number of bound electrons
  * - is called with the IONIZATION MODEL, specifically by setting the flag in @see speciesDefinition.param */
@@ -47,13 +47,13 @@ namespace ionization
          * \tparam EType type of electric field
          * \tparam BType type of magnetic field
          * \tparam ParticleType type of particle to be ionized
-         * 
+         *
          * \param bField magnetic field value at t=0
          * \param eField electric field value at t=0
          * \param parentIon particle instance to be ionized with position at t=0 and momentum at t=-1/2
          */
         template<typename EType, typename BType, typename ParticleType >
-        HDINLINE void 
+        HDINLINE void
         operator()( const BType bField, const EType eField, ParticleType& parentIon )
         {
 
