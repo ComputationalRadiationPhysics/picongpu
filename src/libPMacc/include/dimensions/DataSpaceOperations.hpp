@@ -1,5 +1,6 @@
 /**
- * Copyright 2013 Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013, 2015 Felix Schmitt, Heiko Burau, Rene Widera,
+ *                      Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,9 +21,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#ifndef DATASPACEOPERATIONS_HPP
-#define	DATASPACEOPERATIONS_HPP
+#pragma once
 
 #include "types.h"
 #include "dimensions/DataSpace.hpp"
@@ -294,5 +293,3 @@ namespace PMacc
         }
     };
 }
-
-#endif	/* DATASPACEOPERATIONS_HPP */

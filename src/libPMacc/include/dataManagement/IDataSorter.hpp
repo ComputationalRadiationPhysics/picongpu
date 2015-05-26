@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera, Felix Schmitt
+ * Copyright 2013, 2015 Rene Widera, Felix Schmitt, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,9 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#ifndef IDATASORTER_HPP
-#define	IDATASORTER_HPP
+#pragma once
 
 namespace PMacc
 {
@@ -76,6 +74,3 @@ namespace PMacc
         virtual ID_TYPE getNext() = 0;
     };
 }
-
-#endif	/* IDATASORTER_HPP */
-

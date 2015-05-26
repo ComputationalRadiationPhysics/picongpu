@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,14 +20,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
 
-#ifndef REDUCE_HPP
-#define	REDUCE_HPP
-
-#include "types.h"
 
 #include "nvidia/functors/Assign.hpp"
 #include "traits/GetValueType.hpp"
+#include "types.h"
+
 #include <boost/type_traits.hpp>
 
 namespace PMacc
@@ -222,7 +221,7 @@ namespace PMacc
                  */
                 HINLINE uint32_t optimalThreadsPerBlock(uint32_t n, uint32_t sizePerElement)
                 {
-                    uint32_t sharedBorder = sharedMemByte / sizePerElement;
+                    uint32_t const sharedBorder = sharedMemByte / sizePerElement;
                     return getThreadsPerBlock(std::min(sharedBorder, n));
                 }
 
@@ -237,6 +236,3 @@ namespace PMacc
         }
     }
 }
-
-#endif	/* REDUCE_HPP */
-

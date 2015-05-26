@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, Rene Widera
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef STACKEXCHANGEBUFFER_HPP
-#define	STACKEXCHANGEBUFFER_HPP
+#pragma once
 
 #include "particles/memory/boxes/ExchangePopDataBox.hpp"
 #include "particles/memory/boxes/ExchangePushDataBox.hpp"
@@ -175,6 +174,3 @@ namespace PMacc
         Exchange<FRAMEINDEX, DIM1>& stackIndexer;
     };
 }
-
-#endif	/* STACKEXCHANGEBUFFER_HPP */
-

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -24,14 +24,7 @@
 #pragma once
 
 #include "compileTime/accessors/Identity.hpp"
-
-#include <boost/mpl/begin_end.hpp>
-#include <boost/mpl/next_prior.hpp>
-#include <boost/mpl/deref.hpp>
-#include <boost/mpl/bind.hpp>
-#include <boost/type_traits.hpp>
-
-#include <boost/mpl/if.hpp>
+#include "forward.hpp"
 
 #include <boost/preprocessor/repetition/enum.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>
@@ -46,7 +39,12 @@
 #include <boost/preprocessor/repetition/enum_trailing.hpp>
 #include <boost/mpl/apply.hpp>
 #include <boost/mpl/transform.hpp>
-#include "forward.hpp"
+#include <boost/mpl/if.hpp>
+#include <boost/mpl/begin_end.hpp>
+#include <boost/mpl/next_prior.hpp>
+#include <boost/mpl/deref.hpp>
+#include <boost/mpl/bind.hpp>
+#include <boost/type_traits.hpp>
 
 
 /* Help to read this file:

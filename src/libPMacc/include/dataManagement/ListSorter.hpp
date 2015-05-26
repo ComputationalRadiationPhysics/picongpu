@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Rene Widera, Felix Schmitt
+ * Copyright 2013-2015 Rene Widera, Felix Schmitt, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LISTSORTER_HPP
-#define	LISTSORTER_HPP
+#pragma once
 
 #include "dataManagement/IDataSorter.hpp"
 
@@ -81,6 +80,3 @@ namespace PMacc
         typename std::list<ID_TYPE>::iterator iter;
     };
 }
-
-#endif	/* LISTSORTER_HPP */
-

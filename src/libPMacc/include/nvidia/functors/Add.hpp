@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013, 2015 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,12 +20,10 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
 
-#ifndef ADD_HPP
-#define	ADD_HPP
-
-#include "types.h"
 #include "mpi/GetMPI_Op.hpp"
+#include "types.h"
 
 namespace PMacc
 {
@@ -59,6 +57,3 @@ namespace PMacc
         }
     }
 }
-
-#endif	/* ADD_HPP */
-

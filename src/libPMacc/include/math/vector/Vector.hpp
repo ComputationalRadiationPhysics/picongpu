@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -22,14 +22,16 @@
 
 #pragma once
 
-#include "types.h"
-#include "result_of_Functor.hpp"
-#include <boost/static_assert.hpp>
-#include <boost/mpl/size.hpp>
-#include <iostream>
-#include <lambda/Expression.hpp>
 #include <math/vector/accessor/StandartAccessor.hpp>
 #include <math/vector/navigator/StandartNavigator.hpp>
+#include <lambda/Expression.hpp>
+#include "result_of_Functor.hpp"
+#include "static_assert.hpp"
+#include "types.h"
+
+#include <boost/mpl/size.hpp>
+
+#include <iostream>
 
 namespace PMacc
 {
@@ -101,7 +103,7 @@ struct CopyElementWise<true>
 
 namespace tag
 {
-struct Vector;
+    struct Vector;
 }
 
 template<typename T_Type, int T_dim,
@@ -136,8 +138,7 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
     };
 
     HDINLINE Vector()
-    {
-    }
+    {}
 
     HDINLINE
     Vector(const type x)
@@ -187,9 +188,9 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
     }
 
     /**
-     * Give a Vector<...> were all dimensions were set to the same value
+     * Creates a Vector where all dimensions are set to the same value
      *
-     * @param value value which is set for all dimensions
+     * @param value Value which is set for all dimensions
      * @return new Vector<...>
      */
     HDINLINE

@@ -1,5 +1,6 @@
 /**
- * Copyright 2013 Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013, 2015 Felix Schmitt, Heiko Burau, Rene Widera,
+ *                      Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,14 +21,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
 
-#ifndef DEBUGDATASPACE_HPP
-#define	DEBUGDATASPACE_HPP
+#include "dimensions/DataSpace.hpp"
 
 #include <string>
 #include <sstream>
-
-#include "dimensions/DataSpace.hpp"
 
 namespace PMacc
 {
@@ -73,6 +72,3 @@ namespace PMacc
     };
 
 }
-
-#endif	/* DEBUGDATASPACE_HPP */
-

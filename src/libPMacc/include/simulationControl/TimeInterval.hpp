@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013, 2015 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,16 +20,15 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TIMEINTERVAL_HPP
-#define	TIMEINTERVAL_HPP
-
-#include <sys/time.h>
-#include <string>
+#pragma once
 
 #include "types.h"
+
+#include <sys/time.h>
+
+#include <string>
 #include <iostream>
 #include <sstream>
-
 
 namespace PMacc
 {
@@ -124,7 +123,3 @@ namespace PMacc
         double end;
     };
 } //namespace PMacc
-
-
-#endif	/* TIMEINTERVAL_HPP */
-

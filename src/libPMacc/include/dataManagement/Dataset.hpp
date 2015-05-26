@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera, Felix Schmitt
+ * Copyright 2013, 2015 Rene Widera, Felix Schmitt, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,14 +20,11 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#ifndef DATASET_HPP
-#define	DATASET_HPP
-
-#include <cassert>
+#pragma once
 
 #include "dataManagement/ISimulationData.hpp"
 
+#include <cassert>
 
 namespace PMacc
 {
@@ -107,6 +104,3 @@ namespace PMacc
         DatasetStatus status;
     };
 }
-
-#endif	/* DATASET_HPP */
-

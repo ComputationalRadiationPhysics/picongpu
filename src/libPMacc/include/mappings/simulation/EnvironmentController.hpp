@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera, Wolfgang Hoenig
+ * Copyright 2013, 2015 Rene Widera, Wolfgang Hoenig, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,9 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#ifndef _ENVIRONMENTCONTROLLER_HPP
-#define	_ENVIRONMENTCONTROLLER_HPP
+#pragma once
 
 #include "memory/dataTypes/Mask.hpp"
 
@@ -90,7 +88,3 @@ private:
 };
 
 } //namespace PMacc
-
-
-#endif	/* _ENVIRONMENTCONTROLLER_HPP */
-

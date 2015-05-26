@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -23,10 +23,10 @@
 
 #pragma once
 
-#include "types.h"
-#include "dimensions/DataSpace.hpp"
-#include "dimensions/DataSpaceOperations.hpp"
 #include "dimensions/SuperCellDescription.hpp"
+#include "dimensions/DataSpaceOperations.hpp"
+#include "dimensions/DataSpace.hpp"
+#include "types.h"
 
 namespace PMacc
 {

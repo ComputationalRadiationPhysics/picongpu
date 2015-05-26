@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -22,8 +22,6 @@
 
 #pragma once
 
-#include "types.h"
-#include <stdint.h>
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/vector.hpp>
@@ -37,6 +35,9 @@
 #include <boost/mpl/accumulate.hpp>
 #include <boost/mpl/less.hpp>
 #include "math/Vector.hpp"
+#include "types.h"
+
+#include <stdint.h>
 
 namespace PMacc
 {
@@ -152,8 +153,7 @@ struct Vector
 
     /** Create a runtime Vector
      *
-     *  Creates the corresponding runtime vector
-     *  object
+     *  Creates the corresponding runtime vector object.
      *
      *  \return RT_type runtime vector with same value type
      */

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013, 2015 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CUDAWRAPPERMEMCOPY_HPP
-#define CUDAWRAPPERMEMCOPY_HPP
+#pragma once
 
 #include "math/vector/Size_t.hpp"
 #include <types.h>
@@ -105,5 +104,3 @@ struct Memcopy<3>
 
 } // cudaWrapper
 } // PMacc
-
-#endif //CUDAWRAPPERMEMCOPY_HPP

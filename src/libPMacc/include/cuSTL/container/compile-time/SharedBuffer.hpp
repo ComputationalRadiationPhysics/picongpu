@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013, 2015 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CONTAINER_CT_SHAREDBUFFER_HPP
-#define CONTAINER_CT_SHAREDBUFFER_HPP
+#pragma once
 
 #include "CartBuffer.hpp"
 #include "../allocator/compile-time/SharedMemAllocator.hpp"
@@ -46,5 +45,3 @@ struct SharedBuffer
 } // CT
 } // container
 } // PMacc
-
-#endif // CONTAINER_CT_SHAREDBUFFER_HPP

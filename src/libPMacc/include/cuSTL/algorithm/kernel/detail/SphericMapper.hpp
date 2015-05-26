@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,11 +20,11 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ALGORITHM_KERNEL_DETAIL_SPHERICMAPPER_HPP
-#define ALGORITHM_KERNEL_DETAIL_SPHERICMAPPER_HPP
+#pragma once
 
-#include "types.h"
 #include "math/vector/Size_t.hpp"
+#include "types.h"
+
 #include <boost/mpl/void.hpp>
 
 namespace PMacc
@@ -216,5 +216,3 @@ struct SphericMapper<3, mpl::void_>
 } // kernel
 } // algorithm
 } // PMacc
-
-#endif // ALGORITHM_KERNEL_DETAIL_SPHERICMAPPER_HPP

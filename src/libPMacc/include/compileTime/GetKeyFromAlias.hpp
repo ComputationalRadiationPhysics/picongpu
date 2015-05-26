@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013, 2015 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -22,21 +22,18 @@
 
 #pragma once
 
-#include "types.h"
 #include "compileTime/conversion/SeqToMap.hpp"
 #include "compileTime/conversion/TypeToAliasPair.hpp"
 #include "compileTime/conversion/TypeToPair.hpp"
+#include "static_assert.hpp"
+#include "types.h"
+
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/copy.hpp>
-
-#include <boost/mpl/assert.hpp>
-#include <boost/static_assert.hpp>
 #include <boost/type_traits/is_same.hpp>
 
 namespace PMacc
 {
-
-
 
 template<typename T_MPLSeq,
          typename T_Key

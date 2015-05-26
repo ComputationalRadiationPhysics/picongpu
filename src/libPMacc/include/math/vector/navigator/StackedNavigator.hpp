@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Heiko Burau, Rene Widera
+ * Copyright 2014, 2015 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -21,6 +21,8 @@
  */
 
 #pragma once
+
+#include "types.h"
 
 namespace PMacc
 {

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, Rene Widera
+ * Copyright 2013, 2015 Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SIMULATIONFIELDHELPER_HPP
-#define	SIMULATIONFIELDHELPER_HPP
+#pragma once
 
 #include "dimensions/GridLayout.hpp"
 #include "eventSystem/EventSystem.hpp"
@@ -63,6 +62,3 @@ protected:
 };
 
 } //namespace PMacc
-
-#endif	/* SIMULATIONFIELDHELPER_HPP */
-

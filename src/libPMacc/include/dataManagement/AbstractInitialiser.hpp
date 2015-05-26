@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Rene Widera, Felix Schmitt
+ * Copyright 2013-2015 Rene Widera, Felix Schmitt, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,12 +20,10 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ABSTRACTINITIALISER_HPP
-#define	ABSTRACTINITIALISER_HPP
+#pragma once
 
 #include "dataManagement/ISimulationData.hpp"
 #include "dataManagement/IDataSorter.hpp"
-
 
 namespace PMacc
 {
@@ -60,6 +58,3 @@ namespace PMacc
     };
 
 }
-
-#endif	/* ABSTRACTINITIALISER_HPP */
-

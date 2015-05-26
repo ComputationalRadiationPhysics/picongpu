@@ -1,5 +1,6 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, Rene Widera, Wolfgang Hoenig
+ * Copyright 2013, 2015 Axel Huebl, Felix Schmitt, Rene Widera,
+ *                      Wolfgang Hoenig, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,10 +21,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#ifndef _GRIDCONTROLLER_HPP
-#define	_GRIDCONTROLLER_HPP
-
+#pragma once
 
 #include "dimensions/DataSpace.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
@@ -291,8 +289,3 @@ namespace PMacc
         CommunicatorMPI<DIM> GridController<DIM>::comm;
 
 } //namespace PMacc
-
-
-
-#endif	/* _GRIDCONTROLLER_HPP */
-

@@ -1,5 +1,6 @@
 /**
- * Copyright 2013 Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Felix Schmitt, Heiko Burau, Rene Widera,
+ *                     Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,9 +21,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#ifndef POPDATABOX_HPP
-#define	POPDATABOX_HPP
+#pragma once
 
 #include <cuda.h>
 
@@ -118,5 +117,3 @@ protected:
 };
 
 }
-
-#endif	/* POPDATABOX_HPP */

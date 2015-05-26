@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013, 2015 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -20,10 +20,10 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MPI_STRUCTASARRAY_HPP
-#define	MPI_STRUCTASARRAY_HPP
+#pragma once
 
 #include "types.h"
+
 #include <mpi.h>
 
 namespace PMacc
@@ -41,6 +41,3 @@ namespace PMacc
         };
     }
 }
-
-#endif	/* MPI_STRUCTASARRAY_HPP */
-

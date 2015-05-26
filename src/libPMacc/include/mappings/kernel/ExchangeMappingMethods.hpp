@@ -315,5 +315,5 @@ namespace PMacc
             return result;
         }
     };
-    
+
 }//namespace PMacc
