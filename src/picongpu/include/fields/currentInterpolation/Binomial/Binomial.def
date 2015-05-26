@@ -31,4 +31,24 @@ struct Binomial;
 
 } /* namespace currentInterpolation */
 
+namespace traits
+{
+
+/* Get margin of the current interpolation
+ *
+ * This class defines a LowerMargin and an UpperMargin.
+ */
+template<uint32_t T_dim>
+struct GetMargin<picongpu::currentInterpolation::Binomial<T_dim > >
+{
+private:
+    typedef picongpu::currentInterpolation::Binomial<T_dim> MyInterpolation;
+
+public:
+    typedef typename MyInterpolation::LowerMargin LowerMargin;
+    typedef typename MyInterpolation::UpperMargin UpperMargin;
+};
+
+} /* namespace traits */
+
 } /* namespace picongpu */

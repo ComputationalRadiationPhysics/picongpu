@@ -57,17 +57,31 @@ fieldJ( cellDescription.getGridLayout( ) ), fieldE( NULL ), fieldB( NULL )
 {
     const DataSpace<simDim> coreBorderSize = cellDescription.getGridLayout( ).getDataSpaceWithoutGuarding( );
 
-
+    /* cell margins the current might spread to due to particle shapes */
     typedef typename bmpl::accumulate<
         VectorAllSpecies,
         typename PMacc::math::CT::make_Int<simDim, 0>::type,
         PMacc::math::CT::max<bmpl::_1, GetLowerMargin< GetCurrentSolver<bmpl::_2> > >
-        >::type LowerMargin;
+        >::type LowerMarginShapes;
 
     typedef typename bmpl::accumulate<
         VectorAllSpecies,
         typename PMacc::math::CT::make_Int<simDim, 0>::type,
         PMacc::math::CT::max<bmpl::_1, GetUpperMargin< GetCurrentSolver<bmpl::_2> > >
+        >::type UpperMarginShapes;
+
+    /* margins are always positive, also for lower margins
+     * additional current interpolations and current filters on FieldJ might
+     * spread the dependencies on neighboring cells
+     *   -> use max(shape,filter) */
+    typedef typename PMacc::math::CT::max<
+        LowerMarginShapes,
+        GetMargin<fieldSolver::CurrentInterpolation>::LowerMargin
+        >::type LowerMargin;
+
+    typedef typename PMacc::math::CT::max<
+        UpperMarginShapes,
+        GetMargin<fieldSolver::CurrentInterpolation>::UpperMargin
         >::type UpperMargin;
 
     const DataSpace<simDim> originGuard( LowerMargin( ).toRT( ) );
