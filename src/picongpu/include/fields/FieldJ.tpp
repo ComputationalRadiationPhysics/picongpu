@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -53,7 +53,7 @@ using namespace PMacc;
 
 FieldJ::FieldJ( MappingDesc cellDescription ) :
 SimulationFieldHelper<MappingDesc>( cellDescription ),
-fieldJ( cellDescription.getGridLayout( ) ), fieldE( NULL )
+fieldJ( cellDescription.getGridLayout( ) ), fieldE( NULL ), fieldB( NULL )
 {
     const DataSpace<simDim> coreBorderSize = cellDescription.getGridLayout( ).getDataSpaceWithoutGuarding( );
 
@@ -166,9 +166,10 @@ void FieldJ::insertField( uint32_t exchangeType )
           direction, mapper );
 }
 
-void FieldJ::init( FieldE &fieldE )
+void FieldJ::init( FieldE &fieldE, FieldB &fieldB )
 {
     this->fieldE = &fieldE;
+    this->fieldB = &fieldB;
 
     Environment<>::get( ).DataConnector( ).registerData( *this );
 }
@@ -250,15 +251,17 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t ) throw (std::in
     __setTransactionEvent( __endTransaction( ) );
 }
 
-template<uint32_t AREA>
-void FieldJ::addCurrentToE( )
+template<uint32_t AREA, class T_CurrentInterpolation>
+void FieldJ::addCurrentToEMF( T_CurrentInterpolation& myCurrentInterpolation )
 {
-    __picKernelArea( ( kernelAddCurrentToE ),
+    __picKernelArea( ( kernelAddCurrentToEMF ),
                      cellDescription,
                      AREA )
         ( MappingDesc::SuperCellSize::toRT( ).toDim3( ) )
         ( this->fieldE->getDeviceDataBox( ),
-          this->fieldJ.getDeviceBuffer( ).getDataBox( ) );
+          this->fieldB->getDeviceDataBox( ),
+          this->fieldJ.getDeviceBuffer( ).getDataBox( ),
+          myCurrentInterpolation );
 }
 
 }

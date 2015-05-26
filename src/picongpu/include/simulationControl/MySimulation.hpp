@@ -44,6 +44,7 @@
 #include "fields/FieldJ.hpp"
 #include "fields/FieldTmp.hpp"
 #include "fields/MaxwellSolver/Solvers.hpp"
+#include "fields/currentInterpolation/CurrentInterpolation.hpp"
 #include "fields/background/cellwiseOperation.hpp"
 #include "initialization/IInitPlugin.hpp"
 #include "initialization/ParserGridDistribution.hpp"
@@ -86,6 +87,10 @@ public:
     fieldE(NULL),
     fieldJ(NULL),
     fieldTmp(NULL),
+    myFieldSolver(NULL),
+    myCurrentInterpolation(NULL),
+    pushBGField(NULL),
+    currentBGField(NULL),
     cellDescription(NULL),
     initialiserController(NULL),
     slidingWindow(false)
@@ -238,6 +243,8 @@ public:
 
         __delete(myFieldSolver);
 
+        __delete(myCurrentInterpolation);
+
         ForEach<VectorAllSpecies, particles::CallDelete<bmpl::_1>, MakeIdentifier<bmpl::_1> > deleteParticleMemory;
         deleteParticleMemory(forward(particleStorage));
 
@@ -291,11 +298,14 @@ public:
 
         fieldB->init(*fieldE, *laser);
         fieldE->init(*fieldB, *laser);
-        fieldJ->init(*fieldE);
+        fieldJ->init(*fieldE, *fieldB);
         fieldTmp->init();
 
         // create field solver
         this->myFieldSolver = new fieldSolver::FieldSolver(*cellDescription);
+
+        // create current interpolation
+        this->myCurrentInterpolation = new fieldSolver::CurrentInterpolation;
 
 
         ForEach<VectorAllSpecies, particles::CallInit<bmpl::_1>, MakeIdentifier<bmpl::_1> > particleInit;
@@ -408,10 +418,10 @@ public:
         if(bmpl::size<VectorAllSpecies>::type::value>0)
         {
             EventTask eRecvCurrent = fieldJ->asyncCommunication(__getTransactionEvent());
-            fieldJ->addCurrentToE<CORE > ();
+            fieldJ->addCurrentToEMF<CORE >(*myCurrentInterpolation);
 
             __setTransactionEvent(eRecvCurrent);
-            fieldJ->addCurrentToE<BORDER > ();
+            fieldJ->addCurrentToEMF<BORDER >(*myCurrentInterpolation);
         }
 #endif
 
@@ -548,6 +558,8 @@ protected:
 
     // field solver
     fieldSolver::FieldSolver* myFieldSolver;
+    fieldSolver::CurrentInterpolation* myCurrentInterpolation;
+
     cellwiseOperation::CellwiseOperation< CORE + BORDER + GUARD >* pushBGField;
     cellwiseOperation::CellwiseOperation< CORE + BORDER + GUARD >* currentBGField;
 
