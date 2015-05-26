@@ -195,7 +195,7 @@ struct ZigZag
              *   - run calculations in a shape optimized coordinate system
              *     with fixed interpolation points
              */
-            ShiftCoordinateSystem<Supports_direction>()(cursor, pos, fieldSolver::NumericalCellType::getEFieldPosition()[dir]);
+            ShiftCoordinateSystem<Supports_direction>()(cursor, pos, fieldSolver::NumericalCellType::getJFieldPosition()[dir]);
 
             /* define grid points where we evaluate the shape function*/
             typedef typename PMacc::math::CT::make_Vector<
