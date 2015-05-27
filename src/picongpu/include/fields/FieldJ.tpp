@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -53,21 +53,35 @@ using namespace PMacc;
 
 FieldJ::FieldJ( MappingDesc cellDescription ) :
 SimulationFieldHelper<MappingDesc>( cellDescription ),
-fieldJ( cellDescription.getGridLayout( ) ), fieldE( NULL )
+fieldJ( cellDescription.getGridLayout( ) ), fieldE( NULL ), fieldB( NULL ), fieldJrecv( NULL )
 {
     const DataSpace<simDim> coreBorderSize = cellDescription.getGridLayout( ).getDataSpaceWithoutGuarding( );
 
-
+    /* cell margins the current might spread to due to particle shapes */
     typedef typename bmpl::accumulate<
         VectorAllSpecies,
         typename PMacc::math::CT::make_Int<simDim, 0>::type,
         PMacc::math::CT::max<bmpl::_1, GetLowerMargin< GetCurrentSolver<bmpl::_2> > >
-        >::type LowerMargin;
+        >::type LowerMarginShapes;
 
     typedef typename bmpl::accumulate<
         VectorAllSpecies,
         typename PMacc::math::CT::make_Int<simDim, 0>::type,
         PMacc::math::CT::max<bmpl::_1, GetUpperMargin< GetCurrentSolver<bmpl::_2> > >
+        >::type UpperMarginShapes;
+
+    /* margins are always positive, also for lower margins
+     * additional current interpolations and current filters on FieldJ might
+     * spread the dependencies on neighboring cells
+     *   -> use max(shape,filter) */
+    typedef typename PMacc::math::CT::max<
+        LowerMarginShapes,
+        GetMargin<fieldSolver::CurrentInterpolation>::LowerMargin
+        >::type LowerMargin;
+
+    typedef typename PMacc::math::CT::max<
+        UpperMarginShapes,
+        GetMargin<fieldSolver::CurrentInterpolation>::UpperMargin
         >::type UpperMargin;
 
     const DataSpace<simDim> originGuard( LowerMargin( ).toRT( ) );
@@ -101,10 +115,34 @@ fieldJ( cellDescription.getGridLayout( ) ), fieldE( NULL )
         // std::cout << "ex " << i << " x=" << guardingCells[0] << " y=" << guardingCells[1] << " z=" << guardingCells[2] << std::endl;
         fieldJ.addExchangeBuffer( i, guardingCells, FIELD_J );
     }
+
+    /* Receive border values in own guard for "receive" communication pattern - necessary for current interpolation/filter */
+    const DataSpace<simDim> originRecvGuard( GetMargin<fieldSolver::CurrentInterpolation>::LowerMargin( ).toRT( ) );
+    const DataSpace<simDim> endRecvGuard( GetMargin<fieldSolver::CurrentInterpolation>::UpperMargin( ).toRT( ) );
+    if( originRecvGuard != DataSpace<simDim>::create(0) ||
+        endRecvGuard != DataSpace<simDim>::create(0) )
+    {
+        fieldJrecv = new GridBuffer<ValueType, simDim > ( fieldJ.getDeviceBuffer(), cellDescription.getGridLayout( ) );
+
+        /*go over all directions*/
+        for ( uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i )
+        {
+            DataSpace<simDim> relativMask = Mask::getRelativeDirections<simDim > ( i );
+            /* guarding cells depend on direction
+             * for negative direction use originGuard else endGuard (relative direction ZERO is ignored)
+             * don't switch end and origin because this is a read buffer and no send buffer
+             */
+            DataSpace<simDim> guardingCells;
+            for ( uint32_t d = 0; d < simDim; ++d )
+                guardingCells[d] = ( relativMask[d] == -1 ? originRecvGuard[d] : endRecvGuard[d] );
+            fieldJrecv->addExchange( GUARD, i, guardingCells, FIELD_JRECV );
+        }
+    }
 }
 
 FieldJ::~FieldJ( )
 {
+    __delete(fieldJrecv);
 }
 
 SimulationDataId FieldJ::getUniqueId( )
@@ -132,7 +170,14 @@ EventTask FieldJ::asyncCommunication( EventTask serialEvent )
     __startTransaction( serialEvent );
     FieldFactory::getInstance( ).createTaskFieldSend( *this );
     ret += __endTransaction( );
-    return ret;
+
+    if( fieldJrecv != NULL )
+    {
+        EventTask eJ = fieldJrecv->asyncCommunication( ret );
+        return eJ;
+    }
+    else
+        return ret;
 }
 
 void FieldJ::bashField( uint32_t exchangeType )
@@ -166,9 +211,10 @@ void FieldJ::insertField( uint32_t exchangeType )
           direction, mapper );
 }
 
-void FieldJ::init( FieldE &fieldE )
+void FieldJ::init( FieldE &fieldE, FieldB &fieldB )
 {
     this->fieldE = &fieldE;
+    this->fieldB = &fieldB;
 
     Environment<>::get( ).DataConnector( ).registerData( *this );
 }
@@ -250,15 +296,17 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t ) throw (std::in
     __setTransactionEvent( __endTransaction( ) );
 }
 
-template<uint32_t AREA>
-void FieldJ::addCurrentToE( )
+template<uint32_t AREA, class T_CurrentInterpolation>
+void FieldJ::addCurrentToEMF( T_CurrentInterpolation& myCurrentInterpolation )
 {
-    __picKernelArea( ( kernelAddCurrentToE ),
+    __picKernelArea( ( kernelAddCurrentToEMF ),
                      cellDescription,
                      AREA )
         ( MappingDesc::SuperCellSize::toRT( ).toDim3( ) )
         ( this->fieldE->getDeviceDataBox( ),
-          this->fieldJ.getDeviceBuffer( ).getDataBox( ) );
+          this->fieldB->getDeviceDataBox( ),
+          this->fieldJ.getDeviceBuffer( ).getDataBox( ),
+          myCurrentInterpolation );
 }
 
 }

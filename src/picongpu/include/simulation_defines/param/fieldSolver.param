@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -18,8 +18,9 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
+
+#include "fields/currentInterpolation/CurrentInterpolation.def"
 
 /**! Configure the selected field solver method
  *
@@ -30,24 +31,24 @@ namespace picongpu
 {
     namespace fieldSolverNone
     {
-        
+        typedef currentInterpolation::None<simDim> CurrentInterpolation;
     }
-    
+
     namespace fieldSolverYee
     {
-        
+        typedef currentInterpolation::None<simDim> CurrentInterpolation;
     }
-    
+
     namespace fieldSolverYeeNative
     {
-    
+        typedef currentInterpolation::None<simDim> CurrentInterpolation;
     }
 
     namespace fieldSolverDirSplitting
     {
-        
+        typedef currentInterpolation::None<simDim> CurrentInterpolation;
     }
-    
+
     /**! Lehe Solver
      * The solver proposed by R. Lehe et al
      * in Phys. Rev. ST Accel. Beams 16, 021301 (2013)
@@ -57,11 +58,13 @@ namespace picongpu
         class CherenkovFreeDirection_X {};
         class CherenkovFreeDirection_Y {};
         class CherenkovFreeDirection_Z {};
-        
+
         /*! Distinguish the direction where numerical Cherenkov Radiation
          *  by moving particles shall be suppressed.
          */
         typedef CherenkovFreeDirection_Y CherenkovFreeDir;
+
+        typedef currentInterpolation::None<simDim> CurrentInterpolation;
     }
 
 } // namespace picongpu

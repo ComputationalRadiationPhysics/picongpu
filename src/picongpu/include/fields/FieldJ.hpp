@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -70,7 +70,7 @@ public:
 
     virtual EventTask asyncCommunication(EventTask serialEvent);
 
-    void init(FieldE &fieldE);
+    void init(FieldE &fieldE, FieldB &fieldB);
 
     GridLayout<simDim> getGridLayout();
 
@@ -87,8 +87,8 @@ public:
     template<uint32_t AREA, class ParticlesClass>
     void computeCurrent(ParticlesClass &parClass, uint32_t currentStep) throw (std::invalid_argument);
 
-    template<uint32_t AREA>
-    void addCurrentToE();
+    template<uint32_t AREA, class T_CurrentInterpolation>
+    void addCurrentToEMF( T_CurrentInterpolation& myCurrentInterpolation );
 
     SimulationDataId getUniqueId();
 
@@ -124,8 +124,10 @@ public:
 private:
 
     GridBuffer<ValueType, simDim> fieldJ;
+    GridBuffer<ValueType, simDim>* fieldJrecv;
 
     FieldE *fieldE;
+    FieldB *fieldB;
 };
 
 template<typename T_SpeciesName, typename T_Area>

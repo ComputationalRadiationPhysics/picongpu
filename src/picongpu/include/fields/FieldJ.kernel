@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -160,24 +160,45 @@ private:
     const PMACC_ALIGN(deltaTime, float);
 };
 
-template<class Mapping>
-__global__ void kernelAddCurrentToE(typename FieldE::DataBoxType fieldE,
-                                    J_DataBox fieldJ,
-                                    Mapping mapper)
+template<class T_CurrentInterpolation, class T_Mapping>
+__global__ void kernelAddCurrentToEMF(typename FieldE::DataBoxType fieldE,
+                                      typename FieldB::DataBoxType fieldB,
+                                      J_DataBox fieldJ,
+                                      T_CurrentInterpolation currentInterpolation,
+                                      T_Mapping mapper)
 {
+    /* Caching of fieldJ */
+    typedef SuperCellDescription<
+                SuperCellSize,
+                typename T_CurrentInterpolation::LowerMargin,
+                typename T_CurrentInterpolation::UpperMargin
+                > BlockArea;
 
-    const DataSpace<simDim> blockCell(
-                                      mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx))
-                                      * Mapping::SuperCellSize::toRT()
-                                      );
-    const DataSpace<Mapping::Dim> cell(blockCell + DataSpace<simDim > (threadIdx));
+    PMACC_AUTO(cachedJ, CachedBox::create < 0, typename J_DataBox::ValueType > (BlockArea()));
+
+    nvidia::functors::Assign assign;
+    const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+    const DataSpace<simDim> blockCell = block * MappingDesc::SuperCellSize::toRT();
+
+    const DataSpace<simDim > threadIndex(threadIdx);
+    PMACC_AUTO(fieldJBlock, fieldJ.shift(blockCell));
+
+    ThreadCollective<BlockArea> collectiv(threadIndex);
+    collectiv(
+              assign,
+              cachedJ,
+              fieldJBlock
+              );
+
+    __syncthreads();
+
+    const DataSpace<T_Mapping::Dim> cell(blockCell + threadIndex);
 
     // Amperes Law:
     //   Change of the dE = - j / EPS0 * dt
     //                        j = current density (= current per area)
     //                          = fieldJ
-    const float_X deltaT = DELTA_T;
-    fieldE(cell) -= fieldJ(cell) * (float_X(1.0) / EPS0) * deltaT;
+    currentInterpolation( fieldE.shift(cell), fieldB.shift(cell), cachedJ.shift(threadIndex) );
 }
 
 template<class Mapping>

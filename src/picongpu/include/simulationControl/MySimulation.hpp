@@ -44,6 +44,7 @@
 #include "fields/FieldJ.hpp"
 #include "fields/FieldTmp.hpp"
 #include "fields/MaxwellSolver/Solvers.hpp"
+#include "fields/currentInterpolation/CurrentInterpolation.hpp"
 #include "fields/background/cellwiseOperation.hpp"
 #include "initialization/IInitPlugin.hpp"
 #include "initialization/ParserGridDistribution.hpp"
@@ -86,6 +87,10 @@ public:
     fieldE(NULL),
     fieldJ(NULL),
     fieldTmp(NULL),
+    myFieldSolver(NULL),
+    myCurrentInterpolation(NULL),
+    pushBGField(NULL),
+    currentBGField(NULL),
     cellDescription(NULL),
     initialiserController(NULL),
     slidingWindow(false)
@@ -238,6 +243,8 @@ public:
 
         __delete(myFieldSolver);
 
+        __delete(myCurrentInterpolation);
+
         ForEach<VectorAllSpecies, particles::CallDelete<bmpl::_1>, MakeIdentifier<bmpl::_1> > deleteParticleMemory;
         deleteParticleMemory(forward(particleStorage));
 
@@ -291,11 +298,14 @@ public:
 
         fieldB->init(*fieldE, *laser);
         fieldE->init(*fieldB, *laser);
-        fieldJ->init(*fieldE);
+        fieldJ->init(*fieldE, *fieldB);
         fieldTmp->init();
 
         // create field solver
         this->myFieldSolver = new fieldSolver::FieldSolver(*cellDescription);
+
+        // create current interpolation
+        this->myCurrentInterpolation = new fieldSolver::CurrentInterpolation;
 
 
         ForEach<VectorAllSpecies, particles::CallInit<bmpl::_1>, MakeIdentifier<bmpl::_1> > particleInit;
@@ -405,13 +415,33 @@ public:
 #endif
 
 #if  (ENABLE_CURRENT == 1)
-        if(bmpl::size<VectorAllSpecies>::type::value>0)
+        if(bmpl::size<VectorAllSpecies>::type::value > 0)
         {
             EventTask eRecvCurrent = fieldJ->asyncCommunication(__getTransactionEvent());
-            fieldJ->addCurrentToE<CORE > ();
 
-            __setTransactionEvent(eRecvCurrent);
-            fieldJ->addCurrentToE<BORDER > ();
+            const DataSpace<simDim> currentRecvLower( GetMargin<fieldSolver::CurrentInterpolation>::LowerMargin( ).toRT( ) );
+            const DataSpace<simDim> currentRecvUpper( GetMargin<fieldSolver::CurrentInterpolation>::UpperMargin( ).toRT( ) );
+
+            /* without interpolation, we do not need to access the FieldJ GUARD
+             * and can therefor overlap communication of GUARD->(ADD)BORDER & computation of CORE */
+            if( currentRecvLower == DataSpace<simDim>::create(0) &&
+                currentRecvUpper == DataSpace<simDim>::create(0) )
+            {
+                fieldJ->addCurrentToEMF<CORE >(*myCurrentInterpolation);
+                __setTransactionEvent(eRecvCurrent);
+                fieldJ->addCurrentToEMF<BORDER >(*myCurrentInterpolation);
+            } else
+            {
+                /* in case we perform a current interpolation/filter, we need
+                 * to access the BORDER area from the CORE (and the GUARD area
+                 * from the BORDER)
+                 * `fieldJ->asyncCommunication` first adds the neighbors' values
+                 * to BORDER (send) and then updates the GUARD (receive)
+                 * \todo split the last `receive` part in a separate method to
+                 *       allow already a computation of CORE */
+                __setTransactionEvent(eRecvCurrent);
+                fieldJ->addCurrentToEMF<CORE + BORDER>(*myCurrentInterpolation);
+            }
         }
 #endif
 
@@ -548,6 +578,8 @@ protected:
 
     // field solver
     fieldSolver::FieldSolver* myFieldSolver;
+    fieldSolver::CurrentInterpolation* myCurrentInterpolation;
+
     cellwiseOperation::CellwiseOperation< CORE + BORDER + GUARD >* pushBGField;
     cellwiseOperation::CellwiseOperation< CORE + BORDER + GUARD >* currentBGField;
 
