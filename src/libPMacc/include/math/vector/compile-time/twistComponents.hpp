@@ -28,13 +28,11 @@ namespace PMacc
 {
 namespace math
 {
-namespace tools
-{    
 namespace CT
 {
 
 /**
- * @class TwistVectorAxes
+ * @class TwistComponents
  * @brief Twists axes of a compile-time vector.
  * @tparam Vec compile-time vector to be twisted
  * @tparam Axes compile-time vector containing new axes
@@ -42,13 +40,13 @@ namespace CT
  * Example:
  * 
  * typedef PMacc::math::CT::Int<1,2,0> Orientation_Y;
- * typedef typename PMacc::math::tools::CT::TwistVectorAxes<BlockDim, Orientation_Y>::type TwistedBlockDim;
+ * typedef typename PMacc::math::CT::TwistComponents<BlockDim, Orientation_Y>::type TwistedBlockDim;
  */
 template<typename Vec, typename Axes, int dim=Vec::dim>
-struct TwistVectorAxes;
+struct TwistComponents;
 
 template<typename Vec, typename Axes>
-struct TwistVectorAxes<Vec, Axes, DIM2>
+struct TwistComponents<Vec, Axes, DIM2>
 {
     typedef math::CT::Vector<
         typename Vec::template at<Axes::x::value>::type,
@@ -56,7 +54,7 @@ struct TwistVectorAxes<Vec, Axes, DIM2>
 };
 
 template<typename Vec, typename Axes>
-struct TwistVectorAxes<Vec, Axes, DIM3>
+struct TwistComponents<Vec, Axes, DIM3>
 {
     typedef math::CT::Vector<
         typename Vec::template at<Axes::x::value>::type,
@@ -65,6 +63,5 @@ struct TwistVectorAxes<Vec, Axes, DIM3>
 };
 
 } // namespace CT
-} // namespace tools
 } // namespace math
 } // namespace PMacc
