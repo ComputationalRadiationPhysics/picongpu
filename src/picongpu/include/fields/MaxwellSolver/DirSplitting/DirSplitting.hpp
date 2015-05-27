@@ -33,6 +33,7 @@
 #include <cuSTL/algorithm/kernel/ForeachBlock.hpp>
 #include <lambda/Expression.hpp>
 #include <cuSTL/cursor/NestedCursor.hpp>
+#include <cuSTL/container/HostBuffer.hpp>
 
 namespace picongpu
 {
@@ -84,6 +85,7 @@ private:
 public:
     DirSplitting(MappingDesc) {}
 
+        
     void update_beforeCurrent(uint32_t currentStep) const
     {
         typedef SuperCellSize GuardDim;
@@ -103,7 +105,7 @@ public:
                               -GuardDim().toRT()));
 
         using namespace cursor::tools;
-        using namespace PMacc::math::tools;
+        using namespace PMacc::math;
 
         PMacc::math::Size_t<3> gridSize = fieldE_coreBorder.size();
 
@@ -117,7 +119,7 @@ public:
         typedef PMacc::math::CT::Int<1,2,0> Orientation_Y;
         propagate(twistVectorFieldAxes<Orientation_Y>(fieldE_coreBorder.origin()),
                   twistVectorFieldAxes<Orientation_Y>(fieldB_coreBorder.origin()),
-                  twistVectorAxes<Orientation_Y>(gridSize));
+                  twistComponents<Orientation_Y>(gridSize));
 
         __setTransactionEvent(fieldE.asyncCommunication(__getTransactionEvent()));
         __setTransactionEvent(fieldB.asyncCommunication(__getTransactionEvent()));
@@ -125,17 +127,34 @@ public:
         typedef PMacc::math::CT::Int<2,0,1> Orientation_Z;
         propagate(twistVectorFieldAxes<Orientation_Z>(fieldE_coreBorder.origin()),
                   twistVectorFieldAxes<Orientation_Z>(fieldB_coreBorder.origin()),
-                  twistVectorAxes<Orientation_Z>(gridSize));
+                  twistComponents<Orientation_Z>(gridSize));
+
 
         if (laserProfile::INIT_TIME > float_X(0.0))
             dc.getData<FieldE > (FieldE::getName(), true).laserManipulation(currentStep);
-
+        
         __setTransactionEvent(fieldE.asyncCommunication(__getTransactionEvent()));
         __setTransactionEvent(fieldB.asyncCommunication(__getTransactionEvent()));
+        /*
+        if(currentStep % 50 == 0)
+        {
+            container::HostBuffer<float3_X, 3> floatE_host(fieldE.getGridBuffer().getDeviceBuffer().cartBuffer().size());
+            floatE_host = fieldE.getGridBuffer().getDeviceBuffer().cartBuffer();
+            
+            BOOST_AUTO(fieldE_RightGuard,
+                floatE_host.view(PMacc::math::Int<3>(0, -8, 0)));
+                
+            std::ostringstream filename;
+            filename << "RightGuard_" << currentStep << ".dat";
+            std::ofstream file(filename.str().c_str());
+            file << fieldE_RightGuard;
+        }*/
+
     }
 
     void update_afterCurrent(uint32_t) const
-    {    }
+    {    
+    }
 };
 
 } // dirSplitting

@@ -33,6 +33,7 @@
 #include "plugins/SumCurrents.hpp"
 #include "plugins/PositionsParticles.hpp"
 #include "plugins/BinEnergyParticles.hpp"
+#include "plugins/ChargeConservation.hpp"
 #if(ENABLE_HDF5 == 1)
 #include "plugins/PhaseSpace/PhaseSpaceMulti.hpp"
 #endif
@@ -123,7 +124,8 @@ private:
     /* define stand alone plugins*/
     typedef bmpl::vector<
         EnergyFields,
-        SumCurrents
+        SumCurrents,
+        ChargeConservation
 #if(SIMDIM==DIM3)
       , IntensityPlugin
 #endif

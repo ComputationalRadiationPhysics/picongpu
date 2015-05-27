@@ -36,23 +36,24 @@ struct DirSplittingKernel
 {
     typedef void result_type;
 
-    int totalLength;
+    PMACC_ALIGN(totalLength,int);
     DirSplittingKernel(int totalLength) : totalLength(totalLength) {}
 
     template<typename CursorE, typename CursorB >
     DINLINE void propagate(CursorE cursorE, CursorB cursorB) const
     {
-        float a_plus = (*cursorB(-1, 0, 0)).z() + (*cursorE(-1, 0, 0)).y();
-        float a_minus = (*cursorB(1, 0, 0)).z() - (*cursorE(1, 0, 0)).y();
-        float a_prime_plus = (*cursorB(-1, 0, 0)).y() - (*cursorE(-1, 0, 0)).z();
-        float a_prime_minus = (*cursorB(1, 0, 0)).y() + (*cursorE(1, 0, 0)).z();
+        float_X a_plus = (*cursorB(-1, 0, 0)).z() + (*cursorE(-1, 0, 0)).y();
+        float_X a_minus = (*cursorB(1, 0, 0)).z() - (*cursorE(1, 0, 0)).y();
+        float_X a_prime_plus = (*cursorB(-1, 0, 0)).y() - (*cursorE(-1, 0, 0)).z();
+        float_X a_prime_minus = (*cursorB(1, 0, 0)).y() + (*cursorE(1, 0, 0)).z();
+
 
         __syncthreads();
 
-        (*cursorB).z() = 0.5f * (a_plus + a_minus);
-        (*cursorE).y() = 0.5f * (a_plus - a_minus);
-        (*cursorB).y() = 0.5f * (a_prime_plus + a_prime_minus);
-        (*cursorE).z() = 0.5f * (a_prime_minus - a_prime_plus);
+        (*cursorB).z() = float_X(0.5) * (a_plus + a_minus);
+        (*cursorE).y() = float_X(0.5) * (a_plus - a_minus);
+        (*cursorB).y() = float_X(0.5) * (a_prime_plus + a_prime_minus);
+        (*cursorE).z() = float_X(0.5) * (a_prime_minus - a_prime_plus);
 
         __syncthreads();
     }
@@ -60,10 +61,11 @@ struct DirSplittingKernel
     template<typename CursorE, typename CursorB >
     DINLINE void operator()(CursorE globalE, CursorB globalB) const
     {
+        using namespace PMacc;
         //\todo: optimize cache size
         typedef typename PMacc::math::CT::add<
-            typename BlockDim::vector_type,
-            typename PMacc::math::CT::Int < 2, 0, 0 > ::vector_type>::type CacheSize;
+            BlockDim,
+            PMacc::math::CT::Int < 2, 0, 0 > >::type CacheSize;
 
         typedef container::CT::SharedBuffer<float3_X, CacheSize, 0 > CacheE;
         typedef container::CT::SharedBuffer<float3_X, CacheSize, 1 > CacheB;
