@@ -34,7 +34,6 @@
 #include "cuSTL/algorithm/host/Foreach.hpp"
 #include "lambda/Expression.hpp"
 #include "SliceFieldPrinter.hpp"
-#include <math/vector/tools/twistVectorAxes.hpp>
 #include <sstream>
 
 namespace picongpu
@@ -124,7 +123,6 @@ template<typename TField>
 void SliceFieldPrinter<Field>::printSlice(const TField& field, int nAxis, float slicePoint, std::string filename)
 {
     namespace vec = PMacc::math;
-    using namespace vec::tools;
 
     PMacc::GridController<simDim>& con = PMacc::Environment<simDim>::get().GridController();
     vec::Size_t<simDim> gpuDim = (vec::Size_t<simDim>)con.getGpuNodes();

@@ -113,7 +113,7 @@ public:
                               -GuardDim().toRT()));
 
         using namespace cursor::tools;
-        using namespace PMacc::math::tools;
+        using namespace PMacc::math;
 
         PMacc::math::Size_t<3> gridSize = fieldE_coreBorder.size();
 
