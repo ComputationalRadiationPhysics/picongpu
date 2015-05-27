@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -17,7 +17,6 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 #pragma once
@@ -48,8 +47,8 @@ enum ParticleType
 
 enum CommunicationTag
 {
-    FIELD_B = 0u, FIELD_E = 1u, FIELD_J = 2u, FIELD_TMP = 3u,
-    PAR_IONS = 4u, PAR_ELECTRONS = 5u,
+    FIELD_B = 0u, FIELD_E = 1u, FIELD_J = 2u, FIELD_JRECV = 3u, FIELD_TMP = 4u,
+    PAR_IONS = 5u, PAR_ELECTRONS = 6u,
     NO_COMMUNICATION = 16u
 };
 

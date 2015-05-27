@@ -415,13 +415,33 @@ public:
 #endif
 
 #if  (ENABLE_CURRENT == 1)
-        if(bmpl::size<VectorAllSpecies>::type::value>0)
+        if(bmpl::size<VectorAllSpecies>::type::value > 0)
         {
             EventTask eRecvCurrent = fieldJ->asyncCommunication(__getTransactionEvent());
-            fieldJ->addCurrentToEMF<CORE >(*myCurrentInterpolation);
 
-            __setTransactionEvent(eRecvCurrent);
-            fieldJ->addCurrentToEMF<BORDER >(*myCurrentInterpolation);
+            const DataSpace<simDim> currentRecvLower( GetMargin<fieldSolver::CurrentInterpolation>::LowerMargin( ).toRT( ) );
+            const DataSpace<simDim> currentRecvUpper( GetMargin<fieldSolver::CurrentInterpolation>::UpperMargin( ).toRT( ) );
+
+            /* without interpolation, we do not need to access the FieldJ GUARD
+             * and can therefor overlap communication of GUARD->(ADD)BORDER & computation of CORE */
+            if( currentRecvLower == DataSpace<simDim>::create(0) &&
+                currentRecvUpper == DataSpace<simDim>::create(0) )
+            {
+                fieldJ->addCurrentToEMF<CORE >(*myCurrentInterpolation);
+                __setTransactionEvent(eRecvCurrent);
+                fieldJ->addCurrentToEMF<BORDER >(*myCurrentInterpolation);
+            } else
+            {
+                /* in case we perform a current interpolation/filter, we need
+                 * to access the BORDER area from the CORE (and the GUARD area
+                 * from the BORDER)
+                 * `fieldJ->asyncCommunication` first adds the neighbors' values
+                 * to BORDER (send) and then updates the GUARD (receive)
+                 * \todo split the last `receive` part in a separate method to
+                 *       allow already a computation of CORE */
+                __setTransactionEvent(eRecvCurrent);
+                fieldJ->addCurrentToEMF<CORE + BORDER>(*myCurrentInterpolation);
+            }
         }
 #endif
 

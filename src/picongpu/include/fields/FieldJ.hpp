@@ -124,6 +124,7 @@ public:
 private:
 
     GridBuffer<ValueType, simDim> fieldJ;
+    GridBuffer<ValueType, simDim>* fieldJrecv;
 
     FieldE *fieldE;
     FieldB *fieldB;
