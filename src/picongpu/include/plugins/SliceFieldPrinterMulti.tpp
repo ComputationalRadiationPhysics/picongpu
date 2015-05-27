@@ -36,7 +36,6 @@
 #include "cuSTL/algorithm/host/Foreach.hpp"
 #include "lambda/Expression.hpp"
 #include "SliceFieldPrinterMulti.hpp"
-#include <math/vector/tools/twistVectorAxes.hpp>
 #include <sstream>
 
 namespace picongpu

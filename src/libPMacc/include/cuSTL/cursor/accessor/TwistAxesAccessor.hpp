@@ -23,7 +23,7 @@
 #pragma once
 
 #include "types.h"
-#include "math/vector/tools/twistVectorAxes.hpp"
+#include "math/vector/twistComponents.hpp"
 
 namespace PMacc
 {
@@ -33,7 +33,7 @@ namespace cursor
 template<typename TCursor, typename Axes>
 struct TwistAxesAccessor
 {
-    typedef typename math::tools::result_of::TwistVectorAxes<
+    typedef typename math::result_of::TwistComponents<
         Axes, typename TCursor::pureType>::type type;
 
     /** Returns a reference to the result of '*cursor' (with twisted axes).
@@ -43,7 +43,7 @@ struct TwistAxesAccessor
      */
     HDINLINE type operator()(TCursor& cursor)
     {
-        return math::tools::twistVectorAxes<Axes>(*cursor);
+        return math::twistComponents<Axes>(*cursor);
     }
 
     ///\todo: implement const method here with a const TCursor& argument and 'type' as return type.

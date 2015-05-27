@@ -103,7 +103,7 @@ public:
                               -GuardDim().toRT()));
 
         using namespace cursor::tools;
-        using namespace PMacc::math::tools;
+        using namespace PMacc::math;
 
         PMacc::math::Size_t<3> gridSize = fieldE_coreBorder.size();
 
@@ -117,7 +117,7 @@ public:
         typedef PMacc::math::CT::Int<1,2,0> Orientation_Y;
         propagate(twistVectorFieldAxes<Orientation_Y>(fieldE_coreBorder.origin()),
                   twistVectorFieldAxes<Orientation_Y>(fieldB_coreBorder.origin()),
-                  twistVectorAxes<Orientation_Y>(gridSize));
+                  twistComponents<Orientation_Y>(gridSize));
 
         __setTransactionEvent(fieldE.asyncCommunication(__getTransactionEvent()));
         __setTransactionEvent(fieldB.asyncCommunication(__getTransactionEvent()));
@@ -125,7 +125,7 @@ public:
         typedef PMacc::math::CT::Int<2,0,1> Orientation_Z;
         propagate(twistVectorFieldAxes<Orientation_Z>(fieldE_coreBorder.origin()),
                   twistVectorFieldAxes<Orientation_Z>(fieldB_coreBorder.origin()),
-                  twistVectorAxes<Orientation_Z>(gridSize));
+                  twistComponents<Orientation_Z>(gridSize));
 
         if (laserProfile::INIT_TIME > float_X(0.0))
             dc.getData<FieldE > (FieldE::getName(), true).laserManipulation(currentStep);
