@@ -46,7 +46,7 @@ namespace picongpu
 
     namespace fieldSolverDirSplitting
     {
-        typedef currentInterpolation::None<simDim> CurrentInterpolation;
+        typedef currentInterpolation::NoneDS<simDim> CurrentInterpolation;
     }
 
     /**! Lehe Solver

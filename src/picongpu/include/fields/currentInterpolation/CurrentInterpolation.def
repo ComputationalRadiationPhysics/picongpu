@@ -21,3 +21,4 @@
 
 #include "fields/currentInterpolation/None/None.def"
 #include "fields/currentInterpolation/Binomial/Binomial.def"
+#include "fields/currentInterpolation/NoneDS/NoneDS.def"
