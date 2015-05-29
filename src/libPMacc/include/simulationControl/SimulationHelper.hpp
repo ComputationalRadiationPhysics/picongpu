@@ -126,6 +126,16 @@ public:
         /* trigger checkpoint notification */
         if (checkpointPeriod && (currentStep % checkpointPeriod == 0))
         {
+            /* first synchronize: if something failed, we can spare the time
+             * for the checkpoint writing */
+            CUDA_CHECK(cudaDeviceSynchronize());
+            CUDA_CHECK(cudaGetLastError());
+
+            GridController<DIM> &gc = Environment<DIM>::get().GridController();
+            /* can be spared for better scalings, but allows to spare the
+             * time for checkpointing if some ranks died */
+            MPI_CHECK(MPI_Barrier(gc.getCommunicator().getMPIComm()));
+
             /* create directory containing checkpoints  */
             if (numCheckpoints == 0)
             {
@@ -135,7 +145,14 @@ public:
             Environment<DIM>::get().PluginConnector().checkpointPlugins(currentStep,
                                                                         checkpointDirectory);
 
-            GridController<DIM> &gc = Environment<DIM>::get().GridController();
+            /* important synchronize: only if no errors occured until this
+             * point guarantees that a checkpoint is usable */
+            CUDA_CHECK(cudaDeviceSynchronize());
+            CUDA_CHECK(cudaGetLastError());
+
+            /* \todo in an ideal world with MPI-3, this would be an
+             * MPI_Ibarrier call and this function would return a MPI_Request
+             * that could be checked */
             MPI_CHECK(MPI_Barrier(gc.getCommunicator().getMPIComm()));
 
             if (gc.getGlobalRank() == 0)
