@@ -214,8 +214,8 @@ public:
             /*free host memory*/
             ForEach<typename AdiosFrameType::ValueTypeSeq, FreeMemory<bmpl::_1> > freeMem;
             freeMem(forward(hostFrame));
-            log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) load species: %1%") % AdiosFrameType::getName();
         }
+        log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) load species: %1%") % AdiosFrameType::getName();
     }
 };
 
