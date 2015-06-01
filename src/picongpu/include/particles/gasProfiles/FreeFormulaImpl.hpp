@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Rene Widera
+ * Copyright 2015 Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -51,9 +51,11 @@ struct FreeFormulaImpl : public T_ParamClass
      */
     HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
     {
-        const float_64 unit_length = UNIT_LENGTH;
+        DataSpace<simDim> position_SI = totalCellOffset;
+        for(unsigned int i = 0; i<simDim ; i++)
+            position_SI[i] *= cellSize[i] * UNIT_LENGTH;
 
-        float_X density = ParamClass::operator()( totalCellOffset, unit_length );
+        float_X density = ParamClass::operator()( position_SI );
 
         return density;
     }
