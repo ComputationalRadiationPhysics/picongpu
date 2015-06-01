@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *                     Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -250,9 +250,9 @@ struct FreeFormulaFunctor
      *
      * @return float_X density
      */
-    HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset, const float_64 unitLength)
+    HDINLINE float_X operator()(const DataSpace<simDim>& position_SI)
     {
-        const float_64 y = float_64(totalCellOffset.y()) * unitLength * 1000.0; // m -> mm
+        const float_64 y = float_64(position_SI.y()) * 1000.0; // m -> mm
 
         /* triangle function example
          * for a density profile from 0 to 400 microns */
