@@ -55,7 +55,7 @@ struct FreeFormulaImpl : public T_ParamClass
         for(unsigned int i = 0; i<simDim ; i++)
             position_SI[i] *= cellSize[i] * UNIT_LENGTH;
 
-        float_X density = ParamClass::operator()( position_SI );
+        float_X density = ParamClass::operator()( position_SI , cellSize );
 
         return density;
     }

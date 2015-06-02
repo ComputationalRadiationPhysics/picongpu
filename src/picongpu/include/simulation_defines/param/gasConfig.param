@@ -250,13 +250,18 @@ struct FreeFormulaFunctor
      *
      * @return float_X density
      */
-    HDINLINE float_X operator()(const DataSpace<simDim>& position_SI)
+    template<class cellSizeType>
+    HDINLINE float_X operator()(const DataSpace<simDim>& position_SI, const cellSizeType& cellSize)
     {
         const float_64 y = float_64(position_SI.y()) * 1000.0; // m -> mm
+        //const unsigned int y_cell_id = position_SI.y() / cellSize[1];
 
         /* triangle function example
          * for a density profile from 0 to 400 microns */
         float_64 s = 1.0 - 5.0 * math::abs(y - 0.2);
+
+        /* give it an on/off shape for everey second cell */
+        //s *= float_64( (y_cell_id % 2) == 0 );
 
         /* all parts of the function MUST be > 0 */
         s *= float_64(s >= 0.0);
