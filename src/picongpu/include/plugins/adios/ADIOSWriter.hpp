@@ -50,6 +50,8 @@
 #include "pluginSystem/PluginConnector.hpp"
 #include "simulationControl/MovingWindow.hpp"
 #include "math/Vector.hpp"
+#include "particles/MallocMCBuffer.hpp"
+#include "traits/Limits.hpp"
 
 #include "plugins/ILightweightPlugin.hpp"
 #include <boost/mpl/vector.hpp>
@@ -399,7 +401,8 @@ public:
     restartFilename(""), /* set to checkpointFilename by default */
     /* select MPI method, #OSTs and #aggregators */
     mpiTransportParams(""),
-    notifyPeriod(0)
+    notifyPeriod(0),
+    lastSpeciesSyncStep(PMacc::traits::limits::Max<uint32_t>::value)
     {
         Environment<>::get().PluginConnector().registerPlugin(this);
     }
@@ -660,6 +663,22 @@ private:
                     mThreadParams.window.globalDimensions.offset[i] -
                     localDomain.offset[i];
             }
+        }
+
+
+        if( lastSpeciesSyncStep != currentStep )
+        {
+            /*copy species only one time per timestep to the host*/
+
+            DataConnector &dc = Environment<>::get().DataConnector();
+            dc.getData<MallocMCBuffer> (MallocMCBuffer::getName());
+
+            /* we copy all species to the host because we can not check if
+             * a normal adios dump and a checkpoint are in the same time step
+             */
+            ForEach<FileCheckpointParticles, CopySpeciesToHost<bmpl::_1> > copySpeciesToHost;
+            copySpeciesToHost();
+            lastSpeciesSyncStep = currentStep;
         }
 
         beginAdios(fname);
@@ -1023,6 +1042,7 @@ private:
     std::string mpiTransportParams;
 
     uint32_t restartChunkSize;
+    uint32_t lastSpeciesSyncStep;
 
     DataSpace<simDim> mpi_pos;
     DataSpace<simDim> mpi_size;

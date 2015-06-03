@@ -54,8 +54,6 @@ namespace adios
 {
 using namespace PMacc;
 
-
-
 /** Write copy particle to host memory and dump to ADIOS file
  *
  * @tparam T_Species type of species
@@ -77,8 +75,8 @@ public:
 
     /* add globalCellIdx for adios particle*/
     typedef typename MakeSeq<
-            ParticleCleanedAttributeList,
-            globalCellIdx<globalCellIdx_pic>
+    ParticleCleanedAttributeList,
+    globalCellIdx<globalCellIdx_pic>
     >::type ParticleNewAttributeList;
 
     typedef
@@ -107,23 +105,16 @@ public:
         log<picLog::INPUT_OUTPUT > ("ADIOS:   ( end ) count particles: %1% = %2%") % AdiosFrameType::getName() % totalNumParticles;
 
         AdiosFrameType hostFrame;
-        log<picLog::INPUT_OUTPUT > ("ADIOS:   (begin) malloc mapped memory: %1%") % AdiosFrameType::getName();
 
-        /* malloc mapped memory */
-        ForEach<typename AdiosFrameType::ValueTypeSeq, MallocMemory<bmpl::_1> > mallocMem;
+        /* malloc host memory */
+        log<picLog::INPUT_OUTPUT > ("ADIOS:   (begin) malloc host memory: %1%") % AdiosFrameType::getName();
+        ForEach<typename AdiosFrameType::ValueTypeSeq, MallocHostMemory<bmpl::_1> > mallocMem;
         mallocMem(forward(hostFrame), totalNumParticles);
-        log<picLog::INPUT_OUTPUT > ("ADIOS:   ( end ) malloc mapped memory: %1%") % AdiosFrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("ADIOS:   ( end ) malloc host memory: %1%") % AdiosFrameType::getName();
 
         if (totalNumParticles > 0)
         {
-            log<picLog::INPUT_OUTPUT > ("ADIOS:   (begin) get mapped memory device pointer: %1%") % AdiosFrameType::getName();
-            /* load device pointer of mapped memory */
-            AdiosFrameType deviceFrame;
-            ForEach<typename AdiosFrameType::ValueTypeSeq, GetDevicePtr<bmpl::_1> > getDevicePtr;
-            getDevicePtr(forward(deviceFrame), forward(hostFrame));
-            log<picLog::INPUT_OUTPUT > ("ADIOS:   ( end ) get mapped memory device pointer: %1%") % AdiosFrameType::getName();
-
-            log<picLog::INPUT_OUTPUT > ("ADIOS:   (begin) copy particle to host: %1%") % AdiosFrameType::getName();
+            log<picLog::INPUT_OUTPUT > ("ADIOS:   (begin) copy particle host (with hierarchy) to host (without hierarchy): %1%") % AdiosFrameType::getName();
             typedef bmpl::vector< typename GetPositionFilter<simDim>::type > usedFilters;
             typedef typename FilterFactory<usedFilters>::FilterType MyParticleFilter;
             MyParticleFilter filter;
@@ -132,32 +123,36 @@ public:
             filter.setWindowPosition(params->localWindowToDomainOffset,
                                      params->window.localDimensions.size);
 
-            dim3 block(PMacc::math::CT::volume<SuperCellSize>::type::value);
+            __getTransactionEvent().waitForFinished();
 
-            GridBuffer<int, DIM1> counterBuffer(DataSpace<DIM1>(1));
+            int threads = PMacc::math::CT::volume<SuperCellSize>::type::value;
+
+            DataConnector &dc = Environment<>::get().DataConnector();
+            MallocMCBuffer& mallocMCBuffer = dc.getData<MallocMCBuffer> (MallocMCBuffer::getName());
+
+            int globalParticleOffset = 0;
             AreaMapping < CORE + BORDER, MappingDesc > mapper(*(params->cellDescription));
 
-            __cudaKernel(copySpecies)
-                (mapper.getGridDim(), block)
-                (counterBuffer.getDeviceBuffer().getPointer(),
-                 deviceFrame, speciesTmp->getDeviceParticlesBox(),
-                 filter,
-                 particleOffset, /*relative to data domain (not to physical domain)*/
-                 mapper
-                 );
-            counterBuffer.deviceToHost();
-            log<picLog::INPUT_OUTPUT > ("ADIOS:   ( end ) copy particle to host: %1%") % AdiosFrameType::getName();
-            __getTransactionEvent().waitForFinished();
-            log<picLog::INPUT_OUTPUT > ("ADIOS:   all events are finished: %1%") % AdiosFrameType::getName();
+            CopySpeciesToGlobal copySpeciesToGlobal(mapper.getGridDim(), threads);
+
+            copySpeciesToGlobal(
+                                globalParticleOffset,
+                                hostFrame,
+                                speciesTmp->getHostParticlesBox(mallocMCBuffer.getOffset()),
+                                filter,
+                                particleOffset, /*relative to data domain (not to physical domain)*/
+                                mapper
+                                );
+
             /* this costs a little bit of time but adios writing is slower */
-            assert((uint64_cu) counterBuffer.getHostBuffer().getDataBox()[0] == totalNumParticles);
+            assert((uint64_cu) globalParticleOffset == totalNumParticles);
         }
         /* dump to adios file */
         ForEach<typename AdiosFrameType::ValueTypeSeq, adios::ParticleAttribute<bmpl::_1> > writeToAdios;
         writeToAdios(params, forward(hostFrame), totalNumParticles);
 
         /* free host memory */
-        ForEach<typename AdiosFrameType::ValueTypeSeq, FreeMemory<bmpl::_1> > freeMem;
+        ForEach<typename AdiosFrameType::ValueTypeSeq, FreeHostMemory<bmpl::_1> > freeMem;
         freeMem(forward(hostFrame));
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing species: %1%") % AdiosFrameType::getName();
 
