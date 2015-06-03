@@ -1,5 +1,5 @@
 #
-# Copyright 2013-2014 Axel Huebl, Benjamin Schneider, Felix Schmitt, Heiko Burau, Rene Widera
+# Copyright 2013-2015 Axel Huebl, Benjamin Schneider, Felix Schmitt, Heiko Burau, Rene Widera
 #
 # This file is part of PIConGPU.
 #
@@ -267,6 +267,18 @@ if( (Boost_VERSION EQUAL 105500) AND
     set(CUDA_NVCC_FLAGS
       "${CUDA_NVCC_FLAGS} \"-DBOOST_NOINLINE=__attribute__((noinline))\" ")
 endif()
+
+################################################################################
+# OPENMP
+##############################################################################
+
+FIND_PACKAGE(OpenMP)
+IF(NOT OPENMP_FOUND)
+    MESSAGE(STATUS "Disable OpenMP: Can't find library")
+
+ELSE()
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+ENDIF()
 
 
 ################################################################################
