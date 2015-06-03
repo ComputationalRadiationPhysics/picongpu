@@ -52,10 +52,14 @@ struct FreeFormulaImpl : public T_ParamClass
     HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
     {
         DataSpace<simDim> position_SI = totalCellOffset;
+        cellSize_t cellSize_SI = cellSize;
         for(unsigned int i = 0; i<simDim ; i++)
-            position_SI[i] *= cellSize[i] * UNIT_LENGTH;
+        {
+            cellSize_SI *= UNIT_LENGTH;
+            position_SI[i] *= cellSize_SI[i];
+        }
 
-        float_X density = ParamClass::operator()( position_SI , cellSize );
+        float_X density = ParamClass::operator()( position_SI , cellSize_SI );
 
         return density;
     }
