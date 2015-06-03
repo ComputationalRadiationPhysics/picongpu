@@ -58,7 +58,7 @@ Because we are linking to Boost and CUDA, the following **external dependencies*
 
 If you are using CMake you can download our `FindmallocMC.cmake` module with
 ```bash
-wget https://raw.githubusercontent.com/ComputationalRadiationPhysics/picongpu/dev/src/cmake/FindmallocMC.cmake
+wget https://raw.githubusercontent.com/ComputationalRadiationPhysics/cmake-modules/dev/FindmallocMC.cmake
 # read the documentation
 cmake -DCMAKE_MODULE_PATH=. --help-module FindmallocMC | less
 ```
@@ -68,7 +68,7 @@ and use the following lines in your `CMakeLists.txt`:
 # this example will require at least CMake 2.8.5
 cmake_minimum_required(VERSION 2.8.5)
 
-# add path to FindmallocMC.cmake, e.g. in the directory in cmake/
+# add path to FindmallocMC.cmake, e.g., in the directory in cmake/
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
 
 # find the packages that are required by mallocMC. This has to be done BEFORE
