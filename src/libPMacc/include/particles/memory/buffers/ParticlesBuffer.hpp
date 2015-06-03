@@ -199,6 +199,20 @@ public:
     }
 
     /**
+     * Returns a ParticlesBox for host frame data.
+     *
+     * @return host frames ParticlesBox
+     */
+    ParticlesBox<ParticleType, DIM> getHostParticleBox(int64_t memoryOffset)
+    {
+
+        return ParticlesBox<ParticleType, DIM > (
+                                                 superCells->getHostBuffer().getDataBox(),
+                                                 memoryOffset
+                                                );
+    }
+
+    /**
      * Returns if the buffer has a send exchange in ex direction.
      *
      * @param ex direction to query
@@ -302,6 +316,10 @@ public:
         return superCellSize;
     }
 
+    void deviceToHost()
+    {
+        superCells->deviceToHost();
+    }
 
 
 private:

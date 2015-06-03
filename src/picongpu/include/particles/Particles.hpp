@@ -68,6 +68,12 @@ public:
 
     SimulationDataId getUniqueId();
 
+    /* sync device data to host
+     *
+     * ATTENTION: - in the current implementation only supercell meta data are copied!
+     *            - the shared (between all species) mallocMC buffer must be copied once
+     *              by the user
+     */
     void synchronize();
 
     void syncToDevice();

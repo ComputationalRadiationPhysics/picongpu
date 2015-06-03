@@ -155,6 +155,11 @@ public:
         return particlesBuffer->getDeviceParticleBox();
     }
 
+    ParticlesBoxType getHostParticlesBox(const int64_t memoryOffset)
+    {
+        return particlesBuffer->getHostParticleBox(memoryOffset);
+    }
+
     /* Get the particles buffer which is used for the particles.
      */
     BufferType& getParticlesBuffer()
