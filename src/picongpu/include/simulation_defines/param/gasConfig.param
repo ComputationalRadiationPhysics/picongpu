@@ -242,19 +242,19 @@ struct FreeFormulaFunctor
 {
 
     /**
-     * This formula should use SI quantities only!
+     * This formula uses SI quantities only
      * The profile will be multiplied by GAS_DENSITY.
      *
-     * @param totalCellOffset total offset including all slides [in cells]
-     * @param unitLength PIConGPU unit length
+     * @param position_SI total offset including all slides [in meter]
+     * @param cellSize_SI cell sizes [in meter]
      *
-     * @return float_X density
+     * @return float_X density [normalized to 1.0]
      */
     template<class cellSizeType>
-    HDINLINE float_X operator()(const DataSpace<simDim>& position_SI, const cellSizeType& cellSize)
+    HDINLINE float_X operator()(const DataSpace<simDim>& position_SI, const cellSizeType& cellSize_SI)
     {
         const float_64 y = float_64(position_SI.y()) * 1000.0; // m -> mm
-        //const unsigned int y_cell_id = position_SI.y() / cellSize[1];
+        //const unsigned int y_cell_id = position_SI.y() / cellSize_SI[1];
 
         /* triangle function example
          * for a density profile from 0 to 400 microns */
@@ -269,7 +269,7 @@ struct FreeFormulaFunctor
     }
 };
 
-/* definition of gas sphere with flanks*/
+/* definition of gas free formula */
 typedef FreeFormulaImpl<FreeFormulaFunctor> FreeFormula;
 
 }//namespace gasProfiles
