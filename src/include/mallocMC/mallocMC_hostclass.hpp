@@ -39,6 +39,7 @@
 #include <cassert>
 
 #include <boost/mpl/assert.hpp>
+#include <vector>
 
 namespace mallocMC{
 
@@ -57,6 +58,11 @@ namespace mallocMC{
     static const bool providesAvailableSlots = T::CreationPolicy::providesAvailableSlots::value;
   };
 
+  class HeapInfo{
+    public:
+      void* p;
+      size_t size;
+  };
 
   /**
    * @brief "HostClass" that combines all policies to a useful allocator
@@ -93,9 +99,12 @@ namespace mallocMC{
       typedef T_ReservePoolPolicy ReservePoolPolicy;
       typedef T_AlignmentPolicy AlignmentPolicy;
 
+      typedef std::vector<HeapInfo> HeapInfoVector;
+
     private:
       typedef boost::uint32_t uint32;
       void* pool;
+      HeapInfo heapInfos;
 
     public:
 
@@ -129,6 +138,8 @@ namespace mallocMC{
         pool = ReservePoolPolicy::setMemPool(size);
         boost::tie(pool,size) = AlignmentPolicy::alignPool(pool,size);
         void* h = CreationPolicy::initHeap(*this,pool,size);
+        heapInfos.p=pool;
+        heapInfos.size=size;
 
         /*
         * This is a workaround for a bug with getAvailSlotsPoly:
@@ -168,6 +179,13 @@ namespace mallocMC{
       MAMC_HOST MAMC_ACCELERATOR
       unsigned getAvailableSlots(size_t slotSize){
         return getAvailSlotsPoly(slotSize, boost::mpl::bool_<CreationPolicy::providesAvailableSlots::value>());
+      }
+
+      MAMC_HOST
+      HeapInfoVector getHeapLocations(){
+        HeapInfoVector v;
+        v.push_back(heapInfos);
+        return v;
       }
 
     private:
