@@ -101,6 +101,7 @@ struct LoadParticleAttributesFromHDF5
             assert(sizeRead[0] == elements);
 
             /* copy component from temporary array to array of structs */
+            #pragma omp parallel for
             for (size_t i = 0; i < elements; ++i)
             {
                 ComponentType& ref = ((ComponentType*) dataPtr)[i * components + d];
