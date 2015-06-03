@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "types.h"
 #include "particles/ionization/None/None.def"
 #include "particles/ionization/None/AlgorithmNone.hpp"
 
@@ -29,17 +30,33 @@ namespace particles
 {
 namespace ionization
 {
-            
+
     /* fallback for all species that cannot/should not be ionized */
-    struct None
+    template<typename T_DestSpecies, typename T_SrcSpecies>
+    struct None_Impl
     {
-        template<typename T_SrcSpecies, typename T_ParticleStorage>
-        void operator()(T_SrcSpecies& src, T_ParticleStorage& pst, const uint32_t currentStep)
-        {
-            // Do nothing
-        }
+        typedef T_DestSpecies DestSpecies;
+        typedef T_SrcSpecies  SrcSpecies;
+
+        private:
+            /* nothing here */
+        public:
+
+            None_Impl()
+            { /* ... */ }
+
+            DINLINE void init(const DataSpace<simDim>& blockCell, const int& linearThreadIdx, const DataSpace<simDim>& totalCellOffset)
+            {
+                /* Do nothing */
+            }
+
+            template<typename FrameType>
+            DINLINE void operator()(FrameType& ionFrame, int localIdx, unsigned int& newMacroElectrons)
+            {
+                /* Do nothing */
+            }
     };
-            
+
 } // namespace ionization
 } // namespace particles
 } // namespace picongpu

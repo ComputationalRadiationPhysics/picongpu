@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "types.h"
+
 namespace picongpu
 {
 namespace particles
@@ -29,7 +31,14 @@ namespace ionization
 
     /** \struct None
      * \brief Fallback for all species that cannot/should not be ionized */
-    struct None;
+    template<typename T_DestSpecies, typename T_SrcSpecies = bmpl::_1>
+    struct None_Impl;
+
+    template<typename T_DestSpecies>
+    struct None
+    {
+        typedef None_Impl<T_DestSpecies> type;
+    };
 
 } // namespace ionization
 } // namespace particles
