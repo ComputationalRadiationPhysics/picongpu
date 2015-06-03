@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -74,7 +74,7 @@ public:
      * @param realSuperCellIdx current SuperCell index (block index)
      * @return mapped SuperCell index
      */
-    DINLINE DataSpace<DIM> getSuperCellIndex(const DataSpace<DIM>& realSuperCellIdx) const
+    HDINLINE DataSpace<DIM> getSuperCellIndex(const DataSpace<DIM>& realSuperCellIdx) const
     {
         const DataSpace<DIM> blockId((realSuperCellIdx * (int)Stride) + offset);
         return StrideMappingMethods<areaType, DIM>::shift(*this, blockId);
