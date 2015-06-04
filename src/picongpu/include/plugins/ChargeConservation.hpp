@@ -28,12 +28,19 @@ using namespace PMacc;
 
 namespace po = boost::program_options;
 
+/**
+ * @class ChargeConservation
+ * @brief maximum difference between electron charge density and div E
+ *
+ * WARNING: This plugin assumes a Yee-cell!
+ * Do not use it together with other field solvers like `directional splitting` or `Lehe`
+ */
 class ChargeConservation : public ILightweightPlugin
 {
 private:
     std::string name;
     std::string prefix;
-    uint32_t notifyFrequency;
+    uint32_t notifyPeriod;
 
     void pluginLoad();
 public:

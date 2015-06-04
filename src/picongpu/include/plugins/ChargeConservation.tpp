@@ -33,17 +33,19 @@
 #include "cuSTL/container/HostBuffer.hpp"
 #include "cuSTL/algorithm/kernel/Foreach.hpp"
 #include "cuSTL/algorithm/host/Foreach.hpp"
+#include "cuSTL/cursor/NestedCursor.hpp"
 #include "lambda/Expression.hpp"
 #include <sstream>
 #include "algorithms/ForEach.hpp"
 #include "cuSTL/algorithm/kernel/Reduce.hpp"
+#include "nvidia/functors/Add.hpp"
 
 namespace picongpu
 {
 
 ChargeConservation::ChargeConservation()
-    : name("print the maximum charge derivation between particles and div E"), 
-      prefix("ChargeConservation")
+    : name("print the maximum charge deviation between particles and div E"),
+      prefix("chargeConservation")
 {
     Environment<>::get().PluginConnector().registerPlugin(this);
 }
@@ -51,20 +53,26 @@ ChargeConservation::ChargeConservation()
 void ChargeConservation::pluginRegisterHelp(po::options_description& desc)
 {
     desc.add_options()
-        ((this->prefix + "_frequency").c_str(),
-        po::value<uint32_t > (&this->notifyFrequency)->default_value(0), "notifyFrequency");
+        ((this->prefix + "_period").c_str(),
+        po::value<uint32_t > (&this->notifyPeriod)->default_value(0), "enable plugin [for each n-th step]");
 }
 
 std::string ChargeConservation::pluginGetName() const {return this->name;}
 
 void ChargeConservation::pluginLoad()
 {
-    Environment<>::get().PluginConnector().setNotificationPeriod(this, this->notifyFrequency);
+    Environment<>::get().PluginConnector().setNotificationPeriod(this, this->notifyPeriod);
 }
 
 namespace detail
 {
 
+/**
+ * @class Div
+ * @brief divergence functor for 2D and 3D
+ *
+ * NOTE: This functor uses a Yee-cell stencil.
+ */
 template<int dim, typename ValueType>
 struct Div;
 
@@ -79,9 +87,9 @@ struct Div<DIM3, ValueType>
         const ValueType reciWidth = float_X(1.0) / CELL_WIDTH;
         const ValueType reciHeight = float_X(1.0) / CELL_HEIGHT;
         const ValueType reciDepth = float_X(1.0) / CELL_DEPTH;
-        return ((*field(1,0,0)).x() - (*field).x()) * reciWidth +
-               ((*field(0,1,0)).y() - (*field).y()) * reciHeight +
-               ((*field(0,0,1)).z() - (*field).z()) * reciDepth;
+        return ((*field).x() - (*field(-1,0,0)).x()) * reciWidth +
+               ((*field).y() - (*field(0,-1,0)).y()) * reciHeight +
+               ((*field).z() - (*field(0,0,-1)).z()) * reciDepth;
     }
 };
 
@@ -95,8 +103,8 @@ struct Div<DIM2, ValueType>
     {
         const ValueType reciWidth = float_X(1.0) / CELL_WIDTH;
         const ValueType reciHeight = float_X(1.0) / CELL_HEIGHT;
-        return ((*field(1,0)).x() - (*field).x()) * reciWidth +
-               ((*field(0,1)).y() - (*field).y()) * reciHeight;
+        return ((*field).x() - (*field(-1,0)).x()) * reciWidth +
+               ((*field).y() - (*field(0,-1)).y()) * reciHeight;
     }
 };
 
@@ -111,7 +119,7 @@ struct ComputeChargeDensity
                              const uint32_t currentStep) const
     {
         DataConnector &dc = Environment<>::get().DataConnector();
-        
+
         /* load species without copying the particle data to the host */
         SpeciesName* speciesTmp = &(dc.getData<SpeciesName >(SpeciesName::FrameType::getName(), true));
 
@@ -136,42 +144,43 @@ void ChargeConservation::notify(uint32_t currentStep)
     fieldTmp->getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType(0.0));
 
     /* calculate and add the charge density values from all species in FieldTmp */
-    ForEach<VectorAllSpecies, detail::ComputeChargeDensity<bmpl::_1,bmpl::int_<CORE + BORDER> >, MakeIdentifier<bmpl::_1> > computeChargeDensity;
+    ForEach<VectorAllSpecies, picongpu::detail::ComputeChargeDensity<bmpl::_1,bmpl::int_<CORE + BORDER> >, MakeIdentifier<bmpl::_1> > computeChargeDensity;
     computeChargeDensity(forward(fieldTmp), currentStep);
 
     /* add results of all species that are still in GUARD to next GPUs BORDER */
     EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
     __setTransactionEvent(fieldTmpEvent);
-    
+
     /* cast libPMacc Buffer to cuSTL Buffer */
     BOOST_AUTO(fieldTmp_coreBorder,
                  fieldTmp->getGridBuffer().
                  getDeviceBuffer().cartBuffer().
                  view(BlockDim::toRT(), -BlockDim::toRT()));
-    
+
     /* cast libPMacc Buffer to cuSTL Buffer */
     BOOST_AUTO(fieldE_coreBorder,
                  dc.getData<FieldE > (FieldE::getName(), true).getGridBuffer().
                  getDeviceBuffer().cartBuffer().
                  view(BlockDim::toRT(), -BlockDim::toRT()));
 
-    /* run calculation: fieldTmp = | div E - rho / eps_0 | */
+    /* run calculation: fieldTmp = | div E * eps_0 - rho | */
     using namespace lambda;
     using namespace PMacc::math::math_functor;
-    typedef detail::Div<simDim, typename FieldTmp::ValueType> myDiv;
+    typedef picongpu::detail::Div<simDim, typename FieldTmp::ValueType> myDiv;
     algorithm::kernel::Foreach<BlockDim>()
-        (fieldTmp_coreBorder.zone(), fieldTmp_coreBorder.origin(), 
+        (fieldTmp_coreBorder.zone(), fieldTmp_coreBorder.origin(),
         cursor::make_NestedCursor(fieldE_coreBorder.origin()),
-            _1 = _abs(expr(myDiv())(_2) - _1 / EPS0));
-            
+            _1 = _abs(expr(myDiv())(_2) * EPS0 - _1));
+
     /* reduce charge derivation (fieldTmp) to get the maximum value */
-    container::DeviceBuffer<typename FieldTmp::ValueType, 1> maxChargeDiff(1);
-    algorithm::kernel::Reduce<BlockDim>()
-        (maxChargeDiff.origin(), fieldTmp_coreBorder.zone(), fieldTmp_coreBorder.origin(), _max(_1, _2));
-    container::HostBuffer<typename FieldTmp::ValueType, 1> maxChargeDiff_host(1);
-    maxChargeDiff_host = maxChargeDiff;
-    
+    typename FieldTmp::ValueType maxChargeDiff =
+        algorithm::kernel::Reduce()
+            (fieldTmp_coreBorder.origin(), fieldTmp_coreBorder.zone(), PMacc::nvidia::functors::Max());
+
     /* reduce again across mpi cluster */
+    container::HostBuffer<typename FieldTmp::ValueType, 1> maxChargeDiff_host(1);
+    *maxChargeDiff_host.origin() = maxChargeDiff;
+
     PMacc::GridController<simDim>& con = PMacc::Environment<simDim>::get().GridController();
     using namespace PMacc::math;
     Size_t<simDim> gpuDim = (Size_t<simDim>)con.getGpuNodes();
@@ -184,7 +193,7 @@ void ChargeConservation::notify(uint32_t currentStep)
 
     static std::ofstream file("chargeConservation.dat");
 
-    file << "step: " << currentStep << ", max charge derivation: "
+    file << "step: " << currentStep << ", max charge deviation: "
         << *maxChargeDiff_cluster.origin() * CELL_VOLUME << " * " << UNIT_CHARGE
         << " Coulomb" << std::endl;
 }
