@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -183,8 +183,8 @@ __global__ void kernelAddCurrentToEMF(typename FieldE::DataBoxType fieldE,
     const DataSpace<simDim > threadIndex(threadIdx);
     PMACC_AUTO(fieldJBlock, fieldJ.shift(blockCell));
 
-    ThreadCollective<BlockArea> collectiv(threadIndex);
-    collectiv(
+    ThreadCollective<BlockArea> collective(threadIndex);
+    collective(
               assign,
               cachedJ,
               fieldJBlock

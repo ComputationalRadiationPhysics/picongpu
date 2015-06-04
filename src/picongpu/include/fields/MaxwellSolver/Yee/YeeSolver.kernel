@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -38,8 +38,8 @@ __global__ void kernelUpdateE(EBox fieldE, BBox fieldB, Mapping mapper)
     const DataSpace<simDim > threadIndex(threadIdx);
     PMACC_AUTO(fieldBBlock, fieldB.shift(blockCell));
 
-    ThreadCollective<BlockDescription_> collectiv(threadIndex);
-    collectiv(
+    ThreadCollective<BlockDescription_> collective(threadIndex);
+    collective(
               assign,
               cachedB,
               fieldBBlock
@@ -68,8 +68,8 @@ __global__ void kernelUpdateBHalf(BBox fieldB,
     const DataSpace<simDim > threadIndex(threadIdx);
     PMACC_AUTO(fieldEBlock, fieldE.shift(blockCell));
 
-    ThreadCollective<BlockDescription_> collectiv(threadIndex);
-    collectiv(
+    ThreadCollective<BlockDescription_> collective(threadIndex);
+    collective(
               assign,
               cachedE,
               fieldEBlock
