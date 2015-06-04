@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Wen Fu
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Wen Fu, 
+ *                     Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -198,15 +199,15 @@ __global__ void kernelMoveAndMarkParticles(ParBox pb,
     PMACC_AUTO(fieldBBlock, fieldB.shift(blockCell));
 
     nvidia::functors::Assign assign;
-    ThreadCollective<BlockDescription_> collectiv(linearThreadIdx);
-    collectiv(
+    ThreadCollective<BlockDescription_> collective(linearThreadIdx);
+    collective(
               assign,
               cachedB,
               fieldBBlock
               );
 
     PMACC_AUTO(fieldEBlock, fieldE.shift(blockCell));
-    collectiv(
+    collective(
               assign,
               cachedE,
               fieldEBlock

@@ -187,15 +187,15 @@ __global__ void kernelIonizeParticles(ParBoxIons ionBox,
     nvidia::functors::Assign assign;
     
     PMACC_AUTO(fieldBBlock, fieldB.shift(blockCell));
-    ThreadCollective<BlockDescription_> collectiv(linearThreadIdx);
-    collectiv(
+    ThreadCollective<BlockDescription_> collective(linearThreadIdx);
+    collective(
               assign,
               cachedB,
               fieldBBlock
               );
 
     PMACC_AUTO(fieldEBlock, fieldE.shift(blockCell));
-    collectiv(
+    collective(
               assign,
               cachedE,
               fieldEBlock

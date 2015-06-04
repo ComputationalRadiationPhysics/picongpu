@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2015 Rene Widera, Marco Garten
  *
  * This file is part of libPMacc.
  *
@@ -57,10 +57,10 @@ namespace gol
             const Space threadIndex(threadIdx);
             PMACC_AUTO(buffRead_shifted, buffRead.shift(blockCell));
 
-            ThreadCollective<BlockArea> collectiv(threadIndex);
+            ThreadCollective<BlockArea> collective(threadIndex);
 
             nvidia::functors::Assign assign;
-            collectiv(
+            collective(
                       assign,
                       cache,
                       buffRead_shifted

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -88,8 +88,8 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
     __syncthreads();
 
     Set<typename JBox::ValueType > set(float3_X::create(0.0));
-    ThreadCollective<BlockDescription_, cellsPerSuperCell * workerMultiplier> collectivSet(linearThreadIdx);
-    collectivSet(set, cachedJ);
+    ThreadCollective<BlockDescription_, cellsPerSuperCell * workerMultiplier> collectiveSet(linearThreadIdx);
+    collectiveSet(set, cachedJ);
 
     __syncthreads();
 
@@ -117,9 +117,9 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
 
     nvidia::functors::Add add;
     const DataSpace<simDim> blockCell = block * SuperCellSize::toRT();
-    ThreadCollective<BlockDescription_, cellsPerSuperCell * workerMultiplier> collectivAdd(linearThreadIdx);
+    ThreadCollective<BlockDescription_, cellsPerSuperCell * workerMultiplier> collectiveAdd(linearThreadIdx);
     PMACC_AUTO(fieldJBlock, fieldJ.shift(blockCell));
-    collectivAdd(add, fieldJBlock, cachedJ);
+    collectiveAdd(add, fieldJBlock, cachedJ);
 }
 
 template<class ParticleAlgo, class Velocity, class TVec>
@@ -183,8 +183,8 @@ __global__ void kernelAddCurrentToEMF(typename FieldE::DataBoxType fieldE,
     const DataSpace<simDim > threadIndex(threadIdx);
     PMACC_AUTO(fieldJBlock, fieldJ.shift(blockCell));
 
-    ThreadCollective<BlockArea> collectiv(threadIndex);
-    collectiv(
+    ThreadCollective<BlockArea> collective(threadIndex);
+    collective(
               assign,
               cachedJ,
               fieldJBlock
