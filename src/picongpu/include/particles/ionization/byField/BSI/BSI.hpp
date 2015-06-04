@@ -95,7 +95,7 @@ namespace ionization
 
         public:
             /* host constructor */
-            BSI_Impl()
+            BSI_Impl(const uint32_t currentStep)
             {
                 DataConnector &dc = Environment<>::get().DataConnector();
                 /* initialize pointers on host-side E-(B-)field databoxes */
@@ -111,7 +111,8 @@ namespace ionization
              *  \brief Cache EM-fields on device
              *         and initialize possible prerequisites for ionization, like e.g. random number generator.
              *
-             * This function will be called inline on the device which must happen BEFORE threads diverge */
+             * This function will be called inline on the device which must happen BEFORE threads diverge
+             */
             DINLINE void init(const DataSpace<simDim>& blockCell, const int& linearThreadIdx, const DataSpace<simDim>& totalCellOffset)
             {
 

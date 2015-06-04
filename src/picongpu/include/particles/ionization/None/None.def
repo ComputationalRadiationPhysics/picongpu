@@ -29,11 +29,12 @@ namespace particles
 namespace ionization
 {
 
-    /** \struct None
-     * \brief Fallback for all species that cannot/should not be ionized */
     template<typename T_DestSpecies, typename T_SrcSpecies = bmpl::_1>
     struct None_Impl;
 
+    /** \struct None
+     * \brief Fallback for all species that cannot/should not be ionized
+     */
     template<typename T_DestSpecies>
     struct None
     {

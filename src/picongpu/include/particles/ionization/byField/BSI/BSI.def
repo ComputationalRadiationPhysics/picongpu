@@ -37,13 +37,15 @@ namespace ionization
      * - see for example: Delone, N. B.; Krainov, V. P. (1998). "Tunneling and barrier-suppression ionization of atoms and ions in a laser radiation field"
      *
      * \tparam T_DestSpecies electron species to be created
-     * \tparam T_SrcSpecies particle species that is ionized */
+     * \tparam T_SrcSpecies particle species that is ionized
+     */
     template<typename T_DestSpecies, typename T_SrcSpecies = bmpl::_1>
     struct BSI_Impl;
 
     /* wrapper class, needed because the SrcSpecies cannot be known during the
      * first specialization of the ionization model in the particle definition
-     * \see speciesDefinition.param */
+     * \see speciesDefinition.param
+     */
     template<typename T_DestSpecies>
     struct BSI
     {

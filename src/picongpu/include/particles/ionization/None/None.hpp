@@ -42,7 +42,7 @@ namespace ionization
             /* nothing here */
         public:
 
-            None_Impl()
+            None_Impl(const uint32_t currentStep)
             { /* ... */ }
 
             DINLINE void init(const DataSpace<simDim>& blockCell, const int& linearThreadIdx, const DataSpace<simDim>& totalCellOffset)

@@ -184,7 +184,8 @@ struct CallIonization
         {
 
             /* define the type of the species to be created
-             * from inside the ionization model specialization */
+             * from inside the ionization model specialization
+             */
             typedef typename SelectIonizer::DestSpecies DestSpecies;
             /* alias for pointer on source species */
             PMACC_AUTO(srcSpeciesPtr, tuple[SpeciesName()]);
@@ -206,10 +207,11 @@ struct CallIonization
                 (block)
                 ( srcSpeciesPtr->getDeviceParticlesBox( ),
                   electronsPtr->getDeviceParticlesBox( ),
-                  SelectIonizer()
+                  SelectIonizer(currentStep)
                   );
             /* fill the gaps in the created species' particle frames to ensure that only
-             * the last frame is not completely filled but every other before is full */
+             * the last frame is not completely filled but every other before is full
+             */
             electronsPtr->fillAllGaps();
 
         }
