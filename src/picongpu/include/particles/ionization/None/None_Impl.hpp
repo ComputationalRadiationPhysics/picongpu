@@ -39,21 +39,23 @@ namespace ionization
         typedef T_SrcSpecies  SrcSpecies;
 
         private:
-            /* nothing here */
+
         public:
 
             None_Impl(const uint32_t currentStep)
-            { /* ... */ }
-
-            DINLINE void init(const DataSpace<simDim>& blockCell, const int& linearThreadIdx, const DataSpace<simDim>& totalCellOffset)
             {
-                /* Do nothing */
+
+            }
+
+            DINLINE void init(const DataSpace<simDim>& blockCell, const int& linearThreadIdx, const DataSpace<simDim>& totalCellOffset) const
+            {
+
             }
 
             template<typename FrameType>
-            DINLINE void operator()(FrameType& ionFrame, int localIdx, unsigned int& newMacroElectrons)
+            DINLINE void operator()(FrameType& ionFrame, int localIdx, unsigned int& newMacroElectrons) const
             {
-                /* Do nothing */
+
             }
     };
 

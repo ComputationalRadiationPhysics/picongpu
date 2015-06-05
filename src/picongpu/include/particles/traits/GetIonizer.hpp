@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Marco Garten
+ * Copyright 2014-2015 Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -56,16 +56,6 @@ struct GetIonizer
         particles::ionization::None<SpeciesType>
     >::type UserIonizer;
 
-//    template< template< typename, typename > class T_Ionizer, typename T_Src, typename T_Dest, typename T_SrcSpeciesPlaceholder >
-//    struct myApply;
-//
-//    template< template< typename, typename > class T_Ionizer, typename T_Src, typename T_Dest, typename T_SrcSpeciesPlaceholder >
-//    struct myApply<T_Ionizer<T_Dest,T_SrcSpeciesPlaceholder>, T_Src >
-//    {
-//        typedef T_Ionizer< T_Dest, T_Src> type;
-//    };
-//
-//    typedef typename myApply<UserIonizer, SpeciesType>::type type;
     typedef typename bmpl::apply1<typename UserIonizer::type, SpeciesType>::type type;
 
 }; // struct GetIonizer

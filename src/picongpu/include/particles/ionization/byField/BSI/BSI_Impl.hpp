@@ -84,14 +84,15 @@ namespace ionization
             typedef particles::ionization::AlgorithmBSI IonizationAlgorithm;
 
             typedef MappingDesc::SuperCellSize TVec;
-            typedef FieldE::ValueType ValueType;
-            typedef FieldE::DataBoxType DataBoxType;
+
+            typedef FieldE::ValueType ValueType_E;
+            typedef FieldB::ValueType ValueType_B;
             /* global memory EM-field device databoxes */
-            DataBoxType eBox;
-            DataBoxType bBox;
+            FieldE::DataBoxType eBox;
+            FieldB::DataBoxType bBox;
             /* shared memory EM-field device databoxes */
-            PMACC_ALIGN(cachedE,DataBox<SharedBox<ValueType, typename BlockArea::FullSuperCellSize,1> >);
-            PMACC_ALIGN(cachedB,DataBox<SharedBox<ValueType, typename BlockArea::FullSuperCellSize,0> >);
+            PMACC_ALIGN(cachedE, DataBox<SharedBox<ValueType_E, typename BlockArea::FullSuperCellSize,1> >);
+            PMACC_ALIGN(cachedB, DataBox<SharedBox<ValueType_B, typename BlockArea::FullSuperCellSize,0> >);
 
         public:
             /* host constructor */
@@ -117,23 +118,23 @@ namespace ionization
             {
 
                 /* caching of E and B fields */
-                cachedB = CachedBox::create < 0, ValueType > (BlockArea());
-                cachedE = CachedBox::create < 1, ValueType > (BlockArea());
+                cachedB = CachedBox::create < 0, ValueType_B > (BlockArea());
+                cachedE = CachedBox::create < 1, ValueType_E > (BlockArea());
                 /* wait for shared memory to be initialized */
                 __syncthreads();
                 /* instance of nvidia assignment operator */
                 nvidia::functors::Assign assign;
                 /* copy fields from global to shared */
                 PMACC_AUTO(fieldBBlock, bBox.shift(blockCell));
-                ThreadCollective<BlockArea> collectiv(linearThreadIdx);
-                collectiv(
+                ThreadCollective<BlockArea> collective(linearThreadIdx);
+                collective(
                           assign,
                           cachedB,
                           fieldBBlock
                           );
                 /* copy fields from global to shared */
                 PMACC_AUTO(fieldEBlock, eBox.shift(blockCell));
-                collectiv(
+                collective(
                           assign,
                           cachedE,
                           fieldEBlock
@@ -156,8 +157,8 @@ namespace ionization
                 /* type of PIC-scheme cell */
                 typedef typename fieldSolver::NumericalCellType NumericalCellType;
 
-                typedef ValueType BType;
-                typedef ValueType EType;
+                typedef ValueType_B BType;
+                typedef ValueType_E EType;
                 /* alias for the single macro-particle */
                 PMACC_AUTO(particle,ionFrame[localIdx]);
                 /* particle position, used for field-to-particle interpolation */
