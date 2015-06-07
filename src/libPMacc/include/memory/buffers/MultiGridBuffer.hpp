@@ -156,9 +156,9 @@ public:
     }
 
     /**
-     * Starts sync data from own device buffer to neigbhor device buffer.
+     * Starts sync data from own device buffer to neighboring device buffer.
      *
-     * Asynchronously starts syncronization data from internal DeviceBuffer using added
+     * Asynchronously starts synchronization of data from internal DeviceBuffer using added
      * Exchange buffers.
      *
      */
@@ -174,11 +174,11 @@ public:
     }
 
     /**
-     * Starts sync data from own device buffer to neigbhor device buffer.
+     * Starts sync data from own device buffer to neighboring device buffer.
      *
-     * Asynchronously starts syncronization data from internal DeviceBuffer using added
+     * Asynchronously starts synchronization of data from internal DeviceBuffer using added
      * Exchange buffers.
-     * This operation runs sequential to other code but intern asyncron
+     * This operation runs sequentially to other code but uses asynchronous operations internally.
      *
      */
     EventTask communication()

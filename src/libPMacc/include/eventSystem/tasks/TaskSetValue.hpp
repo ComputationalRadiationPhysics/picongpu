@@ -186,7 +186,7 @@ public:
     }
 };
 
-/** implementation for small values (>256 byte)
+/** implementation for big values (>256 byte)
  *
  * This class uses CUDA memcopy to copy an instance of T_ValueType to the GPU
  * and runs a kernel which assigns this value to all cells.

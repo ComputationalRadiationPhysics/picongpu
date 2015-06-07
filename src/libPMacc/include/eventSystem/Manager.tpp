@@ -55,7 +55,7 @@ inline bool Manager::execute( id_t taskToWait )
     if ( deep > old_max )
     {
         old_max = deep;
-     }
+    }
 #endif
 
     static TaskMap::iterator iter = tasks.begin( );
@@ -63,7 +63,7 @@ inline bool Manager::execute( id_t taskToWait )
     if ( iter == tasks.end( ) )
         iter = tasks.begin( );
 
-    // this is the slow but very save variant to delete taks in a map
+    // this is the slow but very save variant to delete tasks in a map
     while ( iter != tasks.end( ) )
     {
         id_t id = iter->first;
