@@ -64,7 +64,7 @@ public:
         setSize();
     }
 
-    bool executeIntern() throw (std::runtime_error)
+    bool executeIntern()
     {
         return isFinished();
     }

@@ -27,7 +27,7 @@
 namespace PMacc
 {
 
-inline TransactionManager::~TransactionManager() throw(std::runtime_error)
+inline TransactionManager::~TransactionManager() /*noexcept(false)*/
 {
     if(transactions.size() == 0)
         throw std::runtime_error("Missing transaction on the stack!");

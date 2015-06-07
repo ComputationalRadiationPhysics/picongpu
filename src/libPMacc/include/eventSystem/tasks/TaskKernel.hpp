@@ -46,7 +46,7 @@ namespace PMacc
             notify(this->myId, KERNEL, NULL);
         }
 
-        bool executeIntern() throw (std::runtime_error)
+        bool executeIntern()
         {
             if(canBeChecked)
             {
