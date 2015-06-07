@@ -76,8 +76,8 @@ namespace PMACC_JOIN(pmacc_static_const_storage,id)                            \
     typedef PMacc::math::Vector<                                               \
         Type,                                                                  \
         Dim,                                                                   \
-        PMacc::math::StandartAccessor,                                         \
-        PMacc::math::StandartNavigator,                                        \
+        PMacc::math::StandardAccessor,                                         \
+        PMacc::math::StandardNavigator,                                        \
         ConstArrayStorage > PMACC_JOIN(Name,_t);                               \
 } /* namespace pmacc_static_const_storage + id */                              \
 using namespace PMACC_JOIN(pmacc_static_const_storage,id)
