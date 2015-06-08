@@ -50,7 +50,7 @@ namespace PMacc
          * Constructor.
          *
          * @param data pointer to buffer holding data of type VALUE
-         * @param offset realtiv offset to pointer start adress
+         * @param offset relative offset to pointer start address
          * @param currentSize size of the buffer data points to
          */
         HDINLINE PushDataBox(VALUE *data, TYPE *currentSize, DataSpace<DIM1> offset=DataSpace<DIM1>(0)) :

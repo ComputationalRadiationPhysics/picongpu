@@ -35,9 +35,9 @@ namespace PMacc
 {
 
     /**
-     * Minimal function descriptiin of a buffer,
+     * Minimal function description of a buffer,
      *
-     * @tparam TYPE datatype stored in the buffer
+     * @tparam TYPE data type stored in the buffer
      * @tparam DIM dimension of the buffer (1-3)
      */
     template <class TYPE, unsigned DIM>
