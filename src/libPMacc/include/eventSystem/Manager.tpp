@@ -20,6 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "eventSystem/events/EventPool.hpp"
 #include "eventSystem/streams/StreamController.hpp"
 #include "eventSystem/EventSystem.hpp"
 #include "eventSystem/Manager.hpp"

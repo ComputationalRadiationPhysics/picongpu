@@ -24,7 +24,6 @@
 #pragma once
 
 #include "eventSystem/tasks/ITask.hpp"
-#include "eventSystem/events/EventPool.hpp"
 
 #include <map>
 #include <set>
@@ -33,6 +32,7 @@ namespace PMacc
 {
     // forward declaration
     class EventTask;
+    class EventPool;
 
     /**
      * Manages the event system by executing and waiting for tasks.
