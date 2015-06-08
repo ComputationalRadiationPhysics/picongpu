@@ -131,7 +131,7 @@ public:
 
     virtual void init() = 0;
 
-    bool executeIntern() throw (std::runtime_error)
+    bool executeIntern()
     {
         return isFinished();
     }
