@@ -30,7 +30,7 @@ namespace math
 {
 
 /** \todo rename this class to AccessorIdentity*/
-struct StandartAccessor
+struct StandardAccessor
 {
 template<typename Data>
 HDINLINE Data& operator()(Data& data) const

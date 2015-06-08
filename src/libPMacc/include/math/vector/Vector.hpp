@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include <math/vector/accessor/StandartAccessor.hpp>
-#include <math/vector/navigator/StandartNavigator.hpp>
+#include <math/vector/accessor/StandardAccessor.hpp>
+#include <math/vector/navigator/StandardNavigator.hpp>
 #include <lambda/Expression.hpp>
 #include "result_of_Functor.hpp"
 #include "static_assert.hpp"
@@ -107,8 +107,8 @@ namespace tag
 }
 
 template<typename T_Type, int T_dim,
-typename T_Accessor = StandartAccessor,
-typename T_Navigator = StandartNavigator,
+typename T_Accessor = StandardAccessor,
+typename T_Navigator = StandardNavigator,
 template <typename, int> class T_Storage = detail::Vector_components>
 struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protected T_Navigator
 {

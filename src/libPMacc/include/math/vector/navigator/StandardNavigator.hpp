@@ -30,7 +30,7 @@ namespace math
 {
 
 /** \todo rename this class to NavigatorIdentity*/
-struct StandartNavigator
+struct StandardNavigator
 {
     HDINLINE int operator()(int component) const
     {
