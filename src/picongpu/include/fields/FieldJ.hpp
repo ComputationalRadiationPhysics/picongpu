@@ -85,7 +85,7 @@ public:
     static uint32_t getCommTag();
 
     template<uint32_t AREA, class ParticlesClass>
-    void computeCurrent(ParticlesClass &parClass, uint32_t currentStep) throw (std::invalid_argument);
+    void computeCurrent(ParticlesClass &parClass, uint32_t currentStep);
 
     template<uint32_t AREA, class T_CurrentInterpolation>
     void addCurrentToEMF( T_CurrentInterpolation& myCurrentInterpolation );
