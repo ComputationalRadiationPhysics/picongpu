@@ -33,6 +33,9 @@ namespace ionization
      *
      * \tparam T_DestSpecies electron species to be created
      * \tparam T_SrcSpecies particle species that is ionized
+     *         default is boost::mpl placeholder because specialization
+     *         cannot be known in list of particle species' flags
+     *         \see speciesDefinition.param
      */
     template<typename T_DestSpecies, typename T_SrcSpecies = bmpl::_1>
     struct BSI_Impl;
@@ -47,7 +50,8 @@ namespace ionization
      *
      * \tparam T_DestSpecies electron species to be created
      *
-     * wrapper class, needed because the SrcSpecies cannot be known during the
+     * wrapper class,
+     * needed because the SrcSpecies cannot be known during the
      * first specialization of the ionization model in the particle definition
      * \see speciesDefinition.param
      */

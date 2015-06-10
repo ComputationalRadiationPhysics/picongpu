@@ -56,6 +56,7 @@ struct GetIonizer
         particles::ionization::None<SpeciesType>
     >::type UserIonizer;
 
+    /* specializes the designated ionization model with the particle species it is called upon */
     typedef typename bmpl::apply1<typename UserIonizer::type, SpeciesType>::type type;
 
 }; // struct GetIonizer

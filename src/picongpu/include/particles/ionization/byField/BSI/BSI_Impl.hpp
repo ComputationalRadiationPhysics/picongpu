@@ -63,11 +63,11 @@ namespace ionization
         /* specify field to particle interpolation scheme */
         typedef typename PMacc::traits::Resolve<
             typename GetFlagType<FrameType,interpolation<> >::type
-        >::type InterpolationScheme;
+        >::type Field2ParticleInterpolation;
 
         /* margins around the supercell for the interpolation of the field on the cells */
-        typedef typename GetMargin<InterpolationScheme>::LowerMargin LowerMargin;
-        typedef typename GetMargin<InterpolationScheme>::UpperMargin UpperMargin;
+        typedef typename GetMargin<Field2ParticleInterpolation>::LowerMargin LowerMargin;
+        typedef typename GetMargin<Field2ParticleInterpolation>::UpperMargin UpperMargin;
 
         /* relevant area of a block */
         typedef SuperCellDescription<
@@ -143,22 +143,17 @@ namespace ionization
 
             /** Functor implementation
              *
-             * \param ionFrame (here address of: ) frame of the to-be-ionized particles
+             * \param ionFrame reference to frame of the to-be-ionized particles
              * \param localIdx local (linear) index in super cell / frame
-             * \param newMacroElectrons (here address of: ) variable for each thread that stores the number
+             * \param newMacroElectrons reference to variable for each thread that stores the number
              *        of macro electrons to be created during the current time step
              */
             DINLINE void operator()(FrameType& ionFrame, int localIdx, unsigned int& newMacroElectrons)
             {
 
-                /* type for field to particle interpolation */
-                typedef InterpolationScheme Field2ParticleInterpolation;
-
                 /* type of PIC-scheme cell */
                 typedef typename fieldSolver::NumericalCellType NumericalCellType;
 
-                typedef ValueType_B BType;
-                typedef ValueType_E EType;
                 /* alias for the single macro-particle */
                 PMACC_AUTO(particle,ionFrame[localIdx]);
                 /* particle position, used for field-to-particle interpolation */
@@ -167,10 +162,10 @@ namespace ionization
                 /* multi-dim coordinate of the local cell inside the super cell */
                 DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec > (particleCellIdx));
                 /* interpolation of E- */
-                EType eField = Field2ParticleInterpolation()
+                ValueType_E eField = Field2ParticleInterpolation()
                     (cachedE.shift(localCell).toCursor(), pos, NumericalCellType::getEFieldPosition());
                 /*                     and B-field on the particle position */
-                BType bField = Field2ParticleInterpolation()
+                ValueType_B bField = Field2ParticleInterpolation()
                     (cachedB.shift(localCell).toCursor(), pos, NumericalCellType::getBFieldPosition());
 
                 /* define number of bound macro electrons before ionization */

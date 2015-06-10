@@ -86,7 +86,7 @@ __global__ void kernelIonizeParticles(ParBoxIons ionBox,
         UpperMargin
         > BlockDescription_;
 
-    /* for not mixing operations::assign up with the nVidia functor assign */
+    /* for not mixing operations::assign up with the nvidia functor assign */
     namespace partOp = PMacc::particles::operations;
 
     /* definitions for domain variables, like indices of blocks and threads */
@@ -102,10 +102,8 @@ __global__ void kernelIonizeParticles(ParBoxIons ionBox,
     /* "offset" from origin of the grid in unit of cells */
     const DataSpace<simDim> blockCell = block * SuperCellSize::toRT();
 
-    /* get local cell idx for random generator init */
-    const DataSpace<simDim> idx(block * SuperCellSize::toRT() + threadIndex);
     /* subtract guarding cells to only have the simulation volume */
-    const DataSpace<simDim> localCellIndex = idx - mapper.getGuardingSuperCells() * SuperCellSize::toRT();
+    const DataSpace<simDim> localCellIndex = (block * SuperCellSize::toRT() + threadIndex) - mapper.getGuardingSuperCells() * SuperCellSize::toRT();
 
     /* typedef for the functor that writes new macro electrons into electron frames during runtime */
     typedef typename particles::ionization::WriteElectronIntoFrame WriteElectronIntoFrame;
@@ -138,7 +136,7 @@ __global__ void kernelIonizeParticles(ParBoxIons ionBox,
      * occupation of the newly created target electron frames. */
     __shared__ int newFrameFillLvl;
 
-    __syncthreads(); /*wait that all shared memory is initialized*/
+    __syncthreads(); /*wait until all shared memory is initialized*/
 
     /* Declare local variable oldFrameFillLvl for each thread */
     int oldFrameFillLvl;
