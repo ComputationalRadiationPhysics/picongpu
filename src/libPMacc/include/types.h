@@ -108,7 +108,6 @@ enum EventType
     FINISHED, COPYHOST2DEVICE, COPYDEVICE2HOST, COPYDEVICE2DEVICE, SENDFINISHED, RECVFINISHED, LOGICALAND, SETVALUE, GETVALUE, KERNEL
 };
 
-
 /**
  * Captures CUDA errors and prints messages to stdout, including line number and file.
  *
@@ -119,28 +118,6 @@ enum EventType
 #define CUDA_CHECK_MSG(cmd,msg) {cudaError_t error = cmd; if(error!=cudaSuccess){std::cerr<<"<"<<__FILE__<<">:"<<__LINE__<<msg<<std::endl; throw std::runtime_error(std::string("[CUDA] Error: ") + std::string(cudaGetErrorString(error)));}}
 
 #define CUDA_CHECK_NO_EXCEP(cmd) {cudaError_t error = cmd; if(error!=cudaSuccess){printf("[CUDA] Error: <%s>:%i ",__FILE__,__LINE__);}}
-/**
- * Converts an ExchangeType into a bitmask
- *
- * e.g. converts BOTTOM to "0000 0100"
- *
- * @param edge_type value from enum ExchangeType to convert
- */
-#define EDGE_TO_MASK(edge_type) (1u<<(edge_type))
-
-/**
- * Returns if edge_type is set in a bitmask
- *
- * e.g. mask="0000 1110", edge_type=BOTTOM, makro returns 2 (true)
- *
- * @param mask bitmask which represents an edge direction
- * @param edge_type Edge_Type to query
- * @return false (0) if ExchangeType bit is not set, true otherwise (!=0)
- */
-#define IS_EDGE_SET(mask,edge_type) ((EDGE_TO_MASK((edge_type)))&(mask))
-
-#define TO_BITS(x) (~((-1) << (x)))
-
 
 /* calculate and set the optimal alignment for data
  * you must align all array and structs which can used on device
