@@ -72,6 +72,8 @@ public:
     const PMACC_ALIGN(w_y_SI,float_64);
     /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
     const PMACC_ALIGN(phi,float_X);
+    /* Takes value 1.0 for phi > 0 and -1.0 for phi < 0. */
+    PMACC_ALIGN(phiPositive,float_X);
     /* propagation speed of TWTS laser overlap
     normalized to the speed of light. [Default: beta0=1.0] */
     const PMACC_ALIGN(beta_0,float_X);
