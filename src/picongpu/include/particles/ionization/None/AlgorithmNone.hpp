@@ -22,9 +22,13 @@
 
 #include "types.h"
 
-/** IONIZATION ALGORITHM
+/** \file AlgorithNone.hpp
+ *
+ * IONIZATION ALGORITHM for the model None
+ *
  * - implements the calculation of ionization probability and changes charge states
- * - is called with the IONIZATION MODEL, specifically by setting the flag in @see speciesDefinition.param */
+ * - is called with the IONIZATION MODEL, specifically by setting the flag in @see speciesDefinition.param
+ */
 
 namespace picongpu
 {
@@ -34,11 +38,14 @@ namespace ionization
 {
 
     /** \struct AlgorithmNone
-     * \brief ionization algorithm that does nothing  */
+     *
+     * \brief ionization algorithm that does nothing
+     */
     struct AlgorithmNone
     {
 
         /** Functor implementation
+         *
          * \tparam EType type of electric field
          * \tparam BType type of magnetic field
          * \tparam ParticleType type of particle to be ionized

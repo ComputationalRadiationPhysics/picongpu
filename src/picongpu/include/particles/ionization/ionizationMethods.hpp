@@ -35,10 +35,10 @@ namespace ionization
 {
 
     using namespace PMacc;
-    
+
     /* operations on particles */
     namespace partOp = PMacc::particles::operations;
-    
+
     /** \struct WriteElectronIntoFrame
      *
      * \brief functor that fills an electron frame entry with details about the created particle
@@ -63,7 +63,8 @@ namespace ionization
              * - multiMask: reading from global memory takes longer than just setting it again explicitly
              * - momentum: because the electron would get a higher energy because of the ion mass
              * - boundElectrons: because species other than ions or atoms do not have them
-             * (gets AUTOMATICALLY deselected because electrons do not have this attribute) */
+             * (gets AUTOMATICALLY deselected because electrons do not have this attribute)
+             */
             PMACC_AUTO(targetElectronClone, partOp::deselect<bmpl::vector2<multiMask, momentum> >(childElectron));
 
             partOp::assign(targetElectronClone, parentIon);
@@ -74,16 +75,16 @@ namespace ionization
             float3_X electronMomentum (parentIon[momentum_]*(massElectron/massIon));
 
             childElectron[momentum_] = electronMomentum;
-            
+
             /* conservation of momentum
              * \todo add conservation of mass */
             parentIon[momentum_] -= electronMomentum;
         }
     };
-    
+
 } // namespace ionization
 
 } // namespace particles
-    
+
 } // namespace picongpu
 

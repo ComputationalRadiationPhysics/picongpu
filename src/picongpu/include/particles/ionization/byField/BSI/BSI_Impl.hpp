@@ -108,11 +108,14 @@ namespace ionization
 
             }
 
-            /** init
-             *  \brief Cache EM-fields on device
+            /** Initialization function on device
+             *
+             * \brief Cache EM-fields on device
              *         and initialize possible prerequisites for ionization, like e.g. random number generator.
              *
              * This function will be called inline on the device which must happen BEFORE threads diverge
+             * during loop execution. The reason for this is the `__syncthreads()` call which is necessary after
+             * initializing the E-/B-field shared boxes in shared memory.
              */
             DINLINE void init(const DataSpace<simDim>& blockCell, const int& linearThreadIdx, const DataSpace<simDim>& totalCellOffset)
             {

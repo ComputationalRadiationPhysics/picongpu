@@ -156,7 +156,11 @@ struct CallUpdate
 };
 
 /** \struct CallIonization
- * \brief Tests if species can be ionized and calls the kernel to do that */
+ * 
+ * \brief Tests if species can be ionized and calls the kernel to do that
+ *
+ * \tparam T_SpeciesName name of particle species that is checked for ionization
+ */
 template<typename T_SpeciesName>
 struct CallIonization
 {
@@ -166,10 +170,14 @@ struct CallIonization
     /* SelectIonizer will be either the specified one or fallback: None */
     typedef typename GetIonizer<SpeciesType>::type SelectIonizer;
 
-    /* Functor implementation
+    /** Functor implementation
+     *
      * \tparam T_StorageStuple contains info about the particle species
      * \tparam T_CellDescription contains the number of blocks and blocksize
      *                           that is later passed to the kernel
+     * \param tuple An n-tuple containing the type-info of multiple particle species
+     * \param cellDesc points to logical block information like dimension and cell sizes
+     * \param currentStep The current time step
      */
     template<typename T_StorageTuple, typename T_CellDescription>
     HINLINE void operator()(

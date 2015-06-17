@@ -30,7 +30,8 @@ namespace ionization
 {
 
     /** \struct None_Impl
-     * \brief Empty ionization model
+     *
+     * \brief Empty ionization model [that is used for all species that are not ionized]
      *
      * \tparam T_DestSpecies electron species to be created
      * \tparam T_SrcSpecies particle species that is ionized
@@ -42,6 +43,7 @@ namespace ionization
     struct None_Impl;
 
     /** \struct None
+     *
      * \brief Fallback for all species that cannot/should not be ionized
      *
      * \tparam T_DestSpecies electron species to be created
