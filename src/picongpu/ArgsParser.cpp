@@ -1,5 +1,6 @@
 /**
- * Copyright 2013, 2015 Axel Huebl, Felix Schmitt, Rene Widera
+ * Copyright 2013, 2015 Axel Huebl, Felix Schmitt, Rene Widera,
+ *                      Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -62,7 +63,6 @@ namespace picongpu
     }
 
     ArgsParser::ArgsErrorCode ArgsParser::parse( int argc, char** argv )
-    throw (std::runtime_error )
     {
         try
         {
