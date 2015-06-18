@@ -26,10 +26,14 @@
 #include "traits/attribute/GetChargeState.hpp"
 #include "algorithms/math/floatMath/floatingPoint.tpp"
 
-/** IONIZATION ALGORITHM
+/** \file AlgorithmBSI.hpp
+ *
+ * IONIZATION ALGORITHM for the BSI model
+ *
  * - implements the calculation of ionization probability and changes charge states
  *   by decreasing the number of bound electrons
- * - is called with the IONIZATION MODEL, specifically by setting the flag in @see speciesDefinition.param */
+ * - is called with the IONIZATION MODEL, specifically by setting the flag in @see speciesDefinition.param
+ */
 
 namespace picongpu
 {
@@ -39,11 +43,14 @@ namespace ionization
 {
 
     /** \struct AlgorithmBSI
-     * \brief calculation for the Barrier Suppression Ionization model */
+     *
+     * \brief calculation for the Barrier Suppression Ionization model
+     */
     struct AlgorithmBSI
     {
-        
+
         /** Functor implementation
+         *
          * \tparam EType type of electric field
          * \tparam BType type of magnetic field
          * \tparam ParticleType type of particle to be ionized
@@ -59,9 +66,9 @@ namespace ionization
 
             const float_X protonNumber = GetAtomicNumbers<ParticleType>::type::numberOfProtons;
             float_X chargeState = attribute::getChargeState(parentIon);
-            
+
             uint32_t cs = math::float2int_rd(chargeState);
-            
+
             /* ionization condition */
             if (math::abs(eField)*UNIT_EFIELD >= SI::IONIZATION_EFIELD[cs] && chargeState < protonNumber)
             {

@@ -20,14 +20,29 @@
 
 #pragma once
 
+#include "types.h"
+
 namespace picongpu
 {
 namespace particles
 {
 namespace ionization
 {
+    /** \struct BSI_Impl
+     *
+     * \brief Barrier Suppression Ionization - Implementation
+     *
+     * \tparam T_DestSpecies electron species to be created
+     * \tparam T_SrcSpecies particle species that is ionized
+     *         default is boost::mpl placeholder because specialization
+     *         cannot be known in list of particle species' flags
+     *         \see speciesDefinition.param
+     */
+    template<typename T_DestSpecies, typename T_SrcSpecies = bmpl::_1>
+    struct BSI_Impl;
 
     /** \struct BSI
+     * 
      * \brief Barrier Suppression Ionization
      *
      * - takes the ionization energies of the various charge states of ions
@@ -35,9 +50,18 @@ namespace ionization
      * - if the field strength is locally exceeded: increase the charge state
      * - see for example: Delone, N. B.; Krainov, V. P. (1998). "Tunneling and barrier-suppression ionization of atoms and ions in a laser radiation field"
      *
-     * \tparam T_DestSpecies electron species to be created */
+     * \tparam T_DestSpecies electron species to be created
+     *
+     * wrapper class,
+     * needed because the SrcSpecies cannot be known during the
+     * first specialization of the ionization model in the particle definition
+     * \see speciesDefinition.param
+     */
     template<typename T_DestSpecies>
-    struct BSI;
+    struct BSI
+    {
+        typedef BSI_Impl<T_DestSpecies> type;
+    };
 
 } // namespace ionization
 } // namespace particles

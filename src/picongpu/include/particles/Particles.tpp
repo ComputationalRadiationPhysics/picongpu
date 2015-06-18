@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Felix Schmitt
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Felix Schmitt
  *
  * This file is part of PIConGPU.
  *
@@ -29,9 +29,6 @@
 
 
 #include "particles/Particles.kernel"
-
-// Ionization
-#include "particles/ionization/ionization.hpp"
 
 #include "dataManagement/DataConnector.hpp"
 #include "mappings/kernel/AreaMapping.hpp"

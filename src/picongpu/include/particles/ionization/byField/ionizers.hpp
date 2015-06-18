@@ -20,9 +20,12 @@
 
 #pragma once
 
-/* Includes containing definition of < Ionization Models >
+/** \file ionizers.hpp
+ *
+ * Includes containing definition of < Ionization Models >
  * which itself each include their own < Ionization Algorithm >
- * that implements what the model actually DOES */
+ * that implements what the model actually DOES
+ */
 
-#include "particles/ionization/byField/BSI/BSI.hpp"
-#include "particles/ionization/None/None.hpp"
+#include "particles/ionization/byField/BSI/BSI_Impl.hpp"
+#include "particles/ionization/None/None_Impl.hpp"

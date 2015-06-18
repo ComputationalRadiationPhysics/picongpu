@@ -384,9 +384,11 @@ public:
     {
         namespace nvfct = PMacc::nvidia::functors;
 
-        /* Ionization */
+        /* Initialize ionization routine for each species
+         *      - valid species will be ionized
+         *      - invalid species (e.g. electrons): fallback */
         ForEach<VectorAllSpecies, particles::CallIonization<bmpl::_1>, MakeIdentifier<bmpl::_1> > particleIonization;
-        particleIonization(forward(particleStorage), currentStep);
+        particleIonization(forward(particleStorage), cellDescription, currentStep);
 
         EventTask initEvent = __getTransactionEvent();
         EventTask updateEvent;

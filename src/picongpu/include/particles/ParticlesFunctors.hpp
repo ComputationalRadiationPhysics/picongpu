@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Rene Widera, Marco Garten
+ * Copyright 2014-2015 Rene Widera, Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -155,29 +155,74 @@ struct CallUpdate
     }
 };
 
-/* Tests if species can be ionized and calls the function to do that */
+/** \struct CallIonization
+ * 
+ * \brief Tests if species can be ionized and calls the kernel to do that
+ *
+ * \tparam T_SpeciesName name of particle species that is checked for ionization
+ */
 template<typename T_SpeciesName>
 struct CallIonization
 {
     typedef T_SpeciesName SpeciesName;
     typedef typename SpeciesName::type SpeciesType;
-    
+    typedef typename SpeciesType::FrameType FrameType;
+    /* SelectIonizer will be either the specified one or fallback: None */
     typedef typename GetIonizer<SpeciesType>::type SelectIonizer;
 
-    /* describes the instance of CallIonization */
-    template<typename T_StorageTuple>
+    /** Functor implementation
+     *
+     * \tparam T_StorageStuple contains info about the particle species
+     * \tparam T_CellDescription contains the number of blocks and blocksize
+     *                           that is later passed to the kernel
+     * \param tuple An n-tuple containing the type-info of multiple particle species
+     * \param cellDesc points to logical block information like dimension and cell sizes
+     * \param currentStep The current time step
+     */
+    template<typename T_StorageTuple, typename T_CellDescription>
     HINLINE void operator()(
                         T_StorageTuple& tuple,
+                        T_CellDescription* cellDesc,
                         const uint32_t currentStep
                         ) const
     {
-        
-        /* alias for pointer on source species */
-        PMACC_AUTO(speciesPtr, tuple[SpeciesName()]);
-        /* instance of particle ionizer that was flagged in speciesDefinition.param */
-        SelectIonizer myIonizer;
-        myIonizer(*speciesPtr, tuple, currentStep);
-        
+        /* only if an ionizer has been specified, this is executed */
+        typedef typename HasFlag<FrameType, ionizer<> >::type hasIonizer;
+        if (hasIonizer::value)
+        {
+
+            /* define the type of the species to be created
+             * from inside the ionization model specialization
+             */
+            typedef typename SelectIonizer::DestSpecies DestSpecies;
+            /* alias for pointer on source species */
+            PMACC_AUTO(srcSpeciesPtr, tuple[SpeciesName()]);
+            /* alias for pointer on destination species */
+            PMACC_AUTO(electronsPtr,  tuple[typename MakeIdentifier<DestSpecies>::type()]);
+
+            /* 3-dim vector : number of threads to be started in every dimension */
+            dim3 block( MappingDesc::SuperCellSize::toRT().toDim3() );
+
+            /** kernelIonizeParticles
+             * \brief calls the ionization model and handles that electrons are created correctly
+             *        while cycling through the particle frames
+             *
+             * kernel call : instead of name<<<blocks, threads>>> (args, ...)
+             * "blocks" will be calculated from "this->cellDescription" and "CORE + BORDER"
+             * "threads" is calculated from the previously defined vector "block"
+             */
+            __picKernelArea( particles::ionization::kernelIonizeParticles, *cellDesc, CORE + BORDER )
+                (block)
+                ( srcSpeciesPtr->getDeviceParticlesBox( ),
+                  electronsPtr->getDeviceParticlesBox( ),
+                  SelectIonizer(currentStep)
+                  );
+            /* fill the gaps in the created species' particle frames to ensure that only
+             * the last frame is not completely filled but every other before is full
+             */
+            electronsPtr->fillAllGaps();
+
+        }
     }
 
 }; // struct CallIonization
