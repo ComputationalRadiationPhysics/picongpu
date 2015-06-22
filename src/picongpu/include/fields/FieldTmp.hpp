@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Rene Widera, Richard Pausch
+ * Copyright 2013-2015 Axel Huebl, Rene Widera, Richard Pausch,
+ *                     Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -52,7 +53,7 @@ namespace picongpu
     {
     public:
         typedef float1_X ValueType;
-        typedef typename promoteType<float_64, ValueType>::type UnitValueType;
+        typedef promoteType<float_64, ValueType>::type UnitValueType;
 
         typedef MappingDesc::SuperCellSize SuperCellSize;
         typedef DataBox<PitchedBox<ValueType, simDim> > DataBoxType;

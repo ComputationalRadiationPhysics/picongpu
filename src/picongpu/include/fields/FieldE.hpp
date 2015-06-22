@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
+ *                     Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -50,7 +51,7 @@ namespace picongpu
     {
     public:
         typedef float3_X ValueType;
-        typedef typename promoteType<float_64, ValueType>::type UnitValueType;
+        typedef promoteType<float_64, ValueType>::type UnitValueType;
         static const int numComponents = ValueType::dim;
 
         typedef MappingDesc::SuperCellSize SuperCellSize;

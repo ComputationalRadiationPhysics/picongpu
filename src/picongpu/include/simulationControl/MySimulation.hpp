@@ -1,6 +1,7 @@
 /**
  * Copyright 2013-2015 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
- *                     Richard Pausch, Alexander Debus, Marco Garten
+ *                     Richard Pausch, Alexander Debus, Marco Garten,
+ *                     Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -585,7 +586,7 @@ protected:
     cellwiseOperation::CellwiseOperation< CORE + BORDER + GUARD >* pushBGField;
     cellwiseOperation::CellwiseOperation< CORE + BORDER + GUARD >* currentBGField;
 
-    typedef typename SeqToMap<VectorAllSpecies, TypeToPointerPair<bmpl::_1> >::type ParticleStorageMap;
+    typedef SeqToMap<VectorAllSpecies, TypeToPointerPair<bmpl::_1> >::type ParticleStorageMap;
     typedef PMacc::math::MapTuple<ParticleStorageMap> ParticleStorage;
 
     ParticleStorage particleStorage;

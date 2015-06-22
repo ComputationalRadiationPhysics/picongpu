@@ -1,6 +1,7 @@
 /**
  * Copyright 2013-2015 Axel Huebl, Benjamin Schneider, Felix Schmitt,
- *                     Heiko Burau, Rene Widera, Richard Pausch
+ *                     Heiko Burau, Rene Widera, Richard Pausch,
+ *                     Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -146,11 +147,11 @@ private:
 
     typedef bmpl::vector< FieldB, FieldE, FieldJ> AllFields;
 
-    typedef typename AllCombinations<
+    typedef AllCombinations<
       bmpl::vector<AllFields, UnspecializedFieldPlugins>
     >::type CombinedUnspecializedFieldPlugins;
 
-    typedef typename bmpl::transform<
+    typedef bmpl::transform<
     CombinedUnspecializedFieldPlugins,
       ApplyDataToPlugin<bmpl::_1>
     >::type FieldPlugins;
@@ -175,18 +176,18 @@ private:
 #endif
     > UnspecializedSpeciesPlugins;
 
-    typedef typename AllCombinations<
+    typedef AllCombinations<
         bmpl::vector<VectorAllSpecies, UnspecializedSpeciesPlugins>
     >::type CombinedUnspecializedSpeciesPlugins;
 
-    typedef typename bmpl::transform<
+    typedef bmpl::transform<
         CombinedUnspecializedSpeciesPlugins,
         ApplyDataToPlugin<bmpl::_1>
     >::type SpeciesPlugins;
 
 
     /* create sequence with all plugins*/
-    typedef typename MakeSeq<
+    typedef MakeSeq<
         StandAllownPlugins,
         FieldPlugins,
         SpeciesPlugins
