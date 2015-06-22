@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Rene Widera
+ * Copyright 2013-2015 Rene Widera, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -40,7 +40,7 @@ namespace picongpu
 /*########################### define particle attributes #####################*/
 
 /** describe attributes of a particle*/
-typedef typename MakeSeq<position<position_pic>, momentum, weighting>::type DefaultParticleAttributes;
+typedef MakeSeq<position<position_pic>, momentum, weighting>::type DefaultParticleAttributes;
 
 
 /** \todo: not nice, we change this later with nice interfaces
@@ -48,21 +48,20 @@ typedef typename MakeSeq<position<position_pic>, momentum, weighting>::type Defa
  */
 
 /*add old momentum for radiation plugin*/
-typedef typename MakeSeq<
+typedef MakeSeq<
 #if(ENABLE_RADIATION == 1)
 momentumPrev1
 #endif
 >::type AttributMomentum_mt1;
 
 /*add old radiation flag for radiation plugin*/
-typedef typename MakeSeq<
+typedef MakeSeq<
 #if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
 radiationFlag
 #endif
 >::type AttributRadiationFlag;
 
-typedef
-typename MakeSeq<
+typedef MakeSeq<
 DefaultParticleAttributes,
 AttributMomentum_mt1,
 AttributRadiationFlag
@@ -88,7 +87,7 @@ typedef Particles<ParticleDescription<
     SuperCellSize,
     DefaultAttributesSeq,
     ParticleFlagsElectrons,
-    typename MakeSeq<CommunicationId<PAR_ELECTRONS> >::type  >
+    MakeSeq<CommunicationId<PAR_ELECTRONS> >::type  >
 > PIC_Electrons;
 
 /*--------------------------- ions -------------------------------------------*/
@@ -106,7 +105,7 @@ typedef Particles<ParticleDescription<
     SuperCellSize,
     DefaultAttributesSeq,
     ParticleFlagsIons,
-    typename MakeSeq<CommunicationId<PAR_IONS> >::type >
+    MakeSeq<CommunicationId<PAR_IONS> >::type >
 > PIC_Ions;
 
 /*########################### end species ####################################*/
@@ -115,19 +114,19 @@ typedef Particles<ParticleDescription<
 /*! we delete this ugly definition of VectorAllSpecies after all picongpu components
  * support multi species */
 /** \todo: not nice, but this should be changed in the future*/
-typedef typename MakeSeq<
+typedef MakeSeq<
 #if (ENABLE_ELECTRONS == 1)
 PIC_Electrons
 #endif
 >::type Species1;
 
-typedef typename MakeSeq<
+typedef MakeSeq<
 #if (ENABLE_IONS == 1)
 PIC_Ions
 #endif
 >::type Species2;
 
-typedef typename MakeSeq<
+typedef MakeSeq<
 Species1,
 Species2
 >::type VectorAllSpecies;

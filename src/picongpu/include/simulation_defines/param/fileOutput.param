@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Rene Widera, Felix Schmitt
+ * Copyright 2013-2015 Axel Huebl, Rene Widera, Felix Schmitt, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -45,19 +45,19 @@ namespace picongpu
     using namespace particleToGrid;
 
     /* Density section */
-    typedef typename bmpl::transform<
+    typedef bmpl::transform<
             VectorAllSpecies,
             CreateDensityOperation<bmpl::_1>
             >::type Density_Seq;
 
     /* ParticleCounter section */
-    typedef typename bmpl::transform<
+    typedef bmpl::transform<
             VectorAllSpecies,
             CreateCounterOperation<bmpl::_1>
             >::type Counter_Seq;
 
     /* EnergyDensity section */
-    typedef typename bmpl::transform<
+    typedef bmpl::transform<
             VectorAllSpecies,
             CreateEnergyDensityOperation<bmpl::_1>
             >::type EnergyDensity_Seq;
@@ -67,7 +67,7 @@ namespace picongpu
      *
      * FieldTmpSolvers is used in @see FieldTmp to calculate the exchange size
      */
-    typedef typename MakeSeq<
+    typedef MakeSeq<
         Density_Seq,
         Counter_Seq,
         EnergyDensity_Seq
@@ -78,9 +78,9 @@ namespace picongpu
 
     /** Possible native fields: FieldE, FieldB, FieldJ
      */
-    typedef typename MakeSeq<FieldE, FieldB>::type NativeFileOutputFields;
+    typedef MakeSeq<FieldE, FieldB>::type NativeFileOutputFields;
 
-    typedef typename MakeSeq<
+    typedef MakeSeq<
         NativeFileOutputFields,
         FieldTmpSolvers
     >::type FileOutputFields;
