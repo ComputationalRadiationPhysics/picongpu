@@ -180,6 +180,9 @@ struct ZigZag
             typedef T_CurrentComponent CurrentComponent;
             const uint32_t dir = CurrentComponent::value;
 
+            /* if the flux is zero there is no need to deposit any current */
+            if (flux[dir] == float_X(0.0))
+                return;
             /* create support information to shift our coordinate system
              * use support of the particle assignment function
              */
@@ -287,7 +290,8 @@ struct ZigZag
             /* this loop is only needed for 2D, we need a flux in z direction */
             for (uint32_t d = simDim; d < 3; ++d)
             {
-                flux[d] = float_X(0.5) *  charge * velocity[d] * volume_reci;
+                /* in 2D the full flux for the z direction is given to the virtual particle zero */
+                flux[d] = (parId == 0 ? charge * velocity[d] * volume_reci : float_X(0.0));
             }
 
             PMACC_AUTO(cursorJ, dataBoxJ.shift(precisionCast<int>(I[parId])).toCursor());
@@ -307,6 +311,11 @@ private:
 
     /** calculate virtual point were we split our particle trajectory
      *
+     * The relay point calculation differs from the paper version in the point
+     * that the trajectory of a particle which does not leave the cell is not splitted.
+     * The relay point for a particle which does not leave the cell is set to the
+     * current position `x_2`
+     *
      * @param i_1 grid point which is less than x_1 (`i_1=floor(x_1)`)
      * @param i_2 grid point which is less than x_2 (`i_2=floor(x_2)`)
      * @param x_1 begin position of the particle trajectory
@@ -316,12 +325,10 @@ private:
     DINLINE float_X
     calc_relayPoint(const float_X i_1, const float_X i_2, const float_X x_1, const float_X x_2) const
     {
-
-        const float_X min_1 = ::min(i_1, i_2) + float_X(1.0);
-        const float_X max_1 = ::max(i_1, i_2);
-        const float_X max_2 = ::max(max_1, (x_1 + x_2) / float_X(2.));
-        const float_X x_relayPoint = ::min(min_1, max_2);
-        return x_relayPoint;
+        /* paper version:
+         *   i_1 == i_2 ? (x_1 + x_2) / float_X(2.0) : ::max(i_1, i_2);
+         */
+        return i_1 == i_2 ? x_2 : ::max(i_1, i_2);
     }
 
     /** get normalized average in cell particle position
