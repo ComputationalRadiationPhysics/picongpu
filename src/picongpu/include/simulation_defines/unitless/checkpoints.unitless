@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Rene Widera, Felix Schmitt
+ * Copyright 2013-2015 Axel Huebl, Rene Widera, Felix Schmitt, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -30,13 +30,13 @@ namespace picongpu
     /** Note: we need at least FieldE and FieldB for restart
      *        capabilities!
      */
-    typedef typename MakeSeq<FieldE, FieldB>::type NativeFileCheckpointFields;
+    typedef MakeSeq<FieldE, FieldB>::type NativeFileCheckpointFields;
 
     /* List of particle species for checkpoint/restart */
     typedef VectorAllSpecies FileCheckpointParticles;
 
     /**  List of fields for checkpoint/restart */
-    typedef typename MakeSeq<
+    typedef MakeSeq<
             NativeFileCheckpointFields
     >::type FileCheckpointFields;
 }
