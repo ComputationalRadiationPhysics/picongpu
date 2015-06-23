@@ -260,7 +260,7 @@ struct FreeFormulaFunctor
          * for a density profile from 0 to 400 microns */
         float_64 s = 1.0 - 5.0 * math::abs(y - 0.2);
 
-        /* give it an on/off shape for everey second cell */
+        /* give it an empty/filled shape for every second cell */
         //s *= float_64( (y_cell_id % 2) == 0 );
 
         /* all parts of the function MUST be > 0 */
