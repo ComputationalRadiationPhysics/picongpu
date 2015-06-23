@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -23,4 +23,4 @@
 #pragma once
 
 #include "YeeCell.hpp"
-#include "AllCenteredCell.hpp"
+#include "EMFCenteredCell.hpp"

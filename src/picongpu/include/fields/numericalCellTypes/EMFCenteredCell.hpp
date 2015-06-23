@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -28,7 +28,7 @@
 namespace picongpu
 {
 using namespace PMacc;
-namespace allCenteredCell
+namespace emfCenteredCell
 {
 
 // ___________posE____________
@@ -57,7 +57,34 @@ const float_X posB_z_x = 0.5;
 const float_X posB_z_y = 0.5;
 const float_X posB_z_z = 0.5;
 
-struct AllCenteredCell
+// ___________posJ____________
+const float_X posJ_x_x = 0.5;
+const float_X posJ_x_y = 0.0;
+const float_X posJ_x_z = 0.0;
+
+const float_X posJ_y_x = 0.0;
+const float_X posJ_y_y = 0.5;
+const float_X posJ_y_z = 0.0;
+
+const float_X posJ_z_x = 0.0;
+const float_X posJ_z_y = 0.0;
+const float_X posJ_z_z = 0.5;
+
+/** \todo posRho for FieldTmp depositions
+const float_X posRho_x_x = 0.0; ? or at center pos ?
+const float_X posRho_x_y = 0.0; ?
+const float_X posRho_x_z = 0.0; ?
+
+const float_X posRho_y_x = 0.0; ?
+const float_X posRho_y_y = 0.0; ?
+const float_X posRho_y_z = 0.0; ?
+
+const float_X posRho_z_x = 0.0; ?
+const float_X posRho_z_y = 0.0; ?
+const float_X posRho_z_z = 0.0; ?
+*/
+
+struct EMFCenteredCell
 {
     /** \tparam floatD_X position of the component in the cell
      *  \tparam DIM3     Fields (E/B) have 3 components, even in 1 or 2D ! */
@@ -95,7 +122,23 @@ struct AllCenteredCell
         return VectorVector(posB_x, posB_y, posB_z);
     }
 
+    static HDINLINE VectorVector getJFieldPosition()
+    {
+#if( SIMDIM == DIM3 )
+        const float3_X posJ_x(posJ_x_x, posJ_x_y, posJ_x_z);
+        const float3_X posJ_y(posJ_y_x, posJ_y_y, posJ_y_z);
+        const float3_X posJ_z(posJ_z_x, posJ_z_y, posJ_z_z);
+#elif( SIMDIM == DIM2 )
+        const float2_X posJ_x(posJ_x_x, posJ_x_y);
+        const float2_X posJ_y(posJ_y_x, posJ_y_y);
+        const float2_X posJ_z(posJ_z_x, posJ_z_y);
+#endif
+
+        /** position (floatD_x) in cell for J_x, J_y, J_z */
+        return VectorVector(posJ_x, posJ_y, posJ_z);
+    }
+
 };
 
-} // allCenteredCell
+} // emfCenteredCell
 } // picongpu

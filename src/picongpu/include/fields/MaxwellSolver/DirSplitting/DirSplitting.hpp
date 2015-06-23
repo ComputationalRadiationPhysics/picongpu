@@ -150,7 +150,20 @@ public:
     }
 
     void update_afterCurrent(uint32_t) const
-    {    }
+    {
+        DataConnector &dc = Environment<>::get().DataConnector();
+
+        FieldE& fieldE = dc.getData<FieldE > (FieldE::getName(), true);
+        FieldB& fieldB = dc.getData<FieldB > (FieldB::getName(), true);
+
+        EventTask eRfieldE = fieldE.asyncCommunication(__getTransactionEvent());
+        EventTask eRfieldB = fieldB.asyncCommunication(__getTransactionEvent());
+        __setTransactionEvent(eRfieldE);
+        __setTransactionEvent(eRfieldB);
+
+        dc.releaseData(FieldE::getName());
+        dc.releaseData(FieldB::getName());
+    }
 };
 
 } // dirSplitting

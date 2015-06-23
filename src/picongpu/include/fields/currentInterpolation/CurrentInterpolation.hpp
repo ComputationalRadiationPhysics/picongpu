@@ -21,3 +21,4 @@
 
 #include "fields/currentInterpolation/None/None.hpp"
 #include "fields/currentInterpolation/Binomial/Binomial.hpp"
+#include "fields/currentInterpolation/NoneDS/NoneDS.hpp"

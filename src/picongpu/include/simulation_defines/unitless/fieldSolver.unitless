@@ -57,7 +57,7 @@ namespace fieldSolverYee
 namespace fieldSolverDirSplitting
 {
     typedef picongpu::dirSplitting::DirSplitting FieldSolver;
-    typedef allCenteredCell::AllCenteredCell NumericalCellType;
+    typedef emfCenteredCell::EMFCenteredCell NumericalCellType;
 }
 
 namespace fieldSolverLehe
