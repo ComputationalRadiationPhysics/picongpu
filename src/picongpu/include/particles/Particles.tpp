@@ -116,7 +116,7 @@ SimulationDataId Particles<T_ParticleDescription>::getUniqueId( )
 template< typename T_ParticleDescription>
 void Particles<T_ParticleDescription>::synchronize( )
 {
-
+    this->particlesBuffer->deviceToHost();
 }
 
 template< typename T_ParticleDescription>

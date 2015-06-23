@@ -41,6 +41,8 @@ namespace PMacc
 template<class FRAME, unsigned DIM>
 class ParticlesBox : protected DataBox<PitchedBox<SuperCell<FRAME>, DIM> >
 {
+private:
+    PMACC_ALIGN(hostMemoryOffset,int64_t);
 public:
 
     typedef FRAME FrameType;
@@ -55,13 +57,19 @@ public:
      * \warning after this call the object is in a invalid state and must be
      * initialized with an assignment of a valid ParticleBox
      */
-    HINLINE ParticlesBox()
+    HDINLINE ParticlesBox() : hostMemoryOffset(0)
     {
 
     }
 
     HDINLINE ParticlesBox(const DataBox<PitchedBox<SuperCellType, DIM> > &superCells) :
-    BaseType(superCells)
+    BaseType(superCells), hostMemoryOffset(0)
+    {
+
+    }
+
+    HDINLINE ParticlesBox(const DataBox<PitchedBox<SuperCellType, DIM> > &superCells, int64_t memoryOffset) :
+    BaseType(superCells), hostMemoryOffset(memoryOffset)
     {
 
     }
@@ -109,15 +117,26 @@ public:
         mallocMC::free((void*) &frame);
     }
 
+    HDINLINE
+    FrameType* mapPtr(FrameType* devPtr)
+    {
+#ifndef __CUDA_ARCH__
+        int64_t useOffset=hostMemoryOffset*static_cast<int64_t>(devPtr!=0);
+        return (FrameType*)(((char*)devPtr) - useOffset);
+#else
+        return devPtr;
+#endif
+    }
+
     /**
      * Returns the next frame in the linked list.
      *
      * @param frame the active FRAME
      * @return the next frame in the list
      */
-    DINLINE FRAME& getNextFrame(FRAME &frame, bool &isValid)
+    HDINLINE FRAME& getNextFrame(FRAME &frame, bool &isValid)
     {
-        FramePtr tmp = frame.nextFrame;
+        FramePtr tmp(mapPtr(frame.nextFrame.ptr));
         isValid = tmp.isValid();
         return *tmp;
     }
@@ -128,9 +147,9 @@ public:
      * @param frame the active FRAME
      * @return the previous frame in the list
      */
-    DINLINE FRAME& getPreviousFrame(FRAME &frame, bool &isValid)
+    HDINLINE FRAME& getPreviousFrame(FRAME &frame, bool &isValid)
     {
-        FramePtr tmp = frame.previousFrame;
+        FramePtr tmp(mapPtr(frame.previousFrame.ptr));
         isValid = tmp.isValid();
         return *tmp;
     }
@@ -141,9 +160,9 @@ public:
      * @param idx position of supercell
      * @return the last FRAME of the linked list from supercell
      */
-    DINLINE FRAME& getLastFrame(const DataSpace<DIM> &idx, bool &isValid)
+    HDINLINE FRAME& getLastFrame(const DataSpace<DIM> &idx, bool &isValid)
     {
-        FramePtr tmp = FramePtr(getSuperCell(idx).LastFramePtr());
+        FramePtr tmp = FramePtr(mapPtr(getSuperCell(idx).LastFramePtr()));
         isValid = tmp.isValid();
         return *tmp;
     }
@@ -154,9 +173,9 @@ public:
      * @param idx position of supercell
      * @return the first FRAME of the linked list from supercell
      */
-    DINLINE FRAME& getFirstFrame(const DataSpace<DIM> &idx, bool &isValid)
+    HDINLINE FRAME& getFirstFrame(const DataSpace<DIM> &idx, bool &isValid)
     {
-        FramePtr tmp = FramePtr(getSuperCell(idx).FirstFramePtr());
+        FramePtr tmp = FramePtr(mapPtr(getSuperCell(idx).FirstFramePtr()));
         isValid = tmp.isValid();
         return *tmp;
 
@@ -261,7 +280,7 @@ public:
         return false;
     }
 
-    DINLINE SuperCellType& getSuperCell(DataSpace<DIM> idx)
+    HDINLINE SuperCellType& getSuperCell(DataSpace<DIM> idx)
     {
         return BaseType::operator()(idx);
     }
