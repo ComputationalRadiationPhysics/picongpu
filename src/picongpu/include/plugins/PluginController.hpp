@@ -135,9 +135,9 @@ private:
       , adios::ADIOSWriter
 #endif
 #if (ENABLE_HDF5 == 1)
-     , hdf5::HDF5Writer
+      , hdf5::HDF5Writer
 #endif
-    > StandAllownPlugins;
+    > StandAlonePlugins;
 
 
     /* define field plugins */
@@ -188,7 +188,7 @@ private:
 
     /* create sequence with all plugins*/
     typedef MakeSeq<
-        StandAllownPlugins,
+        StandAlonePlugins,
         FieldPlugins,
         SpeciesPlugins
     >::type AllPlugins;
