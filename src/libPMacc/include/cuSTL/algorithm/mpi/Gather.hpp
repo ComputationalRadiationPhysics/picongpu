@@ -55,7 +55,7 @@ private:
     };
 
     template<typename Type, int memDim>
-    friend class CopyToDest;
+    friend struct CopyToDest;
 public:
     Gather(const zone::SphericZone<dim>& p_zone);
     ~Gather();
