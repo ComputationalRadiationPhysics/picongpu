@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera, Felix Schmitt
+ * Copyright 2013-2015 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+ *                     Felix Schmitt, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -43,7 +44,7 @@ using namespace PMacc;
 
 namespace po = boost::program_options;
 
-typedef typename FieldJ::DataBoxType J_DataBox;
+typedef FieldJ::DataBoxType J_DataBox;
 
 template<class Mapping>
 __global__ void kernelSumCurrents(J_DataBox fieldJ, float3_X* gCurrent, Mapping mapper)

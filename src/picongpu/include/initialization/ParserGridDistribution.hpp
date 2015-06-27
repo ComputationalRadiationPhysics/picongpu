@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Rene Widera, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -48,7 +48,7 @@ public:
     uint32_t
     getOffset( const int gpuPos, const uint32_t maxCells ) const
     {
-        typename value_type::const_iterator iter = parsedInput.begin();
+        value_type::const_iterator iter = parsedInput.begin();
         // go to last gpu of this block b{n}
         int i = iter->second - 1;
         int sum = 0;
@@ -84,7 +84,7 @@ public:
     uint32_t
     getLocalSize( const int gpuPos ) const
     {
-        typename value_type::const_iterator iter = parsedInput.begin();
+        value_type::const_iterator iter = parsedInput.begin();
         // go to last gpu of this block b{n}
         int i = iter->second - 1;
 
