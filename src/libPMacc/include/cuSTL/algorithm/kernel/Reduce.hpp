@@ -42,23 +42,17 @@ namespace kernel
 
 /** Reduce algorithm that calls a cuda kernel
  *
- * \tparam BlockDim compile-time vector (PMacc::math::CT::Int) of the size of the cuda blockDim.
- *
- * blockDim has to fit into the volume to be reduced.
- * E.g. (8,8,4) fits into (256, 256, 256)
  */
-template<typename BlockDim>
 struct Reduce
 {
 
-/* \param destCursor Cursor where the result is stored
+/* \param srcCursor Cursor located at the origin of the area of reduce
  * \param p_zone Zone of cells spanning the area of reduce
- * \param srcCursor Cursor located at the origin of the area of reduce
  * \param functor Functor with two arguments which returns the result of the reduce operation.
  *        Can also be a lambda expression.
  */
-template<typename DestCursor, typename Zone, typename SrcCursor, typename Functor>
-void operator()(const DestCursor& destCursor, const Zone& p_zone, const SrcCursor& srcCursor, const Functor& functor);
+template<typename SrcCursor, typename Zone, typename Functor>
+typename SrcCursor::ValueType operator()(const SrcCursor& srcCursor, const Zone& p_zone, const Functor& functor);
 };
 
 } // kernel
