@@ -60,7 +60,7 @@
 #include "math/vector/math_functor/max.hpp"
 #include "math/vector/math_functor/sqrtf.hpp"
 #include "math/vector/math_functor/cosf.hpp"
-
+#include "nvidia/functors/Add.hpp"
 
 namespace picongpu
 {
@@ -86,8 +86,8 @@ public:
              this->fieldE->getGridBuffer().getDeviceBuffer().cartBuffer().view(
                    precisionCast<int>(GuardDim().toRT()), -precisionCast<int>(GuardDim().toRT())));
 
-        this->eField_zt[0] = new container::DeviceBuffer<float, 2 > (Size_t < 2 > (fieldE_coreBorder.size().z(), this->collectTimesteps));
-        this->eField_zt[1] = new container::DeviceBuffer<float, 2 >(this->eField_zt[0]->size());
+        this->eField_zt[0] = new container::HostBuffer<float, 2 > (Size_t < 2 > (fieldE_coreBorder.size().z(), this->collectTimesteps));
+        this->eField_zt[1] = new container::HostBuffer<float, 2 >(this->eField_zt[0]->size());
 
         return 0;
     }
@@ -118,15 +118,12 @@ public:
         zone::SphericZone<SIMDIM> gpuGatheringZone(Size_t<SIMDIM > (1, 1, gpuDim.z()));
         algorithm::mpi::Gather<SIMDIM> gather(gpuGatheringZone);
 
-        container::HostBuffer<float, 2 > eField_zt_host(eField_zt[0]->size());
         container::HostBuffer<float, 2 > eField_zt_reduced(eField_zt[0]->size());
 
         for (int i = 0; i < 2; i++)
         {
-            eField_zt_host = *(eField_zt[i]);
-
             bool reduceRoot = (gpuPos.x() == 0) && (gpuPos.y() == 0);
-            for(int gpuPos_z = 0; gpuPos_z < gpuDim.z(); gpuPos_z++)
+            for(int gpuPos_z = 0; gpuPos_z < (int)gpuDim.z(); gpuPos_z++)
             {
                 zone::SphericZone<3> gpuReducingZone(
                     Size_t<3>(gpuDim.x(), gpuDim.y(), 1),
@@ -135,7 +132,7 @@ public:
                 algorithm::mpi::Reduce<3> reduce(gpuReducingZone, reduceRoot);
 
                 using namespace lambda;
-                reduce(eField_zt_reduced, eField_zt_host, _1 + _2);
+                reduce(eField_zt_reduced, *(eField_zt[i]), _1 + _2);
             }
             if(!reduceRoot) continue;
 
@@ -184,12 +181,12 @@ public:
             using namespace lambda;
             for (int i = 0; i < 2; i++)
             {
-                algorithm::kernel::Reduce<BlockDim > ()
-                        (eField_zt[i]->origin()(z, currentStep - firstTimestep), reduceZone,
-                        cursor::make_FunctorCursor(
-                                                   cursor::tools::slice(fieldE_coreBorder.origin()(0, 0, z)),
+                *(eField_zt[i]->origin()(z, currentStep - firstTimestep)) =
+                    algorithm::kernel::Reduce()
+                        (cursor::make_FunctorCursor(cursor::tools::slice(fieldE_coreBorder.origin()(0, 0, z)),
                                                    _1[i == 0 ? 0 : 2]),
-                        _1 + _2);
+                         reduceZone,
+                         nvidia::functors::Add());
             }
         }
 
@@ -204,7 +201,7 @@ private:
     //   you may like to let the plasma develope/thermalize a little bit
     static const uint32_t firstTimestep = 1024;
 
-    container::DeviceBuffer<float, 2 >* eField_zt[2];
+    container::HostBuffer<float, 2 >* eField_zt[2];
 
     typedef PMacc::math::CT::Size_t < 16, 16, 1 > BlockDim;
     typedef SuperCellSize GuardDim;
