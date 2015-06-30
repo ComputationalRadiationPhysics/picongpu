@@ -51,7 +51,7 @@ class Cursor : private _Accessor, _Navigator
 {
 public:
     typedef typename _Accessor::type type;
-    typedef typename boost::remove_reference<type>::type pureType;
+    typedef typename boost::remove_reference<type>::type ValueType;
     typedef _Accessor Accessor;
     typedef _Navigator Navigator;
     typedef _Marker Marker;
@@ -95,8 +95,9 @@ public:
     template<typename Jump>
     HDINLINE This operator()(const Jump& jump) const
     {
-        return This(getAccessor(), getNavigator(),
-                    Navigator::operator()(this->marker, jump));
+        Navigator newNavigator(getNavigator());
+        Marker newMarker = newNavigator(this->marker, jump);
+        return This(getAccessor(), newNavigator, newMarker);
     }
 
     /* convenient method which is available if the navigator accepts a Int<1> */
