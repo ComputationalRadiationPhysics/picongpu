@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -18,21 +18,21 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
 
+#include "mappings/simulation/GridController.hpp"
+#include "memory/boxes/PitchedBox.hpp"
+#include "header/MessageHeader.hpp"
 
-#ifndef GATHERSLICE_HPP
-#define	GATHERSLICE_HPP
-
-#include "types.h"
 #include "simulation_defines.hpp"
 
-#include <mpi.h>
-#include "mappings/simulation/GridController.hpp"
+#include "types.h"
 
-//c includes
-#include "sys/stat.h"
-#include "header/MessageHeader.hpp"
-#include "memory/boxes/PitchedBox.hpp"
+#include <mpi.h>
+
+#include <vector>
+
+#include <sys/stat.h>
 
 namespace picongpu
 {
@@ -62,13 +62,13 @@ struct GatherSlice
         }
 
         int countRanks = Environment<simDim>::get().GridController().getGpuNodes().productOfComponents();
-        int gatherRanks[countRanks];
-        int groupRanks[countRanks];
+        std::vector<int> gatherRanks(countRanks);
+        std::vector<int> groupRanks(countRanks);
         mpiRank = Environment<simDim>::get().GridController().getGlobalRank();
         if (!isActive)
             mpiRank = -1;
 
-        MPI_CHECK(MPI_Allgather(&mpiRank, 1, MPI_INT, gatherRanks, 1, MPI_INT, MPI_COMM_WORLD));
+        MPI_CHECK(MPI_Allgather(&mpiRank, 1, MPI_INT, &gatherRanks[0], 1, MPI_INT, MPI_COMM_WORLD));
 
         for (int i = 0; i < countRanks; ++i)
         {
@@ -82,7 +82,7 @@ struct GatherSlice
         MPI_Group group = MPI_GROUP_NULL;
         MPI_Group newgroup = MPI_GROUP_NULL;
         MPI_CHECK(MPI_Comm_group(MPI_COMM_WORLD, &group));
-        MPI_CHECK(MPI_Group_incl(group, numRanks, groupRanks, &newgroup));
+        MPI_CHECK(MPI_Group_incl(group, numRanks, &groupRanks[0], &newgroup));
 
         MPI_CHECK(MPI_Comm_create(MPI_COMM_WORLD, newgroup, &comm));
 
@@ -121,8 +121,8 @@ struct GatherSlice
         MPI_CHECK(MPI_Gather(fakeHeader, MessageHeader::bytes, MPI_CHAR, recvHeader, MessageHeader::bytes,
                              MPI_CHAR, 0, comm));
 
-        int counts[numRanks];
-        int displs[numRanks];
+        std::vector<int> counts(numRanks);
+        std::vector<int> displs(numRanks);
         int offset = 0;
         for (int i = 0; i < numRanks; ++i)
         {
@@ -136,7 +136,7 @@ struct GatherSlice
 
         MPI_CHECK(MPI_Gatherv(
                               (char*) (data.getPointer()), elementsCount, MPI_CHAR,
-                              fullData, counts, displs, MPI_CHAR,
+                              fullData, &counts[0], &displs[0], MPI_CHAR,
                               0, comm));
 
 
@@ -220,6 +220,3 @@ private:
 };
 
 }//namespace
-
-#endif	/* GATHERSLICE_HPP */
-
