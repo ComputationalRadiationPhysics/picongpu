@@ -344,6 +344,10 @@ namespace twts
         /* wy is width of TWTS pulse */
         const float_T wy = float_T(w_y_SI / UNIT_LENGTH);
         const float_T k = float_T(2.0*PI / lambda0);
+        /* If phi < 0 the entire pulse is rotated by 180 deg around the
+         * z-axis of the coordinate system without also changing
+         * the orientation of the resulting field vectors.
+         */
         const float_T x = float_T(phiPositive * pos.x() / UNIT_LENGTH);
         const float_T y = float_T(phiPositive * pos.y() / UNIT_LENGTH);
         const float_T z = float_T(pos.z() / UNIT_LENGTH);
@@ -464,10 +468,6 @@ namespace twts
         /* If phi < 0 the formulas below are not directly applicable.
          * Instead phi is taken positive, but the entire pulse rotated by 180 deg around the
          * z-axis of the coordinate system in this function.
-         * Note a: Another consequence is that the resulting field vectors also need to be rotated.
-         * Note b: Instead of modifying field_x --> -field_x and field_y --> -field_y according
-         *         to "Note a", we choose to introduce an additional 180deg shift due symmetry
-         *         and modify only field_z --> -field_z .
          */
         const float_T phiReal = float_T( pmMath::abs(phi) );
         const float_T alphaTilt = pmMath::atan2(float_T(1.0)-beta0*pmMath::cos(phiReal),
@@ -501,6 +501,10 @@ namespace twts
         /* wy is width of TWTS pulse */
         const float_T wy = float_T(w_y_SI / UNIT_LENGTH);
         const float_T k = float_T(2.0*PI / lambda0);
+        /* If phi < 0 the entire pulse is rotated by 180 deg around the
+         * z-axis of the coordinate system without also changing
+         * the orientation of the resulting field vectors.
+         */
         const float_T x = float_T(phiPositive * pos.x() / UNIT_LENGTH);
         const float_T y = float_T(phiPositive * pos.y() / UNIT_LENGTH);
         const float_T z = float_T(pos.z() / UNIT_LENGTH);
@@ -593,10 +597,6 @@ namespace twts
         /* If phi < 0 the formulas below are not directly applicable.
          * Instead phi is taken positive, but the entire pulse rotated by 180 deg around the
          * z-axis of the coordinate system in this function.
-         * Note a: Another consequence is that the resulting field vectors also need to be rotated.
-         * Note b: Instead of modifying field_x --> -field_x and field_y --> -field_y according
-         *         to "Note a", we choose to introduce an additional 180deg shift due symmetry
-         *         and modify only field_z --> -field_z .
          */
         const float_T phiReal = float_T( pmMath::abs(phi) );
         const float_T alphaTilt = pmMath::atan2(float_T(1.0)-beta0*pmMath::cos(phiReal),
@@ -629,6 +629,10 @@ namespace twts
         /* wy is width of TWTS pulse */
         const float_T wy = float_T(w_y_SI / UNIT_LENGTH);
         const float_T k = float_T(2.0*PI / lambda0);
+        /* If phi < 0 the entire pulse is rotated by 180 deg around the
+         * z-axis of the coordinate system without also changing
+         * the orientation of the resulting field vectors.
+         */
         const float_T x = float_T(phiPositive * pos.x() / UNIT_LENGTH);
         const float_T y = float_T(phiPositive * pos.y() / UNIT_LENGTH);
         const float_T z = float_T(pos.z() / UNIT_LENGTH);
