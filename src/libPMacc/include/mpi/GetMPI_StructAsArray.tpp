@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2015 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -30,16 +30,6 @@ namespace mpi
 {
 namespace def
 {
-
-template<>
-struct GetMPI_StructAsArray<float3 >
-{
-
-    MPI_StructAsArray operator()() const
-    {
-        return MPI_StructAsArray(MPI_FLOAT, 3);
-    }
-};
 
 template<>
 struct GetMPI_StructAsArray<int >

@@ -380,7 +380,7 @@ private:
             last_time_step_str << lastStep;
             current_time_step_str << currentStep;
 
-            for(uint dimIndex=0; dimIndex<simDim; ++dimIndex)
+            for(uint32_t dimIndex=0; dimIndex<simDim; ++dimIndex)
                 GPUpos_str << "_" <<currentGPUpos[dimIndex];
 
             writeFile(radiation->getHostBuffer().getBasePointer(), folderRadPerGPU + "/" + filename_prefix
@@ -559,7 +559,7 @@ private:
       Amplitude UnityAmplitude(1., 0., 0., 0., 0., 0.);
       const picongpu::float_64 factor = UnityAmplitude.calc_radiation() * UNIT_ENERGY * UNIT_TIME ;
 
-      for(uint ampIndex=0; ampIndex < Amplitude::numComponents; ++ampIndex)
+      for(uint32_t ampIndex=0; ampIndex < Amplitude::numComponents; ++ampIndex)
       {
           splash::Dimensions offset(ampIndex,0,0);
           splash::Selection dataSelection(bufferSize,
@@ -633,7 +633,7 @@ private:
           const int N_tmpBuffer = radiation_frequencies::N_omega * parameters::N_observer;
           picongpu::float_64* tmpBuffer = new picongpu::float_64[N_tmpBuffer];
 
-          for(uint ampIndex=0; ampIndex < Amplitude::numComponents; ++ampIndex)
+          for(uint32_t ampIndex=0; ampIndex < Amplitude::numComponents; ++ampIndex)
           {
               HDF5dataFile.read(timeStep,
                                 dataLabels(ampIndex).c_str(),
