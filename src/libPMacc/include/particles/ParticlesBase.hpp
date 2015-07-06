@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Felix Schmitt, Rene Widera
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -41,14 +41,14 @@ class ParticlesBase : public SimulationFieldHelper<MappingDesc>
 {
 public:
 
-    /* Type of used partciles buffer
+    /* Type of used particles buffer
      */
     typedef ParticlesBuffer<T_ParticleDescription, typename MappingDesc::SuperCellSize, MappingDesc::Dim> BufferType;
 
     /* Type of frame in particles buffer
      */
     typedef typename BufferType::ParticleType FrameType;
-    /* Type of boder frame in a particle buffer
+    /* Type of border frame in a particle buffer
      */
     typedef typename BufferType::ParticleTypeBorder FrameTypeBorder;
 
@@ -72,7 +72,7 @@ protected:
     }
 
     /* Shift all particle in a AREA
-     * @tparam AREA area whish is used (CORE,BORDER,GUARD or a combination)
+     * @tparam AREA area which is used (CORE,BORDER,GUARD or a combination)
      */
     template<uint32_t AREA>
     void shiftParticles()
@@ -100,7 +100,7 @@ protected:
     }
 
     /* fill gaps in a AREA
-     * @tparam AREA area whish is used (CORE,BORDER,GUARD or a combination)
+     * @tparam AREA area which is used (CORE,BORDER,GUARD or a combination)
      */
     template<uint32_t AREA>
     void fillGaps()

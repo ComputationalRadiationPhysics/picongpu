@@ -1,5 +1,6 @@
 /**
- * Copyright 2013 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+ *                     Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -48,7 +49,7 @@ namespace picongpu
 using namespace PMacc;
 
 /* count particles in an area
- * is not optimized, it checks any partcile position if its realy a particle
+ * is not optimized, it checks any particle position if it is really a particle
  */
 template<class FieldBox, class BoxMax, class BoxIntegral>
 __global__ void kernelIntensity(FieldBox field, DataSpace<simDim> cellsCount, BoxMax boxMax, BoxIntegral integralBox)
