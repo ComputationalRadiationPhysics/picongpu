@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera, Richard Pausch
+ * Copyright 2013-2015 Rene Widera, Richard Pausch, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -48,7 +48,7 @@ namespace picongpu
         {32, 32}   /*z direction [negative,positive]*/
     }; //unit: number of cells
     
-    //! Define the strange of the absober for any direction
+    //! Define the strength of the absorber for any direction
     const float_X ABSORBER_STRENGTH[3][2] = {
         {1.0e-3, 1.0e-3}, /*x direction [negative,positive]*/
         {1.0e-3, 1.0e-3}, /*y direction [negative,positive]*/
