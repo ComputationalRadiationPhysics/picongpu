@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Marco Garten
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Marco Garten,
+ *                     Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -45,7 +46,7 @@ namespace picongpu
 
 using namespace PMacc;
 
-typedef typename FieldJ::DataBoxType J_DataBox;
+typedef FieldJ::DataBoxType J_DataBox;
 
 template<int workerMultiplier, class BlockDescription_, uint32_t AREA, class JBox, class ParBox, class Mapping, class FrameSolver>
 __global__ void kernelComputeCurrent(JBox fieldJ,

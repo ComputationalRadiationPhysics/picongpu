@@ -1,6 +1,6 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
- *                     Richard Pausch
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+ *                     Richard Pausch, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -65,56 +65,56 @@ namespace picongpu
         const DataSpace<simDim> coreBorderSize = cellDescription.getGridLayout( ).getDataSpaceWithoutGuarding( );
 
         /* ------------------ lower margin  ----------------------------------*/
-        typedef typename bmpl::accumulate<
+        typedef bmpl::accumulate<
             VectorAllSpecies,
             typename PMacc::math::CT::make_Int<simDim, 0>::type,
             PMacc::math::CT::max<bmpl::_1, GetLowerMargin< GetInterpolation<bmpl::_2> > >
         >::type SpeciesLowerMargin;
 
-        typedef typename bmpl::accumulate<
+        typedef bmpl::accumulate<
             FieldTmpSolvers,
             typename PMacc::math::CT::make_Int<simDim, 0>::type,
             PMacc::math::CT::max<bmpl::_1, GetLowerMargin< bmpl::_2 > >
         >::type FieldTmpLowerMargin;
 
-        typedef typename PMacc::math::CT::max<
+        typedef PMacc::math::CT::max<
             SpeciesLowerMargin,
             FieldTmpLowerMargin>::type SpeciesFieldTmpLowerMargin;
 
-        typedef typename PMacc::math::CT::max<
+        typedef PMacc::math::CT::max<
             GetMargin<fieldSolver::FieldSolver, FIELD_B>::LowerMargin,
             GetMargin<fieldSolver::FieldSolver, FIELD_E>::LowerMargin>::type
             FieldSolverLowerMargin;
 
-        typedef typename PMacc::math::CT::max<
+        typedef PMacc::math::CT::max<
             SpeciesFieldTmpLowerMargin,
             FieldSolverLowerMargin>::type LowerMargin;
 
 
         /* ------------------ upper margin  -----------------------------------*/
 
-        typedef typename bmpl::accumulate<
+        typedef bmpl::accumulate<
             VectorAllSpecies,
             typename PMacc::math::CT::make_Int<simDim, 0>::type,
             PMacc::math::CT::max<bmpl::_1, GetUpperMargin< GetInterpolation<bmpl::_2> > >
         >::type SpeciesUpperMargin;
 
-        typedef typename bmpl::accumulate<
+        typedef bmpl::accumulate<
             FieldTmpSolvers,
             typename PMacc::math::CT::make_Int<simDim, 0>::type,
             PMacc::math::CT::max<bmpl::_1, GetUpperMargin< bmpl::_2 > >
         >::type FieldTmpUpperMargin;
 
-        typedef typename PMacc::math::CT::max<
+        typedef PMacc::math::CT::max<
             SpeciesUpperMargin,
             FieldTmpUpperMargin>::type SpeciesFieldTmpUpperMargin;
 
-        typedef typename PMacc::math::CT::max<
+        typedef PMacc::math::CT::max<
             GetMargin<fieldSolver::FieldSolver, FIELD_B>::UpperMargin,
             GetMargin<fieldSolver::FieldSolver, FIELD_E>::UpperMargin>::type
             FieldSolverUpperMargin;
 
-        typedef typename PMacc::math::CT::max<
+        typedef PMacc::math::CT::max<
             SpeciesFieldTmpUpperMargin,
             FieldSolverUpperMargin>::type UpperMargin;
 
@@ -272,7 +272,7 @@ namespace picongpu
     }
 
     template<class FrameSolver >
-    HDINLINE typename FieldTmp::UnitValueType
+    HDINLINE FieldTmp::UnitValueType
     FieldTmp::getUnit( )
     {
         return FrameSolver().getUnit();

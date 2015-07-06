@@ -1,6 +1,6 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
- *                     Richard Pausch
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+ *                     Richard Pausch, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -59,24 +59,24 @@ fieldB( NULL )
 {
     fieldE = new GridBuffer<ValueType, simDim > ( cellDescription.getGridLayout( ) );
 
-    typedef typename bmpl::accumulate<
+    typedef bmpl::accumulate<
         VectorAllSpecies,
         typename PMacc::math::CT::make_Int<simDim, 0>::type,
         PMacc::math::CT::max<bmpl::_1, GetLowerMargin< GetInterpolation<bmpl::_2> > >
         >::type LowerMarginInterpolation;
 
-    typedef typename bmpl::accumulate<
+    typedef bmpl::accumulate<
         VectorAllSpecies,
         typename PMacc::math::CT::make_Int<simDim, 0>::type,
         PMacc::math::CT::max<bmpl::_1, GetUpperMargin< GetInterpolation<bmpl::_2> > >
         >::type UpperMarginInterpolation;
-    
+
     /* Calculate the maximum Neighbors we need from MAX(ParticleShape, FieldSolver) */
-    typedef typename PMacc::math::CT::max<
+    typedef PMacc::math::CT::max<
         LowerMarginInterpolation,
         GetMargin<fieldSolver::FieldSolver, FIELD_E>::LowerMargin
         >::type LowerMargin;
-    typedef typename PMacc::math::CT::max<
+    typedef PMacc::math::CT::max<
         UpperMarginInterpolation,
         GetMargin<fieldSolver::FieldSolver, FIELD_E>::UpperMargin
         >::type UpperMargin;
@@ -186,7 +186,7 @@ void FieldE::reset( uint32_t )
 
 
 HDINLINE
-typename FieldE::UnitValueType
+FieldE::UnitValueType
 FieldE::getUnit( )
 {
     return UnitValueType( UNIT_EFIELD, UNIT_EFIELD, UNIT_EFIELD );

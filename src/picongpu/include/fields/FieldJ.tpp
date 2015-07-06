@@ -1,6 +1,6 @@
 /**
  * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
- *                     Richard Pausch
+ *                     Richard Pausch, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -58,13 +58,13 @@ fieldJ( cellDescription.getGridLayout( ) ), fieldE( NULL ), fieldB( NULL ), fiel
     const DataSpace<simDim> coreBorderSize = cellDescription.getGridLayout( ).getDataSpaceWithoutGuarding( );
 
     /* cell margins the current might spread to due to particle shapes */
-    typedef typename bmpl::accumulate<
+    typedef bmpl::accumulate<
         VectorAllSpecies,
         typename PMacc::math::CT::make_Int<simDim, 0>::type,
         PMacc::math::CT::max<bmpl::_1, GetLowerMargin< GetCurrentSolver<bmpl::_2> > >
         >::type LowerMarginShapes;
 
-    typedef typename bmpl::accumulate<
+    typedef bmpl::accumulate<
         VectorAllSpecies,
         typename PMacc::math::CT::make_Int<simDim, 0>::type,
         PMacc::math::CT::max<bmpl::_1, GetUpperMargin< GetCurrentSolver<bmpl::_2> > >
@@ -74,12 +74,12 @@ fieldJ( cellDescription.getGridLayout( ) ), fieldE( NULL ), fieldB( NULL ), fiel
      * additional current interpolations and current filters on FieldJ might
      * spread the dependencies on neighboring cells
      *   -> use max(shape,filter) */
-    typedef typename PMacc::math::CT::max<
+    typedef PMacc::math::CT::max<
         LowerMarginShapes,
         GetMargin<fieldSolver::CurrentInterpolation>::LowerMargin
         >::type LowerMargin;
 
-    typedef typename PMacc::math::CT::max<
+    typedef PMacc::math::CT::max<
         UpperMarginShapes,
         GetMargin<fieldSolver::CurrentInterpolation>::UpperMargin
         >::type UpperMargin;
@@ -236,7 +236,7 @@ void FieldJ::clear( )
 }
 
 HDINLINE
-typename FieldJ::UnitValueType
+FieldJ::UnitValueType
 FieldJ::getUnit( )
 {
     const double UNIT_CURRENT = UNIT_CHARGE / UNIT_TIME / ( UNIT_LENGTH * UNIT_LENGTH );
