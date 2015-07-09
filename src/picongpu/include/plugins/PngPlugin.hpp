@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Rene Widera, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -184,7 +184,7 @@ namespace picongpu
         typename Vec::value_type getValue(Vec vec, size_t id)
         {
             if (vec.size() == 0)
-                throw std::runtime_error("[Livew View] getValue is used with a parameter set with no parameters (count is 0)");
+                throw std::runtime_error("[Png Plugin] getValue is used with a parameter set with no parameters (count is 0)");
             if (id >= vec.size())
             {
                 return vec[vec.size() - 1];
