@@ -1,5 +1,6 @@
 /**
  * Copyright 2014-2015 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ *                     Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -135,7 +136,7 @@ public:
 };
 
 /**
- * Hepler class for ADIOSWriter (forEach operator) to load a field from ADIOS
+ * Helper class for ADIOSWriter (forEach operator) to load a field from ADIOS
  *
  * @tparam FieldType field class to load
  */
