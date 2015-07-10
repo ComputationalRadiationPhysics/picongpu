@@ -23,7 +23,7 @@
 #pragma once
 
 #include "types.h"
-#include "math/vector/twistComponents.hpp"
+#include "math/vector/TwistComponents.hpp"
 
 namespace PMacc
 {

@@ -38,7 +38,7 @@ typename T_Vector>
 struct TwistComponents
 {
     typedef typename TwistComponents<T_Axes,typename T_Vector::This>::type type;
-    };
+};
 
 template<typename T_Axes,
 typename T_Type, int T_Dim,
