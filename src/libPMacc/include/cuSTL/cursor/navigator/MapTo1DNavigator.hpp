@@ -28,8 +28,7 @@ namespace cursor
 {
 
 /**
- * @class MapTo1DNavigator
- * @brief Use this navigator to wrap a ndim-cursor into a 1D cursor.
+ * Use this navigator to wrap a ndim-cursor into a 1D cursor.
  */
 template<int T_dim>
 class MapTo1DNavigator
@@ -53,6 +52,9 @@ private:
         return result;
     }
 public:
+    /**
+     * @param shape area to map the 1D index to.
+     */
     HDINLINE
     MapTo1DNavigator(math::Size_t<dim> shape) 
      : shape(shape), pos(0) {}
