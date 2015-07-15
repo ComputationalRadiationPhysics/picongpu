@@ -43,21 +43,21 @@ export HDF5_ROOT=$HDF5_DIR
 
 # download libSplash and compile it yourself from
 #   https://github.com/ComputationalRadiationPhysics/libSplash/
-export SPLASH_ROOT=$MEMBERWORK/$proj/lib/splash
+export SPLASH_ROOT=$PROJWORK/$proj/lib/splash
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$SPLASH_ROOT/lib
 
-#export T3PIO_ROOT=$MEMBERWORK/$proj/lib/t3pio
+#export T3PIO_ROOT=$PROJWORK/$proj/lib/t3pio
 #export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$T3PIO_ROOT/lib
 
 # download libpng.h and compile yourself with
 #   http://www.libpng.org/pub/png/libpng.html
 #   tar -xvf libpng-1.6.9.tar.gz
-#   ./configure --host=x86 --prefix=$MEMBERWORK/$proj/lib/libpng
+#   ./configure --host=x86 --prefix=$PROJWORK/$proj/lib/libpng
 # afterwards install pngwriter yourself:
 #   https://github.com/ax3l/pngwriter#install
-export LIBPNG_ROOT=$MEMBERWORK/$proj/lib/libpng
+export LIBPNG_ROOT=$PROJWORK/$proj/lib/libpng
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LIBPNG_ROOT/lib
-export PNGWRITER_ROOT=$MEMBERWORK/$proj/lib/pngwriter
+export PNGWRITER_ROOT=$PROJWORK/$proj/lib/pngwriter
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PNGWRITER_ROOT/lib
 
 # helper variables and tools ########################################

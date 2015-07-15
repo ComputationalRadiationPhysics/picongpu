@@ -6,7 +6,7 @@
 module load python
 
 # --user writes there
-export PYTHONUSERBASE=$MEMBERWORK/$proj
+export PYTHONUSERBASE=$PROJWORK/$proj
 
 # a weird cache that usually sits in $HOME
 export PYTHON_EGG_CACHE=$PYTHONUSERBASE/.python-eggs
