@@ -33,6 +33,8 @@
 #include <cuSTL/algorithm/kernel/ForeachBlock.hpp>
 #include <lambda/Expression.hpp>
 #include <cuSTL/cursor/NestedCursor.hpp>
+#include <math/vector/TwistComponents.hpp>
+#include <math/vector/compile-time/TwistComponents.hpp>
 
 namespace picongpu
 {
@@ -74,16 +76,12 @@ private:
     void propagate(CursorE cursorE, CursorB cursorB, GridSize gridSize) const
     {
         using namespace cursor::tools;
-        using namespace PMacc::math::tools;
+        using namespace PMacc::math;
 
-        PMACC_AUTO(gridSizeTwisted,twistVectorAxes<OrientationTwist>(gridSize));
+        PMACC_AUTO(gridSizeTwisted, twistComponents<OrientationTwist>(gridSize));
 
         /* twist components of the supercell */
-        typedef PMacc::math::CT::Int<
-                    PMacc::math::CT::At<SuperCellSize,typename OrientationTwist::x>::type::value,
-                    PMacc::math::CT::At<SuperCellSize,typename OrientationTwist::y>::type::value,
-                    PMacc::math::CT::At<SuperCellSize,typename OrientationTwist::z>::type::value
-                > BlockDim;
+        typedef typename CT::TwistComponents<SuperCellSize, OrientationTwist>::type BlockDim;
 
         algorithm::kernel::ForeachBlock<BlockDim> foreach;
         foreach(zone::SphericZone<3>(PMacc::math::Size_t<3>(BlockDim::x::value, gridSizeTwisted.y(), gridSizeTwisted.z())),
@@ -113,7 +111,7 @@ public:
                               -GuardDim().toRT()));
 
         using namespace cursor::tools;
-        using namespace PMacc::math::tools;
+        using namespace PMacc::math;
 
         PMacc::math::Size_t<3> gridSize = fieldE_coreBorder.size();
 

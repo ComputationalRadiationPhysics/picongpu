@@ -29,25 +29,23 @@ namespace PMacc
 {
 namespace math
 {
-namespace tools
-{
 
 namespace result_of
 {
 
 template<typename T_Axes,
 typename T_Vector>
-struct TwistVectorAxes
+struct TwistComponents
 {
-    typedef typename TwistVectorAxes<T_Axes,typename T_Vector::This>::type type;
-    };
+    typedef typename TwistComponents<T_Axes,typename T_Vector::This>::type type;
+};
 
 template<typename T_Axes,
 typename T_Type, int T_Dim,
 typename T_Accessor,
 typename T_Navigator,
 template <typename, int> class T_Storage>
-struct TwistVectorAxes<T_Axes,math::Vector<T_Type,T_Dim,T_Accessor,T_Navigator,T_Storage> >
+struct TwistComponents<T_Axes,math::Vector<T_Type,T_Dim,T_Accessor,T_Navigator,T_Storage> >
 {
     typedef math::Vector<T_Type, T_Dim, T_Accessor,
             math::StackedNavigator<T_Navigator, math::PermutedNavigator<T_Axes> >,T_Storage >& type;
@@ -69,15 +67,14 @@ struct TwistVectorAxes<T_Axes,math::Vector<T_Type,T_Dim,T_Accessor,T_Navigator,T
  */
 template<typename T_Axes, typename T_Vector>
 HDINLINE
-typename result_of::TwistVectorAxes<T_Axes, T_Vector>::type
-twistVectorAxes(T_Vector& vector)
+typename result_of::TwistComponents<T_Axes, T_Vector>::type
+twistComponents(T_Vector& vector)
 {
     /* The reinterpret_cast is valid because the target type is the same as the
      * input type except its navigator policy which does not occupy any memory though.
      */
-    return reinterpret_cast<typename result_of::TwistVectorAxes<T_Axes, T_Vector>::type>(vector);
+    return reinterpret_cast<typename result_of::TwistComponents<T_Axes, T_Vector>::type>(vector);
 }
 
-} // tools
 } // math
 } // PMacc
