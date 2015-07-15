@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013,2015 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -20,18 +20,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ALGORITHM_KERNEL_REDUCE_HPP
-#define ALGORITHM_KERNEL_REDUCE_HPP
+#pragma once
 
-#include "math/vector/Int.hpp"
-#include "cuSTL/container/CartBuffer.hpp"
-#include "cuSTL/container/DeviceBuffer.hpp"
-#include "cuSTL/zone/SphericZone.hpp"
-#include <boost/mpl/void.hpp>
-#include <boost/mpl/if.hpp>
-#include <boost/type_traits/is_same.hpp>
-
-namespace mpl = boost::mpl;
+#include <cuSTL/cursor/Cursor.hpp>
+#include <cuSTL/cursor/accessor/CursorAccessor.hpp>
+#include <nvidia/reduce/Reduce.hpp>
+#include <cuSTL/cursor/navigator/MapTo1DNavigator.hpp>
 
 namespace PMacc
 {
@@ -42,29 +36,32 @@ namespace kernel
 
 /** Reduce algorithm that calls a cuda kernel
  *
- * \tparam BlockDim compile-time vector (PMacc::math::CT::Int) of the size of the cuda blockDim.
- *
- * blockDim has to fit into the volume to be reduced.
- * E.g. (8,8,4) fits into (256, 256, 256)
  */
-template<typename BlockDim>
 struct Reduce
 {
 
-/* \param destCursor Cursor where the result is stored
- * \param p_zone Zone of cells spanning the area of reduce
- * \param srcCursor Cursor located at the origin of the area of reduce
- * \param functor Functor with two arguments which returns the result of the reduce operation.
- *        Can also be a lambda expression.
- */
-template<typename DestCursor, typename Zone, typename SrcCursor, typename Functor>
-void operator()(const DestCursor& destCursor, const Zone& p_zone, const SrcCursor& srcCursor, const Functor& functor);
+    /* \param srcCursor Cursor located at the origin of the area of reduce
+     * \param p_zone Zone of cells spanning the area of reduce
+     * \param functor Functor with two arguments which returns the result of the reduce operation.
+     *        Can also be a lambda expression.
+     */
+    template<typename SrcCursor, typename Zone, typename NVidiaFunctor>
+    typename SrcCursor::ValueType operator()(const SrcCursor& srcCursor, const Zone& p_zone, const NVidiaFunctor& functor)
+    {
+        SrcCursor srcCursor_shifted = srcCursor(p_zone.offset);
+        
+        cursor::MapTo1DNavigator<Zone::dim> myNavi(p_zone.size);
+        
+        BOOST_AUTO(_srcCursor, cursor::make_Cursor(cursor::CursorAccessor<SrcCursor>(),
+                                                   myNavi,
+                                                   srcCursor_shifted));
+        
+        PMacc::nvidia::reduce::Reduce reduce(1024);
+        return reduce(functor, _srcCursor, p_zone.size.productOfComponents());
+    }
+
 };
 
 } // kernel
 } // algorithm
 } // PMacc
-
-#include "Reduce.tpp"
-
-#endif //ALGORITHM_KERNEL_REDUCE_HPP
