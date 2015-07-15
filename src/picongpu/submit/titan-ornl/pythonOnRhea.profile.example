@@ -1,0 +1,56 @@
+export proj=<yourProject>
+
+module unload intel
+module swap PE-intel PE-gnu
+
+module load python
+module load python_setuptools
+module load python_pip
+module load python_virtualenv
+
+module load python_numpy
+module load python_h5py
+module load python_scipy
+
+# the place where ipython profiles are placed (default is ~/.ipython)
+export IPYTHONDIR=$PROJWORK/$proj/ipython
+
+# ADIOS
+export ADIOS_ROOT=$PROJWORK/$proj/lib/adios-pre1.9.0-rhea
+export LD_LIBRARY_PATH=$ADIOS_ROOT/lib:$LD_LIBRARY_PATH
+export PATH=$ADIOS_ROOT/bin:$PATH
+module load mxml
+
+# load python virtual env
+source $PROJWORK/$proj/python-venv/rhea/bin/activate
+
+# for an initial setup ########################################################
+#
+# first install adios
+#   LDFLAGS="-fPIC -pthread" CFLAGS="-fPIC -g -O2" CXXFLAGS="-fPIC -g -O2" \
+#     ./configure --prefix=$PROJWORK/$proj/lib/adios-pre1.9.0-rhea \
+#     --with-zlib --with-mpi --enable-static --enable-shared \
+#     --with-mxml=$MXML_DIR --without-dataspaces
+#   make -j
+#   make install
+#
+# now run for setting up the python virtual environment
+#   mkdir -p $PROJWORK/$proj/python-venv
+#   cd $PROJWORK/$proj
+#   virtualenv rhea
+#   source $PROJWORK/$proj/python-venv/rhea/bin/activate
+#   which pip
+#
+#   pip install adios
+#   pip install six
+#   pip install matplotlib
+#   pip install "ipython[all]"
+#   pip install mpi4py
+#   pip install h5py
+#   pip install psutil
+#   pip install pyDive
+#
+# create IPython profile for cluster:
+#   ipython profile create --parallel --profile=rhea
+# edit files: $IPYTHONDIR/profile_rhea/ip*_config.py
+#   as in http://ipython.org/ipython-doc/2/parallel/parallel_process.htm
