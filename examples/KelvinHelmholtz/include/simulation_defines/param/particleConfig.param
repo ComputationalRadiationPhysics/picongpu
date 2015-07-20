@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Rene Widera, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -40,7 +40,7 @@ namespace particles
         {
             /** Count of particles per cell per direction at initial state
              *  unit: none */
-           typedef typename mCT::shrinkTo<mCT::Int<5, 5, 1>, simDim>::type numParticlesPerDimension;
+           typedef mCT::shrinkTo<mCT::Int<5, 5, 1>, simDim>::type numParticlesPerDimension;
         };
 
         /* definition of random particle start*/
@@ -54,7 +54,7 @@ namespace particles
     const float_X MIN_WEIGHTING = 10.0;
 
     const uint32_t TYPICAL_PARTICLES_PER_CELL = mCT::volume<
-        typename startPosition::QuietParam::numParticlesPerDimension
+        startPosition::QuietParam::numParticlesPerDimension
     >::type::value;
 
 namespace manipulators
