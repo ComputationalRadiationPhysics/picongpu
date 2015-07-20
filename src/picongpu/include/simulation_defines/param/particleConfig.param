@@ -89,6 +89,8 @@ namespace manipulators
     /* definition of SetDrift start*/
     typedef FreeImpl<DoubleWeightingFunctor> DoubleWeighting;
 
+    /**  changes the in-cell position of each particle of a species*/
+    typedef RandomPositionImpl<> RandomPosition;
 
 } //namespace manipulators
 

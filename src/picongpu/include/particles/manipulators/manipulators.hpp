@@ -28,3 +28,4 @@
 #include "particles/manipulators/CreateParticlesFromParticleImpl.hpp"
 #include "particles/manipulators/FreeImpl.hpp"
 #include "particles/manipulators/SetAttributeImpl.hpp"
+#include "particles/manipulators/RandomPositionImpl.hpp"
