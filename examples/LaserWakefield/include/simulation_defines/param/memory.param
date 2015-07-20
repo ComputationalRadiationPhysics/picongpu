@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Rene Widera
+ * Copyright 2013-2015 Rene Widera, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -40,7 +40,7 @@ namespace mCT=PMacc::math::CT;
  *
  * volume of a superCell must be <= 1024
  */
-typedef typename mCT::shrinkTo<mCT::Int<8, 8, 4>, simDim>::type SuperCellSize;
+typedef mCT::shrinkTo<mCT::Int<8, 8, 4>, simDim>::type SuperCellSize;
 
 /** define the object for mapping superCells to cells*/
 typedef MappingDescription<simDim, SuperCellSize> MappingDesc;
@@ -53,4 +53,4 @@ const uint32_t BYTES_EXCHANGE_Y = 6 * 512 * 1024; //6 MiB
 const uint32_t BYTES_EXCHANGE_Z = 4 * 256 * 1024; //4 MiB
 const uint32_t BYTES_CORNER = 8 * 1024; //8 kiB;
 const uint32_t BYTES_EDGES = 32 * 1024; //32 kiB;
-} //namespace picongpu
+}//namespace picongpu

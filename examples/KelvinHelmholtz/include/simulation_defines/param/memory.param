@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Rene Widera, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -20,6 +20,7 @@
 
 
 #pragma once
+
 #include "math/Vector.hpp"
 #include "mappings/kernel/MappingDescription.hpp"
 
@@ -39,7 +40,7 @@ namespace mCT=PMacc::math::CT;
  *
  * volume of a superCell must be <= 1024
  */
-typedef typename mCT::shrinkTo<mCT::Int<8, 8, 4>, simDim>::type SuperCellSize;
+typedef mCT::shrinkTo<mCT::Int<8, 8, 4>, simDim>::type SuperCellSize;
 
 /** define the object for mapping superCells to cells*/
 typedef MappingDescription<simDim, SuperCellSize> MappingDesc;
