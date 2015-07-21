@@ -37,29 +37,35 @@ namespace traits
 namespace frame
 {
 
-template<>
-HDINLINE float_X getMass<typename PIC_Ions::FrameType>()
+/** default `getMass()` specialization
+ *
+ * - the default mass is `BASE_MASS * massRatio<>`
+ * - massRatio<> is the user defined ratio which is pinned as flag to a species
+ */
+template<typename T_Frame>
+HDINLINE float_X getMass()
 {
-    return M_ION;
-    /** \todo take account for mass loss of ions when electrons leave them during ionization */
+    typedef typename PMacc::traits::Resolve<
+        typename GetFlagType<T_Frame, massRatio<> >::type
+        >::type MassRatioValue;
+
+    return BASE_MASS * MassRatioValue::getDefaultValue();
 };
 
-template<>
-HDINLINE float_X getCharge<typename PIC_Ions::FrameType>()
-{
-    return Q_ION;
-};
 
-template<>
-HDINLINE float_X getMass<typename PIC_Electrons::FrameType>()
+/** default `getCharge()` specialization
+ *
+ * - the default charge is `BASE_CHARGE * chargeRatio<>`
+ * - chargeRatio<> is the user defined ratio which is pinned as flag to a species
+ */
+template<typename T_Frame>
+HDINLINE float_X getCharge()
 {
-    return M_EL;
-};
+    typedef typename PMacc::traits::Resolve<
+        typename GetFlagType<T_Frame, chargeRatio<> >::type
+        >::type ChargeRatioValue;
 
-template<>
-HDINLINE float_X getCharge<typename PIC_Electrons::FrameType>()
-{
-    return Q_EL;
+    return BASE_CHARGE * ChargeRatioValue::getDefaultValue();
 };
 
 } //namespace frame
