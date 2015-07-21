@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -119,6 +119,10 @@ public:
         return RefValueType(fixedPointer, attributePitch);
     }
 
+    HDINLINE Type const * getPointer() const
+    {
+        return fixedPointer;
+    }
     HDINLINE Type* getPointer()
     {
         return fixedPointer;
@@ -188,6 +192,10 @@ public:
         return RefValueType(fixedPointer, attributePitch);
     }
 
+    HDINLINE Type const * getPointer() const
+    {
+        return fixedPointer;
+    }
     HDINLINE Type* getPointer()
     {
         return fixedPointer;
@@ -249,6 +257,10 @@ public:
         return RefValueType(fixedPointer, attributePitch);
     }
 
+    HDINLINE Type const * getPointer() const
+    {
+        return fixedPointer;
+    }
     HDINLINE Type* getPointer()
     {
         return fixedPointer;

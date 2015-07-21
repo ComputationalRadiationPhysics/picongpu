@@ -84,6 +84,10 @@ public:
         return *(fixedPointer);
     }
 
+    HDINLINE ValueType const * getPointer() const
+    {
+        return fixedPointer;
+    }
     HDINLINE ValueType* getPointer()
     {
         return fixedPointer;
@@ -140,6 +144,10 @@ public:
         return *((ValueType*) fixedPointer);
     }
 
+    HDINLINE ValueType const * getPointer() const
+    {
+        return fixedPointer;
+    }
     HDINLINE ValueType* getPointer()
     {
         return fixedPointer;
@@ -203,6 +211,10 @@ public:
         return *(fixedPointer);
     }
 
+    HDINLINE ValueType const * getPointer() const
+    {
+        return fixedPointer;
+    }
     HDINLINE ValueType* getPointer()
     {
         return fixedPointer;
