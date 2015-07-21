@@ -33,33 +33,36 @@ namespace picongpu
 
 using namespace PMacc;
 
-/** copy particle to single frame
+/** Copy Particles to a Single Frame
  *
- * copy particle data which are stored in linked list and superCell hierarchy
- * to a single frame.
+ * - copy particle data that was stored in a linked list of frames for each
+ *   super-cell on the GPU to a single frame on the CPU RAM
+ * - the deep on-GPU hierarchy must be copied to the CPU beforehand
+ * - remove species attributes `multiMask` and `localCellIdx`
+ * - add new attribute `globalCellIdx` (particle offset to begin of global
+ *   moving window)
  */
-struct CopySpeciesToGlobal
+struct ConcatListOfFrames
 {
     DataSpace<simDim> gridDim;
-    int threads;
 
-    CopySpeciesToGlobal(const DataSpace<simDim>& gridDim, const int threads) :
-    gridDim(gridDim), threads(threads)
+    ConcatListOfFrames(const DataSpace<simDim>& gridDim) :
+    gridDim(gridDim)
     {
 
     }
 
-    /** copy particles
+    /** concatenate list of frames to single frame
      *
      * @param counter scalar offset in `destFrame`
      * @param destFrame single frame were all particles are copied in
      * @param srcBox particle box were particles are read from
      * @param filter filter to select particles
-     * @param gpuOffset gpu localOffset or to sliding window begin
+     * @param particleOffset can be negative for the first GPU: localDomain.offset - globalWindow.offset
      * @param mapper mapper which describe the area were particles are copied from
      */
     template<class T_DestFrame, class T_SrcBox, class T_Filter, class T_Space, class T_Mapping>
-    void operator()(int& counter, T_DestFrame destFrame, T_SrcBox srcBox, T_Filter filter, T_Space gpuOffset, T_Mapping mapper)
+    void operator()(int& counter, T_DestFrame destFrame, T_SrcBox srcBox, T_Filter filter, T_Space particleOffset, T_Mapping mapper)
     {
         #pragma omp parallel for
         for (int linearBlockIdx = 0;
@@ -120,7 +123,7 @@ struct CopySpeciesToGlobal
                         assign(parDestNoGlobalIdx, parSrc);
                         /*calculate global cell index*/
                         DataSpace<Mapping::Dim> localCell(DataSpaceOperations<Mapping::Dim>::template map<Block>(parSrc[localCellIdx_]));
-                        parDest[globalCellIdx_] = gpuOffset + superCellPosition + localCell;
+                        parDest[globalCellIdx_] = particleOffset + superCellPosition + localCell;
                     }
                 }
                 /*get next frame in supercell*/
@@ -144,11 +147,11 @@ struct CopySpeciesToGlobal
  * @param destFrame frame were we store particles in host memory (no Databox<...>)
  * @param srcBox ParticlesBox with frames
  * @param filer filer with rules to select particles
- * @param gpuOffset global offset from sliding window zero (origin) to origin of local gpu domain
+ * @param particleOffset can be negative for the first GPU: localDomain.offset - globalWindow.offset
  * @param mapper apper to map cuda idx to supercells
  */
 template<class T_DestFrame, class T_SrcBox, class T_Filter, class T_Space, class T_Mapping>
-__global__ void copySpecies(int* counter, T_DestFrame destFrame, T_SrcBox srcBox, T_Filter filter, T_Space gpuOffset, T_Mapping mapper)
+__global__ void copySpecies(int* counter, T_DestFrame destFrame, T_SrcBox srcBox, T_Filter filter, T_Space particleOffset, T_Mapping mapper)
 {
     using namespace PMacc::particles::operations;
 
@@ -197,7 +200,7 @@ __global__ void copySpecies(int* counter, T_DestFrame destFrame, T_SrcBox srcBox
             assign(parDestNoGlobalIdx, parSrc);
             /*calculate global cell index*/
             DataSpace<Mapping::Dim> localCell(DataSpaceOperations<Mapping::Dim>::template map<Block>(parSrc[localCellIdx_]));
-            parDest[globalCellIdx_] = gpuOffset + superCellPosition + localCell;
+            parDest[globalCellIdx_] = particleOffset + superCellPosition + localCell;
         }
         __syncthreads();
         if (threadIdx.x == 0)

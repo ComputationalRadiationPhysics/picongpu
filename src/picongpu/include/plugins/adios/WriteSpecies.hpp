@@ -123,19 +123,15 @@ public:
             filter.setWindowPosition(params->localWindowToDomainOffset,
                                      params->window.localDimensions.size);
 
-            __getTransactionEvent().waitForFinished();
-
-            int threads = PMacc::math::CT::volume<SuperCellSize>::type::value;
-
             DataConnector &dc = Environment<>::get().DataConnector();
-            MallocMCBuffer& mallocMCBuffer = dc.getData<MallocMCBuffer> (MallocMCBuffer::getName());
+            MallocMCBuffer& mallocMCBuffer = dc.getData<MallocMCBuffer> (MallocMCBuffer::getName(),true);
 
             int globalParticleOffset = 0;
             AreaMapping < CORE + BORDER, MappingDesc > mapper(*(params->cellDescription));
 
-            CopySpeciesToGlobal copySpeciesToGlobal(mapper.getGridDim(), threads);
+            ConcatListOfFrames concatListOfFrames(mapper.getGridDim());
 
-            copySpeciesToGlobal(
+            concatListOfFrames(
                                 globalParticleOffset,
                                 hostFrame,
                                 speciesTmp->getHostParticlesBox(mallocMCBuffer.getOffset()),
@@ -143,7 +139,7 @@ public:
                                 particleOffset, /*relative to data domain (not to physical domain)*/
                                 mapper
                                 );
-
+            dc.releaseData(MallocMCBuffer::getName());
             /* this costs a little bit of time but adios writing is slower */
             assert((uint64_cu) globalParticleOffset == totalNumParticles);
         }

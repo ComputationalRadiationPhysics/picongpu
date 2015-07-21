@@ -103,6 +103,7 @@ struct CopySpeciesToHost
         /* DataConnector copies data to host */
         DataConnector &dc = Environment<>::get().DataConnector();
         dc.getData<SpeciesType> (SpeciesType::FrameType::getName());
+        dc.releaseData(SpeciesType::FrameType::getName());
     }
 };
 

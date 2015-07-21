@@ -666,19 +666,22 @@ private:
         }
 
 
+        /*copy species only one time per timestep to the host*/
         if( lastSpeciesSyncStep != currentStep )
         {
-            /*copy species only one time per timestep to the host*/
-
             DataConnector &dc = Environment<>::get().DataConnector();
+            
+            /* synchronizes the MallocMCBuffer to the host side */
             dc.getData<MallocMCBuffer> (MallocMCBuffer::getName());
 
-            /* we copy all species to the host because we can not check if
-             * a normal adios dump and a checkpoint are in the same time step
+            /* here we are copying all species to the host side since we
+             * can not say at this point if this time step will need all of them
+             * for sure (checkpoint) or just some user-defined species (dump)
              */
             ForEach<FileCheckpointParticles, CopySpeciesToHost<bmpl::_1> > copySpeciesToHost;
             copySpeciesToHost();
             lastSpeciesSyncStep = currentStep;
+            dc.releaseData(MallocMCBuffer::getName());
         }
 
         beginAdios(fname);
