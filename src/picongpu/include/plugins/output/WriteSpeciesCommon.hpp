@@ -65,6 +65,48 @@ struct MallocMemory
     }
 };
 
+/** allocate memory on host
+ *
+ * This functor use `new[]` to allocate memory
+ */
+template<typename T_Attribute>
+struct MallocHostMemory
+{
+    template<typename ValueType >
+    HINLINE void operator()(ValueType& v1, const size_t size) const
+    {
+        typedef T_Attribute Attribute;
+        typedef typename PMacc::traits::Resolve<Attribute>::type::type type;
+
+        type* ptr = NULL;
+        if (size != 0)
+        {
+            ptr = new type[size];
+        }
+        v1.getIdentifier(Attribute()) = VectorDataBox<type>(ptr);
+
+    }
+};
+
+
+/** copy species to host memory
+ *
+ * use `DataConnector::getData<...>()` to copy data
+ */
+template<typename T_SpeciesType>
+struct CopySpeciesToHost
+{
+    typedef T_SpeciesType SpeciesType;
+
+    HINLINE void operator()() const
+    {
+        /* DataConnector copies data to host */
+        DataConnector &dc = Environment<>::get().DataConnector();
+        dc.getData<SpeciesType> (SpeciesType::FrameType::getName());
+        dc.releaseData(SpeciesType::FrameType::getName());
+    }
+};
+
 template<typename T_Type>
 struct GetDevicePtr
 {
@@ -85,7 +127,7 @@ struct GetDevicePtr
 
 template<typename T_Type>
 struct FreeMemory
-    {
+{
     template<typename ValueType >
     HINLINE void operator()(ValueType& value) const
     {
@@ -95,6 +137,29 @@ struct FreeMemory
         if (ptr != NULL)
         {
             CUDA_CHECK(cudaFreeHost(ptr));
+            ptr=NULL;
+        }
+    }
+};
+
+/** free memory
+ *
+ * use `__deleteArray()` to free memory
+ */
+template<typename T_Attribute>
+struct FreeHostMemory
+{
+
+    template<typename ValueType >
+    HINLINE void operator()(ValueType& value) const
+    {
+        typedef T_Attribute Attribute;
+        typedef typename PMacc::traits::Resolve<Attribute>::type::type type;
+
+        type* ptr = value.getIdentifier(Attribute()).getPointer();
+        if (ptr != NULL)
+        {
+            __deleteArray(ptr);
             ptr=NULL;
         }
     }

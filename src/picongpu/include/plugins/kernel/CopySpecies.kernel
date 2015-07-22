@@ -33,8 +33,107 @@ namespace picongpu
 
 using namespace PMacc;
 
+/** Copy Particles to a Single Frame
+ *
+ * - copy particle data that was stored in a linked list of frames for each
+ *   super-cell on the GPU to a single frame on the CPU RAM
+ * - the deep on-GPU hierarchy must be copied to the CPU beforehand
+ * - remove species attributes `multiMask` and `localCellIdx`
+ * - add new attribute `globalCellIdx` (particle offset to begin of global
+ *   moving window)
+ */
+struct ConcatListOfFrames
+{
+    DataSpace<simDim> gridDim;
 
+    ConcatListOfFrames(const DataSpace<simDim>& gridDim) :
+    gridDim(gridDim)
+    {
 
+    }
+
+    /** concatenate list of frames to single frame
+     *
+     * @param counter scalar offset in `destFrame`
+     * @param destFrame single frame were all particles are copied in
+     * @param srcBox particle box were particles are read from
+     * @param filter filter to select particles
+     * @param particleOffset can be negative for the first GPU: localDomain.offset - globalWindow.offset
+     * @param mapper mapper which describe the area were particles are copied from
+     */
+    template<class T_DestFrame, class T_SrcBox, class T_Filter, class T_Space, class T_Mapping>
+    void operator()(int& counter, T_DestFrame destFrame, T_SrcBox srcBox, T_Filter filter, T_Space particleOffset, T_Mapping mapper)
+    {
+        #pragma omp parallel for
+        for (int linearBlockIdx = 0;
+             linearBlockIdx < gridDim.productOfComponents();
+             ++linearBlockIdx
+             )
+        {
+            DataSpace<simDim> blockIdx(DataSpaceOperations<simDim>::map(gridDim, linearBlockIdx));
+
+            using namespace PMacc::particles::operations;
+
+            typedef T_DestFrame DestFrameType;
+            typedef typename T_SrcBox::FrameType SrcFrameType;
+            typedef T_Mapping Mapping;
+            typedef typename Mapping::SuperCellSize Block;
+
+            SrcFrameType *srcFramePtr;
+            int localCounter;
+            int globalOffset;
+            const int particlePerFrame = PMacc::math::CT::volume<SuperCellSize>::type::value;
+            int storageOffset[particlePerFrame];
+
+            bool isValid;
+
+            const DataSpace<Mapping::Dim> block = mapper.getSuperCellIndex(blockIdx);
+            const DataSpace<Mapping::Dim> superCellPosition((block - mapper.getGuardingSuperCells()) * mapper.getSuperCellSize());
+            filter.setSuperCellPosition(superCellPosition);
+
+            srcFramePtr = &(srcBox.getFirstFrame(block, isValid));
+
+            while (isValid) //move over all Frames
+            {
+                localCounter = 0;
+                /* clear storageOffset array*/
+                for (int threadIdx = 0; threadIdx < particlePerFrame; ++threadIdx)
+                {
+                    storageOffset[threadIdx] = -1;
+                    PMACC_AUTO(parSrc, ((*srcFramePtr)[threadIdx]));
+                    /*count particle in frame*/
+                    if (parSrc[multiMask_] == 1 && filter(*srcFramePtr, threadIdx))
+                        storageOffset[threadIdx] = localCounter++;
+                }
+
+                /* atomic update with openmp*/
+                #pragma omp critical
+                {
+                    globalOffset = counter;
+                    counter += localCounter;
+                }
+
+                for (int threadIdx = 0; threadIdx < particlePerFrame; ++threadIdx)
+                {
+                    if (storageOffset[threadIdx] != -1)
+                    {
+                        PMACC_AUTO(parSrc, ((*srcFramePtr)[threadIdx]));
+                        PMACC_AUTO(parDest, destFrame[globalOffset + storageOffset[threadIdx]]);
+                        PMACC_AUTO(parDestNoGlobalIdx, deselect<globalCellIdx<> >(parDest));
+                        assign(parDestNoGlobalIdx, parSrc);
+                        /*calculate global cell index*/
+                        DataSpace<Mapping::Dim> localCell(DataSpaceOperations<Mapping::Dim>::template map<Block>(parSrc[localCellIdx_]));
+                        parDest[globalCellIdx_] = particleOffset + superCellPosition + localCell;
+                    }
+                }
+                /*get next frame in supercell*/
+                srcFramePtr = &(srcBox.getNextFrame(*srcFramePtr, isValid));
+
+            }
+        }
+    }
+
+};
 
 /** copy particle of a species to a host frame
  *
@@ -48,11 +147,11 @@ using namespace PMacc;
  * @param destFrame frame were we store particles in host memory (no Databox<...>)
  * @param srcBox ParticlesBox with frames
  * @param filer filer with rules to select particles
- * @param gpuOffset global offset from sliding window zero (origin) to origin of local gpu domain
+ * @param particleOffset can be negative for the first GPU: localDomain.offset - globalWindow.offset
  * @param mapper apper to map cuda idx to supercells
  */
-template<class T_DestFrame, class T_SrcBox, class T_Filter, class T_Space ,class T_Mapping>
-__global__ void copySpecies(int* counter, T_DestFrame destFrame, T_SrcBox srcBox, T_Filter filter,T_Space gpuOffset, T_Mapping mapper)
+template<class T_DestFrame, class T_SrcBox, class T_Filter, class T_Space, class T_Mapping>
+__global__ void copySpecies(int* counter, T_DestFrame destFrame, T_SrcBox srcBox, T_Filter filter, T_Space particleOffset, T_Mapping mapper)
 {
     using namespace PMacc::particles::operations;
 
@@ -85,7 +184,7 @@ __global__ void copySpecies(int* counter, T_DestFrame destFrame, T_SrcBox srcBox
         PMACC_AUTO(parSrc, ((*srcFramePtr)[threadIdx.x]));
         storageOffset = -1;
         /*count particle in frame*/
-        if (parSrc[multiMask_]==1 &&  filter(*srcFramePtr, threadIdx.x))
+        if (parSrc[multiMask_] == 1 && filter(*srcFramePtr, threadIdx.x))
             storageOffset = atomicAdd(&localCounter, 1);
         __syncthreads();
         if (threadIdx.x == 0)
@@ -101,7 +200,7 @@ __global__ void copySpecies(int* counter, T_DestFrame destFrame, T_SrcBox srcBox
             assign(parDestNoGlobalIdx, parSrc);
             /*calculate global cell index*/
             DataSpace<Mapping::Dim> localCell(DataSpaceOperations<Mapping::Dim>::template map<Block>(parSrc[localCellIdx_]));
-            parDest[globalCellIdx_]=gpuOffset+superCellPosition+localCell;
+            parDest[globalCellIdx_] = particleOffset + superCellPosition + localCell;
         }
         __syncthreads();
         if (threadIdx.x == 0)

@@ -50,6 +50,8 @@
 #include "pluginSystem/PluginConnector.hpp"
 #include "simulationControl/MovingWindow.hpp"
 #include "math/Vector.hpp"
+#include "particles/MallocMCBuffer.hpp"
+#include "traits/Limits.hpp"
 
 #include "plugins/ILightweightPlugin.hpp"
 #include <boost/mpl/vector.hpp>
@@ -399,7 +401,8 @@ public:
     restartFilename(""), /* set to checkpointFilename by default */
     /* select MPI method, #OSTs and #aggregators */
     mpiTransportParams(""),
-    notifyPeriod(0)
+    notifyPeriod(0),
+    lastSpeciesSyncStep(PMacc::traits::limits::Max<uint32_t>::value)
     {
         Environment<>::get().PluginConnector().registerPlugin(this);
     }
@@ -660,6 +663,25 @@ private:
                     mThreadParams.window.globalDimensions.offset[i] -
                     localDomain.offset[i];
             }
+        }
+
+
+        /*copy species only one time per timestep to the host*/
+        if( lastSpeciesSyncStep != currentStep )
+        {
+            DataConnector &dc = Environment<>::get().DataConnector();
+            
+            /* synchronizes the MallocMCBuffer to the host side */
+            dc.getData<MallocMCBuffer> (MallocMCBuffer::getName());
+
+            /* here we are copying all species to the host side since we
+             * can not say at this point if this time step will need all of them
+             * for sure (checkpoint) or just some user-defined species (dump)
+             */
+            ForEach<FileCheckpointParticles, CopySpeciesToHost<bmpl::_1> > copySpeciesToHost;
+            copySpeciesToHost();
+            lastSpeciesSyncStep = currentStep;
+            dc.releaseData(MallocMCBuffer::getName());
         }
 
         beginAdios(fname);
@@ -1023,6 +1045,7 @@ private:
     std::string mpiTransportParams;
 
     uint32_t restartChunkSize;
+    uint32_t lastSpeciesSyncStep;
 
     DataSpace<simDim> mpi_pos;
     DataSpace<simDim> mpi_size;
