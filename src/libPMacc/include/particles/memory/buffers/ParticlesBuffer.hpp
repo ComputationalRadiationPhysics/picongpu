@@ -47,6 +47,7 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
 #include "particles/ParticleDescription.hpp"
+#include "particles/memory/dataTypes/ListPointer.hpp"
 
 
 namespace PMacc
@@ -99,6 +100,17 @@ public:
 
     typedef
     typename ReplaceValueTypeSeq<T_ParticleDescription, full_particleList>::type
+    ParticleDescriptionWithExtendedAttributes;
+
+    typedef
+    typename MakeSeq<
+        PreviousFramePtr<>,
+        NextFramePtr<>
+    >::type PtrExtension;
+
+    /* extent particle description with pointer to a frame*/
+    typedef
+    typename ReplaceFrameExtensionSeq<ParticleDescriptionWithExtendedAttributes, PtrExtension>::type
     ParticleDescriptionDefault;
 
     typedef Frame<
