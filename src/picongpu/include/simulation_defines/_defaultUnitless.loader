@@ -27,6 +27,7 @@
 #pragma once
 
 #include "simulation_defines/unitless/physicalConstants.unitless"
+#include "simulation_defines/unitless/speciesConstants.unitless"
 #include "simulation_defines/unitless/gridConfig.unitless"
 #include "simulation_defines/unitless/laserConfig.unitless"
 #include "simulation_defines/unitless/gasConfig.unitless"

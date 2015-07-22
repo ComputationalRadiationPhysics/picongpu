@@ -26,18 +26,6 @@ namespace picongpu
 {
     const float_64 PI = 3.141592653589793238462643383279502884197169399;
 
-    /** Threshold used for calculations that want to separate between
-     *  high-precision formulas for relativistic and non-relativistic
-     *  use-cases, e.g. energy-binning algorithms. */
-    const float_X GAMMA_THRESH = float_X(1.005);
-
-    /** This limit is used to decide between a pure 1-sqrt(1-x) calculation
-     *  and a 5th order Taylor approximation of 1-sqrt(1-x) to avoid halving
-     *  of significant digits due to the sqrt() evaluation at x = 1/gamma^2 near 0.0.
-     *  With 0.18 the relative error between Taylor approximation and real value
-     *  will be below 0.001% = 1e-5 * for x=1/gamma^2 < 0.18 */
-    const float_X GAMMA_INV_SQUARE_RAD_THRESH = float_X(0.18);
-
     namespace SI
     {
         /** unit: m / s */
@@ -54,12 +42,6 @@ namespace picongpu
         const float_64 ELECTRON_MASS_SI = 9.109382e-31;
         /** unit: C */
         const float_64 ELECTRON_CHARGE_SI = -1.602176e-19;
-
-        // Ion / Proton / Positron properties
-        /** unit: kg */
-        const float_64 ION_MASS_SI = 1.6726217e-27;
-        /** unit: C */
-        const float_64 ION_CHARGE_SI = -1.0 * ELECTRON_CHARGE_SI;
     }
 
     // converts

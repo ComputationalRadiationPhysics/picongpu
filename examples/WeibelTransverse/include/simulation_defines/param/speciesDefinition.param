@@ -99,7 +99,7 @@ typedef Particles<ParticleDescription<
 /*--------------------------- ions -------------------------------------------*/
 
 /* ratio relative to BASE_CHARGE and BASE_MASS */
-value_identifier(float_X, MassRatioIons, 1836.152672);
+value_identifier(float_X, MassRatioIons, 1.0);
 value_identifier(float_X, ChargeRatioIons, -1.0);
 
 typedef bmpl::vector<

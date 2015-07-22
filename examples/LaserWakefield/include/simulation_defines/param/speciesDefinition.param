@@ -87,11 +87,17 @@ boundElectrons
 
 /*--------------------------- electrons --------------------------------------*/
 
+/* ratio relative to BASE_CHARGE and BASE_MASS */
+value_identifier(float_X, MassRatioElectrons, 1.0);
+value_identifier(float_X, ChargeRatioElectrons, 1.0);
+
 typedef bmpl::vector<
     particlePusher<UsedParticlePusher>,
     shape<UsedParticleShape>,
     interpolation<UsedField2Particle>,
-    current<UsedParticleCurrentSolver>
+    current<UsedParticleCurrentSolver>,
+    massRatio<MassRatioElectrons>,
+    chargeRatio<ChargeRatioElectrons>
 > ParticleFlagsElectrons;
 
 /* define species: electrons */
@@ -104,6 +110,10 @@ typedef Particles<ParticleDescription<
 > PIC_Electrons;
 
 /*--------------------------- ions -------------------------------------------*/
+
+/* ratio relative to BASE_CHARGE and BASE_MASS */
+value_identifier(float_X, MassRatioIons, 1836.152672);
+value_identifier(float_X, ChargeRatioIons, -1.0);
 
 /*! Specify (chemical) element
  *
@@ -135,12 +145,13 @@ struct Hydrogen
  *        ionizer<IonizationModel<Species2BCreated> >
  */
 
-typedef particles::shapes::CIC IonShape;
 typedef bmpl::vector<
     particlePusher<UsedParticlePusher>,
     shape<UsedParticleShape>,
     interpolation<UsedField2Particle>,
     current<UsedParticleCurrentSolver>,
+    massRatio<MassRatioIons>,
+    chargeRatio<ChargeRatioIons>,
     #if(PARAM_IONIZATION == 1)
     ionizer<particles::ionization::BSI<PIC_Electrons> >,
     #endif

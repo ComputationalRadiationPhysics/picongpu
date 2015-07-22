@@ -29,6 +29,7 @@
 #include "simulation_defines/param/memory.param"
 #include "simulation_defines/param/precision.param"
 #include "simulation_defines/param/physicalConstants.param"
+#include "simulation_defines/param/speciesConstants.param"
 #include "simulation_defines/param/gridConfig.param"
 #include "simulation_defines/param/radiationConfig.param"
 #include "simulation_defines/param/pusherConfig.param"

@@ -89,6 +89,20 @@ alias(current);
  * - only reasonable for atoms / ions / nuclei */
 alias(atomicNumbers);
 
+/*! alias for particle mass ratio
+ *
+ *  mass ratio between base particle @see `speciesConstants.param` SI::BASE_MASS_SI
+ *  and a user defined species
+ */
+alias(massRatio);
+
+/*! alias for particle charge ratio
+ *
+ *  charge ratio between base particle @see `speciesConstants.param` SI::BASE_CHARGE_SI
+ *  and a user defined species
+ */
+alias(chargeRatio);
+
 template<uint32_t T_commTag>
 struct CommunicationId
 {

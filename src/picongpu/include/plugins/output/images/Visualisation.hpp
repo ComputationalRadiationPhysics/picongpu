@@ -118,7 +118,7 @@ struct typicalFields < 1 >
         return float3_X(float_X(1.0), float_X(1.0), float_X(1.0));
 #else
         const float_X tyCurrent = particles::TYPICAL_PARTICLES_PER_CELL * particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
-            * abs(Q_EL) / DELTA_T;
+            * abs(BASE_CHARGE) / DELTA_T;
         const float_X tyEField = laserProfile::AMPLITUDE + FLT_MIN;
         const float_X tyBField = tyEField * MUE0_EPS0;
 
@@ -142,7 +142,7 @@ struct typicalFields < 3 >
         return float3_X(float_X(1.0), float_X(1.0), float_X(1.0));
 #else
         const float_X lambda_pl = 2.0f * M_PI * SPEED_OF_LIGHT *
-            sqrt(M_EL * EPS0 / GAS_DENSITY / Q_EL / Q_EL);
+            sqrt(BASE_MASS * EPS0 / GAS_DENSITY / BASE_CHARGE / BASE_CHARGE);
         const float_X tyEField = lambda_pl * GAS_DENSITY / 3.0f / EPS0;
         const float_X tyBField = tyEField * MUE0_EPS0;
         const float_X tyCurrent = tyBField / MUE0;
@@ -168,7 +168,7 @@ struct typicalFields < 5 >
         const float_X tyEField = laserProfile::W0 * GAS_DENSITY / 3.0f / EPS0;
         const float_X tyBField = tyEField * MUE0_EPS0;
         const float_X tyCurrent = particles::TYPICAL_PARTICLES_PER_CELL * particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
-            * abs(Q_EL) / DELTA_T;
+            * abs(BASE_CHARGE) / DELTA_T;
 
         return float3_X(tyBField, tyEField, tyCurrent);
 #endif
