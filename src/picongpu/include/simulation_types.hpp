@@ -67,11 +67,6 @@ enum FieldType
     FIELD_TYPE_E, FIELD_TYPE_B, FIELD_TYPE_TMP
 };
 
-enum Seeds
-{
-    TEMPERATURE_SEED = 255845, POSITION_SEED = 854666252
-};
-
 namespace precision32Bit
 {
 typedef float precisionType;
