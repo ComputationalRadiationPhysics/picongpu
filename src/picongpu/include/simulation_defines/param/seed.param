@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Axel Huebl
+ * Copyright 2014-2015 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -40,4 +40,11 @@ namespace picongpu
             return 42;
         }
     };
+
+    /* seed for randomization of different particle attributes */
+    enum Seeds
+    {
+        TEMPERATURE_SEED = 255845, POSITION_SEED = 854666252
+    };
+
 } /* namespace picongpu */
