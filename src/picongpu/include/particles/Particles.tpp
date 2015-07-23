@@ -72,26 +72,39 @@ datasetID( datasetID )
 
     log<picLog::MEMORY > ( "size for all exchange = %1% MiB" ) % ( (double) sizeOfExchanges / 1024. / 1024. );
 
-    this->particlesBuffer->addExchange( Mask( LEFT ) + Mask( RIGHT ), BYTES_EXCHANGE_X, FrameType::CommunicationTag );
-    this->particlesBuffer->addExchange( Mask( TOP ) + Mask( BOTTOM ), BYTES_EXCHANGE_Y, FrameType::CommunicationTag );
+    const uint32_t commTag = FrameType::CommunicationTag + SPECIES_FIRSTTAG;
+    this->particlesBuffer->addExchange( Mask( LEFT ) + Mask( RIGHT ),
+                                        BYTES_EXCHANGE_X,
+                                        commTag);
+    this->particlesBuffer->addExchange( Mask( TOP ) + Mask( BOTTOM ),
+                                        BYTES_EXCHANGE_Y,
+                                        commTag);
     //edges of the simulation area
     this->particlesBuffer->addExchange( Mask( RIGHT + TOP ) + Mask( LEFT + TOP ) +
-                                        Mask( LEFT + BOTTOM ) + Mask( RIGHT + BOTTOM ), BYTES_EDGES, FrameType::CommunicationTag );
+                                        Mask( LEFT + BOTTOM ) + Mask( RIGHT + BOTTOM ), BYTES_EDGES,
+                                        commTag);
 
 #if(SIMDIM==DIM3)
-    this->particlesBuffer->addExchange( Mask( FRONT ) + Mask( BACK ), BYTES_EXCHANGE_Z, FrameType::CommunicationTag );
+    this->particlesBuffer->addExchange( Mask( FRONT ) + Mask( BACK ), BYTES_EXCHANGE_Z,
+                                        commTag);
     //edges of the simulation area
     this->particlesBuffer->addExchange( Mask( FRONT + TOP ) + Mask( BACK + TOP ) +
                                         Mask( FRONT + BOTTOM ) + Mask( BACK + BOTTOM ),
-                                        BYTES_EDGES, FrameType::CommunicationTag );
+                                        BYTES_EDGES,
+                                        commTag);
     this->particlesBuffer->addExchange( Mask( FRONT + RIGHT ) + Mask( BACK + RIGHT ) +
                                         Mask( FRONT + LEFT ) + Mask( BACK + LEFT ),
-                                        BYTES_EDGES, FrameType::CommunicationTag );
+                                        BYTES_EDGES,
+                                        commTag);
     //corner of the simulation area
-    this->particlesBuffer->addExchange( Mask( TOP + FRONT + RIGHT ) + Mask( TOP + BACK + RIGHT ) + Mask( BOTTOM + FRONT + RIGHT ) + Mask( BOTTOM + BACK + RIGHT ),
-                                        BYTES_CORNER, FrameType::CommunicationTag );
-    this->particlesBuffer->addExchange( Mask( TOP + FRONT + LEFT ) + Mask( TOP + BACK + LEFT ) + Mask( BOTTOM + FRONT + LEFT ) + Mask( BOTTOM + BACK + LEFT ),
-                                        BYTES_CORNER, FrameType::CommunicationTag );
+    this->particlesBuffer->addExchange( Mask( TOP + FRONT + RIGHT ) + Mask( TOP + BACK + RIGHT ) +
+                                        Mask( BOTTOM + FRONT + RIGHT ) + Mask( BOTTOM + BACK + RIGHT ),
+                                        BYTES_CORNER,
+                                        commTag);
+    this->particlesBuffer->addExchange( Mask( TOP + FRONT + LEFT ) + Mask( TOP + BACK + LEFT ) +
+                                        Mask( BOTTOM + FRONT + LEFT ) + Mask( BOTTOM + BACK + LEFT ),
+                                        BYTES_CORNER,
+                                        commTag);
 #endif
 }
 
