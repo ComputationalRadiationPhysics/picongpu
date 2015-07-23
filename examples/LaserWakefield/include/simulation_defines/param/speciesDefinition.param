@@ -101,12 +101,14 @@ typedef bmpl::vector<
 > ParticleFlagsElectrons;
 
 /* define species: electrons */
-typedef Particles<ParticleDescription<
-    bmpl::string<'e'>,
-    SuperCellSize,
-    AttributeSeqElectrons,
-    ParticleFlagsElectrons,
-    MakeSeq<CommunicationId<PAR_ELECTRONS> >::type  >
+typedef Particles<
+    ParticleDescription<
+        bmpl::string<'e'>,
+        SuperCellSize,
+        AttributeSeqElectrons,
+        ParticleFlagsElectrons,
+        CommunicationId<0>
+    >
 > PIC_Electrons;
 
 /*--------------------------- ions -------------------------------------------*/
@@ -159,12 +161,14 @@ typedef bmpl::vector<
 > ParticleFlagsIons;
 
 /* define species: ions */
-typedef Particles<ParticleDescription<
-    bmpl::string<'i'>,
-    SuperCellSize,
-    AttributeSeqIons,
-    ParticleFlagsIons,
-    MakeSeq<CommunicationId<PAR_IONS> >::type >
+typedef Particles<
+    ParticleDescription<
+        bmpl::string<'i'>,
+        SuperCellSize,
+        AttributeSeqIons,
+        ParticleFlagsIons,
+        CommunicationId<1>
+    >
 > PIC_Ions;
 
 /*########################### end species ####################################*/
