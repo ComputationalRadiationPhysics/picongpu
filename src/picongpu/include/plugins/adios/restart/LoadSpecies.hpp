@@ -102,17 +102,15 @@ public:
         ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(ThisSpecies::FrameType::getName(), true));
 
         /* count total number of particles on the device */
-        uint64_cu totalNumParticles = 0;
+        uint64_t totalNumParticles = 0;
 
-        /* load particles info table entry for this process
+        /* load particles info table entry for ONE process
+           (note: this is NOT necessarily THIS process!)
            particlesInfo is (part-count, scalar pos, x, y, z) */
-        typedef uint64_t uint64Quint[5];
-        uint64Quint particlesInfo[gc.getGlobalSize()];
+        uint64_t particlesInfo[5];
 
-        /* read full data set: putting NULL (== full data set) for `piSel` crashed ADIOS 1.8.0
-         * with transforms enabled -> reported and confirmed as a bug in ADIOS 1.8.0 */
-        uint64_t start = 0;
-        uint64_t count = 5 * gc.getGlobalSize(); // ADIOSCountParticles: uint64_t
+        uint64_t start = 5 * gc.getGlobalRank();
+        uint64_t count = 5; // ADIOSCountParticles: uint64_t
         ADIOS_SELECTION* piSel = adios_selection_boundingbox( 1, &start, &count );
 
         ADIOS_CMD(adios_schedule_read( params->fp,
@@ -126,19 +124,26 @@ public:
         ADIOS_CMD(adios_perform_reads( params->fp, 1 ));
         adios_selection_delete(piSel);
 
-        /* search my entry (using my scalar position) in particlesInfo */
+        /* Run a prefix sum over the numParticles[0] element in particlesInfo
+         * to retreive the offset of particles before gc.getGlobalRank() */
         uint64_t particleOffset = 0;
-        uint64_t myScalarPos = gc.getScalarPosition();
+
+        uint64_t fullParticlesInfo[gc.getGlobalSize()];
+
+        MPI_CHECK(MPI_Allgather( particlesInfo, 1, MPI_UINT64_T,
+                                 fullParticlesInfo, 1, MPI_UINT64_T,
+                                 gc.getCommunicator().getMPIComm() ));
 
         for (size_t i = 0; i < gc.getGlobalSize(); ++i)
         {
-            if (particlesInfo[i][1] == myScalarPos)
-            {
-                totalNumParticles = particlesInfo[i][0];
-                break;
-            }
-
-            particleOffset += particlesInfo[i][0];
+            /* this comparison is potentially harmful, since the order of ranks
+               is not necessarily the same in subsequent MPI jobs.
+               But due to the wrong sorting by rank in `ADIOSCountParticles.hpp`
+               while calculating the `myParticleOffset` we have to immitate that. */
+            if( i < gc.getGlobalRank() )
+                particleOffset += fullParticlesInfo[i];
+            if( i == gc.getGlobalRank() )
+                totalNumParticles = fullParticlesInfo[i];
         }
 
         log<picLog::INPUT_OUTPUT > ("ADIOS: Loading %1% particles from offset %2%") %
@@ -204,18 +209,18 @@ public:
 
             log<picLog::INPUT_OUTPUT > ("ADIOS: used frames to load particles: %1%") % counterBuffer.getHostBuffer().getDataBox()[2];
 
-            if ((uint64_cu) counterBuffer.getHostBuffer().getDataBox()[1] != totalNumParticles)
+            if ((uint64_t) counterBuffer.getHostBuffer().getDataBox()[1] != totalNumParticles)
             {
                 log<picLog::INPUT_OUTPUT >("ADIOS: error load species | counter is %1% but should %2%") % counterBuffer.getHostBuffer().getDataBox()[1] % totalNumParticles;
                 throw std::runtime_error("ADIOS: Failed to load expected number of particles to GPU.");
             }
-            assert((uint64_cu) counterBuffer.getHostBuffer().getDataBox()[1] == totalNumParticles);
+            assert((uint64_t) counterBuffer.getHostBuffer().getDataBox()[1] == totalNumParticles);
 
             /*free host memory*/
             ForEach<typename AdiosFrameType::ValueTypeSeq, FreeMemory<bmpl::_1> > freeMem;
             freeMem(forward(hostFrame));
-            log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) load species: %1%") % AdiosFrameType::getName();
         }
+        log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) load species: %1%") % AdiosFrameType::getName();
     }
 };
 
