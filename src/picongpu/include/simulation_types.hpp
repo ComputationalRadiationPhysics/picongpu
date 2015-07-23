@@ -47,9 +47,13 @@ enum ParticleType
 
 enum CommunicationTag
 {
-    FIELD_B = 0u, FIELD_E = 1u, FIELD_J = 2u, FIELD_JRECV = 3u, FIELD_TMP = 4u,
-    PAR_IONS = 5u, PAR_ELECTRONS = 6u,
-    NO_COMMUNICATION = 16u
+    NO_COMMUNICATION = 0u,
+    FIELD_B = 1u,
+    FIELD_E = 2u,
+    FIELD_J = 3u,
+    FIELD_JRECV = 4u,
+    FIELD_TMP = 5u,
+    SPECIES_FIRSTTAG = 42u
 };
 
 
