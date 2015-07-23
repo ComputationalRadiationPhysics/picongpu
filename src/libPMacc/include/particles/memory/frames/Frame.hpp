@@ -89,7 +89,7 @@ public InheritLinearly<
     typedef typename ParticleDescription::ValueTypeSeq ValueTypeSeq;
     typedef typename ParticleDescription::MethodsList MethodsList;
     typedef typename ParticleDescription::FlagsList FlagList;
-    typedef typename ParticleDescription::FrameExtensionList FrameExtentionList;
+    typedef typename ParticleDescription::FrameExtensionList FrameExtensionList;
     typedef Frame<T_CreatePairOperator, ParticleDescription> ThisType;
     /* definition of the MapTupel where we inherit from*/
     typedef pmath::MapTuple<typename SeqToMap<ValueTypeSeq, T_CreatePairOperator>::type, pmath::AlignedData> BaseType;

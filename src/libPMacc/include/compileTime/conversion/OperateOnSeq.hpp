@@ -36,12 +36,12 @@
 namespace PMacc
 {
 
-/** run a unary operator on every sequence element
+/** run an unary operator on each element of a sequence
  *
  * @tparam T_MPLSeq any boost mpl sequence
  * @tparam T_UnaryOperator unary operator to translate type from the sequence
  * to a mpl pair
- * @tparam T_Accessor An unary lambda operator which is used before the type
+ * @tparam T_Accessor an unary lambda operator that is used before the type
  * from the sequence is passed to T_UnaryOperator
  * @return ::type bmpl::vector
  */
@@ -58,7 +58,6 @@ struct OperateOnSeq
     };
 
     typedef T_MPLSeq MPLSeq;
-    //typedef bmpl::inserter< bmpl::vector0<>, bmpl::insert<bmpl::_1, bmpl::_2> > SeqInserter;
     typedef bmpl::back_inserter< bmpl::vector<> > Inserter;
     typedef typename bmpl::transform<
             MPLSeq,

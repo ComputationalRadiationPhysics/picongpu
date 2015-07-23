@@ -43,10 +43,10 @@ namespace PMacc
  *                       (e.g. calculate mass, gamma, ...)
  *                       (e.g. useSolverXY, calcRadiation, ...)
  * @tparam T_FrameExtensionList sequence or single class with frame extentions
- *                    - extension must be a unary template class that supports bmpl::apply1<>
- *                    - type of the finale frame is applied to every extension class
- *                      ( this allows pointer and references in a frame to it self)
- *                    - the finale frame which use ParticleDescription inherits from all
+ *                    - extension must be an unary template class that supports bmpl::apply1<>
+ *                    - type of the finale frame is applied to each extension class
+ *                      (this allows pointers and references to a frame itself)
+ *                    - the finale frame that uses ParticleDescription inherits from all
  *                      extension classes
  */
 template<
