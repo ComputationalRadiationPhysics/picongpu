@@ -25,6 +25,7 @@
  */
 #pragma once
 
+#include "simulation_defines/param/communication.param"
 #include "simulation_defines/param/dimension.param"
 #include "simulation_defines/param/memory.param"
 #include "simulation_defines/param/precision.param"

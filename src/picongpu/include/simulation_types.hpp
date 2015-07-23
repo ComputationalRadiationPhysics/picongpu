@@ -43,16 +43,6 @@ enum ParticleType
     ION = 0, ELECTRON = 1
 };
 
-//! define all elements which can send and resive
-
-enum CommunicationTag
-{
-    FIELD_B = 0u, FIELD_E = 1u, FIELD_J = 2u, FIELD_JRECV = 3u, FIELD_TMP = 4u,
-    PAR_IONS = 5u, PAR_ELECTRONS = 6u,
-    NO_COMMUNICATION = 16u
-};
-
-
 //! define the place where data is stored
 
 enum DataPlace
