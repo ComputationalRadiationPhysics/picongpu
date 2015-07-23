@@ -71,6 +71,7 @@ struct ParticleAttribute
             ValueType* dataPtr = frame.getIdentifier(Identifier()).getPointer();
 
             /* copy strided data from source to temporary buffer */
+            #pragma omp parallel for
             for (size_t i = 0; i < elements; ++i)
             {
                 tmpBfr[i] = ((ComponentType*) dataPtr)[d + i * components];

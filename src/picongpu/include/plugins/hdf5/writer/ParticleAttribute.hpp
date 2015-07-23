@@ -115,6 +115,7 @@ struct ParticleAttribute
                 datasetName << "/" << name_lookup[d];
 
             ValueType* dataPtr = frame.getIdentifier(Identifier()).getPointer();
+            #pragma omp parallel for
             for (size_t i = 0; i < elements; ++i)
             {
                 tmpArray[i] = ((ComponentValueType*)dataPtr)[i * components + d];

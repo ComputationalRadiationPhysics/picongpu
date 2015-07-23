@@ -116,6 +116,7 @@ struct LoadParticleAttributesFromADIOS
                 elements % varInfo->dims[0] % datasetName.str();
 
             /* copy component from temporary array to array of structs */
+            #pragma omp parallel for
             for (size_t i = 0; i < elements; ++i)
             {
                 ComponentType& ref = ((ComponentType*) dataPtr)[i * components + n];

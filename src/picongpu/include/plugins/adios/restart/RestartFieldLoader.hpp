@@ -109,6 +109,7 @@ public:
 
             int elementCount = params->window.localDimensions.size.productOfComponents();
 
+            #pragma omp parallel for
             for (int linearId = 0; linearId < elementCount; ++linearId)
             {
                 /* calculate index inside the moving window domain which is located on the local grid*/
