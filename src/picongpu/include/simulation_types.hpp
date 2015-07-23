@@ -36,13 +36,6 @@
 namespace picongpu
 {
 
-//! defines form of particle
-
-enum ParticleType
-{
-    ION = 0, ELECTRON = 1
-};
-
 //! define all elements which can send and resive
 
 enum CommunicationTag
@@ -52,13 +45,6 @@ enum CommunicationTag
     NO_COMMUNICATION = 16u
 };
 
-
-//! define the place where data is stored
-
-enum DataPlace
-{
-    DEVICE, HOST
-};
 
 //! defines field types some various methods (e.g. Laser::manipulate)
 
@@ -90,7 +76,3 @@ using namespace PMacc::traits;
 using namespace picongpu::traits;
 
 }
-
-
-
-
