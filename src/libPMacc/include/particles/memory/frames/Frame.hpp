@@ -35,6 +35,7 @@
 #include "particles/memory/dataTypes/Particle.hpp"
 #include "particles/frame_types.hpp"
 #include "compileTime/conversion/SeqToMap.hpp"
+#include "compileTime/conversion/OperateOnSeq.hpp"
 #include <boost/utility/result_of.hpp>
 #include <boost/mpl/find.hpp>
 #include <boost/type_traits/is_same.hpp>
@@ -45,7 +46,6 @@
 #include "traits/HasFlag.hpp"
 #include "traits/GetFlagType.hpp"
 #include <boost/mpl/contains.hpp>
-#include "particles/memory/dataTypes/Pointer.hpp"
 
 #include "particles/ParticleDescription.hpp"
 #include <boost/mpl/string.hpp>
@@ -75,7 +75,13 @@ template<typename T_CreatePairOperator,
 typename T_ParticleDescription >
 struct Frame :
 public InheritLinearly<typename T_ParticleDescription::MethodsList>,
-protected pmath::MapTuple<typename SeqToMap<typename T_ParticleDescription::ValueTypeSeq, T_CreatePairOperator>::type, pmath::AlignedData>
+protected pmath::MapTuple<typename SeqToMap<typename T_ParticleDescription::ValueTypeSeq, T_CreatePairOperator>::type, pmath::AlignedData>,
+public InheritLinearly<
+    typename OperateOnSeq<
+        typename T_ParticleDescription::FrameExtensionList,
+        bmpl::apply1<bmpl::_1, Frame<T_CreatePairOperator,T_ParticleDescription> >
+    >::type
+>
 {
     typedef T_ParticleDescription ParticleDescription;
     typedef typename ParticleDescription::Name Name;
@@ -83,6 +89,7 @@ protected pmath::MapTuple<typename SeqToMap<typename T_ParticleDescription::Valu
     typedef typename ParticleDescription::ValueTypeSeq ValueTypeSeq;
     typedef typename ParticleDescription::MethodsList MethodsList;
     typedef typename ParticleDescription::FlagsList FlagList;
+    typedef typename ParticleDescription::FrameExtensionList FrameExtensionList;
     typedef Frame<T_CreatePairOperator, ParticleDescription> ThisType;
     /* definition of the MapTupel where we inherit from*/
     typedef pmath::MapTuple<typename SeqToMap<ValueTypeSeq, T_CreatePairOperator>::type, pmath::AlignedData> BaseType;
@@ -153,12 +160,6 @@ protected pmath::MapTuple<typename SeqToMap<typename T_ParticleDescription::Valu
     {
         return std::string(boost::mpl::c_str<Name>::value);
     }
-
-    /* \todo find a generic solution to add `previousFrame` and `nextFrame`
-     * only if we use this frame in a double linked list
-     */
-    PMACC_ALIGN(previousFrame, Pointer<ThisType>);
-    PMACC_ALIGN(nextFrame, Pointer<ThisType>);
 
 };
 

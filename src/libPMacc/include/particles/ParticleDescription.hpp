@@ -42,13 +42,20 @@ namespace PMacc
  * @tparam T_MethodsList sequence or single class with particle methods
  *                       (e.g. calculate mass, gamma, ...)
  *                       (e.g. useSolverXY, calcRadiation, ...)
+ * @tparam T_FrameExtensionList sequence or single class with frame extentions
+ *                    - extension must be an unary template class that supports bmpl::apply1<>
+ *                    - type of the finale frame is applied to each extension class
+ *                      (this allows pointers and references to a frame itself)
+ *                    - the finale frame that uses ParticleDescription inherits from all
+ *                      extension classes
  */
 template<
 typename T_Name,
 typename T_SuperCellSize,
 typename T_ValueTypeSeq,
 typename T_Flags = bmpl::vector0<>,
-typename T_MethodsList = bmpl::vector0<>
+typename T_MethodsList = bmpl::vector0<>,
+typename T_FrameExtensionList = bmpl::vector0<>
 >
 struct ParticleDescription
 {
@@ -57,7 +64,15 @@ struct ParticleDescription
     typedef typename ToSeq<T_ValueTypeSeq>::type ValueTypeSeq;
     typedef typename ToSeq<T_MethodsList>::type MethodsList;
     typedef typename ToSeq<T_Flags>::type FlagsList;
-    typedef ParticleDescription<Name, SuperCellSize, ValueTypeSeq, FlagsList, MethodsList> ThisType;
+    typedef typename ToSeq<T_FrameExtensionList>::type FrameExtensionList;
+    typedef ParticleDescription<
+        Name,
+        SuperCellSize,
+        ValueTypeSeq,
+        FlagsList,
+        MethodsList,
+        FrameExtensionList
+    > ThisType;
 
 };
 
@@ -68,18 +83,38 @@ struct ParticleDescription
  * @tparam T_NewValueTypeSeq new boost mpl sequence with value types
  * @treturn ::type new ParticleDescription
  */
-template<typename T_OldParticleDescription,typename T_NewValueTypeSeq>
+template<typename T_OldParticleDescription, typename T_NewValueTypeSeq>
 struct ReplaceValueTypeSeq
 {
     typedef T_OldParticleDescription OldParticleDescription;
     typedef ParticleDescription<
-        typename OldParticleDescription::Name,
-        typename OldParticleDescription::SuperCellSize,
-        typename ToSeq<T_NewValueTypeSeq>::type,
-        typename OldParticleDescription::FlagsList,
-        typename OldParticleDescription::MethodsList
+    typename OldParticleDescription::Name,
+    typename OldParticleDescription::SuperCellSize,
+    typename ToSeq<T_NewValueTypeSeq>::type,
+    typename OldParticleDescription::FlagsList,
+    typename OldParticleDescription::MethodsList,
+    typename OldParticleDescription::FrameExtensionList
     > type;
 };
 
+/** Get ParticleDescription with a new FrameExtensionSeq
+ *
+ * @tparam T_OldParticleDescription base description
+ * @tparam T_FrameExtensionSeq new boost mpl sequence with value types
+ * @treturn ::type new ParticleDescription
+ */
+template<typename T_OldParticleDescription, typename T_FrameExtensionSeq>
+struct ReplaceFrameExtensionSeq
+{
+    typedef T_OldParticleDescription OldParticleDescription;
+    typedef ParticleDescription<
+    typename OldParticleDescription::Name,
+    typename OldParticleDescription::SuperCellSize,
+    typename OldParticleDescription::ValueTypeSeq,
+    typename OldParticleDescription::FlagsList,
+    typename OldParticleDescription::MethodsList,
+    typename ToSeq<T_FrameExtensionSeq>::type
+    > type;
+};
 
 } //namespace PMacc
