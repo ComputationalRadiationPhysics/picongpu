@@ -103,6 +103,15 @@ alias(massRatio);
  */
 alias(chargeRatio);
 
+/*! alias for particle density ratio
+ *
+ * density ratio between default density @see `gasConfig.param` SI::GAS_DENSITY_SI
+ * and a user defined species
+ *
+ * densityRatio is an *optional* flag of a species
+ */
+alias(densityRatio);
+
 template<uint32_t T_commTag>
 struct CommunicationId
 {
