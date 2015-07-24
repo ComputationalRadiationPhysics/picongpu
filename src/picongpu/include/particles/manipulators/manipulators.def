@@ -23,6 +23,7 @@
 
 
 #include "particles/manipulators/IManipulator.def"
+#include "particles/manipulators/AssignImpl.def"
 #include "particles/manipulators/TemperatureImpl.def"
 #include "particles/manipulators/DriftImpl.def"
 #include "particles/manipulators/IfRelativeGlobalPositionImpl.def"
