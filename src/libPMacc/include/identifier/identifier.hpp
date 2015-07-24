@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2015 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -32,6 +32,15 @@
 #define PMACC_PLACEHOLDER(id) using namespace PMACC_JOIN(host_placeholder,id)
 #endif
 
+#ifdef __CUDACC__
+    #define PMACC_identifier_CUDA(name,id)                                         \
+        namespace PMACC_JOIN(device_placeholder,id){                               \
+            __constant__ PMACC_JOIN(placeholder_definition,id)::name PMACC_JOIN(name,_); \
+        }
+#else
+    #define PMACC_identifier_CUDA(name,id)
+#endif
+
 /*define special macros for creating classes which are only used as identifier*/
 #define PMACC_identifier(name,id,...)                                          \
     namespace PMACC_JOIN(placeholder_definition,id) {                          \
@@ -43,9 +52,7 @@
     namespace PMACC_JOIN(host_placeholder,id){                                 \
         PMACC_JOIN(placeholder_definition,id)::name PMACC_JOIN(name,_);        \
     }                                                                          \
-    namespace PMACC_JOIN(device_placeholder,id){                               \
-        __constant__ PMACC_JOIN(placeholder_definition,id)::name PMACC_JOIN(name,_); \
-    }                                                                          \
+    PMACC_identifier_CUDA(name,id);                                            \
     PMACC_PLACEHOLDER(id);
 
 
