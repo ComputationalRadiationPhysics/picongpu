@@ -346,7 +346,7 @@ public:
             else
             {
                 initialiserController->init();
-                ForEach<InitPipeline, particles::CallFunctor<bmpl::_1> > initSpecies;
+                ForEach<particles::InitPipeline, particles::CallFunctor<bmpl::_1> > initSpecies;
                 initSpecies(forward(particleStorage), step);
             }
         }
@@ -495,7 +495,7 @@ public:
             log<picLog::SIMULATION_STATE > ("slide in step %1%") % currentStep;
             resetAll(currentStep);
             initialiserController->slide(currentStep);
-            ForEach<InitPipeline, particles::CallFunctor<bmpl::_1> > initSpecies;
+            ForEach<particles::InitPipeline, particles::CallFunctor<bmpl::_1> > initSpecies;
             initSpecies(forward(particleStorage), currentStep);
         }
     }
