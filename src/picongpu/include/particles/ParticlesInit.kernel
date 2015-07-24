@@ -31,6 +31,7 @@
 #include "particles/operations/SetAttributeToDefault.hpp"
 #include "compileTime/conversion/ResolveAndRemoveFromSeq.hpp"
 #include "particles/startPosition/MacroParticleCfg.hpp"
+#include "particles/traits/GetDensityRatio.hpp"
 
 namespace picongpu
 {
@@ -47,17 +48,19 @@ using namespace PMacc;
  * @param cellIdx the current cell on this gpu
  * @return a float_X which stands for the real number of electrons per volume
  */
-template<typename T_GasProfile>
+template< typename T_Species, typename T_GasProfile>
 DINLINE float_X calcRealDensity(T_GasProfile& gasFunctor,
                                 const DataSpace<simDim>& totalGpuCellIdx)
 {
     PMACC_CASSERT_MSG(Please_deselect_gasInitMethod_for_your_species_or_set_GAS_DENSITY_to_a_value_greater_than_0, ((GAS_DENSITY) > 0.0f));
 
-    const float_X value = gasFunctor(totalGpuCellIdx) * GAS_DENSITY;
+    const float_X densityRatioOfSpecies = traits::GetDensityRatio<T_Species>::type::getDefaultValue();
+
+    const float_X value = gasFunctor(totalGpuCellIdx) * GAS_DENSITY * densityRatioOfSpecies;
     return value;
 }
 
-template< typename T_GasProfile, typename T_PositionFunctor, typename ParBox, class Mapping>
+template< typename T_Species, typename T_GasProfile, typename T_PositionFunctor, typename ParBox, class Mapping>
 __global__ void kernelFillGridWithParticles(T_GasProfile gasFunctor,
                                             T_PositionFunctor positionFunctor,
                                             DataSpace<simDim> totalGpuCellOffset,
@@ -91,7 +94,7 @@ __global__ void kernelFillGridWithParticles(T_GasProfile gasFunctor,
     const DataSpace<simDim> localCellIndex = idx - mapper.getGuardingSuperCells() * SuperCellSize::toRT();
 
     const DataSpace<simDim> totalGpuCellIdx = totalGpuCellOffset + localCellIndex;
-    const float_X realDensity = calcRealDensity(gasFunctor, totalGpuCellIdx);
+    const float_X realDensity = calcRealDensity<T_Species>(gasFunctor, totalGpuCellIdx);
 
     const float_X realParticlesPerCell = realDensity * CELL_VOLUME;
 
