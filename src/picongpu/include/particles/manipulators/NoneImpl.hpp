@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Rene Widera
+ * Copyright 2015 Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -21,14 +21,36 @@
 
 #pragma once
 
+#include "simulation_defines.hpp"
 
-#include "particles/manipulators/IManipulator.def"
-#include "particles/manipulators/NoneImpl.def"
-#include "particles/manipulators/AssignImpl.def"
-#include "particles/manipulators/TemperatureImpl.def"
-#include "particles/manipulators/DriftImpl.def"
-#include "particles/manipulators/IfRelativeGlobalPositionImpl.def"
-#include "particles/manipulators/CreateParticlesFromParticleImpl.def"
-#include "particles/manipulators/FreeImpl.def"
-#include "particles/manipulators/SetAttributeImpl.def"
-#include "particles/manipulators/RandomPositionImpl.def"
+namespace picongpu
+{
+namespace particles
+{
+namespace manipulators
+{
+
+struct NoneImpl
+{
+    template<typename T_SpeciesType>
+    struct apply
+    {
+        typedef NoneImpl type;
+    };
+
+    HINLINE NoneImpl(uint32_t currentStep)
+    {
+    }
+
+    template<typename T_Particle1, typename T_Particle2>
+    DINLINE void operator()(const DataSpace<simDim>&,
+                            T_Particle1&, T_Particle2&,
+                            const bool, const bool)
+    {
+    }
+
+};
+
+} //namespace manipulators
+} //namespace particles
+} //namespace picongpu
