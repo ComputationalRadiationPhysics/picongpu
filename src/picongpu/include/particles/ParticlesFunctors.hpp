@@ -37,10 +37,10 @@ namespace picongpu
 namespace particles
 {
 
-template<typename T_Type>
+template<typename T_SpeciesName>
 struct AssignNull
 {
-    typedef T_Type SpeciesName;
+    typedef T_SpeciesName SpeciesName;
 
     template<typename T_StorageTuple>
     void operator()(T_StorageTuple& tuple)
@@ -49,10 +49,10 @@ struct AssignNull
     }
 };
 
-template<typename T_Type>
+template<typename T_SpeciesName>
 struct CallDelete
 {
-    typedef T_Type SpeciesName;
+    typedef T_SpeciesName SpeciesName;
 
     template<typename T_StorageTuple>
     void operator()(T_StorageTuple& tuple)
@@ -61,11 +61,11 @@ struct CallDelete
     }
 };
 
-template<typename T_Type>
+template<typename T_SpeciesName>
 struct CreateSpecies
 {
-    typedef T_Type SpeciesName;
-    typedef typename T_Type::type SpeciesType;
+    typedef T_SpeciesName SpeciesName;
+    typedef typename SpeciesName::type SpeciesType;
 
     template<typename T_StorageTuple, typename T_CellDescription>
     HINLINE void operator()(T_StorageTuple& tuple, T_CellDescription* cellDesc) const
@@ -74,10 +74,10 @@ struct CreateSpecies
     }
 };
 
-template<typename T_Type>
+template<typename T_SpeciesName>
 struct CallCreateParticleBuffer
 {
-    typedef T_Type SpeciesName;
+    typedef T_SpeciesName SpeciesName;
     typedef typename SpeciesName::type SpeciesType;
 
     template<typename T_StorageTuple>
@@ -95,11 +95,11 @@ struct CallCreateParticleBuffer
     }
 };
 
-template<typename T_Type>
+template<typename T_SpeciesName>
 struct CallInit
 {
-    typedef T_Type SpeciesName;
-    typedef typename T_Type::type SpeciesType;
+    typedef T_SpeciesName SpeciesName;
+    typedef typename SpeciesName::type SpeciesType;
 
     template<typename T_StorageTuple>
     HINLINE void operator()(T_StorageTuple& tuple,
