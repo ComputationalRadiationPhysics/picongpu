@@ -110,19 +110,19 @@ struct CreateGas
  * after the species is cloned `fillAllGaps()` on T_DestSpeciesType is called
  *
  *
- * @tparam T_CloneFunctor a pseudo-binary functor accepting two particle species:
-                          destination and source, \see src/picongpu/include/particles/manipulators
+ * @tparam T_ManipulateFunctor a pseudo-binary functor accepting two particle species:
+                               destination and source, \see src/picongpu/include/particles/manipulators
  * @tparam T_SrcSpeciesType source species
  * @tparam T_DestSpeciesType destination species
  */
-template<typename T_CloneFunctor, typename T_SrcSpeciesType, typename T_DestSpeciesType = bmpl::_1>
+template<typename T_ManipulateFunctor, typename T_SrcSpeciesType, typename T_DestSpeciesType = bmpl::_1>
 struct ManipulateCloneSpecies
 {
     typedef T_DestSpeciesType DestSpeciesType;
     typedef typename MakeIdentifier<DestSpeciesType>::type DestSpeciesName;
     typedef T_SrcSpeciesType SrcSpeciesType;
     typedef typename MakeIdentifier<SrcSpeciesType>::type SrcSpeciesName;
-    typedef T_CloneFunctor CloneFunctor;
+    typedef T_ManipulateFunctor ManipulateFunctor;
 
     template<typename T_StorageTuple>
     HINLINE void operator()(
@@ -133,9 +133,9 @@ struct ManipulateCloneSpecies
         PMACC_AUTO(speciesPtr, tuple[DestSpeciesName()]);
         PMACC_AUTO(srcSpeciesPtr, tuple[SrcSpeciesName()]);
 
-        CloneFunctor cloneFunctor(currentStep);
+        ManipulateFunctor manipulateFunctor(currentStep);
 
-        speciesPtr->deviceCloneFrom(*srcSpeciesPtr, cloneFunctor);
+        speciesPtr->deviceCloneFrom(*srcSpeciesPtr, manipulateFunctor);
     }
 };
 
@@ -149,7 +149,7 @@ struct ManipulateCloneSpecies
  * @tparam T_DestSpeciesType destination species
  */
 template<typename T_SrcSpeciesType, typename T_DestSpeciesType = bmpl::_1>
-struct CloneSpecies : ManipulateCloneSpecies<manipulators::AssignImpl, T_SrcSpeciesType, T_DestSpeciesType>
+struct CloneSpecies : ManipulateCloneSpecies<manipulators::NoneImpl, T_SrcSpeciesType, T_DestSpeciesType>
 {
 };
 

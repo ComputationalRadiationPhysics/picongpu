@@ -215,8 +215,8 @@ void Particles<T_ParticleDescription>::initGas( T_GasFunctor& gasFunctor,
 
 template< typename T_ParticleDescription>
 template< typename T_SrcParticleDescription,
-          typename T_CloneFunctor>
-void Particles<T_ParticleDescription>::deviceCloneFrom( Particles< T_SrcParticleDescription> &src, T_CloneFunctor& functor )
+          typename T_ManipulateFunctor>
+void Particles<T_ParticleDescription>::deviceCloneFrom( Particles< T_SrcParticleDescription> &src, T_ManipulateFunctor& functor )
 {
     dim3 block( PMacc::math::CT::volume<SuperCellSize>::type::value );
 
