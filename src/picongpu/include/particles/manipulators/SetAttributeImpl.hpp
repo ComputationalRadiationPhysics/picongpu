@@ -44,15 +44,18 @@ struct SetAttributeImpl : private T_ValueFunctor
 
     }
 
-    template<typename T_Particle>
-    DINLINE void operator()(const DataSpace<simDim>& localCellIdx, T_Particle& particle, const  bool isParticle)
+    template<typename T_Particle1, typename T_Particle2>
+    DINLINE void operator()(const DataSpace<simDim>& localCellIdx,
+                            T_Particle1& particle, T_Particle2&,
+                            const bool isParticle, const bool)
     {
+        typedef T_Particle1 Particle;
         typedef typename SpeciesType::FrameType FrameType;
 
         if (isParticle)
         {
             /** Number of bound electrons at initial state of the neutral atom */
-            const float_X protonNumber = GetAtomicNumbers<T_Particle>::type::numberOfProtons;
+            const float_X protonNumber = GetAtomicNumbers<Particle>::type::numberOfProtons;
 
             /* in this case: 'assign' the number of protons to the number of bound electrons
              * \see particleConfig.param for the ValueFunctor */

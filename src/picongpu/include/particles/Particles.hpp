@@ -28,6 +28,7 @@
 #include "fields/Fields.hpp"
 #include "particles/ParticlesBase.hpp"
 #include "particles/memory/buffers/ParticlesBuffer.hpp"
+#include "particles/manipulators/manipulators.def"
 
 #include "dataManagement/ISimulationData.hpp"
 
@@ -60,8 +61,9 @@ public:
     template<typename T_GasFunctor, typename T_PositionFunctor>
     void initGas(T_GasFunctor& gasFunctor, T_PositionFunctor& positionFunctor, const uint32_t currentStep);
 
-    template< typename t_ParticleDescription>
-    void deviceCloneFrom(Particles<t_ParticleDescription> &src);
+    template< typename T_SrcParticleDescription,
+              typename T_CloneFunctor>
+    void deviceCloneFrom(Particles<T_SrcParticleDescription> &src, T_CloneFunctor& cloneFunctor);
 
     template<typename T_Functor>
     void manipulateAllParticles(uint32_t currentStep, T_Functor& functor);

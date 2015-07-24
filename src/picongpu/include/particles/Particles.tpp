@@ -214,14 +214,15 @@ void Particles<T_ParticleDescription>::initGas( T_GasFunctor& gasFunctor,
 }
 
 template< typename T_ParticleDescription>
-template< typename t_ParticleDescription>
-void Particles<T_ParticleDescription>::deviceCloneFrom( Particles< t_ParticleDescription> &src )
+template< typename T_SrcParticleDescription,
+          typename T_CloneFunctor>
+void Particles<T_ParticleDescription>::deviceCloneFrom( Particles< T_SrcParticleDescription> &src, T_CloneFunctor& functor )
 {
     dim3 block( PMacc::math::CT::volume<SuperCellSize>::type::value );
 
     log<picLog::SIMULATION_STATE > ( "clone species %1%" ) % FrameType::getName( );
     __picKernelArea( kernelCloneParticles, this->cellDescription, CORE + BORDER )
-        (block) ( this->getDeviceParticlesBox( ), src.getDeviceParticlesBox( ) );
+        (block) ( this->getDeviceParticlesBox( ), src.getDeviceParticlesBox( ), functor );
     this->fillAllGaps( );
 }
 

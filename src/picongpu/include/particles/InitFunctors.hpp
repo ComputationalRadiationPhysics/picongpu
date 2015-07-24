@@ -110,29 +110,49 @@ struct CreateGas
  * after the species is cloned `fillAllGaps()` on T_DestSpeciesType is called
  *
  *
+ * @tparam T_CloneFunctor a pseudo-binary functor accepting two particle species:
+                          destination and source, \see src/picongpu/include/particles/manipulators
  * @tparam T_SrcSpeciesType source species
  * @tparam T_DestSpeciesType destination species
  */
-template<typename T_SrcSpeciesType, typename T_DestSpeciesType = bmpl::_1>
-struct CloneSpecies
+template<typename T_CloneFunctor, typename T_SrcSpeciesType, typename T_DestSpeciesType = bmpl::_1>
+struct ManipulateCloneSpecies
 {
     typedef T_DestSpeciesType DestSpeciesType;
     typedef typename MakeIdentifier<DestSpeciesType>::type DestSpeciesName;
     typedef T_SrcSpeciesType SrcSpeciesType;
     typedef typename MakeIdentifier<SrcSpeciesType>::type SrcSpeciesName;
+    typedef T_CloneFunctor CloneFunctor;
 
     template<typename T_StorageTuple>
     HINLINE void operator()(
                             T_StorageTuple& tuple,
-                            const uint32_t
+                            const uint32_t currentStep
                             )
     {
         PMACC_AUTO(speciesPtr, tuple[DestSpeciesName()]);
         PMACC_AUTO(srcSpeciesPtr, tuple[SrcSpeciesName()]);
 
-        speciesPtr->deviceCloneFrom(*srcSpeciesPtr);
+        CloneFunctor cloneFunctor(currentStep);
+
+        speciesPtr->deviceCloneFrom(*srcSpeciesPtr, cloneFunctor);
     }
 };
+
+
+/** clone species out of a another species
+ *
+ * after the species is cloned `fillAllGaps()` on T_DestSpeciesType is called
+ *
+ *
+ * @tparam T_SrcSpeciesType source species
+ * @tparam T_DestSpeciesType destination species
+ */
+template<typename T_SrcSpeciesType, typename T_DestSpeciesType = bmpl::_1>
+struct CloneSpecies : ManipulateCloneSpecies<manipulators::AssignImpl, T_SrcSpeciesType, T_DestSpeciesType>
+{
+};
+
 
 /** run a user defined functor for every particle
  *
@@ -162,6 +182,7 @@ struct Manipulate
         speciesPtr->manipulateAllParticles(currentStep, functor);
     }
 };
+
 
 /** call method fill all gaps of a species
  *

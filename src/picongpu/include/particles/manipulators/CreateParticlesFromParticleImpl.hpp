@@ -69,8 +69,10 @@ struct CreateParticlesFromParticleImpl : private T_Functor
         firstCall = true;
     }
 
-    template<typename T_Particle>
-    DINLINE void operator()(const DataSpace<simDim>& localCellIdx, T_Particle& particle, const bool isParticle)
+    template<typename T_Particle1, typename T_Particle2>
+    DINLINE void operator()(const DataSpace<simDim>& localCellIdx,
+                            T_Particle1& particle, T_Particle2&,
+                            const bool isParticle, const bool)
     {
         typedef typename DestSpeciesType::FrameType DestFrameType;
         typedef typename DestSpeciesType::ParticlesBoxType DestParticlesBoxType;
