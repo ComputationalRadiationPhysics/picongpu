@@ -204,7 +204,8 @@ void Particles<T_ParticleDescription>::initGas( T_GasFunctor& gasFunctor,
     totalGpuCellOffset.y( ) += numSlides * localCells.y( );
 
     dim3 block( MappingDesc::SuperCellSize::toRT( ).toDim3( ) );
-    __picKernelArea( kernelFillGridWithParticles, this->cellDescription, CORE + BORDER )
+    __picKernelArea( (kernelFillGridWithParticles<Particles<T_ParticleDescription> >),
+                      this->cellDescription, CORE + BORDER)
         (block)
         ( gasFunctor, positionFunctor, totalGpuCellOffset, this->particlesBuffer->getDeviceParticleBox( ) );
 
