@@ -26,6 +26,7 @@
 #include "nvidia/rng/methods/Xor.hpp"
 #include "nvidia/rng/distributions/Normal_float.hpp"
 #include "mpi/SeedPerRank.hpp"
+#include "traits/GetUniqueTypeId.hpp"
 
 namespace picongpu
 {
@@ -53,7 +54,7 @@ struct TemperatureImpl : private T_ValueFunctor
 
         GlobalSeed globalSeed;
         mpi::SeedPerRank<simDim> seedPerRank;
-        seed = seedPerRank(globalSeed(), FrameType::CommunicationTag);
+        seed = seedPerRank(globalSeed(), PMacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid());
         seed ^= TEMPERATURE_SEED;
 
         const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();

@@ -93,8 +93,7 @@ typedef Particles<
         bmpl::string<'e'>,
         SuperCellSize,
         DefaultAttributesSeq,
-        ParticleFlagsElectrons,
-        CommunicationId<0>
+        ParticleFlagsElectrons
     >
 > PIC_Electrons;
 
@@ -119,8 +118,7 @@ typedef Particles<
         bmpl::string<'i'>,
         SuperCellSize,
         DefaultAttributesSeq,
-        ParticleFlagsIons,
-        CommunicationId<1>
+        ParticleFlagsIons
     >
 > PIC_Ions;
 
