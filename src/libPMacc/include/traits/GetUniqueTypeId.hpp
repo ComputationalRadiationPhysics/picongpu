@@ -24,6 +24,9 @@
 #pragma once
 
 #include "types.h"
+#include "traits/Limits.hpp"
+#include <iostream>
+
 
 namespace PMacc
 {
@@ -57,27 +60,48 @@ const uint64_t GetUniqueTypeId<T_Type>::id = uint64_t(&GetUniqueTypeId<T_Type>::
 
 /** Get a unique id of a type
  *
- * - generate a unique 64bit id of a type at *runtime*
+ * - generate a unique id of a type at *runtime*
  * - the id of a type is equal on each instance of a process
  *
  * @tparam T_Type any object (class or typename)
- *
- * @treturn ::uid
+ * @tparam T_ResultType result type
  */
-template<typename T_Type>
+template<typename T_Type, typename T_ResultType = uint64_t>
 struct GetUniqueTypeId
 {
-    static const uint64_t uid;
-};
+    typedef T_ResultType ResultType;
+    typedef T_Type Type;
 
-/** instantiation of traits::GetUniqueTypeId
- *
- * - create a instance of `traits::GetUniqueTypeId` and initialize the uid
- * - map `detail::GetUniqueTypeId<T>` to a range [1; 2^64-1]
- *   `uid = unique_id_of_current_type - base_unique_id`
- */
-template<typename T_Type>
-const uint64_t GetUniqueTypeId<T_Type>::uid = detail::GetUniqueTypeId<T_Type>::id - detail::GetUniqueTypeId<uint8_t>::id;
+    /** create unique id
+     *
+     * @param maxValue largest allowed id
+     */
+    static const ResultType uid(uint64_t maxValue = uint64_t(1) << (sizeof (ResultType) * CHAR_BIT) - uint64_t(1))
+    {
+        /* all id's are relative to BaseUId object */
+        typedef detail::GetUniqueTypeId<uint8_t> BaseUId;
+
+        /* unique id for the given type*/
+        const uint64_t uid = detail::GetUniqueTypeId<Type>::id;
+        /* map `uid` to the range [0; 2^64-1] */
+        const uint64_t id = uid - BaseUId::id;
+        /* if `id` is out of range than throw an error */
+        if (id > maxValue)
+        {
+            std::stringstream sId;
+            sId << id;
+            std::stringstream sMax;
+            sMax << maxValue;
+            throw std::runtime_error("generated id is out of range [ id = " +
+                                     sId.str() +
+                                     std::string(", largest allowed  id = ") +
+                                     sMax.str() +
+                                     std::string(" ]"));
+        }
+        return static_cast<ResultType> (id);
+    }
+
+};
 
 }//namespace traits
 
