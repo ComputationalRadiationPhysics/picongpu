@@ -54,7 +54,7 @@ DINLINE float_X calcRealDensity(T_GasProfile& gasFunctor,
 {
     PMACC_CASSERT_MSG(Please_deselect_gasInitMethod_for_your_species_or_set_GAS_DENSITY_to_a_value_greater_than_0, ((GAS_DENSITY) > 0.0f));
 
-    const float_X densityRatioOfSpecies = traits::GetDensityRatio<T_Species>::type::getDefaultValue();
+    const float_X densityRatioOfSpecies = traits::GetDensityRatio<T_Species>::type::getValue();
 
     const float_X value = gasFunctor(totalGpuCellIdx) * GAS_DENSITY * densityRatioOfSpecies;
     return value;
