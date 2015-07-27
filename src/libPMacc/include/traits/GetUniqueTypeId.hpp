@@ -80,11 +80,14 @@ struct GetUniqueTypeId
     {
         /* all id's are relative to BaseUId object */
         typedef detail::GetUniqueTypeId<uint8_t> BaseUId;
+        /* call of ::id take care that `BaseUId::id` is smaller than
+         * the unique id of `Type` */
+        const uint64_t baseUId = BaseUId::id;
 
         /* unique id for the given type*/
         const uint64_t uid = detail::GetUniqueTypeId<Type>::id;
         /* map `uid` to the range [0; 2^64-1] */
-        const uint64_t id = uid - BaseUId::id;
+        const uint64_t id = uid - baseUId;
         /* if `id` is out of range than throw an error */
         if (id > maxValue)
         {
