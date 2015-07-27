@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Rene Widera
+ * Copyright 2015 Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -18,24 +18,76 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 #include "particles/InitFunctors.hpp"
 
 namespace picongpu
 {
+namespace particles
+{
+
+/* Available species functors
+ *   in src/picongpu/include/particles/InitFunctors.hpp
+ *
+ * - CreateGas<T_GasFunctor, T_PositionFunctor, T_SpeciesType>
+ *     Create particle distribution based on a gas profile and an in-cell
+ *     positioning.
+ *     Fills a particle species (`fillAllGaps()` is called).
+ *     @tparam T_GasFunctor      unary lambda functor with gas description,
+ *                               \see gasConfig.param
+ *                               \example gasProfiles::Homogenous,
+ *     @tparam T_PositionFunctor unary lambda functor with position description,
+ *                               \see particlesConfig.param
+ *                               \example startPosition::Quiet
+ *                                        startPosition::Random
+ *     @tparam T_SpeciesType type of the used species,
+ *                               \see speciesDefinition.param
+ *                               \example PIC_Electrons
+ *
+ * - CloneSpecies<T_SrcSpeciesType, T_DestSpeciesType>
+ *     Create a particle species by copying all matching attributes from an
+ *     other species (`fillAllGaps()` is called on T_DestSpeciesType).
+ *     @tparam T_SrcSpeciesType  source species
+ *     @tparam T_DestSpeciesType destination species
+ *
+ * - Manipulate<T_Functor, typename T_SpeciesType>
+ *     Run a user defined functor for every particle.
+ *     \warning does not call `fillAllGaps()` if one removes or
+ *              adds particles with it (\see FillAllGaps below)
+ *     @tparam T_Functor     unary lambda functor,
+ *                           \see particleConfig.param
+ *     @tparam T_SpeciesType type of the used species
+ *
+ * - ManipulateCloneSpecies<T_ManipulateFunctor, T_SrcSpeciesType, T_DestSpeciesType>
+ *     Same as \see CloneSpecies but allows a T_ManipulateFunctor to be called
+ *     after cloning to manipulate the two particles that took part
+ *     in the cloning (e.g., assign and increase an attribute such as weighting).
+ *     Note: `fillAllGaps()` is only called for the T_DestSpeciesType.
+ *     @tparam T_ManipulateFunctor a pseudo-binary functor accepting two particle
+ *                                 species: destination and source,
+ *                                 \see particleConfig.param
+ *     @tparam T_SrcSpeciesType    source species
+ *     @tparam T_DestSpeciesType   destination species
+ *
+ * - FillAllGaps<T_SpeciesType>
+ *     The manipulate functor does not call `fillAllGaps` on
+ *     the particle list of frames. For user-defined functors
+ *     that are called via Manipulate and create/remove
+ *     particles into/from frame lists, this must be called
+ *     afterward to create a valid data structure.
+ */
 
 /** InitPipeline define in which order species are initialized
  *
  * the functors are called in order (from first to last functor)
  */
 typedef mpl::vector<
-    particles::CreateGas<gasProfiles::Homogenous,particles::startPosition::Random,PIC_Electrons>,
-    particles::CloneSpecies<PIC_Electrons,PIC_Ions>,
-    particles::Manipulate<particles::manipulators::AddTemperature,PIC_Electrons>,
-    particles::Manipulate<particles::manipulators::AddTemperature,PIC_Ions>
+    CreateGas<gasProfiles::Homogenous, startPosition::Random, PIC_Electrons>,
+    CloneSpecies<PIC_Electrons, PIC_Ions>,
+    Manipulate<manipulators::AddTemperature, PIC_Electrons>,
+    Manipulate<manipulators::AddTemperature, PIC_Ions>
 > InitPipeline;
 
-} //namespace picongpu
+} /* namespace particles */
+} /* namespace picongpu  */
