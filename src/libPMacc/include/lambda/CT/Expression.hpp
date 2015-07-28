@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LAMBDA_CT_EXPRESSION_HPP
-#define LAMBDA_CT_EXPRESSION_HPP
+#pragma once
 
 #include "../Expression.hpp"
 
@@ -36,25 +35,25 @@ template<typename Expr, int _terminalTypeIdx>
 struct Expression;
 
 template<typename Child0, int _terminalTypeIdx>
-struct CT::Expression<lambda::Expression<exprTypes::terminal, mpl::vector<Child0> >, _terminalTypeIdx>
+struct Expression<lambda::Expression<exprTypes::terminal, mpl::vector<Child0> >, _terminalTypeIdx>
 {
     static const int nextTerminalTypeIdx = _terminalTypeIdx + 1;
 };
 
 template<int I, int _terminalTypeIdx>
-struct CT::Expression<lambda::Expression<exprTypes::terminal, mpl::vector<placeholder<I> > >, _terminalTypeIdx>
+struct Expression<lambda::Expression<exprTypes::terminal, mpl::vector<placeholder<I> > >, _terminalTypeIdx>
 {
     static const int nextTerminalTypeIdx = _terminalTypeIdx;
 };
 
 template<int I, int _terminalTypeIdx>
-struct CT::Expression<lambda::Expression<exprTypes::terminal, mpl::vector<mpl::int_<I> > >, _terminalTypeIdx>
+struct Expression<lambda::Expression<exprTypes::terminal, mpl::vector<mpl::int_<I> > >, _terminalTypeIdx>
 {
     static const int nextTerminalTypeIdx = _terminalTypeIdx;
 };
 
 template<typename _Child0, typename _Child1, int _terminalTypeIdx>
-struct CT::Expression<lambda::Expression<exprTypes::assign, mpl::vector<_Child0, _Child1> >, _terminalTypeIdx>
+struct Expression<lambda::Expression<exprTypes::assign, mpl::vector<_Child0, _Child1> >, _terminalTypeIdx>
 {
     typedef CT::Expression<_Child0, _terminalTypeIdx> Child0;
     typedef CT::Expression<_Child1, Child0::nextTerminalTypeIdx> Child1;
@@ -62,7 +61,7 @@ struct CT::Expression<lambda::Expression<exprTypes::assign, mpl::vector<_Child0,
 };
 
 template<typename _Child0, typename _Child1, int _terminalTypeIdx>
-struct CT::Expression<lambda::Expression<exprTypes::plus, mpl::vector<_Child0, _Child1> >, _terminalTypeIdx>
+struct Expression<lambda::Expression<exprTypes::plus, mpl::vector<_Child0, _Child1> >, _terminalTypeIdx>
 {
     typedef CT::Expression<_Child0, _terminalTypeIdx> Child0;
     typedef CT::Expression<_Child1, Child0::nextTerminalTypeIdx> Child1;
@@ -70,7 +69,7 @@ struct CT::Expression<lambda::Expression<exprTypes::plus, mpl::vector<_Child0, _
 };
 
 template<typename _Child0, typename _Child1, int _terminalTypeIdx>
-struct CT::Expression<lambda::Expression<exprTypes::minus, mpl::vector<_Child0, _Child1> >, _terminalTypeIdx>
+struct Expression<lambda::Expression<exprTypes::minus, mpl::vector<_Child0, _Child1> >, _terminalTypeIdx>
 {
     typedef CT::Expression<_Child0, _terminalTypeIdx> Child0;
     typedef CT::Expression<_Child1, Child0::nextTerminalTypeIdx> Child1;
@@ -78,7 +77,7 @@ struct CT::Expression<lambda::Expression<exprTypes::minus, mpl::vector<_Child0, 
 };
 
 template<typename _Child0, typename _Child1, int _terminalTypeIdx>
-struct CT::Expression<lambda::Expression<exprTypes::multiply, mpl::vector<_Child0, _Child1> >, _terminalTypeIdx>
+struct Expression<lambda::Expression<exprTypes::multiply, mpl::vector<_Child0, _Child1> >, _terminalTypeIdx>
 {
     typedef CT::Expression<_Child0, _terminalTypeIdx> Child0;
     typedef CT::Expression<_Child1, Child0::nextTerminalTypeIdx> Child1;
@@ -86,7 +85,7 @@ struct CT::Expression<lambda::Expression<exprTypes::multiply, mpl::vector<_Child
 };
 
 template<typename _Child0, typename _Child1, int _terminalTypeIdx>
-struct CT::Expression<lambda::Expression<exprTypes::divide, mpl::vector<_Child0, _Child1> >, _terminalTypeIdx>
+struct Expression<lambda::Expression<exprTypes::divide, mpl::vector<_Child0, _Child1> >, _terminalTypeIdx>
 {
     typedef CT::Expression<_Child0, _terminalTypeIdx> Child0;
     typedef CT::Expression<_Child1, Child0::nextTerminalTypeIdx> Child1;
@@ -94,7 +93,7 @@ struct CT::Expression<lambda::Expression<exprTypes::divide, mpl::vector<_Child0,
 };
 
 template<typename _Child0, typename _Child1, int _terminalTypeIdx>
-struct CT::Expression<lambda::Expression<exprTypes::comma, mpl::vector<_Child0, _Child1> >, _terminalTypeIdx>
+struct Expression<lambda::Expression<exprTypes::comma, mpl::vector<_Child0, _Child1> >, _terminalTypeIdx>
 {
     typedef CT::Expression<_Child0, _terminalTypeIdx> Child0;
     typedef CT::Expression<_Child1, Child0::nextTerminalTypeIdx> Child1;
@@ -102,7 +101,7 @@ struct CT::Expression<lambda::Expression<exprTypes::comma, mpl::vector<_Child0, 
 };
 
 template<typename _Child0, typename _Child1, int _terminalTypeIdx>
-struct CT::Expression<lambda::Expression<exprTypes::call, mpl::vector<_Child0, _Child1> >, _terminalTypeIdx>
+struct Expression<lambda::Expression<exprTypes::call, mpl::vector<_Child0, _Child1> >, _terminalTypeIdx>
 {
     typedef CT::Expression<_Child0, _terminalTypeIdx> Child0;
     typedef CT::Expression<_Child1, Child0::nextTerminalTypeIdx> Child1;
@@ -110,7 +109,7 @@ struct CT::Expression<lambda::Expression<exprTypes::call, mpl::vector<_Child0, _
 };
 
 template<typename _Child0, typename _Child1, typename _Child2, int _terminalTypeIdx>
-struct CT::Expression<lambda::Expression<exprTypes::call, mpl::vector<_Child0, _Child1, _Child2> >, _terminalTypeIdx>
+struct Expression<lambda::Expression<exprTypes::call, mpl::vector<_Child0, _Child1, _Child2> >, _terminalTypeIdx>
 {
     typedef CT::Expression<_Child0, _terminalTypeIdx> Child0;
     typedef CT::Expression<_Child1, Child0::nextTerminalTypeIdx> Child1;
@@ -119,7 +118,7 @@ struct CT::Expression<lambda::Expression<exprTypes::call, mpl::vector<_Child0, _
 };
 
 template<typename _Child0, typename _Child1, typename _Child2, typename _Child3, int _terminalTypeIdx>
-struct CT::Expression<lambda::Expression<exprTypes::call, mpl::vector<_Child0, _Child1, _Child2, _Child3> >, _terminalTypeIdx>
+struct Expression<lambda::Expression<exprTypes::call, mpl::vector<_Child0, _Child1, _Child2, _Child3> >, _terminalTypeIdx>
 {
     typedef CT::Expression<_Child0, _terminalTypeIdx> Child0;
     typedef CT::Expression<_Child1, Child0::nextTerminalTypeIdx> Child1;
@@ -129,7 +128,7 @@ struct CT::Expression<lambda::Expression<exprTypes::call, mpl::vector<_Child0, _
 };
 
 template<typename _Child0, typename _Child1, typename _Child2, typename _Child3, typename _Child4, int _terminalTypeIdx>
-struct CT::Expression<lambda::Expression<exprTypes::call, mpl::vector<_Child0, _Child1, _Child2, _Child3, _Child4> >, _terminalTypeIdx>
+struct Expression<lambda::Expression<exprTypes::call, mpl::vector<_Child0, _Child1, _Child2, _Child3, _Child4> >, _terminalTypeIdx>
 {
     typedef CT::Expression<_Child0, _terminalTypeIdx> Child0;
     typedef CT::Expression<_Child1, Child0::nextTerminalTypeIdx> Child1;
@@ -140,7 +139,7 @@ struct CT::Expression<lambda::Expression<exprTypes::call, mpl::vector<_Child0, _
 };
 
 template<typename _Child0, typename _Child1, typename _Child2, typename _Child3, typename _Child4, typename _Child5, int _terminalTypeIdx>
-struct CT::Expression<lambda::Expression<exprTypes::call, mpl::vector<_Child0, _Child1, _Child2, _Child3, _Child4, _Child5> >, _terminalTypeIdx>
+struct Expression<lambda::Expression<exprTypes::call, mpl::vector<_Child0, _Child1, _Child2, _Child3, _Child4, _Child5> >, _terminalTypeIdx>
 {
     typedef CT::Expression<_Child0, _terminalTypeIdx> Child0;
     typedef CT::Expression<_Child1, Child0::nextTerminalTypeIdx> Child1;
@@ -152,7 +151,7 @@ struct CT::Expression<lambda::Expression<exprTypes::call, mpl::vector<_Child0, _
 };
 
 template<typename _Child0, typename _Child1, int _terminalTypeIdx>
-struct CT::Expression<lambda::Expression<exprTypes::subscript, mpl::vector<_Child0, _Child1> >, _terminalTypeIdx>
+struct Expression<lambda::Expression<exprTypes::subscript, mpl::vector<_Child0, _Child1> >, _terminalTypeIdx>
 {
     typedef CT::Expression<_Child0, _terminalTypeIdx> Child0;
     typedef CT::Expression<_Child1, Child0::nextTerminalTypeIdx> Child1;
@@ -162,5 +161,3 @@ struct CT::Expression<lambda::Expression<exprTypes::subscript, mpl::vector<_Chil
 } // CT
 } // lambda
 } // PMacc
-
-#endif // LAMBDA_CT_EXPRESSION_HPP
