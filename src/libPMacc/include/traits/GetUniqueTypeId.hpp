@@ -24,8 +24,8 @@
 #pragma once
 
 #include "types.h"
-#include "traits/Limits.hpp"
 #include <iostream>
+#include <cassert>
 
 
 namespace PMacc
@@ -76,7 +76,7 @@ struct GetUniqueTypeId
      *
      * @param maxValue largest allowed id
      */
-    static const ResultType uid(uint64_t maxValue = uint64_t(1) << (sizeof (ResultType) * CHAR_BIT) - uint64_t(1))
+    static const ResultType uid(uint64_t maxValue = (uint64_t(1) << (sizeof (ResultType) * CHAR_BIT)) - uint64_t(1))
     {
         /* all id's are relative to BaseUId object */
         typedef detail::GetUniqueTypeId<uint8_t> BaseUId;
@@ -88,6 +88,11 @@ struct GetUniqueTypeId
         const uint64_t uid = detail::GetUniqueTypeId<Type>::id;
         /* map `uid` to the range [0; 2^64-1] */
         const uint64_t id = uid - baseUId;
+
+        /* to avoid id's near the upper bound of 64 bit we
+         * check that uid is always greater equal than the baseUId
+         */
+        assert(uid>=baseUId);
         /* if `id` is out of range than throw an error */
         if (id > maxValue)
         {
