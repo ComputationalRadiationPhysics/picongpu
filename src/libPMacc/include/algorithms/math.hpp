@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2015 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -40,6 +40,7 @@
 #include "algorithms/math/floatMath/exp.tpp"
 #include "algorithms/math/floatMath/erf.tpp"
 #include "algorithms/math/floatMath/trigo.tpp"
+#include "algorithms/math/floatMath/comparison.tpp"
 #include "algorithms/math/floatMath/floatingPoint.tpp"
 #include "algorithms/math/floatMath/pow.tpp"
 
@@ -48,6 +49,7 @@
 #include "algorithms/math/doubleMath/exp.tpp"
 #include "algorithms/math/doubleMath/erf.tpp"
 #include "algorithms/math/doubleMath/trigo.tpp"
+#include "algorithms/math/doubleMath/comparison.tpp"
 #include "algorithms/math/doubleMath/floatingPoint.tpp"
 #include "algorithms/math/doubleMath/pow.tpp"
 
