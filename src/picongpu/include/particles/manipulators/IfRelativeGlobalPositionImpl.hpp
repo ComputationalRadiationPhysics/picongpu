@@ -45,8 +45,10 @@ struct IfRelativeGlobalPositionImpl : private T_Functor
         localDomainOffset = subGrid.getLocalDomain().offset;
     }
 
-    template<typename T_Particle>
-    DINLINE void operator()(const DataSpace<simDim>& localCellIdx, T_Particle& particle, const bool isParticle)
+    template<typename T_Particle1, typename T_Particle2>
+    DINLINE void operator()(const DataSpace<simDim>& localCellIdx,
+                            T_Particle1& particle1, T_Particle2& particle2,
+                            const bool isParticle1, const bool isParticle2)
     {
         typedef typename SpeciesType::FrameType FrameType;
 
@@ -58,9 +60,12 @@ struct IfRelativeGlobalPositionImpl : private T_Functor
 
         const bool inRange=(ParamClass::lowerBound <= relativePosition &&
             relativePosition < ParamClass::upperBound);
-        const bool particleInRange = isParticle&& inRange;
+        const bool particleInRange1 = isParticle1 && inRange;
+        const bool particleInRange2 = isParticle2 && inRange;
 
-        Functor::operator()(localCellIdx, particle, particleInRange);
+        Functor::operator()(localCellIdx,
+                            particle1, particle2,
+                            particleInRange1, particleInRange2);
 
     }
 

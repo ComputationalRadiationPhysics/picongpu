@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2015 Rene Widera
+ * Copyright 2015 Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -23,6 +23,7 @@
 
 #include "simulation_defines.hpp"
 
+#include "particles/operations/Assign.hpp"
 
 namespace picongpu
 {
@@ -31,33 +32,24 @@ namespace particles
 namespace manipulators
 {
 
-template<typename T_Functor>
-struct FreeImpl
+struct AssignImpl
 {
-
-    typedef T_Functor Functor;
-
     template<typename T_SpeciesType>
     struct apply
     {
-        typedef FreeImpl<T_Functor> type;
+        typedef AssignImpl type;
     };
 
-    HINLINE FreeImpl(uint32_t currentStep)
+    HINLINE AssignImpl(uint32_t currentStep)
     {
-
     }
 
     template<typename T_Particle1, typename T_Particle2>
     DINLINE void operator()(const DataSpace<simDim>&,
-                            T_Particle1& particleSpecies1, T_Particle2& particleSpecies2,
-                            const bool isParticle1, const bool isParticle2)
+                            T_Particle1& particleDest, T_Particle2& particleSrc,
+                            const bool, const bool)
     {
-        if (isParticle1 && isParticle2)
-        {
-            Functor userFunctor;
-            userFunctor(particleSpecies1, particleSpecies2);
-        }
+        PMacc::particles::operations::assign(particleDest, particleSrc);
     }
 
 };

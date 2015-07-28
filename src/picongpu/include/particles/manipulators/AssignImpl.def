@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Rene Widera
+ * Copyright 2015 Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -21,14 +21,15 @@
 
 #pragma once
 
+namespace picongpu
+{
+namespace particles
+{
+namespace manipulators
+{
 
-#include "particles/manipulators/IManipulator.def"
-#include "particles/manipulators/NoneImpl.def"
-#include "particles/manipulators/AssignImpl.def"
-#include "particles/manipulators/TemperatureImpl.def"
-#include "particles/manipulators/DriftImpl.def"
-#include "particles/manipulators/IfRelativeGlobalPositionImpl.def"
-#include "particles/manipulators/CreateParticlesFromParticleImpl.def"
-#include "particles/manipulators/FreeImpl.def"
-#include "particles/manipulators/SetAttributeImpl.def"
-#include "particles/manipulators/RandomPositionImpl.def"
+struct AssignImpl;
+
+} //namespace manipulators
+} //namespace particles
+} //namespace picongpu

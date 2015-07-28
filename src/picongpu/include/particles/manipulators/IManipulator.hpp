@@ -41,10 +41,12 @@ struct IManipulator : private T_Base
     {
     }
 
-    template<typename T_Particle>
-    HDINLINE void operator()(const DataSpace<simDim>& localCellIdx, T_Particle& particle, const bool isParticle)
+    template<typename T_Particle1, typename T_Particle2>
+    DINLINE void operator()(const DataSpace<simDim>& localCellIdx,
+                            T_Particle1& particleSpecies1, T_Particle2& particleSpecies2,
+                            const bool isParticle1, const bool isParticle2)
     {
-        return Base::operator()(localCellIdx, particle, isParticle);
+        return Base::operator()(localCellIdx, particleSpecies1, particleSpecies2, isParticle1, isParticle2);
     }
 };
 

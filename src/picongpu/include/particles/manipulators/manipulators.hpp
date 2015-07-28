@@ -22,6 +22,8 @@
 #pragma once
 
 #include "particles/manipulators/IManipulator.hpp"
+#include "particles/manipulators/NoneImpl.hpp"
+#include "particles/manipulators/AssignImpl.hpp"
 #include "particles/manipulators/TemperatureImpl.hpp"
 #include "particles/manipulators/DriftImpl.hpp"
 #include "particles/manipulators/IfRelativeGlobalPositionImpl.hpp"
