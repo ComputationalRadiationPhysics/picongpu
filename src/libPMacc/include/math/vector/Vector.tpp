@@ -72,7 +72,7 @@ struct Max< ::PMacc::math::Vector<Type, dim>, ::PMacc::math::Vector<Type, dim> >
     {
         result tmp;
         for ( int i = 0; i < dim; ++i )
-            tmp[i] = ::max( vector1[i], vector2[i] );
+            tmp[i] = PMacc::algorithms::math::max( vector1[i], vector2[i] );
         return tmp;
     }
 };
@@ -87,7 +87,7 @@ struct Min< ::PMacc::math::Vector<Type, dim>, ::PMacc::math::Vector<Type, dim> >
     {
         result tmp;
         for ( int i = 0; i < dim; ++i )
-            tmp[i] = ::min( vector1[i], vector2[i] );
+            tmp[i] = PMacc::algorithms::math::min( vector1[i], vector2[i] );
         return tmp;
     }
 };
