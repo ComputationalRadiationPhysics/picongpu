@@ -52,17 +52,17 @@ public:
         return PMacc::GridController<DIM>::getInstance();
     }
 
-    StreamController& StreamController()
+    PMacc::StreamController& StreamController()
     {
         return StreamController::getInstance();
     }
 
-    Manager& Manager()
+    PMacc::Manager& Manager()
     {
         return Manager::getInstance();
     }
 
-    TransactionManager& TransactionManager() const
+    PMacc::TransactionManager& TransactionManager() const
     {
         return TransactionManager::getInstance();
     }
@@ -72,27 +72,27 @@ public:
         return PMacc::SubGrid<DIM>::getInstance();
     }
 
-    EnvironmentController& EnvironmentController()
+    PMacc::EnvironmentController& EnvironmentController()
     {
         return EnvironmentController::getInstance();
     }
 
-    Factory& Factory()
+    PMacc::Factory& Factory()
     {
         return Factory::getInstance();
     }
 
-    ParticleFactory& ParticleFactory()
+    PMacc::ParticleFactory& ParticleFactory()
     {
         return ParticleFactory::getInstance();
     }
 
-    DataConnector& DataConnector()
+    PMacc::DataConnector& DataConnector()
     {
         return DataConnector::getInstance();
     }
 
-    PluginConnector& PluginConnector()
+    PMacc::PluginConnector& PluginConnector()
     {
         return PluginConnector::getInstance();
     }
