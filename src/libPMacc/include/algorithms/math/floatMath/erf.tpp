@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Axel Huebl
+ * Copyright 2014-2015 Axel Huebl, Richard Pausch
  *
  * This file is part of libPMacc.
  *
@@ -23,6 +23,7 @@
 #pragma once
 
 #include "types.h"
+#include "math.h"
 
 
 namespace PMacc
