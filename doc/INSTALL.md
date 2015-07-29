@@ -38,7 +38,7 @@ Requirements
   - [full list](https://developer.nvidia.com/cuda-gpus) of CUDA GPUs and their *compute capability*
   - ([More](http://www.olcf.ornl.gov/titan/) is always better. Especially, if we are talking about GPUs.)
 
-- **cmake** 2.8.5 or higher
+- **cmake** 2.8.12.2 or higher
   - *Debian/Ubuntu:* `sudo apt-get install cmake file cmake-curses-gui`
   - *Arch Linux:* `sudo pacman --sync cmake`
 
