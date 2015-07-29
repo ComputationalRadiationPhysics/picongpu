@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Benjamin Worpitz
+ * Copyright 2015 Benjamin Worpitz, Richard Pausch
  *
  * This file is part of libPMacc.
  *
@@ -23,6 +23,8 @@
 #pragma once
 
 #include "types.h"
+#include "math.h"
+
 
 namespace PMacc
 {
