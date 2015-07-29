@@ -56,7 +56,7 @@ struct SphereFlanksImpl : public T_ParamClass
         const floatD_X center = precisionCast<float>(ParamClass::SI().center / unit_length);
         const float_X r = ParamClass::SI::r / unit_length;
         const float_X ri = ParamClass::SI::ri / unit_length;
-        const float_X exponent = ParamClass::SI::exponent / unit_length;
+        const float_X exponent = ParamClass::SI::exponent * unit_length;
 
 
         const floatD_X globalCellPos(
