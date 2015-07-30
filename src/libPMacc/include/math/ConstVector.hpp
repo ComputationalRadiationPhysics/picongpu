@@ -68,11 +68,7 @@ namespace PMACC_JOIN(pmacc_static_const_storage,id)                            \
         static const bool isConst = true;                                      \
         typedef T_Type type;                                                   \
         static const int dim=T_Dim;                                            \
-        HDINLINE type& operator[](const int idx)                               \
-        {                                                                      \
-            /*access const C array with the name of array*/                    \
-            return PMACC_JOIN(Name,_data)[idx];                                \
-        }                                                                      \
+                                                                               \
         HDINLINE const type& operator[](const int idx) const                   \
         {                                                                      \
             /*access const C array with the name of array*/                    \
@@ -80,7 +76,7 @@ namespace PMACC_JOIN(pmacc_static_const_storage,id)                            \
         }                                                                      \
     };                                                                         \
     /*define a const vector type, ConstArrayStorage is used as Storage policy*/\
-    typedef PMacc::math::Vector<                                               \
+    typedef const PMacc::math::Vector<                                         \
         Type,                                                                  \
         Dim,                                                                   \
         PMacc::math::StandardAccessor,                                         \
