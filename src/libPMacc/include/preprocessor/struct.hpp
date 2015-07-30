@@ -48,19 +48,23 @@
 
 /** create static const member vector that needs no memory inside of the struct
  *
- *   @param type type of on element
+ *   @param type type of an element (types containing a comma are not allowed (e.g. `Vector<type,dim>`)
+ *               use `typedef Vector<type,dim> NewType;` to avoid this behavior
  *   @param name member variable name
  *   @param ... enumeration of init values
  *   \example `PMACC_C_VECTOR(float2_64, center_SI, 1.134e-5, 1.134e-5)`
  *            is the compile time equivalent of
  *            `static const float2_64 center_SI = float2_64(1.134e-5, 1.134e-5);
  */
-#define PMACC_C_VECTOR(type,name,...) (0,(type,name,dim,__VA_ARGS__))
+#define PMACC_C_VECTOR(type,name,...) (0,(typename PMacc::traits::GetValueType<type>::type, \
+                                          name,                                             \
+                                          PMacc::traits::GetNComponents<type>::value,       \
+                                          __VA_ARGS__))
 
 
 /** create static const member vector that needs no memory inside of the struct
  *
- *   @param type type of on element
+ *   @param type type of an element
  *   @param dim number of vector components
  *   @param name member variable name
  *   @param ... enumeration of init values (number of components must be greater or equal than dim)
@@ -95,7 +99,7 @@
 
 /** create changeable member vector
  *
- *   @param type type of on element
+ *   @param type type of an element
  *   @param name member variable name
  *   @param ... enumeration of init values
  *   \example `PMACC_VECTOR(float2_64, center_SI, 1.134e-5, 1.134e-5)`
@@ -106,7 +110,7 @@
 
 /** create changeable member vector
  *
- *   @param type type of on element
+ *   @param type type of an element
  *   @param dim number of vector components
  *   @param name member variable name
  *   @param ... enumeration of init values (number of components must be equal to dim)
@@ -131,7 +135,7 @@
  *            is the compile time equivalent of
  *            `static const char* filename = (char*)"fooFile.tyt";`
  */
-#define PMACC_C_STRING(name,initValue,...) (3,(_,name,initValue))
+#define PMACC_C_STRING(name,initValue) (3,(_,name,initValue))
 
 /** create any code extension
  *
@@ -216,7 +220,7 @@
     PMACC_PP_SELECT_TYPEID( 3,PMACC_PP_X_INIT_C_STRING_VARIABLE,elem )
 
 #define PMACC_PP_X_CREATE_EXTENT(data,type,name,...) __VA_ARGS__
-#define PMACC_PP_CREATE_EXTENT(elem)                                         \
+#define PMACC_PP_CREATE_EXTENT(elem)                                           \
     PMACC_PP_SELECT_TYPEID( 4,PMACC_PP_X_CREATE_EXTENT,elem )
 
 #define PMACC_PP_X1_ADD_DATA_TO_TYPEDESCRIPTION_MACRO(data,first,second) ((first,(data,PMACC_PP_REMOVE_PAREN(second))))
@@ -234,11 +238,11 @@
  *
  * @param ... preprocessor sequence with TypeMemberPair's to inherit from
  */
-#define PMACC_PP_INIT_VALUE_VARIABLES(op,...)                                  \
+#define PMACC_PP_INIT_VALUE_VARIABLES(op,emptyStruct,...)                                  \
     PMACC_PP_DEFER_REMOVE_PAREN() (                                            \
         BOOST_PP_EXPAND(                                                       \
           BOOST_PP_SEQ_TO_TUPLE (                                              \
-            BOOST_PP_SEQ_FOR_EACH(PMACC_PP_SEQ_MACRO_WITH_ACCESSOR,op,__VA_ARGS__((2,(a,b,EmptyStruct)))) \
+            BOOST_PP_SEQ_FOR_EACH(PMACC_PP_SEQ_MACRO_WITH_ACCESSOR,op,__VA_ARGS__ emptyStruct) \
           )                                                                    \
         )                                                                      \
     )
@@ -256,15 +260,16 @@ namespace namespace_name{                                                      \
     struct EmptyStruct2{};                                                     \
     struct name : private EmptyStruct, private EmptyStruct2 {                  \
         name():                                                                \
-        PMACC_PP_INIT_VALUE_VARIABLES(PMACC_PP_X_INIT_VALUE_VARIABLE,__VA_ARGS__),                            \
-        PMACC_PP_INIT_VALUE_VARIABLES(PMACC_PP_X_INIT_VALUE_VARIABLE_WITH_PAREN,__VA_ARGS__){}                \
-                                                                                                              \
+        PMACC_PP_INIT_VALUE_VARIABLES(PMACC_PP_X_INIT_VALUE_VARIABLE,((2,(a,b,EmptyStruct))),__VA_ARGS__),            \
+        PMACC_PP_INIT_VALUE_VARIABLES(PMACC_PP_X_INIT_VALUE_VARIABLE_WITH_PAREN,((5,(a,b,EmptyStruct2))),__VA_ARGS__) \
+        {}                                                                     \
+                                                                               \
         BOOST_PP_SEQ_FOR_EACH(PMACC_PP_SEQ_MACRO_WITH_ACCESSOR,PMACC_PP_CREATE_C_VALUE_VARIABLE,__VA_ARGS__)  \
         BOOST_PP_SEQ_FOR_EACH(PMACC_PP_SEQ_MACRO_WITH_ACCESSOR,PMACC_PP_CREATE_VALUE_VARIABLE,__VA_ARGS__)    \
         BOOST_PP_SEQ_FOR_EACH(PMACC_PP_SEQ_MACRO_WITH_ACCESSOR,PMACC_PP_CREATE_C_VECTOR_VARIABLE,__VA_ARGS__) \
         BOOST_PP_SEQ_FOR_EACH(PMACC_PP_SEQ_MACRO_WITH_ACCESSOR,PMACC_PP_CREATE_C_STRING_VARIABLE,__VA_ARGS__) \
-	    BOOST_PP_SEQ_FOR_EACH(PMACC_PP_SEQ_MACRO_WITH_ACCESSOR,PMACC_PP_CREATE_EXTENT,__VA_ARGS__)          \
-        BOOST_PP_SEQ_FOR_EACH(PMACC_PP_SEQ_MACRO_WITH_ACCESSOR,PMACC_PP_CREATE_VALUE_VARIABLE_WITH_PAREN,__VA_ARGS__)    \
+        BOOST_PP_SEQ_FOR_EACH(PMACC_PP_SEQ_MACRO_WITH_ACCESSOR,PMACC_PP_CREATE_EXTENT,__VA_ARGS__)            \
+        BOOST_PP_SEQ_FOR_EACH(PMACC_PP_SEQ_MACRO_WITH_ACCESSOR,PMACC_PP_CREATE_VALUE_VARIABLE_WITH_PAREN,__VA_ARGS__) \
         };                                                                     \
     BOOST_PP_SEQ_FOR_EACH(PMACC_PP_SEQ_MACRO_WITH_ACCESSOR,PMACC_PP_INIT_C_STRING_VARIABLE,__VA_ARGS__);      \
 }  /*namespace*/                                                               \
@@ -284,6 +289,8 @@ using namespace_name::name
  *
  * @param name name of the struct
  * @param ... preprocessor sequence with TypeMemberPair's e.g. (PMACC_C_VALUE(int,a,2))
+ *
+ * ATTETENTION: do not forget the surrounding parenthesize for each element of a sequence
  */
 #define PMACC_STRUCT(name,...)                                                 \
     PMACC_PP_STRUCT_DEF(BOOST_PP_CAT(BOOST_PP_CAT(pmacc_,name),__COUNTER__),name,PMACC_PP_ADD_DATA_TO_TYPEDESCRIPTION(name,__VA_ARGS__))
