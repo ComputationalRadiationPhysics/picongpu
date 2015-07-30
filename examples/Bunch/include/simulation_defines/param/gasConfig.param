@@ -24,6 +24,8 @@
 #pragma once
 
 #include "particles/gasProfiles/profiles.def"
+/* preprocessor struct generator */
+#include "preprocessor/struct.hpp"
 
 namespace picongpu
 {
@@ -43,41 +45,31 @@ const float_64 GAS_DENSITY_SI = 1.e25;
 //##########################################################################
 namespace gasProfiles
 {
-CONST_VECTOR(float_64, simDim, GaussianCloudParam_center, 1.024e-5, 9.072e-5, 1.024e-5);
-CONST_VECTOR(float_64, simDim, GaussianCloudParam_sigma, 6.0e-6, 6.0e-6, 6.0e-6);
 
-struct GaussianCloudParam
-{
+PMACC_STRUCT(GaussianCloudParam,
     /** height of vacuum area on top border
-     *      this vacuum is really important because of the laser initialization,
-     *      which is done in the first cell of the simulation
-     *  unit: cells */
-    static const uint32_t vacuum_y_cells = 50;
-    /** Gas Formular:
-                const float_X exponent = fabs((y - GAS_CENTER) / GAS_SIGMA);
-                const float_X density = __expf(factor*__powf(exponent, power));
+     *
+     * this vacuum is important because of the laser initialization,
+     * which is done in the first cell of the simulation
+     * unit: cells
+     */
+    (PMACC_C_VALUE(uint32_t, vacuumCellsY, 50))
 
-        takes GAS_CENTER_LEFT for y < GAS_CENTER_LEFT,
-              GAS_CENTER_RIGHT for y > GAS_CENTER_RIGHT,
-        and exponent = float_X(0.0) for GAS_CENTER_LEFT < y < GAS_CENTER_RIGHT */
-    static const float_X factor = -1.0;
-    static const float_X power = 2.0;
+    (PMACC_C_VALUE(float_X, gasFactor, -1.0))
+    (PMACC_C_VALUE(float_X, gasPower, 2.0))
 
-    struct SI
-    {
-        /** The central position of the gas distribution
-         *  unit: meter */
-        const GaussianCloudParam_center_t center;
+    /** The central position of the gas distribution
+     *  unit: meter
+     */
+    (PMACC_C_VECTOR_DIM(float_64, simDim, center_SI, 1.024e-5, 9.072e-5, 1.024e-5))
 
-        /** the distance from GAS_CENTER until the gas density decreases to its 1/e-th part
-         *  unit: meter */
-        const GaussianCloudParam_sigma_t sigma;
-    };
-};
+    /** the distance from gasCenter_SI until the gas density decreases to its 1/e-th part
+      *  unit: meter */
+    (PMACC_C_VECTOR_DIM(float_64, simDim, sigma_SI, 6.0e-6, 6.0e-6, 6.0e-6))
+); /* struct GaussianCloudParam */
 
 /* definition of gas cloud profile*/
 typedef GaussianCloudImpl<GaussianCloudParam> GaussianCloud;
-
 
 }//namespace gasProfiles
 
