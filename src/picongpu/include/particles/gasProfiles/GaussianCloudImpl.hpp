@@ -52,9 +52,9 @@ struct GaussianCloudImpl : public T_ParamClass
     HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
     {
         const float_64 unit_length = UNIT_LENGTH;
-        const float_X vacuum_y = float_64(ParamClass::vacuum_y_cells) * cellSize.y();
-        const floatD_X center = precisionCast<float_32>(ParamClass::SI().center / unit_length);
-        const floatD_X sigma = precisionCast<float_32>(ParamClass::SI().sigma / unit_length);
+        const float_X vacuum_y = float_X(ParamClass::vacuumCellsY) * cellSize.y();
+        const floatD_X center = precisionCast<float_32>(ParamClass::center_SI / unit_length);
+        const floatD_X sigma = precisionCast<float_32>(ParamClass::sigma_SI / unit_length);
 
 
         const floatD_X globalCellPos(
@@ -65,11 +65,11 @@ struct GaussianCloudImpl : public T_ParamClass
         if (globalCellPos.y() < vacuum_y) return float_X(0.0);
 
         float_X density(1.0);
-        const float_X power = ParamClass::power;
+        const float_X power = ParamClass::gasPower;
         for (uint32_t d = 0; d < simDim; ++d)
         {
             const float_X exponent(math::abs((globalCellPos[d] - center[d]) / sigma[d]));
-            density *= math::exp(ParamClass::factor * math::pow(exponent, power));
+            density *= math::exp(ParamClass::gasFactor * math::pow(exponent, power));
         }
 
         return density;
