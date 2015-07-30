@@ -46,7 +46,8 @@ struct SetAttributeToDefault
     void operator()(T_Particle& particle)
     {
         typedef typename PMacc::traits::Resolve<Attribute>::type ResolvedAttr;
-        particle[Attribute()] = ResolvedAttr::getDefaultValue();
+        /* set attribute to it's user defined default value */
+        particle[Attribute()] = ResolvedAttr::getValue();
     }
 };
 

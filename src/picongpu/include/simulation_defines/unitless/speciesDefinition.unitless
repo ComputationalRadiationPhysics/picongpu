@@ -49,7 +49,7 @@ HDINLINE float_X getMass()
         typename GetFlagType<T_Frame, massRatio<> >::type
         >::type MassRatioValue;
 
-    return BASE_MASS * MassRatioValue::getDefaultValue();
+    return BASE_MASS * MassRatioValue::getValue();
 };
 
 
@@ -65,7 +65,7 @@ HDINLINE float_X getCharge()
         typename GetFlagType<T_Frame, chargeRatio<> >::type
         >::type ChargeRatioValue;
 
-    return BASE_CHARGE * ChargeRatioValue::getDefaultValue();
+    return BASE_CHARGE * ChargeRatioValue::getValue();
 };
 
 } //namespace frame
