@@ -48,7 +48,7 @@ namespace traits
     template<>
     struct AdiosToPIC<adios_real>
     {
-        typedef float type;
+        typedef float_32 type;
     };
     
     /** Trait for adios_double */

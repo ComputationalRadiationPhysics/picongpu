@@ -164,7 +164,7 @@ __global__ void kernelFillGridWithParticles(T_GasProfile gasFunctor,
 
 #if(ENABLE_RADIATION == 1)
 #if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
-            particle[radiationFlag_] = (bool)(rng() < (1.0 / (float) RAD_MARK_PARTICLE));
+            particle[radiationFlag_] = (bool)(rng() < (1.0 / (float_32) RAD_MARK_PARTICLE));
 #endif
 #endif
             numParsPerCell--;

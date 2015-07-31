@@ -158,7 +158,7 @@ struct ComputeCurrentPerFrame
     }
 
 private:
-    const PMACC_ALIGN(deltaTime, float);
+    const PMACC_ALIGN(deltaTime, float_32);
 };
 
 template<class T_CurrentInterpolation, class T_Mapping>

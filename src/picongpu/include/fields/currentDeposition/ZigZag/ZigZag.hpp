@@ -267,7 +267,7 @@ struct ZigZag
          * it can be the same bug as
          * @see https://devtalk.nvidia.com/default/topic/752200/cuda-programming-and-performance/nvcc-loop-bug-since-cuda-5-5/
          */
-        for (float l = 0; l < 2; ++l)
+        for (float_32 l = 0; l < 2; ++l)
         {
             floatD_X inCellPos;
             float3_X flux;

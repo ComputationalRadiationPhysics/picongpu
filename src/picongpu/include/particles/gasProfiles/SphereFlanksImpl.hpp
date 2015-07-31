@@ -53,7 +53,7 @@ struct SphereFlanksImpl : public T_ParamClass
     {
         const float_64 unit_length = UNIT_LENGTH;
         const float_X vacuum_y = float_64(ParamClass::vacuum_y_cells) * cellSize.y();
-        const floatD_X center = precisionCast<float>(ParamClass::SI().center / unit_length);
+        const floatD_X center = precisionCast<float_32>(ParamClass::SI().center / unit_length);
         const float_X r = ParamClass::SI::r / unit_length;
         const float_X ri = ParamClass::SI::ri / unit_length;
         const float_X exponent = ParamClass::SI::exponent * unit_length;

@@ -78,7 +78,7 @@ namespace picongpu
                     ((analyzerPrefix + ".ip").c_str(), po::value<std::vector<std::string > > (&ips)->multitoken(), "ip of server")
                     ((analyzerPrefix + ".port").c_str(), po::value<std::vector<std::string > > (&ports)->multitoken(), "port of server")
                     ((analyzerPrefix + ".axis").c_str(), po::value<std::vector<std::string > > (&axis)->multitoken(), "axis which are shown [valid values x,y,z] example: yz")
-                    ((analyzerPrefix + ".slicePoint").c_str(), po::value<std::vector<float> > (&slicePoints)->multitoken(), "value range: 0 <= x <= 1 , point of the slice");
+                    ((analyzerPrefix + ".slicePoint").c_str(), po::value<std::vector<float_32> > (&slicePoints)->multitoken(), "value range: 0 <= x <= 1 , point of the slice");
         }
 
         void setMappingDescription(MappingDesc *cellDescription)
@@ -174,7 +174,7 @@ namespace picongpu
         std::string analyzerPrefix;
 
         std::vector<uint32_t> notifyFrequencys;
-        std::vector<float> slicePoints;
+        std::vector<float_32> slicePoints;
         std::vector<std::string> ips;
         std::vector<std::string> ports;
         std::vector<std::string> axis;
