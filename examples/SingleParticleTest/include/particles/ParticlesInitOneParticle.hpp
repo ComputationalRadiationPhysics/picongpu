@@ -21,7 +21,7 @@
 
 
 #ifndef PARTICLESINITONEPARTICLE_HPP
-#define	PARTICLESINITONEPARTICLE_HPP
+#define    PARTICLESINITONEPARTICLE_HPP
 
 #include "dimensions/DataSpace.hpp"
 #include "types.h"
@@ -141,4 +141,4 @@ public:
 };
 }
 
-#endif	/* PARTICLESINITONEPARTICLE_HPP */
+#endif    /* PARTICLESINITONEPARTICLE_HPP */

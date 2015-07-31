@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #pragma once
@@ -301,8 +301,8 @@ namespace picongpu
              *              decreases to its 1/e^2-th part,
              *              at the focus position of the laser
              *  unit: meter */
-	    const double W0x_SI = 4.246e-6; // waist in x-direction
-   	    const double W0z_SI = W0x_SI;   // waist in z-direction
+            const double W0x_SI = 4.246e-6; // waist in x-direction
+            const double W0z_SI = W0x_SI;   // waist in z-direction
         }
 
         /* we use a sin(omega*(time-riseTime) + laser_phase) function to set up the laser - define phase: */

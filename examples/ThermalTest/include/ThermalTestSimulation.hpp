@@ -19,7 +19,7 @@
  */
 
 #ifndef TERMALTESTSIMULATION_HPP
-#define	TERMALTESTSIMULATION_HPP
+#define    TERMALTESTSIMULATION_HPP
 
 #include "simulation_defines.hpp"
 #include "Environment.hpp"
@@ -209,4 +209,4 @@ private:
 
 } // namespace picongpu
 
-#endif	/* TERMALTESTSIMULATION_HPP */
+#endif    /* TERMALTESTSIMULATION_HPP */
