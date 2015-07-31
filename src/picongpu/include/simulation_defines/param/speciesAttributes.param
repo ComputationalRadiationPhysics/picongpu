@@ -58,7 +58,7 @@ value_identifier(bool, radiationFlag, false);
 /** number of electrons bound to the atom / ion
  *
  * value type is float_X to avoid casts during the runtime
- * - float is also reasonable because effective charge numbers are possible
+ * - float_X is also reasonable because effective charge numbers are possible
  * - only reasonable for ion species if ionization is enabled
  *
  * \todo connect default to proton number

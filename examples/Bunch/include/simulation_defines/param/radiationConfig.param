@@ -69,7 +69,7 @@ namespace radiation_frequencies = rad_linear_frequencies;
 
 namespace radiationNyquist
 {
-  const float NyquistFactor = 0.5;
+  const float_32 NyquistFactor = 0.5;
 }
 
 ///////////////////////////////////////////////////
@@ -116,7 +116,7 @@ namespace parameters
 //diable (0) / enable (1)
 #define RAD_ACTIVATE_GAMMA_FILTER 0
 
-const float RadiationGamma = 5.;
+const float_32 RadiationGamma = 5.;
 
 const unsigned int N_observer = 128; // number of looking directions
 
