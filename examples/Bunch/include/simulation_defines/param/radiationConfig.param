@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #pragma once
@@ -72,19 +72,8 @@ namespace radiationNyquist
   const float NyquistFactor = 0.5;
 }
 
-
-}//namespace picongpu
-
-
-
-
-
 ///////////////////////////////////////////////////
 
-
-
-namespace picongpu
-{
 
   // corect treatment of coherent and incoherent  radiation from macroparticles
   // 1 = on  (slower and more memory, but correct quantitativ treatment)
@@ -104,13 +93,7 @@ namespace picongpu
   namespace radFormFactor = radFormFactor_CIC_3D;
 
 
-}//namespace picongpu
-
-
-
 ///////////////////////////////////////////////////////////
-
-
 
 
 namespace parameters
@@ -143,10 +126,6 @@ const unsigned int N_observer = 128; // number of looking directions
 
 //////////////////////////////////////////////////
 
-
-
-namespace picongpu
-{
 
 // add a window function weighting to the radiation in order
 // to avoid ringing effects from sharpe boundaries

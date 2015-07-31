@@ -27,7 +27,6 @@
 
 #if (ENABLE_RADIATION == 1 )
 
-//PMACC_CASSERT_MSG(We_not_support_radiation_if_ENABLE_IONS_is_set_to_1__change_ENABLE_IONS_in_file_componentsConfig_param,ENABLE_IONS==0);
 PMACC_CASSERT_MSG(ENABLE_ELECTRONS_must_set_to_1__change_ENABLE_ELECTRONS_in_file_componentsConfig_param,ENABLE_ELECTRONS==1);
 
 
@@ -42,11 +41,7 @@ namespace picongpu
     const unsigned int blocksize_omega = PMacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
     const unsigned int gridsize_omega = N_omega / blocksize_omega; // size of grid (dim: x); radiation
   }
-}
 
-
-namespace picongpu
-{
   namespace rad_log_frequencies
   {
     const float_X omega_min = (SI::omega_min*UNIT_TIME);
@@ -55,18 +50,12 @@ namespace picongpu
     const unsigned int blocksize_omega = PMacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
     const unsigned int gridsize_omega = N_omega / blocksize_omega; // size of grid (dim: x); radiation
   }
-}
 
-namespace picongpu
-{
   namespace rad_frequencies_from_list
   {
     const unsigned int blocksize_omega = PMacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
     const unsigned int gridsize_omega = N_omega / blocksize_omega; // size of grid (dim: x); radiation
   }
-}
-
-
 
 namespace parameters
 {
@@ -74,6 +63,8 @@ namespace parameters
     const unsigned int gridsize_theta = N_observer; // size of grid /dim: y); radiation
 
 }
+
+} //namespace picongpu
 
 #endif
 
