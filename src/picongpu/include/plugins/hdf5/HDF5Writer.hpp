@@ -27,14 +27,13 @@
 #include <list>
 #include <vector>
 
-#include "types.h"
-#include "simulation_types.hpp"
 #include "simulation_defines.hpp"
+
 #include "plugins/hdf5/HDF5Writer.def"
+#include "traits/SplashToPIC.hpp"
+#include "traits/PICToSplash.hpp"
 
 #include "particles/frame_types.hpp"
-
-#include <splash/splash.h>
 
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
@@ -68,6 +67,8 @@
 #include "plugins/hdf5/restart/LoadSpecies.hpp"
 #include "plugins/hdf5/restart/RestartFieldLoader.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
+
+#include <splash/splash.h>
 
 namespace picongpu
 {
