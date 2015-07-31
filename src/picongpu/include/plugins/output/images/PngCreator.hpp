@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -38,8 +38,10 @@
 #include "memory/boxes/DataBox.hpp"
 #include "plugins/output/header/MessageHeader.hpp"
 
+
+#include <boost/thread.hpp>
 //c includes
-#include "sys/stat.h"
+#include <sys/stat.h>
 
 namespace picongpu
 {
@@ -49,7 +51,11 @@ namespace picongpu
     struct PngCreator
     {
 
-        PngCreator(std::string name, std::string folder) : m_name(folder + "/" + name), m_folder(folder), m_createFolder(true)
+        PngCreator(std::string name, std::string folder) :
+            m_name(folder + "/" + name),
+            m_folder(folder),
+            m_createFolder(true),
+            m_isThreadActive(false)
         {
         }
 
@@ -58,19 +64,67 @@ namespace picongpu
             return std::string("png");
         }
 
-        ~PngCreator()
+        /** block until all shared resource are free
+         *
+         * take care that all resources used by `operator()`
+         * can safely used without conflicts
+         */
+        void join()
         {
+            if(m_isThreadActive)
+            {
+                workerThread.join();
+                m_isThreadActive = false;
+            }
         }
 
+        ~PngCreator()
+        {
+            if(m_isThreadActive)
+            {
+                workerThread.join();
+                m_isThreadActive = false;
+            }
+        }
+
+        PngCreator(const PngCreator& other)
+        {
+            m_name = other.m_name;
+            m_folder = other.m_folder;
+            m_createFolder = other.m_createFolder;
+            m_isThreadActive = false;
+        }
+
+        /** create image
+         *
+         * @param data input data for png
+         *             this object must be alive until destructor
+         *             of `PngCreator` or method `join()` is called
+         * @param size size of data
+         * @param header meta information about the simulation
+         */
         template<class Box>
         void operator()(
                         const Box data,
                         const Size2D size,
-                        const MessageHeader & header);
+                        const MessageHeader  header)
+        {
+            if(m_isThreadActive)
+            {
+                workerThread.join();
+            }
+            m_isThreadActive = true;
+            workerThread = boost::thread(&PngCreator::createImage<Box>, this, data, size, header);
+        }
 
     private:
 
-        void resizeAndScaleImage(pngwriter* png, float_64 scaleFactor)
+        template<class Box>
+        void createImage(const Box data,
+                        const Size2D size,
+                        const MessageHeader header);
+
+        void resizeAndScaleImage(pngwriter* png, double scaleFactor)
         {
             if (scaleFactor != 1.)
                 png->scale_k(scaleFactor);
@@ -79,15 +133,21 @@ namespace picongpu
         std::string m_name;
         std::string m_folder;
         bool m_createFolder;
+        /* boost::thread is not copy able,
+         * therefore we must define an own copy constructor
+         */
+        boost::thread workerThread;
+        /* status whether a thread is currently active */
+        bool m_isThreadActive;
 
     };
 
-    template<>
-    inline void PngCreator::operator() < DataBox<PitchedBox<float3_X, DIM2 > > >(
-                                                                               const DataBox<PitchedBox<float3_X, DIM2 > > data,
-                                                                               const Size2D size,
-                                                                               const MessageHeader& header
-                                                                               )
+    template<class Box>
+    inline void PngCreator::createImage(
+                                        const Box data,
+                                        const Size2D size,
+                                        const MessageHeader header
+                                        )
     {
         if (m_createFolder)
         {
