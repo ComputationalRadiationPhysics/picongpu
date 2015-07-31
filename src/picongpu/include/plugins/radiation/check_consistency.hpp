@@ -25,11 +25,12 @@
 #include <cassert>
 #include "parameters.hpp"
 
+namespace picongpu
+{
 
 void check_consistency(void)
 {
   using namespace parameters;
-  using namespace picongpu;
   std::cout << " checking efficiency of radiation code: " ;
   if(radiation_frequencies::N_omega%radiation_frequencies::blocksize_omega == 0)
     std::cout << "OK" << std::endl;
@@ -37,3 +38,5 @@ void check_consistency(void)
     std::cout << "better use power of two for N_omega" << std::endl;
   // is there a way to do this with  compile time asserts???
 }
+
+} //namespace picongpu
