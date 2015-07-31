@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 #pragma once
 
@@ -28,7 +28,7 @@ namespace picongpu
 {
 /*scale image before write to file, only scale if value is not 1.0
  */
-const double scale_image = 1.0;
+const float_64 scale_image = 1.0;
 
 /*if true image is scaled if cellsize is not quadratic, else no scale*/
 const bool scale_to_cellsize = true;
