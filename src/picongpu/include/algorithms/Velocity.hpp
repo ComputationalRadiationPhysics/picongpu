@@ -21,7 +21,7 @@
 
 
 #ifndef VELOCITY_HPP
-#define	VELOCITY_HPP
+#define    VELOCITY_HPP
 
 namespace picongpu
 {
@@ -43,5 +43,5 @@ namespace picongpu
     };
 }
 
-#endif	/* VELOCITY_HPP */
+#endif    /* VELOCITY_HPP */
 

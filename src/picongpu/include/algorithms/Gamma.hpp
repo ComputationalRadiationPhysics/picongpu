@@ -21,7 +21,7 @@
 
 
 #ifndef GAMMA_HPP
-#define	GAMMA_HPP
+#define    GAMMA_HPP
 
 namespace picongpu
 {
@@ -49,5 +49,5 @@ struct Gamma
 
 }
 
-#endif	/* GAMMA_HPP */
+#endif    /* GAMMA_HPP */
 

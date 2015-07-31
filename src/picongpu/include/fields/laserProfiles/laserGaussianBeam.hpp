@@ -21,7 +21,7 @@
 
 
 #ifndef LASERGAUSSIANBEAM_HPP
-#define	LASERGAUSSIANBEAM_HPP
+#define    LASERGAUSSIANBEAM_HPP
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -160,7 +160,7 @@ namespace picongpu
     }
 }
 
-#endif	/* LASERGAUSSIANBEAM_HPP */
+#endif    /* LASERGAUSSIANBEAM_HPP */
 
 
 

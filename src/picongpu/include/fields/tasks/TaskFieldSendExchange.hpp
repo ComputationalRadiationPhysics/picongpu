@@ -21,7 +21,7 @@
 
 
 #ifndef  _TASKFIELDSENDEXCHANGE_HPP
-#define	_TASKFIELDSENDEXCHANGE_HPP
+#define    _TASKFIELDSENDEXCHANGE_HPP
 
 
 #include "eventSystem/EventSystem.hpp"
@@ -129,5 +129,5 @@ namespace PMacc
 } //namespace PMacc
 
 
-#endif	/* _TASKFIELDSENDEXCHANGE_HPP */
+#endif    /* _TASKFIELDSENDEXCHANGE_HPP */
 

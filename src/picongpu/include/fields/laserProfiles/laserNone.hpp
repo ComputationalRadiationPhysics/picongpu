@@ -21,7 +21,7 @@
 
 
 #ifndef LASERNONE_HPP
-#define	LASERNONE_HPP
+#define    LASERNONE_HPP
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -62,7 +62,7 @@ namespace picongpu
     }
 }
 
-#endif	/* LASERNONE_HPP */
+#endif    /* LASERNONE_HPP */
 
 
 

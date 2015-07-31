@@ -21,7 +21,7 @@
 
 
 #ifndef SIMSTARTINITIALISER_HPP
-#define	SIMSTARTINITIALISER_HPP
+#define    SIMSTARTINITIALISER_HPP
 
 #include "simulation_types.hpp"
 #include "dataManagement/AbstractInitialiser.hpp"
@@ -55,5 +55,5 @@ public:
 };
 }
 
-#endif	/* SIMSTARTINITIALISER_HPP */
+#endif    /* SIMSTARTINITIALISER_HPP */
 

@@ -22,7 +22,7 @@
 
 
 #ifndef SUMCURRENTS_HPP
-#define	SUMCURRENTS_HPP
+#define    SUMCURRENTS_HPP
 
 #include <iostream>
 
@@ -202,5 +202,5 @@ private:
 }
 
 
-#endif	/* SUMCURRENTS_HPP */
+#endif    /* SUMCURRENTS_HPP */
 

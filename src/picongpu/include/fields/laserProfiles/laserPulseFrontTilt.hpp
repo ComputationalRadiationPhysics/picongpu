@@ -167,4 +167,4 @@ namespace picongpu
     }
 }
 
-#endif	/* LASERPULSEFRONTTILT_HPP */
+#endif    /* LASERPULSEFRONTTILT_HPP */

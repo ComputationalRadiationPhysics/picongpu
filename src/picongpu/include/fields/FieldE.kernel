@@ -19,7 +19,7 @@
  */
 
 #ifndef FIELDE_KERNEL
-#define	FIELDE_KERNEL
+#define    FIELDE_KERNEL
 
 #include "math/Vector.hpp"
 
