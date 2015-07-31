@@ -21,7 +21,7 @@
 
 
 #ifndef PNGCREATOR_HPP
-#define	PNGCREATOR_HPP
+#define    PNGCREATOR_HPP
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -150,5 +150,5 @@ namespace picongpu
 
 }//namespace
 
-#endif	/* PNGCREATOR_HPP */
+#endif    /* PNGCREATOR_HPP */
 

@@ -21,7 +21,7 @@
 
 
 #ifndef FIELDMANIPULATOR_HPP
-#define	FIELDMANIPULATOR_HPP
+#define    FIELDMANIPULATOR_HPP
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -91,5 +91,5 @@ public:
 } //namespace
 
 
-#endif	/* FIELDMANIPULATOR_HPP */
+#endif    /* FIELDMANIPULATOR_HPP */
 

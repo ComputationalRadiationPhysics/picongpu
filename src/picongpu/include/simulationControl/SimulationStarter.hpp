@@ -21,7 +21,7 @@
 
 
 #ifndef SIMULATIONSTARTER_HPP
-#define	SIMULATIONSTARTER_HPP
+#define    SIMULATIONSTARTER_HPP
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -155,5 +155,5 @@ namespace picongpu
     };
 }
 
-#endif	/* SIMULATIONSTARTER_HPP */
+#endif    /* SIMULATIONSTARTER_HPP */
 

@@ -22,7 +22,7 @@
 
 
 #ifndef PARTICLEPUSHERAXL_HPP
-#define	PARTICLEPUSHERAXL_HPP
+#define    PARTICLEPUSHERAXL_HPP
 
 #include "simulation_defines.hpp"
 
@@ -185,5 +185,5 @@ namespace picongpu
     } //namespace
 }
 
-#endif	/* PARTICLEPUSHERAXL_HPP */
+#endif    /* PARTICLEPUSHERAXL_HPP */
 

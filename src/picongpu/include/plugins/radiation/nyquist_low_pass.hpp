@@ -36,8 +36,8 @@ public:
     **/
     __device__ __host__ __forceinline__ NyquistLowPass(const vector_64& n, const Particle& particle)
       : omegaNyquist((picongpu::PI - 0.01)/
-	       (picongpu::DELTA_T *
-	        One_minus_beta_times_n()(n, particle)))
+           (picongpu::DELTA_T *
+            One_minus_beta_times_n()(n, particle)))
     { }
 
     /**

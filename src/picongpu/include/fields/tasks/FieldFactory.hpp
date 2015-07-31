@@ -21,7 +21,7 @@
 
 
 #ifndef _FIELDFACTORY_HPP
-#define	_FIELDFACTORY_HPP
+#define    _FIELDFACTORY_HPP
 
 #include "memory/buffers/Exchange.hpp"
 
@@ -90,5 +90,5 @@ namespace PMacc
 
 #include "fields/tasks/FieldFactory.tpp"
 
-#endif	/* _PARTICLEFACTORY_HPP */
+#endif    /* _PARTICLEFACTORY_HPP */
 

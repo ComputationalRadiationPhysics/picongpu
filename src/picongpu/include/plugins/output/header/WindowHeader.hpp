@@ -21,7 +21,7 @@
 
 
 #ifndef WINDOWHEADER_HPP
-#define	WINDOWHEADER_HPP
+#define    WINDOWHEADER_HPP
 
 #include "types.h"
 #include "dimensions/DataSpace.hpp"
@@ -43,5 +43,5 @@ struct WindowHeader
 
 };
 
-#endif	/* WINDOWHEADER_HPP */
+#endif    /* WINDOWHEADER_HPP */
 

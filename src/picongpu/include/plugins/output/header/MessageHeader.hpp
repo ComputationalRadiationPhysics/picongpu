@@ -21,7 +21,7 @@
 
 
 #ifndef MESSAGEHEADER_HPP
-#define	MESSAGEHEADER_HPP
+#define    MESSAGEHEADER_HPP
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -174,5 +174,5 @@ private:
 
 };
 
-#endif	/* MESSAGEHEADER_HPP */
+#endif    /* MESSAGEHEADER_HPP */
 

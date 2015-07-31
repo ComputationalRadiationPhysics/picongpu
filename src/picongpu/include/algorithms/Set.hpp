@@ -21,7 +21,7 @@
 
 
 #ifndef SET_HPP
-#define	SET_HPP
+#define    SET_HPP
 
 
 #include "types.h"
@@ -50,5 +50,5 @@ private:
 };
 }
 
-#endif	/* SET_HPP */
+#endif    /* SET_HPP */
 

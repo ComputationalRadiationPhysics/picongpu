@@ -21,7 +21,7 @@
 
 
 #ifndef LIVEVIEWCLIENT_HPP
-#define	LIVEVIEWCLIENT_HPP
+#define    LIVEVIEWCLIENT_HPP
 
 #include "plugins/output/sockets/SocketConnector.hpp"
 
@@ -114,5 +114,5 @@ namespace picongpu
     }
 }
 
-#endif	/* LIVEVIEWCLIENT_HPP */
+#endif    /* LIVEVIEWCLIENT_HPP */
 

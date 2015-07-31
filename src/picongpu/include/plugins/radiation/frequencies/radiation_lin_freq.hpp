@@ -45,7 +45,7 @@ namespace picongpu
 
       DINLINE float_X operator()(const int ID)
       {
-	return omega_min + float_X(ID) * delta_omega;
+    return omega_min + float_X(ID) * delta_omega;
       }
     };
 
@@ -62,7 +62,7 @@ namespace picongpu
 
       HINLINE FreqFunctor getFunctor(void)
       {
-	return FreqFunctor();
+    return FreqFunctor();
       }
     };
 

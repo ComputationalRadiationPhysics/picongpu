@@ -21,7 +21,7 @@
 
 
 #ifndef FIELDMANIPULATOR_KERNEL
-#define	FIELDMANIPULATOR_KERNEL
+#define    FIELDMANIPULATOR_KERNEL
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -110,5 +110,5 @@ __global__ void kernelAbsorbBorder(BoxedMemory field, uint32_t thickness, float_
 #endif
 }
 } //namespace
-#endif	/* FIELDMANIPULATOR_KERNEL */
+#endif    /* FIELDMANIPULATOR_KERNEL */
 

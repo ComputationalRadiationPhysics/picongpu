@@ -21,7 +21,7 @@
 
 
 #ifndef NODEHEADER_HPP
-#define	NODEHEADER_HPP
+#define    NODEHEADER_HPP
 
 #include "types.h"
 #include "dimensions/DataSpace.hpp"
@@ -59,5 +59,5 @@ struct NodeHeader
 
 };
 
-#endif	/* NODEHEADER_HPP */
+#endif    /* NODEHEADER_HPP */
 

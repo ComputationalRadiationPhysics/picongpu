@@ -21,7 +21,7 @@
 
 
 #ifndef COLORHEADER_HPP
-#define	COLORHEADER_HPP
+#define    COLORHEADER_HPP
 
 #include "types.h"
 #include "dimensions/DataSpace.hpp"
@@ -79,5 +79,5 @@ struct ColorHeader
 };
 
 
-#endif	/* COLORHEADER_HPP */
+#endif    /* COLORHEADER_HPP */
 
