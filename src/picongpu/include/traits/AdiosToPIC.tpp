@@ -55,7 +55,7 @@ namespace traits
     template<>
     struct AdiosToPIC<adios_double>
     {
-        typedef double type;
+        typedef float_64 type;
     };
 
 } //namespace traits

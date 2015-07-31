@@ -39,7 +39,7 @@ template<class T_ParticleShape, uint32_t calcType>
 HDINLINE float1_64
 ComputeGridValuePerFrame<T_ParticleShape, calcType>::getUnit() const
 {
-    const double UNIT_VOLUME = (UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH);
+    const float_64 UNIT_VOLUME = (UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH);
 
     if (calcType == ComputeGridValueOptions::calcDensity)
         return UNIT_CHARGE / UNIT_VOLUME;

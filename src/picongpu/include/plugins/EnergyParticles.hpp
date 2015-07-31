@@ -163,7 +163,7 @@ private:
 
     ParticlesType *particles; /* pointer to particle data */
 
-    GridBuffer<double, DIM1> *gEnergy; /* energy values (global on GPU) */
+    GridBuffer<float_64, DIM1> *gEnergy; /* energy values (global on GPU) */
     MappingDesc *cellDescription;
     uint32_t notifyFrequency; /* periodocity of computing the particle energy */
 
@@ -242,7 +242,7 @@ private:
             writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce());
 
             /* create two ints on gpu and host: */
-            gEnergy = new GridBuffer<double, DIM1 > (DataSpace<DIM1 > (2));
+            gEnergy = new GridBuffer<float_64, DIM1 > (DataSpace<DIM1 > (2));
 
             if (writeToFile) /* only MPI rank that writes to file: */
             {
@@ -323,7 +323,7 @@ private:
 
         gEnergy->deviceToHost(); /* get energy from GPU */
 
-        double reducedEnergy[2]; /* create storage for kinetic and total energy */
+        float_64 reducedEnergy[2]; /* create storage for kinetic and total energy */
 
         /* add energies from all GPUs using MPI: */
         reduce(nvidia::functors::Add(),

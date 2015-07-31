@@ -557,11 +557,11 @@ public:
         //We don't know the superCellSize at compile time
         // (because of the runtime dimension selection in any analyser),
         // thus we must use a one dimension kernel and no mapper
-        __cudaKernel(vis_kernels::divideAnyCell)(ceil((double) elements / 256), 256)(d1access, elements, max);
+        __cudaKernel(vis_kernels::divideAnyCell)(ceil((float_64) elements / 256), 256)(d1access, elements, max);
 #endif
 
         // convert channels to RGB
-        __cudaKernel(vis_kernels::channelsToRGB)(ceil((double) elements / 256), 256)(d1access, elements);
+        __cudaKernel(vis_kernels::channelsToRGB)(ceil((float_64) elements / 256), 256)(d1access, elements);
 
         // add density color channel
         DataSpace<simDim> blockSize(MappingDesc::SuperCellSize::toRT());

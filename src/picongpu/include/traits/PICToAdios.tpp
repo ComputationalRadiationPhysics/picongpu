@@ -70,9 +70,9 @@ namespace traits
         type(adios_real) {}
     };
 
-    /** Trait for double */
+    /** Trait for float_64 */
     template<>
-    struct PICToAdios<double>
+    struct PICToAdios<float_64>
     {
         ADIOS_DATATYPES type;
         

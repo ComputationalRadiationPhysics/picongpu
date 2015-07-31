@@ -73,7 +73,7 @@ namespace picongpu
 
     private:
 
-        void resizeAndScaleImage(pngwriter* png, double scaleFactor)
+        void resizeAndScaleImage(pngwriter* png, float_64 scaleFactor)
         {
             if (scaleFactor != 1.)
                 png->scale_k(scaleFactor);

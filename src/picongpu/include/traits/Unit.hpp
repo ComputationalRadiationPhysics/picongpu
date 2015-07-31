@@ -30,7 +30,7 @@ namespace traits
     /** Get unit of date which are represented by a identifier
      *
      * \tparam T_Identifier any picongpu identifier
-     * \return \p std::vector<double> ::get() as static public method
+     * \return \p std::vector<float_64> ::get() as static public method
      *
      * a zero-size vector with no specified unit is valid for unitless items
      * \see simulation_defines/unitless/speciesAttributes.unitless

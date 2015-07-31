@@ -169,7 +169,7 @@ public:
 
             const uint32_t cellsInSuperCell = PMacc::math::CT::volume<SuperCellSize>::type::value;
 
-            const uint32_t iterationsForLoad = ceil(double(totalNumParticles) / double(restartChunkSize));
+            const uint32_t iterationsForLoad = ceil(float_64(totalNumParticles) / float_64(restartChunkSize));
             uint32_t leftOverParticles = totalNumParticles;
 
             __startAtomicTransaction(__getTransactionEvent());
@@ -182,7 +182,7 @@ public:
                 log<picLog::INPUT_OUTPUT > ("HDF5:   load particles on device chunk offset=%1%; chunk size=%2%; left particles %3%") %
                     (i * restartChunkSize) % currentChunkSize % leftOverParticles;
                 __cudaKernel(copySpeciesGlobal2Local)
-                    (ceil(double(currentChunkSize) / double(cellsInSuperCell)), cellsInSuperCell)
+                    (ceil(float_64(currentChunkSize) / float_64(cellsInSuperCell)), cellsInSuperCell)
                     (counterBuffer.getDeviceBuffer().getDataBox(),
                      speciesTmp->getDeviceParticlesBox(), deviceFrame,
                      (int) totalNumParticles,

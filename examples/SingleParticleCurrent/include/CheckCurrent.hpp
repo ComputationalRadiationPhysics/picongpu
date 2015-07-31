@@ -80,8 +80,8 @@ struct CheckCurrent
         std::cout << "velocity: (" << beta << ") * c\n";
         std::cout << "delta_pos: (" << beta * SPEED_OF_LIGHT / float3_X(CELL_WIDTH, CELL_HEIGHT, CELL_DEPTH) << ") * cellSize\n";
 
-        const double j = BASE_CHARGE / CELL_VOLUME * abs(beta) * SPEED_OF_LIGHT;
-        const double unit_current = UNIT_CHARGE / (UNIT_LENGTH * UNIT_LENGTH * UNIT_TIME);
+        const float_64 j = BASE_CHARGE / CELL_VOLUME * abs(beta) * SPEED_OF_LIGHT;
+        const float_64 unit_current = UNIT_CHARGE / (UNIT_LENGTH * UNIT_LENGTH * UNIT_TIME);
         std::cout << "j = rho * abs(velocity) = " << std::setprecision(6) << j * unit_current << " A/m²" << std::endl;
         std::cout << "------------------------------------------\n\n";
 
