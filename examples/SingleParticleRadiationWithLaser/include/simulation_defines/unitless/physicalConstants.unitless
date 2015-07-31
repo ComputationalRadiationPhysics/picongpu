@@ -64,15 +64,15 @@ namespace picongpu
 
 
     /** Unit of mass */
-    const double UNIT_MASS = SI::ELECTRON_MASS_SI * double(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
+    const float_64 UNIT_MASS = SI::ELECTRON_MASS_SI * double(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
     /** Unit of charge */
-    const double UNIT_CHARGE = -1.0 * SI::ELECTRON_CHARGE_SI * double(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
+    const float_64 UNIT_CHARGE = -1.0 * SI::ELECTRON_CHARGE_SI * double(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
     /** Unit of energy */
-    const double UNIT_ENERGY = (UNIT_MASS * UNIT_LENGTH * UNIT_LENGTH / (UNIT_TIME * UNIT_TIME));
+    const float_64 UNIT_ENERGY = (UNIT_MASS * UNIT_LENGTH * UNIT_LENGTH / (UNIT_TIME * UNIT_TIME));
     /** Unit of EField: V/m */
-    const double UNIT_EFIELD = 1.0 / (UNIT_TIME * UNIT_TIME / UNIT_MASS / UNIT_LENGTH * UNIT_CHARGE);
+    const float_64 UNIT_EFIELD = 1.0 / (UNIT_TIME * UNIT_TIME / UNIT_MASS / UNIT_LENGTH * UNIT_CHARGE);
     //** Unit of BField: Tesla [T] = Vs/m^2 */
-    const double UNIT_BFIELD = (UNIT_MASS / (UNIT_TIME * UNIT_CHARGE));
+    const float_64 UNIT_BFIELD = (UNIT_MASS / (UNIT_TIME * UNIT_CHARGE));
 
 
 
