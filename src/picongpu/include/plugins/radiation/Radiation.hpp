@@ -26,14 +26,11 @@
 #error The activated radiation plugin (radiationConfig.param) requires HDF5
 #endif
 
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <stdlib.h>
-
-#include "types.h"
 #include "simulation_defines.hpp"
-#include "simulation_types.hpp"
+
+#include "traits/SplashToPIC.hpp"
+#include "traits/PICToSplash.hpp"
+
 #include "basicOperations.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
 
@@ -53,6 +50,10 @@
 /* libSpash data output */
 #include <splash/splash.h>
 #include <boost/filesystem.hpp>
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <stdlib.h>
 
 namespace picongpu
 {

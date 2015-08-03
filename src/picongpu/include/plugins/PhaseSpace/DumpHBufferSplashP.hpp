@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl
+ * Copyright 2013-2015 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -20,10 +20,11 @@
 
 #pragma once
 
-#include <mpi.h>
-#include <splash/splash.h>
-
 #include "simulation_defines.hpp"
+
+#include "traits/SplashToPIC.hpp"
+#include "traits/PICToSplash.hpp"
+
 #include "plugins/PhaseSpace/AxisDescription.hpp"
 #include "communication/manager_common.h"
 #include "mappings/simulation/GridController.hpp"
@@ -37,6 +38,8 @@
 #include <sstream>
 #include <utility>
 #include <cassert>
+#include <mpi.h>
+#include <splash/splash.h>
 
 namespace picongpu
 {

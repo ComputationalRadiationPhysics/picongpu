@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Felix Schmitt, Rene Widera
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -27,6 +27,8 @@
 #include "simulationControl/MovingWindow.hpp"
 #include "fields/Fields.hpp"
 #include "dataManagement/DataConnector.hpp"
+
+#include <splash/splash.h>
 
 namespace picongpu
 {
