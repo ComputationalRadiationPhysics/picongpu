@@ -227,8 +227,8 @@ void kernelRadiationParticles(ParBox pb,
 
                 PMACC_AUTO(par,(*frame)[linearThreadIdx]);
                 // get old and new particle momenta
-                const vector_32 particle_momentumNow = vector_32(par[momentum_]);
-                const vector_32 particle_momentumOld = vector_32(par[momentumPrev1_]);
+                const vector_X particle_momentumNow = vector_X(par[momentum_]);
+                const vector_X particle_momentumOld = vector_X(par[momentumPrev1_]);
                 /* initializes "saveParticleAt" flag with -1
                  * because "counter_s" will never be -1
                  * therefore, if a particle is saved, a value of counter
@@ -275,7 +275,7 @@ void kernelRadiationParticles(ParBox pb,
                                                           (cellIdx));
 
                         // add global position of cell with local position of particle in cell
-                        vector_32 particle_locationNow;
+                        vector_X particle_locationNow;
                         // set z component to zero in case of simDim==DIM2
                         particle_locationNow[2] = 0.0;
                         // run over all components and compute gobal position

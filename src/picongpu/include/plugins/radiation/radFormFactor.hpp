@@ -32,7 +32,7 @@ namespace picongpu
       HDINLINE radFormFactor(void)
       { }
 
-      HDINLINE float_X operator()(const float_X N, const float_X omega, const vector_32 observer_unit_vec) const
+      HDINLINE float_X operator()(const float_X N, const float_X omega, const vector_X observer_unit_vec) const
       {
 
     /* Form Factor for CIC charge distribution of N discrete electrons:
@@ -67,7 +67,7 @@ namespace picongpu
       HDINLINE radFormFactor(void)
       { }
 
-      HDINLINE float_X operator()(const float_X N, const float_X omega, const vector_32 observer_unit_vec) const
+      HDINLINE float_X operator()(const float_X N, const float_X omega, const vector_X observer_unit_vec) const
       {
 
     /* Form Factor for 1D CIC charge distribution of N discrete electrons:
@@ -91,7 +91,7 @@ namespace picongpu
       HDINLINE radFormFactor(void)
       { }
 
-      HDINLINE float_X operator()(const float_X N, const float_X omega, const vector_32 observer_unit_vec) const
+      HDINLINE float_X operator()(const float_X N, const float_X omega, const vector_X observer_unit_vec) const
       {
 
     /* Form Factor for 1D CIC charge distribution of N discrete electrons:
