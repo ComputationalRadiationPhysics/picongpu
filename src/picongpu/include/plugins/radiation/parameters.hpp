@@ -25,7 +25,8 @@
 #include "simulation_defines.hpp"
 
 
-typedef /*__align__(16)*/ cuda_vec<picongpu::float3_X, picongpu::float_X> vector_32;
+typedef cuda_vec<picongpu::float3_X, picongpu::float_X> vector_X;
+typedef /*__align__(16)*/ cuda_vec<picongpu::float3_32, picongpu::float_32> vector_32;
 typedef /*__align__(32)*/ cuda_vec<picongpu::float3_64, picongpu::float_64> vector_64;
 
 
