@@ -33,7 +33,7 @@ namespace picongpu
          *
          * He (2e- / Atom ) with 1.e15 He / m^3
          *                      = 2.e15 e- / m^3 */
-        const double GAS_DENSITY_SI = 1.571e24;
+        const float_64 GAS_DENSITY_SI = 1.571e24;
 
     }
 

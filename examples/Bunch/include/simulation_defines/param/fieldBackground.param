@@ -46,7 +46,7 @@ namespace picongpu
          * so they can look up global grid dimensions.
          *
          * Note: No PMACC_ALIGN(...) used, since this *additional* memory alignment would require
-         *       roughly double the number of registers in the corresponding kernel on the device.
+         *       roughly float_64 the number of registers in the corresponding kernel on the device.
          */
         const templates::twts::EField twtsFieldE;
 
@@ -85,26 +85,26 @@ namespace picongpu
                     const uint32_t currentStep ) const
         {
             /* unit: meter */
-            const double WAVE_LENGTH_SI = 0.8e-6;
+            const float_64 WAVE_LENGTH_SI = 0.8e-6;
 
             /** UNITCONV */
-            /* const double UNITCONV_Intens_to_A0 = SI::ELECTRON_CHARGE_SI
+            /* const float_64 UNITCONV_Intens_to_A0 = SI::ELECTRON_CHARGE_SI
                 * SI::ELECTRON_CHARGE_SI * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI / (4.0 * PI * PI
                 * SI::ELECTRON_MASS_SI * SI::ELECTRON_MASS_SI * SI::SPEED_OF_LIGHT_SI
                 * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI
                 * SI::SPEED_OF_LIGHT_SI * SI::EPS0_SI); */
-            const double UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+            const float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
                 * SI::ELECTRON_MASS_SI * SI::SPEED_OF_LIGHT_SI
                 * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
 
             /* unit: W / m^2
-             * const double _PEAK_INTENSITY_SI = 3.4e19 * 1.0e4;
+             * const float_64 _PEAK_INTENSITY_SI = 3.4e19 * 1.0e4;
              * unit: none
-             * const double _A0  = _PEAK_INTENSITY_SI * UNITCONV_Intens_to_A0;
+             * const float_64 _A0  = _PEAK_INTENSITY_SI * UNITCONV_Intens_to_A0;
              */
 
             /* unit: none */
-            const double _A0  = 1.0;
+            const float_64 _A0  = 1.0;
 
             /* unit: Volt /meter
              *\todo #738 implement math::vector, native type operations
@@ -136,7 +136,7 @@ namespace picongpu
          * so they can look up global grid dimensions.
          *
          * Note: No PMACC_ALIGN(...) used, since this *additional* memory alignment would require
-         *       roughly double the number of registers in the corresponding kernel on the device.
+         *       roughly float_64 the number of registers in the corresponding kernel on the device.
          */
         const templates::twts::BField twtsFieldB;
 
@@ -177,26 +177,26 @@ namespace picongpu
                     const uint32_t currentStep ) const
         {
             /* unit: meter */
-            const double WAVE_LENGTH_SI = 0.8e-6;
+            const float_64 WAVE_LENGTH_SI = 0.8e-6;
 
             /** UNITCONV */
-            /* const double UNITCONV_Intens_to_A0 = SI::ELECTRON_CHARGE_SI
+            /* const float_64 UNITCONV_Intens_to_A0 = SI::ELECTRON_CHARGE_SI
                 * SI::ELECTRON_CHARGE_SI * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI / (4.0 * PI * PI
                 * SI::ELECTRON_MASS_SI * SI::ELECTRON_MASS_SI * SI::SPEED_OF_LIGHT_SI
                 * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI
                 * SI::SPEED_OF_LIGHT_SI * SI::EPS0_SI); */
-            const double UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+            const float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
                 * SI::ELECTRON_MASS_SI * SI::SPEED_OF_LIGHT_SI
                 * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
 
             /* unit: W / m^2
-             * const double _PEAK_INTENSITY_SI = 3.4e19 * 1.0e4;
+             * const float_64 _PEAK_INTENSITY_SI = 3.4e19 * 1.0e4;
              * unit: none
-             * const double _A0  = _PEAK_INTENSITY_SI * UNITCONV_Intens_to_A0;
+             * const float_64 _A0  = _PEAK_INTENSITY_SI * UNITCONV_Intens_to_A0;
              */
 
             /** unit: none */
-            const double _A0  = 1.0;
+            const float_64 _A0  = 1.0;
 
             /** unit: Volt /meter */
             const float3_64 invUnitField = float3_64( 1.0 / unitField[0],

@@ -38,8 +38,8 @@ namespace rad_linear_frequencies
 {
 namespace SI
 {
-const double omega_min = 0.0;
-const double omega_max = 5.8869e17;
+const float_64 omega_min = 0.0;
+const float_64 omega_max = 5.8869e17;
 }
 
 const unsigned int N_omega = 1024; // number of frequencies
@@ -49,8 +49,8 @@ namespace rad_log_frequencies
 {
 namespace SI
 {
-const double omega_min = 1.0e14;
-const double omega_max = 1.0e17;
+const float_64 omega_min = 1.0e14;
+const float_64 omega_max = 1.0e17;
 }
 
 const unsigned int N_omega = 2048; // number of frequencies
