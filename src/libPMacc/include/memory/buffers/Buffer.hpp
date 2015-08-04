@@ -61,7 +61,7 @@ namespace PMacc
         /**
          * destructor
          */
-        virtual ~Buffer()
+        virtual ~Buffer() throw (std::runtime_error)
         {
             CUDA_CHECK(cudaFreeHost(current_size));
         }

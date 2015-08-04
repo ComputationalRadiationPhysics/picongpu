@@ -30,6 +30,7 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <stdint.h>
 
 namespace PMacc
 {

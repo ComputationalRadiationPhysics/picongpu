@@ -63,8 +63,9 @@ namespace PMacc
         
         /**
          * Destructor.
+         * Base destructor may throw
          */
-        virtual ~HostBuffer()
+        virtual ~HostBuffer() throw (std::runtime_error)
         {
         };
 

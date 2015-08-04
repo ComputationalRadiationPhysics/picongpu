@@ -64,8 +64,9 @@ namespace PMacc
 
         /**
          * Destructor.
+         * Base destructor may throw
          */
-        virtual ~DeviceBuffer()
+        virtual ~DeviceBuffer() throw (std::runtime_error)
         {
         };
 
