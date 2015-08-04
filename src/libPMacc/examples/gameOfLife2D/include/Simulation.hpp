@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Rene Widera, Maximilian Knespel
+ * Copyright 2013-2015 Rene Widera, Maximilian Knespel, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -108,32 +108,61 @@ public:
 
     void init()
     {
-        /* subGrid holds global and*
-         * local SimulationSize and where the local SimArea is in the greater *
-         * scheme using Offsets from global LEFT, TOP, FRONT                  */
+        /* subGrid holds global and
+         * local SimulationSize and where the local SimArea is in the greater
+         * scheme using Offsets from global LEFT, TOP, FRONT
+         */
         const SubGrid<DIM2>& subGrid = Environment<DIM2>::get().SubGrid();
 
-        /* Recall that in types.hpp the following is defined:                 *
-         *     typedef MappingDescription<DIM2, math::CT::Int<16,16> > MappingDesc;    *
-         * where math::CT::Int<16,16> is arbitrarily(!) chosen SuperCellSize and DIM2  *
-         * is the dimension of the grid.                                      *
-         * Expression of 2nd argument translates to DataSpace<DIM3>(16,16,0). *
-         * This is the guard size (here set to be one Supercell wide in all   *
-         * directions). Meaning we have 16*16*(2*grid.x+2*grid.y+4) more      *
-         * cells in GridLayout than in the SubGrid.                         */
+        /* The following sets up the local layout which consists of the actual
+         * grid cells and some surrounding cells, called guards.
+         *
+         * ASCII Visualization: example taken for 1D,
+         * distributed over 2 GPUs, only 1 border shown between those two GPUs
+         * assuming non-periodic boundary conditions.
+         * In a N-GPU or periodic example, border cells guard cells exist in each direction.
+         * _______GPU 0________       _______GPU 1________
+         * | 0 | 1 | 2 | 3 | 4 |      | 3 | 4 | 5 | 6 | 7 |  <-- Global (super)cell idx
+         * |___|___|___|___|___|      |___|___|___|___|___|
+         * |___Core____|Bor|Gua|      |Gua|Bor|___Core____|
+         * |___________|der|rd_|      |rd_|der|___________|
+         * |__"real" cells_|***|      |***|__"real" cells_|
+         *
+         * |***| Clones cells which correspond to the border cells of the neighbor GPU
+         *       (sometimes also called "ghost" or "halo" cells/region)
+         *
+         * Recall that the following is defined:
+         *     typedef MappingDescription<DIM2, math::CT::Int<16,16> > MappingDesc;
+         * where math::CT::Int<16,16> is arbitrarily(!) chosen SuperCellSize
+         * and DIM2 is the dimension of the grid.
+         * Expression of 2nd argument translates to DataSpace<DIM3>(16,16,0).
+         * This is the guard size (here set to be one Supercell wide in all
+         * directions). Meaning we have 16*16*(2*grid.x+2*grid.y+4) more
+         * cells in GridLayout than in the SubGrid.
+         * The formula above is SuperCellSize * TotalNumGuardCells with (in this case)
+         * SuperCellSize = 16*16 (16 cells in 2 dimensions)
+         * TotalNumGuardCells =   2 * grid.x (top and bottom)
+         *                      + 2 * grid.y (left and right)
+         *                      + 4          (the corners)
+         */
         GridLayout<DIM2> layout( subGrid.getLocalDomain().size,
                                  MappingDesc::SuperCellSize::toRT());
 
         /* getDataSpace will return DataSpace( grid.x +16+16, grid.y +16+16)  *
-         * init stores the arguments internally in a MappingDesc private      *
-         * variable which stores the layout regarding Core, Border and guard  *
-         * in units of SuperCells to be used by the kernel to identify itself.*/
+         * MappingDesc stores the layout regarding Core, Border and Guard     *
+         * in units of SuperCells.                                            *
+         * This is saved by init to be used by the kernel to identify itself. */
         evo.init(MappingDesc(layout.getDataSpace(), 1, 1));
 
         buff1 = new Buffer(layout, false);
         buff2 = new Buffer(layout, false);
 
-        Space gardingCells(1, 1);
+        /* Set up the future data exchange. In this case we need to copy the
+         * border cells of our neighbors to our guard cells, since we only read
+         * from the guard cells but never write to it.
+         * guardingCells holds the number of guard(super)cells in each dimension
+         */
+        Space guardingCells(1, 1);
         for (uint32_t i = 1; i < traits::NumberOfExchanges<DIM2>::value; ++i)
         {
             /* to check which number corresponds to which direction, you can  *
@@ -146,8 +175,8 @@ public:
              *    4:up right(1,1), 5:(-1,1), 6:(0,-1), 7:(1,-1), 8:(-1,-1)    */
 
             /* types.hpp: enum CommunicationTags{ BUFF1 = 0u, BUFF2 = 1u };   */
-            buff1->addExchange(GUARD, Mask(i), gardingCells, BUFF1);
-            buff2->addExchange(GUARD, Mask(i), gardingCells, BUFF2);
+            buff1->addExchange(GUARD, Mask(i), guardingCells, BUFF1);
+            buff2->addExchange(GUARD, Mask(i), guardingCells, BUFF2);
         }
 
          /* Both next lines are defined in GatherSlice.hpp:                   *
@@ -182,8 +211,8 @@ private:
     {
         PMACC_AUTO(splitEvent, __getTransactionEvent());
         /* GridBuffer 'read' will use 'splitEvent' to schedule transaction    *
-         * tasks from the Guard of this local Area to the Borders of the      *
-         * neighboring areas added by 'addExchange'. All transactions in      *
+         * tasks from the Borders of the neighboring areas to the Guards of   *
+         * this local Area added by 'addExchange'. All transactions in        *
          * Transaction Manager will then be done in parallel to the           *
          * calculations in the core. In order to synchronize the data         *
          * transfer for the case the core calculation is finished earlier,    *

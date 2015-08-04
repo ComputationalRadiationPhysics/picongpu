@@ -90,7 +90,9 @@ struct GatherSlice
     }
 
     /*
-     * @return true if object has reduced data after reduce call else false
+     * Saves the message header and creates a new MPI group with all ranks
+     * that called this with isActive = true
+     * @return true if the current rank is the master of the new MPI group
      */
     bool init(const MessageHeader mHeader, bool isActive)
     {
