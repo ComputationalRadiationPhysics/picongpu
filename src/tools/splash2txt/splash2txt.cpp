@@ -1,5 +1,6 @@
 /*
- * Copyright 2013-2014 Felix Schmitt, Axel Huebl, Rene Widera
+ * Copyright 2013-2015 Felix Schmitt, Axel Huebl, Rene Widera,
+ *                     Alexander Grund
  *
  * This file is part of splash2txt.
  *
@@ -36,7 +37,6 @@ const char* allowedReverseSlices[numAllowedSlices] = { "yx", "zx", "zy" };
 std::ostream &errorStream  = std::cerr;
 
 bool parseOptions( int argc, char** argv, ProgramOptions &options )
-throw (std::runtime_error )
 {
     try
     {
