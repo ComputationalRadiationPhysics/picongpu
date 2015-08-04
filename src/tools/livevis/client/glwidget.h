@@ -40,7 +40,7 @@ public:
     explicit GLWidget(QWidget *parent = 0);
     ~GLWidget();
 
-    void update_image(uint width, uint height, const void * pixel_data);
+    void update_image(uint32_t width, uint32_t height, const void * pixel_data);
 
     void set_background_color(float r, float g, float b);
 
