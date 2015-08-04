@@ -41,7 +41,14 @@ using namespace PMacc;
 struct GatherSlice
 {
 
-    GatherSlice() : mpiRank(-1), numRanks(0), filteredData(NULL), comm(MPI_COMM_NULL), fullData(NULL), isMPICommInitialized(false)
+    GatherSlice() :
+        mpiRank(-1),
+        numRanks(0),
+        filteredData(NULL),
+        comm(MPI_COMM_NULL),
+        fullData(NULL),
+        masterRank(0),
+        isMPICommInitialized(false)
     {
     }
 
@@ -55,7 +62,9 @@ struct GatherSlice
      */
     bool init(bool isActive)
     {
-        /*free old communicator of init is called again*/
+        static int masterRankOffset = 0;
+
+        /* free old communicator if `init()` is called again */
         if (isMPICommInitialized)
         {
             reset();
@@ -94,7 +103,13 @@ struct GatherSlice
         MPI_CHECK(MPI_Group_free(&group));
         MPI_CHECK(MPI_Group_free(&newgroup));
 
-        return mpiRank == 0;
+        masterRankOffset++;
+        /* avoid that only rank zero is the master
+         * this reduces the load of rank zero
+         */
+        masterRank = (masterRankOffset % numRanks);
+
+        return mpiRank == masterRank;
     }
 
     template<class Box >
@@ -114,12 +129,12 @@ struct GatherSlice
 
         char* recvHeader = new char[ MessageHeader::bytes * numRanks];
 
-        if (fullData == NULL && mpiRank == 0)
+        if (fullData == NULL && mpiRank == masterRank)
             fullData = (char*) new ValueType[header.sim.size.productOfComponents()];
 
 
         MPI_CHECK(MPI_Gather(fakeHeader, MessageHeader::bytes, MPI_CHAR, recvHeader, MessageHeader::bytes,
-                             MPI_CHAR, 0, comm));
+                             MPI_CHAR, masterRank, comm));
 
         std::vector<int> counts(numRanks);
         std::vector<int> displs(numRanks);
@@ -137,11 +152,11 @@ struct GatherSlice
         MPI_CHECK(MPI_Gatherv(
                               (char*) (data.getPointer()), elementsCount, MPI_CHAR,
                               fullData, &counts[0], &displs[0], MPI_CHAR,
-                              0, comm));
+                              masterRank, comm));
 
 
 
-        if (mpiRank == 0)
+        if (mpiRank == masterRank)
         {
             log<picLog::DOMAINS > ("Master create image");
             if (filteredData == NULL)
@@ -216,6 +231,7 @@ private:
     MPI_Comm comm;
     int mpiRank;
     int numRanks;
+    int masterRank;
     bool isMPICommInitialized;
 };
 
