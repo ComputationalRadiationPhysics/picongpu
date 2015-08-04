@@ -27,6 +27,7 @@
 #include "nvidia/rng/methods/Xor.hpp"
 #include "nvidia/rng/distributions/Uniform_float.hpp"
 #include "mpi/SeedPerRank.hpp"
+#include "traits/GetUniqueTypeId.hpp"
 
 namespace picongpu
 {
@@ -51,7 +52,7 @@ struct RandomImpl
         typedef typename SpeciesType::FrameType FrameType;
 
         mpi::SeedPerRank<simDim> seedPerRank;
-        seed = seedPerRank(GlobalSeed()(), FrameType::CommunicationTag);
+        seed = seedPerRank(GlobalSeed()(), PMacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid());
         seed ^= POSITION_SEED;
 
         const uint32_t numSlides = MovingWindow::getInstance( ).getSlideCounter( currentStep );

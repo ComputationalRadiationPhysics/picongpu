@@ -26,6 +26,7 @@
 #include "nvidia/rng/methods/Xor.hpp"
 #include "nvidia/rng/distributions/Uniform_float.hpp"
 #include "mpi/SeedPerRank.hpp"
+#include "traits/GetUniqueTypeId.hpp"
 
 namespace picongpu
 {
@@ -50,7 +51,7 @@ struct RandomPositionImpl
 
         GlobalSeed globalSeed;
         mpi::SeedPerRank<simDim> seedPerRank;
-        seed = seedPerRank(globalSeed(), FrameType::CommunicationTag);
+        seed = seedPerRank(globalSeed(), PMacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid());
         seed ^= POSITION_SEED ^ currentStep;
 
         const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();

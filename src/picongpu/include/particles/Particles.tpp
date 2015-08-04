@@ -49,6 +49,7 @@
 
 #include "fields/numericalCellTypes/YeeCell.hpp"
 
+#include "traits/GetUniqueTypeId.hpp"
 #include "traits/Resolve.hpp"
 
 namespace picongpu
@@ -72,7 +73,9 @@ datasetID( datasetID )
 
     log<picLog::MEMORY > ( "size for all exchange = %1% MiB" ) % ( (float_64) sizeOfExchanges / 1024. / 1024. );
 
-    const uint32_t commTag = FrameType::CommunicationTag + SPECIES_FIRSTTAG;
+    const uint32_t commTag = PMacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid() + SPECIES_FIRSTTAG;
+    log<picLog::MEMORY > ( "communication tag for species %1%: %2%" ) % FrameType::getName( ) % commTag;
+
     this->particlesBuffer->addExchange( Mask( LEFT ) + Mask( RIGHT ),
                                         BYTES_EXCHANGE_X,
                                         commTag);
