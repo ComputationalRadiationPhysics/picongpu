@@ -66,7 +66,7 @@ __global__ void kernelIntensity(FieldBox field, DataSpace<simDim> cellsCount, Bo
         PMacc::math::CT::Int<SuperCellSize::x::value,SuperCellSize::y::value>
         > SuperCell2D;
 
-    PMACC_AUTO(s_field, CachedBox::create < 0, float> (SuperCell2D()));
+    PMACC_AUTO(s_field, CachedBox::create < 0, float_32> (SuperCell2D()));
 
     int y = blockIdx.y * SuperCellSize::y::value + threadIdx.y;
     int yGlobal = y + SuperCellSize::y::value;
@@ -120,8 +120,8 @@ private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
 
 
-    GridBuffer<float, DIM1> *localMaxIntensity;
-    GridBuffer<float, DIM1> *localIntegratedIntensity;
+    GridBuffer<float_32, DIM1> *localMaxIntensity;
+    GridBuffer<float_32, DIM1> *localIntegratedIntensity;
     MappingDesc *cellDescription;
     uint32_t notifyFrequency;
 
@@ -187,8 +187,8 @@ private:
             writeToFile = Environment<simDim>::get().GridController().getGlobalRank() == 0;
             int yCells = cellDescription->getGridLayout().getDataSpaceWithoutGuarding().y();
 
-            localMaxIntensity = new GridBuffer<float, DIM1 > (DataSpace<DIM1 > (yCells)); //create one int on gpu und host
-            localIntegratedIntensity = new GridBuffer<float, DIM1 > (DataSpace<DIM1 > (yCells)); //create one int on gpu und host
+            localMaxIntensity = new GridBuffer<float_32, DIM1 > (DataSpace<DIM1 > (yCells)); //create one int on gpu und host
+            localIntegratedIntensity = new GridBuffer<float_32, DIM1 > (DataSpace<DIM1 > (yCells)); //create one int on gpu und host
 
             if (writeToFile)
             {
@@ -237,12 +237,12 @@ private:
         DataSpace<simDim> globalRootCell(subGrid.getLocalDomain().offset);
         int yOffset = globalRootCell.y();
         int* yOffsetsAll = new int[gpus];
-        float* maxAll = new float[yGlobalSize];
-        float* maxAllTmp = new float[yLocalSize * gpus];
-        memset(maxAll, 0, sizeof (float) *yGlobalSize);
-        float* integretedAll = new float[yGlobalSize];
-        float* integretedAllTmp = new float[yLocalSize * gpus];
-        memset(integretedAll, 0, sizeof (float) *yGlobalSize);
+        float_32* maxAll = new float_32[yGlobalSize];
+        float_32* maxAllTmp = new float_32[yLocalSize * gpus];
+        memset(maxAll, 0, sizeof (float_32) *yGlobalSize);
+        float_32* integretedAll = new float_32[yGlobalSize];
+        float_32* integretedAllTmp = new float_32[yLocalSize * gpus];
+        memset(integretedAll, 0, sizeof (float_32) *yGlobalSize);
 
         MPI_CHECK(MPI_Gather(&yOffset, 1, MPI_INT, yOffsetsAll, 1,
                              MPI_INT, 0, MPI_COMM_WORLD));

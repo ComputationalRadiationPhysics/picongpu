@@ -501,7 +501,7 @@ public:
 
         /* <0 sec: wait forever
          * >=0 sec: return immediately if stream is not available */
-        float timeout = 0.0f;
+        float_32 timeout = 0.0f;
         mThreadParams.fp = adios_read_open(strFname.str().c_str(),
                         ADIOS_READ_METHOD_BP, mThreadParams.adiosComm,
                         ADIOS_LOCKMODE_CURRENT, timeout);
@@ -614,7 +614,7 @@ private:
         mThreadParams.adiosFileHandle = ADIOS_INVALID_HANDLE;
 
         mThreadParams.fieldBfr = NULL;
-        mThreadParams.fieldBfr = new float[mThreadParams.window.localDimensions.size.productOfComponents()];
+        mThreadParams.fieldBfr = new float_32[mThreadParams.window.localDimensions.size.productOfComponents()];
 
         std::stringstream adiosPathBase;
         adiosPathBase << ADIOS_PATH_ROOT << mThreadParams.currentStep << "/";
@@ -784,7 +784,7 @@ private:
                         size_t index_src = base_index_src + (x + field_guard[0]) * nComponents + d;
                         size_t index_dst = base_index_dst + x;
 
-                        params->fieldBfr[index_dst] = ((float*)ptr)[index_src];
+                        params->fieldBfr[index_dst] = ((float_32*)ptr)[index_src];
                     }
                 }
             }

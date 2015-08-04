@@ -54,7 +54,7 @@ struct MessageHeader
                 picongpu::Window vWindow,
                 Size2D transpose,
                 uint32_t currentStep,
-                float* cellSizeArr = NULL,
+                picongpu::float_32* cellSizeArr = NULL,
                 const PMacc::DataSpace<CellDesc::Dim> gpus = PMacc::DataSpace<CellDesc::Dim > ())
     {
         using namespace PMacc;
@@ -85,13 +85,13 @@ struct MessageHeader
 
         if (cellSizeArr != NULL)
         {
-            float scale[2];
+            picongpu::float_32 scale[2];
             scale[0] = cellSizeArr[transpose.x()];
             scale[1] = cellSizeArr[transpose.y()];
             sim.cellSizeArr[0] = cellSizeArr[transpose.x()];
             sim.cellSizeArr[1] = cellSizeArr[transpose.y()];
 
-            const float scale0to1 = scale[0] / scale[1];
+            const picongpu::float_32 scale0to1 = scale[0] / scale[1];
 
             if (scale0to1 > 1.0f)
             {

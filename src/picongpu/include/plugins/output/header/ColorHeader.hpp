@@ -41,7 +41,7 @@ struct ColorHeader
         /// assign a unit to the range values
         std::string unitName;
         /// min/max real values for 0 and 255
-        float range[2];
+        picongpu::float_32 range[2];
     };
 
     channel particles;
@@ -64,7 +64,7 @@ struct ColorHeader
         channel3.range[1] = 0.f;
     }
 
-    //void setScale(float x, float y)
+    //void setScale(picongpu::float_32 x, picongpu::float_32 y)
     //{
     //    scale[0] = x;
     //    scale[1] = y;

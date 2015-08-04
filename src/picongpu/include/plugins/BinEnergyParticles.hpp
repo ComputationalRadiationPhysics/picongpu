@@ -155,7 +155,7 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
 
                 /* +1 move value from 1 to numBins+1 */
                 int binNumber = math::floor((_local_energy - minEnergy) /
-                                      (maxEnergy - minEnergy) * (float) numBins) + 1;
+                                      (maxEnergy - minEnergy) * (float_32) numBins) + 1;
 
                 const int maxBin = numBins + 1;
 
@@ -301,9 +301,9 @@ private:
         {
             /* create header of the file */
             outFile << "#step <" << minEnergy_keV << " ";
-            float_X binEnergy = (maxEnergy_keV - minEnergy_keV) / (float) numBins;
+            float_X binEnergy = (maxEnergy_keV - minEnergy_keV) / (float_32) numBins;
             for (int i = 1; i < realNumBins - 1; ++i)
-                outFile << minEnergy_keV + ((float) i * binEnergy) << " ";
+                outFile << minEnergy_keV + ((float_32) i * binEnergy) << " ";
 
             outFile << ">" << maxEnergy_keV << " count" << std::endl;
         }

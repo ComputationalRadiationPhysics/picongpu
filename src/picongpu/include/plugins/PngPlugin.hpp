@@ -77,7 +77,7 @@ namespace picongpu
             desc.add_options()
                     ((analyzerPrefix + ".period").c_str(), po::value<std::vector<uint32_t> > (&notifyFrequencys)->multitoken(), "enable data output [for each n-th step]")
                     ((analyzerPrefix + ".axis").c_str(), po::value<std::vector<std::string > > (&axis)->multitoken(), "axis which are shown [valid values x,y,z] example: yz")
-                    ((analyzerPrefix + ".slicePoint").c_str(), po::value<std::vector<float> > (&slicePoints)->multitoken(), "value range: 0 <= x <= 1 , point of the slice")
+                    ((analyzerPrefix + ".slicePoint").c_str(), po::value<std::vector<float_32> > (&slicePoints)->multitoken(), "value range: 0 <= x <= 1 , point of the slice")
                     ((analyzerPrefix + ".folder").c_str(), po::value<std::vector<std::string> > (&folders)->multitoken(), "folder for output files");
         }
 
@@ -206,7 +206,7 @@ namespace picongpu
         std::string analyzerPrefix;
 
         std::vector<uint32_t> notifyFrequencys;
-        std::vector<float> slicePoints;
+        std::vector<float_32> slicePoints;
         std::vector<std::string> folders;
         std::vector<std::string> axis;
         VisPointerList visIO;

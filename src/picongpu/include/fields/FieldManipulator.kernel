@@ -63,11 +63,11 @@ DINLINE void absorb(BoxedMemory field, uint32_t thickness, float_X absorber_stre
         {
             if (direction[pos] < 0)
             {
-                factor = (float) (MappingDesc::SuperCellSize::toRT()[pos] + thickness - cell[pos] - 1);
+                factor = (float_32) (MappingDesc::SuperCellSize::toRT()[pos] + thickness - cell[pos] - 1);
             }
             else
             {
-                factor = (float) ((MappingDesc::SuperCellSize::toRT()[pos] + cell[pos]) - gCells[pos] + thickness);
+                factor = (float_32) ((MappingDesc::SuperCellSize::toRT()[pos] + cell[pos]) - gCells[pos] + thickness);
             }
 
         }

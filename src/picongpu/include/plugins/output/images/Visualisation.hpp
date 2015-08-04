@@ -484,7 +484,7 @@ public:
         Window window(MovingWindow::getInstance().getWindow(currentStep));
 
         /*sliceOffset is only used in 3D*/
-        sliceOffset = (int) ((float) (window.globalDimensions.size[sliceDim]) * slicePoint) + window.globalDimensions.offset[sliceDim];
+        sliceOffset = (int) ((float_32) (window.globalDimensions.size[sliceDim]) * slicePoint) + window.globalDimensions.offset[sliceDim];
 
         if (!doDrawing())
         {
@@ -613,7 +613,7 @@ public:
             const DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
 
             Window window(MovingWindow::getInstance().getWindow(0));
-            sliceOffset = (int) ((float) (window.globalDimensions.size[sliceDim]) * slicePoint) + window.globalDimensions.offset[sliceDim];
+            sliceOffset = (int) ((float_32) (window.globalDimensions.size[sliceDim]) * slicePoint) + window.globalDimensions.offset[sliceDim];
 
 
             const DataSpace<simDim> gpus = Environment<simDim>::get().GridController().getGpuNodes();
