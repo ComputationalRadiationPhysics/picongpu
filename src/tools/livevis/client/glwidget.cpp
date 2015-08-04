@@ -48,7 +48,7 @@ GLWidget::~GLWidget()
     }
 }
 
-void GLWidget::update_image(uint width, uint height, const void * pixel_data)
+void GLWidget::update_image(uint32_t width, uint32_t height, const void * pixel_data)
 {
     if ((width <= 0) || (height <= 0))
         return;

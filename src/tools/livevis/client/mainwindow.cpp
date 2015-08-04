@@ -112,7 +112,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_simulationGallery, SIGNAL(connect_to(QString)), this, SLOT(connectToURI(QString)));
 
     /// enable steering of simulation by interaction with mouse and keyboard
-    connect(ui->centralWidget, SIGNAL(send_message(uint,uint,const void*)), this, SLOT(sendMessage(uint,uint,const void*)));
+    connect(ui->centralWidget, SIGNAL(send_message(uint32_t,uint32_t,const void*)), this, SLOT(sendMessage(uint32_t,uint32_t,const void*)));
 
     /// add received data sources to the list of available ones
     connect(this, SIGNAL(on_received_datasource(QString)), this, SLOT(received_datasource(QString)));
