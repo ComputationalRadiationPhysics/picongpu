@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2015 Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2015 Rene Widera, Benjamin Worpitz, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -30,6 +30,7 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <stdint.h>
 
 namespace PMacc
 {
