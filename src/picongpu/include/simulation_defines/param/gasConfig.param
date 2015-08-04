@@ -250,7 +250,6 @@ struct FreeFormulaFunctor
      *
      * @return float_X density [normalized to 1.0]
      */
-    template<class cellSizeType>
     HDINLINE float_X operator()(const floatD_64& position_SI, const floatD_64& cellSize_SI)
     {
         const float_64 y( position_SI.y() * 1000.0 ); // m -> mm
