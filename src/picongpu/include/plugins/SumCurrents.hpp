@@ -134,9 +134,9 @@ public:
                                    gCurrent.z() * CELL_WIDTH * CELL_HEIGHT);
 #endif
         float3_64 realCurrent_SI(
-                                 double(realCurrent.x()) * (UNIT_CHARGE / UNIT_TIME),
-                                 double(realCurrent.y()) * (UNIT_CHARGE / UNIT_TIME),
-                                 double(realCurrent.z()) * (UNIT_CHARGE / UNIT_TIME));
+                                 float_64(realCurrent.x()) * (UNIT_CHARGE / UNIT_TIME),
+                                 float_64(realCurrent.y()) * (UNIT_CHARGE / UNIT_TIME),
+                                 float_64(realCurrent.z()) * (UNIT_CHARGE / UNIT_TIME));
 
         /*FORMAT OUTPUT*/
         typedef std::numeric_limits< float_64 > dbl;

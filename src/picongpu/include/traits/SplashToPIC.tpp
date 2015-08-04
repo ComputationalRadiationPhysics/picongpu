@@ -48,7 +48,7 @@ namespace traits
     template<>
     struct SplashToPIC<splash::ColTypeDouble>
     {
-        typedef double type;
+        typedef float_64 type;
     };
 
     /** Trait for splash::ColTypeInt */

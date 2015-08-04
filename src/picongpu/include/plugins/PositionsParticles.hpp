@@ -65,7 +65,7 @@ struct SglParticle
         for(uint32_t i=0;i<simDim;++i)
             doubleGlobalCellOffset[i]=float_64(globalCellOffset[i]);
 
-        return floatD_64( doubleGlobalCellOffset+ precisionCast<float_64>(position));
+        return floatD_64( doubleGlobalCellOffset + precisionCast<float_64>(position));
     }
 
     template<typename T>
@@ -207,7 +207,7 @@ public:
         /*FORMAT OUTPUT*/
         if (positionParticle.mass != float_X(0.0))
             std::cout << "[ANALYSIS] [" << rank << "] [COUNTER] [" << analyzerPrefix << "] [" << currentStep << "] "
-            << std::setprecision(16) << double(currentStep) * SI::DELTA_T_SI << " "
+            << std::setprecision(16) << float_64(currentStep) * SI::DELTA_T_SI << " "
             << positionParticle << "\n"; // no flush
     }
 

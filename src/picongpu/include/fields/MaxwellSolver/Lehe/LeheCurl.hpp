@@ -225,7 +225,7 @@ namespace picongpu
                 const float_X d_dir2 = d_dir * d_dir;
 
                 /** \todo all constants, calculate once at CPU and use as parameter
-                 *  \todo cast to double to force high-precision sinus
+                 *  \todo cast to float_64 to force high-precision sinus
                  */
                 const float_X mySin = math::sin( float_X( 0.5 ) * float_X( M_PI ) *
                                                  SPEED_OF_LIGHT * DELTA_T / d_dir );

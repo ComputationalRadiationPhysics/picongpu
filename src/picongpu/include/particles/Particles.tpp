@@ -70,7 +70,7 @@ datasetID( datasetID )
 
     this->particlesBuffer = new BufferType( gridLayout.getDataSpace( ), gridLayout.getGuard( ) );
 
-    log<picLog::MEMORY > ( "size for all exchange = %1% MiB" ) % ( (double) sizeOfExchanges / 1024. / 1024. );
+    log<picLog::MEMORY > ( "size for all exchange = %1% MiB" ) % ( (float_64) sizeOfExchanges / 1024. / 1024. );
 
     const uint32_t commTag = FrameType::CommunicationTag + SPECIES_FIRSTTAG;
     this->particlesBuffer->addExchange( Mask( LEFT ) + Mask( RIGHT ),

@@ -213,7 +213,7 @@ private:
                 log<picLog::CRITICAL > ("maximum number of  particles on a GPU : %d\n") % reducedValueMax;
             }
 
-            outFile << currentStep << " " << reducedValue << " " << std::scientific << (double) reducedValue << std::endl;
+            outFile << currentStep << " " << reducedValue << " " << std::scientific << (float_64) reducedValue << std::endl;
         }
     }
 

@@ -63,39 +63,39 @@ namespace picongpu
          */
         HINLINE float3_X laserLongitudinal( uint32_t currentStep, float_X& phase )
         {
-            const double runTime = DELTA_T*currentStep;
-            const double f = SPEED_OF_LIGHT / WAVE_LENGTH;
+            const float_64 runTime = DELTA_T*currentStep;
+            const float_64 f = SPEED_OF_LIGHT / WAVE_LENGTH;
 
-            double envelope = double(AMPLITUDE );
+            float_64 envelope = float_64(AMPLITUDE );
             float3_X elong(float3_X::create(0.0));
 
-            const double mue = 0.5 * RAMP_INIT * PULSE_LENGTH;
+            const float_64 mue = 0.5 * RAMP_INIT * PULSE_LENGTH;
 
-            const double w = 2.0 * PI * f;
-            const double tau = PULSE_LENGTH * sqrt( 2.0 );
+            const float_64 w = 2.0 * PI * f;
+            const float_64 tau = PULSE_LENGTH * sqrt( 2.0 );
 
-            const double endUpramp = mue;
-            const double startDownramp = mue + LASER_NOFOCUS_CONSTANT;
+            const float_64 endUpramp = mue;
+            const float_64 startDownramp = mue + LASER_NOFOCUS_CONSTANT;
 
-            double integrationCorrectionFactor = 0.0;
+            float_64 integrationCorrectionFactor = 0.0;
 
             if( runTime > startDownramp )
             {
                 // downramp = end
-                const double exponent = (runTime - startDownramp) / tau;
+                const float_64 exponent = (runTime - startDownramp) / tau;
                 envelope *= exp( -0.5 * exponent * exponent );
                 integrationCorrectionFactor = ( runTime - startDownramp )/ (w*tau*tau);
             }
             else if ( runTime < endUpramp )
             {
                 // upramp = start
-                const double exponent = (runTime - endUpramp) / tau;
+                const float_64 exponent = (runTime - endUpramp) / tau;
                 envelope *= exp( -0.5 * exponent * exponent );
                 integrationCorrectionFactor = ( runTime - endUpramp )/ (w*tau*tau);
             }
 
-            const double timeOszi = runTime - endUpramp;
-            const double t_and_phase = w * timeOszi + LASER_PHASE;
+            const float_64 timeOszi = runTime - endUpramp;
+            const float_64 t_and_phase = w * timeOszi + LASER_PHASE;
             // to understand both components [sin(...) + t/tau^2 * cos(...)] see description above
             if( Polarisation == LINEAR_X )
             {

@@ -277,7 +277,7 @@ private:
                       UNIT_EFIELD
                       );
 
-            double unit=UNIT_EFIELD*CELL_VOLUME*SI::EPS0_SI;
+            float_64 unit=UNIT_EFIELD*CELL_VOLUME*SI::EPS0_SI;
             for(uint32_t i=0;i<simDim;++i)
                 unit*=UNIT_LENGTH;
 
@@ -307,7 +307,7 @@ private:
      * @param stream destination stream
      * @param unit unit to scale values from pic units to si units
      */
-    void writeFile(size_t currentStep, float* array, size_t count, size_t physicalYOffset, std::ofstream& stream, double unit)
+    void writeFile(size_t currentStep, float* array, size_t count, size_t physicalYOffset, std::ofstream& stream, float_64 unit)
     {
         stream << currentStep << " ";
         for (size_t i = 0; i < count; ++i)
@@ -317,7 +317,7 @@ private:
         stream << std::endl << currentStep << " ";
         for (size_t i = 0; i < count; ++i)
         {
-            stream << sqrt((double) (array[i])) * unit << " ";
+            stream << sqrt((float_64) (array[i])) * unit << " ";
         }
         stream << std::endl;
     }

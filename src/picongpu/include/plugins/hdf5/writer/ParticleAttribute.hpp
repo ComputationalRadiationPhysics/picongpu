@@ -78,7 +78,7 @@ struct ParticleAttribute
         SplashType splashType;
         const std::string name_lookup[] = {"x", "y", "z"};
 
-        std::vector<double> unit = Unit<T_Identifier>::get();
+        std::vector<float_64> unit = Unit<T_Identifier>::get();
 
         /* globalSlideOffset due to gpu slides between origin at time step 0
          * and origin at current time step

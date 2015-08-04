@@ -43,9 +43,9 @@ namespace traits
         typedef splash::ColTypeFloat type;
     };
 
-    /** Trait for double */
+    /** Trait for float_64 */
     template<>
-    struct PICToSplash<double>
+    struct PICToSplash<float_64>
     {
         typedef splash::ColTypeDouble type;
     };

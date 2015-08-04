@@ -299,11 +299,11 @@ namespace twts
         typedef PMacc::math::Complex<float_T> complex_T;
         typedef PMacc::math::Complex<float_64> complex_64;
         /* Unit of speed */
-        const double UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
+        const float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
         /* Unit of time */
-        const double UNIT_TIME = SI::DELTA_T_SI;
+        const float_64 UNIT_TIME = SI::DELTA_T_SI;
         /* Unit of length */
-        const double UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
+        const float_64 UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
 
         /* Propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
         const float_T beta0 = float_T(beta_0);
@@ -447,11 +447,11 @@ namespace twts
     {
         typedef PMacc::math::Complex<float_T> complex_T;
         /** Unit of Speed */
-        const double UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
+        const float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
         /** Unit of time */
-        const double UNIT_TIME = SI::DELTA_T_SI;
+        const float_64 UNIT_TIME = SI::DELTA_T_SI;
         /** Unit of length */
-        const double UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
+        const float_64 UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
 
         /* propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
         const float_T beta0 = float_T(beta_0);
@@ -568,11 +568,11 @@ namespace twts
         typedef PMacc::math::Complex<float_T> complex_T;
         typedef PMacc::math::Complex<float_64> complex_64;
         /** Unit of speed */
-        const double UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
+        const float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
         /** Unit of time */
-        const double UNIT_TIME = SI::DELTA_T_SI;
+        const float_64 UNIT_TIME = SI::DELTA_T_SI;
         /** Unit of length */
-        const double UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
+        const float_64 UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
 
         /* Propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
         const float_T beta0 = float_T(beta_0);

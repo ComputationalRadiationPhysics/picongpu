@@ -49,24 +49,24 @@ HINLINE float3_X laserLongitudinal(uint32_t currentStep, float_X& phase)
     // a time of RAMP_INIT * PULSE_LENGTH + LASER_NOFOCUS_CONSTANT = INIT_TIME.
     // we shift the complete pulse for the half of this time to start with
     // the front of the laser pulse.
-    const double mue = 0.5 * INIT_TIME;
+    const float_64 mue = 0.5 * INIT_TIME;
 
-    const double runTime = DELTA_T*currentStep - mue;
-    const double f = SPEED_OF_LIGHT / WAVE_LENGTH;
+    const float_64 runTime = DELTA_T*currentStep - mue;
+    const float_64 f = SPEED_OF_LIGHT / WAVE_LENGTH;
 
-    const double w = 2.0 * PI * f;
+    const float_64 w = 2.0 * PI * f;
 
-    const double endUpramp = -0.5 * LASER_NOFOCUS_CONSTANT;
-    const double startDownramp = 0.5 * LASER_NOFOCUS_CONSTANT;
+    const float_64 endUpramp = -0.5 * LASER_NOFOCUS_CONSTANT;
+    const float_64 startDownramp = 0.5 * LASER_NOFOCUS_CONSTANT;
 
-    const double tau = PULSE_LENGTH * sqrt(2.0);
+    const float_64 tau = PULSE_LENGTH * sqrt(2.0);
 
-    double correctionFactor = 0.0;
+    float_64 correctionFactor = 0.0;
 
     if (runTime > startDownramp)
     {
         // downramp = end
-        const double exponent =
+        const float_64 exponent =
             ((runTime - startDownramp)
              / PULSE_LENGTH / sqrt(2.0));
         envelope *= math::exp(-0.5 * exponent * exponent);
@@ -75,7 +75,7 @@ HINLINE float3_X laserLongitudinal(uint32_t currentStep, float_X& phase)
     else if(runTime < endUpramp)
     {
         // upramp = start
-        const double exponent = ((runTime - endUpramp) / PULSE_LENGTH / sqrt(2.0));
+        const float_64 exponent = ((runTime - endUpramp) / PULSE_LENGTH / sqrt(2.0));
         envelope *= math::exp(-0.5 * exponent * exponent);
         correctionFactor = (runTime - endUpramp)/(tau*tau*w);
     }

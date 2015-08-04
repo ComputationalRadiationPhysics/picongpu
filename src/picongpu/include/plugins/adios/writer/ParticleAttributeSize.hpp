@@ -70,7 +70,7 @@ struct ParticleAttributeSize
         AdiosType adiosType;
         const std::string name_lookup[] = {"x", "y", "z"};
 
-        std::vector<double> unit = Unit<Identifier>::get();
+        std::vector<float_64> unit = Unit<Identifier>::get();
 
         for (uint32_t d = 0; d < components; d++)
         {

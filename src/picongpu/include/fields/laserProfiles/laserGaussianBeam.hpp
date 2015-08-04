@@ -40,8 +40,8 @@ namespace picongpu
          */
         HINLINE float3_X laserLongitudinal( uint32_t currentStep, float_X& phase )
         {
-            const double runTime = DELTA_T*currentStep;
-            const double f = SPEED_OF_LIGHT / WAVE_LENGTH;
+            const float_64 runTime = DELTA_T*currentStep;
+            const float_64 f = SPEED_OF_LIGHT / WAVE_LENGTH;
 
             float3_X elong(float3_X::create(0.0));
 
@@ -49,15 +49,15 @@ namespace picongpu
             // a time of PULSE_INIT * PULSE_LENGTH = INIT_TIME.
             // we shift the complete pulse for the half of this time to start with
             // the front of the laser pulse.
-            const double mue = 0.5 * INIT_TIME;
+            const float_64 mue = 0.5 * INIT_TIME;
 
             //rayleigh length (in y-direction)
-            const double y_R = PI * W0 * W0 / WAVE_LENGTH;
+            const float_64 y_R = PI * W0 * W0 / WAVE_LENGTH;
             //gaussian beam waist in the nearfield: w_y(y=0) == W0
-            const double w_y = W0 * sqrt( 1.0 + ( FOCUS_POS / y_R )*( FOCUS_POS / y_R ) );
+            const float_64 w_y = W0 * sqrt( 1.0 + ( FOCUS_POS / y_R )*( FOCUS_POS / y_R ) );
 
 
-            const double envelope = double( AMPLITUDE ) * double( W0 ) / w_y;
+            const float_64 envelope = float_64( AMPLITUDE ) * float_64( W0 ) / w_y;
 
 
             if( Polarisation == LINEAR_X )

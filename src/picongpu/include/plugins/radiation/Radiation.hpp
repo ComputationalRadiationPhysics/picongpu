@@ -543,7 +543,7 @@ private:
 
       HDF5dataFile.open(filename.str().c_str(), fAttr);
 
-      typename PICToSplash<double>::type radSplashType;
+      typename PICToSplash<float_64>::type radSplashType;
 
 
       splash::Dimensions bufferSize(Amplitude::numComponents,
@@ -625,7 +625,7 @@ private:
       {
           HDF5dataFile.open(filename.str().c_str(), fAttr);
 
-          typename PICToSplash<double>::type radSplashType;
+          typename PICToSplash<float_64>::type radSplashType;
 
           splash::Dimensions componentSize(1,
                                            radiation_frequencies::N_omega,
@@ -643,7 +643,7 @@ private:
 
               for(int copyIndex = 0; copyIndex < N_tmpBuffer; ++copyIndex)
               {
-                  /* convert data directly because Amplutude is just 6 double */
+                  /* convert data directly because Amplutude is just 6 float_64 */
                   ((picongpu::float_64*)values)[ampIndex + Amplitude::numComponents*copyIndex] = tmpBuffer[copyIndex];
               }
 

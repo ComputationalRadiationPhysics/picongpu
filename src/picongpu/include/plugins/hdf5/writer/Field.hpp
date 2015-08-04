@@ -42,7 +42,7 @@ struct Field
     template<typename T_ValueType, typename T_DataBoxType>
     static void writeField(ThreadParams *params,
                            const std::string name,
-                           std::vector<double> unit,
+                           std::vector<float_64> unit,
                            T_DataBoxType dataBox,
                            const T_ValueType&
                            )

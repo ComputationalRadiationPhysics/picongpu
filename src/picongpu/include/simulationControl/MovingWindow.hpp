@@ -43,7 +43,7 @@ private:
 
     MovingWindow(MovingWindow& cc);
 
-    void getCurrentSlideInfo(uint32_t currentStep, bool *doSlide, double *offsetFirstGPU)
+    void getCurrentSlideInfo(uint32_t currentStep, bool *doSlide, float_64 *offsetFirstGPU)
     {
         if (doSlide)
             *doSlide = false;
@@ -56,19 +56,19 @@ private:
             subGrid.getGlobalDomain().size.y() - subGrid.getLocalDomain().size.y() * slidingWindowActive;
 
         const uint32_t devices_y = Environment<simDim>::get().GridController().getGpuNodes().y();
-        const double cell_height = (double) CELL_HEIGHT;
-        const double light_way_per_step = ((double) SPEED_OF_LIGHT * (double) DELTA_T);
-        double stepsInFuture_tmp = (windowGlobalDimY * cell_height / light_way_per_step) * (1.0 - slide_point);
+        const float_64 cell_height = (float_64) CELL_HEIGHT;
+        const float_64 light_way_per_step = ((float_64) SPEED_OF_LIGHT * (float_64) DELTA_T);
+        float_64 stepsInFuture_tmp = (windowGlobalDimY * cell_height / light_way_per_step) * (1.0 - slide_point);
         uint32_t stepsInFuture = ceil(stepsInFuture_tmp);
         /* later used to calculate smoother offsets */
-        double stepsInFutureAfterComma = stepsInFuture_tmp - (double) stepsInFuture;
+        float_64 stepsInFutureAfterComma = stepsInFuture_tmp - (float_64) stepsInFuture;
 
         /* round to nearest step so we get smaller sliding dfference
          * this is valid if we activate sliding window because y direction has
          * the same size for all gpus
          */
         const uint32_t stepsPerGPU = (uint32_t) math::floor(
-                                                            (double) (subGrid.getLocalDomain().size.y() * cell_height) / light_way_per_step + 0.5);
+                                                            (float_64) (subGrid.getLocalDomain().size.y() * cell_height) / light_way_per_step + 0.5);
         const uint32_t firstSlideStep = stepsPerGPU * devices_y - stepsInFuture;
         const uint32_t firstMoveStep = stepsPerGPU * (devices_y - 1) - stepsInFuture;
 
@@ -86,7 +86,7 @@ private:
             /* round to nearest cell to have smoother offset jumps */
             if (offsetFirstGPU)
             {
-                *offsetFirstGPU = math::floor(((double) stepsInLastGPU + stepsInFutureAfterComma) *
+                *offsetFirstGPU = math::floor(((float_64) stepsInLastGPU + stepsInFutureAfterComma) *
                                               light_way_per_step / cell_height + 0.5);
             }
         }
@@ -228,7 +228,7 @@ public:
 
         if (slidingWindowActive)
         {
-            double offsetFirstGPU = 0.0;
+            float_64 offsetFirstGPU = 0.0;
             getCurrentSlideInfo(currentStep, NULL, &offsetFirstGPU);
 
             /* global offset is all 0 except for y dimension */

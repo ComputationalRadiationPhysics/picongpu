@@ -142,9 +142,9 @@ class ADIOSWriter : public ILightweightPlugin
 private:
 
     template<typename UnitType>
-    static std::vector<double> createUnit(UnitType unit, uint32_t numComponents)
+    static std::vector<float_64> createUnit(UnitType unit, uint32_t numComponents)
     {
-        std::vector<double> tmp(numComponents);
+        std::vector<float_64> tmp(numComponents);
         for (uint32_t i = 0; i < numComponents; ++i)
             tmp[i] = unit[i];
         return tmp;
@@ -264,7 +264,7 @@ private:
 
     static void defineFieldVar(ThreadParams* params,
         uint32_t nComponents, ADIOS_DATATYPES adiosType, const std::string name,
-        std::vector<double> unit)
+        std::vector<float_64> unit)
     {
         const std::string name_lookup_tpl[] = {"x", "y", "z", "w"};
 
@@ -311,7 +311,7 @@ private:
         typedef typename T::UnitValueType UnitType;
         typedef typename GetComponentsType<ValueType>::type ComponentType;
 
-        static std::vector<double> getUnit()
+        static std::vector<float_64> getUnit()
         {
             UnitType unit = T::getUnit();
             return createUnit(unit, T::numComponents);
@@ -368,7 +368,7 @@ private:
         }
 
         /** Get the unit for the result from the solver*/
-        static std::vector<double> getUnit()
+        static std::vector<float_64> getUnit()
         {
             UnitType unit = FieldTmp::getUnit<Solver>();
             const uint32_t components = GetNComponents<ValueType>::value;
@@ -970,7 +970,7 @@ private:
         /* `1 + mem` minimum 1 MiB that we can write attributes on empty GPUs */
         size_t writeBuffer_in_MiB=1+threadParams->adiosGroupSize / 1024 / 1024;
         /* value `1.1` is the secure factor if we miss to count some small buffers*/
-        size_t buffer_mem=static_cast<size_t>(1.1 * static_cast<double>(writeBuffer_in_MiB));
+        size_t buffer_mem=static_cast<size_t>(1.1 * static_cast<float_64>(writeBuffer_in_MiB));
         ADIOS_CMD(adios_allocate_buffer(ADIOS_BUFFER_ALLOC_NOW,buffer_mem));
         threadParams->adiosBufferInitialized = true;
 
