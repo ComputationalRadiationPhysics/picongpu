@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Rene Widera
+ * Copyright 2013-2015 Rene Widera, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -43,6 +43,7 @@ struct Pow<float, float>
     HDINLINE result operator()(const float& base, const float& exponent)
     {
 #ifdef __CUDA_ARCH__ /*device version*/
+        /* CUDA seems to have an optimized version for powf which is faster and (maybe) less accurate. */
         return ::powf(base, exponent);
 #else
         return ::pow(base, exponent);
@@ -56,9 +57,13 @@ struct Pow<float, int>
 {
     typedef float result;
 
-    HDINLINE result operator()(const float& base,const int& exponent)
+    HDINLINE result operator()(const float& base, const int& exponent)
     {
 #ifdef __CUDA_ARCH__ /*device version*/
+        /* @todo: There is an incompatibility with C++11 + CUDA + GCC where no device function
+         *        pow(float, int) is defined: http://docs.nvidia.com/cuda/cuda-toolkit-release-notes/index.html#cuda-tools-title-known
+         *        Use the powf(float, float) instead which reduces performance or implement an own (faster) version
+         */
         return ::powf(base, exponent);
 #else
         return ::pow(base, exponent);
