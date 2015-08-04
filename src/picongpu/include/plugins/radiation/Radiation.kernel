@@ -1,6 +1,6 @@
 /**
- * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Klaus Steiniger,
- * Felix Schmitt
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
+ *                     Klaus Steiniger, Felix Schmitt, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -30,7 +30,6 @@
 #include "types.h"
 #include "simulation_defines.hpp"
 #include "simulation_types.hpp"
-#include "basicOperations.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
 
 #include "simulation_classTypes.hpp"
@@ -227,8 +226,8 @@ void kernelRadiationParticles(ParBox pb,
               {
 
                 /* initializes "saveParticleAt" flag with -1
-                 * because "counter_s" wil never be -1
-                 * therfore, if a particle is saved, a value of counter
+                 * because "counter_s" will never be -1
+                 * therefore, if a particle is saved, a value of counter
                  * is stored in "saveParticleAt" != -1
                  * THIS IS ACTUALLY ONLY NEEDED IF: the radiation flag was set
                  * LATER: can this be optimized?

@@ -23,7 +23,6 @@
 
 #include "types.h"
 #include "particles/frame_types.hpp"
-#include "basicOperations.hpp"
 
 #include "simulation_defines.hpp"
 

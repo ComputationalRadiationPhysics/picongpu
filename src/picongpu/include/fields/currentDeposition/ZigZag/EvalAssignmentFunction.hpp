@@ -23,7 +23,6 @@
 #include "simulation_defines.hpp"
 #include "types.h"
 #include "dimensions/DataSpace.hpp"
-#include "basicOperations.hpp"
 #include <cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
 #include "algorithms/FieldToParticleInterpolation.hpp"
 #include "algorithms/ShiftCoordinateSystem.hpp"

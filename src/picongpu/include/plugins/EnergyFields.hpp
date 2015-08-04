@@ -34,7 +34,6 @@
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
 
-#include "basicOperations.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
 #include "plugins/ISimulationPlugin.hpp"
 

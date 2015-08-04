@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Axel Huebl
+ * Copyright 2015 Axel Huebl, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -22,7 +22,6 @@
 
 #include "simulation_defines.hpp"
 #include "types.h"
-#include "basicOperations.hpp"
 
 #include "fields/currentInterpolation/None/None.def"
 
