@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Benjamin Worpitz,
+ *                     Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -160,7 +161,7 @@ public:
         return sizeOnDevice;
     }
 
-    size_t* getCurrentSizeOnDevicePointer() throw (std::runtime_error)
+    size_t* getCurrentSizeOnDevicePointer()
     {
         __startOperation(ITask::TASK_CUDA);
         if (!sizeOnDevice)

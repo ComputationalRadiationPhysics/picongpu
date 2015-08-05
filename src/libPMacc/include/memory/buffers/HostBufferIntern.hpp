@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2015 Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2015 Rene Widera, Benjamin Worpitz,
+ *                     Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -45,7 +46,7 @@ public:
      * constructor
      * @param dataSpace DataSpace describing the size of the HostBufferIntern to be created
      */
-    HostBufferIntern(DataSpace<DIM> dataSpace) throw (std::bad_alloc) :
+    HostBufferIntern(DataSpace<DIM> dataSpace) :
     HostBuffer<TYPE, DIM>(dataSpace),
     pointer(NULL),ownPointer(true)
     {
@@ -53,7 +54,7 @@ public:
         reset(false);
     }
 
-    HostBufferIntern(HostBufferIntern& source, DataSpace<DIM> dataSpace, DataSpace<DIM> offset=DataSpace<DIM>())  :
+    HostBufferIntern(HostBufferIntern& source, DataSpace<DIM> dataSpace, DataSpace<DIM> offset=DataSpace<DIM>()) :
     HostBuffer<TYPE, DIM>(dataSpace),
     pointer(NULL),ownPointer(false)
     {
@@ -64,7 +65,7 @@ public:
     /**
      * destructor
      */
-    virtual ~HostBufferIntern() throw (std::runtime_error)
+    virtual ~HostBufferIntern()
     {
         __startOperation(ITask::TASK_HOST);
 

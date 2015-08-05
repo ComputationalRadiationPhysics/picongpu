@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2015 Felix Schmitt, Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Benjamin Worpitz,
+ *                     Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -80,7 +81,7 @@ public:
 
 private:
 
-    void setSize() throw (std::runtime_error)
+    void setSize()
     {
         kernelSetValueOnDeviceMemory
             << < 1, 1, 0, this->getCudaStream() >> >

@@ -1,5 +1,6 @@
 /**
- * Copyright 2014-2015 Rene Widera, Axel Huebl, Benjamin Worpitz
+ * Copyright 2014-2015 Rene Widera, Axel Huebl, Benjamin Worpitz,
+ *                     Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -44,7 +45,7 @@ public:
 
     typedef typename DeviceBuffer<TYPE, DIM>::DataBoxType DataBoxType;
 
-    MappedBufferIntern(DataSpace<DIM> dataSpace) throw (std::bad_alloc) :
+    MappedBufferIntern(DataSpace<DIM> dataSpace):
     DeviceBuffer<TYPE, DIM>(dataSpace),
     pointer(NULL), ownPointer(true)
     {
@@ -55,7 +56,7 @@ public:
     /**
      * destructor
      */
-    virtual ~MappedBufferIntern() throw (std::runtime_error)
+    virtual ~MappedBufferIntern()
     {
         __startOperation(ITask::TASK_CUDA);
         __startOperation(ITask::TASK_HOST);
@@ -132,7 +133,7 @@ public:
         return this->current_size;
     }
 
-    size_t* getCurrentSizeOnDevicePointer() throw (std::runtime_error)
+    size_t* getCurrentSizeOnDevicePointer()
     {
         return NULL;
     }
