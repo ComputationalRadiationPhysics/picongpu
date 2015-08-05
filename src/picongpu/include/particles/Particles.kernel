@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Wen Fu, 
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Wen Fu,
  *                     Marco Garten
  *
  * This file is part of PIConGPU.
@@ -50,6 +50,7 @@
 
 #include "particles/operations/Assign.hpp"
 #include "particles/operations/Deselect.hpp"
+#include "nvidia/atomic.hpp"
 
 namespace picongpu
 {
@@ -387,7 +388,8 @@ struct PushParticlePerFrame
          */
         if (direction >= 2)
         {
-            atomicExch(&mustShift, 1); /*if we not use atomic we get a WAW error*/
+            /* if we did not use atomic we would get a WAW error */
+            nvidia::atomicAllExch(&mustShift, 1);
         }
     }
 };

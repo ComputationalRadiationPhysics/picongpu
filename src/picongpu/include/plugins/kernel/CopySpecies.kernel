@@ -26,6 +26,7 @@
 #include "types.h"
 #include "simulation_types.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
+#include "nvidia/atomic.hpp"
 
 
 namespace picongpu
@@ -185,7 +186,7 @@ __global__ void copySpecies(int* counter, T_DestFrame destFrame, T_SrcBox srcBox
         storageOffset = -1;
         /*count particle in frame*/
         if (parSrc[multiMask_] == 1 && filter(*srcFramePtr, threadIdx.x))
-            storageOffset = atomicAdd(&localCounter, 1);
+            storageOffset = nvidia::atomicAllInc(&localCounter);
         __syncthreads();
         if (threadIdx.x == 0)
         {

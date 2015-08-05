@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Felix Schmitt
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Felix Schmitt
  *
  * This file is part of PIConGPU.
  *
@@ -70,6 +70,7 @@
 #include "algorithms/GlobalReduce.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
 #include "nvidia/functors/Max.hpp"
+#include "nvidia/atomic.hpp"
 
 namespace picongpu
 {
@@ -300,7 +301,7 @@ kernelPaintParticles3D(ParBox pb,
     if (globalCell == slice)
 #endif
     {
-        atomicExch((int*) &isValid, 1); /*WAW Error in cuda-memcheck racecheck*/
+        nvidia::atomicAllExch((int*) &isValid,1); /*WAW Error in cuda-memcheck racecheck*/
         isImageThread = true;
     }
     __syncthreads();
