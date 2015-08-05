@@ -31,8 +31,8 @@ typedef PMacc::math::Complex<picongpu::float_64> complex_64;
 class Amplitude
 {
 public:
-  // number of scalars of type picongpu::float_64 in Amplitude = 3 (3D) * 2 (complex) = 6
-  static const uint numComponents = 3 * sizeof(complex_64) / sizeof(picongpu::float_64);
+  /* number of scalar components in Amplitude = 3 (3D) * 2 (complex) = 6 */
+  static const uint32_t numComponents = uint32_t(3) * uint32_t(sizeof(complex_64) / sizeof(typename complex_64::type));
 
   /** constructor
    *
