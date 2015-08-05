@@ -80,7 +80,7 @@ namespace PMacc
  */
 #define __cudaKernel(kernelname) {                                                      \
     CUDA_CHECK_KERNEL_MSG(cudaDeviceSynchronize(),"Crash before kernel call");          \
-    TaskKernel *taskKernel =  Environment<>::get().Factory().createTaskKernel(#kernelname);     \
+    PMacc::TaskKernel *taskKernel = PMacc::Environment<>::get().Factory().createTaskKernel(#kernelname);     \
     kernelname PMACC_CUDAKERNELCONFIG
 
 }
