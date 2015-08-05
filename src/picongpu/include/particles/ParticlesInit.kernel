@@ -70,8 +70,6 @@ __global__ void kernelFillGridWithParticles(T_GasProfile gasFunctor,
     typedef typename ParBox::FrameType FRAME;
     const DataSpace<simDim> superCells(mapper.getGridSuperCells());
 
-    const DataSpace<simDim> block = mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx));
-
     __shared__ FRAME *frame;
 
     __syncthreads(); /*wait that all shared memory is initialised*/
@@ -85,7 +83,7 @@ __global__ void kernelFillGridWithParticles(T_GasProfile gasFunctor,
 
     /* do not add particle to guarding super cells */
     for (uint32_t d = 0; d < simDim; ++d)
-        if (block[d] == 0 || block[d] == superCells[d] - 1) return;
+        if (superCellIdx[d] == 0 || superCellIdx[d] == superCells[d] - 1) return;
 
     /*get local cell idx*/
     const DataSpace<simDim> idx(superCellIdx * SuperCellSize::toRT() + threadIndex);
@@ -122,7 +120,7 @@ __global__ void kernelFillGridWithParticles(T_GasProfile gasFunctor,
     if (linearThreadIdx == 0)
     {
         frame = &(pb.getEmptyFrame());
-        pb.setAsLastFrame(*frame, block);
+        pb.setAsLastFrame(*frame, superCellIdx);
     }
 
     __syncthreads();
@@ -175,7 +173,7 @@ __global__ void kernelFillGridWithParticles(T_GasProfile gasFunctor,
         if (linearThreadIdx == 0 && finished == 0)
         {
             frame = &(pb.getEmptyFrame());
-            pb.setAsLastFrame(*frame, block);
+            pb.setAsLastFrame(*frame, superCellIdx);
         }
     }
     while (finished == 0);
