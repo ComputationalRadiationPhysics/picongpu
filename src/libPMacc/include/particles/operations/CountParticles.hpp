@@ -28,6 +28,7 @@
 
 #include "particles/particleFilter/FilterFactory.hpp"
 #include "particles/particleFilter/PositionFilter.hpp"
+#include "nvidia/atomic.hpp"
 
 namespace PMacc
 {
@@ -74,7 +75,7 @@ __global__ void kernelCountParticles(PBox pb,
         if (linearThreadIdx < particlesInSuperCell)
         {
             if (filter(*frame, linearThreadIdx))
-                atomicAdd(&counter, 1);
+                nvidia::atomicAllInc(&counter);
         }
         __syncthreads();
         if (linearThreadIdx == 0)
