@@ -95,8 +95,6 @@ struct CreateGas
                             const uint32_t currentStep
                             )
     {
-        typedef typename SpeciesType::FrameType FrameType;
-
         PMACC_AUTO(speciesPtr, tuple[SpeciesName()]);
         GasFunctor gasFunctor(currentStep);
         PositionFunctor positionFunctor(currentStep);
