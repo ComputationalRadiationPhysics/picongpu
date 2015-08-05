@@ -31,8 +31,6 @@
 #include "mappings/simulation/EnvironmentController.hpp"
 #include "memory/buffers/Exchange.hpp"
 
-#include <cuda_runtime_api.h>
-
 namespace PMacc
 {
 

@@ -34,7 +34,6 @@
 
 #include "fields/FieldJ.hpp"
 
-#include "basicOperations.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
 #include "plugins/ILightweightPlugin.hpp"
 

@@ -1,5 +1,6 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
+ *                     Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -22,7 +23,6 @@
 #pragma once
 
 #include <cmath>
-#include "basicOperations.hpp"
 
 namespace picongpu
 {
