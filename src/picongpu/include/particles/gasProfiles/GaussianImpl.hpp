@@ -51,11 +51,11 @@ struct GaussianImpl : public T_ParamClass
      */
     HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
     {
-        const float_X vacuum_y = float_64(ParamClass::VACUUM_CELLS_Y) * cellSize.y();
-        const float_X gas_center_left = ParamClass::SI::GAS_CENTER_LEFT / UNIT_LENGTH;
-        const float_X gas_center_right = ParamClass::SI::GAS_CENTER_RIGHT / UNIT_LENGTH;
-        const float_X gas_sigma_left = ParamClass::SI::GAS_SIGMA_LEFT / UNIT_LENGTH;
-        const float_X gas_sigma_right = ParamClass::SI::GAS_SIGMA_RIGHT / UNIT_LENGTH;
+        const float_X vacuum_y = float_X(ParamClass::vacuumCellsY) * cellSize.y();
+        const float_X gas_center_left = ParamClass::gasCenterLeft_SI / UNIT_LENGTH;
+        const float_X gas_center_right = ParamClass::gasCenterRight_SI / UNIT_LENGTH;
+        const float_X gas_sigma_left = ParamClass::gasSigmaLeft_SI / UNIT_LENGTH;
+        const float_X gas_sigma_right = ParamClass::gasCenterRight_SI / UNIT_LENGTH;
 
         const floatD_X globalCellPos(
                                      precisionCast<float_X>(totalCellOffset) *
@@ -77,8 +77,8 @@ struct GaussianImpl : public T_ParamClass
             exponent = math::abs((globalCellPos.y() - gas_center_right) / gas_sigma_right);
         }
 
-        const float_X gas_power = ParamClass::GAS_POWER;
-        const float_X density = math::exp(float_X(ParamClass::GAS_FACTOR) * math::pow(exponent, gas_power));
+        const float_X gas_power = ParamClass::gasPower;
+        const float_X density = math::exp(float_X(ParamClass::gasFactor) * math::pow(exponent, gas_power));
         return density;
     }
 };

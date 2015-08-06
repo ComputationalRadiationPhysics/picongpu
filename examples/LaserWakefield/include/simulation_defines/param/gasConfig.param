@@ -24,6 +24,8 @@
 #pragma once
 
 #include "particles/gasProfiles/profiles.def"
+/* preprocessor struct generator */
+#include "preprocessor/struct.hpp"
 
 namespace picongpu
 {
@@ -43,38 +45,42 @@ const float_64 GAS_DENSITY_SI = 1.e25;
 //##########################################################################
 namespace gasProfiles
 {
-struct GaussianParameter
-{
-    /** Gas Formular:
-                const float_X exponent = fabs((y - GAS_CENTER) / GAS_SIGMA);
-                const float_X density = __expf(GAS_FACTOR*__powf(exponent, GAS_POWER));
 
-        takes GAS_CENTER_LEFT for y < GAS_CENTER_LEFT,
-              GAS_CENTER_RIGHT for y > GAS_CENTER_RIGHT,
-        and exponent = float_X(0.0) for GAS_CENTER_LEFT < y < GAS_CENTER_RIGHT */
-    static const float_X GAS_FACTOR = -1.0;
-    static const float_X GAS_POWER = 4.0;
+PMACC_STRUCT(GaussianParameter,
+    /** Gas Formula:
+     *   const float_X exponent = abs((y - gasCenter_SI) / gasSigma_SI);
+     *   const float_X density = exp(gasFactor * pow(exponent, gasPower));
+     *
+     *   takes `gasCenterLeft_SI      for y < gasCenterLeft_SI`,
+     *         `gasCenterRight_SI     for y > gasCenterRight_SI`,
+     *   and exponent = float_X(0.0)  for gasCenterLeft_SI < y < gasCenterRight_SI
+     */
+    (PMACC_C_VALUE(float_X, gasFactor, -1.0))
+    (PMACC_C_VALUE(float_X, gasPower, 4.0))
 
     /** height of vacuum area on top border
-     *      this vacuum is really important because of the laser initialization,
-     *      which is done in the first cell of the simulation
-     *  unit: cells */
-    static const uint32_t VACUUM_CELLS_Y = 50;
+     *
+     *  this vacuum is important because of the laser initialization,
+     *  which is done in the first cells of the simulation and
+     *  assumes a charge-free volume
+     *  unit: cells
+     */
+    (PMACC_C_VALUE(uint32_t, vacuumCellsY, 50))
 
-    struct SI
-    {
-        /** The central position of the gas distribution
-         *  unit: meter */
-        static const float_64 GAS_CENTER_LEFT = 8.0e-5;
-        static const float_64 GAS_CENTER_RIGHT = 10.0e-5;
-        /** the distance from GAS_CENTER until the gas density decreases to its 1/e-th part
-         *  unit: meter */
-        static const float_64 GAS_SIGMA_LEFT = 8.0e-5;
-        static const float_64 GAS_SIGMA_RIGHT = 8.0e-5;
-    };
-};
+    /** The central position of the gas distribution
+      *  unit: meter
+      */
+    (PMACC_C_VALUE(float_64, gasCenterLeft_SI, 8.0e-5))
+    (PMACC_C_VALUE(float_64, gasCenterRight_SI, 10.0e-5))
 
-/* definition of GasGaussian*/
+    /** the distance from gasCenter_SI until the gas density decreases to its 1/e-th part
+      *  unit: meter
+      */
+    (PMACC_C_VALUE(float_64, gasSigmaLeft_SI, 8.0e-5))
+    (PMACC_C_VALUE(float_64, gasSigmaRight_SI, 8.0e-5))
+); /* struct GaussianParam */
+
+/* definition of gas with gaussian profile*/
 typedef GaussianImpl<GaussianParameter> Gaussian;
 
 }//namespace gasProfiles

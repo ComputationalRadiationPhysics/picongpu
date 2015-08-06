@@ -52,11 +52,11 @@ struct SphereFlanksImpl : public T_ParamClass
     HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
     {
         const float_64 unit_length = UNIT_LENGTH;
-        const float_X vacuum_y = float_64(ParamClass::vacuum_y_cells) * cellSize.y();
-        const floatD_X center = precisionCast<float_32>(ParamClass::SI().center / unit_length);
-        const float_X r = ParamClass::SI::r / unit_length;
-        const float_X ri = ParamClass::SI::ri / unit_length;
-        const float_X exponent = ParamClass::SI::exponent * unit_length;
+        const float_X vacuum_y = float_X(ParamClass::vacuumCellsY) * cellSize.y();
+        const floatD_X center = precisionCast<float_32>(ParamClass::center_SI / unit_length);
+        const float_X r = ParamClass::r_SI / unit_length;
+        const float_X ri = ParamClass::ri_SI / unit_length;
+        const float_X exponent = ParamClass::exponent_SI * unit_length;
 
 
         const floatD_X globalCellPos(
@@ -66,20 +66,20 @@ struct SphereFlanksImpl : public T_ParamClass
 
         if (globalCellPos.y() < vacuum_y) return float_X(0.0);
 
-        const float_X radius = math::abs(globalCellPos - center);
+        const float_X distance = math::abs(globalCellPos - center);
 
         /* "shell": inner radius */
-        if (radius < ri)
+        if (distance < ri)
             return float_X(0.0);
             /* "hard core" */
-        else if (radius <= r)
+        else if (distance <= r)
             return float_X(1.0);
 
-            /* "soft exp. flanks"
-             *   note: by definition (return, see above) the
-             *         argument [ r - radius ] will be element of (-inf, 0) */
+        /* "soft exp. flanks"
+         *   note: by definition (return, see above) the
+         *         argument [ r - distance ] will be element of (-inf, 0) */
         else
-            return math::exp((r - radius) * exponent);
+            return math::exp((r - distance) * exponent);
     }
 };
 } //namespace gasProfiles

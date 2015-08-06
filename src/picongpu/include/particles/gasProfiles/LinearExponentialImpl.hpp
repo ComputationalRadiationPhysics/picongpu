@@ -51,10 +51,10 @@ struct LinearExponentialImpl : public T_ParamClass
      */
     HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
     {
-        const float_X vacuum_y = float_64(ParamClass::VACUUM_CELLS_Y) * cellSize.y();
-        const float_X gas_a = ParamClass::SI::GAS_A * UNIT_LENGTH;
-        const float_X gas_d = ParamClass::SI::GAS_D * UNIT_LENGTH;
-        const float_X gas_y_max = ParamClass::SI::GAS_Y_MAX / UNIT_LENGTH;
+        const float_X vacuum_y = float_X(ParamClass::vacuumCellsY) * cellSize.y();
+        const float_X gas_a = ParamClass::gasA_SI * UNIT_LENGTH;
+        const float_X gas_d = ParamClass::gasD_SI * UNIT_LENGTH;
+        const float_X gas_y_max = ParamClass::gasYMax_SI / UNIT_LENGTH;
 
         const floatD_X globalCellPos(
                                      precisionCast<float_X>(totalCellOffset) *
@@ -65,7 +65,7 @@ struct LinearExponentialImpl : public T_ParamClass
         if (globalCellPos.y() < vacuum_y) return density;
 
         if (globalCellPos.y() <= gas_y_max) // linear slope
-            density = gas_a * globalCellPos.y() + ParamClass::GAS_B;
+            density = gas_a * globalCellPos.y() + ParamClass::gasB;
         else // exponential slope
             density = math::exp((globalCellPos.y() - gas_y_max) * gas_d);
 
