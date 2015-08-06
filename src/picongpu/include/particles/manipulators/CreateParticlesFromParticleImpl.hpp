@@ -22,6 +22,7 @@
 #pragma once
 
 #include "simulation_defines.hpp"
+#include "nvidia/atomic.hpp"
 
 namespace picongpu
 {
@@ -123,7 +124,7 @@ struct CreateParticlesFromParticleImpl : private T_Functor
             __syncthreads();
             if (isParticle && numParToCreate > 0)
             {
-                freeSlot = atomicAdd(&particlesInDestSuperCell, 1);
+                freeSlot = nvidia::atomicAllInc(&particlesInDestSuperCell);
             }
             --numParToCreate;
             if (freeSlot>-1 && freeSlot < cellsInSuperCell)

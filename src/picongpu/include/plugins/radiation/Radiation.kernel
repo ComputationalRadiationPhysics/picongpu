@@ -46,6 +46,7 @@
 #include "mpi/reduceMethods/Reduce.hpp"
 #include "mpi/MPIReduce.hpp"
 #include "nvidia/functors/Add.hpp"
+#include "nvidia/atomic.hpp"
 
 
 #if (__NYQUISTCHECK__==1)
@@ -251,7 +252,7 @@ void kernelRadiationParticles(ParBox pb,
 #if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
                     if (par[radiationFlag_])
 #endif
-                    saveParticleAt = atomicAdd(&counter_s, 1);
+                    saveParticleAt = nvidia::atomicAllInc(&counter_s);
                     /* for information:
                     *   atomicAdd returns an int with the previous
                     *   value of "counter_s" != -1

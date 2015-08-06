@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU.
  *
@@ -32,6 +32,7 @@
 #include "compileTime/conversion/ResolveAndRemoveFromSeq.hpp"
 #include "particles/startPosition/MacroParticleCfg.hpp"
 #include "particles/traits/GetDensityRatio.hpp"
+#include "nvidia/atomic.hpp"
 
 namespace picongpu
 {
@@ -111,7 +112,7 @@ __global__ void kernelFillGridWithParticles(T_GasProfile gasFunctor,
     const uint32_t totalNumParsPerCell = numParsPerCell;
 
     if (numParsPerCell > 0)
-        atomicExch(&finished, 0); //one or more cell has particles to create
+        nvidia::atomicAllExch(&finished, 0); //one or more cells have particles to create
 
     __syncthreads();
     if (finished == 1)

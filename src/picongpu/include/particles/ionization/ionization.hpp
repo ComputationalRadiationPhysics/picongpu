@@ -31,6 +31,7 @@
 #include "mappings/simulation/GridController.hpp"
 #include "simulationControl/MovingWindow.hpp"
 #include "traits/Resolve.hpp"
+#include "nvidia/atomic.hpp"
 
 #include "types.h"
 
@@ -209,7 +210,7 @@ __global__ void kernelIonizeParticles(ParBoxIons ionBox,
              * - then sync
              */
             if (newMacroElectrons > 0)
-                electronId = atomicAdd(&newFrameFillLvl, 1);
+                electronId = nvidia::atomicAllInc(&newFrameFillLvl);
 
             __syncthreads();
             /* < EXIT? >
