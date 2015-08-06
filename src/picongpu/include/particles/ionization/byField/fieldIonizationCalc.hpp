@@ -20,5 +20,6 @@
 
 #pragma once
 
+#include "particles/ionization/byField/ADK/AlgorithmADK.hpp"
 #include "particles/ionization/byField/BSI/AlgorithmBSI.hpp"
 #include "particles/ionization/None/AlgorithmNone.hpp"
