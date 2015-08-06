@@ -54,16 +54,16 @@ public:
     {
         location_begin = When::now, momentum_begin = When::now, beta_begin = When::first
     };
-    const vector_32 momentum_now;
-    const vector_32 momentum_old;
-    const vector_32 location_now;
+    const vector_X momentum_now;
+    const vector_X momentum_old;
+    const vector_X location_now;
     const picongpu::float_X mass;
 
 public:
     //////////////////////////////////////////////////////////////////
     // constructors:
 
-  HDINLINE Particle(const vector_32& locationNow_set, const vector_32& momentumOld_set, const vector_32& momentumNow_set, const picongpu::float_X mass_set)
+  HDINLINE Particle(const vector_X& locationNow_set, const vector_X& momentumOld_set, const vector_X& momentumNow_set, const picongpu::float_X mass_set)
     : location_now(locationNow_set), momentum_old(momentumOld_set), momentum_now(momentumNow_set), mass(mass_set)
     {
 
@@ -113,26 +113,26 @@ private:
     //////////////////////////////////////////////////////////////////
     // private methods:
 
-    HDINLINE vector_64 calc_beta(const vector_32& momentum) const
+    HDINLINE vector_64 calc_beta(const vector_X& momentum) const
     {
         // returns beta=v/c
         const picongpu::float_32 gamma1 = calc_gamma(momentum);
         return momentum * (1.0 / (mass * picongpu::SPEED_OF_LIGHT * gamma1));
     }
 
-    HDINLINE picongpu::float_64 calc_gamma(const vector_32& momentum) const
+    HDINLINE picongpu::float_64 calc_gamma(const vector_X& momentum) const
     {
         // return gamma = E/(mc^2)
-        const picongpu::float_32 x = util::square<vector_32, picongpu::float_32 > (momentum * (1.0 / (mass * picongpu::SPEED_OF_LIGHT)));
+        const picongpu::float_32 x = util::square<vector_X, picongpu::float_32 > (momentum * (1.0 / (mass * picongpu::SPEED_OF_LIGHT)));
         return picongpu::math::sqrt(1.0 + x);
 
     }
 
-    HDINLINE picongpu::float_64 calc_gamma_inv_square(const vector_32& momentum) const
+    HDINLINE picongpu::float_64 calc_gamma_inv_square(const vector_X& momentum) const
     {
         // returns 1/gamma^2 = m^2*c^2/(m^2*c^2 + p^2)
         const picongpu::float_32 Emass = mass * picongpu::SPEED_OF_LIGHT;
-        return Emass / (Emass + (util::square<vector_32, picongpu::float_32 > (momentum)) / Emass);
+        return Emass / (Emass + (util::square<vector_X, picongpu::float_32 > (momentum)) / Emass);
     }
 
     HDINLINE picongpu::float_64 calc_cos_theta(const vector_64& n, const vector_64& beta) const
