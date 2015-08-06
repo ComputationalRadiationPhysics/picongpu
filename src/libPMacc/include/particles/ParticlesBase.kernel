@@ -33,6 +33,7 @@
 #include "particles/operations/Assign.hpp"
 #include "particles/operations/Deselect.hpp"
 #include "traits/NumberOfExchanges.hpp"
+#include "nvidia/atomic.hpp"
 
 namespace PMacc
 {
@@ -285,20 +286,20 @@ __global__ void kernelFillGapsLastFrame(ParticlesBox<FRAME, Mapping::Dim> pb, Ma
         const bool isParticle = (*lastFrame)[threadIdx.x][multiMask_];
         if (isParticle == true) //\todo: bits zählen
         {
-            atomicAdd(&counterParticles, 1);
+            nvidia::atomicAllInc(&counterParticles);
         }
         __syncthreads();
 
         if (threadIdx.x < counterParticles && isParticle == false)
         {
-            const int localGapIdx = atomicAdd(&counterGaps, 1);
+            const int localGapIdx = nvidia::atomicAllInc(&counterGaps);
             gapIndices_sh[localGapIdx] = threadIdx.x;
         }
         __syncthreads();
         if (threadIdx.x >= counterParticles && isParticle)
         {
             //any particle search a gap
-            const int srcGapIdx = atomicAdd(&srcGap, 1);
+            const int srcGapIdx = nvidia::atomicAllInc(&srcGap);
             const int gapIdx = gapIndices_sh[srcGapIdx];
             PMACC_AUTO(parDestFull, ((*lastFrame)[gapIdx]));
             /*enable particle*/
@@ -366,7 +367,7 @@ __global__ void kernelFillGaps(ParticlesBox<FRAME, Mapping::Dim> pb, Mapping map
         // find gaps
         if ((*firstFrame)[threadIdx.x][multiMask_] == 0)
         {
-            localGapIdx = atomicAdd(&counterGaps, 1);
+            localGapIdx = nvidia::atomicAllInc(&counterGaps);
         }
         __syncthreads();
 
@@ -383,7 +384,7 @@ __global__ void kernelFillGaps(ParticlesBox<FRAME, Mapping::Dim> pb, Mapping map
         // search particles for gaps
         if ((*lastFrame)[threadIdx.x][multiMask_] == 1)
         {
-            int localParticleIdx = atomicAdd(&counterParticles, 1);
+            int localParticleIdx = nvidia::atomicAllInc(&counterParticles);
             particleIndices_sh[localParticleIdx] = threadIdx.x;
         }
         __syncthreads();
@@ -494,7 +495,7 @@ __global__ void kernelBashParticles(ParticlesBox<FRAME, Mapping::Dim> pb,
 
     DataSpace<Dim> superCellIdx = mapper.getSuperCellIndex(DataSpace<Dim > (blockIdx));
 
-    __shared__ uint32_t numBashedParticles;
+    __shared__ int numBashedParticles;
     __shared__ FRAME *frame;
     __shared__ bool isValid;
     __shared__ bool hasMemory;
@@ -518,7 +519,7 @@ __global__ void kernelBashParticles(ParticlesBox<FRAME, Mapping::Dim> pb,
 
         if ((*frame)[threadIdx.x][multiMask_] == 1)
         {
-            bashIdx = atomicAdd(&numBashedParticles, 1);
+            bashIdx = nvidia::atomicAllInc(&numBashedParticles);
         }
         __syncthreads();
 
