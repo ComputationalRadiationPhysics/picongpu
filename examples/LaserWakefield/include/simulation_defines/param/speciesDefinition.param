@@ -140,6 +140,7 @@ struct Hydrogen
  * For development purposes: ---------------------------------------------
  * - None : no particle is ionized
  * - BSI : simple barrier suppression ionization
+ * - ADK : Ammosov-Delone-Krainov tunneling ionization (H-like)
  *
  * Usage: Add a flag to the list of particle flags that has the following structure
  *

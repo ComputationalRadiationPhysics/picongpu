@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Marco Garten
+ * Copyright 2014-2015 Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -26,6 +26,12 @@
 #include "types.h"
 #include "particles/operations/Assign.hpp"
 #include "traits/attribute/GetMass.hpp"
+
+#include "nvidia/rng/RNG.hpp"
+#include "nvidia/rng/methods/Xor.hpp"
+#include "nvidia/rng/distributions/Uniform_float.hpp"
+#include "mpi/SeedPerRank.hpp"
+#include "traits/GetUniqueTypeId.hpp"
 
 namespace picongpu
 {
@@ -80,6 +86,60 @@ namespace ionization
              * \todo add conservation of mass */
             parentIon[momentum_] -= electronMomentum;
         }
+    };
+
+    /* Random number generation */
+    namespace nvrng = nvidia::rng;
+    namespace rngMethods = nvidia::rng::methods;
+    namespace rngDistributions = nvidia::rng::distributions;
+
+    template<typename T_SpeciesType>
+    struct RandomNrForMonteCarlo
+    {
+        typedef T_SpeciesType SpeciesType;
+        typedef typename MakeIdentifier<SpeciesType>::type SpeciesName;
+
+        HINLINE RandomNrForMonteCarlo(uint32_t currentStep) : isInitialized(false)
+        {
+            typedef typename SpeciesType::FrameType FrameType;
+
+            mpi::SeedPerRank<simDim> seedPerRank;
+            seed = seedPerRank(GlobalSeed()(), PMacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid());
+            seed ^= IONIZATION_SEED;
+
+            const uint32_t numSlides = MovingWindow::getInstance( ).getSlideCounter( currentStep );
+            const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+            localCells = subGrid.getLocalDomain().size;
+            DataSpace<simDim> totalGpuOffset = subGrid.getLocalDomain( ).offset;
+            totalGpuOffset.y( ) += numSlides * localCells.y( );
+        }
+
+        DINLINE void init(const DataSpace<simDim>& totalCellOffset)
+        {
+            if (!isInitialized)
+            {
+                const DataSpace<simDim> localCellIdx(totalCellOffset - totalGpuOffset);
+                const uint32_t cellIdx = DataSpaceOperations<simDim>::map(
+                                                                          localCells,
+                                                                          localCellIdx);
+                rng = nvrng::create(rngMethods::Xor(seed, cellIdx), rngDistributions::Uniform_float());
+                isInitialized = true;
+            }
+        }
+
+        DINLINE float_X operator()()
+        {
+            return rng();
+        }
+
+        private:
+            typedef PMacc::nvidia::rng::RNG<rngMethods::Xor, rngDistributions::Uniform_float> RngType;
+
+            PMACC_ALIGN(rng, RngType);
+            PMACC_ALIGN(isInitialized, bool);
+            PMACC_ALIGN(seed, uint32_t);
+            PMACC_ALIGN(localCells, DataSpace<simDim>);
+            PMACC_ALIGN(totalGpuOffset, DataSpace<simDim>);
     };
 
 } // namespace ionization
