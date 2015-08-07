@@ -24,9 +24,10 @@
 #pragma once
 
 #include "types.h"
-#include <iostream>
-#include <cassert>
-
+#include <sstream>
+#include <string>
+#include <stdexcept>
+#include <boost/numeric/conversion/bounds.hpp>
 
 namespace PMacc
 {
@@ -48,14 +49,21 @@ namespace detail
 template<typename T_Type>
 struct GetUniqueTypeId
 {
-    static uint8_t byte;
+    static uint64_t counter;
     static const uint64_t id;
 };
-template<typename T_Type>
-uint8_t GetUniqueTypeId<T_Type>::byte;
+
+template<>
+const uint64_t GetUniqueTypeId<uint8_t>::id = 0;
+template<>
+uint64_t GetUniqueTypeId<uint8_t>::counter = 0;
 
 template<typename T_Type>
-const uint64_t GetUniqueTypeId<T_Type>::id = uint64_t(&GetUniqueTypeId<T_Type>::byte);
+const uint64_t GetUniqueTypeId<T_Type>::id = ++GetUniqueTypeId<uint8_t>::counter;
+
+template<typename T_Type>
+uint64_t GetUniqueTypeId<T_Type>::counter = GetUniqueTypeId<T_Type>::id;
+
 } //namespace detail
 
 /** Get a unique id of a type
@@ -76,23 +84,11 @@ struct GetUniqueTypeId
      *
      * @param maxValue largest allowed id
      */
-    static const ResultType uid(uint64_t maxValue = (uint64_t(1) << (sizeof (ResultType) * CHAR_BIT)) - uint64_t(1))
+    static const ResultType uid(uint64_t maxValue = boost::numeric::bounds<ResultType>::highest())
     {
-        /* all id's are relative to BaseUId object */
-        typedef detail::GetUniqueTypeId<uint8_t> BaseUId;
-        /* call of ::id take care that `BaseUId::id` is smaller than
-         * the unique id of `Type` */
-        const uint64_t baseUId = BaseUId::id;
 
-        /* unique id for the given type*/
-        const uint64_t uid = detail::GetUniqueTypeId<Type>::id;
-        /* map `uid` to the range [0; 2^64-1] */
-        const uint64_t id = uid - baseUId;
+        const uint64_t id = detail::GetUniqueTypeId<Type>::id;
 
-        /* to avoid id's near the upper bound of 64 bit we
-         * check that uid is always greater equal than the baseUId
-         */
-        assert(uid>=baseUId);
         /* if `id` is out of range than throw an error */
         if (id > maxValue)
         {
