@@ -1,6 +1,6 @@
 /**
  * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Wen Fu,
- *                     Marco Garten
+ *                     Marco Garten, Alexander Grund
  *
  * This file is part of PIConGPU.
  *
@@ -113,9 +113,9 @@ __global__ void kernelCloneParticles(ParticlesBox<MYFRAME, simDim> myBox, Partic
 }
 
 /* kernel must called with one dimension for blockSize */
-template<typename T_ParicleFunctor,typename T_ParBox,  class Mapping>
+template<typename T_ParticleFunctor,typename T_ParBox,  class Mapping>
 __global__ void kernelManipulateAllParticles(T_ParBox pb,
-                                             T_ParicleFunctor particleFunctor,
+                                             T_ParticleFunctor particleFunctor,
                                              Mapping mapper)
 {
     __shared__ typename T_ParBox::FrameType* frame;

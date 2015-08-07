@@ -1,6 +1,6 @@
 /**
  * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
- *                     Marco Garten
+ *                     Marco Garten, Alexander Grund
  *
  * This file is part of PIConGPU.
  *
@@ -87,7 +87,7 @@ private:
 
     FieldE *fieldE;
     FieldB *fieldB;
-    FieldJ *fieldJurrent;
+    FieldJ *fieldJcurrent;
     FieldTmp *fieldTmp;
 };
 
