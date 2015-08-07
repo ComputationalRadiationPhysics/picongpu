@@ -85,6 +85,7 @@ namespace ionization
 
             /* random number generator for Monte Carlo */
             typedef particles::ionization::RandomNrForMonteCarlo<SrcSpecies> RandomGen;
+            /* \todo fix: cannot PMACC_ALIGN() because it seems to be too large */
             RandomGen randomGen;
 
             typedef MappingDesc::SuperCellSize TVec;
@@ -92,11 +93,11 @@ namespace ionization
             typedef FieldE::ValueType ValueType_E;
             typedef FieldB::ValueType ValueType_B;
             /* global memory EM-field device databoxes */
-            FieldE::DataBoxType eBox;
-            FieldB::DataBoxType bBox;
+            PMACC_ALIGN(eBox, FieldE::DataBoxType);
+            PMACC_ALIGN(bBox, FieldB::DataBoxType);
             /* shared memory EM-field device databoxes */
-            PMACC_ALIGN(cachedE,DataBox<SharedBox<ValueType_E, typename BlockArea::FullSuperCellSize,1> >);
-            PMACC_ALIGN(cachedB,DataBox<SharedBox<ValueType_B, typename BlockArea::FullSuperCellSize,0> >);
+            PMACC_ALIGN(cachedE, DataBox<SharedBox<ValueType_E, typename BlockArea::FullSuperCellSize,1> >);
+            PMACC_ALIGN(cachedB, DataBox<SharedBox<ValueType_B, typename BlockArea::FullSuperCellSize,0> >);
 
         public:
             /* host constructor initializing member : random number generator */
