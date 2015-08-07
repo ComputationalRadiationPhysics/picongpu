@@ -182,9 +182,10 @@ struct GatherSlice
             for (int i = 0; i < numRanks; ++i)
             {
                 MessageHeader* head = (MessageHeader*) (recvHeader + sizeof(MessageHeader)* i);
+                size_t offset = header.nodeSize.productOfComponents() * static_cast<size_t>(i);
                 Box srcBox = Box(PitchedBox<ValueType, DIM2 > (
-                                                               (ValueType*) fullData,
-                                                               Space(0, head->nodeSize.y() * i),
+                                                               reinterpret_cast<ValueType*>(fullData) + offset,
+                                                               Space(),
                                                                head->nodeSize,
                                                                head->nodeSize.x() * sizeof (ValueType)
                                                                ));
