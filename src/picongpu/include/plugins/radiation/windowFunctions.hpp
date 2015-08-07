@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Richard Pausch
+ * Copyright 2014, 2015 Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -42,7 +42,7 @@ namespace picongpu
        * @param position_x = 1D position
        * @param L_x        = length of the simulated area
        *                     assuming that the simulation ranges
-       *                     from 0 to L_x in the choosen dimension
+       *                     from 0 to L_x in the chosen dimension
        * @returns weighting factor to reduce ringing effects due to
        *          sharp spacial boundaries
        **/
@@ -71,7 +71,7 @@ namespace picongpu
        * @param position_x = 1D position
        * @param L_x        = length of the simulated area
        *                     assuming that the simulation ranges
-       *                     from 0 to L_x in the choosen dimension
+       *                     from 0 to L_x in the chosen dimension
        * @returns weighting factor to reduce ringing effects due to
        *          sharp spacial boundaries
        **/
@@ -102,7 +102,7 @@ namespace picongpu
        * @param position_x = 1D position
        * @param L_x        = length of the simulated area
        *                     assuming that the simulation ranges
-       *                     from 0 to L_x in the choosen dimension
+       *                     from 0 to L_x in the chosen dimension
        * @returns weighting factor to reduce ringing effects due to
        *          sharp spacial boundaries
        **/
@@ -133,7 +133,7 @@ namespace picongpu
        * @param position_x = 1D position
        * @param L_x        = length of the simulated area
        *                     assuming that the simulation ranges
-       *                     from 0 to L_x in the choosen dimension
+       *                     from 0 to L_x in the chosen dimension
        * @returns weighting factor to reduce ringing effects due to
        *          sharp spacial boundaries
        **/
@@ -160,7 +160,7 @@ namespace picongpu
        * @param position_x = 1D position
        * @param L_x        = length of the simulated area
        *                     assuming that the simulation ranges
-       *                     from 0 to L_x in the choosen dimension
+       *                     from 0 to L_x in the chosen dimension
        * @returns 1.0
        **/
       HDINLINE float_X operator()(const float_X position_x, const float_X L_x) const

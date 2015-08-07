@@ -46,7 +46,7 @@
 
 #include "plugins/radiation/Radiation.kernel"
 
-/* libSpash data output */
+/* libSplash data output */
 #include <splash/splash.h>
 #include <boost/filesystem.hpp>
 #include <string>
@@ -63,7 +63,7 @@ namespace po = boost::program_options;
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////  Radiation Analyzer Class  ////////////////////////////////////
+///////////////////////////////  Radiation Plugin Class  ////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 template<class ParticlesType>
@@ -99,8 +99,8 @@ private:
     uint32_t radStart;
     uint32_t radEnd;
 
-    std::string analyzerName;
-    std::string analyzerPrefix;
+    std::string pluginName;
+    std::string pluginPrefix;
     std::string filename_prefix;
     bool totalRad;
     bool lastRad;
@@ -132,9 +132,9 @@ private:
 public:
 
     Radiation() :
-    analyzerName("Radiation: calculate the radiation of a species"),
-    analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_radiation")),
-    filename_prefix(analyzerPrefix),
+    pluginName("Radiation: calculate the radiation of a species"),
+    pluginPrefix(ParticlesType::FrameType::getName() + std::string("_radiation")),
+    filename_prefix(pluginPrefix),
     particles(NULL),
     radiation(NULL),
     cellDescription(NULL),
@@ -158,7 +158,7 @@ public:
     }
 
     /**
-     * This function represents what is actually calculated if the analyzer
+     * This function represents what is actually calculated if the plugin
      * is called. Here, one only sets the particles pointer to the data of
      * the latest time step and calls the 'calculateRadiationParticles'
      * function if for the actual time step radiation is to be calculated.
@@ -177,14 +177,14 @@ public:
             // end
             if (currentStep <= radEnd || radEnd == 0)
             {
-                log<radLog::SIMULATION_STATE > ("Radiation: calculate timestep %1% ") % currentStep;
+                log<radLog::SIMULATION_STATE > ("Radiation: calculate time step %1% ") % currentStep;
 
                 /* CORE + BORDER is PIC black magic, currently not needed
                  *
                  */
                 calculateRadiationParticles < CORE + BORDER > (currentStep);
 
-                log<radLog::SIMULATION_STATE > ("Radiation: finished timestep %1% ") % currentStep;
+                log<radLog::SIMULATION_STATE > ("Radiation: finished time step %1% ") % currentStep;
             }
         }
     }
@@ -193,24 +193,24 @@ public:
     {
 
         desc.add_options()
-            ((analyzerPrefix + ".period").c_str(), po::value<uint32_t > (&notifyFrequency), "enable analyser [for each n-th step]")
-            ((analyzerPrefix + ".dump").c_str(), po::value<uint32_t > (&dumpPeriod)->default_value(0), "dump integrated radiation from last dumped step [for each n-th step] (0 = only print data at end of simulation)")
-            ((analyzerPrefix + ".lastRadiation").c_str(), po::bool_switch(&lastRad), "enable calculation of integrated radiation from last dumped step")
-            ((analyzerPrefix + ".folderLastRad").c_str(), po::value<std::string > (&folderLastRad)->default_value("lastRad"), "folder in which the integrated radiation from last dumped step is written")
-            ((analyzerPrefix + ".totalRadiation").c_str(), po::bool_switch(&totalRad), "enable calculation of integrated radiation from start of simulation")
-            ((analyzerPrefix + ".folderTotalRad").c_str(), po::value<std::string > (&folderTotalRad)->default_value("totalRad"), "folder in which the integrated radiation from start of simulation is written")
-            ((analyzerPrefix + ".start").c_str(), po::value<uint32_t > (&radStart)->default_value(2), "time index when radiation should start with calculation")
-            ((analyzerPrefix + ".end").c_str(), po::value<uint32_t > (&radEnd)->default_value(0), "time index when radiation should end with calculation")
-            ((analyzerPrefix + ".omegaList").c_str(), po::value<std::string > (&pathOmegaList)->default_value("_noPath_"), "path to file containing all frequencies to calculate")
-            ((analyzerPrefix + ".radPerGPU").c_str(), po::bool_switch(&radPerGPU), "enable radiation output from each GPU individually")
-            ((analyzerPrefix + ".folderRadPerGPU").c_str(), po::value<std::string > (&folderRadPerGPU)->default_value("radPerGPU"), "folder in which the radiation of each GPU is written")
-            ((analyzerPrefix + ".compression").c_str(), po::bool_switch(&compressionOn), "enable compression of hdf5 output");
+            ((pluginPrefix + ".period").c_str(), po::value<uint32_t > (&notifyFrequency), "enable plugin [for each n-th step]")
+            ((pluginPrefix + ".dump").c_str(), po::value<uint32_t > (&dumpPeriod)->default_value(0), "dump integrated radiation from last dumped step [for each n-th step] (0 = only print data at end of simulation)")
+            ((pluginPrefix + ".lastRadiation").c_str(), po::bool_switch(&lastRad), "enable calculation of integrated radiation from last dumped step")
+            ((pluginPrefix + ".folderLastRad").c_str(), po::value<std::string > (&folderLastRad)->default_value("lastRad"), "folder in which the integrated radiation from last dumped step is written")
+            ((pluginPrefix + ".totalRadiation").c_str(), po::bool_switch(&totalRad), "enable calculation of integrated radiation from start of simulation")
+            ((pluginPrefix + ".folderTotalRad").c_str(), po::value<std::string > (&folderTotalRad)->default_value("totalRad"), "folder in which the integrated radiation from start of simulation is written")
+            ((pluginPrefix + ".start").c_str(), po::value<uint32_t > (&radStart)->default_value(2), "time index when radiation should start with calculation")
+            ((pluginPrefix + ".end").c_str(), po::value<uint32_t > (&radEnd)->default_value(0), "time index when radiation should end with calculation")
+            ((pluginPrefix + ".omegaList").c_str(), po::value<std::string > (&pathOmegaList)->default_value("_noPath_"), "path to file containing all frequencies to calculate")
+            ((pluginPrefix + ".radPerGPU").c_str(), po::bool_switch(&radPerGPU), "enable radiation output from each GPU individually")
+            ((pluginPrefix + ".folderRadPerGPU").c_str(), po::value<std::string > (&folderRadPerGPU)->default_value("radPerGPU"), "folder in which the radiation of each GPU is written")
+            ((pluginPrefix + ".compression").c_str(), po::bool_switch(&compressionOn), "enable compression of hdf5 output");
     }
 
 
     std::string pluginGetName() const
     {
-        return analyzerName;
+        return pluginName;
     }
 
 
@@ -259,8 +259,8 @@ public:
 private:
 
     /**
-     * The plugin is loaded on every host pc, and therefor this function is
-     * executed on every host pc.
+     * The plugin is loaded on every MPI rank, and therefor this function is
+     * executed on every MPI rank.
      * One host with MPI rank 0 is defined to be the master.
      * It creates a folder where all the
      * results are saved and, depending on the type of radiation calculation,
@@ -278,7 +278,7 @@ private:
             /*only rank 0 create a file*/
             isMaster = reduce.hasResult(mpi::reduceMethods::Reduce());
 
-            radiation = new GridBuffer<Amplitude, DIM1 > (DataSpace<DIM1 > (elements_amplitude())); //create one int on gpu und host
+            radiation = new GridBuffer<Amplitude, DIM1 > (DataSpace<DIM1 > (elements_amplitude())); //create one int on GPU and host
 
             freqInit.Init(pathOmegaList);
             freqFkt = freqInit.getFunctor();
@@ -329,7 +329,7 @@ private:
         {
 
             // Some funny things that make it possible for the kernel to calculate
-            // the absolut position of the particles
+            // the absolute position of the particles
             const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
             DataSpace<simDim> localSize(subGrid.getLocalDomain().size);
             const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
@@ -370,7 +370,7 @@ private:
   {
     if (radPerGPU)
       {
-        // only print lastGPUrad if full time periode was covered
+        // only print lastGPUrad if full time period was covered
         if (lastGPUpos == currentGPUpos)
           {
             std::stringstream last_time_step_str;
@@ -449,7 +449,7 @@ private:
   }
 
 
-  /** writes the total radaiation (over entire simulation time) to file */
+  /** writes the total radiation (over entire simulation time) to file */
   void writeTotalRadToText()
   {
       // only the master rank writes data
@@ -500,7 +500,7 @@ private:
   }
 
 
-  /** This method returns hdf5 data structre names
+  /** This method returns hdf5 data structure names
    *
    *  Arguments:
    *  int index - index of Amplitude
@@ -612,7 +612,7 @@ private:
       fAttr.fileAccType = splash::DataCollector::FAT_READ;
 
       std::ostringstream filename;
-      /* add to standard ending added by libSpash for SerialDataCollector */
+      /* add to standard ending added by libSplash for SerialDataCollector */
       filename << name << timeStep << "_0_0_0.h5";
 
       /* check if restart file exists */
@@ -642,7 +642,7 @@ private:
 
               for(int copyIndex = 0; copyIndex < N_tmpBuffer; ++copyIndex)
               {
-                  /* convert data directly because Amplutude is just 6 float_64 */
+                  /* convert data directly because Amplitude is just 6 float_64 */
                   ((picongpu::float_64*)values)[ampIndex + Amplitude::numComponents*copyIndex] = tmpBuffer[copyIndex];
               }
 
@@ -669,7 +669,7 @@ private:
       outFile.open(name.c_str(), std::ofstream::out | std::ostream::trunc);
       if (!outFile)
       {
-          std::cerr << "Can't open file [" << name << "] for output, diasble analyser output. " << std::endl;
+          std::cerr << "Can't open file [" << name << "] for output, disable plugin output. " << std::endl;
           isMaster = false; // no Master anymore -> no process is able to write
       }
       else
@@ -726,9 +726,9 @@ private:
       this->currentStep = currentStep;
 
       /* the parallelization is ONLY over directions:
-       * (a combinded parallelization over direction AND frequencies
-       *  turned out to be slower on fermis (couple percent) and
-       *  definitly slower on kepler k20)
+       * (a combined parallelization over direction AND frequencies
+       * turned out to be slower on GPUs of the Fermi generation (sm_2x) (couple 
+       * percent) and definitely slower on Kepler GPUs (sm_3x, tested on K20))
        */
       const int N_observer = parameters::N_observer;
       const dim3 gridDim_rad(N_observer);
@@ -744,7 +744,7 @@ private:
       const dim3 blockDim_rad(PMacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value);
 
       // Some funny things that make it possible for the kernel to calculate
-      // the absolut position of the particles
+      // the absolute position of the particles
       DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
       const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
       const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();

@@ -27,7 +27,7 @@
 
 
 //protected:
-// error class for wrong time acces
+// error class for wrong time access
 
 class Error_Accessing_Time
 {
@@ -56,20 +56,20 @@ struct One_minus_beta_times_n
 
         //picongpu::float_64 value; // storage for 1-\beta \times \vec n
 
-        // if energy is high enough to cause numerical errors ( equals if 1/gamma^2 is closs enought to zero)
+        // if energy is high enough to cause numerical errors ( equals if 1/gamma^2 is close enough to zero)
         // chose a Taylor approximation to to better calculate 1-\beta \times \vec n (which is close to 1-1)
-        // is energy is low, then the Appriximation will acuse a larger error, therfor calculate
+        // is energy is low, then the approximation will cause a larger error, therefor calculate
         // 1-\beta \times \vec n directly
-        // with 0.18 the relativ error will be below 0.001% for a Taylor series of 1-sqrt(1-x) of 5th order
+        // with 0.18 the relative error will be below 0.001% for a Taylor series of 1-sqrt(1-x) of 5th order
         if (gamma_inv_square < picongpu::GAMMA_INV_SQUARE_RAD_THRESH)
         {
-            const picongpu::float_64 cos_theta(particle.get_cos_theta<When::now > (n)); // cosinus between looking vector and momentum of particle
+            const picongpu::float_64 cos_theta(particle.get_cos_theta<When::now > (n)); // cosine between looking vector and momentum of particle
             const picongpu::float_64 taylor_approx(cos_theta * Taylor()(gamma_inv_square) + (1.0 - cos_theta));
             return  (taylor_approx);
         }
         else
         {
-            const vector_64 beta(particle.get_beta<When::now > ()); // calc v/c=beta
+            const vector_64 beta(particle.get_beta<When::now > ()); // calculate v/c=beta
             return  (1.0 - beta * n);
         }
 
@@ -118,7 +118,7 @@ typedef Old_Method<util::Square<picongpu::float_64> > Old_DFT;
 
 
 
-// ------- Calc Amplitude class ------------- //
+// ------- Calculate Amplitude class ------------- //
 
 template<typename TimeCalc, typename VecCalc>
 class Calc_Amplitude
@@ -164,7 +164,7 @@ public:
 private:
     // data:
     const Particle& particle; // one particle
-    const picongpu::float_64 delta_t; // length of one timestep in simulation
+    const picongpu::float_64 delta_t; // length of one time step in simulation
     const picongpu::float_64 t_sim; // simulation time (for methods not using index*delta_t )
 
 
