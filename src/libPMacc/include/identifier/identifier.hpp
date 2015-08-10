@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2015 Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2015 Rene Widera, Benjamin Worpitz, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -23,6 +23,7 @@
 #pragma once
 
 #include "types.h"
+#include "ppFunctions.hpp"
 
 /* No namespace is needed because we only have defines*/
 

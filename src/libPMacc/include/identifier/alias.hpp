@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2015 Rene Widera, Felix Schmitt, Benjamin Worpitz
+ * Copyright 2013-2015 Rene Widera, Felix Schmitt, Benjamin Worpitz,
+ *                     Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -24,6 +25,7 @@
 
 #include "types.h"
 #include "identifier/identifier.hpp"
+#include "ppFunctions.hpp"
 #include <string>
 #include "traits/Resolve.hpp"
 #include <boost/mpl/if.hpp>
