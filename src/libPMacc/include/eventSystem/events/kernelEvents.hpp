@@ -29,8 +29,7 @@
 
 #include <boost/preprocessor/control/if.hpp>
 
-namespace PMacc
-{
+/* No namespace in this file since we only declare macro defines */
 
 /*if this flag is defined all kernel calls would be checked and synchronize
  * this flag must set by the compiler or inside of the Makefile
@@ -82,5 +81,3 @@ namespace PMacc
     CUDA_CHECK_KERNEL_MSG(cudaDeviceSynchronize(),"Crash before kernel call");          \
     PMacc::TaskKernel *taskKernel = PMacc::Environment<>::get().Factory().createTaskKernel(#kernelname);     \
     kernelname PMACC_CUDAKERNELCONFIG
-
-}
