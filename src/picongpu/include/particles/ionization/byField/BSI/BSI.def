@@ -42,13 +42,16 @@ namespace ionization
     struct BSI_Impl;
 
     /** \struct BSI
-     * 
+     *
      * \brief Barrier Suppression Ionization
      *
      * - takes the ionization energies of the various charge states of ions
-     * - calculates the corresponding field strengths necessary to overcome the binding energy of the electron to the core
+     * - calculates the corresponding field strengths necessary to overcome
+     *   the binding energy of the electron to the core
      * - if the field strength is locally exceeded: increase the charge state
-     * - see for example: Delone, N. B.; Krainov, V. P. (1998). "Tunneling and barrier-suppression ionization of atoms and ions in a laser radiation field"
+     * - see for example: Delone, N. B.; Krainov, V. P. (1998).
+     *   "Tunneling and barrier-suppression ionization of atoms and ions in a laser radiation field"
+     *   doi:10.1070/PU1998v041n05ABEH000393
      *
      * \tparam T_DestSpecies electron species to be created
      *
