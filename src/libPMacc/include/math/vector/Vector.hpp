@@ -423,10 +423,10 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
      */
     HDINLINE bool operator==(const This& rhs) const
     {
+        bool result = true;
         for (int i = 0; i < dim; i++)
-
-            if ((*this)[i] != rhs[i]) return false;
-        return true;
+            result = result && ((*this)[i] == rhs[i]);
+        return result;
     }
 
     /**
