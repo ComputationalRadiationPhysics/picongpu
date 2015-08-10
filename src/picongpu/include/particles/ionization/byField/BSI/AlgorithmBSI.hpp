@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Marco Garten
+ * Copyright 2014-2015 Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -70,7 +70,7 @@ namespace ionization
             uint32_t cs = math::float2int_rd(chargeState);
 
             /* ionization condition */
-            if (math::abs(eField)*UNIT_EFIELD >= SI::IONIZATION_EFIELD[cs] && chargeState < protonNumber)
+            if (math::abs(eField) / ATOMIC_UNIT_EFIELD >= AU::IONIZATION_EFIELD_HYDROGEN[cs] && chargeState < protonNumber)
             {
                 /* set new particle charge state */
                 parentIon[boundElectrons_] -= float_X(1.0);

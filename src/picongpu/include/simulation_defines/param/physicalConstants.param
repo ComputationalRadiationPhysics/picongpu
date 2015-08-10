@@ -1,5 +1,6 @@
 /**
- * Copyright 2013, 2015 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013, 2015 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
+ *                      Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -42,6 +43,21 @@ namespace picongpu
         const float_64 ELECTRON_MASS_SI = 9.109382e-31;
         /** unit: C */
         const float_64 ELECTRON_CHARGE_SI = -1.602176e-19;
+
+        /* atomic unit for energy:
+         * 1 Rydberg = 27.21 eV --> converted to Joule
+         */
+        const float_64 ATOMIC_UNIT_ENERGY = 4.36e-18;
+
+        /* atomic unit for electric field in V/m:
+         * field strength between electron and core in ground state hydrogen
+         */
+        const float_64 ATOMIC_UNIT_EFIELD = 5.14e11;
+
+        /* atomic unit for time in s:
+         * 150 attoseconds (classical electron orbit time in hydrogen)  / 2 PI
+         */
+        const float_64 ATOMIC_UNIT_TIME = 2.4189e-17;
     }
 
     // converts
@@ -70,5 +86,10 @@ namespace picongpu
     //
     const float_64 UNITCONV_keV_to_Joule = 1.60217646e-16;
     const float_64 UNITCONV_Joule_to_keV = (1.0 / UNITCONV_keV_to_Joule);
+
+    /* 1 atomic unit of energy is equal to 1 Hartree or 2 Rydberg
+     * which is twice the ground state binding energy of atomic hydrogen */
+    const float_64 UNITCONV_AU_to_eV = 27.21139;
+    const float_64 UNITCONV_eV_to_AU = (1.0 / UNITCONV_AU_to_eV);
 
 }

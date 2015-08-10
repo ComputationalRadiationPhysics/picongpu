@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2015 Marco Garten
+ * Copyright 2015 Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -20,4 +20,5 @@
 
 #pragma once
 
-#include "particles/ionization/byField/fieldIonizationCalc.def"
+#include "particles/ionization/byField/BSI/AlgorithmBSI.hpp"
+#include "particles/ionization/None/AlgorithmNone.hpp"

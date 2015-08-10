@@ -46,6 +46,7 @@ namespace ionization
 {
 
     /** \struct BSI_Impl
+     * 
      * \brief Barrier Suppression Ionization - Implementation
      *
      * \tparam T_DestSpecies electron species to be created
