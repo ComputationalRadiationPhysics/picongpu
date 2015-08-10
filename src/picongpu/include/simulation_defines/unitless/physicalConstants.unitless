@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Rene Widera, Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -93,5 +93,11 @@ namespace picongpu
 
     // = 1/c^2
     const float_X MUE0_EPS0 = float_X(1. / SPEED_OF_LIGHT / SPEED_OF_LIGHT);
+
+    /* Atomic unit of electric field in PIC Efield units */
+    const float_X ATOMIC_UNIT_EFIELD = float_X(SI::ATOMIC_UNIT_EFIELD / UNIT_EFIELD);
+
+    /* Atomic unit of time in PIC units */
+    const float_X ATOMIC_UNIT_TIME = float_X(SI::ATOMIC_UNIT_TIME / UNIT_TIME);
 
 } //namespace picongpu

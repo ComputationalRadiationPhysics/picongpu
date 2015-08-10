@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Marco Garten
+ * Copyright 2014-2015 Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -20,38 +20,65 @@
 
 /** \file
  * This file contains the ionization energies and conversion to corresponding
- * electric field strengths for different species. */
+ * electric field strengths for different species.
+ */
 
 #pragma once
 
 /** \todo Make compatible for multiple atom species
  * - Probably do some calculation from energy to required field strength (or do that model dependent)
  * - Introduce some clever way of storage, like matrices for different charge states of the same species
- * - future: even different states of excitation should be possible */
+ * - future: even different states of excitation should be possible
+ */
 
 namespace picongpu
 {
-namespace SI
+namespace AU
 {
 
-    /* ionization energy for ground state hydrogen: 13.6 eV --> converted to Joule */
-    /* Joule = kg * m^2 / s^2 */
-    PMACC_CONST_VECTOR(float_X,1,IONIZATION_ENERGY,
-        2.179e-18
+    /** Ionization potentials
+     *
+     * Please follow these rules for defining ionization energies of atomic species,
+     * unless your chosen ionization model requires a different unit system than AU:
+     *     - input of values in either atomic units or converting eV or Joule to them
+     *     -> use either UNITCONV_eV_to_AU or SI::ATOMIC_UNIT_ENERGY for that purpose
+     *     - use float_X as the preferred data type
+     *
+     * example:
+     *     ionization energy for ground state hydrogen: 13.6 eV
+     *     1 Joule       = 1 kg * m^2 / s^2
+     *     1 eV          = 1.602e-19 J
+     *
+     *     1 AU (energy) = 27.2 eV
+     *                   = 1 Hartree
+     *                   = 4.36e-18 J
+     *                   = 2 Rydberg
+     *                   = 2 x Hydrogen ground state binding energy
+     *
+     * Atomic units are useful for ionization models because they simplify the
+     * formulae greatly and provide intuitively understandable relations to a
+     * well-known system, i.e. the Hydrogen atom.
+     *
+     * for PMACC_CONST_VECTOR usage,
+     * @see libPMacc/include/math/ConstVector.hpp
+     * for finding ionization energies,
+     * @see http://physics.nist.gov/PhysRefData/ASD/ionEnergy.html
+     */
+
+    /* ionization energy for ground state hydrogen in atomic units */
+    PMACC_CONST_VECTOR(float_X,1,IONIZATION_ENERGY_HYDROGEN,
+        13.60569 * UNITCONV_eV_to_AU
     );
-    /* ionization field strength (E-field) for hydrogen: in Volt / meter
+    /** Ionization field strengths
      *
-     * usage:
-     * PMACC_CONST_VECTOR(float_X,<NUMBER_OF_PROTONS>,IONIZATION_EFIELD,
-     *     <value_1>,
-     *     ...
-     *     <value_Z>
-     * );
-     *
-     * Do not forget to change the weight of the ion and the atomic numbers in
-     * their respective `.param` file */
-    PMACC_CONST_VECTOR(float_X,1,IONIZATION_EFIELD,
-        5.14e11
+     * Define field strengths for the barrier suppression ionization (BSI) model
+     * in SI units, normalized by the atomic unit (AU) for electric field strength.
+     */
+
+    /* ionization field strength (E-field) for hydrogen in atomic units
+     *     - conversion from V/m to AU (E-field) */
+    PMACC_CONST_VECTOR(float_X,1,IONIZATION_EFIELD_HYDROGEN,
+        5.14e11 / SI::ATOMIC_UNIT_EFIELD
     );
 
 } // namespace SI

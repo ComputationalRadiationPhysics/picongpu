@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Marco Garten
+ * Copyright 2014-2015 Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -20,27 +20,4 @@
 
 #pragma once
 
-/** forward declarations for ionization algorithms
- *
- * ionization model has a < Name >
- * so the algorithm is called "Algorithm< Name >"
- */
-
-namespace picongpu
-{
-
-namespace particles
-{
-
-namespace ionization
-{
-
-    struct AlgorithmNone;
-
-    struct AlgorithmBSI;
-
-} // namespace ionization
-
-} // namespace particles
-
-} // namespace picongpu
+#include "particles/ionization/byField/fieldIonizationCalc.def"

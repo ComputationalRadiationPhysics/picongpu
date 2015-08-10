@@ -155,6 +155,7 @@ typedef bmpl::vector<
     chargeRatio<ChargeRatioIons>,
     #if(PARAM_IONIZATION == 1)
     ionizer<particles::ionization::BSI<PIC_Electrons> >,
+    ionizationEnergies<AU::IONIZATION_ENERGY_HYDROGEN_t>,
     #endif
     atomicNumbers<Hydrogen>
 > ParticleFlagsIons;

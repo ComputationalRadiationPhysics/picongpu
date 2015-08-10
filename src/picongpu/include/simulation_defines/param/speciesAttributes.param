@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Rene Widera, Marco Garten
+ * Copyright 2014-2015 Rene Widera, Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -79,6 +79,9 @@ alias(particlePusher);
 
 /*! alias for particle ionizer @see speciesDefinition.param */
 alias(ionizer);
+
+/*! alias for ionization energy container @see ionizationEnergies.param */
+alias(ionizationEnergies);
 
 /*! alias for particle to field interpolation @see species.param */
 alias(interpolation);
