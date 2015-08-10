@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera, Richard Pausch
+ * Copyright 2013, 2015 Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -31,7 +31,7 @@ namespace picongpu
 /*create verbose class*/
 DEFINE_VERBOSE_CLASS(PIConGPUVerboseRadiation)
 (
-    /* define log lvl for later use
+    /* define log levels for later use
      * e.g. log<PMaccLogLvl::NOTHING>("TEXT");*/
     DEFINE_LOGLVL(0,NOTHING);
     DEFINE_LOGLVL(1,PHYSICS);
@@ -39,7 +39,7 @@ DEFINE_VERBOSE_CLASS(PIConGPUVerboseRadiation)
     DEFINE_LOGLVL(4,MEMORY);
     DEFINE_LOGLVL(8,CRITICAL);
 )
-/*set default verbose lvl (integer number)*/
+/*set default verbose levels (integer number)*/
 (NOTHING::lvl|PIC_VERBOSE_RADIATION);
 
 }// namespace picongpu

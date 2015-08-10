@@ -82,7 +82,7 @@ namespace po = boost::program_options;
  * initializing the shared memory.
  * Then a loop over all super cells starts.
  * Every thread loads a particle from that super cell and calculates its
- * retarted time and its real amplitude (both is dependent of the direction).
+ * retarded time and its real amplitude (both is dependent of the direction).
  * For every Particle
  * exists therefor a unique space within the shared memory.
  * After that, a thread calculates for a specific frequency the emitted
@@ -150,12 +150,12 @@ void kernelRadiationParticles(ParBox pb,
 #endif
 
 
-    const int theta_idx = blockIdx.x; //blockIdx.x is used to determine theata
+    const int theta_idx = blockIdx.x; //blockIdx.x is used to determine theta
     const uint32_t linearThreadIdx = threadIdx.x; // used for determine omega and particle id
     // old:  DataSpaceOperations<DIM3>::map<Block > (DataSpace<DIM3 > (threadIdx));
 
 
-    __syncthreads(); /*wait that all shared memory is initialised*/
+    __syncthreads(); /*wait that all shared memory is initialized*/
 
 
     // simulation time (needed for retarded time)
@@ -181,7 +181,7 @@ void kernelRadiationParticles(ParBox pb,
     for (int super_cell_index = 0; super_cell_index <= numSuperCells; ++super_cell_index)
     {
         /* warpId != 1 synchronization is needed,
-           since a race condition can occure if "continue loop" is called,
+           since a race condition can occur if "continue loop" is called,
            all threads must wait for the selection of a new frame
            until all threads have evaluated "isValid"
         */
@@ -215,7 +215,7 @@ void kernelRadiationParticles(ParBox pb,
 
         __syncthreads();
 
-        /* goto next supercell
+        /* go to next supercell
          *
          * if "isValid" is false then there is no frame
          * inside the superCell (anymore)
@@ -295,7 +295,7 @@ void kernelRadiationParticles(ParBox pb,
 
                         /* only of coherent and incoherent radiation of a single macro-particle is
                          * considered, the weighting of each macro-particle needs to be stored
-                         * in order to be considered when the actual frequency calulation is done
+                         * in order to be considered when the actual frequency calculation is done
                          */
 #if (__COHERENTINCOHERENTWEIGHTING__==1)
                        radWeighting_s[saveParticleAt] = weighting;
@@ -309,7 +309,7 @@ void kernelRadiationParticles(ParBox pb,
                          **** Here happens the true physical calculation ****
                          ****************************************************/
 
-                        // set up particle using the radiation onw's particle class
+                        // set up particle using the radiation's own particle class
                         /*!\todo please add a namespace for Particle class*/
                         const ::Particle particle(particle_locationNow,
                                                   particle_momentumOld,
@@ -350,7 +350,7 @@ void kernelRadiationParticles(ParBox pb,
                         // retarded time stored in shared memory
                         t_ret_s[saveParticleAt] = amplitude3.get_t_ret(look);
 
-                        // if Nyquist-limter is used, then the NyquistLowPlass object
+                        // if Nyquist-limiter is used, then the NyquistLowPlass object
                         // is setup and stored in shared memory
 #if (__NYQUISTCHECK__==1)
                         lowpass_s[saveParticleAt] = NyquistLowPass(look, particle);
@@ -384,12 +384,12 @@ void kernelRadiationParticles(ParBox pb,
 
 
 
-            // run over all ony valid omegas for this thread
+            // run over all  valid omegas for this thread
             for (int o = linearThreadIdx; o < radiation_frequencies::N_omega; o += blockSize)
               {
 
                 /* storage for amplitude (complex 3D vector)
-                 * it  is inizialized with zeros (  0 +  i 0 )
+                 * it  is initialized with zeros (  0 +  i 0 )
                  */
                 Amplitude amplitude = Amplitude::zero();
 
@@ -398,7 +398,7 @@ void kernelRadiationParticles(ParBox pb,
 
 
                 // if coherent and incoherent radiation of a single macro-particle
-                // is considered, creare a form factor object
+                // is considered, create a form factor object
 #if (__COHERENTINCOHERENTWEIGHTING__==1)
                 const radFormFactor::radFormFactor myRadFormFactor;
 #endif
@@ -414,7 +414,7 @@ void kernelRadiationParticles(ParBox pb,
 
                     // if Nyquist-limiter is on
 #if (__NYQUISTCHECK__==1)
-                    // check Nyquist-limit for each particle "j" and each frequeny "omega"
+                    // check Nyquist-limit for each particle "j" and each frequency "omega"
                     if (lowpass_s[j].check(omega))
                       {
 #endif
@@ -444,9 +444,9 @@ void kernelRadiationParticles(ParBox pb,
                         // add this single amplitude those previously considered
                         amplitude += amplitude_add;
 
-                        // if Nyquist limietr is on
+                        // if Nyquist limiter is on
 #if (__NYQUISTCHECK__==1)
-                      }// END: check Nyquist-limit for each particle "j" and each frequeny "omega"
+                      }// END: check Nyquist-limit for each particle "j" and each frequency "omega"
 #endif
 
                   }// END: Particle loop
@@ -484,7 +484,7 @@ void kernelRadiationParticles(ParBox pb,
             // wait till first thread has loaded new frame
             __syncthreads();
 
-            // run thrue while-loop(is Valid) again
+            // run through while-loop(is Valid) again
 
           } // end while(isValid)
 
