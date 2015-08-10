@@ -1,30 +1,34 @@
 /**
- * Copyright 2015 Rene Widera
+ * Copyright 2015 Rene Widera, Alexander Grund
  *
- * This file is part of PIConGPU.
+ * This file is part of libPMacc.
  *
- * PIConGPU is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * PIConGPU is distributed in the hope that it will be useful,
+ * libPMacc is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with PIConGPU.
+ * and the GNU Lesser General Public License along with libPMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
 #pragma once
 
-#include "particles/MallocMCBuffer.hpp"
+#include "particles/memory/buffers/MallocMCBuffer.hpp"
+#include "types.h"
+#include "Environment.hpp"
+#include "eventSystem/EventSystem.hpp"
 
-namespace picongpu
+namespace PMacc
 {
-using namespace PMacc;
 
 MallocMCBuffer::MallocMCBuffer( ) : hostPtr( NULL ),hostBufferOffset(0)
 {
@@ -55,16 +59,16 @@ void MallocMCBuffer::synchronize( )
          * but with the some result (create page-locked memory)
          */
         hostPtr = new char[deviceHeapInfo.size];
-        CUDA_CHECK(cudaHostRegister(hostPtr,deviceHeapInfo.size,cudaHostRegisterDefault));
+        CUDA_CHECK(cudaHostRegister(hostPtr, deviceHeapInfo.size, cudaHostRegisterDefault));
 
 
-        this->hostBufferOffset=int64_t(((char*)deviceHeapInfo.p) - hostPtr);
+        this->hostBufferOffset = static_cast<int64_t>(reinterpret_cast<char*>(deviceHeapInfo.p) - hostPtr);
     }
     /* add event system hints */
     __startOperation(ITask::TASK_CUDA);
     __startOperation(ITask::TASK_HOST);
-    CUDA_CHECK(cudaMemcpy(hostPtr,deviceHeapInfo.p,deviceHeapInfo.size,cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cudaMemcpy(hostPtr, deviceHeapInfo.p, deviceHeapInfo.size, cudaMemcpyDeviceToHost));
 
 }
 
-} //namespace picongpu
+} //namespace PMacc

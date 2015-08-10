@@ -1,5 +1,6 @@
 /**
- * Copyright 2014-2015 Rene Widera, Felix Schmitt, Axel Huebl
+ * Copyright 2014-2015 Rene Widera, Felix Schmitt, Axel Huebl,
+ *                     Alexander Grund
  *
  * This file is part of PIConGPU.
  *
@@ -46,6 +47,7 @@
 
 #include "particles/particleFilter/FilterFactory.hpp"
 #include "particles/particleFilter/PositionFilter.hpp"
+#include "particles/memory/buffers/MallocMCBuffer.hpp"
 
 namespace picongpu
 {

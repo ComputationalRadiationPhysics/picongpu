@@ -1,7 +1,7 @@
 /**
  * Copyright 2013-2015 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Richard Pausch, Alexander Debus, Marco Garten,
- *                     Benjamin Worpitz
+ *                     Benjamin Worpitz, Alexander Grund
  *
  * This file is part of PIConGPU.
  *
@@ -44,7 +44,6 @@
 #include "fields/FieldB.hpp"
 #include "fields/FieldJ.hpp"
 #include "fields/FieldTmp.hpp"
-#include "particles/MallocMCBuffer.hpp"
 #include "fields/MaxwellSolver/Solvers.hpp"
 #include "fields/currentInterpolation/CurrentInterpolation.hpp"
 #include "fields/background/cellwiseOperation.hpp"
@@ -62,6 +61,7 @@
 #include "algorithms/ForEach.hpp"
 #include "particles/ParticlesFunctors.hpp"
 #include "particles/InitFunctors.hpp"
+#include "particles/memory/buffers/MallocMCBuffer.hpp"
 #include <boost/mpl/int.hpp>
 
 namespace picongpu
