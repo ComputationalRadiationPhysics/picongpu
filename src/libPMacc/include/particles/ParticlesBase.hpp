@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2015 Felix Schmitt, Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Benjamin Worpitz,
+ *                     Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -24,7 +25,7 @@
 
 #include "particles/ParticlesBase.kernel"
 #include "fields/SimulationFieldHelper.hpp"
-#include "mappings/kernel/ExchangeMapping.hpp"
+#include "mappings/kernel/AreaMapping.hpp"
 
 #include "particles/memory/boxes/ParticlesBox.hpp"
 #include "particles/memory/buffers/ParticlesBuffer.hpp"
@@ -70,6 +71,8 @@ protected:
     ParticlesBase(MappingDesc description) : SimulationFieldHelper<MappingDesc>(description), particlesBuffer(NULL)
     {
     }
+
+    virtual ~ParticlesBase(){}
 
     /* Shift all particle in a AREA
      * @tparam AREA area which is used (CORE,BORDER,GUARD or a combination)
