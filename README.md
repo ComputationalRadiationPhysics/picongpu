@@ -141,6 +141,7 @@ Active Team
 - Dr. Alexander Debus
 - Carlchristian Eckert
 - Marco Garten
+- Alexander Grund
 - Axel Huebl*
 - Maximilian Knespel
 - Richard Pausch*
@@ -148,7 +149,7 @@ Active Team
 - Rene Widera*
 - Benjamin Worpitz*
 
-### Participants, Former Members and Thanks
+### Former Members, Contributions and Thanks
 
 The PIConGPU Team expresses its thanks to:
 
