@@ -29,7 +29,7 @@ namespace picongpu
     {
         /** Duration of one timestep
          *  unit: seconds */
-        const float_64 DELTA_T_SI = 0.8e-16;
+        const float_64 DELTA_T_SI = 1.39e-16;
         /** equals X
          *  unit: meter */
         const float_64 CELL_WIDTH_SI = 0.1772e-6;
