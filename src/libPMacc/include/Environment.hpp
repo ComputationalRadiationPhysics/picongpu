@@ -1,5 +1,6 @@
 /**
- * Copyright 2014 Felix Schmitt, Conrad Schumann
+ * Copyright 2014-2015 Felix Schmitt, Conrad Schumann,
+ *                     Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -34,6 +35,7 @@
 #include "nvidia/memory/MemoryInfo.hpp"
 #include "mappings/simulation/Filesystem.hpp"
 
+#include <cuda_runtime.h>
 
 namespace PMacc
 {
@@ -232,14 +234,16 @@ private:
     }
 };
 
-#define __startTransaction(...) (Environment<>::get().TransactionManager().startTransaction(__VA_ARGS__))
-#define __startAtomicTransaction(...) (Environment<>::get().TransactionManager().startAtomicTransaction(__VA_ARGS__))
-#define __endTransaction() (Environment<>::get().TransactionManager().endTransaction())
-#define __startOperation(opType) (Environment<>::get().TransactionManager().startOperation(opType))
-#define __getEventStream(opType) (Environment<>::get().TransactionManager().getEventStream(opType))
-#define __getTransactionEvent() (Environment<>::get().TransactionManager().getTransactionEvent())
-#define __setTransactionEvent(event) (Environment<>::get().TransactionManager().setTransactionEvent((event)))
-
 }
+
+/* No namespace for macro defines */
+
+#define __startTransaction(...) (PMacc::Environment<>::get().TransactionManager().startTransaction(__VA_ARGS__))
+#define __startAtomicTransaction(...) (PMacc::Environment<>::get().TransactionManager().startAtomicTransaction(__VA_ARGS__))
+#define __endTransaction() (PMacc::Environment<>::get().TransactionManager().endTransaction())
+#define __startOperation(opType) (PMacc::Environment<>::get().TransactionManager().startOperation(opType))
+#define __getEventStream(opType) (PMacc::Environment<>::get().TransactionManager().getEventStream(opType))
+#define __getTransactionEvent() (PMacc::Environment<>::get().TransactionManager().getTransactionEvent())
+#define __setTransactionEvent(event) (PMacc::Environment<>::get().TransactionManager().setTransactionEvent((event)))
 
 #include "particles/tasks/ParticleFactory.tpp"
