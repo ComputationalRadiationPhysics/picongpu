@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Rene Widera
+ * Copyright 2013-2015 Rene Widera, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -22,9 +22,7 @@
 
 #pragma once
 
-#include <sstream>
-#include <boost/format.hpp>
-#include <iostream>
+#include "debug/VerboseLog.hpp"
 #include <string>
 
 /** create a log lvl
@@ -32,7 +30,7 @@
  * @param name name of the log lvl, name is needet later to call log<name>(...)
  */
 #define DEFINE_LOGLVL(code,name)                            \
-    typedef LogLvl < code, thisClass > name;                \
+    typedef PMacc::LogLvl < code, thisClass > name;         \
     friend inline std::string getLogName(const name)        \
     {                                                       \
         return std::string(#name);                          \
