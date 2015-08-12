@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera,
+ *                     Alexander Grund
  *
  * This file is part of PIConGPU.
  *
@@ -58,7 +59,7 @@ struct RandomImpl
         const uint32_t numSlides = MovingWindow::getInstance( ).getSlideCounter( currentStep );
         const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
         localCells = subGrid.getLocalDomain().size;
-        DataSpace<simDim> totalGpuOffset = subGrid.getLocalDomain( ).offset;
+        totalGpuOffset = subGrid.getLocalDomain( ).offset;
         totalGpuOffset.y( ) += numSlides * localCells.y( );
     }
 
