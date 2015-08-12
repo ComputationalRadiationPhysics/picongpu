@@ -400,8 +400,9 @@ public:
         EventTask updateEvent;
         EventTask commEvent;
 
-        ForEach<VectorAllSpecies, particles::CallUpdate<bmpl::_1>, MakeIdentifier<bmpl::_1> > particleUpdate;
-        particleUpdate(forward(particleStorage), currentStep, initEvent, forward(updateEvent), forward(commEvent));
+        /* push all species */
+        particles::PushAllSpecies pushAllSpecies;
+        pushAllSpecies(particleStorage, currentStep, initEvent, updateEvent, commEvent);
 
         __setTransactionEvent(updateEvent);
         /** remove background field for particle pusher */
