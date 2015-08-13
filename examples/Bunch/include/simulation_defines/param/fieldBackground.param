@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2015 Axel Huebl, Alexander Debus
+ * Copyright 2014-2015 Axel Huebl, Alexander Debus, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -88,20 +88,12 @@ namespace picongpu
             const float_64 WAVE_LENGTH_SI = 0.8e-6;
 
             /** UNITCONV */
-            /* const float_64 UNITCONV_Intens_to_A0 = SI::ELECTRON_CHARGE_SI
-                * SI::ELECTRON_CHARGE_SI * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI / (4.0 * PI * PI
-                * SI::ELECTRON_MASS_SI * SI::ELECTRON_MASS_SI * SI::SPEED_OF_LIGHT_SI
-                * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI
-                * SI::SPEED_OF_LIGHT_SI * SI::EPS0_SI); */
             const float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
                 * SI::ELECTRON_MASS_SI * SI::SPEED_OF_LIGHT_SI
                 * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
 
-            /* unit: W / m^2
-             * const float_64 _PEAK_INTENSITY_SI = 3.4e19 * 1.0e4;
-             * unit: none
-             * const float_64 _A0  = _PEAK_INTENSITY_SI * UNITCONV_Intens_to_A0;
-             */
+            /** unit: W / m^2 */
+            // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
 
             /* unit: none */
             const float_64 _A0  = 1.0;
@@ -180,20 +172,12 @@ namespace picongpu
             const float_64 WAVE_LENGTH_SI = 0.8e-6;
 
             /** UNITCONV */
-            /* const float_64 UNITCONV_Intens_to_A0 = SI::ELECTRON_CHARGE_SI
-                * SI::ELECTRON_CHARGE_SI * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI / (4.0 * PI * PI
-                * SI::ELECTRON_MASS_SI * SI::ELECTRON_MASS_SI * SI::SPEED_OF_LIGHT_SI
-                * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI
-                * SI::SPEED_OF_LIGHT_SI * SI::EPS0_SI); */
             const float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
                 * SI::ELECTRON_MASS_SI * SI::SPEED_OF_LIGHT_SI
                 * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
 
-            /* unit: W / m^2
-             * const float_64 _PEAK_INTENSITY_SI = 3.4e19 * 1.0e4;
-             * unit: none
-             * const float_64 _A0  = _PEAK_INTENSITY_SI * UNITCONV_Intens_to_A0;
-             */
+            /** unit: W / m^2 */
+            // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
 
             /** unit: none */
             const float_64 _A0  = 1.0;

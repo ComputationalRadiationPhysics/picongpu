@@ -34,13 +34,10 @@ namespace SI
 const float_64 WAVE_LENGTH_SI = 0.8e-6;
 
 /** UNITCONV */
-const float_64 UNITCONV_Intens_to_A0 = ::picongpu::SI::ELECTRON_CHARGE_SI * ::picongpu::SI::ELECTRON_CHARGE_SI * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI / (4.0 * PI * PI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::EPS0_SI);
 const float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
 
 /** unit: W / m^2 */
-//const float_64 _PEAK_INTENSITY_SI = 3.4e19 * 1.0e4;
-/** unit: none */
-//const float_64 _A0  = _PEAK_INTENSITY_SI * UNITCONV_Intens_to_A0;
+// calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
 
 /** unit: none */
 const float_64 _A0  = 1.5;
@@ -93,7 +90,6 @@ namespace SI
 const float_64 WAVE_LENGTH_SI = 0.8e-6;
 
 /** UNITCONV */
-const float_64 UNITCONV_Intens_to_A0 = ::picongpu::SI::ELECTRON_CHARGE_SI * ::picongpu::SI::ELECTRON_CHARGE_SI * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI / ( 4.0 * PI * PI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::EPS0_SI );
 const float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
 
 /** unit: Volt /meter */
@@ -147,13 +143,10 @@ namespace SI
 const float_64 WAVE_LENGTH_SI = 0.8e-6;
 
 /** UNITCONV */
-const float_64 UNITCONV_Intens_to_A0 = ::picongpu::SI::ELECTRON_CHARGE_SI * ::picongpu::SI::ELECTRON_CHARGE_SI * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI / (4.0 * PI * PI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::EPS0_SI);
 const float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
 
 /** unit: W / m^2 */
-//const float_64 _PEAK_INTENSITY_SI = 3.4e19 * 1.0e4;
-/** unit: none */
-//const float_64 _A0  = _PEAK_INTENSITY_SI * UNITCONV_Intens_to_A0;
+// calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
 
 /** unit: none */
 const float_64 _A0 = 1.0;
@@ -204,13 +197,10 @@ namespace SI
 const float_64 WAVE_LENGTH_SI = 0.8e-6;
 
 /** UNITCONV */
-const float_64 UNITCONV_Intens_to_A0 = ::picongpu::SI::ELECTRON_CHARGE_SI * ::picongpu::SI::ELECTRON_CHARGE_SI * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI / (4.0 * PI * PI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::EPS0_SI);
 const float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
 
 /** unit: W / m^2 */
-//const float_64 _PEAK_INTENSITY_SI = 3.4e19 * 1.0e4;
-/** unit: none */
-//const float_64 _A0  = _PEAK_INTENSITY_SI * UNITCONV_Intens_to_A0;
+// calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
 
 /** unit: none */
 //const float_64 _A0  = 3.9;
@@ -270,13 +260,10 @@ namespace SI
 const float_64 WAVE_LENGTH_SI = 0.8e-6;
 
 /** UNITCONV */
-const float_64 UNITCONV_Intens_to_A0 = ::picongpu::SI::ELECTRON_CHARGE_SI * ::picongpu::SI::ELECTRON_CHARGE_SI * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI / (4.0 * PI * PI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::EPS0_SI);
 const float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
 
 /** unit: W / m^2 */
-//const float_64 _PEAK_INTENSITY_SI = 3.4e19 * 1.0e4;
-/** unit: none */
-//const float_64 _A0  = _PEAK_INTENSITY_SI * UNITCONV_Intens_to_A0;
+// calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
 
 /** unit: none */
 //const float_64 _A0  = 3.9;
