@@ -1,6 +1,6 @@
 /**
  * Copyright 2014-2015 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
- *                     Benjamin Worpitz
+ *                     Benjamin Worpitz, Alexander Grund
  *
  * This file is part of PIConGPU.
  *
@@ -50,7 +50,7 @@
 #include "pluginSystem/PluginConnector.hpp"
 #include "simulationControl/MovingWindow.hpp"
 #include "math/Vector.hpp"
-#include "particles/MallocMCBuffer.hpp"
+#include "particles/memory/buffers/MallocMCBuffer.hpp"
 #include "traits/Limits.hpp"
 
 #include "plugins/ILightweightPlugin.hpp"
