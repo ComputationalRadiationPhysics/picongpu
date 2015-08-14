@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Axel Huebl
+ * Copyright 2014-2015 Axel Huebl, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -24,6 +24,7 @@
 
 #include "types.h"
 #include "Environment.hpp"
+#include "algorithms/reverseBits.hpp"
 
 namespace PMacc
 {
@@ -55,8 +56,18 @@ namespace mpi
         {
             PMACC_AUTO(&gc, PMacc::Environment<T_DIM>::get().GridController());
 
-            seed ^= gc.getGlobalSize( ) * localShift +
-                    gc.getGlobalRank( );
+            uint32_t rank = gc.getGlobalRank( );
+            /* We put the rank into the upper bits to allow values which start
+             * from zero (e.g. cellIdxs) to be used as additional seed contributors
+             * Those would then write to the lower bits leaving the upper bits alone
+             * which still results in globally unique seeds
+             */
+            uint32_t globalUniqueSeed = reverseBits(rank);
+            globalUniqueSeed ^= localShift;
+            /* For any globally constant localShift globalUniqueSeed is now guaranteed
+             * to be globally unique
+             */
+            seed ^= globalUniqueSeed;
             return seed;
         }
     };
