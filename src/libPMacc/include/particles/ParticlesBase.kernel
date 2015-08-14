@@ -53,196 +53,150 @@ DINLINE bool getPreviousFrameAndRemoveLastFrame(typename T_ParticleBox::FrameTyp
  * This kernel can only run with a double checker board
  */
 template<class FRAME, class Mapping>
-__global__ void kernelShiftParticles(ParticlesBox<FRAME, Mapping::Dim> pb, Mapping mapper)
+__global__ void kernelShiftParticles( ParticlesBox<FRAME, Mapping::Dim> pb, Mapping mapper )
 {
 
-    using namespace particles::operations;
-
-    /* Exchanges in 2D=8 and in 3D=26
-     */
     enum
     {
         TileSize = math::CT::volume<typename Mapping::SuperCellSize>::type::value,
         Dim = Mapping::Dim,
+        /* Exchanges in 2D=9 and in 3D=27 */
         Exchanges = traits::NumberOfExchanges<Dim>::value
     };
 
 
-    //\todo: testen ob es schneller ist, erst zu flushen wennn Source voll ist
-    __shared__ FRAME * destFrames[Exchanges];
+    /* define memory for two times Exchanges
+     * index [0,Exchanges-1] is called first frame
+     * index [Exchanges,2*Exchanges-1] is called second frame
+     */
+    __shared__ FRAME * destFrames[Exchanges * 2];
     __shared__ int destFramesCounter[Exchanges]; //count particles per frame
-    __shared__ bool anyDestFrameFull; //flag if any destination Frame is full
+
+    /* lastFrameSize is only valid for threads with `linearThreadIdx` < Exchanges */
+    uint32_t lastFrameSize = 0;
 
     __shared__ FRAME *frame;
     __shared__ bool isFrameValid;
     __shared__ bool mustShift;
 
     __syncthreads(); /*wait that all shared memory is initialised*/
+    DataSpace<Dim> superCellIdx = mapper.getSuperCellIndex( DataSpace<Dim > (blockIdx) );
+    const uint32_t linearThreadIdx = threadIdx.x;
 
-    DataSpace<Dim> superCellIdx = mapper.getSuperCellIndex(DataSpace<Dim > (blockIdx));
-
-    if (threadIdx.x == 0)
+    if ( linearThreadIdx == 0 )
     {
-        mustShift = pb.getSuperCell(superCellIdx).mustShift();
-        if (mustShift)
+        isFrameValid = false;
+        mustShift = pb.getSuperCell( superCellIdx ).mustShift( );
+        if ( mustShift )
         {
-            //only do anything if we must shift a frame
-            pb.getSuperCell(superCellIdx).setMustShift(false);
-            anyDestFrameFull = false;
-            frame = &(pb.getFirstFrame(superCellIdx, isFrameValid));
+            pb.getSuperCell( superCellIdx ).setMustShift( false );
+            frame = &(pb.getFirstFrame( superCellIdx, isFrameValid ));
         }
     }
 
-    __syncthreads();
-    if (!mustShift || isFrameValid == false) return;
+    __syncthreads( );
 
-    //!\todo: find a way without so many flags
-    bool isNeighborFrame = false;
-    //init
-    if (threadIdx.x < Exchanges)
+    if ( !mustShift || isFrameValid == false ) return;
+
+    const DataSpace<Dim> relative = superCellIdx + Mask::getRelativeDirections<Dim > (linearThreadIdx + 1);
+
+    if ( linearThreadIdx < Exchanges )
     {
-        DataSpace<Dim> relative = superCellIdx + Mask::getRelativeDirections<Dim > (threadIdx.x + 1);
-        destFramesCounter[threadIdx.x] = 0;
-        destFrames[threadIdx.x] = &(pb.getLastFrame(relative, isNeighborFrame));
-        if (isNeighborFrame)
+        bool hasNeighborFrame = false;
+        destFramesCounter[linearThreadIdx] = 0;
+        destFrames[linearThreadIdx] = NULL;
+        destFrames[linearThreadIdx + Exchanges] = NULL;
+        /* load neighbor frame */
+        FRAME& tmpFrame = pb.getLastFrame( relative, hasNeighborFrame );
+
+        if ( hasNeighborFrame )
         {
-            destFramesCounter[threadIdx.x] = pb.getSuperCell(relative).getSizeLastFrame();
-            if (destFramesCounter[threadIdx.x] == TileSize)
+            lastFrameSize = pb.getSuperCell( relative ).getSizeLastFrame( );
+            //don't use last frame if it is full
+            if ( lastFrameSize < TileSize )
             {
-                //don't use last frame is it is full
-                destFrames[threadIdx.x] = NULL;
-                destFramesCounter[threadIdx.x] = 0;
-                isNeighborFrame = false;
+                destFrames[linearThreadIdx] = &tmpFrame;
+                destFramesCounter[linearThreadIdx] = lastFrameSize;
             }
         }
-        else
-            destFrames[threadIdx.x] = NULL;
-
     }
-    __syncthreads();
+    __syncthreads( );
 
-    do
+    while ( isFrameValid )
     {
         lcellId_t destParticleIdx = INV_LOC_IDX;
 
         //switch to value to [-2, EXCHANGES - 1]
         //-2 is no particle
         //-1 is particle but it is not shifted
-        const int direction = (*frame)[threadIdx.x][multiMask_] - 2;
-        if (direction >= 0) //\todo: weglassen
+        int direction = (*frame)[linearThreadIdx][multiMask_] - 2;
+        if ( direction >= 0 )
         {
-            destParticleIdx = atomicAdd(&(destFramesCounter[direction]), 1);
-            (*frame)[threadIdx.x][multiMask_] = 0; //delete particle, later we copy this particle without multiMask
-            if (destParticleIdx >= TileSize) anyDestFrameFull = true;
+            destParticleIdx = atomicAdd( &(destFramesCounter[direction]), 1 );
         }
-        __syncthreads();
-        if (threadIdx.x < Exchanges &&
-            destFramesCounter[threadIdx.x] > 0 &&
-            destFrames[threadIdx.x] == NULL)
-        {
-            destFrames[threadIdx.x] = &(pb.getEmptyFrame());
-        }
-        __syncthreads();
-        if (anyDestFrameFull) /*we must do two flushes, after the first we hang on a new empty frame*/
-        {
-            if (direction >= 0 && destParticleIdx < TileSize)
-            {
-                PMACC_AUTO(parDestFull,
-                           (*(destFrames[direction]))[destParticleIdx]
-                           );
-                parDestFull[multiMask_] = 1;
-                PMACC_AUTO(parSrc, (*frame)[threadIdx.x]);
-                PMACC_AUTO(parDest, deselect<multiMask>(parDestFull));
-                assign(parDest, parSrc);
+        __syncthreads( );
 
-            }
-            __syncthreads();
-            if (threadIdx.x < Exchanges)
+        if ( linearThreadIdx < Exchanges )
+        {
+            if ( destFramesCounter[linearThreadIdx] > 0 )
             {
-                //append all full frames to destination
-                if (destFramesCounter[threadIdx.x] >= TileSize)
+                lastFrameSize = destFramesCounter[linearThreadIdx];
+                /* if we had no first frame we load a new empty one */
+                if ( destFrames[linearThreadIdx] == NULL )
                 {
-                    destFramesCounter[threadIdx.x] -= TileSize;
-                    DataSpace<Dim> relative = superCellIdx + Mask::getRelativeDirections<Dim > (threadIdx.x + 1);
-                    if (isNeighborFrame)
-                    {
-                        pb.getSuperCell(relative).setSizeLastFrame(TileSize);
-                        isNeighborFrame = false;
-
-                    }
-                    else
-                    {
-                        //this is the cause that this kernel can't run without double checker board
-                        pb.setAsFirstFrame(*(destFrames[threadIdx.x]),
-                                           relative);
-                    }
-
-                    if (destFramesCounter[threadIdx.x] > 0)
-                        destFrames[threadIdx.x] = &(pb.getEmptyFrame());
-                    else
-                        destFrames[threadIdx.x] = NULL;
+                    FRAME& tmpFrame = pb.getEmptyFrame( );
+                    destFrames[linearThreadIdx] = &tmpFrame;
+                    pb.setAsLastFrame( tmpFrame, relative );
                 }
-                anyDestFrameFull = false;
+                /* check if a second frame is needed */
+                if ( destFramesCounter[linearThreadIdx] > TileSize )
+                {
+                        lastFrameSize = destFramesCounter[linearThreadIdx] - TileSize;
+                        FRAME& tmpFrame = pb.getEmptyFrame( );
+                        destFrames[linearThreadIdx + Exchanges] = &tmpFrame;
+                        pb.setAsLastFrame( tmpFrame, relative );
+                }
             }
-            __syncthreads();
-            if (direction >= 0 && destParticleIdx >= TileSize)
+        }
+        __syncthreads( );
+
+        if ( destParticleIdx < TileSize * 2 )
+        {
+            if ( destParticleIdx >= TileSize )
             {
+                /* use second frame */
+                direction += Exchanges;
                 destParticleIdx -= TileSize;
-                PMACC_AUTO(parDestFull, (*(destFrames[direction]))[destParticleIdx]);
-                /*enable particle*/
-                parDestFull[multiMask_] = 1;
-                /* we not update multiMask because copy from mem to mem is too slow
-                 * we have enabled particle explicitly */
-                PMACC_AUTO(parDest, deselect<multiMask>(parDestFull));
-                PMACC_AUTO(parSrc, (*frame)[threadIdx.x]);
-                assign(parDest, parSrc);
             }
+            PMACC_AUTO( dstParticle, (*(destFrames[direction]))[destParticleIdx] );
+            PMACC_AUTO( srcParticle, (*frame)[linearThreadIdx] );
+            dstParticle[multiMask_] = 1;
+            srcParticle[multiMask_] = 0;
+            PMACC_AUTO( dstFilteredParticle,
+                        particles::operations::deselect<multiMask>(dstParticle) );
+            particles::operations::assign( dstFilteredParticle, srcParticle );
         }
-        else
+        __syncthreads( );
+
+        if ( linearThreadIdx < Exchanges )
         {
-            //only flush because no destination is full
-            if (direction >= 0)
+            if ( destFramesCounter[linearThreadIdx] >= TileSize )
             {
-                PMACC_AUTO(parDestFull, (*(destFrames[direction]))[destParticleIdx]);
-                /*enable particle*/
-                parDestFull[multiMask_] = 1;
-                /* we not update multiMask because copy from mem to mem is to slow
-                 * we have enabled particle explicit */
-                PMACC_AUTO(parDest, deselect<multiMask>(parDestFull));
-                PMACC_AUTO(parSrc, (*frame)[threadIdx.x]);
-                assign(parDest, parSrc);
+                destFramesCounter[linearThreadIdx] -= TileSize;
+                destFrames[linearThreadIdx] = destFrames[linearThreadIdx + Exchanges];
+                destFrames[linearThreadIdx + Exchanges] = NULL;
+            }
+            if ( linearThreadIdx == 0 )
+            {
+                frame = &(pb.getNextFrame( *frame, isFrameValid ));
             }
         }
-
-        __syncthreads();
-        if (threadIdx.x == 0)
-        {
-            frame = &(pb.getNextFrame(*frame, isFrameValid));
-        }
-        __syncthreads();
-
-
+        __syncthreads( );
     }
-    while (isFrameValid);
 
-
-    if (threadIdx.x < Exchanges)
+    if ( linearThreadIdx < Exchanges )
     {
-        if (destFramesCounter[threadIdx.x] > 0)
-        {
-            DataSpace<Dim> relative = superCellIdx + Mask::getRelativeDirections<Dim > (threadIdx.x + 1);
-            if (!isNeighborFrame)
-            {
-                pb.setAsLastFrame(*(destFrames[threadIdx.x]),
-                                  relative);
-            }
-            pb.getSuperCell(relative).setSizeLastFrame(destFramesCounter[threadIdx.x]);
-        }
-        else if (destFrames[threadIdx.x] != NULL)
-        {
-            if (!isNeighborFrame)
-                pb.removeFrame(*(destFrames[threadIdx.x]));
-        }
+        pb.getSuperCell( relative ).setSizeLastFrame( lastFrameSize );
     }
 }
 
