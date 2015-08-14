@@ -203,9 +203,11 @@ public:
      *        if dataPlace=BORDER than copy other GUARD to my BORDER
      * @param receive a Mask which describes the directions for the exchange
      * @param guardingCells number of guarding cells in each dimension
-     * @param sizeOnDevice if true, internal buffers have their size information on the device, too
+     * @param communicationTag unique tag/id for communication
+     * @param sizeOnDeviceSend if true, internal send buffers have their size information on the device, too
+     * @param sizeOnDeviceReceive if true, internal receive buffers have their size information on the device, too
      */
-    void addExchange(uint32_t dataPlace, const Mask &receive, DataSpace<DIM> guardingCells, uint32_t communicationTag, bool sizeOnDevice = false)
+    void addExchange(uint32_t dataPlace, const Mask &receive, DataSpace<DIM> guardingCells, uint32_t communicationTag, bool sizeOnDeviceSend, bool sizeOnDeviceReceive )
     {
 
         if (hasOneExchange && (communicationTag != lastUsedCommunicationTag))
@@ -243,7 +245,7 @@ public:
                 maxExchange = std::max(maxExchange, ex + 1u);
                 sendExchanges[ex] = new ExchangeIntern<BORDERTYPE, DIM > (*deviceBuffer, gridLayout, guardingCells,
                                                                           (ExchangeType) ex, uniqCommunicationTag,
-                                                                          dataPlace == GUARD ? BORDER : GUARD, sizeOnDevice);
+                                                                          dataPlace == GUARD ? BORDER : GUARD, sizeOnDeviceSend);
                 ExchangeType recvex = Mask::getMirroredExchangeType(ex);
                 maxExchange = std::max(maxExchange, recvex + 1u);
                 receiveExchanges[recvex] =
@@ -254,9 +256,29 @@ public:
                                                           recvex,
                                                           uniqCommunicationTag,
                                                           dataPlace == GUARD ? GUARD : BORDER,
-                                                          sizeOnDevice);
+                                                          sizeOnDeviceReceive);
             }
         }
+    }
+
+    /**
+     * Add Exchange in GridBuffer memory space.
+     *
+     * An Exchange is added to this GridBuffer. The exchange buffers use
+     * the same memory as this GridBuffer.
+     * All Exchanges has it's current size defined on the host side.
+     *
+     * @param dataPlace place where received data are stored [GUARD | BORDER]
+     *        if dataPlace=GUARD than copy other BORDER to my GUARD
+     *        if dataPlace=BORDER than copy other GUARD to my BORDER
+     * @param receive a Mask which describes the directions for the exchange
+     * @param guardingCells number of guarding cells in each dimension
+     * @param communicationTag unique tag/id for communication
+     * @param sizeOnDevice if true, internal send and receive buffers have their size information on the device, too
+     */
+    void addExchange(uint32_t dataPlace, const Mask &receive, DataSpace<DIM> guardingCells, uint32_t communicationTag, bool sizeOnDevice = false)
+    {
+        addExchange( dataPlace, receive, guardingCells, communicationTag, sizeOnDevice, sizeOnDevice );
     }
 
     /**
@@ -267,9 +289,11 @@ public:
      *
      * @param receive a Mask which describes the directions for the exchange
      * @param dataSpace size of the newly created exchange buffer in each dimension
-     * @param sizeOnDevice if true, internal buffers have their size information on the device, too
+     * @param communicationTag unique tag/id for communication
+     * @param sizeOnDeviceSend if true, internal send buffers have their size information on the device, too
+     * @param sizeOnDeviceReceive if true, internal receive buffers have their size information on the device, too
      */
-    void addExchangeBuffer(const Mask &receive, const DataSpace<DIM> &dataSpace, uint32_t communicationTag, bool sizeOnDevice = false)
+    void addExchangeBuffer(const Mask &receive, const DataSpace<DIM> &dataSpace, uint32_t communicationTag, bool sizeOnDeviceSend, bool sizeOnDeviceReceive )
     {
 
         if (hasOneExchange && (communicationTag != lastUsedCommunicationTag))
@@ -306,15 +330,32 @@ public:
                     //GridLayout<DIM> memoryLayout(size);
                     maxExchange = std::max(maxExchange, ex + 1u);
                     sendExchanges[ex] = new ExchangeIntern<BORDERTYPE, DIM > (/*memoryLayout*/ dataSpace,
-                                                                              ex, uniqCommunicationTag, sizeOnDevice);
+                                                                              ex, uniqCommunicationTag, sizeOnDeviceSend);
 
                     ExchangeType recvex = Mask::getMirroredExchangeType(ex);
                     maxExchange = std::max(maxExchange, recvex + 1u);
                     receiveExchanges[recvex] = new ExchangeIntern<BORDERTYPE, DIM > (/*memoryLayout*/ dataSpace,
-                                                                                     recvex, uniqCommunicationTag, sizeOnDevice);
+                                                                                     recvex, uniqCommunicationTag, sizeOnDeviceReceive);
                 }
             }
         }
+    }
+
+    /**
+     * Add Exchange in dedicated memory space.
+     *
+     * An Exchange is added to this GridBuffer. The exchange buffers use
+     * the their own memory instead of using the GridBuffer's memory space.
+     * All Exchanges has it's current size defined on the host side.
+     *
+     * @param receive a Mask which describes the directions for the exchange
+     * @param dataSpace size of the newly created exchange buffer in each dimension
+     * @param communicationTag unique tag/id for communication
+     * @param sizeOnDevice if true, internal send and receive buffers have their size information on the device, too
+     */
+    void addExchangeBuffer(const Mask &receive, const DataSpace<DIM> &dataSpace, uint32_t communicationTag, bool sizeOnDevice = false )
+    {
+        addExchangeBuffer( receive, dataSpace, communicationTag, sizeOnDevice, sizeOnDevice );
     }
 
     /**
@@ -506,7 +547,7 @@ public:
     }
 
 private:
-    
+
     friend class Environment<DIM>;
 
     void init(bool sizeOnDevice, bool buildDeviceBuffer = true, bool buildHostBuffer = true)
