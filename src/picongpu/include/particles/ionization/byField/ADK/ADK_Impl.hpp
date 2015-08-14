@@ -122,7 +122,7 @@ namespace ionization
              * during loop execution. The reason for this is the `__syncthreads()` call which is necessary after
              * initializing the E-/B-field shared boxes in shared memory.
              */
-            DINLINE void init(const DataSpace<simDim>& blockCell, const int& linearThreadIdx, const DataSpace<simDim>& totalCellOffset)
+            DINLINE void init(const DataSpace<simDim>& blockCell, const int& linearThreadIdx, const DataSpace<simDim>& localCellOffset)
             {
 
                 /* caching of E and B fields */
@@ -149,7 +149,10 @@ namespace ionization
                           );
 
                 /* initialize random number generator with the local cell index in the simulation*/
-                randomGen.init(totalCellOffset);
+                randomGen.init(localCellOffset);
+
+                /* wait for shared memory to be initialized */
+                __syncthreads();
             }
 
             /** Functor implementation
