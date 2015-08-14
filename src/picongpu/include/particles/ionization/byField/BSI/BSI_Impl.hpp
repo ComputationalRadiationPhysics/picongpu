@@ -46,7 +46,7 @@ namespace ionization
 {
 
     /** \struct BSI_Impl
-     * 
+     *
      * \brief Barrier Suppression Ionization - Implementation
      *
      * \tparam T_DestSpecies electron species to be created
@@ -118,7 +118,7 @@ namespace ionization
              * during loop execution. The reason for this is the `__syncthreads()` call which is necessary after
              * initializing the E-/B-field shared boxes in shared memory.
              */
-            DINLINE void init(const DataSpace<simDim>& blockCell, const int& linearThreadIdx, const DataSpace<simDim>& totalCellOffset)
+            DINLINE void init(const DataSpace<simDim>& blockCell, const int& linearThreadIdx, const DataSpace<simDim>& localCellOffset)
             {
 
                 /* caching of E and B fields */
@@ -143,6 +143,8 @@ namespace ionization
                           cachedE,
                           fieldEBlock
                           );
+                /* wait for shared memory to be initialized */
+                __syncthreads();
             }
 
             /** Functor implementation
