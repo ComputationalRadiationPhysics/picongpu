@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Rene Widera
+ * Copyright 2014-2015 Rene Widera, Alexander Grund
  *
  * This file is part of PIConGPU.
  *
@@ -28,7 +28,4 @@
 #include "particles/gasProfiles/LinearExponentialImpl.def"
 #include "particles/gasProfiles/GaussianCloudImpl.def"
 #include "particles/gasProfiles/SphereFlanksImpl.def"
-
-#if (ENABLE_HDF5 == 1)
 #include "particles/gasProfiles/FromHDF5Impl.def"
-#endif
