@@ -1,6 +1,6 @@
 /**
  * Copyright 2013-2015 Axel Huebl, Felix Schmitt, Rene Widera, Alexander Debus,
- *                     Benjamin Worpitz
+ *                     Benjamin Worpitz, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -24,9 +24,6 @@
 
 #pragma once
 
-#include <iostream>
-#include <iomanip>
-
 #include "types.h"
 
 #include "mappings/simulation/GridController.hpp"
@@ -38,6 +35,9 @@
 
 #include "pluginSystem/IPlugin.hpp"
 
+#include <iostream>
+#include <iomanip>
+#include <fstream>
 
 namespace PMacc
 {

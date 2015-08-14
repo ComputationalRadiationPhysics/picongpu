@@ -1,5 +1,6 @@
 /**
- * Copyright 2013 Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Felix Schmitt, Heiko Burau, Rene Widera,
+ *                     Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -27,6 +28,7 @@
 #include "dimensions/DataSpace.hpp"
 #include "particles/memory/dataTypes/SuperCell.hpp"
 #include "memory/boxes/PitchedBox.hpp"
+#include "memory/boxes/DataBox.hpp"
 #include "particles/memory/dataTypes/Pointer.hpp"
 
 namespace PMacc

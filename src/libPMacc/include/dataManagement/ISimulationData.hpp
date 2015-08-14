@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2015 Rene Widera, Felix Schmitt, Benjamin Worpitz
+ * Copyright 2013-2015 Rene Widera, Felix Schmitt, Benjamin Worpitz,
+ *                     Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -35,6 +36,7 @@ namespace PMacc
     class ISimulationData
     {
     public:
+        virtual ~ISimulationData(){}
         /**
          * Synchronizes simulation data, meaning accessing (host side) data
          * will return up-to-date values.
