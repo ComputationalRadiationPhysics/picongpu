@@ -117,6 +117,13 @@ namespace ionization
              * This function will be called inline on the device which must happen BEFORE threads diverge
              * during loop execution. The reason for this is the `__syncthreads()` call which is necessary after
              * initializing the E-/B-field shared boxes in shared memory.
+             *
+             * @param blockCell Offset of the cell from the origin of the local domain
+             *                  <b>including guarding supercells</b> in units of cells
+             * @param linearThreadIdx Linearized thread ID inside the block
+             * @param localCellOffset Offset of the cell from the origin of the local
+             *                        domain, i.e. from the @see BORDER
+             *                        <b>without guarding supercells</b>
              */
             DINLINE void init(const DataSpace<simDim>& blockCell, const int& linearThreadIdx, const DataSpace<simDim>& localCellOffset)
             {
