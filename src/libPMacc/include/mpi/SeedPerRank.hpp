@@ -68,7 +68,7 @@ namespace mpi
             /* localSeed often contains a counted number, so we rotate it by some bits to not "destroy"
              * the counted rank that is already there. Also it is not reversed to get a different pattern
              */
-            localSeed = (localSeed << 16) | (localSeed >> (std::numeric_limits<uint32_t>::digits - 16));
+            localSeed = (localSeed << 16) | (localSeed >> (sizeof(uint32_t) * CHAR_BIT - 16));
             globalUniqueSeed ^= localSeed;
             /* For any globally constant localSeed globalUniqueSeed is now guaranteed
              * to be globally unique
