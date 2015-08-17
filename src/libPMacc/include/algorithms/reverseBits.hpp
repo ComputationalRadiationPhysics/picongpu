@@ -25,7 +25,7 @@
 
 #include "static_assert.hpp"
 #include <boost/type_traits.hpp>
-#include <climits>
+#include <limits>
 
 namespace PMacc {
 
@@ -48,7 +48,7 @@ reverseBits(T value)
     /* init with value (to get LSB) */
     T result = value;
     /* extra shift needed at end */
-    int s = sizeof(T) * CHAR_BIT - 1;
+    int s = std::numeric_limits<T>::digits - 1;
     for (value >>= 1; value; value >>= 1)
     {
         result <<= 1;
