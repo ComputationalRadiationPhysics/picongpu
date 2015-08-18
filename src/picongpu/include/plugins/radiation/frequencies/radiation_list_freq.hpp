@@ -47,12 +47,12 @@ namespace picongpu
       { }
 
       FreqFunctor(DBoxType frequencies_handed)
-    : frequencies(frequencies_handed)
+      : frequencies(frequencies_handed)
       { }
 
-      DINLINE float_X operator()(const unsigned int ID)
+      HDINLINE float_X operator()(const unsigned int ID)
       {
-    return (ID < radiation_frequencies::N_omega) ?  frequencies[ID] : 0.0  ;
+          return (ID < radiation_frequencies::N_omega) ?  frequencies[ID] : 0.0  ;
       }
 
     private:
@@ -78,42 +78,42 @@ namespace picongpu
       HINLINE void Init(const std::string path )
       {
 
-    frequencyBuffer = new GridBuffer<float_X, DIM1>(DataSpace<DIM1> (N_omega));
+          frequencyBuffer = new GridBuffer<float_X, DIM1>(DataSpace<DIM1> (N_omega));
 
 
-    DBoxType frequencyDB = frequencyBuffer->getHostBuffer().getDataBox();
+          DBoxType frequencyDB = frequencyBuffer->getHostBuffer().getDataBox();
 
-    std::ifstream freqListFile(path.c_str());
-    unsigned int i;
+          std::ifstream freqListFile(path.c_str());
+          unsigned int i;
 
-    printf("freq: %s\n", path.c_str());
+          printf("freq: %s\n", path.c_str());
 
-    if(!freqListFile)
-      {
-        throw std::runtime_error(std::string("The radiation-frequency-file ") + path + std::string(" could not be found.\n"));
-      }
+          if(!freqListFile)
+          {
+              throw std::runtime_error(std::string("The radiation-frequency-file ") + path + std::string(" could not be found.\n"));
+          }
 
 
-    for(i=0; i<N_omega && !freqListFile.eof(); ++i)
-      {
-        freqListFile >> frequencyDB[i];
-        // verbose output of loaded frequencies if verbose level PHYSICS is set:
-        log<PIConGPUVerboseRadiation::PHYSICS >("freq: %1% \t %2%") % i % frequencyDB[i];
-        frequencyDB[i] *= UNIT_TIME;
-      }
+          for(i=0; i<N_omega && !freqListFile.eof(); ++i)
+          {
+              freqListFile >> frequencyDB[i];
+              // verbose output of loaded frequencies if verbose level PHYSICS is set:
+              log<PIConGPUVerboseRadiation::PHYSICS >("freq: %1% \t %2%") % i % frequencyDB[i];
+              frequencyDB[i] *= UNIT_TIME;
+          }
 
-    if(i != N_omega)
-      {
-        throw std::runtime_error(std::string("The number of frequencies in the list and the number of frequencies in the parameters differ.\n"));
-      }
+          if(i != N_omega)
+          {
+              throw std::runtime_error(std::string("The number of frequencies in the list and the number of frequencies in the parameters differ.\n"));
+          }
 
-    frequencyBuffer->hostToDevice();
+          frequencyBuffer->hostToDevice();
 
       }
 
       FreqFunctor getFunctor(void)
       {
-    return FreqFunctor(frequencyBuffer->getDeviceBuffer().getDataBox());
+          return FreqFunctor(frequencyBuffer->getDeviceBuffer().getDataBox());
       }
 
     private:
