@@ -118,6 +118,8 @@ private:
      */
     Amplitude* timeSumArray;
     Amplitude *tmp_result;
+    vector_64* detectorPositions;
+    float_64* detectorFrequencies;
 
     bool isMaster;
 
@@ -144,6 +146,8 @@ public:
     lastRad(false),
     timeSumArray(NULL),
     tmp_result(NULL),
+    detectorPositions(NULL),
+    detectorFrequencies(NULL),
     isMaster(false),
     currentStep(0),
     radPerGPU(false),
@@ -288,8 +292,24 @@ private:
             PMacc::Filesystem<simDim>& fs = Environment<simDim>::get().Filesystem();
 
             if (isMaster)
+            {
                 timeSumArray = new Amplitude[elements_amplitude()];
 
+                /* save detector position / observation direction */
+                detectorPositions = new vector_64[parameters::N_observer];
+                for(uint32_t detectorIndex=0; detectorIndex < parameters::N_observer; ++detectorIndex)
+                {
+                    detectorPositions[detectorIndex] = radiation_observer::observation_direction(detectorIndex);
+                }
+
+                /* save detector frequencies */
+                detectorFrequencies = new float_64[radiation_frequencies::N_omega];
+                for(uint32_t detectorIndex=0; detectorIndex < radiation_frequencies::N_omega; ++detectorIndex)
+                {
+                    detectorFrequencies[detectorIndex] = freqFkt(detectorIndex);
+                }
+
+            }
 
             if (isMaster && totalRad)
             {
@@ -346,6 +366,8 @@ private:
             if (isMaster)
             {
                 __deleteArray(timeSumArray);
+                delete[] detectorPositions;
+                delete[] detectorFrequencies;
             }
 
             __delete(radiation);
@@ -500,7 +522,7 @@ private:
   }
 
 
-  /** This method returns hdf5 data structure names
+  /** This method returns hdf5 data structure names for amplitudes
    *
    *  Arguments:
    *  int index - index of Amplitude
@@ -521,6 +543,27 @@ private:
 
       return dataLabelsList[index];
   }
+
+  /** This method returns hdf5 data structure names for detector positions
+   *
+   *  Arguments:
+   *  int index - index of detector
+   *
+   *  Return:
+   *  std::string - name
+   *
+   * This method avoids initializing static const string arrays.
+   */
+  static const std::string dataLabelsDetector(int index)
+  {
+      const std::string dataLabelsList[] = {"Detector/x",
+                                            "Detector/y",
+                                            "Detector/z",
+                                            "Detector/omega"};
+
+      return dataLabelsList[index];
+  }
+
 
 
   /** Write Amplitude data to HDF5 file
@@ -589,6 +632,63 @@ private:
                                   "Amplitude",
                                   "unitSI",
                                   &factor);
+
+      /* save detector position / observation direction */
+      splash::Dimensions bufferSizeDetector(3,
+                                            1,
+                                            parameters::N_observer);
+
+      splash::Dimensions componentSizeDetector(1,
+                                               1,
+                                               parameters::N_observer);
+
+      splash::Dimensions strideDetector(3,1,1);
+
+      for(uint32_t detectorDim=0; detectorDim < 3; ++detectorDim)
+      {
+          splash::Dimensions offset(detectorDim,0,0);
+          splash::Selection dataSelection(bufferSizeDetector,
+                                      componentSizeDetector,
+                                      offset,
+                                      strideDetector);
+
+          HDF5dataFile.write(currentStep,
+                             radSplashType,
+                             3,
+                             dataSelection,
+                             dataLabelsDetector(detectorDim).c_str(),
+                             detectorPositions);
+      }
+
+
+
+      /* save detector frequencies */
+      splash::Dimensions bufferSizeOmega(1,
+                                         radiation_frequencies::N_omega,
+                                         1);
+
+      splash::Dimensions strideOmega(1,1,1);
+
+      splash::Dimensions offset(0,0,0);
+      splash::Selection dataSelection(bufferSizeOmega,
+                                      bufferSizeOmega,
+                                      offset,
+                                      strideOmega);
+
+      HDF5dataFile.write(currentStep,
+                         radSplashType,
+                         3,
+                         dataSelection,
+                         dataLabelsDetector(3).c_str(),
+                         detectorFrequencies);
+      
+      /* save SI unit as attribute together with data set */
+      const picongpu::float_64 factorOmega = 1.0 / UNIT_TIME ;
+      HDF5dataFile.writeAttribute(currentStep,
+                                  radSplashType,
+                                  dataLabelsDetector(3).c_str(),
+                                  "unitSI",
+                                  &factorOmega);
 
       HDF5dataFile.close();
     }
