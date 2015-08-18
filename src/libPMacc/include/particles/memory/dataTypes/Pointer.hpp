@@ -30,32 +30,6 @@
 namespace PMacc
 {
 
-
-namespace detail
-{
-
-struct InitWithNULL
-{
-
-    template<typename T>
-    HDINLINE static void init( T& ptr )
-    {
-        ptr = NULL;
-    }
-};
-
-struct NoInit
-{
-
-    template<typename T>
-    HDINLINE static void init( const T& )
-    {
-
-    }
-};
-
-} //namespace detail
-
 /** wrapper for native C pointer
  *
  * @tparam T_Type type of the pointed object
