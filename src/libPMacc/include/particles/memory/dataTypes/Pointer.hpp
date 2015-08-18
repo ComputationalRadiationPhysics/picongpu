@@ -1,5 +1,5 @@
 /**
- * Copyright 2014  Rene Widera
+ * Copyright 2014-2015  Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -22,37 +22,80 @@
 #pragma once
 
 #include "types.h"
+#include "traits/GetEmptyDefaultConstructibleType.hpp"
+#include "expressions/DoNothing.hpp"
+#include "expressions/SetToNull.hpp"
 
 
 namespace PMacc
 {
 
+
+namespace detail
+{
+
+struct InitWithNULL
+{
+
+    template<typename T>
+    HDINLINE static void init( T& ptr )
+    {
+        ptr = NULL;
+    }
+};
+
+struct NoInit
+{
+
+    template<typename T>
+    HDINLINE static void init( const T& )
+    {
+
+    }
+};
+
+} //namespace detail
+
 /** wrapper for native C pointer
  *
  * @tparam T_Type type of the pointed object
  */
-template <class T_Type>
+template <typename T_Type, typename T_InitMethod = expressions::SetToNull>
 class Pointer
 {
 public:
 
     typedef T_Type type;
     typedef type* PtrType;
+    typedef const type* ConstPtrType;
 
     /** default constructor
      *
      * the default pointer points to invalid memory
      */
-    HDINLINE Pointer() : ptr(NULL)
+    HDINLINE Pointer( )
+    {
+        T_InitMethod()( ptr );
+    }
+
+    HDINLINE Pointer( PtrType const ptrIn ) : ptr( ptrIn )
     {
     }
 
-    HDINLINE Pointer(PtrType const ptrIn) : ptr(ptrIn)
+    HDINLINE Pointer( const Pointer<type>& other ) : ptr( other.ptr )
     {
     }
 
-    HDINLINE Pointer(const Pointer<type>& other) : ptr(other.ptr)
+    template<typename T_OtherInitMethod>
+    HDINLINE Pointer( const Pointer<type, T_OtherInitMethod>& other ) : ptr( other.ptr )
     {
+    }
+
+    template<typename T_OtherInitMethod>
+    HDINLINE Pointer& operator=(const Pointer<type, T_OtherInitMethod>& other)
+    {
+        ptr = other.ptr;
+        return *this;
     }
 
     /** dereference the pointer*/
@@ -61,8 +104,20 @@ public:
         return *ptr;
     }
 
+    /** dereference the pointer*/
+    HDINLINE const type& operator*() const
+    {
+        return *ptr;
+    }
+
     /** access member*/
     HDINLINE PtrType operator->()
+    {
+        return ptr;
+    }
+
+    /** access member*/
+    HDINLINE ConstPtrType operator->() const
     {
         return ptr;
     }
@@ -82,12 +137,22 @@ public:
     /** check if the memory pointed to has a valid address
      * @return false if memory adress is NULL else true
      */
-    HDINLINE bool isValid() const
+    HDINLINE bool isValid( ) const
     {
         return ptr != NULL;
     }
 
-    PMACC_ALIGN(ptr, PtrType);
+    PMACC_ALIGN( ptr, PtrType );
 };
+
+namespace traits
+{
+
+template<typename T_Type, typename T_InitMethod>
+struct GetEmptyDefaultConstructibleType<Pointer<T_Type, T_InitMethod> >
+{
+    typedef Pointer<T_Type, expressions::DoNothing> type;
+};
+} //namespace traits
 
 } //namespace PMacc
