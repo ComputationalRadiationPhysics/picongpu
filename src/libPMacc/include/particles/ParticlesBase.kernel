@@ -52,35 +52,31 @@ DINLINE bool getPreviousFrameAndRemoveLastFrame(typename T_ParticleBox::FrameTyp
 /*! This kernel move particles to the next supercell
  * This kernel can only run with a double checker board
  */
-template<class FRAME, class Mapping>
-__global__ void kernelShiftParticles( ParticlesBox<FRAME, Mapping::Dim> pb, Mapping mapper )
+template<class T_ParBox, class Mapping>
+__global__ void kernelShiftParticles( T_ParBox pb, Mapping mapper )
 {
-
-    enum
-    {
-        TileSize = math::CT::volume<typename Mapping::SuperCellSize>::type::value,
-        Dim = Mapping::Dim,
-        /* Exchanges in 2D=9 and in 3D=27 */
-        Exchanges = traits::NumberOfExchanges<Dim>::value
-    };
-
+    typedef typename T_ParBox::FrameType FrameType;
+    const uint32_t dim = Mapping::Dim;
+    const uint32_t frameSize = math::CT::volume<typename FrameType::SuperCellSize>::type::value;
+    /* number exchanges in 2D=9 and in 3D=27 */
+    const uint32_t numExchanges = traits::NumberOfExchanges<dim>::value;
 
     /* define memory for two times Exchanges
-     * index [0,Exchanges-1] is called first frame
-     * index [Exchanges,2*Exchanges-1] is called second frame
+     * index range [0,numExchanges-1] are being referred to as `low frames`
+     * index range [numExchanges,2*numExchanges-1] are being referred to as `high frames`
      */
-    __shared__ FRAME * destFrames[Exchanges * 2];
-    __shared__ int destFramesCounter[Exchanges]; //count particles per frame
+    __shared__ FrameType * destFrames[numExchanges * 2];
+    __shared__ int destFramesCounter[numExchanges]; //count particles per frame
 
-    /* lastFrameSize is only valid for threads with `linearThreadIdx` < Exchanges */
+    /* lastFrameSize is only valid for threads with `linearThreadIdx` < numExchanges */
     uint32_t lastFrameSize = 0;
 
-    __shared__ FRAME *frame;
+    __shared__ FrameType *frame;
     __shared__ bool isFrameValid;
     __shared__ bool mustShift;
 
-    __syncthreads(); /*wait that all shared memory is initialised*/
-    DataSpace<Dim> superCellIdx = mapper.getSuperCellIndex( DataSpace<Dim > (blockIdx) );
+    __syncthreads(); /*wait that all shared memory is initialized */
+    DataSpace<dim> superCellIdx = mapper.getSuperCellIndex( DataSpace<dim> (blockIdx) );
     const uint32_t linearThreadIdx = threadIdx.x;
 
     if ( linearThreadIdx == 0 )
@@ -98,22 +94,25 @@ __global__ void kernelShiftParticles( ParticlesBox<FRAME, Mapping::Dim> pb, Mapp
 
     if ( !mustShift || isFrameValid == false ) return;
 
-    const DataSpace<Dim> relative = superCellIdx + Mask::getRelativeDirections<Dim > (linearThreadIdx + 1);
+    const DataSpace<dim> relative = superCellIdx + Mask::getRelativeDirections<dim> (linearThreadIdx + 1);
 
-    if ( linearThreadIdx < Exchanges )
+    /* if a partially filled last frame exists for the neighboring supercell,
+     * each master thread (one master per direction) will load it
+     */
+    if ( linearThreadIdx < numExchanges )
     {
         bool hasNeighborFrame = false;
         destFramesCounter[linearThreadIdx] = 0;
         destFrames[linearThreadIdx] = NULL;
-        destFrames[linearThreadIdx + Exchanges] = NULL;
-        /* load neighbor frame */
-        FRAME& tmpFrame = pb.getLastFrame( relative, hasNeighborFrame );
+        destFrames[linearThreadIdx + numExchanges] = NULL;
+        /* load last frame of neighboring supercell */
+        FrameType& tmpFrame = pb.getLastFrame( relative, hasNeighborFrame );
 
         if ( hasNeighborFrame )
         {
             lastFrameSize = pb.getSuperCell( relative ).getSizeLastFrame( );
-            //don't use last frame if it is full
-            if ( lastFrameSize < TileSize )
+            // do not use the neighbor's last frame if it is full
+            if ( lastFrameSize < frameSize )
             {
                 destFrames[linearThreadIdx] = &tmpFrame;
                 destFramesCounter[linearThreadIdx] = lastFrameSize;
@@ -122,13 +121,17 @@ __global__ void kernelShiftParticles( ParticlesBox<FRAME, Mapping::Dim> pb, Mapp
     }
     __syncthreads( );
 
+    /* iterate over the frame list of the current supercell */
     while ( isFrameValid )
     {
         lcellId_t destParticleIdx = INV_LOC_IDX;
 
-        //switch to value to [-2, EXCHANGES - 1]
-        //-2 is no particle
-        //-1 is particle but it is not shifted
+        /* set to value to of multiMask to a value in range [-2, EXCHANGES - 1]
+         * -2 is no particle
+         * -1 is particle but it is not shifted (stays in supercell)
+         * >=0 particle moves in a certain direction
+         *     (@see ExchangeType in types.h)
+         */
         int direction = (*frame)[linearThreadIdx][multiMask_] - 2;
         if ( direction >= 0 )
         {
@@ -136,37 +139,52 @@ __global__ void kernelShiftParticles( ParticlesBox<FRAME, Mapping::Dim> pb, Mapp
         }
         __syncthreads( );
 
-        if ( linearThreadIdx < Exchanges )
+        /* If the master thread (responsible for a certain direction) did not
+         * obtain a `low frame` from the neighboring super cell before the loop,
+         * it will create one now.
+         *
+         * In case not all particles that are shifted to the neighboring
+         * supercell fit into the `low frame`, a second frame is created to
+         * contain further particles, the `high frame` (default: invalid).
+         */
+        if ( linearThreadIdx < numExchanges )
         {
             if ( destFramesCounter[linearThreadIdx] > 0 )
             {
                 lastFrameSize = destFramesCounter[linearThreadIdx];
-                /* if we had no first frame we load a new empty one */
+                /* if we had no `low frame` we load a new empty one */
                 if ( destFrames[linearThreadIdx] == NULL )
                 {
-                    FRAME& tmpFrame = pb.getEmptyFrame( );
+                    FrameType& tmpFrame = pb.getEmptyFrame( );
                     destFrames[linearThreadIdx] = &tmpFrame;
                     pb.setAsLastFrame( tmpFrame, relative );
                 }
-                /* check if a second frame is needed */
-                if ( destFramesCounter[linearThreadIdx] > TileSize )
+                /* check if a `high frame` is needed */
+                if ( destFramesCounter[linearThreadIdx] > frameSize )
                 {
-                        lastFrameSize = destFramesCounter[linearThreadIdx] - TileSize;
-                        FRAME& tmpFrame = pb.getEmptyFrame( );
-                        destFrames[linearThreadIdx + Exchanges] = &tmpFrame;
+                        lastFrameSize = destFramesCounter[linearThreadIdx] - frameSize;
+                        FrameType& tmpFrame = pb.getEmptyFrame( );
+                        destFrames[linearThreadIdx + numExchanges] = &tmpFrame;
                         pb.setAsLastFrame( tmpFrame, relative );
                 }
             }
         }
         __syncthreads( );
 
-        if ( destParticleIdx < TileSize * 2 )
+        /* All threads with a valid index in the neighbor's frame, valid index
+         * range is [0, frameSize * 2-1], will copy their particle to the new
+         * frame.
+         *
+         * The default value for indexes (in the destination frame) is
+         * above this range (INV_LOC_IDX) for all particles that are not shifted.
+         */
+        if ( destParticleIdx < frameSize * 2 )
         {
-            if ( destParticleIdx >= TileSize )
+            if ( destParticleIdx >= frameSize )
             {
-                /* use second frame */
-                direction += Exchanges;
-                destParticleIdx -= TileSize;
+                /* use `high frame` */
+                direction += numExchanges;
+                destParticleIdx -= frameSize;
             }
             PMACC_AUTO( dstParticle, (*(destFrames[direction]))[destParticleIdx] );
             PMACC_AUTO( srcParticle, (*frame)[linearThreadIdx] );
@@ -178,13 +196,17 @@ __global__ void kernelShiftParticles( ParticlesBox<FRAME, Mapping::Dim> pb, Mapp
         }
         __syncthreads( );
 
-        if ( linearThreadIdx < Exchanges )
+        /* if the `low frame` is now full, each master thread removes it and
+         * uses the `high frame` (is invalid, if still empty) as the next
+         * `low frame` for the following iteration of the loop
+         */
+        if ( linearThreadIdx < numExchanges )
         {
-            if ( destFramesCounter[linearThreadIdx] >= TileSize )
+            if ( destFramesCounter[linearThreadIdx] >= frameSize )
             {
-                destFramesCounter[linearThreadIdx] -= TileSize;
-                destFrames[linearThreadIdx] = destFrames[linearThreadIdx + Exchanges];
-                destFrames[linearThreadIdx + Exchanges] = NULL;
+                destFramesCounter[linearThreadIdx] -= frameSize;
+                destFrames[linearThreadIdx] = destFrames[linearThreadIdx + numExchanges];
+                destFrames[linearThreadIdx + numExchanges] = NULL;
             }
             if ( linearThreadIdx == 0 )
             {
@@ -194,7 +216,10 @@ __global__ void kernelShiftParticles( ParticlesBox<FRAME, Mapping::Dim> pb, Mapp
         __syncthreads( );
     }
 
-    if ( linearThreadIdx < Exchanges )
+    /* each master thread updates the number of particles in the last frame
+     * of the neighbors supercell
+     */
+    if ( linearThreadIdx < numExchanges )
     {
         pb.getSuperCell( relative ).setSizeLastFrame( lastFrameSize );
     }
