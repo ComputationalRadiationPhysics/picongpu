@@ -107,6 +107,11 @@ alias(current);
  * - only reasonable for atoms / ions / nuclei */
 alias(atomicNumbers);
 
+/*! alias for particle flag: effective atomic numbers @see speciesDefinition.param
+ * @see ionizerConfig.param
+ */
+alias(effectiveAtomicNumbers);
+
 /*! alias for particle mass ratio
  *
  *  mass ratio between base particle @see `speciesConstants.param` SI::BASE_MASS_SI

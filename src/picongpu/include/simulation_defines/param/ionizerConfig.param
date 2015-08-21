@@ -21,3 +21,20 @@
 #pragma once
 
 #include "particles/ionization/byField/fieldIonizationCalc.def"
+
+namespace picongpu
+{
+    /** Effective Atomic Numbers
+     *
+     * Due to the shielding effect of inner electron shells in an atom / ion
+     * which makes the core charge seem smaller to valence electrons
+     * new, effective, atomic core charge numbers can be defined to make the
+     * crude barrier suppression ionization (BSI) model less inaccurate.
+     */
+
+    /* For hydrogen Z_eff is obviously equal to Z */
+    PMACC_CONST_VECTOR(float_X,1,Z_EFFECTIVE_HYDROGEN,
+        /* 1s */
+        1.
+        );
+}

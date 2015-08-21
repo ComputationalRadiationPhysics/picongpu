@@ -31,17 +31,17 @@ namespace picongpu
 namespace traits
 {
 template<typename T_Species>
-struct GetIonizationEnergies
+struct GetEffectiveAtomicNumbers
 {
     typedef typename T_Species::FrameType FrameType;
 
-    typedef typename HasFlag<FrameType, ionizationEnergies<> >::type hasIonizationEnergies;
-    /* throw static assert if species has no protons or neutrons */
-    PMACC_CASSERT_MSG(No_ionization_energies_are_defined_for_this_species,hasIonizationEnergies::value==true);
+    typedef typename HasFlag<FrameType, effectiveAtomicNumbers<> >::type hasEffectiveAtomicNumbers;
+    /* throw static assert if species has no predefined effective atomic numbers */
+    PMACC_CASSERT_MSG(No_effective_atomic_numbers_are_defined_for_this_species,hasEffectiveAtomicNumbers::value==true);
 
-    typedef typename GetFlagType<FrameType,ionizationEnergies<> >::type FoundIonizationEnergiesAlias;
-    /* Extract ionization energy vector from AU namespace */
-    typedef typename PMacc::traits::Resolve<FoundIonizationEnergiesAlias >::type type;
+    typedef typename GetFlagType<FrameType,effectiveAtomicNumbers<> >::type FoundEffectiveAtomicNumbersAlias;
+    /* Extract vector of effective atomic numbers */
+    typedef typename PMacc::traits::Resolve<FoundEffectiveAtomicNumbersAlias >::type type;
 };
 } //namespace traits
 
