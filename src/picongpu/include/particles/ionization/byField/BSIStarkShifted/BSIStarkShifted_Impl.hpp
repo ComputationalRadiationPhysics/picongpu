@@ -29,8 +29,8 @@
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
 
-#include "particles/ionization/byField/BSI/BSI.def"
-#include "particles/ionization/byField/BSI/AlgorithmBSI.hpp"
+#include "particles/ionization/byField/BSIStarkShifted/BSIStarkShifted.def"
+#include "particles/ionization/byField/BSIStarkShifted/AlgorithmBSIStarkShifted.hpp"
 #include "particles/ionization/ionization.hpp"
 
 #include "compileTime/conversion/TypeToPointerPair.hpp"
@@ -45,7 +45,7 @@ namespace particles
 namespace ionization
 {
 
-    /** \struct BSI_Impl
+    /** \struct BSIStarkShifted_Impl
      *
      * \brief Barrier Suppression Ionization - Implementation
      *
@@ -53,7 +53,7 @@ namespace ionization
      * \tparam T_SrcSpecies particle species that is ionized
      */
     template<typename T_DestSpecies, typename T_SrcSpecies>
-    struct BSI_Impl
+    struct BSIStarkShifted_Impl
     {
 
         typedef T_DestSpecies DestSpecies;
@@ -82,7 +82,7 @@ namespace ionization
         private:
 
             /* define ionization ALGORITHM (calculation) for ionization MODEL */
-            typedef particles::ionization::AlgorithmBSI IonizationAlgorithm;
+            typedef particles::ionization::AlgorithmBSIStarkShifted IonizationAlgorithm;
 
             typedef MappingDesc::SuperCellSize TVec;
 
@@ -97,7 +97,7 @@ namespace ionization
 
         public:
             /* host constructor */
-            BSI_Impl(const uint32_t currentStep)
+            BSIStarkShifted_Impl(const uint32_t currentStep)
             {
                 DataConnector &dc = Environment<>::get().DataConnector();
                 /* initialize pointers on host-side E-(B-)field databoxes */
