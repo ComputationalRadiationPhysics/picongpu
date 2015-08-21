@@ -71,7 +71,7 @@ namespace AU
     );
     /** Ionization field strengths
      *
-     * Define field strengths for the barrier suppression ionization (BSI) model
+     * Define field strengths for the barrier suppression ionization (BSIHydrogenLike) model
      * in SI units, normalized by the atomic unit (AU) for electric field strength.
      */
 
