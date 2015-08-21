@@ -28,7 +28,7 @@ namespace particles
 {
 namespace ionization
 {
-    /** \struct BSI_Impl
+    /** \struct BSIEffectiveZ_Impl
      *
      * \brief Barrier Suppression Ionization - Implementation
      *
@@ -39,9 +39,9 @@ namespace ionization
      *         \see speciesDefinition.param
      */
     template<typename T_DestSpecies, typename T_SrcSpecies = bmpl::_1>
-    struct BSI_Impl;
+    struct BSIEffectiveZ_Impl;
 
-    /** \struct BSI
+    /** \struct BSIEffectiveZ
      *
      * \brief Barrier Suppression Ionization
      *
@@ -61,9 +61,9 @@ namespace ionization
      * \see speciesDefinition.param
      */
     template<typename T_DestSpecies>
-    struct BSI
+    struct BSIEffectiveZ
     {
-        typedef BSI_Impl<T_DestSpecies> type;
+        typedef BSIEffectiveZ_Impl<T_DestSpecies> type;
     };
 
 } // namespace ionization

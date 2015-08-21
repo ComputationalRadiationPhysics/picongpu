@@ -23,10 +23,11 @@
 #include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
 #include "particles/traits/GetAtomicNumbers.hpp"
+#include "particles/traits/GetEffectiveAtomicNumbers.hpp"
 #include "traits/attribute/GetChargeState.hpp"
 #include "algorithms/math/floatMath/floatingPoint.tpp"
 
-/** \file AlgorithmBSI.hpp
+/** \file AlgorithmBSIEffectiveZ.hpp
  *
  * IONIZATION ALGORITHM for the BSI model
  *
@@ -42,11 +43,11 @@ namespace particles
 namespace ionization
 {
 
-    /** \struct AlgorithmBSI
+    /** \struct AlgorithmBSIEffectiveZ
      *
      * \brief calculation for the Barrier Suppression Ionization model
      */
-    struct AlgorithmBSI
+    struct AlgorithmBSIEffectiveZ
     {
 
         /** Functor implementation
@@ -64,13 +65,17 @@ namespace ionization
         operator()( const BType bField, const EType eField, ParticleType& parentIon )
         {
 
-            const float_X protonNumber = GetAtomicNumbers<ParticleType>::type::numberOfProtons;
-            float_X chargeState = attribute::getChargeState(parentIon);
-
-            uint32_t cs = math::float2int_rd(chargeState);
+            const float_X protonNumber  = GetAtomicNumbers<ParticleType>::type::numberOfProtons;
+            float_X chargeState         = attribute::getChargeState(parentIon);
+            uint32_t cs                 = math::float2int_rd(chargeState);
+            /* ionization potential in atomic units */
+            const float_X iEnergy       = GetIonizationEnergies<ParticleType>::type()[cs];
+            const float_X ZEff          = GetEffectiveAtomicNumbers<ParticleType>::type()[cs];
+            /* critical field strength in atomic units */
+            float_X critField           = math::pow(iEnergy,float_X(2.)) / ZEff;
 
             /* ionization condition */
-            if (math::abs(eField) / ATOMIC_UNIT_EFIELD >= AU::IONIZATION_EFIELD_HYDROGEN[cs] && chargeState < protonNumber)
+            if (math::abs(eField) / ATOMIC_UNIT_EFIELD >= critField && chargeState < protonNumber)
             {
                 /* set new particle charge state */
                 parentIon[boundElectrons_] -= float_X(1.0);
