@@ -39,7 +39,11 @@ namespace ionization
 
     struct AlgorithmADK;
 
-    struct AlgorithmBSI;
+    struct AlgorithmBSIHydrogenLike;
+
+    struct AlgorithmBSIEffectiveZ;
+
+    struct AlgorithmBSIStarkShifted;
 
 } // namespace ionization
 

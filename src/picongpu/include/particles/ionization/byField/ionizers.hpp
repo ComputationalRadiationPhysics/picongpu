@@ -28,4 +28,6 @@
  */
 
 #include "particles/ionization/byField/ADK/ADK_Impl.hpp"
-#include "particles/ionization/byField/BSI/BSI_Impl.hpp"
+#include "particles/ionization/byField/BSIHydrogenLike/BSIHydrogenLike_Impl.hpp"
+#include "particles/ionization/byField/BSIEffectiveZ/BSIEffectiveZ_Impl.hpp"
+#include "particles/ionization/byField/BSIStarkShifted/BSIStarkShifted_Impl.hpp"
