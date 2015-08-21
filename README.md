@@ -99,6 +99,29 @@ Install
 
 See our notes in [INSTALL.md](doc/INSTALL.md).
 
+Questions on PIConGPU via E-mail
+--------------------------------
+For any questions regarding PIConGPU please **do not** contact the developers
+and maintainers directly.
+Instead, use our **mailing list** [picongpu-users.hzdr.de](mailto://picongpu-users.hzdr.de).
+Please **subscribe** to the list by sending an E-mail to
+[picongpu-users-subscribe@hzdr.de](mailto://picongpu-users-subscribe@hzdr.de).
+You can **unsubscribe** from the list by sending an E-mail to
+[picongpu-users-unsubscribe@hzdr.de](mailto://picongpu-users-unsubscribe@hzdr.de).
+
+Before you post a question, browse the PIConGPU documentation
+and [mailing list history](https://cg.hzdr.de/Lists/picongpu-users/List.html)
+to see if your question has been answered, already.
+
+PIConGPU is a collaborative project. We thus encourage users to engage in
+answering questions of other users and post solutions to problems to the
+list. A problem you have encountered might be the future problem of another
+user.
+
+In addition, please consider using the collaborative features of GitHub if you
+have questions or comments on code or documentation. This will allow other
+users to see the piece of code or documentation you are referring to.
+
 Users
 -----
 
