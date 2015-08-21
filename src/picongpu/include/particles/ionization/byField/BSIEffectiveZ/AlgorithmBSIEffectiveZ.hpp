@@ -22,6 +22,7 @@
 
 #include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
+#include "particles/traits/GetIonizationEnergies.hpp"
 #include "particles/traits/GetAtomicNumbers.hpp"
 #include "particles/traits/GetEffectiveAtomicNumbers.hpp"
 #include "traits/attribute/GetChargeState.hpp"
