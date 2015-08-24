@@ -719,7 +719,11 @@ private:
         /* select MPI method, #OSTs and #aggregators */
         std::stringstream strMPITransportParams;
         strMPITransportParams << "num_aggregators=" << mThreadParams.adiosAggregators
-                              << ";num_ost=" << mThreadParams.adiosOST;
+                              << ";num_ost=" << mThreadParams.adiosOST
+                              /* use system-defaults for striping per aggregated file */
+                              << ";striping=0"
+                              /* create meta file offline with bpmeta */
+                              << ";have_metadata_file=0";
         mpiTransportParams = strMPITransportParams.str();
 
         if (restartFilename == "")
