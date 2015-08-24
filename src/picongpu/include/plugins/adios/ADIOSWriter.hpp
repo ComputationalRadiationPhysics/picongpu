@@ -479,7 +479,7 @@ public:
          */
         ADIOS_CMD(adios_read_init_method(ADIOS_READ_METHOD_BP,
                                          mThreadParams.adiosComm,
-                                         "verbose=3;")); //mpiTransportParams.c_str())); // rly ?
+                                         "verbose=3;abort_on_error;"));
 
         /* if restartFilename is relative, prepend with restartDirectory */
         if (!boost::filesystem::path(restartFilename).has_root_path())
