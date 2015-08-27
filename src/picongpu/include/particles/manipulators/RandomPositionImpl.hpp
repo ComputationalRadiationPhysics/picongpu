@@ -54,8 +54,7 @@ struct RandomPositionImpl
         seed = globalSeed() ^
                PMacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid() ^
                POSITION_SEED;
-        seed = seedPerRank(seed);
-        seed ^= currentStep;
+        seed = seedPerRank(seed) ^ currentStep;
 
         const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
         localCells = subGrid.getLocalDomain().size;

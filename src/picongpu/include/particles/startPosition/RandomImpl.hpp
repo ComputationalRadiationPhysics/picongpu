@@ -57,7 +57,7 @@ struct RandomImpl
         seed = globalSeed() ^
                PMacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid() ^
                POSITION_SEED;
-        seed = seedPerRank(seed);
+        seed = seedPerRank(seed) ^ currentStep;
 
         const uint32_t numSlides = MovingWindow::getInstance( ).getSlideCounter( currentStep );
         const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();

@@ -58,7 +58,7 @@ struct TemperatureImpl : private T_ValueFunctor
         seed = globalSeed() ^
                PMacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid() ^
                TEMPERATURE_SEED;
-        seed = seedPerRank(seed);
+        seed = seedPerRank(seed) ^ currentStep;
 
         const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
         localCells = subGrid.getLocalDomain().size;
