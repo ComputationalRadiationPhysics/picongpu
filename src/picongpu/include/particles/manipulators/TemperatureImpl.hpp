@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera,
+ *                     Alexander Grund
  *
  * This file is part of PIConGPU.
  *
@@ -54,8 +55,10 @@ struct TemperatureImpl : private T_ValueFunctor
 
         GlobalSeed globalSeed;
         mpi::SeedPerRank<simDim> seedPerRank;
-        seed = seedPerRank(globalSeed(), PMacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid());
-        seed ^= TEMPERATURE_SEED;
+        seed = globalSeed() ^
+               PMacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid() ^
+               TEMPERATURE_SEED;
+        seed = seedPerRank(seed) ^ currentStep;
 
         const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
         localCells = subGrid.getLocalDomain().size;

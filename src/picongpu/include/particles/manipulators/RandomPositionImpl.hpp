@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Rene Widera
+ * Copyright 2015 Rene Widera, Alexander Grund
  *
  * This file is part of PIConGPU.
  *
@@ -51,8 +51,10 @@ struct RandomPositionImpl
 
         GlobalSeed globalSeed;
         mpi::SeedPerRank<simDim> seedPerRank;
-        seed = seedPerRank(globalSeed(), PMacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid());
-        seed ^= POSITION_SEED ^ currentStep;
+        seed = globalSeed() ^
+               PMacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid() ^
+               POSITION_SEED;
+        seed = seedPerRank(seed) ^ currentStep;
 
         const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
         localCells = subGrid.getLocalDomain().size;

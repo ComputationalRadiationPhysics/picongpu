@@ -53,8 +53,11 @@ struct RandomImpl
         typedef typename SpeciesType::FrameType FrameType;
 
         mpi::SeedPerRank<simDim> seedPerRank;
-        seed = seedPerRank(GlobalSeed()(), PMacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid());
-        seed ^= POSITION_SEED;
+        GlobalSeed globalSeed;
+        seed = globalSeed() ^
+               PMacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid() ^
+               POSITION_SEED;
+        seed = seedPerRank(seed) ^ currentStep;
 
         const uint32_t numSlides = MovingWindow::getInstance( ).getSlideCounter( currentStep );
         const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
