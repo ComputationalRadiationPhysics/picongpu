@@ -126,20 +126,25 @@ struct CallReset
     }
 };
 
+/** push a species
+ *
+ * push is only triggered for species with a pusher
+ *
+ * @tparam T_SpeciesName name of particle species that is checked
+ */
 template<typename T_SpeciesName>
-struct CallUpdate
+struct PushSpecies
 {
     typedef T_SpeciesName SpeciesName;
     typedef typename SpeciesName::type SpeciesType;
     typedef typename SpeciesType::FrameType FrameType;
 
-    template<typename T_StorageTuple, typename T_Event>
+    template<typename T_StorageTuple, typename T_EventList>
     HINLINE void operator()(
                             T_StorageTuple& tuple,
                             const uint32_t currentStep,
-                            const T_Event eventInt,
-                            T_Event& updateEvent,
-                            T_Event& commEvent
+                            const EventTask& eventInt,
+                            T_EventList& updateEvent
                             ) const
     {
         typedef typename HasFlag<FrameType, particlePusher<> >::type hasPusher;
@@ -149,14 +154,97 @@ struct CallUpdate
 
             __startTransaction(eventInt);
             speciesPtr->update(currentStep);
-            commEvent += speciesPtr->asyncCommunication(__getTransactionEvent());
-            updateEvent += __endTransaction();
+            EventTask ev = __endTransaction();
+            updateEvent.push_back(ev);
+        }
+    }
+};
+
+/** Communicate a species
+ *
+ * communication is only triggered for species with a pusher
+ *
+ * @tparam T_SpeciesName name of particle species that is checked
+ */
+template<typename T_SpeciesName>
+struct CommunicateSpecies
+{
+    typedef T_SpeciesName SpeciesName;
+    typedef typename SpeciesName::type SpeciesType;
+    typedef typename SpeciesType::FrameType FrameType;
+
+    template<typename T_StorageTuple, typename T_EventList>
+    HINLINE void operator()(
+                            T_StorageTuple& tuple,
+                            T_EventList& updateEventList,
+                            T_EventList& commEventList
+                            ) const
+    {
+        typedef typename HasFlag<FrameType, particlePusher<> >::type hasPusher;
+        if (hasPusher::value)
+        {
+            EventTask updateEvent(*(updateEventList.begin()));
+            PMACC_AUTO(speciesPtr, tuple[SpeciesName()]);
+
+            updateEventList.pop_front();
+            commEventList.push_back(speciesPtr->asyncCommunication(updateEvent));
+        }
+    }
+};
+
+/** update momentum, move and communicate all species */
+struct PushAllSpecies
+{
+
+    /** push and communicate all species
+     *
+     * @tparam T_SpeciesStorage type of the speciesStorage
+     * @param speciesStorage struct with all species (e.g. `PMacc::math::MapTuple`)
+     * @param currentStep current simulation step
+     * @param pushEvent[out] grouped event that marks the end of the species push
+     * @param commEvent[out] grouped event that marks the end of the species communication
+     */
+    template<typename T_SpeciesStorage>
+    HINLINE void operator()(
+                            T_SpeciesStorage& speciesStorage,
+                            const uint32_t currentStep,
+                            const EventTask& eventInt,
+                            EventTask& pushEvent,
+                            EventTask& commEvent
+                            ) const
+    {
+        typedef std::list<EventTask> EventList;
+        EventList updateEventList;
+        EventList commEventList;
+
+        /* push all species */
+        ForEach<VectorAllSpecies, particles::PushSpecies<bmpl::_1>, MakeIdentifier<bmpl::_1> > pushSpecies;
+        pushSpecies(forward(speciesStorage), currentStep, eventInt, forward(updateEventList));
+
+        /* join all push events */
+        for (typename EventList::iterator iter = updateEventList.begin();
+             iter != updateEventList.end();
+             ++iter)
+        {
+            pushEvent += *iter;
+        }
+
+        /* call communication for all species */
+        ForEach<VectorAllSpecies, particles::CommunicateSpecies<bmpl::_1>, MakeIdentifier<bmpl::_1> > communicateSpecies;
+        communicateSpecies(forward(speciesStorage), forward(updateEventList), forward(commEventList));
+
+        /* join all communication events */
+        for (typename EventList::iterator iter = commEventList.begin();
+             iter != commEventList.end();
+             ++iter)
+        {
+            commEvent += *iter;
         }
     }
 };
 
 /** \struct CallIonization
- * 
+ *
  * \brief Tests if species can be ionized and calls the kernel to do that
  *
  * \tparam T_SpeciesName name of particle species that is checked for ionization
@@ -181,10 +269,10 @@ struct CallIonization
      */
     template<typename T_StorageTuple, typename T_CellDescription>
     HINLINE void operator()(
-                        T_StorageTuple& tuple,
-                        T_CellDescription* cellDesc,
-                        const uint32_t currentStep
-                        ) const
+                            T_StorageTuple& tuple,
+                            T_CellDescription* cellDesc,
+                            const uint32_t currentStep
+                            ) const
     {
         /* only if an ionizer has been specified, this is executed */
         typedef typename HasFlag<FrameType, ionizer<> >::type hasIonizer;
@@ -216,7 +304,7 @@ struct CallIonization
                 ( srcSpeciesPtr->getDeviceParticlesBox( ),
                   electronsPtr->getDeviceParticlesBox( ),
                   SelectIonizer(currentStep)
-                  );
+                );
             /* fill the gaps in the created species' particle frames to ensure that only
              * the last frame is not completely filled but every other before is full
              */
