@@ -442,7 +442,7 @@ public:
              * The only reason why we use 1M particles per chunk is that we can get a
              * frame overflow in our memory manager if we process all particles in one kernel.
              **/
-            ("adios.restart-chunkSize", po::value<uint32_t > (&restartChunkSize)->default_value(1000000),
+            ("adios.restart-chunkSize", po::value<uint32_t > (&restartChunkSize)->default_value(50000),
              "Number of particles processed in one kernel call during restart to prevent frame count blowup");
     }
 
