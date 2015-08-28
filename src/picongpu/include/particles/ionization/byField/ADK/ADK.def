@@ -1,0 +1,71 @@
+/**
+ * Copyright 2015 Marco Garten
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "types.h"
+
+namespace picongpu
+{
+namespace particles
+{
+namespace ionization
+{
+
+    /** \struct ADK_Impl
+     *
+     * \brief Ammosov-Delone-Krainov tunneling model
+     *
+     * \tparam T_DestSpecies electron species to be created
+     * \tparam T_SrcSpecies ion species to be ionized
+     *         default is boost::mpl placeholder because specialization
+     *         cannot be known in list of particle species' flags
+     *         \see speciesDefinition.param
+     */
+    template<typename T_DestSpecies, typename T_SrcSpecies = bmpl::_1>
+    struct ADK_Impl;
+
+    /** \struct ADK
+     *
+     * \brief Ammosov-Delone-Krainov tunneling model
+     *
+     * - takes the ionization energies of the various charge states of ions
+     * - calculates the ionization rates and then the ionization probabilities from them
+     * - ATTENTION: this approach is not very applicable for rapidly changing high intensity laser fields
+     * - this is a Monte Carlo method: if a random number is smaller
+     *   or equal than the ionization probability -> increase the charge state
+     * - see for example: Delone, N. B.; Krainov, V. P. (1998).
+     *   "Tunneling and barrier-suppression ionization of atoms and ions in a laser radiation field"
+     *   doi:10.1070/PU1998v041n05ABEH000393
+     *
+     * wrapper class,
+     * needed because the SrcSpecies cannot be known during the
+     * first specialization of the ionization model in the particle definition
+     * \see speciesDefinition.param
+     */
+    template<typename T_DestSpecies>
+    struct ADK
+    {
+        typedef ADK_Impl<T_DestSpecies> type;
+    };
+
+} // namespace ionization
+} // namespace particles
+} // namespace picongpu

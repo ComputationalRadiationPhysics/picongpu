@@ -93,15 +93,17 @@ __global__ void kernelIonizeParticles(ParBoxIons ionBox,
 
     /* definitions for domain variables, like indices of blocks and threads */
     typedef typename BlockDescription_::SuperCellSize SuperCellSize;
-    /* "offset" 3D distance to origin in units of super cells */
+    /* multi-dimensional offset vector from local domain origin on GPU in units of super cells */
     const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
 
-    /* 3D vector from origin of the block to a cell in units of cells */
+    /* multi-dim vector from origin of the block to a cell in units of cells */
     const DataSpace<simDim > threadIndex(threadIdx);
-    /* conversion from a 3D cell coordinate to a linear coordinate of the cell in its super cell */
+    /* conversion from a multi-dim cell coordinate to a linear coordinate of the cell in its super cell */
     const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
 
-    /* "offset" from origin of the grid in unit of cells */
+    /* multi-dim offset from the origin of the local domain on GPU
+     * to the origin of the block of the in unit of cells
+     */
     const DataSpace<simDim> blockCell = block * SuperCellSize::toRT();
 
     /* subtract guarding cells to only have the simulation volume */

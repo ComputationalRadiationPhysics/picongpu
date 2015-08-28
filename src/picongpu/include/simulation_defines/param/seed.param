@@ -44,7 +44,7 @@ namespace picongpu
     /* seed for randomization of different particle attributes */
     enum Seeds
     {
-        TEMPERATURE_SEED = 255845, POSITION_SEED = 854666252
+        TEMPERATURE_SEED = 255845, POSITION_SEED = 854666252, IONIZATION_SEED = 431630977
     };
 
 } /* namespace picongpu */

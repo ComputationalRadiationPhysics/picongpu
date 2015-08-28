@@ -37,6 +37,8 @@ namespace ionization
 
     struct AlgorithmNone;
 
+    struct AlgorithmADK;
+
     struct AlgorithmBSI;
 
 } // namespace ionization
