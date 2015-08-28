@@ -35,7 +35,7 @@ export VT_ROOT=$VAMPIRTRACE_DIR
 
 # plugins (optional) ################################################
 module load cray-hdf5-parallel/1.8.14
-#module load adios/1.8.0 mxml/2.9 dataspaces/1.4.0
+#module load adios/1.9.0 mxml/2.9 dataspaces/1.4.0
 export HDF5_ROOT=$HDF5_DIR
 #export ADIOS_ROOT=$ADIOS_DIR
 #export MXML_ROOT=$MXML_DIR

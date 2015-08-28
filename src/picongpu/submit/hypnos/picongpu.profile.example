@@ -19,7 +19,7 @@ then
         module load hdf5-parallel/1.8.14 libsplash/1.2.4
 
         # either use libSplash or ADIOS for file I/O
-        #module load libmxml/2.8 adios/1.8.0
+        #module load libmxml/2.8 adios/1.9.0
 
         # Debug Tools
         #module load valgrind/3.8.1
