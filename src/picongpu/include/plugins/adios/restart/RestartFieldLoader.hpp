@@ -21,13 +21,6 @@
 
 #pragma once
 
-#include <adios.h>
-#include <adios_read.h>
-#include <adios_error.h>
-
-#include <string>
-#include <sstream>
-
 #include "types.h"
 #include "simulation_defines.hpp"
 #include "plugins/adios/ADIOSWriter.def"
@@ -37,6 +30,14 @@
 #include "dimensions/DataSpace.hpp"
 #include "dimensions/GridLayout.hpp"
 #include "simulationControl/MovingWindow.hpp"
+
+#include <adios.h>
+#include <adios_read.h>
+#include <adios_error.h>
+
+#include <string>
+#include <sstream>
+#include <stdexcept> // throw std::runtime_error
 
 namespace picongpu
 {
@@ -83,6 +84,16 @@ public:
                 datasetName.str();
 
             ADIOS_VARINFO* varInfo = adios_inq_var( params->fp, datasetName.str().c_str() );
+            if( varInfo == NULL )
+            {
+                std::string errMsg( adios_errmsg() );
+                if( errMsg.empty() ) errMsg = '\n';
+                std::stringstream s;
+                s << "ADIOS: error at adios_inq_var '"
+                  << "' (" << adios_errno << ") in "
+                  << __FILE__ << ":" << __LINE__ << " " << errMsg;
+                throw std::runtime_error(s.str());
+            }
             uint64_t start[varInfo->ndim];
             uint64_t count[varInfo->ndim];
             for(int d = 0; d < varInfo->ndim; ++d)
@@ -102,6 +113,8 @@ public:
             /// \todo float_X should be some kind of gridBuffer's GetComponentsType<ValueType>::type
             float_X* field_container = new float_X[local_domain_size.productOfComponents()];
             /* magic parameters (0, 1): `from_step` (not used in streams), `nsteps` to read (must be 1 for stream) */
+            log<picLog::INPUT_OUTPUT > ("ADIOS: Schedule read from field (%1%, %2%, %3%, %4%)") %
+                                        params->fp % fSel % datasetName.str() % (void*)field_container;
             ADIOS_CMD(adios_schedule_read( params->fp, fSel, datasetName.str().c_str(), 0, 1, (void*)field_container ));
 
             /* start a blocking read of all scheduled variables */

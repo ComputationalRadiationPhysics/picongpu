@@ -27,7 +27,8 @@
 #include <limits>
 #include <sstream>
 #include <string>
-#include <iostream> // std::cerr
+#include <iostream>  // std::cerr
+#include <stdexcept> // throw std::runtime_error
 
 #include "types.h"
 #include "math/Vector.hpp"
@@ -58,22 +59,34 @@ namespace po = boost::program_options;
 #define ADIOS_SIZE_GLOBAL    "totalSize_"
 #define ADIOS_OFFSET_GLOBAL  "offset_"
 
-#define ADIOS_CMD(_cmd)                                                        \
-{                                                                              \
-    int _err_code = _cmd;                                                      \
-    if (_err_code != ADIOS_SUCCESS)                                            \
-        std::cerr << "ADIOS: error at cmd '" << #_cmd                          \
-                  << "' (" << _err_code << ") in "                             \
-                  << __FILE__ << ":" << __LINE__ << adios_errmsg();            \
+#define ADIOS_CMD(_cmd)                                                       \
+{                                                                             \
+    int _err_code = _cmd;                                                     \
+    if (_err_code != ADIOS_SUCCESS)                                           \
+    {                                                                         \
+        std::string errMsg( adios_errmsg() );                                 \
+        if( errMsg.empty() ) errMsg = '\n';                                   \
+        std::stringstream s;                                                  \
+        s << "ADIOS: error at cmd '" << #_cmd                                 \
+          << "' (" << _err_code << ", " << adios_errno << ") in "             \
+          << __FILE__ << ":" << __LINE__ << " " << errMsg;                    \
+        throw std::runtime_error(s.str());                                    \
+    }                                                                         \
 }
 
-#define ADIOS_CMD_EXPECT_NONZERO(_cmd)                                         \
-{                                                                              \
-    int _err_code = _cmd;                                                      \
-    if (_err_code == 0)                                                        \
-        std::cerr << "ADIOS: error at cmd '" << #_cmd                          \
-                  << "' (" << _err_code << ") in "                             \
-                  << __FILE__ << ":" << __LINE__ << adios_errmsg();            \
+#define ADIOS_CMD_EXPECT_NONZERO(_cmd)                                        \
+{                                                                             \
+    int _err_code = _cmd;                                                     \
+    if (_err_code == 0)                                                       \
+    {                                                                         \
+        std::string errMsg( adios_errmsg() );                                 \
+        if( errMsg.empty() ) errMsg = '\n';                                   \
+        std::stringstream s;                                                  \
+        s << "ADIOS: error at cmd '" << #_cmd                                 \
+          << "' (" << _err_code << ", " << adios_errno << ") in "             \
+          << __FILE__ << ":" << __LINE__ << " " << errMsg;                    \
+        throw std::runtime_error(s.str());                                    \
+    }                                                                         \
 }
 
 struct ThreadParams
@@ -92,6 +105,8 @@ struct ThreadParams
     uint64_t adiosGroupSize;                /* size of ADIOS group in bytes */
     uint32_t adiosAggregators;              /* number of ADIOS aggregators for MPI_AGGREGATE */
     uint32_t adiosOST;                      /* number of ADIOS OST for MPI_AGGREGATE */
+    bool adiosDisableMeta;                  /* disable online gather and write of a meta file */
+    std::string adiosTransportParams;       /* additional transport params */
     std::string adiosBasePath;              /* base path for the current step */
     std::string adiosCompression;           /* ADIOS data transform compression method */
 
