@@ -105,6 +105,8 @@ struct ThreadParams
     uint64_t adiosGroupSize;                /* size of ADIOS group in bytes */
     uint32_t adiosAggregators;              /* number of ADIOS aggregators for MPI_AGGREGATE */
     uint32_t adiosOST;                      /* number of ADIOS OST for MPI_AGGREGATE */
+    uint32_t adiosCreateMeta;               /* gather and write a meta file online */
+    std::string adiosTransportParams;       /* additional transport params */
     std::string adiosBasePath;              /* base path for the current step */
     std::string adiosCompression;           /* ADIOS data transform compression method */
 

@@ -421,10 +421,15 @@ public:
              (&mThreadParams.adiosAggregators)->default_value(0), "Number of aggregators [0 == number of MPI processes]")
             ("adios.ost", po::value<uint32_t > (&mThreadParams.adiosOST)->default_value(1),
              "Number of OST")
+            ("adios.create-meta", po::value<uint32_t > (&mThreadParams.adiosCreateMeta)->default_value(1),
+             "Gather and write a global meta file, can be time consuming (use 0 with `bpmeta` post-mortem).")
+            ("adios.transport-params", po::value<std::string >
+             (&mThreadParams.adiosTransportParams)->default_value(""),
+             "additional transport parameters, see ADIOS manual chapter 6.1.5, e.g., 'random_offset=1;stripe_count=4'")
 #if(ADIOS_TRANSFORMS==1)
             ("adios.compression", po::value<std::string >
              (&mThreadParams.adiosCompression)->default_value("none"),
-             "ADIOS compression method (see 'adios_config -m' for help)")
+             "ADIOS compression method, e.g., zlib (see `adios_config -m` for help)")
 #endif
             ("adios.file", po::value<std::string > (&filename)->default_value(filename),
              "ADIOS output file")
@@ -719,11 +724,15 @@ private:
         /* select MPI method, #OSTs and #aggregators */
         std::stringstream strMPITransportParams;
         strMPITransportParams << "num_aggregators=" << mThreadParams.adiosAggregators
-                              << ";num_ost=" << mThreadParams.adiosOST
-                              /* use system-defaults for striping per aggregated file */
-                              << ";striping=0"
-                              /* create meta file offline with bpmeta */
-                              << ";have_metadata_file=0";
+                              << ";num_ost=" << mThreadParams.adiosOST;
+        /* create meta file offline/post-mortem with bpmeta */
+        if( mThreadParams.adiosCreateMeta == 0 )
+            strMPITransportParams << ";have_metadata_file=0";
+        /* additional, uncovered transport parameters, e.g.,
+         * use system-defaults for striping per aggregated file */
+        if( mThreadParams.adiosTransportParams != "" )
+            strMPITransportParams << ";" << mThreadParams.adiosTransportParams;
+
         mpiTransportParams = strMPITransportParams.str();
 
         if (restartFilename == "")
