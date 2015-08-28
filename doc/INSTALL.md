@@ -91,7 +91,7 @@ Some of our examples will also need **libSplash**.
       [PNGWRITER\_ROOT](#additional-required-environment-variables-for-optional-libraries)
       to `$HOME/lib/pngwriter`
 
-- **libSplash** >= 1.2.4 (requires *hdf5*, *boost program-options*)
+- **libSplash** >= 1.2.4 (requires *HDF5*, *boost program-options*)
     - *Debian/Ubuntu dependencies:* `sudo apt-get install libhdf5-openmpi-dev libboost-program-options-dev`
     - *Arch Linux dependencies:* `sudo pacman --sync hdf5-openmpi boost`
     - example:
@@ -104,7 +104,7 @@ Some of our examples will also need **libSplash**.
       [SPLASH\_ROOT](#additional-required-environment-variables-for-optional-libraries)
       to `$HOME/lib/splash`
 
-- **hdf5** >= 1.8.6, standard shared version (no c++, enable parallel), e.g. `hdf5/1.8.5-threadsafe`
+- **HDF5** >= 1.8.6, standard shared version (no c++, enable parallel), e.g. `hdf5/1.8.5-threadsafe`
     - *Debian/Ubuntu:* `sudo apt-get install libhdf5-openmpi-dev`
     - *Arch Linux:* `sudo pacman --sync hdf5-openmpi`
     - example:
@@ -140,6 +140,25 @@ Some of our examples will also need **libSplash**.
     - converts png files to hdf5 files that can be used as an input for a
       species initial density profiles
     - compile and install exactly as *splash2txt* above
+
+- **ADIOS** >= 1.9.0 (requires *MPI*, *zlib* and *mxml* http://www.msweet.org/projects.php?Z3)
+    - *Debian/Ubuntu:* `sudo apt-get install libadios-dev libadios-bin`
+    - example:
+      - `mkdir -p ~/src ~/build ~/lib`
+      - `cd ~/src`
+      - `wget http://users.nccs.gov/~pnorbert/adios-1.9.0.tar.gz`
+      - `tar -xvzf adios-1.9.0.tar.gz`
+      - `cd adios-1.9.0`
+      - `CFLAGS="-fPIC" ./configure --enable-static --enable-shared --prefix=$HOME/lib/adios-1.9.0 --with-mxml=$MXML_ROOT --with-mpi=$MPI_ROOT --with-zlib=/usr`
+      - `make`
+      - `make install`
+    - set the environment variable
+      [ADIOS\_ROOT](#additional-required-environment-variables-for-optional-libraries)
+      to `export ADIOS_ROOT=$HOME/lib/adios-1.9.0`, the
+      [PATH](#additional-required-environment-variables-for-optional-libraries)
+      to `export PATH=$PATH:$ADIOS_ROOT/bin` and the
+      [LD\_LIBRARY\_PATH](#additional-required-environment-variables-for-optional-libraries)
+      to `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ADIOS_ROOT/lib`
 
 - for **VampirTrace** support
     - download 5.14.4 or higher, e.g. from 

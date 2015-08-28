@@ -140,26 +140,6 @@ typedef PICToAdios<uint32_t> AdiosUInt32Type;
 typedef PICToAdios<float_X> AdiosFloatXType;
 typedef PICToAdios<double> AdiosDoubleType;
 
-/** Attribute conversation: values to c-strings in ADIOS C-API <= 1.8.0 */
-template<typename T>
-static std::string flt2str( T val )
-{
-    typedef std::numeric_limits< T > fltLimit;
-
-    std::stringstream s;
-    s.precision(fltLimit::digits10);
-    s << std::scientific << val;
-    return s.str();
-}
-
-template<typename T>
-static std::string int2str( T val )
-{
-    std::stringstream s;
-    s << val;
-    return s.str();
-}
-
 /**
  * Wrapper for adios_define_var that sets data transform method
  *
@@ -189,4 +169,3 @@ int64_t defineAdiosVar(int64_t group_id,
 
 } //namespace adios
 } //namespace picongpu
-
