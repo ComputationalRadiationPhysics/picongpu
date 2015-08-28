@@ -123,9 +123,7 @@ int64_t defineAdiosVar(int64_t group_id,
     if (compression && canCompress)
     {
         /* enable zlib compression for variable, default compression level */
-#if(ADIOS_TRANSFORMS==1)
         adios_set_transform(var_id, compressionMethod.c_str());
-#endif
     }
 
     log<picLog::INPUT_OUTPUT > ("ADIOS: Defined varID=%1% for '%2%' at %3% for %4%/%5% elements") %
@@ -294,9 +292,9 @@ private:
              * the reservation for the buffer correctly */
             AdiosDoubleType adiosDoubleType;
 
-            ADIOS_CMD(adios_define_attribute(params->adiosGroupHandle,
-                      "sim_unit", datasetName.str().c_str(), adiosDoubleType.type,
-                      flt2str(unit.at(c)).c_str(), ""));
+            ADIOS_CMD(adios_define_attribute_byvalue(params->adiosGroupHandle,
+                      "sim_unit", datasetName.str().c_str(),
+                      adiosDoubleType.type, 1, (void*)&unit.at(c) ));
         }
     }
 
@@ -425,11 +423,9 @@ public:
              "Disable online gather and write of a global meta file, can be time consuming (use `bpmeta` post-mortem)")
             ("adios.transport-params", po::value<std::string > (&mThreadParams.adiosTransportParams),
              "additional transport parameters, see ADIOS manual chapter 6.1.5, e.g., 'random_offset=1;stripe_count=4'")
-#if(ADIOS_TRANSFORMS==1)
             ("adios.compression", po::value<std::string >
              (&mThreadParams.adiosCompression)->default_value("none"),
              "ADIOS compression method, e.g., zlib (see `adios_config -m` for help)")
-#endif
             ("adios.file", po::value<std::string > (&filename)->default_value(filename),
              "ADIOS output file")
             ("adios.checkpoint-file", po::value<std::string > (&checkpointFilename),
@@ -668,11 +664,11 @@ private:
         }
 
 
-        /*copy species only one time per timestep to the host*/
+        /* copy species only one time per timestep to the host */
         if( lastSpeciesSyncStep != currentStep )
         {
             DataConnector &dc = Environment<>::get().DataConnector();
-            
+
             /* synchronizes the MallocMCBuffer to the host side */
             dc.getData<MallocMCBuffer> (MallocMCBuffer::getName());
 
@@ -827,77 +823,69 @@ private:
 
         /* write current iteration */
         log<picLog::INPUT_OUTPUT > ("ADIOS: meta: iteration");
-        // In upcoming (>1.8.0) ADIOS version, better use:
-        // ADIOS_CMD(adios_common_define_attribute_byvalue(threadParams->adiosGroupHandle,
-        //          "iteration",
-        //          threadParams->adiosBasePath.c_str(),
-        //          adiosUInt32Type.type,
-        //          (void*)&threadParams->currentStep ));
-
-        ADIOS_CMD(adios_define_attribute(threadParams->adiosGroupHandle,
-                  "iteration", threadParams->adiosBasePath.c_str(), adiosUInt32Type.type,
-                  int2str(threadParams->currentStep).c_str(), ""));
+        ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
+                  "iteration", threadParams->adiosBasePath.c_str(),
+                  adiosUInt32Type.type, 1, (void*)&threadParams->currentStep ));
 
         /* write number of slides */
         log<picLog::INPUT_OUTPUT > ("ADIOS: meta: sim_slides");
-        ADIOS_CMD(adios_define_attribute(threadParams->adiosGroupHandle,
-                  "sim_slides", threadParams->adiosBasePath.c_str(), adiosUInt32Type.type,
-                  int2str(slides).c_str(), ""));
+        ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
+                  "sim_slides", threadParams->adiosBasePath.c_str(),
+                  adiosUInt32Type.type, 1, (void*)&slides ));
 
         /* write normed grid parameters */
         log<picLog::INPUT_OUTPUT > ("ADIOS: meta: grid");
-        ADIOS_CMD(adios_define_attribute(threadParams->adiosGroupHandle,
-                  "delta_t", threadParams->adiosBasePath.c_str(), adiosFloatXType.type,
-                  flt2str(DELTA_T).c_str(), ""));
-        ADIOS_CMD(adios_define_attribute(threadParams->adiosGroupHandle,
-                  "cell_width", threadParams->adiosBasePath.c_str(), adiosFloatXType.type,
-                  flt2str(CELL_WIDTH).c_str(), ""));
-        ADIOS_CMD(adios_define_attribute(threadParams->adiosGroupHandle,
-                  "cell_height", threadParams->adiosBasePath.c_str(), adiosFloatXType.type,
-                  flt2str(CELL_HEIGHT).c_str(), ""));
+        ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
+                  "delta_t", threadParams->adiosBasePath.c_str(),
+                  adiosFloatXType.type, 1, (void*)&DELTA_T ));
+        ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
+                  "cell_width", threadParams->adiosBasePath.c_str(),
+                  adiosFloatXType.type, 1, (void*)&cellSize[0] ));
+        ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
+                  "cell_height", threadParams->adiosBasePath.c_str(),
+                  adiosFloatXType.type, 1, (void*)&cellSize[1] ));
         if( simDim == DIM3 )
         {
-            ADIOS_CMD(adios_define_attribute(threadParams->adiosGroupHandle,
-                      "cell_depth", threadParams->adiosBasePath.c_str(), adiosFloatXType.type,
-                      flt2str(CELL_DEPTH).c_str(), ""));
+           ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
+                     "cell_depth", threadParams->adiosBasePath.c_str(),
+                     adiosFloatXType.type, 1, (void*)&cellSize[2] ));
         }
 
         /* write base units */
         log<picLog::INPUT_OUTPUT > ("ADIOS: meta: units");
-        ADIOS_CMD(adios_define_attribute(threadParams->adiosGroupHandle,
-                  "unit_energy", threadParams->adiosBasePath.c_str(), adiosDoubleType.type,
-                  flt2str(UNIT_ENERGY).c_str(), ""));
-        ADIOS_CMD(adios_define_attribute(threadParams->adiosGroupHandle,
-                  "unit_length", threadParams->adiosBasePath.c_str(), adiosDoubleType.type,
-                  flt2str(UNIT_LENGTH).c_str(), ""));
-        ADIOS_CMD(adios_define_attribute(threadParams->adiosGroupHandle,
-                  "unit_speed", threadParams->adiosBasePath.c_str(), adiosDoubleType.type,
-                  flt2str(UNIT_SPEED).c_str(), ""));
-        ADIOS_CMD(adios_define_attribute(threadParams->adiosGroupHandle,
-                  "unit_time", threadParams->adiosBasePath.c_str(), adiosDoubleType.type,
-                  flt2str(UNIT_TIME).c_str(), ""));
-        ADIOS_CMD(adios_define_attribute(threadParams->adiosGroupHandle,
-                  "unit_mass", threadParams->adiosBasePath.c_str(), adiosDoubleType.type,
-                  flt2str(UNIT_MASS).c_str(), ""));
-        ADIOS_CMD(adios_define_attribute(threadParams->adiosGroupHandle,
-                  "unit_charge", threadParams->adiosBasePath.c_str(), adiosDoubleType.type,
-                  flt2str(UNIT_CHARGE).c_str(), ""));
-        ADIOS_CMD(adios_define_attribute(threadParams->adiosGroupHandle,
-                  "unit_efield", threadParams->adiosBasePath.c_str(), adiosDoubleType.type,
-                  flt2str(UNIT_EFIELD).c_str(), ""));
-        ADIOS_CMD(adios_define_attribute(threadParams->adiosGroupHandle,
-                  "unit_bfield", threadParams->adiosBasePath.c_str(), adiosDoubleType.type,
-                  flt2str(UNIT_BFIELD).c_str(), ""));
+        ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
+                  "unit_energy", threadParams->adiosBasePath.c_str(),
+                  adiosDoubleType.type, 1, (void*)&UNIT_ENERGY ));
+        ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
+                  "unit_length", threadParams->adiosBasePath.c_str(),
+                  adiosDoubleType.type, 1, (void*)&UNIT_LENGTH ));
+        ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
+                  "unit_speed", threadParams->adiosBasePath.c_str(),
+                  adiosDoubleType.type, 1, (void*)&UNIT_SPEED ));
+        ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
+                  "unit_time", threadParams->adiosBasePath.c_str(),
+                  adiosDoubleType.type, 1, (void*)&UNIT_TIME ));
+        ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
+                  "unit_mass", threadParams->adiosBasePath.c_str(),
+                  adiosDoubleType.type, 1, (void*)&UNIT_MASS ));
+        ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
+                  "unit_charge", threadParams->adiosBasePath.c_str(),
+                  adiosDoubleType.type, 1, (void*)&UNIT_CHARGE ));
+        ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
+                  "unit_efield", threadParams->adiosBasePath.c_str(),
+                  adiosDoubleType.type, 1, (void*)&UNIT_EFIELD ));
+        ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
+                  "unit_bfield", threadParams->adiosBasePath.c_str(),
+                  adiosDoubleType.type, 1, (void*)&UNIT_BFIELD ));
 
         /* write physical constants */
         log<picLog::INPUT_OUTPUT > ("ADIOS: meta: mue0/eps0");
-
-        ADIOS_CMD(adios_define_attribute(threadParams->adiosGroupHandle,
-                  "mue0", threadParams->adiosBasePath.c_str(), adiosFloatXType.type,
-                  flt2str(MUE0).c_str(), ""));
-        ADIOS_CMD(adios_define_attribute(threadParams->adiosGroupHandle,
-                  "eps0", threadParams->adiosBasePath.c_str(), adiosFloatXType.type,
-                  flt2str(EPS0).c_str(), ""));
+        ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
+                  "mue0", threadParams->adiosBasePath.c_str(),
+                  adiosFloatXType.type, 1, (void*)&MUE0 ));
+        ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
+                  "eps0", threadParams->adiosBasePath.c_str(),
+                  adiosFloatXType.type, 1, (void*)&EPS0 ));
 
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) wite meta attributes.");
     }

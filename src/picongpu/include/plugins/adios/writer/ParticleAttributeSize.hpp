@@ -100,9 +100,9 @@ struct ParticleAttributeSize
 
             /* check if this attribute actually has a unit (unit.size() == 0 is no unit) */
             if (unit.size() >= (d + 1))
-                ADIOS_CMD(adios_define_attribute(params->adiosGroupHandle,
-                          "sim_unit", datasetName.str().c_str(), adiosDoubleType.type,
-                          flt2str(unit.at(d)).c_str(), ""));
+                ADIOS_CMD(adios_define_attribute_byvalue(params->adiosGroupHandle,
+                          "sim_unit", datasetName.str().c_str(),
+                          adiosDoubleType.type, 1, (void*)&unit.at(d) ));
         }
 
 
