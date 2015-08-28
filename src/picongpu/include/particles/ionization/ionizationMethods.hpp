@@ -103,19 +103,18 @@ namespace ionization
         {
             typedef typename SpeciesType::FrameType FrameType;
 
+            GlobalSeed globalSeed;
             mpi::SeedPerRank<simDim> seedPerRank;
-            /* creates global seed that is unique for each MPI rank (GPU) and the particle species */
-            seed = seedPerRank(GlobalSeed()(), PMacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid());
-            /* \todo replace be the bit shifting with the bit reversion function of #1040
-             * 
-             * This bit shift ensures that uniqueness per GPU and species is retained
-             * before flipping of the last bits.
-             * Omitting this results in the different GPUs receiving the same set of seeds
-             * periodically where the period is the max. number of MPI ranks.
+            /* creates global seed that is unique for
+             * the particle species and ionization as a method in PIC
              */
-            seed=seed<<16;
-            /* XOR operations to make seed unique for ionization process and for this time step */
-            seed ^= IONIZATION_SEED ^ currentStep;
+            seed = globalSeed() ^
+                   PMacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid() ^
+                   IONIZATION_SEED;
+            /* makes the seed unique for each MPI rank (GPU)
+             * and each time step
+             */
+            seed = seedPerRank(seed) ^ currentStep;
 
             const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
             /* size of the local domain on the designated GPU in units of cells */
