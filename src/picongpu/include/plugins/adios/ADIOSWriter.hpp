@@ -421,10 +421,9 @@ public:
              (&mThreadParams.adiosAggregators)->default_value(0), "Number of aggregators [0 == number of MPI processes]")
             ("adios.ost", po::value<uint32_t > (&mThreadParams.adiosOST)->default_value(1),
              "Number of OST")
-            ("adios.create-meta", po::value<uint32_t > (&mThreadParams.adiosCreateMeta)->default_value(1),
-             "Gather and write a global meta file, can be time consuming (use 0 with `bpmeta` post-mortem).")
-            ("adios.transport-params", po::value<std::string >
-             (&mThreadParams.adiosTransportParams)->default_value(""),
+            ("adios.disable-meta", po::bool_switch (&mThreadParams.adiosDisableMeta)->default_value(false),
+             "Disable online gather and write of a global meta file, can be time consuming (use `bpmeta` post-mortem)")
+            ("adios.transport-params", po::value<std::string > (&mThreadParams.adiosTransportParams),
              "additional transport parameters, see ADIOS manual chapter 6.1.5, e.g., 'random_offset=1;stripe_count=4'")
 #if(ADIOS_TRANSFORMS==1)
             ("adios.compression", po::value<std::string >
@@ -437,10 +436,8 @@ public:
              "Optional ADIOS checkpoint filename (prefix)")
             ("adios.restart-file", po::value<std::string > (&restartFilename),
              "adios restart filename (prefix)")
-            /* 1,000,000 particles are around 3900 frames at 256 particles per frame
-             * and match ~30MiB with typical picongpu particles.
-             * The only reason why we use 1M particles per chunk is that we can get a
-             * frame overflow in our memory manager if we process all particles in one kernel.
+            /* 50,000 particles are around 200 frames at 256 particles per frame (each 8k memory)
+             * and match ~400MiB with typical picongpu particles.
              **/
             ("adios.restart-chunkSize", po::value<uint32_t > (&restartChunkSize)->default_value(50000),
              "Number of particles processed in one kernel call during restart to prevent frame count blowup");
@@ -726,16 +723,16 @@ private:
         strMPITransportParams << "num_aggregators=" << mThreadParams.adiosAggregators
                               << ";num_ost=" << mThreadParams.adiosOST;
         /* create meta file offline/post-mortem with bpmeta */
-        if( mThreadParams.adiosCreateMeta == 0 )
+        if( mThreadParams.adiosDisableMeta )
             strMPITransportParams << ";have_metadata_file=0";
         /* additional, uncovered transport parameters, e.g.,
          * use system-defaults for striping per aggregated file */
-        if( mThreadParams.adiosTransportParams != "" )
+        if( ! mThreadParams.adiosTransportParams.empty() )
             strMPITransportParams << ";" << mThreadParams.adiosTransportParams;
 
         mpiTransportParams = strMPITransportParams.str();
 
-        if (restartFilename == "")
+        if( restartFilename.empty() )
         {
             restartFilename = checkpointFilename;
         }

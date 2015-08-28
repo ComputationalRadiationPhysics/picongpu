@@ -114,7 +114,7 @@ public:
             float_X* field_container = new float_X[local_domain_size.productOfComponents()];
             /* magic parameters (0, 1): `from_step` (not used in streams), `nsteps` to read (must be 1 for stream) */
             log<picLog::INPUT_OUTPUT > ("ADIOS: Schedule read from field (%1%, %2%, %3%, %4%)") %
-                                        params->fp % fSel % datasetName.str().c_str() % (void*)field_container;
+                                        params->fp % fSel % datasetName.str() % (void*)field_container;
             ADIOS_CMD(adios_schedule_read( params->fp, fSel, datasetName.str().c_str(), 0, 1, (void*)field_container ));
 
             /* start a blocking read of all scheduled variables */
