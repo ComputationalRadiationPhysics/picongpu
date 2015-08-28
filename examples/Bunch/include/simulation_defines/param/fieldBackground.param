@@ -40,7 +40,7 @@ namespace picongpu
         static const bool InfluenceParticlePusher = PARAM_INCLUDE_FIELDBACKGROUND;
 
         /* We use this to calculate your SI input back to our unit system */
-        PMACC_ALIGN(unitField, const float3_64);
+        PMACC_ALIGN(m_unitField, const float3_64);
 
         /* TWTS E-fields need to be initialized on host,
          * so they can look up global grid dimensions.
@@ -52,9 +52,7 @@ namespace picongpu
 
         /* Constructor is host-only, because of subGrid and halfSimSize initialization */
         HINLINE FieldBackgroundE( const float3_64 unitField ) :
-
-            unitField(unitField),
-
+            m_unitField(unitField),
             twtsFieldE(
                 /* focus_y [m], the distance to the laser focus in y-direction */
                 30.0e-6,
@@ -101,9 +99,9 @@ namespace picongpu
             /* unit: Volt /meter
              *\todo #738 implement math::vector, native type operations
              */
-            const float3_64 invUnitField = float3_64(1.0 / unitField[0],
-                                                     1.0 / unitField[1],
-                                                     1.0 / unitField[2] );
+            const float3_64 invUnitField = float3_64( 1.0 / m_unitField[0],
+                                                      1.0 / m_unitField[1],
+                                                      1.0 / m_unitField[2] );
 
             /* laser amplitude in picongpu units [ unit: (Volt /meter) / unitField-factor ]
              * Note: the laser amplitude is included in all field components
@@ -133,12 +131,10 @@ namespace picongpu
         const templates::twts::BField twtsFieldB;
 
         /* We use this to calculate your SI input back to our unit system */
-        PMACC_ALIGN(unitField, const float3_64);
+        PMACC_ALIGN(m_unitField, const float3_64);
 
         HINLINE FieldBackgroundB( const float3_64 unitField ) :
-
-            unitField(unitField),
-
+            m_unitField(unitField),
             twtsFieldB(
                 /* focus_y [m], the distance to the laser focus in y-direction */
                 30.0e-6,
@@ -183,9 +179,9 @@ namespace picongpu
             const float_64 _A0  = 1.0;
 
             /** unit: Volt /meter */
-            const float3_64 invUnitField = float3_64( 1.0 / unitField[0],
-                                                      1.0 / unitField[1],
-                                                      1.0 / unitField[2] );
+            const float3_64 invUnitField = float3_64( 1.0 / m_unitField[0],
+                                                      1.0 / m_unitField[1],
+                                                      1.0 / m_unitField[2] );
 
             /* laser amplitude in picongpu units [ unit: (Volt/meter) / unitField-factor ]
              * Note: the laser amplitude is included in all field components
@@ -207,9 +203,9 @@ namespace picongpu
         static const bool activated = false;
 
         /* We use this to calculate your SI input back to our unit system */
-        PMACC_ALIGN(unitField, const float3_64);
+        PMACC_ALIGN(m_unitField, const float3_64);
 
-        HDINLINE FieldBackgroundJ( const float3_64 unitField ) : unitField(unitField)
+        HDINLINE FieldBackgroundJ( const float3_64 unitField ) : m_unitField(unitField)
         {}
 
         /** Specify your background field J(r,t) here
