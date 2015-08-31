@@ -137,7 +137,7 @@ public:
     HDINLINE Calc_Amplitude(const Particle& particle,
                            const picongpu::float_64 delta_t,
                            const picongpu::float_64 t_sim)
-    : particle(particle), delta_t(delta_t), t_sim(t_sim)
+    : m_particle(particle), m_delta_t(delta_t), m_t_sim(t_sim)
     {
     }
 
@@ -147,7 +147,7 @@ public:
     {
         const vector_64 look_direction(n.unit_vec()); // make sure look_direction is a unit vector
         VecCalc vecC;
-        return vecC(look_direction, particle, delta_t);
+        return vecC(look_direction, m_particle, m_delta_t);
     }
 
     // get retarded time
@@ -155,7 +155,7 @@ public:
     HDINLINE picongpu::float_64 get_t_ret(const vector_64 look_direction) const
     {
         TimeCalc timeC;
-        return timeC(t_sim, look_direction, particle);
+        return timeC(m_t_sim, look_direction, m_particle);
 
         //  const vector_64 r = particle.get_location<When::now > (); // location
         //  return (picongpu::float_64) (t - (n * r) / (picongpu::SPEED_OF_LIGHT));
@@ -163,9 +163,9 @@ public:
 
 private:
     // data:
-    const Particle& particle; // one particle
-    const picongpu::float_64 delta_t; // length of one time step in simulation
-    const picongpu::float_64 t_sim; // simulation time (for methods not using index*delta_t )
+    const Particle& m_particle; // one particle
+    const picongpu::float_64 m_delta_t; // length of one time step in simulation
+    const picongpu::float_64 m_t_sim; // simulation time (for methods not using index*delta_t )
 
 
 };

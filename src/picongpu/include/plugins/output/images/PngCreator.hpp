@@ -49,7 +49,7 @@ namespace picongpu
     struct PngCreator
     {
 
-        PngCreator(std::string name, std::string folder) : name(folder + "/" + name), folder(folder), createFolder(true)
+        PngCreator(std::string name, std::string folder) : m_name(folder + "/" + name), m_folder(folder), m_createFolder(true)
         {
         }
 
@@ -76,9 +76,9 @@ namespace picongpu
                 png->scale_k(scaleFactor);
         }
 
-        std::string name;
-        std::string folder;
-        bool createFolder;
+        std::string m_name;
+        std::string m_folder;
+        bool m_createFolder;
 
     };
 
@@ -89,17 +89,17 @@ namespace picongpu
                                                                                const MessageHeader& header
                                                                                )
     {
-        if (createFolder)
+        if (m_createFolder)
         {
-            Environment<simDim>::get().Filesystem().createDirectoryWithPermissions(folder);
-            createFolder = false;
+            Environment<simDim>::get().Filesystem().createDirectoryWithPermissions(m_folder);
+            m_createFolder = false;
         }
 
         std::stringstream step;
         step << std::setw(6) << std::setfill('0') << header.sim.step;
         float_X scale_x = header.sim.scale[0];
         float_X scale_y = header.sim.scale[1];
-        std::string filename(name + "_" + step.str() + ".png");
+        std::string filename(m_name + "_" + step.str() + ".png");
 
         pngwriter png(size.x(), size.y(), 0, filename.c_str());
 
@@ -145,5 +145,4 @@ namespace picongpu
         png.close();
     }
 
-}//namespace
-
+} /* namespace picongpu */

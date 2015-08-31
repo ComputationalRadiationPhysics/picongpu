@@ -36,17 +36,17 @@ struct Line
 {
     typedef T_Type type;
 
-    type pos0;
-    type pos1;
+    type m_pos0;
+    type m_pos1;
 
-    DINLINE Line(const type& pos0, const type & pos1) : pos0(pos0), pos1(pos1)
+    DINLINE Line(const type& pos0, const type & pos1) : m_pos0(pos0), m_pos1(pos1)
     {
     }
 
     DINLINE Line<type>& operator-=(const type & rhs)
     {
-        pos0 -= rhs;
-        pos1 -= rhs;
+        m_pos0 -= rhs;
+        m_pos1 -= rhs;
         return *this;
     }
 };
@@ -54,13 +54,13 @@ struct Line
 template<typename T_Type>
 DINLINE Line<T_Type> operator-(const Line<T_Type>& lhs, const T_Type& rhs)
 {
-    return Line<T_Type>(lhs.pos0 - rhs, lhs.pos1 - rhs);
+    return Line<T_Type>(lhs.m_pos0 - rhs, lhs.m_pos1 - rhs);
 }
 
 template<typename T_Type>
 DINLINE Line<T_Type> operator-(const T_Type& lhs, const Line<T_Type>& rhs)
 {
-    return Line<T_Type>(lhs - rhs.pos0, lhs - rhs.pos1);
+    return Line<T_Type>(lhs - rhs.m_pos0, lhs - rhs.m_pos1);
 }
 
 ///auxillary function to rotate a vector
@@ -81,16 +81,16 @@ DINLINE float2_X rotateOrigin(const float2_X& vec)
 template<int newXAxis, int newYAxis, int newZAxis,typename T_Type>
 DINLINE Line<T_Type> rotateOrigin(const Line<T_Type>& line)
 {
-    Line<T_Type> result(rotateOrigin<newXAxis, newYAxis, newZAxis > (line.pos0),
-                rotateOrigin<newXAxis, newYAxis, newZAxis > (line.pos1));
+    Line<T_Type> result(rotateOrigin<newXAxis, newYAxis, newZAxis > (line.m_pos0),
+                rotateOrigin<newXAxis, newYAxis, newZAxis > (line.m_pos1));
     return result;
 }
 
 template<int newXAxis, int newYAxis,typename T_Type>
 DINLINE Line<T_Type> rotateOrigin(const Line<T_Type>& line)
 {
-    Line<T_Type> result(rotateOrigin<newXAxis, newYAxis > (line.pos0),
-                rotateOrigin<newXAxis, newYAxis > (line.pos1));
+    Line<T_Type> result(rotateOrigin<newXAxis, newYAxis > (line.m_pos0),
+                rotateOrigin<newXAxis, newYAxis > (line.m_pos1));
     return result;
 }
 

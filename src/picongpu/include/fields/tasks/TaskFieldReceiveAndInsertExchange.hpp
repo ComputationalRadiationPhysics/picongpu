@@ -37,30 +37,30 @@ class TaskFieldReceiveAndInsertExchange : public MPITask
 public:
 
     TaskFieldReceiveAndInsertExchange(Field &buffer, uint32_t exchange) :
-    buffer(buffer),
-    exchange(exchange),
-    state(Constructor),
+    m_buffer(buffer),
+    m_exchange(exchange),
+    m_state(Constructor),
     initDependency(__getTransactionEvent())
     {
     }
 
     virtual void init()
     {
-        state = Init;
-        initDependency = buffer.getGridBuffer().asyncReceive(initDependency, exchange);
-        state = WaitForReceive;
+        m_state = Init;
+        initDependency = m_buffer.getGridBuffer().asyncReceive(initDependency, m_exchange);
+        m_state = WaitForReceive;
     }
 
     bool executeIntern()
     {
-        switch (state)
+        switch (m_state)
         {
         case Init:
             break;
         case WaitForReceive:
             if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(initDependency.getTaskId()))
             {
-                state = Finished;
+                m_state = Finished;
                 return true;
             }
             break;
@@ -85,7 +85,7 @@ public:
     std::string toString()
     {
         std::ostringstream stateNumber;
-        stateNumber << state;
+        stateNumber << m_state;
         return std::string("TaskFieldReceiveAndInsertExchange/") + stateNumber.str();
     }
 
@@ -103,11 +103,11 @@ private:
 
 
 
-    Field& buffer;
-    state_t state;
+    Field& m_buffer;
+    state_t m_state;
     EventTask insertEvent;
     EventTask initDependency;
-    uint32_t exchange;
+    uint32_t m_exchange;
 };
 
 } //namespace PMacc

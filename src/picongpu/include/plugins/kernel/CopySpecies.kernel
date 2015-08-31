@@ -45,10 +45,10 @@ using namespace PMacc;
  */
 struct ConcatListOfFrames
 {
-    DataSpace<simDim> gridDim;
+    DataSpace<simDim> m_gridDim;
 
     ConcatListOfFrames(const DataSpace<simDim>& gridDim) :
-    gridDim(gridDim)
+    m_gridDim(gridDim)
     {
 
     }
@@ -67,11 +67,11 @@ struct ConcatListOfFrames
     {
         #pragma omp parallel for
         for (int linearBlockIdx = 0;
-             linearBlockIdx < gridDim.productOfComponents();
+             linearBlockIdx < m_gridDim.productOfComponents();
              ++linearBlockIdx
              )
         {
-            DataSpace<simDim> blockIdx(DataSpaceOperations<simDim>::map(gridDim, linearBlockIdx));
+            DataSpace<simDim> blockIdx(DataSpaceOperations<simDim>::map(m_gridDim, linearBlockIdx));
 
             using namespace PMacc::particles::operations;
 

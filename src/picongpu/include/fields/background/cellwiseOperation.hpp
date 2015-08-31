@@ -75,10 +75,10 @@ namespace cellwiseOperation
     private:
         typedef MappingDesc::SuperCellSize SuperCellSize;
 
-        MappingDesc cellDescription;
+        MappingDesc m_cellDescription;
 
     public:
-        CellwiseOperation(MappingDesc cellDescription) : cellDescription(cellDescription)
+        CellwiseOperation(MappingDesc cellDescription) : m_cellDescription(cellDescription)
         {
         }
 
@@ -105,13 +105,13 @@ namespace cellwiseOperation
             totalCellOffset.y() += numSlides * subGrid.getLocalDomain().size.y();
             /* the first block will start with less offset if started in the GUARD */
             if( T_Area & GUARD)
-                totalCellOffset -= cellDescription.getSuperCellSize() * cellDescription.getGuardingSuperCells();
+                totalCellOffset -= m_cellDescription.getSuperCellSize() * m_cellDescription.getGuardingSuperCells();
             /* if we run _only_ in the CORE we have to add the BORDER's offset */
             else if( T_Area == CORE )
-                totalCellOffset += cellDescription.getSuperCellSize() * cellDescription.getBorderSuperCells();
+                totalCellOffset += m_cellDescription.getSuperCellSize() * m_cellDescription.getBorderSuperCells();
 
             /* start kernel */
-            __picKernelArea((kernelCellwiseOperation<T_OpFunctor>), cellDescription, T_Area)
+            __picKernelArea((kernelCellwiseOperation<T_OpFunctor>), m_cellDescription, T_Area)
                     (SuperCellSize::toRT().toDim3())
                     (field->getDeviceDataBox(), opFunctor, valFunctor, totalCellOffset, currentStep);
         }

@@ -42,29 +42,29 @@ namespace PMacc
         };
 
         TaskFieldSend(Field &buffer) :
-        buffer(buffer),
-        state(Constructor) { }
+        m_buffer(buffer),
+        m_state(Constructor) { }
 
         virtual void init()
         {
-            state = Init;
+            m_state = Init;
             EventTask serialEvent = __getTransactionEvent();
 
             for (uint32_t i = 1; i < traits::NumberOfExchanges<Dim>::value; ++i)
             {
-                if (buffer.getGridBuffer().hasSendExchange(i))
+                if (m_buffer.getGridBuffer().hasSendExchange(i))
                 {
                     __startAtomicTransaction(serialEvent);
-                    FieldFactory::getInstance().createTaskFieldSendExchange(buffer, i);
+                    FieldFactory::getInstance().createTaskFieldSendExchange(m_buffer, i);
                     tmpEvent += __endTransaction();
                 }
             }
-            state = WaitForSend;
+            m_state = WaitForSend;
         }
 
         bool executeIntern()
         {
-            switch (state)
+            switch (m_state)
             {
                 case Init:
                     break;
@@ -100,8 +100,8 @@ namespace PMacc
         };
 
 
-        Field& buffer;
-        state_t state;
+        Field& m_buffer;
+        state_t m_state;
         EventTask tmpEvent;
     };
 

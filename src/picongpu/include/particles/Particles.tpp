@@ -64,13 +64,13 @@ Particles<T_ParticleDescription>::Particles( GridLayout<simDim> gridLayout,
                                              MappingDesc cellDescription,
                                              SimulationDataId datasetID ) :
 ParticlesBase<T_ParticleDescription, MappingDesc>( cellDescription ),
-fieldB( NULL ), fieldE( NULL ), fieldJcurrent( NULL ), fieldTmp( NULL ), gridLayout( gridLayout ),
-datasetID( datasetID )
+fieldB( NULL ), fieldE( NULL ), fieldJcurrent( NULL ), fieldTmp( NULL ), m_gridLayout(gridLayout),
+m_datasetID( datasetID )
 {
     size_t sizeOfExchanges = 2 * 2 * ( BYTES_EXCHANGE_X + BYTES_EXCHANGE_Y + BYTES_EXCHANGE_Z ) + BYTES_EXCHANGE_X * 2 * 8;
 
 
-    this->particlesBuffer = new BufferType( gridLayout.getDataSpace( ), gridLayout.getGuard( ) );
+    this->particlesBuffer = new BufferType( m_gridLayout.getDataSpace( ), m_gridLayout.getGuard( ) );
 
     log<picLog::MEMORY > ( "size for all exchange = %1% MiB" ) % ( (float_64) sizeOfExchanges / 1024. / 1024. );
 
@@ -127,7 +127,7 @@ Particles<T_ParticleDescription>::~Particles( )
 template< typename T_ParticleDescription>
 SimulationDataId Particles<T_ParticleDescription>::getUniqueId( )
 {
-    return datasetID;
+    return m_datasetID;
 }
 
 template< typename T_ParticleDescription>

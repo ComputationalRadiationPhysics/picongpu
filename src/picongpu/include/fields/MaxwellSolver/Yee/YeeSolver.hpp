@@ -59,7 +59,7 @@ private:
 
     FieldE* fieldE;
     FieldB* fieldB;
-    MappingDesc cellDescription;
+    MappingDesc m_cellDescription;
 
     template<uint32_t AREA>
     void updateE()
@@ -74,7 +74,7 @@ private:
                 typename CurlB::UpperMargin
                 > BlockArea;
 
-        __picKernelArea((kernelUpdateE<BlockArea, CurlB>), cellDescription, AREA)
+        __picKernelArea((kernelUpdateE<BlockArea, CurlB>), m_cellDescription, AREA)
                 (SuperCellSize::toRT().toDim3())
                 (this->fieldE->getDeviceDataBox(), this->fieldB->getDeviceDataBox());
     }
@@ -88,7 +88,7 @@ private:
                 typename CurlE::UpperMargin
                 > BlockArea;
 
-        __picKernelArea((kernelUpdateBHalf<BlockArea, CurlE>), cellDescription, AREA)
+        __picKernelArea((kernelUpdateBHalf<BlockArea, CurlE>), m_cellDescription, AREA)
                 (SuperCellSize::toRT().toDim3())
                 (this->fieldB->getDeviceDataBox(),
                 this->fieldE->getDeviceDataBox());
@@ -96,7 +96,7 @@ private:
 
 public:
 
-    YeeSolver(MappingDesc cellDescription) : cellDescription(cellDescription)
+    YeeSolver(MappingDesc cellDescription) : m_cellDescription(cellDescription)
     {
         DataConnector &dc = Environment<>::get().DataConnector();
 
@@ -116,7 +116,7 @@ public:
 
     void update_afterCurrent(uint32_t currentStep)
     {
-        FieldManipulator::absorbBorder(currentStep,this->cellDescription, this->fieldE->getDeviceDataBox());
+        FieldManipulator::absorbBorder(currentStep,this->m_cellDescription, this->fieldE->getDeviceDataBox());
         if (laserProfile::INIT_TIME > float_X(0.0))
             fieldE->laserManipulation(currentStep);
 
@@ -126,7 +126,7 @@ public:
         __setTransactionEvent(eRfieldE);
         updateBHalf < BORDER > ();
 
-        FieldManipulator::absorbBorder(currentStep,this->cellDescription, fieldB->getDeviceDataBox());
+        FieldManipulator::absorbBorder(currentStep,this->m_cellDescription, fieldB->getDeviceDataBox());
 
         EventTask eRfieldB = fieldB->asyncCommunication(__getTransactionEvent());
         __setTransactionEvent(eRfieldB);
