@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ZONE_SPHERICZONE_HPP
-#define ZONE_SPHERICZONE_HPP
+#pragma once
 
 #include <stdint.h>
 #include "math/vector/Int.hpp"
@@ -70,4 +69,3 @@ struct SphericZone
 } // zone
 } // PMacc
 
-#endif // ZONE_SPHERICZONE_HPP

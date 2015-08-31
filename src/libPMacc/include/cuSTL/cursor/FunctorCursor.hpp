@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CURSOR_FUNCTORCURSOR_HPP
-#define CURSOR_FUNCTORCURSOR_HPP
+#pragma once
 
 #include "Cursor.hpp"
 #include "accessor/FunctorAccessor.hpp"
@@ -57,4 +56,3 @@ Cursor<FunctorAccessor<typename lambda::result_of::make_Functor<Functor>::type,
 } // cursor
 } // PMacc
 
-#endif // CURSOR_FUNCTORCURSOR_HPP

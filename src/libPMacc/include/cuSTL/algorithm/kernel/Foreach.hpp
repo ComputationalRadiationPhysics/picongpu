@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ALGORITHM_KERNEL_FOREACH_HPP
-#define ALGORITHM_KERNEL_FOREACH_HPP
+#pragma once
 
 #include "types.h"
 #include "math/vector/Size_t.hpp"
@@ -103,4 +102,3 @@ struct Foreach
 } // algorithm
 } // PMacc
 
-#endif // ALGORITHM_KERNEL_FOREACH_HPP

@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CONTAINER_CT_CTCARTBUFFER_HPP
-#define CONTAINER_CT_CTCARTBUFFER_HPP
+#pragma once
 
 #include "types.h"
 #include "math/Vector.hpp"
@@ -79,4 +78,3 @@ public:
 
 #include "CartBuffer.tpp"
 
-#endif // CONTAINER_CT_CTCARTBUFFER_HPP

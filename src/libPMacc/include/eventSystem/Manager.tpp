@@ -20,6 +20,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
 #include "eventSystem/events/EventPool.hpp"
 #include "eventSystem/streams/StreamController.hpp"
 #include "eventSystem/EventSystem.hpp"

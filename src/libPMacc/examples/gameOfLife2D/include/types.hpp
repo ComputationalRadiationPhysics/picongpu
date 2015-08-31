@@ -19,8 +19,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TYPES_HPP
-#define	TYPES_HPP
+#pragma once
 
 #include "types.hpp"
 #include "dimensions/DataSpace.hpp"
@@ -40,5 +39,4 @@ namespace gol
     };
 }
 
-#endif	/* TYPES_HPP */
 

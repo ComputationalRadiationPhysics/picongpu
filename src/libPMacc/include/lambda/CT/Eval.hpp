@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LAMBDA_CT_EVAL_HPP
-#define LAMBDA_CT_EVAL_HPP
+#pragma once
 
 #define BOOST_BIND_NO_PLACEHOLDERS
 
@@ -383,4 +382,3 @@ struct Eval<CT::Expression<lambda::Expression<exprTypes::subscript, mpl::vector<
 } // lambda
 } // PMacc
 
-#endif // LAMBDA_CT_EVAL_HPP

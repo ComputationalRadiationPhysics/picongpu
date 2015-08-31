@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CURSOR_CTBUFFERCURSOR_HPP
-#define CURSOR_CTBUFFERCURSOR_HPP
+#pragma once
 
 #include <cuSTL/cursor/Cursor.hpp>
 #include <cuSTL/cursor/accessor/PointerAccessor.hpp>
@@ -66,4 +65,3 @@ struct dim<CT::BufferCursor<Type, Pitch> >
 } // cursor
 } // PMacc
 
-#endif //CTBUFFERITER_HPP

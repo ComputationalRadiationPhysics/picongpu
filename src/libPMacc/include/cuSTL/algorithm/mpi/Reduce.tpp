@@ -20,6 +20,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
 #include "mappings/simulation/GridController.hpp"
 #include <iostream>
 #include <utility>

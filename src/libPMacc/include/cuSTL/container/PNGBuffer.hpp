@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CONTAINER_PNGBUFFER_HPP
-#define CONTAINER_PNGBUFFER_HPP
+#pragma once
 
 #include "cuSTL/cursor/Cursor.hpp"
 #include "cuSTL/cursor/navigator/MultiIndexNavigator.hpp"
@@ -101,4 +100,3 @@ public:
 } // container
 } // PMacc
 
-#endif // CONTAINER_PNGBUFFER_HPP

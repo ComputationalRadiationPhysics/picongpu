@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CURSOR_CTBUFFERNAVIGATOR_HPP
-#define CURSOR_CTBUFFERNAVIGATOR_HPP
+#pragma once
 
 #include <boost/type_traits/remove_pointer.hpp>
 #include "math/vector/Int.hpp"
@@ -88,4 +87,3 @@ struct BufferNavigator<Pitch, 3>
 } // cursor
 } // PMacc
 
-#endif // CURSOR_CTBUFFERNAVIGATOR_HPP

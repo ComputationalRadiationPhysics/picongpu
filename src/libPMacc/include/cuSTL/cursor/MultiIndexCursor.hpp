@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CURSOR_MULTIINDEXCURSOR
-#define CURSOR_MULTIINDEXCURSOR
+#pragma once
 
 #include "Cursor.hpp"
 #include "accessor/MarkerAccessor.hpp"
@@ -53,4 +52,3 @@ cursor::Cursor<cursor::MarkerAccessor<math::Int<dim> >, MultiIndexNavigator<dim>
 } // cursor
 } // PMacc
 
-#endif // CURSOR_MULTIINDEXCURSOR

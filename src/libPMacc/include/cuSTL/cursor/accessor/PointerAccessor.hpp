@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CURSOR_POINTERACCESSOR_HPP
-#define CURSOR_POINTERACCESSOR_HPP
+#pragma once
 
 namespace PMacc
 {
@@ -50,4 +49,3 @@ struct PointerAccessor
 } // cursor
 } // PMacc
 
-#endif // CURSOR_POINTERACCESSOR_HPP

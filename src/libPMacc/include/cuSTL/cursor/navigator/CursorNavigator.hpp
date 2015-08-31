@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CURSOR_CURSORNAVIGATOR_HPP
-#define CURSOR_CURSORNAVIGATOR_HPP
+#pragma once
 
 #include "math/vector/Int.hpp"
 
@@ -43,4 +42,3 @@ struct CursorNavigator
 } // cursor
 } // PMacc
 
-#endif // CURSOR_CURSORNAVIGATOR_HPP

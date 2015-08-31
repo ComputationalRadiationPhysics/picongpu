@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CURSOR_CURSOR_HPP
-#define CURSOR_CURSOR_HPP
+#pragma once
 
 #include <boost/mpl/void.hpp>
 #include "math/vector/Int.hpp"
@@ -175,4 +174,4 @@ struct dim< PMacc::cursor::Cursor<_Accessor, _Navigator, _Marker> >
 } // cursor
 } // PMacc
 
-#endif // CURSOR_CURSOR_HPP
+

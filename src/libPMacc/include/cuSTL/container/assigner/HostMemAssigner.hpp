@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ASSIGNER_HOSTMEMASSIGNER_HPP
-#define ASSIGNER_HOSTMEMASSIGNER_HPP
+#pragma once
 
 #include <stdint.h>
 
@@ -85,4 +84,3 @@ struct HostMemAssigner<3>
 } // assigner
 } // PMacc
 
-#endif // ASSIGNER_HOSTMEMASSIGNER_HPP

@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ALLOCATOR_HOSTMEMALLOCATOR_HPP
-#define ALLOCATOR_HOSTMEMALLOCATOR_HPP
+#pragma once
 
 #include <stdint.h>
 #include "math/vector/Size_t.hpp"
@@ -68,4 +67,3 @@ struct HostMemAllocator<Type, 1>
 
 #include "HostMemAllocator.tpp"
 
-#endif // ALLOCATOR_HOSTMEMALLOCATOR_HPP

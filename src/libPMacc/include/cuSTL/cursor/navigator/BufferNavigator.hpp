@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CURSOR_BUFFERNAVIGATOR_HPP
-#define CURSOR_BUFFERNAVIGATOR_HPP
+#pragma once
 
 #include "math/Vector.hpp"
 #include "tag.h"
@@ -96,4 +95,3 @@ struct dim<BufferNavigator<T_dim> >
 } //cursor
 } // PMacc
 
-#endif // CURSOR_BUFFERNAVIGATOR_HPP

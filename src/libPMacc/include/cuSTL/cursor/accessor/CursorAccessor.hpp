@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CURSOR_CURSORACCESSOR_HPP
-#define CURSOR_CURSORACCESSOR_HPP
+#pragma once
 
 #include "types.h"
 
@@ -46,4 +45,3 @@ struct CursorAccessor
 } // cursor
 } // PMacc
 
-#endif // CURSOR_CURSORACCESSOR_HPP

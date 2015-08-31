@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ZONE_STAGGEREDZONE_HPP
-#define ZONE_STAGGEREDZONE_HPP
+#pragma once
 
 #include <stdint.h>
 #include "vector/Vector.hpp"
@@ -47,4 +46,3 @@ struct StaggeredZone : public SphericZone<T_dim>
 } // zone
 } // PMacc
 
-#endif // ZONE_STAGGEREDZONE_HPP

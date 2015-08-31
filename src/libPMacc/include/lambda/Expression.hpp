@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LAMBDA_EXPRESSION_HPP
-#define LAMBDA_EXPRESSION_HPP
+#pragma once
 
 #include "types.h"
 #include "ExprTypes.h"
@@ -199,4 +198,3 @@ DECLARE_PLACEHOLDERS()
 } // lambda
 } // PMacc
 
-#endif // LAMBDA_EXPRESSION_HPP

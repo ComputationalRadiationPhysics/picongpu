@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ALLOCATOR_DEVICEMEMALLOCATOR_HPP
-#define ALLOCATOR_DEVICEMEMALLOCATOR_HPP
+#pragma once
 
 #include "math/vector/Size_t.hpp"
 #include "cuSTL/cursor/BufferCursor.hpp"
@@ -67,4 +66,3 @@ struct DeviceMemAllocator<Type, 1>
 
 #include "DeviceMemAllocator.tpp"
 
-#endif // ALLOCATOR_DEVICEMEMALLOCATOR_HPP

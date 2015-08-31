@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CURSOR_CT_TWISTEDAXESNAVIGATOR_HPP
-#define CURSOR_CT_TWISTEDAXESNAVIGATOR_HPP
+#pragma once
 
 #include "math/Vector.hpp"
 
@@ -72,4 +71,3 @@ struct TwistAxesNavigator<Axes, 3>
 } // cursor
 } // PMacc
 
-#endif // CURSOR_CT_TWISTEDAXESNAVIGATOR_HPP

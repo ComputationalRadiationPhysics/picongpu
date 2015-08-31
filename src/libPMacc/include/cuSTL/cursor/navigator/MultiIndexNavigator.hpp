@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CURSOR_MULTIINDEXNAVIGATOR_HPP
-#define CURSOR_MULTIINDEXNAVIGATOR_HPP
+#pragma once
 
 #include "math/vector/Int.hpp"
 #include "tag.h"
@@ -60,4 +59,3 @@ struct dim<MultiIndexNavigator<T_dim> >
 } // cursor
 } // PMacc
 
-#endif // CURSOR_MULTIINDEXNAVIGATOR_HPP

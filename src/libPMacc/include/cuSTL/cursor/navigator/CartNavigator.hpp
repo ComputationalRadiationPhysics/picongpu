@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CURSOR_CARTNAVIGATOR_HPP
-#define CURSOR_CARTNAVIGATOR_HPP
+#pragma once
 
 #include <math/vector/Int.hpp>
 #include "tag.h"
@@ -71,4 +70,3 @@ struct dim<CartNavigator<T_dim> >
 } // cursor
 } // PMacc
 
-#endif // CURSOR_CARTNAVIGATOR_HPP

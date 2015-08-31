@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LAMBDA_CT_TERMINALTL_HPP
-#define LAMBDA_CT_TERMINALTL_HPP
+#pragma once
 
 #include "../ExprTypes.h"
 #include "../placeholder.h"
@@ -207,4 +206,3 @@ struct TerminalTL<Expression<exprTypes::subscript, mpl::vector<Child0, Child1> >
 } // lambda
 } // PMacc
 
-#endif // LAMBDA_CT_TERMINALTL_HPP

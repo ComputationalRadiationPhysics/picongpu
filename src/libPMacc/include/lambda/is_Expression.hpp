@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LAMBDA_KERNEL_IS_EXPRESSION_HPP
-#define LAMBDA_KERNEL_IS_EXPRESSION_HPP
+#pragma once
 
 #include <boost/mpl/bool.hpp>
 namespace mpl = boost::mpl;
@@ -40,4 +39,3 @@ struct is_Expression
 } // lambda
 } // PMacc
 
-#endif // LAMBDA_KERNEL_IS_EXPRESSION_HPP
