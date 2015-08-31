@@ -1,6 +1,6 @@
 /**
  * Copyright 2013-2015 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
- *                     Benjamin Worpitz
+ *                     Benjamin Worpitz, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -24,6 +24,7 @@
 #pragma once
 
 #include "eventSystem/tasks/ITask.hpp"
+#include "Environment.def"
 
 #include <map>
 #include <set>

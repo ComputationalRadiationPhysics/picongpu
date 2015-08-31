@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2015 Felix Schmitt, Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Benjamin Worpitz,
+ *                     Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -22,7 +23,7 @@
 
 #pragma once
 
-#include "eventSystem/EventSystem.hpp"
+#include "eventSystem/events/EventTask.hpp"
 
 namespace PMacc
 {
@@ -61,11 +62,11 @@ public:
     /**
      * Performs an operation on the transaction which leads to synchronization.
      *
-     * @param operation type of operation to perform, defines resulting sychronization.
+     * @param operation type of operation to perform, defines resulting synchronization.
      */
     void operation(ITask::TaskType operation);
 
-    /* Get a EventStream which inlcude all dependencies
+    /* Get a EventStream which include all dependencies
      * @param operation type of operation to perform
      * @return EventStream with solved dependencies
      */
