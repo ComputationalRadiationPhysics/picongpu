@@ -143,6 +143,12 @@ Some of our examples will also need **libSplash**.
 
 - **ADIOS** >= 1.9.0 (requires *MPI*, *zlib* and *mxml* http://www.msweet.org/projects.php?Z3)
     - *Debian/Ubuntu:* `sudo apt-get install libadios-dev libadios-bin`
+    - *Arch Linux using an [AUR helper](https://wiki.archlinux.org/index.php/AUR_helpers):* `pacaur --sync libadios`
+    - *Arch Linux using the [AUR](https://wiki.archlinux.org/index.php/Arch_User_Repository) manually:*
+      - `sudo pacman --sync --needed base-devel`
+      - `git clone https://aur.archlinux.org/libadios.git`
+      - `cd libadios`
+      - `makepkg -sri`
     - example:
       - `mkdir -p ~/src ~/build ~/lib`
       - `cd ~/src`
