@@ -18,8 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TERMALTESTSIMULATION_HPP
-#define    TERMALTESTSIMULATION_HPP
+#pragma once
 
 #include "simulation_defines.hpp"
 #include "Environment.hpp"
@@ -209,4 +208,3 @@ private:
 
 } // namespace picongpu
 
-#endif    /* TERMALTESTSIMULATION_HPP */

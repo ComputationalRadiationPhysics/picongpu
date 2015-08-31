@@ -18,10 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef _FIELDFACTORY_HPP
-#define    _FIELDFACTORY_HPP
+#pragma once
 
 #include "memory/buffers/Exchange.hpp"
 
@@ -89,6 +86,4 @@ namespace PMacc
 } //namespace PMacc
 
 #include "fields/tasks/FieldFactory.tpp"
-
-#endif    /* _PARTICLEFACTORY_HPP */
 

@@ -18,14 +18,9 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
 
 #include <stdint.h>
-
-
-#ifndef PARTICLE_RPAUSCH
-#define PARTICLE_RPAUSCH
-
-
 
 #include "math/Vector.hpp"
 #include "utilities.hpp"
@@ -173,5 +168,3 @@ HDINLINE vector_64 Particle::get_momentum<When::old>(void) const
     return momentum_old;
 } // get momentum at time when
 
-
-#endif

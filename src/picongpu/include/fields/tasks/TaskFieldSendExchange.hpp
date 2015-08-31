@@ -18,11 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef  _TASKFIELDSENDEXCHANGE_HPP
-#define    _TASKFIELDSENDEXCHANGE_HPP
-
+#pragma once
 
 #include "eventSystem/EventSystem.hpp"
 #include "fields/tasks/FieldFactory.hpp"
@@ -127,7 +123,4 @@ namespace PMacc
     };
 
 } //namespace PMacc
-
-
-#endif    /* _TASKFIELDSENDEXCHANGE_HPP */
 

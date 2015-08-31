@@ -18,10 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef FIELDMANIPULATOR_HPP
-#define    FIELDMANIPULATOR_HPP
+#pragma once
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -89,7 +86,4 @@ public:
 
 
 } //namespace
-
-
-#endif    /* FIELDMANIPULATOR_HPP */
 

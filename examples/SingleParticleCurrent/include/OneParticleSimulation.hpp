@@ -18,10 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef ONEPARTICLESIMULATION_HPP
-#define    ONEPARTICLESIMULATION_HPP
+#pragma once
 
 #include "simulation_defines.hpp"
 #include "Environment.hpp"
@@ -166,6 +163,4 @@ public:
 };
 
 } // namespace picongpu
-
-#endif    /* ONEPARTICLESIMULATION_HPP */
 

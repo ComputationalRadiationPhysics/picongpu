@@ -18,10 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef GAMMA_HPP
-#define    GAMMA_HPP
+#pragma once
 
 namespace picongpu
 {
@@ -48,6 +45,4 @@ struct Gamma
 };
 
 }
-
-#endif    /* GAMMA_HPP */
 

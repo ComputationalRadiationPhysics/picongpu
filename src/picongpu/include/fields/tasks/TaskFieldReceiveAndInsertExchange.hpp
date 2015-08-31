@@ -18,11 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef _TASKFIELDRECEIVEANDINSERTEXCHANGE_HPP
-#define    _TASKFIELDRECEIVEANDINSERTEXCHANGE_HPP
-
+#pragma once
 
 #include "eventSystem/EventSystem.hpp"
 #include "fields/tasks/FieldFactory.hpp"
@@ -116,6 +112,4 @@ private:
 
 } //namespace PMacc
 
-
-#endif    /* _TASKFIELDRECEIVEANDINSERTEXCHANGE_HPP */
 

@@ -18,11 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef SET_HPP
-#define    SET_HPP
-
+#pragma once
 
 #include "types.h"
 
@@ -49,6 +45,4 @@ private:
     const PMACC_ALIGN(value, Type_);
 };
 }
-
-#endif    /* SET_HPP */
 

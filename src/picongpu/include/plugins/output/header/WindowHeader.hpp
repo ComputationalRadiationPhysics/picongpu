@@ -18,10 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef WINDOWHEADER_HPP
-#define    WINDOWHEADER_HPP
+#pragma once
 
 #include "types.h"
 #include "dimensions/DataSpace.hpp"
@@ -42,6 +39,4 @@ struct WindowHeader
     }
 
 };
-
-#endif    /* WINDOWHEADER_HPP */
 

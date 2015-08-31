@@ -18,10 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef LASERGAUSSIANBEAM_HPP
-#define    LASERGAUSSIANBEAM_HPP
+#pragma once
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -159,8 +156,4 @@ namespace picongpu
 
     }
 }
-
-#endif    /* LASERGAUSSIANBEAM_HPP */
-
-
 

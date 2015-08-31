@@ -18,10 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef VELOCITY_HPP
-#define    VELOCITY_HPP
+#pragma once
 
 namespace picongpu
 {
@@ -42,6 +39,4 @@ namespace picongpu
         }
     };
 }
-
-#endif    /* VELOCITY_HPP */
 

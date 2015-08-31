@@ -18,10 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef SIMULATIONSTARTER_HPP
-#define    SIMULATIONSTARTER_HPP
+#pragma once
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -154,6 +151,4 @@ namespace picongpu
         }
     };
 }
-
-#endif    /* SIMULATIONSTARTER_HPP */
 

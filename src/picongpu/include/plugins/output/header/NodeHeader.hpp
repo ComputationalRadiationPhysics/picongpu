@@ -18,10 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef NODEHEADER_HPP
-#define    NODEHEADER_HPP
+#pragma once
 
 #include "types.h"
 #include "dimensions/DataSpace.hpp"
@@ -58,6 +55,4 @@ struct NodeHeader
     }
 
 };
-
-#endif    /* NODEHEADER_HPP */
 

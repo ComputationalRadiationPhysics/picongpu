@@ -18,10 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef MESSAGEHEADER_HPP
-#define    MESSAGEHEADER_HPP
+#pragma once
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -173,6 +170,4 @@ private:
     MessageHeader();
 
 };
-
-#endif    /* MESSAGEHEADER_HPP */
 

@@ -19,10 +19,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef SUMCURRENTS_HPP
-#define    SUMCURRENTS_HPP
+#pragma once
 
 #include <iostream>
 
@@ -200,6 +197,4 @@ private:
 
 }
 
-
-#endif    /* SUMCURRENTS_HPP */
 
