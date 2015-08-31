@@ -108,8 +108,8 @@ struct Esirkepov<T_ParticleShape, DIM2>
                                                       coordinate_shift.y()
                                                       ));
             //same as: pos = pos - coordinate_shift;
-            line.pos0 -= (coordinate_shift);
-            line.pos1 -= (coordinate_shift);
+            line.m_pos0 -= (coordinate_shift);
+            line.m_pos1 -= (coordinate_shift);
         }
 
         /**
@@ -142,8 +142,8 @@ struct Esirkepov<T_ParticleShape, DIM2>
          * If previous position was greater than current position we change our interval
          * from [begin,end) to [begin+1,end+1).
          */
-        const int offset_i = line.pos0.x() > line.pos1.x() ? 1 : 0;
-        const int offset_j = line.pos0.y() > line.pos1.y() ? 1 : 0;
+        const int offset_i = line.m_pos0.x() > line.m_pos1.x() ? 1 : 0;
+        const int offset_j = line.m_pos0.y() > line.m_pos1.y() ? 1 : 0;
 
 
         for (int j = begin + offset_j; j < end + offset_j; ++j)
@@ -180,8 +180,8 @@ struct Esirkepov<T_ParticleShape, DIM2>
          * If previous position was greater than current position we change our interval
          * from [begin,end) to [begin+1,end+1).
          */
-        const int offset_i = line.pos0.x() > line.pos1.x() ? 1 : 0;
-        const int offset_j = line.pos0.y() > line.pos1.y() ? 1 : 0;
+        const int offset_i = line.m_pos0.x() > line.m_pos1.x() ? 1 : 0;
+        const int offset_j = line.m_pos0.y() > line.m_pos1.y() ? 1 : 0;
 
 
         for (int j = begin + offset_j; j < end + offset_j; ++j)
@@ -209,7 +209,7 @@ struct Esirkepov<T_ParticleShape, DIM2>
      */
     DINLINE float_X S0(const Line<float2_X>& line, const float_X gridPoint, const uint32_t d)
     {
-        return ParticleAssign()(gridPoint - line.pos0[d]);
+        return ParticleAssign()(gridPoint - line.m_pos0[d]);
     }
 
     /** calculate DS (see paper)
@@ -220,7 +220,7 @@ struct Esirkepov<T_ParticleShape, DIM2>
      */
     DINLINE float_X DS(const Line<float2_X>& line, const float_X gridPoint, const uint32_t d)
     {
-        return ParticleAssign()(gridPoint - line.pos1[d]) - ParticleAssign()(gridPoint - line.pos0[d]);
+        return ParticleAssign()(gridPoint - line.m_pos1[d]) - ParticleAssign()(gridPoint - line.m_pos0[d]);
     }
 };
 

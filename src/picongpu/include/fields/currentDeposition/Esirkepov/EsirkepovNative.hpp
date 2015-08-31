@@ -140,7 +140,7 @@ struct EsirkepovNative
      */
     DINLINE float_X S0(const Line<float3_X>& line, const float_X gridPoint, const float_X d)
     {
-        return ParticleAssign()(gridPoint - line.pos0[d - 1]);
+        return ParticleAssign()(gridPoint - line.m_pos0[d - 1]);
     }
 
     /** calculate DS (see paper)
@@ -151,7 +151,7 @@ struct EsirkepovNative
      */
     DINLINE float_X DS(const Line<float3_X>& line, const float_X gridPoint, const float_X d)
     {
-        return ParticleAssign()(gridPoint - line.pos1[d - 1]) - ParticleAssign()(gridPoint - line.pos0[d - 1]);
+        return ParticleAssign()(gridPoint - line.m_pos1[d - 1]) - ParticleAssign()(gridPoint - line.m_pos0[d - 1]);
     }
 };
 

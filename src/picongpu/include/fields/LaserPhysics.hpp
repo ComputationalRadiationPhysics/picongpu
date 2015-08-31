@@ -95,6 +95,6 @@ public:
 
 private:
 
-    GridLayout<simDim> layout;
+    GridLayout<simDim> m_layout;
 };
 }

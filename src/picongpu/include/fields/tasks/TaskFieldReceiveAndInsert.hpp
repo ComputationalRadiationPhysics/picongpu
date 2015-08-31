@@ -58,7 +58,7 @@ public:
             {
                 __startAtomicTransaction(serialEvent);
                 FieldFactory::getInstance().createTaskFieldReceiveAndInsertExchange(m_buffer, i);
-                tmpEvent += __endTransaction();
+                m_tmpEvent += __endTransaction();
             }
         }
         m_state = WaitForReceived;
@@ -71,7 +71,7 @@ public:
         case Init:
             break;
         case WaitForReceived:
-            if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
+            if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(m_tmpEvent.getTaskId()))
             {
                 m_state = Insert;
             }
@@ -86,13 +86,13 @@ public:
                     m_buffer.insertField(i);
                 }
             }
-            tmpEvent = __endTransaction();
+            m_tmpEvent = __endTransaction();
             m_state = WaitInsertFinished;
             break;
         case Wait:
             break;
         case WaitInsertFinished:
-            if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
+            if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(m_tmpEvent.getTaskId()))
             {
                 m_state = Finish;
                 return true;
