@@ -18,10 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef COLORHEADER_HPP
-#define    COLORHEADER_HPP
+#pragma once
 
 #include "types.h"
 #include "dimensions/DataSpace.hpp"
@@ -77,7 +74,4 @@ struct ColorHeader
     }
 
 };
-
-
-#endif    /* COLORHEADER_HPP */
 

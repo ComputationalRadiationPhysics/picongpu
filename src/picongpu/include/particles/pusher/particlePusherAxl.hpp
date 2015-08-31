@@ -19,10 +19,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef PARTICLEPUSHERAXL_HPP
-#define    PARTICLEPUSHERAXL_HPP
+#pragma once
 
 #include "simulation_defines.hpp"
 
@@ -185,5 +182,4 @@ namespace picongpu
     } //namespace
 }
 
-#endif    /* PARTICLEPUSHERAXL_HPP */
 

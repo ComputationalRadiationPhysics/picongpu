@@ -18,10 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef LIVEVIEWCLIENT_HPP
-#define    LIVEVIEWCLIENT_HPP
+#pragma once
 
 #include "plugins/output/sockets/SocketConnector.hpp"
 
@@ -113,6 +110,4 @@ namespace picongpu
         delete[] array;
     }
 }
-
-#endif    /* LIVEVIEWCLIENT_HPP */
 

@@ -18,10 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef LASERPULSEFRONTTILT
-#define LASERPULSEFRONTTILT
+#pragma once
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -167,4 +164,3 @@ namespace picongpu
     }
 }
 
-#endif    /* LASERPULSEFRONTTILT_HPP */

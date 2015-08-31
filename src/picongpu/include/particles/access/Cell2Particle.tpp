@@ -18,6 +18,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
 #include <stdint.h>
 #include "math/Vector.hpp"
 #include "math/MapTuple.hpp"

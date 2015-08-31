@@ -18,10 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef SIMSTARTINITIALISER_HPP
-#define    SIMSTARTINITIALISER_HPP
+#pragma once
 
 #include "simulation_types.hpp"
 #include "dataManagement/AbstractInitialiser.hpp"
@@ -54,6 +51,4 @@ public:
     }
 };
 }
-
-#endif    /* SIMSTARTINITIALISER_HPP */
 

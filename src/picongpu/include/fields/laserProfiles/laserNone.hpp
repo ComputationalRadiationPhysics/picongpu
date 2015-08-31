@@ -18,10 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef LASERNONE_HPP
-#define    LASERNONE_HPP
+#pragma once
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -61,8 +58,4 @@ namespace picongpu
 
     }
 }
-
-#endif    /* LASERNONE_HPP */
-
-
 

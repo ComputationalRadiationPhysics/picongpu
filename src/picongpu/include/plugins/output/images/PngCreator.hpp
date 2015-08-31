@@ -18,10 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef PNGCREATOR_HPP
-#define    PNGCREATOR_HPP
+#pragma once
 
 #include "types.h"
 #include "simulation_defines.hpp"
@@ -149,6 +146,4 @@ namespace picongpu
     }
 
 }//namespace
-
-#endif    /* PNGCREATOR_HPP */
 

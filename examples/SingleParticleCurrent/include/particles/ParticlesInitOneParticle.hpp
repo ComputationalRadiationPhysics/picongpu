@@ -18,10 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef PARTICLESINITONEPARTICLE_HPP
-#define    PARTICLESINITONEPARTICLE_HPP
+#pragma once
 
 #include "dimensions/DataSpace.hpp"
 #include "types.h"
@@ -143,6 +140,4 @@ public:
     }
 };
 }
-
-#endif    /* PARTICLESINITONEPARTICLE_HPP */
 

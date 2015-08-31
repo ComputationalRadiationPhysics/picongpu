@@ -18,6 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
 
 #include "fields/tasks/FieldFactory.hpp"
 #include "fields/tasks/TaskFieldReceiveAndInsert.hpp"

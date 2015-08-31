@@ -18,8 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef particleAccess_PARTICLE2CELL_HPP
-#define particleAccess_PARTICLE2CELL_HPP
+#pragma once
 
 #include "types.h"
 
@@ -55,4 +54,3 @@ struct Cell2Particle
 
 #include "Cell2Particle.tpp"
 
-#endif // particleAccess_PARTICLE2CELL_HPP
