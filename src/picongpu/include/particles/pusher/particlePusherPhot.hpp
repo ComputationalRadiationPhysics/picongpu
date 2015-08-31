@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera,
+ *                     Alexander Grund
  *
  * This file is part of PIConGPU.
  *
@@ -41,7 +42,7 @@ namespace picongpu
                                                         const ChargeType charge)
             {
 
-                const float_X mom_abs = abs( mom );
+                const float_X mom_abs = math::abs( mom );
                 const PosType vel = mom * ( SPEED_OF_LIGHT / mom_abs );
 
                 for(uint32_t d=0;d<simDim;++d)
