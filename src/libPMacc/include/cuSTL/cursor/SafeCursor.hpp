@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CURSOR_SAVECURSOR_HPP
-#define CURSOR_SAVECURSOR_HPP
+#pragma once
 
 #include <cuSTL/cursor/traits.hpp>
 #include <math/vector/Int.hpp>
@@ -164,4 +163,3 @@ HDINLINE SafeCursor<Cursor> make_SafeCursor(
 } // cursor
 } // PMacc
 
-#endif // CURSOR_SAVECURSOR_HPP

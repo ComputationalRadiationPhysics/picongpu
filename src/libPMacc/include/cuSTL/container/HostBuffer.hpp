@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CONTAINER_HOSTBUFFER_HPP
-#define CONTAINER_HOSTBUFFER_HPP
+#pragma once
 
 #include <boost/type_traits/is_same.hpp>
 #include <cuSTL/container/allocator/HostMemAllocator.hpp>
@@ -85,4 +84,3 @@ public:
 } // container
 } // PMacc
 
-#endif // CONTAINER_HOSTBUFFER_HPP

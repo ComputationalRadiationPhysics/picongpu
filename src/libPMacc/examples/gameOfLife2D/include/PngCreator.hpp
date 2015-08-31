@@ -19,8 +19,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PNGCREATOR_HPP
-#define	PNGCREATOR_HPP
+#pragma once
 
 #include "types.h"
 #include <pngwriter.h>
@@ -53,6 +52,4 @@ namespace gol
     };
 
 }
-
-#endif	/* PNGCREATOR_HPP */
 

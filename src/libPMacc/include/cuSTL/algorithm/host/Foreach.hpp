@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ALGORITHM_HOST_FOREACH_HPP
-#define ALGORITHM_HOST_FOREACH_HPP
+#pragma once
 
 #include "math/vector/Size_t.hpp"
 #include "math/vector/Int.hpp"
@@ -132,4 +131,3 @@ struct Foreach
 } // algorithm
 } // PMacc
 
-#endif // ALGORITHM_HOST_FOREACH_HPP

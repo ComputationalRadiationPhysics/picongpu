@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CONTAINER_INDEXBUFFER_HPP
-#define CONTAINER_INDEXBUFFER_HPP
+#pragma once
 
 #include <stdint.h>
 #include "../vector/UInt32.hpp"
@@ -94,4 +93,3 @@ public:
 } // container
 } // PMacc
 
-#endif // CONTAINER_INDEXBUFFER_HPP

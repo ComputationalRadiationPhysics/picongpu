@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CURSOR_TOOLS_SLICE_HPP
-#define CURSOR_TOOLS_SLICE_HPP
+#pragma once
 
 #include "cuSTL/cursor/Cursor.hpp"
 #include "cuSTL/cursor/navigator/BufferNavigator.hpp"
@@ -106,4 +105,3 @@ slice(const TCursor& cur)
 } // cursor
 } // PMacc
 
-#endif // CURSOR_TOOLS_SLICE_HPP

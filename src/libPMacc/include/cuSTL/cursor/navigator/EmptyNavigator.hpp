@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CURSOR_EMPTYNAVIGATOR_HPP
-#define CURSOR_EMPTYNAVIGATOR_HPP
+#pragma once
 
 namespace PMacc
 {
@@ -41,4 +40,3 @@ struct EmptyNavigator
 } // cursor
 } // PMacc
 
-#endif // CURSOR_EMPTYNAVIGATOR_HPP

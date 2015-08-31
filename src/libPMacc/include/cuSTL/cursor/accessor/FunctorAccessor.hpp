@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CURSOR_FUNCTORACCESSOR_HPP
-#define CURSOR_FUNCTORACCESSOR_HPP
+#pragma once
 
 #include <boost/type_traits/add_const.hpp>
 #include <forward.hpp>
@@ -56,4 +55,3 @@ struct FunctorAccessor
 } // cursor
 } // PMacc
 
-#endif // CURSOR_FUNCTORACCESSOR_HPP

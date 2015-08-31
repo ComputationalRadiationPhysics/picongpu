@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CURSOR_BUFFERCURSOR_HPP
-#define CURSOR_BUFFERCURSOR_HPP
+#pragma once
 
 #include "Cursor.hpp"
 #include "accessor/PointerAccessor.hpp"
@@ -77,4 +76,3 @@ struct dim<BufferCursor<Type, T_dim> >
 } // cursor
 } // PMacc
 
-#endif // CURSOR_BUFFERCURSOR_HPP

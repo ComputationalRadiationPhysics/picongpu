@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ZONE_TORICZONE_HPP
-#define ZONE_TORICZONE_HPP
+#pragma once
 
 #include <stdint.h>
 #include "../vector/Size_t.hpp"
@@ -47,6 +46,4 @@ struct ToricZone
 
 } // zone
 } // PMacc
-
-#endif // ZONE_TORICCZONE_HPP
 

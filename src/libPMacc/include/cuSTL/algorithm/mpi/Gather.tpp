@@ -20,6 +20,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
 #include "mappings/simulation/GridController.hpp"
 #include "cuSTL/container/copier/Memcopy.hpp"
 #include "communication/manager_common.h"

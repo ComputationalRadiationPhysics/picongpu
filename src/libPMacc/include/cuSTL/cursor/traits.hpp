@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CURSOR_TRAITS_HPP
-#define CURSOR_TRAITS_HPP
+#pragma once
 
 namespace PMacc
 {
@@ -37,4 +36,3 @@ struct dim;
 } // cursor
 } // PMacc
 
-#endif // CURSOR_TRAITS_HPP

@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ALLOCATOR_DEVICEMEMEVENPITCHALLOCATOR_HPP
-#define ALLOCATOR_DEVICEMEMEVENPITCHALLOCATOR_HPP
+#pragma once
 
 #include "math/vector/Size_t.hpp"
 #include "cuSTL/cursor/BufferCursor.hpp"
@@ -63,4 +62,3 @@ struct DeviceMemEvenPitch<Type, 1>
 
 #include "DeviceMemEvenPitchAllocator.tpp"
 
-#endif // ALLOCATOR_DEVICEMEMEVENPITCHALLOCATOR_HPP

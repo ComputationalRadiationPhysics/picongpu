@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ALLOCATOR_SHAREDMEMALLOCATOR_HPP
-#define ALLOCATOR_SHAREDMEMALLOCATOR_HPP
+#pragma once
 
 #include "math/Vector.hpp"
 #include "cuSTL/cursor/compile-time/BufferCursor.hpp"
@@ -88,4 +87,3 @@ struct SharedMemAllocator<Type, Size, 3, uid>
 } // allocator
 } // PMacc
 
-#endif // ALLOCATOR_SHAREDMEMALLOCATOR_HPP

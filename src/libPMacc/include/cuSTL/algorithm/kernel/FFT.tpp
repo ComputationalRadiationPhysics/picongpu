@@ -20,6 +20,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
 #include "math/vector/Size_t.hpp"
 #include "math/Vector.hpp"
 #include "cuSTL/zone/SphericZone.hpp"

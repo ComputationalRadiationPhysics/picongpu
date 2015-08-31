@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ALGORITHM_KERNEL_FFT_HPP
-#define ALGORITHM_KERNEL_FFT_HPP
+#pragma once
 
 namespace PMacc
 {
@@ -43,4 +42,3 @@ struct FFT
 
 #include "FFT.tpp"
 
-#endif // ALGORITHM_KERNEL_FFT_HPP

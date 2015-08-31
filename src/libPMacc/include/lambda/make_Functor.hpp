@@ -20,9 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LAMBDA_MAKE_FUNCTOR_HPP
-#define LAMBDA_MAKE_FUNCTOR_HPP
-
+#pragma once
 
 #include "types.h"
 #include "is_Expression.hpp"
@@ -161,4 +159,3 @@ make_Functor(const Expression<ExprType, Childs>& expr)
 } // lambda
 } // PMacc
 
-#endif // LAMBDA_MAKE_FUNCTOR_HPP

@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LAMBDA_CT_FILLTERMINALLIST_HPP
-#define LAMBDA_CT_FILLTERMINALLIST_HPP
+#pragma once
 
 #include "../Expression.hpp"
 #include "Expression.hpp"
@@ -225,4 +224,3 @@ struct FillTerminalList<lambda::Expression<exprTypes::subscript, mpl::vector<Chi
 } // lambda
 } // PMacc
 
-#endif // LAMBDA_CT_FILLTERMINALLIST_HPP

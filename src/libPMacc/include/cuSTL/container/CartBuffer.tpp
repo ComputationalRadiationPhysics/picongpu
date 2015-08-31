@@ -20,6 +20,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
 #include "cuSTL/container/allocator/tag.h"
 #include "eventSystem/EventSystem.hpp"
 

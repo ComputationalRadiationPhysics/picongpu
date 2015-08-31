@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CONTAINER_PSEUDOBUFFER_HPP
-#define CONTAINER_PSEUDOBUFFER_HPP
+#pragma once
 
 #include "memory/buffers/DeviceBuffer.hpp"
 #include "memory/buffers/HostBuffer.hpp"
@@ -46,4 +45,3 @@ struct PseudoBuffer : public container::CartBuffer<Type, dim>
 
 #include "PseudoBuffer.tpp"
 
-#endif // CONTAINER_PSEUDOBUFFER_HPP

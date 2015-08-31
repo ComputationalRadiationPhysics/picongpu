@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LAMBDA_KERNEL_MAKE_EXPR_HPP
-#define LAMBDA_KERNEL_MAKE_EXPR_HPP
+#pragma once
 
 #include "is_Expression.hpp"
 #include "ExprTypes.h"
@@ -88,4 +87,3 @@ expr(const T& t)
 } // lambda
 } // PMacc
 
-#endif // LAMBDA_KERNEL_MAKE_EXPR_HPP

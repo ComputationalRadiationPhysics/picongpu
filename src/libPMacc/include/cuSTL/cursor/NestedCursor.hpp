@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CURSOR_NESTEDCURSOR_HPP
-#define CURSOR_NESTEDCURSOR_HPP
+#pragma once
 
 #include "accessor/MarkerAccessor.hpp"
 #include "navigator/CursorNavigator.hpp"
@@ -47,4 +46,3 @@ Cursor<MarkerAccessor<TCursor>, CursorNavigator, TCursor> make_NestedCursor(cons
 } // cursor
 } // PMacc
 
-#endif // CURSOR_NESTEDCURSOR_HPP

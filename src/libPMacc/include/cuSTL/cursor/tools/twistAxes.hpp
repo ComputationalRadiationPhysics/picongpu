@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CURSOR_TOOLS_TWISTAXIS_HPP
-#define CURSOR_TOOLS_TWISTAXIS_HPP
+#pragma once
 
 #include <cuSTL/cursor/Cursor.hpp>
 #include <cuSTL/cursor/navigator/compile-time/TwistAxesNavigator.hpp>
@@ -56,4 +55,3 @@ twistAxes(const TCursor& cursor)
 } // cursor
 } // PMacc
 
-#endif // CURSOR_TOOLS_TWISTAXIS_HPP

@@ -20,8 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ALLOCATOR_EMPTYALLOCATOR_HPP
-#define ALLOCATOR_EMPTYALLOCATOR_HPP
+#pragma once
 
 #include "tag.h"
 #include "types.h"
@@ -43,4 +42,3 @@ struct EmptyAllocator
 } // allocator
 } // PMacc
 
-#endif // ALLOCATOR_EMPTYALLOCATOR_HPP

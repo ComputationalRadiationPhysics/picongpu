@@ -20,6 +20,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
 #include "eventSystem/events/EventNotify.hpp"
 #include "eventSystem/events/IEventData.hpp"
 #include "eventSystem/events/IEvent.hpp"
