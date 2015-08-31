@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2015 Felix Schmitt, Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Benjamin Worpitz,
+ *                     Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -25,7 +26,6 @@
 
 #include "eventSystem/tasks/StreamTask.hpp"
 #include "eventSystem/streams/EventStream.hpp"
-#include "eventSystem/EventSystem.hpp"
 
 namespace PMacc
 {
@@ -59,14 +59,7 @@ namespace PMacc
         {
         }
 
-        void activateChecks()
-        {
-            canBeChecked = true;
-            this->activate();
-            
-            Environment<>::get().Manager().addTask(this);
-            __setTransactionEvent(EventTask(this->getId()));
-        }
+        void activateChecks();
 
         virtual std::string toString()
         {
