@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -37,15 +37,15 @@ using namespace PMacc;
 template<>
 struct GetMargin<picongpu::noSolver::NoSolver, FIELD_B>
 {
-    typedef PMacc::math::CT::Int< 0, 0, 0 > LowerMargin;
-    typedef PMacc::math::CT::Int< 0, 0, 0 > UpperMargin;
+    typedef typename PMacc::math::CT::make_Int< simDim, 0 >::type LowerMargin;
+    typedef typename PMacc::math::CT::make_Int< simDim, 0 >::type UpperMargin;
 };
 
 template<>
 struct GetMargin<picongpu::noSolver::NoSolver, FIELD_E>
 {
-    typedef PMacc::math::CT::Int< 0, 0, 0 > LowerMargin;
-    typedef PMacc::math::CT::Int< 0, 0, 0 > UpperMargin;
+    typedef typename PMacc::math::CT::make_Int< simDim, 0 >::type LowerMargin;
+    typedef typename PMacc::math::CT::make_Int< simDim, 0 >::type UpperMargin;
 };
 
 } //namespace traits
