@@ -112,7 +112,11 @@ public:
      * Constructor.
      *
      * @param dataSpace DataSpace representing buffer size without border-cells
-     * @param sizeOnDevice if true, size information exists on device, too.
+     * @param sizeOnDevice if true, internal buffers must store their
+     *        size additionally on the device
+     *        (as we keep this information coherent with the host, it influences
+     *        performance on host-device copies, but some algorithms on the device
+     *        might need to know the size of the buffer)
      */
     GridBuffer(DataSpace<DIM>& dataSpace, bool sizeOnDevice = false) :
     gridLayout(GridLayout<DIM>(dataSpace)),
@@ -127,7 +131,11 @@ public:
      *
      * @param otherDeviceBuffer DeviceBuffer which should be used instead of creating own DeviceBuffer
      * @param gridLayout layout of the buffers, including border-cells
-     * @param sizeOnDevice if true, size information exists on device, too.
+     * @param sizeOnDevice if true, internal buffers must store their
+     *        size additionally on the device
+     *        (as we keep this information coherent with the host, it influences
+     *        performance on host-device copies, but some algorithms on the device
+     *        might need to know the size of the buffer)
      */
     GridBuffer(DeviceBuffer<TYPE, DIM>& otherDeviceBuffer, GridLayout<DIM> gridLayout, bool sizeOnDevice = false) :
     gridLayout(gridLayout),
@@ -198,14 +206,19 @@ public:
      * An Exchange is added to this GridBuffer. The exchange buffers use
      * the same memory as this GridBuffer.
      *
-     * @param dataPlace place where received data are stored [GUARD | BORDER]
+     * @param dataPlace place where received data is stored [GUARD | BORDER]
      *        if dataPlace=GUARD than copy other BORDER to my GUARD
      *        if dataPlace=BORDER than copy other GUARD to my BORDER
      * @param receive a Mask which describes the directions for the exchange
      * @param guardingCells number of guarding cells in each dimension
      * @param communicationTag unique tag/id for communication
-     * @param sizeOnDeviceSend if true, internal send buffers have their size information on the device, too
-     * @param sizeOnDeviceReceive if true, internal receive buffers have their size information on the device, too
+     * @param sizeOnDeviceSend if true, internal send buffers must store their
+     *        size additionally on the device
+     *        (as we keep this information coherent with the host, it influences
+     *        performance on host-device copies, but some algorithms on the device
+     *        might need to know the size of the buffer)
+     * @param sizeOnDeviceReceive if true, internal receive buffers must store their
+     *        size additionally on the device
      */
     void addExchange(uint32_t dataPlace, const Mask &receive, DataSpace<DIM> guardingCells, uint32_t communicationTag, bool sizeOnDeviceSend, bool sizeOnDeviceReceive )
     {
@@ -266,15 +279,18 @@ public:
      *
      * An Exchange is added to this GridBuffer. The exchange buffers use
      * the same memory as this GridBuffer.
-     * All Exchanges has it's current size defined on the host side.
      *
-     * @param dataPlace place where received data are stored [GUARD | BORDER]
+     * @param dataPlace place where received data is stored [GUARD | BORDER]
      *        if dataPlace=GUARD than copy other BORDER to my GUARD
      *        if dataPlace=BORDER than copy other GUARD to my BORDER
      * @param receive a Mask which describes the directions for the exchange
      * @param guardingCells number of guarding cells in each dimension
      * @param communicationTag unique tag/id for communication
-     * @param sizeOnDevice if true, internal send and receive buffers have their size information on the device, too
+     * @param sizeOnDevice if true, internal buffers must store their
+     *        size additionally on the device
+     *        (as we keep this information coherent with the host, it influences
+     *        performance on host-device copies, but some algorithms on the device
+     *        might need to know the size of the buffer)
      */
     void addExchange(uint32_t dataPlace, const Mask &receive, DataSpace<DIM> guardingCells, uint32_t communicationTag, bool sizeOnDevice = false)
     {
@@ -290,8 +306,13 @@ public:
      * @param receive a Mask which describes the directions for the exchange
      * @param dataSpace size of the newly created exchange buffer in each dimension
      * @param communicationTag unique tag/id for communication
-     * @param sizeOnDeviceSend if true, internal send buffers have their size information on the device, too
-     * @param sizeOnDeviceReceive if true, internal receive buffers have their size information on the device, too
+     * @param sizeOnDeviceSend if true, internal send buffers must store their
+     *        size additionally on the device
+     *        (as we keep this information coherent with the host, it influences
+     *        performance on host-device copies, but some algorithms on the device
+     *        might need to know the size of the buffer)
+     * @param sizeOnDeviceReceive if true, internal receive buffers must store their
+     *        size additionally on the device
      */
     void addExchangeBuffer(const Mask &receive, const DataSpace<DIM> &dataSpace, uint32_t communicationTag, bool sizeOnDeviceSend, bool sizeOnDeviceReceive )
     {
@@ -346,12 +367,15 @@ public:
      *
      * An Exchange is added to this GridBuffer. The exchange buffers use
      * the their own memory instead of using the GridBuffer's memory space.
-     * All Exchanges has it's current size defined on the host side.
      *
      * @param receive a Mask which describes the directions for the exchange
      * @param dataSpace size of the newly created exchange buffer in each dimension
      * @param communicationTag unique tag/id for communication
-     * @param sizeOnDevice if true, internal send and receive buffers have their size information on the device, too
+     * @param sizeOnDevice if true, internal buffers must store their
+     *        size additionally on the device
+     *        (as we keep this information coherent with the host, it influences
+     *        performance on host-device copies, but some algorithms on the device
+     *        might need to know the size of the buffer)
      */
     void addExchangeBuffer(const Mask &receive, const DataSpace<DIM> &dataSpace, uint32_t communicationTag, bool sizeOnDevice = false )
     {
@@ -415,7 +439,6 @@ public:
      */
     Mask getSendMask() const
     {
-        // std::cout << "sendMask: " << sendMask << " " << EnvironmentController::getInstance().getCommunicationMask() << " " << (EnvironmentController::getInstance().getCommunicationMask() & sendMask) << std::endl;
         return (Environment<DIM>::get().EnvironmentController().getCommunicationMask() & sendMask);
     }
 
@@ -426,7 +449,6 @@ public:
      */
     Mask getReceiveMask() const
     {
-        //std::cout << "receiveMask: " << this->sendMask.getMirroredMask() << " " << (this->sendMask.getMirroredMask() & EnvironmentController::getInstance().getCommunicationMask()) << std::endl;
         return (Environment<DIM>::get().EnvironmentController().getCommunicationMask() & receiveMask);
     }
 
