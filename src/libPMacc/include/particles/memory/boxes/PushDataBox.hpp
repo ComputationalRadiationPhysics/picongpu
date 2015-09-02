@@ -1,6 +1,6 @@
 /**
  * Copyright 2013-2015 Felix Schmitt, Heiko Burau, Rene Widera,
- *                     Benjamin Worpitz
+ *                     Benjamin Worpitz, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -30,6 +30,7 @@
 
 #include "memory/boxes/DataBox.hpp"
 #include "memory/boxes/PitchedBox.hpp"
+#include "nvidia/atomic.hpp"
 
 namespace PMacc
 {
@@ -89,7 +90,7 @@ namespace PMacc
 #if !defined(__CUDA_ARCH__) // Host code path
             TYPE old_addr = (*currentSize)++;
 #else
-            TYPE old_addr = atomicAdd(currentSize, 1);
+            TYPE old_addr = nvidia::atomicAllInc(currentSize);
 #endif
             (*this)[old_addr] = val;
         }
