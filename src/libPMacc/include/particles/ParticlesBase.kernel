@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Felix Schmitt, Heiko Burau, Rene Widera,
+ *                     Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -135,7 +136,7 @@ __global__ void kernelShiftParticles( T_ParBox pb, Mapping mapper )
         int direction = (*frame)[linearThreadIdx][multiMask_] - 2;
         if ( direction >= 0 )
         {
-            destParticleIdx = atomicAdd( &(destFramesCounter[direction]), 1 );
+            destParticleIdx = nvidia::atomicAllInc( &(destFramesCounter[direction]) );
         }
         __syncthreads( );
 
