@@ -426,7 +426,7 @@ endif(Splash_FOUND)
 ################################################################################
 
 # find PNGwriter installation
-find_package(PNGwriter)
+find_package(PNGwriter 0.5.5)
 
 if(PNGwriter_FOUND)
     include_directories(SYSTEM ${PNGwriter_INCLUDE_DIRS})
