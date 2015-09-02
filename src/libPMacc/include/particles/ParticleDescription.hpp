@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "particles/HandleGuardParticles.hpp"
 #include <boost/mpl/vector.hpp>
 #include "compileTime/conversion/ToSeq.hpp"
 
@@ -34,19 +35,19 @@ namespace PMacc
  * The class holds information about the name, attributes, flags and methods of a
  * particle.
  *
- * @tparam T_Name name of discribed particle (e.g. electron, ion)
+ * @tparam T_Name name of described particle (e.g. electron, ion)
  *                type must be a boost::mpl::string
  * @tparam T_SuperCellSize compile time size of a super cell
  * @tparam T_ValueTypeSeq sequence or single type with value_identifier
- * @tparam T_Flags sequence or single type with identifier to add fags on a frame
+ * @tparam T_Flags sequence or single type with identifier to add flags on a frame
  * @tparam T_MethodsList sequence or single class with particle methods
  *                       (e.g. calculate mass, gamma, ...)
  *                       (e.g. useSolverXY, calcRadiation, ...)
- * @tparam T_FrameExtensionList sequence or single class with frame extentions
+ * @tparam T_FrameExtensionList sequence or single class with frame extensions
  *                    - extension must be an unary template class that supports bmpl::apply1<>
- *                    - type of the finale frame is applied to each extension class
+ *                    - type of the final frame is applied to each extension class
  *                      (this allows pointers and references to a frame itself)
- *                    - the finale frame that uses ParticleDescription inherits from all
+ *                    - the final frame that uses ParticleDescription inherits from all
  *                      extension classes
  */
 template<
@@ -55,7 +56,8 @@ typename T_SuperCellSize,
 typename T_ValueTypeSeq,
 typename T_Flags = bmpl::vector0<>,
 typename T_MethodsList = bmpl::vector0<>,
-typename T_FrameExtensionList = bmpl::vector0<>
+typename T_FrameExtensionList = bmpl::vector0<>,
+typename T_HandleGuardParticles = particles::HandleGuardParticles<>
 >
 struct ParticleDescription
 {
@@ -65,13 +67,15 @@ struct ParticleDescription
     typedef typename ToSeq<T_MethodsList>::type MethodsList;
     typedef typename ToSeq<T_Flags>::type FlagsList;
     typedef typename ToSeq<T_FrameExtensionList>::type FrameExtensionList;
+    typedef T_HandleGuardParticles HandleGuardParticles;
     typedef ParticleDescription<
         Name,
         SuperCellSize,
         ValueTypeSeq,
         FlagsList,
         MethodsList,
-        FrameExtensionList
+        FrameExtensionList,
+        HandleGuardParticles
     > ThisType;
 
 };

@@ -34,6 +34,14 @@ class TaskParticlesSend : public MPITask
 {
 public:
 
+    typedef typename ParBase::HandleGuardParticles HandleGuardParticles;
+    typedef typename HandleGuardParticles::HandleSentParticles HandleSentParticles;
+    typedef typename HandleGuardParticles::HandleLeavingParticles HandleLeavingParticles;
+
+    /* We can't handle the guards in parallel if either handler modifies the frames */
+    static const bool canHandleGuardsInParallel = HandleSentParticles::modifiesFrame ||
+                                                  HandleLeavingParticles::modifiesFrame;
+
     enum
     {
         Dim = ParBase::Dim,
@@ -50,21 +58,25 @@ public:
     {
         state = Init;
         EventTask serialEvent = __getTransactionEvent();
+        HandleSentParticles handleSentParticles;
+        HandleLeavingParticles handleLeavingParticles;
 
         for (int i = 1; i < Exchanges; ++i)
         {
-            if (parBase.getParticlesBuffer().hasSendExchange(i))
-            {
-                __startAtomicTransaction(serialEvent);
-                Environment<>::get().ParticleFactory().createTaskSendParticlesExchange(parBase, i);
-                tmpEvent += __endTransaction();
-            }
+            /* Start new transaction */
+            if(canHandleGuardsInParallel)
+                __startTransaction(serialEvent);
             else
-            {
                 __startAtomicTransaction(serialEvent);
-                parBase.deleteGuardParticles(i);
-                tmpEvent += __endTransaction();
-            }
+
+            /* Handle particles */
+            if (parBase.getParticlesBuffer().hasSendExchange(i))
+                handleSentParticles(parBase, i);
+            else
+                handleLeavingParticles(parBase, i);
+
+            /* End transaction */
+            tmpEvent += __endTransaction();
         }
 
         state = WaitForSend;

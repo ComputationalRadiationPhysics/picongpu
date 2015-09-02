@@ -37,14 +37,17 @@
 namespace PMacc
 {
 
-template<typename T_ParticleDescription, class MappingDesc>
-class ParticlesBase : public SimulationFieldHelper<MappingDesc>
+template<typename T_ParticleDescription, class T_MappingDesc>
+class ParticlesBase : public SimulationFieldHelper<T_MappingDesc>
 {
+    typedef T_ParticleDescription ParticleDescription;
+    typedef T_MappingDesc MappingDesc;
+
 public:
 
     /* Type of used particles buffer
      */
-    typedef ParticlesBuffer<T_ParticleDescription, typename MappingDesc::SuperCellSize, MappingDesc::Dim> BufferType;
+    typedef ParticlesBuffer<ParticleDescription, typename MappingDesc::SuperCellSize, MappingDesc::Dim> BufferType;
 
     /* Type of frame in particles buffer
      */
@@ -53,9 +56,12 @@ public:
      */
     typedef typename BufferType::ParticleTypeBorder FrameTypeBorder;
 
-    /* TYpe of the particle box which particle buffer create
+    /* Type of the particle box which particle buffer create
      */
     typedef ParticlesBox< FrameType, MappingDesc::Dim> ParticlesBoxType;
+
+    /* Policies for handling particles in guard cells */
+    typedef typename ParticleDescription::HandleGuardParticles HandleGuardParticles;
 
     enum
     {
