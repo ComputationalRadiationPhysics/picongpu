@@ -29,26 +29,27 @@
 namespace PMacc
 {
 
-template<class ParBase>
+template<class T_Particles>
 class TaskParticlesSend : public MPITask
 {
 public:
 
-    typedef typename ParBase::HandleGuardParticles HandleGuardParticles;
-    typedef typename HandleGuardParticles::HandleSentParticles HandleSentParticles;
-    typedef typename HandleGuardParticles::HandleLeavingParticles HandleLeavingParticles;
+    typedef T_Particles Particles;
+    typedef typename Particles::HandleGuardRegion HandleGuardRegion;
+    typedef typename HandleGuardRegion::HandleExchanged HandleExchanged;
+    typedef typename HandleGuardRegion::HandleNotExchanged HandleNotExchanged;
 
-    /* We can't handle the guards in parallel if either handler modifies the frames */
-    static const bool canHandleGuardsInParallel = HandleSentParticles::modifiesFrame ||
-                                                  HandleLeavingParticles::modifiesFrame;
+    /* We can't run in parallel if either handler modifies the frames */
+    static const bool canRunInParallel = !HandleExchanged::needAtomicOut &&
+                                         !HandleNotExchanged::needAtomicIn;
 
     enum
     {
-        Dim = ParBase::Dim,
+        Dim = Particles::Dim,
         Exchanges = traits::NumberOfExchanges<Dim>::value
     };
 
-    TaskParticlesSend(ParBase &parBase) :
+    TaskParticlesSend(Particles &parBase) :
     parBase(parBase),
     state(Constructor)
     {
@@ -58,22 +59,22 @@ public:
     {
         state = Init;
         EventTask serialEvent = __getTransactionEvent();
-        HandleSentParticles handleSentParticles;
-        HandleLeavingParticles handleLeavingParticles;
+        HandleExchanged handleExchanged;
+        HandleNotExchanged handleNotExchanged;
 
         for (int i = 1; i < Exchanges; ++i)
         {
             /* Start new transaction */
-            if(canHandleGuardsInParallel)
+            if(canRunInParallel)
                 __startTransaction(serialEvent);
             else
                 __startAtomicTransaction(serialEvent);
 
             /* Handle particles */
             if (parBase.getParticlesBuffer().hasSendExchange(i))
-                handleSentParticles(parBase, i);
+                handleExchanged.handleOutgoing(parBase, i);
             else
-                handleLeavingParticles(parBase, i);
+                handleNotExchanged.handleOutgoing(parBase, i);
 
             /* End transaction */
             tmpEvent += __endTransaction();
@@ -122,7 +123,7 @@ private:
     };
 
 
-    ParBase& parBase;
+    Particles& parBase;
     state_t state;
     EventTask tmpEvent;
 };

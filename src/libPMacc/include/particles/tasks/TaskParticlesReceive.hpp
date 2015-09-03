@@ -30,18 +30,26 @@
 namespace PMacc
 {
 
-    template<class ParBase>
+    template<class T_Particles>
     class TaskParticlesReceive : public MPITask
     {
     public:
 
+        typedef T_Particles Particles;
+        typedef typename Particles::HandleGuardRegion HandleGuardRegion;
+        typedef typename HandleGuardRegion::HandleExchanged HandleExchanged;
+        typedef typename HandleGuardRegion::HandleNotExchanged HandleNotExchanged;
+
+        /* We can't run in parallel if either handler modifies the frames */
+        static const bool canRunInParallel = !HandleExchanged::needAtomicOut &&
+                                             !HandleNotExchanged::needAtomicIn;
         enum
         {
-            Dim = ParBase::Dim,
+            Dim = Particles::Dim,
             Exchanges = traits::NumberOfExchanges<Dim>::value
         };
 
-        TaskParticlesReceive(ParBase &parBase) :
+        TaskParticlesReceive(Particles &parBase) :
         parBase(parBase),
         state(Constructor){ }
 
@@ -49,15 +57,25 @@ namespace PMacc
         {
             state = Init;
             EventTask serialEvent = __getTransactionEvent();
+            HandleExchanged handleExchanged;
+            HandleNotExchanged handleNotExchanged;
 
             for (int i = 1; i < Exchanges; ++i)
             {
-                if (parBase.getParticlesBuffer().hasReceiveExchange(i))
-                {
+                /* Start new transaction */
+                if(canRunInParallel)
+                    __startTransaction(serialEvent);
+                else
                     __startAtomicTransaction(serialEvent);
-                    Environment<>::get().ParticleFactory().createTaskReceiveParticlesExchange(parBase, i);
-                    tmpEvent += __endTransaction();
-                }
+
+                /* Handle particles */
+                if (parBase.getParticlesBuffer().hasReceiveExchange(i))
+                    handleExchanged.handleOutgoing(parBase, i);
+                else
+                    handleNotExchanged.handleOutgoing(parBase, i);
+
+                /* End transaction */
+                tmpEvent += __endTransaction();
             }
 
             state = WaitForReceived;
@@ -119,7 +137,7 @@ namespace PMacc
         };
 
 
-        ParBase& parBase;
+        Particles& parBase;
         state_t state;
         EventTask tmpEvent;
 

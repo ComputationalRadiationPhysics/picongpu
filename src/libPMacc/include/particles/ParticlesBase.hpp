@@ -61,7 +61,7 @@ public:
     typedef ParticlesBox< FrameType, MappingDesc::Dim> ParticlesBoxType;
 
     /* Policies for handling particles in guard cells */
-    typedef typename ParticleDescription::HandleGuardParticles HandleGuardParticles;
+    typedef typename ParticleDescription::HandleGuardRegion HandleGuardRegion;
 
     enum
     {

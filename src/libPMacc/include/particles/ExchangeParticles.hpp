@@ -29,19 +29,27 @@ namespace PMacc {
 namespace particles {
 
     /**
-     * Policy for HandleGuardParticles that moves particles from guard cells to exchange buffers
+     * Policy for \see HandleGuardRegion that moves particles from guard cells to exchange buffers
      * and sends those to the correct neighbors
      */
     struct ExchangeParticles
     {
         /* Particles are removed from the guard cells, hence frames are modified/deleted */
-        static const bool modifiesFrame = true;
+        static const bool needAtomicOut = true;
+        static const bool needAtomicIn  = true;
 
         template< class T_Particles >
         void
-        operator()(T_Particles& par, int32_t direction) const
+        handleOutgoing(T_Particles& par, int32_t direction) const
         {
             Environment<>::get().ParticleFactory().createTaskSendParticlesExchange(par, direction);
+        }
+
+        template< class T_Particles >
+        void
+        handleIncoming(T_Particles& par, int32_t direction) const
+        {
+            Environment<>::get().ParticleFactory().createTaskReceiveParticlesExchange(par, direction);
         }
     };
 

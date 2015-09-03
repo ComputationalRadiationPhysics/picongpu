@@ -22,7 +22,9 @@
 
 #pragma once
 
-#include "particles/HandleGuardParticles.hpp"
+#include "HandleGuardRegion.hpp"
+#include "particles/ExchangeParticles.hpp"
+#include "particles/DeleteParticles.hpp"
 #include <boost/mpl/vector.hpp>
 #include "compileTime/conversion/ToSeq.hpp"
 
@@ -55,27 +57,27 @@ typename T_Name,
 typename T_SuperCellSize,
 typename T_ValueTypeSeq,
 typename T_Flags = bmpl::vector0<>,
+typename T_HandleGuardRegion = HandleGuardRegion<particles::ExchangeParticles, particles::DeleteParticles>,
 typename T_MethodsList = bmpl::vector0<>,
-typename T_FrameExtensionList = bmpl::vector0<>,
-typename T_HandleGuardParticles = particles::HandleGuardParticles<>
+typename T_FrameExtensionList = bmpl::vector0<>
 >
 struct ParticleDescription
 {
     typedef T_Name Name;
     typedef T_SuperCellSize SuperCellSize;
     typedef typename ToSeq<T_ValueTypeSeq>::type ValueTypeSeq;
-    typedef typename ToSeq<T_MethodsList>::type MethodsList;
     typedef typename ToSeq<T_Flags>::type FlagsList;
+    typedef T_HandleGuardRegion HandleGuardRegion;
+    typedef typename ToSeq<T_MethodsList>::type MethodsList;
     typedef typename ToSeq<T_FrameExtensionList>::type FrameExtensionList;
-    typedef T_HandleGuardParticles HandleGuardParticles;
     typedef ParticleDescription<
         Name,
         SuperCellSize,
         ValueTypeSeq,
         FlagsList,
+        HandleGuardRegion,
         MethodsList,
-        FrameExtensionList,
-        HandleGuardParticles
+        FrameExtensionList
     > ThisType;
 
 };
@@ -96,6 +98,7 @@ struct ReplaceValueTypeSeq
     typename OldParticleDescription::SuperCellSize,
     typename ToSeq<T_NewValueTypeSeq>::type,
     typename OldParticleDescription::FlagsList,
+    typename OldParticleDescription::HandleGuardRegion,
     typename OldParticleDescription::MethodsList,
     typename OldParticleDescription::FrameExtensionList
     > type;
@@ -116,6 +119,7 @@ struct ReplaceFrameExtensionSeq
     typename OldParticleDescription::SuperCellSize,
     typename OldParticleDescription::ValueTypeSeq,
     typename OldParticleDescription::FlagsList,
+    typename OldParticleDescription::HandleGuardRegion,
     typename OldParticleDescription::MethodsList,
     typename ToSeq<T_FrameExtensionSeq>::type
     > type;

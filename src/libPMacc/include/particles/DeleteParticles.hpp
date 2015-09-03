@@ -31,14 +31,21 @@ namespace particles {
     struct DeleteParticles
     {
         /* Particles are removed from the guard cells, hence frames are modified/deleted */
-        static const bool modifiesFrame = true;
+        static const bool needAtomicOut = true;
+        /* Nothing is done on incoming side */
+        static const bool needAtomicIn  = false;
 
         template< class T_Particles >
         void
-        operator()(T_Particles& par, int32_t direction) const
+        handleOutgoing(T_Particles& par, int32_t direction) const
         {
             par.deleteGuardParticles(direction);
         }
+
+        template< class T_Particles >
+        void
+        handleIncoming(T_Particles& par, int32_t direction) const
+        {}
     };
 
 }  // namespace particles
