@@ -29,9 +29,9 @@ class ITools
 public:
 
     ITools(ProgramOptions &options, Dims &mpiTopology, std::ostream &outStream) :
-    options(options),
-    mpiTopology(mpiTopology),
-    outStream(outStream)
+    m_options(options),
+    m_mpiTopology(mpiTopology),
+    m_outStream(outStream)
     {
 
     }
@@ -46,9 +46,9 @@ public:
     virtual void listAvailableDatasets() = 0;
 
 protected:
-    ProgramOptions &options;
-    Dims &mpiTopology;
-    std::ostream &outStream;
+    ProgramOptions &m_options;
+    Dims &m_mpiTopology;
+    std::ostream &m_outStream;
 };
 
 #endif	/* ITOOLS_HPP */

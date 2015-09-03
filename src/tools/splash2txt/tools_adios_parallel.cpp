@@ -29,11 +29,11 @@
 ToolsAdiosParallel::ToolsAdiosParallel(ProgramOptions &options, Dims &mpiTopology, std::ostream &outStream) :
 ITools(options, mpiTopology, outStream), errorStream(std::cerr)
 {
-    if (options.verbose)
-        errorStream << options.inputFile << std::endl;
+    if (m_options.verbose)
+        errorStream << m_options.inputFile << std::endl;
 
     comm = MPI_COMM_WORLD;
-    pFile = adios_read_open_file(options.inputFile.c_str(), ADIOS_READ_METHOD_BP, comm);
+    pFile = adios_read_open_file(m_options.inputFile.c_str(), ADIOS_READ_METHOD_BP, comm);
 }
 
 ToolsAdiosParallel::~ToolsAdiosParallel()
@@ -44,15 +44,15 @@ ToolsAdiosParallel::~ToolsAdiosParallel()
 
 void ToolsAdiosParallel::convertToText()
 {
-    if(options.data.size() == 0)
+    if(m_options.data.size() == 0)
         throw std::runtime_error("No datasets requested");
 
-    for (size_t i = 0; i < options.data.size(); ++i)
+    for (size_t i = 0; i < m_options.data.size(); ++i)
     {
         ADIOS_VARINFO *pVarInfo;
 
         //get name of dataset to print
-        std::string nodeName = options.data[i];
+        std::string nodeName = m_options.data[i];
 
         uint8_t *P;
         int varElement = 1;
@@ -96,28 +96,28 @@ void ToolsAdiosParallel::printValue(ADIOS_DATATYPES pType, void* pValue)
      switch(pType)
      {
          case adios_real:
-             outStream << std::setprecision(16) << *((float*)pValue) << std::endl;
+             m_outStream << std::setprecision(16) << *((float*)pValue) << std::endl;
              break;
          case adios_double:
-             outStream << std::setprecision(16) << *((double*)pValue) << std::endl;
+             m_outStream << std::setprecision(16) << *((double*)pValue) << std::endl;
              break;
          case adios_long_double:
-             outStream << std::setprecision(16) << *((long double*)pValue) << std::endl;
+             m_outStream << std::setprecision(16) << *((long double*)pValue) << std::endl;
              break;
          case adios_integer:
-             outStream << *((int32_t*)pValue) << std::endl;
+             m_outStream << *((int32_t*)pValue) << std::endl;
              break;
          case adios_unsigned_integer:
-             outStream << *((uint32_t*)pValue) << std::endl;
+             m_outStream << *((uint32_t*)pValue) << std::endl;
              break;
          case adios_long:
-             outStream << *((int64_t*)pValue) << std::endl;
+             m_outStream << *((int64_t*)pValue) << std::endl;
              break;
          case adios_unsigned_long:
-             outStream << *((uint64_t*)pValue) << std::endl;
+             m_outStream << *((uint64_t*)pValue) << std::endl;
              break;
          default:
-             if (options.verbose)
+             if (m_options.verbose)
                  errorStream << "unknown data type" << std::endl;
              break;
      }
@@ -128,32 +128,32 @@ void ToolsAdiosParallel::listAvailableDatasets()
     ADIOS_VARINFO *pVarInfo;
 
     //available data sets in this file
-    outStream << "Number of available data sets: ";
-    outStream << pFile->nvars << std::endl;
+    m_outStream << "Number of available data sets: ";
+    m_outStream << pFile->nvars << std::endl;
 
     for(int i = 0; i < pFile->nvars; i++)
     {
-        outStream << pFile->var_namelist[i] << " ";
+        m_outStream << pFile->var_namelist[i] << " ";
 
         pVarInfo = adios_inq_var(pFile, pFile->var_namelist[i]);
 
         if(pVarInfo->ndim > 0)
         {
-            // print number of elements per dimension to outstream
-            outStream << "[";
+            // print number of elements per dimension to m_outstream
+            m_outStream << "[";
             for(int j = 0; j < pVarInfo->ndim; j++)
             {
-                outStream << pVarInfo->dims[j];
+                m_outStream << pVarInfo->dims[j];
                 if(j < pVarInfo->ndim-1)
                 {
-                    outStream << ",";
+                    m_outStream << ",";
                 }
             }
-            outStream << "]" << std::endl;
+            m_outStream << "]" << std::endl;
         }
         else
         {
-            outStream << "[scalar]" << std::endl;
+            m_outStream << "[scalar]" << std::endl;
         }
         adios_free_varinfo(pVarInfo);
     }

@@ -35,10 +35,10 @@ errorStream(std::cerr)
     fattr.mpiPosition.set(0, 0, 0);
     fattr.mpiSize.set(0, 0, 0);
 
-    if (options.verbose)
-        errorStream << options.inputFile << std::endl;
+    if (m_options.verbose)
+        errorStream << m_options.inputFile << std::endl;
 
-    dc.open(options.inputFile.c_str(), fattr);
+    dc.open(m_options.inputFile.c_str(), fattr);
 }
 
 ToolsSplashParallel::~ToolsSplashParallel()
@@ -78,7 +78,7 @@ void ToolsSplashParallel::printElement(DCDataType dataType,
             throw DCException("cannot identify datatype");
     }
 
-    outStream << stream.str();
+    m_outStream << stream.str();
 }
 
 void ToolsSplashParallel::printParticles(std::vector<ExDataContainer> fileData)
@@ -87,7 +87,7 @@ void ToolsSplashParallel::printParticles(std::vector<ExDataContainer> fileData)
     {
         size_t num_elements = fileData[0].container->getNumElements();
 
-        if (options.verbose)
+        if (m_options.verbose)
         {
             errorStream << "num_elements = " << num_elements << std::endl;
             errorStream << "container = " << fileData.size() << std::endl;
@@ -107,13 +107,13 @@ void ToolsSplashParallel::printParticles(std::vector<ExDataContainer> fileData)
 
                 if (i == 0)
                 {
-                    if (options.verbose)
+                    if (m_options.verbose)
                         errorStream << "container " << container << " has " <<
                             container->getNumSubdomains() << " subdomains" << std::endl;
                     subdomainIndex[container] = 0;
                     subdomain[container] = container->getIndex(subdomainIndex[container]);
                     numElementsProcessed[container] = 0;
-                    if (options.verbose)
+                    if (m_options.verbose)
                         errorStream << "Loading domaindata 0 for container " << container
                             << " (element = " << i << ")" << std::endl;
                     dc.readDomainLazy(subdomain[container]);
@@ -125,7 +125,7 @@ void ToolsSplashParallel::printParticles(std::vector<ExDataContainer> fileData)
                         subdomainIndex[container]++;
                         numElementsProcessed[container] = 0;
                         subdomain[container] = container->getIndex(subdomainIndex[container]);
-                        if (options.verbose)
+                        if (m_options.verbose)
                             errorStream << std::endl << "Loading domaindata " << subdomainIndex[container] <<
                                 " for container " << container << " (element = " << i << ")" << std::endl;
                         dc.readDomainLazy(subdomain[container]);
@@ -135,17 +135,17 @@ void ToolsSplashParallel::printParticles(std::vector<ExDataContainer> fileData)
                 void* element = container->getElement(i);
                 assert(element != NULL);
 
-                printElement(data_type, element, iter->unit, options.delimiter);
+                printElement(data_type, element, iter->unit, m_options.delimiter);
                 numElementsProcessed[container]++;
             }
 
-            outStream << std::endl;
+            m_outStream << std::endl;
 
-            if (options.verbose && i % 100000 == 0)
+            if (m_options.verbose && i % 100000 == 0)
                 errorStream << "." << std::flush;
         }
 
-        if (options.verbose)
+        if (m_options.verbose)
             errorStream << std::endl;
     }
 }
@@ -154,15 +154,15 @@ void ToolsSplashParallel::printFields(std::vector<ExDataContainer> fileData)
 {
     if (fileData.size() > 0)
     {
-        if (options.verbose)
+        if (m_options.verbose)
             errorStream << "container = " << fileData.size() << std::endl;
 
         Dimensions domain_size = fileData[0].container->getSize();
         size_t size1, size2;
-        if (options.fieldDims[0])
+        if (m_options.fieldDims[0])
         {
             size1 = domain_size[0];
-            if (options.fieldDims[1])
+            if (m_options.fieldDims[1])
                 size2 = domain_size[1];
             else
                 size2 = domain_size[2];
@@ -172,7 +172,7 @@ void ToolsSplashParallel::printFields(std::vector<ExDataContainer> fileData)
             size2 = domain_size[2];
         }
 
-        if (options.isReverseSlice)
+        if (m_options.isReverseSlice)
         {
             size_t tmpSize = size1;
             size1 = size2;
@@ -185,7 +185,7 @@ void ToolsSplashParallel::printFields(std::vector<ExDataContainer> fileData)
 
             for (size_t i = 0; i < size1; ++i)
             {
-                if (!options.isReverseSlice)
+                if (!m_options.isReverseSlice)
                     index = j * size1 + i;
                 else
                     index = i * size2 + j;
@@ -199,24 +199,24 @@ void ToolsSplashParallel::printFields(std::vector<ExDataContainer> fileData)
                     void* element = iter->container->getElement(index);
                     assert(element != NULL);
 
-                    printElement(data_type, element, iter->unit, options.delimiter);
+                    printElement(data_type, element, iter->unit, m_options.delimiter);
                 }
             }
 
-            outStream << std::endl;
+            m_outStream << std::endl;
 
-            if (options.verbose && index % 100000 == 0)
+            if (m_options.verbose && index % 100000 == 0)
                 errorStream << "." << std::flush;
         }
 
-        if (options.verbose)
+        if (m_options.verbose)
             errorStream << std::endl;
     }
 }
 
 void ToolsSplashParallel::convertToText()
 {
-    if (options.data.size() == 0)
+    if (m_options.data.size() == 0)
         throw std::runtime_error("No datasets requested");
 
     ColTypeInt ctInt;
@@ -233,11 +233,11 @@ void ToolsSplashParallel::convertToText()
     DomainCollector::DomDataClass ref_data_class = DomainCollector::UndefinedType;
     try
     {
-        dc.readAttribute(options.step, options.data[0].c_str(), DOMCOL_ATTR_CLASS,
+        dc.readAttribute(m_options.step, m_options.data[0].c_str(), DOMCOL_ATTR_CLASS,
                 &ref_data_class, NULL);
     } catch (DCException)
     {
-        errorStream << "Error: No domain information for dataset '" << options.data[0] << "' available." << std::endl;
+        errorStream << "Error: No domain information for dataset '" << m_options.data[0] << "' available." << std::endl;
         errorStream << "This might not be a valid libSplash domain." << std::endl;
         return;
     }
@@ -245,11 +245,11 @@ void ToolsSplashParallel::convertToText()
     switch (ref_data_class)
     {
         case DomainCollector::GridType:
-            if (options.verbose)
+            if (m_options.verbose)
                 errorStream << "Converting GRID data" << std::endl;
             break;
         case DomainCollector::PolyType:
-            if (options.verbose)
+            if (m_options.verbose)
                 errorStream << "Converting POLY data" << std::endl;
             break;
         default:
@@ -257,21 +257,21 @@ void ToolsSplashParallel::convertToText()
     }
 
     Domain ref_total_domain;
-    ref_total_domain = dc.getGlobalDomain(options.step, options.data[0].c_str());
+    ref_total_domain = dc.getGlobalDomain(m_options.step, m_options.data[0].c_str());
 
-    for (std::vector<std::string>::const_iterator iter = options.data.begin();
-            iter != options.data.end(); ++iter)
+    for (std::vector<std::string>::const_iterator iter = m_options.data.begin();
+            iter != m_options.data.end(); ++iter)
     {
         // check that all datasets match to each other
         //
 
         DomainCollector::DomDataClass data_class = DomainCollector::UndefinedType;
-        dc.readAttribute(options.step, iter->c_str(), DOMCOL_ATTR_CLASS,
+        dc.readAttribute(m_options.step, iter->c_str(), DOMCOL_ATTR_CLASS,
                 &data_class, NULL);
         if (data_class != ref_data_class)
             throw std::runtime_error("All requested datasets must be of the same data class");
 
-        Domain total_domain = dc.getGlobalDomain(options.step, iter->c_str());
+        Domain total_domain = dc.getGlobalDomain(m_options.step, iter->c_str());
         if (total_domain != ref_total_domain)
             throw std::runtime_error("All requested datasets must map to the same domain");
 
@@ -282,7 +282,7 @@ void ToolsSplashParallel::convertToText()
         {
             // poly type
 
-            excontainer.container = dc.readDomain(options.step, iter->c_str(),
+            excontainer.container = dc.readDomain(m_options.step, iter->c_str(),
                     Domain(total_domain.getOffset(), total_domain.getSize()), NULL, true);
         } else
         {
@@ -292,9 +292,9 @@ void ToolsSplashParallel::convertToText()
             Dimensions domain_size(total_domain.getSize());
 
             for (int i = 0; i < 3; ++i)
-                if (options.fieldDims[i] == 0)
+                if (m_options.fieldDims[i] == 0)
                 {
-                    offset[i] = options.sliceOffset;
+                    offset[i] = m_options.sliceOffset;
                     if (offset[i] > total_domain.getBack()[i])
                         throw DCException("Requested offset outside of domain");
 
@@ -302,32 +302,32 @@ void ToolsSplashParallel::convertToText()
                     break;
                 }
 
-            excontainer.container = dc.readDomain(options.step, iter->c_str(),
+            excontainer.container = dc.readDomain(m_options.step, iter->c_str(),
                     Domain(offset, domain_size), NULL);
         }
 
         // read unit
         //
-        if (options.applyUnits)
+        if (m_options.applyUnits)
         {
             try
             {
-                dc.readAttribute(options.step, iter->c_str(), "sim_unit",
+                dc.readAttribute(m_options.step, iter->c_str(), "sim_unit",
                         &(excontainer.unit), NULL);
             } catch (DCException e)
             {
-                if (options.verbose)
+                if (m_options.verbose)
                     errorStream << "no unit for '" << iter->c_str() << "', defaulting to 1.0" << std::endl;
                 excontainer.unit = 1.0;
             }
 
-            if (options.verbose)
+            if (m_options.verbose)
                 errorStream << "Loaded dataset '" << iter->c_str() << "' with unit '" <<
                 excontainer.unit << "'" << std::endl;
         } else
         {
             excontainer.unit = 1.0;
-            if (options.verbose)
+            if (m_options.verbose)
                 errorStream << "Loaded dataset '" << iter->c_str() << "'" << std::endl;
         }
 
@@ -377,15 +377,15 @@ void ToolsSplashParallel::printAvailableDatasets(std::vector< DataCollector::DCE
         }
 
         // additional linebreak for new top-level group
-        outStream << std::string(matchingLength == 0, '\n');
+        m_outStream << std::string(matchingLength == 0, '\n');
         // align new entry with last matching group
-        outStream << intentation << std::string(lastMatchingDelimiter, ' ')
-                  << dataName.name.substr(lastMatchingDelimiter)
-                  << std::endl;
+        m_outStream << intentation << std::string(lastMatchingDelimiter, ' ')
+                    << dataName.name.substr(lastMatchingDelimiter)
+                    << std::endl;
 
         lastdataName = dataName.name;
     }
-    outStream << std::endl;
+    m_outStream << std::endl;
 }
 
 void ToolsSplashParallel::listAvailableDatasets()
@@ -395,7 +395,7 @@ void ToolsSplashParallel::listAvailableDatasets()
     dc.getEntryIDs(NULL, &num_entries);
     if (num_entries == 0)
     {
-        outStream << "no entries in file" << std::endl;
+        m_outStream << "no entries in file" << std::endl;
         return;
     }
 
@@ -403,18 +403,18 @@ void ToolsSplashParallel::listAvailableDatasets()
     dc.getEntryIDs(entries, NULL);
     std::sort(entries, entries + num_entries);
 
-    outStream << std::endl
-            << "first dump at: " << entries[0] << std::endl
-            << "number of dumps: " << num_entries << std::endl;
+    m_outStream << std::endl
+                << "first dump at: " << entries[0] << std::endl
+                << "number of dumps: " << num_entries << std::endl;
     if (num_entries > 1)
-        outStream << "spacing between dumps 0-1: "
-            << entries[1] - entries[0] << std::endl
-            << std::endl;
+        m_outStream << "spacing between dumps 0-1: "
+                    << entries[1] - entries[0] << std::endl
+                    << std::endl;
 
-    outStream << "available time steps:";
+    m_outStream << "available time steps:";
     for (size_t i = 0; i < num_entries; ++i)
-        outStream << " " << entries[i];
-    outStream << std::endl;
+        m_outStream << " " << entries[i];
+    m_outStream << std::endl;
 
     // available data sets in this file
     std::vector<DataCollector::DCEntry> dataTypeNames;
@@ -424,19 +424,19 @@ void ToolsSplashParallel::listAvailableDatasets()
     dc.getEntriesForID(entries[0], &(dataTypeNames.front()), NULL);
 
     // parse dataTypeNames vector in a nice way for stdout
-    outStream << "Available data field names:";
+    m_outStream << "Available data field names:";
     printAvailableDatasets(dataTypeNames, "  ");
 
     // global cell size and start
     try
     {
         Domain totalDomain = dc.getGlobalDomain(entries[0], (dataTypeNames.front().name.c_str()));
-        outStream << std::endl
-                << "Global domain: "
-                << totalDomain.toString() << std::endl;
+        m_outStream << std::endl
+                    << "Global domain: "
+                    << totalDomain.toString() << std::endl;
     } catch (DCException)
     {
-        outStream << std::endl << "(No domain information)" << std::endl;
+        m_outStream << std::endl << "(No domain information)" << std::endl;
     }
 
     delete[] entries;
