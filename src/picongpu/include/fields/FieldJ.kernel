@@ -127,7 +127,7 @@ struct ComputeCurrentPerFrame
 {
 
     HDINLINE ComputeCurrentPerFrame(const float_X deltaTime) :
-    deltaTime(deltaTime)
+    m_deltaTime(deltaTime)
     {
     }
 
@@ -152,12 +152,12 @@ struct ComputeCurrentPerFrame
                     pos,
                     vel,
                     charge,
-                    deltaTime
+                    m_deltaTime
                     );
     }
 
 private:
-    const PMACC_ALIGN(deltaTime, float_32);
+    const PMACC_ALIGN(m_deltaTime, float_32);
 };
 
 template<class T_CurrentInterpolation, class T_Mapping>

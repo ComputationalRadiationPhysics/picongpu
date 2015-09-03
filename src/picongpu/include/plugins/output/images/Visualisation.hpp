@@ -442,31 +442,31 @@ public:
     typedef typename ParticlesType::FrameType FrameType;
     typedef Output CreatorType;
 
-    Visualisation(std::string name, Output output, uint32_t notifyFrequency, DataSpace<DIM2> transpose, float_X slicePoint) :
-    output(output),
+    Visualisation(std::string name, Output output, uint32_t notifyPeriod, DataSpace<DIM2> transpose, float_X slicePoint) :
+    m_output(output),
     analyzerName(name),
     cellDescription(NULL),
     particleTag(ParticlesType::FrameType::getName()),
-    notifyFrequency(notifyFrequency),
-    transpose(transpose),
-    slicePoint(slicePoint),
+    m_notifyPeriod(notifyPeriod),
+    m_transpose(transpose),
+    m_slicePoint(slicePoint),
     isMaster(false),
     header(NULL),
     reduce(1024)
     {
         sliceDim = 0;
-        if (transpose.x() == 0 || transpose.y() == 0)
+        if (m_transpose.x() == 0 || m_transpose.y() == 0)
             sliceDim = 1;
-        if ((transpose.x() == 1 || transpose.y() == 1) && sliceDim == 1)
+        if ((m_transpose.x() == 1 || m_transpose.y() == 1) && sliceDim == 1)
             sliceDim = 2;
 
         Environment<>::get().PluginConnector().registerPlugin(this);
-        Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
+        Environment<>::get().PluginConnector().setNotificationPeriod(this, m_notifyPeriod);
     }
 
     virtual ~Visualisation()
     {
-        if (notifyFrequency > 0)
+        if (m_notifyPeriod > 0)
         {
             __delete(img);
             MessageHeader::destroy(header);
@@ -485,7 +485,7 @@ public:
         Window window(MovingWindow::getInstance().getWindow(currentStep));
 
         /*sliceOffset is only used in 3D*/
-        sliceOffset = (int) ((float_32) (window.globalDimensions.size[sliceDim]) * slicePoint) + window.globalDimensions.offset[sliceDim];
+        sliceOffset = (int) ((float_32) (window.globalDimensions.size[sliceDim]) * m_slicePoint) + window.globalDimensions.offset[sliceDim];
 
         if (!doDrawing())
         {
@@ -524,7 +524,7 @@ public:
              fieldB->getDeviceDataBox(),
              fieldJ->getDeviceDataBox(),
              img->getDeviceBuffer().getDataBox(),
-             transpose,
+             m_transpose,
              sliceOffset,
              globalOffset, sliceDim
              );
@@ -566,14 +566,14 @@ public:
 
         // add density color channel
         DataSpace<simDim> blockSize(MappingDesc::SuperCellSize::toRT());
-        DataSpace<DIM2> blockSize2D(blockSize[transpose.x()], blockSize[transpose.y()]);
+        DataSpace<DIM2> blockSize2D(blockSize[m_transpose.x()], blockSize[m_transpose.y()]);
 
         //create image particles
         __picKernelArea((kernelPaintParticles3D), *cellDescription, CORE + BORDER)
             (SuperCellSize::toRT().toDim3(), blockSize2D.productOfComponents() * sizeof (float_X))
             (particles->getDeviceParticlesBox(),
              img->getDeviceBuffer().getDataBox(),
-             transpose,
+             m_transpose,
              sliceOffset,
              globalOffset, sliceDim
              );
@@ -582,7 +582,7 @@ public:
         img->deviceToHost();
 
 
-        header->update(*cellDescription, window, transpose, currentStep);
+        header->update(*cellDescription, window, m_transpose, currentStep);
 
 
         __getTransactionEvent().waitForFinished(); //wait for copy picture
@@ -601,20 +601,20 @@ public:
         PMACC_AUTO(resultBox, gather(hostBox, *header));
         if (isMaster)
         {
-            output(resultBox.shift(header->window.offset), header->window.size, *header);
+            m_output(resultBox.shift(header->window.offset), header->window.size, *header);
         }
 
     }
 
     void init()
     {
-        if (notifyFrequency > 0)
+        if (m_notifyPeriod > 0)
         {
             assert(cellDescription != NULL);
             const DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
 
             Window window(MovingWindow::getInstance().getWindow(0));
-            sliceOffset = (int) ((float_32) (window.globalDimensions.size[sliceDim]) * slicePoint) + window.globalDimensions.offset[sliceDim];
+            sliceOffset = (int) ((float_32) (window.globalDimensions.size[sliceDim]) * m_slicePoint) + window.globalDimensions.offset[sliceDim];
 
 
             const DataSpace<simDim> gpus = Environment<simDim>::get().GridController().getGpuNodes();
@@ -624,7 +624,7 @@ public:
                 cellSizeArr[i] = cellSize[i];
 
             header = MessageHeader::create();
-            header->update(*cellDescription, window, transpose, 0, cellSizeArr, gpus);
+            header->update(*cellDescription, window, m_transpose, 0, cellSizeArr, gpus);
 
             img = new GridBuffer<float3_X, DIM2 > (header->node.maxSize);
 
@@ -662,18 +662,18 @@ private:
     GridBuffer<float3_X, DIM2 > *img;
 
     int sliceOffset;
-    uint32_t notifyFrequency;
-    float_X slicePoint;
+    uint32_t m_notifyPeriod;
+    float_X m_slicePoint;
 
     std::string analyzerName;
 
 
-    DataSpace<DIM2> transpose;
+    DataSpace<DIM2> m_transpose;
     uint32_t sliceDim;
 
     MessageHeader* header;
 
-    Output output;
+    Output m_output;
     GatherSlice gather;
     bool isMaster;
     algorithms::GlobalReduce reduce;

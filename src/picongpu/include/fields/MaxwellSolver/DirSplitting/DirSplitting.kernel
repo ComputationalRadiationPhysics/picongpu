@@ -36,8 +36,8 @@ struct DirSplittingKernel
 {
     typedef void result_type;
 
-    PMACC_ALIGN(totalLength,int);
-    DirSplittingKernel(int totalLength) : totalLength(totalLength) {}
+    PMACC_ALIGN(m_totalLength,int);
+    DirSplittingKernel(int totalLength) : m_totalLength(totalLength) {}
 
     template<typename CursorE, typename CursorB >
     DINLINE void propagate(CursorE cursorE, CursorB cursorB) const
@@ -78,7 +78,7 @@ struct DirSplittingKernel
         int threadPos_x = threadIdx.x;
 
         algorithm::cudaBlock::Foreach<BlockDim> foreach;
-        for (int x_offset = 0; x_offset < this->totalLength; x_offset += BlockDim::x::value)
+        for (int x_offset = 0; x_offset < this->m_totalLength; x_offset += BlockDim::x::value)
         {
             foreach(CacheE::Zone(), cacheE.origin(), globalE(-1 + x_offset, 0, 0), _1 = _2);
             foreach(CacheB::Zone(), cacheB.origin(), globalB(-1 + x_offset, 0, 0), _1 = _2);

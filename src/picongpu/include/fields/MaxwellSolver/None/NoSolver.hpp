@@ -57,11 +57,8 @@ namespace picongpu
         private:
             typedef MappingDesc::SuperCellSize SuperCellSize;
 
-            MappingDesc cellDescription;
-
         public:
-
-            NoSolver(MappingDesc cellDescription) : cellDescription(cellDescription)
+            NoSolver(MappingDesc)
             {
 
             }

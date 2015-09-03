@@ -42,59 +42,59 @@ public:
     static const uint32_t Dim = picongpu::simDim;
 
     TaskFieldReceiveAndInsert(Field &buffer) :
-    buffer(buffer),
-    state(Constructor)
+    m_buffer(buffer),
+    m_state(Constructor)
     {
     }
 
     virtual void init()
     {
-        state = Init;
+        m_state = Init;
         EventTask serialEvent = __getTransactionEvent();
 
         for (uint32_t i = 1; i < traits::NumberOfExchanges<Dim>::value; ++i)
         {
-            if (buffer.getGridBuffer().hasReceiveExchange(i))
+            if (m_buffer.getGridBuffer().hasReceiveExchange(i))
             {
                 __startAtomicTransaction(serialEvent);
-                FieldFactory::getInstance().createTaskFieldReceiveAndInsertExchange(buffer, i);
-                tmpEvent += __endTransaction();
+                FieldFactory::getInstance().createTaskFieldReceiveAndInsertExchange(m_buffer, i);
+                m_tmpEvent += __endTransaction();
             }
         }
-        state = WaitForReceived;
+        m_state = WaitForReceived;
     }
 
     bool executeIntern()
     {
-        switch (state)
+        switch (m_state)
         {
         case Init:
             break;
         case WaitForReceived:
-            if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
+            if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(m_tmpEvent.getTaskId()))
             {
-                state = Insert;
+                m_state = Insert;
             }
             break;
         case Insert:
-            state = Wait;
+            m_state = Wait;
             __startAtomicTransaction();
             for (uint32_t i = 1; i < traits::NumberOfExchanges<Dim>::value; ++i)
             {
-                if (buffer.getGridBuffer().hasReceiveExchange(i))
+                if (m_buffer.getGridBuffer().hasReceiveExchange(i))
                 {
-                    buffer.insertField(i);
+                    m_buffer.insertField(i);
                 }
             }
-            tmpEvent = __endTransaction();
-            state = WaitInsertFinished;
+            m_tmpEvent = __endTransaction();
+            m_state = WaitInsertFinished;
             break;
         case Wait:
             break;
         case WaitInsertFinished:
-            if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
+            if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(m_tmpEvent.getTaskId()))
             {
-                state = Finish;
+                m_state = Finish;
                 return true;
             }
             break;
@@ -136,9 +136,9 @@ private:
     };
 
 
-    Field& buffer;
-    state_t state;
-    EventTask tmpEvent;
+    Field& m_buffer;
+    state_t m_state;
+    EventTask m_tmpEvent;
 
 };
 

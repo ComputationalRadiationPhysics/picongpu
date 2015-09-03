@@ -81,8 +81,8 @@ public:
     void syncToDevice();
 
 private:
-    SimulationDataId datasetID;
-    GridLayout<simDim> gridLayout;
+    SimulationDataId m_datasetID;
+    GridLayout<simDim> m_gridLayout;
 
 
     FieldE *fieldE;
