@@ -1,6 +1,7 @@
 /**
  * Copyright 2013-2015 Felix Schmitt, Heiko Burau, Rene Widera,
- *                     Wolfgang Hoenig, Benjamin Worpitz
+ *                     Wolfgang Hoenig, Benjamin Worpitz,
+ *                     Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -59,6 +60,16 @@ typedef long long int int64_cu;
 #define HDINLINE __device__ __host__ __forceinline__
 #define DINLINE __device__ __forceinline__
 #define HINLINE __host__ inline
+
+/**
+ * CUDA architecture version (aka PTX ISA level)
+ * 0 for host compilation
+ */
+#ifndef __CUDA_ARCH__
+#   define PMACC_CUDA_ARCH 0
+#else
+#   define PMACC_CUDA_ARCH __CUDA_ARCH__
+#endif
 
 /*
  * Disable nvcc warning:
