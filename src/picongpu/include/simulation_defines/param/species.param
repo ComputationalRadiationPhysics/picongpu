@@ -65,7 +65,7 @@ typedef FieldToParticleInterpolation<UsedParticleShape, AssignedTrilinearInterpo
  * - currentSolver::currentSolver::EsirkepovNative<SHAPE> : generic version of currentSolverEsirkepov
  *   without optimization (~4x slower and needs more shared memory)
  */
-typedef currentSolver::Esirkepov<UsedParticleShape> UsedParticleCurrentSolver;
+typedef currentSolver::ZigZag<UsedParticleShape> UsedParticleCurrentSolver;
 
 /*! particle pusher configuration ----------------------------------------------
  *
