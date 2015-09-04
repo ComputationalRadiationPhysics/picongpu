@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2015 Heiko Burau, Rene Widera, Alexander Grund
+ * Copyright 2015 Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -20,12 +20,20 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 #pragma once
 
-#include "eventSystem/Manager.hpp"
-#include "eventSystem/tasks/StreamTask.hpp"
-#include "eventSystem/transactions/Transaction.hpp"
-#include "eventSystem/transactions/TransactionManager.hpp"
-#include "eventSystem/events/EventTask.hpp"
-#include "eventSystem/events/EventNotify.hpp"
-#include "eventSystem/tasks/Factory.hpp"
+#include "eventSystem/tasks/TaskKernel.hpp"
+#include "Environment.hpp"
+
+namespace PMacc{
+
+    void TaskKernel::activateChecks()
+    {
+        canBeChecked = true;
+        this->activate();
+
+        Environment<>::get().Manager().addTask(this);
+        __setTransactionEvent(EventTask(this->getId()));
+    }
+} //namespace PMacc

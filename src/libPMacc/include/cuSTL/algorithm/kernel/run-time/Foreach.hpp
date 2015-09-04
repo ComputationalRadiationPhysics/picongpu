@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -40,6 +40,7 @@
 
 #include "eventSystem/tasks/TaskKernel.hpp"
 #include "eventSystem/events/kernelEvents.hpp"
+#include "Environment.hpp"
 #include <cassert>
 
 namespace PMacc

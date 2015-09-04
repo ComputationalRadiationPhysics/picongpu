@@ -26,6 +26,7 @@
 
 #include "eventSystem/streams/EventStream.hpp"
 #include "types.h"
+#include "Environment.def"
 
 #include <cuda_runtime.h>
 

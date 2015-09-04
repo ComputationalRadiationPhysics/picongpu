@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2015 Heiko Burau, Rene Widera, Alexander Grund
+ * Copyright 2015 Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -22,10 +22,11 @@
 
 #pragma once
 
-#include "eventSystem/Manager.hpp"
-#include "eventSystem/tasks/StreamTask.hpp"
-#include "eventSystem/transactions/Transaction.hpp"
-#include "eventSystem/transactions/TransactionManager.hpp"
-#include "eventSystem/events/EventTask.hpp"
-#include "eventSystem/events/EventNotify.hpp"
-#include "eventSystem/tasks/Factory.hpp"
+#include "eventSystem/Manager.tpp"
+#include "eventSystem/tasks/StreamTask.tpp"
+#include "eventSystem/tasks/TaskKernel.tpp"
+#include "eventSystem/transactions/Transaction.tpp"
+#include "eventSystem/transactions/TransactionManager.tpp"
+#include "eventSystem/events/EventTask.tpp"
+#include "eventSystem/events/EventNotify.tpp"
+#include "eventSystem/tasks/Factory.tpp"

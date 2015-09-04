@@ -35,6 +35,8 @@
 #include "nvidia/memory/MemoryInfo.hpp"
 #include "mappings/simulation/Filesystem.hpp"
 
+#include "Environment.def"
+
 #include <cuda_runtime.h>
 
 namespace PMacc
@@ -44,7 +46,7 @@ namespace PMacc
  * Global Environment singleton for Picongpu
  */
 
-template <unsigned DIM = DIM1>
+template <unsigned DIM>
 class Environment
 {
 public:
@@ -246,4 +248,5 @@ private:
 #define __getTransactionEvent() (PMacc::Environment<>::get().TransactionManager().getTransactionEvent())
 #define __setTransactionEvent(event) (PMacc::Environment<>::get().TransactionManager().setTransactionEvent((event)))
 
+#include "eventSystem/EventSystem.tpp"
 #include "particles/tasks/ParticleFactory.tpp"
