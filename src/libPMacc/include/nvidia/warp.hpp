@@ -80,7 +80,7 @@ DINLINE uint32_t warpBroadcast(const uint32_t data, const int32_t srcLaneId)
             );
 }
 /**
- * Broadcast a 32bit unsigned int
+ * Broadcast a 64bit unsigned int
  * Maps to signed int function with no additional overhead
  */
 DINLINE uint64_cu warpBroadcast(const uint64_cu data, const int32_t srcLaneId)
