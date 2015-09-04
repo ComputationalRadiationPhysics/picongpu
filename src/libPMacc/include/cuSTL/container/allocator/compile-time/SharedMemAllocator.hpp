@@ -45,7 +45,6 @@ struct SharedMemAllocator<Type, Size, 1, uid>
     __device__ static Cursor allocate()
     {
         __shared__ Type shMem[Size::x::value];
-        __syncthreads(); /*wait that all shared memory is initialised*/
         return Cursor((Type*)shMem);
     }
 };
@@ -61,7 +60,6 @@ struct SharedMemAllocator<Type, Size, 2, uid>
     __device__ static Cursor allocate()
     {
         __shared__ Type shMem[Size::x::value][Size::y::value];
-        __syncthreads(); /*wait that all shared memory is initialised*/
         return Cursor((Type*)shMem);
     }
 };
@@ -78,7 +76,6 @@ struct SharedMemAllocator<Type, Size, 3, uid>
     __device__ static Cursor allocate()
     {
         __shared__ Type shMem[Size::x::value][Size::y::value][Size::z::value];
-        __syncthreads(); /*wait that all shared memory is initialised*/
         return Cursor((Type*)shMem);
     }
 };

@@ -97,7 +97,6 @@ public:
     static DINLINE This init()
     {
         __shared__ ValueType mem_sh[Size::x::value];
-        __syncthreads(); /*wait that all shared memory is initialised*/
         return This((ValueType*) mem_sh);
     }
 
@@ -157,7 +156,6 @@ public:
     static DINLINE This init()
     {
         __shared__ ValueType mem_sh[Size::y::value][Size::x::value];
-        __syncthreads(); /*wait that all shared memory is initialised*/
         return This((ValueType*) mem_sh);
     }
 
@@ -233,7 +231,6 @@ public:
     static DINLINE This init()
     {
         __shared__ ValueType mem_sh[Size::z::value][Size::y::value][Size::x::value];
-        __syncthreads(); /*wait that all shared memory is initialised*/
         return This((ValueType*) mem_sh);
     }
 
