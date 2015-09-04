@@ -49,7 +49,6 @@ DINLINE void absorb(BoxedMemory field, uint32_t thickness, float_X absorber_stre
 
     __shared__ int finish;
 
-    __syncthreads(); /*wait that all shared memory is initialised*/
 
     float_X factor = float_X(0.0);
 

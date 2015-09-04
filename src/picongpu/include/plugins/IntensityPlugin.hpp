@@ -59,7 +59,6 @@ __global__ void kernelIntensity(FieldBox field, DataSpace<simDim> cellsCount, Bo
     __shared__ float_X s_integrated[SuperCellSize::y::value];
     __shared__ float_X s_max[SuperCellSize::y::value];
 
-    __syncthreads(); /*wait that all shared memory is initialised*/
 
     /*descripe size of a worker block for cached memory*/
     typedef SuperCellDescription<

@@ -73,8 +73,7 @@ __global__ void kernelFillGridWithParticles(T_GasProfile gasFunctor,
 
     __shared__ FRAME *frame;
 
-    __syncthreads(); /*wait that all shared memory is initialised*/
-
+    
     typedef typename Mapping::SuperCellSize SuperCellSize;
 
     const DataSpace<simDim > threadIndex(threadIdx);

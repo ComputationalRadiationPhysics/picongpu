@@ -152,10 +152,6 @@ void kernelRadiationParticles(ParBox pb,
 
     const int theta_idx = blockIdx.x; //blockIdx.x is used to determine theta
     const uint32_t linearThreadIdx = threadIdx.x; // used for determine omega and particle id
-    // old:  DataSpaceOperations<DIM3>::map<Block > (DataSpace<DIM3 > (threadIdx));
-
-
-    __syncthreads(); /*wait that all shared memory is initialized*/
 
 
     // simulation time (needed for retarded time)

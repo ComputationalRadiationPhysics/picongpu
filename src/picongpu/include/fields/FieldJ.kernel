@@ -85,8 +85,6 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
     /* This memory is used by all virtual blocks*/
     PMACC_AUTO(cachedJ, CachedBox::create < 0, typename JBox::ValueType > (BlockDescription_()));
 
-    __syncthreads();
-
     Set<typename JBox::ValueType > set(float3_X::create(0.0));
     ThreadCollective<BlockDescription_, cellsPerSuperCell * workerMultiplier> collectiveSet(linearThreadIdx);
     collectiveSet(set, cachedJ);

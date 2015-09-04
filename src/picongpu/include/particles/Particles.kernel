@@ -68,7 +68,6 @@ __global__ void kernelCloneParticles(ParticlesBox<MYFRAME, simDim> myBox, Partic
     __shared__ bool isValid;
     typedef typename Mapping::SuperCellSize SuperCellSize;
 
-    __syncthreads(); /*wait that all shared memory is initialised*/
 
     const DataSpace<Mapping::Dim> block = mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx));
 
@@ -122,7 +121,6 @@ __global__ void kernelManipulateAllParticles(T_ParBox pb,
     __shared__ bool isValid;
     typedef typename Mapping::SuperCellSize SuperCellSize;
 
-    __syncthreads(); /*wait that all shared memory is initialised*/
 
     const DataSpace<simDim > threadIndex(threadIdx);
     const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
@@ -190,7 +188,6 @@ __global__ void kernelMoveAndMarkParticles(ParBox pb,
     __shared__ int mustShift;
     lcellId_t particlesInSuperCell;
 
-    __syncthreads(); /*wait that all shared memory is initialised*/
 
     if (linearThreadIdx == 0)
     {

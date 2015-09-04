@@ -78,8 +78,6 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
      */
     extern __shared__ float_X shBin[]; /* size must be numBins+2 because we have <min and >max */
 
-    __syncthreads(); /*wait that all shared memory is initialised*/
-
     int realNumBins = numBins + 2;
 
 

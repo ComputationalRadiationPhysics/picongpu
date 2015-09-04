@@ -276,7 +276,7 @@ kernelPaintParticles3D(ParBox pb,
     typedef typename MappingDesc::SuperCellSize Block;
     __shared__ FRAME *frame;
     __shared__ bool isValid;
-    __syncthreads(); /*wait that all shared memory is initialised*/
+
     bool isImageThread = false;
 
     const DataSpace<simDim> threadId(threadIdx);
@@ -318,7 +318,6 @@ kernelPaintParticles3D(ParBox pb,
     // counter is always DIM2
     typedef DataBox < PitchedBox< float_X, DIM2 > > SharedMem;
     extern __shared__ float_X shBlock[];
-    __syncthreads(); /*wait that all shared memory is initialised*/
 
     const DataSpace<simDim> blockSize(blockDim);
     SharedMem counter(PitchedBox<float_X, DIM2 > ((float_X*) shBlock,
