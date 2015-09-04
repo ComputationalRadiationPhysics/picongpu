@@ -57,10 +57,10 @@ namespace nvidia
         struct AtomicAllIncIsOptimized
         {
             enum{
-                value = boost::is_same<T,  int32_t>::value ||
-                        boost::is_same<T, uint32_t>::value ||
-                        boost::is_same<T,  int64_cu>::value ||
-                        boost::is_same<T, uint64_cu>::value ||
+                value = boost::is_same<T,          int>::value ||
+                        boost::is_same<T, unsigned int>::value ||
+                        boost::is_same<T,          long long int>::value ||
+                        boost::is_same<T, unsigned long long int>::value ||
                         boost::is_same<T, float>::value
             };
         };
@@ -103,19 +103,19 @@ namespace nvidia
         };
 
         /**
-         * Optimized version for int64_cu.
-         * As CUDA atomicAdd does not support int64_cu directly we just cast it
-         * and call the uint64_cu implementation
+         * Optimized version for int64.
+         * As CUDA atomicAdd does not support int64 directly we just cast it
+         * and call the uint64 implementation
          */
         template<>
-        struct AtomicAllIncKepler<int64_cu, true>
+        struct AtomicAllIncKepler<long long int, true>
         {
-            DINLINE int64_cu
-            operator()(int64_cu* ptr)
+            DINLINE long long int
+            operator()(long long int* ptr)
             {
-                return static_cast<int64_cu>(
-                        AtomicAllIncKepler<uint64_cu>()(
-                                reinterpret_cast<uint64_cu*>(ptr)
+                return static_cast<long long int>(
+                        AtomicAllIncKepler<unsigned long long int>()(
+                                reinterpret_cast<unsigned long long int*>(ptr)
                         )
                 );
             }
