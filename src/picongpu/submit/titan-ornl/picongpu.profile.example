@@ -3,14 +3,15 @@ export TBG_mailAdress="mail@example.com"
 
 # basic environment #################################################
 source /opt/modules/3.2.6.7/init/bash
+module load craype-accel-nvidia35
 module swap PrgEnv-pgi PrgEnv-gnu
 # module swap gcc gcc/4.8.2 # default
 
 # Compile for CLE nodes
 #   (CMake likes to unwrap the Cray wrappers)
-export CC="`which cc` -target=compute_node"
-export CXX="`which CC` -target=compute_node"
-export FC="`which ftn` -target=compute_node"
+export CC=`which cc`
+export CXX=`which CC`
+export FC=`which ftn`
 #export LD="/sw/xk6/altd/bin/ld"
 
 # symbol bug work around (should not be required)
