@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -23,7 +23,6 @@
 #include "types.h"
 #include "particles/memory/boxes/ParticlesBox.hpp"
 #include "particles/memory/boxes/PushDataBox.hpp"
-#include "particles/memory/boxes/PopDataBox.hpp"
 #include "particles/memory/boxes/TileDataBox.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
 #include "mappings/kernel/ExchangeMapping.hpp"
@@ -571,7 +570,7 @@ __global__ void kernelInsertParticles(ParticlesBox<FRAME, Mapping::Dim> pb,
 
     if (threadIdx.x == 0)
     {
-        tmpBorder = border.pop(superCell);
+        tmpBorder = border.get(blockIdx.x,superCell);
         elementCount = tmpBorder.getSize();
         if (elementCount > 0)
         {

@@ -24,7 +24,6 @@
 
 #include "particles/memory/dataTypes/ExchangeMemoryIndex.hpp"
 #include "particles/memory/boxes/TileDataBox.hpp"
-#include "particles/memory/boxes/PopDataBox.hpp"
 
 #include "memory/boxes/DataBox.hpp"
 #include "memory/boxes/PitchedBox.hpp"
@@ -39,32 +38,28 @@ class ExchangePopDataBox : public DataBox<PitchedBox<VALUE, DIM1> >
 public:
     typedef ExchangeMemoryIndex<TYPE, DIM> PopType;
 
-    HDINLINE ExchangePopDataBox(VALUE *data,
-                               PopDataBox<TYPE, PopType > virtualMemory) :
-    DataBox<PitchedBox<VALUE, DIM1> >(PitchedBox<VALUE, DIM1>(data, DataSpace<DIM1>())),
-    virtualMemory(virtualMemory)
+    HDINLINE ExchangePopDataBox(DataBox<PitchedBox<VALUE, DIM1> > data,
+                                DataBox<PitchedBox<PopType, DIM1> > virtualMemory
+                               ) :
+                                  DataBox<PitchedBox<VALUE, DIM1> >(data),
+                                  virtualMemory(virtualMemory)
     {
 
     }
 
-    HDINLINE TileDataBox<VALUE> pop(DataSpace<DIM> &superCell)
+    HDINLINE
+    TileDataBox<VALUE> get(TYPE idx, DataSpace<DIM> &superCell)
     {
+        PopType tmp = virtualMemory[idx];
 
-        TileDataBox<PopType> tmp = virtualMemory.popN(1);
-        if (tmp.getSize() == 0)
-        {
-            return TileDataBox<VALUE > (NULL);
-        }
-        superCell = tmp[0].getSuperCell();
+        superCell = tmp.getSuperCell();
         return TileDataBox<VALUE > (this->fixedPointer,
-                                    DataSpace<DIM1 > (tmp[0].getStartIndex()),
-                                    tmp[0].getCount());
+                                    DataSpace<DIM1 > (tmp.getStartIndex()),
+                                    tmp.getCount());
     }
-
-
 
 protected:
-    PMACC_ALIGN8(virtualMemory, PopDataBox<TYPE, PopType >);
+    PMACC_ALIGN8(virtualMemory, DataBox<PitchedBox<PopType, DIM1> >);
 };
 
 }

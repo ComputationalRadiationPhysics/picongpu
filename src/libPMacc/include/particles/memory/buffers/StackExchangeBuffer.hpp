@@ -79,11 +79,9 @@ namespace PMacc
         ExchangePopDataBox<vint_t, FRAME, DIM> getHostExchangePopDataBox()
         {
             return ExchangePopDataBox<vint_t, FRAME, DIM > (
-                                                            stack.getHostBuffer().getBasePointer(),
-                                                            PopDataBox<vint_t, FRAMEINDEX > (
-                                                                                             stackIndexer.getHostBuffer().getBasePointer(),
-                                                                                             (vint_t*) stackIndexer.getHostBuffer().getCurrentSizePointer(),
-                                                                                             (vint_t) stackIndexer.getHostBuffer().getCurrentSize()));
+                                                            stack.getHostBuffer().getDataBox(),
+                                                            stackIndexer.getHostBuffer().getDataBox()
+                                                           );
         }
 
         /**
@@ -112,11 +110,9 @@ namespace PMacc
         ExchangePopDataBox<vint_t, FRAME, DIM> getDeviceExchangePopDataBox()
         {
             return ExchangePopDataBox<vint_t, FRAME, DIM > (
-                                                            stack.getDeviceBuffer().getBasePointer(),
-                                                            PopDataBox<vint_t, FRAMEINDEX > (
-                                                                                             stackIndexer.getDeviceBuffer().getBasePointer(),
-                                                                                             (vint_t*) stackIndexer.getDeviceBuffer().getCurrentSizeOnDevicePointer(),
-                                                                                             (vint_t) stackIndexer.getDeviceBuffer().getCurrentSize()));
+                                                            stack.getDeviceBuffer().getDataBox(),
+                                                            stackIndexer.getDeviceBuffer().getDataBox()
+                                                           );
         }
 
         void setCurrentSize(const size_t size)

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -89,17 +89,16 @@ namespace PMacc
         if (particlesBuffer->hasReceiveExchange(exchangeType))
         {
 
-            dim3 grid(particlesBuffer->getReceiveExchangeStack(exchangeType).getHostCurrentSize());
-            if (grid.x != 0)
+            size_t grid(particlesBuffer->getReceiveExchangeStack(exchangeType).getHostCurrentSize());
+            if (grid != 0)
             {
-              //  std::cout<<"insert = "<<grid.x()<<std::endl;
                 ExchangeMapping<GUARD, MappingDesc> mapper(this->cellDescription, exchangeType);
                 __cudaKernel(kernelInsertParticles)
                         (grid, TileSize)
                         (particlesBuffer->getDeviceParticleBox(),
                         particlesBuffer->getReceiveExchangeStack(exchangeType).getDeviceExchangePopDataBox(),
                         mapper);
-                }
+            }
         }
     }
 

@@ -193,9 +193,9 @@ public:
 
         size_t numBorderFrames = usedMemory / SizeOfOneBorderElement;
 
-        framesExchanges->addExchangeBuffer(receive, DataSpace<DIM1 > (numBorderFrames), communicationTag, true);
+        framesExchanges->addExchangeBuffer(receive, DataSpace<DIM1 > (numBorderFrames), communicationTag, true, false);
 
-        exchangeMemoryIndexer->addExchangeBuffer(receive, DataSpace<DIM1 > (numBorderFrames), communicationTag | (1u << (20 - 5)), true);
+        exchangeMemoryIndexer->addExchangeBuffer(receive, DataSpace<DIM1 > (numBorderFrames), communicationTag | (1u << (20 - 5)), true, false);
     }
 
     /**
@@ -272,7 +272,7 @@ public:
     {
 
         return framesExchanges->asyncCommunication(serialEvent) +
-            exchangeMemoryIndexer->asyncCommunication(serialEvent);
+               exchangeMemoryIndexer->asyncCommunication(serialEvent);
     }
 
     EventTask asyncSendParticles(EventTask serialEvent, uint32_t ex, EventTask &gpuFree)
@@ -338,7 +338,7 @@ private:
     GridBuffer<PopPushType, DIM1> *exchangeMemoryIndexer;
 
     GridBuffer<SuperCellType, DIM> *superCells;
-    /*gridbuffer for hold borderFrames, we need a own buffer to create first exchanges without core momory*/
+    /*GridBuffer for hold borderFrames, we need a own buffer to create first exchanges without core memory*/
     GridBuffer< ParticleType, DIM1, ParticleTypeBorder> *framesExchanges;
 
     DataSpace<DIM> superCellSize;
