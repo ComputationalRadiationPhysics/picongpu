@@ -1,10 +1,10 @@
 # - Find PNGwriter library,
 #     a C++ library for creating PNG images
-#     https://github.com/ax3l/pngwriter
+#     https://github.com/pngwriter/pngwriter
 #
 # Use this module by invoking find_package with the form:
 #   find_package(PNGwriter
-#     [version] [EXACT]     # Minimum or EXACT version, e.g. 0.5.4
+#     [version] [EXACT]     # Minimum or EXACT version, e.g. 0.5.5
 #     [REQUIRED]            # Fail with an error if PNGwriter or a required
 #                           #   component is not found
 #     [QUIET]               # Do not warn if this module was not found
@@ -122,13 +122,49 @@ if(PNGwriter_FOUND)
 
     else(FREETYPE_FOUND)
         # this flag is important for pngwriter headers, see
-        # https://github.com/ax3l/pngwriter/issues/7
+        # https://github.com/pngwriter/pngwriter/issues/7
         list(APPEND PNGwriter_DEFINITIONS "-DNO_FREETYPE")
     endif(FREETYPE_FOUND)
 
     # version string ##########################################################
     #
-    set(PNGwriter_VERSION "0.5.4")
+    file(STRINGS "${PNGwriter_ROOT_DIR}/include/pngwriter.h"
+         PNGwriter_VERSION_MAJOR_HPP REGEX "#define PNGWRITER_VERSION_MAJOR ")
+    file(STRINGS "${PNGwriter_ROOT_DIR}/include/pngwriter.h"
+         PNGwriter_VERSION_MINOR_HPP REGEX "#define PNGWRITER_VERSION_MINOR ")
+    file(STRINGS "${PNGwriter_ROOT_DIR}/include/pngwriter.h"
+         PNGwriter_VERSION_PATCH_HPP REGEX "#define PNGWRITER_VERSION_PATCH ")
+    if(PNGwriter_VERSION_MAJOR_HPP)
+        string(REGEX MATCH "([0-9]+)" PNGwriter_VERSION_MAJOR
+                                    ${PNGwriter_VERSION_MAJOR_HPP})
+        string(REGEX MATCH "([0-9]+)" PNGwriter_VERSION_MINOR
+                                    ${PNGwriter_VERSION_MINOR_HPP})
+        string(REGEX MATCH "([0-9]+)" PNGwriter_VERSION_PATCH
+                                    ${PNGwriter_VERSION_PATCH_HPP})
+
+        set(PNGwriter_VERSION "${PNGwriter_VERSION_MAJOR}.${PNGwriter_VERSION_MINOR}.${PNGwriter_VERSION_PATCH}")
+        unset(PNGwriter_VERSION_MAJOR)
+        unset(PNGwriter_VERSION_MINOR)
+        unset(PNGwriter_VERSION_PATCH)
+    else()
+        # fallback for versions before 0.5.5: 0.XY == 0.X.Y
+        file(STRINGS "${PNGwriter_ROOT_DIR}/include/pngwriter.h"
+               PNGwriter_VERSION_DEFINE
+               REGEX "^[ \t]*#[ \t]*define[ \t]+PNGWRITER_VERSION[ \t]+")
+        if("${PNGwriter_VERSION_DEFINE}" MATCHES
+            "PNGWRITER_VERSION[ \t]+(0\\.[0-9])[0-9].*")
+            set(PNGwriter_VERSION "${CMAKE_MATCH_1}")
+        endif()
+        if("${PNGwriter_VERSION_DEFINE}" MATCHES
+            "PNGWRITER_VERSION[ \t]+0\\.[0-9]([0-9]).*")
+            set(PNGwriter_VERSION "${PNGwriter_VERSION}.${CMAKE_MATCH_1}")
+        endif()
+        unset(PNGwriter_VERSION_DEFINE)
+    endif()
+
+    unset(PNGwriter_VERSION_MAJOR_HPP)
+    unset(PNGwriter_VERSION_MINOR_HPP)
+    unset(PNGwriter_VERSION_PATCH_HPP)
 
 else(PNGwriter_FOUND)
     message(STATUS "Can NOT find PNGwriter - set PNGWRITER_ROOT")
