@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Rene Widera
+ * Copyright 2015 Rene Widera, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -51,9 +51,65 @@ DINLINE uint32_t getLaneId()
  * required PTX ISA >=3.0
  */
 #if (__CUDA_ARCH__ >= 300)
-DINLINE int warpBroadcast(const int data, const int srcLaneId)
+DINLINE int32_t warpBroadcast(const int32_t data, const int32_t srcLaneId)
 {
     return  __shfl(data, srcLaneId);
+}
+/**
+ * Broadcast a 64bit integer by using 2 32bit broadcasts
+ */
+DINLINE int64_cu warpBroadcast(const int64_cu data, const int32_t srcLaneId)
+{
+    union{
+        int32_t dataHi, dataLo;
+        int64_cu data64;
+    } dataUnion;
+    dataUnion.data64 = data;
+    warpBroadcast(dataUnion.dataHi, srcLaneId);
+    warpBroadcast(dataUnion.dataLo, srcLaneId);
+    return dataUnion.data64;
+}
+/**
+ * Broadcast a 32bit unsigned int
+ * Maps to signed int function with no additional overhead
+ */
+DINLINE uint32_t warpBroadcast(const uint32_t data, const int32_t srcLaneId)
+{
+    return static_cast<uint32_t>(
+            warpBroadcast(static_cast<int32_t>(data), srcLaneId)
+            );
+}
+/**
+ * Broadcast a 64bit unsigned int
+ * Maps to signed int function with no additional overhead
+ */
+DINLINE uint64_cu warpBroadcast(const uint64_cu data, const int32_t srcLaneId)
+{
+    return static_cast<uint64_cu>(
+            warpBroadcast(static_cast<uint64_cu>(data), srcLaneId)
+            );
+}
+
+/**
+ * Broadcast a 32bit float
+ */
+DINLINE float warpBroadcast(const float data, const int32_t srcLaneId)
+{
+    return  __shfl(data, srcLaneId);
+}
+/**
+ * Broadcast a 64bit float by using 2 32bit broadcasts
+ */
+DINLINE double warpBroadcast(const double data, const int32_t srcLaneId)
+{
+    union{
+        float dataHi, dataLo;
+        double data64;
+    } dataUnion;
+    dataUnion.data64 = data;
+    warpBroadcast(dataUnion.dataHi, srcLaneId);
+    warpBroadcast(dataUnion.dataLo, srcLaneId);
+    return dataUnion.data64;
 }
 #endif
 

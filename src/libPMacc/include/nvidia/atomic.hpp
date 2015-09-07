@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Rene Widera
+ * Copyright 2015 Rene Widera, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -25,8 +25,10 @@
 
 #include "types.h"
 #include "nvidia/warp.hpp"
+#include <boost/type_traits.hpp>
 #include <math_functions.h>
 #include <device_functions.h>
+#include <climits>
 
 
 namespace PMacc
@@ -34,40 +36,113 @@ namespace PMacc
 namespace nvidia
 {
 
+    namespace detail {
+
+        template<typename T_Type, bool T_isKepler>
+        struct AtomicAllInc
+        {
+            DINLINE T_Type
+            operator()(T_Type* ptr)
+            {
+                return atomicAdd(ptr, 1);
+            }
+        };
+
+#if PMACC_CUDA_ARCH >= 300
+       /**
+         * Trait that returns whether an optimized version of AtomicAllInc
+         * exists for Kepler architectures (and up)
+         */
+        template<typename T>
+        struct AtomicAllIncIsOptimized
+        {
+            enum{
+                value = boost::is_same<T,          int>::value ||
+                        boost::is_same<T, unsigned int>::value ||
+                        boost::is_same<T,          long long int>::value ||
+                        boost::is_same<T, unsigned long long int>::value ||
+                        boost::is_same<T, float>::value
+            };
+        };
+
+        /**
+         * AtomicAllInc for Kepler and up
+         * Defaults to unoptimized version for unsupported types
+         */
+        template<typename T_Type, bool T_UseOptimized = AtomicAllIncIsOptimized<T_Type>::value>
+        struct AtomicAllIncKepler: public AtomicAllInc<T_Type, false>
+        {};
+
+        /**
+         * Optimized version
+         *
+         * This warp aggregated atomic increment implementation based on nvidia parallel forall example
+         * http://devblogs.nvidia.com/parallelforall/cuda-pro-tip-optimized-filtering-warp-aggregated-atomics/
+         * (author: Andrew Adinetz, date: October 1th, 2014)
+         *
+         */
+        template<typename T_Type>
+        struct AtomicAllIncKepler<T_Type, true>
+        {
+            DINLINE T_Type
+            operator()(T_Type* ptr)
+            {
+                /* Get a bitmask with 1 for each thread in the warp, that executes this */
+                const int mask = __ballot(1);
+                /* select the leader */
+                const int leader = __ffs(mask) - 1;
+                T_Type result;
+                const int laneId = getLaneId();
+                /* Get the start value for this warp */
+                if (laneId == leader)
+                    result = atomicAdd(ptr, static_cast<T_Type>(__popc(mask)));
+                result = warpBroadcast(result, leader);
+                /* Add offset per thread */
+                return result + static_cast<T_Type>(__popc(mask & ((1 << laneId) - 1)));
+            }
+        };
+
+        /**
+         * Optimized version for int64.
+         * As CUDA atomicAdd does not support int64 directly we just cast it
+         * and call the uint64 implementation
+         */
+        template<>
+        struct AtomicAllIncKepler<long long int, true>
+        {
+            DINLINE long long int
+            operator()(long long int* ptr)
+            {
+                return static_cast<long long int>(
+                        AtomicAllIncKepler<unsigned long long int>()(
+                                reinterpret_cast<unsigned long long int*>(ptr)
+                        )
+                );
+            }
+        };
+
+        template<typename T_Type>
+        struct AtomicAllInc<T_Type, true>: public AtomicAllIncKepler<T_Type>
+        {};
+#endif /* PMACC_CUDA_ARCH >= 300 */
+
+    }  // namespace detail
+
 /** optimized atomic increment
  *
  * - only optimized if PTX ISA >=3.0
- * - this atomic uses warp aggregation to speedup the operation compared to
- *   cuda `atomicInc()`
- * - cuda `atomicAdd()` is used if the compute architecture not supports
- *   warp aggregation
- *   is used
- * - all participate threads must change the same
- *   pointer (ptr) else the result is unspecified
+ * - this atomic uses warp aggregation to speedup the operation compared to cuda `atomicInc()`
+ * - cuda `atomicAdd()` is used if the compute architecture does not support warp aggregation
+ * - all participate threads must change the same pointer (ptr) else the result is unspecified
  *
  * @param ptr pointer to memory (must be the same address for all threads in a block)
  *
- * This warp aggregated atomic increment implementation based on
- * nvidia parallel forall example
- * http://devblogs.nvidia.com/parallelforall/cuda-pro-tip-optimized-filtering-warp-aggregated-atomics/
  */
+template<typename T>
 DINLINE
-int atomicAllInc(int *ptr)
+T atomicAllInc(T *ptr)
 {
-#if (__CUDA_ARCH__ >= 300)
-    const int mask = __ballot(1);
-    /* select the leader */
-    const int leader = __ffs(mask) - 1;
-    int restult;
-    const int lanId = getLaneId();
-    if (lanId == leader)
-        restult = atomicAdd(ptr, __popc(mask));
-    restult = warpBroadcast(restult, leader);
-    /* each thread computes its own value */
-    return restult + __popc(mask & ((1 << lanId) - 1));
-#else
-    return atomicAdd(ptr,1);
-#endif
+    return detail::AtomicAllInc<T, (PMACC_CUDA_ARCH >= 300) >()(ptr);
 }
 
 /** optimized atomic value exchange
