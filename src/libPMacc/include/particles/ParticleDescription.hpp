@@ -23,8 +23,8 @@
 #pragma once
 
 #include "HandleGuardRegion.hpp"
-#include "particles/ExchangeParticles.hpp"
-#include "particles/DeleteParticles.hpp"
+#include "particles/policies/ExchangeParticles.hpp"
+#include "particles/policies/DeleteParticles.hpp"
 #include <boost/mpl/vector.hpp>
 #include "compileTime/conversion/ToSeq.hpp"
 
@@ -57,7 +57,7 @@ typename T_Name,
 typename T_SuperCellSize,
 typename T_ValueTypeSeq,
 typename T_Flags = bmpl::vector0<>,
-typename T_HandleGuardRegion = HandleGuardRegion<particles::ExchangeParticles, particles::DeleteParticles>,
+typename T_HandleGuardRegion = HandleGuardRegion<particles::policies::ExchangeParticles, particles::policies::DeleteParticles>,
 typename T_MethodsList = bmpl::vector0<>,
 typename T_FrameExtensionList = bmpl::vector0<>
 >

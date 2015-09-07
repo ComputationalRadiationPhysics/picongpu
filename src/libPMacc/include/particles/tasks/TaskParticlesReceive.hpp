@@ -70,9 +70,9 @@ namespace PMacc
 
                 /* Handle particles */
                 if (parBase.getParticlesBuffer().hasReceiveExchange(i))
-                    handleExchanged.handleOutgoing(parBase, i);
+                    handleExchanged.handleIncoming(parBase, i);
                 else
-                    handleNotExchanged.handleOutgoing(parBase, i);
+                    handleNotExchanged.handleIncoming(parBase, i);
 
                 /* End transaction */
                 tmpEvent += __endTransaction();

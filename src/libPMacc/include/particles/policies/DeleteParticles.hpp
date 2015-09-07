@@ -22,36 +22,33 @@
 
 #pragma once
 
-#include "types.h"
-#include "Environment.hpp"
-
 namespace PMacc {
 namespace particles {
+namespace policies {
 
     /**
-     * Policy for \see HandleGuardRegion that moves particles from guard cells to exchange buffers
-     * and sends those to the correct neighbors
+     * Policy for HandleGuardParticles that removes all particles from guard cells
      */
-    struct ExchangeParticles
+    struct DeleteParticles
     {
         /* Particles are removed from the guard cells, hence frames are modified/deleted */
         static const bool needAtomicOut = true;
-        static const bool needAtomicIn  = true;
+        /* Nothing is done on incoming side */
+        static const bool needAtomicIn  = false;
 
         template< class T_Particles >
         void
         handleOutgoing(T_Particles& par, int32_t direction) const
         {
-            Environment<>::get().ParticleFactory().createTaskSendParticlesExchange(par, direction);
+            par.deleteGuardParticles(direction);
         }
 
         template< class T_Particles >
         void
         handleIncoming(T_Particles& par, int32_t direction) const
-        {
-            Environment<>::get().ParticleFactory().createTaskReceiveParticlesExchange(par, direction);
-        }
+        {}
     };
 
+}  // namespace policies
 }  // namespace particles
 }  // namespace PMacc
