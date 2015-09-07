@@ -76,9 +76,9 @@ namespace nvidia
         /**
          * Optimized version
          *
-         * This warp aggregated atomic increment implementation based on
-         * nvidia parallel forall example
+         * This warp aggregated atomic increment implementation based on nvidia parallel forall example
          * http://devblogs.nvidia.com/parallelforall/cuda-pro-tip-optimized-filtering-warp-aggregated-atomics/
+         * (author: Andrew Adinetz, date: October 1th, 2014)
          *
          */
         template<typename T_Type>
