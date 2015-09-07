@@ -22,6 +22,9 @@
 
 #pragma once
 
+#include "HandleGuardRegion.hpp"
+#include "particles/policies/ExchangeParticles.hpp"
+#include "particles/policies/DeleteParticles.hpp"
 #include <boost/mpl/vector.hpp>
 #include "compileTime/conversion/ToSeq.hpp"
 
@@ -34,19 +37,19 @@ namespace PMacc
  * The class holds information about the name, attributes, flags and methods of a
  * particle.
  *
- * @tparam T_Name name of discribed particle (e.g. electron, ion)
+ * @tparam T_Name name of described particle (e.g. electron, ion)
  *                type must be a boost::mpl::string
  * @tparam T_SuperCellSize compile time size of a super cell
  * @tparam T_ValueTypeSeq sequence or single type with value_identifier
- * @tparam T_Flags sequence or single type with identifier to add fags on a frame
+ * @tparam T_Flags sequence or single type with identifier to add flags on a frame
  * @tparam T_MethodsList sequence or single class with particle methods
  *                       (e.g. calculate mass, gamma, ...)
  *                       (e.g. useSolverXY, calcRadiation, ...)
- * @tparam T_FrameExtensionList sequence or single class with frame extentions
+ * @tparam T_FrameExtensionList sequence or single class with frame extensions
  *                    - extension must be an unary template class that supports bmpl::apply1<>
- *                    - type of the finale frame is applied to each extension class
+ *                    - type of the final frame is applied to each extension class
  *                      (this allows pointers and references to a frame itself)
- *                    - the finale frame that uses ParticleDescription inherits from all
+ *                    - the final frame that uses ParticleDescription inherits from all
  *                      extension classes
  */
 template<
@@ -54,6 +57,7 @@ typename T_Name,
 typename T_SuperCellSize,
 typename T_ValueTypeSeq,
 typename T_Flags = bmpl::vector0<>,
+typename T_HandleGuardRegion = HandleGuardRegion<particles::policies::ExchangeParticles, particles::policies::DeleteParticles>,
 typename T_MethodsList = bmpl::vector0<>,
 typename T_FrameExtensionList = bmpl::vector0<>
 >
@@ -62,14 +66,16 @@ struct ParticleDescription
     typedef T_Name Name;
     typedef T_SuperCellSize SuperCellSize;
     typedef typename ToSeq<T_ValueTypeSeq>::type ValueTypeSeq;
-    typedef typename ToSeq<T_MethodsList>::type MethodsList;
     typedef typename ToSeq<T_Flags>::type FlagsList;
+    typedef T_HandleGuardRegion HandleGuardRegion;
+    typedef typename ToSeq<T_MethodsList>::type MethodsList;
     typedef typename ToSeq<T_FrameExtensionList>::type FrameExtensionList;
     typedef ParticleDescription<
         Name,
         SuperCellSize,
         ValueTypeSeq,
         FlagsList,
+        HandleGuardRegion,
         MethodsList,
         FrameExtensionList
     > ThisType;
@@ -92,6 +98,7 @@ struct ReplaceValueTypeSeq
     typename OldParticleDescription::SuperCellSize,
     typename ToSeq<T_NewValueTypeSeq>::type,
     typename OldParticleDescription::FlagsList,
+    typename OldParticleDescription::HandleGuardRegion,
     typename OldParticleDescription::MethodsList,
     typename OldParticleDescription::FrameExtensionList
     > type;
@@ -112,6 +119,7 @@ struct ReplaceFrameExtensionSeq
     typename OldParticleDescription::SuperCellSize,
     typename OldParticleDescription::ValueTypeSeq,
     typename OldParticleDescription::FlagsList,
+    typename OldParticleDescription::HandleGuardRegion,
     typename OldParticleDescription::MethodsList,
     typename ToSeq<T_FrameExtensionSeq>::type
     > type;

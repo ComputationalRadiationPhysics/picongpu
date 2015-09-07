@@ -29,18 +29,23 @@
 namespace PMacc
 {
 
-template<class ParBase>
+template<class T_Particles>
 class TaskParticlesSend : public MPITask
 {
 public:
 
+    typedef T_Particles Particles;
+    typedef typename Particles::HandleGuardRegion HandleGuardRegion;
+    typedef typename HandleGuardRegion::HandleExchanged HandleExchanged;
+    typedef typename HandleGuardRegion::HandleNotExchanged HandleNotExchanged;
+
     enum
     {
-        Dim = ParBase::Dim,
+        Dim = Particles::Dim,
         Exchanges = traits::NumberOfExchanges<Dim>::value
     };
 
-    TaskParticlesSend(ParBase &parBase) :
+    TaskParticlesSend(Particles &parBase) :
     parBase(parBase),
     state(Constructor)
     {
@@ -50,21 +55,22 @@ public:
     {
         state = Init;
         EventTask serialEvent = __getTransactionEvent();
+        HandleExchanged handleExchanged;
+        HandleNotExchanged handleNotExchanged;
 
         for (int i = 1; i < Exchanges; ++i)
         {
+            /* Start new transaction */
+            __startAtomicTransaction(serialEvent);
+
+            /* Handle particles */
             if (parBase.getParticlesBuffer().hasSendExchange(i))
-            {
-                __startAtomicTransaction(serialEvent);
-                Environment<>::get().ParticleFactory().createTaskSendParticlesExchange(parBase, i);
-                tmpEvent += __endTransaction();
-            }
+                handleExchanged.handleOutgoing(parBase, i);
             else
-            {
-                __startAtomicTransaction(serialEvent);
-                parBase.deleteGuardParticles(i);
-                tmpEvent += __endTransaction();
-            }
+                handleNotExchanged.handleOutgoing(parBase, i);
+
+            /* End transaction */
+            tmpEvent += __endTransaction();
         }
 
         state = WaitForSend;
@@ -110,7 +116,7 @@ private:
     };
 
 
-    ParBase& parBase;
+    Particles& parBase;
     state_t state;
     EventTask tmpEvent;
 };
