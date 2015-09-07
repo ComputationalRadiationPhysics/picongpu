@@ -37,6 +37,9 @@
 namespace PMacc
 {
 
+/* Tag used for marking particle types */
+struct ParticlesTag;
+
 template<typename T_ParticleDescription, class T_MappingDesc>
 class ParticlesBase : public SimulationFieldHelper<T_MappingDesc>
 {
@@ -69,6 +72,9 @@ public:
         Exchanges = traits::NumberOfExchanges<Dim>::value,
         TileSize = math::CT::volume<typename MappingDesc::SuperCellSize>::type::value
     };
+
+    /* Mark this simulation data as a particle type */
+    typedef ParticlesTag SimulationDataTag;
 
 protected:
 
@@ -176,12 +182,6 @@ public:
         assert(particlesBuffer != NULL);
         return *particlesBuffer;
     }
-
-    /* Communicate particles to neighbor devices.
-     * This method include bashing and insert of particles full
-     * asynchron.
-     */
-    EventTask asyncCommunication(EventTask event);
 
     /* set all internal objects to initial state*/
     virtual void reset(uint32_t currentStep);

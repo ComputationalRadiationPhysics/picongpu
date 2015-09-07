@@ -103,18 +103,6 @@ namespace PMacc
         }
     }
 
-    template<typename T_ParticleDescription, class MappingDesc>
-    EventTask ParticlesBase<T_ParticleDescription, MappingDesc>::asyncCommunication(EventTask event)
-    {
-        EventTask ret;
-        __startTransaction(event);
-        Environment<>::get().ParticleFactory().createTaskParticlesReceive(*this);
-        ret = __endTransaction();
-
-        __startTransaction(event);
-        Environment<>::get().ParticleFactory().createTaskParticlesSend(*this);
-        ret += __endTransaction();
-        return ret;
-    }
-
 } //namespace PMacc
+
+#include "particles/AsyncCommunicationImpl.hpp"
