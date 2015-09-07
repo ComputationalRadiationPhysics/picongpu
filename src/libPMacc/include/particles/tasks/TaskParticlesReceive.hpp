@@ -40,9 +40,6 @@ namespace PMacc
         typedef typename HandleGuardRegion::HandleExchanged HandleExchanged;
         typedef typename HandleGuardRegion::HandleNotExchanged HandleNotExchanged;
 
-        /* We can't run in parallel if either handler modifies the frames */
-        static const bool canRunInParallel = !HandleExchanged::needAtomicOut &&
-                                             !HandleNotExchanged::needAtomicIn;
         enum
         {
             Dim = Particles::Dim,
@@ -63,10 +60,7 @@ namespace PMacc
             for (int i = 1; i < Exchanges; ++i)
             {
                 /* Start new transaction */
-                if(canRunInParallel)
-                    __startTransaction(serialEvent);
-                else
-                    __startAtomicTransaction(serialEvent);
+                __startAtomicTransaction(serialEvent);
 
                 /* Handle particles */
                 if (parBase.getParticlesBuffer().hasReceiveExchange(i))

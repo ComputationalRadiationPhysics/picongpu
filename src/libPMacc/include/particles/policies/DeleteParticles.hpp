@@ -31,11 +31,6 @@ namespace policies {
      */
     struct DeleteParticles
     {
-        /* Particles are removed from the guard cells, hence frames are modified/deleted */
-        static const bool needAtomicOut = true;
-        /* Nothing is done on incoming side */
-        static const bool needAtomicIn  = false;
-
         template< class T_Particles >
         void
         handleOutgoing(T_Particles& par, int32_t direction) const

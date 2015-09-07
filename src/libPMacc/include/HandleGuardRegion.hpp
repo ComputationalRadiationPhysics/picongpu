@@ -32,9 +32,6 @@ namespace PMacc {
      *
      * All policies have the functions _handleOutgoing_ and _handleIncoming_
      * with signature void(TypeOfData&, int32_t direction)
-     * They also need to define static variables needAtomicIn/needAtomicOut
-     * which must be set to true, if the corresponding handle* function modifies the
-     * data in a way so that multiple instances of that functor cannot be run in parallel
      *
      * @tparam T_HandleExchanged Policy for handling data that should be exchanged
      *         with a neighboring rank
