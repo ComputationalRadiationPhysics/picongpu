@@ -59,8 +59,6 @@ namespace picongpu
         __shared__ bool isValid;
         __shared__ lcellId_t particlesInSuperCell;
 
-        /* wait until all shared memory is initialised */
-        __syncthreads( );
 
         if( linearThreadIdx == 0 )
         {

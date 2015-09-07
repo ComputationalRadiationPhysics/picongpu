@@ -131,8 +131,7 @@ namespace ionization
                 /* caching of E and B fields */
                 cachedB = CachedBox::create < 0, ValueType_B > (BlockArea());
                 cachedE = CachedBox::create < 1, ValueType_E > (BlockArea());
-                /* wait for shared memory to be initialized */
-                __syncthreads();
+
                 /* instance of nvidia assignment operator */
                 nvidia::functors::Assign assign;
                 /* copy fields from global to shared */
@@ -150,8 +149,6 @@ namespace ionization
                           cachedE,
                           fieldEBlock
                           );
-                /* wait for shared memory to be initialized */
-                __syncthreads();
             }
 
             /** Functor implementation

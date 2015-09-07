@@ -85,7 +85,6 @@ struct CreateParticlesFromParticleImpl : private T_Functor
         __shared__ DestFrameType* destFrame;
         __shared__ int particlesInDestSuperCell;
 
-        __syncthreads();
 
         uint32_t ltid = DataSpaceOperations<simDim>::template map<SuperCellSize>(DataSpace<simDim>(threadIdx));
         const DataSpace<simDim> superCell((guardCells + localCellIdx) / SuperCellSize::toRT());

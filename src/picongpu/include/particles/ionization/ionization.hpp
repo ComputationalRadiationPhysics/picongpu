@@ -112,14 +112,12 @@ __global__ void kernelIonizeParticles(ParBoxIons ionBox,
     /* typedef for the functor that writes new macro electrons into electron frames during runtime */
     typedef typename particles::ionization::WriteElectronIntoFrame WriteElectronIntoFrame;
 
-    __syncthreads();
 
     __shared__ IONFRAME *ionFrame;
     __shared__ ELECTRONFRAME *electronFrame;
     __shared__ bool isValid;
     __shared__ lcellId_t maxParticlesInFrame;
 
-    __syncthreads(); /*wait that all shared memory is initialized*/
 
     /* find last frame in super cell
      * define maxParticlesInFrame as the maximum frame size
@@ -141,8 +139,6 @@ __global__ void kernelIonizeParticles(ParBoxIons ionBox,
      * occupation of the newly created target electron frames.
      */
     __shared__ int newFrameFillLvl;
-
-    __syncthreads(); /*wait until all shared memory is initialized*/
 
     /* Declare local variable oldFrameFillLvl for each thread */
     int oldFrameFillLvl;

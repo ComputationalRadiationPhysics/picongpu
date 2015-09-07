@@ -62,7 +62,6 @@ __global__ void copySpeciesGlobal2Local(T_CounterBox counter, T_DestBox destBox,
 
     const int linearThreadIdx = threadIdx.x;
 
-    __syncthreads(); /*wait that all shared memory is initialized*/
 
     const DataSpace<simDim> superCellsCount(cellDesc.getGridSuperCells() - cellDesc.getGuardingSuperCells()*2);
     if (linearThreadIdx == 0)

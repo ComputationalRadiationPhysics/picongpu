@@ -169,7 +169,6 @@ __global__ void copySpecies(int* counter, T_DestFrame destFrame, T_SrcBox srcBox
 
     __shared__ bool isValid;
 
-    __syncthreads(); /*wait that all shared memory is initialised*/
 
     const DataSpace<Mapping::Dim> block = mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx));
     const DataSpace<Mapping::Dim> superCellPosition((block - mapper.getGuardingSuperCells()) * mapper.getSuperCellSize());

@@ -104,7 +104,6 @@ __global__ void kernelPositionsParticles(ParticlesBox<FRAME, simDim> pb,
 
     __shared__ FRAME *frame;
     __shared__ bool isValid;
-    __syncthreads(); /*wait that all shared memory is initialised*/
 
     typedef typename Mapping::SuperCellSize SuperCellSize;
 

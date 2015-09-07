@@ -62,7 +62,6 @@ __global__ void kernelEnergyParticles(ParticlesBox<FRAME, simDim> pb,
     __shared__ bool isValid; /* is data frame valid? */
     __shared__ float_X shEnergyKin; /* shared kinetic energy */
     __shared__ float_X shEnergy; /* shared total energy */
-    __syncthreads(); /* wait that all shared memory is initialised */
 
     float_X _local_energyKin = float_X(0.0); /* sum kinetic energy for this thread */
     float_X _local_energy = float_X(0.0); /* sum total energy for this thread */
