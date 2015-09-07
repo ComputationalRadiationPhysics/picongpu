@@ -1,5 +1,6 @@
 /**
- * Copyright 2013, 2015 Felix Schmitt, Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2015 Felix Schmitt, Rene Widera, Benjamin Worpitz,
+ *                     Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -38,8 +39,10 @@ public:
 
     SimulationFieldHelper(CellDescription description) :
     cellDescription(description)
-    {
-    }
+    {}
+
+    virtual ~SimulationFieldHelper(){}
+
     /**
      * Reset is as well used for init.
      */
@@ -50,13 +53,6 @@ public:
      */
     virtual void syncToDevice() = 0;
 
-    /**
-     * Start an asynchronous communication.
-     *
-     * @param serialEvent an EventTask the method has to wait on
-     * @return an EventTask which can be used to wait on completion
-     */
-    virtual EventTask asyncCommunication(EventTask serialEvent)=0;
 protected:
     CellDescription cellDescription;
 };

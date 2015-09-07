@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2015 Rene Widera, Marco Garten
+ * Copyright 2014-2015 Rene Widera, Marco Garten, Alexander Grund
  *
  * This file is part of PIConGPU.
  *
@@ -29,6 +29,7 @@
 #include <boost/mpl/plus.hpp>
 #include <boost/mpl/accumulate.hpp>
 
+#include "communication/AsyncCommunication.hpp"
 #include "particles/traits/GetIonizer.hpp"
 
 namespace picongpu
@@ -184,10 +185,9 @@ struct CommunicateSpecies
         if (hasPusher::value)
         {
             EventTask updateEvent(*(updateEventList.begin()));
-            PMACC_AUTO(speciesPtr, tuple[SpeciesName()]);
 
             updateEventList.pop_front();
-            commEventList.push_back(speciesPtr->asyncCommunication(updateEvent));
+            commEventList.push_back( communication::asyncCommunication(*tuple[SpeciesName()], updateEvent) );
         }
     }
 };

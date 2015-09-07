@@ -46,6 +46,7 @@
 
 #include "plugins/PluginController.hpp"
 #include "particles/ParticlesInitOneParticle.hpp"
+#include "communication/AsyncCommunication.hpp"
 
 
 namespace picongpu
@@ -133,7 +134,7 @@ public:
 
         particleStorage[TypeAsIdentifier<PIC_Electrons>()]->update(currentStep);
 
-        EventTask eRecvElectrons = particleStorage[TypeAsIdentifier<PIC_Electrons>()]->asyncCommunication(__getTransactionEvent());
+        EventTask eRecvElectrons = communication::asyncCommunication(*particleStorage[TypeAsIdentifier<PIC_Electrons>()], __getTransactionEvent());
         EventTask eElectrons = __endTransaction();
 
         __setTransactionEvent(eRecvElectrons + eElectrons);
