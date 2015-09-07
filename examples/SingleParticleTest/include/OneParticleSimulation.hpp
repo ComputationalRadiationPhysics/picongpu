@@ -134,7 +134,7 @@ public:
 
         particleStorage[TypeAsIdentifier<PIC_Electrons>()]->update(currentStep);
 
-        EventTask eRecvElectrons = asyncCommunication(*particleStorage[TypeAsIdentifier<PIC_Electrons>()], __getTransactionEvent());
+        EventTask eRecvElectrons = communication::asyncCommunication(*particleStorage[TypeAsIdentifier<PIC_Electrons>()], __getTransactionEvent());
         EventTask eElectrons = __endTransaction();
 
         __setTransactionEvent(eRecvElectrons + eElectrons);
