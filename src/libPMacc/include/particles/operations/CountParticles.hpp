@@ -52,8 +52,6 @@ __global__ void kernelCountParticles(PBox pb,
     __shared__ lcellId_t particlesInSuperCell;
 
 
-    __syncthreads(); /*wait that all shared memory is initialised*/
-
     typedef typename Mapping::SuperCellSize SuperCellSize;
 
     const DataSpace<Dim > threadIndex(threadIdx);

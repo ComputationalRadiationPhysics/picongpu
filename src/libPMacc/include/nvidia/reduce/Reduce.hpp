@@ -59,8 +59,6 @@ namespace PMacc
 
                     if (tid >= src_count) return; /*end not needed threads*/
 
-                    __syncthreads(); /*wait that all shared memory is initialized*/
-
                     /*fill shared mem*/
                     Type r_value = src[tid];
                     /*reduce not readed global memory to shared*/
