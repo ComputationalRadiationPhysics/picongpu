@@ -152,12 +152,8 @@ if(PNGwriter_FOUND)
                PNGwriter_VERSION_DEFINE
                REGEX "^[ \t]*#[ \t]*define[ \t]+PNGWRITER_VERSION[ \t]+")
         if("${PNGwriter_VERSION_DEFINE}" MATCHES
-            "PNGWRITER_VERSION[ \t]+(0\\.[0-9])[0-9].*")
-            set(PNGwriter_VERSION "${CMAKE_MATCH_1}")
-        endif()
-        if("${PNGwriter_VERSION_DEFINE}" MATCHES
-            "PNGWRITER_VERSION[ \t]+0\\.[0-9]([0-9]).*")
-            set(PNGwriter_VERSION "${PNGwriter_VERSION}.${CMAKE_MATCH_1}")
+            "PNGWRITER_VERSION[ \t]+(0\\.[0-9])([0-9]).*")
+            set(PNGwriter_VERSION "${CMAKE_MATCH_1}.${CMAKE_MATCH_2}")
         endif()
         unset(PNGwriter_VERSION_DEFINE)
     endif()
