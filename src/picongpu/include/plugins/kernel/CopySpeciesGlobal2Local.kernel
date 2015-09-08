@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Rene Widera
+ * Copyright 2014-2015 Rene Widera, Alexander Grund
  *
  * This file is part of PIConGPU.
  *
@@ -24,6 +24,7 @@
 #include "simulation_types.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
 #include "math/Vector.hpp"
+#include "nvidia/atomic.hpp"
 
 namespace picongpu
 {
@@ -112,7 +113,7 @@ __global__ void copySpeciesGlobal2Local(T_CounterBox counter, T_DestBox destBox,
         if (masterIdx == linearThreadIdx)
         {
             /* counter[2] -> number of used frames */
-            atomicAdd(&(counter[2]), 1u);
+            nvidia::atomicAllInc(&(counter[2]));
             DestFramePtr tmpFrame = &(destBox.getEmptyFrame());
             destFramePtr[linearThreadIdx] = tmpFrame;
             destBox.setAsFirstFrame(*tmpFrame, superCellIdx + cellDesc.getGuardingSuperCells());
@@ -131,7 +132,7 @@ __global__ void copySpeciesGlobal2Local(T_CounterBox counter, T_DestBox destBox,
         /* counter[1] -> number of loaded particles
          * this counter is evaluated on host side
          * (check that loaded particles by this kernel == loaded particles from HDF5 file)*/
-        atomicAdd(&(counter[1]), 1u);
+        nvidia::atomicAllInc(&(counter[1]));
     }
 }
 
