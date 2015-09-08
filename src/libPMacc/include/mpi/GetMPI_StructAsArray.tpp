@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2015 Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2015 Rene Widera, Benjamin Worpitz, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -42,22 +42,62 @@ struct GetMPI_StructAsArray<int >
 };
 
 template<>
+struct GetMPI_StructAsArray<unsigned >
+{
+
+    MPI_StructAsArray operator()() const
+    {
+        return MPI_StructAsArray(MPI_UNSIGNED, 1);
+    }
+};
+
+template<>
+struct GetMPI_StructAsArray<long >
+{
+
+    MPI_StructAsArray operator()() const
+    {
+        return MPI_StructAsArray(MPI_LONG, 1);
+    }
+};
+
+template<>
+struct GetMPI_StructAsArray<unsigned long >
+{
+
+    MPI_StructAsArray operator()() const
+    {
+        return MPI_StructAsArray(MPI_UNSIGNED_LONG, 1);
+    }
+};
+
+template<>
+struct GetMPI_StructAsArray<long long >
+{
+
+    MPI_StructAsArray operator()() const
+    {
+        return MPI_StructAsArray(MPI_LONG_LONG, 1);
+    }
+};
+
+template<>
+struct GetMPI_StructAsArray<unsigned long long >
+{
+
+    MPI_StructAsArray operator()() const
+    {
+        return MPI_StructAsArray(MPI_UNSIGNED_LONG_LONG, 1);
+    }
+};
+
+template<>
 struct GetMPI_StructAsArray<float >
 {
 
     MPI_StructAsArray operator()() const
     {
         return MPI_StructAsArray(MPI_FLOAT, 1);
-    }
-};
-
-template<>
-struct GetMPI_StructAsArray<uint64_cu >
-{
-
-    MPI_StructAsArray operator()() const
-    {
-        return MPI_StructAsArray(MPI_UNSIGNED_LONG_LONG, 1);
     }
 };
 
