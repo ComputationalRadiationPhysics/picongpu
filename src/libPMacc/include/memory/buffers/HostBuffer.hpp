@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2015 Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2015 Rene Widera, Benjamin Worpitz, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <cuSTL/container/HostBuffer.hpp>
 #include "memory/buffers/Buffer.hpp"
 #include "dimensions/DataSpace.hpp"
 
@@ -67,6 +68,22 @@ namespace PMacc
         virtual ~HostBuffer()
         {
         };
+
+        __forceinline__
+        container::HostBuffer<TYPE, DIM>
+        cartBuffer()
+        {
+            container::HostBuffer<TYPE, DIM> result;
+            result.dataPointer = this->getBasePointer();
+            result._size = math::Size_t<DIM>(this->getDataSpace());
+            if(DIM >= 2)
+                result.pitch[0] = result._size.x() * sizeof(TYPE);
+            if(DIM >= 3)
+                result.pitch[1] = result.pitch[0] * result._size.y();
+            result.refCount = new int;
+            *result.refCount = 2;
+            return result;
+        }
 
     protected:
 
