@@ -50,7 +50,8 @@ private:
     typedef CartBuffer<Type, dim, allocator::HostMemAllocator<Type, dim>,
                                   copier::H2HCopier<dim>,
                                   assigner::HostMemAssigner<dim> > Base;
-protected:
+///\todo: make protected
+public:
     HostBuffer() {}
 public:
     /* constructors
