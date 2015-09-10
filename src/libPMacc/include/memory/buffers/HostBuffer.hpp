@@ -61,7 +61,7 @@ namespace PMacc
             __startOperation(ITask::TASK_HOST);
             return this->current_size;
         }
-        
+
         /**
          * Destructor.
          */
@@ -69,7 +69,7 @@ namespace PMacc
         {
         };
 
-        __forceinline__
+        HINLINE
         container::HostBuffer<TYPE, DIM>
         cartBuffer()
         {
