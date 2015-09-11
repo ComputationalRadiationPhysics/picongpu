@@ -229,8 +229,8 @@ public:
         __startOperation(ITask::TASK_HOST);
         return DataBoxType(MultiBox<Type, DIM > (getGridBuffer(static_cast<NameType> (0)).getHostBuffer().getBasePointer(),
                                                  DataSpace<DIM > (),
-                                                 getGridBuffer(static_cast<NameType> (0)).getHostBuffer().getDataSpace(),
-                                                 getGridBuffer(static_cast<NameType> (0)).getHostBuffer().getDataSpace().x() * sizeof (Type)));
+                                                 getGridBuffer(static_cast<NameType> (0)).getHostBuffer().getPhysicalMemorySize(),
+                                                 getGridBuffer(static_cast<NameType> (0)).getHostBuffer().getPhysicalMemorySize().x() * sizeof (Type)));
     }
 
     DataBoxType getDeviceDataBox()
@@ -238,7 +238,7 @@ public:
         __startOperation(ITask::TASK_CUDA);
         return DataBoxType(MultiBox<Type, DIM > (getGridBuffer(static_cast<NameType> (0)).getDeviceBuffer().getBasePointer(),
                                                  getGridBuffer(static_cast<NameType> (0)).getDeviceBuffer().getOffset(),
-                                                 getGridBuffer(static_cast<NameType> (0)).getDeviceBuffer().getDataSpace(),
+                                                 getGridBuffer(static_cast<NameType> (0)).getDeviceBuffer().getPhysicalMemorySize(),
                                                  getGridBuffer(static_cast<NameType> (0)).getDeviceBuffer().getCudaPitched().pitch));
     }
 

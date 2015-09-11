@@ -50,7 +50,7 @@ public:
      *                      if true size on device is atomaticly set to false
      */
     DeviceBufferIntern(DataSpace<DIM> dataSpace, bool sizeOnDevice = false, bool useVectorAsBase = false) :
-    DeviceBuffer<TYPE, DIM>(dataSpace),
+    DeviceBuffer<TYPE, DIM>(dataSpace, dataSpace),
     sizeOnDevice(sizeOnDevice),
     useOtherMemory(false),
     offset(DataSpace<DIM>())
@@ -73,7 +73,7 @@ public:
     }
 
     DeviceBufferIntern(DeviceBuffer<TYPE, DIM>& source, DataSpace<DIM> dataSpace, DataSpace<DIM> offset, bool sizeOnDevice = false) :
-    DeviceBuffer<TYPE, DIM>(dataSpace),
+    DeviceBuffer<TYPE, DIM>(dataSpace, source.getPhysicalMemorySize()),
     sizeOnDevice(sizeOnDevice),
     offset(offset + source.getOffset()),
     data(source.getCudaPitched()),
@@ -107,18 +107,18 @@ public:
         {
             if (DIM == DIM1)
             {
-                CUDA_CHECK(cudaMemset(data.ptr, 0, Buffer<TYPE, DIM>::getDataSpace()[0] * sizeof (TYPE)));
+                CUDA_CHECK(cudaMemset(data.ptr, 0, this->getDataSpace()[0] * sizeof (TYPE)));
             }
             if (DIM == DIM2)
             {
-                CUDA_CHECK(cudaMemset2D(data.ptr, data.pitch, 0, data.xsize, data.ysize));
+                CUDA_CHECK(cudaMemset2D(data.ptr, data.pitch, 0, this->getDataSpace()[0] * sizeof(TYPE), this->getDataSpace()[1]));
             }
             if (DIM == DIM3)
             {
                 cudaExtent extent;
-                extent.width = this->data_space[0] * sizeof (TYPE);
-                extent.height = this->data_space[1];
-                extent.depth = this->data_space[2];
+                extent.width = this->getDataSpace()[0] * sizeof (TYPE);
+                extent.height = this->getDataSpace()[1];
+                extent.depth = this->getDataSpace()[2];
                 CUDA_CHECK(cudaMemset3D(data, 0, extent));
             }
         }
@@ -128,7 +128,7 @@ public:
     {
         __startOperation(ITask::TASK_CUDA);
         return DataBoxType(PitchedBox<TYPE, DIM > ((TYPE*) data.ptr, offset,
-                                                   this->data_space, data.pitch));
+                                                   this->getPhysicalMemorySize(), data.pitch));
     }
 
     TYPE* getPointer()
@@ -146,7 +146,7 @@ public:
         else
         {
             const size_t offsetY = this->offset[1] * this->data.pitch;
-            const size_t sizePlaneXY = this->data_space[1] * this->data.pitch;
+            const size_t sizePlaneXY = this->getPhysicalMemorySize()[1] * this->data.pitch;
             return (TYPE*) ((char*) data.ptr + this->offset[2] * sizePlaneXY + offsetY) + this->offset[0];
         }
     }
@@ -250,7 +250,7 @@ private:
         __startOperation(ITask::TASK_CUDA);
         data.ptr = NULL;
         data.pitch = 1;
-        data.xsize = this->data_space[0] * sizeof (TYPE);
+        data.xsize = this->getDataSpace()[0] * sizeof (TYPE);
         data.ysize = 1;
 
         if (DIM == DIM1)
@@ -260,7 +260,7 @@ private:
         }
         if (DIM == DIM2)
         {
-            data.ysize = this->data_space[1];
+            data.ysize = this->getDataSpace()[1];
             log<ggLog::MEMORY >("Create device 2D data: %1% MiB") % (data.xsize * data.ysize / 1024 / 1024);
             CUDA_CHECK(cudaMallocPitch(&data.ptr, &data.pitch, data.xsize, data.ysize));
 
@@ -268,11 +268,11 @@ private:
         if (DIM == DIM3)
         {
             cudaExtent extent;
-            extent.width = this->data_space[0] * sizeof (TYPE);
-            extent.height = this->data_space[1];
-            extent.depth = this->data_space[2];
+            extent.width = this->getDataSpace()[0] * sizeof (TYPE);
+            extent.height = this->getDataSpace()[1];
+            extent.depth = this->getDataSpace()[2];
 
-            log<ggLog::MEMORY >("Create device 3D data: %1% MiB") % (this->data_space.productOfComponents() * sizeof (TYPE) / 1024 / 1024);
+            log<ggLog::MEMORY >("Create device 3D data: %1% MiB") % (this->getDataSpace().productOfComponents() * sizeof (TYPE) / 1024 / 1024);
             CUDA_CHECK(cudaMalloc3D(&data, extent));
         }
 
@@ -286,18 +286,18 @@ private:
         __startOperation(ITask::TASK_CUDA);
         data.ptr = NULL;
         data.pitch = 1;
-        data.xsize = this->data_space[0] * sizeof (TYPE);
+        data.xsize = this->getDataSpace()[0] * sizeof (TYPE);
         data.ysize = 1;
 
-        log<ggLog::MEMORY >("Create device fake data: %1% MiB") % (this->data_space.productOfComponents() * sizeof (TYPE) / 1024 / 1024);
-        CUDA_CHECK(cudaMallocPitch(&data.ptr, &data.pitch, this->data_space.productOfComponents() * sizeof (TYPE), 1));
+        log<ggLog::MEMORY >("Create device fake data: %1% MiB") % (this->getDataSpace().productOfComponents() * sizeof (TYPE) / 1024 / 1024);
+        CUDA_CHECK(cudaMallocPitch(&data.ptr, &data.pitch, this->getDataSpace().productOfComponents() * sizeof (TYPE), 1));
 
         //fake the pitch, thus we can use this 1D Buffer as 2D or 3D
-        data.pitch = this->data_space[0] * sizeof (TYPE);
+        data.pitch = this->getDataSpace()[0] * sizeof (TYPE);
 
         if (DIM > DIM1)
         {
-            data.ysize = this->data_space[1];
+            data.ysize = this->getDataSpace()[1];
         }
 
         reset(false);
@@ -312,7 +312,7 @@ private:
         {
             CUDA_CHECK(cudaMalloc(&sizeOnDevicePtr, sizeof (size_t)));
         }
-        setCurrentSize(Buffer<TYPE, DIM>::getDataSpace().productOfComponents());
+        setCurrentSize(this->getDataSpace().productOfComponents());
     }
 
 private:

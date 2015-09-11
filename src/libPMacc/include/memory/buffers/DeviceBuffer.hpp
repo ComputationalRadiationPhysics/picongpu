@@ -46,14 +46,18 @@ namespace PMacc
      *
      * @tparam TYPE datatype of the buffer
      * @tparam DIM dimension of the buffer
+     *
+     * @param dataSpace dataSpace size of each dimension of the buffer (in elements)
+     *                   can be lesser than `physicalMemorySize`
+     * @param physicalMemorySize size of the physical memory (in elements)
      */
     template <class TYPE, unsigned DIM>
     class DeviceBuffer : public Buffer<TYPE, DIM>
     {
     protected:
 
-        DeviceBuffer(DataSpace<DIM> dataSpace) :
-        Buffer<TYPE, DIM>(dataSpace)
+        DeviceBuffer(DataSpace<DIM> dataSpace, DataSpace<DIM> physicalMemorySize) :
+        Buffer<TYPE, DIM>(dataSpace, physicalMemorySize)
         {
 
         }
@@ -86,7 +90,7 @@ namespace PMacc
             if(DIM == 3)
             {
                 result.pitch[0] = cudaData.pitch;
-                result.pitch[1] = cudaData.pitch * result._size.y();
+                result.pitch[1] = cudaData.pitch * this->getPhysicalMemorySize()[1];
             }
 #ifndef __CUDA_ARCH__
             result.refCount = new int;

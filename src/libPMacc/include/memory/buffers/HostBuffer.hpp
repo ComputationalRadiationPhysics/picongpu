@@ -61,7 +61,7 @@ namespace PMacc
             __startOperation(ITask::TASK_HOST);
             return this->current_size;
         }
-        
+
         /**
          * Destructor.
          */
@@ -90,10 +90,12 @@ namespace PMacc
         /**
          * Constructor.
          *
-         * @param dataSpace size of each dimension of the buffer
+         * @param dataSpace size of each dimension of the buffer (in elements)
+         *                   can be lesser than `physicalMemorySize`
+         * @param physicalMemorySize size of the physical memory (in elements)
          */
-        HostBuffer(DataSpace<DIM> dataSpace) :
-        Buffer<TYPE, DIM>(dataSpace)
+        HostBuffer(DataSpace<DIM> dataSpace, DataSpace<DIM> physicalMemorySize) :
+        Buffer<TYPE, DIM>(dataSpace, physicalMemorySize)
         {
 
         }

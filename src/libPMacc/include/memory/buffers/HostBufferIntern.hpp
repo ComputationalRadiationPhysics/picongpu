@@ -26,6 +26,7 @@
 #include "memory/buffers/Buffer.hpp"
 #include "eventSystem/tasks/Factory.hpp"
 #include "eventSystem/EventSystem.hpp"
+#include "memory/boxes/DataBoxDim1Access.hpp"
 
 #include <cassert>
 
@@ -47,7 +48,7 @@ public:
      * @param dataSpace DataSpace describing the size of the HostBufferIntern to be created
      */
     HostBufferIntern(DataSpace<DIM> dataSpace) :
-    HostBuffer<TYPE, DIM>(dataSpace),
+    HostBuffer<TYPE, DIM>(dataSpace, dataSpace),
     pointer(NULL),ownPointer(true)
     {
         CUDA_CHECK(cudaMallocHost(&pointer, dataSpace.productOfComponents() * sizeof (TYPE)));
@@ -55,7 +56,7 @@ public:
     }
 
     HostBufferIntern(HostBufferIntern& source, DataSpace<DIM> dataSpace, DataSpace<DIM> offset=DataSpace<DIM>()) :
-    HostBuffer<TYPE, DIM>(dataSpace),
+    HostBuffer<TYPE, DIM>(dataSpace, source.getPhysicalMemorySize()),
     pointer(NULL),ownPointer(false)
     {
         pointer=&(source.getDataBox()(offset));/*fix me, this is a bad way*/
@@ -101,16 +102,36 @@ public:
         __startOperation(ITask::TASK_HOST);
         this->setCurrentSize(this->getDataSpace().productOfComponents());
         if (!preserveData)
-            memset(pointer, 0, this->getDataSpace().productOfComponents() * sizeof (TYPE));
+        {
+            /* if it is a pointer out of other memory we can not assume that
+             * that the physical memory is contiguous 
+             */
+            if(ownPointer)
+                memset(pointer, 0, this->getDataSpace().productOfComponents() * sizeof (TYPE));
+            else
+            {
+                TYPE value;
+                uint8_t* valuePtr = (uint8_t*)&value;
+                for( size_t b = 0; b < sizeof(TYPE); ++b)
+                {
+                    valuePtr[b] = static_cast<uint8_t>(0);
+                }
+                setValue(value);
+            }
+        }
     }
 
     void setValue(const TYPE& value)
     {
         __startOperation(ITask::TASK_HOST);
         size_t current_size = this->getCurrentSize();
+        PMACC_AUTO(memBox,getDataBox());
+        typedef DataBoxDim1Access<DataBoxType > D1Box;
+        D1Box d1Box(memBox, this->getDataSpace());
+        #pragma omp parallel for
         for (size_t i = 0; i < current_size; i++)
         {
-            pointer[i] = value;
+            d1Box[i] = value;
         }
     }
 
@@ -118,7 +139,7 @@ public:
     {
         __startOperation(ITask::TASK_HOST);
         return DataBoxType(PitchedBox<TYPE, DIM > (pointer, DataSpace<DIM > (),
-                                                   this->data_space, this->data_space[0] * sizeof (TYPE)));
+                                                   this->getPhysicalMemorySize(), this->getPhysicalMemorySize()[0] * sizeof (TYPE)));
     }
 
 private:

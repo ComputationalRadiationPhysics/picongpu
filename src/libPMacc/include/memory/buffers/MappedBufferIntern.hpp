@@ -41,12 +41,16 @@ namespace PMacc
 template <class TYPE, unsigned DIM>
 class MappedBufferIntern : public DeviceBuffer<TYPE, DIM>
 {
+    /** IMPORTANT: if someone implements that a MappedBufferIntern can points to an other
+     * mapped buffer then `getDataSpace()` in `getHostDataBox()` and `getDeviceDataBox`
+     * must be changed to `getPhysicalMemorySize`
+     */
 public:
 
     typedef typename DeviceBuffer<TYPE, DIM>::DataBoxType DataBoxType;
 
     MappedBufferIntern(DataSpace<DIM> dataSpace):
-    DeviceBuffer<TYPE, DIM>(dataSpace),
+    DeviceBuffer<TYPE, DIM>(dataSpace, dataSpace),
     pointer(NULL), ownPointer(true)
     {
         CUDA_CHECK(cudaMallocHost(&pointer, dataSpace.productOfComponents() * sizeof (TYPE), cudaHostAllocMapped));

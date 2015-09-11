@@ -192,9 +192,16 @@ public:
         return ReducedType((TYPE*) ((char*) (this->fixedPointer) + idx * pitch2D), pitch);
     }
 
-    HDINLINE PitchedBox(TYPE* pointer, const DataSpace<DIM3> &offset, const DataSpace<DIM3> &size, const size_t pitch) :
-    pitch(pitch), pitch2D(size[1] * pitch),
-    fixedPointer((TYPE*) ((char*) pointer + offset[2] * pitch2D + offset[1] * pitch) + offset[0])
+    /** constructor
+     *
+     * @param pointer pointer to the origin of the physical memory
+     * @param offset offset (in elements)
+     * @param memSize size of the physical memory (in elements)
+     * @param pitch number of bytes in one line (first dimension)
+     */
+    HDINLINE PitchedBox(TYPE* pointer, const DataSpace<DIM3> &offset, const DataSpace<DIM3> &memSize, const size_t pitch) :
+    pitch(pitch), pitch2D(memSize[1] * pitch),
+    fixedPointer((TYPE*) ((char*) pointer + offset[2] * (memSize[1] * pitch) + offset[1] * pitch) + offset[0])
     {
     }
 

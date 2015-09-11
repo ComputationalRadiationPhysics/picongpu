@@ -47,12 +47,13 @@ namespace PMacc
 
         typedef DataBox<PitchedBox<TYPE, DIM> > DataBoxType;
 
-        /**
-         * constructor
-         * @param dataSpace description of spread of any dimension
+        /*
+         * @param dataSpace description of spread of any dimension (in elements)
+         *                  can be lesser than `physicalMemorySize`
+         * @param physicalMemorySize size of the physical memory (in elements)
          */
-        Buffer(DataSpace<DIM> dataSpace) :
-        data_space(dataSpace), data1D(true), current_size(NULL)
+        Buffer(DataSpace<DIM> dataSpace, DataSpace<DIM> physicalMemorySize) :
+        data_space(dataSpace), data1D(true), current_size(NULL), m_physicalMemorySize(physicalMemorySize)
         {
             CUDA_CHECK(cudaMallocHost(&current_size, sizeof (size_t)));
             *current_size = dataSpace.productOfComponents();
@@ -83,6 +84,14 @@ namespace PMacc
         {
             return data_space;
         }
+
+        /** get size of the physical memory (in elements)
+         */
+        DataSpace<DIM> getPhysicalMemorySize() const
+        {
+            return m_physicalMemorySize;
+        }
+
 
         virtual DataSpace<DIM> getCurrentDataSpace()
         {
@@ -183,6 +192,7 @@ namespace PMacc
         }
 
         DataSpace<DIM> data_space;
+        DataSpace<DIM> m_physicalMemorySize;
 
         size_t *current_size;
 

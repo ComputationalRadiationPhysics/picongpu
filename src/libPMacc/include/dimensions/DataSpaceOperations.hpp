@@ -100,6 +100,11 @@ namespace PMacc
             return pos.x();
         }
 
+        static HDINLINE DataSpace<DIM1> map(const DataSpace<DIM1>& size, uint32_t pos)
+        {
+            return DataSpace<DIM1 > (pos);
+        }
+
         static HDINLINE DataSpace<DIM2> extend(DataSpace<DIM1> ds, uint32_t ex,
                                               DataSpace<DIM2> target, DataSpace<DIM2> offset)
         {
