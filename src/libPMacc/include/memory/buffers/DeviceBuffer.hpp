@@ -1,5 +1,6 @@
 /**
  * Copyright 2013-2016 Heiko Burau, Rene Widera, Benjamin Worpitz
+ *                     Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -77,31 +78,16 @@ namespace PMacc
         };
 
 
-#define COMMA ,
-
         HINLINE
         container::CartBuffer<TYPE, DIM, allocator::DeviceMemAllocator<TYPE, DIM>,
                                 copier::D2DCopier<DIM>,
                                 assigner::DeviceMemAssigner<> >
         cartBuffer() const
         {
-            container::DeviceBuffer<TYPE, DIM> result;
             cudaPitchedPtr cudaData = this->getCudaPitched();
-            result.dataPointer = (TYPE*)cudaData.ptr;
-            result._size = (math::Size_t<DIM>)this->getDataSpace();
-            if(DIM == 2) result.pitch[0] = cudaData.pitch;
-            if(DIM == 3)
-            {
-                result.pitch[0] = cudaData.pitch;
-                result.pitch[1] = cudaData.pitch * this->getPhysicalMemorySize()[1];
-            }
-#ifndef __CUDA_ARCH__
-            result.refCount = new int;
-#endif
-            *result.refCount = 2;
+            container::DeviceBuffer<TYPE, DIM> result((TYPE*)cudaData.ptr, this->getDataSpace(), false, cudaData.pitch);
             return result;
         }
-#undef COMMA
 
 
         /**

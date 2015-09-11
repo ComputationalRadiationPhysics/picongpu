@@ -93,7 +93,7 @@ public:
     HDINLINE CartBuffer(size_t x, size_t y, size_t z);
     /* the copy constructor just increments the reference counter but does not copy memory */
     HDINLINE CartBuffer(const CartBuffer& other);
-    /* the move constructor has currently the same behavior as the copy constructor */
+    /* the move constructor */
     HDINLINE CartBuffer(BOOST_RV_REF(CartBuffer) other);
     HDINLINE ~CartBuffer();
 

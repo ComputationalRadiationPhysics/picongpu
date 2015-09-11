@@ -57,8 +57,7 @@ private:
                                   assigner::DeviceMemAssigner<> > Base;
     typedef DeviceBuffer<Type, dim> This;
 
-///\todo: make protected
-public:
+protected:
     HDINLINE DeviceBuffer() {}
 
     BOOST_COPYABLE_AND_MOVABLE(This)
@@ -70,11 +69,41 @@ public:
      * \param x,y,z convenient wrapper
      *
      */
-    HDINLINE DeviceBuffer(const math::Size_t<dim>& _size) : Base(_size) {}
+    HDINLINE DeviceBuffer(const math::Size_t<dim>& size) : Base(size) {}
     HDINLINE DeviceBuffer(size_t x) : Base(x) {}
     HDINLINE DeviceBuffer(size_t x, size_t y) : Base(x, y) {}
     HDINLINE DeviceBuffer(size_t x, size_t y, size_t z) : Base(x, y, z) {}
     HDINLINE DeviceBuffer(const Base& base) : Base(base) {}
+    /**
+     * Creates a device buffer from a pointer with a size. Assumes dense layout (no padding)
+     *
+     * @param ptr Pointer to the first element
+     * @param size Size of the buffer
+     * @param ownMemory Set to false if the memory is only a reference and managed outside of this class
+     *                  Ignored for device side creation!y
+     * @param pitch Pitch in bytes (number of bytes in the lowest dimension)
+     */
+    HDINLINE DeviceBuffer(Type* ptr, const math::Size_t<dim>& size, bool ownMemory, size_t pitch = 0)
+    {
+        this->dataPointer = ptr;
+        this->_size = size;
+        if(dim >= 2)
+            this->pitch[0] = (pitch) ? pitch : size.x() * sizeof(Type);
+        if(dim == 3)
+            this->pitch[1] = this->pitch[0] * size.y();
+#ifndef __CUDA_ARCH__
+        this->refCount = new int;
+        *this->refCount = (ownMemory) ? 1 : 2;
+#endif
+    }
+    HDINLINE DeviceBuffer(BOOST_RV_REF(This) obj): Base(boost::move(static_cast<Base&>(obj))) {}
+
+    HDINLINE This&
+    operator=(BOOST_RV_REF(This) rhs)
+    {
+        Base::operator=(boost::move(static_cast<Base&>(rhs)));
+        return *this;
+    }
 
     template<typename HBuffer>
     HINLINE
