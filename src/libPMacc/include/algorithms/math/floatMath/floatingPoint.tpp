@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2015 Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Richard Pausch,
+ *                     Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -25,7 +26,7 @@
 
 #include "types.h"
 #include "math.h"
-
+#include <limits>
 
 namespace PMacc
 {
@@ -46,6 +47,32 @@ struct Floor<float>
 };
 
 template<>
+struct Ceil<float>
+{
+    typedef float result;
+
+    HDINLINE result operator( )(result value)
+    {
+        return ::ceil( value );
+    }
+};
+
+template<>
+struct Float2int_ru<float>
+{
+    typedef int result;
+
+    HDINLINE result operator( )(float value)
+    {
+#if __CUDA_ARCH__
+        return ::__float2int_ru( value );
+#else
+        return static_cast<int>(ceil(value));
+#endif
+    }
+};
+
+template<>
 struct Float2int_rd<float>
 {
     typedef int result;
@@ -56,6 +83,32 @@ struct Float2int_rd<float>
         return ::__float2int_rd( value );
 #else
         return static_cast<int>(floor(value));
+#endif
+    }
+};
+
+template<>
+struct Float2int_rn<float>
+{
+    typedef int result;
+
+    HDINLINE result operator( )(float value)
+    {
+#if __CUDA_ARCH__
+        return ::__float2int_rn( value );
+#else
+        if(value < 0.0f)
+            return -(*this)(-value);
+        /* Round towards nearest with x.5 rounded to +inf but take care of
+         * floating point precision (e.g. 8388609.0 + 0.5 == 8388610.0) */
+        float intPart;
+        float fracPart = std::modf(value, &intPart);
+        result res = float2int_rd(fracPart + 0.5f) + static_cast<int>(intPart);
+        /* If we were close to x.5 then make sure res is even */
+        if( ::abs(0.5f - (res - value)) < std::numeric_limits<float>::epsilon() )
+            return res & ~1; /* Cancel out last bit of integer which makes it even */
+        else
+            return res;
 #endif
     }
 };
