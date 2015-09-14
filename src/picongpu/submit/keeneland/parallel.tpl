@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Copyright 2013 Axel Huebl, Rene Widera, Robert Dietric
 # 
 # This file is part of PIConGPU. 
