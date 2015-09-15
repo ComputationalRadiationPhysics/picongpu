@@ -46,9 +46,9 @@ def set_colorbar(cb):
     """
     cb.set_label(r"$\vec \nabla \vec E - \rho / \varepsilon_0"+
                  r" \,[ \mathrm{max}(|\rho_k|) / \varepsilon_0 ]$",
-                 fontsize=20)
+                 fontsize=22)
     for t in cb.ax.get_yticklabels():
-        t.set_fontsize(14)
+        t.set_fontsize(16)
 
 def plotError(h5file, slice_pos=[0.5, 0.5, 0.5]):
     """
@@ -99,7 +99,7 @@ def plotError(h5file, slice_pos=[0.5, 0.5, 0.5]):
     # close hdf5 file
     f.close()
 
-    # compute divergence of electric field according to Yee lattice
+    # compute divergence of electric field according to Yee scheme
     div = ((Ex[1:, 1:, 1:] - Ex[1:, 1:, :-1])/CELL_WIDTH + 
            (Ey[1:, 1:, 1:] - Ey[1:, :-1, 1:])/CELL_HEIGHT + 
            (Ez[1:, 1:, 1:] - Ez[:-1, 1:, 1:])/CELL_DEPTH)
@@ -123,6 +123,7 @@ def plotError(h5file, slice_pos=[0.5, 0.5, 0.5]):
     plt.xticks(fontsize=16)
     plt.yticks(fontsize=16)
     set_colorbar(plt.colorbar(orientation='horizontal',
+                              format="%2.2e", pad=0.18,
                               ticks=[-limit, 0, +limit])
                  )
     
@@ -137,6 +138,7 @@ def plotError(h5file, slice_pos=[0.5, 0.5, 0.5]):
     plt.xticks(fontsize=16)
     plt.yticks(fontsize=16)
     set_colorbar(plt.colorbar(orientation='horizontal',
+                              format="%2.2e", pad=0.18,
                               ticks=[-limit, 0, +limit])
                  )
 
@@ -152,6 +154,7 @@ def plotError(h5file, slice_pos=[0.5, 0.5, 0.5]):
     plt.xticks(fontsize=16)
     plt.yticks(fontsize=16)
     set_colorbar(plt.colorbar(orientation='horizontal',
+                              format="%2.2e", pad=0.18,
                               ticks=[-limit, 0, +limit])
                  )
 
