@@ -281,7 +281,7 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
     }
 
     template<int shrinkedDim >
-    HDINLINE Vector<type, shrinkedDim, Accessor, Navigator, T_Storage> shrink(const int startIdx = 0) const
+    HDINLINE Vector<type, shrinkedDim, Accessor, Navigator> shrink(const int startIdx = 0) const
     {
         PMACC_CASSERT_MSG(math_Vector__shrinkedDim_DIM_must_be_lesser_or_equal_to_Vector_DIM,shrinkedDim <= dim);
         Vector<type, shrinkedDim, Accessor, Navigator> result;
