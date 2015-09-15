@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # This script do a quick check if one GPU or all GPUs are in good health.
 # usage: ./sanity_check.sh 0   //check GPU 0
 #        ./sanity_check.sh 1   //check GPU 1
