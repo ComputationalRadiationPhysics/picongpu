@@ -7,7 +7,6 @@ module load cmake/3.3.1 git
 module load cuda/6.5.14  # gcc 4.8, intel 14.0 == 2013-sp1
 module load bullxmpi
 module load gnuplot/4.6.1
-module load zlib/1.2.8
 
 # Compilers ###################################################################
 ### GCC
@@ -22,15 +21,18 @@ module load gcc/4.8.0 boost/1.55.0-gnu4.8
 #   set NOSWITCHERROR=YES;
 #module load pgi/14.1 boost/1.55.0-pgi14.1
 
+# Other Software ##############################################################
+#
+module load hdf5/1.8.14
+module load zlib/1.2.8
+
 # Environment #################################################################
 #
 #export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$BOOST_LIB
 
 export PNGWRITER_ROOT=$HOME/lib/pngwriter
-export HDF5_ROOT=$HOME/lib/hdf5
 export SPLASH_ROOT=$HOME/lib/splash
 
-export LD_LIBRARY_PATH=$HOME/lib/hdf5/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/lib/pngwriter/lib/
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/lib/splash/lib/
 
