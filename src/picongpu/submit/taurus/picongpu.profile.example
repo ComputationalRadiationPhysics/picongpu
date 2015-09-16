@@ -37,6 +37,11 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/lib/splash/lib/
 export PICSRC=$HOME/src/picongpu
 export PATH=$PATH:$PICSRC/src/tools/bin
 
+# cmake work-around: avoids wrong linkage if system-wide
+# libraries are available that shall not be used (hdf5, boost, ...)
+#   see https://www.mail-archive.com/cmake@cmake.org/msg50018.html
+unset LIBRARY_PATH
+
 # "tbg" default options #######################################################
 #   - SLURM (sbatch)
 #   - "gpu" queue
