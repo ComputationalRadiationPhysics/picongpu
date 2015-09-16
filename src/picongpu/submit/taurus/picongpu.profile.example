@@ -7,7 +7,6 @@ module load cmake/3.3.1 git
 module load cuda/6.5.14  # gcc 4.8, intel 14.0 == 2013-sp1
 module load bullxmpi
 module load gnuplot/4.6.1
-module load openmpi/1.6
 module load zlib/1.2.8
 
 # Compilers ###################################################################
