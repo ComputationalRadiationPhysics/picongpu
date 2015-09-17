@@ -43,7 +43,7 @@ namespace picongpu
             {
 
                 Velocity velocity;
-                const float3_X vel = velocity(mom, mass);
+                const MomType vel = velocity(mom, mass);
 
 
                 for(uint32_t d=0;d<simDim;++d)
