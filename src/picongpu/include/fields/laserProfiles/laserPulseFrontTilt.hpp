@@ -56,9 +56,12 @@ namespace picongpu
             //gaussian beam waist in the nearfield: w_y(y=0) == W0
             const double w_y = W0 * sqrt( 1.0 + ( FOCUS_POS / y_R )*( FOCUS_POS / y_R ) );
 
-
-            const double envelope = double( AMPLITUDE ) * double( W0 ) / w_y;
-
+            float_64 envelope = float_64( AMPLITUDE );
+            if( simDim == DIM2 )
+                envelope *= math::sqrt( float_64( W0 ) / w_y );
+            else if( simDim == DIM3 )
+                envelope *= float_64( W0 ) / w_y;
+            /* no 1D representation/implementation */
 
             if( Polarisation == LINEAR_X )
             {
