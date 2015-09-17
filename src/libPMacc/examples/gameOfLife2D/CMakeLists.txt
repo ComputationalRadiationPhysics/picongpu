@@ -1,5 +1,5 @@
 #
-# Copyright 2013 Rene Widera
+# Copyright 2013-2015 Rene Widera, Alexander Grund
 #
 # This file is part of libPMacc. 
 # 
@@ -85,8 +85,8 @@ IF(CUDA_SHOW_REGISTER)
 ENDIF(CUDA_SHOW_REGISTER)
 
 IF(CUDA_KEEP_FILES)
-    MAKE_DIRECTORY("${PROJECT_BINARY_DIR}/nvcc_tmp")
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" --keep --keep-dir "nvcc_tmp")
+    FILE(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/nvcc_tmp")
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" --keep --keep-dir "${PROJECT_BINARY_DIR}/nvcc_tmp")
 ENDIF(CUDA_KEEP_FILES)
 
 ##END CUDA##
