@@ -188,7 +188,7 @@ private:
             if (rc == cudaSuccess)
             {
                 cudaDeviceProp dprop;
-                cudaGetDeviceProperties(&dprop, deviceNumber);
+                cudaGetDeviceProperties(&dprop, tryDeviceId);
                 log<ggLog::CUDA_RT > ("Set device to %1%: %2%") % tryDeviceId % dprop.name;
                 CUDA_CHECK(cudaSetDeviceFlags(cudaDeviceScheduleSpin));
                 break;
