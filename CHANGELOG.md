@@ -1,6 +1,20 @@
 Change Log / Release Log for PIConGPU
 ================================================================
 
+0.1.1
+-----
+
+**Date:** 2015-09-17
+
+This is version `0.1.1` of PIConGPU, a *pre-beta* version and
+pure bug fix release. It contains selected backports of critical
+issues in PIConGPU.
+
+**Bug Fixes:**
+ - amplitude of Gaussian beam in 2D3V simulations #1052
+ - libPMacc: report device properties of correct GPU #1115
+
+
 0.1.0
 -----
 **Date:** 2015-05-21
