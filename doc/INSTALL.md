@@ -94,6 +94,7 @@ Some of our examples will also need **libSplash**.
 - **libSplash** >= 1.2.4 (requires *HDF5*, *boost program-options*)
     - *Debian/Ubuntu dependencies:* `sudo apt-get install libhdf5-openmpi-dev libboost-program-options-dev`
     - *Arch Linux dependencies:* `sudo pacman --sync hdf5-openmpi boost`
+    - *or compile hdf5 yourself:*  follow instructions one paragraph below 
     - example:
       - `mkdir -p ~/src ~/build ~/lib`
       - `git clone https://github.com/ComputationalRadiationPhysics/libSplash.git ~/src/splash/`
@@ -110,9 +111,11 @@ Some of our examples will also need **libSplash**.
     - example:
       - `mkdir -p ~/src ~/build ~/lib`
       - `cd ~/src`
-      - `wget www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.11.tar.gz`
-      - `tar -xvzf hdf5-1.8.11.tar.gz`
-      - `cd hdf5-1.8.11`
+      - download hdf5 source code from [release list of the HDF5 group]
+        (https://www.hdfgroup.org/ftp/HDF5/releases/)
+        for example `wget https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.14/src/hdf5-1.8.14.tar.gz`
+      - `tar -xvzf hdf5-1.8.14.tar.gz`
+      - `cd hdf5-1.8.14`
       - `./configure --enable-parallel --enable-shared --prefix ~/lib/hdf5/`
       - `make`
       - *optional:* `make test`
