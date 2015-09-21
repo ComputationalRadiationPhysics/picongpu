@@ -31,10 +31,12 @@ namespace PMacc
 {
 
     /**
-     * This maps onto the border to 1 direction (e.g. TOP, BOTTOM, ...)
+     * This maps onto the border to 1 exchange direction (e.g. TOP, BOTTOM, TOP + LEFT, ...)
      * The area is basically the same as the surrounding guard region
-     * but on the border. Therefore only the "main" directions are allowed
-     * (no diagonal ones)
+     * but on the border. By "adding" directions you limit the area. Examples:
+     * FRONT: Whole top area of the border (Size: ~x*y)
+     * FRONT + LEFT: Intersection of the front and left border (Size: ~y)
+     * FRONT + LEFT + TOP: Only the edge cells (Size: ~1)
      *
      * @tparam T_BaseClass base class for mapping, should be MappingDescription
      */
@@ -64,22 +66,15 @@ namespace PMacc
          * Constructor.
          *
          * @param base object of base class baseClass (see template parameters)
-         * @param direction direction to map to
+         * @param direction exchange direction to map to
          */
         HINLINE BorderMapping(const BaseClass& base, PMacc::ExchangeType direction): BaseClass(base), m_direction(direction)
         {
-            DimDataSpace relDir = Mask::getRelativeDirections<Dim>(direction);
-            int dirCt = 0;
-            for(int i = 0; i < Dim; ++i)
-                if(relDir[i] != 0)
-                    ++dirCt;
-            /* Only exactly 1 direction is allowed */
-            if(dirCt != 1)
-                throw std::logic_error("Invalid direction");
+            assert(direction != 0);
         }
 
         /**
-         * Returns the direction used by this mapper
+         * Returns the exchange direction used by this mapper
          */
         HDINLINE PMacc::ExchangeType
         getDirection() const
@@ -101,10 +96,7 @@ namespace PMacc
             for(int i = 0; i < Dim; i++)
             {
                 if (directions[i] != 0)
-                {
                     result[i] = this->getBorderSuperCells();
-                    break;
-                }
             }
 
             return result;
