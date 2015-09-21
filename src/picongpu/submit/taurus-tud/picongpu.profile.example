@@ -48,4 +48,8 @@ unset LIBRARY_PATH
 #   - SLURM (sbatch)
 #   - "gpu" queue
 export TBG_SUBMIT="sbatch"
-export TBG_TPLFILE="submit/taurus/k20x_profile.tpl"
+export TBG_TPLFILE="submit/taurus-tud/k80_profile.tpl"
+export MY_MAIL="someone@example.com"
+# send me a mail on BEGIN, END, FAIL, REQUEUE, ALL, 
+# TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
+export MY_MAILNOTIFY="ALL"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013 Axel Huebl
+# Copyright 2013-2015 Axel Huebl, Richard Pausch
 # 
 # This file is part of PIConGPU. 
 # 
@@ -21,21 +21,23 @@
 ## calculations will be performed by tbg ##
 
 TBG_queue="gpu"
-TBG_mailSettings="ALL"
-TBG_mailAdress="someone@example.com"
+# send me a mail on BEGIN, END, FAIL, REQUEUE, ALL, 
+# TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
+TBG_mailSettings=${MY_MAILNOTIFY:-"ALL"}
+TBG_mailAdress=${MY_MAIL:-"someone@example.com"}
 
-# 2 gpus per node
-TBG_gpusPerNode=`if [ $TBG_tasks -gt 2 ] ; then echo 2; else echo $TBG_tasks; fi`
+# 4 gpus per node
+TBG_gpusPerNode=`if [ $TBG_tasks -gt 4 ] ; then echo 4; else echo $TBG_tasks; fi`
 
-# number of cores to block per GPU - we got 8 cpus per gpu
-#   and we will be accounted 8 CPUs per GPU anyway
-TBG_coresPerGPU=8
+# number of cores to block per GPU - we got 6 cpus per gpu
+#   and we will be accounted 6 CPUs per GPU anyway
+TBG_coresPerGPU=6
 
 # We only start 1 MPI task per GPU
 TBG_mpiTasksPerNode="$(( TBG_gpusPerNode * 1 ))"
 
 # use ceil to caculate nodes
-TBG_nodes="$(( ( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
+TBG_nodes="$((( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
 
 ## end calculations ##
 
@@ -46,11 +48,11 @@ TBG_nodes="$(( ( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
 # Sets batch job's name
 #SBATCH --job-name=!TBG_jobName
 #SBATCH --nodes=!TBG_nodes
-#SBATCH --ntasks-per-node=!TBG_mpiTasksPerNode
+#SBATCH --ntasks=!TBG_tasks
+#SBATCH --mincpus=!TBG_mpiTasksPerNode
 #SBATCH --cpus-per-task=!TBG_coresPerGPU
-#SBATCH --mem-per-cpu=3000
+#SBATCH --mem-per-cpu=2583
 #SBATCH --gres=gpu:!TBG_gpusPerNode
-# send me a mail on (b)egin, (e)nd, (a)bortion
 #SBATCH --mail-type=!TBG_mailSettings
 #SBATCH --mail-user=!TBG_mailAdress
 #SBATCH --workdir=!TBG_dstPath
