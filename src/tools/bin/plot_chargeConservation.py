@@ -117,7 +117,8 @@ def plotError(h5file, slice_pos=[0.5, 0.5, 0.5]):
     plt.title("slice in z at {}".format(slice_cell_z), fontsize=20)    
     plt.imshow(diff[slice_cell_z, :, :], 
                vmin=-limit, vmax=+limit,
-               aspect='auto')
+               aspect='auto',
+               cmap=plt.cm.bwr)
     plt.xlabel("$x\,[\Delta x]$", fontsize=20)
     plt.ylabel("$y\,[\Delta y]$", fontsize=20)
     plt.xticks(fontsize=16)
@@ -132,7 +133,8 @@ def plotError(h5file, slice_pos=[0.5, 0.5, 0.5]):
     plt.title("slice in y at {}".format(slice_cell_y), fontsize=20)    
     plt.imshow(diff[:, slice_cell_y, :], 
                vmin=-limit, vmax=+limit,
-               aspect='auto')
+               aspect='auto',
+               cmap=plt.cm.bwr)
     plt.xlabel("$x\,[\Delta x]$", fontsize=20)
     plt.ylabel("$z\,[\Delta z]$", fontsize=20)
     plt.xticks(fontsize=16)
@@ -148,7 +150,8 @@ def plotError(h5file, slice_pos=[0.5, 0.5, 0.5]):
     plt.title("slice in x at {}".format(slice_cell_x), fontsize=20)
     plt.imshow(diff[:, :, slice_cell_x], 
                vmin=-limit, vmax=+limit,
-               aspect='auto')
+               aspect='auto',
+               cmap=plt.cm.bwr)
     plt.xlabel("$y\,[\Delta y]$", fontsize=20)
     plt.ylabel("$z\,[\Delta z]$", fontsize=20)
     plt.xticks(fontsize=16)
