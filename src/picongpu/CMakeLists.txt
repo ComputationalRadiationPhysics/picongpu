@@ -31,6 +31,10 @@ cmake_minimum_required(VERSION 2.8.12.2)
 
 project(PIConGPU)
 
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}" CACHE PATH "install prefix" FORCE)
+endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+
 # set helper pathes to find libraries and packages
 set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{MPI_ROOT}"
     "$ENV{CUDA_ROOT}" "$ENV{BOOST_ROOT}" "$ENV{HDF5_ROOT}" "$ENV{VT_ROOT}")
@@ -80,7 +84,7 @@ if(CUDA_SHOW_REGISTER)
 endif(CUDA_SHOW_REGISTER)
 
 if(CUDA_KEEP_FILES)
-    make_directory("${PROJECT_BINARY_DIR}/nvcc_tmp")
+    file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/nvcc_tmp")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" --keep --keep-dir "${PROJECT_BINARY_DIR}/nvcc_tmp")
 endif(CUDA_KEEP_FILES)
 
@@ -239,10 +243,6 @@ set(LIBS ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
 find_package(Boost 1.49.0 REQUIRED COMPONENTS program_options regex filesystem system)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${Boost_LIBRARIES})
-
-if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}" CACHE PATH "install prefix" FORCE)
-endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) 
 
 # work-arounds
 if( (Boost_VERSION EQUAL 105500) AND
