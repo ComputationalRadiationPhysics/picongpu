@@ -1,6 +1,6 @@
 /**
  * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera,
- *                     Alexander Grund
+ *                     Alexander Grund, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -43,7 +43,7 @@ namespace picongpu
             {
 
                 const float_X mom_abs = math::abs( mom );
-                const PosType vel = mom * ( SPEED_OF_LIGHT / mom_abs );
+                const MomType vel = mom * ( SPEED_OF_LIGHT / mom_abs );
 
                 for(uint32_t d=0;d<simDim;++d)
                 {

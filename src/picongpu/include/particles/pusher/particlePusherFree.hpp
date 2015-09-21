@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera,
+ *                     Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -42,7 +43,7 @@ namespace picongpu
             {
 
                 Velocity velocity;
-                const PosType vel = velocity(mom, mass);
+                const MomType vel = velocity(mom, mass);
 
 
                 for(uint32_t d=0;d<simDim;++d)
