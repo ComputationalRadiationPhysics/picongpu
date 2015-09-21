@@ -37,19 +37,17 @@ namespace PMacc
      * but on the border. Therefore only the "main" directions are allowed
      * (no diagonal ones)
      *
-     * @tparam T_Direction direction to map to
      * @tparam T_BaseClass base class for mapping, should be MappingDescription
      */
-    template<uint32_t T_direction, class T_BaseClass>
+    template<class T_BaseClass>
     class BorderMapping;
 
     template<
-        uint32_t T_direction,
         template<unsigned, class> class T_BaseClass,
         unsigned T_dim,
         class T_SuperCellSize
     >
-    class BorderMapping<T_direction, T_BaseClass<T_dim, T_SuperCellSize> >
+    class BorderMapping<T_BaseClass<T_dim, T_SuperCellSize> >
     {
     public:
         typedef T_BaseClass<T_dim, T_SuperCellSize> BaseClass;
@@ -57,7 +55,6 @@ namespace PMacc
         enum
         {
             Dim = BaseClass::Dim,
-            direction = T_direction,
             AreaType = BORDER
         };
         typedef DataSpace<Dim> DimDataSpace;
@@ -68,10 +65,11 @@ namespace PMacc
          * Constructor.
          *
          * @param base object of base class baseClass (see template parameters)
+         * @param direction direction to map to
          */
-        HINLINE BorderMapping(const BaseClass& base)
+        HINLINE BorderMapping(const BaseClass& base, PMacc::ExchangeType direction)
         {
-            DimDataSpace relDir = Mask::getRelativeDirections<Dim >(direction);
+            DimDataSpace relDir = Mask::getRelativeDirections<Dim>(direction);
             int dirCt = 0;
             for(int i = 0; i < Dim; ++i)
                 if(relDir[i] != 0)
@@ -79,16 +77,8 @@ namespace PMacc
             /* Only exactly 1 direction is allowed */
             if(dirCt != 1)
                 throw std::logic_error("Invalid direction");
-            gridDim = BorderMappingMethods<direction, Dim>::getGridDim(base);
-            blockOffset = BorderMappingMethods<direction, Dim>::getBlockOffset(base);
-        }
-
-        /** get direction
-         *  @return direction of this object
-         */
-        HDINLINE uint32_t getDirection() const
-        {
-            return direction;
+            gridDim = BorderMappingMethods<Dim>::getGridDim(base, direction);
+            blockOffset = BorderMappingMethods<Dim>::getBlockOffset(base, direction);
         }
 
         /**

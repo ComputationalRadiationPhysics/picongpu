@@ -37,22 +37,22 @@ namespace PMacc
      * @tparam T_Direction direction to map to (TOP; BOTTOM)
      * @tparam DIM dimension for mapping (1-3)
      */
-    template<uint32_t T_Direction, unsigned DIM>
+    template<unsigned DIM>
     class BorderMappingMethods;
 
     // DIM2
-    template<uint32_t T_Direction>
-    class BorderMappingMethods<T_Direction, DIM2>
+    template<>
+    class BorderMappingMethods<DIM2>
     {
     public:
 
         template<class T_Base>
         HINLINE static DataSpace<DIM2>
-        getGridDim(const T_Base &base)
+        getGridDim(const T_Base &base, PMacc::ExchangeType direction)
         {
             DataSpace<DIM2> result(base.getGridSuperCells() - 2 * base.getGuardingSuperCells());
 
-            const DataSpace<DIM2> directions = Mask::getRelativeDirections<DIM2 >(T_Direction);
+            const DataSpace<DIM2> directions = Mask::getRelativeDirections<DIM2 >(direction);
 
             if (directions.x() != 0)
                 result.x() = base.getBorderSuperCells();
@@ -64,11 +64,11 @@ namespace PMacc
 
         template<class Base>
         HDINLINE static DataSpace<DIM2>
-        getBlockOffset(const Base &base)
+        getBlockOffset(const Base &base, PMacc::ExchangeType direction)
         {
             DataSpace<DIM2> result;
 
-            DataSpace<DIM2> directions = Mask::getRelativeDirections<DIM2 >(T_Direction);
+            DataSpace<DIM2> directions = Mask::getRelativeDirections<DIM2 >(direction);
 
             if (directions.x() == 1)
                 result.x() = base.getGridSuperCells().x() - base.getGuardingSuperCells() - base.getBorderSuperCells();
@@ -85,18 +85,18 @@ namespace PMacc
     };
 
     // DIM3
-    template<uint32_t T_Direction>
-    class BorderMappingMethods<T_Direction, DIM3>
+    template<>
+    class BorderMappingMethods<DIM3>
     {
     public:
 
         template<class T_Base>
         HINLINE static DataSpace<DIM3>
-        getGridDim(const T_Base &base)
+        getGridDim(const T_Base &base, PMacc::ExchangeType direction)
         {
             DataSpace<DIM3> result(base.getGridSuperCells() - 2 * base.getGuardingSuperCells());
 
-            const DataSpace<DIM3> directions = Mask::getRelativeDirections<DIM3 >(T_Direction);
+            const DataSpace<DIM3> directions = Mask::getRelativeDirections<DIM3 >(direction);
 
             if (directions.x() != 0)
                 result.x() = base.getBorderSuperCells();
@@ -110,11 +110,11 @@ namespace PMacc
 
         template<class Base>
         HDINLINE static DataSpace<DIM3>
-        getBlockOffset(const Base &base)
+        getBlockOffset(const Base &base, PMacc::ExchangeType direction)
         {
             DataSpace<DIM3> result;
 
-            DataSpace<DIM3> directions = Mask::getRelativeDirections<DIM3 >(T_Direction);
+            DataSpace<DIM3> directions = Mask::getRelativeDirections<DIM3 >(direction);
 
             if (directions.x() == 1)
                 result.x() = base.getGridSuperCells().x() - base.getGuardingSuperCells() - base.getBorderSuperCells();
