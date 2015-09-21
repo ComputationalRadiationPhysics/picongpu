@@ -18,12 +18,10 @@
 # If not, see <http://www.gnu.org/licenses/>. 
 #
 
-
-
 ## calculations will be performed by tbg ##
 TBG_queue="batch"
-TBG_mailSettings="bea"
-TBG_mailAdress="someone@example.com"
+TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
+TBG_mailSettings=${MY_MAILNOTIFY:-"n"}
 TBG_nameProject=${proj:-""}
 
 # use ceil to caculate nodes
@@ -38,7 +36,7 @@ TBG_nodes=!TBG_tasks
 #PBS -N !TBG_jobName
 #PBS -l nodes=!TBG_nodes
 # send me a mail on (b)egin, (e)nd, (a)bortion
-##PBS -m !TBG_mailSettings -M !TBG_mailAdress
+#PBS -m !TBG_mailSettings -M !TBG_mailAddress
 #PBS -d !TBG_dstPath
 #PBS -A !TBG_nameProject
 
