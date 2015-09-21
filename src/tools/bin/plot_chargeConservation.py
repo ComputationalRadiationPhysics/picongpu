@@ -20,6 +20,7 @@
 #
 
 import argparse
+import os
 import numpy as np
 import h5py
 import matplotlib.pyplot as plt
@@ -175,10 +176,10 @@ if __name__ == "__main__":
         )
 
     parser.add_argument(metavar="hdf5 file",
-                        dest="h5file",
+                        dest="h5file_name",
                         help='hdf5 file with PIConGPU data',
                         action='store',
-                        type=file)
+                        type=str)
 
     parser.add_argument("--x",
                         dest="x_split",
@@ -203,14 +204,13 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # get file name only because h5py only takes strings
-    file_name = args.h5file.name
-    args.h5file.close()
-
     slice_pos = np.clip([args.z_split,
                          args.y_split,
                          args.x_split], 
                         0, 1)
 
-    plotError(file_name, slice_pos=slice_pos)
+    if os.path.isfile(args.h5file_name):
+        plotError(args.h5file_name, slice_pos=slice_pos)
+    else:
+        print("ERROR: {} is not a file".format(args.h5file_name))
 
