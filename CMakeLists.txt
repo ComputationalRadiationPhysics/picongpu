@@ -1,5 +1,4 @@
-#
-# Copyright 2013-2014 Felix Schmitt, Heiko Burau, Rene Widera, Axel Huebl
+# Copyright 2013-2015 Felix Schmitt, Heiko Burau, Rene Widera, Axel Huebl
 #
 # This file is part of PIConGPU.
 #
@@ -26,13 +25,37 @@ cmake_minimum_required(VERSION 2.8.12.2)
 
 
 ################################################################################
-# Project 
+# Project
 ################################################################################
 
 project(PIConGPU2_full_build)
 
+
+################################################################################
+# Disallow in-source build
+################################################################################
+
+string(FIND "${PIConGPU2_full_build_BINARY_DIR}"
+            "${PIConGPU2_full_build_SOURCE_DIR}" IN_SRC_POS)
+if(IN_SRC_POS GREATER -1)
+  message(FATAL_ERROR
+    "PICoNGPU requires an out of source build. "
+    "Please remove \n"
+    "  - CMakeCache.txt\n"
+    "  - CMakeFiles/\n"
+    "and create a separate build directory. "
+    "See: doc/INSTALL.md")
+endif()
+
+unset(IN_SRC_POS)
+
+
+################################################################################
+# Add PICoNGPU project from sub directory
+################################################################################
+
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}" CACHE PATH "install prefix" FORCE)
-endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) 
+endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 add_subdirectory("${CMAKE_SOURCE_DIR}/src/picongpu" "${CMAKE_BINARY_DIR}/build_picongpu")
