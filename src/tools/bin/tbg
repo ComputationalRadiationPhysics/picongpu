@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2013-2014 Axel Huebl, Rene Widera, Richard Pausch
+# Copyright 2013-2015 Axel Huebl, Rene Widera, Richard Pausch
 #
 # This file is part of PIConGPU.
 #
@@ -321,10 +321,15 @@ fi
 #export is used that we can call new scripts in cfg and can read this variables in the called script
 export TBG_jobName="$job_name"
 export TBG_jobNameShort="$job_shortname"
+
 cfgFileName=`basename $cfg_file`
 cfgRelativPath=`dirname $cfg_file`
 export TBG_cfgPath=`absolute_path "$cfgRelativPath"`
 export TBG_cfgFile="$TBG_cfgPath/$cfgFileName"
+
+if [ ! -z "$tooltpl_file" ] ; then
+    tplAbsolutePath=`absolute_path $(dirname $tooltpl_file)`/`basename $tooltpl_file`
+fi
 
 export TBG_projectPath="$projectPath"
 export TBG_dstPath="$job_outDir"
@@ -350,6 +355,11 @@ solved_variables=`run_cfg_and_get_solved_variables "$TBG_cfgFile" tooltpl_file_d
 tooltpl_file_data_cleaned=`echo "$tooltpl_file_data" |  grep -v "^[[:alpha:]][[:alnum:]_]*=.*"`
 batch_file=`tooltpl_replace tooltpl_file_data_cleaned solved_variables`
 
+if [ ! -z "$tooltpl_file" ] ; then
+    # preserve file attributes/permissions
+    cp -a $tplAbsolutePath tbg/submit.start
+fi
+# overwrite copied content but keep permissions (or create file if tpl comes from stdin)
 echo "$batch_file" > tbg/submit.start
 echo -e "\n#this script was created with call $initCall" >> tbg/submit.start
 echo "$tooltpl_file_data" > tbg/submit.tpl
