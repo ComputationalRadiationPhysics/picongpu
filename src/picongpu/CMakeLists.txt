@@ -269,12 +269,12 @@ endif()
 # Find mallocMC
 ################################################################################
 
-find_package(mallocMC 2.1.0 QUIET)
+find_package(mallocMC 2.2.0 QUIET)
 
 if(NOT mallocMC_FOUND)
   message(STATUS "Using mallocMC from thirdParty/ directory")
   set(MALLOCMC_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../thirdParty/mallocMC")
-  find_package(mallocMC 2.1.0 REQUIRED)
+  find_package(mallocMC 2.2.0 REQUIRED)
 endif(NOT mallocMC_FOUND)
 
 include_directories(SYSTEM ${mallocMC_INCLUDE_DIRS})
