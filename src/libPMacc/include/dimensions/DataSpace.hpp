@@ -1,6 +1,6 @@
 /**
  * Copyright 2013-2015 Felix Schmitt, Heiko Burau, Rene Widera,
- *                     Wolfgang Hoenig, Benjamin Worpitz
+ *                     Wolfgang Hoenig, Benjamin Worpitz, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -62,6 +62,18 @@ namespace PMacc
          * Sets size of all dimensions from cuda dim3.
          */
         HDINLINE DataSpace(dim3 value)
+        {
+            for (uint32_t i = 0; i < DIM; ++i)
+            {
+                (*this)[i] = *(&(value.x) + i);
+            }
+        }
+
+        /**
+         * constructor.
+         * Sets size of all dimensions from cuda uint3 (e.g. threadIdx/blockIdx)
+         */
+        HDINLINE DataSpace(uint3 value)
         {
             for (uint32_t i = 0; i < DIM; ++i)
             {
