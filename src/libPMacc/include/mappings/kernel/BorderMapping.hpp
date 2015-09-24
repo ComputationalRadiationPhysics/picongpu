@@ -47,7 +47,7 @@ namespace PMacc
         unsigned T_dim,
         class T_SuperCellSize
     >
-    class BorderMapping<T_BaseClass<T_dim, T_SuperCellSize> >
+    class BorderMapping<T_BaseClass<T_dim, T_SuperCellSize> >: public T_BaseClass<T_dim, T_SuperCellSize>
     {
     public:
         typedef T_BaseClass<T_dim, T_SuperCellSize> BaseClass;
@@ -67,7 +67,7 @@ namespace PMacc
          * @param base object of base class baseClass (see template parameters)
          * @param direction direction to map to
          */
-        HINLINE BorderMapping(const BaseClass& base, PMacc::ExchangeType direction)
+        HINLINE BorderMapping(const BaseClass& base, PMacc::ExchangeType direction): BaseClass(base), m_direction(direction)
         {
             DimDataSpace relDir = Mask::getRelativeDirections<Dim>(direction);
             int dirCt = 0;
@@ -77,8 +77,15 @@ namespace PMacc
             /* Only exactly 1 direction is allowed */
             if(dirCt != 1)
                 throw std::logic_error("Invalid direction");
-            gridDim = BorderMappingMethods<Dim>::getGridDim(base, direction);
-            blockOffset = BorderMappingMethods<Dim>::getBlockOffset(base, direction);
+        }
+
+        /**
+         * Returns the direction used by this mapper
+         */
+        HDINLINE PMacc::ExchangeType
+        getDirection() const
+        {
+            return m_direction;
         }
 
         /**
@@ -86,9 +93,9 @@ namespace PMacc
          *
          * @return size of the grid
          */
-        HDINLINE DimDataSpace getGridDim() const
+        HINLINE DimDataSpace getGridDim() const
         {
-            return gridDim;
+            return BorderMappingMethods<Dim>::getGridDim(*this, m_direction);;
         }
 
         /**
@@ -99,10 +106,9 @@ namespace PMacc
          */
         HDINLINE DimDataSpace getSuperCellIndex(const DimDataSpace& realSuperCellIdx) const
         {
-            return realSuperCellIdx + blockOffset;
+            return realSuperCellIdx + BorderMappingMethods<Dim>::getBlockOffset(*this, m_direction);
         }
     private:
-        PMACC_ALIGN(gridDim, DimDataSpace);
-        PMACC_ALIGN(blockOffset, DimDataSpace);
+        PMACC_ALIGN(m_direction, const PMacc::ExchangeType);
     };
 } // namespace PMacc
