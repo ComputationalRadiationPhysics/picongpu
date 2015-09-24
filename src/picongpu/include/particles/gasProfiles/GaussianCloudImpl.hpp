@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU.
  *
@@ -56,7 +56,6 @@ struct GaussianCloudImpl : public T_ParamClass
         const floatD_X center = precisionCast<float_32>(ParamClass::center_SI / unit_length);
         const floatD_X sigma = precisionCast<float_32>(ParamClass::sigma_SI / unit_length);
 
-
         const floatD_X globalCellPos(
                                      precisionCast<float_X>(totalCellOffset) *
                                      cellSize
@@ -64,13 +63,15 @@ struct GaussianCloudImpl : public T_ParamClass
 
         if (globalCellPos.y() < vacuum_y) return float_X(0.0);
 
-        float_X density(1.0);
-        const float_X power = ParamClass::gasPower;
-        for (uint32_t d = 0; d < simDim; ++d)
-        {
-            const float_X exponent(math::abs((globalCellPos[d] - center[d]) / sigma[d]));
-            density *= math::exp(ParamClass::gasFactor * math::pow(exponent, power));
-        }
+        /* for x, y, z calculate: x-x0 / sigma_x */
+        const floatD_X r0overSigma = (globalCellPos - center) / sigma;
+        /* get lenghts of r0 over sigma */
+        const float_X exponent = math::abs(r0overSigma);
+
+        /* calculate exp(factor * exponent**power) */
+        const float_X power  = ParamClass::gasPower;
+        const float_X factor = ParamClass::gasFactor;
+        const float_X density = math::exp(factor * math::pow(exponent, power));
 
         return density;
     }
