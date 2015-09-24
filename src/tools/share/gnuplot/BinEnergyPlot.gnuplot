@@ -1,6 +1,4 @@
-#!/usr/bin/gnuplot -persist
-# 
-# Copyright 2013-2014 Axel Huebl, Richard Pausch
+# Copyright 2013-2015 Axel Huebl, Richard Pausch
 #
 # This file is part of PIConGPU.
 #
