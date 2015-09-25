@@ -28,7 +28,6 @@
 #include "fields/FieldJ.hpp"
 #include "math/Vector.hpp"
 #include "cuSTL/algorithm/mpi/Gather.hpp"
-#include "cuSTL/algorithm/mpi/Reduce.hpp"
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
 #include "cuSTL/algorithm/kernel/Foreach.hpp"
@@ -39,13 +38,14 @@
 #include "algorithms/ForEach.hpp"
 #include "cuSTL/algorithm/kernel/Reduce.hpp"
 #include "nvidia/functors/Add.hpp"
+#include "common/txtFileHandling.hpp"
 
 namespace picongpu
 {
 
 ChargeConservation::ChargeConservation()
-    : name("print the maximum charge deviation between particles and div E"),
-      prefix("chargeConservation")
+    : name("ChargeConservation: Print the maximum charge deviation between particles and div E to textfile 'chargeConservation.dat'"),
+      prefix("chargeConservation"), filename("chargeConservation.dat")
 {
     Environment<>::get().PluginConnector().registerPlugin(this);
 }
@@ -53,7 +53,7 @@ ChargeConservation::ChargeConservation()
 void ChargeConservation::pluginRegisterHelp(po::options_description& desc)
 {
     desc.add_options()
-        ((this->prefix + "_period").c_str(),
+        ((this->prefix + ".period").c_str(),
         po::value<uint32_t > (&this->notifyPeriod)->default_value(0), "enable plugin [for each n-th step]");
 }
 
@@ -62,6 +62,43 @@ std::string ChargeConservation::pluginGetName() const {return this->name;}
 void ChargeConservation::pluginLoad()
 {
     Environment<>::get().PluginConnector().setNotificationPeriod(this, this->notifyPeriod);
+
+    PMacc::GridController<simDim>& con = PMacc::Environment<simDim>::get().GridController();
+    using namespace PMacc::math;
+    Size_t<simDim> gpuDim = (Size_t<simDim>)con.getGpuNodes();
+    zone::SphericZone<simDim> zone_allGPUs(gpuDim);
+    this->allGPU_reduce = AllGPU_reduce(new PMacc::algorithm::mpi::Reduce<simDim>(zone_allGPUs));
+
+    if(this->allGPU_reduce->root())
+    {
+        this->output_file.open(this->filename.c_str(), std::ios_base::app);
+        this->output_file << "#timestep max-charge-deviation unit[As]" << std::endl;
+    }
+}
+
+void ChargeConservation::restart(uint32_t restartStep, const std::string restartDirectory)
+{
+    if(!this->allGPU_reduce->root()) return;
+
+    restoreTxtFile( this->output_file,
+                    this->filename,
+                    restartStep,
+                    restartDirectory );
+}
+
+void ChargeConservation::checkpoint(uint32_t currentStep, const std::string checkpointDirectory)
+{
+    if(!this->allGPU_reduce->root()) return;
+
+    checkpointTxtFile( this->output_file,
+                       this->filename,
+                       currentStep,
+                       checkpointDirectory );
+}
+
+void ChargeConservation::setMappingDescription(MappingDesc* cellDescription)
+{
+    this->cellDescription = cellDescription;
 }
 
 namespace detail
@@ -84,9 +121,9 @@ struct Div<DIM3, ValueType>
     template<typename Field>
     HDINLINE ValueType operator()(Field field) const
     {
-        const ValueType reciWidth = float_X(1.0) / CELL_WIDTH;
-        const ValueType reciHeight = float_X(1.0) / CELL_HEIGHT;
-        const ValueType reciDepth = float_X(1.0) / CELL_DEPTH;
+        const ValueType reciWidth = float_X(1.0) / cellSize.x();
+        const ValueType reciHeight = float_X(1.0) / cellSize.y();
+        const ValueType reciDepth = float_X(1.0) / cellSize.z();
         return ((*field).x() - (*field(-1,0,0)).x()) * reciWidth +
                ((*field).y() - (*field(0,-1,0)).y()) * reciHeight +
                ((*field).z() - (*field(0,0,-1)).z()) * reciDepth;
@@ -101,8 +138,8 @@ struct Div<DIM2, ValueType>
     template<typename Field>
     HDINLINE ValueType operator()(Field field) const
     {
-        const ValueType reciWidth = float_X(1.0) / CELL_WIDTH;
-        const ValueType reciHeight = float_X(1.0) / CELL_HEIGHT;
+        const ValueType reciWidth = float_X(1.0) / cellSize.x();
+        const ValueType reciHeight = float_X(1.0) / cellSize.y();
         return ((*field).x() - (*field(-1,0)).x()) * reciWidth +
                ((*field).y() - (*field(0,-1)).y()) * reciHeight;
     }
@@ -155,13 +192,15 @@ void ChargeConservation::notify(uint32_t currentStep)
     BOOST_AUTO(fieldTmp_coreBorder,
                  fieldTmp->getGridBuffer().
                  getDeviceBuffer().cartBuffer().
-                 view(BlockDim::toRT(), -BlockDim::toRT()));
+                 view(this->cellDescription->getGuardingSuperCells()*BlockDim::toRT(),
+                      this->cellDescription->getGuardingSuperCells()*-BlockDim::toRT()));
 
     /* cast libPMacc Buffer to cuSTL Buffer */
     BOOST_AUTO(fieldE_coreBorder,
                  dc.getData<FieldE > (FieldE::getName(), true).getGridBuffer().
                  getDeviceBuffer().cartBuffer().
-                 view(BlockDim::toRT(), -BlockDim::toRT()));
+                 view(this->cellDescription->getGuardingSuperCells()*BlockDim::toRT(),
+                      this->cellDescription->getGuardingSuperCells()*-BlockDim::toRT()));
 
     /* run calculation: fieldTmp = | div E * eps_0 - rho | */
     using namespace lambda;
@@ -180,22 +219,13 @@ void ChargeConservation::notify(uint32_t currentStep)
     /* reduce again across mpi cluster */
     container::HostBuffer<typename FieldTmp::ValueType, 1> maxChargeDiff_host(1);
     *maxChargeDiff_host.origin() = maxChargeDiff;
-
-    PMacc::GridController<simDim>& con = PMacc::Environment<simDim>::get().GridController();
-    using namespace PMacc::math;
-    Size_t<simDim> gpuDim = (Size_t<simDim>)con.getGpuNodes();
-    zone::SphericZone<simDim> zone_allGPUs(gpuDim);
-    PMacc::algorithm::mpi::Reduce<simDim> allGPU_reduce(zone_allGPUs);
     container::HostBuffer<typename FieldTmp::ValueType, 1> maxChargeDiff_cluster(1);
-    allGPU_reduce(maxChargeDiff_cluster, maxChargeDiff_host, _max(_1, _2));
+    (*this->allGPU_reduce)(maxChargeDiff_cluster, maxChargeDiff_host, _max(_1, _2));
 
-    if(!allGPU_reduce.root()) return;
+    if(!this->allGPU_reduce->root()) return;
 
-    static std::ofstream file("chargeConservation.dat");
-
-    file << "step: " << currentStep << ", max charge deviation: "
-        << *maxChargeDiff_cluster.origin() * CELL_VOLUME << " * " << UNIT_CHARGE
-        << " Coulomb" << std::endl;
+    this->output_file << currentStep << " " << (*maxChargeDiff_cluster.origin() * CELL_VOLUME).x()
+        << " " << UNIT_CHARGE << std::endl;
 }
 
 } // namespace picongpu

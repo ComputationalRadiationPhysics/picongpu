@@ -20,7 +20,9 @@
 
 #pragma once
 
-#include "plugins/ILightweightPlugin.hpp"
+#include "plugins/ISimulationPlugin.hpp"
+#include <boost/shared_ptr.hpp>
+#include "cuSTL/algorithm/mpi/Reduce.hpp"
 
 namespace picongpu
 {
@@ -35,12 +37,21 @@ namespace po = boost::program_options;
  * WARNING: This plugin assumes a Yee-cell!
  * Do not use it together with other field solvers like `directional splitting` or `Lehe`
  */
-class ChargeConservation : public ILightweightPlugin
+class ChargeConservation : public ISimulationPlugin
 {
 private:
     std::string name;
     std::string prefix;
     uint32_t notifyPeriod;
+    const std::string filename;
+    MappingDesc* cellDescription;
+    std::ofstream output_file;
+
+    typedef boost::shared_ptr<PMacc::algorithm::mpi::Reduce<simDim> > AllGPU_reduce;
+    AllGPU_reduce allGPU_reduce;
+
+    void restart(uint32_t restartStep, const std::string restartDirectory);
+    void checkpoint(uint32_t currentStep, const std::string checkpointDirectory);
 
     void pluginLoad();
 public:
@@ -48,7 +59,7 @@ public:
     virtual ~ChargeConservation() {}
 
     void notify(uint32_t currentStep);
-    void setMappingDescription(MappingDesc*) {}
+    void setMappingDescription(MappingDesc*);
     void pluginRegisterHelp(po::options_description& desc);
     std::string pluginGetName() const;
 };
