@@ -15,7 +15,7 @@ Install
    - *Debian/Ubuntu:* `sudo apt-get install libboost-dev libboost-program-options-dev`
    - *Arch Linux:* `sudo pacman -S boost`
    - or download from [http://www.boost.org/](http://sourceforge.net/projects/boost/files/boost/1.55.0/boost_1_55_0.tar.gz/download)
- - `CMake` >= 2.8.5
+ - `CMake` >= 2.8.12.2
   - *Debian/Ubuntu:* `sudo apt-get install cmake file cmake-curses-gui`
   - *Arch Linux:* `sudo pacman -S cmake`
  - `git` >= 1.7.9.5
@@ -65,8 +65,8 @@ cmake -DCMAKE_MODULE_PATH=. --help-module FindmallocMC | less
 
 and use the following lines in your `CMakeLists.txt`:
 ```cmake
-# this example will require at least CMake 2.8.5
-cmake_minimum_required(VERSION 2.8.5)
+# this example will require at least CMake 2.8.12.2
+cmake_minimum_required(VERSION 2.8.12.2)
 
 # add path to FindmallocMC.cmake, e.g., in the directory in cmake/
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)

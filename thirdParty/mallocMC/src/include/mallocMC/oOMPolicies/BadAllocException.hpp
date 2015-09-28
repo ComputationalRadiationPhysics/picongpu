@@ -39,7 +39,7 @@ namespace OOMPolicies{
    * accelerators. Using this policy on other types of accelerators that do not
    * support exceptions results in undefined behaviour.
    */
-  class BadAllocException;
-    
+  struct BadAllocException;
+
 } //namespace OOMPolicies
 } //namespace mallocMC

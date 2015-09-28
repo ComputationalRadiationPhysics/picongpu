@@ -9,13 +9,15 @@ env:
 
 script:
   - mkdir build_tmp && cd build_tmp
-  - cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR $TRAVIS_BUILD_DIR
+  - CXXFLAGS="-Werror" cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR $TRAVIS_BUILD_DIR
   - make
   - make install
   - make examples
 
 before_script:
+  - sudo add-apt-repository --yes ppa:smspillaz/cmake-2.8.12
   - sudo apt-get update -qq
+  - sudo apt-get install -q -y cmake-data cmake
   - sudo apt-get install -qq build-essential
   - sudo apt-get install -qq gcc-4.4 g++-4.4
   - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.4 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.4

@@ -1,6 +1,29 @@
 Change Log / Release Log for mallocMC
 ================================================================
 
+2.2.0crp
+-------------
+**Date:** 2015-09-25
+
+This release fixes some minor bugs that occured after the release of 2.1.0crp, adds some documentation and improves the interoperability with other projects and build systems.
+We closed all issues documented in
+[Milestone *2.2.0crp: Stabilizing the release*](https://github.com/ComputationalRadiationPhysics/mallocMC/issues?milestone=5&state=closed)
+
+### Changes to mallocMC 2.1.0crp
+
+**Features**
+ - the interface now provides the host function `HeapInfoVector getHeapLocations()` to obtain information about the location and size of existing mallocMC-heaps #86
+
+**Bug fixes**
+ - the function `getAvailableSlots` was always required in the policy classes, although the implementations might not provide it #89
+
+**Misc:**
+ - the code relied on `__TROW` being defined, which is not available in all compilers #91
+ - the CMake dependency increased to CMake >= 2.8.12.2 #92
+ - a new FindmallocMC.cmake module file is provided at https://github.com/ComputationalRadiationPhysics/cmake-modules #85
+ - See the full changes at https://github.com/ComputationalRadiationPhysics/mallocMC/compare/2.1.0crp...2.2.0crp
+
+
 2.1.0crp
 -------------
 **Date:** 2015-02-11

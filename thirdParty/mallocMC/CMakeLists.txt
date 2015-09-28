@@ -1,5 +1,5 @@
 project(mallocMC)
-cmake_minimum_required(VERSION 2.8.5)
+cmake_minimum_required(VERSION 2.8.12.2)
 
 # helper for libs and packages
 set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/"
@@ -46,18 +46,20 @@ endif(Boost_VERSION EQUAL 105500)
 # GNU
 if(CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshadow")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter")
   # new warning in gcc 4.8 (flag ignored in previous version)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedefs")
-  # ICC
+# ICC
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshadow")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_VARIADIC_TEMPLATES")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_CXX11_VARIADIC_TEMPLATES")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_FENV_H")
-  # PGI
+# PGI
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "PGI")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Minform=inform")
 endif()
