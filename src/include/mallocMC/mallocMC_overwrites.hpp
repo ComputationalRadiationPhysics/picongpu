@@ -83,6 +83,12 @@ bool providesAvailableSlots(){                                                 \
 } /* end namespace mallocMC */
 
 
+/** __THROW is defined in Glibc so it is not available on all platforms.
+ */
+#ifndef __THROW
+  #define __THROW
+#endif 
+
 /** Create the functions malloc() and free() inside a namespace
  *
  * This allows for a peaceful coexistence between different functions called

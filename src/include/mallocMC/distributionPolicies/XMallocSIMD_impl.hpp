@@ -77,6 +77,9 @@ namespace DistributionPolicies{
 
       //all the properties must be unsigned integers > 0
       BOOST_STATIC_ASSERT(!std::numeric_limits<typename Properties::pagesize::type>::is_signed);
+
+      // \TODO: The static_cast can be removed once the minimal dependencies of
+      //        this project is are at least CUDA 7.0 and gcc 4.8.2
       BOOST_STATIC_ASSERT(static_cast<uint32>(pagesize) > 0);
 
     public:
