@@ -25,7 +25,7 @@
 #include <cuSTL/container/allocator/DeviceMemAllocator.hpp>
 #include <cuSTL/container/copier/D2DCopier.hpp>
 #include <cuSTL/container/assigner/DeviceMemAssigner.hpp>
-#include "CartBuffer.hpp"
+#include "cuSTL/container/CartBuffer.hpp"
 #include "allocator/tag.h"
 
 #include <memory/buffers/DeviceBuffer.hpp>
