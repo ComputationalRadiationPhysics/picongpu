@@ -256,6 +256,8 @@ endif()
 
 # PMacc (ab)uses boost::result_of for non-functors. This forces boost to use the
 # result<> member template of the target type if available
+# Note: For CUDA > 7.5 and Boost >= 1.55 one can also use BOOST_RESULT_OF_USE_TR1_WITH_DECLTYPE_FALLBACK
+# as CUDA versions up till 7.5 have a serious compiler bug when using boost::result_of with decltype
 add_definitions(-DBOOST_RESULT_OF_USE_TR1)
 
 ################################################################################
