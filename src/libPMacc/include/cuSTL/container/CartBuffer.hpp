@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "allocator/EmptyAllocator.hpp"
+#include "cuSTL/container/allocator/EmptyAllocator.hpp"
 #include "cuSTL/cursor/BufferCursor.hpp"
 #include "cuSTL/cursor/navigator/CartNavigator.hpp"
 #include "cuSTL/cursor/accessor/PointerAccessor.hpp"
