@@ -254,6 +254,9 @@ if( (Boost_VERSION EQUAL 105500) AND
       "${CUDA_NVCC_FLAGS} \"-DBOOST_NOINLINE=__attribute__((noinline))\" ")
 endif()
 
+# PMacc (ab)uses boost::result_of for non-functors. This forces boost to use the
+# result<> member template of the target type if available
+add_definitions(-DBOOST_RESULT_OF_USE_TR1)
 
 ################################################################################
 # Find OpenMP
