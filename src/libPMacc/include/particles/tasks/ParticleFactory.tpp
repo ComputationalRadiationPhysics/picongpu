@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include "Environment.hpp"
 #include "eventSystem/EventSystem.hpp"
 #include "particles/tasks/ParticleFactory.hpp"
 
