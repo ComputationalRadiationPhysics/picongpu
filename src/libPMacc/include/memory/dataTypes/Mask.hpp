@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2014 Felix Schmitt, Heiko Burau, Rene Widera, Wolfgang Hoenig
+ * Copyright 2013-2015 Felix Schmitt, Heiko Burau, Rene Widera, Wolfgang Hoenig,
+ *                     Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -227,10 +228,10 @@ namespace PMacc
         /** translate direction to relative offset
          *
          * direction (combination of `ExchangeType`'s) e.g. TOP, TOP+LEFT, ... @see types.h
-         * are translated to a relative offsets were any dimension is
-         * set to -1,0,1
-         *  - `-1` if contains LEFT, BOTTOM or FRONT
-         *  - `+1` if contains RIGHT, TOP or BACK
+         * are translated to a relative offsets were every dimension is set to one of -1,0,1
+         *                      X      Y         Z
+         *  - `-1` if contains LEFT,  TOP    or FRONT
+         *  - `+1` if contains RIGHT, BOTTOM or BACK
          *  - `0`  else
          *
          * @param direction combination which describe a direction (only one direction)
