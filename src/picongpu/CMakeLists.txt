@@ -1,5 +1,6 @@
 #
-# Copyright 2013-2015 Axel Huebl, Benjamin Schneider, Felix Schmitt, Heiko Burau, Rene Widera
+# Copyright 2013-2015 Axel Huebl, Benjamin Schneider, Felix Schmitt, Heiko Burau,
+#                     Rene Widera, Alexander Grund
 #
 # This file is part of PIConGPU.
 #
@@ -92,12 +93,14 @@ endif(CUDA_KEEP_FILES)
 # C++11 Enabler
 ################################################################################
 
-# By using this if-else one can assume that CMAKE_CXX_STANDARD==11 <=> CUDA_NVCC_FLAGS contain "-std=c++11"
+# By using this if-else one can assume that:
+# CMAKE_CXX_STANDARD==11 <=> CUDA_NVCC_FLAGS contain "-std=c++11"
 if("${CUDA_NVCC_FLAGS}" MATCHES "-std=c\\+\\+11")
     set(CMAKE_CXX_STANDARD 11)
 elseif("${CMAKE_CXX_STANDARD}" STREQUAL "11")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" -std=c++11)
 else()
+    # Note: Add support for C++14 once CUDA supports it (maybe 8.0?)
     set(CMAKE_CXX_STANDARD 98)
 endif()
 
@@ -266,17 +269,19 @@ if( (Boost_VERSION EQUAL 105500) AND
       "${CUDA_NVCC_FLAGS} \"-DBOOST_NOINLINE=__attribute__((noinline))\" ")
 endif()
 
-# PMacc (ab)uses boost::result_of for non-functors. This define forces boost to use the
-# result<> member template of the target type
+# PMacc (ab)uses boost::result_of for non-functors (e.g. []-operators). This
+# define forces boost to use the result<> member template of the target type
 if(Boost_VERSION LESS 105500)
     add_definitions(-DBOOST_RESULT_OF_USE_TR1)
 else()
-    # Boost 1.55 adds support for another define that makes result_of look for the result<> template
-    # and falls back to decltype if none is found. This is great for the transition from the "wrong"
-    # usage to the "correct" one as both can be used. But:
+    # Boost 1.55 adds support for another define that makes result_of look for
+    # the result<> template and falls back to decltype if none is found. This is
+    # great for the transition from the "wrong" usage to the "correct" one as
+    # both can be used. But:
     # 1) Cannot be used in 7.0 due to nvcc bug:
-    #    http://stackoverflow.com/questions/31940457/make-nvcc-output-traces-on-compile-error
-    # 2) Requires c++11 enabled as there is no further check in boost besides the version check
+    #    http://stackoverflow.com/questions/31940457/
+    # 2) Requires C++11 enabled as there is no further check in boost besides
+    #    the version check of nvcc
     if( (NOT CUDA_VERSION VERSION_EQUAL 7.0) AND (CMAKE_CXX_STANDARD EQUAL 11) )
         add_definitions(-DBOOST_RESULT_OF_USE_TR1_WITH_DECLTYPE_FALLBACK)
     else()
