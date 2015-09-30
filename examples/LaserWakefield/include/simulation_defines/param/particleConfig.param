@@ -50,7 +50,7 @@ struct RandomParameter
 {
     /** Count of particles per cell at initial state
      *  unit: none */
-    static const uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
+    static CONSTEXPR  uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
 };
 /* definition of random particle start*/
 typedef RandomImpl<RandomParameter> Random;

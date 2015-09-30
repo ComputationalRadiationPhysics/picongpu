@@ -37,7 +37,7 @@ namespace picongpu
     public:
 
         /* Add this additional field for pushing particles */
-        static const bool InfluenceParticlePusher = PARAM_INCLUDE_FIELDBACKGROUND;
+        static CONSTEXPR  bool InfluenceParticlePusher = PARAM_INCLUDE_FIELDBACKGROUND;
 
         /* We use this to calculate your SI input back to our unit system */
         PMACC_ALIGN(m_unitField, const float3_64);
@@ -120,7 +120,7 @@ namespace picongpu
     {
     public:
         /* Add this additional field for pushing particles */
-        static const bool InfluenceParticlePusher = PARAM_INCLUDE_FIELDBACKGROUND;
+        static CONSTEXPR  bool InfluenceParticlePusher = PARAM_INCLUDE_FIELDBACKGROUND;
 
         /* TWTS B-fields need to be initialized on host,
          * so they can look up global grid dimensions.
@@ -200,7 +200,7 @@ namespace picongpu
     {
     public:
         /* Add this additional field? */
-        static const bool activated = false;
+        static CONSTEXPR  bool activated = false;
 
         /* We use this to calculate your SI input back to our unit system */
         PMACC_ALIGN(m_unitField, const float3_64);

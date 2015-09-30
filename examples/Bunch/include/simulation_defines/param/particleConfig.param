@@ -49,7 +49,7 @@ namespace manipulators
          *  Examples:
          *    - No drift is equal to 1.0
          *  unit: none */
-        static const float_64 gamma = 5.0;
+        static CONSTEXPR  float_64 gamma = 5.0;
         const DriftParamNegative_direction_t direction;
     };
     /* definition of SetDrift start*/
@@ -65,7 +65,7 @@ namespace startPosition
     {
         /** Count of particles per cell at initial state
          *  unit: none */
-        static const uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
+        static CONSTEXPR  uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
     };
     /* definition of random particle start*/
     typedef RandomImpl<RandomParameter> Random;

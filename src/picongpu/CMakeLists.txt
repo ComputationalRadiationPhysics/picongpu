@@ -428,6 +428,20 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "PGI")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Minform=inform")
 endif()
 
+################################################################################
+# C++11 Features/Compatibility
+################################################################################
+
+# CONSTEXPR: Should be used instead of 'const' e.g. in 'static const'. This
+#            evaluates to 'constexpr' for C++11 allowing compilation of e.g.
+#            static const float foo = 42.1337
+#            It MUST NOT be used to mark functions 'constexpr' functions as this
+#            is not supported in C++98
+if(CMAKE_CXX_STANDARD EQUAL 98)
+    add_definitions(-DCONSTEXPR=const)
+else()
+    add_definitions(-DCONSTEXPR=constexpr)
+endif()
 
 ################################################################################
 # Configure include directories

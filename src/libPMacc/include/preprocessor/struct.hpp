@@ -199,7 +199,7 @@
 #define PMACC_PP_CREATE_VALUE_VARIABLE_WITH_PAREN(elem)                        \
     PMACC_PP_SELECT_TYPEID( 5,PMACC_PP_X_CREATE_VALUE_VARIABLE_WITH_PAREN, elem )
 
-#define PMACC_PP_X_CREATE_C_VALUE_VARIABLE(data,type,name,...) static const type name = __VA_ARGS__;
+#define PMACC_PP_X_CREATE_C_VALUE_VARIABLE(data,type,name,...) static CONSTEXPR type name = __VA_ARGS__;
 #define PMACC_PP_CREATE_C_VALUE_VARIABLE(elem)                                 \
     PMACC_PP_SELECT_TYPEID( 1,PMACC_PP_X_CREATE_C_VALUE_VARIABLE,elem )
 
