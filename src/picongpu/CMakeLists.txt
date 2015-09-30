@@ -240,7 +240,7 @@ set(LIBS ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
 # Find Boost
 ################################################################################
 
-find_package(Boost 1.49.0 REQUIRED COMPONENTS program_options regex filesystem system)
+find_package(Boost 1.52.0 REQUIRED COMPONENTS program_options regex filesystem system)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${Boost_LIBRARIES})
 
@@ -254,11 +254,25 @@ if( (Boost_VERSION EQUAL 105500) AND
       "${CUDA_NVCC_FLAGS} \"-DBOOST_NOINLINE=__attribute__((noinline))\" ")
 endif()
 
-# PMacc (ab)uses boost::result_of for non-functors. This forces boost to use the
-# result<> member template of the target type if available
-# Note: For CUDA > 7.5 and Boost >= 1.55 one can also use BOOST_RESULT_OF_USE_TR1_WITH_DECLTYPE_FALLBACK
-# as CUDA versions up till 7.5 have a serious compiler bug when using boost::result_of with decltype
-add_definitions(-DBOOST_RESULT_OF_USE_TR1)
+# PMacc (ab)uses boost::result_of for non-functors. This define forces boost to use the
+# result<> member template of the target type
+if(Boost_VERSION LESS 105500)
+    add_definitions(-DBOOST_RESULT_OF_USE_TR1)
+else()
+    # Boost 1.55 adds support for another define that makes result_of look for the result<> template
+    # and falls back to decltype if none is found. This is great for the transition from the "wrong"
+    # usage to the "correct" one as both can be used. But:
+    # 1) Cannot be used before 7.5 due to nvcc bug:
+    #    http://stackoverflow.com/questions/31940457/make-nvcc-output-traces-on-compile-error
+    # 2) Requires c++11 enabled as there is no further check in boost besides the version check
+    if( (NOT CUDA_VERSION VERSION_LESS 7.5) AND
+        ("${CUDA_NVCC_FLAGS}" MATCHES "-std=c\\+\\+11") )
+        add_definitions(-DBOOST_RESULT_OF_USE_TR1_WITH_DECLTYPE_FALLBACK)
+    else()
+        # Fallback
+        add_definitions(-DBOOST_RESULT_OF_USE_TR1)
+    endif()
+endif()
 
 ################################################################################
 # Find OpenMP
