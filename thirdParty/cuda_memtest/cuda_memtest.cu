@@ -76,6 +76,7 @@ pthread_mutex_t atomic_mutex = PTHREAD_MUTEX_INITIALIZER;
 void run_tests(char*, unsigned int);
 extern void update_temperature(void);
 extern void allocate_small_mem(void);
+volatile int active_update_temperature;
 
 typedef struct arg_s{
     unsigned int device;
@@ -186,19 +187,19 @@ thread_func(void* _arg)
 
 
 void*
-temp_monitor_thread_func(void* arg)
+temp_monitor_thread_func(void*)
 {
     do{
-	update_temperature();
-	sleep(monitor_interval);
-    }while(1);
-
+        update_temperature();
+        sleep(monitor_interval);
+    }while(active_update_temperature);
+    return NULL;
 }
 
 
 void list_tests_info(void)
 {
-    int i;
+    size_t i;
     for (i = 0;i < DIM(cuda_memtests); i++){
 	printf("%s %s\n", cuda_memtests[i].desc, cuda_memtests[i].enabled?"":" ==disabled by default==");
     }
@@ -319,7 +320,7 @@ main(int argc, char** argv)
 	    if (i+1 >= argc){
 		usage(argv);
 	    }
-	    int idx = atoi(argv[i+1]);
+	    size_t idx = atoi(argv[i+1]);
 	    if (idx >= DIM(cuda_memtests)){
 		fprintf(stderr, "Error: invalid test id\n");
 		usage(argv);
@@ -334,7 +335,7 @@ main(int argc, char** argv)
 	    if (i+1 >= argc){
 		usage(argv);
 	    }
-	    int idx = atoi(argv[i+1]);
+	    size_t idx = atoi(argv[i+1]);
 	    if (idx >= DIM(cuda_memtests)){
 		fprintf(stderr, "Error: invalid test id\n");
 		usage(argv);
@@ -345,7 +346,7 @@ main(int argc, char** argv)
 	    continue;
 	}
 	if (strcmp(argv[i], "--disable_all") == 0){
-	    int k;
+	    size_t k;
 	    for (k=0;k < DIM(cuda_memtests);k++){
 		cuda_memtests[k].enabled = 0;
 	    }
@@ -475,7 +476,7 @@ main(int argc, char** argv)
 
 	if (strcmp(argv[i], "--stress") == 0){
 	    //equal to "--disable_all --enable_test 10 --exit_on_error"
-	    int k;
+	    size_t k;
 	    for (k=0;k < DIM(cuda_memtests);k++){
 		cuda_memtests[k].enabled = 0;
 	    }
@@ -500,6 +501,7 @@ main(int argc, char** argv)
     }
     pthread_t temp_pid;
     if (monitor_temp){
+	active_update_temperature = 1;
 	if (pthread_create(&temp_pid, NULL, temp_monitor_thread_func, NULL)  != 0){
 	    printf("ERROR: creating thread for temperature monitoring failed\n");
 	    exit(ERR_GENERAL);
@@ -552,6 +554,7 @@ main(int argc, char** argv)
 	exit(ERR_BAD_STATE);
     }
 
+    active_update_temperature = 0;
 
     for(i=0;i < num_gpus;i++){
 	pthread_join(pid[i], NULL);

@@ -588,7 +588,7 @@ test0(char* ptr, unsigned int tot_num_blocks)
     kernel_test0_global_read<<<1, 1>>>(ptr, end_ptr, err_count, err_addr, err_expect, err_current, err_second_read); SYNC_CUERR;
     error_checking("test0 on global address",  0);
 
-    for(int ite = 0;ite < num_iterations; ite++){
+    for(unsigned int ite = 0;ite < num_iterations; ite++){
 	for (i=0;i < tot_num_blocks; i+= GRIDSIZE){
 	    dim3 grid;
 	    grid.x= GRIDSIZE;
