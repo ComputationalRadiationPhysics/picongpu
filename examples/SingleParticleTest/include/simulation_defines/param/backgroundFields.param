@@ -25,23 +25,23 @@
 namespace picongpu
 {
     // Init Beta = v/c for the Electron
-    const float_64 BETA0_X = 0.0; //unit: none
-    const float_64 BETA0_Y = 0.5; //unit: none
-    const float_64 BETA0_Z = 0.0; //unit: none
+    BOOST_CONSTEXPR_OR_CONST float_64 BETA0_X = 0.0; //unit: none
+    BOOST_CONSTEXPR_OR_CONST float_64 BETA0_Y = 0.5; //unit: none
+    BOOST_CONSTEXPR_OR_CONST float_64 BETA0_Z = 0.0; //unit: none
 
     namespace SI
     {
         // Constant Background Fields
-        const float_64 E_X_SI = 0.0; //unit: Volt /meter
-        const float_64 E_Y_SI = 0.0; //-1.0e13; //unit: Volt /meter
-        const float_64 E_Z_SI = 0.0; //unit: Volt /meter
+        BOOST_CONSTEXPR_OR_CONST float_64 E_X_SI = 0.0; //unit: Volt /meter
+        BOOST_CONSTEXPR_OR_CONST float_64 E_Y_SI = 0.0; //-1.0e13; //unit: Volt /meter
+        BOOST_CONSTEXPR_OR_CONST float_64 E_Z_SI = 0.0; //unit: Volt /meter
 
-        const float_64 B_X_SI = 0.0; //unit: Tesla = Vs/m^2
-        const float_64 B_Y_SI = 0.0; //unit: Tesla = Vs/m^2
-        const float_64 B_Z_SI = 50.0; //unit: Tesla = Vs/m^2
+        BOOST_CONSTEXPR_OR_CONST float_64 B_X_SI = 0.0; //unit: Tesla = Vs/m^2
+        BOOST_CONSTEXPR_OR_CONST float_64 B_Y_SI = 0.0; //unit: Tesla = Vs/m^2
+        BOOST_CONSTEXPR_OR_CONST float_64 B_Z_SI = 50.0; //unit: Tesla = Vs/m^2
     }
 
     // Y Offset of particle in cells
-    const unsigned int OneParticleOffset = 100;
+    BOOST_CONSTEXPR_OR_CONST unsigned int OneParticleOffset = 100;
 }
 

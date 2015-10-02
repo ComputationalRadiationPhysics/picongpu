@@ -31,22 +31,22 @@ namespace picongpu
         namespace SI
         {
             /** unit: meter */
-            const float_64 WAVE_LENGTH_SI = 0.8e-6;
+            BOOST_CONSTEXPR_OR_CONST float_64 WAVE_LENGTH_SI = 0.8e-6;
 
             /** UNITCONV */
-            const float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
+            BOOST_CONSTEXPR_OR_CONST float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
 
             /** unit: W / m^2 */
             // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
 
             /** unit: none */
-            const float_64 _A0  = 8.0;
+            BOOST_CONSTEXPR_OR_CONST float_64 _A0  = 8.0;
 
             /** unit: Volt /meter */
-            const float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
+            BOOST_CONSTEXPR_OR_CONST float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
 
             /** unit: Volt /meter */
-            //const float_64 AMPLITUDE_SI = 1.738e13;
+            //BOOST_CONSTEXPR_OR_CONST float_64 AMPLITUDE_SI = 1.738e13;
 
             /** Pulse length: sigma of std. gauss for intensity (E^2)
              *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
@@ -54,23 +54,23 @@ namespace picongpu
              *  Info:             FWHM_of_Intensity = FWHM_Illumination
              *                      = what a experimentalist calls "pulse duration"
              *  unit: seconds (1 sigma) */
-            const float_64 PULSE_LENGTH_SI = 5.0e-15; //25.0e-15 / 1.17741;
+            BOOST_CONSTEXPR_OR_CONST float_64 PULSE_LENGTH_SI = 5.0e-15; //25.0e-15 / 1.17741;
 
             /** beam waist: distance from the axis where the pulse intensity (E^2)
              *              decreases to its 1/e^2-th part,
              *              at the focus position of the laser
              *  unit: meter */
-            const float_64 W0_SI = 5.0e-6;
+            BOOST_CONSTEXPR_OR_CONST float_64 W0_SI = 5.0e-6;
             /** the distance to the laser focus in y-direction
              *  unit: meter */
-            const float_64 FOCUS_POS_SI = 4.62e-5;
+            BOOST_CONSTEXPR_OR_CONST float_64 FOCUS_POS_SI = 4.62e-5;
         }
         /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
          *  unit: none */
-        const float_64 PULSE_INIT = 15.0;
+        BOOST_CONSTEXPR_OR_CONST float_64 PULSE_INIT = 15.0;
 
         /* laser phase shift (no shift: 0.0) */
-        const float_X LASER_PHASE = 0.0; /* unit: rad, periodic in 2*pi */
+        BOOST_CONSTEXPR_OR_CONST float_X LASER_PHASE = 0.0; /* unit: rad, periodic in 2*pi */
 
         enum PolarisationType
         {
@@ -78,7 +78,7 @@ namespace picongpu
             LINEAR_Z = 2u,
             CIRCULAR = 4u,
         };
-        const PolarisationType Polarisation = CIRCULAR;
+        BOOST_CONSTEXPR_OR_CONST PolarisationType Polarisation = CIRCULAR;
     }
 
     namespace laserPulseFrontTilt
@@ -87,13 +87,13 @@ namespace picongpu
         namespace SI
         {
             /** unit: meter */
-            const float_64 WAVE_LENGTH_SI = 0.8e-6;
+            BOOST_CONSTEXPR_OR_CONST float_64 WAVE_LENGTH_SI = 0.8e-6;
 
             /** UNITCONV */
-            const float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
+            BOOST_CONSTEXPR_OR_CONST float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
 
             /** unit: Volt /meter */
-            const float_64 AMPLITUDE_SI = 1.738e13;
+            BOOST_CONSTEXPR_OR_CONST float_64 AMPLITUDE_SI = 1.738e13;
 
             /** Pulse length: sigma of std. gauss for intensity (E^2)
              *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
@@ -101,29 +101,29 @@ namespace picongpu
              *  Info:             FWHM_of_Intensity = FWHM_Illumination
              *                      = what a experimentalist calls "pulse duration"
              *  unit: seconds (1 sigma) */
-            const float_64 PULSE_LENGTH_SI = 10.615e-15 / 4.0;
+            BOOST_CONSTEXPR_OR_CONST float_64 PULSE_LENGTH_SI = 10.615e-15 / 4.0;
 
             /** beam waist: distance from the axis where the pulse intensity (E^2)
              *              decreases to its 1/e^2-th part,
              *              at the focus position of the laser
              *  unit: meter */
-            const float_64 W0_SI = 4.246e-6;
+            BOOST_CONSTEXPR_OR_CONST float_64 W0_SI = 4.246e-6;
 
             /** the distance to the laser focus in y-direction
              *  unit: meter */
-            const float_64 FOCUS_POS_SI = 4.62e-5;
+            BOOST_CONSTEXPR_OR_CONST float_64 FOCUS_POS_SI = 4.62e-5;
 
             /** the tilt angle between laser propagation in y-direction and laser axis in
              *  x-direction (0 degree == no tilt)
              *  unit: degree */
-            const float_64 TILT_X_SI = 0;
+            BOOST_CONSTEXPR_OR_CONST float_64 TILT_X_SI = 0;
         }
         /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
          *  unit: none */
-        const float_64 PULSE_INIT = 20.0;
+        BOOST_CONSTEXPR_OR_CONST float_64 PULSE_INIT = 20.0;
 
         /* laser phase shift (no shift: 0.0) */
-        const float_X LASER_PHASE = 0.0; /* unit: rad, periodic in 2*pi */
+        BOOST_CONSTEXPR_OR_CONST float_X LASER_PHASE = 0.0; /* unit: rad, periodic in 2*pi */
 
         enum PolarisationType
         {
@@ -131,7 +131,7 @@ namespace picongpu
             LINEAR_Z = 2u,
             CIRCULAR = 4u
         };
-        const PolarisationType Polarisation = LINEAR_X;
+        BOOST_CONSTEXPR_OR_CONST PolarisationType Polarisation = LINEAR_X;
     }
 
     namespace laserPlaneWave
@@ -140,27 +140,27 @@ namespace picongpu
         namespace SI
         {
             /** unit: meter */
-            const float_64 WAVE_LENGTH_SI = 0.8e-6;
+            BOOST_CONSTEXPR_OR_CONST float_64 WAVE_LENGTH_SI = 0.8e-6;
 
             /** UNITCONV */
-            const float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
+            BOOST_CONSTEXPR_OR_CONST float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
 
             /** unit: W / m^2 */
             // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
 
             /** unit: none */
-            const float_64 _A0 = 1.5;
+            BOOST_CONSTEXPR_OR_CONST float_64 _A0 = 1.5;
 
             /** unit: Volt /meter */
-            const float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
+            BOOST_CONSTEXPR_OR_CONST float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
 
             /** unit: Volt /meter */
-            //const float_64 AMPLITUDE_SI = 1.738e13;
+            //BOOST_CONSTEXPR_OR_CONST float_64 AMPLITUDE_SI = 1.738e13;
 
             /** The profile of the test Lasers 0 and 2 can be stretched by a
              *      constant area between the up and downramp
              *  unit: seconds */
-            const float_64 LASER_NOFOCUS_CONSTANT_SI = 13.34e-15; //7.0*WAVE_LENGTH_SI/::picongpu::SI::SPEED_OF_LIGHT_SI;//13.34e-15;//25.0e-15;
+            BOOST_CONSTEXPR_OR_CONST float_64 LASER_NOFOCUS_CONSTANT_SI = 13.34e-15; //7.0*WAVE_LENGTH_SI/::picongpu::SI::SPEED_OF_LIGHT_SI;//13.34e-15;//25.0e-15;
 
             /** Pulse length: sigma of std. gauss for intensity (E^2)
              *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
@@ -168,16 +168,16 @@ namespace picongpu
              *  Info:             FWHM_of_Intensity = FWHM_Illumination
              *                      = what a experimentalist calls "pulse duration"
              *  unit: seconds (1 sigma) */
-            const float_64 PULSE_LENGTH_SI = 10.615e-15 / 4.0; //5.0e-15; //25.0e-15 / 1.17741;
+            BOOST_CONSTEXPR_OR_CONST float_64 PULSE_LENGTH_SI = 10.615e-15 / 4.0; //5.0e-15; //25.0e-15 / 1.17741;
 
         }
 
         /** The laser pulse will be initialized half of PULSE_INIT times of the PULSE_LENGTH before and after the plateau
          *  unit: none */
-        const float_64 RAMP_INIT = 20.6146; //25.6415;//SI::aux_calulation::PULSE_TIME_SI/SI::PULSE_LENGTH_SI;
+        BOOST_CONSTEXPR_OR_CONST float_64 RAMP_INIT = 20.6146; //25.6415;//SI::aux_calulation::PULSE_TIME_SI/SI::PULSE_LENGTH_SI;
 
         /* we use a sin(omega*time + laser_phase) function to set up the laser - define phase: */
-        const float_X LASER_PHASE = 0.0; /* unit: rad, periodic in 2*pi */
+        BOOST_CONSTEXPR_OR_CONST float_X LASER_PHASE = 0.0; /* unit: rad, periodic in 2*pi */
 
         enum PolarisationType
         {
@@ -185,7 +185,7 @@ namespace picongpu
             LINEAR_Z = 2u,
             CIRCULAR = 4u,
         };
-        const PolarisationType Polarisation = LINEAR_X;
+        BOOST_CONSTEXPR_OR_CONST PolarisationType Polarisation = LINEAR_X;
     }
 
     namespace laserWavepacket
@@ -194,27 +194,27 @@ namespace picongpu
         namespace SI
         {
             /** unit: meter */
-            const float_64 WAVE_LENGTH_SI = 0.8e-6;
+            BOOST_CONSTEXPR_OR_CONST float_64 WAVE_LENGTH_SI = 0.8e-6;
 
             /** UNITCONV */
-            const float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
+            BOOST_CONSTEXPR_OR_CONST float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
 
             /** unit: W / m^2 */
             // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
 
             /** unit: none */
-            //const float_64 _A0  = 3.9;
+            //BOOST_CONSTEXPR_OR_CONST float_64 _A0  = 3.9;
 
             /** unit: Volt /meter */
-            //const float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
+            //BOOST_CONSTEXPR_OR_CONST float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
 
             /** unit: Volt /meter */
-            const float_64 AMPLITUDE_SI = 1.738e13;
+            BOOST_CONSTEXPR_OR_CONST float_64 AMPLITUDE_SI = 1.738e13;
 
             /** The profile of the test Lasers 0 and 2 can be stretched by a
              *      constant area between the up and downramp
              *  unit: seconds */
-            const float_64 LASER_NOFOCUS_CONSTANT_SI = 7.0 * WAVE_LENGTH_SI / ::picongpu::SI::SPEED_OF_LIGHT_SI; //0.0;//50.0e-15;
+            BOOST_CONSTEXPR_OR_CONST float_64 LASER_NOFOCUS_CONSTANT_SI = 7.0 * WAVE_LENGTH_SI / ::picongpu::SI::SPEED_OF_LIGHT_SI; //0.0;//50.0e-15;
 
             /** Pulse length: sigma of std. gauss for intensity (E^2)
              *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
@@ -222,7 +222,7 @@ namespace picongpu
              *  Info:             FWHM_of_Intensity = FWHM_Illumination
              *                      = what a experimentalist calls "pulse duration"
              *  unit: seconds (1 sigma) */
-            const float_64 PULSE_LENGTH_SI = 10.615e-15 / 4.0; //5.0e-15; //25.0e-15 / 1.17741;
+            BOOST_CONSTEXPR_OR_CONST float_64 PULSE_LENGTH_SI = 10.615e-15 / 4.0; //5.0e-15; //25.0e-15 / 1.17741;
 
             /** beam waist: distance from the axis where the pulse intensity (E^2)
              *              decreases to its 1/e^2-th part,
@@ -230,17 +230,17 @@ namespace picongpu
              *              W0_Z_SI is this distance in z-direction
              *              if both values are equal, the laser has a circular shape in x-z
              *  unit: meter */
-            const float_64 W0_X_SI = 4.246e-6;
-            const float_64 W0_Z_SI = W0_X_SI;
+            BOOST_CONSTEXPR_OR_CONST float_64 W0_X_SI = 4.246e-6;
+            BOOST_CONSTEXPR_OR_CONST float_64 W0_Z_SI = W0_X_SI;
 
         }
         /** The laser pulse will be initialized half of PULSE_INIT times of the PULSE_LENGTH before plateau
         and half at the end of the plateau
          *  unit: none */
-        const float_64 RAMP_INIT = 20.0;
+        BOOST_CONSTEXPR_OR_CONST float_64 RAMP_INIT = 20.0;
 
         /* we use a sin(omega*time + laser_phase) function to set up the laser - define phase: */
-        const float_X LASER_PHASE = 0.0; /* unit: rad, periodic in 2*pi */
+        BOOST_CONSTEXPR_OR_CONST float_X LASER_PHASE = 0.0; /* unit: rad, periodic in 2*pi */
 
         enum PolarisationType
         {
@@ -248,7 +248,7 @@ namespace picongpu
             LINEAR_Z = 2u,
             CIRCULAR = 4u,
         };
-        const PolarisationType Polarisation = LINEAR_X;
+        BOOST_CONSTEXPR_OR_CONST PolarisationType Polarisation = LINEAR_X;
     }
 
 
@@ -258,22 +258,22 @@ namespace picongpu
         namespace SI
         {
             /** unit: meter */
-            const float_64 WAVE_LENGTH_SI = 0.8e-6;
+            BOOST_CONSTEXPR_OR_CONST float_64 WAVE_LENGTH_SI = 0.8e-6;
 
             /** UNITCONV */
-            const float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
+            BOOST_CONSTEXPR_OR_CONST float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
 
             /** unit: W / m^2 */
             // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
 
             /** unit: none */
-            //const float_64 _A0  = 3.9;
+            //BOOST_CONSTEXPR_OR_CONST float_64 _A0  = 3.9;
 
             /** unit: Volt /meter */
-            //const float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
+            //BOOST_CONSTEXPR_OR_CONST float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
 
             /** unit: Volt /meter */
-            const float_64 AMPLITUDE_SI = 1.738e13;
+            BOOST_CONSTEXPR_OR_CONST float_64 AMPLITUDE_SI = 1.738e13;
 
 
             /** Pulse length:
@@ -282,18 +282,18 @@ namespace picongpu
              *  Fall time = 0.5 * PULSE_LENGTH_SI
              *  in order to compare to a gaussian pulse: rise  time = sqrt{2} * T_{FWHM}
              *  unit: seconds  */
-            const float_64 PULSE_LENGTH_SI = 4.0e-15;
+            BOOST_CONSTEXPR_OR_CONST float_64 PULSE_LENGTH_SI = 4.0e-15;
 
             /** beam waist: distance from the axis where the pulse intensity (E^2)
              *              decreases to its 1/e^2-th part,
              *              at the focus position of the laser
              *  unit: meter */
-            const float_64 W0x_SI = 4.246e-6; // waist in x-direction
-            const float_64 W0z_SI = W0x_SI;   // waist in z-direction
+            BOOST_CONSTEXPR_OR_CONST float_64 W0x_SI = 4.246e-6; // waist in x-direction
+            BOOST_CONSTEXPR_OR_CONST float_64 W0z_SI = W0x_SI;   // waist in z-direction
         }
 
         /* we use a sin(omega*(time-riseTime) + laser_phase) function to set up the laser - define phase: */
-        const float_X LASER_PHASE = 0.0; /* unit: rad, periodic in 2*pi */
+        BOOST_CONSTEXPR_OR_CONST float_X LASER_PHASE = 0.0; /* unit: rad, periodic in 2*pi */
     }
 
     namespace laserNone
@@ -301,12 +301,12 @@ namespace picongpu
         namespace SI
         {
             /** unit: meter */
-            const float_64 WAVE_LENGTH_SI = 0.0;
+            BOOST_CONSTEXPR_OR_CONST float_64 WAVE_LENGTH_SI = 0.0;
 
             /** unit: Volt /meter */
-            const float_64 AMPLITUDE_SI = 0.0;
+            BOOST_CONSTEXPR_OR_CONST float_64 AMPLITUDE_SI = 0.0;
 
-            const float_64 PULSE_LENGTH_SI = 0.0;
+            BOOST_CONSTEXPR_OR_CONST float_64 PULSE_LENGTH_SI = 0.0;
         }
     }
 

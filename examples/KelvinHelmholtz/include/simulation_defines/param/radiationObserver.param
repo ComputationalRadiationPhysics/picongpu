@@ -48,17 +48,17 @@ namespace picongpu
        */
         
       /* generate two indices from single block index */
-      const int N_angle_split = 16; /* index split distance */
+      BOOST_CONSTEXPR_OR_CONST int N_angle_split = 16; /* index split distance */
       /* get column index for computing angle theta: */
       const int my_index_theta = observation_id_extern / N_angle_split;
       /* get row index for computing angle phi: */
       const int my_index_phi = observation_id_extern % N_angle_split;
 
       /*  range for BOTH angles */
-      const picongpu::float_64 angle_range= picongpu::PI/2.0;
+      BOOST_CONSTEXPR_OR_CONST picongpu::float_64 angle_range= picongpu::PI/2.0;
 
       /* angle stepwidth for BOTH angles */
-      const picongpu::float_64 delta_angle =  1.0 * angle_range / (N_angle_split-1);
+      BOOST_CONSTEXPR_OR_CONST picongpu::float_64 delta_angle =  1.0 * angle_range / (N_angle_split-1);
 
       /* compute both angles */
       const picongpu::float_64 theta(  my_index_theta * delta_angle  + 0.5*picongpu::PI );
