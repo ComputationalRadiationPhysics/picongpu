@@ -57,7 +57,7 @@ Requirements
   - *Debian/Ubuntu:* `sudo apt-get install libboost-program-options-dev libboost-regex-dev libboost-filesystem-dev libboost-system-dev`
   - *Arch Linux:* `sudo pacman --sync boost`
   - *From source:*
-    - `./bootstrap.sh --with-libraries=filesystem,program_options,regex,system --prefix=~/lib/boost`
+    - `./bootstrap.sh --with-libraries=filesystem,program_options,regex,system --prefix=$HOME/lib/boost`
     - `./b2 -j4 && ./b2 install`
 
 - **git** 1.7.9.5 or [higher](https://help.github.com/articles/https-cloning-errors)
@@ -85,7 +85,7 @@ Some of our examples will also need **libSplash**.
       - `mkdir -p ~/src ~/build ~/lib`
       - `git clone https://github.com/pngwriter/pngwriter.git ~/src/pngwriter/`
       - `cd ~/build`
-      - `cmake -DCMAKE_INSTALL_PREFIX=~/lib/pngwriter ~/src/pngwriter`
+      - `cmake -DCMAKE_INSTALL_PREFIX=$HOME/lib/pngwriter ~/src/pngwriter`
       - `make install`
     - set the environment variable
       [PNGWRITER\_ROOT](#additional-required-environment-variables-for-optional-libraries)
@@ -99,7 +99,7 @@ Some of our examples will also need **libSplash**.
       - `mkdir -p ~/src ~/build ~/lib`
       - `git clone https://github.com/ComputationalRadiationPhysics/libSplash.git ~/src/splash/`
       - `cd ~/build`
-      - `cmake -DCMAKE_INSTALL_PREFIX=~/lib/splash ~/src/splash`
+      - `cmake -DCMAKE_INSTALL_PREFIX=$HOME/lib/splash ~/src/splash`
       - `make install`
     - set the environment variable
       [SPLASH\_ROOT](#additional-required-environment-variables-for-optional-libraries)
@@ -116,7 +116,7 @@ Some of our examples will also need **libSplash**.
         for example `wget https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.14/src/hdf5-1.8.14.tar.gz`
       - `tar -xvzf hdf5-1.8.14.tar.gz`
       - `cd hdf5-1.8.14`
-      - `./configure --enable-parallel --enable-shared --prefix ~/lib/hdf5/`
+      - `./configure --enable-parallel --enable-shared --prefix $HOME/lib/hdf5/`
       - `make`
       - *optional:* `make test`
       - `make install`
@@ -233,7 +233,7 @@ This is an example how to use the modular building environment of PIConGPU.
 1. **Setup directories:** `mkdir -p ~/src ~/build ~/paramSets ~/runs`
    - `~/runs` is the directory for PIConGPU simulation output
    - NOTE for HPC-Systems: Never write your simulation output to your home
-     (=`~/`) directory
+     (`~/` or `$HOME`) directory
    - In most cases `$WORK/runs`, `$WORKDIR/runs` or `/scratch/runs` are the right places!
 2. **Download the source code:**
    1. `git clone https://github.com/ComputationalRadiationPhysics/picongpu.git ~/src/picongpu`
