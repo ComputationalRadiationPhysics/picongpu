@@ -39,7 +39,7 @@
  */
 
 #ifndef __MEMTEST_H__
-#define __MEMTEST_H_
+#define __MEMTEST_H__
 
 #include <stdio.h>
 #include <stdint.h>
@@ -80,12 +80,12 @@ extern void get_driver_info(char* info, unsigned int len);
 #define PRINTF(fmt,...) do{						\
 	if (monitor_temp){						\
 	    pthread_mutex_lock(&mutex);					\
-	    printf("[%s][%s][%d][%d C]:"fmt, time_string(), hostname, gpu_idx, gpu_temp[gpu_idx],##__VA_ARGS__); \
+	    printf("[%s][%s][%d][%d C]:" fmt, time_string(), hostname, gpu_idx, gpu_temp[gpu_idx],##__VA_ARGS__); \
 	    pthread_mutex_unlock(&mutex);				\
 	}								\
 	else{								\
 	    pthread_mutex_lock(&mutex);					\
-	    printf("[%s][%s][%d]:"fmt, time_string(), hostname, gpu_idx, ##__VA_ARGS__); \
+	    printf("[%s][%s][%d]:" fmt, time_string(), hostname, gpu_idx, ##__VA_ARGS__); \
 	    pthread_mutex_unlock(&mutex);					\
 	}								\
 	fflush(stdout);							\
@@ -94,10 +94,10 @@ extern void get_driver_info(char* info, unsigned int len);
 
 #define FPRINTF(fmt,...) do{						\
 	if (monitor_temp){					\
-	    fprintf(stderr, "[%s][%s][%d][%d C]:"fmt, time_string(), hostname, gpu_idx, gpu_temp[gpu_idx],##__VA_ARGS__); \
+	    fprintf(stderr, "[%s][%s][%d][%d C]:" fmt, time_string(), hostname, gpu_idx, gpu_temp[gpu_idx],##__VA_ARGS__); \
 	}								\
 	else{								\
-	    fprintf(stderr, "[%s][%s][%d]:"fmt, time_string(), hostname, gpu_idx, ##__VA_ARGS__); \
+	    fprintf(stderr, "[%s][%s][%d]:" fmt, time_string(), hostname, gpu_idx, ##__VA_ARGS__); \
 	}								\
 	fflush(stderr);							\
     } while(0)

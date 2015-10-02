@@ -31,6 +31,9 @@ find_package(CUDA REQUIRED)
 if(SAME_NVCC_FLAGS_IN_SUBPROJECTS)
   set(CUDA_ARCH sm_13 CACHE STRING "set GPU architecture" )
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${nvcc_flags} -arch=${CUDA_ARCH})
+  if(CUDA_ARCH STREQUAL "sm_10")
+    add_definitions(-DSM_10=1)
+  endif()
 
   if(CUDA_SHOW_CODELINES)
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" --source-in-ptx -Xcompiler -rdynamic -lineinfo)
@@ -69,6 +72,12 @@ endif()
 ################################################################################
 
 find_package(Threads REQUIRED)
+list(APPEND LIBS ${CMAKE_THREAD_LIBS_INIT})
+
+# work around for Hypnos (Ubuntu 14.04) with gcc 4.8.2
+if(NOT CMAKE_THREAD_LIBS_INIT)
+    list(APPEND LIBS "-pthread")
+endif()
 
 
 ################################################################################
@@ -76,27 +85,21 @@ find_package(Threads REQUIRED)
 ################################################################################
 
 option(CUDA_MEMTEST_RELEASE "disable all runtime asserts" ON)
-if(PIC_RELEASE)
+set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler=-pthread")
+if(CUDA_MEMTEST_RELEASE)
     add_definitions(-DNDEBUG)
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-Xcompiler=-pthread")
-else(PIC_RELEASE)
+else(CUDA_MEMTEST_RELEASE)
     set(CMAKE_BUILD_TYPE Debug)
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" -g "-Xcompiler=-g,-pthread")
-endif(PIC_RELEASE)
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler=-g")
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g")
+endif(CUDA_MEMTEST_RELEASE)
 
 
 ################################################################################
 # Warnings
 ################################################################################
 
-set(CMAKE_CXX_FLAGS_DEFAULT "-Wall")
-
-
-################################################################################
-# Configure include directories
-################################################################################
-
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${INCLUDE_DIRECTORIES})
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 
 
 ################################################################################
@@ -109,7 +112,7 @@ cuda_add_executable(cuda_memtest
     cuda_memtest.cu
 )
 
-target_link_libraries(cuda_memtest ${LIBS} ${CUDA_CUDART_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(cuda_memtest ${LIBS} ${CUDA_CUDART_LIBRARY})
 
 
 ################################################################################
@@ -117,4 +120,4 @@ target_link_libraries(cuda_memtest ${LIBS} ${CUDA_CUDART_LIBRARY} ${CMAKE_THREAD
 ################################################################################
 
 install(TARGETS cuda_memtest
-         RUNTIME DESTINATION bin)
+        RUNTIME DESTINATION bin)

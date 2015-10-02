@@ -1,0 +1,40 @@
+language: cpp
+
+compiler:
+  - gcc
+  - clang
+
+env:
+  global:
+    - INSTALL_DIR=~/mylibs
+    - NVML_FILE=cuda_346.46_gdk_linux.run
+    - NVML_LINK=http://developer.download.nvidia.com/compute/cuda/7_0/Prod/local_installers/
+  matrix:
+    - USE_NVML=1
+    - USE_NVML=0
+
+script:
+  - mkdir build_tmp && cd build_tmp
+# CUDA 4.0 on travis... work-around missing atomicAdd
+  - cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR -DCUDA_ARCH=sm_10 -DSAME_NVCC_FLAGS_IN_SUBPROJECTS=ON $TRAVIS_BUILD_DIR
+  - make
+  - make install
+
+before_script:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq build-essential
+  - sudo apt-get install -qq gcc-4.4 g++-4.4
+  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.4 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.4
+  - gcc --version && g++ --version
+  - sudo apt-get install -qq nvidia-common
+  - sudo apt-get install -qq nvidia-current
+  - sudo apt-get install -qq nvidia-cuda-toolkit nvidia-cuda-dev
+  - if [ $USE_NVML -eq 1 ]; then wget $NVML_LINK$NVML_FILE && chmod u+x $NVML_FILE && sudo ./$NVML_FILE --silent --installdir=/ ; fi
+  - if [ $USE_NVML -eq 1 ]; then export CMAKE_PREFIX_PATH=/usr/src/gdk/nvml/lib/ ; fi
+  - sudo find /usr/ -name libcuda*.so
+  - sudo find /usr/ -name nvml.h
+  - sudo find /usr/ -name libnvidia*.so
+  - sudo find /usr/ -name libnvml*.so
+
+after_script:
+  - ls -halR $INSTALL_DIR
