@@ -1,5 +1,6 @@
 /**
- * Copyright 2013, 2015 Heiko Burau, Anton Helm, Rene Widera, Richard Pausch
+ * Copyright 2013- 2015 Heiko Burau, Anton Helm, Rene Widera, Richard Pausch,
+ *                      Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -141,19 +142,19 @@ namespace picongpu
 
             if( Polarisation == LINEAR_X || Polarisation == LINEAR_Z )
             {
-                elong *= math::exp( -r2 / w_y / w_y ) * __cosf( 2.0f * float_X( PI ) / WAVE_LENGTH * FOCUS_POS - 2.0f * float_X( PI ) / WAVE_LENGTH * r2 / 2.0f / R_y + xi_y + phase )
+                elong *= math::exp( -r2 / w_y / w_y ) * math::cos( 2.0f * float_X( PI ) / WAVE_LENGTH * FOCUS_POS - 2.0f * float_X( PI ) / WAVE_LENGTH * r2 / 2.0f / R_y + xi_y + phase )
                     * math::exp( -( r2 / 2.0f / R_y - FOCUS_POS - phase / 2.0f / float_X( PI ) * WAVE_LENGTH )
                           *( r2 / 2.0f / R_y - FOCUS_POS - phase / 2.0f / float_X( PI ) * WAVE_LENGTH )
                           / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( 2.0f * PULSE_LENGTH ) / ( 2.0f * PULSE_LENGTH ) );
             }
             else if( Polarisation == CIRCULAR )
             {
-                elong.x() *= math::exp( -r2 / w_y / w_y ) * __cosf( 2.0f * float_X( PI ) / WAVE_LENGTH * FOCUS_POS - 2.0f * float_X( PI ) / WAVE_LENGTH * r2 / 2.0f / R_y + xi_y + phase )
+                elong.x() *= math::exp( -r2 / w_y / w_y ) * math::cos( 2.0f * float_X( PI ) / WAVE_LENGTH * FOCUS_POS - 2.0f * float_X( PI ) / WAVE_LENGTH * r2 / 2.0f / R_y + xi_y + phase )
                     * math::exp( -( r2 / 2.0f / R_y - FOCUS_POS - phase / 2.0f / float_X( PI ) * WAVE_LENGTH )
                           *( r2 / 2.0f / R_y - FOCUS_POS - phase / 2.0f / float_X( PI ) * WAVE_LENGTH )
                           / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( 2.0f * PULSE_LENGTH ) / ( 2.0f * PULSE_LENGTH ) );
                 phase += float_X( PI / 2.0 );
-                elong.z() *= math::exp( -r2 / w_y / w_y ) * __cosf( 2.0f * float_X( PI ) / WAVE_LENGTH * FOCUS_POS - 2.0f * float_X( PI ) / WAVE_LENGTH * r2 / 2.0f / R_y + xi_y + phase )
+                elong.z() *= math::exp( -r2 / w_y / w_y ) * math::cos( 2.0f * float_X( PI ) / WAVE_LENGTH * FOCUS_POS - 2.0f * float_X( PI ) / WAVE_LENGTH * r2 / 2.0f / R_y + xi_y + phase )
                     * math::exp( -( r2 / 2.0f / R_y - FOCUS_POS - phase / 2.0f / float_X( PI ) * WAVE_LENGTH )
                           *( r2 / 2.0f / R_y - FOCUS_POS - phase / 2.0f / float_X( PI ) * WAVE_LENGTH )
                           / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( 2.0f * PULSE_LENGTH ) / ( 2.0f * PULSE_LENGTH ) );
