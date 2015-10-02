@@ -234,7 +234,7 @@ This is an example how to use the modular building environment of PIConGPU.
    - Note that the PICHOME path can be set to any other location.
 
 2. **Setup directories:** `mkdir -p $PICHOME/src $PICHOME/build $PICHOME/paramSets $PICHOME/runs`
-   - `~/runs` is the directory for PIConGPU simulation output
+   - `$PICHOME/runs` is the directory for PIConGPU simulation output
    - NOTE for HPC-Systems: Never write your simulation output to your home
      (`~/` or `$HOME`) directory
    - In most cases `$WORK/runs`, `$WORKDIR/runs` or `/scratch/runs` are the right places!
