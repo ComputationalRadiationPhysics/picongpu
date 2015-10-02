@@ -229,28 +229,30 @@ Checkout and Build PIConGPU
 ---------------------------
 
 This is an example how to use the modular building environment of PIConGPU.
+1. **Setup PIConGPU home** `export PICHOME=~/`
+   - Note that the PICHOME path can be set to any other location.
 
-1. **Setup directories:** `mkdir -p ~/src ~/build ~/paramSets ~/runs`
+1. **Setup directories:** `mkdir -p $PICHOME/src $PICHOME/build $PICHOME/paramSets $PICHOME/runs`
    - `~/runs` is the directory for PIConGPU simulation output
    - NOTE for HPC-Systems: Never write your simulation output to your home
      (`~/` or `$HOME`) directory
    - In most cases `$WORK/runs`, `$WORKDIR/runs` or `/scratch/runs` are the right places!
 2. **Download the source code:**
-   1. `git clone https://github.com/ComputationalRadiationPhysics/picongpu.git ~/src/picongpu`
-      - *optional:* update the source code with `cd ~/src/picongpu && git pull`
+   1. `git clone https://github.com/ComputationalRadiationPhysics/picongpu.git $PICHOME/src/picongpu`
+      - *optional:* update the source code with `cd $PICHOME/src/picongpu && git pull`
       - *optional:* change to a different branch with `git branch` (show) and
                     `git checkout <BranchName>` (switch)
-   2. `export PATH=$PATH:$HOME/src/picongpu/src/tools/bin`
-   3. `export PICSRC=$HOME/src/picongpu`
-3. **Create parameterset:** `$PICSRC/createParameterSet $PICSRC/examples/LaserWakefield/ ~/paramSets/case001`
-   - Clone the LWFA example to `~/paramSets/case001`
-   - Edit `~/paramSets/case001/include/simulation_defines/param/*` to change the
+   2. `export PATH=$PATH:$PICHOME/src/picongpu/src/tools/bin`
+   3. `export PICSRC=$PICHOME/src/picongpu`
+3. **Create parameterset:** `$PICSRC/createParameterSet $PICSRC/examples/LaserWakefield/ $PICHOME/paramSets/case001`
+   - Clone the LWFA example to `PICHOME/paramSets/case001`
+   - Edit `$PICHOME/paramSets/case001/include/simulation_defines/param/*` to change the
      physical configuration of this parameter set.
    - See `$PICSRC/createParameterSet --help` for more options.
-   - *optional:* `$PICSRC/createParameterSet ~/paramSets/case001/ ~/paramSets/case002`
+   - *optional:* `$PICSRC/createParameterSet $PICHOME/paramSets/case001/ $PICHOME/paramSets/case002`
      - Clone the individual parameterSet `case001` to `case002`.
-4. `cd ~/build`: go to the build directory to compile your first test
-5. **Configure:** `$PICSRC/configure ~/paramSets/case001`
+4. `cd $PICHOME/build`: go to the build directory to compile your first test
+5. **Configure:** `$PICSRC/configure $PICHOME/paramSets/case001`
     - *optional:* `$PICSRC/configure --help`
     - NOTE: *makefiles* are always created in the current directory
     - Configure *one* parameter set for *one* compilation
@@ -260,29 +262,29 @@ This is an example how to use the modular building environment of PIConGPU.
       parameter files will be installed to
 6. **Compile:** `make [-j]`: compile PIConGPU with the current parameter set: `case001`
 7. **Install:** `make install`: copy binaries and params to a fixed data structure: `case001`
-8. `cd ~/paramSets/case001`: goto installed programm
+8. `cd $PICHOME/paramSets/case001`: goto installed programm
 9. **Run:** Example run for the HPC System "hypnos" using a PBS batch system
     - *optional:* `tbg --help`
     - `tbg -s qsub -c submit/0016gpus.cfg
-           -t submit/hypnos/k20_profile.tpl ~/runs/testBatch01`
-    - This will create the directory `~/runs/testBatch01` were all
+           -t submit/hypnos/k20_profile.tpl $PICHOME/runs/testBatch01`
+    - This will create the directory `$PICHOME/runs/testBatch01` were all
       simulation output will be written to.
-      ( *Again*, do NOT use your home `~/runs` - change this path!)
+      ( *Again*, do NOT use your home `$HOME/runs` - change this path!)
     - `tbg` will create a subfolder `picongpu` in the directory of the run with
       the same structure as `case001`. It can be reused to:
         - clone parameters as shown in step 3, by using this run as origin
         - create a new binary with configure (step 5):
-          e.g. `$PICSRC/configure -i ~/paramSets/case002 ~/runs/testBatch01`
+          e.g. `$PICSRC/configure -i $PICHOME/paramSets/case002 $PICHOME/runs/testBatch01`
 
 
 To build PIConGPU with tracing support, change the steps in the example to:
 
 (5.) `$PICSRC/configure ../projects/case001 -c "-DVAMPIR_ENABLE=ON"`
 
-(8.) `cd ~/paramSets/case001`: goto installed programm
+(8.) `cd $PICHOME/paramSets/case001`: goto installed programm
 
 (9.) `tbg -s qsub -c submit/0016gpus.cfg -t submit/hypnos/k20_vampir_profile.tpl
-       ~/runs/testBatchVampir`
+       $PICHOME/runs/testBatchVampir`
 
 *******************************************************************************
 
