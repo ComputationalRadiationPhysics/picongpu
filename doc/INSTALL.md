@@ -229,6 +229,7 @@ Checkout and Build PIConGPU
 ---------------------------
 
 This is an example how to use the modular building environment of PIConGPU.
+
 1. **Setup PIConGPU home** `export PICHOME=~/`
    - Note that the PICHOME path can be set to any other location.
 
