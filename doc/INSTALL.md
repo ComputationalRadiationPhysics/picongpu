@@ -232,27 +232,27 @@ This is an example how to use the modular building environment of PIConGPU.
 1. **Setup PIConGPU home** `export PICHOME=~/`
    - Note that the PICHOME path can be set to any other location.
 
-1. **Setup directories:** `mkdir -p $PICHOME/src $PICHOME/build $PICHOME/paramSets $PICHOME/runs`
+2. **Setup directories:** `mkdir -p $PICHOME/src $PICHOME/build $PICHOME/paramSets $PICHOME/runs`
    - `~/runs` is the directory for PIConGPU simulation output
    - NOTE for HPC-Systems: Never write your simulation output to your home
      (`~/` or `$HOME`) directory
    - In most cases `$WORK/runs`, `$WORKDIR/runs` or `/scratch/runs` are the right places!
-2. **Download the source code:**
+3. **Download the source code:**
    1. `git clone https://github.com/ComputationalRadiationPhysics/picongpu.git $PICHOME/src/picongpu`
       - *optional:* update the source code with `cd $PICHOME/src/picongpu && git pull`
       - *optional:* change to a different branch with `git branch` (show) and
                     `git checkout <BranchName>` (switch)
    2. `export PATH=$PATH:$PICHOME/src/picongpu/src/tools/bin`
    3. `export PICSRC=$PICHOME/src/picongpu`
-3. **Create parameterset:** `$PICSRC/createParameterSet $PICSRC/examples/LaserWakefield/ $PICHOME/paramSets/case001`
+4. **Create parameterset:** `$PICSRC/createParameterSet $PICSRC/examples/LaserWakefield/ $PICHOME/paramSets/case001`
    - Clone the LWFA example to `PICHOME/paramSets/case001`
    - Edit `$PICHOME/paramSets/case001/include/simulation_defines/param/*` to change the
      physical configuration of this parameter set.
    - See `$PICSRC/createParameterSet --help` for more options.
    - *optional:* `$PICSRC/createParameterSet $PICHOME/paramSets/case001/ $PICHOME/paramSets/case002`
      - Clone the individual parameterSet `case001` to `case002`.
-4. `cd $PICHOME/build`: go to the build directory to compile your first test
-5. **Configure:** `$PICSRC/configure $PICHOME/paramSets/case001`
+5. `cd $PICHOME/build`: go to the build directory to compile your first test
+6. **Configure:** `$PICSRC/configure $PICHOME/paramSets/case001`
     - *optional:* `$PICSRC/configure --help`
     - NOTE: *makefiles* are always created in the current directory
     - Configure *one* parameter set for *one* compilation
@@ -260,10 +260,10 @@ This is an example how to use the modular building environment of PIConGPU.
       command will be shown in the first line of the output.
     - `case001` is the directory were the full compiled binary with all
       parameter files will be installed to
-6. **Compile:** `make [-j]`: compile PIConGPU with the current parameter set: `case001`
-7. **Install:** `make install`: copy binaries and params to a fixed data structure: `case001`
-8. `cd $PICHOME/paramSets/case001`: goto installed programm
-9. **Run:** Example run for the HPC System "hypnos" using a PBS batch system
+7. **Compile:** `make [-j]`: compile PIConGPU with the current parameter set: `case001`
+8. **Install:** `make install`: copy binaries and params to a fixed data structure: `case001`
+9. `cd $PICHOME/paramSets/case001`: goto installed programm
+10. **Run:** Example run for the HPC System "hypnos" using a PBS batch system
     - *optional:* `tbg --help`
     - `tbg -s qsub -c submit/0016gpus.cfg
            -t submit/hypnos/k20_profile.tpl $PICHOME/runs/testBatch01`
