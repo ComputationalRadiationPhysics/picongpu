@@ -37,7 +37,7 @@ from all hdf5 files created by a PIConGPU simulation and
 plots a variety of values to check charge conservation
 over time.
 
-All plotted values show the difference $d = div(E) - rho/epsilon_0$
+All plotted values show the difference $d = div(E)*epsilon_0 - rho$
 normalized to the maximum [per-species] charge in the first 
 simulation time step.
 
@@ -75,7 +75,7 @@ def get_list_of_hdf5_files(base_directory):
 def deviation_charge_conservation(h5file):
     """
     read field data from hdf5 files
-    compute d = div(E) - rho/epsilon_o0
+    compute d = div(E)*epsilon_0 - rho
 
     Parameters:
     h5file: file name
@@ -126,7 +126,7 @@ def deviation_charge_conservation(h5file):
            (Ez[1:, 1:, 1:] - Ez[:-1, 1:, 1:])/CELL_DEPTH)
 
     # compute difference between electric field divergence and charge density
-    diff = (div  - charge[1:, 1:, 1:]/EPS0)
+    diff = (div*EPS0  - charge[1:, 1:, 1:])
 
     return float(timestep), np.amax(np.abs(diff)), np.mean(np.abs(diff)), np.std(diff), norm
 
