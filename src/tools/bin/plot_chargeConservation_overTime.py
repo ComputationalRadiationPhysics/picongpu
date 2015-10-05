@@ -140,64 +140,25 @@ if __name__ == "__main__":
         epilog="For further questions please contact Richard Pausch."
         )
 
-    parser.add_argument(metavar="simulation directory",
-                        dest="directory",
-                        help="simulation base directory",
-                        action="store")
+    parser.add_argument(metavar="simulation directories",
+                        dest="directories",
+                        help="simulation base directories",
+                        action="store",
+                        nargs="+")
 
     args = parser.parse_args()
-    directory = args.directory
+    directories = args.directories
 
-    # do the data reading and catch errors
-    try:
-        # test if directory is a directory
-        if not os.path.isdir(directory):
-            raise Exception("Error: {} is not a directory".format(directory))
 
-        # check if any hdf5 files were found
-        h5_file_list = get_list_of_hdf5_files(directory)
-        if len(h5_file_list) == 0:
-            raise Exception("No hdf5 files found in {}".format(directory+"simOutput/"))
-
-    except Exception as error_msg:
-        print("{}".format(error_msg))
-        sys.exit(1)
-
-    # collect data from all found hdf5 files
-    collect_results = None
-    print("Read files:")
-    for f in h5_file_list:
-        print(f)
-        t, cc_max, mean_abs, std, norm =  deviation_charge_conservation(f)
-        data_tmp = np.array([[t, cc_max, mean_abs, std, norm]])
-        if type(collect_results) == type(None):
-            collect_results = data_tmp
-        else:
-            collect_results = np.append(collect_results, data_tmp, axis=0)
-
-    # sort data temporally
-    collect_results = np.sort(collect_results, axis=0)
-
-    # alias to data
-    t = collect_results[:, 0] # all timesteps
-    max_diff = collect_results[:, 1] # all max abs diff
-    mean_abs = collect_results[:, 2] # all mean abs
-    std = collect_results[:, 3] # all std
-    norm = collect_results[0, 4] # first (t=0) norm
-
-    # plot data
+    # prepare plot of data
     plt.figure(figsize=(10,5))
-    plt.title(directory, fontsize=22)
+    plt.title("charge conservation over time", fontsize=22)
 
     major_locator1 = LinearLocator()
     major_locator2 = LinearLocator()
     major_formatter = FormatStrFormatter('%1.1e')
 
     ax1 = plt.subplot(121)
-    ax1.plot(t, max_diff/norm,
-             linestyle="-",lw=3,
-             marker="+", ms=15, markeredgewidth=3, color="blue")
-
     ax1.set_xlabel(r"$t\,[\Delta t]$", fontsize=20)
     ax1.set_ylabel(r"$\mathrm{max}|d|\,[\rho_\mathrm{max}(0)]$", fontsize=20)
     plt.xticks(fontsize=14)
@@ -207,7 +168,6 @@ if __name__ == "__main__":
     ax1.yaxis.set_major_formatter( major_formatter )
 
     ax2 = plt.subplot(122)
-    ax2.errorbar(t, mean_abs/norm, yerr=std/norm, lw=3, markeredgewidth=3, color="blue")
     ax2.set_xlabel(r"$t\,[\Delta t]$", fontsize=20)
     ax2.set_ylabel(r"$\left<|d|\right> \pm \sigma_d\,[\rho_\mathrm{max}(0)]$", fontsize=20)
     plt.xticks(fontsize=14)
@@ -216,5 +176,64 @@ if __name__ == "__main__":
     ax2.yaxis.set_major_locator( major_locator2 )
     ax2.yaxis.set_major_formatter( major_formatter )
 
+    # counter for simulation directories (avoids pyplot bug with underscore labels)
+    sim_dir_counter = 1
+
+    for directory in directories:
+        # do the data reading and catch errors
+        try:
+            # test if directory is a directory
+            if not os.path.isdir(directory):
+                raise Exception("Error: {} is not a directory".format(directory))
+
+            # check if any hdf5 files were found
+            h5_file_list = get_list_of_hdf5_files(directory)
+            if len(h5_file_list) == 0:
+                raise Exception("No hdf5 files found in {}".format(directory+"simOutput/"))
+
+        except Exception as error_msg:
+            print("{}".format(error_msg))
+            sys.exit(1)
+
+        # collect data from all found hdf5 files
+        collect_results = None
+        print("Read files:")
+        for f in h5_file_list:
+            print(f)
+            t, cc_max, mean_abs, std, norm =  deviation_charge_conservation(f)
+            data_tmp = np.array([[t, cc_max, mean_abs, std, norm]])
+            if type(collect_results) == type(None):
+                collect_results = data_tmp
+            else:
+                collect_results = np.append(collect_results, data_tmp, axis=0)
+
+        # sort data temporally
+        collect_results = np.sort(collect_results, axis=0)
+                
+        # alias to data
+        t = collect_results[:, 0] # all timesteps
+        max_diff = collect_results[:, 1] # all max abs diff
+        mean_abs = collect_results[:, 2] # all mean abs
+        std = collect_results[:, 3] # all std
+        norm = collect_results[0, 4] # first (t=0) norm
+
+        # generate plot label based on directory and avoid underscore bug
+        plot_label = ("{:d}. ".format(sim_dir_counter) + 
+                      os.path.normpath(directory).split("/")[-1])
+        sim_dir_counter += 1
+
+        # add plot for maximum difference        
+        ax1.plot(t, max_diff/norm,
+                 linestyle="-",lw=3,
+                 marker="+", ms=15, markeredgewidth=3, 
+                 label=plot_label)
+
+        # add plot for mean difference and std
+        ax2.errorbar(t, mean_abs/norm, yerr=std/norm, lw=3, markeredgewidth=3, 
+                     label=plot_label)
+
+    # finish plots
+    ax1.legend(loc=0)
+    ax2.legend(loc=0)
     plt.tight_layout()
     plt.show()
