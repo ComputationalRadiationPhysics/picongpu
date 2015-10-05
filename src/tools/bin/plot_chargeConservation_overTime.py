@@ -29,6 +29,7 @@ import argparse
 import numpy as np
 import h5py
 import matplotlib.pyplot as plt
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
 __doc__ = """
 This program reads electric field and charge density data
@@ -188,22 +189,32 @@ if __name__ == "__main__":
     plt.figure(figsize=(10,5))
     plt.title(directory, fontsize=22)
 
-    plt.subplot(121)
-    plt.plot(t, max_diff/norm,
+    major_locator1 = LinearLocator()
+    major_locator2 = LinearLocator()
+    major_formatter = FormatStrFormatter('%1.1e')
+
+    ax1 = plt.subplot(121)
+    ax1.plot(t, max_diff/norm,
              linestyle="-",lw=3,
              marker="+", ms=15, markeredgewidth=3, color="blue")
 
-    plt.xlabel("time step", fontsize=20)
-    plt.ylabel("max(abs(d))/norm", fontsize=20)
+    ax1.set_xlabel(r"$t\,[\Delta t]$", fontsize=20)
+    ax1.set_ylabel(r"$\mathrm{max}|d|\,[\rho_\mathrm{max}(0)]$", fontsize=20)
     plt.xticks(fontsize=14)
     plt.yticks(fontsize=14)
+    # always use scientific notation
+    ax1.yaxis.set_major_locator( major_locator1 )
+    ax1.yaxis.set_major_formatter( major_formatter )
 
-    plt.subplot(122)
-    plt.errorbar(t, mean_abs/norm, yerr=std/norm, lw=3, markeredgewidth=3, color="blue")
-    plt.xlabel("time step", fontsize=20)
-    plt.ylabel("mean(abs(d))/norm +/- std(d)/norm", fontsize=20)
+    ax2 = plt.subplot(122)
+    ax2.errorbar(t, mean_abs/norm, yerr=std/norm, lw=3, markeredgewidth=3, color="blue")
+    ax2.set_xlabel(r"$t\,[\Delta t]$", fontsize=20)
+    ax2.set_ylabel(r"$\left<|d|\right> \pm \sigma_d\,[\rho_\mathrm{max}(0)]$", fontsize=20)
     plt.xticks(fontsize=14)
     plt.yticks(fontsize=14)
+    # always use scientific notation
+    ax2.yaxis.set_major_locator( major_locator2 )
+    ax2.yaxis.set_major_formatter( major_formatter )
 
     plt.tight_layout()
     plt.show()
