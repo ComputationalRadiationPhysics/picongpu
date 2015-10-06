@@ -34,118 +34,118 @@
 
 namespace picongpu
 {
-namespace rad_linear_frequencies
-{
-namespace SI
-{
-const float_64 omega_min = 0.0;
-const float_64 omega_max = 1.06e16;
-}
+    namespace rad_linear_frequencies
+    {
+        namespace SI
+        {
+            BOOST_CONSTEXPR_OR_CONST float_64 omega_min = 0.0;
+            BOOST_CONSTEXPR_OR_CONST float_64 omega_max = 1.06e16;
+        }
 
-const unsigned int N_omega = 2048; // number of frequencies
-}
+        BOOST_CONSTEXPR_OR_CONST unsigned int N_omega = 2048; // number of frequencies
+    }
 
-namespace rad_log_frequencies
-{
-namespace SI
-{
-const float_64 omega_min = 1.0e14;
-const float_64 omega_max = 1.0e17;
-}
+    namespace rad_log_frequencies
+    {
+        namespace SI
+        {
+            BOOST_CONSTEXPR_OR_CONST float_64 omega_min = 1.0e14;
+            BOOST_CONSTEXPR_OR_CONST float_64 omega_max = 1.0e17;
+        }
 
-const unsigned int N_omega = 2048; // number of frequencies
-}
-
-
-namespace rad_frequencies_from_list
-{
-//const char listLocation[] = "/scratch/s5960712/list001.freq";
-const unsigned int N_omega = 2048; // number of frequencies
-}
+        BOOST_CONSTEXPR_OR_CONST unsigned int N_omega = 2048; // number of frequencies
+    }
 
 
-namespace radiation_frequencies = rad_linear_frequencies;
+    namespace rad_frequencies_from_list
+    {
+        //BOOST_CONSTEXPR_OR_CONST char listLocation[] = "/scratch/s5960712/list001.freq";
+        BOOST_CONSTEXPR_OR_CONST unsigned int N_omega = 2048; // number of frequencies
+    }
 
 
-namespace radiationNyquist
-{
-  const float_32 NyquistFactor = 0.5;
-}
+    namespace radiation_frequencies = rad_linear_frequencies;
 
 
-///////////////////////////////////////////////////
+    namespace radiationNyquist
+    {
+        BOOST_CONSTEXPR_OR_CONST float_32 NyquistFactor = 0.5;
+    }
 
 
-// corect treatment of coherent and incoherent  radiation from macroparticles
-// 1 = on  (slower and more memory, but correct quantitativ treatment)
-// 0 = off (faster but macroparticles are treated as highly charged, point-like particle)
-#define __COHERENTINCOHERENTWEIGHTING__ 0
+    ///////////////////////////////////////////////////
 
 
-
-/* Choose different form factors in order to consider different  particle shapes for radiation
- * radFormFactor_CIC_3D
- * radFormFactor_CIC_1Dy
- */
-namespace radFormFactor_CIC_3D { }
-namespace radFormFactor_CIC_1Dy { }
-namespace radFormFactor_incoherent { }
-
-namespace radFormFactor = radFormFactor_CIC_3D;
-
-
-///////////////////////////////////////////////////////////
-
-
-namespace parameters
-{
-/*!enable radiation calculation*/
-#define ENABLE_RADIATION 0
-
-// Nyquist low pass allows only amplitudes for frequencies below Nyquist frequency
-// 1 = on  (slower and more memory, no fourier reflections)
-// 0 = off (faster but with fourier reflections)
-#define __NYQUISTCHECK__ 0
+    // corect treatment of coherent and incoherent  radiation from macroparticles
+    // 1 = on  (slower and more memory, but correct quantitativ treatment)
+    // 0 = off (faster but macroparticles are treated as highly charged, point-like particle)
+    #define __COHERENTINCOHERENTWEIGHTING__ 0
 
 
 
-//marked every N particle for calculate radiation
-//mark no particle at beginning
-#define RAD_MARK_PARTICLE 1
+    /* Choose different form factors in order to consider different  particle shapes for radiation
+     * radFormFactor_CIC_3D
+     * radFormFactor_CIC_1Dy
+     */
+    namespace radFormFactor_CIC_3D { }
+    namespace radFormFactor_CIC_1Dy { }
+    namespace radFormFactor_incoherent { }
 
-//disable or enable gamme filter
-//diable (0) / enable (1)
-#define RAD_ACTIVATE_GAMMA_FILTER 0
-
-const float_32 RadiationGamma = 5.;
-
-const unsigned int N_observer = 256; // number of looking directions
+    namespace radFormFactor = radFormFactor_CIC_3D;
 
 
-
-} /* end namespace parameters */
-
-//////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
 
 
-// add a window function weighting to the radiation in order
-// to avoid ringing effects from sharpe boundaries
-// default: no window function via `radWindowFunctionNone`
+    namespace parameters
+    {
+        /*!enable radiation calculation*/
+        #define ENABLE_RADIATION 0
 
-/* Choose different window function in order to get better ringing reduction
- * radWindowFunctionTriangle
- * radWindowFunctionHamming
- * radWindowFunctionTriplett
- * radWindowFunctionGauss
- * radWindowFunctionNone
- */
-namespace radWindowFunctionTriangle { }
-namespace radWindowFunctionHamming { }
-namespace radWindowFunctionTriplett { }
-namespace radWindowFunctionGauss { }
-namespace radWindowFunctionNone { }
+        // Nyquist low pass allows only amplitudes for frequencies below Nyquist frequency
+        // 1 = on  (slower and more memory, no fourier reflections)
+        // 0 = off (faster but with fourier reflections)
+        #define __NYQUISTCHECK__ 0
 
-namespace radWindowFunction = radWindowFunctionNone;
+
+
+        //marked every N particle for calculate radiation
+        //mark no particle at beginning
+        #define RAD_MARK_PARTICLE 1
+
+        //disable or enable gamme filter
+        //diable (0) / enable (1)
+        #define RAD_ACTIVATE_GAMMA_FILTER 0
+
+        BOOST_CONSTEXPR_OR_CONST float_32 RadiationGamma = 5.;
+
+        BOOST_CONSTEXPR_OR_CONST unsigned int N_observer = 256; // number of looking directions
+
+
+
+    } /* end namespace parameters */
+
+    //////////////////////////////////////////////////
+
+
+    // add a window function weighting to the radiation in order
+    // to avoid ringing effects from sharpe boundaries
+    // default: no window function via `radWindowFunctionNone`
+
+    /* Choose different window function in order to get better ringing reduction
+     * radWindowFunctionTriangle
+     * radWindowFunctionHamming
+     * radWindowFunctionTriplett
+     * radWindowFunctionGauss
+     * radWindowFunctionNone
+     */
+    namespace radWindowFunctionTriangle { }
+    namespace radWindowFunctionHamming { }
+    namespace radWindowFunctionTriplett { }
+    namespace radWindowFunctionGauss { }
+    namespace radWindowFunctionNone { }
+
+    namespace radWindowFunction = radWindowFunctionNone;
 
 
 }//namespace picongpu

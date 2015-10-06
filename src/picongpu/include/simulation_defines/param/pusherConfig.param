@@ -49,7 +49,7 @@ namespace picongpu
             LINEAR = 1u,
             NONLINEAR = 2u
         };
-        const TrajectoryInterpolationType TrajectoryInterpolation = LINEAR;
+        BOOST_CONSTEXPR_OR_CONST TrajectoryInterpolationType TrajectoryInterpolation = LINEAR;
 
     }
 

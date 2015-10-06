@@ -29,16 +29,16 @@ namespace picongpu
     {
         /** Duration of one timestep
          *  unit: seconds */
-        const float_64 DELTA_T_SI = 1.66789e-17;
+        BOOST_CONSTEXPR_OR_CONST float_64 DELTA_T_SI = 1.66789e-17;
         /** equals X
          *  unit: meter */
-        const float_64 CELL_WIDTH_SI = 0.16e-6;
+        BOOST_CONSTEXPR_OR_CONST float_64 CELL_WIDTH_SI = 0.16e-6;
         /** equals Y - the propagation direction
          *  unit: meter */
-        const float_64 CELL_HEIGHT_SI = 0.20e-7;
+        BOOST_CONSTEXPR_OR_CONST float_64 CELL_HEIGHT_SI = 0.20e-7;
         /** equals Z
          *  unit: meter */
-        const float_64 CELL_DEPTH_SI = CELL_WIDTH_SI;
+        BOOST_CONSTEXPR_OR_CONST float_64 CELL_DEPTH_SI = CELL_WIDTH_SI;
     } //namespace SI
 
     //! Defines the size of the absorbing zone (in cells)
@@ -55,7 +55,7 @@ namespace picongpu
         {1.0e-3, 1.0e-3}  /*z direction [negative,positive]*/
     }; //unit: none
 
-    const uint32_t ABSORBER_FADE_IN_STEPS = 16;
+    BOOST_CONSTEXPR_OR_CONST uint32_t ABSORBER_FADE_IN_STEPS = 16;
 
     /** When to move the co-moving window.
      *  An initial pseudo particle, flying with the speed of light,
@@ -67,7 +67,7 @@ namespace picongpu
      *            when you use the co-moving window
      *  0.75 means only 75% of simulation area is used for real simulation
      */
-    const float_64 slide_point = 0.95;
+    BOOST_CONSTEXPR_OR_CONST float_64 slide_point = 0.95;
 
 }
 

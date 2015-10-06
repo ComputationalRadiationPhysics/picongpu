@@ -31,12 +31,12 @@ namespace picongpu
 {
 namespace SI
 {
-/** The maximum density in particles per m^3 in the gas distribution
- *  unit: ELEMENTS/m^3
- *
- * He (2e- / Atom ) with 1.e15 He / m^3
- *                      = 2.e15 e- / m^3 */
-const float_64 GAS_DENSITY_SI = 1.e25;
+    /** The maximum density in particles per m^3 in the gas distribution
+     *  unit: ELEMENTS/m^3
+     *
+     * He (2e- / Atom ) with 1.e15 He / m^3
+     *                      = 2.e15 e- / m^3 */
+    BOOST_CONSTEXPR_OR_CONST float_64 GAS_DENSITY_SI = 1.e25;
 
 }
 

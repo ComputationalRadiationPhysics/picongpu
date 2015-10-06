@@ -39,9 +39,9 @@ namespace particles
 /** a particle with a weighting below MIN_WEIGHTING will not
  *      be created / will be deleted
  *  unit: none */
-const float_X MIN_WEIGHTING = 10.0;
+BOOST_CONSTEXPR_OR_CONST float_X MIN_WEIGHTING = 10.0;
 
-const uint32_t TYPICAL_PARTICLES_PER_CELL = 16;
+BOOST_CONSTEXPR_OR_CONST uint32_t TYPICAL_PARTICLES_PER_CELL = 16;
 
 namespace manipulators
 {
@@ -50,7 +50,7 @@ struct TemperatureParam
     /*Initial temperature
      *  unit: keV
      */
-    static const float_64 temperature = 51.16;
+    BOOST_STATIC_CONSTEXPR float_64 temperature = 51.16;
 };
 /* definition of SetDrift start*/
 typedef TemperatureImpl<TemperatureParam,nvidia::functors::Add> AddTemperature;
@@ -63,7 +63,7 @@ struct RandomParameter
 {
     /** Count of particles per cell at initial state
      *  unit: none */
-    static const uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
+    BOOST_STATIC_CONSTEXPR uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
 };
 /* definition of random particle start*/
 typedef RandomImpl<RandomParameter> Random;

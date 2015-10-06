@@ -29,66 +29,66 @@ namespace picongpu
     namespace laserPulseFrontTilt
     {
         //normed laser parameter
-        const float_X WAVE_LENGTH = float_X (SI::WAVE_LENGTH_SI / UNIT_LENGTH); //unit: meter
-        const float_X PULSE_LENGTH = float_X (SI::PULSE_LENGTH_SI / UNIT_TIME); //unit: seconds (1 sigma)
-        const float_X AMPLITUDE = float_X (SI::AMPLITUDE_SI / UNIT_EFIELD); //unit: Volt /meter
-        const float_X W0 = float_X(SI::W0_SI / UNIT_LENGTH); // unit: meter
-        const float_X FOCUS_POS = float_X(SI::FOCUS_POS_SI / UNIT_LENGTH); //unit: meter
-        const float_X INIT_TIME = float_X ((PULSE_INIT*SI::PULSE_LENGTH_SI) / UNIT_TIME); // unit: seconds (full inizialisation length)
-        const float_X TILT_X = float_X (( SI::TILT_X_SI * PI ) / 180); // unit: raidiant (in dimensions of pi)
+        BOOST_CONSTEXPR_OR_CONST float_X WAVE_LENGTH = float_X (SI::WAVE_LENGTH_SI / UNIT_LENGTH); //unit: meter
+        BOOST_CONSTEXPR_OR_CONST float_X PULSE_LENGTH = float_X (SI::PULSE_LENGTH_SI / UNIT_TIME); //unit: seconds (1 sigma)
+        BOOST_CONSTEXPR_OR_CONST float_X AMPLITUDE = float_X (SI::AMPLITUDE_SI / UNIT_EFIELD); //unit: Volt /meter
+        BOOST_CONSTEXPR_OR_CONST float_X W0 = float_X(SI::W0_SI / UNIT_LENGTH); // unit: meter
+        BOOST_CONSTEXPR_OR_CONST float_X FOCUS_POS = float_X(SI::FOCUS_POS_SI / UNIT_LENGTH); //unit: meter
+        BOOST_CONSTEXPR_OR_CONST float_X INIT_TIME = float_X ((PULSE_INIT*SI::PULSE_LENGTH_SI) / UNIT_TIME); // unit: seconds (full inizialisation length)
+        BOOST_CONSTEXPR_OR_CONST float_X TILT_X = float_X (( SI::TILT_X_SI * PI ) / 180); // unit: raidiant (in dimensions of pi)
     }
 
     namespace laserGaussianBeam
     {
         //normed laser parameter
-        const float_X WAVE_LENGTH = float_X (SI::WAVE_LENGTH_SI / UNIT_LENGTH); //unit: meter
-        const float_X PULSE_LENGTH = float_X (SI::PULSE_LENGTH_SI / UNIT_TIME); //unit: seconds (1 sigma)
-        const float_X AMPLITUDE = float_X (SI::AMPLITUDE_SI / UNIT_EFIELD); //unit: Volt /meter
-        const float_X W0 = float_X(SI::W0_SI / UNIT_LENGTH); // unit: meter
-        const float_X FOCUS_POS = float_X(SI::FOCUS_POS_SI / UNIT_LENGTH); //unit: meter
-        const float_X INIT_TIME = float_X ((PULSE_INIT*SI::PULSE_LENGTH_SI) / UNIT_TIME); // unit: seconds (full inizialisation length)
+        BOOST_CONSTEXPR_OR_CONST float_X WAVE_LENGTH = float_X (SI::WAVE_LENGTH_SI / UNIT_LENGTH); //unit: meter
+        BOOST_CONSTEXPR_OR_CONST float_X PULSE_LENGTH = float_X (SI::PULSE_LENGTH_SI / UNIT_TIME); //unit: seconds (1 sigma)
+        BOOST_CONSTEXPR_OR_CONST float_X AMPLITUDE = float_X (SI::AMPLITUDE_SI / UNIT_EFIELD); //unit: Volt /meter
+        BOOST_CONSTEXPR_OR_CONST float_X W0 = float_X(SI::W0_SI / UNIT_LENGTH); // unit: meter
+        BOOST_CONSTEXPR_OR_CONST float_X FOCUS_POS = float_X(SI::FOCUS_POS_SI / UNIT_LENGTH); //unit: meter
+        BOOST_CONSTEXPR_OR_CONST float_X INIT_TIME = float_X ((PULSE_INIT*SI::PULSE_LENGTH_SI) / UNIT_TIME); // unit: seconds (full inizialisation length)
     }
 
     namespace laserPlaneWave
     {
         //normed laser parameter
-        const float_X WAVE_LENGTH = float_X (SI::WAVE_LENGTH_SI / UNIT_LENGTH); //unit: meter
-        const float_X PULSE_LENGTH = float_X (SI::PULSE_LENGTH_SI / UNIT_TIME); //unit: seconds (1 sigma)
-        const float_X LASER_NOFOCUS_CONSTANT = float_X (SI::LASER_NOFOCUS_CONSTANT_SI / UNIT_TIME); //unit: seconds
-        const float_X AMPLITUDE = float_X (SI::AMPLITUDE_SI / UNIT_EFIELD); //unit: Volt /meter
-        const float_X INIT_TIME = float_X ((RAMP_INIT*SI::PULSE_LENGTH_SI + SI::LASER_NOFOCUS_CONSTANT_SI) / UNIT_TIME); // unit: seconds (full inizialisation length)
+        BOOST_CONSTEXPR_OR_CONST float_X WAVE_LENGTH = float_X (SI::WAVE_LENGTH_SI / UNIT_LENGTH); //unit: meter
+        BOOST_CONSTEXPR_OR_CONST float_X PULSE_LENGTH = float_X (SI::PULSE_LENGTH_SI / UNIT_TIME); //unit: seconds (1 sigma)
+        BOOST_CONSTEXPR_OR_CONST float_X LASER_NOFOCUS_CONSTANT = float_X (SI::LASER_NOFOCUS_CONSTANT_SI / UNIT_TIME); //unit: seconds
+        BOOST_CONSTEXPR_OR_CONST float_X AMPLITUDE = float_X (SI::AMPLITUDE_SI / UNIT_EFIELD); //unit: Volt /meter
+        BOOST_CONSTEXPR_OR_CONST float_X INIT_TIME = float_X ((RAMP_INIT*SI::PULSE_LENGTH_SI + SI::LASER_NOFOCUS_CONSTANT_SI) / UNIT_TIME); // unit: seconds (full inizialisation length)
     }
 
     namespace laserWavepacket
     {
         //normed laser parameter
-        const float_X WAVE_LENGTH = float_X (SI::WAVE_LENGTH_SI / UNIT_LENGTH); //unit: meter
-        const float_X PULSE_LENGTH = float_X (SI::PULSE_LENGTH_SI / UNIT_TIME); //unit: seconds (1 sigma)
-        const float_X LASER_NOFOCUS_CONSTANT = float_X (SI::LASER_NOFOCUS_CONSTANT_SI / UNIT_TIME); //unit: seconds
-        const float_X AMPLITUDE = float_X (SI::AMPLITUDE_SI / UNIT_EFIELD); //unit: Volt /meter
-        const float_X W0_X = float_X(SI::W0_X_SI / UNIT_LENGTH); // unit: meter
-        const float_X W0_Z = float_X(SI::W0_Z_SI / UNIT_LENGTH); // unit: meter
-        const float_X INIT_TIME = float_X ((RAMP_INIT*SI::PULSE_LENGTH_SI + SI::LASER_NOFOCUS_CONSTANT_SI) / UNIT_TIME); // unit: seconds (full inizialisation length)
+        BOOST_CONSTEXPR_OR_CONST float_X WAVE_LENGTH = float_X (SI::WAVE_LENGTH_SI / UNIT_LENGTH); //unit: meter
+        BOOST_CONSTEXPR_OR_CONST float_X PULSE_LENGTH = float_X (SI::PULSE_LENGTH_SI / UNIT_TIME); //unit: seconds (1 sigma)
+        BOOST_CONSTEXPR_OR_CONST float_X LASER_NOFOCUS_CONSTANT = float_X (SI::LASER_NOFOCUS_CONSTANT_SI / UNIT_TIME); //unit: seconds
+        BOOST_CONSTEXPR_OR_CONST float_X AMPLITUDE = float_X (SI::AMPLITUDE_SI / UNIT_EFIELD); //unit: Volt /meter
+        BOOST_CONSTEXPR_OR_CONST float_X W0_X = float_X(SI::W0_X_SI / UNIT_LENGTH); // unit: meter
+        BOOST_CONSTEXPR_OR_CONST float_X W0_Z = float_X(SI::W0_Z_SI / UNIT_LENGTH); // unit: meter
+        BOOST_CONSTEXPR_OR_CONST float_X INIT_TIME = float_X ((RAMP_INIT*SI::PULSE_LENGTH_SI + SI::LASER_NOFOCUS_CONSTANT_SI) / UNIT_TIME); // unit: seconds (full inizialisation length)
     }
 
     namespace laserPolynom
     {
         //normed laser parameter
-        const float_X WAVE_LENGTH = float_X (SI::WAVE_LENGTH_SI / UNIT_LENGTH); //unit: meter
-        const float_X PULSE_LENGTH = float_X (SI::PULSE_LENGTH_SI / UNIT_TIME); //unit: seconds
-        const float_X AMPLITUDE = float_X (SI::AMPLITUDE_SI / UNIT_EFIELD); //unit: Volt /meter
-        const float_X W0x = float_X(SI::W0x_SI / UNIT_LENGTH); // unit: meter
-        const float_X W0z = float_X(SI::W0z_SI / UNIT_LENGTH); // unit: meter
-        const float_X INIT_TIME = float_X (SI::PULSE_LENGTH_SI / UNIT_TIME); // unit: seconds (full inizialisation length)
+        BOOST_CONSTEXPR_OR_CONST float_X WAVE_LENGTH = float_X (SI::WAVE_LENGTH_SI / UNIT_LENGTH); //unit: meter
+        BOOST_CONSTEXPR_OR_CONST float_X PULSE_LENGTH = float_X (SI::PULSE_LENGTH_SI / UNIT_TIME); //unit: seconds
+        BOOST_CONSTEXPR_OR_CONST float_X AMPLITUDE = float_X (SI::AMPLITUDE_SI / UNIT_EFIELD); //unit: Volt /meter
+        BOOST_CONSTEXPR_OR_CONST float_X W0x = float_X(SI::W0x_SI / UNIT_LENGTH); // unit: meter
+        BOOST_CONSTEXPR_OR_CONST float_X W0z = float_X(SI::W0z_SI / UNIT_LENGTH); // unit: meter
+        BOOST_CONSTEXPR_OR_CONST float_X INIT_TIME = float_X (SI::PULSE_LENGTH_SI / UNIT_TIME); // unit: seconds (full inizialisation length)
     }
 
     namespace laserNone
     {
         //normed laser parameter
-        const float_X WAVE_LENGTH = float_X (SI::WAVE_LENGTH_SI / UNIT_LENGTH); //unit: meter
-        const float_X PULSE_LENGTH = float_X (SI::PULSE_LENGTH_SI / UNIT_TIME); //unit: seconds (1 sigma)
-        const float_X AMPLITUDE = float_X (SI::AMPLITUDE_SI / UNIT_EFIELD); //unit: Volt /meter
-        const float_X INIT_TIME = 0.0; //no inizialisation of laser
+        BOOST_CONSTEXPR_OR_CONST float_X WAVE_LENGTH = float_X (SI::WAVE_LENGTH_SI / UNIT_LENGTH); //unit: meter
+        BOOST_CONSTEXPR_OR_CONST float_X PULSE_LENGTH = float_X (SI::PULSE_LENGTH_SI / UNIT_TIME); //unit: seconds (1 sigma)
+        BOOST_CONSTEXPR_OR_CONST float_X AMPLITUDE = float_X (SI::AMPLITUDE_SI / UNIT_EFIELD); //unit: Volt /meter
+        BOOST_CONSTEXPR_OR_CONST float_X INIT_TIME = 0.0; //no inizialisation of laser
     }
 
 }

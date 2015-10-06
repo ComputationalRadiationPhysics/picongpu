@@ -24,24 +24,24 @@
 namespace picongpu
 {
     /** Unit of Speed */
-    const float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
+    BOOST_CONSTEXPR_OR_CONST float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
     /** Unit of time */
-    const float_64 UNIT_TIME = SI::DELTA_T_SI;
+    BOOST_CONSTEXPR_OR_CONST float_64 UNIT_TIME = SI::DELTA_T_SI;
     /** Unit of length */
-    const float_64 UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
+    BOOST_CONSTEXPR_OR_CONST float_64 UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
 
 #if(SIMDIM==DIM3)
     namespace SI
     {
         /** density normed to dimension of the simulation*/
-        const float_64  GAS_DENSITY_NORMED= SI::GAS_DENSITY_SI;
+        BOOST_CONSTEXPR_OR_CONST float_64  GAS_DENSITY_NORMED= SI::GAS_DENSITY_SI;
     } //namespace SI
 
     namespace particles
     {
         /** Number of electrons per particle (= macro particle weighting)
          *  unit: none */
-        const float_X TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE = 1;
+        BOOST_CONSTEXPR_OR_CONST float_X TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE = 1;
 
     }
 
@@ -52,51 +52,51 @@ namespace picongpu
          *
          * http://www.tf.uni-kiel.de/matwis/amat/mw1_ge/kap_6/basics/m6_2_1.html
          */
-        const float_64  GAS_DENSITY_NORMED= SI::GAS_DENSITY_SI*UNIT_LENGTH;
+        BOOST_CONSTEXPR_OR_CONST float_64  GAS_DENSITY_NORMED= SI::GAS_DENSITY_SI*UNIT_LENGTH;
     } //namespace SI
     namespace particles
     {
         /** Number of electrons per particle (= macro particle weighting)
          *  unit: none */
-        const float_X TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE = 1;
+        BOOST_CONSTEXPR_OR_CONST float_X TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE = 1;
     }
 #endif
 
 
     /** Unit of mass */
-    const float_64 UNIT_MASS = SI::ELECTRON_MASS_SI * double(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
+    BOOST_CONSTEXPR_OR_CONST float_64 UNIT_MASS = SI::ELECTRON_MASS_SI * double(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
     /** Unit of charge */
-    const float_64 UNIT_CHARGE = -1.0 * SI::ELECTRON_CHARGE_SI * double(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
+    BOOST_CONSTEXPR_OR_CONST float_64 UNIT_CHARGE = -1.0 * SI::ELECTRON_CHARGE_SI * double(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
     /** Unit of energy */
-    const float_64 UNIT_ENERGY = (UNIT_MASS * UNIT_LENGTH * UNIT_LENGTH / (UNIT_TIME * UNIT_TIME));
+    BOOST_CONSTEXPR_OR_CONST float_64 UNIT_ENERGY = (UNIT_MASS * UNIT_LENGTH * UNIT_LENGTH / (UNIT_TIME * UNIT_TIME));
     /** Unit of EField: V/m */
-    const float_64 UNIT_EFIELD = 1.0 / (UNIT_TIME * UNIT_TIME / UNIT_MASS / UNIT_LENGTH * UNIT_CHARGE);
+    BOOST_CONSTEXPR_OR_CONST float_64 UNIT_EFIELD = 1.0 / (UNIT_TIME * UNIT_TIME / UNIT_MASS / UNIT_LENGTH * UNIT_CHARGE);
     //** Unit of BField: Tesla [T] = Vs/m^2 */
-    const float_64 UNIT_BFIELD = (UNIT_MASS / (UNIT_TIME * UNIT_CHARGE));
+    BOOST_CONSTEXPR_OR_CONST float_64 UNIT_BFIELD = (UNIT_MASS / (UNIT_TIME * UNIT_CHARGE));
 
 
 
 
-    const float_X SPEED_OF_LIGHT = float_X(SI::SPEED_OF_LIGHT_SI / UNIT_SPEED);
+    BOOST_CONSTEXPR_OR_CONST float_X SPEED_OF_LIGHT = float_X(SI::SPEED_OF_LIGHT_SI / UNIT_SPEED);
 
     //! Charge of electron
-    const float_X ELECTRON_CHARGE = (float_X) (SI::ELECTRON_CHARGE_SI / UNIT_CHARGE);
+    BOOST_CONSTEXPR_OR_CONST float_X ELECTRON_CHARGE = (float_X) (SI::ELECTRON_CHARGE_SI / UNIT_CHARGE);
     //! Mass of electron
-    const float_X ELECTRON_MASS = (float_X) (SI::ELECTRON_MASS_SI / UNIT_MASS);
+    BOOST_CONSTEXPR_OR_CONST float_X ELECTRON_MASS = (float_X) (SI::ELECTRON_MASS_SI / UNIT_MASS);
 
     //! magnetic constant must be double 3.92907e-39
-    const float_X MUE0 = (float_X) (SI::MUE0_SI / UNIT_LENGTH / UNIT_MASS * UNIT_CHARGE * UNIT_CHARGE);
+    BOOST_CONSTEXPR_OR_CONST float_X MUE0 = (float_X) (SI::MUE0_SI / UNIT_LENGTH / UNIT_MASS * UNIT_CHARGE * UNIT_CHARGE);
 
     //! electric constant must be double 2.54513e+38
-    const float_X EPS0 = (float_X) (1. / MUE0 / SPEED_OF_LIGHT / SPEED_OF_LIGHT);
+    BOOST_CONSTEXPR_OR_CONST float_X EPS0 = (float_X) (1. / MUE0 / SPEED_OF_LIGHT / SPEED_OF_LIGHT);
 
     // = 1/c^2
-    const float_X MUE0_EPS0 = float_X(1. / SPEED_OF_LIGHT / SPEED_OF_LIGHT);
+    BOOST_CONSTEXPR_OR_CONST float_X MUE0_EPS0 = float_X(1. / SPEED_OF_LIGHT / SPEED_OF_LIGHT);
 
     /* Atomic unit of electric field in PIC Efield units */
-    const float_X ATOMIC_UNIT_EFIELD = float_X(SI::ATOMIC_UNIT_EFIELD / UNIT_EFIELD);
+    BOOST_CONSTEXPR_OR_CONST float_X ATOMIC_UNIT_EFIELD = float_X(SI::ATOMIC_UNIT_EFIELD / UNIT_EFIELD);
 
     /* Atomic unit of time in PIC units */
-    const float_X ATOMIC_UNIT_TIME = float_X(SI::ATOMIC_UNIT_TIME / UNIT_TIME);
+    BOOST_CONSTEXPR_OR_CONST float_X ATOMIC_UNIT_TIME = float_X(SI::ATOMIC_UNIT_TIME / UNIT_TIME);
 
 } //namespace picongpu

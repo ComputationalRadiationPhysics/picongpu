@@ -28,12 +28,12 @@ namespace picongpu
 {
     /*scale image before write to file, only scale if value is not 1.0
      */
-    const float_64 scale_image = 1.0;
+    BOOST_CONSTEXPR_OR_CONST float_64 scale_image = 1.0;
 
     /*if true image is scaled if cellsize is not quadratic, else no scale*/
-    const bool scale_to_cellsize = false;
+    BOOST_CONSTEXPR_OR_CONST bool scale_to_cellsize = false;
 
-    const bool white_box_per_GPU = false;
+    BOOST_CONSTEXPR_OR_CONST bool white_box_per_GPU = false;
 
     namespace visPreview
     {
@@ -52,10 +52,10 @@ namespace picongpu
 #define EM_FIELD_SCALE_CHANNEL3 -1
 
         // multiply highest undisturbed particle density with factor
-        const float_X preParticleDens_opacity = 0.25;
-        const float_X preChannel1_opacity     = 1.0;
-        const float_X preChannel2_opacity     = 1.0;
-        const float_X preChannel3_opacity     = 1.0;
+        BOOST_CONSTEXPR_OR_CONST float_X preParticleDens_opacity = 0.25;
+        BOOST_CONSTEXPR_OR_CONST float_X preChannel1_opacity     = 1.0;
+        BOOST_CONSTEXPR_OR_CONST float_X preChannel2_opacity     = 1.0;
+        BOOST_CONSTEXPR_OR_CONST float_X preChannel3_opacity     = 1.0;
 
         // specify color scales for each channel
         namespace preParticleDensCol = colorScales::red;

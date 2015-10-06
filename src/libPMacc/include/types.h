@@ -32,6 +32,9 @@
 #include <boost/mpl/placeholders.hpp>
 #include <boost/filesystem.hpp>
 
+// Allows use of C++11/C++98 compatibility macros like BOOST_CONSTEXPR
+#include <boost/config.hpp>
+
 #include <builtin_types.h>
 #include <cuda_runtime.h>
 #include <cuda.h>

@@ -37,7 +37,7 @@ namespace picongpu
     public:
 
         /* Add this additional field for pushing particles */
-        static const bool InfluenceParticlePusher = PARAM_INCLUDE_FIELDBACKGROUND;
+        BOOST_STATIC_CONSTEXPR bool InfluenceParticlePusher = PARAM_INCLUDE_FIELDBACKGROUND;
 
         /* We use this to calculate your SI input back to our unit system */
         PMACC_ALIGN(m_unitField, const float3_64);
@@ -83,10 +83,10 @@ namespace picongpu
                     const uint32_t currentStep ) const
         {
             /* unit: meter */
-            const float_64 WAVE_LENGTH_SI = 0.8e-6;
+            BOOST_CONSTEXPR_OR_CONST float_64 WAVE_LENGTH_SI = 0.8e-6;
 
             /** UNITCONV */
-            const float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+            BOOST_CONSTEXPR_OR_CONST float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
                 * SI::ELECTRON_MASS_SI * SI::SPEED_OF_LIGHT_SI
                 * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
 
@@ -94,7 +94,7 @@ namespace picongpu
             // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
 
             /* unit: none */
-            const float_64 _A0  = 1.0;
+            BOOST_CONSTEXPR_OR_CONST float_64 _A0  = 1.0;
 
             /* unit: Volt /meter
              *\todo #738 implement math::vector, native type operations
@@ -120,7 +120,7 @@ namespace picongpu
     {
     public:
         /* Add this additional field for pushing particles */
-        static const bool InfluenceParticlePusher = PARAM_INCLUDE_FIELDBACKGROUND;
+        BOOST_STATIC_CONSTEXPR bool InfluenceParticlePusher = PARAM_INCLUDE_FIELDBACKGROUND;
 
         /* TWTS B-fields need to be initialized on host,
          * so they can look up global grid dimensions.
@@ -165,10 +165,10 @@ namespace picongpu
                     const uint32_t currentStep ) const
         {
             /* unit: meter */
-            const float_64 WAVE_LENGTH_SI = 0.8e-6;
+            BOOST_CONSTEXPR_OR_CONST float_64 WAVE_LENGTH_SI = 0.8e-6;
 
             /** UNITCONV */
-            const float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+            BOOST_CONSTEXPR_OR_CONST float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
                 * SI::ELECTRON_MASS_SI * SI::SPEED_OF_LIGHT_SI
                 * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
 
@@ -176,7 +176,7 @@ namespace picongpu
             // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
 
             /** unit: none */
-            const float_64 _A0  = 1.0;
+            BOOST_CONSTEXPR_OR_CONST float_64 _A0  = 1.0;
 
             /** unit: Volt /meter */
             const float3_64 invUnitField = float3_64( 1.0 / m_unitField[0],
@@ -200,7 +200,7 @@ namespace picongpu
     {
     public:
         /* Add this additional field? */
-        static const bool activated = false;
+        BOOST_STATIC_CONSTEXPR bool activated = false;
 
         /* We use this to calculate your SI input back to our unit system */
         PMACC_ALIGN(m_unitField, const float3_64);

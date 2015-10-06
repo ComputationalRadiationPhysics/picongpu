@@ -34,33 +34,33 @@ namespace picongpu
 {
   namespace rad_linear_frequencies
   {
-    const float_X omega_min = SI::omega_min*UNIT_TIME;
-    const float_X omega_max = SI::omega_max*UNIT_TIME;
-    const float_X delta_omega = (float_X) ((omega_max - omega_min) / (float_X) (N_omega - 1)); // difference beween two omega
+    BOOST_CONSTEXPR_OR_CONST float_X omega_min = SI::omega_min*UNIT_TIME;
+    BOOST_CONSTEXPR_OR_CONST float_X omega_max = SI::omega_max*UNIT_TIME;
+    BOOST_CONSTEXPR_OR_CONST float_X delta_omega = (float_X) ((omega_max - omega_min) / (float_X) (N_omega - 1)); // difference beween two omega
 
-    const unsigned int blocksize_omega = PMacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
-    const unsigned int gridsize_omega = N_omega / blocksize_omega; // size of grid (dim: x); radiation
+    BOOST_CONSTEXPR_OR_CONST unsigned int blocksize_omega = PMacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
+    BOOST_CONSTEXPR_OR_CONST unsigned int gridsize_omega = N_omega / blocksize_omega; // size of grid (dim: x); radiation
   }
 
   namespace rad_log_frequencies
   {
-    const float_X omega_min = (SI::omega_min*UNIT_TIME);
-    const float_X omega_max = (SI::omega_max*UNIT_TIME);
+    BOOST_CONSTEXPR_OR_CONST float_X omega_min = (SI::omega_min*UNIT_TIME);
+    BOOST_CONSTEXPR_OR_CONST float_X omega_max = (SI::omega_max*UNIT_TIME);
 
-    const unsigned int blocksize_omega = PMacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
-    const unsigned int gridsize_omega = N_omega / blocksize_omega; // size of grid (dim: x); radiation
+    BOOST_CONSTEXPR_OR_CONST unsigned int blocksize_omega = PMacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
+    BOOST_CONSTEXPR_OR_CONST unsigned int gridsize_omega = N_omega / blocksize_omega; // size of grid (dim: x); radiation
   }
 
   namespace rad_frequencies_from_list
   {
-    const unsigned int blocksize_omega = PMacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
-    const unsigned int gridsize_omega = N_omega / blocksize_omega; // size of grid (dim: x); radiation
+    BOOST_CONSTEXPR_OR_CONST unsigned int blocksize_omega = PMacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
+    BOOST_CONSTEXPR_OR_CONST unsigned int gridsize_omega = N_omega / blocksize_omega; // size of grid (dim: x); radiation
   }
 
 namespace parameters
 {
 
-    const unsigned int gridsize_theta = N_observer; // size of grid /dim: y); radiation
+    BOOST_CONSTEXPR_OR_CONST unsigned int gridsize_theta = N_observer; // size of grid /dim: y); radiation
 
 }
 

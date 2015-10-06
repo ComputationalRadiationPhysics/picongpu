@@ -35,9 +35,9 @@ namespace particles
     /** a particle with a weighting below MIN_WEIGHTING will not
      *      be created / will be deleted
      *  unit: none */
-    const float_X MIN_WEIGHTING = 10.0;
+    BOOST_CONSTEXPR_OR_CONST float_X MIN_WEIGHTING = 10.0;
 
-    const uint32_t TYPICAL_PARTICLES_PER_CELL = 6;
+    BOOST_CONSTEXPR_OR_CONST uint32_t TYPICAL_PARTICLES_PER_CELL = 6;
 
 namespace manipulators
 {
@@ -49,7 +49,7 @@ namespace manipulators
          *  Examples:
          *    - No drift is equal to 1.0
          *  unit: none */
-        static const float_64 gamma = 5.0;
+        BOOST_STATIC_CONSTEXPR float_64 gamma = 5.0;
         const DriftParamNegative_direction_t direction;
     };
     /* definition of SetDrift start*/
@@ -65,7 +65,7 @@ namespace startPosition
     {
         /** Count of particles per cell at initial state
          *  unit: none */
-        static const uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
+        BOOST_STATIC_CONSTEXPR uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
     };
     /* definition of random particle start*/
     typedef RandomImpl<RandomParameter> Random;

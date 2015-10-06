@@ -25,13 +25,13 @@
 namespace picongpu
 {
     // Constant Background Fields
-    const float_X E_X = float_X( E_X_SI / UNIT_EFIELD); //unit: Volt /meter
-    const float_X E_Y = float_X( E_Y_SI / UNIT_EFIELD); //unit: Volt /meter
-    const float_X E_Z = float_X( E_Z_SI / UNIT_EFIELD); //unit: Volt /meter
+    BOOST_CONSTEXPR_OR_CONST float_X E_X = float_X( E_X_SI / UNIT_EFIELD); //unit: Volt /meter
+    BOOST_CONSTEXPR_OR_CONST float_X E_Y = float_X( E_Y_SI / UNIT_EFIELD); //unit: Volt /meter
+    BOOST_CONSTEXPR_OR_CONST float_X E_Z = float_X( E_Z_SI / UNIT_EFIELD); //unit: Volt /meter
 
-    const float_X B_X = float_X( B_X_SI / UNIT_BFIELD); //unit: Tesla = Vs/m^2
-    const float_X B_Y = float_X( B_Y_SI / UNIT_BFIELD); //unit: Tesla = Vs/m^2
-    const float_X B_Z = float_X( B_Z_SI / UNIT_BFIELD); //unit: Tesla = Vs/m^2
+    BOOST_CONSTEXPR_OR_CONST float_X B_X = float_X( B_X_SI / UNIT_BFIELD); //unit: Tesla = Vs/m^2
+    BOOST_CONSTEXPR_OR_CONST float_X B_Y = float_X( B_Y_SI / UNIT_BFIELD); //unit: Tesla = Vs/m^2
+    BOOST_CONSTEXPR_OR_CONST float_X B_Z = float_X( B_Z_SI / UNIT_BFIELD); //unit: Tesla = Vs/m^2
 }
 
 

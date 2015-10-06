@@ -28,23 +28,23 @@
 namespace picongpu
 {
     //normed grid parameter
-    const float_X DELTA_T = float_X(SI::DELTA_T_SI / UNIT_TIME);
-    const float_X CELL_WIDTH = float_X (SI::CELL_WIDTH_SI / UNIT_LENGTH); //normalized to UNIT_LENGTH
-    const float_X CELL_HEIGHT = float_X (SI::CELL_HEIGHT_SI / UNIT_LENGTH); //normalized to UNIT_LENGTH
-    const float_X CELL_DEPTH = float_X(SI::CELL_DEPTH_SI / UNIT_LENGTH); // normalized to UNIT_LENGTH
+    BOOST_CONSTEXPR_OR_CONST float_X DELTA_T = float_X(SI::DELTA_T_SI / UNIT_TIME);
+    BOOST_CONSTEXPR_OR_CONST float_X CELL_WIDTH = float_X (SI::CELL_WIDTH_SI / UNIT_LENGTH); //normalized to UNIT_LENGTH
+    BOOST_CONSTEXPR_OR_CONST float_X CELL_HEIGHT = float_X (SI::CELL_HEIGHT_SI / UNIT_LENGTH); //normalized to UNIT_LENGTH
+    BOOST_CONSTEXPR_OR_CONST float_X CELL_DEPTH = float_X(SI::CELL_DEPTH_SI / UNIT_LENGTH); // normalized to UNIT_LENGTH
     CONST_VECTOR(float_X,simDim,cellSize,CELL_WIDTH,CELL_HEIGHT,CELL_DEPTH);
 
 #if (SIMDIM==DIM3)
-    const float_X CELL_VOLUME = CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH;
-    const float_X INV_CELL2_SUM = 1.0 / ( CELL_WIDTH  * CELL_WIDTH  )
+    BOOST_CONSTEXPR_OR_CONST float_X CELL_VOLUME = CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH;
+    BOOST_CONSTEXPR_OR_CONST float_X INV_CELL2_SUM = 1.0 / ( CELL_WIDTH  * CELL_WIDTH  )
                                 + 1.0 / ( CELL_HEIGHT * CELL_HEIGHT )
                                 + 1.0 / ( CELL_DEPTH  * CELL_DEPTH  );
 #elif(SIMDIM==DIM2)
-    const float_X CELL_VOLUME = CELL_WIDTH * CELL_HEIGHT;
-    const float_X INV_CELL2_SUM = 1.0 / ( CELL_WIDTH  * CELL_WIDTH  )
+    BOOST_CONSTEXPR_OR_CONST float_X CELL_VOLUME = CELL_WIDTH * CELL_HEIGHT;
+    BOOST_CONSTEXPR_OR_CONST float_X INV_CELL2_SUM = 1.0 / ( CELL_WIDTH  * CELL_WIDTH  )
                                 + 1.0 / ( CELL_HEIGHT * CELL_HEIGHT );
 #else
-    const float_X INV_CELL2_SUM = 1.0 / ( CELL_WIDTH  * CELL_WIDTH  );
+    BOOST_CONSTEXPR_OR_CONST float_X INV_CELL2_SUM = 1.0 / ( CELL_WIDTH  * CELL_WIDTH  );
 #endif
 
 }

@@ -36,9 +36,9 @@ namespace particles
     /** a particle with a weighting below MIN_WEIGHTING will not
      *      be created / will be deleted
      *  unit: none */
-    const float_X MIN_WEIGHTING = 10.0;
+    BOOST_CONSTEXPR_OR_CONST float_X MIN_WEIGHTING = 10.0;
 
-    const uint32_t TYPICAL_PARTICLES_PER_CELL = 2;
+    BOOST_CONSTEXPR_OR_CONST uint32_t TYPICAL_PARTICLES_PER_CELL = 2;
 
 namespace manipulators
 {
@@ -46,7 +46,7 @@ namespace manipulators
     CONST_VECTOR(float_X,3,DriftParam_direction,1.0,0.0,0.0);
     struct DriftParam
     {
-        static const float_64 gamma = 1.0;
+        BOOST_STATIC_CONSTEXPR float_64 gamma = 1.0;
         const DriftParam_direction_t direction;
     };
     /* definition of SetDrift start*/
@@ -57,7 +57,7 @@ namespace manipulators
         /*Initial temperature
          *  unit: keV
          */
-        static const float_64 temperature = 0.0;
+        BOOST_STATIC_CONSTEXPR float_64 temperature = 0.0;
     };
     /* definition of SetDrift start*/
     typedef TemperatureImpl<TemperatureParam,nvidia::functors::Add> AddTemperature;
@@ -66,13 +66,13 @@ namespace manipulators
     struct IfRelativeGlobalPositionParam
     {
         /* lowerBound is included in the range*/
-        static const float_X lowerBound = 0.0;
+        BOOST_STATIC_CONSTEXPR float_X lowerBound = 0.0;
         /* upperBound is excluded in the range*/
-        static const float_X upperBound = 0.5;
+        BOOST_STATIC_CONSTEXPR float_X upperBound = 0.5;
         /* dimension for the filter
          * x = 0; y= 1; z = 2
          */
-        static const uint32_t dimension = 0;
+        BOOST_STATIC_CONSTEXPR uint32_t dimension = 0;
     };
     /* definition of SetDrift start*/
     typedef IfRelativeGlobalPositionImpl<IfRelativeGlobalPositionParam,AssignXDrift> AssignXDriftToLowerHalfXPosition;
@@ -102,7 +102,7 @@ namespace startPosition
     {
         /** Count of particles per cell at initial state
          *  unit: none */
-        static const uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
+        BOOST_STATIC_CONSTEXPR uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
     };
     /* definition of random particle start*/
     typedef RandomImpl<RandomParameter> Random;

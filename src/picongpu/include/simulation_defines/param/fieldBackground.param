@@ -29,7 +29,7 @@ namespace picongpu
     {
     public:
         /* Add this additional field for pushing particles */
-        static const bool InfluenceParticlePusher = false;
+        BOOST_STATIC_CONSTEXPR bool InfluenceParticlePusher = false;
 
         /* We use this to calculate your SI input back to our unit system */
         PMACC_ALIGN(m_unitField, const float3_64);
@@ -46,7 +46,7 @@ namespace picongpu
                     const uint32_t currentStep ) const
         {
             /* example: periodicity of 20 microns ( = 2.0e-5 m) */
-            const float_64 period_SI(20.0e-6);
+            BOOST_CONSTEXPR_OR_CONST float_64 period_SI(20.0e-6);
             /* calculate cells -> SI -> m to microns*/
             const float_64 y_SI = cellIdx.y() * SI::CELL_HEIGHT_SI * 1.0e6;
             /* note: you can also transform the time step to seconds by
@@ -62,7 +62,7 @@ namespace picongpu
     {
     public:
         /* Add this additional field for pushing particles */
-        static const bool InfluenceParticlePusher = false;
+        BOOST_STATIC_CONSTEXPR bool InfluenceParticlePusher = false;
 
         /* We use this to calculate your SI input back to our unit system */
         PMACC_ALIGN(m_unitField, const float3_64);
@@ -79,7 +79,7 @@ namespace picongpu
                     const uint32_t currentStep ) const
         {
             /* example: periodicity of 20 microns ( = 2.0e-5 m) */
-            const float_64 period_SI(20.0e-6);
+            BOOST_CONSTEXPR_OR_CONST float_64 period_SI(20.0e-6);
             /* calculate cells -> SI -> m to microns*/
             const float_64 y_SI = cellIdx.y() * SI::CELL_HEIGHT_SI * 1.0e6;
             /* note: you can also transform the time step to seconds by
@@ -95,7 +95,7 @@ namespace picongpu
     {
     public:
         /* Add this additional field? */
-        static const bool activated = false;
+        BOOST_STATIC_CONSTEXPR bool activated = false;
 
         /* We use this to calculate your SI input back to our unit system */
         PMACC_ALIGN(m_unitField, const float3_64);
@@ -112,7 +112,7 @@ namespace picongpu
                     const uint32_t currentStep ) const
         {
             /* example: periodicity of 20 microns ( = 2.0e-5 m) */
-            const float_64 period_SI(20.0e-6);
+            BOOST_CONSTEXPR_OR_CONST float_64 period_SI(20.0e-6);
             /* calculate cells -> SI -> m to microns*/
             const float_64 y_SI = cellIdx.y() * SI::CELL_HEIGHT_SI * 1.0e6;
             /* note: you can also transform the time step to seconds by

@@ -35,7 +35,7 @@ namespace SI
  *
  * He (2e- / Atom ) with 1.e15 He / m^3
  *                      = 2.e15 e- / m^3 */
-const float_64 GAS_DENSITY_SI = 1.e25;
+    BOOST_CONSTEXPR_OR_CONST float_64 GAS_DENSITY_SI = 1.e25;
 
 }
 

@@ -36,9 +36,9 @@ namespace particles
     /** a particle with a weighting below MIN_WEIGHTING will not
      *      be created / will be deleted
      *  unit: none */
-    const float_X MIN_WEIGHTING = 1.0;
+    BOOST_CONSTEXPR_OR_CONST float_X MIN_WEIGHTING = 1.0;
 
-    const uint32_t TYPICAL_PARTICLES_PER_CELL = 1;
+    BOOST_CONSTEXPR_OR_CONST uint32_t TYPICAL_PARTICLES_PER_CELL = 1;
 
 } //namespace particles
 

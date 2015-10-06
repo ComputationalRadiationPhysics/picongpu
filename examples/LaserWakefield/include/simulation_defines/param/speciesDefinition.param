@@ -131,8 +131,8 @@ value_identifier(float_X, ChargeRatioIons, -1.0);
  */
 struct Hydrogen
 {
-    static const float_X numberOfProtons  = 1.0;
-    static const float_X numberOfNeutrons = 0.0;
+    BOOST_STATIC_CONSTEXPR float_X numberOfProtons  = 1.0;
+    BOOST_STATIC_CONSTEXPR float_X numberOfNeutrons = 0.0;
 };
 
 /*! Ionization Model Configuration ----------------------------------------

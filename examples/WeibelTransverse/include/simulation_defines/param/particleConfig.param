@@ -36,9 +36,9 @@ namespace particles
     /** a particle with a weighting below MIN_WEIGHTING will not
      *      be created / will be deleted
      *  unit: none */
-    const float_X MIN_WEIGHTING = 10.0;
+    BOOST_CONSTEXPR_OR_CONST float_X MIN_WEIGHTING = 10.0;
 
-    const uint32_t TYPICAL_PARTICLES_PER_CELL = 4;
+    BOOST_CONSTEXPR_OR_CONST uint32_t TYPICAL_PARTICLES_PER_CELL = 4;
 
 namespace manipulators
 {
@@ -50,7 +50,7 @@ namespace manipulators
          *  Examples:
          *    - No drift is equal to 1.0
          *  unit: none */
-        static const float_64 gamma = 1.021;
+        BOOST_STATIC_CONSTEXPR float_64 gamma = 1.021;
         const DriftParamElectrons_direction_t direction;
     };
     /* definition of SetDrift start*/
@@ -63,7 +63,7 @@ namespace manipulators
          *  Examples:
          *    - No drift is equal to 1.0
          *  unit: none */
-        static const float_64 gamma = 1.021;
+        BOOST_STATIC_CONSTEXPR float_64 gamma = 1.021;
         const DriftParamIons_direction_t direction;
     };
     /* definition of SetDrift start*/
@@ -74,7 +74,7 @@ namespace manipulators
         /*Initial temperature
          *  unit: keV
          */
-        static const float_64 temperature = 0.005;
+        BOOST_STATIC_CONSTEXPR float_64 temperature = 0.005;
     };
     /* definition of SetDrift start*/
     typedef TemperatureImpl<TemperatureParam,nvidia::functors::Add> AddTemperature;
