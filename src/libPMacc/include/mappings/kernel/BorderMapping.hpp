@@ -25,7 +25,6 @@
 
 #include "types.h"
 #include "dimensions/DataSpace.hpp"
-#include "mappings/kernel/BorderMappingMethods.hpp"
 #include <stdexcept>
 
 namespace PMacc
@@ -95,7 +94,20 @@ namespace PMacc
          */
         HINLINE DimDataSpace getGridDim() const
         {
-            return BorderMappingMethods<Dim>::getGridDim(*this, m_direction);;
+            DimDataSpace result(this->getGridSuperCells() - 2 * this->getGuardingSuperCells());
+
+            const DimDataSpace directions = Mask::getRelativeDirections<Dim>(m_direction);
+
+            for(int i = 0; i < Dim; i++)
+            {
+                if (directions[i] != 0)
+                {
+                    result[i] = this->getBorderSuperCells();
+                    break;
+                }
+            }
+
+            return result;
         }
 
         /**
@@ -106,7 +118,19 @@ namespace PMacc
          */
         HDINLINE DimDataSpace getSuperCellIndex(const DimDataSpace& realSuperCellIdx) const
         {
-            return realSuperCellIdx + BorderMappingMethods<Dim>::getBlockOffset(*this, m_direction);
+            DimDataSpace result = realSuperCellIdx;
+
+            const DimDataSpace directions = Mask::getRelativeDirections<Dim>(m_direction);
+
+            for(int i = 0; i < Dim; i++)
+            {
+                if (directions[i] == 1)
+                    result[i] += this->getGridSuperCells()[i] - this->getGuardingSuperCells() - this->getBorderSuperCells();
+                else
+                    result[i] += this->getGuardingSuperCells();
+            }
+
+            return result;
         }
     private:
         PMACC_ALIGN(m_direction, const PMacc::ExchangeType);
