@@ -29,6 +29,8 @@ then
 
 fi
 
+# Environment #################################################################
+#
 alias allocK20='salloc --time=0:30:00 --nodes=1 --ntasks-per-node=1 --cpus-per-task=8 --partition lr_manycore'
 alias allocFermi='salloc --time=0:30:00 --nodes=1 --ntasks-per-node=2 --cpus-per-task=6 --partition mako_manycore'
 
@@ -42,8 +44,13 @@ export PATH=$HOME/bin:$PATH
 export PATH=$PATH:$PICSRC/src/splash2txt/build
 export PATH=$PATH:$PICSRC/src/tools/bin
 
-# "tbg" default options:
+export MY_MAIL="someone@example.com"
+# send me a mail on BEGIN, END, FAIL, REQUEUE, ALL,
+# TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
+export MY_MAILNOTIFY="ALL"
+
+# "tbg" default options #######################################################
 #   - SLURM (sbatch)
 #   - fermi queue (also available: 2 K20 via k20_profile.tpl)
 export TBG_SUBMIT="sbatch"
-export TBG_TPLFILE="submit/lawrencium/fermi_profile.tpl"
+export TBG_TPLFILE="submit/lawrencium-lbnl/fermi_profile.tpl"

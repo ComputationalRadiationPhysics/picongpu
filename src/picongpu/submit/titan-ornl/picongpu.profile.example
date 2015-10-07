@@ -1,5 +1,8 @@
 export proj=<yourProject>
-export TBG_mailAdress="mail@example.com"
+
+# send me a mails on job (b)egin, (e)nd, (a)bortion or (n)o mails
+export MY_MAIL="someone@example.com"
+export MY_MAILNOTIFY="n"
 
 # basic environment #################################################
 source /opt/modules/3.2.6.7/init/bash
@@ -70,3 +73,7 @@ export PATH=$PATH:$SPLASH_ROOT/bin
 export PYTHONPATH=$PYTHONPATH:$SPLASH_ROOT/bin
 
 alias getInteractive="qsub -I -A $proj -q debug -l nodes=1,walltime=30:00"
+
+# "tbg" default options #######################################################
+export TBG_SUBMIT="qsub"
+export TBG_TPLFILE="submit/titan-ornl/batch_profile.tpl"
