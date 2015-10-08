@@ -70,16 +70,22 @@ MAMC_HOST void finalizeHeap(                                                    
  */
 #define MALLOCMC_AVAILABLESLOTS()                                               \
 namespace mallocMC{                                                             \
-MAMC_HOST MAMC_ACCELERATOR                                                       \
-unsigned getAvailableSlots(                                                    \
-    size_t slotSize,                                                           \
-    mallocMCType &p = mallocMCGlobalObject){                                     \
-    return p.getAvailableSlots(slotSize);                                      \
-}                                                                              \
-MAMC_HOST MAMC_ACCELERATOR                                                       \
-bool providesAvailableSlots(){                                                 \
+MAMC_HOST                                                                       \
+unsigned getAvailableSlots(                                                     \
+    size_t slotSize,                                                            \
+    mallocMCType &p = mallocMCGlobalObject){                                    \
+    return p.getAvailableSlots(slotSize);                                       \
+}                                                                               \
+MAMC_ACCELERATOR                                                                \
+unsigned getAvailableSlotsAccelerator(                                          \
+    size_t slotSize,                                                            \
+    mallocMCType &p = mallocMCGlobalObject){                                    \
+    return p.getAvailableSlotsAccelerator(slotSize);                            \
+}                                                                               \
+MAMC_HOST MAMC_ACCELERATOR                                                      \
+bool providesAvailableSlots(){                                                  \
     return Traits<mallocMCType>::providesAvailableSlots;                        \
-}                                                                              \
+}                                                                               \
 } /* end namespace mallocMC */
 
 

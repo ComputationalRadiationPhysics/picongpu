@@ -130,70 +130,70 @@ namespace mallocMC
   typedef mallocMC::__PointerEquivalent<sizeof(char*)>::type PointerEquivalent;
 
 
-  MAMC_ACCELERATOR inline uint32_t laneid()
+  MAMC_ACCELERATOR inline boost::uint32_t laneid()
   {
-    uint32_t mylaneid;
+    boost::uint32_t mylaneid;
     asm("mov.u32 %0, %laneid;" : "=r" (mylaneid));
     return mylaneid;
   }
 
-  MAMC_ACCELERATOR inline uint32_t warpid()
+  MAMC_ACCELERATOR inline boost::uint32_t warpid()
   {
-    uint32_t mywarpid;
+    boost::uint32_t mywarpid;
     asm("mov.u32 %0, %warpid;" : "=r" (mywarpid));
     return mywarpid;
   }
-  MAMC_ACCELERATOR inline uint32_t nwarpid()
+  MAMC_ACCELERATOR inline boost::uint32_t nwarpid()
   {
-    uint32_t mynwarpid;
+    boost::uint32_t mynwarpid;
     asm("mov.u32 %0, %nwarpid;" : "=r" (mynwarpid));
     return mynwarpid;
   }
 
-  MAMC_ACCELERATOR inline uint32_t smid()
+  MAMC_ACCELERATOR inline boost::uint32_t smid()
   {
-    uint32_t mysmid;
+    boost::uint32_t mysmid;
     asm("mov.u32 %0, %smid;" : "=r" (mysmid));
     return mysmid;
   }
 
-  MAMC_ACCELERATOR inline uint32_t nsmid()
+  MAMC_ACCELERATOR inline boost::uint32_t nsmid()
   {
-    uint32_t mynsmid;
+    boost::uint32_t mynsmid;
     asm("mov.u32 %0, %nsmid;" : "=r" (mynsmid));
     return mynsmid;
   }
-  MAMC_ACCELERATOR inline uint32_t lanemask()
+  MAMC_ACCELERATOR inline boost::uint32_t lanemask()
   {
-    uint32_t lanemask;
+    boost::uint32_t lanemask;
     asm("mov.u32 %0, %lanemask_eq;" : "=r" (lanemask));
     return lanemask;
   }
 
-  MAMC_ACCELERATOR inline uint32_t lanemask_le()
+  MAMC_ACCELERATOR inline boost::uint32_t lanemask_le()
   {
-    uint32_t lanemask;
+    boost::uint32_t lanemask;
     asm("mov.u32 %0, %lanemask_le;" : "=r" (lanemask));
     return lanemask;
   }
 
-  MAMC_ACCELERATOR inline uint32_t lanemask_lt()
+  MAMC_ACCELERATOR inline boost::uint32_t lanemask_lt()
   {
-    uint32_t lanemask;
+    boost::uint32_t lanemask;
     asm("mov.u32 %0, %lanemask_lt;" : "=r" (lanemask));
     return lanemask;
   }
 
-  MAMC_ACCELERATOR inline uint32_t lanemask_ge()
+  MAMC_ACCELERATOR inline boost::uint32_t lanemask_ge()
   {
-    uint32_t lanemask;
+    boost::uint32_t lanemask;
     asm("mov.u32 %0, %lanemask_ge;" : "=r" (lanemask));
     return lanemask;
   }
 
-  MAMC_ACCELERATOR inline uint32_t lanemask_gt()
+  MAMC_ACCELERATOR inline boost::uint32_t lanemask_gt()
   {
-    uint32_t lanemask;
+    boost::uint32_t lanemask;
     asm("mov.u32 %0, %lanemask_gt;" : "=r" (lanemask));
     return lanemask;
   }
