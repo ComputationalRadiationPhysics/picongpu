@@ -102,7 +102,7 @@ struct Float2int_rn<double>
         /* Round towards nearest with x.5 rounded to +inf */
         result res = float2int_rd(value + 0.5);
         /* If we were close to x.5 then make sure res is even */
-        if( ::abs(0.5 - (res - value)) < std::numeric_limits<double>::epsilon() )
+        if( abs(0.5 - (res - value)) < std::numeric_limits<double>::epsilon() )
             return res & ~1; /* Cancel out last bit of integer which makes it even */
         else
             return res;

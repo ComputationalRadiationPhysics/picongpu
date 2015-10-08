@@ -105,7 +105,7 @@ struct Float2int_rn<float>
         float fracPart = std::modf(value, &intPart);
         result res = float2int_rd(fracPart + 0.5f) + static_cast<int>(intPart);
         /* If we were close to x.5 then make sure res is even */
-        if( ::abs(0.5f - (res - value)) < std::numeric_limits<float>::epsilon() )
+        if( abs(0.5f - (res - value)) < std::numeric_limits<float>::epsilon() )
             return res & ~1; /* Cancel out last bit of integer which makes it even */
         else
             return res;
