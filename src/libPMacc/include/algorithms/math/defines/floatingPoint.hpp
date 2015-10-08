@@ -86,7 +86,8 @@ HDINLINE typename Float2int_rd< T1>::result float2int_rd(T1 value)
 }
 
 /**
- * Rounds towards nearest (even) value returning an int
+ * Rounds towards the nearest value returning an int
+ * For the case of x.5 the even value is chosen from the 2 possible values
  * Note: Using values outside the range of an int is undefined
  * @return integer value
  */

@@ -99,16 +99,28 @@ struct Float2int_rn<float>
 #else
         if(value < 0.0f)
             return -(*this)(-value);
-        /* Round towards nearest with x.5 rounded to +inf but take care of
-         * floating point precision (e.g. 8388609.0 + 0.5 == 8388610.0) */
         float intPart;
         float fracPart = std::modf(value, &intPart);
-        result res = float2int_rd(fracPart + 0.5f) + static_cast<int>(intPart);
-        /* If we were close to x.5 then make sure res is even */
-        if( abs(0.5f - (res - value)) < std::numeric_limits<float>::epsilon() )
-            return res & ~1; /* Cancel out last bit of integer which makes it even */
-        else
-            return res;
+        result res = static_cast<int>(intPart);
+        /* epsilon in the following code is used to consider values
+         * "very close" to x.5 also as x.5
+         */
+        if(fracPart > 0.5f + std::numeric_limits<float>::epsilon())
+        {
+            /* >x.5 --> Round up */
+            res = res + 1;
+        }
+        else if(!(fracPart < 0.5f - std::numeric_limits<float>::epsilon()))
+        {
+            /* We are NOT >x.5 AND NOT <x.5 --> ==x.5 --> use x if x is even, else x+1
+             * The "&~1" cancels the last bit which results in an even value
+             * res is even -> res+1 is odd -> (res+1)&~1 = res
+             * res is odd -> res+1 is even -> (res+1)&~1 = res+1
+             */
+            res = (res + 1) & ~1;
+        }
+        /* else res = res (round down) */
+        return res;
 #endif
     }
 };
