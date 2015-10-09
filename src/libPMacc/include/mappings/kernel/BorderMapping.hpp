@@ -35,8 +35,8 @@ namespace PMacc
      * The area is basically the same as the surrounding guard region
      * but on the border. By "adding" directions you limit the area. Examples:
      * FRONT: Whole top area of the border (Size: ~x*y)
-     * FRONT + LEFT: Intersection of the front and left border (Size: ~y)
-     * FRONT + LEFT + TOP: Only the edge cells (Size: ~1)
+     * FRONT + LEFT: Only the edge at the intersection of the front and left border (Size: ~y)
+     * FRONT + LEFT + TOP: Only the corner super cell(s) (Size: ~1)
      *
      * @tparam T_BaseClass base class for mapping, should be MappingDescription
      */
