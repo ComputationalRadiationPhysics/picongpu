@@ -144,6 +144,7 @@ int main(int argc, char **argv)
         std::cerr << "Invalid image size (" << image.getwidth() << "," <<
                 image.getheight() << ") for data size" << std::endl;
         MPI_Finalize();
+        delete[] data;
         return -1;
     }
 

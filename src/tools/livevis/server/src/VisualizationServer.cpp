@@ -121,7 +121,7 @@ void VisualizationServer::startListening()
             std::cout << "=========================" << std::endl;
             std::cout << "Name              Status  URI" << std::endl;
             std::cout << "----------------  ------  ---------------------------" << std::endl;
-            for (std::vector<Visualization*>::const_iterator it = m_visualizations.begin(); it != m_visualizations.end(); it++)
+            for (std::vector<Visualization*>::const_iterator it = m_visualizations.begin(); it != m_visualizations.end(); ++it)
             {
                 /// get vis name
                 std::string name = (*it)->getName();
@@ -214,7 +214,7 @@ void * VisualizationServer::runInfoChannel(void * server)
             ::sendto(srv->m_info_socket, (void*)&count, sizeof(uint32_t), 0, (struct sockaddr*)&remote_addr, sizeof(remote_addr));
 
             /// send a list of the available visualizations
-            for (std::vector<Visualization*>::iterator it = srv->m_visualizations.begin(); it != srv->m_visualizations.end(); it++)
+            for (std::vector<Visualization*>::iterator it = srv->m_visualizations.begin(); it != srv->m_visualizations.end(); ++it)
             {
                 /// get vis name and send it
                 char name[128];
@@ -440,7 +440,7 @@ void VisualizationServer::stopListening()
     ::close(m_info_socket);
 
     /// kill all visualization threads
-    for (std::vector<Visualization*>::iterator it = m_visualizations.begin(); it != m_visualizations.end(); it++)
+    for (std::vector<Visualization*>::iterator it = m_visualizations.begin(); it != m_visualizations.end(); ++it)
     {
         delete *it;
     }
