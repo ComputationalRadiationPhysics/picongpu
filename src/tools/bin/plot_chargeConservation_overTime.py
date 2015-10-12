@@ -95,10 +95,7 @@ def deviation_charge_conservation(h5file):
 
     # load physics constants and simulation parameters
     EPS0 = f["/data/{}".format(timestep)].attrs["eps0"]
-    CELL_WIDTH = f["/data/{}".format(timestep)].attrs["cell_width"]
-    CELL_HEIGHT = f["/data/{}".format(timestep)].attrs["cell_height"]
-    CELL_DEPTH = f["/data/{}".format(timestep)].attrs["cell_depth"]
-    CELL_VOLUME = CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH
+    is2D = False
 
     # load electric field
     Ex = np.array(f["/data/{}/fields/FieldE/x".format(timestep)])
@@ -111,22 +108,48 @@ def deviation_charge_conservation(h5file):
     for field_name in f["/data/{}/fields/".format(timestep)].keys():
         if field_name[0:8] == "Density_":
             # load species density
-            species_Density = np.array(f["/data/{}/fields/".format(timestep) + field_name])
+            species_Density_pointer = f["/data/{}/fields/".format(timestep) + field_name]
+            species_Density = np.array(species_Density_pointer)
             # choose norm to be the maximal charge density of all species
             norm = np.max([norm, np.amax(np.abs(species_Density))])
             # add charge density to total charge density
             charge += species_Density
+            # We check the attribute _size of any/all density_[species]. libSplash always 
+            # keeps this as an array of length 3. It describes the size of the data in 
+            # each dimension. If we are in a 2D simulation, the size of the z or 
+            # [2]-component is 1, which is <2. The code changes the 2D3D flag if one 
+            # Density data set is 2D. 
+            if species_Density_pointer.attrs['_size'][2] < 2:
+                is2D = True
+
+    # load cell size and compute cell volume
+    CELL_WIDTH = f["/data/{}".format(timestep)].attrs["cell_width"]
+    CELL_HEIGHT = f["/data/{}".format(timestep)].attrs["cell_height"]
+    if not is2D:
+        CELL_DEPTH = f["/data/{}".format(timestep)].attrs["cell_depth"]
+        CELL_VOLUME = CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH
+    else:
+        CELL_VOLUME = CELL_WIDTH * CELL_HEIGHT
 
     # close hdf5 file
     f.close()
 
-    # compute divergence of electric field according to Yee scheme
-    div = ((Ex[1:, 1:, 1:] - Ex[1:, 1:, :-1])/CELL_WIDTH +
-           (Ey[1:, 1:, 1:] - Ey[1:, :-1, 1:])/CELL_HEIGHT +
-           (Ez[1:, 1:, 1:] - Ez[:-1, 1:, 1:])/CELL_DEPTH)
+    if is2D:
+        # compute divergence of electric field according to Yee scheme
+        div = ((Ex[1:, 1:] - Ex[1:, :-1])/CELL_WIDTH +
+               (Ey[1:, 1:] - Ey[:-1, 1:])/CELL_HEIGHT)
 
-    # compute difference between electric field divergence and charge density
-    diff = (div*EPS0  - charge[1:, 1:, 1:])
+        # compute difference between electric field divergence and charge density
+        diff = (div*EPS0  - charge[1:, 1:])
+
+    else:
+        # compute divergence of electric field according to Yee scheme
+        div = ((Ex[1:, 1:, 1:] - Ex[1:, 1:, :-1])/CELL_WIDTH +
+               (Ey[1:, 1:, 1:] - Ey[1:, :-1, 1:])/CELL_HEIGHT +
+               (Ez[1:, 1:, 1:] - Ez[:-1, 1:, 1:])/CELL_DEPTH)
+
+        # compute difference between electric field divergence and charge density
+        diff = (div*EPS0  - charge[1:, 1:, 1:])
 
     return float(timestep), np.amax(np.abs(diff)), np.mean(np.abs(diff)), np.std(diff), norm
 
