@@ -42,8 +42,8 @@ template<typename Type_, uint32_t communicationTag_ = 0, bool sizeOnDevice_ = fa
         struct TypeDescriptionElement
 {
     typedef Type_ Type;
-    static const uint32_t communicationTag = communicationTag_;
-    static const bool sizeOnDevice = sizeOnDevice_;
+    BOOST_STATIC_CONSTEXPR uint32_t communicationTag = communicationTag_;
+    BOOST_STATIC_CONSTEXPR bool sizeOnDevice = sizeOnDevice_;
 
 
 };
@@ -62,7 +62,7 @@ template<typename Type_, uint32_t communicationTag_ = 0, bool sizeOnDevice_ = fa
  *  struct Mem
  *  {
  *    enum Names{VALUE1,VALUE2};
- *    static const uint32_t Count=2;
+ *    BOOST_STATIC_CONSTEXPR uint32_t Count=2;
  *  };
  * @tparam BORDERTYPE optional type for border data in the buffers. TYPE is used by default.
  */

@@ -152,7 +152,7 @@ private:
     typedef T_FrameType FrameType;
 public:
     typedef typename HasIdentifier<FrameType, T_Key>::type type;
-    static const bool value = type::value;
+    BOOST_STATIC_CONSTEXPR bool value = type::value;
 };
 } //namespace traits
 

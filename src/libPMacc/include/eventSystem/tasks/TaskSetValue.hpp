@@ -114,7 +114,7 @@ class TaskSetValueBase : public StreamTask
 {
 public:
     typedef T_ValueType ValueType;
-    static const uint32_t dim = T_dim;
+    BOOST_STATIC_CONSTEXPR uint32_t dim = T_dim;
 
     TaskSetValueBase(DeviceBuffer<ValueType, dim>& dst, const ValueType& value) :
     StreamTask(),
@@ -158,7 +158,7 @@ class TaskSetValue<T_ValueType, T_dim, true> : public TaskSetValueBase<T_ValueTy
 {
 public:
     typedef T_ValueType ValueType;
-    static const uint32_t dim = T_dim;
+    BOOST_STATIC_CONSTEXPR uint32_t dim = T_dim;
 
     TaskSetValue(DeviceBuffer<ValueType, dim>& dst, const ValueType& value) :
     TaskSetValueBase<ValueType, dim>(dst, value)
@@ -196,7 +196,7 @@ class TaskSetValue<T_ValueType, T_dim, false> : public TaskSetValueBase<T_ValueT
 {
 public:
     typedef T_ValueType ValueType;
-    static const uint32_t dim = T_dim;
+    BOOST_STATIC_CONSTEXPR uint32_t dim = T_dim;
 
     TaskSetValue(DeviceBuffer<ValueType, dim>& dst, const ValueType& value) :
     TaskSetValueBase<ValueType, dim>(dst, value), valuePointer_host(NULL)

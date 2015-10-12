@@ -37,19 +37,19 @@ namespace limits
 template<>
 struct Max<int>
 {
-    static const int value=INT_MAX;
+    BOOST_STATIC_CONSTEXPR int value=INT_MAX;
 };
 
 template<>
 struct Max<uint32_t>
 {
-    static const uint32_t value=static_cast<uint32_t>(-1);
+    BOOST_STATIC_CONSTEXPR uint32_t value=static_cast<uint32_t>(-1);
 };
 
 template<>
 struct Max<uint64_t>
 {
-    static const uint64_t value=static_cast<uint64_t>(-1);
+    BOOST_STATIC_CONSTEXPR uint64_t value=static_cast<uint64_t>(-1);
 };
 
 } //namespace limits

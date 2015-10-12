@@ -88,7 +88,7 @@ struct AllCombinations<T_MplSeq, T_TmpResult, false >
     typedef T_MplSeq MplSeq;
     typedef T_TmpResult TmpResult;
 
-    static const uint32_t rangeVectorSize = bmpl::size<MplSeq>::value;
+    BOOST_STATIC_CONSTEXPR uint32_t rangeVectorSize = bmpl::size<MplSeq>::value;
     typedef typename bmpl::at<MplSeq, bmpl::integral_c<uint32_t, rangeVectorSize - 1 > > ::type LastElement;
     typedef typename MakeSeq<LastElement>::type LastElementAsSequence;
     typedef typename bmpl::pop_back<MplSeq>::type ShrinkedRangeVector;
@@ -146,7 +146,7 @@ struct AllCombinations
      * a sequence because all next algorithms can only work with sequences */
     typedef typename MakeSeq<T_MplSeq>::type MplSeq;
 
-    static const uint32_t rangeVectorSize = bmpl::size<MplSeq>::value;
+    BOOST_STATIC_CONSTEXPR uint32_t rangeVectorSize = bmpl::size<MplSeq>::value;
     typedef typename bmpl::at<MplSeq, bmpl::integral_c<uint32_t, rangeVectorSize - 1 > > ::type LastElement;
     typedef typename MakeSeq<LastElement>::type LastElementAsSequence;
 

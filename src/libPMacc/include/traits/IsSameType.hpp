@@ -35,13 +35,13 @@ namespace PMacc
     template< typename T1, typename T2 >
     struct IsSameType
     {
-        static const bool result = false;
+        BOOST_STATIC_CONSTEXPR bool result = false;
     };
 
     template< typename T1 >
     struct IsSameType< T1, T1 >
     {
-        static const bool result = true;
+        BOOST_STATIC_CONSTEXPR bool result = true;
     };
 
 } // namespace PMacc

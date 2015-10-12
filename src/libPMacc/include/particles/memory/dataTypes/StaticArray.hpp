@@ -35,7 +35,7 @@ template<typename T_Type, typename T_size>
 class StaticArray
 {
 public:
-    static const uint32_t size = T_size::value;
+    BOOST_STATIC_CONSTEXPR uint32_t size = T_size::value;
     typedef T_Type Type;
 private:
     Type data[size];

@@ -37,19 +37,19 @@ struct Expression;
 template<typename Child0, int _terminalTypeIdx>
 struct Expression<lambda::Expression<exprTypes::terminal, mpl::vector<Child0> >, _terminalTypeIdx>
 {
-    static const int nextTerminalTypeIdx = _terminalTypeIdx + 1;
+    BOOST_STATIC_CONSTEXPR int nextTerminalTypeIdx = _terminalTypeIdx + 1;
 };
 
 template<int I, int _terminalTypeIdx>
 struct Expression<lambda::Expression<exprTypes::terminal, mpl::vector<placeholder<I> > >, _terminalTypeIdx>
 {
-    static const int nextTerminalTypeIdx = _terminalTypeIdx;
+    BOOST_STATIC_CONSTEXPR int nextTerminalTypeIdx = _terminalTypeIdx;
 };
 
 template<int I, int _terminalTypeIdx>
 struct Expression<lambda::Expression<exprTypes::terminal, mpl::vector<mpl::int_<I> > >, _terminalTypeIdx>
 {
-    static const int nextTerminalTypeIdx = _terminalTypeIdx;
+    BOOST_STATIC_CONSTEXPR int nextTerminalTypeIdx = _terminalTypeIdx;
 };
 
 template<typename _Child0, typename _Child1, int _terminalTypeIdx>
@@ -57,7 +57,7 @@ struct Expression<lambda::Expression<exprTypes::assign, mpl::vector<_Child0, _Ch
 {
     typedef CT::Expression<_Child0, _terminalTypeIdx> Child0;
     typedef CT::Expression<_Child1, Child0::nextTerminalTypeIdx> Child1;
-    static const int nextTerminalTypeIdx = Child1::nextTerminalTypeIdx;
+    BOOST_STATIC_CONSTEXPR int nextTerminalTypeIdx = Child1::nextTerminalTypeIdx;
 };
 
 template<typename _Child0, typename _Child1, int _terminalTypeIdx>
@@ -65,7 +65,7 @@ struct Expression<lambda::Expression<exprTypes::plus, mpl::vector<_Child0, _Chil
 {
     typedef CT::Expression<_Child0, _terminalTypeIdx> Child0;
     typedef CT::Expression<_Child1, Child0::nextTerminalTypeIdx> Child1;
-    static const int nextTerminalTypeIdx = Child1::nextTerminalTypeIdx;
+    BOOST_STATIC_CONSTEXPR int nextTerminalTypeIdx = Child1::nextTerminalTypeIdx;
 };
 
 template<typename _Child0, typename _Child1, int _terminalTypeIdx>
@@ -73,7 +73,7 @@ struct Expression<lambda::Expression<exprTypes::minus, mpl::vector<_Child0, _Chi
 {
     typedef CT::Expression<_Child0, _terminalTypeIdx> Child0;
     typedef CT::Expression<_Child1, Child0::nextTerminalTypeIdx> Child1;
-    static const int nextTerminalTypeIdx = Child1::nextTerminalTypeIdx;
+    BOOST_STATIC_CONSTEXPR int nextTerminalTypeIdx = Child1::nextTerminalTypeIdx;
 };
 
 template<typename _Child0, typename _Child1, int _terminalTypeIdx>
@@ -81,7 +81,7 @@ struct Expression<lambda::Expression<exprTypes::multiply, mpl::vector<_Child0, _
 {
     typedef CT::Expression<_Child0, _terminalTypeIdx> Child0;
     typedef CT::Expression<_Child1, Child0::nextTerminalTypeIdx> Child1;
-    static const int nextTerminalTypeIdx = Child1::nextTerminalTypeIdx;
+    BOOST_STATIC_CONSTEXPR int nextTerminalTypeIdx = Child1::nextTerminalTypeIdx;
 };
 
 template<typename _Child0, typename _Child1, int _terminalTypeIdx>
@@ -89,7 +89,7 @@ struct Expression<lambda::Expression<exprTypes::divide, mpl::vector<_Child0, _Ch
 {
     typedef CT::Expression<_Child0, _terminalTypeIdx> Child0;
     typedef CT::Expression<_Child1, Child0::nextTerminalTypeIdx> Child1;
-    static const int nextTerminalTypeIdx = Child1::nextTerminalTypeIdx;
+    BOOST_STATIC_CONSTEXPR int nextTerminalTypeIdx = Child1::nextTerminalTypeIdx;
 };
 
 template<typename _Child0, typename _Child1, int _terminalTypeIdx>
@@ -97,7 +97,7 @@ struct Expression<lambda::Expression<exprTypes::comma, mpl::vector<_Child0, _Chi
 {
     typedef CT::Expression<_Child0, _terminalTypeIdx> Child0;
     typedef CT::Expression<_Child1, Child0::nextTerminalTypeIdx> Child1;
-    static const int nextTerminalTypeIdx = Child1::nextTerminalTypeIdx;
+    BOOST_STATIC_CONSTEXPR int nextTerminalTypeIdx = Child1::nextTerminalTypeIdx;
 };
 
 template<typename _Child0, typename _Child1, int _terminalTypeIdx>
@@ -105,7 +105,7 @@ struct Expression<lambda::Expression<exprTypes::call, mpl::vector<_Child0, _Chil
 {
     typedef CT::Expression<_Child0, _terminalTypeIdx> Child0;
     typedef CT::Expression<_Child1, Child0::nextTerminalTypeIdx> Child1;
-    static const int nextTerminalTypeIdx = Child1::nextTerminalTypeIdx;
+    BOOST_STATIC_CONSTEXPR int nextTerminalTypeIdx = Child1::nextTerminalTypeIdx;
 };
 
 template<typename _Child0, typename _Child1, typename _Child2, int _terminalTypeIdx>
@@ -114,7 +114,7 @@ struct Expression<lambda::Expression<exprTypes::call, mpl::vector<_Child0, _Chil
     typedef CT::Expression<_Child0, _terminalTypeIdx> Child0;
     typedef CT::Expression<_Child1, Child0::nextTerminalTypeIdx> Child1;
     typedef CT::Expression<_Child2, Child1::nextTerminalTypeIdx> Child2;
-    static const int nextTerminalTypeIdx = Child2::nextTerminalTypeIdx;
+    BOOST_STATIC_CONSTEXPR int nextTerminalTypeIdx = Child2::nextTerminalTypeIdx;
 };
 
 template<typename _Child0, typename _Child1, typename _Child2, typename _Child3, int _terminalTypeIdx>
@@ -124,7 +124,7 @@ struct Expression<lambda::Expression<exprTypes::call, mpl::vector<_Child0, _Chil
     typedef CT::Expression<_Child1, Child0::nextTerminalTypeIdx> Child1;
     typedef CT::Expression<_Child2, Child1::nextTerminalTypeIdx> Child2;
     typedef CT::Expression<_Child3, Child2::nextTerminalTypeIdx> Child3;
-    static const int nextTerminalTypeIdx = Child3::nextTerminalTypeIdx;
+    BOOST_STATIC_CONSTEXPR int nextTerminalTypeIdx = Child3::nextTerminalTypeIdx;
 };
 
 template<typename _Child0, typename _Child1, typename _Child2, typename _Child3, typename _Child4, int _terminalTypeIdx>
@@ -135,7 +135,7 @@ struct Expression<lambda::Expression<exprTypes::call, mpl::vector<_Child0, _Chil
     typedef CT::Expression<_Child2, Child1::nextTerminalTypeIdx> Child2;
     typedef CT::Expression<_Child3, Child2::nextTerminalTypeIdx> Child3;
     typedef CT::Expression<_Child4, Child3::nextTerminalTypeIdx> Child4;
-    static const int nextTerminalTypeIdx = Child4::nextTerminalTypeIdx;
+    BOOST_STATIC_CONSTEXPR int nextTerminalTypeIdx = Child4::nextTerminalTypeIdx;
 };
 
 template<typename _Child0, typename _Child1, typename _Child2, typename _Child3, typename _Child4, typename _Child5, int _terminalTypeIdx>
@@ -147,7 +147,7 @@ struct Expression<lambda::Expression<exprTypes::call, mpl::vector<_Child0, _Chil
     typedef CT::Expression<_Child3, Child2::nextTerminalTypeIdx> Child3;
     typedef CT::Expression<_Child4, Child3::nextTerminalTypeIdx> Child4;
     typedef CT::Expression<_Child5, Child4::nextTerminalTypeIdx> Child5;
-    static const int nextTerminalTypeIdx = Child5::nextTerminalTypeIdx;
+    BOOST_STATIC_CONSTEXPR int nextTerminalTypeIdx = Child5::nextTerminalTypeIdx;
 };
 
 template<typename _Child0, typename _Child1, int _terminalTypeIdx>
@@ -155,7 +155,7 @@ struct Expression<lambda::Expression<exprTypes::subscript, mpl::vector<_Child0, 
 {
     typedef CT::Expression<_Child0, _terminalTypeIdx> Child0;
     typedef CT::Expression<_Child1, Child0::nextTerminalTypeIdx> Child1;
-    static const int nextTerminalTypeIdx = Child1::nextTerminalTypeIdx;
+    BOOST_STATIC_CONSTEXPR int nextTerminalTypeIdx = Child1::nextTerminalTypeIdx;
 };
 
 } // CT

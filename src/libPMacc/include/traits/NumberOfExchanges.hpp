@@ -41,19 +41,19 @@ struct NumberOfExchanges;
 template<>
 struct NumberOfExchanges<DIM1>
 {
-    static const uint32_t value = LEFT + RIGHT;
+    BOOST_STATIC_CONSTEXPR uint32_t value = LEFT + RIGHT;
 };
 
 template<>
 struct NumberOfExchanges<DIM2>
 {
-    static const uint32_t value = TOP + BOTTOM;
+    BOOST_STATIC_CONSTEXPR uint32_t value = TOP + BOTTOM;
 };
 
 template<>
 struct NumberOfExchanges<DIM3>
 {
-    static const uint32_t value = BACK + FRONT;
+    BOOST_STATIC_CONSTEXPR uint32_t value = BACK + FRONT;
 };
 
 } //namespace traits

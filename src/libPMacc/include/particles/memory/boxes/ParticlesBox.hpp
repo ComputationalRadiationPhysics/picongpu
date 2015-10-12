@@ -52,7 +52,7 @@ public:
     typedef SuperCell<FrameType> SuperCellType;
     typedef DataBox<PitchedBox<SuperCell<FRAME>, DIM> > BaseType;
 
-    static const uint32_t Dim = DIM;
+    BOOST_STATIC_CONSTEXPR uint32_t Dim = DIM;
 
     /** default constructor
      *

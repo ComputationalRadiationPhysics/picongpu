@@ -40,7 +40,7 @@
  * @param default_lvl must be a integer which represent a defined log lvl
  */
 #define __DEFINE_VERBOSE_CLASS_DEFAULT_LVL(default_lvl) \
-    static const uint64_t log_level = default_lvl;      \
+    BOOST_STATIC_CONSTEXPR uint64_t log_level = default_lvl;      \
     }
 
 /** helper for define log lvl inside of DEFINE_VERBOSE_CLASS

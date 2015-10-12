@@ -48,7 +48,7 @@ public:
 
     typedef typename UnaryFunctor::result ValueType;
     typedef ValueType RefValueType;
-    static const uint32_t Dim = Base::Dim;
+    BOOST_STATIC_CONSTEXPR uint32_t Dim = Base::Dim;
 
     HDINLINE DataBoxUnaryTransform(const Base& base) : Base(base)
     {

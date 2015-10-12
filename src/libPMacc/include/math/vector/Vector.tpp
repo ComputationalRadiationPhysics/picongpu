@@ -46,7 +46,7 @@ struct GetComponentsType<PMacc::math::Vector<T_DataType, T_Dim>, false >
 template<typename T_DataType, int T_Dim>
 struct GetNComponents<PMacc::math::Vector<T_DataType, T_Dim>,false >
 {
-    static const uint32_t value = (uint32_t) PMacc::math::Vector<T_DataType, T_Dim>::dim;
+    BOOST_STATIC_CONSTEXPR uint32_t value = (uint32_t) PMacc::math::Vector<T_DataType, T_Dim>::dim;
 };
 
 } //namespace traits
