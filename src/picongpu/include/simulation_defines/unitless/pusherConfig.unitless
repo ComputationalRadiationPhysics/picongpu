@@ -31,6 +31,7 @@
 #include "particles/pusher/particlePusherVay.hpp"
 #include "particles/pusher/particlePusherFree.hpp"
 #include "particles/pusher/particlePusherPhoton.hpp"
+#include "particlePusherReducedLandauLifshitz.hpp"
 #if(SIMDIM==DIM3)
 #include "particles/pusher/particlePusherAxel.hpp"
 #endif
@@ -64,6 +65,11 @@ struct Boris
 struct Vay
 {
     typedef particlePusherVay::Push<Velocity, Gamma<> > type;
+};
+
+struct ReducedLandauLifshitz
+{
+    typedef particlePusherReducedLandauLifshitz::Push<Velocity, Gamma<> > type;
 };
 
 struct Free
