@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -32,10 +32,11 @@ cursor::BufferCursor<Type, T_dim>
 HostMemAllocator<Type, T_dim>::allocate(const math::Size_t<T_dim>& size)
 {
 #ifndef __CUDA_ARCH__
-    Type* dataPointer;
+    Type* dataPointer = NULL;
     math::Size_t<T_dim-1> pitch;
 
-    CUDA_CHECK_NO_EXCEP(cudaMallocHost((void**)&dataPointer, sizeof(Type) * size.productOfComponents()));
+    if(size.productOfComponents())
+        CUDA_CHECK_NO_EXCEP(cudaMallocHost((void**)&dataPointer, sizeof(Type) * size.productOfComponents()));
     if(dim == 2u)
     {
         pitch[0] = size[0] * sizeof(Type);
@@ -61,10 +62,11 @@ cursor::BufferCursor<Type, 1>
 HostMemAllocator<Type, 1>::allocate(const math::Size_t<1>& size)
 {
 #ifndef __CUDA_ARCH__
-    Type* dataPointer;
+    Type* dataPointer = NULL;
     math::Size_t<0> pitch;
 
-    CUDA_CHECK_NO_EXCEP(cudaMallocHost((void**)&dataPointer, sizeof(Type) * size.productOfComponents()));
+    if(size.productOfComponents())
+        CUDA_CHECK_NO_EXCEP(cudaMallocHost((void**)&dataPointer, sizeof(Type) * size.productOfComponents()));
 
     return cursor::BufferCursor<Type, 1>(dataPointer, pitch);
 #endif
