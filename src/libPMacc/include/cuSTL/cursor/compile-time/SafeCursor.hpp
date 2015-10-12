@@ -40,7 +40,7 @@ class SafeCursor : public Cursor
 {
 private:
     typedef SafeCursor<Cursor, LowerExtent, UpperExtent> This;
-    static const int dim = PMacc::cursor::traits::dim<Cursor>::value;
+    BOOST_STATIC_CONSTEXPR int dim = PMacc::cursor::traits::dim<Cursor>::value;
     math::Int<dim> offset;
 public:
     HDINLINE SafeCursor(const Cursor& cursor)

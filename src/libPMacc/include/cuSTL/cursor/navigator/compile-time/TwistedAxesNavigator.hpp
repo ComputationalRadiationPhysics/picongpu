@@ -37,7 +37,7 @@ struct TwistedAxesNavigator;
 template<typename Axes>
 struct TwistedAxesNavigator<Axes, 2>
 {
-    static const int dim = 2;
+    BOOST_STATIC_CONSTEXPR int dim = 2;
 
     template<typename TCursor>
     HDINLINE
@@ -53,7 +53,7 @@ struct TwistedAxesNavigator<Axes, 2>
 template<typename Axes>
 struct TwistedAxesNavigator<Axes, 3>
 {
-    static const int dim = 3;
+    BOOST_STATIC_CONSTEXPR int dim = 3;
 
     template<typename TCursor>
     HDINLINE

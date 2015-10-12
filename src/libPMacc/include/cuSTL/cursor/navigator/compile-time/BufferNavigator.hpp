@@ -38,7 +38,7 @@ struct BufferNavigator;
 template<typename Pitch>
 struct BufferNavigator<Pitch, 1>
 {
-    static const int dim = 1;
+    BOOST_STATIC_CONSTEXPR int dim = 1;
 
     template<typename Data>
     HDINLINE
@@ -53,7 +53,7 @@ struct BufferNavigator<Pitch, 1>
 template<typename Pitch>
 struct BufferNavigator<Pitch, 2>
 {
-    static const int dim = 2;
+    BOOST_STATIC_CONSTEXPR int dim = 2;
 
     template<typename Data>
     HDINLINE
@@ -69,7 +69,7 @@ struct BufferNavigator<Pitch, 2>
 template<typename Pitch>
 struct BufferNavigator<Pitch, 3>
 {
-    static const int dim = 3;
+    BOOST_STATIC_CONSTEXPR int dim = 3;
 
     template<typename Data>
     HDINLINE

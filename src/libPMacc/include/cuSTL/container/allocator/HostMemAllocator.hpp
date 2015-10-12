@@ -36,7 +36,7 @@ template<typename Type, int T_dim>
 struct HostMemAllocator
 {
     typedef Type type;
-    static const int dim = T_dim;
+    BOOST_STATIC_CONSTEXPR int dim = T_dim;
     typedef cursor::BufferCursor<type, T_dim> Cursor;
     typedef allocator::tag::host tag;
 
@@ -51,7 +51,7 @@ template<typename Type>
 struct HostMemAllocator<Type, 1>
 {
     typedef Type type;
-    static const int dim = 1;
+    BOOST_STATIC_CONSTEXPR int dim = 1;
     typedef cursor::BufferCursor<type, 1> Cursor;
     typedef allocator::tag::host tag;
 

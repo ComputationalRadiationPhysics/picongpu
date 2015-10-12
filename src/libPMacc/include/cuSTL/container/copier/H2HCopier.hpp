@@ -33,7 +33,7 @@ namespace copier
 template<int T_dim>
 struct H2HCopier
 {
-    static const int dim = T_dim;
+    BOOST_STATIC_CONSTEXPR int dim = T_dim;
     template<typename Type>
     static void copy(Type* dest, const math::Size_t<dim-1>& pitchDest,
          Type* source, const math::Size_t<dim-1>& pitchSource,

@@ -39,7 +39,7 @@ struct SharedMemAllocator<Type, Size, 1, uid>
 {
     typedef Type type;
     typedef math::CT::UInt32<> Pitch;
-    static const int dim = 1;
+    BOOST_STATIC_CONSTEXPR int dim = 1;
     typedef cursor::CT::BufferCursor<type, math::CT::UInt32<> > Cursor;
 
     __device__ static Cursor allocate()
@@ -54,7 +54,7 @@ struct SharedMemAllocator<Type, Size, 2, uid>
 {
     typedef Type type;
     typedef math::CT::UInt32<sizeof(Type) * Size::x::value> Pitch;
-    static const int dim = 2;
+    BOOST_STATIC_CONSTEXPR int dim = 2;
     typedef cursor::CT::BufferCursor<type, Pitch> Cursor;
 
     __device__ static Cursor allocate()
@@ -70,7 +70,7 @@ struct SharedMemAllocator<Type, Size, 3, uid>
     typedef Type type;
     typedef math::CT::UInt32<sizeof(Type) * Size::x::value,
                              sizeof(Type) * Size::x::value * Size::y::value> Pitch;
-    static const int dim = 3;
+    BOOST_STATIC_CONSTEXPR int dim = 3;
     typedef cursor::CT::BufferCursor<type, Pitch> Cursor;
 
     __device__ static Cursor allocate()

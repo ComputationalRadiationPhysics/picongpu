@@ -35,7 +35,7 @@ template<int T_dim>
 struct MultiIndexNavigator
 {
     typedef tag::MultiIndexNavigator tag;
-    static const int dim = T_dim;
+    BOOST_STATIC_CONSTEXPR int dim = T_dim;
 
     template<typename MultiIndex>
     HDINLINE
@@ -51,7 +51,7 @@ namespace traits
 template<int T_dim>
 struct dim<MultiIndexNavigator<T_dim> >
 {
-    static const int value = T_dim;
+    BOOST_STATIC_CONSTEXPR int value = T_dim;
 };
 
 }
