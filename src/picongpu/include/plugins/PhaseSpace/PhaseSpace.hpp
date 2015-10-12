@@ -74,8 +74,8 @@ namespace picongpu
             bmpl::int_<0>,
             bmpl::max<bmpl::_1, bmpl::_2>
             >::type SuperCellsLongestEdge;
-        static const uint32_t maxShared = 32*1024; /* 32 KB */
-        static const uint32_t num_pbins = maxShared/(sizeof(float_PS)*SuperCellsLongestEdge::value);
+        BOOST_STATIC_CONSTEXPR uint32_t maxShared = 32*1024; /* 32 KB */
+        BOOST_STATIC_CONSTEXPR uint32_t num_pbins = maxShared/(sizeof(float_PS)*SuperCellsLongestEdge::value);
 
         container::DeviceBuffer<float_PS, 2>* dBuffer;
 

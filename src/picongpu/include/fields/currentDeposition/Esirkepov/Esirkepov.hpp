@@ -39,10 +39,10 @@ template<typename T_ParticleShape>
 struct Esirkepov<T_ParticleShape, DIM3>
 {
     typedef typename T_ParticleShape::ChargeAssignment ParticleAssign;
-    static const int supp = ParticleAssign::support;
+    BOOST_STATIC_CONSTEXPR int supp = ParticleAssign::support;
 
-    static const int currentLowerMargin = supp / 2 + 1 - (supp + 1) % 2;
-    static const int currentUpperMargin = (supp + 1) / 2 + 1;
+    BOOST_STATIC_CONSTEXPR int currentLowerMargin = supp / 2 + 1 - (supp + 1) % 2;
+    BOOST_STATIC_CONSTEXPR int currentUpperMargin = (supp + 1) / 2 + 1;
     typedef PMacc::math::CT::Int<currentLowerMargin, currentLowerMargin, currentLowerMargin> LowerMargin;
     typedef PMacc::math::CT::Int<currentUpperMargin, currentUpperMargin, currentUpperMargin> UpperMargin;
 
@@ -54,8 +54,8 @@ struct Esirkepov<T_ParticleShape, DIM3>
      * For the case were previous position is greater than current position we correct
      * begin and end on runtime and add +1 to begin and end.
      */
-    static const int begin = -currentLowerMargin;
-    static const int end = begin + supp + 1;
+    BOOST_STATIC_CONSTEXPR int begin = -currentLowerMargin;
+    BOOST_STATIC_CONSTEXPR int end = begin + supp + 1;
 
     float_X charge;
 

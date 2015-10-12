@@ -33,12 +33,12 @@ namespace particleToGrid
 
 struct ComputeGridValueOptions
 {
-    static const uint32_t calcDensity = 0u;
-    static const uint32_t calcEnergy = 1u;
-    static const uint32_t calcEnergyDensity = 2u;
-    static const uint32_t calcCounter = 3u;
+    BOOST_STATIC_CONSTEXPR uint32_t calcDensity = 0u;
+    BOOST_STATIC_CONSTEXPR uint32_t calcEnergy = 1u;
+    BOOST_STATIC_CONSTEXPR uint32_t calcEnergyDensity = 2u;
+    BOOST_STATIC_CONSTEXPR uint32_t calcCounter = 3u;
 #if(ENABLE_RADIATION == 1)
-    static const uint32_t calcLarmorEnergy = 4u;
+    BOOST_STATIC_CONSTEXPR uint32_t calcLarmorEnergy = 4u;
 #endif
 };
 
@@ -48,10 +48,10 @@ class ComputeGridValuePerFrame
 public:
 
     typedef typename T_ParticleShape::ChargeAssignment AssignmentFunction;
-    static const int supp = AssignmentFunction::support;
+    BOOST_STATIC_CONSTEXPR int supp = AssignmentFunction::support;
 
-    static const int lowerMargin = supp / 2;
-    static const int upperMargin = (supp + 1) / 2;
+    BOOST_STATIC_CONSTEXPR int lowerMargin = supp / 2;
+    BOOST_STATIC_CONSTEXPR int upperMargin = (supp + 1) / 2;
     typedef typename PMacc::math::CT::make_Int<simDim, lowerMargin>::type LowerMargin;
     typedef typename PMacc::math::CT::make_Int<simDim, upperMargin>::type UpperMargin;
 

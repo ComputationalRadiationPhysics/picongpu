@@ -39,7 +39,7 @@ struct TSC
      * width of the support of this form_factor. This is the area where the function
      * is non-zero.
      */
-    static const int support = 3;
+    BOOST_STATIC_CONSTEXPR int support = 3;
 
 
     HDINLINE static float_X ff_1st_radius(const float_X x)

@@ -52,7 +52,7 @@ namespace picongpu
     public:
         typedef float3_X ValueType;
         typedef promoteType<float_64, ValueType>::type UnitValueType;
-        static const int numComponents = ValueType::dim;
+        BOOST_STATIC_CONSTEXPR int numComponents = ValueType::dim;
 
         typedef MappingDesc::SuperCellSize SuperCellSize;
 

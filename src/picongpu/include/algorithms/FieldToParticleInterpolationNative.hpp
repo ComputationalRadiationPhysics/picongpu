@@ -44,10 +44,10 @@ template<class T_Shape, class InterpolationMethod>
 struct FieldToParticleInterpolationNative
 {
     typedef typename T_Shape::ChargeAssignment AssignmentFunction;
-    static const int supp = AssignmentFunction::support;
+    BOOST_STATIC_CONSTEXPR int supp = AssignmentFunction::support;
 
-    static const int lowerMargin = supp / 2;
-    static const int upperMargin = (supp + 1) / 2;
+    BOOST_STATIC_CONSTEXPR int lowerMargin = supp / 2;
+    BOOST_STATIC_CONSTEXPR int upperMargin = (supp + 1) / 2;
     typedef typename PMacc::math::CT::make_Int<simDim,lowerMargin>::type LowerMargin;
     typedef typename PMacc::math::CT::make_Int<simDim,upperMargin>::type UpperMargin;
 

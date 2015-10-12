@@ -39,7 +39,7 @@ namespace shapes
              * width of the support of this form_factor. This is the area where the function
              * is non-zero.
              */
-            static const int support = 1;
+            BOOST_STATIC_CONSTEXPR int support = 1;
         };
 
     } // namespace shared_NGP

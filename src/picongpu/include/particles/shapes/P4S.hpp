@@ -34,7 +34,7 @@ namespace shared_P4S
 
 struct P4S
 {
-    static const int support = 5;
+    BOOST_STATIC_CONSTEXPR int support = 5;
 
     HDINLINE static float_X ff_1st_radius(const float_X x)
     {
