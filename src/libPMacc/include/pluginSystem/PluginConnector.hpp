@@ -43,6 +43,7 @@ namespace PMacc
 
         /** Register a plugin for loading/unloading and notifications
          *
+         * Plugins are loaded in the order they are registered and unloaded in reverse order.
          * To trigger plugin notifications, call \see setNotificationPeriod after
          * registration.
          *
@@ -64,8 +65,8 @@ namespace PMacc
         void loadPlugins()
         {
             // load all plugins
-            for (std::list<IPlugin*>::reverse_iterator iter = plugins.rbegin();
-                 iter != plugins.rend(); ++iter)
+            for (std::list<IPlugin*>::iterator iter = plugins.begin();
+                 iter != plugins.end(); ++iter)
             {
                 if (!(*iter)->isLoaded())
                 {
