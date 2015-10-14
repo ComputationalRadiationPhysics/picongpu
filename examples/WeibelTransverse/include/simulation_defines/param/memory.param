@@ -32,7 +32,7 @@ namespace picongpu
  *   - reduces
  *   - ...
  */
-BOOST_CONSTEXPR_OR_CONST size_t totalFreeGpuMemory = 400 *1024*1024;
+BOOST_CONSTEXPR_OR_CONST size_t reservedGpuMemorySize = 400 *1024*1024;
 
 /* short namespace*/
 namespace mCT=PMacc::math::CT;
