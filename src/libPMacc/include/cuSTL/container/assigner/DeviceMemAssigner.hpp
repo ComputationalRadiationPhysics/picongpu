@@ -42,7 +42,7 @@ namespace assigner
 template<int T_dim>
 struct DeviceMemAssigner
 {
-    static const int dim = T_dim;
+    BOOST_STATIC_CONSTEXPR int dim = T_dim;
 
     template<typename Type>
     static void assign(

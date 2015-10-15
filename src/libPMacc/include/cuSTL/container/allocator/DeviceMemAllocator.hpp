@@ -35,7 +35,7 @@ template<typename Type, int T_dim>
 struct DeviceMemAllocator
 {
     typedef Type type;
-    static const int dim = T_dim;
+    BOOST_STATIC_CONSTEXPR int dim = T_dim;
     typedef cursor::BufferCursor<type, dim> Cursor;
     typedef allocator::tag::device tag;
 
@@ -50,7 +50,7 @@ template<typename Type>
 struct DeviceMemAllocator<Type, 1>
 {
     typedef Type type;
-    static const int dim = 1;
+    BOOST_STATIC_CONSTEXPR int dim = 1;
     typedef cursor::BufferCursor<type, 1> Cursor;
     typedef allocator::tag::device tag;
 

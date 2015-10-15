@@ -35,7 +35,7 @@ struct HostMemAssigner;
 template<>
 struct HostMemAssigner<1>
 {
-    static const int dim = 1;
+    BOOST_STATIC_CONSTEXPR int dim = 1;
     template<typename Type>
     static void assign(Type* data, const math::Size_t<dim-1>& pitch, const Type& value,
                        const math::Size_t<dim>& size)
@@ -47,7 +47,7 @@ struct HostMemAssigner<1>
 template<>
 struct HostMemAssigner<2u>
 {
-    static const int dim = 2u;
+    BOOST_STATIC_CONSTEXPR int dim = 2u;
     template<typename Type>
     static void assign(Type* data, const math::Size_t<dim-1>& pitch, const Type& value,
                        const math::Size_t<dim>& size)
@@ -64,7 +64,7 @@ struct HostMemAssigner<2u>
 template<>
 struct HostMemAssigner<3>
 {
-    static const int dim = 3;
+    BOOST_STATIC_CONSTEXPR int dim = 3;
     template<typename Type>
     static void assign(Type* data, const math::Size_t<dim-1>& pitch, const Type& value,
                        const math::Size_t<dim>& size)

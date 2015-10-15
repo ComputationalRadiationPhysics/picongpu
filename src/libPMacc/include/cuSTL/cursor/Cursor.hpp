@@ -166,7 +166,7 @@ namespace traits
 template<typename _Accessor, typename _Navigator, typename _Marker>
 struct dim< PMacc::cursor::Cursor<_Accessor, _Navigator, _Marker> >
 {
-    static const int value = PMacc::cursor::traits::dim<typename Cursor<_Accessor, _Navigator, _Marker>::Navigator >::value;
+    BOOST_STATIC_CONSTEXPR int value = PMacc::cursor::traits::dim<typename Cursor<_Accessor, _Navigator, _Marker>::Navigator >::value;
 };
 
 } // traits

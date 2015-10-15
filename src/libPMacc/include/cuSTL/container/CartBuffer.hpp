@@ -62,7 +62,7 @@ class CartBuffer
 public:
     typedef Type type;
     typedef CartBuffer<Type, T_dim, Allocator, Copier, Assigner> This;
-    static const int dim = T_dim;
+    BOOST_STATIC_CONSTEXPR int dim = T_dim;
     typedef cursor::BufferCursor<Type, T_dim> Cursor;
     typedef typename Allocator::tag memoryTag;
 public:

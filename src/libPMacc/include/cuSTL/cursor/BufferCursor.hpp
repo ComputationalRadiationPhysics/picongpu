@@ -67,7 +67,7 @@ namespace traits
 template<typename Type, int T_dim>
 struct dim<BufferCursor<Type, T_dim> >
 {
-    static const int value = PMacc::cursor::traits::dim<
+    BOOST_STATIC_CONSTEXPR int value = PMacc::cursor::traits::dim<
         Cursor<PointerAccessor<Type>, BufferNavigator<T_dim>, Type*> >::value;
 };
 

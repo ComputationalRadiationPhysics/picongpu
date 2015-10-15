@@ -36,7 +36,7 @@ class CartNavigator
 {
 public:
     typedef tag::CartNavigator tag;
-    static const int dim = T_dim;
+    BOOST_STATIC_CONSTEXPR int dim = T_dim;
 private:
     math::Int<dim> factor;
 public:
@@ -62,7 +62,7 @@ namespace traits
 template<int T_dim>
 struct dim<CartNavigator<T_dim> >
 {
-    static const int value = T_dim;
+    BOOST_STATIC_CONSTEXPR int value = T_dim;
 };
 
 } // traits

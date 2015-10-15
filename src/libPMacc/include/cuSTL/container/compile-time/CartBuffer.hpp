@@ -47,7 +47,7 @@ public:
     typedef _Size Size;
     typedef typename Allocator::Pitch Pitch;
     typedef cursor::CT::BufferCursor<Type, Pitch> Cursor;
-    static const int dim = Size::dim;
+    BOOST_STATIC_CONSTEXPR int dim = Size::dim;
     typedef zone::CT::SphericZone<_Size, typename math::CT::make_Int<dim, 0>::type> Zone;
 private:
     Type* dataPointer;
