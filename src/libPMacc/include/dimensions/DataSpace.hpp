@@ -42,7 +42,7 @@ namespace PMacc
     {
     public:
 
-        static const int Dim=DIM;
+        BOOST_STATIC_CONSTEXPR int Dim=DIM;
         typedef math::Vector<int,DIM> BaseType;
 
         /**

@@ -46,7 +46,7 @@
  *     e.g. (0,(_,myName,_))
  */
 
-/** create static const member vector that needs no memory inside of the struct
+/** create BOOST_STATIC_CONSTEXPR member vector that needs no memory inside of the struct
  *
  *   @param type type of an element (types containing a comma are not allowed (e.g. `Vector<type,dim>`)
  *               use `typedef Vector<type,dim> NewType;` to avoid this behavior
@@ -54,7 +54,7 @@
  *   @param ... enumeration of init values
  *   \example `PMACC_C_VECTOR(float2_64, center_SI, 1.134e-5, 1.134e-5)`
  *            is the compile time equivalent of
- *            `static const float2_64 center_SI = float2_64(1.134e-5, 1.134e-5);
+ *            `BOOST_STATIC_CONSTEXPR float2_64 center_SI = float2_64(1.134e-5, 1.134e-5);
  */
 #define PMACC_C_VECTOR(type,name,...) (0,(typename PMacc::traits::GetValueType<type>::type, \
                                           name,                                             \
@@ -62,7 +62,7 @@
                                           __VA_ARGS__))
 
 
-/** create static const member vector that needs no memory inside of the struct
+/** create BOOST_STATIC_CONSTEXPR member vector that needs no memory inside of the struct
  *
  *   @param type type of an element
  *   @param dim number of vector components
@@ -70,18 +70,18 @@
  *   @param ... enumeration of init values (number of components must be greater or equal than dim)
  *   \example `PMACC_C_VECTOR_DIM(float_64, simDim, center_SI, 1.134e-5, 1.134e-5, 1.134e-5)`
  *            is the compile time equivalent of
- *            `static const Vector<float_64,simDim> center_SI = Vector<float_64,simDim>(1.134e-5, 1.134e-5, 1.134e-5);`
+ *            `BOOST_STATIC_CONSTEXPR Vector<float_64,simDim> center_SI = Vector<float_64,simDim>(1.134e-5, 1.134e-5, 1.134e-5);`
  */
 #define PMACC_C_VECTOR_DIM(type,dim,name,...) (0,(type,name,dim,__VA_ARGS__))
 
-/** create static const member
+/** create BOOST_STATIC_CONSTEXPR member
  *
  *   @param type type of the member
  *   @param name member variable name
  *   @param value init value
  *   \example `PMACC_C_VALUE(float_64, power_SI, 2.0)`
  *            is the compile time equivalent of
- *            `static const float_64 power_SI = float_64(2.0);`
+ *            `BOOST_STATIC_CONSTEXPR float_64 power_SI = float_64(2.0);`
  */
 #define PMACC_C_VALUE(type,name,value) (1,(type,name,value))
 
@@ -127,13 +127,13 @@
          )                                                                     \
         )
 
-/** create static const character string
+/** create BOOST_STATIC_CONSTEXPR character string
  *
  *   @param name member variable name
  *   @param char_string character string
  *   \example `PMACC_C_STRING(filename, "fooFile.txt")`
  *            is the compile time equivalent of
- *            `static const char* filename = (char*)"fooFile.tyt";`
+ *            `BOOST_STATIC_CONSTEXPR char* filename = (char*)"fooFile.tyt";`
  */
 #define PMACC_C_STRING(name,initValue) (3,(_,name,initValue))
 

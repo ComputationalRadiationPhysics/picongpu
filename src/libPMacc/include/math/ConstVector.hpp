@@ -65,9 +65,9 @@ namespace PMACC_JOIN(pmacc_static_const_storage,id)                            \
     template<typename T_Type, int T_Dim>                                       \
     struct ConstArrayStorage                                                   \
     {                                                                          \
-        static const bool isConst = true;                                      \
+        BOOST_STATIC_CONSTEXPR bool isConst = true;                                      \
         typedef T_Type type;                                                   \
-        static const int dim=T_Dim;                                            \
+        BOOST_STATIC_CONSTEXPR int dim=T_Dim;                                            \
                                                                                \
         HDINLINE const type& operator[](const int idx) const                   \
         {                                                                      \

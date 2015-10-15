@@ -38,7 +38,7 @@ private:
     typedef typename BlockArea_::SuperCellSize SuperCellSize;
     typedef typename BlockArea_::FullSuperCellSize FullSuperCellSize;
     typedef typename BlockArea_::OffsetOrigin OffsetOrigin;
-    static const int maxThreads=MaxThreads_;
+    BOOST_STATIC_CONSTEXPR int maxThreads=MaxThreads_;
 
     enum
     {

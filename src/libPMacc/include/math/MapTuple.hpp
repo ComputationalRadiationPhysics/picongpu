@@ -110,7 +110,7 @@ Map_, typename mpl::deref<typename mpl::begin<Map_>::type>::type::first>::type, 
 {
 public:
     typedef Map_ Map;
-    static const int dim = mpl::size<Map>::type::value;
+    BOOST_STATIC_CONSTEXPR int dim = mpl::size<Map>::type::value;
 private:
    
     typedef MapTuple<typename mpl::erase_key<
