@@ -229,7 +229,6 @@ public:
                 assert((int) ABSORBER_CELLS[i][1] <= (int) cellDescription->getGridLayout().getDataSpaceWithoutGuarding()[i]);
             }
         }
-
     }
 
     virtual void pluginUnload()
@@ -282,18 +281,25 @@ public:
 
         size_t freeGpuMem(0);
         Environment<>::get().EnvMemoryInfo().getMemoryInfo(&freeGpuMem);
-        freeGpuMem -= totalFreeGpuMemory;
+        if(freeGpuMem < totalFreeGpuMemory)
+        {
+            PMacc::log< picLog::MEMORY > ("%1% MiB free memory < %2% MiB required reserved memory")
+                % (freeGpuMem / 1024 / 1024) % (totalFreeGpuMemory / 1024 / 1024) ;
+            throw std::runtime_error("Cannot reserve enough memory");
+        }
+
+        size_t heapSize = freeGpuMem - totalFreeGpuMemory;
 
         if( Environment<>::get().EnvMemoryInfo().isSharedMemoryPool() )
         {
-            freeGpuMem /= 2;
+            heapSize /= 2;
             log<picLog::MEMORY > ("Shared RAM between GPU and host detected - using only half of the 'device' memory.");
         }
         else
             log<picLog::MEMORY > ("RAM is NOT shared between GPU and host.");
 
         // initializing the heap for particles
-        mallocMC::initHeap(freeGpuMem);
+        mallocMC::initHeap(heapSize);
         this->mallocMCBuffer = new MallocMCBuffer();
 
         ForEach<VectorAllSpecies, particles::CallCreateParticleBuffer<bmpl::_1>, MakeIdentifier<bmpl::_1> > createParticleBuffer;
