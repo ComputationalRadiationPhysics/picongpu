@@ -42,7 +42,7 @@ namespace detail
     template<uint32_t T_simDim, uint32_t T_plane>
     struct LinearInterpolateComponentPlaneUpper
     {
-        static const uint32_t dim = T_simDim;
+        BOOST_STATIC_CONSTEXPR uint32_t dim = T_simDim;
 
         /* UpperMargin is actually 0 in direction of T_plane */
         typedef typename PMacc::math::CT::make_Int<dim, 0>::type LowerMargin;
@@ -81,8 +81,8 @@ namespace detail
     template<uint32_t T_simDim, uint32_t T_direction, bool isShiftAble=(T_direction<T_simDim) >
     struct ShiftMeIfYouCan
     {
-        static const uint32_t dim = T_simDim;
-        static const uint32_t dir = T_direction;
+        BOOST_STATIC_CONSTEXPR uint32_t dim = T_simDim;
+        BOOST_STATIC_CONSTEXPR uint32_t dir = T_direction;
 
         template<class T_DataBox >
         HDINLINE T_DataBox operator()(const T_DataBox& dataBox) const
@@ -131,7 +131,7 @@ namespace detail
 template<uint32_t T_simDim>
 struct NoneDS
 {
-    static const uint32_t dim = T_simDim;
+    BOOST_STATIC_CONSTEXPR uint32_t dim = T_simDim;
 
     typedef typename PMacc::math::CT::make_Int<dim, 0>::type LowerMargin;
     typedef typename PMacc::math::CT::make_Int<dim, 1>::type UpperMargin;

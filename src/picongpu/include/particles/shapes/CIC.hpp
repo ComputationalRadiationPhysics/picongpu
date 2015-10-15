@@ -37,7 +37,7 @@ struct CIC
      * width of the support of this form_factor. This is the area where the function
      * is non-zero.
      */
-    static const int support = 2;
+    BOOST_STATIC_CONSTEXPR int support = 2;
 };
 
 }//namespace shared_CIC

@@ -48,17 +48,17 @@ template<typename T_ParticleShape>
 struct EsirkepovNative
 {
     typedef typename T_ParticleShape::ChargeAssignment ParticleAssign;
-    static const int supp = ParticleAssign::support;
+    BOOST_STATIC_CONSTEXPR int supp = ParticleAssign::support;
 
-    static const int currentLowerMargin = supp / 2 + 1;
-    static const int currentUpperMargin = (supp + 1) / 2 + 1;
+    BOOST_STATIC_CONSTEXPR int currentLowerMargin = supp / 2 + 1;
+    BOOST_STATIC_CONSTEXPR int currentUpperMargin = (supp + 1) / 2 + 1;
     typedef PMacc::math::CT::Int<currentLowerMargin, currentLowerMargin, currentLowerMargin> LowerMargin;
     typedef PMacc::math::CT::Int<currentUpperMargin, currentUpperMargin, currentUpperMargin> UpperMargin;
 
 
     /* iterate over all grid points */
-    static const int begin = -currentLowerMargin;
-    static const int end = currentUpperMargin + 1;
+    BOOST_STATIC_CONSTEXPR int begin = -currentLowerMargin;
+    BOOST_STATIC_CONSTEXPR int end = currentUpperMargin + 1;
 
     float_X charge;
 

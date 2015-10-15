@@ -32,7 +32,7 @@ class Amplitude
 {
 public:
   /* number of scalar components in Amplitude = 3 (3D) * 2 (complex) = 6 */
-  static const uint32_t numComponents = uint32_t(3) * uint32_t(sizeof(complex_64) / sizeof(typename complex_64::type));
+  BOOST_STATIC_CONSTEXPR uint32_t numComponents = uint32_t(3) * uint32_t(sizeof(complex_64) / sizeof(typename complex_64::type));
 
   /** constructor
    *

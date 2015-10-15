@@ -38,7 +38,7 @@ namespace picongpu
 template<uint32_t T_Dim>
 struct LinearInterpolateWithUpper
 {
-    static const uint32_t dim = T_Dim;
+    BOOST_STATIC_CONSTEXPR uint32_t dim = T_Dim;
 
     typedef typename PMacc::math::CT::make_Int<dim, 0>::type OffsetOrigin;
     typedef typename PMacc::math::CT::make_Int<dim, 1>::type OffsetEnd;
@@ -51,7 +51,7 @@ struct LinearInterpolateWithUpper
     template<uint32_t T_direction, bool T_isLesserThanDim = (T_direction < dim)>
     struct GetInterpolatedValue
     {
-        static const uint32_t direction = T_direction;
+        BOOST_STATIC_CONSTEXPR uint32_t direction = T_direction;
 
         /** get interpolated value
          * @return interpolated value

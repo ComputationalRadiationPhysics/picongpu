@@ -39,7 +39,7 @@ using namespace PMacc;
 template<uint32_t T_Dim>
 struct DifferenceToLower
 {
-    static const uint32_t dim = T_Dim;
+    BOOST_STATIC_CONSTEXPR uint32_t dim = T_Dim;
 
 
     typedef typename PMacc::math::CT::make_Int<dim, 1>::type OffsetOrigin;
@@ -53,7 +53,7 @@ struct DifferenceToLower
     template<uint32_t T_direction, bool T_isLesserThanDim = (T_direction < dim)>
     struct GetDifference
     {
-        static const uint32_t direction = T_direction;
+        BOOST_STATIC_CONSTEXPR uint32_t direction = T_direction;
 
         /** get difference to lower value
          * @return difference divided by cell size of the given direction

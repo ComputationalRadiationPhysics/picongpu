@@ -33,7 +33,7 @@ namespace shared_PCS
 {
 struct PCS
 {
-    static const int support = 4;
+    BOOST_STATIC_CONSTEXPR int support = 4;
 
 
 

@@ -142,10 +142,10 @@ struct ZigZag
      */
     typedef T_ParticleShape ParticleShape;
     typedef typename ParticleShape::ChargeAssignmentOnSupport ParticleAssign;
-    static const int supp = ParticleAssign::support;
+    BOOST_STATIC_CONSTEXPR int supp = ParticleAssign::support;
 
-    static const int currentLowerMargin = supp / 2 + 1;
-    static const int currentUpperMargin = (supp + 1) / 2 + 1;
+    BOOST_STATIC_CONSTEXPR int currentLowerMargin = supp / 2 + 1;
+    BOOST_STATIC_CONSTEXPR int currentUpperMargin = (supp + 1) / 2 + 1;
     typedef typename PMacc::math::CT::make_Int<simDim, currentLowerMargin>::type LowerMargin;
     typedef typename PMacc::math::CT::make_Int<simDim, currentUpperMargin>::type UpperMargin;
 
@@ -154,15 +154,15 @@ struct ZigZag
      * @see ShiftCoordinateSystem
      * grid points were we calculate the current [begin;end)
      */
-    static const int begin = -supp / 2 + (supp + 1) % 2;
-    static const int end = begin + supp;
+    BOOST_STATIC_CONSTEXPR int begin = -supp / 2 + (supp + 1) % 2;
+    BOOST_STATIC_CONSTEXPR int end = begin + supp;
 
     /* same as begin and end but for the direction where we calculate j
      * supp_dir = support of the cloud shape
      */
-    static const int supp_dir = supp - 1;
-    static const int dir_begin = -supp_dir / 2 + (supp_dir + 1) % 2;
-    static const int dir_end = dir_begin + supp_dir;
+    BOOST_STATIC_CONSTEXPR int supp_dir = supp - 1;
+    BOOST_STATIC_CONSTEXPR int dir_begin = -supp_dir / 2 + (supp_dir + 1) % 2;
+    BOOST_STATIC_CONSTEXPR int dir_end = dir_begin + supp_dir;
 
     /** functor to calculate current for one direction
      *

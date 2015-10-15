@@ -34,7 +34,7 @@ using namespace PMacc;
 template<uint32_t T_dim>
 struct None
 {
-    static const uint32_t dim = T_dim;
+    BOOST_STATIC_CONSTEXPR uint32_t dim = T_dim;
 
     typedef typename PMacc::math::CT::make_Int<dim, 0>::type LowerMargin;
     typedef typename PMacc::math::CT::make_Int<dim, 0>::type UpperMargin;
