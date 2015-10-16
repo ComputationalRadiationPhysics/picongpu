@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -31,10 +31,11 @@ template<typename Type, int T_dim>
 cursor::BufferCursor<Type, T_dim>
 DeviceMemEvenPitch<Type, T_dim>::allocate(const math::Size_t<T_dim>& size)
 {
-    Type* dataPointer;
+    Type* dataPointer = NULL;
     math::Size_t<T_dim-1> pitch;
 
-    CUDA_CHECK(cudaMalloc((void**)&dataPointer, sizeof(Type) * size.productOfComponents()));
+    if(size.productOfComponents())
+        CUDA_CHECK(cudaMalloc((void**)&dataPointer, sizeof(Type) * size.productOfComponents()));
 
     if (dim == 2u)
     {
@@ -53,9 +54,10 @@ template<typename Type>
 cursor::BufferCursor<Type, 1>
 DeviceMemEvenPitch<Type, 1>::allocate(const math::Size_t<1>& size)
 {
-    Type* dataPointer;
+    Type* dataPointer = NULL;
 
-    CUDA_CHECK(cudaMalloc((void**)&dataPointer, size[0] * sizeof(Type)));
+    if(size.productOfComponents())
+        CUDA_CHECK(cudaMalloc((void**)&dataPointer, size[0] * sizeof(Type)));
 
     return cursor::BufferCursor<Type, 1>(dataPointer, math::Size_t<0>());
 }

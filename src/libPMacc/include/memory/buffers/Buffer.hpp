@@ -52,7 +52,7 @@ namespace PMacc
          * @param dataSpace description of spread of any dimension
          */
         Buffer(DataSpace<DIM> dataSpace) :
-        data_space(dataSpace),data1D(true)
+        data_space(dataSpace), data1D(true), current_size(NULL)
         {
             CUDA_CHECK(cudaMallocHost(&current_size, sizeof (size_t)));
             *current_size = dataSpace.productOfComponents();
