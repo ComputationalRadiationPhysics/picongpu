@@ -1,5 +1,5 @@
 /**
- * Copyright 2013, 2015 Heiko Burau, Benjamin Worpitz
+ * Copyright 2013-2015 Heiko Burau, Benjamin Worpitz, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -174,10 +174,10 @@ void Gather<dim>::operator()(container::HostBuffer<Type, memDim>& dest,
     if(!this->m_participate) return;
 
     int numRanks; MPI_Comm_size(this->comm, &numRanks);
-    std::vector<Type> tmpDest(numRanks * source.size().productOfComponents());
+    std::vector<Type> tmpDest(root() ? numRanks * source.size().productOfComponents() : 0);
 
     MPI_CHECK(MPI_Gather((void*)source.getDataPointer(), source.size().productOfComponents() * sizeof(Type), MPI_CHAR,
-               (void*)tmpDest.data(), source.size().productOfComponents() * sizeof(Type), MPI_CHAR,
+               root() ? (void*)tmpDest.data() : NULL, source.size().productOfComponents() * sizeof(Type), MPI_CHAR,
                0, this->comm));
     if(!root()) return;
 
