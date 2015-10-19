@@ -285,7 +285,11 @@ public:
         {
             PMacc::log< picLog::MEMORY > ("%1% MiB free memory < %2% MiB required reserved memory")
                 % (freeGpuMem / 1024 / 1024) % (reservedGpuMemorySize / 1024 / 1024) ;
-            throw std::runtime_error("Cannot reserve enough memory");
+            std::stringstream msg;
+            msg << "Cannot reserve "
+                << (reservedGpuMemorySize / 1024 / 1024) << " MiB as there is only "
+                << (freeGpuMem / 1024 / 1024) << " MiB free GPU memory left";
+            throw std::runtime_error(msg.str());
         }
 
         size_t heapSize = freeGpuMem - reservedGpuMemorySize;
