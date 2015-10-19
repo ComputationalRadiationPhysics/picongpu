@@ -123,6 +123,10 @@ public:
     HDINLINE Type* getDataPointer() const {return dataPointer;}
     HDINLINE math::Size_t<T_dim> size() const {return this->_size;}
     HDINLINE math::Size_t<T_dim-1> getPitch() const {return this->pitch;}
+    /** Returns whether the buffer has no additional pitches
+     * The expected pitches are: 2D: size.x, 3D: size.x/size.x*size.y
+     */
+    HDINLINE bool isContigousMemory() const;
 };
 
 } // container
