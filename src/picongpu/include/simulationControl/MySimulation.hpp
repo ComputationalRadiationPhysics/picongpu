@@ -281,14 +281,14 @@ public:
 
         size_t freeGpuMem(0);
         Environment<>::get().EnvMemoryInfo().getMemoryInfo(&freeGpuMem);
-        if(freeGpuMem < totalFreeGpuMemory)
+        if(freeGpuMem < reservedGpuMemorySize)
         {
             PMacc::log< picLog::MEMORY > ("%1% MiB free memory < %2% MiB required reserved memory")
-                % (freeGpuMem / 1024 / 1024) % (totalFreeGpuMemory / 1024 / 1024) ;
+                % (freeGpuMem / 1024 / 1024) % (reservedGpuMemorySize / 1024 / 1024) ;
             throw std::runtime_error("Cannot reserve enough memory");
         }
 
-        size_t heapSize = freeGpuMem - totalFreeGpuMemory;
+        size_t heapSize = freeGpuMem - reservedGpuMemorySize;
 
         if( Environment<>::get().EnvMemoryInfo().isSharedMemoryPool() )
         {
