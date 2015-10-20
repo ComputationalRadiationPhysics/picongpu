@@ -105,7 +105,6 @@ public:
              math::Int<T_dim> b = math::Int<T_dim>(0)) const;
 
     /* assign value to each datum */
-    PMACC_NO_NVCC_HDWARNING
     HDINLINE void assign(const Type& value);
 
     /* get a cursor at the container's origin cell */
