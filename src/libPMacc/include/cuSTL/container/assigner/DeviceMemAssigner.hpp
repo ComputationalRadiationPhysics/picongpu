@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2015 Heiko Burau, Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Benjamin Worpitz,
+ *                     Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -45,12 +46,18 @@ struct DeviceMemAssigner
     BOOST_STATIC_CONSTEXPR int dim = T_dim;
 
     template<typename Type>
-    static void assign(
+    HDINLINE static void assign(
         Type* data,
         const math::Size_t<dim-1>& pitch,
         const Type& value,
         const math::Size_t<dim>& size)
     {
+#ifdef __CUDA_ARCH__
+        /* The HostmemAssigner iterates over the entries and assigns them
+         * This also works on the device (in a kernel) so we just use it here
+         * instead of implementing it again */
+        HostMemAssigner<dim>::assign(data, pitch, value, size);
+#else
         zone::SphericZone<dim> myZone(size);
         cursor::BufferCursor<Type, dim> cursor(data, pitch);
 
@@ -69,6 +76,7 @@ struct DeviceMemAssigner
 
         algorithm::kernel::RT::Foreach foreach(blockDim);
         foreach(myZone, cursor, lambda::_1 = value);
+#endif
     }
 };
 

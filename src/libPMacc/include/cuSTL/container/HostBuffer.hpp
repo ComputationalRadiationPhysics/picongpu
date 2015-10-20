@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -68,7 +68,7 @@ public:
     HostBuffer(const Base& base) : Base(base) {}
 
     template<typename DBuffer>
-    HostBuffer<Type, dim>& operator=(const DBuffer& rhs)
+    HostBuffer& operator=(const DBuffer& rhs)
     {
         BOOST_STATIC_ASSERT((boost::is_same<typename DBuffer::memoryTag, allocator::tag::device>::value));
         BOOST_STATIC_ASSERT((boost::is_same<typename DBuffer::type, Type>::value));
@@ -77,6 +77,12 @@ public:
         cudaWrapper::Memcopy<dim>()(this->dataPointer, this->pitch, rhs.getDataPointer(), rhs.getPitch(),
                                 this->_size, cudaWrapper::flags::Memcopy::deviceToHost);
 
+        return *this;
+    }
+
+    HostBuffer& operator=(const Base& rhs)
+    {
+        Base::operator=(rhs);
         return *this;
     }
 

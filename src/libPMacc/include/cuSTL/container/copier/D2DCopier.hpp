@@ -1,5 +1,6 @@
 /**
- * Copyright 2013, 2015 Heiko Burau, Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Benjamin Worpitz,
+ *                     Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -23,6 +24,9 @@
 #pragma once
 
 #include "Memcopy.hpp"
+#include "cuSTL/cursor/BufferCursor.hpp"
+#include "cuSTL/cursor/accessor/CursorAccessor.hpp"
+#include "cuSTL/cursor/navigator/MapTo1DNavigator.hpp"
 #include <types.h>
 
 namespace PMacc
@@ -34,13 +38,34 @@ template<int T_dim>
 struct D2DCopier
 {
     BOOST_STATIC_CONSTEXPR int dim = T_dim;
+
+    PMACC_NO_NVCC_HDWARNING /* Handled via CUDA_ARCH */
     template<typename Type>
-    static void copy(Type* dest, const math::Size_t<dim-1>& pitchDest,
+    HDINLINE static void copy(Type* dest, const math::Size_t<dim-1>& pitchDest,
          Type* source, const math::Size_t<dim-1>& pitchSource,
          const math::Size_t<dim>& size)
     {
+#ifdef __CUDA_ARCH__
+        typedef cursor::BufferCursor<Type, dim> Cursor;
+        Cursor bufCursorDest(dest, pitchDest);
+        Cursor bufCursorSrc(source, pitchSource);
+        cursor::MapTo1DNavigator<dim> myNavi(size);
+
+        BOOST_AUTO(srcCursor, cursor::make_Cursor(cursor::CursorAccessor<Cursor>(),
+                                                  myNavi,
+                                                  bufCursorSrc));
+        BOOST_AUTO(destCursor, cursor::make_Cursor(cursor::CursorAccessor<Cursor>(),
+                                                   myNavi,
+                                                   bufCursorDest));
+        size_t sizeProd = size.productOfComponents();
+        for(size_t i = 0; i < sizeProd; i++)
+        {
+            destCursor[i] = srcCursor[i];
+        }
+#else
         cudaWrapper::Memcopy<dim>()(dest, pitchDest, source, pitchSource,
                                     size, cudaWrapper::flags::Memcopy::deviceToDevice);
+#endif
     }
 };
 

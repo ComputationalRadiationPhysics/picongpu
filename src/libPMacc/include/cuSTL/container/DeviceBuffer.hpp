@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2015 Heiko Burau, Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Benjamin Worpitz,
+ *                     Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -74,7 +75,7 @@ public:
 
     template<typename HBuffer>
     HDINLINE
-    DeviceBuffer<Type, dim>& operator=(const HBuffer& rhs)
+    DeviceBuffer& operator=(const HBuffer& rhs)
     {
         BOOST_STATIC_ASSERT((boost::is_same<typename HBuffer::memoryTag, allocator::tag::host>::value));
         BOOST_STATIC_ASSERT((boost::is_same<typename HBuffer::type, Type>::value));
@@ -83,6 +84,12 @@ public:
         cudaWrapper::Memcopy<dim>()(this->dataPointer, this->pitch, rhs.getDataPointer(), rhs.getPitch(),
                                 this->_size, cudaWrapper::flags::Memcopy::hostToDevice);
 
+        return *this;
+    }
+
+    HDINLINE DeviceBuffer& operator=(const Base& rhs)
+    {
+        Base::operator=(rhs);
         return *this;
     }
 

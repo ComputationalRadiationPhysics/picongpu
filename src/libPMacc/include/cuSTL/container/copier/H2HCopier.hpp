@@ -1,5 +1,6 @@
 /**
- * Copyright 2013, 2015 Heiko Burau, Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Benjamin Worpitz,
+ *                     Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -34,8 +35,10 @@ template<int T_dim>
 struct H2HCopier
 {
     BOOST_STATIC_CONSTEXPR int dim = T_dim;
+
+    PMACC_NO_NVCC_HDWARNING /* Should never be called from device functions */
     template<typename Type>
-    static void copy(Type* dest, const math::Size_t<dim-1>& pitchDest,
+    HDINLINE static void copy(Type* dest, const math::Size_t<dim-1>& pitchDest,
          Type* source, const math::Size_t<dim-1>& pitchSource,
          const math::Size_t<dim>& size)
     {
