@@ -33,11 +33,11 @@ template<class Velocity, class Gamma>
 struct Push
 {
 
-    template<typename T_Efield, typename T_Bfield, typename T_Pos, typename T_Mom, typename T_Mass,
+    template<typename T_FunctorFieldE, typename T_FunctorFieldB, typename T_Pos, typename T_Mom, typename T_Mass,
              typename T_Charge, typename T_Weighting>
         __host__ DINLINE void operator()(
-                                            const T_Bfield bField,
-                                            const T_Efield eField,
+                                            const T_FunctorFieldB functorBField,
+                                            const T_FunctorFieldE functorEField,
                                             T_Pos& pos,
                                             T_Mom& mom,
                                             const T_Mass mass,
@@ -45,7 +45,9 @@ struct Push
                                             const T_Weighting)
     {
         typedef T_Mom MomType;
-        typedef T_Bfield BType;
+
+        PMACC_AUTO( bField , functorBField(pos));
+        PMACC_AUTO( eField , functorEField(pos));
 
         const float_X QoM = charge / mass;
 
@@ -56,7 +58,7 @@ struct Push
         Gamma gamma;
         const float_X gamma_reci = float_X(1.0) / gamma(mom_minus, mass);
         const float3_X t = float_X(0.5) * QoM * bField * gamma_reci * deltaT;
-        const BType s = float_X(2.0) * t * (float_X(1.0) / (float_X(1.0) + math::abs2(t)));
+        PMACC_AUTO( s , float_X(2.0) * t * (float_X(1.0) / (float_X(1.0) + math::abs2(t))));
 
         const MomType mom_prime = mom_minus + math::cross(mom_minus, t);
         const MomType mom_plus = mom_minus + math::cross(mom_prime, s);

@@ -51,6 +51,7 @@
 #include "particles/operations/Assign.hpp"
 #include "particles/operations/Deselect.hpp"
 #include "nvidia/atomic.hpp"
+#include "particles/InterpolationForPusher.hpp"
 
 namespace picongpu
 {
@@ -263,11 +264,8 @@ struct PushParticlePerFrame
 
         DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec > (particleCellIdx));
 
-
-        EType eField = Field2ParticleInterpolation()
-            (eBox.shift(localCell).toCursor(), pos, NumericalCellType::getEFieldPosition());
-        BType bField = Field2ParticleInterpolation()
-            (bBox.shift(localCell).toCursor(), pos, NumericalCellType::getBFieldPosition());
+        PMACC_AUTO(functorEfield, CreateInterpolationForPusher<Field2ParticleInterpolation>()( eBox.shift(localCell).toCursor(), NumericalCellType::getEFieldPosition()));
+        PMACC_AUTO(functorBfield, CreateInterpolationForPusher<Field2ParticleInterpolation>()( bBox.shift(localCell).toCursor(), NumericalCellType::getBFieldPosition()));
 
         float3_X mom = particle[momentum_];
         const float_X mass = attribute::getMass(weighting,particle);
@@ -283,7 +281,8 @@ struct PushParticlePerFrame
 #endif
         PushAlgo push;
         push(
-             bField, eField,
+             functorBfield,
+             functorEfield,
              pos,
              mom,
              mass,
