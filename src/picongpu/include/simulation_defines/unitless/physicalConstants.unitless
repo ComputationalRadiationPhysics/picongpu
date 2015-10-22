@@ -85,6 +85,9 @@ namespace picongpu
     //! Mass of electron
     BOOST_CONSTEXPR_OR_CONST float_X ELECTRON_MASS = (float_X) (SI::ELECTRON_MASS_SI / UNIT_MASS);
 
+    //! reduced Planck constant
+    BOOST_CONSTEXPR_OR_CONST float_X HBAR = (float_X) (SI::HBAR_SI / UNIT_ENERGY / UNIT_TIME);
+
     //! magnetic BOOST_CONSTEXPR_OR_CONSTant must be double 3.92907e-39
     BOOST_CONSTEXPR_OR_CONST float_X MUE0 = (float_X) (SI::MUE0_SI / UNIT_LENGTH / UNIT_MASS * UNIT_CHARGE * UNIT_CHARGE);
 

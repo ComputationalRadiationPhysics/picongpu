@@ -83,6 +83,9 @@ alias(ionizer);
 /*! alias for ionization energy container @see ionizationEnergies.param */
 alias(ionizationEnergies);
 
+/*! alias for bremsstrahlung @see speciesDefinition.param */
+alias(bremsstrahlung_effect)
+
 /*! alias for particle to field interpolation @see species.param */
 alias(interpolation);
 
