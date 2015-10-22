@@ -1,6 +1,6 @@
 /**
  * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Wen Fu,
- *                     Marco Garten, Alexander Grund
+ *                     Marco Garten, Alexander Grund, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -287,7 +287,8 @@ struct PushParticlePerFrame
              pos,
              mom,
              mass,
-             attribute::getCharge(weighting,particle)
+             attribute::getCharge(weighting,particle),
+             weighting
              );
         particle[momentum_] = mom;
 

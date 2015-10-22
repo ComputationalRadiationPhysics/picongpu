@@ -58,14 +58,15 @@ namespace picongpu
             }
 
             template<typename T_Efield, typename T_Bfield, typename T_Pos, typename T_Mom, typename T_Mass,
-                 typename T_Charge>
+                 typename T_Charge , typename T_Weighting>
                 __host__ DINLINE void operator( )(
                                                       const T_Bfield bField, /* at t=0 */
                                                       const T_Efield eField, /* at t=0 */
                                                       T_Pos& pos, /* at t=0 */
                                                       T_Mom& mom, /* at t=-1/2 */
                                                       const T_Mass mass,
-                                                      const T_Charge charge)
+                                                      const T_Charge charge,
+                                                      const T_Weighting )
             {
                 typedef T_Mom MomType;
 
