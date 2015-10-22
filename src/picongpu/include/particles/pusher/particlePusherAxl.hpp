@@ -57,15 +57,18 @@ namespace picongpu
                 return float_X(-1.0);
             }
 
-            template<typename EType, typename BType, typename PosType, typename MomType, typename MassType, typename ChargeType >
+            template<typename T_Efield, typename T_Bfield, typename T_Pos, typename T_Mom, typename T_Mass,
+                 typename T_Charge>
                 __host__ DINLINE void operator( )(
-                                                      const BType bField, /* at t=0 */
-                                                      const EType eField, /* at t=0 */
-                                                      PosType& pos, /* at t=0 */
-                                                      MomType& mom, /* at t=-1/2 */
-                                                      const MassType mass,
-                                                      const ChargeType charge)
+                                                      const T_Bfield bField, /* at t=0 */
+                                                      const T_Efield eField, /* at t=0 */
+                                                      T_Pos& pos, /* at t=0 */
+                                                      T_Mom& mom, /* at t=-1/2 */
+                                                      const T_Mass mass,
+                                                      const T_Charge charge)
             {
+                typedef T_Mom MomType;
+
                 Gamma gammaCalc;
                 Velocity velocityCalc;
                 const float_X epsilon = 1.0e-6;

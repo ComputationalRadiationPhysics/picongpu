@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -33,15 +33,19 @@ template<class Velocity, class Gamma>
 struct Push
 {
 
-    template<typename EType, typename BType, typename PosType, typename MomType, typename MassType, typename ChargeType >
+    template<typename T_Efield, typename T_Bfield, typename T_Pos, typename T_Mom, typename T_Mass,
+             typename T_Charge>
         __host__ DINLINE void operator()(
-                                            const BType bField,
-                                            const EType eField,
-                                            PosType& pos,
-                                            MomType& mom,
-                                            const MassType mass,
-                                            const ChargeType charge)
+                                            const T_Bfield bField,
+                                            const T_Efield eField,
+                                            T_Pos& pos,
+                                            T_Mom& mom,
+                                            const T_Mass mass,
+                                            const T_Charge charge)
     {
+        typedef T_Mom MomType;
+        typedef T_Bfield BType;
+
         const float_X QoM = charge / mass;
 
         const float_X deltaT = DELTA_T;
