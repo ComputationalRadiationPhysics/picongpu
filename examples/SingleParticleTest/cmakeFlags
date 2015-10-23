@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2013 Axel Huebl, Rene Widera
+# Copyright 2013-2015 Axel Huebl, Rene Widera, Richard Pausch
 #
 # This file is part of PIConGPU. 
 # 
@@ -29,8 +29,25 @@
 #   - start with zero index
 #   - increase by 1, no gaps
 
+# test all pushers in 3D and 2D
+# Boris Pusher
 flags[0]="-DCUDA_ARCH=sm_20"
-
+flags[1]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_DIMENSION=DIM2"
+# Vay Pusher
+flags[2]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=Vay"
+flags[3]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=Vay;-DPARAM_DIMENSION=DIM2"
+# None Pusher
+flags[4]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=None"
+flags[5]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=None;-DPARAM_DIMENSION=DIM2"
+# Free Pusher
+flags[6]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=Free"
+flags[7]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=Free;-DPARAM_DIMENSION=DIM2"
+# Photon Pusher
+flags[8]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=Photon"
+flags[9]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=Photon;-DPARAM_DIMENSION=DIM2"
+# Axel Pusher 
+flags[10]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=Axel"
+# does not support 2D
 
 ################################################################################
 # execution
