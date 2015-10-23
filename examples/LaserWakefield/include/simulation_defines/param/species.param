@@ -92,7 +92,7 @@ typedef currentSolver::PARAM_CURRENTSOLVER<UsedParticleShape> UsedParticleCurren
  * - particles::pusher::Axl : a pusher developed at HZDR during 2011 (testing)
  * - particles::pusher::Free : free propagation, ignore fields
  * (= free stream model)
- * - particles::pusher::Phot : propagate with c in direction of normalized mom.
+ * - particles::pusher::Photon : propagate with c in direction of normalized mom.
  */
 #ifndef PARAM_PARTICLEPUSHER
 #define PARAM_PARTICLEPUSHER Boris

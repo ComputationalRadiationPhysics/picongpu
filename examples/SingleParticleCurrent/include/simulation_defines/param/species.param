@@ -77,7 +77,7 @@ typedef currentSolver::Esirkepov<UsedParticleShape> UsedParticleCurrentSolver;
  * - particles::pusher::Axl : a pusher developed at HZDR during 2011 (testing)
  * - particles::pusher::Free : free propagation, ignore fields
  * (= free stream model)
- * - particles::pusher::Phot : propagate with c in direction of normalized mom.
+ * - particles::pusher::Photon : propagate with c in direction of normalized mom.
  */
 typedef particles::pusher::Boris UsedParticlePusher;
 

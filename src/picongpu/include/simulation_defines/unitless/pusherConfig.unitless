@@ -30,7 +30,7 @@
 #include "particles/pusher/particlePusherNone.hpp"
 #include "particles/pusher/particlePusherVay.hpp"
 #include "particles/pusher/particlePusherFree.hpp"
-#include "particles/pusher/particlePusherPhot.hpp"
+#include "particles/pusher/particlePusherPhoton.hpp"
 #if(SIMDIM==DIM3)
 #include "particles/pusher/particlePusherAxl.hpp"
 #endif
@@ -73,7 +73,7 @@ struct Free
 
 struct Photon
 {
-    typedef particlePusherPhot::Push<Velocity, Gamma<> > type;
+    typedef particlePusherPhoton::Push<Velocity, Gamma<> > type;
 };
 
 } //namespace pusher
