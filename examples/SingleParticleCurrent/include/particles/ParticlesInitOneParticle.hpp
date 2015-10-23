@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -73,7 +73,7 @@ __global__ void kernelAddOneParticle(ParBox pb,
                 SetAttributeToDefault<bmpl::_1> > setToDefault;
             setToDefault(forward(par));
         }
-        float3_X pos = float3_X(LOCAL_POS_X, LOCAL_POS_Y, LOCAL_POS_Z);
+        floatD_X pos = float3_X(LOCAL_POS_X, LOCAL_POS_Y, LOCAL_POS_Z).shrink<simDim>();
 
         const float_X GAMMA0 = (float_X) (1.0 / sqrt(1.0 - (BETA0_X * BETA0_X + BETA0_Y * BETA0_Y + BETA0_Z * BETA0_Z)));
         float3_X mom = float3_X(
