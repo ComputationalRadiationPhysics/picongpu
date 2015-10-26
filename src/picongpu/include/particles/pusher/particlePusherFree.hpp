@@ -32,15 +32,17 @@ namespace picongpu
         struct Push
         {
 
-            template<typename EType, typename BType, typename PosType, typename MomType, typename MassType, typename ChargeType >
+            template<typename T_Efield, typename T_Bfield, typename T_Pos, typename T_Mom, typename T_Mass,
+                   typename T_Charge>
                     __host__ DINLINE void operator()(
-                                                        const BType bField,
-                                                        const EType eField,
-                                                        PosType& pos,
-                                                        MomType& mom,
-                                                        const MassType mass,
-                                                        const ChargeType charge)
+                                                        const T_Bfield ,
+                                                        const T_Efield ,
+                                                        T_Pos& pos,
+                                                        T_Mom& mom,
+                                                        const T_Mass mass,
+                                                        const T_Charge )
             {
+                typedef T_Mom MomType;
 
                 Velocity velocity;
                 const MomType vel = velocity(mom, mass);

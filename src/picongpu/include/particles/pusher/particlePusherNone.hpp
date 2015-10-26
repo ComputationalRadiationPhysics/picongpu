@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -30,14 +30,15 @@ namespace picongpu
         struct Push
         {
 
-            template<typename EType, typename BType, typename PosType, typename MomType, typename MassType, typename ChargeType >
+            template<typename T_Efield, typename T_Bfield, typename T_Pos, typename T_Mom, typename T_Mass,
+                     typename T_Charge>
                     __host__ DINLINE void operator()(
-                                                        const BType bField, /* at t=0 */
-                                                        const EType eField, /* at t=0 */
-                                                        PosType& pos, /* at t=0 */
-                                                        MomType& mom, /* at t=-1/2 */
-                                                        const MassType mass,
-                                                        const ChargeType charge)
+                                                        const T_Bfield ,
+                                                        const T_Efield ,
+                                                        T_Pos& ,
+                                                        T_Mom& ,
+                                                        const T_Mass ,
+                                                        const T_Charge )
             {
             }
         };
