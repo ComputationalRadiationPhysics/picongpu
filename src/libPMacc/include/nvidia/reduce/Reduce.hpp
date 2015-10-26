@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Benjamin Worpitz,
+ *                     Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -45,9 +46,7 @@ namespace PMacc
                                        Dest dest,
                                        Functor func, Functor2 func2)
                 {
-
-                    const uint32_t l_tid = threadIdx.x;
-                    const uint32_t tid = blockIdx.x * blockDim.x + l_tid;
+                    const uint32_t tid = blockIdx.x * blockDim.x + threadIdx.x;
                     const uint32_t globalThreadCount = gridDim.x * blockDim.x;
 
                     /* cuda can not handle extern shared memory were the type is
@@ -57,38 +56,39 @@ namespace PMacc
                     /* create a pointer with the right type*/
                     Type* s_mem=(Type*)s_mem_extern;
 
-                    if (tid >= src_count) return; /*end not needed threads*/
+                    if (tid >= src_count)
+                        return; /*end not needed threads*/
 
                     /*fill shared mem*/
                     Type r_value = src[tid];
-                    /*reduce not readed global memory to shared*/
+                    /*reduce not read global memory to shared*/
                     uint32_t i = tid + globalThreadCount;
                     while (i < src_count)
                     {
                         func(r_value, src[i]);
                         i += globalThreadCount;
                     }
-                    s_mem[l_tid] = r_value;
+                    s_mem[threadIdx.x] = r_value;
                     __syncthreads();
                     /*now reduce shared memory*/
                     uint32_t chunk_count = blockDim.x;
-                    uint32_t active_threads;
 
                     while (chunk_count != 1)
                     {
-                        const float half_threads = (float) chunk_count / 2.0f;
-                        active_threads = float2uint(half_threads);
-                        if (threadIdx.x != 0 && l_tid >= active_threads) return; /*end not needed threads*/
+                        /* Half number of chunks (rounded down) */
+                        uint32_t active_threads = chunk_count / 2;
+                        if (threadIdx.x >= active_threads)
+                            return; /*end not needed threads*/
 
-
-                        chunk_count = ceilf(half_threads);
-                        func(s_mem[l_tid], s_mem[l_tid + chunk_count]);
+                        /* New chunks is half number of chunks rounded up for uneven counts
+                         * --> threadIdx.x=0 will reduce the single element for an odd number of values at the end */
+                        chunk_count = (chunk_count + 1) / 2;
+                        func(s_mem[threadIdx.x], s_mem[threadIdx.x + chunk_count]);
 
                         __syncthreads();
                     }
 
                     func2(dest[blockIdx.x], s_mem[0]);
-
                 }
             }
 
@@ -97,8 +97,8 @@ namespace PMacc
             public:
 
                 /* Constructor
-                 * Don't create a instance befor you have set you cuda device!
-                 * @param byte how many bytes in global gpu memory can reservt for the reduce algorithm
+                 * Don't create a instance before you have set you cuda device!
+                 * @param byte how many bytes in global gpu memory can reserved for the reduce algorithm
                  * @param sharedMemByte limit the usage of shared memory per block on gpu
                  */
                 HINLINE Reduce(const uint32_t byte, const uint32_t sharedMemByte = 4 * 1024) :
@@ -212,7 +212,7 @@ namespace PMacc
                     return 1;
                 }
 
-                /*calculate optimal number of thredas per block with respect to shared memory limitations
+                /*calculate optimal number of threads per block with respect to shared memory limitations
                  * @param n number of elements to reduce
                  * @param sizePerElement size in bytes per elements
                  * @return optimal count of threads per block to solve the problem
