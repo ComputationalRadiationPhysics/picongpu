@@ -33,13 +33,13 @@ namespace picongpu
             template<typename T_Efield, typename T_Bfield, typename T_Pos, typename T_Mom, typename T_Mass,
                      typename T_Charge, typename T_Weighting>
                     __host__ DINLINE void operator()(
-                                                        const T_Bfield ,
-                                                        const T_Efield ,
-                                                        T_Pos& ,
-                                                        T_Mom& ,
-                                                        const T_Mass ,
-                                                        const T_Charge ,
-                                                        const T_Weighting )
+                                                        const T_Bfield,
+                                                        const T_Efield,
+                                                        T_Pos&,
+                                                        T_Mom&,
+                                                        const T_Mass,
+                                                        const T_Charge,
+                                                        const T_Weighting)
             {
             }
         };

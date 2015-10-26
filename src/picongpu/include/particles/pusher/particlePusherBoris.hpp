@@ -42,7 +42,7 @@ struct Push
                                             T_Mom& mom,
                                             const T_Mass mass,
                                             const T_Charge charge,
-                                            const T_Weighting )
+                                            const T_Weighting)
     {
         typedef T_Mom MomType;
         typedef T_Bfield BType;
