@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2015 Rene Widera
+ * Copyright 2014-2015 Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -89,10 +89,10 @@ typedef currentSolver::PARAM_CURRENTSOLVER<UsedParticleShape> UsedParticleCurren
  *
  * For development purposes: ---------------------------------------------------
  * - particles::pusher::None : no particle is pushed
- * - particles::pusher::Axl : a pusher developed at HZDR during 2011 (testing)
+ * - particles::pusher::Axel : a pusher developed at HZDR during 2011 (testing)
  * - particles::pusher::Free : free propagation, ignore fields
  * (= free stream model)
- * - particles::pusher::Phot : propagate with c in direction of normalized mom.
+ * - particles::pusher::Photon : propagate with c in direction of normalized mom.
  */
 #ifndef PARAM_PARTICLEPUSHER
 #define PARAM_PARTICLEPUSHER Boris
