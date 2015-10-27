@@ -88,9 +88,21 @@ public:
     }
 
     // real part
+    HDINLINE T_Type& get_real()
+    {
+        return real;
+    }
+
+    // real part
     HDINLINE T_Type get_real(void) const
     {
         return real;
+    }
+
+    // imaginary part
+    HDINLINE T_Type& get_imag()
+    {
+        return imaginary;
     }
 
     // imaginary part
