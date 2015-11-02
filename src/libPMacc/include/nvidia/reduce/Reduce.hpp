@@ -46,7 +46,8 @@ namespace PMacc
                                        Dest dest,
                                        Functor func, Functor2 func2)
                 {
-                    const uint32_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+                    const uint32_t localId = threadIdx.x;
+                    const uint32_t tid = blockIdx.x * blockDim.x + localId;
                     const uint32_t globalThreadCount = gridDim.x * blockDim.x;
 
                     /* cuda can not handle extern shared memory were the type is
@@ -68,7 +69,7 @@ namespace PMacc
                         func(r_value, src[i]);
                         i += globalThreadCount;
                     }
-                    s_mem[threadIdx.x] = r_value;
+                    s_mem[localId] = r_value;
                     __syncthreads();
                     /*now reduce shared memory*/
                     uint32_t chunk_count = blockDim.x;
@@ -77,13 +78,13 @@ namespace PMacc
                     {
                         /* Half number of chunks (rounded down) */
                         uint32_t active_threads = chunk_count / 2;
-                        if (threadIdx.x >= active_threads)
+                        if (localId >= active_threads)
                             return; /*end not needed threads*/
 
                         /* New chunks is half number of chunks rounded up for uneven counts
-                         * --> threadIdx.x=0 will reduce the single element for an odd number of values at the end */
+                         * --> local_tid=0 will reduce the single element for an odd number of values at the end */
                         chunk_count = (chunk_count + 1) / 2;
-                        func(s_mem[threadIdx.x], s_mem[threadIdx.x + chunk_count]);
+                        func(s_mem[localId], s_mem[localId + chunk_count]);
 
                         __syncthreads();
                     }
@@ -108,7 +109,7 @@ namespace PMacc
                     reduceBuffer = new GridBuffer<char, DIM1 > (DataSpace<DIM1 > (byte));
                 }
 
-                /* Reduce elements in global gpu memeory
+                /* Reduce elements in global gpu memory
                  *
                  * @param func binary functor for reduce which takes two arguments, first argument is the source and get the new reduced value.
                  * Functor must specialize the function getMPI_Op.
@@ -133,7 +134,7 @@ namespace PMacc
 
                     uint32_t n_buffer = byte / sizeof (Type);
 
-                    uint32_t threads = n_buffer * blockcount * 2; /* x2 is used thus we can use all byte in Buffer, after we calcudlate threads/2 */
+                    uint32_t threads = n_buffer * blockcount * 2; /* x2 is used thus we can use all byte in Buffer, after we calculate threads/2 */
 
 
 
