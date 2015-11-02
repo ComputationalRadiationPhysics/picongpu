@@ -45,24 +45,22 @@ private:
     std::vector<math::Int<dim> > positions;
     bool m_participate;
 
-    template<typename Type, int memDim>
     struct CopyToDest
     {
+        template<typename Type, int memDim, class T_Alloc, class T_Copy, class T_Assign, class T_Alloc2, class T_Copy2, class T_Assign2>
         void operator()(const Gather<dim>& gather,
-                        container::HostBuffer<Type, memDim>& dest,
+                        container::CartBuffer<Type, memDim, T_Alloc, T_Copy, T_Assign>& dest,
                         std::vector<Type>& tmpDest,
-                        container::HostBuffer<Type, memDim>& source, int dir) const;
+                        container::CartBuffer<Type, memDim, T_Alloc2, T_Copy2, T_Assign2>& source, int dir) const;
     };
 
-    template<typename Type, int memDim>
-    friend struct CopyToDest;
 public:
     Gather(const zone::SphericZone<dim>& p_zone);
     ~Gather();
 
-    template<typename Type, int memDim>
-    void operator()(container::HostBuffer<Type, memDim>& dest,
-                    container::HostBuffer<Type, memDim>& source,
+    template<typename Type, int memDim, class T_Alloc, class T_Copy, class T_Assign, class T_Alloc2, class T_Copy2, class T_Assign2>
+    void operator()(container::CartBuffer<Type, memDim, T_Alloc, T_Copy, T_Assign>& dest,
+                    container::CartBuffer<Type, memDim, T_Alloc2, T_Copy2, T_Assign2>& source,
                     int dir = -1) const;
 
     inline bool participate() const {return m_participate;}

@@ -497,8 +497,27 @@ struct Vector<Type, 0 >
     template<typename OtherType >
     HDINLINE operator Vector<OtherType, 0 > () const
     {
-
         return Vector<OtherType, 0 > ();
+    }
+
+    /**
+     * == comparison operator.
+     *
+     * Returns always true
+     */
+    HDINLINE bool operator==(const Vector& rhs) const
+    {
+        return true;
+    }
+
+    /**
+     * != comparison operator.
+     *
+     * Returns always false
+     */
+    HDINLINE bool operator!=(const Vector& rhs) const
+    {
+        return false;
     }
 };
 

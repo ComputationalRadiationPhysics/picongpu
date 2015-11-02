@@ -146,12 +146,11 @@ int Gather<dim>::rank() const
 }
 
 template<int dim>
-template<typename Type, int memDim>
-void Gather<dim>::CopyToDest<Type, memDim>::operator()(
-                    const Gather<dim>& gather,
-                    container::HostBuffer<Type, memDim>& dest,
-                    std::vector<Type>& tmpDest,
-                    container::HostBuffer<Type, memDim>& source, int dir) const
+template<typename Type, int memDim, class T_Alloc, class T_Copy, class T_Assign, class T_Alloc2, class T_Copy2, class T_Assign2>
+void Gather<dim>::CopyToDest::operator()(const Gather<dim>& gather,
+                        container::CartBuffer<Type, memDim, T_Alloc, T_Copy, T_Assign>& dest,
+                        std::vector<Type>& tmpDest,
+                        container::CartBuffer<Type, memDim, T_Alloc2, T_Copy2, T_Assign2>& source, int dir) const
 {
     using namespace math;
 
@@ -167,21 +166,32 @@ void Gather<dim>::CopyToDest<Type, memDim>::operator()(
 }
 
 template<int dim>
-template<typename Type, int memDim>
-void Gather<dim>::operator()(container::HostBuffer<Type, memDim>& dest,
-                             container::HostBuffer<Type, memDim>& source, int dir) const
+template<typename Type, int memDim, class T_Alloc, class T_Copy, class T_Assign, class T_Alloc2, class T_Copy2, class T_Assign2>
+void Gather<dim>::operator()(container::CartBuffer<Type, memDim, T_Alloc, T_Copy, T_Assign>& dest,
+                             container::CartBuffer<Type, memDim, T_Alloc2, T_Copy2, T_Assign2>& source, int dir) const
 {
     if(!this->m_participate) return;
+    typedef container::CartBuffer<Type, memDim, T_Alloc, T_Copy, T_Assign> DestBuffer;
+    typedef container::CartBuffer<Type, memDim, T_Alloc2, T_Copy2, T_Assign2> SrcBuffer;
+    PMACC_CASSERT_MSG(
+            Can_Only_Gather_Host_Memory,
+            boost::is_same<typename DestBuffer::memoryTag, allocator::tag::host>::value &&
+            boost::is_same<typename SrcBuffer::memoryTag, allocator::tag::host>::value);
 
+    const bool useTmpSrc = source.isContigousMemory();
     int numRanks; MPI_Comm_size(this->comm, &numRanks);
     std::vector<Type> tmpDest(root() ? numRanks * source.size().productOfComponents() : 0);
+    container::HostBuffer<Type, memDim> tmpSrc(useTmpSrc ? source.size() : math::Size_t<memDim>::create(0));
+    if(useTmpSrc)
+        tmpSrc = source; /* Mem copy */
 
-    MPI_CHECK(MPI_Gather((void*)source.getDataPointer(), source.size().productOfComponents() * sizeof(Type), MPI_CHAR,
+    MPI_CHECK(MPI_Gather(
+               useTmpSrc ? (void*)tmpSrc.getDataPointer(): (void*)source.getDataPointer(), source.size().productOfComponents() * sizeof(Type), MPI_CHAR,
                root() ? (void*)tmpDest.data() : NULL, source.size().productOfComponents() * sizeof(Type), MPI_CHAR,
                0, this->comm));
     if(!root()) return;
 
-    CopyToDest<Type, memDim>()(*this, dest, tmpDest, source, dir);
+    CopyToDest()(*this, dest, tmpDest, source, dir);
 }
 
 } // mpi

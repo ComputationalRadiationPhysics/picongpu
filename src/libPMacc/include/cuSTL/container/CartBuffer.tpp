@@ -44,6 +44,8 @@ namespace detail
     {
         template<typename TCursor>
         HDINLINE math::Size_t<0u> operator()(const TCursor&) {return math::Size_t<0u>();}
+
+        HDINLINE math::Size_t<0u> operator()(const math::Size_t<1u>&) {return math::Size_t<0u>();}
     };
     template<>
     struct PitchHelper<2>
@@ -52,6 +54,11 @@ namespace detail
         HDINLINE math::Size_t<1> operator()(const TCursor& cursor)
         {
             return math::Size_t<1>(size_t((char*)cursor(0, 1).getMarker() - (char*)cursor.getMarker()));
+        }
+
+        HDINLINE math::Size_t<1> operator()(const math::Size_t<2>& size)
+        {
+            return math::Size_t<1>(size.x());
         }
     };
     template<>
@@ -62,6 +69,11 @@ namespace detail
         {
             return math::Size_t<2>((size_t)((char*)cursor(0, 1, 0).getMarker() - (char*)cursor.getMarker()),
                                    (size_t)((char*)cursor(0, 0, 1).getMarker() - (char*)cursor.getMarker()));
+        }
+
+        HDINLINE math::Size_t<2> operator()(const math::Size_t<3>& size)
+        {
+            return math::Size_t<2>(size.x(), size.x() * size.y());
         }
     };
 
@@ -251,7 +263,7 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::originCustomAxes(const mat
     factor[0] = sizeof(Type);
     if(dim > 1) factor[1] = this->pitch[0];
     if(dim > 2) factor[2] = this->pitch[1];
-    //\todo: is the conversation from size_t to uint32_t allowed?
+    //\todo: is the conversation from size_t to int32_t allowed?
     math::Int<dim> customFactor;
     for(int i = 0; i < dim; i++)
         customFactor[i] = (int)factor[axes[i]];
@@ -271,6 +283,13 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::zone() const
     myZone.offset = math::Int<T_dim>::create(0);
     myZone.size = this->_size;
     return myZone;
+}
+
+template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+bool
+CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::isContigousMemory() const
+{
+    return this->pitch == detail::PitchHelper<dim>()(this->_size);
 }
 
 template<typename Type, typename Allocator, typename Copier, typename Assigner>
