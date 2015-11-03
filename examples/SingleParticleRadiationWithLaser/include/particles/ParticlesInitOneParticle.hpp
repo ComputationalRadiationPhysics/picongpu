@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Rene Widera, Richard Pausch
+ * Copyright 2013-2015 Axel Huebl, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -76,9 +76,7 @@ __global__ void kernelAddOneParticle(ParBox pb,
             setToDefault(forward(par));
         }
 
-        floatD_X pos;
-        for (int i = 0; i < simDim; ++i)
-            pos[i] = 0.5;
+        floatD_X pos(floatD_X::create(0.5));
 
         const float_X GAMMA0_X = 1.0f / sqrtf(1.0f - float_X(BETA0_X * BETA0_X));
         const float_X GAMMA0_Y = 1.0f / sqrtf(1.0f - float_X(BETA0_Y * BETA0_Y));
