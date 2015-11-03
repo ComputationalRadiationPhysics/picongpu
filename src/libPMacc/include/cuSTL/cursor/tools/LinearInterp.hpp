@@ -25,6 +25,7 @@
 #include "cuSTL/cursor/Cursor.hpp"
 #include "cuSTL/cursor/accessor/LinearInterpAccessor.hpp"
 #include "cuSTL/cursor/navigator/AbstractNavigator.hpp"
+#include "result_of_Functor.hpp"
 #include "types.h"
 
 namespace PMacc
@@ -56,5 +57,20 @@ struct LinearInterp
 
 } // namespace tools
 } // namespace cursor
+
+namespace result_of
+{
+
+template<typename T_Position, typename TCursor>
+struct Functor<cursor::tools::LinearInterp<T_Position>, TCursor>
+{
+    typedef cursor::Cursor<
+        cursor::LinearInterpAccessor<TCursor, T_Position>,
+        cursor::AbstractNavigator,
+        T_Position> type;
+};
+
+} // namespace result_of
+
 } // namespace PMacc
 
