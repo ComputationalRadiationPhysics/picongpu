@@ -74,7 +74,7 @@ public:
     HDINLINE DeviceBuffer(const Base& base) : Base(base) {}
 
     template<typename HBuffer>
-    HDINLINE
+    HINLINE
     DeviceBuffer& operator=(const HBuffer& rhs)
     {
         BOOST_STATIC_ASSERT((boost::is_same<typename HBuffer::memoryTag, allocator::tag::host>::value));
@@ -93,8 +93,6 @@ public:
         return *this;
     }
 
-    //friend class ::PMacc::DeviceBuffer<Type, dim>;
-    //friend class ::PMacc::HostBuffer<Type, dim>;
 };
 
 } // container
