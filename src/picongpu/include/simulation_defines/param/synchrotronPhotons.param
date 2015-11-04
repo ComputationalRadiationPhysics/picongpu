@@ -24,8 +24,10 @@ namespace picongpu
 {
 namespace particles
 {
-namespace bremsstrahlung
+namespace synchrotronPhotons
 {
+
+BOOST_CONSTEXPR_OR_CONST bool enableQEDTerm = false;
 
 /** Above this value (to the power of three, see comments on mapping) the synchrotron functions are nearly zero. */
 BOOST_CONSTEXPR_OR_CONST float_64 SYNC_FUNCS_CUTOFF = 5.0;
@@ -36,6 +38,6 @@ BOOST_CONSTEXPR_OR_CONST float_64 SYNC_FUNCS_BESSEL_INTEGRAL_STEPWIDTH = 1.0e-3;
 /** Number of sampling points of the lookup table */
 BOOST_CONSTEXPR_OR_CONST uint32_t SYNC_FUNCS_NUM_SAMPLES = 8192;
 
-} // namespace bremsstrahlung
+} // namespace synchrotronPhotons
 } // namespace particles
 } // namespace picongpu

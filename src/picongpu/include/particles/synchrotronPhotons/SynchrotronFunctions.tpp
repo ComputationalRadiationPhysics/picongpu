@@ -30,7 +30,7 @@ namespace picongpu
 {
 namespace particles
 {
-namespace bremsstrahlung
+namespace synchrotronPhotons
 {
 
 namespace detail
@@ -135,8 +135,6 @@ SynchrotronFunctions::getCursor(SynchrotronFunctions::Select syncFunction) const
         float_X(0.0));
 }
 
-
-
-} // namespace bremsstrahlung
+} // namespace synchrotronPhotons
 } // namespace particles
 } // namespace picongpu

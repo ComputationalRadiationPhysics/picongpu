@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2016 Rene Widera, Benjamin Worpitz, Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -71,6 +71,29 @@ AttributRadiationFlag
 
 /*########################### define species #################################*/
 
+/*--------------------------- photons -------------------------------------------*/
+
+value_identifier(float_X, DummyMass, 1.0);
+value_identifier(float_X, DummyCharge, 0.0);
+
+typedef bmpl::vector<
+    particlePusher<particles::pusher::Photon>,
+    shape<UsedParticleShape>,
+    interpolation<UsedField2Particle>,
+    current<UsedParticleCurrentSolver>,
+    massRatio<DummyMass>,
+    chargeRatio<DummyCharge>
+> ParticleFlagsPhotons;
+
+/*define species photons*/
+typedef Particles<
+    ParticleDescription<
+        bmpl::string<'p', 'h'>,
+        SuperCellSize,
+        DefaultAttributesSeq,
+        ParticleFlagsPhotons
+    >
+> PIC_Photons;
 
 /*--------------------------- electrons --------------------------------------*/
 
@@ -84,7 +107,8 @@ typedef bmpl::vector<
     interpolation<UsedField2Particle>,
     current<UsedParticleCurrentSolver>,
     massRatio<MassRatioElectrons>,
-    chargeRatio<ChargeRatioElectrons>
+    chargeRatio<ChargeRatioElectrons>,
+    synchrotronPhotons<PIC_Photons>
 > ParticleFlagsElectrons;
 
 /*define specie electrons*/
@@ -142,7 +166,8 @@ PIC_Ions
 
 typedef MakeSeq<
 Species1,
-Species2
+Species2,
+PIC_Photons
 >::type VectorAllSpecies;
 
 

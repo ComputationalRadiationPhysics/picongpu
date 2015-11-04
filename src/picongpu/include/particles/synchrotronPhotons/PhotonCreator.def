@@ -24,17 +24,17 @@ namespace picongpu
 {
 namespace particles
 {
-namespace bremsstrahlung
+namespace synchrotronPhotons
 {
 
-/** Sample point stepping */
-BOOST_CONSTEXPR_OR_CONST float_64 SYNC_FUNCS_STEP_WIDTH =
-    SYNC_FUNCS_CUTOFF / static_cast<float_64>(SYNC_FUNCS_NUM_SAMPLES - 1u);
+/**
+ *
+ * \tparam T_ElectronSpecies
+ * \tparam T_PhotonSpecies
+ */
+template<typename T_ElectronSpecies, typename T_PhotonSpecies>
+struct PhotonCreator;
 
-/** In the definition of the first synchrotron function the bessel function is integrated
- * up to infinity but in fact it is sufficient to integrate up to this constant. */
-BOOST_CONSTEXPR_OR_CONST float_64 SYNC_FUNCS_F1_INTEGRAL_BOUND = 50.0;
-
-} // namespace bremsstrahlung
+} // namespace synchrotronPhotons
 } // namespace particles
 } // namespace picongpu

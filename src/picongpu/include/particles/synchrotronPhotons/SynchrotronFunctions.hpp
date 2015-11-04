@@ -21,6 +21,7 @@
 #pragma once
 
 #include "simulation_defines.hpp"
+
 #include "cuSTL/container/HostBuffer.hpp"
 #include "cuSTL/cursor/Cursor.hpp"
 #include "cuSTL/cursor/navigator/PlusNavigator.hpp"
@@ -33,7 +34,7 @@ namespace picongpu
 {
 namespace particles
 {
-namespace bremsstrahlung
+namespace synchrotronPhotons
 {
 
 namespace detail
@@ -120,6 +121,6 @@ public:
 
 }; // class SynchrotronFunctions
 
-} // namespace bremsstrahlung
+} // namespace synchrotronPhotons
 } // namespace particles
 } // namespace picongpu

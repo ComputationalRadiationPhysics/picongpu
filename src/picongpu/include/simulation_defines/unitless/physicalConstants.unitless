@@ -80,6 +80,9 @@ namespace picongpu
 
     BOOST_CONSTEXPR_OR_CONST float_X SPEED_OF_LIGHT = float_X(SI::SPEED_OF_LIGHT_SI / UNIT_SPEED);
 
+    //! reduced Planck constant
+    BOOST_CONSTEXPR_OR_CONST float_X HBAR = (float_X) (SI::HBAR_SI / UNIT_ENERGY / UNIT_TIME);
+
     //! Charge of electron
     BOOST_CONSTEXPR_OR_CONST float_X ELECTRON_CHARGE = (float_X) (SI::ELECTRON_CHARGE_SI / UNIT_CHARGE);
     //! Mass of electron
