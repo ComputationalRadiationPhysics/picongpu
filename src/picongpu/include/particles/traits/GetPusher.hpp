@@ -27,6 +27,8 @@
 namespace picongpu
 {
 
+namespace traits
+{
 template<typename T_Species>
 struct GetPusher
 {
@@ -35,4 +37,5 @@ struct GetPusher
     >::type type;
 };
 
+}// namespace traits
 }// namespace picongpu

@@ -34,6 +34,8 @@
 namespace picongpu
 {
 
+namespace traits
+{
 template<typename T_SpeciesType>
 struct GetIonizer
 {
@@ -61,4 +63,5 @@ struct GetIonizer
 
 }; // struct GetIonizer
 
+}// namespace traits
 }// namespace picongpu
