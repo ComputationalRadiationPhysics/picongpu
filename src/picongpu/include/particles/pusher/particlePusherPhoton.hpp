@@ -26,7 +26,7 @@
 
 namespace picongpu
 {
-    namespace particlePusherPhot
+    namespace particlePusherPhoton
     {
         template<class Velocity, class Gamma>
         struct Push

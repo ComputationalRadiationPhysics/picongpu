@@ -41,7 +41,7 @@ namespace picongpu
     }
 
 
-    namespace particlePusherAxl
+    namespace particlePusherAxel
     {
 
         enum TrajectoryInterpolationType
