@@ -44,6 +44,7 @@
 
 #include <boost/mpl/accumulate.hpp>
 #include "particles/traits/GetInterpolation.hpp"
+#include "particles/traits/FilterByFlag.hpp"
 #include "traits/GetMargin.hpp"
 
 namespace picongpu
@@ -64,9 +65,15 @@ namespace picongpu
          */
         const DataSpace<simDim> coreBorderSize = cellDescription.getGridLayout( ).getDataSpaceWithoutGuarding( );
 
+        typedef typename PMacc::particles::traits::FilterByFlag
+        <
+            VectorAllSpecies,
+            interpolation<>
+        >::type VectorSpeciesWithInterpolation;
+            
         /* ------------------ lower margin  ----------------------------------*/
         typedef bmpl::accumulate<
-            VectorAllSpecies,
+            VectorSpeciesWithInterpolation,
             typename PMacc::math::CT::make_Int<simDim, 0>::type,
             PMacc::math::CT::max<bmpl::_1, GetLowerMargin< GetInterpolation<bmpl::_2> > >
         >::type SpeciesLowerMargin;
@@ -94,7 +101,7 @@ namespace picongpu
         /* ------------------ upper margin  -----------------------------------*/
 
         typedef bmpl::accumulate<
-            VectorAllSpecies,
+            VectorSpeciesWithInterpolation,
             typename PMacc::math::CT::make_Int<simDim, 0>::type,
             PMacc::math::CT::max<bmpl::_1, GetUpperMargin< GetInterpolation<bmpl::_2> > >
         >::type SpeciesUpperMargin;
