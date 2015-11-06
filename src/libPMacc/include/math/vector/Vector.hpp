@@ -556,7 +556,7 @@ template <typename, int> class T_Storage
 >
 HDINLINE Vector<T_Type, T_Dim>
 operator+(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs,
-          typename boost::call_traits<T_Type>::param_type rhs)
+          typename Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>::ParamType rhs)
 {
     /* to avoid allocation side effects the result is always a vector
      * with default policies*/
@@ -591,7 +591,7 @@ template <typename, int> class T_Storage
 >
 HDINLINE Vector<T_Type, T_Dim>
 operator-(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs,
-          typename boost::call_traits<T_Type>::param_type rhs)
+          typename Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>::ParamType rhs)
 {
     /* to avoid allocation side effects the result is always a vector
      * with default policies*/
@@ -646,7 +646,8 @@ typename T_Navigator,
 template <typename, int> class T_Storage
 >
 HDINLINE Vector<T_Type, T_Dim>
-operator*(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs, typename boost::call_traits<T_Type>::param_type rhs)
+operator*(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs,
+          typename Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>::ParamType rhs)
 {
     /* to avoid allocation side effects the result is always a vector
      * with default policies*/
@@ -662,7 +663,8 @@ typename T_Navigator,
 template <typename, int> class T_Storage
 >
 HDINLINE Vector<T_Type, T_Dim>
-operator*(typename boost::call_traits<T_Type>::param_type lhs, const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& rhs)
+operator*(typename boost::call_traits<T_Type>::param_type lhs,
+          const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& rhs)
 {
     /* to avoid allocation side effects the result is always a vector
      * with default policies*/
@@ -678,7 +680,8 @@ typename T_Navigator,
 template <typename, int> class T_Storage
 >
 HDINLINE Vector<T_Type, T_Dim>
-operator/(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs, typename boost::call_traits<T_Type>::param_type rhs)
+operator/(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs,
+          typename Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>::ParamType rhs)
 {
     /* to avoid allocation side effects the result is always a vector
      * with default policies*/
