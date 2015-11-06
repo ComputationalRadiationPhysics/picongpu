@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Felix Schmitt
+ * Copyright 2014-2015 Felix Schmitt, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -131,9 +131,6 @@ int main(int argc, char **argv)
     Dimensions data_size(options.dataSize);
     std::cout << "Creating density data with size " << data_size.toString() << std::endl;
 
-    float *data = new float[data_size.getScalarSize()];
-    memset(data, 0, data_size.getScalarSize() * sizeof (float));
-
     std::cout << " Reading PNG file '" << options.filename << "'" << std::endl;
     pngwriter image(data_size[1], data_size[0], 0, (options.filename + std::string(".tmp")).c_str());
     image.readfromfile(options.filename.c_str());
@@ -146,6 +143,9 @@ int main(int argc, char **argv)
         MPI_Finalize();
         return -1;
     }
+
+    float *data = new float[data_size.getScalarSize()];
+    memset(data, 0, data_size.getScalarSize() * sizeof (float));
 
     for (size_t x = 0; x < data_size[0]; ++x)
         for (size_t y = 0; y < data_size[1]; ++y)
