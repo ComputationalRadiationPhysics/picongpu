@@ -156,12 +156,8 @@ void Particles<T_ParticleDescription>::init( FieldE &fieldE, FieldB &fieldB, Fie
 template<typename T_ParticleDescription>
 void Particles<T_ParticleDescription>::update(uint32_t )
 {
-    typedef typename HasFlag<FrameType,particlePusher<> >::type hasPusher;
-    typedef typename GetFlagType<FrameType,particlePusher<> >::type FoundPusher;
-
-    /* if no pusher was defined we use PusherNone as fallback */
-    typedef typename bmpl::if_<hasPusher,FoundPusher,particles::pusher::None >::type SelectPusher;
-    typedef typename PMacc::traits::Resolve<SelectPusher>::type::type ParticlePush;
+    typedef typename GetFlagType<FrameType,particlePusher<> >::type PusherAlias;
+    typedef typename PMacc::traits::Resolve<PusherAlias>::type::type ParticlePush;
 
     typedef typename PMacc::traits::Resolve<
         typename GetFlagType<FrameType,interpolation<> >::type
