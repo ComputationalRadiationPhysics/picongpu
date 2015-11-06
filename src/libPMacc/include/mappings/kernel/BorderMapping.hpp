@@ -32,11 +32,15 @@ namespace PMacc
 
     /**
      * This maps onto the border to 1 exchange direction (e.g. TOP, BOTTOM, TOP + LEFT, ...)
-     * The area is basically the same as the surrounding guard region
-     * but on the border. By "adding" directions you limit the area. Examples:
+     * Choosing multiple directions defines an intersection [1] in mathematical set theory.
+     * The area is basically the same as the surrounding guard region but on the border.
+     *
+     * Examples:
      * FRONT: Whole top area of the border (Size: ~x*y)
      * FRONT + LEFT: Only the edge at the intersection of the front and left border (Size: ~y)
      * FRONT + LEFT + TOP: Only the corner super cell(s) (Size: ~1)
+     *
+     * [1] https://en.wikipedia.org/wiki/Intersection_%28set_theory%29
      *
      * @tparam T_BaseClass base class for mapping, should be MappingDescription
      */
