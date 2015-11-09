@@ -62,6 +62,8 @@
 #include "particles/ParticlesFunctors.hpp"
 #include "particles/InitFunctors.hpp"
 #include "particles/memory/buffers/MallocMCBuffer.hpp"
+#include "particles/traits/FilterByFlag.hpp"
+
 #include <boost/mpl/int.hpp>
 
 namespace picongpu
@@ -429,12 +431,17 @@ public:
         (*currentBGField)(fieldJ, nvfct::Add(), FieldBackgroundJ(fieldJ->getUnit()),
                           currentStep, FieldBackgroundJ::activated);
 #if (ENABLE_CURRENT == 1)
-        ForEach<VectorAllSpecies, ComputeCurrent<bmpl::_1,bmpl::int_<CORE + BORDER> >, MakeIdentifier<bmpl::_1> > computeCurrent;
+        typedef typename PMacc::particles::traits::FilterByFlag
+        <
+            VectorAllSpecies,
+            current<>
+        >::type VectorSpeciesWithCurrentSolver;
+        ForEach<VectorSpeciesWithCurrentSolver, ComputeCurrent<bmpl::_1,bmpl::int_<CORE + BORDER> >, MakeIdentifier<bmpl::_1> > computeCurrent;
         computeCurrent(forward(fieldJ),forward(particleStorage), currentStep);
 #endif
 
 #if  (ENABLE_CURRENT == 1)
-        if(bmpl::size<VectorAllSpecies>::type::value > 0)
+        if(bmpl::size<VectorSpeciesWithCurrentSolver>::type::value > 0)
         {
             EventTask eRecvCurrent = fieldJ->asyncCommunication(__getTransactionEvent());
 
