@@ -51,7 +51,7 @@ struct Memcopy<1>
     {
             const cudaMemcpyKind kind[] = {cudaMemcpyHostToDevice, cudaMemcpyDeviceToHost,
                                      cudaMemcpyHostToHost, cudaMemcpyDeviceToDevice};
-            CUDA_CHECK_NO_EXCEP(cudaMemcpy(dest, source, sizeof(Type) * size.x(), kind[direction]));
+            CUDA_CHECK(cudaMemcpy(dest, source, sizeof(Type) * size.x(), kind[direction]));
     }
 };
 
@@ -66,7 +66,7 @@ struct Memcopy<2u>
             const cudaMemcpyKind kind[] = {cudaMemcpyHostToDevice, cudaMemcpyDeviceToHost,
                                      cudaMemcpyHostToHost, cudaMemcpyDeviceToDevice};
 
-            CUDA_CHECK_NO_EXCEP(cudaMemcpy2D(dest, pitchDest.x(), source, pitchSource.x(), sizeof(Type) * size.x(), size.y(),
+            CUDA_CHECK(cudaMemcpy2D(dest, pitchDest.x(), source, pitchSource.x(), sizeof(Type) * size.x(), size.y(),
                          kind[direction]));
     }
 };
@@ -98,7 +98,7 @@ struct Memcopy<3>
             params.dstPtr = pitchedPtrDest;
             params.extent = make_cudaExtent(size.x() * sizeof(Type), size.y(), size.z());
             params.kind = kind[direction];
-            CUDA_CHECK_NO_EXCEP(cudaMemcpy3D(&params));
+            CUDA_CHECK(cudaMemcpy3D(&params));
     }
 };
 

@@ -46,7 +46,7 @@ DeviceMemAllocator<Type, T_dim>::allocate(const math::Size_t<T_dim>& size)
         cudaData.xsize = size[0];
         cudaData.ysize = size[1];
         if(size.productOfComponents())
-            CUDA_CHECK_NO_EXCEP(cudaMallocPitch(&cudaData.ptr, &cudaData.pitch, cudaData.xsize * sizeof (Type), cudaData.ysize));
+            CUDA_CHECK(cudaMallocPitch(&cudaData.ptr, &cudaData.pitch, cudaData.xsize * sizeof (Type), cudaData.ysize));
         pitch[0] = cudaData.pitch;
     }
     else if (dim == 3u)
@@ -56,7 +56,7 @@ DeviceMemAllocator<Type, T_dim>::allocate(const math::Size_t<T_dim>& size)
         extent.height = size[1];
         extent.depth = size[2];
         if(size.productOfComponents())
-            CUDA_CHECK_NO_EXCEP(cudaMalloc3D(&cudaData, extent));
+            CUDA_CHECK(cudaMalloc3D(&cudaData, extent));
         pitch[0] = cudaData.pitch;
         pitch[1] = cudaData.pitch * size[1];
     }
@@ -80,7 +80,7 @@ DeviceMemAllocator<Type, 1>::allocate(const math::Size_t<1>& size)
     Type* dataPointer = NULL;
 
     if(size[0])
-        CUDA_CHECK_NO_EXCEP(cudaMalloc((void**)&dataPointer, size[0] * sizeof(Type)));
+        CUDA_CHECK(cudaMalloc((void**)&dataPointer, size[0] * sizeof(Type)));
 
     return cursor::BufferCursor<Type, 1>(dataPointer, math::Size_t<0>());
 #endif
@@ -96,7 +96,7 @@ template<typename TCursor>
 void DeviceMemAllocator<Type, T_dim>::deallocate(const TCursor& cursor)
 {
 #ifndef __CUDA_ARCH__
-    CUDA_CHECK_NO_EXCEP(cudaFree(cursor.getMarker()));
+    CUDA_CHECK(cudaFree(cursor.getMarker()));
 #endif
 }
 
@@ -105,7 +105,7 @@ template<typename TCursor>
 void DeviceMemAllocator<Type, 1>::deallocate(const TCursor& cursor)
 {
 #ifndef __CUDA_ARCH__
-    CUDA_CHECK_NO_EXCEP(cudaFree(cursor.getMarker()));
+    CUDA_CHECK(cudaFree(cursor.getMarker()));
 #endif
 }
 
