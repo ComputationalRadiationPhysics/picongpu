@@ -63,6 +63,7 @@
 #include "particles/InitFunctors.hpp"
 #include "particles/memory/buffers/MallocMCBuffer.hpp"
 #include "particles/traits/FilterByFlag.hpp"
+#include "particles/traits/FilterByFlag.hpp"
 
 #include <boost/mpl/int.hpp>
 
