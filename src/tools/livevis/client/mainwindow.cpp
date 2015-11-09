@@ -717,7 +717,7 @@ void MainWindow::triggerUi()
         ui->dataSidebar->hide();
         ui->transferfuncSidebar->hide();
         ui->settingsSidebar->hide();
-        ui->infoBar->hide();
+        //ui->infoBar->hide();
         ui->clipSidebar->hide();
 
         m_uiVisible = false;
@@ -727,7 +727,7 @@ void MainWindow::triggerUi()
         ui->dataSidebar->show();
         ui->transferfuncSidebar->show();
         ui->settingsSidebar->show();
-        ui->infoBar->show();
+        //ui->infoBar->show();
         ui->clipSidebar->show();
 
         this->correct_sidebar_positions();
