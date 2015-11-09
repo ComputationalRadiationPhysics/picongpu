@@ -79,6 +79,9 @@ typedef currentSolver::Esirkepov<UsedParticleShape> UsedParticleCurrentSolver;
  * (= free stream model)
  * - particles::pusher::Photon : propagate with c in direction of normalized mom.
  */
-typedef particles::pusher::Boris UsedParticlePusher;
+#ifndef PARAM_PARTICLEPUSHER
+#define PARAM_PARTICLEPUSHER Boris
+#endif
+typedef particles::pusher::PARAM_PARTICLEPUSHER UsedParticlePusher;
 
 }//namespace picongpu
