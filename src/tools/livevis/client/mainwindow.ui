@@ -285,7 +285,7 @@ QRadioButton::indicator::checked {
              <item>
               <widget class="QSlider" name="sldSlopeTFA">
                <property name="maximum">
-                <number>100</number>
+                <number>200</number>
                </property>
                <property name="value">
                 <number>50</number>
@@ -406,7 +406,7 @@ QRadioButton::indicator::checked {
              <item>
               <widget class="QSlider" name="sldSlopeTFB">
                <property name="maximum">
-                <number>100</number>
+                <number>200</number>
                </property>
                <property name="value">
                 <number>50</number>
