@@ -41,23 +41,14 @@ struct GetIonizer
     typedef T_SpeciesType SpeciesType;
     typedef typename SpeciesType::FrameType FrameType;
 
-    typedef typename HasFlag<FrameType, ionizer<> >::type hasIonizer;
-
     /* The following line only fetches the alias */
     typedef typename GetFlagType<FrameType,ionizer<> >::type FoundIonizerAlias;
 
     /* This now resolves the alias into the actual object type */
     typedef typename PMacc::traits::Resolve<FoundIonizerAlias>::type FoundIonizer;
 
-    /* This specifies the source species as the second template parameter of the ionization model */
-     typedef typename bmpl::if_<
-        hasIonizer,
-        FoundIonizer,
-        particles::ionization::None<SpeciesType>
-    >::type UserIonizer;
-
     /* specializes the designated ionization model with the particle species it is called upon */
-    typedef typename bmpl::apply1<typename UserIonizer::type, SpeciesType>::type type;
+    typedef typename bmpl::apply1<typename FoundIonizer::type, SpeciesType>::type type;
 
 }; // struct GetIonizer
 
