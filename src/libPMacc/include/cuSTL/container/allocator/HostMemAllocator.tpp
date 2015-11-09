@@ -36,7 +36,7 @@ HostMemAllocator<Type, T_dim>::allocate(const math::Size_t<T_dim>& size)
     math::Size_t<T_dim-1> pitch;
 
     if(size.productOfComponents())
-        CUDA_CHECK_NO_EXCEP(cudaMallocHost((void**)&dataPointer, sizeof(Type) * size.productOfComponents()));
+        CUDA_CHECK(cudaMallocHost((void**)&dataPointer, sizeof(Type) * size.productOfComponents()));
     if(dim == 2u)
     {
         pitch[0] = size[0] * sizeof(Type);
@@ -66,7 +66,7 @@ HostMemAllocator<Type, 1>::allocate(const math::Size_t<1>& size)
     math::Size_t<0> pitch;
 
     if(size.productOfComponents())
-        CUDA_CHECK_NO_EXCEP(cudaMallocHost((void**)&dataPointer, sizeof(Type) * size.productOfComponents()));
+        CUDA_CHECK(cudaMallocHost((void**)&dataPointer, sizeof(Type) * size.productOfComponents()));
 
     return cursor::BufferCursor<Type, 1>(dataPointer, pitch);
 #endif
@@ -83,7 +83,7 @@ template<typename TCursor>
 void HostMemAllocator<Type, T_dim>::deallocate(const TCursor& cursor)
 {
 #ifndef __CUDA_ARCH__
-    CUDA_CHECK_NO_EXCEP(cudaFreeHost(cursor.getMarker()));
+    CUDA_CHECK(cudaFreeHost(cursor.getMarker()));
 #endif
 }
 
@@ -92,7 +92,7 @@ template<typename TCursor>
 void HostMemAllocator<Type, 1>::deallocate(const TCursor& cursor)
 {
 #ifndef __CUDA_ARCH__
-    CUDA_CHECK_NO_EXCEP(cudaFreeHost(cursor.getMarker()));
+    CUDA_CHECK(cudaFreeHost(cursor.getMarker()));
 #endif
 }
 
