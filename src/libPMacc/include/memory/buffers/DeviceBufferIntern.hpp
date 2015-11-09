@@ -211,18 +211,18 @@ public:
 
     void copyFrom(HostBuffer<TYPE, DIM>& other)
     {
-        __startAtomicTransaction(__getTransactionEvent());
+        
         assert(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
         Environment<>::get().Factory().createTaskCopyHostToDevice(other, *this);
-        __setTransactionEvent(__endTransaction());
+
     }
 
     void copyFrom(DeviceBuffer<TYPE, DIM>& other)
     {
-        __startAtomicTransaction(__getTransactionEvent());
+
         assert(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
         Environment<>::get().Factory().createTaskCopyDeviceToDevice(other, *this);
-        __setTransactionEvent(__endTransaction());
+
     }
 
     const cudaPitchedPtr getCudaPitched() const

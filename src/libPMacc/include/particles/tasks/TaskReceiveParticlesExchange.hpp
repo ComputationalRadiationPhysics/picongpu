@@ -71,8 +71,8 @@ namespace PMacc
                         __startTransaction();
                         lastSize = parBase.getParticlesBuffer().getReceiveExchangeStack(exchange).getHostParticlesCurrentSize();
                         parBase.insertParticles(exchange);
-                       // std::cout<<"brecv = "<<parBase.getParticlesBuffer().getReceiveExchangeStack(exchange).getHostCurrentSize()<<std::endl;
                         tmpEvent = __endTransaction();
+                        initDependency = tmpEvent;
                         state = WaitForInsert;
                     }
 

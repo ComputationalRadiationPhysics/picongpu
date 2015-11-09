@@ -60,7 +60,7 @@ namespace PMacc
                     break;
                 case RunCopy:
                     state = WaitForFinish;
-                    __startAtomicTransaction();
+                   __startTransaction();
                     exchange->getHostBuffer().setCurrentSize(newBufferSize);
                     if (exchange->hasDeviceDoubleBuffer())
                     {
@@ -103,11 +103,9 @@ namespace PMacc
                 case RECVFINISHED:
                     if (data != NULL)
                     {
-                        __startTransaction(); //no blocking
                         EventDataReceive *rdata = static_cast<EventDataReceive*> (data);
                         // std::cout<<" data rec "<<rdata->getReceivedCount()/sizeof(TYPE)<<std::endl;
                         newBufferSize = rdata->getReceivedCount() / sizeof (TYPE);
-                        __endTransaction();
                         state = RunCopy;
                         executeIntern();
                     }
@@ -123,7 +121,9 @@ namespace PMacc
 
         std::string toString()
         {
-            return "TaskReceive";
+            std::stringstream ss;
+            ss<<state;
+            return std::string("TaskReceive ")+ ss.str();
         }
 
     private:

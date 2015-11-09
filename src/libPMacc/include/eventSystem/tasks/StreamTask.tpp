@@ -36,7 +36,7 @@ stream( NULL ),
 hasCudaEvent( false ),
 alwaysFinished( false )
 {
-    this->setTaskType( TASK_CUDA );
+    this->setTaskType( ITask::TASK_CUDA );
 }
 
 inline CudaEvent StreamTask::getCudaEvent( ) const

@@ -51,7 +51,7 @@ inline bool Manager::execute( id_t taskToWait )
 #ifdef DEBUG_EVENTS
     static int old_max = 0;
     static int deep = -1;
-        static int counter = 0;
+    static int counter = 0;
     ++counter;
 
     deep++;
@@ -114,6 +114,8 @@ inline void Manager::event( id_t eventId, EventType, IEventData* )
 
 inline ITask* Manager::getITaskIfNotFinished( id_t taskId ) const
 {
+    if( taskId == 0 )
+        return NULL;
     ITask* passiveTask = getPassiveITaskIfNotFinished( taskId );
     if ( passiveTask != NULL )
         return passiveTask;
@@ -139,6 +141,8 @@ inline ITask* Manager::getActiveITaskIfNotFinished( id_t taskId ) const
 
 inline void Manager::waitForFinished( id_t taskId )
 {
+    if( taskId == 0 )
+        return;
     //check if task is passive and wait on it
     ITask* task = getPassiveITaskIfNotFinished( taskId );
     if ( task != NULL )

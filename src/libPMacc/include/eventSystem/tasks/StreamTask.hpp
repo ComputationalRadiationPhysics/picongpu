@@ -102,7 +102,6 @@ namespace PMacc
         inline void activate();
 
 
-    private:
         EventStream *stream;
         CudaEvent cudaEvent;
         bool hasCudaEvent;

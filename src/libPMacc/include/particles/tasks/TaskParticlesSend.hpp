@@ -61,7 +61,7 @@ public:
         for (int i = 1; i < Exchanges; ++i)
         {
             /* Start new transaction */
-            __startAtomicTransaction(serialEvent);
+            __startTransaction(serialEvent);
 
             /* Handle particles */
             if (parBase.getParticlesBuffer().hasSendExchange(i))

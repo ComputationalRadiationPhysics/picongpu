@@ -42,7 +42,7 @@ public:
      *
      * @param event initial EventTask for base event
      */
-    Transaction(EventTask event, bool isAtomic = false);
+    Transaction(EventTask event);
 
     /**
      * Adds event to the base event of this transaction.
@@ -74,9 +74,6 @@ public:
 
 private:
     EventTask baseEvent;
-    EventStream *eventStream;
-    bool isAtomic;
-
 };
 
 }

@@ -50,7 +50,6 @@ namespace PMacc
 
         virtual void init()
         {
-            __startTransaction();
             state = InitDone;
             if (exchange->hasDeviceDoubleBuffer())
             {
@@ -67,7 +66,6 @@ namespace PMacc
                                                                                          exchange->getHostBuffer(),
                                                                                          this);
             }
-            __endTransaction(); //we need no blocking because we get a singnal if transaction is finished
 
         }
 
@@ -81,7 +79,7 @@ namespace PMacc
                     state = SendDone;
                     __startTransaction();
                     Environment<>::get().Factory().createTaskSendMPI(exchange, this);
-                    __endTransaction(); //we need no blocking because we get a singnal if transaction is finished
+                    __endTransaction();
                     break;
                 case SendDone:
                     break;
@@ -105,6 +103,7 @@ namespace PMacc
             {
                 state = DeviceToHostFinished;
                 executeIntern();
+
             }
 
             if (type == SENDFINISHED)
@@ -116,7 +115,9 @@ namespace PMacc
 
         std::string toString()
         {
-            return "TaskSend";
+            std::stringstream ss;
+            ss<<state;
+            return std::string("TaskSend ")+ ss.str();
         }
 
     private:

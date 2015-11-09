@@ -56,7 +56,7 @@ public:
         {
             if (m_buffer.getGridBuffer().hasReceiveExchange(i))
             {
-                __startAtomicTransaction(serialEvent);
+                __startTransaction(serialEvent);
                 FieldFactory::getInstance().createTaskFieldReceiveAndInsertExchange(m_buffer, i);
                 m_tmpEvent += __endTransaction();
             }
@@ -78,7 +78,7 @@ public:
             break;
         case Insert:
             m_state = Wait;
-            __startAtomicTransaction();
+            __startTransaction();
             for (uint32_t i = 1; i < traits::NumberOfExchanges<Dim>::value; ++i)
             {
                 if (m_buffer.getGridBuffer().hasReceiveExchange(i))

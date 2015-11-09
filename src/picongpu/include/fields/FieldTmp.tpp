@@ -170,7 +170,6 @@ namespace picongpu
         FieldTmp::DataBoxType tmpBox = this->fieldTmp->getDeviceBuffer( ).getDataBox( );
         FrameSolver solver;
 
-        __startAtomicTransaction( __getTransactionEvent( ) );
         do
         {
             __cudaKernel( ( kernelComputeSupercells<BlockArea, AREA> ) )
@@ -178,7 +177,6 @@ namespace picongpu
                 ( tmpBox,
                   pBox, solver, mapper );
         } while( mapper.next( ) );
-        __setTransactionEvent( __endTransaction( ) );
     }
 
     SimulationDataId FieldTmp::getUniqueId()

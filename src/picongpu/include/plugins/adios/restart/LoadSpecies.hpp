@@ -182,8 +182,6 @@ public:
             const uint32_t iterationsForLoad = ceil(float_64(totalNumParticles) / float_64(restartChunkSize));
             uint32_t leftOverParticles = totalNumParticles;
 
-            __startAtomicTransaction(__getTransactionEvent());
-
             for (uint32_t i = 0; i < iterationsForLoad; ++i)
             {
                 /* only load a chunk of particles per iteration to avoid blow up of frame usage
@@ -202,7 +200,7 @@ public:
                 speciesTmp->fillAllGaps();
                 leftOverParticles -= currentChunkSize;
             }
-            __setTransactionEvent(__endTransaction());
+
             counterBuffer.deviceToHost();
             log<picLog::INPUT_OUTPUT > ("ADIOS: wait for last processed chunk: %1%") % AdiosFrameType::getName();
             __getTransactionEvent().waitForFinished();
