@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2015 Heiko Burau, Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2015 Heiko Burau, Rene Widera, Benjamin Worpitz,
+ *                     Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -30,7 +31,7 @@
 #include "types.h"
 
 #include <boost/mpl/size.hpp>
-
+#include <boost/call_traits.hpp>
 #include <iostream>
 
 namespace PMacc
@@ -119,6 +120,7 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
     typedef T_Accessor Accessor;
     typedef T_Navigator Navigator;
     typedef Vector<type, dim, Accessor, Navigator, T_Storage> This;
+    typedef typename boost::call_traits<type>::param_type ParamType;
 
     /*Vectors without elements are not allowed*/
     PMACC_CASSERT_MSG(math_Vector__with_DIM_0_is_not_allowed,dim > 0);
@@ -194,7 +196,7 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
      * @return new Vector<...>
      */
     HDINLINE
-    static This create(const type& value)
+    static This create(ParamType value)
     {
         This result;
         for (int i = 0; i < dim; i++)
@@ -381,7 +383,7 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
         return *this;
     }
 
-    HDINLINE This& operator+=(const type & other)
+    HDINLINE This& operator+=(ParamType other)
     {
 
         for (int i = 0; i < dim; i++)
@@ -389,7 +391,7 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
         return *this;
     }
 
-    HDINLINE This& operator-=(const type & other)
+    HDINLINE This& operator-=(ParamType other)
     {
 
         for (int i = 0; i < dim; i++)
@@ -397,7 +399,7 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
         return *this;
     }
 
-    HDINLINE This& operator*=(const type & other)
+    HDINLINE This& operator*=(ParamType other)
     {
 
         for (int i = 0; i < dim; i++)
@@ -405,7 +407,7 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
         return *this;
     }
 
-    HDINLINE This& operator/=(const type & other)
+    HDINLINE This& operator/=(ParamType other)
     {
 
         for (int i = 0; i < dim; i++)
@@ -554,7 +556,7 @@ template <typename, int> class T_Storage
 >
 HDINLINE Vector<T_Type, T_Dim>
 operator+(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs,
-          const T_Type& rhs)
+          typename Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>::ParamType rhs)
 {
     /* to avoid allocation side effects the result is always a vector
      * with default policies*/
@@ -589,7 +591,7 @@ template <typename, int> class T_Storage
 >
 HDINLINE Vector<T_Type, T_Dim>
 operator-(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs,
-          const T_Type& rhs)
+          typename Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>::ParamType rhs)
 {
     /* to avoid allocation side effects the result is always a vector
      * with default policies*/
@@ -644,7 +646,8 @@ typename T_Navigator,
 template <typename, int> class T_Storage
 >
 HDINLINE Vector<T_Type, T_Dim>
-operator*(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs, const T_Type& rhs)
+operator*(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs,
+          typename Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>::ParamType rhs)
 {
     /* to avoid allocation side effects the result is always a vector
      * with default policies*/
@@ -660,7 +663,8 @@ typename T_Navigator,
 template <typename, int> class T_Storage
 >
 HDINLINE Vector<T_Type, T_Dim>
-operator*(const T_Type& lhs, const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& rhs)
+operator*(typename boost::call_traits<T_Type>::param_type lhs,
+          const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& rhs)
 {
     /* to avoid allocation side effects the result is always a vector
      * with default policies*/
@@ -676,7 +680,8 @@ typename T_Navigator,
 template <typename, int> class T_Storage
 >
 HDINLINE Vector<T_Type, T_Dim>
-operator/(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs, const T_Type& rhs)
+operator/(const Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>& lhs,
+          typename Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>::ParamType rhs)
 {
     /* to avoid allocation side effects the result is always a vector
      * with default policies*/
