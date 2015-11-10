@@ -47,14 +47,12 @@ public:
 
     virtual void init()
     {
-        __startTransaction();
         this->request = Environment<DIM>::get().EnvironmentController()
                 .getCommunicator().startSend(
                                              exchange->getExchangeType(),
                                              (char*) exchange->getHostBuffer().getPointer(),
                                              exchange->getHostBuffer().getCurrentSize() * sizeof (TYPE),
                                              exchange->getCommunicationTag());
-        __endTransaction();
     }
 
     bool executeIntern()

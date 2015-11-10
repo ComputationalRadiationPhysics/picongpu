@@ -52,7 +52,6 @@ namespace PMacc
             __startTransaction(initDependency);
             parBase.bashParticles(exchange);
             tmpEvent = __endTransaction();
-            initDependency=EventTask();
             state = WaitForBash;
         }
 
@@ -72,7 +71,8 @@ namespace PMacc
                         __startTransaction();
                         lastSize = parBase.getParticlesBuffer().getSendExchangeStack(exchange).getDeviceParticlesCurrentSize();
                        // std::cout<<"bsend = "<<parBase.getParticlesBuffer().getSendExchangeStack(exchange).getDeviceCurrentSize()<<std::endl;
-                        lastSendEvent = parBase.getParticlesBuffer().asyncSendParticles(EventTask(), exchange, tmpEvent);
+                        lastSendEvent = parBase.getParticlesBuffer().asyncSendParticles(__getTransactionEvent(), exchange, tmpEvent);
+                        initDependency = lastSendEvent;
                         __endTransaction();
                         state = WaitForSend;
                     }

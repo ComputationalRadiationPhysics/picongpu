@@ -172,7 +172,6 @@ public:
             const uint32_t iterationsForLoad = ceil(float_64(totalNumParticles) / float_64(restartChunkSize));
             uint32_t leftOverParticles = totalNumParticles;
 
-            __startAtomicTransaction(__getTransactionEvent());
 
             for (uint32_t i = 0; i < iterationsForLoad; ++i)
             {
@@ -192,7 +191,7 @@ public:
                 speciesTmp->fillAllGaps();
                 leftOverParticles -= currentChunkSize;
             }
-            __setTransactionEvent(__endTransaction());
+
             counterBuffer.deviceToHost();
             log<picLog::INPUT_OUTPUT > ("HDF5:  wait for last processed chunk: %1%") % Hdf5FrameType::getName();
             __getTransactionEvent().waitForFinished();

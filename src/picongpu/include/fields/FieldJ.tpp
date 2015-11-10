@@ -284,7 +284,6 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t )
     DataSpace<simDim> blockSize( mapper.getSuperCellSize( ) );
     blockSize[simDim - 1] *= workerMultiplier;
 
-    __startAtomicTransaction( __getTransactionEvent( ) );
     do
     {
         __cudaKernel( ( kernelComputeCurrent<workerMultiplier, BlockArea, AREA> ) )
@@ -293,7 +292,7 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t )
               pBox, solver, mapper );
     }
     while ( mapper.next( ) );
-    __setTransactionEvent( __endTransaction( ) );
+
 }
 
 template<uint32_t AREA, class T_CurrentInterpolation>

@@ -65,7 +65,6 @@ namespace PMacc
 
         virtual void init()
         {
-           // __startAtomicTransaction( __getTransactionEvent());
             size_t current_size = source->getCurrentSize();
             destination->setCurrentSize(current_size);
             DataSpace<DIM> devCurrentSize = source->getCurrentDataSpace(current_size);
@@ -75,7 +74,6 @@ namespace PMacc
                 copy(devCurrentSize);
 
             this->activate();
-          //  __setTransactionEvent(__endTransaction());
         }
 
         std::string toString()
@@ -169,9 +167,6 @@ namespace PMacc
         {
 
             cudaMemcpy3DParms params;
-
-            //  assert(this->source->getDataSpace().productOfComponents() <= this->destination->getDataSpace().productOfComponents());
-
             params.srcArray = NULL;
             params.srcPos = make_cudaPos(
                                          this->source->getOffset()[0] * sizeof (TYPE),

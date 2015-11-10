@@ -91,18 +91,14 @@ public:
 
     void copyFrom(HostBuffer<TYPE, DIM>& other)
     {
-        __startAtomicTransaction(__getTransactionEvent());
         assert(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
         Environment<>::get().Factory().createTaskCopyHostToDevice(other, *this);
-        __setTransactionEvent(__endTransaction());
     }
 
     void copyFrom(DeviceBuffer<TYPE, DIM>& other)
     {
-        __startAtomicTransaction(__getTransactionEvent());
         assert(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
         Environment<>::get().Factory().createTaskCopyDeviceToDevice(other, *this);
-        __setTransactionEvent(__endTransaction());
     }
 
     void reset(bool preserveData = true)
@@ -127,7 +123,7 @@ public:
     {
         return false;
     }
-    
+
     virtual size_t* getCurrentSizeHostSidePointer()
     {
         return this->current_size;
@@ -153,21 +149,21 @@ public:
         __startOperation(ITask::TASK_CUDA);
         TYPE* dPointer;
         cudaHostGetDevicePointer(&dPointer, pointer, 0);
-        
+
         /* on 1D memory we have no size for y, therefore we set y to 1 to
          * get a valid cudaPitchedPtr
          */
         int size_y=1;
         if(DIM>DIM1)
             size_y= this->data_space[1];
-            
+
         return make_cudaPitchedPtr(dPointer,
                                    this->data_space.x() * sizeof (TYPE),
                                    this->data_space.x(),
                                    size_y
                                    );
     }
-    
+
     size_t getPitch() const
     {
         return this->data_space.x() * sizeof (TYPE);

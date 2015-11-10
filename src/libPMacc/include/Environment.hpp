@@ -240,12 +240,34 @@ private:
 
 /* No namespace for macro defines */
 
+/** start a dependency chain */
 #define __startTransaction(...) (PMacc::Environment<>::get().TransactionManager().startTransaction(__VA_ARGS__))
-#define __startAtomicTransaction(...) (PMacc::Environment<>::get().TransactionManager().startAtomicTransaction(__VA_ARGS__))
+
+/** end a opened dependency chain */
 #define __endTransaction() (PMacc::Environment<>::get().TransactionManager().endTransaction())
+
+/** mark the begin of an operation
+ *
+ * depended on the opType this method is blocking
+ *
+ * @param opType place were the operation is running
+ *               possible places are: `ITask::TASK_CUDA`, `ITask::TASK_MPI`, `ITask::TASK_HOST`
+ */
 #define __startOperation(opType) (PMacc::Environment<>::get().TransactionManager().startOperation(opType))
+
+/** get a `EventStream` that must be used for cuda calls
+ *
+ * depended on the opType this method is blocking
+ *
+ * @param opType place were the operation is running
+ *               possible places are: `ITask::TASK_CUDA`, `ITask::TASK_MPI`, `ITask::TASK_HOST`
+ */
 #define __getEventStream(opType) (PMacc::Environment<>::get().TransactionManager().getEventStream(opType))
+
+/** get the event of the current transaction */
 #define __getTransactionEvent() (PMacc::Environment<>::get().TransactionManager().getTransactionEvent())
+
+/** set a event to the current transaction */
 #define __setTransactionEvent(event) (PMacc::Environment<>::get().TransactionManager().setTransactionEvent((event)))
 
 #include "eventSystem/EventSystem.tpp"

@@ -50,12 +50,7 @@ inline TransactionManager::TransactionManager( const TransactionManager& )
 
 inline void TransactionManager::startTransaction( EventTask serialEvent )
 {
-    transactions.push( Transaction( serialEvent,false ) );
-}
-
-inline void TransactionManager::startAtomicTransaction( EventTask serialEvent )
-{
-    transactions.push( Transaction( serialEvent, true ) );
+    transactions.push( Transaction( serialEvent ) );
 }
 
 inline EventTask TransactionManager::endTransaction( )

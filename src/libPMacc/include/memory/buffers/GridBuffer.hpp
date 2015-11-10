@@ -506,8 +506,7 @@ public:
 
             EventTask copyEvent;
             asyncSend(serialEvent, sendEx, copyEvent);
-            /* add only the copy event, because all work on gpu can run after data is copyed
-             */
+            /* add only the copy event, because all work on gpu can run after data is copied */
             evR += copyEvent;
 
         }
@@ -518,12 +517,10 @@ public:
     {
         if (hasSendExchange(sendEx))
         {
-            __startAtomicTransaction(serialEvent + sendEvents[sendEx]);
+            __startTransaction(serialEvent + sendEvents[sendEx]);
             sendEvents[sendEx] = sendExchanges[sendEx]->startSend(gpuFree);
             __endTransaction();
-            /* add only the copy event, because all work on gpu can run after data is copyed
-             */
-            return gpuFree;
+            return sendEvents[sendEx];
         }
         return EventTask();
     }
@@ -532,7 +529,7 @@ public:
     {
         if (hasReceiveExchange(recvEx))
         {
-            __startAtomicTransaction(serialEvent + receiveEvents[recvEx]);
+            __startTransaction(serialEvent + receiveEvents[recvEx]);
             receiveEvents[recvEx] = receiveExchanges[recvEx]->startReceive();
 
             __endTransaction();

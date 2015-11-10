@@ -54,7 +54,7 @@ namespace PMacc
             {
                 if (m_buffer.getGridBuffer().hasSendExchange(i))
                 {
-                    __startAtomicTransaction(serialEvent);
+                    __startTransaction(serialEvent);
                     FieldFactory::getInstance().createTaskFieldSendExchange(m_buffer, i);
                     tmpEvent += __endTransaction();
                 }
