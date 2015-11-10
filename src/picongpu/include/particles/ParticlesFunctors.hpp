@@ -31,6 +31,7 @@
 
 #include "communication/AsyncCommunication.hpp"
 #include "particles/traits/GetIonizer.hpp"
+#include "particles/traits/FilterByFlag.hpp"
 
 namespace picongpu
 {
@@ -181,14 +182,10 @@ struct CommunicateSpecies
                             T_EventList& commEventList
                             ) const
     {
-        typedef typename HasFlag<FrameType, particlePusher<> >::type hasPusher;
-        if (hasPusher::value)
-        {
-            EventTask updateEvent(*(updateEventList.begin()));
+        EventTask updateEvent(*(updateEventList.begin()));
 
-            updateEventList.pop_front();
-            commEventList.push_back( communication::asyncCommunication(*tuple[SpeciesName()], updateEvent) );
-        }
+        updateEventList.pop_front();
+        commEventList.push_back( communication::asyncCommunication(*tuple[SpeciesName()], updateEvent) );
     }
 };
 
@@ -218,7 +215,12 @@ struct PushAllSpecies
         EventList commEventList;
 
         /* push all species */
-        ForEach<VectorAllSpecies, particles::PushSpecies<bmpl::_1>, MakeIdentifier<bmpl::_1> > pushSpecies;
+        typedef typename PMacc::particles::traits::FilterByFlag
+        <
+            VectorAllSpecies,
+            particlePusher<>
+        >::type VectorSpeciesWithPusher;
+        ForEach<VectorSpeciesWithPusher, particles::PushSpecies<bmpl::_1>, MakeIdentifier<bmpl::_1> > pushSpecies;
         pushSpecies(forward(speciesStorage), currentStep, eventInt, forward(updateEventList));
 
         /* join all push events */
@@ -230,7 +232,7 @@ struct PushAllSpecies
         }
 
         /* call communication for all species */
-        ForEach<VectorAllSpecies, particles::CommunicateSpecies<bmpl::_1>, MakeIdentifier<bmpl::_1> > communicateSpecies;
+        ForEach<VectorSpeciesWithPusher, particles::CommunicateSpecies<bmpl::_1>, MakeIdentifier<bmpl::_1> > communicateSpecies;
         communicateSpecies(forward(speciesStorage), forward(updateEventList), forward(commEventList));
 
         /* join all communication events */
