@@ -50,6 +50,8 @@
 
 #include <boost/mpl/accumulate.hpp>
 #include "particles/traits/GetInterpolation.hpp"
+#include "particles/traits/FilterByFlag.hpp"
+
 #include "traits/GetMargin.hpp"
 
 namespace picongpu
@@ -64,14 +66,19 @@ fieldE( NULL )
     /*#####create FieldB###############*/
     fieldB = new GridBuffer<ValueType, simDim > ( cellDescription.getGridLayout( ) );
 
-    typedef bmpl::accumulate<
+    typedef typename PMacc::particles::traits::FilterByFlag
+    <
         VectorAllSpecies,
+        interpolation<>
+    >::type VectorSpeciesWithInterpolation;
+    typedef bmpl::accumulate<
+        VectorSpeciesWithInterpolation,
         typename PMacc::math::CT::make_Int<simDim, 0>::type,
         PMacc::math::CT::max<bmpl::_1, GetLowerMargin< GetInterpolation<bmpl::_2> > >
         >::type LowerMarginInterpolation;
 
     typedef bmpl::accumulate<
-        VectorAllSpecies,
+        VectorSpeciesWithInterpolation,
         typename PMacc::math::CT::make_Int<simDim, 0>::type,
         PMacc::math::CT::max<bmpl::_1, GetUpperMargin< GetInterpolation<bmpl::_2> > >
         >::type UpperMarginInterpolation;
