@@ -256,7 +256,7 @@ struct CallIonization
     typedef typename SpeciesName::type SpeciesType;
     typedef typename SpeciesType::FrameType FrameType;
     /* SelectIonizer will be either the specified one or fallback: None */
-    typedef typename GetIonizer<SpeciesType>::type SelectIonizer;
+    typedef typename picongpu::traits::GetIonizer<SpeciesType>::type SelectIonizer;
 
     /** Functor implementation
      *
