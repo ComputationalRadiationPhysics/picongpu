@@ -52,6 +52,7 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
                                      ParBox boxPar, FrameSolver frameSolver, Mapping mapper)
 {
     typedef typename ParBox::FrameType FrameType;
+    typedef typename ParBox::FramePtr FramePtr;
     typedef typename Mapping::SuperCellSize SuperCellSize;
 
     const uint32_t cellsPerSuperCell = PMacc::math::CT::volume<SuperCellSize>::type::value;
@@ -67,19 +68,18 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
     const int virtualLinearId = linearThreadIdx - (virtualBlockId * cellsPerSuperCell);
 
 
-    FrameType* frame = NULL;
-    bool isValid = false;
+    FramePtr frame;
     lcellId_t particlesInSuperCell = 0;
 
-    frame = &(boxPar.getLastFrame(block, isValid));
-    if (isValid && virtualBlockId == 0)
+    frame = boxPar.getLastFrame(block);
+    if (frame.isValid() && virtualBlockId == 0)
         particlesInSuperCell = boxPar.getSuperCell(block).getSizeLastFrame();
 
     /* select N-th (N=virtualBlockId) frame from the end of the list*/
-    for (int i = 1; (i <= virtualBlockId) && isValid; ++i)
+    for (int i = 1; (i <= virtualBlockId) && frame.isValid(); ++i)
     {
         particlesInSuperCell = PMacc::math::CT::volume<SuperCellSize>::type::value;
-        frame = &(boxPar.getPreviousFrame(*frame, isValid));
+        frame = boxPar.getPreviousFrame(frame);
     }
 
     /* This memory is used by all virtual blocks*/
@@ -91,7 +91,7 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
 
     __syncthreads();
 
-    while (isValid)
+    while (frame.isValid())
     {
         /* this test is only importend for the last frame
          * if frame is not the last one particlesInSuperCell==particles count in supercell
@@ -104,9 +104,9 @@ __global__ void kernelComputeCurrent(JBox fieldJ,
         }
 
         particlesInSuperCell = PMacc::math::CT::volume<SuperCellSize>::type::value;
-        for (int i = 0; (i < workerMultiplier) && isValid; ++i)
+        for (int i = 0; (i < workerMultiplier) && frame.isValid(); ++i)
         {
-            frame = &(boxPar.getPreviousFrame(*frame, isValid));
+            frame = boxPar.getPreviousFrame(frame);
         }
     }
 

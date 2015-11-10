@@ -50,6 +50,7 @@ __global__ void CountMakroParticle(ParBox parBox, CounterBox counterBox, Mapping
 
     typedef MappingDesc::SuperCellSize SuperCellSize;
     typedef typename ParBox::FrameType FrameType;
+    typedef typename ParBox::FramePtr FramePtr;
 
     const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
     /* counterBox has no guarding supercells*/
@@ -59,25 +60,24 @@ __global__ void CountMakroParticle(ParBox parBox, CounterBox counterBox, Mapping
     const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
 
     __shared__ uint64_cu counterValue;
-    __shared__ FrameType *frame;
-    __shared__ bool isValid;
+    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
 
     if (linearThreadIdx == 0)
     {
         counterValue = 0;
-        frame = &(parBox.getLastFrame(block, isValid));
-        if (!isValid)
+        frame = parBox.getLastFrame(block);
+        if (!frame.isValid())
         {
             counterBox(counterCell) = counterValue;
         }
     }
     __syncthreads();
-    if (!isValid)
+    if (!frame.isValid())
         return; //end kernel if we have no frames
 
-    bool isParticle = (*frame)[linearThreadIdx][multiMask_];
+    bool isParticle = frame[linearThreadIdx][multiMask_];
 
-    while (isValid)
+    while (frame.isValid())
     {
         if (isParticle)
         {
@@ -86,7 +86,7 @@ __global__ void CountMakroParticle(ParBox parBox, CounterBox counterBox, Mapping
         __syncthreads();
         if (linearThreadIdx == 0)
         {
-            frame = &(parBox.getPreviousFrame(*frame, isValid));
+            frame = parBox.getPreviousFrame(frame);
         }
         isParticle = true;
         __syncthreads();

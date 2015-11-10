@@ -54,8 +54,8 @@ namespace po = boost::program_options;
 /* sum up the energy of all particles
  * the kinetic energy of all active particles will be calculated
  */
-template<class FRAME, class BinBox, class Mapping>
-__global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
+template<class ParBox, class BinBox, class Mapping>
+__global__ void kernelBinEnergyParticles(ParBox pb,
                                          BinBox gBins, int numBins,
                                          float_X minEnergy,
                                          float_X maxEnergy,
@@ -65,9 +65,10 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
 {
 
     typedef typename MappingDesc::SuperCellSize Block;
+    typedef typename ParBox::FramePtr FramePtr;
 
-    __shared__ FRAME *frame;
-    __shared__ bool isValid;
+    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
+
     __shared__ lcellId_t particlesInSuperCell;
 
     const bool enableDetector = maximumSlopeToDetectorX != float_X(0.0) && maximumSlopeToDetectorZ != float_X(0.0);
@@ -91,7 +92,7 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
     if (linearThreadIdx == 0)
     {
         const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
-        frame = &(pb.getLastFrame(superCellIdx, isValid));
+        frame = pb.getLastFrame(superCellIdx);
         particlesInSuperCell = pb.getSuperCell(superCellIdx).getSizeLastFrame();
     }
     /* set all bins to 0 */
@@ -101,14 +102,14 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
     }
 
     __syncthreads();
-    if (!isValid)
+    if (!frame.isValid())
       return; /* end kernel if we have no frames */
 
-    while (isValid)
+    while (frame.isValid())
     {
         if (linearThreadIdx < particlesInSuperCell)
         {
-            PMACC_AUTO(particle,(*frame)[linearThreadIdx]);
+            PMACC_AUTO(particle,frame[linearThreadIdx]);
             /* kinetic Energy for Particles: E^2 = p^2*c^2 + m^2*c^4
              *                                   = c^2 * [p^2 + m^2*c^2] */
             const float3_X mom = particle[momentum_];
@@ -177,7 +178,7 @@ __global__ void kernelBinEnergyParticles(ParticlesBox<FRAME, simDim> pb,
         __syncthreads();
         if (linearThreadIdx == 0)
         {
-            frame = &(pb.getPreviousFrame(*frame, isValid));
+            frame = pb.getPreviousFrame(frame);
             particlesInSuperCell = PMacc::math::CT::volume<Block>::type::value;
         }
         __syncthreads();

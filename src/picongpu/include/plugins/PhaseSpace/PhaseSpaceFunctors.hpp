@@ -84,7 +84,7 @@ namespace picongpu
                     const uint32_t el_p,
                     const std::pair<float_X, float_X>& axis_p_range )
         {
-            PMACC_AUTO( particle, (*frame)[particleID] );
+            PMACC_AUTO( particle, frame[particleID] );
             /** \todo this can become a functor to be even more flexible */
             const float_X mom_i = particle[momentum_][el_p];
 

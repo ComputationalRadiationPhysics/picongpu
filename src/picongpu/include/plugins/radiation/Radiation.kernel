@@ -109,9 +109,9 @@ void kernelRadiationParticles(ParBox pb,
 
     typedef typename MappingDesc::SuperCellSize Block;
     typedef typename ParBox::FrameType FRAME;
+    typedef typename ParBox::FramePtr FramePtr;
 
-    __shared__ FRAME *frame; // pointer to  frame storing particles
-    __shared__ bool isValid; // bool saying if frame is valid
+    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame; // pointer to  frame storing particles
     __shared__ lcellId_t particlesInFrame; // number  of particles in current frame
 
     using namespace parameters; // parameters of radiation
@@ -201,7 +201,7 @@ void kernelRadiationParticles(ParBox pb,
         if (linearThreadIdx == 0)
           {
             // set frame pointer
-            frame = &(pb.getLastFrame(superCell, isValid));
+            frame = pb.getLastFrame(superCell);
 
             // number of particles in this frame
             particlesInFrame = pb.getSuperCell(superCell).getSizeLastFrame();
@@ -216,13 +216,13 @@ void kernelRadiationParticles(ParBox pb,
          * if "isValid" is false then there is no frame
          * inside the superCell (anymore)
          */
-        while (isValid)
+        while (frame.isValid())
         {
             // only threads with particles are running
             if (linearThreadIdx < particlesInFrame)
             {
 
-                PMACC_AUTO(par,(*frame)[linearThreadIdx]);
+                PMACC_AUTO(par,frame[linearThreadIdx]);
                 // get old and new particle momenta
                 const vector_X particle_momentumNow = vector_X(par[momentum_]);
                 const vector_X particle_momentumOld = vector_X(par[momentumPrev1_]);
@@ -473,7 +473,7 @@ void kernelRadiationParticles(ParBox pb,
                  *   all previous SuperCells are full with particles
                  */
                 particlesInFrame = blockSize;
-                frame = &(pb.getPreviousFrame(*frame, isValid));
+                frame = pb.getPreviousFrame(frame);
                 counter_s = 0;
               }
 
@@ -482,7 +482,7 @@ void kernelRadiationParticles(ParBox pb,
 
             // run through while-loop(is Valid) again
 
-          } // end while(isValid)
+          } // end while(frame.isValid())
 
       } // end loop over all super cells
 

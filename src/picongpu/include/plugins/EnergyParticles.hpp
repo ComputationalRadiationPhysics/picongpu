@@ -52,14 +52,14 @@ namespace po = boost::program_options;
 /** This kernel computes the kinetic and total energy summed over
  *  all particles of a species.
  **/
-template<class FRAME, class DBox, class Mapping>
-__global__ void kernelEnergyParticles(ParticlesBox<FRAME, simDim> pb,
+template<class ParBox, class DBox, class Mapping>
+__global__ void kernelEnergyParticles(ParBox pb,
                                       DBox gEnergy,
                                       Mapping mapper)
 {
 
-    __shared__ FRAME *frame; /* pointer to particle data frame */
-    __shared__ bool isValid; /* is data frame valid? */
+    typedef typename ParBox::FramePtr FramePtr;
+    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame; /* pointer to particle data frame */
     __shared__ float_X shEnergyKin; /* shared kinetic energy */
     __shared__ float_X shEnergy; /* shared total energy */
 
@@ -75,27 +75,27 @@ __global__ void kernelEnergyParticles(ParticlesBox<FRAME, simDim> pb,
     if (linearThreadIdx == 0) /* only thread 0 runs initial set up */
     {
         const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
-        frame = &(pb.getLastFrame(superCellIdx, isValid)); /* get first(=last) frame */
+        frame = pb.getLastFrame(superCellIdx); /* get first(=last) frame */
         shEnergyKin = float_X(0.0); /* set shared kinetic energy to zero */
         shEnergy = float_X(0.0); /* set shared total energy to zero */
     }
 
     __syncthreads(); /* wait till thread 0 finishes set up */
-    if (!isValid)
+    if (!frame.isValid())
         return; /* end kernel if we have no frames */
 
     /* this checks if the data loaded by a thread is filled with a particle
      * or not. Only applies to the first loaded frame (=last frame) */
     /* BUGFIX to issue #538
      * volatile prohibits that the compiler creates wrong code*/
-    volatile bool isParticle = (*frame)[linearThreadIdx][multiMask_];
+    volatile bool isParticle = frame[linearThreadIdx][multiMask_];
 
-    while (isValid)
+    while (frame.isValid())
     {
         if (isParticle)
         {
 
-            PMACC_AUTO(particle,(*frame)[linearThreadIdx]); /* get one particle */
+            PMACC_AUTO(particle,frame[linearThreadIdx]); /* get one particle */
             const float3_X mom = particle[momentum_]; /* get particle momentum */
             /* and compute square of absolute momentum of one particle: */
             const float_X mom2 = mom.x() * mom.x() + mom.y() * mom.y() + mom.z() * mom.z();
@@ -133,7 +133,7 @@ __global__ void kernelEnergyParticles(ParticlesBox<FRAME, simDim> pb,
         if (linearThreadIdx == 0)
         {
             /* set frame to next particle frame */
-            frame = &(pb.getPreviousFrame(*frame, isValid));
+            frame = pb.getPreviousFrame(frame);
         }
         isParticle = true; /* all following frames are filled with particles */
         __syncthreads(); /* wait till thread 0 is done */

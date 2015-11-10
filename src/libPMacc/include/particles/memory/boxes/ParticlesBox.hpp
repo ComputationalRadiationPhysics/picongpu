@@ -198,7 +198,12 @@ public:
          */
         __threadfence( );
 
-        FramePtr oldFirstFramePtr( (FrameType*) atomicExch( (unsigned long long int*) firstFrameNativPtr, (unsigned long long int) frame.ptr ) );
+        FramePtr oldFirstFramePtr(
+            (FrameType*) atomicExch(
+                (unsigned long long int*) firstFrameNativPtr,
+                (unsigned long long int) frame.ptr
+            )
+        );
 
         frame->nextFrame = oldFirstFramePtr;
         if ( oldFirstFramePtr.isValid( ) )
@@ -231,7 +236,12 @@ public:
          */
         __threadfence( );
 
-        FramePtr oldLastFramePtr( (FrameType*) atomicExch( (unsigned long long int*) lastFrameNativPtr, (unsigned long long int) frame.ptr ) );
+        FramePtr oldLastFramePtr(
+            (FrameType*) atomicExch(
+                (unsigned long long int*) lastFrameNativPtr,
+                (unsigned long long int) frame.ptr
+            )
+        );
 
         frame->previousFrame = oldLastFramePtr;
         if ( oldLastFramePtr.isValid( ) )
