@@ -38,16 +38,16 @@ template< class ParBox>
 __global__ void kernelAddOneParticle(ParBox pb,
                                      DataSpace<simDim> superCell, DataSpace<simDim> parLocalCell)
 {
-    typedef typename ParBox::FrameType FRAME;
+    typedef typename ParBox::FramePtr FramePtr;
 
-    FRAME *frame;
+    FramePtr frame;
 
     int linearIdx = DataSpaceOperations<simDim>::template map<MappingDesc::SuperCellSize > (parLocalCell);
 
     float_X parWeighting = particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE;
 
-    frame = &(pb.getEmptyFrame());
-    pb.setAsLastFrame(*frame, superCell);
+    frame = pb.getEmptyFrame();
+    pb.setAsLastFrame(frame, superCell);
 
 
 
@@ -55,7 +55,7 @@ __global__ void kernelAddOneParticle(ParBox pb,
     // many particle loop:
     for (unsigned i = 0; i < 1; ++i)
     {
-        PMACC_AUTO(par, (*frame)[i]);
+        PMACC_AUTO(par, frame[i]);
 
         /** we now initialize all attributes of the new particle to their default values
          *   some attributes, such as the position, localCellIdx, weighting or the
