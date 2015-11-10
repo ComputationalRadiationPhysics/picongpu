@@ -48,6 +48,9 @@ flags[9]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=Photo
 # Axel Pusher 
 flags[10]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=Axel"
 # does not support 2D
+# Reduced Landau Lifshitz Pusher
+flags[11]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=ReducedLandauLifshitz"
+flags[12]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=ReducedLandauLifshitz;-DPARAM_DIMENSION=DIM2"
 
 ################################################################################
 # execution
