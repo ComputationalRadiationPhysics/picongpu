@@ -977,7 +977,7 @@ void MainWindow::on_sldSlopeTFA_valueChanged(int value)
 
 void MainWindow::on_sldOffsetYTFA_valueChanged(int value)
 {
-    m_currentTFA->setOffsetY( static_cast<float>(value) * 0.01f );
+    m_currentTFA->setOffsetY( static_cast<float>(value) * 0.005f );
 
     emit on_transferFunctionA_changed();
 }
@@ -998,7 +998,7 @@ void MainWindow::on_sldSlopeTFB_valueChanged(int value)
 
 void MainWindow::on_sldOffsetYTFB_valueChanged(int value)
 {
-    m_currentTFB->setOffsetY( static_cast<float>(value) * 0.01f );
+    m_currentTFB->setOffsetY( static_cast<float>(value) * 0.005f );
 
     emit on_transferFunctionB_changed();
 }
