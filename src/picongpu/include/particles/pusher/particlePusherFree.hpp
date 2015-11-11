@@ -32,11 +32,11 @@ namespace picongpu
         struct Push
         {
 
-            template<typename T_Efield, typename T_Bfield, typename T_Pos, typename T_Mom, typename T_Mass,
+            template<typename T_FunctorFieldE, typename T_FunctorFieldB, typename T_Pos, typename T_Mom, typename T_Mass,
                      typename T_Charge, typename T_Weighting>
                     __host__ DINLINE void operator()(
-                                                        const T_Bfield,
-                                                        const T_Efield,
+                                                        const T_FunctorFieldB,
+                                                        const T_FunctorFieldE,
                                                         T_Pos& pos,
                                                         T_Mom& mom,
                                                         const T_Mass mass,

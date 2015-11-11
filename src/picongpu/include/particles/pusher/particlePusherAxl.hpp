@@ -57,11 +57,11 @@ namespace picongpu
                 return float_X(-1.0);
             }
 
-            template<typename T_Efield, typename T_Bfield, typename T_Pos, typename T_Mom, typename T_Mass,
+            template<typename T_FunctorFieldE, typename T_FunctorFieldB, typename T_Pos, typename T_Mom, typename T_Mass,
                  typename T_Charge , typename T_Weighting>
                 __host__ DINLINE void operator( )(
-                                                      const T_Bfield bField, /* at t=0 */
-                                                      const T_Efield eField, /* at t=0 */
+                                                      const T_FunctorFieldB functorBField, /* at t=0 */
+                                                      const T_FunctorFieldE functorEField, /* at t=0 */
                                                       T_Pos& pos, /* at t=0 */
                                                       T_Mom& mom, /* at t=-1/2 */
                                                       const T_Mass mass,
@@ -69,6 +69,9 @@ namespace picongpu
                                                       const T_Weighting)
             {
                 typedef T_Mom MomType;
+
+                PMACC_AUTO( bField , functorBField(pos));
+                PMACC_AUTO( eField , functorEField(pos));
 
                 Gamma gammaCalc;
                 Velocity velocityCalc;
