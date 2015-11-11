@@ -64,11 +64,6 @@ Requirements
   - *Debian/Ubuntu:* `sudo apt-get install git`
   - *Arch Linux:* `sudo pacman --sync git`
 
-- **PIConGPU**
-    - `git clone https://github.com/ComputationalRadiationPhysics/picongpu.git $HOME/src/picongpu`
-    - `export PICSRC=$HOME/src/picongpu`
-      (you should add this to your `~/.bashrc`)
-
 ### Optional Libraries
 
 If you do not install the optional libraries, you will not have the full amount of PIConGPU plugins.
@@ -230,13 +225,14 @@ Checkout and Build PIConGPU
 
 This is an example how to use the modular building environment of PIConGPU.
 
-1. **Setup PIConGPU home** `export PICHOME=~/`
+1. **Setup PIConGPU home** `export PICHOME=$HOME`
    - Note that the PICHOME path can be set to any other location.
 
 2. **Setup directories:** `mkdir -p $PICHOME/src $PICHOME/build $PICHOME/paramSets $PICHOME/runs`
    - `$PICHOME/runs` is the directory for PIConGPU simulation output
    - NOTE for HPC-Systems: Never write your simulation output to your home
-     (`~/` or `$HOME`) directory
+     (`~/` or `$HOME`) directory, but ask your admin about the mount point
+     of your *dedicated high-bandwidth file-system*.
    - In most cases `$WORK/runs`, `$WORKDIR/runs` or `/scratch/runs` are the right places!
 3. **Download the source code:**
    1. `git clone https://github.com/ComputationalRadiationPhysics/picongpu.git $PICHOME/src/picongpu`
