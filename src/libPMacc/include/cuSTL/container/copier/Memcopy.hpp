@@ -84,10 +84,12 @@ struct Memcopy<3>
 
             cudaPitchedPtr pitchedPtrDest;
             pitchedPtrDest.pitch = pitchDest.x(); pitchedPtrDest.ptr = dest;
-            pitchedPtrDest.xsize = size.x(); pitchedPtrDest.ysize = size.y();
+            pitchedPtrDest.xsize = size.x() * sizeof (Type);
+            pitchedPtrDest.ysize = size.y();
             cudaPitchedPtr pitchedPtrSource;
             pitchedPtrSource.pitch = pitchSource.x(); pitchedPtrSource.ptr = source;
-            pitchedPtrSource.xsize = size.x(); pitchedPtrSource.ysize = size.y();
+            pitchedPtrSource.xsize = size.x() * sizeof (Type);
+            pitchedPtrSource.ysize = size.y();
 
             cudaMemcpy3DParms params;
             params.srcArray = NULL;

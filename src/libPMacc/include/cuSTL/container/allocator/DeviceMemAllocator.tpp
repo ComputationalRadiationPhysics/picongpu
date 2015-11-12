@@ -38,15 +38,15 @@ DeviceMemAllocator<Type, T_dim>::allocate(const math::Size_t<T_dim>& size)
 
     cudaData.ptr = NULL;
     cudaData.pitch = 1;
-    cudaData.xsize = size.x();
+    cudaData.xsize = size[0] * sizeof (Type);
     cudaData.ysize = 1;
 
     if (dim == 2u)
     {
-        cudaData.xsize = size[0];
+        cudaData.xsize = size[0] * sizeof (Type);
         cudaData.ysize = size[1];
         if(size.productOfComponents())
-            CUDA_CHECK(cudaMallocPitch(&cudaData.ptr, &cudaData.pitch, cudaData.xsize * sizeof (Type), cudaData.ysize));
+            CUDA_CHECK(cudaMallocPitch(&cudaData.ptr, &cudaData.pitch, cudaData.xsize, cudaData.ysize));
         pitch[0] = cudaData.pitch;
     }
     else if (dim == 3u)
