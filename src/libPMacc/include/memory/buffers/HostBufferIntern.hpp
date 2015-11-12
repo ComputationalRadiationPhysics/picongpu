@@ -43,20 +43,20 @@ public:
 
     typedef typename DeviceBuffer<TYPE, DIM>::DataBoxType DataBoxType;
 
-    /**
-     * constructor
-     * @param dataSpace DataSpace describing the size of the HostBufferIntern to be created
+    /** constructor
+     *
+     * @param size extent for each dimension (in elements)
      */
-    HostBufferIntern(DataSpace<DIM> dataSpace) :
-    HostBuffer<TYPE, DIM>(dataSpace, dataSpace),
+    HostBufferIntern(DataSpace<DIM> size) :
+    HostBuffer<TYPE, DIM>(size, size),
     pointer(NULL),ownPointer(true)
     {
-        CUDA_CHECK(cudaMallocHost(&pointer, dataSpace.productOfComponents() * sizeof (TYPE)));
+        CUDA_CHECK(cudaMallocHost(&pointer, size.productOfComponents() * sizeof (TYPE)));
         reset(false);
     }
 
-    HostBufferIntern(HostBufferIntern& source, DataSpace<DIM> dataSpace, DataSpace<DIM> offset=DataSpace<DIM>()) :
-    HostBuffer<TYPE, DIM>(dataSpace, source.getPhysicalMemorySize()),
+    HostBufferIntern(HostBufferIntern& source, DataSpace<DIM> size, DataSpace<DIM> offset=DataSpace<DIM>()) :
+    HostBuffer<TYPE, DIM>(size, source.getPhysicalMemorySize()),
     pointer(NULL),ownPointer(false)
     {
         pointer=&(source.getDataBox()(offset));/*fix me, this is a bad way*/
@@ -104,18 +104,20 @@ public:
         if (!preserveData)
         {
             /* if it is a pointer out of other memory we can not assume that
-             * that the physical memory is contiguous 
+             * that the physical memory is contiguous
              */
             if(ownPointer)
                 memset(pointer, 0, this->getDataSpace().productOfComponents() * sizeof (TYPE));
             else
             {
                 TYPE value;
+                /* using `uint8_t` for byte-wise looping through tmp var value of `TYPE` */
                 uint8_t* valuePtr = (uint8_t*)&value;
                 for( size_t b = 0; b < sizeof(TYPE); ++b)
                 {
                     valuePtr[b] = static_cast<uint8_t>(0);
                 }
+                /* set value with zero-ed `TYPE` */
                 setValue(value);
             }
         }

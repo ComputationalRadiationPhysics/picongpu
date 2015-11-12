@@ -49,11 +49,15 @@ public:
 
     typedef typename DeviceBuffer<TYPE, DIM>::DataBoxType DataBoxType;
 
-    MappedBufferIntern(DataSpace<DIM> dataSpace):
-    DeviceBuffer<TYPE, DIM>(dataSpace, dataSpace),
+    /** constructor
+     *
+     * @param size extent for each dimension (in elements)
+     */
+    MappedBufferIntern(DataSpace<DIM> size):
+    DeviceBuffer<TYPE, DIM>(size, size),
     pointer(NULL), ownPointer(true)
     {
-        CUDA_CHECK(cudaMallocHost(&pointer, dataSpace.productOfComponents() * sizeof (TYPE), cudaHostAllocMapped));
+        CUDA_CHECK(cudaMallocHost(&pointer, size.productOfComponents() * sizeof (TYPE), cudaHostAllocMapped));
         reset(false);
     }
 

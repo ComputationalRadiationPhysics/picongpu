@@ -44,13 +44,13 @@ public:
     typedef typename DeviceBuffer<TYPE, DIM>::DataBoxType DataBoxType;
 
     /*! create device buffer
-     * @param dataSpace size in any dimension of the grid on the device
+     * @param size extent for each dimension (in elements)
      * @param sizeOnDevice memory with the current size of the grid is stored on device
      * @param useVectorAsBase use a vector as base of the array (is not lined pitched)
      *                      if true size on device is atomaticly set to false
      */
-    DeviceBufferIntern(DataSpace<DIM> dataSpace, bool sizeOnDevice = false, bool useVectorAsBase = false) :
-    DeviceBuffer<TYPE, DIM>(dataSpace, dataSpace),
+    DeviceBufferIntern(DataSpace<DIM> size, bool sizeOnDevice = false, bool useVectorAsBase = false) :
+    DeviceBuffer<TYPE, DIM>(size, size),
     sizeOnDevice(sizeOnDevice),
     useOtherMemory(false),
     offset(DataSpace<DIM>())
@@ -72,8 +72,8 @@ public:
 
     }
 
-    DeviceBufferIntern(DeviceBuffer<TYPE, DIM>& source, DataSpace<DIM> dataSpace, DataSpace<DIM> offset, bool sizeOnDevice = false) :
-    DeviceBuffer<TYPE, DIM>(dataSpace, source.getPhysicalMemorySize()),
+    DeviceBufferIntern(DeviceBuffer<TYPE, DIM>& source, DataSpace<DIM> size, DataSpace<DIM> offset, bool sizeOnDevice = false) :
+    DeviceBuffer<TYPE, DIM>(size, source.getPhysicalMemorySize()),
     sizeOnDevice(sizeOnDevice),
     offset(offset + source.getOffset()),
     data(source.getCudaPitched()),
@@ -211,7 +211,7 @@ public:
 
     void copyFrom(HostBuffer<TYPE, DIM>& other)
     {
-        
+
         assert(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
         Environment<>::get().Factory().createTaskCopyHostToDevice(other, *this);
 

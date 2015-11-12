@@ -46,18 +46,21 @@ namespace PMacc
      *
      * @tparam TYPE datatype of the buffer
      * @tparam DIM dimension of the buffer
-     *
-     * @param dataSpace dataSpace size of each dimension of the buffer (in elements)
-     *                   can be lesser than `physicalMemorySize`
-     * @param physicalMemorySize size of the physical memory (in elements)
      */
     template <class TYPE, unsigned DIM>
     class DeviceBuffer : public Buffer<TYPE, DIM>
     {
     protected:
 
-        DeviceBuffer(DataSpace<DIM> dataSpace, DataSpace<DIM> physicalMemorySize) :
-        Buffer<TYPE, DIM>(dataSpace, physicalMemorySize)
+        /** constructor
+         *
+         * @param size extent for each dimension (in elements)
+         *             if the buffer is a view to an existing buffer the size
+         *             can be less than `physicalMemorySize`
+         * @param physicalMemorySize size of the physical memory (in elements)
+         */
+        DeviceBuffer(DataSpace<DIM> size, DataSpace<DIM> physicalMemorySize) :
+        Buffer<TYPE, DIM>(size, physicalMemorySize)
         {
 
         }
@@ -76,7 +79,7 @@ namespace PMacc
 
 #define COMMA ,
 
-        __forceinline__
+        HINLINE
         container::CartBuffer<TYPE, DIM, allocator::DeviceMemAllocator<TYPE, DIM>,
                                 copier::D2DCopier<DIM>,
                                 assigner::DeviceMemAssigner<DIM> >
