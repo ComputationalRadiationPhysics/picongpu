@@ -24,7 +24,7 @@
 
 #include "cuSTL/cursor/Cursor.hpp"
 #include "cuSTL/cursor/accessor/LinearInterpAccessor.hpp"
-#include "cuSTL/cursor/navigator/AbstractNavigator.hpp"
+#include "cuSTL/cursor/navigator/PlusNavigator.hpp"
 #include "result_of_Functor.hpp"
 #include "types.h"
 
@@ -45,12 +45,12 @@ struct LinearInterp
 {
     template<typename TCursor>
     HDINLINE
-    Cursor<LinearInterpAccessor<TCursor, T_Position>, AbstractNavigator, T_Position>
+    Cursor<LinearInterpAccessor<TCursor, T_Position>, PlusNavigator, T_Position>
     operator()(const TCursor& cur)
     {
         return make_Cursor(
             LinearInterpAccessor<TCursor, T_Position>(cur),
-            AbstractNavigator(),
+            PlusNavigator(),
             T_Position(0.0));
     }
 };
@@ -66,7 +66,7 @@ struct Functor<cursor::tools::LinearInterp<T_Position>, TCursor>
 {
     typedef cursor::Cursor<
         cursor::LinearInterpAccessor<TCursor, T_Position>,
-        cursor::AbstractNavigator,
+        cursor::PlusNavigator,
         T_Position> type;
 };
 

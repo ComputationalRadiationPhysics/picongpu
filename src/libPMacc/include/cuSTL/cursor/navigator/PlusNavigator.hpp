@@ -27,15 +27,16 @@ namespace PMacc
 namespace cursor
 {
 
-/** Most general navigator.
+/** Navigator which simply adds a jump of any type to a marker
+ *  of any type.
  */
-struct AbstractNavigator
+struct PlusNavigator
 {
-    template<typename Data, typename Jump>
-    HDINLINE Data
-    operator()(const Data& data, const Jump& jump) const
+    template<typename Marker, typename Jump>
+    HDINLINE Marker
+    operator()(const Marker& marker, const Jump& jump) const
     {
-        return data + jump;
+        return marker + jump;
     }
 };
 
