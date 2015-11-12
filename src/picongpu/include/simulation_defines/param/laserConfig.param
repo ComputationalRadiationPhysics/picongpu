@@ -40,10 +40,10 @@ namespace picongpu
             // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
 
             /** unit: none */
-            //CONSTEXPR float_64 _A0  = 1.5;
+            //BOOST_CONSTEXPR_OR_CONST float_64 _A0  = 1.5;
 
             /** unit: Volt /meter */
-            //CONSTEXPR float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
+            //BOOST_CONSTEXPR_OR_CONST float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
 
             /** unit: Volt /meter */
             BOOST_CONSTEXPR_OR_CONST float_64 AMPLITUDE_SI = 1.738e13;
@@ -155,7 +155,7 @@ namespace picongpu
             BOOST_CONSTEXPR_OR_CONST float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
 
             /** unit: Volt /meter */
-            //CONSTEXPR float_64 AMPLITUDE_SI = 1.738e13;
+            //BOOST_CONSTEXPR_OR_CONST float_64 AMPLITUDE_SI = 1.738e13;
 
             /** The profile of the test Lasers 0 and 2 can be stretched by a
              *      BOOST_CONSTEXPR_OR_CONSTant area between the up and downramp
@@ -203,10 +203,10 @@ namespace picongpu
         // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
 
         /** unit: none */
-        //CONSTEXPR float_64 _A0  = 3.9;
+        //BOOST_CONSTEXPR_OR_CONST float_64 _A0  = 3.9;
 
         /** unit: Volt /meter */
-        //CONSTEXPR float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
+        //BOOST_CONSTEXPR_OR_CONST float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
 
         /** unit: Volt /meter */
         BOOST_CONSTEXPR_OR_CONST float_64 AMPLITUDE_SI = 1.738e13;
@@ -267,10 +267,10 @@ namespace picongpu
             // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
 
             /** unit: none */
-            //CONSTEXPR float_64 _A0  = 3.9;
+            //BOOST_CONSTEXPR_OR_CONST float_64 _A0  = 3.9;
 
             /** unit: Volt /meter */
-            //CONSTEXPR float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
+            //BOOST_CONSTEXPR_OR_CONST float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
 
             /** unit: Volt /meter */
             BOOST_CONSTEXPR_OR_CONST float_64 AMPLITUDE_SI = 1.738e13;
