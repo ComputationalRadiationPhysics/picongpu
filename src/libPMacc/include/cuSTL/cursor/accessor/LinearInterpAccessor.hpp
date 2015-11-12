@@ -51,7 +51,7 @@ struct LinearInterpAccessor
     {
         T_Position intPart;
         const T_Position fracPart = PMacc::algorithms::math::modf(x, &intPart);
-        int idx = (int)intPart;
+        int idx = static_cast<int>(intPart);
 
         return (T_Position(1.0) - fracPart) * this->cursor[idx]
                                  + fracPart * this->cursor[idx+1];
