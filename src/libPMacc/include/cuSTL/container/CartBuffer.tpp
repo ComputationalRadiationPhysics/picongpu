@@ -26,8 +26,9 @@
 #include "cuSTL/container/allocator/tag.h"
 #include "eventSystem/EventSystem.hpp"
 #include "Environment.hpp"
-
 #include <iostream>
+#include <exception>
+#include <sstream>
 
 namespace PMacc
 {
@@ -191,6 +192,15 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>&
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::operator=
 (const CartBuffer<Type, T_dim, Allocator, Copier, Assigner>& rhs)
 {
+#ifndef __CUDA_ARCH__
+    if(rhs.size() != this->size())
+        throw std::invalid_argument(static_cast<std::stringstream&>(
+            std::stringstream() << "Assignment: Sizes of buffers do not match: "
+                << this->size() << " <-> " << rhs.size() << std::endl).str());
+#else
+    assert(rhs.size() == this->size());
+#endif
+
     if(this->dataPointer == rhs.dataPointer) return *this;
     Copier::copy(this->dataPointer, this->pitch, rhs.dataPointer, rhs.pitch, rhs._size);
     return *this;
@@ -201,6 +211,14 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>&
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::operator=
 (BOOST_RV_REF(CartBuffer<Type COMMA T_dim COMMA Allocator COMMA Copier COMMA Assigner>) rhs)
 {
+#ifndef __CUDA_ARCH__
+    if(rhs.size() != this->size())
+        throw std::invalid_argument(static_cast<std::stringstream&>(
+            std::stringstream() << "Assignment: Sizes of buffers do not match: "
+                << this->size() << " <-> " << rhs.size() << std::endl).str());
+#else
+    assert(rhs.size() == this->size());
+#endif
     if(this->dataPointer == rhs.dataPointer) return *this;
 
     exit();
