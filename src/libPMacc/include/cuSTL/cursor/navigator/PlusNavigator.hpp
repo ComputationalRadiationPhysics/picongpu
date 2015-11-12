@@ -27,8 +27,7 @@ namespace PMacc
 namespace cursor
 {
 
-/** Navigator which simply adds a jump of any type to a marker
- *  of any type.
+/** Navigator which combines jump and marker of any type by using the +operator.
  */
 struct PlusNavigator
 {
