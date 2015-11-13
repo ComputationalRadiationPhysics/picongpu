@@ -8,6 +8,7 @@
  * the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ *
  * libPMacc is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -21,11 +22,9 @@
 
 // STL
 #include <stdint.h> /* uint8_t */
-#include <stdio.h>  /* printf */
 
 // BOOST
 #include <boost/test/unit_test.hpp>
-#include <boost/mpl/list.hpp>
 
 // Boost.Test documentation: http://www.boost.org/doc/libs/1_59_0/libs/test/doc/html/index.html
 
