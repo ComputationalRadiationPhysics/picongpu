@@ -1,4 +1,3 @@
-#
 # Copyright 2013-2015 Axel Huebl, Benjamin Schneider, Felix Schmitt, Heiko Burau,
 #                     Rene Widera, Alexander Grund
 #
@@ -255,39 +254,24 @@ set(LIBS ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
 # Find Boost
 ################################################################################
 
-find_package(Boost 1.52.0 REQUIRED COMPONENTS program_options regex filesystem system)
+find_package(Boost 1.56.0 REQUIRED COMPONENTS program_options regex filesystem
+                                              system thread)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${Boost_LIBRARIES})
 
-# work-arounds
-if( (Boost_VERSION EQUAL 105500) AND
-    (CUDA_VERSION VERSION_LESS 6.5) )
-    # Boost Bug https://svn.boost.org/trac/boost/ticket/9392
-    # nvbug #1422182 submission ID #391854
-    message(STATUS "Boost: Applying noinline work around")
-    set(CUDA_NVCC_FLAGS
-      "${CUDA_NVCC_FLAGS} \"-DBOOST_NOINLINE=__attribute__((noinline))\" ")
-endif()
-
-# PMacc (ab)uses boost::result_of for non-functors (e.g. []-operators). This
-# define forces boost to use the result<> member template of the target type
-if(Boost_VERSION LESS 105500)
-    add_definitions(-DBOOST_RESULT_OF_USE_TR1)
+# Boost 1.55 added support for a define that makes result_of look for
+# the result<> template and falls back to decltype if none is found. This is
+# great for the transition from the "wrong" usage to the "correct" one as
+# both can be used. But:
+# 1) Cannot be used in 7.0 due to nvcc bug:
+#    http://stackoverflow.com/questions/31940457/
+# 2) Requires C++11 enabled as there is no further check in boost besides
+#    the version check of nvcc
+if( (NOT CUDA_VERSION VERSION_EQUAL 7.0) AND (CMAKE_CXX_STANDARD EQUAL 11) )
+    add_definitions(-DBOOST_RESULT_OF_USE_TR1_WITH_DECLTYPE_FALLBACK)
 else()
-    # Boost 1.55 adds support for another define that makes result_of look for
-    # the result<> template and falls back to decltype if none is found. This is
-    # great for the transition from the "wrong" usage to the "correct" one as
-    # both can be used. But:
-    # 1) Cannot be used in 7.0 due to nvcc bug:
-    #    http://stackoverflow.com/questions/31940457/
-    # 2) Requires C++11 enabled as there is no further check in boost besides
-    #    the version check of nvcc
-    if( (NOT CUDA_VERSION VERSION_EQUAL 7.0) AND (CMAKE_CXX_STANDARD EQUAL 11) )
-        add_definitions(-DBOOST_RESULT_OF_USE_TR1_WITH_DECLTYPE_FALLBACK)
-    else()
-        # Fallback
-        add_definitions(-DBOOST_RESULT_OF_USE_TR1)
-    endif()
+    # Fallback
+    add_definitions(-DBOOST_RESULT_OF_USE_TR1)
 endif()
 
 ################################################################################

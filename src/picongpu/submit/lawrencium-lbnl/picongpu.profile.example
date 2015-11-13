@@ -7,7 +7,7 @@ then
         module load git/1.7.9
         module load gcc/4.4.7
         module load cuda/5.5
-        module load boost/1.54.0-gcc
+        module load boost/1.56.0-gcc
         module load openmpi/1.6.5-gcc
 
         # Core tools
