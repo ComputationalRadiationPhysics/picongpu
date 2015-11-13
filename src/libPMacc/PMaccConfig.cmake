@@ -42,7 +42,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
 # Options
 option(PMACC_BLOCKING_KERNEL "activate checks for every kernel call and synch after every kernel call" OFF)
 if(PMACC_BLOCKING_KERNEL)
-  set(pmacc_DEFINITIONS ${PMacc_DEFINITIONS} "-DPMACC_SYNC_KERNEL=1")
+  set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} "-DPMACC_SYNC_KERNEL=1")
 endif(PMACC_BLOCKING_KERNEL)
 
 set(PMACC_VERBOSE "0" CACHE STRING "set verbose level for libPMacc")
