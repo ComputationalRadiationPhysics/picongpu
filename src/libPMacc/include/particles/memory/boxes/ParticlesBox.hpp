@@ -28,8 +28,7 @@
 #include "dimensions/DataSpace.hpp"
 #include "particles/memory/dataTypes/SuperCell.hpp"
 #include "memory/boxes/PitchedBox.hpp"
-#include "memory/boxes/DataBox.hpp"
-#include "particles/memory/dataTypes/Pointer.hpp"
+#include "particles/memory/dataTypes/FramePointer.hpp"
 
 namespace PMacc
 {
@@ -40,17 +39,17 @@ namespace PMacc
  * @tparam FRAME datatype for frames
  * @tparam DIM dimension of data (1-3)
  */
-template<class FRAME, unsigned DIM>
-class ParticlesBox : protected DataBox<PitchedBox<SuperCell<FRAME>, DIM> >
+template<class T_Frame, unsigned DIM>
+class ParticlesBox : protected DataBox<PitchedBox<SuperCell<T_Frame>, DIM> >
 {
 private:
-    PMACC_ALIGN(hostMemoryOffset,int64_t);
+    PMACC_ALIGN( hostMemoryOffset, int64_t );
 public:
 
-    typedef FRAME FrameType;
-    typedef Pointer<FrameType> FramePtr;
+    typedef T_Frame FrameType;
+    typedef FramePointer<FrameType> FramePtr;
     typedef SuperCell<FrameType> SuperCellType;
-    typedef DataBox<PitchedBox<SuperCell<FRAME>, DIM> > BaseType;
+    typedef DataBox<PitchedBox<SuperCell<FrameType>, DIM> > BaseType;
 
     BOOST_STATIC_CONSTEXPR uint32_t Dim = DIM;
 
@@ -59,19 +58,19 @@ public:
      * \warning after this call the object is in a invalid state and must be
      * initialized with an assignment of a valid ParticleBox
      */
-    HDINLINE ParticlesBox() : hostMemoryOffset(0)
+    HDINLINE ParticlesBox( ) : hostMemoryOffset( 0 )
     {
 
     }
 
-    HDINLINE ParticlesBox(const DataBox<PitchedBox<SuperCellType, DIM> > &superCells) :
-    BaseType(superCells), hostMemoryOffset(0)
+    HDINLINE ParticlesBox( const DataBox<PitchedBox<SuperCellType, DIM> > &superCells ) :
+    BaseType( superCells ), hostMemoryOffset( 0 )
     {
 
     }
 
-    HDINLINE ParticlesBox(const DataBox<PitchedBox<SuperCellType, DIM> > &superCells, int64_t memoryOffset) :
-    BaseType(superCells), hostMemoryOffset(memoryOffset)
+    HDINLINE ParticlesBox( const DataBox<PitchedBox<SuperCellType, DIM> > &superCells, int64_t memoryOffset ) :
+    BaseType( superCells ), hostMemoryOffset( memoryOffset )
     {
 
     }
@@ -81,50 +80,55 @@ public:
      *
      * @return an empty frame
      */
-    DINLINE FRAME &getEmptyFrame()
+    DINLINE FramePtr getEmptyFrame( )
     {
         FrameType* tmp = NULL;
         const int maxTries = 13; //magic number is not performance critical
-        for (int numTries = 0; numTries < maxTries; ++numTries)
+        for ( int numTries = 0; numTries < maxTries; ++numTries )
         {
-            tmp = (FrameType*) mallocMC::malloc(sizeof (FrameType));
-            if (tmp != NULL)
+            tmp = (FrameType*) mallocMC::malloc( sizeof (FrameType) );
+            if ( tmp != NULL )
             {
                 /* disable all particles since we can not assume that newly allocated memory contains zeros */
-                for (int i = 0; i < (int) math::CT::volume<typename FrameType::SuperCellSize>::type::value; ++i)
-                    (*tmp)[i][multiMask_] = 0;
+                for ( int i = 0; i < (int) math::CT::volume<typename FrameType::SuperCellSize>::type::value; ++i )
+                    ( *tmp )[i][multiMask_] = 0;
                 /* takes care that changed values are visible to all threads inside this block*/
-                __threadfence_block();
+                __threadfence_block( );
                 break;
             }
             else
             {
-                printf("%s: mallocMC out of memory (try %i of %i)\n",
-                       (numTries+1)==maxTries?"WARNING":"ERROR",
-                       numTries+1,
-                       maxTries);
+                printf( "%s: mallocMC out of memory (try %i of %i)\n",
+                        (numTries + 1) == maxTries ? "WARNING" : "ERROR",
+                        numTries + 1,
+                        maxTries );
             }
         }
 
-        return *(FramePtr(tmp));
+        return FramePtr( tmp );
     }
 
     /**
      * Removes frame from heap data heap.
      *
-     * @param frame FRAME to remove
+     * @param frame frame to remove
      */
-    DINLINE void removeFrame(FRAME &frame)
+    template<typename T_InitMethod>
+    DINLINE void removeFrame( FramePointer<FrameType, T_InitMethod>& frame )
     {
-        mallocMC::free((void*) &frame);
+        mallocMC::free( (void*) frame.ptr );
+        frame.ptr = NULL;
     }
 
     HDINLINE
-    FrameType* mapPtr(FrameType* devPtr)
+    FramePtr mapPtr( const FramePtr& devPtr )
     {
 #ifndef __CUDA_ARCH__
-        int64_t useOffset=hostMemoryOffset*static_cast<int64_t>(devPtr!=0);
-        return (FrameType*)(((char*)devPtr) - useOffset);
+        int64_t useOffset = hostMemoryOffset * static_cast<int64_t> (devPtr.ptr != 0);
+        return FramePtr( reinterpret_cast<FrameType*> (
+                                                       reinterpret_cast<char*> (devPtr.ptr) - useOffset
+                                                       )
+                        );
 #else
         return devPtr;
 #endif
@@ -133,54 +137,45 @@ public:
     /**
      * Returns the next frame in the linked list.
      *
-     * @param frame the active FRAME
+     * @param frame the active frame
      * @return the next frame in the list
      */
-    HDINLINE FRAME& getNextFrame(FRAME &frame, bool &isValid)
+    HDINLINE FramePtr getNextFrame( const FramePtr& frame )
     {
-        FramePtr tmp(mapPtr(frame.nextFrame.ptr));
-        isValid = tmp.isValid();
-        return *tmp;
+        return mapPtr( frame->nextFrame.ptr );
     }
 
     /**
      * Returns the previous frame in the linked list.
      *
-     * @param frame the active FRAME
+     * @param frame the active frame
      * @return the previous frame in the list
      */
-    HDINLINE FRAME& getPreviousFrame(FRAME &frame, bool &isValid)
+    HDINLINE FramePtr getPreviousFrame( const FramePtr& frame )
     {
-        FramePtr tmp(mapPtr(frame.previousFrame.ptr));
-        isValid = tmp.isValid();
-        return *tmp;
+        return mapPtr( frame->previousFrame.ptr );
     }
 
     /**
      * Returns the last frame of a supercell.
      *
      * @param idx position of supercell
-     * @return the last FRAME of the linked list from supercell
+     * @return the last frame of the linked list from supercell
      */
-    HDINLINE FRAME& getLastFrame(const DataSpace<DIM> &idx, bool &isValid)
+    HDINLINE FramePtr getLastFrame( const DataSpace<DIM> &idx )
     {
-        FramePtr tmp = FramePtr(mapPtr(getSuperCell(idx).LastFramePtr()));
-        isValid = tmp.isValid();
-        return *tmp;
+        return mapPtr( getSuperCell( idx ).LastFramePtr( ) );
     }
 
     /**
      * Returns the first frame of a supercell.
      *
      * @param idx position of supercell
-     * @return the first FRAME of the linked list from supercell
+     * @return the first frame of the linked list from supercell
      */
-    HDINLINE FRAME& getFirstFrame(const DataSpace<DIM> &idx, bool &isValid)
+    HDINLINE FramePtr getFirstFrame( const DataSpace<DIM> &idx )
     {
-        FramePtr tmp = FramePtr(mapPtr(getSuperCell(idx).FirstFramePtr()));
-        isValid = tmp.isValid();
-        return *tmp;
-
+        return mapPtr( getSuperCell( idx ).FirstFramePtr( ) );
     }
 
     /**
@@ -189,31 +184,36 @@ public:
      * @param frame frame to set as first frame
      * @param idx position of supercell
      */
-    DINLINE void setAsFirstFrame(FRAME &frameIn, const DataSpace<DIM> &idx)
+    template<typename T_InitMethod>
+    DINLINE void setAsFirstFrame( FramePointer<FrameType, T_InitMethod>& frame, const DataSpace<DIM> &idx )
     {
-        FramePtr frame(&frameIn);
-        FrameType** firstFrameNativPtr = &(getSuperCell(idx).firstFramePtr);
+        FrameType** firstFrameNativPtr = &(getSuperCell( idx ).firstFramePtr);
 
-        frame->previousFrame = FramePtr();
-        frame->nextFrame = FramePtr(*firstFrameNativPtr);
+        frame->previousFrame = FramePtr( );
+        frame->nextFrame = FramePtr( *firstFrameNativPtr );
 
         /* - takes care that `next[index]` is visible to all threads on the gpu
          * - this is needed because later on in this method we change `previous`
          *   of an other frame, this must be done in order!
          */
-        __threadfence();
+        __threadfence( );
 
-        FramePtr oldFirstFramePtr((FrameType*) atomicExch((unsigned long long int*) firstFrameNativPtr, (unsigned long long int) frame.ptr));
+        FramePtr oldFirstFramePtr(
+            (FrameType*) atomicExch(
+                (unsigned long long int*) firstFrameNativPtr,
+                (unsigned long long int) frame.ptr
+            )
+        );
 
         frame->nextFrame = oldFirstFramePtr;
-        if (oldFirstFramePtr.isValid())
+        if ( oldFirstFramePtr.isValid( ) )
         {
             oldFirstFramePtr->previousFrame = frame;
         }
         else
         {
             //we add the first frame in supercell
-            getSuperCell(idx).lastFramePtr = frame.ptr;
+            getSuperCell( idx ).lastFramePtr = frame.ptr;
         }
     }
 
@@ -223,30 +223,35 @@ public:
      * @param frame frame to set as last frame
      * @param idx position of supercell
      */
-    DINLINE void setAsLastFrame(FRAME &frameIn, const DataSpace<DIM> &idx)
+    template<typename T_InitMethod>
+    DINLINE void setAsLastFrame( FramePointer<FrameType, T_InitMethod>& frame, const DataSpace<DIM> &idx )
     {
-        FramePtr frame(&frameIn);
-        FrameType** lastFrameNativPtr = &(getSuperCell(idx).lastFramePtr);
+        FrameType** lastFrameNativPtr = &(getSuperCell( idx ).lastFramePtr);
 
-        frame->nextFrame = FramePtr();
-        frame->previousFrame = FramePtr(*lastFrameNativPtr);
+        frame->nextFrame = FramePtr( );
+        frame->previousFrame = FramePtr( *lastFrameNativPtr );
         /* - takes care that `next[index]` is visible to all threads on the gpu
          * - this is needed because later on in this method we change `next`
          *   of an other frame, this must be done in order!
          */
-        __threadfence();
+        __threadfence( );
 
-        FramePtr oldLastFramePtr((FrameType*) atomicExch((unsigned long long int*) lastFrameNativPtr, (unsigned long long int) frame.ptr));
+        FramePtr oldLastFramePtr(
+            (FrameType*) atomicExch(
+                (unsigned long long int*) lastFrameNativPtr,
+                (unsigned long long int) frame.ptr
+            )
+        );
 
         frame->previousFrame = oldLastFramePtr;
-        if (oldLastFramePtr.isValid())
+        if ( oldLastFramePtr.isValid( ) )
         {
             oldLastFramePtr->nextFrame = frame;
         }
         else
         {
             //we add the first frame in supercell
-            getSuperCell(idx).firstFramePtr = frame.ptr;
+            getSuperCell( idx ).firstFramePtr = frame.ptr;
         }
     }
 
@@ -256,33 +261,33 @@ public:
      * @param idx position of supercell
      * @return true if more frames in list, else false
      */
-    DINLINE bool removeLastFrame(const DataSpace<DIM> &idx)
+    DINLINE bool removeLastFrame( const DataSpace<DIM> &idx )
     {
         //!\todo this is not thread save
-        FrameType** lastFrameNativPtr = &(getSuperCell(idx).lastFramePtr);
+        FrameType** lastFrameNativPtr = &(getSuperCell( idx ).lastFramePtr);
 
-        FramePtr last(*lastFrameNativPtr);
-        if (last.isValid())
+        FramePtr last( *lastFrameNativPtr );
+        if ( last.isValid( ) )
         {
-            FramePtr prev(last->previousFrame);
+            FramePtr prev( last->previousFrame );
 
-            if (prev.isValid())
+            if ( prev.isValid( ) )
             {
-                prev->nextFrame = FramePtr(); //set to invalid frame
+                prev->nextFrame = FramePtr( ); //set to invalid frame
                 *lastFrameNativPtr = prev.ptr; //set new last frame
-                removeFrame(*last);
+                removeFrame( last );
                 return true;
             }
             //remove last frame of supercell
-            getSuperCell(idx).firstFramePtr = NULL;
-            getSuperCell(idx).lastFramePtr = NULL;
+            getSuperCell( idx ).firstFramePtr = NULL;
+            getSuperCell( idx ).lastFramePtr = NULL;
 
-            removeFrame(*last);
+            removeFrame( last );
         }
         return false;
     }
 
-    HDINLINE SuperCellType& getSuperCell(DataSpace<DIM> idx)
+    HDINLINE SuperCellType& getSuperCell( DataSpace<DIM> idx )
     {
         return BaseType::operator()(idx);
     }

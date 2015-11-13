@@ -23,8 +23,6 @@
 #pragma once
 
 #include "types.h"
-#include "particles/memory/dataTypes/Pointer.hpp"
-
 
 namespace PMacc
 {

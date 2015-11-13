@@ -44,10 +44,10 @@ __global__ void kernelCountParticles(PBox pb,
 {
 
     typedef typename PBox::FrameType FRAME;
+    typedef typename PBox::FramePtr FramePtr;
     const uint32_t Dim = Mapping::Dim;
 
-    __shared__ FRAME *frame;
-    __shared__ bool isValid;
+    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
     __shared__ int counter;
     __shared__ lcellId_t particlesInSuperCell;
 
@@ -60,15 +60,15 @@ __global__ void kernelCountParticles(PBox pb,
 
     if (linearThreadIdx == 0)
     {
-        frame = &(pb.getLastFrame(superCellIdx, isValid));
+        frame = pb.getLastFrame(superCellIdx);
         particlesInSuperCell = pb.getSuperCell(superCellIdx).getSizeLastFrame();
         counter = 0;
     }
     __syncthreads();
-    if (!isValid)
+    if (!frame.isValid())
         return; //end kernel if we have no frames
     filter.setSuperCellPosition((superCellIdx - mapper.getGuardingSuperCells()) * mapper.getSuperCellSize());
-    while (isValid)
+    while (frame.isValid())
     {
         if (linearThreadIdx < particlesInSuperCell)
         {
@@ -78,7 +78,7 @@ __global__ void kernelCountParticles(PBox pb,
         __syncthreads();
         if (linearThreadIdx == 0)
         {
-            frame = &(pb.getPreviousFrame(*frame, isValid));
+            frame = pb.getPreviousFrame(frame);
             particlesInSuperCell = math::CT::volume<SuperCellSize>::type::value;
         }
         __syncthreads();

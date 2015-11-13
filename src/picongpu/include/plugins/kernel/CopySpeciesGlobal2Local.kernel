@@ -52,11 +52,11 @@ __global__ void copySpeciesGlobal2Local(T_CounterBox counter, T_DestBox destBox,
 
     typedef T_SrcFrame SrcFrameType;
     typedef typename T_DestBox::FrameType DestFrameType;
+    typedef typename T_DestBox::FramePtr DestFramePtr;
     typedef typename T_CellDescription::SuperCellSize SuperCellSize;
     const uint32_t cellsInSuperCell = PMacc::math::CT::volume<SuperCellSize>::type::value;
 
-    typedef DestFrameType* DestFramePtr;
-    __shared__ DestFramePtr destFramePtr[cellsInSuperCell];
+    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<DestFramePtr>::type destFramePtr[cellsInSuperCell];
     __shared__ int linearSuperCellIds[cellsInSuperCell];
     __shared__ int hdf5ParticleOffset;
 
@@ -72,7 +72,7 @@ __global__ void copySpeciesGlobal2Local(T_CounterBox counter, T_DestBox destBox,
          */
         hdf5ParticleOffset = atomicAdd(&(counter[0]), cellsInSuperCell);
     }
-    destFramePtr[linearThreadIdx] = NULL;
+    destFramePtr[linearThreadIdx] = DestFramePtr();
     linearSuperCellIds[linearThreadIdx] = -1;
 
     __syncthreads();
@@ -114,9 +114,9 @@ __global__ void copySpeciesGlobal2Local(T_CounterBox counter, T_DestBox destBox,
         {
             /* counter[2] -> number of used frames */
             nvidia::atomicAllInc(&(counter[2]));
-            DestFramePtr tmpFrame = &(destBox.getEmptyFrame());
+            DestFramePtr tmpFrame = destBox.getEmptyFrame();
             destFramePtr[linearThreadIdx] = tmpFrame;
-            destBox.setAsFirstFrame(*tmpFrame, superCellIdx + cellDesc.getGuardingSuperCells());
+            destBox.setAsFirstFrame(tmpFrame, superCellIdx + cellDesc.getGuardingSuperCells());
         }
     }
     __syncthreads();
@@ -124,7 +124,7 @@ __global__ void copySpeciesGlobal2Local(T_CounterBox counter, T_DestBox destBox,
     if (hasValidParticle)
     {
         /* copy attributes and activate particle*/
-        PMACC_AUTO(parDest, (*(destFramePtr[masterIdx]))[linearThreadIdx]);
+        PMACC_AUTO(parDest, destFramePtr[masterIdx][linearThreadIdx]);
         parDest[localCellIdx_] = lCellIdx;
         parDest[multiMask_] = 1;
         PMACC_AUTO(parDestDeselect, deselect<bmpl::vector2<localCellIdx, multiMask> >(parDest));

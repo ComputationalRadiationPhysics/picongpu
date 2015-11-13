@@ -272,9 +272,9 @@ kernelPaintParticles3D(ParBox pb,
                        uint32_t sliceDim,
                        Mapping mapper)
 {
-    typedef typename ParBox::FrameType FRAME;
+    typedef typename ParBox::FramePtr FramePtr;
     typedef typename MappingDesc::SuperCellSize Block;
-    __shared__ FRAME *frame;
+    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
     __shared__ bool isValid;
 
     bool isImageThread = false;
@@ -332,13 +332,13 @@ kernelPaintParticles3D(ParBox pb,
 
     if (localId == 0)
     {
-        frame = &(pb.getFirstFrame(block, isValid));
+        frame = pb.getFirstFrame(block);
     }
     __syncthreads();
 
-    while (isValid) //move over all Frames
+    while (frame.isValid()) //move over all Frames
     {
-        PMACC_AUTO(particle, (*frame)[localId]);
+        PMACC_AUTO(particle, frame[localId]);
         if (particle[multiMask_] == 1)
         {
             int cellIdx = particle[localCellIdx_];
@@ -357,7 +357,7 @@ kernelPaintParticles3D(ParBox pb,
 
         if (localId == 0)
         {
-            frame = &(pb.getNextFrame(*frame, isValid));
+            frame = pb.getNextFrame(frame);
         }
         __syncthreads();
     }

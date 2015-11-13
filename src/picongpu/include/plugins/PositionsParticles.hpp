@@ -96,14 +96,15 @@ struct SglParticle
  * \warning this analyser MUST NOT be used with more than one (global!)
  * particle and is created for one-particle-test-purposes only
  */
-template<class FRAME, class FloatPos, class Mapping>
-__global__ void kernelPositionsParticles(ParticlesBox<FRAME, simDim> pb,
+template<class ParBox, class FloatPos, class Mapping>
+__global__ void kernelPositionsParticles(ParBox pb,
                                          SglParticle<FloatPos>* gParticle,
                                          Mapping mapper)
 {
 
-    __shared__ FRAME *frame;
-    __shared__ bool isValid;
+    typedef typename ParBox::FramePtr FramePtr;
+    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
+
 
     typedef typename Mapping::SuperCellSize SuperCellSize;
 
@@ -113,22 +114,22 @@ __global__ void kernelPositionsParticles(ParticlesBox<FRAME, simDim> pb,
 
     if (linearThreadIdx == 0)
     {
-        frame = &(pb.getLastFrame(superCellIdx, isValid));
+        frame = pb.getLastFrame(superCellIdx);
     }
 
     __syncthreads();
-    if (!isValid)
+    if (!frame.isValid())
         return; //end kernel if we have no frames
 
     /* BUGFIX to issue #538
      * volatile prohibits that the compiler creates wrong code*/
-    volatile bool isParticle = (*frame)[linearThreadIdx][multiMask_];
+    volatile bool isParticle = frame[linearThreadIdx][multiMask_];
 
-    while (isValid)
+    while (frame.isValid())
     {
         if (isParticle)
         {
-            PMACC_AUTO(particle,(*frame)[linearThreadIdx]);
+            PMACC_AUTO(particle,frame[linearThreadIdx]);
             gParticle->position = particle[position_];
             gParticle->momentum = particle[momentum_];
             gParticle->weighting = particle[weighting_];
@@ -150,7 +151,7 @@ __global__ void kernelPositionsParticles(ParticlesBox<FRAME, simDim> pb,
         __syncthreads();
         if (linearThreadIdx == 0)
         {
-            frame = &(pb.getPreviousFrame(*frame, isValid));
+            frame = pb.getPreviousFrame(frame);
         }
         isParticle = true;
         __syncthreads();

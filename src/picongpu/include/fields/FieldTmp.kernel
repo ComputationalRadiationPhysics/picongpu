@@ -47,7 +47,7 @@ namespace picongpu
     template<class BlockDescription_, uint32_t AREA, class TmpBox, class ParBox, class FrameSolver, class Mapping>
     __global__ void kernelComputeSupercells( TmpBox fieldTmp, ParBox boxPar, FrameSolver frameSolver, Mapping mapper )
     {
-
+        typedef typename ParBox::FramePtr FramePtr;
         typedef typename BlockDescription_::SuperCellSize SuperCellSize;
         const DataSpace<simDim> block( mapper.getSuperCellIndex( DataSpace<simDim > ( blockIdx ) ) );
 
@@ -55,19 +55,19 @@ namespace picongpu
         const DataSpace<simDim > threadIndex( threadIdx );
         const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > ( threadIndex );
 
-        __shared__ typename ParBox::FrameType *frame;
-        __shared__ bool isValid;
+        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
+
         __shared__ lcellId_t particlesInSuperCell;
 
 
         if( linearThreadIdx == 0 )
         {
-            frame = &( boxPar.getLastFrame( block, isValid ) );
+            frame = boxPar.getLastFrame( block );
             particlesInSuperCell = boxPar.getSuperCell( block ).getSizeLastFrame( );
         }
         __syncthreads( );
 
-        if( !isValid )
+        if( frame.isValid() )
             return; //end kernel if we have no frames
 
         PMACC_AUTO( cachedVal, CachedBox::create < 0, typename TmpBox::ValueType > ( BlockDescription_( ) ) );
@@ -77,7 +77,7 @@ namespace picongpu
         collective( set, cachedVal );
 
         __syncthreads( );
-        while( isValid )
+        while( frame.isValid() )
         {
             if( linearThreadIdx < particlesInSuperCell )
             {
@@ -86,7 +86,7 @@ namespace picongpu
             __syncthreads( );
             if( linearThreadIdx == 0 )
             {
-                frame = &( boxPar.getPreviousFrame( *frame, isValid ) );
+                frame = boxPar.getPreviousFrame( frame );
                 particlesInSuperCell = PMacc::math::CT::volume<SuperCellSize>::type::value;
             }
             __syncthreads( );

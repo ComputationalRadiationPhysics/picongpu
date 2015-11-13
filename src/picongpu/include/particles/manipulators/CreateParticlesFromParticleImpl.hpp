@@ -81,8 +81,10 @@ struct CreateParticlesFromParticleImpl : private T_Functor
 
         typedef typename FrameType::ParticleType SrcParticleType;
         typedef typename DestFrameType::ParticleType DestParticleType;
+        typedef typename DestFrameType::FramePtr DestFramePtr;
 
-        __shared__ DestFrameType* destFrame;
+
+        __shared__ DestFramePtr destFrame;
         __shared__ int particlesInDestSuperCell;
 
 
@@ -92,18 +94,17 @@ struct CreateParticlesFromParticleImpl : private T_Functor
         {
             if (firstCall)
             {
-                bool isValid;
 
-                destFrame = &(destParBox.getLastFrame(superCell, isValid));
+                destFrame = destParBox.getLastFrame(superCell);
                 particlesInDestSuperCell = 0;
-                if (isValid)
+                if (destFrame.isValid())
                 {
                     particlesInDestSuperCell = destParBox.getSuperCell(superCell).getSizeLastFrame();
                 }
-                if (!isValid || particlesInDestSuperCell == cellsInSuperCell)
+                if (!destFrame.isValid() || particlesInDestSuperCell == cellsInSuperCell)
                 {
-                    destFrame = &(destParBox.getEmptyFrame());
-                    destParBox.setAsLastFrame(*destFrame, superCell);
+                    destFrame = destParBox.getEmptyFrame();
+                    destParBox.setAsLastFrame(destFrame, superCell);
                 }
                 firstCall = false;
             }
@@ -128,7 +129,7 @@ struct CreateParticlesFromParticleImpl : private T_Functor
             --numParToCreate;
             if (freeSlot>-1 && freeSlot < cellsInSuperCell)
             {
-                PMACC_AUTO(destParticle, (*destFrame)[freeSlot]);
+                PMACC_AUTO(destParticle, destFrame[freeSlot]);
                 Functor::operator()(destParticle, particle);
             }
             __syncthreads();
