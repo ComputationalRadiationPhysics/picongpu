@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Rene Widera
+ * Copyright 2013-2015 Rene Widera, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -107,7 +107,7 @@ public InheritLinearly<
     template<class F, class TKey>
     struct result<const F(TKey)>
     {
-        typedef typename GetKeyFromAlias_assert<ValueTypeSeq, TKey>::type Key;
+        typedef typename GetKeyFromAlias<ValueTypeSeq, TKey, errorHandlerPolicies::ThrowValueNotFound>::type Key;
         typedef typename boost::result_of<const BaseType(Key)>::type type;
     };
 
@@ -115,7 +115,7 @@ public InheritLinearly<
     template<class F, class TKey>
     struct result< F(TKey)>
     {
-        typedef typename GetKeyFromAlias_assert<ValueTypeSeq, TKey>::type Key;
+        typedef typename GetKeyFromAlias<ValueTypeSeq, TKey, errorHandlerPolicies::ThrowValueNotFound>::type Key;
         typedef typename boost::result_of< BaseType(Key)>::type type;
     };
 
