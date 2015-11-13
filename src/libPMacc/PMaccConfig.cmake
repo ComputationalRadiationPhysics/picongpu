@@ -22,31 +22,31 @@
 
 # - Config file for the pmacc package
 # It defines the following variables
-#  pmacc_INCLUDE_DIRS - include directories for pmacc
-#  pmacc_LIBRARIES    - libraries to link against
-#  pmacc_DEFINITIONS  - definitions of pmacc
+#  PMacc_INCLUDE_DIRS - include directories for pmacc
+#  PMacc_LIBRARIES    - libraries to link against
+#  PMacc_DEFINITIONS  - definitions of pmacc
 
 ###############################################################################
 # pmacc
 ###############################################################################
 cmake_minimum_required(VERSION 3.3)
-project("pmacc")
+project("PMacc")
 
-set(pmacc_INCLUDE_DIRS ${pmacc_INCLUDE_DIRS} "${pmacc_DIR}/include")
+set(PMacc_INCLUDE_DIRS ${PMacc_INCLUDE_DIRS} "${PMacc_DIR}/include")
 
-# This path should be within pmacc
+# This path should be within PMacc
 # own modules for find_packages
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
-    ${pmacc_DIR}/../../thirdParty/cmake-modules/)
+    ${PMacc_DIR}/../../thirdParty/cmake-modules/)
 
 # Options
 option(PMACC_BLOCKING_KERNEL "activate checks for every kernel call and synch after every kernel call" OFF)
 if(PMACC_BLOCKING_KERNEL)
-  set(pmacc_DEFINITIONS ${pmacc_DEFINITIONS} "-DPMACC_SYNC_KERNEL=1")
+  set(pmacc_DEFINITIONS ${PMacc_DEFINITIONS} "-DPMACC_SYNC_KERNEL=1")
 endif(PMACC_BLOCKING_KERNEL)
 
 set(PMACC_VERBOSE "0" CACHE STRING "set verbose level for libPMacc")
-set(pmacc_DEFINITIONS ${pmacc_DEFINITIONS} "-DPMACC_VERBOSE_LVL=${PMACC_VERBOSE}")
+set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} "-DPMACC_VERBOSE_LVL=${PMACC_VERBOSE}")
 
 ###############################################################################
 # Compiler Flags
@@ -115,7 +115,7 @@ endif(CUDA_KEEP_FILES)
 ################################################################################
 # VAMPIR
 ################################################################################
-option(VAMPIR_ENABLE "create pmacc vampir support" OFF)
+option(VAMPIR_ENABLE "create PMacc vampir support" OFF)
 
 if(VAMPIR_ENABLE)
   message("[CONFIG]  build program with vampir support")
@@ -136,9 +136,9 @@ endif(VAMPIR_ENABLE)
 # MPI LIB
 ################################################################################
 find_package(MPI MODULE REQUIRED)
-set(pmacc_INCLUDE_DIRS ${pmacc_INCLUDE_DIRS} ${MPI_C_INCLUDE_PATH})
-set(pmacc_LIBRARIES ${pmacc_LIBRARIES} ${MPI_C_LIBRARIES})
-set(pmacc_LIBRARIES ${pmacc_LIBRARIES} ${MPI_CXX_LIBRARIES})
+set(PMacc_INCLUDE_DIRS ${PMacc_INCLUDE_DIRS} ${MPI_C_INCLUDE_PATH})
+set(PMacc_LIBRARIES ${PMacc_LIBRARIES} ${MPI_C_LIBRARIES})
+set(PMacc_LIBRARIES ${PMacc_LIBRARIES} ${MPI_CXX_LIBRARIES})
 
 ################################################################################
 # PNGwriter
@@ -147,21 +147,21 @@ find_package(PNGwriter MODULE REQUIRED)
 
 if(PNGwriter_FOUND)
   include_directories( )
-  set(pmacc_INCLUDE_DIRS ${pmacc_INCLUDE_DIRS} ${PNGwriter_INCLUDE_DIRS})
+  set(PMacc_INCLUDE_DIRS ${PMacc_INCLUDE_DIRS} ${PNGwriter_INCLUDE_DIRS})
   list(APPEND PNGwriter_DEFINITIONS "-DGOL_ENABLE_PNG=1")
-  set(pmacc_DEFINITIONS ${pmacc_DEFINITIONS} ${PNGwriter_DEFINITIONS})
-  set(pmacc_LIBRARIES ${pmacc_LIBRARIES} ${PNGwriter_LIBRARIES})
+  set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} ${PNGwriter_DEFINITIONS})
+  set(PMacc_LIBRARIES ${PMacc_LIBRARIES} ${PNGwriter_LIBRARIES})
 endif(PNGwriter_FOUND)
 
 ###############################################################################
 # Boost LIB
 ###############################################################################
 find_package(Boost 1.56.0 MODULE REQUIRED COMPONENTS program_options regex system)
-set(pmacc_INCLUDE_DIRS ${pmacc_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
-set(pmacc_LIBRARIES ${pmacc_LIBRARIES} ${Boost_LIBRARIES})
+set(PMacc_INCLUDE_DIRS ${PMacc_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
+set(PMacc_LIBRARIES ${PMacc_LIBRARIES} ${Boost_LIBRARIES})
 
 ################################################################################
 # PThreads
 ################################################################################
 find_package(Threads MODULE REQUIRED)
-set(pmacc_LIBRARIES ${pmacc_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+set(PMacc_LIBRARIES ${PMacc_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})

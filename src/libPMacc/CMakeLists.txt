@@ -1,3 +1,4 @@
+#
 # Copyright 2015 Erik Zenker
 #
 # This file is part of libPMacc.
@@ -23,16 +24,16 @@
 # PMacc tests
 ################################################################################
 cmake_minimum_required(VERSION 3.3)
-project ("pmacc test")
+project ("PMacc test")
 
 
 ################################################################################
 # PMacc
 ################################################################################
-find_package(pmacc REQUIRED CONFIG PATHS ${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(SYSTEM ${pmacc_INCLUDE_DIRS})
-set(LIBS ${LIBS} ${pmacc_LIBRARIES})
-add_definitions(${pmacc_DEFINITIONS})
+find_package(PMacc REQUIRED CONFIG PATHS ${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(SYSTEM ${PMacc_INCLUDE_DIRS})
+set(LIBS ${LIBS} ${PMacc_LIBRARIES})
+add_definitions(${PMacc_DEFINITIONS})
 
 ###############################################################################
 # Boost.Test
@@ -53,6 +54,7 @@ target_link_libraries(check ${LIBS})
 
 # CTest
 enable_testing()
-add_test(pmacc_test_build "${CMAKE_COMMAND}" --build ${CMAKE_BINARY_DIR} --target check)
-add_test(pmacc_test_run  mpiexec --allow-run-as-root -n 2 check )
-set_tests_properties(pmacc_test_run PROPERTIES DEPENDS graybat_check_build)
+add_test(PMacc_test_build "${CMAKE_COMMAND}" --build ${CMAKE_BINARY_DIR} --target check)
+# --alow-run-as-root because some ci run test as root
+add_test(PMacc_test_run  mpiexec --alow-run-as-root -n 2 check )
+set_tests_properties(PMacc_test_run PROPERTIES DEPENDS graybat_check_build)
