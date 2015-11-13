@@ -2,24 +2,24 @@ module purge
 
 # General modules #############################################################
 #
-module load oscar-modules llview
+module load oscar-modules
 module load cmake/3.3.1 git
-module load cuda/6.5.14  # gcc 4.8, intel 14.0 == 2013-sp1
+module load cuda/7.0.28 # gcc <=4.9, intel 15.0
 module load bullxmpi
 module load gnuplot/4.6.1
 
 # Compilers ###################################################################
 ### GCC
-module load gcc/4.8.0 boost/1.55.0-gnu4.8
+module load gcc/4.9.1 boost/1.56.0-gnu4.9.1
 ### ICC
-#module load intel/2013-sp1 boost/1.57.0-intel2013-sp1
+#module load intel/2015.3.187 boost/1.59.0-intel2015.3.187
 ### PGI
-#export BOOST_ROOT=$HOME/lib/boost_1_54_pgi_13_6
+#export BOOST_ROOT=$HOME/lib/boost_1_56_pgi_14_9
 #export BOOST_INC=$BOOST_ROOT/include
 #export BOOST_LIB=$BOOST_ROOT/lib
 # must be set in `which <pgiDir>/bin/localrc`:
 #   set NOSWITCHERROR=YES;
-#module load pgi/14.1 boost/1.55.0-pgi14.1
+#module load pgi/14.9 boost/<noneBuildYet>
 
 # Other Software ##############################################################
 #
