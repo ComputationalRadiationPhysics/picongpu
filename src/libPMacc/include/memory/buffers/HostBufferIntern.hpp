@@ -24,12 +24,11 @@
 #ifndef _HOSTBUFFERINTERN_HPP
 #define	_HOSTBUFFERINTERN_HPP
 
-#include <cassert>
-
-#include "memory/buffers/Buffer.hpp"
+#include "memory/buffers/HostBuffer.hpp"
+#include "eventSystem/tasks/Factory.hpp"
 #include "eventSystem/EventSystem.hpp"
 
-#include "eventSystem/tasks/Factory.hpp"
+#include <cassert>
 
 namespace PMacc
 {
