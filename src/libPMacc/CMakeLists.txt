@@ -48,7 +48,7 @@ set(LIBS ${LIBS} ${Boost_LIBRARIES})
 ###############################################################################
 
 # Test cases
-file(GLOB TESTS test/*UT.cu)
+file(GLOB_RECURSE TESTS test/*UT.cu)
 cuda_add_executable(check EXCLUDE_FROM_ALL ${TESTS})
 target_link_libraries(check ${LIBS})
 
