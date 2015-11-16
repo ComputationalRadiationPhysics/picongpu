@@ -22,42 +22,55 @@
 
 #pragma once
 
+#include "cuSTL/cursor/Cursor.hpp"
+#include "cuSTL/cursor/accessor/LinearInterpAccessor1D.hpp"
+#include "cuSTL/cursor/navigator/PlusNavigator.hpp"
+#include "result_of_Functor.hpp"
 #include "types.h"
-#include "algorithms/math/defines/modf.hpp"
 
 namespace PMacc
 {
 namespace cursor
 {
-
-/** Performs a 1D, linear interpolation on access.
- *
- * \tparam T_Cursor 1D input data
- * \tparam T_Position type of the weighting factor
- */
-template<typename T_Cursor, typename T_Position = float>
-struct LinearInterpAccessor
+namespace tools
 {
-    typedef typename T_Cursor::ValueType type;
 
-    T_Cursor cursor;
-
-    /**
-     * @param cursor 1D input data
-     */
-    HDINLINE LinearInterpAccessor(const T_Cursor& cursor) : cursor(cursor) {}
-
-    HDINLINE type operator()(const T_Position x) const
+/** Return a cursor that does 1D, linear interpolation on input data.
+ *
+ * \tparam T_Position type of the weighting factor
+ *
+ */
+template<typename T_Position = float>
+struct LinearInterp1D
+{
+    template<typename TCursor>
+    HDINLINE
+    Cursor<LinearInterpAccessor1D<TCursor, T_Position>, PlusNavigator, T_Position>
+    operator()(const TCursor& cur)
     {
-        T_Position intPart;
-        const T_Position fracPart = PMacc::algorithms::math::modf(x, &intPart);
-        int idx = static_cast<int>(intPart);
-
-        return (T_Position(1.0) - fracPart) * this->cursor[idx]
-                                 + fracPart * this->cursor[idx+1];
+        return make_Cursor(
+            LinearInterpAccessor1D<TCursor, T_Position>(cur),
+            PlusNavigator(),
+            T_Position(0.0));
     }
 };
 
+} // namespace tools
 } // namespace cursor
+
+namespace result_of
+{
+
+template<typename T_Position, typename TCursor>
+struct Functor<cursor::tools::LinearInterp1D<T_Position>, TCursor>
+{
+    typedef cursor::Cursor<
+        cursor::LinearInterpAccessor1D<TCursor, T_Position>,
+        cursor::PlusNavigator,
+        T_Position> type;
+};
+
+} // namespace result_of
+
 } // namespace PMacc
 
