@@ -23,8 +23,7 @@
 
 #pragma once
 
-//#include "memory/buffers/Buffer.hpp"
-#include "memory/buffers/HostBuffer.hpp"
+#include "memory/buffers/Buffer.hpp"
 #include "eventSystem/tasks/Factory.hpp"
 #include "eventSystem/EventSystem.hpp"
 
