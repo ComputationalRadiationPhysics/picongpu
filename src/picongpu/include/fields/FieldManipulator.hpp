@@ -46,7 +46,7 @@ public:
             if (FRONT % i == 0 && !(Environment<simDim>::get().GridController().getCommunicationMask().isSet(i)))
             {
                 uint32_t direction = 0; /*set direction to X (default)*/
-                if (i >= BOTTOM && TOP <= TOP)
+                if (i >= BOTTOM && i <= TOP)
                     direction = 1; /*set direction to Y*/
                 if (i >= BACK)
                     direction = 2; /*set direction to Z*/
