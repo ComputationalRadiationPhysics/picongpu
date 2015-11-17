@@ -45,7 +45,7 @@ namespace PMacc
  */
 template<typename T_MPLSeq,
          typename T_Key,
-	     typename T_KeyNotFoundPolicy = errorHandlerPolicies::ReturnType<>
+         typename T_KeyNotFoundPolicy = errorHandlerPolicies::ReturnType<>
 >
 struct GetKeyFromAlias
 {
