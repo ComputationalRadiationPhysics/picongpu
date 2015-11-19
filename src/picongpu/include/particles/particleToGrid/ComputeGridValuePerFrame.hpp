@@ -27,6 +27,7 @@
 
 #include "math/Vector.hpp"
 #include "particles/particleToGrid/ComputeGridValuePerFrame.def"
+#include "particles/particleToGrid/derivedAttributes/DerivedAttributes.hpp"
 
 #include "algorithms/Gamma.hpp"
 
@@ -35,101 +36,43 @@ namespace picongpu
 namespace particleToGrid
 {
 
-template<class T_ParticleShape, uint32_t calcType>
+template<class T_ParticleShape, class T_DerivedAttribute>
 HDINLINE float1_64
-ComputeGridValuePerFrame<T_ParticleShape, calcType>::getUnit() const
+ComputeGridValuePerFrame<T_ParticleShape, T_DerivedAttribute>::getUnit() const
 {
-    const float_64 UNIT_VOLUME = (UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH);
-
-    if (calcType == ComputeGridValueOptions::calcDensity)
-        return UNIT_CHARGE / UNIT_VOLUME;
-    else
-        if (calcType == ComputeGridValueOptions::calcEnergy)
-        return UNIT_ENERGY;
-    else
-        if (calcType == ComputeGridValueOptions::calcEnergyDensity)
-        return UNIT_CHARGE / UNIT_VOLUME * UNIT_ENERGY;
-    else
-        if (calcType == ComputeGridValueOptions::calcCounter)
-        return particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE;
-
-#if(ENABLE_RADIATION == 1)
-    else
-        if (calcType == ComputeGridValueOptions::calcLarmorEnergy)
-        return UNIT_ENERGY;
-#endif
-    else
-        return 1.0;
+    return T_DerivedAttribute().getUnit();
 }
 
-template<class T_ParticleShape, uint32_t calcType>
+template<class T_ParticleShape, class T_DerivedAttribute>
 HINLINE std::string
-ComputeGridValuePerFrame<T_ParticleShape, calcType>::getName() const
+ComputeGridValuePerFrame<T_ParticleShape, T_DerivedAttribute>::getName() const
 {
-    if (calcType == ComputeGridValueOptions::calcDensity)
-        return "Density";
-    else
-        if (calcType == ComputeGridValueOptions::calcEnergy)
-        return "ParticleEnergy";
-    else
-        if (calcType == ComputeGridValueOptions::calcEnergyDensity)
-        return "EnergyDensity";
-    else
-        if (calcType == ComputeGridValueOptions::calcCounter)
-        return "ParticleCounter";
-#if(ENABLE_RADIATION == 1)
-    else
-        if (calcType == ComputeGridValueOptions::calcLarmorEnergy)
-        return "fields_ParticleLarmorEnergy";
-#endif
-    else
-        return "FieldTmp";
+    return T_DerivedAttribute().getName();
 }
 
-template<class T_ParticleShape, uint32_t calcType>
+template<class T_ParticleShape, class T_DerivedAttribute>
 template<class FrameType, class TVecSuperCell, class BoxTmp >
 DINLINE void
-ComputeGridValuePerFrame<T_ParticleShape, calcType>::operator()
+ComputeGridValuePerFrame<T_ParticleShape, T_DerivedAttribute>::operator()
 (FrameType& frame,
  const int localIdx,
  const TVecSuperCell superCell,
  BoxTmp& tmpBox)
 {
+    /* \todo in the future and if useful, the functor can be a parameter */
+    T_DerivedAttribute particleAttribute;
 
     PMACC_AUTO(particle, frame[localIdx]);
-    typedef float_X WeightingType;
 
-    const float_X weighting = particle[weighting_];
+    /* particle attributes: position and generic, derived attribute */
     const floatD_X pos = particle[position_];
-    const float3_X mom = particle[momentum_];
-#if(ENABLE_RADIATION == 1)
-    const float3_X mom_mt1 = particle[momentumPrev1_];
-    const float3_X mom_dt = mom - mom_mt1;
-#endif
-    const float_X mass = attribute::getMass(weighting,particle);
-    const float_X charge = attribute::getCharge(weighting,particle);
-
-    const int particleCellIdx = particle[localCellIdx_];
-    const DataSpace<TVecSuperCell::dim> localCell(DataSpaceOperations<TVecSuperCell::dim>::map(superCell,particleCellIdx));
-
-    Gamma<float_X> calcGamma;
-    const typename Gamma<float_X>::valueType gamma = calcGamma(mom, mass);
-    const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
-
-    const float_X energy = ( gamma <= float_X(GAMMA_THRESH) ) ?
-        math::abs2(mom) / ( float_X(2.0) * mass ) :   /* non-relativistic */
-        (gamma - float_X(1.0)) * mass * c2;           /* relativistic     */
-#if(ENABLE_RADIATION == 1)
-    const float_X el_factor = charge * charge
-        / (6.0 * PI * EPS0 *
-           c2 * c2 * SPEED_OF_LIGHT * mass * mass);
-    const float_X energyLarmor = el_factor * math::pow(gamma, 4)
-        * (math::abs2(mom_dt) -
-           math::abs2(math::cross(mom, mom_dt)));
-#endif
-    const float_X particleChargeDensity = charge / (CELL_VOLUME);
+    const PMACC_AUTO(particleAttr, particleAttribute( particle ));
 
     /** Shift to the cell the particle belongs to */
+    const int particleCellIdx = particle[localCellIdx_];
+    const DataSpace<TVecSuperCell::dim> localCell(
+        DataSpaceOperations<TVecSuperCell::dim>::map( superCell, particleCellIdx )
+    );
     PMACC_AUTO(fieldTmpShiftToParticle, tmpBox.shift(localCell));
 
     /** loop around local super cell position (regarding shape)
@@ -155,34 +98,13 @@ ComputeGridValuePerFrame<T_ParticleShape, calcType>::operator()
             assign[d] = AssignmentFunction()(float_X(offsetToBaseCell[d]) - pos[d]);
 
 
-        /** multiply charge, devide by cell volume and multiply by
+        /** multiply charge, divide by cell volume and multiply by
          * energy of this particle
          */
         const float_X assignComb = assign.productOfComponents();
 
-        if (calcType == ComputeGridValueOptions::calcDensity)
-            atomicAddWrapper(&(fieldTmpShiftToParticle(offsetToBaseCell).x()),
-                             assignComb * particleChargeDensity);
-
-        if (calcType == ComputeGridValueOptions::calcEnergy)
-            atomicAddWrapper(&(fieldTmpShiftToParticle(offsetToBaseCell).x()),
-                             assignComb * energy);
-
-        if (calcType == ComputeGridValueOptions::calcEnergyDensity)
-            atomicAddWrapper(&(fieldTmpShiftToParticle(offsetToBaseCell).x()),
-                             assignComb * particleChargeDensity * energy);
-
-        if (calcType == ComputeGridValueOptions::calcCounter)
-            atomicAddWrapper(&(fieldTmpShiftToParticle(offsetToBaseCell).x()),
-                             assignComb * weighting / particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
-
-#if(ENABLE_RADIATION == 1)
-        if (calcType == ComputeGridValueOptions::calcLarmorEnergy)
-            atomicAddWrapper(&(fieldTmpShiftToParticle(offsetToBaseCell).x()),
-                             assignComb * energyLarmor);
-#endif
-
-
+        atomicAddWrapper(&(fieldTmpShiftToParticle(offsetToBaseCell).x()),
+                         assignComb * particleAttr);
     }
 }
 

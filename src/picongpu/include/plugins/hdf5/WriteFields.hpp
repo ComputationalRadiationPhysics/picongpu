@@ -127,9 +127,9 @@ private:
     static std::string getName()
     {
         std::stringstream str;
-        str << Solver().getName();
-        str << "_";
         str << Species::FrameType::getName();
+        str << "_";
+        str << Solver().getName();
         return str.str();
     }
 
