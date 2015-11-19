@@ -31,6 +31,8 @@
 
 #include "algorithms/Gamma.hpp"
 
+#include <vector>
+
 namespace picongpu
 {
 namespace particleToGrid
@@ -41,6 +43,13 @@ HDINLINE float1_64
 ComputeGridValuePerFrame<T_ParticleShape, T_DerivedAttribute>::getUnit() const
 {
     return T_DerivedAttribute().getUnit();
+}
+
+template<class T_ParticleShape, class T_DerivedAttribute>
+HDINLINE std::vector<float_64>
+ComputeGridValuePerFrame<T_ParticleShape, T_DerivedAttribute>::getUnitDimension() const
+{
+    return T_DerivedAttribute().getUnitDimension();
 }
 
 template<class T_ParticleShape, class T_DerivedAttribute>

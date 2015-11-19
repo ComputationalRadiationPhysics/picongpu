@@ -65,7 +65,7 @@ fieldB( NULL )
         VectorAllSpecies,
         interpolation<>
     >::type VectorSpeciesWithInterpolation;
-    
+
     typedef bmpl::accumulate<
         VectorSpeciesWithInterpolation,
         typename PMacc::math::CT::make_Int<simDim, 0>::type,
@@ -218,6 +218,24 @@ FieldE::UnitValueType
 FieldE::getUnit( )
 {
     return UnitValueType( UNIT_EFIELD, UNIT_EFIELD, UNIT_EFIELD );
+}
+
+HDINLINE
+std::vector<float_64>
+FieldE::getUnitDimension( )
+{
+    /* L, M, T, I, theta, N, J
+     *
+     * E is in volts per meters: V / m = kg * m / (A * s^3)
+     *   -> L * M * T^-3 * I^-1
+     */
+    std::vector<float_64> unitDimension( 7, 0.0 );
+    unitDimension.at(0) =  1.0; // L^1
+    unitDimension.at(1) =  1.0; // M^1
+    unitDimension.at(2) = -3.0; // T^-3
+    unitDimension.at(3) = -1.0; // I^-1
+
+    return unitDimension;
 }
 
 std::string

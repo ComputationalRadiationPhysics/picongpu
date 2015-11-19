@@ -242,6 +242,22 @@ FieldJ::getUnit( )
     return UnitValueType( UNIT_CURRENT, UNIT_CURRENT, UNIT_CURRENT );
 }
 
+HDINLINE
+std::vector<float_64>
+FieldJ::getUnitDimension( )
+{
+    /* L, M, T, I, theta, N, J
+     *
+     * J is in A/m^2
+     *   -> L^-2 * I
+     */
+    std::vector<float_64> unitDimension( 7, 0.0 );
+    unitDimension.at(0) = -2.0; // L^-2
+    unitDimension.at(3) =  1.0; // I^1
+
+    return unitDimension;
+}
+
 std::string
 FieldJ::getName( )
 {

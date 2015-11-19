@@ -21,6 +21,7 @@
 #pragma once
 
 #include "pmacc_types.hpp"
+#include <vector>
 
 
 namespace picongpu
@@ -34,6 +35,22 @@ namespace derivedAttributes
 
         HDINLINE float1_64
         getUnit() const;
+
+        HDINLINE std::vector<float_64>
+        getUnitDimension() const
+        {
+           /* L, M, T, I, theta, N, J
+            *
+            * ChargeDensity is in Coulomb / cubic meter: Q / m^3 = I * t / m^3
+            *   -> L^-3 * T * I
+            */
+           std::vector<float_64> unitDimension( 7, 0.0 );
+           unitDimension.at(0) = -3.0; // L^-3
+           unitDimension.at(2) =  1.0; // T^1
+           unitDimension.at(3) =  1.0; // I^1
+
+           return unitDimension;
+        }
 
         HINLINE std::string
         getName() const

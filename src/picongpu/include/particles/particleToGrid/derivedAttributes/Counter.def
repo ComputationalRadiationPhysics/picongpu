@@ -21,6 +21,7 @@
 #pragma once
 
 #include "pmacc_types.hpp"
+#include <vector>
 
 
 namespace picongpu
@@ -34,6 +35,18 @@ namespace derivedAttributes
 
         HDINLINE float1_64
         getUnit() const;
+
+        HDINLINE std::vector<float_64>
+        getUnitDimension() const
+        {
+           /* L, M, T, I, theta, N, J
+            *
+            * Counter is unitless
+            */
+           std::vector<float_64> unitDimension( 7, 0.0 );
+
+           return unitDimension;
+        }
 
         HINLINE std::string
         getName() const

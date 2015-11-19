@@ -208,6 +208,23 @@ FieldB::getUnit( )
     return UnitValueType( UNIT_BFIELD, UNIT_BFIELD, UNIT_BFIELD );
 }
 
+HDINLINE
+std::vector<float_64>
+FieldB::getUnitDimension( )
+{
+    /* L, M, T, I, theta, N, J
+     *
+     * B is in Tesla : kg / (A * s^2)
+     *   -> M * T^-2 * I^-1
+     */
+    std::vector<float_64> unitDimension( 7, 0.0 );
+    unitDimension.at(1) =  1.0; // M^1
+    unitDimension.at(2) = -2.0; // T^-2
+    unitDimension.at(3) = -1.0; // I^-1
+
+    return unitDimension;
+}
+
 std::string
 FieldB::getName( )
 {
