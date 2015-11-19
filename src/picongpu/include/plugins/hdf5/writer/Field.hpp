@@ -43,7 +43,8 @@ struct Field
     static void writeField(ThreadParams *params,
                            const std::string name,
                            std::vector<float_64> unit,
-                           /* unitDimension, position, timeOffset */
+                           std::vector<float_64> unitDimension,
+                           /* position, timeOffset */
                            T_DataBoxType dataBox,
                            const T_ValueType&
                            )
@@ -57,6 +58,9 @@ struct Field
 
         log<picLog::INPUT_OUTPUT > ("HDF5 write field: %1% %2%") %
             name % nComponents;
+
+        assert(unit.size() == nComponents);
+        assert(unitDimension.size() == 7); // seven openPMD base units
 
         std::vector<std::string> name_lookup;
         {
@@ -148,7 +152,14 @@ struct Field
 
         std::string recordName = std::string("fields/") + name;
 
-        /* unitDimension, timeOffset */
+        /* timeOffset */
+
+        ColTypeDouble ctDouble;
+        params->dataCollector->writeAttribute(params->currentStep,
+                                              ctDouble, recordName.c_str(),
+                                              "unitDimension",
+                                              1u, Dimensions(7,0,0),
+                                              &(*unitDimension.begin()));
 
         std::string geometry("cartesian");
         ColTypeString ctGeometry(geometry.length());
@@ -164,7 +175,6 @@ struct Field
 
         /* axisLabels, gridSpacing, gridGlobalOffset */
 
-        ColTypeDouble ctDouble;
         params->dataCollector->writeAttribute(params->currentStep,
                                               ctDouble, recordName.c_str(),
                                               "gridUnitSI", &UNIT_LENGTH);

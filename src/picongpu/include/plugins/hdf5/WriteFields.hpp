@@ -83,6 +83,7 @@ public:
         Field::writeField(params,
                           T::getName(),
                           getUnit(),
+                          T::getUnitDimension(),
                           field->getHostDataBox(),
                           ValueType());
 
@@ -170,6 +171,7 @@ private:
         Field::writeField(params,
                           getName(),
                           getUnit(),
+                          FieldTmp::getUnitDimension<Solver>(),
                           fieldTmp->getHostDataBox(),
                           ValueType());
 
