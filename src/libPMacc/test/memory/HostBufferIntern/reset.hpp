@@ -22,15 +22,11 @@
 
 #pragma once
 
-// #includes in "test/memoryUT.cu"
+/* #includes in "test/memoryUT.cu" */
 
 /**
  * Checks if the HostBufferIntern is reseted correctly to zero.
  */
-
-
-
-
 struct ResetTest {
 
     template<typename T_Dim>

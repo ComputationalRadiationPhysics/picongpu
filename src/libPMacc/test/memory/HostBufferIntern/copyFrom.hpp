@@ -22,7 +22,7 @@
 
 #pragma once
 
-// #includes in "test/memoryUT.cu"
+/* #includes in "test/memoryUT.cu" */
 
 /**
  * Checks if data is copied correctly from device to

@@ -23,25 +23,26 @@
 // STL
 #include <stdint.h> /* uint8_t */
 #include <iostream> /* cout, endl */
-#include <string>   
+#include <string>
 
 // BOOST
 #include <boost/test/unit_test.hpp>
 #include <boost/mpl/list.hpp>
 #include <boost/mpl/for_each.hpp>
+#include <boost/mpl/integral_c.hpp>
 
 // MPI
 #include <mpi.h> /* MPI_Init, MPI_Finalize */
 
 // PMacc
-#include <Environment.hpp>                       /* Environment */
-#include <dimensions/DataSpace.hpp>              /* DataSpace */
-#include <memory/buffers/HostBufferIntern.hpp>   /* HostBufferIntern */
-#include <memory/buffers/HostBuffer.hpp>         /* HostBuffer */
-#include <memory/buffers/DeviceBufferIntern.hpp> /* DeviceBufferIntern */
-#include <memory/buffers/DeviceBuffer.hpp>       /* DeviceBuffer */
-#include <dimensions/DataSpace.hpp>              /* DataSpace */
-#include <types.h>                               /* DIMX */
+#include <Environment.hpp>
+#include <dimensions/DataSpace.hpp>
+#include <memory/buffers/HostBufferIntern.hpp>
+#include <memory/buffers/HostBuffer.hpp>
+#include <memory/buffers/DeviceBufferIntern.hpp>
+#include <memory/buffers/DeviceBuffer.hpp>
+#include <dimensions/DataSpace.hpp>
+#include <types.h> /* DIM1,DIM2,DIM3 */
 
 
 /*******************************************************************************
@@ -65,7 +66,7 @@ struct Fixture {
         MPI_Init( &argc, &argv );
 
         PMacc::DataSpace<DIM3> const devices(1,1,1);
-        PMacc::DataSpace<DIM3> const periodic(1,1,1);    
+        PMacc::DataSpace<DIM3> const periodic(1,1,1);
         PMacc::Environment<DIM3>::get().initDevices(devices, periodic);
 
 
@@ -83,25 +84,25 @@ struct Fixture {
  * test should be verfied e.g. the size
  * of a host or device buffer.
  */
-template<typename T_Dim>        
+template<typename T_Dim>
 std::vector<size_t> getElementsPerDim(){
     std::vector<size_t> nElements;
     std::vector<size_t> nElementsPerDim;
 
     // Elements total
-    nElements.push_back(1);         // 1
-    nElements.push_back(1000);      // 1K
-    nElements.push_back(1000000);   // 1M
-    nElements.push_back(10000000);  // 10M                 
+    nElements.push_back(1);
+    nElements.push_back(1 * 1000);
+    nElements.push_back(1 * 1000 * 1000);
+    nElements.push_back(1 * 1000 * 1000 * 10);
 
     // Elements per dimension
     for(unsigned i = 0; i < nElements.size(); ++i){
         nElementsPerDim.push_back(std::pow(nElements[i], 1/static_cast<double>(T_Dim::value))); 
-            
+
     }
     return nElementsPerDim;
 }
-    
+
 
 /**
  * Definition of a list of dimension types. This
@@ -109,11 +110,9 @@ std::vector<size_t> getElementsPerDim(){
  * each dimension setup automatically. For this
  * purpose boost::mpl::for_each is used.
  */
-struct Dim1_t { static int const value = DIM1; };
-struct Dim2_t { static int const value = DIM2; };
-struct Dim3_t { static int const value = DIM3; };
-typedef ::boost::mpl::list<Dim1_t, Dim2_t, Dim3_t> Dims;
-
+typedef ::boost::mpl::list<boost::mpl::integral_c<int, DIM1>,
+                           boost::mpl::integral_c<int, DIM2>,
+                           boost::mpl::integral_c<int, DIM3> > Dims;
 
 BOOST_GLOBAL_FIXTURE( Fixture );
 
