@@ -262,7 +262,7 @@ FieldJ::getUnitDimension( )
 std::string
 FieldJ::getName( )
 {
-    return "FieldJ";
+    return "J";
 }
 
 uint32_t

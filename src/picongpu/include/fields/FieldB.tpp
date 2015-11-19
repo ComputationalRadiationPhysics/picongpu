@@ -229,7 +229,7 @@ FieldB::getUnitDimension( )
 std::string
 FieldB::getName( )
 {
-    return "FieldB";
+    return "B";
 }
 
 uint32_t
