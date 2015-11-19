@@ -83,7 +83,7 @@ struct Fixture {
  * test should be verfied e.g. the size
  * of a host or device buffer.
  */
-template<typename T_DIM>        
+template<typename T_Dim>        
 std::vector<size_t> getElementsPerDim(){
     std::vector<size_t> nElements;
     std::vector<size_t> nElementsPerDim;
@@ -96,7 +96,7 @@ std::vector<size_t> getElementsPerDim(){
 
     // Elements per dimension
     for(unsigned i = 0; i < nElements.size(); ++i){
-        nElementsPerDim.push_back(std::pow(nElements[i], 1/static_cast<double>(T_DIM::value))); 
+        nElementsPerDim.push_back(std::pow(nElements[i], 1/static_cast<double>(T_Dim::value))); 
             
     }
     return nElementsPerDim;

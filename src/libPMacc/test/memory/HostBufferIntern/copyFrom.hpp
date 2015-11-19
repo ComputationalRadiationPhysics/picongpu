@@ -30,18 +30,18 @@
  */
 struct CopyFromTest {
 
-    template<typename T_DIM>
-    void operator()(T_DIM){
+    template<typename T_Dim>
+    void operator()(T_Dim){
 
         typedef uint8_t Data;
         typedef size_t  Extents;
 
-        std::vector<size_t> nElementsPerDim = getElementsPerDim<T_DIM>();
+        std::vector<size_t> nElementsPerDim = getElementsPerDim<T_Dim>();
         
         for(unsigned i = 0; i < nElementsPerDim.size(); ++i){
-            ::PMacc::DataSpace<T_DIM::value> const dataSpace              = ::PMacc::DataSpace<T_DIM::value>::create(nElementsPerDim[i]);
-            ::PMacc::HostBuffer<Data, T_DIM::value>* hostBufferIntern     = new ::PMacc::HostBufferIntern<Data, T_DIM::value>(dataSpace);
-            ::PMacc::DeviceBuffer<Data, T_DIM::value>* deviceBufferIntern = new ::PMacc::DeviceBufferIntern<Data, T_DIM::value>(dataSpace);
+            ::PMacc::DataSpace<T_Dim::value> const dataSpace              = ::PMacc::DataSpace<T_Dim::value>::create(nElementsPerDim[i]);
+            ::PMacc::HostBuffer<Data, T_Dim::value>* hostBufferIntern     = new ::PMacc::HostBufferIntern<Data, T_Dim::value>(dataSpace);
+            ::PMacc::DeviceBuffer<Data, T_Dim::value>* deviceBufferIntern = new ::PMacc::DeviceBufferIntern<Data, T_Dim::value>(dataSpace);
 
             hostBufferIntern->reset();
 

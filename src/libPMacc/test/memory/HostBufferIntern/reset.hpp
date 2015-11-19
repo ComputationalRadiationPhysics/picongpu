@@ -33,17 +33,17 @@
 
 struct ResetTest {
 
-    template<typename T_DIM>
-    void operator()(T_DIM){
+    template<typename T_Dim>
+    void operator()(T_Dim){
 
         typedef uint8_t Data;
         typedef size_t  Extents;
 
-        std::vector<size_t> nElementsPerDim = getElementsPerDim<T_DIM>();
+        std::vector<size_t> nElementsPerDim = getElementsPerDim<T_Dim>();
         
         for(unsigned i = 0; i < nElementsPerDim.size(); ++i){
-            ::PMacc::DataSpace<T_DIM::value> const dataSpace = ::PMacc::DataSpace<T_DIM::value>::create(nElementsPerDim[i]);
-            ::PMacc::HostBufferIntern<Data, T_DIM::value> hostBufferIntern(dataSpace);
+            ::PMacc::DataSpace<T_Dim::value> const dataSpace = ::PMacc::DataSpace<T_Dim::value>::create(nElementsPerDim[i]);
+            ::PMacc::HostBufferIntern<Data, T_Dim::value> hostBufferIntern(dataSpace);
 
             hostBufferIntern.reset();
 
