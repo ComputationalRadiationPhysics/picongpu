@@ -61,7 +61,7 @@ namespace PMacc
             __startOperation(ITask::TASK_HOST);
             return this->current_size;
         }
-        
+
         /**
          * Destructor.
          */
@@ -69,7 +69,7 @@ namespace PMacc
         {
         };
 
-        __forceinline__
+        HINLINE
         container::HostBuffer<TYPE, DIM>
         cartBuffer()
         {
@@ -87,13 +87,15 @@ namespace PMacc
 
     protected:
 
-        /**
-         * Constructor.
+        /** Constructor.
          *
-         * @param dataSpace size of each dimension of the buffer
+         * @param size extent for each dimension (in elements)
+         *             if the buffer is a view to an existing buffer the size
+         *             can be less than `physicalMemorySize`
+         * @param physicalMemorySize size of the physical memory (in elements)
          */
-        HostBuffer(DataSpace<DIM> dataSpace) :
-        Buffer<TYPE, DIM>(dataSpace)
+        HostBuffer(DataSpace<DIM> size, DataSpace<DIM> physicalMemorySize) :
+        Buffer<TYPE, DIM>(size, physicalMemorySize)
         {
 
         }

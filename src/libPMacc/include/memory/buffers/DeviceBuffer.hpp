@@ -52,8 +52,15 @@ namespace PMacc
     {
     protected:
 
-        DeviceBuffer(DataSpace<DIM> dataSpace) :
-        Buffer<TYPE, DIM>(dataSpace)
+        /** constructor
+         *
+         * @param size extent for each dimension (in elements)
+         *             if the buffer is a view to an existing buffer the size
+         *             can be less than `physicalMemorySize`
+         * @param physicalMemorySize size of the physical memory (in elements)
+         */
+        DeviceBuffer(DataSpace<DIM> size, DataSpace<DIM> physicalMemorySize) :
+        Buffer<TYPE, DIM>(size, physicalMemorySize)
         {
 
         }
@@ -72,7 +79,7 @@ namespace PMacc
 
 #define COMMA ,
 
-        __forceinline__
+        HINLINE
         container::CartBuffer<TYPE, DIM, allocator::DeviceMemAllocator<TYPE, DIM>,
                                 copier::D2DCopier<DIM>,
                                 assigner::DeviceMemAssigner<DIM> >
@@ -86,7 +93,7 @@ namespace PMacc
             if(DIM == 3)
             {
                 result.pitch[0] = cudaData.pitch;
-                result.pitch[1] = cudaData.pitch * result._size.y();
+                result.pitch[1] = cudaData.pitch * this->getPhysicalMemorySize()[1];
             }
 #ifndef __CUDA_ARCH__
             result.refCount = new int;

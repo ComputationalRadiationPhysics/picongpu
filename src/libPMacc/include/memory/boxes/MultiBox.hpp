@@ -155,9 +155,9 @@ public:
         return DataBoxType(PitchedBox<Type, DIM2 > ((Type*) ((char*) fixedPointer + attributePitch * nameId), pitch));
     }
 
-    HDINLINE MultiBox(Type* pointer, const DataSpace<DIM2> &offset, const DataSpace<DIM2> &size, const size_t pitch) :
+    HDINLINE MultiBox(Type* pointer, const DataSpace<DIM2> &offset, const DataSpace<DIM2> &memSize, const size_t pitch) :
     pitch(pitch),
-    attributePitch(pitch*size.y()),
+    attributePitch(pitch*memSize.y()),
     fixedPointer((Type*) ((char*) pointer + offset[1] * pitch) + offset[0])
     {
     }
@@ -238,9 +238,16 @@ public:
         return ReducedType((Type*) ((char*) (this->fixedPointer) + idx * pitch2D), pitch, attributePitch);
     }
 
-    HDINLINE MultiBox(Type* pointer, const DataSpace<DIM3> &offset, const DataSpace<DIM3> &size, const size_t pitch) :
-    pitch(pitch), pitch2D(size.y() * pitch), attributePitch(pitch2D*size.z()),
-    fixedPointer((Type*) ((char*) pointer + offset[2] * pitch2D + offset[1] * pitch) + offset[0])
+    /** constructor
+     *
+     * @param pointer pointer to the origin of the physical memory
+     * @param offset offset (in elements)
+     * @param memSize size of the physical memory (in elements)
+     * @param pitch number of bytes in one line (first dimension)
+     */
+    HDINLINE MultiBox(Type* pointer, const DataSpace<DIM3> &offset, const DataSpace<DIM3> &memSize, const size_t pitch) :
+    pitch(pitch), pitch2D(memSize.y() * pitch), attributePitch((memSize.y() * pitch) * size.z()),
+    fixedPointer((Type*) ((char*) pointer + offset[2] * (memSize.y() * pitch) + offset[1] * pitch) + offset[0])
     {
     }
 
