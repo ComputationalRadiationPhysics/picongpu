@@ -52,13 +52,14 @@ namespace derivedAttributes
         /* calculate new attribute */
         Gamma<float_X> calcGamma;
         const typename Gamma<float_X>::valueType gamma = calcGamma( mom, mass );
+        const float_X gamma2 = gamma * gamma;
         const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
 
         const float3_X mom_dt = mom - mom_mt1;
         const float_X el_factor = charge * charge
-            / (6.0 * PI * EPS0 *
+            / (float_X(6.0) * PI * EPS0 *
                c2 * c2 * SPEED_OF_LIGHT * mass * mass);
-        const float_X energyLarmor = el_factor * math::pow( gamma, 4 )
+        const float_X energyLarmor = el_factor * gamma2 * gamma2
             * (math::abs2(mom_dt) -
                math::abs2(math::cross(mom, mom_dt)));
 
