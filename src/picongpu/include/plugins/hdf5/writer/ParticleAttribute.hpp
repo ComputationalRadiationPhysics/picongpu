@@ -70,15 +70,22 @@ struct ParticleAttribute
         const uint32_t components = GetNComponents<ValueType>::value;
         typedef typename GetComponentsType<ValueType>::type ComponentType;
         typedef typename PICToSplash<ComponentType>::type SplashType;
+        typedef typename PICToSplash<float_X>::type SplashFloatXType;
 
         const ThreadParams *threadParams = params;
 
         log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) write species attribute: %1%") % Identifier::getName();
 
         SplashType splashType;
+        ColTypeDouble ctDouble;
+        SplashFloatXType splashFloatXType;
+
+        std::string recordName = subGroup + std::string("/") + T_Identifier::getName();
+
         const std::string name_lookup[] = {"x", "y", "z"};
 
         std::vector<float_64> unit = Unit<T_Identifier>::get();
+        std::vector<float_64> unitDimension = UnitDimension<T_Identifier>::get();
 
         /* globalSlideOffset due to gpu slides between origin at time step 0
          * and origin at current time step
@@ -110,7 +117,7 @@ struct ParticleAttribute
         for (uint32_t d = 0; d < components; d++)
         {
             std::stringstream datasetName;
-            datasetName << subGroup << "/" << T_Identifier::getName();
+            datasetName << recordName;
             if (components > 1)
                 datasetName << "/" << name_lookup[d];
 
@@ -137,7 +144,6 @@ struct ParticleAttribute
                                                      DomainCollector::PolyType,
                                                      tmpArray);
 
-            ColTypeDouble ctDouble;
             if (unit.size() >= (d + 1))
                 threadParams->dataCollector->writeAttribute(threadParams->currentStep,
                                                             ctDouble, datasetName.str().c_str(),
@@ -146,7 +152,19 @@ struct ParticleAttribute
         }
         __deleteArray(tmpArray);
 
-        /* unitDimension, timeOffset */
+
+        params->dataCollector->writeAttribute(params->currentStep,
+                                              ctDouble, recordName.c_str(),
+                                              "unitDimension",
+                                              1u, Dimensions(7,0,0),
+                                              &(*unitDimension.begin()));
+
+        /** \todo check if always correct at this point, depends on attribute
+         *        and MW-solver/pusher implementation */
+        const float_X timeOffset = 0.0;
+        threadParams->dataCollector->writeAttribute(params->currentStep,
+                                                    splashFloatXType, recordName.c_str(),
+                                                    "timeOffset", &timeOffset);
 
         log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) write species attribute: %1%") %
             Identifier::getName();
