@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Rene Widera, Felix Schmitt
+ * Copyright 2013-2015 Rene Widera, Felix Schmitt, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -24,12 +24,32 @@
 
 #include <vector>
 #include "traits/Unit.hpp"
+#include "traits/UnitDimension.hpp"
 
 namespace picongpu
 {
 
 namespace traits
 {
+
+/* openPMD uses the powers of the 7 SI base measures to describe
+ * the unit of a record
+ * \see http://git.io/vROmP */
+BOOST_CONSTEXPR_OR_CONST uint32_t NUnitDimension = 7;
+
+// pre-C++11 "scoped enumerator" work-around
+namespace SIBaseUnits {
+enum SIBaseUnits_t
+{
+    length = 0,                   // L
+    mass = 1,                     // M
+    time = 2,                     // T
+    electricCurrent = 3,          // I
+    thermodynamicTemperature = 4, // theta
+    amountOfSubstance = 5,        // N
+    luminousIntensity = 6,        // J
+};
+}
 
 template<typename T_Type>
 struct Unit<position<T_Type> >
@@ -45,6 +65,22 @@ struct Unit<position<T_Type> >
         return unit;
     }
 };
+template<typename T_Type>
+struct UnitDimension<position<T_Type> >
+{
+    static std::vector<float_64> get()
+    {
+        /* L, M, T, I, theta, N, J
+         *
+         * position is in meter: m
+         *   -> L
+         */
+        std::vector<float_64> unitDimension( NUnitDimension, 0.0 );
+        unitDimension.at(SIBaseUnits::length) = 1.0;
+
+        return unitDimension;
+    }
+};
 
 template<>
 struct Unit<radiationFlag>
@@ -54,6 +90,18 @@ struct Unit<radiationFlag>
     {
         std::vector<double> unit;
         return unit;
+    }
+};
+template<>
+struct UnitDimension<radiationFlag>
+{
+    static std::vector<float_64> get()
+    {
+        /* radiationFlag is unitless
+         */
+        std::vector<float_64> unitDimension( NUnitDimension, 0.0 );
+
+        return unitDimension;
     }
 };
 
@@ -71,6 +119,24 @@ struct Unit<momentum >
         return unit;
     }
 };
+template<>
+struct UnitDimension<momentum >
+{
+    static std::vector<float_64> get()
+    {
+        /* L, M, T, I, theta, N, J
+         *
+         * momentum is in mass times speed: kg * m / s
+         *   -> L * M * T^-1
+         */
+        std::vector<float_64> unitDimension( NUnitDimension, 0.0 );
+        unitDimension.at(SIBaseUnits::length) =  1.0;
+        unitDimension.at(SIBaseUnits::mass)   =  1.0;
+        unitDimension.at(SIBaseUnits::time)   = -1.0;
+
+        return unitDimension;
+    }
+};
 
 template<>
 struct Unit<momentumPrev1>
@@ -86,6 +152,24 @@ struct Unit<momentumPrev1>
         return unit;
     }
 };
+template<>
+struct UnitDimension<momentumPrev1>
+{
+    static std::vector<float_64> get()
+    {
+        /* L, M, T, I, theta, N, J
+         *
+         * momentum is in mass times speed: kg * m / s
+         *   -> L * M * T^-1
+         */
+        std::vector<float_64> unitDimension( NUnitDimension, 0.0 );
+        unitDimension.at(SIBaseUnits::length) =  1.0;
+        unitDimension.at(SIBaseUnits::mass)   =  1.0;
+        unitDimension.at(SIBaseUnits::time)   = -1.0;
+
+        return unitDimension;
+    }
+};
 
 template<>
 struct Unit<weighting >
@@ -95,6 +179,18 @@ struct Unit<weighting >
     {
         std::vector<double> unit;
         return unit;
+    }
+};
+template<>
+struct UnitDimension<weighting >
+{
+    static std::vector<float_64> get()
+    {
+        /* weighting is unitless
+         */
+        std::vector<float_64> unitDimension( NUnitDimension, 0.0 );
+
+        return unitDimension;
     }
 };
 
@@ -109,6 +205,22 @@ struct Unit<globalCellIdx<T_Type> >
         return unit;
     }
 };
+template<typename T_Type>
+struct UnitDimension<globalCellIdx<T_Type> >
+{
+    static std::vector<float_64> get()
+    {
+        /* L, M, T, I, theta, N, J
+         *
+         * globalCellIdx is a lengths: m
+         *   -> L
+         */
+        std::vector<float_64> unitDimension( NUnitDimension, 0.0 );
+        unitDimension.at(SIBaseUnits::length) = 1.0;
+
+        return unitDimension;
+    }
+};
 
 template<>
 struct Unit<boundElectrons>
@@ -120,7 +232,18 @@ struct Unit<boundElectrons>
         return unit;
     }
 };
+template<>
+struct UnitDimension<boundElectrons>
+{
+    static std::vector<float_64> get()
+    {
+        /* boundElectrons is unitless
+         */
+        std::vector<float_64> unitDimension( NUnitDimension, 0.0 );
 
+        return unitDimension;
+    }
+};
 
-} //namespace traits
-} //namespace picongpu
+} // namespace traits
+} // namespace picongpu
