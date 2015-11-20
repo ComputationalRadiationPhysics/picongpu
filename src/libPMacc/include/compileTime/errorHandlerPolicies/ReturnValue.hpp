@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2015 Rene Widera, Alexander Grund
+ * Copyright 2015 Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -24,28 +24,22 @@
 
 #include "types.h"
 
-#include "compileTime/conversion/RemoveFromSeq.hpp"
-#include "compileTime/conversion/ResolveAliases.hpp"
-#include "compileTime/errorHandlerPolicies/ReturnValue.hpp"
-
 namespace PMacc
 {
-
-/** Resolve and remove types from a sequence
- *
- * @tparam T_MPLSeqSrc source sequence from were we delete types
- * @tparam T_MPLSeqObjectsToRemove sequence with types which should be deleted (PMacc aliases are allowed)
- */
-template<
-typename T_MPLSeqSrc,
-typename T_MPLSeqObjectsToRemove
->
-struct ResolveAndRemoveFromSeq
+namespace errorHandlerPolicies
 {
-    typedef T_MPLSeqSrc MPLSeqSrc;
-    typedef T_MPLSeqObjectsToRemove MPLSeqObjectsToRemove;
-    typedef typename ResolveAliases<MPLSeqObjectsToRemove, MPLSeqSrc, errorHandlerPolicies::ReturnValue>::type ResolvedSeqWithObjectsToRemove;
-    typedef typename RemoveFromSeq<MPLSeqSrc, ResolvedSeqWithObjectsToRemove>::type type;
+
+/** Returns the second parameter (normally the value that the sequence was searched for
+ *  Binary meta function that takes any boost mpl sequence and a type
+ */
+struct ReturnValue
+{
+    template<typename T_MPLSeq, typename T_Value>
+    struct apply
+    {
+        typedef T_Value type;
+    };
 };
 
-}//namespace PMacc
+} // namespace errorHandlerPolicies
+} // namespace PMacc

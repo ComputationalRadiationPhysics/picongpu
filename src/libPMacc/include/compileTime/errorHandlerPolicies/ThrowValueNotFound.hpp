@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2015 Rene Widera, Alexander Grund
+ * Copyright 2015 Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -23,29 +23,25 @@
 #pragma once
 
 #include "types.h"
-
-#include "compileTime/conversion/RemoveFromSeq.hpp"
-#include "compileTime/conversion/ResolveAliases.hpp"
-#include "compileTime/errorHandlerPolicies/ReturnValue.hpp"
+#include "static_assert.hpp"
 
 namespace PMacc
 {
-
-/** Resolve and remove types from a sequence
- *
- * @tparam T_MPLSeqSrc source sequence from were we delete types
- * @tparam T_MPLSeqObjectsToRemove sequence with types which should be deleted (PMacc aliases are allowed)
- */
-template<
-typename T_MPLSeqSrc,
-typename T_MPLSeqObjectsToRemove
->
-struct ResolveAndRemoveFromSeq
+namespace errorHandlerPolicies
 {
-    typedef T_MPLSeqSrc MPLSeqSrc;
-    typedef T_MPLSeqObjectsToRemove MPLSeqObjectsToRemove;
-    typedef typename ResolveAliases<MPLSeqObjectsToRemove, MPLSeqSrc, errorHandlerPolicies::ReturnValue>::type ResolvedSeqWithObjectsToRemove;
-    typedef typename RemoveFromSeq<MPLSeqSrc, ResolvedSeqWithObjectsToRemove>::type type;
+
+/** Throws an assertion that the value was not found in the sequence
+ *  Binary meta function that takes any boost mpl sequence and a type
+ */
+struct ThrowValueNotFound
+{
+    template<typename T_MPLSeq, typename T_Value>
+    struct apply
+    {
+        PMACC_CASSERT_MSG_TYPE(value_not_found_in_seq, T_Value, false);
+        typedef bmpl::void_ type;
+    };
 };
 
-}//namespace PMacc
+} // namespace errorHandlerPolicies
+} // namespace PMacc
