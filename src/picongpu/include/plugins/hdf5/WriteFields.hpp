@@ -80,10 +80,16 @@ public:
         T* field = &(dc.getData<T > (T::getName()));
         params->gridLayout = field->getGridLayout();
 
+        /** \todo check if always correct at this point, depends on solver
+         *        implementation */
+        const float_X timeOffset = 0.0;
+
         Field::writeField(params,
                           T::getName(),
                           getUnit(),
                           T::getUnitDimension(),
+                          /* inCellPosition, */
+                          timeOffset,
                           field->getHostDataBox(),
                           ValueType());
 
@@ -165,6 +171,12 @@ private:
         dc.releaseData(Species::FrameType::getName());
         /*## finish update field ##*/
 
+        //PMACC_AUTO(inCellPosition, fieldSolver::NumericalCellType::getEFieldPosition());
+        //fieldSolver::NumericalCellType::getJFieldPosition()[n]
+
+        /** \todo check if always correct at this point, depends on solver
+         *        implementation */
+        const float_X timeOffset = 0.0;
 
         params->gridLayout = fieldTmp->getGridLayout();
         /*write data to HDF5 file*/
@@ -172,6 +184,8 @@ private:
                           getName(),
                           getUnit(),
                           FieldTmp::getUnitDimension<Solver>(),
+                          /* inCellPosition, */
+                          timeOffset,
                           fieldTmp->getHostDataBox(),
                           ValueType());
 
