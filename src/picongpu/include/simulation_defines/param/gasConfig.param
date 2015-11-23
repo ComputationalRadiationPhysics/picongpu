@@ -138,6 +138,13 @@ typedef LinearExponentialImpl<LinearExponentialParam> LinearExponential;
 
 
 PMACC_STRUCT(GaussianCloudParam,
+    /** Gas Formula:
+     *     exponent = |globalCellPos - center| / sigma
+     *     density = e^[ gasFactor * exponent^gasPower ]
+     */
+    (PMACC_C_VALUE(float_X, gasFactor, 1.0))
+    (PMACC_C_VALUE(float_X, gasPower, 4.0))
+
     /** height of vacuum area on top border
      *
      * this vacuum is important because of the laser initialization,
@@ -146,9 +153,6 @@ PMACC_STRUCT(GaussianCloudParam,
      * unit: cells
      */
     (PMACC_C_VALUE(uint32_t, vacuumCellsY, 50))
-
-    (PMACC_C_VALUE(float_X, gasFactor, 1.0))
-    (PMACC_C_VALUE(float_X, gasPower, 4.0))
 
     /** The central position of the gas distribution
      *  unit: meter
@@ -162,6 +166,7 @@ PMACC_STRUCT(GaussianCloudParam,
 
 /* definition of gas cloud profile*/
 typedef GaussianCloudImpl<GaussianCloudParam> GaussianCloud;
+
 
 /** The profile consists out of the composition of 3 1D profiles
  *  with the scheme: exponential increasing flank, constant sphere,
@@ -212,6 +217,7 @@ PMACC_STRUCT(SphereFlanksParam,
 /* definition of gas sphere with flanks*/
 typedef SphereFlanksImpl<SphereFlanksParam> SphereFlanks;
 
+
 PMACC_STRUCT(FromHDF5Param,
     /* prefix of filename
      * full file name: gas_0.h5
@@ -229,6 +235,7 @@ PMACC_STRUCT(FromHDF5Param,
 
 /* definition of gas cloud profile*/
 typedef FromHDF5Impl<FromHDF5Param> FromHDF5;
+
 
 struct FreeFormulaFunctor
 {
