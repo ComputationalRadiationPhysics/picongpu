@@ -33,7 +33,7 @@ struct ResetTest {
     void operator()(T_Dim){
 
         typedef uint8_t Data;
-        typedef size_t  Extents;
+        typedef size_t Extents;
 
         std::vector<size_t> nElementsPerDim = getElementsPerDim<T_Dim>();
         

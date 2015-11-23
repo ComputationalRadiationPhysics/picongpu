@@ -96,8 +96,8 @@ std::vector<size_t> getElementsPerDim(){
     nElements.push_back(1 * 1000 * 1000 * 10);
 
     // Elements per dimension
-    for(unsigned i = 0; i < nElements.size(); ++i){
-        nElementsPerDim.push_back(std::pow(nElements[i], 1/static_cast<double>(T_Dim::value))); 
+    for(size_t i = 0; i < nElements.size(); ++i){
+        nElementsPerDim.push_back(std::pow(nElements[i], static_cast<double>(1)/static_cast<double>(T_Dim::value))); 
 
     }
     return nElementsPerDim;
