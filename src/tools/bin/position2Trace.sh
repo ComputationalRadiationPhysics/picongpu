@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2013 Rene Widera, Richard Pausch
+# Copyright 2013-2015 Rene Widera, Richard Pausch
 #
 # This file is part of PIConGPU.
 #
@@ -26,4 +26,4 @@ if [ $# -ne 2 ] ; then
     exit
 fi
 
-grep PositionsElectrons $1 | awk '{print($6"\t"$7"\t"$8"\t"$9"\t"$10"\t"$11"\t"$12)}' | tr -d "{" | tr -d "}" > $2
+grep e_position $1 | awk '{print($6"\t"$7"\t"$8"\t"$9"\t"$10"\t"$11"\t"$12)}' | sed 's/,/\t/g' | tr -d "{" | tr -d "}" > $2
