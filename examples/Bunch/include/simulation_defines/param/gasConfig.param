@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -47,6 +47,13 @@ namespace gasProfiles
 {
 
 PMACC_STRUCT(GaussianCloudParam,
+    /** Gas Formula:
+     *     exponent = |globalCellPos - center| / sigma
+     *     density = e^[ gasFactor * exponent^gasPower ]
+     */
+    (PMACC_C_VALUE(float_X, gasFactor, -0.5))
+    (PMACC_C_VALUE(float_X, gasPower, 2.0))
+
     /** height of vacuum area on top border
      *
      * this vacuum is important because of the laser initialization,
@@ -54,9 +61,6 @@ PMACC_STRUCT(GaussianCloudParam,
      * unit: cells
      */
     (PMACC_C_VALUE(uint32_t, vacuumCellsY, 50))
-
-    (PMACC_C_VALUE(float_X, gasFactor, -1.0))
-    (PMACC_C_VALUE(float_X, gasPower, 2.0))
 
     /** The central position of the gas distribution
      *  unit: meter
