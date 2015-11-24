@@ -142,8 +142,8 @@ PMACC_STRUCT(GaussianCloudParam,
      *     exponent = |globalCellPos - center| / sigma
      *     density = e^[ gasFactor * exponent^gasPower ]
      */
-    (PMACC_C_VALUE(float_X, gasFactor, 1.0))
-    (PMACC_C_VALUE(float_X, gasPower, 4.0))
+    (PMACC_C_VALUE(float_X, gasFactor, -0.5))
+    (PMACC_C_VALUE(float_X, gasPower, 2.0))
 
     /** height of vacuum area on top border
      *
