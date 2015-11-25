@@ -31,7 +31,7 @@
 
 namespace picongpu
 {
-    namespace particlePusherAxl
+    namespace particlePusherAxel
     {
 
         template<class Velocity, class Gamma>
