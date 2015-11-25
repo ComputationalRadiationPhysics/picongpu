@@ -47,6 +47,7 @@ source $PROJWORK/$proj/python-venv/rhea/bin/activate
 #   pip install "ipython[all]"
 #   pip install mpi4py
 #   pip install h5py
+#   pip install lock_file
 #   pip install psutil
 #   pip install pyDive
 #
