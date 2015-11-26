@@ -160,7 +160,9 @@ help()
     echo "TBG (template batch generator)"
     echo "create a new folder for a batch job and copy in all important files"
     echo ""
-    echo "usage: tbg -c [cfgFile] [-s [submitsystem]] [-t [templateFile]] [-p project] [-o \"VARNAME1=10 VARNAME2=5\"] [-h] destinationPath"
+    echo "usage: tbg -c [cfgFile] [-s [submitsystem]] [-t [templateFile]]"
+    echo "          [-o \"VARNAME1=10 VARNAME2=5\"] [-h]"
+    echo "          [projectPath] destinationPath"
     echo ""
     echo "-c | --cfg      [file]         - Configuration file to set up batch file."
     echo "                                 Default: [cfgFile] via export TBG_CFGFILE"
@@ -169,21 +171,25 @@ help()
     echo "-t | --tpl      [file]         - Template to create a batch file from."
     echo "                                 tbg will use stdin, if no file is specified."
     echo "                                 Default: [templateFile] via export TBG_TPLFILE"
-    echo "-p | --project  folder         - Project folder containing sourcecode and binaries"
-    echo "                                 Default: current directory"
     echo "-o                             - Overwrite any template variable:"
     echo "                                 e.g. -o \"VARNAME1=10 VARNAME2=5\""
     echo "                                 Overwriting is done after cfg file was executed"
     echo "-h | --help                    - Shows help (this output)."
+    echo ""
+    echo "[projectPath]                  - Project directory containing source code and"
+    echo "                                 binaries"
+    echo "                                 Default: current directory"
     echo "destinationPath                - Directory for simulation output. "
     echo " "
     echo " "
-    echo "TBG exports the following variables, which can be used in cfg and tpl files at any time:"
+    echo "TBG exports the following variables, which can be used in cfg and tpl files at"
+    echo "any time:"
     echo " TBG_jobName                   - name of the job"
     echo " TBG_jobNameShort              - short name of the job, without blanks"
-    echo " TBG_cfgPath                   - absolut path to cfg file"
-    echo " TBG_cfgFile                   - full absolut path and name of cfg file"
-    echo " TBG_projectPath               - absolut project path (see option --project)"
+    echo " TBG_cfgPath                   - absolute path to cfg file"
+    echo " TBG_cfgFile                   - full absolute path and name of cfg file"
+    echo " TBG_projectPath               - absolute project path (see optional parameter"
+    echo "                                 projectPath)"
     echo " TBG_dstPath                   - absolute path to destination directory"
 }
 
@@ -207,7 +213,7 @@ fi
 # options may be followed by
 # - one colon to indicate they has a required argument
 # - two colons to indicate they has a optional argument
-OPTS=`$egetoptTool -o p:t::c::s::o:h -l project:,tpl::,cfg::,submit::,help -n tbg ++ "$@"`
+OPTS=`$egetoptTool -o t::c::s::o:h -l tpl::,cfg::,submit::,help -n tbg ++ "$@"`
 if [ $? != 0 ] ; then
     # something went wrong, egetopt will put out an error message for us
     exit 1
@@ -224,10 +230,6 @@ while true ; do
                 echo "missing submit command for -s|--submit" >&2
                 exit 1
             fi
-            shift
-            ;;
-       -p|--project)
-            projectPath="$2"
             shift
             ;;
        -c|--cfg)
@@ -259,12 +261,27 @@ if [ -n "$tooltpl_file" ] && [ ! -f "$tooltpl_file" ] ; then
     exit 1;
 fi
 
-outDir="$*"
-
-if [ -z "$outDir" ] ; then
+if [ -z "$*" ] ; then
     echo "No output directory is set (last tbg parameter)." >&2
     exit 1;
 fi
+
+# the first parameter is the project path
+if [ $# -ge 2 ] ; then
+    projectPath="$1"
+    shift
+fi
+
+# the parameter list was shifted in the `if` block before
+# only one parameter is allowed
+# an empty parameter list is handled later
+if [ $# -ge 2 ] ; then
+    echo "To many output directories are given '$*'" >&2
+    exit 1;
+fi
+
+# the last parameter is the `destinationPath`
+outDir="$1"
 
 if [ -z "$cfg_file" ] ; then
     echo "No cfg file given (-c|--cfg)." >&2
