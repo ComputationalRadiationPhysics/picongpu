@@ -16,7 +16,7 @@ module load python_scipy
 export IPYTHONDIR=$PROJWORK/$proj/ipython
 
 # ADIOS
-export ADIOS_ROOT=$PROJWORK/$proj/lib/adios-pre1.9.0-rhea
+export ADIOS_ROOT=$PROJWORK/$proj/lib/adios-1.9.0-rhea
 export LD_LIBRARY_PATH=$ADIOS_ROOT/lib:$LD_LIBRARY_PATH
 export PATH=$ADIOS_ROOT/bin:$PATH
 module load mxml
@@ -28,7 +28,7 @@ source $PROJWORK/$proj/python-venv/rhea/bin/activate
 #
 # first install adios
 #   LDFLAGS="-fPIC -pthread" CFLAGS="-fPIC -g -O2" CXXFLAGS="-fPIC -g -O2" \
-#     ./configure --prefix=$PROJWORK/$proj/lib/adios-pre1.9.0-rhea \
+#     ./configure --prefix=$PROJWORK/$proj/lib/adios-1.9.0-rhea \
 #     --with-zlib --with-mpi --enable-static --enable-shared \
 #     --with-mxml=$MXML_DIR --without-dataspaces
 #   make -j
@@ -47,6 +47,7 @@ source $PROJWORK/$proj/python-venv/rhea/bin/activate
 #   pip install "ipython[all]"
 #   pip install mpi4py
 #   pip install h5py
+#   pip install lock_file
 #   pip install psutil
 #   pip install pyDive
 #
