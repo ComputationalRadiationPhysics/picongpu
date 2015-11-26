@@ -41,25 +41,31 @@ class HostBufferIntern : public HostBuffer<TYPE, DIM>
 {
 public:
 
-    typedef typename DeviceBuffer<TYPE, DIM>::DataBoxType DataBoxType;
+    typedef typename HostBuffer<TYPE, DIM>::DataBoxType DataBoxType;
 
     /** constructor
      *
      * @param size extent for each dimension (in elements)
      */
     HostBufferIntern(DataSpace<DIM> size) :
-    HostBuffer<TYPE, DIM>(size, size),
-    pointer(NULL),ownPointer(true)
+        HostBuffer<TYPE, DIM>(size, size),
+        pointer(NULL),
+        basePointer(NULL),
+        ownsPointer(true)
     {
         CUDA_CHECK(cudaMallocHost(&pointer, size.productOfComponents() * sizeof (TYPE)));
+        basePointer = pointer;
         reset(false);
     }
 
     HostBufferIntern(HostBufferIntern& source, DataSpace<DIM> size, DataSpace<DIM> offset=DataSpace<DIM>()) :
-    HostBuffer<TYPE, DIM>(size, source.getPhysicalMemorySize()),
-    pointer(NULL),ownPointer(false)
+        HostBuffer<TYPE, DIM>(size, source.getPhysicalMemorySize()),
+        pointer(NULL),
+        basePointer(NULL),
+        ownsPointer(false)
     {
         pointer=&(source.getDataBox()(offset));/*fix me, this is a bad way*/
+        basePointer = source.getPointer();
         reset(true);
     }
 
@@ -70,9 +76,9 @@ public:
     {
         __startOperation(ITask::TASK_HOST);
 
-        if (pointer && ownPointer)
+        if (this->getPointer() && ownsPointer)
         {
-            CUDA_CHECK(cudaFreeHost(pointer));
+            CUDA_CHECK(cudaFreeHost(this->getPointer()));
         }
     }
 
@@ -82,7 +88,7 @@ public:
     TYPE* getBasePointer()
     {
         __startOperation(ITask::TASK_HOST);
-        return pointer;
+        return basePointer;
     }
 
     TYPE* getPointer()
@@ -106,8 +112,8 @@ public:
             /* if it is a pointer out of other memory we can not assume that
              * that the physical memory is contiguous
              */
-            if(ownPointer)
-                memset(pointer, 0, this->getDataSpace().productOfComponents() * sizeof (TYPE));
+            if(ownsPointer)
+                memset(this->getPointer(), 0, this->getDataSpace().productOfComponents() * sizeof (TYPE));
             else
             {
                 TYPE value;
@@ -140,13 +146,14 @@ public:
     DataBoxType getDataBox()
     {
         __startOperation(ITask::TASK_HOST);
-        return DataBoxType(PitchedBox<TYPE, DIM > (pointer, DataSpace<DIM > (),
+        return DataBoxType(PitchedBox<TYPE, DIM > (this->getPointer(), DataSpace<DIM > (),
                                                    this->getPhysicalMemorySize(), this->getPhysicalMemorySize()[0] * sizeof (TYPE)));
     }
 
 private:
     TYPE* pointer;
-    bool ownPointer;
+    TYPE* basePointer;
+    bool ownsPointer;
 };
 
 }
