@@ -220,8 +220,8 @@ public:
         const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
         Window window;
 
-        window.localDimensions = Selection<simDim>(subGrid.getLocalDomain().size);
-        window.globalDimensions = Selection<simDim>(subGrid.getGlobalDomain().size);
+        window.localDimensions = Selection<simDim>(subGrid.getLocalDomain());
+        window.globalDimensions = Selection<simDim>(subGrid.getGlobalDomain());
 
         /* If sliding is inactive, moving window is the same as global domain (substract 0)*/
         window.globalDimensions.size.y() -= subGrid.getLocalDomain().size.y() * slidingWindowActive;
@@ -231,8 +231,8 @@ public:
             float_64 offsetFirstGPU = 0.0;
             getCurrentSlideInfo(currentStep, NULL, &offsetFirstGPU);
 
-            /* global offset is all 0 except for y dimension */
-            window.globalDimensions.offset.y() = offsetFirstGPU;
+            /* moving window can only slide in y direction */
+            window.globalDimensions.offset.y() += offsetFirstGPU;
 
             /* set top/bottom if there are no communication partners
              * for this GPU in the respective direction */
