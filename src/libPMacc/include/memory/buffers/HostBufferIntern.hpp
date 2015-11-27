@@ -76,10 +76,14 @@ public:
     {
         __startOperation(ITask::TASK_HOST);
 
-        if (this->getPointer() && ownsPointer)
+        if (this->getBasePointer() && ownsPointer)
         {
-            CUDA_CHECK(cudaFreeHost(this->getPointer()));
+            CUDA_CHECK(cudaFreeHost(this->getBasePointer()));
         }
+
+        pointer = NULL;
+        basePointer = NULL;
+        
     }
 
     /*! Get pointer of memory
