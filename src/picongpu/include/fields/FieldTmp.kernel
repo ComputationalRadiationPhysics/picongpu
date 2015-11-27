@@ -67,7 +67,7 @@ namespace picongpu
         }
         __syncthreads( );
 
-        if( frame.isValid() )
+        if( !frame.isValid() )
             return; //end kernel if we have no frames
 
         PMACC_AUTO( cachedVal, CachedBox::create < 0, typename TmpBox::ValueType > ( BlockDescription_( ) ) );
