@@ -451,7 +451,8 @@ public:
     m_slicePoint(slicePoint),
     isMaster(false),
     header(NULL),
-    reduce(1024)
+    reduce(1024),
+    img(NULL)
     {
         sliceDim = 0;
         if (m_transpose.x() == 0 || m_transpose.y() == 0)
@@ -625,12 +626,13 @@ public:
             header = MessageHeader::create();
             header->update(*cellDescription, window, m_transpose, 0, cellSizeArr, gpus);
 
-            img = new GridBuffer<float3_X, DIM2 > (header->node.maxSize);
-
             bool isDrawing = doDrawing();
             isMaster = gather.init(isDrawing);
             reduce.participate(isDrawing);
 
+            /* create memory for the local picture if the gpu participate on the visualization */
+            if(isDrawing)
+                img = new GridBuffer<float3_X, DIM2 > (header->node.maxSize);
         }
     }
 
