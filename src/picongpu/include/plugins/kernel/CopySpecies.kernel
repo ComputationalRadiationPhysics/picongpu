@@ -55,7 +55,7 @@ struct ConcatListOfFrames
 
     /** concatenate list of frames to single frame
      *
-     * @param counter scalar offset in `destFrame`
+     * @param counter[in,out] scalar offset in `destFrame`
      * @param destFrame single frame were all particles are copied in
      * @param srcBox particle box were particles are read from
      * @param filter filter to select particles
@@ -63,7 +63,7 @@ struct ConcatListOfFrames
      * @param mapper mapper which describe the area were particles are copied from
      */
     template<class T_DestFrame, class T_SrcBox, class T_Filter, class T_Space, class T_Mapping>
-    void operator()(int& counter, T_DestFrame destFrame, T_SrcBox srcBox, T_Filter filter, T_Space particleOffset, T_Mapping mapper)
+    void operator()(int& counter, T_DestFrame destFrame, T_SrcBox srcBox, T_Filter filterWindowDomain, T_Space particleOffset, T_Mapping mapper)
     {
         #pragma omp parallel for
         for (int linearBlockIdx = 0;
@@ -71,6 +71,8 @@ struct ConcatListOfFrames
              ++linearBlockIdx
              )
         {
+            // local copy for each omp thread
+            T_Filter filter = filterWindowDomain;
             DataSpace<simDim> blockIdx(DataSpaceOperations<simDim>::map(m_gridDim, linearBlockIdx));
 
             using namespace PMacc::particles::operations;
