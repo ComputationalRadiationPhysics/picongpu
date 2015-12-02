@@ -205,11 +205,10 @@ Active Team
 - Marco Garten
 - Alexander Grund
 - Axel Huebl*
-- Maximilian Knespel
 - Richard Pausch*
 - Stefan Tietze
 - Rene Widera*
-- Benjamin Worpitz*
+- Erik Zenker*
 
 ### Former Members, Contributions and Thanks
 
@@ -220,12 +219,14 @@ The PIConGPU Team expresses its thanks to:
 - Wen Fu, PhD
 - Anton Helm
 - Wolfgang Hoehnig
+- Maximilian Knespel
 - Dr. Remi Lehe
-- Felix Schmitt(*)
+- Felix Schmitt
 - Benjamin Schneider
 - Joseph Schuchart
 - Conrad Schumann
 - Klaus Steiniger
+- Benjamin Worpitz
 
 Kudos to everyone who helped!
 
