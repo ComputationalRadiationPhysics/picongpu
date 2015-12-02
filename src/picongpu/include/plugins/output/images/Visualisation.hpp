@@ -465,6 +465,8 @@ public:
 
     virtual ~Visualisation()
     {
+        /* wait that shared buffers can destroyed */
+        m_output.join();
         if (m_notifyPeriod > 0)
         {
             __delete(img);
@@ -508,6 +510,9 @@ public:
         FieldE* fieldE = &(dc.getData<FieldE > (FieldE::getName(), true));
         FieldJ* fieldJ = &(dc.getData<FieldJ > (FieldJ::getName(), true));
         ParticlesType* particles = &(dc.getData<ParticlesType > (particleTag, true));
+
+        /* wait that shared buffers can accessed without conflicts */
+        m_output.join();
 
         uint32_t globalOffset = 0;
 #if(SIMDIM==DIM3)

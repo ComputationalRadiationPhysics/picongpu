@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -60,11 +60,20 @@ namespace picongpu
             __delete(socket);
         }
 
+        /** block until all shared resource are free
+         *
+         * take care that all resources used by `operator()`
+         * can safely used without conflicts
+         */
+        void join()
+        {
+        }
+
         template<class Box>
         void operator()(
                         const Box data,
                         const Size2D size,
-                        const MessageHeader & header);
+                        const MessageHeader header);
 
     private:
         SocketConnector *socket;
@@ -73,11 +82,12 @@ namespace picongpu
     };
 
     template<>
-    inline void LiveViewClient::operator() < DataBox<PitchedBox<float3_X, DIM2 > > >(
-                                                                                   const DataBox<PitchedBox<float3_X, DIM2 > > data,
-                                                                                   const Size2D size,
-                                                                                   const MessageHeader& header
-                                                                                   )
+    inline void LiveViewClient::operator() < DataBox<PitchedBox<float3_X, DIM2 > > >
+    (
+        const DataBox<PitchedBox<float3_X, DIM2 > > data,
+        const Size2D size,
+        const MessageHeader header
+    )
     {
         if (!socket)
             socket = new SocketConnector(m_ip, m_port);
@@ -110,4 +120,3 @@ namespace picongpu
         delete[] array;
     }
 }
-
