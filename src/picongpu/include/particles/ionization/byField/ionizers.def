@@ -27,5 +27,3 @@
 
 #include "particles/ionization/byField/ADK/ADK.def"
 #include "particles/ionization/byField/BSI/BSI.def"
-#include "particles/ionization/None/None.def"
-
