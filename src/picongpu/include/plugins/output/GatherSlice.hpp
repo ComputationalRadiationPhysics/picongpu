@@ -188,6 +188,7 @@ struct GatherSlice
                 insertData(dstBox, srcBox, head->node.offset, head->node.maxSize);
             }
 
+            __deleteArray(fullData);
         }
 
         delete[] recvHeader;
