@@ -47,9 +47,10 @@ struct setValueTest
             const Data value = 255;
             hostBufferIntern.setValue(value);
 
+	    PMACC_AUTO( ptr, hostBufferIntern.getPointer( ) );
             for(size_t j = 0; j < static_cast<size_t>(dataSpace.productOfComponents()); ++j)
             {
-                BOOST_CHECK_EQUAL( hostBufferIntern.getPointer()[j], value );
+                BOOST_CHECK_EQUAL( ptr[j], value );
             }
             
         }
