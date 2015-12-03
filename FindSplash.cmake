@@ -57,7 +57,7 @@
 # Required cmake version
 ###############################################################################
 
-cmake_minimum_required(VERSION 2.8.5)
+cmake_minimum_required(VERSION 2.8.11)
 
 
 ###############################################################################
@@ -213,6 +213,7 @@ endif(NOT Splash_FOUND)
 # handles the REQUIRED, QUIET and version-related arguments for find_package
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Splash
+    FOUND_VAR Splash_FOUND
     REQUIRED_VARS Splash_LIBRARIES Splash_INCLUDE_DIRS
     VERSION_VAR Splash_VERSION
 )
