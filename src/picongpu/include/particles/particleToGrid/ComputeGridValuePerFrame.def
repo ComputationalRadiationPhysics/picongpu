@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -25,24 +25,14 @@
 #include "simulation_defines.hpp"
 #include "fields/Fields.def"
 #include "particles/traits/GetShape.hpp"
+#include "particles/particleToGrid/derivedAttributes/DerivedAttributes.def"
 
 namespace picongpu
 {
 namespace particleToGrid
 {
 
-struct ComputeGridValueOptions
-{
-    BOOST_STATIC_CONSTEXPR uint32_t calcDensity = 0u;
-    BOOST_STATIC_CONSTEXPR uint32_t calcEnergy = 1u;
-    BOOST_STATIC_CONSTEXPR uint32_t calcEnergyDensity = 2u;
-    BOOST_STATIC_CONSTEXPR uint32_t calcCounter = 3u;
-#if(ENABLE_RADIATION == 1)
-    BOOST_STATIC_CONSTEXPR uint32_t calcLarmorEnergy = 4u;
-#endif
-};
-
-template<class T_ParticleShape, uint32_t calcType>
+template<class T_ParticleShape, class T_DerivedAttribute>
 class ComputeGridValuePerFrame
 {
 public:
@@ -79,14 +69,14 @@ public:
 /** Predefined Calculations for \see fieldOutput.param
  */
 
-/* Density */
+/* ChargeDensity */
 template<typename T_Species>
 struct CreateDensityOperation
 {
     typedef typename GetShape<T_Species>::type shapeType;
     typedef ComputeGridValuePerFrame<
         shapeType,
-        ComputeGridValueOptions::calcDensity
+        particleToGrid::derivedAttributes::ChargeDensity
     > ParticleDensity;
 
     typedef FieldTmpOperation< ParticleDensity, T_Species > type;
@@ -98,7 +88,7 @@ struct CreateCounterOperation
 {
     typedef ComputeGridValuePerFrame<
         particles::shapes::Counter,
-        ComputeGridValueOptions::calcCounter
+        particleToGrid::derivedAttributes::Counter
     > ParticleCounter;
 
     typedef FieldTmpOperation< ParticleCounter, T_Species > type;
@@ -111,7 +101,7 @@ struct CreateEnergyDensityOperation
     typedef typename GetShape<T_Species>::type shapeType;
     typedef ComputeGridValuePerFrame<
         shapeType,
-        ComputeGridValueOptions::calcEnergyDensity
+        particleToGrid::derivedAttributes::EnergyDensity
     > ParticleEnergyDensity;
 
     typedef FieldTmpOperation< ParticleEnergyDensity, T_Species > type;
@@ -124,7 +114,7 @@ struct CreateEnergyOperation
     typedef typename GetShape<T_Species>::type shapeType;
     typedef ComputeGridValuePerFrame<
         shapeType,
-        ComputeGridValueOptions::calcEnergy
+        particleToGrid::derivedAttributes::Energy
     > ParticleEnergy;
 
     typedef FieldTmpOperation< ParticleEnergy, T_Species > type;
@@ -137,7 +127,7 @@ struct CreateLarmorEnergyOperation
     typedef typename GetShape<T_Species>::type shapeType;
     typedef ComputeGridValuePerFrame<
         shapeType,
-        ComputeGridValueOptions::calcLarmorEnergy
+        particleToGrid::derivedAttributes::LarmorEnergy
     > ParticleLarmorEnergy;
 
     typedef FieldTmpOperation< ParticleLarmorEnergy, T_Species > type;

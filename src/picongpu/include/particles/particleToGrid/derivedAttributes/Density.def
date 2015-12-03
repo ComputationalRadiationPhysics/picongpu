@@ -1,0 +1,62 @@
+/**
+ * Copyright 2015 Axel Huebl
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "types.h"
+
+
+namespace picongpu
+{
+namespace particleToGrid
+{
+namespace derivedAttributes
+{
+    struct Density
+    {
+
+        HDINLINE float1_64
+        getUnit() const;
+
+        HINLINE std::string
+        getName() const
+        {
+            return "density";
+        }
+
+        /** Calculate a new attribute  per particle
+         *
+         * Returns a new (on-the-fly calculated) attribute of a particle
+         * that can then be mapped to the cells the particle contributes to.
+         * This method is called on a per-thread basis (each thread of a block
+         * handles a particle of a frame).
+         *
+         * \tparam T_Particle particle in the frame
+         * \param particle particle in the frame
+         *
+         * \return new attribute for the particle (type \see T_AttributeType)
+         */
+        template< class T_Particle >
+        DINLINE float_X
+        operator()( T_Particle& particle ) const;
+    };
+} /* namespace derivedAttributes */
+} /* namespace particleToGrid */
+} /* namespace picongpu */
