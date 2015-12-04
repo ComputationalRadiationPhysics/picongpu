@@ -29,7 +29,7 @@ namespace particleToGrid
 {
 namespace derivedAttributes
 {
-    struct LarmorEnergy
+    struct LarmorPower
     {
 
         HDINLINE float1_64
@@ -38,7 +38,7 @@ namespace derivedAttributes
         HINLINE std::string
         getName() const
         {
-            return "larmorEnergy";
+            return "larmorPower";
         }
 
         /** Calculate a new attribute  per particle

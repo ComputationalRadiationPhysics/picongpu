@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2015 Axel Huebl, Rene Widera, Felix Schmitt, Benjamin Worpitz
+ * Copyright 2013-2015 Axel Huebl, Rene Widera, Felix Schmitt, 
+ * Benjamin Worpitz, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -40,7 +41,7 @@ namespace picongpu
      *   - CreateCounterOperation: counts point like particles per cell
      *   - CreateEnergyDensityOperation: particle energy density with respect to shape
      *   - CreateEnergyOperation: particle energy with respect to shape
-     *   - CreateLarmorEnergyOperation: radiated larmor energy (needs ENABLE_RADIATION)
+     *   - CreateLarmorPowerOperation: radiated larmor power (needs ENABLE_RADIATION)
      */
     using namespace particleToGrid;
 

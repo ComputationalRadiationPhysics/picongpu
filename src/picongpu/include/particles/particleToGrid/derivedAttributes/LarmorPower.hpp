@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "particles/particleToGrid/derivedAttributes/LarmorEnergy.def"
+#include "particles/particleToGrid/derivedAttributes/LarmorPower.def"
 
 #include "simulation_defines.hpp"
 
@@ -33,14 +33,14 @@ namespace derivedAttributes
 {
 
     HDINLINE float1_64
-    LarmorEnergy::getUnit() const
+    LarmorPower::getUnit() const
     {
         return UNIT_ENERGY;
     }
 
     template< class T_Particle >
     DINLINE float_X
-    LarmorEnergy::operator()( T_Particle& particle ) const
+    LarmorPower::operator()( T_Particle& particle ) const
     {
         /* read existing attributes */
         const float3_X mom = particle[momentum_];
@@ -60,14 +60,14 @@ namespace derivedAttributes
             / (float_X(6.0) * PI * EPS0 *
                c2 * SPEED_OF_LIGHT * mass * mass) * gamma2 * gamma2;
         const float_X momentumToBetaConvert = float_X(1.0)/ (mass * SPEED_OF_LIGHT * gamma);
-        const float_X energyLarmor = el_factor
-                                     * ( math::abs2(mom_dt)
-                                         - momentumToBetaConvert * momentumToBetaConvert
-                                           * math::abs2(math::cross(mom, mom_dt))
-                                       );
+        const float_X larmorPower = el_factor
+                                    * ( math::abs2(mom_dt)
+                                        - momentumToBetaConvert * momentumToBetaConvert
+                                          * math::abs2(math::cross(mom, mom_dt))
+                                      );
 
         /* return attribute */
-        return energyLarmor;
+        return larmorPower;
     }
 } /* namespace derivedAttributes */
 } /* namespace particleToGrid */

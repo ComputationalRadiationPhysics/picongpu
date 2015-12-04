@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Axel Huebl
+ * Copyright 2015 Axel Huebl, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -25,4 +25,4 @@
 #include "particles/particleToGrid/derivedAttributes/ChargeDensity.def"
 #include "particles/particleToGrid/derivedAttributes/EnergyDensity.def"
 #include "particles/particleToGrid/derivedAttributes/Energy.def"
-#include "particles/particleToGrid/derivedAttributes/LarmorEnergy.def"
+#include "particles/particleToGrid/derivedAttributes/LarmorPower.def"
