@@ -29,6 +29,9 @@
 #include "CartBuffer.hpp"
 #include "allocator/tag.h"
 #include "copier/Memcopy.hpp"
+#include <exception>
+#include <sstream>
+#include <boost/assert.hpp>
 
 namespace PMacc
 {
@@ -73,6 +76,10 @@ public:
         BOOST_STATIC_ASSERT((boost::is_same<typename DBuffer::memoryTag, allocator::tag::device>::value));
         BOOST_STATIC_ASSERT((boost::is_same<typename DBuffer::type, Type>::value));
         BOOST_STATIC_ASSERT(DBuffer::dim == dim);
+        if(rhs.size() != this->size())
+            throw std::invalid_argument(static_cast<std::stringstream&>(
+                std::stringstream() << "Assignment: Sizes of buffers do not match: "
+                    << this->size() << " <-> " << rhs.size() << std::endl).str());
 
         cudaWrapper::Memcopy<dim>()(this->dataPointer, this->pitch, rhs.getDataPointer(), rhs.getPitch(),
                                 this->_size, cudaWrapper::flags::Memcopy::deviceToHost);
