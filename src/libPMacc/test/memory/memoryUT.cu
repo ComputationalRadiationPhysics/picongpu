@@ -123,8 +123,9 @@ BOOST_GLOBAL_FIXTURE( Fixture );
 BOOST_AUTO_TEST_SUITE( memory )
 
   BOOST_AUTO_TEST_SUITE( HostBufferIntern )
-  #include "HostBufferIntern/reset.hpp"
   #include "HostBufferIntern/copyFrom.hpp"
+  #include "HostBufferIntern/reset.hpp"
+  #include "HostBufferIntern/setValue.hpp"
   BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -55,6 +55,5 @@ target_link_libraries(check ${LIBS})
 # CTest
 enable_testing()
 add_test(PMacc_test_build "${CMAKE_COMMAND}" --build ${CMAKE_BINARY_DIR} --target check)
-# --alow-run-as-root because some ci run test as root
-add_test(PMacc_test_run  mpiexec --allow-run-as-root -n 2 check )
-set_tests_properties(PMacc_test_run PROPERTIES DEPENDS graybat_check_build)
+add_test(PMacc_test_run  mpiexec -n 1 ./check --log_level=test_suite)
+set_tests_properties(PMacc_test_run PROPERTIES DEPENDS PMacc_test_build)
