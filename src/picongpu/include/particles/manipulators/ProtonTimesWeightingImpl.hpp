@@ -42,20 +42,33 @@ struct ProtonTimesWeightingImpl
         typedef ProtonTimesWeightingImpl type;
     };
 
-    HINLINE ProtonTimesWeightingImpl(uint32_t currentStep)
+    HINLINE ProtonTimesWeightingImpl(uint32_t)
     {
-
     }
 
-    template<typename T_Particle1, typename T_Particle2>
+    /* Increase weighting of particleDest by proton number of SrcParticle
+     *
+     * The frame's `atomicNumber` `numberOfProtons`of `T_SrcParticle`
+     * is used to increase the weighting of particleDest.
+     * Useful to increase the weighting of macro electrons when cloned from an
+     * ion with Z>1. Otherwise one would need Z macro electrons (each with the
+     * same weighting as the initial ion) to keep the charge of a pre-ionized
+     * atom neutral.
+     *
+     * \tparam T_DestParticle type of the particle species with weighting to manipulate
+     * \tparam T_SrcParticle type of the particle species with proton number Z
+     *
+     * \see picongpu::particles::ManipulateCloneSpecies , picongpu::kernelCloneParticles
+     */
+    template<typename T_DestParticle, typename T_SrcParticle>
     DINLINE void operator()(const DataSpace<simDim>&,
-                            T_Particle1& particleSpecies1, T_Particle2&,
-                            const bool isParticle1, const bool isParticle2)
+                            T_DestParticle& particleDest, T_SrcParticle&,
+                            const bool isDestParticle, const bool isSrcParticle)
     {
-        if (isParticle1 && isParticle2)
+        if (isDestParticle && isSrcParticle)
         {
-            const float_X protonNumber = traits::GetAtomicNumbers<T_Particle2>::type::numberOfProtons;
-            particleSpecies1[weighting_] *= protonNumber;
+            const float_X protonNumber = traits::GetAtomicNumbers<T_SrcParticle>::type::numberOfProtons;
+            particleDest[weighting_] *= protonNumber;
         }
     }
 };

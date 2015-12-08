@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Axel Huebl, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -40,9 +40,8 @@ struct DriftImpl : private T_ValueFunctor
 
     typedef T_ValueFunctor ValueFunctor;
 
-    HINLINE DriftImpl(uint32_t currentStep)
+    HINLINE DriftImpl(uint32_t)
     {
-
     }
 
     template<typename T_Particle1, typename T_Particle2>

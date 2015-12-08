@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Marco Garten
+ * Copyright 2015 Marco Garten, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -39,9 +39,8 @@ struct SetAttributeImpl : private T_ValueFunctor
 
     typedef T_ValueFunctor ValueFunctor;
 
-    HINLINE SetAttributeImpl(uint32_t currentStep)
+    HINLINE SetAttributeImpl(uint32_t)
     {
-
     }
 
     template<typename T_Particle1, typename T_Particle2>

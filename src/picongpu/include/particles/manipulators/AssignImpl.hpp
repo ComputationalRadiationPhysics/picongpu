@@ -40,7 +40,7 @@ struct AssignImpl
         typedef AssignImpl type;
     };
 
-    HINLINE AssignImpl(uint32_t currentStep)
+    HINLINE AssignImpl(uint32_t)
     {
     }
 

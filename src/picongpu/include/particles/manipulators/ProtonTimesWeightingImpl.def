@@ -37,6 +37,11 @@ namespace manipulators
  * of the new species' macro particles to be a multiplied by
  * the number of protons on the initial species.
  *
+ * As an example, this comes useful when initializing a quasi-neutral,
+ * pre-ionized plasma of ions and electrons. Electrons can be created
+ * from ions via cloning and increasing their weight to avoid simulating
+ * multiple macro electrons per macro ion (with Z>1).
+ *
  * note: needs the atomicNumbers flag on the initial species,
  *       used by the GetAtomicNumbers trait.
  */

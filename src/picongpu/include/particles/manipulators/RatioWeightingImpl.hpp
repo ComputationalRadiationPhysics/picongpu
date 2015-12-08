@@ -42,24 +42,42 @@ struct RatioWeightingImpl
         typedef RatioWeightingImpl type;
     };
 
-    HINLINE RatioWeightingImpl(uint32_t currentStep)
+    HINLINE RatioWeightingImpl(uint32_t)
     {
-
     }
 
-    template<typename T_Particle1, typename T_Particle2>
+    /* Adjust the weighting of particleDes by densityRatio of own & Src particle
+     *
+     * While cloning a particle (particleDes) from another (T_SrcParticle), one
+     * can afterward directly normalize the weighting back to the intended density:
+     * - divide weighting with the `T_SrcParticle`'s densityRatio
+     *   (to get macro particle weighting according to reference GAS_DENSITY * profile
+     *    at this specific point in space & time)
+     * - multiply weighting with own densityRatio (to get this species'
+     *    densityRatio * GAS_DENSITY * profile)
+     *
+     * This is useful when the profile and number of macro particles for both species
+     * shall be the same and the initialization of another profile via `CreateGas`
+     * would be expensive (or one wants to keep the exact same position while cloning).
+     *
+     * \tparam T_DesParticle type of the particle species with weighting to manipulate
+     * \tparam T_SrcParticle type of the particle species one cloned from
+     *
+     * \see picongpu::particles::ManipulateCloneSpecies , picongpu::kernelCloneParticles
+     */
+    template<typename T_DesParticle, typename T_SrcParticle>
     DINLINE void operator()(const DataSpace<simDim>&,
-                            T_Particle1& particleSpecies1, T_Particle2&,
-                            const bool isParticle1, const bool isParticle2)
+                            T_DesParticle& particleDes, T_SrcParticle&,
+                            const bool isDesParticle, const bool isSrcParticle)
     {
-        if (isParticle1 && isParticle2)
+        if (isDesParticle && isSrcParticle)
         {
             const float_X densityRatioDes =
-                traits::GetDensityRatio<T_Particle1>::type::getDefaultValue();
+                traits::GetDensityRatio<T_DesParticle>::type::getDefaultValue();
             const float_X densityRatioSrc =
-                traits::GetDensityRatio<T_Particle2>::type::getDefaultValue();
+                traits::GetDensityRatio<T_SrcParticle>::type::getDefaultValue();
 
-            particleSpecies1[weighting_] *= densityRatioDes / densityRatioSrc;
+            particleDes[weighting_] *= densityRatioDes / densityRatioSrc;
         }
     }
 };
