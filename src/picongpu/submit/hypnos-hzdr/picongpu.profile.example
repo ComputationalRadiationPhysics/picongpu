@@ -15,7 +15,7 @@ then
         module load openmpi/1.8.4.kepler
 
         # Plugins (optional)
-        module load pngwriter/0.5.4
+        module load pngwriter/0.5.5
         module load hdf5-parallel/1.8.14 libsplash/1.2.4
 
         # either use libSplash or ADIOS for file I/O
