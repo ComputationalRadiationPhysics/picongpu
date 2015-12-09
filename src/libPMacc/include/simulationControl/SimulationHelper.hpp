@@ -67,7 +67,8 @@ public:
     restartStep(-1),
     restartDirectory("checkpoints"),
     restartRequested(false),
-    CHECKPOINT_MASTER_FILE("checkpoints.txt")
+    CHECKPOINT_MASTER_FILE("checkpoints.txt"),
+    author("")
     {
         tSimulation.toggleStart();
         tInit.toggleStart();
@@ -264,7 +265,9 @@ public:
             ("restart-step", po::value<int32_t>(&restartStep), "Checkpoint step to restart from")
             ("checkpoints", po::value<uint32_t>(&checkpointPeriod), "Period for checkpoint creation")
             ("checkpoint-directory", po::value<std::string>(&checkpointDirectory)->default_value(checkpointDirectory),
-             "Directory for checkpoints");
+             "Directory for checkpoints"),
+            ("author", po::value<std::string>(&author)->default_value(std::string("")),
+             "The author that runs the simulation and is responsible for created output files");
     }
 
     std::string pluginGetName() const
@@ -315,6 +318,9 @@ protected:
 
     /* filename for checkpoint master file with all checkpoint timesteps */
     const std::string CHECKPOINT_MASTER_FILE;
+
+    /* author that runs the simulation */
+    std::string author;
 
 private:
 
