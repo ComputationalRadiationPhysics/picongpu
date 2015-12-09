@@ -33,6 +33,7 @@
 #include "dataManagement/DataConnector.hpp"
 #include "pluginSystem/PluginConnector.hpp"
 #include "nvidia/memory/MemoryInfo.hpp"
+#include "simulationControl/SimulationDescription.hpp"
 #include "mappings/simulation/Filesystem.hpp"
 
 #include "Environment.def"
@@ -106,6 +107,11 @@ public:
         return nvidia::memory::MemoryInfo::getInstance();
     }
 
+    simulationControl::SimulationDescription& SimulationDescription()
+    {
+        return simulationControl::SimulationDescription::getInstance();
+    }
+
     PMacc::Filesystem<DIM>& Filesystem()
     {
         return PMacc::Filesystem<DIM>::getInstance();
@@ -143,6 +149,7 @@ public:
 
         nvidia::memory::MemoryInfo::getInstance();
 
+        simulationControl::SimulationDescription::getInstance();
     }
 
     void finalize()
