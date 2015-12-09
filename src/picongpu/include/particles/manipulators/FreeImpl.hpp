@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2015 Rene Widera
+ * Copyright 2013-2015 Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -43,9 +43,8 @@ struct FreeImpl
         typedef FreeImpl<T_Functor> type;
     };
 
-    HINLINE FreeImpl(uint32_t currentStep)
+    HINLINE FreeImpl(uint32_t)
     {
-
     }
 
     template<typename T_Particle1, typename T_Particle2>

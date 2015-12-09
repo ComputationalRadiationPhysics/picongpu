@@ -38,7 +38,7 @@ struct NoneImpl
         typedef NoneImpl type;
     };
 
-    HINLINE NoneImpl(uint32_t currentStep)
+    HINLINE NoneImpl(uint32_t)
     {
     }
 

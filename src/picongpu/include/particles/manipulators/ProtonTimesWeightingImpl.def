@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Rene Widera, Axel Huebl
+ * Copyright 2015 Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -21,10 +21,6 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
-
-#include "particles/operations/Assign.hpp"
-
 namespace picongpu
 {
 namespace particles
@@ -32,27 +28,24 @@ namespace particles
 namespace manipulators
 {
 
-struct AssignImpl
-{
-    template<typename T_SpeciesType>
-    struct apply
-    {
-        typedef AssignImpl type;
-    };
-
-    HINLINE AssignImpl(uint32_t)
-    {
-    }
-
-    template<typename T_Particle1, typename T_Particle2>
-    DINLINE void operator()(const DataSpace<simDim>&,
-                            T_Particle1& particleDest, T_Particle2& particleSrc,
-                            const bool, const bool)
-    {
-        PMacc::particles::operations::assign(particleDest, particleSrc);
-    }
-
-};
+/* Re-scale the weighting of a cloned species by numberOfProtons
+ *
+ * When cloning species from each other, the new
+ * species "inherits" the macro-particle weighting
+ * of the first one.
+ * This functor can be used to manipulate the weighting
+ * of the new species' macro particles to be a multiplied by
+ * the number of protons on the initial species.
+ *
+ * As an example, this comes useful when initializing a quasi-neutral,
+ * pre-ionized plasma of ions and electrons. Electrons can be created
+ * from ions via cloning and increasing their weight to avoid simulating
+ * multiple macro electrons per macro ion (with Z>1).
+ *
+ * note: needs the atomicNumbers flag on the initial species,
+ *       used by the GetAtomicNumbers trait.
+ */
+struct ProtonTimesWeightingImpl;
 
 } //namespace manipulators
 } //namespace particles
