@@ -178,7 +178,7 @@ public:
             log<picLog::INPUT_OUTPUT > ("HDF5 open DataCollector with file: %1%") % restartFilename;
             mThreadParams.dataCollector->open(restartFilename.c_str(), attr);
         }
-        catch (DCException e)
+        catch (const DCException& e)
         {
             std::cerr << e.what() << std::endl;
             throw std::runtime_error("Failed to open datacollector");
@@ -259,7 +259,7 @@ private:
             log<picLog::INPUT_OUTPUT > ("HDF5 open DataCollector with file: %1%") % h5Filename;
             mThreadParams.dataCollector->open(h5Filename.c_str(), attr);
         }
-        catch (DCException e)
+        catch (const DCException& e)
         {
             std::cerr << e.what() << std::endl;
             throw std::runtime_error("Failed to open datacollector");

@@ -159,8 +159,9 @@ throw (std::runtime_error )
         }
 
     }
-    catch ( boost::program_options::error e )
+    catch ( const boost::program_options::error& )
     {
+        errorStream << desc << "\n";
         throw std::runtime_error( "Error parsing command line options!" );
     }
 
@@ -205,7 +206,7 @@ int main( int argc, char** argv )
     {
         parseSuccessfull = parseOptions( argc, argv, options );
     }
-    catch ( std::runtime_error e )
+    catch ( const std::runtime_error& e )
     {
         errorStream << "Error: " << e.what( ) << std::endl;
         mpi_finalize();
@@ -252,7 +253,7 @@ int main( int argc, char** argv )
             file.close( );
         }
     }
-    catch ( std::runtime_error e )
+    catch ( const std::runtime_error& e )
     {
         errorStream << "Error: " << e.what( ) << std::endl;
         delete tools;
