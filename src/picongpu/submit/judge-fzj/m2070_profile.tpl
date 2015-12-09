@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013 Axel Huebl, Richard Pausch
+# Copyright 2013-2015 Axel Huebl, Richard Pausch
 # 
 # This file is part of PIConGPU. 
 # 
@@ -23,8 +23,12 @@
 ## calculation are done by tbg ##
 TBG_gpuType="m2070"
 TBG_queue="largemem"
-TBG_mailSettings="bea"
-TBG_mailAdress="someone@example.com"
+
+# settings that can be controlled by environment variables before submit
+TBG_mailSettings=${MY_MAILNOTIFY:-"n"}
+TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
+TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
+
 #number of cores per parallel node / default is 2 cores per gpu on k20 queue
     
 # 2 gpus per node if we need more than 2 gpus else same count as TBG_tasks   
@@ -47,8 +51,8 @@ TBG_nodes="$(( ( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
 #MSUB -l mem=20gb
 #MSUB -l pmem=10gb
 ##MSUB -l naccesspolicy=singlejob
-#send me a mail on (b)egin, (e)nd, (a)bortion
-##MSUB -m !TBG_mailSettings -M !TBG_mailAdress
+# send me mails on job (b)egin, (e)nd, (a)bortion or (n)o mail
+#MSUB -m !TBG_mailSettings -M !TBG_mailAddress
 #MSUB -d !TBG_dstPath
 
 #MSUB -o stdout
@@ -73,5 +77,5 @@ cd simOutput
 mpiexec  -np !TBG_tasks --mca mpi_leave_pinned 0 !TBG_dstPath/picongpu/bin/cuda_memtest.sh
 
 if [ $? -eq 0 ] ; then
-   mpiexec  -np !TBG_tasks --mca mpi_leave_pinned 0 !TBG_dstPath/picongpu/bin/picongpu !TBG_programParams
+   mpiexec  -np !TBG_tasks --mca mpi_leave_pinned 0 !TBG_dstPath/picongpu/bin/picongpu !TBG_author !TBG_programParams | tee output
 fi 

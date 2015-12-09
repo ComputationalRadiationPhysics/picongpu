@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013 Axel Huebl, Rene Widera, Richard Pausch
+# Copyright 2013-2015 Axel Huebl, Rene Widera, Richard Pausch
 # 
 # This file is part of PIConGPU. 
 # 
@@ -21,6 +21,13 @@
 
 # PIConGPU batch script for DAVinCI (non-PRO) PBS batch system
 
+## calculation are done by tbg ##
+
+# settings that can be controlled by environment variables before submit
+TBG_mailSettings=${MY_MAILNOTIFY:-"n"}
+TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
+TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
+
 #PBS -q TBG_queue
 #PBS -l walltime=TBG_wallTime
 
@@ -32,9 +39,9 @@
 #PBS -W x=NACCESSPOLICY:SINGLEJOB
 #PBS -V
 
-# send me a mail on (b)egin, (e)nd, (a)bortion
-##PBS -m TBG_mailSettings
-##PBS -M TBG_mailAdress
+# send me mails on job (b)egin, (e)nd, (a)bortion or (n)o mail
+#PBS -m TBG_mailSettings
+#PBS -M TBG_mailAdress
 
 #PBS -o TBG_outDir/stdout
 #PBS -e TBG_outDir/stderr
@@ -62,5 +69,4 @@ unset MODULES_NO_OUTPUT
 mkdir simOutput 2> /dev/null
 cd simOutput
 
-mpirun -n TBG_tasks --display-map -am tbg/openib.conf --mca mpi_leave_pinned 0 ../picongpu/bin/picongpu TBG_programParams
-
+mpirun -n TBG_tasks --display-map -am tbg/openib.conf --mca mpi_leave_pinned 0 ../picongpu/bin/picongpu !TBG_author !TBG_programParams | tee output

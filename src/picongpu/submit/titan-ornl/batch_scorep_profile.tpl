@@ -20,8 +20,11 @@
 
 ## calculations will be performed by tbg ##
 TBG_queue="batch"
-TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
+
+# settings that can be controlled by environment variables before submit
 TBG_mailSettings=${MY_MAILNOTIFY:-"n"}
+TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
+TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
 TBG_nameProject=${proj:-""}
 
 # use ceil to caculate nodes
@@ -35,7 +38,7 @@ TBG_nodes=!TBG_tasks
 # Sets batch job's name
 #PBS -N !TBG_jobName
 #PBS -l nodes=!TBG_nodes
-# send me a mail on (b)egin, (e)nd, (a)bortion
+# send me mails on job (b)egin, (e)nd, (a)bortion or (n)o mail
 #PBS -m !TBG_mailSettings -M !TBG_mailAddress
 #PBS -d !TBG_dstPath
 #PBS -A !TBG_nameProject
@@ -73,5 +76,5 @@ cd simOutput
 #aprun  -N 1 -n !TBG_nodes !TBG_dstPath/picongpu/bin/cuda_memtest.sh
 
 #if [ $? -eq 0 ] ; then
-aprun  -N 1 -n !TBG_nodes  !TBG_dstPath/picongpu/bin/picongpu !TBG_programParams
+aprun  -N 1 -n !TBG_nodes  !TBG_dstPath/picongpu/bin/picongpu !TBG_author !TBG_programParams | tee output
 #fi
