@@ -443,12 +443,14 @@ private:
                                   iterationFormat.c_str() );
 
         /*   recommended */
-        /*
-        std::string author("PIConGPU User");
-        ColTypeString ctAuthor(author.length());
-        dc->writeGlobalAttribute( threadParams->currentStep,
-                                  ctAuthor.getDataType(), "author",
-                                  author.c_str() ); */
+        std::string author = Environment<>::get().SimulationDescription().getAuthor();
+        if( author.length() > 0 )
+        {
+            ColTypeString ctAuthor(author.length());
+            dc->writeGlobalAttribute( threadParams->currentStep,
+                                      ctAuthor, "author",
+                                      author.c_str() );
+        }
         std::string software("PIConGPU");
         ColTypeString ctSoftware(software.length());
         dc->writeGlobalAttribute( threadParams->currentStep,
