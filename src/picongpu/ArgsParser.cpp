@@ -120,7 +120,7 @@ namespace picongpu
                 return SUCCESS_EXIT;
             }
         }
-        catch ( boost::program_options::error& e )
+        catch ( const boost::program_options::error& e )
         {
             std::cerr << e.what() << std::endl;
             return ERROR;
