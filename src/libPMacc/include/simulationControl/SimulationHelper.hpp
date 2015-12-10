@@ -31,6 +31,7 @@
 #include "TimeInterval.hpp"
 
 #include "dataManagement/DataConnector.hpp"
+#include "Environment.hpp"
 
 
 #include "pluginSystem/IPlugin.hpp"
@@ -67,7 +68,8 @@ public:
     restartStep(-1),
     restartDirectory("checkpoints"),
     restartRequested(false),
-    CHECKPOINT_MASTER_FILE("checkpoints.txt")
+    CHECKPOINT_MASTER_FILE("checkpoints.txt"),
+    author("")
     {
         tSimulation.toggleStart();
         tInit.toggleStart();
@@ -175,7 +177,11 @@ public:
         {
             tSimCalculation.toggleEnd();
             std::cout << std::setw(3) <<
-                (uint16_t) ((double) currentStep / (double) runSteps * 100.) <<
+                uint16_t(
+                    double( currentStep ) /
+                    double( Environment<>::get().SimulationDescription().getRunSteps() ) *
+                    100.
+                ) <<
                 " % = " << std::setw(8) << currentStep <<
                 " | time elapsed:" <<
                 std::setw(25) << tSimCalculation.printInterval() << " | avg time per step: " <<
@@ -193,6 +199,8 @@ public:
     void startSimulation()
     {
         uint32_t currentStep = init();
+        Environment<>::get().SimulationDescription().setCurrentStep( currentStep );
+
         tInit.toggleEnd();
         if (output)
         {
@@ -217,12 +225,19 @@ public:
     else
     {
         currentStep--; //We dump before calculation, thus we must go one step back when doing a restart.
+        Environment<>::get().SimulationDescription().setCurrentStep( currentStep );
         movingWindowCheck(currentStep); //If we restart at any step check if we must slide.
     }
 
         /* dump 0% output */
         dumpTimes(tSimCalculation, tRound, roundAvg, currentStep);
-        while (currentStep < runSteps)
+
+
+        /** \todo currently we assume this is the only point in the simulation
+         *        that is allowed to manipulate this var. Else, add one needs to
+         *        add and act on changed values from `getCurrentStep()` in this loop
+         */
+        while (currentStep < Environment<>::get().SimulationDescription().getRunSteps())
         {
             tRound.toggleStart();
             runOneStep(currentStep);
@@ -230,6 +245,7 @@ public:
             roundAvg += tRound.getInterval();
 
             currentStep++;
+            Environment<>::get().SimulationDescription().setCurrentStep( currentStep );
             /*output after a round*/
             dumpTimes(tSimCalculation, tRound, roundAvg, currentStep);
 
@@ -264,7 +280,9 @@ public:
             ("restart-step", po::value<int32_t>(&restartStep), "Checkpoint step to restart from")
             ("checkpoints", po::value<uint32_t>(&checkpointPeriod), "Period for checkpoint creation")
             ("checkpoint-directory", po::value<std::string>(&checkpointDirectory)->default_value(checkpointDirectory),
-             "Directory for checkpoints");
+             "Directory for checkpoints")
+            ("author", po::value<std::string>(&author)->default_value(std::string("")),
+             "The author that runs the simulation and is responsible for created output files");
     }
 
     std::string pluginGetName() const
@@ -274,6 +292,9 @@ public:
 
     void pluginLoad()
     {
+        Environment<>::get().SimulationDescription().setRunSteps(runSteps);
+        Environment<>::get().SimulationDescription().setAuthor(author);
+
         calcProgress();
 
         output = (getGridController().getGlobalRank() == 0);
@@ -316,6 +337,9 @@ protected:
     /* filename for checkpoint master file with all checkpoint timesteps */
     const std::string CHECKPOINT_MASTER_FILE;
 
+    /* author that runs the simulation */
+    std::string author;
+
 private:
 
     /**
@@ -328,7 +352,10 @@ private:
         if (progress == 0 || progress > 100)
             progress = 100;
 
-        showProgressAnyStep = (uint32_t) ((double) runSteps / 100. * (double) progress);
+        showProgressAnyStep = uint32_t(
+            double( Environment<>::get().SimulationDescription().getRunSteps() ) /
+            100. * double( progress )
+        );
         if (showProgressAnyStep == 0)
             showProgressAnyStep = 1;
     }
