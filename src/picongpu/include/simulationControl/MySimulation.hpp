@@ -282,7 +282,7 @@ public:
         createSpeciesMemory(forward(particleStorage), cellDescription);
 
         size_t freeGpuMem(0);
-        Environment<>::get().EnvMemoryInfo().getMemoryInfo(&freeGpuMem);
+        Environment<>::get().MemoryInfo().getMemoryInfo(&freeGpuMem);
         if(freeGpuMem < reservedGpuMemorySize)
         {
             PMacc::log< picLog::MEMORY > ("%1% MiB free memory < %2% MiB required reserved memory")
@@ -296,7 +296,7 @@ public:
 
         size_t heapSize = freeGpuMem - reservedGpuMemorySize;
 
-        if( Environment<>::get().EnvMemoryInfo().isSharedMemoryPool() )
+        if( Environment<>::get().MemoryInfo().isSharedMemoryPool() )
         {
             heapSize /= 2;
             log<picLog::MEMORY > ("Shared RAM between GPU and host detected - using only half of the 'device' memory.");
@@ -311,7 +311,7 @@ public:
         ForEach<VectorAllSpecies, particles::CallCreateParticleBuffer<bmpl::_1>, MakeIdentifier<bmpl::_1> > createParticleBuffer;
         createParticleBuffer(forward(particleStorage));
 
-        Environment<>::get().EnvMemoryInfo().getMemoryInfo(&freeGpuMem);
+        Environment<>::get().MemoryInfo().getMemoryInfo(&freeGpuMem);
         log<picLog::MEMORY > ("free mem after all mem is allocated %1% MiB") % (freeGpuMem / 1024 / 1024);
 
         fieldB->init(*fieldE, *laser);
@@ -363,7 +363,7 @@ public:
             }
         }
 
-        Environment<>::get().EnvMemoryInfo().getMemoryInfo(&freeGpuMem);
+        Environment<>::get().MemoryInfo().getMemoryInfo(&freeGpuMem);
         log<picLog::MEMORY > ("free mem after all particles are initialized %1% MiB") % (freeGpuMem / 1024 / 1024);
 
         /** a background field for the particle pusher might be added at the
