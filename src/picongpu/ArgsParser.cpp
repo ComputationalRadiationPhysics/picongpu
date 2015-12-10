@@ -32,8 +32,6 @@
 
 namespace picongpu
 {
-    namespace po = boost::program_options;
-
     ArgsParser::ArgsParser( )
     {
 
@@ -64,6 +62,8 @@ namespace picongpu
 
     ArgsParser::ArgsErrorCode ArgsParser::parse( int argc, char** argv )
     {
+        namespace po = boost::program_options;
+
         try
         {
             // add help message
@@ -89,7 +89,7 @@ namespace picongpu
             // parse command line options and config file and store values in vm
             po::variables_map vm;
             //log<picLog::SIMULATION_STATE > ("parsing command line");
-            po::store( boost::program_options::parse_command_line( argc, argv, desc ), vm );
+            po::store( po::parse_command_line( argc, argv, desc ), vm );
 
             if ( vm.count( "config" ) )
             {
@@ -100,7 +100,7 @@ namespace picongpu
                 {
                     //log<picLog::SIMULATION_STATE > ("parsing config file '%1%'") % (*iter);
                     std::ifstream config_file_stream( iter->c_str( ) );
-                    po::store( boost::program_options::parse_config_file( config_file_stream, desc ), vm );
+                    po::store( po::parse_config_file( config_file_stream, desc ), vm );
                 }
             }
 
@@ -112,6 +112,15 @@ namespace picongpu
                 std::cerr << desc << "\n";
                 return SUCCESS_EXIT;
             }
+            // no parameters set: required parameters (e.g., -g) will be missing
+            // -> obvious wrong usage
+            // -> print help and exit with error code
+            if ( argc == 1 ) // argc[0] is always the program name
+            {
+                std::cerr << desc << "\n";
+                return ERROR;
+            }
+
             if ( vm.count( "validate" ) )
             {
                 /* if we reach this part of code the parameters are valid
@@ -120,7 +129,7 @@ namespace picongpu
                 return SUCCESS_EXIT;
             }
         }
-        catch ( const boost::program_options::error& e )
+        catch ( const po::error& e )
         {
             std::cerr << e.what() << std::endl;
             return ERROR;
