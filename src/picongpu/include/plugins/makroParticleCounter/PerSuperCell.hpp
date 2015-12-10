@@ -323,7 +323,7 @@ private:
                 filename;
             dataCollector->open(filename.c_str(), h5_attr);
         }
-        catch (DCException e)
+        catch (const DCException& e)
         {
             std::cerr << e.what() << std::endl;
             throw std::runtime_error("Failed to open datacollector");

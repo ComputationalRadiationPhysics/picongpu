@@ -351,7 +351,7 @@ void MainWindow::on_msg(rivlib::control_connection::ptr comm, unsigned int id, u
             break;
         }
 
-    } catch(the::exception ex) {
+    } catch(const the::exception& ex) {
         fprintf(stderr, "Ctrl-Message error: %s (%s, %d)\n", ex.get_msg_astr(), ex.get_file(), ex.get_line());
         //this->on_disconnect_clicked();
     } catch(...) {
@@ -455,7 +455,7 @@ void MainWindow::connectToURI(QString uri)
         reset_connection();
         this->m_controlConn->connect(uri.toStdString().c_str());
         this->m_imgStream->disconnect(false);
-    } catch(the::exception ex) {
+    } catch(const the::exception& ex) {
         fprintf(stderr, "Connect-Message error: %s (%s, %d)\n", ex.get_msg_astr(), ex.get_file(), ex.get_line());
         //this->m_imgStream->disconnect(true);
     } catch(...) {

@@ -222,7 +222,7 @@ private:
             __getTransactionEvent().waitForFinished();
 
         }
-        catch (DCException e)
+        catch (const DCException& e)
         {
             std::cerr << e.what() << std::endl;
             return;

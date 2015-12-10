@@ -111,7 +111,7 @@ bool parseCmdLine(int argc, char **argv, Options &options)
         }
         
 
-    } catch (boost::program_options::error& e)
+    } catch (const boost::program_options::error& e)
     {
         std::cerr << e.what() << std::endl;
         return false;

@@ -235,7 +235,7 @@ void ToolsSplashParallel::convertToText()
     {
         dc.readAttribute(m_options.step, m_options.data[0].c_str(), DOMCOL_ATTR_CLASS,
                 &ref_data_class, NULL);
-    } catch (DCException)
+    } catch (const DCException&)
     {
         errorStream << "Error: No domain information for dataset '" << m_options.data[0] << "' available." << std::endl;
         errorStream << "This might not be a valid libSplash domain." << std::endl;
@@ -314,7 +314,7 @@ void ToolsSplashParallel::convertToText()
             {
                 dc.readAttribute(m_options.step, iter->c_str(), "sim_unit",
                         &(excontainer.unit), NULL);
-            } catch (DCException e)
+            } catch (const DCException&)
             {
                 if (m_options.verbose)
                     errorStream << "no unit for '" << iter->c_str() << "', defaulting to 1.0" << std::endl;
@@ -434,7 +434,7 @@ void ToolsSplashParallel::listAvailableDatasets()
         m_outStream << std::endl
                     << "Global domain: "
                     << totalDomain.toString() << std::endl;
-    } catch (DCException)
+    } catch (const DCException&)
     {
         m_outStream << std::endl << "(No domain information)" << std::endl;
     }
