@@ -1,6 +1,6 @@
 /**
  * Copyright 2014-2015 Felix Schmitt, Conrad Schumann,
- *                     Alexander Grund
+ *                     Alexander Grund, Axel Huebl
  *
  * This file is part of libPMacc.
  *
@@ -102,7 +102,7 @@ public:
         return PluginConnector::getInstance();
     }
 
-    nvidia::memory::MemoryInfo& EnvMemoryInfo()
+    nvidia::memory::MemoryInfo& MemoryInfo()
     {
         return nvidia::memory::MemoryInfo::getInstance();
     }
