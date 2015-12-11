@@ -64,7 +64,7 @@ public:
     {
     }
 
-    virtual uint32_t init()
+    virtual void init()
     {
 
         MySimulation::init();
@@ -80,11 +80,15 @@ public:
 #endif
 
         }
+    }
+
+    virtual uint32_t fillSimulation()
+    {
+        MySimulation::fillSimulation();
 
         const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
 
         const DataSpace<simDim> halfSimSize(subGrid.getGlobalDomain().size / 2);
-
 
         GridLayout<simDim> layout(subGrid.getLocalDomain().size, MappingDesc::SuperCellSize::toRT());
         MappingDesc cellDescription = MappingDesc(layout.getDataSpace(), GUARD_SIZE, GUARD_SIZE);
@@ -112,7 +116,6 @@ public:
 
 
         return 0;
-
     }
 
     /**
