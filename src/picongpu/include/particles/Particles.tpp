@@ -52,6 +52,7 @@
 
 #include "traits/GetUniqueTypeId.hpp"
 #include "traits/Resolve.hpp"
+#include "particles/traits/GetMarginPusher.hpp"
 
 namespace picongpu
 {
@@ -163,12 +164,13 @@ void Particles<T_ParticleDescription>::update(uint32_t )
         typename GetFlagType<FrameType,interpolation<> >::type
         >::type InterpolationScheme;
 
-    typedef typename GetMargin<InterpolationScheme>::LowerMargin LowerMargin;
-    typedef typename GetMargin<InterpolationScheme>::UpperMargin UpperMargin;
-
     typedef PushParticlePerFrame<ParticlePush, MappingDesc::SuperCellSize,
         InterpolationScheme,
         fieldSolver::NumericalCellType > FrameSolver;
+
+    // adjust interpolation area in particle pusher to allow sub-sampling pushes
+    typedef typename GetLowerMarginPusher<Particles>::type LowerMargin;
+    typedef typename GetUpperMarginPusher<Particles>::type UpperMargin;
 
     typedef SuperCellDescription<
         typename MappingDesc::SuperCellSize,
