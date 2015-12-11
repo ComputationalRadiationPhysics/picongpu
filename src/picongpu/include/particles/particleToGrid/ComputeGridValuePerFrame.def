@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -122,15 +122,15 @@ struct CreateEnergyOperation
 
 #if(ENABLE_RADIATION == 1)
 template<typename T_Species>
-struct CreateLarmorEnergyOperation
+struct CreateLarmorPowerOperation
 {
     typedef typename GetShape<T_Species>::type shapeType;
     typedef ComputeGridValuePerFrame<
         shapeType,
-        particleToGrid::derivedAttributes::LarmorEnergy
-    > ParticleLarmorEnergy;
+        particleToGrid::derivedAttributes::LarmorPower
+    > ParticleLarmorPower;
 
-    typedef FieldTmpOperation< ParticleLarmorEnergy, T_Species > type;
+    typedef FieldTmpOperation< ParticleLarmorPower, T_Species > type;
 };
 #endif
 
