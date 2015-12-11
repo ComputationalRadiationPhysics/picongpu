@@ -53,6 +53,7 @@
 #include "particles/traits/FilterByFlag.hpp"
 
 #include "traits/GetMargin.hpp"
+#include "particles/traits/GetMarginPusher.hpp"
 
 namespace picongpu
 {
@@ -87,10 +88,31 @@ fieldE( NULL )
     typedef PMacc::math::CT::max<
         LowerMarginInterpolation,
         GetMargin<fieldSolver::FieldSolver, FIELD_B>::LowerMargin
-        >::type LowerMargin;
+        >::type LowerMarginInterpolationAndSolver;
     typedef PMacc::math::CT::max<
         UpperMarginInterpolation,
         GetMargin<fieldSolver::FieldSolver, FIELD_B>::UpperMargin
+        >::type UpperMarginInterpolationAndSolver;
+
+    /* Calculate upper and lower margin for pusher 
+       (currently all pusher use the interpolation of the species)  
+       and find maximum margin 
+    */
+    typedef typename PMacc::particles::traits::FilterByFlag
+    <
+        VectorSpeciesWithInterpolation,
+        particlePusher<>
+    >::type VectorSpeciesWithPusherAndInterpolation;
+    typedef bmpl::accumulate<
+        VectorSpeciesWithPusherAndInterpolation,
+        LowerMarginInterpolationAndSolver,
+        PMacc::math::CT::max<bmpl::_1, GetLowerMarginPusher<bmpl::_2> >
+        >::type LowerMargin;
+
+    typedef bmpl::accumulate<
+        VectorSpeciesWithPusherAndInterpolation,
+        UpperMarginInterpolationAndSolver,
+        PMacc::math::CT::max<bmpl::_1, GetUpperMarginPusher<bmpl::_2> >
         >::type UpperMargin;
 
     const DataSpace<simDim> originGuard( LowerMargin( ).toRT( ) );

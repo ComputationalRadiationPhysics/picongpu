@@ -47,6 +47,7 @@
 #include "particles/traits/GetInterpolation.hpp"
 #include "particles/traits/FilterByFlag.hpp"
 #include "traits/GetMargin.hpp"
+#include "particles/traits/GetMarginPusher.hpp"
 #include <boost/mpl/accumulate.hpp>
 #include "fields/LaserPhysics.hpp"
 
@@ -81,10 +82,31 @@ fieldB( NULL )
     typedef PMacc::math::CT::max<
         LowerMarginInterpolation,
         GetMargin<fieldSolver::FieldSolver, FIELD_E>::LowerMargin
-        >::type LowerMargin;
+        >::type LowerMarginInterpolationAndSolver;
     typedef PMacc::math::CT::max<
         UpperMarginInterpolation,
         GetMargin<fieldSolver::FieldSolver, FIELD_E>::UpperMargin
+        >::type UpperMarginInterpolationAndSolver;
+
+    /* Calculate upper and lower margin for pusher 
+       (currently all pusher use the interpolation of the species)  
+       and find maximum margin 
+    */
+    typedef typename PMacc::particles::traits::FilterByFlag
+    <
+        VectorSpeciesWithInterpolation,
+        particlePusher<>
+    >::type VectorSpeciesWithPusherAndInterpolation;
+    typedef bmpl::accumulate<
+        VectorSpeciesWithPusherAndInterpolation,
+        LowerMarginInterpolationAndSolver,
+        PMacc::math::CT::max<bmpl::_1, GetLowerMarginPusher<bmpl::_2> >
+        >::type LowerMargin;
+
+    typedef bmpl::accumulate<
+        VectorSpeciesWithPusherAndInterpolation,
+        UpperMarginInterpolationAndSolver,
+        PMacc::math::CT::max<bmpl::_1, GetUpperMarginPusher<bmpl::_2> >
         >::type UpperMargin;
 
     const DataSpace<simDim> originGuard( LowerMargin( ).toRT( ) );
