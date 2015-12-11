@@ -265,7 +265,7 @@ public:
 
     }
 
-    virtual uint32_t init()
+    virtual void init()
     {
         namespace nvmem = PMacc::nvidia::memory;
         // create simulation data such as fields and particles
@@ -332,7 +332,10 @@ public:
 
         /* add CUDA streams to the StreamController for concurrent execution */
         Environment<>::get().StreamController().addStreams(6);
+    }
 
+    virtual uint32_t fillSimulation()
+    {
         uint32_t step = 0;
 
         if (initialiserController)
@@ -363,6 +366,7 @@ public:
             }
         }
 
+        size_t freeGpuMem(0u);
         Environment<>::get().MemoryInfo().getMemoryInfo(&freeGpuMem);
         log<picLog::MEMORY > ("free mem after all particles are initialized %1% MiB") % (freeGpuMem / 1024 / 1024);
 
@@ -498,7 +502,7 @@ public:
                         currentStep, FieldBackgroundB::InfluenceParticlePusher );
     }
 
-    void resetAll(uint32_t currentStep)
+    virtual void resetAll(uint32_t currentStep)
     {
 
         fieldB->reset(currentStep);
