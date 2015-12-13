@@ -196,10 +196,10 @@ namespace picongpu
         header.writeToConsole( description );
 
         char title[] = "PIConGPU preview image";
-        char author[] = "The awesome PIConGPU-Team";
+        std::string author = Environment<>::get().SimulationDescription().getAuthor();
         char software[] = "PIConGPU with PNGwriter";
 
-        png.settext( title, author, description.str().c_str(), software);
+        png.settext( title, author.c_str(), description.str().c_str(), software);
 
         // write to disk and close object
         png.close();
