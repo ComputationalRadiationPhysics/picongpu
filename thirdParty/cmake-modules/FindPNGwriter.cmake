@@ -55,7 +55,7 @@
 # Required cmake version
 ###############################################################################
 
-cmake_minimum_required(VERSION 2.8.5)
+cmake_minimum_required(VERSION 2.8.11)
 
 
 ###############################################################################
@@ -190,6 +190,7 @@ endif(NOT PNGwriter_FOUND)
 # handles the REQUIRED, QUIET and version-related arguments for find_package
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(PNGwriter
+    FOUND_VAR PNGwriter_FOUND
     REQUIRED_VARS PNGwriter_LIBRARIES PNGwriter_INCLUDE_DIRS
     VERSION_VAR PNGwriter_VERSION
 )
