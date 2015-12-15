@@ -49,3 +49,4 @@
 #include "simulation_defines/param/fileOutput.param"
 #include "simulation_defines/param/fieldBackground.param"
 #include "simulation_defines/param/radiationObserver.param"
+#include "simulation_defines/param/bremsstrahlung.param"
