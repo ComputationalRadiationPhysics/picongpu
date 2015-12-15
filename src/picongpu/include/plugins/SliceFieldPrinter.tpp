@@ -148,7 +148,7 @@ void SliceFieldPrinter<Field>::printSlice(const TField& field, int nAxis, float 
 
     /* convert data to higher precision and to SI units */
     SliceFieldPrinterHelper::ConversionFunctor<Field> cf;
-    algorithm::kernel::Foreach<vec::CT::UInt32<4,4,1> >()(
+    algorithm::kernel::Foreach<vec::CT::UInt32<1,1,1> >()(
       dBuffer_SI->zone(), dBuffer_SI->origin(),
       cursor::tools::slice(field.originCustomAxes(twistedAxesVec)(0,0,localPlane)),
       cf );
@@ -158,7 +158,7 @@ void SliceFieldPrinter<Field>::printSlice(const TField& field, int nAxis, float 
 
     /* convert data to higher precision and to SI units */
     SliceFieldPrinterHelper::ConversionFunctor<Field> cf;
-    algorithm::kernel::Foreach<vec::CT::UInt32<16,1,1> >()(
+    algorithm::kernel::Foreach<vec::CT::UInt32<1,1,1> >()(
       dBuffer_SI->zone(), dBuffer_SI->origin(),
       cursor::tools::slice(field.originCustomAxes(twistedAxesVec)(0,localPlane)),
       cf );
