@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <boost/mpl/placeholders.hpp>
+#include <boost/mpl/int.hpp>
 #include <stdint.h>
 
 namespace PMacc
@@ -29,53 +31,70 @@ namespace PMacc
 namespace assigner
 {
 
-template<int dim>
+namespace bmpl = boost::mpl;
+
+template<typename T_Dim = bmpl::_1, typename T_CartBuffer = bmpl::_2>
 struct HostMemAssigner;
 
-template<>
-struct HostMemAssigner<1>
+template<typename T_CartBuffer>
+struct HostMemAssigner<bmpl::int_<1>, T_CartBuffer>
 {
     BOOST_STATIC_CONSTEXPR int dim = 1;
+    typedef T_CartBuffer CartBuffer;
+
     template<typename Type>
-    HDINLINE static void assign(Type* data, const math::Size_t<dim-1>& pitch, const Type& value,
-                       const math::Size_t<dim>& size)
+    HINLINE void assign(const Type& value)
     {
-        for(size_t i = 0; i < size.x(); i++) data[i] = value;
+        // "Curiously recurring template pattern"
+        CartBuffer* buffer = static_cast<CartBuffer*>(this);
+
+        for(size_t i = 0; i < buffer->size().x(); i++)
+            buffer->dataPointer[i] = value;
     }
 };
 
-template<>
-struct HostMemAssigner<2u>
+template<typename T_CartBuffer>
+struct HostMemAssigner<bmpl::int_<2>, T_CartBuffer>
 {
-    BOOST_STATIC_CONSTEXPR int dim = 2u;
+    BOOST_STATIC_CONSTEXPR int dim = 2;
+    typedef T_CartBuffer CartBuffer;
+
     template<typename Type>
-    HDINLINE static void assign(Type* data, const math::Size_t<dim-1>& pitch, const Type& value,
-                       const math::Size_t<dim>& size)
+    HINLINE void assign(const Type& value)
     {
-        Type* tmpData = data;
-        for(size_t y = 0; y < size.y(); y++)
+        // "Curiously recurring template pattern"
+        CartBuffer* buffer = static_cast<CartBuffer*>(this);
+
+        Type* tmpData = buffer->dataPointer;
+        for(size_t y = 0; y < buffer->size().y(); y++)
         {
-            for(size_t x = 0; x < size.x(); x++) tmpData[x] = value;
-            tmpData = (Type*)(((char*)tmpData) + pitch.x());
+            for(size_t x = 0; x < buffer->size().x(); x++)
+                tmpData[x] = value;
+            tmpData = reinterpret_cast<Type*>(reinterpret_cast<char*>(tmpData) + buffer->pitch.x());
         }
     }
 };
 
-template<>
-struct HostMemAssigner<3>
+template<typename T_CartBuffer>
+struct HostMemAssigner<bmpl::int_<3>, T_CartBuffer>
 {
     BOOST_STATIC_CONSTEXPR int dim = 3;
+    typedef T_CartBuffer CartBuffer;
+
     template<typename Type>
-    HDINLINE static void assign(Type* data, const math::Size_t<dim-1>& pitch, const Type& value,
-                       const math::Size_t<dim>& size)
+    HINLINE void assign(const Type& value)
     {
-        for(size_t z = 0; z < size.z(); z++)
+        // "Curiously recurring template pattern"
+        CartBuffer* buffer = static_cast<CartBuffer*>(this);
+
+        for(size_t z = 0; z < buffer->size().z(); z++)
         {
-            Type* dataXY = (Type*)(((char*)data) + z * pitch.y());
-            for(size_t y = 0; y < size.y(); y++)
+            Type* dataXY = reinterpret_cast<Type*>(reinterpret_cast<char*>(buffer->dataPointer) + z * buffer->pitch.y());
+            for(size_t y = 0; y < buffer->size().y(); y++)
             {
-                for(size_t x = 0; x < size.x(); x++) dataXY[x] = value;
-                dataXY = (Type*)(((char*)dataXY) + pitch.x());
+                for(size_t x = 0; x < buffer->size().x(); x++)
+                    dataXY[x] = value;
+                dataXY = reinterpret_cast<Type*>(reinterpret_cast<char*>(dataXY) + buffer->pitch.x());
             }
         }
     }

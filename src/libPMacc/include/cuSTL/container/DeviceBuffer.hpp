@@ -49,12 +49,12 @@ template<typename Type, int dim>
 class DeviceBuffer
  : public CartBuffer<Type, dim, allocator::DeviceMemAllocator<Type, dim>,
                                 copier::D2DCopier<dim>,
-                                assigner::DeviceMemAssigner<dim> >
+                                assigner::DeviceMemAssigner<> >
 {
 private:
     typedef CartBuffer<Type, dim, allocator::DeviceMemAllocator<Type, dim>,
                                   copier::D2DCopier<dim>,
-                                  assigner::DeviceMemAssigner<dim> > Base;
+                                  assigner::DeviceMemAssigner<> > Base;
     typedef DeviceBuffer<Type, dim> This;
 
 ///\todo: make protected
