@@ -1,0 +1,58 @@
+/**
+ * Copyright 2015 Alexander Grund
+ *
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "types.h"
+#include "random/distributions/Uniform.hpp"
+
+namespace PMacc
+{
+namespace random
+{
+namespace distributions
+{
+namespace detail
+{
+
+    /**
+     * Returns a random float value uniformly distributed in [0,1)
+     */
+    template<class T_RNGMethod>
+    class Uniform<float, T_RNGMethod, void>
+    {
+        typedef T_RNGMethod RNGMethod;
+        typedef typename RNGMethod::StateType StateType;
+    public:
+        typedef float result_type;
+
+        DINLINE result_type
+        operator()(StateType& state)
+        {
+            return _curand_uniform(RNGMethod().get32Bits(state));
+        }
+    };
+
+}  // namespace detail
+}  // namespace distributions
+}  // namespace random
+}  // namespace PMacc
