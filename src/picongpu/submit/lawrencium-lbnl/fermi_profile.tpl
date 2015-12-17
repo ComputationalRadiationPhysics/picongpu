@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013-2014 Axel Huebl
+# Copyright 2013-2015 Axel Huebl
 #
 # This file is part of PIConGPU.
 #
@@ -25,8 +25,10 @@ TBG_account="ac_blast"
 TBG_qos="mako_normal"
 TBG_feature="mako_fermi"
 
-TBG_mailSettings="ALL"
-TBG_mailAdress="someone@example.com"
+# settings that can be controlled by environment variables before submit
+TBG_mailSettings=${MY_MAILNOTIFY:-"ALL"}
+TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
+TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
 
 # 2 gpus per node
 TBG_gpusPerNode=`if [ $TBG_tasks -gt 2 ] ; then echo 2; else echo $TBG_tasks; fi`
@@ -58,9 +60,10 @@ TBG_memPerCPU="$(( 24000 / TBG_gpusPerNode ))M"
 #SBATCH --mem-per-cpu=!TBG_memPerCPU
 #SBATCH --constraint=!TBG_feature
 #SBATCH --qos=!TBG_qos
-# send me a mail on (b)egin, (e)nd, (a)bortion
+# send me mails on BEGIN, END, FAIL, REQUEUE, ALL,
+# TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
 #SBATCH --mail-type=!TBG_mailSettings
-#SBATCH --mail-user=!TBG_mailAdress
+#SBATCH --mail-user=!TBG_mailAddress
 #SBATCH --workdir=!TBG_dstPath
 #SBATCH --account=!TBG_account
 
@@ -90,5 +93,5 @@ mpirun !TBG_dstPath/picongpu/bin/cuda_memtest.sh
 
 # Run PIConGPU
 if [ $? -eq 0 ] ; then
-  mpirun !TBG_dstPath/picongpu/bin/picongpu !TBG_programParams
+  mpirun !TBG_dstPath/picongpu/bin/picongpu !TBG_author !TBG_programParams | tee output
 fi

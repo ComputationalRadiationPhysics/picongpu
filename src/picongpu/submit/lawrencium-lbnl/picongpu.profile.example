@@ -44,10 +44,11 @@ export PATH=$HOME/bin:$PATH
 export PATH=$PATH:$PICSRC/src/splash2txt/build
 export PATH=$PATH:$PICSRC/src/tools/bin
 
-export MY_MAIL="someone@example.com"
 # send me a mail on BEGIN, END, FAIL, REQUEUE, ALL,
 # TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
 export MY_MAILNOTIFY="ALL"
+export MY_MAIL="someone@example.com"
+export MY_NAME="$(whoami) <$MY_MAIL>"
 
 # "tbg" default options #######################################################
 #   - SLURM (sbatch)

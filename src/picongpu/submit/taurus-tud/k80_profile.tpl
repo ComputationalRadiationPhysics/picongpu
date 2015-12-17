@@ -19,12 +19,12 @@
 #
 
 ## calculations will be performed by tbg ##
-
 TBG_queue="gpu"
-# send me a mail on BEGIN, END, FAIL, REQUEUE, ALL, 
-# TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
+
+# settings that can be controlled by environment variables before submit
 TBG_mailSettings=${MY_MAILNOTIFY:-"ALL"}
-TBG_mailAdress=${MY_MAIL:-"someone@example.com"}
+TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
+TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
 
 # 4 gpus per node
 TBG_gpusPerNode=`if [ $TBG_tasks -gt 4 ] ; then echo 4; else echo $TBG_tasks; fi`
@@ -53,8 +53,10 @@ TBG_nodes="$((( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
 #SBATCH --cpus-per-task=!TBG_coresPerGPU
 #SBATCH --mem-per-cpu=2583
 #SBATCH --gres=gpu:!TBG_gpusPerNode
+# send me mails on BEGIN, END, FAIL, REQUEUE, ALL,
+# TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
 #SBATCH --mail-type=!TBG_mailSettings
-#SBATCH --mail-user=!TBG_mailAdress
+#SBATCH --mail-user=!TBG_mailAddress
 #SBATCH --workdir=!TBG_dstPath
 
 #SBATCH -o stdout
@@ -84,6 +86,6 @@ srun -K1 !TBG_dstPath/picongpu/bin/cuda_memtest.sh
 
 # Run PIConGPU
 if [ $? -eq 0 ] ; then
-  srun -K1 !TBG_dstPath/picongpu/bin/picongpu !TBG_programParams
+  srun -K1 !TBG_dstPath/picongpu/bin/picongpu !TBG_author !TBG_programParams | tee output
 fi
 
