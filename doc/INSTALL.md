@@ -70,7 +70,7 @@ If you do not install the optional libraries, you will not have the full amount 
 We recomment to install at least **pngwriter**.
 Some of our examples will also need **libSplash**.
 
-- **pngwriter** >= 0.5.5
+- **pngwriter** >= 0.5.6
     - download our modified version from
       [github.com/pngwriter/pngwriter](https://github.com/pngwriter/pngwriter)
     - Requires [libpng](http://www.libpng.org/),
