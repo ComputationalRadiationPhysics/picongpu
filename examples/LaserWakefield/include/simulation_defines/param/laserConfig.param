@@ -229,6 +229,8 @@ namespace picongpu
              *              decreases to its 1/e^2-th part,
              *              WO_X_SI is this distance in x-direction
              *              W0_Z_SI is this distance in z-direction
+             * W0_SI = FWHM_of_Intensity / sqrt{ 2* ln(2) }
+             *                             [   1.17741    ]
              *              if both values are equal, the laser has a circular shape in x-z
              *  unit: meter */
             const double W0_X_SI = 4.246e-6;
