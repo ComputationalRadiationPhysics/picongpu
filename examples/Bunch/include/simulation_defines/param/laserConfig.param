@@ -233,6 +233,8 @@ BOOST_CONSTEXPR_OR_CONST float_64 PULSE_LENGTH_SI = 10.615e-15 / 4.0; //5.0e-15;
  *              WO_X_SI is this distance in x-direction
  *              W0_Z_SI is this distance in z-direction
  *              if both values are equal, the laser has a circular shape in x-z
+ * W0_SI = FWHM_of_Intensity / sqrt{ 2* ln(2) }
+ *                             [   1.17741    ]
  *  unit: meter */
 BOOST_CONSTEXPR_OR_CONST float_64 W0_X_SI = 4.246e-6;
 BOOST_CONSTEXPR_OR_CONST float_64 W0_Z_SI = W0_X_SI;
