@@ -37,7 +37,11 @@ namespace picongpu
         template<class Velocity, class Gamma>
         struct Push
         {
-
+            /* this is an optional extension for sub-sampling pushes that enables grid to particle interpolation
+             * for particle positions outside the super cell in one push
+             */
+            typedef typename PMacc::math::CT::make_Int<simDim,0>::type LowerMargin;
+            typedef typename PMacc::math::CT::make_Int<simDim,0>::type UpperMargin;
 
             enum coords
             {
