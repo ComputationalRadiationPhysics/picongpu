@@ -58,7 +58,7 @@
 # Required cmake version
 ################################################################################
 
-cmake_minimum_required(VERSION 2.8.5)
+cmake_minimum_required(VERSION 2.8.11)
 
 
 ################################################################################
@@ -194,6 +194,7 @@ endif()
 # handles the REQUIRED, QUIET and version-related arguments for find_package
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(ADIOS
+    FOUND_VAR ADIOS_FOUND
     REQUIRED_VARS ADIOS_LIBRARIES ADIOS_INCLUDE_DIRS
     VERSION_VAR ADIOS_VERSION
 )
