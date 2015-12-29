@@ -274,6 +274,15 @@ else()
     add_definitions(-DBOOST_RESULT_OF_USE_TR1)
 endif()
 
+# work-arounds and known issues
+if( (Boost_VERSION EQUAL 106000) AND
+    (CMAKE_CXX_STANDARD EQUAL 98) )
+    # Boost Bug https://svn.boost.org/trac/boost/ticket/11852
+    message(FATAL_ERROR "Boost: Please use a C++11 enabled Compiler with "
+                        "`-std=c++11` when compiling with Boost 1.60.0")
+endif()
+
+
 ################################################################################
 # Find OpenMP
 ################################################################################
