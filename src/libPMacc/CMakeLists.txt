@@ -1,5 +1,5 @@
 #
-# Copyright 2015 Erik Zenker
+# Copyright 2015-2016 Erik Zenker
 #
 # This file is part of libPMacc.
 #

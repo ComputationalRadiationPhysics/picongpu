@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2015 Axel Huebl, Alexander Grund
+ * Copyright 2014-2016 Axel Huebl, Alexander Grund
  *
  * This file is part of libPMacc.
  *

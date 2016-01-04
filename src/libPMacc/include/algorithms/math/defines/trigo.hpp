@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2015 Heiko Burau, Rene Widera, Richard Pausch, Axel Huebl, Alexander Debus
+ * Copyright 2013-2016 Heiko Burau, Rene Widera, Richard Pausch, Axel Huebl, Alexander Debus
  *
  * This file is part of libPMacc.
  *

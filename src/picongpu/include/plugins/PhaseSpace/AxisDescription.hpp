@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Axel Huebl
+ * Copyright 2014-2016 Axel Huebl
  *
  * This file is part of PIConGPU.
  *

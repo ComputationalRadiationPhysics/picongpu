@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Heiko Burau, Rene Widera
+ * Copyright 2015-2016 Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *

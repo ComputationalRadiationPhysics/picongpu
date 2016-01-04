@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2015 Alexander Debus
+ * Copyright 2014-2016 Alexander Debus
  *
  * This file is part of PIConGPU.
  *
