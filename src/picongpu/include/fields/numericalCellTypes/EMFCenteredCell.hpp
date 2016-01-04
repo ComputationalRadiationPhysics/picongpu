@@ -23,122 +23,127 @@
 #pragma once
 
 #include "simulation_defines.hpp"
+#include "fields/Fields.def"
 #include "math/Vector.hpp"
 
 namespace picongpu
 {
-using namespace PMacc;
 namespace emfCenteredCell
 {
-
-// ___________posE____________
-const float_X posE_x_x = 0.5;
-const float_X posE_x_y = 0.5;
-const float_X posE_x_z = 0.5;
-
-const float_X posE_y_x = 0.5;
-const float_X posE_y_y = 0.5;
-const float_X posE_y_z = 0.5;
-
-const float_X posE_z_x = 0.5;
-const float_X posE_z_y = 0.5;
-const float_X posE_z_z = 0.5;
-
-// ___________posB____________
-const float_X posB_x_x = 0.5;
-const float_X posB_x_y = 0.5;
-const float_X posB_x_z = 0.5;
-
-const float_X posB_y_x = 0.5;
-const float_X posB_y_y = 0.5;
-const float_X posB_y_z = 0.5;
-
-const float_X posB_z_x = 0.5;
-const float_X posB_z_y = 0.5;
-const float_X posB_z_z = 0.5;
-
-// ___________posJ____________
-const float_X posJ_x_x = 0.5;
-const float_X posJ_x_y = 0.0;
-const float_X posJ_x_z = 0.0;
-
-const float_X posJ_y_x = 0.0;
-const float_X posJ_y_y = 0.5;
-const float_X posJ_y_z = 0.0;
-
-const float_X posJ_z_x = 0.0;
-const float_X posJ_z_y = 0.0;
-const float_X posJ_z_z = 0.5;
-
-/** \todo posRho for FieldTmp depositions
-const float_X posRho_x_x = 0.0; ? or at center pos ?
-const float_X posRho_x_y = 0.0; ?
-const float_X posRho_x_z = 0.0; ?
-
-const float_X posRho_y_x = 0.0; ?
-const float_X posRho_y_y = 0.0; ?
-const float_X posRho_y_z = 0.0; ?
-
-const float_X posRho_z_x = 0.0; ?
-const float_X posRho_z_y = 0.0; ?
-const float_X posRho_z_z = 0.0; ?
-*/
-
-struct EMFCenteredCell
+namespace traits
 {
     /** \tparam floatD_X position of the component in the cell
-     *  \tparam DIM3     Fields (E/B) have 3 components, even in 1 or 2D ! */
-    typedef ::PMacc::math::Vector<floatD_X,DIM3> VectorVector;
+     *  \tparam DIM3     Fields (E/B/J) have 3 components, even in 1 or 2D !
+     */
+    typedef const ::PMacc::math::Vector<float2_X,DIM3> VectorVector2D3V;
+    typedef const ::PMacc::math::Vector<float3_X,DIM3> VectorVector3D3V;
 
-    static HDINLINE VectorVector getEFieldPosition()
+    template<typename T_Field, uint32_t T_simDim = simDim>
+    struct FieldPosition;
+
+    /** position (floatD_X in case of T_simDim == simDim) in cell for
+     *  E_x, E_y, E_z
+     */
+    template<uint32_t T_simDim>
+    struct FieldPosition<FieldE, T_simDim>
     {
-#if( SIMDIM == DIM3 )
-        const float3_X posE_x(posE_x_x, posE_x_y, posE_x_z);
-        const float3_X posE_y(posE_y_x, posE_y_y, posE_y_z);
-        const float3_X posE_z(posE_z_x, posE_z_y, posE_z_z);
-#elif( SIMDIM == DIM2 )
-        const float2_X posE_x(posE_x_x, posE_x_y);
-        const float2_X posE_y(posE_y_x, posE_y_y);
-        const float2_X posE_z(posE_z_x, posE_z_y);
-#endif
+        typedef PMacc::math::Vector<float_X, T_simDim> PosType;
+        typedef const PMacc::math::Vector<PosType, DIM3> ReturnType;
 
-        /** position (floatD_x) in cell for E_x, E_y, E_z */
-        return VectorVector(posE_x, posE_y, posE_z);
-    }
+        /// boost::result_of hints
+        template<class> struct result;
 
-    static HDINLINE VectorVector getBFieldPosition()
+        template<class F>
+        struct result<F()> {
+            typedef ReturnType type;
+        };
+
+        HDINLINE ReturnType operator()() const
+        {
+            const PMACC_AUTO(center, PosType::create( 0.5 ));
+
+            return ReturnType::create( center );
+        }
+    };
+
+    /** position (floatD_X in case of T_simDim == simDim) in cell for
+     *  B_x, B_y, B_z
+     */
+    template<uint32_t T_simDim>
+    struct FieldPosition<FieldB, T_simDim> :
+        public FieldPosition<FieldE, T_simDim>
     {
-#if( SIMDIM == DIM3 )
-        const float3_X posB_x(posB_x_x, posB_x_y, posB_x_z);
-        const float3_X posB_y(posB_y_x, posB_y_y, posB_y_z);
-        const float3_X posB_z(posB_z_x, posB_z_y, posB_z_z);
-#elif( SIMDIM == DIM2 )
-        const float2_X posB_x(posB_x_x, posB_x_y);
-        const float2_X posB_y(posB_y_x, posB_y_y);
-        const float2_X posB_z(posB_z_x, posB_z_y);
-#endif
+        HDINLINE FieldPosition()
+        {
+        }
+    };
 
-        /** position (floatD_x) in cell for B_x, B_y, B_z */
-        return VectorVector(posB_x, posB_y, posB_z);
-    }
-
-    static HDINLINE VectorVector getJFieldPosition()
+    /** position (float2_X) in cell for J_x, J_y, J_z */
+    template<>
+    struct FieldPosition<FieldJ, DIM2>
     {
-#if( SIMDIM == DIM3 )
-        const float3_X posJ_x(posJ_x_x, posJ_x_y, posJ_x_z);
-        const float3_X posJ_y(posJ_y_x, posJ_y_y, posJ_y_z);
-        const float3_X posJ_z(posJ_z_x, posJ_z_y, posJ_z_z);
-#elif( SIMDIM == DIM2 )
-        const float2_X posJ_x(posJ_x_x, posJ_x_y);
-        const float2_X posJ_y(posJ_y_x, posJ_y_y);
-        const float2_X posJ_z(posJ_z_x, posJ_z_y);
-#endif
+        /// boost::result_of hints
+        template<class> struct result;
 
-        /** position (floatD_x) in cell for J_x, J_y, J_z */
-        return VectorVector(posJ_x, posJ_y, posJ_z);
-    }
+        template<class F>
+        struct result<F()> {
+            typedef VectorVector2D3V type;
+        };
 
-};
+        HDINLINE VectorVector2D3V operator()() const
+        {
+            const float2_X posJ_x( 0.5, 0.0 );
+            const float2_X posJ_y( 0.0, 0.5 );
+            const float2_X posJ_z( 0.0, 0.0 );
 
+            return VectorVector2D3V( posJ_x, posJ_y, posJ_z );
+        }
+    };
+
+    /** position (float3_X) in cell for J_x, J_y, J_z
+     */
+    template<>
+    struct FieldPosition<FieldJ, DIM3>
+    {
+        /// boost::result_of hints
+        template<class> struct result;
+
+        template<class F>
+        struct result<F()> {
+            typedef VectorVector3D3V type;
+        };
+
+        HDINLINE VectorVector3D3V operator()() const
+        {
+            const float3_X posJ_x( 0.5, 0.0, 0.0 );
+            const float3_X posJ_y( 0.0, 0.5, 0.0 );
+            const float3_X posJ_z( 0.0, 0.0, 0.5 );
+
+            return VectorVector3D3V( posJ_x, posJ_y, posJ_z );
+        }
+    };
+
+    /** position (floatD_X in case of T_simDim == simDim) in cell for the
+     *  scalar field FieldTmp
+     */
+    template<uint32_t T_simDim>
+    struct FieldPosition<FieldTmp, T_simDim>
+    {
+        typedef PMacc::math::Vector<float_X, T_simDim> ReturnType;
+
+        /// boost::result_of hints
+        template<class> struct result;
+
+        template<class F>
+        struct result<F()> {
+            typedef ReturnType type;
+        };
+
+        HDINLINE ReturnType operator()() const
+        {
+            return ReturnType::create( 0.0 );
+        }
+    };
+} // traits
 } // emfCenteredCell
 } // picongpu
