@@ -165,8 +165,7 @@ void Particles<T_ParticleDescription>::update(uint32_t )
         >::type InterpolationScheme;
 
     typedef PushParticlePerFrame<ParticlePush, MappingDesc::SuperCellSize,
-        InterpolationScheme,
-        fieldSolver::NumericalCellType > FrameSolver;
+        InterpolationScheme > FrameSolver;
 
     // adjust interpolation area in particle pusher to allow sub-sampling pushes
     typedef typename GetLowerMarginPusher<Particles>::type LowerMargin;

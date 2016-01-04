@@ -50,21 +50,21 @@ namespace detail
            or casting on floatD_ does work. */
         const floatD_64 cellDim(picongpu::cellSize);
         const floatD_64 cellDimensions = cellDim * unit_length;
-        
+
         /* TWTS laser coordinate origin is centered transversally and defined longitudinally by
            the laser center in y (usually maximum of intensity). */
         floatD_X laserOrigin = precisionCast<float_X>(halfSimSize);
         laserOrigin.y() = float_X( focus_y_SI/cellDimensions.y() );
-        
+
         /* For staggered fields (e.g. Yee-grid), obtain the fractional cell index components and add
          * that to the total cell indices. The physical field coordinate origin is transversally
          * centered with respect to the global simulation volume.
          * PMacc::math::Vector<floatD_X, numComponents> fieldPositions =
-         *                fieldSolver::NumericalCellType::getEFieldPosition(); */
+         *                fieldSolver::numericalCellType::traits::FieldPosition<FieldE>(); */
         PMacc::math::Vector<floatD_X, numComponents> fieldPositions = fieldOnGridPositions;
-        
+
         PMacc::math::Vector<floatD_64,numComponents> fieldPositions_SI;
-        
+
         for( uint32_t i = 0; i < numComponents; ++i ) /* cellIdx Ex, Ey and Ez */
         {
             fieldPositions[i]   += ( precisionCast<float_X>(cellIdx) - laserOrigin );
@@ -72,10 +72,10 @@ namespace detail
 
             fieldPositions_SI[i] = rotateField(fieldPositions_SI[i],phi);
         }
-        
+
         return fieldPositions_SI;
     }
-    
+
 } /* namespace detail */
 } /* namespace twts */
 } /* namespace templates */

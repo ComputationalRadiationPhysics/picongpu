@@ -177,10 +177,11 @@ namespace twts
                             const uint32_t currentStep ) const
     {
         const float_64 time_SI = float_64(currentStep) * dt - tdelay;
+        const fieldSolver::numericalCellType::traits::FieldPosition<FieldE> fieldPosE;
 
         const PMacc::math::Vector<floatD_64,detail::numComponents> eFieldPositions_SI =
-              detail::getFieldPositions_SI(cellIdx,halfSimSize,
-                fieldSolver::NumericalCellType::getEFieldPosition(),unit_length,focus_y_SI,phi);
+              detail::getFieldPositions_SI(cellIdx, halfSimSize,
+                fieldPosE(), unit_length, focus_y_SI, phi);
 
         /* Single TWTS-Pulse */
         switch (pol)
