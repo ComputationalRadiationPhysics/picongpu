@@ -38,32 +38,32 @@ namespace picongpu
 namespace fieldSolverNone
 {
     typedef picongpu::noSolver::NoSolver FieldSolver;
-    typedef yeeCell::YeeCell NumericalCellType;
+    namespace numericalCellType = yeeCell;
 }
 
 namespace fieldSolverYeeNative
 {
     typedef picongpu::yeeSolver::YeeSolver<> FieldSolver;
-    typedef yeeCell::YeeCell NumericalCellType;
+    namespace numericalCellType = yeeCell;
 }
 
 namespace fieldSolverYee
 {
     typedef picongpu::yeeSolver::YeeSolver<> FieldSolver;
-    typedef yeeCell::YeeCell NumericalCellType;
+    namespace numericalCellType = yeeCell;
 }
 
 #if(SIMDIM==DIM3)
 namespace fieldSolverDirSplitting
 {
     typedef picongpu::dirSplitting::DirSplitting FieldSolver;
-    typedef emfCenteredCell::EMFCenteredCell NumericalCellType;
+    namespace numericalCellType = emfCenteredCell;
 }
 
 namespace fieldSolverLehe
 {
     typedef picongpu::leheSolver::LeheSolver FieldSolver;
-    typedef yeeCell::YeeCell NumericalCellType;
+    namespace numericalCellType = yeeCell;
 }
 #endif
 } //namespace picongpu
