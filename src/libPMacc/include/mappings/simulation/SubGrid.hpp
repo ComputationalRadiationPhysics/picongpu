@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Felix Schmitt, Heiko Burau, Rene Widera, Wolfgang Hoenig
+ * Copyright 2013-2016 Felix Schmitt, Heiko Burau, Rene Widera, Wolfgang Hoenig
  *
  * This file is part of libPMacc.
  *

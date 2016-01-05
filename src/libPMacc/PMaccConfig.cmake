@@ -1,4 +1,4 @@
-# Copyright 2015 Erik Zenker, Rene Widera, Axel Huebl
+# Copyright 2015-2016 Erik Zenker, Rene Widera, Axel Huebl
 #
 # This file is part of libPMacc.
 #

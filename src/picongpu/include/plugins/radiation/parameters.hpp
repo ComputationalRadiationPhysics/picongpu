@@ -1,5 +1,5 @@
 /**
- * Copyright 2013, 2015 Axel Huebl, Rene Widera, Richard Pausch
+ * Copyright 2013-2016 Axel Huebl, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *

@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2015 Marco Garten
+ * Copyright 2014-2016 Marco Garten
  *
  * This file is part of PIConGPU.
  *

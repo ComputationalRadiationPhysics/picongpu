@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Heiko Burau
+ * Copyright 2013-2016 Heiko Burau
  *
  * This file is part of PIConGPU.
  *

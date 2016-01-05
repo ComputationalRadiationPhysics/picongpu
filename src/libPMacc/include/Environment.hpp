@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2015 Felix Schmitt, Conrad Schumann,
+ * Copyright 2014-2016 Felix Schmitt, Conrad Schumann,
  *                     Alexander Grund, Axel Huebl
  *
  * This file is part of libPMacc.

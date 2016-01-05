@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2015 Alexander Grund
+ * Copyright 2013-2016 Alexander Grund
  *
  * This file is part of libPMacc.
  *

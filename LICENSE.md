@@ -1,7 +1,7 @@
  PIConGPU - Licenses
 ================================================================================
 
-**Copyright 2009-2015** Florian Berninger, Heiko Burau, Michael Bussmann,
+**Copyright 2009-2016** Florian Berninger, Heiko Burau, Michael Bussmann,
                         Alexander Debus, Robert Dietrich, Carlchristian Eckert,
                         Wen Fu, Marco Garten, Anton Helm, Wolfgang Hoehnig,
                         Axel Huebl, Maximilian Knespel, Remi Lehe,

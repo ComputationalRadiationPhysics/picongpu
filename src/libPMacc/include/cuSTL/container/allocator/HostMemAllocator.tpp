@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2015 Heiko Burau, Rene Widera, Alexander Grund
+ * Copyright 2013-2016 Heiko Burau, Rene Widera, Alexander Grund
  *
  * This file is part of libPMacc.
  *

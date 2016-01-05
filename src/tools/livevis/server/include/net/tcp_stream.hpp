@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2015 Benjamin Schneider, Rene Widera
+ * Copyright 2013-2016 Benjamin Schneider, Rene Widera
  *
  * This file is part of PIConGPU.
  *
