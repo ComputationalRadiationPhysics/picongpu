@@ -27,6 +27,7 @@
 #include "simulation_types.hpp"
 #include "plugins/hdf5/HDF5Writer.def"
 #include "traits/PICToSplash.hpp"
+#include "traits/PICToOpenPMD.hpp"
 #include "traits/GetComponentsType.hpp"
 #include "traits/GetNComponents.hpp"
 #include "traits/Resolve.hpp"
@@ -48,13 +49,12 @@ using namespace splash;
 template< typename T_Identifier>
 struct ParticleAttribute
 {
-
     /** write attribute to hdf5 file
      *
      * @param params wrapped params with domainwriter, ...
      * @param frame frame with all particles
      * @param prefix a name prefix for hdf5 attribute (is combined to: prefix_nameOfAttribute)
-     * @param simOffset offset from window origin of thedomain
+     * @param simOffset offset from window origin of the domain
      * @param localSize local domain size
      */
     template<typename FrameType>
@@ -80,12 +80,18 @@ struct ParticleAttribute
         ColTypeDouble ctDouble;
         SplashFloatXType splashFloatXType;
 
-        std::string recordName = subGroup + std::string("/") + T_Identifier::getName();
+        OpenPMDName<T_Identifier> openPMDName;
+        std::string recordName = subGroup + std::string("/") + openPMDName();
 
         const std::string name_lookup[] = {"x", "y", "z"};
 
-        std::vector<float_64> unit = Unit<T_Identifier>::get();
-        std::vector<float_64> unitDimension = UnitDimension<T_Identifier>::get();
+        OpenPMDUnit<T_Identifier> openPMDUnit;
+        std::vector<float_64> unit = openPMDUnit();
+        OpenPMDUnitDimension<T_Identifier> openPMDUnitDimension;
+        std::vector<float_64> unitDimension = openPMDUnitDimension();
+
+        assert(unit.size() == components); // unitSI for each component
+        assert(unitDimension.size() == 7); // seven openPMD base units
 
         /* globalSlideOffset due to gpu slides between origin at time step 0
          * and origin at current time step
@@ -144,10 +150,9 @@ struct ParticleAttribute
                                                      DomainCollector::PolyType,
                                                      tmpArray);
 
-            if (unit.size() >= (d + 1))
-                threadParams->dataCollector->writeAttribute(threadParams->currentStep,
-                                                            ctDouble, datasetName.str().c_str(),
-                                                            "unitSI", &(unit.at(d)));
+            threadParams->dataCollector->writeAttribute(threadParams->currentStep,
+                                                        ctDouble, datasetName.str().c_str(),
+                                                        "unitSI", &(unit.at(d)));
 
         }
         __deleteArray(tmpArray);

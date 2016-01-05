@@ -27,6 +27,7 @@
 #include "simulation_types.hpp"
 #include "plugins/hdf5/HDF5Writer.def"
 #include "traits/PICToSplash.hpp"
+#include "traits/PICToOpenPMD.hpp"
 #include "traits/GetComponentsType.hpp"
 #include "traits/GetNComponents.hpp"
 #include "traits/Resolve.hpp"
@@ -83,8 +84,9 @@ struct LoadParticleAttributesFromHDF5
         ParallelDomainCollector* dataCollector = params->dataCollector;
         for (uint32_t d = 0; d < components; d++)
         {
+            OpenPMDName<T_Identifier> openPMDName;
             std::stringstream datasetName;
-            datasetName << subGroup << "/" << T_Identifier::getName();
+            datasetName << subGroup << "/" << openPMDName();
             if (components > 1)
                 datasetName << "/" << name_lookup[d];
 
