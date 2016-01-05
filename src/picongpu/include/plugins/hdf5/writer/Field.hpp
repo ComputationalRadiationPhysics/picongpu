@@ -39,7 +39,7 @@ using namespace splash;
 struct Field
 {
 
-    /* \param inCellPosition std::vector<std::vector<float_32> > with the outer
+    /* \param inCellPosition std::vector<std::vector<float_X> > with the outer
      *                       vector for each component and the inner vector for
      *                       the simDim position offset within the cell [0.0; 1.0)
      */
@@ -48,7 +48,7 @@ struct Field
                            const std::string name,
                            std::vector<float_64> unit,
                            std::vector<float_64> unitDimension,
-                           /* std::vector<std::vector<float_X> > inCellPosition, */
+                           std::vector<std::vector<float_X> > inCellPosition,
                            float_X timeOffset,
                            T_DataBoxType dataBox,
                            const T_ValueType&
@@ -71,9 +71,9 @@ struct Field
 
         /* parameter checking */
         assert(unit.size() == nComponents);
-        //assert(inCellPosition.size() == nComponents);
-        //for( uint32_t n = 0; n < nComponents; ++n )
-        //    assert(inCellPosition.at(n).size() == simDim );
+        assert(inCellPosition.size() == nComponents);
+        for( uint32_t n = 0; n < nComponents; ++n )
+            assert(inCellPosition.at(n).size() == simDim );
         assert(unitDimension.size() == 7); // seven openPMD base units
 
         /* component names */
@@ -156,11 +156,11 @@ struct Field
                                                tmpArray);
 
             /* attributes */
-            /* params->dataCollector->writeAttribute(params->currentStep,
-                                                  splashFloatXType, recordName.c_str(),
+            params->dataCollector->writeAttribute(params->currentStep,
+                                                  splashFloatXType, datasetName.str().c_str(),
                                                   "position",
                                                   1u, Dimensions(simDim,0,0),
-                                                  &(*inCellPosition.at(n).begin())); */
+                                                  &(*inCellPosition.at(n).begin()));
 
             params->dataCollector->writeAttribute(params->currentStep,
                                                   ctDouble, datasetName.str().c_str(),

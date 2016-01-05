@@ -26,6 +26,8 @@
 #include "plugins/hdf5/HDF5Writer.def"
 #include "plugins/hdf5/writer/Field.hpp"
 
+#include <vector>
+
 namespace picongpu
 {
 
@@ -80,6 +82,18 @@ public:
         T* field = &(dc.getData<T > (T::getName()));
         params->gridLayout = field->getGridLayout();
 
+        // convert in a std::vector of std::vector format for writeField API
+        const fieldSolver::numericalCellType::traits::FieldPosition<T> fieldPos;
+
+        std::vector<std::vector<float_X> > inCellPosition;
+        for( uint32_t n = 0; n < T::numComponents; ++n )
+        {
+            std::vector<float_X> inCellPositonComponent;
+            for( uint32_t d = 0; d < simDim; ++d )
+                inCellPositonComponent.push_back( fieldPos()[n][d] );
+            inCellPosition.push_back( inCellPositonComponent );
+        }
+
         /** \todo check if always correct at this point, depends on solver
          *        implementation */
         const float_X timeOffset = 0.0;
@@ -88,7 +102,7 @@ public:
                           T::getName(),
                           getUnit(),
                           T::getUnitDimension(),
-                          /* inCellPosition, */
+                          inCellPosition,
                           timeOffset,
                           field->getHostDataBox(),
                           ValueType());
@@ -171,8 +185,15 @@ private:
         dc.releaseData(Species::FrameType::getName());
         /*## finish update field ##*/
 
-        //PMACC_AUTO(inCellPosition, fieldSolver::NumericalCellType::getEFieldPosition());
-        //fieldSolver::NumericalCellType::getJFieldPosition()[n]
+        /*wrap in a one-component vector for writeField API*/
+        const fieldSolver::numericalCellType::traits::FieldPosition<FieldTmp>
+            fieldPos;
+
+        std::vector<std::vector<float_X> > inCellPosition;
+        std::vector<float_X> inCellPositonComponent;
+        for( uint32_t d = 0; d < simDim; ++d )
+            inCellPositonComponent.push_back( fieldPos()[0][d] );
+        inCellPosition.push_back( inCellPositonComponent );
 
         /** \todo check if always correct at this point, depends on solver
          *        implementation */
@@ -184,7 +205,7 @@ private:
                           getName(),
                           getUnit(),
                           FieldTmp::getUnitDimension<Solver>(),
-                          /* inCellPosition, */
+                          inCellPosition,
                           timeOffset,
                           fieldTmp->getHostDataBox(),
                           ValueType());
