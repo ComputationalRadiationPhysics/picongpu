@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include "cuSTL/algorithm/host/Foreach.hpp"
+#include "lambda/placeholder.h"
 #include <boost/mpl/placeholders.hpp>
 #include <boost/mpl/int.hpp>
 #include <stdint.h>
@@ -34,12 +36,9 @@ namespace assigner
 namespace bmpl = boost::mpl;
 
 template<typename T_Dim = bmpl::_1, typename T_CartBuffer = bmpl::_2>
-struct HostMemAssigner;
-
-template<typename T_CartBuffer>
-struct HostMemAssigner<bmpl::int_<1>, T_CartBuffer>
+struct HostMemAssigner
 {
-    BOOST_STATIC_CONSTEXPR int dim = 1;
+    BOOST_STATIC_CONSTEXPR int dim = T_Dim::value;
     typedef T_CartBuffer CartBuffer;
 
     template<typename Type>
@@ -48,55 +47,9 @@ struct HostMemAssigner<bmpl::int_<1>, T_CartBuffer>
         // "Curiously recurring template pattern"
         CartBuffer* buffer = static_cast<CartBuffer*>(this);
 
-        for(size_t i = 0; i < buffer->size().x(); i++)
-            buffer->dataPointer[i] = value;
-    }
-};
-
-template<typename T_CartBuffer>
-struct HostMemAssigner<bmpl::int_<2>, T_CartBuffer>
-{
-    BOOST_STATIC_CONSTEXPR int dim = 2;
-    typedef T_CartBuffer CartBuffer;
-
-    template<typename Type>
-    HINLINE void assign(const Type& value)
-    {
-        // "Curiously recurring template pattern"
-        CartBuffer* buffer = static_cast<CartBuffer*>(this);
-
-        Type* tmpData = buffer->dataPointer;
-        for(size_t y = 0; y < buffer->size().y(); y++)
-        {
-            for(size_t x = 0; x < buffer->size().x(); x++)
-                tmpData[x] = value;
-            tmpData = reinterpret_cast<Type*>(reinterpret_cast<char*>(tmpData) + buffer->pitch.x());
-        }
-    }
-};
-
-template<typename T_CartBuffer>
-struct HostMemAssigner<bmpl::int_<3>, T_CartBuffer>
-{
-    BOOST_STATIC_CONSTEXPR int dim = 3;
-    typedef T_CartBuffer CartBuffer;
-
-    template<typename Type>
-    HINLINE void assign(const Type& value)
-    {
-        // "Curiously recurring template pattern"
-        CartBuffer* buffer = static_cast<CartBuffer*>(this);
-
-        for(size_t z = 0; z < buffer->size().z(); z++)
-        {
-            Type* dataXY = reinterpret_cast<Type*>(reinterpret_cast<char*>(buffer->dataPointer) + z * buffer->pitch.y());
-            for(size_t y = 0; y < buffer->size().y(); y++)
-            {
-                for(size_t x = 0; x < buffer->size().x(); x++)
-                    dataXY[x] = value;
-                dataXY = reinterpret_cast<Type*>(reinterpret_cast<char*>(dataXY) + buffer->pitch.x());
-            }
-        }
+        using namespace lambda;
+        algorithm::host::Foreach foreach;
+        foreach(buffer->zone(), buffer->origin(), _1 = value);
     }
 };
 
