@@ -47,12 +47,12 @@ template<typename Type, int dim>
 class HostBuffer
  : public CartBuffer<Type, dim, allocator::HostMemAllocator<Type, dim>,
                                 copier::H2HCopier<dim>,
-                                assigner::HostMemAssigner<dim> >
+                                assigner::HostMemAssigner<> >
 {
 private:
     typedef CartBuffer<Type, dim, allocator::HostMemAllocator<Type, dim>,
                                   copier::H2HCopier<dim>,
-                                  assigner::HostMemAssigner<dim> > Base;
+                                  assigner::HostMemAssigner<> > Base;
 ///\todo: make protected
 public:
     HostBuffer() {}

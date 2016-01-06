@@ -252,12 +252,6 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::view
 }
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
-void CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::assign(const Type& value)
-{
-    Assigner::assign(this->dataPointer, this->pitch, value, this->_size);
-}
-
-template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
 cursor::BufferCursor<Type, T_dim> CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::origin() const
 {
     detail::notifyEventSystem<typename Allocator::tag>();

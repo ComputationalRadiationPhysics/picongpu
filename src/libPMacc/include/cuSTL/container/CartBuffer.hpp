@@ -34,7 +34,11 @@
 #include "types.h"
 
 #include <boost/mpl/void.hpp>
+#include <boost/mpl/int.hpp>
 #include <boost/move/move.hpp>
+#include <boost/mpl/apply.hpp>
+#include <boost/mpl/placeholders.hpp>
+#include <boost/mpl/vector.hpp>
 
 #include <stdint.h>
 
@@ -42,6 +46,8 @@ namespace PMacc
 {
 namespace container
 {
+
+namespace bmpl = boost::mpl;
 
 /** Implementation of a box-shaped (cartesian) container type.
  * Holds a reference counter so one can have several containers sharing one buffer.
@@ -53,15 +59,19 @@ namespace container
  * \tparam Allocator allocates and releases memory
  * \tparam Copier copies one memory buffer to another
  * \tparam Assigner assigns a value to every datum of a memory buffer
+ *
+ * Assigner policy has to support `apply2`: Assigner<Dim, CartBuffer>
+ *
  */
 template<typename Type, int T_dim, typename Allocator = allocator::EmptyAllocator,
                                   typename Copier = mpl::void_,
-                                  typename Assigner = mpl::void_>
-class CartBuffer
+                                  typename Assigner = bmpl::vector<bmpl::_1, bmpl::_2> >
+class CartBuffer : public
+    /* "Curiously recurring template pattern" */
+    bmpl::apply<Assigner, bmpl::int_<T_dim>, CartBuffer<Type, T_dim, Allocator, Copier, Assigner> >::type
 {
 public:
     typedef Type type;
-    typedef CartBuffer<Type, T_dim, Allocator, Copier, Assigner> This;
     BOOST_STATIC_CONSTEXPR int dim = T_dim;
     typedef cursor::BufferCursor<Type, T_dim> Cursor;
     typedef typename Allocator::tag memoryTag;
@@ -75,24 +85,24 @@ public:
     HDINLINE CartBuffer() : refCount(NULL) {}
 private:
     /* makes this class able to emulate a r-value reference */
-    BOOST_COPYABLE_AND_MOVABLE(This)
+    BOOST_COPYABLE_AND_MOVABLE(CartBuffer)
 public:
     HDINLINE CartBuffer(const math::Size_t<T_dim>& size);
     HDINLINE CartBuffer(size_t x);
     HDINLINE CartBuffer(size_t x, size_t y);
     HDINLINE CartBuffer(size_t x, size_t y, size_t z);
     /* the copy constructor just increments the reference counter but does not copy memory */
-    HDINLINE CartBuffer(const This& other);
+    HDINLINE CartBuffer(const CartBuffer& other);
     /* the move constructor has currently the same behavior as the copy constructor */
-    HDINLINE CartBuffer(BOOST_RV_REF(This) other);
+    HDINLINE CartBuffer(BOOST_RV_REF(CartBuffer) other);
     HDINLINE ~CartBuffer();
 
     /* copy another container into this one (hard data copy) */
-    HDINLINE This&
-    operator=(const This& rhs);
+    HDINLINE CartBuffer&
+    operator=(const CartBuffer& rhs);
     /* use the memory from another container and increment the reference counter */
-    HDINLINE This&
-    operator=(BOOST_RV_REF(This) rhs);
+    HDINLINE CartBuffer&
+    operator=(BOOST_RV_REF(CartBuffer) rhs);
 
     /* get a view. Views represent a clipped area of the container.
      * \param a Top left corner of the view, inside the view.
@@ -100,12 +110,9 @@ public:
      * \param b Bottom right corner of the view, outside the view.
      * Values are remapped, so that Int<2>(0,0) == Int<2>(width, height)
      */
-    HDINLINE View<This>
+    HDINLINE View<CartBuffer>
         view(math::Int<T_dim> a = math::Int<T_dim>(0),
              math::Int<T_dim> b = math::Int<T_dim>(0)) const;
-
-    /* assign value to each datum */
-    HDINLINE void assign(const Type& value);
 
     /* get a cursor at the container's origin cell */
     HDINLINE cursor::BufferCursor<Type, T_dim> origin() const;

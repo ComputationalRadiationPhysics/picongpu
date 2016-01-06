@@ -82,7 +82,7 @@ namespace PMacc
         HINLINE
         container::CartBuffer<TYPE, DIM, allocator::DeviceMemAllocator<TYPE, DIM>,
                                 copier::D2DCopier<DIM>,
-                                assigner::DeviceMemAssigner<DIM> >
+                                assigner::DeviceMemAssigner<> >
         cartBuffer() const
         {
             container::DeviceBuffer<TYPE, DIM> result;
