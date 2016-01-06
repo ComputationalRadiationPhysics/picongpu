@@ -530,6 +530,7 @@ private:
    *
    *  Arguments:
    *  int index - index of Amplitude
+   *              "-1" return record name
    *
    *  Return:
    *  std::string - name
@@ -538,34 +539,71 @@ private:
    */
   static const std::string dataLabels(int index)
   {
-      const std::string dataLabelsList[] = {"Amplitude/x/Re",
-                                            "Amplitude/x/Im",
-                                            "Amplitude/y/Re",
-                                            "Amplitude/y/Im",
-                                            "Amplitude/z/Re",
-                                            "Amplitude/z/Im"};
+      const std::string path("Amplitude/");
 
-      return dataLabelsList[index];
+      /* return record name if handed -1 */
+      if(index == -1)
+          return path;
+
+      const std::string dataLabelsList[] = {"x/Re",
+                                            "x/Im",
+                                            "y/Re",
+                                            "y/Im",
+                                            "z/Re",
+                                            "z/Im"};
+
+      return path + dataLabelsList[index];
   }
 
-  /** This method returns hdf5 data structure names for detector positions
+  /** This method returns hdf5 data structure names for detector directions
    *
    *  Arguments:
    *  int index - index of detector
+   *              "-1" return record name
    *
    *  Return:
    *  std::string - name
    *
    * This method avoids initializing static const string arrays.
    */
-  static const std::string dataLabelsDetector(int index)
+  static const std::string dataLabelsDetectorDirection(int index)
   {
-      const std::string dataLabelsList[] = {"Detector/x",
-                                            "Detector/y",
-                                            "Detector/z",
-                                            "Detector/omega"};
+      const std::string path("DetectorDirection/");
 
-      return dataLabelsList[index];
+      /* return record name if handed -1 */
+      if(index == -1)
+          return path;
+
+      const std::string dataLabelsList[] = {"x",
+                                            "y",
+                                            "z"};
+
+      return path + dataLabelsList[index];
+  }
+
+
+  /** This method returns hdf5 data structure names for detector frequencies
+   *
+   *  Arguments:
+   *  int index - index of detector
+   *              "-1" return record name
+   *
+   *  Return:
+   *  std::string - name
+   *
+   * This method avoids initializing static const string arrays.
+   */
+  static const std::string dataLabelsDetectorFrequency(int index)
+  {
+      const std::string path("DetectorFrequency/");
+
+      /* return record name if handed -1 */
+      if(index == -1)
+          return path;
+
+      const std::string dataLabelsList[] = {"omega"};
+
+      return path + dataLabelsList[index];
   }
 
 
@@ -660,7 +698,7 @@ private:
                              radSplashType,
                              3,
                              dataSelection,
-                             (meshesPathName + dataLabelsDetector(detectorDim)).c_str(),
+                             (meshesPathName + dataLabelsDetectorDirection(detectorDim)).c_str(),
                              detectorPositions);
       }
 
@@ -683,14 +721,14 @@ private:
                          radSplashType,
                          3,
                          dataSelection,
-                         (meshesPathName + dataLabelsDetector(3)).c_str(),
+                         (meshesPathName + dataLabelsDetectorFrequency(0)).c_str(),
                          detectorFrequencies);
 
       /* save SI unit as attribute together with data set */
       const picongpu::float_64 factorOmega = 1.0 / UNIT_TIME ;
       HDF5dataFile.writeAttribute(currentStep,
                                   radSplashType,
-                                  (meshesPathName + dataLabelsDetector(3)).c_str(),
+                                  (meshesPathName + dataLabelsDetectorFrequency(0)).c_str(),
                                   "unitSI",
                                   &factorOmega);
 
