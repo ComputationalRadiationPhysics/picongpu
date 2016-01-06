@@ -20,27 +20,27 @@
 
 #pragma once
 
-#include "types.h"
 #include "traits/GetMargin.hpp"
 #include "dimensions/SuperCellDescription.hpp"
 #include "cuSTL/container/compile-time/SharedBuffer.hpp"
 #include "cuSTL/algorithm/cudaBlock/Foreach.hpp"
-#include "vector/Int.hpp"
+#include "math/vector/Int.hpp"
 #include "lambda/placeholder.h"
+#include "types.h"
 
 namespace picongpu
 {
 
 using namespace PMacc;
 
-/** Provides field-to-particle interpolation of a cached (shared memory)
- * field on device. The caching is done by this class.
+/** Provides cached (shared memory) field-to-particle interpolation for a global field on device.
+ * The caching operation is included in this class.
  *
  * \tparam T_Buffer container type (cuSTL) of field data
  * \tparam T_FieldToParticleInterpolation interpolation algorithm
  * \tparam T_NumericalFieldPosition A type with an operator(), that returns
  *      a VectorVector indicating the numerical field position.
- * \tparam T_CudaBlockDim compile-time vector of the used blockDim
+ * \tparam T_CudaBlockDim compile-time vector of blockDim
  * \tparam T_sharedMemIdx Arbitrary, unique integer. Has to be unique to
  *      every identical shared memory block in use (due to a nvcc bug).
  *
@@ -51,7 +51,6 @@ template<
     typename T_Buffer,
     typename T_FieldToParticleInterpolation,
     typename T_NumericalFieldPosition,
-    typename T_CudaBlockDim,
     int T_sharedMemIdx>
 class Cached_F2P_Interp
 {
@@ -59,8 +58,8 @@ public:
     typedef T_Buffer Buffer;
     typedef T_FieldToParticleInterpolation FieldToParticleInterpolation;
     typedef T_NumericalFieldPosition NumericalFieldPosition;
-    typedef T_CudaBlockDim CudaBlockDim;
     BOOST_STATIC_CONSTEXPR int sharedMemIdx = T_sharedMemIdx;
+
     typedef typename Buffer::type type;
     BOOST_STATIC_CONSTEXPR int dim = Buffer::dim;
 
@@ -69,14 +68,14 @@ private:
     typedef typename GetMargin<FieldToParticleInterpolation>::LowerMargin LowerMargin;
     typedef typename GetMargin<FieldToParticleInterpolation>::UpperMargin UpperMargin;
 
-    /* relevant area of a block */
-    typedef SuperCellDescription<
+    /* super cell size + margins */
+    typedef typename SuperCellDescription<
         typename MappingDesc::SuperCellSize,
         LowerMargin,
         UpperMargin
-        > BlockArea;
+        >::FullSuperCellSize FullSuperCellSize;
 
-    typedef container::CT::SharedBuffer<type, typename BlockArea::FullSuperCellSize, sharedMemIdx> CachedBuffer;
+    typedef container::CT::SharedBuffer<type, FullSuperCellSize, sharedMemIdx> CachedBuffer;
 
     PMACC_ALIGN(globalFieldCursor, typename Buffer::Cursor);
     PMACC_ALIGN(cachedFieldCursor, typename CachedBuffer::Cursor);
@@ -85,45 +84,48 @@ public:
     /**
      * @param buffer cuSTL buffer of the field data
      */
-    Cached_F2P_Interp(const Buffer& buffer) : globalFieldCursor(buffer.origin()) {}
+    Cached_F2P_Interp(const Buffer& buffer) :
+        globalFieldCursor(buffer.origin()),
+        cachedFieldCursor(NULL) /* gets valid in `init()` */
+        {}
 
-    /** Fill the cache with the field data.
+    /** Fill shared memory cache with global memory field data.
      *
      * @param blockCell multi-dim offset from the origin of the local domain on GPU
      *                  to the origin of the block of the in unit of cells
      * @param linearThreadIdx linear coordinate of the thread in the threadBlock
      */
     DINLINE
-    void init(const math::Int<dim>& blockCell, const int linearThreadIdx)
+    void init(const PMacc::math::Int<dim>& blockCell, const int linearThreadIdx)
     {
         CachedBuffer cachedBuffer; /* allocate shared memory. Valid for kernel lifetime. */
         this->cachedFieldCursor = cachedBuffer.origin();
 
-        const math::Int<dim> lowerMargin = LowerMargin::toRT();
+        const PMacc::math::Int<dim> lowerMargin = LowerMargin::toRT();
 
         using namespace lambda;
         DECLARE_PLACEHOLDERS(); // declares _1, _2, _3, ... in device code
 
         /* fill shared memory with global field data */
-        algorithm::cudaBlock::Foreach<CudaBlockDim> foreach(linearThreadIdx);
+        algorithm::cudaBlock::Foreach<MappingDesc::SuperCellSize> foreach(linearThreadIdx);
         foreach(
             CachedBuffer::Zone(), /* super cell size + margins */
             this->cachedFieldCursor,
             this->globalFieldCursor(blockCell - lowerMargin),
             _1 = _2);
 
-        /* jump to the origin of the SuperCell */
+        /* jump to origin of the SuperCell */
         this->cachedFieldCursor = this->cachedFieldCursor(lowerMargin);
     }
 
-    /** Perform the field-to-particle interpolation.
+    /** Perform field-to-particle interpolation.
      *
      * @param particlePos particle position within cell
      * @param localCell multi-dim coordinate of the local cell inside the super cell
      * @return interpolated field value
      */
     DINLINE
-    type operator()(const floatD_X& particlePos, const math::Int<dim> localCell)
+    type operator()(const floatD_X& particlePos, const PMacc::math::Int<dim> localCell)
     {
         /* interpolation of the field */
         return FieldToParticleInterpolation()

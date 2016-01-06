@@ -20,13 +20,18 @@
 
 #pragma once
 
-#include "particles/creation/CreatorBase.hpp"
-#include "SynchrotonFunctions.hpp"
+#include "Cached_F2P_Interp.hpp"
+#include "fields/numericalCellTypes/GetNumericalFieldPos.hpp"
+#include "particles/bremsstrahlung/SynchrotronFunctions.hpp"
 #include "algorithms/math/defines/sqrt.hpp"
 #include "algorithms/math/defines/dot.hpp"
 #include "algorithms/math/defines/cross.hpp"
 #include "traits/frame/GetMass.hpp"
 #include "traits/frame/GetCharge.hpp"
+#include "fields/FieldB.hpp"
+#include "fields/FieldE.hpp"
+
+#include "cuSTL/container/DeviceBuffer.hpp"
 
 // Random number generator
 #include "particles/ionization/ionizationMethods.hpp"
@@ -44,20 +49,38 @@ namespace bremsstrahlung
  * \tparam T_PhotonSpecies
  */
 template<typename T_ElectronSpecies, typename T_PhotonSpecies>
-struct PhotonCreator : public creation::CreatorBase<T_ElectronSpecies, T_PhotonSpecies>
+struct PhotonCreator
 {
     typedef T_ElectronSpecies ElectronSpecies;
     typedef T_PhotonSpecies PhotonSpecies;
 
-    typedef creation::CreatorBase<ElectronSpecies, PhotonSpecies> Base;
+    typedef typename ElectronSpecies::FrameType FrameType;
+    typedef typename MappingDesc::SuperCellSize SuperCellSize;
 
-    typedef typename Base::FrameType FrameType;
-    typedef typename Base::ValueType_E ValueType_E;
-    typedef typename Base::ValueType_B ValueType_B;
+    /* specify field to particle interpolation scheme */
+	typedef typename PMacc::traits::Resolve<
+        typename GetFlagType<FrameType,interpolation<> >::type
+        >::type Field2ParticleInterpolation;
+
+    typedef FieldE::ValueType ValueType_E;
+	typedef FieldB::ValueType ValueType_B;
+
+    typedef Cached_F2P_Interp<
+        container::DeviceBuffer<ValueType_E, simDim>,
+        Field2ParticleInterpolation,
+        GetNumericalFieldPos<fieldSolver::NumericalCellType, FIELD_TYPE_E>,
+        0> CachedFieldE;
+    typedef Cached_F2P_Interp<
+        container::DeviceBuffer<ValueType_B, simDim>,
+        Field2ParticleInterpolation,
+        GetNumericalFieldPos<fieldSolver::NumericalCellType, FIELD_TYPE_B>,
+        1> CachedFieldB;
 
 private:
-    PMACC_ALIGN(curF_1, SynchrotonFunctions::SyncFuncCursor);
-    PMACC_ALIGN(curF_2, SynchrotonFunctions::SyncFuncCursor);
+    PMACC_ALIGN(cachedFieldE, CachedFieldE);
+    PMACC_ALIGN(cachedFieldB, CachedFieldB);
+    PMACC_ALIGN(curF_1, SynchrotronFunctions::SyncFuncCursor);
+    PMACC_ALIGN(curF_2, SynchrotronFunctions::SyncFuncCursor);
 
     /* random number generator for Monte Carlo */
     typedef ionization::RandomNrForMonteCarlo<T_ElectronSpecies> RandomGen;
@@ -65,32 +88,6 @@ private:
     RandomGen randomGen;
 
     float3_X photon_mom;
-
-public:
-    /* host constructor initializing member : random number generator */
-    PhotonCreator(
-        const SynchrotonFunctions::SyncFuncCursor& curF_1,
-        const SynchrotonFunctions::SyncFuncCursor& curF_2,
-        const uint32_t currentStep)
-            : curF_1(curF_1), curF_2(curF_2), randomGen(currentStep)
-    {}
-
-    /** Initialization function on device
-     *
-     * \brief Cache EM-fields on device
-     *         and initialize possible prerequisites for ionization, like e.g. random number generator.
-     *
-     * This function will be called inline on the device which must happen BEFORE threads diverge
-     * during loop execution. The reason for this is the `__syncthreads()` call which is necessary after
-     * initializing the E-/B-field shared boxes in shared memory.
-     */
-    DINLINE void init(const DataSpace<simDim>& blockCell, const int& linearThreadIdx, const DataSpace<simDim>& localCellOffset)
-    {
-        Base::init(blockCell, linearThreadIdx, localCellOffset);
-
-        /* initialize random number generator with the local cell index in the simulation*/
-        this->randomGen.init(localCellOffset);
-    }
 
     DINLINE float_X emission_prob(
         const float_X delta,
@@ -125,6 +122,34 @@ public:
             chi, gamma, mass, charge);
     }
 
+public:
+    /* host constructor initializing member : random number generator */
+    PhotonCreator(
+        const container::DeviceBuffer<ValueType_E, simDim>& fieldE,
+        const container::DeviceBuffer<ValueType_B, simDim>& fieldB,
+        const SynchrotronFunctions::SyncFuncCursor& curF_1,
+        const SynchrotronFunctions::SyncFuncCursor& curF_2,
+        const uint32_t currentStep)
+            : cachedFieldE(fieldE), cachedFieldB(fieldB), curF_1(curF_1), curF_2(curF_2), randomGen(currentStep)
+    {}
+
+    /** Initialization function on device
+     *
+     * \brief Cache EM-fields on device
+     *         and initialize possible prerequisites for ionization, like e.g. random number generator.
+     *
+     * This function will be called inline on the device which must happen BEFORE threads diverge
+     * during loop execution. The reason for this is the `__syncthreads()` call which is necessary after
+     * initializing the E-/B-field shared boxes in shared memory.
+     */
+    DINLINE void init(const PMacc::math::Int<simDim>& blockCell, const int& linearThreadIdx, const PMacc::math::Int<simDim>& cellOffset)
+    {
+        this->cachedFieldE.init(blockCell, linearThreadIdx);
+        this->cachedFieldB.init(blockCell, linearThreadIdx);
+        /* initialize random number generator with the local cell index in the simulation*/
+        this->randomGen.init(cellOffset);
+    }
+
     /** Return the number of target particles to be created from each source particle.
      *
      * Called for each frame of the source species.
@@ -139,9 +164,12 @@ public:
 
         PMACC_AUTO(particle, sourceFrame[localIdx]);
 
-        ValueType_E fieldE;
-        ValueType_B fieldB;
-        this->getFieldsForParticle(particle, fieldE, fieldB);
+        const PMacc::math::Int<simDim> localCell =
+            PMacc::math::MapToPos<simDim>()(SuperCellSize(), particle[localCellIdx_]);
+
+        /* get fields at the particles's position */
+        const ValueType_E fieldE = this->cachedFieldE(particle[position_], localCell);
+        const ValueType_B fieldB = this->cachedFieldB(particle[position_], localCell);
 
         const float3_X mom = particle[momentum_] / particle[weighting_];
         const float_X mom2 = math::dot(mom, mom);

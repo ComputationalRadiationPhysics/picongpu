@@ -20,9 +20,6 @@
 
 #pragma once
 
-
-#include <iostream>
-
 #include "simulation_defines.hpp"
 #include "particles/Particles.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
@@ -30,9 +27,10 @@
 #include "mappings/simulation/GridController.hpp"
 #include "simulationControl/MovingWindow.hpp"
 #include "traits/Resolve.hpp"
-#include "nvidia/atomic.hpp"
-
+#include "math/vector/Int.hpp"
 #include "types.h"
+#include "nvidia/atomic.hpp"
+#include <iostream>
 
 namespace picongpu
 {
@@ -65,25 +63,25 @@ struct CreateParticlesKernel
         ParticleCreator particleCreator) :
             sourceBox(sourceBox), targetBox(targetBox), particleCreator(particleCreator) {}
 
-    DINLINE void operator()(const math::Int<simDim>& cellIndex)
+    DINLINE void operator()(const PMacc::math::Int<simDim>& cellIndex)
     {
         /* definitions for domain variables, like indices of blocks and threads */
         typedef typename MappingDesc::SuperCellSize SuperCellSize;
 
         /* multi-dimensional offset vector from local domain origin on GPU in units of super cells */
-        const math::Int<simDim> block = cellIndex / SuperCellSize::toRT();
+        const PMacc::math::Int<simDim> block = cellIndex / SuperCellSize::toRT();
 
         /* multi-dim offset from the origin of the local domain on GPU
          * to the origin of the block of the in unit of cells
          */
-        const DataSpace<simDim> blockCell = block * SuperCellSize::toRT();
+        const PMacc::math::Int<simDim> blockCell = block * SuperCellSize::toRT();
 
         /* multi-dim vector from origin of the block to a cell in units of cells */
-        const math::Int<simDim> threadIndex = cellIndex % SuperCellSize::toRT();
+        const PMacc::math::Int<simDim> threadIndex = cellIndex % SuperCellSize::toRT();
 
         /* conversion from a multi-dim cell coordinate to a linear coordinate of the cell in its super cell */
-        const int linearThreadIdx = math::linearize(
-            math::CT::shrinkTo<SuperCellSize, simDim-1>::type::toRT(),
+        const int linearThreadIdx = PMacc::math::linearize(
+            PMacc::math::CT::shrinkTo<SuperCellSize, simDim-1>::type::toRT(),
             threadIndex);
 
         /* "particle box" : container/iterator where the particles live in
@@ -96,7 +94,7 @@ struct CreateParticlesKernel
 
         __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<SourceFramePtr>::type sourceFrame;
         __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<TargetFramePtr>::type targetFrame;
-        static const lcellId_t maxParticlesInFrame = PMacc::math::CT::volume<SuperCellSize>::type::value;
+        const lcellId_t maxParticlesInFrame = PMacc::math::CT::volume<SuperCellSize>::type::value;
 
         /* find last frame in super cell
          * define maxParticlesInFrame as the maximum frame size
@@ -270,6 +268,17 @@ struct CreateParticlesKernel
         }
     }
 };
+
+template<class ParBoxSource, class ParBoxTarget, class ParticleCreator>
+CreateParticlesKernel<ParBoxSource, ParBoxTarget, ParticleCreator>
+make_CreateParticlesKernel(
+    ParBoxSource parBoxSource,
+    ParBoxTarget parBoxTarget,
+    ParticleCreator particleCreator)
+{
+    return CreateParticlesKernel<ParBoxSource, ParBoxTarget, ParticleCreator>(
+        parBoxSource, parBoxTarget, particleCreator);
+}
 
 } // namespace creation
 } // namespace particles

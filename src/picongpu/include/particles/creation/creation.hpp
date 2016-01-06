@@ -21,10 +21,10 @@
 #pragma once
 
 #include "particles/creation/creation.kernel"
+#include "simulation_defines.hpp"
 #include "cuSTL/algorithm/kernel/Foreach.hpp"
 #include "cuSTL/cursor/MultiIndexCursor.hpp"
 #include "types.h"
-#include "simulation_defines.hpp"
 
 namespace picongpu
 {
@@ -42,23 +42,23 @@ void createParticles(SourceSpecies& sourceSpecies, TargetSpecies& targetSpecies,
                      ParticleCreator& particleCreator, CellDescription* cellDesc)
 {
     typedef typename MappingDesc::SuperCellSize SuperCellSize;
-    const math::Int<simDim> coreBorderGuardSuperCells = cellDesc->getGridSuperCells();
-    const math::Int<simDim> guardSuperCells = cellDesc->getGuardingSuperCells();
-    const math::Int<simDim> coreBorderSuperCells = coreBorderGuardSuperCells - 2*guardSuperCells;
+    const PMacc::math::Int<simDim> coreBorderGuardSuperCells = cellDesc->getGridSuperCells();
+    const uint32_t guardSuperCells = cellDesc->getGuardingSuperCells();
+    const PMacc::math::Int<simDim> coreBorderSuperCells = coreBorderGuardSuperCells - 2*guardSuperCells;
 
     /* Functor holding the actual generic particle creation kernel */
-    CreateParticlesKernel createParticlesKernel(
+    PMACC_AUTO(createParticlesKernel, make_CreateParticlesKernel(
         sourceSpecies.getDeviceParticlesBox(),
         targetSpecies.getDeviceParticlesBox(),
-        particleCreator);
+        particleCreator));
 
     /* This zone represents the core+border area with guard offset in unit of cells */
-    const SphericZone<simDim> zone(
-        static_cast<math::Size_t<simDim> >(coreBorderSuperCells * SuperCellSize::toRT()),
+    const zone::SphericZone<simDim> zone(
+        static_cast<PMacc::math::Size_t<simDim> >(coreBorderSuperCells * SuperCellSize::toRT()),
         guardSuperCells * SuperCellSize::toRT());
 
     algorithm::kernel::Foreach<SuperCellSize> foreach;
-    foreach(zone, cursor::make_MultiIndexCursor(), createParticlesKernel);
+    foreach(zone, cursor::make_MultiIndexCursor<simDim>(), createParticlesKernel);
 
     /* fill the gaps in the created species' particle frames to ensure that only
      * the last frame is not completely filled but every other before is full

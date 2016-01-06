@@ -49,7 +49,7 @@
 #include "fields/background/cellwiseOperation.hpp"
 #include "initialization/IInitPlugin.hpp"
 #include "initialization/ParserGridDistribution.hpp"
-#include "particles/bremsstrahlung/SynchrotonFunctions.hpp"
+#include "particles/bremsstrahlung/SynchrotronFunctions.hpp"
 
 #include "nvidia/reduce/Reduce.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
@@ -403,8 +403,8 @@ public:
         EventTask eRfieldB = fieldB->asyncCommunication(__getTransactionEvent());
         __setTransactionEvent(eRfieldB);
 
-        // Initialize synchroton functions
-        this->synchrotonFunctions.init();
+        // Initialize synchrotron functions
+        this->synchrotronFunctions.init();
 
         return step;
     }
@@ -436,7 +436,7 @@ public:
         typedef typename PMacc::particles::traits::FilterByFlag<VectorAllSpecies, bremsstrahlung_effect<> >::type AllBremsstrahlungSpecies;
 
         ForEach<AllBremsstrahlungSpecies, particles::CallBremsstrahlung<bmpl::_1>, MakeIdentifier<bmpl::_1> > electronBremsstrahlung;
-        electronBremsstrahlung(forward(particleStorage), cellDescription, currentStep, this->synchrotonFunctions);
+        electronBremsstrahlung(forward(particleStorage), cellDescription, currentStep, this->synchrotronFunctions);
 
         EventTask initEvent = __getTransactionEvent();
         EventTask updateEvent;
@@ -648,8 +648,8 @@ protected:
 
     LaserPhysics *laser;
 
-    // Synchroton functions (used in bremsstrahlung module)
-    particles::bremsstrahlung::SynchrotonFunctions synchrotonFunctions;
+    // Synchrotron functions (used in bremsstrahlung module)
+    particles::bremsstrahlung::SynchrotronFunctions synchrotronFunctions;
 
     // output classes
 

@@ -34,7 +34,7 @@
 #include "particles/traits/FilterByFlag.hpp"
 #include "particles/creation/creation.hpp"
 #include "particles/traits/GetPhotonCreator.hpp"
-#include "particles/bremsstrahlung/SynchrotonFunctions.hpp"
+#include "particles/bremsstrahlung/SynchrotronFunctions.hpp"
 
 namespace picongpu
 {
@@ -347,21 +347,34 @@ struct CallBremsstrahlung
                             T_StorageTuple& tuple,
                             T_CellDescription* cellDesc,
                             const uint32_t currentStep,
-                            const bremsstrahlung::SynchrotonFunctions& synchrotonFunctions) const
+                            const bremsstrahlung::SynchrotronFunctions& synchrotronFunctions) const
     {
-        typedef typename SelectedPhotonCreator::TargetSpecies PhotonSpecies;
+        typedef typename SelectedPhotonCreator::PhotonSpecies PhotonSpecies;
+
+        /* get E- and B-field */
+        DataConnector &dc = Environment<>::get().DataConnector();
+        BOOST_AUTO(fieldE,
+                 dc.getData<FieldE>(FieldE::getName(), true).getGridBuffer().
+                 getDeviceBuffer().cartBuffer());
+        BOOST_AUTO(fieldB,
+                 dc.getData<FieldB>(FieldB::getName(), true).getGridBuffer().
+                 getDeviceBuffer().cartBuffer());
 
         /* alias for pointer on source species */
         PMACC_AUTO(electronSpeciesPtr, tuple[SpeciesName()]);
         /* alias for pointer on destination species */
         PMACC_AUTO(photonSpeciesPtr,  tuple[typename MakeIdentifier<PhotonSpecies>::type()]);
 
+        using namespace bremsstrahlung;
+
         SelectedPhotonCreator photonCreator(
-            synchrotonFunctions.getCursor(1),
-            synchrotonFunctions.getCursor(2),
+            fieldE,
+            fieldB,
+            synchrotronFunctions.getCursor(SynchrotronFunctions::first),
+            synchrotronFunctions.getCursor(SynchrotronFunctions::second),
             currentStep);
 
-        createParticles(*electronSpeciesPtr, *photonSpeciesPtr, photonCreator, cellDesc);
+        creation::createParticles(*electronSpeciesPtr, *photonSpeciesPtr, photonCreator, cellDesc);
     }
 
 }; // struct CallBremsstrahlung

@@ -28,7 +28,6 @@
 #include "simulation_defines/param/speciesDefinition.param"
 #include "simulation_defines/unitless/speciesDefinition.unitless"
 
-#include "particles/creation/CreatorBase.def"
 #include "particles/bremsstrahlung/PhotonCreator.def"
 #include "particles/bremsstrahlung/PhotonCreator.hpp"
 
