@@ -43,6 +43,7 @@ struct Field
     static void writeField(ThreadParams *params,
                            const std::string name,
                            std::vector<float_64> unit,
+                           /* unitDimension, position, timeOffset */
                            T_DataBoxType dataBox,
                            const T_ValueType&
                            )
@@ -140,9 +141,33 @@ struct Field
 
             params->dataCollector->writeAttribute(params->currentStep,
                                                   ctDouble, datasetName.str().c_str(),
-                                                  "sim_unit", &(unit.at(n)));
+                                                  "unitSI", &(unit.at(n)));
+            /* position */
         }
         __deleteArray(tmpArray);
+
+        std::string recordName = std::string("fields/") + name;
+
+        /* unitDimension, timeOffset */
+
+        std::string geometry("cartesian");
+        ColTypeString ctGeometry(geometry.length());
+        params->dataCollector->writeAttribute(params->currentStep,
+                                              ctGeometry, recordName.c_str(),
+                                              "geometry", geometry.c_str());
+
+        std::string dataOrder("C");
+        ColTypeString ctDataOrder(dataOrder.length());
+        params->dataCollector->writeAttribute(params->currentStep,
+                                              ctDataOrder, recordName.c_str(),
+                                              "dataOrder", dataOrder.c_str());
+
+        /* axisLabels, gridSpacing, gridGlobalOffset */
+
+        ColTypeDouble ctDouble;
+        params->dataCollector->writeAttribute(params->currentStep,
+                                              ctDouble, recordName.c_str(),
+                                              "gridUnitSI", &UNIT_LENGTH);
     }
 
 };

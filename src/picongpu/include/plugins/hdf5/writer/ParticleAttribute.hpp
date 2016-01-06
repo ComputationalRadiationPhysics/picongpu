@@ -141,11 +141,12 @@ struct ParticleAttribute
             if (unit.size() >= (d + 1))
                 threadParams->dataCollector->writeAttribute(threadParams->currentStep,
                                                             ctDouble, datasetName.str().c_str(),
-                                                            "sim_unit", &(unit.at(d)));
-
+                                                            "unitSI", &(unit.at(d)));
 
         }
         __deleteArray(tmpArray);
+
+        /* unitDimension, timeOffset */
 
         log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) write species attribute: %1%") %
             Identifier::getName();

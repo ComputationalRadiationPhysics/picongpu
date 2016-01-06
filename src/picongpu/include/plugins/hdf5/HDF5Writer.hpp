@@ -24,14 +24,17 @@
 
 #include <pthread.h>
 #include <sstream>
+#include <string>
 #include <list>
 #include <vector>
 
 #include "simulation_defines.hpp"
+#include "version.hpp"
 
 #include "plugins/hdf5/HDF5Writer.def"
 #include "traits/SplashToPIC.hpp"
 #include "traits/PICToSplash.hpp"
+#include "plugins/common/stringHelpers.hpp"
 
 #include "particles/frame_types.hpp"
 
@@ -189,7 +192,7 @@ public:
         catch (const DCException& e)
         {
             std::cerr << e.what() << std::endl;
-            throw std::runtime_error("Failed to open datacollector");
+            throw std::runtime_error("HDF5 failed to open DataCollector");
         }
 
         /* load number of slides to initialize MovingWindow */
@@ -197,7 +200,7 @@ public:
         mThreadParams.dataCollector->readAttribute(restartStep, NULL, "sim_slides", &slides);
 
         /* apply slides to set gpus to last/written configuration */
-        log<picLog::INPUT_OUTPUT > ("Setting slide count for moving window to %1%") % slides;
+        log<picLog::INPUT_OUTPUT > ("HDF5 setting slide count for moving window to %1%") % slides;
         MovingWindow::getInstance().setSlideCounter(slides, restartStep);
 
         /* re-distribute the local offsets in y-direction */
@@ -280,9 +283,11 @@ private:
         catch (const DCException& e)
         {
             std::cerr << e.what() << std::endl;
-            throw std::runtime_error("Failed to open datacollector");
+            throw std::runtime_error("HDF5 failed to open DataCollector");
         }
 
+        // write global meta attributes
+        writeMetaAttributes(h5Filename, &mThreadParams);
     }
 
     /**
@@ -383,7 +388,8 @@ private:
 
     typedef PICToSplash<float_X>::type SplashFloatXType;
 
-    static void writeMetaAttributes(ThreadParams *threadParams)
+    static void writeMetaAttributes(const std::string h5Filename,
+                                    ThreadParams *threadParams)
     {
         ColTypeUInt32 ctUInt32;
         ColTypeUInt64 ctUInt64;
@@ -393,14 +399,91 @@ private:
         ParallelDomainCollector *dc = threadParams->dataCollector;
         uint32_t currentStep = threadParams->currentStep;
 
+        /* openPMD attributes */
+        /*   required */
+        std::string openPMDversion("1.0.0");
+        ColTypeString ctOpenPMDversion(openPMDversion.length());
+        dc->writeGlobalAttribute( threadParams->currentStep,
+                                  ctOpenPMDversion, "openPMD",
+                                  openPMDversion.c_str() );
+
+        const uint32_t openPMDextension = 1; // ED-PIC ID
+        dc->writeGlobalAttribute( threadParams->currentStep,
+                                  ctUInt32, "openPMDextension",
+                                  &openPMDextension );
+
+        std::string basePath("/data/%T/");
+        ColTypeString ctBasePath(basePath.length());
+        dc->writeGlobalAttribute( threadParams->currentStep,
+                                  ctBasePath, "basePath",
+                                  basePath.c_str() );
+
+        std::string meshesPath("fields/");
+        ColTypeString ctMeshesPath(meshesPath.length());
+        dc->writeGlobalAttribute( threadParams->currentStep,
+                                  ctMeshesPath, "meshesPath",
+                                  meshesPath.c_str() );
+
+        std::string particlesPath("particles/");
+        ColTypeString ctParticlesPath(particlesPath.length());
+        dc->writeGlobalAttribute( threadParams->currentStep,
+                                  ctParticlesPath, "particlesPath",
+                                  particlesPath.c_str() );
+
+        std::string iterationEncoding("fileBased");
+        ColTypeString ctIterationEncoding(iterationEncoding.length());
+        dc->writeGlobalAttribute( threadParams->currentStep,
+                                  ctIterationEncoding, "iterationEncoding",
+                                  iterationEncoding.c_str() );
+
+        std::string iterationFormat(h5Filename + std::string("_%T.h5"));
+        ColTypeString ctIterationFormat(iterationFormat.length());
+        dc->writeGlobalAttribute( threadParams->currentStep,
+                                  ctIterationFormat, "iterationFormat",
+                                  iterationFormat.c_str() );
+
+        /*   recommended */
+        /*
+        std::string author("PIConGPU User");
+        ColTypeString ctAuthor(author.length());
+        dc->writeGlobalAttribute( threadParams->currentStep,
+                                  ctAuthor.getDataType(), "author",
+                                  author.c_str() ); */
+        std::string software("PIConGPU");
+        ColTypeString ctSoftware(software.length());
+        dc->writeGlobalAttribute( threadParams->currentStep,
+                                  ctSoftware, "software",
+                                  software.c_str() );
+
+        std::stringstream softwareVersion;
+        softwareVersion << PICONGPU_VERSION_MAJOR << "."
+                        << PICONGPU_VERSION_MINOR << "."
+                        << PICONGPU_VERSION_PATCH;
+        ColTypeString ctSoftwareVersion(softwareVersion.str().length());
+        dc->writeGlobalAttribute( threadParams->currentStep,
+                                  ctSoftwareVersion, "softwareVersion",
+                                  softwareVersion.str().c_str() );
+
+        std::string date = helper::getDateString("%F %T %z");
+        ColTypeString ctDate(date.length());
+        dc->writeGlobalAttribute( threadParams->currentStep,
+                                  ctDate, "date",
+                                  date.c_str() );
+
         /* write number of slides */
         const uint32_t slides = MovingWindow::getInstance().getSlideCounter(threadParams->currentStep);
 
         dc->writeAttribute(threadParams->currentStep,
                            ctUInt32, NULL, "sim_slides", &slides);
 
+
+        /* openPMD: required time attributes */
+        dc->writeAttribute(currentStep, splashFloatXType, NULL, "dt", &DELTA_T);
+        const float_X time = float_X(threadParams->currentStep) * DELTA_T;
+        dc->writeAttribute(currentStep, splashFloatXType, NULL, "time", &time);
+        dc->writeAttribute(currentStep, ctDouble, NULL, "timeUnitSI", &UNIT_TIME);
+
         /* write normed grid parameters */
-        dc->writeAttribute(currentStep, splashFloatXType, NULL, "delta_t", &DELTA_T);
         dc->writeAttribute(currentStep, splashFloatXType, NULL, "cell_width", &CELL_WIDTH);
         dc->writeAttribute(currentStep, splashFloatXType, NULL, "cell_height", &CELL_HEIGHT);
         if (simDim == DIM3)
@@ -427,8 +510,6 @@ private:
     {
         ThreadParams *threadParams = (ThreadParams*) (p_args);
         const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
-
-        writeMetaAttributes(threadParams);
 
         /* y direction can be negative for first gpu*/
         DataSpace<simDim> particleOffset(localDomain.offset);
