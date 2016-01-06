@@ -127,6 +127,8 @@ private:
     uint32_t lastStep;
 
     std::string pathRestart;
+    std::string meshesPathName;
+    std::string particlesPathName;
 
     mpi::MPIReduce reduce;
     bool compressionOn;
@@ -152,6 +154,8 @@ public:
     currentStep(0),
     radPerGPU(false),
     lastStep(0),
+    meshesPathName("DetectorMesh/"),
+    particlesPathName("DetectorParticle/"),
     compressionOn(false)
     {
         Environment<>::get().PluginConnector().registerPlugin(this);
@@ -615,13 +619,13 @@ private:
                              radSplashType,
                              3,
                              dataSelection,
-                             dataLabels(ampIndex).c_str(),
+                             (meshesPathName + dataLabels(ampIndex)).c_str(),
                              values);
 
           /* save SI unit as attribute together with data set */
           HDF5dataFile.writeAttribute(currentStep,
                                       radSplashType,
-                                      dataLabels(ampIndex).c_str(),
+                                      (meshesPathName + dataLabels(ampIndex)).c_str(),
                                       "unitSI",
                                       &factor);
       }
@@ -629,7 +633,7 @@ private:
       /* save SI unit as attribute in the Amplitude group (for convenience) */
       HDF5dataFile.writeAttribute(currentStep,
                                   radSplashType,
-                                  "Amplitude",
+                                  (meshesPathName + std::string("Amplitude")).c_str(),
                                   "unitSI",
                                   &factor);
 
@@ -656,7 +660,7 @@ private:
                              radSplashType,
                              3,
                              dataSelection,
-                             dataLabelsDetector(detectorDim).c_str(),
+                             (meshesPathName + dataLabelsDetector(detectorDim)).c_str(),
                              detectorPositions);
       }
 
@@ -679,14 +683,14 @@ private:
                          radSplashType,
                          3,
                          dataSelection,
-                         dataLabelsDetector(3).c_str(),
+                         (meshesPathName + dataLabelsDetector(3)).c_str(),
                          detectorFrequencies);
 
       /* save SI unit as attribute together with data set */
       const picongpu::float_64 factorOmega = 1.0 / UNIT_TIME ;
       HDF5dataFile.writeAttribute(currentStep,
                                   radSplashType,
-                                  dataLabelsDetector(3).c_str(),
+                                  (meshesPathName + dataLabelsDetector(3)).c_str(),
                                   "unitSI",
                                   &factorOmega);
 
@@ -710,17 +714,16 @@ private:
                                         "basePath",
                                         basePath.c_str() );
 
-      std::string meshesPath("fields/");
-      splash::ColTypeString ctMeshesPath(meshesPath.length());
+      splash::ColTypeString ctMeshesPath(meshesPathName.length());
       HDF5dataFile.writeGlobalAttribute(ctMeshesPath,
                                         "meshesPath",
-                                        meshesPath.c_str() );
+                                        meshesPathName.c_str() );
 
-      std::string particlesPath("particles/");
-      splash::ColTypeString ctParticlesPath(particlesPath.length());
+
+      splash::ColTypeString ctParticlesPath(particlesPathName.length());
       HDF5dataFile.writeGlobalAttribute( ctParticlesPath,
                                          "particlesPath",
-                                         particlesPath.c_str() );
+                                         particlesPathName.c_str() );
 
       std::string iterationEncoding("fileBased");
       splash::ColTypeString ctIterationEncoding(iterationEncoding.length());
@@ -828,7 +831,7 @@ private:
           for(uint32_t ampIndex=0; ampIndex < Amplitude::numComponents; ++ampIndex)
           {
               HDF5dataFile.read(timeStep,
-                                dataLabels(ampIndex).c_str(),
+                                (meshesPathName + dataLabels(ampIndex)).c_str(),
                                 componentSize,
                                 tmpBuffer);
 
