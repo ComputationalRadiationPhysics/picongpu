@@ -36,7 +36,7 @@
 #include "simulation_classTypes.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
 #include "plugins/ISimulationPlugin.hpp"
-
+#include "plugins/common/stringHelpers.hpp"
 
 #include "mpi/reduceMethods/Reduce.hpp"
 #include "mpi/MPIReduce.hpp"
@@ -681,7 +681,7 @@ private:
                          dataSelection,
                          dataLabelsDetector(3).c_str(),
                          detectorFrequencies);
-      
+
       /* save SI unit as attribute together with data set */
       const picongpu::float_64 factorOmega = 1.0 / UNIT_TIME ;
       HDF5dataFile.writeAttribute(currentStep,
@@ -689,6 +689,98 @@ private:
                                   dataLabelsDetector(3).c_str(),
                                   "unitSI",
                                   &factorOmega);
+
+      /* begin openPMD attributes */
+      /* begin required openPMD attributes */
+      std::string openPMDversion("1.0.0");
+      splash::ColTypeString ctOpenPMDversion(openPMDversion.length());
+      HDF5dataFile.writeGlobalAttribute( ctOpenPMDversion,
+                                         "openPMD",
+                                         openPMDversion.c_str() );
+
+      const uint32_t openPMDextension = 0; // no extension
+      splash::ColTypeUInt32 ctUInt32;
+      HDF5dataFile.writeGlobalAttribute( ctUInt32,
+                                         "openPMDextension",
+                                         &openPMDextension );
+
+      std::string basePath("/data/%T/");
+      splash::ColTypeString ctBasePath(basePath.length());
+      HDF5dataFile.writeGlobalAttribute(ctBasePath,
+                                        "basePath",
+                                        basePath.c_str() );
+
+      std::string meshesPath("fields/");
+      splash::ColTypeString ctMeshesPath(meshesPath.length());
+      HDF5dataFile.writeGlobalAttribute(ctMeshesPath,
+                                        "meshesPath",
+                                        meshesPath.c_str() );
+
+      std::string particlesPath("particles/");
+      splash::ColTypeString ctParticlesPath(particlesPath.length());
+      HDF5dataFile.writeGlobalAttribute( ctParticlesPath,
+                                         "particlesPath",
+                                         particlesPath.c_str() );
+
+      std::string iterationEncoding("fileBased");
+      splash::ColTypeString ctIterationEncoding(iterationEncoding.length());
+      HDF5dataFile.writeGlobalAttribute( ctIterationEncoding,
+                                         "iterationEncoding",
+                                         iterationEncoding.c_str() );
+
+      /* the ..._0_0_0... extension comes from the current filename
+         formating of the serial data colector in libSplash */
+      const int indexCutDirectory = name.rfind('/');
+      std::string iterationFormat(name.substr(indexCutDirectory + 1) +  std::string("%T_0_0_0.h5"));
+      splash::ColTypeString ctIterationFormat(iterationFormat.length());
+      HDF5dataFile.writeGlobalAttribute( ctIterationFormat,
+                                         "iterationFormat",
+                                         iterationFormat.c_str() );
+
+      typedef PICToSplash<float_X>::type SplashFloatXType;
+      SplashFloatXType splashFloatXType;
+      HDF5dataFile.writeAttribute(currentStep, splashFloatXType, NULL, "dt", &DELTA_T);
+      const float_X time = float_X(currentStep) * DELTA_T;
+      HDF5dataFile.writeAttribute(currentStep, splashFloatXType, NULL, "time", &time);
+      splash::ColTypeDouble ctDouble;
+      HDF5dataFile.writeAttribute(currentStep, ctDouble, NULL, "timeUnitSI", &UNIT_TIME);
+
+      /* end required openPMD attributes */
+
+      /* begin recommended openPMD attributes */
+
+      std::string author = Environment<>::get().SimulationDescription().getAuthor();
+      if( author.length() > 0 )
+        {
+          splash::ColTypeString ctAuthor(author.length());
+          HDF5dataFile.writeGlobalAttribute( ctAuthor,
+                                             "author",
+                                             author.c_str() );
+        }
+
+      std::string software("PIConGPU");
+      splash::ColTypeString ctSoftware(software.length());
+      HDF5dataFile.writeGlobalAttribute( ctSoftware,
+                                         "software",
+                                         software.c_str() );
+
+      std::stringstream softwareVersion;
+      softwareVersion << PICONGPU_VERSION_MAJOR << "."
+                      << PICONGPU_VERSION_MINOR << "."
+                      << PICONGPU_VERSION_PATCH;
+      splash::ColTypeString ctSoftwareVersion(softwareVersion.str().length());
+      HDF5dataFile.writeGlobalAttribute( ctSoftwareVersion,
+                                         "softwareVersion",
+                                         softwareVersion.str().c_str() );
+
+      std::string date  = getDateString("%F %T %z");
+      splash::ColTypeString ctDate(date.length());
+      HDF5dataFile.writeGlobalAttribute( ctDate,
+                                         "date",
+                                         date.c_str() );
+
+      /* end recommended openPMD attributes */
+      /* end openPMD attributes */
 
       HDF5dataFile.close();
     }
@@ -827,7 +919,7 @@ private:
 
       /* the parallelization is ONLY over directions:
        * (a combined parallelization over direction AND frequencies
-       * turned out to be slower on GPUs of the Fermi generation (sm_2x) (couple 
+       * turned out to be slower on GPUs of the Fermi generation (sm_2x) (couple
        * percent) and definitely slower on Kepler GPUs (sm_3x, tested on K20))
        */
       const int N_observer = parameters::N_observer;
