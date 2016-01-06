@@ -218,21 +218,34 @@ public:
     Window getWindow(uint32_t currentStep)
     {
         const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+
+        /* Without moving window, the selected window spans the whole global domain.
+         * \see https://github.com/ComputationalRadiationPhysics/picongpu/wiki/PIConGPU-domain-definitions
+         *
+         * The window's global offset is therefore zero inside the global domain.
+         * The window's global and local size are equal to the SubGrid quantities.
+         * The local window offset is the offset within the global window which
+         * is equal to the local domain offset of the GPU.
+         */
         Window window;
+        window.localDimensions = subGrid.getLocalDomain();
+        window.globalDimensions = Selection<simDim>(subGrid.getGlobalDomain().size);
 
-        window.localDimensions = Selection<simDim>(subGrid.getLocalDomain());
-        window.globalDimensions = Selection<simDim>(subGrid.getGlobalDomain());
-
-        /* If sliding is inactive, moving window is the same as global domain (substract 0)*/
-        window.globalDimensions.size.y() -= subGrid.getLocalDomain().size.y() * slidingWindowActive;
-
+        /* moving window can only slide in y direction */
         if (slidingWindowActive)
         {
+            /* the moving window is smaller than the global domain by exactly one
+             * GPU (local domain size) in moving (y) direction
+             */
+            window.globalDimensions.size.y() -= subGrid.getLocalDomain().size.y();
+
             float_64 offsetFirstGPU = 0.0;
             getCurrentSlideInfo(currentStep, NULL, &offsetFirstGPU);
 
-            /* moving window can only slide in y direction */
-            window.globalDimensions.offset.y() += offsetFirstGPU;
+            /* while moving, the windows global offset within the global domain is between 0
+             * and smaller than the local domain's size in y.
+             */
+            window.globalDimensions.offset.y() = offsetFirstGPU;
 
             /* set top/bottom if there are no communication partners
              * for this GPU in the respective direction */
@@ -242,8 +255,9 @@ public:
 
             if (isTopGpu)
             {
-                /* local window offset is relative to global window start */
-                window.localDimensions.offset.y() = 0;
+                /* the windows local offset within the global window is reduced
+                 * by the global window offset within the global domain
+                 */
                 window.localDimensions.size.y() -= offsetFirstGPU;
             }
             else
