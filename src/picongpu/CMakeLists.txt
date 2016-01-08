@@ -282,6 +282,16 @@ if( (Boost_VERSION EQUAL 106000) AND
                         "`-std=c++11` when compiling with Boost 1.60.0")
 endif()
 
+# Boost 1.60.0 and CUDA releases prior to 7.5 fail on variadic templates
+# when used with C++11
+if( (Boost_VERSION EQUAL 106000) AND
+    (CUDA_VERSION VERSION_LESS 7.5) AND
+    (NOT CMAKE_CXX_STANDARD EQUAL 98) )
+    # Boost Bug https://svn.boost.org/trac/boost/ticket/11897
+    message(STATUS "Boost: Disable variadic templates")
+    add_definitions(-DBOOST_NO_CXX11_VARIADIC_TEMPLATES)
+endif()
+
 
 ################################################################################
 # Find OpenMP
