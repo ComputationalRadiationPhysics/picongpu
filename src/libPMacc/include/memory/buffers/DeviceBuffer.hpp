@@ -85,7 +85,15 @@ namespace PMacc
         cartBuffer() const
         {
             cudaPitchedPtr cudaData = this->getCudaPitched();
-            container::DeviceBuffer<TYPE, DIM> result((TYPE*)cudaData.ptr, this->getDataSpace(), false, cudaData.pitch);
+            math::Size_t<DIM - 1> pitch;
+            if(DIM >= 2)
+            {
+                assert(this->getPhysicalMemorySize()[0] == cudaData.pitch);
+                pitch[0] = this->getPhysicalMemorySize()[0];
+            }
+            if(DIM == 3)
+                pitch[1] = pitch[0] * this->getPhysicalMemorySize()[1];
+            container::DeviceBuffer<TYPE, DIM> result((TYPE*)cudaData.ptr, this->getDataSpace(), false, pitch);
             return result;
         }
 

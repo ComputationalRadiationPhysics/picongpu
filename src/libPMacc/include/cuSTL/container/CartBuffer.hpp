@@ -75,11 +75,13 @@ public:
     BOOST_STATIC_CONSTEXPR int dim = T_dim;
     typedef cursor::BufferCursor<Type, T_dim> Cursor;
     typedef typename Allocator::tag memoryTag;
+    typedef math::Size_t<T_dim> SizeType;
+    typedef math::Size_t<T_dim-1> PitchType;
 public:
     Type* dataPointer;
     int* refCount;
-    math::Size_t<T_dim> _size;
-    math::Size_t<T_dim-1> pitch;
+    SizeType _size;
+    PitchType pitch;
     HDINLINE void init();
     HDINLINE void exit();
     HDINLINE CartBuffer() : refCount(NULL) {}
