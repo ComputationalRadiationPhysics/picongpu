@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Heiko Burau
+ * Copyright 2015-2016 Heiko Burau
  *
  * This file is part of libPMacc.
  *

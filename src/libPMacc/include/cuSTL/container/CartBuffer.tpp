@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2015 Heiko Burau, Rene Widera, Benjamin Worpitz,
+ * Copyright 2013-2016 Heiko Burau, Rene Widera, Benjamin Worpitz,
  *                     Alexander Grund
  *
  * This file is part of libPMacc.
@@ -249,12 +249,6 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::view
     result.pitch = this->pitch;
     result.refCount = this->refCount;
     return result;
-}
-
-template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
-void CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::assign(const Type& value)
-{
-    Assigner::assign(this->dataPointer, this->pitch, value, this->_size);
 }
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>

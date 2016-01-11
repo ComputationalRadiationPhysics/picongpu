@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Wen Fu,
+ * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera, Wen Fu,
  *                     Marco Garten, Alexander Grund, Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -247,7 +247,7 @@ __global__ void kernelMoveAndMarkParticles(ParBox pb,
     }
 }
 
-template<class PushAlgo, class TVec, class T_Field2ParticleInterpolation, class NumericalCellType>
+template<class PushAlgo, class TVec, class T_Field2ParticleInterpolation>
 struct PushParticlePerFrame
 {
 
@@ -269,8 +269,11 @@ struct PushParticlePerFrame
 
         DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec > (particleCellIdx));
 
-        PMACC_AUTO(functorEfield, CreateInterpolationForPusher<Field2ParticleInterpolation>()( eBox.shift(localCell).toCursor(), NumericalCellType::getEFieldPosition()));
-        PMACC_AUTO(functorBfield, CreateInterpolationForPusher<Field2ParticleInterpolation>()( bBox.shift(localCell).toCursor(), NumericalCellType::getBFieldPosition()));
+        const fieldSolver::numericalCellType::traits::FieldPosition<FieldE> fieldPosE;
+        const fieldSolver::numericalCellType::traits::FieldPosition<FieldB> fieldPosB;
+
+        PMACC_AUTO(functorEfield, CreateInterpolationForPusher<Field2ParticleInterpolation>()( eBox.shift(localCell).toCursor(), fieldPosE() ));
+        PMACC_AUTO(functorBfield, CreateInterpolationForPusher<Field2ParticleInterpolation>()( bBox.shift(localCell).toCursor(), fieldPosB() ));
 
         float3_X mom = particle[momentum_];
         const float_X mass = attribute::getMass(weighting,particle);

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2015 Heiko Burau, Rene Widera, Felix Schmitt,
+ * Copyright 2013-2016 Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -140,6 +140,7 @@ void SliceFieldPrinter<Field>::printSlice(const TField& field, int nAxis, float 
     gpuGatheringZone.size[nAxis] = 1;
 
     algorithm::mpi::Gather<simDim> gather(gpuGatheringZone);
+
     if(!gather.participate()) return;
 
     using namespace lambda;
@@ -169,9 +170,12 @@ void SliceFieldPrinter<Field>::printSlice(const TField& field, int nAxis, float 
     hBuffer = *dBuffer_SI;
 
     /* collect data from all nodes/GPUs */
-    container::HostBuffer<float3_64, simDim-1> globalBuffer(hBuffer.size() * gpuDim.shrink<simDim-1>((nAxis+1)%simDim));
+    vec::Size_t<simDim> globalDomainSize = Environment<simDim>::get().SubGrid().getGlobalDomain().size;
+    vec::Size_t<simDim-1> globalSliceSize = globalDomainSize.shrink<simDim-1>((nAxis+1)%simDim);
+    container::HostBuffer<float3_64, simDim-1> globalBuffer(globalSliceSize);
     gather(globalBuffer, hBuffer, nAxis);
     if(!gather.root()) return;
+
     std::ofstream file(filename.c_str());
     file << globalBuffer;
 }

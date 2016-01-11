@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2015 Heiko Burau, Rene Widera, Benjamin Worpitz,
+ * Copyright 2013-2016 Heiko Burau, Rene Widera, Benjamin Worpitz,
  *                     Alexander Grund
  *
  * This file is part of libPMacc.
@@ -31,6 +31,7 @@
 #include "types.h"
 
 #include <boost/math/common_factor.hpp>
+#include <boost/mpl/placeholders.hpp>
 
 #include <cassert>
 #include <stdint.h>
@@ -40,26 +41,22 @@ namespace PMacc
 namespace assigner
 {
 
-template<int T_dim>
+namespace bmpl = boost::mpl;
+
+template<typename T_Dim = bmpl::_1, typename T_CartBuffer = bmpl::_2>
 struct DeviceMemAssigner
 {
-    BOOST_STATIC_CONSTEXPR int dim = T_dim;
+    BOOST_STATIC_CONSTEXPR int dim = T_Dim::value;
+    typedef T_CartBuffer CartBuffer;
 
     template<typename Type>
-    HDINLINE static void assign(
-        Type* data,
-        const math::Size_t<dim-1>& pitch,
-        const Type& value,
-        const math::Size_t<dim>& size)
+    HINLINE void assign(const Type& value)
     {
-#ifdef __CUDA_ARCH__
-        /* The HostmemAssigner iterates over the entries and assigns them
-         * This also works on the device (in a kernel) so we just use it here
-         * instead of implementing it again */
-        HostMemAssigner<dim>::assign(data, pitch, value, size);
-#else
-        zone::SphericZone<dim> myZone(size);
-        cursor::BufferCursor<Type, dim> cursor(data, pitch);
+        // "Curiously recurring template pattern"
+        CartBuffer* buffer = static_cast<CartBuffer*>(this);
+
+        zone::SphericZone<dim> myZone(buffer->size());
+        cursor::BufferCursor<Type, dim> cursor(buffer->dataPointer, buffer->pitch);
 
         /* The greatest common divisor of each component of the volume size
          * and a certain power of two value gives the best suitable block size */
@@ -68,7 +65,7 @@ struct DeviceMemAssigner
         int maxValues[] = {16, 16, 4}; // maximum values for each dimension
         for(int i = 0; i < dim; i++)
         {
-            blockDim[i] = gcd(size[i], maxValues[dim-1]);
+            blockDim[i] = gcd(buffer->size()[i], maxValues[dim-1]);
         }
         /* the maximum number of threads per block for devices with
          * compute capability > 2.0 is 1024 */
@@ -76,7 +73,6 @@ struct DeviceMemAssigner
 
         algorithm::kernel::RT::Foreach foreach(blockDim);
         foreach(myZone, cursor, lambda::_1 = value);
-#endif
     }
 };
 

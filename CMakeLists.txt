@@ -1,4 +1,4 @@
-# Copyright 2013-2015 Felix Schmitt, Heiko Burau, Rene Widera, Axel Huebl
+# Copyright 2013-2016 Felix Schmitt, Heiko Burau, Rene Widera, Axel Huebl
 #
 # This file is part of PIConGPU.
 #

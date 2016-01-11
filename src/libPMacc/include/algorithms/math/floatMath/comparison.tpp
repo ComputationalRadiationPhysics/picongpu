@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Benjamin Worpitz, Richard Pausch
+ * Copyright 2015-2016 Benjamin Worpitz, Richard Pausch
  *
  * This file is part of libPMacc.
  *

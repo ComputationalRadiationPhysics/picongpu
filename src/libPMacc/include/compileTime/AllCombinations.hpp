@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2015 Rene Widera, Benjamin Worpitz
+ * Copyright 2014-2016 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *

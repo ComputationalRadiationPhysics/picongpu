@@ -1,4 +1,4 @@
-# Copyright 2013-2015 Benjamin Schneider, Axel Huebl, Rene Widera
+# Copyright 2013-2016 Benjamin Schneider, Axel Huebl, Rene Widera
 #
 # This file is part of PIConGPU.
 #

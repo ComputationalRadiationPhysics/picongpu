@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2015 Heiko Burau, Benjamin Worpitz, Alexander Grund
+ * Copyright 2013-2016 Heiko Burau, Benjamin Worpitz, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -27,6 +27,8 @@
 #include "communication/manager_common.h"
 
 #include <iostream>
+#include <numeric>      // std::partial_sum
+#include <algorithm>    // std::copy
 
 namespace PMacc
 {
@@ -38,43 +40,31 @@ namespace mpi
 namespace GatherHelper
 {
 
-/** @tparam dim dimension of mpi cluster
- *  @tparam memDim dimension of memory to be gathered
- *
- * if memDim == dim - 1 then ``dir`` indicates the direction (orientation)
- * of the (meta)plane.
- */
-template<int dim, int memDim>
-struct posInMem;
-
-template<int dim>
-struct posInMem<dim, dim>
+template<int dim, typename Type>
+struct ContiguousPitch
 {
-    math::Int<dim> operator()(const math::Int<dim>& pos, int) const
+    math::Size_t<dim-1> operator()(const math::Size_t<dim>& size)
     {
-        return pos;
+        math::Size_t<dim-1> pitch;
+
+        pitch[0] = size[0] * sizeof(Type);
+        for(int axis = 1; axis < dim-1; axis++)
+            pitch[axis] = pitch[axis-1] * size[axis];
+
+        return pitch;
     }
 };
 
-template<>
-struct posInMem<DIM3, DIM2>
+template<typename Type>
+struct ContiguousPitch<DIM1, Type>
 {
-    math::Int<DIM2> operator()(const math::Int<DIM3>& pos, int dir) const
+    math::Size_t<0> operator()(const math::Size_t<DIM1>&)
     {
-        return math::Int<DIM2>(pos[(dir+1)%3], pos[(dir+2)%3]);
+        return math::Size_t<0>();
     }
 };
 
-template<>
-struct posInMem<DIM2, DIM1>
-{
-    math::Int<DIM1> operator()(const math::Int<DIM2>& pos, int dir) const
-    {
-        return math::Int<DIM1>(pos[(dir+1)%2]);
-    }
-};
-
-}
+} // namespace GatherHelper
 
 template<int dim>
 Gather<dim>::Gather(const zone::SphericZone<dim>& p_zone) : comm(MPI_COMM_NULL)
@@ -87,15 +77,15 @@ Gather<dim>::Gather(const zone::SphericZone<dim>& p_zone) : comm(MPI_COMM_NULL)
     int numWorldRanks; MPI_Comm_size(MPI_COMM_WORLD, &numWorldRanks);
     std::vector<Int<dim> > allPositions(numWorldRanks);
 
-    MPI_CHECK(MPI_Allgather((void*)&pos, sizeof(Int<dim>), MPI_CHAR,
-                  (void*)allPositions.data(), sizeof(Int<dim>), MPI_CHAR,
+    MPI_CHECK(MPI_Allgather(static_cast<void*>(&pos), sizeof(Int<dim>), MPI_CHAR,
+                  static_cast<void*>(allPositions.data()), sizeof(Int<dim>), MPI_CHAR,
                   MPI_COMM_WORLD));
 
     std::vector<int> new_ranks;
     int myWorldId; MPI_Comm_rank(MPI_COMM_WORLD, &myWorldId);
 
     this->m_participate = false;
-    for(int i = 0; i < (int)allPositions.size(); i++)
+    for(int i = 0; i < static_cast<int>(allPositions.size()); i++)
     {
         Int<dim> pos = allPositions[i];
         if(!p_zone.within(pos)) continue;
@@ -146,22 +136,68 @@ int Gather<dim>::rank() const
 }
 
 template<int dim>
-template<typename Type, int memDim, class T_Alloc, class T_Copy, class T_Assign, class T_Alloc2, class T_Copy2, class T_Assign2>
-void Gather<dim>::CopyToDest::operator()(const Gather<dim>& gather,
+template<typename Type, int memDim, class T_Alloc, class T_Copy, class T_Assign>
+void Gather<dim>::CopyToDest::operator()(
+                        const Gather<dim>& gather,
                         container::CartBuffer<Type, memDim, T_Alloc, T_Copy, T_Assign>& dest,
                         std::vector<Type>& tmpDest,
-                        container::CartBuffer<Type, memDim, T_Alloc2, T_Copy2, T_Assign2>& source, int dir) const
+                        int dir,
+                        const std::vector<math::Size_t<memDim> >& srcSizes,
+                        const std::vector<size_t>& srcOffsets1D) const
 {
     using namespace math;
 
-    for(int i = 0; i < (int)gather.positions.size(); i++)
+    int numRanks = static_cast<int>(gather.positions.size());
+
+    // calculate sizes per axis in destination buffer
+    std::vector<size_t> sizesPerAxis[memDim];
+
+    // sizes per axis
+    for(int i = 0; i < numRanks; i++)
     {
         Int<dim> pos = gather.positions[i];
-        Int<memDim> posInMem = GatherHelper::posInMem<dim, memDim>()(pos, dir);
+        Int<memDim> posInMem = pos.template shrink<memDim>(dir+1);
+        for(int axis = 0; axis < memDim; axis++)
+        {
+            size_t posOnAxis = static_cast<size_t>(posInMem[axis]);
+            if(posOnAxis >= sizesPerAxis[axis].size())
+                sizesPerAxis[axis].resize(posOnAxis + 1);
+            sizesPerAxis[axis][posOnAxis] = srcSizes[i][axis];
+        }
+    }
 
-        cudaWrapper::Memcopy<memDim>()(&(*dest.origin()(posInMem * (Int<memDim>)source.size())), dest.getPitch(),
-                                  tmpDest.data() + i * source.size().productOfComponents(), source.getPitch(),
-                                  source.size(), cudaWrapper::flags::Memcopy::hostToHost);
+    // calculate offsets per axis in destination buffer
+    std::vector<size_t> offsetsPerAxis[memDim];
+
+    // offsets per axis
+    for(int axis = 0; axis < memDim; axis++)
+    {
+        offsetsPerAxis[axis].resize(sizesPerAxis[axis].size());
+        std::vector<size_t> partialSum(offsetsPerAxis[axis].size());
+        std::partial_sum(sizesPerAxis[axis].begin(), sizesPerAxis[axis].end(), partialSum.begin());
+        offsetsPerAxis[axis][0] = 0;
+        std::copy(partialSum.begin(), partialSum.end()-1, offsetsPerAxis[axis].begin()+1);
+    }
+
+    // copy from one dimensional mpi buffer to n dimensional destination buffer
+    for(int i = 0; i < numRanks; i++)
+    {
+        Int<dim> pos = gather.positions[i];
+        Int<memDim> posInMem = pos.template shrink<memDim>(dir+1);
+        Int<memDim> ndim_offset;
+        for(int axis = 0; axis < memDim; axis++)
+            ndim_offset[axis] = offsetsPerAxis[axis][posInMem[axis]];
+
+        // calculate srcPitch (contiguous memory)
+        Size_t<memDim-1> srcPitch = GatherHelper::ContiguousPitch<memDim, Type>()(srcSizes[i]);
+
+        cudaWrapper::Memcopy<memDim>()(
+            &(*dest.origin()(ndim_offset)),
+            dest.getPitch(),
+            tmpDest.data() + srcOffsets1D[i],
+            srcPitch,
+            srcSizes[i],
+            cudaWrapper::flags::Memcopy::hostToHost);
     }
 }
 
@@ -170,6 +206,8 @@ template<typename Type, int memDim, class T_Alloc, class T_Copy, class T_Assign,
 void Gather<dim>::operator()(container::CartBuffer<Type, memDim, T_Alloc, T_Copy, T_Assign>& dest,
                              container::CartBuffer<Type, memDim, T_Alloc2, T_Copy2, T_Assign2>& source, int dir) const
 {
+    using namespace PMacc::math;
+
     if(!this->m_participate) return;
     typedef container::CartBuffer<Type, memDim, T_Alloc, T_Copy, T_Assign> DestBuffer;
     typedef container::CartBuffer<Type, memDim, T_Alloc2, T_Copy2, T_Assign2> SrcBuffer;
@@ -185,13 +223,53 @@ void Gather<dim>::operator()(container::CartBuffer<Type, memDim, T_Alloc, T_Copy
     if(useTmpSrc)
         tmpSrc = source; /* Mem copy */
 
+    // Get number of elements for each source buffer
+    std::vector<Size_t<memDim> > srcBufferSizes(numRanks);
+    Size_t<memDim> srcBufferSize = source.size();
     MPI_CHECK(MPI_Gather(
-               useTmpSrc ? (void*)tmpSrc.getDataPointer(): (void*)source.getDataPointer(), source.size().productOfComponents() * sizeof(Type), MPI_CHAR,
-               root() ? (void*)tmpDest.data() : NULL, source.size().productOfComponents() * sizeof(Type), MPI_CHAR,
+        static_cast<void*>(&srcBufferSize),
+        sizeof(Size_t<memDim>),
+        MPI_CHAR,
+        static_cast<void*>(srcBufferSizes.data()),
+        sizeof(Size_t<memDim>),
+        MPI_CHAR,
+        0, this->comm));
+
+    // 1D offsets in destination buffer
+    std::vector<size_t> srcBufferOffsets1D(numRanks);
+    std::vector<size_t> srcBufferSizes1D(numRanks);
+    std::vector<int> srcBufferOffsets1D_char(numRanks); // `MPI_Gatherv` demands `int*`
+    std::vector<int> srcBufferSizes1D_char(numRanks);
+
+    if(this->root())
+    {
+        for(int i = 0; i < numRanks; i++)
+            srcBufferSizes1D[i] = srcBufferSizes[i].productOfComponents();
+        std::vector<size_t> partialSum(numRanks);
+        std::partial_sum(srcBufferSizes1D.begin(), srcBufferSizes1D.end(), partialSum.begin());
+        srcBufferOffsets1D[0] = 0;
+        std::copy(partialSum.begin(), partialSum.end()-1, srcBufferOffsets1D.begin()+1);
+
+        for(int i = 0; i < numRanks; i++)
+        {
+            srcBufferOffsets1D_char[i] = static_cast<int>(srcBufferOffsets1D[i]) * sizeof(Type);
+            srcBufferSizes1D_char[i] = static_cast<int>(srcBufferSizes1D[i]) * sizeof(Type);
+        }
+    }
+
+    // gather
+    MPI_CHECK(MPI_Gatherv(
+               useTmpSrc ? static_cast<void*>(tmpSrc.getDataPointer()) : static_cast<void*>(source.getDataPointer()),
+               source.size().productOfComponents() * sizeof(Type),
+               MPI_CHAR,
+               root() ? static_cast<void*>(tmpDest.data()) : NULL,
+               srcBufferSizes1D_char.data(),
+               srcBufferOffsets1D_char.data(),
+               MPI_CHAR,
                0, this->comm));
     if(!root()) return;
 
-    CopyToDest()(*this, dest, tmpDest, source, dir);
+    CopyToDest()(*this, dest, tmpDest, dir, srcBufferSizes, srcBufferOffsets1D);
 }
 
 } // mpi

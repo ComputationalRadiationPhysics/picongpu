@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2014 Rene Widera, Felix Schmitt, Richard Pausch
+ * Copyright 2013-2016 Rene Widera, Felix Schmitt, Richard Pausch
  *
  * This file is part of libPMacc.
  *

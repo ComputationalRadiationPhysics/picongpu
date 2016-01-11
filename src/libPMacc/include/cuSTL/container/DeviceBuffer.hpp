@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2015 Heiko Burau, Rene Widera, Benjamin Worpitz,
+ * Copyright 2013-2016 Heiko Burau, Rene Widera, Benjamin Worpitz,
  *                     Alexander Grund
  *
  * This file is part of libPMacc.
@@ -49,12 +49,12 @@ template<typename Type, int dim>
 class DeviceBuffer
  : public CartBuffer<Type, dim, allocator::DeviceMemAllocator<Type, dim>,
                                 copier::D2DCopier<dim>,
-                                assigner::DeviceMemAssigner<dim> >
+                                assigner::DeviceMemAssigner<> >
 {
 private:
     typedef CartBuffer<Type, dim, allocator::DeviceMemAllocator<Type, dim>,
                                   copier::D2DCopier<dim>,
-                                  assigner::DeviceMemAssigner<dim> > Base;
+                                  assigner::DeviceMemAssigner<> > Base;
     typedef DeviceBuffer<Type, dim> This;
 
 ///\todo: make protected

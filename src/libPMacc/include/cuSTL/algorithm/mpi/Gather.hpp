@@ -1,5 +1,5 @@
 /**
- * Copyright 2013, 2015 Heiko Burau
+ * Copyright 2013-2016 Heiko Burau
  *
  * This file is part of libPMacc.
  *
@@ -47,11 +47,13 @@ private:
 
     struct CopyToDest
     {
-        template<typename Type, int memDim, class T_Alloc, class T_Copy, class T_Assign, class T_Alloc2, class T_Copy2, class T_Assign2>
+        template<typename Type, int memDim, class T_Alloc, class T_Copy, class T_Assign>
         void operator()(const Gather<dim>& gather,
                         container::CartBuffer<Type, memDim, T_Alloc, T_Copy, T_Assign>& dest,
                         std::vector<Type>& tmpDest,
-                        container::CartBuffer<Type, memDim, T_Alloc2, T_Copy2, T_Assign2>& source, int dir) const;
+                        int dir,
+                        const std::vector<math::Size_t<memDim> >& srcSizes,
+                        const std::vector<size_t>& srcOffsets) const;
     };
 
 public:

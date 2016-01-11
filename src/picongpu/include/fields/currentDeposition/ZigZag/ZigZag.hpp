@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -198,7 +198,8 @@ struct ZigZag
              *   - run calculations in a shape optimized coordinate system
              *     with fixed interpolation points
              */
-            ShiftCoordinateSystem<Supports_direction>()(cursor, pos, fieldSolver::NumericalCellType::getJFieldPosition()[dir]);
+            const fieldSolver::numericalCellType::traits::FieldPosition<FieldJ> fieldPosJ;
+            ShiftCoordinateSystem<Supports_direction>()(cursor, pos, fieldPosJ()[dir]);
 
             /* define grid points where we evaluate the shape function*/
             typedef typename PMacc::math::CT::make_Vector<

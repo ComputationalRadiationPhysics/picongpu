@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Alexander Debus, Axel Huebl
+ * Copyright 2014-2016 Alexander Debus, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -272,10 +272,11 @@ namespace twts
                             const uint32_t currentStep ) const
     {
         const float_64 time_SI = float_64(currentStep) * dt - tdelay;
+        const fieldSolver::numericalCellType::traits::FieldPosition<FieldB> fieldPosB;
 
         const PMacc::math::Vector<floatD_64,detail::numComponents> bFieldPositions_SI =
-              detail::getFieldPositions_SI(cellIdx,halfSimSize,
-                fieldSolver::NumericalCellType::getBFieldPosition(),unit_length,focus_y_SI,phi);
+              detail::getFieldPositions_SI(cellIdx, halfSimSize,
+                fieldPosB(), unit_length, focus_y_SI, phi);
         /* Single TWTS-Pulse */
         switch (pol)
         {

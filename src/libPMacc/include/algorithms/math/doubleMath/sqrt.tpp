@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2015 Heiko Burau, Rene Widera, Benjamin Worpitz, 
+ * Copyright 2013-2016 Heiko Burau, Rene Widera, Benjamin Worpitz,
  *                     Richard Pausch
  *
  * This file is part of libPMacc.

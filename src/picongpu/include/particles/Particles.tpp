@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2015 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Felix Schmitt,
+ * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Felix Schmitt,
  *                     Alexander Grund
  *
  * This file is part of PIConGPU.
@@ -165,8 +165,7 @@ void Particles<T_ParticleDescription>::update(uint32_t )
         >::type InterpolationScheme;
 
     typedef PushParticlePerFrame<ParticlePush, MappingDesc::SuperCellSize,
-        InterpolationScheme,
-        fieldSolver::NumericalCellType > FrameSolver;
+        InterpolationScheme > FrameSolver;
 
     // adjust interpolation area in particle pusher to allow sub-sampling pushes
     typedef typename GetLowerMarginPusher<Particles>::type LowerMargin;
