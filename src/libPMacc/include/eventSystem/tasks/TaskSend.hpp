@@ -41,9 +41,8 @@ namespace PMacc
     {
     public:
 
-        TaskSend(Exchange<TYPE, DIM> &ex, EventTask& copyEvent) :
+        TaskSend(Exchange<TYPE, DIM> &ex) :
         exchange(&ex),
-        copyEvent(copyEvent),
         state(Constructor)
         {
         }
@@ -54,17 +53,17 @@ namespace PMacc
             if (exchange->hasDeviceDoubleBuffer())
             {
                 Environment<>::get().Factory().createTaskCopyDeviceToDevice(exchange->getDeviceBuffer(),
-                                                                               exchange->getDeviceDoubleBuffer()
-                                                                               );
-                copyEvent = Environment<>::get().Factory().createTaskCopyDeviceToHost(exchange->getDeviceDoubleBuffer(),
-                                                                                         exchange->getHostBuffer(),
-                                                                                         this);
+                                                                            exchange->getDeviceDoubleBuffer()
+                                                                            );
+                Environment<>::get().Factory().createTaskCopyDeviceToHost(exchange->getDeviceDoubleBuffer(),
+                                                                          exchange->getHostBuffer(),
+                                                                          this);
             }
             else
             {
-                copyEvent = Environment<>::get().Factory().createTaskCopyDeviceToHost(exchange->getDeviceBuffer(),
-                                                                                         exchange->getHostBuffer(),
-                                                                                         this);
+                Environment<>::get().Factory().createTaskCopyDeviceToHost(exchange->getDeviceBuffer(),
+                                                                          exchange->getHostBuffer(),
+                                                                          this);
             }
 
         }
@@ -132,7 +131,6 @@ namespace PMacc
         };
 
         Exchange<TYPE, DIM> *exchange;
-        EventTask& copyEvent;
         state_t state;
     };
 

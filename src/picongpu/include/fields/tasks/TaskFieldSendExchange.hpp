@@ -64,7 +64,8 @@ namespace PMacc
                 if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(m_initDependency.getTaskId()) )
                 {
                     m_state = InitSend;
-                    m_sendEvent = m_buffer.getGridBuffer().asyncSend(EventTask(), m_exchange, m_initDependency);
+                    m_sendEvent = m_buffer.getGridBuffer().asyncSend(EventTask(), m_exchange);
+                    m_initDependency = m_sendEvent;
                     m_state = WaitForSendEnd;
                 }
 
