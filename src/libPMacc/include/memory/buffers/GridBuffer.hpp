@@ -462,6 +462,7 @@ public:
         {
             __startAtomicTransaction(serialEvent + sendEvents[sendEx]);
             sendEvents[sendEx] = sendExchanges[sendEx]->startSend(gpuFree);
+            gpuFree = sendEvents[sendEx];
             __endTransaction();
             /* add only the copy event, because all work on gpu can run after data is copyed
              */
