@@ -1,6 +1,36 @@
 Change Log / Release Log for PIConGPU
 ================================================================
 
+0.1.2
+-----
+
+**Date:** 2016-01-12
+
+This is version `0.1.2` of PIConGPU, a *pre-beta* version and
+pure bug fix release. It contains selected backports of critical
+issues in PIConGPU.
+
+Two major bugs that have been fixed: one in the laser wavepacket
+which was not implemented as advertised in the documentation and an
+other bug in the libPMacc event system could cause a simulation freeze.
+
+**.param file changes:**
+ - `laserConfig.param`: adds a documentation hint how to calculate the
+                        laser beam waist
+
+**Bug Fixes:**
+ - Laser Wavepacket: Implementation != Documentation #1312
+ - low memory setups: avoid memory underflow #1188
+ - C++ should catch by const reference #1295
+ - libPMacc:
+   - possible deadlock in event system could freeze simulation #1326
+   - HostBuffer includes #1255
+   - initialize pointers with NULL before cudaMalloc #1180
+
+**Misc:**
+ - Update README.md (mailing lists, etc.)
+
+
 0.1.1
 -----
 
