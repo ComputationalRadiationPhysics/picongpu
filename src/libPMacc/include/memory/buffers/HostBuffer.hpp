@@ -73,15 +73,12 @@ namespace PMacc
         container::HostBuffer<TYPE, DIM>
         cartBuffer()
         {
-            container::HostBuffer<TYPE, DIM> result;
-            result.dataPointer = this->getBasePointer();
-            result._size = math::Size_t<DIM>(this->getDataSpace());
+            math::Size_t<DIM - 1> pitch;
             if(DIM >= 2)
-                result.pitch[0] = result._size.x() * sizeof(TYPE);
-            if(DIM >= 3)
-                result.pitch[1] = result.pitch[0] * result._size.y();
-            result.refCount = new int;
-            *result.refCount = 2;
+                pitch[0] = this->getPhysicalMemorySize()[0];
+            if(DIM == 3)
+                pitch[1] = pitch[0] * this->getPhysicalMemorySize()[1];
+            container::HostBuffer<TYPE, DIM> result(this->getBasePointer(), this->getDataSpace(), false, pitch);
             return result;
         }
 

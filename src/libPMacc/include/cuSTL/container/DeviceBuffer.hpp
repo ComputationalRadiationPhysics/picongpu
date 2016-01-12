@@ -43,26 +43,26 @@ namespace container
 /** typedef version of a CartBuffer for a GPU.
  * Additional feature: Able to copy data from a HostBuffer
  * \tparam Type type of a single datum
- * \tparam dim Dimension of the container
+ * \tparam T_dim Dimension of the container
  */
-template<typename Type, int dim>
+template<typename Type, int T_dim>
 class DeviceBuffer
- : public CartBuffer<Type, dim, allocator::DeviceMemAllocator<Type, dim>,
-                                copier::D2DCopier<dim>,
+ : public CartBuffer<Type, T_dim, allocator::DeviceMemAllocator<Type, T_dim>,
+                                copier::D2DCopier<T_dim>,
                                 assigner::DeviceMemAssigner<> >
 {
 private:
-    typedef CartBuffer<Type, dim, allocator::DeviceMemAllocator<Type, dim>,
-                                  copier::D2DCopier<dim>,
+    typedef CartBuffer<Type, T_dim, allocator::DeviceMemAllocator<Type, T_dim>,
+                                  copier::D2DCopier<T_dim>,
                                   assigner::DeviceMemAssigner<> > Base;
-    typedef DeviceBuffer<Type, dim> This;
 
-///\todo: make protected
-public:
+protected:
     HDINLINE DeviceBuffer() {}
 
-    BOOST_COPYABLE_AND_MOVABLE(This)
+    BOOST_COPYABLE_AND_MOVABLE(DeviceBuffer)
 public:
+    typedef typename Base::PitchType PitchType;
+
     /* constructors
      *
      * \param _size size of the container
@@ -70,11 +70,41 @@ public:
      * \param x,y,z convenient wrapper
      *
      */
-    HDINLINE DeviceBuffer(const math::Size_t<dim>& _size) : Base(_size) {}
+    HDINLINE DeviceBuffer(const math::Size_t<T_dim>& size) : Base(size) {}
     HDINLINE DeviceBuffer(size_t x) : Base(x) {}
     HDINLINE DeviceBuffer(size_t x, size_t y) : Base(x, y) {}
     HDINLINE DeviceBuffer(size_t x, size_t y, size_t z) : Base(x, y, z) {}
     HDINLINE DeviceBuffer(const Base& base) : Base(base) {}
+    /**
+     * Creates a device buffer from a pointer with a size. Assumes dense layout (no padding)
+     *
+     * @param ptr Pointer to the first element
+     * @param size Size of the buffer
+     * @param ownMemory Set to false if the memory is only a reference and managed outside of this class
+     *                  Ignored for device side creation!y
+     * @param pitch Pitch in bytes (number of bytes in the lower dimensions)
+     */
+    HDINLINE DeviceBuffer(Type* ptr, const math::Size_t<T_dim>& size, bool ownMemory, PitchType pitch = PitchType::create(0))
+    {
+        this->dataPointer = ptr;
+        this->_size = size;
+        if(T_dim >= 2)
+            this->pitch[0] = (pitch[0]) ? pitch[0] : size.x() * sizeof(Type);
+        if(T_dim == 3)
+            this->pitch[1] = (pitch[1]) ? pitch[1] : this->pitch[0] * size.y();
+#ifndef __CUDA_ARCH__
+        this->refCount = new int;
+        *this->refCount = (ownMemory) ? 1 : 2;
+#endif
+    }
+    HDINLINE DeviceBuffer(BOOST_RV_REF(DeviceBuffer) obj): Base(boost::move(static_cast<Base&>(obj))) {}
+
+    HDINLINE DeviceBuffer&
+    operator=(BOOST_RV_REF(DeviceBuffer) rhs)
+    {
+        Base::operator=(boost::move(static_cast<Base&>(rhs)));
+        return *this;
+    }
 
     template<typename HBuffer>
     HINLINE
@@ -82,13 +112,13 @@ public:
     {
         BOOST_STATIC_ASSERT((boost::is_same<typename HBuffer::memoryTag, allocator::tag::host>::value));
         BOOST_STATIC_ASSERT((boost::is_same<typename HBuffer::type, Type>::value));
-        BOOST_STATIC_ASSERT(dim == HBuffer::dim);
+        BOOST_STATIC_ASSERT(T_dim == HBuffer::dim);
         if(rhs.size() != this->size())
             throw std::invalid_argument(static_cast<std::stringstream&>(
                 std::stringstream() << "Assignment: Sizes of buffers do not match: "
                     << this->size() << " <-> " << rhs.size() << std::endl).str());
 
-        cudaWrapper::Memcopy<dim>()(this->dataPointer, this->pitch, rhs.getDataPointer(), rhs.getPitch(),
+        cudaWrapper::Memcopy<T_dim>()(this->dataPointer, this->pitch, rhs.getDataPointer(), rhs.getPitch(),
                                 this->_size, cudaWrapper::flags::Memcopy::hostToDevice);
 
         return *this;

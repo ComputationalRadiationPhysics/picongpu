@@ -75,11 +75,13 @@ public:
     BOOST_STATIC_CONSTEXPR int dim = T_dim;
     typedef cursor::BufferCursor<Type, T_dim> Cursor;
     typedef typename Allocator::tag memoryTag;
+    typedef math::Size_t<T_dim> SizeType;
+    typedef math::Size_t<T_dim-1> PitchType;
 public:
     Type* dataPointer;
     int* refCount;
-    math::Size_t<T_dim> _size;
-    math::Size_t<T_dim-1> pitch;
+    SizeType _size;
+    PitchType pitch;
     HDINLINE void init();
     HDINLINE void exit();
     HDINLINE CartBuffer() : refCount(NULL) {}
@@ -93,7 +95,7 @@ public:
     HDINLINE CartBuffer(size_t x, size_t y, size_t z);
     /* the copy constructor just increments the reference counter but does not copy memory */
     HDINLINE CartBuffer(const CartBuffer& other);
-    /* the move constructor has currently the same behavior as the copy constructor */
+    /* the move constructor */
     HDINLINE CartBuffer(BOOST_RV_REF(CartBuffer) other);
     HDINLINE ~CartBuffer();
 
