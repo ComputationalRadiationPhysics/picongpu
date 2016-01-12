@@ -519,6 +519,7 @@ public:
         {
             __startTransaction(serialEvent + sendEvents[sendEx]);
             sendEvents[sendEx] = sendExchanges[sendEx]->startSend(gpuFree);
+            gpuFree = sendEvents[sendEx];
             __endTransaction();
             return sendEvents[sendEx];
         }
