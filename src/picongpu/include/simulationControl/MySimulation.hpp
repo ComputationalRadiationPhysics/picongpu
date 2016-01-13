@@ -336,8 +336,21 @@ public:
 
     virtual uint32_t fillSimulation()
     {
+        /* assume start (restart in initialiserController might change that) */
         uint32_t step = 0;
 
+        /* set slideCounter properties for PIConGPU MovingWindow: assume start
+         * (restart in initialiserController might change this again)
+         */
+        MovingWindow::getInstance().setSlideCounter(0, 0);
+        /* Update MPI domain decomposition: will also update SubGrid domain
+         * information such as local offsets in y-direction
+         */
+        GridController<simDim> &gc = Environment<simDim>::get().GridController();
+        if( MovingWindow::getInstance().isSlidingWindowActive() )
+            gc.setStateAfterSlides(0);
+
+        /* fill all objects registed in DataConnector */
         if (initialiserController)
         {
             initialiserController->printInformation();
