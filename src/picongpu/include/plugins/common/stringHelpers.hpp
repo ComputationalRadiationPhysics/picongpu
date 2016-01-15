@@ -23,31 +23,59 @@
 #include <string>
 #include <sstream>
 #include <ctime>
-
+#include <vector>
+#include <list>
+#include <algorithm>
+#include <iostream>
 
 namespace picongpu
+{
+namespace helper
 {
     /** Return the current date as string
      *
      * \param format, \see http://www.cplusplus.com/reference/ctime/strftime/
      * \return std::string with formatted date
      */
-    std::string getDateString( std::string format )
+    std::string getDateString( std::string format );
+
+    /** Create array of c-strings suitable for libSplash
+     *
+     * Convert a std::list of strings to a format that is suitable to
+     * be written into libSplash (concated and padded array of constant
+     * c-strings). Strings will be padded to longest string.
+     *
+     * Independent of the padding you chose, the strings will be '\0'
+     * separated & terminated. \0 padding is default and recommended.
+     */
+    class GetSplashArrayOfString
     {
-        time_t rawtime;
-        struct tm* timeinfo;
-        const size_t maxLen = 30;
-        char buffer [maxLen];
+    private:
+        // compare two std::string by their size
+        struct CompStrBySize
+        {
+            bool operator()( std::string i, std::string j )
+            {
+                return i.size() < j.size();
+            }
+        };
 
-        time( &rawtime );
-        timeinfo = localtime( &rawtime );
+    public:
+        // resulting type containing all attributes for a libSplash write call
+        struct Result
+        {
+            size_t maxLen;                // size of the longest string
+            std::vector<char> buffers;    // all of same length lenMax
 
-        strftime( buffer, maxLen, format.c_str(), timeinfo );
+            Result() : maxLen(0)
+            {}
+        };
 
-        std::stringstream dateString;
-        dateString << buffer;
+        Result operator()(
+            std::list<std::string> listOfStrings,
+            char padding = '\0'
+        );
+    };
 
-        return dateString.str();
-    }
-
+} // namespace helper
 } // namespace picongpu
