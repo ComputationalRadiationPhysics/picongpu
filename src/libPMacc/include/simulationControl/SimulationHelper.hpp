@@ -287,15 +287,16 @@ public:
                    (int) (tSimCalculation.getInterval() / 1000.) << " sec" << std::endl;
             }
 
-        } // softRestart loop
+        } // softRestarts loop
     }
 
     virtual void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
             ("steps,s", po::value<uint32_t > (&runSteps), "Simulation steps")
-            ("softRestart", po::value<uint32_t > (&softRestarts)->default_value(0),
-             "Number of times to restart the simulation after simulation has finished (for presentations)")
+            ("softRestarts", po::value<uint32_t > (&softRestarts)->default_value(0),
+             "Number of times to restart the simulation after simulation has finished (for presentations). "
+             "Note: does not yet work with all plugins, see issue #1305")
             ("percent,p", po::value<uint16_t > (&progress)->default_value(5),
              "Print time statistics after p percent to stdout")
             ("restart", po::value<bool>(&restartRequested)->zero_tokens(), "Restart simulation")
@@ -340,7 +341,7 @@ protected:
     /* number of simulation steps to compute */
     uint32_t runSteps;
 
-    /** Presentations: loop the whole simulation `softRestart` times from
+    /** Presentations: loop the whole simulation `softRestarts` times from
      *                 initial step to runSteps */
     uint32_t softRestarts;
 
