@@ -77,7 +77,17 @@ public:
 
     void reset(uint32_t currentStep);
 
-    void clear();
+    /** Assign a value to all cells
+     *
+     * Example usage:
+     * ```C++
+     *   FieldJ::ValueType zeroJ( FieldJ::ValueType::create(0.) );
+     *   fieldJ->assign( zeroJ );
+     * ```
+     *
+     * \param value date to fill all cells with
+     */
+    void assign(ValueType value);
 
     HDINLINE static UnitValueType getUnit();
 

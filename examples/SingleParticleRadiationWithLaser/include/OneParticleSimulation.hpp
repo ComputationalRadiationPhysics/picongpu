@@ -137,7 +137,8 @@ public:
      */
     virtual void runOneStep(uint32_t currentStep)
     {
-        fieldJ->clear();
+        FieldJ::ValueType zeroJ( FieldJ::ValueType::create(0.) );
+        fieldJ->assign( zeroJ );
 
 #if (ENABLE_ELECTRONS == 1)
         __startTransaction(__getTransactionEvent());

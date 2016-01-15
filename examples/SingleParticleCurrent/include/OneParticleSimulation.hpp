@@ -125,7 +125,8 @@ public:
      */
     virtual void runOneStep(uint32_t currentStep)
     {
-        fieldJ->clear();
+        FieldJ::ValueType zeroJ( FieldJ::ValueType::create(0.) );
+        fieldJ->assign( zeroJ );
 
         fieldJ->computeCurrent < CORE + BORDER, PIC_Electrons > (*particleStorage[TypeAsIdentifier<PIC_Electrons>()], currentStep);
 
