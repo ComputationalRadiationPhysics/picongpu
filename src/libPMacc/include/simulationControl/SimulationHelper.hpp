@@ -95,12 +95,27 @@ public:
     virtual void runOneStep(uint32_t currentStep) = 0;
 
     /**
-     * Initializes simulation state.
+     * Initialize simulation
+     *
+     * Does hardware selections/reservations, memory allocations and
+     * initializes data structures as empty.
+     */
+    virtual void init() = 0;
+
+    /**
+     * Fills simulation with initial data after init()
      *
      * @return returns the first step of the simulation
+     *         (can be >0 for, e.g., restarts from checkpoints)
      */
-    virtual uint32_t init() = 0;
+    virtual uint32_t fillSimulation() = 0;
 
+    /**
+     * Reset the simulation to a state such as it was after
+     * init() but for a specific time step.
+     * Can be used to call fillSimulation() again.
+     */
+    virtual void resetAll(uint32_t currentStep) = 0;
 
     /**
      * Check if moving window work must do
@@ -198,80 +213,90 @@ public:
      */
     void startSimulation()
     {
-        uint32_t currentStep = init();
-        Environment<>::get().SimulationDescription().setCurrentStep( currentStep );
+        init();
 
-        tInit.toggleEnd();
-        if (output)
+        for (uint32_t nthSoftRestart = 0; nthSoftRestart <= softRestarts; ++nthSoftRestart)
         {
-            std::cout << "initialization time: " << tInit.printInterval() <<
-                " = " <<
-                (int) (tInit.getInterval() / 1000.) << " sec" << std::endl;
-        }
-
-        TimeIntervall tSimCalculation;
-        TimeIntervall tRound;
-        double roundAvg = 0.0;
-
-    /* dump initial step if simulation starts without restart */
-    if (currentStep == 0)
-    {
-        /* Since in the main loop movingWindow is called always before the dump, we also call it here for consistency.
-        This becomes only important, if movingWindowCheck does more than merely checking for a slide.
-        TO DO in a new feature: Turn this into a general hook for pre-checks (window slides are just one possible action). */
-        movingWindowCheck(currentStep);
-        dumpOneStep(currentStep);
-    }
-    else
-    {
-        currentStep--; //We dump before calculation, thus we must go one step back when doing a restart.
-        Environment<>::get().SimulationDescription().setCurrentStep( currentStep );
-        movingWindowCheck(currentStep); //If we restart at any step check if we must slide.
-    }
-
-        /* dump 0% output */
-        dumpTimes(tSimCalculation, tRound, roundAvg, currentStep);
-
-
-        /** \todo currently we assume this is the only point in the simulation
-         *        that is allowed to manipulate this var. Else, add one needs to
-         *        add and act on changed values from `getCurrentStep()` in this loop
-         */
-        while (currentStep < Environment<>::get().SimulationDescription().getRunSteps())
-        {
-            tRound.toggleStart();
-            runOneStep(currentStep);
-            tRound.toggleEnd();
-            roundAvg += tRound.getInterval();
-
-            currentStep++;
+            resetAll(0);
+            uint32_t currentStep = fillSimulation();
             Environment<>::get().SimulationDescription().setCurrentStep( currentStep );
-            /*output after a round*/
+
+            tInit.toggleEnd();
+            if (output)
+            {
+                std::cout << "initialization time: " << tInit.printInterval() <<
+                    " = " <<
+                    (int) (tInit.getInterval() / 1000.) << " sec" << std::endl;
+            }
+
+            TimeIntervall tSimCalculation;
+            TimeIntervall tRound;
+            double roundAvg = 0.0;
+
+            /* dump initial step if simulation starts without restart */
+            if (currentStep == 0)
+            {
+                /* Since in the main loop movingWindow is called always before the dump, we also call it here for consistency.
+                This becomes only important, if movingWindowCheck does more than merely checking for a slide.
+                TO DO in a new feature: Turn this into a general hook for pre-checks (window slides are just one possible action). */
+                movingWindowCheck(currentStep);
+                dumpOneStep(currentStep);
+            }
+            else
+            {
+                currentStep--; //We dump before calculation, thus we must go one step back when doing a restart.
+                Environment<>::get().SimulationDescription().setCurrentStep( currentStep );
+                movingWindowCheck(currentStep); //If we restart at any step check if we must slide.
+            }
+
+            /* dump 0% output */
             dumpTimes(tSimCalculation, tRound, roundAvg, currentStep);
 
-            movingWindowCheck(currentStep);
-            /*dump after simulated step*/
-            dumpOneStep(currentStep);
-        }
 
-        //simulatation end
-        Environment<>::get().Manager().waitForAllTasks();
+            /** \todo currently we assume this is the only point in the simulation
+             *        that is allowed to manipulate `currentStep`. Else, one needs to
+             *        add and act on changed values via
+             *        `SimulationDescription().getCurrentStep()` in this loop
+             */
+            while (currentStep < Environment<>::get().SimulationDescription().getRunSteps())
+            {
+                tRound.toggleStart();
+                runOneStep(currentStep);
+                tRound.toggleEnd();
+                roundAvg += tRound.getInterval();
 
-        tSimCalculation.toggleEnd();
+                currentStep++;
+                Environment<>::get().SimulationDescription().setCurrentStep( currentStep );
+                /*output after a round*/
+                dumpTimes(tSimCalculation, tRound, roundAvg, currentStep);
 
-        if (output)
-        {
-            std::cout << "calculation  simulation time: " <<
-                tSimCalculation.printInterval() << " = " <<
-                (int) (tSimCalculation.getInterval() / 1000.) << " sec" << std::endl;
-        }
+                movingWindowCheck(currentStep);
+                /*dump after simulated step*/
+                dumpOneStep(currentStep);
+            }
 
+            // simulatation end
+            Environment<>::get().Manager().waitForAllTasks();
+
+            tSimCalculation.toggleEnd();
+
+            if (output)
+            {
+                std::cout << "calculation  simulation time: " <<
+                   tSimCalculation.printInterval() << " = " <<
+                   (int) (tSimCalculation.getInterval() / 1000.) << " sec" << std::endl;
+            }
+
+        } // softRestarts loop
     }
 
     virtual void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
             ("steps,s", po::value<uint32_t > (&runSteps), "Simulation steps")
+            ("softRestarts", po::value<uint32_t > (&softRestarts)->default_value(0),
+             "Number of times to restart the simulation after simulation has finished (for presentations). "
+             "Note: does not yet work with all plugins, see issue #1305")
             ("percent,p", po::value<uint16_t > (&progress)->default_value(5),
              "Print time statistics after p percent to stdout")
             ("restart", po::value<bool>(&restartRequested)->zero_tokens(), "Restart simulation")
@@ -315,6 +340,10 @@ public:
 protected:
     /* number of simulation steps to compute */
     uint32_t runSteps;
+
+    /** Presentations: loop the whole simulation `softRestarts` times from
+     *                 initial step to runSteps */
+    uint32_t softRestarts;
 
     /* period for checkpoint creation */
     uint32_t checkpointPeriod;

@@ -75,7 +75,7 @@ public:
     {
     }
 
-    uint32_t init()
+    void init()
     {
         MySimulation::init();
 
@@ -87,8 +87,6 @@ public:
 
         this->eField_zt[0] = new container::HostBuffer<float, 2 > (Size_t < 2 > (fieldE_coreBorder.size().z(), this->collectTimesteps));
         this->eField_zt[1] = new container::HostBuffer<float, 2 >(this->eField_zt[0]->size());
-
-        return 0;
     }
 
     void pluginRegisterHelp(po::options_description& desc)

@@ -64,7 +64,7 @@ public:
     {
     }
 
-    virtual uint32_t init()
+    virtual void init()
     {
 
         MySimulation::init();
@@ -82,6 +82,11 @@ public:
 
         //diabled because we have a transaction bug
         //StreamController::getInstance().addStreams(6);
+    }
+
+    virtual uint32_t fillSimulation()
+    {
+        MySimulation::fillSimulation();
 
         //add one particle in simulation
         //
@@ -123,7 +128,6 @@ public:
         __setTransactionEvent(eRfieldB);
 
         return 0;
-
     }
 
     /**
