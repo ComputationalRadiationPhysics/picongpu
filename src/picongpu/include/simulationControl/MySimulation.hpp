@@ -445,7 +445,8 @@ public:
 
         this->myFieldSolver->update_beforeCurrent(currentStep);
 
-        fieldJ->clear();
+        FieldJ::ValueType zeroJ( FieldJ::ValueType::create(0.) );
+        fieldJ->assign( zeroJ );
 
         __setTransactionEvent(commEvent);
         (*currentBGField)(fieldJ, nvfct::Add(), FieldBackgroundJ(fieldJ->getUnit()),

@@ -133,7 +133,9 @@ public:
      */
     virtual void runOneStep(uint32_t currentStep)
     {
-        fieldJ->clear();
+        FieldJ::ValueType zeroJ( FieldJ::ValueType::create(0.) );
+        fieldJ->assign( zeroJ );
+
         __startTransaction(__getTransactionEvent());
 
         particleStorage[TypeAsIdentifier<PIC_Electrons>()]->update(currentStep);

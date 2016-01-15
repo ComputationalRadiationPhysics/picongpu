@@ -228,10 +228,9 @@ void FieldJ::reset( uint32_t )
 {
 }
 
-void FieldJ::clear( )
+void FieldJ::assign( ValueType value )
 {
-    ValueType tmp(ValueType::create(0.));
-    fieldJ.getDeviceBuffer( ).setValue( tmp );
+    fieldJ.getDeviceBuffer( ).setValue( value );
     //fieldJ.reset(false);
 }
 
