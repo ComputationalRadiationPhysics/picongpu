@@ -33,10 +33,12 @@ template<typename Type>
 struct Fmod;
 
 /**
- * Equivalent of the modulus-operator for float types.
- * Returns the floating-point remainder of x / y (rounded towards zero):
- * fmod = x - tquot * y
- * Where tquot is the truncated (i.e., rounded towards zero) result of: x / y.
+ * Equivalent to the modulus-operator for float types
+ * returns the floating-point remainder of x / y.
+ * The functionality corresponds to the C++
+ * math function fmod().
+ * For details, see <a href="http://www.cplusplus.com/reference/cmath/fmod/">
+ * external documentation.</a>
  * @return float value
  */
 template<typename T1>
