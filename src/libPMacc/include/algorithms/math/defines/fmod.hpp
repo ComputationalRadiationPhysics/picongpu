@@ -37,8 +37,7 @@ struct Fmod;
  * returns the floating-point remainder of x / y.
  * The functionality corresponds to the C++
  * math function fmod().
- * For details, see <a href="http://www.cplusplus.com/reference/cmath/fmod/">
- * external documentation.</a>
+ * For details, see http://www.cplusplus.com/reference/cmath/fmod/ .
  * @return float value
  */
 template<typename T1>
