@@ -68,10 +68,10 @@ private:
          * the same size for all gpus
          */
         const float_64 stepsPerGPU = (float_64) (subGrid.getLocalDomain().size.y() * cell_height) / light_way_per_step;
-	const uint32_t firstSlideStep = (uint32_t) math::floor(   stepsPerGPU * (float_64) devices_y 
-                                                                - (float_64) stepsInFuture + 0.5           );
+	const uint32_t firstSlideStep = (uint32_t) math::floor( stepsPerGPU * (float_64) devices_y 
+                                                              - (float_64) stepsInFuture );
         const uint32_t firstMoveStep =  (uint32_t) math::floor(   stepsPerGPU * (float_64) (devices_y - 1)
-                                                                - (float_64) stepsInFuture + 0.5           );
+                                                              - (float_64) stepsInFuture );
 
         if (slidingWindowActive==true && firstMoveStep <= currentStep)
         {
@@ -88,8 +88,8 @@ private:
             /* round to nearest cell to have smoother offset jumps */
             if (offsetFirstGPU)
             {
-                *offsetFirstGPU = math::floor(  ( stepsInLastGPU + stepsInFutureAfterComma ) *
-                                                  light_way_per_step / cell_height + 0.5       );
+                *offsetFirstGPU = math::floor( ( stepsInLastGPU + stepsInFutureAfterComma ) *
+                                               light_way_per_step / cell_height + 0.5 );
             }
         }
     }
