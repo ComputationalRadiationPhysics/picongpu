@@ -20,19 +20,18 @@
 
 
 
+
+#pragma once
+
+namespace picongpu
+{
+
 /** functor for particle field interpolator
  *
  * This functor is a simplification of the full
  * field to particle interpolator that can be used in the
  * particle pusher
  */
-
-namespace picongpu
-{
-
-using namespace PMacc;
-
-
 template< typename T_Field2PartInt, typename T_MemoryType, typename T_FieldPosition >
 struct InterpolationForPusher
 {
@@ -44,13 +43,27 @@ struct InterpolationForPusher
     {
     }
 
+    /* apply shift policy before interpolation */
+    template< typename T_PosType, typename T_ShiftPolicy >
+    HDINLINE
+    float3_X operator()( const T_PosType& pos, const T_ShiftPolicy& shiftPolicy ) const
+    {
+        return Field2PartInt()( shiftPolicy.memory(m_mem, pos),
+                                shiftPolicy.position(pos),
+                                m_fieldPos );
+    }
+
+    /* interpolation using given memory and position */
     template< typename T_PosType >
     HDINLINE
     float3_X operator()( const T_PosType& pos ) const
     {
-        /* to do: memory shift, position shift */
-        return Field2PartInt()( m_mem, pos, m_fieldPos );
+        return Field2PartInt()( m_mem,
+                                pos,
+                                m_fieldPos );
     }
+
+
 
 private:
     PMACC_ALIGN( m_mem, T_MemoryType );
