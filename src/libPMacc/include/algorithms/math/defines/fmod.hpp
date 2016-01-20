@@ -41,7 +41,7 @@ struct Fmod;
  * @return float value
  */
 template<typename T1>
-HDINLINE typename Fmod< T1>::result fmod(T1 x,T1 y)
+HDINLINE typename Fmod< T1>::result fmod(T1 x, T1 y)
 {
     return Fmod< T1 > ()(x, y);
 }

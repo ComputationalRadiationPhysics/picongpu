@@ -41,9 +41,9 @@ struct Fmod<float>
     HDINLINE result operator( )(result x, result y)
     {
 #if __CUDA_ARCH__
-        return ::fmod( x , y );
+        return ::fmodf(x, y);
 #else
-        return std::fmod( x , y );
+        return std::fmodf(x, y);
 #endif
     }
 };
