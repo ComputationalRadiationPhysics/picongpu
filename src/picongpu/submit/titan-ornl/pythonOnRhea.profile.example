@@ -41,6 +41,9 @@ source $PROJWORK/$proj/python-venv/rhea/bin/activate
 #   source $PROJWORK/$proj/python-venv/rhea/bin/activate
 #   which pip
 #
+#   pip install --upgrade pip
+#   pip install --upgrade wheel
+#
 #   pip install adios
 #   pip install six
 #   pip install matplotlib
@@ -50,6 +53,8 @@ source $PROJWORK/$proj/python-venv/rhea/bin/activate
 #   pip install lock_file
 #   pip install psutil
 #   pip install pyDive
+#   pip install tifffile
+#   pip install pillow  # PIL fork
 #
 # create IPython profile for cluster:
 #   ipython profile create --parallel --profile=rhea
