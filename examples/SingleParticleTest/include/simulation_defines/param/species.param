@@ -71,6 +71,8 @@ typedef currentSolver::Esirkepov<UsedParticleShape> UsedParticleCurrentSolver;
  *
  * - particles::pusher::Vay : better suited relativistic boris pusher
  * - particles::pusher::Boris : standard boris pusher
+ * - particles::pusher::ReducedLandauLifshitz : 4th order RungeKutta pusher
+ *                                              with classical radiation reaction
  *
  * For development purposes: ---------------------------------------------------
  * - particles::pusher::None : no particle is pushed
