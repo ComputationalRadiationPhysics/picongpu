@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2016 Felix Schmitt, Axel Huebl
+ * Copyright 2014-2016 Felix Schmitt, Axel Huebl, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -46,7 +46,7 @@ bool parseCmdLine(int argc, char **argv, Options &options)
         std::vector<size_t> sizes, offset;
         options.filename = "";
         options.densityFilename = "gas";
-        options.densityDataset = "fields/Density_e";
+        options.densityDataset = "fields/e_chargeDensity";
         options.dataOffset.set(0, 0, 0);
         options.iteration = 0;
 
