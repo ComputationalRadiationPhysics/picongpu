@@ -23,7 +23,6 @@
 #pragma once
 
 #include "types.h"
-#include "math.h"
 #include <cmath>
 
 namespace PMacc
@@ -43,7 +42,7 @@ struct Fmod<float>
 #if __CUDA_ARCH__
         return ::fmodf(x, y);
 #else
-        return std::fmodf(x, y);
+        return std::fmod(x, y);
 #endif
     }
 };
