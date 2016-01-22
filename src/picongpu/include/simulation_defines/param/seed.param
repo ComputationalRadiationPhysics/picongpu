@@ -36,7 +36,7 @@ namespace picongpu
         operator()()
         {
             /** to vary (binary) identical simulations, use a combination of
-             *  time(NULL) from \see <time.h> (precision: seconds) */
+             *  time(NULL) from \see <ctime> (precision: seconds) */
             return 42;
         }
     };

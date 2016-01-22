@@ -24,7 +24,7 @@
 #include "simulation_defines.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "iostream"
-#include "stdlib.h"
+#include "cstdlib"
 
 #include "plugins/output/header/DataHeader.hpp"
 #include "plugins/output/header/NodeHeader.hpp"

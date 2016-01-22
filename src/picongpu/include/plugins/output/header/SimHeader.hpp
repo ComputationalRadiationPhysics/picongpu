@@ -23,7 +23,7 @@
 #include "types.h"
 #include "dimensions/DataSpace.hpp"
 #include "iostream"
-#include "stdlib.h"
+#include "cstdlib"
 
 struct SimHeader
 {

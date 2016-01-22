@@ -25,7 +25,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "types.h"
 #include "simulation_defines.hpp"
