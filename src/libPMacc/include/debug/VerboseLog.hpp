@@ -30,7 +30,7 @@
 #include <string>
 #include <iostream>
 #include <sstream>
-#include <boost/cstdint.hpp>
+#include <stdint.h>
 
 namespace PMacc
 {

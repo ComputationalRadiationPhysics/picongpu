@@ -26,7 +26,7 @@
 #include "lambda/placeholder.h"
 #include <boost/mpl/placeholders.hpp>
 #include <boost/mpl/int.hpp>
-#include <boost/cstdint.hpp>
+#include <stdint.h>
 
 namespace PMacc
 {

@@ -39,7 +39,7 @@
 #include <cuda_runtime.h>
 #include <cuda.h>
 
-#include <boost/cstdint.hpp>
+#include <stdint.h>
 #include <stdexcept>
 
 #define PMACC_AUTO_TPL(var,...) BOOST_AUTO_TPL(var,(__VA_ARGS__))

@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <boost/cstdint.hpp>
+#include <stdint.h>
 #include "math/Vector.hpp"
 #include <boost/mpl/integral_c.hpp>
 #include "traits/Limits.hpp"
