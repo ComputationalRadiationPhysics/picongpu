@@ -37,10 +37,18 @@ DINLINE CartBuffer<Type, _Size, Allocator, Copier, Assigner>::CartBuffer()
 
 template<typename Type, typename _Size, typename Allocator, typename Copier, typename Assigner>
 DINLINE
-cursor::CT::BufferCursor<Type, typename Allocator::Pitch>
+CartBuffer<Type, _Size, Allocator, Copier, Assigner>::Cursor
 CartBuffer<Type, _Size, Allocator, Copier, Assigner>::origin() const
 {
-    return cursor::CT::BufferCursor<Type, Pitch>(this->dataPointer);
+    return CartBuffer<Type, _Size, Allocator, Copier, Assigner>::Cursor(this->dataPointer);
+}
+
+template<typename Type, typename _Size, typename Allocator, typename Copier, typename Assigner>
+DINLINE
+CartBuffer<Type, _Size, Allocator, Copier, Assigner>::SafeCursor
+CartBuffer<Type, _Size, Allocator, Copier, Assigner>::originSafe() const
+{
+    return CartBuffer<Type, _Size, Allocator, Copier, Assigner>::SafeCursor(this->origin());
 }
 
 } // CT

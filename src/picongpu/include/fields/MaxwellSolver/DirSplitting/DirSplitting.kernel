@@ -61,7 +61,7 @@ struct DirSplittingKernel
     DINLINE void operator()(CursorE globalE, CursorB globalB) const
     {
         //\todo: optimize cache size
-        typedef typename PMacc::math::CT::add<
+        /*typedef typename PMacc::math::CT::add<
             typename BlockDim::vector_type,
             typename PMacc::math::CT::Int < 2, 0, 0 > ::vector_type>::type CacheSize;
 
@@ -107,7 +107,7 @@ struct DirSplittingKernel
             __syncthreads();
 
             threadPos_x = BlockDim::x::value - 1 - threadPos_x;
-        }
+        }*/
     }
 
 };

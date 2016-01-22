@@ -44,7 +44,7 @@ private:
     math::Int<dim> offset;
 public:
     HDINLINE SafeCursor(const Cursor& cursor)
-        : Cursor(cursor), offset(math::Int<dim>(0))
+        : Cursor(cursor), offset(math::Int<dim>::create(0))
     {}
 
     HDINLINE
@@ -107,7 +107,6 @@ public:
 private:
     HDINLINE void checkValidity() const
     {
-        #pragma unroll
         for(int i = 0; i < dim; i++)
         {
             if(this->offset[i] < LowerExtent().toRT()[i] ||

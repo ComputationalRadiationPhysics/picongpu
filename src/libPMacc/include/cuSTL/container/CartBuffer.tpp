@@ -264,7 +264,7 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::originSafe() const
 {
     return cursor::make_SafeCursor(this->origin(),
                                    math::Int<T_dim>::create(0),
-                                   math::Int<T_dim>(size()));
+                                   math::Int<T_dim>(size()) - 1);
 }
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>

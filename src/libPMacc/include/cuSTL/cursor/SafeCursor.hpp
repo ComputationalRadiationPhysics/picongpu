@@ -40,8 +40,8 @@ public:
     BOOST_STATIC_CONSTEXPR int dim = PMacc::cursor::traits::dim<Cursor>::value;
 private:
     /* \todo: Use a zone instead of lowerExtent and UpperExtent */
-    const math::Int<dim> lowerExtent;
-    const math::Int<dim> upperExtent;
+    math::Int<dim> lowerExtent;
+    math::Int<dim> upperExtent;
     math::Int<dim> offset;
     bool enabled;
 public:
@@ -50,13 +50,14 @@ public:
      * \param lowerExtent Top left corner of valid range, inside the range.
      * \param upperExtent Bottom right corner of valid range, inside the range.
      */
+    template<typename LowerExtent, typename UpperExtent>
     HDINLINE SafeCursor(const Cursor& cursor,
-                        const math::Int<dim>& lowerExtent,
-                        const math::Int<dim>& upperExtent)
+                        const LowerExtent& lowerExtent,
+                        const UpperExtent& upperExtent)
         : Cursor(cursor),
           lowerExtent(lowerExtent),
           upperExtent(upperExtent),
-          offset(math::Int<dim>(0)),
+          offset(math::Int<dim>::create(0)),
           enabled(true)
     {}
 
@@ -127,7 +128,7 @@ private:
     HDINLINE void checkValidity() const
     {
         if(!this->enabled) return;
-        #pragma unroll
+
         for(int i = 0; i < dim; i++)
         {
             if(this->offset[i] < this->lowerExtent[i] ||
@@ -151,11 +152,11 @@ struct dim<SafeCursor<Cursor> >
 } // traits
 
 /* convenient function to construct a safe-cursor by passing its constructor arguments */
-template<typename Cursor>
+template<typename Cursor, typename LowerExtent, typename UpperExtent>
 HDINLINE SafeCursor<Cursor> make_SafeCursor(
     const Cursor& cursor,
-    const math::Int<traits::dim<SafeCursor<Cursor> >::value>& lowerExtent,
-    const math::Int<traits::dim<SafeCursor<Cursor> >::value>& upperExtent)
+    const LowerExtent& lowerExtent,
+    const UpperExtent& upperExtent)
 {
     return SafeCursor<Cursor>(cursor, lowerExtent, upperExtent);
 }

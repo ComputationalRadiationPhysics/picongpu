@@ -77,17 +77,17 @@ struct PhotonCreator
         1> CachedFieldB;
 
 private:
-    PMACC_ALIGN(cachedFieldE, CachedFieldE);
-    PMACC_ALIGN(cachedFieldB, CachedFieldB);
-    PMACC_ALIGN(curF_1, SynchrotronFunctions::SyncFuncCursor);
-    PMACC_ALIGN(curF_2, SynchrotronFunctions::SyncFuncCursor);
-
     /* random number generator for Monte Carlo */
     typedef ionization::RandomNrForMonteCarlo<T_ElectronSpecies> RandomGen;
-    /* \todo fix: cannot PMACC_ALIGN() because it seems to be too large */
-    RandomGen randomGen;
 
-    float3_X photon_mom;
+    /* \todo fix: cannot PMACC_ALIGN() because it seems to be too large */
+    //PMACC_ALIGN8(randomGen, RandomGen);
+    //PMACC_ALIGN(cachedFieldE, CachedFieldE);
+    PMACC_ALIGN(cachedFieldB, CachedFieldB);
+    //PMACC_ALIGN(curF_1, SynchrotronFunctions::SyncFuncCursor);
+    //PMACC_ALIGN(curF_2, SynchrotronFunctions::SyncFuncCursor);
+
+    //float3_X photon_mom;
 
     DINLINE float_X emission_prob(
         const float_X delta,
@@ -106,8 +106,8 @@ private:
             float_X(1.732050807) / (float_X(2.0) * PI) * chi/gamma * (float_X(1.0) - delta) / delta *
             (this->curF_1[z] + float_X(1.5) * delta * chi * z * this->curF_2[z]);*/
         // classical
-        return DELTA_T * charge*charge * mass*SPEED_OF_LIGHT / (float_X(4.0)*PI*EPS0 * HBAR*HBAR) *
-            float_X(1.732050807) / (float_X(2.0) * PI) * chi/gamma / delta * this->curF_1[z];
+        return 0;/*DELTA_T * charge*charge * mass*SPEED_OF_LIGHT / (float_X(4.0)*PI*EPS0 * HBAR*HBAR) *
+            float_X(1.732050807) / (float_X(2.0) * PI) * chi/gamma / delta * this->curF_1[z];*/
     }
 
     DINLINE float_X emission_prob_modified(
@@ -130,7 +130,7 @@ public:
         const SynchrotronFunctions::SyncFuncCursor& curF_1,
         const SynchrotronFunctions::SyncFuncCursor& curF_2,
         const uint32_t currentStep)
-            : cachedFieldE(fieldE), cachedFieldB(fieldB), curF_1(curF_1), curF_2(curF_2), randomGen(currentStep)
+            : /*cachedFieldE(fieldE), */cachedFieldB(fieldB)/*, curF_1(curF_1), curF_2(curF_2), randomGen(currentStep)*/
     {}
 
     /** Initialization function on device
@@ -142,12 +142,21 @@ public:
      * during loop execution. The reason for this is the `__syncthreads()` call which is necessary after
      * initializing the E-/B-field shared boxes in shared memory.
      */
-    DINLINE void init(const PMacc::math::Int<simDim>& blockCell, const int& linearThreadIdx, const PMacc::math::Int<simDim>& cellOffset)
+    DINLINE void init(const PMacc::math::Int<simDim>& blockCell, const int& linearThreadIdx, const PMacc::math::Int<simDim>& localCellIndex)
     {
-        this->cachedFieldE.init(blockCell, linearThreadIdx);
-        this->cachedFieldB.init(blockCell, linearThreadIdx);
         /* initialize random number generator with the local cell index in the simulation*/
-        this->randomGen.init(cellOffset);
+        //this->randomGen.init(localCellIndex);
+
+        //if(linearThreadIdx == 0)
+        //    printf("test1\n");
+
+        //this->cachedFieldE.init(blockCell, linearThreadIdx);
+        this->cachedFieldB.init(blockCell, linearThreadIdx);
+
+        //if(linearThreadIdx == 0)
+        //    printf("test2\n");
+
+        __syncthreads();
     }
 
     /** Return the number of target particles to be created from each source particle.
@@ -160,6 +169,7 @@ public:
      */
     DINLINE unsigned int numNewParticles(FrameType& sourceFrame, int localIdx)
     {
+        //printf("test3\n");
         using namespace PMacc::algorithms;
 
         PMACC_AUTO(particle, sourceFrame[localIdx]);
@@ -167,10 +177,15 @@ public:
         const PMacc::math::Int<simDim> localCell =
             PMacc::math::MapToPos<simDim>()(SuperCellSize(), particle[localCellIdx_]);
 
+        //printf("%d, %d, %d\n", localCell.x(), localCell.y(), localCell.z()); // <--- bis hier hin und nicht weiter
+
         /* get fields at the particles's position */
-        const ValueType_E fieldE = this->cachedFieldE(particle[position_], localCell);
+        //const ValueType_E fieldE = this->cachedFieldE(particle[position_], localCell);
         const ValueType_B fieldB = this->cachedFieldB(particle[position_], localCell);
 
+        if(localIdx == 0)
+            printf("%f\n", fieldB.z());
+/*
         const float3_X mom = particle[momentum_] / particle[weighting_];
         const float_X mom2 = math::dot(mom, mom);
         const float3_X mom_norm = mom * math::rsqrt(mom2);
@@ -204,8 +219,8 @@ public:
             //printf("E_S: %f, H_eff: %f, chi: %f, gamma: %f, delta: %f, p: %f\n", E_S, H_eff, chi, gamma, z*z*z, x);
 
             this->photon_mom = mom_norm * z*z*z * mass*c * gamma * particle[weighting_];
-            return 1;
-        }
+            return 0;
+        }*/
 
         return 0;
     }
@@ -220,12 +235,12 @@ public:
     template<typename Electron, typename Photon>
     DINLINE void operator()(Electron& electron, Photon& photon) const
     {
-        photon[multiMask_] = 1;
+        /*photon[multiMask_] = 1;
         photon[localCellIdx_] = electron[localCellIdx_];
         photon[position_] = electron[position_];
         photon[momentum_] = this->photon_mom;
         electron[momentum_] -= this->photon_mom;
-        photon[weighting_] = electron[weighting_];
+        photon[weighting_] = electron[weighting_];*/
     }
 };
 

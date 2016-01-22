@@ -50,7 +50,8 @@ void createParticles(SourceSpecies& sourceSpecies, TargetSpecies& targetSpecies,
     PMACC_AUTO(createParticlesKernel, make_CreateParticlesKernel(
         sourceSpecies.getDeviceParticlesBox(),
         targetSpecies.getDeviceParticlesBox(),
-        particleCreator));
+        particleCreator,
+        guardSuperCells));
 
     /* This zone represents the core+border area with guard offset in unit of cells */
     const zone::SphericZone<simDim> zone(

@@ -56,12 +56,18 @@ struct CreateParticlesKernel
     ParBoxSource sourceBox;
     ParBoxTarget targetBox;
     ParticleCreator particleCreator;
+    uint32_t guardSuperCells;
 
     CreateParticlesKernel(
         ParBoxSource sourceBox,
         ParBoxTarget targetBox,
-        ParticleCreator particleCreator) :
-            sourceBox(sourceBox), targetBox(targetBox), particleCreator(particleCreator) {}
+        ParticleCreator particleCreator,
+        const uint32_t guardSuperCells) :
+            sourceBox(sourceBox),
+            targetBox(targetBox),
+            particleCreator(particleCreator),
+            guardSuperCells(guardSuperCells)
+    {}
 
     DINLINE void operator()(const PMacc::math::Int<simDim>& cellIndex)
     {
@@ -108,8 +114,10 @@ struct CreateParticlesKernel
         if(!sourceFrame.isValid())
             return; //end kernel if we have no frames
 
+        const PMacc::math::Int<simDim> localCellIndex = cellIndex - this->guardSuperCells * SuperCellSize::toRT();
+
         /* caching of E- and B- fields and initialization of random generator if needed */
-        particleCreator.init(blockCell, linearThreadIdx, cellIndex);
+        particleCreator.init(blockCell, linearThreadIdx, localCellIndex);
 
         /* Declare counter in shared memory that will later tell the current fill level or
          * occupation of the newly created target target particle frames.
@@ -274,10 +282,11 @@ CreateParticlesKernel<ParBoxSource, ParBoxTarget, ParticleCreator>
 make_CreateParticlesKernel(
     ParBoxSource parBoxSource,
     ParBoxTarget parBoxTarget,
-    ParticleCreator particleCreator)
+    ParticleCreator particleCreator,
+    const uint32_t guardSuperCells)
 {
     return CreateParticlesKernel<ParBoxSource, ParBoxTarget, ParticleCreator>(
-        parBoxSource, parBoxTarget, particleCreator);
+        parBoxSource, parBoxTarget, particleCreator, guardSuperCells);
 }
 
 } // namespace creation

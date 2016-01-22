@@ -24,10 +24,13 @@
 
 #include "types.h"
 #include "math/Vector.hpp"
+#include "math/vector/compile-time/Int.hpp"
 #include "cuSTL/cursor/compile-time/BufferCursor.hpp"
 #include "cuSTL/cursor/navigator/CartNavigator.hpp"
 #include "cuSTL/cursor/accessor/PointerAccessor.hpp"
-#include <cuSTL/zone/compile-time/SphericZone.hpp>
+#include "cuSTL/zone/compile-time/SphericZone.hpp"
+#include "cuSTL/cursor/compile-time/SafeCursor.hpp"
+#include <boost/mpl/int.hpp>
 
 namespace PMacc
 {
@@ -47,6 +50,12 @@ public:
     typedef _Size Size;
     typedef typename Allocator::Pitch Pitch;
     typedef cursor::CT::BufferCursor<Type, Pitch> Cursor;
+
+    typedef typename PMacc::math::CT::make_Vector<Size::dim, boost::mpl::integral_c<int, 0> >::type ZeroVec;
+    typedef typename PMacc::math::CT::make_Vector<Size::dim, boost::mpl::integral_c<int,-1> >::type MinusOneVec;
+    typedef cursor::CT::SafeCursor<Cursor,
+                                   ZeroVec,
+                                   typename PMacc::math::CT::add<Size, MinusOneVec>::type> SafeCursor;
     BOOST_STATIC_CONSTEXPR int dim = Size::dim;
     typedef zone::CT::SphericZone<_Size, typename math::CT::make_Int<dim, 0>::type> Zone;
 private:
@@ -62,7 +71,8 @@ public:
     DINLINE void assign(const Type& value);
     DINLINE Type* getDataPointer() const {return dataPointer;}
 
-    DINLINE cursor::CT::BufferCursor<Type, Pitch> origin() const;
+    DINLINE Cursor origin() const;
+    DINLINE SafeCursor originSafe() const;
     /*
     HDINLINE Cursor<PointerAccessor<Type>, CartNavigator<dim>, char*>
     originCustomAxes(const math::UInt32<dim>& axes) const;
@@ -77,4 +87,3 @@ public:
 } // PMacc
 
 #include "CartBuffer.tpp"
-
