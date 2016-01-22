@@ -23,7 +23,7 @@
 #pragma once
 
 #include "types.h"
-#include "math.h"
+#include <cmath>
 
 
 namespace PMacc
