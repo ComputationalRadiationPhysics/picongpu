@@ -37,7 +37,7 @@
 #include "math/Vector.hpp"
 #include "types.h"
 
-#include <stdint.h>
+#include <boost/cstdint.hpp>
 
 namespace PMacc
 {

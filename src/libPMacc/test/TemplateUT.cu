@@ -21,7 +21,7 @@
  */
 
 // STL
-#include <stdint.h> /* uint8_t */
+#include <boost/cstdint.hpp> /* uint8_t */
 
 // BOOST
 #include <boost/test/unit_test.hpp>

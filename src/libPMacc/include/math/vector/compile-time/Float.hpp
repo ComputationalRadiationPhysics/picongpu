@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <boost/cstdint.hpp>
 #include <boost/mpl/void.hpp>
 #include "../../utils/FloatWrapper.hpp"
 

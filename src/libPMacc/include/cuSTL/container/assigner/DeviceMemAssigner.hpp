@@ -34,7 +34,7 @@
 #include <boost/mpl/placeholders.hpp>
 
 #include <cassert>
-#include <stdint.h>
+#include <boost/cstdint.hpp>
 
 namespace PMacc
 {

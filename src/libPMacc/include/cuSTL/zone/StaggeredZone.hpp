@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <boost/cstdint.hpp>
 #include "vector/Vector.hpp"
 #include "SphericZone.hpp"
 

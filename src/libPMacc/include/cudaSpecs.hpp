@@ -23,7 +23,7 @@
 #pragma once
 
 #include "math/vector/compile-time/Size_t.hpp"
-#include <stdint.h>
+#include <boost/cstdint.hpp>
 
 namespace PMacc
 {

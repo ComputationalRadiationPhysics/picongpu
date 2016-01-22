@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <boost/cstdint.hpp>
 #include "math/vector/Int.hpp"
 #include "math/vector/Size_t.hpp"
 

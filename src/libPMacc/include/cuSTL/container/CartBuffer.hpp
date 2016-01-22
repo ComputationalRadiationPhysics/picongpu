@@ -40,7 +40,7 @@
 #include <boost/mpl/placeholders.hpp>
 #include <boost/mpl/vector.hpp>
 
-#include <stdint.h>
+#include <boost/cstdint.hpp>
 
 namespace PMacc
 {

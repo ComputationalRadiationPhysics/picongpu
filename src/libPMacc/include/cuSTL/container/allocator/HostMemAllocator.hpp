@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <boost/cstdint.hpp>
 #include "math/vector/Size_t.hpp"
 #include "cuSTL/cursor/BufferCursor.hpp"
 #include "tag.h"

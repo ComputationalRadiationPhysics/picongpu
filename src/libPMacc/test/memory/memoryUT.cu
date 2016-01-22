@@ -21,7 +21,7 @@
  */
 
 // STL
-#include <stdint.h> /* uint8_t */
+#include <boost/cstdint.hpp> /* uint8_t */
 #include <iostream> /* cout, endl */
 #include <string>
 

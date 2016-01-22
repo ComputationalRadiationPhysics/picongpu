@@ -24,7 +24,7 @@
 
 #include "debug/VerboseLog.hpp"
 
-#include <stdint.h>
+#include <boost/cstdint.hpp>
 
 #ifndef PMACC_VERBOSE_LVL
 #define PMACC_VERBOSE_LVL 0
