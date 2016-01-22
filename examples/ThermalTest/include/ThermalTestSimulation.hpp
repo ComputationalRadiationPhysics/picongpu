@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau
+ * Copyright 2013-2016 Heiko Burau, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -38,7 +38,7 @@
 #include "mappings/kernel/MappingDescription.hpp"
 #include "ArgsParser.hpp"
 
-#include <assert.h>
+#include <cassert>
 
 #include "plugins/PluginController.hpp"
 
