@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Benjamin Schneider
+ * Copyright 2013-2016 Benjamin Schneider, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -27,16 +27,16 @@
 #include <sstream>
 #include <vector>
 
-#include <string.h>
+#include <cstring>
 #include <unistd.h>
-#include <errno.h>
+#include <cerrno>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
-#include <signal.h>
+#include <csignal>
 #include <ifaddrs.h>
 #include <pthread.h>
 
