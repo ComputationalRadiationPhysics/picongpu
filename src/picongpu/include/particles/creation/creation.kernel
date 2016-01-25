@@ -1,0 +1,299 @@
+/**
+ * Copyright 2015 Heiko Burau, Marco Garten
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+
+#include <iostream>
+
+#include "simulation_defines.hpp"
+#include "particles/Particles.hpp"
+#include "mappings/kernel/AreaMapping.hpp"
+#include "particles/ParticlesInit.kernel"
+#include "mappings/simulation/GridController.hpp"
+#include "simulationControl/MovingWindow.hpp"
+#include "traits/Resolve.hpp"
+#include "nvidia/atomic.hpp"
+
+#include "types.h"
+
+namespace picongpu
+{
+namespace particles
+{
+namespace creation
+{
+
+using namespace PMacc;
+
+/** kernelCreateParticles
+ * \brief main kernel for particle creation
+ *
+ * - maps the frame dimensions and gathers the particle boxes
+ * - contains / calls the Creator
+ *
+ * \tparam ParBoxSource container of the source species
+ * \tparam ParBoxTarget container of the target species
+ * \tparam Mapping class containing methods for acquiring info from the block
+ * \tparam ParticleCreator \see e.g. CreatorBase in CreatorBase.hpp
+ *         instance of the particle creation functor
+ */
+template<class ParBoxSource, class ParBoxTarget, class ParticleCreator, class Mapping>
+__global__ void kernelCreateParticles(ParBoxSource sourceBox,
+                                      ParBoxTarget targetBox,
+                                      ParticleCreator particleCreator,
+                                      Mapping mapper)
+{
+
+    /* "particle box" : container/iterator where the particles live in
+     * and where one can get the frame in a super cell from
+     */
+    typedef typename ParBoxSource::FrameType SOURCEFRAME;
+    typedef typename ParBoxTarget::FrameType TARGETFRAME;
+    typedef typename ParBoxSource::FramePtr SourceFramePtr;
+    typedef typename ParBoxTarget::FramePtr TargetFramePtr;
+
+    /* specify field to particle interpolation scheme */
+    typedef typename PMacc::traits::Resolve<
+        typename GetFlagType<SOURCEFRAME,interpolation<> >::type
+    >::type InterpolationScheme;
+
+    /* margins around the supercell for the interpolation of the field on the cells */
+    typedef typename GetMargin<InterpolationScheme>::LowerMargin LowerMargin;
+    typedef typename GetMargin<InterpolationScheme>::UpperMargin UpperMargin;
+
+    /* relevant area of a block */
+    typedef SuperCellDescription<
+        typename MappingDesc::SuperCellSize,
+        LowerMargin,
+        UpperMargin
+        > BlockDescription_;
+
+    /* for not mixing operations::assign up with the nvidia functor assign */
+    namespace partOp = PMacc::particles::operations;
+
+    /* definitions for domain variables, like indices of blocks and threads */
+    typedef typename BlockDescription_::SuperCellSize SuperCellSize;
+    /* multi-dimensional offset vector from local domain origin on GPU in units of super cells */
+    const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+
+    /* multi-dim vector from origin of the block to a cell in units of cells */
+    const DataSpace<simDim > threadIndex(threadIdx);
+    /* conversion from a multi-dim cell coordinate to a linear coordinate of the cell in its super cell */
+    const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
+
+    /* multi-dim offset from the origin of the local domain on GPU
+     * to the origin of the block of the in unit of cells
+     */
+    const DataSpace<simDim> blockCell = block * SuperCellSize::toRT();
+
+    /* subtract guarding cells to only have the simulation volume */
+    const DataSpace<simDim> localCellIndex = (block * SuperCellSize::toRT() + threadIndex) - mapper.getGuardingSuperCells() * SuperCellSize::toRT();
+
+    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<SourceFramePtr>::type sourceFrame;
+    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<TargetFramePtr>::type targetFrame;
+    __shared__ lcellId_t maxParticlesInFrame;
+
+    /* find last frame in super cell
+     * define maxParticlesInFrame as the maximum frame size
+     */
+    if (linearThreadIdx == 0)
+    {
+        sourceFrame = sourceBox.getLastFrame(block);
+        maxParticlesInFrame = PMacc::math::CT::volume<SuperCellSize>::type::value;
+    }
+
+    __syncthreads();
+    if (!sourceFrame.isValid())
+        return; //end kernel if we have no frames
+
+    /* caching of E- and B- fields and initialization of random generator if needed */
+    particleCreator.init(blockCell, linearThreadIdx, localCellIndex);
+
+    /* Declare counter in shared memory that will later tell the current fill level or
+     * occupation of the newly created target electron frames.
+     */
+    __shared__ int newFrameFillLvl;
+
+    /* Declare local variable oldFrameFillLvl for each thread */
+    int oldFrameFillLvl;
+
+    /* Initialize local (register) counter for each thread
+     * - describes how many new macro electrons should be created
+     */
+    unsigned int newMacroTarget = 0;
+
+    /* Declare local electron ID
+     * - describes at which position in the new frame the new electron is to be created
+     */
+    int targetParId;
+
+    /* Master initializes the frame fill level with 0 */
+    if (linearThreadIdx == 0)
+    {
+        newFrameFillLvl = 0;
+        targetFrame = NULL;
+    }
+    __syncthreads();
+
+    /* move over source species frames and call particleCreator
+     * frames are worked on in backwards order to avoid asking if there is another frame
+     * --> performance
+     * Because all frames are completely filled except the last and apart from that last frame
+     * one wants to make sure that all threads are working and every frame is worked on.
+     */
+    while (sourceFrame.isValid())
+    {
+        /* casting uint8_t multiMask to boolean */
+        const bool isParticle = sourceFrame[linearThreadIdx][multiMask_];
+        __syncthreads();
+
+        /* < IONIZATION and change of charge states >
+         * if the threads contain particles, the particleCreator can ionize them
+         * if they are non-particles their inner ionization counter remains at 0
+         */
+        if (isParticle)
+            /* ionization based on ionization model - this actually increases charge states*/
+            newMacroTarget = particleCreator.numNewParticles(*sourceFrame, linearThreadIdx);
+
+        __syncthreads();
+        /* always true while-loop over all particles inside source frame until each thread breaks out individually
+         *
+         * **Attention**: Speaking of 1st and 2nd frame only may seem odd.
+         * The question might arise what happens if more electrons are created than would fit into two frames.
+         * Well, multi-ionization during a time step is accounted for. The number of new electrons is
+         * determined inside the outer loop over the valid frames while in the inner loop each thread can create only ONE
+         * new macro electron. But the loop repeats until each thread has created all the electrons needed in the time step.
+         */
+        while (true)
+        {
+            /* < INIT >
+             * - targetParId is initialized as -1 (meaning: invalid)
+             * - (local) oldFrameFillLvl set equal to (shared) newFrameFillLvl for each thread
+             * --> each thread remembers the old "counter"
+             * - then sync
+             */
+            targetParId = -1;
+            oldFrameFillLvl = newFrameFillLvl;
+            __syncthreads();
+            /* < CHECK & ADD >
+             * - if a thread wants to create electrons in each cycle it can do that only once
+             * and before that it atomically adds to the shared counter and uses the current
+             * value as targetParId in the new frame
+             * - then sync
+             */
+            if (newMacroTarget > 0)
+                targetParId = nvidia::atomicAllInc(&newFrameFillLvl);
+
+            __syncthreads();
+            /* < EXIT? >
+             * - if the counter hasn't changed all threads break out of the loop */
+            if (oldFrameFillLvl == newFrameFillLvl)
+                break;
+
+            __syncthreads();
+            /* < FIRST NEW FRAME >
+             * - if there is no frame, yet, the master will create a new target electron frame
+             * and attach it to the back of the frame list
+             * - sync all threads again for them to know which frame to use
+             */
+            if (linearThreadIdx == 0)
+            {
+                if (!targetFrame.isValid())
+                {
+                    targetFrame = targetBox.getEmptyFrame();
+                    targetBox.setAsLastFrame(targetFrame, block);
+                }
+            }
+            __syncthreads();
+            /* < CREATE 1 >
+             * - all electrons fitting into the current frame are created there
+             * - internal ionization counter is decremented by 1
+             * - sync
+             */
+            if ((0 <= targetParId) && (targetParId < maxParticlesInFrame))
+            {
+                /* each thread makes the attributes of its ion accessible */
+                PMACC_AUTO(sourceParticle,(sourceFrame[linearThreadIdx]));
+                /* each thread initializes an electron if one should be created */
+                PMACC_AUTO(targetParticle,(targetFrame[targetParId]));
+
+                /* create an electron in the new electron frame:
+                 * - see particles/ionization/ionizationMethods.hpp
+                 */
+                particleCreator(sourceParticle, targetParticle);
+
+                newMacroTarget -= 1;
+            }
+            __syncthreads();
+            /* < SECOND NEW FRAME >
+             * - if the shared counter is larger than the frame size a new electron frame is reserved
+             * and attached to the back of the frame list
+             * - then the shared counter is set back by one frame size
+             * - sync so that every thread knows about the new frame
+             */
+            if (linearThreadIdx == 0)
+            {
+                if (newFrameFillLvl >= maxParticlesInFrame)
+                {
+                    targetFrame = targetBox.getEmptyFrame();
+                    targetBox.setAsLastFrame(targetFrame, block);
+                    newFrameFillLvl -= maxParticlesInFrame;
+                }
+            }
+            __syncthreads();
+            /* < CREATE 2 >
+             * - if the EID is larger than the frame size
+             *      - the EID is set back by one frame size
+             *      - the thread writes an electron to the new frame
+             *      - the internal counter is decremented by 1
+             */
+            if (targetParId >= maxParticlesInFrame)
+            {
+                targetParId -= maxParticlesInFrame;
+
+                /* each thread makes the attributes of its ion accessible */
+                PMACC_AUTO(sourceParticle,(sourceFrame[linearThreadIdx]));
+                /* each thread initializes an electron if one should be created */
+                PMACC_AUTO(targetParticle,(targetFrame[targetParId]));
+
+                /* create an electron in the new electron frame:
+                 * - see particles/ionization/ionizationMethods.hpp
+                 */
+                particleCreator(sourceParticle, targetParticle);
+
+                newMacroTarget -= 1;
+            }
+            __syncthreads();
+        }
+        __syncthreads();
+
+        if (linearThreadIdx == 0)
+        {
+            sourceFrame = sourceBox.getPreviousFrame(sourceFrame);
+            maxParticlesInFrame = PMacc::math::CT::volume<SuperCellSize>::type::value;
+        }
+        __syncthreads();
+    }
+} // void kernelCreateParticles
+
+} // namespace creation
+} // namespace particles
+} // namespace picongpu
