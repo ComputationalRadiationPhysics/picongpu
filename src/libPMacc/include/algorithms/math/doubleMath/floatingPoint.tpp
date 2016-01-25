@@ -25,7 +25,7 @@
 #pragma once
 
 #include "types.h"
-#include "math.h"
+#include <cmath>
 #include <limits>
 
 namespace PMacc

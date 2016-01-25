@@ -24,8 +24,8 @@
 #pragma once
 
 #include "types.h"
-#include <float.h>
-#include "math.h"
+#include <cfloat>
+#include <cmath>
 
 
 namespace PMacc

@@ -24,7 +24,7 @@
 #pragma once
 
 #include "types.h"
-#include <math.h> /*provide host version of pow*/
+#include <cmath>
 
 namespace PMacc
 {
