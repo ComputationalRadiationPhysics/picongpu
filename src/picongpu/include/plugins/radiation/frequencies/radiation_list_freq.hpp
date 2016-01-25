@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013-2016 Heiko Burau, Rene Widera, Richard Pausch, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -25,7 +25,7 @@
 #include "types.h"
 #include "simulation_defines.hpp"
 #include <fstream>
-#include <stdio.h>
+#include <cstdio>
 #include "memory/buffers/GridBuffer.hpp"
 
 #if (ENABLE_RADIATION == 1)
