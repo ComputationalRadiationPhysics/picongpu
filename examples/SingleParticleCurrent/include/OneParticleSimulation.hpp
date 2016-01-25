@@ -43,7 +43,7 @@
 #include "nvidia/memory/MemoryInfo.hpp"
 #include "mappings/kernel/MappingDescription.hpp"
 
-#include <assert.h>
+#include <cassert>
 
 #include "plugins/PluginController.hpp"
 
