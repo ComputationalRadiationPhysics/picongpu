@@ -56,7 +56,7 @@ public:
     typedef _Marker Marker;
     typedef Cursor<Accessor, Navigator, Marker> This;
     typedef This result_type;
-protected:
+public:
     Marker marker;
 public:
     HDINLINE

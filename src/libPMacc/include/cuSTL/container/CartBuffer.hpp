@@ -74,6 +74,7 @@ public:
     typedef Type type;
     BOOST_STATIC_CONSTEXPR int dim = T_dim;
     typedef cursor::BufferCursor<Type, T_dim> Cursor;
+    typedef cursor::SafeCursor<Cursor> SafeCursor;
     typedef typename Allocator::tag memoryTag;
     typedef math::Size_t<T_dim> SizeType;
     typedef math::Size_t<T_dim-1> PitchType;

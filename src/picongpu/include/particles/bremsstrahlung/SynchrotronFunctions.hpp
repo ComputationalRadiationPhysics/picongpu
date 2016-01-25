@@ -20,18 +20,20 @@
 
 #pragma once
 
-#include "types.h"
+#include "simulation_defines.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
 #include "cuSTL/cursor/Cursor.hpp"
 #include "cuSTL/cursor/navigator/PlusNavigator.hpp"
 #include "cuSTL/cursor/tools/LinearInterp1D.hpp"
 #include "cuSTL/cursor/BufferCursor.hpp"
-#include "simulation_defines.hpp"
+#include "types.h"
 #include <boost/shared_ptr.hpp>
 #include <boost/array.hpp>
 #include <boost/numeric/odeint/integrate/integrate.hpp>
 #include <boost/math/tr1.hpp> /* cyl_bessel_k */
+
+#include "simulation_defines/unitless/bremsstrahlung.unitless"
 
 namespace picongpu
 {

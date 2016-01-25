@@ -44,6 +44,11 @@ namespace picongpu
         /** unit: C */
         BOOST_CONSTEXPR_OR_CONST float_64 ELECTRON_CHARGE_SI = -1.602176e-19;
 
+        /** reduced Planck constant
+         * unit: J * s
+         */
+        BOOST_CONSTEXPR_OR_CONST float_64 HBAR_SI = 1.054571800e-34;
+
         /* atomic unit for energy:
          * 1 Rydberg = 27.21 eV --> converted to Joule
          */

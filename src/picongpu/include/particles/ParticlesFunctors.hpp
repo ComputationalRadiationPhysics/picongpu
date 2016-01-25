@@ -32,6 +32,9 @@
 #include "communication/AsyncCommunication.hpp"
 #include "particles/traits/GetIonizer.hpp"
 #include "particles/traits/FilterByFlag.hpp"
+#include "particles/creation/creation.hpp"
+#include "particles/traits/GetPhotonCreator.hpp"
+#include "particles/bremsstrahlung/SynchrotronFunctions.hpp"
 
 namespace picongpu
 {
@@ -317,6 +320,65 @@ struct CallIonization
 
 }; // struct CallIonization
 
-} //namespace particles
+/** Handles the bremsstrahlung effect for electrons.
+ *
+ * \tparam T_SpeciesName name of electron species
+ */
+template<typename T_SpeciesName>
+struct CallBremsstrahlung
+{
+    typedef T_SpeciesName SpeciesName;
+    typedef typename SpeciesName::type SpeciesType;
+    typedef typename SpeciesType::FrameType FrameType;
+    /* SelectedPhotonCreator will be either PhotonCreator or fallback: CreatorBase */
+    typedef typename GetPhotonCreator<SpeciesType>::type SelectedPhotonCreator;
 
-} //namespace picongpu
+    /** Functor implementation
+     *
+     * \tparam T_StorageStuple contains info about the particle species
+     * \tparam T_CellDescription contains the number of blocks and blocksize
+     *                           that is later passed to the kernel
+     * \param tuple An n-tuple containing the type-info of multiple particle species
+     * \param cellDesc points to logical block information like dimension and cell sizes
+     * \param currentStep The current time step
+     */
+    template<typename T_StorageTuple, typename T_CellDescription>
+    HINLINE void operator()(
+                            T_StorageTuple& tuple,
+                            T_CellDescription* cellDesc,
+                            const uint32_t currentStep,
+                            const bremsstrahlung::SynchrotronFunctions& synchrotronFunctions) const
+    {
+        typedef typename SelectedPhotonCreator::PhotonSpecies PhotonSpecies;
+
+        /* get E- and B-field */
+        DataConnector &dc = Environment<>::get().DataConnector();
+        BOOST_AUTO(fieldE,
+                 dc.getData<FieldE>(FieldE::getName(), true).getGridBuffer().
+                 getDeviceBuffer().cartBuffer());
+        BOOST_AUTO(fieldB,
+                 dc.getData<FieldB>(FieldB::getName(), true).getGridBuffer().
+                 getDeviceBuffer().cartBuffer());
+
+        /* alias for pointer on source species */
+        PMACC_AUTO(electronSpeciesPtr, tuple[SpeciesName()]);
+        /* alias for pointer on destination species */
+        PMACC_AUTO(photonSpeciesPtr,  tuple[typename MakeIdentifier<PhotonSpecies>::type()]);
+
+        using namespace bremsstrahlung;
+
+        SelectedPhotonCreator photonCreator(
+            fieldE,
+            fieldB,
+            synchrotronFunctions.getCursor(SynchrotronFunctions::first),
+            synchrotronFunctions.getCursor(SynchrotronFunctions::second),
+            currentStep);
+
+        creation::createParticles(*electronSpeciesPtr, *photonSpeciesPtr, photonCreator, cellDesc);
+    }
+
+}; // struct CallBremsstrahlung
+
+} // namespace particles
+
+} // namespace picongpu

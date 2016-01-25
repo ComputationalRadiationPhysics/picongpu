@@ -46,7 +46,8 @@ __global__ void kernelForeach(Mapper mapper, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c
 { \
     math::Int<Mapper::dim> cellIndex(mapper(blockIdx, threadIdx)); \
 /*          forward(c0[cellIndex]), ..., forward(cN[cellIndex])     */ \
-    functor(BOOST_PP_ENUM(N, SHIFTACCESS_CURSOR, _)); \
+    PMACC_AUTO(functor2, functor); \
+    functor2(BOOST_PP_ENUM(N, SHIFTACCESS_CURSOR, _)); \
 }
 
 BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(FOREACH_KERNEL_MAX_PARAMS), KERNEL_FOREACH, _)
