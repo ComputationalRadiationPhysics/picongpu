@@ -216,10 +216,9 @@ namespace PMacc
             return *deviceDoubleBuffer;
         }
 
-        EventTask startSend(EventTask &copyEvent)
+        EventTask startSend()
         {
-            //assert(recvTask != NULL);
-            return Environment<>::get().Factory().createTaskSend(*this, copyEvent);
+            return Environment<>::get().Factory().createTaskSend(*this);
         }
 
         EventTask startReceive()

@@ -504,22 +504,18 @@ public:
 
             ExchangeType sendEx = Mask::getMirroredExchangeType(i);
 
-            EventTask copyEvent;
-            asyncSend(serialEvent, sendEx, copyEvent);
-            /* add only the copy event, because all work on gpu can run after data is copied */
-            evR += copyEvent;
+            evR += asyncSend(serialEvent, sendEx);
 
         }
         return evR;
     }
 
-    EventTask asyncSend(EventTask serialEvent, uint32_t sendEx, EventTask &gpuFree)
+    EventTask asyncSend(EventTask serialEvent, uint32_t sendEx)
     {
         if (hasSendExchange(sendEx))
         {
             __startTransaction(serialEvent + sendEvents[sendEx]);
-            sendEvents[sendEx] = sendExchanges[sendEx]->startSend(gpuFree);
-            gpuFree = sendEvents[sendEx];
+            sendEvents[sendEx] = sendExchanges[sendEx]->startSend();
             __endTransaction();
             return sendEvents[sendEx];
         }

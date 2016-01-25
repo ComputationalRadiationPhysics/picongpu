@@ -275,14 +275,14 @@ public:
                exchangeMemoryIndexer->asyncCommunication(serialEvent);
     }
 
-    EventTask asyncSendParticles(EventTask serialEvent, uint32_t ex, EventTask &gpuFree)
+    EventTask asyncSendParticles(EventTask serialEvent, uint32_t ex)
     {
-        /*store every gpu free event seperat to avoid raceconditions*/
+        /* store each gpu-free event separately to avoid race conditions */
         EventTask framesExchangesGPUEvent;
         EventTask exchangeMemoryIndexerGPUEvent;
-        EventTask returnEvent = framesExchanges->asyncSend(serialEvent, ex, framesExchangesGPUEvent) +
-            exchangeMemoryIndexer->asyncSend(serialEvent, ex, exchangeMemoryIndexerGPUEvent);
-        gpuFree = returnEvent;
+        EventTask returnEvent = framesExchanges->asyncSend(serialEvent, ex) +
+            exchangeMemoryIndexer->asyncSend(serialEvent, ex);
+
         return returnEvent;
     }
 
