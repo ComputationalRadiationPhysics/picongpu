@@ -30,9 +30,9 @@ namespace CT
 {
 
 template<typename Type, typename _Size, typename Allocator, typename Copier, typename Assigner>
-DINLINE CartBuffer<Type, _Size, Allocator, Copier, Assigner>::CartBuffer()
+HDINLINE CartBuffer<Type, _Size, Allocator, Copier, Assigner>::CartBuffer()
 {
-    this->dataPointer = Allocator::allocate().getMarker();
+    this->allocate();
 }
 
 template<typename Type, typename _Size, typename Allocator, typename Copier, typename Assigner>
@@ -40,7 +40,7 @@ DINLINE
 cursor::CT::BufferCursor<Type, typename Allocator::Pitch>
 CartBuffer<Type, _Size, Allocator, Copier, Assigner>::origin() const
 {
-    return cursor::CT::BufferCursor<Type, Pitch>(this->dataPointer);
+    return this->cursor;
 }
 
 } // CT
