@@ -1,0 +1,307 @@
+/**
+ * Copyright 2015-2016 Heiko Burau, Macro Garten
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "simulation_defines.hpp"
+#include "particles/Particles.hpp"
+#include "mappings/kernel/AreaMapping.hpp"
+#include "particles/ParticlesInit.kernel"
+#include "mappings/simulation/GridController.hpp"
+#include "simulationControl/MovingWindow.hpp"
+#include "traits/Resolve.hpp"
+#include "math/vector/Int.hpp"
+#include "nvidia/atomic.hpp"
+#include <iostream>
+
+namespace picongpu
+{
+namespace particles
+{
+namespace creation
+{
+
+using namespace PMacc;
+
+/** Functor with main kernel for particle creation
+ *
+ * \tparam T_ParBoxSource container of the source species
+ * \tparam T_ParBoxTarget container of the target species
+ * \tparam T_ParticleCreator type of the particle creation functor
+ *
+ * - maps the frame dimensions and gathers the particle boxes
+ * - contains / calls the Creator
+ */
+template<class T_ParBoxSource, class T_ParBoxTarget, class T_ParticleCreator>
+struct CreateParticlesKernel
+{
+    typedef T_ParBoxSource ParBoxSource;
+    typedef T_ParBoxTarget ParBoxTarget;
+    typedef T_ParticleCreator ParticleCreator;
+
+    ParBoxSource sourceBox;
+    ParBoxTarget targetBox;
+    ParticleCreator particleCreator;
+    uint32_t guardSuperCells;
+
+    CreateParticlesKernel(
+        ParBoxSource sourceBox,
+        ParBoxTarget targetBox,
+        ParticleCreator particleCreator,
+        const uint32_t guardSuperCells) :
+            sourceBox(sourceBox),
+            targetBox(targetBox),
+            particleCreator(particleCreator),
+            guardSuperCells(guardSuperCells)
+    {}
+
+    /** Goes over all frames and calls `ParticleCreator`
+     *
+     * @param cellIndex n-dim. cell index from the origin of the local domain
+     */
+    DINLINE void operator()(const PMacc::math::Int<simDim>& cellIndex)
+    {
+        /* definitions for domain variables, like indices of blocks and threads */
+        typedef typename MappingDesc::SuperCellSize SuperCellSize;
+
+        /* multi-dimensional offset vector from local domain origin on GPU in units of super cells */
+        const PMacc::math::Int<simDim> block = cellIndex / SuperCellSize::toRT();
+
+        /* multi-dim offset from the origin of the local domain on GPU
+         * to the origin of the block of the in unit of cells
+         */
+        const PMacc::math::Int<simDim> blockCell = block * SuperCellSize::toRT();
+
+        /* multi-dim vector from origin of the block to a cell in units of cells */
+        const PMacc::math::Int<simDim> threadIndex = cellIndex % SuperCellSize::toRT();
+
+        /* conversion from a multi-dim cell coordinate to a linear coordinate of the cell in its super cell */
+        const int linearThreadIdx = PMacc::math::linearize(
+            PMacc::math::CT::shrinkTo<SuperCellSize, simDim-1>::type::toRT(),
+            threadIndex);
+
+        /* "particle box" : container/iterator where the particles live in
+         * and where one can get the frame in a super cell from
+         */
+        typedef typename ParBoxSource::FramePtr SourceFramePtr;
+        typedef typename ParBoxTarget::FramePtr TargetFramePtr;
+
+        /* for not mixing operations::assign up with the nvidia functor assign */
+        namespace partOp = PMacc::particles::operations;
+
+        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<SourceFramePtr>::type sourceFrame;
+        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<TargetFramePtr>::type targetFrame;
+        const lcellId_t maxParticlesInFrame = PMacc::math::CT::volume<SuperCellSize>::type::value;
+
+        /* find last frame in super cell
+         */
+        if (linearThreadIdx == 0)
+        {
+            sourceFrame = sourceBox.getLastFrame(block);
+        }
+
+        __syncthreads();
+        if (!sourceFrame.isValid())
+            return; // end method if we have no frames
+
+        const PMacc::math::Int<simDim> localCellIndex = cellIndex - this->guardSuperCells * SuperCellSize::toRT();
+
+        /* init particle creator functor     */
+        particleCreator.init(blockCell, linearThreadIdx, localCellIndex);
+
+        /* Declare counter in shared memory that will later tell the current fill level or
+         * occupation of the newly created target frames.
+         */
+        __shared__ int newFrameFillLvl;
+
+        /* Declare local variable oldFrameFillLvl for each thread */
+        int oldFrameFillLvl;
+
+        /* Initialize local (register) counter for each thread
+         * - describes how many new macro target particles should be created
+         */
+        unsigned int numNewParticles = 0;
+
+        /* Declare local target particle ID
+         * - describes at which position in the new frame the new target particle is to be created
+         */
+        int targetParId;
+
+        /* Master initializes the frame fill level with 0 */
+        if (linearThreadIdx == 0)
+        {
+            newFrameFillLvl = 0;
+            targetFrame = NULL;
+        }
+        __syncthreads();
+
+        /* move over source species frames and call particleCreator
+         * frames are worked on in backwards order to avoid asking if there is another frame
+         * --> performance
+         * Because all frames are completely filled except the last and apart from that last frame
+         * one wants to make sure that all threads are working and every frame is worked on.
+         */
+        while (sourceFrame.isValid())
+        {
+            /* casting uint8_t multiMask to boolean */
+            const bool isParticle = sourceFrame[linearThreadIdx][multiMask_];
+
+            if (isParticle)
+                /* ask the particle creator functor how many new particles to create. */
+                numNewParticles = particleCreator.numNewParticles(*sourceFrame, linearThreadIdx);
+
+            __syncthreads();
+            /* always true while-loop over all particles inside source frame until each thread breaks out individually
+             *
+             * **Attention**: Speaking of 1st and 2nd frame only may seem odd.
+             * The question might arise what happens if more target particles are created than would fit into two frames.
+             * Well, multi-particle creation during a time step is accounted for. The number of new target particles is
+             * determined inside the outer loop over the valid frames while in the inner loop each thread can create only ONE
+             * new macro target particle. But the loop repeats until each thread has created all the target particles needed in the time step.
+             */
+            while (true)
+            {
+                /* < INIT >
+                 * - targetParId is initialized as -1 (meaning: invalid)
+                 * - (local) oldFrameFillLvl set equal to (shared) newFrameFillLvl for each thread
+                 * --> each thread remembers the old "counter"
+                 * - then sync
+                 */
+                targetParId = -1;
+                oldFrameFillLvl = newFrameFillLvl;
+                __syncthreads();
+                /* < CHECK & ADD >
+                 * - if a thread wants to create target particles in each cycle it can do that only once
+                 * and before that it atomically adds to the shared counter and uses the current
+                 * value as targetParId in the new frame
+                 * - then sync
+                 */
+                if (numNewParticles > 0)
+                    targetParId = nvidia::atomicAllInc(&newFrameFillLvl);
+
+                __syncthreads();
+                /* < EXIT? >
+                 * - if the counter hasn't changed all threads break out of the loop */
+                if (oldFrameFillLvl == newFrameFillLvl)
+                    break;
+
+                __syncthreads();
+                /* < FIRST NEW FRAME >
+                 * - if there is no frame, yet, the master will create a new target particle frame
+                 * and attach it to the back of the frame list
+                 * - sync all threads again for them to know which frame to use
+                 */
+                if (linearThreadIdx == 0)
+                {
+                    if (!targetFrame.isValid())
+                    {
+                        targetFrame = targetBox.getEmptyFrame();
+                        targetBox.setAsLastFrame(targetFrame, block);
+                    }
+                }
+                __syncthreads();
+                /* < CREATE 1 >
+                 * - all target particles fitting into the current frame are created there
+                 * - internal particle creation counter is decremented by 1
+                 * - sync
+                 */
+                if ((0 <= targetParId) && (targetParId < maxParticlesInFrame))
+                {
+                    /* each thread makes the attributes of its source particle accessible */
+                    PMACC_AUTO(sourceParticle,(sourceFrame[linearThreadIdx]));
+                    /* each thread initializes an target particle if one should be created */
+                    PMACC_AUTO(targetParticle,(targetFrame[targetParId]));
+
+                    /* create an target particle in the new target particle frame: */
+                    particleCreator(sourceParticle, targetParticle);
+
+                    numNewParticles -= 1;
+                }
+                __syncthreads();
+                /* < SECOND NEW FRAME >
+                 * - if the shared counter is larger than the frame size a new target particle frame is reserved
+                 * and attached to the back of the frame list
+                 * - then the shared counter is set back by one frame size
+                 * - sync so that every thread knows about the new frame
+                 */
+                if (linearThreadIdx == 0)
+                {
+                    if (newFrameFillLvl >= maxParticlesInFrame)
+                    {
+                        targetFrame = targetBox.getEmptyFrame();
+                        targetBox.setAsLastFrame(targetFrame, block);
+                        newFrameFillLvl -= maxParticlesInFrame;
+                    }
+                }
+                __syncthreads();
+                /* < CREATE 2 >
+                 * - the thread writes an target particle to the new frame
+                 * - the internal counter is decremented by 1
+                 */
+                if (targetParId >= maxParticlesInFrame)
+                {
+                    targetParId -= maxParticlesInFrame;
+
+                    /* each thread makes the attributes of its source particle accessible */
+                    PMACC_AUTO(sourceParticle,(sourceFrame[linearThreadIdx]));
+                    /* each thread initializes an target particle if one should be created */
+                    PMACC_AUTO(targetParticle,(targetFrame[targetParId]));
+
+                    /* create an target particle in the new target particle frame: */
+                    particleCreator(sourceParticle, targetParticle);
+
+                    numNewParticles -= 1;
+                }
+                __syncthreads();
+            }
+            __syncthreads();
+
+            if (linearThreadIdx == 0)
+            {
+                sourceFrame = sourceBox.getPreviousFrame(sourceFrame);
+            }
+            __syncthreads();
+        }
+    }
+};
+
+/** Convenient function to create a `CreateParticlesKernel` instance
+ *
+ * @param parBoxSource particle box of the source species
+ * @param parBoxTarget particle box of the target species
+ * @param particleCreator particle creation functor
+ * @param guardSuperCells number of guard cells
+ * @return new `CreateParticlesKernel` instance
+ */
+template<class ParBoxSource, class ParBoxTarget, class ParticleCreator>
+CreateParticlesKernel<ParBoxSource, ParBoxTarget, ParticleCreator>
+make_CreateParticlesKernel(
+    ParBoxSource parBoxSource,
+    ParBoxTarget parBoxTarget,
+    ParticleCreator particleCreator,
+    const uint32_t guardSuperCells)
+{
+    return CreateParticlesKernel<ParBoxSource, ParBoxTarget, ParticleCreator>(
+        parBoxSource, parBoxTarget, particleCreator, guardSuperCells);
+}
+
+} // namespace creation
+} // namespace particles
+} // namespace picongpu
