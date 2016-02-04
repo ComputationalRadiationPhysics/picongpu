@@ -57,6 +57,17 @@ struct Cos<double>
 };
 
 template<>
+struct ACos<double>
+{
+    typedef double result;
+
+    HDINLINE double operator( )(const double& value)
+    {
+        return ::acos( value );
+    }
+};
+
+template<>
 struct Tan<double>
 {
     typedef double result;

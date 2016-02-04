@@ -58,6 +58,21 @@ struct Cos<float>
 };
 
 template<>
+struct ACos<float>
+{
+    typedef float result;
+
+    HDINLINE float operator( )(const float& value)
+    {
+#if __CUDA_ARCH__
+        return ::acosf( value );
+#else
+        return ::acos( value );
+#endif
+    }
+};
+
+template<>
 struct Tan<float>
 {
     typedef float result;
