@@ -1,0 +1,50 @@
+/**
+ * Copyright 2016 Heiko Burau
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+namespace picongpu
+{
+namespace particleCalorimeter
+{
+
+/** Map yaw and pitch into [0,1] respectively. These ranges correspond to
+ * the normalized histogram range of the calorimeter (0: first bin, 1: last bin).
+ * Out-of-range values are mapped to the first or the last bin.
+ *
+ * Useful for fine tuning the spatial calorimeter resolution.
+ *
+ * \param yaw -maxYaw...maxYaw
+ * \param pitch -maxPitch...maxPitch
+ * \param maxYaw maximum value of angle yaw
+ * \param maxPitch maximum value of angle pitch
+ * \return Two values within [-1,1]
+ */
+HDINLINE float2_X mapYawPitchToNormedRange(const float_X yaw,
+                                           const float_X pitch,
+                                           const float_X maxYaw,
+                                           const float_X maxPitch)
+{
+    return float2_X(float_X(0.5) + float_X(0.5) * yaw / maxYaw,
+                    float_X(0.5) + float_X(0.5) * pitch / maxPitch);
+}
+
+} // namespace particleCalorimeter
+} // namespace picongpu
