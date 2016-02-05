@@ -124,12 +124,17 @@ public:
         return *this;
     }
 
-    HDINLINE DeviceBuffer& operator=(const Base& rhs)
+    HINLINE DeviceBuffer& operator=(const Base& rhs)
     {
         Base::operator=(rhs);
         return *this;
     }
 
+    HINLINE DeviceBuffer& operator=(const boost::rv<DeviceBuffer>& rhs)
+    {
+        Base::operator=(rhs);
+        return *this;
+    }
 };
 
 } // container
