@@ -36,17 +36,21 @@ source $PROJWORK/$proj/python-venv/rhea/bin/activate
 #
 # now run for setting up the python virtual environment
 #   mkdir -p $PROJWORK/$proj/python-venv
-#   cd $PROJWORK/$proj
+#   cd $PROJWORK/$proj/python-venv
 #   virtualenv rhea
 #   source $PROJWORK/$proj/python-venv/rhea/bin/activate
 #   which pip
 #
 #   pip install --upgrade pip
 #   pip install --upgrade wheel
+#   pip install --upgrade numpy
 #
 #   pip install adios
 #   pip install six
 #   pip install matplotlib
+#     # might need an backend change (to `Agg`) in
+#     #   $PROJWORK/$proj/python-venv/rhea/lib/python2.7/site-packages/matplotlib/mpl-data/matplotlibrc
+#   pip install mpld3
 #   pip install "ipython[all]"
 #   pip install mpi4py
 #   pip install h5py
