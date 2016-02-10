@@ -25,7 +25,7 @@
 
 #include <set>
 
-#include "types.h"
+#include "pmacc_types.hpp"
 
 namespace PMacc
 {

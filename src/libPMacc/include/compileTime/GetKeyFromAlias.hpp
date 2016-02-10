@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "compileTime/conversion/SeqToMap.hpp"
 #include "compileTime/conversion/TypeToAliasPair.hpp"
 #include "compileTime/conversion/TypeToPair.hpp"

@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 
 #include "algorithms/math/defines/abs.hpp"
 #include "algorithms/math/defines/sqrt.hpp"

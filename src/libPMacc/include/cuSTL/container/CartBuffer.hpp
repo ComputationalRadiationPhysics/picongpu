@@ -31,7 +31,7 @@
 #include "cuSTL/container/view/View.hpp"
 #include "math/vector/Size_t.hpp"
 #include "math/vector/UInt32.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 
 #include <boost/mpl/void.hpp>
 #include <boost/mpl/int.hpp>

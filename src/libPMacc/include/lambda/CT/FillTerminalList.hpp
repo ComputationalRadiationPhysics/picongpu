@@ -24,7 +24,7 @@
 
 #include "../Expression.hpp"
 #include "Expression.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 
 namespace PMacc
 {

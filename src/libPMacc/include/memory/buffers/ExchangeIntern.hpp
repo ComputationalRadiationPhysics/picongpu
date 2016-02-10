@@ -32,7 +32,7 @@
 #include "eventSystem/tasks/Factory.hpp"
 #include "eventSystem/tasks/TaskReceive.hpp"
 
-#include "types.h"
+#include "pmacc_types.hpp"
 
 #include <cassert>
 

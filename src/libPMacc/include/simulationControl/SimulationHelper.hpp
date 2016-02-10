@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 
 #include "mappings/simulation/GridController.hpp"
 #include "dimensions/DataSpace.hpp"

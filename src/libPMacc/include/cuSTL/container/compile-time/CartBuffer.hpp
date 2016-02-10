@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "math/Vector.hpp"
 #include "cuSTL/cursor/compile-time/BufferCursor.hpp"
 #include "cuSTL/cursor/navigator/CartNavigator.hpp"

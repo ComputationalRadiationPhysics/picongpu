@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 
 //define which index means that the index is invalid
 #define INV_IDX 0xFFFFFFFF

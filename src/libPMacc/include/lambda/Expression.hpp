@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "ExprTypes.h"
 #include "placeholder.h"
 #include "is_Expression.hpp"

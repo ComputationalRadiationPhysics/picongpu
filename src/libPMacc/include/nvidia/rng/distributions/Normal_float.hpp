@@ -24,7 +24,7 @@
 #pragma once
 
 #include <curand_kernel.h>
-#include "types.h"
+#include "pmacc_types.hpp"
 
 namespace PMacc
 {

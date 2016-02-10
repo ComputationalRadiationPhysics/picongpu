@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "algorithms/TypeCast.hpp"
 #include "math/vector/Int.hpp"
 #include "math/Vector.hpp"

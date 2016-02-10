@@ -23,7 +23,7 @@
 #pragma once
 
 #include "particles/memory/buffers/MallocMCBuffer.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "Environment.hpp"
 #include "eventSystem/EventSystem.hpp"
 

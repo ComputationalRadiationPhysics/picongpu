@@ -25,7 +25,7 @@
 #pragma once
 
 #include "eventSystem/streams/EventStream.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "Environment.def"
 
 #include <cuda_runtime.h>

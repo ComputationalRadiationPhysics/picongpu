@@ -25,7 +25,7 @@
 #include "dimensions/DataSpace.hpp"
 #include "eventSystem/EventSystem.hpp"
 #include "ppFunctions.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 
 #include <boost/preprocessor/control/if.hpp>
 

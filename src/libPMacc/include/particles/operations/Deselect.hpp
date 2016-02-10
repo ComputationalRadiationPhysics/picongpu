@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include <boost/mpl/is_sequence.hpp>
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/bool.hpp>

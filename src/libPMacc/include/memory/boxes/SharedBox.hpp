@@ -25,7 +25,7 @@
 #include <cuSTL/cursor/compile-time/BufferCursor.hpp>
 #include <math/vector/Float.hpp>
 #include <math/Vector.hpp>
-#include "types.h"
+#include "pmacc_types.hpp"
 
 namespace PMacc
 {

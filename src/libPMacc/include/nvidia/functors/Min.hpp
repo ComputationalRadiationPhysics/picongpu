@@ -26,7 +26,7 @@
 #include "mpi/GetMPI_Op.hpp"
 #include "algorithms/math.hpp"
 
-#include "types.h"
+#include "pmacc_types.hpp"
 
 namespace PMacc
 {

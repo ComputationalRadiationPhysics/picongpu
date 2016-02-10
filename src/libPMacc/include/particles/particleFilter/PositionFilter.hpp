@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "particles/frame_types.hpp"
 #include "particles/memory/frames/NullFrame.hpp"
 #include "dimensions/DataSpaceOperations.hpp"

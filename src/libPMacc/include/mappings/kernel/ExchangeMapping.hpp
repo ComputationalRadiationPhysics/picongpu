@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "mappings/kernel/ExchangeMappingMethods.hpp"
 
