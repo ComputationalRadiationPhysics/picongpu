@@ -27,7 +27,7 @@
 #include <vector>
 #include <boost/lexical_cast.hpp>
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "simulationControl/SimulationHelper.hpp"
 #include "simulation_defines.hpp"
 

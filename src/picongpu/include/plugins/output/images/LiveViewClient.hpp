@@ -22,7 +22,7 @@
 
 #include "plugins/output/sockets/SocketConnector.hpp"
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
 #include "simulation_types.hpp"
 

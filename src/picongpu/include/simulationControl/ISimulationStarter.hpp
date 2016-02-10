@@ -24,7 +24,7 @@
 #include "pluginSystem/IPlugin.hpp"
 #include "ArgsParser.hpp"
 #include "simulation_defines.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 
 namespace picongpu
 {

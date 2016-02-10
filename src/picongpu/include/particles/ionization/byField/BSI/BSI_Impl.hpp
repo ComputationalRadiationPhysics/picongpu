@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "math/vector/Size_t.hpp"
 #include "simulation_defines.hpp"
 #include "traits/Resolve.hpp"

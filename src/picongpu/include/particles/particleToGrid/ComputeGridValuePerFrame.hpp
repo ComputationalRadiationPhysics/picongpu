@@ -23,7 +23,7 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 
 #include "math/Vector.hpp"
 #include "particles/particleToGrid/ComputeGridValuePerFrame.def"
