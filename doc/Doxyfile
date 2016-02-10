@@ -95,47 +95,22 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 INPUT                  = ../src
 INPUT_ENCODING         = UTF-8
-FILE_PATTERNS          = *.c \
-                         *.cc \
-                         *.cxx \
-                         *.cpp \
-                         *.c++ \
-                         *.d \
-                         *.java \
-                         *.ii \
-                         *.ixx \
-                         *.ipp \
-                         *.i++ \
-                         *.inl \
-                         *.h \
-                         *.hh \
-                         *.hxx \
-                         *.hpp \
-                         *.h++ \
-                         *.idl \
-                         *.odl \
-                         *.cs \
-                         *.php \
-                         *.php3 \
-                         *.inc \
-                         *.m \
-                         *.mm \
-                         *.dox \
-                         *.py \
-                         *.f90 \
-                         *.f \
-                         *.vhd \
-                         *.vhdl \
-                         *.cu
+FILE_PATTERNS          = *.cu       \
+                         *.cpp      \
+                         *.kernel   \
+                         *.h        \
+                         *.hpp      \
+                         *.def      \
+                         *.param    \
+                         *.unitless \
+                         *.loader   \
+                         *.md
 RECURSIVE              = YES
-EXCLUDE                = ../src/cuda_memtest \
+EXCLUDE                = ../thirdParty  \
+                         ../buildsystem \
+                         ../nbproject   \
                          ../src/mpiInfo \
-                         ../src/splash2txt \
-                         ../src/tools \
-                         cuda_memtest \
-                         mpiInfo \
-                         splash2txt \
-                         tools
+                         ../src/tools
 EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       = */tests/*
 EXCLUDE_SYMBOLS        = 
