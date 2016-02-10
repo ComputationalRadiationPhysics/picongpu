@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
 #include "cuSTL/cursor/Cursor.hpp"

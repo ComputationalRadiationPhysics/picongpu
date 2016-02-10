@@ -33,7 +33,7 @@
 #include "traits/Resolve.hpp"
 #include "nvidia/atomic.hpp"
 
-#include "types.h"
+#include "pmacc_types.hpp"
 
 #include "particles/ionization/ionizationMethods.hpp"
 

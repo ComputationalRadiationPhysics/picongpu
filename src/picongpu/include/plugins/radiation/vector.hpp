@@ -22,7 +22,7 @@
 #pragma once
 
 #include <iostream>
-#include "types.h"
+#include "pmacc_types.hpp"
 
 template<typename V, typename T>
 struct cuda_vec : public V

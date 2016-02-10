@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
 #include <boost/mpl/if.hpp>
 #include "traits/HasFlag.hpp"

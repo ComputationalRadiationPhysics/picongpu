@@ -22,7 +22,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "types.h"
+#include "pmacc_types.hpp"
 #include <simulation_types.hpp>
 #include "pmacc_renamings.hpp"
 

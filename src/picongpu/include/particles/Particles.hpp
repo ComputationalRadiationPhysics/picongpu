@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "simulation_classTypes.hpp"
 
 #include "fields/Fields.def"

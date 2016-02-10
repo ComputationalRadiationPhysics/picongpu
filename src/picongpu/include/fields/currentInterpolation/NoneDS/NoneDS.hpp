@@ -21,7 +21,7 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 
 #include "fields/currentInterpolation/None/None.def"
 #include "algorithms/DifferenceToUpper.hpp"
