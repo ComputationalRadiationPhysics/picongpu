@@ -21,7 +21,7 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "dimensions/DataSpace.hpp"
 #include <cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
 #include "algorithms/FieldToParticleInterpolation.hpp"

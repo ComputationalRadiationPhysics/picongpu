@@ -23,7 +23,7 @@
 #pragma once
 
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "simulation_types.hpp"
 #include "plugins/hdf5/HDF5Writer.def"
 
