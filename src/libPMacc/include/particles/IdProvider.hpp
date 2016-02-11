@@ -41,9 +41,15 @@ namespace PMacc {
         }
 
         template<class T_Box>
-        __global__ void getNextId(T_Box box)
+        __global__ void getNextId(T_Box boxOut)
         {
-            box(0) = nextId;
+            boxOut(0) = nextId;
+        }
+
+        template<class T_Box, class T_GetNewId>
+        __global__ void getNewId(T_Box boxOut, T_GetNewId getNewId)
+        {
+            boxOut(0) = getNewId();
         }
 
     }  // namespace IdDetail
@@ -60,6 +66,10 @@ namespace PMacc {
         static void init()
         {
             const uint64_t globalUniqueStartId = getStartId();
+            setNextId(globalUniqueStartId);
+            // Instantiate kernel
+            getNewIdHost();
+            // Reset to start value
             setNextId(globalUniqueStartId);
         }
 
@@ -83,7 +93,7 @@ namespace PMacc {
         /** Functor that returns a new id */
         struct GetNewId
         {
-            uint64_cu operator()() const
+            DINLINE uint64_cu operator()() const
             {
                 return getNewId();
             }
@@ -95,7 +105,8 @@ namespace PMacc {
 #ifdef __CUDA_ARCH__
             return nvidia::atomicAllInc(&IdDetail::nextId);
 #else
-            throw std::runtime_error("getNewId not implemented for host");
+            // IMPORTANT: This calls a kernel. So make sure this kernel is instantiated somewhere before!
+            return getNewIdHost();
 #endif
         }
 
@@ -136,6 +147,14 @@ namespace PMacc {
              * as the upper bits of the rank or often also zero
              */
             return reverseBits(rank);
+        }
+
+        static uint64_t getNewIdHost()
+        {
+            HostDeviceBuffer<uint64_cu, 1> newIdBuf(DataSpace<1>(1));
+            __cudaKernel(IdDetail::getNewId)(1, 1)(newIdBuf.getDeviceBuffer().getDataBox(), GetNewId());
+            newIdBuf.deviceToHost();
+            return newIdBuf.getHostBuffer().getDataBox()(0);
         }
     };
 
