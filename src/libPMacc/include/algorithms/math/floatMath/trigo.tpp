@@ -47,6 +47,21 @@ struct Sin<float>
 };
 
 template<>
+struct ASin<float>
+{
+    typedef float result;
+
+    HDINLINE float operator( )(const float& value)
+    {
+#if __CUDA_ARCH__
+        return ::asinf( value );
+#else
+        return ::asin( value );
+#endif
+    }
+};
+
+template<>
 struct Cos<float>
 {
     typedef float result;

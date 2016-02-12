@@ -34,6 +34,9 @@ template<typename Type>
 struct Sin;
 
 template<typename Type>
+struct ASin;
+
+template<typename Type>
 struct Cos;
 
 template<typename Type>
@@ -55,6 +58,14 @@ typename Sin< T1 >::result
 sin(const T1& value)
 {
     return Sin< T1 > ()(value);
+}
+
+template<typename T1>
+HDINLINE
+typename ASin< T1 >::result
+asin(const T1& value)
+{
+    return ASin< T1 > ()(value);
 }
 
 template<typename T1>
