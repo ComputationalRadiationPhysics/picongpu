@@ -90,7 +90,6 @@ typedef currentSolver::PARAM_CURRENTSOLVER<UsedParticleShape> UsedParticleCurren
  *                                              with classical radiation reaction
  *
  * For development purposes: ---------------------------------------------------
- * - particles::pusher::None : no particle is pushed
  * - particles::pusher::Axel : a pusher developed at HZDR during 2011 (testing)
  * - particles::pusher::Free : free propagation, ignore fields
  * (= free stream model)
