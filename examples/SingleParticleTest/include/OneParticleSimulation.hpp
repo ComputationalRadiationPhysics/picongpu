@@ -138,12 +138,14 @@ public:
 
         __startTransaction(__getTransactionEvent());
 
-        particleStorage[TypeAsIdentifier<PIC_Electrons>()]->update(currentStep);
+        EventTask initEvent = __getTransactionEvent();
+        EventTask updateEvent;
+        EventTask commEvent;
 
-        EventTask eRecvElectrons = communication::asyncCommunication(*particleStorage[TypeAsIdentifier<PIC_Electrons>()], __getTransactionEvent());
-        EventTask eElectrons = __endTransaction();
-
-        __setTransactionEvent(eRecvElectrons + eElectrons);
+        /* push all species */
+        particles::PushAllSpecies pushAllSpecies;
+        pushAllSpecies(particleStorage, currentStep, initEvent, updateEvent, commEvent);
+        __setTransactionEvent(updateEvent + commEvent);
 
 #if (ENABLE_CURRENT == 1)
         fieldJ->computeCurrent < CORE + BORDER, PIC_Electrons > (*particleStorage[TypeAsIdentifier<PIC_Electrons>()], currentStep);
