@@ -56,6 +56,21 @@ struct Log<float>
     }
 };
 
+template<>
+struct Log10<float>
+{
+    typedef float result;
+
+    HDINLINE float operator( )(const float& value)
+    {
+#if __CUDA_ARCH__
+        return ::log10f( value );
+#else
+        return ::log10( value );
+#endif
+    }
+};
+
 } //namespace math
 } //namespace algorithms
 } // namespace PMacc

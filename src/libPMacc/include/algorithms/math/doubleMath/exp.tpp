@@ -56,6 +56,17 @@ struct Log<double>
     }
 };
 
+template<>
+struct Log10<double>
+{
+    typedef double result;
+
+    HDINLINE double operator( )(const double& value)
+    {
+        return ::log10( value );
+    }
+};
+
 
 } //namespace math
 } //namespace algorithms
