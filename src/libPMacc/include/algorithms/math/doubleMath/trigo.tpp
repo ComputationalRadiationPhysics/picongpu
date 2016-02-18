@@ -46,6 +46,17 @@ struct Sin<double>
 };
 
 template<>
+struct ASin<double>
+{
+    typedef double result;
+
+    HDINLINE double operator( )(const double& value)
+    {
+        return ::asin( value );
+    }
+};
+
+template<>
 struct Cos<double>
 {
     typedef double result;
