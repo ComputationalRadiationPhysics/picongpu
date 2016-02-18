@@ -37,6 +37,9 @@ template<typename Type>
 struct Cos;
 
 template<typename Type>
+struct ACos;
+
+template<typename Type>
 struct Tan;
 
 template<typename Type>
@@ -63,6 +66,14 @@ typename Cos<T1>::result
 cos(const T1& value)
 {
     return Cos< T1 > ()(value);
+}
+
+template<typename T1>
+HDINLINE
+typename ACos<T1>::result
+acos(const T1& value)
+{
+    return ACos< T1 > ()(value);
 }
 
 template<typename T1>
