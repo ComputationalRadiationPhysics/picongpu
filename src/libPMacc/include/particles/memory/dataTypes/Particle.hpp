@@ -53,7 +53,7 @@ namespace pmacc = PMacc;
 
 /** A single particle of a @see Frame
  *
- * A instance of this Particle is a representaion ("pointer") to the memory
+ * A instance of this Particle is a representation ("pointer") to the memory
  * where the frame is stored.
  *
  * @tparam T_FrameType type of the parent frame
@@ -71,16 +71,15 @@ struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
     typedef typename FrameType::MethodsList MethodsList;
 
     /* IMPORTANT: store first value with big size to avoid
-     * that pointer is copyed byte by byte because data are not alligned
-     * in this case
+     * that pointer is copied byte by byte because data are not aligned
      *
-     * in this case sizeof(uint32_t)>sizeof(reference)
+     * in this case sizeof(uint32_t)<=sizeof(pointer)
      */
-    /** index of particle inside the Frame*/
-    PMACC_ALIGN(idx, const uint32_t);
-
     /** pointer to parent frame where this particle is from*/
     PMACC_ALIGN(frame, FrameType* const);
+
+    /** index of particle inside the Frame*/
+    PMACC_ALIGN(idx, const uint32_t);
 
     /** create particle
      *
