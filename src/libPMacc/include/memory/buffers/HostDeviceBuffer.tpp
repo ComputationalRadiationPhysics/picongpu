@@ -29,7 +29,8 @@ namespace PMacc {
     template<typename T_Type, unsigned T_dim>
     HostDeviceBuffer<T_Type, T_dim>::HostDeviceBuffer(const DataSpace<T_dim>& size, bool sizeOnDevice)
     {
-        createBuffers(size, sizeOnDevice);
+        hostBuffer   = new HostBufferIntern<T_Type, T_dim>(size);
+        deviceBuffer = new DeviceBufferIntern<T_Type, T_dim>(size, sizeOnDevice);
     }
 
     template<typename T_Type, unsigned T_dim>
@@ -38,7 +39,7 @@ namespace PMacc {
             const DataSpace<T_dim>& size,
             bool sizeOnDevice)
     {
-        createBuffers(size, sizeOnDevice, false);
+        hostBuffer   = new HostBufferIntern<T_Type, T_dim>(size);
         deviceBuffer = new DeviceBufferType(otherDeviceBuffer, size, DataSpace<T_dim>(), sizeOnDevice);
     }
 
@@ -51,8 +52,8 @@ namespace PMacc {
                const GridLayout<T_dim> size,
                bool sizeOnDevice)
    {
-        this->deviceBuffer = new DeviceBufferType(otherDeviceBuffer, size, offsetDevice, sizeOnDevice);
-        this->hostBuffer = new HostBufferType(dynamic_cast<HostDeviceBuffer&>(otherHostBuffer), size, offsetHost);
+        hostBuffer   = new HostBufferType(dynamic_cast<HostDeviceBuffer&>(otherHostBuffer), size, offsetHost);
+        deviceBuffer = new DeviceBufferType(otherDeviceBuffer, size, offsetDevice, sizeOnDevice);
    }
 
     template<typename T_Type, unsigned T_dim>
@@ -65,13 +66,13 @@ namespace PMacc {
     template<typename T_Type, unsigned T_dim>
     HostBuffer<T_Type, T_dim>& HostDeviceBuffer<T_Type, T_dim>::getHostBuffer() const
     {
-        return *(this->hostBuffer);
+        return *hostBuffer;
     }
 
     template<typename T_Type, unsigned T_dim>
     DeviceBuffer<T_Type, T_dim>& HostDeviceBuffer<T_Type, T_dim>::getDeviceBuffer() const
     {
-        return *(this->deviceBuffer);
+        return *deviceBuffer;
     }
 
     template<typename T_Type, unsigned T_dim>
@@ -91,20 +92,6 @@ namespace PMacc {
     void HostDeviceBuffer<T_Type, T_dim>::deviceToHost()
     {
         hostBuffer->copyFrom(*deviceBuffer);
-    }
-
-    template<typename T_Type, unsigned T_dim>
-    void HostDeviceBuffer<T_Type, T_dim>::createBuffers(DataSpace<T_dim> size, bool sizeOnDevice, bool buildDeviceBuffer, bool buildHostBuffer)
-    {
-        if (buildDeviceBuffer)
-            deviceBuffer = new DeviceBufferIntern<T_Type, T_dim>(size, sizeOnDevice);
-        else
-            deviceBuffer = NULL;
-
-        if (buildHostBuffer)
-            hostBuffer = new HostBufferIntern<T_Type, T_dim>(size);
-        else
-            hostBuffer = NULL;
     }
 
 }  // namespace PMacc

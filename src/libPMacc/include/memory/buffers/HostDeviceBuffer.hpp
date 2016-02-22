@@ -109,8 +109,6 @@ namespace PMacc {
         HostBufferType* hostBuffer;
         DeviceBufferType* deviceBuffer;
 
-        HINLINE void
-        createBuffers(DataSpace<T_dim> size, bool sizeOnDevice, bool buildDeviceBuffer = true, bool buildHostBuffer = true);
     };
 
 }  // namespace PMacc
