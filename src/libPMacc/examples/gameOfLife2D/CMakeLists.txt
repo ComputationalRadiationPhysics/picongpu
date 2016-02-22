@@ -37,8 +37,15 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif()
 
 # set helper pathes to find libraries and packages
-set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{MPI_ROOT}"
-    "$ENV{CUDA_ROOT}" "$ENV{BOOST_ROOT}" "$ENV{VT_ROOT}")
+# Add specific hints
+list(APPEND CMAKE_PREFIX_PATH "$ENV{MPI_ROOT}")
+list(APPEND CMAKE_PREFIX_PATH "$ENV{CUDA_ROOT}")
+list(APPEND CMAKE_PREFIX_PATH "$ENV{BOOST_ROOT}")
+list(APPEND CMAKE_PREFIX_PATH "$ENV{VT_ROOT}")
+# Add from environment after specific env vars
+list(APPEND CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
+# Last add generic system path to the end (as last fallback)
+list(APPEND "/usr/lib/x86_64-linux-gnu/")
 
 # own modules for find_packages
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
