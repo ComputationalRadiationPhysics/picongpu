@@ -27,7 +27,7 @@
 #include "cuSTL/cursor/BufferCursor.hpp"
 #include "cuSTL/cursor/accessor/CursorAccessor.hpp"
 #include "cuSTL/cursor/navigator/MapTo1DNavigator.hpp"
-#include <types.h>
+#include "pmacc_types.hpp"
 
 namespace PMacc
 {

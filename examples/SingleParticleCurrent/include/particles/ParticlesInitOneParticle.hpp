@@ -21,7 +21,7 @@
 #pragma once
 
 #include "dimensions/DataSpace.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "simulation_classTypes.hpp"
 #include "mappings/simulation/SubGrid.hpp"
 

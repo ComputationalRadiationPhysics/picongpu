@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <types.h>
+#include "pmacc_types.hpp"
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pop_front.hpp>
 #include <boost/mpl/at.hpp>

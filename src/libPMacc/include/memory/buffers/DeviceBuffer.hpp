@@ -28,7 +28,7 @@
 #include <math/vector/Int.hpp>
 #include <math/vector/Size_t.hpp>
 #include <memory/buffers/Buffer.hpp>
-#include <types.h>
+#include "pmacc_types.hpp"
 
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
