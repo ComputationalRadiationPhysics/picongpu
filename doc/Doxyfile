@@ -100,16 +100,14 @@ FILE_PATTERNS          = *.cu       \
                          *.kernel   \
                          *.h        \
                          *.hpp      \
+                         *.tpp      \
                          *.def      \
                          *.param    \
                          *.unitless \
                          *.loader   \
                          *.md
 RECURSIVE              = YES
-EXCLUDE                = ../thirdParty  \
-                         ../buildsystem \
-                         ../nbproject   \
-                         ../src/mpiInfo \
+EXCLUDE                = ../src/mpiInfo \
                          ../src/tools
 EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       = */tests/*
