@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "cudaSpecs.hpp"
 #include "static_assert.hpp"
 #include "math/vector/Size_t.hpp"

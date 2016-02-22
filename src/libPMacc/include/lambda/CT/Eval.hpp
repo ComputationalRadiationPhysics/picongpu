@@ -28,7 +28,7 @@
 #include "Expression.hpp"
 #include "../placeholder.h"
 #include "../ExprTypes.h"
-#include "types.h"
+#include "pmacc_types.hpp"
 #include <boost/mpl/void.hpp>
 #include <boost/mpl/int.hpp>
 #include <boost/type_traits/add_reference.hpp>

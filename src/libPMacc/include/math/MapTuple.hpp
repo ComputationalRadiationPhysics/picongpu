@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <types.h>
+#include "pmacc_types.hpp"
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/erase_key.hpp>
 #include <boost/mpl/at.hpp>

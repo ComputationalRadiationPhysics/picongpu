@@ -26,7 +26,7 @@
 #include "cuSTL/cursor/accessor/LinearInterpAccessor1D.hpp"
 #include "cuSTL/cursor/navigator/PlusNavigator.hpp"
 #include "result_of_Functor.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 
 namespace PMacc
 {

@@ -23,7 +23,7 @@
 #pragma once
 
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "nvidia/warp.hpp"
 #include <boost/type_traits.hpp>
 #include <math_functions.h>

@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "memory/buffers/GridBuffer.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
 

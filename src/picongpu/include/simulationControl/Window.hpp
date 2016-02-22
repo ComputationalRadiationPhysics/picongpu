@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "mappings/simulation/Selection.hpp"
 
 namespace picongpu

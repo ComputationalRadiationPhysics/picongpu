@@ -23,7 +23,7 @@
 #pragma once
 
 #include "memory/buffers/IHostBuffer.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 
 #include <string>
 #include <sstream>

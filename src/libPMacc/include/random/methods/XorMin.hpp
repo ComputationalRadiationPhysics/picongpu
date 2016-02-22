@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include <curand_kernel.h>
 #include <random/methods/Xor.hpp>
 

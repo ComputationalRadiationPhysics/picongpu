@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "identifier/identifier.hpp"
 #include "ppFunctions.hpp"
 #include <string>

@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 
 #include <boost/mpl/placeholders.hpp>
 #include <boost/mpl/remove_if.hpp>

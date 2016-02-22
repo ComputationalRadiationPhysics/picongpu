@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "random/methods/Xor.hpp"
 #include "random/Random.hpp"
 #include "random/RNGHandle.hpp"

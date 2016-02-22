@@ -23,7 +23,7 @@
 #pragma once
 
 #include "particles/memory/dataTypes/Pointer.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 
 
 namespace PMacc

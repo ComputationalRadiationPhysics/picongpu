@@ -24,7 +24,7 @@
 
 #include "is_Expression.hpp"
 #include "ExprTypes.h"
-#include <types.h>
+#include "pmacc_types.hpp"
 #include <boost/mpl/vector.hpp>
 
 namespace mpl = boost::mpl;

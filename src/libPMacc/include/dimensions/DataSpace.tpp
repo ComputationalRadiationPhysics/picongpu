@@ -29,7 +29,7 @@
 #include "traits/GetNComponents.hpp"
 #include "algorithms/math.hpp"
 #include "algorithms/TypeCast.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 
 namespace PMacc
 {

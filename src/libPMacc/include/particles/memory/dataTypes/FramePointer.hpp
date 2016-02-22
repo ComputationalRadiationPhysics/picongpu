@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "particles/memory/dataTypes/Pointer.hpp"
 #include "traits/GetEmptyDefaultConstructibleType.hpp"
 #include "expressions/DoNothing.hpp"

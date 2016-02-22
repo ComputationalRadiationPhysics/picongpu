@@ -24,7 +24,7 @@
 
 #include "particles/memory/frames/NullFrame.hpp"
 #include "particles/frame_types.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 
 namespace PMacc
 {

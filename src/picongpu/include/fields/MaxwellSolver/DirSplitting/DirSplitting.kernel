@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include <types.h>
+#include "pmacc_types.hpp"
 #include <math/vector/Float.hpp>
 #include "math/Vector.hpp"
 #include <cuSTL/container/compile-time/SharedBuffer.hpp>

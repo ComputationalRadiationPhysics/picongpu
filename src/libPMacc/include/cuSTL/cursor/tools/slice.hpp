@@ -25,7 +25,7 @@
 #include "cuSTL/cursor/Cursor.hpp"
 #include "cuSTL/cursor/navigator/BufferNavigator.hpp"
 #include "cuSTL/cursor/navigator/CartNavigator.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 
 namespace PMacc
 {

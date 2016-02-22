@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "identifier/value_identifier.hpp"
 #include "particles/frame_types.hpp"
 

@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "particles/boostExtension/InheritLinearly.hpp"
 #include <boost/utility/result_of.hpp>
 #include <boost/type_traits.hpp>

@@ -42,7 +42,7 @@
 #include <memory/buffers/DeviceBufferIntern.hpp>
 #include <memory/buffers/DeviceBuffer.hpp>
 #include <dimensions/DataSpace.hpp>
-#include <types.h> /* DIM1,DIM2,DIM3 */
+#include "pmacc_types.hpp" /* DIM1,DIM2,DIM3 */
 
 
 /*******************************************************************************

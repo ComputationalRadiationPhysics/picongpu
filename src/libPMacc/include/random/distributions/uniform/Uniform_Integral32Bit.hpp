@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "random/distributions/Uniform.hpp"
 #include <boost/type_traits.hpp>
 

@@ -28,7 +28,7 @@
 #include <lambda/Expression.hpp>
 #include "result_of_Functor.hpp"
 #include "static_assert.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 
 #include <boost/mpl/size.hpp>
 #include <boost/call_traits.hpp>

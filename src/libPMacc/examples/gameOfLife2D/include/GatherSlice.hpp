@@ -25,7 +25,7 @@
 #include "mappings/simulation/GridController.hpp"
 #include "memory/boxes/PitchedBox.hpp"
 #include "dimensions/DataSpace.hpp"
-#include "types.h"                                  // DIM*
+#include "pmacc_types.hpp"                                  // DIM*
 
 #include <mpi.h>
 

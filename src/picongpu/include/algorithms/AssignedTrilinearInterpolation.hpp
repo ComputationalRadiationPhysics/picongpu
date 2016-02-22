@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include <boost/type_traits/remove_reference.hpp>
 #include <result_of_Functor.hpp>
 

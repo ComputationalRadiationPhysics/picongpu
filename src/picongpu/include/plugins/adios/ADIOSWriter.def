@@ -30,7 +30,7 @@
 #include <iostream>  // std::cerr
 #include <stdexcept> // throw std::runtime_error
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "math/Vector.hpp"
 #include "simulation_types.hpp"
 #include "particles/frame_types.hpp"

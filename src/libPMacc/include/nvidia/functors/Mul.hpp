@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "mpi/GetMPI_Op.hpp"
 
 namespace PMacc

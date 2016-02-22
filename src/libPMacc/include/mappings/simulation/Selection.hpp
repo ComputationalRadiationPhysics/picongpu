@@ -24,7 +24,7 @@
 
 #include <sstream>
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "dimensions/DataSpace.hpp"
 
 namespace PMacc

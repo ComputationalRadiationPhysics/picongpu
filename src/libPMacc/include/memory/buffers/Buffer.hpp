@@ -26,7 +26,7 @@
 #include "memory/boxes/DataBox.hpp"
 #include "memory/boxes/PitchedBox.hpp"
 #include "Environment.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 
 #include <cassert>
 #include <limits>
