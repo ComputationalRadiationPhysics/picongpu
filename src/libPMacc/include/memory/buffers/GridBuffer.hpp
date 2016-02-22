@@ -102,7 +102,9 @@ public:
      */
     GridBuffer(const GridLayout<DIM>& gridLayout, bool sizeOnDevice = false) :
     Parent(gridLayout.getDataSpace(), sizeOnDevice),
-    gridLayout(gridLayout)
+    gridLayout(gridLayout),
+    hasOneExchange(false),
+    maxExchange(0)
     {
         init();
     }
@@ -119,7 +121,9 @@ public:
      */
     GridBuffer(const DataSpace<DIM>& dataSpace, bool sizeOnDevice = false) :
     Parent(dataSpace, sizeOnDevice),
-    gridLayout(dataSpace)
+    gridLayout(dataSpace),
+    hasOneExchange(false),
+    maxExchange(0)
     {
         init();
     }
@@ -137,7 +141,9 @@ public:
      */
     GridBuffer(DeviceBuffer<TYPE, DIM>& otherDeviceBuffer, const GridLayout<DIM>& gridLayout, bool sizeOnDevice = false) :
     Parent(otherDeviceBuffer, gridLayout.getDataSpace(), sizeOnDevice),
-    gridLayout(gridLayout)
+    gridLayout(gridLayout),
+    hasOneExchange(false),
+    maxExchange(0)
     {
         init();
     }
@@ -150,7 +156,9 @@ public:
                const GridLayout<DIM>& gridLayout,
                bool sizeOnDevice = false) :
     Parent(otherHostBuffer, offsetHost, otherDeviceBuffer, offsetDevice, gridLayout.getDataSpace(), sizeOnDevice),
-    gridLayout(gridLayout)
+    gridLayout(gridLayout),
+    hasOneExchange(false),
+    maxExchange(0)
     {
         init();
     }
@@ -498,8 +506,6 @@ private:
 
     void init()
     {
-        hasOneExchange = false;
-        maxExchange = 0;
         for (uint32_t i = 0; i < 27; ++i)
         {
             sendExchanges[i] = NULL;
