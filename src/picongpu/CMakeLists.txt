@@ -352,6 +352,16 @@ if(PIC_ENABLE_INSITU_VOLVIS)
 	set(LIBS ${LIBS} ${ICET_CORE_LIBS} ${ICET_MPI_LIBS})
 endif(PIC_ENABLE_INSITU_VOLVIS)
 
+if( (CUDA_VERSION VERSION_GREATER 7.0) AND
+    (CMAKE_CXX_STANDARD EQUAL 98) )
+    # Kind of invalid usage of floats in constant expressions
+    # which causes problems in nvcc 7.5 and up:
+    # https://github.com/ComputationalRadiationPhysics/picongpu/issues/1290
+    message(FATAL_ERROR "Please enable C++11 with
+                        `-std=c++11` or `-DCMAKE_CXX_STANDARD=11`
+                        when compiling with nvcc 7.5")
+endif()
+
 
 ################################################################################
 # ADIOS
