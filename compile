@@ -48,7 +48,7 @@ examples_path=""
 tmpRun_path=""
 
 # parse the command line options ###############################################
-parseOptions $@
+parseOptions "$@"
 
 if [ "$num_parallel" -ne "1" ]; then
     echo -e $compileSuite"Run in parallel: "`echo_g "$num_parallel"`
