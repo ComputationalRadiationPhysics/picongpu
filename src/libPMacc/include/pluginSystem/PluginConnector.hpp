@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2016 Rene Widera, Felix Schmitt, Axel Huebl, Benjamin Worpitz
+ * Copyright 2013-2016 Rene Widera, Felix Schmitt, Axel Huebl, Benjamin Worpitz,
+ *                     Heiko Burau
  *
  * This file is part of libPMacc.
  *
@@ -25,6 +26,7 @@
 #include "pluginSystem/INotify.hpp"
 #include "pluginSystem/IPlugin.hpp"
 
+#include <vector>
 #include <list>
 
 namespace PMacc
@@ -178,6 +180,27 @@ namespace PMacc
             {
                 (*iter)->restart(restartStep, restartDirectory);
             }
+        }
+
+        /**
+         * Get a vector of pointers of all registered plugin instances of a given type.
+         *
+         * \tparam Plugin type of plugin
+         * @return vector of plugin pointers
+         */
+        template<typename Plugin>
+        std::vector<Plugin*> getPluginsFromType()
+        {
+            std::vector<Plugin*> result;
+            for(std::list<IPlugin*>::iterator iter = plugins.begin();
+                iter != plugins.end();
+                iter++)
+            {
+                Plugin* plugin = dynamic_cast<Plugin*>(*iter);
+                if(plugin != NULL)
+                    result.push_back(plugin);
+            }
+            return result;
         }
 
     private:
