@@ -21,7 +21,8 @@
  */
 
 #pragma once
-#include "types.h"
+
+#include "pmacc_types.hpp"
 #include "memory/buffers/HostBufferIntern.hpp"
 #include "memory/buffers/DeviceBufferIntern.hpp"
 #include <boost/type_traits.hpp>
