@@ -203,6 +203,15 @@ namespace PMacc
             return result;
         }
 
+
+        /**
+         * Return a copied list of pointers to all registered plugins.
+         */
+        std::list<IPlugin*> getAllPlugins() const
+        {
+            return this->plugins;
+        }
+
     private:
 
         friend class Environment<DIM1>;
