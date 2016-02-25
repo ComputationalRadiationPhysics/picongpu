@@ -47,7 +47,7 @@ namespace PMacc
     {
     public:
 
-        ExchangeIntern(DeviceBufferIntern<TYPE, DIM>& source, GridLayout<DIM> memoryLayout, DataSpace<DIM> guardingCells, uint32_t exchange,
+        ExchangeIntern(DeviceBuffer<TYPE, DIM>& source, GridLayout<DIM> memoryLayout, DataSpace<DIM> guardingCells, uint32_t exchange,
                        uint32_t communicationTag, uint32_t area = BORDER, bool sizeOnDevice = false) :
         Exchange<TYPE, DIM>(exchange, communicationTag), deviceDoubleBuffer(NULL)
         {
