@@ -116,6 +116,21 @@ namespace PMacc
          */
         virtual std::string pluginGetName() const = 0;
 
+        /**
+         * Called each timestep if particles are leaving the global simulation volume.
+         *
+         * This method is only called for species which are marked with the
+         * `GuardHandlerCallPlugins` policy in their descpription.
+         *
+         * The order in which the plugins are called is undefined, so this means
+         * read-only access to the particles.
+         *
+         * \param speciesName name of the particle species
+         * \param direction the direction the particles are leaving the simulation
+         */
+        virtual void onParticleLeave(const std::string& /*speciesName*/, const int32_t /*direction*/)
+        {}
+
         /** When was the plugin checkpointed last?
          *
          * @return last checkpoint's time step
