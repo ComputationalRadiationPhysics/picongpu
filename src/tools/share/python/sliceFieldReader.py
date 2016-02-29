@@ -78,8 +78,7 @@ def readFieldSlices(File):
         # go through all valid field vectors
         for x in range(N_x):
             fieldValue = line[x]
-            data[y,x,:] = _numpy.genfromtxt(_StringIO.StringIO(fieldValue[1:-1]), delimiter=",")
-            
+            data[y,x,:] = map(float,fieldValue[1:-1].split(','))
     return data
 
 
