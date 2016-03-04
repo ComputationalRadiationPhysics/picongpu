@@ -51,18 +51,22 @@ struct ParticleAttribute
 {
     /** write attribute to hdf5 file
      *
-     * @param params wrapped params with domainwriter, ...
+     * @param params wrapped thread params such as domainwriter, ...
      * @param frame frame with all particles
-     * @param prefix a name prefix for hdf5 attribute (is combined to: prefix_nameOfAttribute)
-     * @param simOffset offset from window origin of the domain
-     * @param localSize local domain size
+     * @param subGroup
+     * @param elements number of particles in this patch
+     * @param elementsOffset number of particles in this patch
+     * @param numParticlesGlobal number of particles globally
      */
     template<typename FrameType>
     HINLINE void operator()(
                             ThreadParams* params,
                             FrameType& frame,
                             const std::string subGroup,
-                            const size_t elements)
+                            const uint64_t elements,
+                            const uint64_t elementsOffset,
+                            const uint64_t numParticlesGlobal
+    )
     {
 
         typedef T_Identifier Identifier;
@@ -129,40 +133,53 @@ struct ParticleAttribute
 
             ValueType* dataPtr = frame.getIdentifier(Identifier()).getPointer();
             #pragma omp parallel for
-            for (size_t i = 0; i < elements; ++i)
+            for( uint64_t i = 0; i < elements; ++i )
             {
                 tmpArray[i] = ((ComponentValueType*)dataPtr)[i * components + d];
             }
 
-            threadParams->dataCollector->writeDomain(threadParams->currentStep,
-                                                     splashType,
-                                                     1u,
-                                                     splash::Selection(Dimensions(elements, 1, 1)),
-                                                     datasetName.str().c_str(),
-                                                     splash::Domain(
-                                                            splashDomainOffset,
-                                                            splashDomainSize
-                                                     ),
-                                                     splash::Domain(
-                                                            splashGlobalDomainOffset,
-                                                            splashGlobalDomainSize
-                                                     ),
-                                                     DomainCollector::PolyType,
-                                                     tmpArray);
+            threadParams->dataCollector->writeDomain(
+                threadParams->currentStep,
+                /* Dimensions for global collective buffer */
+                Dimensions(numParticlesGlobal, 1, 1),
+                /* 3D-offset in the globalSize-buffer this process writes to */
+                Dimensions(elementsOffset, 1, 1),
+                /* Type information for data */
+                splashType,
+                /* Number of dimensions (1-3) of the buffer */
+                1u,
+                /* Selection: size in src buffer */
+                splash::Selection(
+                    Dimensions(elements, 1, 1)
+                ),
+                /* Name of the dataset */
+                datasetName.str().c_str(),
+                /* Global domain information */
+                splash::Domain(
+                    splashGlobalDomainOffset,
+                    splashGlobalDomainSize
+                ),
+                /* Domain type annotation */
+                DomainCollector::PolyType,
+                /* Buffer with data */
+                tmpArray
+            );
 
-            threadParams->dataCollector->writeAttribute(threadParams->currentStep,
-                                                        ctDouble, datasetName.str().c_str(),
-                                                        "unitSI", &(unit.at(d)));
+            threadParams->dataCollector->writeAttribute(
+                threadParams->currentStep,
+                ctDouble, datasetName.str().c_str(),
+                "unitSI", &(unit.at(d)));
 
         }
         __deleteArray(tmpArray);
 
 
-        params->dataCollector->writeAttribute(params->currentStep,
-                                              ctDouble, recordName.c_str(),
-                                              "unitDimension",
-                                              1u, Dimensions(7,0,0),
-                                              &(*unitDimension.begin()));
+        threadParams->dataCollector->writeAttribute(
+            params->currentStep,
+            ctDouble, recordName.c_str(),
+            "unitDimension",
+            1u, Dimensions(7,0,0),
+            &(*unitDimension.begin()));
 
         /** \todo check if always correct at this point, depends on attribute
          *        and MW-solver/pusher implementation */
