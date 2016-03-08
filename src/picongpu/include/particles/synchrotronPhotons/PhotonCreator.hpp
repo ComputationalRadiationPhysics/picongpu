@@ -30,6 +30,10 @@
 #include "traits/frame/GetMass.hpp"
 #include "traits/frame/GetCharge.hpp"
 
+#include "random/methods/XorMin.hpp"
+#include "random/distributions/Uniform.hpp"
+#include "random/RNGProvider.hpp"
+
 #include "traits/Resolve.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
 
@@ -38,9 +42,6 @@
 
 #include "compileTime/conversion/TypeToPointerPair.hpp"
 #include "memory/boxes/DataBox.hpp"
-
-// Random number generator
-#include "particles/ionization/ionizationMethods.hpp"
 
 namespace picongpu
 {
@@ -98,21 +99,21 @@ private:
 
     PMACC_ALIGN(photon_mom, float3_X);
 
-    /* random number generator for Monte Carlo */
-    typedef ionization::RandomNrForMonteCarlo<T_ElectronSpecies> RandomGen;
-    /* \todo fix: cannot PMACC_ALIGN() because it seems to be too large */
+    /* random number generator */
+    typedef PMacc::random::RNGProvider<simDim, PMacc::random::methods::XorMin> RNGFactory;
+    typedef PMacc::random::distributions::Uniform<float> Distribution;
+    typedef typename RNGFactory::GetRandomType<Distribution>::type RandomGen;
     RandomGen randomGen;
 
 public:
     /* host constructor initializing member : random number generator */
     PhotonCreator(
         const SynchrotronFunctions::SyncFuncCursor& curF_1,
-        const SynchrotronFunctions::SyncFuncCursor& curF_2,
-        const uint32_t currentStep)
+        const SynchrotronFunctions::SyncFuncCursor& curF_2)
             : curF_1(curF_1),
               curF_2(curF_2),
-              randomGen(currentStep),
-              photon_mom(float3_X::create(0))
+              photon_mom(float3_X::create(0)),
+              randomGen(RNGFactory::createRandom<Distribution>())
     {
         DataConnector &dc = Environment<>::get().DataConnector();
         /* initialize pointers on host-side E-(B-)field databoxes */
@@ -159,7 +160,7 @@ public:
         /* wait for shared memory to be initialized */
         __syncthreads();
 
-        /* initialize random number generator with the local cell index in the simulation*/
+        /* initialize random number generator with the local cell index in the simulation */
         this->randomGen.init(localCellOffset);
     }
 

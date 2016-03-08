@@ -30,11 +30,13 @@
 #include <boost/mpl/plus.hpp>
 #include <boost/mpl/accumulate.hpp>
 
+
 #include "communication/AsyncCommunication.hpp"
 #include "particles/traits/GetIonizer.hpp"
 #include "particles/traits/FilterByFlag.hpp"
 #include "particles/traits/GetPhotonCreator.hpp"
 #include "particles/synchrotronPhotons/SynchrotronFunctions.hpp"
+#include "particles/synchrotronPhotons/PhotonCreator.hpp"
 #include "particles/creation/creation.hpp"
 
 namespace picongpu
@@ -360,14 +362,12 @@ struct CallSynchrotronPhotons
         /* alias for pointer on source species */
         PMACC_AUTO(electronSpeciesPtr, tuple[SpeciesName()]);
         /* alias for pointer on destination species */
-        PMACC_AUTO(photonSpeciesPtr,  tuple[typename MakeIdentifier<PhotonSpecies>::type()]);
+        PMACC_AUTO(photonSpeciesPtr, tuple[typename MakeIdentifier<PhotonSpecies>::type()]);
 
         using namespace synchrotronPhotons;
-
         SelectedPhotonCreator photonCreator(
             synchrotronFunctions.getCursor(SynchrotronFunctions::first),
-            synchrotronFunctions.getCursor(SynchrotronFunctions::second),
-            currentStep);
+            synchrotronFunctions.getCursor(SynchrotronFunctions::second));
 
         creation::createParticles(*electronSpeciesPtr, *photonSpeciesPtr, photonCreator, cellDesc);
     }

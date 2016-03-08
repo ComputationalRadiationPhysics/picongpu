@@ -50,6 +50,8 @@
 #include "initialization/IInitPlugin.hpp"
 #include "initialization/ParserGridDistribution.hpp"
 #include "particles/synchrotronPhotons/SynchrotronFunctions.hpp"
+#include "random/methods/XorMin.hpp"
+#include "random/RNGProvider.hpp"
 
 #include "nvidia/reduce/Reduce.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
@@ -100,7 +102,8 @@ public:
     currentBGField(NULL),
     cellDescription(NULL),
     initialiserController(NULL),
-    slidingWindow(false)
+    slidingWindow(false),
+    rngFactory(NULL)
     {
         ForEach<VectorAllSpecies, particles::AssignNull<bmpl::_1>, MakeIdentifier<bmpl::_1> > setPtrToNull;
         setPtrToNull(forward(particleStorage));
@@ -260,6 +263,8 @@ public:
         __delete(pushBGField);
         __delete(currentBGField);
         __delete(cellDescription);
+
+        __delete(rngFactory);
     }
 
     void notify(uint32_t)
@@ -336,6 +341,12 @@ public:
 
         /* add CUDA streams to the StreamController for concurrent execution */
         Environment<>::get().StreamController().addStreams(6);
+
+        // create factory for the random number generator
+        this->rngFactory = new RNGFactory(Environment<simDim>::get().SubGrid().getLocalDomain().size);
+        // init factory
+        PMacc::GridController<simDim>& gridCon = PMacc::Environment<simDim>::get().GridController();
+        this->rngFactory->init(gridCon.getScalarPosition());
 
         // Initialize synchrotron functions
         this->synchrotronFunctions.init();
@@ -657,6 +668,10 @@ protected:
 
     // Synchrotron functions (used in synchrotronPhotons module)
     particles::synchrotronPhotons::SynchrotronFunctions synchrotronFunctions;
+
+    // factory for the random number generator
+    typedef PMacc::random::RNGProvider<simDim, PMacc::random::methods::XorMin> RNGFactory;
+    RNGFactory* rngFactory;
 
     // output classes
 

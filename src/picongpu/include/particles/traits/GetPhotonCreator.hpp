@@ -38,8 +38,6 @@ struct GetPhotonCreator
     typedef T_SpeciesType SpeciesType;
     typedef typename SpeciesType::FrameType FrameType;
 
-    typedef typename HasFlag<FrameType, synchrotronPhotons<> >::type hasSynchrotronPhotons;
-
     /* The following line only fetches the alias */
     typedef typename GetFlagType<FrameType, synchrotronPhotons<> >::type FoundSynchrotronPhotonsAlias;
 
