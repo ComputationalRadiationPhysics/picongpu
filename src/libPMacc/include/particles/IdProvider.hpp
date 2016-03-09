@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "Environment.hpp"
 #include "eventSystem/EventSystem.hpp"
 #include "algorithms/reverseBits.hpp"
@@ -31,7 +31,7 @@
 
 namespace PMacc {
 
-    namespace IdDetail {
+    namespace idDetail {
 
         __device__ uint64_cu nextId;
 
@@ -52,16 +52,16 @@ namespace PMacc {
             boxOut(0) = getNewId();
         }
 
-    }  // namespace IdDetail
+    }  // namespace idDetail
 
     /**
-     * Provider for globally unique (even across ranks) ids
+     * Provider for globally unique ids (even across ranks)
      * Implemented for use in static contexts
      */
     class IdProvider
     {
     public:
-        /** Initializes the state so it is read for use
+        /** Initializes the state so it is ready for use
          */
         static void init()
         {
@@ -77,20 +77,21 @@ namespace PMacc {
          */
         static void setNextId(const uint64_t nextId)
         {
-            __cudaKernel(IdDetail::setNextId)(1, 1)(nextId);
+            __cudaKernel(idDetail::setNextId)(1, 1)(nextId);
         }
 
-        /** Returns the next id without changing it (e.g. for saving)
+        /** Returns the next id without changing the current state (e.g. for saving)
          */
         static uint64_t getNextId()
         {
             HostDeviceBuffer<uint64_cu, 1> nextIdBuf(DataSpace<1>(1));
-            __cudaKernel(IdDetail::getNextId)(1, 1)(nextIdBuf.getDeviceBuffer().getDataBox());
+            __cudaKernel(idDetail::getNextId)(1, 1)(nextIdBuf.getDeviceBuffer().getDataBox());
             nextIdBuf.deviceToHost();
             return nextIdBuf.getHostBuffer().getDataBox()(0);
         }
 
-        /** Functor that returns a new id */
+        /** Functor that returns a new id each time it is called
+         *  Modifies the state of the IdProvider */
         struct GetNewId
         {
             DINLINE uint64_cu operator()() const
@@ -99,11 +100,12 @@ namespace PMacc {
             }
         };
 
-        /** Function that returns a new id */
+        /** Function that returns a new id each time it is called
+         *  Modifies the state of the IdProvider  */
         HDINLINE static uint64_cu getNewId()
         {
 #ifdef __CUDA_ARCH__
-            return nvidia::atomicAllInc(&IdDetail::nextId);
+            return nvidia::atomicAllInc(&idDetail::nextId);
 #else
             // IMPORTANT: This calls a kernel. So make sure this kernel is instantiated somewhere before!
             return getNewIdHost();
@@ -138,21 +140,23 @@ namespace PMacc {
         }
 
     private:
+        /** Returns the first id for the current rank */
         static uint64_t getStartId()
         {
             uint64_t rank = Environment<>::get().GridController().getGlobalRank();
 
             /* We put the rank into the upper bits to have the lower bits for counting up and still
              * getting unique numbers. Reversing the bits instead of shifting gives some more room
-             * as the upper bits of the rank or often also zero
+             * as the upper bits of the rank are often also zero
              */
             return reverseBits(rank);
         }
 
+        /** Host version for getting a new id (changing the state) */
         static uint64_t getNewIdHost()
         {
             HostDeviceBuffer<uint64_cu, 1> newIdBuf(DataSpace<1>(1));
-            __cudaKernel(IdDetail::getNewId)(1, 1)(newIdBuf.getDeviceBuffer().getDataBox(), GetNewId());
+            __cudaKernel(idDetail::getNewId)(1, 1)(newIdBuf.getDeviceBuffer().getDataBox(), GetNewId());
             newIdBuf.deviceToHost();
             return newIdBuf.getHostBuffer().getDataBox()(0);
         }
