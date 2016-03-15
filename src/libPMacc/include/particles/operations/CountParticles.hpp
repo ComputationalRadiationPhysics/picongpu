@@ -22,13 +22,17 @@
 
 #pragma once
 
+
 #include "pmacc_types.hpp"
 #include "memory/buffers/GridBuffer.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
+#include "particles/memory/dataTypes/FramePointer.hpp"
 
 #include "particles/particleFilter/FilterFactory.hpp"
 #include "particles/particleFilter/PositionFilter.hpp"
 #include "nvidia/atomic.hpp"
+
+
 
 namespace PMacc
 {
