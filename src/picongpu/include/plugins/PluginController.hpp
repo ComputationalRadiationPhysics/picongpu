@@ -89,6 +89,8 @@
 #include "plugins/IsaacPlugin.hpp"
 #endif
 
+#include "plugins/ResourceLog.hpp"
+
 namespace picongpu
 {
 
@@ -146,6 +148,7 @@ private:
 #if (ENABLE_ISAAC == 1) && (SIMDIM==DIM3)
       , isaacP::IsaacPlugin
 #endif
+    , ResourceLog
     > StandAlonePlugins;
 
 
