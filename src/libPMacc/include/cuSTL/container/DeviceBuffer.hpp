@@ -34,6 +34,7 @@
 #include <exception>
 #include <sstream>
 #include <boost/assert.hpp>
+#include <boost/move/move.hpp>
 
 namespace PMacc
 {
@@ -130,7 +131,7 @@ public:
         return *this;
     }
 
-    HINLINE DeviceBuffer& operator=(const boost::rv<DeviceBuffer>& rhs)
+    HINLINE DeviceBuffer& operator=(const DeviceBuffer& rhs)
     {
         Base::operator=(rhs);
         return *this;
