@@ -197,7 +197,7 @@ add_definitions(-DPMACC_VERBOSE_LVL=${PMACC_VERBOSE})
 ################################################################################
 
 find_path(PMACC_ROOT_DIR
-  NAMES include/types.h
+  NAMES include/pmacc_types.hpp
   PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../../../libPMacc"
   DOC "libPMacc root location."
   )
