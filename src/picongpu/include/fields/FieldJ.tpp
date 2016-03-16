@@ -275,7 +275,7 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t )
         typename GetMargin<ParticleCurrentSolver>::UpperMargin
         > BlockArea;
 
-    StrideMapping<AREA, simDim, MappingDesc> mapper( cellDescription );
+    StrideMapping<AREA, 3, MappingDesc> mapper( cellDescription );
     typename ParticlesClass::ParticlesBoxType pBox = parClass.getDeviceParticlesBox( );
     FieldJ::DataBoxType jBox = this->fieldJ.getDeviceBuffer( ).getDataBox( );
     FrameSolver solver( DELTA_T );
