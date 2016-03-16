@@ -174,14 +174,17 @@ public:
     {
         size_t current_size = this->destination->getCurrentSize();
         const DataSpace<dim> area_size(this->destination->getCurrentDataSpace(current_size));
-        dim3 gridSize = area_size;
 
-        /* line wise thread blocks*/
-        gridSize.x = ceil(double(gridSize.x) / 256.);
+        if(area_size.productOfComponents() != 0)
+        {
+            dim3 gridSize = area_size;
 
-        kernelSetValue << <gridSize, 256, 0, this->getCudaStream() >> >
-            (this->destination->getDataBox(), this->value, area_size);
+            /* line wise thread blocks*/
+            gridSize.x = ceil(double(gridSize.x) / 256.);
 
+            kernelSetValue<<<gridSize, 256, 0, this->getCudaStream()>>>
+                (this->destination->getDataBox(), this->value, area_size);
+        }
         this->activate();
     }
 };
@@ -216,21 +219,24 @@ public:
     {
         size_t current_size = this->destination->getCurrentSize();
         const DataSpace<dim> area_size(this->destination->getCurrentDataSpace(current_size));
-        dim3 gridSize = area_size;
+        if(area_size.productOfComponents() != 0)
+        {
+            dim3 gridSize = area_size;
 
-        /* line wise thread blocks*/
-        gridSize.x = ceil(double(gridSize.x) / 256.);
+            /* line wise thread blocks*/
+            gridSize.x = ceil(double(gridSize.x) / 256.);
 
-        ValueType* devicePtr = this->destination->getPointer();
+            ValueType* devicePtr = this->destination->getPointer();
 
-        CUDA_CHECK(cudaMallocHost(&valuePointer_host, sizeof (ValueType)));
-        *valuePointer_host = this->value; //copy value to new place
+            CUDA_CHECK(cudaMallocHost(&valuePointer_host, sizeof (ValueType)));
+            *valuePointer_host = this->value; //copy value to new place
 
-        CUDA_CHECK(cudaMemcpyAsync(
-                                   devicePtr, valuePointer_host, sizeof (ValueType),
-                                   cudaMemcpyHostToDevice, this->getCudaStream()));
-        kernelSetValue << <gridSize, 256, 0, this->getCudaStream() >> >
-            (this->destination->getDataBox(), devicePtr, area_size);
+            CUDA_CHECK(cudaMemcpyAsync(
+                                       devicePtr, valuePointer_host, sizeof (ValueType),
+                                       cudaMemcpyHostToDevice, this->getCudaStream()));
+            kernelSetValue<<<gridSize, 256, 0, this->getCudaStream()>>>
+                (this->destination->getDataBox(), devicePtr, area_size);
+        }
 
         this->activate();
     }
