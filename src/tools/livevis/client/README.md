@@ -40,6 +40,9 @@ make
 ./SimpleUIVisClient
 ```
 
+Now press `F12` to connect to the `server` which will open an overlay menu to
+select a simulation stream. Choose via the arrow keys and select with
+`Enter/Return`.
 
 ### LICENSE
 
