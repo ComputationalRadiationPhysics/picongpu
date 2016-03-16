@@ -36,6 +36,10 @@ make
 
 ### Run
 
+Build your tunnel(s) if your `server` is not directly reachable.
+An example can be found in `tunnel2cluster.sh` for a complex
+`LoginNode` -> `HeadNode` (->`Cluster`) setup.
+
 ```bash
 ./SimpleUIVisClient
 ```
