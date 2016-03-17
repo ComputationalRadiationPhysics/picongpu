@@ -70,7 +70,7 @@ namespace picongpu
             VectorAllSpecies,
             interpolation<>
         >::type VectorSpeciesWithInterpolation;
-            
+
         /* ------------------ lower margin  ----------------------------------*/
         typedef bmpl::accumulate<
             VectorSpeciesWithInterpolation,
@@ -172,7 +172,7 @@ namespace picongpu
             typename FrameSolver::UpperMargin
             > BlockArea;
 
-        StrideMapping<AREA, simDim, MappingDesc> mapper( cellDescription );
+        StrideMapping<AREA, 3, MappingDesc> mapper( cellDescription );
         typename ParticlesClass::ParticlesBoxType pBox = parClass.getDeviceParticlesBox( );
         FieldTmp::DataBoxType tmpBox = this->fieldTmp->getDeviceBuffer( ).getDataBox( );
         FrameSolver solver;
