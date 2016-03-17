@@ -92,7 +92,7 @@ protected:
     template<uint32_t AREA>
     void shiftParticles()
     {
-        StrideMapping<AREA, DIM3, MappingDesc> mapper(this->cellDescription);
+        StrideMapping<AREA, 3, MappingDesc> mapper(this->cellDescription);
         ParticlesBoxType pBox = particlesBuffer->getDeviceParticleBox();
 
         __startTransaction(__getTransactionEvent());
