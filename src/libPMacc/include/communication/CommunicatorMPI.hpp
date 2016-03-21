@@ -1,6 +1,6 @@
 /**
  * Copyright 2013-2016 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
- *                     Wolfgang Hoenig, Benjamin Worpitz
+ *                     Wolfgang Hoenig, Benjamin Worpitz, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -37,6 +37,35 @@
 
 namespace PMacc
 {
+
+namespace detail
+{
+    template <unsigned T_DIM>
+    struct LogRankCoords
+    {
+        void operator()(int rank, const int (&coords)[T_DIM]) const
+        {
+            log<ggLog::MPI>("Rank: %1% ; coords %2%") % rank % coords[0];
+        }
+    };
+    template <>
+    struct LogRankCoords<DIM2>
+    {
+        void operator()(int rank, const int (&coords)[DIM2]) const
+        {
+            log<ggLog::MPI>("Rank: %1% ; coords %2% %3%") % rank % coords[0] % coords[1];
+        }
+    };
+    template <>
+    struct LogRankCoords<DIM3>
+    {
+        void operator()(int rank, const int (&coords)[DIM3]) const
+        {
+            log<ggLog::MPI>("Rank: %1% ; coords %2% %3% %4%") % rank % coords[0] % coords[1] % coords[2];
+        }
+    };
+
+}
 
 /*! communication via MPI
  */
@@ -105,7 +134,6 @@ public:
 
         // 2. create topology
 
-        //int dims[3];
         dims[0] = numberProcesses.x();
         dims[1] = numberProcesses.y();
         dims[2] = numberProcesses.z();
@@ -192,23 +220,24 @@ public:
 
     bool slide()
     {
+        if(DIM < DIM2)
+            return false;
+
         // MPI_Barrier(topology);
         yoffset--;
         if (yoffset == -dims[1])
             yoffset = 0;
 
         updateCoordinates();
-        if (DIM >= DIM2)
-        {
-            if (coordinates[1] == dims[1] - 1)
-                return true;
-        }
 
-        return false;
+        return coordinates[1] == dims[1] - 1;
     }
 
     bool setStateAfterSlides(size_t numSlides)
     {
+        if(DIM < DIM2)
+            return false;
+
         bool result = false;
 
         // only need to apply (numSlides % num-gpus-y) slides
@@ -301,18 +330,17 @@ protected:
         MPI_CHECK(MPI_Comm_rank(topology, &rank));
         MPI_CHECK(MPI_Cart_coords(topology, rank, DIM, coords));
 
-        if (dims[1] > 1)
-            coords[1] = (coords[1] + yoffset) % dims[1];
+        if (DIM >= DIM2)
+        {
+            if (dims[1] > 1)
+                coords[1] = (coords[1] + yoffset) % dims[1];
 
-        while (coords[1] < 0)
-            coords[1] += dims[1];
+            while (coords[1] < 0)
+                coords[1] += dims[1];
+        }
 
-        /* \todo: fix this create error in 2D
-        if(DIM==DIM3)
-            log<ggLog::MPI>("Rank: %1% ; coords %2% %3% %4%") % rank % coords[0] % coords[1] % coords[2];
-        else if(DIM==DIM2)
-            log<ggLog::MPI>("Rank: %1% ; coords %2% %3%") % rank % coords[0] % coords[1];
-         */
+        detail::LogRankCoords<DIM>()(rank, coords);
+
         for (uint32_t i = 0; i < DIM; ++i)
             this->coordinates[i] = coords[i];
 
@@ -331,11 +359,14 @@ protected:
                 mcoords[0]--;
             if (m.containsExchangeType(RIGHT))
                 mcoords[0]++;
-            if (m.containsExchangeType(TOP))
-                mcoords[1]--;
-            if (m.containsExchangeType(BOTTOM))
-                mcoords[1]++;
 
+            if (DIM >= DIM2)
+            {
+                if (m.containsExchangeType(TOP))
+                    mcoords[1]--;
+                if (m.containsExchangeType(BOTTOM))
+                    mcoords[1]++;
+            }
 
             if (DIM == DIM3)
             {
@@ -382,7 +413,7 @@ private:
     DataSpace<DIM3> periodic;
     //! MPI communicator (currently MPI_COMM_WORLD)
     MPI_Comm topology;
-    //! array for exchangetype-to-rank conversen \see ExchangeTypeToRank
+    //! array for exchangetype-to-rank conversion \see ExchangeTypeToRank
     int ranks[27];
     //! size of PMacc [cx,cy,cz]
     int dims[3];
