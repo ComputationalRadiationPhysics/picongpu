@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2016 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+ *                     Alexander Grund
  *
  * This file is part of PIConGPU.
  *
@@ -42,6 +43,7 @@
 #include "particles/particleFilter/FilterFactory.hpp"
 #include "particles/particleFilter/PositionFilter.hpp"
 #include "particles/operations/CountParticles.hpp"
+#include "particles/IdProvider.def"
 
 #include "dataManagement/DataConnector.hpp"
 #include "mappings/simulation/GridController.hpp"
@@ -67,8 +69,6 @@
 #include "plugins/hdf5/restart/LoadSpecies.hpp"
 #include "plugins/hdf5/restart/RestartFieldLoader.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
-
-#include <splash/splash.h>
 
 namespace picongpu
 {
@@ -210,6 +210,10 @@ public:
         {
             mThreadParams.localWindowToDomainOffset[i] = 0;
         }
+
+        uint64_t idProviderState;
+        mThreadParams.dataCollector->readAttribute(restartStep, NULL, "sim_IdProvider_State", &idProviderState);
+        IdProvider<simDim>::setNextId(idProviderState);
 
         ThreadParams *params = &mThreadParams;
 
@@ -377,6 +381,7 @@ private:
     static void writeMetaAttributes(ThreadParams *threadParams)
     {
         ColTypeUInt32 ctUInt32;
+        ColTypeUInt64 ctUInt64;
         ColTypeDouble ctDouble;
         SplashFloatXType splashFloatXType;
 
@@ -388,6 +393,10 @@ private:
 
         dc->writeAttribute(threadParams->currentStep,
                            ctUInt32, NULL, "sim_slides", &slides);
+
+        uint64_t idProviderState = IdProvider<simDim>::getNextId();
+        dc->writeAttribute(threadParams->currentStep,
+                           ctUInt64, NULL, "sim_IdProvider_State", &idProviderState);
 
         /* write normed grid parameters */
         dc->writeAttribute(currentStep, splashFloatXType, NULL, "delta_t", &DELTA_T);

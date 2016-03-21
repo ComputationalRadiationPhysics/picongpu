@@ -63,6 +63,7 @@
 #include "particles/InitFunctors.hpp"
 #include "particles/memory/buffers/MallocMCBuffer.hpp"
 #include "particles/traits/FilterByFlag.hpp"
+#include "particles/IdProvider.hpp"
 
 #include <boost/mpl/int.hpp>
 
@@ -313,6 +314,8 @@ public:
 
         Environment<>::get().MemoryInfo().getMemoryInfo(&freeGpuMem);
         log<picLog::MEMORY > ("free mem after all mem is allocated %1% MiB") % (freeGpuMem / 1024 / 1024);
+
+        IdProvider<simDim>::init();
 
         fieldB->init(*fieldE, *laser);
         fieldE->init(*fieldB, *laser);

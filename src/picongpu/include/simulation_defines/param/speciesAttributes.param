@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2016 Rene Widera, Marco Garten
+ * Copyright 2014-2016 Rene Widera, Marco Garten, Alexander Grund
  *
  * This file is part of PIConGPU.
  *
@@ -29,6 +29,7 @@
 #include "identifier/identifier.hpp"
 #include "identifier/alias.hpp"
 #include "identifier/value_identifier.hpp"
+#include "particles/IdProvider.def"
 
 namespace picongpu
 {
@@ -43,6 +44,8 @@ alias(position);
  * current time step.
  */
 alias(globalCellIdx);
+
+value_identifier(uint64_cu,particleId,IdProvider<simDim>::getNewId());
 
 /** specialization for the relative in-cell position */
 value_identifier(floatD_X,position_pic,floatD_X::create(0.));
