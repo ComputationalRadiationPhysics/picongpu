@@ -54,7 +54,8 @@ namespace PMacc {
 
     }  // namespace idDetail
 
-    void IdProvider::init()
+    template<unsigned T_dim>
+    void IdProvider<T_dim>::init()
     {
         const uint64_t globalUniqueStartId = getStartId();
         setNextId(globalUniqueStartId);
@@ -64,12 +65,14 @@ namespace PMacc {
         setNextId(globalUniqueStartId);
     }
 
-    void IdProvider::setNextId(const uint64_t nextId)
+    template<unsigned T_dim>
+    void IdProvider<T_dim>::setNextId(const uint64_t nextId)
     {
         __cudaKernel(idDetail::setNextId)(1, 1)(nextId);
     }
 
-    uint64_t IdProvider::getNextId()
+    template<unsigned T_dim>
+    uint64_t IdProvider<T_dim>::getNextId()
     {
         HostDeviceBuffer<uint64_cu, 1> nextIdBuf(DataSpace<1>(1));
         __cudaKernel(idDetail::getNextId)(1, 1)(nextIdBuf.getDeviceBuffer().getDataBox());
@@ -77,7 +80,8 @@ namespace PMacc {
         return nextIdBuf.getHostBuffer().getDataBox()(0);
     }
 
-    HDINLINE uint64_cu IdProvider::getNewId()
+    template<unsigned T_dim>
+    HDINLINE uint64_cu IdProvider<T_dim>::getNewId()
     {
 #ifdef __CUDA_ARCH__
         return nvidia::atomicAllInc(&idDetail::nextId);
@@ -87,7 +91,8 @@ namespace PMacc {
 #endif
     }
 
-    bool IdProvider::isOverflown()
+    template<unsigned T_dim>
+    bool IdProvider<T_dim>::isOverflown()
     {
         // Get current value
         uint64_t nextId = getNextId();
@@ -111,9 +116,10 @@ namespace PMacc {
         return false;
     }
 
-    uint64_t IdProvider::getStartId()
+    template<unsigned T_dim>
+    uint64_t IdProvider<T_dim>::getStartId()
     {
-        uint64_t rank = Environment<>::get().GridController().getGlobalRank();
+        uint64_t rank = Environment<T_dim>::get().GridController().getGlobalRank();
 
         /* We put the rank into the upper bits to have the lower bits for counting up and still
          * getting unique numbers. Reversing the bits instead of shifting gives some more room
@@ -122,7 +128,8 @@ namespace PMacc {
         return reverseBits(rank);
     }
 
-    uint64_t IdProvider::getNewIdHost()
+    template<unsigned T_dim>
+    uint64_t IdProvider<T_dim>::getNewIdHost()
     {
         HostDeviceBuffer<uint64_cu, 1> newIdBuf(DataSpace<1>(1));
         __cudaKernel(idDetail::getNewId)(1, 1)(newIdBuf.getDeviceBuffer().getDataBox(), GetNewId());

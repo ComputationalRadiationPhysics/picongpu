@@ -30,6 +30,7 @@ namespace PMacc {
      * Provider for globally unique ids (even across ranks)
      * Implemented for use in static contexts
      */
+    template<unsigned T_dim>
     class IdProvider
     {
     public:
