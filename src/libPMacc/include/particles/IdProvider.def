@@ -23,6 +23,7 @@
 #pragma once
 
 #include "pmacc_types.hpp"
+#include <boost/tuple/tuple.hpp>
 
 namespace PMacc {
 
@@ -38,13 +39,16 @@ namespace PMacc {
          */
         static void init();
 
-        /** Sets the next id to a given value (e.g. after a restart)
+        /** Sets the internal state (e.g. after a restart)
+         * @param nextId     Next id to be returned
+         * @param maxNumProc Maximum number of processes ever used (never decreases)
          */
-        static void setNextId(const uint64_t nextId);
+        static void setState(const uint64_t nextId, const uint64_t maxNumProc);
 
-        /** Returns the next id without changing the current state (e.g. for saving)
+        /** Returns the state (e.g. for saving)
+         *  Tuple is the same as the parameters to @ref setState
          */
-        static uint64_t getNextId();
+        static boost::tuple<uint64_t, uint64_t> getState();
 
         /** Functor that returns a new id each time it is called
          *  Modifies the state of the IdProvider */
@@ -71,6 +75,8 @@ namespace PMacc {
 
         /** Host version for getting a new id (changing the state) */
         static uint64_t getNewIdHost();
+
+        static uint64_t maxNumProc_;
     };
 
 }  // namespace PMacc
