@@ -23,7 +23,6 @@
 #pragma once
 
 #include <pthread.h>
-#include <cassert>
 #include <sstream>
 #include <list>
 #include <vector>
@@ -68,6 +67,7 @@
 #include "plugins/hdf5/WriteSpecies.hpp"
 #include "plugins/hdf5/restart/LoadSpecies.hpp"
 #include "plugins/hdf5/restart/RestartFieldLoader.hpp"
+#include "plugins/hdf5/NDScalars.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
 
 namespace picongpu
@@ -211,10 +211,6 @@ public:
             mThreadParams.localWindowToDomainOffset[i] = 0;
         }
 
-        uint64_t idProviderState;
-        mThreadParams.dataCollector->readAttribute(restartStep, NULL, "sim_IdProvider_State", &idProviderState);
-        IdProvider<simDim>::setNextId(idProviderState);
-
         ThreadParams *params = &mThreadParams;
 
         /* load all fields */
@@ -224,6 +220,13 @@ public:
         /* load all particles */
         ForEach<FileCheckpointParticles, LoadSpecies<bmpl::_1> > forEachLoadSpecies;
         forEachLoadSpecies(params, restartChunkSize);
+
+        uint64_t idProviderNextId, idProviderMaxNumProc;
+        ReadNDScalars<uint64_t, uint64_t>()(mThreadParams,
+                "picongpu/idProviderState", &idProviderNextId,
+                "maxNumProc", &idProviderMaxNumProc);
+        log<picLog::INPUT_OUTPUT > ("Setting id on current rank: %1%") % idProviderNextId;
+        IdProvider<simDim>::setState(idProviderNextId, idProviderMaxNumProc);
 
         /* close datacollector */
         log<picLog::INPUT_OUTPUT > ("HDF5 close DataCollector with file: %1%") % restartFilename;
@@ -394,10 +397,6 @@ private:
         dc->writeAttribute(threadParams->currentStep,
                            ctUInt32, NULL, "sim_slides", &slides);
 
-        uint64_t idProviderState = IdProvider<simDim>::getNextId();
-        dc->writeAttribute(threadParams->currentStep,
-                           ctUInt64, NULL, "sim_IdProvider_State", &idProviderState);
-
         /* write normed grid parameters */
         dc->writeAttribute(currentStep, splashFloatXType, NULL, "delta_t", &DELTA_T);
         dc->writeAttribute(currentStep, splashFloatXType, NULL, "cell_width", &CELL_WIDTH);
@@ -460,6 +459,11 @@ private:
             writeSpecies(threadParams, std::string(), particleOffset);
         }
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species.");
+
+        PMACC_AUTO(idProviderState, IdProvider<simDim>::getState());
+        WriteNDScalars<uint64_t, uint64_t>()(*threadParams,
+                "picongpu/idProviderState", idProviderState.get<0>(),
+                "maxNumProc", idProviderState.get<1>());
 
         return NULL;
     }
