@@ -173,54 +173,6 @@ if(VAMPIR_ENABLE)
     add_definitions(-DMPICH_IGNORE_CXX_SEEK)
 endif(VAMPIR_ENABLE)
 
-
-################################################################################
-# Score-P
-################################################################################
-
-option(SCOREP_ENABLE "Create PMacc with Score-P support" OFF)
-
-if(SCOREP_ENABLE)
-    message(STATUS "Building with Score-P support")
-    set(SCOREP_ROOT "$ENV{SCOREP_ROOT}")
-    if(NOT SCOREP_ROOT)
-        message(FATAL_ERROR "Environment variable SCOREP_ROOT not set!")
-    endif(NOT SCOREP_ROOT)
-
-    # compile flags
-    execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --nocompiler --cflags
-                    OUTPUT_VARIABLE SCOREP_COMPILEFLAGS
-                    RESULT_VARIABLE SCOREP_CONFIG_RETURN
-                    OUTPUT_STRIP_TRAILING_WHITESPACE)
-    if(NOT SCOREP_CONFIG_RETURN EQUAL 0)
-        message(FATAL_ERROR "Can NOT execute 'scorep-config' at $ENV{SCOREP_ROOT}/bin/scorep-config - check file permissions")
-    endif()
-
-    # link flags
-    execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --cuda --mpp=mpi --ldflags
-                    OUTPUT_VARIABLE SCOREP_LINKFLAGS
-                    OUTPUT_STRIP_TRAILING_WHITESPACE)
-    # libraries
-    execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --cuda --mpp=mpi --libs
-                    OUTPUT_VARIABLE SCOREP_LIBFLAGS
-                    OUTPUT_STRIP_TRAILING_WHITESPACE)
-    string(STRIP "${SCOREP_LIBFLAGS}" SCOREP_LIBFLAGS)
-
-    # subsystem iniialization file
-    execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --cuda --mpp=mpi --adapter-init
-                    OUTPUT_VARIABLE SCOREP_INIT_FILE
-                    OUTPUT_STRIP_TRAILING_WHITESPACE)
-    file(WRITE ${CMAKE_BINARY_DIR}/scorep_init.c "${SCOREP_INIT_FILE}")
-
-    if(SCOREP_ENABLE)
-        set(SCOREP_SRCFILES "${CMAKE_BINARY_DIR}/scorep_init.c")
-    endif(SCOREP_ENABLE)
-
-    # modify our flags
-    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} ${SCOREP_LINKFLAGS}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SCOREP_COMPILEFLAGS}")
-endif(SCOREP_ENABLE)
-
 ################################################################################
 # MPI LIB
 ################################################################################
