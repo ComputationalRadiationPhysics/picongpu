@@ -26,7 +26,7 @@ cmake_minimum_required(VERSION 3.1.0)
 
 
 ################################################################################
-# Project 
+# Project
 ################################################################################
 
 project(PIConGPU)
@@ -68,7 +68,7 @@ else()
 endif()
 
 ################################################################################
-# Find CUDA 
+# Find CUDA
 ################################################################################
 
 find_package(CUDA 5.0 REQUIRED)
@@ -120,6 +120,45 @@ if( (CUDA_VERSION VERSION_GREATER 7.0) AND
                         `-std=c++11` or `-DCMAKE_CXX_STANDARD=11`
                         when compiling with nvcc 7.5")
 endif()
+
+################################################################################
+# ISAAC
+################################################################################
+
+option(PIC_ENABLE_ISAAC "Enable Isaac" OFF)
+if(PIC_ENABLE_ISAAC)
+
+    set(CMAKE_CXX_STANDARD 11)
+    add_definitions(-DBOOST_NO_CXX11_SCOPED_ENUMS)
+
+    find_package(ISAAC 0.1.0 CONFIG REQUIRED)
+
+    SET(ISAAC_STEREO "No" CACHE STRING "Using stereoscopy")
+    SET_PROPERTY(CACHE ISAAC_STEREO PROPERTY STRINGS No SideBySide Anaglyph)
+
+    if(${ISAAC_STEREO} STREQUAL "No")
+        add_definitions(-DISAAC_STEREO=0)
+    endif()
+    if(${ISAAC_STEREO} STREQUAL "SideBySide")
+        add_definitions(-DISAAC_STEREO=1)
+    endif()
+    if(${ISAAC_STEREO} STREQUAL "Anaglyph")
+        add_definitions(-DISAAC_STEREO=2)
+    endif()
+
+
+    include_directories(example_cuda ${ISAAC_INCLUDE_DIRS})
+    set(LIBS ${LIBS} ${ISAAC_LIBRARIES})
+
+    set(ISAAC_MAX_FUNCTORS "3" CACHE STRING "Max length of the isaac functor chain" )
+
+    add_definitions(${ISAAC_DEFINITIONS})
+    add_definitions(-DISAAC_MAX_FUNCTORS=${ISAAC_MAX_FUNCTORS})
+    add_definitions(-DISAAC_FUNCTOR_POW_ENABLED=0)
+
+	add_definitions(-DENABLE_ISAAC=1)
+
+endif(PIC_ENABLE_ISAAC)
 
 ################################################################################
 # VampirTrace
@@ -207,7 +246,7 @@ include_directories(SYSTEM ${MPI_C_INCLUDE_PATH})
 set(LIBS ${LIBS} ${MPI_C_LIBRARIES})
 
 # bullxmpi fails if it can not find its c++ counter part
-if(MPI_CXX_FOUND) 
+if(MPI_CXX_FOUND)
     set(LIBS ${LIBS} ${MPI_CXX_LIBRARIES})
 endif(MPI_CXX_FOUND)
 
@@ -294,7 +333,7 @@ set(LIBS ${LIBS} ${mallocMC_LIBRARIES})
 # PMacc options
 ################################################################################
 
-option(PMACC_BLOCKING_KERNEL 
+option(PMACC_BLOCKING_KERNEL
        "Activate checks for every kernel call and synchronize after every kernel call" OFF)
 if(PMACC_BLOCKING_KERNEL)
     add_definitions(-DPMACC_SYNC_KERNEL=1)
@@ -487,7 +526,7 @@ install(TARGETS picongpu
 
 #file(GLOB scripts_to_copy "${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.sh")
 #foreach(f ${scripts_to_copy})
-#   GET_FILENAME_COMPONENT(file_name ${f} NAME CACHE)                                 
+#   GET_FILENAME_COMPONENT(file_name ${f} NAME CACHE)
 #   install(FILES "${f}" DESTINATION bin PERMISSIONS OWNER_EXECUTE OWNER_READ
 #           OWNER_WRITE GROUP_READ GROUP_EXECUTE)
 #endforeach(f)
@@ -495,12 +534,12 @@ install(TARGETS picongpu
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/scripts/" DESTINATION bin
     FILES_MATCHING PATTERN "*"
     PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE GROUP_READ GROUP_EXECUTE
-    PATTERN .svn EXCLUDE   
+    PATTERN .svn EXCLUDE
 )
 
 # If the installation prefix does not equal extension path, check if folder must be copied.
 # If there is no include folder in installation prefix, also copy all missing folders.
-if( (NOT "${CMAKE_INSTALL_PREFIX}" STREQUAL "${PIC_EXTENSION_PATH}") OR 
+if( (NOT "${CMAKE_INSTALL_PREFIX}" STREQUAL "${PIC_EXTENSION_PATH}") OR
     (NOT EXISTS "${CMAKE_INSTALL_PREFIX}/include"))
 
     #copy all important subfolders to install folder
