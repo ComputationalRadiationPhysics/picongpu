@@ -461,6 +461,8 @@ private:
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species.");
 
         PMACC_AUTO(idProviderState, IdProvider<simDim>::getState());
+        log<picLog::INPUT_OUTPUT>("HDF5: Writing IdProvider state (NextId: %1%, maxNumProc: %2%)")
+                % idProviderState.get<0>() % idProviderState.get<1>();
         WriteNDScalars<uint64_t, uint64_t>()(*threadParams,
                 "picongpu/idProviderState", idProviderState.get<0>(),
                 "maxNumProc", idProviderState.get<1>());

@@ -1032,6 +1032,8 @@ private:
         }
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing particle species.");
 
+        log<picLog::INPUT_OUTPUT>("ADIOS: Writing IdProvider state (NextId: %1%, maxNumProc: %2%)")
+                % idProviderState.get<0>() % idProviderState.get<1>();
         writeIdProviderState(*threadParams, idProviderState.get<0>());
 
         /* close adios file, most likely the actual write point */
