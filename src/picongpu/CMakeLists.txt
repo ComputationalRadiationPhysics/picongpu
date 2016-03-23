@@ -97,6 +97,31 @@ if(CUDA_KEEP_FILES)
 endif(CUDA_KEEP_FILES)
 
 ################################################################################
+# ISAAC
+################################################################################
+
+option(PIC_ENABLE_ISAAC "Enable Isaac" OFF)
+if(PIC_ENABLE_ISAAC)
+
+    set(CMAKE_CXX_STANDARD 11)
+    add_definitions(-DBOOST_NO_CXX11_SCOPED_ENUMS)
+
+    find_package(ISAAC 0.1.0 REQUIRED)
+    
+    include_directories(example_cuda ${ISAAC_INCLUDE_DIRS})
+    set(LIBS ${LIBS} ${ISAAC_LIBRARIES})
+
+    set(ISAAC_MAX_FUNCTORS "3" CACHE STRING "Max length of the isaac functor chain" )
+
+    add_definitions(${ISAAC_DEFINITIONS})
+    add_definitions(-DISAAC_MAX_FUNCTORS=${ISAAC_MAX_FUNCTORS})
+    add_definitions(-DISAAC_FUNCTOR_POW_ENABLED=0)
+
+	add_definitions(-DENABLE_ISAAC=1)
+
+endif(PIC_ENABLE_ISAAC)
+
+################################################################################
 # C++11 Enabler
 ################################################################################
 

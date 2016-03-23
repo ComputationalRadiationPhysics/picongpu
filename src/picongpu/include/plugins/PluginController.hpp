@@ -85,6 +85,10 @@
 #include "plugins/adios/ADIOSWriter.hpp"
 #endif
 
+#if (ENABLE_ISAAC == 1)
+#include "plugins/IsaacPlugin.hpp"
+#endif
+
 namespace picongpu
 {
 
@@ -138,6 +142,9 @@ private:
 #endif
 #if (ENABLE_HDF5 == 1)
       , hdf5::HDF5Writer
+#endif
+#if(ENABLE_ISAAC == 1)
+      , isaacP::IsaacPlugin
 #endif
     > StandAlonePlugins;
 
