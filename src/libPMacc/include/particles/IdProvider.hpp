@@ -64,7 +64,7 @@ namespace PMacc {
         maxNumProc_ = Environment<T_dim>::get().GridController().getGpuNodes().productOfComponents();
         setState(globalUniqueStartId, maxNumProc_);
         // Instantiate kernel
-        getNewId();
+        getNewIdHost();
         // Reset to start value
         setState(globalUniqueStartId, maxNumProc_);
     }
