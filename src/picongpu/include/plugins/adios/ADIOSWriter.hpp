@@ -73,6 +73,7 @@
 #include "plugins/adios/ADIOSCountParticles.hpp"
 #include "plugins/adios/restart/LoadSpecies.hpp"
 #include "plugins/adios/restart/RestartFieldLoader.hpp"
+#include "plugins/adios/NDScalars.hpp"
 
 
 namespace picongpu
@@ -575,21 +576,6 @@ public:
         mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(restartStep);
         mThreadParams.localWindowToDomainOffset = DataSpace<simDim>::create(0);
 
-        uint64_t* idProviderStatePtr = NULL;
-        int idProviderStateSize;
-        enum ADIOS_DATATYPES idProviderStateType;
-        ADIOS_CMD(adios_get_attr( mThreadParams.fp,
-                                  (mThreadParams.adiosBasePath + std::string("sim_IdProvider_State")).c_str(),
-                                  &idProviderStateType,
-                                  &idProviderStateSize,
-                                  (void**) &idProviderStatePtr ));
-
-        log<picLog::INPUT_OUTPUT > ("ADIOS: value of sim_IdProvider_State = %1%") % *idProviderStatePtr;
-
-        assert(idProviderStateType == PICToAdios<uint64_t>().type);
-        assert(idProviderStateSize == sizeof(*idProviderStatePtr));
-        IdProvider<simDim>::setNextId(*idProviderStatePtr);
-
         /* load all fields */
         ForEach<FileCheckpointFields, LoadFields<bmpl::_1> > forEachLoadFields;
         forEachLoadFields(&mThreadParams);
@@ -598,10 +584,16 @@ public:
         ForEach<FileCheckpointParticles, LoadSpecies<bmpl::_1> > forEachLoadSpecies;
         forEachLoadSpecies(&mThreadParams, restartChunkSize);
 
+        uint64_t idProviderNextId, idProviderMaxNumProc;
+        ReadNDScalars<uint64_t, uint64_t>()(mThreadParams,
+                "picongpu/idProviderState", &idProviderNextId,
+                "maxNumProc", &idProviderMaxNumProc);
+        log<picLog::INPUT_OUTPUT > ("Setting id on current rank: %1%") % idProviderNextId;
+        IdProvider<simDim>::setState(idProviderNextId, idProviderMaxNumProc);
+
         /* free memory allocated in ADIOS calls */
         free(slidesPtr);
         free(lastStepPtr);
-        free(idProviderStatePtr);
 
         /* clean shut down: close file and finalize */
         adios_release_step( mThreadParams.fp );
@@ -850,12 +842,6 @@ private:
                   "sim_slides", threadParams->adiosBasePath.c_str(),
                   adiosUInt32Type.type, 1, (void*)&slides ));
 
-        uint64_t idProviderState = IdProvider<simDim>::getNextId();
-        log<picLog::INPUT_OUTPUT > ("ADIOS: meta: sim_IdProvider_State");
-        ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
-                  "sim_IdProvider_State", threadParams->adiosBasePath.c_str(),
-                  PICToAdios<uint64_t>().type, 1, static_cast<void*>(&idProviderState) ));
-
         /* write normed grid parameters */
         log<picLog::INPUT_OUTPUT > ("ADIOS: meta: grid");
         ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
@@ -987,6 +973,10 @@ private:
         }
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) counting particles.");
 
+        PMACC_AUTO(idProviderState, IdProvider<simDim>::getState());
+        WriteNDScalars<uint64_t, uint64_t> writeIdProviderState("picongpu/idProviderState", "maxNumProc");
+        writeIdProviderState.prepare(*threadParams, idProviderState.get<1>());
+
         /* allocate buffer in MB according to our current group size */
         /* `1 + mem` minimum 1 MiB that we can write attributes on empty GPUs */
         size_t writeBuffer_in_MiB=1+threadParams->adiosGroupSize / 1024 / 1024;
@@ -1042,7 +1032,9 @@ private:
         }
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing particle species.");
 
-        /* close adios file, most liekly the actual write point */
+        writeIdProviderState(*threadParams, idProviderState.get<0>());
+
+        /* close adios file, most likely the actual write point */
         log<picLog::INPUT_OUTPUT > ("ADIOS: closing file: %1%") % threadParams->fullFilename;
         ADIOS_CMD(adios_close(threadParams->adiosFileHandle));
 

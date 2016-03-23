@@ -74,16 +74,15 @@ namespace po = boost::program_options;
     }                                                                         \
 }
 
-#define ADIOS_CMD_EXPECT_NONZERO(_cmd)                                        \
+#define ADIOS_CMD_EXPECT_NONNULL(_cmd)                                        \
 {                                                                             \
-    int _err_code = _cmd;                                                     \
-    if (_err_code == 0)                                                       \
+    if (!(_cmd))                                                              \
     {                                                                         \
         std::string errMsg( adios_errmsg() );                                 \
         if( errMsg.empty() ) errMsg = '\n';                                   \
         std::stringstream s;                                                  \
         s << "ADIOS: error at cmd '" << #_cmd                                 \
-          << "' (" << _err_code << ", " << adios_errno << ") in "             \
+          << "' (" << adios_errno << ") in "                                  \
           << __FILE__ << ":" << __LINE__ << " " << errMsg;                    \
         throw std::runtime_error(s.str());                                    \
     }                                                                         \
