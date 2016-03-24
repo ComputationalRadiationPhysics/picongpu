@@ -56,7 +56,7 @@ echo -n "present working directory:"
 pwd
 
 
-source $PROJWORK/!TBG_nameProject/picongpu.profile 2>/dev/null
+source $PROJWORK/!TBG_nameProject/$USER/picongpu.profile 2>/dev/null
 if [ $? -ne 0 ] ; then
   echo "Error: picongpu.profile not found in PROJWORK"
   exit 1
