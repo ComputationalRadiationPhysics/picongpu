@@ -28,6 +28,7 @@
 #include "algorithms/reverseBits.hpp"
 #include "nvidia/atomic.hpp"
 #include "memory/buffers/HostDeviceBuffer.hpp"
+#include "debug/PMaccVerbose.hpp"
 
 namespace PMacc {
 
@@ -62,7 +63,8 @@ namespace PMacc {
     {
         const uint64_t globalUniqueStartId = getStartId();
         maxNumProc_ = Environment<T_dim>::get().GridController().getGpuNodes().productOfComponents();
-        setState(globalUniqueStartId, maxNumProc_);
+        // Init value to avoid uninitialized read warnings
+        setState(globalUniqueStartId, 0);
         // Instantiate kernel
         getNewIdHost();
         // Reset to start value
@@ -73,8 +75,12 @@ namespace PMacc {
     void IdProvider<T_dim>::setState(const uint64_t nextId, const uint64_t maxNumProc)
     {
         __cudaKernel(idDetail::setNextId)(1, 1)(nextId);
+        // Detect initialization call and skip the rest
+        if(maxNumProc == 0)
+            return;
         if(maxNumProc_ < maxNumProc)
             maxNumProc_ = maxNumProc;
+        log<ggLog::INFO>("(Re-)Initialized IdProvider with id=%1% and maxNumProc=%2%/%3%") % nextId % maxNumProc % maxNumProc_;
     }
 
     template<unsigned T_dim>
@@ -101,17 +107,18 @@ namespace PMacc {
     bool IdProvider<T_dim>::isOverflown()
     {
         /* Overflow happens, when an id puts bits into the bits used for ensuring uniqueness.
-         * This are the n upper bits with n = highest bit set in maxNumProc_ (start counting at 1)
+         * This are the n upper bits with n = highest bit set in the maximum id (which is maxNumProc_ - 1)
+         * when counting the bits from 1 = right most bit
          * So first we calculate n, then remove the lowest bits of the next id so we have only the n upper bits
          * If any of them is non-zero, it is an overflow and we can have duplicate ids.
          * If not, then all ids are probably unique (still a chance, the id is overflown so much, that detection is impossible)
          */
-        uint64_t tmpMaxNumProc = maxNumProc_;
+        uint64_t tmp = maxNumProc_ - 1;
         int32_t bitsToCheck = 0;
-        while(tmpMaxNumProc)
+        while(tmp)
         {
             bitsToCheck++;
-            tmpMaxNumProc >>= 1;
+            tmp >>= 1;
         }
 
         // Number of bits in the ids
