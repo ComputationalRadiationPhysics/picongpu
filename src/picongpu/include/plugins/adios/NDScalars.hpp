@@ -25,6 +25,7 @@
 #include "plugins/adios/restart/ReadAttribute.hpp"
 #include "traits/PICToAdios.hpp"
 #include "Environment.hpp"
+#include <stdexcept>
 
 namespace picongpu {
 namespace adios {
@@ -56,9 +57,9 @@ struct WriteNDScalars
             params.adiosGroupSize += sizeof(T_Attribute);
 
         // Size over all processes
-        Dimensions globalDomainSize(1, 1, 1);
+        Dimensions globalDomainSize = Dimensions::create(1);
         // Offset for this process
-        Dimensions localDomainOffset(0, 0, 0);
+        Dimensions localDomainOffset = Dimensions::create(0);
 
         for (uint32_t d = 0; d < simDim; ++d)
         {
@@ -114,8 +115,10 @@ struct ReadNDScalars
 
         ADIOS_VARINFO* varInfo;
         ADIOS_CMD_EXPECT_NONNULL( varInfo = adios_inq_var(params.fp, datasetName.c_str()) );
-        assert(varInfo->ndim == simDim);
-        assert(varInfo->type == traits::PICToAdios<T_Skalar>().type);
+        if(varInfo->ndim != simDim)
+            throw std::runtime_error(std::string("Invalid dimensionality for ") + name);
+        if(varInfo->type != traits::PICToAdios<T_Skalar>().type)
+            throw std::runtime_error(std::string("Invalid type for ") + name);
 
         DataSpace<simDim> gridPos = Environment<simDim>::get().GridController().getPosition();
         uint64_t start[varInfo->ndim];
