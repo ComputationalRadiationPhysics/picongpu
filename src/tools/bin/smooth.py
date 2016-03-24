@@ -20,6 +20,7 @@
 
 import numpy
 import sys
+from __future__ import division
 
 __doc__ = "This is the 'smooth' module which provides several functions that\n\
 provide methods to smooth data from simulation or experiments.\n\
@@ -146,7 +147,7 @@ def smooth(x, sigma, window_len = 11, fkt=gaussWindow):
 
     # smooth data by convolution with window function
     y = numpy.convolve(w/w.sum(), s, mode='valid') #smoothed data with borders
-    overlap = window_len/2 # usually window_len is odd, and int-devision is used
+    overlap = window_len//2 # usually window_len is odd, and int-devision is used
 
     return y[overlap:len(y)-overlap] # smoothed data without added borders
 
