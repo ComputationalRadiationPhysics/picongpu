@@ -22,15 +22,16 @@
 
 #include "pmacc_types.hpp"
 #include "plugins/adios/ADIOSWriter.def"
+#include "plugins/adios/restart/ReadAttribute.hpp"
 #include "traits/PICToAdios.hpp"
 #include "Environment.hpp"
 
 namespace picongpu {
 namespace adios {
 
-/* Functors for reading and writing ND scalar fields
+/* Functors for reading and writing ND scalar fields with N=simDim
  * In the current implementation each process (of the ND grid) reads/writes 1 scalar value
- * Optionally the processes can also write an attribute for this dataset
+ * Optionally the processes can also read/write an attribute for this dataset by using a non-empty attrName
  */
 
 template<typename T_Skalar, typename T_Attribute = uint64_t>
@@ -38,12 +39,17 @@ struct WriteNDScalars
 {
     WriteNDScalars(const std::string& name, const std::string& attrName = ""):name(name), attrName(attrName){}
 
+    /** Prepare the write operation:
+     *  Define ADIOS variable, increase params.adiosGroupSize and write attribute (if attrName is non-empty)
+     *
+     *  Must be called before executing the functor
+     */
     void prepare(ThreadParams& params, T_Attribute attribute = T_Attribute())
     {
         typedef traits::PICToAdios<T_Skalar> AdiosSkalarType;
         typedef PMacc::math::UInt64<simDim> Dimensions;
 
-        log<picLog::INPUT_OUTPUT> ("ADIOS prepare write %1%D scalars: %2%") % simDim % name;
+        log<picLog::INPUT_OUTPUT> ("ADIOS: prepare write %1%D scalars: %2%") % simDim % name;
 
         params.adiosGroupSize += sizeof(T_Skalar);
         if(!attrName.empty())
@@ -77,16 +83,16 @@ struct WriteNDScalars
         {
             typedef traits::PICToAdios<T_Attribute> AdiosAttrType;
 
-            log<picLog::INPUT_OUTPUT> ("ADIOS write attribute %1% of %2%D scalars: %3%") % attrName % simDim % name;
+            log<picLog::INPUT_OUTPUT> ("ADIOS: write attribute %1% of %2%D scalars: %3%") % attrName % simDim % name;
             ADIOS_CMD( adios_define_attribute_byvalue(params.adiosGroupHandle,
                        attrName.c_str(), datasetName.c_str(),
                        AdiosAttrType().type, 1, (void*)&attribute) );
         }
     }
 
-    void operator()(ThreadParams& params,T_Skalar value)
+    void operator()(ThreadParams& params, T_Skalar value)
     {
-        log<picLog::INPUT_OUTPUT> ("ADIOS write %1%D scalars: %2%") % simDim % name;
+        log<picLog::INPUT_OUTPUT> ("ADIOS: write %1%D scalars: %2%") % simDim % name;
 
         ADIOS_CMD( adios_write_byid(params.adiosFileHandle, varId, &value) );
     }
@@ -98,11 +104,12 @@ private:
 template<typename T_Skalar, typename T_Attribute = uint64_t>
 struct ReadNDScalars
 {
+    /** Read the skalar field and optionally the attribute into the values referenced by the pointers */
     void operator()(ThreadParams& params,
                 const std::string& name, T_Skalar* value,
                 const std::string& attrName = "", T_Attribute* attribute = NULL)
     {
-        log<picLog::INPUT_OUTPUT> ("ADIOS read %1%D scalars: %2%") % simDim % name;
+        log<picLog::INPUT_OUTPUT> ("ADIOS: read %1%D scalars: %2%") % simDim % name;
         std::string datasetName = params.adiosBasePath + name;
 
         ADIOS_VARINFO* varInfo;
@@ -135,21 +142,8 @@ struct ReadNDScalars
 
         if(!attrName.empty())
         {
-            log<picLog::INPUT_OUTPUT> ("ADIOS read attribute %1% for scalars: %2%") % attrName % name;
-            enum ADIOS_DATATYPES attrType;
-            int attrSize;
-            T_Attribute* attrValuePtr;
-            ADIOS_CMD( adios_get_attr(params.fp,
-                                      (datasetName + "/" + attrName).c_str(),
-                                      &attrType,
-                                      &attrSize,
-                                      (void**) &attrValuePtr) );
-            *attribute = *attrValuePtr;
-            log<picLog::INPUT_OUTPUT > ("ADIOS: value of %1% = %2%") % attrName % *attribute;
-
-            assert(attrType == traits::PICToAdios<T_Attribute>().type);
-            assert(attrSize == sizeof(T_Attribute));
-            __delete(attrValuePtr);
+            log<picLog::INPUT_OUTPUT> ("ADIOS: read attribute %1% for scalars: %2%") % attrName % name;
+            *attribute = readAttribute<T_Attribute>(params.fp, datasetName, attrName);
         }
     }
 };

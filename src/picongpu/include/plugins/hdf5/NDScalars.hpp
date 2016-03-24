@@ -28,9 +28,9 @@
 namespace picongpu {
 namespace hdf5 {
 
-/* Functors for reading and writing ND scalar fields
+/* Functors for reading and writing ND scalar fields with N=simDim
  * In the current implementation each process (of the ND grid) reads/writes 1 scalar value
- * Optionally the processes can also write an attribute for this dataset
+ * Optionally the processes can also read/write an attribute for this dataset
  */
 
 template<typename T_Skalar, typename T_Attribute = uint64_t>
@@ -40,44 +40,44 @@ struct WriteNDScalars
             const std::string& name, T_Skalar value,
             const std::string& attrName = "", T_Attribute attribute = T_Attribute())
     {
-        log<picLog::INPUT_OUTPUT> ("HDF5 write %1%D scalars: %2%") % simDim % name;
+        log<picLog::INPUT_OUTPUT> ("HDF5: write %1%D scalars: %2%") % simDim % name;
 
         // Size over all processes
-        Dimensions splashGlobalDomainSize(1, 1, 1);
+        Dimensions globalSize(1, 1, 1);
         // Offset for this process
-        Dimensions splashGlobalOffsetFile(0, 0, 0);
+        Dimensions localOffset(0, 0, 0);
         // Offset for all processes
-        Dimensions splashGlobalDomainOffset(0, 0, 0);
+        Dimensions globalOffset(0, 0, 0);
 
         for (uint32_t d = 0; d < simDim; ++d)
         {
-            splashGlobalDomainSize[d] = Environment<simDim>::get().GridController().getGpuNodes()[d];
-            splashGlobalOffsetFile[d] = Environment<simDim>::get().GridController().getPosition()[d];
+            globalSize[d] = Environment<simDim>::get().GridController().getGpuNodes()[d];
+            localOffset[d] = Environment<simDim>::get().GridController().getPosition()[d];
         }
 
         Dimensions localSize(1, 1, 1);
 
         typename traits::PICToSplash<T_Skalar>::type splashType;
-        params.dataCollector->writeDomain(params.currentStep,               /* id == time step */
-                                           splashGlobalDomainSize,          /* total size of dataset over all processes */
-                                           splashGlobalOffsetFile,          /* write offset for this process */
-                                           splashType,                      /* data type */
-                                           simDim,                          /* NDims spatial dimensionality of the field */
-                                           splash::Selection(localSize),    /* data size of this process */
-                                           name.c_str(),                    /* data set name */
+        params.dataCollector->writeDomain(params.currentStep,            /* id == time step */
+                                           globalSize,                   /* total size of dataset over all processes */
+                                           localOffset,                  /* write offset for this process */
+                                           splashType,                   /* data type */
+                                           simDim,                       /* NDims spatial dimensionality of the field */
+                                           splash::Selection(localSize), /* data size of this process */
+                                           name.c_str(),                 /* data set name */
                                            splash::Domain(
-                                                  splashGlobalDomainOffset, /* offset of the global domain */
-                                                  splashGlobalDomainSize    /* size of the global domain */
+                                                  globalOffset,          /* offset of the global domain */
+                                                  globalSize             /* size of the global domain */
                                            ),
                                            DomainCollector::GridType,
                                            &value);
 
         if(!attrName.empty())
         {
-            log<picLog::INPUT_OUTPUT> ("HDF5 write attribute %1% for scalars: %2%") % attrName % name;
-            /*simulation attributes for data*/
+            /*simulation attribute for data*/
             typename traits::PICToSplash<T_Attribute>::type attType;
 
+            log<picLog::INPUT_OUTPUT> ("HDF5: write attribute %1% for scalars: %2%") % attrName % name;
             params.dataCollector->writeAttribute(params.currentStep,
                                                   attType, name.c_str(),
                                                   attrName.c_str(), &attribute);
@@ -92,7 +92,7 @@ struct ReadNDScalars
                 const std::string& name, T_Skalar* value,
                 const std::string& attrName = "", T_Attribute* attribute = NULL)
     {
-        log<picLog::INPUT_OUTPUT> ("HDF5 read %1%D scalars: %2%") % simDim % name;
+        log<picLog::INPUT_OUTPUT> ("HDF5: read %1%D scalars: %2%") % simDim % name;
 
         Dimensions domain_offset(0, 0, 0);
         for (uint32_t d = 0; d < simDim; ++d)
@@ -111,7 +111,7 @@ struct ReadNDScalars
 
         if(!attrName.empty())
         {
-            log<picLog::INPUT_OUTPUT> ("HDF5 read attribute %1% for scalars: %2%") % attrName % name;
+            log<picLog::INPUT_OUTPUT> ("HDF5: read attribute %1% for scalars: %2%") % attrName % name;
             params.dataCollector->readAttribute(params.currentStep, name.c_str(), attrName.c_str(), attribute);
         }
     }
