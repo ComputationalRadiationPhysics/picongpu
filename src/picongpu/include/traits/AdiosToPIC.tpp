@@ -44,6 +44,12 @@ namespace traits
         typedef unsigned int type;
     };
 
+    template<>
+    struct AdiosToPIC<adios_unsigned_long>
+    {
+        typedef uint64_t type;
+    };
+
     /** Trait for adios_real */
     template<>
     struct AdiosToPIC<adios_real>
