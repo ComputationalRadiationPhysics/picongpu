@@ -40,7 +40,7 @@ struct WriteNDScalars
             const std::string& name, T_Skalar value,
             const std::string& attrName = "", T_Attribute attribute = T_Attribute())
     {
-        log<picLog::INPUT_OUTPUT> ("HDF5: write %1%D scalars: %2%") % simDim % name;
+        log<picLog::INPUT_OUTPUT>("HDF5: write %1%D scalars: %2%") % simDim % name;
 
         // Size over all processes
         Dimensions globalSize(1, 1, 1);
@@ -77,7 +77,7 @@ struct WriteNDScalars
             /*simulation attribute for data*/
             typename traits::PICToSplash<T_Attribute>::type attType;
 
-            log<picLog::INPUT_OUTPUT> ("HDF5: write attribute %1% for scalars: %2%") % attrName % name;
+            log<picLog::INPUT_OUTPUT>("HDF5: write attribute %1% for scalars: %2%") % attrName % name;
             params.dataCollector->writeAttribute(params.currentStep,
                                                   attType, name.c_str(),
                                                   attrName.c_str(), &attribute);
@@ -92,7 +92,7 @@ struct ReadNDScalars
                 const std::string& name, T_Skalar* value,
                 const std::string& attrName = "", T_Attribute* attribute = NULL)
     {
-        log<picLog::INPUT_OUTPUT> ("HDF5: read %1%D scalars: %2%") % simDim % name;
+        log<picLog::INPUT_OUTPUT>("HDF5: read %1%D scalars: %2%") % simDim % name;
 
         Dimensions domain_offset(0, 0, 0);
         for (uint32_t d = 0; d < simDim; ++d)
@@ -111,8 +111,9 @@ struct ReadNDScalars
 
         if(!attrName.empty())
         {
-            log<picLog::INPUT_OUTPUT> ("HDF5: read attribute %1% for scalars: %2%") % attrName % name;
+            log<picLog::INPUT_OUTPUT>("HDF5: read attribute %1% for scalars: %2%") % attrName % name;
             params.dataCollector->readAttribute(params.currentStep, name.c_str(), attrName.c_str(), attribute);
+            log<picLog::INPUT_OUTPUT>("HDF5: attribute %1% = %2%") % attrName % *attribute;
         }
     }
 };
