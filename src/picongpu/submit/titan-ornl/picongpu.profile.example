@@ -36,8 +36,21 @@ export MPI_ROOT=$MPICH_DIR
 #   configure with -c "-DVAMPIR_ENABLE=ON"
 #   e.g.:
 #     $PICSRC/configure -c "-DVAMPIR_ENABLE=ON" ~/paramSets/case001
-module load vampirtrace/5.14.4
-export VT_ROOT=$VAMPIRTRACE_DIR
+#module load vampirtrace/5.14.4
+#export VT_ROOT=$VAMPIRTRACE_DIR
+ 
+# scorep (optional) ############################################
+#   configure with -c "-DCMAKE_CXX_COMPILER=`which scorep-CC` \
+#                      -DCUDA_NVCC_EXECUTABLE=`which scorep-nvcc`"
+#   e.g.:
+#     SCOREP_WRAPPER=OFF $PICSRC/configure -a sm_35 \
+#         -c "-DCMAKE_CXX_COMPILER=`which scorep-CC` \
+#         -DCUDA_NVCC_EXECUTABLE=`which scorep-nvcc`" \
+#         ~/paramSets/case001
+#     export SCOREP_WRAPPER_INSTRUMENTER_FLAGS="--cuda --mpp=mpi"
+#     make -j
+#     make install
+module load scorep/2.0
 
 # plugins (optional) ################################################
 module load cray-hdf5-parallel/1.8.14

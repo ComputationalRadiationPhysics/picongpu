@@ -110,6 +110,8 @@ int main(int argc, char **argv)
             break;
     };
 
+    // Required by scorep for flushing the buffers
+    cudaDeviceSynchronize();
     MPI_CHECK(MPI_Finalize());
     return errorCode;
 }
