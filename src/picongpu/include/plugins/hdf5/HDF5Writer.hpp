@@ -221,12 +221,14 @@ public:
         ForEach<FileCheckpointParticles, LoadSpecies<bmpl::_1> > forEachLoadSpecies;
         forEachLoadSpecies(params, restartChunkSize);
 
-        uint64_t idProviderNextId, idProviderMaxNumProc;
+        IdProvider<simDim>::State idProvState;
         ReadNDScalars<uint64_t, uint64_t>()(mThreadParams,
-                "picongpu/idProviderState", &idProviderNextId,
-                "maxNumProc", &idProviderMaxNumProc);
-        log<picLog::INPUT_OUTPUT > ("Setting id on current rank: %1%") % idProviderNextId;
-        IdProvider<simDim>::setState(idProviderNextId, idProviderMaxNumProc);
+                "picongpu/idProvider/startId", &idProvState.startId,
+                "maxNumProc", &idProvState.maxNumProc);
+        ReadNDScalars<uint64_t>()(mThreadParams,
+                "picongpu/idProvider/nextId", &idProvState.nextId);
+        log<picLog::INPUT_OUTPUT > ("Setting id on current rank: %1%") % idProvState.nextId;
+        IdProvider<simDim>::setState(idProvState);
 
         /* close datacollector */
         log<picLog::INPUT_OUTPUT > ("HDF5 close DataCollector with file: %1%") % restartFilename;
@@ -461,12 +463,13 @@ private:
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species.");
 
         PMACC_AUTO(idProviderState, IdProvider<simDim>::getState());
-        log<picLog::INPUT_OUTPUT>("HDF5: Writing IdProvider state (NextId: %1%, maxNumProc: %2%)")
-                % idProviderState.get<0>() % idProviderState.get<1>();
+        log<picLog::INPUT_OUTPUT>("HDF5: Writing IdProvider state (StartId: %1%, NextId: %1%, maxNumProc: %2%)")
+                % idProviderState.startId % idProviderState.nextId % idProviderState.maxNumProc;
         WriteNDScalars<uint64_t, uint64_t>()(*threadParams,
-                "picongpu/idProviderState", idProviderState.get<0>(),
-                "maxNumProc", idProviderState.get<1>());
-
+                "picongpu/idProvider/startId", idProviderState.startId,
+                "maxNumProc", idProviderState.maxNumProc);
+        WriteNDScalars<uint64_t>()(*threadParams,
+                "picongpu/idProvider/nextId", idProviderState.nextId);
         return NULL;
     }
 
