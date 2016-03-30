@@ -41,9 +41,12 @@ namespace PMacc
 namespace detail
 {
     template <unsigned T_DIM>
-    struct LogRankCoords
+    struct LogRankCoords;
+
+    template <>
+    struct LogRankCoords<DIM1>
     {
-        void operator()(int rank, const int (&coords)[T_DIM]) const
+        void operator()(int rank, const int (&coords)[DIM1]) const
         {
             log<ggLog::MPI>("Rank: %1% ; coords %2%") % rank % coords[0];
         }
@@ -220,6 +223,7 @@ public:
 
     bool slide()
     {
+        // we can only slide in y direction right now
         if(DIM < DIM2)
             return false;
 
@@ -235,6 +239,7 @@ public:
 
     bool setStateAfterSlides(size_t numSlides)
     {
+        // we can only slide in y direction right now
         if(DIM < DIM2)
             return false;
 
