@@ -28,6 +28,7 @@
 #include "algorithms/reverseBits.hpp"
 #include "nvidia/atomic.hpp"
 #include "memory/buffers/HostDeviceBuffer.hpp"
+#include "debug/PMaccVerbose.hpp"
 
 namespace PMacc {
 
@@ -55,29 +56,50 @@ namespace PMacc {
     }  // namespace idDetail
 
     template<unsigned T_dim>
+    uint64_t IdProvider<T_dim>::m_maxNumProc;
+    template<unsigned T_dim>
+    uint64_t IdProvider<T_dim>::m_startId;
+
+    template<unsigned T_dim>
     void IdProvider<T_dim>::init()
     {
-        const uint64_t globalUniqueStartId = getStartId();
-        setNextId(globalUniqueStartId);
-        // Instantiate kernel
+        // Init static variables
+        m_startId = m_maxNumProc = 0;
+
+        State state;
+        state.startId = state.nextId = calcStartId();
+        // Init value to avoid uninitialized read warnings
+        setNextId(state.startId);
+        // Instantiate kernel (Omitting this will result in silent crashes at runtime)
         getNewIdHost();
         // Reset to start value
-        setNextId(globalUniqueStartId);
+        state.maxNumProc = Environment<T_dim>::get().GridController().getGpuNodes().productOfComponents();
+        setState(state);
     }
 
     template<unsigned T_dim>
-    void IdProvider<T_dim>::setNextId(const uint64_t nextId)
+    void IdProvider<T_dim>::setState(const State& state)
     {
-        __cudaKernel(idDetail::setNextId)(1, 1)(nextId);
+        setNextId(state.nextId);
+        m_startId = state.startId;
+        if(m_maxNumProc < state.maxNumProc)
+            m_maxNumProc = state.maxNumProc;
+        log<ggLog::INFO>("(Re-)Initialized IdProvider with id=%1%/%2% and maxNumProc=%3%/%4%")
+                % state.nextId % state.startId
+                % state.maxNumProc % m_maxNumProc;
     }
 
     template<unsigned T_dim>
-    uint64_t IdProvider<T_dim>::getNextId()
+    IdProvider<T_dim>::State IdProvider<T_dim>::getState()
     {
         HostDeviceBuffer<uint64_cu, 1> nextIdBuf(DataSpace<1>(1));
         __cudaKernel(idDetail::getNextId)(1, 1)(nextIdBuf.getDeviceBuffer().getDataBox());
         nextIdBuf.deviceToHost();
-        return nextIdBuf.getHostBuffer().getDataBox()(0);
+        State state;
+        state.nextId = nextIdBuf.getHostBuffer().getDataBox()(0);
+        state.startId = m_startId;
+        state.maxNumProc = m_maxNumProc;
+        return state;
     }
 
     template<unsigned T_dim>
@@ -94,38 +116,56 @@ namespace PMacc {
     template<unsigned T_dim>
     bool IdProvider<T_dim>::isOverflown()
     {
-        // Get current value
-        uint64_t nextId = getNextId();
-        // Get start value
-        uint64_t globalUniqueStartId = getStartId();
-
-        /* Start value contains globally unique bits in the high order bits
-         * Hence compare all high order bits till the last set one and check,
-         * if any of them differs from the start value --> overflow
+        State curState = getState();
+        /* Overflow happens, when an id puts bits into the bits used for ensuring uniqueness.
+         * This are the n upper bits with n = highest bit set in the maximum id (which is maxNumProc_ - 1)
+         * when counting the bits from 1 = right most bit
+         * So first we calculate n, then remove the lowest bits of the next id so we have only the n upper bits
+         * If any of them is non-zero, it is an overflow and we can have duplicate ids.
+         * If not, then all ids are probably unique (still a chance, the id is overflown so much, that detection is impossible)
          */
-        // How far do we need to shift to get the highest bit
-        BOOST_STATIC_CONSTEXPR int bitsToHighest = sizeof(uint64_t) * CHAR_BIT - 1;
-        while(globalUniqueStartId)
+        uint64_t tmp = curState.maxNumProc - 1;
+        int32_t bitsToCheck = 0;
+        while(tmp)
         {
-            // Compare highest bit
-            if(globalUniqueStartId >> bitsToHighest != nextId >> bitsToHighest)
-                return true;
-            // Proceed to next bit
-            globalUniqueStartId <<= 1;
+            bitsToCheck++;
+            tmp >>= 1;
         }
-        return false;
+
+        // Number of bits in the ids
+        BOOST_STATIC_CONSTEXPR int32_t numBitsOfType = sizeof(curState.maxNumProc) * CHAR_BIT;
+
+        // Get current id
+        uint64_t nextId = curState.nextId;
+        // Cancel out start id via xor -> Upper n bits should be 0
+        nextId ^= curState.startId;
+        /* Prepare to compare only upper n bits for 0
+         * Example: maxNumProc_ has 3 set bits (<8 ranks), 64bit value used
+         * --> Shift by 61 bits
+         * => 3 upper bits are left untouched (besides moving), rest is zero
+         */
+        nextId >>= numBitsOfType - bitsToCheck;
+
+        return nextId != 0;
     }
 
     template<unsigned T_dim>
-    uint64_t IdProvider<T_dim>::getStartId()
+    uint64_t IdProvider<T_dim>::calcStartId()
     {
-        uint64_t rank = Environment<T_dim>::get().GridController().getGlobalRank();
+        uint64_t rank = Environment<T_dim>::get().GridController().getScalarPosition();
 
         /* We put the rank into the upper bits to have the lower bits for counting up and still
          * getting unique numbers. Reversing the bits instead of shifting gives some more room
          * as the upper bits of the rank are often also zero
+         * Note: Overflow detection will still return true for that case
          */
         return reverseBits(rank);
+    }
+
+    template<unsigned T_dim>
+    void IdProvider<T_dim>::setNextId(uint64_t nextId)
+    {
+        __cudaKernel(idDetail::setNextId)(1, 1)(nextId);
     }
 
     template<unsigned T_dim>
