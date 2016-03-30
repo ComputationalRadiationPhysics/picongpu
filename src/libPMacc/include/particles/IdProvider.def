@@ -23,32 +23,38 @@
 #pragma once
 
 #include "pmacc_types.hpp"
-#include <boost/tuple/tuple.hpp>
 
 namespace PMacc {
 
     /**
      * Provider for globally unique ids (even across ranks)
-     * Implemented for use in static contexts
+     * Implemented for use in static contexts which allows e.g. calling from CUDA kernels
      */
     template<unsigned T_dim>
     class IdProvider
     {
     public:
+        struct State{
+            /** Next id to be returned */
+            uint64_t nextId;
+            /** First id used */
+            uint64_t startId;
+            /** Maximum number of processes ever used (never decreases) */
+            uint64_t maxNumProc;
+        };
+
         /** Initializes the state so it is ready for use
          */
         static void init();
 
         /** Sets the internal state (e.g. after a restart)
-         * @param nextId     Next id to be returned
-         * @param maxNumProc Maximum number of processes ever used (never decreases)
          */
-        static void setState(const uint64_t nextId, const uint64_t maxNumProc);
+        static void setState(const State& state);
 
         /** Returns the state (e.g. for saving)
-         *  Tuple is the same as the parameters to @ref setState
+         *  Result is the same as the parameter to @ref setState
          */
-        static boost::tuple<uint64_t, uint64_t> getState();
+        static State getState();
 
         /** Functor that returns a new id each time it is called
          *  Modifies the state of the IdProvider */
@@ -70,13 +76,17 @@ namespace PMacc {
         static bool isOverflown();
 
     private:
-        /** Returns the first id for the current rank */
-        static uint64_t getStartId();
+        /** Calculates the first id for the current position in the grid */
+        static uint64_t calcStartId();
+
+        /** Sets the next id to be returned */
+        static void setNextId(uint64_t nextId);
 
         /** Host version for getting a new id (changing the state) */
         static uint64_t getNewIdHost();
 
-        static uint64_t maxNumProc_;
+        static uint64_t m_maxNumProc;
+        static uint64_t m_startId;
     };
 
 }  // namespace PMacc
