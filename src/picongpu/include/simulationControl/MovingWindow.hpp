@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
+ * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt, Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -63,20 +63,22 @@ private:
         /* later used to calculate smoother offsets */
         float_64 stepsInFutureAfterComma = stepsInFuture_tmp - (float_64) stepsInFuture;
 
-        /* round to nearest step so we get smaller sliding dfference
+        /* round to nearest step so we get smaller sliding difference
          * this is valid if we activate sliding window because y direction has
          * the same size for all gpus
          */
-        const uint32_t stepsPerGPU = (uint32_t) math::floor(
-                                                            (float_64) (subGrid.getLocalDomain().size.y() * cell_height) / light_way_per_step + 0.5);
-        const uint32_t firstSlideStep = stepsPerGPU * devices_y - stepsInFuture;
-        const uint32_t firstMoveStep = stepsPerGPU * (devices_y - 1) - stepsInFuture;
+        const float_64 stepsPerGPU = (float_64) (subGrid.getLocalDomain().size.y() * cell_height) / light_way_per_step;
+	const uint32_t firstSlideStep = (uint32_t) math::floor( stepsPerGPU * (float_64) devices_y 
+                                                              - (float_64) stepsInFuture );
+        const uint32_t firstMoveStep =  (uint32_t) math::floor(   stepsPerGPU * (float_64) (devices_y - 1)
+                                                              - (float_64) stepsInFuture );
 
         if (slidingWindowActive==true && firstMoveStep <= currentStep)
         {
-            const uint32_t stepsInLastGPU = (currentStep + stepsInFuture) % stepsPerGPU;
+            const float_64 stepsInLastGPU = math::fmod( (float_64) currentStep + (float_64) stepsInFuture ,
+			                                           stepsPerGPU );
             /* moving window start */
-            if (firstSlideStep <= currentStep && stepsInLastGPU == 0)
+            if (firstSlideStep <= currentStep && stepsInLastGPU < float_64(1.0) )
             {
                 incrementSlideCounter(currentStep);
                 if (doSlide)
@@ -86,8 +88,8 @@ private:
             /* round to nearest cell to have smoother offset jumps */
             if (offsetFirstGPU)
             {
-                *offsetFirstGPU = math::floor(((float_64) stepsInLastGPU + stepsInFutureAfterComma) *
-                                              light_way_per_step / cell_height + 0.5);
+                *offsetFirstGPU = math::floor( ( stepsInLastGPU + stepsInFutureAfterComma ) *
+                                               light_way_per_step / cell_height + 0.5 );
             }
         }
     }
