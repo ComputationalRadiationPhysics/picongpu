@@ -106,7 +106,7 @@ if(PIC_ENABLE_ISAAC)
     set(CMAKE_CXX_STANDARD 11)
     add_definitions(-DBOOST_NO_CXX11_SCOPED_ENUMS)
 
-    find_package(ISAAC 0.1.0 REQUIRED)
+    find_package(ISAAC 0.1.0 CONFIG REQUIRED)
     
     include_directories(example_cuda ${ISAAC_INCLUDE_DIRS})
     set(LIBS ${LIBS} ${ISAAC_LIBRARIES})
