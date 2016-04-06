@@ -1,3 +1,23 @@
+/**
+* Copyright 2013-2016 Alexander Matthes,
+*
+* This file is part of PIConGPU.
+*
+* PIConGPU is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* PIConGPU is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with PIConGPU.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #pragma once
 
 #include "plugins/ILightweightPlugin.hpp"
@@ -225,7 +245,15 @@ public:
         ,IPSource
     #endif
     >;
-    IsaacVisualization<SimDim,SourceList,DataSpace< simDim >, textureDim, float3_X>* visualization;
+    IsaacVisualization
+    <
+        SimDim,
+        SourceList,
+        DataSpace< simDim >,
+        textureDim, float3_X,
+        isaac::StereoController,
+        isaac::StereoCompositorAnaglyph<isaac::StereoController,0x000000FF,0x00FFFF00>
+    > * visualization;
 
     IsaacPlugin() :
         visualization(NULL),
@@ -383,7 +411,15 @@ private:
                 size_t(width),
                 size_t(height)
             };
-            visualization = new IsaacVisualization<SimDim,SourceList,DataSpace< simDim >, textureDim, float3_X >(
+            visualization = new IsaacVisualization
+            <
+                SimDim,
+                SourceList,
+                DataSpace< simDim >,
+                textureDim, float3_X,
+                isaac::StereoController,
+                isaac::StereoCompositorAnaglyph<isaac::StereoController,0x000000FF,0x00FFFF00>
+            > (
                 name,
                 0,
                 url,
