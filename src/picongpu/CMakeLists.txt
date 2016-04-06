@@ -108,6 +108,20 @@ if(PIC_ENABLE_ISAAC)
 
     find_package(ISAAC 0.1.0 CONFIG REQUIRED)
     
+    SET(ISAAC_STEREO "No" CACHE STRING "Using stereoscopy")
+    SET_PROPERTY(CACHE ISAAC_STEREO PROPERTY STRINGS No SideBySide Anaglyph)
+
+    if(${ISAAC_STEREO} STREQUAL "No")
+        add_definitions(-DISAAC_STEREO=0)
+    endif()
+    if(${ISAAC_STEREO} STREQUAL "SideBySide")
+        add_definitions(-DISAAC_STEREO=1)
+    endif()
+    if(${ISAAC_STEREO} STREQUAL "Anaglyph")
+        add_definitions(-DISAAC_STEREO=2)
+    endif()
+
+
     include_directories(example_cuda ${ISAAC_INCLUDE_DIRS})
     set(LIBS ${LIBS} ${ISAAC_LIBRARIES})
 
