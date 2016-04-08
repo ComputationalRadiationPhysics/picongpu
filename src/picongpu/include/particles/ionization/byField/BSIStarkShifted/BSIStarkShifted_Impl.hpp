@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "math/vector/Size_t.hpp"
 #include "simulation_defines.hpp"
 #include "traits/Resolve.hpp"
@@ -131,8 +131,7 @@ namespace ionization
                 /* caching of E and B fields */
                 cachedB = CachedBox::create < 0, ValueType_B > (BlockArea());
                 cachedE = CachedBox::create < 1, ValueType_E > (BlockArea());
-                /* wait for shared memory to be initialized */
-                __syncthreads();
+
                 /* instance of nvidia assignment operator */
                 nvidia::functors::Assign assign;
                 /* copy fields from global to shared */
@@ -150,8 +149,6 @@ namespace ionization
                           cachedE,
                           fieldEBlock
                           );
-                /* wait for shared memory to be initialized */
-                __syncthreads();
             }
 
             /** Functor implementation
@@ -163,10 +160,6 @@ namespace ionization
              */
             DINLINE void operator()(FrameType& ionFrame, int localIdx, unsigned int& newMacroElectrons)
             {
-
-                /* type of PIC-scheme cell */
-                typedef typename fieldSolver::NumericalCellType NumericalCellType;
-
                 /* alias for the single macro-particle */
                 PMACC_AUTO(particle,ionFrame[localIdx]);
                 /* particle position, used for field-to-particle interpolation */
@@ -175,11 +168,13 @@ namespace ionization
                 /* multi-dim coordinate of the local cell inside the super cell */
                 DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec > (particleCellIdx));
                 /* interpolation of E- */
+                const fieldSolver::numericalCellType::traits::FieldPosition<FieldE> fieldPosE;
                 ValueType_E eField = Field2ParticleInterpolation()
-                    (cachedE.shift(localCell).toCursor(), pos, NumericalCellType::getEFieldPosition());
+                    (cachedE.shift(localCell).toCursor(), pos, fieldPosE());
                 /*                     and B-field on the particle position */
+                const fieldSolver::numericalCellType::traits::FieldPosition<FieldB> fieldPosB;
                 ValueType_B bField = Field2ParticleInterpolation()
-                    (cachedB.shift(localCell).toCursor(), pos, NumericalCellType::getBFieldPosition());
+                    (cachedB.shift(localCell).toCursor(), pos, fieldPosB());
 
                 /* define number of bound macro electrons before ionization */
                 float_X prevBoundElectrons = particle[boundElectrons_];

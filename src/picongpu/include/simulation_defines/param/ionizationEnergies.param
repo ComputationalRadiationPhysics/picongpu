@@ -69,16 +69,16 @@ namespace AU
     PMACC_CONST_VECTOR(float_X,1,IONIZATION_ENERGY_HYDROGEN,
         13.60569 * UNITCONV_eV_to_AU
     );
-    /** Ionization field strengths
-     *
-     * Define field strengths for the barrier suppression ionization (BSIHydrogenLike) model
-     * in SI units, normalized by the atomic unit (AU) for electric field strength.
-     */
 
-    /* ionization field strength (E-field) for hydrogen in atomic units
-     *     - conversion from V/m to AU (E-field) */
-    PMACC_CONST_VECTOR(float_X,1,IONIZATION_EFIELD_HYDROGEN,
-        5.14e11 / SI::ATOMIC_UNIT_EFIELD
+    /* ionization energy for nitrogen atomic units */
+    PMACC_CONST_VECTOR(float_X,7,IONIZATION_ENERGY_NITROGEN,
+        14.53413 * UNITCONV_eV_to_AU,
+        29.60125 * UNITCONV_eV_to_AU,
+        47.4453 * UNITCONV_eV_to_AU,
+        77.4735 * UNITCONV_eV_to_AU,
+        97.89013 * UNITCONV_eV_to_AU,
+        552.06731 * UNITCONV_eV_to_AU,
+        667.04609 * UNITCONV_eV_to_AU
     );
 
 } // namespace SI

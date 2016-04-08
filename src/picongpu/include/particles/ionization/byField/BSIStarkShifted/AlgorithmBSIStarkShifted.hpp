@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2015 Marco Garten
+ * Copyright 2014-2016 Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
 #include "particles/traits/GetIonizationEnergies.hpp"
 #include "particles/traits/GetAtomicNumbers.hpp"
