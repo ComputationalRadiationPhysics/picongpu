@@ -159,7 +159,7 @@ namespace twts
 
         for (uint32_t k = 0; k<detail::numComponents;++k) {
             /* 2D (y,z) vectors are mapped on 3D (x,y,z) vectors. */
-            for (uint32_t i = 0; i<simDim;++i)
+            for (uint32_t i = 0; i<DIM2;++i)
                 pos[k][i+1] = bFieldPositions_SI[k][i];
         }
 
@@ -224,7 +224,7 @@ namespace twts
             /* The 2D output of getFieldPositions_SI only returns
              * the y- and z-component of a 3D vector.
              */
-            for (uint32_t i = 0; i<simDim;++i) pos[k][i+1] = bFieldPositions_SI[k][i];
+            for (uint32_t i = 0; i<DIM2;++i) pos[k][i+1] = bFieldPositions_SI[k][i];
         }
 
         /* General background comment for the rest of this function:

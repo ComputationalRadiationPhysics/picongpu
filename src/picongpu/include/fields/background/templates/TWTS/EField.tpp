@@ -127,7 +127,7 @@ namespace twts
         /* Ex->Ez, so also the grid cell offset for Ez has to be used. */
         float3_64 pos(float3_64::create(0.0));
         /* 2D (y,z) vectors are mapped on 3D (x,y,z) vectors. */
-        for (uint32_t i = 0; i<simDim;++i) pos[i+1] = eFieldPositions_SI[2][i];
+        for (uint32_t i = 0; i<DIM2;++i) pos[i+1] = eFieldPositions_SI[2][i];
         return float3_X( float_X(0.), float_X(0.),
                          float_X( calcTWTSEx(pos,time) ) );
     }
@@ -147,7 +147,7 @@ namespace twts
          * the y- and z-component of a 3D vector.
          */
         for (uint32_t k = 0; k<detail::numComponents;++k) {
-            for (uint32_t i = 0; i<simDim;++i) pos[k][i+1] = eFieldPositions_SI[k][i];
+            for (uint32_t i = 0; i<DIM2;++i) pos[k][i+1] = eFieldPositions_SI[k][i];
         }
 
         /* Ey->Ey, but grid cell offsets for Ex and Ey have to be used.
