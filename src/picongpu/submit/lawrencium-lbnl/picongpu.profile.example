@@ -4,14 +4,14 @@ then
         module purge
 
         # Core Dependencies
-        module load git/1.7.9
         module load gcc/4.4.7
         module load cuda/5.5
-        module load boost/1.56.0-gcc
+        # not yet available, build boost as in `INSTALL.md`
+        #module load boost/1.56.0-gcc
         module load openmpi/1.6.5-gcc
 
         # Core tools
-        module load git/1.7.9
+        module load git
         module load cmake
         module load python/2.6.6
         module load ipython/0.12 matplotlib/1.1.0 numpy/1.6.1 scipy/0.10.0
