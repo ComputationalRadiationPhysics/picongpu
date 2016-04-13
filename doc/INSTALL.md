@@ -86,7 +86,7 @@ Some of our examples will also need **libSplash**.
       [PNGWRITER\_ROOT](#additional-required-environment-variables-for-optional-libraries)
       to `$HOME/lib/pngwriter`
 
-- **libSplash** >= 1.2.4 (requires *HDF5*, *boost program-options*)
+- **libSplash** >= 1.4.0 (requires *HDF5*, *boost program-options*)
     - *Debian/Ubuntu dependencies:* `sudo apt-get install libhdf5-openmpi-dev libboost-program-options-dev`
     - *Arch Linux dependencies:* `sudo pacman --sync hdf5-openmpi boost`
     - *or compile hdf5 yourself:*  follow instructions one paragraph below 
