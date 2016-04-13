@@ -149,16 +149,12 @@ struct PushSpecies
                             T_EventList& updateEvent
                             ) const
     {
-        typedef typename HasFlag<FrameType, particlePusher<> >::type hasPusher;
-        if (hasPusher::value)
-        {
-            PMACC_AUTO(speciesPtr, tuple[SpeciesName()]);
+        PMACC_AUTO(speciesPtr, tuple[SpeciesName()]);
 
-            __startTransaction(eventInt);
-            speciesPtr->update(currentStep);
-            EventTask ev = __endTransaction();
-            updateEvent.push_back(ev);
-        }
+        __startTransaction(eventInt);
+        speciesPtr->update(currentStep);
+        EventTask ev = __endTransaction();
+        updateEvent.push_back(ev);
     }
 };
 

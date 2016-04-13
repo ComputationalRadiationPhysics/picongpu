@@ -27,7 +27,6 @@
 
 
 #include "particles/pusher/particlePusherBoris.hpp"
-#include "particles/pusher/particlePusherNone.hpp"
 #include "particles/pusher/particlePusherVay.hpp"
 #include "particles/pusher/particlePusherFree.hpp"
 #include "particles/pusher/particlePusherPhoton.hpp"
@@ -43,11 +42,6 @@ namespace particles
 {
 namespace pusher
 {
-
-struct None
-{
-    typedef particlePusherNone::Push type;
-};
 
 #if(SIMDIM==DIM3)
 
