@@ -16,7 +16,7 @@ then
 
         # Plugins (optional)
         module load pngwriter/0.5.6
-        module load hdf5-parallel/1.8.14 libsplash/1.2.4
+        module load hdf5-parallel/1.8.14 libsplash/1.4.0
 
         # either use libSplash or ADIOS for file I/O
         #module load libmxml/2.8 adios/1.9.0
