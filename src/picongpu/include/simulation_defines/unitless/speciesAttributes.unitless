@@ -25,31 +25,13 @@
 #include <vector>
 #include "traits/Unit.hpp"
 #include "traits/UnitDimension.hpp"
+#include "traits/SIBaseUnits.hpp"
 
 namespace picongpu
 {
 
 namespace traits
 {
-
-/* openPMD uses the powers of the 7 SI base measures to describe
- * the unit of a record
- * \see http://git.io/vROmP */
-BOOST_CONSTEXPR_OR_CONST uint32_t NUnitDimension = 7;
-
-// pre-C++11 "scoped enumerator" work-around
-namespace SIBaseUnits {
-enum SIBaseUnits_t
-{
-    length = 0,                   // L
-    mass = 1,                     // M
-    time = 2,                     // T
-    electricCurrent = 3,          // I
-    thermodynamicTemperature = 4, // theta
-    amountOfSubstance = 5,        // N
-    luminousIntensity = 6,        // J
-};
-}
 
 template<typename T_Type>
 struct Unit<position<T_Type> >
