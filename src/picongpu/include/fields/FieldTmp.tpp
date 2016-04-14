@@ -283,6 +283,12 @@ namespace picongpu
         return FrameSolver().getUnit();
     }
 
+    template<class FrameSolver >
+    HDINLINE std::vector<float_64>
+    FieldTmp::getUnitDimension( )
+    {
+        return FrameSolver().getUnitDimension();
+    }
 
     std::string
     FieldTmp::getName( )

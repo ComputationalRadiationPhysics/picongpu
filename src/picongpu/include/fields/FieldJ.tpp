@@ -44,6 +44,7 @@
 #include "particles/traits/GetCurrentSolver.hpp"
 #include "traits/GetMargin.hpp"
 #include "traits/Resolve.hpp"
+#include "traits/SIBaseUnits.hpp"
 
 
 namespace picongpu
@@ -240,6 +241,22 @@ FieldJ::getUnit( )
 {
     const float_64 UNIT_CURRENT = UNIT_CHARGE / UNIT_TIME / ( UNIT_LENGTH * UNIT_LENGTH );
     return UnitValueType( UNIT_CURRENT, UNIT_CURRENT, UNIT_CURRENT );
+}
+
+HDINLINE
+std::vector<float_64>
+FieldJ::getUnitDimension( )
+{
+    /* L, M, T, I, theta, N, J
+     *
+     * J is in A/m^2
+     *   -> L^-2 * I
+     */
+    std::vector<float_64> unitDimension( 7, 0.0 );
+    unitDimension.at(SIBaseUnits::length) = -2.0;
+    unitDimension.at(SIBaseUnits::electricCurrent) =  1.0;
+
+    return unitDimension;
 }
 
 std::string

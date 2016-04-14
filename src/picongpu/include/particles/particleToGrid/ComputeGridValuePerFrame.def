@@ -27,6 +27,8 @@
 #include "particles/traits/GetShape.hpp"
 #include "particles/particleToGrid/derivedAttributes/DerivedAttributes.def"
 
+#include <vector>
+
 namespace picongpu
 {
 namespace particleToGrid
@@ -54,6 +56,14 @@ public:
      * @return solver unit
      */
     HDINLINE float1_64 getUnit() const;
+
+    /** return powers of the 7 base measures for this solver
+     *
+     * characterizing the unit of the result of the solver in SI
+     * (length L, mass M, time T, electric current I,
+     *  thermodynamic temperature theta, amount of substance N,
+     *  luminous intensity J) */
+    HDINLINE std::vector<float_64> getUnitDimension() const;
 
     /** return name of the this solver
      * @return name of solver
