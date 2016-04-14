@@ -47,6 +47,7 @@
 #include "particles/traits/GetInterpolation.hpp"
 #include "particles/traits/FilterByFlag.hpp"
 #include "traits/GetMargin.hpp"
+#include "traits/SIBaseUnits.hpp"
 #include "particles/traits/GetMarginPusher.hpp"
 #include <boost/mpl/accumulate.hpp>
 #include "fields/LaserPhysics.hpp"
@@ -230,10 +231,10 @@ FieldE::getUnitDimension( )
      *   -> L * M * T^-3 * I^-1
      */
     std::vector<float_64> unitDimension( 7, 0.0 );
-    unitDimension.at(0) =  1.0; // L^1
-    unitDimension.at(1) =  1.0; // M^1
-    unitDimension.at(2) = -3.0; // T^-3
-    unitDimension.at(3) = -1.0; // I^-1
+    unitDimension.at(SIBaseUnits::length) =  1.0;
+    unitDimension.at(SIBaseUnits::mass)   =  1.0;
+    unitDimension.at(SIBaseUnits::time)   = -3.0;
+    unitDimension.at(SIBaseUnits::electricCurrent) = -1.0;
 
     return unitDimension;
 }

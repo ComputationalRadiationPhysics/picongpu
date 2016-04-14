@@ -21,6 +21,7 @@
 #pragma once
 
 #include "pmacc_types.hpp"
+#include "traits/SIBaseUnits.hpp"
 #include <vector>
 
 
@@ -45,7 +46,7 @@ namespace derivedAttributes
             *   -> L^-3
             */
            std::vector<float_64> unitDimension( 7, 0.0 );
-           unitDimension.at(0) = -3.0; // L^-3
+           unitDimension.at(SIBaseUnits::length) = -3.0;
 
            return unitDimension;
         }

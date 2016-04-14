@@ -53,6 +53,7 @@
 #include "particles/traits/FilterByFlag.hpp"
 
 #include "traits/GetMargin.hpp"
+#include "traits/SIBaseUnits.hpp"
 #include "particles/traits/GetMarginPusher.hpp"
 
 namespace picongpu
@@ -218,9 +219,9 @@ FieldB::getUnitDimension( )
      *   -> M * T^-2 * I^-1
      */
     std::vector<float_64> unitDimension( 7, 0.0 );
-    unitDimension.at(1) =  1.0; // M^1
-    unitDimension.at(2) = -2.0; // T^-2
-    unitDimension.at(3) = -1.0; // I^-1
+    unitDimension.at(SIBaseUnits::mass) =  1.0;
+    unitDimension.at(SIBaseUnits::time) = -2.0;
+    unitDimension.at(SIBaseUnits::electricCurrent) = -1.0;
 
     return unitDimension;
 }
