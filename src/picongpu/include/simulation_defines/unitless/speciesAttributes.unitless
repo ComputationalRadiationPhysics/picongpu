@@ -198,10 +198,11 @@ struct UnitDimension<weighting >
 template<>
 struct Unit<particleId>
 {
-    /* zero-sized vector indicating unitless flag for hdf5 and adios output */
+    /* unitless and not scaled by a factor: by convention 1.0 */
     static std::vector<double> get()
     {
-        return std::vector<double>();
+        std::vector<double> unit( 1, 1.0 );
+        return unit;
     }
 };
 template<>

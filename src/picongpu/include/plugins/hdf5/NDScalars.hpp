@@ -28,16 +28,18 @@
 namespace picongpu {
 namespace hdf5 {
 
-/* Functors for reading and writing ND scalar fields with N=simDim
- * In the current implementation each process (of the ND grid) reads/writes 1 scalar value
- * Optionally the processes can also read/write an attribute for this dataset
+/** Functor for writing ND scalar fields with N=simDim
+ * In the current implementation each process (of the ND grid of processes) writes 1 scalar value
+ * Optionally the processes can also write an attribute for this dataset by using a non-empty attrName
+ *
+ * @tparam T_Scalar    Type of the scalar value to write
+ * @tparam T_Attribute Type of the attribute (can be omitted if attribute is not written, defaults to uint64_t)
  */
-
-template<typename T_Skalar, typename T_Attribute = uint64_t>
+template<typename T_Scalar, typename T_Attribute = uint64_t>
 struct WriteNDScalars
 {
     void operator()(ThreadParams& params,
-            const std::string& name, T_Skalar value,
+            const std::string& name, T_Scalar value,
             const std::string& attrName = "", T_Attribute attribute = T_Attribute())
     {
         log<picLog::INPUT_OUTPUT>("HDF5: write %1%D scalars: %2%") % simDim % name;
@@ -57,7 +59,7 @@ struct WriteNDScalars
 
         Dimensions localSize(1, 1, 1);
 
-        typename traits::PICToSplash<T_Skalar>::type splashType;
+        typename traits::PICToSplash<T_Scalar>::type splashType;
         params.dataCollector->writeDomain(params.currentStep,            /* id == time step */
                                            globalSize,                   /* total size of dataset over all processes */
                                            localOffset,                  /* write offset for this process */
@@ -85,11 +87,18 @@ struct WriteNDScalars
     }
 };
 
-template<typename T_Skalar, typename T_Attribute = uint64_t>
+/** Functor for reading ND scalar fields with N=simDim
+ * In the current implementation each process (of the ND grid of processes) reads 1 scalar value
+ * Optionally the processes can also read an attribute for this dataset by using a non-empty attrName
+ *
+ * @tparam T_Scalar    Type of the scalar value to read
+ * @tparam T_Attribute Type of the attribute (can be omitted if attribute is not read, defaults to uint64_t)
+ */
+template<typename T_Scalar, typename T_Attribute = uint64_t>
 struct ReadNDScalars
 {
     void operator()(ThreadParams& params,
-                const std::string& name, T_Skalar* value,
+                const std::string& name, T_Scalar* value,
                 const std::string& attrName = "", T_Attribute* attribute = NULL)
     {
         log<picLog::INPUT_OUTPUT>("HDF5: read %1%D scalars: %2%") % simDim % name;
@@ -105,8 +114,8 @@ struct ReadNDScalars
                                                Domain(domain_offset, Dimensions(1, 1, 1)),
                                                &data_class);
 
-        typename traits::PICToSplash<T_Skalar>::type splashType;
-        *value = *static_cast<T_Skalar*>(dataContainer->getIndex(0)->getData());
+        typename traits::PICToSplash<T_Scalar>::type splashType;
+        *value = *static_cast<T_Scalar*>(dataContainer->getIndex(0)->getData());
         __delete(dataContainer);
 
         if(!attrName.empty())

@@ -59,12 +59,17 @@ namespace traits
     };
 
     template<>
+    struct SplashToPIC<splash::ColTypeInt64>
+    {
+        typedef int64_t type;
+    };
+
+    template<>
     struct SplashToPIC<splash::ColTypeUInt64>
     {
         typedef uint64_t type;
     };
 
-    /** Trait for splash::ColTypeInt */
     template<>
     struct SplashToPIC<splash::ColTypeDim>
     {

@@ -590,7 +590,7 @@ public:
                 "maxNumProc", &idProvState.maxNumProc);
         ReadNDScalars<uint64_t>()(mThreadParams,
                 "picongpu/idProvider/nextId", &idProvState.nextId);
-        log<picLog::INPUT_OUTPUT > ("Setting id on current rank: %1%") % idProvState.nextId;
+        log<picLog::INPUT_OUTPUT > ("Setting next free id on current rank: %1%") % idProvState.nextId;
         IdProvider<simDim>::setState(idProvState);
 
         /* free memory allocated in ADIOS calls */

@@ -30,15 +30,18 @@
 namespace picongpu {
 namespace adios {
 
-/* Functors for reading and writing ND scalar fields with N=simDim
- * In the current implementation each process (of the ND grid) reads/writes 1 scalar value
- * Optionally the processes can also read/write an attribute for this dataset by using a non-empty attrName
+/** Functor for writing ND scalar fields with N=simDim
+ * In the current implementation each process (of the ND grid of processes) writes 1 scalar value
+ * Optionally the processes can also write an attribute for this dataset by using a non-empty attrName
+ *
+ * @tparam T_Scalar    Type of the scalar value to write
+ * @tparam T_Attribute Type of the attribute (can be omitted if attribute is not written, defaults to uint64_t)
  */
-
-template<typename T_Skalar, typename T_Attribute = uint64_t>
+template<typename T_Scalar, typename T_Attribute = uint64_t>
 struct WriteNDScalars
 {
-    WriteNDScalars(const std::string& name, const std::string& attrName = ""):name(name), attrName(attrName){}
+    WriteNDScalars(const std::string& name, const std::string& attrName = ""):
+        name(name), attrName(attrName){}
 
     /** Prepare the write operation:
      *  Define ADIOS variable, increase params.adiosGroupSize and write attribute (if attrName is non-empty)
@@ -47,12 +50,12 @@ struct WriteNDScalars
      */
     void prepare(ThreadParams& params, T_Attribute attribute = T_Attribute())
     {
-        typedef traits::PICToAdios<T_Skalar> AdiosSkalarType;
+        typedef traits::PICToAdios<T_Scalar> AdiosSkalarType;
         typedef PMacc::math::UInt64<simDim> Dimensions;
 
         log<picLog::INPUT_OUTPUT> ("ADIOS: prepare write %1%D scalars: %2%") % simDim % name;
 
-        params.adiosGroupSize += sizeof(T_Skalar);
+        params.adiosGroupSize += sizeof(T_Scalar);
         if(!attrName.empty())
             params.adiosGroupSize += sizeof(T_Attribute);
 
@@ -91,7 +94,7 @@ struct WriteNDScalars
         }
     }
 
-    void operator()(ThreadParams& params, T_Skalar value)
+    void operator()(ThreadParams& params, T_Scalar value)
     {
         log<picLog::INPUT_OUTPUT> ("ADIOS: write %1%D scalars: %2%") % simDim % name;
 
@@ -102,12 +105,19 @@ private:
     int64_t varId;
 };
 
-template<typename T_Skalar, typename T_Attribute = uint64_t>
+/** Functor for reading ND scalar fields with N=simDim
+ * In the current implementation each process (of the ND grid of processes) reads 1 scalar value
+ * Optionally the processes can also read an attribute for this dataset by using a non-empty attrName
+ *
+ * @tparam T_Scalar    Type of the scalar value to read
+ * @tparam T_Attribute Type of the attribute (can be omitted if attribute is not read, defaults to uint64_t)
+ */
+template<typename T_Scalar, typename T_Attribute = uint64_t>
 struct ReadNDScalars
 {
     /** Read the skalar field and optionally the attribute into the values referenced by the pointers */
     void operator()(ThreadParams& params,
-                const std::string& name, T_Skalar* value,
+                const std::string& name, T_Scalar* value,
                 const std::string& attrName = "", T_Attribute* attribute = NULL)
     {
         log<picLog::INPUT_OUTPUT> ("ADIOS: read %1%D scalars: %2%") % simDim % name;
@@ -117,7 +127,7 @@ struct ReadNDScalars
         ADIOS_CMD_EXPECT_NONNULL( varInfo = adios_inq_var(params.fp, datasetName.c_str()) );
         if(varInfo->ndim != simDim)
             throw std::runtime_error(std::string("Invalid dimensionality for ") + name);
-        if(varInfo->type != traits::PICToAdios<T_Skalar>().type)
+        if(varInfo->type != traits::PICToAdios<T_Scalar>().type)
             throw std::runtime_error(std::string("Invalid type for ") + name);
 
         DataSpace<simDim> gridPos = Environment<simDim>::get().GridController().getPosition();

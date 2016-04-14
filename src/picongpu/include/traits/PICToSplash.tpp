@@ -24,6 +24,8 @@
 #include <splash/splash.h>
 
 #include "simulation_defines.hpp"
+#include <boost/mpl/if.hpp>
+#include <boost/type_traits.hpp>
 
 namespace picongpu
 {
@@ -58,16 +60,31 @@ namespace traits
     };
 
     template<>
+    struct PICToSplash<int64_t>
+    {
+        typedef splash::ColTypeInt64 type;
+    };
+
+    template<>
     struct PICToSplash<uint64_t>
     {
         typedef splash::ColTypeUInt64 type;
     };
 
+    /** Specialization for uint64_cu.
+     *  If uint64_cu happens to be the same as uint64_t we use an unused dummy type
+     *  to avoid duplicate specialization
+     */
+    struct uint64_cu_unused_splash;
     template<>
-    struct PICToSplash<uint64_cu>
-    {
-        typedef splash::ColTypeUInt64 type;
-    };
+    struct PICToSplash<
+                        typename bmpl::if_<
+                            boost::is_same<uint64_t, uint64_cu>,
+                            uint64_cu_unused_splash,
+                            uint64_cu
+                        >::type
+                     >: public PICToSplash<uint64_t>
+    {};
 
     /** Trait for splash::Dimensions */
     template<>

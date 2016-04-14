@@ -24,6 +24,8 @@
 #include <adios.h>
 
 #include "simulation_defines.hpp"
+#include <boost/mpl/if.hpp>
+#include <boost/type_traits.hpp>
 
 namespace picongpu
 {
@@ -32,7 +34,7 @@ namespace traits
 {
     /** Trait for int */
     template<>
-    struct PICToAdios<int>
+    struct PICToAdios<int32_t>
     {
         ADIOS_DATATYPES type;
         
@@ -50,7 +52,15 @@ namespace traits
         type(adios_unsigned_integer) {}
     };
     
-    /** Trait for uint64_t */
+    template<>
+    struct PICToAdios<int64_t>
+    {
+        ADIOS_DATATYPES type;
+
+        PICToAdios() :
+        type(adios_long) {}
+    };
+
     template<>
     struct PICToAdios<uint64_t>
     {
@@ -60,14 +70,20 @@ namespace traits
         type(adios_unsigned_long) {}
     };
 
+    /** Specialization for uint64_cu.
+     *  If uint64_cu happens to be the same as uint64_t we use an unused dummy type
+     *  to avoid duplicate specialization
+     */
+    struct uint64_cu_unused_adios;
     template<>
-    struct PICToAdios<uint64_cu>
-    {
-        ADIOS_DATATYPES type;
-
-        PICToAdios() :
-        type(adios_unsigned_long) {}
-    };
+    struct PICToAdios<
+                        typename bmpl::if_<
+                            boost::is_same<uint64_t, uint64_cu>,
+                            uint64_cu_unused_adios,
+                            uint64_cu
+                        >::type
+                     >: public PICToAdios<uint64_t>
+    {};
 
     /** Trait for float_32 */
     template<>
