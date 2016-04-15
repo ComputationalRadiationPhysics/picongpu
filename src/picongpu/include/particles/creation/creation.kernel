@@ -1,5 +1,6 @@
 /**
- * Copyright 2015-2016 Heiko Burau, Macro Garten
+ * Copyright 2015-2016 Marco Garten, Axel Huebl, Heiko Burau, Rene Widera,
+ *                     Richard Pausch, Felix Schmitt
  *
  * This file is part of PIConGPU.
  *
@@ -290,15 +291,15 @@ struct CreateParticlesKernel
  * @param guardSuperCells number of guard cells
  * @return new `CreateParticlesKernel` instance
  */
-template<class ParBoxSource, class ParBoxTarget, class ParticleCreator>
-CreateParticlesKernel<ParBoxSource, ParBoxTarget, ParticleCreator>
+template<class T_ParBoxSource, class T_ParBoxTarget, class T_ParticleCreator>
+CreateParticlesKernel<T_ParBoxSource, T_ParBoxTarget, T_ParticleCreator>
 make_CreateParticlesKernel(
-    ParBoxSource parBoxSource,
-    ParBoxTarget parBoxTarget,
-    ParticleCreator particleCreator,
+    T_ParBoxSource parBoxSource,
+    T_ParBoxTarget parBoxTarget,
+    T_ParticleCreator particleCreator,
     const uint32_t guardSuperCells)
 {
-    return CreateParticlesKernel<ParBoxSource, ParBoxTarget, ParticleCreator>(
+    return CreateParticlesKernel<T_ParBoxSource, T_ParBoxTarget, T_ParticleCreator>(
         parBoxSource, parBoxTarget, particleCreator, guardSuperCells);
 }
 

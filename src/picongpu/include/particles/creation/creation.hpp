@@ -37,18 +37,18 @@ namespace creation
 /** Calls the `createParticlesKernel` kernel to create new particles.
  *
  * @param sourceSpecies species from which new particles are created
- * @param targetSpecies species of the new created particles
+ * @param targetSpecies species of the created particles
  * @param particleCreator functor that defines the particle creation
  * @param cellDesc mapping description
  *
  * `particleCreator` must define: `init()`, `numNewParticles()` and `operator()()`
  * \see `PhotonCreator.hpp` for a further description.
  */
-template<typename SourceSpecies, typename TargetSpecies, typename ParticleCreator, typename CellDescription>
-void createParticlesFromSpecies(SourceSpecies& sourceSpecies,
-                                TargetSpecies& targetSpecies,
-                                ParticleCreator particleCreator,
-                                CellDescription* cellDesc)
+template<typename T_SourceSpecies, typename T_TargetSpecies, typename T_ParticleCreator, typename T_CellDescription>
+void createParticlesFromSpecies(T_SourceSpecies& sourceSpecies,
+                                T_TargetSpecies& targetSpecies,
+                                T_ParticleCreator particleCreator,
+                                T_CellDescription* cellDesc)
 {
     typedef typename MappingDesc::SuperCellSize SuperCellSize;
     const PMacc::math::Int<simDim> coreBorderGuardSuperCells = cellDesc->getGridSuperCells();
@@ -70,9 +70,7 @@ void createParticlesFromSpecies(SourceSpecies& sourceSpecies,
     algorithm::kernel::Foreach<SuperCellSize> foreach;
     foreach(zone, cursor::make_MultiIndexCursor<simDim>(), createParticlesKernel);
 
-    /* fill the gaps in the created species' particle frames to ensure that only
-     * the last frame is not completely filled but every other before is full
-     */
+    /* Make sure to leave no gaps in newly created frames */
     targetSpecies.fillAllGaps();
 }
 
