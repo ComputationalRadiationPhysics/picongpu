@@ -23,9 +23,16 @@
 
 #pragma once
 
+/* device buffer policies */
 #include <cuSTL/container/allocator/DeviceMemAllocator.hpp>
 #include <cuSTL/container/copier/D2DCopier.hpp>
 #include <cuSTL/container/assigner/DeviceMemAssigner.hpp>
+
+/* host buffer policies */
+#include <cuSTL/container/allocator/HostMemAllocator.hpp>
+#include <cuSTL/container/copier/H2HCopier.hpp>
+#include <cuSTL/container/assigner/HostMemAssigner.hpp>
+
 #include "cuSTL/container/CartBuffer.hpp"
 #include "allocator/tag.h"
 
@@ -107,13 +114,12 @@ public:
         return *this;
     }
 
-    template<typename HBuffer>
+    /* host-to-device copy */
     HINLINE
-    DeviceBuffer& operator=(const HBuffer& rhs)
+    DeviceBuffer& operator=(const CartBuffer<Type, T_dim, allocator::HostMemAllocator<Type, T_dim>,
+                            copier::H2HCopier<T_dim>,
+                            assigner::HostMemAssigner<> >& rhs)
     {
-        BOOST_STATIC_ASSERT((boost::is_same<typename HBuffer::memoryTag, allocator::tag::host>::value));
-        BOOST_STATIC_ASSERT((boost::is_same<typename HBuffer::type, Type>::value));
-        BOOST_STATIC_ASSERT(T_dim == HBuffer::dim);
         if(rhs.size() != this->size())
             throw std::invalid_argument(static_cast<std::stringstream&>(
                 std::stringstream() << "Assignment: Sizes of buffers do not match: "
