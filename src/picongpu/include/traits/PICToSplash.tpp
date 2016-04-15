@@ -83,7 +83,10 @@ namespace traits
     template<>
     struct PICToSplash<
                         typename bmpl::if_<
-                            boost::is_same<uint64_t, uint64_cu>,
+                            typename bmpl::or_<
+                                boost::is_same<uint64_t, uint64_cu>,
+                                bmpl::bool_<sizeof(uint64_cu) != sizeof(uint64_t)>
+                            >::type,
                             uint64_cu_unused_splash,
                             uint64_cu
                         >::type
