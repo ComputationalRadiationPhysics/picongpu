@@ -30,14 +30,13 @@ namespace picongpu
 
 namespace traits
 {
-    /** Trait for adios_integer */
+
     template<>
     struct AdiosToPIC<adios_integer>
     {
         typedef int32_t type;
     };
     
-    /** Trait for adios_unsigned_integer */
     template<>
     struct AdiosToPIC<adios_unsigned_integer>
     {
@@ -56,14 +55,12 @@ namespace traits
         typedef uint64_t type;
     };
 
-    /** Trait for adios_real */
     template<>
     struct AdiosToPIC<adios_real>
     {
         typedef float_32 type;
     };
     
-    /** Trait for adios_double */
     template<>
     struct AdiosToPIC<adios_double>
     {

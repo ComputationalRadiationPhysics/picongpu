@@ -32,7 +32,6 @@ namespace picongpu
 
 namespace traits
 {
-    /** Trait for int */
     template<>
     struct PICToAdios<int32_t>
     {
@@ -42,7 +41,6 @@ namespace traits
         type(adios_integer) {}
     };
     
-    /** Trait for uint32_t */
     template<>
     struct PICToAdios<uint32_t>
     {
@@ -85,7 +83,6 @@ namespace traits
                      >: public PICToAdios<uint64_t>
     {};
 
-    /** Trait for float_32 */
     template<>
     struct PICToAdios<float_32>
     {
@@ -95,7 +92,6 @@ namespace traits
         type(adios_real) {}
     };
 
-    /** Trait for float_64 */
     template<>
     struct PICToAdios<float_64>
     {

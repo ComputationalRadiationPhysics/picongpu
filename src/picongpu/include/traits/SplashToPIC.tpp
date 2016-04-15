@@ -30,32 +30,41 @@ namespace picongpu
 
 namespace traits
 {
-    /** Trait for splash::ColTypeBool */
     template<>
     struct SplashToPIC<splash::ColTypeBool>
     {
         typedef bool type;
     };
 
-    /** Trait for splash::ColTypeFloat */
     template<>
     struct SplashToPIC<splash::ColTypeFloat>
     {
         typedef float_32 type;
     };
 
-    /** Trait for splash::ColTypeDouble */
     template<>
     struct SplashToPIC<splash::ColTypeDouble>
     {
         typedef float_64 type;
     };
 
-    /** Trait for splash::ColTypeInt */
+    /** Native int */
     template<>
     struct SplashToPIC<splash::ColTypeInt>
     {
         typedef int type;
+    };
+
+    template<>
+    struct SplashToPIC<splash::ColTypeInt32>
+    {
+        typedef int32_t type;
+    };
+
+    template<>
+    struct SplashToPIC<splash::ColTypeUInt32>
+    {
+        typedef uint32_t type;
     };
 
     template<>
