@@ -75,7 +75,6 @@ public:
     HDINLINE DeviceBuffer(size_t x) : Base(x) {}
     HDINLINE DeviceBuffer(size_t x, size_t y) : Base(x, y) {}
     HDINLINE DeviceBuffer(size_t x, size_t y, size_t z) : Base(x, y, z) {}
-    HDINLINE DeviceBuffer(const Base& base) : Base(base) {}
     /**
      * Creates a device buffer from a pointer with a size. Assumes dense layout (no padding)
      *
@@ -98,6 +97,7 @@ public:
         *this->refCount = (ownMemory) ? 1 : 2;
 #endif
     }
+    HDINLINE DeviceBuffer(const Base& base) : Base(base) {}
     HDINLINE DeviceBuffer(BOOST_RV_REF(DeviceBuffer) obj): Base(boost::move(static_cast<Base&>(obj))) {}
 
     HDINLINE DeviceBuffer&
@@ -113,7 +113,7 @@ public:
     {
         BOOST_STATIC_ASSERT((boost::is_same<typename HBuffer::memoryTag, allocator::tag::host>::value));
         BOOST_STATIC_ASSERT((boost::is_same<typename HBuffer::type, Type>::value));
-        BOOST_STATIC_ASSERT(T_dim == HBuffer::dim);
+        BOOST_STATIC_ASSERT(HBuffer::dim == T_dim);
         if(rhs.size() != this->size())
             throw std::invalid_argument(static_cast<std::stringstream&>(
                 std::stringstream() << "Assignment: Sizes of buffers do not match: "
@@ -131,7 +131,7 @@ public:
         return *this;
     }
 
-    HINLINE DeviceBuffer& operator=(const DeviceBuffer& rhs)
+    HINLINE DeviceBuffer& operator=(BOOST_COPY_ASSIGN_REF(DeviceBuffer) rhs)
     {
         Base::operator=(rhs);
         return *this;
@@ -140,3 +140,4 @@ public:
 
 } // container
 } // PMacc
+
