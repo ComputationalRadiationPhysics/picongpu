@@ -101,6 +101,7 @@ public:
     }
 
     template<typename DBuffer>
+    HINLINE
     HostBuffer& operator=(const DBuffer& rhs)
     {
         BOOST_STATIC_ASSERT((boost::is_same<typename DBuffer::memoryTag, allocator::tag::device>::value));
@@ -117,12 +118,17 @@ public:
         return *this;
     }
 
-    HostBuffer& operator=(const Base& rhs)
+    HINLINE HostBuffer& operator=(const Base& rhs)
     {
         Base::operator=(rhs);
         return *this;
     }
 
+    HINLINE HostBuffer& operator=(BOOST_COPY_ASSIGN_REF(HostBuffer) rhs)
+    {
+        Base::operator=(rhs);
+        return *this;
+    }
 };
 
 } // container

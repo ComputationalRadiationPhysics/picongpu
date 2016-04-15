@@ -85,7 +85,7 @@ public:
     HDINLINE void init();
     HDINLINE void exit();
     HDINLINE CartBuffer() : refCount(NULL) {}
-private:
+
     /* makes this class able to emulate a r-value reference */
     BOOST_COPYABLE_AND_MOVABLE(CartBuffer)
 public:
@@ -101,7 +101,7 @@ public:
 
     /* copy another container into this one (hard data copy) */
     HDINLINE CartBuffer&
-    operator=(const CartBuffer& rhs);
+    operator=(BOOST_COPY_ASSIGN_REF(CartBuffer) rhs);
     /* use the memory from another container and increment the reference counter */
     HDINLINE CartBuffer&
     operator=(BOOST_RV_REF(CartBuffer) rhs);
