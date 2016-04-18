@@ -32,6 +32,7 @@
 #include "plugins/adios/ADIOSWriter.def"
 
 #include "particles/frame_types.hpp"
+#include "particles/IdProvider.def"
 
 #include <adios.h>
 #include <adios_read.h>
@@ -72,6 +73,7 @@
 #include "plugins/adios/ADIOSCountParticles.hpp"
 #include "plugins/adios/restart/LoadSpecies.hpp"
 #include "plugins/adios/restart/RestartFieldLoader.hpp"
+#include "plugins/adios/NDScalars.hpp"
 
 
 namespace picongpu
@@ -582,6 +584,15 @@ public:
         ForEach<FileCheckpointParticles, LoadSpecies<bmpl::_1> > forEachLoadSpecies;
         forEachLoadSpecies(&mThreadParams, restartChunkSize);
 
+        IdProvider<simDim>::State idProvState;
+        ReadNDScalars<uint64_t, uint64_t>()(mThreadParams,
+                "picongpu/idProvider/startId", &idProvState.startId,
+                "maxNumProc", &idProvState.maxNumProc);
+        ReadNDScalars<uint64_t>()(mThreadParams,
+                "picongpu/idProvider/nextId", &idProvState.nextId);
+        log<picLog::INPUT_OUTPUT > ("Setting next free id on current rank: %1%") % idProvState.nextId;
+        IdProvider<simDim>::setState(idProvState);
+
         /* free memory allocated in ADIOS calls */
         free(slidesPtr);
         free(lastStepPtr);
@@ -964,6 +975,12 @@ private:
         }
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) counting particles.");
 
+        PMACC_AUTO(idProviderState, IdProvider<simDim>::getState());
+        WriteNDScalars<uint64_t, uint64_t> writeIdProviderStartId("picongpu/idProvider/startId", "maxNumProc");
+        WriteNDScalars<uint64_t, uint64_t> writeIdProviderNextId("picongpu/idProvider/nextId");
+        writeIdProviderStartId.prepare(*threadParams, idProviderState.maxNumProc);
+        writeIdProviderNextId.prepare(*threadParams);
+
         /* allocate buffer in MB according to our current group size */
         /* `1 + mem` minimum 1 MiB that we can write attributes on empty GPUs */
         size_t writeBuffer_in_MiB=1+threadParams->adiosGroupSize / 1024 / 1024;
@@ -1019,7 +1036,12 @@ private:
         }
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing particle species.");
 
-        /* close adios file, most liekly the actual write point */
+        log<picLog::INPUT_OUTPUT>("ADIOS: Writing IdProvider state (StartId: %1%, NextId: %2%, maxNumProc: %3%)")
+                % idProviderState.startId % idProviderState.nextId % idProviderState.maxNumProc;
+        writeIdProviderStartId(*threadParams, idProviderState.startId);
+        writeIdProviderNextId(*threadParams, idProviderState.nextId);
+
+        /* close adios file, most likely the actual write point */
         log<picLog::INPUT_OUTPUT > ("ADIOS: closing file: %1%") % threadParams->fullFilename;
         ADIOS_CMD(adios_close(threadParams->adiosFileHandle));
 

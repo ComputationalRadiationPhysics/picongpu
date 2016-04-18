@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2016 Rene Widera, Felix Schmitt, Axel Huebl
+ * Copyright 2013-2016 Rene Widera, Felix Schmitt, Axel Huebl,
+ *                     Alexander Grund
  *
  * This file is part of PIConGPU.
  *
@@ -173,6 +174,26 @@ struct UnitDimension<weighting >
         std::vector<float_64> unitDimension( NUnitDimension, 0.0 );
 
         return unitDimension;
+    }
+};
+
+template<>
+struct Unit<particleId>
+{
+    /* unitless and not scaled by a factor: by convention 1.0 */
+    static std::vector<double> get()
+    {
+        std::vector<double> unit( 1, 1.0 );
+        return unit;
+    }
+};
+template<>
+struct UnitDimension<particleId>
+{
+    static std::vector<float_64> get()
+    {
+        /* unitless */
+        return std::vector<float_64>( NUnitDimension, 0.0 );
     }
 };
 

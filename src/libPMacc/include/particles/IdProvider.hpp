@@ -96,17 +96,17 @@ namespace PMacc {
         __cudaKernel(idDetail::getNextId)(1, 1)(nextIdBuf.getDeviceBuffer().getDataBox());
         nextIdBuf.deviceToHost();
         State state;
-        state.nextId = nextIdBuf.getHostBuffer().getDataBox()(0);
+        state.nextId = static_cast<uint64_t>(nextIdBuf.getHostBuffer().getDataBox()(0));
         state.startId = m_startId;
         state.maxNumProc = m_maxNumProc;
         return state;
     }
 
     template<unsigned T_dim>
-    HDINLINE uint64_cu IdProvider<T_dim>::getNewId()
+    HDINLINE uint64_t IdProvider<T_dim>::getNewId()
     {
 #ifdef __CUDA_ARCH__
-        return nvidia::atomicAllInc(&idDetail::nextId);
+        return static_cast<uint64_t>(nvidia::atomicAllInc(&idDetail::nextId));
 #else
         // IMPORTANT: This calls a kernel. So make sure this kernel is instantiated somewhere before!
         return getNewIdHost();
@@ -174,7 +174,7 @@ namespace PMacc {
         HostDeviceBuffer<uint64_cu, 1> newIdBuf(DataSpace<1>(1));
         __cudaKernel(idDetail::getNewId)(1, 1)(newIdBuf.getDeviceBuffer().getDataBox(), GetNewId());
         newIdBuf.deviceToHost();
-        return newIdBuf.getHostBuffer().getDataBox()(0);
+        return static_cast<uint64_t>(newIdBuf.getHostBuffer().getDataBox()(0));
     }
 
 }  // namespace PMacc

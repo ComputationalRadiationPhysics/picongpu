@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2016 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+ *                     Alexander Grund
  *
  * This file is part of PIConGPU.
  *
@@ -22,7 +23,6 @@
 #pragma once
 
 #include <pthread.h>
-#include <cassert>
 #include <sstream>
 #include <list>
 #include <vector>
@@ -42,6 +42,7 @@
 #include "particles/particleFilter/FilterFactory.hpp"
 #include "particles/particleFilter/PositionFilter.hpp"
 #include "particles/operations/CountParticles.hpp"
+#include "particles/IdProvider.def"
 
 #include "dataManagement/DataConnector.hpp"
 #include "mappings/simulation/GridController.hpp"
@@ -66,9 +67,8 @@
 #include "plugins/hdf5/WriteSpecies.hpp"
 #include "plugins/hdf5/restart/LoadSpecies.hpp"
 #include "plugins/hdf5/restart/RestartFieldLoader.hpp"
+#include "plugins/hdf5/NDScalars.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
-
-#include <splash/splash.h>
 
 namespace picongpu
 {
@@ -220,6 +220,15 @@ public:
         /* load all particles */
         ForEach<FileCheckpointParticles, LoadSpecies<bmpl::_1> > forEachLoadSpecies;
         forEachLoadSpecies(params, restartChunkSize);
+
+        IdProvider<simDim>::State idProvState;
+        ReadNDScalars<uint64_t, uint64_t>()(mThreadParams,
+                "picongpu/idProvider/startId", &idProvState.startId,
+                "maxNumProc", &idProvState.maxNumProc);
+        ReadNDScalars<uint64_t>()(mThreadParams,
+                "picongpu/idProvider/nextId", &idProvState.nextId);
+        log<picLog::INPUT_OUTPUT > ("Setting bext free id on current rank: %1%") % idProvState.nextId;
+        IdProvider<simDim>::setState(idProvState);
 
         /* close datacollector */
         log<picLog::INPUT_OUTPUT > ("HDF5 close DataCollector with file: %1%") % restartFilename;
@@ -377,6 +386,7 @@ private:
     static void writeMetaAttributes(ThreadParams *threadParams)
     {
         ColTypeUInt32 ctUInt32;
+        ColTypeUInt64 ctUInt64;
         ColTypeDouble ctDouble;
         SplashFloatXType splashFloatXType;
 
@@ -452,6 +462,14 @@ private:
         }
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species.");
 
+        PMACC_AUTO(idProviderState, IdProvider<simDim>::getState());
+        log<picLog::INPUT_OUTPUT>("HDF5: Writing IdProvider state (StartId: %1%, NextId: %1%, maxNumProc: %2%)")
+                % idProviderState.startId % idProviderState.nextId % idProviderState.maxNumProc;
+        WriteNDScalars<uint64_t, uint64_t>()(*threadParams,
+                "picongpu/idProvider/startId", idProviderState.startId,
+                "maxNumProc", idProviderState.maxNumProc);
+        WriteNDScalars<uint64_t>()(*threadParams,
+                "picongpu/idProvider/nextId", idProviderState.nextId);
         return NULL;
     }
 
