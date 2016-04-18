@@ -45,7 +45,7 @@ alias(position);
  */
 alias(globalCellIdx);
 
-value_identifier(uint64_cu,particleId,IdProvider<simDim>::getNewId());
+value_identifier(uint64_t,particleId,IdProvider<simDim>::getNewId());
 
 /** specialization for the relative in-cell position */
 value_identifier(floatD_X,position_pic,floatD_X::create(0.));
