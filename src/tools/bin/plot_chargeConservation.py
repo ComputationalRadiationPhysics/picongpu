@@ -81,9 +81,9 @@ def plotError(h5file, slice_pos=[0.5, 0.5, 0.5]):
     CELL_VOLUME = CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH
 
     # load electric field
-    Ex = np.array(f["/data/{}/fields/FieldE/x".format(timestep)])
-    Ey = np.array(f["/data/{}/fields/FieldE/y".format(timestep)])
-    Ez = np.array(f["/data/{}/fields/FieldE/z".format(timestep)])
+    Ex = np.array(f["/data/{}/fields/E/x".format(timestep)])
+    Ey = np.array(f["/data/{}/fields/E/y".format(timestep)])
+    Ez = np.array(f["/data/{}/fields/E/z".format(timestep)])
 
     # load and add charge density
     charge = np.zeros_like(Ex)
