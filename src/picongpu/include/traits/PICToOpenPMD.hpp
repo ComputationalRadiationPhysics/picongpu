@@ -33,78 +33,21 @@ namespace picongpu
 {
 namespace traits
 {
-/** Reinterpret attributes for openPMD
- *
- * Currently, this conversion table is used to translate the PIConGPU
- * globalCellIdx (unitless cell index) to the openPMD positionOffset (length)
- */
+    /** Reinterpret attributes for openPMD
+     *
+     * Currently, this conversion tables are used to translate the PIConGPU
+     * globalCellIdx (unitless cell index) to the openPMD positionOffset (length)
+     */
     template<typename T_Identifier>
-    struct OpenPMDName
-    {
-        std::string operator()() const
-        {
-            return T_Identifier::getName();
-        }
-    };
-
-    template<typename T_Type>
-    struct OpenPMDName<globalCellIdx<T_Type> >
-    {
-        std::string operator()() const
-        {
-            return std::string("positionOffset");
-        }
-    };
+    struct OpenPMDName;
 
     template<typename T_Identifier>
-    struct OpenPMDUnit
-    {
-        std::vector<double> operator()() const
-        {
-            return Unit<T_Identifier>::get();
-        }
-    };
-
-    template<typename T_Type>
-    struct OpenPMDUnit<globalCellIdx<T_Type> >
-    {
-        std::vector<double> operator()() const
-        {
-            std::vector<double> unit(simDim);
-            /* cell positionOffset needs two transformations to get to SI:
-               cell begin -> dimensionless scaling to grid -> SI */
-            for( uint32_t i=0; i < simDim; ++i )
-                unit[i] = cellSize[i] * UNIT_LENGTH;
-
-            return unit;
-        }
-    };
+    struct OpenPMDUnit;
 
     template<typename T_Identifier>
-    struct OpenPMDUnitDimension
-    {
-        std::vector<float_64> operator()() const
-        {
-            return UnitDimension<T_Identifier>::get();
-        }
-    };
-
-    template<typename T_Type>
-    struct OpenPMDUnitDimension<globalCellIdx<T_Type> >
-    {
-        std::vector<float_64> operator()() const
-        {
-            /* L, M, T, I, theta, N, J
-             *
-             * positionOffset is in meter: m
-             *   -> L
-             */
-            std::vector<float_64> unitDimension( NUnitDimension, 0.0 );
-            unitDimension.at(SIBaseUnits::length) = 1.0;
-
-            return unitDimension;
-        }
-    };
+    struct OpenPMDUnitDimension;
 
 } // namespace traits
 } // namespace picongpu
+
+#include "PICToOpenPMD.tpp"
