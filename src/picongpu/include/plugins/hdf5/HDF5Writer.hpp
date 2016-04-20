@@ -227,7 +227,7 @@ public:
                 "maxNumProc", &idProvState.maxNumProc);
         ReadNDScalars<uint64_t>()(mThreadParams,
                 "picongpu/idProvider/nextId", &idProvState.nextId);
-        log<picLog::INPUT_OUTPUT > ("Setting bext free id on current rank: %1%") % idProvState.nextId;
+        log<picLog::INPUT_OUTPUT > ("Setting next free id on current rank: %1%") % idProvState.nextId;
         IdProvider<simDim>::setState(idProvState);
 
         /* close datacollector */
@@ -463,7 +463,7 @@ private:
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species.");
 
         PMACC_AUTO(idProviderState, IdProvider<simDim>::getState());
-        log<picLog::INPUT_OUTPUT>("HDF5: Writing IdProvider state (StartId: %1%, NextId: %1%, maxNumProc: %2%)")
+        log<picLog::INPUT_OUTPUT>("HDF5: Writing IdProvider state (StartId: %1%, NextId: %2%, maxNumProc: %3%)")
                 % idProviderState.startId % idProviderState.nextId % idProviderState.maxNumProc;
         WriteNDScalars<uint64_t, uint64_t>()(*threadParams,
                 "picongpu/idProvider/startId", idProviderState.startId,
