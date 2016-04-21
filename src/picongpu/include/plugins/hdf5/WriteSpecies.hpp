@@ -178,6 +178,9 @@ public:
         ColTypeDouble ctDouble;
         GridController<simDim>& gc = Environment<simDim>::get().GridController();
 
+        const uint64_t numRanks( gc.getGlobalSize() );
+        const uint64_t myRank( gc.getGlobalRank() );
+
         /* For collective write calls we need the information:
          *   - how many particles will be written globally
          *   - what is my particle offset within this global data set
@@ -188,10 +191,10 @@ public:
          * the mpi rank is an arbitrary quantity and might change after a
          * restart, but we only use it to order our patches and offsets
          */
-        std::vector<uint64_t> particleCounts( 2 * gc.getGlobalSize(), 0u );
+        std::vector<uint64_t> particleCounts( 2 * numRanks, 0u );
         uint64_t myParticlePatch[ 2 ];
         myParticlePatch[ 0 ] = numParticles;
-        myParticlePatch[ 1 ] = uint64_t(gc.getGlobalRank());
+        myParticlePatch[ 1 ] = myRank;
 
         /* we do the scan over MPI ranks since it does not matter how the
          * global rank or scalar position (which are not idential) are
@@ -206,7 +209,7 @@ public:
             gc.getCommunicator().getMPIComm()
         ));
 
-        for( uint64_t r = 0; r < gc.getGlobalSize(); ++r )
+        for( uint64_t r = 0; r < numRanks; ++r )
         {
             numParticlesGlobal += particleCounts.at(2 * r);
             if( particleCounts.at(2 * r + 1) < myParticlePatch[ 1 ] )
@@ -239,23 +242,32 @@ public:
             FrameType::getName() + std::string("/") + subGroup +
             std::string("/particlePatches") );
 
+        /* offset and size of our particle patches
+         *   - numPatches: we write as many patches as MPI ranks
+         *   - myPatchOffset: we write in the order of the MPI ranks
+         *   - myPatchEntries: every MPI rank writes exactly one patch
+         */
+        const Dimensions numPatches( numRanks, 1, 1 );
+        const Dimensions myPatchOffset( myRank, 0, 0 );
+        const Dimensions myPatchEntries( 1, 1, 1 );
+
         /* numParticles: number of particles in this patch */
         params->dataCollector->write(
             params->currentStep,
-            Dimensions(gc.getGlobalSize(), 1, 1),
-            Dimensions(gc.getGlobalRank(), 0, 0),
+            numPatches,
+            myPatchOffset,
             ctUInt64, 1,
-            Dimensions(1, 1, 1),
+            myPatchEntries,
             (particlePatchesPath + std::string("/numParticles")).c_str(),
             &numParticles);
 
         /* numParticlesOffset: number of particles before this patch */
         params->dataCollector->write(
             params->currentStep,
-            Dimensions(gc.getGlobalSize(), 1, 1),
-            Dimensions(gc.getGlobalRank(), 0, 0),
+            numPatches,
+            myPatchOffset,
             ctUInt64, 1,
-            Dimensions(1, 1, 1),
+            myPatchEntries,
             (particlePatchesPath + std::string("/numParticlesOffset")).c_str(),
             &numParticlesOffset);
 
@@ -275,19 +287,19 @@ public:
 
             params->dataCollector->write(
                 params->currentStep,
-                Dimensions(gc.getGlobalSize(), 1, 1),
-                Dimensions(gc.getGlobalRank(), 0, 0),
+                numPatches,
+                myPatchOffset,
                 ctUInt64, 1,
-                Dimensions(1, 1, 1),
+                myPatchEntries,
                 (particlePatchesPath + std::string("/offset/") +
                  name_lookup[d]).c_str(),
                 &patchOffset);
             params->dataCollector->write(
                 params->currentStep,
-                Dimensions(gc.getGlobalSize(), 1, 1),
-                Dimensions(gc.getGlobalRank(), 0, 0),
+                numPatches,
+                myPatchOffset,
                 ctUInt64, 1,
-                Dimensions(1, 1, 1),
+                myPatchEntries,
                 (particlePatchesPath + std::string("/extent/") +
                  name_lookup[d]).c_str(),
                 &patchExtent);
