@@ -196,8 +196,7 @@ struct Field
         ColTypeString ctAxisLabels(1);
         for( uint32_t d = 0; d < simDim; ++d )
         {
-            /* \todo is the order correct? */
-            axisLabels[d][0] = char(120 + d); // x, y, z
+            axisLabels[d][0] = char('x' + d); // x, y, z
             axisLabels[d][1] = '\0';          // terminator is important!
         }
         params->dataCollector->writeAttribute(params->currentStep,
