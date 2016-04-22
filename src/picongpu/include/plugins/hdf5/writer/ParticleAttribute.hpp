@@ -82,6 +82,7 @@ struct ParticleAttribute
 
         SplashType splashType;
         ColTypeDouble ctDouble;
+        ColTypeUInt32 ctUInt32;
         SplashFloatXType splashFloatXType;
 
         OpenPMDName<T_Identifier> openPMDName;
@@ -89,10 +90,14 @@ struct ParticleAttribute
 
         const std::string name_lookup[] = {"x", "y", "z"};
 
+        // get the SI scaling, dimensionality and weighting of the attribute
         OpenPMDUnit<T_Identifier> openPMDUnit;
         std::vector<float_64> unit = openPMDUnit();
         OpenPMDUnitDimension<T_Identifier> openPMDUnitDimension;
         std::vector<float_64> unitDimension = openPMDUnitDimension();
+        const bool macroWeightedBool = MacroWeighted<T_Identifier>::get();
+        const uint32_t macroWeighted = (macroWeightedBool ? 1 : 0);
+        const float_64 weightingPower = WeightingPower<T_Identifier>::get();
 
         assert(unit.size() == components); // unitSI for each component
         assert(unitDimension.size() == 7); // seven openPMD base units
@@ -180,6 +185,18 @@ struct ParticleAttribute
             "unitDimension",
             1u, Dimensions(7,0,0),
             &(*unitDimension.begin()));
+
+        threadParams->dataCollector->writeAttribute(
+            params->currentStep,
+            ctUInt32, recordName.c_str(),
+            "macroWeighted",
+            &macroWeighted);
+
+        threadParams->dataCollector->writeAttribute(
+            params->currentStep,
+            ctDouble, recordName.c_str(),
+            "weightingPower",
+            &weightingPower);
 
         /** \todo check if always correct at this point, depends on attribute
          *        and MW-solver/pusher implementation */
