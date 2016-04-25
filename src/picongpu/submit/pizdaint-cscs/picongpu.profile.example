@@ -1,0 +1,77 @@
+# this file is loaded from all PIConGPU template files `*.tpl` therefore please
+# copy this file to `$SCRATCH/picongpu.profile`
+#
+
+# General modules #############################################################
+#
+# if the wrong environment is loaded we switch to the gnu environment
+module li 2>&1 | grep "PrgEnv-cray" > /dev/null
+if [ $? -eq 0 ] ; then
+    module swap PrgEnv-cray PrgEnv-gnu/5.2.82
+else
+    module load PrgEnv-gnu/5.2.82
+fi
+
+module load cmake/3.3.2
+module load cudatoolkit/7.0.28-1.0502.10742.5.1
+
+# Libraries ###################################################################
+module load boost/1.58.0
+module load cray-mpich/7.2.2
+
+# Other Software ##############################################################
+#
+module load cray-hdf5-parallel/1.8.14
+module load zlib/1.2.8-CrayGNU-5.2.40
+
+# Environment #################################################################
+#
+# needs to be compiled by the user
+export PNGWRITER_ROOT=$SCRATCH/lib/pngwriter
+export SPLASH_ROOT=$SCRATCH/lib/splash
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PNGWRITER_ROOT/lib/
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$SPLASH_ROOT/lib/
+
+export MPI_ROOT=$MPICH_DIR
+export HDF5_ROOT=$HDF5_DIR
+
+# define cray compiler target architecture
+# if not defined the linker crashed because wrong from `*/lib` instead
+# of `*/lib64` are used
+export CRAY_CPU_TARGET=x86-64
+
+# Compile for cluster nodes
+#   (CMake likes to unwrap the Cray wrappers)
+export CC=`which cc`
+export CXX=`which CC`
+
+export PICSRC=$HOME/src/picongpu
+# needed to call `tbg`
+export PATH=$PATH:$PICSRC/src/tools/bin
+
+# send me a mail on BEGIN, END, FAIL, REQUEUE, ALL,
+# TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
+export MY_MAILNOTIFY="FAIL"
+export MY_MAIL="someone@example.com"
+export MY_NAME="$(whoami) <$MY_MAIL>"
+
+# "tbg" default options #######################################################
+#   - SLURM (sbatch)
+#   - "normal" queue
+export TBG_SUBMIT="sbatch"
+export TBG_TPLFILE="submit/pizdaint-cscs/normal_profile.tpl"
+
+# helper tools ################################################################
+
+# allocate an interactive shell for one hour
+# `getInteractive 2` # allocates to interactive nodes (default: 1)
+getInteractive() {
+    if [ -z "$1" ] ; then
+        numNodes=1
+    else
+        numNodes=$1
+    fi
+    # `--ntasks-per-core=2` activates intel hyper threading
+    salloc --time=1:00:00 --nodes="$numNodes" --ntasks-per-node=16 --ntasks-per-core=2 --partition normal
+}
