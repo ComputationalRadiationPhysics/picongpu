@@ -358,7 +358,10 @@ public:
             ("isaac.height", po::value< uint32_t > (&height)->default_value(768),
              "The height per isaac framebuffer. Default is 768.")
             ("isaac.direct_pause", po::value< bool > (&direct_pause)->default_value(false),
-             "Direct pausing after starting simulation. Default is false.");
+             "Direct pausing after starting simulation. Default is false.")
+            ("isaac.quality", po::value< uint32_t > (&jpeg_quality)->default_value(90),
+             "JPEG quality. Default is 90.")
+            ;
     }
 
     void setMappingDescription(MappingDesc *cellDescription)
@@ -375,6 +378,7 @@ private:
     uint32_t count;
     uint32_t width;
     uint32_t height;
+    uint32_t jpeg_quality;
     int rank;
     int numProc;
     bool movingWindow;
@@ -448,6 +452,7 @@ private:
                 subGrid.getLocalDomain().offset,
                 sources,
                 cellSizeFactor );
+            visualization->setJpegQuality(jpeg_quality);
             printf("ISAAC: Init at %i/%i\n",rank,numProc);
             if (rank == 0)
                 json_object_set_new( visualization->getJsonMetaRoot(), "time step", json_string( "Time step" ) );
