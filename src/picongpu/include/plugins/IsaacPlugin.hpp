@@ -270,7 +270,9 @@ public:
         movingWindow(false),
         interval(0),
         step(0),
-        drawing_time(0)
+        drawing_time(0),
+        cell_count(0),
+        particle_count(0)
     {
         Environment<>::get().PluginConnector().registerPlugin(this);
     }
@@ -313,6 +315,9 @@ public:
                     visualization->copy_time = 0;
                     visualization->video_send_time = 0;
                     visualization->buffer_time = 0;
+
+                    json_object_set_new( visualization->getJsonMetaRoot(), "cell count", json_integer( cell_count ) );
+                    json_object_set_new( visualization->getJsonMetaRoot(), "particle count", json_integer( particle_count ) );
                 }
                 uint64_t start = visualization->getTicksUs(); 
                 json_t* meta = visualization->doVisualization(META_MASTER, &currentStep, !pause);
@@ -387,6 +392,8 @@ private:
     int step;
     int drawing_time;
     bool direct_pause;
+    int cell_count;
+    int particle_count;
 
     void pluginLoad()
     {
@@ -462,6 +469,12 @@ private:
                 delete visualization;
                 visualization = NULL;
                 notifyPeriod = 0;
+            }
+            else
+            {
+                const int localNrOfCells = cellDescription->getGridLayout().getDataSpaceWithoutGuarding().productOfComponents();
+                cell_count = localNrOfCells * numProc;
+                particle_count = localNrOfCells * particles::TYPICAL_PARTICLES_PER_CELL * (bmpl::size<VectorAllSpecies>::type::value) * numProc;
             }
             printf("ISAAC: Finished init at %i\n",rank);
         }
