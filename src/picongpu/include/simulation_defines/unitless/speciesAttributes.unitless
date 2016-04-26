@@ -27,6 +27,8 @@
 #include "traits/Unit.hpp"
 #include "traits/UnitDimension.hpp"
 #include "traits/SIBaseUnits.hpp"
+#include "particles/traits/MacroWeighted.hpp"
+#include "particles/traits/WeightingPower.hpp"
 
 namespace picongpu
 {
@@ -41,7 +43,8 @@ struct Unit<position<T_Type> >
     {
         std::vector<double> unit(simDim);
         /* in-cell position needs two transformations to get to SI:
-           in-cell [0;1) -> dimensionless scaling to grid -> SI */
+           in-cell [0;1) -> dimensionless scaling to grid -> SI
+        */
         for(uint32_t i=0;i<simDim;++i)
             unit[i]=cellSize[i]*UNIT_LENGTH;
 
@@ -64,11 +67,29 @@ struct UnitDimension<position<T_Type> >
         return unitDimension;
     }
 };
+template<typename T_Type>
+struct MacroWeighted<position<T_Type> >
+{
+    // the position is identical and can not be scaled by weightings
+    static bool get()
+    {
+        return false;
+    }
+};
+template<typename T_Type>
+struct WeightingPower<position<T_Type> >
+{
+    // x * weighting^0 == x: same for real and macro particle
+    static float_64 get()
+    {
+        return 0.0;
+    }
+};
 
 template<>
 struct Unit<radiationFlag>
 {
-    /* zero-sized vector indicating unitless flag for hdf5 and adios output */
+    // zero-sized vector indicating unitless flag for hdf5 and adios output
     static std::vector<double> get()
     {
         std::vector<double> unit;
@@ -80,11 +101,28 @@ struct UnitDimension<radiationFlag>
 {
     static std::vector<float_64> get()
     {
-        /* radiationFlag is unitless
-         */
+        // radiationFlag is unitless
         std::vector<float_64> unitDimension( NUnitDimension, 0.0 );
 
         return unitDimension;
+    }
+};
+template<>
+struct MacroWeighted<radiationFlag>
+{
+    // identical and can not be scaled by weightings
+    static bool get()
+    {
+        return false;
+    }
+};
+template<>
+struct WeightingPower<radiationFlag>
+{
+    // flag * weighting^0 == flag: same for real and macro particle
+    static float_64 get()
+    {
+        return 0.0;
     }
 };
 
@@ -120,6 +158,26 @@ struct UnitDimension<momentum >
         return unitDimension;
     }
 };
+template<>
+struct MacroWeighted<momentum>
+{
+    // we currently push macro particle momentums
+    static bool get()
+    {
+        return true;
+    }
+};
+template<>
+struct WeightingPower<momentum>
+{
+    /* px * weighting^1 == px * weighting: momentum is contributed linearly
+     * in the macro-particle ensemble
+     */
+    static float_64 get()
+    {
+        return 1.0;
+    }
+};
 
 template<>
 struct Unit<momentumPrev1>
@@ -153,11 +211,31 @@ struct UnitDimension<momentumPrev1>
         return unitDimension;
     }
 };
+template<>
+struct MacroWeighted<momentumPrev1>
+{
+    // we currently push macro particle momentums
+    static bool get()
+    {
+        return true;
+    }
+};
+template<>
+struct WeightingPower<momentumPrev1>
+{
+    /* px_real * weighting^1 == px_macro * weighting: momentum is contributed
+     * linearly in the macro-particle ensemble
+     */
+    static float_64 get()
+    {
+        return 1.0;
+    }
+};
 
 template<>
 struct Unit<weighting >
 {
-    /* zero-sized vector indicating unitless flag for hdf5 and adios output */
+    // zero-sized vector indicating unitless flag for hdf5 and adios output
     static std::vector<double> get()
     {
         std::vector<double> unit;
@@ -169,18 +247,38 @@ struct UnitDimension<weighting >
 {
     static std::vector<float_64> get()
     {
-        /* weighting is unitless
-         */
+        // weighting is unitless
         std::vector<float_64> unitDimension( NUnitDimension, 0.0 );
 
         return unitDimension;
     }
 };
+template<>
+struct MacroWeighted<weighting>
+{
+    // the weighting attribute is an attribute of the macro particle
+    static bool get()
+    {
+        return true;
+    }
+};
+template<>
+struct WeightingPower<weighting>
+{
+    /* 1 * weighting^1 == weighting: real particles contibute linearily
+     * to the macro particle weighting
+     */
+    static float_64 get()
+    {
+        return 1.0;
+    }
+};
+
 
 template<>
 struct Unit<particleId>
 {
-    /* unitless and not scaled by a factor: by convention 1.0 */
+    // unitless and not scaled by a factor: by convention 1.0
     static std::vector<double> get()
     {
         std::vector<double> unit( 1, 1.0 );
@@ -192,8 +290,26 @@ struct UnitDimension<particleId>
 {
     static std::vector<float_64> get()
     {
-        /* unitless */
+        // unitless
         return std::vector<float_64>( NUnitDimension, 0.0 );
+    }
+};
+template<>
+struct MacroWeighted<particleId>
+{
+    // we can only follow maro particles via ids
+    static bool get()
+    {
+        return false;
+    }
+};
+template<>
+struct WeightingPower<particleId>
+{
+    // particle ids do not scale with weighting
+    static float_64 get()
+    {
+        return 0.0;
     }
 };
 
@@ -224,11 +340,29 @@ struct UnitDimension<globalCellIdx<T_Type> >
         return unitDimension;
     }
 };
+template<typename T_Type>
+struct MacroWeighted<globalCellIdx<T_Type> >
+{
+    // the cell idx is identical and can not be scaled by weightings
+    static bool get()
+    {
+        return false;
+    }
+};
+template<typename T_Type>
+struct WeightingPower<globalCellIdx<T_Type> >
+{
+    // idx * weighting^0 == idx: same for real and macro particle
+    static float_64 get()
+    {
+        return 0.0;
+    }
+};
 
 template<>
 struct Unit<boundElectrons>
 {
-    /* zero-sized vector indicating unitless flag for hdf5 and adios output */
+    // zero-sized vector indicating unitless flag for hdf5 and adios output
     static std::vector<double> get()
     {
         std::vector<double> unit;
@@ -240,11 +374,30 @@ struct UnitDimension<boundElectrons>
 {
     static std::vector<float_64> get()
     {
-        /* boundElectrons is unitless
-         */
+        // boundElectrons is unitless
         std::vector<float_64> unitDimension( NUnitDimension, 0.0 );
 
         return unitDimension;
+    }
+};
+template<>
+struct MacroWeighted<boundElectrons>
+{
+    // bound electrons are distributed over all macro ions
+    static bool get()
+    {
+        return true;
+    }
+};
+template<>
+struct WeightingPower<boundElectrons>
+{
+    /* #e-_real * weighting^1 == #e-_macro: bound electrons are contributed
+     * linearly from the underlying real particles
+     */
+    static float_64 get()
+    {
+        return 1.0;
     }
 };
 
