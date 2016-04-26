@@ -272,7 +272,8 @@ public:
         step(0),
         drawing_time(0),
         cell_count(0),
-        particle_count(0)
+        particle_count(0),
+        last_notify(0)
     {
         Environment<>::get().PluginConnector().registerPlugin(this);
     }
@@ -284,6 +285,7 @@ public:
 
     void notify(uint32_t currentStep)
     {
+        uint64_t simulation_time = visualization->getTicksUs() - last_notify;
         step++;
         if (step >= interval)
         {
@@ -309,12 +311,15 @@ public:
                     json_object_set_new( visualization->getJsonMetaRoot(), "copy_time" , json_integer( visualization->copy_time ) );
                     json_object_set_new( visualization->getJsonMetaRoot(), "video_send_time" , json_integer( visualization->video_send_time ) );
                     json_object_set_new( visualization->getJsonMetaRoot(), "buffer_time" , json_integer( visualization->buffer_time ) );
+                    json_object_set_new( visualization->getJsonMetaRoot(), "simulation_time", json_integer( simulation_time ) );
+
                     visualization->sorting_time = 0;
                     visualization->merge_time = 0;
                     visualization->kernel_time = 0;
                     visualization->copy_time = 0;
                     visualization->video_send_time = 0;
                     visualization->buffer_time = 0;
+                    simulation_time = 0;
 
                     json_object_set_new( visualization->getJsonMetaRoot(), "cell count", json_integer( cell_count ) );
                     json_object_set_new( visualization->getJsonMetaRoot(), "particle count", json_integer( particle_count ) );
@@ -344,6 +349,7 @@ public:
             }
             while (pause);
         }
+        last_notify = visualization->getTicksUs();
     }
 
     void pluginRegisterHelp(po::options_description& desc)
@@ -394,6 +400,7 @@ private:
     bool direct_pause;
     int cell_count;
     int particle_count;
+    uint64_t last_notify;
 
     void pluginLoad()
     {
@@ -475,6 +482,7 @@ private:
                 const int localNrOfCells = cellDescription->getGridLayout().getDataSpaceWithoutGuarding().productOfComponents();
                 cell_count = localNrOfCells * numProc;
                 particle_count = localNrOfCells * particles::TYPICAL_PARTICLES_PER_CELL * (bmpl::size<VectorAllSpecies>::type::value) * numProc;
+                last_notify = visualization->getTicksUs();
             }
             printf("ISAAC: Finished init at %i\n",rank);
         }
