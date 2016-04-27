@@ -44,7 +44,7 @@ using namespace splash;
 
 /** write attribute of a particle to hdf5 file
  *
- * @tparam T_Identifier identifier of a particle attribute
+ * @tparam T_Identifier identifier of a particle record
  */
 template< typename T_Identifier>
 struct ParticleAttribute
@@ -53,7 +53,7 @@ struct ParticleAttribute
      *
      * @param params wrapped thread params such as domainwriter, ...
      * @param frame frame with all particles
-     * @param subGroup
+     * @param speciesPath path for the current species (of FrameType)
      * @param elements number of particles in this patch
      * @param elementsOffset number of particles in this patch
      * @param numParticlesGlobal number of particles globally
@@ -62,7 +62,7 @@ struct ParticleAttribute
     HINLINE void operator()(
                             ThreadParams* params,
                             FrameType& frame,
-                            const std::string subGroup,
+                            const std::string speciesPath,
                             const uint64_t elements,
                             const uint64_t elementsOffset,
                             const uint64_t numParticlesGlobal
@@ -86,7 +86,7 @@ struct ParticleAttribute
         SplashFloatXType splashFloatXType;
 
         OpenPMDName<T_Identifier> openPMDName;
-        std::string recordName = subGroup + std::string("/") + openPMDName();
+        const std::string recordPath( speciesPath + std::string("/") + openPMDName() );
 
         const std::string name_lookup[] = {"x", "y", "z"};
 
@@ -132,7 +132,7 @@ struct ParticleAttribute
         for (uint32_t d = 0; d < components; d++)
         {
             std::stringstream datasetName;
-            datasetName << recordName;
+            datasetName << recordPath;
             if (components > 1)
                 datasetName << "/" << name_lookup[d];
 
@@ -181,20 +181,20 @@ struct ParticleAttribute
 
         threadParams->dataCollector->writeAttribute(
             params->currentStep,
-            ctDouble, recordName.c_str(),
+            ctDouble, recordPath.c_str(),
             "unitDimension",
             1u, Dimensions(7,0,0),
             &(*unitDimension.begin()));
 
         threadParams->dataCollector->writeAttribute(
             params->currentStep,
-            ctUInt32, recordName.c_str(),
+            ctUInt32, recordPath.c_str(),
             "macroWeighted",
             &macroWeighted);
 
         threadParams->dataCollector->writeAttribute(
             params->currentStep,
-            ctDouble, recordName.c_str(),
+            ctDouble, recordPath.c_str(),
             "weightingPower",
             &weightingPower);
 
@@ -202,7 +202,7 @@ struct ParticleAttribute
          *        and MW-solver/pusher implementation */
         const float_X timeOffset = 0.0;
         threadParams->dataCollector->writeAttribute(params->currentStep,
-                                                    splashFloatXType, recordName.c_str(),
+                                                    splashFloatXType, recordPath.c_str(),
                                                     "timeOffset", &timeOffset);
 
         log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) write species attribute: %1%") %

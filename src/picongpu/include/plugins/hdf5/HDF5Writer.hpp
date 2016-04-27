@@ -536,12 +536,12 @@ private:
         if (threadParams->isCheckpoint)
         {
             ForEach<FileCheckpointParticles, WriteSpecies<bmpl::_1> > writeSpecies;
-            writeSpecies(threadParams, std::string(), particleOffset);
+            writeSpecies(threadParams, particleOffset);
         }
         else
         {
             ForEach<FileOutputParticles, WriteSpecies<bmpl::_1> > writeSpecies;
-            writeSpecies(threadParams, std::string(), particleOffset);
+            writeSpecies(threadParams, particleOffset);
         }
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species.");
 

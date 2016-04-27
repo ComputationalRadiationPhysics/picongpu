@@ -26,6 +26,7 @@
 #include "pmacc_types.hpp"
 #include "simulation_types.hpp"
 #include "plugins/hdf5/HDF5Writer.def"
+#include "traits/SIBaseUnits.hpp"
 #include "traits/PICToOpenPMD.hpp"
 
 #include "plugins/ISimulationPlugin.hpp"
@@ -95,7 +96,6 @@ public:
 
     template<typename Space>
     HINLINE void operator()(ThreadParams* params,
-                            std::string subGroup,
                             const Space particleOffset)
     {
         log<picLog::INPUT_OUTPUT > ("HDF5: (begin) write species: %1%") % Hdf5FrameType::getName();
@@ -217,30 +217,55 @@ public:
         }
         log<picLog::INPUT_OUTPUT > ("HDF5:  (end) collect particle sizes for %1%") % Hdf5FrameType::getName();
 
-        /* dump main particle data to hdf5 file */
-        log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) write particle attributes for %1%") % Hdf5FrameType::getName();
+        /* dump non-constant particle records to hdf5 file */
+        log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) write particle records for %1%") % Hdf5FrameType::getName();
+
+        const std::string speciesPath( std::string("particles/") + FrameType::getName() );
 
         ForEach<typename Hdf5FrameType::ValueTypeSeq, hdf5::ParticleAttribute<bmpl::_1> > writeToHdf5;
         writeToHdf5(
             params,
             forward(hostFrame),
-            std::string("particles/") + FrameType::getName() + std::string("/") + subGroup,
+            speciesPath,
             numParticles,
             numParticlesOffset,
             numParticlesGlobal
         );
 
-        /* write meta attributes for species */
-        writeMetaAttributes(params);
+        /* write constant particle records to hdf5 file */
+        const float_64 charge( frame::getCharge<FrameType>() );
+        std::vector<float_64> chargeUnitDimension( NUnitDimension, 0.0 );
+        chargeUnitDimension.at(SIBaseUnits::time) = 1.0;
+        chargeUnitDimension.at(SIBaseUnits::electricCurrent) = 1.0;
 
-        log<picLog::INPUT_OUTPUT > ("HDF5:  (end) write particle attributes for %1%") % Hdf5FrameType::getName();
+        writeConstantRecord(
+            params,
+            speciesPath + std::string("/charge"),
+            numParticlesGlobal,
+            charge,
+            UNIT_CHARGE,
+            chargeUnitDimension
+        );
+
+        const float_64 mass( frame::getMass<FrameType>() );
+        std::vector<float_64> massUnitDimension( NUnitDimension, 0.0 );
+        massUnitDimension.at(SIBaseUnits::mass) = 1.0;
+
+        writeConstantRecord(
+            params,
+            speciesPath + std::string("/mass"),
+            numParticlesGlobal,
+            mass,
+            UNIT_MASS,
+            massUnitDimension
+        );
+
+        log<picLog::INPUT_OUTPUT > ("HDF5:  (end) write particle records for %1%") % Hdf5FrameType::getName();
 
         /* write species particle patch meta information */
         log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) writing particlePatches for %1%") % Hdf5FrameType::getName();
 
-        std::string particlePatchesPath( std::string("particles/") +
-            FrameType::getName() + std::string("/") + subGroup +
-            std::string("/particlePatches") );
+        std::string particlePatchesPath( speciesPath + std::string("/particlePatches") );
 
         /* offset and size of our particle patches
          *   - numPatches: we write as many patches as MPI ranks
@@ -355,26 +380,100 @@ public:
 
 private:
 
-    /**
-     * Writes additional meta-attributes directly to species group
+    /** Writes a constant particle record (weighted for a real particle)
      *
      * @param params thread parameters
+     * @param recordPath path to the record
+     * @param numParticlesGlobal global number of particles in the species
+     * @param value of the record
+     * @param unitSI conversion factor to SI
+     * @param unitDimension power in terms of SI base units for this record
      */
-    static void writeMetaAttributes(ThreadParams* params)
+    static void writeConstantRecord(
+        ThreadParams* params,
+        const std::string recordPath,
+        const uint64_t numParticlesGlobal,
+        const float_64 value,
+        const float_64 unitSI,
+        const std::vector<float_64>& unitDimension
+    )
     {
-        typedef typename PICToSplash<float_64>::type SplashFloat64Type;
+        typedef typename PICToSplash<float_X>::type SplashFloatXType;
 
-        SplashFloat64Type splashType;
+        ColTypeUInt32 ctUInt32;
+        ColTypeUInt64 ctUInt64;
+        ColTypeDouble ctDouble;
+        SplashFloatXType splashFloatXType;
 
-        const std::string groupName = std::string("particles/") + FrameType::getName();
+        // stupid work-around to create a group with libSplash 1.4.0
+        GridController<simDim>& gc = Environment<simDim>::get().GridController();
+        const Dimensions numEntries( gc.getGlobalSize(), 1, 1 );
+        const Dimensions myOffset( gc.getGlobalRank(), 0, 0 );
+        const Dimensions myEntries( 1, 1, 1 );
+        const uint64_t dummy( 0 );
 
-        const float_64 charge = (float_64)frame::getCharge<FrameType>();
-        params->dataCollector->writeAttribute(params->currentStep,
-                splashType, groupName.c_str(), "charge", &charge);
+        params->dataCollector->write(
+            params->currentStep,
+            numEntries,
+            myOffset,
+            ctUInt64, 1,
+            myEntries,
+            (recordPath + std::string("/dummy")).c_str(),
+            &dummy);
 
-        const float_64 mass = (float_64)frame::getMass<FrameType>();
-        params->dataCollector->writeAttribute(params->currentStep,
-                splashType, groupName.c_str(), "mass", &mass);
+        /* openPMD base standard
+         *   write constant record
+         */
+        params->dataCollector->writeAttribute(
+            params->currentStep,
+            ctDouble, recordPath.c_str(),
+            "value", &value);
+
+        params->dataCollector->writeAttribute(
+            params->currentStep,
+            ctUInt64, recordPath.c_str(),
+            "shape",
+            1u, Dimensions(1,0,0),
+            &numParticlesGlobal);
+
+        params->dataCollector->writeAttribute(
+            params->currentStep,
+            ctDouble, recordPath.c_str(),
+            "unitSI", &unitSI);
+
+        params->dataCollector->writeAttribute(
+            params->currentStep,
+            ctDouble, recordPath.c_str(),
+            "unitDimension",
+            1u, Dimensions(7,0,0),
+            &(*unitDimension.begin()));
+
+        /** \todo check if always correct at this point, depends on attribute
+         *        and MW-solver/pusher implementation */
+        const float_X timeOffset( 0.0 );      // same type as "time" in basePath
+        params->dataCollector->writeAttribute(
+            params->currentStep,
+            splashFloatXType, recordPath.c_str(),
+            "timeOffset", &timeOffset);
+
+        /* ED-PIC extension:
+         *   - this is a record describing a *real* particle (0: false)
+         *   - it needs to be scaled linearly (w^1.0) to get the *macro*
+         *     particle record
+         */
+        const uint32_t macroWeighted( 0 );
+        params->dataCollector->writeAttribute(
+            params->currentStep,
+            ctUInt32, recordPath.c_str(),
+            "macroWeighted",
+            &macroWeighted);
+
+        const float_64 weightingPower( 1.0 );
+        params->dataCollector->writeAttribute(
+            params->currentStep,
+            ctDouble, recordPath.c_str(),
+            "weightingPower",
+            &weightingPower);
     }
 };
 
