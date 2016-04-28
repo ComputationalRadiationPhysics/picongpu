@@ -22,11 +22,13 @@
 
 #pragma once
 
-#include "cuSTL/cursor/Cursor.hpp"
-#include "cuSTL/cursor/accessor/LinearInterpAccessor1D.hpp"
-#include "cuSTL/cursor/navigator/PlusNavigator.hpp"
-#include "result_of_Functor.hpp"
 #include "pmacc_types.hpp"
+#include "cuSTL/cursor/Cursor.hpp"
+#include "cuSTL/cursor/accessor/LinearInterpAccessor.hpp"
+#include "cuSTL/cursor/navigator/PlusNavigator.hpp"
+#include "cuSTL/cursor/traits.hpp"
+#include "math/vector/Vector.hpp"
+#include "result_of_Functor.hpp"
 
 namespace PMacc
 {
@@ -35,23 +37,26 @@ namespace cursor
 namespace tools
 {
 
-/** Return a cursor that does 1D, linear interpolation on input data.
+/** Return a cursor that does 1D, 2D or 3D, linear interpolation on input data.
  *
- * \tparam T_Position type of the weighting factor
- *
+ * \tparam T_PositionComp integral type of the weighting factor
  */
-template<typename T_Position = float>
-struct LinearInterp1D
+template<typename T_PositionComp = float>
+struct LinearInterp
 {
-    template<typename TCursor>
+    template<typename T_Cursor>
+    Cursor<LinearInterpAccessor<T_Cursor>,
+           PlusNavigator,
+           PMacc::math::Vector<T_PositionComp,
+                               PMacc::cursor::traits::dim<T_Cursor>::value> >
     HDINLINE
-    Cursor<LinearInterpAccessor1D<TCursor, T_Position>, PlusNavigator, T_Position>
-    operator()(const TCursor& cur)
+    operator()(const T_Cursor& cur)
     {
         return make_Cursor(
-            LinearInterpAccessor1D<TCursor, T_Position>(cur),
+            LinearInterpAccessor<T_Cursor>(cur),
             PlusNavigator(),
-            T_Position(0.0));
+            PMacc::math::Vector<T_PositionComp,
+                                PMacc::cursor::traits::dim<T_Cursor>::value>::create(0.0));
     }
 };
 
@@ -61,13 +66,13 @@ struct LinearInterp1D
 namespace result_of
 {
 
-template<typename T_Position, typename TCursor>
-struct Functor<cursor::tools::LinearInterp1D<T_Position>, TCursor>
+template<typename T_Cursor, typename T_PositionComp>
+struct Functor<cursor::tools::LinearInterp<T_PositionComp>, T_Cursor>
 {
-    typedef cursor::Cursor<
-        cursor::LinearInterpAccessor1D<TCursor, T_Position>,
-        cursor::PlusNavigator,
-        T_Position> type;
+    typedef PMacc::cursor::Cursor<cursor::LinearInterpAccessor<T_Cursor>,
+                                  cursor::PlusNavigator,
+                                  PMacc::math::Vector<T_PositionComp,
+                                                      PMacc::cursor::traits::dim<T_Cursor>::value> > type;
 };
 
 } // namespace result_of
