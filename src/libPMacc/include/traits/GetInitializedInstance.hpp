@@ -30,8 +30,10 @@ namespace PMacc
 namespace traits
 {
 
-/** Returns an initialized instance. If the type is a PMacc vector
- * all components are initialzed with the same value;
+/** Return an initialized instance. Expects a single parameter.
+ *
+ * The main reason to use this is for templated types where it's unknown
+ * if they are fundamental or vector-like.
  *
  * \tparam T_Type type of object
  */
@@ -40,21 +42,10 @@ struct GetInitializedInstance
 {
     typedef T_Type Type;
 
-    HDINLINE Type operator()(const Type value) const
+    template<typename ValueType>
+    HDINLINE Type operator()(const ValueType& value) const
     {
         return Type(value);
-    }
-};
-
-template<typename T_Type, int T_dim, typename T_Accessor, typename T_Navigator, template<typename, int> class T_Storage>
-struct GetInitializedInstance<math::Vector<T_Type, T_dim, T_Accessor, T_Navigator, T_Storage> >
-{
-    typedef T_Type Type;
-    typedef typename T_Type::type ValueType;
-
-    HDINLINE Type operator()(const ValueType value) const
-    {
-        return Type::create(value);
     }
 };
 
