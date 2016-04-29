@@ -27,6 +27,7 @@
 #include "nvidia/functors/Assign.hpp"
 #include "traits/GetValueType.hpp"
 #include "pmacc_types.hpp"
+#include "memory/buffers/GridBuffer.hpp"
 
 #include <boost/type_traits.hpp>
 
