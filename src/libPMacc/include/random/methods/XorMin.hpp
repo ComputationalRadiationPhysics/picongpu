@@ -46,9 +46,11 @@ namespace methods
             HDINLINE StateType()
             {}
 
-            HDINLINE StateType(const curandStateXORWOW_t& other): d(other.d), v{other.v[0], other.v[1], other.v[2], other.v[3], other.v[4]}
+            HDINLINE StateType(const curandStateXORWOW_t& other): d(other.d)
             {
-                static_assert(sizeof(v) == sizeof(other.v), "Unexpected sizes");
+                PMACC_STATIC_ASSERT_MSG(sizeof(v) == sizeof(other.v), Unexpected_sizes);
+                for(unsigned i = 0; i < sizeof(v)/sizeof(v[0]); i++)
+                    v[i] = other.v[i];
             }
         };
 
