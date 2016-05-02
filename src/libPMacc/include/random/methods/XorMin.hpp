@@ -48,7 +48,7 @@ namespace methods
 
             HDINLINE StateType(const curandStateXORWOW_t& other): d(other.d)
             {
-                PMACC_STATIC_ASSERT(sizeof(v) == sizeof(other.v), Unexpected_sizes);
+                PMACC_STATIC_ASSERT_MSG(sizeof(v) == sizeof(other.v), Unexpected_sizes);
                 for(unsigned i = 0; i < sizeof(v)/sizeof(v[0]); i++)
                     v[i] = other.v[i];
             }
