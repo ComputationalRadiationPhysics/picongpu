@@ -56,42 +56,34 @@ struct FieldToParticleInterpolation
     BOOST_STATIC_CONSTEXPR int end = begin+supp-1;
 
     template<class Cursor, class VecVector_ >
-    HDINLINE float3_X operator()(Cursor field, const floatD_X & particlePos,
-                                 const VecVector_ & fieldPos)
+    HDINLINE typename Cursor::ValueType operator()(Cursor field, const floatD_X & particlePos,
+                                          const VecVector_ & fieldPos)
     {
         using namespace lambda;
         DECLARE_PLACEHOLDERS() // declares _1, _2, _3, ... in device code
 
         /**\brief:
-         * The following three calls seperate the vector interpolation into three
-         * independent scalar interpolations. In each call the coordinate system
-         * is turned so that E_scalar does the interpolation for the z-component.
+         * The following calls seperate the vector interpolation into
+         * independent scalar interpolations.
          */
 
-        /** _1[mpl::int_<0>()] means:
-         * Create a functor which returns [0] applied on the first paramter.
-         * Here it is: return the x-component of the field-vector.
-         * _1[mpl::int_<0>()] is equivalent to _1[0] but has no runtime cost.
+        /** _1[i] means:
+         * Create a functor which returns [i] applied on the first paramter.
+         * Here it is: return the i-component of the field-vector.
          */
 
         typedef typename PMacc::math::CT::make_Int<simDim,supp>::type Supports;
 
-        BOOST_AUTO(field_x, PMacc::cursor::make_FunctorCursor(field, _1[mpl::int_ < 0 > ()]));
-        floatD_X pos_tmp(particlePos);
-        ShiftCoordinateSystem<Supports>()(field_x, pos_tmp, fieldPos.x());
-        float_X result_x = InterpolationMethod::template interpolate<AssignmentFunction, begin, end > (field_x, pos_tmp);
+        typename Cursor::ValueType result;
+        for(uint32_t i = 0; i < Cursor::ValueType::dim; i++)
+        {
+            BOOST_AUTO(fieldComponent, PMacc::cursor::make_FunctorCursor(field, _1[i]));
+            floatD_X particlePosShifted = particlePos;
+            ShiftCoordinateSystem<Supports>()(fieldComponent, particlePosShifted, fieldPos[i]);
+            result[i] = InterpolationMethod::template interpolate<AssignmentFunction, begin, end > (fieldComponent, particlePosShifted);
+        }
 
-        BOOST_AUTO(field_y, PMacc::cursor::make_FunctorCursor(field, _1[mpl::int_ < 1 > ()]));
-        pos_tmp = particlePos;
-        ShiftCoordinateSystem<Supports>()(field_y, pos_tmp, fieldPos.y());
-        float_X result_y = InterpolationMethod::template interpolate<AssignmentFunction, begin, end > (field_y, pos_tmp);
-
-        BOOST_AUTO(field_z, PMacc::cursor::make_FunctorCursor(field, _1[mpl::int_ < 2 > ()]));
-        pos_tmp = particlePos;
-        ShiftCoordinateSystem<Supports>()(field_z, pos_tmp, fieldPos.z());
-        float_X result_z = InterpolationMethod::template interpolate<AssignmentFunction, begin, end > (field_z, pos_tmp);
-
-        return float3_X(result_x, result_y, result_z);
+        return result;
     }
 
 };
