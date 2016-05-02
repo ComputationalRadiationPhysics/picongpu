@@ -65,7 +65,14 @@ namespace picongpu
       const picongpu::float_64 phi(    my_index_phi   * delta_angle  );
       
       /* compute unit vector */
-      return vector_64( sinf(theta)*cosf(phi) , sinf(theta)*sinf(phi) , cosf(theta) ) ;
+            picongpu::float_32 sinPhi;
+      picongpu::float_32 cosPhi;
+      picongpu::float_32 sinTheta;
+      picongpu::float_32 cosTheta;
+      math::sincos(precisionCast<picongpu::float_32>(phi), sinPhi, cosPhi);
+      math::sincos(precisionCast<picongpu::float_32>(theta), sinTheta, cosTheta);
+      return vector_64( sinTheta*cosPhi , sinTheta*sinPhi , cosTheta ) ;
+
 
     }
     
