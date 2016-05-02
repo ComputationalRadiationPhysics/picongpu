@@ -1,0 +1,76 @@
+/**
+ * Copyright 2016 Heiko Burau
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "math/Vector.hpp"
+
+namespace picongpu
+{
+using namespace PMacc;
+
+/** This kernel is only called for guard particles.
+ */
+template<typename ParticlesBox, typename CalorimeterFunctor, typename Mapper>
+__global__ void kernelParticleCalorimeter(ParticlesBox particlesBox,
+                                       CalorimeterFunctor calorimeterFunctor,
+                                       Mapper mapper)
+{
+    /* multi-dimensional offset vector from local domain origin on GPU in units of super cells */
+    const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+
+    /* multi-dim vector from origin of the block to a cell in units of cells */
+    const DataSpace<simDim > threadIndex(threadIdx);
+    /* conversion from a multi-dim cell coordinate to a linear coordinate of the cell in its super cell */
+    const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
+
+    typedef typename ParticlesBox::FramePtr ParticlesFramePtr;
+    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<ParticlesFramePtr>::type particlesFrame;
+
+    /* find last frame in super cell
+     */
+    if (linearThreadIdx == 0)
+    {
+        particlesFrame = particlesBox.getLastFrame(block);
+    }
+
+    __syncthreads();
+
+    while(particlesFrame.isValid())
+    {
+        /* casting uint8_t multiMask to boolean */
+        const bool isParticle = particlesFrame[linearThreadIdx][multiMask_];
+
+        if(isParticle)
+        {
+            calorimeterFunctor(particlesFrame, linearThreadIdx);
+        }
+
+        __syncthreads();
+
+        if (linearThreadIdx == 0)
+        {
+            particlesFrame = particlesBox.getPreviousFrame(particlesFrame);
+        }
+        __syncthreads();
+    }
+}
+
+} // namespace picongpu
