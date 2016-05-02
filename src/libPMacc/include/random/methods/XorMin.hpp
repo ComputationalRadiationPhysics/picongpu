@@ -23,7 +23,6 @@
 #pragma once
 
 #include "pmacc_types.hpp"
-#include "static_assert.hpp"
 #include <curand_kernel.h>
 #include <random/methods/Xor.hpp>
 
@@ -49,8 +48,8 @@ namespace methods
 
             HDINLINE StateType(const curandStateXORWOW_t& other): d(other.d)
             {
-                PMACC_CASSERT_MSG(Unexpected_sizes, sizeof(v) == sizeof(other.v));
-                for(int i = 0; i < sizeof(v)/sizeof(v[0]); i++)
+                PMACC_STATIC_ASSERT(sizeof(v) == sizeof(other.v), Unexpected_sizes);
+                for(unsigned i = 0; i < sizeof(v)/sizeof(v[0]); i++)
                     v[i] = other.v[i];
             }
         };
