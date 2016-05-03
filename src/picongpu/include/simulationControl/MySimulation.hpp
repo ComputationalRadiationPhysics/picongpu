@@ -446,14 +446,14 @@ public:
         ForEach<VectorSpeciesWithIonizer, particles::CallIonization<bmpl::_1>, MakeIdentifier<bmpl::_1> > particleIonization;
         particleIonization(forward(particleStorage), cellDescription, currentStep);
 
-        /* SynchrotronPhotons */
+        /* call the synchrotron radiation module for each radiating species (normally electrons) */
         typedef typename PMacc::particles::traits::FilterByFlag<VectorAllSpecies,
                                                                 synchrotronPhotons<> >::type AllSynchrotronPhotonsSpecies;
 
         ForEach<AllSynchrotronPhotonsSpecies,
                 particles::CallSynchrotronPhotons<bmpl::_1>,
-                MakeIdentifier<bmpl::_1> > electronSynchrotronPhotons;
-        electronSynchrotronPhotons(forward(particleStorage), cellDescription, currentStep, this->synchrotronFunctions);
+                MakeIdentifier<bmpl::_1> > synchrotronRadiation;
+        synchrotronRadiation(forward(particleStorage), cellDescription, currentStep, this->synchrotronFunctions);
 
 
         EventTask initEvent = __getTransactionEvent();

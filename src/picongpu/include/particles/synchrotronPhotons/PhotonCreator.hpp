@@ -50,7 +50,15 @@ namespace particles
 namespace synchrotronPhotons
 {
 
-/**
+/** Functor creating photons from electrons according to synchrotron radiation.
+ *
+ * The numerical model is taken from:
+ *
+ * Gonoskov, A., et al. "Extended particle-in-cell schemes for physics
+ * in ultrastrong laser fields: Review and developments."
+ * Physical Review E 92.2 (2015): 023305.
+ *
+ * This functor is called by the general particle creation module.
  *
  * \tparam T_ElectronSpecies
  * \tparam T_PhotonSpecies
@@ -164,21 +172,34 @@ public:
         this->randomGen.init(localCellOffset);
     }
 
+    /** Get the photon emission probability
+     *
+     * @param delta normalized (to the electron energy) photon energy
+     * @param chi quantum-nonlinearity parameter
+     * @param gamma electron gamma
+     */
     DINLINE float_X emission_prob(
         const float_X delta,
         const float_X chi,
-        const float_X gamma,
-        const float_X mass,
-        const float_X charge) const
+        const float_X gamma) const
     {
+        // catch these special values because otherwise a NaN is returned whereas it should be a zero.
+        if(chi == float_X(0.0) || delta == float_X(0.0) || (float_X(1.0) - delta) == float_X(0.0))
+            return float_X(0.0);
+
+        const float_X mass = frame::getMass<FrameType>();
+        const float_X charge = frame::getCharge<FrameType>();
+
+        const float_X sqrtOf3 = 1.732050807;
+        const float_X factor = DELTA_T * charge*charge * mass * SPEED_OF_LIGHT / (float_X(4.0) * PI * EPS0 * HBAR*HBAR) *
+                               sqrtOf3 / (float_X(2.0) * PI) * chi / gamma;
 
         if(enableQEDTerm)
         {
             // quantum
             const float_X z = float_X(2.0/3.0) * delta / ((float_X(1.0) - delta) * chi);
 
-            return DELTA_T * charge*charge * mass*SPEED_OF_LIGHT / (float_X(4.0)*PI*EPS0 * HBAR*HBAR) *
-                float_X(1.732050807) / (float_X(2.0) * PI) * chi/gamma * (float_X(1.0) - delta) / delta *
+            return factor * (float_X(1.0) - delta) / delta *
                 (this->curF_1[z] + float_X(1.5) * delta * chi * z * this->curF_2[z]);
         }
         else
@@ -186,24 +207,27 @@ public:
             // classical
             const float_X z = float_X(2.0/3.0) * delta / chi;
 
-            return DELTA_T * charge*charge * mass*SPEED_OF_LIGHT / (float_X(4.0)*PI*EPS0 * HBAR*HBAR) *
-                float_X(1.732050807) / (float_X(2.0) * PI) * chi/gamma / delta * this->curF_1[z];
+            return factor / delta * this->curF_1[z];
         }
     }
 
-    DINLINE float_X emission_prob_modified(
+    /** Get the *scaled* photon emission probability
+     *
+     * The scaling avoids an infrared divergence.
+     *
+     * @param z scaled and normalized (to the electron energy) photon energy
+     * @param chi quantum-nonlinearity parameter
+     * @param gamma electron gamma
+     */
+    DINLINE float_X emission_prob_scaled(
         const float_X z,
         const float_X chi,
-        const float_X gamma,
-        const float_X mass,
-        const float_X charge) const
+        const float_X gamma) const
     {
-        return float_X(3.0) * z*z * emission_prob(
-            z*z*z,
-            chi, gamma, mass, charge);
+        return float_X(3.0) * z*z * emission_prob(z*z*z, chi, gamma);
     }
 
-    /** Return the number of target particles to be created from each source particle.
+    /** Return the number of target particles to create from each source particle.
      *
      * Called for each frame of the source species.
      *
@@ -222,11 +246,11 @@ public:
         const int particleCellIdx = particle[localCellIdx_];
         /* multi-dim coordinate of the local cell inside the super cell */
         DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec > (particleCellIdx));
-        /* interpolation of E- */
+        /* interpolation of E-field on the particle position */
         const fieldSolver::numericalCellType::traits::FieldPosition<FieldE> fieldPosE;
         ValueType_E fieldE = Field2ParticleInterpolation()
             (cachedE.shift(localCell).toCursor(), pos, fieldPosE());
-        /*                     and B-field on the particle position */
+        /* interpolation of B-field on the particle position */
         const fieldSolver::numericalCellType::traits::FieldPosition<FieldB> fieldPosB;
         ValueType_B fieldB = Field2ParticleInterpolation()
             (cachedB.shift(localCell).toCursor(), pos, fieldPosB());
@@ -243,20 +267,20 @@ public:
         const float_X lorentz2 = math::dot(lorentz, lorentz);
         const float_X fieldE_long = math::dot(mom_norm, fieldE);
 
+        // effective magnetic strength
         const float_X H_eff = math::sqrt(lorentz2 - fieldE_long*fieldE_long);
 
         const float_X charge = math::abs(frame::getCharge<FrameType>());
 
-        // Schwinger limit, unit: V/m
         const float_X c = SPEED_OF_LIGHT;
+        // Schwinger limit, unit: V/m
         const float_X E_S = mass*mass * c*c*c / (charge * HBAR);
+        // quantum-nonlinearity parameter
         const float_X chi = gamma * H_eff / E_S;
 
         const float_X z = this->randomGen();
-        if(z == float_X(0.0) || z == float_X(1.0))
-            return 0;
 
-        const float_X x = emission_prob_modified(z, chi, gamma, mass, charge);
+        const float_X x = emission_prob_scaled(z, chi, gamma);
 
         if(this->randomGen() < x)
         {
@@ -267,7 +291,7 @@ public:
         return 0;
     }
 
-    /** Functor implementation.
+    /** Functor implementation: setting photon and electron properties
      *
      * Called once for each single particle creation.
      *

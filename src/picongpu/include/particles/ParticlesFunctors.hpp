@@ -319,7 +319,7 @@ struct CallIonization
 
 }; // struct CallIonization
 
-/** Handles the synchrotronPhotons effect for electrons.
+/** Handles the synchrotron radiation emission of photons from electrons
  *
  * \tparam T_SpeciesName name of electron species
  */
@@ -330,7 +330,7 @@ struct CallSynchrotronPhotons
     typedef typename SpeciesName::type SpeciesType;
     typedef typename SpeciesType::FrameType FrameType;
     /* SelectedPhotonCreator will be either PhotonCreator or fallback: CreatorBase */
-    typedef typename GetPhotonCreator<SpeciesType>::type SelectedPhotonCreator;
+    typedef typename traits::GetPhotonCreator<SpeciesType>::type SelectedPhotonCreator;
 
     /** Functor implementation
      *
@@ -350,15 +350,6 @@ struct CallSynchrotronPhotons
     {
         typedef typename SelectedPhotonCreator::PhotonSpecies PhotonSpecies;
 
-        /* get E- and B-field */
-        DataConnector &dc = Environment<>::get().DataConnector();
-        BOOST_AUTO(fieldE,
-                 dc.getData<FieldE>(FieldE::getName(), true).getGridBuffer().
-                 getDeviceBuffer().cartBuffer());
-        BOOST_AUTO(fieldB,
-                 dc.getData<FieldB>(FieldB::getName(), true).getGridBuffer().
-                 getDeviceBuffer().cartBuffer());
-
         /* alias for pointer on source species */
         PMACC_AUTO(electronSpeciesPtr, tuple[SpeciesName()]);
         /* alias for pointer on destination species */
@@ -369,7 +360,7 @@ struct CallSynchrotronPhotons
             synchrotronFunctions.getCursor(SynchrotronFunctions::first),
             synchrotronFunctions.getCursor(SynchrotronFunctions::second));
 
-        creation::createParticles(*electronSpeciesPtr, *photonSpeciesPtr, photonCreator, cellDesc);
+        creation::createParticlesFromSpecies(*electronSpeciesPtr, *photonSpeciesPtr, photonCreator, cellDesc);
     }
 
 }; // struct CallSynchrotronPhotons

@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "particles/bremsstrahlung/SynchrotronFunctions.hpp"
+#include "particles/synchrotronPhotons/SynchrotronFunctions.hpp"
 #include "simulation_defines.hpp"
 #include <boost/array.hpp>
 #include <boost/numeric/odeint/integrate/integrate.hpp>

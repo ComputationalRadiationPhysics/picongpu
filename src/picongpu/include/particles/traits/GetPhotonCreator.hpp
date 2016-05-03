@@ -30,11 +30,12 @@
 
 namespace picongpu
 {
+namespace traits
+{
 
 template<typename T_SpeciesType>
 struct GetPhotonCreator
 {
-
     typedef T_SpeciesType SpeciesType;
     typedef typename SpeciesType::FrameType FrameType;
 
@@ -49,4 +50,5 @@ struct GetPhotonCreator
 
 }; // struct GetPhotonCreator
 
-}// namespace picongpu
+} // namespace traits
+} // namespace picongpu
