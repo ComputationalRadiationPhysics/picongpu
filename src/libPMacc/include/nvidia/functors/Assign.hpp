@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include "pmacc_types.hpp"
+
 namespace PMacc
 {
     namespace nvidia
