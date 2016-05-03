@@ -99,6 +99,7 @@ private:
     uint32_t radStart;
     uint32_t radEnd;
 
+    std::string speciesName;
     std::string pluginName;
     std::string pluginPrefix;
     std::string filename_prefix;
@@ -133,7 +134,8 @@ public:
 
     Radiation() :
     pluginName("Radiation: calculate the radiation of a species"),
-    pluginPrefix(ParticlesType::FrameType::getName() + std::string("_radiation")),
+    speciesName(ParticlesType::FrameType::getName()),
+    pluginPrefix(speciesName + std::string("_radiation")),
     filename_prefix(pluginPrefix),
     particles(NULL),
     radiation(NULL),
@@ -231,7 +233,7 @@ public:
             // this will lead to wrong lastRad output right after the checkpoint if the restart point is
             // not a dump point. The correct lastRad data can be reconstructed from hdf5 data
             // since text based lastRad output will be obsolete soon, this is not a problem
-            readHDF5file(timeSumArray, restartDirectory + "/" + std::string("radRestart_"), timeStep);
+            readHDF5file(timeSumArray, restartDirectory + "/" + speciesName + std::string("_radRestart_"), timeStep);
             log<radLog::SIMULATION_STATE > ("Radiation: restart finished");
         }
     }
@@ -251,7 +253,7 @@ public:
         // write backup file
         if (isMaster)
         {
-            writeHDF5file(tmp_result, restartDirectory + "/" + std::string("radRestart_"));
+            writeHDF5file(tmp_result, restartDirectory + "/" + speciesName + std::string("_radRestart_"));
         }
     }
 
@@ -383,7 +385,7 @@ private:
             for(uint32_t dimIndex=0; dimIndex<simDim; ++dimIndex)
                 GPUpos_str << "_" <<currentGPUpos[dimIndex];
 
-            writeFile(radiation->getHostBuffer().getBasePointer(), folderRadPerGPU + "/" + filename_prefix
+            writeFile(radiation->getHostBuffer().getBasePointer(), folderRadPerGPU + "/" + speciesName
                       + "_radPerGPU_pos" + GPUpos_str.str()
                       + "_time_" + last_time_step_str.str()
                       + "-" + current_time_step_str.str() + ".dat");
@@ -474,7 +476,7 @@ private:
   {
       if (isMaster)
       {
-          writeHDF5file(timeSumArray, std::string("radiationHDF5/radAmplitudes_"));
+        writeHDF5file(timeSumArray, std::string("radiationHDF5/") + speciesName + std::string("_radAmplitudes_"));
       }
   }
 
