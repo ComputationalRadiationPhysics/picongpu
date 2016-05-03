@@ -348,8 +348,10 @@ public:
         PMacc::GridController<simDim>& gridCon = PMacc::Environment<simDim>::get().GridController();
         this->rngFactory->init(gridCon.getScalarPosition());
 
-        // Initialize synchrotron functions
+#if(ENABLE_SYNCHROTRON_PHOTONS == 1)
+        // Initialize synchrotron functions, allocate lookup table
         this->synchrotronFunctions.init();
+#endif
     }
 
     virtual uint32_t fillSimulation()

@@ -27,6 +27,8 @@ namespace particles
 namespace synchrotronPhotons
 {
 
+#define ENABLE_SYNCHROTRON_PHOTONS 0
+
 BOOST_CONSTEXPR_OR_CONST bool enableQEDTerm = false;
 
 /** Above this value (to the power of three, see comments on mapping) the synchrotron functions are nearly zero. */

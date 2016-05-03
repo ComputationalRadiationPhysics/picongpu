@@ -73,6 +73,8 @@ AttributRadiationFlag
 
 /*--------------------------- photons -------------------------------------------*/
 
+#if(ENABLE_SYNCHROTRON_PHOTONS == 1)
+
 value_identifier(float_X, DummyMass, 1.0);
 value_identifier(float_X, DummyCharge, 0.0);
 
@@ -95,6 +97,8 @@ typedef Particles<
     >
 > PIC_Photons;
 
+#endif // ENABLE_SYNCHROTRON_PHOTONS
+
 /*--------------------------- electrons --------------------------------------*/
 
 /* ratio relative to BASE_CHARGE and BASE_MASS */
@@ -107,8 +111,10 @@ typedef bmpl::vector<
     interpolation<UsedField2Particle>,
     current<UsedParticleCurrentSolver>,
     massRatio<MassRatioElectrons>,
-    chargeRatio<ChargeRatioElectrons>,
-    synchrotronPhotons<PIC_Photons>
+    chargeRatio<ChargeRatioElectrons>
+#if(ENABLE_SYNCHROTRON_PHOTONS == 1)
+    , synchrotronPhotons<PIC_Photons>
+#endif
 > ParticleFlagsElectrons;
 
 /*define specie electrons*/
@@ -166,8 +172,10 @@ PIC_Ions
 
 typedef MakeSeq<
 Species1,
-Species2,
-PIC_Photons
+Species2
+#if(ENABLE_SYNCHROTRON_PHOTONS == 1)
+, PIC_Photons
+#endif
 >::type VectorAllSpecies;
 
 
