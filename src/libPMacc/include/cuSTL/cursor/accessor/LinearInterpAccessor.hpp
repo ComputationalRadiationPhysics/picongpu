@@ -56,6 +56,8 @@ struct LinearInterpAccessor<T_Cursor, DIM1>
     template<typename T_Position>
     HDINLINE type operator()(const T_Position x) const
     {
+        BOOST_STATIC_ASSERT(T_Position::dim == DIM1);
+
         T_Position intPart;
         T_Position fracPart;
 
@@ -91,6 +93,8 @@ struct LinearInterpAccessor<T_Cursor, DIM2>
     template<typename T_Position>
     HDINLINE type operator()(const T_Position x) const
     {
+        BOOST_STATIC_ASSERT(T_Position::dim == DIM2);
+
         T_Position intPart;
         T_Position fracPart;
 
@@ -132,6 +136,8 @@ struct LinearInterpAccessor<T_Cursor, DIM3>
     template<typename T_Position>
     HDINLINE type operator()(const T_Position x) const
     {
+        BOOST_STATIC_ASSERT(T_Position::dim == DIM3);
+
         T_Position intPart;
         T_Position fracPart;
 
