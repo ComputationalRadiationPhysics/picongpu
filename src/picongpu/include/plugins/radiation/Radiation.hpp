@@ -36,7 +36,7 @@
 #include "simulation_classTypes.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
 #include "plugins/ISimulationPlugin.hpp"
-
+#include "plugins/common/stringHelpers.hpp"
 
 #include "mpi/reduceMethods/Reduce.hpp"
 #include "mpi/MPIReduce.hpp"
@@ -59,6 +59,18 @@ namespace picongpu
 using namespace PMacc;
 
 namespace po = boost::program_options;
+
+
+
+namespace idLabels
+{
+  enum meshRecordLabelsEnum
+  {
+      Amplitude = 0,
+      Detector = 1,
+      Frequency = 2
+  };
+}// end namespace idLabels
 
 
 
@@ -118,6 +130,8 @@ private:
      */
     Amplitude* timeSumArray;
     Amplitude *tmp_result;
+    vector_64* detectorPositions;
+    float_64* detectorFrequencies;
 
     bool isMaster;
 
@@ -125,9 +139,12 @@ private:
     uint32_t lastStep;
 
     std::string pathRestart;
+    std::string meshesPathName;
+    std::string particlesPathName;
 
     mpi::MPIReduce reduce;
     bool compressionOn;
+    static const int numberMeshRecords = 3;
 
 public:
 
@@ -144,10 +161,14 @@ public:
     lastRad(false),
     timeSumArray(NULL),
     tmp_result(NULL),
+    detectorPositions(NULL),
+    detectorFrequencies(NULL),
     isMaster(false),
     currentStep(0),
     radPerGPU(false),
     lastStep(0),
+    meshesPathName("DetectorMesh/"),
+    particlesPathName("DetectorParticle/"),
     compressionOn(false)
     {
         Environment<>::get().PluginConnector().registerPlugin(this);
@@ -288,8 +309,24 @@ private:
             PMacc::Filesystem<simDim>& fs = Environment<simDim>::get().Filesystem();
 
             if (isMaster)
+            {
                 timeSumArray = new Amplitude[elements_amplitude()];
 
+                /* save detector position / observation direction */
+                detectorPositions = new vector_64[parameters::N_observer];
+                for(uint32_t detectorIndex=0; detectorIndex < parameters::N_observer; ++detectorIndex)
+                {
+                    detectorPositions[detectorIndex] = radiation_observer::observation_direction(detectorIndex);
+                }
+
+                /* save detector frequencies */
+                detectorFrequencies = new float_64[radiation_frequencies::N_omega];
+                for(uint32_t detectorIndex=0; detectorIndex < radiation_frequencies::N_omega; ++detectorIndex)
+                {
+                    detectorFrequencies[detectorIndex] = freqFkt(detectorIndex);
+                }
+
+            }
 
             if (isMaster && totalRad)
             {
@@ -346,6 +383,8 @@ private:
             if (isMaster)
             {
                 __deleteArray(timeSumArray);
+                delete[] detectorPositions;
+                delete[] detectorFrequencies;
             }
 
             __delete(radiation);
@@ -500,10 +539,11 @@ private:
   }
 
 
-  /** This method returns hdf5 data structure names
+  /** This method returns hdf5 data structure names for amplitudes
    *
    *  Arguments:
    *  int index - index of Amplitude
+   *              "-1" return record name
    *
    *  Return:
    *  std::string - name
@@ -512,15 +552,98 @@ private:
    */
   static const std::string dataLabels(int index)
   {
-      const std::string dataLabelsList[] = {"Amplitude/x/Re",
-                                            "Amplitude/x/Im",
-                                            "Amplitude/y/Re",
-                                            "Amplitude/y/Im",
-                                            "Amplitude/z/Re",
-                                            "Amplitude/z/Im"};
+      const std::string path("Amplitude/");
 
-      return dataLabelsList[index];
+      /* return record name if handed -1 */
+      if(index == -1)
+          return path;
+
+      const std::string dataLabelsList[] = {"x_Re",
+                                            "x_Im",
+                                            "y_Re",
+                                            "y_Im",
+                                            "z_Re",
+                                            "z_Im"};
+
+      return path + dataLabelsList[index];
   }
+
+  /** This method returns hdf5 data structure names for detector directions
+   *
+   *  Arguments:
+   *  int index - index of detector
+   *              "-1" return record name
+   *
+   *  Return:
+   *  std::string - name
+   *
+   * This method avoids initializing static const string arrays.
+   */
+  static const std::string dataLabelsDetectorDirection(int index)
+  {
+      const std::string path("DetectorDirection/");
+
+      /* return record name if handed -1 */
+      if(index == -1)
+          return path;
+
+      const std::string dataLabelsList[] = {"x",
+                                            "y",
+                                            "z"};
+
+      return path + dataLabelsList[index];
+  }
+
+
+  /** This method returns hdf5 data structure names for detector frequencies
+   *
+   *  Arguments:
+   *  int index - index of detector
+   *              "-1" return record name
+   *
+   *  Return:
+   *  std::string - name
+   *
+   * This method avoids initializing static const string arrays.
+   */
+  static const std::string dataLabelsDetectorFrequency(int index)
+  {
+      const std::string path("DetectorFrequency/");
+
+      /* return record name if handed -1 */
+      if(index == -1)
+          return path;
+
+      const std::string dataLabelsList[] = {"omega"};
+
+      return path + dataLabelsList[index];
+  }
+
+  /** This method returns hdf5 data structure names for all mesh records
+   *
+   *  Arguments:
+   *  int index - index of record
+   *              "-1" return number of mesh records
+   *
+   *  Return:
+   *  std::string - name
+   *
+   * This method avoids initializing static const string arrays.
+   */
+  static const std::string meshRecordLabels(int index)
+  {
+      if(index == idLabels::Amplitude)
+          return dataLabels(-1);
+      else if (index == idLabels::Detector)
+          return dataLabelsDetectorDirection(-1);
+      else if (index == idLabels::Frequency)
+          return dataLabelsDetectorFrequency(-1);
+      else
+        return std::string("this-record-does-not-exist");
+  }
+
+
+
 
 
   /** Write Amplitude data to HDF5 file
@@ -531,7 +654,7 @@ private:
    */
   void writeHDF5file(Amplitude* values, std::string name)
   {
-      splash::SerialDataCollector HDF5dataFile(1);
+      splash::SerialDataCollector hdf5DataFile(1);
       splash::DataCollector::FileCreationAttr fAttr;
 
       splash::DataCollector::initFileCreationAttr(fAttr);
@@ -540,7 +663,7 @@ private:
       std::ostringstream filename;
       filename << name << currentStep;
 
-      HDF5dataFile.open(filename.str().c_str(), fAttr);
+      hdf5DataFile.open(filename.str().c_str(), fAttr);
 
       typename PICToSplash<float_64>::type radSplashType;
 
@@ -559,6 +682,9 @@ private:
       Amplitude UnityAmplitude(1., 0., 0., 0., 0., 0.);
       const picongpu::float_64 factor = UnityAmplitude.calc_radiation() * UNIT_ENERGY * UNIT_TIME ;
 
+      typedef PICToSplash<float_X>::type SplashFloatXType;
+      SplashFloatXType splashFloatXType;
+
       for(uint32_t ampIndex=0; ampIndex < Amplitude::numComponents; ++ampIndex)
       {
           splash::Dimensions offset(ampIndex,0,0);
@@ -568,29 +694,337 @@ private:
                                           stride);
 
           /* save data for each x/y/z * Re/Im amplitude */
-          HDF5dataFile.write(currentStep,
+          hdf5DataFile.write(currentStep,
                              radSplashType,
                              3,
                              dataSelection,
-                             dataLabels(ampIndex).c_str(),
+                             (meshesPathName + dataLabels(ampIndex)).c_str(),
                              values);
 
           /* save SI unit as attribute together with data set */
-          HDF5dataFile.writeAttribute(currentStep,
+          hdf5DataFile.writeAttribute(currentStep,
                                       radSplashType,
-                                      dataLabels(ampIndex).c_str(),
+                                      (meshesPathName + dataLabels(ampIndex)).c_str(),
                                       "unitSI",
                                       &factor);
+
+          /* position */
+          std::vector<float_X> positionMesh(simDim, 0.0); /* there is no offset - zero */
+          hdf5DataFile.writeAttribute(currentStep,
+                                      splashFloatXType,
+                                      (meshesPathName + dataLabels(ampIndex)).c_str(),
+                                      "position",
+                                      1u,
+                                      splash::Dimensions(simDim,0,0),
+                                      &(*positionMesh.begin()));
       }
 
       /* save SI unit as attribute in the Amplitude group (for convenience) */
-      HDF5dataFile.writeAttribute(currentStep,
+      hdf5DataFile.writeAttribute(currentStep,
                                   radSplashType,
-                                  "Amplitude",
+                                  (meshesPathName + std::string("Amplitude")).c_str(),
                                   "unitSI",
                                   &factor);
 
-      HDF5dataFile.close();
+      /* save detector position / observation direction */
+      splash::Dimensions bufferSizeDetector(3,
+                                            1,
+                                            parameters::N_observer);
+
+      splash::Dimensions componentSizeDetector(1,
+                                               1,
+                                               parameters::N_observer);
+
+      splash::Dimensions strideDetector(3,1,1);
+
+      for(uint32_t detectorDim=0; detectorDim < 3; ++detectorDim)
+      {
+          splash::Dimensions offset(detectorDim,0,0);
+          splash::Selection dataSelection(bufferSizeDetector,
+                                      componentSizeDetector,
+                                      offset,
+                                      strideDetector);
+
+          hdf5DataFile.write(currentStep,
+                             radSplashType,
+                             3,
+                             dataSelection,
+                             (meshesPathName + dataLabelsDetectorDirection(detectorDim)).c_str(),
+                             detectorPositions);
+
+          /* save SI unit as attribute together with data set */
+          const picongpu::float_64 factorDirection = 1.0  ;
+          hdf5DataFile.writeAttribute(currentStep,
+                                      radSplashType,
+                                      (meshesPathName + dataLabelsDetectorDirection(detectorDim)).c_str(),
+                                      "unitSI",
+                                      &factorDirection);
+
+          /* position */
+          std::vector<float_X> positionMesh(simDim, 0.0); /* there is no offset - zero */
+          hdf5DataFile.writeAttribute(currentStep,
+                                      splashFloatXType,
+                                      (meshesPathName + dataLabelsDetectorDirection(detectorDim)).c_str(),
+                                      "position",
+                                      1u,
+                                      splash::Dimensions(simDim,0,0),
+                                      &(*positionMesh.begin()));
+
+      }
+
+
+
+      /* save detector frequencies */
+      splash::Dimensions bufferSizeOmega(1,
+                                         radiation_frequencies::N_omega,
+                                         1);
+
+      splash::Dimensions strideOmega(1,1,1);
+
+      splash::Dimensions offset(0,0,0);
+      splash::Selection dataSelection(bufferSizeOmega,
+                                      bufferSizeOmega,
+                                      offset,
+                                      strideOmega);
+
+      hdf5DataFile.write(currentStep,
+                         radSplashType,
+                         3,
+                         dataSelection,
+                         (meshesPathName + dataLabelsDetectorFrequency(0)).c_str(),
+                         detectorFrequencies);
+
+      /* save SI unit as attribute together with data set */
+      const picongpu::float_64 factorOmega = 1.0 / UNIT_TIME ;
+      hdf5DataFile.writeAttribute(currentStep,
+                                  radSplashType,
+                                  (meshesPathName + dataLabelsDetectorFrequency(0)).c_str(),
+                                  "unitSI",
+                                  &factorOmega);
+
+      /* position */
+      std::vector<float_X> positionMesh(simDim, 0.0); /* there is no offset - zero */
+      hdf5DataFile.writeAttribute(currentStep,
+                                  splashFloatXType,
+                                  (meshesPathName + dataLabelsDetectorFrequency(0)).c_str(),
+                                  "position",
+                                  1u,
+                                  splash::Dimensions(simDim,0,0),
+                                  &(*positionMesh.begin()));
+
+
+      /* begin openPMD attributes */
+      /* begin required openPMD global attributes */
+      std::string openPMDversion("1.0.0");
+      splash::ColTypeString ctOpenPMDversion(openPMDversion.length());
+      hdf5DataFile.writeGlobalAttribute( ctOpenPMDversion,
+                                         "openPMD",
+                                         openPMDversion.c_str() );
+
+      const uint32_t openPMDextension = 0; // no extension
+      splash::ColTypeUInt32 ctUInt32;
+      hdf5DataFile.writeGlobalAttribute( ctUInt32,
+                                         "openPMDextension",
+                                         &openPMDextension );
+
+      std::string basePath("/data/%T/");
+      splash::ColTypeString ctBasePath(basePath.length());
+      hdf5DataFile.writeGlobalAttribute(ctBasePath,
+                                        "basePath",
+                                        basePath.c_str() );
+
+      splash::ColTypeString ctMeshesPath(meshesPathName.length());
+      hdf5DataFile.writeGlobalAttribute(ctMeshesPath,
+                                        "meshesPath",
+                                        meshesPathName.c_str() );
+
+
+      splash::ColTypeString ctParticlesPath(particlesPathName.length());
+      hdf5DataFile.writeGlobalAttribute( ctParticlesPath,
+                                         "particlesPath",
+                                         particlesPathName.c_str() );
+
+      std::string iterationEncoding("fileBased");
+      splash::ColTypeString ctIterationEncoding(iterationEncoding.length());
+      hdf5DataFile.writeGlobalAttribute( ctIterationEncoding,
+                                         "iterationEncoding",
+                                         iterationEncoding.c_str() );
+
+      /* the ..._0_0_0... extension comes from the current filename
+         formating of the serial data colector in libSplash */
+      const int indexCutDirectory = name.rfind('/');
+      std::string iterationFormat(name.substr(indexCutDirectory + 1) +  std::string("%T_0_0_0.h5"));
+      splash::ColTypeString ctIterationFormat(iterationFormat.length());
+      hdf5DataFile.writeGlobalAttribute( ctIterationFormat,
+                                         "iterationFormat",
+                                         iterationFormat.c_str() );
+
+      hdf5DataFile.writeAttribute(currentStep, splashFloatXType, NULL, "dt", &DELTA_T);
+      const float_X time = float_X(currentStep) * DELTA_T;
+      hdf5DataFile.writeAttribute(currentStep, splashFloatXType, NULL, "time", &time);
+      splash::ColTypeDouble ctDouble;
+      hdf5DataFile.writeAttribute(currentStep, ctDouble, NULL, "timeUnitSI", &UNIT_TIME);
+
+      /* end required openPMD global attributes */
+
+      /* begin recommended openPMD global attributes */
+
+      std::string author = Environment<>::get().SimulationDescription().getAuthor();
+      if( author.length() > 0 )
+        {
+          splash::ColTypeString ctAuthor(author.length());
+          hdf5DataFile.writeGlobalAttribute( ctAuthor,
+                                             "author",
+                                             author.c_str() );
+        }
+
+      std::string software("PIConGPU");
+      splash::ColTypeString ctSoftware(software.length());
+      hdf5DataFile.writeGlobalAttribute( ctSoftware,
+                                         "software",
+                                         software.c_str() );
+
+      std::stringstream softwareVersion;
+      softwareVersion << PICONGPU_VERSION_MAJOR << "."
+                      << PICONGPU_VERSION_MINOR << "."
+                      << PICONGPU_VERSION_PATCH;
+      splash::ColTypeString ctSoftwareVersion(softwareVersion.str().length());
+      hdf5DataFile.writeGlobalAttribute( ctSoftwareVersion,
+                                         "softwareVersion",
+                                         softwareVersion.str().c_str() );
+
+      std::string date  = helper::getDateString("%F %T %z");
+      splash::ColTypeString ctDate(date.length());
+      hdf5DataFile.writeGlobalAttribute( ctDate,
+                                         "date",
+                                         date.c_str() );
+
+      /* end recommended openPMD global attributes */
+
+      /* begin required openPMD attributes for meshes records */
+
+      for(int i = 0; i<numberMeshRecords; ++i)
+      {
+          /* timeOffset */
+          const float_X timeOffset = 0.0;
+          hdf5DataFile.writeAttribute(currentStep, splashFloatXType,
+                                      (meshesPathName + meshRecordLabels(i)).c_str(),
+                                      "timeOffset", &timeOffset);
+
+          /* gridGlobalOffset */
+          std::vector<float_64> gridGlobalOffset(simDim, 0.0); /* there is no offset - zero */
+          hdf5DataFile.writeAttribute(currentStep,
+                                      ctDouble,
+                                      (meshesPathName + meshRecordLabels(i)).c_str(),
+                                      "gridGlobalOffset",
+                                      1u,
+                                      splash::Dimensions(simDim,0,0),
+                                      &(*gridGlobalOffset.begin()));
+
+          /* gridUnit */
+          /* ALL grids have indices as axises - thus no unit conversion */
+          const double unitNone = 1.0;
+          hdf5DataFile.writeAttribute(currentStep,
+                                      ctDouble,
+                                      (meshesPathName + meshRecordLabels(i)).c_str(),
+                                      "gridUnitSI",
+                                      &unitNone);
+
+          /* geometry */
+          const std::string geometry("cartesian");
+          splash::ColTypeString ctGeometry(geometry.length());
+          hdf5DataFile.writeAttribute(currentStep,
+                                      ctGeometry,
+                                      (meshesPathName + meshRecordLabels(i)).c_str(),
+                                      "geometry",
+                                      geometry.c_str());
+
+          /* dataOrder */
+          const std::string dataOrder("C");
+          splash::ColTypeString ctDataOrder(dataOrder.length());
+          hdf5DataFile.writeAttribute(currentStep,
+                                      ctDataOrder,
+                                      (meshesPathName + meshRecordLabels(i)).c_str(),
+                                      "dataOrder",
+                                      dataOrder.c_str());
+
+          std::vector<float_X> gridSpacing(simDim, 0.0);
+          for( uint32_t d = 0; d < simDim; ++d )
+              gridSpacing.at(d) = float_X(1.0);
+          hdf5DataFile.writeAttribute(currentStep,
+                                      splashFloatXType,
+                                      (meshesPathName + meshRecordLabels(i)).c_str(),
+                                      "gridSpacing",
+                                      1u,
+                                      splash::Dimensions(simDim,0,0),
+                                      &(*gridSpacing.begin()));
+
+          /* axisLabels */
+          std::list<std::string> myListOfStr;
+          if( i == idLabels::Amplitude ) /* amplitude record */
+          {
+              myListOfStr.push_back("detector direction index");
+              myListOfStr.push_back("detector frequency index");
+          }
+          else if( i == idLabels::Detector ) /* detector direction record */
+          {
+              myListOfStr.push_back("detector direction index");
+              myListOfStr.push_back("None");
+          }
+          else if( i == idLabels::Frequency ) /* detector frequency record */
+          {
+              myListOfStr.push_back("None");
+              myListOfStr.push_back("detector frequency index");
+          }
+          myListOfStr.push_back("None");
+
+          // convert to splash format
+          helper::GetSplashArrayOfString getSplashArrayOfString;
+          helper::GetSplashArrayOfString::Result myArrOfStr;
+          myArrOfStr = getSplashArrayOfString( myListOfStr );
+          splash::ColTypeString ctSomeListOfStr( myArrOfStr.maxLen );
+
+          hdf5DataFile.writeAttribute(currentStep,
+                                      ctSomeListOfStr,
+                                      (meshesPathName + meshRecordLabels(i)).c_str(),
+                                      "axisLabels",
+                                      1u, /* ndims: 1D array */
+                                      splash::Dimensions(myListOfStr.size(),0,0), /* size of 1D array */
+                                      &(myArrOfStr.buffers.at(0)));
+
+
+          /* unitDimension */
+          std::vector<float_64> unitDimension( traits::NUnitDimension, 0.0 );
+          if( i == idLabels::Amplitude ) /* amplitude record */
+          {
+              /* units Joule seconds -> Length^2 * Time^-1 * Mass^1 */
+              unitDimension[traits::SIBaseUnits::length] = 2.0;
+              unitDimension[traits::SIBaseUnits::time] = -1.0;
+              unitDimension[traits::SIBaseUnits::mass] = 1.0;
+          }
+          else if( i == idLabels::Detector ) /* detector direction record */
+          {
+              /* units none */
+          }
+          else if( i == idLabels::Frequency ) /* detector frequency record */
+          {
+              /* units 1./second -> Time^-1  */
+              unitDimension[traits::SIBaseUnits::time] = -1.0;
+          }
+          hdf5DataFile.writeAttribute(currentStep,
+                                      ctDouble,
+                                      (meshesPathName + meshRecordLabels(i)).c_str(),
+                                      "unitDimension",
+                                      1u,
+                                      splash::Dimensions(traits::NUnitDimension,0,0),
+                                      &(*unitDimension.begin()));
+
+
+      }
+      /* end required openPMD attributes for meshes */
+      /* end openPMD attributes */
+
+      hdf5DataFile.close();
     }
 
 
@@ -604,7 +1038,7 @@ private:
    */
   void readHDF5file(Amplitude* values, std::string name, const int timeStep)
   {
-      splash::SerialDataCollector HDF5dataFile(1);
+      splash::SerialDataCollector hdf5DataFile(1);
       splash::DataCollector::FileCreationAttr fAttr;
 
       splash::DataCollector::initFileCreationAttr(fAttr);
@@ -622,7 +1056,7 @@ private:
       }
       else
       {
-          HDF5dataFile.open(filename.str().c_str(), fAttr);
+          hdf5DataFile.open(filename.str().c_str(), fAttr);
 
           typename PICToSplash<float_64>::type radSplashType;
 
@@ -635,8 +1069,8 @@ private:
 
           for(uint32_t ampIndex=0; ampIndex < Amplitude::numComponents; ++ampIndex)
           {
-              HDF5dataFile.read(timeStep,
-                                dataLabels(ampIndex).c_str(),
+              hdf5DataFile.read(timeStep,
+                                (meshesPathName + dataLabels(ampIndex)).c_str(),
                                 componentSize,
                                 tmpBuffer);
 
@@ -649,7 +1083,7 @@ private:
           }
 
           delete[] tmpBuffer;
-          HDF5dataFile.close();
+          hdf5DataFile.close();
 
           log<picLog::INPUT_OUTPUT > ("Radiation: read radiation data from HDF5");
       }
@@ -727,7 +1161,7 @@ private:
 
       /* the parallelization is ONLY over directions:
        * (a combined parallelization over direction AND frequencies
-       * turned out to be slower on GPUs of the Fermi generation (sm_2x) (couple 
+       * turned out to be slower on GPUs of the Fermi generation (sm_2x) (couple
        * percent) and definitely slower on Kepler GPUs (sm_3x, tested on K20))
        */
       const int N_observer = parameters::N_observer;
