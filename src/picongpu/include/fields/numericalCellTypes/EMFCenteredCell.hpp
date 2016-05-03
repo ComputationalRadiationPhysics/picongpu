@@ -123,13 +123,15 @@ namespace traits
         }
     };
 
-    /** position (floatD_X in case of T_simDim == simDim) in cell for the
-     *  scalar field FieldTmp
+    /** position (floatD_X in case of T_simDim == simDim) in cell, wrapped in
+     * one-component vector since it's a scalar field with only one component, for the
+     * scalar field FieldTmp
      */
     template<uint32_t T_simDim>
     struct FieldPosition<FieldTmp, T_simDim>
     {
-        typedef PMacc::math::Vector<float_X, T_simDim> ReturnType;
+        typedef PMacc::math::Vector<float_X, T_simDim> FieldPos;
+        typedef PMacc::math::Vector<FieldPos, DIM1> ReturnType;
 
         /// boost::result_of hints
         template<class> struct result;
@@ -141,7 +143,7 @@ namespace traits
 
         HDINLINE ReturnType operator()() const
         {
-            return ReturnType::create( 0.0 );
+            return ReturnType( FieldPos::create(0.0) );
         }
     };
 } // traits
