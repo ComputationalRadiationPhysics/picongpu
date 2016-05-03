@@ -45,18 +45,24 @@ template<typename T_PositionComp = float>
 struct LinearInterp
 {
     template<typename T_Cursor>
-    Cursor<LinearInterpAccessor<T_Cursor>,
-           PlusNavigator,
-           PMacc::math::Vector<T_PositionComp,
-                               PMacc::cursor::traits::dim<T_Cursor>::value> >
+    Cursor<
+        LinearInterpAccessor<T_Cursor>,
+        PlusNavigator,
+        PMacc::math::Vector<
+            T_PositionComp,
+            PMacc::cursor::traits::dim<
+                T_Cursor>::value
+            >
+        >
     HDINLINE
     operator()(const T_Cursor& cur)
     {
         return make_Cursor(
             LinearInterpAccessor<T_Cursor>(cur),
             PlusNavigator(),
-            PMacc::math::Vector<T_PositionComp,
-                                PMacc::cursor::traits::dim<T_Cursor>::value>::create(0.0));
+            PMacc::math::Vector<
+                T_PositionComp,
+                PMacc::cursor::traits::dim<T_Cursor>::value>::create(0.0));
     }
 };
 
@@ -69,10 +75,16 @@ namespace result_of
 template<typename T_Cursor, typename T_PositionComp>
 struct Functor<cursor::tools::LinearInterp<T_PositionComp>, T_Cursor>
 {
-    typedef PMacc::cursor::Cursor<cursor::LinearInterpAccessor<T_Cursor>,
-                                  cursor::PlusNavigator,
-                                  PMacc::math::Vector<T_PositionComp,
-                                                      PMacc::cursor::traits::dim<T_Cursor>::value> > type;
+    typedef PMacc::cursor::Cursor<
+        cursor::LinearInterpAccessor<T_Cursor>,
+        cursor::PlusNavigator,
+        PMacc::math::Vector<
+            T_PositionComp,
+            PMacc::cursor::traits::dim<
+                T_Cursor
+            >::value
+        >
+    > type;
 };
 
 } // namespace result_of
