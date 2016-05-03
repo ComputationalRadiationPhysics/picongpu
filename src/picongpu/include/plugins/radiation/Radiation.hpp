@@ -179,14 +179,14 @@ public:
             // end
             if (currentStep <= radEnd || radEnd == 0)
             {
-                log<radLog::SIMULATION_STATE > ("Radiation: calculate time step %1% ") % currentStep;
+                log<radLog::SIMULATION_STATE > ("Radiation (%1%): calculate time step %2% ") % speciesName % currentStep;
 
                 /* CORE + BORDER is PIC black magic, currently not needed
                  *
                  */
                 calculateRadiationParticles < CORE + BORDER > (currentStep);
 
-                log<radLog::SIMULATION_STATE > ("Radiation: finished time step %1% ") % currentStep;
+                log<radLog::SIMULATION_STATE > ("Radiation (%1%): finished time step %2% ") % speciesName % currentStep;
             }
         }
     }
@@ -234,7 +234,7 @@ public:
             // not a dump point. The correct lastRad data can be reconstructed from hdf5 data
             // since text based lastRad output will be obsolete soon, this is not a problem
             readHDF5file(timeSumArray, restartDirectory + "/" + speciesName + std::string("_radRestart_"), timeStep);
-            log<radLog::SIMULATION_STATE > ("Radiation: restart finished");
+            log<radLog::SIMULATION_STATE > ("Radiation (%1%): restart finished") % speciesName;
         }
     }
 
@@ -620,7 +620,8 @@ private:
       /* check if restart file exists */
       if( !boost::filesystem::exists(filename.str()) )
       {
-          log<picLog::INPUT_OUTPUT > ("Radiation: restart file not found (%1%) - start with zero values") % filename.str();
+          log<picLog::INPUT_OUTPUT > ("Radiation (%1%): restart file not found (%2%) - start with zero values") % 
+                                      speciesName % filename.str();
       }
       else
       {
@@ -653,7 +654,7 @@ private:
           delete[] tmpBuffer;
           HDF5dataFile.close();
 
-          log<picLog::INPUT_OUTPUT > ("Radiation: read radiation data from HDF5");
+          log<picLog::INPUT_OUTPUT > ("Radiation (%1%): read radiation data from HDF5") % speciesName;
       }
   }
 
