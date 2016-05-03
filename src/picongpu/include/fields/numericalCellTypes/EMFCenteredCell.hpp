@@ -123,8 +123,9 @@ namespace traits
         }
     };
 
-    /** position (floatD_X in case of T_simDim == simDim) in cell for the
-     *  scalar field FieldTmp
+    /** position (floatD_X in case of T_simDim == simDim) in cell, wrapped in
+     * one-component vector since it's a scalar field with only one component, for the
+     * scalar field FieldTmp
      */
     template<uint32_t T_simDim>
     struct FieldPosition<FieldTmp, T_simDim>
