@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Rene Widera
+ * Copyright 2016 Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -20,25 +20,34 @@
 
 #pragma once
 
+#include "traits/Unit.hpp"
+#include "traits/UnitDimension.hpp"
+
+#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
+
+#include <string>
+#include <vector>
 
 namespace picongpu
 {
-
 namespace traits
 {
-    /** Get unit of a date that is represented by an identifier
+    /** Reinterpret attributes for openPMD
      *
-     * \tparam T_Identifier any PIConGPU identifier
-     * \return \p std::vector<float_64> ::get() as static public method
-     *
-     * Unitless identifies, see \UnitDimension, can still be scaled by a
-     * factor. If they are not scaled, implement the unit as 1.0;
-     * \see simulation_defines/unitless/speciesAttributes.unitless
+     * Currently, this conversion tables are used to translate the PIConGPU
+     * globalCellIdx (unitless cell index) to the openPMD positionOffset (length)
      */
     template<typename T_Identifier>
-    struct Unit;
+    struct OpenPMDName;
 
-} //namespace traits
+    template<typename T_Identifier>
+    struct OpenPMDUnit;
 
-}// namespace picongpu
+    template<typename T_Identifier>
+    struct OpenPMDUnitDimension;
+
+} // namespace traits
+} // namespace picongpu
+
+#include "PICToOpenPMD.tpp"

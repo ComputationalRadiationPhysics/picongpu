@@ -242,7 +242,7 @@ FieldE::getUnitDimension( )
 std::string
 FieldE::getName( )
 {
-    return "FieldE";
+    return "E";
 }
 
 uint32_t

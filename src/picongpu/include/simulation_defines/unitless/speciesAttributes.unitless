@@ -89,10 +89,10 @@ struct WeightingPower<position<T_Type> >
 template<>
 struct Unit<radiationFlag>
 {
-    // zero-sized vector indicating unitless flag for hdf5 and adios output
+    // unitless and not scaled by a factor: by convention 1.0
     static std::vector<double> get()
     {
-        std::vector<double> unit;
+        std::vector<double> unit( 1, 1.0 );
         return unit;
     }
 };
@@ -127,7 +127,7 @@ struct WeightingPower<radiationFlag>
 };
 
 template<>
-struct Unit<momentum >
+struct Unit<momentum>
 {
     static std::vector<double> get()
     {
@@ -141,7 +141,7 @@ struct Unit<momentum >
     }
 };
 template<>
-struct UnitDimension<momentum >
+struct UnitDimension<momentum>
 {
     static std::vector<float_64> get()
     {
@@ -233,17 +233,17 @@ struct WeightingPower<momentumPrev1>
 };
 
 template<>
-struct Unit<weighting >
+struct Unit<weighting>
 {
-    // zero-sized vector indicating unitless flag for hdf5 and adios output
+    // unitless and not scaled by a factor: 1.0
     static std::vector<double> get()
     {
-        std::vector<double> unit;
+        std::vector<double> unit( 1, 1.0 );
         return unit;
     }
 };
 template<>
-struct UnitDimension<weighting >
+struct UnitDimension<weighting>
 {
     static std::vector<float_64> get()
     {
@@ -316,11 +316,10 @@ struct WeightingPower<particleId>
 template<typename T_Type>
 struct Unit<globalCellIdx<T_Type> >
 {
+    /* unitless index and not scaled by a factor: by convention 1.0 */
     static std::vector<double> get()
     {
-        std::vector<double> unit(simDim);
-        for(uint32_t i=0;i<simDim;++i)
-            unit[i]=1.0;
+        std::vector<double> unit( simDim, 1.0 );
         return unit;
     }
 };
@@ -329,13 +328,9 @@ struct UnitDimension<globalCellIdx<T_Type> >
 {
     static std::vector<float_64> get()
     {
-        /* L, M, T, I, theta, N, J
-         *
-         * globalCellIdx is a lengths: m
-         *   -> L
+        /* globalCellIdx is a cell index and therefore unitless
          */
         std::vector<float_64> unitDimension( NUnitDimension, 0.0 );
-        unitDimension.at(SIBaseUnits::length) = 1.0;
 
         return unitDimension;
     }
@@ -362,10 +357,10 @@ struct WeightingPower<globalCellIdx<T_Type> >
 template<>
 struct Unit<boundElectrons>
 {
-    // zero-sized vector indicating unitless flag for hdf5 and adios output
+    // unitless and not scaled by a factor: 1.0
     static std::vector<double> get()
     {
-        std::vector<double> unit;
+        std::vector<double> unit( 1, 1.0 );
         return unit;
     }
 };

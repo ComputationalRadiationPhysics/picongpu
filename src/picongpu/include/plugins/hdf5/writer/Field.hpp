@@ -39,10 +39,17 @@ using namespace splash;
 struct Field
 {
 
+    /* \param inCellPosition std::vector<std::vector<float_X> > with the outer
+     *                       vector for each component and the inner vector for
+     *                       the simDim position offset within the cell [0.0; 1.0)
+     */
     template<typename T_ValueType, typename T_DataBoxType>
     static void writeField(ThreadParams *params,
                            const std::string name,
                            std::vector<float_64> unit,
+                           std::vector<float_64> unitDimension,
+                           std::vector<std::vector<float_X> > inCellPosition,
+                           float_X timeOffset,
                            T_DataBoxType dataBox,
                            const T_ValueType&
                            )
@@ -51,11 +58,26 @@ struct Field
         typedef T_ValueType ValueType;
         typedef typename GetComponentsType<ValueType>::type ComponentType;
         typedef typename PICToSplash<ComponentType>::type SplashType;
+        typedef typename PICToSplash<float_X>::type SplashFloatXType;
 
         const uint32_t nComponents = GetNComponents<ValueType>::value;
 
+        SplashType splashType;
+        ColTypeDouble ctDouble;
+        SplashFloatXType splashFloatXType;
+
         log<picLog::INPUT_OUTPUT > ("HDF5 write field: %1% %2%") %
             name % nComponents;
+
+        /* parameter checking */
+        assert(unit.size() == nComponents);
+        assert(inCellPosition.size() == nComponents);
+        for( uint32_t n = 0; n < nComponents; ++n )
+            assert(inCellPosition.at(n).size() == simDim );
+        assert(unitDimension.size() == 7); // seven openPMD base units
+
+        /* component names */
+        std::string recordName = std::string("fields/") + name;
 
         std::vector<std::string> name_lookup;
         {
@@ -91,8 +113,6 @@ struct Field
         splashGlobalOffsetFile[1] = std::max(0, localDomain.offset[1] -
                                              params->window.globalDimensions.offset[1]);
 
-        SplashType splashType;
-
         size_t tmpArraySize = field_no_guard.productOfComponents();
         ComponentType* tmpArray = new ComponentType[tmpArraySize];
 
@@ -110,7 +130,7 @@ struct Field
             }
 
             std::stringstream datasetName;
-            datasetName << "fields/" << name;
+            datasetName << recordName;
             if (nComponents > 1)
                 datasetName << "/" << name_lookup.at(n);
 
@@ -135,14 +155,79 @@ struct Field
                                                DomainCollector::GridType,
                                                tmpArray);
 
-            /*simulation attributes for data*/
-            ColTypeDouble ctDouble;
+            /* attributes */
+            params->dataCollector->writeAttribute(params->currentStep,
+                                                  splashFloatXType, datasetName.str().c_str(),
+                                                  "position",
+                                                  1u, Dimensions(simDim,0,0),
+                                                  &(*inCellPosition.at(n).begin()));
 
             params->dataCollector->writeAttribute(params->currentStep,
                                                   ctDouble, datasetName.str().c_str(),
-                                                  "sim_unit", &(unit.at(n)));
+                                                  "unitSI", &(unit.at(n)));
         }
         __deleteArray(tmpArray);
+
+
+        params->dataCollector->writeAttribute(params->currentStep,
+                                              ctDouble, recordName.c_str(),
+                                              "unitDimension",
+                                              1u, Dimensions(7,0,0),
+                                              &(*unitDimension.begin()));
+
+        params->dataCollector->writeAttribute(params->currentStep,
+                                              splashFloatXType, recordName.c_str(),
+                                              "timeOffset", &timeOffset);
+
+        std::string geometry("cartesian");
+        ColTypeString ctGeometry(geometry.length());
+        params->dataCollector->writeAttribute(params->currentStep,
+                                              ctGeometry, recordName.c_str(),
+                                              "geometry", geometry.c_str());
+
+        std::string dataOrder("C");
+        ColTypeString ctDataOrder(dataOrder.length());
+        params->dataCollector->writeAttribute(params->currentStep,
+                                              ctDataOrder, recordName.c_str(),
+                                              "dataOrder", dataOrder.c_str());
+
+        typedef char MyChar2[2];
+        MyChar2 *axisLabels = new MyChar2[simDim];
+        ColTypeString ctAxisLabels(1);
+        for( uint32_t d = 0; d < simDim; ++d )
+        {
+            axisLabels[d][0] = char('x' + d); // x, y, z
+            axisLabels[d][1] = '\0';          // terminator is important!
+        }
+        params->dataCollector->writeAttribute(params->currentStep,
+                                              ctAxisLabels, recordName.c_str(),
+                                              "axisLabels",
+                                              1u, Dimensions(simDim,0,0),
+                                              axisLabels);
+        delete[] axisLabels;
+
+        std::vector<float_X> gridSpacing(simDim, 0.0);
+        for( uint32_t d = 0; d < simDim; ++d )
+            gridSpacing.at(d) = cellSize[d];
+        params->dataCollector->writeAttribute(params->currentStep,
+                                              splashFloatXType, recordName.c_str(),
+                                              "gridSpacing",
+                                              1u, Dimensions(simDim,0,0),
+                                              &(*gridSpacing.begin()));
+
+        std::vector<float_64> gridGlobalOffset(simDim, 0.0);
+        for( uint32_t d = 0; d < simDim; ++d )
+            gridGlobalOffset.at(d) = float_64(cellSize[d]) *
+                                     float_64(splashGlobalDomainOffset[d]);
+        params->dataCollector->writeAttribute(params->currentStep,
+                                              ctDouble, recordName.c_str(),
+                                              "gridGlobalOffset",
+                                              1u, Dimensions(simDim,0,0),
+                                              &(*gridGlobalOffset.begin()));
+
+        params->dataCollector->writeAttribute(params->currentStep,
+                                              ctDouble, recordName.c_str(),
+                                              "gridUnitSI", &UNIT_LENGTH);
     }
 
 };

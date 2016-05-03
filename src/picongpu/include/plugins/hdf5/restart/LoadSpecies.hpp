@@ -46,6 +46,9 @@
 #include "plugins/kernel/CopySpeciesGlobal2Local.kernel"
 #include "plugins/hdf5/restart/LoadParticleAttributesFromHDF5.hpp"
 
+#include "plugins/common/particlePatches.hpp"
+#include "plugins/hdf5/openPMD/patchReader.hpp"
+
 namespace picongpu
 {
 
@@ -99,41 +102,71 @@ public:
         DataConnector &dc = Environment<>::get().DataConnector();
         GridController<simDim> &gc = Environment<simDim>::get().GridController();
 
-        std::string subGroup = std::string("particles/") + FrameType::getName();
+        const std::string speciesSubGroup(
+            std::string("particles/") + FrameType::getName() + std::string("/")
+        );
         const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
 
-        /* load particle without copying particle data to host */
+        // load particle without copying particle data to host
         ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(ThisSpecies::FrameType::getName(), true));
 
-        /* count total number of particles on the device */
+        // count total number of particles on the device
         uint64_cu totalNumParticles = 0;
-
-        /* load particles info table entry for this process
-           particlesInfo is (part-count, scalar pos, x, y, z) */
-        typedef uint64_t uint64Quint[5];
-        uint64Quint particlesInfo[gc.getGlobalSize()];
-        Dimensions particlesInfoSizeRead;
-
-        params->dataCollector->read(params->currentStep,
-                                    (std::string(subGroup) + std::string("/particles_info")).c_str(),
-                                    particlesInfoSizeRead,
-                                    particlesInfo);
-
-        assert(particlesInfoSizeRead[0] == gc.getGlobalSize());
-
-        /* search my entry (using my scalar position) in particlesInfo */
         uint64_t particleOffset = 0;
-        uint64_t myScalarPos = gc.getScalarPosition();
 
-        for (size_t i = 0; i < particlesInfoSizeRead[0]; ++i)
+        // load particle patches offsets to find own patch
+        const std::string particlePatchesPath(
+            speciesSubGroup + std::string("particlePatches/")
+        );
+
+        // read particle patches
+        openPMD::PatchReader patchReader;
+
+        picongpu::openPMD::ParticlePatches particlePatches(
+            patchReader(
+                params->dataCollector,
+                gc.getGlobalSize(),
+                simDim,
+                params->currentStep,
+                particlePatchesPath
+            )
+        );
+
+        /** search my entry (using my cell offset and my local grid size)
+         *
+         * \note if you want to restart with a changed GPU configuration, either
+         * post-process the particle-patches in the file or implement to find
+         * all contributing patches and then filter the particles inside those
+         * by position
+         *
+         * \see plugins/hdf5/WriteSpecies.hpp `WriteSpecies::operator()`
+         *      as its counterpart
+         */
+        const DataSpace<simDim> patchOffset =
+            params->window.globalDimensions.offset +
+            params->window.localDimensions.offset +
+            params->localWindowToDomainOffset;
+        const DataSpace<simDim> patchExtent =
+            params->window.localDimensions.size;
+
+        for( size_t i = 0; i < gc.getGlobalSize(); ++i )
         {
-            if (particlesInfo[i][1] == myScalarPos)
+            bool exactlyMyPatch = true;
+
+            for( uint32_t d = 0; d < simDim; ++d )
             {
-                totalNumParticles = particlesInfo[i][0];
-                break;
+                if( particlePatches.getOffsetComp( d )[ i ] != (uint64_t)patchOffset[ d ] )
+                    exactlyMyPatch = false;
+                if( particlePatches.getExtentComp( d )[ i ] != (uint64_t)patchExtent[ d ] )
+                    exactlyMyPatch = false;
             }
 
-            particleOffset += particlesInfo[i][0];
+            if( exactlyMyPatch )
+            {
+                totalNumParticles = particlePatches.numParticles[ i ];
+                particleOffset = particlePatches.numParticlesOffset[ i ];
+                break;
+            }
         }
 
         log<picLog::INPUT_OUTPUT > ("Loading %1% particles from offset %2%") %
@@ -152,7 +185,7 @@ public:
         getDevicePtr(forward(deviceFrame), forward(hostFrame));
 
         ForEach<typename Hdf5FrameType::ValueTypeSeq, LoadParticleAttributesFromHDF5<bmpl::_1> > loadAttributes;
-        loadAttributes(forward(params), forward(hostFrame), subGroup, particleOffset, totalNumParticles);
+        loadAttributes(forward(params), forward(hostFrame), speciesSubGroup, particleOffset, totalNumParticles);
 
         if (totalNumParticles != 0)
         {

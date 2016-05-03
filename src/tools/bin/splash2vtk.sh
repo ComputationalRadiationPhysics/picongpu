@@ -21,8 +21,7 @@
 
 filename="$1"
 step=1000
-dataNames="fields_FieldE_y"
-#dataNames="fields_FieldE_y"
+dataNames="fields_E_y"
 dataEl=`echo "$dataNames" | wc -w`
 
 # dimensions & meta data
