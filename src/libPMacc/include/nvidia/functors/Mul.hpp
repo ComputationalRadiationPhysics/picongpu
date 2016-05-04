@@ -27,31 +27,31 @@
 
 namespace PMacc
 {
-    namespace nvidia
+namespace nvidia
+{
+namespace functors
+{
+    struct Mul
     {
-        namespace functors
+        template<typename Dst, typename Src>
+        HDINLINE void
+        operator()( Dst& dst, const Src& src ) const
         {
-            struct Mul
-            {
-                template<typename Dst, typename Src>
-                HDINLINE void
-                operator()( Dst& dst, const Src& src ) const
-                {
-                    dst *= src;
-                }
-            };
+            dst *= src;
         }
-    }
-}
+    };
+} // namespace functors
+} // namespace nvidia
+} // namespace PMacc
 
 namespace PMacc
 {
-    namespace mpi
+namespace mpi
+{
+    template<>
+    MPI_Op getMPI_Op<PMacc::nvidia::functors::Mul>()
     {
-        template<>
-        MPI_Op getMPI_Op<PMacc::nvidia::functors::Mul>()
-        {
-            return MPI_PROD;
-        }
+        return MPI_PROD;
     }
-}
+} // namespace mpi
+} // namespace PMacc
