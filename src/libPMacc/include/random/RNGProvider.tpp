@@ -83,7 +83,7 @@ namespace random
 
     template<uint32_t T_dim, class T_RNGMethod>
     template<class T_Distribution>
-    typename RNGProvider<T_dim, T_RNGMethod>::GetRandomType<T_Distribution>::type
+    typename RNGProvider<T_dim, T_RNGMethod>::template GetRandomType<T_Distribution>::type
     RNGProvider<T_dim, T_RNGMethod>::createRandom(const std::string& id)
     {
         typedef typename GetRandomType<T_Distribution>::type ResultType;
