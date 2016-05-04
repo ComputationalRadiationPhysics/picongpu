@@ -60,12 +60,6 @@ namespace PMacc
     }
 
     template<unsigned T_DIM>
-    ResourceMonitor<T_DIM>::ResourceMonitor(const ResourceMonitor& fs)
-    {
-
-    }
-
-    template<unsigned T_DIM>
     size_t ResourceMonitor<T_DIM>::getCellCount()
     {
         return Environment<T_DIM>::get().SubGrid().getLocalDomain().size.productOfComponents();

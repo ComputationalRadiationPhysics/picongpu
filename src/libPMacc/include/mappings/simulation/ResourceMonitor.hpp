@@ -30,7 +30,7 @@ namespace PMacc
     /**
      * Provides ressource information of the current subgrid
      *
-     * @tparam DIM number of dimensions of the simulation
+     * @tparam T_DIM number of dimensions of the simulation
      */
     template <unsigned T_DIM>
     class ResourceMonitor
@@ -41,13 +41,6 @@ namespace PMacc
          * Constructor
          */
         ResourceMonitor();
-
-    private:
-
-        /**
-         * Constructor
-         */
-        ResourceMonitor(const ResourceMonitor& fs);
 
     public:
         /**

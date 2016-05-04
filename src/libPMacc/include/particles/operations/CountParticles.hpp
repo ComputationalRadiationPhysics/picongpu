@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Rene Widera
+ * Copyright 2013-2016 Rene Widera, Erik Zenker
  *
  * This file is part of libPMacc.
  *
