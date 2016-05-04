@@ -1,7 +1,7 @@
 /**
  * Copyright 2013-2017 Axel Huebl, Benjamin Schneider, Felix Schmitt,
  *                     Heiko Burau, Rene Widera, Richard Pausch,
- *                     Benjamin Worpitz
+ *                     Benjamin Worpitz, Erik Zenker
  *
  * This file is part of PIConGPU.
  *
