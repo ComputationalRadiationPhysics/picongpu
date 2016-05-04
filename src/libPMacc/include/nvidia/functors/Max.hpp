@@ -29,33 +29,30 @@
 
 namespace PMacc
 {
-    namespace nvidia
+namespace nvidia
+{
+namespace functors
+{
+    struct Max
     {
-        namespace functors
+        template<typename Dst, typename Src >
+        DINLINE void operator()(Dst & dst, const Src & src) const
         {
-
-            struct Max
-            {
-
-                template<typename Dst, typename Src >
-                        DINLINE void operator()(Dst & dst, const Src & src) const
-                {
-                    dst = algorithms::math::max(dst, src);
-                }
-            };
+            dst = algorithms::math::max(dst, src);
         }
-    }
-}
+    };
+} // namespace functors
+} // namespace nvidia
+} // namespace PMacc
 
 namespace PMacc
 {
-    namespace mpi
+namespace mpi
+{
+    template<>
+    MPI_Op getMPI_Op<PMacc::nvidia::functors::Max>()
     {
-
-        template<>
-        MPI_Op getMPI_Op<PMacc::nvidia::functors::Max>()
-        {
-            return MPI_MAX;
-        }
+        return MPI_MAX;
     }
-}
+} // namespace mpi
+} // namespace PMacc
