@@ -42,7 +42,6 @@ namespace PMacc
          */
         ResourceMonitor();
 
-    public:
         /**
          *  Returns the number of cells on the device
          */
