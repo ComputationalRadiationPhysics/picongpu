@@ -55,9 +55,10 @@ struct FieldToParticleInterpolation
     BOOST_STATIC_CONSTEXPR int begin = -supp / 2 + (supp + 1) % 2;
     BOOST_STATIC_CONSTEXPR int end = begin+supp-1;
 
-    template<class Cursor, class VecVector_ >
-    HDINLINE typename Cursor::ValueType operator()(Cursor field, const floatD_X & particlePos,
-                                          const VecVector_ & fieldPos)
+    template<class Cursor, class VecVector>
+    HDINLINE typename Cursor::ValueType operator()(Cursor field,
+                                                   const floatD_X& particlePos,
+                                                   const VecVector& fieldPos)
     {
         using namespace lambda;
         DECLARE_PLACEHOLDERS() // declares _1, _2, _3, ... in device code
