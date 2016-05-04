@@ -86,6 +86,8 @@
 #include "plugins/adios/ADIOSWriter.hpp"
 #endif
 
+#include "plugins/ResourceLog.hpp"
+
 namespace picongpu
 {
 
@@ -140,6 +142,7 @@ private:
 #if (ENABLE_HDF5 == 1)
       , hdf5::HDF5Writer
 #endif
+    , ResourceLog
     > StandAlonePlugins;
 
 
