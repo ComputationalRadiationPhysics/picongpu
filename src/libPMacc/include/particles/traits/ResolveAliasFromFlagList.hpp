@@ -25,6 +25,7 @@
 #include "particles/memory/frames/Frame.hpp"
 #include "traits/GetFlagType.hpp"
 #include "traits/Resolve.hpp"
+#include "identifier/alias.hpp"
 
 namespace picongpu
 {
@@ -37,10 +38,13 @@ namespace traits
  * \tparam T_Alias alias
  */
 template<typename T_SpeciesType, typename T_Alias>
-struct ResolveAlias
+struct ResolveAlias;
+
+template<typename T_SpeciesType, template<typename,typename> class T_Object, typename T_AnyType>
+struct ResolveAlias<T_Object<T_AnyType,PMacc::pmacc_isAlias> >
 {
     typedef T_SpeciesType SpeciesType;
-    typedef T_Alias Alias;
+    typedef T_Object<T_AnyType,PMacc::pmacc_isAlias> Alias;
     typedef typename SpeciesType::FrameType FrameType;
 
     /* The following line only fetches the alias */
