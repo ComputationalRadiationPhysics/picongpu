@@ -36,6 +36,33 @@ namespace traits
 
 /** Resolves a custom alias in the flag list of a particle species.
  *
+ * Example:
+ *
+ * typedef bmpl::vector<
+ *   particlePusher<UsedParticlePusher>,
+ *   shape<UsedParticleShape>,
+ *   interpolation<UsedField2Particle>,
+ *   current<UsedParticleCurrentSolver>,
+ *   massRatio<MassRatioElectrons>,
+ *   chargeRatio<ChargeRatioElectrons>,
+ *   synchrotronPhotons<PIC_Photons>
+ * > ParticleFlagsElectrons;
+ *
+ * typedef Particles<
+ *   ParticleDescription<
+ *       bmpl::string<'e'>,
+ *       SuperCellSize,
+ *       DefaultAttributesSeq,
+ *       ParticleFlagsElectrons
+ *   >
+ * > PIC_Electrons;
+ *
+ * typedef typename ResolveAliasFromSpecies<
+ *      PIC_Electrons,
+ *      synchrotronPhotons<>
+ * >::type PhotonSpecies;
+ * boost::static_assert(boost::is_same<PhotonsSpecies, PIC_Photons>::value);
+ *
  * \tparam T_SpeciesType particle species
  * \tparam T_Alias alias
  */
@@ -54,7 +81,7 @@ struct ResolveAliasFromSpecies<T_SpeciesType, T_Object<T_AnyType,PMacc::pmacc_is
 
     /* This now resolves the alias into the actual object type */
     typedef typename PMacc::traits::Resolve<FoundAlias>::type type;
-}; // struct ResolveAlias
+}; // struct ResolveAliasFromSpecies
 
 } // namespace traits
 } // namespace particles
