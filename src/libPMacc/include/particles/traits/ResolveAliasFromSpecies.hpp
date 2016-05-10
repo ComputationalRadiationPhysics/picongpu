@@ -38,6 +38,7 @@ namespace traits
  *
  * Example:
  *
+ * \code{.cpp}
  * typedef bmpl::vector<
  *   particlePusher<UsedParticlePusher>,
  *   shape<UsedParticleShape>,
@@ -62,6 +63,7 @@ namespace traits
  *      synchrotronPhotons<>
  * >::type PhotonSpecies;
  * boost::static_assert(boost::is_same<PhotonsSpecies, PIC_Photons>::value);
+ * \endcode
  *
  * \tparam T_SpeciesType particle species
  * \tparam T_Alias alias
