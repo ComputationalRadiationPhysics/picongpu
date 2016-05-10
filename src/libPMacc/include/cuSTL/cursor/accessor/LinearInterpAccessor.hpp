@@ -54,14 +54,14 @@ struct LinearInterpAccessor<T_Cursor, DIM1>
     HDINLINE LinearInterpAccessor(const Cursor& cursor) : cursor(cursor) {}
 
     template<typename T_Position>
-    HDINLINE type operator()(const T_Position x) const
+    HDINLINE type operator()(const T_Position pos) const
     {
         BOOST_STATIC_ASSERT(T_Position::dim == DIM1);
 
         T_Position intPart;
         T_Position fracPart;
 
-        fracPart[0] = PMacc::algorithms::math::modf(x[0], &(intPart[0]));
+        fracPart[0] = PMacc::algorithms::math::modf(pos[0], &(intPart[0]));
 
         const math::Int<DIM1> idx1D(static_cast<int>(intPart[0]));
 
@@ -91,15 +91,15 @@ struct LinearInterpAccessor<T_Cursor, DIM2>
     HDINLINE LinearInterpAccessor(const Cursor& cursor) : cursor(cursor) {}
 
     template<typename T_Position>
-    HDINLINE type operator()(const T_Position x) const
+    HDINLINE type operator()(const T_Position pos) const
     {
         BOOST_STATIC_ASSERT(T_Position::dim == DIM2);
 
         T_Position intPart;
         T_Position fracPart;
 
-        fracPart[0] = PMacc::algorithms::math::modf(x[0], &(intPart[0]));
-        fracPart[1] = PMacc::algorithms::math::modf(x[1], &(intPart[1]));
+        fracPart[0] = PMacc::algorithms::math::modf(pos[0], &(intPart[0]));
+        fracPart[1] = PMacc::algorithms::math::modf(pos[1], &(intPart[1]));
 
         const math::Int<DIM2> idx2D(static_cast<int>(intPart[0]),
                                     static_cast<int>(intPart[1]));
@@ -134,16 +134,16 @@ struct LinearInterpAccessor<T_Cursor, DIM3>
     HDINLINE LinearInterpAccessor(const Cursor& cursor) : cursor(cursor) {}
 
     template<typename T_Position>
-    HDINLINE type operator()(const T_Position x) const
+    HDINLINE type operator()(const T_Position pos) const
     {
         BOOST_STATIC_ASSERT(T_Position::dim == DIM3);
 
         T_Position intPart;
         T_Position fracPart;
 
-        fracPart[0] = PMacc::algorithms::math::modf(x[0], &(intPart[0]));
-        fracPart[1] = PMacc::algorithms::math::modf(x[1], &(intPart[1]));
-        fracPart[2] = PMacc::algorithms::math::modf(x[2], &(intPart[2]));
+        fracPart[0] = PMacc::algorithms::math::modf(pos[0], &(intPart[0]));
+        fracPart[1] = PMacc::algorithms::math::modf(pos[1], &(intPart[1]));
+        fracPart[2] = PMacc::algorithms::math::modf(pos[2], &(intPart[2]));
 
         const math::Int<DIM3> idx3D(static_cast<int>(intPart[0]),
                                     static_cast<int>(intPart[1]),
