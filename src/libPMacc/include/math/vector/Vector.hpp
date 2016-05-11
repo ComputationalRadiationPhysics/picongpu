@@ -29,6 +29,7 @@
 #include "result_of_Functor.hpp"
 #include "static_assert.hpp"
 #include "pmacc_types.hpp"
+#include "algorithms/math.hpp"
 
 #include <boost/mpl/size.hpp>
 #include <boost/call_traits.hpp>
@@ -795,7 +796,7 @@ template<typename Type, int dim>
 HDINLINE Type abs(const Vector<Type, dim>& vec)
 {
 
-    return sqrtf(abs2(vec));
+    return algorithms::math::sqrt(abs2(vec));
 }
 
 template<typename Type, int dim>
