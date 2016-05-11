@@ -73,7 +73,7 @@ struct Push
         // second step in Vay paper:
         const MomType momentum_prime = momentum_atZero + factor * eField;
         const float_X gamma_prime = gamma(momentum_prime, mass);
-        //sqrtf(1.0 + abs2(momentum_prime*(1.0/(mass * SPEED_OF_LIGHT))));
+        //algorithms::math::sqrt(1.0 + abs2(momentum_prime*(1.0/(mass * SPEED_OF_LIGHT))));
         const sqrt_Vay::float3_X tau(factor / mass * bField);
         const sqrt_Vay::float_X u_star = math::dot( precisionCast<sqrt_Vay::float_X>(momentum_prime), tau ) / precisionCast<sqrt_Vay::float_X>( SPEED_OF_LIGHT * mass );
         const sqrt_Vay::float_X sigma = gamma_prime * gamma_prime - math::abs2( tau );
