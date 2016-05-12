@@ -23,18 +23,19 @@
 
 #pragma once
 
-#include <cuSTL/container/allocator/DeviceMemAllocator.hpp>
-#include <cuSTL/container/copier/D2DCopier.hpp>
-#include <cuSTL/container/assigner/DeviceMemAssigner.hpp>
+#include "cuSTL/container/allocator/DeviceMemAllocator.hpp"
+#include "cuSTL/container/copier/D2DCopier.hpp"
+#include "cuSTL/container/assigner/DeviceMemAssigner.hpp"
 #include "cuSTL/container/CartBuffer.hpp"
-#include "allocator/tag.h"
+#include "cuSTL/container/allocator/tag.h"
+#include "cuSTL/container/copier/Memcopy.hpp"
 
-#include <memory/buffers/DeviceBuffer.hpp>
-#include <memory/buffers/HostBuffer.hpp>
-#include <exception>
-#include <sstream>
 #include <boost/assert.hpp>
 #include <boost/move/move.hpp>
+#include <boost/utility/enable_if.hpp>
+#include <boost/type_traits/is_same.hpp>
+#include <exception>
+#include <sstream>
 
 namespace PMacc
 {
@@ -109,9 +110,12 @@ public:
 
     template<typename HBuffer>
     HINLINE
-    DeviceBuffer& operator=(const HBuffer& rhs)
+    typename boost::enable_if<
+		boost::is_same<typename HBuffer::memoryTag, allocator::tag::host>,
+		DeviceBuffer&
+		>::type
+	operator=(const HBuffer& rhs)
     {
-        BOOST_STATIC_ASSERT((boost::is_same<typename HBuffer::memoryTag, allocator::tag::host>::value));
         BOOST_STATIC_ASSERT((boost::is_same<typename HBuffer::type, Type>::value));
         BOOST_STATIC_ASSERT(HBuffer::dim == T_dim);
         if(rhs.size() != this->size())
