@@ -41,7 +41,7 @@ class HostBufferIntern : public HostBuffer<TYPE, DIM>
 {
 public:
 
-    typedef typename DeviceBuffer<TYPE, DIM>::DataBoxType DataBoxType;
+    typedef typename HostBuffer<TYPE, DIM>::DataBoxType DataBoxType;
 
     /** constructor
      *
