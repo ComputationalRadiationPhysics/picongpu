@@ -54,14 +54,14 @@ class TSource
         typename FieldType::DataBoxType shifted;
         MappingDesc *cellDescription;
         bool movingWindow;
-        
+
         TSource() : cellDescription(NULL), movingWindow(false) {}
         TSource(MappingDesc *cellDescription, bool movingWindow) : cellDescription(cellDescription), movingWindow(movingWindow) {}
 
         void update(bool enabled, void* pointer)
         {
             const SubGrid<simDim>& subGrid = Environment< simDim >::get().SubGrid();
-            DataConnector &dc = Environment< simDim >::get().DataConnector(); 
+            DataConnector &dc = Environment< simDim >::get().DataConnector();
             FieldType * pField = &(dc.getData< FieldType > (FieldType::getName(), true));
             DataSpace< simDim > guarding = SuperCellSize::toRT() * cellDescription->getGuardingSuperCells();
             if (movingWindow)
@@ -110,14 +110,14 @@ class TSource_Current
         typename FieldType::DataBoxType shifted;
         MappingDesc *cellDescription;
         bool movingWindow;
-        
+
         TSource_Current() : cellDescription(NULL), movingWindow(false) {}
         TSource_Current(MappingDesc *cellDescription, bool movingWindow) : cellDescription(cellDescription), movingWindow(movingWindow) {}
 
         void update(bool enabled, void* pointer)
         {
             const SubGrid<simDim>& subGrid = Environment< simDim >::get().SubGrid();
-            DataConnector &dc = Environment< simDim >::get().DataConnector(); 
+            DataConnector &dc = Environment< simDim >::get().DataConnector();
             FieldType * pField = &(dc.getData< FieldType > (FieldType::getName(), true));
             DataSpace< simDim > guarding = SuperCellSize::toRT() * cellDescription->getGuardingSuperCells();
             if (movingWindow)
@@ -163,7 +163,7 @@ class PSource
         typename FieldTmp::DataBoxType shifted;
         MappingDesc *cellDescription;
         bool movingWindow;
-        
+
         PSource() : cellDescription(NULL), movingWindow(false) {}
         PSource(MappingDesc *cellDescription, bool movingWindow) : cellDescription(cellDescription), movingWindow(movingWindow) {}
 
@@ -173,7 +173,7 @@ class PSource
             {
                 uint32_t* currentStep = (uint32_t*)pointer;
                 const SubGrid<simDim>& subGrid = Environment< simDim >::get().SubGrid();
-                DataConnector &dc = Environment< simDim >::get().DataConnector(); 
+                DataConnector &dc = Environment< simDim >::get().DataConnector();
                 FieldTmp * fieldTmp = &(dc.getData< FieldTmp > (FieldTmp::getName(), true));
                 ParticleType * particles = &(dc.getData< ParticleType > ( ParticleType::FrameType::getName(), true));
                 typedef typename CreateDensityOperation< ParticleType >::type::Solver FrameSolver;
@@ -324,7 +324,7 @@ public:
                     json_object_set_new( visualization->getJsonMetaRoot(), "cell count", json_integer( cell_count ) );
                     json_object_set_new( visualization->getJsonMetaRoot(), "particle count", json_integer( particle_count ) );
                 }
-                uint64_t start = visualization->getTicksUs(); 
+                uint64_t start = visualization->getTicksUs();
                 json_t* meta = visualization->doVisualization(META_MASTER, &currentStep, !pause);
                 drawing_time = visualization->getTicksUs() - start;
                 json_t* json_pause = NULL;
@@ -416,9 +416,9 @@ private:
                 movingWindow = true;
             float_X minCellSize = min( cellSize[0], min( cellSize[1], cellSize[2] ) );
             float3_X cellSizeFactor = cellSize / minCellSize;
-            
+
             const SubGrid<simDim>& subGrid = Environment< simDim >::get().SubGrid();
- 
+
             sources = SourceList(
                 ESource(cellDescription,movingWindow)
                 ,BSource(cellDescription,movingWindow)
