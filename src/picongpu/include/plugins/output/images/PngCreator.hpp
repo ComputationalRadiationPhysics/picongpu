@@ -124,12 +124,6 @@ namespace picongpu
                         const Size2D size,
                         const MessageHeader header);
 
-        void resizeAndScaleImage(pngwriter* png, double scaleFactor)
-        {
-            if (scaleFactor != 1.)
-                png->scale_k(scaleFactor);
-        }
-
         std::string m_name;
         std::string m_folder;
         bool m_createFolder;
@@ -157,8 +151,6 @@ namespace picongpu
 
         std::stringstream step;
         step << std::setw(6) << std::setfill('0') << header.sim.step;
-        float_X scale_x = header.sim.scale[0];
-        float_X scale_y = header.sim.scale[1];
         std::string filename(m_name + "_" + step.str() + ".png");
 
         pngwriter png(size.x(), size.y(), 0, filename.c_str());
@@ -178,16 +170,26 @@ namespace picongpu
             }
         }
 
-        // scale to real cell size
-        // but, to prevent artifacts:
-        //   scale only, if at least one of
-        //   scale_x and scale_y is != 1.0
-        if (scale_to_cellsize)
-            if ((scale_x != float_X(1.0)) || (scale_y != float_X(1.0)))
-                png.scale_kxky(scale_x, scale_y);
+        /* scale the image by a user defined relative factor
+         * `scale_image` is defined in `visualization.param`
+         */
+        float_X scale_x(scale_image);
+        float_X scale_y(scale_image);
 
-        // global rescales to save disk space
-        resizeAndScaleImage(&png, scale_image);
+
+        if (scale_to_cellsize)
+        {
+            // scale to real cell size
+            scale_x *= header.sim.scale[0];
+            scale_y *= header.sim.scale[1];
+        }
+
+        /* to prevent artifacts scale only, if at least one of scale_x and
+         * scale_y is != 1.0
+         */
+        if ((scale_x != float_X(1.0)) || (scale_y != float_X(1.0)))
+            //process the cell size and by factor scaling within one step
+            png.scale_kxky(scale_x, scale_y);
 
         // add some meta information
         //header.writeToConsole( std::cout );
