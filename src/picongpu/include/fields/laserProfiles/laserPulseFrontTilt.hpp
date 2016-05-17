@@ -136,7 +136,7 @@ namespace picongpu
             return elong;
 #else
             //beam waist in the near field: w_y(y=0) == W0
-            const float_X w_y = W0 * sqrtf( float_X(1.0) + ( FOCUS_POS / y_R )*( FOCUS_POS / y_R ) );
+            const float_X w_y = W0 * algorithms::math::sqrt( float_X(1.0) + ( FOCUS_POS / y_R )*( FOCUS_POS / y_R ) );
             //! the Gouy phase shift
             const float_X xi_y = atanf( -FOCUS_POS / y_R );
 

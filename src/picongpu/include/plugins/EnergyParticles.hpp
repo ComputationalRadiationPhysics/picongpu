@@ -116,7 +116,8 @@ __global__ void kernelEnergyParticles(ParBox pb,
             {
                 /* kinetic energy for particles: E = (gamma - 1) * m * c^2
                  *                                    gamma = sqrt( 1 + (p/m/c)^2 )
-                 * _local_energyKin += (sqrtf(mom2 / (mass * mass * c2) + 1.) - 1.) * mass * c2;
+                 * _local_energyKin += (algorithms::math::sqrt(mom2 / (mass * mass * c2) 
+                 *                                             + 1.) - 1.) * mass * c2;
                  */
                 _local_energyKin += (gamma - float_X(1.0)) * mass*c2;
             }
@@ -124,7 +125,7 @@ __global__ void kernelEnergyParticles(ParBox pb,
             /* total energy for particles: E^2 = p^2*c^2 + m^2*c^4
              *                                   = c^2 * [p^2 + m^2*c^2]
              */
-            _local_energy += sqrtf(mom2 + mass * mass * c2) * SPEED_OF_LIGHT;
+            _local_energy += algorithms::math::sqrt(mom2 + mass * mass * c2) * SPEED_OF_LIGHT;
 
         }
         __syncthreads(); /* wait till all threads have added their particle energies */
