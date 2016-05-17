@@ -54,7 +54,6 @@ class TSource
         typename FieldType::DataBoxType shifted;
         MappingDesc *cellDescription;
         bool movingWindow;
-
         TSource() : cellDescription(NULL), movingWindow(false) {}
         TSource(MappingDesc *cellDescription, bool movingWindow) : cellDescription(cellDescription), movingWindow(movingWindow) {}
 
