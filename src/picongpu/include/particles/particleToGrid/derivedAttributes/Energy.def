@@ -20,7 +20,9 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
+#include "traits/SIBaseUnits.hpp"
+#include <vector>
 
 
 namespace picongpu
@@ -34,6 +36,22 @@ namespace derivedAttributes
 
         HDINLINE float1_64
         getUnit() const;
+
+        HDINLINE std::vector<float_64>
+        getUnitDimension() const
+        {
+           /* L, M, T, I, theta, N, J
+            *
+            * Energy is in Joule: J = kg * m^2 / s^2
+            *   -> L^2 * M * T^-2
+            */
+           std::vector<float_64> unitDimension( 7, 0.0 );
+           unitDimension.at(SIBaseUnits::length) =  2.0;
+           unitDimension.at(SIBaseUnits::mass)   =  1.0;
+           unitDimension.at(SIBaseUnits::time)   = -2.0;
+
+           return unitDimension;
+        }
 
         HINLINE std::string
         getName() const

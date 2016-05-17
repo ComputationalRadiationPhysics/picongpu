@@ -23,13 +23,15 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 
 #include "math/Vector.hpp"
 #include "particles/particleToGrid/ComputeGridValuePerFrame.def"
 #include "particles/particleToGrid/derivedAttributes/DerivedAttributes.hpp"
 
 #include "algorithms/Gamma.hpp"
+
+#include <vector>
 
 namespace picongpu
 {
@@ -41,6 +43,13 @@ HDINLINE float1_64
 ComputeGridValuePerFrame<T_ParticleShape, T_DerivedAttribute>::getUnit() const
 {
     return T_DerivedAttribute().getUnit();
+}
+
+template<class T_ParticleShape, class T_DerivedAttribute>
+HDINLINE std::vector<float_64>
+ComputeGridValuePerFrame<T_ParticleShape, T_DerivedAttribute>::getUnitDimension() const
+{
+    return T_DerivedAttribute().getUnitDimension();
 }
 
 template<class T_ParticleShape, class T_DerivedAttribute>

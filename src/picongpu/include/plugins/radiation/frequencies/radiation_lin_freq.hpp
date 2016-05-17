@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
 
 
@@ -43,9 +43,9 @@ namespace picongpu
       FreqFunctor(void)
       { }
 
-      DINLINE float_X operator()(const int ID)
+      HDINLINE float_X operator()(const int ID)
       {
-    return omega_min + float_X(ID) * delta_omega;
+          return omega_min + float_X(ID) * delta_omega;
       }
     };
 

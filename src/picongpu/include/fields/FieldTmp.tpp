@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "memory/buffers/GridBuffer.hpp"
 #include "mappings/simulation/GridController.hpp"
 
@@ -70,7 +70,7 @@ namespace picongpu
             VectorAllSpecies,
             interpolation<>
         >::type VectorSpeciesWithInterpolation;
-            
+
         /* ------------------ lower margin  ----------------------------------*/
         typedef bmpl::accumulate<
             VectorSpeciesWithInterpolation,
@@ -172,7 +172,7 @@ namespace picongpu
             typename FrameSolver::UpperMargin
             > BlockArea;
 
-        StrideMapping<AREA, simDim, MappingDesc> mapper( cellDescription );
+        StrideMapping<AREA, 3, MappingDesc> mapper( cellDescription );
         typename ParticlesClass::ParticlesBoxType pBox = parClass.getDeviceParticlesBox( );
         FieldTmp::DataBoxType tmpBox = this->fieldTmp->getDeviceBuffer( ).getDataBox( );
         FrameSolver solver;
@@ -283,6 +283,12 @@ namespace picongpu
         return FrameSolver().getUnit();
     }
 
+    template<class FrameSolver >
+    HDINLINE std::vector<float_64>
+    FieldTmp::getUnitDimension( )
+    {
+        return FrameSolver().getUnitDimension();
+    }
 
     std::string
     FieldTmp::getName( )

@@ -23,8 +23,8 @@
 
 #pragma once
 
-#include "types.h"
-#include "math.h"
+#include "pmacc_types.hpp"
+#include <cmath>
 
 
 namespace PMacc
@@ -53,6 +53,17 @@ struct Log<double>
     HDINLINE double operator( )(const double& value )
     {
         return ::log( value );
+    }
+};
+
+template<>
+struct Log10<double>
+{
+    typedef double result;
+
+    HDINLINE double operator( )(const double& value)
+    {
+        return ::log10( value );
     }
 };
 

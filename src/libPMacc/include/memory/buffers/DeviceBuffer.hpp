@@ -1,5 +1,6 @@
 /**
  * Copyright 2013-2016 Heiko Burau, Rene Widera, Benjamin Worpitz
+ *                     Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -27,7 +28,7 @@
 #include <math/vector/Int.hpp>
 #include <math/vector/Size_t.hpp>
 #include <memory/buffers/Buffer.hpp>
-#include <types.h>
+#include "pmacc_types.hpp"
 
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
@@ -77,31 +78,21 @@ namespace PMacc
         };
 
 
-#define COMMA ,
-
         HINLINE
         container::CartBuffer<TYPE, DIM, allocator::DeviceMemAllocator<TYPE, DIM>,
                                 copier::D2DCopier<DIM>,
                                 assigner::DeviceMemAssigner<> >
         cartBuffer() const
         {
-            container::DeviceBuffer<TYPE, DIM> result;
             cudaPitchedPtr cudaData = this->getCudaPitched();
-            result.dataPointer = (TYPE*)cudaData.ptr;
-            result._size = (math::Size_t<DIM>)this->getDataSpace();
-            if(DIM == 2) result.pitch[0] = cudaData.pitch;
+            math::Size_t<DIM - 1> pitch;
+            if(DIM >= 2)
+                pitch[0] = cudaData.pitch;
             if(DIM == 3)
-            {
-                result.pitch[0] = cudaData.pitch;
-                result.pitch[1] = cudaData.pitch * this->getPhysicalMemorySize()[1];
-            }
-#ifndef __CUDA_ARCH__
-            result.refCount = new int;
-#endif
-            *result.refCount = 2;
+                pitch[1] = pitch[0] * this->getPhysicalMemorySize()[1];
+            container::DeviceBuffer<TYPE, DIM> result((TYPE*)cudaData.ptr, this->getDataSpace(), false, pitch);
             return result;
         }
-#undef COMMA
 
 
         /**

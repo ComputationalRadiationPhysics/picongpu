@@ -26,37 +26,34 @@
 #include "mpi/GetMPI_Op.hpp"
 #include "algorithms/math.hpp"
 
-#include "types.h"
+#include "pmacc_types.hpp"
 
 namespace PMacc
 {
-    namespace nvidia
+namespace nvidia
+{
+namespace functors
+{
+    struct Min
     {
-        namespace functors
+        template<typename Dst, typename Src >
+        DINLINE void operator()(Dst & dst, const Src & src) const
         {
-
-            struct Min
-            {
-
-                template<typename Dst, typename Src >
-                        DINLINE void operator()(Dst & dst, const Src & src) const
-                {
-                    dst = algorithms::math::max(dst, src);
-                }
-            };
+            dst = algorithms::math::max(dst, src);
         }
-    }
-}
+    };
+} // namespace functors
+} // namespace nvidia
+} // namespace PMacc
 
 namespace PMacc
 {
-    namespace mpi
+namespace mpi
+{
+    template<>
+    MPI_Op getMPI_Op<PMacc::nvidia::functors::Min>()
     {
-
-        template<>
-        MPI_Op getMPI_Op<PMacc::nvidia::functors::Min>()
-        {
-            return MPI_MIN;
-        }
+        return MPI_MIN;
     }
-}
+} // namespace mpi
+} // namespace PMacc

@@ -36,13 +36,36 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 # set helper pathes to find libraries and packages
-set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/" "$ENV{MPI_ROOT}"
-    "$ENV{CUDA_ROOT}" "$ENV{BOOST_ROOT}" "$ENV{HDF5_ROOT}" "$ENV{VT_ROOT}")
+# Add specific hints
+list(APPEND CMAKE_PREFIX_PATH "$ENV{MPI_ROOT}")
+list(APPEND CMAKE_PREFIX_PATH "$ENV{CUDA_ROOT}")
+list(APPEND CMAKE_PREFIX_PATH "$ENV{BOOST_ROOT}")
+list(APPEND CMAKE_PREFIX_PATH "$ENV{HDF5_ROOT}")
+list(APPEND CMAKE_PREFIX_PATH "$ENV{VT_ROOT}")
+# Add from environment after specific env vars
+list(APPEND CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
+# Last add generic system path to the end (as last fallback)
+list(APPEND "/usr/lib/x86_64-linux-gnu/")
 
 # own modules for find_packages
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
     ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdParty/cmake-modules/)
 
+
+################################################################################
+# C++11 Enabler
+################################################################################
+
+# By using this if-else one can assume that:
+# CMAKE_CXX_STANDARD==11 <=> CUDA_NVCC_FLAGS contain "-std=c++11"
+if("${CUDA_NVCC_FLAGS}" MATCHES "-std=c\\+\\+11")
+    set(CMAKE_CXX_STANDARD 11)
+elseif("${CMAKE_CXX_STANDARD}" STREQUAL "11")
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" -std=c++11)
+else()
+    # Note: Add support for C++14 once CUDA supports it (maybe 8.0?)
+    set(CMAKE_CXX_STANDARD 98)
+endif()
 
 ################################################################################
 # Find CUDA 
@@ -88,19 +111,14 @@ if(CUDA_KEEP_FILES)
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" --keep --keep-dir "${PROJECT_BINARY_DIR}/nvcc_tmp")
 endif(CUDA_KEEP_FILES)
 
-################################################################################
-# C++11 Enabler
-################################################################################
-
-# By using this if-else one can assume that:
-# CMAKE_CXX_STANDARD==11 <=> CUDA_NVCC_FLAGS contain "-std=c++11"
-if("${CUDA_NVCC_FLAGS}" MATCHES "-std=c\\+\\+11")
-    set(CMAKE_CXX_STANDARD 11)
-elseif("${CMAKE_CXX_STANDARD}" STREQUAL "11")
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" -std=c++11)
-else()
-    # Note: Add support for C++14 once CUDA supports it (maybe 8.0?)
-    set(CMAKE_CXX_STANDARD 98)
+if( (CUDA_VERSION VERSION_GREATER 7.0) AND
+    (CMAKE_CXX_STANDARD EQUAL 98) )
+    # Kind of invalid usage of floats in constant expressions
+    # which causes problems in nvcc 7.5 and up:
+    # https://github.com/ComputationalRadiationPhysics/picongpu/issues/1290
+    message(FATAL_ERROR "Please enable C++11 with
+                        `-std=c++11` or `-DCMAKE_CXX_STANDARD=11`
+                        when compiling with nvcc 7.5")
 endif()
 
 ################################################################################
@@ -159,54 +177,6 @@ if(VAMPIR_ENABLE)
     # titan work around: currently (5.14.4) the -D defines are not provided by -vt:showme-compile
     add_definitions(-DMPICH_IGNORE_CXX_SEEK)
 endif(VAMPIR_ENABLE)
-
-
-################################################################################
-# Score-P
-################################################################################
-
-option(SCOREP_ENABLE "Create PIConGPU with Score-P support" OFF)
-
-if(SCOREP_ENABLE)
-    message(STATUS "Building with Score-P support")
-    set(SCOREP_ROOT "$ENV{SCOREP_ROOT}")
-    if(NOT SCOREP_ROOT)
-        message(FATAL_ERROR "Environment variable SCOREP_ROOT not set!")
-    endif(NOT SCOREP_ROOT)
-
-    # compile flags
-    execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --nocompiler --cflags
-                    OUTPUT_VARIABLE SCOREP_COMPILEFLAGS
-                    RESULT_VARIABLE SCOREP_CONFIG_RETURN
-                    OUTPUT_STRIP_TRAILING_WHITESPACE)
-    if(NOT SCOREP_CONFIG_RETURN EQUAL 0)
-        message(FATAL_ERROR "Can NOT execute 'scorep-config' at $ENV{SCOREP_ROOT}/bin/scorep-config - check file permissions")
-    endif()
-
-    # link flags
-    execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --cuda --mpp=mpi --ldflags
-                    OUTPUT_VARIABLE SCOREP_LINKFLAGS
-                    OUTPUT_STRIP_TRAILING_WHITESPACE)
-    # libraries
-    execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --cuda --mpp=mpi --libs
-                    OUTPUT_VARIABLE SCOREP_LIBFLAGS
-                    OUTPUT_STRIP_TRAILING_WHITESPACE)
-    string(STRIP "${SCOREP_LIBFLAGS}" SCOREP_LIBFLAGS)
-
-    # subsystem iniialization file
-    execute_process(COMMAND $ENV{SCOREP_ROOT}/bin/scorep-config --cuda --mpp=mpi --adapter-init
-                    OUTPUT_VARIABLE SCOREP_INIT_FILE
-                    OUTPUT_STRIP_TRAILING_WHITESPACE)
-    file(WRITE ${CMAKE_BINARY_DIR}/scorep_init.c "${SCOREP_INIT_FILE}")
-
-    if(SCOREP_ENABLE)
-        set(SCOREP_SRCFILES "${CMAKE_BINARY_DIR}/scorep_init.c")
-    endif(SCOREP_ENABLE)
-
-    # modify our flags
-    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} ${SCOREP_LINKFLAGS}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SCOREP_COMPILEFLAGS}")
-endif(SCOREP_ENABLE)
 
 
 ################################################################################
@@ -280,6 +250,16 @@ if( (Boost_VERSION EQUAL 106000) AND
     # Boost Bug https://svn.boost.org/trac/boost/ticket/11852
     message(FATAL_ERROR "Boost: Please use a C++11 enabled Compiler with "
                         "`-std=c++11` when compiling with Boost 1.60.0")
+endif()
+
+# Boost 1.60.0 and CUDA releases prior to 7.5 fail on variadic templates
+# when used with C++11
+if( (Boost_VERSION EQUAL 106000) AND
+    (CUDA_VERSION VERSION_LESS 7.5) AND
+    (NOT CMAKE_CXX_STANDARD EQUAL 98) )
+    # Boost Bug https://svn.boost.org/trac/boost/ticket/11897
+    message(STATUS "Boost: Disable variadic templates")
+    add_definitions(-DBOOST_NO_CXX11_VARIADIC_TEMPLATES)
 endif()
 
 
@@ -382,7 +362,6 @@ if(PIC_ENABLE_INSITU_VOLVIS)
 	set(LIBS ${LIBS} ${ICET_CORE_LIBS} ${ICET_MPI_LIBS})
 endif(PIC_ENABLE_INSITU_VOLVIS)
 
-
 ################################################################################
 # ADIOS
 ################################################################################
@@ -438,7 +417,7 @@ include_directories(${PMACC_ROOT_DIR}/include)
 # find libSplash installation
 # prefer static libraries over shared ones (but do not force them)
 set(Splash_USE_STATIC_LIBS ON)
-find_package(Splash 1.2.4 COMPONENTS PARALLEL)
+find_package(Splash 1.4.0 COMPONENTS PARALLEL)
 
 if(Splash_FOUND)
     include_directories(SYSTEM ${Splash_INCLUDE_DIRS})
@@ -495,16 +474,9 @@ file(GLOB SRCFILES "*.cpp")
 cuda_add_executable(picongpu
     ${CUDASRCFILES}
     ${SRCFILES}
-    ${SCOREP_SRCFILES}
 )
 
 target_link_libraries(picongpu  ${LIBS} ${CUDA_CUDART_LIBRARY} z m)
-
-if(SCOREP_ENABLE)
-    # Score-P libraries must be linked after the object to prevent symbols
-    # from being stripped on Titan
-    target_link_libraries(picongpu ${SCOREP_LIBFLAGS})
-endif(SCOREP_ENABLE)
 
 ################################################################################
 # Install PIConGPU

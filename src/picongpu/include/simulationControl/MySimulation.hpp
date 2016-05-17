@@ -27,7 +27,7 @@
 #include <vector>
 #include <boost/lexical_cast.hpp>
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "simulationControl/SimulationHelper.hpp"
 #include "simulation_defines.hpp"
 
@@ -63,6 +63,7 @@
 #include "particles/InitFunctors.hpp"
 #include "particles/memory/buffers/MallocMCBuffer.hpp"
 #include "particles/traits/FilterByFlag.hpp"
+#include "particles/IdProvider.hpp"
 
 #include <boost/mpl/int.hpp>
 
@@ -265,7 +266,7 @@ public:
 
     }
 
-    virtual uint32_t init()
+    virtual void init()
     {
         namespace nvmem = PMacc::nvidia::memory;
         // create simulation data such as fields and particles
@@ -314,6 +315,8 @@ public:
         Environment<>::get().MemoryInfo().getMemoryInfo(&freeGpuMem);
         log<picLog::MEMORY > ("free mem after all mem is allocated %1% MiB") % (freeGpuMem / 1024 / 1024);
 
+        IdProvider<simDim>::init();
+
         fieldB->init(*fieldE, *laser);
         fieldE->init(*fieldB, *laser);
         fieldJ->init(*fieldE, *fieldB);
@@ -332,9 +335,25 @@ public:
 
         /* add CUDA streams to the StreamController for concurrent execution */
         Environment<>::get().StreamController().addStreams(6);
+    }
 
+    virtual uint32_t fillSimulation()
+    {
+        /* assume start (restart in initialiserController might change that) */
         uint32_t step = 0;
 
+        /* set slideCounter properties for PIConGPU MovingWindow: assume start
+         * (restart in initialiserController might change this again)
+         */
+        MovingWindow::getInstance().setSlideCounter(0, 0);
+        /* Update MPI domain decomposition: will also update SubGrid domain
+         * information such as local offsets in y-direction
+         */
+        GridController<simDim> &gc = Environment<simDim>::get().GridController();
+        if( MovingWindow::getInstance().isSlidingWindowActive() )
+            gc.setStateAfterSlides(0);
+
+        /* fill all objects registed in DataConnector */
         if (initialiserController)
         {
             initialiserController->printInformation();
@@ -363,6 +382,7 @@ public:
             }
         }
 
+        size_t freeGpuMem(0u);
         Environment<>::get().MemoryInfo().getMemoryInfo(&freeGpuMem);
         log<picLog::MEMORY > ("free mem after all particles are initialized %1% MiB") % (freeGpuMem / 1024 / 1024);
 
@@ -428,7 +448,8 @@ public:
 
         this->myFieldSolver->update_beforeCurrent(currentStep);
 
-        fieldJ->clear();
+        FieldJ::ValueType zeroJ( FieldJ::ValueType::create(0.) );
+        fieldJ->assign( zeroJ );
 
         __setTransactionEvent(commEvent);
         (*currentBGField)(fieldJ, nvfct::Add(), FieldBackgroundJ(fieldJ->getUnit()),
@@ -498,7 +519,7 @@ public:
                         currentStep, FieldBackgroundB::InfluenceParticlePusher );
     }
 
-    void resetAll(uint32_t currentStep)
+    virtual void resetAll(uint32_t currentStep)
     {
 
         fieldB->reset(currentStep);

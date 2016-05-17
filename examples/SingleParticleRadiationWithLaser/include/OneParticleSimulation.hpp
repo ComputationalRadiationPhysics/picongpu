@@ -43,7 +43,7 @@
 #include "nvidia/memory/MemoryInfo.hpp"
 #include "mappings/kernel/MappingDescription.hpp"
 
-#include <assert.h>
+#include <cassert>
 
 #include "plugins/PluginController.hpp"
 #include "particles/ParticlesInitOneParticle.hpp"
@@ -64,7 +64,7 @@ public:
     {
     }
 
-    virtual uint32_t init()
+    virtual void init()
     {
 
         MySimulation::init();
@@ -82,6 +82,11 @@ public:
 
         //diabled because we have a transaction bug
         //StreamController::getInstance().addStreams(6);
+    }
+
+    virtual uint32_t fillSimulation()
+    {
+        MySimulation::fillSimulation();
 
         //add one particle in simulation
         //
@@ -123,7 +128,6 @@ public:
         __setTransactionEvent(eRfieldB);
 
         return 0;
-
     }
 
     /**
@@ -133,21 +137,18 @@ public:
      */
     virtual void runOneStep(uint32_t currentStep)
     {
-        fieldJ->clear();
+        FieldJ::ValueType zeroJ( FieldJ::ValueType::create(0.) );
+        fieldJ->assign( zeroJ );
 
-#if (ENABLE_ELECTRONS == 1)
         __startTransaction(__getTransactionEvent());
-        //std::cout << "Begin update Electrons" << std::endl;
-        particleStorage[TypeAsIdentifier<PIC_Electrons>()]->update(currentStep);
-        //std::cout << "End update Electrons" << std::endl;
-        EventTask eRecvElectrons = communication::asyncCommunication(*particleStorage[TypeAsIdentifier<PIC_Electrons>()], __getTransactionEvent());
-        EventTask eElectrons = __endTransaction();
-#endif
+        EventTask initEvent = __getTransactionEvent();
+        EventTask updateEvent;
+        EventTask commEvent;
 
-#if (ENABLE_ELECTRONS == 1)
-        __setTransactionEvent(eRecvElectrons + eElectrons);
-
-#endif
+        /* push all species */
+        particles::PushAllSpecies pushAllSpecies;
+        pushAllSpecies(particleStorage, currentStep, initEvent, updateEvent, commEvent);
+        __setTransactionEvent(updateEvent + commEvent);
 
         this->myFieldSolver->update_beforeCurrent(currentStep);
         this->myFieldSolver->update_afterCurrent(currentStep);

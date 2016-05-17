@@ -98,15 +98,15 @@ def deviation_charge_conservation(h5file):
     is2D = False
 
     # load electric field
-    Ex = np.array(f["/data/{}/fields/FieldE/x".format(timestep)])
-    Ey = np.array(f["/data/{}/fields/FieldE/y".format(timestep)])
-    Ez = np.array(f["/data/{}/fields/FieldE/z".format(timestep)])
+    Ex = np.array(f["/data/{}/fields/E/x".format(timestep)])
+    Ey = np.array(f["/data/{}/fields/E/y".format(timestep)])
+    Ez = np.array(f["/data/{}/fields/E/z".format(timestep)])
 
     # load and add charge density
     charge = np.zeros_like(Ex)
     norm = 0.0
     for field_name in f["/data/{}/fields/".format(timestep)].keys():
-        if field_name[0:8] == "Density_":
+        if field_name[-14:] == "_chargeDensity":
             # load species density
             species_Density_pointer = f["/data/{}/fields/".format(timestep) + field_name]
             species_Density = np.array(species_Density_pointer)

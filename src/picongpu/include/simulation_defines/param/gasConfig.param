@@ -226,7 +226,7 @@ PMACC_STRUCT(FromHDF5Param,
      */
     (PMACC_C_STRING(filename,"gas"))
 
-    (PMACC_C_STRING(datasetName,"fields/Density_e"))
+    (PMACC_C_STRING(datasetName,"fields/e_chargeDensity"))
 
     /* simulation step*/
     (PMACC_C_VALUE(uint32_t, iteration, 0))

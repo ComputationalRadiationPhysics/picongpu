@@ -24,7 +24,7 @@
 
 
 #include <builtin_types.h>
-#include "types.h"
+#include "pmacc_types.hpp"
 #include <string>
 #include <ostream>
 #include <math_functions.h>

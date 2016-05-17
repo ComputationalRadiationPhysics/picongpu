@@ -23,10 +23,11 @@
 #pragma once
 
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "simulation_types.hpp"
 #include "plugins/hdf5/HDF5Writer.def"
 #include "traits/PICToSplash.hpp"
+#include "traits/PICToOpenPMD.hpp"
 #include "traits/GetComponentsType.hpp"
 #include "traits/GetNComponents.hpp"
 #include "traits/Resolve.hpp"
@@ -43,26 +44,29 @@ using namespace splash;
 
 /** write attribute of a particle to hdf5 file
  *
- * @tparam T_Identifier identifier of a particle attribute
+ * @tparam T_Identifier identifier of a particle record
  */
 template< typename T_Identifier>
 struct ParticleAttribute
 {
-
     /** write attribute to hdf5 file
      *
-     * @param params wrapped params with domainwriter, ...
+     * @param params wrapped thread params such as domainwriter, ...
      * @param frame frame with all particles
-     * @param prefix a name prefix for hdf5 attribute (is combined to: prefix_nameOfAttribute)
-     * @param simOffset offset from window origin of thedomain
-     * @param localSize local domain size
+     * @param speciesPath path for the current species (of FrameType)
+     * @param elements number of particles in this patch
+     * @param elementsOffset number of particles in this patch
+     * @param numParticlesGlobal number of particles globally
      */
     template<typename FrameType>
     HINLINE void operator()(
                             ThreadParams* params,
                             FrameType& frame,
-                            const std::string subGroup,
-                            const size_t elements)
+                            const std::string speciesPath,
+                            const uint64_t elements,
+                            const uint64_t elementsOffset,
+                            const uint64_t numParticlesGlobal
+    )
     {
 
         typedef T_Identifier Identifier;
@@ -70,15 +74,33 @@ struct ParticleAttribute
         const uint32_t components = GetNComponents<ValueType>::value;
         typedef typename GetComponentsType<ValueType>::type ComponentType;
         typedef typename PICToSplash<ComponentType>::type SplashType;
+        typedef typename PICToSplash<float_X>::type SplashFloatXType;
 
         const ThreadParams *threadParams = params;
 
         log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) write species attribute: %1%") % Identifier::getName();
 
         SplashType splashType;
+        ColTypeDouble ctDouble;
+        ColTypeUInt32 ctUInt32;
+        SplashFloatXType splashFloatXType;
+
+        OpenPMDName<T_Identifier> openPMDName;
+        const std::string recordPath( speciesPath + std::string("/") + openPMDName() );
+
         const std::string name_lookup[] = {"x", "y", "z"};
 
-        std::vector<float_64> unit = Unit<T_Identifier>::get();
+        // get the SI scaling, dimensionality and weighting of the attribute
+        OpenPMDUnit<T_Identifier> openPMDUnit;
+        std::vector<float_64> unit = openPMDUnit();
+        OpenPMDUnitDimension<T_Identifier> openPMDUnitDimension;
+        std::vector<float_64> unitDimension = openPMDUnitDimension();
+        const bool macroWeightedBool = MacroWeighted<T_Identifier>::get();
+        const uint32_t macroWeighted = (macroWeightedBool ? 1 : 0);
+        const float_64 weightingPower = WeightingPower<T_Identifier>::get();
+
+        assert(unit.size() == components); // unitSI for each component
+        assert(unitDimension.size() == 7); // seven openPMD base units
 
         /* globalSlideOffset due to gpu slides between origin at time step 0
          * and origin at current time step
@@ -110,42 +132,78 @@ struct ParticleAttribute
         for (uint32_t d = 0; d < components; d++)
         {
             std::stringstream datasetName;
-            datasetName << subGroup << "/" << T_Identifier::getName();
+            datasetName << recordPath;
             if (components > 1)
                 datasetName << "/" << name_lookup[d];
 
             ValueType* dataPtr = frame.getIdentifier(Identifier()).getPointer();
             #pragma omp parallel for
-            for (size_t i = 0; i < elements; ++i)
+            for( uint64_t i = 0; i < elements; ++i )
             {
                 tmpArray[i] = ((ComponentValueType*)dataPtr)[i * components + d];
             }
 
-            threadParams->dataCollector->writeDomain(threadParams->currentStep,
-                                                     splashType,
-                                                     1u,
-                                                     splash::Selection(Dimensions(elements, 1, 1)),
-                                                     datasetName.str().c_str(),
-                                                     splash::Domain(
-                                                            splashDomainOffset,
-                                                            splashDomainSize
-                                                     ),
-                                                     splash::Domain(
-                                                            splashGlobalDomainOffset,
-                                                            splashGlobalDomainSize
-                                                     ),
-                                                     DomainCollector::PolyType,
-                                                     tmpArray);
+            threadParams->dataCollector->writeDomain(
+                threadParams->currentStep,
+                /* Dimensions for global collective buffer */
+                Dimensions(numParticlesGlobal, 1, 1),
+                /* 3D-offset in the globalSize-buffer this process writes to */
+                Dimensions(elementsOffset, 1, 1),
+                /* Type information for data */
+                splashType,
+                /* Number of dimensions (1-3) of the buffer */
+                1u,
+                /* Selection: size in src buffer */
+                splash::Selection(
+                    Dimensions(elements, 1, 1)
+                ),
+                /* Name of the dataset */
+                datasetName.str().c_str(),
+                /* Global domain information */
+                splash::Domain(
+                    splashGlobalDomainOffset,
+                    splashGlobalDomainSize
+                ),
+                /* Domain type annotation */
+                DomainCollector::PolyType,
+                /* Buffer with data */
+                tmpArray
+            );
 
-            ColTypeDouble ctDouble;
-            if (unit.size() >= (d + 1))
-                threadParams->dataCollector->writeAttribute(threadParams->currentStep,
-                                                            ctDouble, datasetName.str().c_str(),
-                                                            "sim_unit", &(unit.at(d)));
-
+            threadParams->dataCollector->writeAttribute(
+                threadParams->currentStep,
+                ctDouble, datasetName.str().c_str(),
+                "unitSI", &(unit.at(d)));
 
         }
         __deleteArray(tmpArray);
+
+
+        threadParams->dataCollector->writeAttribute(
+            params->currentStep,
+            ctDouble, recordPath.c_str(),
+            "unitDimension",
+            1u, Dimensions(7,0,0),
+            &(*unitDimension.begin()));
+
+        threadParams->dataCollector->writeAttribute(
+            params->currentStep,
+            ctUInt32, recordPath.c_str(),
+            "macroWeighted",
+            &macroWeighted);
+
+        threadParams->dataCollector->writeAttribute(
+            params->currentStep,
+            ctDouble, recordPath.c_str(),
+            "weightingPower",
+            &weightingPower);
+
+        /** \todo check if always correct at this point, depends on attribute
+         *        and MW-solver/pusher implementation */
+        const float_X timeOffset = 0.0;
+        threadParams->dataCollector->writeAttribute(params->currentStep,
+                                                    splashFloatXType, recordPath.c_str(),
+                                                    "timeOffset", &timeOffset);
 
         log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) write species attribute: %1%") %
             Identifier::getName();

@@ -22,9 +22,9 @@
  */
 #pragma once
 
-#include "types.h"
-#include <float.h>
-#include "math.h"
+#include "pmacc_types.hpp"
+#include <cfloat>
+#include <cmath>
 
 
 namespace PMacc
@@ -46,6 +46,17 @@ struct Sin<double>
 };
 
 template<>
+struct ASin<double>
+{
+    typedef double result;
+
+    HDINLINE double operator( )(const double& value)
+    {
+        return ::asin( value );
+    }
+};
+
+template<>
 struct Cos<double>
 {
     typedef double result;
@@ -53,6 +64,17 @@ struct Cos<double>
     HDINLINE double operator( )(const double& value )
     {
         return ::cos( value );
+    }
+};
+
+template<>
+struct ACos<double>
+{
+    typedef double result;
+
+    HDINLINE double operator( )(const double& value)
+    {
+        return ::acos( value );
     }
 };
 

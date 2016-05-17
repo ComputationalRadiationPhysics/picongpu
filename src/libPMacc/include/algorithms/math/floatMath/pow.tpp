@@ -23,8 +23,8 @@
 
 #pragma once
 
-#include "types.h"
-#include <math.h> /*provide host version of pow*/
+#include "pmacc_types.hpp"
+#include <cmath>
 
 namespace PMacc
 {

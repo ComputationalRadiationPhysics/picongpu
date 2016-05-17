@@ -42,7 +42,7 @@
 #include "nvidia/memory/MemoryInfo.hpp"
 #include "mappings/kernel/MappingDescription.hpp"
 
-#include <assert.h>
+#include <cassert>
 
 #include "plugins/PluginController.hpp"
 #include "particles/ParticlesInitOneParticle.hpp"
@@ -63,7 +63,7 @@ public:
     {
     }
 
-    virtual uint32_t init()
+    virtual void init()
     {
 
         MySimulation::init();
@@ -83,6 +83,11 @@ public:
 
         //diabled because we have a transaction bug
         //StreamController::getInstance().addStreams(6);
+    }
+
+    virtual uint32_t fillSimulation()
+    {
+        MySimulation::fillSimulation();
 
         //add one particle in simulation
         //
@@ -119,7 +124,6 @@ public:
 
 
         return 0;
-
     }
 
     /**
@@ -129,15 +133,19 @@ public:
      */
     virtual void runOneStep(uint32_t currentStep)
     {
-        fieldJ->clear();
+        FieldJ::ValueType zeroJ( FieldJ::ValueType::create(0.) );
+        fieldJ->assign( zeroJ );
+
         __startTransaction(__getTransactionEvent());
 
-        particleStorage[TypeAsIdentifier<PIC_Electrons>()]->update(currentStep);
+        EventTask initEvent = __getTransactionEvent();
+        EventTask updateEvent;
+        EventTask commEvent;
 
-        EventTask eRecvElectrons = communication::asyncCommunication(*particleStorage[TypeAsIdentifier<PIC_Electrons>()], __getTransactionEvent());
-        EventTask eElectrons = __endTransaction();
-
-        __setTransactionEvent(eRecvElectrons + eElectrons);
+        /* push all species */
+        particles::PushAllSpecies pushAllSpecies;
+        pushAllSpecies(particleStorage, currentStep, initEvent, updateEvent, commEvent);
+        __setTransactionEvent(updateEvent + commEvent);
 
 #if (ENABLE_CURRENT == 1)
         fieldJ->computeCurrent < CORE + BORDER, PIC_Electrons > (*particleStorage[TypeAsIdentifier<PIC_Electrons>()], currentStep);

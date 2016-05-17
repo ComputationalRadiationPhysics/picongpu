@@ -27,7 +27,7 @@
 // above. (See Ref.!)
 #define FOR_JK_NOT_I(I,J,K,code) (code(I,J,K)) + (code(I, K, J))
 
-#include "types.h"
+#include "pmacc_types.hpp"
 
 namespace picongpu
 {

@@ -24,7 +24,7 @@
 
 #include "math/vector/Vector.hpp"
 #include "ppFunctions.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 
 /* select namespace depending on __CUDA_ARCH__ compiler flag*/
 #ifdef __CUDA_ARCH__ //we are on gpu

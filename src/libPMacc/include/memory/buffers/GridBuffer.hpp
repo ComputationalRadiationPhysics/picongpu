@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2016 Rene Widera, Benjamin Worpitz, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -27,8 +27,7 @@
 #include "mappings/simulation/EnvironmentController.hpp"
 #include "memory/dataTypes/Mask.hpp"
 #include "memory/buffers/ExchangeIntern.hpp"
-#include "memory/buffers/HostBufferIntern.hpp"
-#include "memory/buffers/DeviceBufferIntern.hpp"
+#include "memory/buffers/HostDeviceBuffer.hpp"
 
 #include <sstream>
 #include <stdexcept>
@@ -88,11 +87,12 @@ private:
  * @tparam BORDERTYPE optional type for border data in the buffers. TYPE is used by default.
  */
 template <class TYPE, unsigned DIM, class BORDERTYPE = TYPE>
-class GridBuffer
+class GridBuffer: public HostDeviceBuffer<TYPE, DIM>
 {
+    typedef HostDeviceBuffer<TYPE, DIM> Parent;
 public:
 
-    typedef DataBox<PitchedBox<TYPE, DIM> > DataBoxType;
+    typedef typename Parent::DataBoxType DataBoxType;
 
     /**
      * Constructor.
@@ -101,11 +101,12 @@ public:
      * @param sizeOnDevice if true, size information exists on device, too.
      */
     GridBuffer(const GridLayout<DIM>& gridLayout, bool sizeOnDevice = false) :
+    Parent(gridLayout.getDataSpace(), sizeOnDevice),
     gridLayout(gridLayout),
     hasOneExchange(false),
     maxExchange(0)
     {
-        init(sizeOnDevice);
+        init();
     }
 
     /**
@@ -118,12 +119,13 @@ public:
      *        performance on host-device copies, but some algorithms on the device
      *        might need to know the size of the buffer)
      */
-    GridBuffer(DataSpace<DIM>& dataSpace, bool sizeOnDevice = false) :
-    gridLayout(GridLayout<DIM>(dataSpace)),
+    GridBuffer(const DataSpace<DIM>& dataSpace, bool sizeOnDevice = false) :
+    Parent(dataSpace, sizeOnDevice),
+    gridLayout(dataSpace),
     hasOneExchange(false),
     maxExchange(0)
     {
-        init(sizeOnDevice);
+        init();
     }
 
     /**
@@ -137,39 +139,28 @@ public:
      *        performance on host-device copies, but some algorithms on the device
      *        might need to know the size of the buffer)
      */
-    GridBuffer(DeviceBuffer<TYPE, DIM>& otherDeviceBuffer, GridLayout<DIM> gridLayout, bool sizeOnDevice = false) :
+    GridBuffer(DeviceBuffer<TYPE, DIM>& otherDeviceBuffer, const GridLayout<DIM>& gridLayout, bool sizeOnDevice = false) :
+    Parent(otherDeviceBuffer, gridLayout.getDataSpace(), sizeOnDevice),
     gridLayout(gridLayout),
     hasOneExchange(false),
     maxExchange(0)
     {
-        init(sizeOnDevice, false);
-        this->deviceBuffer = new DeviceBufferIntern<TYPE, DIM >
-            (otherDeviceBuffer,
-             this->gridLayout.getDataSpace(),
-             DataSpace<DIM > (),
-             sizeOnDevice);
+        init();
     }
 
     GridBuffer(
                HostBuffer<TYPE, DIM>& otherHostBuffer,
-               DataSpace<DIM > offsetHost,
+               const DataSpace<DIM>& offsetHost,
                DeviceBuffer<TYPE, DIM>& otherDeviceBuffer,
-               DataSpace<DIM > offsetDevice,
-               GridLayout<DIM> gridLayout,
+               const DataSpace<DIM>& offsetDevice,
+               const GridLayout<DIM>& gridLayout,
                bool sizeOnDevice = false) :
+    Parent(otherHostBuffer, offsetHost, otherDeviceBuffer, offsetDevice, gridLayout.getDataSpace(), sizeOnDevice),
     gridLayout(gridLayout),
     hasOneExchange(false),
     maxExchange(0)
     {
-        init(sizeOnDevice, false, false);
-        this->deviceBuffer = new DeviceBufferIntern<TYPE, DIM >
-            (otherDeviceBuffer,
-             this->gridLayout.getDataSpace(),
-             offsetDevice, sizeOnDevice);
-        this->hostBuffer = new HostBufferIntern<TYPE, DIM >
-            (*((HostBufferIntern<TYPE, DIM>*) & otherHostBuffer),
-             this->gridLayout.getDataSpace(),
-             offsetHost);
+        init();
     }
 
     /**
@@ -181,23 +172,7 @@ public:
         {
             __delete(sendExchanges[i]);
             __delete(receiveExchanges[i]);
-        }
-
-        __delete(hostBuffer);
-        __delete(deviceBuffer);
-    }
-
-    /**
-     * Resets both internal buffers.
-     *
-     * See DeviceBuffer::reset and HostBuffer::reset for details.
-     *
-     * @param preserveData determines if data on internal buffers should not be erased
-     */
-    void reset(bool preserveData = true)
-    {
-        deviceBuffer->reset(preserveData);
-        hostBuffer->reset(preserveData);
+        };
     }
 
     /**
@@ -245,7 +220,7 @@ public:
                     std::stringstream message;
                     message << "unique exchange communication tag ("
                         << uniqCommunicationTag << ") witch is created from communicationTag ("
-                        << communicationTag << ") allready used for other gridbuffer exchange";
+                        << communicationTag << ") already used for other GridBuffer exchange";
                     throw std::runtime_error(message.str());
                 }
                 hasOneExchange = true;
@@ -254,16 +229,16 @@ public:
                 {
                     throw std::runtime_error("Exchange already added!");
                 }
-                //std::cout<<"Add Exchange: send="<<ex<<" receive="<<Mask::getMirroredExchangeType((ExchangeType)ex)<<std::endl;
+
                 maxExchange = std::max(maxExchange, ex + 1u);
-                sendExchanges[ex] = new ExchangeIntern<BORDERTYPE, DIM > (*deviceBuffer, gridLayout, guardingCells,
+                sendExchanges[ex] = new ExchangeIntern<BORDERTYPE, DIM > (this->getDeviceBuffer(), gridLayout, guardingCells,
                                                                           (ExchangeType) ex, uniqCommunicationTag,
                                                                           dataPlace == GUARD ? BORDER : GUARD, sizeOnDeviceSend);
                 ExchangeType recvex = Mask::getMirroredExchangeType(ex);
                 maxExchange = std::max(maxExchange, recvex + 1u);
                 receiveExchanges[recvex] =
                     new ExchangeIntern<BORDERTYPE, DIM > (
-                                                          *deviceBuffer,
+                                                          this->getDeviceBuffer(),
                                                           gridLayout,
                                                           guardingCells,
                                                           recvex,
@@ -338,7 +313,7 @@ public:
                         std::stringstream message;
                         message << "unique exchange communication tag ("
                             << uniqCommunicationTag << ") witch is created from communicationTag ("
-                            << communicationTag << ") allready used for other gridbuffer exchange";
+                            << communicationTag << ") already used for other GridBuffer exchange";
                         throw std::runtime_error(message.str());
                     }
                     hasOneExchange = true;
@@ -453,31 +428,11 @@ public:
     }
 
     /**
-     * Returns the internal data buffer on host side
+     * Starts sync data from own device buffer to neighbor device buffer.
      *
-     * @return internal HostBuffer
-     */
-    HostBuffer<TYPE, DIM>& getHostBuffer() const
-    {
-        return *(this->hostBuffer);
-    }
-
-    /**
-     * Returns the internal data buffer on device side
-     *
-     * @return internal DeviceBuffer
-     */
-    DeviceBuffer<TYPE, DIM>& getDeviceBuffer() const
-    {
-        return *(this->deviceBuffer);
-    }
-
-    /**
-     * Starts sync data from own device buffer to neigbhor device buffer.
-     *
-     * Asynchronously starts syncronization data from internal DeviceBuffer using added
+     * Asynchronously starts synchronization data from internal DeviceBuffer using added
      * Exchange buffers.
-     * This operation runs sequential to other code but intern asyncron
+     * This operation runs sequential to other code but intern asynchronous
      *
      */
     EventTask communication()
@@ -488,9 +443,9 @@ public:
     }
 
     /**
-     * Starts sync data from own device buffer to neigbhor device buffer.
+     * Starts sync data from own device buffer to neighbor device buffer.
      *
-     * Asynchronously starts syncronization data from internal DeviceBuffer using added
+     * Asynchronously starts synchronization data from internal DeviceBuffer using added
      * Exchange buffers.
      *
      */
@@ -504,22 +459,18 @@ public:
 
             ExchangeType sendEx = Mask::getMirroredExchangeType(i);
 
-            EventTask copyEvent;
-            asyncSend(serialEvent, sendEx, copyEvent);
-            /* add only the copy event, because all work on gpu can run after data is copied */
-            evR += copyEvent;
+            evR += asyncSend(serialEvent, sendEx);
 
         }
         return evR;
     }
 
-    EventTask asyncSend(EventTask serialEvent, uint32_t sendEx, EventTask &gpuFree)
+    EventTask asyncSend(EventTask serialEvent, uint32_t sendEx)
     {
         if (hasSendExchange(sendEx))
         {
             __startTransaction(serialEvent + sendEvents[sendEx]);
-            sendEvents[sendEx] = sendExchanges[sendEx]->startSend(gpuFree);
-            gpuFree = sendEvents[sendEx];
+            sendEvents[sendEx] = sendExchanges[sendEx]->startSend();
             __endTransaction();
             return sendEvents[sendEx];
         }
@@ -540,23 +491,6 @@ public:
     }
 
     /**
-     * Asynchronously copies data from internal host to internal device buffer.
-     *
-     */
-    void hostToDevice()
-    {
-        deviceBuffer->copyFrom(*hostBuffer);
-    }
-
-    /**
-     * Asynchronously copies data from internal device to internal host buffer.
-     */
-    void deviceToHost()
-    {
-        hostBuffer->copyFrom(*deviceBuffer);
-    }
-
-    /**
      * Returns the GridLayout describing this GridBuffer.
      *
      * @return the layout of this buffer
@@ -570,7 +504,7 @@ private:
 
     friend class Environment<DIM>;
 
-    void init(bool sizeOnDevice, bool buildDeviceBuffer = true, bool buildHostBuffer = true)
+    void init()
     {
         for (uint32_t i = 0; i < 27; ++i)
         {
@@ -581,22 +515,10 @@ private:
             receiveEvents[i] = EventTask();
             sendEvents[i] = EventTask();
         }
-        if (buildDeviceBuffer)
-        {
-            this->deviceBuffer = new DeviceBufferIntern<TYPE, DIM > (gridLayout.getDataSpace(), sizeOnDevice);
-        }
-        if (buildHostBuffer)
-        {
-            this->hostBuffer = new HostBufferIntern<TYPE, DIM > (gridLayout.getDataSpace());
-        }
     }
 
 protected:
-
-
-    HostBufferIntern<TYPE, DIM>* hostBuffer;
-    DeviceBufferIntern<TYPE, DIM>* deviceBuffer;
-    /*if we hase one exchange we not check if communicationtag has used before*/
+    /*if we have one exchange we don't check if communicationTag has been used before*/
     bool hasOneExchange;
     uint32_t lastUsedCommunicationTag;
     GridLayout<DIM> gridLayout;

@@ -190,7 +190,7 @@ void CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::exit()
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>&
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::operator=
-(const CartBuffer<Type, T_dim, Allocator, Copier, Assigner>& rhs)
+(BOOST_COPY_ASSIGN_REF(CartBuffer) rhs)
 {
 #ifndef __CUDA_ARCH__
     if(rhs.size() != this->size())
@@ -209,7 +209,7 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::operator=
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>&
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::operator=
-(BOOST_RV_REF(CartBuffer<Type COMMA T_dim COMMA Allocator COMMA Copier COMMA Assigner>) rhs)
+(BOOST_RV_REF(CartBuffer) rhs)
 {
 #ifndef __CUDA_ARCH__
     if(rhs.size() != this->size())

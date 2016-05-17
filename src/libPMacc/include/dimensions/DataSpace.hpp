@@ -24,7 +24,7 @@
 #pragma once
 
 #include "math/Vector.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 
 namespace PMacc
 {

@@ -22,24 +22,22 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 
 namespace PMacc
 {
-    namespace nvidia
+namespace nvidia
+{
+namespace functors
+{
+    struct Assign
     {
-        namespace functors
+        template<typename Dst, typename Src >
+        HDINLINE void operator()(Dst & dst, const Src & src) const
         {
-
-            struct Assign
-            {
-
-                template<typename Dst, typename Src >
-                        HDINLINE void operator()(Dst & dst, const Src & src) const
-                {
-                    dst = src;
-                }
-            };
+            dst = src;
         }
-    }
-}
+    };
+} // namespace functors
+} // namespace nvidia
+} // namespace PMacc

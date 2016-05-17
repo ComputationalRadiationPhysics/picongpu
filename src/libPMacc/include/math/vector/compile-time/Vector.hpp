@@ -35,7 +35,7 @@
 #include <boost/mpl/accumulate.hpp>
 #include <boost/mpl/less.hpp>
 #include "math/Vector.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 
 #include <stdint.h>
 

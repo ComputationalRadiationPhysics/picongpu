@@ -23,9 +23,9 @@
 
 #pragma once
 
-#include "types.h"
-#include <float.h>
-#include "math.h"
+#include "pmacc_types.hpp"
+#include <cfloat>
+#include <cmath>
 
 
 namespace PMacc
@@ -47,6 +47,21 @@ struct Sin<float>
 };
 
 template<>
+struct ASin<float>
+{
+    typedef float result;
+
+    HDINLINE float operator( )(const float& value)
+    {
+#if __CUDA_ARCH__
+        return ::asinf( value );
+#else
+        return ::asin( value );
+#endif
+    }
+};
+
+template<>
 struct Cos<float>
 {
     typedef float result;
@@ -54,6 +69,21 @@ struct Cos<float>
     HDINLINE float operator( )(const float& value )
     {
         return ::cosf( value );
+    }
+};
+
+template<>
+struct ACos<float>
+{
+    typedef float result;
+
+    HDINLINE float operator( )(const float& value)
+    {
+#if __CUDA_ARCH__
+        return ::acosf( value );
+#else
+        return ::acos( value );
+#endif
     }
 };
 

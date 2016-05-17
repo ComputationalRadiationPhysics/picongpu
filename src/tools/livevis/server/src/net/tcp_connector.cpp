@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Benjamin Schneider
+ * Copyright 2013-2016 Benjamin Schneider, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -19,7 +19,7 @@
  */
 
 #include "../../include/net/tcp_connector.hpp"
-#include <string.h>
+#include <cstring>
 
 namespace picongpu {
 namespace insituvolvis {

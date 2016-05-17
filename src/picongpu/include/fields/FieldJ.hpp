@@ -23,9 +23,10 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 /*pic default*/
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
 #include "simulation_classTypes.hpp"
 
@@ -77,9 +78,27 @@ public:
 
     void reset(uint32_t currentStep);
 
-    void clear();
+    /** Assign a value to all cells
+     *
+     * Example usage:
+     * ```C++
+     *   FieldJ::ValueType zeroJ( FieldJ::ValueType::create(0.) );
+     *   fieldJ->assign( zeroJ );
+     * ```
+     *
+     * \param value date to fill all cells with
+     */
+    void assign(ValueType value);
 
     HDINLINE static UnitValueType getUnit();
+
+    /** powers of the 7 base measures
+     *
+     * characterizing the record's unit in SI
+     * (length L, mass M, time T, electric current I,
+     *  thermodynamic temperature theta, amount of substance N,
+     *  luminous intensity J) */
+    HDINLINE static std::vector<float_64> getUnitDimension();
 
     static std::string getName();
 

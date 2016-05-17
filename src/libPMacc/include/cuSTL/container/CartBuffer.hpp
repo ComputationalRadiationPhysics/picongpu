@@ -31,7 +31,7 @@
 #include "cuSTL/container/view/View.hpp"
 #include "math/vector/Size_t.hpp"
 #include "math/vector/UInt32.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 
 #include <boost/mpl/void.hpp>
 #include <boost/mpl/int.hpp>
@@ -75,15 +75,17 @@ public:
     BOOST_STATIC_CONSTEXPR int dim = T_dim;
     typedef cursor::BufferCursor<Type, T_dim> Cursor;
     typedef typename Allocator::tag memoryTag;
+    typedef math::Size_t<T_dim> SizeType;
+    typedef math::Size_t<T_dim-1> PitchType;
 public:
     Type* dataPointer;
     int* refCount;
-    math::Size_t<T_dim> _size;
-    math::Size_t<T_dim-1> pitch;
+    SizeType _size;
+    PitchType pitch;
     HDINLINE void init();
     HDINLINE void exit();
     HDINLINE CartBuffer() : refCount(NULL) {}
-private:
+
     /* makes this class able to emulate a r-value reference */
     BOOST_COPYABLE_AND_MOVABLE(CartBuffer)
 public:
@@ -93,13 +95,13 @@ public:
     HDINLINE CartBuffer(size_t x, size_t y, size_t z);
     /* the copy constructor just increments the reference counter but does not copy memory */
     HDINLINE CartBuffer(const CartBuffer& other);
-    /* the move constructor has currently the same behavior as the copy constructor */
+    /* the move constructor */
     HDINLINE CartBuffer(BOOST_RV_REF(CartBuffer) other);
     HDINLINE ~CartBuffer();
 
     /* copy another container into this one (hard data copy) */
     HDINLINE CartBuffer&
-    operator=(const CartBuffer& rhs);
+    operator=(BOOST_COPY_ASSIGN_REF(CartBuffer) rhs);
     /* use the memory from another container and increment the reference counter */
     HDINLINE CartBuffer&
     operator=(BOOST_RV_REF(CartBuffer) rhs);

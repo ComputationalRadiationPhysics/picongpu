@@ -47,6 +47,7 @@
 #include "particles/traits/GetInterpolation.hpp"
 #include "particles/traits/FilterByFlag.hpp"
 #include "traits/GetMargin.hpp"
+#include "traits/SIBaseUnits.hpp"
 #include "particles/traits/GetMarginPusher.hpp"
 #include <boost/mpl/accumulate.hpp>
 #include "fields/LaserPhysics.hpp"
@@ -65,7 +66,7 @@ fieldB( NULL )
         VectorAllSpecies,
         interpolation<>
     >::type VectorSpeciesWithInterpolation;
-    
+
     typedef bmpl::accumulate<
         VectorSpeciesWithInterpolation,
         typename PMacc::math::CT::make_Int<simDim, 0>::type,
@@ -220,10 +221,28 @@ FieldE::getUnit( )
     return UnitValueType( UNIT_EFIELD, UNIT_EFIELD, UNIT_EFIELD );
 }
 
+HDINLINE
+std::vector<float_64>
+FieldE::getUnitDimension( )
+{
+    /* L, M, T, I, theta, N, J
+     *
+     * E is in volts per meters: V / m = kg * m / (A * s^3)
+     *   -> L * M * T^-3 * I^-1
+     */
+    std::vector<float_64> unitDimension( 7, 0.0 );
+    unitDimension.at(SIBaseUnits::length) =  1.0;
+    unitDimension.at(SIBaseUnits::mass)   =  1.0;
+    unitDimension.at(SIBaseUnits::time)   = -3.0;
+    unitDimension.at(SIBaseUnits::electricCurrent) = -1.0;
+
+    return unitDimension;
+}
+
 std::string
 FieldE::getName( )
 {
-    return "FieldE";
+    return "E";
 }
 
 uint32_t

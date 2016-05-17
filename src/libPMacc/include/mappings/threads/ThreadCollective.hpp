@@ -26,7 +26,7 @@
 #include "dimensions/SuperCellDescription.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
 #include "dimensions/DataSpace.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 
 namespace PMacc
 {

@@ -23,7 +23,7 @@
 #pragma once
 
 #include <boost/filesystem.hpp>
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "mappings/simulation/GridController.hpp"
 
 namespace PMacc

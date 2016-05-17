@@ -32,7 +32,7 @@
 #include "eventSystem/tasks/Factory.hpp"
 #include "eventSystem/tasks/TaskReceive.hpp"
 
-#include "types.h"
+#include "pmacc_types.hpp"
 
 #include <cassert>
 
@@ -47,7 +47,7 @@ namespace PMacc
     {
     public:
 
-        ExchangeIntern(DeviceBufferIntern<TYPE, DIM>& source, GridLayout<DIM> memoryLayout, DataSpace<DIM> guardingCells, uint32_t exchange,
+        ExchangeIntern(DeviceBuffer<TYPE, DIM>& source, GridLayout<DIM> memoryLayout, DataSpace<DIM> guardingCells, uint32_t exchange,
                        uint32_t communicationTag, uint32_t area = BORDER, bool sizeOnDevice = false) :
         Exchange<TYPE, DIM>(exchange, communicationTag), deviceDoubleBuffer(NULL)
         {
@@ -216,10 +216,9 @@ namespace PMacc
             return *deviceDoubleBuffer;
         }
 
-        EventTask startSend(EventTask &copyEvent)
+        EventTask startSend()
         {
-            //assert(recvTask != NULL);
-            return Environment<>::get().Factory().createTaskSend(*this, copyEvent);
+            return Environment<>::get().Factory().createTaskSend(*this);
         }
 
         EventTask startReceive()

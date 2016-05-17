@@ -25,14 +25,14 @@
 #include "math/vector/Float.hpp"
 #include "plugins/ILightweightPlugin.hpp"
 
+#include <string>
+
 namespace picongpu
 {
 
 using namespace PMacc;
 
 namespace po = boost::program_options;
-
-#include <string>
 
 template<typename Field>
 class SliceFieldPrinterMulti;

@@ -28,7 +28,7 @@
 #include "compileTime/conversion/MakeSeqFromNestedSeq.hpp"
 #include "compileTime/conversion/MakeSeq.hpp"
 #include "math/Vector.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/copy.hpp>

@@ -86,9 +86,10 @@ typedef currentSolver::PARAM_CURRENTSOLVER<UsedParticleShape> UsedParticleCurren
  *
  * - particles::pusher::Vay : better suited relativistic boris pusher
  * - particles::pusher::Boris : standard boris pusher
+ * - particles::pusher::ReducedLandauLifshitz : 4th order RungeKutta pusher
+ *                                              with classical radiation reaction
  *
  * For development purposes: ---------------------------------------------------
- * - particles::pusher::None : no particle is pushed
  * - particles::pusher::Axel : a pusher developed at HZDR during 2011 (testing)
  * - particles::pusher::Free : free propagation, ignore fields
  * (= free stream model)

@@ -23,37 +23,34 @@
 #pragma once
 
 #include "mpi/GetMPI_Op.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 
 namespace PMacc
 {
-    namespace nvidia
-    {
-        namespace functors
+namespace nvidia
+{
+namespace functors
+{
+    struct Add
+    {    
+        template<typename Dst, typename Src >
+        HDINLINE void operator()(Dst & dst, const Src & src) const
         {
-
-            struct Add
-            {
-
-                template<typename Dst, typename Src >
-                        HDINLINE void operator()(Dst & dst, const Src & src) const
-                {
-                    dst += src;
-                }
-            };
+            dst += src;
         }
-    }
-}
+    };
+} // namespace functors
+} // namespace nvidia
+} // namespace PMacc
 
 namespace PMacc
 {
-    namespace mpi
+namespace mpi
+{
+    template<>
+    MPI_Op getMPI_Op<PMacc::nvidia::functors::Add>()
     {
-
-        template<>
-        MPI_Op getMPI_Op<PMacc::nvidia::functors::Add>()
-        {
-            return MPI_SUM;
-        }
+        return MPI_SUM;
     }
-}
+} // namespace mpi
+} // namespace PMacc

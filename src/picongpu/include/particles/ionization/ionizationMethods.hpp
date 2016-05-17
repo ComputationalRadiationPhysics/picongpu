@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "particles/operations/Assign.hpp"
 #include "traits/attribute/GetMass.hpp"
 

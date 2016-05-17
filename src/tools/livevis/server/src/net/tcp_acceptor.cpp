@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Benjamin Schneider
+ * Copyright 2013-2016 Benjamin Schneider, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -20,7 +20,7 @@
 
 #include "../../include/net/tcp_acceptor.hpp"
 #include <unistd.h>
-#include <string.h>
+#include <cstring>
 #include <iostream>
 
 namespace picongpu {

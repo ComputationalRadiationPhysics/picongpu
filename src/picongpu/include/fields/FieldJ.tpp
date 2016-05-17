@@ -44,6 +44,7 @@
 #include "particles/traits/GetCurrentSolver.hpp"
 #include "traits/GetMargin.hpp"
 #include "traits/Resolve.hpp"
+#include "traits/SIBaseUnits.hpp"
 
 
 namespace picongpu
@@ -228,10 +229,9 @@ void FieldJ::reset( uint32_t )
 {
 }
 
-void FieldJ::clear( )
+void FieldJ::assign( ValueType value )
 {
-    ValueType tmp(ValueType::create(0.));
-    fieldJ.getDeviceBuffer( ).setValue( tmp );
+    fieldJ.getDeviceBuffer( ).setValue( value );
     //fieldJ.reset(false);
 }
 
@@ -243,10 +243,26 @@ FieldJ::getUnit( )
     return UnitValueType( UNIT_CURRENT, UNIT_CURRENT, UNIT_CURRENT );
 }
 
+HDINLINE
+std::vector<float_64>
+FieldJ::getUnitDimension( )
+{
+    /* L, M, T, I, theta, N, J
+     *
+     * J is in A/m^2
+     *   -> L^-2 * I
+     */
+    std::vector<float_64> unitDimension( 7, 0.0 );
+    unitDimension.at(SIBaseUnits::length) = -2.0;
+    unitDimension.at(SIBaseUnits::electricCurrent) =  1.0;
+
+    return unitDimension;
+}
+
 std::string
 FieldJ::getName( )
 {
-    return "FieldJ";
+    return "J";
 }
 
 uint32_t
@@ -276,7 +292,7 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t )
         typename GetMargin<ParticleCurrentSolver>::UpperMargin
         > BlockArea;
 
-    StrideMapping<AREA, simDim, MappingDesc> mapper( cellDescription );
+    StrideMapping<AREA, 3, MappingDesc> mapper( cellDescription );
     typename ParticlesClass::ParticlesBoxType pBox = parClass.getDeviceParticlesBox( );
     FieldJ::DataBoxType jBox = this->fieldJ.getDeviceBuffer( ).getDataBox( );
     FrameSolver solver( DELTA_T );

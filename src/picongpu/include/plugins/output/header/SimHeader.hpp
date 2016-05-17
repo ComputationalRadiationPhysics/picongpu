@@ -20,10 +20,10 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "dimensions/DataSpace.hpp"
-#include "iostream"
-#include "stdlib.h"
+#include <iostream>
+#include <cstdlib>
 
 struct SimHeader
 {

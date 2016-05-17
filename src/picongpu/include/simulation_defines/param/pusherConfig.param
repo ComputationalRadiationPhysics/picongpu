@@ -57,11 +57,11 @@ namespace picongpu
     {
     namespace pusher
     {
-        struct None;
         struct Vay;
         struct Boris;
         struct Photon;
         struct Free;
+        struct ReducedLandauLifshitz;
 #if(SIMDIM==DIM3)
         struct Axel;
 #endif

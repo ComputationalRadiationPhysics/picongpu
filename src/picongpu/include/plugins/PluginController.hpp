@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
 #include "simulation_types.hpp"
 
@@ -36,6 +36,7 @@
 #include "plugins/BinEnergyParticles.hpp"
 #include "plugins/ChargeConservation.hpp"
 #if(ENABLE_HDF5 == 1)
+#include "plugins/particleCalorimeter/ParticleCalorimeter.hpp"
 #include "plugins/PhaseSpace/PhaseSpaceMulti.hpp"
 #endif
 
@@ -173,6 +174,7 @@ private:
      , PngPlugin< Visualisation<bmpl::_1, PngCreator> >
 #endif
 #if(ENABLE_HDF5 == 1)
+      , ParticleCalorimeter<bmpl::_1>
       , PerSuperCell<bmpl::_1>
       , PhaseSpaceMulti<particles::shapes::Counter::ChargeAssignment, bmpl::_1>
 #endif

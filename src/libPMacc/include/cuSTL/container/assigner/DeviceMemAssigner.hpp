@@ -28,7 +28,7 @@
 #include "cuSTL/algorithm/kernel/run-time/Foreach.hpp"
 #include "lambda/Expression.hpp"
 #include "math/vector/Size_t.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 
 #include <boost/math/common_factor.hpp>
 #include <boost/mpl/placeholders.hpp>

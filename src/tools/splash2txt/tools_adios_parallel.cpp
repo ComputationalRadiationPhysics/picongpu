@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 Felix Schmitt, Conrad Schumann
+ * Copyright 2014-2016 Felix Schmitt, Conrad Schumann, Axel Huebl
  *
  * This file is part of splash2txt.
  *
@@ -21,7 +21,7 @@
  */
 
 #include <algorithm>
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "tools_adios_parallel.hpp"
 

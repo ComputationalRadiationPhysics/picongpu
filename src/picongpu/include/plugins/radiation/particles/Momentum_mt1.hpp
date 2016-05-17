@@ -23,7 +23,7 @@
 #pragma once
 
 #include "particles/memory/boxes/TileDataBox.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "particles/memory/frames/NullFrame.hpp"
 
 namespace picongpu

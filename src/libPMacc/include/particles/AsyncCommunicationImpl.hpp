@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "communication/AsyncCommunication.hpp"
 #include "Environment.hpp"
 #include "ParticlesBase.hpp"

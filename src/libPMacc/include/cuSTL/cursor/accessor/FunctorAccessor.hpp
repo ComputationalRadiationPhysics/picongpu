@@ -24,7 +24,7 @@
 
 #include <boost/type_traits/add_const.hpp>
 #include <forward.hpp>
-#include "types.h"
+#include "pmacc_types.hpp"
 
 namespace PMacc
 {

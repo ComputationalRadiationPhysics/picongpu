@@ -53,6 +53,7 @@
 #include "particles/traits/FilterByFlag.hpp"
 
 #include "traits/GetMargin.hpp"
+#include "traits/SIBaseUnits.hpp"
 #include "particles/traits/GetMarginPusher.hpp"
 
 namespace picongpu
@@ -208,10 +209,27 @@ FieldB::getUnit( )
     return UnitValueType( UNIT_BFIELD, UNIT_BFIELD, UNIT_BFIELD );
 }
 
+HDINLINE
+std::vector<float_64>
+FieldB::getUnitDimension( )
+{
+    /* L, M, T, I, theta, N, J
+     *
+     * B is in Tesla : kg / (A * s^2)
+     *   -> M * T^-2 * I^-1
+     */
+    std::vector<float_64> unitDimension( 7, 0.0 );
+    unitDimension.at(SIBaseUnits::mass) =  1.0;
+    unitDimension.at(SIBaseUnits::time) = -2.0;
+    unitDimension.at(SIBaseUnits::electricCurrent) = -1.0;
+
+    return unitDimension;
+}
+
 std::string
 FieldB::getName( )
 {
-    return "FieldB";
+    return "B";
 }
 
 uint32_t

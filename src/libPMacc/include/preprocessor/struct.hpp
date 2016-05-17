@@ -52,9 +52,12 @@
  *               use `typedef Vector<type,dim> NewType;` to avoid this behavior
  *   @param name member variable name
  *   @param ... enumeration of init values
- *   \example `PMACC_C_VECTOR(float2_64, center_SI, 1.134e-5, 1.134e-5)`
- *            is the compile time equivalent of
- *            `BOOST_STATIC_CONSTEXPR float2_64 center_SI = float2_64(1.134e-5, 1.134e-5);
+ *
+ *   @code{.cpp}
+ *     PMACC_C_VECTOR(float2_64, center_SI, 1.134e-5, 1.134e-5);
+ *     // is the compile time equivalent of
+ *     BOOST_STATIC_CONSTEXPR float2_64 center_SI = float2_64(1.134e-5, 1.134e-5);
+ *   @endcode
  */
 #define PMACC_C_VECTOR(type,name,...) (0,(typename PMacc::traits::GetValueType<type>::type, \
                                           name,                                             \
@@ -68,9 +71,12 @@
  *   @param dim number of vector components
  *   @param name member variable name
  *   @param ... enumeration of init values (number of components must be greater or equal than dim)
- *   \example `PMACC_C_VECTOR_DIM(float_64, simDim, center_SI, 1.134e-5, 1.134e-5, 1.134e-5)`
- *            is the compile time equivalent of
- *            `BOOST_STATIC_CONSTEXPR Vector<float_64,simDim> center_SI = Vector<float_64,simDim>(1.134e-5, 1.134e-5, 1.134e-5);`
+ *
+ *   @code{.cpp}
+ *     PMACC_C_VECTOR_DIM(float_64, simDim, center_SI, 1.134e-5, 1.134e-5, 1.134e-5);
+ *     // is the compile time equivalent of
+ *     BOOST_STATIC_CONSTEXPR Vector<float_64,simDim> center_SI = Vector<float_64,simDim>(1.134e-5, 1.134e-5, 1.134e-5);
+ *   @endcode
  */
 #define PMACC_C_VECTOR_DIM(type,dim,name,...) (0,(type,name,dim,__VA_ARGS__))
 
@@ -79,9 +85,12 @@
  *   @param type type of the member
  *   @param name member variable name
  *   @param value init value
- *   \example `PMACC_C_VALUE(float_64, power_SI, 2.0)`
- *            is the compile time equivalent of
- *            `BOOST_STATIC_CONSTEXPR float_64 power_SI = float_64(2.0);`
+ *
+ *   @code{.cpp}
+ *     PMACC_C_VALUE(float_64, power_SI, 2.0);
+ *     // is the compile time equivalent of
+ *     BOOST_STATIC_CONSTEXPR float_64 power_SI = float_64(2.0);
+ *   @endcode
  */
 #define PMACC_C_VALUE(type,name,value) (1,(type,name,value))
 
@@ -90,9 +99,12 @@
  *   @param type type of the member
  *   @param name member variable name
  *   @param value init value
- *   \example `PMACC_VALUE(float_64, power_SI, 2.0)`
- *            is the equivalent of
- *            `float_64 power_SI(2.0);
+ *
+ *   @code{.cpp}
+ *     PMACC_VALUE(float_64, power_SI, 2.0);
+ *     // is the equivalent of
+ *     float_64 power_SI(2.0);
+ *   @endcode
  */
 #define PMACC_VALUE(type,name,initValue) (2,(type,name,initValue))
 
@@ -102,9 +114,12 @@
  *   @param type type of an element
  *   @param name member variable name
  *   @param ... enumeration of init values
- *   \example `PMACC_VECTOR(float2_64, center_SI, 1.134e-5, 1.134e-5)`
- *            is the equivalent of
- *            `float2_64 center_SI(1.134e-5, 1.134e-5);`
+ *
+ *   @code{.cpp}
+ *     PMACC_VECTOR(float2_64, center_SI, 1.134e-5, 1.134e-5);
+ *     // is the equivalent of
+ *     float2_64 center_SI(1.134e-5, 1.134e-5);
+ *   @endcode
  */
 #define PMACC_VECTOR(type,name,...) (5,(type,name, type(__VA_ARGS__) ))
 
@@ -114,9 +129,12 @@
  *   @param dim number of vector components
  *   @param name member variable name
  *   @param ... enumeration of init values (number of components must be equal to dim)
- *   \example `PMACC_VECTOR_DIM(float_64, simDim, center_SI, 1.134e-5, 1.134e-5, 1.134e-5)`
- *            is the equivalent of
- *            `Vector<float_64,3> center_SI(1.134e-5, 1.134e-5, 1.134e-5);
+ *
+ *   @code{.cpp}
+ *     PMACC_VECTOR_DIM(float_64, simDim, center_SI, 1.134e-5, 1.134e-5, 1.134e-5);
+ *     // is the equivalent of
+ *     Vector<float_64,3> center_SI(1.134e-5, 1.134e-5, 1.134e-5);
+ *   @endcode
  */
 #define PMACC_VECTOR_DIM(type,dim,name,...)                                    \
         (5,                                                                    \
@@ -131,18 +149,24 @@
  *
  *   @param name member variable name
  *   @param char_string character string
- *   \example `PMACC_C_STRING(filename, "fooFile.txt")`
- *            is the compile time equivalent of
- *            `BOOST_STATIC_CONSTEXPR char* filename = (char*)"fooFile.tyt";`
+ *
+ *   @code{.cpp}
+ *     PMACC_C_STRING(filename, "fooFile.txt");
+ *     // is the compile time equivalent of
+ *     BOOST_STATIC_CONSTEXPR char* filename = (char*)"fooFile.tyt";
+ *   @endcode
  */
 #define PMACC_C_STRING(name,initValue) (3,(_,name,initValue))
 
 /** create any code extension
  *
  *   @param ... any code
- *   \example `PMACC_EXTENT(typedef float FooFloat;))`
- *            is the equivalent of
- *            `typedef float FooFloat;`
+ *
+ *   @code{.cpp}
+ *     PMACC_EXTENT(typedef float FooFloat;)
+ *     // is the equivalent of
+ *     typedef float FooFloat;
+ *   @endcode
  */
 #define PMACC_EXTENT(...) (4,(_,_,__VA_ARGS__))
 

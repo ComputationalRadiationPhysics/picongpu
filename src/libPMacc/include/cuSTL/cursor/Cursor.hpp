@@ -24,7 +24,7 @@
 
 #include <boost/mpl/void.hpp>
 #include "math/vector/Int.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 #include <boost/type_traits/add_const.hpp>
 #include <boost/type_traits/remove_reference.hpp>
 #include <cuSTL/cursor/traits.hpp>

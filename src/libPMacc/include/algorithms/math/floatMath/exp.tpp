@@ -23,8 +23,8 @@
 
 #pragma once
 
-#include "types.h"
-#include "math.h"
+#include "pmacc_types.hpp"
+#include <cmath>
 
 
 namespace PMacc
@@ -53,6 +53,21 @@ struct Log<float>
     HDINLINE float operator( )(const float& value )
     {
         return ::logf( value );
+    }
+};
+
+template<>
+struct Log10<float>
+{
+    typedef float result;
+
+    HDINLINE float operator( )(const float& value)
+    {
+#if __CUDA_ARCH__
+        return ::log10f( value );
+#else
+        return ::log10( value );
+#endif
     }
 };
 

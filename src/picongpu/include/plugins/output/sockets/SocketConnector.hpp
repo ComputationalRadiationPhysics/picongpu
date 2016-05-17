@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Rene Widera
+ * Copyright 2013-2016 Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -21,15 +21,15 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "plugins/output/header/MessageHeader.hpp"
 
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <string>
 #include <unistd.h>
 

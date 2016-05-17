@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "pmacc_types.hpp"
 #include "memory/boxes/DataBox.hpp"
 #include "memory/boxes/SharedBox.hpp"
 

@@ -23,17 +23,19 @@
 
 #pragma once
 
-#include <cuSTL/container/allocator/DeviceMemAllocator.hpp>
-#include <cuSTL/container/copier/D2DCopier.hpp>
-#include <cuSTL/container/assigner/DeviceMemAssigner.hpp>
+#include "cuSTL/container/allocator/DeviceMemAllocator.hpp"
+#include "cuSTL/container/copier/D2DCopier.hpp"
+#include "cuSTL/container/assigner/DeviceMemAssigner.hpp"
 #include "cuSTL/container/CartBuffer.hpp"
-#include "allocator/tag.h"
+#include "cuSTL/container/allocator/tag.h"
+#include "cuSTL/container/copier/Memcopy.hpp"
 
-#include <memory/buffers/DeviceBuffer.hpp>
-#include <memory/buffers/HostBuffer.hpp>
+#include <boost/assert.hpp>
+#include <boost/move/move.hpp>
+#include <boost/utility/enable_if.hpp>
+#include <boost/type_traits/is_same.hpp>
 #include <exception>
 #include <sstream>
-#include <boost/assert.hpp>
 
 namespace PMacc
 {
@@ -43,26 +45,26 @@ namespace container
 /** typedef version of a CartBuffer for a GPU.
  * Additional feature: Able to copy data from a HostBuffer
  * \tparam Type type of a single datum
- * \tparam dim Dimension of the container
+ * \tparam T_dim Dimension of the container
  */
-template<typename Type, int dim>
+template<typename Type, int T_dim>
 class DeviceBuffer
- : public CartBuffer<Type, dim, allocator::DeviceMemAllocator<Type, dim>,
-                                copier::D2DCopier<dim>,
+ : public CartBuffer<Type, T_dim, allocator::DeviceMemAllocator<Type, T_dim>,
+                                copier::D2DCopier<T_dim>,
                                 assigner::DeviceMemAssigner<> >
 {
 private:
-    typedef CartBuffer<Type, dim, allocator::DeviceMemAllocator<Type, dim>,
-                                  copier::D2DCopier<dim>,
+    typedef CartBuffer<Type, T_dim, allocator::DeviceMemAllocator<Type, T_dim>,
+                                  copier::D2DCopier<T_dim>,
                                   assigner::DeviceMemAssigner<> > Base;
-    typedef DeviceBuffer<Type, dim> This;
 
-///\todo: make protected
-public:
+protected:
     HDINLINE DeviceBuffer() {}
 
-    BOOST_COPYABLE_AND_MOVABLE(This)
+    BOOST_COPYABLE_AND_MOVABLE(DeviceBuffer)
 public:
+    typedef typename Base::PitchType PitchType;
+
     /* constructors
      *
      * \param _size size of the container
@@ -70,37 +72,76 @@ public:
      * \param x,y,z convenient wrapper
      *
      */
-    HDINLINE DeviceBuffer(const math::Size_t<dim>& _size) : Base(_size) {}
+    HDINLINE DeviceBuffer(const math::Size_t<T_dim>& size) : Base(size) {}
     HDINLINE DeviceBuffer(size_t x) : Base(x) {}
     HDINLINE DeviceBuffer(size_t x, size_t y) : Base(x, y) {}
     HDINLINE DeviceBuffer(size_t x, size_t y, size_t z) : Base(x, y, z) {}
+    /**
+     * Creates a device buffer from a pointer with a size. Assumes dense layout (no padding)
+     *
+     * @param ptr Pointer to the first element
+     * @param size Size of the buffer
+     * @param ownMemory Set to false if the memory is only a reference and managed outside of this class
+     *                  Ignored for device side creation!y
+     * @param pitch Pitch in bytes (number of bytes in the lower dimensions)
+     */
+    HDINLINE DeviceBuffer(Type* ptr, const math::Size_t<T_dim>& size, bool ownMemory, PitchType pitch = PitchType::create(0))
+    {
+        this->dataPointer = ptr;
+        this->_size = size;
+        if(T_dim >= 2)
+            this->pitch[0] = (pitch[0]) ? pitch[0] : size.x() * sizeof(Type);
+        if(T_dim == 3)
+            this->pitch[1] = (pitch[1]) ? pitch[1] : this->pitch[0] * size.y();
+#ifndef __CUDA_ARCH__
+        this->refCount = new int;
+        *this->refCount = (ownMemory) ? 1 : 2;
+#endif
+    }
     HDINLINE DeviceBuffer(const Base& base) : Base(base) {}
+    HDINLINE DeviceBuffer(BOOST_RV_REF(DeviceBuffer) obj): Base(boost::move(static_cast<Base&>(obj))) {}
+
+    HDINLINE DeviceBuffer&
+    operator=(BOOST_RV_REF(DeviceBuffer) rhs)
+    {
+        Base::operator=(boost::move(static_cast<Base&>(rhs)));
+        return *this;
+    }
 
     template<typename HBuffer>
     HINLINE
-    DeviceBuffer& operator=(const HBuffer& rhs)
+    typename boost::enable_if<
+		boost::is_same<typename HBuffer::memoryTag, allocator::tag::host>,
+		DeviceBuffer&
+		>::type
+	operator=(const HBuffer& rhs)
     {
-        BOOST_STATIC_ASSERT((boost::is_same<typename HBuffer::memoryTag, allocator::tag::host>::value));
         BOOST_STATIC_ASSERT((boost::is_same<typename HBuffer::type, Type>::value));
-        BOOST_STATIC_ASSERT(dim == HBuffer::dim);
+        BOOST_STATIC_ASSERT(HBuffer::dim == T_dim);
         if(rhs.size() != this->size())
             throw std::invalid_argument(static_cast<std::stringstream&>(
                 std::stringstream() << "Assignment: Sizes of buffers do not match: "
                     << this->size() << " <-> " << rhs.size() << std::endl).str());
 
-        cudaWrapper::Memcopy<dim>()(this->dataPointer, this->pitch, rhs.getDataPointer(), rhs.getPitch(),
+        cudaWrapper::Memcopy<T_dim>()(this->dataPointer, this->pitch, rhs.getDataPointer(), rhs.getPitch(),
                                 this->_size, cudaWrapper::flags::Memcopy::hostToDevice);
 
         return *this;
     }
 
-    HDINLINE DeviceBuffer& operator=(const Base& rhs)
+    HINLINE DeviceBuffer& operator=(const Base& rhs)
     {
         Base::operator=(rhs);
         return *this;
     }
 
+    HINLINE DeviceBuffer& operator=(BOOST_COPY_ASSIGN_REF(DeviceBuffer) rhs)
+    {
+        Base::operator=(rhs);
+        return *this;
+    }
 };
 
 } // container
 } // PMacc
+

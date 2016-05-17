@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2016 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+ *                     Alexander Grund
  *
  * This file is part of PIConGPU.
  *
@@ -22,16 +23,18 @@
 #pragma once
 
 #include <pthread.h>
-#include <cassert>
 #include <sstream>
+#include <string>
 #include <list>
 #include <vector>
 
 #include "simulation_defines.hpp"
+#include "version.hpp"
 
 #include "plugins/hdf5/HDF5Writer.def"
 #include "traits/SplashToPIC.hpp"
 #include "traits/PICToSplash.hpp"
+#include "plugins/common/stringHelpers.hpp"
 
 #include "particles/frame_types.hpp"
 
@@ -42,6 +45,7 @@
 #include "particles/particleFilter/FilterFactory.hpp"
 #include "particles/particleFilter/PositionFilter.hpp"
 #include "particles/operations/CountParticles.hpp"
+#include "particles/IdProvider.def"
 
 #include "dataManagement/DataConnector.hpp"
 #include "mappings/simulation/GridController.hpp"
@@ -66,9 +70,8 @@
 #include "plugins/hdf5/WriteSpecies.hpp"
 #include "plugins/hdf5/restart/LoadSpecies.hpp"
 #include "plugins/hdf5/restart/RestartFieldLoader.hpp"
+#include "plugins/hdf5/NDScalars.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
-
-#include <splash/splash.h>
 
 namespace picongpu
 {
@@ -189,7 +192,7 @@ public:
         catch (const DCException& e)
         {
             std::cerr << e.what() << std::endl;
-            throw std::runtime_error("Failed to open datacollector");
+            throw std::runtime_error("HDF5 failed to open DataCollector");
         }
 
         /* load number of slides to initialize MovingWindow */
@@ -197,7 +200,7 @@ public:
         mThreadParams.dataCollector->readAttribute(restartStep, NULL, "sim_slides", &slides);
 
         /* apply slides to set gpus to last/written configuration */
-        log<picLog::INPUT_OUTPUT > ("Setting slide count for moving window to %1%") % slides;
+        log<picLog::INPUT_OUTPUT > ("HDF5 setting slide count for moving window to %1%") % slides;
         MovingWindow::getInstance().setSlideCounter(slides, restartStep);
 
         /* re-distribute the local offsets in y-direction */
@@ -220,6 +223,15 @@ public:
         /* load all particles */
         ForEach<FileCheckpointParticles, LoadSpecies<bmpl::_1> > forEachLoadSpecies;
         forEachLoadSpecies(params, restartChunkSize);
+
+        IdProvider<simDim>::State idProvState;
+        ReadNDScalars<uint64_t, uint64_t>()(mThreadParams,
+                "picongpu/idProvider/startId", &idProvState.startId,
+                "maxNumProc", &idProvState.maxNumProc);
+        ReadNDScalars<uint64_t>()(mThreadParams,
+                "picongpu/idProvider/nextId", &idProvState.nextId);
+        log<picLog::INPUT_OUTPUT > ("Setting next free id on current rank: %1%") % idProvState.nextId;
+        IdProvider<simDim>::setState(idProvState);
 
         /* close datacollector */
         log<picLog::INPUT_OUTPUT > ("HDF5 close DataCollector with file: %1%") % restartFilename;
@@ -271,9 +283,11 @@ private:
         catch (const DCException& e)
         {
             std::cerr << e.what() << std::endl;
-            throw std::runtime_error("Failed to open datacollector");
+            throw std::runtime_error("HDF5 failed to open DataCollector");
         }
 
+        // write global meta attributes
+        writeMetaAttributes(h5Filename, &mThreadParams);
     }
 
     /**
@@ -374,14 +388,89 @@ private:
 
     typedef PICToSplash<float_X>::type SplashFloatXType;
 
-    static void writeMetaAttributes(ThreadParams *threadParams)
+    static void writeMetaAttributes(const std::string h5Filename,
+                                    ThreadParams *threadParams)
     {
         ColTypeUInt32 ctUInt32;
+        ColTypeUInt64 ctUInt64;
         ColTypeDouble ctDouble;
         SplashFloatXType splashFloatXType;
 
         ParallelDomainCollector *dc = threadParams->dataCollector;
         uint32_t currentStep = threadParams->currentStep;
+
+        /* openPMD attributes */
+        /*   required */
+        std::string openPMDversion("1.0.0");
+        ColTypeString ctOpenPMDversion(openPMDversion.length());
+        dc->writeGlobalAttribute( threadParams->currentStep,
+                                  ctOpenPMDversion, "openPMD",
+                                  openPMDversion.c_str() );
+
+        const uint32_t openPMDextension = 1; // ED-PIC ID
+        dc->writeGlobalAttribute( threadParams->currentStep,
+                                  ctUInt32, "openPMDextension",
+                                  &openPMDextension );
+
+        std::string basePath("/data/%T/");
+        ColTypeString ctBasePath(basePath.length());
+        dc->writeGlobalAttribute( threadParams->currentStep,
+                                  ctBasePath, "basePath",
+                                  basePath.c_str() );
+
+        std::string meshesPath("fields/");
+        ColTypeString ctMeshesPath(meshesPath.length());
+        dc->writeGlobalAttribute( threadParams->currentStep,
+                                  ctMeshesPath, "meshesPath",
+                                  meshesPath.c_str() );
+
+        std::string particlesPath("particles/");
+        ColTypeString ctParticlesPath(particlesPath.length());
+        dc->writeGlobalAttribute( threadParams->currentStep,
+                                  ctParticlesPath, "particlesPath",
+                                  particlesPath.c_str() );
+
+        std::string iterationEncoding("fileBased");
+        ColTypeString ctIterationEncoding(iterationEncoding.length());
+        dc->writeGlobalAttribute( threadParams->currentStep,
+                                  ctIterationEncoding, "iterationEncoding",
+                                  iterationEncoding.c_str() );
+
+        std::string iterationFormat(h5Filename + std::string("_%T.h5"));
+        ColTypeString ctIterationFormat(iterationFormat.length());
+        dc->writeGlobalAttribute( threadParams->currentStep,
+                                  ctIterationFormat, "iterationFormat",
+                                  iterationFormat.c_str() );
+
+        /*   recommended */
+        std::string author = Environment<>::get().SimulationDescription().getAuthor();
+        if( author.length() > 0 )
+        {
+            ColTypeString ctAuthor(author.length());
+            dc->writeGlobalAttribute( threadParams->currentStep,
+                                      ctAuthor, "author",
+                                      author.c_str() );
+        }
+        std::string software("PIConGPU");
+        ColTypeString ctSoftware(software.length());
+        dc->writeGlobalAttribute( threadParams->currentStep,
+                                  ctSoftware, "software",
+                                  software.c_str() );
+
+        std::stringstream softwareVersion;
+        softwareVersion << PICONGPU_VERSION_MAJOR << "."
+                        << PICONGPU_VERSION_MINOR << "."
+                        << PICONGPU_VERSION_PATCH;
+        ColTypeString ctSoftwareVersion(softwareVersion.str().length());
+        dc->writeGlobalAttribute( threadParams->currentStep,
+                                  ctSoftwareVersion, "softwareVersion",
+                                  softwareVersion.str().c_str() );
+
+        std::string date = helper::getDateString("%F %T %z");
+        ColTypeString ctDate(date.length());
+        dc->writeGlobalAttribute( threadParams->currentStep,
+                                  ctDate, "date",
+                                  date.c_str() );
 
         /* write number of slides */
         const uint32_t slides = MovingWindow::getInstance().getSlideCounter(threadParams->currentStep);
@@ -389,8 +478,14 @@ private:
         dc->writeAttribute(threadParams->currentStep,
                            ctUInt32, NULL, "sim_slides", &slides);
 
+
+        /* openPMD: required time attributes */
+        dc->writeAttribute(currentStep, splashFloatXType, NULL, "dt", &DELTA_T);
+        const float_X time = float_X(threadParams->currentStep) * DELTA_T;
+        dc->writeAttribute(currentStep, splashFloatXType, NULL, "time", &time);
+        dc->writeAttribute(currentStep, ctDouble, NULL, "timeUnitSI", &UNIT_TIME);
+
         /* write normed grid parameters */
-        dc->writeAttribute(currentStep, splashFloatXType, NULL, "delta_t", &DELTA_T);
         dc->writeAttribute(currentStep, splashFloatXType, NULL, "cell_width", &CELL_WIDTH);
         dc->writeAttribute(currentStep, splashFloatXType, NULL, "cell_height", &CELL_HEIGHT);
         if (simDim == DIM3)
@@ -418,8 +513,6 @@ private:
         ThreadParams *threadParams = (ThreadParams*) (p_args);
         const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
 
-        writeMetaAttributes(threadParams);
-
         /* y direction can be negative for first gpu*/
         DataSpace<simDim> particleOffset(localDomain.offset);
         particleOffset.y() -= threadParams->window.globalDimensions.offset.y();
@@ -443,15 +536,23 @@ private:
         if (threadParams->isCheckpoint)
         {
             ForEach<FileCheckpointParticles, WriteSpecies<bmpl::_1> > writeSpecies;
-            writeSpecies(threadParams, std::string(), particleOffset);
+            writeSpecies(threadParams, particleOffset);
         }
         else
         {
             ForEach<FileOutputParticles, WriteSpecies<bmpl::_1> > writeSpecies;
-            writeSpecies(threadParams, std::string(), particleOffset);
+            writeSpecies(threadParams, particleOffset);
         }
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species.");
 
+        PMACC_AUTO(idProviderState, IdProvider<simDim>::getState());
+        log<picLog::INPUT_OUTPUT>("HDF5: Writing IdProvider state (StartId: %1%, NextId: %2%, maxNumProc: %3%)")
+                % idProviderState.startId % idProviderState.nextId % idProviderState.maxNumProc;
+        WriteNDScalars<uint64_t, uint64_t>()(*threadParams,
+                "picongpu/idProvider/startId", idProviderState.startId,
+                "maxNumProc", idProviderState.maxNumProc);
+        WriteNDScalars<uint64_t>()(*threadParams,
+                "picongpu/idProvider/nextId", idProviderState.nextId);
         return NULL;
     }
 

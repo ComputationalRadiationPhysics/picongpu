@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include "types.h"
-#include "math.h"
+#include "pmacc_types.hpp"
+#include <cmath>
 
 
 namespace PMacc

@@ -25,7 +25,7 @@
 
 #include "eventSystem/tasks/ITask.hpp"
 #include "eventSystem/streams/EventStream.hpp"
-#include "types.h"
+#include "pmacc_types.hpp"
 
 #include <string>
 
@@ -85,7 +85,6 @@ namespace PMacc
         /**
          * Creates a TaskReceive.
          * @param ex Exchange to create new TaskReceive with
-         * @param task_out returns the newly created task
          * @param registeringTask optional pointer to an ITask which should be registered at the new task as an observer
          */
         template <class TYPE, unsigned DIM>
@@ -95,11 +94,10 @@ namespace PMacc
         /**
          * Creates a TaskSend.
          * @param ex Exchange to create new TaskSend with
-         * @param task_in TaskReceive to register at new TaskSend
          * @param registeringTask optional pointer to an ITask which should be registered at the new task as an observer
          */
         template <class TYPE, unsigned DIM>
-        EventTask createTaskSend(Exchange<TYPE, DIM> &ex, EventTask &copyEvent,
+        EventTask createTaskSend(Exchange<TYPE, DIM> &ex,
         ITask *registeringTask = NULL);
 
         /**

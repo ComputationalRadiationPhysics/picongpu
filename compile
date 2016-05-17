@@ -19,6 +19,7 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
+set -o pipefail
 this_dir=$(cd `dirname $0` && pwd)
 
 # load libs and functions ######################################################
@@ -48,7 +49,7 @@ examples_path=""
 tmpRun_path=""
 
 # parse the command line options ###############################################
-parseOptions $@
+parseOptions "$@"
 
 if [ "$num_parallel" -ne "1" ]; then
     echo -e $compileSuite"Run in parallel: "`echo_g "$num_parallel"`
@@ -127,7 +128,7 @@ do
             $this_dir/buildsystem/CompileSuite/compileSet.sh \
                 "$example_name" "$testFlagNr" "$globalCMakeOptions" \
                 "$tmpRun_path" "$buildDir" "$examples_path" \
-                "$quiet_run" | tee $buildDir"/compile.log"
+                "$quiet_run" | tee $buildDir"/compile.log" || exit $?
         fi
 
         testFlagNr=$(( testFlagNr + 1 ))

@@ -31,6 +31,7 @@
 #include "mpi/GetMPI_StructAsArray.hpp"
 #include "traits/GetComponentsType.hpp"
 #include "traits/GetNComponents.hpp"
+#include "traits/GetInitializedInstance.hpp"
 
 namespace PMacc
 {
@@ -47,6 +48,18 @@ template<typename T_DataType, int T_Dim>
 struct GetNComponents<PMacc::math::Vector<T_DataType, T_Dim>,false >
 {
     BOOST_STATIC_CONSTEXPR uint32_t value = (uint32_t) PMacc::math::Vector<T_DataType, T_Dim>::dim;
+};
+
+template<typename T_Type, int T_dim, typename T_Accessor, typename T_Navigator, template<typename, int> class T_Storage>
+struct GetInitializedInstance<math::Vector<T_Type, T_dim, T_Accessor, T_Navigator, T_Storage> >
+{
+    typedef math::Vector<T_Type, T_dim, T_Accessor, T_Navigator, T_Storage> Type;
+    typedef typename Type::type ValueType;
+
+    HDINLINE Type operator()(const ValueType value) const
+    {
+        return Type::create(value);
+    }
 };
 
 } //namespace traits

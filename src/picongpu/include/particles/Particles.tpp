@@ -22,12 +22,8 @@
 
 #pragma once
 
-#include <iostream>
-
 #include "simulation_defines.hpp"
 #include "Particles.hpp"
-#include <cassert>
-
 
 #include "particles/Particles.kernel"
 
@@ -45,14 +41,15 @@
 
 #include "simulationControl/MovingWindow.hpp"
 
-#include <assert.h>
-#include <limits>
-
 #include "fields/numericalCellTypes/YeeCell.hpp"
 
 #include "traits/GetUniqueTypeId.hpp"
 #include "traits/Resolve.hpp"
 #include "particles/traits/GetMarginPusher.hpp"
+
+#include <iostream>
+#include <cassert>
+#include <limits>
 
 namespace picongpu
 {
