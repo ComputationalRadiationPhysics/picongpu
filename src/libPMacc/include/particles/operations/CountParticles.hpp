@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Rene Widera
+ * Copyright 2013-2016 Rene Widera, Erik Zenker
  *
  * This file is part of libPMacc.
  *
@@ -22,13 +22,17 @@
 
 #pragma once
 
+
 #include "pmacc_types.hpp"
 #include "memory/buffers/GridBuffer.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
+#include "particles/memory/dataTypes/FramePointer.hpp"
 
 #include "particles/particleFilter/FilterFactory.hpp"
 #include "particles/particleFilter/PositionFilter.hpp"
 #include "nvidia/atomic.hpp"
+
+
 
 namespace PMacc
 {
