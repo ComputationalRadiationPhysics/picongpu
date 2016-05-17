@@ -125,14 +125,8 @@ endif()
 # ISAAC
 ################################################################################
 
-option(PIC_ENABLE_ISAAC "Enable Isaac" OFF)
-if(PIC_ENABLE_ISAAC)
-
-    set(CMAKE_CXX_STANDARD 11)
-    add_definitions(-DBOOST_NO_CXX11_SCOPED_ENUMS)
-
-    find_package(ISAAC 0.1.0 CONFIG REQUIRED)
-
+find_package(ISAAC 0.1.0 CONFIG)
+if(ISAAC_FOUND)
     SET(ISAAC_STEREO "No" CACHE STRING "Using stereoscopy")
     SET_PROPERTY(CACHE ISAAC_STEREO PROPERTY STRINGS No SideBySide Anaglyph)
 
@@ -146,7 +140,6 @@ if(PIC_ENABLE_ISAAC)
         add_definitions(-DISAAC_STEREO=2)
     endif()
 
-
     include_directories(example_cuda ${ISAAC_INCLUDE_DIRS})
     set(LIBS ${LIBS} ${ISAAC_LIBRARIES})
 
@@ -157,8 +150,7 @@ if(PIC_ENABLE_ISAAC)
     add_definitions(-DISAAC_FUNCTOR_POW_ENABLED=0)
 
 	add_definitions(-DENABLE_ISAAC=1)
-
-endif(PIC_ENABLE_ISAAC)
+endif(ISAAC_FOUND)
 
 ################################################################################
 # VampirTrace
@@ -281,6 +273,10 @@ if( (NOT CUDA_VERSION VERSION_EQUAL 7.0) AND (CMAKE_CXX_STANDARD EQUAL 11) )
 else()
     # Fallback
     add_definitions(-DBOOST_RESULT_OF_USE_TR1)
+endif()
+
+if( CMAKE_CXX_STANDARD EQUAL 11 )
+    add_definitions(-DBOOST_NO_CXX11_SCOPED_ENUMS)
 endif()
 
 # work-arounds and known issues
