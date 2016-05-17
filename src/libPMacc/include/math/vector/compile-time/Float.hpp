@@ -24,7 +24,6 @@
 
 #include <stdint.h>
 #include <boost/mpl/void.hpp>
-#include "../../utils/FloatWrapper.hpp"
 
 namespace mpl = boost::mpl;
 

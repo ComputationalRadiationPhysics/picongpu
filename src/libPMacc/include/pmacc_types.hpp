@@ -58,8 +58,6 @@ typedef uint64_t id_t;
 typedef unsigned long long int uint64_cu;
 typedef long long int int64_cu;
 
-#define BOOST_MPL_LIMIT_VECTOR_SIZE 20
-
 #define HDINLINE __device__ __host__ __forceinline__
 #define DINLINE __device__ __forceinline__
 #define HINLINE __host__ inline
