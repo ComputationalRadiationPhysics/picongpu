@@ -41,7 +41,7 @@ struct Abs<float>
 
     HDINLINE float operator( )(float value)
     {
-        return ::fabs( value );
+        return ::fabsf( value );
     }
 };
 
