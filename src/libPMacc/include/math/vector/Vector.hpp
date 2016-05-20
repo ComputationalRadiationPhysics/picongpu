@@ -762,15 +762,6 @@ linearize(const Vector<T_Type, 2, T_Accessor, T_Navigator, T_Storage >& size,
     return pos.z() * size.x() * size.y() + pos.y() * size.x() + pos.x();
 }
 
-template<typename Vector>
-HDINLINE Vector floor(const Vector& vector)
-{
-    Vector result;
-
-    for (int i = 0; i < Vector::dim; i++)
-        result[i] = floorf(vector[i]);
-    return result;
-}
 
 template<typename Lhs, typename Rhs>
 HDINLINE Lhs operator%(const Lhs& lhs, const Rhs& rhs)
@@ -782,52 +773,21 @@ HDINLINE Lhs operator%(const Lhs& lhs, const Rhs& rhs)
     return result;
 }
 
-template<typename Type, int dim>
-HDINLINE Type abs2(const Vector<Type, dim>& vec)
-{
-    Type result = vec.x() * vec.x();
-
-    for (int i = 1; i < dim; i++)
-        result += vec[i] * vec[i];
-    return result;
-}
-
-template<typename Type, int dim>
-HDINLINE Type abs(const Vector<Type, dim>& vec)
-{
-
-    return algorithms::math::sqrt(abs2(vec));
-}
-
-template<typename Type, int dim>
-HDINLINE
-Type dot(const Vector<Type, dim>& a, const Vector<Type, dim>& b)
-{
-    Type result = a.x() * b.x();
-
-    for (int i = 1; i < dim; i++)
-        result += a[i] * b[i];
-    return result;
-}
-
 struct Abs2
 {
-
     template<typename Type, int dim >
     HDINLINE Type operator()(const Vector<Type, dim>& vec)
     {
-
-        return abs2(vec);
+        return PMacc::algorithms::math::abs2(vec);
     }
 };
 
 struct Abs
 {
-
     template<typename Type, int dim >
     HDINLINE Type operator()(const Vector<Type, dim>& vec)
     {
-        return abs(vec);
+        return PMacc::algorithms::math::abs(vec);
     }
 };
 
