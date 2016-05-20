@@ -20,10 +20,20 @@
 
 #pragma once
 
+//Needs to be the very first
+#include <boost/fusion/include/mpl.hpp>
+
 #include "plugins/ILightweightPlugin.hpp"
 #include "dataManagement/DataConnector.hpp"
 #include <isaac.hpp>
-#include <boost/fusion/include/at.hpp>
+#include <boost/fusion/container/list.hpp>
+#include <boost/fusion/include/list.hpp>
+#include <boost/fusion/container/list/list_fwd.hpp>
+#include <boost/fusion/include/list_fwd.hpp>
+#include <boost/fusion/include/as_list.hpp>
+#include <boost/mpl/vector.hpp>
+#include <boost/mpl/transform.hpp>
+
 
 namespace picongpu
 {
@@ -35,23 +45,23 @@ using namespace PMacc;
 using namespace ::isaac;
 
 ISAAC_NO_HOST_DEVICE_WARNING
-template <
-    typename FieldType,
-    bool __hase_guard = true,
-    bool __persistent = true,
-    int __feature_dim = 3
->
+template < typename FieldType >
 class TFieldSource
 {
     public:
-        static const size_t feature_dim = __feature_dim;
-        static const bool has_guard = __hase_guard;
-        static const bool persistent = __persistent;
+        static const size_t feature_dim = 3;
+        static const bool has_guard = bmpl::not_<boost::is_same<FieldType, FieldJ > >::value;
+        static const bool persistent = bmpl::not_<boost::is_same<FieldType, FieldJ > >::value;
         typename FieldType::DataBoxType shifted;
         MappingDesc *cellDescription;
         bool movingWindow;
         TFieldSource() : cellDescription(NULL), movingWindow(false) {}
-        TFieldSource(MappingDesc *cellDescription, bool movingWindow) : cellDescription(cellDescription), movingWindow(movingWindow) {}
+
+        void init(MappingDesc *cellDescription, bool movingWindow)
+        {
+            this->cellDescription = cellDescription;
+            this->movingWindow = movingWindow;
+        }
 
         static std::string getName()
         {
@@ -93,8 +103,8 @@ class TFieldSource
 };
 
 ISAAC_NO_HOST_DEVICE_WARNING
-template <typename ParticleType>
-class TParticleSource
+template< typename FrameSolver, typename ParticleType >
+class TFieldSource< FieldTmpOperation< FrameSolver, ParticleType > >
 {
     public:
         static const size_t feature_dim = 1;
@@ -104,12 +114,17 @@ class TParticleSource
         MappingDesc *cellDescription;
         bool movingWindow;
 
-        TParticleSource() : cellDescription(NULL), movingWindow(false) {}
-        TParticleSource(MappingDesc *cellDescription, bool movingWindow) : cellDescription(cellDescription), movingWindow(movingWindow) {}
+        TFieldSource() : cellDescription(NULL), movingWindow(false) {}
+
+        void init(MappingDesc *cellDescription, bool movingWindow)
+        {
+            this->cellDescription = cellDescription;
+            this->movingWindow = movingWindow;
+        }
 
         static std::string getName()
         {
-            return ParticleType::FrameType::getName() + std::string(" density field");
+            return ParticleType::FrameType::getName() + std::string(" density");
         }
 
         void update(bool enabled, void* pointer)
@@ -121,7 +136,6 @@ class TParticleSource
                 DataConnector &dc = Environment< simDim >::get().DataConnector();
                 FieldTmp * fieldTmp = &(dc.getData< FieldTmp > (FieldTmp::getName(), true));
                 ParticleType * particles = &(dc.getData< ParticleType > ( ParticleType::FrameType::getName(), true));
-                typedef typename CreateDensityOperation< ParticleType >::type::Solver FrameSolver;
                 fieldTmp->getGridBuffer().getDeviceBuffer().setValue( FieldTmp::ValueType(0.0) );
                 fieldTmp->computeValue < CORE + BORDER, FrameSolver > (*particles, *currentStep);
                 EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
@@ -151,40 +165,40 @@ class TParticleSource
         }
 };
 
+template< typename T >
+struct Transformoperator
+{
+    typedef TFieldSource< T > type;
+};
+
+struct SourceInitIterator
+{
+    template
+    <
+        typename TSource,
+        typename TCellDescription,
+        typename TMovingWindow
+    >
+    void operator()( const int I, TSource& s, TCellDescription& c, TMovingWindow& w) const
+    {
+        s.init(c,w);
+    }
+};
+
+
 class IsaacPlugin : public ILightweightPlugin
 {
 public:
     typedef boost::mpl::int_< simDim > SimDim;
-    typedef TFieldSource<FieldE> ESource;
-    typedef TFieldSource<FieldB> BSource;
-    typedef TFieldSource<FieldJ,false,false> JSource;
-    typedef TParticleSource<PIC_Electrons> EPSource;
-    typedef TParticleSource<PIC_Ions> IPSource;
-    #if ENABLE_ELECTRONS_2 == 1
-        typedef TParticleSource<PIC_Electrons2> EPSource2;
-    #endif
     static const size_t textureDim = 1024;
-    using SourceList = boost::fusion::list
-    <
-        ESource
-        ,BSource
-        ,JSource
-    #if (ENABLE_ELECTRONS == 1)
-        ,EPSource
-    #endif
-    #if (ENABLE_ELECTRONS_2 == 1)
-        ,EPSource2
-    #endif
-    #if (ENABLE_IONS == 1)
-        ,IPSource
-    #endif
-    >;
+    using SourceList = bmpl::transform<boost::fusion::result_of::as_list< Fields_Seq >::type,Transformoperator<bmpl::_1>>::type;
     IsaacVisualization
     <
         SimDim,
         SourceList,
         DataSpace< simDim >,
-        textureDim, float3_X,
+        textureDim,
+        float3_X,
         #if (ISAAC_STEREO == 0)
             isaac::DefaultController,
             isaac::DefaultCompositor
@@ -339,25 +353,14 @@ private:
 
             const SubGrid<simDim>& subGrid = Environment< simDim >::get().SubGrid();
 
-            sources = SourceList(
-                ESource(cellDescription,movingWindow)
-                ,BSource(cellDescription,movingWindow)
-                ,JSource(cellDescription,movingWindow)
-                #if (ENABLE_ELECTRONS == 1)
-                    ,EPSource(cellDescription,movingWindow)
-                #endif
-                #if (ENABLE_ELECTRONS_2 == 1)
-                    ,EPSource2(cellDescription,movingWindow)
-                #endif
-                #if (ENABLE_IONS == 1)
-                    ,IPSource(cellDescription,movingWindow)
-                #endif
-            );
             isaac_size2 framebuffer_size =
             {
                 size_t(width),
                 size_t(height)
             };
+
+            isaac_for_each_params( sources, SourceInitIterator(), cellDescription, movingWindow );
+
             visualization = new IsaacVisualization
             <
                 SimDim,
