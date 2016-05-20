@@ -38,7 +38,7 @@ struct ShiftToValidRange
     HDINLINE
     T_MemoryType memory( const T_MemoryType& mem, const T_PosType& pos ) const
     {
-        const T_PosType pos_floor = PMacc::math::floor(pos);
+        const T_PosType pos_floor = math::floor(pos);
         return mem( precisionCast<int>(pos_floor) );
     }
 
@@ -46,7 +46,7 @@ struct ShiftToValidRange
     HDINLINE
     T_PosType position( const T_PosType& pos ) const
     {
-        const T_PosType pos_floor = PMacc::math::floor(pos);
+        const T_PosType pos_floor = math::floor(pos);
         return pos - pos_floor;
     }
 };

@@ -88,7 +88,7 @@ namespace picongpu
                 const MomType mom_old = mom;
 
                 const float_X B2 = math::abs2( bField );
-                const float_X B = abs( bField );
+                const float_X B = math::abs( bField );
 
                 if( B2 > epsilon )
                 {
