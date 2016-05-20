@@ -25,14 +25,6 @@
 #include <isaac.hpp>
 #include <boost/fusion/include/at.hpp>
 
-#if ENABLE_IONS == 1
-    #define ENABLE_IONS_SAVED 1
-#else
-    #define ENABLE_IONS_SAVED 0
-#endif
-#undef ENABLE_IONS
-#define ENABLE_IONS 0
-
 namespace picongpu
 {
 namespace isaacP
@@ -43,19 +35,28 @@ using namespace PMacc;
 using namespace ::isaac;
 
 ISAAC_NO_HOST_DEVICE_WARNING
-template <typename FieldType>
-class TSource
+template <
+    typename FieldType,
+    bool __hase_guard = true,
+    bool __persistent = true,
+    int __feature_dim = 3
+>
+class TFieldSource
 {
     public:
-        static const std::string name;
-        static const size_t feature_dim = 3;
-        static const bool has_guard = true;
-        static const bool persistent = true;
+        static const size_t feature_dim = __feature_dim;
+        static const bool has_guard = __hase_guard;
+        static const bool persistent = __persistent;
         typename FieldType::DataBoxType shifted;
         MappingDesc *cellDescription;
         bool movingWindow;
-        TSource() : cellDescription(NULL), movingWindow(false) {}
-        TSource(MappingDesc *cellDescription, bool movingWindow) : cellDescription(cellDescription), movingWindow(movingWindow) {}
+        TFieldSource() : cellDescription(NULL), movingWindow(false) {}
+        TFieldSource(MappingDesc *cellDescription, bool movingWindow) : cellDescription(cellDescription), movingWindow(movingWindow) {}
+
+        static std::string getName()
+        {
+            return FieldType::getName() + std::string(" field");
+        }
 
         void update(bool enabled, void* pointer)
         {
@@ -78,10 +79,10 @@ class TSource
         }
 
         ISAAC_NO_HOST_DEVICE_WARNING
-        ISAAC_HOST_DEVICE_INLINE isaac_float_dim<3> operator[] (const isaac_int3& nIndex) const
+        ISAAC_HOST_DEVICE_INLINE isaac_float_dim< feature_dim > operator[] (const isaac_int3& nIndex) const
         {
             auto value = shifted[nIndex.z][nIndex.y][nIndex.x];
-            isaac_float_dim<3> result =
+            isaac_float_dim< feature_dim > result =
             {
                 isaac_float( value.x() ),
                 isaac_float( value.y() ),
@@ -90,72 +91,12 @@ class TSource
             return result;
         }
 };
-
-template <>
-const std::string TSource<FieldE>::name = "Electric Field";
-
-template <>
-const std::string TSource<FieldB>::name = "Magnetic Field";
-
-ISAAC_NO_HOST_DEVICE_WARNING
-template <typename FieldType>
-class TSource_Current
-{
-    public:
-        static const std::string name;
-        static const size_t feature_dim = 3;
-        static const bool has_guard = false;
-        static const bool persistent = false;
-        typename FieldType::DataBoxType shifted;
-        MappingDesc *cellDescription;
-        bool movingWindow;
-
-        TSource_Current() : cellDescription(NULL), movingWindow(false) {}
-        TSource_Current(MappingDesc *cellDescription, bool movingWindow) : cellDescription(cellDescription), movingWindow(movingWindow) {}
-
-        void update(bool enabled, void* pointer)
-        {
-            const SubGrid<simDim>& subGrid = Environment< simDim >::get().SubGrid();
-            DataConnector &dc = Environment< simDim >::get().DataConnector();
-            FieldType * pField = &(dc.getData< FieldType > (FieldType::getName(), true));
-            DataSpace< simDim > guarding = SuperCellSize::toRT() * cellDescription->getGuardingSuperCells();
-            if (movingWindow)
-            {
-                GridController<simDim> &gc = Environment<simDim>::get().GridController();
-                if (gc.getPosition()[1] == 0) //first gpu
-                {
-					uint32_t* currentStep = (uint32_t*)pointer;
-                    Window window(MovingWindow::getInstance().getWindow( *currentStep ));
-                    guarding += subGrid.getLocalDomain().size - window.localDimensions.size;
-                }
-            }
-            typename FieldType::DataBoxType dataBox = pField->getDeviceDataBox();
-            shifted = dataBox.shift( guarding );
-        }
-
-        ISAAC_NO_HOST_DEVICE_WARNING
-        ISAAC_HOST_DEVICE_INLINE isaac_float_dim<3> operator[] (const isaac_int3& nIndex) const
-        {
-            auto value = shifted[nIndex.z][nIndex.y][nIndex.x];
-            isaac_float_dim<3> result =
-            {
-                isaac_float( value.x() ),
-                isaac_float( value.y() ),
-                isaac_float( value.z() )
-            };
-            return result;
-        }
-};
-
-template <>
-const std::string TSource_Current<FieldJ>::name = "Current Field";
 
 ISAAC_NO_HOST_DEVICE_WARNING
 template <typename ParticleType>
-class PSource
+class TParticleSource
 {
     public:
-        static const std::string name;
         static const size_t feature_dim = 1;
         static const bool has_guard = false;
         static const bool persistent = false;
@@ -163,8 +104,13 @@ class PSource
         MappingDesc *cellDescription;
         bool movingWindow;
 
-        PSource() : cellDescription(NULL), movingWindow(false) {}
-        PSource(MappingDesc *cellDescription, bool movingWindow) : cellDescription(cellDescription), movingWindow(movingWindow) {}
+        TParticleSource() : cellDescription(NULL), movingWindow(false) {}
+        TParticleSource(MappingDesc *cellDescription, bool movingWindow) : cellDescription(cellDescription), movingWindow(movingWindow) {}
+
+        static std::string getName()
+        {
+            return ParticleType::FrameType::getName() + std::string(" density field");
+        }
 
         void update(bool enabled, void* pointer)
         {
@@ -197,36 +143,25 @@ class PSource
         }
 
         ISAAC_NO_HOST_DEVICE_WARNING
-        ISAAC_HOST_DEVICE_INLINE isaac_float_dim<1> operator[] (const isaac_int3& nIndex) const
+        ISAAC_HOST_DEVICE_INLINE isaac_float_dim< feature_dim > operator[] (const isaac_int3& nIndex) const
         {
             auto value = shifted[nIndex.z][nIndex.y][nIndex.x];
-            isaac_float_dim<1> result = { isaac_float( value.x() ) };
+            isaac_float_dim< feature_dim > result = { isaac_float( value.x() ) };
             return result;
         }
 };
-
-template <>
-const std::string PSource<PIC_Electrons>::name = "Electron density";
-
-template <>
-const std::string PSource<PIC_Ions>::name = "Ion density";
-
-#if ENABLE_ELECTRONS_2 == 1
-    template <>
-    const std::string PSource<PIC_Electrons2>::name = "Electron density 2";
-#endif
 
 class IsaacPlugin : public ILightweightPlugin
 {
 public:
     typedef boost::mpl::int_< simDim > SimDim;
-    typedef TSource<FieldE> ESource;
-    typedef TSource<FieldB> BSource;
-    typedef TSource_Current<FieldJ> JSource;
-    typedef PSource<PIC_Electrons> EPSource;
-    typedef PSource<PIC_Ions> IPSource;
+    typedef TFieldSource<FieldE> ESource;
+    typedef TFieldSource<FieldB> BSource;
+    typedef TFieldSource<FieldJ,false,false> JSource;
+    typedef TParticleSource<PIC_Electrons> EPSource;
+    typedef TParticleSource<PIC_Ions> IPSource;
     #if ENABLE_ELECTRONS_2 == 1
-        typedef PSource<PIC_Electrons2> EPSource2;
+        typedef TParticleSource<PIC_Electrons2> EPSource2;
     #endif
     static const size_t textureDim = 1024;
     using SourceList = boost::fusion::list
@@ -267,12 +202,13 @@ public:
         visualization(NULL),
         cellDescription(NULL),
         movingWindow(false),
-        interval(0),
+        render_interval(0),
         step(0),
         drawing_time(0),
         cell_count(0),
         particle_count(0),
-        last_notify(0)
+        last_notify(0),
+        notifyPeriod(0)
     {
         Environment<>::get().PluginConnector().registerPlugin(this);
     }
@@ -286,7 +222,7 @@ public:
     {
         uint64_t simulation_time = visualization->getTicksUs() - last_notify;
         step++;
-        if (step >= interval)
+        if (step >= render_interval)
         {
             step = 0;
             bool pause = false;
@@ -304,22 +240,8 @@ public:
                 {
                     json_object_set_new( visualization->getJsonMetaRoot(), "time step", json_integer( currentStep ) );
                     json_object_set_new( visualization->getJsonMetaRoot(), "drawing_time" , json_integer( drawing_time ) );
-                    json_object_set_new( visualization->getJsonMetaRoot(), "sorting_time" , json_integer( visualization->sorting_time ) );
-                    json_object_set_new( visualization->getJsonMetaRoot(), "merge_time" , json_integer( visualization->merge_time - visualization->kernel_time - visualization->copy_time ) );
-                    json_object_set_new( visualization->getJsonMetaRoot(), "kernel_time" , json_integer( visualization->kernel_time ) );
-                    json_object_set_new( visualization->getJsonMetaRoot(), "copy_time" , json_integer( visualization->copy_time ) );
-                    json_object_set_new( visualization->getJsonMetaRoot(), "video_send_time" , json_integer( visualization->video_send_time ) );
-                    json_object_set_new( visualization->getJsonMetaRoot(), "buffer_time" , json_integer( visualization->buffer_time ) );
                     json_object_set_new( visualization->getJsonMetaRoot(), "simulation_time", json_integer( simulation_time ) );
-
-                    visualization->sorting_time = 0;
-                    visualization->merge_time = 0;
-                    visualization->kernel_time = 0;
-                    visualization->copy_time = 0;
-                    visualization->video_send_time = 0;
-                    visualization->buffer_time = 0;
                     simulation_time = 0;
-
                     json_object_set_new( visualization->getJsonMetaRoot(), "cell count", json_integer( cell_count ) );
                     json_object_set_new( visualization->getJsonMetaRoot(), "particle count", json_integer( particle_count ) );
                 }
@@ -334,10 +256,10 @@ public:
                 json_t* js;
                 if ( meta && ( js = json_object_get(meta, "interval") ) )
                 {
-					interval = max( int(1), int( json_integer_value ( js ) ) );
+					render_interval = max( int(1), int( json_integer_value ( js ) ) );
 					//Feedback for other clients than the changing one
 					if (rank == 0)
-						json_object_set_new( visualization->getJsonMetaRoot(), "interval", json_integer( interval ) );
+						json_object_set_new( visualization->getJsonMetaRoot(), "interval", json_integer( render_interval ) );
                 }
                 json_decref( meta );
                 if (direct_pause)
@@ -355,7 +277,7 @@ public:
     {
         /* register command line parameters for your plugin */
         desc.add_options()
-            ("isaac.period", po::value< uint32_t > (&notifyPeriod)->default_value(0),
+            ("isaac.period", po::value< uint32_t > (&render_interval)->default_value(0),
              "Enable IsaacPlugin [for each n-th step].")
             ("isaac.name", po::value< std::string > (&name)->default_value("default"),
              "The name of the simulation. Default is \"default\".")
@@ -393,8 +315,8 @@ private:
     int numProc;
     bool movingWindow;
     SourceList sources;
-    int interval;
-    int step;
+    uint32_t render_interval;
+    uint32_t step;
     int drawing_time;
     bool direct_pause;
     int cell_count;
@@ -403,14 +325,13 @@ private:
 
     void pluginLoad()
     {
-        if (notifyPeriod > 0)
+        if (render_interval > 0)
         {
-            interval = notifyPeriod;
+            //using an internal variable "render_interval" as notifyPeroid
+            //of PIConGPU cannot be changed at runtime
             notifyPeriod = 1;
             MPI_Comm_rank(MPI_COMM_WORLD, &rank);
             MPI_Comm_size(MPI_COMM_WORLD, &numProc);
-            printf("ISAAC: Load Plugin at %i\n",rank);
-            printf("%i: ISAAC activated\n",rank);
             if ( MovingWindow::getInstance().isSlidingWindowActive() )
                 movingWindow = true;
             float_X minCellSize = min( cellSize[0], min( cellSize[1], cellSize[2] ) );
@@ -464,14 +385,22 @@ private:
                 subGrid.getLocalDomain().size,
                 subGrid.getLocalDomain().offset,
                 sources,
-                cellSizeFactor );
+                cellSizeFactor
+            );
             visualization->setJpegQuality(jpeg_quality);
-            printf("ISAAC: Init at %i/%i\n",rank,numProc);
+            //Defining the later periodicly sent meta data
             if (rank == 0)
-                json_object_set_new( visualization->getJsonMetaRoot(), "time step", json_string( "Time step" ) );
-            if (visualization->init())
             {
-                fprintf(stderr,"ISAAC: init failed at %i/%i\n",rank,numProc);
+                json_object_set_new( visualization->getJsonMetaRoot(), "time step", json_string( "Time step" ) );
+                json_object_set_new( visualization->getJsonMetaRoot(), "drawing time", json_string( "Drawing time in µs" ) );
+                json_object_set_new( visualization->getJsonMetaRoot(), "simulation time", json_string( "Simulation time in µs" ) );
+                json_object_set_new( visualization->getJsonMetaRoot(), "cell count", json_string( "Total numbers of cells" ) );
+                json_object_set_new( visualization->getJsonMetaRoot(), "particle count", json_string( "Total numbers of particles" ) );
+            }
+            if (visualization->init() != 0)
+            {
+                if (rank == 0)
+                    log<picLog::INPUT_OUTPUT > ("ISAAC Init failed");
                 delete visualization;
                 visualization = NULL;
                 notifyPeriod = 0;
@@ -482,8 +411,9 @@ private:
                 cell_count = localNrOfCells * numProc;
                 particle_count = localNrOfCells * particles::TYPICAL_PARTICLES_PER_CELL * (bmpl::size<VectorAllSpecies>::type::value) * numProc;
                 last_notify = visualization->getTicksUs();
+                if (rank == 0)
+                    log<picLog::INPUT_OUTPUT > ("ISAAC Init succeded");
             }
-            printf("ISAAC: Finished init at %i\n",rank);
         }
         Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
     }
@@ -494,13 +424,11 @@ private:
         {
             delete visualization;
             visualization = NULL;
-            printf("ISAAC: Unload Plugin at %i\n",rank);
+            if (rank == 0)
+                log<picLog::INPUT_OUTPUT > ("ISAAC finished");
         }
     }
 };
 
 } //namespace isaac;
 } //namespace picongpu;
-
-#undef ENABLE_IONS
-#define ENABLE_IONS ENABLE_IONS_SAVED

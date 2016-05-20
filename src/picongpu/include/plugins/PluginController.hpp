@@ -86,7 +86,7 @@
 #include "plugins/adios/ADIOSWriter.hpp"
 #endif
 
-#if (ENABLE_ISAAC == 1)
+#if (ENABLE_ISAAC == 1) && (SIMDIM==DIM3)
 #include "plugins/IsaacPlugin.hpp"
 #endif
 
@@ -144,7 +144,7 @@ private:
 #if (ENABLE_HDF5 == 1)
       , hdf5::HDF5Writer
 #endif
-#if(ENABLE_ISAAC == 1)
+#if (ENABLE_ISAAC == 1) && (SIMDIM==DIM3)
       , isaacP::IsaacPlugin
 #endif
     > StandAlonePlugins;
