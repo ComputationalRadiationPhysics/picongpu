@@ -41,7 +41,14 @@ struct Abs<double>
 
     HDINLINE double operator( )(double value)
     {
-        return ::abs( value );
+#ifdef __CUDA_ARCH__
+      return ::fabs( value );
+#else
+      /* \bug on cpu `::abs(double)` always return zero -> maybe this is the
+	* integer version of `abs()`
+	*/
+      return std::abs( value );
+#endif
     }
 };
 
