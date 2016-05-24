@@ -191,20 +191,18 @@ struct Field
                                               ctDataOrder, recordName.c_str(),
                                               "dataOrder", dataOrder.c_str());
 
-        typedef char MyChar2[2];
-        MyChar2 *axisLabels = new MyChar2[simDim];
+        char axisLabels[simDim][2];
         ColTypeString ctAxisLabels(1);
         for( uint32_t d = 0; d < simDim; ++d )
         {
-            axisLabels[d][0] = char('x' + d); // x, y, z
-            axisLabels[d][1] = '\0';          // terminator is important!
+            axisLabels[simDim-1-d][0] = char('x' + d); // 3D: F[z][y][x], 2D: F[y][x]
+            axisLabels[simDim-1-d][1] = '\0';          // terminator is important!
         }
         params->dataCollector->writeAttribute(params->currentStep,
                                               ctAxisLabels, recordName.c_str(),
                                               "axisLabels",
                                               1u, Dimensions(simDim,0,0),
                                               axisLabels);
-        delete[] axisLabels;
 
         std::vector<float_X> gridSpacing(simDim, 0.0);
         for( uint32_t d = 0; d < simDim; ++d )
