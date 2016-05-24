@@ -284,8 +284,12 @@ public:
 
         if(this->randomGen() < x)
         {
-            this->photon_mom = mom_norm * z*z*z * mass*c * gamma * particle[weighting_];
-            return 1;
+            const float_X photonMom_abs = z*z*z * mass*c * gamma;
+            if(photonMom_abs > SOFT_PHOTONS_CUTOFF_MOM)
+            {
+                this->photon_mom = mom_norm * photonMom_abs * particle[weighting_];
+                return 1;
+            }
         }
 
         return 0;

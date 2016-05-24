@@ -36,7 +36,6 @@
 #include "particles/traits/FilterByFlag.hpp"
 #include "particles/traits/GetPhotonCreator.hpp"
 #include "particles/synchrotronPhotons/SynchrotronFunctions.hpp"
-#include "particles/synchrotronPhotons/PhotonCreator.hpp"
 #include "particles/creation/creation.hpp"
 
 namespace picongpu
