@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2016 Rene Widera, Marco Garten, Alexander Grund
+ * Copyright 2014-2016 Rene Widera, Marco Garten, Alexander Grund, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -18,8 +18,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 #include "simulation_defines.hpp"
@@ -31,6 +29,19 @@
 #include "identifier/value_identifier.hpp"
 #include "particles/IdProvider.def"
 
+
+/** \file speciesAttributes.param
+ *
+ * This file defines available attributes that can be stored with each particle
+ * of a particle species.
+ * Each attribute defined here needs to implement furthermore the traits
+ *   - Unit
+ *   - UnitDimension
+ *   - WeightingPower
+ *   - MacroWeighted
+ * in \see speciesAttributes.unitless . For further information about these
+ * traits see therein.
+ */
 namespace picongpu
 {
 
