@@ -194,6 +194,24 @@ struct Pow< ::PMacc::math::Vector<T1, dim>, T2 >
     }
 };
 
+/*#### floor #################################################################*/
+
+/*specialize floor algorithm*/
+template<typename Type, int dim>
+struct Floor< ::PMacc::math::Vector<Type, dim> >
+{
+    typedef ::PMacc::math::Vector<Type, dim> result;
+
+    HDINLINE result operator( )( ::PMacc::math::Vector<Type, dim> &vector )
+    {
+        result tmp;
+        for ( int i = 0; i < dim; ++i )
+            tmp[i] = PMacc::algorithms::math::floor( vector[i] );
+        return tmp;
+    }
+};
+
+
 } //namespace math
 } //namespace algorithms
 } // namespace PMacc
