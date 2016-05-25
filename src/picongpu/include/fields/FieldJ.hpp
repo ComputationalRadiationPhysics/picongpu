@@ -98,7 +98,7 @@ public:
      * (length L, mass M, time T, electric current I,
      *  thermodynamic temperature theta, amount of substance N,
      *  luminous intensity J) */
-    HDINLINE static std::vector<float_64> getUnitDimension();
+    HINLINE static std::vector<float_64> getUnitDimension();
 
     static std::string getName();
 

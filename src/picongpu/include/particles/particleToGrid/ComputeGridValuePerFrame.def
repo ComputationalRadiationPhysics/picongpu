@@ -63,7 +63,7 @@ public:
      * (length L, mass M, time T, electric current I,
      *  thermodynamic temperature theta, amount of substance N,
      *  luminous intensity J) */
-    HDINLINE std::vector<float_64> getUnitDimension() const;
+    HINLINE std::vector<float_64> getUnitDimension() const;
 
     /** return name of the this solver
      * @return name of solver

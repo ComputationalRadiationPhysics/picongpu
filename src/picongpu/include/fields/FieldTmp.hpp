@@ -80,7 +80,7 @@ namespace picongpu
          *  thermodynamic temperature theta, amount of substance N,
          *  luminous intensity J) */
         template<class FrameSolver >
-        HDINLINE static std::vector<float_64> getUnitDimension();
+        HINLINE static std::vector<float_64> getUnitDimension();
 
         static std::string getName();
 

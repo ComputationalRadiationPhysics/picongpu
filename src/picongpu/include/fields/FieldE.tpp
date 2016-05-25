@@ -221,7 +221,7 @@ FieldE::getUnit( )
     return UnitValueType( UNIT_EFIELD, UNIT_EFIELD, UNIT_EFIELD );
 }
 
-HDINLINE
+HINLINE
 std::vector<float_64>
 FieldE::getUnitDimension( )
 {
