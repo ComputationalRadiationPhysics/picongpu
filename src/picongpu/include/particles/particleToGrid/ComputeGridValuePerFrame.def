@@ -27,6 +27,7 @@
 #include "particles/traits/GetShape.hpp"
 #include "particles/particleToGrid/derivedAttributes/DerivedAttributes.def"
 
+#include <boost/mpl/int.hpp>
 #include <vector>
 
 namespace picongpu
@@ -128,6 +129,19 @@ struct CreateEnergyOperation
     > ParticleEnergy;
 
     typedef FieldTmpOperation< ParticleEnergy, T_Species > type;
+};
+
+/* Energy ratio between perpendicular and longitudinal components */
+template<typename T_Species, typename T_Direction = bmpl::int_<1> >
+struct CreateEnergyPerpendicularOperation
+{
+    typedef typename GetShape<T_Species>::type shapeType;
+    typedef ComputeGridValuePerFrame<
+        shapeType,
+        particleToGrid::derivedAttributes::EnergyPerpendicular<T_Direction::value>
+    > ParticleEnergyPerpendicular;
+
+    typedef FieldTmpOperation< ParticleEnergyPerpendicular, T_Species > type;
 };
 
 #if(ENABLE_RADIATION == 1)
