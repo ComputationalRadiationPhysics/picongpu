@@ -37,7 +37,7 @@ namespace derivedAttributes
         HDINLINE float1_64
         getUnit() const;
 
-        HDINLINE std::vector<float_64>
+        HINLINE std::vector<float_64>
         getUnitDimension() const
         {
            /* L, M, T, I, theta, N, J

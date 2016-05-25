@@ -46,7 +46,7 @@ ComputeGridValuePerFrame<T_ParticleShape, T_DerivedAttribute>::getUnit() const
 }
 
 template<class T_ParticleShape, class T_DerivedAttribute>
-HDINLINE std::vector<float_64>
+HINLINE std::vector<float_64>
 ComputeGridValuePerFrame<T_ParticleShape, T_DerivedAttribute>::getUnitDimension() const
 {
     return T_DerivedAttribute().getUnitDimension();

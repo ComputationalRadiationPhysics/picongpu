@@ -243,7 +243,7 @@ FieldJ::getUnit( )
     return UnitValueType( UNIT_CURRENT, UNIT_CURRENT, UNIT_CURRENT );
 }
 
-HDINLINE
+HINLINE
 std::vector<float_64>
 FieldJ::getUnitDimension( )
 {
