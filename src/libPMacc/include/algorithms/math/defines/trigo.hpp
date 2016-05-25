@@ -46,6 +46,9 @@ template<typename Type>
 struct Tan;
 
 template<typename Type>
+struct ATan;
+
+template<typename Type>
 struct Atan2;
 
 template<typename ArgType, typename SinType, typename CosType>
@@ -93,6 +96,14 @@ typename Tan<T1>::result
 tan(const T1& value)
 {
     return Tan< T1 > ()(value);
+}
+
+template<typename T1>
+HDINLINE
+typename ATan<T1>::result
+atan(const T1& value)
+{
+    return ATan< T1 > ()(value);
 }
 
 template<typename ArgType, typename SinType, typename CosType>
