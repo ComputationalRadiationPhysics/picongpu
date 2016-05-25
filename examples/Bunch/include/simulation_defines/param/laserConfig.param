@@ -54,7 +54,7 @@ BOOST_CONSTEXPR_OR_CONST float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_
  *  Info:             FWHM_of_Intensity = FWHM_Illumination
  *                      = what a experimentalist calls "pulse duration"
  *  unit: seconds (1 sigma) */
-BOOST_CONSTEXPR_OR_CONST float_64 PULSE_LENGTH_SI = 10.615e-15 / 4.0; //5.0e-15; //25.0e-15 / 1.17741;
+BOOST_CONSTEXPR_OR_CONST float_64 PULSE_LENGTH_SI = 2.65e-15;
 
 /** beam waist: distance from the axis where the pulse intensity (E^2)
  *              decreases to its 1/e^2-th part,
@@ -103,7 +103,7 @@ BOOST_CONSTEXPR_OR_CONST float_64 AMPLITUDE_SI = 1.738e13;
     *  Info:             FWHM_of_Intensity = FWHM_Illumination
     *                      = what a experimentalist calls "pulse duration"
     *  unit: seconds (1 sigma) */
-BOOST_CONSTEXPR_OR_CONST float_64 PULSE_LENGTH_SI = 10.615e-15 / 4.0;
+BOOST_CONSTEXPR_OR_CONST float_64 PULSE_LENGTH_SI = 2.65e-15;
 
 /** beam waist: distance from the axis where the pulse intensity (E^2)
  *              decreases to its 1/e^2-th part,
@@ -172,13 +172,13 @@ BOOST_CONSTEXPR_OR_CONST float_64 LASER_NOFOCUS_CONSTANT_SI = 50.0*WAVE_LENGTH_S
  *  Info:             FWHM_of_Intensity = FWHM_Illumination
  *                      = what a experimentalist calls "pulse duration"
  *  unit: seconds (1 sigma) */
-BOOST_CONSTEXPR_OR_CONST float_64 PULSE_LENGTH_SI = 10.615e-15 / 4.0; //5.0e-15; //25.0e-15 / 1.17741;
+BOOST_CONSTEXPR_OR_CONST float_64 PULSE_LENGTH_SI = 2.65e-15;
 
 }
 
 /** The laser pulse will be initialized half of PULSE_INIT times of the PULSE_LENGTH before and after the plateau
  *  unit: none */
-BOOST_CONSTEXPR_OR_CONST float_64 RAMP_INIT = 20.6146; //25.6415;//SI::aux_calulation::PULSE_TIME_SI/SI::PULSE_LENGTH_SI;
+BOOST_CONSTEXPR_OR_CONST float_64 RAMP_INIT = 20.6146;
 
 /* we use a sin(omega*time + laser_phase) function to set up the laser - define phase: */
 BOOST_CONSTEXPR_OR_CONST float_X LASER_PHASE = 0.0; /* unit: rad, periodic in 2*pi */
@@ -218,7 +218,7 @@ BOOST_CONSTEXPR_OR_CONST float_64 AMPLITUDE_SI = 1.738e13;
 /** The profile of the test Lasers 0 and 2 can be stretched by a
  *      constant area between the up and downramp
  *  unit: seconds */
-BOOST_CONSTEXPR_OR_CONST float_64 LASER_NOFOCUS_CONSTANT_SI = 7.0 * WAVE_LENGTH_SI / ::picongpu::SI::SPEED_OF_LIGHT_SI; //0.0;//50.0e-15;
+BOOST_CONSTEXPR_OR_CONST float_64 LASER_NOFOCUS_CONSTANT_SI = 7.0 * WAVE_LENGTH_SI / ::picongpu::SI::SPEED_OF_LIGHT_SI;
 
 /** Pulse length: sigma of std. gauss for intensity (E^2)
  *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
@@ -226,7 +226,7 @@ BOOST_CONSTEXPR_OR_CONST float_64 LASER_NOFOCUS_CONSTANT_SI = 7.0 * WAVE_LENGTH_
  *  Info:             FWHM_of_Intensity = FWHM_Illumination
  *                      = what a experimentalist calls "pulse duration"
  *  unit: seconds (1 sigma) */
-BOOST_CONSTEXPR_OR_CONST float_64 PULSE_LENGTH_SI = 10.615e-15 / 4.0; //5.0e-15; //25.0e-15 / 1.17741;
+BOOST_CONSTEXPR_OR_CONST float_64 PULSE_LENGTH_SI = 2.65e-15;
 
 /** beam waist: distance from the axis where the pulse intensity (E^2)
  *              decreases to its 1/e^2-th part,
