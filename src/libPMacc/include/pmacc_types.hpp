@@ -121,15 +121,28 @@ enum EventType
 };
 
 /**
+ * Print a cuda error message including file/line info to stderr
+ */
+#define PMACC_PRINT_CUDA_ERROR(msg) \
+    std::cerr << "[CUDA] Error: <" << __FILE__ << ">:" << __LINE__ << " " << msg << std::endl
+
+/**
+ * Print a cuda error message including file/line info to stderr and raises an exception
+ */
+#define PMACC_PRINT_CUDA_ERROR_AND_THROW(cudaError, msg) \
+    PMACC_PRINT_CUDA_ERROR(msg);                         \
+    throw std::runtime_error(std::string("[CUDA] Error: ") + std::string(cudaGetErrorString(cudaError)))
+
+/**
  * Captures CUDA errors and prints messages to stdout, including line number and file.
  *
  * @param cmd command with cudaError_t return value to check
  */
-#define CUDA_CHECK(cmd) {cudaError_t error = cmd; if(error!=cudaSuccess){std::cerr<<"<"<<__FILE__<<">:"<<__LINE__<<std::endl; throw std::runtime_error(std::string("[CUDA] Error: ") + std::string(cudaGetErrorString(error)));}}
+#define CUDA_CHECK(cmd) {cudaError_t error = cmd; if(error!=cudaSuccess){ PMACC_PRINT_CUDA_ERROR_AND_THROW(error, ""); }}
 
-#define CUDA_CHECK_MSG(cmd,msg) {cudaError_t error = cmd; if(error!=cudaSuccess){std::cerr<<"<"<<__FILE__<<">:"<<__LINE__<<msg<<std::endl; throw std::runtime_error(std::string("[CUDA] Error: ") + std::string(cudaGetErrorString(error)));}}
+#define CUDA_CHECK_MSG(cmd,msg) {cudaError_t error = cmd; if(error!=cudaSuccess){ PMACC_PRINT_CUDA_ERROR_AND_THROW(error, msg); }}
 
-#define CUDA_CHECK_NO_EXCEP(cmd) {cudaError_t error = cmd; if(error!=cudaSuccess){printf("[CUDA] Error: <%s>:%i ",__FILE__,__LINE__);}}
+#define CUDA_CHECK_NO_EXCEP(cmd) {cudaError_t error = cmd; if(error!=cudaSuccess){ PMACC_PRINT_CUDA_ERROR(""); }}
 
 /* calculate and set the optimal alignment for data
  * you must align all array and structs which can used on device
