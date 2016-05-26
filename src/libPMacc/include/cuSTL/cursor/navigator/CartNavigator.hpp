@@ -48,7 +48,9 @@ public:
     Data operator()(const Data& data, const math::Int<dim>& jump) const
     {
         char* result = (char*)data;
-        result += dot(jump, this->factor);
+        result += algorithms::math::dot(
+            static_cast<typename math::Int<dim>::BaseType>(jump),
+            static_cast<typename math::Int<dim>::BaseType>(this->factor));
         return (Data)result;
     }
 
