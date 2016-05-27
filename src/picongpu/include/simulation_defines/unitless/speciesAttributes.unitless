@@ -19,8 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 #include <vector>
@@ -30,9 +28,32 @@
 #include "particles/traits/MacroWeighted.hpp"
 #include "particles/traits/WeightingPower.hpp"
 
+
+/** \file speciesAttributes.unitless
+ *
+ * This file describes the particle attributes defined in
+ * \see speciesAttributes.param of a particle species.
+ * Each particle attribute needs to implement the following traits
+ *   - `Unit`
+ *      - conversion between PIConGPU units and SI
+ *      - \see traits/Unit.hpp
+ *      - \see https://git.io/vriio
+ *   - `UnitDimension`
+ *      - powers of the seven SI base units
+ *      - \see traits/UnitDimension.hpp
+ *      - \see https://git.io/vriio
+ *   - `MacroWeighted`
+ *      - attribute is weighted to a macro-particle?
+ *      - \see particles/traits/MacroWeighted.hpp
+ *      - \see https://git.io/vwlWa
+ *   - `WeightingPower`
+ *      - attribute is different for macro and real particles?
+ *        describe how it scales with the weighting
+ *      - \see particles/traits/WeightingPower.hpp
+ *      - \see https://git.io/vwlWa
+ */
 namespace picongpu
 {
-
 namespace traits
 {
 
