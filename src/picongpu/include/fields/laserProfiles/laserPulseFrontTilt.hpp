@@ -93,7 +93,7 @@ namespace picongpu
             //const float_X modMue = float_X(PI) * float_X(SPEED_OF_LIGHT / WAVE_LENGTH) * INIT_TIME;
             const float_X f = SPEED_OF_LIGHT / WAVE_LENGTH;
             const float_X timeShift = phase / (2.0f * float_X(PI) * float_X(f)) + FOCUS_POS / SPEED_OF_LIGHT;
-            const float_X spaceShift = SPEED_OF_LIGHT * tanf(TILT_X) * timeShift / CELL_HEIGHT;
+            const float_X spaceShift = SPEED_OF_LIGHT * algorithms::math::tan(TILT_X) * timeShift / CELL_HEIGHT;
             const float_X r2 = (posX + spaceShift) * (posX + spaceShift) + posZ * posZ;
 
             // pure gaussian
@@ -138,7 +138,7 @@ namespace picongpu
             //beam waist in the near field: w_y(y=0) == W0
             const float_X w_y = W0 * algorithms::math::sqrt( float_X(1.0) + ( FOCUS_POS / y_R )*( FOCUS_POS / y_R ) );
             //! the Gouy phase shift
-            const float_X xi_y = atanf( -FOCUS_POS / y_R );
+            const float_X xi_y = algorithms::math::atan( -FOCUS_POS / y_R );
 
             if( Polarisation == LINEAR_X || Polarisation == LINEAR_Z )
             {
