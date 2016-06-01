@@ -27,8 +27,10 @@ namespace particles
 namespace synchrotronPhotons
 {
 
+/** enable synchtrotron photon emission */
 #define ENABLE_SYNCHROTRON_PHOTONS 0
 
+/** enable (disable) QED (classical) photon emission spectrum */
 BOOST_CONSTEXPR_OR_CONST bool enableQEDTerm = false;
 
 /** Above this value (to the power of three, see comments on mapping) the synchrotron functions are nearly zero. */
@@ -40,8 +42,13 @@ BOOST_CONSTEXPR_OR_CONST float_64 SYNC_FUNCS_BESSEL_INTEGRAL_STEPWIDTH = 1.0e-3;
 /** Number of sampling points of the lookup table */
 BOOST_CONSTEXPR_OR_CONST uint32_t SYNC_FUNCS_NUM_SAMPLES = 8192;
 
-/** Photons softer than this ratio: (2pi / omega) / DELTA_T, are neglected */
+/** Photons of oszillation periods greater than a timestep are not created since the grid already accounts for them.
+ * This cutoff ratio is defined as: photon-oszillation-period / timestep */
 BOOST_CONSTEXPR_OR_CONST float_64 SOFT_PHOTONS_CUTOFF_RATIO = 1.0;
+
+/** if the emission probability per timestep is higher than this value and the log level is set to
+ *  "CRITICAL" a warning will be raised. */
+BOOST_CONSTEXPR_OR_CONST float_64 SINGLE_EMISSION_PROB_LIMIT = 0.4;
 
 } // namespace synchrotronPhotons
 } // namespace particles

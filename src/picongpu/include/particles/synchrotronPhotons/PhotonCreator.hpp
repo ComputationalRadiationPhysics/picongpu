@@ -190,7 +190,7 @@ public:
         const float_X mass = frame::getMass<FrameType>();
         const float_X charge = frame::getCharge<FrameType>();
 
-        const float_X sqrtOf3 = 1.732050807;
+        const float_X sqrtOf3 = 1.7320508075688772;
         const float_X factor = DELTA_T * charge*charge * mass * SPEED_OF_LIGHT / (float_X(4.0) * PI * EPS0 * HBAR*HBAR) *
                                sqrtOf3 / (float_X(2.0) * PI) * chi / gamma;
 
@@ -215,16 +215,17 @@ public:
      *
      * The scaling avoids an infrared divergence.
      *
-     * @param z scaled and normalized (to the electron energy) photon energy
+     * @param deltaScaled scaled and normalized (to the electron energy) photon energy
      * @param chi quantum-nonlinearity parameter
      * @param gamma electron gamma
      */
     DINLINE float_X emission_prob_scaled(
-        const float_X z,
+        const float_X deltaScaled,
         const float_X chi,
         const float_X gamma) const
     {
-        return float_X(3.0) * z*z * emission_prob(z*z*z, chi, gamma);
+        const float_X delta = deltaScaled*deltaScaled*deltaScaled;
+        return float_X(3.0) * deltaScaled*deltaScaled * emission_prob(delta, chi, gamma);
     }
 
     /** Return the number of target particles to create from each source particle.
@@ -242,7 +243,7 @@ public:
         PMACC_AUTO(particle, sourceFrame[localIdx]);
 
         /* particle position, used for field-to-particle interpolation */
-        floatD_X pos = particle[position_];
+        const floatD_X pos = particle[position_];
         const int particleCellIdx = particle[localCellIdx_];
         /* multi-dim coordinate of the local cell inside the super cell */
         DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec > (particleCellIdx));
@@ -255,6 +256,8 @@ public:
         ValueType_B fieldB = Field2ParticleInterpolation()
             (cachedB.shift(localCell).toCursor(), pos, fieldPosB());
 
+        /* All computation below is in the single "real" particle picture.
+         * The macroparticle weighting factor is reintroduced at the end of this code block. */
         const float3_X mom = particle[momentum_] / particle[weighting_];
         const float_X mom2 = math::dot(mom, mom);
         const float3_X mom_norm = mom * math::rsqrt(mom2);
@@ -263,28 +266,39 @@ public:
         const float_X gamma = Gamma<>()(mom, mass);
         const float3_X vel = mom / (gamma * mass); // low accuracy?
 
-        const float3_X lorentz = fieldE + math::cross(vel, fieldB);
-        const float_X lorentz2 = math::dot(lorentz, lorentz);
+        const float3_X lorentzForceOverCharge = fieldE + math::cross(vel, fieldB);
+        const float_X lorentzForceOverCharge2 = math::dot(lorentzForceOverCharge, lorentzForceOverCharge);
         const float_X fieldE_long = math::dot(mom_norm, fieldE);
 
-        // effective magnetic strength
-        const float_X H_eff = math::sqrt(lorentz2 - fieldE_long*fieldE_long);
+        // effective magnetic strength (in cgs)
+        const float_X H_eff = math::sqrt(lorentzForceOverCharge2 - fieldE_long*fieldE_long);
 
         const float_X charge = math::abs(frame::getCharge<FrameType>());
 
         const float_X c = SPEED_OF_LIGHT;
-        // Schwinger limit, unit: V/m
+        // Schwinger limit, unit: V/m (in cgs)
         const float_X E_S = mass*mass * c*c*c / (charge * HBAR);
         // quantum-nonlinearity parameter
         const float_X chi = gamma * H_eff / E_S;
 
-        const float_X z = this->randomGen();
+        const float_X deltaScaled = this->randomGen();
 
-        const float_X x = emission_prob_scaled(z, chi, gamma);
+        const float_X x = emission_prob_scaled(deltaScaled, chi, gamma);
+
+        // raise a warning if the emission probability is too high.
+        if(picLog::log_level & picLog::CRITICAL::lvl)
+        {
+            if(x > float_X(SINGLE_EMISSION_PROB_LIMIT))
+            {
+                printf("[SynchrotronPhotons] warning: emission probability is too high: p = %g, at delta = %g, chi = %g, gamma = %g\n",
+                    x, delta, chi, gamma);
+            }
+        }
 
         if(this->randomGen() < x)
         {
-            const float_X photonMom_abs = z*z*z * mass*c * gamma;
+            const float_X delta = deltaScaled*deltaScaled*deltaScaled;
+            const float_X photonMom_abs = delta * mass*c * gamma;
             if(photonMom_abs > SOFT_PHOTONS_CUTOFF_MOM)
             {
                 this->photon_mom = mom_norm * photonMom_abs * particle[weighting_];

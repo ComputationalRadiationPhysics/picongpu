@@ -339,10 +339,10 @@ struct CallSynchrotronPhotons
      * \param tuple An n-tuple containing the type-info of multiple particle species
      * \param cellDesc points to logical block information like dimension and cell sizes
      * \param currentStep The current time step
+     * \param synchrotronFunctions synchrotron functions wrapper object
      */
     template<typename T_StorageTuple, typename T_CellDescription>
-    HINLINE void operator()(
-                            T_StorageTuple& tuple,
+    HINLINE void operator()(T_StorageTuple& tuple,
                             T_CellDescription* cellDesc,
                             const uint32_t currentStep,
                             const synchrotronPhotons::SynchrotronFunctions& synchrotronFunctions) const

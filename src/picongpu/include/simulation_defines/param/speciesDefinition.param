@@ -82,7 +82,6 @@ typedef bmpl::vector<
     particlePusher<particles::pusher::Photon>,
     shape<UsedParticleShape>,
     interpolation<UsedField2Particle>,
-    current<UsedParticleCurrentSolver>,
     massRatio<DummyMass>,
     chargeRatio<DummyCharge>
 > ParticleFlagsPhotons;

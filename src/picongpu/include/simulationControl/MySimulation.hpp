@@ -348,10 +348,13 @@ public:
         PMacc::GridController<simDim>& gridCon = PMacc::Environment<simDim>::get().GridController();
         this->rngFactory->init(gridCon.getScalarPosition());
 
-#if(ENABLE_SYNCHROTRON_PHOTONS == 1)
-        // Initialize synchrotron functions, allocate lookup table
-        this->synchrotronFunctions.init();
-#endif
+        // Initialize synchrotron functions, if there are synchrotron photon species
+        typedef typename PMacc::particles::traits::FilterByFlag<VectorAllSpecies,
+                                                                synchrotronPhotons<> >::type AllSynchrotronPhotonsSpecies;
+        if(!bmpl::empty<AllSynchrotronPhotonsSpecies>::value)
+        {
+            this->synchrotronFunctions.init();
+        }
     }
 
     virtual uint32_t fillSimulation()

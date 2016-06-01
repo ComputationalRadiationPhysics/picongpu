@@ -45,8 +45,8 @@ struct GetPhotonCreator
     /* This now resolves the alias into the actual object type */
     typedef typename PMacc::traits::Resolve<FoundSynchrotronPhotonsAlias>::type FoundPhotonSpecies;
 
-    /* This specifies the source species as the second template parameter of the photon creator */
-    typedef particles::synchrotronPhotons::PhotonCreator<T_SpeciesType, FoundPhotonSpecies> type;
+    /* This specifies the target species as the second template parameter of the photon creator */
+    typedef particles::synchrotronPhotons::PhotonCreator<SpeciesType, FoundPhotonSpecies> type;
 
 }; // struct GetPhotonCreator
 
