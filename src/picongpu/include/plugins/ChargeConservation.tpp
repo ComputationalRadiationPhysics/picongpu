@@ -61,6 +61,9 @@ std::string ChargeConservation::pluginGetName() const {return this->name;}
 
 void ChargeConservation::pluginLoad()
 {
+    if(this->notifyPeriod == 0u)
+        return;
+
     Environment<>::get().PluginConnector().setNotificationPeriod(this, this->notifyPeriod);
 
     PMacc::GridController<simDim>& con = PMacc::Environment<simDim>::get().GridController();
@@ -78,7 +81,7 @@ void ChargeConservation::pluginLoad()
 
 void ChargeConservation::restart(uint32_t restartStep, const std::string restartDirectory)
 {
-    if(!this->allGPU_reduce->root()) return;
+    if(!this->allGPU_reduce->root() || this->notifyPeriod == 0u) return;
 
     restoreTxtFile( this->output_file,
                     this->filename,
@@ -88,7 +91,7 @@ void ChargeConservation::restart(uint32_t restartStep, const std::string restart
 
 void ChargeConservation::checkpoint(uint32_t currentStep, const std::string checkpointDirectory)
 {
-    if(!this->allGPU_reduce->root()) return;
+    if(!this->allGPU_reduce->root() || this->notifyPeriod == 0u) return;
 
     checkpointTxtFile( this->output_file,
                        this->filename,
