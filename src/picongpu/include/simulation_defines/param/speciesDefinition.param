@@ -172,10 +172,21 @@ PIC_Ions
 typedef MakeSeq<
 Species1,
 Species2
-#if(ENABLE_SYNCHROTRON_PHOTONS == 1)
-, PIC_Photons
-#endif
->::type VectorAllSpecies;
+>::type VectorSpeciesTmp;
 
+// If there are species containing the `synchrotronPhotons` alias, add photon species to `VectorAllSpecies`
+typedef typename PMacc::particles::traits::FilterByFlag<
+    VectorSpeciesTmp,
+    synchrotronPhotons<>
+>::type AllSynchrotronPhotonsSpecies;
+
+typedef bmpl::if_<
+    bmpl::empty<AllSynchrotronPhotonsSpecies>,
+    VectorSpeciesTmp,
+    typename MakeSeq<
+        VectorSpeciesTmp,
+        PIC_Photons
+    >::type
+>::type VectorAllSpecies;
 
 } //namespace picongpu
