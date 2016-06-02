@@ -29,6 +29,8 @@
 #include "algorithms/math/defines/cross.hpp"
 #include "traits/frame/GetMass.hpp"
 #include "traits/frame/GetCharge.hpp"
+#include "particles/operations/Assign.hpp"
+#include "particles/operations/Deselect.hpp"
 
 #include "random/methods/XorMin.hpp"
 #include "random/distributions/Uniform.hpp"
@@ -320,11 +322,17 @@ public:
     DINLINE void operator()(Electron& electron, Photon& photon) const
     {
         photon[multiMask_] = 1;
-        photon[localCellIdx_] = electron[localCellIdx_];
-        photon[position_] = electron[position_];
         photon[momentum_] = this->photon_mom;
         electron[momentum_] -= this->photon_mom;
-        photon[weighting_] = electron[weighting_];
+        PMACC_AUTO(destPhoton,
+            deselect<
+                boost::mpl::vector<
+                    multiMask,
+                    momentum
+                >
+            >(photon)
+        );
+        particles::operations::assign( destPhoton, electron );
     }
 };
 
