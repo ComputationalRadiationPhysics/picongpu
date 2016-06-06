@@ -20,8 +20,6 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "math/vector/Size_t.hpp"
 #include "simulation_defines.hpp"
 #include "traits/Resolve.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
