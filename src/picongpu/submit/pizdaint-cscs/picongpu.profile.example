@@ -73,5 +73,5 @@ getInteractive() {
         numNodes=$1
     fi
     # `--ntasks-per-core=2` activates intel hyper threading
-    salloc --time=1:00:00 --nodes="$numNodes" --ntasks-per-node=16 --ntasks-per-core=2 --partition normal
+    salloc --time=1:00:00 --nodes="$numNodes" --ntasks-per-node=16 --ntasks-per-core=2 --partition normal --gres=gpu:1
 }
