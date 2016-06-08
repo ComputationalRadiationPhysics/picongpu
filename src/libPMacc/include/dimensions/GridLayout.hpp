@@ -66,7 +66,7 @@ namespace PMacc
             return dataSpace + guard + guard;
         }
 
-        HDINLINE DataSpace<DIM> getDataSpaceWithoutGuarding()
+        HDINLINE DataSpace<DIM> getDataSpaceWithoutGuarding() const
         {
             return dataSpace;
         }
