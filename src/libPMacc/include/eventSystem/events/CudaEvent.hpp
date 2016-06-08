@@ -107,7 +107,14 @@ public:
     bool isFinished() const
     {
         assert(isValid);
-        return cudaEventQuery(event) == cudaSuccess;
+        cudaError_t rc = cudaEventQuery(event);
+
+        if(rc == cudaSuccess)
+            return true;
+        else if(rc == cudaErrorNotReady)
+            return false;
+        else
+            PMACC_PRINT_CUDA_ERROR_AND_THROW(rc, "Event query failed");
     }
 
 
