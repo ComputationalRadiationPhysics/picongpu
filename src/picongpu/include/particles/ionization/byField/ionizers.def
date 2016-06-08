@@ -26,6 +26,9 @@
  */
 
 #include "particles/ionization/byField/ADK/ADK.def"
-#include "particles/ionization/byField/BSIHydrogenLike/BSIHydrogenLike.def"
-#include "particles/ionization/byField/BSIEffectiveZ/BSIEffectiveZ.def"
-#include "particles/ionization/byField/BSIStarkShifted/BSIStarkShifted.def"
+/** contains BSI definitions for:
+ *  - BSIHydrogenLike
+ *  - BSIEffectiveZ
+ *  - BSIStarkShifted
+ */
+#include "particles/ionization/byField/BSI/BSI.def"

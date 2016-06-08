@@ -27,8 +27,10 @@
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
 
-#include "particles/ionization/byField/BSIEffectiveZ/BSIEffectiveZ.def"
-#include "particles/ionization/byField/BSIEffectiveZ/AlgorithmBSIEffectiveZ.hpp"
+#include "particles/ionization/byField/BSI/BSI.def"
+#include "particles/ionization/byField/BSI/AlgorithmBSIHydrogenLike.hpp"
+#include "particles/ionization/byField/BSI/AlgorithmBSIEffectiveZ.hpp"
+#include "particles/ionization/byField/BSI/AlgorithmBSIStarkShifted.hpp"
 #include "particles/ionization/ionization.hpp"
 
 #include "compileTime/conversion/TypeToPointerPair.hpp"
@@ -43,15 +45,15 @@ namespace particles
 namespace ionization
 {
 
-    /** \struct BSIEffectiveZ_Impl
+    /** \struct BSI_Impl
      *
      * \brief Barrier Suppression Ionization - Implementation
      *
      * \tparam T_DestSpecies electron species to be created
      * \tparam T_SrcSpecies particle species that is ionized
      */
-    template<typename T_DestSpecies, typename T_SrcSpecies>
-    struct BSIEffectiveZ_Impl
+    template<typename T_IonizationAlgorithm, typename T_DestSpecies, typename T_SrcSpecies>
+    struct BSI_Impl
     {
 
         typedef T_DestSpecies DestSpecies;
@@ -80,7 +82,7 @@ namespace ionization
         private:
 
             /* define ionization ALGORITHM (calculation) for ionization MODEL */
-            typedef particles::ionization::AlgorithmBSIEffectiveZ IonizationAlgorithm;
+            typedef T_IonizationAlgorithm IonizationAlgorithm;
 
             typedef MappingDesc::SuperCellSize TVec;
 
@@ -95,7 +97,7 @@ namespace ionization
 
         public:
             /* host constructor */
-            BSIEffectiveZ_Impl(const uint32_t currentStep)
+            BSI_Impl(const uint32_t currentStep)
             {
                 DataConnector &dc = Environment<>::get().DataConnector();
                 /* initialize pointers on host-side E-(B-)field databoxes */
