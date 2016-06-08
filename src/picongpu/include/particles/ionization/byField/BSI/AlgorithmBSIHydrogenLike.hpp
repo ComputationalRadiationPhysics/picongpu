@@ -51,18 +51,16 @@ namespace ionization
         /** Functor implementation
          *
          * \tparam EType type of electric field
-         * \tparam BType type of magnetic field
          * \tparam ParticleType type of particle to be ionized
          *
-         * \param bField magnetic field value at t=0
          * \param eField electric field value at t=0
          * \param parentIon particle instance to be ionized with position at t=0 and momentum at t=-1/2
          *
          * and "t" being with respect to the current time step (on step/half a step backward/-""-forward)
          */
-        template<typename EType, typename BType, typename ParticleType >
+        template<typename EType, typename ParticleType >
         HDINLINE void
-        operator()( const BType bField, const EType eField, ParticleType& parentIon )
+        operator()( const EType eField, ParticleType& parentIon )
         {
 
             const float_X protonNumber = GetAtomicNumbers<ParticleType>::type::numberOfProtons;

@@ -87,13 +87,10 @@ namespace ionization
             typedef MappingDesc::SuperCellSize TVec;
 
             typedef FieldE::ValueType ValueType_E;
-            typedef FieldB::ValueType ValueType_B;
             /* global memory EM-field device databoxes */
             FieldE::DataBoxType eBox;
-            FieldB::DataBoxType bBox;
             /* shared memory EM-field device databoxes */
             PMACC_ALIGN(cachedE, DataBox<SharedBox<ValueType_E, typename BlockArea::FullSuperCellSize,1> >);
-            PMACC_ALIGN(cachedB, DataBox<SharedBox<ValueType_B, typename BlockArea::FullSuperCellSize,0> >);
 
         public:
             /* host constructor */
@@ -102,10 +99,8 @@ namespace ionization
                 DataConnector &dc = Environment<>::get().DataConnector();
                 /* initialize pointers on host-side E-(B-)field databoxes */
                 FieldE* fieldE = &(dc.getData<FieldE > (FieldE::getName(), true));
-                FieldB* fieldB = &(dc.getData<FieldB > (FieldB::getName(), true));
                 /* initialize device-side E-(B-)field databoxes */
                 eBox = fieldE->getDeviceDataBox();
-                bBox = fieldB->getDeviceDataBox();
 
             }
 
@@ -128,20 +123,13 @@ namespace ionization
             DINLINE void init(const DataSpace<simDim>& blockCell, const int& linearThreadIdx, const DataSpace<simDim>& localCellOffset)
             {
 
-                /* caching of E and B fields */
-                cachedB = CachedBox::create < 0, ValueType_B > (BlockArea());
+                /* caching of E field */
                 cachedE = CachedBox::create < 1, ValueType_E > (BlockArea());
 
                 /* instance of nvidia assignment operator */
                 nvidia::functors::Assign assign;
-                /* copy fields from global to shared */
-                PMACC_AUTO(fieldBBlock, bBox.shift(blockCell));
+
                 ThreadCollective<BlockArea> collective(linearThreadIdx);
-                collective(
-                          assign,
-                          cachedB,
-                          fieldBBlock
-                          );
                 /* copy fields from global to shared */
                 PMACC_AUTO(fieldEBlock, eBox.shift(blockCell));
                 collective(
@@ -167,14 +155,10 @@ namespace ionization
                 const int particleCellIdx = particle[localCellIdx_];
                 /* multi-dim coordinate of the local cell inside the super cell */
                 DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec > (particleCellIdx));
-                /* interpolation of E- */
+                /* interpolation of E */
                 const fieldSolver::numericalCellType::traits::FieldPosition<FieldE> fieldPosE;
                 ValueType_E eField = Field2ParticleInterpolation()
                     (cachedE.shift(localCell).toCursor(), pos, fieldPosE());
-                /*                     and B-field on the particle position */
-                const fieldSolver::numericalCellType::traits::FieldPosition<FieldB> fieldPosB;
-                ValueType_B bField = Field2ParticleInterpolation()
-                    (cachedB.shift(localCell).toCursor(), pos, fieldPosB());
 
                 /* define number of bound macro electrons before ionization */
                 float_X prevBoundElectrons = particle[boundElectrons_];
@@ -182,7 +166,7 @@ namespace ionization
                 /* this is the point where actual ionization takes place */
                 IonizationAlgorithm ionizeAlgo;
                 ionizeAlgo(
-                     bField, eField,
+                     eField,
                      particle
                      );
 

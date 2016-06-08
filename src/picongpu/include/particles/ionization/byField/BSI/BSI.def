@@ -21,9 +21,6 @@
 #pragma once
 
 #include "pmacc_types.hpp"
-//#include "particles/ionization/byField/BSI/AlgorithmBSIHydrogenLike.hpp"
-//#include "particles/ionization/byField/BSI/AlgorithmBSIEffectiveZ.hpp"
-//#include "particles/ionization/byField/BSI/AlgorithmBSIStarkShifted.hpp"
 
 namespace picongpu
 {
@@ -56,6 +53,10 @@ namespace ionization
      *   "Tunneling and barrier-suppression ionization of atoms and ions in a laser radiation field"
      *   doi:10.1070/PU1998v041n05ABEH000393
      *
+     * - This model assumes a hydrogenlike ion configuration,
+     *   neglecting core shielding by other electrons and Stark upshifting
+     *   of ionization energies according to strong external electric fields
+     *
      * \tparam T_DestSpecies electron species to be created
      *
      * wrapper class,
@@ -74,20 +75,13 @@ namespace ionization
      *
      * \brief Barrier Suppression Ionization
      *
-     * - takes the ionization energies of the various charge states of ions
-     * - calculates the corresponding field strengths necessary to overcome
-     *   the binding energy of the electron to the core
-     * - if the field strength is locally exceeded: increase the charge state
-     * - see for example: Delone, N. B.; Krainov, V. P. (1998).
-     *   "Tunneling and barrier-suppression ionization of atoms and ions in a laser radiation field"
-     *   doi:10.1070/PU1998v041n05ABEH000393
+     * - similar to BSIHydrogenLike
+     *
+     * - tries to account for electron shielding by issuing a lookup table of
+     *   effective atomic numbers for each electron shell @see ionizerConfig.param
+     * - unvalidated and still in development
      *
      * \tparam T_DestSpecies electron species to be created
-     *
-     * wrapper class,
-     * needed because the SrcSpecies cannot be known during the
-     * first specialization of the ionization model in the particle definition
-     * \see speciesDefinition.param
      */
     template<typename T_DestSpecies>
     struct BSIEffectiveZ
@@ -100,20 +94,13 @@ namespace ionization
      *
      * \brief Barrier Suppression Ionization
      *
-     * - takes the ionization energies of the various charge states of ions
-     * - calculates the corresponding field strengths necessary to overcome
-     *   the binding energy of the electron to the core
-     * - if the field strength is locally exceeded: increase the charge state
-     * - see for example: Delone, N. B.; Krainov, V. P. (1998).
-     *   "Tunneling and barrier-suppression ionization of atoms and ions in a laser radiation field"
-     *   doi:10.1070/PU1998v041n05ABEH000393
+     * - similar to BSIHydrogenLike
+     *
+     * - developed by Bauer and Mulser (book: High Power Laser Matter Interaction)
+     * - accounts for stark upshift of ionization energy but only covers the
+     *   hydrogenlike ions originally
      *
      * \tparam T_DestSpecies electron species to be created
-     *
-     * wrapper class,
-     * needed because the SrcSpecies cannot be known during the
-     * first specialization of the ionization model in the particle definition
-     * \see speciesDefinition.param
      */
     template<typename T_DestSpecies>
     struct BSIStarkShifted
