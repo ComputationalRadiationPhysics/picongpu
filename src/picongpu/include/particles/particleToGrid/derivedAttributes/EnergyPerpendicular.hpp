@@ -60,23 +60,24 @@ namespace derivedAttributes
     DINLINE float_X
     EnergyPerpendicular<T_direction>::operator()( T_Particle& particle ) const
     {
-        /* read existing attributes */
+        // read existing attributes
         const float_X weighting = particle[weighting_];
         const float3_X mom = particle[momentum_];
         const float_X mass = attribute::getMass( weighting, particle );
-        float3_X momLong = float3_X::create(0.0);
-        momLong[T_direction] = particle[momentum_][T_direction];
-        float3_X momPerp = particle[momentum_];
-        momPerp[T_direction] = float_X(0.0);
+        float3_X momPerp = float3_X::create(0.0);
+        momPerp[T_direction] = mom[T_direction];
 
-        /* calculate new attribute */
+        // calculate new attribute
         const float_X energyPerp = getEnergy( momPerp, mass );
-        const float_X energyLong = getEnergy( momLong, mass );
+        const float_X energy = getEnergy( mom, mass );
 
-        const float_X energyPerpOverLong = energyPerp / energyLong;
+        // total energy == 0 then perpendicular measure shall be zero, too
+        const float_X energyPerpOverTotal = (energy > float_X(0.)) ?
+            energyPerp / energy :
+            float_X(0.);
 
-        /* return attribute */
-        return energyPerpOverLong;
+        // return attribute
+        return energyPerpOverTotal;
     }
 } // namespace derivedAttributes
 } // namespace particleToGrid

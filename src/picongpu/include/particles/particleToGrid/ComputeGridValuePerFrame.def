@@ -131,8 +131,8 @@ struct CreateEnergyOperation
     typedef FieldTmpOperation< ParticleEnergy, T_Species > type;
 };
 
-/* Energy ratio between perpendicular and longitudinal components */
-template<typename T_Species, typename T_Direction = bmpl::int_<1> >
+/* Energy ratio between a selected perpendicular direction and total */
+template<typename T_Species, typename T_Direction = bmpl::int_<0> >
 struct CreateEnergyPerpendicularOperation
 {
     typedef typename GetShape<T_Species>::type shapeType;

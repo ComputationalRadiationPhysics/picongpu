@@ -42,7 +42,7 @@ namespace picongpu
      *   - CreateCounterOperation: counts point like particles per cell
      *   - CreateEnergyDensityOperation: particle energy density with respect to shape
      *   - CreateEnergyOperation: particle energy with respect to shape
-     *   - CreateEnergyPerpendicularOperation: ratio between perpendicular and longitudinal
+     *   - CreateEnergyPerpendicularOperation: ratio between perpendicular and total
      *                                         particle energy with respect to shape
      *   - CreateLarmorPowerOperation: radiated larmor power (needs ENABLE_RADIATION)
      */
@@ -66,10 +66,12 @@ namespace picongpu
             CreateEnergyDensityOperation<bmpl::_1>
             >::type EnergyDensity_Seq;
 
-    /* EnergyPerpendicular section: define longitudinal as 1=Y */
+    /* EnergyPerpendicular section: define "perpendicular" as
+       0=X (default), 1=Y or 2=Z.
+     */
     typedef bmpl::transform<
             VectorAllSpecies,
-            CreateEnergyPerpendicularOperation<bmpl::_1, bmpl::int_<1> >
+            CreateEnergyPerpendicularOperation<bmpl::_1, bmpl::int_<0> >
             >::type EnergyPerpendicular_Seq;
 
 

@@ -32,9 +32,9 @@ namespace particleToGrid
 {
 namespace derivedAttributes
 {
-    /** Calculate the ratio between energy in perpendicular and longitudinal direction
+    /** Calculate the ratio of kinetic energy in perpendicular direction to total kinetic energy.
      *
-     * \tparam size_t with longitudinal direction x=0, y=1, z=2 
+     * \tparam size_t with perpendicular direction x=0, y=1, z=2 
      */
     template <size_t T_direction>
     struct EnergyPerpendicular
@@ -50,8 +50,8 @@ namespace derivedAttributes
         {
            /* L, M, T, I, theta, N, J
             *
-            * The ratio between Energy in perpendicular direction to
-            * longitudinal direction is unitless.
+            * The ratio between kinetic energy in perpendicular direction to
+            * total kinetic energy is unitless.
             */
            std::vector<float_64> unitDimension( 7, 0.0 );
 
@@ -80,9 +80,9 @@ namespace derivedAttributes
         DINLINE float_X
         operator()( T_Particle& particle ) const;
 
-        /** Helper function to calculate the particle energy
+        /** Helper function to calculate the particle kinetic energy
          *
-         * \param mom particle momentum (e.g., only perpendicular)
+         * \param mom particle momentum (e.g., only in one perpendicular direction)
          * \param mass particle mass
          *
          * \return kinetic energy
