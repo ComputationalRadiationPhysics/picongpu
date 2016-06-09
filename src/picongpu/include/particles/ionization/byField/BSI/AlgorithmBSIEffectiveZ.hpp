@@ -26,9 +26,7 @@
 #include "particles/traits/GetEffectiveAtomicNumbers.hpp"
 #include "traits/attribute/GetChargeState.hpp"
 
-/** \file AlgorithmBSIEffectiveZ.hpp
- *
- * IONIZATION ALGORITHM for the BSI model
+/** IONIZATION ALGORITHM for the BSI model
  *
  * - implements the calculation of ionization probability and changes charge states
  *   by decreasing the number of bound electrons
@@ -42,9 +40,7 @@ namespace particles
 namespace ionization
 {
 
-    /** \struct AlgorithmBSIEffectiveZ
-     *
-     * \brief calculation for the Barrier Suppression Ionization model
+    /** Calculation for the Barrier Suppression Ionization model
      */
     struct AlgorithmBSIEffectiveZ
     {
@@ -58,9 +54,12 @@ namespace ionization
          * \param parentIon particle instance to be ionized with position at t=0 and momentum at t=-1/2
          *
          * and "t" being with respect to the current time step (on step/half a step backward/-""-forward)
+         *
+         * \return the number of electrons to produce
+         * (current implementation supports only 0 or 1 per execution)
          */
         template<typename EType, typename ParticleType >
-        HDINLINE void
+        HDINLINE uint32_t
         operator()( const EType eField, ParticleType& parentIon )
         {
 
@@ -80,11 +79,12 @@ namespace ionization
                 /* ionization condition */
                 if (math::abs(eField) / ATOMIC_UNIT_EFIELD >= critField)
                 {
-                    /* set new particle charge state */
-                    parentIon[boundElectrons_] -= float_X(1.0);
+                    /* return number of electrons to produce */
+                    return 1;
                 }
             }
-
+            /* no ionization */
+            return 0;
         }
     };
 

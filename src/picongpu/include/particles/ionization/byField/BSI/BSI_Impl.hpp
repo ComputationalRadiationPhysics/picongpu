@@ -165,13 +165,14 @@ namespace ionization
 
                 /* this is the point where actual ionization takes place */
                 IonizationAlgorithm ionizeAlgo;
-                ionizeAlgo(
-                     eField,
-                     particle
-                     );
-
                 /* determine number of new macro electrons to be created */
-                newMacroElectrons = prevBoundElectrons - particle[boundElectrons_];
+                newMacroElectrons = ionizeAlgo(
+                                                eField,
+                                                particle
+                                              );
+
+                /* relocate this to writeElectronIntoFrame in ionizationMethods.hpp */
+                particle[boundElectrons_] -= float_X(newMacroElectrons);
 
             }
 
