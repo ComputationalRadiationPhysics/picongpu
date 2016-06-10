@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Alexander Grund
+ * Copyright 2016 Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -24,38 +24,57 @@
 
 #include "pmacc_types.hpp"
 
+
 namespace PMacc
 {
 namespace random
 {
 namespace distributions
 {
-    namespace detail {
-
-        /** Only this must be specialized for different types */
-        template<typename T_Type, class T_RNGMethod, class T_SFINAE = void>
-        class Uniform;
-
-    }  // namespace detail
-
-    /**
-     * Returns a random, uniformly distributed value of the given type
+namespace uniform
+{
+    /** floating point number in the range (0,1]
      *
-     * @tparam T_Type the result type or a range description @see uniform/Range.hpp
-     * \code
-     * Uniform<uniform::ExcludeOne<float>::Use24Bit> Uniform24BitDistribution; //default for float
-     * Uniform<float> UniformDefaultDistribution; //equal to line one
-     * Uniform<uniform::ExcludeZero<float> > UniformNoZeroDistribution;
-     * \endcode
-     * @tparam T_RNGMethod method to create a random number
+     * @tparam T_Type type of the result
+     * @return value in the range (0,1]
      */
-    template<typename T_Type, class T_RNGMethod = bmpl::_1>
-    class Uniform: public detail::Uniform<T_Type, T_RNGMethod>
+    template<typename T_Type>
+    struct ExcludeZero
     {};
 
+    /**  floating point number in the range (0,1]
+     *
+     * @tparam T_Type type of the result
+     */
+    template<typename T_Type>
+    struct ExcludeOne
+    {
+
+        /** Reduce the random range to 2^24.
+         *
+         * Creates intervals with the width of epsilon/2.
+         */
+        struct Use24Bit
+        {};
+
+        /** Loops until a random value inside the defined range is created.
+         *
+         * The runtime of this method is not deterministic.
+         */
+        struct Repeat
+        {};
+
+        /** Swap the value one to zero
+         *
+         * This method creates a small error in uniform distribution
+         */
+        struct SwapOneToZero
+        {};
+
+    };
+
+
+}  // namespace uniform
 }  // namespace distributions
 }  // namespace random
 }  // namespace PMacc
-
-#include "random/distributions/uniform/Uniform_float.hpp"
-#include "random/distributions/uniform/Uniform_Integral32Bit.hpp"
