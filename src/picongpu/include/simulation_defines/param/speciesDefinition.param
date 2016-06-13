@@ -30,6 +30,7 @@
 #include "identifier/alias.hpp"
 #include "identifier/value_identifier.hpp"
 
+#include "particles/traits/FilterByFlag.hpp"
 #include "particles/Particles.hpp"
 #include "particles/ParticleDescription.hpp"
 #include <boost/mpl/string.hpp>
@@ -73,8 +74,6 @@ AttributRadiationFlag
 
 /*--------------------------- photons -------------------------------------------*/
 
-#if(ENABLE_SYNCHROTRON_PHOTONS == 1)
-
 value_identifier(float_X, DummyMass, 1.0);
 value_identifier(float_X, DummyCharge, 0.0);
 
@@ -82,6 +81,7 @@ typedef bmpl::vector<
     particlePusher<particles::pusher::Photon>,
     shape<UsedParticleShape>,
     interpolation<UsedField2Particle>,
+    current<UsedParticleCurrentSolver>,
     massRatio<DummyMass>,
     chargeRatio<DummyCharge>
 > ParticleFlagsPhotons;
@@ -95,8 +95,6 @@ typedef Particles<
         ParticleFlagsPhotons
     >
 > PIC_Photons;
-
-#endif // ENABLE_SYNCHROTRON_PHOTONS
 
 /*--------------------------- electrons --------------------------------------*/
 
@@ -180,7 +178,7 @@ typedef typename PMacc::particles::traits::FilterByFlag<
     synchrotronPhotons<>
 >::type AllSynchrotronPhotonsSpecies;
 
-typedef bmpl::if_<
+typedef typename bmpl::if_<
     bmpl::empty<AllSynchrotronPhotonsSpecies>,
     VectorSpeciesTmp,
     typename MakeSeq<

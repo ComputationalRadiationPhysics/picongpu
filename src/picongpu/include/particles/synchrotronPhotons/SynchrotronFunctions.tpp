@@ -127,7 +127,7 @@ SynchrotronFunctions::getCursor(SynchrotronFunctions::Select syncFunction) const
     using namespace PMacc;
 
     detail::MapToLookupTable::LinInterpCursor linInterpCursor =
-        cursor::tools::LinearInterp1D<float_X>()(this->dBuf_SyncFuncs[syncFunction]->origin());
+        cursor::tools::LinearInterp<float_X>()(this->dBuf_SyncFuncs[syncFunction]->origin());
 
     return cursor::make_Cursor(
         detail::MapToLookupTable(linInterpCursor),

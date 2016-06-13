@@ -31,6 +31,7 @@
 #include "traits/frame/GetCharge.hpp"
 #include "particles/operations/Assign.hpp"
 #include "particles/operations/Deselect.hpp"
+#include "particles/traits/ResolveAliasFromSpecies.hpp"
 
 #include "random/methods/XorMin.hpp"
 #include "random/distributions/Uniform.hpp"
@@ -74,9 +75,10 @@ struct PhotonCreator
     typedef typename ElectronSpecies::FrameType FrameType;
 
     /* specify field to particle interpolation scheme */
-    typedef typename PMacc::traits::Resolve<
-        typename GetFlagType<FrameType,interpolation<> >::type
-        >::type Field2ParticleInterpolation;
+    typedef typename PMacc::particles::traits::ResolveAliasFromSpecies<
+        ElectronSpecies,
+        interpolation<>
+    >::type Field2ParticleInterpolation;
 
     /* margins around the supercell for the interpolation of the field on the cells */
     typedef typename GetMargin<Field2ParticleInterpolation>::LowerMargin LowerMargin;
@@ -292,6 +294,7 @@ public:
         {
             if(x > float_X(SINGLE_EMISSION_PROB_LIMIT))
             {
+                const float_X delta = deltaScaled*deltaScaled*deltaScaled;
                 printf("[SynchrotronPhotons] warning: emission probability is too high: p = %g, at delta = %g, chi = %g, gamma = %g\n",
                     x, delta, chi, gamma);
             }
@@ -321,18 +324,19 @@ public:
     template<typename Electron, typename Photon>
     DINLINE void operator()(Electron& electron, Photon& photon) const
     {
-        photon[multiMask_] = 1;
-        photon[momentum_] = this->photon_mom;
-        electron[momentum_] -= this->photon_mom;
         PMACC_AUTO(destPhoton,
-            deselect<
+            PMacc::particles::operations::deselect<
                 boost::mpl::vector<
                     multiMask,
                     momentum
                 >
             >(photon)
         );
-        particles::operations::assign( destPhoton, electron );
+        PMacc::particles::operations::assign( destPhoton, electron );
+
+        photon[multiMask_] = 1;
+        photon[momentum_] = this->photon_mom;
+        electron[momentum_] -= this->photon_mom;
     }
 };
 

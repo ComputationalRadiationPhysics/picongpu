@@ -25,7 +25,7 @@
 #include "cuSTL/container/HostBuffer.hpp"
 #include "cuSTL/cursor/Cursor.hpp"
 #include "cuSTL/cursor/navigator/PlusNavigator.hpp"
-#include "cuSTL/cursor/tools/LinearInterp1D.hpp"
+#include "cuSTL/cursor/tools/LinearInterp.hpp"
 #include "cuSTL/cursor/BufferCursor.hpp"
 #include <boost/shared_ptr.hpp>
 #include <boost/math/tr1.hpp> /* cyl_bessel_k */
@@ -46,7 +46,7 @@ namespace detail
 struct MapToLookupTable
 {
     typedef typename ::PMacc::result_of::Functor<
-        ::PMacc::cursor::tools::LinearInterp1D<float_X>,
+        ::PMacc::cursor::tools::LinearInterp<float_X>,
         ::PMacc::cursor::BufferCursor<float_X, DIM1> >::type LinInterpCursor;
 
     typedef float_X type;
