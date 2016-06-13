@@ -55,7 +55,6 @@ namespace methods
         {
             // We can do this cast if: 1) Only state data is used and
             //                         2) Data is aligned and positioned the same way
-            CheckStateCompatibility();
             return curand(reinterpret_cast<curandStateMRG32k3a*>(&state));
         }
 
@@ -65,26 +64,23 @@ namespace methods
             return "MRG32k3aMin";
         }
     private:
-        static HDINLINE void CheckStateCompatibility()
-        {
-            // Sizes must match
-            PMACC_STATIC_ASSERT_MSG(
-                    sizeof(StateType::s1) == sizeof(curandStateMRG32k3a::s1),
-                    Unexpected_sizes);
-            PMACC_STATIC_ASSERT_MSG(
-                    sizeof(StateType::s2) == sizeof(curandStateMRG32k3a::s2),
-                    Unexpected_sizes);
-            // Offsets must match
-            PMACC_STATIC_ASSERT_MSG(
-                    offsetof(StateType, s1) == offsetof(curandStateMRG32k3a, s1) &&
-                    offsetof(StateType, s2) == offsetof(curandStateMRG32k3a, s2),
-                    Incompatible_structs);
-        }
+        // Sizes must match
+        PMACC_STATIC_ASSERT_MSG(
+                sizeof(StateType::s1) == sizeof(curandStateMRG32k3a::s1),
+                Unexpected_sizes);
+        PMACC_STATIC_ASSERT_MSG(
+                sizeof(StateType::s2) == sizeof(curandStateMRG32k3a::s2),
+                Unexpected_sizes);
+        // Offsets must match
+        PMACC_STATIC_ASSERT_MSG(
+                offsetof(StateType, s1) == offsetof(curandStateMRG32k3a, s1) &&
+                offsetof(StateType, s2) == offsetof(curandStateMRG32k3a, s2),
+                Incompatible_structs);
+
         static HDINLINE void
         AssignState(StateType& dest, const curandStateMRG32k3a& src)
         {
             // Check if we can do this cast
-            CheckStateCompatibility();
             dest = reinterpret_cast<const StateType&>(src);
         }
     };
