@@ -40,10 +40,12 @@ namespace picongpu
      * you can choose any of these particle to grid projections:
      *   - CreateDensityOperation: particle position + shape on the grid
      *   - CreateCounterOperation: counts point like particles per cell
-     *   - CreateEnergyDensityOperation: particle energy density with respect to shape
+     *   - CreateEnergyDensityOperation: particle energy density with respect
+     *                                   to shape
      *   - CreateEnergyOperation: particle energy with respect to shape
-     *   - CreateEnergyPerpendicularOperation: ratio between perpendicular and total
-     *                                         particle energy with respect to shape
+     *   - CreateMomentumComponentOperation: ratio between a selected momentum
+     *                                       component and the absolute
+     *                                       momentum with respect to shape
      *   - CreateLarmorPowerOperation: radiated larmor power (needs ENABLE_RADIATION)
      */
     using namespace particleToGrid;
@@ -66,13 +68,13 @@ namespace picongpu
             CreateEnergyDensityOperation<bmpl::_1>
             >::type EnergyDensity_Seq;
 
-    /* EnergyPerpendicular section: define "perpendicular" as
-       0=X (default), 1=Y or 2=Z.
+    /* CreateMomentumComponentOperation section: define "component" as
+       0=X (default), 1=Y or 2=Z (results: [-1.:1.])
      */
     typedef bmpl::transform<
             VectorAllSpecies,
-            CreateEnergyPerpendicularOperation<bmpl::_1, bmpl::int_<0> >
-            >::type EnergyPerpendicular_Seq;
+            CreateMomentumComponentOperation<bmpl::_1, bmpl::int_<0> >
+            >::type MomentumComponent_Seq;
 
 
     /** FieldTmpSolvers groups all solvers that create data for FieldTmp ******
@@ -83,7 +85,7 @@ namespace picongpu
         Density_Seq,
         Counter_Seq,
         EnergyDensity_Seq,
-        EnergyPerpendicular_Seq
+        MomentumComponent_Seq
     >::type FieldTmpSolvers;
 
 

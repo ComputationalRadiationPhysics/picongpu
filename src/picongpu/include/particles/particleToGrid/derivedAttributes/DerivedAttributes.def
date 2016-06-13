@@ -25,5 +25,5 @@
 #include "particles/particleToGrid/derivedAttributes/ChargeDensity.def"
 #include "particles/particleToGrid/derivedAttributes/EnergyDensity.def"
 #include "particles/particleToGrid/derivedAttributes/Energy.def"
-#include "particles/particleToGrid/derivedAttributes/EnergyPerpendicular.def"
+#include "particles/particleToGrid/derivedAttributes/MomentumComponent.def"
 #include "particles/particleToGrid/derivedAttributes/LarmorPower.def"

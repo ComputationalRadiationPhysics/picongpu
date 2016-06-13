@@ -32,12 +32,12 @@ namespace particleToGrid
 {
 namespace derivedAttributes
 {
-    /** Calculate the ratio of kinetic energy in perpendicular direction to total kinetic energy.
+    /** Calculate the ratio of momentum in a selected direction to total momentum.
      *
      * \tparam size_t with perpendicular direction x=0, y=1, z=2 
      */
     template <size_t T_direction>
-    struct EnergyPerpendicular
+    struct MomentumComponent
     {
         PMACC_CASSERT_MSG( Valid_directions_are_0_to_2_for_X_to_Z__in_fileOutput_param, ((T_direction)>=0) );
         PMACC_CASSERT_MSG( Valid_directions_are_0_to_2_for_X_to_Z__in_fileOutput_param, ((T_direction)<3) );
@@ -50,8 +50,8 @@ namespace derivedAttributes
         {
            /* L, M, T, I, theta, N, J
             *
-            * The ratio between kinetic energy in perpendicular direction to
-            * total kinetic energy is unitless.
+            * The ratio between momentum in a certain direction direction to
+            * total momentum is unitless.
             */
            std::vector<float_64> unitDimension( 7, 0.0 );
 
@@ -61,7 +61,7 @@ namespace derivedAttributes
         HINLINE std::string
         getName() const
         {
-            return "particleEnergyPerpendicular";
+            return "particleMomentumComponent";
         }
 
         /** Calculate a new attribute per particle
@@ -79,16 +79,6 @@ namespace derivedAttributes
         template< class T_Particle >
         DINLINE float_X
         operator()( T_Particle& particle ) const;
-
-        /** Helper function to calculate the particle kinetic energy
-         *
-         * \param mom particle momentum (e.g., only in one perpendicular direction)
-         * \param mass particle mass
-         *
-         * \return kinetic energy
-         */
-         DINLINE float_X
-         getEnergy( const float3_X mom, const float_X mass ) const;
     };
 } // namespace derivedAttributes
 } // namespace particleToGrid
