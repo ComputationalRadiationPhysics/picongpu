@@ -21,22 +21,26 @@
 
 #pragma once
 
-#include "simulation_types.hpp"
+#include "pmacc_types.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
 #include "math/Vector.hpp"
+#include "particles/frame_types.hpp"
 #include "nvidia/atomic.hpp"
 
-namespace picongpu
+namespace PMacc
+{
+namespace particles
+{
+namespace operations
 {
 
-using namespace PMacc;
-
 /** Copy particles from big frame to PMacc frame structure
+ *  (Opposite to ConcatListOfFrames)
  *
  * - convert globalCellIdx to localCellIdx
  * - processed particles per block <= number of cells per superCell
  *
- * @param counter box with three integer
+ * @param counter box with three integer [srcParticleOffset, numLoadedParticles, numUsedFrames]
  * @param destBox particle box were all particles are copied to (destination)
  * @param srcFrame frame with particles (is used as source)
  * @param maxParticles number of particles in srcFrame
@@ -44,7 +48,7 @@ using namespace PMacc;
  * @param cellDesc picongpu cellDescription
  */
 template<class T_CounterBox, class T_DestBox, class T_SrcFrame, class T_Space, class T_CellDescription>
-__global__ void copySpeciesGlobal2Local(T_CounterBox counter, T_DestBox destBox, T_SrcFrame srcFrame,
+__global__ void splitIntoListOfFrames(T_CounterBox counter, T_DestBox destBox, T_SrcFrame srcFrame,
                                         const int maxParticles,
                                         T_Space localDomainCellOffset, T_CellDescription cellDesc)
 {
@@ -54,44 +58,45 @@ __global__ void copySpeciesGlobal2Local(T_CounterBox counter, T_DestBox destBox,
     typedef typename T_DestBox::FrameType DestFrameType;
     typedef typename T_DestBox::FramePtr DestFramePtr;
     typedef typename T_CellDescription::SuperCellSize SuperCellSize;
-    const uint32_t cellsInSuperCell = PMacc::math::CT::volume<SuperCellSize>::type::value;
+    BOOST_CONSTEXPR_OR_CONST unsigned NumDims = T_DestBox::Dim;
+    const uint32_t particlesPerFrame = PMacc::math::CT::volume<SuperCellSize>::type::value;
 
-    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<DestFramePtr>::type destFramePtr[cellsInSuperCell];
-    __shared__ int linearSuperCellIds[cellsInSuperCell];
-    __shared__ int hdf5ParticleOffset;
+    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<DestFramePtr>::type destFramePtr[particlesPerFrame];
+    __shared__ int linearSuperCellIds[particlesPerFrame];
+    __shared__ int srcParticleOffset;
 
 
     const int linearThreadIdx = threadIdx.x;
 
 
-    const DataSpace<simDim> superCellsCount(cellDesc.getGridSuperCells() - cellDesc.getGuardingSuperCells()*2);
+    const DataSpace<NumDims> numSuperCells(cellDesc.getGridSuperCells() - cellDesc.getGuardingSuperCells()*2);
     if (linearThreadIdx == 0)
     {
         /* apply for work for the full block
          * counter [0] -> offset to load particles
          */
-        hdf5ParticleOffset = atomicAdd(&(counter[0]), cellsInSuperCell);
+        srcParticleOffset = atomicAdd(&(counter[0]), particlesPerFrame);
     }
     destFramePtr[linearThreadIdx] = DestFramePtr();
     linearSuperCellIds[linearThreadIdx] = -1;
 
     __syncthreads();
 
-    const int globalParticleId = hdf5ParticleOffset + linearThreadIdx;
-    const bool hasValidParticle = globalParticleId < maxParticles;
-    DataSpace<simDim> superCellIdx;
+    const int srcParticleIdx = srcParticleOffset + linearThreadIdx;
+    const bool hasValidParticle = srcParticleIdx < maxParticles;
+    DataSpace<NumDims> superCellIdx;
     lcellId_t lCellIdx = INV_LOC_IDX;
     int myLinearSuperCellId = -1;
 
     if (hasValidParticle)
     {
-        DataSpace<simDim> globalCellIdx = srcFrame[globalParticleId][globalCellIdx_];
-        globalCellIdx -= localDomainCellOffset;
+        const DataSpace<NumDims> globalCellIdx = srcFrame[srcParticleIdx][globalCellIdx_]
+                                                 - localDomainCellOffset;
         superCellIdx = globalCellIdx / SuperCellSize::toRT();
-        myLinearSuperCellId = DataSpaceOperations<simDim>::map(superCellsCount, superCellIdx);
+        myLinearSuperCellId = DataSpaceOperations<NumDims>::map(numSuperCells, superCellIdx);
         linearSuperCellIds[linearThreadIdx] = myLinearSuperCellId;
-        DataSpace<simDim> inSuperCell(globalCellIdx - superCellIdx * SuperCellSize::toRT());
-        lCellIdx = DataSpaceOperations<simDim>::template map<SuperCellSize>(inSuperCell);
+        DataSpace<NumDims> localCellIdx(globalCellIdx - superCellIdx * SuperCellSize::toRT());
+        lCellIdx = DataSpaceOperations<NumDims>::template map<SuperCellSize>(localCellIdx);
     }
     __syncthreads();
 
@@ -103,9 +108,7 @@ __global__ void copySpeciesGlobal2Local(T_CounterBox counter, T_DestBox destBox,
         while (masterIdx >= 0)
         {
             if (myLinearSuperCellId != linearSuperCellIds[masterIdx])
-            {
                 break;
-            }
             --masterIdx;
         }
         ++masterIdx;
@@ -125,10 +128,10 @@ __global__ void copySpeciesGlobal2Local(T_CounterBox counter, T_DestBox destBox,
     {
         /* copy attributes and activate particle*/
         PMACC_AUTO(parDest, destFramePtr[masterIdx][linearThreadIdx]);
+        PMACC_AUTO(parDestDeselect, deselect<bmpl::vector2<localCellIdx, multiMask> >(parDest));
+        assign(parDestDeselect, srcFrame[srcParticleIdx]);
         parDest[localCellIdx_] = lCellIdx;
         parDest[multiMask_] = 1;
-        PMACC_AUTO(parDestDeselect, deselect<bmpl::vector2<localCellIdx, multiMask> >(parDest));
-        assign(parDestDeselect, srcFrame[globalParticleId]);
         /* counter[1] -> number of loaded particles
          * this counter is evaluated on host side
          * (check that loaded particles by this kernel == loaded particles from HDF5 file)*/
@@ -136,4 +139,6 @@ __global__ void copySpeciesGlobal2Local(T_CounterBox counter, T_DestBox destBox,
     }
 }
 
-} //namespace picongpu
+} //namespace operations
+} //namespace particles
+} //namespace PMacc

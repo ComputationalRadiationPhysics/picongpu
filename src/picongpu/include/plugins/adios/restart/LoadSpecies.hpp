@@ -38,9 +38,9 @@
 #include "compileTime/conversion/RemoveFromSeq.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
 #include "particles/ParticleDescription.hpp"
+#include "particles/operations/splitIntoListOfFrames.kernel"
 
 #include "plugins/output/WriteSpeciesCommon.hpp"
-#include "plugins/kernel/CopySpeciesGlobal2Local.kernel"
 #include "plugins/adios/restart/LoadParticleAttributesFromADIOS.hpp"
 
 namespace picongpu
@@ -189,7 +189,7 @@ public:
                 uint32_t currentChunkSize = std::min(leftOverParticles, restartChunkSize);
                 log<picLog::INPUT_OUTPUT > ("ADIOS: load particles on device chunk offset=%1%; chunk size=%2%; left particles %3%") %
                     (i * restartChunkSize) % currentChunkSize % leftOverParticles;
-                __cudaKernel(copySpeciesGlobal2Local)
+                __cudaKernel(PMacc::particles::operations::splitIntoListOfFrames)
                     (ceil(float_64(currentChunkSize) / float_64(cellsInSuperCell)), cellsInSuperCell)
                     (counterBuffer.getDeviceBuffer().getDataBox(),
                      speciesTmp->getDeviceParticlesBox(), deviceFrame,

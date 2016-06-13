@@ -41,9 +41,9 @@
 #include "compileTime/conversion/RemoveFromSeq.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
 #include "particles/ParticleDescription.hpp"
+#include "particles/operations/splitIntoListOfFrames.kernel"
 
 #include "plugins/output/WriteSpeciesCommon.hpp"
-#include "plugins/kernel/CopySpeciesGlobal2Local.kernel"
 #include "plugins/hdf5/restart/LoadParticleAttributesFromHDF5.hpp"
 
 #include "plugins/common/particlePatches.hpp"
@@ -205,7 +205,6 @@ public:
             const uint32_t iterationsForLoad = ceil(float_64(totalNumParticles) / float_64(restartChunkSize));
             uint32_t leftOverParticles = totalNumParticles;
 
-
             for (uint32_t i = 0; i < iterationsForLoad; ++i)
             {
                 /* only load a chunk of particles per iteration to avoid blow up of frame usage
@@ -213,7 +212,7 @@ public:
                 uint32_t currentChunkSize = std::min(leftOverParticles, restartChunkSize);
                 log<picLog::INPUT_OUTPUT > ("HDF5:   load particles on device chunk offset=%1%; chunk size=%2%; left particles %3%") %
                     (i * restartChunkSize) % currentChunkSize % leftOverParticles;
-                __cudaKernel(copySpeciesGlobal2Local)
+                __cudaKernel(PMacc::particles::operations::splitIntoListOfFrames)
                     (ceil(float_64(currentChunkSize) / float_64(cellsInSuperCell)), cellsInSuperCell)
                     (counterBuffer.getDeviceBuffer().getDataBox(),
                      speciesTmp->getDeviceParticlesBox(), deviceFrame,

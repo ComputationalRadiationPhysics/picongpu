@@ -50,11 +50,6 @@ namespace picongpu
  * This is only a name without a specialization
  */
 alias(position);
-/** cell index the particle lives in, relative to the global moving window origin
- * This alias is only used for dumping hdf5, the index is only valid for the
- * current time step.
- */
-alias(globalCellIdx);
 
 value_identifier(uint64_t,particleId,IdProvider<simDim>::getNewId());
 
