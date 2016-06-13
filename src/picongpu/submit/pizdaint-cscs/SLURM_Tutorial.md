@@ -6,7 +6,7 @@ SLURM examples
 - interactive job:
   - `salloc --time=1:00:00 --nodes=1 --ntasks-per-node=16 --ntasks-per-core=2 --partition normal`
   - `--ntasks-per-core=2` activate intel hyper threading
-  - e.g. `aprun "hostname"`
+  - e.g. `srun "hostname"`
 
 
 - details for my jobs:

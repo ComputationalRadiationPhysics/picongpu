@@ -48,8 +48,10 @@ TBG_nodes=!TBG_tasks
 # Sets batch job's name
 #SBATCH --job-name=!TBG_jobName
 #SBATCH --nodes=!TBG_nodes
-#SBATCH --ntasks-per-node=!TBG_coresPerGPU
+#SBATCH --ntasks-per-node=!TBG_mpiTasksPerNode
+#SBATCH --cpus-per-task=!TBG_coresPerGPU
 #SBATCH --ntasks-per-core=1
+#SBATCH --gres=gpu:!TBG_gpusPerNode
 # send me mails on BEGIN, END, FAIL, REQUEUE, ALL,
 # TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
 #SBATCH --mail-type=!TBG_mailSettings
@@ -70,4 +72,4 @@ mkdir simOutput 2> /dev/null
 cd simOutput
 
 # Run PIConGPU
-aprun  -N 1 -n !TBG_tasks !TBG_dstPath/picongpu/bin/picongpu !TBG_author !TBG_programParams
+srun  -n !TBG_tasks !TBG_dstPath/picongpu/bin/picongpu !TBG_author !TBG_programParams
