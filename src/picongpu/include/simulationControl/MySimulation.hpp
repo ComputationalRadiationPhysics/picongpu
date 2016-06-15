@@ -362,13 +362,14 @@ public:
                 /* we do not require --restart-step if a master checkpoint file is found */
                 if (this->restartStep < 0)
                 {
-                    this->restartStep = readCheckpointMasterFile();
+                    std::vector<uint32_t> checkpoints = readCheckpointMasterFile();
 
-                    if (this->restartStep < 0)
+                    if (checkpoints.empty())
                     {
                         throw std::runtime_error(
                                                  "Restart failed. You must provide the '--restart-step' argument. See picongpu --help.");
-                    }
+                    } else
+                        this->restartStep = checkpoints.back();
                 }
 
                 initialiserController->restart((uint32_t)this->restartStep, this->restartDirectory);
@@ -573,50 +574,6 @@ private:
             // \todo we have to add the guard_x/y/z for modified supercells here
             assert( (uint32_t) gridSizeLocal[i] / MappingDesc::SuperCellSize::toRT()[i] >= 3 * GUARD_SIZE);
         }
-    }
-
-    /**
-     * Return the last line of the checkpoint master file if any
-     *
-     * @return last checkpoint timestep or -1
-     */
-    int32_t readCheckpointMasterFile(void)
-    {
-        int32_t lastCheckpointStep = -1;
-
-        const std::string checkpointMasterFile =
-            this->restartDirectory + std::string("/") + this->CHECKPOINT_MASTER_FILE;
-
-        if (boost::filesystem::exists(checkpointMasterFile))
-        {
-            std::ifstream file;
-            file.open(checkpointMasterFile.c_str());
-
-            /* read each line, last line will become the returned checkpoint step */
-            std::string line;
-            while (file)
-            {
-                std::getline(file, line);
-
-                if (line.size() > 0)
-                {
-                    try
-                    {
-                        lastCheckpointStep = boost::lexical_cast<int32_t>(line);
-                    }
-                    catch (boost::bad_lexical_cast const&)
-                    {
-                        std::cerr << "Warning: checkpoint master file contains invalid data ("
-                            << line << ")" << std::endl;
-                        lastCheckpointStep = -1;
-                    }
-                }
-            }
-
-            file.close();
-        }
-
-        return lastCheckpointStep;
     }
 
 protected:
