@@ -27,6 +27,7 @@
 #include "particles/traits/GetShape.hpp"
 #include "particles/particleToGrid/derivedAttributes/DerivedAttributes.def"
 
+#include <boost/mpl/int.hpp>
 #include <vector>
 
 namespace picongpu
@@ -128,6 +129,19 @@ struct CreateEnergyOperation
     > ParticleEnergy;
 
     typedef FieldTmpOperation< ParticleEnergy, T_Species > type;
+};
+
+/* Ratio between a selected momentum component and total momentum */
+template<typename T_Species, typename T_Direction = bmpl::int_<0> >
+struct CreateMomentumComponentOperation
+{
+    typedef typename GetShape<T_Species>::type shapeType;
+    typedef ComputeGridValuePerFrame<
+        shapeType,
+        particleToGrid::derivedAttributes::MomentumComponent<T_Direction::value>
+    > ParticleMomentumComponent;
+
+    typedef FieldTmpOperation< ParticleMomentumComponent, T_Species > type;
 };
 
 #if(ENABLE_RADIATION == 1)
