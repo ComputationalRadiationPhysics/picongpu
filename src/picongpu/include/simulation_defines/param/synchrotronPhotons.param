@@ -28,7 +28,9 @@ namespace synchrotronPhotons
 {
 
 /** enable synchtrotron photon emission */
+#ifndef ENABLE_SYNCHROTRON_PHOTONS
 #define ENABLE_SYNCHROTRON_PHOTONS 0
+#endif
 
 /** enable (disable) QED (classical) photon emission spectrum */
 BOOST_CONSTEXPR_OR_CONST bool enableQEDTerm = false;
