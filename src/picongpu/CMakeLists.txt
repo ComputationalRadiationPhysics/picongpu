@@ -147,10 +147,13 @@ if(ISAAC_FOUND)
         set(LIBS ${LIBS} ${ISAAC_LIBRARIES})
 
         set(ISAAC_MAX_FUNCTORS "3" CACHE STRING "Max length of the isaac functor chain" )
+        set(ISAAC_DEFAULT_WEIGHT "7" CACHE STRING "Default weight of an isaac source" )
 
         add_definitions(${ISAAC_DEFINITIONS})
         add_definitions(-DISAAC_MAX_FUNCTORS=${ISAAC_MAX_FUNCTORS})
         add_definitions(-DISAAC_FUNCTOR_POW_ENABLED=0)
+        add_definitions(-DISAAC_DEFAULT_WEIGHT=${ISAAC_DEFAULT_WEIGHT})
+
 
         add_definitions(-DENABLE_ISAAC=1)
     endif( CMAKE_CXX_STANDARD EQUAL 98 )
