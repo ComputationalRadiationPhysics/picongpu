@@ -124,7 +124,7 @@ class TFieldSource< FieldTmpOperation< FrameSolver, ParticleType > >
 
         static std::string getName()
         {
-            return ParticleType::FrameType::getName() + std::string(" density");
+            return ParticleType::FrameType::getName() + std::string(" ") + FrameSolver().getName();
         }
 
         void update(bool enabled, void* pointer)
