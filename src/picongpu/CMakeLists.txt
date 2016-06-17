@@ -154,7 +154,6 @@ if(ISAAC_FOUND)
         add_definitions(-DISAAC_FUNCTOR_POW_ENABLED=0)
         add_definitions(-DISAAC_DEFAULT_WEIGHT=${ISAAC_DEFAULT_WEIGHT})
 
-
         add_definitions(-DENABLE_ISAAC=1)
     endif( CMAKE_CXX_STANDARD EQUAL 98 )
 endif(ISAAC_FOUND)
