@@ -43,4 +43,4 @@
 #include "simulation_defines/unitless/fieldBackground.unitless"
 #include "simulation_defines/unitless/fileOutput.unitless"
 #include "simulation_defines/unitless/checkpoints.unitless"
-#include "simulation_defines/unitless/bremsstrahlung.unitless"
+#include "simulation_defines/unitless/synchrotronPhotons.unitless"

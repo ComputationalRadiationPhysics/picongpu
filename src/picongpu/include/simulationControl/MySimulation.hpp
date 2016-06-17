@@ -49,6 +49,9 @@
 #include "fields/background/cellwiseOperation.hpp"
 #include "initialization/IInitPlugin.hpp"
 #include "initialization/ParserGridDistribution.hpp"
+#include "particles/synchrotronPhotons/SynchrotronFunctions.hpp"
+#include "random/methods/XorMin.hpp"
+#include "random/RNGProvider.hpp"
 
 #include "nvidia/reduce/Reduce.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
@@ -99,7 +102,8 @@ public:
     currentBGField(NULL),
     cellDescription(NULL),
     initialiserController(NULL),
-    slidingWindow(false)
+    slidingWindow(false),
+    rngFactory(NULL)
     {
         ForEach<VectorAllSpecies, particles::AssignNull<bmpl::_1>, MakeIdentifier<bmpl::_1> > setPtrToNull;
         setPtrToNull(forward(particleStorage));
@@ -259,6 +263,8 @@ public:
         __delete(pushBGField);
         __delete(currentBGField);
         __delete(cellDescription);
+
+        __delete(rngFactory);
     }
 
     void notify(uint32_t)
@@ -335,6 +341,20 @@ public:
 
         /* add CUDA streams to the StreamController for concurrent execution */
         Environment<>::get().StreamController().addStreams(6);
+
+        // create factory for the random number generator
+        this->rngFactory = new RNGFactory(Environment<simDim>::get().SubGrid().getLocalDomain().size);
+        // init factory
+        PMacc::GridController<simDim>& gridCon = PMacc::Environment<simDim>::get().GridController();
+        this->rngFactory->init(gridCon.getScalarPosition());
+
+        // Initialize synchrotron functions, if there are synchrotron photon species
+        typedef typename PMacc::particles::traits::FilterByFlag<VectorAllSpecies,
+                                                                synchrotronPhotons<> >::type AllSynchrotronPhotonsSpecies;
+        if(!bmpl::empty<AllSynchrotronPhotonsSpecies>::value)
+        {
+            this->synchrotronFunctions.init();
+        }
     }
 
     virtual uint32_t fillSimulation()
@@ -430,6 +450,16 @@ public:
         >::type VectorSpeciesWithIonizer;
         ForEach<VectorSpeciesWithIonizer, particles::CallIonization<bmpl::_1>, MakeIdentifier<bmpl::_1> > particleIonization;
         particleIonization(forward(particleStorage), cellDescription, currentStep);
+
+        /* call the synchrotron radiation module for each radiating species (normally electrons) */
+        typedef typename PMacc::particles::traits::FilterByFlag<VectorAllSpecies,
+                                                                synchrotronPhotons<> >::type AllSynchrotronPhotonsSpecies;
+
+        ForEach<AllSynchrotronPhotonsSpecies,
+                particles::CallSynchrotronPhotons<bmpl::_1>,
+                MakeIdentifier<bmpl::_1> > synchrotronRadiation;
+        synchrotronRadiation(forward(particleStorage), cellDescription, currentStep, this->synchrotronFunctions);
+
 
         EventTask initEvent = __getTransactionEvent();
         EventTask updateEvent;
@@ -641,6 +671,13 @@ protected:
 
     LaserPhysics *laser;
 
+    // Synchrotron functions (used in synchrotronPhotons module)
+    particles::synchrotronPhotons::SynchrotronFunctions synchrotronFunctions;
+
+    // factory for the random number generator
+    typedef PMacc::random::RNGProvider<simDim, PMacc::random::methods::XorMin> RNGFactory;
+    RNGFactory* rngFactory;
+
     // output classes
 
     IInitPlugin* initialiserController;
@@ -663,3 +700,4 @@ protected:
 } /* namespace picongpu */
 
 #include "fields/Fields.tpp"
+#include "particles/synchrotronPhotons/SynchrotronFunctions.tpp"
