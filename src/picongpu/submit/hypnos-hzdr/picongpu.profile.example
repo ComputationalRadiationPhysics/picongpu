@@ -10,7 +10,7 @@ then
         # Core Dependencies
         module load gcc/4.8.2
         module load cmake/3.3.0
-        module load boost/1.56.0
+        module load boost/1.60.0
         module load cuda/6.5
         module load openmpi/1.8.4.kepler
 

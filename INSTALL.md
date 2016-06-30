@@ -56,7 +56,7 @@ Requirements
   - *Debian/Ubuntu:* `sudo apt-get install zlib1g-dev`
   - *Arch Linux:* `sudo pacman --sync zlib`
 
-- **boost** 1.56.0+ ("program options", "regex" , "filesystem", "system", "thread", "math" and nearly all header-only libs)
+- **boost** 1.57.0+ ("program options", "regex" , "filesystem", "system", "thread", "math" and nearly all header-only libs)
   - download from [http://www.boost.org/](http://sourceforge.net/projects/boost/files/boost/1.57.0/boost_1_57_0.tar.gz/download),
       e.g. version 1.57.0
   - *Debian/Ubuntu:* `sudo apt-get install libboost-program-options-dev libboost-regex-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev libboost-math-dev`
@@ -64,7 +64,6 @@ Requirements
   - *From source:*
     - `./bootstrap.sh --with-libraries=filesystem,program_options,regex,system,thread,math --prefix=$HOME/lib/boost`
     - `./b2 -j4 && ./b2 install`
-  - C++11 warning: use boost 1.57.0+
 
 - **git** 1.7.9.5 or [higher](https://help.github.com/articles/https-cloning-errors)
   - *Debian/Ubuntu:* `sudo apt-get install git`
