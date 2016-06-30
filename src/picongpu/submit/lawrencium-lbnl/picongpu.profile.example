@@ -7,7 +7,7 @@ then
         module load gcc/4.4.7
         module load cuda/5.5
         # not yet available, build boost as in `INSTALL.md`
-        #module load boost/1.56.0-gcc
+        #module load boost/1.57.0-gcc
         module load openmpi/1.6.5-gcc
 
         # Core tools

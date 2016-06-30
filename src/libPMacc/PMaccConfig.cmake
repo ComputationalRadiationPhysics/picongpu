@@ -195,7 +195,7 @@ endif(PNGwriter_FOUND)
 ###############################################################################
 # Boost LIB
 ###############################################################################
-find_package(Boost 1.56.0 MODULE REQUIRED COMPONENTS program_options regex system)
+find_package(Boost 1.57.0 MODULE REQUIRED COMPONENTS program_options regex system)
 set(PMacc_INCLUDE_DIRS ${PMacc_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 set(PMacc_LIBRARIES ${PMacc_LIBRARIES} ${Boost_LIBRARIES})
 
