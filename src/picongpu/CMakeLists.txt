@@ -143,7 +143,7 @@ if(ISAAC_FOUND)
             add_definitions(-DISAAC_STEREO=2)
         endif()
 
-        include_directories(example_cuda ${ISAAC_INCLUDE_DIRS})
+        include_directories(SYSTEM ${ISAAC_INCLUDE_DIRS})
         set(LIBS ${LIBS} ${ISAAC_LIBRARIES})
 
         set(ISAAC_MAX_FUNCTORS "3" CACHE STRING "Max length of the isaac functor chain" )
@@ -279,10 +279,6 @@ if( (NOT CUDA_VERSION VERSION_EQUAL 7.0) AND (CMAKE_CXX_STANDARD EQUAL 11) )
 else()
     # Fallback
     add_definitions(-DBOOST_RESULT_OF_USE_TR1)
-endif()
-
-if( CMAKE_CXX_STANDARD EQUAL 11 )
-    add_definitions(-DBOOST_NO_CXX11_SCOPED_ENUMS)
 endif()
 
 # work-arounds and known issues
