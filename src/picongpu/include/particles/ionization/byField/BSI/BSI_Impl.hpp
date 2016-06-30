@@ -20,8 +20,6 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "math/vector/Size_t.hpp"
 #include "simulation_defines.hpp"
 #include "traits/Resolve.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
@@ -30,7 +28,9 @@
 #include "fields/FieldE.hpp"
 
 #include "particles/ionization/byField/BSI/BSI.def"
-#include "particles/ionization/byField/BSI/AlgorithmBSI.hpp"
+#include "particles/ionization/byField/BSI/AlgorithmBSIHydrogenLike.hpp"
+#include "particles/ionization/byField/BSI/AlgorithmBSIEffectiveZ.hpp"
+#include "particles/ionization/byField/BSI/AlgorithmBSIStarkShifted.hpp"
 #include "particles/ionization/ionization.hpp"
 
 #include "compileTime/conversion/TypeToPointerPair.hpp"
@@ -52,7 +52,7 @@ namespace ionization
      * \tparam T_DestSpecies electron species to be created
      * \tparam T_SrcSpecies particle species that is ionized
      */
-    template<typename T_DestSpecies, typename T_SrcSpecies>
+    template<typename T_IonizationAlgorithm, typename T_DestSpecies, typename T_SrcSpecies>
     struct BSI_Impl
     {
 
@@ -82,18 +82,15 @@ namespace ionization
         private:
 
             /* define ionization ALGORITHM (calculation) for ionization MODEL */
-            typedef particles::ionization::AlgorithmBSI IonizationAlgorithm;
+            typedef T_IonizationAlgorithm IonizationAlgorithm;
 
             typedef MappingDesc::SuperCellSize TVec;
 
             typedef FieldE::ValueType ValueType_E;
-            typedef FieldB::ValueType ValueType_B;
             /* global memory EM-field device databoxes */
             FieldE::DataBoxType eBox;
-            FieldB::DataBoxType bBox;
             /* shared memory EM-field device databoxes */
             PMACC_ALIGN(cachedE, DataBox<SharedBox<ValueType_E, typename BlockArea::FullSuperCellSize,1> >);
-            PMACC_ALIGN(cachedB, DataBox<SharedBox<ValueType_B, typename BlockArea::FullSuperCellSize,0> >);
 
         public:
             /* host constructor */
@@ -102,10 +99,8 @@ namespace ionization
                 DataConnector &dc = Environment<>::get().DataConnector();
                 /* initialize pointers on host-side E-(B-)field databoxes */
                 FieldE* fieldE = &(dc.getData<FieldE > (FieldE::getName(), true));
-                FieldB* fieldB = &(dc.getData<FieldB > (FieldB::getName(), true));
                 /* initialize device-side E-(B-)field databoxes */
                 eBox = fieldE->getDeviceDataBox();
-                bBox = fieldB->getDeviceDataBox();
 
             }
 
@@ -128,20 +123,13 @@ namespace ionization
             DINLINE void init(const DataSpace<simDim>& blockCell, const int& linearThreadIdx, const DataSpace<simDim>& localCellOffset)
             {
 
-                /* caching of E and B fields */
-                cachedB = CachedBox::create < 0, ValueType_B > (BlockArea());
+                /* caching of E field */
                 cachedE = CachedBox::create < 1, ValueType_E > (BlockArea());
 
                 /* instance of nvidia assignment operator */
                 nvidia::functors::Assign assign;
-                /* copy fields from global to shared */
-                PMACC_AUTO(fieldBBlock, bBox.shift(blockCell));
+
                 ThreadCollective<BlockArea> collective(linearThreadIdx);
-                collective(
-                          assign,
-                          cachedB,
-                          fieldBBlock
-                          );
                 /* copy fields from global to shared */
                 PMACC_AUTO(fieldEBlock, eBox.shift(blockCell));
                 collective(
@@ -167,27 +155,24 @@ namespace ionization
                 const int particleCellIdx = particle[localCellIdx_];
                 /* multi-dim coordinate of the local cell inside the super cell */
                 DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec > (particleCellIdx));
-                /* interpolation of E- */
+                /* interpolation of E */
                 const fieldSolver::numericalCellType::traits::FieldPosition<FieldE> fieldPosE;
                 ValueType_E eField = Field2ParticleInterpolation()
                     (cachedE.shift(localCell).toCursor(), pos, fieldPosE());
-                /*                     and B-field on the particle position */
-                const fieldSolver::numericalCellType::traits::FieldPosition<FieldB> fieldPosB;
-                ValueType_B bField = Field2ParticleInterpolation()
-                    (cachedB.shift(localCell).toCursor(), pos, fieldPosB());
 
                 /* define number of bound macro electrons before ionization */
                 float_X prevBoundElectrons = particle[boundElectrons_];
 
                 /* this is the point where actual ionization takes place */
                 IonizationAlgorithm ionizeAlgo;
-                ionizeAlgo(
-                     bField, eField,
-                     particle
-                     );
-
                 /* determine number of new macro electrons to be created */
-                newMacroElectrons = prevBoundElectrons - particle[boundElectrons_];
+                newMacroElectrons = ionizeAlgo(
+                                                eField,
+                                                particle
+                                              );
+
+                /* relocate this to writeElectronIntoFrame in ionizationMethods.hpp */
+                particle[boundElectrons_] -= float_X(newMacroElectrons);
 
             }
 

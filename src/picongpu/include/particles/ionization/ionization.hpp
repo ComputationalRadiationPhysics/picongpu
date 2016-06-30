@@ -56,7 +56,7 @@ using namespace PMacc;
  * \tparam ParBoxIons container of the ions
  * \tparam ParBoxElectrons container of the electrons
  * \tparam Mapping class containing methods for acquiring info from the block
- * \tparam FrameIonizer \see e.g. BSI_Impl in BSI_Impl.hpp
+ * \tparam FrameIonizer \see e.g. BSIHydrogenLike_Impl in BSIHydrogenLike_Impl.hpp
  *         instance of the ionization model functor
  */
 template<class ParBoxIons, class ParBoxElectrons, class Mapping, class FrameIonizer>

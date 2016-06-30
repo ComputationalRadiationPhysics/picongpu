@@ -137,10 +137,15 @@ struct Hydrogen
 
 /*! Ionization Model Configuration ----------------------------------------
  *
- * For development purposes: ---------------------------------------------
  * - None : no particle is ionized
- * - BSI : simple barrier suppression ionization
+ * - BSIHydrogenLike : simple barrier suppression ionization
  * - ADK : Ammosov-Delone-Krainov tunneling ionization (H-like)
+ *
+ * Research and development: ----------------------------------------------
+ * - BSIEffectiveZ : BSI taking electron shielding into account via an effective
+ *                   atomic number Z_eff
+ * - BSIStarkShifted : BSI for hydrogen-like atoms and ions considering the
+ *                     Stark upshift of ionization potentials
  *
  * Usage: Add a flag to the list of particle flags that has the following structure
  *
@@ -155,8 +160,9 @@ typedef bmpl::vector<
     massRatio<MassRatioIons>,
     chargeRatio<ChargeRatioIons>,
     #if(PARAM_IONIZATION == 1)
-    ionizer<particles::ionization::BSI<PIC_Electrons> >,
+    ionizer<particles::ionization::BSIEffectiveZ<PIC_Electrons> >,
     ionizationEnergies<AU::IONIZATION_ENERGY_HYDROGEN_t>,
+    effectiveAtomicNumbers<Z_EFFECTIVE_HYDROGEN_t>,
     #endif
     atomicNumbers<Hydrogen>
 > ParticleFlagsIons;
