@@ -63,6 +63,12 @@ struct VillaBune
         addCurrentSplitX(oldPos, pos, charge, boxJ_par, deltaTime);
     }
 
+    static PMacc::traits::StringProperty getStringProperties()
+    {
+        PMacc::traits::StringProperty propList( "name", "VillaBune" );
+        return propList;
+    }
+
 private:
     //Splits the [oldPos,newPos] beam into two beams at the x-boundary of the cell
     //if necessary

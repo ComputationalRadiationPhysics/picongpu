@@ -59,6 +59,13 @@ namespace picongpu
                     pos[d] += (vel[d] * DELTA_T) / cellSize[d];
                 }
             }
+
+            static PMacc::traits::StringProperty getStringProperties()
+            {
+                PMacc::traits::StringProperty propList( "name", "other" );
+                propList["param"] = "free streaming";
+                return propList;
+            }
         };
     } //namespace
 }

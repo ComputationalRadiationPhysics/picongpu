@@ -72,8 +72,14 @@ namespace picongpu
             {
 
             }
+
+            static PMacc::traits::StringProperty getStringProperties()
+            {
+                PMacc::traits::StringProperty propList( "name", "none" );
+                return propList;
+            }
         };
 
     } // namespace noSolver
 
-} // picongpu
+} // namespace picongpu

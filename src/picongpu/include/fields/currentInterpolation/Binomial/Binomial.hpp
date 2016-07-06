@@ -71,6 +71,13 @@ struct Binomial
         const float_X deltaT = DELTA_T;
         fieldE(self) -= filteredJ * (float_X(1.0) / EPS0) * deltaT;
     }
+
+    static PMacc::traits::StringProperty getStringProperties()
+    {
+        PMacc::traits::StringProperty propList( "name", "Binomial" );
+        propList["param"] = "period=1;numPasses=1;compensator=false";
+        return propList;
+    }
 };
 
 } /* namespace currentInterpolation */

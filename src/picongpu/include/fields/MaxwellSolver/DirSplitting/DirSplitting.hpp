@@ -162,6 +162,12 @@ public:
         dc.releaseData(FieldE::getName());
         dc.releaseData(FieldB::getName());
     }
+
+    static PMacc::traits::StringProperty getStringProperties()
+    {
+        PMacc::traits::StringProperty propList( "name", "DS" );
+        return propList;
+    }
 };
 
 } // dirSplitting

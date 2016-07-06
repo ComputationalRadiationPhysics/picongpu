@@ -50,6 +50,11 @@ struct None
         fieldE(self) -= fieldJ(self) * (float_X(1.0) / EPS0) * deltaT;
     }
 
+    static PMacc::traits::StringProperty getStringProperties()
+    {
+        PMacc::traits::StringProperty propList( "name", "none" );
+        return propList;
+    }
 };
 
 } /* namespace currentInterpolation */

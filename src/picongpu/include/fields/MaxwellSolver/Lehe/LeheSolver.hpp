@@ -23,12 +23,33 @@
 #pragma once
 
 #include "LeheSolver.def"
+#include "simulation_defines.hpp"
 
 namespace picongpu
 {
-    namespace leheSolver
+namespace leheSolver
+{
+
+} // namespace leheSolver
+} // namespace picongpu
+
+namespace PMacc
+{
+namespace traits
+{
+    template< >
+    struct StringProperties< picongpu::leheSolver::LeheSolver >
     {
-
-    } // leheSolver
-
-} // picongpu
+        static StringProperty get()
+        {
+            PMACC_AUTO(
+                propList,
+                ::picongpu::leheSolver::LeheSolver::getStringProperties()
+            );
+            // overwrite the name of the yee solver (inherit all other properties)
+            propList["name"].value = "Lehe";
+            return propList;
+        }
+    };
+} // namespace traits
+} // namespace PMacc

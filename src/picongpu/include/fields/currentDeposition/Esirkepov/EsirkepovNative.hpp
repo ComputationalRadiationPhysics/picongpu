@@ -153,6 +153,13 @@ struct EsirkepovNative
     {
         return ParticleAssign()(gridPoint - line.m_pos1[d - 1]) - ParticleAssign()(gridPoint - line.m_pos0[d - 1]);
     }
+
+    static PMacc::traits::StringProperty getStringProperties()
+    {
+        PMacc::traits::StringProperty propList( "name", "Esirkepov" );
+        propList["param"] = "native implementation";
+        return propList;
+    }
 };
 
 } //namespace currentSolver
