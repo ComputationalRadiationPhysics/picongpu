@@ -21,6 +21,11 @@ export LD_LIBRARY_PATH=$ADIOS_ROOT/lib:$LD_LIBRARY_PATH
 export PATH=$ADIOS_ROOT/bin:$PATH
 module load mxml
 
+# GNU Parallel
+export GNUP_ROOT=/lustre/atlas2/aph101/proj-shared/lib/gnu-parallel
+export PATH=$GNUP_ROOT/bin:$PATH
+export MANPATH=$GNUP_ROOT/share/man:$MANPATH
+
 # load python virtual env
 source $PROJWORK/$proj/python-venv/rhea/bin/activate
 
@@ -32,6 +37,11 @@ source $PROJWORK/$proj/python-venv/rhea/bin/activate
 #     --with-zlib --with-mpi --enable-static --enable-shared \
 #     --with-mxml=$MXML_DIR --without-dataspaces
 #   make -j
+#   make install
+#
+# if needed for post-processing, install gnu parallel (as xargs+ssh alternative)
+#   ./configure --prefix=$PROJWORK/$proj/lib/gnu-parallel
+#   make
 #   make install
 #
 # now run for setting up the python virtual environment
