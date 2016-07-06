@@ -23,6 +23,7 @@
 #pragma once
 
 #include "pmacc_types.hpp"
+#include "dimensions/DataSpace.hpp"
 
 #include <mpi.h>
 
@@ -42,11 +43,13 @@ public:
     virtual const Mask& getCommunicationMask() const=0;
 
     /*! moves all GPUs from top to bottom (y-coordinate)
+     *
      * @return true if the position of gpu is switched to the end, else false
      */
     virtual bool slide() = 0;
 
     /*! slides multiple times
+     *
      * @param[in] numSlides number of slides
      * @return true if the position of gpu is switched to the end, else false
      */
@@ -55,6 +58,7 @@ public:
     //!\todo Interface should not depend on MPI!
 
     /*! starts sending via MPI (non-blocking)
+     *
      * \param[in] ex                direction to send (enum ExchangeType)
      * \param[in] send_data         pointer to data; should have at least send_data_count bytes
      * \param[in] send_data_count   message size in bytes to sent
@@ -77,6 +81,11 @@ public:
 
     virtual int getRank()=0;
 
+    /*! Return which of the three directions are periodic
+     *
+     * \return for each direction a false (0) or true(1) value
+     */
+    virtual DataSpace<DIM3> getPeriodic() const = 0;
 };
 
 } //namespace PMacc

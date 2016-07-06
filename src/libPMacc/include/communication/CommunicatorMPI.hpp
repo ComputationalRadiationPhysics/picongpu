@@ -111,6 +111,11 @@ public:
         return MPI_INFO_NULL;
     }
 
+    DataSpace<DIM3> getPeriodic() const
+    {
+        return this->periodic;
+    }
+
     /*! initializes all processes to build a 3D-grid
      *
      * @param nodes number of GPU nodes in each dimension
