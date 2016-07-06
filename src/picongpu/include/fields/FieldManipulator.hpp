@@ -42,7 +42,7 @@ public:
         const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
         for (uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i)
         {
-            /* only call for plains: left right top bottom back front*/
+            /* only call for planes: left right top bottom back front*/
             if (FRONT % i == 0 && !(Environment<simDim>::get().GridController().getCommunicationMask().isSet(i)))
             {
                 uint32_t direction = 0; /*set direction to X (default)*/
@@ -51,9 +51,9 @@ public:
                 if (i >= BACK)
                     direction = 2; /*set direction to Z*/
 
-                /* exchange mod 2 to find positiv or negitive direction
-                 * positiv direction = 1
-                 * negativ direction = 0
+                /* exchange mod 2 to find positive or negative direction
+                 * positive direction = 1
+                 * negative direction = 0
                  */
                 uint32_t pos_or_neg = i % 2;
 
