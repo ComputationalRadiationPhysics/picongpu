@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Rene Widera, Felix Schmitt
+ * Copyright 2013-2016 Rene Widera, Felix Schmitt, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -49,6 +49,8 @@
 #include "compileTime/conversion/RemoveFromSeq.hpp"
 #include "particles/ParticleDescription.hpp"
 
+#include <string>
+
 namespace picongpu
 {
 
@@ -61,6 +63,44 @@ TYPE_ARRAY(UInt64_5, H5T_INTEL_U64, uint64_t, 5);
 
 using namespace splash;
 
+
+template<
+    typename T_Species,
+    typename T_Flag,
+    bool T_hasFlag = HasFlag<
+        typename T_Species::FrameType,
+        T_Flag
+    >::type::value
+>
+struct
+GetSpeciesFlagName
+{
+    typedef typename PMacc::traits::Resolve<
+        typename GetFlagType<
+            typename T_Species::FrameType,
+            T_Flag
+        >::type
+    >::type SpeciesFlag;
+
+    std::string operator()() const
+    {
+        GetStringProperties< SpeciesFlag > stringProps;
+        return stringProps["name"].value;
+    }
+};
+
+template<
+    typename T_Species,
+    typename T_Flag
+>
+struct
+GetSpeciesFlagName<T_Species, T_Flag, false>
+{
+    std::string operator()() const
+    {
+        return "none";
+    }
+};
 
 /** Write copy particle to host memory and dump to HDF5 file
  *
@@ -259,6 +299,49 @@ public:
             UNIT_MASS,
             massUnitDimension
         );
+
+        /* openPMD ED-PIC: write additional attributes */
+        const float_64 particleShape( GetShape<T_Species>::type::support - 1 );
+        params->dataCollector->writeAttribute( params->currentStep,
+                            ctDouble,
+                            speciesPath.c_str(),
+                            "particleShape",
+                            &particleShape );
+
+        GetSpeciesFlagName<T_Species, current<> > currentDepositionName;
+        const std::string currentDeposition( currentDepositionName() );
+        ColTypeString ctCurrentDeposition( currentDeposition.length() );
+        params->dataCollector->writeAttribute( params->currentStep,
+                            ctCurrentDeposition,
+                            speciesPath.c_str(),
+                            "currentDeposition",
+                            currentDeposition.c_str() );
+
+        GetSpeciesFlagName<T_Species, particlePusher<> > particlePushName;
+        const std::string particlePush( particlePushName() );
+        ColTypeString ctParticlePush( particlePush.length() );
+        params->dataCollector->writeAttribute( params->currentStep,
+                            ctParticlePush,
+                            speciesPath.c_str(),
+                            "particlePush",
+                            particlePush.c_str() );
+
+        GetSpeciesFlagName<T_Species, interpolation<> > particleInterpolationName;
+        const std::string particleInterpolation( particleInterpolationName() );
+        ColTypeString ctParticleInterpolation( particleInterpolation.length() );
+        params->dataCollector->writeAttribute( params->currentStep,
+                            ctParticleInterpolation,
+                            speciesPath.c_str(),
+                            "particleInterpolation",
+                            particleInterpolation.c_str() );
+
+        const std::string particleSmoothing("none");
+        ColTypeString ctParticleSmoothing(particleSmoothing.length());
+        params->dataCollector->writeAttribute( params->currentStep,
+                            ctParticleSmoothing,
+                            speciesPath.c_str(),
+                            "particleSmoothing",
+                            particleSmoothing.c_str() );
 
         log<picLog::INPUT_OUTPUT > ("HDF5:  (end) write particle records for %1%") % Hdf5FrameType::getName();
 
