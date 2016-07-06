@@ -30,16 +30,17 @@
 
 namespace picongpu
 {
-    namespace leheSolver
-    {
-        using namespace PMacc;
-        
-        typedef CurlELehe< picongpu::fieldSolverLehe::CherenkovFreeDir > CurlELeheDir;
+namespace leheSolver
+{
+    using namespace PMacc;
 
-        typedef ::picongpu::yeeSolver::YeeSolver< CurlELeheDir > LeheSolver;
-        
-        /*we need no definition of margin, because yeeSolver use curl data to define margins*/
+    typedef CurlELehe< picongpu::fieldSolverLehe::CherenkovFreeDir > CurlELeheDir;
 
-    } // leheSolver
+    typedef ::picongpu::yeeSolver::YeeSolver< CurlELeheDir > LeheSolver;
 
-} // picongpu
+    /* we need no definition of margins, because the YeeSolver uses its curl
+     * classes to define margins
+     */
+
+} // namespace leheSolver
+} // namespace picongpu
