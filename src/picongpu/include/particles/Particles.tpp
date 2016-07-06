@@ -155,7 +155,7 @@ template<typename T_ParticleDescription>
 void Particles<T_ParticleDescription>::update(uint32_t )
 {
     typedef typename GetFlagType<FrameType,particlePusher<> >::type PusherAlias;
-    typedef typename PMacc::traits::Resolve<PusherAlias>::type::type ParticlePush;
+    typedef typename PMacc::traits::Resolve<PusherAlias>::type ParticlePush;
 
     typedef typename PMacc::traits::Resolve<
         typename GetFlagType<FrameType,interpolation<> >::type
