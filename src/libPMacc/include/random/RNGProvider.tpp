@@ -91,6 +91,13 @@ namespace random
     }
 
     template<uint32_t T_dim, class T_RNGMethod>
+    RNGProvider<T_dim, T_RNGMethod>::Buffer&
+    RNGProvider<T_dim, T_RNGMethod>::getStateBuffer()
+    {
+        return *buffer;
+    }
+
+    template<uint32_t T_dim, class T_RNGMethod>
     RNGProvider<T_dim, T_RNGMethod>::DataBoxType
     RNGProvider<T_dim, T_RNGMethod>::getDeviceDataBox()
     {
@@ -103,7 +110,7 @@ namespace random
     {
         /* generate a unique name (for this type!) to use as a default ID */
         return std::string("RNGProvider")
-                + boost::lexical_cast<std::string>(dim+0) /* +0 to create a rvalue of the class const(expr) */
+                + char('0' + dim) /* valid for 0..9 */
                 + RNGMethod::getName();
     }
 
