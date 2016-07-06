@@ -53,6 +53,8 @@ namespace random
     {
         if(m_size.productOfComponents() == 0)
             throw std::invalid_argument("Cannot create RNGProvider with zero size");
+
+        Environment<dim>::get().DataConnector().registerData(*this);
     }
 
     template<uint32_t T_dim, class T_RNGMethod>
@@ -67,8 +69,6 @@ namespace random
         __cudaKernel(kernel::initRNGProvider<RNGMethod>)
         (gridSize, blockSize)
         (bufferBox, seed, m_size);
-
-        Environment<dim>::get().DataConnector().registerData(*this);
     }
 
     template<uint32_t T_dim, class T_RNGMethod>
