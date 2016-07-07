@@ -308,6 +308,12 @@ struct ZigZag
         }
     }
 
+    static PMacc::traits::StringProperty getStringProperties()
+    {
+        PMacc::traits::StringProperty propList( "name", "ZigZag" );
+        return propList;
+    }
+
 private:
 
     /** calculate virtual point were we split our particle trajectory

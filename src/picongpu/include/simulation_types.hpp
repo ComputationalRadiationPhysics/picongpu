@@ -26,6 +26,7 @@
 #include "algorithms/PromoteType.hpp"
 #include "algorithms/ForEach.hpp"
 #include "algorithms/math.hpp"
+#include "traits/GetStringProperties.hpp"
 #include "traits/GetMargin.hpp"
 #include "traits/GetComponentsType.hpp"
 #include "traits/NumberOfExchanges.hpp"

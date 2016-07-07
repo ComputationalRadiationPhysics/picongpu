@@ -195,6 +195,12 @@ struct Esirkepov<T_ParticleShape, DIM3>
     {
         return ParticleAssign()(gridPoint - line.m_pos1[d]) - ParticleAssign()(gridPoint - line.m_pos0[d]);
     }
+
+    static PMacc::traits::StringProperty getStringProperties()
+    {
+        PMacc::traits::StringProperty propList( "name", "Esirkepov" );
+        return propList;
+    }
 };
 
 } //namespace currentSolver

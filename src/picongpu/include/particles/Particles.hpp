@@ -30,7 +30,12 @@
 #include "particles/memory/buffers/ParticlesBuffer.hpp"
 #include "particles/manipulators/manipulators.def"
 
+#include "memory/dataTypes/Mask.hpp"
+#include "mappings/simulation/GridController.hpp"
 #include "dataManagement/ISimulationData.hpp"
+
+#include <string>
+#include <sstream>
 
 namespace picongpu
 {
@@ -79,6 +84,42 @@ public:
     void synchronize();
 
     void syncToDevice();
+
+    static PMacc::traits::StringProperty getStringProperties()
+    {
+        PMacc::traits::StringProperty propList;
+        const DataSpace<DIM3> periodic =
+            Environment<simDim>::get().EnvironmentController().getCommunicator().getPeriodic();
+
+        for( uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i )
+        {
+            // for each planar direction: left right top bottom back front
+            if( FRONT % i == 0 )
+            {
+                const std::string directionName = ExchangeTypeNames()[i];
+                const DataSpace<DIM3> relDir = Mask::getRelativeDirections<DIM3>(i);
+
+                const bool isPeriodic =
+                    (relDir * periodic) != DataSpace<DIM3>::create(0);
+
+                std::string boundaryName = "absorbing";
+                if( isPeriodic )
+                    boundaryName = "periodic";
+
+                if( boundaryName == "absorbing" )
+                {
+                    propList[directionName]["param"] = std::string("without field correction");
+                }
+                else
+                {
+                    propList[directionName]["param"] = std::string("none");
+                }
+
+                propList[directionName]["name"] = boundaryName;
+            }
+        }
+        return propList;
+    }
 
 private:
     SimulationDataId m_datasetID;

@@ -121,6 +121,12 @@ struct AssignedTrilinearInterpolation
         }
         return result_y;
     }
+
+    static PMacc::traits::StringProperty getStringProperties()
+    {
+        PMacc::traits::StringProperty propList( "name", "uniform" );
+        return propList;
+    }
 };
 
 } // picongpu
