@@ -27,6 +27,8 @@
 #include "traits/GetComponentsType.hpp"
 #include "traits/GetNComponents.hpp"
 
+#include <string>
+
 namespace picongpu
 {
 
@@ -77,7 +79,7 @@ struct Field
         assert(unitDimension.size() == 7); // seven openPMD base units
 
         /* component names */
-        std::string recordName = std::string("fields/") + name;
+        const std::string recordName = std::string("fields/") + name;
 
         std::vector<std::string> name_lookup;
         {
@@ -179,13 +181,13 @@ struct Field
                                               splashFloatXType, recordName.c_str(),
                                               "timeOffset", &timeOffset);
 
-        std::string geometry("cartesian");
+        const std::string geometry("cartesian");
         ColTypeString ctGeometry(geometry.length());
         params->dataCollector->writeAttribute(params->currentStep,
                                               ctGeometry, recordName.c_str(),
                                               "geometry", geometry.c_str());
 
-        std::string dataOrder("C");
+        const std::string dataOrder("C");
         ColTypeString ctDataOrder(dataOrder.length());
         params->dataCollector->writeAttribute(params->currentStep,
                                               ctDataOrder, recordName.c_str(),
@@ -226,6 +228,12 @@ struct Field
         params->dataCollector->writeAttribute(params->currentStep,
                                               ctDouble, recordName.c_str(),
                                               "gridUnitSI", &UNIT_LENGTH);
+
+        const std::string fieldSmoothing("none");
+        ColTypeString ctFieldSmoothing(fieldSmoothing.length());
+        params->dataCollector->writeAttribute(params->currentStep,
+                                              ctFieldSmoothing, recordName.c_str(),
+                                              "fieldSmoothing", fieldSmoothing.c_str());
     }
 
 };

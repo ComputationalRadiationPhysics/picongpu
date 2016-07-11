@@ -96,6 +96,12 @@ struct Push
             pos[d] += (vel[d] * DELTA_T) / cellSize[d];
         }
     }
+
+    static PMacc::traits::StringProperty getStringProperties()
+    {
+        PMacc::traits::StringProperty propList( "name", "Vay" );
+        return propList;
+    }
 };
 } //namespace particlePusherVay
 } //namespace picongpu
