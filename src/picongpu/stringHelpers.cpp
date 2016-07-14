@@ -97,5 +97,53 @@ namespace helper
             return result;
     }
 
+    GetADIOSArrayOfString::Result
+    GetADIOSArrayOfString::operator()(
+        std::list<std::string> listOfStrings
+    )
+    {
+            Result result;
+
+            // sum of all strings + their null terminators
+            StrSize strSize;
+            const size_t sumLen = std::accumulate(
+                listOfStrings.begin(),
+                listOfStrings.end(),
+                0u,
+                strSize
+            );
+
+            // allocate & prepare buffer, starts
+            result.buffers.assign( sumLen, '\0' );
+            result.starts.assign( listOfStrings.size(), NULL );
+
+            // concat all strings, \0 terminated
+            size_t startIdx = 0;
+            std::list<std::string>::iterator listIt = listOfStrings.begin();
+            for(
+                size_t i = 0;
+                i < listOfStrings.size();
+                ++i, ++listIt
+            )
+            {
+                std::vector<char>::iterator startIt =
+                    result.buffers.begin() + startIdx;
+
+                // copy byte wise onto padding
+                std::copy(
+                    listIt->begin(),
+                    listIt->end(),
+                    startIt
+                );
+
+                // start pointer
+                result.starts.at(i) = &(*startIt);
+
+                startIdx += listIt->size() + 1;
+            }
+
+            // return
+            return result;
+    }
 } // namespace helper
 } // namespace picongpu
