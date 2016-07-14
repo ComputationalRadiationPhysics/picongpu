@@ -174,7 +174,7 @@ private:
             params->gridLayout = field->getGridLayout();
 
             PICToAdios<ComponentType> adiosType;
-            writeField(params,
+            ADIOSWriter::template writeField<ComponentType>(params,
                        sizeof(ComponentType),
                        adiosType.type,
                        GetNComponents<ValueType>::value,
@@ -252,7 +252,7 @@ private:
 
             params->gridLayout = fieldTmp->getGridLayout();
             /*write data to ADIOS file*/
-            writeField(params,
+            ADIOSWriter::template writeField<ComponentType>(params,
                        sizeof(ComponentType),
                        adiosType.type,
                        components,
@@ -732,8 +732,6 @@ private:
         /* Finalize adios library */
         ADIOS_CMD(adios_finalize(Environment<simDim>::get().GridController()
                 .getCommunicator().getRank()));
-
-        __deleteArray(mThreadParams.fieldBfr);
     }
 
     void beginAdios(const std::string adiosFilename)
@@ -743,9 +741,6 @@ private:
 
         mThreadParams.fullFilename = full_filename.str();
         mThreadParams.adiosFileHandle = ADIOS_INVALID_HANDLE;
-
-        mThreadParams.fieldBfr = NULL;
-        mThreadParams.fieldBfr = new float_32[mThreadParams.window.localDimensions.size.productOfComponents()];
 
         std::stringstream adiosPathBase;
         adiosPathBase << ADIOS_PATH_ROOT << mThreadParams.currentStep << "/";
@@ -880,6 +875,7 @@ private:
         }
     }
 
+    template<typename ComponentType>
     static void writeField(ThreadParams *params, const uint32_t sizePtrType,
                            ADIOS_DATATYPES adiosType,
                            const uint32_t nComponents, const std::string name,
@@ -893,6 +889,8 @@ private:
         DataSpace<simDim> field_full = field_layout.getDataSpace();
         DataSpace<simDim> field_no_guard = params->window.localDimensions.size;
         DataSpace<simDim> field_guard = field_layout.getGuard() + params->localWindowToDomainOffset;
+
+        ComponentType* fieldBfr = new ComponentType[params->window.localDimensions.size.productOfComponents()];
 
         /* write the actual field data */
         for (uint32_t d = 0; d < nComponents; d++)
@@ -923,7 +921,7 @@ private:
                         size_t index_src = base_index_src + (x + field_guard[0]) * nComponents + d;
                         size_t index_dst = base_index_dst + x;
 
-                        params->fieldBfr[index_dst] = ((float_32*)ptr)[index_src];
+                        fieldBfr[index_dst] = ((ComponentType*)ptr)[index_src];
                     }
                 }
             }
@@ -934,7 +932,9 @@ private:
 
             int64_t adiosFieldVarId = *(params->adiosFieldVarIds.begin());
             params->adiosFieldVarIds.pop_front();
-            ADIOS_CMD(adios_write_byid(params->adiosFileHandle, adiosFieldVarId, params->fieldBfr));
+            ADIOS_CMD(adios_write_byid(params->adiosFileHandle, adiosFieldVarId, fieldBfr));
+
+            __deleteArray(fieldBfr);
         }
     }
 
