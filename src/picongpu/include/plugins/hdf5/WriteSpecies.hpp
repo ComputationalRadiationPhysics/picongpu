@@ -48,6 +48,7 @@
 #include "plugins/hdf5/writer/ParticleAttribute.hpp"
 #include "compileTime/conversion/RemoveFromSeq.hpp"
 #include "particles/ParticleDescription.hpp"
+#include "particles/traits/GetSpeciesFlagName.hpp"
 
 #include <string>
 
@@ -63,44 +64,6 @@ TYPE_ARRAY(UInt64_5, H5T_INTEL_U64, uint64_t, 5);
 
 using namespace splash;
 
-
-template<
-    typename T_Species,
-    typename T_Flag,
-    bool T_hasFlag = HasFlag<
-        typename T_Species::FrameType,
-        T_Flag
-    >::type::value
->
-struct
-GetSpeciesFlagName
-{
-    typedef typename PMacc::traits::Resolve<
-        typename GetFlagType<
-            typename T_Species::FrameType,
-            T_Flag
-        >::type
-    >::type SpeciesFlag;
-
-    std::string operator()() const
-    {
-        GetStringProperties< SpeciesFlag > stringProps;
-        return stringProps["name"].value;
-    }
-};
-
-template<
-    typename T_Species,
-    typename T_Flag
->
-struct
-GetSpeciesFlagName<T_Species, T_Flag, false>
-{
-    std::string operator()() const
-    {
-        return "none";
-    }
-};
 
 /** Write copy particle to host memory and dump to HDF5 file
  *
@@ -308,7 +271,7 @@ public:
                             "particleShape",
                             &particleShape );
 
-        GetSpeciesFlagName<T_Species, current<> > currentDepositionName;
+        traits::GetSpeciesFlagName<T_Species, current<> > currentDepositionName;
         const std::string currentDeposition( currentDepositionName() );
         ColTypeString ctCurrentDeposition( currentDeposition.length() );
         params->dataCollector->writeAttribute( params->currentStep,
@@ -317,7 +280,7 @@ public:
                             "currentDeposition",
                             currentDeposition.c_str() );
 
-        GetSpeciesFlagName<T_Species, particlePusher<> > particlePushName;
+        traits::GetSpeciesFlagName<T_Species, particlePusher<> > particlePushName;
         const std::string particlePush( particlePushName() );
         ColTypeString ctParticlePush( particlePush.length() );
         params->dataCollector->writeAttribute( params->currentStep,
@@ -326,7 +289,7 @@ public:
                             "particlePush",
                             particlePush.c_str() );
 
-        GetSpeciesFlagName<T_Species, interpolation<> > particleInterpolationName;
+        traits::GetSpeciesFlagName<T_Species, interpolation<> > particleInterpolationName;
         const std::string particleInterpolation( particleInterpolationName() );
         ColTypeString ctParticleInterpolation( particleInterpolation.length() );
         params->dataCollector->writeAttribute( params->currentStep,
