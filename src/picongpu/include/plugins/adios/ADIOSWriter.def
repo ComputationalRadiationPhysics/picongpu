@@ -91,7 +91,8 @@ namespace po = boost::program_options;
 struct ThreadParams
 {
     uint32_t currentStep;                   /** current simulation step */
-    std::string fullFilename;
+    std::string adiosFilename;              /* e.g., simData */
+    std::string fullFilename;               /* e.g., simData_1000.bp */
 
     /** current dump is a checkpoint */
     bool isCheckpoint;

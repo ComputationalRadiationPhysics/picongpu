@@ -47,6 +47,10 @@
 #include "plugins/adios/writer/ParticleAttributeSize.hpp"
 #include "compileTime/conversion/RemoveFromSeq.hpp"
 
+#include "particles/traits/GetSpeciesFlagName.hpp"
+
+#include <string>
+
 namespace picongpu
 {
 
@@ -87,13 +91,16 @@ public:
 
     typedef Frame<OperatorCreateVectorBox, NewParticleDescription> AdiosFrameType;
 
-    HINLINE void operator()(ThreadParams* params,
-                            const std::string subGroup)
+    HINLINE void operator()(ThreadParams* params)
     {
         DataConnector &dc = Environment<>::get().DataConnector();
         GridController<simDim>& gc = Environment<simDim>::get().GridController();
         uint64_t mpiSize = gc.getGlobalSize();
         uint64_t mpiRank = gc.getGlobalRank();
+
+        const std::string speciesGroup( FrameType::getName() + "/" );
+        const std::string speciesPath( params->adiosBasePath +
+            std::string(ADIOS_PATH_PARTICLES) + speciesGroup );
 
         /* load particle without copy particle data to host */
         ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(ThisSpecies::FrameType::getName(), true));
@@ -126,8 +133,39 @@ public:
 
         /* iterate over all attributes of this species */
         ForEach<typename AdiosFrameType::ValueTypeSeq, adios::ParticleAttributeSize<bmpl::_1> > attributeSize;
-        attributeSize(params, (FrameType::getName() + std::string("/") + subGroup).c_str(),
-                myNumParticles, globalNumParticles, myParticleOffset);
+        attributeSize(params, speciesGroup, myNumParticles, globalNumParticles, myParticleOffset);
+
+        /* TODO: constant particle records */
+
+        /* openPMD ED-PIC: additional attributes */
+        traits::PICToAdios<float_64> adiosDoubleType;
+        const float_64 particleShape( GetShape<T_Species>::type::support - 1 );
+        ADIOS_CMD(adios_define_attribute_byvalue(params->adiosGroupHandle,
+            "particleShape", speciesPath.c_str(),
+            adiosDoubleType.type, 1, (void*)&particleShape ));
+
+        traits::GetSpeciesFlagName<ThisSpecies, current<> > currentDepositionName;
+        const std::string currentDeposition( currentDepositionName() );
+        ADIOS_CMD(adios_define_attribute_byvalue(params->adiosGroupHandle,
+            "currentDeposition", speciesPath.c_str(),
+            adios_string, 1, (void*)currentDeposition.c_str() ));
+
+        traits::GetSpeciesFlagName<ThisSpecies, particlePusher<> > particlePushName;
+        const std::string particlePush( particlePushName() );
+        ADIOS_CMD(adios_define_attribute_byvalue(params->adiosGroupHandle,
+            "particlePush", speciesPath.c_str(),
+            adios_string, 1, (void*)particlePush.c_str() ));
+
+        traits::GetSpeciesFlagName<ThisSpecies, interpolation<> > particleInterpolationName;
+        const std::string particleInterpolation( particleInterpolationName() );
+        ADIOS_CMD(adios_define_attribute_byvalue(params->adiosGroupHandle,
+            "particleInterpolation", speciesPath.c_str(),
+            adios_string, 1, (void*)particleInterpolation.c_str() ));
+
+        const std::string particleSmoothing( "none" );
+        ADIOS_CMD(adios_define_attribute_byvalue(params->adiosGroupHandle,
+            "particleSmoothing", speciesPath.c_str(),
+            adios_string, 1, (void*)particleSmoothing.c_str() ));
 
         /* define adios var for species index/info table */
         {
@@ -137,9 +175,7 @@ public:
             const char* path = NULL;
             int64_t adiosSpeciesIndexVar = defineAdiosVar<DIM1>(
                 params->adiosGroupHandle,
-                (params->adiosBasePath + std::string(ADIOS_PATH_PARTICLES) +
-                    FrameType::getName() + std::string("/") + subGroup +
-                    std::string("particles_info")).c_str(),
+                (speciesPath + "particles_info").c_str(),
                 path,
                 adiosIndexType.type,
                 PMacc::math::UInt64<DIM1>(localTableSize),
