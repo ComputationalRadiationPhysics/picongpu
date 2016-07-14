@@ -106,7 +106,7 @@ For a detailed description, please refer to [LICENSE.md](LICENSE.md)
 Install
 -------
 
-See our notes in [INSTALL.md](doc/INSTALL.md).
+See our notes in [INSTALL.md](INSTALL.md).
 
 Users
 -----
