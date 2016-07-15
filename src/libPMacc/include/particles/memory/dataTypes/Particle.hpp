@@ -38,6 +38,7 @@
 #include "particles/operations/Assign.hpp"
 #include "particles/operations/Deselect.hpp"
 #include "particles/operations/SetAttributeToDefault.hpp"
+#include "compileTime/errorHandlerPolicies/ReturnValue.hpp"
 #include <boost/mpl/remove_if.hpp>
 #include <boost/mpl/is_sequence.hpp>
 #include <boost/mpl/contains.hpp>
@@ -242,7 +243,7 @@ PMacc::Particle<T_FrameType, T_ValueTypeSeq>
     typedef T_MPLSeqWithObjectsToRemove MPLSeqWithObjectsToRemove;
 
     /* translate aliases to full specialized identifier*/
-    typedef typename ResolveAliases<MPLSeqWithObjectsToRemove, ValueTypeSeq>::type ResolvedSeqWithObjectsToRemove;
+    typedef typename ResolveAliases<MPLSeqWithObjectsToRemove, ValueTypeSeq, errorHandlerPolicies::ReturnValue>::type ResolvedSeqWithObjectsToRemove;
     /* remove types from original particle attribute list*/
     typedef typename RemoveFromSeq<ValueTypeSeq, ResolvedSeqWithObjectsToRemove>::type NewValueTypeSeq;
     /* new particle type*/
