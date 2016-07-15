@@ -45,7 +45,7 @@ namespace particles
  *                               \see speciesDefinition.param
  *                               \example PIC_Electrons
  *
- * - CloneSpecies<T_SrcSpeciesType, T_DestSpeciesType>
+ * - DeriveSpecies<T_SrcSpeciesType, T_DestSpeciesType>
  *     Create a particle species by copying all matching attributes from an
  *     other species (`fillAllGaps()` is called on T_DestSpeciesType).
  *     @tparam T_SrcSpeciesType  source species
@@ -59,10 +59,10 @@ namespace particles
  *                           \see particleConfig.param
  *     @tparam T_SpeciesType type of the used species
  *
- * - ManipulateCloneSpecies<T_ManipulateFunctor, T_SrcSpeciesType, T_DestSpeciesType>
- *     Same as \see CloneSpecies but allows a T_ManipulateFunctor to be called
- *     after cloning to manipulate the two particles that took part
- *     in the cloning (e.g., assign and increase an attribute such as weighting).
+ * - ManipulateDeriveSpecies<T_ManipulateFunctor, T_SrcSpeciesType, T_DestSpeciesType>
+ *     Same as \see DeriveSpecies but allows a T_ManipulateFunctor to be called
+ *     after deriving to manipulate the two particles that took part
+ *     in the deriving (e.g., assign and increase an attribute such as weighting).
  *     Note: `fillAllGaps()` is only called for the T_DestSpeciesType.
  *     @tparam T_ManipulateFunctor a pseudo-binary functor accepting two particle
  *                                 species: destination and source,
@@ -84,7 +84,7 @@ namespace particles
  */
 typedef mpl::vector<
     CreateGas<gasProfiles::Homogenous, startPosition::Quiet, PIC_Electrons>,
-    CloneSpecies<PIC_Electrons, PIC_Ions>,
+    DeriveSpecies<PIC_Electrons, PIC_Ions>,
     Manipulate<manipulators::AssignXDriftPrositiveToLowerQuarterYPosition, PIC_Ions>,
     Manipulate<manipulators::AssignXDriftNegativeToMiddleHalfYPosition, PIC_Ions>,
     Manipulate<manipulators::AssignXDriftPrositiveToUpperQuarterYPosition, PIC_Ions>,
