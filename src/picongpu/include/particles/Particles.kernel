@@ -89,7 +89,7 @@ __global__ void kernelCloneParticles(T_MyParBox myBox, T_OtherFrameBox otherBox,
     {
         PMACC_AUTO(parDest, myFrame[threadIdx.x]);
         PMACC_AUTO(parSrc, frame[threadIdx.x]);
-        assign(parDest, parSrc);
+        assign(parDest, deselect<particleId>(parSrc));
 
         const DataSpace<simDim> localCellIdx = block * SuperCellSize::toRT()
             + DataSpaceOperations<simDim>::map<SuperCellSize>(threadIdx.x)
