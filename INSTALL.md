@@ -4,7 +4,7 @@ PIConGPU Install Guide
 Overview
 --------
 
-![Overview of PIConGPU Library Dependencies](libraryDependencies.png)
+![Overview of PIConGPU Library Dependencies](doc/libraryDependencies.png)
 
 *Figure:* Overview of inter-library dependencies for parallel execution of
 PIConGPU on a typical HPC system. Due to common binary incompatibilities
@@ -19,7 +19,7 @@ Requirements
 
 ### Mandatory
 
-- **gcc** 4.6 to 4.8 (depends on your current [CUDA version](https://gist.github.com/ax3l/9489132))
+- **gcc** 4.6 to 4.9 (depends on your current [CUDA version](https://gist.github.com/ax3l/9489132))
   - *Debian/Ubuntu:*
     - `sudo apt-get install gcc-4.6 g++-4.6 build-essential`
     - `sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.6 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.6`
@@ -28,9 +28,11 @@ Requirements
     - the installed version of **gcc** might be too new. [Compile an older gcc](https://gist.github.com/slizzered/a9dc4e13cb1c7fffec53)
   - *experimental alternatives:* **icc** since **cuda 5.5**
 
-- [CUDA 5.0](https://developer.nvidia.com/cuda-downloads) or higher
+- C++98 build: [CUDA 5.0-7.0](https://developer.nvidia.com/cuda-downloads)
   - **Attention:** You must use at least the 5.5+ [drivers](http://www.nvidia.com/Drivers)
     even if you run with CUDA 5.0. Supported drivers: 319.82+/331.22+
+  - *Arch Linux:* `sudo pacman --sync cuda`
+- C++11 build: [CUDA 7.5+](https://developer.nvidia.com/cuda-downloads)
   - *Arch Linux:* `sudo pacman --sync cuda`
 
 - at least one **CUDA** capable **GPU**
@@ -43,7 +45,7 @@ Requirements
   - *Arch Linux:* `sudo pacman --sync cmake`
 
 - **OpenMPI** 1.5.1+ / **MVAPICH2** 1.8+ or similar
-  ([GPU aware](https://devblogs.nvidia.com/parallelforall/introduction-cuda-aware-mpi/) install recommented)
+  ([GPU aware](https://devblogs.nvidia.com/parallelforall/introduction-cuda-aware-mpi/) install recommended)
   - *Debian/Ubuntu:* `sudo apt-get install libopenmpi-dev`
   - *Arch Linux:* `sudo pacman --sync openmpi`
 
@@ -59,6 +61,7 @@ Requirements
   - *From source:*
     - `./bootstrap.sh --with-libraries=filesystem,program_options,regex,system,thread,math --prefix=$HOME/lib/boost`
     - `./b2 -j4 && ./b2 install`
+  - C++11 warning: use boost 1.57.0+
 
 - **git** 1.7.9.5 or [higher](https://help.github.com/articles/https-cloning-errors)
   - *Debian/Ubuntu:* `sudo apt-get install git`
@@ -67,7 +70,7 @@ Requirements
 ### Optional Libraries
 
 If you do not install the optional libraries, you will not have the full amount of PIConGPU plugins.
-We recomment to install at least **pngwriter**.
+We recommend to install at least **pngwriter**.
 Some of our examples will also need **libSplash**.
 
 - **pngwriter** >= 0.5.6
