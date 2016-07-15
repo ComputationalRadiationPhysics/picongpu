@@ -39,7 +39,8 @@ namespace picongpu
      *
      * you can choose any of these particle to grid projections:
      *   - CreateDensityOperation: particle position + shape on the grid
-     *   - CreateCounterOperation: counts point like particles per cell
+     *   - CreateChargeDensityOperation: density * charge
+     *   - CreateCounterOperation: counts point like particles per cell (debug)
      *   - CreateEnergyDensityOperation: particle energy density with respect
      *                                   to shape
      *   - CreateEnergyOperation: particle energy with respect to shape
@@ -50,11 +51,11 @@ namespace picongpu
      */
     using namespace particleToGrid;
 
-    /* Density section */
+    /* ChargeDensity section */
     typedef bmpl::transform<
             VectorAllSpecies,
-            CreateDensityOperation<bmpl::_1>
-            >::type Density_Seq;
+            CreateChargeDensityOperation<bmpl::_1>
+            >::type ChargeDensity_Seq;
 
     /* ParticleCounter section */
     typedef bmpl::transform<
@@ -82,7 +83,7 @@ namespace picongpu
      * FieldTmpSolvers is used in @see FieldTmp to calculate the exchange size
      */
     typedef MakeSeq<
-        Density_Seq,
+        ChargeDensity_Seq,
         Counter_Seq,
         EnergyDensity_Seq,
         MomentumComponent_Seq
