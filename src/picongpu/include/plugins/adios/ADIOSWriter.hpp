@@ -732,6 +732,8 @@ private:
         /* Finalize adios library */
         ADIOS_CMD(adios_finalize(Environment<simDim>::get().GridController()
                 .getCommunicator().getRank()));
+
+        __deleteArray(mThreadParams.fieldBfr);
     }
 
     void beginAdios(const std::string adiosFilename)
@@ -741,6 +743,8 @@ private:
 
         mThreadParams.fullFilename = full_filename.str();
         mThreadParams.adiosFileHandle = ADIOS_INVALID_HANDLE;
+
+        mThreadParams.fieldBfr = new float_X[mThreadParams.window.localDimensions.size.productOfComponents()];
 
         std::stringstream adiosPathBase;
         adiosPathBase << ADIOS_PATH_ROOT << mThreadParams.currentStep << "/";
@@ -884,13 +888,14 @@ private:
         log<picLog::INPUT_OUTPUT > ("ADIOS: write field: %1% %2% %3%") %
             name % nComponents % ptr;
 
+        const bool fieldTypeCorrect( boost::is_same<ComponentType, float_X>::value );
+        PMACC_CASSERT_MSG(Precision_mismatch_in_Field_Components__ADIOS,fieldTypeCorrect);
+
         /* data to describe source buffer */
         GridLayout<simDim> field_layout = params->gridLayout;
         DataSpace<simDim> field_full = field_layout.getDataSpace();
         DataSpace<simDim> field_no_guard = params->window.localDimensions.size;
         DataSpace<simDim> field_guard = field_layout.getGuard() + params->localWindowToDomainOffset;
-
-        ComponentType* fieldBfr = new ComponentType[params->window.localDimensions.size.productOfComponents()];
 
         /* write the actual field data */
         for (uint32_t d = 0; d < nComponents; d++)
@@ -921,7 +926,7 @@ private:
                         size_t index_src = base_index_src + (x + field_guard[0]) * nComponents + d;
                         size_t index_dst = base_index_dst + x;
 
-                        fieldBfr[index_dst] = ((ComponentType*)ptr)[index_src];
+                        params->fieldBfr[index_dst] = ((float_X*)ptr)[index_src];
                     }
                 }
             }
@@ -932,9 +937,7 @@ private:
 
             int64_t adiosFieldVarId = *(params->adiosFieldVarIds.begin());
             params->adiosFieldVarIds.pop_front();
-            ADIOS_CMD(adios_write_byid(params->adiosFileHandle, adiosFieldVarId, fieldBfr));
-
-            __deleteArray(fieldBfr);
+            ADIOS_CMD(adios_write_byid(params->adiosFileHandle, adiosFieldVarId, params->fieldBfr));
         }
     }
 

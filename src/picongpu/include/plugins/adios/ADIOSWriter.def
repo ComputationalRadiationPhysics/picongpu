@@ -121,6 +121,8 @@ struct ThreadParams
     GridLayout<simDim> gridLayout;
     MappingDesc *cellDescription;
 
+    float_X *fieldBfr;                              /* temp. buffer for fields */
+
     Window window;                                  /* window describing the volume to be dumped */
 
     DataSpace<simDim> localWindowToDomainOffset;    /** offset from local moving window to local domain */
