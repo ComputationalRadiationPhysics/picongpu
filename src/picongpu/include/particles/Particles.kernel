@@ -59,7 +59,7 @@ namespace picongpu
 using namespace PMacc;
 
 template<class T_MyParBox, class T_OtherFrameBox, class T_ManipulateFunctor, class Mapping>
-__global__ void kernelCloneParticles(T_MyParBox myBox, T_OtherFrameBox otherBox, T_ManipulateFunctor manipulateFunctor, Mapping mapper)
+__global__ void kernelDeriveParticles(T_MyParBox myBox, T_OtherFrameBox otherBox, T_ManipulateFunctor manipulateFunctor, Mapping mapper)
 {
     using namespace PMacc::particles::operations;
     typedef typename T_MyParBox::FramePtr MyFramePtr;
