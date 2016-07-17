@@ -73,7 +73,7 @@ __global__ void kernelFillGridWithParticles(T_GasProfile gasFunctor,
 
     __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
 
-    
+
     typedef typename Mapping::SuperCellSize SuperCellSize;
 
     const DataSpace<simDim > threadIndex(threadIdx);
@@ -134,10 +134,9 @@ __global__ void kernelFillGridWithParticles(T_GasProfile gasFunctor,
             finished = 1; //clear flag
         __syncthreads();
 
-        floatD_X pos = positionFunctor(totalNumParsPerCell - numParsPerCell);
-
         if (numParsPerCell > 0)
         {
+            floatD_X pos = positionFunctor(totalNumParsPerCell - numParsPerCell);
             PMACC_AUTO(particle, (frame[linearThreadIdx]));
 
             /** we now initialize all attributes of the new particle to their default values
