@@ -275,7 +275,7 @@ kernelPaintParticles3D(ParBox pb,
     typedef typename ParBox::FramePtr FramePtr;
     typedef typename MappingDesc::SuperCellSize Block;
     __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
-    __shared__ bool isValid;
+    __shared__ int isValid;
 
     bool isImageThread = false;
 
@@ -289,7 +289,7 @@ kernelPaintParticles3D(ParBox pb,
 
 
     if (localId == 0)
-        isValid = false;
+        isValid = 0;
     __syncthreads();
 
     //\todo: guard size should not be set to (fixed) 1 here
@@ -301,12 +301,12 @@ kernelPaintParticles3D(ParBox pb,
     if (globalCell == slice)
 #endif
     {
-        nvidia::atomicAllExch((int*) &isValid,1); /*WAW Error in cuda-memcheck racecheck*/
+        nvidia::atomicAllExch(&isValid,1); /*WAW Error in cuda-memcheck racecheck*/
         isImageThread = true;
     }
     __syncthreads();
 
-    if (!isValid)
+    if (isValid==0)
         return;
 
     /*index in image*/
