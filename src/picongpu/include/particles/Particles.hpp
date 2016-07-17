@@ -68,7 +68,7 @@ public:
 
     template< typename T_SrcParticleDescription,
               typename T_ManipulateFunctor>
-    void deviceCloneFrom(Particles<T_SrcParticleDescription> &src, T_ManipulateFunctor& manipulateFunctor);
+    void deviceDeriveFrom(Particles<T_SrcParticleDescription> &src, T_ManipulateFunctor& manipulateFunctor);
 
     template<typename T_Functor>
     void manipulateAllParticles(uint32_t currentStep, T_Functor& functor);

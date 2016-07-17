@@ -58,7 +58,7 @@ struct ProtonTimesWeightingImpl
      * \tparam T_DestParticle type of the particle species with weighting to manipulate
      * \tparam T_SrcParticle type of the particle species with proton number Z
      *
-     * \see picongpu::particles::ManipulateCloneSpecies , picongpu::kernelCloneParticles
+     * \see picongpu::particles::ManipulateDeriveSpecies , picongpu::kernelCloneParticles
      */
     template<typename T_DestParticle, typename T_SrcParticle>
     DINLINE void operator()(const DataSpace<simDim>&,
