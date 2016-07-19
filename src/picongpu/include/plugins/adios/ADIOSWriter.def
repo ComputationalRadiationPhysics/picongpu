@@ -121,7 +121,7 @@ struct ThreadParams
     GridLayout<simDim> gridLayout;
     MappingDesc *cellDescription;
 
-    float *fieldBfr;                                /* temp. buffer for fields */
+    float_X *fieldBfr;                              /* temp. buffer for fields */
 
     Window window;                                  /* window describing the volume to be dumped */
 

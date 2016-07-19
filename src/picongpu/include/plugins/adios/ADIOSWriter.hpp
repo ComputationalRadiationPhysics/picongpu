@@ -174,7 +174,7 @@ private:
             params->gridLayout = field->getGridLayout();
 
             PICToAdios<ComponentType> adiosType;
-            writeField(params,
+            ADIOSWriter::template writeField<ComponentType>(params,
                        sizeof(ComponentType),
                        adiosType.type,
                        GetNComponents<ValueType>::value,
@@ -252,7 +252,7 @@ private:
 
             params->gridLayout = fieldTmp->getGridLayout();
             /*write data to ADIOS file*/
-            writeField(params,
+            ADIOSWriter::template writeField<ComponentType>(params,
                        sizeof(ComponentType),
                        adiosType.type,
                        components,
@@ -744,8 +744,7 @@ private:
         mThreadParams.fullFilename = full_filename.str();
         mThreadParams.adiosFileHandle = ADIOS_INVALID_HANDLE;
 
-        mThreadParams.fieldBfr = NULL;
-        mThreadParams.fieldBfr = new float_32[mThreadParams.window.localDimensions.size.productOfComponents()];
+        mThreadParams.fieldBfr = new float_X[mThreadParams.window.localDimensions.size.productOfComponents()];
 
         std::stringstream adiosPathBase;
         adiosPathBase << ADIOS_PATH_ROOT << mThreadParams.currentStep << "/";
@@ -880,6 +879,7 @@ private:
         }
     }
 
+    template<typename ComponentType>
     static void writeField(ThreadParams *params, const uint32_t sizePtrType,
                            ADIOS_DATATYPES adiosType,
                            const uint32_t nComponents, const std::string name,
@@ -887,6 +887,9 @@ private:
     {
         log<picLog::INPUT_OUTPUT > ("ADIOS: write field: %1% %2% %3%") %
             name % nComponents % ptr;
+
+        const bool fieldTypeCorrect( boost::is_same<ComponentType, float_X>::value );
+        PMACC_CASSERT_MSG(Precision_mismatch_in_Field_Components__ADIOS,fieldTypeCorrect);
 
         /* data to describe source buffer */
         GridLayout<simDim> field_layout = params->gridLayout;
@@ -923,7 +926,7 @@ private:
                         size_t index_src = base_index_src + (x + field_guard[0]) * nComponents + d;
                         size_t index_dst = base_index_dst + x;
 
-                        params->fieldBfr[index_dst] = ((float_32*)ptr)[index_src];
+                        params->fieldBfr[index_dst] = ((float_X*)ptr)[index_src];
                     }
                 }
             }
