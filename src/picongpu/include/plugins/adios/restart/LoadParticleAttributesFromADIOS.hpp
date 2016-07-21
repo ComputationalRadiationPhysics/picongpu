@@ -26,6 +26,7 @@
 #include "pmacc_types.hpp"
 #include "simulation_types.hpp"
 #include "plugins/adios/ADIOSWriter.def"
+#include "traits/PICToOpenPMD.hpp"
 #include "traits/GetComponentsType.hpp"
 #include "traits/GetNComponents.hpp"
 #include "traits/Resolve.hpp"
@@ -82,8 +83,9 @@ struct LoadParticleAttributesFromADIOS
 
         for (uint32_t n = 0; n < components; ++n)
         {
+            OpenPMDName<T_Identifier> openPMDName;
             std::stringstream datasetName;
-            datasetName << particlePath << T_Identifier::getName();
+            datasetName << particlePath << openPMDName();
             if (components > 1)
                 datasetName << "/" << name_lookup[n];
 
