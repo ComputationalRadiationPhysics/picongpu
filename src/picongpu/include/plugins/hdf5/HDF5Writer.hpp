@@ -95,8 +95,9 @@ class HDF5Writer : public ISimulationPlugin
 public:
 
     HDF5Writer() :
-    filename("h5_data"),
-    checkpointFilename("h5_checkpoint"),
+    filename("simData"),
+    outputDirectory("h5"),
+    checkpointFilename("checkpoint"),
     restartFilename(""), /* set to checkpointFilename by default */
     notifyPeriod(0)
     {
@@ -302,25 +303,25 @@ private:
 
         __getTransactionEvent().waitForFinished();
 
-        mThreadParams.h5Filename = filename;
-        if (isCheckpoint)
+        std::string h5Filename( filename );
+        std::string h5Filedir( outputDirectory );
+        if( isCheckpoint )
         {
-            /* if checkpointFilename is relative, prepend with checkpointDirectory */
-            if (!boost::filesystem::path(checkpointFilename).has_root_path())
-            {
-                mThreadParams.h5Filename = checkpointDirectory + std::string("/") + checkpointFilename;
-            }
-            else
-            {
-                mThreadParams.h5Filename = checkpointFilename;
-            }
+            h5Filename = checkpointFilename;
+            h5Filedir = checkpointDirectory;
+        }
 
-            mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(currentStep);
-        }
+        /* if file name is relative, prepend with common directory */
+        if( boost::filesystem::path(h5Filename).has_root_path() )
+            mThreadParams.h5Filename = h5Filename;
         else
-        {
+            mThreadParams.h5Filename = h5Filedir + "/" + h5Filename;
+
+        /* window selection */
+        if( isCheckpoint )
+            mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(currentStep);
+        else
             mThreadParams.window = MovingWindow::getInstance().getWindow(currentStep);
-        }
 
         for (uint32_t i = 0; i < simDim; ++i)
         {
@@ -365,6 +366,9 @@ private:
         if (notifyPeriod > 0)
         {
             Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
+
+            /** create notify directory */
+            Environment<simDim>::get().Filesystem().createDirectoryWithPermissions(outputDirectory);
         }
 
         if (restartFilename == "")
@@ -445,6 +449,7 @@ private:
     std::string filename;
     std::string checkpointFilename;
     std::string restartFilename;
+    std::string outputDirectory;
     std::string checkpointDirectory;
 
     uint32_t restartChunkSize;
