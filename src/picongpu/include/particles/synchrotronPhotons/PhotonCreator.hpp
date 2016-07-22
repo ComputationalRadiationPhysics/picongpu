@@ -324,15 +324,16 @@ public:
     template<typename Electron, typename Photon>
     DINLINE void operator()(Electron& electron, Photon& photon) const
     {
+        namespace parOp = PMacc::particles::operations;
         PMACC_AUTO(destPhoton,
-            PMacc::particles::operations::deselect<
+            parOp::deselect<
                 boost::mpl::vector<
                     multiMask,
                     momentum
                 >
             >(photon)
         );
-        PMacc::particles::operations::assign( destPhoton, electron );
+        parOp::assign( destPhoton, parOp::deselect<particleId>(electron) );
 
         photon[multiMask_] = 1;
         photon[momentum_] = this->photon_mom;

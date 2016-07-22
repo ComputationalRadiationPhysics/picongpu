@@ -23,6 +23,7 @@
 
 #include "simulation_defines.hpp"
 #include "nvidia/atomic.hpp"
+#include "particles/operations/Deselect.hpp"
 
 namespace picongpu
 {
@@ -31,17 +32,18 @@ namespace particles
 namespace manipulators
 {
 
-struct Assign
+struct Derive
 {
 
-    HINLINE Assign(const uint32_t)
+    HINLINE Derive(const uint32_t)
     {
     }
 
     template<typename T_DestParticle, typename T_SrcParticle>
     HDINLINE void operator()(T_DestParticle& destPar, const T_SrcParticle& srcPar)
     {
-        PMacc::particles::operations::assign(destPar, srcPar);
+        namespace parOp = PMacc::particles::operations;
+        parOp::assign(destPar, parOp::deselect<particleId>(srcPar));
     }
 
 };

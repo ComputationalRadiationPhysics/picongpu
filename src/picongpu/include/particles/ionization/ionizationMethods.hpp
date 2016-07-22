@@ -32,6 +32,7 @@
 #include "nvidia/rng/distributions/Uniform_float.hpp"
 #include "mpi/SeedPerRank.hpp"
 #include "traits/GetUniqueTypeId.hpp"
+#include "particles/operations/Deselect.hpp"
 
 namespace picongpu
 {
@@ -73,7 +74,7 @@ namespace ionization
              */
             PMACC_AUTO(targetElectronClone, partOp::deselect<bmpl::vector2<multiMask, momentum> >(childElectron));
 
-            partOp::assign(targetElectronClone, parentIon);
+            partOp::assign(targetElectronClone, partOp::deselect<particleId>(parentIon));
 
             float_X massIon = attribute::getMass(weighting,parentIon);
             const float_X massElectron = attribute::getMass(weighting,childElectron);
