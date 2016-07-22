@@ -518,8 +518,9 @@ private:
 public:
 
     ADIOSWriter() :
-    filename("simDataAdios"),
-    checkpointFilename("adios_checkpoint"),
+    filename("simData"),
+    outputDirectory("bp"),
+    checkpointFilename("checkpoint"),
     restartFilename(""), /* set to checkpointFilename by default */
     /* select MPI method, #OSTs and #aggregators */
     mpiTransportParams(""),
@@ -768,21 +769,25 @@ private:
 
         __getTransactionEvent().waitForFinished();
 
-        mThreadParams.adiosFilename = filename;
-        if (isCheckpoint)
+        std::string bpFilename( filename );
+        std::string bpFiledir( outputDirectory );
+        if( isCheckpoint )
         {
-            /* if checkpointFilename is relative, prepend with checkpointDirectory */
-            if (!boost::filesystem::path(checkpointFilename).has_root_path())
-                mThreadParams.adiosFilename = checkpointDirectory + std::string("/") + checkpointFilename;
-            else
-                mThreadParams.adiosFilename = checkpointFilename;
+            bpFilename = checkpointFilename;
+            bpFiledir = checkpointDirectory;
+        }
 
-            mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(currentStep);
-        }
+        /* if file name is relative, prepend with common directory */
+        if( boost::filesystem::path(bpFilename).has_root_path() )
+            mThreadParams.adiosFilename = bpFilename;
         else
-        {
+            mThreadParams.adiosFilename = bpFiledir + "/" + bpFilename;
+
+        /* window selection */
+        if( isCheckpoint )
+            mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(currentStep);
+        else
             mThreadParams.window = MovingWindow::getInstance().getWindow(currentStep);
-        }
 
         for (uint32_t i = 0; i < simDim; ++i)
         {
@@ -839,6 +844,9 @@ private:
         if (notifyPeriod > 0)
         {
             Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
+
+            /** create notify directory */
+            Environment<simDim>::get().Filesystem().createDirectoryWithPermissions(outputDirectory);
         }
 
         /* Initialize adios library */
@@ -1100,6 +1108,7 @@ private:
     std::string filename;
     std::string checkpointFilename;
     std::string restartFilename;
+    std::string outputDirectory;
     std::string checkpointDirectory;
 
     /* select MPI method, #OSTs and #aggregators */
