@@ -18,8 +18,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 #include "simulation_defines.hpp"
@@ -73,20 +71,20 @@ ComputeGridValuePerFrame<T_ParticleShape, T_DerivedAttribute>::operator()
 
     PMACC_AUTO(particle, frame[localIdx]);
 
-    /* particle attributes: position and generic, derived attribute */
+    /* particle attributes: in-cell position and generic, derived attribute */
     const floatD_X pos = particle[position_];
     const PMACC_AUTO(particleAttr, particleAttribute( particle ));
 
-    /** Shift to the cell the particle belongs to */
+    /** Shift to the cell the particle belongs to
+     * range of particleCell: [DataSpace<simDim>::create(0), TVecSuperCell]
+     */
     const int particleCellIdx = particle[localCellIdx_];
-    const DataSpace<TVecSuperCell::dim> localCell(
+    const DataSpace<TVecSuperCell::dim> particleCell(
         DataSpaceOperations<TVecSuperCell::dim>::map( superCell, particleCellIdx )
     );
-    PMACC_AUTO(fieldTmpShiftToParticle, tmpBox.shift(localCell));
+    PMACC_AUTO(fieldTmpShiftToParticle, tmpBox.shift(particleCell));
 
-    /** loop around local super cell position (regarding shape)
-     * \todo take care of non-yee cells
-     */
+    /* loop around the particle's cell (according to shape) */
     const DataSpace<simDim> lowMargin(LowerMargin().toRT());
     const DataSpace<simDim> upMargin(UpperMargin().toRT());
 
@@ -96,24 +94,31 @@ ComputeGridValuePerFrame<T_ParticleShape, T_DerivedAttribute>::operator()
 
     for (int i = 0; i < numWriteCells; ++i)
     {
-        /* multidimensionalIndex is only positive: defined range = [0,LowerMargin+UpperMargin]*/
-        const DataSpace<simDim> multidimensionalIndex = DataSpaceOperations<simDim>::map(marginSpace, i);
-        /* transform coordinate system that it is relative to particle
-         * offsetToBaseCell defined range = [-LowerMargin,UpperMargin]
+        /** for the current cell i the multi dimensional index currentCell is only positive:
+         * allowed range = [DataSpace<simDim>::create(0), LowerMargin+UpperMargin]
          */
-        const DataSpace<simDim> offsetToBaseCell = multidimensionalIndex - lowMargin;
-        floatD_X assign;
+        const DataSpace<simDim> currentCell = DataSpaceOperations<simDim>::map(marginSpace, i);
+
+        /** calculate the offset between the current cell i with simDim index currentCell
+         * and the cell of the particle (particleCell) in cells
+         */
+        const DataSpace<simDim> offsetParticleCellToCurrentCell = currentCell - lowMargin;
+
+        /** assign particle contribution component-wise to the lower left corner of
+         * the cell i
+         * \todo take care of non-yee cells
+         */
+        float_X assign( 1.0 );
         for (uint32_t d = 0; d < simDim; ++d)
-            assign[d] = AssignmentFunction()(float_X(offsetToBaseCell[d]) - pos[d]);
+            assign *= AssignmentFunction()(float_X(offsetParticleCellToCurrentCell[d]) - pos[d]);
 
-
-        /** multiply charge, divide by cell volume and multiply by
-         * energy of this particle
+        /** add contribution of the particle times the generic attribute
+         * to cell i
+         * note: the .x() is used because FieldTmp is a scalar field with only
+         * one "x" component
          */
-        const float_X assignComb = assign.productOfComponents();
-
-        atomicAddWrapper(&(fieldTmpShiftToParticle(offsetToBaseCell).x()),
-                         assignComb * particleAttr);
+        atomicAddWrapper(&(fieldTmpShiftToParticle(offsetParticleCellToCurrentCell).x()),
+                         assign * particleAttr);
     }
 }
 
