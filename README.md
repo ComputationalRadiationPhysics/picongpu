@@ -1,21 +1,8 @@
 PIConGPU - A Many GPGPU PIC Code
 ================================================================
 
-Open Alpha
-----------
-
-Please note that this is an Open
-[Alpha](https://en.wikipedia.org/wiki/Software_release_life_cycle#Alpha)
-release for **developers** and **power users** [only](#users).
-
-**Users** *should wait* for our 
-[Open Beta](https://github.com/ComputationalRadiationPhysics/picongpu/milestones)
-release!
-
-********************************************************************************
-
 [![PIConGPU Presentation Video](http://img.youtube.com/vi/nwZuG-XtUDE/0.jpg)](http://www.youtube.com/watch?v=nwZuG-XtUDE)
-[![PIConGPU Alpha Release](doc/logo/pic_logo_vert_180x360_alpha.png)](http://www.youtube.com/watch?v=nwZuG-XtUDE)
+[![PIConGPU Release](doc/logo/pic_logo_vert_158x360.png)](http://www.youtube.com/watch?v=nwZuG-XtUDE)
 
 Introduction
 ------------
@@ -111,15 +98,15 @@ See our notes in [INSTALL.md](INSTALL.md).
 Users
 -----
 
-Dear User, please [be aware](#open-alpha) that this is a **developer and
-power user only release**! We hereby emphasize that you should wait for our
-[Beta](https://github.com/ComputationalRadiationPhysics/picongpu/milestones)
-release.
+Dear User, please be aware that this is an **open beta release**!
+We hereby emphasize that we are still actively developing PIConGPU at great
+speed and do, from time to time, break backwards compatibility.
 
-Having said that and assuming that you are either an enthusiast or scientist
-(or both/neither of them, the important point here is that you are willing to
-read and understand our documentation and change logs):
-*you are very welcome*!
+When using this software, please stick to the `master` branch containing the
+latest *stable* release. It also contains a file `CHANGELOG.md` with the
+latest changes (and how to update your simulations). Read it first before
+updating between two versions! Also, we add a git `tag` according to a version
+number for each release in `master`.
 
 For any questions regarding the usage of PIConGPU please **do not** contact the
 developers and maintainers directly.
@@ -206,9 +193,7 @@ Active Team
 - Alexander Grund
 - Axel Huebl*
 - Richard Pausch*
-- Stefan Tietze
 - Rene Widera*
-- Erik Zenker*
 
 ### Former Members, Contributions and Thanks
 
@@ -226,7 +211,9 @@ The PIConGPU Team expresses its thanks to:
 - Joseph Schuchart
 - Conrad Schumann
 - Klaus Steiniger
+- Stefan Tietze
 - Benjamin Worpitz
+- Erik Zenker
 
 Kudos to everyone who helped!
 
