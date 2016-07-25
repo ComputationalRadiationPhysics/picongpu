@@ -45,9 +45,7 @@ namespace derivedAttributes
     MomentumComponent<T_direction>::operator()( T_Particle& particle ) const
     {
         // read existing attributes
-        const float_X weighting = particle[weighting_];
         const float3_X mom = particle[momentum_];
-        const float_X mass = attribute::getMass( weighting, particle );
 
         // calculate new attribute: |p| and p.[x|y|z]
         const float_X momAbs = math::abs(mom);
