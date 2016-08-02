@@ -89,68 +89,6 @@ namespace ionization
         }
     };
 
-    /* Random number generation */
-    namespace nvrng = nvidia::rng;
-    namespace rngMethods = nvidia::rng::methods;
-    namespace rngDistributions = nvidia::rng::distributions;
-
-    template<typename T_SpeciesType>
-    struct RandomNrForMonteCarlo
-    {
-        typedef T_SpeciesType SpeciesType;
-        typedef typename MakeIdentifier<SpeciesType>::type SpeciesName;
-
-        HINLINE RandomNrForMonteCarlo(uint32_t currentStep) : isInitialized(false)
-        {
-            typedef typename SpeciesType::FrameType FrameType;
-
-            GlobalSeed globalSeed;
-            mpi::SeedPerRank<simDim> seedPerRank;
-            /* creates global seed that is unique for
-             * the particle species and ionization as a method in PIC
-             */
-            seed = globalSeed() ^
-                   PMacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid() ^
-                   IONIZATION_SEED;
-            /* makes the seed unique for each MPI rank (GPU)
-             * and each time step
-             */
-            seed = seedPerRank(seed) ^ currentStep;
-
-            const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
-            /* size of the local domain on the designated GPU in units of cells */
-            localCells = subGrid.getLocalDomain().size;
-        }
-
-        DINLINE void init(const DataSpace<simDim>& localCellIdx)
-        {
-            if (!isInitialized)
-            {
-                /* mapping the multi-dim cell index in the local domain on this GPU
-                 * to a linear index
-                 */
-                const uint32_t linearLocalCellIdx = DataSpaceOperations<simDim>::map(
-                                                                          localCells,
-                                                                          localCellIdx);
-                rng = nvrng::create(rngMethods::Xor(seed, linearLocalCellIdx), rngDistributions::Uniform_float());
-                isInitialized = true;
-            }
-        }
-
-        DINLINE float_X operator()()
-        {
-            return rng();
-        }
-
-        private:
-            typedef PMacc::nvidia::rng::RNG<rngMethods::Xor, rngDistributions::Uniform_float> RngType;
-
-            PMACC_ALIGN(rng, RngType);
-            PMACC_ALIGN(isInitialized, bool);
-            PMACC_ALIGN(seed, uint32_t);
-            PMACC_ALIGN(localCells, DataSpace<simDim>);
-    };
-
 } // namespace ionization
 
 } // namespace particles
