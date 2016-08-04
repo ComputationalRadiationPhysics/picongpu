@@ -25,8 +25,12 @@
  * These includes contain forward declarations of < Ionization Models >
  */
 
+/** contains definitions for:
+ *  - ADKLinPol
+ *  - ADKCircPol
+ */
 #include "particles/ionization/byField/ADK/ADK.def"
-/** contains BSI definitions for:
+/** contains definitions for:
  *  - BSIHydrogenLike
  *  - BSIEffectiveZ
  *  - BSIStarkShifted

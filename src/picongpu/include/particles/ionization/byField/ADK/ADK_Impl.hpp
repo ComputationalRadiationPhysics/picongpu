@@ -51,7 +51,7 @@ namespace ionization
      * \tparam T_DestSpecies electron species to be created
      * \tparam T_SrcSpecies particle species that is ionized
      */
-    template<typename T_DestSpecies, typename T_SrcSpecies>
+    template<typename T_IonizationAlgorithm, typename T_DestSpecies, typename T_SrcSpecies>
     struct ADK_Impl
     {
 
@@ -81,7 +81,7 @@ namespace ionization
         private:
 
             /* define ionization ALGORITHM (calculation) for ionization MODEL */
-            typedef particles::ionization::AlgorithmADK IonizationAlgorithm;
+            typedef T_IonizationAlgorithm IonizationAlgorithm;
 
             /* random number generator for Monte Carlo */
             typedef particles::ionization::RandomNrForMonteCarlo<SrcSpecies> RandomGen;
