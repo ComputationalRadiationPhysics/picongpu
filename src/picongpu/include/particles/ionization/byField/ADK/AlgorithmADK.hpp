@@ -43,12 +43,15 @@ namespace particles
 namespace ionization
 {
 
-    /** \struct AlgorithmADK
+    /** Calculation for the Ammosov-Delone-Krainov tunneling model
      *
-     * \brief calculation for the Ammosov-Delone-Krainov tunneling model */
+     * for either linear or circular laser polarization
+     *
+     * \tparam T_linPol boolean value that is true for lin. pol. and false for circ. pol.
+     */
+    template<bool T_linPol>
     struct AlgorithmADK
     {
-
         /** Functor implementation
          * \tparam EType type of electric field
          * \tparam BType type of magnetic field
@@ -82,10 +85,18 @@ namespace ionization
                 float_X dBase = float_X(4.0) * util::cube(protonNumber) / (eInAU * util::quad(nEff)) ;
                 float_X dFromADK = math::pow(dBase,nEff);
 
-                /* ionization rate */
-                float_X rateADK = math::sqrt(float_X(3.0) * util::cube(nEff) * eInAU / (pi * util::cube(protonNumber))) \
-                                * eInAU * util::square(dFromADK) / (float_X(8.0) * pi * protonNumber) \
+                /* ionization rate (for CIRCULAR polarization)*/
+                float_X rateADK = eInAU * util::square(dFromADK) / (float_X(8.0) * pi * protonNumber) \
                                 * math::exp(float_X(-2.0) * util::cube(protonNumber) / (float_X(3.0) * util::cube(nEff) * eInAU));
+
+                /* in case of linear polarization the rate is modified by an additional factor */
+                if(T_linPol)
+                {
+                    /* factor from averaging over one laser cycle with LINEAR polarization */
+                    const float_X polarizationFactor = math::sqrt(float_X(3.0) * util::cube(nEff) * eInAU / (pi * util::cube(protonNumber)));
+
+                    rateADK *= polarizationFactor;
+                }
 
                 /* simulation time step in atomic units */
                 const float_X timeStepAU = float_X(DELTA_T / ATOMIC_UNIT_TIME);
