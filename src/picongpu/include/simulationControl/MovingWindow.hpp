@@ -91,12 +91,12 @@ private:
             );
 
             /* Is the time step when the virtual particle **passed** the GPU next to the last
-             * in the current step
+             * in the current to the next step
              */
-            const uint32_t firstSlideStep = math::floor(
+            const uint32_t firstSlideStep = math::ceil(
                 float_64(subGrid.getGlobalDomain().size[moveDirection] - virtualParticleInitialStartCell) *
                 cellSizeInMoveDirection / deltaWayPerStep
-            );
+            ) - 1;
 
             /* way which the virtual particle must move before the window begins
              * to move the first time [in pic length] */
@@ -104,11 +104,11 @@ private:
                 float_64(globalWindowSizeInMoveDirection - virtualParticleInitialStartCell) *
                 cellSizeInMoveDirection;
             /* Is the time step when the virtual particle **passed** the moving window
-             * in the current step
+             * in the current to the next step
              */
-            const uint32_t firstMoveStep = math::floor(
+            const uint32_t firstMoveStep = math::ceil(
                 wayToFirstMove / deltaWayPerStep
-            );
+            ) - 1;
 
             if (firstMoveStep <= currentStep)
             {
