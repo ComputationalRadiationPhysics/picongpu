@@ -20,8 +20,11 @@
 
 #pragma once
 
+#include <boost/type_traits/integral_constant.hpp>
+
 #include "simulation_defines.hpp"
 #include "traits/Resolve.hpp"
+#include "traits/UsesRNG.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
 
 #include "fields/FieldB.hpp"
@@ -42,6 +45,18 @@
 
 namespace picongpu
 {
+namespace traits
+{
+    /** specialization of the UsesRNG trait
+     * --> ionization module uses random number generation
+     */
+    template<typename T_IonizationAlgorithm, typename T_DestSpecies, typename T_SrcSpecies>
+    struct UsesRNG<particles::ionization::ADK_Impl<T_IonizationAlgorithm, T_DestSpecies, T_SrcSpecies> > :
+    public boost::true_type
+    {
+    };
+} // namespace traits
+
 namespace particles
 {
 namespace ionization

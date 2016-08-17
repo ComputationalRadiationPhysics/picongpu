@@ -26,6 +26,7 @@
 #include <string>
 #include <vector>
 #include <boost/lexical_cast.hpp>
+#include <boost/mpl/count.hpp>
 
 #include "pmacc_types.hpp"
 #include "simulationControl/SimulationHelper.hpp"
@@ -285,17 +286,34 @@ public:
 
         laser = new LaserPhysics(cellDescription->getGridLayout());
 
+        // Make a list of all species that can be ionized
+        typedef typename PMacc::particles::traits::FilterByFlag
+        <
+            VectorAllSpecies,
+            ionizer<>
+        >::type VectorSpeciesWithIonizer;
+
+        /* Make a list of `boost::true_type`s and `boost::false_type`s for species that use or do not use the RNG during ionization */
+        typedef typename PMacc::OperateOnSeq<VectorSpeciesWithIonizer,picongpu::traits::UsesRNG<picongpu::traits::GetIonizer<bmpl::_> > >::type VectorIonizersUsingRNG;
+        /* define a type that contains the number of `boost::true_type`s when `::value` is accessed */
+        typedef typename boost::mpl::count<VectorIonizersUsingRNG, boost::true_type>::type NumReqRNGs;
+
         // Initialize random number generator and synchrotron functions, if there are synchrotron photon species
         typedef typename PMacc::particles::traits::FilterByFlag<VectorAllSpecies,
                                                                 synchrotronPhotons<> >::type AllSynchrotronPhotonsSpecies;
-        if(!bmpl::empty<AllSynchrotronPhotonsSpecies>::value)
+
+        if(!bmpl::empty<AllSynchrotronPhotonsSpecies>::value || NumReqRNGs::value)
         {
             // create factory for the random number generator
             this->rngFactory = new RNGFactory(Environment<simDim>::get().SubGrid().getLocalDomain().size);
             // init factory
             PMacc::GridController<simDim>& gridCon = PMacc::Environment<simDim>::get().GridController();
             this->rngFactory->init(gridCon.getScalarPosition());
+        }
 
+        // Initialize synchrotron functions, if there are synchrotron photon species
+        if(!bmpl::empty<AllSynchrotronPhotonsSpecies>::value)
+        {
             this->synchrotronFunctions.init();
         }
 
