@@ -20,8 +20,11 @@
 
 #pragma once
 
+#include <boost/type_traits/integral_constant.hpp>
+
 #include "simulation_defines.hpp"
 #include "traits/Resolve.hpp"
+#include "traits/UsesRNG.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
 
 #include "fields/FieldB.hpp"
@@ -36,8 +39,24 @@
 
 #include "particles/ionization/ionizationMethods.hpp"
 
+#include "random/methods/XorMin.hpp"
+#include "random/distributions/Uniform.hpp"
+#include "random/RNGProvider.hpp"
+
 namespace picongpu
 {
+namespace traits
+{
+    /** specialization of the UsesRNG trait
+     * --> ionization module uses random number generation
+     */
+    template<typename T_IonizationAlgorithm, typename T_DestSpecies, typename T_SrcSpecies>
+    struct UsesRNG<particles::ionization::ADK_Impl<T_IonizationAlgorithm, T_DestSpecies, T_SrcSpecies> > :
+    public boost::true_type
+    {
+    };
+} // namespace traits
+
 namespace particles
 {
 namespace ionization
@@ -83,9 +102,10 @@ namespace ionization
             /* define ionization ALGORITHM (calculation) for ionization MODEL */
             typedef T_IonizationAlgorithm IonizationAlgorithm;
 
-            /* random number generator for Monte Carlo */
-            typedef particles::ionization::RandomNrForMonteCarlo<SrcSpecies> RandomGen;
-            /* \todo fix: cannot PMACC_ALIGN() because it seems to be too large */
+            /* random number generator */
+            typedef PMacc::random::RNGProvider<simDim, PMacc::random::methods::XorMin> RNGFactory;
+            typedef PMacc::random::distributions::Uniform<float> Distribution;
+            typedef typename RNGFactory::GetRandomType<Distribution>::type RandomGen;
             RandomGen randomGen;
 
             typedef MappingDesc::SuperCellSize TVec;
@@ -101,7 +121,7 @@ namespace ionization
 
         public:
             /* host constructor initializing member : random number generator */
-            ADK_Impl(const uint32_t currentStep) : randomGen(currentStep)
+            ADK_Impl(const uint32_t currentStep) : randomGen(RNGFactory::createRandom<Distribution>())
             {
                 DataConnector &dc = Environment<>::get().DataConnector();
                 /* initialize pointers on host-side E-(B-)field databoxes */
@@ -147,11 +167,11 @@ namespace ionization
                           fieldEBlock
                           );
 
-                /* initialize random number generator with the local cell index in the simulation*/
-                randomGen.init(localCellOffset);
-
                 /* wait for shared memory to be initialized */
                 __syncthreads();
+
+                /* initialize random number generator with the local cell index in the simulation */
+                this->randomGen.init(localCellOffset);
             }
 
             /** Functor implementation
@@ -186,7 +206,7 @@ namespace ionization
                 IonizationAlgorithm ionizeAlgo;
                 ionizeAlgo(
                      bField, eField,
-                     particle, randomGen()
+                     particle, this->randomGen()
                      );
 
                 /* determine number of new macro electrons to be created */
