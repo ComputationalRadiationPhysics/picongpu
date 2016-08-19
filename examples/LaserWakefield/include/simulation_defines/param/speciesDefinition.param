@@ -143,6 +143,7 @@ struct Hydrogen
  *               -> linearly polarized lasers
  * - ADKCircPol : Ammosov-Delone-Krainov tunneling ionization (H-like)
  *                -> circularly polarized lasers
+ * - Keldysh : Keldysh ionization model
  *
  * Research and development: ----------------------------------------------
  * - BSIEffectiveZ : BSI taking electron shielding into account via an effective

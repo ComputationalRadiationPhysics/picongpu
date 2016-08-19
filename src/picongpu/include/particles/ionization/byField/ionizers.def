@@ -36,3 +36,4 @@
  *  - BSIStarkShifted
  */
 #include "particles/ionization/byField/BSI/BSI.def"
+#include "particles/ionization/byField/Keldysh/Keldysh.def"
