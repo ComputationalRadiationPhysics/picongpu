@@ -59,7 +59,7 @@ namespace ionization
          */
         template<typename EType, typename BType, typename ParticleType >
         HDINLINE void
-        operator()( const BType bField, const EType eField, ParticleType& parentIon, float_X randNr )
+        operator()( const BType& bField, const EType& eField, ParticleType& parentIon, float_X randNr )
         {
 
             const float_X protonNumber = GetAtomicNumbers<ParticleType>::type::numberOfProtons;
