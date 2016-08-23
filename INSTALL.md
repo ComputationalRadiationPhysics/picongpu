@@ -19,20 +19,23 @@ Requirements
 
 ### Mandatory
 
-- **gcc** 4.6 to 4.9 (depends on your current [CUDA version](https://gist.github.com/ax3l/9489132))
+- **gcc** 4.6 to 5.X (depends on your current [CUDA version](https://gist.github.com/ax3l/9489132))
   - *Debian/Ubuntu:*
-    - `sudo apt-get install gcc-4.6 g++-4.6 build-essential`
-    - `sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.6 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.6`
+    - `sudo apt-get install gcc-4.9 g++-4.9 build-essential`
+    - `sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.9`
   - *Arch Linux:*
     - `sudo pacman --sync base-devel`
     - the installed version of **gcc** might be too new. [Compile an older gcc](https://gist.github.com/slizzered/a9dc4e13cb1c7fffec53)
-  - *experimental alternatives:* **icc** since **cuda 5.5**
+  - *experimental alternatives:* **icc** since **CUDA 5.5**
 
 - C++98 build: [CUDA 5.0-7.0](https://developer.nvidia.com/cuda-downloads)
   - **Attention:** You must use at least the 5.5+ [drivers](http://www.nvidia.com/Drivers)
     even if you run with CUDA 5.0. Supported drivers: 319.82+/331.22+
   - *Arch Linux:* `sudo pacman --sync cuda`
 - C++11 build: [CUDA 7.5+](https://developer.nvidia.com/cuda-downloads)
+  - `export PIC_COMPILE_SUITE_CMAKE="-DCMAKE_CXX_STANDARD=11"`
+  - `export CPPFLAGS="-std=c++11"`
+  - if you run `$PICSRC/configure` below, add `-c"-DCMAKE_CXX_STANDARD=11"` to it
   - *Arch Linux:* `sudo pacman --sync cuda`
 
 - at least one **CUDA** capable **GPU**
@@ -54,9 +57,9 @@ Requirements
   - *Arch Linux:* `sudo pacman --sync zlib`
 
 - **boost** 1.56.0+ ("program options", "regex" , "filesystem", "system", "thread", "math" and nearly all header-only libs)
-  - download from [http://www.boost.org/](http://sourceforge.net/projects/boost/files/boost/1.56.0/boost_1_56_0.tar.gz/download),
-      e.g. version 1.56.0
-  - *Debian/Ubuntu:* `sudo apt-get install libboost-program-options-dev libboost-regex-dev libboost-filesystem-dev libboost-system-dev`
+  - download from [http://www.boost.org/](http://sourceforge.net/projects/boost/files/boost/1.57.0/boost_1_57_0.tar.gz/download),
+      e.g. version 1.57.0
+  - *Debian/Ubuntu:* `sudo apt-get install libboost-program-options-dev libboost-regex-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev libboost-math-dev`
   - *Arch Linux:* `sudo pacman --sync boost`
   - *From source:*
     - `./bootstrap.sh --with-libraries=filesystem,program_options,regex,system,thread,math --prefix=$HOME/lib/boost`
@@ -142,7 +145,7 @@ Some of our examples will also need **libSplash**.
       species initial density profiles
     - compile and install exactly as *splash2txt* above
 
-- **ADIOS** >= 1.9.0 (requires *MPI*, *zlib* and *mxml* http://www.msweet.org/projects.php?Z3)
+- **ADIOS** >= 1.10.0 (requires *MPI*, *zlib* and *mxml* http://www.msweet.org/projects.php?Z3)
     - *Debian/Ubuntu:* `sudo apt-get install libadios-dev libadios-bin`
     - *Arch Linux using an [AUR helper](https://wiki.archlinux.org/index.php/AUR_helpers):* `pacaur --sync libadios`
     - *Arch Linux using the [AUR](https://wiki.archlinux.org/index.php/Arch_User_Repository) manually:*
@@ -153,10 +156,10 @@ Some of our examples will also need **libSplash**.
     - example:
       - `mkdir -p ~/src ~/build ~/lib`
       - `cd ~/src`
-      - `wget http://users.nccs.gov/~pnorbert/adios-1.9.0.tar.gz`
-      - `tar -xvzf adios-1.9.0.tar.gz`
-      - `cd adios-1.9.0`
-      - `CFLAGS="-fPIC" ./configure --enable-static --enable-shared --prefix=$HOME/lib/adios-1.9.0 --with-mxml=$MXML_ROOT --with-mpi=$MPI_ROOT --with-zlib=/usr`
+      - `wget http://users.nccs.gov/~pnorbert/adios-1.10.0.tar.gz`
+      - `tar -xvzf adios-1.10.0.tar.gz`
+      - `cd adios-1.10.0`
+      - `CFLAGS="-fPIC" ./configure --enable-static --enable-shared --prefix=$HOME/lib/adios-1.10.0 --with-mpi=$MPI_ROOT --with-zlib=/usr`
       - `make`
       - `make install`
     - set the environment variable
