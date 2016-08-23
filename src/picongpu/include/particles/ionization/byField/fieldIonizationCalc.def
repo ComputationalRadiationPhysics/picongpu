@@ -46,6 +46,8 @@ namespace ionization
 
     struct AlgorithmBSIStarkShifted;
 
+    struct AlgorithmKeldysh;
+
 } // namespace ionization
 
 } // namespace particles

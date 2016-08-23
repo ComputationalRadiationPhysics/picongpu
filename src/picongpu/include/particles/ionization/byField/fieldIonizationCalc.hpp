@@ -24,4 +24,5 @@
 #include "particles/ionization/byField/BSI/AlgorithmBSIHydrogenLike.hpp"
 #include "particles/ionization/byField/BSI/AlgorithmBSIEffectiveZ.hpp"
 #include "particles/ionization/byField/BSI/AlgorithmBSIStarkShifted.hpp"
+#include "particles/ionization/byField/Keldysh/AlgorithmKeldysh.hpp"
 #include "particles/ionization/None/AlgorithmNone.hpp"
