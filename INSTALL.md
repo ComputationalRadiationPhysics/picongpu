@@ -164,7 +164,7 @@ Some of our examples will also need **libSplash**.
       - `make install`
     - set the environment variable
       [ADIOS\_ROOT](#additional-required-environment-variables-for-optional-libraries)
-      to `export ADIOS_ROOT=$HOME/lib/adios-1.9.0`, the
+      to `export ADIOS_ROOT=$HOME/lib/adios-1.10.0`, the
       [PATH](#additional-required-environment-variables-for-optional-libraries)
       to `export PATH=$PATH:$ADIOS_ROOT/bin` and the
       [LD\_LIBRARY\_PATH](#additional-required-environment-variables-for-optional-libraries)

@@ -54,10 +54,9 @@ module load scorep/2.0
 
 # plugins (optional) ################################################
 module load cray-hdf5-parallel/1.8.14
-#module load adios/1.9.0 mxml/2.9 dataspaces/1.4.0
+#module load adios/1.10.0 dataspaces/1.4.0
 export HDF5_ROOT=$HDF5_DIR
 #export ADIOS_ROOT=$ADIOS_DIR
-#export MXML_ROOT=$MXML_DIR
 #export DATASPACES_ROOT=$DATASPACES_DIR
 
 # download libSplash and compile it yourself from
