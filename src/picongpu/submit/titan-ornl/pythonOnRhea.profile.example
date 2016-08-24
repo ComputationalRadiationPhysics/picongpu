@@ -16,10 +16,9 @@ module load python_scipy
 export IPYTHONDIR=$PROJWORK/$proj/ipython
 
 # ADIOS
-export ADIOS_ROOT=$PROJWORK/$proj/lib/adios-1.9.0-rhea
+export ADIOS_ROOT=$PROJWORK/$proj/lib/adios-1.10.0-rhea
 export LD_LIBRARY_PATH=$ADIOS_ROOT/lib:$LD_LIBRARY_PATH
 export PATH=$ADIOS_ROOT/bin:$PATH
-module load mxml
 
 # GNU Parallel
 export GNUP_ROOT=/lustre/atlas2/aph101/proj-shared/lib/gnu-parallel
@@ -33,9 +32,9 @@ source $PROJWORK/$proj/python-venv/rhea/bin/activate
 #
 # first install adios
 #   LDFLAGS="-fPIC -pthread" CFLAGS="-fPIC -g -O2" CXXFLAGS="-fPIC -g -O2" \
-#     ./configure --prefix=$PROJWORK/$proj/lib/adios-1.9.0-rhea \
+#     ./configure --prefix=$PROJWORK/$proj/lib/adios-1.10.0-rhea \
 #     --with-zlib --with-mpi --enable-static --enable-shared \
-#     --with-mxml=$MXML_DIR --without-dataspaces
+#     --without-dataspaces
 #   make -j
 #   make install
 #

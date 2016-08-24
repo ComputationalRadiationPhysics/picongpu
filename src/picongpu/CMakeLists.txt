@@ -368,7 +368,7 @@ endif(PIC_ENABLE_INSITU_VOLVIS)
 
 # find adios installation
 #   set(ADIOS_USE_STATIC_LIBS ON) # force static linking
-find_package(ADIOS 1.9.0)
+find_package(ADIOS 1.10.0)
 
 if(ADIOS_FOUND)
     add_definitions(-DENABLE_ADIOS=1)
