@@ -106,6 +106,19 @@ struct CreateChargeDensityOperation
     typedef FieldTmpOperation< ParticleChargeDensity, T_Species > type;
 };
 
+/* MidCurrentDensityComponent */
+template<typename T_Species, typename T_Direction = bmpl::int_<0> >
+struct CreateMidCurrentDensityComponentOperation
+{
+    typedef typename GetShape<T_Species>::type shapeType;
+    typedef ComputeGridValuePerFrame<
+        shapeType,
+        particleToGrid::derivedAttributes::MidCurrentDensityComponent<T_Direction::value>
+    > ParticleMidCurrentDensityComponent;
+
+    typedef FieldTmpOperation< ParticleMidCurrentDensityComponent, T_Species > type;
+};
+
 /* ParticleCounter */
 template<typename T_Species>
 struct CreateCounterOperation
