@@ -202,39 +202,9 @@ public:
 
             const uint32_t cellsInSuperCell = PMacc::math::CT::volume<SuperCellSize>::type::value;
 
-            const uint32_t iterationsForLoad = ceil(float_64(totalNumParticles) / float_64(restartChunkSize));
-            uint32_t leftOverParticles = totalNumParticles;
-
-            for (uint32_t i = 0; i < iterationsForLoad; ++i)
-            {
-                /* only load a chunk of particles per iteration to avoid blow up of frame usage
-                 */
-                uint32_t currentChunkSize = std::min(leftOverParticles, restartChunkSize);
-                log<picLog::INPUT_OUTPUT > ("HDF5:   load particles on device chunk offset=%1%; chunk size=%2%; left particles %3%") %
-                    (i * restartChunkSize) % currentChunkSize % leftOverParticles;
-                __cudaKernel(PMacc::particles::operations::splitIntoListOfFrames)
-                    (ceil(float_64(currentChunkSize) / float_64(cellsInSuperCell)), cellsInSuperCell)
-                    (counterBuffer.getDeviceBuffer().getDataBox(),
-                     speciesTmp->getDeviceParticlesBox(), deviceFrame,
-                     (int) totalNumParticles,
-                     localDomain.offset, /*relative to data domain (not to physical domain)*/
-                     *(params->cellDescription)
-                     );
-                speciesTmp->fillAllGaps();
-                leftOverParticles -= currentChunkSize;
-            }
-
-            counterBuffer.deviceToHost();
-            log<picLog::INPUT_OUTPUT > ("HDF5:  wait for last processed chunk: %1%") % Hdf5FrameType::getName();
-            __getTransactionEvent().waitForFinished();
-
-            log<picLog::INPUT_OUTPUT > ("HDF5: used frames to load particles: %1%") % counterBuffer.getHostBuffer().getDataBox()[2];
-
-            if ((uint64_cu) counterBuffer.getHostBuffer().getDataBox()[1] != totalNumParticles)
-            {
-                log<picLog::INPUT_OUTPUT >("HDF5:  error load species | counter is %1% but should %2%") % counterBuffer.getHostBuffer().getDataBox()[1] % totalNumParticles;
-            }
-            assert((uint64_cu) counterBuffer.getHostBuffer().getDataBox()[1] == totalNumParticles);
+            PMacc::particles::operations::splitIntoListOfFrames(*speciesTmp, deviceFrame,
+                    totalNumParticles, restartChunkSize, cellsInSuperCell,
+                    localDomain.offset, *(params->cellDescription), picLog::INPUT_OUTPUT());
 
             /*free host memory*/
             ForEach<typename Hdf5FrameType::ValueTypeSeq, FreeMemory<bmpl::_1> > freeMem;
