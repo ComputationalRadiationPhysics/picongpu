@@ -25,6 +25,7 @@
 #pragma once
 
 #include "debug/PMaccVerbose.hpp"
+#include "ppFunctions.hpp"
 
 #define BOOST_MPL_LIMIT_VECTOR_SIZE 20
 #define BOOST_MPL_LIMIT_MAP_SIZE 20
@@ -172,20 +173,18 @@ enum EventType
 
 #define CUDA_CHECK_NO_EXCEP(cmd) {cudaError_t error = cmd; if(error!=cudaSuccess){ PMACC_PRINT_CUDA_ERROR(""); }}
 
-/* calculate and set the optimal alignment for data
- * you must align all array and structs which can used on device
- * @param byte byte of data which must aligned
- */
-#define __optimal_align__(byte)   \
-        __align__(                \
-        ((byte)==1?1:             \
-        ((byte)<=2?2:             \
-        ((byte)<=4?4:             \
-        ((byte)<=8?8:             \
-        ((byte)<=16?16:           \
-        ((byte)<=32?32:           \
-        ((byte)<=64?64:128        \
-        ))))))))
+/** calculate and set the optimal alignment for data
+  *
+  * you must align all arrays and structs that are used on the device
+  * @param byte size of data in bytes
+  */
+#define __optimal_align__(byte)                                                \
+    __align__(                                                                 \
+        /** \bug avoid bug if alignment is >16 byte                            \
+         * https://github.com/ComputationalRadiationPhysics/picongpu/issues/1563 \
+         */                                                                    \
+        PMACC_MIN(PMACC_ROUND_UP_NEXT_POW2(byte),16)                           \
+    )
 
 #define PMACC_ALIGN(var,...) __optimal_align__(sizeof(__VA_ARGS__)) __VA_ARGS__ var
 #define PMACC_ALIGN8(var,...) __align__(8) __VA_ARGS__ var
