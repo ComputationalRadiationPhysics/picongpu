@@ -48,11 +48,13 @@ namespace picongpu
 #elif(SIMDIM==DIM2)
     namespace SI
     {
+        /** take `CELL_DEPTH_SI` as integration length for 2D that this value can changed by the user */
+        BOOST_CONSTEXPR_OR_CONST float_64 integration_length = CELL_DEPTH_SI;
         /** density normed to dimension of the simulation
          *
          * http://www.tf.uni-kiel.de/matwis/amat/mw1_ge/kap_6/basics/m6_2_1.html
          */
-        BOOST_CONSTEXPR_OR_CONST float_64  GAS_DENSITY_NORMED= SI::GAS_DENSITY_SI*UNIT_LENGTH;
+        BOOST_CONSTEXPR_OR_CONST float_64  GAS_DENSITY_NORMED = SI::GAS_DENSITY_SI*integration_length;
     } //namespace SI
     namespace particles
     {
