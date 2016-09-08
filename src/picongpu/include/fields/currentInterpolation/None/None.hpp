@@ -36,6 +36,13 @@ struct None
 {
     BOOST_STATIC_CONSTEXPR uint32_t dim = T_dim;
 
+    /** defines if the functor has any implementation
+     *
+     * if isImplemented == false than there is no need to call any kernel
+     * with this implementation
+     */
+    BOOST_STATIC_CONSTEXPR bool isImplemented = true;
+
     typedef typename PMacc::math::CT::make_Int<dim, 0>::type LowerMargin;
     typedef typename PMacc::math::CT::make_Int<dim, 0>::type UpperMargin;
 
