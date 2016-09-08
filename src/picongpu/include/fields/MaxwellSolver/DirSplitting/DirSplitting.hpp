@@ -71,28 +71,42 @@ struct ConditionCheck<DirSplitting, T_Dummy>
 
 class DirSplitting : private ConditionCheck<fieldSolver::FieldSolver>
 {
+public:
+    typedef typename PMacc::math::CT::make_Int<simDim, 0>::type CurrentLowerMargin;
+    typedef typename PMacc::math::CT::make_Int<simDim, 1>::type CurrentUpperMargin;
+
 private:
-    template<typename OrientationTwist,typename CursorE, typename CursorB, typename GridSize>
-    void propagate(CursorE cursorE, CursorB cursorB, GridSize gridSize) const
+    template<typename T_NavigatorTwist, typename T_AccessorTwist,typename T_JInterPolationDir,typename CursorE, typename CursorB, typename CursorJ, typename GridSize>
+    void propagate(CursorE cursorE, CursorB cursorB,CursorJ cursorJ, GridSize gridSize) const
     {
         using namespace cursor::tools;
         using namespace PMacc::math;
 
-        PMACC_AUTO(gridSizeTwisted, twistComponents<OrientationTwist>(gridSize));
+        typedef typename CT::shrinkTo<T_NavigatorTwist, simDim>::type SimDimNavigatorTwist;
+
+        // the grid size after the permutation
+        PMACC_AUTO(gridSizeTwisted, twistComponents<
+            SimDimNavigatorTwist
+        >(gridSize));
 
         /* twist components of the supercell */
-        typedef typename CT::TwistComponents<SuperCellSize, OrientationTwist>::type BlockDim;
+        typedef typename CT::TwistComponents<SuperCellSize, SimDimNavigatorTwist>::type BlockDim;
+
+        PMacc::math::Size_t<simDim> zoneSize(gridSizeTwisted);
+        // the x dimension of the zone is not parallelized
+        zoneSize.x()=BlockDim::x::value;
 
         algorithm::kernel::ForeachBlock<BlockDim> foreach;
-        foreach(zone::SphericZone<3>(PMacc::math::Size_t<3>(BlockDim::x::value, gridSizeTwisted.y(), gridSizeTwisted.z())),
-                cursor::make_NestedCursor(twistVectorFieldAxes<OrientationTwist>(cursorE)),
-                cursor::make_NestedCursor(twistVectorFieldAxes<OrientationTwist>(cursorB)),
-                DirSplittingKernel<BlockDim>((int)gridSizeTwisted.x()));
+        foreach(zone::SphericZone<simDim>(zoneSize),
+                cursor::make_NestedCursor(twistVectorFieldAxes(cursorE, SimDimNavigatorTwist(), T_AccessorTwist())),
+                cursor::make_NestedCursor(twistVectorFieldAxes(cursorB, SimDimNavigatorTwist(), T_AccessorTwist())),
+                cursor::make_NestedCursor(twistVectorFieldAxes(cursorJ, SimDimNavigatorTwist(), T_AccessorTwist())),
+                DirSplittingKernel<BlockDim, T_JInterPolationDir>((int)gridSizeTwisted.x()));
     }
 public:
     DirSplitting(MappingDesc) {}
 
-    void update_beforeCurrent(uint32_t currentStep) const
+    void update_afterCurrent(uint32_t currentStep) const
     {
         typedef SuperCellSize GuardDim;
 
@@ -100,6 +114,9 @@ public:
 
         FieldE& fieldE = dc.getData<FieldE > (FieldE::getName(), true);
         FieldB& fieldB = dc.getData<FieldB > (FieldB::getName(), true);
+        FieldJ& fieldJ = dc.getData<FieldJ > (FieldJ::getName(), true);
+
+        using namespace cursor::tools;
 
         BOOST_AUTO(fieldE_coreBorder,
             fieldE.getGridBuffer().getDeviceBuffer().
@@ -110,57 +127,83 @@ public:
             cartBuffer().view(GuardDim().toRT(),
                               -GuardDim().toRT()));
 
-        using namespace cursor::tools;
-        using namespace PMacc::math;
-
-        PMacc::math::Size_t<3> gridSize = fieldE_coreBorder.size();
-
-
-        typedef PMacc::math::CT::Int<0,1,2> Orientation_X;
-        propagate<Orientation_X>(
-                  fieldE_coreBorder.origin(),
-                  fieldB_coreBorder.origin(),
-                  gridSize);
-
-        __setTransactionEvent(fieldE.asyncCommunication(__getTransactionEvent()));
-        __setTransactionEvent(fieldB.asyncCommunication(__getTransactionEvent()));
-
-        typedef PMacc::math::CT::Int<1,2,0> Orientation_Y;
-        propagate<Orientation_Y>(
-                  fieldE_coreBorder.origin(),
-                  fieldB_coreBorder.origin(),
-                  gridSize);
-
-        __setTransactionEvent(fieldE.asyncCommunication(__getTransactionEvent()));
-        __setTransactionEvent(fieldB.asyncCommunication(__getTransactionEvent()));
-
-        typedef PMacc::math::CT::Int<2,0,1> Orientation_Z;
-        propagate<Orientation_Z>(
-                  fieldE_coreBorder.origin(),
-                  fieldB_coreBorder.origin(),
-                  gridSize);
+        BOOST_AUTO(fieldJ_coreBorder,
+            fieldJ.getGridBuffer().getDeviceBuffer().
+            cartBuffer().view(GuardDim().toRT(),
+                              -GuardDim().toRT()));
 
         if (laserProfile::INIT_TIME > float_X(0.0))
-            dc.getData<FieldE > (FieldE::getName(), true).laserManipulation(currentStep);
+        {
+            fieldE.laserManipulation(currentStep);
+            // the laser manipulates the E field, therefor we need to communicate it
+            __setTransactionEvent(fieldE.asyncCommunication(__getTransactionEvent()));
+        }
 
-        __setTransactionEvent(fieldE.asyncCommunication(__getTransactionEvent()));
-        __setTransactionEvent(fieldB.asyncCommunication(__getTransactionEvent()));
+        PMacc::math::Size_t<simDim> gridSize = fieldE_coreBorder.size();
+
+        // propagation in X direction
+        {
+            // permutation vector for the current accessor
+           typedef PMacc::math::CT::Int<0,1,2> AccessorTwist;
+           // permutation vector for the navigator
+           typedef PMacc::math::CT::Int<0,1,2> NavigatorTwist;
+
+           // direction where the current component needs to be interpolated
+           typedef PMacc::math::CT::Int<0,2,1> InterpolationDir;
+           propagate<NavigatorTwist,AccessorTwist,InterpolationDir>(
+                     fieldE_coreBorder.origin(),
+                     fieldB_coreBorder.origin(),
+                     fieldJ_coreBorder.origin(),
+                     gridSize);
+
+           __setTransactionEvent(fieldE.asyncCommunication(__getTransactionEvent()));
+           __setTransactionEvent(fieldB.asyncCommunication(__getTransactionEvent()));
+        }
+
+        // propagation in Y direction
+        {
+            // permutation vector for the current accessor
+           typedef PMacc::math::CT::Int<1,2,0> AccessorTwist;
+           // permutation vector for the navigator
+           typedef PMacc::math::CT::Int<1,0,2> NavigatorTwist;
+
+           // direction where the current component needs to be interpolated
+           typedef PMacc::math::CT::Int<0,1,2> InterpolationDir;
+           propagate<NavigatorTwist,AccessorTwist,InterpolationDir>(
+                     fieldE_coreBorder.origin(),
+                     fieldB_coreBorder.origin(),
+                     fieldJ_coreBorder.origin(),
+                     gridSize);
+
+           __setTransactionEvent(fieldE.asyncCommunication(__getTransactionEvent()));
+           __setTransactionEvent(fieldB.asyncCommunication(__getTransactionEvent()));
+        }
+
+#if (SIMDIM==DIM3)
+        // propagation in Z direction
+        {
+            // permutation vector for the current accessor
+           typedef PMacc::math::CT::Int<2,0,1> AccessorTwist;
+           // permutation vector for the navigator
+           typedef PMacc::math::CT::Int<2,0,1> NavigatorTwist;
+
+           // direction where the current component needs to be interpolated
+           typedef PMacc::math::CT::Int<0,2,1> InterpolationDir;
+           propagate<NavigatorTwist,AccessorTwist,InterpolationDir>(
+                     fieldE_coreBorder.origin(),
+                     fieldB_coreBorder.origin(),
+                     fieldJ_coreBorder.origin(),
+                     gridSize);
+
+           __setTransactionEvent(fieldE.asyncCommunication(__getTransactionEvent()));
+           __setTransactionEvent(fieldB.asyncCommunication(__getTransactionEvent()));
+        }
+#endif
     }
 
-    void update_afterCurrent(uint32_t) const
+    void update_beforeCurrent(uint32_t) const
     {
-        DataConnector &dc = Environment<>::get().DataConnector();
-
-        FieldE& fieldE = dc.getData<FieldE > (FieldE::getName(), true);
-        FieldB& fieldB = dc.getData<FieldB > (FieldB::getName(), true);
-
-        EventTask eRfieldE = fieldE.asyncCommunication(__getTransactionEvent());
-        EventTask eRfieldB = fieldB.asyncCommunication(__getTransactionEvent());
-        __setTransactionEvent(eRfieldE);
-        __setTransactionEvent(eRfieldB);
-
-        dc.releaseData(FieldE::getName());
-        dc.releaseData(FieldB::getName());
+        // all calculations are done after the current is calculated
     }
 
     static PMacc::traits::StringProperty getStringProperties()

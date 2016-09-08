@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau
+ * Copyright 2013-2016 Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -21,6 +21,7 @@
 #pragma once
 
 #include "simulation_defines.hpp"
+#include "math/Vector.hpp"
 
 namespace picongpu
 {
@@ -31,20 +32,21 @@ class DirSplitting;
 
 namespace traits
 {
+    namespace mCT = PMacc::math::CT;
 
-template<>
-struct GetMargin<picongpu::dirSplitting::DirSplitting, picongpu::FIELD_B>
-{
-    typedef PMacc::math::CT::Int < 1, 1, 1 > LowerMargin;
-    typedef PMacc::math::CT::Int < 1, 1, 1 > UpperMargin;
-};
+    template<>
+    struct GetMargin<picongpu::dirSplitting::DirSplitting, picongpu::FIELD_B>
+    {
+        typedef typename mCT::make_Int< simDim, 1 >::type LowerMargin;
+        typedef LowerMargin UpperMargin;
+    };
 
-template<>
-struct GetMargin<picongpu::dirSplitting::DirSplitting, picongpu::FIELD_E>
-{
-    typedef PMacc::math::CT::Int < 1, 1, 1 > LowerMargin;
-    typedef PMacc::math::CT::Int < 1, 1, 1 > UpperMargin;
-};
+    template<>
+    struct GetMargin<picongpu::dirSplitting::DirSplitting, picongpu::FIELD_E>
+    {
+        typedef typename mCT::make_Int< simDim, 1 >::type LowerMargin;
+        typedef LowerMargin UpperMargin;
+    };
 
 } //namespace traits
 
