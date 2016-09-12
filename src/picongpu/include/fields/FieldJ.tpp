@@ -239,7 +239,14 @@ HDINLINE
 FieldJ::UnitValueType
 FieldJ::getUnit( )
 {
-    const float_64 UNIT_CURRENT = UNIT_CHARGE / UNIT_TIME / ( UNIT_LENGTH * UNIT_LENGTH );
+    float_64 lengthFactor( 1.0 );
+    /** the current is a
+     * - surface density in 3D
+     * - line density in 2D
+     */
+    for( uint32_t d = 0; d < simDim - 1u;  ++d)
+        lengthFactor *= UNIT_LENGTH;
+    const float_64 UNIT_CURRENT = UNIT_CHARGE / UNIT_TIME / ( lengthFactor );
     return UnitValueType( UNIT_CURRENT, UNIT_CURRENT, UNIT_CURRENT );
 }
 
