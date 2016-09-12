@@ -314,14 +314,17 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t )
 template<uint32_t AREA, class T_CurrentInterpolation>
 void FieldJ::addCurrentToEMF( T_CurrentInterpolation& myCurrentInterpolation )
 {
-    __picKernelArea( ( kernelAddCurrentToEMF ),
-                     cellDescription,
-                     AREA )
-        ( MappingDesc::SuperCellSize::toRT( ).toDim3( ) )
-        ( this->fieldE->getDeviceDataBox( ),
-          this->fieldB->getDeviceDataBox( ),
-          this->fieldJ.getDeviceBuffer( ).getDataBox( ),
-          myCurrentInterpolation );
+    if( T_CurrentInterpolation::isImplemented == true )
+    {
+        __picKernelArea( ( kernelAddCurrentToEMF ),
+                         cellDescription,
+                         AREA )
+            ( MappingDesc::SuperCellSize::toRT( ).toDim3( ) )
+            ( this->fieldE->getDeviceDataBox( ),
+              this->fieldB->getDeviceDataBox( ),
+              this->fieldJ.getDeviceBuffer( ).getDataBox( ),
+              myCurrentInterpolation );
+    }
 }
 
 }
