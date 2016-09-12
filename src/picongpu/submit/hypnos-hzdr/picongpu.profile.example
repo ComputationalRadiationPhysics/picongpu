@@ -55,4 +55,4 @@ export PATH=$PATH:$PICSRC/src/tools/bin
 #   - PBS/Torque (qsub)
 #   - "k20" queue
 export TBG_SUBMIT="qsub"
-export TBG_TPLFILE="submit/hypnos/k20_profile.tpl"
+export TBG_TPLFILE="submit/hypnos-hzdr/k20_profile.tpl"
