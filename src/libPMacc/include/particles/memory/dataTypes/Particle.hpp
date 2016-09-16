@@ -71,16 +71,15 @@ struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
     typedef Particle<FrameType, ValueTypeSeq> ThisType;
     typedef typename FrameType::MethodsList MethodsList;
 
-    /* IMPORTANT: store first value with big size to avoid
-     * that pointer is copied byte by byte because data are not aligned
-     *
-     * in this case sizeof(uint32_t)<=sizeof(pointer)
-     */
-    /** pointer to parent frame where this particle is from*/
-    PMACC_ALIGN(frame, FrameType* const);
-
     /** index of particle inside the Frame*/
     PMACC_ALIGN(idx, const uint32_t);
+
+    /** pointer to parent frame where this particle is from
+     *
+     * ATTENTION: The pointer must be the last member to avoid local memory usage
+     *            https://github.com/ComputationalRadiationPhysics/picongpu/pull/762
+     */
+    PMACC_ALIGN(frame, FrameType* const);
 
     /** create particle
      *
