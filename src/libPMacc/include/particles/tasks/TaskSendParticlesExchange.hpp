@@ -44,7 +44,7 @@ namespace PMacc
         state(Constructor),
         maxSize(parBase.getParticlesBuffer().getSendExchangeStack(exchange).getMaxParticlesCount()),
         initDependency(__getTransactionEvent()),
-        lastSize(0),lastSendEvent(EventTask()){ }
+        lastSize(0),lastSendEvent(EventTask()),retryCounter(0){ }
 
         virtual void init()
         {
@@ -86,7 +86,7 @@ namespace PMacc
                         //check for next bash round
                         if (lastSize == maxSize)
                         {
-                            std::cerr<<"send max size "<<maxSize<<" particles"<<std::endl;
+                            ++retryCounter;
                             init(); //call init and run a full send cycle
 
                         }
@@ -113,6 +113,15 @@ namespace PMacc
         virtual ~TaskSendParticlesExchange()
         {
             notify(this->myId, RECVFINISHED, NULL);
+            if(retryCounter != 0)
+            {
+                std::cerr << "Send/receive buffer for species " <<
+                    ParBase::FrameType::getName() <<
+                    " is to small (max: " << maxSize <<
+                    ", direction: " << exchange <<
+                    ", retries: " << retryCounter <<
+                    ")" << std::endl;
+            }
         }
 
         void event(id_t, EventType, IEventData*) { }
@@ -145,6 +154,7 @@ namespace PMacc
         uint32_t exchange;
         size_t maxSize;
         size_t lastSize;
+        size_t retryCounter;
     };
 
 } //namespace PMacc
