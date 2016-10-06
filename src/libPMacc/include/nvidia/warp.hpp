@@ -58,16 +58,12 @@ DINLINE int32_t warpBroadcast(const int32_t data, const int32_t srcLaneId)
 /**
  * Broadcast a 64bit integer by using 2 32bit broadcasts
  */
-DINLINE int64_cu warpBroadcast(const int64_cu data, const int32_t srcLaneId)
+DINLINE int64_cu warpBroadcast(int64_cu data, const int32_t srcLaneId)
 {
-    union{
-        int32_t dataHi, dataLo;
-        int64_cu data64;
-    } dataUnion;
-    dataUnion.data64 = data;
-    warpBroadcast(dataUnion.dataHi, srcLaneId);
-    warpBroadcast(dataUnion.dataLo, srcLaneId);
-    return dataUnion.data64;
+    int32_t* const pData = reinterpret_cast<int32_t*>(&data);
+    pData[0] = warpBroadcast(pData[0], srcLaneId);
+    pData[1] = warpBroadcast(pData[1], srcLaneId);
+    return data;
 }
 /**
  * Broadcast a 32bit unsigned int
@@ -86,7 +82,7 @@ DINLINE uint32_t warpBroadcast(const uint32_t data, const int32_t srcLaneId)
 DINLINE uint64_cu warpBroadcast(const uint64_cu data, const int32_t srcLaneId)
 {
     return static_cast<uint64_cu>(
-            warpBroadcast(static_cast<uint64_cu>(data), srcLaneId)
+            warpBroadcast(static_cast<int64_cu>(data), srcLaneId)
             );
 }
 
@@ -100,16 +96,12 @@ DINLINE float warpBroadcast(const float data, const int32_t srcLaneId)
 /**
  * Broadcast a 64bit float by using 2 32bit broadcasts
  */
-DINLINE double warpBroadcast(const double data, const int32_t srcLaneId)
+DINLINE double warpBroadcast(double data, const int32_t srcLaneId)
 {
-    union{
-        float dataHi, dataLo;
-        double data64;
-    } dataUnion;
-    dataUnion.data64 = data;
-    warpBroadcast(dataUnion.dataHi, srcLaneId);
-    warpBroadcast(dataUnion.dataLo, srcLaneId);
-    return dataUnion.data64;
+    float* const pData = reinterpret_cast<float*>(&data);
+    pData[0] = warpBroadcast(pData[0], srcLaneId);
+    pData[1] = warpBroadcast(pData[1], srcLaneId);
+    return data;
 }
 #endif
 
