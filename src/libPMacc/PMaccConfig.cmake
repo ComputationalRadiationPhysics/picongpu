@@ -29,8 +29,7 @@
 ###############################################################################
 # PMacc
 ###############################################################################
-cmake_minimum_required(VERSION 3.3)
-project("PMacc")
+cmake_minimum_required(VERSION 3.1)
 
 set(PMacc_INCLUDE_DIRS ${PMacc_INCLUDE_DIRS} "${PMacc_DIR}/include")
 
@@ -187,7 +186,6 @@ set(PMacc_LIBRARIES ${PMacc_LIBRARIES} ${MPI_CXX_LIBRARIES})
 find_package(PNGwriter MODULE REQUIRED)
 
 if(PNGwriter_FOUND)
-  include_directories( )
   set(PMacc_INCLUDE_DIRS ${PMacc_INCLUDE_DIRS} ${PNGwriter_INCLUDE_DIRS})
   list(APPEND PNGwriter_DEFINITIONS "-DGOL_ENABLE_PNG=1")
   set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} ${PNGwriter_DEFINITIONS})
