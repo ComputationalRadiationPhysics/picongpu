@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Erik Zenker
+ * Copyright 2016-2016 Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -20,8 +20,22 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE "PMacc Unit Tests"
-#include <boost/test/unit_test.hpp>
+#pragma once
 
+#include <Environment.hpp>
+#include <dimensions/DataSpace.hpp>
 
+/** Fixture that initializes libPMacc for a given dimensionality */
+template<unsigned T_dim>
+struct PMaccFixture
+{
+    PMaccFixture()
+    {
+        const PMacc::DataSpace<T_dim> devices = PMacc::DataSpace<T_dim>::create(1);
+        const PMacc::DataSpace<T_dim> periodic = PMacc::DataSpace<T_dim>::create(1);
+        PMacc::Environment<T_dim>::get().initDevices(devices, periodic);
+    }
+};
+
+typedef PMaccFixture<2> PMaccFixture2D;
+typedef PMaccFixture<3> PMaccFixture3D;

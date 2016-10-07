@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016 Erik Zenker
+# Copyright 2015-2016 Erik Zenker, Alexander Grund
 #
 # This file is part of libPMacc.
 #
@@ -28,6 +28,21 @@ project(PMaccTest)
 
 
 ################################################################################
+# C++11 Enabler
+################################################################################
+
+# By using this if-else one can assume that:
+# CMAKE_CXX_STANDARD==11 <=> CUDA_NVCC_FLAGS contain "-std=c++11"
+if("${CUDA_NVCC_FLAGS}" MATCHES "-std=c\\+\\+11")
+    set(CMAKE_CXX_STANDARD 11)
+elseif("${CMAKE_CXX_STANDARD}" STREQUAL "11")
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" -std=c++11)
+else()
+    # Note: Add support for C++14 once CUDA supports it (maybe 8.0?)
+    set(CMAKE_CXX_STANDARD 98)
+endif()
+
+################################################################################
 # PMacc
 ################################################################################
 find_package(PMacc REQUIRED CONFIG PATHS ${CMAKE_CURRENT_SOURCE_DIR})
@@ -47,13 +62,24 @@ set(LIBS ${LIBS} ${Boost_LIBRARIES})
 # Targets
 ###############################################################################
 
-# Test cases
-file(GLOB_RECURSE TESTS test/*UT.cu)
-cuda_add_executable(check EXCLUDE_FROM_ALL ${TESTS})
-target_link_libraries(check ${LIBS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/test)
+add_definitions(-DBOOST_TEST_DYN_LINK)
 
 # CTest
 enable_testing()
-add_test(PMacc_test_build "${CMAKE_COMMAND}" --build ${CMAKE_BINARY_DIR} --target check)
-add_test(PMacc_test_run  mpiexec -n 1 ./check --log_level=test_suite)
-set_tests_properties(PMacc_test_run PROPERTIES DEPENDS PMacc_test_build)
+
+# Test cases
+# Each *UT.cu file is an independent executable with one or more test cases 
+file(GLOB_RECURSE TESTS test/*UT.cu)
+foreach(dim 2 3)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DTEST_DIM=${dim}")
+    foreach(testCaseFilepath ${TESTS})
+        get_filename_component(testCaseFilename ${testCaseFilepath} NAME)
+        string(REPLACE "UT.cu" "" testCase ${testCaseFilename})
+        set(testExe "${PROJECT_NAME}-${testCase}-${dim}D")
+        cuda_add_executable(${testExe} ${testCaseFilepath} ${CMAKE_CURRENT_SOURCE_DIR}/test/main.cpp)
+        target_link_libraries(${testExe} ${LIBS})
+        add_test(NAME "${testCase}-${dim}D" COMMAND mpiexec -n 1 ./${testExe})
+    endforeach()
+    string(REPLACE "-DTEST_DIM=${dim}" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+endforeach()
