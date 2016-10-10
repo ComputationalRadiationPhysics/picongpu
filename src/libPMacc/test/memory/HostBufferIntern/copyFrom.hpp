@@ -31,7 +31,8 @@
 struct CopyFromTest {
 
     template<typename T_Dim>
-    void operator()(T_Dim){
+    void exec(T_Dim)
+    {
 
         typedef uint8_t Data;
         typedef size_t Extents;
@@ -64,6 +65,12 @@ struct CopyFromTest {
 
     }
 
+    PMACC_NO_NVCC_HDWARNING
+    template<typename T_Dim>
+    HDINLINE void operator()(T_Dim dim)
+    {
+        exec(dim);
+    }
 };
 
 BOOST_AUTO_TEST_CASE( copyFrom ){
