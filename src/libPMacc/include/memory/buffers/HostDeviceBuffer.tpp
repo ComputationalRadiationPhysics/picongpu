@@ -52,7 +52,7 @@ namespace PMacc {
                const GridLayout<T_dim> size,
                bool sizeOnDevice)
    {
-        hostBuffer   = new HostBufferType(dynamic_cast<HostDeviceBuffer&>(otherHostBuffer), size, offsetHost);
+        hostBuffer   = new HostBufferType(otherHostBuffer, size, offsetHost);
         deviceBuffer = new DeviceBufferType(otherDeviceBuffer, size, offsetDevice, sizeOnDevice);
    }
 
