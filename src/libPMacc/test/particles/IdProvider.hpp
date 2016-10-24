@@ -52,10 +52,14 @@ namespace
     }
 }
 
-/** Boost.Test compatible function that checks if a value is in a collection
- *  An error is returned, if the value is not found and shouldFind is true or
- *  if the value is found and shouldFind is false
- *  Use like: BOOST_REQUIRE(checkDuplicate(col, value, true|false));
+/**
+ * Boost.Test compatible function that checks if a value is in a collection
+ * Use like: BOOST_REQUIRE(checkDuplicate(col, value, true|false));
+ * @param col Container to be searched
+ * @param value Value to search for
+ * @param shouldFind Whether the value is expected in the collection or not
+ * @return Error-Value, if the value is not found and shouldFind is true or
+ *         the value is found and shouldFind is false, otherwise a True-Value
  */
 template<class T_Collection, typename T>
 boost::test_tools::predicate_result
