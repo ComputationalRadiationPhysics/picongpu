@@ -52,6 +52,11 @@ namespace
     }
 }
 
+/** Boost.Test compatible function that checks if a value is in a collection
+ *  An error is returned, if the value is not found and shouldFind is true or
+ *  if the value is found and shouldFind is false
+ *  Use like: BOOST_REQUIRE(checkDuplicate(col, value, true|false));
+ */
 template<class T_Collection, typename T>
 boost::test_tools::predicate_result
 checkDuplicate(const T_Collection& col, const T& value, bool shouldFind)
@@ -106,7 +111,8 @@ struct IdProviderTest
         BOOST_REQUIRE_EQUAL(IdProvider::getNewId(), state.nextId);
         // Generate the same IDs on the device
         PMacc::HostDeviceBuffer<uint64_t, 1> idBuf(numIds);
-        __cudaKernel(generateIds<IdProvider>)(numBlocks , numThreadsPerBlock)(idBuf.getDeviceBuffer().getDataBox(), numThreads, numIdsPerThread);
+        __cudaKernel(generateIds<IdProvider>)(numBlocks, numThreadsPerBlock)
+                (idBuf.getDeviceBuffer().getDataBox(), numThreads, numIdsPerThread);
         idBuf.deviceToHost();
         BOOST_REQUIRE_EQUAL(numIds, ids.size());
         PMACC_AUTO(hostBox, idBuf.getHostBuffer().getDataBox());
