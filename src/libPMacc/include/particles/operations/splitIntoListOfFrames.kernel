@@ -64,7 +64,7 @@ __global__ void splitIntoListOfFrames(T_CounterBox counter, T_DestBox destBox, T
     typedef typename T_DestBox::FramePtr DestFramePtr;
     typedef typename T_CellDescription::SuperCellSize SuperCellSize;
     BOOST_CONSTEXPR_OR_CONST unsigned NumDims = T_DestBox::Dim;
-    const uint32_t particlesPerFrame = PMacc::math::CT::volume<SuperCellSize>::type::value;
+    BOOST_CONSTEXPR_OR_CONST uint32_t particlesPerFrame = PMacc::math::CT::volume<SuperCellSize>::type::value;
 
     __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<DestFramePtr>::type destFramePtr[particlesPerFrame];
     __shared__ int linearSuperCellIds[particlesPerFrame];
@@ -175,7 +175,7 @@ HINLINE void splitIntoListOfFrames(T_DestSpecies& destSpecies, T_SrcFrame srcFra
      */
     GridBuffer<uint32_t, DIM1> counterBuffer(DataSpace<DIM1>(3));
 
-    const uint32_t iterationsForLoad = ceil(double(numParticles) / double(chunkSize));
+    const uint32_t iterationsForLoad = algorithms::math::float2int_ru(double(numParticles) / double(chunkSize));
     uint32_t leftOverParticles = numParticles;
 
     for (uint32_t i = 0; i < iterationsForLoad; ++i)
@@ -185,7 +185,7 @@ HINLINE void splitIntoListOfFrames(T_DestSpecies& destSpecies, T_SrcFrame srcFra
         log(logLvl, "load particles on device chunk offset=%1%; chunk size=%2%; left particles %3%") %
             (i * chunkSize) % currentChunkSize % leftOverParticles;
         __cudaKernel(kernel::splitIntoListOfFrames)
-            (ceil(double(currentChunkSize) / double(cellsInSuperCell)), cellsInSuperCell)
+            (algorithms::math::float2int_ru(double(currentChunkSize) / double(cellsInSuperCell)), cellsInSuperCell)
             (counterBuffer.getDeviceBuffer().getDataBox(),
              destSpecies.getDeviceParticlesBox(), srcFrame,
              (int) numParticles,
@@ -200,7 +200,7 @@ HINLINE void splitIntoListOfFrames(T_DestSpecies& destSpecies, T_SrcFrame srcFra
     log(logLvl, "wait for last processed chunk: %1%") % T_SrcFrame::getName();
     __getTransactionEvent().waitForFinished();
 
-    log<PMaccVerbose::INFO>("used frames to load particles: %1%") % counterBuffer.getHostBuffer().getDataBox()[2];
+    log(logLvl, "used frames to load particles: %1%") % counterBuffer.getHostBuffer().getDataBox()[2];
 
     if ((uint64_t) counterBuffer.getHostBuffer().getDataBox()[1] != numParticles)
     {

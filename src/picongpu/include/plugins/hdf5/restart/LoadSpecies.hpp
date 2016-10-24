@@ -189,17 +189,6 @@ public:
 
         if (totalNumParticles != 0)
         {
-            dim3 block(PMacc::math::CT::volume<SuperCellSize>::type::value);
-
-            /* counter is used to apply for work, count used frames and count loaded particles
-             * [0] -> offset for loading particles
-             * [1] -> number of loaded particles
-             * [2] -> number of used frames
-             *
-             * all values are zero after initialization
-             */
-            GridBuffer<uint32_t, DIM1> counterBuffer(DataSpace<DIM1>(3));
-
             const uint32_t cellsInSuperCell = PMacc::math::CT::volume<SuperCellSize>::type::value;
 
             PMacc::particles::operations::splitIntoListOfFrames(*speciesTmp, deviceFrame,
