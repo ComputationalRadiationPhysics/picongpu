@@ -119,7 +119,7 @@ Input file changes: the generalized versions of input files are as always in
    - live visualisation client: set fps panal always visible #1240
    - tbg:
      - simplify usage of `-p|--project` #1267
-     - transfers UNIX-permisions from *.tpl to submit.start #1140
+     - transfers UNIX-permisions from `*.tpl` to submit.start #1140
    - new charge conservation tools #1102, #1118, #1132, #1178
    - improve heating tool to support unfinished and single simulations #729
    - support for python3 #1134
@@ -145,8 +145,8 @@ Input file changes: the generalized versions of input files are as always in
    - make cuSTL gather accept CartBuffers and handle pitches #1196
    - add reference accessors to complex type #1198
    - add more rounding functions #1099
-   - add conversion operator from uint3 to Dataspace  #1145
-   - add more specializations to GetMPI_StructAsArray #1088
+   - add conversion operator from `uint3` to `Dataspace` #1145
+   - add more specializations to `GetMPI_StructAsArray` #1088
    - implement cartBuffer conversion for HostBuffer #1092
    - add a policy for async communication #1079
    - add policies for handling particles in guard cells #1077
@@ -202,7 +202,7 @@ Input file changes: the generalized versions of input files are as always in
    - avoid non zero E-field integral in plane wave #851
    - fix length setup of plane wave laser #881
    - few-cycle wavepacket #875
-   - fix documentaion of a_0 conversation #1043
+   - fix documentaion of `a_0` conversation #1043
  - FieldTmp Lamor power calculation #1287
  - field solver:
    - stricter condition checks #880
@@ -211,7 +211,7 @@ Input file changes: the generalized versions of input files are as always in
    - experimental: possible out of memory access in directional splitting #890
  - moving window moved not exactly with c #1273 #1337 #1549
  - 2D3V: possible race conditions for very small, non-default super-cells in current deposition (`StrideMapping`) #1405
- - experimental: 2D3V zigzag current deposition fix for v_z != 0 #823
+ - experimental: 2D3V zigzag current deposition fix for `v_z != 0` #823
  - vaccuum: division by zero in `Quiet` particle start #1527
  - remove variable length arrays #932
  - gas (density) profiles:
@@ -219,7 +219,7 @@ Input file changes: the generalized versions of input files are as always in
    - gaussianCloud #807 #1136 #1265
  - C++ should catch by const reference #1295
  - fix possible underflow on low memory situations #1188
- - C++11 compatibility: use BOOST_STATIC_CONSTEXPR where possible #1165
+ - C++11 compatibility: use `BOOST_STATIC_CONSTEXPR` where possible #1165
  - avoid CUDA 6.5 int(bool) cast bug #680
  - PMacc detection in CMake #808
  - libPMacc:
@@ -241,7 +241,7 @@ Input file changes: the generalized versions of input files are as always in
    - set pointers to NULL before calling cudaMalloc #1180
    - do not allocate memory if not gather root #1181
    - load plugins in registered order #1174
-   - use BOOST_STATIC_CONSTEXPR where possible #1176 #1175
+   - C++11 compatibility: use `BOOST_STATIC_CONSTEXPR` where possible #1176 #1175
    - fix usage of `boost::result_of` #1151
    - use correct device number #1115
    - fix vector shrink function #1113
@@ -309,11 +309,13 @@ Input file changes: the generalized versions of input files are as always in
  - templates for known systems updated:
    - renaming directories into "cluster-insitutition"
    - tbg copies cmakeFlags now #1101
-   - tbg abort if mkdir for run fails #797
-   - *tpl & *.profile.example files updated
-   - system updates: Lawrencium (LBNL), Titan/Rhea (ORNL) #937 #1266 #1297 #1329 #1364 #1426 #1512, Piz Daint #1443 #1493
- - update *.tpl etc. for taurus/ZIH/TU Dresden/Germany (slurm based HPC) #1081 #1130  #1114 #1116 #1111 #1137
-   (put all systems in one, see tbg system template update above)
+   - tbg aborts if mkdir fails #797
+   - `*tpl` & `*.profile.example` files updated
+   - system updates: #937 #1266 #1297 #1329 #1364 #1426 #1512 #1443 #1493
+     - Lawrencium (LBNL)
+     - Titan/Rhea (ORNL)
+     - Piz Daint (CSCS)
+     - Taurus (TUD) #1081 #1130  #1114 #1116 #1111 #1137
  - replace deprecated CUDA calls #758
  - remove support for CUDA devices with `sm_10`, `sm_11`, `sm_12` and `sm_13` #813
  - remove unused/unsupported/broken plugins #773 843
@@ -333,12 +335,11 @@ Input file changes: the generalized versions of input files are as always in
  - rename particle algorithms from `...clone...` to `...derive...`  #1525
  - remove math functions from Vector.hpp  #1472
  - raditation plugin remove `unint` with `uint32_t` #1007
- - GoL example:
-   - CMake modernized #1138
+ - GoL example: CMake modernized #1138
  - INSTALL.md
-   - moved from /doc/ to /
+   - moved from `/doc/` to `/`
    - now in root of the repo #1521
-   - add environment variable PICHOME #1162
+   - add environment variable `$PICHOME` #1162
    - more portable #1164
    - arch linux instructions #1065
  - refactor ionization towards independence from `Particle` class #874
@@ -364,9 +365,9 @@ Input file changes: the generalized versions of input files are as always in
    - add `OpenMP` support #904
  - shipped third party updates:
    - restructured #717
-   - cuda_memtest #770 #1159
+   - `cuda_memtest` #770 #1159
    - CMake modules #1087 #1310 #1533
- - removed several -Wshadow warnings #1039 #1061 #1070 #1071
+ - removed several `-Wshadow` warnings #1039 #1061 #1070 #1071
 
 
 0.1.0
@@ -483,7 +484,7 @@ parts of the code.
  - various code clean-up for MSVC #563 #564 #566 #624 #625
  - plugins:
    - removed `LineSliceFields` #590
-   - `png` plugin write speedup ~2.3x by increasing file size about 12% #698
+   - `png` plugin write speedup `~2.3x` by increasing file size about 12% #698
  - updated contribution guidelines, install, cfg examples #601 #598 #617 #620
    #673 #700 #714
  - updated module examples and cfg files for:
