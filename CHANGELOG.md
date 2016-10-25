@@ -167,7 +167,7 @@ Release Short description (Axel)
      - prepare particles on host side befor dumping #907
      - speedup with `OpenMP` #908
      - options to control striping & meta file creation #1062
-     - update to 1.9.0+ #1063
+     - update to 1.10.0+ #1063 #1557
      - checkpoints & restarts implemented #679 #828 #900
    - speedup radioation #996
    - add charge conservation plugin #790
