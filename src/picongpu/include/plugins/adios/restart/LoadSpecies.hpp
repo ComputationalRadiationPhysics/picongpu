@@ -38,9 +38,9 @@
 #include "compileTime/conversion/RemoveFromSeq.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
 #include "particles/ParticleDescription.hpp"
+#include "particles/operations/splitIntoListOfFrames.kernel"
 
 #include "plugins/output/WriteSpeciesCommon.hpp"
-#include "plugins/kernel/CopySpeciesGlobal2Local.kernel"
 #include "plugins/adios/restart/LoadParticleAttributesFromADIOS.hpp"
 
 namespace picongpu
@@ -166,53 +166,9 @@ public:
 
         if (totalNumParticles != 0)
         {
-            dim3 block(PMacc::math::CT::volume<SuperCellSize>::type::value);
-
-            /* counter is used to apply for work, count used frames and count loaded particles
-             * [0] -> offset for loading particles
-             * [1] -> number of loaded particles
-             * [2] -> number of used frames
-             *
-             * all values are zero after initialization
-             */
-            GridBuffer<uint32_t, DIM1> counterBuffer(DataSpace<DIM1>(3));
-
             const uint32_t cellsInSuperCell = PMacc::math::CT::volume<SuperCellSize>::type::value;
-
-            const uint32_t iterationsForLoad = ceil(float_64(totalNumParticles) / float_64(restartChunkSize));
-            uint32_t leftOverParticles = totalNumParticles;
-
-            for (uint32_t i = 0; i < iterationsForLoad; ++i)
-            {
-                /* only load a chunk of particles per iteration to avoid blow up of frame usage
-                 */
-                uint32_t currentChunkSize = std::min(leftOverParticles, restartChunkSize);
-                log<picLog::INPUT_OUTPUT > ("ADIOS: load particles on device chunk offset=%1%; chunk size=%2%; left particles %3%") %
-                    (i * restartChunkSize) % currentChunkSize % leftOverParticles;
-                __cudaKernel(copySpeciesGlobal2Local)
-                    (ceil(float_64(currentChunkSize) / float_64(cellsInSuperCell)), cellsInSuperCell)
-                    (counterBuffer.getDeviceBuffer().getDataBox(),
-                     speciesTmp->getDeviceParticlesBox(), deviceFrame,
-                     (int) totalNumParticles,
-                     localDomain.offset, /*relative to data domain (not to physical domain)*/
-                     *(params->cellDescription)
-                     );
-                speciesTmp->fillAllGaps();
-                leftOverParticles -= currentChunkSize;
-            }
-
-            counterBuffer.deviceToHost();
-            log<picLog::INPUT_OUTPUT > ("ADIOS: wait for last processed chunk: %1%") % AdiosFrameType::getName();
-            __getTransactionEvent().waitForFinished();
-
-            log<picLog::INPUT_OUTPUT > ("ADIOS: used frames to load particles: %1%") % counterBuffer.getHostBuffer().getDataBox()[2];
-
-            if ((uint64_t) counterBuffer.getHostBuffer().getDataBox()[1] != totalNumParticles)
-            {
-                log<picLog::INPUT_OUTPUT >("ADIOS: error load species | counter is %1% but should %2%") % counterBuffer.getHostBuffer().getDataBox()[1] % totalNumParticles;
-                throw std::runtime_error("ADIOS: Failed to load expected number of particles to GPU.");
-            }
-            assert((uint64_t) counterBuffer.getHostBuffer().getDataBox()[1] == totalNumParticles);
+            PMacc::particles::operations::splitIntoListOfFrames(*speciesTmp, deviceFrame, totalNumParticles,
+                    restartChunkSize, cellsInSuperCell, localDomain.offset, *(params->cellDescription), picLog::INPUT_OUTPUT());
 
             /*free host memory*/
             ForEach<typename AdiosFrameType::ValueTypeSeq, FreeMemory<bmpl::_1> > freeMem;
