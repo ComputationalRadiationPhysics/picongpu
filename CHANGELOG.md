@@ -248,8 +248,7 @@ Input file changes: the generalized versions of input files are as always in
    - split EventSystem.hpp into hpp and tpp #1068
    - fix move operators of CartBuffer #1091
    - missing includes in MapTuple #627
-   - GoL example:
-     - fix offset #1023
+   - GoL example: fix offset #1023
    - remove deprecated throw declarations #1000
    - cuSTL:
      - `cudaPitchedPtr.xsize` used wrong #1234
@@ -484,7 +483,7 @@ parts of the code.
  - various code clean-up for MSVC #563 #564 #566 #624 #625
  - plugins:
    - removed `LineSliceFields` #590
-   - `png` plugin write speedup `~2.3x` by increasing file size about 12% #698
+   - `png` plugin write speedup 2.3x by increasing file size about 12% #698
  - updated contribution guidelines, install, cfg examples #601 #598 #617 #620
    #673 #700 #714
  - updated module examples and cfg files for:
