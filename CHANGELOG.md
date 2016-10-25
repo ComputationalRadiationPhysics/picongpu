@@ -1,6 +1,382 @@
 Change Log / Release Log for PIConGPU
 ================================================================
 
+0.2.0 "Beta"
+------------
+**Date:** 2016-10-AB
+
+Release Title for Beta (Axel)
+
+openPMD, ADIOS, Radiation Reaction, Tracking, advanced field ionization, ...
+
+Release Short description (Axel)
+
+### Changes to "0.1.0"
+
+**.param file changes:**
+ - all const parameters are now BOOST_CONSTEXPR_OR_CONST
+ - add pusher with radiation reaction (Reduced Landau Lifshitz) #1216
+ - add manipulator for setting boundElectrons<> attribute #768
+ - add `PMACC_CONST_VECTOR` for ionization energies #768 #1022
+ - add `ionizationEnergies.param` #865
+ - add ionization model ADK (Ammosov-Delone-Krainov) for lin. pol. and circ. pol cases #922 #1541
+ - rename BSI to BSIHydrogenLike, add BSIStarkShifted and BSIEffectiveZ #1423
+ - laserConfig: documentation fixed and clearified #1043 #1232 #1312 #1477
+ - speciesAttributes: new required traits for for each attribute #1483
+  - refactor species mass/ charge definition (relatve to base mass/charge) #948
+  - add `seed.param` with random number generator seeds #951
+  - remove use of native `double` and `float` #984 #991
+  - move magic gamma cutoff value from radition plugin code to param file #713
+  - remove invalid `typename` #926 #944
+
+**.unitless file changes:**
+ - add pusher with radiation reaction (Reduced Landau Lifshitz) #1216
+ - pusher traits simplified #1515
+ - fieldSolver: numericalCellType is now a namespace not a class #1319
+ - remove usage of native `double` and `float` #983 #991
+ - remove invalid `typename` #926
+ - add new param file: `synchrotronPhotons.param` #1354
+ - fix electron momentum initialization in Bunch example #838
+ - improve the CFL condition depending on dimension in KHI example #774
+ - add laserPolynom as option to `componentsConfig.param` #772
+
+**New Features:**
+ - current interpolation/smoothing added #888
+ - add synchrotron radiation of photons from QED- and classical spectrum #1354 #1299 #1398
+ - species attributes:
+   - particle ids for tracking #1410
+   - self-describing units and dimensionality #1261
+   - add trait `GetDensityRatio`, add attribute `densityRatio`
+   - current solver is now a optinal for a species #1228
+   - interpolation is now a optional attribute for a species #1229
+   - particle pusher is now a optional attribute for a species #1226
+   - add species shape piecewise biqudratic spline `P4S` #781
+ - species initialization:
+   - add general particle creation module #1353
+   - new manipulators to clone electrons from ions #1018
+   - add manipulator to change the in cell position after gas creation #947 #959
+   - documentation #961
+ - species pushers:
+   - enable the way for substepping particle pushers as RLL
+     - add pusher with radiation reaction (Reduced Landau Lifshitz) #1216
+     - enable substepping in pushers #1201 #1215  #1339 #1210 #1202 #1221
+     - add Runge Kutta solver #1177
+     - enable use of macro-particle weighting in pushers #1213
+ - refactor gas profile definitions #730 #980 #1265
+ - extend FieldToParticleInterpolation to 1D- and 2D-valued fields #1452
+ - command line options:
+   - parameter validation #863
+   - support for --softRestarts <n> to loop simulations #1305
+   - a simulation --author can be specified (I/O, etc.) #1296 #1297
+   - calling ./picongpu without arguments triggers --help #1294
+ - FieldTmp:
+   - scalar fields renamed #1259 #1387 #1523
+   - Momentum over Component #1481
+ - new traits:
+   - GetStringProperties for all solvers and species flags #1514 #1519
+   - MacroWeighted and WeightingPower #1445
+ - speedup current deposition solver ZigZag #927
+ - speedup particle operations with collective atomics #1016
+ - refactor particle update call #1377
+ - enable 2D for single particle test #1203
+ - laser implementations:
+   - add phase to all laser implementations #708
+   - add in-plane polarization to TWTS laser #852
+   - refactor specific float use in laser polynom #782
+   - refactor specific float use in radiation plugin #778
+   - refactored TWTS laser #704
+ - libPMacc:
+   - add new trait `GetDataBoxType` #728
+   - running with synchronized (blocking) kernels now adds more useful output #725
+   - add RNGProvider for persistent PRNG states #1236, #1493
+   - add MRG32k3a RNG generator #1487
+   - move readCheckpointMasterFile to PMacc #1498
+   - unify cuda error printing #1484
+   - add particle ID provider #1409, #1373
+   - split off HostDeviceBuffer from GridBuffer  #1370
+   - add a policy to GetKeyFromAlias #1252
+   - Add border mapping #1133, #1169, #1224
+   - make cuSTL gather accept CartBuffers and handle pitches #1196
+   - add reference accessors to complex type #1198
+   - add more rounding functions #1099
+   - add conversion operator from uint3 to Dataspace  #1145
+   - add more specializations to GetMPI_StructAsArray #1088
+   - implement cartBuffer conversion for HostBuffer #1092
+   - add a policy for async communication #1079
+   - add policies for handling particles in guard cells #1077
+   - support more types in atomicAddInc and warpBroadcast #1078
+   - calculate better seeds #1040 #1046
+   - move MallocMCBuffer to PMacc #1034
+   - move TypeToPointerPair to PMacc #1033
+   - add ResolveAliasFromSpecies trait #1451
+   - add 1D, 2D and 3D linear interpolation cursor #1217, #1448
+   - add trait: GetIinitializedInstance #1447
+   - add method 'getPluginFromType()' to `PluginConnector` #1393
+   - add `asin` to algorithms::math #1374
+   - add `log10` to algorithms::math #1363
+   - add `acos` to algorithms::math #1362
+   - add `modf` to PMacc::algorithms::math #1218
+   - add trait `FilterByFlag` #1219
+   - add `cuSTL/MapTo1DNavigator` #940
+   - add 2D support for cuSTL::algorithm::mpi::Gather #844
+   - add `abs` functor #837
+   - names for exchanges #1511
+   - rename EnvMemoryInfo to MemoryInfo #1301
+   - mallocMC (Memory Allocator for Many Core Architectures) #640 #747 #903 #977  #1171 #1148
+     - remove HeapDataBox, RingDataBox, HeapBuffer, RingBuffer #640
+     - out of heap memory detection #756
+     - support to read mallocMC heap on host side #905
+   - add multi species support for plugins #794
+   - add trait `GetUniqueTypeId` #957 #962
+   - add pointer class for particles `FramePointer` #1055
+   - independent sizes on device for `GridBuffer<>::addExchange`
+   - Communicator: query periodic directions #1510
+   - math:
+     - atan #1473
+     - `precisionCast<>` for `PMacc::math::Vector<>` #746
+     - support for `boost::mpl::integral_c<>` in `math::CT::Vector<>` #802
+   - add host side support for kernel index mapper #902
+   - optimize size of particle frame for border frames #949
+   - add pre processor macro for struct generation #972
+   - add warp collective atomic function #1013
+   - speedup particle operations with collective atomics #1014
+   - add trait `GetDefaultConstructibleType` #1045
+   - add `floor()`
+   - add support to `deselect` unknown attributes in a particle #1524
+   - add trait `GetStringProperties` #1507
+   - add `boost.test` #1245
+     - test for `HostBufferIntern` #1258
+     - test for `setValue()` #1268
+  - add resource monitor #1456
+  - add MSVC compatibility #816 #821 #931
+  - const box'es return const pointer #945
+  - refactor host/device identifier #946
+  - add fmod-function to libPMacc #1334
+  - add complex math in libPMacc #664
+ - checkpoints: now self-test if any errors occured before them #897
+ - plugins:
+   - add 2D support for SliceFieldPrinter plugin #845
+   - notify plugins on particles leaving simulation #1394
+   - png: threaded, less memory hungry in 2D3V, with author information #995 #1076 #1086 #1251 #1281 #1292 #1298 #1311 #1464 #1465
+   - openPMD support in I/O
+     - HDF5 and ADIOS plugin refactored #1427 #1428 #1430 #1478 #1517 #1520 #1522 #1529
+     - more helpers added #1321 #1323 #1518
+     - both write now in a sub-directory in simOutput: h5/ and bp/ #1530
+     - getUnit and getUnitDimension in all fields & attributes #1429
+   - ADIOS:
+     - prepare particles on host side befor dumping #907
+     - speedup with `OpenMP` #908
+     - options to control striping & meta file creation #1062
+     - update to 1.9.0+ #1063
+     - checkpoints & restarts implemented #679 #828 #900
+   - speedup radioation #996
+   - add charge conservation plugin #790
+   - add calorimeter plugin #1376
+ - tools:
+   - add error when trying to compile picongpu with CUDA 7.5 w/o C++11 #1384
+   - radiation plugin output is now openPMD compatible #1053
+   - add tool to load hdf5 radiation data into python #1332
+   - add uncrustify tool (format the code) #767
+   - live visualisation client: set fps panal always visible #1240
+   - tbg: simplify usage of `-p|--project` #1267
+   - new charge conservation tools #1102, #1118, #1132, #1178
+   - improve heating tool to support unfinished and single simulations #729
+   - tbg transfers UNIX-permisions from *.tpl to submit.start #1140
+   - support for python3 #1134
+   - improve graphics of numerical heating tool #742
+   - speed up sliceFieldReader.py #1399
+ - add possibility for starting simulation with neutral atoms #768
+ - generalize BSI: rename BSI to BSIHydrogenLike, add BSIStarkShifted and BSIEffectiveZ #1423
+ - add ionization model ADK (Ammosov-Delone-Krainov) for lin. pol. and circ. pol cases #922 #1490 #1541 #1542
+ - add ionization model Keldysh #1543
+ - make use of faster RNG for Monte-Carlo with ionization #1542 #1543
+ - support 2D for all pushers #1126
+ - support radiation + ionization in LWFA example #868
+ - ease restart of radiation on command line #866
+ - enable compression for radiation hdf5 output #803
+ - add unit as attribute to HDF5 for radiation plugin #737
+
+**Bug Fixes:**
+ - laser implementations:
+   - make math calls more robust & portable #1160
+   - amplitude of Gaussian beam in 2D3V simulations #1052 #1090
+   - avoid non zero E-field integral in plane wave #851
+   - fix length setup of plane wave laser #881
+   - few-cycle wavepacket #875
+   - fix documentaion of a_0 conversation #1043
+ - FieldTmp Lamor power calculation #1287
+ - field solver:
+   - stricter condition checks #880
+   - 2D3V "NoSolver" did not compile #1073
+   - more experimental methods for DS #894
+   - experimental: possible out of memory access in directional splitting #890
+ - moving window moved not exactly with c #1273 #1337 #1549
+ - 2D3V: possible race conditions for very small, non-default super-cells in current deposition (`StrideMapping`) #1405
+ - experimental: 2D3V zigzag current deposition fix for v_z != 0 #823
+ - vaccuum: division by zero in `Quiet` particle start #1527
+ - remove variable length arrays #932
+ - gas (density) profiles:
+   - gasFreeFormula #988, #899
+   - gaussianCloud #807 #1136 #1265
+ - fix electron momentum initialization in Bunch example #838
+ - use correct namespace for abs function in photon pusher #1069
+ - C++ should catch by const reference #1295
+ - fix possible underflow on low memory situations #1188
+ - C++11 compatibility: use BOOST_STATIC_CONSTEXPR where possible #1165
+ - avoid CUDA 6.5 int(bool) cast bug #680
+ - PMacc detection in CMake #808
+ - libPMacc:
+   - Particle<>: avoid using CUDA lmem #1579
+   - possible deadlock in event system could freeze simulation #1326
+   - HostBuffer includes & constructor #1255 #1596
+   - const references in Foreach #1593
+   - initialize pointers with NULL before cudaMalloc #1180
+   - report device properties of correct GPU #1115
+   - fix cuSTL Host/DeviceBuffers: Contructors (Pointers) #1094
+   - rename `types.h` to "pmacc_types.hpp`  #1367
+   - add missing const for getter in GridLayout  #1492
+   - Cuda event fix to avoid deadlock #1485
+   - use Host DataBox in Hostbuffer #1467
+   - allow 1D in CommunicatorMPI #1412
+   - use better type for params in vector  #1223
+   - cuSTL/DeviceBuffer assign operator #1375, #1308, #1463, #1435, #1401, #1220, #1197
+   - use correct sqrt function for abs(Vector) #1461
+   - fix CMAKE_PREFIX_PATHs #1391, #1390
+   - remove unnecessary floating point ops from reduce #1212
+   - set pointers to NULL before calling cudaMalloc #1180
+   - do not allocate memory if not gather root #1181
+   - load plugins in registered order #1174
+   - use BOOST_STATIC_CONSTEXPR where possible #1176 #1175
+   - fix usage of boost::result_of #1151
+   - use correct device number #1115
+   - fix vector shrink function #1113
+   - split EventSystem.hpp into hpp and tpp #1068
+   - fix move operators of CartBuffer #1091
+   - missing includes in MapTuple #627
+   - GoL example:
+     - fix offset #1023
+   - remove deprecated throw declarations #1000
+   - let cuSTL/kernel/runtime/Foreach compute best BlockDim #1309
+   - cuSTL/Gather for supporting static load balancing #1244
+   - cudaPitchedPtr.xsize #1234
+   - throw exception on cuda error in cuSTL #1235
+   - cuSTL/reduce #936
+   - compile with CUDA 7.0 #748
+   - device selection with `process exclusive` enabled #757
+   - `math::Vector<>` assignment #806
+   - `math::Vector<>` copy constructor #872
+   - operator[] in `ConstVector` #981
+   - empty `AllCombinations<...>` #1230
+   - racecondition in `kernelShiftParticles` #1049
+   - warning in `FieldManipulator` #1254
+   - memory pitch bug in `MultiBox` and `PitchedBox` #1096
+   - `math::abs()` for the type `double` #1470
+   - invalid kernel call in `kernelSetValue<>` #1407
+   - data alignment for kernel parameter #1566
+   - `rsqrt` usage on host #967
+   - invalid namespace qualifier #968
+   - missing namespace prefix #971
+   - add missing math.h include #974
+ - plugins:
+   - enable multi species for radiation plugin #1454
+   - compile issues with math in radiation #1552
+   - documentation of radiation observer setup #1422
+   - gamma filter in radiation plugin #1421
+   - CUDA 7.0+ warning in `PhaseSpace` #750
+   - saveguard radiaion plugin restart #716
+   - racecondition in `ConcatListOfFrames` #1278
+   - illegal memory acces in `Visualisation` #1526
+   - HDF5 restart: particle offset overflow fixed #721
+ - tools:
+   - mpiInfo: add missing include #786
+   - actually exit when pression no in compilesuite #1411
+   - fix incorrect mangling of params  #1385
+   - remove deprecated throw declarations #1003
+   - make tool python3 compatible #1416
+   - trace generating tool #1264
+   - png2gas memory leak fixed #1222
+   - tbg: quoting interpretation #801
+   - live visualization (3D):
+     - client F12 for menu #1408
+   - heating tool supports multi species #729
+   - fix numerical heating tool normalization #825
+   - fix logic behind fill color of numerical heating tool #779
+ - libSplash minimum version check #1284
+
+**Misc:**
+ - 2D3V simulations are now honoring the cell "depth" in z to make
+   density interpretations easier #1569
+ - update documentation for dependencies and installation #1556, 1557, #1559, #1127
+ - refactor usage of several math functions #1462, #1468
+ - FieldJ interface clear() replaced with an explicit assign(x) #1335
+ - templates for known systems updated:
+   - renaming directories into "cluster-insitutition"
+   - tbg copies cmakeFlags now #1101
+   - tbg abort if mkdir for run fails #797
+   - *tpl & *.profile.example files updated
+   - system updates: Lawrencium (LBNL), Titan/Rhea (ORNL) #937 #1266 #1297 #1329 #1364 #1426 #1512, Piz Daint #1443 #1493
+ - update *.tpl etc. for taurus/ZIH/TU Dresden/Germany (slurm based HPC) #1081 #1130  #1114 #1116 #1111 #1137
+   (put all systems in one, see tbg system template update above)
+ - replace deprecated CUDA calls #758
+ - remove support for CUDA devices with `sm_10`, `sm_11`, `sm_12` and `sm_13` #813
+ - remove unused/unsupported/broken plugins #773 843
+   - IntensityPlugin, LiveViewPlugin(2D), SumCurrents, divJ #843
+ - refactor `value_identifier` #964
+ - remove native type `double` and `float` #985 #990
+ - remove `__startAtomicTransaction()` #1233
+ - remove `__syncthreads()` after shared memory allocation #1082
+ - refactor `ParticleBox` interface #1243
+ - rotating root in `GatherSlice` (reduce load of master node) #992
+ - reduce `GatherSlice` memory footprint #1282
+ - remove ionize `None` #1238
+ - remove `pusher::None` #1227
+ - remove math function implementations from `Vector.hpp`
+ - remove unused defines #921
+ - remove deprecated thow declaration #918
+ - remove invalid `typename` #917 #933
+ - rename particle algorithms from `...clone...` to `...derive...`  #1525
+ - remove math functions from Vector.hpp  #1472
+ - raditation plugin remove `unint` with `uint32_t` #1007
+ - GoL example:
+   - CMake modernized #1138
+ - INSTALL.md
+   - moved from /doc/ to /
+   - now in root of the repo #1521
+   - add environment variable PICHOME #1162
+   - more portable #1164
+   - arch linux instructions #1065
+ - shipped third party updates:
+   - cmake-modules updated #1310 #1533
+ - refactor ionization towards independence from `Particle` class #874
+ - update submit templates for hypnos #860 #861 #862
+ - doxygen config and code modernized #1371 #1388
+ - cleanup of stdlib includes #1342 #1346 #1347 #1348 #1368 #1389
+ - boost 1.60.0 only builds in C++11 mode #1315 #1324 #1325
+ - update minimal CMake version to 3.1.0 #1289
+ - simplify HostMemAssigner #1320
+ - add asserts to cuSTL containers #1248
+ - rename TwistVectorAxes -> TwistComponents (cuSTL) #893
+ - add namespace qualifier #839 #969, #847
+ - cleanup code #885 #814 #815 #915 #920 #1027 #1011 #1009
+ - correct spelling #934 #938 #941
+- add compile test for ALL pushers #1205
+- tools:
+  - adjust executable rights and shebang #1110 #1107 #1104 #1085 #1143
+  - live visualization client added #681 #835
+ - improve vector type names in radiation plugin #998
+ - refactor radiation window function for 2D/3D #799
+ - CMake
+   - modernized #1139
+   - only allow out-of-source builds #1119
+   - cleanup score-p section #1413
+   - add `OpenMP` support #904
+ - third party updates:
+   - restructured #717
+   - cuda_memtest #770 #1159
+   - CMake modules #1087
+- removed several -Wshadow warnings #1039 #1061 #1070 #1071
+
+
 0.1.0
 -----
 **Date:** 2015-05-21
