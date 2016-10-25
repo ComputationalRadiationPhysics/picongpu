@@ -30,38 +30,14 @@ namespace picongpu
     /** Unit of length */
     BOOST_CONSTEXPR_OR_CONST float_64 UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
 
-#if(SIMDIM==DIM3)
-    namespace SI
-    {
-        /** density normed to dimension of the simulation*/
-        BOOST_CONSTEXPR_OR_CONST float_64  GAS_DENSITY_NORMED= SI::GAS_DENSITY_SI;
-    } //namespace SI
-
     namespace particles
     {
         /** Number of particles per makro particle (= macro particle weighting)
          *  unit: none */
-        BOOST_CONSTEXPR_OR_CONST float_X TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE = float_64(SI::GAS_DENSITY_NORMED*SI::CELL_WIDTH_SI*SI::CELL_HEIGHT_SI *SI::CELL_DEPTH_SI )
-                                    / float_64(particles::TYPICAL_PARTICLES_PER_CELL);
+        BOOST_CONSTEXPR_OR_CONST float_X TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE =
+            float_64( SI::GAS_DENSITY_SI * SI::CELL_WIDTH_SI * SI::CELL_HEIGHT_SI * SI::CELL_DEPTH_SI ) /
+            float_64( particles::TYPICAL_PARTICLES_PER_CELL );
     }
-
-#elif(SIMDIM==DIM2)
-    namespace SI
-    {
-        /** density normed to dimension of the simulation
-         *
-         * http://www.tf.uni-kiel.de/matwis/amat/mw1_ge/kap_6/basics/m6_2_1.html
-         */
-        BOOST_CONSTEXPR_OR_CONST float_64  GAS_DENSITY_NORMED= SI::GAS_DENSITY_SI*UNIT_LENGTH;
-    } //namespace SI
-    namespace particles
-    {
-        /** Number of particles per makro particle (= macro particle weighting)
-         *  unit: none */
-        BOOST_CONSTEXPR_OR_CONST float_X TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE = float_64(SI::GAS_DENSITY_NORMED*SI::CELL_WIDTH_SI*SI::CELL_HEIGHT_SI )
-                                    / float_64(particles::TYPICAL_PARTICLES_PER_CELL);
-    }
-#endif
 
 
     /** Unit of mass */
