@@ -451,22 +451,6 @@ private:
         ColTypeDouble ctDouble;
         SplashFloatXType splashFloatXType;
 
-        // stupid work-around to create a group with libSplash 1.4.0
-        GridController<simDim>& gc = Environment<simDim>::get().GridController();
-        const Dimensions numEntries( gc.getGlobalSize(), 1, 1 );
-        const Dimensions myOffset( gc.getGlobalRank(), 0, 0 );
-        const Dimensions myEntries( 1, 1, 1 );
-        const uint64_t dummy( 0 );
-
-        params->dataCollector->write(
-            params->currentStep,
-            numEntries,
-            myOffset,
-            ctUInt64, 1,
-            myEntries,
-            (recordPath + std::string("/dummy")).c_str(),
-            &dummy);
-
         /* openPMD base standard
          *   write constant record
          */
