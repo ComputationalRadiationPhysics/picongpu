@@ -18,9 +18,25 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
-# Tesla C2070 queue on kepler018 & kepler019
+
+# PIConGPU batch script for hypnos PBS batch system
+
+#PBS -q !TBG_queue
+#PBS -l walltime=!TBG_wallTime
+# Sets batch job's name
+#PBS -N !TBG_jobName
+#PBS -l nodes=!TBG_nodes:ppn=!TBG_coresPerNode
+# send me mails on job (b)egin, (e)nd, (a)bortion or (n)o mail
+#PBS -m !TBG_mailSettings -M !TBG_mailAddress
+#PBS -d !TBG_dstPath
+#PBS -n
+
+#PBS -o stdout
+#PBS -e stderr
+
 
 ## calculation are done by tbg ##
+# Tesla C2070 queue on kepler018 & kepler019
 TBG_queue="k20f"
 
 # settings that can be controlled by environment variables before submit
@@ -37,21 +53,6 @@ TBG_coresPerNode="$(( TBG_gpusPerNode * 2 ))"
 # use ceil to caculate nodes
 TBG_nodes="$(( ( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
 ## end calculations ##
-
-# PIConGPU batch script for hypnos PBS batch system
-
-#PBS -q !TBG_queue
-#PBS -l walltime=!TBG_wallTime
-# Sets batch job's name
-#PBS -N !TBG_jobName
-#PBS -l nodes=!TBG_nodes:ppn=!TBG_coresPerNode
-# send me mails on job (b)egin, (e)nd, (a)bortion or (n)o mail
-#PBS -m !TBG_mailSettings -M !TBG_mailAddress
-#PBS -d !TBG_dstPath
-#PBS -n
-
-#PBS -o stdout
-#PBS -e stderr
 
 echo 'Running program...'
 

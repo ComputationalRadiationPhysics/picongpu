@@ -18,18 +18,6 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
-## calculations will be performed by tbg ##
-TBG_queue="batch"
-
-# settings that can be controlled by environment variables before submit
-TBG_mailSettings=${MY_MAILNOTIFY:-"n"}
-TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
-TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
-TBG_nameProject=${proj:-""}
-
-# use ceil to caculate nodes
-TBG_nodes=!TBG_tasks
-## end calculations ##
 
 # PIConGPU batch script for titan aka jaguar PBS batch system
 
@@ -48,6 +36,20 @@ TBG_nodes=!TBG_tasks
 
 #PBS -l gres=atlas1%atlas2
 
+
+## calculations will be performed by tbg ##
+TBG_queue="batch"
+
+# settings that can be controlled by environment variables before submit
+TBG_mailSettings=${MY_MAILNOTIFY:-"n"}
+TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
+TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
+TBG_nameProject=${proj:-""}
+
+# use ceil to caculate nodes
+TBG_nodes=!TBG_tasks
+## end calculations ##
+    
 echo 'Running program...'
 echo !TBG_jobName
 
