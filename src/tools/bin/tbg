@@ -50,7 +50,7 @@ function tooltpl_replace
            #echo "$tooltpl_dst $tooltpl_src_esc $tooltpl_src " > /dev/stderr
            #replace templates but only if variable name followed by a non Alphanumeric character [a-zA-Z0-9]
            #replace templates which has variable tooltpl_dst at end of line
-           tooltpl_replace_data=`echo "$tooltpl_replace_data" | sed "s/\!$tooltpl_dst\([^[:alnum:]_]\{1,\}\)/$tooltpl_src_esc\1/g ; s/\!$tooltpl_dst$/$tooltpl_src_esc/g"`
+           tooltpl_replace_data=`echo "$tooltpl_replace_data" | sed "s/\!$tooltpl_dst\([^[:alnum:]_]\{1,1\}\)/$tooltpl_src_esc\1/g ; s/\!$tooltpl_dst$/$tooltpl_src_esc/g"`
         fi
         if [ $? -ne 0 ] ; then
             echo "$tooltpl_src_esc"
