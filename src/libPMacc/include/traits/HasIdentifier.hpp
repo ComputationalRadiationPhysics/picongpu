@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include "static_assert.hpp"
+
 namespace PMacc
 {
 namespace traits
@@ -34,10 +36,17 @@ namespace traits
  * @tparam T_Key a class which is used as identifier
  *
  * This struct must define
- * ::type (boost::bool_<>)
+ * ::type (boost::mpl::bool_<>)
  */
 template<typename T_Object, typename T_Key>
-struct HasIdentifier;
+struct HasIdentifier
+{
+    PMACC_CASSERT_MSG_TYPE(
+        ___HasIdentifier_is_not_specialized_for_T_Object,
+        T_Object,
+        false
+    );
+};
 
 template<typename T_Object, typename T_Key>
 bool hasIdentifier(const T_Object& obj,const T_Key& key)
