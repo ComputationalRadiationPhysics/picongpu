@@ -367,10 +367,8 @@ cd "$job_outDir"
 
 solved_variables=`run_cfg_and_get_solved_variables "$TBG_cfgFile" tooltpl_file_data tooltpl_overwrite`
 
-
-#delete alle variable definitions with TBG at begin
-tooltpl_file_data_cleaned=`echo "$tooltpl_file_data" |  grep -v "^[[:alpha:]][[:alnum:]_]*=.*"`
-batch_file=`tooltpl_replace tooltpl_file_data_cleaned solved_variables`
+#replace tbg variables in the original template file
+batch_file=`tooltpl_replace tooltpl_file_data solved_variables`
 
 if [ ! -z "$tooltpl_file" ] ; then
     # preserve file attributes/permissions
