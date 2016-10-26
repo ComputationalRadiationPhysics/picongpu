@@ -18,6 +18,31 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
+
+# PIConGPU batch script for LBL lawrencium's SLURM batch system
+#   https://sites.google.com/a/lbl.gov/high-performance-computing-services-group/lbnl-supercluster/lawrencium
+
+#SBATCH --partition=!TBG_queue
+#SBATCH --time=!TBG_wallTime
+# Sets batch job's name
+#SBATCH --job-name=!TBG_jobName
+#SBATCH --nodes=!TBG_nodes
+#SBATCH --ntasks-per-node=!TBG_mpiTasksPerNode
+#SBATCH --cpus-per-task=!TBG_coresPerGPU
+#SBATCH --mem-per-cpu=!TBG_memPerCPU
+#SBATCH --constraint=!TBG_feature
+#SBATCH --qos=!TBG_qos
+# send me mails on BEGIN, END, FAIL, REQUEUE, ALL,
+# TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
+#SBATCH --mail-type=!TBG_mailSettings
+#SBATCH --mail-user=!TBG_mailAddress
+#SBATCH --workdir=!TBG_dstPath
+#SBATCH --account=!TBG_account
+
+#SBATCH -o stdout
+#SBATCH -e stderr
+
+
 ## calculations will be performed by tbg ##
 
 TBG_queue="mako_manycore"
@@ -46,29 +71,6 @@ TBG_nodes="$(( ( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
 TBG_memPerCPU="$(( 24000 / TBG_gpusPerNode ))M"
 
 ## end calculations ##
-
-# PIConGPU batch script for LBL lawrencium's SLURM batch system
-#   https://sites.google.com/a/lbl.gov/high-performance-computing-services-group/lbnl-supercluster/lawrencium
-
-#SBATCH --partition=!TBG_queue
-#SBATCH --time=!TBG_wallTime
-# Sets batch job's name
-#SBATCH --job-name=!TBG_jobName
-#SBATCH --nodes=!TBG_nodes
-#SBATCH --ntasks-per-node=!TBG_mpiTasksPerNode
-#SBATCH --cpus-per-task=!TBG_coresPerGPU
-#SBATCH --mem-per-cpu=!TBG_memPerCPU
-#SBATCH --constraint=!TBG_feature
-#SBATCH --qos=!TBG_qos
-# send me mails on BEGIN, END, FAIL, REQUEUE, ALL,
-# TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
-#SBATCH --mail-type=!TBG_mailSettings
-#SBATCH --mail-user=!TBG_mailAddress
-#SBATCH --workdir=!TBG_dstPath
-#SBATCH --account=!TBG_account
-
-#SBATCH -o stdout
-#SBATCH -e stderr
 
 echo 'Running program...'
 

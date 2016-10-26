@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # Copyright 2013-2016 Axel Huebl, Richard Pausch
-# 
-# This file is part of PIConGPU. 
-# 
+#
+# This file is part of PIConGPU.
+#
 # PIConGPU is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
 # PIConGPU is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of 
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
@@ -17,6 +17,29 @@
 # along with PIConGPU.
 # If not, see <http://www.gnu.org/licenses/>.
 #
+
+
+# PIConGPU batch script for taurus' SLURM batch system
+
+#SBATCH --partition=!TBG_queue
+#SBATCH --time=!TBG_wallTime
+# Sets batch job's name
+#SBATCH --job-name=!TBG_jobName
+#SBATCH --nodes=!TBG_nodes
+#SBATCH --ntasks=!TBG_tasks
+#SBATCH --mincpus=!TBG_mpiTasksPerNode
+#SBATCH --cpus-per-task=!TBG_coresPerGPU
+#SBATCH --mem-per-cpu=3000
+#SBATCH --gres=gpu:!TBG_gpusPerNode
+# send me mails on BEGIN, END, FAIL, REQUEUE, ALL,
+# TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
+#SBATCH --mail-type=!TBG_mailSettings
+#SBATCH --mail-user=!TBG_mailAddress
+#SBATCH --workdir=!TBG_dstPath
+
+#SBATCH -o stdout
+#SBATCH -e stderr
+
 
 ## calculations will be performed by tbg ##
 TBG_queue="gpu1"
@@ -40,27 +63,6 @@ TBG_mpiTasksPerNode="$(( TBG_gpusPerNode * 1 ))"
 TBG_nodes="$((( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
 
 ## end calculations ##
-
-# PIConGPU batch script for taurus' SLURM batch system
-
-#SBATCH --partition=!TBG_queue
-#SBATCH --time=!TBG_wallTime
-# Sets batch job's name
-#SBATCH --job-name=!TBG_jobName
-#SBATCH --nodes=!TBG_nodes
-#SBATCH --ntasks=!TBG_tasks
-#SBATCH --mincpus=!TBG_mpiTasksPerNode
-#SBATCH --cpus-per-task=!TBG_coresPerGPU
-#SBATCH --mem-per-cpu=3000
-#SBATCH --gres=gpu:!TBG_gpusPerNode
-# send me mails on BEGIN, END, FAIL, REQUEUE, ALL,
-# TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
-#SBATCH --mail-type=!TBG_mailSettings
-#SBATCH --mail-user=!TBG_mailAddress
-#SBATCH --workdir=!TBG_dstPath
-
-#SBATCH -o stdout
-#SBATCH -e stderr
 
 echo 'Running program...'
 
