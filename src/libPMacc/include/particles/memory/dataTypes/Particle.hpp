@@ -34,6 +34,7 @@
 #include "particles/operations/CopyIdentifier.hpp"
 #include "algorithms/ForEach.hpp"
 #include "RefWrapper.hpp"
+#include "static_assert.hpp"
 
 #include "particles/operations/Assign.hpp"
 #include "particles/operations/Deselect.hpp"
@@ -110,6 +111,12 @@ struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
     >::type
     operator[](const T_Key key)
     {
+        PMACC_CASSERT_MSG_TYPE(
+            key_not_available,
+            T_Key,
+            traits::HasIdentifier< Particle, T_Key >::type::value
+        );
+
         return frame->getIdentifier(key)[idx];
     }
 
@@ -123,6 +130,11 @@ struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
     >::type
     operator[](const T_Key key) const
     {
+        PMACC_CASSERT_MSG_TYPE(
+            key_not_available,
+            T_Key,
+            traits::HasIdentifier< Particle, T_Key >::type::value
+        );
 
         return frame->getIdentifier(key)[idx];
     }
@@ -139,19 +151,30 @@ private:
 namespace traits
 {
 
-template<typename T_Key,
-typename T_FrameType
+template<
+typename T_Key,
+typename T_FrameType,
+typename T_ValueTypeSeq
 >
 struct HasIdentifier<
-PMacc::Particle<T_FrameType>,
+PMacc::Particle< T_FrameType, T_ValueTypeSeq >,
 T_Key
 >
 {
 private:
-    typedef T_FrameType FrameType;
+    typedef PMacc::Particle<T_FrameType, T_ValueTypeSeq> ParticleType;
+    typedef typename ParticleType::ValueTypeSeq ValueTypeSeq;
 public:
-    typedef typename HasIdentifier<FrameType, T_Key>::type type;
-    BOOST_STATIC_CONSTEXPR bool value = type::value;
+    /* If T_Key can not be found in the T_ValueTypeSeq of this Particle class,
+     * SolvedAliasName will be void_.
+     * Look-up is also valid if T_Key is an alias.
+     */
+    typedef typename GetKeyFromAlias<
+        ValueTypeSeq,
+        T_Key
+    >::type SolvedAliasName;
+
+    typedef bmpl::contains<ValueTypeSeq, SolvedAliasName> type;
 };
 } //namespace traits
 
