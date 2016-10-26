@@ -312,7 +312,7 @@ void ToolsSplashParallel::convertToText()
         {
             try
             {
-                dc.readAttribute(m_options.step, iter->c_str(), "sim_unit",
+                dc.readAttribute(m_options.step, iter->c_str(), "unitSI",
                         &(excontainer.unit), NULL);
             } catch (const DCException&)
             {
