@@ -69,7 +69,7 @@ function run_cfg_and_get_solved_variables
     #append template file variable definitions and solve them
     while read -r data_set
     do
-        eval "$data_set"
+        eval "$data_set" &> /dev/null
     done < <(echo "$tooltpl_file_data" | grep "^[[:blank:]]*[[:alpha:]][[:alnum:]_]*=.*")
 
     #read and evaluate extra options from parameter -o
