@@ -7,7 +7,8 @@ Change Log / Release Log for PIConGPU
 
 Release Title for Beta (Axel)
 
-openPMD, ADIOS, Radiation Reaction, Tracking, advanced field ionization, ...
+openPMD, ADIOS, Radiation Reaction, Tracking, advanced field ionization,
+plugin multi-species namings & output dirs...
 
 Release Short description (Axel)
 
@@ -41,6 +42,16 @@ Input file changes: the generalized versions of input files are as always in
  - add new param file: `synchrotronPhotons.param` #1354
  - improve the CFL condition depending on dimension in KHI example #774
  - add laserPolynom as option to `componentsConfig.param` #772
+
+**tbg: template syntax**
+
+Please be aware that templates (`.tpl`) used by `tbg` for job submission
+changed slightly. Simply use the new system-wise templates from
+`src/picongpu/submit/`. #695 #1609
+
+Due to unifications in our command line options (plugins) and multi-species
+support, please update your `.cfg` files with the new namings. Please visit
+`doc/TBG_macros.cfg` and our wiki for examples.
 
 **New Features:**
  - current interpolation/smoothing added #888
@@ -293,7 +304,11 @@ Input file changes: the generalized versions of input files are as always in
    - make tool python3 compatible #1416
    - trace generating tool #1264
    - png2gas memory leak fixed #1222
-   - tbg: quoting interpretation #801
+   - tbg:
+     - quoting interpretation #801
+     - variable assignments stay in `.start` files #695 #1609
+     - multiple variable use in one line possible #699 #1610
+     - failing assignments at template evaluation time keep vars undefined #1611
    - heating tool supports multi species #729
    - fix numerical heating tool normalization #825
    - fix logic behind fill color of numerical heating tool #779
