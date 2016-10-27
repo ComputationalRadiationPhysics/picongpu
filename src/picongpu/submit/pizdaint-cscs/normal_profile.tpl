@@ -18,6 +18,27 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
+
+# PIConGPU batch script for pizdaint SLURM batch system
+
+#SBATCH --partition=!TBG_queue
+#SBATCH --time=!TBG_wallTime
+# Sets batch job's name
+#SBATCH --job-name=!TBG_jobName
+#SBATCH --nodes=!TBG_nodes
+#SBATCH --ntasks-per-node=!TBG_mpiTasksPerNode
+#SBATCH --cpus-per-task=!TBG_coresPerGPU
+#SBATCH --ntasks-per-core=1
+#SBATCH --gres=gpu:!TBG_gpusPerNode
+# send me mails on BEGIN, END, FAIL, REQUEUE, ALL,
+# TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
+#SBATCH --mail-type=!TBG_mailSettings
+#SBATCH --mail-user=!TBG_mailAddress
+
+#SBATCH -o stdout
+#SBATCH -e stderr
+
+
 ## calculations will be performed by tbg ##
 TBG_queue="normal"
 
@@ -40,25 +61,6 @@ TBG_mpiTasksPerNode=1
 TBG_nodes=!TBG_tasks
 
 ## end calculations ##
-
-# PIConGPU batch script for pizdaint SLURM batch system
-
-#SBATCH --partition=!TBG_queue
-#SBATCH --time=!TBG_wallTime
-# Sets batch job's name
-#SBATCH --job-name=!TBG_jobName
-#SBATCH --nodes=!TBG_nodes
-#SBATCH --ntasks-per-node=!TBG_mpiTasksPerNode
-#SBATCH --cpus-per-task=!TBG_coresPerGPU
-#SBATCH --ntasks-per-core=1
-#SBATCH --gres=gpu:!TBG_gpusPerNode
-# send me mails on BEGIN, END, FAIL, REQUEUE, ALL,
-# TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
-#SBATCH --mail-type=!TBG_mailSettings
-#SBATCH --mail-user=!TBG_mailAddress
-
-#SBATCH -o stdout
-#SBATCH -e stderr
 
 echo 'Running program...'
 
