@@ -26,7 +26,7 @@ cmake_minimum_required(VERSION 3.1.0)
 
 
 ################################################################################
-# Project 
+# Project
 ################################################################################
 
 project(PIConGPU)
@@ -68,7 +68,7 @@ else()
 endif()
 
 ################################################################################
-# Find CUDA 
+# Find CUDA
 ################################################################################
 
 find_package(CUDA 5.0 REQUIRED)
@@ -207,7 +207,7 @@ include_directories(SYSTEM ${MPI_C_INCLUDE_PATH})
 set(LIBS ${LIBS} ${MPI_C_LIBRARIES})
 
 # bullxmpi fails if it can not find its c++ counter part
-if(MPI_CXX_FOUND) 
+if(MPI_CXX_FOUND)
     set(LIBS ${LIBS} ${MPI_CXX_LIBRARIES})
 endif(MPI_CXX_FOUND)
 
@@ -252,14 +252,16 @@ if( (Boost_VERSION EQUAL 106000) AND
                         "`-std=c++11` when compiling with Boost 1.60.0")
 endif()
 
-# Boost 1.60.0 and CUDA releases prior to 7.5 fail on variadic templates
-# when used with C++11
-if( (Boost_VERSION EQUAL 106000) AND
-    (CUDA_VERSION VERSION_LESS 7.5) AND
+
+# Boost >= 1.60.0 and CUDA != 7.5 failed when used with C++11
+# seen with boost 1.60.0 - 1.62.0 (atm latest) and CUDA 7.0, 8.0 (atm latest)
+# CUDA 7.5 works without a workaround
+if( (Boost_VERSION GREATER 105999) AND
+    (NOT CUDA_VERSION VERSION_EQUAL 7.5) AND
     (NOT CMAKE_CXX_STANDARD EQUAL 98) )
     # Boost Bug https://svn.boost.org/trac/boost/ticket/11897
-    message(STATUS "Boost: Disable variadic templates")
-    add_definitions(-DBOOST_NO_CXX11_VARIADIC_TEMPLATES)
+    message(STATUS "Boost: Disable template aliases")
+    add_definitions(-DBOOST_NO_CXX11_TEMPLATE_ALIASES)
 endif()
 
 
@@ -294,7 +296,7 @@ set(LIBS ${LIBS} ${mallocMC_LIBRARIES})
 # PMacc options
 ################################################################################
 
-option(PMACC_BLOCKING_KERNEL 
+option(PMACC_BLOCKING_KERNEL
        "Activate checks for every kernel call and synchronize after every kernel call" OFF)
 if(PMACC_BLOCKING_KERNEL)
     add_definitions(-DPMACC_SYNC_KERNEL=1)
@@ -487,7 +489,7 @@ install(TARGETS picongpu
 
 #file(GLOB scripts_to_copy "${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.sh")
 #foreach(f ${scripts_to_copy})
-#   GET_FILENAME_COMPONENT(file_name ${f} NAME CACHE)                                 
+#   GET_FILENAME_COMPONENT(file_name ${f} NAME CACHE)
 #   install(FILES "${f}" DESTINATION bin PERMISSIONS OWNER_EXECUTE OWNER_READ
 #           OWNER_WRITE GROUP_READ GROUP_EXECUTE)
 #endforeach(f)
@@ -495,12 +497,12 @@ install(TARGETS picongpu
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/scripts/" DESTINATION bin
     FILES_MATCHING PATTERN "*"
     PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE GROUP_READ GROUP_EXECUTE
-    PATTERN .svn EXCLUDE   
+    PATTERN .svn EXCLUDE
 )
 
 # If the installation prefix does not equal extension path, check if folder must be copied.
 # If there is no include folder in installation prefix, also copy all missing folders.
-if( (NOT "${CMAKE_INSTALL_PREFIX}" STREQUAL "${PIC_EXTENSION_PATH}") OR 
+if( (NOT "${CMAKE_INSTALL_PREFIX}" STREQUAL "${PIC_EXTENSION_PATH}") OR
     (NOT EXISTS "${CMAKE_INSTALL_PREFIX}/include"))
 
     #copy all important subfolders to install folder
