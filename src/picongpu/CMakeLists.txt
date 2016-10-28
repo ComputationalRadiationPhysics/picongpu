@@ -53,21 +53,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
 
 
 ################################################################################
-# C++11 Enabler
-################################################################################
-
-# By using this if-else one can assume that:
-# CMAKE_CXX_STANDARD==11 <=> CUDA_NVCC_FLAGS contain "-std=c++11"
-if("${CUDA_NVCC_FLAGS}" MATCHES "-std=c\\+\\+11")
-    set(CMAKE_CXX_STANDARD 11)
-elseif("${CMAKE_CXX_STANDARD}" STREQUAL "11")
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" -std=c++11)
-else()
-    # Note: Add support for C++14 once CUDA supports it (maybe 8.0?)
-    set(CMAKE_CXX_STANDARD 98)
-endif()
-
-################################################################################
 # Find CUDA
 ################################################################################
 
@@ -83,6 +68,21 @@ string(COMPARE EQUAL ${CUDA_ARCH} "sm_10" IS_CUDA_ARCH_UNSUPPORTED)
 string(COMPARE EQUAL ${CUDA_ARCH} "sm_11" IS_CUDA_ARCH_UNSUPPORTED)
 string(COMPARE EQUAL ${CUDA_ARCH} "sm_12" IS_CUDA_ARCH_UNSUPPORTED)
 string(COMPARE EQUAL ${CUDA_ARCH} "sm_13" IS_CUDA_ARCH_UNSUPPORTED)
+
+################################################################################
+# C++11 Enabler
+################################################################################
+
+# By using this if-else one can assume that:
+# CMAKE_CXX_STANDARD==11 <=> CUDA_NVCC_FLAGS contain "-std=c++11"
+if("${CUDA_NVCC_FLAGS}" MATCHES "-std=c\\+\\+11")
+    set(CMAKE_CXX_STANDARD 11)
+elseif("${CMAKE_CXX_STANDARD}" STREQUAL "11")
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};-std=c++11")
+else()
+    # Note: Add support for C++14 once CUDA supports it (maybe 8.0?)
+    set(CMAKE_CXX_STANDARD 98)
+endif()
 
 if(IS_CUDA_ARCH_UNSUPPORTED)
     message(FATAL_ERROR "Unsupported CUDA architecture ${CUDA_ARCH} specified. "
