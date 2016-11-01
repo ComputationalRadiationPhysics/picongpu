@@ -69,20 +69,21 @@ string(COMPARE EQUAL ${CUDA_ARCH} "sm_11" IS_CUDA_ARCH_UNSUPPORTED)
 string(COMPARE EQUAL ${CUDA_ARCH} "sm_12" IS_CUDA_ARCH_UNSUPPORTED)
 string(COMPARE EQUAL ${CUDA_ARCH} "sm_13" IS_CUDA_ARCH_UNSUPPORTED)
 
-################################################################################
-# C++11 Enabler
-################################################################################
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-# By using this if-else one can assume that:
-# CMAKE_CXX_STANDARD==11 <=> CUDA_NVCC_FLAGS contain "-std=c++11"
-if("${CUDA_NVCC_FLAGS}" MATCHES "-std=c\\+\\+11")
-    set(CMAKE_CXX_STANDARD 11)
-elseif("${CMAKE_CXX_STANDARD}" STREQUAL "11")
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};-std=c++11")
-else()
-    # Note: Add support for C++14 once CUDA supports it (maybe 8.0?)
+if(CUDA_VERSION VERSION_LESS 7.5)
     set(CMAKE_CXX_STANDARD 98)
+else()
+    set(CMAKE_CXX_STANDARD 11)
+    # work-around for systems that do not put C++11 in the CMAKE_CXX_FLAGS,
+    # which is unfurtunately hiding the switch from FindCUDA
+    #   first seen on Red Hat Enterprise 7.2 (Power8) + GCC 4.8.5 + CMake 3.6.1
+    if(NOT "${CMAKE_CXX_FLAGS}" MATCHES "-std=c\\+\\+11")
+      list(APPEND CMAKE_CXX_FLAGS -std=c++11)
+    endif()
 endif()
+message(STATUS "Compiling as C++${CMAKE_CXX_STANDARD}...")
 
 if(IS_CUDA_ARCH_UNSUPPORTED)
     message(FATAL_ERROR "Unsupported CUDA architecture ${CUDA_ARCH} specified. "
@@ -111,13 +112,14 @@ if(CUDA_KEEP_FILES)
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" --keep --keep-dir "${PROJECT_BINARY_DIR}/nvcc_tmp")
 endif(CUDA_KEEP_FILES)
 
+# savety check for now in case someone plays with CMAKE_CXX_STANDARD
 if( (CUDA_VERSION VERSION_GREATER 7.0) AND
     (CMAKE_CXX_STANDARD EQUAL 98) )
     # Kind of invalid usage of floats in constant expressions
     # which causes problems in nvcc 7.5 and up:
     # https://github.com/ComputationalRadiationPhysics/picongpu/issues/1290
-    message(FATAL_ERROR "Please enable C++11 with
-                        `-std=c++11` or `-DCMAKE_CXX_STANDARD=11`
+    message(FATAL_ERROR "Please compile as C++11 with
+                        `-DCMAKE_CXX_STANDARD=11`
                         when compiling with nvcc 7.5")
 endif()
 
@@ -248,8 +250,8 @@ endif()
 if( (Boost_VERSION EQUAL 106000) AND
     (CMAKE_CXX_STANDARD EQUAL 98) )
     # Boost Bug https://svn.boost.org/trac/boost/ticket/11852
-    message(FATAL_ERROR "Boost: Please use a C++11 enabled Compiler with "
-                        "`-std=c++11` when compiling with Boost 1.60.0")
+    message(FATAL_ERROR "Boost 1.60.0: Please upgrade boost or use a C++11 "
+                        "enabled CUDA version (7.5+)")
 endif()
 
 
