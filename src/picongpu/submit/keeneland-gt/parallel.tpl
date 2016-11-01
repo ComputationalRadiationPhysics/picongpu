@@ -35,7 +35,7 @@
 
 
 ## calculation are done by tbg ##
-TBG_queue="parallel"
+.TBG_queue="parallel"
 
 # settings that can be controlled by environment variables before submit
 TBG_mailSettings=${MY_MAILNOTIFY:-"n"}
@@ -43,13 +43,13 @@ TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
 TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
 
 # 3 gpus per node if we need more than 3 gpus else same count as TBG_tasks
-TBG_gpusPerNode=`if [ $TBG_tasks -gt 3 ] ; then echo 3; else echo $TBG_tasks; fi`
+.TBG_gpusPerNode=`if [ $TBG_tasks -gt 3 ] ; then echo 3; else echo $TBG_tasks; fi`
 
 # use one core per gpu
-TBG_coresPerNode=$TBG_gpusPerNode
+.TBG_coresPerNode=$TBG_gpusPerNode
 
 # use ceil to caculate nodes
-TBG_nodes="$(( ( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
+.TBG_nodes="$(( ( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
 ## end calculations ##
 
 echo 'Running program...'
