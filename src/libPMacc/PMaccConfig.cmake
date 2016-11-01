@@ -29,7 +29,7 @@
 ###############################################################################
 # PMacc
 ###############################################################################
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.3.0)
 
 set(PMacc_INCLUDE_DIRS ${PMacc_INCLUDE_DIRS} "${PMacc_DIR}/include")
 
