@@ -37,21 +37,21 @@
 
 ## calculation are done by tbg ##
 # Tesla C2070 queue on kepler018 & kepler019
-TBG_queue="k20f"
+.TBG_queue="k20f"
 
 # settings that can be controlled by environment variables before submit
-TBG_mailSettings=${MY_MAILNOTIFY:-"n"}
-TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
-TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
+.TBG_mailSettings=${MY_MAILNOTIFY:-"n"}
+.TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
+.TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
 
 # 4 gpus per node if we need more than 4 gpus else same count as TBG_tasks
-TBG_gpusPerNode=`if [ $TBG_tasks -gt 4 ] ; then echo 4; else echo $TBG_tasks; fi`
+.TBG_gpusPerNode=`if [ $TBG_tasks -gt 4 ] ; then echo 4; else echo $TBG_tasks; fi`
 
 #number of cores per parallel node / default is 2 cores per gpu on k20 queue
-TBG_coresPerNode="$(( TBG_gpusPerNode * 2 ))"
+.TBG_coresPerNode="$(( TBG_gpusPerNode * 2 ))"
 
 # use ceil to caculate nodes
-TBG_nodes="$(( ( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
+.TBG_nodes="$(( ( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
 ## end calculations ##
 
 echo 'Running program...'
