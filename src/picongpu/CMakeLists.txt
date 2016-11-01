@@ -224,7 +224,7 @@ set(LIBS ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
 # Find Boost
 ################################################################################
 
-find_package(Boost 1.56.0 REQUIRED COMPONENTS program_options regex filesystem
+find_package(Boost 1.57.0 REQUIRED COMPONENTS program_options regex filesystem
                                               system thread math_tr1)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${Boost_LIBRARIES})

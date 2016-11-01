@@ -4,17 +4,17 @@ module purge
 #
 module load oscar-modules
 module load cmake/3.3.1 git
-module load cuda/7.0.28 # gcc <=4.9, intel 15.0
+module load cuda/7.5.18 # gcc <=4.9, intel 15.0
 module load bullxmpi
 module load gnuplot/4.6.1
 
 # Compilers ###################################################################
 ### GCC
-module load gcc/4.9.1 boost/1.56.0-gnu4.9.1
+module load gcc/5.1.0 boost/1.58.0-gnu5.1
 ### ICC
 #module load intel/2015.3.187 boost/1.59.0-intel2015.3.187
 ### PGI
-#export BOOST_ROOT=$HOME/lib/boost_1_56_pgi_14_9
+#export BOOST_ROOT=$HOME/lib/boost_1_57_pgi_14_9
 #export BOOST_INC=$BOOST_ROOT/include
 #export BOOST_LIB=$BOOST_ROOT/lib
 # must be set in `which <pgiDir>/bin/localrc`:
@@ -23,7 +23,7 @@ module load gcc/4.9.1 boost/1.56.0-gnu4.9.1
 
 # Other Software ##############################################################
 #
-module load hdf5/1.8.14
+module load hdf5/1.8.15-gcc-5.1.0
 module load zlib/1.2.8
 
 # Environment #################################################################
