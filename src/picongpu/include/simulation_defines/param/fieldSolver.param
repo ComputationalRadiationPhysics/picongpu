@@ -26,6 +26,22 @@
  *
  * You can set/modify Maxwell solver specific options in the
  * section of each "FieldSolver".
+ *
+ *
+ * \typedef CurrentInterpolation is used to set a method performing the
+ * interpolate/assign operation from the generated currents of particle
+ * species to the electro-magnetic fields.
+ *
+ * Allowed values are:
+ *   - None<simDim>:
+ *     - default for staggered grids/Yee-scheme
+ *     - updates E
+ *   - Binomial<simDim>: 2nd order Binomial filter
+ *     - smooths the current before assignment in staggered grid
+ *     - updates E & breaks local charge conservation slightly
+ *   - NoneDS<simDim>:
+ *     - experimental assignment for all-centered/directional splitting
+ *     - updates E & B at the same time
  */
 namespace picongpu
 {
