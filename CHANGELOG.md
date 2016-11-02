@@ -10,6 +10,9 @@ Release Title for Beta (Axel)
 openPMD, ADIOS, Radiation Reaction, Tracking, advanced field ionization,
 plugin multi-species namings & output dirs...
 
+last C++98 release (CUDA 5.5-7.0)
+first C++11 compatible release (CUDA 7.5-8.0)
+
 Release Short description (Axel)
 
 ### Changes to "0.1.0"
