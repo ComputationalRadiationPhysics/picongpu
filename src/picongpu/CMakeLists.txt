@@ -71,11 +71,10 @@ if(CUDA_VERSION VERSION_LESS 7.5)
     set(CMAKE_CXX_STANDARD 98)
 else()
     set(CMAKE_CXX_STANDARD 11)
-    # work-around for systems that do not put C++11 in the CMAKE_CXX_FLAGS,
-    # which is unfurtunately hiding the switch from FindCUDA
-    #   first seen on Red Hat Enterprise 7.2 (Power8) + GCC 4.8.5 + CMake 3.6.1
+    # work-around since the above flag does not necessarily put -std=c++11 in
+    # the CMAKE_CXX_FLAGS, which is unfurtunately hiding the switch from FindCUDA
     if(NOT "${CMAKE_CXX_FLAGS}" MATCHES "-std=c\\+\\+11")
-      list(APPEND CMAKE_CXX_FLAGS -std=c++11)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
     endif()
 endif()
 message(STATUS "Compiling as C++${CMAKE_CXX_STANDARD}...")
