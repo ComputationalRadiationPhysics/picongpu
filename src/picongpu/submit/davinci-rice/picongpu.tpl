@@ -43,9 +43,9 @@
 ## calculation are done by tbg ##
 
 # settings that can be controlled by environment variables before submit
-TBG_mailSettings=${MY_MAILNOTIFY:-"n"}
-TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
-TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}"
+.TBG_mailSettings=${MY_MAILNOTIFY:-"n"}
+.TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
+.TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}"
 
 ## end tbg calculation
 

@@ -40,25 +40,25 @@
 
 
 ## calculations will be performed by tbg ##
-TBG_queue="normal"
+.TBG_queue="normal"
 
 # settings that can be controlled by environment variables before submit
-TBG_mailSettings=${MY_MAILNOTIFY:-"ALL"}
-TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
-TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
+.TBG_mailSettings=${MY_MAILNOTIFY:-"ALL"}
+.TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
+.TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
 
 # 1 gpus per node
-TBG_gpusPerNode=1
+.TBG_gpusPerNode=1
 
 # number of cores to block per GPU - we got 8 cpus per gpu
 #   and we will be accounted 8 CPUs per GPU anyway
-TBG_coresPerGPU=8
+.TBG_coresPerGPU=8
 
 # We only start 1 MPI task per GPU
-TBG_mpiTasksPerNode=1
+.TBG_mpiTasksPerNode=1
 
 # use ceil to caculate nodes
-TBG_nodes=!TBG_tasks
+.TBG_nodes=!TBG_tasks
 
 ## end calculations ##
 
