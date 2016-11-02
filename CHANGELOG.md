@@ -47,13 +47,15 @@ Input file changes: the generalized versions of input files are as always in
 
 Please be aware that templates (`.tpl`) used by `tbg` for job submission
 changed slightly. Simply use the new system-wise templates from
-`src/picongpu/submit/`. #695 #1609
+`src/picongpu/submit/`. #695 #1609 #1618
 
 Due to unifications in our command line options (plugins) and multi-species
 support, please update your `.cfg` files with the new namings. Please visit
 `doc/TBG_macros.cfg` and our wiki for examples.
 
 **New Features:**
+ - description of 2D3V simulations is now scaled to a user-defined "dZ" depth
+   looking like a one-z-cell 3D simulation #249 #1569 #1601
  - current interpolation/smoothing added #888
  - add synchrotron radiation of photons from QED- and classical spectrum #1354 #1299 #1398
  - species attributes:
