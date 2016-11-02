@@ -212,19 +212,11 @@ __global__ void kernelPaintFields(
     typename EBox::ValueType field_e = fieldE(cell);
     typename JBox::ValueType field_j = fieldJ(cell);
 
-#if(SIMDIM==DIM3)
     field_j = float3_X(
                        field_j.x() * CELL_HEIGHT * CELL_DEPTH,
                        field_j.y() * CELL_WIDTH * CELL_DEPTH,
                        field_j.z() * CELL_WIDTH * CELL_HEIGHT
                        );
-#elif (SIMDIM==DIM2)
-    field_j = float3_X(
-                       field_j.x() * CELL_HEIGHT,
-                       field_j.y() * CELL_WIDTH,
-                       field_j.z() * CELL_WIDTH * CELL_HEIGHT
-                       );
-#endif
 
     // reset picture to black
     //   color range for each RGB channel: [0.0, 1.0]

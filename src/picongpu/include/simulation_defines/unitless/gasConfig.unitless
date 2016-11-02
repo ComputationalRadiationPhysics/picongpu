@@ -27,13 +27,8 @@
 namespace picongpu
 
 {
-#if(SIMDIM==DIM3)
-    BOOST_CONSTEXPR_OR_CONST float_X GAS_DENSITY = float_X(SI::GAS_DENSITY_NORMED*UNIT_LENGTH*UNIT_LENGTH*UNIT_LENGTH);
-#elif(SIMDIM==DIM2)
-    BOOST_CONSTEXPR_OR_CONST float_X GAS_DENSITY = float_X(SI::GAS_DENSITY_NORMED*UNIT_LENGTH*UNIT_LENGTH);
-#endif
-
-
-} //namespace picongpu
+    BOOST_CONSTEXPR_OR_CONST float_X GAS_DENSITY =
+        float_X( SI::GAS_DENSITY_SI * UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH );
+} // namespace picongpu
 
 #include "particles/gasProfiles/profiles.hpp"
