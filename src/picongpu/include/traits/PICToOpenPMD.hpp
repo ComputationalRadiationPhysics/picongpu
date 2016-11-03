@@ -36,7 +36,7 @@ namespace traits
     /** Reinterpret attributes for openPMD
      *
      * Currently, this conversion tables are used to translate the PIConGPU
-     * globalCellIdx (unitless cell index) to the openPMD positionOffset (length)
+     * totalCellIdx (unitless cell index) to the openPMD positionOffset (length)
      */
     template<typename T_Identifier>
     struct OpenPMDName;
