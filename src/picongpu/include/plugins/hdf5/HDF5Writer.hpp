@@ -390,11 +390,12 @@ private:
     static void *writeHDF5(void *p_args)
     {
         ThreadParams *threadParams = (ThreadParams*) (p_args);
-        const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
 
-        /* y direction can be negative for first gpu*/
-        DataSpace<simDim> particleOffset(localDomain.offset);
-        particleOffset.y() -= threadParams->window.globalDimensions.offset.y();
+        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+        DataSpace<simDim> domainOffset(
+            subGrid.getGlobalDomain().offset +
+            subGrid.getLocalDomain().offset
+        );
 
         /* write all fields */
         log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing fields.");
@@ -415,12 +416,12 @@ private:
         if (threadParams->isCheckpoint)
         {
             ForEach<FileCheckpointParticles, WriteSpecies<bmpl::_1> > writeSpecies;
-            writeSpecies(threadParams, particleOffset);
+            writeSpecies(threadParams, domainOffset);
         }
         else
         {
             ForEach<FileOutputParticles, WriteSpecies<bmpl::_1> > writeSpecies;
-            writeSpecies(threadParams, particleOffset);
+            writeSpecies(threadParams, domainOffset);
         }
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species.");
 
