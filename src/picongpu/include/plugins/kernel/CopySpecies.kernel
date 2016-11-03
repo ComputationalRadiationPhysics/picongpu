@@ -40,17 +40,31 @@ using namespace PMacc;
  * @tparam T_SrcBox type of the data box of source memory
  * @tparam T_Filter type of filer with particle selection rules
  * @tparam T_Space type of coordinate description
+ * @tparam T_Identifier type of identifier for the particle cellIdx
  * @tparam T_Mapping type of the mapper to map cuda idx to supercells
  *
  * @param counter pointer to a device counter to reserve memory in destFrame
  * @param destFrame frame were we store particles in host memory (no Databox<...>)
  * @param srcBox ParticlesBox with frames
  * @param filer filer with rules to select particles
- * @param particleOffset can be negative for the first GPU: localDomain.offset - globalWindow.offset
- * @param mapper apper to map cuda idx to supercells
+ * @param domainOffset offset to a user-defined domain. Can, e.g. be used to
+ *                     calculate a totalCellIdx relative to
+ *                     globalDomain.offset + localDomain.offset
+ * @param domainCellIdxIdentifier the identifier for the particle cellIdx
+ *                                that is calculated with respect to
+ *                                domainOffset
+ * @param mapper map cuda idx to supercells
  */
-template<class T_DestFrame, class T_SrcBox, class T_Filter, class T_Space, class T_Mapping>
-__global__ void copySpecies(int* counter, T_DestFrame destFrame, T_SrcBox srcBox, T_Filter filter, T_Space particleOffset, T_Mapping mapper)
+template<class T_DestFrame, class T_SrcBox, class T_Filter, class T_Space, class T_Identifier, class T_Mapping>
+__global__ void copySpecies(
+    int* counter,
+    T_DestFrame destFrame,
+    T_SrcBox srcBox,
+    T_Filter filter,
+    const T_Space domainOffset,
+    const T_Identifier domainCellIdxIdentifier,
+    const T_Mapping mapper
+)
 {
     using namespace PMacc::particles::operations;
 
@@ -94,11 +108,11 @@ __global__ void copySpecies(int* counter, T_DestFrame destFrame, T_SrcBox srcBox
         if (storageOffset != -1)
         {
             PMACC_AUTO(parDest, destFrame[globalOffset + storageOffset]);
-            PMACC_AUTO(parDestNoGlobalIdx, deselect<globalCellIdx<> >(parDest));
-            assign(parDestNoGlobalIdx, parSrc);
-            /*calculate global cell index*/
+            PMACC_AUTO(parDestNoDomainIdx, deselect<T_Identifier>(parDest));
+            assign(parDestNoDomainIdx, parSrc);
+            /* calculate cell index for user-defined domain */
             DataSpace<Mapping::Dim> localCell(DataSpaceOperations<Mapping::Dim>::template map<Block>(parSrc[localCellIdx_]));
-            parDest[globalCellIdx_] = particleOffset + superCellPosition + localCell;
+            parDest[domainCellIdxIdentifier] = domainOffset + superCellPosition + localCell;
         }
         __syncthreads();
         if (threadIdx.x == 0)
