@@ -78,10 +78,10 @@ public:
     typedef bmpl::vector2<multiMask, localCellIdx> TypesToDelete;
     typedef typename RemoveFromSeq<ParticleAttributeList, TypesToDelete>::type ParticleCleanedAttributeList;
 
-    /* add globalCellIdx for hdf5 particle*/
+    /* add totalCellIdx for hdf5 particle*/
     typedef typename MakeSeq<
-    ParticleCleanedAttributeList,
-    globalCellIdx<globalCellIdx_pic>
+        ParticleCleanedAttributeList,
+        totalCellIdx
     >::type ParticleNewAttributeList;
 
     typedef
@@ -106,6 +106,7 @@ public:
             std::string("particles/") + FrameType::getName() + std::string("/")
         );
         const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+        const PMacc::Selection<simDim>& globalDomain = Environment<simDim>::get().SubGrid().getGlobalDomain();
 
         // load particle without copying particle data to host
         ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(ThisSpecies::FrameType::getName(), true));
@@ -143,9 +144,9 @@ public:
          *      as its counterpart
          */
         const DataSpace<simDim> patchOffset =
+            globalDomain.offset +
             params->window.globalDimensions.offset +
-            params->window.localDimensions.offset +
-            params->localWindowToDomainOffset;
+            params->window.localDimensions.offset;
         const DataSpace<simDim> patchExtent =
             params->window.localDimensions.size;
 
@@ -189,11 +190,16 @@ public:
 
         if (totalNumParticles != 0)
         {
-            const uint32_t cellsInSuperCell = PMacc::math::CT::volume<SuperCellSize>::type::value;
-
-            PMacc::particles::operations::splitIntoListOfFrames(*speciesTmp, deviceFrame,
-                    totalNumParticles, restartChunkSize, cellsInSuperCell,
-                    localDomain.offset, *(params->cellDescription), picLog::INPUT_OUTPUT());
+            PMacc::particles::operations::splitIntoListOfFrames(
+                *speciesTmp,
+                deviceFrame,
+                totalNumParticles,
+                restartChunkSize,
+                globalDomain.offset + localDomain.offset,
+                totalCellIdx_,
+                *(params->cellDescription),
+                picLog::INPUT_OUTPUT()
+            );
 
             /*free host memory*/
             ForEach<typename Hdf5FrameType::ValueTypeSeq, FreeMemory<bmpl::_1> > freeMem;

@@ -85,10 +85,10 @@ public:
     typedef bmpl::vector<multiMask,localCellIdx> TypesToDelete;
     typedef typename RemoveFromSeq<ParticleAttributeList, TypesToDelete>::type ParticleCleanedAttributeList;
 
-    /* add globalCellIdx for hdf5 particle*/
+    /* add totalCellIdx for hdf5 particle*/
     typedef typename MakeSeq<
             ParticleCleanedAttributeList,
-            globalCellIdx<globalCellIdx_pic>
+            totalCellIdx
     >::type ParticleNewAttributeList;
 
     typedef
@@ -97,9 +97,12 @@ public:
 
     typedef Frame<OperatorCreateVectorBox, NewParticleDescription> Hdf5FrameType;
 
+    /**
+     * @param domainOffset offset to the local domain: globalDomain.offset + localDomain.offset
+     */
     template<typename Space>
     HINLINE void operator()(ThreadParams* params,
-                            const Space particleOffset)
+                            const Space domainOffset)
     {
         log<picLog::INPUT_OUTPUT > ("HDF5: (begin) write species: %1%") % Hdf5FrameType::getName();
         DataConnector &dc = Environment<>::get().DataConnector();
@@ -160,7 +163,8 @@ public:
                 (counterBuffer.getDeviceBuffer().getPointer(),
                  deviceFrame, speciesTmp->getDeviceParticlesBox(),
                  filter,
-                 particleOffset, /*relative to data domain (not to physical domain)*/
+                 domainOffset,
+                 totalCellIdx_,
                  mapper
                  );
             counterBuffer.deviceToHost();
@@ -346,13 +350,14 @@ public:
          *         global domain offsets (slides), etc.
          * extent: size of this particle patch, upper bound is excluded
          */
+        const PMacc::Selection<simDim>& globalDomain = Environment<simDim>::get().SubGrid().getGlobalDomain();
         const std::string name_lookup[] = {"x", "y", "z"};
         for (uint32_t d = 0; d < simDim; ++d)
         {
             const uint64_t patchOffset =
+                globalDomain.offset[d] +
                 params->window.globalDimensions.offset[d] +
-                params->window.localDimensions.offset[d] +
-                params->localWindowToDomainOffset[d];
+                params->window.localDimensions.offset[d];
             const uint64_t patchExtent =
                 params->window.localDimensions.size[d];
 
@@ -378,7 +383,7 @@ public:
             /* offsets and extent of the patch are positions (lengths)
              * and need to be scaled like the cell idx of a particle
              */
-            OpenPMDUnit<globalCellIdx<globalCellIdx_pic> > openPMDUnitCellIdx;
+            OpenPMDUnit<totalCellIdx> openPMDUnitCellIdx;
             std::vector<float_64> unitCellIdx = openPMDUnitCellIdx();
 
             params->dataCollector->writeAttribute(
@@ -397,7 +402,7 @@ public:
                 &(unitCellIdx.at(d)));
         }
 
-        OpenPMDUnitDimension<globalCellIdx<globalCellIdx_pic> > openPMDUnitDimension;
+        OpenPMDUnitDimension<totalCellIdx> openPMDUnitDimension;
         std::vector<float_64> unitDimensionCellIdx = openPMDUnitDimension();
 
         params->dataCollector->writeAttribute(
