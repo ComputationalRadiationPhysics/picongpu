@@ -62,13 +62,22 @@ namespace PMacc
 
         /**
          * Set offset of the local domain.
-         * (Note: this used to be called 'global offset')
          *
          * @param offset offset of local domain
          */
         void setLocalDomainOffset(const Size& offset)
         {
             localDomain = Selection<DIM>(localDomain.size, offset);
+        }
+
+        /**
+         * Set offset of the global domain.
+         *
+         * @param offset offset of global domain
+         */
+        void setGlobalDomainOffset(const Size& offset)
+        {
+            globalDomain = Selection<DIM>(globalDomain.size, offset);
         }
 
         /**
