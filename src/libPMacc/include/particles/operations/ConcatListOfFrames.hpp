@@ -39,8 +39,7 @@ namespace operations
  *   super-cell on the GPU to a single frame on the CPU RAM
  * - the deep on-GPU hierarchy must be copied to the CPU beforehand
  * - remove species attributes `multiMask` and `localCellIdx`
- * - add new attribute `globalCellIdx` (particle offset to begin of global
- *   moving window)
+ * - add new cellIdx attribute relative to a user-defined domain
  */
 template<unsigned T_dim>
 struct ConcatListOfFrames
@@ -59,12 +58,24 @@ struct ConcatListOfFrames
      * @param destFrame single frame were all particles are copied in
      * @param srcBox particle box were particles are read from
      * @param particleFilter filter to select particles
-     * @param localOffset Offset of the local domain, used to calculate globalCellIdx,
-     *                    can be negative for the first GPU: localDomain.offset - globalWindow.offset
+     * @param domainOffset offset to a user-defined domain. Can, e.g. be used to
+     *                     calculate a totalCellIdx, adding
+     *                     globalDomain.offset + localDomain.offset
+     * @param domainCellIdxIdentifier the identifier for the particle cellIdx
+     *                                that is calculated with respect to
+     *                                domainOffset
      * @param mapper mapper which describes the area where particles are copied from
      */
-    template<class T_DestFrame, class T_SrcBox, class T_Filter, class T_Space, class T_Mapping>
-    void operator()(int& counter, T_DestFrame destFrame, T_SrcBox srcBox, T_Filter particleFilter, T_Space localOffset, T_Mapping mapper)
+    template<class T_DestFrame, class T_SrcBox, class T_Filter, class T_Space, class T_Identifier, class T_Mapping>
+    void operator()(
+        int& counter,
+        T_DestFrame destFrame,
+        T_SrcBox srcBox,
+        const T_Filter particleFilter,
+        const T_Space domainOffset,
+        const T_Identifier domainCellIdxIdentifier,
+        const T_Mapping mapper
+    )
     {
         #pragma omp parallel for
         for (int linearBlockIdx = 0;
@@ -124,11 +135,11 @@ struct ConcatListOfFrames
                     {
                         PMACC_AUTO(parSrc, (srcFramePtr[threadIdx]));
                         PMACC_AUTO(parDest, destFrame[globalOffset + localIdxs[threadIdx]]);
-                        PMACC_AUTO(parDestNoGlobalIdx, deselect<globalCellIdx<> >(parDest));
-                        assign(parDestNoGlobalIdx, parSrc);
-                        /*calculate global cell index*/
+                        PMACC_AUTO(parDestNoDomainIdx, deselect<T_Identifier>(parDest));
+                        assign(parDestNoDomainIdx, parSrc);
+                        /* calculate cell index for user-defined domain */
                         DataSpace<Mapping::Dim> localCellIdx(DataSpaceOperations<Mapping::Dim>::template map<SuperCellSize>(parSrc[localCellIdx_]));
-                        parDest[globalCellIdx_] = localOffset + superCellPosition + localCellIdx;
+                        parDest[domainCellIdxIdentifier] = domainOffset + superCellPosition + localCellIdx;
                     }
                 }
                 /*get next frame in supercell*/
