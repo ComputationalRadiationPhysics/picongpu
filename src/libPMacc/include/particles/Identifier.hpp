@@ -47,10 +47,4 @@ value_identifier(lcellId_t,localCellIdx,0);
  */
 value_identifier(uint8_t,multiMask,0);
 
-/** Alias for the global cell index of a particle. Only used for particles in
- *  linearized memory. For particles in the linked list structure
- *  the global cell index is implicitly given by superCellIdx+localCellIdx
- */
-alias(globalCellIdx);
-
 } //namespace PMacc
