@@ -32,9 +32,10 @@
 #include <stdint.h>
 #include <iostream>
 #include <fstream>
+#include <limits>
 
-typedef PMacc::DataSpace<2> Space2D;
-typedef PMacc::DataSpace<3> Space3D;
+typedef PMacc::DataSpace<DIM2> Space2D;
+typedef PMacc::DataSpace<DIM3> Space3D;
 
 template<class T_DataBox, class T_Random>
 __global__ void RandomFiller(T_DataBox box, Space2D boxSize, T_Random rand, uint32_t numSamples)
@@ -73,6 +74,7 @@ private:
     PMACC_ALIGN8(rand, Random);
 };
 
+/** Write in PGM grayscale file format (easy to read/interpret) */
 template<class T_Buffer>
 void writePGM(const std::string& filePath, T_Buffer& buffer)
 {
@@ -87,20 +89,30 @@ void writePGM(const std::string& filePath, T_Buffer& buffer)
                 maxVal = val;
         }
     }
-    if(maxVal > 0xFFFF)
-        maxVal = 0xFFFF;
+    
+    // Standard format is single byte per value which limits the range to 0-255
+    // An extension allows 2 bytes so 0-65536)
+    if(maxVal > std::numeric_limits<uint16_t>::max())
+        maxVal = std::numeric_limits<uint16_t>::max();
+    const bool isTwoByteFormat = maxVal > std::numeric_limits<uint8_t>::max();
+    
     std::ofstream outFile(filePath.c_str());
+    // TAG
     outFile << "P5\n";
+    // Size and maximum value (at most 65536 which is 2 bytes per value)
     outFile << size.x() << " " << size.y() << " " << maxVal << "\n";
     for(int y=0; y<size.y(); y++)
     {
         for(int x=0; x<size.x(); x++)
         {
             uint32_t val = buffer.getDataBox()(Space2D(x, y));
+            // Clip value
             if(val > maxVal)
                 val = maxVal;
-            if(maxVal > 0xFF)
+            // Write first byte (higher order bits) if file is in 2 byte format
+            if(isTwoByteFormat)
                 outFile << uint8_t(val >> 8);
+            // Write remaining bytze
             outFile << uint8_t(val);
         }
     }
