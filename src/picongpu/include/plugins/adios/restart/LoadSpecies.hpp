@@ -70,10 +70,10 @@ public:
     typedef bmpl::vector2<multiMask, localCellIdx> TypesToDelete;
     typedef typename RemoveFromSeq<ParticleAttributeList, TypesToDelete>::type ParticleCleanedAttributeList;
 
-    /* add globalCellIdx for adios particle*/
+    /* add totalCellIdx for adios particle*/
     typedef typename MakeSeq<
-    ParticleCleanedAttributeList,
-    globalCellIdx<globalCellIdx_pic>
+        ParticleCleanedAttributeList,
+        totalCellIdx
     >::type ParticleNewAttributeList;
 
     typedef
@@ -166,9 +166,16 @@ public:
 
         if (totalNumParticles != 0)
         {
-            const uint32_t cellsInSuperCell = PMacc::math::CT::volume<SuperCellSize>::type::value;
-            PMacc::particles::operations::splitIntoListOfFrames(*speciesTmp, deviceFrame, totalNumParticles,
-                    restartChunkSize, cellsInSuperCell, localDomain.offset, *(params->cellDescription), picLog::INPUT_OUTPUT());
+            PMacc::particles::operations::splitIntoListOfFrames(
+                *speciesTmp,
+                deviceFrame,
+                totalNumParticles,
+                restartChunkSize,
+                localDomain.offset,
+                totalCellIdx_,
+                *(params->cellDescription),
+                picLog::INPUT_OUTPUT()
+            );
 
             /*free host memory*/
             ForEach<typename AdiosFrameType::ValueTypeSeq, FreeMemory<bmpl::_1> > freeMem;

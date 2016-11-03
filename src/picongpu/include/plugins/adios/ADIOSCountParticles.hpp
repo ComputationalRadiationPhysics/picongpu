@@ -39,7 +39,6 @@
 #include <boost/type_traits.hpp>
 
 #include "plugins/output/WriteSpeciesCommon.hpp"
-#include "plugins/kernel/CopySpecies.kernel"
 #include "mappings/kernel/AreaMapping.hpp"
 #include "math/Vector.hpp"
 
@@ -79,10 +78,10 @@ public:
     typedef bmpl::vector<multiMask,localCellIdx> TypesToDelete;
     typedef typename RemoveFromSeq<ParticleAttributeList, TypesToDelete>::type ParticleCleanedAttributeList;
 
-    /* add globalCellIdx for adios particle*/
+    /* add totalCellIdx for adios particle*/
     typedef typename MakeSeq<
             ParticleCleanedAttributeList,
-            globalCellIdx<globalCellIdx_pic>
+            totalCellIdx
     >::type ParticleNewAttributeList;
 
     typedef

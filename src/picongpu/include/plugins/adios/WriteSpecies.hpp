@@ -75,10 +75,10 @@ public:
     typedef bmpl::vector<multiMask,localCellIdx> TypesToDelete;
     typedef typename RemoveFromSeq<ParticleAttributeList, TypesToDelete>::type ParticleCleanedAttributeList;
 
-    /* add globalCellIdx for adios particle*/
+    /* add totalCellIdx for adios particle*/
     typedef typename MakeSeq<
-    ParticleCleanedAttributeList,
-    globalCellIdx<globalCellIdx_pic>
+        ParticleCleanedAttributeList,
+        totalCellIdx
     >::type ParticleNewAttributeList;
 
     typedef
@@ -139,6 +139,7 @@ public:
                                 speciesTmp->getHostParticlesBox(mallocMCBuffer.getOffset()),
                                 filter,
                                 particleOffset, /*relative to data domain (not to physical domain)*/
+                                totalCellIdx_,
                                 mapper
                                 );
             dc.releaseData(MallocMCBuffer::getName());
