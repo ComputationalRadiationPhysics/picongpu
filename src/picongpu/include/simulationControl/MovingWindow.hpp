@@ -362,7 +362,7 @@ public:
         Window window;
 
         window.localDimensions = subGrid.getLocalDomain();
-        window.globalDimensions = subGrid.getGlobalDomain();
+        window.globalDimensions = Selection<simDim>(subGrid.getGlobalDomain().size);
 
         return window;
     }
