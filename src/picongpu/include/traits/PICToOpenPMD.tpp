@@ -35,11 +35,11 @@ namespace traits
         }
     };
 
-    /** Translate the globalCellIdx (unitless index) into the openPMD
+    /** Translate the totalCellIdx (unitless index) into the openPMD
      *  positionOffset (3D position vector, length)
      */
-    template<typename T_Type>
-    struct OpenPMDName<globalCellIdx<T_Type> >
+    template<>
+    struct OpenPMDName<totalCellIdx>
     {
         std::string operator()() const
         {
@@ -58,12 +58,12 @@ namespace traits
         }
     };
 
-    /** the globalCellIdx can be converted into a positionOffset
+    /** the totalCellIdx can be converted into a positionOffset
      *  until the beginning of the cell by multiplying with the component-wise
      *  cell size in SI
      */
-    template<typename T_Type>
-    struct OpenPMDUnit<globalCellIdx<T_Type> >
+    template<>
+    struct OpenPMDUnit<totalCellIdx>
     {
         std::vector<double> operator()() const
         {
@@ -91,8 +91,8 @@ namespace traits
     /** the openPMD positionOffset is an actual (vector) with a lengths that
      *  is added to the position (vector) attribute
      */
-    template<typename T_Type>
-    struct OpenPMDUnitDimension<globalCellIdx<T_Type> >
+    template<>
+    struct OpenPMDUnitDimension<totalCellIdx>
     {
         std::vector<float_64> operator()() const
         {

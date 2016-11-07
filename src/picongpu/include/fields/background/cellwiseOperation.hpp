@@ -38,7 +38,7 @@ namespace cellwiseOperation
 
     /** Kernel that calls T_OpFunctor and T_ValFunctor on each cell of a field
      *
-     *  Pseudo code: opFunctor( cell, valFunctor( globalCellIdx, currentStep ) );
+     *  Pseudo code: opFunctor( cell, valFunctor( totalCellIdx, currentStep ) );
      *
      * \tparam T_OpFunctor like assign, add, subtract, ...
      * \tparam T_ValFunctor like "f(x,t)", "0.0", "readFromOtherField", ...

@@ -75,10 +75,14 @@ value_identifier(bool, radiationFlag, false);
  */
 value_identifier(float_X,boundElectrons,float_X(0.0));
 
-/** specialization global position inside a domain (relative to origin of the
- * moving window) and is loaded after all other param files)
+/** Total cell index of a particle.
+ *
+ *  The total cell index is a
+ *  N-dimensional DataSpace given by a GPU's
+ *    globalDomain.offset + localDomain.offset
+ *  added to the N-dimensional cell index the particle belongs to on that GPU.
  */
-value_identifier(DataSpace<simDim>,globalCellIdx_pic,DataSpace<simDim>());
+value_identifier(DataSpace<simDim>, totalCellIdx, DataSpace<simDim>());
 
 /*! alias for particle shape @see species.param */
 alias(shape);

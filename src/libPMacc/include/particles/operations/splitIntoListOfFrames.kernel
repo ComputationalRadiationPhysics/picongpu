@@ -42,20 +42,29 @@ namespace kernel
 /** Copy particles from big frame to PMacc frame structure
  *  (Opposite to ConcatListOfFrames)
  *
- * - convert globalCellIdx to localCellIdx
+ * - convert a user-defined domainCellIdx to localCellIdx
  * - processed particles per block <= number of cells per superCell
  *
  * @param counter box with three integer [srcParticleOffset, numLoadedParticles, numUsedFrames]
  * @param destBox particle box were all particles are copied to (destination)
  * @param srcFrame frame with particles (is used as source)
  * @param maxParticles number of particles in srcFrame
- * @param localDomainCellOffset offset in cells to global origin (@see wiki PIConGPU domain definitions)
+ * @param localDomainCellOffset offset in cells to user-defined domain (@see wiki PIConGPU domain definitions)
+ * @param domainCellIdxIdentifier the identifier for the particle domain cellIdx
+ *                                that is calculated back to the local domain
+ *                                with respect to localDomainCellOffset
  * @param cellDesc picongpu cellDescription
  */
-template<class T_CounterBox, class T_DestBox, class T_SrcFrame, class T_Space, class T_CellDescription>
-__global__ void splitIntoListOfFrames(T_CounterBox counter, T_DestBox destBox, T_SrcFrame srcFrame,
-                                        const int maxParticles,
-                                        T_Space localDomainCellOffset, T_CellDescription cellDesc)
+template<class T_CounterBox, class T_DestBox, class T_SrcFrame, class T_Space, class T_Identifier, class T_CellDescription>
+__global__ void splitIntoListOfFrames(
+    T_CounterBox counter,
+    T_DestBox destBox,
+    T_SrcFrame srcFrame,
+    const int maxParticles,
+    const T_Space localDomainCellOffset,
+    const T_Identifier domainCellIdxIdentifier,
+    const T_CellDescription cellDesc
+)
 {
     using namespace PMacc::particles::operations;
 
@@ -95,12 +104,13 @@ __global__ void splitIntoListOfFrames(T_CounterBox counter, T_DestBox destBox, T
 
     if (hasValidParticle)
     {
-        const DataSpace<NumDims> globalCellIdx = srcFrame[srcParticleIdx][globalCellIdx_]
+        // cell index on this GPU
+        const DataSpace<NumDims> gpuCellIdx = srcFrame[srcParticleIdx][domainCellIdxIdentifier]
                                                  - localDomainCellOffset;
-        superCellIdx = globalCellIdx / SuperCellSize::toRT();
+        superCellIdx = gpuCellIdx / SuperCellSize::toRT();
         myLinearSuperCellId = DataSpaceOperations<NumDims>::map(numSuperCells, superCellIdx);
         linearSuperCellIds[linearThreadIdx] = myLinearSuperCellId;
-        DataSpace<NumDims> localCellIdx(globalCellIdx - superCellIdx * SuperCellSize::toRT());
+        DataSpace<NumDims> localCellIdx(gpuCellIdx - superCellIdx * SuperCellSize::toRT());
         lCellIdx = DataSpaceOperations<NumDims>::template map<SuperCellSize>(localCellIdx);
     }
     __syncthreads();
@@ -148,24 +158,34 @@ __global__ void splitIntoListOfFrames(T_CounterBox counter, T_DestBox destBox, T
 /** Copy particles from big frame to PMacc frame structure
  *  (Opposite to ConcatListOfFrames)
  *
- * - convert globalCellIdx to localCellIdx
+ * - convert a user-defined domainCellIdx to localCellIdx
  * - processed particles per block <= number of cells per superCell
  *
  * @param destSpecies particle species instance whose deviceBuffer is written
  * @param srcFrame device frame with particles (is used as source)
  * @param numParticles number of particles in srcFrame
  * @param chunkSize number of particles to process in one kernel call
- * @param cellsInSuperCell number of cells per super cell
- * @param localDomainCellOffset offset in cells to global origin (@see wiki PIConGPU domain definitions)
+ * @param localDomainCellOffset offset in cells to user-defined domain (@see wiki PIConGPU domain definitions)
+ * @param domainCellIdxIdentifier the identifier for the particle domain cellIdx
+ *                                that is calculated back to the local domain
+ *                                with respect to localDomainCellOffset
  * @param cellDesc picongpu cellDescription
  * @param logLvl Log level used for information logging
  */
-template<class T_LogLvl, class T_DestSpecies, class T_SrcFrame, class T_Space, class T_CellDescription>
-HINLINE void splitIntoListOfFrames(T_DestSpecies& destSpecies, T_SrcFrame srcFrame,
-                                      uint32_t numParticles, uint32_t chunkSize, uint32_t cellsInSuperCell,
-                                      const T_Space& localDomainCellOffset, const T_CellDescription& cellDesc,
-                                      const T_LogLvl& logLvl = T_LogLvl())
+template<class T_LogLvl, class T_DestSpecies, class T_SrcFrame, class T_Space, class T_Identifier, class T_CellDescription>
+HINLINE void splitIntoListOfFrames(
+    T_DestSpecies& destSpecies,
+    T_SrcFrame srcFrame,
+    uint32_t numParticles,
+    const uint32_t chunkSize,
+    const T_Space& localDomainCellOffset,
+    const T_Identifier domainCellIdxIdentifier,
+    const T_CellDescription& cellDesc,
+    const T_LogLvl& logLvl = T_LogLvl()
+)
 {
+    const uint32_t cellsInSuperCell = PMacc::math::CT::volume<typename T_CellDescription::SuperCellSize>::type::value;
+
     /* counter is used to apply for work, count used frames and count loaded particles
      * [0] -> offset for loading particles
      * [1] -> number of loaded particles
@@ -189,7 +209,8 @@ HINLINE void splitIntoListOfFrames(T_DestSpecies& destSpecies, T_SrcFrame srcFra
             (counterBuffer.getDeviceBuffer().getDataBox(),
              destSpecies.getDeviceParticlesBox(), srcFrame,
              (int) numParticles,
-             localDomainCellOffset, /*relative to data domain (not to physical domain)*/
+             localDomainCellOffset,
+             domainCellIdxIdentifier,
              cellDesc
              );
         destSpecies.fillAllGaps();

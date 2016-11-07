@@ -334,8 +334,8 @@ struct WeightingPower<particleId>
     }
 };
 
-template<typename T_Type>
-struct Unit<globalCellIdx<T_Type> >
+template<>
+struct Unit<totalCellIdx>
 {
     /* unitless index and not scaled by a factor: by convention 1.0 */
     static std::vector<double> get()
@@ -344,20 +344,20 @@ struct Unit<globalCellIdx<T_Type> >
         return unit;
     }
 };
-template<typename T_Type>
-struct UnitDimension<globalCellIdx<T_Type> >
+template<>
+struct UnitDimension<totalCellIdx>
 {
     static std::vector<float_64> get()
     {
-        /* globalCellIdx is a cell index and therefore unitless
+        /* totalCellIdx is a cell index and therefore unitless
          */
         std::vector<float_64> unitDimension( NUnitDimension, 0.0 );
 
         return unitDimension;
     }
 };
-template<typename T_Type>
-struct MacroWeighted<globalCellIdx<T_Type> >
+template<>
+struct MacroWeighted<totalCellIdx>
 {
     // the cell idx is identical and can not be scaled by weightings
     static bool get()
@@ -365,8 +365,8 @@ struct MacroWeighted<globalCellIdx<T_Type> >
         return false;
     }
 };
-template<typename T_Type>
-struct WeightingPower<globalCellIdx<T_Type> >
+template<>
+struct WeightingPower<totalCellIdx>
 {
     // idx * weighting^0 == idx: same for real and macro particle
     static float_64 get()
