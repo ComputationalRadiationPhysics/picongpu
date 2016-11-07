@@ -26,7 +26,7 @@
 #include "random/methods/Xor.hpp"
 #include "random/Random.hpp"
 #include "random/RNGHandle.hpp"
-#include "memory/buffers/GridBuffer.hpp"
+#include "memory/buffers/HostDeviceBuffer.hpp"
 #include "dataManagement/ISimulationData.hpp"
 
 namespace PMacc
@@ -50,13 +50,9 @@ namespace random
 
     private:
         typedef typename RNGMethod::StateType RNGState;
-        typedef GridBuffer< RNGState, dim > Buffer;
-
-        const Space m_size;
-        Buffer* buffer;
-        const std::string m_uniqueId;
 
     public:
+        typedef HostDeviceBuffer< RNGState, dim > Buffer;
         typedef typename Buffer::DataBoxType DataBoxType;
         typedef RNGHandle<RNGProvider> Handle;
 
@@ -113,11 +109,20 @@ namespace random
         SimulationDataId getUniqueId();
         void synchronize();
 
+        /**
+         * Return a reference to the buffer containing the states
+         * Note: This buffer might be empty
+         */
+        Buffer& getStateBuffer();
     private:
         /**
          * Gets the device data box
          */
         DataBoxType getDeviceDataBox();
+
+        const Space m_size;
+        Buffer* buffer;
+        const std::string m_uniqueId;
     };
 
 }  // namespace random

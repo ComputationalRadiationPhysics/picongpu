@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Rene Widera, Felix Schmitt
+ * Copyright 2013-2016 Rene Widera, Felix Schmitt, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -48,6 +48,9 @@
 #include "plugins/hdf5/writer/ParticleAttribute.hpp"
 #include "compileTime/conversion/RemoveFromSeq.hpp"
 #include "particles/ParticleDescription.hpp"
+#include "particles/traits/GetSpeciesFlagName.hpp"
+
+#include <string>
 
 namespace picongpu
 {
@@ -260,6 +263,49 @@ public:
             massUnitDimension
         );
 
+        /* openPMD ED-PIC: write additional attributes */
+        const float_64 particleShape( GetShape<T_Species>::type::support - 1 );
+        params->dataCollector->writeAttribute( params->currentStep,
+                            ctDouble,
+                            speciesPath.c_str(),
+                            "particleShape",
+                            &particleShape );
+
+        traits::GetSpeciesFlagName<T_Species, current<> > currentDepositionName;
+        const std::string currentDeposition( currentDepositionName() );
+        ColTypeString ctCurrentDeposition( currentDeposition.length() );
+        params->dataCollector->writeAttribute( params->currentStep,
+                            ctCurrentDeposition,
+                            speciesPath.c_str(),
+                            "currentDeposition",
+                            currentDeposition.c_str() );
+
+        traits::GetSpeciesFlagName<T_Species, particlePusher<> > particlePushName;
+        const std::string particlePush( particlePushName() );
+        ColTypeString ctParticlePush( particlePush.length() );
+        params->dataCollector->writeAttribute( params->currentStep,
+                            ctParticlePush,
+                            speciesPath.c_str(),
+                            "particlePush",
+                            particlePush.c_str() );
+
+        traits::GetSpeciesFlagName<T_Species, interpolation<> > particleInterpolationName;
+        const std::string particleInterpolation( particleInterpolationName() );
+        ColTypeString ctParticleInterpolation( particleInterpolation.length() );
+        params->dataCollector->writeAttribute( params->currentStep,
+                            ctParticleInterpolation,
+                            speciesPath.c_str(),
+                            "particleInterpolation",
+                            particleInterpolation.c_str() );
+
+        const std::string particleSmoothing("none");
+        ColTypeString ctParticleSmoothing(particleSmoothing.length());
+        params->dataCollector->writeAttribute( params->currentStep,
+                            ctParticleSmoothing,
+                            speciesPath.c_str(),
+                            "particleSmoothing",
+                            particleSmoothing.c_str() );
+
         log<picLog::INPUT_OUTPUT > ("HDF5:  (end) write particle records for %1%") % Hdf5FrameType::getName();
 
         /* write species particle patch meta information */
@@ -404,22 +450,6 @@ private:
         ColTypeUInt64 ctUInt64;
         ColTypeDouble ctDouble;
         SplashFloatXType splashFloatXType;
-
-        // stupid work-around to create a group with libSplash 1.4.0
-        GridController<simDim>& gc = Environment<simDim>::get().GridController();
-        const Dimensions numEntries( gc.getGlobalSize(), 1, 1 );
-        const Dimensions myOffset( gc.getGlobalRank(), 0, 0 );
-        const Dimensions myEntries( 1, 1, 1 );
-        const uint64_t dummy( 0 );
-
-        params->dataCollector->write(
-            params->currentStep,
-            numEntries,
-            myOffset,
-            ctUInt64, 1,
-            myEntries,
-            (recordPath + std::string("/dummy")).c_str(),
-            &dummy);
 
         /* openPMD base standard
          *   write constant record

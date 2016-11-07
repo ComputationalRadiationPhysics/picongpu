@@ -30,7 +30,7 @@ namespace manipulators
 
 /* Re-scale the weighting of a cloned species by densityRatio
  *
- * When cloning species from each other, the new
+ * When deriving species from each other, the new
  * species "inherits" the macro-particle weighting
  * of the first one.
  * This functor can be used to manipulate the weighting

@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Heiko Burau
+ * Copyright 2016 Marco Garten, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -20,22 +20,24 @@
 
 #pragma once
 
+#include <boost/type_traits/integral_constant.hpp>
+
 namespace picongpu
 {
-namespace particles
-{
-namespace bremsstrahlung
+namespace traits
 {
 
-/** Above this value (to the power of three, see comments on mapping) the synchrotron functions are nearly zero. */
-BOOST_CONSTEXPR_OR_CONST float_64 SYNC_FUNCS_CUTOFF = 5.0;
+/** Checks if an object requires the RNG
+ *
+ * @tparam T_Object any object (class or typename)
+ *
+ * This struct must inherit from (boost::true_type/false_type)
+ */
+template<typename T_Object>
+struct UsesRNG : public boost::false_type
+{
+};
 
-/** stepwidth for the numerical integration of the bessel function for the first synchrotron function */
-BOOST_CONSTEXPR_OR_CONST float_64 SYNC_FUNCS_BESSEL_INTEGRAL_STEPWIDTH = 1.0e-3;
+}// namespace traits
 
-/** Number of sampling points of the lookup table */
-BOOST_CONSTEXPR_OR_CONST uint32_t SYNC_FUNCS_NUM_SAMPLES = 8192;
-
-} // namespace bremsstrahlung
-} // namespace particles
-} // namespace picongpu
+}// namespace picongpu

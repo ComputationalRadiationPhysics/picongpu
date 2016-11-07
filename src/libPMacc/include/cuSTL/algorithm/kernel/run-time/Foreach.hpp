@@ -38,7 +38,7 @@
 #include <boost/preprocessor/arithmetic/inc.hpp>
 #include <boost/preprocessor/repetition/repeat.hpp>
 #include <boost/preprocessor/repetition/repeat_from_to.hpp>
-#include <boost/math/common_factor.hpp>
+#include <boost/math/common_factor_rt.hpp>
 
 #include "eventSystem/tasks/TaskKernel.hpp"
 #include "eventSystem/events/kernelEvents.hpp"
@@ -101,12 +101,11 @@ math::Size_t<DIM3> getBestCudaBlockDim(const math::Size_t<dim> gridDim)
 
     /* The greatest common divisor of each component of the volume size
      * and a certain power of two value yield the best suitable block size */
-    const boost::math::gcd_evaluator<size_t> gcd; /* greatest common divisor */
     const math::Size_t<DIM3> maxThreads =
         MaxCudaBlockDim<dim>::type::toRT(); /* max threads per axis */
     for(int i = 0; i < dim; i++)
     {
-        result[i] = gcd(gridDim[i], maxThreads[i]);
+        result[i] = boost::math::gcd(gridDim[i], maxThreads[i]);
     }
 
     return result;

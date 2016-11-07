@@ -1,0 +1,214 @@
+/**
+ * Copyright 2014-2016 Rene Widera, Alexander Grund
+ *
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+#pragma once
+
+#include "pmacc_types.hpp"
+#include "dimensions/DataSpaceOperations.hpp"
+#include "math/Vector.hpp"
+#include "particles/frame_types.hpp"
+#include "nvidia/atomic.hpp"
+#include "debug/VerboseLog.hpp"
+
+namespace PMacc
+{
+namespace particles
+{
+namespace operations
+{
+namespace kernel
+{
+
+/** Copy particles from big frame to PMacc frame structure
+ *  (Opposite to ConcatListOfFrames)
+ *
+ * - convert globalCellIdx to localCellIdx
+ * - processed particles per block <= number of cells per superCell
+ *
+ * @param counter box with three integer [srcParticleOffset, numLoadedParticles, numUsedFrames]
+ * @param destBox particle box were all particles are copied to (destination)
+ * @param srcFrame frame with particles (is used as source)
+ * @param maxParticles number of particles in srcFrame
+ * @param localDomainCellOffset offset in cells to global origin (@see wiki PIConGPU domain definitions)
+ * @param cellDesc picongpu cellDescription
+ */
+template<class T_CounterBox, class T_DestBox, class T_SrcFrame, class T_Space, class T_CellDescription>
+__global__ void splitIntoListOfFrames(T_CounterBox counter, T_DestBox destBox, T_SrcFrame srcFrame,
+                                        const int maxParticles,
+                                        T_Space localDomainCellOffset, T_CellDescription cellDesc)
+{
+    using namespace PMacc::particles::operations;
+
+    typedef T_SrcFrame SrcFrameType;
+    typedef typename T_DestBox::FrameType DestFrameType;
+    typedef typename T_DestBox::FramePtr DestFramePtr;
+    typedef typename T_CellDescription::SuperCellSize SuperCellSize;
+    BOOST_CONSTEXPR_OR_CONST unsigned NumDims = T_DestBox::Dim;
+    BOOST_CONSTEXPR_OR_CONST uint32_t particlesPerFrame = PMacc::math::CT::volume<SuperCellSize>::type::value;
+
+    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<DestFramePtr>::type destFramePtr[particlesPerFrame];
+    __shared__ int linearSuperCellIds[particlesPerFrame];
+    __shared__ int srcParticleOffset;
+
+
+    const int linearThreadIdx = threadIdx.x;
+
+
+    const DataSpace<NumDims> numSuperCells(cellDesc.getGridSuperCells() - cellDesc.getGuardingSuperCells()*2);
+    if (linearThreadIdx == 0)
+    {
+        /* apply for work for the full block
+         * counter [0] -> offset to load particles
+         */
+        srcParticleOffset = atomicAdd(&(counter[0]), particlesPerFrame);
+    }
+    destFramePtr[linearThreadIdx] = DestFramePtr();
+    linearSuperCellIds[linearThreadIdx] = -1;
+
+    __syncthreads();
+
+    const int srcParticleIdx = srcParticleOffset + linearThreadIdx;
+    const bool hasValidParticle = srcParticleIdx < maxParticles;
+    DataSpace<NumDims> superCellIdx;
+    lcellId_t lCellIdx = INV_LOC_IDX;
+    int myLinearSuperCellId = -1;
+
+    if (hasValidParticle)
+    {
+        const DataSpace<NumDims> globalCellIdx = srcFrame[srcParticleIdx][globalCellIdx_]
+                                                 - localDomainCellOffset;
+        superCellIdx = globalCellIdx / SuperCellSize::toRT();
+        myLinearSuperCellId = DataSpaceOperations<NumDims>::map(numSuperCells, superCellIdx);
+        linearSuperCellIds[linearThreadIdx] = myLinearSuperCellId;
+        DataSpace<NumDims> localCellIdx(globalCellIdx - superCellIdx * SuperCellSize::toRT());
+        lCellIdx = DataSpaceOperations<NumDims>::template map<SuperCellSize>(localCellIdx);
+    }
+    __syncthreads();
+
+    int masterIdx = linearThreadIdx - 1;
+
+    if (hasValidParticle)
+    {
+        /* search master thread index */
+        while (masterIdx >= 0)
+        {
+            if (myLinearSuperCellId != linearSuperCellIds[masterIdx])
+                break;
+            --masterIdx;
+        }
+        ++masterIdx;
+        /* load empty frame if thread is the master*/
+        if (masterIdx == linearThreadIdx)
+        {
+            /* counter[2] -> number of used frames */
+            nvidia::atomicAllInc(&(counter[2]));
+            DestFramePtr tmpFrame = destBox.getEmptyFrame();
+            destFramePtr[linearThreadIdx] = tmpFrame;
+            destBox.setAsFirstFrame(tmpFrame, superCellIdx + cellDesc.getGuardingSuperCells());
+        }
+    }
+    __syncthreads();
+
+    if (hasValidParticle)
+    {
+        /* copy attributes and activate particle*/
+        PMACC_AUTO(parDest, destFramePtr[masterIdx][linearThreadIdx]);
+        PMACC_AUTO(parDestDeselect, deselect<bmpl::vector2<localCellIdx, multiMask> >(parDest));
+        assign(parDestDeselect, srcFrame[srcParticleIdx]);
+        parDest[localCellIdx_] = lCellIdx;
+        parDest[multiMask_] = 1;
+        /* counter[1] -> number of loaded particles
+         * this counter is evaluated on host side
+         * (check that loaded particles by this kernel == loaded particles from HDF5 file)*/
+        nvidia::atomicAllInc(&(counter[1]));
+    }
+}
+} //namespace kernel
+
+/** Copy particles from big frame to PMacc frame structure
+ *  (Opposite to ConcatListOfFrames)
+ *
+ * - convert globalCellIdx to localCellIdx
+ * - processed particles per block <= number of cells per superCell
+ *
+ * @param destSpecies particle species instance whose deviceBuffer is written
+ * @param srcFrame device frame with particles (is used as source)
+ * @param numParticles number of particles in srcFrame
+ * @param chunkSize number of particles to process in one kernel call
+ * @param cellsInSuperCell number of cells per super cell
+ * @param localDomainCellOffset offset in cells to global origin (@see wiki PIConGPU domain definitions)
+ * @param cellDesc picongpu cellDescription
+ * @param logLvl Log level used for information logging
+ */
+template<class T_LogLvl, class T_DestSpecies, class T_SrcFrame, class T_Space, class T_CellDescription>
+HINLINE void splitIntoListOfFrames(T_DestSpecies& destSpecies, T_SrcFrame srcFrame,
+                                      uint32_t numParticles, uint32_t chunkSize, uint32_t cellsInSuperCell,
+                                      const T_Space& localDomainCellOffset, const T_CellDescription& cellDesc,
+                                      const T_LogLvl& logLvl = T_LogLvl())
+{
+    /* counter is used to apply for work, count used frames and count loaded particles
+     * [0] -> offset for loading particles
+     * [1] -> number of loaded particles
+     * [2] -> number of used frames
+     *
+     * all values are zero after initialization
+     */
+    GridBuffer<uint32_t, DIM1> counterBuffer(DataSpace<DIM1>(3));
+
+    const uint32_t iterationsForLoad = algorithms::math::float2int_ru(double(numParticles) / double(chunkSize));
+    uint32_t leftOverParticles = numParticles;
+
+    for (uint32_t i = 0; i < iterationsForLoad; ++i)
+    {
+        /* only load a chunk of particles per iteration to avoid blow up of frame usage */
+        uint32_t currentChunkSize = std::min(leftOverParticles, chunkSize);
+        log(logLvl, "load particles on device chunk offset=%1%; chunk size=%2%; left particles %3%") %
+            (i * chunkSize) % currentChunkSize % leftOverParticles;
+        __cudaKernel(kernel::splitIntoListOfFrames)
+            (algorithms::math::float2int_ru(double(currentChunkSize) / double(cellsInSuperCell)), cellsInSuperCell)
+            (counterBuffer.getDeviceBuffer().getDataBox(),
+             destSpecies.getDeviceParticlesBox(), srcFrame,
+             (int) numParticles,
+             localDomainCellOffset, /*relative to data domain (not to physical domain)*/
+             cellDesc
+             );
+        destSpecies.fillAllGaps();
+        leftOverParticles -= currentChunkSize;
+    }
+
+    counterBuffer.deviceToHost();
+    log(logLvl, "wait for last processed chunk: %1%") % T_SrcFrame::getName();
+    __getTransactionEvent().waitForFinished();
+
+    log(logLvl, "used frames to load particles: %1%") % counterBuffer.getHostBuffer().getDataBox()[2];
+
+    if ((uint64_t) counterBuffer.getHostBuffer().getDataBox()[1] != numParticles)
+    {
+        log(logLvl, "error load species | counter is %1% but should %2%") % counterBuffer.getHostBuffer().getDataBox()[1] % numParticles;
+        throw std::runtime_error("Failed to load expected number of particles to GPU.");
+    }
+}
+
+} //namespace operations
+} //namespace particles
+} //namespace PMacc

@@ -13,10 +13,10 @@
 #   )
 #
 # To provide a hint to this module where to find the Splash installation,
-# set the SPLASH_ROOT environment variable.
+# set CMAKE_PREFIX_PATH or the SPLASH_ROOT environment variable.
 #
 # This module requires HDF5. Make sure to provide a valid install of it
-# under the environment variable HDF5_ROOT.
+# via CMAKE_PREFIX_PATH or under the environment variable HDF5_ROOT.
 # Parallel HDF5/libSplash will require MPI (set the environment MPI_ROOT).
 #
 # Set the following CMake variables BEFORE calling find_packages to
@@ -37,7 +37,7 @@
 
 
 ###############################################################################
-# Copyright 2014-2015 Axel Huebl, Felix Schmitt, Rene Widera
+# Copyright 2014-2016 Axel Huebl, Felix Schmitt, Rene Widera, Alexander Grund
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -70,6 +70,7 @@ set(Splash_FOUND TRUE)
 
 # find libSplash installation #################################################
 #
+
 find_path(Splash_ROOT_DIR
   NAMES include/splash/splash.h lib/libsplash.a
   PATHS ENV SPLASH_ROOT
@@ -96,7 +97,7 @@ if(Splash_ROOT_DIR)
     #
     find_library(Splash_LIBRARIES
       NAMES splash
-      PATHS $ENV{SPLASH_ROOT}/lib)
+      PATHS ${Splash_ROOT_DIR}/lib)
 
     # restore CMAKE_FIND_LIBRARY_SUFFIXES if manipulated by this module #######
     #
@@ -113,7 +114,7 @@ if(Splash_ROOT_DIR)
     #if(Splash_USE_STATIC_LIBS)
     #    set(HDF5_USE_STATIC_LIBRARIES ON)
     #endif()
-    find_package(HDF5 REQUIRED)
+    find_package(HDF5 REQUIRED COMPONENTS C)
     list(APPEND Splash_INCLUDE_DIRS ${HDF5_INCLUDE_DIRS})
     list(APPEND Splash_DEFINITIONS ${HDF5_DEFINITIONS})
     list(APPEND Splash_LIBRARIES ${HDF5_LIBRARIES})
@@ -193,7 +194,7 @@ if(Splash_ROOT_DIR)
 
 else(Splash_ROOT_DIR)
     set(Splash_FOUND FALSE)
-    message(STATUS "Can NOT find libSplash for HDF5 output - set SPLASH_ROOT")
+    message(STATUS "Can NOT find libSplash for HDF5 output - include its root in CMAKE_PREFIX_PATH")
 endif(Splash_ROOT_DIR)
 
 

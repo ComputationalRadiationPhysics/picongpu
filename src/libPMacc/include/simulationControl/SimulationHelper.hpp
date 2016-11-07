@@ -29,13 +29,10 @@
 #include "mappings/simulation/GridController.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "TimeInterval.hpp"
-
 #include "dataManagement/DataConnector.hpp"
 #include "Environment.hpp"
-
-
 #include "pluginSystem/IPlugin.hpp"
-
+#include <boost/filesystem.hpp>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -73,7 +70,6 @@ public:
     {
         tSimulation.toggleStart();
         tInit.toggleStart();
-
     }
 
     virtual ~SimulationHelper()
@@ -409,6 +405,45 @@ private:
         file.close();
     }
 
+protected:
+    /**
+     * Reads the checkpoint master file if any and returns all found checkpoint steps
+     *
+     * @return vector of found checkpoints steps in order they appear in the file
+     */
+    std::vector<uint32_t> readCheckpointMasterFile()
+    {
+        std::vector<uint32_t> checkpoints;
+
+        const std::string checkpointMasterFile =
+            this->restartDirectory + std::string("/") + this->CHECKPOINT_MASTER_FILE;
+
+        if (!boost::filesystem::exists(checkpointMasterFile))
+            return checkpoints;
+
+        std::ifstream file(checkpointMasterFile.c_str());
+
+        /* read each line */
+        std::string line;
+        while (std::getline(file, line))
+        {
+            if (line.empty())
+                continue;
+            try
+            {
+                checkpoints.push_back(boost::lexical_cast<uint32_t>(line));
+            }
+            catch (boost::bad_lexical_cast const&)
+            {
+                std::cerr << "Warning: checkpoint master file contains invalid data ("
+                    << line << ")" << std::endl;
+            }
+        }
+
+        return checkpoints;
+    }
+private:
+
     bool output;
 
     uint16_t progress;
@@ -418,5 +453,5 @@ private:
     TimeIntervall tInit;
 
 };
-} // namespace PMacc
 
+} // namespace PMacc

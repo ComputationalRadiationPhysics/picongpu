@@ -21,6 +21,7 @@
  */
 
 #pragma once
+#include "pmacc_types.hpp"
 
 namespace PMacc
 {
@@ -146,7 +147,7 @@ operator+(const T_Type& lhs, const Complex<T_Type>& rhs)
     return Complex<T_Type>(lhs + rhs.get_real(), rhs.get_imag());
 }
 
-/** Substraction operators */
+/** Subtraction operators */
 
 template<typename T_Type>
 HDINLINE Complex<T_Type>

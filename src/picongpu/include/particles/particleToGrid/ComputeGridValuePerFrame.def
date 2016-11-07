@@ -27,6 +27,7 @@
 #include "particles/traits/GetShape.hpp"
 #include "particles/particleToGrid/derivedAttributes/DerivedAttributes.def"
 
+#include <boost/mpl/int.hpp>
 #include <vector>
 
 namespace picongpu
@@ -63,7 +64,7 @@ public:
      * (length L, mass M, time T, electric current I,
      *  thermodynamic temperature theta, amount of substance N,
      *  luminous intensity J) */
-    HDINLINE std::vector<float_64> getUnitDimension() const;
+    HINLINE std::vector<float_64> getUnitDimension() const;
 
     /** return name of the this solver
      * @return name of solver
@@ -79,17 +80,30 @@ public:
 /** Predefined Calculations for \see fieldOutput.param
  */
 
-/* ChargeDensity */
+/* Density */
 template<typename T_Species>
 struct CreateDensityOperation
 {
     typedef typename GetShape<T_Species>::type shapeType;
     typedef ComputeGridValuePerFrame<
         shapeType,
-        particleToGrid::derivedAttributes::ChargeDensity
+        particleToGrid::derivedAttributes::Density
     > ParticleDensity;
 
     typedef FieldTmpOperation< ParticleDensity, T_Species > type;
+};
+
+/* ChargeDensity */
+template<typename T_Species>
+struct CreateChargeDensityOperation
+{
+    typedef typename GetShape<T_Species>::type shapeType;
+    typedef ComputeGridValuePerFrame<
+        shapeType,
+        particleToGrid::derivedAttributes::ChargeDensity
+    > ParticleChargeDensity;
+
+    typedef FieldTmpOperation< ParticleChargeDensity, T_Species > type;
 };
 
 /* ParticleCounter */
@@ -128,6 +142,19 @@ struct CreateEnergyOperation
     > ParticleEnergy;
 
     typedef FieldTmpOperation< ParticleEnergy, T_Species > type;
+};
+
+/* Ratio between a selected momentum component and total momentum */
+template<typename T_Species, typename T_Direction = bmpl::int_<0> >
+struct CreateMomentumComponentOperation
+{
+    typedef typename GetShape<T_Species>::type shapeType;
+    typedef ComputeGridValuePerFrame<
+        shapeType,
+        particleToGrid::derivedAttributes::MomentumComponent<T_Direction::value>
+    > ParticleMomentumComponent;
+
+    typedef FieldTmpOperation< ParticleMomentumComponent, T_Species > type;
 };
 
 #if(ENABLE_RADIATION == 1)

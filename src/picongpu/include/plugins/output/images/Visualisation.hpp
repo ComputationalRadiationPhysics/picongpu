@@ -212,19 +212,11 @@ __global__ void kernelPaintFields(
     typename EBox::ValueType field_e = fieldE(cell);
     typename JBox::ValueType field_j = fieldJ(cell);
 
-#if(SIMDIM==DIM3)
     field_j = float3_X(
                        field_j.x() * CELL_HEIGHT * CELL_DEPTH,
                        field_j.y() * CELL_WIDTH * CELL_DEPTH,
                        field_j.z() * CELL_WIDTH * CELL_HEIGHT
                        );
-#elif (SIMDIM==DIM2)
-    field_j = float3_X(
-                       field_j.x() * CELL_HEIGHT,
-                       field_j.y() * CELL_WIDTH,
-                       field_j.z() * CELL_WIDTH * CELL_HEIGHT
-                       );
-#endif
 
     // reset picture to black
     //   color range for each RGB channel: [0.0, 1.0]
@@ -275,7 +267,7 @@ kernelPaintParticles3D(ParBox pb,
     typedef typename ParBox::FramePtr FramePtr;
     typedef typename MappingDesc::SuperCellSize Block;
     __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
-    __shared__ bool isValid;
+    __shared__ int isValid;
 
     bool isImageThread = false;
 
@@ -289,7 +281,7 @@ kernelPaintParticles3D(ParBox pb,
 
 
     if (localId == 0)
-        isValid = false;
+        isValid = 0;
     __syncthreads();
 
     //\todo: guard size should not be set to (fixed) 1 here
@@ -301,12 +293,12 @@ kernelPaintParticles3D(ParBox pb,
     if (globalCell == slice)
 #endif
     {
-        nvidia::atomicAllExch((int*) &isValid,1); /*WAW Error in cuda-memcheck racecheck*/
+        nvidia::atomicAllExch(&isValid,1); /*WAW Error in cuda-memcheck racecheck*/
         isImageThread = true;
     }
     __syncthreads();
 
-    if (!isValid)
+    if (isValid==0)
         return;
 
     /*index in image*/

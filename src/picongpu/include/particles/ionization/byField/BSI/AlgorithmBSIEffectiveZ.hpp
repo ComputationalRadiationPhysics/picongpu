@@ -20,15 +20,13 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
+#include "particles/traits/GetIonizationEnergies.hpp"
 #include "particles/traits/GetAtomicNumbers.hpp"
+#include "particles/traits/GetEffectiveAtomicNumbers.hpp"
 #include "traits/attribute/GetChargeState.hpp"
-#include "algorithms/math/floatMath/floatingPoint.tpp"
 
-/** \file AlgorithmBSI.hpp
- *
- * IONIZATION ALGORITHM for the BSI model
+/** IONIZATION ALGORITHM for the BSI model
  *
  * - implements the calculation of ionization probability and changes charge states
  *   by decreasing the number of bound electrons
@@ -42,40 +40,51 @@ namespace particles
 namespace ionization
 {
 
-    /** \struct AlgorithmBSI
-     *
-     * \brief calculation for the Barrier Suppression Ionization model
+    /** Calculation for the Barrier Suppression Ionization model
      */
-    struct AlgorithmBSI
+    struct AlgorithmBSIEffectiveZ
     {
 
         /** Functor implementation
          *
          * \tparam EType type of electric field
-         * \tparam BType type of magnetic field
          * \tparam ParticleType type of particle to be ionized
          *
-         * \param bField magnetic field value at t=0
          * \param eField electric field value at t=0
          * \param parentIon particle instance to be ionized with position at t=0 and momentum at t=-1/2
+         *
+         * and "t" being with respect to the current time step (on step/half a step backward/-""-forward)
+         *
+         * \return the number of electrons to produce
+         * (current implementation supports only 0 or 1 per execution)
          */
-        template<typename EType, typename BType, typename ParticleType >
-        HDINLINE void
-        operator()( const BType bField, const EType eField, ParticleType& parentIon )
+        template<typename EType, typename ParticleType >
+        HDINLINE uint32_t
+        operator()( const EType eField, ParticleType& parentIon )
         {
 
             const float_X protonNumber = GetAtomicNumbers<ParticleType>::type::numberOfProtons;
             float_X chargeState = attribute::getChargeState(parentIon);
 
-            uint32_t cs = math::float2int_rd(chargeState);
-
-            /* ionization condition */
-            if (math::abs(eField) / ATOMIC_UNIT_EFIELD >= AU::IONIZATION_EFIELD_HYDROGEN[cs] && chargeState < protonNumber)
+            /* verify that ion is not completely ionized */
+            if (chargeState < protonNumber)
             {
-                /* set new particle charge state */
-                parentIon[boundElectrons_] -= float_X(1.0);
-            }
+                uint32_t cs = math::float2int_rd(chargeState);
+                /* ionization potential in atomic units */
+                const float_X iEnergy = GetIonizationEnergies<ParticleType>::type()[cs];
+                const float_X ZEff = GetEffectiveAtomicNumbers<ParticleType>::type()[cs];
+                /* critical field strength in atomic units */
+                float_X critField = iEnergy*iEnergy / (float_X(4.0) * ZEff);
 
+                /* ionization condition */
+                if (math::abs(eField) / ATOMIC_UNIT_EFIELD >= critField)
+                {
+                    /* return number of electrons to produce */
+                    return 1;
+                }
+            }
+            /* no ionization */
+            return 0;
         }
     };
 

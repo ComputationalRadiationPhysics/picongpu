@@ -45,35 +45,35 @@ namespace pusher
 
 #if(SIMDIM==DIM3)
 
-struct Axel
+struct Axel :
+public particlePusherAxel::Push<Velocity, Gamma<> >
 {
-    typedef particlePusherAxel::Push<Velocity, Gamma<> > type;
 };
 #endif
 
-struct Boris
+struct Boris :
+public particlePusherBoris::Push<Velocity, Gamma<> >
 {
-    typedef particlePusherBoris::Push<Velocity, Gamma<> > type;
 };
 
-struct Vay
+struct Vay :
+public particlePusherVay::Push<Velocity, Gamma<> >
 {
-    typedef particlePusherVay::Push<Velocity, Gamma<> > type;
 };
 
-struct Free
+struct Free :
+public particlePusherFree::Push<Velocity, Gamma<> >
 {
-    typedef particlePusherFree::Push<Velocity, Gamma<> > type;
 };
 
-struct Photon
+struct Photon :
+public particlePusherPhoton::Push<Velocity, Gamma<> >
 {
-    typedef particlePusherPhoton::Push<Velocity, Gamma<> > type;
 };
 
-struct ReducedLandauLifshitz
+struct ReducedLandauLifshitz :
+public particlePusherReducedLandauLifshitz::Push<Velocity, Gamma<> >
 {
-    typedef particlePusherReducedLandauLifshitz::Push<Velocity, Gamma<> > type;
 };
 
 } //namespace pusher

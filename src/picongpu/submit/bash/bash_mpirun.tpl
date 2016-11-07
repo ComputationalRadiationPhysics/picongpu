@@ -55,4 +55,4 @@ if [ $? -eq 0 ] ; then
   mpirun  -tag-output --display-map -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -x LD_LIBRARY_PATH -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/picongpu/bin/picongpu !TBG_author !TBG_programParams | tee output
 fi
 
-mpirun  -npernode !TBG_gpusPerNode -n !TBG_tasks killall -9 picongpu
+mpirun -npernode !TBG_gpusPerNode -n !TBG_tasks killall -9 picongpu 2>/dev/null || true

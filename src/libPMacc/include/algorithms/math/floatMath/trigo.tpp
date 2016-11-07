@@ -99,6 +99,17 @@ struct Tan<float>
 };
 
 template<>
+struct ATan<float>
+{
+    typedef float result;
+
+    HDINLINE float operator( )(const float& value)
+    {
+        return ::atanf( value );
+    }
+};
+
+template<>
 struct SinCos<float, float, float>
 {
     typedef void result;

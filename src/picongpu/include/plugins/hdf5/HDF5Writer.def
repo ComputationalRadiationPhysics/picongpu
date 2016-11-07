@@ -58,6 +58,9 @@ struct ThreadParams
     /** libSplash class */
     ParallelDomainCollector *dataCollector;
 
+    /** libSplash file's base name */
+    std::string h5Filename;
+
     /** description of the grid/field layout, including guards etc. */
     GridLayout<simDim> gridLayout;
 

@@ -24,20 +24,24 @@
 
 #include "pmacc_types.hpp"
 #include "particles/boostExtension/InheritLinearly.hpp"
-#include <boost/utility/result_of.hpp>
-#include <boost/type_traits.hpp>
-#include <boost/mpl/if.hpp>
 #include "traits/HasIdentifier.hpp"
+#include "traits/HasFlag.hpp"
+#include "traits/GetFlagType.hpp"
 #include "compileTime/GetKeyFromAlias.hpp"
 #include "compileTime/conversion/ResolveAliases.hpp"
 #include "compileTime/conversion/RemoveFromSeq.hpp"
 #include "particles/operations/CopyIdentifier.hpp"
 #include "algorithms/ForEach.hpp"
 #include "RefWrapper.hpp"
+#include "static_assert.hpp"
 
 #include "particles/operations/Assign.hpp"
 #include "particles/operations/Deselect.hpp"
 #include "particles/operations/SetAttributeToDefault.hpp"
+#include "compileTime/errorHandlerPolicies/ReturnValue.hpp"
+#include <boost/utility/result_of.hpp>
+#include <boost/type_traits.hpp>
+#include <boost/mpl/if.hpp>
 #include <boost/mpl/remove_if.hpp>
 #include <boost/mpl/is_sequence.hpp>
 #include <boost/mpl/contains.hpp>
@@ -70,16 +74,15 @@ struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
     typedef Particle<FrameType, ValueTypeSeq> ThisType;
     typedef typename FrameType::MethodsList MethodsList;
 
-    /* IMPORTANT: store first value with big size to avoid
-     * that pointer is copied byte by byte because data are not aligned
-     *
-     * in this case sizeof(uint32_t)<=sizeof(pointer)
-     */
-    /** pointer to parent frame where this particle is from*/
-    PMACC_ALIGN(frame, FrameType* const);
-
     /** index of particle inside the Frame*/
     PMACC_ALIGN(idx, const uint32_t);
+
+    /** pointer to parent frame where this particle is from
+     *
+     * ATTENTION: The pointer must be the last member to avoid local memory usage
+     *            https://github.com/ComputationalRadiationPhysics/picongpu/pull/762
+     */
+    PMACC_ALIGN(frame, FrameType* const);
 
     /** create particle
      *
@@ -110,6 +113,12 @@ struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
     >::type
     operator[](const T_Key key)
     {
+        PMACC_CASSERT_MSG_TYPE(
+            key_not_available,
+            T_Key,
+            traits::HasIdentifier< Particle, T_Key >::type::value
+        );
+
         return frame->getIdentifier(key)[idx];
     }
 
@@ -123,6 +132,11 @@ struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
     >::type
     operator[](const T_Key key) const
     {
+        PMACC_CASSERT_MSG_TYPE(
+            key_not_available,
+            T_Key,
+            traits::HasIdentifier< Particle, T_Key >::type::value
+        );
 
         return frame->getIdentifier(key)[idx];
     }
@@ -139,20 +153,54 @@ private:
 namespace traits
 {
 
-template<typename T_Key,
-typename T_FrameType
+template<
+    typename T_Key,
+    typename T_FrameType,
+    typename T_ValueTypeSeq
 >
 struct HasIdentifier<
-PMacc::Particle<T_FrameType>,
-T_Key
+    PMacc::Particle< T_FrameType, T_ValueTypeSeq >,
+    T_Key
 >
 {
 private:
-    typedef T_FrameType FrameType;
+    typedef PMacc::Particle<T_FrameType, T_ValueTypeSeq> ParticleType;
+    typedef typename ParticleType::ValueTypeSeq ValueTypeSeq;
 public:
-    typedef typename HasIdentifier<FrameType, T_Key>::type type;
-    BOOST_STATIC_CONSTEXPR bool value = type::value;
+    /* If T_Key can not be found in the T_ValueTypeSeq of this Particle class,
+     * SolvedAliasName will be void_.
+     * Look-up is also valid if T_Key is an alias.
+     */
+    typedef typename GetKeyFromAlias<
+        ValueTypeSeq,
+        T_Key
+    >::type SolvedAliasName;
+
+    typedef bmpl::contains<ValueTypeSeq, SolvedAliasName> type;
 };
+
+template<
+    typename T_Key,
+    typename T_FrameType,
+    typename T_ValueTypeSeq
+>
+struct HasFlag<
+    PMacc::Particle<T_FrameType, T_ValueTypeSeq>,
+    T_Key
+>: public HasFlag<T_FrameType, T_Key>
+{};
+
+template<
+    typename T_Key,
+    typename T_FrameType,
+    typename T_ValueTypeSeq
+>
+struct GetFlagType<
+    PMacc::Particle<T_FrameType, T_ValueTypeSeq>,
+    T_Key
+>: public GetFlagType<T_FrameType, T_Key>
+{};
+
 } //namespace traits
 
 namespace particles
@@ -242,7 +290,7 @@ PMacc::Particle<T_FrameType, T_ValueTypeSeq>
     typedef T_MPLSeqWithObjectsToRemove MPLSeqWithObjectsToRemove;
 
     /* translate aliases to full specialized identifier*/
-    typedef typename ResolveAliases<MPLSeqWithObjectsToRemove, ValueTypeSeq>::type ResolvedSeqWithObjectsToRemove;
+    typedef typename ResolveAliases<MPLSeqWithObjectsToRemove, ValueTypeSeq, errorHandlerPolicies::ReturnValue>::type ResolvedSeqWithObjectsToRemove;
     /* remove types from original particle attribute list*/
     typedef typename RemoveFromSeq<ValueTypeSeq, ResolvedSeqWithObjectsToRemove>::type NewValueTypeSeq;
     /* new particle type*/

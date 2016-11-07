@@ -18,32 +18,6 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
-## calculations will be performed by tbg ##
-
-TBG_queue="lr_manycore"
-TBG_account="ac_blast"
-TBG_qos="lr_normal"
-TBG_feature="lr_kepler"
-
-# settings that can be controlled by environment variables before submit
-TBG_mailSettings=${MY_MAILNOTIFY:-"ALL"}
-TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
-TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
-
-# 1 gpu per node
-TBG_gpusPerNode=`if [ $TBG_tasks -gt 1 ] ; then echo 1; else echo $TBG_tasks; fi`
-
-# number of cores to block per GPU - we got 8 cpus per gpu
-#   and we will be accounted 8 CPUs per GPU anyway
-TBG_coresPerGPU=8
-
-# We only start 1 MPI task per GPU
-TBG_mpiTasksPerNode="$(( TBG_gpusPerNode * 1 ))"
-
-# use ceil to calculate the number of nodes
-TBG_nodes="$(( ( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
-
-## end calculations ##
 
 # PIConGPU batch script for LBL lawrencium's SLURM batch system
 #   https://sites.google.com/a/lbl.gov/high-performance-computing-services-group/lbnl-supercluster/lawrencium
@@ -67,6 +41,34 @@ TBG_nodes="$(( ( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
 
 #SBATCH -o stdout
 #SBATCH -e stderr
+
+
+## calculations will be performed by tbg ##
+
+.TBG_queue="lr_manycore"
+.TBG_account="ac_blast"
+.TBG_qos="lr_normal"
+.TBG_feature="lr_kepler"
+
+# settings that can be controlled by environment variables before submit
+.TBG_mailSettings=${MY_MAILNOTIFY:-"ALL"}
+.TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
+.TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
+
+# 1 gpu per node
+.TBG_gpusPerNode=`if [ $TBG_tasks -gt 1 ] ; then echo 1; else echo $TBG_tasks; fi`
+
+# number of cores to block per GPU - we got 8 cpus per gpu
+#   and we will be accounted 8 CPUs per GPU anyway
+.TBG_coresPerGPU=8
+
+# We only start 1 MPI task per GPU
+.TBG_mpiTasksPerNode="$(( TBG_gpusPerNode * 1 ))"
+
+# use ceil to calculate the number of nodes
+.TBG_nodes="$(( ( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
+
+## end calculations ##
 
 echo 'Running program...'
 

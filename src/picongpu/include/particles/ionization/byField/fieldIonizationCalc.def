@@ -37,9 +37,16 @@ namespace ionization
 
     struct AlgorithmNone;
 
+    template<bool T_polarizationType>
     struct AlgorithmADK;
 
-    struct AlgorithmBSI;
+    struct AlgorithmBSIHydrogenLike;
+
+    struct AlgorithmBSIEffectiveZ;
+
+    struct AlgorithmBSIStarkShifted;
+
+    struct AlgorithmKeldysh;
 
 } // namespace ionization
 

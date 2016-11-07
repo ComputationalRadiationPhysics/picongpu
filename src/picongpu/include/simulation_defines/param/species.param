@@ -59,11 +59,11 @@ typedef FieldToParticleInterpolation<UsedParticleShape, AssignedTrilinearInterpo
 /*! select current solver method -----------------------------------------------
  * - currentSolver::Esirkepov<SHAPE>  : particle shapes - CIC, TSC, PCS, P4S (1st to 4th order)
  * - currentSolver::VillaBune<>       : particle shapes - CIC (1st order) only
- * - currentSolver::ZigZag<SHAPE>     : particle shapes - CIC, TSC, PCS, P4S (1st to 4th order)
  *
  * For development purposes: ---------------------------------------------------
  * - currentSolver::currentSolver::EsirkepovNative<SHAPE> : generic version of currentSolverEsirkepov
  *   without optimization (~4x slower and needs more shared memory)
+ * - currentSolver::ZigZag<SHAPE>     : particle shapes - CIC, TSC, PCS, P4S (1st to 4th order)
  */
 typedef currentSolver::Esirkepov<UsedParticleShape> UsedParticleCurrentSolver;
 

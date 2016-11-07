@@ -30,15 +30,29 @@ namespace picongpu
         /** Duration of one timestep
          *  unit: seconds */
         BOOST_CONSTEXPR_OR_CONST float_64 DELTA_T_SI = 0.64e-16;
+
         /** equals X
          *  unit: meter */
         BOOST_CONSTEXPR_OR_CONST float_64 CELL_WIDTH_SI = 0.16e-6;
-        /** equals Y - the propagation direction
+        /** equals Y - the laser & moving window propagation direction
          *  unit: meter */
         BOOST_CONSTEXPR_OR_CONST float_64 CELL_HEIGHT_SI = 0.40e-7;
         /** equals Z
          *  unit: meter */
         BOOST_CONSTEXPR_OR_CONST float_64 CELL_DEPTH_SI = CELL_WIDTH_SI;
+
+        /** Note on units in reduced dimensions
+         *
+         * In 2D3V simulations, the CELL_DEPTH_SI (Z) cell length
+         * is still used for normalization of densities, etc.
+         *
+         * A 2D3V simulation in a cartesian PIC simulation such as
+         * ours only changes the degrees of freedom in motion for
+         * (macro) particles and all (field) information in z
+         * travels instantaneous, making the 2D3V simulation
+         * behave like the interaction of infinite "wire particles"
+         * in fields with perfect symmetry in Z.
+         */
     } //namespace SI
 
     //! Defines the size of the absorbing zone (in cells)

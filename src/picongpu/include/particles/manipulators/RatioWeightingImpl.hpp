@@ -48,7 +48,7 @@ struct RatioWeightingImpl
 
     /* Adjust the weighting of particleDes by densityRatio of own & Src particle
      *
-     * While cloning a particle (particleDes) from another (T_SrcParticle), one
+     * While deriving a particle (particleDes) from another (T_SrcParticle), one
      * can afterward directly normalize the weighting back to the intended density:
      * - divide weighting with the `T_SrcParticle`'s densityRatio
      *   (to get macro particle weighting according to reference GAS_DENSITY * profile
@@ -58,12 +58,12 @@ struct RatioWeightingImpl
      *
      * This is useful when the profile and number of macro particles for both species
      * shall be the same and the initialization of another profile via `CreateGas`
-     * would be expensive (or one wants to keep the exact same position while cloning).
+     * would be expensive (or one wants to keep the exact same position while deriving).
      *
      * \tparam T_DesParticle type of the particle species with weighting to manipulate
      * \tparam T_SrcParticle type of the particle species one cloned from
      *
-     * \see picongpu::particles::ManipulateCloneSpecies , picongpu::kernelCloneParticles
+     * \see picongpu::particles::ManipulateDeriveSpecies , picongpu::kernelCloneParticles
      */
     template<typename T_DesParticle, typename T_SrcParticle>
     DINLINE void operator()(const DataSpace<simDim>&,

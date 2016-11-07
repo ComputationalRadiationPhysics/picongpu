@@ -29,9 +29,7 @@ namespace particles
 namespace ionization
 {
 
-    /** \struct ADK_Impl
-     *
-     * \brief Ammosov-Delone-Krainov tunneling model
+    /** Ammosov-Delone-Krainov tunneling model
      *
      * \tparam T_DestSpecies electron species to be created
      * \tparam T_SrcSpecies ion species to be ionized
@@ -39,12 +37,10 @@ namespace ionization
      *         cannot be known in list of particle species' flags
      *         \see speciesDefinition.param
      */
-    template<typename T_DestSpecies, typename T_SrcSpecies = bmpl::_1>
+    template<typename T_IonizationAlgorithm, typename T_DestSpecies, typename T_SrcSpecies = bmpl::_1>
     struct ADK_Impl;
 
-    /** \struct ADK
-     *
-     * \brief Ammosov-Delone-Krainov tunneling model
+    /** Ammosov-Delone-Krainov tunneling model - linear laser polarization
      *
      * - takes the ionization energies of the various charge states of ions
      * - calculates the ionization rates and then the ionization probabilities from them
@@ -61,9 +57,39 @@ namespace ionization
      * \see speciesDefinition.param
      */
     template<typename T_DestSpecies>
-    struct ADK
+    struct ADKLinPol
     {
-        typedef ADK_Impl<T_DestSpecies> type;
+        /* Boolean value that results in an additional polarization factor in
+         * the ionization rate for linear polarization */
+        BOOST_STATIC_CONSTEXPR bool linPol = true;
+        typedef particles::ionization::AlgorithmADK<linPol> IonizationAlgorithm;
+        typedef ADK_Impl<IonizationAlgorithm, T_DestSpecies> type;
+    };
+
+    /** Ammosov-Delone-Krainov tunneling model - circular laser polarization
+     *
+     * - takes the ionization energies of the various charge states of ions
+     * - calculates the ionization rates and then the ionization probabilities from them
+     * - ATTENTION: this approach is not very applicable for rapidly changing high intensity laser fields
+     * - this is a Monte Carlo method: if a random number is smaller
+     *   or equal than the ionization probability -> increase the charge state
+     * - see for example: Delone, N. B.; Krainov, V. P. (1998).
+     *   "Tunneling and barrier-suppression ionization of atoms and ions in a laser radiation field"
+     *   doi:10.1070/PU1998v041n05ABEH000393
+     *
+     * wrapper class,
+     * needed because the SrcSpecies cannot be known during the
+     * first specialization of the ionization model in the particle definition
+     * \see speciesDefinition.param
+     */
+    template<typename T_DestSpecies>
+    struct ADKCircPol
+    {
+        /* Boolean value that results in an additional polarization factor in
+         * the ionization rate for linear polarization */
+        BOOST_STATIC_CONSTEXPR bool linPol = false;
+        typedef particles::ionization::AlgorithmADK<linPol> IonizationAlgorithm;
+        typedef ADK_Impl<IonizationAlgorithm, T_DestSpecies> type;
     };
 
 } // namespace ionization

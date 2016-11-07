@@ -26,6 +26,7 @@
 #include <string>
 #include <vector>
 #include <boost/lexical_cast.hpp>
+#include <boost/mpl/count.hpp>
 
 #include "pmacc_types.hpp"
 #include "simulationControl/SimulationHelper.hpp"
@@ -49,6 +50,9 @@
 #include "fields/background/cellwiseOperation.hpp"
 #include "initialization/IInitPlugin.hpp"
 #include "initialization/ParserGridDistribution.hpp"
+#include "particles/synchrotronPhotons/SynchrotronFunctions.hpp"
+#include "random/methods/XorMin.hpp"
+#include "random/RNGProvider.hpp"
 
 #include "nvidia/reduce/Reduce.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
@@ -99,7 +103,8 @@ public:
     currentBGField(NULL),
     cellDescription(NULL),
     initialiserController(NULL),
-    slidingWindow(false)
+    slidingWindow(false),
+    rngFactory(NULL)
     {
         ForEach<VectorAllSpecies, particles::AssignNull<bmpl::_1>, MakeIdentifier<bmpl::_1> > setPtrToNull;
         setPtrToNull(forward(particleStorage));
@@ -259,6 +264,8 @@ public:
         __delete(pushBGField);
         __delete(currentBGField);
         __delete(cellDescription);
+
+        __delete(rngFactory);
     }
 
     void notify(uint32_t)
@@ -278,6 +285,37 @@ public:
         currentBGField = new cellwiseOperation::CellwiseOperation < CORE + BORDER + GUARD > (*cellDescription);
 
         laser = new LaserPhysics(cellDescription->getGridLayout());
+
+        // Make a list of all species that can be ionized
+        typedef typename PMacc::particles::traits::FilterByFlag
+        <
+            VectorAllSpecies,
+            ionizer<>
+        >::type VectorSpeciesWithIonizer;
+
+        /* Make a list of `boost::true_type`s and `boost::false_type`s for species that use or do not use the RNG during ionization */
+        typedef typename PMacc::OperateOnSeq<VectorSpeciesWithIonizer,picongpu::traits::UsesRNG<picongpu::traits::GetIonizer<bmpl::_> > >::type VectorIonizersUsingRNG;
+        /* define a type that contains the number of `boost::true_type`s when `::value` is accessed */
+        typedef typename boost::mpl::count<VectorIonizersUsingRNG, boost::true_type>::type NumReqRNGs;
+
+        // Initialize random number generator and synchrotron functions, if there are synchrotron photon species
+        typedef typename PMacc::particles::traits::FilterByFlag<VectorAllSpecies,
+                                                                synchrotronPhotons<> >::type AllSynchrotronPhotonsSpecies;
+
+        if(!bmpl::empty<AllSynchrotronPhotonsSpecies>::value || NumReqRNGs::value)
+        {
+            // create factory for the random number generator
+            this->rngFactory = new RNGFactory(Environment<simDim>::get().SubGrid().getLocalDomain().size);
+            // init factory
+            PMacc::GridController<simDim>& gridCon = PMacc::Environment<simDim>::get().GridController();
+            this->rngFactory->init(gridCon.getScalarPosition());
+        }
+
+        // Initialize synchrotron functions, if there are synchrotron photon species
+        if(!bmpl::empty<AllSynchrotronPhotonsSpecies>::value)
+        {
+            this->synchrotronFunctions.init();
+        }
 
         ForEach<VectorAllSpecies, particles::CreateSpecies<bmpl::_1>, MakeIdentifier<bmpl::_1> > createSpeciesMemory;
         createSpeciesMemory(forward(particleStorage), cellDescription);
@@ -362,13 +400,14 @@ public:
                 /* we do not require --restart-step if a master checkpoint file is found */
                 if (this->restartStep < 0)
                 {
-                    this->restartStep = readCheckpointMasterFile();
+                    std::vector<uint32_t> checkpoints = readCheckpointMasterFile();
 
-                    if (this->restartStep < 0)
+                    if (checkpoints.empty())
                     {
                         throw std::runtime_error(
                                                  "Restart failed. You must provide the '--restart-step' argument. See picongpu --help.");
-                    }
+                    } else
+                        this->restartStep = checkpoints.back();
                 }
 
                 initialiserController->restart((uint32_t)this->restartStep, this->restartDirectory);
@@ -430,6 +469,16 @@ public:
         >::type VectorSpeciesWithIonizer;
         ForEach<VectorSpeciesWithIonizer, particles::CallIonization<bmpl::_1>, MakeIdentifier<bmpl::_1> > particleIonization;
         particleIonization(forward(particleStorage), cellDescription, currentStep);
+
+        /* call the synchrotron radiation module for each radiating species (normally electrons) */
+        typedef typename PMacc::particles::traits::FilterByFlag<VectorAllSpecies,
+                                                                synchrotronPhotons<> >::type AllSynchrotronPhotonsSpecies;
+
+        ForEach<AllSynchrotronPhotonsSpecies,
+                particles::CallSynchrotronPhotons<bmpl::_1>,
+                MakeIdentifier<bmpl::_1> > synchrotronRadiation;
+        synchrotronRadiation(forward(particleStorage), cellDescription, currentStep, this->synchrotronFunctions);
+
 
         EventTask initEvent = __getTransactionEvent();
         EventTask updateEvent;
@@ -575,50 +624,6 @@ private:
         }
     }
 
-    /**
-     * Return the last line of the checkpoint master file if any
-     *
-     * @return last checkpoint timestep or -1
-     */
-    int32_t readCheckpointMasterFile(void)
-    {
-        int32_t lastCheckpointStep = -1;
-
-        const std::string checkpointMasterFile =
-            this->restartDirectory + std::string("/") + this->CHECKPOINT_MASTER_FILE;
-
-        if (boost::filesystem::exists(checkpointMasterFile))
-        {
-            std::ifstream file;
-            file.open(checkpointMasterFile.c_str());
-
-            /* read each line, last line will become the returned checkpoint step */
-            std::string line;
-            while (file)
-            {
-                std::getline(file, line);
-
-                if (line.size() > 0)
-                {
-                    try
-                    {
-                        lastCheckpointStep = boost::lexical_cast<int32_t>(line);
-                    }
-                    catch (boost::bad_lexical_cast const&)
-                    {
-                        std::cerr << "Warning: checkpoint master file contains invalid data ("
-                            << line << ")" << std::endl;
-                        lastCheckpointStep = -1;
-                    }
-                }
-            }
-
-            file.close();
-        }
-
-        return lastCheckpointStep;
-    }
-
 protected:
     // fields
     FieldB *fieldB;
@@ -640,6 +645,13 @@ protected:
     ParticleStorage particleStorage;
 
     LaserPhysics *laser;
+
+    // Synchrotron functions (used in synchrotronPhotons module)
+    particles::synchrotronPhotons::SynchrotronFunctions synchrotronFunctions;
+
+    // factory for the random number generator
+    typedef PMacc::random::RNGProvider<simDim, PMacc::random::methods::XorMin> RNGFactory;
+    RNGFactory* rngFactory;
 
     // output classes
 
@@ -663,3 +675,4 @@ protected:
 } /* namespace picongpu */
 
 #include "fields/Fields.tpp"
+#include "particles/synchrotronPhotons/SynchrotronFunctions.tpp"

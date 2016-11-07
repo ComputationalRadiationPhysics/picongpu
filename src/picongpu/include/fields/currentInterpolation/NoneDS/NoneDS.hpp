@@ -169,6 +169,11 @@ struct NoneDS
         fieldB(self) += jAvgB * constB;
     }
 
+    static PMacc::traits::StringProperty getStringProperties()
+    {
+        PMacc::traits::StringProperty propList( "name", "none" );
+        return propList;
+    }
 };
 
 } /* namespace currentInterpolation */

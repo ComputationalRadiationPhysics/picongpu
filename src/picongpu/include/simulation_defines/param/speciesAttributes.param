@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2016 Rene Widera, Marco Garten, Alexander Grund
+ * Copyright 2014-2016 Rene Widera, Marco Garten, Alexander Grund, Axel Huebl, Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -18,8 +18,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 #include "simulation_defines.hpp"
@@ -31,6 +29,19 @@
 #include "identifier/value_identifier.hpp"
 #include "particles/IdProvider.def"
 
+
+/** \file speciesAttributes.param
+ *
+ * This file defines available attributes that can be stored with each particle
+ * of a particle species.
+ * Each attribute defined here needs to implement furthermore the traits
+ *   - Unit
+ *   - UnitDimension
+ *   - WeightingPower
+ *   - MacroWeighted
+ * in \see speciesAttributes.unitless . For further information about these
+ * traits see therein.
+ */
 namespace picongpu
 {
 
@@ -39,11 +50,6 @@ namespace picongpu
  * This is only a name without a specialization
  */
 alias(position);
-/** cell index the particle lives in, relative to the global moving window origin
- * This alias is only used for dumping hdf5, the index is only valid for the
- * current time step.
- */
-alias(globalCellIdx);
 
 value_identifier(uint64_t,particleId,IdProvider<simDim>::getNewId());
 
@@ -86,6 +92,9 @@ alias(ionizer);
 /*! alias for ionization energy container @see ionizationEnergies.param */
 alias(ionizationEnergies);
 
+/*! alias for synchrotronPhotons @see speciesDefinition.param */
+alias(synchrotronPhotons)
+
 /*! alias for particle to field interpolation @see species.param */
 alias(interpolation);
 
@@ -95,6 +104,11 @@ alias(current);
 /*! alias for particle flag: atomic numbers @see speciesDefinition.param
  * - only reasonable for atoms / ions / nuclei */
 alias(atomicNumbers);
+
+/*! alias for particle flag: effective atomic numbers @see speciesDefinition.param
+ * @see ionizerConfig.param
+ */
+alias(effectiveAtomicNumbers);
 
 /*! alias for particle mass ratio
  *

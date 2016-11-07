@@ -30,7 +30,7 @@
 #include "math/vector/Size_t.hpp"
 #include "pmacc_types.hpp"
 
-#include <boost/math/common_factor.hpp>
+#include <boost/math/common_factor_rt.hpp>
 #include <boost/mpl/placeholders.hpp>
 
 #include <cassert>
@@ -60,12 +60,11 @@ struct DeviceMemAssigner
 
         /* The greatest common divisor of each component of the volume size
          * and a certain power of two value gives the best suitable block size */
-        boost::math::gcd_evaluator<size_t> gcd; // greatest common divisor
         math::Size_t<3> blockDim(math::Size_t<3>::create(1));
-        int maxValues[] = {16, 16, 4}; // maximum values for each dimension
+        size_t maxValues[] = {16, 16, 4}; // maximum values for each dimension
         for(int i = 0; i < dim; i++)
         {
-            blockDim[i] = gcd(buffer->size()[i], maxValues[dim-1]);
+            blockDim[i] = boost::math::gcd(buffer->size()[i], maxValues[dim-1]);
         }
         /* the maximum number of threads per block for devices with
          * compute capability > 2.0 is 1024 */

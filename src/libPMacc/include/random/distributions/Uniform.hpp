@@ -40,6 +40,14 @@ namespace distributions
 
     /**
      * Returns a random, uniformly distributed value of the given type
+     *
+     * @tparam T_Type the result type or a range description @see uniform/Range.hpp
+     * \code
+     * Uniform<uniform::ExcludeOne<float>::Use24Bit> Uniform24BitDistribution; //default for float
+     * Uniform<float> UniformDefaultDistribution; //equal to line one
+     * Uniform<uniform::ExcludeZero<float> > UniformNoZeroDistribution;
+     * \endcode
+     * @tparam T_RNGMethod method to create a random number
      */
     template<typename T_Type, class T_RNGMethod = bmpl::_1>
     class Uniform: public detail::Uniform<T_Type, T_RNGMethod>

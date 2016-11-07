@@ -87,6 +87,12 @@ struct FieldToParticleInterpolation
         return result;
     }
 
+    static PMacc::traits::StringProperty getStringProperties()
+    {
+        GetStringProperties<InterpolationMethod> propList;
+        return propList;
+    }
+
 };
 
 namespace traits

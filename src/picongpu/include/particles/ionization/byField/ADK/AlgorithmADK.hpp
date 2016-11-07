@@ -43,12 +43,15 @@ namespace particles
 namespace ionization
 {
 
-    /** \struct AlgorithmADK
+    /** Calculation for the Ammosov-Delone-Krainov tunneling model
      *
-     * \brief calculation for the Ammosov-Delone-Krainov tunneling model */
+     * for either linear or circular laser polarization
+     *
+     * \tparam T_linPol boolean value that is true for lin. pol. and false for circ. pol.
+     */
+    template<bool T_linPol>
     struct AlgorithmADK
     {
-
         /** Functor implementation
          * \tparam EType type of electric field
          * \tparam BType type of magnetic field
@@ -63,44 +66,57 @@ namespace ionization
         operator()( const BType bField, const EType eField, ParticleType& parentIon, float_X randNr )
         {
 
-            const float_X protonNumber  = GetAtomicNumbers<ParticleType>::type::numberOfProtons;
-            float_X chargeState         = attribute::getChargeState(parentIon);
-            uint32_t cs                 = math::float2int_rd(chargeState);
-            const float_X iEnergy       = GetIonizationEnergies<ParticleType>::type()[cs];
+            const float_X protonNumber = GetAtomicNumbers<ParticleType>::type::numberOfProtons;
+            float_X chargeState = attribute::getChargeState(parentIon);
 
-            const float_X pi    = precisionCast<float_X>(M_PI);
-            /* electric field in atomic units - only absolute value */
-            float_X eInAU       = math::abs(eField) / ATOMIC_UNIT_EFIELD;
-
-            /* effective principal quantum number (unitless) */
-            float_X nEff        = protonNumber / math::sqrt(float_X(2.0) * iEnergy );
-            /* nameless variable for convenience dFromADK*/
-            float_X dBase       = float_X(4.0) * util::cube(protonNumber) / ( eInAU * util::quad(nEff)) ;
-            float_X dFromADK    = math::pow(dBase,nEff);
-
-            /* ionization rate */
-            float_X rateADK     = math::sqrt(float_X(3.0) * util::cube(nEff) * eInAU / (pi * util::cube(protonNumber))) \
-                                    * eInAU * util::square(dFromADK) / (float_X(8.0) * pi * protonNumber) \
-                                    * math::exp(float_X(-2.0) * util::cube(protonNumber) / (float_X(3.0) * util::cube(nEff) * eInAU));
-
-            /* simulation time step in atomic units */
-            const float_X timeStepAU = float_X(DELTA_T / ATOMIC_UNIT_TIME);
-            /* ionization probability
-             *
-             * probability = rate * time step
-             * --> for infinitesimal time steps
-             *
-             * the whole ensemble should then follow
-             * P = 1 - exp(-rate * time step) if the laser wavelength is
-             * sampled well enough
-             */
-            float_X probADK     = rateADK * timeStepAU;
-
-            /* ionization condition */
-            if (randNr < probADK && chargeState < protonNumber)
+            /* verify that ion is not completely ionized */
+            if (chargeState < protonNumber)
             {
-                /* set new particle charge state */
-                parentIon[boundElectrons_] -= float_X(1.0);
+                uint32_t cs = math::float2int_rd(chargeState);
+                const float_X iEnergy = GetIonizationEnergies<ParticleType>::type()[cs];
+
+                const float_X pi = precisionCast<float_X>(M_PI);
+                /* electric field in atomic units - only absolute value */
+                float_X eInAU = math::abs(eField) / ATOMIC_UNIT_EFIELD;
+
+                /* effective principal quantum number (unitless) */
+                float_X nEff = protonNumber / math::sqrt(float_X(2.0) * iEnergy );
+                /* nameless variable for convenience dFromADK*/
+                float_X dBase = float_X(4.0) * util::cube(protonNumber) / (eInAU * util::quad(nEff)) ;
+                float_X dFromADK = math::pow(dBase,nEff);
+
+                /* ionization rate (for CIRCULAR polarization)*/
+                float_X rateADK = eInAU * util::square(dFromADK) / (float_X(8.0) * pi * protonNumber) \
+                                * math::exp(float_X(-2.0) * util::cube(protonNumber) / (float_X(3.0) * util::cube(nEff) * eInAU));
+
+                /* in case of linear polarization the rate is modified by an additional factor */
+                if(T_linPol)
+                {
+                    /* factor from averaging over one laser cycle with LINEAR polarization */
+                    const float_X polarizationFactor = math::sqrt(float_X(3.0) * util::cube(nEff) * eInAU / (pi * util::cube(protonNumber)));
+
+                    rateADK *= polarizationFactor;
+                }
+
+                /* simulation time step in atomic units */
+                const float_X timeStepAU = float_X(DELTA_T / ATOMIC_UNIT_TIME);
+                /* ionization probability
+                 *
+                 * probability = rate * time step
+                 * --> for infinitesimal time steps
+                 *
+                 * the whole ensemble should then follow
+                 * P = 1 - exp(-rate * time step) if the laser wavelength is
+                 * sampled well enough
+                 */
+                float_X probADK = rateADK * timeStepAU;
+
+                /* ionization condition */
+                if (randNr < probADK)
+                {
+                    /* set new particle charge state */
+                    parentIon[boundElectrons_] -= float_X(1.0);
+                }
             }
 
         }

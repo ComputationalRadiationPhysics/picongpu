@@ -30,7 +30,10 @@
 
 
 #######################
-# $1 name of variable with template descriptions
+## replace all `!var` variables
+#
+# $1 list with variable definitions (one variable per line)
+# $2 input data stream
 ########################
 function tooltpl_replace
 {
@@ -50,7 +53,7 @@ function tooltpl_replace
            #echo "$tooltpl_dst $tooltpl_src_esc $tooltpl_src " > /dev/stderr
            #replace templates but only if variable name followed by a non Alphanumeric character [a-zA-Z0-9]
            #replace templates which has variable tooltpl_dst at end of line
-           tooltpl_replace_data=`echo "$tooltpl_replace_data" | sed "s/\!$tooltpl_dst\([^[:alnum:]_]\{1,\}\)/$tooltpl_src_esc\1/g ; s/\!$tooltpl_dst$/$tooltpl_src_esc/g"`
+           tooltpl_replace_data=`echo "$tooltpl_replace_data" | sed "s/\!$tooltpl_dst\([^[:alnum:]_]\{1,1\}\)/$tooltpl_src_esc\1/g ; s/\!$tooltpl_dst$/$tooltpl_src_esc/g"`
         fi
         if [ $? -ne 0 ] ; then
             echo "$tooltpl_src_esc"
@@ -60,29 +63,16 @@ function tooltpl_replace
     echo "$tooltpl_replace_data"
 }
 
-function run_cfg_and_get_solved_variables
+#######################
+## recursive replace all `!var` variables
+#
+# replace recursive all `!var` variables in a data stream of variable definition
+#
+# $1 data stream with variable definitions (one variable assign per line)
+#######################
+function tooltpl_replace_recursive
 {
-    source "$1" # name and path to cfg file
-    eval tooltpl_file_data="\$$2" #data stream from tpl file
-    eval extra_op="\$$3"    #overwrite templates with extra options parameter -x
-
-    #append template file variable definitions and solve them
-    while read -r data_set
-    do
-        eval "$data_set"
-    done < <(echo "$tooltpl_file_data" | grep "^[[:blank:]]*[[:alpha:]][[:alnum:]_]*=.*")
-
-    #read and evaluate extra options from parameter -o
-    for i in $extra_op
-    do
-      eval "$i"
-    done
-
-    #filter all TBG variables
-    tooltbl_env=`set | grep "^[[:alpha:]][[:alnum:]_]*=.*" | grep -v tooltpl  `
-
-    data="$tooltbl_env"
-
+    eval data="\$$1" #data stream from tpl file
     unresolved_vars=`echo "$data" | grep "\![[:alpha:]][[:alnum:]_]*" | wc -l`
     unresolved_vars_old=$(( unresolved_vars + 1))
 
@@ -106,7 +96,96 @@ function run_cfg_and_get_solved_variables
         echo "  - dependency loop with two or more variables" >&2
     fi
     echo "$data"
- }
+}
+
+#######################
+## apply extra overwrite variables
+#
+# overwrite variable definition from $1 if defined in $2
+#
+# $1 data stream where variables should be overwritten
+# $2 data stream with overwrite template parameter definitions (tbg parameter -o)
+#######################
+function apply_extra_vars
+{
+    eval tooltpl_data="\$$1"
+    eval tooltpl_extra_op="\$$2"
+    while read -r data_set
+    do
+        echo "$data_set" | grep "^[[:blank:]]*[[:alpha:]][[:alnum:]_]*=.*" &>/dev/null
+        if [ $? -eq 0 ] ; then
+            # get variable name (left side of assign)
+            tooltpl_var=`echo -e "$data_set" | cut -d"=" -f1`
+            # check if variable must be overwritten
+            tooltpl_op=`echo -e "$tooltpl_extra_op" | tr " " "\n" | grep "$tooltpl_var="`
+            if [ $? -eq 0 ] ; then
+                # overwrite variable assignment
+                echo "$tooltpl_op"
+            else
+                # data_set is a assignment but variable not contained in $2
+                echo "$data_set"
+            fi
+        else
+            # data_set is no assignment, therefore write out without changes
+            echo "$data_set"
+        fi
+    done < <(echo "$tooltpl_data")
+}
+
+#######################
+## get substituted variables
+#
+# replace recursive all `!var` variables in a list of variable definition
+#
+# $1 data path and name to submit script
+# $2 tpl file data
+# $3 data stream with overwrite template parameter definitions (tbg parameter -o)
+#######################
+function run_cfg_and_get_solved_variables
+{
+    eval tooltpl_file_data="\$$2" #data stream from tpl file
+    eval tooltpl_extra_op="\$$3"    #overwrite templates with extra options parameter -o
+
+    # merge multi line to single line
+    tooltpl_cfg_script=`sed -e :a -e '/\\\\$/N; s/\\\\\n//; ta' $1 `
+
+    # overwrite variable definition if contained in $3
+    tooltpl_cfg_script_overwritten=`apply_extra_vars tooltpl_cfg_script tooltpl_extra_op`
+
+    # execute the cfg script
+    eval "$tooltpl_cfg_script_overwritten" # name and path to cfg file
+
+    # get all variable assignments (form: `.var=value`) from the tpl file
+    tooltpl_tbg_vars=`echo "$tooltpl_file_data" | grep "^[[:blank:]]*\.[[:alpha:]][[:alnum:]_]*=.*" | \
+        sed 's/^[[:blank:]]*\.//'`
+    # overwrite all variable assignments from tpl file with overwrite variables
+    tooltpl_tbg_vars_overwritten=`apply_extra_vars tooltpl_tbg_vars tooltpl_extra_op`
+
+    # get all variable definitions from the current environment
+    tooltpl_env=`set | grep "^[[:alpha:]][[:alnum:]_]*=.*" | grep -v tooltpl`
+
+    # append tpl variable assignments to the environment variables
+    tooltpl_full_env=`echo -e "$tooltpl_env\n$tooltpl_tbg_vars_overwritten"`
+
+    # replace all !var usage
+    tooltpl_solved_environment=`tooltpl_replace_recursive tooltpl_full_env`
+
+    # evaluate all variable assignments which are contained in the tpl file
+    while read -r data_set
+    do
+        tooltpl_var=`echo "$data_set" | cut -d"=" -f1`
+        echo "$tooltpl_tbg_vars_overwritten" | grep "$tooltpl_var" &> /dev/null
+        if [ $? -eq 0 ] ; then
+            # variable is contained in the tpl file
+            # evaluate variable and print out
+            eval "$data_set"
+            echo -n "$tooltpl_var="; eval echo "\$$tooltpl_var"
+        else
+            # variable is not in the tpl file (only print out current state)
+            echo "$data_set"
+        fi
+    done < <(echo "$tooltpl_solved_environment" |  grep "^[[:blank:]]*[[:alpha:]][[:alnum:]_]*=.*")
+}
 
 #######################
 # $1 path to final file
@@ -172,6 +251,7 @@ help()
     echo "                                 tbg will use stdin, if no file is specified."
     echo "                                 Default: [templateFile] via export TBG_TPLFILE"
     echo "-o                             - Overwrite any template variable:"
+    echo "                                 spaces within the right side of assign are not allowed"
     echo "                                 e.g. -o \"VARNAME1=10 VARNAME2=5\""
     echo "                                 Overwriting is done after cfg file was executed"
     echo "-h | --help                    - Shows help (this output)."
@@ -359,18 +439,14 @@ fi
 mkdir -p "$job_outDir/tbg"
 cd "$job_outDir"
 
-#set all userdefined variables from -x parameter (e.g. TBG_A="hallo" TBG_B=123)
-#for i in $cfg_extraOpt
-#do
-#    eval "$i"
-#done
 
-solved_variables=`run_cfg_and_get_solved_variables "$TBG_cfgFile" tooltpl_file_data tooltpl_overwrite`
+# get the full replaced and evaluated variable definitions
+tooltpl_solved_variables=`run_cfg_and_get_solved_variables "$TBG_cfgFile" tooltpl_file_data tooltpl_overwrite`
 
-
-#delete alle variable definitions with TBG at begin
-tooltpl_file_data_cleaned=`echo "$tooltpl_file_data" |  grep -v "^[[:alpha:]][[:alnum:]_]*=.*"`
-batch_file=`tooltpl_replace tooltpl_file_data_cleaned solved_variables`
+#delete all variable assignments (form: `.var=value`) from the tpl file
+tooltpl_file_data_cleaned=`echo "$tooltpl_file_data" |  grep -v "^[[:blank:]]*\.[[:alpha:]][[:alnum:]_]*=.*"`
+# create the content of the batch system file `submit.start`
+batch_file=`tooltpl_replace tooltpl_file_data_cleaned tooltpl_solved_variables`
 
 if [ ! -z "$tooltpl_file" ] ; then
     # preserve file attributes/permissions

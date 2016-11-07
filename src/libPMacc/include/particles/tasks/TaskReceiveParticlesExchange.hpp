@@ -86,11 +86,7 @@ namespace PMacc
                         assert(lastSize <= maxSize);
                         //check for next bash round
                         if (lastSize == maxSize)
-                        {
-                            std::cerr << "recv max size " << maxSize << " particles" << std::endl;
                             init(); //call init and run a full send cycle
-
-                        }
                         else
                         {
                             state = Finished;

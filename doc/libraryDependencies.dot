@@ -14,7 +14,6 @@ digraph PIConGPU {
     compiler -> boost;
     compiler -> python;
     compiler -> zlib;
-    compiler -> libmxml;
     compiler -> libpng;
 
     cuda -> mpi [style=dashed label="cuda-awareness"];
@@ -32,7 +31,7 @@ digraph PIConGPU {
 
     adios [label="adios-parallel"];
     mpi -> adios;
-    libmxml -> adios;
+    zlib -> adios;
     hdf5 -> adios [style=dashed label="optional"];
     fileSystem -> adios [style=dashed label="extra hints"];
 

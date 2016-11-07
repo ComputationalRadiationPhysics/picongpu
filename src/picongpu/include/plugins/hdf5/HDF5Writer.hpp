@@ -29,7 +29,6 @@
 #include <vector>
 
 #include "simulation_defines.hpp"
-#include "version.hpp"
 
 #include "plugins/hdf5/HDF5Writer.def"
 #include "traits/SplashToPIC.hpp"
@@ -66,6 +65,7 @@
 
 #include <boost/type_traits.hpp>
 
+#include "plugins/hdf5/WriteMeta.hpp"
 #include "plugins/hdf5/WriteFields.hpp"
 #include "plugins/hdf5/WriteSpecies.hpp"
 #include "plugins/hdf5/restart/LoadSpecies.hpp"
@@ -95,8 +95,9 @@ class HDF5Writer : public ISimulationPlugin
 public:
 
     HDF5Writer() :
-    filename("h5_data"),
-    checkpointFilename("h5_checkpoint"),
+    filename("simData"),
+    outputDirectory("h5"),
+    checkpointFilename("checkpoint"),
     restartFilename(""), /* set to checkpointFilename by default */
     notifyPeriod(0)
     {
@@ -285,9 +286,6 @@ private:
             std::cerr << e.what() << std::endl;
             throw std::runtime_error("HDF5 failed to open DataCollector");
         }
-
-        // write global meta attributes
-        writeMetaAttributes(h5Filename, &mThreadParams);
     }
 
     /**
@@ -305,25 +303,25 @@ private:
 
         __getTransactionEvent().waitForFinished();
 
-        std::string fname = filename;
-        if (isCheckpoint)
+        std::string h5Filename( filename );
+        std::string h5Filedir( outputDirectory );
+        if( isCheckpoint )
         {
-            /* if checkpointFilename is relative, prepend with checkpointDirectory */
-            if (!boost::filesystem::path(checkpointFilename).has_root_path())
-            {
-                fname = checkpointDirectory + std::string("/") + checkpointFilename;
-            }
-            else
-            {
-                fname = checkpointFilename;
-            }
+            h5Filename = checkpointFilename;
+            h5Filedir = checkpointDirectory;
+        }
 
-            mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(currentStep);
-        }
+        /* if file name is relative, prepend with common directory */
+        if( boost::filesystem::path(h5Filename).has_root_path() )
+            mThreadParams.h5Filename = h5Filename;
         else
-        {
+            mThreadParams.h5Filename = h5Filedir + "/" + h5Filename;
+
+        /* window selection */
+        if( isCheckpoint )
+            mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(currentStep);
+        else
             mThreadParams.window = MovingWindow::getInstance().getWindow(currentStep);
-        }
 
         for (uint32_t i = 0; i < simDim; ++i)
         {
@@ -336,7 +334,7 @@ private:
             }
         }
 
-        openH5File(fname);
+        openH5File(mThreadParams.h5Filename);
 
         writeHDF5((void*) &mThreadParams);
 
@@ -368,6 +366,9 @@ private:
         if (notifyPeriod > 0)
         {
             Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
+
+            /** create notify directory */
+            Environment<simDim>::get().Filesystem().createDirectoryWithPermissions(outputDirectory);
         }
 
         if (restartFilename == "")
@@ -384,128 +385,6 @@ private:
             mThreadParams.dataCollector->finalize();
 
         __delete(mThreadParams.dataCollector);
-    }
-
-    typedef PICToSplash<float_X>::type SplashFloatXType;
-
-    static void writeMetaAttributes(const std::string h5Filename,
-                                    ThreadParams *threadParams)
-    {
-        ColTypeUInt32 ctUInt32;
-        ColTypeUInt64 ctUInt64;
-        ColTypeDouble ctDouble;
-        SplashFloatXType splashFloatXType;
-
-        ParallelDomainCollector *dc = threadParams->dataCollector;
-        uint32_t currentStep = threadParams->currentStep;
-
-        /* openPMD attributes */
-        /*   required */
-        std::string openPMDversion("1.0.0");
-        ColTypeString ctOpenPMDversion(openPMDversion.length());
-        dc->writeGlobalAttribute( threadParams->currentStep,
-                                  ctOpenPMDversion, "openPMD",
-                                  openPMDversion.c_str() );
-
-        const uint32_t openPMDextension = 1; // ED-PIC ID
-        dc->writeGlobalAttribute( threadParams->currentStep,
-                                  ctUInt32, "openPMDextension",
-                                  &openPMDextension );
-
-        std::string basePath("/data/%T/");
-        ColTypeString ctBasePath(basePath.length());
-        dc->writeGlobalAttribute( threadParams->currentStep,
-                                  ctBasePath, "basePath",
-                                  basePath.c_str() );
-
-        std::string meshesPath("fields/");
-        ColTypeString ctMeshesPath(meshesPath.length());
-        dc->writeGlobalAttribute( threadParams->currentStep,
-                                  ctMeshesPath, "meshesPath",
-                                  meshesPath.c_str() );
-
-        std::string particlesPath("particles/");
-        ColTypeString ctParticlesPath(particlesPath.length());
-        dc->writeGlobalAttribute( threadParams->currentStep,
-                                  ctParticlesPath, "particlesPath",
-                                  particlesPath.c_str() );
-
-        std::string iterationEncoding("fileBased");
-        ColTypeString ctIterationEncoding(iterationEncoding.length());
-        dc->writeGlobalAttribute( threadParams->currentStep,
-                                  ctIterationEncoding, "iterationEncoding",
-                                  iterationEncoding.c_str() );
-
-        std::string iterationFormat(h5Filename + std::string("_%T.h5"));
-        ColTypeString ctIterationFormat(iterationFormat.length());
-        dc->writeGlobalAttribute( threadParams->currentStep,
-                                  ctIterationFormat, "iterationFormat",
-                                  iterationFormat.c_str() );
-
-        /*   recommended */
-        std::string author = Environment<>::get().SimulationDescription().getAuthor();
-        if( author.length() > 0 )
-        {
-            ColTypeString ctAuthor(author.length());
-            dc->writeGlobalAttribute( threadParams->currentStep,
-                                      ctAuthor, "author",
-                                      author.c_str() );
-        }
-        std::string software("PIConGPU");
-        ColTypeString ctSoftware(software.length());
-        dc->writeGlobalAttribute( threadParams->currentStep,
-                                  ctSoftware, "software",
-                                  software.c_str() );
-
-        std::stringstream softwareVersion;
-        softwareVersion << PICONGPU_VERSION_MAJOR << "."
-                        << PICONGPU_VERSION_MINOR << "."
-                        << PICONGPU_VERSION_PATCH;
-        ColTypeString ctSoftwareVersion(softwareVersion.str().length());
-        dc->writeGlobalAttribute( threadParams->currentStep,
-                                  ctSoftwareVersion, "softwareVersion",
-                                  softwareVersion.str().c_str() );
-
-        std::string date = helper::getDateString("%F %T %z");
-        ColTypeString ctDate(date.length());
-        dc->writeGlobalAttribute( threadParams->currentStep,
-                                  ctDate, "date",
-                                  date.c_str() );
-
-        /* write number of slides */
-        const uint32_t slides = MovingWindow::getInstance().getSlideCounter(threadParams->currentStep);
-
-        dc->writeAttribute(threadParams->currentStep,
-                           ctUInt32, NULL, "sim_slides", &slides);
-
-
-        /* openPMD: required time attributes */
-        dc->writeAttribute(currentStep, splashFloatXType, NULL, "dt", &DELTA_T);
-        const float_X time = float_X(threadParams->currentStep) * DELTA_T;
-        dc->writeAttribute(currentStep, splashFloatXType, NULL, "time", &time);
-        dc->writeAttribute(currentStep, ctDouble, NULL, "timeUnitSI", &UNIT_TIME);
-
-        /* write normed grid parameters */
-        dc->writeAttribute(currentStep, splashFloatXType, NULL, "cell_width", &CELL_WIDTH);
-        dc->writeAttribute(currentStep, splashFloatXType, NULL, "cell_height", &CELL_HEIGHT);
-        if (simDim == DIM3)
-        {
-            dc->writeAttribute(currentStep, splashFloatXType, NULL, "cell_depth", &CELL_DEPTH);
-        }
-
-        /* write base units */
-        dc->writeAttribute(currentStep, ctDouble, NULL, "unit_energy", &UNIT_ENERGY);
-        dc->writeAttribute(currentStep, ctDouble, NULL, "unit_length", &UNIT_LENGTH);
-        dc->writeAttribute(currentStep, ctDouble, NULL, "unit_speed", &UNIT_SPEED);
-        dc->writeAttribute(currentStep, ctDouble, NULL, "unit_time", &UNIT_TIME);
-        dc->writeAttribute(currentStep, ctDouble, NULL, "unit_mass", &UNIT_MASS);
-        dc->writeAttribute(currentStep, ctDouble, NULL, "unit_charge", &UNIT_CHARGE);
-        dc->writeAttribute(currentStep, ctDouble, NULL, "unit_efield", &UNIT_EFIELD);
-        dc->writeAttribute(currentStep, ctDouble, NULL, "unit_bfield", &UNIT_BFIELD);
-
-        /* write physical constants */
-        dc->writeAttribute(currentStep, splashFloatXType, NULL, "mue0", &MUE0);
-        dc->writeAttribute(currentStep, splashFloatXType, NULL, "eps0", &EPS0);
     }
 
     static void *writeHDF5(void *p_args)
@@ -553,6 +432,11 @@ private:
                 "maxNumProc", idProviderState.maxNumProc);
         WriteNDScalars<uint64_t>()(*threadParams,
                 "picongpu/idProvider/nextId", idProviderState.nextId);
+
+        // write global meta attributes
+        WriteMeta writeMetaAttributes;
+        writeMetaAttributes(threadParams);
+
         return NULL;
     }
 
@@ -565,6 +449,7 @@ private:
     std::string filename;
     std::string checkpointFilename;
     std::string restartFilename;
+    std::string outputDirectory;
     std::string checkpointDirectory;
 
     uint32_t restartChunkSize;

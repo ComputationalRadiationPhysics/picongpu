@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Rene Widera, Marco Garten
+ * Copyright 2013-2016 Axel Huebl, Rene Widera, Marco Garten, Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -30,13 +30,6 @@ namespace picongpu
     /** Unit of length */
     BOOST_CONSTEXPR_OR_CONST float_64 UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
 
-#if(SIMDIM==DIM3)
-    namespace SI
-    {
-        /** density normed to dimension of the simulation*/
-        BOOST_CONSTEXPR_OR_CONST float_64  GAS_DENSITY_NORMED= SI::GAS_DENSITY_SI;
-    } //namespace SI
-
     namespace particles
     {
         /** Number of electrons per particle (= macro particle weighting)
@@ -44,23 +37,6 @@ namespace picongpu
         BOOST_CONSTEXPR_OR_CONST float_X TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE = 1;
 
     }
-
-#elif(SIMDIM==DIM2)
-    namespace SI
-    {
-        /** density normed to dimension of the simulation
-         *
-         * http://www.tf.uni-kiel.de/matwis/amat/mw1_ge/kap_6/basics/m6_2_1.html
-         */
-        BOOST_CONSTEXPR_OR_CONST float_64  GAS_DENSITY_NORMED= SI::GAS_DENSITY_SI*UNIT_LENGTH;
-    } //namespace SI
-    namespace particles
-    {
-        /** Number of electrons per particle (= macro particle weighting)
-         *  unit: none */
-        BOOST_CONSTEXPR_OR_CONST float_X TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE = 1;
-    }
-#endif
 
 
     /** Unit of mass */
@@ -78,6 +54,9 @@ namespace picongpu
 
 
     BOOST_CONSTEXPR_OR_CONST float_X SPEED_OF_LIGHT = float_X(SI::SPEED_OF_LIGHT_SI / UNIT_SPEED);
+
+    //! reduced Planck constant
+    BOOST_CONSTEXPR_OR_CONST float_X HBAR = (float_X) (SI::HBAR_SI / UNIT_ENERGY / UNIT_TIME);
 
     //! Charge of electron
     BOOST_CONSTEXPR_OR_CONST float_X ELECTRON_CHARGE = (float_X) (SI::ELECTRON_CHARGE_SI / UNIT_CHARGE);

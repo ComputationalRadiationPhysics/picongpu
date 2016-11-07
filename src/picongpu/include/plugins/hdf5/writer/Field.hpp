@@ -27,6 +27,8 @@
 #include "traits/GetComponentsType.hpp"
 #include "traits/GetNComponents.hpp"
 
+#include <string>
+
 namespace picongpu
 {
 
@@ -77,7 +79,7 @@ struct Field
         assert(unitDimension.size() == 7); // seven openPMD base units
 
         /* component names */
-        std::string recordName = std::string("fields/") + name;
+        const std::string recordName = std::string("fields/") + name;
 
         std::vector<std::string> name_lookup;
         {
@@ -179,32 +181,30 @@ struct Field
                                               splashFloatXType, recordName.c_str(),
                                               "timeOffset", &timeOffset);
 
-        std::string geometry("cartesian");
+        const std::string geometry("cartesian");
         ColTypeString ctGeometry(geometry.length());
         params->dataCollector->writeAttribute(params->currentStep,
                                               ctGeometry, recordName.c_str(),
                                               "geometry", geometry.c_str());
 
-        std::string dataOrder("C");
+        const std::string dataOrder("C");
         ColTypeString ctDataOrder(dataOrder.length());
         params->dataCollector->writeAttribute(params->currentStep,
                                               ctDataOrder, recordName.c_str(),
                                               "dataOrder", dataOrder.c_str());
 
-        typedef char MyChar2[2];
-        MyChar2 *axisLabels = new MyChar2[simDim];
+        char axisLabels[simDim][2];
         ColTypeString ctAxisLabels(1);
         for( uint32_t d = 0; d < simDim; ++d )
         {
-            axisLabels[d][0] = char('x' + d); // x, y, z
-            axisLabels[d][1] = '\0';          // terminator is important!
+            axisLabels[simDim-1-d][0] = char('x' + d); // 3D: F[z][y][x], 2D: F[y][x]
+            axisLabels[simDim-1-d][1] = '\0';          // terminator is important!
         }
         params->dataCollector->writeAttribute(params->currentStep,
                                               ctAxisLabels, recordName.c_str(),
                                               "axisLabels",
                                               1u, Dimensions(simDim,0,0),
                                               axisLabels);
-        delete[] axisLabels;
 
         std::vector<float_X> gridSpacing(simDim, 0.0);
         for( uint32_t d = 0; d < simDim; ++d )
@@ -228,6 +228,12 @@ struct Field
         params->dataCollector->writeAttribute(params->currentStep,
                                               ctDouble, recordName.c_str(),
                                               "gridUnitSI", &UNIT_LENGTH);
+
+        const std::string fieldSmoothing("none");
+        ColTypeString ctFieldSmoothing(fieldSmoothing.length());
+        params->dataCollector->writeAttribute(params->currentStep,
+                                              ctFieldSmoothing, recordName.c_str(),
+                                              "fieldSmoothing", fieldSmoothing.c_str());
     }
 
 };

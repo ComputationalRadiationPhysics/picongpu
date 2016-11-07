@@ -19,24 +19,6 @@
 #
 
 
-## calculation are done by tbg ##
-TBG_queue="k20"
-
-# settings that can be controlled by environment variables before submit
-TBG_mailSettings=${MY_MAILNOTIFY:-"n"}
-TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
-TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
-
-# 4 gpus per node if we need more than 4 gpus else same count as TBG_tasks
-TBG_gpusPerNode=`if [ $TBG_tasks -gt 4 ] ; then echo 4; else echo $TBG_tasks; fi`
-
-#number of cores per parallel node / default is 2 cores per gpu on k20 queue
-TBG_coresPerNode="$(( TBG_gpusPerNode * 2 ))"
-
-# use ceil to caculate nodes
-TBG_nodes="$(( ( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
-## end calculations ##
-
 # PIConGPU batch script for hypnos PBS batch system
 
 #PBS -q !TBG_queue
@@ -53,6 +35,25 @@ TBG_nodes="$(( ( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
 
 #PBS -o stdout
 #PBS -e stderr
+
+
+## calculation are done by tbg ##
+.TBG_queue="k20"
+
+# settings that can be controlled by environment variables before submit
+.TBG_mailSettings=${MY_MAILNOTIFY:-"n"}
+.TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
+.TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
+
+# 4 gpus per node if we need more than 4 gpus else same count as TBG_tasks
+.TBG_gpusPerNode=`if [ $TBG_tasks -gt 4 ] ; then echo 4; else echo $TBG_tasks; fi`
+
+#number of cores per parallel node / default is 2 cores per gpu on k20 queue
+.TBG_coresPerNode="$(( TBG_gpusPerNode * 2 ))"
+
+# use ceil to caculate nodes
+.TBG_nodes="$(( ( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
+## end calculations ##
 
 echo 'Running program...'
 
@@ -81,4 +82,4 @@ if [ $? -eq 0 ] ; then
   mpiexec --prefix $MPIHOME -x LIBRARY_PATH -x LD_LIBRARY_PATH -tag-output --display-map -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/picongpu/bin/picongpu !TBG_author !TBG_programParams | tee output
 fi
 
-mpiexec --prefix $MPIHOME -x LIBRARY_PATH -x LD_LIBRARY_PATH -npernode !TBG_gpusPerNode -n !TBG_tasks killall -9 picongpu
+mpiexec --prefix $MPIHOME -x LIBRARY_PATH -x LD_LIBRARY_PATH -npernode !TBG_gpusPerNode -n !TBG_tasks killall -9 picongpu 2>/dev/null || true

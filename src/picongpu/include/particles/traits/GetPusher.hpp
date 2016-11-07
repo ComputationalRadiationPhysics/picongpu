@@ -34,7 +34,7 @@ struct GetPusher
 {
     typedef typename PMacc::traits::Resolve<
         typename GetFlagType<typename T_Species::FrameType, particlePusher<> >::type
-      >::type::type type;
+      >::type type;
 };
 
 }// namespace traits

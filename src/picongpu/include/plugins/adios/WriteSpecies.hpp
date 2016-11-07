@@ -38,13 +38,13 @@
 #include <boost/type_traits.hpp>
 
 #include "plugins/output/WriteSpeciesCommon.hpp"
-#include "plugins/kernel/CopySpecies.kernel"
 #include "mappings/kernel/AreaMapping.hpp"
 
 #include "plugins/adios/writer/ParticleAttribute.hpp"
 #include "compileTime/conversion/RemoveFromSeq.hpp"
 #include "particles/ParticleDescription.hpp"
 
+#include "particles/operations/ConcatListOfFrames.hpp"
 #include "particles/particleFilter/FilterFactory.hpp"
 #include "particles/particleFilter/PositionFilter.hpp"
 #include "particles/memory/buffers/MallocMCBuffer.hpp"
@@ -131,7 +131,7 @@ public:
             int globalParticleOffset = 0;
             AreaMapping < CORE + BORDER, MappingDesc > mapper(*(params->cellDescription));
 
-            ConcatListOfFrames concatListOfFrames(mapper.getGridDim());
+            PMacc::particles::operations::ConcatListOfFrames<simDim> concatListOfFrames(mapper.getGridDim());
 
             concatListOfFrames(
                                 globalParticleOffset,

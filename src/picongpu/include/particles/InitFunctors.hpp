@@ -103,10 +103,11 @@ struct CreateGas
 };
 
 
-/** clone species out of a another species
+/** derive species out of a another species
  *
- * after the species is cloned `fillAllGaps()` on T_DestSpeciesType is called
- *
+ * after the species is derived `fillAllGaps()` on T_DestSpeciesType is called
+ * copy all attributes from the source species except `particleId` to
+ * the destination species
  *
  * @tparam T_ManipulateFunctor a pseudo-binary functor accepting two particle species:
                                destination and source, \see src/picongpu/include/particles/manipulators
@@ -114,7 +115,7 @@ struct CreateGas
  * @tparam T_DestSpeciesType destination species
  */
 template<typename T_ManipulateFunctor, typename T_SrcSpeciesType, typename T_DestSpeciesType = bmpl::_1>
-struct ManipulateCloneSpecies
+struct ManipulateDeriveSpecies
 {
     typedef T_DestSpeciesType DestSpeciesType;
     typedef typename MakeIdentifier<DestSpeciesType>::type DestSpeciesName;
@@ -133,21 +134,22 @@ struct ManipulateCloneSpecies
 
         ManipulateFunctor manipulateFunctor(currentStep);
 
-        speciesPtr->deviceCloneFrom(*srcSpeciesPtr, manipulateFunctor);
+        speciesPtr->deviceDeriveFrom(*srcSpeciesPtr, manipulateFunctor);
     }
 };
 
 
-/** clone species out of a another species
+/** derive species out of a another species
  *
- * after the species is cloned `fillAllGaps()` on T_DestSpeciesType is called
- *
+ * after the species is derived `fillAllGaps()` on T_DestSpeciesType is called
+ * copy all attributes from the source species except `particleId` to
+ * the destination species
  *
  * @tparam T_SrcSpeciesType source species
  * @tparam T_DestSpeciesType destination species
  */
 template<typename T_SrcSpeciesType, typename T_DestSpeciesType = bmpl::_1>
-struct CloneSpecies : ManipulateCloneSpecies<manipulators::NoneImpl, T_SrcSpeciesType, T_DestSpeciesType>
+struct DeriveSpecies : ManipulateDeriveSpecies<manipulators::NoneImpl, T_SrcSpeciesType, T_DestSpeciesType>
 {
 };
 

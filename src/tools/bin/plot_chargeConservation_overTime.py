@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2015-2016 Richard Pausch
+# Copyright 2015-2016 Richard Pausch, Axel Huebl
 #
 # This file is part of PIConGPU.
 #
@@ -49,25 +49,25 @@ Developer: Richard Pausch
 # get all hdf5 output files
 def get_list_of_hdf5_files(base_directory):
     """
-    Returns a list of hdf5 files (`h5_*.h5`)
-    listed in sub-directory `simOutput`
+    Returns a list of hdf5 files (`*_<step>.h5`)
+    listed in sub-directory `simOutput/h5/`
 
     Parameters:
     base_directory: string
-        directory path where to find simOutput
+        directory path where to find simOutput/h5/
 
     Return:
     list of strings with hdf5 file names found
     """
     h5_list = [] # empty list for hdf5 files
-    h5_dir = base_directory + "/simOutput/"
+    h5_dir = base_directory + "/simOutput/h5/"
     if not os.path.isdir(h5_dir):
         raise Exception(("Error: {} does not contain"+
-                         " a simOutput directory").format(directory))
+                         " a simOutput/h5/ directory").format(directory))
 
     for filename in os.listdir(h5_dir):
         if os.path.isfile(h5_dir+filename):
-            if re.search("h5_.*.h5", filename):
+            if re.search(".+_[0-9]+\.h5", filename):
                 h5_list.append(h5_dir + filename)
     return h5_list
 
@@ -212,7 +212,7 @@ if __name__ == "__main__":
             # check if any hdf5 files were found
             h5_file_list = get_list_of_hdf5_files(directory)
             if len(h5_file_list) == 0:
-                raise Exception("No hdf5 files found in {}".format(directory+"simOutput/"))
+                raise Exception("No hdf5 files found in {}".format(directory+"simOutput/h5/"))
 
         except Exception as error_msg:
             print("{}".format(error_msg))

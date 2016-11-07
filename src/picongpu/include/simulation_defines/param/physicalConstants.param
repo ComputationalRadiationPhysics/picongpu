@@ -38,6 +38,11 @@ namespace picongpu
         BOOST_CONSTEXPR_OR_CONST float_64 EPS0_SI = 1.0 / MUE0_SI / SPEED_OF_LIGHT_SI
             / SPEED_OF_LIGHT_SI;
 
+        /** reduced Planck constant
+         * unit: J * s
+         */
+        BOOST_CONSTEXPR_OR_CONST float_64 HBAR_SI = 1.054571800e-34;
+
         // Electron properties
         /** unit: kg */
         BOOST_CONSTEXPR_OR_CONST float_64 ELECTRON_MASS_SI = 9.109382e-31;

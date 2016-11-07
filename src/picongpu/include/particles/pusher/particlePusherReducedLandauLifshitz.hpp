@@ -188,6 +188,14 @@ struct Push
     WeightingType weighting;   /* weighting of the macro particle */
   };
 
+  static PMacc::traits::StringProperty getStringProperties()
+  {
+      PMacc::traits::StringProperty propList( "name", "other" );
+      propList["param"] = "reduced Landau-Lifshitz pusher via RK4 and "
+                          "classical radiation reaction, Marija Vranic (2015)";
+      return propList;
+  }
+
 };
 } //namespace particlePusherReducedLandauLifshitz
 } //namespace picongpu

@@ -92,7 +92,7 @@ endif(MPI_CXX_FOUND)
 # find libSplash installation
 # prefer static libraries over shared ones (but do not force them)
 set(Splash_USE_STATIC_LIBS ON)
-find_package(Splash 1.4.0 REQUIRED COMPONENTS PARALLEL)
+find_package(Splash 1.6.0 REQUIRED COMPONENTS PARALLEL)
 
 if(Splash_FOUND)
     include_directories(SYSTEM ${Splash_INCLUDE_DIRS})
@@ -109,7 +109,7 @@ endif(Splash_FOUND)
 
 # find adios installation
 #   set(ADIOS_USE_STATIC_LIBS ON) # force static linking
-find_package(ADIOS 1.6.0)
+find_package(ADIOS 1.10.0)
 
 if(ADIOS_FOUND)
     add_definitions(-DENABLE_ADIOS=1)

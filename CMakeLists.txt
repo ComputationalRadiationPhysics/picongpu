@@ -21,7 +21,7 @@
 # Required cmake version
 ################################################################################
 
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 3.3.0)
 
 
 ################################################################################
@@ -44,7 +44,7 @@ if(IN_SRC_POS GREATER -1)
     "  - CMakeCache.txt\n"
     "  - CMakeFiles/\n"
     "and create a separate build directory. "
-    "See: doc/INSTALL.md")
+    "See: INSTALL.md")
 endif()
 
 unset(IN_SRC_POS)

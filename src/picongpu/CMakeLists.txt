@@ -22,7 +22,7 @@
 # Required cmake version
 ################################################################################
 
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 3.3.0)
 
 
 ################################################################################
@@ -53,36 +53,31 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
 
 
 ################################################################################
-# C++11 Enabler
-################################################################################
-
-# By using this if-else one can assume that:
-# CMAKE_CXX_STANDARD==11 <=> CUDA_NVCC_FLAGS contain "-std=c++11"
-if("${CUDA_NVCC_FLAGS}" MATCHES "-std=c\\+\\+11")
-    set(CMAKE_CXX_STANDARD 11)
-elseif("${CMAKE_CXX_STANDARD}" STREQUAL "11")
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" -std=c++11)
-else()
-    # Note: Add support for C++14 once CUDA supports it (maybe 8.0?)
-    set(CMAKE_CXX_STANDARD 98)
-endif()
-
-################################################################################
 # Find CUDA
 ################################################################################
 
-find_package(CUDA 5.0 REQUIRED)
-
-if(CUDA_VERSION VERSION_LESS 5.5)
-    message(STATUS "CUDA Toolkit < 5.5 detected. We strongly recommend to still "
-                   "use CUDA 5.5+ drivers (319.82 or higher)!")
-endif(CUDA_VERSION VERSION_LESS 5.5)
+find_package(CUDA 5.5 REQUIRED)
 
 set(CUDA_ARCH sm_20 CACHE STRING "Set GPU architecture")
 string(COMPARE EQUAL ${CUDA_ARCH} "sm_10" IS_CUDA_ARCH_UNSUPPORTED)
 string(COMPARE EQUAL ${CUDA_ARCH} "sm_11" IS_CUDA_ARCH_UNSUPPORTED)
 string(COMPARE EQUAL ${CUDA_ARCH} "sm_12" IS_CUDA_ARCH_UNSUPPORTED)
 string(COMPARE EQUAL ${CUDA_ARCH} "sm_13" IS_CUDA_ARCH_UNSUPPORTED)
+
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+if(CUDA_VERSION VERSION_LESS 7.5)
+    set(CMAKE_CXX_STANDARD 98)
+else()
+    set(CMAKE_CXX_STANDARD 11)
+    # work-around since the above flag does not necessarily put -std=c++11 in
+    # the CMAKE_CXX_FLAGS, which is unfurtunately hiding the switch from FindCUDA
+    if(NOT "${CMAKE_CXX_FLAGS}" MATCHES "-std=c\\+\\+11")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    endif()
+endif()
+message(STATUS "Compiling as C++${CMAKE_CXX_STANDARD}...")
 
 if(IS_CUDA_ARCH_UNSUPPORTED)
     message(FATAL_ERROR "Unsupported CUDA architecture ${CUDA_ARCH} specified. "
@@ -111,13 +106,14 @@ if(CUDA_KEEP_FILES)
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" --keep --keep-dir "${PROJECT_BINARY_DIR}/nvcc_tmp")
 endif(CUDA_KEEP_FILES)
 
+# savety check for now in case someone plays with CMAKE_CXX_STANDARD
 if( (CUDA_VERSION VERSION_GREATER 7.0) AND
     (CMAKE_CXX_STANDARD EQUAL 98) )
     # Kind of invalid usage of floats in constant expressions
     # which causes problems in nvcc 7.5 and up:
     # https://github.com/ComputationalRadiationPhysics/picongpu/issues/1290
-    message(FATAL_ERROR "Please enable C++11 with
-                        `-std=c++11` or `-DCMAKE_CXX_STANDARD=11`
+    message(FATAL_ERROR "Please compile as C++11 with
+                        `-DCMAKE_CXX_STANDARD=11`
                         when compiling with nvcc 7.5")
 endif()
 
@@ -261,7 +257,7 @@ set(LIBS ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
 # Find Boost
 ################################################################################
 
-find_package(Boost 1.56.0 REQUIRED COMPONENTS program_options regex filesystem
+find_package(Boost 1.57.0 REQUIRED COMPONENTS program_options regex filesystem
                                               system thread math_tr1)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${Boost_LIBRARIES})
@@ -285,18 +281,20 @@ endif()
 if( (Boost_VERSION EQUAL 106000) AND
     (CMAKE_CXX_STANDARD EQUAL 98) )
     # Boost Bug https://svn.boost.org/trac/boost/ticket/11852
-    message(FATAL_ERROR "Boost: Please use a C++11 enabled Compiler with "
-                        "`-std=c++11` when compiling with Boost 1.60.0")
+    message(FATAL_ERROR "Boost 1.60.0: Please upgrade boost or use a C++11 "
+                        "enabled CUDA version (7.5+)")
 endif()
 
-# Boost 1.60.0 and CUDA releases prior to 7.5 fail on variadic templates
-# when used with C++11
-if( (Boost_VERSION EQUAL 106000) AND
-    (CUDA_VERSION VERSION_LESS 7.5) AND
+
+# Boost >= 1.60.0 and CUDA != 7.5 failed when used with C++11
+# seen with boost 1.60.0 - 1.62.0 (atm latest) and CUDA 7.0, 8.0 (atm latest)
+# CUDA 7.5 works without a workaround
+if( (Boost_VERSION GREATER 105999) AND
+    (NOT CUDA_VERSION VERSION_EQUAL 7.5) AND
     (NOT CMAKE_CXX_STANDARD EQUAL 98) )
     # Boost Bug https://svn.boost.org/trac/boost/ticket/11897
-    message(STATUS "Boost: Disable variadic templates")
-    add_definitions(-DBOOST_NO_CXX11_VARIADIC_TEMPLATES)
+    message(STATUS "Boost: Disable template aliases")
+    add_definitions(-DBOOST_NO_CXX11_TEMPLATE_ALIASES)
 endif()
 
 
@@ -405,7 +403,7 @@ endif(PIC_ENABLE_INSITU_VOLVIS)
 
 # find adios installation
 #   set(ADIOS_USE_STATIC_LIBS ON) # force static linking
-find_package(ADIOS 1.9.0)
+find_package(ADIOS 1.10.0)
 
 if(ADIOS_FOUND)
     add_definitions(-DENABLE_ADIOS=1)
@@ -454,7 +452,7 @@ include_directories(${PMACC_ROOT_DIR}/include)
 # find libSplash installation
 # prefer static libraries over shared ones (but do not force them)
 set(Splash_USE_STATIC_LIBS ON)
-find_package(Splash 1.4.0 COMPONENTS PARALLEL)
+find_package(Splash 1.6.0 COMPONENTS PARALLEL)
 
 if(Splash_FOUND)
     include_directories(SYSTEM ${Splash_INCLUDE_DIRS})

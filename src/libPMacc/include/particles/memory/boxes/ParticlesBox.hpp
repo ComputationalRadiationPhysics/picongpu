@@ -99,7 +99,7 @@ public:
             else
             {
                 printf( "%s: mallocMC out of memory (try %i of %i)\n",
-                        (numTries + 1) == maxTries ? "WARNING" : "ERROR",
+                        (numTries + 1) == maxTries ? "ERROR" : "WARNING",
                         numTries + 1,
                         maxTries );
             }

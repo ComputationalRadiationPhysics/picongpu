@@ -90,6 +90,17 @@ struct Tan<double>
 };
 
 template<>
+struct ATan<double>
+{
+    typedef double result;
+
+    HDINLINE double operator( )(const double& value)
+    {
+        return ::atan( value );
+    }
+};
+
+template<>
 struct SinCos<double, double, double>
 {
     typedef void result;
