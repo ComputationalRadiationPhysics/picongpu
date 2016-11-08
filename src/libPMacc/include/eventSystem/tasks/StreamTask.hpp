@@ -23,7 +23,7 @@
 #pragma once
 
 #include "eventSystem/tasks/ITask.hpp"
-#include "eventSystem/events/CudaEvent.hpp"
+#include "eventSystem/events/CudaEventHandle.hpp"
 
 namespace PMacc
 {
@@ -56,14 +56,14 @@ namespace PMacc
          *
          * @return the task's cuda event
          */
-        CudaEvent getCudaEvent() const;
+        CudaEventHandle getCudaEventHandle() const;
 
         /**
          * Sets the
          *
          * @param cudaEvent
          */
-        void setCudaEvent(const CudaEvent& cudaEvent);
+        void setCudaEventHandle(const CudaEventHandle& cudaEvent);
 
         /**
          * Returns if this task is finished.
@@ -103,8 +103,8 @@ namespace PMacc
 
 
         EventStream *stream;
-        CudaEvent cudaEvent;
-        bool hasCudaEvent;
+        CudaEventHandle cudaEvent;
+        bool hasCudaEventHandle;
         bool alwaysFinished;
     };
 

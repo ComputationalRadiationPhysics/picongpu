@@ -33,7 +33,6 @@ namespace PMacc
 {
     // forward declaration
     class EventTask;
-    class EventPool;
 
     /**
      * Manages the event system by executing and waiting for tasks.
@@ -73,7 +72,6 @@ namespace PMacc
 
         void addPassiveTask(ITask *task);
 
-        EventPool& getEventPool();
 
         std::size_t getCount();
 
@@ -101,7 +99,6 @@ namespace PMacc
 
         TaskMap tasks;
         TaskMap passiveTasks;
-        EventPool *eventPool;
     };
 
 } //namespace PMacc

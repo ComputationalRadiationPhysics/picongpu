@@ -35,7 +35,7 @@
 #include "nvidia/memory/MemoryInfo.hpp"
 #include "simulationControl/SimulationDescription.hpp"
 #include "mappings/simulation/Filesystem.hpp"
-
+#include "eventSystem/events/EventPool.hpp"
 #include "Environment.def"
 
 #include <cuda_runtime.h>
@@ -80,6 +80,11 @@ public:
     PMacc::EnvironmentController& EnvironmentController()
     {
         return EnvironmentController::getInstance();
+    }
+
+    PMacc::EventPool& EventPool()
+    {
+        return EventPool::getInstance();
     }
 
     PMacc::Factory& Factory()
@@ -279,3 +284,4 @@ private:
 
 #include "eventSystem/EventSystem.tpp"
 #include "particles/tasks/ParticleFactory.tpp"
+#include "eventSystem/events/CudaEvent.hpp"
