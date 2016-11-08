@@ -58,8 +58,8 @@ namespace derivedAttributes
 
         /* calculate new attribute */
         const float_X particleCurrentDensity =
-            charge / CELL_VOLUME *   /* rho */
-            momCom / gamma / mass;   /* v_component */
+            charge / CELL_VOLUME *     /* rho */
+            momCom / ( gamma * mass ); /* v_component */
 
         /* return attribute */
         return particleCurrentDensity;

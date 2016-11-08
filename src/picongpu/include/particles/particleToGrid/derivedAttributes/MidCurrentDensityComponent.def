@@ -50,7 +50,7 @@ namespace derivedAttributes
         {
            /* L, M, T, I, theta, N, J
             *
-            * MidCurrentDensity is in Ampere / square meters: I / m^2
+            * MidCurrentDensity is in Ampere / square meters: A / m^2
             *   charge density: Coulomb / m^3
             *   velocity:       m / s
             *   current density = charge density * velocity
