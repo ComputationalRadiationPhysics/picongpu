@@ -164,6 +164,11 @@ Some of our examples will also need **libSplash**.
       [LD\_LIBRARY\_PATH](#additional-required-environment-variables-for-optional-libraries)
       to `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ADIOS_ROOT/lib`
 
+- **ISAAC** (requires *boost mpl*, *boost fusion*, *IceT*, *Jansson*, *libjpeg*)
+    - Enables live in situ visualization, see more
+      - [General installation informations](https://github.com/ComputationalRadiationPhysics/isaac/blob/master/INSTALL.md)
+      - [PIConGPU specific installation informations](https://github.com/ComputationalRadiationPhysics/picongpu/wiki/Plugin%3A-ISAAC)
+
 - for **VampirTrace** support
     - download 5.14.4 or higher, e.g. from 
     [http://www.tu-dresden.de](http://www.tu-dresden.de/die_tu_dresden/zentrale_einrichtungen/zih/forschung/projekte/vampirtrace)
