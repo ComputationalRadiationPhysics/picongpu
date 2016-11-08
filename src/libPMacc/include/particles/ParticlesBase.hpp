@@ -54,10 +54,10 @@ public:
 
     /* Type of frame in particles buffer
      */
-    typedef typename BufferType::ParticleType FrameType;
+    typedef typename BufferType::FrameType FrameType;
     /* Type of border frame in a particle buffer
      */
-    typedef typename BufferType::ParticleTypeBorder FrameTypeBorder;
+    typedef typename BufferType::FrameTypeBorder FrameTypeBorder;
 
     /* Type of the particle box which particle buffer create
      */
