@@ -214,6 +214,7 @@ The PIConGPU Team expresses its thanks to:
 - Stefan Tietze
 - Benjamin Worpitz
 - Erik Zenker
+- Alexander Matthes
 
 Kudos to everyone who helped!
 
