@@ -222,3 +222,7 @@ Kudos to everyone who helped!
 
 ![image of an lwfa](doc/images/lwfa_grey.png "LWFA")
 ![image of our strong scaling](doc/images/StrongScalingPIConGPU_log.png "Strong Scaling")
+
+![image of an khi](doc/images/khi.png "KHI")
+![image of an lwfa](doc/images/lwfa_iso.png "LWFA")
+
