@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Rene Widera
+ * Copyright 2016 Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -21,6 +21,7 @@
 #pragma once
 
 #include "pmacc_types.hpp"
+#include "static_assert.hpp"
 #include "traits/SIBaseUnits.hpp"
 #include <vector>
 
@@ -31,8 +32,15 @@ namespace particleToGrid
 {
 namespace derivedAttributes
 {
-    struct ChargeDensity
+    /** Calculate the on-charge current density in a selected direction.
+     *
+     * \tparam size_t with perpendicular direction x=0, y=1, z=2
+     */
+    template <size_t T_direction>
+    struct MidCurrentDensityComponent
     {
+        PMACC_CASSERT_MSG( Valid_directions_are_0_to_2_for_X_to_Z__in_fileOutput_param, ((T_direction)>=0) );
+        PMACC_CASSERT_MSG( Valid_directions_are_0_to_2_for_X_to_Z__in_fileOutput_param, ((T_direction)<3) );
 
         HDINLINE float1_64
         getUnit() const;
@@ -42,12 +50,14 @@ namespace derivedAttributes
         {
            /* L, M, T, I, theta, N, J
             *
-            * ChargeDensity is in Coulomb / cubic meter: Q / m^3 = A * s / m^3
-            *   -> L^-3 * T * I
+            * MidCurrentDensity is in Ampere / square meters: A / m^2
+            *   charge density: Coulomb / m^3
+            *   velocity:       m / s
+            *   current density = charge density * velocity
+            *   -> L^-2 * I
             */
            std::vector<float_64> unitDimension( 7, 0.0 );
-           unitDimension.at(SIBaseUnits::length) = -3.0;
-           unitDimension.at(SIBaseUnits::time)   =  1.0;
+           unitDimension.at(SIBaseUnits::length) = -2.0;
            unitDimension.at(SIBaseUnits::electricCurrent) =  1.0;
 
            return unitDimension;
@@ -56,10 +66,12 @@ namespace derivedAttributes
         HINLINE std::string
         getName() const
         {
-            return "chargeDensity";
+            const std::string name_lookup[] = {"x", "y", "z"};
+
+            return "midCurrentDensity/" + name_lookup[T_direction];
         }
 
-        /** Calculate a new attribute  per particle
+        /** Calculate a new attribute per particle
          *
          * Returns a new (on-the-fly calculated) attribute of a particle
          * that can then be mapped to the cells the particle contributes to.
