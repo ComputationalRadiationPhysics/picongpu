@@ -165,9 +165,27 @@ Some of our examples will also need **libSplash**.
       to `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ADIOS_ROOT/lib`
 
 - **ISAAC** (requires *boost* (header only), *IceT*, *Jansson*, *libjpeg*)
-    - Enables live in situ visualization, see more
-      - [General installation informations](https://github.com/ComputationalRadiationPhysics/isaac/blob/master/INSTALL.md)
-      - [PIConGPU specific installation informations](https://github.com/ComputationalRadiationPhysics/picongpu/wiki/Plugin%3A-ISAAC)
+    - Enables live in situ visualization, see more here [Plugin description](https://github.com/ComputationalRadiationPhysics/picongpu/wiki/Plugin%3A-ISAAC)
+    - To use this Plugin you need to clone against the dev branch of PIConGPU
+      `https://github.com/ComputationalRadiationPhysics/picongpu/tree/dev` until
+      the plugin is added to a release:
+      - `git clone -b dev https://github.com/ComputationalRadiationPhysics/picongpu.git`
+      - The rest is the same as with the master/release branch repository.
+    - To enable ISAAC you need ISAAC itself:
+      - `git clone https://github.com/ComputationalRadiationPhysics/isaac.git`
+      - While configuring a simulation add the path of ISAAC to CMake, e.g. with
+        `$PICSRC/configure ~/paramSets/kh -c "-DISAAC_DIR=~/isaac/lib/"` or with
+        `CMAKE_PREFIX_PATH`. Of course may the path vary. ISAAC needs C++11, which
+        is enabled for PIConGPU if CUDA 7.5 or newer is available, thus these
+        versions are needed (although ISAAC itself works with CUDA 7.0, too).
+        For more requirements have a look at
+        [ISAAC's installation requirements](https://github.com/ComputationalRadiationPhysics/isaac/blob/master/INSTALL.md).
+      - It may be, that even more installation paths for libraries need to be added.
+        Just add them in the same matter as ISAAC itself. The CMake variables names
+        are described in [ISAAC's installation requirements](https://github.com/ComputationalRadiationPhysics/isaac/blob/master/INSTALL.md),
+        too. E.g. for the laser wake field experiment configuration you may need:
+        `$PICSRC/configure ~/paramSets/lw -c "-DISAAC_DIR=~/isaac/lib -DJansson_DIR=~/jansson/install/lib/cmake/jansson -DIceT_DIR=~/IceT/install/lib"`.
+        Of course the paths may and will vary for your setup.
 
 - for **VampirTrace** support
     - download 5.14.4 or higher, e.g. from 
