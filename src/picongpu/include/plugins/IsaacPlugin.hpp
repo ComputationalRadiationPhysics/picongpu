@@ -303,10 +303,12 @@ public:
              "The width per isaac framebuffer. Default is 1024.")
             ("isaac.height", po::value< uint32_t > (&height)->default_value(768),
              "The height per isaac framebuffer. Default is 768.")
-            ("isaac.direct_pause", po::value< bool > (&direct_pause)->default_value(false),
+            ("isaac.directPause", po::value< bool > (&direct_pause)->default_value(false),
              "Direct pausing after starting simulation. Default is false.")
             ("isaac.quality", po::value< uint32_t > (&jpeg_quality)->default_value(90),
              "JPEG quality. Default is 90.")
+            ("isaac.reconnect", po::value< bool > (&reconnect)->default_value(true),
+             "Trying to reconnect every time an image is rendered if the connection is lost or could never established at all.")
             ;
     }
 
@@ -336,6 +338,7 @@ private:
     int cell_count;
     int particle_count;
     uint64_t last_notify;
+    bool reconnect;
 
     void pluginLoad()
     {
@@ -400,12 +403,10 @@ private:
                 json_object_set_new( visualization->getJsonMetaRoot(), "cell count", json_string( "Total numbers of cells" ) );
                 json_object_set_new( visualization->getJsonMetaRoot(), "particle count", json_string( "Total numbers of particles" ) );
             }
-            if (visualization->init() != 0)
+            if (visualization->init(reconnect?RetryEverySend:ReturnAtError) != 0)
             {
                 if (rank == 0)
                     log<picLog::INPUT_OUTPUT > ("ISAAC Init failed");
-                delete visualization;
-                visualization = NULL;
                 notifyPeriod = 0;
             }
             else

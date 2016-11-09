@@ -475,7 +475,7 @@ if(ISAAC_FOUND)
         
     endif( CMAKE_CXX_STANDARD EQUAL 98 )
 else(ISAAC_FOUND)
-    message(STATUS "Could NOT find ISAAC - set ISAAC_DIR or check your PATH / CMAKE_PREFIX_PATH" )
+    message(STATUS "Could NOT find ISAAC - set ISAAC_DIR or check your CMAKE_PREFIX_PATH" )
 endif(ISAAC_FOUND)
 
 ################################################################################
