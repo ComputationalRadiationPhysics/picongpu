@@ -26,6 +26,7 @@
 //#include "eventSystem/EventSystem.hpp"
 #include "eventSystem/tasks/StreamTask.hpp"
 #include "eventSystem/streams/EventStream.hpp"
+#include "Environment.hpp"
 
 namespace PMacc
 {
@@ -33,21 +34,21 @@ namespace PMacc
 inline StreamTask::StreamTask( ) :
 ITask( ),
 stream( NULL ),
-hasCudaEvent( false ),
+hasCudaEventHandle( false ),
 alwaysFinished( false )
 {
     this->setTaskType( ITask::TASK_CUDA );
 }
 
-inline CudaEvent StreamTask::getCudaEvent( ) const
+inline CudaEventHandle StreamTask::getCudaEventHandle( ) const
 {
-    assert( hasCudaEvent );
+    assert( hasCudaEventHandle );
     return cudaEvent;
 }
 
-inline void StreamTask::setCudaEvent(const CudaEvent& cudaEvent )
+inline void StreamTask::setCudaEventHandle(const CudaEventHandle& cudaEvent )
 {
-    this->hasCudaEvent = true;
+    this->hasCudaEventHandle = true;
     this->cudaEvent = cudaEvent;
 }
 
@@ -55,7 +56,7 @@ inline bool StreamTask::isFinished( )
 {
     if ( alwaysFinished )
         return true;
-    if ( hasCudaEvent )
+    if ( hasCudaEventHandle )
     {
         if ( cudaEvent.isFinished( ) )
         {
@@ -89,9 +90,9 @@ inline cudaStream_t StreamTask::getCudaStream( )
 
 inline void StreamTask::activate( )
 {
-    cudaEvent = Environment<>::get().Manager().getEventPool( ).getNextEvent( );
+    cudaEvent = Environment<>::get().EventPool( ).pop( );
     cudaEvent.recordEvent(this->stream->getCudaStream());
-    hasCudaEvent = true;
+    hasCudaEventHandle = true;
 }
 
 } //namespace PMacc

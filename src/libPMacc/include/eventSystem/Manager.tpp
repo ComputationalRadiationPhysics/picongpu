@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include "eventSystem/events/EventPool.hpp"
 #include "eventSystem/streams/StreamController.hpp"
 #include "eventSystem/EventSystem.hpp"
 #include "eventSystem/Manager.hpp"
@@ -41,8 +40,6 @@ inline Manager::~Manager( )
 {
     CUDA_CHECK( cudaGetLastError( ) );
     waitForAllTasks( );
-    CUDA_CHECK( cudaGetLastError( ) );
-    delete eventPool;
     CUDA_CHECK( cudaGetLastError( ) );
 }
 
@@ -194,22 +191,12 @@ inline void Manager::addPassiveTask( ITask *task )
 
 inline Manager::Manager( )
 {
-    /**
-     * The \see Environment ensures that the \see StreamController is
-     * already created before calling this
-     */
-    eventPool = new EventPool( );
-    eventPool->addEvents( 300 );
 }
 
 inline Manager::Manager( const Manager& )
 {
 }
 
-inline EventPool& Manager::getEventPool( )
-{
-    return *eventPool;
-}
 
 inline std::size_t Manager::getCount( )
 {

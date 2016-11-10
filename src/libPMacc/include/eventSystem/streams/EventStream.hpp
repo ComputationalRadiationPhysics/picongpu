@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "eventSystem/events/CudaEvent.hpp"
+#include "eventSystem/events/CudaEventHandle.hpp"
 #include "pmacc_types.hpp"
 
 #include <cuda_runtime.h>
@@ -67,7 +67,7 @@ public:
         return stream;
     }
 
-    void waitOn(const CudaEvent& ev)
+    void waitOn(const CudaEventHandle& ev)
     {
         if (this->stream != ev.getStream())
         {

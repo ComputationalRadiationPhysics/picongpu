@@ -1,0 +1,108 @@
+/**
+ * Copyright 2016 Rene Widera
+ *
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+#pragma once
+
+#include "pmacc_types.hpp"
+#include <cuda_runtime.h>
+
+namespace PMacc
+{
+
+/** Wrapper for cudaEvent_t
+ *
+ * This class follows the RAII rules
+ */
+class CudaEvent
+{
+private:
+
+    /** native cuda event */
+    cudaEvent_t event;
+    /** native cuda stream where the event is recorded
+     *
+     *  only valid if isRecorded is true
+     */
+    cudaStream_t stream;
+    /** state if event is recorded */
+    bool isRecorded;
+    /** state if a recorded event is finished
+     *
+     * avoid cuda driver calls after `isFinished()` returns the first time true
+     */
+    bool finished;
+
+    /** number of CudaEventHandle's to the instance */
+    uint32_t refCounter;
+
+
+public:
+
+    /** Constructor
+     *
+     * if called before the cuda device is initialized the behavior is undefined
+     */
+    CudaEvent( );
+
+    /** Destructor */
+    ~CudaEvent( );
+
+    /** register a existing handle to a event instance */
+    void registerHandle( );
+
+    /** free a registered handle */
+    void releaseHandle( );
+
+    /** get native cudaEvent_t object
+     *
+     * @return native cuda event
+     */
+    cudaEvent_t operator*( ) const
+    {
+        return event;
+    }
+
+    /** get stream in which this event is recorded
+     *
+     * @return native cuda stream
+     */
+    cudaStream_t getStream( ) const
+    {
+        assert( isRecorded );
+        return stream;
+    }
+
+    /** check whether the event is finished
+     *
+     * @return true if event is finished else false
+     */
+    bool isFinished( );
+
+    /** record event in a device stream
+     *
+     * @param stream native cuda stream
+     */
+    void recordEvent( cudaStream_t stream );
+
+};
+}

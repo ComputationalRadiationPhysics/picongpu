@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2016 Rene Widera
+ * Copyright 2016 Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -24,93 +24,64 @@
 #pragma once
 
 #include "pmacc_types.hpp"
+#include "eventSystem/events/CudaEventHandle.hpp"
+#include "eventSystem/events/CudaEvent.hpp"
 #include <cuda_runtime.h>
 
 namespace PMacc
 {
-
-/**
- * Wrapper for cuda events
- */
-class CudaEvent
-{
-private:
-
-    cudaEvent_t event;
-    cudaStream_t stream;
-    /* state if event is recorded */
-    bool isRecorded;
-    bool isValid;
-
-
-public:
-
-    /**
-     * Constructor
-     *
-     * no data is allocated @see create()
-     */
-    CudaEvent() : isRecorded(false), isValid(false)
+    CudaEvent::CudaEvent( ) : isRecorded( false ), finished( true ), refCounter( 0u )
     {
+        log( ggLog::CUDA_RT()+ggLog::MEMORY(), "create event" );
+        CUDA_CHECK( cudaEventCreateWithFlags( &event, cudaEventDisableTiming ) );
+    }
+
+
+    CudaEvent::~CudaEvent( )
+    {
+        assert( refCounter == 0u );
+        log( ggLog::CUDA_RT()+ggLog::MEMORY(), "sync and delete event" );
+        // free cuda event
+        CUDA_CHECK( cudaEventSynchronize( event ) );
+        CUDA_CHECK( cudaEventDestroy( event ) );
 
     }
 
-    /**
-     * Destructor
-     *
-     * no data is freed @see destroy()
-     */
-    virtual ~CudaEvent()
+    void CudaEvent::registerHandle()
     {
-
+        ++refCounter;
     }
 
-    /**
-     *  create valid object
-     *
-     * - internal memory is allocated
-     * - event must be destroyed with @see destroy
-     */
-    static CudaEvent create()
+    void CudaEvent::releaseHandle()
     {
-        CudaEvent ev;
-        ev.isValid = true;
-        CUDA_CHECK(cudaEventCreateWithFlags(&(ev.event), cudaEventDisableTiming));
-        return ev;
+        assert( refCounter != 0u );
+        // get old value and decrement
+        uint32_t oldCounter = refCounter--;
+        if( oldCounter == 1u )
+        {
+            // reset event meta data
+            isRecorded = false;
+            finished = true;
+
+            Environment<>::get().EventPool( ).push( this );
+        }
     }
 
-    /**
-     * free allocated memory
-     */
-    static void destroy(const CudaEvent& ev)
-    {
-        CUDA_CHECK(cudaEventSynchronize(ev.event));
-        CUDA_CHECK(cudaEventDestroy(ev.event));
-    }
 
-    /**
-     * get native cuda event
-     *
-     * @return native cuda event
-     */
-    cudaEvent_t operator*() const
+    bool CudaEvent::isFinished()
     {
-        assert(isValid);
-        return event;
-    }
+        // avoid cuda driver calls if event is already finished
+        if( finished )
+            return true;
+        assert( isRecorded );
 
-    /**
-     * check whether the event is finished
-     *
-     * @return true if event is finished else false
-     */
-    bool isFinished() const
-    {
-        assert(isValid);
         cudaError_t rc = cudaEventQuery(event);
 
         if(rc == cudaSuccess)
+        {
+            finished = true;
             return true;
+        }
         else if(rc == cudaErrorNotReady)
             return false;
         else
@@ -118,30 +89,14 @@ public:
     }
 
 
-    /**
-     * get stream in which this event is recorded
-     *
-     * @return native cuda stream
-     */
-    cudaStream_t getStream() const
-    {
-        assert(isRecorded);
-        return stream;
-    }
-
-    /**
-     * record event in a device stream
-     *
-     * @param stream native cuda stream
-     */
-    void recordEvent(cudaStream_t stream)
+    void CudaEvent::recordEvent(cudaStream_t stream)
     {
         /* disallow double recording */
         assert(isRecorded==false);
         isRecorded = true;
+        finished = false;
         this->stream = stream;
         CUDA_CHECK(cudaEventRecord(event, stream));
     }
 
-};
-}
+} // namepsace PMacc
