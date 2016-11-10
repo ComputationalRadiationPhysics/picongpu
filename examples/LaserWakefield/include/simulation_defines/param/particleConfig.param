@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Rene Widera, Marco Garten, Benjamin Worpitz
+ * Copyright 2013-2016 Axel Huebl, Rene Widera, Marco Garten, Benjamin Worpitz,
+ *                     Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -62,7 +63,7 @@ struct QuietParameter
     typedef mCT::shrinkTo<mCT::Int<1, TYPICAL_PARTICLES_PER_CELL, 1>, simDim>::type numParticlesPerDimension;
 };
 
-/* definition of random particle start*/
+/* definition of quiet particle start*/
 typedef QuietImpl<QuietParameter> Quiet;
 
 
