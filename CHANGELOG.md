@@ -3,7 +3,7 @@ Change Log / Release Log for PIConGPU
 
 0.2.0 "Beta"
 ------------
-**Date:** 2016-10-AB
+**Date:** 2016-11-AB
 
 Release Title for Beta (Axel)
 
@@ -239,6 +239,7 @@ support, please update your `.cfg` files with the new namings. Please visit
  - avoid CUDA 6.5 int(bool) cast bug #680
  - PMacc detection in CMake #808
  - libPMacc:
+   - EventPool could run out of free events, potential deadlock #1631
    - Particle<>: avoid using CUDA lmem #1579
    - possible deadlock in event system could freeze simulation #1326
    - HostBuffer includes & constructor #1255 #1596
