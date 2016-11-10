@@ -26,7 +26,7 @@ This program compares the energy evolution of two PIConGPU runs.
 Just give the directory of two PIConGPU runs and this program will
 get all values needed if they are available.
 You should activate `--energy_fields` and any `--energy_X` (X any species)
-for both simulation runs with the same dumping period. 
+for both simulation runs with the same dumping period.
 A different number of particle species between both simulations
 is possible.
 Plotted are:
@@ -41,7 +41,6 @@ import sys
 import re
 import numpy as np
 import matplotlib.pyplot as plt
-
 
 ## set up argument parser ##
 parser = argparse.ArgumentParser(
@@ -77,6 +76,12 @@ parser.add_argument("--noRelative",
                     action="store_false",
                     help="do not plot evolution relative to initial value")
 
+parser.add_argument("--export",
+                    metavar="file name",
+                    dest="output_file",
+                    default="",
+                    help="export plot to file (disable interactive window)")
+
 args = parser.parse_args()
 
 
@@ -90,7 +95,7 @@ for i in range(numDir):
 ## check if directories exit ###
 simDir = "/simOutput/"
 
-warningText1 = "The directory number {} does not exist ({})." 
+warningText1 = "The directory number {} does not exist ({})."
 warningText2 = "The directory number {} does not (yet) contain {}."
 for i in range(numDir):
     if not os.path.isdir(directories[i]):
@@ -181,8 +186,8 @@ else:
 
 if not args.boolDiff:
     # plot energy evolution
-    plt.plot(Times[0][:time_limit], 
-             (Energies[0][:time_limit]-startEnergy[0])*norm, 
+    plt.plot(Times[0][:time_limit],
+             (Energies[0][:time_limit]-startEnergy[0])*norm,
              color="green", lw=3, label=args.label1)
     if numDir == 2:
         # True is deviation of branch to init energy is less than of dev
@@ -190,22 +195,22 @@ if not args.boolDiff:
                          > np.abs(Energies[1][:time_limit]-startEnergy[1]))
 
         # branch is closer to initial energy than dev
-        plt.fill_between(Times[1][:time_limit], 
-                         (Energies[0][:time_limit]-startEnergy[0])*norm, 
-                         (Energies[1][:time_limit]-startEnergy[0])*norm, 
+        plt.fill_between(Times[1][:time_limit],
+                         (Energies[0][:time_limit]-startEnergy[0])*norm,
+                         (Energies[1][:time_limit]-startEnergy[0])*norm,
                          where=branch_better,
                          color="orange", alpha=0.8)
 
         # dev is closer to initial energy than branch
-        plt.fill_between(Times[1][:time_limit], 
-                         (Energies[0][:time_limit]-startEnergy[0])*norm, 
-                         (Energies[1][:time_limit]-startEnergy[0])*norm, 
+        plt.fill_between(Times[1][:time_limit],
+                         (Energies[0][:time_limit]-startEnergy[0])*norm,
+                         (Energies[1][:time_limit]-startEnergy[0])*norm,
                          where=np.logical_not(branch_better),
                          color="red", alpha=0.7)
 
         # plot second energy evolution
-        plt.plot(Times[1][:time_limit], 
-                 (Energies[1][:time_limit]-startEnergy[0])*norm, 
+        plt.plot(Times[1][:time_limit],
+                 (Energies[1][:time_limit]-startEnergy[0])*norm,
                  color="blue",  lw=2, label=args.label2)
     if args.boolRelative:
         plt.ylabel(r"$\frac{E}{E_0}-1\,[\%]$", fontsize=24)
@@ -215,8 +220,8 @@ if not args.boolDiff:
 else:
     # plot difference in energy evolution
     if numDir == 2:
-        plt.plot(Times[0][:time_limit], 
-                 (Energies[0][:time_limit]-Energies[1][:time_limit])*norm, 
+        plt.plot(Times[0][:time_limit],
+                 (Energies[0][:time_limit]-Energies[1][:time_limit])*norm,
                  color="red", lw=3)
     else:
         sys.exit("A difference plot requires two directories.")
@@ -233,5 +238,8 @@ plt.xticks(fontsize=16)
 plt.yticks(fontsize=16)
 
 plt.tight_layout()
-plt.show()
 
+if not args.output_file:
+    plt.show()
+else:
+    plt.savefig(args.output_file)
