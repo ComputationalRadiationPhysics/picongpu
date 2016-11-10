@@ -403,7 +403,8 @@ private:
                 json_object_set_new( visualization->getJsonMetaRoot(), "cell count", json_string( "Total numbers of cells" ) );
                 json_object_set_new( visualization->getJsonMetaRoot(), "particle count", json_string( "Total numbers of particles" ) );
             }
-            if (visualization->init(reconnect?RetryEverySend:ReturnAtError) != 0)
+            CommunicatorSetting communicatorBehaviour = reconnect ? RetryEverySend : ReturnAtError;
+            if (visualization->init( communicatorBehaviour ) != 0)
             {
                 if (rank == 0)
                     log<picLog::INPUT_OUTPUT > ("ISAAC Init failed");
