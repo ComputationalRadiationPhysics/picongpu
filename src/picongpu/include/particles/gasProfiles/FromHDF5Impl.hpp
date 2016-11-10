@@ -54,7 +54,7 @@ struct FromHDF5Impl : public T_ParamClass
         loadHDF5(window);
         const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
         DataSpace<simDim> localCells = subGrid.getLocalDomain( ).size;
-        DataSpace<simDim> totalGpuOffset = subGrid.getLocalDomain( ).offset;
+        totalGpuOffset = subGrid.getLocalDomain( ).offset;
         totalGpuOffset.y( ) += numSlides * localCells.y( );
     }
 
