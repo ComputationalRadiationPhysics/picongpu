@@ -58,9 +58,9 @@ def plotError(h5file, slice_pos=[0.5, 0.5, 0.5]):
     plot slices through simulation volume
 
     Parameters:
-    h5file: file name 
+    h5file: file name
         file name to hdf5 data set from PIConGPU
-            
+
     slice_pos: list of floats
         list of 3 floats to define slice position [0, 1]
         Default=[0.5, 0.5, 0.5]
@@ -101,8 +101,8 @@ def plotError(h5file, slice_pos=[0.5, 0.5, 0.5]):
     f.close()
 
     # compute divergence of electric field according to Yee scheme
-    div = ((Ex[1:, 1:, 1:] - Ex[1:, 1:, :-1])/CELL_WIDTH + 
-           (Ey[1:, 1:, 1:] - Ey[1:, :-1, 1:])/CELL_HEIGHT + 
+    div = ((Ex[1:, 1:, 1:] - Ex[1:, 1:, :-1])/CELL_WIDTH +
+           (Ey[1:, 1:, 1:] - Ey[1:, :-1, 1:])/CELL_HEIGHT +
            (Ez[1:, 1:, 1:] - Ez[:-1, 1:, 1:])/CELL_DEPTH)
 
     # compute difference between electric field divergence and charge density
@@ -115,8 +115,8 @@ def plotError(h5file, slice_pos=[0.5, 0.5, 0.5]):
 
     plt.subplot(131)
     slice_cell_z = np.int(np.floor((diff.shape[0]-1)*slice_pos[0]))
-    plt.title("slice in z at {}".format(slice_cell_z), fontsize=20)    
-    plt.imshow(diff[slice_cell_z, :, :], 
+    plt.title("slice in z at {}".format(slice_cell_z), fontsize=20)
+    plt.imshow(diff[slice_cell_z, :, :],
                vmin=-limit, vmax=+limit,
                aspect='auto',
                cmap=plt.cm.bwr)
@@ -128,11 +128,11 @@ def plotError(h5file, slice_pos=[0.5, 0.5, 0.5]):
                               format="%2.2e", pad=0.18,
                               ticks=[-limit, 0, +limit])
                  )
-    
+
     plt.subplot(132)
     slice_cell_y = np.int(np.floor((diff.shape[1]-1)*slice_pos[1]))
-    plt.title("slice in y at {}".format(slice_cell_y), fontsize=20)    
-    plt.imshow(diff[:, slice_cell_y, :], 
+    plt.title("slice in y at {}".format(slice_cell_y), fontsize=20)
+    plt.imshow(diff[:, slice_cell_y, :],
                vmin=-limit, vmax=+limit,
                aspect='auto',
                cmap=plt.cm.bwr)
@@ -145,11 +145,11 @@ def plotError(h5file, slice_pos=[0.5, 0.5, 0.5]):
                               ticks=[-limit, 0, +limit])
                  )
 
-    
+
     plt.subplot(133)
     slice_cell_x = np.int(np.floor((diff.shape[2]-1)*slice_pos[2]))
     plt.title("slice in x at {}".format(slice_cell_x), fontsize=20)
-    plt.imshow(diff[:, :, slice_cell_x], 
+    plt.imshow(diff[:, :, slice_cell_x],
                vmin=-limit, vmax=+limit,
                aspect='auto',
                cmap=plt.cm.bwr)
@@ -162,9 +162,13 @@ def plotError(h5file, slice_pos=[0.5, 0.5, 0.5]):
                               ticks=[-limit, 0, +limit])
                  )
 
-    
+
     plt.tight_layout()
-    plt.show()
+
+    if not args.output_file:
+        plt.show()
+    else:
+        plt.savefig(args.output_file)
 
 
 
@@ -202,11 +206,17 @@ if __name__ == "__main__":
                         type=np.float,
                         help='float value between [0,1] to set slice position in z (default = 0.5)')
 
+    parser.add_argument("--export",
+                        metavar="file name",
+                        dest="output_file",
+                        default="",
+                        help="export plot to file (disable interactive window)")
+
     args = parser.parse_args()
 
     slice_pos = np.clip([args.z_split,
                          args.y_split,
-                         args.x_split], 
+                         args.x_split],
                         0, 1)
 
     if os.path.isfile(args.h5file_name):
