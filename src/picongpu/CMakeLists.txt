@@ -254,6 +254,15 @@ set(LIBS ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
 
 
 ################################################################################
+# Find zlib
+################################################################################
+
+find_package(ZLIB REQUIRED)
+include_directories(SYSTEM ${ZLIB_INCLUDE_DIRS})
+set(LIBS ${LIBS} ${ZLIB_LIBRARIES})
+
+
+################################################################################
 # Find Boost
 ################################################################################
 
@@ -511,7 +520,7 @@ cuda_add_executable(picongpu
     ${SRCFILES}
 )
 
-target_link_libraries(picongpu  ${LIBS} ${CUDA_CUDART_LIBRARY} z m)
+target_link_libraries(picongpu ${LIBS} ${CUDA_CUDART_LIBRARY} m)
 
 ################################################################################
 # Install PIConGPU
