@@ -48,7 +48,7 @@ HDINLINE float_X MapToLookupTable::operator()(const float_X x) const
      *
      * This is the inverse mapping of the mapping in @see:`SynchrotronFunctions::init()`
      */
-    const float_X x_m = PMacc::algorithms::math::pow(x, float_X(1.0/3.0));
+    const float_X x_m = math::pow(x, float_X(1.0/3.0));
 
     const float_X cutOff = static_cast<float_X>(SYNC_FUNCS_CUTOFF);
 
