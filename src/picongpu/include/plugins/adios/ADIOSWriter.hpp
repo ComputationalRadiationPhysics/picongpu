@@ -1034,7 +1034,7 @@ private:
         size_t writeBuffer_in_MiB=1+threadParams->adiosGroupSize / 1024 / 1024;
         /* value `1.1` is the secure factor if we miss to count some small buffers*/
         size_t buffer_mem=static_cast<size_t>(1.1 * static_cast<float_64>(writeBuffer_in_MiB));
-        ADIOS_CMD(adios_allocate_buffer(ADIOS_BUFFER_ALLOC_NOW,buffer_mem));
+        adios_set_max_buffer_size(buffer_mem);
         threadParams->adiosBufferInitialized = true;
 
         /* open adios file. all variables need to be defined at this point */
