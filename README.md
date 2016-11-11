@@ -214,10 +214,11 @@ The PIConGPU Team expresses its thanks to:
 - Stefan Tietze
 - Benjamin Worpitz
 - Erik Zenker
+- Alexander Matthes
 
 Kudos to everyone who helped!
 
 ********************************************************************************
 
-![image of an lwfa](doc/images/lwfa_grey.png "LWFA")
+![image of an lwfa](doc/images/lwfa_iso.png "LWFA")
 ![image of our strong scaling](doc/images/StrongScalingPIConGPU_log.png "Strong Scaling")

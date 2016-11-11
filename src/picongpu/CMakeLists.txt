@@ -1,5 +1,5 @@
 # Copyright 2013-2016 Axel Huebl, Benjamin Schneider, Felix Schmitt, Heiko Burau,
-#                     Rene Widera, Alexander Grund
+#                     Rene Widera, Alexander Grund, Alexander Matthes
 #
 # This file is part of PIConGPU.
 #
@@ -116,43 +116,6 @@ if( (CUDA_VERSION VERSION_GREATER 7.0) AND
                         `-DCMAKE_CXX_STANDARD=11`
                         when compiling with nvcc 7.5")
 endif()
-
-################################################################################
-# ISAAC
-################################################################################
-
-find_package(ISAAC 0.1.0 CONFIG)
-if(ISAAC_FOUND)
-    if ( CMAKE_CXX_STANDARD EQUAL 98 )
-        message(STATUS "ISAAC found, but needed C++11 not enabled")
-    else( CMAKE_CXX_STANDARD EQUAL 98 )
-        SET(ISAAC_STEREO "No" CACHE STRING "Using stereoscopy")
-        SET_PROPERTY(CACHE ISAAC_STEREO PROPERTY STRINGS No SideBySide Anaglyph)
-
-        if(${ISAAC_STEREO} STREQUAL "No")
-            add_definitions(-DISAAC_STEREO=0)
-        endif()
-        if(${ISAAC_STEREO} STREQUAL "SideBySide")
-            add_definitions(-DISAAC_STEREO=1)
-        endif()
-        if(${ISAAC_STEREO} STREQUAL "Anaglyph")
-            add_definitions(-DISAAC_STEREO=2)
-        endif()
-
-        include_directories(SYSTEM ${ISAAC_INCLUDE_DIRS})
-        set(LIBS ${LIBS} ${ISAAC_LIBRARIES})
-
-        set(ISAAC_MAX_FUNCTORS "3" CACHE STRING "Max length of the isaac functor chain" )
-        set(ISAAC_DEFAULT_WEIGHT "7" CACHE STRING "Default weight of an isaac source" )
-
-        add_definitions(${ISAAC_DEFINITIONS})
-        add_definitions(-DISAAC_MAX_FUNCTORS=${ISAAC_MAX_FUNCTORS})
-        add_definitions(-DISAAC_FUNCTOR_POW_ENABLED=0)
-        add_definitions(-DISAAC_DEFAULT_WEIGHT=${ISAAC_DEFAULT_WEIGHT})
-
-        add_definitions(-DENABLE_ISAAC=1)
-    endif( CMAKE_CXX_STANDARD EQUAL 98 )
-endif(ISAAC_FOUND)
 
 ################################################################################
 # VampirTrace
@@ -485,6 +448,44 @@ if(PNGwriter_FOUND)
     set(LIBS ${LIBS} ${PNGwriter_LIBRARIES})
 endif(PNGwriter_FOUND)
 
+################################################################################
+# ISAAC
+################################################################################
+
+find_package(ISAAC 0.1.0 CONFIG QUIET)
+if(ISAAC_FOUND)
+    if ( CMAKE_CXX_STANDARD EQUAL 98 )
+        message(STATUS "ISAAC found, but needed C++11 not enabled")
+    else( CMAKE_CXX_STANDARD EQUAL 98 )
+        SET(ISAAC_STEREO "No" CACHE STRING "Using stereoscopy")
+        SET_PROPERTY(CACHE ISAAC_STEREO PROPERTY STRINGS No SideBySide Anaglyph)
+
+        if(${ISAAC_STEREO} STREQUAL "No")
+            add_definitions(-DISAAC_STEREO=0)
+        endif()
+        if(${ISAAC_STEREO} STREQUAL "SideBySide")
+            add_definitions(-DISAAC_STEREO=1)
+        endif()
+        if(${ISAAC_STEREO} STREQUAL "Anaglyph")
+            add_definitions(-DISAAC_STEREO=2)
+        endif()
+
+        include_directories(SYSTEM ${ISAAC_INCLUDE_DIRS})
+        set(LIBS ${LIBS} ${ISAAC_LIBRARIES})
+
+        set(ISAAC_MAX_FUNCTORS "3" CACHE STRING "Max length of the isaac functor chain" )
+        set(ISAAC_DEFAULT_WEIGHT "7" CACHE STRING "Default weight of an isaac source" )
+        add_definitions(${ISAAC_DEFINITIONS})
+        add_definitions(-DISAAC_MAX_FUNCTORS=${ISAAC_MAX_FUNCTORS})
+        add_definitions(-DISAAC_FUNCTOR_POW_ENABLED=0)
+        add_definitions(-DISAAC_DEFAULT_WEIGHT=${ISAAC_DEFAULT_WEIGHT})
+
+        add_definitions(-DENABLE_ISAAC=1)
+        
+    endif( CMAKE_CXX_STANDARD EQUAL 98 )
+else(ISAAC_FOUND)
+    message(STATUS "Could NOT find ISAAC - set ISAAC_DIR or check your CMAKE_PREFIX_PATH" )
+endif(ISAAC_FOUND)
 
 ################################################################################
 # Check if PIC_EXTENSION_PATH is relative or absolute
