@@ -8,22 +8,22 @@ then
 #       export MODULES_NO_OUTPUT=1
 
         # Core Dependencies
-        module load gcc/4.8.2
+        module load gcc/4.9.2
         module load cmake/3.3.0
-        module load boost/1.60.0
-        module load cuda/6.5
-        module load openmpi/1.8.4.kepler
+        module load boost/1.62.0
+        module load cuda/8.0
+        module load openmpi/1.8.6.kepler.cuda80
 
         # Plugins (optional)
         module load pngwriter/0.5.6
-        module load hdf5-parallel/1.8.14 libsplash/1.6.0
+        module load hdf5-parallel/1.8.15 libsplash/1.6.0
 
         # either use libSplash or ADIOS for file I/O
-        #module load libmxml/2.8 adios/1.10.0
+        #module load adios/1.10.0
 
         # Debug Tools
+        #module load gdb
         #module load valgrind/3.8.1
-        #module load vampirtrace/5.14.4-GPU
 
 #       unset MODULES_NO_OUTPUT
 fi
