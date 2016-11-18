@@ -44,16 +44,17 @@ namespace picongpu
        */
       HDINLINE float_X operator()(const float_X N, const float_X omega, const vector_X observer_unit_vec) const
       {
+        //util::Pow<float_X, 1> pow;
+        const float_X sincX = util::pow( math::sinc( observer_unit_vec.x() * CELL_WIDTH / ( SPEED_OF_LIGHT * float_X( 2.0 ) ) * omega ), 1 );
+        const float_X sincY = util::pow( math::sinc( observer_unit_vec.y() * CELL_HEIGHT / ( SPEED_OF_LIGHT * float_X( 2.0 ) ) * omega ), 1 );
+        const float_X sincZ = util::pow( math::sinc( observer_unit_vec.z() * CELL_DEPTH / ( SPEED_OF_LIGHT * float_X( 2.0 ) ) * omega ), 1 );
           return math::sqrt(
-              N + ( N * N - N ) * util::square(
-                  math::sinc( observer_unit_vec.x() * CELL_WIDTH / ( SPEED_OF_LIGHT * float_X( 2.0 ) ) * omega ) *
-                  math::sinc( observer_unit_vec.y() * CELL_HEIGHT / ( SPEED_OF_LIGHT * float_X( 2.0 ) ) * omega ) *
-                  math::sinc( observer_unit_vec.z() * CELL_DEPTH / ( SPEED_OF_LIGHT * float_X( 2.0 ) ) * omega )
-              ) // util::square
+              N + ( N * N - N ) * util::square( sincX * sincY * sincZ )
           ); // math::sqrt
       }
     };
   } // radFormFactor_CIC_3D
+
 
   namespace radFormFactor_CIC_1Dy
   {
@@ -82,6 +83,69 @@ namespace picongpu
       }
     };
   } // radFormFactor_CIC_1Dy
+
+
+  namespace radFormFactor_TSC_3D
+  {
+    class radFormFactor
+    {
+    public:
+      /* Form Factor for TSC charge distribution of N discrete electrons:
+       *
+       * with observation direction (unit vector) \vec{n} = (n_x, n_y, n_z)
+       * and with: N     = weighting
+       *           omega = frequency
+       *           L_d   = the size of the cell in dimension d
+       *
+       * @param N = macro particle weighting
+       * @param omega = frequency at which to calculate the  form factor
+       * @param observer_unit_vec = observation direction
+       * @return the Form Factor: sqrt( | \mathcal{F} |^2 )
+       */
+      HDINLINE float_X operator()(const float_X N, const float_X omega, const vector_X observer_unit_vec) const
+      {
+        //util::Pow<float_X, 2> pow;
+        const float_X sincX = util::pow( math::sinc( observer_unit_vec.x() * CELL_WIDTH / ( SPEED_OF_LIGHT * float_X( 2.0 ) ) * omega ), 2 );
+        const float_X sincY = util::pow( math::sinc( observer_unit_vec.y() * CELL_HEIGHT / ( SPEED_OF_LIGHT * float_X( 2.0 ) ) * omega ), 2 );
+        const float_X sincZ = util::pow( math::sinc( observer_unit_vec.z() * CELL_DEPTH / ( SPEED_OF_LIGHT * float_X( 2.0 ) ) * omega ), 2 );
+          return math::sqrt(
+              N + ( N * N - N ) * util::square( sincX * sincY * sincZ )
+          ); // math::sqrt
+      }
+    };
+  } // radFormFactor_TSC_3D
+
+
+  namespace radFormFactor_PCS_3D
+  {
+    class radFormFactor
+    {
+    public:
+      /* Form Factor for PCS charge distribution of N discrete electrons:
+       *
+       * with observation direction (unit vector) \vec{n} = (n_x, n_y, n_z)
+       * and with: N     = weighting
+       *           omega = frequency
+       *           L_d   = the size of the cell in dimension d
+       *
+       * @param N = macro particle weighting
+       * @param omega = frequency at which to calculate the  form factor
+       * @param observer_unit_vec = observation direction
+       * @return the Form Factor: sqrt( | \mathcal{F} |^2 )
+       */
+      HDINLINE float_X operator()(const float_X N, const float_X omega, const vector_X observer_unit_vec) const
+      {
+        //util::Pow<float_X, 3> pow;
+        const float_X sincX = util::pow( math::sinc( observer_unit_vec.x() * CELL_WIDTH / ( SPEED_OF_LIGHT * float_X( 2.0 ) ) * omega ), 3 );
+        const float_X sincY = util::pow( math::sinc( observer_unit_vec.y() * CELL_HEIGHT / ( SPEED_OF_LIGHT * float_X( 2.0 ) ) * omega ), 3 );
+        const float_X sincZ = util::pow( math::sinc( observer_unit_vec.z() * CELL_DEPTH / ( SPEED_OF_LIGHT * float_X( 2.0 ) ) * omega ), 3 );
+          return math::sqrt(
+              N + ( N * N - N ) * util::square( sincX * sincY * sincZ )
+          ); // math::sqrt
+      }
+    };
+  } // radFormFactor_PCS_3D
+
 
 
   namespace radFormFactor_Gauss_spherical
