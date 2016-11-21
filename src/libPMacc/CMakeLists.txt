@@ -26,21 +26,9 @@
 cmake_minimum_required(VERSION 3.3.0)
 project(PMaccTest)
 
-
-################################################################################
-# C++11 Enabler
-################################################################################
-
-# By using this if-else one can assume that:
-# CMAKE_CXX_STANDARD==11 <=> CUDA_NVCC_FLAGS contain "-std=c++11"
-if("${CUDA_NVCC_FLAGS}" MATCHES "-std=c\\+\\+11")
-    set(CMAKE_CXX_STANDARD 11)
-elseif("${CMAKE_CXX_STANDARD}" STREQUAL "11")
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" -std=c++11)
-else()
-    # Note: Add support for C++14 once CUDA supports it (maybe 8.0?)
-    set(CMAKE_CXX_STANDARD 98)
-endif()
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD 11)
 
 ################################################################################
 # PMacc
@@ -69,7 +57,7 @@ add_definitions(-DBOOST_TEST_DYN_LINK)
 enable_testing()
 
 # Test cases
-# Each *UT.cu file is an independent executable with one or more test cases 
+# Each *UT.cu file is an independent executable with one or more test cases
 file(GLOB_RECURSE TESTS test/*UT.cu)
 foreach(dim 2 3)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DTEST_DIM=${dim}")
