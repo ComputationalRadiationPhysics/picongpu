@@ -961,11 +961,21 @@ private:
         DataSpace<simDim> particleOffset(localDomain.offset);
         particleOffset.y() -= threadParams->window.globalDimensions.offset.y();
 
+        /* ADIOS API change:
+         * <= 1.10.0: `enum ADIOS_FLAG`
+         * >= 1.11.0: `enum ADIOS_STATISTICS_FLAG`
+         */
+#if ( ( ADIOS_VERSION_MAJOR * 100 + ADIOS_VERSION_MINOR ) >= 111 )
+        ADIOS_STATISTICS_FLAG noStatistics = adios_stat_no;
+#else
+        ADIOS_FLAG noStatistics = adios_flag_no;
+#endif
+
         /* create adios group for fields without statistics */
         ADIOS_CMD(adios_declare_group(&(threadParams->adiosGroupHandle),
                 ADIOS_GROUP_NAME,
                 (threadParams->adiosBasePath + std::string("iteration")).c_str(),
-                adios_flag_no));
+                noStatistics));
 
         /* select MPI method, #OSTs and #aggregators */
         ADIOS_CMD(adios_select_method(threadParams->adiosGroupHandle,
