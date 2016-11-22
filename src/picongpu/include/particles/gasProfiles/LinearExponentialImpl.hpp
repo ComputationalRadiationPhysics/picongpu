@@ -58,7 +58,7 @@ struct LinearExponentialImpl : public T_ParamClass
 
         const floatD_X globalCellPos(
                                      precisionCast<float_X>(totalCellOffset) *
-                                     cellSize
+                                     cellSize.shrink<simDim>()
                                      );
         float_X density = float_X(0.0);
 
