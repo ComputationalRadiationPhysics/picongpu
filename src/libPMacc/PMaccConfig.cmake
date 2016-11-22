@@ -71,12 +71,13 @@ endif()
 ################################################################################
 # CUDA
 ################################################################################
-find_package(CUDA 5.0 REQUIRED)
+find_package(CUDA 7.5 REQUIRED)
 
-if(CUDA_VERSION VERSION_LESS 5.5)
-    message(STATUS "CUDA Toolkit < 5.5 detected. We strongly recommend to still "
-                   "use CUDA 5.5+ drivers (319.82 or higher)!")
-endif(CUDA_VERSION VERSION_LESS 5.5)
+# work-around since the above flag does not necessarily put -std=c++11 in
+# the CMAKE_CXX_FLAGS, which is unfurtunately hiding the switch from FindCUDA
+if(NOT "${CMAKE_CXX_FLAGS}" MATCHES "-std=c\\+\\+11")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+endif()
 
 set(CUDA_ARCH sm_20 CACHE STRING "Set GPU architecture")
 string(COMPARE EQUAL ${CUDA_ARCH} "sm_10" IS_CUDA_ARCH_UNSUPPORTED)
