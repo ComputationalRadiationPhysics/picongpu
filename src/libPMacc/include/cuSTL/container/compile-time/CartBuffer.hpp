@@ -40,27 +40,24 @@ namespace CT
  * \tparam _Size compile-time vector specifying the size of the container
  */
 template<typename Type, typename _Size, typename Allocator, typename Copier, typename Assigner>
-class CartBuffer
+class CartBuffer : public Allocator
 {
 public:
     typedef Type type;
     typedef _Size Size;
     typedef typename Allocator::Pitch Pitch;
-    typedef cursor::CT::BufferCursor<Type, Pitch> Cursor;
+    typedef typename Allocator::Cursor Cursor;
     BOOST_STATIC_CONSTEXPR int dim = Size::dim;
     typedef zone::CT::SphericZone<_Size, typename math::CT::make_Int<dim, 0>::type> Zone;
-private:
-    Type* dataPointer;
-    //HDINLINE void init();
+
 public:
-    DINLINE CartBuffer();
-    DINLINE CartBuffer(const CT::CartBuffer<Type, Size, Allocator, Copier, Assigner>& other);
+    HDINLINE CartBuffer();
 
     DINLINE CT::CartBuffer<Type, Size, Allocator, Copier, Assigner>&
     operator=(const CT::CartBuffer<Type, Size, Allocator, Copier, Assigner>& rhs);
 
     DINLINE void assign(const Type& value);
-    DINLINE Type* getDataPointer() const {return dataPointer;}
+    DINLINE Type* getDataPointer() const {return &(*this->cursor);}
 
     DINLINE cursor::CT::BufferCursor<Type, Pitch> origin() const;
     /*

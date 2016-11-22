@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau, Rene Widera
+ * Copyright 2013-2016 Heiko Burau
  *
  * This file is part of libPMacc.
  *
@@ -31,11 +31,16 @@ namespace allocator
 {
 namespace CT
 {
+
+/** WARNING: You have to put the `allocateNow` call into the same function where
+ * you actually use the shared memory buffer. Otherwise the program freezes.
+ *
+ */
 template<typename Type, typename Size, int dim = Size::dim, int uid = 0>
-struct SharedMemAllocator;
+struct LazySharedMemAllocator;
 
 template<typename Type, typename Size, int uid>
-struct SharedMemAllocator<Type, Size, 1, uid>
+struct LazySharedMemAllocator<Type, Size, 1, uid>
 {
     typedef Type type;
     typedef math::CT::UInt32<> Pitch;
@@ -43,10 +48,9 @@ struct SharedMemAllocator<Type, Size, 1, uid>
     typedef cursor::CT::BufferCursor<type, math::CT::UInt32<> > Cursor;
 
 protected:
-
     Cursor cursor;
 
-    HDINLINE SharedMemAllocator() : cursor(NULL) {}
+    HDINLINE LazySharedMemAllocator() : cursor(NULL) {}
 
     /* has to be static, unless a crash is acceptable */
     DINLINE static Cursor _allocate()
@@ -55,14 +59,17 @@ protected:
         return Cursor((Type*)shMem);
     }
 
-    DINLINE void allocate()
+    HDINLINE void allocate() {}
+
+public:
+    DINLINE void allocateNow()
     {
         this->cursor = _allocate();
     }
 };
 
 template<typename Type, typename Size, int uid>
-struct SharedMemAllocator<Type, Size, 2, uid>
+struct LazySharedMemAllocator<Type, Size, 2, uid>
 {
     typedef Type type;
     typedef math::CT::UInt32<sizeof(Type) * Size::x::value> Pitch;
@@ -70,10 +77,9 @@ struct SharedMemAllocator<Type, Size, 2, uid>
     typedef cursor::CT::BufferCursor<type, Pitch> Cursor;
 
 protected:
-
     Cursor cursor;
 
-    HDINLINE SharedMemAllocator() : cursor(NULL) {}
+    HDINLINE LazySharedMemAllocator() : cursor(NULL) {}
 
     /* has to be static, unless a crash is acceptable */
     DINLINE static Cursor _allocate()
@@ -82,14 +88,17 @@ protected:
         return Cursor((Type*)shMem);
     }
 
-    DINLINE void allocate()
+    HDINLINE void allocate() {}
+
+public:
+    DINLINE void allocateNow()
     {
         this->cursor = _allocate();
     }
 };
 
 template<typename Type, typename Size, int uid>
-struct SharedMemAllocator<Type, Size, 3, uid>
+struct LazySharedMemAllocator<Type, Size, 3, uid>
 {
     typedef Type type;
     typedef math::CT::UInt32<sizeof(Type) * Size::x::value,
@@ -98,10 +107,9 @@ struct SharedMemAllocator<Type, Size, 3, uid>
     typedef cursor::CT::BufferCursor<type, Pitch> Cursor;
 
 protected:
+    PMACC_ALIGN(cursor, Cursor);
 
-    Cursor cursor;
-
-    HDINLINE SharedMemAllocator() : cursor(NULL) {}
+    HDINLINE LazySharedMemAllocator() : cursor(NULL) {}
 
     /* has to be static, unless a crash is acceptable */
     DINLINE static Cursor _allocate()
@@ -110,13 +118,15 @@ protected:
         return Cursor((Type*)shMem);
     }
 
-    DINLINE void allocate()
+    HDINLINE void allocate() {}
+
+public:
+    DINLINE Cursor allocateNow()
     {
-        this->cursor = _allocate();
+        return _allocate();
     }
 };
 
 } // CT
 } // allocator
 } // PMacc
-
