@@ -59,7 +59,7 @@ struct GaussianImpl : public T_ParamClass
 
         const floatD_X globalCellPos(
                                      precisionCast<float_X>(totalCellOffset) *
-                                     cellSize
+                                     cellSize.shrink<simDim>()
                                      );
 
         if (globalCellPos.y() * cellSize.y() < vacuum_y)

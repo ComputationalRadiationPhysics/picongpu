@@ -249,7 +249,7 @@ struct FreeFormulaFunctor
      *
      * @return float_X density [normalized to 1.0]
      */
-    HDINLINE float_X operator()(const floatD_64& position_SI, const floatD_64& cellSize_SI)
+    HDINLINE float_X operator()(const floatD_64& position_SI, const float3_64& cellSize_SI)
     {
         const float_64 y( position_SI.y() * 1000.0 ); // m -> mm
         //const uint64_t y_cell_id( uint64_t(position_SI.y() / cellSize_SI[1]) );

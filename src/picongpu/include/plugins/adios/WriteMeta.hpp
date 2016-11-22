@@ -222,12 +222,11 @@ using namespace PMacc;
             ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
                       "cell_height", threadParams->adiosBasePath.c_str(),
                       adiosFloatXType.type, 1, (void*)&cellSize[1] ));
-            if( simDim == DIM3 )
-            {
-               ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
-                         "cell_depth", threadParams->adiosBasePath.c_str(),
-                         adiosFloatXType.type, 1, (void*)&cellSize[2] ));
-            }
+
+            ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
+                      "cell_depth", threadParams->adiosBasePath.c_str(),
+                      adiosFloatXType.type, 1, (void*)&cellSize[2] ));
+
 
             /* write base units */
             log<picLog::INPUT_OUTPUT > ("ADIOS: meta: units");
