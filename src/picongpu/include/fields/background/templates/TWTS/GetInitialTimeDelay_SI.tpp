@@ -34,8 +34,7 @@ namespace twts
 /* Auxiliary functions for calculating the TWTS field */
 namespace detail
 {
-    namespace pmMath = PMacc::algorithms::math;
-    
+
     template <unsigned T_dim>
     class GetInitialTimeDelay
     {
@@ -63,7 +62,7 @@ namespace detail
                                       const float_X phi,
                                       const float_X beta_0 ) const;
     };
-    
+
     template<>
     HDINLINE float_64
     GetInitialTimeDelay<DIM3>::operator()( const bool auto_tdelay,
@@ -75,7 +74,7 @@ namespace detail
                                            const float_X beta_0 ) const
     {
         if ( auto_tdelay ) {
-            
+
             /* angle between the laser pulse front and the y-axis. Good approximation for
              * beta0\simeq 1. For exact relation look in TWTS core routines for Ex, By or Bz. */
             const float_64 eta = (PI / 2) - (phi / 2);
@@ -83,25 +82,25 @@ namespace detail
              * projection we calculate the y-distance walkoff of the TWTS-pulse.
              * The abs()-function is for correct offset for -phi<-90Deg and +phi>+90Deg. */
             const float_64 y1 = float_64(halfSimSize[2]
-                                *picongpu::SI::CELL_DEPTH_SI)*pmMath::abs(pmMath::cos(eta));
+                                *picongpu::SI::CELL_DEPTH_SI)*math::abs(math::cos(eta));
             /* Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume
              * at low intensity values. */
             const float_64 m = 3.;
             /* Approximate cross section of laser pulse through y-axis,
              * scaled with "fudge factor" m. */
             const float_64 y2 = m*(pulselength_SI*picongpu::SI::SPEED_OF_LIGHT_SI)
-                                / pmMath::cos(eta);
+                                / math::cos(eta);
             /* y-position of laser coordinate system origin within simulation. */
             const float_64 y3 = focus_y_SI;
             /* Programmatically obtained time-delay */
             const float_64 tdelay = (y1+y2+y3) / (picongpu::SI::SPEED_OF_LIGHT_SI*beta_0);
-            
+
             return tdelay;
         }
         else
             return tdelay_user_SI;
     }
-    
+
     template <>
     HDINLINE float_64
     GetInitialTimeDelay<DIM2>::operator()( const bool auto_tdelay,
@@ -113,7 +112,7 @@ namespace detail
                                            const float_X beta_0 ) const
     {
         if ( auto_tdelay ) {
-            
+
             /* angle between the laser pulse front and the y-axis. Good approximation for
              * beta0\simeq 1. For exact relation look in TWTS core routines for Ex, By or Bz. */
             const float_64 eta = (PI / 2) - (phi / 2);
@@ -121,19 +120,19 @@ namespace detail
              * projection we calculate the y-distance walkoff of the TWTS-pulse.
              * The abs()-function is for correct offset for -phi<-90Deg and +phi>+90Deg. */
             const float_64 y1 = float_64(halfSimSize[0]
-                                *picongpu::SI::CELL_WIDTH_SI)*pmMath::abs(pmMath::cos(eta));
+                                *picongpu::SI::CELL_WIDTH_SI)*math::abs(math::cos(eta));
             /* Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume
              * at low intensity values. */
             const float_64 m = 3.;
             /* Approximate cross section of laser pulse through y-axis,
              * scaled with "fudge factor" m. */
             const float_64 y2 = m*(pulselength_SI*picongpu::SI::SPEED_OF_LIGHT_SI)
-                                / pmMath::cos(eta);
+                                / math::cos(eta);
             /* y-position of laser coordinate system origin within simulation. */
             const float_64 y3 = focus_y_SI;
             /* Programmatically obtained time-delay */
             const float_64 tdelay = (y1+y2+y3) / (picongpu::SI::SPEED_OF_LIGHT_SI*beta_0);
-            
+
             return tdelay;
         }
         else
@@ -154,7 +153,7 @@ namespace detail
                                             halfSimSize, pulselength_SI,
                                             focus_y_SI, phi, beta_0);
     }
-    
+
 } /* namespace detail */
 } /* namespace twts */
 } /* namespace templates */

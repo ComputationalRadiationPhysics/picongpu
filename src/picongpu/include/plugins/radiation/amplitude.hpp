@@ -44,9 +44,9 @@ public:
       picongpu::float_X cosValue;
       picongpu::float_X sinValue;
       picongpu::math::sincos(phase, sinValue, cosValue);
-      amp_x=PMacc::algorithms::math::euler(vec.x(), picongpu::precisionCast<picongpu::float_64>(sinValue), picongpu::precisionCast<picongpu::float_64>(cosValue) );
-      amp_y=PMacc::algorithms::math::euler(vec.y(), picongpu::precisionCast<picongpu::float_64>(sinValue), picongpu::precisionCast<picongpu::float_64>(cosValue) );
-      amp_z=PMacc::algorithms::math::euler(vec.z(), picongpu::precisionCast<picongpu::float_64>(sinValue), picongpu::precisionCast<picongpu::float_64>(cosValue) );
+      amp_x=picongpu::math::euler(vec.x(), picongpu::precisionCast<picongpu::float_64>(sinValue), picongpu::precisionCast<picongpu::float_64>(cosValue) );
+      amp_y=picongpu::math::euler(vec.y(), picongpu::precisionCast<picongpu::float_64>(sinValue), picongpu::precisionCast<picongpu::float_64>(cosValue) );
+      amp_z=picongpu::math::euler(vec.z(), picongpu::precisionCast<picongpu::float_64>(sinValue), picongpu::precisionCast<picongpu::float_64>(cosValue) );
   }
 
 
@@ -113,7 +113,7 @@ public:
       const picongpu::float_64 factor = 1.0 /
         (16. * util::cube(M_PI) * picongpu::EPS0 * picongpu::SPEED_OF_LIGHT);
 
-      return factor * (PMacc::algorithms::math::abs2(amp_x) + PMacc::algorithms::math::abs2(amp_y) + PMacc::algorithms::math::abs2(amp_z));
+      return factor * (picongpu::math::abs2(amp_x) + picongpu::math::abs2(amp_y) + picongpu::math::abs2(amp_z));
   }
 
 
