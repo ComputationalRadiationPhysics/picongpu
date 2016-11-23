@@ -51,9 +51,9 @@ struct FreeFormulaImpl : public T_ParamClass
      */
     HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
     {
-        const float_64 unitLength(UNIT_LENGTH); // workaround to use UNIT_LENGTH on device 
-        const floatD_64 cellSize_SI( precisionCast<float_64>(cellSize) * unitLength );
-        const floatD_64 position_SI( precisionCast<float_64>(totalCellOffset) * cellSize_SI );
+        const float_64 unitLength(UNIT_LENGTH); // workaround to use UNIT_LENGTH on device
+        const float3_64 cellSize_SI( precisionCast<float_64>(cellSize) * unitLength );
+        const floatD_64 position_SI( precisionCast<float_64>(totalCellOffset) * cellSize_SI.shrink<simDim>( ) );
 
         return ParamClass::operator()(position_SI, cellSize_SI);
     }

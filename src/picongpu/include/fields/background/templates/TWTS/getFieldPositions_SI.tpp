@@ -48,7 +48,7 @@ namespace detail
     {
         /* Note: Neither direct precisionCast on picongpu::cellSize
            or casting on floatD_ does work. */
-        const floatD_64 cellDim(picongpu::cellSize);
+        const floatD_64 cellDim(picongpu::cellSize.shrink<simDim>());
         const floatD_64 cellDimensions = cellDim * unit_length;
 
         /* TWTS laser coordinate origin is centered transversally and defined longitudinally by

@@ -58,7 +58,7 @@ struct GaussianCloudImpl : public T_ParamClass
 
         const floatD_X globalCellPos(
                                      precisionCast<float_X>(totalCellOffset) *
-                                     cellSize
+                                     cellSize.shrink<simDim>()
                                      );
 
         if (globalCellPos.y() < vacuum_y) return float_X(0.0);
