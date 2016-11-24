@@ -201,7 +201,7 @@ The PIConGPU Team expresses its thanks to:
 
 - Florian Berninger
 - Robert Dietrich
-- Wen Fu, PhD
+- Wen Fu, Ph.D.
 - Anton Helm
 - Wolfgang Hoehnig
 - Maximilian Knespel
@@ -212,6 +212,7 @@ The PIConGPU Team expresses its thanks to:
 - Conrad Schumann
 - Klaus Steiniger
 - Stefan Tietze
+- Marija Vranic, Ph.D.
 - Benjamin Worpitz
 - Erik Zenker
 - Alexander Matthes
