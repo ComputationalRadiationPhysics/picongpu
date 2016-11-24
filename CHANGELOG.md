@@ -3,17 +3,27 @@ Change Log / Release Log for PIConGPU
 
 0.2.0 "Beta"
 ------------
-**Date:** 2016-11-AB
+**Date:** 2016-11-24
 
-Release Title for Beta (Axel)
+Beta release: full multiple species support & openPMD
 
-openPMD, ADIOS, Radiation Reaction, Tracking, advanced field ionization,
-plugin multi-species namings & output dirs...
+This release of PIConGPU, providing "beta" status for users, implements full
+multi-species support for an arbitrary number of particle species and refactors
+our main I/O to be formatted as openPMD (see http://openPMD.org).
+Several major features have been implemented and stabilized,
+highlights include refactored ADIOS support (including checkpoints), a
+classical radiation reaction pusher (based on the work of M. Vranic/IST),
+parallel particle-IDs, generalized on-the-fly particle creation, advanced field
+ionization schemes and unification of plugin and file names.
 
-last C++98 release (CUDA 5.5-7.0)
-first C++11 compatible release (CUDA 7.5-8.0)
+This is our last C++98 compatible release (for CUDA 5.5-7.0). Upcoming releases
+will be C++11 only (CUDA 7.5+), which is already supported in this release,
+too.
 
-Release Short description (Axel)
+Thank you to Axel Huebl, René Widera, Alexander Grund, Richard Pausch,
+Heiko Burau, Alexander Debus, Marco Garten, Benjamin Worpitz, Erik Zenker,
+Frank Winkler, Carlchristian Eckert, Stefan Tietze, Benjamin Schneider,
+Maximilian Knespel and Michael Bussmann for contributions to this release!
 
 ### Changes to "0.1.0"
 
