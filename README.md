@@ -188,35 +188,24 @@ Active Team
 
 - Heiko Burau*
 - Dr. Alexander Debus
-- Carlchristian Eckert
 - Marco Garten
-- Alexander Grund
 - Axel Huebl*
+- Alexander Matthes
 - Richard Pausch*
 - Rene Widera*
 
 ### Former Members, Contributions and Thanks
 
-The PIConGPU Team expresses its thanks to:
+The PIConGPU Team expresses its gratitude to:
 
-- Florian Berninger
-- Robert Dietrich
-- Wen Fu, PhD
-- Anton Helm
-- Wolfgang Hoehnig
-- Maximilian Knespel
-- Dr. Remi Lehe
-- Felix Schmitt
-- Benjamin Schneider
-- Joseph Schuchart
-- Conrad Schumann
-- Klaus Steiniger
-- Stefan Tietze
-- Benjamin Worpitz
-- Erik Zenker
-- Alexander Matthes
+Florian Berninger, Robert Dietrich, Carlchristian Eckert, Wen Fu, Ph.D.,
+Alexander Grund, Anton Helm, Wolfgang Hoehnig, Maximilian Knespel,
+Dr. Remi Lehe, Felix Schmitt, Benjamin Schneider, Joseph Schuchart,
+Conrad Schumann, Klaus Steiniger, Stefan Tietze, Marija Vranic, Ph.D.,
+Benjamin Worpitz, Erik Zenker, Alexander Matthes
 
-Kudos to everyone who helped!
+Kudos to everyone, mentioned or unmentioned, who contributed further in any
+way!
 
 ********************************************************************************
 
