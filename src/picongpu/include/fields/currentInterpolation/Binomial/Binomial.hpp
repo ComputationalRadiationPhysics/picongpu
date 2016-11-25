@@ -34,7 +34,7 @@ using namespace PMacc;
 template<uint32_t T_dim>
 struct Binomial
 {
-    BOOST_STATIC_CONSTEXPR uint32_t dim = T_dim;
+    static constexpr uint32_t dim = T_dim;
 
     typedef typename PMacc::math::CT::make_Int<dim, 1>::type LowerMargin;
     typedef typename PMacc::math::CT::make_Int<dim, 1>::type UpperMargin;

@@ -38,16 +38,16 @@ template<
 struct EmZ
 {
     typedef typename T_ParticleShape::ChargeAssignmentOnSupport ParticleAssign;
-    BOOST_STATIC_CONSTEXPR int supp = ParticleAssign::support;
+    static constexpr int supp = ParticleAssign::support;
 
-    BOOST_STATIC_CONSTEXPR int currentLowerMargin = supp / 2 + 1 - (supp + 1) % 2;
-    BOOST_STATIC_CONSTEXPR int currentUpperMargin = (supp + 1) / 2 + 1;
+    static constexpr int currentLowerMargin = supp / 2 + 1 - (supp + 1) % 2;
+    static constexpr int currentUpperMargin = (supp + 1) / 2 + 1;
     typedef typename PMacc::math::CT::make_Int<simDim, currentLowerMargin>::type LowerMargin;
     typedef typename PMacc::math::CT::make_Int<simDim, currentUpperMargin>::type UpperMargin;
 
 
-    BOOST_STATIC_CONSTEXPR int begin = -currentLowerMargin + 1;
-    BOOST_STATIC_CONSTEXPR int end = begin + supp;
+    static constexpr int begin = -currentLowerMargin + 1;
+    static constexpr int end = begin + supp;
 
 
     /** deposit the current of a particle
@@ -85,7 +85,7 @@ struct EmZ
         /* calculate the relay point for the trajectory splitting */
         for ( uint32_t d = 0; d < simDim; ++d )
         {
-            BOOST_CONSTEXPR_OR_CONST bool isSupportEven = ( supp % 2 == 0 );
+            constexpr bool isSupportEven = ( supp % 2 == 0 );
             relayPoint[d] = RelayPoint< isSupportEven >()(
                 I[0][d],
                 I[1][d],

@@ -58,8 +58,8 @@ struct CreateParticlesFromParticleImpl : private T_Functor
 
 
     typedef T_Functor Functor;
-    BOOST_STATIC_CONSTEXPR uint32_t particlePerParticle = T_Count::value;
-    BOOST_STATIC_CONSTEXPR int cellsInSuperCell = (int)PMacc::math::CT::volume<SuperCellSize>::type::value;
+    static constexpr uint32_t particlePerParticle = T_Count::value;
+    static constexpr int cellsInSuperCell = (int)PMacc::math::CT::volume<SuperCellSize>::type::value;
 
     HINLINE CreateParticlesFromParticleImpl(uint32_t currentStep) : Functor(currentStep)
     {

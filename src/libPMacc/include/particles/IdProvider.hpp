@@ -133,7 +133,7 @@ namespace PMacc {
         }
 
         // Number of bits in the ids
-        BOOST_STATIC_CONSTEXPR int32_t numBitsOfType = sizeof(curState.maxNumProc) * CHAR_BIT;
+        static constexpr int32_t numBitsOfType = sizeof(curState.maxNumProc) * CHAR_BIT;
 
         // Get current id
         uint64_t nextId = curState.nextId;

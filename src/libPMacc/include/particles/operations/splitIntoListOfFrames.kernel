@@ -72,8 +72,8 @@ __global__ void splitIntoListOfFrames(
     typedef typename T_DestBox::FrameType DestFrameType;
     typedef typename T_DestBox::FramePtr DestFramePtr;
     typedef typename T_CellDescription::SuperCellSize SuperCellSize;
-    BOOST_CONSTEXPR_OR_CONST unsigned NumDims = T_DestBox::Dim;
-    BOOST_CONSTEXPR_OR_CONST uint32_t particlesPerFrame = PMacc::math::CT::volume<SuperCellSize>::type::value;
+    constexpr unsigned NumDims = T_DestBox::Dim;
+    constexpr uint32_t particlesPerFrame = PMacc::math::CT::volume<SuperCellSize>::type::value;
 
     __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<DestFramePtr>::type destFramePtr[particlesPerFrame];
     __shared__ int linearSuperCellIds[particlesPerFrame];

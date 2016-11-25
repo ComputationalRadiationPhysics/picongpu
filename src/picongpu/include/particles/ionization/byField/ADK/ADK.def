@@ -61,7 +61,7 @@ namespace ionization
     {
         /* Boolean value that results in an additional polarization factor in
          * the ionization rate for linear polarization */
-        BOOST_STATIC_CONSTEXPR bool linPol = true;
+        static constexpr bool linPol = true;
         typedef particles::ionization::AlgorithmADK<linPol> IonizationAlgorithm;
         typedef ADK_Impl<IonizationAlgorithm, T_DestSpecies> type;
     };
@@ -87,7 +87,7 @@ namespace ionization
     {
         /* Boolean value that results in an additional polarization factor in
          * the ionization rate for linear polarization */
-        BOOST_STATIC_CONSTEXPR bool linPol = false;
+        static constexpr bool linPol = false;
         typedef particles::ionization::AlgorithmADK<linPol> IonizationAlgorithm;
         typedef ADK_Impl<IonizationAlgorithm, T_DestSpecies> type;
     };

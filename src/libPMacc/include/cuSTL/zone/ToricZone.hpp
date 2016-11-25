@@ -38,7 +38,7 @@ template<int T_dim>
 struct ToricZone
 {
     typedef tag::ToricZone tag;
-    BOOST_STATIC_CONSTEXPR int dim = T_dim;
+    static constexpr int dim = T_dim;
     math::Size_t<dim> offset;
     math::Size_t<dim> size;
     uint32_t thickness;

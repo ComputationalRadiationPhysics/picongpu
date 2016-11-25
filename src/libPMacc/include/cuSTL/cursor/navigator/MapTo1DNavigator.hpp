@@ -34,7 +34,7 @@ template<int T_dim>
 class MapTo1DNavigator
 {
 public:
-    BOOST_STATIC_CONSTEXPR int dim = T_dim;
+    static constexpr int dim = T_dim;
 private:
     math::Size_t<dim> shape;
     int pos;

@@ -47,7 +47,7 @@ struct GetComponentsType<DataSpace<DIM>, false >
 template<unsigned DIM>
 struct GetNComponents<DataSpace<DIM>,false >
 {
-    BOOST_STATIC_CONSTEXPR uint32_t value=DIM;
+    static constexpr uint32_t value=DIM;
 };
 
 }// namespace traits
