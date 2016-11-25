@@ -27,7 +27,7 @@
 namespace picongpu
 
 {
-    BOOST_CONSTEXPR_OR_CONST float_X GAS_DENSITY =
+    constexpr float_X GAS_DENSITY =
         float_X( SI::GAS_DENSITY_SI * UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH );
 } // namespace picongpu
 
