@@ -550,7 +550,7 @@ private:
    *  Return:
    *  std::string - name
    *
-   * This method avoids initializing BOOST_STATIC_CONSTEXPR string arrays.
+   * This method avoids initializing static constexpr string arrays.
    */
   static const std::string dataLabels(int index)
   {

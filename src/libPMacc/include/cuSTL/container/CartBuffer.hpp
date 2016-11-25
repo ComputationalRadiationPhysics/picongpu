@@ -72,7 +72,7 @@ class CartBuffer : public
 {
 public:
     typedef Type type;
-    BOOST_STATIC_CONSTEXPR int dim = T_dim;
+    static constexpr int dim = T_dim;
     typedef cursor::BufferCursor<Type, T_dim> Cursor;
     typedef typename Allocator::tag memoryTag;
     typedef math::Size_t<T_dim> SizeType;

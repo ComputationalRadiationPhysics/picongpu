@@ -42,7 +42,7 @@ struct GetNComponents;
 template<typename T_Type>
 struct GetNComponents<T_Type, true>
 {
-    BOOST_STATIC_CONSTEXPR uint32_t value=1;
+    static constexpr uint32_t value=1;
 };
 
 } //namespace traits

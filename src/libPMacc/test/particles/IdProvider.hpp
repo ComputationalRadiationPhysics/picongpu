@@ -88,11 +88,11 @@ struct IdProviderTest
 {
     void operator()()
     {
-        BOOST_CONSTEXPR_OR_CONST uint32_t numBlocks = 4;
-        BOOST_CONSTEXPR_OR_CONST uint32_t numThreadsPerBlock = 64;
-        BOOST_CONSTEXPR_OR_CONST uint32_t numThreads = numBlocks * numThreadsPerBlock;
-        BOOST_CONSTEXPR_OR_CONST uint32_t numIdsPerThread = 2;
-        BOOST_CONSTEXPR_OR_CONST uint32_t numIds = numThreads * numIdsPerThread;
+        constexpr uint32_t numBlocks = 4;
+        constexpr uint32_t numThreadsPerBlock = 64;
+        constexpr uint32_t numThreads = numBlocks * numThreadsPerBlock;
+        constexpr uint32_t numIdsPerThread = 2;
+        constexpr uint32_t numIds = numThreads * numIdsPerThread;
 
         typedef PMacc::IdProvider<T_dim> IdProvider;
         IdProvider::init();

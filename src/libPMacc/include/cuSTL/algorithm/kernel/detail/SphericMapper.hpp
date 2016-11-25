@@ -53,7 +53,7 @@ struct SphericMapper;
 template<typename BlockSize>
 struct SphericMapper<1, BlockSize>
 {
-    BOOST_STATIC_CONSTEXPR int dim = 1;
+    static constexpr int dim = 1;
 
     dim3 cudaGridDim(const math::Size_t<1>& size) const
     {
@@ -78,7 +78,7 @@ struct SphericMapper<1, BlockSize>
 template<typename BlockSize>
 struct SphericMapper<2, BlockSize>
 {
-    BOOST_STATIC_CONSTEXPR int dim = 2;
+    static constexpr int dim = 2;
 
     dim3 cudaGridDim(const math::Size_t<2>& size) const
     {
@@ -105,7 +105,7 @@ struct SphericMapper<2, BlockSize>
 template<typename BlockSize>
 struct SphericMapper<3, BlockSize>
 {
-    BOOST_STATIC_CONSTEXPR int dim = 3;
+    static constexpr int dim = 3;
 
     dim3 cudaGridDim(const math::Size_t<3>& size) const
     {
@@ -134,7 +134,7 @@ struct SphericMapper<3, BlockSize>
 template<>
 struct SphericMapper<1, mpl::void_>
 {
-    BOOST_STATIC_CONSTEXPR int dim = 1;
+    static constexpr int dim = 1;
 
     dim3 cudaGridDim(const math::Size_t<1>& size, const math::Size_t<3>& blockDim) const
     {
@@ -159,7 +159,7 @@ struct SphericMapper<1, mpl::void_>
 template<>
 struct SphericMapper<2, mpl::void_>
 {
-    BOOST_STATIC_CONSTEXPR int dim = 2;
+    static constexpr int dim = 2;
 
     dim3 cudaGridDim(const math::Size_t<2>& size, const math::Size_t<3>& blockDim) const
     {
@@ -186,7 +186,7 @@ struct SphericMapper<2, mpl::void_>
 template<>
 struct SphericMapper<3, mpl::void_>
 {
-    BOOST_STATIC_CONSTEXPR int dim = 3;
+    static constexpr int dim = 3;
 
     dim3 cudaGridDim(const math::Size_t<3>& size, const math::Size_t<3>& blockDim) const
     {

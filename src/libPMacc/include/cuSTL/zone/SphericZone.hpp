@@ -47,7 +47,7 @@ template<int T_dim>
 struct SphericZone
 {
     typedef tag::SphericZone tag;
-    BOOST_STATIC_CONSTEXPR int dim = T_dim;
+    static constexpr int dim = T_dim;
     math::Size_t<dim> size;
     math::Int<dim> offset;
 

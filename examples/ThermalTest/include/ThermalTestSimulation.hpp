@@ -193,10 +193,10 @@ public:
 
 private:
     // number of timesteps which collect the data
-    BOOST_STATIC_CONSTEXPR uint32_t collectTimesteps = 512;
+    static constexpr uint32_t collectTimesteps = 512;
     // first timestep which collects data
     //   you may like to let the plasma develope/thermalize a little bit
-    BOOST_STATIC_CONSTEXPR uint32_t firstTimestep = 1024;
+    static constexpr uint32_t firstTimestep = 1024;
 
     container::HostBuffer<float, 2 >* eField_zt[2];
 

@@ -135,7 +135,7 @@ struct Vector
         typedef typename mpl::at_c<mplVector, element>::type type;
     };
 
-    BOOST_STATIC_CONSTEXPR int dim = mpl::size<mplVector >::type::value;
+    static constexpr int dim = mpl::size<mplVector >::type::value;
 
     typedef typename detail::TypeSelector<x>::type type;
     typedef Vector<x, y, z> This;

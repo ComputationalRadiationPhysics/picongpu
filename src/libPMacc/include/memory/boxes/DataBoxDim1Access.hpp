@@ -36,7 +36,7 @@ class DataBoxDim1Access : protected T_Base
 public:
 
     typedef T_Base Base;
-    BOOST_STATIC_CONSTEXPR uint32_t Dim= Base::Dim;
+    static constexpr uint32_t Dim = Base::Dim;
 
 
     typedef typename Base::ValueType ValueType;

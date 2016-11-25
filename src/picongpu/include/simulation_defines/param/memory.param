@@ -32,7 +32,7 @@ namespace picongpu
      *   - reduces
      *   - ...
      */
-    BOOST_CONSTEXPR_OR_CONST size_t reservedGpuMemorySize = 350 *1024*1024;
+    constexpr size_t reservedGpuMemorySize = 350 *1024*1024;
 
     /* short namespace*/
     namespace mCT=PMacc::math::CT;
@@ -45,12 +45,12 @@ namespace picongpu
     /** define mapper which is used for kernel call mappings */
     typedef MappingDescription<simDim, SuperCellSize > MappingDesc;
 
-    BOOST_CONSTEXPR_OR_CONST uint32_t GUARD_SIZE = 1;
+    constexpr uint32_t GUARD_SIZE = 1;
 
     //! how many bytes for buffer is reserved to communication in one direction
-    BOOST_CONSTEXPR_OR_CONST uint32_t BYTES_EXCHANGE_X = 4 * 256 * 1024; //4 MiB
-    BOOST_CONSTEXPR_OR_CONST uint32_t BYTES_EXCHANGE_Y = 6 * 512 * 1024; //6 MiB
-    BOOST_CONSTEXPR_OR_CONST uint32_t BYTES_EXCHANGE_Z = 4 * 256 * 1024; //4 MiB
-    BOOST_CONSTEXPR_OR_CONST uint32_t BYTES_CORNER = 8 * 1024; //8 kiB;
-    BOOST_CONSTEXPR_OR_CONST uint32_t BYTES_EDGES = 32 * 1024; //32 kiB;
+    constexpr uint32_t BYTES_EXCHANGE_X = 4 * 256 * 1024; //4 MiB
+    constexpr uint32_t BYTES_EXCHANGE_Y = 6 * 512 * 1024; //6 MiB
+    constexpr uint32_t BYTES_EXCHANGE_Z = 4 * 256 * 1024; //4 MiB
+    constexpr uint32_t BYTES_CORNER = 8 * 1024; //8 kiB;
+    constexpr uint32_t BYTES_EDGES = 32 * 1024; //32 kiB;
 } //namespace picongpu
