@@ -81,17 +81,20 @@ namespace picongpu
     // 0 = off (faster but macroparticles are treated as highly charged, point-like particle)
     #define __COHERENTINCOHERENTWEIGHTING__ 0
 
-
-
     /* Choose different form factors in order to consider different  particle shapes for radiation
-     * radFormFactor_CIC_3D
-     * radFormFactor_CIC_1Dy
+     *  - radFormFactor_CIC_3D ... CIC charge distribution
+     *  - radFormFactor_CIC_1Dy ... only CIC charge distribution in y
+     *  - radFormFactor_Gauss_spherical ... symmetric Gauss charge distribution
+     *  - radFormFactor_Gauss_cell ... Gauss charge distribution according to cell size
+     *  - radFormFactor_incoherent ... only incoherent radiation
      */
     namespace radFormFactor_CIC_3D { }
     namespace radFormFactor_CIC_1Dy { }
+    namespace radFormFactor_Gauss_spherical { }
+    namespace radFormFactor_Gauss_cell { }
     namespace radFormFactor_incoherent { }
 
-    namespace radFormFactor = radFormFactor_CIC_3D;
+    namespace radFormFactor = radFormFactor_Gauss_spherical;
 
 
     ///////////////////////////////////////////////////////////
