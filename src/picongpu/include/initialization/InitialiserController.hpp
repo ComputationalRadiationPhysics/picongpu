@@ -88,6 +88,9 @@ public:
         CUDA_CHECK(cudaGetLastError());
 
         GridController<simDim> &gc = Environment<simDim>::get().GridController();
+
+        /* avoid deadlock between not finished PMacc tasks and MPI_Barrier */
+        __getTransactionEvent().waitForFinished();
         /* can be spared for better scalings, but guarantees the user
          * that the restart was successful */
         MPI_CHECK(MPI_Barrier(gc.getCommunicator().getMPIComm()));
