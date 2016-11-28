@@ -16,7 +16,7 @@ electrons and ions in the plasma based on
 [Maxwell's equations](http://en.wikipedia.org/wiki/Maxwell%27s_equations).
 
 PIConGPU implements various numerical schemes to solve the PIC cycle.
-Its features include:
+Its features for the electro-magnetic PIC algorithm include:
 - a central or Yee-lattice for fields
 - particle pushers that solve the equation of motion for charged and neutral
   particles, e.g., the *Boris-* and the *Vay-Pusher*
@@ -26,12 +26,18 @@ Its features include:
 - macro-particle form factors ranging from NGP (0th order), CIC (1st),
   TSC (2nd), PSQ (3rd) to P4S (4th)
 
-Besides the electro-magnetic PIC algorithm, we developed a wide range of tools
-and diagnostics, e.g.:
+and the electro-magnetic PIC algorithm is further self-consistently coupled to:
+- classical radiation reaction (DOI: 10.1016/j.cpc.2016.04.002)
+- QED synchrotron radiation (photon emission) (DOI: 10.1103/PhysRevE.92.023305)
+- advanced field ionization methods
+  (DOI: DOI:10.1103/PhysRevA.59.569, LV Keldysh)
+
+Besides the electro-magnetic PIC algorithm and extensions to it, we developed
+a wide range of tools and diagnostics, e.g.:
 - online, far-field radiation diagnostics for coherent and incoherent radiation
   emitted by charged particles
-- full restart and output capabilities, including
-  [parallel HDF5](http://hdfgroup.org/) (via
+- full restart and output capabilities via [openPMD](http://openPMD.org),
+  including [parallel HDF5](http://hdfgroup.org/) (via
   [libSplash](https://github.com/ComputationalRadiationPhysics/libSplash)) and
   [ADIOS](https://www.olcf.ornl.gov/center-projects/adios/), allowing for
   extreme I/O scalability and massively parallel online-analysis
