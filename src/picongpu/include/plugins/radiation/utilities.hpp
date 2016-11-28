@@ -70,9 +70,51 @@ namespace util
         }
     };
 
-}
+    /** compile time power function
+      *
+      * @tparam T - base type
+      * @tparam Exp - Exponent
+      * @return pow(x,Exp)=x^Exp
+      */
+    template< typename T, unsigned int Exp >
+    struct Pow
+    {
+        HDINLINE T operator()( const T x ) const
+        {
+            Pow< T, Exp - 1 > pow;
+            return x * pow( x );
+        }
+    };
 
+    /** compile time power function
+      *
+      * specilization Exp = 1
+      * @tparam T - base type
+      * @return pow(x,1)=x
+      */
+    template< typename T >
+    struct Pow< T, 1 >
+    {
+        HDINLINE T operator()( const T x ) const
+        {
+            return x;
+        }
+    };
 
+    /** compile time power function
+      *
+      * specilization Exp = 0
+      * (just as saveguard)
+      * @tparam T - base type
+      * @return pow(x,0)=1
+      */
+    template< typename T >
+    struct Pow< T, 0 >
+    {
+        HDINLINE T operator()( const T x ) const
+        {
+            return 1;
+        }
+    };
 
-
-
+} // namespace util
