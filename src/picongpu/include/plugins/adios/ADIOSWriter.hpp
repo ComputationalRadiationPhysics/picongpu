@@ -1104,6 +1104,8 @@ private:
         log<picLog::INPUT_OUTPUT > ("ADIOS: closing file: %1%") % threadParams->fullFilename;
         ADIOS_CMD(adios_close(threadParams->adiosFileHandle));
 
+        /* avoid deadlock between not finished PMacc tasks and MPI_Barrier */
+        __getTransactionEvent().waitForFinished();
         /*\todo: copied from adios example, we might not need this ? */
         MPI_CHECK(MPI_Barrier(threadParams->adiosComm));
 
