@@ -3,7 +3,7 @@ Change Log / Release Log for PIConGPU
 
 0.2.1
 -----
-**Date:** 2016-11-28
+**Date:** 2016-11-29
 
 QED synchrotron photon & fix potential deadlock in checkpoints
 
