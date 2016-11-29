@@ -32,6 +32,7 @@
 
 #include "mappings/kernel/StrideMapping.hpp"
 #include "traits/NumberOfExchanges.hpp"
+#include "assert.hpp"
 
 
 namespace PMacc
@@ -179,7 +180,7 @@ public:
      */
     BufferType& getParticlesBuffer()
     {
-        assert(particlesBuffer != NULL);
+        PMACC_ASSERT(particlesBuffer != NULL);
         return *particlesBuffer;
     }
 

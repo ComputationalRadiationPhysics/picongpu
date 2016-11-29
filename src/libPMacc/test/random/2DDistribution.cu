@@ -29,6 +29,7 @@
 #include "random/methods/MRG32k3a.hpp"
 #include "random/methods/MRG32k3aMin.hpp"
 #include "dimensions/DataSpace.hpp"
+#include "assert.hpp"
 #include <stdint.h>
 #include <iostream>
 #include <fstream>
@@ -89,13 +90,13 @@ void writePGM(const std::string& filePath, T_Buffer& buffer)
                 maxVal = val;
         }
     }
-    
+
     // Standard format is single byte per value which limits the range to 0-255
     // An extension allows 2 bytes so 0-65536)
     if(maxVal > std::numeric_limits<uint16_t>::max())
         maxVal = std::numeric_limits<uint16_t>::max();
     const bool isTwoByteFormat = maxVal > std::numeric_limits<uint8_t>::max();
-    
+
     std::ofstream outFile(filePath.c_str());
     // TAG
     outFile << "P5\n";
@@ -188,7 +189,7 @@ void runTest(uint32_t numSamples)
             mean += PMacc::math::linearize(size.shrink<1>(1), idx) * static_cast<uint64_t>(val);
         }
     }
-    assert(totalNumSamples == uint64_t(rngSize.productOfComponents()) * uint64_t(numSamples));
+    PMACC_ASSERT(totalNumSamples == uint64_t(rngSize.productOfComponents()) * uint64_t(numSamples));
     // Expected value: (n-1)/2
     double Ex = (size.productOfComponents() - 1) / 2.;
     // Variance: (n^2 - 1) / 12

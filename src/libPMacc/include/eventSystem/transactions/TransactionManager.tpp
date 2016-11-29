@@ -24,7 +24,6 @@
 
 #include "eventSystem/EventSystem.hpp"
 
-#include <cassert>
 
 namespace PMacc
 {

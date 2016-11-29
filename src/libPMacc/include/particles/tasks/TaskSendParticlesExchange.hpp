@@ -24,6 +24,7 @@
 #pragma once
 
 #include "eventSystem/EventSystem.hpp"
+#include "assert.hpp"
 
 namespace PMacc
 {
@@ -82,7 +83,7 @@ namespace PMacc
                 case WaitForSend:
                     if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
                     {
-                        assert(lastSize<=maxSize);
+                        PMACC_ASSERT(lastSize <= maxSize);
                         //check for next bash round
                         if (lastSize == maxSize)
                         {

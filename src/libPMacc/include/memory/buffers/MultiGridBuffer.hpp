@@ -32,6 +32,7 @@
 #include "memory/buffers/DeviceBufferIntern.hpp"
 #include "memory/buffers/GridBuffer.hpp"
 #include "memory/boxes/MultiBox.hpp"
+#include "assert.hpp"
 
 #include <algorithm>
 
@@ -220,7 +221,7 @@ public:
 
     GridBuffer<Type, DIM>& getGridBuffer(typename BufferNames::Names name)
     {
-        assert(name >= 0 && name < BufferNames::Count);
+        PMACC_ASSERT(name >= 0 && name < BufferNames::Count);
         return *gridBuffers[name];
     }
 
