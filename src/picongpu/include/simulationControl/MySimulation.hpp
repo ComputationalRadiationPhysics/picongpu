@@ -22,7 +22,9 @@
 
 #pragma once
 
-#include <cassert>
+#include "verify.hpp"
+#include "assert.hpp"
+
 #include <string>
 #include <vector>
 #include <boost/lexical_cast.hpp>
@@ -232,9 +234,9 @@ public:
             if (isPeriodic[i] == 0)
             {
                 /*negativ direction*/
-                assert((int) ABSORBER_CELLS[i][0] <= (int) cellDescription->getGridLayout().getDataSpaceWithoutGuarding()[i]);
+                PMACC_VERIFY((int) ABSORBER_CELLS[i][0] <= (int) cellDescription->getGridLayout().getDataSpaceWithoutGuarding()[i]);
                 /*positiv direction*/
-                assert((int) ABSORBER_CELLS[i][1] <= (int) cellDescription->getGridLayout().getDataSpaceWithoutGuarding()[i]);
+                PMACC_VERIFY((int) ABSORBER_CELLS[i][1] <= (int) cellDescription->getGridLayout().getDataSpaceWithoutGuarding()[i]);
             }
         }
     }
@@ -594,7 +596,7 @@ public:
     virtual void setInitController(IInitPlugin *initController)
     {
 
-        assert(initController != NULL);
+        PMACC_ASSERT(initController != NULL);
         this->initialiserController = initController;
     }
 
@@ -614,13 +616,13 @@ private:
         {
             // global size must be a devisor of supercell size
             // note: this is redundant, while using the local condition below
-            assert(globalGridSize[i] % MappingDesc::SuperCellSize::toRT()[i] == 0);
+            PMACC_VERIFY(globalGridSize[i] % MappingDesc::SuperCellSize::toRT()[i] == 0);
             // local size must be a devisor of supercell size
-            assert(gridSizeLocal[i] % MappingDesc::SuperCellSize::toRT()[i] == 0);
+            PMACC_VERIFY(gridSizeLocal[i] % MappingDesc::SuperCellSize::toRT()[i] == 0);
             // local size must be at least 3 supercells (1x core + 2x border)
             // note: size of border = guard_size (in supercells)
             // \todo we have to add the guard_x/y/z for modified supercells here
-            assert( (uint32_t) gridSizeLocal[i] / MappingDesc::SuperCellSize::toRT()[i] >= 3 * GUARD_SIZE);
+            PMACC_VERIFY((uint32_t) gridSizeLocal[i] / MappingDesc::SuperCellSize::toRT()[i] >= 3 * GUARD_SIZE);
         }
     }
 

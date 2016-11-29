@@ -22,7 +22,6 @@
 #pragma once
 
 #include <pthread.h>
-#include <cassert>
 #include <sstream>
 #include <string>
 #include <list>
@@ -34,6 +33,7 @@
 
 #include "particles/frame_types.hpp"
 #include "particles/IdProvider.def"
+#include "assert.hpp"
 
 #include <adios.h>
 #include <adios_read.h>
@@ -276,11 +276,11 @@ private:
         const std::string name_lookup_tpl[] = {"x", "y", "z", "w"};
 
         /* parameter checking */
-        assert(unit.size() == nComponents);
-        assert(inCellPosition.size() == nComponents);
+        PMACC_ASSERT( unit.size() == nComponents );
+        PMACC_ASSERT( inCellPosition.size() == nComponents );
         for( uint32_t n = 0; n < nComponents; ++n )
-            assert(inCellPosition.at(n).size() == simDim );
-        assert(unitDimension.size() == 7); // seven openPMD base units
+            PMACC_ASSERT( inCellPosition.at(n).size() == simDim );
+        PMACC_ASSERT(unitDimension.size() == 7); // seven openPMD base units
 
         const std::string recordName( params->adiosBasePath +
             std::string(ADIOS_PATH_FIELDS) + name );
@@ -668,8 +668,8 @@ public:
         log<picLog::INPUT_OUTPUT > ("ADIOS: value of sim_slides = %1%") %
             slides;
 
-        assert(slidesType == adiosUInt32Type.type);
-        assert(slideSize == sizeof(uint32_t)); // uint32_t in bytes
+        PMACC_ASSERT(slidesType == adiosUInt32Type.type);
+        PMACC_ASSERT(slideSize == sizeof(uint32_t)); // uint32_t in bytes
 
         void* lastStepPtr = NULL;
         int lastStepSize;
@@ -683,8 +683,8 @@ public:
         log<picLog::INPUT_OUTPUT > ("ADIOS: value of iteration = %1%") %
             lastStep;
 
-        assert(lastStepType == adiosUInt32Type.type);
-        assert(lastStep == restartStep);
+        PMACC_ASSERT(lastStepType == adiosUInt32Type.type);
+        PMACC_ASSERT(lastStep == restartStep);
 
         /* apply slides to set gpus to last/written configuration */
         log<picLog::INPUT_OUTPUT > ("ADIOS: Setting slide count for moving window to %1%") % slides;

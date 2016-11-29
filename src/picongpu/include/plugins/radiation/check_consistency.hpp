@@ -22,7 +22,6 @@
 #pragma once
 
 #include <iostream>
-#include <cassert>
 #include "parameters.hpp"
 
 namespace picongpu

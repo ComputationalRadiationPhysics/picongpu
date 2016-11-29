@@ -48,7 +48,6 @@
 #include "particles/traits/GetMarginPusher.hpp"
 
 #include <iostream>
-#include <cassert>
 #include <limits>
 
 namespace picongpu

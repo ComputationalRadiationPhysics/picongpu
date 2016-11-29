@@ -28,6 +28,7 @@
 #include "plugins/hdf5/HDF5Writer.def"
 #include "traits/SIBaseUnits.hpp"
 #include "traits/PICToOpenPMD.hpp"
+#include "assert.hpp"
 
 #include "plugins/ISimulationPlugin.hpp"
 #include <boost/mpl/vector.hpp>
@@ -172,7 +173,7 @@ public:
             __getTransactionEvent().waitForFinished();
             log<picLog::INPUT_OUTPUT > ("HDF5:  all events are finished: %1%") % Hdf5FrameType::getName();
 
-            assert((uint64_t) counterBuffer.getHostBuffer().getDataBox()[0] == numParticles);
+            PMACC_ASSERT((uint64_t) counterBuffer.getHostBuffer().getDataBox()[0] == numParticles);
         }
 
         /* We rather do an allgather at this point then letting libSplash
