@@ -76,8 +76,7 @@ sleep 1
 echo "----- automated restart routine -----"
 
 #check whether last checkpoint is valid
-#export before variable needed to avoid bug #695
-export file=""
+file=""
 for file in `ls -t ./checkpoints/checkpoint_*.h5`
 do
     echo -n "validate checkpoint $file: "
@@ -88,35 +87,35 @@ do
         break
     else
         echo "FAILED"
-        export file=""
+        file=""
     fi
 done
 
 #this sed call extracts the final simulation step from the cfg (assuming a standard cfg) 
-export finalStep=`echo !TBG_programParams | sed 's/.*-s[[:blank:]]\+\([0-9]\+[^\s]\).*/\1/'`
+finalStep=`echo !TBG_programParams | sed 's/.*-s[[:blank:]]\+\([0-9]\+[^\s]\).*/\1/'`
 echo "final step      = " $finalStep
 #this sed call extracts the -s and --checkpoint flags
-export programParams=`echo !TBG_programParams | sed 's/-s[[:blank:]]\+[0-9]\+[^\s]//g' | sed 's/--checkpoints[[:blank:]]\+[0-9]\+[^\s]//g'`
+programParams=`echo !TBG_programParams | sed 's/-s[[:blank:]]\+[0-9]\+[^\s]//g' | sed 's/--checkpoints[[:blank:]]\+[0-9]\+[^\s]//g'`
 #extract restart period
-export restartPeriod=`echo !TBG_programParams | sed 's/.*--checkpoints[[:blank:]]\+\([0-9]\+[^\s]\).*/\1/'`
+restartPeriod=`echo !TBG_programParams | sed 's/.*--checkpoints[[:blank:]]\+\([0-9]\+[^\s]\).*/\1/'`
 echo  "restart period = " $restartPeriod
 
 if [ "" != "$file" ]
 then
-    export cptimestep=`basename $file | sed 's/checkpoint_//g' | sed 's/.h5//g'`
+    cptimestep=`basename $file | sed 's/checkpoint_//g' | sed 's/.h5//g'`
     echo "start time      = " $cptimestep
 
-    export endTime="$(($cptimestep + $restartPeriod ))"
+    endTime="$(($cptimestep + $restartPeriod ))"
     echo "end time        = " $endTime
 
-    export stepSetup=$(echo -s $endTime "--restart --restart-step" $cptimestep "--checkpoints" $restartPeriod )
+    stepSetup=$(echo -s $endTime "--restart --restart-step" $cptimestep "--checkpoints" $restartPeriod )
 else
     echo "no checkpoint found"
-    export endTime=$restartPeriod
-    export stepSetup=$(echo " -s " $endTime "--checkpoints" $restartPeriod )
+    endTime=$restartPeriod
+    stepSetup=$(echo " -s " $endTime "--checkpoints" $restartPeriod )
 fi
 
-echo "-------------------------------------"
+echo "--- end automated restart routine ---"
 
 #wait that all nodes see ouput folder
 sleep 1
@@ -131,6 +130,10 @@ mpiexec --prefix $MPIHOME -x LIBRARY_PATH -x LD_LIBRARY_PATH -npernode !TBG_gpus
 
 if [ $endTime -lt $finalStep ]
 then
-    echo "submitting followup job"
     ssh hypnos4 "/opt/torque/bin/qsub !TBG_dstPath/tbg/submit.start"
+    if [ $? -ne 0 ] ; then
+        echo "error during job submission"
+    else
+        echo "job submitted"
+    fi
 fi
