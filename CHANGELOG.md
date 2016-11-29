@@ -1,6 +1,26 @@
 Change Log / Release Log for PIConGPU
 ================================================================
 
+0.2.1
+-----
+**Date:** 2016-11-29
+
+QED synchrotron photon & fix potential deadlock in checkpoints
+
+This releases fixes a potential deadlock encountered during checkpoints and
+initialization. Furthermore, we forgot to highlight that the 0.2.0 release
+also included a QED synchrotron emission scheme (based on the review in
+A. Gonoskov et al., PRE 92, 2015).
+
+### Changes to "0.2.0"
+
+**Bug Fixes:**
+ - potential event system deadlock init/checkpoints #1659
+
+Thank you to René Widera for spotting & fixing and Heiko Burau for the QED
+synchrotron photon emission implementation!
+
+
 0.2.0 "Beta"
 ------------
 **Date:** 2016-11-24

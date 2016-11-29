@@ -144,6 +144,9 @@ public:
             CUDA_CHECK(cudaDeviceSynchronize());
             CUDA_CHECK(cudaGetLastError());
 
+            /* avoid deadlock between not finished PMacc tasks and MPI_Barrier */
+            __getTransactionEvent().waitForFinished();
+
             GridController<DIM> &gc = Environment<DIM>::get().GridController();
             /* can be spared for better scalings, but allows to spare the
              * time for checkpointing if some ranks died */
@@ -162,6 +165,9 @@ public:
              * point guarantees that a checkpoint is usable */
             CUDA_CHECK(cudaDeviceSynchronize());
             CUDA_CHECK(cudaGetLastError());
+
+            /* avoid deadlock between not finished PMacc tasks and MPI_Barrier */
+            __getTransactionEvent().waitForFinished();
 
             /* \todo in an ideal world with MPI-3, this would be an
              * MPI_Ibarrier call and this function would return a MPI_Request
