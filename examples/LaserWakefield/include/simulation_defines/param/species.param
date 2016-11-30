@@ -52,9 +52,9 @@ namespace picongpu
 
 /*! Particle Shape definitions -------------------------------------------------
  *  - particles::shapes::CIC : 1st order
- *  - particles::shapes::TSC : 2nd order (requires CUDA_ARCH>=sm_20)
- *  - particles::shapes::PCS : 3rd order (requires CUDA_ARCH>=sm_20)
- *  - particles::shapes::P4S : 4th order (requires CUDA_ARCH>=sm_20)
+ *  - particles::shapes::TSC : 2nd order
+ *  - particles::shapes::PCS : 3rd order
+ *  - particles::shapes::P4S : 4th order
  *
  *  example:             typedef particles::shapes::CIC CICShape;
  */
