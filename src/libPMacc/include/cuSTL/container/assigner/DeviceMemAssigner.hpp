@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include "verify.hpp"
 #include "cuSTL/cursor/BufferCursor.hpp"
 #include "cuSTL/zone/SphericZone.hpp"
 #include "cuSTL/algorithm/kernel/run-time/Foreach.hpp"
@@ -33,7 +34,6 @@
 #include <boost/math/common_factor_rt.hpp>
 #include <boost/mpl/placeholders.hpp>
 
-#include <cassert>
 #include <stdint.h>
 
 namespace PMacc
@@ -68,7 +68,7 @@ struct DeviceMemAssigner
         }
         /* the maximum number of threads per block for devices with
          * compute capability > 2.0 is 1024 */
-        assert(blockDim.productOfComponents() <= 1024);
+        PMACC_VERIFY(blockDim.productOfComponents() <= 1024);
 
         algorithm::kernel::RT::Foreach foreach(blockDim);
         foreach(myZone, cursor, lambda::_1 = value);

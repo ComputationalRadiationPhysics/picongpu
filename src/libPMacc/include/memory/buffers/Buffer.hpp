@@ -26,9 +26,9 @@
 #include "memory/boxes/DataBox.hpp"
 #include "memory/boxes/PitchedBox.hpp"
 #include "Environment.hpp"
+#include "assert.hpp"
 #include "pmacc_types.hpp"
 
-#include <cassert>
 #include <limits>
 
 namespace PMacc
@@ -167,7 +167,7 @@ namespace PMacc
         virtual void setCurrentSize(const size_t newsize)
         {
             __startOperation(ITask::TASK_HOST);
-            assert(static_cast<size_t>(newsize) <= static_cast<size_t>(data_space.productOfComponents()));
+            PMACC_ASSERT(static_cast<size_t>(newsize) <= static_cast<size_t>(data_space.productOfComponents()));
             *current_size = newsize;
         }
 

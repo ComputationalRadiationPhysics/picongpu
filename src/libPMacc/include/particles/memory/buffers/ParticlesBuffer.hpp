@@ -330,7 +330,7 @@ public:
     DataSpace<DIM> getSuperCellsCount()
     {
 
-        assert(superCells != NULL);
+        PMACC_ASSERT(superCells != NULL);
         return superCells->getGridLayout().getDataSpace();
     }
 
@@ -342,7 +342,7 @@ public:
     GridLayout<DIM> getSuperCellsLayout()
     {
 
-        assert(superCells != NULL);
+        PMACC_ASSERT(superCells != NULL);
         return superCells->getGridLayout();
     }
 

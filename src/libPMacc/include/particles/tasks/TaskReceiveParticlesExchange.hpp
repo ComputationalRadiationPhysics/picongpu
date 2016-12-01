@@ -25,6 +25,7 @@
 
 #include "eventSystem/EventSystem.hpp"
 #include "traits/NumberOfExchanges.hpp"
+#include "assert.hpp"
 
 namespace PMacc
 {
@@ -83,7 +84,7 @@ namespace PMacc
                     if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
                     {
                         state=Wait;
-                        assert(lastSize <= maxSize);
+                        PMACC_ASSERT(lastSize <= maxSize);
                         //check for next bash round
                         if (lastSize == maxSize)
                             init(); //call init and run a full send cycle

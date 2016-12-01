@@ -27,10 +27,8 @@
 #include "mpi/reduceMethods/AllReduce.hpp"
 #include "mpi/GetMPI_StructAsArray.hpp"
 #include "mpi/GetMPI_Op.hpp"
-
+#include "assert.hpp"
 #include "pmacc_types.hpp"
-
-#include <cassert>
 
 #include <mpi.h>
 
@@ -61,7 +59,7 @@ struct MPIReduce
     template<class MPIMethod>
     bool hasResult(const MPIMethod & method) const
     {
-        assert(isMPICommInitialized == true);
+        PMACC_ASSERT(isMPICommInitialized == true);
         return method.hasResult(mpiRank);
     }
 
