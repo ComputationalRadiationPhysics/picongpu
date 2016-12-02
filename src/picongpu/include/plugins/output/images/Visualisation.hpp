@@ -24,7 +24,7 @@
 
 #include "simulation_defines.hpp"
 #include "pmacc_types.hpp"
-
+#include "assert.hpp"
 
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
@@ -474,7 +474,7 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        assert(cellDescription != NULL);
+        PMACC_ASSERT(cellDescription != NULL);
         const DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
         Window window(MovingWindow::getInstance().getWindow(currentStep));
 
@@ -490,7 +490,7 @@ public:
 
     void setMappingDescription(MappingDesc *cellDescription)
     {
-        assert(cellDescription != NULL);
+        PMACC_ASSERT(cellDescription != NULL);
         this->cellDescription = cellDescription;
     }
 
@@ -513,7 +513,7 @@ public:
 #endif
 
         typedef MappingDesc::SuperCellSize SuperCellSize;
-        assert(cellDescription != NULL);
+        PMACC_ASSERT(cellDescription != NULL);
         //create image fields
         __picKernelArea((kernelPaintFields), *cellDescription, CORE + BORDER)
             (SuperCellSize::toRT().toDim3())
@@ -607,7 +607,7 @@ public:
     {
         if (m_notifyPeriod > 0)
         {
-            assert(cellDescription != NULL);
+            PMACC_ASSERT(cellDescription != NULL);
             const DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
 
             Window window(MovingWindow::getInstance().getWindow(0));
@@ -642,7 +642,7 @@ private:
 
     bool doDrawing()
     {
-        assert(cellDescription != NULL);
+        PMACC_ASSERT(cellDescription != NULL);
         const DataSpace<simDim> globalRootCellPos(Environment<simDim>::get().SubGrid().getLocalDomain().offset);
 #if(SIMDIM==DIM3)
         const bool tmp = globalRootCellPos[sliceDim] + Environment<simDim>::get().SubGrid().getLocalDomain().size[sliceDim] > sliceOffset &&

@@ -25,7 +25,7 @@
 #include "math/Vector.hpp"
 #include "utilities.hpp"
 #include "taylor.hpp"
-#include "assert.hpp"
+
 
 class When
 {

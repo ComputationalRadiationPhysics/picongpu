@@ -30,6 +30,7 @@
 #include "traits/GetComponentsType.hpp"
 #include "traits/GetNComponents.hpp"
 #include "traits/Resolve.hpp"
+#include "assert.hpp"
 
 
 namespace picongpu
@@ -79,7 +80,7 @@ struct LoadParticleAttributesFromADIOS
 
         // dev assert!
         if( elements > 0 )
-            assert(tmpArray);
+            PMACC_ASSERT(tmpArray);
 
         for (uint32_t n = 0; n < components; ++n)
         {

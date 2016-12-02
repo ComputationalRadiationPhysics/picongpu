@@ -22,11 +22,11 @@
 
 #pragma once
 
+#include "verify.hpp"
 #include <vector>   // std::vector
 #include <string>   // std::string
 #include <utility>  // std::pair
 #include <iterator> // std::distance
-#include <cassert>
 
 #include <boost/regex.hpp>
 #include <boost/lexical_cast.hpp>
@@ -71,7 +71,7 @@ public:
         for( iter = parsedInput.begin(); iter != parsedInput.end(); ++iter )
             sumTotal += iter->first * iter->second;
 
-        assert( sumTotal == maxCells );
+        PMACC_VERIFY( sumTotal == maxCells );
 
         return sum;
     }

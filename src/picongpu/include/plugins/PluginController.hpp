@@ -27,6 +27,7 @@
 #include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
 #include "simulation_types.hpp"
+#include "assert.hpp"
 
 #include "plugins/CountParticles.hpp"
 #include "plugins/EnergyParticles.hpp"
@@ -227,7 +228,7 @@ public:
 
     void setMappingDescription(MappingDesc *cellDescription)
     {
-        assert(cellDescription != NULL);
+        PMACC_ASSERT(cellDescription != NULL);
 
         for (std::list<ISimulationPlugin*>::iterator iter = plugins.begin();
              iter != plugins.end();
