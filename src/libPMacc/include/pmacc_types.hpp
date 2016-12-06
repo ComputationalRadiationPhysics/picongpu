@@ -73,6 +73,9 @@ typedef long long int int64_cu;
 #   define PMACC_CUDA_ARCH __CUDA_ARCH__
 #endif
 
+/** pmacc global identifier for CUDA kernel */
+#define PMACC_GLOBAL_KEYWORD __location__(global)
+
 /*
  * Disable nvcc warning:
  * calling a __host__ function from __host__ __device__ function.
