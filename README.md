@@ -19,18 +19,26 @@ PIConGPU implements various numerical schemes to solve the PIC cycle.
 Its features for the electro-magnetic PIC algorithm include:
 - a central or Yee-lattice for fields
 - particle pushers that solve the equation of motion for charged and neutral
-  particles, e.g., the *Boris-* and the *Vay-Pusher*
-- Maxwell field solvers, e.g. *Yee's* and *Lehe's* scheme
+  particles, e.g., the *Boris-* and the
+  [*Vay-Pusher*](http://dx.doi.org/10.1063/1.2837054)
+- Maxwell field solvers, e.g.
+  [*Yee's*](http://dx.doi.org/10.1109/TAP.1966.1138693) and
+  [*Lehe's*](http://dx.doi.org/10.1103/PhysRevSTAB.16.021301) scheme
 - rigorously charge conserving current deposition schemes, such as
-  *Villasenor-Buneman*, *Esirkepov* and *ZigZag*
+  [*Villasenor-Buneman*](http://dx.doi.org/10.1016/0010-4655(92)90169-Y),
+  [*Esirkepov*](http://dx.doi.org/10.1016/S0010-4655(00)00228-9)
+  and *ZigZag*
 - macro-particle form factors ranging from NGP (0th order), CIC (1st),
   TSC (2nd), PSQ (3rd) to P4S (4th)
 
 and the electro-magnetic PIC algorithm is further self-consistently coupled to:
-- classical radiation reaction (DOI: 10.1016/j.cpc.2016.04.002)
-- QED synchrotron radiation (photon emission) (DOI: 10.1103/PhysRevE.92.023305)
+- classical radiation reaction
+  ([DOI:10.1016/j.cpc.2016.04.002](http://dx.doi.org/10.1016/j.cpc.2016.04.002))
+- QED synchrotron radiation (photon emission)
+  ([DOI:10.1103/PhysRevE.92.023305](http://dx.doi.org/10.1103/PhysRevE.92.023305))
 - advanced field ionization methods
-  (DOI: DOI:10.1103/PhysRevA.59.569, LV Keldysh)
+  ([DOI:10.1103/PhysRevA.59.569](http://dx.doi.org/10.1103/PhysRevA.59.569),
+   [LV Keldysh](http://www.jetp.ac.ru/cgi-bin/dn/e_020_05_1307.pdf), BSI)
 
 Besides the electro-magnetic PIC algorithm and extensions to it, we developed
 a wide range of tools and diagnostics, e.g.:
