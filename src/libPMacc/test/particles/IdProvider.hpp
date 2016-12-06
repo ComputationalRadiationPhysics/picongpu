@@ -41,15 +41,20 @@ namespace bmpl = boost::mpl;
 
 namespace
 {
-    template<class T_IdProvider, class T_Box>
-    __global__ void generateIds(T_Box outputbox, uint32_t numThreads, uint32_t numIdsPerThread)
+    template< typename T_IdProvider >
+    struct generateIds
     {
-        const uint32_t localId = blockIdx.x * blockDim.x + threadIdx.x;
-        if(localId >= numThreads)
-            return;
-        for(uint32_t i=0; i<numIdsPerThread; i++)
-            outputbox(i * numThreads + localId) = T_IdProvider::getNewId();
-    }
+        template<class T_Box>
+        DINLINE void operator()(T_Box outputbox, uint32_t numThreads, uint32_t numIdsPerThread) const
+        {
+            const uint32_t localId = blockIdx.x * blockDim.x + threadIdx.x;
+            if(localId < numThreads)
+            {
+                for(uint32_t i=0; i<numIdsPerThread; i++)
+                    outputbox(i * numThreads + localId) = T_IdProvider::getNewId();
+            }
+        }
+    };
 }
 
 /**
@@ -115,7 +120,7 @@ struct IdProviderTest
         BOOST_REQUIRE_EQUAL(IdProvider::getNewId(), state.nextId);
         // Generate the same IDs on the device
         PMacc::HostDeviceBuffer<uint64_t, 1> idBuf(numIds);
-        __cudaKernel(generateIds<IdProvider>)(numBlocks, numThreadsPerBlock)
+        PMACC_TYPEKERNEL(generateIds<IdProvider>)(numBlocks, numThreadsPerBlock)
                 (idBuf.getDeviceBuffer().getDataBox(), numThreads, numIdsPerThread);
         idBuf.deviceToHost();
         BOOST_REQUIRE_EQUAL(numIds, ids.size());

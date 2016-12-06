@@ -38,17 +38,20 @@
 typedef PMacc::DataSpace<DIM2> Space2D;
 typedef PMacc::DataSpace<DIM3> Space3D;
 
-template<class T_DataBox, class T_Random>
-__global__ void RandomFiller(T_DataBox box, Space2D boxSize, T_Random rand, uint32_t numSamples)
+struct RandomFiller
 {
-    const Space3D ownIdx = Space3D(threadIdx) + Space3D(blockIdx) * Space3D(blockDim);
-    rand.init(ownIdx.shrink<2>());
-    for(uint32_t i=0; i<numSamples; i++)
+    template<class T_DataBox, class T_Random>
+    DINLINE void operator()(T_DataBox box, Space2D boxSize, T_Random rand, uint32_t numSamples) const
     {
-        Space2D idx = rand(boxSize);
-        atomicAdd(&box(idx), 1);
+        const Space3D ownIdx = Space3D(threadIdx) + Space3D(blockIdx) * Space3D(blockDim);
+        rand.init(ownIdx.shrink<2>());
+        for(uint32_t i=0; i<numSamples; i++)
+        {
+            Space2D idx = rand(boxSize);
+            atomicAdd(&box(idx), 1);
+        }
     }
-}
+};
 
 template<class T_RNGProvider>
 struct GetRandomIdx
@@ -130,7 +133,7 @@ void generateRandomNumbers(const Space2D& rngSize, uint32_t numSamples, T_Device
     Space2D gridSize(rngSize / blockSize);
 
     CUDA_CHECK(cudaEventRecord(start));
-    __cudaKernel(RandomFiller)(gridSize, blockSize)(buffer.getDataBox(), buffer.getDataSpace(), rand, numSamples);
+    PMACC_TYPEKERNEL(RandomFiller)(gridSize, blockSize)(buffer.getDataBox(), buffer.getDataSpace(), rand, numSamples);
     CUDA_CHECK(cudaEventRecord(stop));
     CUDA_CHECK(cudaEventSynchronize(stop));
     float milliseconds = 0;
