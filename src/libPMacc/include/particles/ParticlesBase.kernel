@@ -48,554 +48,574 @@ getPreviousFrameAndRemoveLastFrame( const typename T_ParticleBox::FramePtr& fram
     return result;
 }
 
-/*! This kernel move particles to the next supercell
- * This kernel can only run with a double checker board
- */
-template<class T_ParBox, class Mapping>
-__global__ void kernelShiftParticles( T_ParBox pb, Mapping mapper )
+struct kernelShiftParticles
 {
-    typedef T_ParBox ParBox;
-    typedef typename ParBox::FrameType FrameType;
-    typedef typename ParBox::FramePtr FramePtr;
-    typedef typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type FramePtrShared;
-
-    const uint32_t dim = Mapping::Dim;
-    const uint32_t frameSize = math::CT::volume<typename FrameType::SuperCellSize>::type::value;
-    /* number exchanges in 2D=9 and in 3D=27 */
-    const uint32_t numExchanges = traits::NumberOfExchanges<dim>::value;
-
-    /* define memory for two times Exchanges
-     * index range [0,numExchanges-1] are being referred to as `low frames`
-     * index range [numExchanges,2*numExchanges-1] are being referred to as `high frames`
+    /*! This kernel move particles to the next supercell
+     * This kernel can only run with a double checker board
      */
-    __shared__ FramePtrShared destFrames[numExchanges * 2];
-    __shared__ int destFramesCounter[numExchanges]; //count particles per frame
-
-    /* lastFrameSize is only valid for threads with `linearThreadIdx` < numExchanges */
-    uint32_t lastFrameSize = 0;
-
-    __shared__ FramePtrShared frame;
-    __shared__ bool mustShift;
-
-    DataSpace<dim> superCellIdx = mapper.getSuperCellIndex( DataSpace<dim> (blockIdx) );
-    const uint32_t linearThreadIdx = threadIdx.x;
-
-    if ( linearThreadIdx == 0 )
+    template<class T_ParBox, class Mapping>
+    DINLINE void operator()( T_ParBox pb, Mapping mapper ) const
     {
-        mustShift = pb.getSuperCell( superCellIdx ).mustShift( );
-        if ( mustShift )
-        {
-            pb.getSuperCell( superCellIdx ).setMustShift( false );
-            frame = pb.getFirstFrame( superCellIdx );
-        }
-    }
+        typedef T_ParBox ParBox;
+        typedef typename ParBox::FrameType FrameType;
+        typedef typename ParBox::FramePtr FramePtr;
+        typedef typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type FramePtrShared;
 
-    __syncthreads( );
-    if ( !mustShift || !frame.isValid( ) ) return;
+        const uint32_t dim = Mapping::Dim;
+        const uint32_t frameSize = math::CT::volume<typename FrameType::SuperCellSize>::type::value;
+        /* number exchanges in 2D=9 and in 3D=27 */
+        const uint32_t numExchanges = traits::NumberOfExchanges<dim>::value;
 
-    const DataSpace<dim> relative = superCellIdx + Mask::getRelativeDirections<dim> (linearThreadIdx + 1);
-
-    /* if a partially filled last frame exists for the neighboring supercell,
-     * each master thread (one master per direction) will load it
-     */
-    if ( linearThreadIdx < numExchanges )
-    {
-        destFramesCounter[linearThreadIdx] = 0;
-        destFrames[linearThreadIdx] = FramePtr();
-        destFrames[linearThreadIdx + numExchanges] = FramePtr();
-        /* load last frame of neighboring supercell */
-        FramePtrShared tmpFrame(pb.getLastFrame( relative ));
-
-        if ( tmpFrame.isValid() )
-        {
-            lastFrameSize = pb.getSuperCell( relative ).getSizeLastFrame( );
-            // do not use the neighbor's last frame if it is full
-            if ( lastFrameSize < frameSize )
-            {
-                destFrames[linearThreadIdx] = tmpFrame;
-                destFramesCounter[linearThreadIdx] = lastFrameSize;
-            }
-        }
-    }
-    __syncthreads( );
-
-    /* iterate over the frame list of the current supercell */
-    while ( frame.isValid() )
-    {
-        lcellId_t destParticleIdx = INV_LOC_IDX;
-
-        /* set to value to of multiMask to a value in range [-2, EXCHANGES - 1]
-         * -2 is no particle
-         * -1 is particle but it is not shifted (stays in supercell)
-         * >=0 particle moves in a certain direction
-         *     (@see ExchangeType in types.h)
+        /* define memory for two times Exchanges
+         * index range [0,numExchanges-1] are being referred to as `low frames`
+         * index range [numExchanges,2*numExchanges-1] are being referred to as `high frames`
          */
-        int direction = frame[linearThreadIdx][multiMask_] - 2;
-        if ( direction >= 0 )
-        {
-            destParticleIdx = atomicAdd( &(destFramesCounter[direction]), 1 );
-        }
-        __syncthreads( );
+        __shared__ FramePtrShared destFrames[numExchanges * 2];
+        __shared__ int destFramesCounter[numExchanges]; //count particles per frame
 
-        /* If the master thread (responsible for a certain direction) did not
-         * obtain a `low frame` from the neighboring super cell before the loop,
-         * it will create one now.
-         *
-         * In case not all particles that are shifted to the neighboring
-         * supercell fit into the `low frame`, a second frame is created to
-         * contain further particles, the `high frame` (default: invalid).
-         */
-        if ( linearThreadIdx < numExchanges )
-        {
-            if ( destFramesCounter[linearThreadIdx] > 0 )
-            {
-                lastFrameSize = destFramesCounter[linearThreadIdx];
-                /* if we had no `low frame` we load a new empty one */
-                if ( !destFrames[linearThreadIdx].isValid() )
-                {
-                    FramePtrShared tmpFrame(pb.getEmptyFrame( ));
-                    destFrames[linearThreadIdx] = tmpFrame;
-                    pb.setAsLastFrame( tmpFrame, relative );
-                }
-                /* check if a `high frame` is needed */
-                if ( destFramesCounter[linearThreadIdx] > frameSize )
-                {
-                        lastFrameSize = destFramesCounter[linearThreadIdx] - frameSize;
-                        FramePtrShared tmpFrame(pb.getEmptyFrame( ));
-                        destFrames[linearThreadIdx + numExchanges] = tmpFrame;
-                        pb.setAsLastFrame( tmpFrame, relative );
-                }
-            }
-        }
-        __syncthreads( );
+        /* lastFrameSize is only valid for threads with `linearThreadIdx` < numExchanges */
+        uint32_t lastFrameSize = 0;
 
-        /* All threads with a valid index in the neighbor's frame, valid index
-         * range is [0, frameSize * 2-1], will copy their particle to the new
-         * frame.
-         *
-         * The default value for indexes (in the destination frame) is
-         * above this range (INV_LOC_IDX) for all particles that are not shifted.
-         */
-        if ( destParticleIdx < frameSize * 2 )
-        {
-            if ( destParticleIdx >= frameSize )
-            {
-                /* use `high frame` */
-                direction += numExchanges;
-                destParticleIdx -= frameSize;
-            }
-            PMACC_AUTO( dstParticle, destFrames[direction][destParticleIdx] );
-            PMACC_AUTO( srcParticle, frame[linearThreadIdx] );
-            dstParticle[multiMask_] = 1;
-            srcParticle[multiMask_] = 0;
-            PMACC_AUTO( dstFilteredParticle,
-                        particles::operations::deselect<multiMask>(dstParticle) );
-            particles::operations::assign( dstFilteredParticle, srcParticle );
-        }
-        __syncthreads( );
+        __shared__ FramePtrShared frame;
+        __shared__ bool mustShift;
 
-        /* if the `low frame` is now full, each master thread removes it and
-         * uses the `high frame` (is invalid, if still empty) as the next
-         * `low frame` for the following iteration of the loop
-         */
-        if ( linearThreadIdx < numExchanges )
-        {
-            if ( destFramesCounter[linearThreadIdx] >= frameSize )
-            {
-                destFramesCounter[linearThreadIdx] -= frameSize;
-                destFrames[linearThreadIdx] = destFrames[linearThreadIdx + numExchanges];
-                destFrames[linearThreadIdx + numExchanges] = FramePtr();
-            }
-            if ( linearThreadIdx == 0 )
-            {
-                frame = pb.getNextFrame( frame );
-            }
-        }
-        __syncthreads( );
-    }
-
-    /* each master thread updates the number of particles in the last frame
-     * of the neighbors supercell
-     */
-    if ( linearThreadIdx < numExchanges )
-    {
-        pb.getSuperCell( relative ).setSizeLastFrame( lastFrameSize );
-    }
-}
-
-template<class ParBox, class Mapping>
-__global__ void kernelFillGapsLastFrame( ParBox pb, Mapping mapper )
-{
-    using namespace particles::operations;
-
-    enum
-    {
-        TileSize = math::CT::volume<typename Mapping::SuperCellSize>::type::value,
-        Dim = Mapping::Dim
-    };
-
-    typedef typename ParBox::FramePtr FramePtr;
-
-    DataSpace<Dim> superCellIdx = mapper.getSuperCellIndex( DataSpace<Dim > (blockIdx) );
-
-    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type lastFrame;
-
-    __shared__ int gapIndices_sh[TileSize];
-    __shared__ int counterGaps;
-    __shared__ int counterParticles;
-
-    __shared__ int srcGap;
-
-
-    if ( threadIdx.x == 0 )
-    {
-        lastFrame = pb.getLastFrame( DataSpace<Dim > (superCellIdx) );
-        counterGaps = 0;
-        counterParticles = 0;
-        srcGap = 0;
-    }
-    __syncthreads( );
-
-
-    if ( lastFrame.isValid( ) )
-    {
-        //count particles in last frame
-        const bool isParticle = lastFrame[threadIdx.x][multiMask_];
-        if ( isParticle == true ) //\todo: bits zählen
-        {
-            nvidia::atomicAllInc( &counterParticles );
-        }
-        __syncthreads( );
-
-        if ( threadIdx.x < counterParticles && isParticle == false )
-        {
-            const int localGapIdx = nvidia::atomicAllInc( &counterGaps );
-            gapIndices_sh[localGapIdx] = threadIdx.x;
-        }
-        __syncthreads( );
-        if ( threadIdx.x >= counterParticles && isParticle )
-        {
-            //any particle search a gap
-            const int srcGapIdx = nvidia::atomicAllInc( &srcGap );
-            const int gapIdx = gapIndices_sh[srcGapIdx];
-            PMACC_AUTO( parDestFull, lastFrame[gapIdx] );
-            /*enable particle*/
-            parDestFull[multiMask_] = 1;
-            /* we not update multiMask because copy from mem to mem is to slow
-             * we have enabled particle explicit */
-            PMACC_AUTO( parDest, deselect<multiMask>(parDestFull) );
-            PMACC_AUTO( parSrc, (lastFrame[threadIdx.x]) );
-            assign( parDest, parSrc );
-            parSrc[multiMask_] = 0; //delete old partice
-        }
-    }
-    if ( threadIdx.x == 0 )
-        pb.getSuperCell( superCellIdx ).setSizeLastFrame( counterParticles );
-
-}
-
-template<class ParBox, class Mapping>
-__global__ void kernelFillGaps( ParBox pb, Mapping mapper )
-{
-    using namespace particles::operations;
-
-    enum
-    {
-        TileSize = math::CT::volume<typename Mapping::SuperCellSize>::type::value,
-        Dim = Mapping::Dim
-    };
-
-    typedef typename ParBox::FramePtr FramePtr;
-
-    DataSpace<Dim> superCellIdx( mapper.getSuperCellIndex( DataSpace<Dim > (blockIdx) ) );
-
-    //data copied from right (last) to left (first)
-    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type firstFrame;
-    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type lastFrame;
-
-    __shared__ int particleIndices_sh[TileSize];
-    __shared__ int counterGaps;
-    __shared__ int counterParticles;
-
-
-    if ( threadIdx.x == 0 )
-    {
-        firstFrame = pb.getFirstFrame( DataSpace<Dim > (superCellIdx) );
-        lastFrame = pb.getLastFrame( DataSpace<Dim > (superCellIdx) );
-    }
-    __syncthreads( );
-
-    while ( firstFrame.isValid( ) && firstFrame != lastFrame )
-    {
-
-        if ( threadIdx.x == 0 )
-        {
-            //\todo: check if we need control thread or can write to shared with all threads
-            counterGaps = 0;
-            counterParticles = 0;
-        }
-        int localGapIdx = INV_LOC_IDX; //later we cann call localGapIdx < X because X<INV_LOC_IDX
-
-        __syncthreads( );
-
-        // find gaps
-        if ( firstFrame[threadIdx.x][multiMask_] == 0 )
-        {
-            localGapIdx = nvidia::atomicAllInc( &counterGaps );
-        }
-        __syncthreads( );
-
-        if ( counterGaps == 0 )
-        {
-            if ( threadIdx.x == 0 )
-            {
-                firstFrame = pb.getNextFrame( firstFrame );
-            }
-            __syncthreads( ); //wait control thread search new frame
-            continue; //check next frame
-        }
-
-        // search particles for gaps
-        if ( lastFrame[threadIdx.x][multiMask_] == 1 )
-        {
-            int localParticleIdx = nvidia::atomicAllInc( &counterParticles );
-            particleIndices_sh[localParticleIdx] = threadIdx.x;
-        }
-        __syncthreads( );
-        if ( localGapIdx < counterParticles )
-        {
-            const int parIdx = particleIndices_sh[localGapIdx];
-            PMACC_AUTO( parDestFull, (firstFrame[threadIdx.x]) );
-            /*enable particle*/
-            parDestFull[multiMask_] = 1;
-            /* we not update multiMask because copy from mem to mem is to slow
-             * we have enabled particle explicit */
-            PMACC_AUTO( parDest, deselect<multiMask>(parDestFull) );
-            PMACC_AUTO( parSrc, (lastFrame[parIdx]) );
-            assign( parDest, parSrc );
-            parSrc[multiMask_] = 0;
-        }
-        __syncthreads( );
-        if ( threadIdx.x == 0 )
-        {
-            if ( counterGaps < counterParticles )
-            {
-                //any gap in the first frame is filled
-                firstFrame = pb.getNextFrame( firstFrame );
-            }
-            else if ( counterGaps > counterParticles )
-            {
-                //we need more particles
-                lastFrame = getPreviousFrameAndRemoveLastFrame( lastFrame, pb, superCellIdx );
-            }
-            else if ( counterGaps == counterParticles )
-            {
-                lastFrame = getPreviousFrameAndRemoveLastFrame( lastFrame, pb, superCellIdx );
-                if ( lastFrame.isValid( ) && lastFrame != firstFrame )
-                {
-                    firstFrame = pb.getNextFrame( firstFrame );
-                }
-            }
-        }
-        __syncthreads( );
-    }
-}
-
-template< class T_ParticleBox, class Mapping>
-__global__ void kernelDeleteParticles( T_ParticleBox pb,
-                                       Mapping mapper )
-{
-    using namespace particles::operations;
-
-    typedef T_ParticleBox ParticleBox;
-    typedef typename ParticleBox::FrameType FrameType;
-    typedef typename ParticleBox::FramePtr FramePtr;
-
-    enum
-    {
-        Dim = Mapping::Dim
-    };
-
-    DataSpace<Dim> superCellIdx = mapper.getSuperCellIndex( DataSpace<Dim > (blockIdx) );
-    const int linearThreadIdx = threadIdx.x;
-
-    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
-
-    if ( linearThreadIdx == 0 )
-    {
-        frame = pb.getLastFrame( superCellIdx );
-    }
-
-    __syncthreads( );
-
-    while ( frame.isValid( ) )
-    {
-
-        PMACC_AUTO( particle, (frame[linearThreadIdx]) );
-        particle[multiMask_] = 0; //delete particle
-
-        __syncthreads( );
+        DataSpace<dim> superCellIdx = mapper.getSuperCellIndex( DataSpace<dim> (blockIdx) );
+        const uint32_t linearThreadIdx = threadIdx.x;
 
         if ( linearThreadIdx == 0 )
         {
-            //always remove the last frame
-            frame = getPreviousFrameAndRemoveLastFrame( frame, pb, superCellIdx );
+            mustShift = pb.getSuperCell( superCellIdx ).mustShift( );
+            if ( mustShift )
+            {
+                pb.getSuperCell( superCellIdx ).setMustShift( false );
+                frame = pb.getFirstFrame( superCellIdx );
+            }
         }
+
         __syncthreads( );
-    }
+        if ( !mustShift || !frame.isValid( ) ) return;
 
-    if ( linearThreadIdx == 0 )
-        pb.getSuperCell( superCellIdx ).setSizeLastFrame( 0 );
+        const DataSpace<dim> relative = superCellIdx + Mask::getRelativeDirections<dim> (linearThreadIdx + 1);
 
-}
-
-template< class ParBox, class BORDER, class Mapping>
-__global__ void kernelBashParticles( ParBox pb,
-                                     ExchangePushDataBox<vint_t, BORDER, Mapping::Dim - 1 > border,
-                                     Mapping mapper )
-{
-    using namespace particles::operations;
-
-    enum
-    {
-        TileSize = math::CT::volume<typename Mapping::SuperCellSize>::type::value,
-        Dim = Mapping::Dim
-    };
-    typedef typename ParBox::FramePtr FramePtr;
-
-    DataSpace<Dim> superCellIdx = mapper.getSuperCellIndex( DataSpace<Dim > (blockIdx) );
-
-    __shared__ int numBashedParticles;
-    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
-    __shared__ bool hasMemory;
-    __shared__ TileDataBox<BORDER> tmpBorder;
-
-    if ( threadIdx.x == 0 )
-    {
-        hasMemory = true;
-        frame = pb.getLastFrame( superCellIdx );
-    }
-    //\todo: eventuell ist es schneller, parallelen und seriellen Code zu trennen
-    __syncthreads( );
-    while ( frame.isValid( ) && hasMemory )
-    {
-        lcellId_t bashIdx = INV_LOC_IDX;
-        if ( threadIdx.x == 0 )
-            numBashedParticles = 0;
-        __syncthreads( );
-
-        if ( frame[threadIdx.x][multiMask_] == 1 )
+        /* if a partially filled last frame exists for the neighboring supercell,
+         * each master thread (one master per direction) will load it
+         */
+        if ( linearThreadIdx < numExchanges )
         {
-            bashIdx = nvidia::atomicAllInc( &numBashedParticles );
+            destFramesCounter[linearThreadIdx] = 0;
+            destFrames[linearThreadIdx] = FramePtr();
+            destFrames[linearThreadIdx + numExchanges] = FramePtr();
+            /* load last frame of neighboring supercell */
+            FramePtrShared tmpFrame(pb.getLastFrame( relative ));
+
+            if ( tmpFrame.isValid() )
+            {
+                lastFrameSize = pb.getSuperCell( relative ).getSizeLastFrame( );
+                // do not use the neighbor's last frame if it is full
+                if ( lastFrameSize < frameSize )
+                {
+                    destFrames[linearThreadIdx] = tmpFrame;
+                    destFramesCounter[linearThreadIdx] = lastFrameSize;
+                }
+            }
         }
         __syncthreads( );
 
-        if ( numBashedParticles > 0 )
+        /* iterate over the frame list of the current supercell */
+        while ( frame.isValid() )
+        {
+            lcellId_t destParticleIdx = INV_LOC_IDX;
+
+            /* set to value to of multiMask to a value in range [-2, EXCHANGES - 1]
+             * -2 is no particle
+             * -1 is particle but it is not shifted (stays in supercell)
+             * >=0 particle moves in a certain direction
+             *     (@see ExchangeType in types.h)
+             */
+            int direction = frame[linearThreadIdx][multiMask_] - 2;
+            if ( direction >= 0 )
+            {
+                destParticleIdx = atomicAdd( &(destFramesCounter[direction]), 1 );
+            }
+            __syncthreads( );
+
+            /* If the master thread (responsible for a certain direction) did not
+             * obtain a `low frame` from the neighboring super cell before the loop,
+             * it will create one now.
+             *
+             * In case not all particles that are shifted to the neighboring
+             * supercell fit into the `low frame`, a second frame is created to
+             * contain further particles, the `high frame` (default: invalid).
+             */
+            if ( linearThreadIdx < numExchanges )
+            {
+                if ( destFramesCounter[linearThreadIdx] > 0 )
+                {
+                    lastFrameSize = destFramesCounter[linearThreadIdx];
+                    /* if we had no `low frame` we load a new empty one */
+                    if ( !destFrames[linearThreadIdx].isValid() )
+                    {
+                        FramePtrShared tmpFrame(pb.getEmptyFrame( ));
+                        destFrames[linearThreadIdx] = tmpFrame;
+                        pb.setAsLastFrame( tmpFrame, relative );
+                    }
+                    /* check if a `high frame` is needed */
+                    if ( destFramesCounter[linearThreadIdx] > frameSize )
+                    {
+                            lastFrameSize = destFramesCounter[linearThreadIdx] - frameSize;
+                            FramePtrShared tmpFrame(pb.getEmptyFrame( ));
+                            destFrames[linearThreadIdx + numExchanges] = tmpFrame;
+                            pb.setAsLastFrame( tmpFrame, relative );
+                    }
+                }
+            }
+            __syncthreads( );
+
+            /* All threads with a valid index in the neighbor's frame, valid index
+             * range is [0, frameSize * 2-1], will copy their particle to the new
+             * frame.
+             *
+             * The default value for indexes (in the destination frame) is
+             * above this range (INV_LOC_IDX) for all particles that are not shifted.
+             */
+            if ( destParticleIdx < frameSize * 2 )
+            {
+                if ( destParticleIdx >= frameSize )
+                {
+                    /* use `high frame` */
+                    direction += numExchanges;
+                    destParticleIdx -= frameSize;
+                }
+                PMACC_AUTO( dstParticle, destFrames[direction][destParticleIdx] );
+                PMACC_AUTO( srcParticle, frame[linearThreadIdx] );
+                dstParticle[multiMask_] = 1;
+                srcParticle[multiMask_] = 0;
+                PMACC_AUTO( dstFilteredParticle,
+                            particles::operations::deselect<multiMask>(dstParticle) );
+                particles::operations::assign( dstFilteredParticle, srcParticle );
+            }
+            __syncthreads( );
+
+            /* if the `low frame` is now full, each master thread removes it and
+             * uses the `high frame` (is invalid, if still empty) as the next
+             * `low frame` for the following iteration of the loop
+             */
+            if ( linearThreadIdx < numExchanges )
+            {
+                if ( destFramesCounter[linearThreadIdx] >= frameSize )
+                {
+                    destFramesCounter[linearThreadIdx] -= frameSize;
+                    destFrames[linearThreadIdx] = destFrames[linearThreadIdx + numExchanges];
+                    destFrames[linearThreadIdx + numExchanges] = FramePtr();
+                }
+                if ( linearThreadIdx == 0 )
+                {
+                    frame = pb.getNextFrame( frame );
+                }
+            }
+            __syncthreads( );
+        }
+
+        /* each master thread updates the number of particles in the last frame
+         * of the neighbors supercell
+         */
+        if ( linearThreadIdx < numExchanges )
+        {
+            pb.getSuperCell( relative ).setSizeLastFrame( lastFrameSize );
+        }
+    }
+};
+
+struct kernelFillGapsLastFrame
+{
+    template<class ParBox, class Mapping>
+    DINLINE void operator()( ParBox pb, Mapping mapper ) const
+    {
+        using namespace particles::operations;
+
+        enum
+        {
+            TileSize = math::CT::volume<typename Mapping::SuperCellSize>::type::value,
+            Dim = Mapping::Dim
+        };
+
+        typedef typename ParBox::FramePtr FramePtr;
+
+        DataSpace<Dim> superCellIdx = mapper.getSuperCellIndex( DataSpace<Dim > (blockIdx) );
+
+        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type lastFrame;
+
+        __shared__ int gapIndices_sh[TileSize];
+        __shared__ int counterGaps;
+        __shared__ int counterParticles;
+
+        __shared__ int srcGap;
+
+
+        if ( threadIdx.x == 0 )
+        {
+            lastFrame = pb.getLastFrame( DataSpace<Dim > (superCellIdx) );
+            counterGaps = 0;
+            counterParticles = 0;
+            srcGap = 0;
+        }
+        __syncthreads( );
+
+
+        if ( lastFrame.isValid( ) )
+        {
+            //count particles in last frame
+            const bool isParticle = lastFrame[threadIdx.x][multiMask_];
+            if ( isParticle == true ) //\todo: bits zählen
+            {
+                nvidia::atomicAllInc( &counterParticles );
+            }
+            __syncthreads( );
+
+            if ( threadIdx.x < counterParticles && isParticle == false )
+            {
+                const int localGapIdx = nvidia::atomicAllInc( &counterGaps );
+                gapIndices_sh[localGapIdx] = threadIdx.x;
+            }
+            __syncthreads( );
+            if ( threadIdx.x >= counterParticles && isParticle )
+            {
+                //any particle search a gap
+                const int srcGapIdx = nvidia::atomicAllInc( &srcGap );
+                const int gapIdx = gapIndices_sh[srcGapIdx];
+                PMACC_AUTO( parDestFull, lastFrame[gapIdx] );
+                /*enable particle*/
+                parDestFull[multiMask_] = 1;
+                /* we not update multiMask because copy from mem to mem is to slow
+                 * we have enabled particle explicit */
+                PMACC_AUTO( parDest, deselect<multiMask>(parDestFull) );
+                PMACC_AUTO( parSrc, (lastFrame[threadIdx.x]) );
+                assign( parDest, parSrc );
+                parSrc[multiMask_] = 0; //delete old partice
+            }
+        }
+        if ( threadIdx.x == 0 )
+            pb.getSuperCell( superCellIdx ).setSizeLastFrame( counterParticles );
+
+    }
+};
+
+struct kernelFillGaps
+{
+    template<class ParBox, class Mapping>
+    DINLINE void operator()( ParBox pb, Mapping mapper ) const
+    {
+        using namespace particles::operations;
+
+        enum
+        {
+            TileSize = math::CT::volume<typename Mapping::SuperCellSize>::type::value,
+            Dim = Mapping::Dim
+        };
+
+        typedef typename ParBox::FramePtr FramePtr;
+
+        DataSpace<Dim> superCellIdx( mapper.getSuperCellIndex( DataSpace<Dim > (blockIdx) ) );
+
+        //data copied from right (last) to left (first)
+        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type firstFrame;
+        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type lastFrame;
+
+        __shared__ int particleIndices_sh[TileSize];
+        __shared__ int counterGaps;
+        __shared__ int counterParticles;
+
+
+        if ( threadIdx.x == 0 )
+        {
+            firstFrame = pb.getFirstFrame( DataSpace<Dim > (superCellIdx) );
+            lastFrame = pb.getLastFrame( DataSpace<Dim > (superCellIdx) );
+        }
+        __syncthreads( );
+
+        while ( firstFrame.isValid( ) && firstFrame != lastFrame )
         {
 
             if ( threadIdx.x == 0 )
             {
-                // DataSpaceOperations<DIM2>::reduce computes target position for domainTile and exchangeType
-                tmpBorder = border.pushN( numBashedParticles,
-                                          DataSpaceOperations<Dim>::reduce(
-                                                                            superCellIdx,
-                                                                            mapper.getExchangeType( ) ) );
-                if ( tmpBorder.getSize( ) < numBashedParticles )
-                    hasMemory = false;
+                //\todo: check if we need control thread or can write to shared with all threads
+                counterGaps = 0;
+                counterParticles = 0;
+            }
+            int localGapIdx = INV_LOC_IDX; //later we cann call localGapIdx < X because X<INV_LOC_IDX
+
+            __syncthreads( );
+
+            // find gaps
+            if ( firstFrame[threadIdx.x][multiMask_] == 0 )
+            {
+                localGapIdx = nvidia::atomicAllInc( &counterGaps );
             }
             __syncthreads( );
 
-            if ( bashIdx != INV_LOC_IDX && bashIdx < tmpBorder.getSize( ) )
+            if ( counterGaps == 0 )
             {
-                PMACC_AUTO( parDest, tmpBorder[bashIdx][0] );
-                PMACC_AUTO( parSrc, (frame[threadIdx.x]) );
+                if ( threadIdx.x == 0 )
+                {
+                    firstFrame = pb.getNextFrame( firstFrame );
+                }
+                __syncthreads( ); //wait control thread search new frame
+                continue; //check next frame
+            }
+
+            // search particles for gaps
+            if ( lastFrame[threadIdx.x][multiMask_] == 1 )
+            {
+                int localParticleIdx = nvidia::atomicAllInc( &counterParticles );
+                particleIndices_sh[localParticleIdx] = threadIdx.x;
+            }
+            __syncthreads( );
+            if ( localGapIdx < counterParticles )
+            {
+                const int parIdx = particleIndices_sh[localGapIdx];
+                PMACC_AUTO( parDestFull, (firstFrame[threadIdx.x]) );
+                /*enable particle*/
+                parDestFull[multiMask_] = 1;
+                /* we not update multiMask because copy from mem to mem is to slow
+                 * we have enabled particle explicit */
+                PMACC_AUTO( parDest, deselect<multiMask>(parDestFull) );
+                PMACC_AUTO( parSrc, (lastFrame[parIdx]) );
                 assign( parDest, parSrc );
                 parSrc[multiMask_] = 0;
             }
             __syncthreads( );
+            if ( threadIdx.x == 0 )
+            {
+                if ( counterGaps < counterParticles )
+                {
+                    //any gap in the first frame is filled
+                    firstFrame = pb.getNextFrame( firstFrame );
+                }
+                else if ( counterGaps > counterParticles )
+                {
+                    //we need more particles
+                    lastFrame = getPreviousFrameAndRemoveLastFrame( lastFrame, pb, superCellIdx );
+                }
+                else if ( counterGaps == counterParticles )
+                {
+                    lastFrame = getPreviousFrameAndRemoveLastFrame( lastFrame, pb, superCellIdx );
+                    if ( lastFrame.isValid( ) && lastFrame != firstFrame )
+                    {
+                        firstFrame = pb.getNextFrame( firstFrame );
+                    }
+                }
+            }
+            __syncthreads( );
+        }
+    }
+};
 
-            if ( threadIdx.x == 0 && hasMemory )
+struct kernelDeleteParticles
+{
+    template< class T_ParticleBox, class Mapping>
+    DINLINE void operator()( 
+        T_ParticleBox pb,
+        Mapping mapper 
+    ) const
+    {
+        using namespace particles::operations;
+
+        typedef T_ParticleBox ParticleBox;
+        typedef typename ParticleBox::FrameType FrameType;
+        typedef typename ParticleBox::FramePtr FramePtr;
+
+        enum
+        {
+            Dim = Mapping::Dim
+        };
+
+        DataSpace<Dim> superCellIdx = mapper.getSuperCellIndex( DataSpace<Dim > (blockIdx) );
+        const int linearThreadIdx = threadIdx.x;
+
+        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
+
+        if ( linearThreadIdx == 0 )
+        {
+            frame = pb.getLastFrame( superCellIdx );
+        }
+
+        __syncthreads( );
+
+        while ( frame.isValid( ) )
+        {
+
+            PMACC_AUTO( particle, (frame[linearThreadIdx]) );
+            particle[multiMask_] = 0; //delete particle
+
+            __syncthreads( );
+
+            if ( linearThreadIdx == 0 )
             {
                 //always remove the last frame
                 frame = getPreviousFrameAndRemoveLastFrame( frame, pb, superCellIdx );
             }
+            __syncthreads( );
         }
-        else
+
+        if ( linearThreadIdx == 0 )
+            pb.getSuperCell( superCellIdx ).setSizeLastFrame( 0 );
+
+    }
+};
+
+struct kernelBashParticles
+{
+    template< class ParBox, class BORDER, class Mapping>
+    DINLINE void operator()( 
+        ParBox pb,
+        ExchangePushDataBox<vint_t, BORDER, Mapping::Dim - 1 > border,
+        Mapping mapper ) const
+    {
+        using namespace particles::operations;
+
+        enum
         {
-            //if we had no particles to copy than we are the last and only frame
+            TileSize = math::CT::volume<typename Mapping::SuperCellSize>::type::value,
+            Dim = Mapping::Dim
+        };
+        typedef typename ParBox::FramePtr FramePtr;
+
+        DataSpace<Dim> superCellIdx = mapper.getSuperCellIndex( DataSpace<Dim > (blockIdx) );
+
+        __shared__ int numBashedParticles;
+        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
+        __shared__ bool hasMemory;
+        __shared__ TileDataBox<BORDER> tmpBorder;
+
+        if ( threadIdx.x == 0 )
+        {
+            hasMemory = true;
+            frame = pb.getLastFrame( superCellIdx );
+        }
+        //\todo: eventuell ist es schneller, parallelen und seriellen Code zu trennen
+        __syncthreads( );
+        while ( frame.isValid( ) && hasMemory )
+        {
+            lcellId_t bashIdx = INV_LOC_IDX;
             if ( threadIdx.x == 0 )
+                numBashedParticles = 0;
+            __syncthreads( );
+
+            if ( frame[threadIdx.x][multiMask_] == 1 )
             {
-                frame = getPreviousFrameAndRemoveLastFrame( frame, pb, superCellIdx );
+                bashIdx = nvidia::atomicAllInc( &numBashedParticles );
+            }
+            __syncthreads( );
+
+            if ( numBashedParticles > 0 )
+            {
+
+                if ( threadIdx.x == 0 )
+                {
+                    // DataSpaceOperations<DIM2>::reduce computes target position for domainTile and exchangeType
+                    tmpBorder = border.pushN( numBashedParticles,
+                                              DataSpaceOperations<Dim>::reduce(
+                                                                                superCellIdx,
+                                                                                mapper.getExchangeType( ) ) );
+                    if ( tmpBorder.getSize( ) < numBashedParticles )
+                        hasMemory = false;
+                }
+                __syncthreads( );
+
+                if ( bashIdx != INV_LOC_IDX && bashIdx < tmpBorder.getSize( ) )
+                {
+                    PMACC_AUTO( parDest, tmpBorder[bashIdx][0] );
+                    PMACC_AUTO( parSrc, (frame[threadIdx.x]) );
+                    assign( parDest, parSrc );
+                    parSrc[multiMask_] = 0;
+                }
+                __syncthreads( );
+
+                if ( threadIdx.x == 0 && hasMemory )
+                {
+                    //always remove the last frame
+                    frame = getPreviousFrameAndRemoveLastFrame( frame, pb, superCellIdx );
+                }
+            }
+            else
+            {
+                //if we had no particles to copy than we are the last and only frame
+                if ( threadIdx.x == 0 )
+                {
+                    frame = getPreviousFrameAndRemoveLastFrame( frame, pb, superCellIdx );
+                }
+            }
+            __syncthreads( );
+        }
+        if ( threadIdx.x == 0 )
+            pb.getSuperCell( superCellIdx ).setSizeLastFrame( 0 );
+
+    }
+};
+
+
+struct kernelInsertParticles
+{
+    template<class ParBox, class BORDER, class Mapping>
+    DINLINE void operator()( ParBox pb,
+                                           ExchangePopDataBox<vint_t, BORDER, Mapping::Dim - 1 > border,
+                                           Mapping mapper ) const
+    {
+
+        using namespace particles::operations;
+
+        enum
+        {
+            TileSize = math::CT::volume<typename Mapping::SuperCellSize>::type::value,
+            Dim = Mapping::Dim
+        };
+
+        typedef typename ParBox::FramePtr FramePtr;
+        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
+        __shared__ int elementCount;
+        __shared__ TileDataBox<BORDER> tmpBorder;
+
+
+        DataSpace < Mapping::Dim - 1 > superCell;
+
+        if ( threadIdx.x == 0 )
+        {
+            tmpBorder = border.get(blockIdx.x,superCell);
+            elementCount = tmpBorder.getSize( );
+            if ( elementCount > 0 )
+            {
+                frame = pb.getEmptyFrame( );
             }
         }
         __syncthreads( );
-    }
-    if ( threadIdx.x == 0 )
-        pb.getSuperCell( superCellIdx ).setSizeLastFrame( 0 );
-
-}
-
-template<class ParBox, class BORDER, class Mapping>
-__global__ void kernelInsertParticles( ParBox pb,
-                                       ExchangePopDataBox<vint_t, BORDER, Mapping::Dim - 1 > border,
-                                       Mapping mapper )
-{
-
-    using namespace particles::operations;
-
-    enum
-    {
-        TileSize = math::CT::volume<typename Mapping::SuperCellSize>::type::value,
-        Dim = Mapping::Dim
-    };
-
-    typedef typename ParBox::FramePtr FramePtr;
-    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
-    __shared__ int elementCount;
-    __shared__ TileDataBox<BORDER> tmpBorder;
-
-
-    DataSpace < Mapping::Dim - 1 > superCell;
-
-    if ( threadIdx.x == 0 )
-    {
-        tmpBorder = border.get(blockIdx.x,superCell);
-        elementCount = tmpBorder.getSize( );
-        if ( elementCount > 0 )
+        if ( threadIdx.x < elementCount )
         {
-            frame = pb.getEmptyFrame( );
+            PMACC_AUTO( parDestFull, (frame[threadIdx.x]) );
+            parDestFull[multiMask_] = 1;
+            PMACC_AUTO( parSrc, ((tmpBorder[threadIdx.x])[0]) );
+            /*we know that source has no multiMask*/
+            PMACC_AUTO( parDest, deselect<multiMask>(parDestFull) );
+            assign( parDest, parSrc );
         }
+        /*if this syncronize fix the kernel crash in spezial cases,
+         * I can't tell why.
+         */
+        __syncthreads( );
+        if ( (threadIdx.x == 0) && (elementCount > 0) )
+        {
+            // compute the super cell position in target frame to insert into
+            ///\todo: offset == simulation border should be passed to this func instead of being created here
+            DataSpace<Dim> dstSuperCell = DataSpaceOperations < Dim - 1 > ::extend( superCell,
+                                                                                    mapper.getExchangeType( ),
+                                                                                    mapper.getGridSuperCells( ),
+                                                                                    DataSpace<Dim>::create( mapper.getGuardingSuperCells( ) ) );
+
+            pb.setAsLastFrame( frame, dstSuperCell );
+        }
+
+
     }
-    __syncthreads( );
-    if ( threadIdx.x < elementCount )
-    {
-        PMACC_AUTO( parDestFull, (frame[threadIdx.x]) );
-        parDestFull[multiMask_] = 1;
-        PMACC_AUTO( parSrc, ((tmpBorder[threadIdx.x])[0]) );
-        /*we know that source has no multiMask*/
-        PMACC_AUTO( parDest, deselect<multiMask>(parDestFull) );
-        assign( parDest, parSrc );
-    }
-    /*if this syncronize fix the kernel crash in spezial cases,
-     * I can't tell why.
-     */
-    __syncthreads( );
-    if ( (threadIdx.x == 0) && (elementCount > 0) )
-    {
-        // compute the super cell position in target frame to insert into
-        ///\todo: offset == simulation border should be passed to this func instead of being created here
-        DataSpace<Dim> dstSuperCell = DataSpaceOperations < Dim - 1 > ::extend( superCell,
-                                                                                mapper.getExchangeType( ),
-                                                                                mapper.getGridSuperCells( ),
-                                                                                DataSpace<Dim>::create( mapper.getGuardingSuperCells( ) ) );
-
-        pb.setAsLastFrame( frame, dstSuperCell );
-    }
-
-
-}
-
+};
 
 
 } //namespace PMacc
-

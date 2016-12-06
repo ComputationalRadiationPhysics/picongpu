@@ -135,10 +135,14 @@ math::Size_t<DIM3> getBestCudaBlockDim(const math::Size_t<dim> gridDim)
         PMACC_VERIFY(this->_blockDim.y() <= cudaSpecs::MaxNumThreadsPerBlockDim::y::value);                         \
         PMACC_VERIFY(this->_blockDim.z() <= cudaSpecs::MaxNumThreadsPerBlockDim::z::value);                         \
                                                                                                                     \
-        dim3 blockDim(this->_blockDim.x(), this->_blockDim.y(), this->_blockDim.z());                               \
+        typename math::Size_t<3>::BaseType blockDim(                                                                \
+            this->_blockDim.x(),                                                                                    \
+            this->_blockDim.y(),                                                                                    \
+            this->_blockDim.z()                                                                                     \
+        );                                                                                                          \
         kernel::detail::SphericMapper<Zone::dim> mapper;                                                            \
         using namespace PMacc;                                                                                      \
-        __cudaKernel(kernel::detail::kernelForeach)(mapper.cudaGridDim(p_zone.size, this->_blockDim), blockDim)      \
+        PMACC_TYPEKERNEL(kernel::detail::kernelForeach)(mapper.cudaGridDim(p_zone.size, this->_blockDim), blockDim) \
                 /*   c0_shifted, ..., cN_shifted    */                                                              \
             (mapper, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _), lambda::make_Functor(functor));                           \
     }

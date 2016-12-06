@@ -55,9 +55,14 @@ struct SphericMapper<1, BlockSize>
 {
     static constexpr int dim = 1;
 
-    dim3 cudaGridDim(const math::Size_t<1>& size) const
+    typename math::Size_t<3>::BaseType 
+    cudaGridDim(const math::Size_t<1>& size) const
     {
-        return dim3(size.x() / BlockSize::x::value, 1, 1);
+        return math::Size_t<3>(
+            size.x() / BlockSize::x::value, 
+            1u, 
+            1u
+        );
     }
 
     HDINLINE
@@ -80,10 +85,14 @@ struct SphericMapper<2, BlockSize>
 {
     static constexpr int dim = 2;
 
-    dim3 cudaGridDim(const math::Size_t<2>& size) const
+    typename math::Size_t<3>::BaseType  
+    cudaGridDim(const math::Size_t<2>& size) const
     {
-        return dim3(size.x() / BlockSize::x::value,
-                    size.y() / BlockSize::y::value, 1);
+        return math::Size_t<3>(
+            size.x() / BlockSize::x::value,
+            size.y() / BlockSize::y::value, 
+            1u
+         );
     }
 
     HDINLINE
@@ -107,11 +116,14 @@ struct SphericMapper<3, BlockSize>
 {
     static constexpr int dim = 3;
 
-    dim3 cudaGridDim(const math::Size_t<3>& size) const
+    typename math::Size_t<3>::BaseType  
+    cudaGridDim(const math::Size_t<3>& size) const
     {
-        return dim3(size.x() / BlockSize::x::value,
-                    size.y() / BlockSize::y::value,
-                    size.z() / BlockSize::z::value);
+        return math::Size_t<3>(
+            size.x() / BlockSize::x::value,
+            size.y() / BlockSize::y::value,
+            size.z() / BlockSize::z::value
+        );
     }
 
     HDINLINE
@@ -136,9 +148,14 @@ struct SphericMapper<1, mpl::void_>
 {
     static constexpr int dim = 1;
 
-    dim3 cudaGridDim(const math::Size_t<1>& size, const math::Size_t<3>& blockDim) const
+    typename math::Size_t<3>::BaseType
+    cudaGridDim(const math::Size_t<1>& size, const math::Size_t<3>& blockDim) const
     {
-        return dim3(size.x() / blockDim.x(), 1, 1);
+        return math::Size_t<3>(
+            size.x() / blockDim.x(), 
+            1u, 
+            1u
+        );
     }
 
     DINLINE
@@ -161,10 +178,14 @@ struct SphericMapper<2, mpl::void_>
 {
     static constexpr int dim = 2;
 
-    dim3 cudaGridDim(const math::Size_t<2>& size, const math::Size_t<3>& blockDim) const
+    typename math::Size_t<3>::BaseType
+    cudaGridDim(const math::Size_t<2>& size, const math::Size_t<3>& blockDim) const
     {
-        return dim3(size.x() / blockDim.x(),
-                    size.y() / blockDim.y(), 1);
+        return math::Size_t<3>(
+            size.x() / blockDim.x(),
+            size.y() / blockDim.y(), 
+            1
+        );
     }
 
     DINLINE
@@ -188,11 +209,14 @@ struct SphericMapper<3, mpl::void_>
 {
     static constexpr int dim = 3;
 
-    dim3 cudaGridDim(const math::Size_t<3>& size, const math::Size_t<3>& blockDim) const
+    typename math::Size_t<3>::BaseType  
+    cudaGridDim(const math::Size_t<3>& size, const math::Size_t<3>& blockDim) const
     {
-        return dim3(size.x() / blockDim.x(),
-                    size.y() / blockDim.y(),
-                    size.z() / blockDim.z());
+        return math::Size_t<3>(
+            size.x() / blockDim.x(),
+            size.y() / blockDim.y(),
+            size.z() / blockDim.z()
+        );
     }
 
     DINLINE

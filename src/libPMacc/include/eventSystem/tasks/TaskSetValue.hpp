@@ -29,6 +29,7 @@
 #include "memory/boxes/DataBox.hpp"
 #include "eventSystem/EventSystem.hpp"
 #include "eventSystem/tasks/StreamTask.hpp"
+#include "nvidia/gpuEntryFunction.hpp"
 
 #include <boost/type_traits/remove_pointer.hpp>
 #include <boost/type_traits.hpp>
@@ -82,20 +83,22 @@ getValue(T_Type& value)
 
 }
 
-template <class DataBox, typename T_ValueType, typename Space>
-__global__ void kernelSetValue(DataBox data, const T_ValueType value, const Space size)
+struct kernelSetValue
 {
-    const Space threadIndex(threadIdx);
-    const Space blockIndex(blockIdx);
-    const Space gridSize(blockDim);
+    template <class DataBox, typename T_ValueType, typename Space>
+    DINLINE void operator()(DataBox data, const T_ValueType value, const Space size) const
+    {
+        const Space threadIndex(threadIdx);
+        const Space blockIndex(blockIdx);
+        const Space gridSize(blockDim);
 
-    Space idx(gridSize * blockIndex + threadIndex);
+        Space idx(gridSize * blockIndex + threadIndex);
 
-    if (idx.x() >= size.x())
-        return;
-    data(idx) = taskSetValueHelper::getValue(value);
-}
-
+        if (idx.x() >= size.x())
+            return;
+        data(idx) = taskSetValueHelper::getValue(value);
+    }
+};
 
 template <class TYPE, unsigned DIM>
 class DeviceBuffer;
@@ -177,13 +180,23 @@ public:
 
         if(area_size.productOfComponents() != 0)
         {
-            dim3 gridSize = area_size;
+            auto gridSize = area_size;
 
             /* line wise thread blocks*/
-            gridSize.x = ceil(double(gridSize.x) / 256.);
+            gridSize.x() = ceil(double(gridSize.x()) / 256.);
 
-            kernelSetValue<<<gridSize, 256, 0, this->getCudaStream()>>>
-                (this->destination->getDataBox(), this->value, area_size);
+            auto destBox = this->destination->getDataBox();
+            nvidia::gpuEntryFunction<<<
+                gridSize,
+                256,
+                0,
+                this->getCudaStream()
+            >>>( 
+                kernelSetValue{},
+                destBox, 
+                this->value, 
+                area_size 
+            );
         }
         this->activate();
     }
@@ -221,10 +234,10 @@ public:
         const DataSpace<dim> area_size(this->destination->getCurrentDataSpace(current_size));
         if(area_size.productOfComponents() != 0)
         {
-            dim3 gridSize = area_size;
+            auto gridSize = area_size;
 
             /* line wise thread blocks*/
-            gridSize.x = ceil(double(gridSize.x) / 256.);
+            gridSize.x()= ceil(double(gridSize.x()) / 256.);
 
             ValueType* devicePtr = this->destination->getPointer();
 
@@ -234,8 +247,19 @@ public:
             CUDA_CHECK(cudaMemcpyAsync(
                                        devicePtr, valuePointer_host, sizeof (ValueType),
                                        cudaMemcpyHostToDevice, this->getCudaStream()));
-            kernelSetValue<<<gridSize, 256, 0, this->getCudaStream()>>>
-                (this->destination->getDataBox(), devicePtr, area_size);
+
+            auto destBox = this->destination->getDataBox();
+            nvidia::gpuEntryFunction<<<
+                gridSize,
+                256,
+                0,
+                this->getCudaStream()
+            >>>( 
+                kernelSetValue{},
+                destBox, 
+                devicePtr, 
+                area_size 
+            );
         }
 
         this->activate();

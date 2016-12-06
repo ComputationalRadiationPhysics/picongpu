@@ -32,17 +32,21 @@ namespace random
 
     namespace kernel {
 
-        template<class T_RNGMethod, class T_RNGBox, class T_Space>
-        __global__ void
-        initRNGProvider(T_RNGBox rngBox, uint32_t seed, const T_Space size)
+        template< typename T_RNGMethod>
+        struct initRNGProvider
         {
-            const uint32_t linearTid = blockIdx.x * blockDim.x + threadIdx.x;
-            if(linearTid >= size.productOfComponents())
-                return;
+            template<class T_RNGBox, class T_Space>
+            DINLINE void
+            operator()(T_RNGBox rngBox, uint32_t seed, const T_Space size) const
+            {
+                const uint32_t linearTid = blockIdx.x * blockDim.x + threadIdx.x;
+                if(linearTid >= size.productOfComponents())
+                    return;
 
-            const T_Space cellIdx = DataSpaceOperations<T_Space::dim>::map(size, linearTid);
-            T_RNGMethod().init(rngBox(cellIdx), seed, linearTid);
-        }
+                const T_Space cellIdx = DataSpaceOperations<T_Space::dim>::map(size, linearTid);
+                T_RNGMethod().init(rngBox(cellIdx), seed, linearTid);
+            }
+        };
 
     }  // namespace kernel
 
@@ -66,7 +70,7 @@ namespace random
 
         PMACC_AUTO(bufferBox, buffer->getDeviceBuffer().getDataBox());
 
-        __cudaKernel(kernel::initRNGProvider<RNGMethod>)
+        PMACC_TYPEKERNEL(kernel::initRNGProvider<RNGMethod>)
         (gridSize, blockSize)
         (bufferBox, seed, m_size);
     }

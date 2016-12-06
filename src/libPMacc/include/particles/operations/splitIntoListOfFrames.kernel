@@ -38,121 +38,123 @@ namespace operations
 {
 namespace kernel
 {
-
-/** Copy particles from big frame to PMacc frame structure
- *  (Opposite to ConcatListOfFrames)
- *
- * - convert a user-defined domainCellIdx to localCellIdx
- * - processed particles per block <= number of cells per superCell
- *
- * @param counter box with three integer [srcParticleOffset, numLoadedParticles, numUsedFrames]
- * @param destBox particle box were all particles are copied to (destination)
- * @param srcFrame frame with particles (is used as source)
- * @param maxParticles number of particles in srcFrame
- * @param localDomainCellOffset offset in cells to user-defined domain (@see wiki PIConGPU domain definitions)
- * @param domainCellIdxIdentifier the identifier for the particle domain cellIdx
- *                                that is calculated back to the local domain
- *                                with respect to localDomainCellOffset
- * @param cellDesc picongpu cellDescription
- */
-template<class T_CounterBox, class T_DestBox, class T_SrcFrame, class T_Space, class T_Identifier, class T_CellDescription>
-__global__ void splitIntoListOfFrames(
-    T_CounterBox counter,
-    T_DestBox destBox,
-    T_SrcFrame srcFrame,
-    const int maxParticles,
-    const T_Space localDomainCellOffset,
-    const T_Identifier domainCellIdxIdentifier,
-    const T_CellDescription cellDesc
-)
-{
-    using namespace PMacc::particles::operations;
-
-    typedef T_SrcFrame SrcFrameType;
-    typedef typename T_DestBox::FrameType DestFrameType;
-    typedef typename T_DestBox::FramePtr DestFramePtr;
-    typedef typename T_CellDescription::SuperCellSize SuperCellSize;
-    constexpr unsigned NumDims = T_DestBox::Dim;
-    constexpr uint32_t particlesPerFrame = PMacc::math::CT::volume<SuperCellSize>::type::value;
-
-    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<DestFramePtr>::type destFramePtr[particlesPerFrame];
-    __shared__ int linearSuperCellIds[particlesPerFrame];
-    __shared__ int srcParticleOffset;
-
-
-    const int linearThreadIdx = threadIdx.x;
-
-
-    const DataSpace<NumDims> numSuperCells(cellDesc.getGridSuperCells() - cellDesc.getGuardingSuperCells()*2);
-    if (linearThreadIdx == 0)
+    struct splitIntoListOfFrames
     {
-        /* apply for work for the full block
-         * counter [0] -> offset to load particles
+        /** Copy particles from big frame to PMacc frame structure
+         *  (Opposite to ConcatListOfFrames)
+         *
+         * - convert a user-defined domainCellIdx to localCellIdx
+         * - processed particles per block <= number of cells per superCell
+         *
+         * @param counter box with three integer [srcParticleOffset, numLoadedParticles, numUsedFrames]
+         * @param destBox particle box were all particles are copied to (destination)
+         * @param srcFrame frame with particles (is used as source)
+         * @param maxParticles number of particles in srcFrame
+         * @param localDomainCellOffset offset in cells to user-defined domain (@see wiki PIConGPU domain definitions)
+         * @param domainCellIdxIdentifier the identifier for the particle domain cellIdx
+         *                                that is calculated back to the local domain
+         *                                with respect to localDomainCellOffset
+         * @param cellDesc picongpu cellDescription
          */
-        srcParticleOffset = atomicAdd(&(counter[0]), particlesPerFrame);
-    }
-    destFramePtr[linearThreadIdx] = DestFramePtr();
-    linearSuperCellIds[linearThreadIdx] = -1;
-
-    __syncthreads();
-
-    const int srcParticleIdx = srcParticleOffset + linearThreadIdx;
-    const bool hasValidParticle = srcParticleIdx < maxParticles;
-    DataSpace<NumDims> superCellIdx;
-    lcellId_t lCellIdx = INV_LOC_IDX;
-    int myLinearSuperCellId = -1;
-
-    if (hasValidParticle)
-    {
-        // cell index on this GPU
-        const DataSpace<NumDims> gpuCellIdx = srcFrame[srcParticleIdx][domainCellIdxIdentifier]
-                                                 - localDomainCellOffset;
-        superCellIdx = gpuCellIdx / SuperCellSize::toRT();
-        myLinearSuperCellId = DataSpaceOperations<NumDims>::map(numSuperCells, superCellIdx);
-        linearSuperCellIds[linearThreadIdx] = myLinearSuperCellId;
-        DataSpace<NumDims> localCellIdx(gpuCellIdx - superCellIdx * SuperCellSize::toRT());
-        lCellIdx = DataSpaceOperations<NumDims>::template map<SuperCellSize>(localCellIdx);
-    }
-    __syncthreads();
-
-    int masterIdx = linearThreadIdx - 1;
-
-    if (hasValidParticle)
-    {
-        /* search master thread index */
-        while (masterIdx >= 0)
+        template<class T_CounterBox, class T_DestBox, class T_SrcFrame, class T_Space, class T_Identifier, class T_CellDescription>
+        DINLINE void operator()(
+            T_CounterBox counter,
+            T_DestBox destBox,
+            T_SrcFrame srcFrame,
+            const int maxParticles,
+            const T_Space localDomainCellOffset,
+            const T_Identifier domainCellIdxIdentifier,
+            const T_CellDescription cellDesc
+        ) const
         {
-            if (myLinearSuperCellId != linearSuperCellIds[masterIdx])
-                break;
-            --masterIdx;
-        }
-        ++masterIdx;
-        /* load empty frame if thread is the master*/
-        if (masterIdx == linearThreadIdx)
-        {
-            /* counter[2] -> number of used frames */
-            nvidia::atomicAllInc(&(counter[2]));
-            DestFramePtr tmpFrame = destBox.getEmptyFrame();
-            destFramePtr[linearThreadIdx] = tmpFrame;
-            destBox.setAsFirstFrame(tmpFrame, superCellIdx + cellDesc.getGuardingSuperCells());
-        }
-    }
-    __syncthreads();
+            using namespace PMacc::particles::operations;
 
-    if (hasValidParticle)
-    {
-        /* copy attributes and activate particle*/
-        PMACC_AUTO(parDest, destFramePtr[masterIdx][linearThreadIdx]);
-        PMACC_AUTO(parDestDeselect, deselect<bmpl::vector2<localCellIdx, multiMask> >(parDest));
-        assign(parDestDeselect, srcFrame[srcParticleIdx]);
-        parDest[localCellIdx_] = lCellIdx;
-        parDest[multiMask_] = 1;
-        /* counter[1] -> number of loaded particles
-         * this counter is evaluated on host side
-         * (check that loaded particles by this kernel == loaded particles from HDF5 file)*/
-        nvidia::atomicAllInc(&(counter[1]));
-    }
-}
+            typedef T_SrcFrame SrcFrameType;
+            typedef typename T_DestBox::FrameType DestFrameType;
+            typedef typename T_DestBox::FramePtr DestFramePtr;
+            typedef typename T_CellDescription::SuperCellSize SuperCellSize;
+            constexpr unsigned NumDims = T_DestBox::Dim;
+            constexpr uint32_t particlesPerFrame = PMacc::math::CT::volume<SuperCellSize>::type::value;
+
+            __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<DestFramePtr>::type destFramePtr[particlesPerFrame];
+            __shared__ int linearSuperCellIds[particlesPerFrame];
+            __shared__ int srcParticleOffset;
+
+
+            const int linearThreadIdx = threadIdx.x;
+
+
+            const DataSpace<NumDims> numSuperCells(cellDesc.getGridSuperCells() - cellDesc.getGuardingSuperCells()*2);
+            if (linearThreadIdx == 0)
+            {
+                /* apply for work for the full block
+                 * counter [0] -> offset to load particles
+                 */
+                srcParticleOffset = atomicAdd(&(counter[0]), particlesPerFrame);
+            }
+            destFramePtr[linearThreadIdx] = DestFramePtr();
+            linearSuperCellIds[linearThreadIdx] = -1;
+
+            __syncthreads();
+
+            const int srcParticleIdx = srcParticleOffset + linearThreadIdx;
+            const bool hasValidParticle = srcParticleIdx < maxParticles;
+            DataSpace<NumDims> superCellIdx;
+            lcellId_t lCellIdx = INV_LOC_IDX;
+            int myLinearSuperCellId = -1;
+
+            if (hasValidParticle)
+            {
+                // cell index on this GPU
+                const DataSpace<NumDims> gpuCellIdx = srcFrame[srcParticleIdx][domainCellIdxIdentifier]
+                                                         - localDomainCellOffset;
+                superCellIdx = gpuCellIdx / SuperCellSize::toRT();
+                myLinearSuperCellId = DataSpaceOperations<NumDims>::map(numSuperCells, superCellIdx);
+                linearSuperCellIds[linearThreadIdx] = myLinearSuperCellId;
+                DataSpace<NumDims> localCellIdx(gpuCellIdx - superCellIdx * SuperCellSize::toRT());
+                lCellIdx = DataSpaceOperations<NumDims>::template map<SuperCellSize>(localCellIdx);
+            }
+            __syncthreads();
+
+            int masterIdx = linearThreadIdx - 1;
+
+            if (hasValidParticle)
+            {
+                /* search master thread index */
+                while (masterIdx >= 0)
+                {
+                    if (myLinearSuperCellId != linearSuperCellIds[masterIdx])
+                        break;
+                    --masterIdx;
+                }
+                ++masterIdx;
+                /* load empty frame if thread is the master*/
+                if (masterIdx == linearThreadIdx)
+                {
+                    /* counter[2] -> number of used frames */
+                    nvidia::atomicAllInc(&(counter[2]));
+                    DestFramePtr tmpFrame = destBox.getEmptyFrame();
+                    destFramePtr[linearThreadIdx] = tmpFrame;
+                    destBox.setAsFirstFrame(tmpFrame, superCellIdx + cellDesc.getGuardingSuperCells());
+                }
+            }
+            __syncthreads();
+
+            if (hasValidParticle)
+            {
+                /* copy attributes and activate particle*/
+                PMACC_AUTO(parDest, destFramePtr[masterIdx][linearThreadIdx]);
+                PMACC_AUTO(parDestDeselect, deselect<bmpl::vector2<localCellIdx, multiMask> >(parDest));
+                assign(parDestDeselect, srcFrame[srcParticleIdx]);
+                parDest[localCellIdx_] = lCellIdx;
+                parDest[multiMask_] = 1;
+                /* counter[1] -> number of loaded particles
+                 * this counter is evaluated on host side
+                 * (check that loaded particles by this kernel == loaded particles from HDF5 file)*/
+                nvidia::atomicAllInc(&(counter[1]));
+            }
+        }
+    };
 } //namespace kernel
 
 /** Copy particles from big frame to PMacc frame structure
@@ -204,7 +206,7 @@ HINLINE void splitIntoListOfFrames(
         uint32_t currentChunkSize = std::min(leftOverParticles, chunkSize);
         log(logLvl, "load particles on device chunk offset=%1%; chunk size=%2%; left particles %3%") %
             (i * chunkSize) % currentChunkSize % leftOverParticles;
-        __cudaKernel(kernel::splitIntoListOfFrames)
+        PMACC_TYPEKERNEL(kernel::splitIntoListOfFrames)
             (algorithms::math::float2int_ru(double(currentChunkSize) / double(cellsInSuperCell)), cellsInSuperCell)
             (counterBuffer.getDeviceBuffer().getDataBox(),
              destSpecies.getDeviceParticlesBox(), srcFrame,

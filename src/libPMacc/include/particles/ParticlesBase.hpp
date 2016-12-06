@@ -99,14 +99,14 @@ protected:
         __startTransaction(__getTransactionEvent());
         do
         {
-            __cudaKernel(kernelShiftParticles)
-                (mapper.getGridDim(), TileSize)
+            PMACC_TYPEKERNEL(kernelShiftParticles)
+                (mapper.getGridDim(), (int)TileSize)
                 (pBox, mapper);
-            __cudaKernel(kernelFillGaps)
-                (mapper.getGridDim(), TileSize)
+            PMACC_TYPEKERNEL(kernelFillGaps)
+                (mapper.getGridDim(), (int)TileSize)
                 (pBox, mapper);
-            __cudaKernel(kernelFillGapsLastFrame)
-                (mapper.getGridDim(), TileSize)
+            PMACC_TYPEKERNEL(kernelFillGapsLastFrame)
+                (mapper.getGridDim(), (int)TileSize)
                 (pBox, mapper);
         }
         while (mapper.next());
@@ -123,12 +123,12 @@ protected:
     {
         AreaMapping<AREA, MappingDesc> mapper(this->cellDescription);
 
-        __cudaKernel(kernelFillGaps)
-            (mapper.getGridDim(), TileSize)
+        PMACC_TYPEKERNEL(kernelFillGaps)
+            (mapper.getGridDim(), (int)TileSize)
             (particlesBuffer->getDeviceParticleBox(), mapper);
 
-        __cudaKernel(kernelFillGapsLastFrame)
-            (mapper.getGridDim(), TileSize)
+        PMACC_TYPEKERNEL(kernelFillGapsLastFrame)
+            (mapper.getGridDim(), (int)TileSize)
             (particlesBuffer->getDeviceParticleBox(), mapper);
     }
 

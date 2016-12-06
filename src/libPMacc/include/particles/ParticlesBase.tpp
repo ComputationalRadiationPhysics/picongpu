@@ -39,10 +39,10 @@ namespace PMacc
     {
 
         ExchangeMapping<GUARD, MappingDesc> mapper(this->cellDescription, exchangeType);
-        dim3 grid(mapper.getGridDim());
+        auto grid = mapper.getGridDim();
 
-        __cudaKernel(kernelDeleteParticles)
-                (grid, TileSize)
+        PMACC_TYPEKERNEL(kernelDeleteParticles)
+                (grid, (int)TileSize)
                 (particlesBuffer->getDeviceParticleBox(), mapper);
     }
 
@@ -52,10 +52,10 @@ namespace PMacc
     {
 
         AreaMapping<T_area, MappingDesc> mapper(this->cellDescription);
-        dim3 grid(mapper.getGridDim());
+        auto grid = mapper.getGridDim();
 
-        __cudaKernel(kernelDeleteParticles)
-                (grid, TileSize)
+        PMACC_TYPEKERNEL(kernelDeleteParticles)
+                (grid, (int)TileSize)
                 (particlesBuffer->getDeviceParticleBox(), mapper);
     }
 
@@ -74,10 +74,10 @@ namespace PMacc
             ExchangeMapping<GUARD, MappingDesc> mapper(this->cellDescription, exchangeType);
 
             particlesBuffer->getSendExchangeStack(exchangeType).setCurrentSize(0);
-            dim3 grid(mapper.getGridDim());
+            auto grid = mapper.getGridDim();
 
-            __cudaKernel(kernelBashParticles)
-                    (grid, TileSize)
+            PMACC_TYPEKERNEL(kernelBashParticles)
+                    (grid, (int)TileSize)
                     (particlesBuffer->getDeviceParticleBox(),
                     particlesBuffer->getSendExchangeStack(exchangeType).getDeviceExchangePushDataBox(), mapper);
         }
@@ -93,8 +93,8 @@ namespace PMacc
             if (grid != 0)
             {
                 ExchangeMapping<GUARD, MappingDesc> mapper(this->cellDescription, exchangeType);
-                __cudaKernel(kernelInsertParticles)
-                        (grid, TileSize)
+                PMACC_TYPEKERNEL(kernelInsertParticles)
+                        (grid, (int)TileSize)
                         (particlesBuffer->getDeviceParticleBox(),
                         particlesBuffer->getReceiveExchangeStack(exchangeType).getDeviceExchangePopDataBox(),
                         mapper);

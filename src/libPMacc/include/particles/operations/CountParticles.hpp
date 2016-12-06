@@ -40,60 +40,65 @@ namespace PMacc
 /* count particles in an area
  * is not optimized, it checks any partcile position if its realy a particle
  */
-template<class PBox, class Filter, class Mapping>
-__global__ void kernelCountParticles(PBox pb,
-                                     uint64_cu* gCounter,
-                                     Filter filter,
-                                     Mapping mapper)
+struct kernelCountParticles
 {
-
-    typedef typename PBox::FrameType FRAME;
-    typedef typename PBox::FramePtr FramePtr;
-    const uint32_t Dim = Mapping::Dim;
-
-    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
-    __shared__ int counter;
-    __shared__ lcellId_t particlesInSuperCell;
-
-
-    typedef typename Mapping::SuperCellSize SuperCellSize;
-
-    const DataSpace<Dim > threadIndex(threadIdx);
-    const int linearThreadIdx = DataSpaceOperations<Dim>::template map<SuperCellSize > (threadIndex);
-    const DataSpace<Dim> superCellIdx(mapper.getSuperCellIndex(DataSpace<Dim > (blockIdx)));
-
-    if (linearThreadIdx == 0)
+    template<class PBox, class Filter, class Mapping>
+    DINLINE void operator()(
+        PBox pb,
+        uint64_cu* gCounter,
+        Filter filter,
+        Mapping mapper
+    ) const
     {
-        frame = pb.getLastFrame(superCellIdx);
-        particlesInSuperCell = pb.getSuperCell(superCellIdx).getSizeLastFrame();
-        counter = 0;
-    }
-    __syncthreads();
-    if (!frame.isValid())
-        return; //end kernel if we have no frames
-    filter.setSuperCellPosition((superCellIdx - mapper.getGuardingSuperCells()) * mapper.getSuperCellSize());
-    while (frame.isValid())
-    {
-        if (linearThreadIdx < particlesInSuperCell)
+
+        typedef typename PBox::FrameType FRAME;
+        typedef typename PBox::FramePtr FramePtr;
+        const uint32_t Dim = Mapping::Dim;
+
+        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
+        __shared__ int counter;
+        __shared__ lcellId_t particlesInSuperCell;
+
+
+        typedef typename Mapping::SuperCellSize SuperCellSize;
+
+        const DataSpace<Dim > threadIndex(threadIdx);
+        const int linearThreadIdx = DataSpaceOperations<Dim>::template map<SuperCellSize > (threadIndex);
+        const DataSpace<Dim> superCellIdx(mapper.getSuperCellIndex(DataSpace<Dim > (blockIdx)));
+
+        if (linearThreadIdx == 0)
         {
-            if (filter(*frame, linearThreadIdx))
-                nvidia::atomicAllInc(&counter);
+            frame = pb.getLastFrame(superCellIdx);
+            particlesInSuperCell = pb.getSuperCell(superCellIdx).getSizeLastFrame();
+            counter = 0;
         }
+        __syncthreads();
+        if (!frame.isValid())
+            return; //end kernel if we have no frames
+        filter.setSuperCellPosition((superCellIdx - mapper.getGuardingSuperCells()) * mapper.getSuperCellSize());
+        while (frame.isValid())
+        {
+            if (linearThreadIdx < particlesInSuperCell)
+            {
+                if (filter(*frame, linearThreadIdx))
+                    nvidia::atomicAllInc(&counter);
+            }
+            __syncthreads();
+            if (linearThreadIdx == 0)
+            {
+                frame = pb.getPreviousFrame(frame);
+                particlesInSuperCell = math::CT::volume<SuperCellSize>::type::value;
+            }
+            __syncthreads();
+        }
+
         __syncthreads();
         if (linearThreadIdx == 0)
         {
-            frame = pb.getPreviousFrame(frame);
-            particlesInSuperCell = math::CT::volume<SuperCellSize>::type::value;
+            atomicAdd(gCounter, (uint64_cu) counter);
         }
-        __syncthreads();
     }
-
-    __syncthreads();
-    if (linearThreadIdx == 0)
-    {
-        atomicAdd(gCounter, (uint64_cu) counter);
-    }
-}
+};
 
 struct CountParticles
 {
@@ -112,11 +117,11 @@ struct CountParticles
     {
         GridBuffer<uint64_cu, DIM1> counter(DataSpace<DIM1>(1));
 
-        dim3 block(CellDesc::SuperCellSize::toRT().toDim3());
+        auto block = CellDesc::SuperCellSize::toRT();
 
         AreaMapping<AREA, CellDesc> mapper(cellDescription);
 
-        __cudaKernel(kernelCountParticles)
+        PMACC_TYPEKERNEL(kernelCountParticles)
             (mapper.getGridDim(), block)
             (buffer.getDeviceParticlesBox(),
              counter.getDeviceBuffer().getBasePointer(),
