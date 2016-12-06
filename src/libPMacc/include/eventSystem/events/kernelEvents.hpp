@@ -22,12 +22,17 @@
 
 #pragma once
 
-#include "dimensions/DataSpace.hpp"
-#include "eventSystem/EventSystem.hpp"
-#include "ppFunctions.hpp"
-#include "pmacc_types.hpp"
 
-#include <boost/preprocessor/control/if.hpp>
+#include "pmacc_types.hpp"
+#include "dimensions/DataSpace.hpp"
+#include "traits/GetNComponents.hpp"
+#include "eventSystem/EventSystem.hpp"
+#include "Environment.hpp"
+#include "nvidia/gpuEntryFunction.hpp"
+
+#include <string>
+
+
 
 /* No namespace in this file since we only declare macro defines */
 
@@ -41,43 +46,243 @@
     #define CUDA_CHECK_KERNEL_MSG(...)  ;
 #endif
 
-/** Call activate kernel from taskKernel.
- *  If PMACC_SYNC_KERNEL is 1 cudaDeviceSynchronize() is called before
- *  and after activation.
- */
-#define PMACC_ACTIVATE_KERNEL                                                           \
-        CUDA_CHECK_KERNEL_MSG(cudaGetLastError( ),"Last error after kernel launch");    \
-        CUDA_CHECK_KERNEL_MSG(cudaDeviceSynchronize(),"Crash after kernel launch");     \
-        taskKernel->activateChecks();                                                   \
-        CUDA_CHECK_KERNEL_MSG(cudaDeviceSynchronize(),"Crash after kernel activation");
 
-/**
- * Appends kernel arguments to generated code and activates kernel task.
- *
- * @param ... parameters to pass to kernel
- */
-#define PMACC_CUDAPARAMS(...) (__VA_ARGS__);                                   \
-        PMACC_ACTIVATE_KERNEL                                                  \
-    }   /*this is used if call is EventTask.waitforfinished();*/
+namespace PMacc
+{
+    /** configured kernel object
+     * 
+     * this objects contains the functor and the starting parameter
+     * 
+     * @tparam T_Kernel pmacc Kernel object
+     * @tparam T_VectorGrid type which defines the grid extents (type must be cast able to CUDA dim3)
+     * @tparam T_VectorBlock type which defines the block extents (type must be cast able to CUDA dim3)
+     */
+    template<
+        typename T_Kernel,
+        typename T_VectorGrid,
+        typename T_VectorBlock
+    >
+    struct KernelStarter;
+    
+    /** wrapper for the user kernel functor
+     * 
+     * contains debug information like filename and lien of the kernel call
+     */
+    template< typename T_KernelFunctor >
+    struct Kernel
+    {
+        /** functor */
+        T_KernelFunctor const m_kernelFunctor;
+        /** file name from where the kernel is called */
+        std::string const m_file;
+        /** line number in the file */
+        size_t const m_line;
 
-/**
- * Configures block and grid sizes and shared memory for the kernel.
- *
- * @param grid sizes of grid on gpu
- * @param block sizes of block on gpu
- * @param ... amount of shared memory for the kernel (optional)
- */
-#define PMACC_CUDAKERNELCONFIG(grid,block,...) <<<(grid),(block),              \
-    /*we need +0 if VA_ARGS is empty, because we must put in a value*/         \
-    __VA_ARGS__+0,                                                             \
-    taskKernel->getCudaStream()>>> PMACC_CUDAPARAMS
+        /**
+         * 
+         * @param gridExtent grid extent configuration for the kernel
+         * @param blockExtent block extent configuration for the kernel 
+         * @param sharedMemByte dynamic shared memory used by the kernel (in byte )
+         * @return 
+         */
+        HINLINE Kernel(
+            T_KernelFunctor const & kernelFunctor,
+            std::string const & file = std::string(),
+            size_t const line = 0
+        ) :
+            m_kernelFunctor( kernelFunctor ),
+            m_file( file ),
+            m_line( line )
+        {
 
-/**
- * Calls a CUDA kernel and creates an EventTask which represents the kernel.
- *
- * @param kernelname name of the CUDA kernel (can also used with templates etc. myKernel<1>)
+        }
+
+        /** configured kernel object
+         * 
+         * this objects contains the functor and the starting parameter
+         * 
+         * @tparam T_VectorGrid type which defines the grid extents (type must be cast able to CUDA dim3)
+         * @tparam T_VectorBlock type which defines the block extents (type must be cast able to CUDA dim3)
+         * 
+         * @param gridExtent grid extent configuration for the kernel
+         * @param blockExtent block extent configuration for the kernel 
+         * @param sharedMemByte dynamic shared memory used by the kernel (in byte )
+         */
+        template<
+            typename T_VectorGrid,
+            typename T_VectorBlock
+        >
+        HINLINE
+        auto
+        operator()(
+            T_VectorGrid const & gridExtent,
+            T_VectorBlock const & blockExtent,
+            size_t const sharedMemByte = 0
+        ) const
+        -> KernelStarter< 
+            Kernel,
+            T_VectorGrid,
+            T_VectorBlock
+        >;
+    };
+
+
+    template< 
+        typename T_Kernel,
+        typename T_VectorGrid,
+        typename T_VectorBlock
+   >
+    struct KernelStarter
+    {
+        /** kernel functor */
+        T_Kernel const m_kernel;
+        /** grid extents for the kernel */
+        T_VectorGrid const m_gridExtent;
+        /** block extents for the kernel */
+        T_VectorBlock const m_blockExtent;
+        /** dynamic shared memory consumed by the kernel (in byte)*/
+        size_t const m_sharedMemByte;
+
+        /** kernel starter object
+         * 
+         * @param kernel pmacc Kernel
+         */
+        HINLINE KernelStarter(
+            T_Kernel const & kernel,
+            T_VectorGrid const & gridExtent,
+            T_VectorBlock const & blockExtent,
+            size_t const sharedMemByte
+        ) :
+            m_kernel( kernel ),
+            m_gridExtent( gridExtent ),
+            m_blockExtent( blockExtent ),
+            m_sharedMemByte( sharedMemByte )
+        {
+
+        }
+
+        /** execute the kernel functor
+         * 
+         * @tparam T_Args types of the arguments
+         * @param args arguments for the kernel functor
+         * 
+         * @{
+         */
+        template<
+            typename ... T_Args
+        >
+        HINLINE
+        void
+        operator()(
+            T_Args const & ... args
+        ) const
+        {
+
+            std::string const kernelName = typeid( m_kernel.m_kernelFunctor ).name();
+            std::string const kernelInfo = kernelName +
+                std::string( " [" ) + m_kernel.m_file + std::string( ":" ) + 
+                std::to_string( m_kernel.m_line ) + std::string( " ]" ); 
+
+            CUDA_CHECK_KERNEL_MSG(
+                cudaDeviceSynchronize( ),
+                std::string( "Crash before kernel call " ) + kernelInfo
+            );
+
+            PMacc::TaskKernel* taskKernel = PMacc::Environment<>::get().Factory().createTaskKernel(
+                typeid( kernelName ).name()
+            );
+
+            DataSpace<
+                traits::GetNComponents<
+                    T_VectorGrid
+                >::value
+            > gridExtent( m_gridExtent );
+            
+            DataSpace<
+                traits::GetNComponents<
+                    T_VectorBlock
+                >::value
+            > blockExtent( m_blockExtent );
+            
+            nvidia::gpuEntryFunction<<<
+                gridExtent,
+                blockExtent,
+                m_sharedMemByte,
+                taskKernel->getCudaStream()
+            >>>( 
+                m_kernel.m_kernelFunctor, 
+                args ... 
+            );
+            CUDA_CHECK_KERNEL_MSG(
+                cudaGetLastError( ),
+                std::string( "Last error after kernel launch " ) + kernelInfo
+            );
+            CUDA_CHECK_KERNEL_MSG(
+                cudaDeviceSynchronize( ),
+                std::string( "Crash after kernel launch " ) + kernelInfo
+            );
+            taskKernel->activateChecks( );
+            CUDA_CHECK_KERNEL_MSG(
+                cudaDeviceSynchronize( ),
+                std::string(  "Crash after kernel activation" ) + kernelInfo
+            );
+        }
+        
+        template<
+            typename ... T_Args
+        >
+        HINLINE
+        void
+        operator()(
+            T_Args const &... args
+        ) 
+        {
+            return static_cast< const KernelStarter >(*this)( args ... );
+        }
+        
+        /** @} */
+
+    };
+
+
+    /** creates a kernel object
+     * 
+     * @tparam T_KernelFunctor type of the kernel functor
+     * @param kernelFunctor instance of the functor
+     * @param file file name (for debug)
+     * @param line line number in the file (for debug)
+     */
+    template< typename T_KernelFunctor >
+    auto kernel(
+        T_KernelFunctor const & kernelFunctor,
+        std::string const & file = std::string(),
+        size_t const line = 0
+    ) -> PMacc::Kernel< T_KernelFunctor >
+    {
+        return PMacc::Kernel< T_KernelFunctor >(
+            kernelFunctor,
+            file,
+            line
+        );
+    }
+ 
+} // namespace PMacc
+
+
+/** create a kernel object out of a functor instance
+ * 
+ * this macro add the current filename and line number to the kernel object
+ * 
+ * @param ... instance of kernel functor
  */
-#define __cudaKernel(kernelname) {                                                      \
-    CUDA_CHECK_KERNEL_MSG(cudaDeviceSynchronize(),"Crash before kernel call");          \
-    PMacc::TaskKernel *taskKernel = PMacc::Environment<>::get().Factory().createTaskKernel(#kernelname);     \
-    kernelname PMACC_CUDAKERNELCONFIG
+#define PMACC_KERNEL( ... ) PMacc::kernel( __VA_ARGS__, __FILE__,  static_cast< size_t >( __LINE__ ) )
+
+/** create a kernel object out of a functor type name
+ * 
+ * this macro add the current filename and line number to the kernel object
+ * 
+ * @param ... type of the kernel functor 
+ */ 
+#define PMACC_TYPEKERNEL( ... ) PMacc::kernel( __VA_ARGS__{}, __FILE__,  static_cast< size_t >( __LINE__ ) )
+
+#include "eventSystem/events/kernelEvents.tpp"
