@@ -34,67 +34,69 @@
 namespace picongpu
 {
 
-template< class ParBox>
-__global__ void kernelAddOneParticle(ParBox pb,
-                                     DataSpace<simDim> superCell, DataSpace<simDim> parLocalCell)
+struct kernelAddOneParticle
 {
-    typedef typename ParBox::FramePtr FramePtr;
-
-    FramePtr frame;
-
-    int linearIdx = DataSpaceOperations<simDim>::template map<MappingDesc::SuperCellSize > (parLocalCell);
-
-    float_X parWeighting = particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE;
-
-    frame = pb.getEmptyFrame();
-    pb.setAsLastFrame(frame, superCell);
-
-
-
-
-    // many particle loop:
-    for (unsigned i = 0; i < 1; ++i)
+    template< class ParBox >
+    DINLINE void operator()(ParBox pb, DataSpace<simDim> superCell, DataSpace<simDim> parLocalCell) const
     {
+        typedef typename ParBox::FramePtr FramePtr;
 
-        PMACC_AUTO(par, frame[i]);
+        FramePtr frame;
 
-        /** we now initialize all attributes of the new particle to their default values
-         *   some attributes, such as the position, localCellIdx, weighting or the
-         *   multiMask (\see AttrToIgnore) of the particle will be set individually
-         *   in the following lines since they are already known at this point.
-         */
+        int linearIdx = DataSpaceOperations<simDim>::template map<MappingDesc::SuperCellSize > (parLocalCell);
+
+        float_X parWeighting = particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE;
+
+        frame = pb.getEmptyFrame();
+        pb.setAsLastFrame(frame, superCell);
+
+
+
+
+        // many particle loop:
+        for (unsigned i = 0; i < 1; ++i)
         {
-            typedef typename ParBox::FrameType FrameType;
-            typedef typename FrameType::ValueTypeSeq ParticleAttrList;
-            typedef bmpl::vector4<position<>, multiMask, localCellIdx, weighting> AttrToIgnore;
-            typedef typename ResolveAndRemoveFromSeq<ParticleAttrList, AttrToIgnore>::type ParticleCleanedAttrList;
 
-            algorithms::forEach::ForEach<ParticleCleanedAttrList,
-                SetAttributeToDefault<bmpl::_1> > setToDefault;
-            setToDefault(forward(par));
+            PMACC_AUTO(par, frame[i]);
+
+            /** we now initialize all attributes of the new particle to their default values
+             *   some attributes, such as the position, localCellIdx, weighting or the
+             *   multiMask (\see AttrToIgnore) of the particle will be set individually
+             *   in the following lines since they are already known at this point.
+             */
+            {
+                typedef typename ParBox::FrameType FrameType;
+                typedef typename FrameType::ValueTypeSeq ParticleAttrList;
+                typedef bmpl::vector4<position<>, multiMask, localCellIdx, weighting> AttrToIgnore;
+                typedef typename ResolveAndRemoveFromSeq<ParticleAttrList, AttrToIgnore>::type ParticleCleanedAttrList;
+
+                algorithms::forEach::ForEach<ParticleCleanedAttrList,
+                    SetAttributeToDefault<bmpl::_1> > setToDefault;
+                setToDefault(forward(par));
+            }
+            floatD_X pos = float3_X(LOCAL_POS_X, LOCAL_POS_Y, LOCAL_POS_Z).shrink<simDim>();
+
+            const float_X GAMMA0 = (float_X) (1.0 / sqrt(1.0 - (BETA0_X * BETA0_X + BETA0_Y * BETA0_Y + BETA0_Z * BETA0_Z)));
+            float3_X mom = float3_X(
+                                    GAMMA0 * attribute::getMass(parWeighting,par) * float_X(BETA0_X) * SPEED_OF_LIGHT,
+                                    GAMMA0 * attribute::getMass(parWeighting,par) * float_X(BETA0_Y) * SPEED_OF_LIGHT,
+                                    GAMMA0 * attribute::getMass(parWeighting,par) * float_X(BETA0_Z) * SPEED_OF_LIGHT
+                                    );
+
+            par[position_] = pos;
+            par[momentum_] = mom;
+            par[multiMask_] = 1;
+            par[localCellIdx_] = linearIdx;
+            par[weighting_] = parWeighting;
+
+    #if(ENABLE_RADIATION == 1)
+    #if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
+            par[radiationFlag_] = true;
+    #endif
+    #endif
         }
-        floatD_X pos = float3_X(LOCAL_POS_X, LOCAL_POS_Y, LOCAL_POS_Z).shrink<simDim>();
-
-        const float_X GAMMA0 = (float_X) (1.0 / sqrt(1.0 - (BETA0_X * BETA0_X + BETA0_Y * BETA0_Y + BETA0_Z * BETA0_Z)));
-        float3_X mom = float3_X(
-                                GAMMA0 * attribute::getMass(parWeighting,par) * float_X(BETA0_X) * SPEED_OF_LIGHT,
-                                GAMMA0 * attribute::getMass(parWeighting,par) * float_X(BETA0_Y) * SPEED_OF_LIGHT,
-                                GAMMA0 * attribute::getMass(parWeighting,par) * float_X(BETA0_Z) * SPEED_OF_LIGHT
-                                );
-
-        par[position_] = pos;
-        par[momentum_] = mom;
-        par[multiMask_] = 1;
-        par[localCellIdx_] = linearIdx;
-        par[weighting_] = parWeighting;
-
-#if(ENABLE_RADIATION == 1)
-#if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
-        par[radiationFlag_] = true;
-#endif
-#endif
     }
-}
+};
 
 template<class ParticlesClass>
 class ParticlesInitOneParticle
@@ -128,7 +130,7 @@ public:
         std::cout << "localSuperCell: " << localSuperCell << std::endl;
         std::cout << "cellInSuperCell: " << cellInSuperCell << std::endl;
 
-        __cudaKernel(kernelAddOneParticle)
+        PMACC_TYPEKERNEL(kernelAddOneParticle)
             (1, 1)
             (parClass.getDeviceParticlesBox(),
              localSuperCell, cellInSuperCell);
