@@ -152,14 +152,14 @@ public:
             filter.setWindowPosition(params->localWindowToDomainOffset,
                                      params->window.localDimensions.size);
 
-            dim3 block(PMacc::math::CT::volume<SuperCellSize>::type::value);
+            auto block = PMacc::math::CT::volume<SuperCellSize>::type::value;
 
             /* int: assume < 2e9 particles per GPU */
             GridBuffer<int, DIM1> counterBuffer(DataSpace<DIM1>(1));
             AreaMapping < CORE + BORDER, MappingDesc > mapper(*(params->cellDescription));
 
             /* this sanity check costs a little bit of time but hdf5 writing is slower */
-            __cudaKernel(copySpecies)
+            PMACC_TYPEKERNEL(copySpecies)
                 (mapper.getGridDim(), block)
                 (counterBuffer.getDeviceBuffer().getPointer(),
                  deviceFrame, speciesTmp->getDeviceParticlesBox(),

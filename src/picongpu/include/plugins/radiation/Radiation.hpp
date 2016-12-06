@@ -1168,7 +1168,7 @@ private:
        * percent) and definitely slower on Kepler GPUs (sm_3x, tested on K20))
        */
       const int N_observer = parameters::N_observer;
-      const dim3 gridDim_rad(N_observer);
+      const auto gridDim_rad = N_observer;
 
       /* number of threads per block = number of cells in a super cell
        *          = number of particles in a Frame
@@ -1178,7 +1178,7 @@ private:
        * Particles in a Frame can be accessed in parallel.
        */
 
-      const dim3 blockDim_rad(PMacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value);
+      const auto blockDim_rad = PMacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
 
       // Some funny things that make it possible for the kernel to calculate
       // the absolute position of the particles
@@ -1190,7 +1190,7 @@ private:
 
 
       // PIC-like kernel call of the radiation kernel
-      __cudaKernel(kernelRadiationParticles)
+      PMACC_TYPEKERNEL(kernelRadiationParticles)
         (gridDim_rad, blockDim_rad)
         (
          /*Pointer to particles memory on the device*/

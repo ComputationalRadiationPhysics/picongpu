@@ -74,9 +74,10 @@ private:
                 typename CurlB::UpperMargin
                 > BlockArea;
 
-        __picKernelArea((kernelUpdateE<BlockArea, CurlB>), m_cellDescription, AREA)
-                (SuperCellSize::toRT().toDim3())
-                (this->fieldE->getDeviceDataBox(), this->fieldB->getDeviceDataBox());
+        AreaMapping<AREA, MappingDesc> mapper(m_cellDescription);
+        PMACC_TYPEKERNEL(kernelUpdateE<BlockArea, CurlB>)
+                (mapper.getGridDim(), SuperCellSize::toRT())
+                (this->fieldE->getDeviceDataBox(), this->fieldB->getDeviceDataBox(),mapper);
     }
 
     template<uint32_t AREA>
@@ -88,10 +89,12 @@ private:
                 typename CurlE::UpperMargin
                 > BlockArea;
 
-        __picKernelArea((kernelUpdateBHalf<BlockArea, CurlE>), m_cellDescription, AREA)
-                (SuperCellSize::toRT().toDim3())
+        AreaMapping<AREA, MappingDesc> mapper(m_cellDescription);
+        PMACC_TYPEKERNEL(kernelUpdateBHalf<BlockArea, CurlE>)
+                (mapper.getGridDim(), SuperCellSize::toRT())
                 (this->fieldB->getDeviceDataBox(),
-                this->fieldE->getDeviceDataBox());
+                this->fieldE->getDeviceDataBox(),
+                mapper);
     }
 
 public:

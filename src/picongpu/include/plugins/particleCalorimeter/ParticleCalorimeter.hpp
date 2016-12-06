@@ -515,12 +515,12 @@ public:
         this->calorimeterFunctor->setCalorimeterCursor(this->dBufLeftParsCalorimeter->origin());
 
         ExchangeMapping<GUARD, MappingDesc> mapper(*this->cellDescription, direction);
-        dim3 grid(mapper.getGridDim());
+        auto grid = mapper.getGridDim();
 
         DataConnector &dc = Environment<>::get().DataConnector();
         ParticlesType* particles = &(dc.getData<ParticlesType > (speciesName, true));
 
-        __cudaKernel(kernelParticleCalorimeter)
+        PMACC_TYPEKERNEL(kernelParticleCalorimeter)
                 (grid, mapper.getSuperCellSize())
                 (particles->getDeviceParticlesBox(), (MyCalorimeterFunctor)*this->calorimeterFunctor, mapper);
     }

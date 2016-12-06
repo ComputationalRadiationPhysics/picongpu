@@ -58,194 +58,207 @@ namespace picongpu
 
 using namespace PMacc;
 
-template<class T_MyParBox, class T_OtherFrameBox, class T_ManipulateFunctor, class Mapping>
-__global__ void kernelDeriveParticles(T_MyParBox myBox, T_OtherFrameBox otherBox, T_ManipulateFunctor manipulateFunctor, Mapping mapper)
+
+struct kernelDeriveParticles
 {
-    using namespace PMacc::particles::operations;
-    typedef typename T_MyParBox::FramePtr MyFramePtr;
-    typedef typename T_OtherFrameBox::FramePtr OtherFramePtr;
-
-    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<OtherFramePtr>::type frame;
-
-    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<MyFramePtr>::type myFrame;
-
-
-    typedef typename Mapping::SuperCellSize SuperCellSize;
-
-
-    const DataSpace<Mapping::Dim> block = mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx));
-
-    if (threadIdx.x == 0)
+    template<class T_MyParBox, class T_OtherFrameBox, class T_ManipulateFunctor, class Mapping>
+    DINLINE void operator()(T_MyParBox myBox, T_OtherFrameBox otherBox, T_ManipulateFunctor manipulateFunctor, Mapping mapper) const
     {
-        frame = otherBox.getFirstFrame(block);
-        if (frame.isValid())
-        {
-            //we have everything to clone
-            myFrame = myBox.getEmptyFrame();
-        }
-    }
-    __syncthreads();
-    while (frame.isValid()) //move over all Frames
-    {
-        PMACC_AUTO(parDest, myFrame[threadIdx.x]);
-        PMACC_AUTO(parSrc, frame[threadIdx.x]);
-        assign(parDest, deselect<particleId>(parSrc));
+        using namespace PMacc::particles::operations;
+        typedef typename T_MyParBox::FramePtr MyFramePtr;
+        typedef typename T_OtherFrameBox::FramePtr OtherFramePtr;
 
-        const DataSpace<simDim> localCellIdx = block * SuperCellSize::toRT()
-            + DataSpaceOperations<simDim>::map<SuperCellSize>(threadIdx.x)
-            - mapper.getGuardingSuperCells() * SuperCellSize::toRT();
-        manipulateFunctor(localCellIdx,
-                          parDest, parSrc,
-                          true, parSrc[multiMask_] == 1);
+        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<OtherFramePtr>::type frame;
 
-        __syncthreads();
+        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<MyFramePtr>::type myFrame;
+
+
+        typedef typename Mapping::SuperCellSize SuperCellSize;
+
+
+        const DataSpace<Mapping::Dim> block = mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx));
 
         if (threadIdx.x == 0)
         {
-            myBox.setAsLastFrame(myFrame, block);
-
-            frame = otherBox.getNextFrame(frame);
+            frame = otherBox.getFirstFrame(block);
             if (frame.isValid())
             {
+                //we have everything to clone
                 myFrame = myBox.getEmptyFrame();
             }
         }
         __syncthreads();
-    }
-}
+        while (frame.isValid()) //move over all Frames
+        {
+            PMACC_AUTO(parDest, myFrame[threadIdx.x]);
+            PMACC_AUTO(parSrc, frame[threadIdx.x]);
+            assign(parDest, deselect<particleId>(parSrc));
 
-/* kernel must called with one dimension for blockSize */
-template<typename T_ParticleFunctor,typename T_ParBox,  class Mapping>
-__global__ void kernelManipulateAllParticles(T_ParBox pb,
-                                             T_ParticleFunctor particleFunctor,
-                                             Mapping mapper)
+            const DataSpace<simDim> localCellIdx = block * SuperCellSize::toRT()
+                + DataSpaceOperations<simDim>::map<SuperCellSize>(threadIdx.x)
+                - mapper.getGuardingSuperCells() * SuperCellSize::toRT();
+            manipulateFunctor(localCellIdx,
+                              parDest, parSrc,
+                              true, parSrc[multiMask_] == 1);
+
+            __syncthreads();
+
+            if (threadIdx.x == 0)
+            {
+                myBox.setAsLastFrame(myFrame, block);
+
+                frame = otherBox.getNextFrame(frame);
+                if (frame.isValid())
+                {
+                    myFrame = myBox.getEmptyFrame();
+                }
+            }
+            __syncthreads();
+        }
+    }
+};
+
+struct kernelManipulateAllParticles
 {
-    typedef typename T_ParBox::FramePtr FramePtr;
-    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
-
-    typedef typename Mapping::SuperCellSize SuperCellSize;
-
-
-    const DataSpace<simDim > threadIndex(threadIdx);
-    const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
-
-    const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
-
-    if (linearThreadIdx == 0)
+    /* kernel must called with one dimension for blockSize */
+    template<typename T_ParticleFunctor,typename T_ParBox,  class Mapping>
+    DINLINE void operator()(
+        T_ParBox pb,
+        T_ParticleFunctor particleFunctor,
+        Mapping mapper) const
     {
-        frame = pb.getLastFrame(superCellIdx);
-    }
+        typedef typename T_ParBox::FramePtr FramePtr;
+        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
 
-    __syncthreads();
-    if (!frame.isValid())
-        return; //end kernel if we have no frames
-
-    /* BUGFIX to issue #538
-     * volatile prohibits that the compiler creates wrong code*/
-    volatile bool isParticle = (*frame)[linearThreadIdx][multiMask_];
-
-    const DataSpace<simDim> idx(superCellIdx * SuperCellSize::toRT() + threadIndex);
-    const DataSpace<simDim> localCellIdx = idx - mapper.getGuardingSuperCells() * SuperCellSize::toRT();
+        typedef typename Mapping::SuperCellSize SuperCellSize;
 
 
-    __syncthreads();
+        const DataSpace<simDim > threadIndex(threadIdx);
+        const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
 
-    while (frame.isValid())
-    {
-        PMACC_AUTO(particle, frame[linearThreadIdx]);
-        particleFunctor(localCellIdx, particle, particle, isParticle, isParticle);
+        const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
 
-        __syncthreads();
         if (linearThreadIdx == 0)
         {
-            frame = pb.getPreviousFrame(frame);
+            frame = pb.getLastFrame(superCellIdx);
         }
-        isParticle = true;
+
         __syncthreads();
-    }
-}
+        if (!frame.isValid())
+            return; //end kernel if we have no frames
 
-template<class BlockDescription_, class ParBox, class BBox, class EBox, class Mapping, class FrameSolver>
-__global__ void kernelMoveAndMarkParticles(ParBox pb,
-                                           EBox fieldE,
-                                           BBox fieldB,
-                                           FrameSolver frameSolver,
-                                           Mapping mapper)
-{
-    /* definitions for domain variables, like indices of blocks and threads
-     *
-     * conversion from block to linear frames */
-    typedef typename BlockDescription_::SuperCellSize SuperCellSize;
-    typedef typename ParBox::FramePtr FramePtr;
+        /* BUGFIX to issue #538
+         * volatile prohibits that the compiler creates wrong code*/
+        volatile bool isParticle = (*frame)[linearThreadIdx][multiMask_];
 
-    const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+        const DataSpace<simDim> idx(superCellIdx * SuperCellSize::toRT() + threadIndex);
+        const DataSpace<simDim> localCellIdx = idx - mapper.getGuardingSuperCells() * SuperCellSize::toRT();
 
 
-    const DataSpace<simDim > threadIndex(threadIdx);
-    const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
+        __syncthreads();
 
-
-    const DataSpace<simDim> blockCell = block * SuperCellSize::toRT();
-
-
-
-    FramePtr frame;
-
-    __shared__ int mustShift;
-    lcellId_t particlesInSuperCell;
-
-
-    if (linearThreadIdx == 0)
-    {
-        mustShift = 0;
-    }
-    frame = pb.getLastFrame(block);
-    particlesInSuperCell = pb.getSuperCell(block).getSizeLastFrame();
-
-    PMACC_AUTO(cachedB, CachedBox::create < 0, typename BBox::ValueType > (BlockDescription_()));
-    PMACC_AUTO(cachedE, CachedBox::create < 1, typename EBox::ValueType > (BlockDescription_()));
-
-    __syncthreads();
-    if (!frame.isValid())
-        return; //end kernel if we have no frames
-
-
-    PMACC_AUTO(fieldBBlock, fieldB.shift(blockCell));
-
-    nvidia::functors::Assign assign;
-    ThreadCollective<BlockDescription_> collective(linearThreadIdx);
-    collective(
-              assign,
-              cachedB,
-              fieldBBlock
-              );
-
-    PMACC_AUTO(fieldEBlock, fieldE.shift(blockCell));
-    collective(
-              assign,
-              cachedE,
-              fieldEBlock
-              );
-    __syncthreads();
-
-    /*move over frames and call frame solver*/
-    while (frame.isValid())
-    {
-        if (linearThreadIdx < particlesInSuperCell)
+        while (frame.isValid())
         {
-            frameSolver(*frame, linearThreadIdx, cachedB, cachedE, mustShift);
-        }
-        frame = pb.getPreviousFrame(frame);
-        particlesInSuperCell = PMacc::math::CT::volume<SuperCellSize>::type::value;
+            PMACC_AUTO(particle, frame[linearThreadIdx]);
+            particleFunctor(localCellIdx, particle, particle, isParticle, isParticle);
 
+            __syncthreads();
+            if (linearThreadIdx == 0)
+            {
+                frame = pb.getPreviousFrame(frame);
+            }
+            isParticle = true;
+            __syncthreads();
+        }
     }
-    __syncthreads();
-    /*set in SuperCell the mustShift flag which is a optimization for shift particles and fillGaps*/
-    if (linearThreadIdx == 0 && mustShift == 1)
-    {
-        pb.getSuperCell(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx))).setMustShift(true);
-    }
-}
+};
+
+template< class BlockDescription_ >
+struct kernelMoveAndMarkParticles
+{
+    template<class ParBox, class BBox, class EBox, class Mapping, class FrameSolver>
+    DINLINE void operator()(
+       ParBox pb,
+       EBox fieldE,
+       BBox fieldB,
+       FrameSolver frameSolver,
+       Mapping mapper) const
+   {
+       /* definitions for domain variables, like indices of blocks and threads
+        *
+        * conversion from block to linear frames */
+       typedef typename BlockDescription_::SuperCellSize SuperCellSize;
+       typedef typename ParBox::FramePtr FramePtr;
+
+       const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+
+
+       const DataSpace<simDim > threadIndex(threadIdx);
+       const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
+
+
+       const DataSpace<simDim> blockCell = block * SuperCellSize::toRT();
+
+
+
+       FramePtr frame;
+
+       __shared__ int mustShift;
+       lcellId_t particlesInSuperCell;
+
+
+       if (linearThreadIdx == 0)
+       {
+           mustShift = 0;
+       }
+       frame = pb.getLastFrame(block);
+       particlesInSuperCell = pb.getSuperCell(block).getSizeLastFrame();
+
+       PMACC_AUTO(cachedB, CachedBox::create < 0, typename BBox::ValueType > (BlockDescription_()));
+       PMACC_AUTO(cachedE, CachedBox::create < 1, typename EBox::ValueType > (BlockDescription_()));
+
+       __syncthreads();
+       if (!frame.isValid())
+           return; //end kernel if we have no frames
+
+
+       PMACC_AUTO(fieldBBlock, fieldB.shift(blockCell));
+
+       nvidia::functors::Assign assign;
+       ThreadCollective<BlockDescription_> collective(linearThreadIdx);
+       collective(
+                 assign,
+                 cachedB,
+                 fieldBBlock
+                 );
+
+       PMACC_AUTO(fieldEBlock, fieldE.shift(blockCell));
+       collective(
+                 assign,
+                 cachedE,
+                 fieldEBlock
+                 );
+       __syncthreads();
+
+       /*move over frames and call frame solver*/
+       while (frame.isValid())
+       {
+           if (linearThreadIdx < particlesInSuperCell)
+           {
+               frameSolver(*frame, linearThreadIdx, cachedB, cachedE, mustShift);
+           }
+           frame = pb.getPreviousFrame(frame);
+           particlesInSuperCell = PMacc::math::CT::volume<SuperCellSize>::type::value;
+
+       }
+       __syncthreads();
+       /*set in SuperCell the mustShift flag which is a optimization for shift particles and fillGaps*/
+       if (linearThreadIdx == 0 && mustShift == 1)
+       {
+           pb.getSuperCell(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx))).setMustShift(true);
+       }
+   }
+};
 
 template<class PushAlgo, class TVec, class T_Field2ParticleInterpolation>
 struct PushParticlePerFrame

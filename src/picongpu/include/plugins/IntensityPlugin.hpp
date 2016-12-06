@@ -51,67 +51,70 @@ using namespace PMacc;
 /* count particles in an area
  * is not optimized, it checks any particle position if it is really a particle
  */
-template<class FieldBox, class BoxMax, class BoxIntegral>
-__global__ void kernelIntensity(FieldBox field, DataSpace<simDim> cellsCount, BoxMax boxMax, BoxIntegral integralBox)
+struct kernelIntensity
 {
-
-    typedef MappingDesc::SuperCellSize SuperCellSize;
-    __shared__ float_X s_integrated[SuperCellSize::y::value];
-    __shared__ float_X s_max[SuperCellSize::y::value];
-
-
-    /*descripe size of a worker block for cached memory*/
-    typedef SuperCellDescription<
-        PMacc::math::CT::Int<SuperCellSize::x::value,SuperCellSize::y::value>
-        > SuperCell2D;
-
-    PMACC_AUTO(s_field, CachedBox::create < 0, float_32> (SuperCell2D()));
-
-    int y = blockIdx.y * SuperCellSize::y::value + threadIdx.y;
-    int yGlobal = y + SuperCellSize::y::value;
-    const DataSpace<DIM2> threadId(threadIdx);
-
-    if (threadId.x() == 0)
+    template<class FieldBox, class BoxMax, class BoxIntegral>
+    DINLINE void operator()(FieldBox field, DataSpace<simDim> cellsCount, BoxMax boxMax, BoxIntegral integralBox) const
     {
-        /*clear destination arrays*/
-        s_integrated[threadId.y()] = float_X(0.0);
-        s_max[threadId.y()] = float_X(0.0);
-    }
-    __syncthreads();
 
-    /*move cell wise over z direction(without garding cells)*/
-    for (int z = GUARD_SIZE * SuperCellSize::z::value; z < cellsCount.z() - GUARD_SIZE * SuperCellSize::z::value; ++z)
-    {
-        /*move supercell wise over x direction without guarding*/
-        for (int x = GUARD_SIZE * SuperCellSize::x::value + threadId.x(); x < cellsCount.x() - GUARD_SIZE * SuperCellSize::x::value; x += SuperCellSize::x::value)
+        typedef MappingDesc::SuperCellSize SuperCellSize;
+        __shared__ float_X s_integrated[SuperCellSize::y::value];
+        __shared__ float_X s_max[SuperCellSize::y::value];
+
+
+        /*descripe size of a worker block for cached memory*/
+        typedef SuperCellDescription<
+            PMacc::math::CT::Int<SuperCellSize::x::value,SuperCellSize::y::value>
+            > SuperCell2D;
+
+        PMACC_AUTO(s_field, CachedBox::create < 0, float_32> (SuperCell2D()));
+
+        int y = blockIdx.y * SuperCellSize::y::value + threadIdx.y;
+        int yGlobal = y + SuperCellSize::y::value;
+        const DataSpace<DIM2> threadId(threadIdx);
+
+        if (threadId.x() == 0)
         {
-            const float3_X field_at_point(field(DataSpace<DIM3 > (x, yGlobal, z)));
-            s_field(threadId) = math::abs2(field_at_point);
-            __syncthreads();
-            if (threadId.x() == 0)
-            {
-                /*master threads moves cell wise over 2D supercell*/
-                for (int x_local = 0; x_local < SuperCellSize::x::value; ++x_local)
-                {
-                    DataSpace<DIM2> localId(x_local, threadId.y());
-                    s_integrated[threadId.y()] += s_field(localId);
-                    s_max[threadId.y()] = fmaxf(s_max[threadId.y()], s_field(localId));
+            /*clear destination arrays*/
+            s_integrated[threadId.y()] = float_X(0.0);
+            s_max[threadId.y()] = float_X(0.0);
+        }
+        __syncthreads();
 
+        /*move cell wise over z direction(without garding cells)*/
+        for (int z = GUARD_SIZE * SuperCellSize::z::value; z < cellsCount.z() - GUARD_SIZE * SuperCellSize::z::value; ++z)
+        {
+            /*move supercell wise over x direction without guarding*/
+            for (int x = GUARD_SIZE * SuperCellSize::x::value + threadId.x(); x < cellsCount.x() - GUARD_SIZE * SuperCellSize::x::value; x += SuperCellSize::x::value)
+            {
+                const float3_X field_at_point(field(DataSpace<DIM3 > (x, yGlobal, z)));
+                s_field(threadId) = math::abs2(field_at_point);
+                __syncthreads();
+                if (threadId.x() == 0)
+                {
+                    /*master threads moves cell wise over 2D supercell*/
+                    for (int x_local = 0; x_local < SuperCellSize::x::value; ++x_local)
+                    {
+                        DataSpace<DIM2> localId(x_local, threadId.y());
+                        s_integrated[threadId.y()] += s_field(localId);
+                        s_max[threadId.y()] = fmaxf(s_max[threadId.y()], s_field(localId));
+
+                    }
                 }
             }
         }
+        __syncthreads();
+
+        if (threadId.x() == 0)
+        {
+            /*copy result to global array*/
+            integralBox[y] = s_integrated[threadId.y()];
+            boxMax[y] = s_max[threadId.y()];
+        }
+
+
     }
-    __syncthreads();
-
-    if (threadId.x() == 0)
-    {
-        /*copy result to global array*/
-        integralBox[y] = s_integrated[threadId.y()];
-        boxMax[y] = s_max[threadId.y()];
-    }
-
-
-}
+};
 
 class IntensityPlugin : public ILightweightPlugin
 {
@@ -333,12 +336,12 @@ private:
         FieldE* fieldE = &(dc.getData<FieldE > (FieldE::getName(), true));
 
         /*start only worker for any supercell in laser propagation direction*/
-        dim3 grid(1, cellDescription->getGridSuperCells().y() - cellDescription->getGuardingSuperCells());
+        DataSpace<DIM2> grid(1,cellDescription->getGridSuperCells().y() - cellDescription->getGuardingSuperCells());
         /*use only 2D slice XY for supercell handling*/
         typedef typename MappingDesc::SuperCellSize SuperCellSize;
-        dim3 block(PMacc::math::CT::Vector<SuperCellSize::x,SuperCellSize::y>::toRT().toDim3());
+        auto  block = PMacc::math::CT::Vector<SuperCellSize::x,SuperCellSize::y>::toRT();
 
-        __cudaKernel(kernelIntensity)
+        PMACC_TYPEKERNEL(kernelIntensity)
             (grid, block)
             (
              fieldE->getDeviceDataBox(),

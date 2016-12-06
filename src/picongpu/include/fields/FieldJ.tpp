@@ -185,10 +185,10 @@ void FieldJ::bashField( uint32_t exchangeType )
 {
     ExchangeMapping<GUARD, MappingDesc> mapper( this->cellDescription, exchangeType );
 
-    dim3 grid = mapper.getGridDim( );
+    auto grid = mapper.getGridDim( );
 
     const DataSpace<simDim> direction = Mask::getRelativeDirections<simDim > ( mapper.getExchangeType( ) );
-    __cudaKernel( kernelBashCurrent )
+    PMACC_TYPEKERNEL( kernelBashCurrent )
         ( grid, mapper.getSuperCellSize( ) )
         ( fieldJ.getDeviceBuffer( ).getDataBox( ),
           fieldJ.getSendExchange( exchangeType ).getDeviceBuffer( ).getDataBox( ),
@@ -201,10 +201,10 @@ void FieldJ::insertField( uint32_t exchangeType )
 {
     ExchangeMapping<GUARD, MappingDesc> mapper( this->cellDescription, exchangeType );
 
-    dim3 grid = mapper.getGridDim( );
+    auto grid = mapper.getGridDim( );
 
     const DataSpace<simDim> direction = Mask::getRelativeDirections<simDim > ( mapper.getExchangeType( ) );
-    __cudaKernel( kernelInsertCurrent )
+    PMACC_TYPEKERNEL( kernelInsertCurrent )
         ( grid, mapper.getSuperCellSize( ) )
         ( fieldJ.getDeviceBuffer( ).getDataBox( ),
           fieldJ.getReceiveExchange( exchangeType ).getDeviceBuffer( ).getDataBox( ),
@@ -302,7 +302,7 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t )
 
     do
     {
-        __cudaKernel( ( kernelComputeCurrent<workerMultiplier, BlockArea, AREA> ) )
+        PMACC_TYPEKERNEL( kernelComputeCurrent<workerMultiplier, BlockArea, AREA> )
             ( mapper.getGridDim( ), blockSize )
             ( jBox,
               pBox, solver, mapper );
@@ -314,14 +314,15 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t )
 template<uint32_t AREA, class T_CurrentInterpolation>
 void FieldJ::addCurrentToEMF( T_CurrentInterpolation& myCurrentInterpolation )
 {
-    __picKernelArea( ( kernelAddCurrentToEMF ),
-                     cellDescription,
-                     AREA )
-        ( MappingDesc::SuperCellSize::toRT( ).toDim3( ) )
+    AreaMapping<AREA, MappingDesc> mapper(cellDescription);
+    PMACC_TYPEKERNEL( kernelAddCurrentToEMF )
+        ( mapper.getGridDim(), MappingDesc::SuperCellSize::toRT( ) )
         ( this->fieldE->getDeviceDataBox( ),
           this->fieldB->getDeviceDataBox( ),
           this->fieldJ.getDeviceBuffer( ).getDataBox( ),
-          myCurrentInterpolation );
+          myCurrentInterpolation,
+          mapper
+        );
 }
 
 }

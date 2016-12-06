@@ -292,8 +292,9 @@ struct CallIonization
             PMACC_AUTO(electronsPtr,  tuple[typename MakeIdentifier<DestSpecies>::type()]);
 
             /* 3-dim vector : number of threads to be started in every dimension */
-            dim3 block( MappingDesc::SuperCellSize::toRT().toDim3() );
+            auto block = MappingDesc::SuperCellSize::toRT();
 
+            AreaMapping< CORE + BORDER, MappingDesc > mapper( *cellDesc );
             /** kernelIonizeParticles
              * \brief calls the ionization model and handles that electrons are created correctly
              *        while cycling through the particle frames
@@ -302,11 +303,12 @@ struct CallIonization
              * "blocks" will be calculated from "this->cellDescription" and "CORE + BORDER"
              * "threads" is calculated from the previously defined vector "block"
              */
-            __picKernelArea( particles::ionization::kernelIonizeParticles, *cellDesc, CORE + BORDER )
-                (block)
+            PMACC_TYPEKERNEL( particles::ionization::kernelIonizeParticles )
+                (mapper.getGridDim(), block)
                 ( srcSpeciesPtr->getDeviceParticlesBox( ),
                   electronsPtr->getDeviceParticlesBox( ),
-                  SelectIonizer(currentStep)
+                  SelectIonizer(currentStep),
+                  mapper
                 );
             /* fill the gaps in the created species' particle frames to ensure that only
              * the last frame is not completely filled but every other before is full

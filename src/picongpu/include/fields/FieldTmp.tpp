@@ -179,7 +179,7 @@ namespace picongpu
 
         do
         {
-            __cudaKernel( ( kernelComputeSupercells<BlockArea, AREA> ) )
+            PMACC_TYPEKERNEL( kernelComputeSupercells<BlockArea, AREA> )
                 ( mapper.getGridDim( ), mapper.getSuperCellSize( ) )
                 ( tmpBox,
                   pBox, solver, mapper );
@@ -218,10 +218,10 @@ namespace picongpu
     {
         ExchangeMapping<GUARD, MappingDesc> mapper( this->cellDescription, exchangeType );
 
-        dim3 grid = mapper.getGridDim( );
+        auto grid = mapper.getGridDim( );
 
         const DataSpace<simDim> direction = Mask::getRelativeDirections<simDim > ( mapper.getExchangeType( ) );
-        __cudaKernel( kernelBashValue )
+        PMACC_TYPEKERNEL( kernelBashValue )
             ( grid, mapper.getSuperCellSize( ) )
             ( fieldTmp->getDeviceBuffer( ).getDataBox( ),
               fieldTmp->getSendExchange( exchangeType ).getDeviceBuffer( ).getDataBox( ),
@@ -234,10 +234,10 @@ namespace picongpu
     {
         ExchangeMapping<GUARD, MappingDesc> mapper( this->cellDescription, exchangeType );
 
-        dim3 grid = mapper.getGridDim( );
+        auto grid = mapper.getGridDim( );
 
         const DataSpace<simDim> direction = Mask::getRelativeDirections<simDim > ( mapper.getExchangeType( ) );
-        __cudaKernel( kernelInsertValue )
+        PMACC_TYPEKERNEL( kernelInsertValue )
             ( grid, mapper.getSuperCellSize( ) )
             ( fieldTmp->getDeviceBuffer( ).getDataBox( ),
               fieldTmp->getReceiveExchange( exchangeType ).getDeviceBuffer( ).getDataBox( ),

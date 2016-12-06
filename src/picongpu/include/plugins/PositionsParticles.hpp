@@ -96,68 +96,71 @@ struct SglParticle
  * \warning this analyser MUST NOT be used with more than one (global!)
  * particle and is created for one-particle-test-purposes only
  */
-template<class ParBox, class FloatPos, class Mapping>
-__global__ void kernelPositionsParticles(ParBox pb,
-                                         SglParticle<FloatPos>* gParticle,
-                                         Mapping mapper)
+struct kernelPositionsParticles
 {
-
-    typedef typename ParBox::FramePtr FramePtr;
-    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
-
-
-    typedef typename Mapping::SuperCellSize SuperCellSize;
-
-    const DataSpace<simDim > threadIndex(threadIdx);
-    const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
-    const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
-
-    if (linearThreadIdx == 0)
+    template<class ParBox, class FloatPos, class Mapping>
+    DINLINE void operator()(ParBox pb,
+                                             SglParticle<FloatPos>* gParticle,
+                                             Mapping mapper) const
     {
-        frame = pb.getLastFrame(superCellIdx);
-    }
 
-    __syncthreads();
-    if (!frame.isValid())
-        return; //end kernel if we have no frames
-
-    /* BUGFIX to issue #538
-     * volatile prohibits that the compiler creates wrong code*/
-    volatile bool isParticle = frame[linearThreadIdx][multiMask_];
-
-    while (frame.isValid())
-    {
-        if (isParticle)
-        {
-            PMACC_AUTO(particle,frame[linearThreadIdx]);
-            gParticle->position = particle[position_];
-            gParticle->momentum = particle[momentum_];
-            gParticle->weighting = particle[weighting_];
-            gParticle->mass = attribute::getMass(gParticle->weighting,particle);
-            gParticle->charge = attribute::getCharge(gParticle->weighting,particle);
-            gParticle->gamma = Gamma<>()(gParticle->momentum, gParticle->mass);
-
-            // storage number in the actual frame
-            const lcellId_t frameCellNr = particle[localCellIdx_];
-
-            // offset in the actual superCell = cell offset in the supercell
-            const DataSpace<simDim> frameCellOffset(DataSpaceOperations<simDim>::template map<MappingDesc::SuperCellSize > (frameCellNr));
+        typedef typename ParBox::FramePtr FramePtr;
+        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
 
 
-            gParticle->globalCellOffset = (superCellIdx - mapper.getGuardingSuperCells())
-                * MappingDesc::SuperCellSize::toRT()
-                + frameCellOffset;
-        }
-        __syncthreads();
+        typedef typename Mapping::SuperCellSize SuperCellSize;
+
+        const DataSpace<simDim > threadIndex(threadIdx);
+        const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
+        const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+
         if (linearThreadIdx == 0)
         {
-            frame = pb.getPreviousFrame(frame);
+            frame = pb.getLastFrame(superCellIdx);
         }
-        isParticle = true;
-        __syncthreads();
-    }
 
-}
+        __syncthreads();
+        if (!frame.isValid())
+            return; //end kernel if we have no frames
+
+        /* BUGFIX to issue #538
+         * volatile prohibits that the compiler creates wrong code*/
+        volatile bool isParticle = frame[linearThreadIdx][multiMask_];
+
+        while (frame.isValid())
+        {
+            if (isParticle)
+            {
+                PMACC_AUTO(particle,frame[linearThreadIdx]);
+                gParticle->position = particle[position_];
+                gParticle->momentum = particle[momentum_];
+                gParticle->weighting = particle[weighting_];
+                gParticle->mass = attribute::getMass(gParticle->weighting,particle);
+                gParticle->charge = attribute::getCharge(gParticle->weighting,particle);
+                gParticle->gamma = Gamma<>()(gParticle->momentum, gParticle->mass);
+
+                // storage number in the actual frame
+                const lcellId_t frameCellNr = particle[localCellIdx_];
+
+                // offset in the actual superCell = cell offset in the supercell
+                const DataSpace<simDim> frameCellOffset(DataSpaceOperations<simDim>::template map<MappingDesc::SuperCellSize > (frameCellNr));
+
+
+                gParticle->globalCellOffset = (superCellIdx - mapper.getGuardingSuperCells())
+                    * MappingDesc::SuperCellSize::toRT()
+                    + frameCellOffset;
+            }
+            __syncthreads();
+            if (linearThreadIdx == 0)
+            {
+                frame = pb.getPreviousFrame(frame);
+            }
+            isParticle = true;
+            __syncthreads();
+        }
+
+    }
+};
 
 template<class ParticlesType>
 class PositionsParticles : public ILightweightPlugin
@@ -254,12 +257,14 @@ private:
         SglParticle<FloatPos> positionParticleTmp;
 
         gParticle->getDeviceBuffer().setValue(positionParticleTmp);
-        dim3 block(SuperCellSize::toRT().toDim3());
+        auto block = SuperCellSize::toRT();
 
-        __picKernelArea(kernelPositionsParticles, *cellDescription, AREA)
-            (block)
+        AreaMapping<AREA, MappingDesc> mapper(*cellDescription);
+        PMACC_TYPEKERNEL(kernelPositionsParticles)
+            (mapper.getGridDim(), block)
             (particles->getDeviceParticlesBox(),
-             gParticle->getDeviceBuffer().getBasePointer());
+             gParticle->getDeviceBuffer().getBasePointer(),
+             mapper);
         gParticle->deviceToHost();
 
         DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());

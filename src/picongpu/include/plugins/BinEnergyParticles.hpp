@@ -51,146 +51,149 @@ using namespace PMacc;
 
 namespace po = boost::program_options;
 
-/* sum up the energy of all particles
- * the kinetic energy of all active particles will be calculated
- */
-template<class ParBox, class BinBox, class Mapping>
-__global__ void kernelBinEnergyParticles(ParBox pb,
-                                         BinBox gBins, int numBins,
-                                         float_X minEnergy,
-                                         float_X maxEnergy,
-                                         float_X maximumSlopeToDetectorX,
-                                         float_X maximumSlopeToDetectorZ,
-                                         Mapping mapper)
+struct kernelBinEnergyParticles
 {
-
-    typedef typename MappingDesc::SuperCellSize Block;
-    typedef typename ParBox::FramePtr FramePtr;
-
-    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
-
-    __shared__ lcellId_t particlesInSuperCell;
-
-    const bool enableDetector = maximumSlopeToDetectorX != float_X(0.0) && maximumSlopeToDetectorZ != float_X(0.0);
-
-    /* shBins index can go from 0 to (numBins+2)-1
-     * 0 is for <minEnergy
-     * (numBins+2)-1 is for >maxEnergy
+    /* sum up the energy of all particles
+     * the kinetic energy of all active particles will be calculated
      */
-    extern __shared__ float_X shBin[]; /* size must be numBins+2 because we have <min and >max */
-
-    int realNumBins = numBins + 2;
-
-
-
-    typedef typename Mapping::SuperCellSize SuperCellSize;
-    const int threads = PMacc::math::CT::volume<SuperCellSize>::type::value;
-
-    const DataSpace<simDim > threadIndex(threadIdx);
-    const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
-
-    if (linearThreadIdx == 0)
+    template<class ParBox, class BinBox, class Mapping>
+    DINLINE void operator()(ParBox pb,
+                                             BinBox gBins, int numBins,
+                                             float_X minEnergy,
+                                             float_X maxEnergy,
+                                             float_X maximumSlopeToDetectorX,
+                                             float_X maximumSlopeToDetectorZ,
+                                             Mapping mapper) const
     {
-        const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
-        frame = pb.getLastFrame(superCellIdx);
-        particlesInSuperCell = pb.getSuperCell(superCellIdx).getSizeLastFrame();
-    }
-    /* set all bins to 0 */
-    for (int i = linearThreadIdx; i < realNumBins; i += threads)
-    {
-        shBin[i] = float_X(0.);
-    }
 
-    __syncthreads();
-    if (!frame.isValid())
-      return; /* end kernel if we have no frames */
+        typedef typename MappingDesc::SuperCellSize Block;
+        typedef typename ParBox::FramePtr FramePtr;
 
-    while (frame.isValid())
-    {
-        if (linearThreadIdx < particlesInSuperCell)
-        {
-            PMACC_AUTO(particle,frame[linearThreadIdx]);
-            /* kinetic Energy for Particles: E^2 = p^2*c^2 + m^2*c^4
-             *                                   = c^2 * [p^2 + m^2*c^2] */
-            const float3_X mom = particle[momentum_];
+        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
 
-            bool calcParticle = true;
+        __shared__ lcellId_t particlesInSuperCell;
 
-            if (enableDetector && mom.y() > 0.0)
-            {
-                const float_X slopeMomX = abs(mom.x() / mom.y());
-                const float_X slopeMomZ = abs(mom.z() / mom.y());
-                if (slopeMomX >= maximumSlopeToDetectorX || slopeMomZ >= maximumSlopeToDetectorZ)
-                {
-                    calcParticle = false;
-                }
-            }
+        const bool enableDetector = maximumSlopeToDetectorX != float_X(0.0) && maximumSlopeToDetectorZ != float_X(0.0);
 
-            if (calcParticle)
-            {
-                /* \todo: this is a duplication of the code in EnergyParticles - in separate file? */
-                const float_X mom2 = math::abs2(mom);
-                const float_X weighting = particle[weighting_];
-                const float_X mass = attribute::getMass(weighting,particle);
-                const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
+        /* shBins index can go from 0 to (numBins+2)-1
+         * 0 is for <minEnergy
+         * (numBins+2)-1 is for >maxEnergy
+         */
+        extern __shared__ float_X shBin[]; /* size must be numBins+2 because we have <min and >max */
 
-                Gamma<> calcGamma;
-                const float_X gamma = calcGamma(mom, mass);
+        int realNumBins = numBins + 2;
 
-                float_X _local_energy;
 
-                if (gamma < GAMMA_THRESH)
-                {
-                    _local_energy = mom2 / (2.0f * mass); /* not relativistic use equation with more precision */
-                }
-                else
-                {
-                    /* kinetic Energy for Particles: E = (sqrt[p^2*c^2 /(m^2*c^4)+ 1] -1) m*c^2
-                     *                                   = c^2 * [p^2 + m^2*c^2]-m*c^2
-                     *                                 = (gamma - 1) * m * c^2   */
-                    _local_energy = (gamma - float_X(1.0)) * mass*c2;
-                }
-                _local_energy /= weighting;
 
-                /* +1 move value from 1 to numBins+1 */
-                int binNumber = math::floor((_local_energy - minEnergy) /
-                                      (maxEnergy - minEnergy) * (float_32) numBins) + 1;
+        typedef typename Mapping::SuperCellSize SuperCellSize;
+        const int threads = PMacc::math::CT::volume<SuperCellSize>::type::value;
 
-                const int maxBin = numBins + 1;
+        const DataSpace<simDim > threadIndex(threadIdx);
+        const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
 
-                /* all entries larger than maxEnergy go into bin maxBin */
-                binNumber = binNumber < maxBin ? binNumber : maxBin;
-
-                /* all entries smaller than minEnergy go into bin zero */
-                binNumber = binNumber > 0 ? binNumber : 0;
-
-                /*!\todo: we can't use 64bit type on this place (NVIDIA BUG?)
-                 * COMPILER ERROR: ptxas /tmp/tmpxft_00005da6_00000000-2_main.ptx, line 4246; error   : Global state space expected for instruction 'atom'
-                 * I think this is a problem with extern shared mem and atmic (only on TESLA)
-                 * NEXT BUG: don't do uint32_t w=__float2uint_rn(weighting); and use w for atomic, this create wrong results
-                 */
-                /* overflow for big weighting reduces in shared mem */
-                /* atomicAdd(&(shBin[binNumber]), (uint32_t) weighting); */
-                const float_X normedWeighting = float_X(weighting) / float_X(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
-                atomicAddWrapper(&(shBin[binNumber]), normedWeighting);
-            }
-        }
-        __syncthreads();
         if (linearThreadIdx == 0)
         {
-            frame = pb.getPreviousFrame(frame);
-            particlesInSuperCell = PMacc::math::CT::volume<Block>::type::value;
+            const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+            frame = pb.getLastFrame(superCellIdx);
+            particlesInSuperCell = pb.getSuperCell(superCellIdx).getSizeLastFrame();
+        }
+        /* set all bins to 0 */
+        for (int i = linearThreadIdx; i < realNumBins; i += threads)
+        {
+            shBin[i] = float_X(0.);
+        }
+
+        __syncthreads();
+        if (!frame.isValid())
+          return; /* end kernel if we have no frames */
+
+        while (frame.isValid())
+        {
+            if (linearThreadIdx < particlesInSuperCell)
+            {
+                PMACC_AUTO(particle,frame[linearThreadIdx]);
+                /* kinetic Energy for Particles: E^2 = p^2*c^2 + m^2*c^4
+                 *                                   = c^2 * [p^2 + m^2*c^2] */
+                const float3_X mom = particle[momentum_];
+
+                bool calcParticle = true;
+
+                if (enableDetector && mom.y() > 0.0)
+                {
+                    const float_X slopeMomX = abs(mom.x() / mom.y());
+                    const float_X slopeMomZ = abs(mom.z() / mom.y());
+                    if (slopeMomX >= maximumSlopeToDetectorX || slopeMomZ >= maximumSlopeToDetectorZ)
+                    {
+                        calcParticle = false;
+                    }
+                }
+
+                if (calcParticle)
+                {
+                    /* \todo: this is a duplication of the code in EnergyParticles - in separate file? */
+                    const float_X mom2 = math::abs2(mom);
+                    const float_X weighting = particle[weighting_];
+                    const float_X mass = attribute::getMass(weighting,particle);
+                    const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
+
+                    Gamma<> calcGamma;
+                    const float_X gamma = calcGamma(mom, mass);
+
+                    float_X _local_energy;
+
+                    if (gamma < GAMMA_THRESH)
+                    {
+                        _local_energy = mom2 / (2.0f * mass); /* not relativistic use equation with more precision */
+                    }
+                    else
+                    {
+                        /* kinetic Energy for Particles: E = (sqrt[p^2*c^2 /(m^2*c^4)+ 1] -1) m*c^2
+                         *                                   = c^2 * [p^2 + m^2*c^2]-m*c^2
+                         *                                 = (gamma - 1) * m * c^2   */
+                        _local_energy = (gamma - float_X(1.0)) * mass*c2;
+                    }
+                    _local_energy /= weighting;
+
+                    /* +1 move value from 1 to numBins+1 */
+                    int binNumber = math::floor((_local_energy - minEnergy) /
+                                          (maxEnergy - minEnergy) * (float_32) numBins) + 1;
+
+                    const int maxBin = numBins + 1;
+
+                    /* all entries larger than maxEnergy go into bin maxBin */
+                    binNumber = binNumber < maxBin ? binNumber : maxBin;
+
+                    /* all entries smaller than minEnergy go into bin zero */
+                    binNumber = binNumber > 0 ? binNumber : 0;
+
+                    /*!\todo: we can't use 64bit type on this place (NVIDIA BUG?)
+                     * COMPILER ERROR: ptxas /tmp/tmpxft_00005da6_00000000-2_main.ptx, line 4246; error   : Global state space expected for instruction 'atom'
+                     * I think this is a problem with extern shared mem and atmic (only on TESLA)
+                     * NEXT BUG: don't do uint32_t w=__float2uint_rn(weighting); and use w for atomic, this create wrong results
+                     */
+                    /* overflow for big weighting reduces in shared mem */
+                    /* atomicAdd(&(shBin[binNumber]), (uint32_t) weighting); */
+                    const float_X normedWeighting = float_X(weighting) / float_X(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
+                    atomicAddWrapper(&(shBin[binNumber]), normedWeighting);
+                }
+            }
+            __syncthreads();
+            if (linearThreadIdx == 0)
+            {
+                frame = pb.getPreviousFrame(frame);
+                particlesInSuperCell = PMacc::math::CT::volume<Block>::type::value;
+            }
+            __syncthreads();
+        }
+
+        __syncthreads();
+        for (int i = linearThreadIdx; i < realNumBins; i += threads)
+        {
+            atomicAddWrapper(&(gBins[i]), float_64(shBin[i]));
         }
         __syncthreads();
     }
-
-    __syncthreads();
-    for (int i = linearThreadIdx; i < realNumBins; i += threads)
-    {
-        atomicAddWrapper(&(gBins[i]), float_64(shBin[i]));
-    }
-    __syncthreads();
-}
+};
 
 template<class ParticlesType>
 class BinEnergyParticles : public ISimulationPlugin
@@ -389,7 +392,7 @@ private:
     void calBinEnergyParticles(uint32_t currentStep)
     {
         gBins->getDeviceBuffer().setValue(0);
-        dim3 block(MappingDesc::SuperCellSize::toRT().toDim3());
+        auto block = MappingDesc::SuperCellSize::toRT();
 
         /** Assumption: distanceToDetector >> simulated Area in y-Direction
          *          AND     simulated area in X,Z << slit  */
@@ -406,11 +409,12 @@ private:
         const float_X minEnergy = minEnergy_keV * UNITCONV_keV_to_Joule / UNIT_ENERGY;
         const float_X maxEnergy = maxEnergy_keV * UNITCONV_keV_to_Joule / UNIT_ENERGY;
 
-        __picKernelArea(kernelBinEnergyParticles, *cellDescription, AREA)
-            (block, (realNumBins) * sizeof (float_X))
+        AreaMapping<AREA, MappingDesc> mapper(*cellDescription);
+        PMACC_TYPEKERNEL(kernelBinEnergyParticles)
+            (mapper.getGridDim(), block, (realNumBins) * sizeof (float_X))
             (particles->getDeviceParticlesBox(),
              gBins->getDeviceBuffer().getDataBox(), numBins, minEnergy,
-             maxEnergy, maximumSlopeToDetectorX, maximumSlopeToDetectorZ);
+             maxEnergy, maximumSlopeToDetectorX, maximumSlopeToDetectorZ, mapper);
 
         gBins->deviceToHost();
 
