@@ -1,3 +1,4 @@
+```
 @inproceedings{Bussmann:2013:RSR:2503210.2504564,
  author = {Bussmann, M. and Burau, H. and Cowan, T. E. and Debus, A. and Huebl, A. and Juckeland, G. and Kluge, T. and Nagel, W. E. and Pausch, R. and Schmitt, F. and Schramm, U. and Schuchart, J. and Widera, R.},
  title = {Radiative Signatures of the Relativistic Kelvin-Helmholtz Instability},
@@ -15,3 +16,4 @@
  publisher = {ACM},
  address = {New York, NY, USA},
 }
+```
